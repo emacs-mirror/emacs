@@ -1,3 +1,7 @@
+2006-11-26  Kim F. Storm  <storm@cua.dk>
+
+	* kmacro.el: Fix commentary.
+
 2006-11-26  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gdb): Explain how to run in text command mode

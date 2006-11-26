@@ -1,3 +1,7 @@
+2006-11-26  Kim F. Storm  <storm@cua.dk>
+
+	* kmacro.texi (Basic Keyboard Macro): Mention F3/F4 more.
+
 2006-11-26  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (Debugger Operation): Define text command mode.
