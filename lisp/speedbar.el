@@ -2681,7 +2681,15 @@ Also resets scanner functions."
 			     "Updating speedbar to special mode: %s...done"
 			     major-mode)
 			    (speedbar-message nil))))
-		    (speedbar-update-localized-contents))
+
+ 		  ;; Update all the contents if directories change!
+ 		  (unless (and (or (member major-mode speedbar-ignored-modes)
+				   (eq af (speedbar-current-frame))
+				   (not (buffer-file-name)))
+			       ;; Always update for GUD.
+			       (not (string-equal "GUD"
+				     speedbar-initial-expansion-list-name)))
+		    (speedbar-update-localized-contents)))
 		(select-frame af))
 	    ;; Now run stealthy updates of time-consuming items
 	    (speedbar-stealthy-updates)))))
