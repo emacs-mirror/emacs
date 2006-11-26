@@ -394,8 +394,6 @@ t means that there is no stack, and we are in display-file mode.")
     (define-key gud-speedbar-key-map "e" 'speedbar-edit-line)
     (define-key gud-speedbar-key-map "\C-m" 'speedbar-edit-line)
     (define-key gud-speedbar-key-map " " 'speedbar-toggle-line-expansion)
-    (define-key gud-speedbar-key-map "[" 'speedbar-expand-line-descendants)
-    (define-key gud-speedbar-key-map "]" 'speedbar-contract-line-descendants)
     (define-key gud-speedbar-key-map "D" 'gdb-var-delete)
     (define-key gud-speedbar-key-map "p" 'gud-pp))
 
