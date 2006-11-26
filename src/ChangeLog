@@ -1,3 +1,8 @@
+2006-11-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* m/amdx86-64.h: Look for standard libs in /usr/lib64 only if that
+	directory exists.
+
 2006-11-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* w16select.c (Fw16_set_clipboard_data): Fix the call to sit_for
