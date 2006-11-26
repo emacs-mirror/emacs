@@ -358,14 +358,19 @@ This allows us to use `mail-fetch-field', etc."
 
 (defun url-http-parse-response ()
   "Parse just the response code."
-  (declare (special url-http-end-of-headers url-http-response-status))
+  (declare (special url-http-end-of-headers url-http-response-status
+		    url-http-response-version))
   (if (not url-http-end-of-headers)
       (error "Trying to parse HTTP response code in odd buffer: %s" (buffer-name)))
   (url-http-debug "url-http-parse-response called in (%s)" (buffer-name))
   (goto-char (point-min))
   (skip-chars-forward " \t\n")		; Skip any blank crap
   (skip-chars-forward "HTTP/")		; Skip HTTP Version
-  (read (current-buffer))
+  (setq url-http-response-version
+	(buffer-substring (point)
+			  (progn
+			    (skip-chars-forward "[0-9].")
+			    (point))))
   (setq url-http-response-status (read (current-buffer))))
 
 (defun url-http-handle-cookies ()
@@ -391,6 +396,7 @@ should be shown to the user."
   ;; The comments after each status code handled are taken from RFC
   ;; 2616 (HTTP/1.1)
   (declare (special url-http-end-of-headers url-http-response-status
+		    url-http-response-version
 		    url-http-method url-http-data url-http-process
 		    url-callback-function url-callback-arguments))
 
@@ -407,9 +413,19 @@ should be shown to the user."
   (mail-narrow-to-head)
   ;;(narrow-to-region (point-min) url-http-end-of-headers)
   (let ((connection (mail-fetch-field "Connection")))
-    (if (and connection
-	     (string= (downcase connection) "close"))
+    ;; In HTTP 1.0, keep the connection only if there is a
+    ;; "Connection: keep-alive" header.
+    ;; In HTTP 1.1 (and greater), keep the connection unless there is a
+    ;; "Connection: close" header
+    (cond 
+     ((string= url-http-response-version "1.0")
+      (unless (and connection
+		   (string= (downcase connection) "keep-alive"))
 	(delete-process url-http-process)))
+     (t
+      (when (and connection
+		 (string= (downcase connection) "close"))
+	(delete-process url-http-process)))))
   (let ((class nil)
 	(success nil))
     (setq class (/ url-http-response-status 100))
@@ -1093,6 +1109,7 @@ CBARGS as the arguments."
 		       url-http-content-length
 		       url-http-transfer-encoding
 		       url-http-after-change-function
+		       url-http-response-version
 		       url-http-response-status
 		       url-http-chunked-length
 		       url-http-chunked-counter
