@@ -1,3 +1,8 @@
+2006-11-26  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Watch Expressions): Mention SPC for expanding/
+	contracting watch expressions.
+
 2006-11-26  Kim F. Storm  <storm@cua.dk>
 
 	* kmacro.texi (Basic Keyboard Macro): Mention F3/F4 more.

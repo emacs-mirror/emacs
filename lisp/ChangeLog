@@ -1,3 +1,11 @@
+2006-11-26  Nick Roberts  <nickrob@snap.net.nz>
+
+	* speedbar.el (speedbar-timer-fn): Revert to old behaviour when not
+	in GUD mode.
+
+	* progmodes/gud.el (gud-install-speedbar-variables): Remove bindings:
+	speedbar-expand-line-descendants, speedbar-contract-line-descendants.
+
 2006-11-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* progmodes/cc-vars.el (c-backslash-column): Add . at end of sentence.
