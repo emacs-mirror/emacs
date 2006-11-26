@@ -2,6 +2,9 @@
 
 	* url-http.el (url-http-wait-for-headers-change-function): Use
 	`when' instead of `if' when possible.
+	(url-http): Define url-http-response-version.
+	(url-http-parse-response): Set it.
+	(url-http-parse-headers): Use it to determine keep-alive behavior.
 
 2006-11-23  Diane Murray  <disumu@x3y2z1.net>
 
