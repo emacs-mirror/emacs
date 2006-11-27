@@ -491,7 +491,7 @@ and all `time-stamp-format' compatibility."
 		 (or (eq ?. cur-char)
 		     (eq ?, cur-char) (eq ?: cur-char) (eq ?@ cur-char)
 		     (eq ?- cur-char) (eq ?+ cur-char) (eq ?_ cur-char)
-		     (eq ?\  cur-char) (eq ?# cur-char) (eq ?^ cur-char)
+		     (eq ?\s cur-char) (eq ?# cur-char) (eq ?^ cur-char)
 		     (and (eq ?\( cur-char)
 			  (not (eq prev-char ?\\))
 			  (setq paren-level (1+ paren-level)))
