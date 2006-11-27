@@ -241,7 +241,7 @@ not it is actually displayed."
 			  (cons 'keymap
 				(cons (concat
 				       (capitalize (subst-char-in-string
-						    ?- ?\  (symbol-name
+						    ?- ?\s (symbol-name
 							    minor-mode)))
 				       " Menu")
 				      (cdr menu)))))
@@ -1885,7 +1885,7 @@ and selects that window."
     (setq tail buffers)
     (while tail
       (let ((elt (car tail)))
-	(if (/= (aref (buffer-name elt) 0) ?\ )
+	(if (/= (aref (buffer-name elt) 0) ?\s)
 	    (setq head
 		  (cons
 		   (cons
