@@ -2266,6 +2266,7 @@ Setting this variable directly does not take effect.  See
     ("zh_CN.GB2312" "Chinese-GB")
     ("zh_CN.GBK" "Chinese-GBK")
     ("zh_CN.GB18030" "Chinese-GB18030")
+    ("zh_CN.UTF-8" . "Chinese-GBK")
     ("zh_CN" . "Chinese-GB")
     ("zh" . "Chinese-GB")
     ("zu" . "Latin-1") ; Zulu
@@ -2285,7 +2286,7 @@ Setting this variable directly does not take effect.  See
     ("sp" . "Cyrillic-ISO") ; Serbian (Cyrillic alphabet), e.g. X11R6.4
     ("su" . "Latin-1") ; Finnish, e.g. Solaris 2.6
     ("jp" . "Japanese") ; e.g. MS Windows
-    ("chs" . "Chinese-GB") ; MS Windows Chinese Simplified
+    ("chs" . "Chinese-GBK") ; MS Windows Chinese Simplified
     ("cht" . "Chinese-BIG5") ; MS Windows Chinese Traditional
     ("gbz" . "UTF-8") ; MS Windows Dari Persian
     ("div" . "UTF-8") ; MS Windows Divehi (Maldives)
