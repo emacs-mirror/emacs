@@ -14,6 +14,10 @@
 	(gnus-valid-select-methods, total-expire, gnus-summary-line-format)
 	(gnus-group-read-only-p): Fix space/tab mixup in docstrings.
 
+2006-11-21  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-string-to-multibyte): Alias to identity in XEmacs.
+
 2006-11-18  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
 
 	* mm-uu.el (mm-uu-pgp-signed-extract-1): Make last fix more thorough
