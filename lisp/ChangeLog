@@ -1,5 +1,7 @@
 2006-11-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* diff-mode.el (diff-mode-map): Add a binding for unified->context.
+
 	* server.el: Remove spurious * in docstrings.
 	(server-process-filter): Exit from recursive editing before processing
 	a new request.
