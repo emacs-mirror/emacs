@@ -48,7 +48,7 @@ The characters copied are inserted in the buffer before point."
       (if (< cc (current-column))
 	  (if (= (preceding-char) ?\t)
 	      (progn
-		(setq string (make-string (min n (- (current-column) cc)) ?\ ))
+		(setq string (make-string (min n (- (current-column) cc)) ?\s))
 		(setq n (- n (min n (- (current-column) cc)))))
 	    ;; In middle of ctl char => copy that whole char.
 	    (backward-char 1)))
