@@ -1,3 +1,8 @@
+2006-11-27  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* progmodes/hideshow.el (hs-already-hidden-p): Move to end of
+	line so hidden blocks will be correctly identified.
+
 2006-11-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ledit.el (ledit-save-defun, ledit-mode):
