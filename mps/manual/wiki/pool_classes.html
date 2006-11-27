@@ -71,12 +71,24 @@ You need mps_class_lo.
     <p>AMC is "Automatic, Mostly Copying": it uses copying collection 
       except when prevented by ambiguous references.  It is 
       generational.</p>
+    <p>Chain: specify capacity and mortality of generations 0..N-1.  
+      Survivors from N-1 get promoted into an arena-wide topGen 
+      (often anachronistically called the "dynamic" generation).</p>
   </dd>
 
   <dt>mps_class_amcz</dt>
   <dd>
     <p>General-purpose leaf-only pool class (for objects that contain no references).
       A variant of AMC (the Z means "Zero rank", ie. containing no references).</p>
+  </dd>
+
+  <dt>mps_class_ams</dt>
+  <dd>
+    <p>Non-moving automatic (collecting) pool class.</p>
+    <p>AMS is "Automatic Mark &amp; Sweep".  Not generational.</p>
+    <p>Chain: specify capacity and mortality of 'generation' 0.  
+      [Why?  Perhaps to trigger nursery-like collections?
+      New 2001-03-02. RHSK 2006-11-27]</p>
   </dd>
 
   <dt><a id="mps_class_lo">mps_class_lo</a></dt>
@@ -91,12 +103,14 @@ You need mps_class_lo.
        operating system I/O call.  It is not very fast.
        [Conversation with DRJ, 2006-07].</p>
     <p>(For a general-purpose leaf-only pool see AMCZ).</p>
+    <p>[Internal note: has a dummy chain]</p>
   </dd>
 
   <dt>mps_class_awl</dt>
   <dd>
     <p>For weak references, linked to normal references.
       See further AWL notes below.</p>
+    <p>[Internal note: has a dummy chain]</p>
   </dd>
 
 </dl>
@@ -226,6 +240,7 @@ NULL.
   2006-08-02  RHSK  LO is for foreign code; for leaf-only use AMCZ.
                     How to choose the right pool class.
   2006-08-07  RHSK  AMC.
+  2006-11-27  RHSK  Chains.
 </pre>
 
 
