@@ -73,7 +73,7 @@ Run hooks in `electric-buffer-menu-mode-hook' on entry.
 		  (catch 'electric-buffer-menu-select
 		    (message "<<< Press Return to bury the buffer list >>>")
 		    (if (eq (setq unread-command-events (list (read-event)))
-			    ?\ )
+			    ?\s)
 			(progn (setq unread-command-events nil)
 			       (throw 'electric-buffer-menu-select nil)))
 		    (let ((start-point (point))
