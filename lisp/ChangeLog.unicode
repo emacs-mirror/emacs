@@ -1,3 +1,22 @@
+2006-11-27  Zhang Wei  <id.brep@gmail.com>
+
+	* language/chinese.el ("Chinese-GBK"): Add tutorial.
+	("Chinese-GB18030"): Add sample-text and tutorial.
+
+	* international/fontset.el (font-encoding-alist): Add gb18030.
+	(setup-default-fontset): Likewise.
+	(x-pixel-size-width-font-regexp, vertical-centering-font-regexp):
+	Add gbk and gb18030.
+	(charset-script-alist): Likewise.
+
+	* international/characters.el: Put property
+	preferred-coding-system to gbk and gb18030.
+
+	* international/mule-cmds.el (locale-language-names): Add an entry
+	for "zh_CN.UTF-8" and change "chs" to "Chinese-GBK".
+
+	* faces.el (face-font-registry-alternatives): Add gb18030.
+
 2006-11-22  Vinicius Jose Latorre  <viniciusjl@ig.com.br>  (tiny change)
 
 	* ps-mule.el: Fix maintainer email.
