@@ -113,7 +113,9 @@ ftfont_pattern_entity (p, frame, registry)
     return Qnil;
   if (FcPatternGetCharSet (p, FC_CHARSET, 0, &charset) != FcResultMatch)
     charset = NULL;
+#ifdef FC_FONTFORMAT
   if (FcPatternGetString (p, FC_FONTFORMAT, 0, &fontformat) != FcResultMatch)
+#endif	/* FC_FONTFORMAT */
     fontformat = NULL;
 
   entity = Fmake_vector (make_number (FONT_ENTITY_MAX), null_string);
@@ -155,8 +157,10 @@ ftfont_pattern_entity (p, frame, registry)
   if (FcPatternAddString (p, FC_FILE, file) == FcFalse
       || (charset
 	  && FcPatternAddCharSet (p, FC_CHARSET, charset) == FcFalse)
+#ifdef FC_FONTFORMAT
       || (fontformat
 	  && FcPatternAddString (p, FC_FONTFORMAT, fontformat) == FcFalse)
+#endif	/* FC_FONTFORMAT */
       || (numeric >= 0
 	  && FcPatternAddInteger (p, FC_SPACING, numeric) == FcFalse))
     {
@@ -195,7 +199,11 @@ ftfont_list_generic_family (spec, frame, registry)
 
       objset = FcObjectSetBuild (FC_FOUNDRY, FC_FAMILY, FC_WEIGHT, FC_SLANT,
 				 FC_WIDTH, FC_PIXEL_SIZE, FC_SPACING,
-				 FC_CHARSET, FC_FILE, FC_FONTFORMAT, NULL);
+				 FC_CHARSET, FC_FILE,
+#ifdef FC_FONTFORMAT
+				 FC_FONTFORMAT,
+#endif	/* FC_FONTFORMAT */
+				 NULL);
       if (! objset)
 	goto err;
       pattern = FcPatternBuild (NULL, FC_FAMILY, FcTypeString,
@@ -465,7 +473,11 @@ ftfont_list (frame, spec)
 
   objset = FcObjectSetBuild (FC_FOUNDRY, FC_FAMILY, FC_WEIGHT, FC_SLANT,
 			     FC_WIDTH, FC_PIXEL_SIZE, FC_SPACING,
-			     FC_CHARSET, FC_FILE, FC_FONTFORMAT, NULL);
+			     FC_CHARSET, FC_FILE,
+#ifdef FC_FONTFORMAT
+			     FC_FONTFORMAT,
+#endif	/* FC_FONTFORMAT */
+			     NULL);
   if (! objset)
     goto err;
   if (otf_script[0])
@@ -940,18 +952,31 @@ ftfont_anchor_point (font, code, index, x, y)
 Lisp_Object
 ftfont_font_format (FcPattern *pattern)
 {
-  FcChar8 *fmt;
+  FcChar8 *str;
 
-  if (FcPatternGetString (pattern, FC_FONTFORMAT, 0, &fmt) != FcResultMatch)
+#ifdef FC_FONTFORMAT
+  if (FcPatternGetString (pattern, FC_FONTFORMAT, 0, &str) != FcResultMatch)
     return Qnil;
-  if (strcmp ((char *) fmt, "TrueType") == 0)
+  if (strcmp ((char *) str, "TrueType") == 0)
     return intern ("truetype");
-  if (strcmp ((char *) fmt, "Tyep 1") == 0)
+  if (strcmp ((char *) str, "Tyep 1") == 0)
     return intern ("type1");
-  if (strcmp ((char *) fmt, "PCF") == 0)  
+  if (strcmp ((char *) str, "PCF") == 0)  
     return intern ("pcf");
-  if (strcmp ((char *) fmt, "BDF") == 0)  
+  if (strcmp ((char *) str, "BDF") == 0)  
     return intern ("bdf");
+#else  /* not FC_FONTFORMAT */
+  if (FcPatternGetString (pattern, FC_FILE, 0, &file) != FcResultMatch)
+    return Qnil;
+  if (strcasestr ((char *) str, ".ttf") == 0)
+    return intern ("truetype");
+  if (strcasestr ((char *) str, "pfb") == 0)
+    return intern ("type1");
+  if (strcasestr ((char *) str, "pcf") == 0)  
+    return intern ("pcf");
+  if (strcasestr ((char *) str, "bdf") == 0)  
+    return intern ("bdf");
+#endif	/* not FC_FONTFORMAT */
   return intern ("unknown");
 }
 
