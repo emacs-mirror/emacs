@@ -50,6 +50,7 @@
 	("iso8859-15$" . iso-8859-15)
 	("gb2312.1980" . chinese-gb2312)
 	("gbk" . chinese-gbk)
+	("gb18030" . gb18030)
 	("jisx0208.1978" . japanese-jisx0208-1978)
 	("jisx0208" . japanese-jisx0208)
 	("jisx0201" . jisx0201)
@@ -306,6 +307,7 @@
 	  (nil . "CNS11643.1992-6")
 	  (nil . "CNS11643.1992-7")
 	  (nil . "gbk-0")
+	  (nil . "gb18030")
 	  (nil . "JISX0213.2000-1")
 	  (nil . "JISX0213.2000-2")
 	  (nil . "JISX0213.2004-1"))
@@ -323,6 +325,7 @@
 	       (nil . "CNS11643.1992-6")
 	       (nil . "CNS11643.1992-7")
 	       (nil . "gbk-0")
+	       (nil . "gb18030")
 	       (nil . "JISX0213.2000-1")
 	       (nil . "JISX0213.2000-2"))
 
@@ -363,6 +366,8 @@
 
      ;; Fallback fonts
      (nil (nil . "gb2312.1980")
+	  (nil . "gbk-0")
+	  (nil . "gb18030")
 	  (nil . "jisx0208")
 	  (nil . "ksc5601.1987")
 	  (nil . "CNS11643.1992-1")
@@ -515,11 +520,11 @@
 
 ;; Setting for suppressing XLoadQueryFont on big fonts.
 (setq x-pixel-size-width-font-regexp
-      "gb2312\\|jisx0208\\|ksc5601\\|cns11643\\|big5")
+      "gb2312\\|gbk\\|gb18030\\|jisx0208\\|ksc5601\\|cns11643\\|big5")
 
 ;; These fonts require vertical centering.
 (setq vertical-centering-font-regexp
-      "gb2312\\|jisx0208\\|jisx0212\\|ksc5601\\|cns11643\\|big5")
+      "gb2312\\|gbk\\|gb18030\\|jisx0208\\|jisx0212\\|ksc5601\\|cns11643\\|big5")
 
 ;; CDAC fonts are actually smaller than their design sizes.
 (setq face-font-rescale-alist
@@ -723,6 +728,11 @@ Done when `mouse-set-font' is called."
     (katakana-jisx0201 . kana)
     (chinese-gb2312 . han)
     (chinese-gbk . han)
+    (gb18030-2-byte . han)
+    (gb18030-4-byte-bmp . han)
+    (gb18030-4-byte-ext-1 . han)
+    (gb18030-4-byte-ext-2 . han)
+    (gb18030-4-byte-smp . han)
     (chinese-big5-1 . han)
     (chinese-big5-2 . han)
     (chinese-cns11643-1 . han)
