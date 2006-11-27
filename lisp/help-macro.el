@@ -152,7 +152,7 @@ and then returns."
 				 (progn
 				   (if (eq (car-safe char) 'switch-frame)
 				       (handle-switch-frame char))
-				   (if (memq char '(?\C-v ?\ ))
+				   (if (memq char '(?\C-v ?\s))
 				       (scroll-up))
 				   (if (or (memq char '(?\177 ?\M-v
 							delete backspace))
