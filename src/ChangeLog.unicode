@@ -1,3 +1,10 @@
+2006-11-27  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_pattern_entity): Check if FC_FONTFORMAT is
+	defined.
+	(ftfont_list_generic_family, ftfont_list, ftfont_font_format):
+	Likewise.
+
 2006-11-24  Kenichi Handa  <handa@m17n.org>
 
 	* xfont.c (xfont_open): Set font->format.
