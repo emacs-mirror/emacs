@@ -1596,14 +1596,14 @@ Buffers menu is regenerated."
 			       name))))
 		 ;; Compute the maximum length of any name.
 		 (dolist (buf buffer-list)
-		   (unless (eq ?\  (aref (cdr buf) 0))
+		   (unless (eq ?\s (aref (cdr buf) 0))
 		     (setq menu-bar-update-buffers-maxbuf
 			   (max menu-bar-update-buffers-maxbuf
 				(length (cdr buf))))))
 		 ;; Set ALIST to an alist of the form
 		 ;; ITEM-STRING . BUFFER
 		 (dolist (buf buffer-list)
-		   (unless (eq ?\  (aref (cdr buf) 0))
+		   (unless (eq ?\s (aref (cdr buf) 0))
 		     (push (menu-bar-update-buffers-1 buf) alist)))
 		 ;; Now make the actual list of items, and add
 		 ;; some miscellaneous buffer commands to the end.
