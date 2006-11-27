@@ -57,7 +57,7 @@
 *Shell commands to execute to resume Lisp compiler job.")
 
 (defun ledit-save-defun ()
-  "Save the current defun in the ledit buffer"
+  "Save the current defun in the ledit buffer."
   (interactive)
   (save-excursion
    (end-of-defun)
@@ -141,6 +141,7 @@ Like Lisp mode, plus these special commands:
   \\[ledit-go-to-lisp] -- transfer to Lisp job and transmit saved text.
   \\[ledit-go-to-liszt] -- transfer to Liszt (Lisp compiler) job
 	   and transmit saved text.
+
 \\{ledit-mode-map}
 To make Lisp mode automatically change to Ledit mode,
 do (setq lisp-mode-hook 'ledit-from-lisp-mode)"
