@@ -1,3 +1,10 @@
+2006-11-27  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (w32_msg_worker): Declare correctly.
+	(w32_initialize): Don't cast w32_msg_worker.
+
+	* w32fns.c (w32_msg_worker): Define as WINAPI and arg as void pointer.
+
 2006-11-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* m/amdx86-64.h: Look for standard libs in /usr/lib64 only if that
