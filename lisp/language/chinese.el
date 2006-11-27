@@ -233,7 +233,8 @@ converted to CNS)."))
 		 (input-method . "chinese-py-punct") ; fixme?
 		 (sample-text . "Chinese (中文,普通话,汉语) 妳好")
 		 (features china-util)
-		 (documentation . "Support for Chinese GBK character set."))
+		 (documentation . "Support for Chinese GBK character set.")
+		 (tutorial . "TUTORIAL.cn"))
  '("Chinese"))
 
 ;;; Chinese GB18030
@@ -255,9 +256,11 @@ converted to CNS)."))
 		     (coding-priority gb18030 gbk iso-2022-cn chinese-big5
 				      chinese-iso-8bit) ; fixme?
 		     (input-method . "chinese-py-punct") ; fixme?
+		     (sample-text . "Chinese (中文,普通话,汉语) 你好")
 		     (features china-util)
 		     (documentation
-		      . "Support for Chinese GB18030 character set."))
+		      . "Support for Chinese GB18030 character set.")
+		     (tutorial . "TUTORIAL.cn"))
  '("Chinese"))
 
 ;; Fixme: add HKSCS
