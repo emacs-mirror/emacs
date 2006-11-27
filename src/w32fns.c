@@ -2689,9 +2689,8 @@ cancel_all_deferred_msgs ()
   PostThreadMessage (dwWindowsThreadId, WM_NULL, 0, 0);
 }
 
-DWORD
-w32_msg_worker (dw)
-     DWORD dw;
+DWORD WINAPI
+w32_msg_worker (void *arg)
 {
   MSG msg;
   deferred_msg dummy_buf;
