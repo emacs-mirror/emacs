@@ -20,5 +20,19 @@
 */
 #define BROKEN_GET_CURRENT_DIR_NAME 1
 
+/* aix3-1.h defined _NO_PROTO, probably to work around an AIX compiler
+   that did not handle prototypes.  On (at least) AIX 5.2, this causes
+   the proper prototype to be thrown away for lseek64, so compiled
+   Lisp files do not load correctly and compilation fails.
+
+   The AIX compiler should have learned about function prototypes long
+   ago, so we can probably go ahead and undefine _NO_PROTO.  However,
+   if someone can demonstrate that this problem still exists for AIX
+   4, this should be moved into a new file (aix5.h).
+*/
+
+#undef _NO_PROTO
+
+
 /* arch-tag: 38fe75ea-6aef-42bd-8449-bc34d921a562
    (do not change this comment) */
