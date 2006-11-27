@@ -1100,7 +1100,7 @@ also display the frame address as a tooltip to help identify the frame
 in which they were defined.
 
   To expand or contract a complex data type, click @kbd{Mouse-2}
-on the tag to the left of the expression.
+or press @key{SPC} on the tag to the left of the expression.
 
 @kindex D @r{(GDB speedbar)}
 @findex gdb-var-delete
