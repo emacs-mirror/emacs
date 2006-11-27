@@ -95,7 +95,7 @@ SPC to try the command just this once, but leave it disabled.
        (while (progn (setq char (read-event))
 		     (or (not (numberp char))
 			 (not (memq (downcase char)
-				    '(?! ?y ?n ?\  ?\C-g)))))
+				    '(?! ?y ?n ?\s ?\C-g)))))
 	 (ding)
 	 (message "Please type y, n, ! or SPC (the space bar): "))))
     (setq char (downcase char))
