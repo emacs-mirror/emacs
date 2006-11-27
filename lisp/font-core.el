@@ -149,7 +149,7 @@ your own function which is called when `font-lock-mode' is toggled via
   nil nil nil
   ;; Don't turn on Font Lock mode if we don't have a display (we're running a
   ;; batch job) or if the buffer is invisible (the name starts with a space).
-  (when (or noninteractive (eq (aref (buffer-name) 0) ?\ ))
+  (when (or noninteractive (eq (aref (buffer-name) 0) ?\s))
     (setq font-lock-mode nil))
   (funcall font-lock-function font-lock-mode)
   ;; Arrange to unfontify this buffer if we change major mode later.
