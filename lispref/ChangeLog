@@ -1,3 +1,10 @@
+2006-11-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* customize.texi (Customization, Common Keywords)
+	(Group Definitions, Variable Definitions, Composite Types)
+	(Type Keywords, Customization Types): Add index entries for
+	various customization keywords.
+
 2006-11-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* modes.texi (Multiline Font Lock): Rephrase some parts for clarity.
