@@ -62,7 +62,7 @@ The characters copied are inserted in the buffer before point."
 ;; Variation of `zap-to-char'.
 
 (defun zap-up-to-char (arg char)
-  "Kill up to, but not including ARG'th occurrence of CHAR.
+  "Kill up to, but not including ARGth occurrence of CHAR.
 Case is ignored if `case-fold-search' is non-nil in the current buffer.
 Goes backward if ARG is negative; error if CHAR not found.
 Ignores CHAR at point."
