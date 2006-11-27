@@ -1,3 +1,9 @@
+2006-11-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (TRES): New macro (copied from nt/makefile.w32-in).
+	($(TRES)): New rule (copied from nt/makefile.w32-in).
+	($(BLD)/emacsclientw.exe): Add dependency.
+
 2006-11-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in ($(BLD)/emacsclient.$(O)): Depend on
