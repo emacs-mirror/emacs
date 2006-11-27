@@ -130,7 +130,7 @@ use this command, and then save the file."
       (if (vectorp definition)
 	  (let ((len (length definition)) (i 0) char mods)
 	    (while (< i len)
-	      (insert (if (zerop i) ?\[ ?\ ))
+	      (insert (if (zerop i) ?\[ ?\s))
 	      (setq char (aref definition i)
 		    i (1+ i))
 	      (cond ((not (numberp char))
