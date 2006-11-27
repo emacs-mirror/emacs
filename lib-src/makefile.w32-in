@@ -84,7 +84,9 @@ $(BLD)/emacsclientw.exe:	$(ECLIENTOBJS)
 # put wsock32.lib before $(LIBS) to ensure we don't link to ws2_32.lib
 		$(LINK) $(LINK_OUT)$@ -mwindows $(LINK_FLAGS) $(ECLIENTOBJS) $(WSOCK32) $(LIBS)
 
-$(BLD)/emacsclient.$(O):	emacsclient.c
+# emacsclient.$(O) depends on makefile.w32-in because makefile.w32-in
+# can be edited to define VERSION string, which is part of ECLIENT_CFLAGS.
+$(BLD)/emacsclient.$(O):	emacsclient.c makefile.w32-in
 		$(CC) $(CFLAGS) $(ECLIENT_CFLAGS) $(CC_OUT)$@ emacsclient.c
 
 ETAGSOBJ      = $(BLD)/etags.$(O) \
