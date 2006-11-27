@@ -117,7 +117,7 @@ Valid symbols are `truncation', `wrap', `escape', `control',
   (or standard-display-table
       (setq standard-display-table (make-display-table)))
   (while (<= l h)
-    (aset standard-display-table l (if (or (< l ?\ ) (>= l 127)) (vector l)))
+    (aset standard-display-table l (if (or (< l ?\s) (>= l 127)) (vector l)))
     (setq l (1+ l))))
 
 ;;;###autoload
@@ -126,7 +126,7 @@ Valid symbols are `truncation', `wrap', `escape', `control',
   (or standard-display-table
       (setq standard-display-table (make-display-table)))
   (while (<= l h)
-    (if (and (>= l ?\ ) (char-valid-p l))
+    (if (and (>= l ?\s) (char-valid-p l))
 	(aset standard-display-table l nil))
     (setq l (1+ l))))
 
