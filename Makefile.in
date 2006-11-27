@@ -518,7 +518,7 @@ install-arch-indep: mkdir info
 	     ${INSTALL_INFO} --info-dir=$(DESTDIR)${infodir} $(DESTDIR)${infodir}/$$elt); \
 	  done; \
 	else true; fi
-	-chmod -R a+r $(DESTDIR)${datadir}/emacs ${COPYDESTS} $(DESTDIR)${infodir}
+	-chmod -R a+r $(DESTDIR)${datadir}/emacs/${version} $(DESTDIR)${datadir}/emacs/site-lisp ${COPYDESTS} $(DESTDIR)${infodir}
 	thisdir=`/bin/pwd`; \
 	cd ${srcdir}/etc; \
 	for page in emacs emacsclient etags ctags ; do \
