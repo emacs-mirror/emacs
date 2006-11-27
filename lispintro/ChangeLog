@@ -1,3 +1,12 @@
+2006-11-27  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (usermanualdir): Define.
+	(emacs-lisp-intro.dvi): Pass -I options to texi2dvi instead of
+	using TEXINPUTS.
+
+	* emacs-lisp-intro.texi: Input texinfo instead of ../man/texinfo
+	to fix building outside source directory.
+
 2006-11-09  Robert J. Chassell  <bob@rattlesnake.com>
 
 	* emacs-lisp-intro.texi: Copy descriptions from detailed master
