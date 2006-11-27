@@ -1,3 +1,36 @@
+2006-11-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* time-stamp.el: Fix comment and obsolescence string for old
+	functions.  Use `dolist' instead of `while'.
+
+	* disp-table.el (standard-display-8bit, standard-display-default):
+	* ebuff-menu.el (electric-buffer-list):
+	* ehelp.el (electric-help-command-loop):
+	* font-core.el (font-lock-mode):
+	* help-macro.el (make-help-screen):
+	* help.el (describe-minor-mode-completion-table-for-indicator)
+	(lookup-minor-mode-from-indicator):
+	* indent.el (tab-to-tab-stop, move-to-tab-stop):
+	* info-look.el (info-lookup-guess-custom-symbol):
+	* locate.el (locate-main-listing-line-p, locate-mode, locate-do-setup):
+	* longlines.el (longlines-wrap-line):
+	* macros.el (insert-kbd-macro):
+	* menu-bar.el (menu-bar-update-buffers):
+	* misc.el (copy-from-above-command):
+	* mouse.el (mouse-popup-menubar, mouse-buffer-menu-alist):
+	* newcomment.el (comment-indent):
+	* novice.el (disabled-command-function):
+	* sort.el (sort-fields-syntax-table):
+	* subr.el (momentary-string-display):
+	* tar-mode.el (tar-header-block-summarize)
+	(tar-clear-modification-flags):
+	* terminal.el (terminal-cease-edit, te-more-break-unwind, te-newline)
+	(te-clear-rest-of-line, te-clear-rest-of-screen, te-clear-screen)
+	(te-insert-lines, te-delete-lines, te-delete, te-insert-spaces)
+	(te-delete-char, te-down-vertically-or-scroll):
+	* time-stamp.el (time-stamp-string-preprocess):
+	* tmm.el (tmm-add-one-shortcut): "?\ " -> "?\s".
+
 2006-11-26  Nick Roberts  <nickrob@snap.net.nz>
 
 	* speedbar.el (speedbar-timer-fn): Revert to old behaviour when not
@@ -2755,7 +2788,7 @@
 
 	* dired.el (dired-log-summary): Add doc string.
 
-	* cus-edit.el (custom-menu-create): Bind deactivate-mark here
+	* cus-edit.el (custom-menu-create): Bind deactivate-mark here.
 	(custom-group-menu-create): Not here.
 
 2006-09-08  Carsten Dominik  <dominik@science.uva.nl>
@@ -7048,8 +7081,7 @@
 	(defcustom, defface, defgroup): Replace reference to Customization
 	chapter in manual with hyperlink.
 
-	* cus-edit.el (customize-package-emacs-version-alist):
-	New variable.
+	* cus-edit.el (customize-package-emacs-version-alist): New variable.
 	(customize-changed-options): Add check for custom-package-version.
 	(customize-package-emacs-version): New function to look up Emacs
 	version corresponding to the given package version.
