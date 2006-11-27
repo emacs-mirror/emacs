@@ -81,11 +81,11 @@ ALTERNATIVE2 etc."
 (defcustom face-font-registry-alternatives
   (if (eq system-type 'windows-nt)
       '(("iso8859-1" "ms-oemlatin")
-	("gb2312.1980" "gb2312")
+	("gb2312.1980" "gb2312" "gbk" "gb18030")
 	("jisx0208.1990" "jisx0208.1983" "jisx0208.1978")
 	("ksc5601.1989" "ksx1001.1992" "ksc5601.1987")
 	("muletibetan-2" "muletibetan-0"))
-    '(("gb2312.1980" "gb2312.80&gb8565.88" "gbk*")
+    '(("gb2312.1980" "gb2312.80&gb8565.88" "gbk" "gb18030")
       ("jisx0208.1990" "jisx0208.1983" "jisx0208.1978")
       ("ksc5601.1989" "ksx1001.1992" "ksc5601.1987")
       ("muletibetan-2" "muletibetan-0")))
