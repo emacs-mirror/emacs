@@ -1,3 +1,7 @@
+2006-11-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* s/aix4-2.h: Undefine _NO_PROTO.
+
 2006-11-27  Kim F. Storm  <storm@cua.dk>
 
 	* window.c (set_window_buffer): Refactor recent changes.
