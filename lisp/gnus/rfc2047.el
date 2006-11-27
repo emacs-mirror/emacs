@@ -107,6 +107,8 @@ The values can be:
     (iso-2022-jp . B)
     (iso-2022-kr . B)
     (gb2312 . B)
+    (gbk . B)
+    (gb18030 . B)
     (big5 . B)
     (cn-big5 . B)
     (cn-gb . B)
