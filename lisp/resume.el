@@ -52,7 +52,7 @@
   "*This file is where arguments are placed for a suspended Emacs job.")
 
 (defvar resume-emacs-args-buffer " *Command Line Args*"
-  "Buffer that is used by resume-process-args.")
+  "Buffer that is used by `resume-process-args'.")
 
 (defun resume-process-args ()
   "Handler for command line args given when Emacs is resumed."
