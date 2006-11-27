@@ -248,7 +248,7 @@ the sort order."
     (while (< i 256)
       (modify-syntax-entry i "w" table)
       (setq i (1+ i)))
-    (modify-syntax-entry ?\  " " table)
+    (modify-syntax-entry ?\s " " table)
     (modify-syntax-entry ?\t " " table)
     (modify-syntax-entry ?\n " " table)
     (modify-syntax-entry ?\. "_" table)	; for floating pt. numbers. -wsr
