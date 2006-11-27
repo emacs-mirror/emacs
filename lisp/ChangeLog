@@ -1,7 +1,28 @@
 2006-11-27  Juanma Barranquero  <lekktu@gmail.com>
 
+	* ledit.el (ledit-save-defun, ledit-mode):
+	* resume.el (resume-emacs-args-buffer):
+	* rot13.el (rot13-display-table, rot13-translate-table, rot13)
+	(rot13-string, rot13-region, rot13-other-window, toggle-rot13-mode):
+	* vmsproc.el (subprocess-input, start-subprocess, subprocess-command)
+	(command-send-input, command-kill-line):
+	* vt100-led.el (led-state, led-on): Fix typos in docstrings.
+
+	* autoarg.el (autoarg-kp-mode): Doc fix.
+
+	* emacs-lock.el (toggle-emacs-lock): Doc fix.  Simplify.
+	(emacs-lock-check-buffer-lock): Doc fix.  Use `when'.
+	(check-emacs-lock): Doc fix.  Simplify.
+
+	* iimage.el (iimage-mode-image-regex-alist): Doc fix.
+	(iimage-mode-buffer): Fix typos in docstring.
+
+	* misc.el (zap-up-to-char): Doc fix.
+
 	* time-stamp.el: Fix comment and obsolescence string for old
 	functions.  Use `dolist' instead of `while'.
+
+	* userlock.el (ask-user-about-lock-help): Fix typos in output message.
 
 	* disp-table.el (standard-display-8bit, standard-display-default):
 	* ebuff-menu.el (electric-buffer-list):
