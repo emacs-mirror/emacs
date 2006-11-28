@@ -1,3 +1,10 @@
+2006-11-28  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-aliases): Add new alias.
+
+	* progmodes/fortran.el (fortran-font-lock-keywords-4): Add `min'.
+	(fortran-window-create-momentarily): Do not need string-to-char.
+
 2006-11-28  Richard Stallman  <rms@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-get-constant):
