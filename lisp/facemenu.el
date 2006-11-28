@@ -685,8 +685,11 @@ This is called whenever you create a new face, and at other times."
 	    symbol (intern name)))
     (setq menu 'facemenu-face-menu)
     (setq docstring
-	  (format "Select face `%s' for subsequent insertion."
-		  name))
+	  (format "Select face `%s' for subsequent insertion.
+If the mark is active and there is no prefix argument,
+apply face `%s' to the region instead.
+This command was defined by `facemenu-add-new-face'."
+		  name name))
     (cond ((facemenu-iterate ; check if equivalent face is already in the menu
 	    (lambda (m) (and (listp m)
 			     (symbolp (car m))
