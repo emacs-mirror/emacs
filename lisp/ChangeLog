@@ -1,3 +1,9 @@
+2006-11-28  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (require): Require gnus-sum during compilation
+	to avoid problem with a macro call.
+	
+
 2006-11-28  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/authors.el (authors-aliases): Add new alias.
