@@ -1185,7 +1185,7 @@ characters instead, depending on how the terminal (or terminal
 emulator) works.  Use `set-keyboard-coding-system' (or customize
 keyboard-coding-system) if you prefer META to work (the old default)
 or if the locale doesn't describe the character set actually generated
-by the keyboard.  See Info node `Single-Byte Character Support'.
+by the keyboard.  See Info node `Unibyte Mode'.
 
 +++
 *** The new command `revert-buffer-with-coding-system' (C-x RET r)
