@@ -80,11 +80,13 @@
   </li>
 </ol>
 
+<p>Note that <code>mps_arena_step</code> will still step, even if the arena has been clamped.  This is to allow a client to advance a collection only at these mps_arena_step points (but note that barrier hits will also cause collection work).</p>
+
 
 <h2><a id="section-B" name="section-B">B. Document History</a></h2>
 
 <pre>
-  2006-11-28  RHSK  Created.
+  2006-11-28  RHSK  Created: chain for AMC and AMS; mps_arena_step and mps_arena_start_collect.
 </pre>
 
 
