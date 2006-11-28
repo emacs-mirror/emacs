@@ -1,3 +1,17 @@
+2006-11-28  Kevin Ryde <user42@zip.com.au>  (tiny change)
+
+	* etags.c (readline): Check for double quote after #line.
+
+2006-11-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>  (tiny change)
+
+	* etags.c (readline): sscanf could in principle return 2.
+
+2006-11-28  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* etags.c (readline): lno is unsigned.
+	(TeX_commands): Use p++ (rather than *p++) to increment p.
+	(Lua_functions): Explicitly discard LOOKING_AT's return value.
+
 2006-11-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (TRES): New macro (copied from nt/makefile.w32-in).

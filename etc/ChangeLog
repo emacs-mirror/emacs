@@ -1,3 +1,7 @@
+2006-08-14  Masatake YAMATO  <jet@gyve.org>
+
+	* etags.1: Added / to the end of DEVAR regex.
+
 2006-11-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacsclient.1 (DESCRIPTION): Suggest also `server-mode'.
