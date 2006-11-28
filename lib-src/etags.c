@@ -41,7 +41,7 @@
  * configuration file containing regexp definitions for etags.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 17.20";
+char pot_etags_version[] = "@(#) pot revision number is $Revision: 17.22 $";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -4955,7 +4955,7 @@ Lua_functions (inf)
       if (bp[0] != 'f' && bp[0] != 'l')
 	continue;
 
-      LOOKING_AT (bp, "local");	/* skip possible "local" */
+      (void)LOOKING_AT (bp, "local"); /* skip possible "local" */
 
       if (LOOKING_AT (bp, "function"))
 	get_tag (bp, NULL);
@@ -5137,7 +5137,7 @@ TeX_commands (inf)
 		if (!opgrp || *p == TEX_clgrp)
 		  {
 		    while (*p != '\0' && *p != TEX_opgrp && *p != TEX_clgrp)
-		      *p++;
+		      p++;
 		    linelen = p - lb.buffer + 1;
 		  }
 		make_tag (cp, namelen, TRUE,
@@ -6256,15 +6256,14 @@ readline (lbp, stream)
       /* Check whether this is a #line directive. */
       if (result > 12 && strneq (lbp->buffer, "#line ", 6))
 	{
-	  int start, lno;
+	  unsigned int lno;
+	  int start = 0;
 
-	  if (DEBUG) start = 0;	/* shut up the compiler */
-	  if (sscanf (lbp->buffer, "#line %d %n\"", &lno, &start) >= 1
-	      && lbp->buffer[start] == '"')
+	  if (sscanf (lbp->buffer, "#line %u \"%n", &lno, &start) >= 1
+	      && start > 0)	/* double quote character found */
 	    {
-	      char *endp = lbp->buffer + ++start;
+	      char *endp = lbp->buffer + start;
 
-	      assert (start > 0);
 	      while ((endp = etags_strchr (endp, '"')) != NULL
 		     && endp[-1] == '\\')
 		endp++;
