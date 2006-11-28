@@ -1,3 +1,7 @@
+2006-11-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* config.in: Regenerate.
+
 2006-11-28  Kenichi Handa  <handa@m17n.org>
 
 	* regex.c (regex_compile): Don't call SET_LIST_BIT with a
