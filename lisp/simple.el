@@ -262,10 +262,10 @@ that buffer is rejected."
 	(next-error-buffer-p (current-buffer) nil
 			     extra-test-inclusive extra-test-exclusive)
 	(progn
-	  (message "This is the only next-error capable buffer")
+	  (message "This is the only buffer with error message locations")
 	  (current-buffer)))
    ;; 6. Give up.
-   (error "No next-error capable buffer found")))
+   (error "No buffers contain error message locations")))
 
 (defun next-error (&optional arg reset)
   "Visit next `next-error' message and corresponding source code.
