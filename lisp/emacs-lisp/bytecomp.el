@@ -2864,8 +2864,12 @@ That command is designed for interactive use only" fn))
 
 (defmacro byte-compile-get-constant (const)
   `(or (if (stringp ,const)
-	   (assoc-default ,const byte-compile-constants
-			  'equal-including-properties nil)
+	   ;; In a string constant, treat properties as significant.
+	   (let (result)
+	     (dolist (elt byte-compile-constants)
+	       (if (equal-including-properties (car elt) ,const)
+		   (setq result elt)))
+	     result)
 	 (assq ,const byte-compile-constants))
        (car (setq byte-compile-constants
 		  (cons (list ,const) byte-compile-constants)))))
