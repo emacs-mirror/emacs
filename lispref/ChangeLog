@@ -1,3 +1,7 @@
+2006-11-28  Richard Stallman  <rms@gnu.org>
+
+	* searching.texi (Regexp Special): Update when ^ is special.
+
 2006-11-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* customize.texi (Customization, Common Keywords)

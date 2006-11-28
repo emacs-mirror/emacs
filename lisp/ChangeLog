@@ -1,3 +1,21 @@
+2006-11-28  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-get-constant):
+	Replace incorrect use of assoc-default with a loop.
+
+	* term.el (term-exec-1): Set envvar INSIDE_EMACS.
+
+	* simple.el (next-error-find-buffer): Improve messages.
+
+	* files.el (revert-buffer): Special error message if file
+	is now not readable.
+
+	* facemenu.el (facemenu-add-new-face): Improve doc strings of
+	constructed commands.
+
+	* comint.el (comint-exec-1): Provide Emacs version and `comint'
+	in INSIDE_EMACS.
+
 2006-11-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* diff-mode.el (diff-mode-map): Add a binding for unified->context.
