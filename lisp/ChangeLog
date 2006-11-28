@@ -1,3 +1,9 @@
+2006-11-27  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-navigation): Fix
+	interactive spec of the functions getting defined to make them
+	work as documented.
+
 2006-11-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* startup.el (fancy-splash-screens): Hide initial splash buffer.
