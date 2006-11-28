@@ -29,7 +29,7 @@
 ;;; Code:
 
 (defvar led-state (make-vector 5 nil)
-   "The internal state of the LEDs.  Choices are nil, t, 'flash.
+   "The internal state of the LEDs.  Choices are nil, t, `flash'.
 Element 0 is not used.")
 
 (defun led-flash (l)
