@@ -1,3 +1,8 @@
+2006-11-28  Kenichi Handa  <handa@m17n.org>
+
+	* international/quail.el (quail-get-translations): Make
+	quail-current-key multibyte if not yet done.
+
 2006-11-27  Zhang Wei  <id.brep@gmail.com>
 
 	* language/chinese.el ("Chinese-GBK"): Add tutorial.
