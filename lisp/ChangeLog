@@ -1,3 +1,7 @@
+2006-11-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (fancy-splash-screens): Hide initial splash buffer.
+
 2006-11-28  Kim F. Storm  <storm@cua.dk>
 
 	* icomplete.el (icomplete-tidy, icomplete-exhibit): Check that
