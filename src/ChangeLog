@@ -1,3 +1,8 @@
+2006-11-28  Kenichi Handa  <handa@m17n.org>
+
+	* regex.c (regex_compile): Don't call SET_LIST_BIT with a
+	multibyte character.
+
 2006-11-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* s/aix4-2.h: Undefine _NO_PROTO.  Suggested by Joe Buehler.
