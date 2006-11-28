@@ -385,8 +385,8 @@ program\\|subroutine\\)\\>[ \t]*\\(\\sw+\\)?"
                             "dabs" "cabs" "mod" "amod" "dmod" "isign"
                             "sign" "dsign" "idim" "dim" "ddim" "dprod"
                             "max" "max0" "amax1" "dmax1" "amax0" "max1"
-                            "min0" "amin1" "dmin1" "amin0" "min1" "len"
-                            "index" "lge" "lgt" "lle" "llt" "aimag"
+                            "min" "min0" "amin1" "dmin1" "amin0" "min1"
+                            "len" "index" "lge" "lgt" "lle" "llt" "aimag"
                             "conjg" "sqrt" "dsqrt" "csqrt" "exp" "dexp"
                             "cexp" "log" "alog" "dlog" "clog" "log10"
                             "alog10" "dlog10" "sin" "dsin" "csin" "cos"
@@ -968,7 +968,7 @@ See also `fortran-window-create'."
 	    (error (error "No room for Fortran window")))
 	  (message "Type SPC to continue editing.")
 	  (let ((char (read-event)))
-	    (or (equal char (string-to-char " "))
+	    (or (equal char ?\s)
 		(setq unread-command-events (list char))))))
     (fortran-window-create)))
 
