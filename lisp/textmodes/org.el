@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.56
+;; Version: 4.56b
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -101,6 +101,7 @@
 
 (eval-when-compile
   (require 'cl)
+  (require 'gnus-sum)
   (require 'calendar))
 ;; For XEmacs, noutline is not yet provided by outline.el, so arrange for
 ;; the file noutline.el being loaded.
@@ -113,7 +114,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "4.56"
+(defvar org-version "4.56b"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
