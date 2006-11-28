@@ -2939,7 +2939,8 @@ regex_compile (pattern, size, syntax, bufp)
                         for (ch = 0; ch < 1 << BYTEWIDTH; ++ch)
 			  {
 			    int translated = TRANSLATE (ch);
-			    if (re_iswctype (btowc (ch), cc))
+			    if (translate < 1 << BYTEWIDTH
+				&& re_iswctype (btowc (ch), cc))
 			      SET_LIST_BIT (translated);
 			  }
 
