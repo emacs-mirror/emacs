@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
 <head>
-  <title>MPS Wiki: ARTICLE-TITLE</title>
+  <title>MPS Wiki: Reference Manual Addenda</title>
   <style type = "text/css">
     <!--
     div.banner {text-align:center}
@@ -30,28 +30,61 @@
 
 <hr />
 
-<h1>MPS Wiki: ARTICLE-TITLE</h1>
+<h1>MPS Wiki: Reference Manual Addenda</h1>
 
 <address>
 <a href="mailto:rhsk@ravenbrook.com">Richard Kistruck</a>,
 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>,
-2006-06-02
+2006-11-28
 </address>
 
 </div>
 
 <p> This wiki article contains incomplete and informal notes about the MPS, the precursor to more formal documentation.  Not confidential.  Readership: MPS users and developers.  </p>
 
-<pre>
-replace ARTICLE-TITLE throughout
-correct Document Author (above) and Document History (below)
-add YOUR ARTICLE HERE.
-</pre>
+<h2>Introduction</h2>
+
+<p>This is a temporary collection of addenda (additions and corrections) that should go into the reference manual (RefMan).  It is much better to put corrections straight into the reference manual (if possible), instead of here.</p>
+
+<p>...But sometimes you need to collect information, of which some should go to RefMan and some should go into design docs etc.  You can collect that sort of information here.</p>
+
+<p>...And sometimes it really doesn't seem that all this information should be part of the declared public interface.</p>
+
+
+<h2>Addenda</h2>
+
+<h3><code>mps_class_amc</code>, <code>mps_class_ams</code>: chain parameter</h3>
+
+<p>Create a chain with <code>mps_chain_create</code>, and pass it as argument to <code>mps_pool_create</code> for these two pool classes.</p>
+
+<p>Pool class AMS is non-generational, and must have a chain with one element ('generation') specifying a capacity and predicted mortality.  This capacity is not a limit: it is only used to prompt collection of the AMS objects.</p>
+
+<p>Pool class AMC is generational: the chain specifies capacity and predicted mortality of each generation.  These capacities are not limits: they are used for scheduling collection of the AMC objects.</p>
+
+
+<h3><code>mps_arena_step</code> and <code>mps_arena_start_collect</code></h3>
+
+<p>See:</p>
+<ol>
+  <li>
+    <a href="http://info.ravenbrook.com/mail/2002/07/01/20-46-08/0.txt">http://info.ravenbrook.com/mail/2002/07/01/20-46-08/0.txt</a>
+    <sup><a href="index.html#not-publicly-available" title="this document is not publicly available">&empty;</a></sup>
+  </li>
+  <li>
+    <a href="http://info.ravenbrook.com/mail/2003/01/03/14-13-25/0.txt">http://info.ravenbrook.com/mail/2003/01/03/14-13-25/0.txt</a>
+    <sup><a href="index.html#not-publicly-available" title="this document is not publicly available">&empty;</a></sup>
+  </li>
+  <li>
+    <a href="http://info.ravenbrook.com/mail/2003/01/06/21-36-55/0.txt">http://info.ravenbrook.com/mail/2003/01/06/21-36-55/0.txt</a>
+    <sup><a href="index.html#not-publicly-available" title="this document is not publicly available">&empty;</a></sup>
+  </li>
+</ol>
+
 
 <h2><a id="section-B" name="section-B">B. Document History</a></h2>
 
 <pre>
-  2006-06-02  RHSK  Created.
+  2006-11-28  RHSK  Created.
 </pre>
 
 
