@@ -137,8 +137,8 @@ Sorry, accents and terminal sigma are not supported in JIS."
 
 ;;
 
-(quail-define-package "greek-mizuochi" "Greek" "CG" t "
-The Mizuochi input method for Classical Greek using mule-unicode-0100-24ff.
+(quail-define-package "greek-mizuochi" "Greek" "CG" t
+"The Mizuochi input method for Classical Greek using mule-unicode-0100-24ff.
 
 -------------------------------------
 character     capital	      small
