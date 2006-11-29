@@ -1,5 +1,20 @@
 2006-11-29  Kenichi Handa  <handa@m17n.org>
 
+	* xftfont.c (ftfont_font_format): Extern declaration.
+
+	* frame.c (x_set_font): Fix the second arg to fs_query_fontset.
+
+	* xfont.c (xfont_driver): Initialize ftfont_driver.type by 0.
+	(xfont_list): Don't directly use Lisp_Object as an operand of &&.
+
+	* ftfont.c (ftfont_driver): Initialize ftfont_driver.type by 0.
+	(ftfont_font_format): Fix previous change.
+
+	* font.h (Ffont_xlfd_name): EXFUN it.
+
+	* font.c (font_parse_xlfd): Fix the array size of `f'.
+	(register_font_driver): Use EQ to compare driver->type.
+
 	* xfns.c (xic_create_xfontset2) [USE_FONT_BACKEND]: New function.
 	(create_frame_xic) [USE_FONT_BACKEND]: Call xic_create_xfontset2.
 	(xic_set_xfontset) [USE_FONT_BACKEND]: Likewise.

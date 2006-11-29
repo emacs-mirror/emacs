@@ -1,3 +1,8 @@
+2006-11-29  Kenichi Handa  <handa@m17n.org>
+
+	* mail/emacsbug.el (report-emacs-bug): Insert also the value of
+	XMODIFIERS.
+
 2006-11-28  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el: Fix maintainer email.  Eliminate function declaration
