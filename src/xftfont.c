@@ -200,6 +200,8 @@ xftfont_match (frame, spec)
   return entity;
 }
 
+extern Lisp_Object ftfont_font_format P_ ((FcPattern *));
+
 static FcChar8 ascii_printable[95];
 
 static struct font *
