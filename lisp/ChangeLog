@@ -280,7 +280,7 @@
 
 	* emacs-lisp/regexp-opt.el (regexp-opt): Doc fix.
 
-2006-11-19  Micha,bk(Bl Cadilhac  <michael.cadilhac@lrde.org>
+2006-11-19  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
 
 	* progmodes/glasses.el (glasses-separate-parentheses-exceptions): New.
 	Exceptions to the rule "add a space between an identifier and an
@@ -2426,7 +2426,7 @@
 	* select.el (xselect-convert-to-string): If UTF8_STRING is requested
 	and the data doesn't look like UTF8, send STRING instead.
 
-2006-09-16  Agustin Martin  <agustin.martin@hispalinux.es>
+2006-09-16  Agust,Am(Bn Mart,Am(Bn  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (flyspell-check-region-doublons):
 	New function to detect duplicated words.
@@ -7243,7 +7243,7 @@
 	* files.el (hack-local-variables-confirm) <offer-save>:
 	Clarify message text.  Suggested by Ralf Angeli.
 
-2006-04-08  Michael Cadilhac  <michael.cadilhac@lrde.org>
+2006-04-08  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
 
 	* rect.el (kill-rectangle): Don't barf if `kill-read-only-ok' is set.
 	(delete-extract-rectangle-line): Use `filter-buffer-substring'
@@ -10097,7 +10097,7 @@
 	(find-variable-other-frame, find-variable-at-point):
 	Fix docstrings.
 
-2006-01-21  Francesco Potorti`  <pot@gnu.org>
+2006-01-21  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* mail/rmailout.el (rmail-output): Don't use content-type if it is nil.
 
@@ -14071,7 +14071,7 @@
 	since the last ping.
 	(rcirc-mode): Give rcirc-topic a local binding here.
 
-2005-11-19  Michael Cadilhac  <michael.cadilhac@lrde.org>
+2005-11-19  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
 
 	* subr.el (read-passwd): Fontify the prompt as we do with other
 	prompts.
@@ -15682,7 +15682,7 @@
 
 	* dired-x.el (dired-virtual): Don't use `dired-insert-headerline'.
 
-2005-10-25  Michael Cadilhac  <michael.cadilhac-@t-lrde.epita.fr>
+2005-10-25  Micha,Ak(Bl Cadilhac  <michael.cadilhac-@t-lrde.epita.fr>
 
 	* play/blackbox.el (blackbox-redefine-key): New function.
 	(blackbox-mode-map): Use it to remap existing bindings for cursor
@@ -16946,7 +16946,7 @@
 	* progmodes/gdb-ui.el (gdb-fringe-width -> gdb-buffer-fringe-width):
 	Typo.
 
-2005-10-06  Michael Cadilhac  <michael.cadilhac-@t-lrde.epita.fr>
+2005-10-06  Micha,Ak(Bl Cadilhac  <michael.cadilhac-@t-lrde.epita.fr>
 
 	* play/zone.el (zone): Wrap body with save-window-excursion.
 
@@ -18114,7 +18114,7 @@
 
 	* mail/sendmail.el (default-sendmail-coding-system): Doc fix.
 
-2005-09-09  Emilio Lopes  <eclig@gmx.net>
+2005-09-09  Emilio C. Lopes  <eclig@gmx.net>
 
 	* woman.el: Format- and whitespace-related changes.
 
@@ -20366,7 +20366,7 @@
 	* server.el: Bind "C-x #" in a way that works even if C-x is
 	redefined to a command key, not a prefix key.
 
-2005-07-16  Johan Bockgard  <bojohan@users.sourceforge.net>  (tiny change)
+2005-07-16  Johan Bockg,Ae(Brd  <bojohan@users.sourceforge.net>  (tiny change)
 
 	* emacs-lisp/cl-macs.el (cl-make-type-test): Defer evaluation of
 	cl-make-type-test till execution time.
@@ -20376,7 +20376,7 @@
 	* dired-x.el (dired-do-relsymlink-regexp): Add missing optional
 	arg ARG and use it.
 
-2005-07-16  Johan Bockgard  <bojohan@users.sourceforge.net>  (tiny change)
+2005-07-16  Johan Bockg,Ae(Brd  <bojohan@users.sourceforge.net>  (tiny change)
 
 	* emacs-lisp/cl-macs.el (cl-make-type-test): Add `atom' type.
 
@@ -28461,7 +28461,7 @@
 
 	* emacs-lisp/lisp.el (buffer-end): Doc fix.
 
-2005-02-05  Arne_J,Ax(Brgensen  <arne@arnested.dk>  (tiny change)
+2005-02-05  Arne J,Ax(Brgensen  <arne@arnested.dk>  (tiny change)
 
 	* net/ldap.el (ldap-search-internal): Support attributes with
 	optional descriptions separated by a semi-colon, as in
@@ -29578,7 +29578,7 @@
 	(calc-edit-macro-finish-edit): New functions.
 	(calc-user-define-edit): Use new functions to edit named calc macros.
 
-2005-01-01  Stefan  <monnier@iro.umontreal.ca>
+2005-01-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (hack-local-variables): Cleanup prefix/suffix matching.
 
