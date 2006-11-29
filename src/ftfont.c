@@ -278,7 +278,7 @@ static int ftfont_anchor_point P_ ((struct font *, unsigned, int,
 
 struct font_driver ftfont_driver =
   {
-    (Lisp_Object) NULL,		/* Qfreetype */
+    0,				/* Qfreetype */
     ftfont_get_cache,
     ftfont_list,
     ftfont_match,
@@ -966,7 +966,7 @@ ftfont_font_format (FcPattern *pattern)
   if (strcmp ((char *) str, "BDF") == 0)  
     return intern ("bdf");
 #else  /* not FC_FONTFORMAT */
-  if (FcPatternGetString (pattern, FC_FILE, 0, &file) != FcResultMatch)
+  if (FcPatternGetString (pattern, FC_FILE, 0, &str) != FcResultMatch)
     return Qnil;
   if (strcasestr ((char *) str, ".ttf") == 0)
     return intern ("truetype");
