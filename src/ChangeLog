@@ -1,3 +1,7 @@
+2006-11-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* sound.c (Fplay_sound_internal): Remove spurious newline in docstring.
+
 2006-11-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* config.in: Regenerate.
@@ -11311,7 +11315,7 @@
 	precedence.
 	(XTread_socket) [TARGET_API_MAC_CARBON]: Don't specify drag area.
 
-2004-10-05  Jan Dj,Ad(Brv.  <jan.h.d@swipnet.se>
+2004-10-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* config.in: Regenerate.
 
@@ -15690,7 +15694,7 @@
 	Set BUF_INTERVALS (buffer)->up_obj when appropriate.
 	Handle over_used when splitting UNDER.
 
-2003-09-30  YAMAMOTO  Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+2003-09-30  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* regex.c (regex_compile): Free the stack when returning from function.
 
@@ -19928,7 +19932,7 @@
 
 	* alloca.c: Undo ifdef change accidentally made on 12-04.
 
-2002-12-06  Francesco Potorti`  <pot@gnu.org>
+2002-12-06  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* xfns.c (png_load): Avoid double gamma correction for PNG images.
 
@@ -20249,7 +20253,7 @@
 	* fns.c (Fcopy_sequence): Doc fix.
 	(Fmap_char_table): Cast `call2'.
 
-2002-11-14  Francesco Potorti`  <pot@gnu.org>
+2002-11-14  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* s/sol2-8.h: New file.
 
