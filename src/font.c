@@ -751,7 +751,7 @@ font_parse_xlfd (name, font)
   int i, j;
   Lisp_Object dpi, spacing;
   int avgwidth;
-  char *f[XLFD_LAST_INDEX];
+  char *f[XLFD_LAST_INDEX + 1];
   Lisp_Object val;
   char *p;
 
@@ -2808,7 +2808,7 @@ register_font_driver (driver, f)
 	   SDATA (SYMBOL_NAME (driver->type)));
 
   for (prev = NULL, list = root; list; prev = list, list = list->next)
-    if (list->driver->type == driver->type)
+    if (EQ (list->driver->type, driver->type))
       error ("Duplicated font driver: %s", SDATA (SYMBOL_NAME (driver->type)));
 
   list = malloc (sizeof (struct font_driver_list));
