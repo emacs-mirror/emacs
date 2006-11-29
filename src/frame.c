@@ -3112,7 +3112,7 @@ x_set_font (f, arg, oldval)
 	 In the last case, this function never fail.  */
       if (STRINGP (arg))
 	{
-	  fontset = fs_query_fontset (arg, Qnil);
+	  fontset = fs_query_fontset (arg, 0);
 	  if (fontset < 0)
 	    font_object = font_open_by_name (f, SDATA (arg));
 	  else if (fontset > 0)
