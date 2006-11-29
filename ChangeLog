@@ -367,7 +367,7 @@
 
 	Update FSF's address in GPL notices.
 
-2005-06-19  J,bi(Br,bt(Bme Marant  <jerome@marant.org>
+2005-06-19  J,Ai(Br,At(Bme Marant  <jerome@marant.org>
 
 	* Makefile.in (epaths-force): Protect both lisppath and
 	buildlisppath from whitespace.
@@ -456,7 +456,7 @@
 	* Makefile.in (install-arch-indep, uninstall): Add url and org
 	manuals.
 
-2004-12-07  Stefan  <monnier@iro.umontreal.ca>
+2004-12-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* configure.in (INLINE, RE_TRANSLATE_P): Move patches mistakenly
 	committed to src/config.in.
@@ -648,7 +648,7 @@
 
 	* configure.in <darwin>: Use fink packages if available.
 
-2004-01-25  Jerome Marant  <jmarant@free.fr>  (tiny change)
+2004-01-25  J,Ai(Br,At(Bme Marant  <jmarant@free.fr>  (tiny change)
 
 	* make-dist (lispref): Do include lispref/index.texi.
 
@@ -2663,7 +2663,7 @@
 	* make-dist (etc): Really avoid symlinks now.
 	(lisp): Don't delete from subdirs the things we never copy.
 
-1997-07-07  Ken'ichi Handa  <handa@psilocin.gnu.ai.mit.edu>
+1997-07-07  Kenichi Handa  <handa@psilocin.gnu.ai.mit.edu>
 
 	* Makefile.in (install-arch-indep): Correct the target name.
 	The first letter `i' was dropped by the previous change of mine.
@@ -2688,12 +2688,12 @@
 
 	* Makefile.in (install-leim): Correct previous change.
 
-1997-07-02  Ken'ichi Handa  <handa@psilocin.gnu.ai.mit.edu>
+1997-07-02  Kenichi Handa  <handa@psilocin.gnu.ai.mit.edu>
 
 	* Makefile.in (install-leim): New target.
 	(install): Depend on install-leim.
 
-1997-07-01  Ken'ichi Handa  <handa@psilocin.gnu.ai.mit.edu>
+1997-07-01  Kenichi Handa  <handa@psilocin.gnu.ai.mit.edu>
 
 	* Makefile.in (SUBDIR): Add leim.
 	(SUBDIR_MAKEFILES): Add leim/Makefile.
@@ -2736,7 +2736,7 @@
 
 	* configure.in (shutdown): Check for `shutdown' function.
 
-1997-06-18  Ken'ichi Handa  <handa@psilocin.gnu.ai.mit.edu>
+1997-06-18  Kenichi Handa  <handa@psilocin.gnu.ai.mit.edu>
 
 	* update-subdirs: Include the directory "language" in subdirs.
 
@@ -2780,7 +2780,7 @@
 	* configure.in (DOUG_LEA_MALLOC):
 	Define if malloc_{get,set}_state exist.
 
-1997-03-05  Ken'ichi Handa  <handa@etl.go.jp>
+1997-03-05  Kenichi Handa  <handa@etl.go.jp>
 
 	* make-dist: Make links for files under lisp/language.
 
