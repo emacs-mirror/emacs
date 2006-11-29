@@ -446,6 +446,7 @@ extern int enable_font_backend;
 EXFUN (Ffont_spec, MANY);
 EXFUN (Flist_fonts, 4);
 EXFUN (Fclear_font_cache, 0);
+EXFUN (Ffont_xlfd_name, 1);
 
 extern Lisp_Object font_symbolic_weight P_ ((Lisp_Object font));
 extern Lisp_Object font_symbolic_slant P_ ((Lisp_Object font));
