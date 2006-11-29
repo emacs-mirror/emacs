@@ -1,3 +1,9 @@
+2006-11-29  Kenichi Handa  <handa@m17n.org>
+
+	* xfns.c (xic_create_xfontset2) [USE_FONT_BACKEND]: New function.
+	(create_frame_xic) [USE_FONT_BACKEND]: Call xic_create_xfontset2.
+	(xic_set_xfontset) [USE_FONT_BACKEND]: Likewise.
+
 2006-11-27  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (ftfont_pattern_entity): Check if FC_FONTFORMAT is
