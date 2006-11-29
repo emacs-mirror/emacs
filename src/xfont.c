@@ -255,7 +255,7 @@ static int xfont_draw P_ ((struct glyph_string *, int, int, int, int, int));
 
 struct font_driver xfont_driver =
   {
-    (Lisp_Object) NULL,		/* Qx */
+    0,				/* Qx */
     xfont_get_cache,
     xfont_list,
     xfont_match,
@@ -413,8 +413,8 @@ xfont_list (frame, spec)
 
 	  if (! NILP (registry)
 	      && (alter = Fassoc (SYMBOL_NAME (registry),
-				  Vface_alternative_font_registry_alist))
-	      && CONSP (alter))
+				  Vface_alternative_font_registry_alist),
+		  CONSP (alter)))
 	    {
 	      /* Pointer to REGISTRY-ENCODING field.  */
 	      char *r = name + len - SBYTES (SYMBOL_NAME (registry));
