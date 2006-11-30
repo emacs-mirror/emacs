@@ -193,7 +193,12 @@ message (int is_error, char *message, ...)
     }
   else
 #endif
-    fprintf (is_error ? stderr : stdout, msg);
+    {
+      FILE *f = is_error ? stderr : stdout;
+
+      fputs (msg, f);
+      fflush (f);
+    }
 }
 
 /* Decode the options from argv and argc.
@@ -589,7 +594,7 @@ set_tcp_socket ()
     return INVALID_SOCKET;
 
   if (server.sin_addr.s_addr != inet_addr ("127.0.0.1"))
-    message (TRUE, "%s: connected to remote socket at %s\n",
+    message (FALSE, "%s: connected to remote socket at %s\n",
              progname, inet_ntoa (server.sin_addr));
 
   /*
