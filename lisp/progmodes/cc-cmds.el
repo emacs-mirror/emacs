@@ -271,7 +271,7 @@ With universal argument, inserts the analysis as a comment on that line."
 ;; 	      fmt))
     (setq mode-name
 	  (if (> (length fmt) 1)
-	      (concat bare-mode-name fmt) 
+	      (concat bare-mode-name fmt)
 	bare-mode-name))
     (force-mode-line-update)))
 
@@ -536,7 +536,7 @@ inside a literal or a macro, nothing special happens."
        ;; shut this up too
        (c-echo-syntactic-information-p nil)
        symb-newlines)		     ; e.g. (substatement-open . (after))
-    
+
     (setq symb-newlines
 	  ;; Do not try to insert newlines around a special
 	  ;; (Pike-style) brace list.
@@ -1661,12 +1661,12 @@ function does not require the declaration to contain a brace block."
 (defun c-narrow-to-comment-innards (range)
   ;; Narrow to the "inside" of the comment (block) defined by range, as
   ;; follows:
-  ;; 
+  ;;
   ;; A c-style block comment has its opening "/*" and its closing "*/" (if
   ;; present) removed.  A c++-style line comment retains its opening "//" but
   ;; has any final NL removed.  If POINT is currently outwith these innards,
   ;; move it to the appropriate boundary.
-  ;; 
+  ;;
   ;; This narrowing simplifies the sentence movement functions, since it
   ;; eliminates awkward things at the boundaries of the comment (block).
   ;;
@@ -1694,7 +1694,7 @@ function does not require the declaration to contain a brace block."
   ;; of the comment and return T.
   ;;
   ;; The BOS is either text which follows a regexp match of sentence-end,
-  ;; or text which is a beginning of "paragraph".  
+  ;; or text which is a beginning of "paragraph".
   ;; Comment-prefixes are treated like WS when calculating BOSes or BOPs.
   ;;
   ;; This code was adapted from GNU Emacs's forward-sentence in paragraphs.el.
@@ -2104,7 +2104,7 @@ function does not require the declaration to contain a brace block."
 	   ((looking-at c-string-limit-regexp) ; Just gone back over a string terminator?
 	    (goto-char last)
 	    (throw 'done '(t . literal)))
-	 
+
 	   ;; Nothing special: go back word characters.
 	   (t (skip-syntax-backward "w_")) ; Speedup only.
 	   ))))))
@@ -2136,7 +2136,7 @@ function does not require the declaration to contain a brace block."
   ;; As a clarification of "after the end-of-statement", if a comment or
   ;; whitespace follows a completed AWK statement, that statement is treated
   ;; as ending just after the last non-ws character before the comment.
-  ;; 
+  ;;
   ;; Note that this function moves within either preprocessor commands
   ;; (macros) or normal code, but not both within the same invocation.
   ;;
@@ -2427,7 +2427,7 @@ sentence motion in or near comments and multiline strings."
 
 	(if (/= count 0) (setq count (1- count))))
       (c-keep-region-active))))
-			       
+
 
 
 ;; set up electric character functions to work with pending-del,
@@ -2560,7 +2560,7 @@ forward."
   (interactive "p")
   (c-forward-conditional (- count) -1)
   (c-keep-region-active))
-  
+
 (defun c-up-conditional-with-else (count)
   "Move back to the containing preprocessor conditional, including \"#else\".
 Just like `c-up-conditional', except it also stops at \"#else\"
@@ -2782,7 +2782,7 @@ prefix argument is equivalent to -1.
 
 (defun c-indent-exp (&optional shutup-p)
   "Indent each line in the balanced expression following point syntactically.
-If optional SHUTUP-P is non-nil, no errors are signalled if no
+If optional SHUTUP-P is non-nil, no errors are signaled if no
 balanced expression is found."
   (interactive "*P")
   (let ((here (point-marker))
@@ -3611,7 +3611,7 @@ command to conveniently insert and align the necessary backslashes."
 	hang-ender-stuck
 	;; auto-fill-spaces is the exact sequence of whitespace between a
 	;; comment's last word and the comment ender, temporarily replaced
-	;; with 'x's before calling FUN when FILL-PARAGRAPH is nil.  
+	;; with 'x's before calling FUN when FILL-PARAGRAPH is nil.
 	auto-fill-spaces
 	(here (point))
 	(c-lit-limits c-lit-limits)
