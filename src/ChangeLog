@@ -1,3 +1,9 @@
+2006-11-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_raise_frame): Move setting of _NET_ACTIVE_WINDOW
+	property ...
+	(XTframe_raise_lower): ... to here.
+
 2006-11-30  Kenichi Handa  <handa@m17n.org>
 
 	* regex.c (regex_compile): Fix previous change.
