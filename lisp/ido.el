@@ -1142,6 +1142,11 @@ so that it doesn't interfere with other minibuffer usage.")
 	  (pop-to-buffer b t t)
 	  (setq truncate-lines t)))))
 
+(defun ido-local-file-exists-p (file)
+  "Tell if FILE exists locally."
+  (let (file-name-handler-alist)
+    (file-exists-p file)))
+
 (defun ido-unc-hosts (&optional query)
   "Return list of UNC host names."
   (let ((hosts
@@ -2068,8 +2073,9 @@ If INITIAL is non-nil, it specifies the initial input string."
 	      (ido-set-current-directory (file-name-directory (substring ido-current-directory 0 -1))))
 	  (setq ido-set-default-item t))
 
-	 ((and (string-match (if ido-enable-tramp-completion "..[:@]\\'" "..:\\'") ido-selected)
-	       (ido-is-root-directory)) ;; Ange-ftp or Tramp
+	 ((and (string-match (if ido-enable-tramp-completion ".[:@]\\'" ".:\\'") ido-selected)
+	       (ido-is-root-directory) ;; Ange-ftp or Tramp
+	       (not (ido-local-file-exists-p ido-selected)))
 	  (ido-set-current-directory ido-current-directory ido-selected)
 	  (ido-trace "tramp prefix" ido-selected)
 	  (if (ido-is-slow-ftp-host)
@@ -2079,7 +2085,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 
 	 ((or (string-match "[/\\][^/\\]" ido-selected)
 	      (and (memq system-type '(windows-nt ms-dos))
-		   (string-match "\\`.:" ido-selected)))
+		   (string-match "\\`[a-zA-Z]:" ido-selected)))
 	  (ido-set-current-directory (file-name-directory ido-selected))
 	  (setq ido-set-default-item t))
 
@@ -2428,7 +2434,8 @@ If INITIAL is non-nil, it specifies the initial input string."
      ((and (= 1 (length ido-matches))
 	   (not (and ido-enable-tramp-completion
 		     (string-equal ido-current-directory "/")
-		     (string-match "..[@:]\\'" (ido-name (car ido-matches))))))
+		     (string-match ".[@:]\\'" (ido-name (car ido-matches)))))
+		     (not (ido-local-file-exists-p (ido-name (car ido-matches)))))
       ;; only one choice, so select it.
       (if (not ido-confirm-unique-completion)
 	  (exit-minibuffer)
@@ -3438,9 +3445,11 @@ for first matching file."
       (let ((default-directory ido-current-directory))
 	(ido-to-end ;; move ftp hosts and visited files to end
 	 (delq nil (mapcar
-		    (lambda (x) (if (or (string-match "..:\\'" x)
+		    (lambda (x) (if (or (and (string-match ".:\\'" x)
+					     (not (ido-local-file-exists-p x)))
 					(and (not (ido-final-slash x))
-					     (get-file-buffer x))) x))
+					     (let (file-name-handler-alist)
+					       (get-file-buffer x)))) x))
 		    ido-temp-list)))))
     (ido-to-end  ;; move . files to end
      (delq nil (mapcar
@@ -4154,8 +4163,9 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 	    (setq refresh t))
 	  ))
 
-	 ((and (string-match (if ido-enable-tramp-completion "..[:@]\\'" "..:\\'") contents)
-	       (ido-is-root-directory)) ;; Ange-ftp or tramp
+	 ((and (string-match (if ido-enable-tramp-completion ".[:@]\\'" ".:\\'") contents)
+	       (ido-is-root-directory) ;; Ange-ftp or tramp
+	       (not (ido-local-file-exists-p contents)))
 	  (ido-set-current-directory ido-current-directory contents)
 	  (when (ido-is-slow-ftp-host)
 	    (setq ido-exit 'fallback)
