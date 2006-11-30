@@ -1,3 +1,11 @@
+2006-11-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/fontset.el (create-fontset-from-ascii-font)
+	(create-fontset-from-fontset-spec, x-compose-font-name): Doc fixes.
+	(fontset-name-p): Fix typo in docstring.
+
+	* progmodes/cc-cmds.el (c-indent-exp): Fix typo in docstring.
+
 2006-11-30  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-bdf.el : Fix maintainer email.
