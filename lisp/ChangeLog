@@ -1,6 +1,14 @@
+2006-11-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* hexl.el (hexl-goto-address, hexl-forward-char, hexl-forward-short)
+	(hexl-forward-word, hexl-previous-line, hexl-beginning-of-1k-page)
+	(hexl-end-of-1k-page): Doc fixes.
+	(hexl-address-region, hexl-ascii-region, hexl-highlight-line-range):
+	Fix typos in docstrings.
+
 2006-11-30  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
 
-	* ido.el (ido-local-file-exists-p): New. Tell if a file exists
+	* ido.el (ido-local-file-exists-p): New.  Tell if a file exists
 	locally, i.e. without using file name handlers.
 	(ido-read-internal): Allow mono letter host names, avoiding the
 	`c:' problem by testing if the file exists locally.

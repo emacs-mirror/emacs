@@ -1,3 +1,19 @@
+2006-11-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (emacs_pid): New variable.
+	(message): Remove leftover code.
+	(get_server_config): Set emacs_pid.  Don't allow Emacs to grab the
+	focus yet; emacsclient can still display an informational message
+	before sending requests to Emacs.
+	(main): Allow Emacs to grab the focus.  Simplify message() call.
+
+2006-11-30  Michael Mauger  <mmaug@yahoo.com>
+
+	* emacsclient.c (message): Make sure the message is properly
+	written even if it contains printf escapes, and flush the result.
+	(set_tcp_socket): Make the message for non-local connections
+	informational rather than an error.
+
 2006-11-28  Kevin Ryde <user42@zip.com.au>  (tiny change)
 
 	* etags.c (readline): Check for double quote after #line.
