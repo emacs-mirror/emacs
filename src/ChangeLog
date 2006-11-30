@@ -1,3 +1,7 @@
+2006-11-30  Kenichi Handa  <handa@m17n.org>
+
+	* regex.c (regex_compile): Fix previous change.
+
 2006-11-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* sound.c (Fplay_sound_internal): Remove spurious newline in docstring.
