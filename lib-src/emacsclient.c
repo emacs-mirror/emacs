@@ -129,6 +129,9 @@ char *socket_name = NULL;
 /* If non-NULL, the filename of the authentication file.  */
 char *server_file = NULL;
 
+/* PID of the Emacs server process.  */
+int emacs_pid = 0;
+
 void print_help_and_exit () NO_RETURN;
 
 struct option longopts[] =
@@ -168,18 +171,10 @@ w32_window_app()
 void
 message (int is_error, char *message, ...)
 {
-  char buf [2048];
-  char *msg = buf;
+  char msg [2048];
   va_list args;
 
   va_start (args, message);
-
-  if (is_error)
-    {
-      sprintf (buf, "%s: ", progname);
-      msg = strchr (buf, '\0');
-    }
-
   vsprintf (msg, message, args);
   va_end (args);
 
@@ -555,29 +550,7 @@ get_server_config (server, authentication)
 
   fclose (config);
 
-#ifdef WINDOWSNT
-  /*
-    Modern Windows restrict which processes can set the foreground window.
-    So, for emacsclient to be able to force Emacs into the foreground, we
-    have to call AllowSetForegroundWindow().  Unfortunately, older Windows
-    (W95, W98 and NT) don't have this function, so we have to check first.
-
-    We're doing this here because it has to be done before sending info
-    to Emacs, and otherwise we'll need a global variable just to pass around
-    the pid, which is also inelegant.
-   */
-  {
-    HMODULE hUser32;
-
-    if (hUser32 = LoadLibrary ("user32.dll"))
-      {
-        FARPROC set_fg;
-        if (set_fg = GetProcAddress (hUser32, "AllowSetForegroundWindow"))
-          set_fg (atoi (pid));
-        FreeLibrary (hUser32);
-      }
-  }
-#endif
+  emacs_pid = atoi (pid);
 
   return TRUE;
 }
@@ -871,14 +844,36 @@ main (argc, argv)
   if (cwd == 0)
     {
       /* getwd puts message in STRING if it fails.  */
-#ifdef HAVE_GETCWD
       message (TRUE, "%s: %s (%s)\n", progname,
-	       "Cannot get current working directory", strerror (errno));
+#ifdef HAVE_GETCWD
+	       "Cannot get current working directory",
 #else
-      message (TRUE, "%s: %s (%s)\n", progname, string, strerror (errno));
+	       string,
 #endif
+	       strerror (errno));
       fail (argc, argv);
     }
+
+#ifdef WINDOWSNT
+  /*
+    Modern Windows restrict which processes can set the foreground window.
+    emacsclient can allow Emacs to grab the focus by calling the function
+    AllowSetForegroundWindow().  Unfortunately, older Windows (W95, W98
+    and NT) lack this function, so we have to check its availability.
+   */
+  if (emacs_pid)
+    {
+      HMODULE hUser32;
+
+      if (hUser32 = LoadLibrary ("user32.dll"))
+	{
+	  FARPROC set_fg;
+	  if (set_fg = GetProcAddress (hUser32, "AllowSetForegroundWindow"))
+	    set_fg (emacs_pid);
+	  FreeLibrary (hUser32);
+	}
+    }
+#endif
 
   if (nowait)
     SEND_STRING ("-nowait ");
