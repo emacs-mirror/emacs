@@ -87,12 +87,12 @@ Quoting cannot be used, so the arguments cannot themselves contain spaces."
 
 (defface hexl-address-region
   '((t (:inherit header-line)))
-  "Face used in address are of hexl-mode buffer."
+  "Face used in address area of hexl-mode buffer."
   :group 'hexl)
 
 (defface hexl-ascii-region
   '((t (:inherit header-line)))
-  "Face used in ascii are of hexl-mode buffer."
+  "Face used in ascii area of hexl-mode buffer."
   :group 'hexl)
 
 (defvar hexl-max-address 0
@@ -455,7 +455,7 @@ This function is intended to be used as eldoc callback."
 
 (defun hexl-goto-address (address)
   "Goto hexl-mode (decimal) address ADDRESS.
-Signal error if ADDRESS out of range."
+Signal error if ADDRESS is out of range."
   (interactive "nAddress: ")
   (if (or (< address 0) (> address hexl-max-address))
       (error "Out of hexl region"))
@@ -496,7 +496,7 @@ Signal error if HEX-ADDRESS is out of range."
   (hexl-goto-address (- (hexl-current-address) arg)))
 
 (defun hexl-forward-char (arg)
-  "Move right ARG bytes (left if ARG negative) in hexl-mode."
+  "Move to right ARG bytes (left if ARG negative) in hexl-mode."
   (interactive "p")
   (hexl-goto-address (+ (hexl-current-address) arg)))
 
@@ -535,7 +535,7 @@ Signal error if HEX-ADDRESS is out of range."
 		       address)))
 
 (defun hexl-forward-short (arg)
-  "Move right ARG shorts (left if ARG negative) in hexl-mode."
+  "Move to right ARG shorts (left if ARG negative) in hexl-mode."
   (interactive "p")
   (hexl-backward-short (- arg)))
 
@@ -574,13 +574,13 @@ Signal error if HEX-ADDRESS is out of range."
 		       address)))
 
 (defun hexl-forward-word (arg)
-  "Move right ARG words (left if ARG negative) in hexl-mode."
+  "Move to right ARG words (left if ARG negative) in hexl-mode."
   (interactive "p")
   (hexl-backward-word (- arg)))
 
 (defun hexl-previous-line (arg)
   "Move vertically up ARG lines [16 bytes] (down if ARG negative) in hexl-mode.
-If there is byte at the target address move to the last byte in that line."
+If there is no byte at the target address move to the last byte in that line."
   (interactive "p")
   (hexl-next-line (- arg)))
 
@@ -666,12 +666,12 @@ If there's no byte at the target address, move to the first or last line."
     (recenter 0)))
 
 (defun hexl-beginning-of-1k-page ()
-  "Go to beginning of 1k boundary."
+  "Go to beginning of 1KB boundary."
   (interactive)
   (hexl-goto-address (logand (hexl-current-address) -1024)))
 
 (defun hexl-end-of-1k-page ()
-  "Go to end of 1k boundary."
+  "Go to end of 1KB boundary."
   (interactive)
   (hexl-goto-address (let ((address (logior (hexl-current-address) 1023)))
 		       (if (> address hexl-max-address)
@@ -968,7 +968,7 @@ Customize the variable `hexl-follow-ascii' to disable this feature."
 
 (defun hexl-highlight-line-range ()
   "Return the range of address region for the point.
-This function is assumed to be used as call back function for `hl-line-mode'."
+This function is assumed to be used as callback function for `hl-line-mode'."
   (cons
    (line-beginning-position)
    ;; 9 stands for (length "87654321:")
