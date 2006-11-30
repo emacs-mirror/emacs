@@ -1,3 +1,7 @@
+2006-11-30  Kenichi Handa  <handa@m17n.org>
+
+	* search.c (simple_search): Fix previous change.
+
 2006-11-29  Kenichi Handa  <handa@m17n.org>
 
 	* xftfont.c (ftfont_font_format): Extern declaration.
