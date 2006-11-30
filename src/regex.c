@@ -3021,7 +3021,14 @@ regex_compile (pattern, size, syntax, bufp)
 		      {
 			for (this_char = range_start; this_char <= range_end;
 			     this_char++)
-			  SET_LIST_BIT (TRANSLATE (this_char));
+			  {
+			    int translated = TRANSLATE (this_char);
+			    if (translated < (1 << BYTEWIDTH))
+			      SET_LIST_BIT (translated);
+			    else
+			      SET_RANGE_TABLE_WORK_AREA
+				(range_table_work, translated, translated);
+			  }
 		      }
 		  }
 		else
