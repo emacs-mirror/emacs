@@ -382,10 +382,10 @@ PATTERN.  If no full XLFD name is gotten, return nil."
 
 (defun x-compose-font-name (fields &optional reduce)
   "Compose X's fontname from FIELDS.
-FIELDS is a vector of XLFD fields, the length 14.
+FIELDS is a vector of XLFD fields, of length 14.
 If a field is nil, wild-card letter `*' is embedded.
-Optional argument REDUCE is always ignored.  It exists just for
-backward compatibility."
+Optional argument REDUCE exists just for backward compatibility,
+and is always ignored."
   (concat "-" (mapconcat (lambda (x) (or x "*")) fields "-")))
 
 
@@ -463,7 +463,7 @@ variable `x-font-name-charset-alist'), add that information to FONTLIST."
 (defun fontset-name-p (fontset)
   "Return non-nil if FONTSET is valid as fontset name.
 A valid fontset name should conform to XLFD (X Logical Font Description)
-with \"fontset\" in `<CHARSET_REGISTRY> field."
+with \"fontset\" in `<CHARSET_REGISTRY>' field."
   (and (string-match xlfd-tight-regexp fontset)
        (string= (match-string (1+ xlfd-regexp-registry-subnum) fontset)
 		"fontset")))
@@ -523,7 +523,7 @@ Any number of SPACE, TAB, and NEWLINE can be put before and after commas.
 
 Optional 2nd arg exists just for backward compatibility, and is ignored.
 
-If this function attempts to create already existing fontset, error is
+If this function attempts to create already existing fontset, an error is
 signaled unless the optional 3rd argument NOERROR is non-nil.
 
 It returns a name of the created fontset."
@@ -577,11 +577,11 @@ It returns a name of the created fontset."
 					    fontset-name)
   "Create a fontset from an ASCII font FONT.
 
-Optional 1st arg RESOLVED-FONT is a resolved name of FONT.  If
-omitted, `x-resolve-font-name' is called to get the resolved name.  At
-this time, if FONT is not available, error is signaled.
+Optional 2nd arg RESOLVED-FONT is a resolved name of FONT.
+If omitted, `x-resolve-font-name' is called to get the resolved name.
+At this time, if FONT is not available, an error is signaled.
 
-Optional 2nd arg FONTSET-NAME is a string to be used in
+Optional 3rd arg FONTSET-NAME is a string to be used in
 `<CHARSET_ENCODING>' fields of a new fontset name.  If it is omitted,
 an appropriate name is generated automatically.
 
