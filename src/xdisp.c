@@ -6828,7 +6828,12 @@ move_it_to (it, to_charpos, to_x, to_y, to_vpos, op)
 	  break;
 
 	case MOVE_LINE_CONTINUED:
-	  it->continuation_lines_width += it->current_x;
+	  /* For continued lines ending in a tab, some of the glyphs
+	     associated with the tab are displayed on the current
+	     line.  Since it->current_x does not include these glyphs,
+	     we use it->last_visible_x instead.  */
+	  it->continuation_lines_width +=
+	    (it->c == '\t') ? it->last_visible_x : it->current_x;
 	  break;
 
 	default:
