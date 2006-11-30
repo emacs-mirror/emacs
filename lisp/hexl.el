@@ -100,17 +100,22 @@ Quoting cannot be used, so the arguments cannot themselves contain spaces."
 
 (defvar hexl-mode-map nil)
 
+;; Variable declarations for suppressing warnings from the byte-compiler.
 (defvar ruler-mode)
 (defvar ruler-mode-ruler-function)
 (defvar hl-line-mode)
+(defvar hl-line-range-function)
+(defvar hl-line-face)
 
+;; Variables where the original values are stored to.
+(defvar hexl-mode-old-hl-line-mode)
 (defvar hexl-mode-old-hl-line-range-function)
 (defvar hexl-mode-old-hl-line-face)
-(defvar hexl-mode-old-hl-line-mode)
 (defvar hexl-mode-old-local-map)
 (defvar hexl-mode-old-mode-name)
 (defvar hexl-mode-old-major-mode)
 (defvar hexl-mode-old-ruler-mode)
+(defvar hexl-mode-old-ruler-function)
 (defvar hexl-mode-old-isearch-search-fun-function)
 (defvar hexl-mode-old-require-final-newline)
 (defvar hexl-mode-old-syntax-table)
@@ -261,11 +266,6 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
     (setq hexl-mode-old-hl-line-mode
 	  (and (boundp 'hl-line-mode) hl-line-mode))
 
-    (set (make-local-variable 'hexl-mode-old-hl-line-range-function)
-         hl-line-range-function)
-    (set (make-local-variable 'hexl-mode-old-hl-line-face)
-         hl-line-face)
-
     (make-local-variable 'hexl-mode-old-syntax-table)
     (setq hexl-mode-old-syntax-table (syntax-table))
     (set-syntax-table (standard-syntax-table))
@@ -393,12 +393,16 @@ With arg, don't unhexlify buffer."
 
   (if (and (boundp 'ruler-mode) ruler-mode (not hexl-mode-old-ruler-mode))
       (ruler-mode 0))
+  (when (boundp 'hexl-mode-old-ruler-function)
+    (setq ruler-mode-ruler-function hexl-mode-old-ruler-function))
+
   (if (and (boundp 'hl-line-mode) hl-line-mode (not hexl-mode-old-hl-line-mode))
       (hl-line-mode 0))
-
-  (set 'hl-line-range-function hexl-mode-old-hl-line-range-function)
-  (set 'hl-line-face hexl-mode-old-hl-line-face)
-
+  (when (boundp 'hexl-mode-old-hl-line-range-function)
+    (setq hl-line-range-function hexl-mode-old-hl-line-range-function))
+  (when (boundp hexl-mode-old-hl-line-face)
+    (setq hl-line-face hexl-mode-old-hl-line-face))
+ 
   (setq require-final-newline hexl-mode-old-require-final-newline)
   (setq mode-name hexl-mode-old-mode-name)
   (setq isearch-search-fun-function hexl-mode-old-isearch-search-fun-function)
@@ -940,19 +944,26 @@ Customize the variable `hexl-follow-ascii' to disable this feature."
 (defun hexl-activate-ruler ()
   "Activate `ruler-mode'."
   (require 'ruler-mode)
+  (unless (boundp 'hexl-mode-old-ruler-function)
+    (set (make-local-variable 'hexl-mode-old-ruler-function)
+	 ruler-mode-ruler-function))
   (set (make-local-variable 'ruler-mode-ruler-function)
        'hexl-mode-ruler)
   (ruler-mode 1))
 
 (defun hexl-follow-line ()
   "Activate `hl-line-mode'."
-  (require 'frame)
   (require 'hl-line)
-  (with-no-warnings
-    (set (make-local-variable 'hl-line-range-function)
-	 'hexl-highlight-line-range)
-    (set (make-local-variable 'hl-line-face)
-	 'highlight))
+  (unless (boundp 'hexl-mode-old-hl-line-range-function)
+    (set (make-local-variable 'hexl-mode-old-hl-line-range-function)
+	 hl-line-range-function))
+  (unless (boundp 'hexl-mode-old-hl-line-face)
+    (set (make-local-variable 'hexl-mode-old-hl-line-face)
+	 hl-line-face))
+  (set (make-local-variable 'hl-line-range-function)
+       'hexl-highlight-line-range)
+  (set (make-local-variable 'hl-line-face)
+       'highlight)
   (hl-line-mode 1))
 
 (defun hexl-highlight-line-range ()

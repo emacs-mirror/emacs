@@ -1,3 +1,17 @@
+2006-11-30  Masatake YAMATO  <jet@gyve.org>
+
+	* hexl.el (hl-line-range-function, hl-line-face): Declare variables
+	to avoid bytecomp warnings.
+	(hexl-mode-old-ruler-function): New variable.
+	(hexl-follow-line): Bind `hexl-mode-old-hl-line-range-function'
+	and `hl-line-range-function' after `require' hl-line.
+	Then bind `hl-line-range-function' and `hl-line-face'.
+	Don't require frame. Don't use `with-no-warnings'.
+	(hexl-activate-ruler): Store the original value of 
+	`ruler-mode-ruler-function' to `hexl-mode-old-ruler-function'.
+	(hexl-mode-exit): Restore the original value of 
+	`ruler-mode-ruler-function'.
+
 2006-11-29  Alin C. Soare  <alinsoar@voila.fr>  (tiny change)
 
 	* lisp/hexl.el (hexl-mode-old-hl-line-range-function): New variable
