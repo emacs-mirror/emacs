@@ -104,6 +104,8 @@ Quoting cannot be used, so the arguments cannot themselves contain spaces."
 (defvar ruler-mode-ruler-function)
 (defvar hl-line-mode)
 
+(defvar hexl-mode-old-hl-line-range-function)
+(defvar hexl-mode-old-hl-line-face)
 (defvar hexl-mode-old-hl-line-mode)
 (defvar hexl-mode-old-local-map)
 (defvar hexl-mode-old-mode-name)
@@ -259,6 +261,11 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
     (setq hexl-mode-old-hl-line-mode
 	  (and (boundp 'hl-line-mode) hl-line-mode))
 
+    (set (make-local-variable 'hexl-mode-old-hl-line-range-function)
+         hl-line-range-function)
+    (set (make-local-variable 'hexl-mode-old-hl-line-face)
+         hl-line-face)
+
     (make-local-variable 'hexl-mode-old-syntax-table)
     (setq hexl-mode-old-syntax-table (syntax-table))
     (set-syntax-table (standard-syntax-table))
@@ -388,6 +395,10 @@ With arg, don't unhexlify buffer."
       (ruler-mode 0))
   (if (and (boundp 'hl-line-mode) hl-line-mode (not hexl-mode-old-hl-line-mode))
       (hl-line-mode 0))
+
+  (set 'hl-line-range-function hexl-mode-old-hl-line-range-function)
+  (set 'hl-line-face hexl-mode-old-hl-line-face)
+
   (setq require-final-newline hexl-mode-old-require-final-newline)
   (setq mode-name hexl-mode-old-mode-name)
   (setq isearch-search-fun-function hexl-mode-old-isearch-search-fun-function)

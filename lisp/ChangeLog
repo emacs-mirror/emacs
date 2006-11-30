@@ -1,3 +1,10 @@
+2006-11-29  Alin C. Soare  <alinsoar@voila.fr>  (tiny change)
+
+	* lisp/hexl.el (hexl-mode-old-hl-line-range-function): New variable
+	(hexl-mode-old-hl-line-face): New variable
+	(hexl-mode, hexl-mode-exit): Fix the highlighting of the current
+	line when exit from the hexl-mode.
+
 2006-11-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* international/fontset.el (create-fontset-from-ascii-font)
