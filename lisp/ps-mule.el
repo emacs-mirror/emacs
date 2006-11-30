@@ -3,12 +3,12 @@
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
-;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;;	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
-;; Maintainer: Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
-;;	Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;;	Kenichi Handa <handa@m17n.org> (multi-byte characters)
+;; Maintainer: Kenichi Handa <handa@m17n.org> (multi-byte characters)
+;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript, multibyte, mule
-;; Time-stamp: <2003/05/14 22:19:41 vinicius>
+;; Time-stamp: <2006/11/11 16:58:10 vinicius>
 
 ;; This file is part of GNU Emacs.
 
@@ -163,7 +163,34 @@
       (defalias 'string-make-multibyte 'copy-sequence))
   (or (fboundp 'encode-char)
       (defun encode-char (ch ccs)
-	ch)))
+	ch))
+
+  ;; For Emacs 20 compatibility
+  (if (and (boundp 'mule-version)
+	   (string< (symbol-value 'mule-version) "5.0"))
+      ;; mule package is loaded and mule version is lesser than 5.0
+      (progn
+	(or (fboundp 'encode-composition-rule)
+	    (defun encode-composition-rule (rule)
+	      (if (= (car rule) 4) (setcar rule 10))
+	      (if (= (cdr rule) 4) (setcdr rule 10))
+	      (+ (* (car rule) 12) (cdr rule))))
+	(or (fboundp 'find-composition)
+	    (defun find-composition (pos &rest ignore)
+	      (let ((ch (char-after pos)))
+		(and ch (eq (char-charset ch) 'composition)
+		     (let ((components (decompose-composite-char ch 'vector t)))
+		       (list pos (ps-mule-next-point pos) components
+			     (integerp (aref components 1)) nil
+			     (char-width ch))))))))
+    ;; mule package isn't loaded
+    (or (fboundp 'encode-composition-rule)
+	(defun encode-composition-rule (rule)
+	  130))
+    (or (fboundp 'find-composition)
+	(defun find-composition (pos &rest ignore)
+	  nil))
+    ))
 
 
 ;;;###autoload

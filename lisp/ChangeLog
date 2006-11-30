@@ -1,3 +1,15 @@
+2006-11-29  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-bdf.el : Fix maintainer email.
+
+	* ps-mule.el : Fix maintainer email.  Define functions for Emacs 20
+	compatibility.
+
+	* ps-print.el : Fix maintainer email.  Define functions for Emacs 20 &
+	21 compatibility.
+	(ps-print-quote): Replace '?\s' by '?\ ' to keep compatibility with
+	Emacs 20 & 21.
+
 2006-11-29  J.D. Smith  <jdsmith@as.arizona.edu>
 
 	* progmodes/idlwave.el (idlwave-auto-fill): Remove

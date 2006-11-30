@@ -6,8 +6,8 @@
 ;; Author: Jim Thompson (was <thompson@wg2.waii.com>)
 ;;	Jacques Duthen (was <duthen@cegelec-red.fr>)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;;	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
-;; Maintainer: Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
+;;	Kenichi Handa <handa@m17n.org> (multi-byte characters)
+;; Maintainer: Kenichi Handa <handa@m17n.org> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
 ;; Time-stamp: <2005/06/27 00:57:22 vinicius>
@@ -1545,7 +1545,13 @@ Please send all bug fixes and enhancements to
        (defun ps-face-background-name (face)
 	 (ps-xemacs-color-name (face-background face)))
        )
-      (t				; emacs
+      ((<= emacs-major-version 21)	; emacs 20 & 21
+       (defvar mark-active nil)
+       (defun ps-mark-active-p ()
+	 mark-active)
+       (defalias 'ps-face-foreground-name 'face-foreground)
+       (defalias 'ps-face-background-name 'face-background))
+      (t				; emacs 22 or higher
        (defvar mark-active nil)
        (defun ps-mark-active-p ()
 	 mark-active)
@@ -3760,7 +3766,9 @@ If `ps-prefix-quote' is nil, it's set to t after generating string."
 		"(setq ")
 	      key
 	      (if (> col len)
-		  (make-string (- col len) ?\s)
+		  ;; to keep compatibility with Emacs 20 & 21:
+		  ;; DO NOT REPLACE `?\ ' BY `?\s'
+		  (make-string (- col len) ?\ )
 		" ")
 	      (ps-value-string val))))
    (t "")
