@@ -1,3 +1,11 @@
+2006-11-30  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+
+	* ido.el (ido-local-file-exists-p): New. Tell if a file exists
+	locally, i.e. without using file name handlers.
+	(ido-read-internal): Allow mono letter host names, avoiding the
+	`c:' problem by testing if the file exists locally.
+	(ido-complete, ido-make-file-list, ido-exhibit): Ditto.
+
 2006-11-30  Masatake YAMATO  <jet@gyve.org>
 
 	* hexl.el (hl-line-range-function, hl-line-face): Declare variables
