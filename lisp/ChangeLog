@@ -6,20 +6,23 @@
 	(hexl-follow-line): Bind `hexl-mode-old-hl-line-range-function'
 	and `hl-line-range-function' after `require' hl-line.
 	Then bind `hl-line-range-function' and `hl-line-face'.
-	Don't require frame. Don't use `with-no-warnings'.
-	(hexl-activate-ruler): Store the original value of 
+	Don't require frame.  Don't use `with-no-warnings'.
+	(hexl-activate-ruler): Store the original value of
 	`ruler-mode-ruler-function' to `hexl-mode-old-ruler-function'.
-	(hexl-mode-exit): Restore the original value of 
+	(hexl-mode-exit): Restore the original value of
 	`ruler-mode-ruler-function'.
 
-2006-11-29  Alin C. Soare  <alinsoar@voila.fr>  (tiny change)
+2006-11-30  Alin C. Soare  <alinsoar@voila.fr>  (tiny change)
 
-	* lisp/hexl.el (hexl-mode-old-hl-line-range-function): New variable
-	(hexl-mode-old-hl-line-face): New variable
+	* hexl.el (hexl-mode-old-hl-line-range-function): New variable.
+	(hexl-mode-old-hl-line-face): New variable.
 	(hexl-mode, hexl-mode-exit): Fix the highlighting of the current
 	line when exit from the hexl-mode.
 
 2006-11-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/bytecomp.el (byte-optimize, byte-compile-warnings):
+	Doc fixes.
 
 	* international/fontset.el (create-fontset-from-ascii-font)
 	(create-fontset-from-fontset-spec, x-compose-font-name): Doc fixes.
