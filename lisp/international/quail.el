@@ -2066,6 +2066,8 @@ minibuffer and the selected frame has no other windows)."
 
 (defun quail-get-translations ()
   "Return a string containing the current possible translations."
+  (or (multibyte-string-p quail-current-key)
+      (setq quail-current-key (string-to-multibyte quail-current-key)))
   (let ((map (quail-lookup-key quail-current-key nil t))
 	(str (copy-sequence quail-current-key)))
     (if quail-current-translations
@@ -2074,7 +2076,7 @@ minibuffer and the selected frame has no other windows)."
     ;; Show the current key.
     (let ((guidance (quail-guidance)))
       (if (listp guidance)
-	  ;; We must replace thetyped key with the specified PROMPTKEY.
+	  ;; We must replace the typed key with the specified PROMPT-KEY.
 	  (dotimes (i (length str))
 	    (let ((prompt-key (cdr (assoc (aref str i) guidance))))
 	      (if prompt-key

@@ -1938,6 +1938,7 @@ hack_wm_protocols (f, widget)
 #ifdef HAVE_X_I18N
 
 static XFontSet xic_create_xfontset P_ ((struct frame *, char *));
+static XFontSet xic_create_xfontset2 P_ ((struct frame *));
 static XIMStyle best_xim_style P_ ((XIMStyles *, XIMStyles *));
 
 
@@ -2172,6 +2173,86 @@ xic_create_xfontset (f, base_fontname)
   return xfs;
 }
 
+#ifdef USE_FONT_BACKEND
+static XFontSet
+xic_create_xfontset2 (f)
+     struct frame *f;
+{
+  XFontSet xfs = NULL;
+  struct font *font = FRAME_FONT_OBJECT (f);
+  int pixel_size = font->pixel_size;
+  Lisp_Object rest, frame;
+
+  /* See if there is another frame already using same fontset.  */
+  FOR_EACH_FRAME (rest, frame)
+    {
+      struct frame *cf = XFRAME (frame);
+
+      if (cf != f && FRAME_LIVE_P (f) && FRAME_X_P (cf)
+          && FRAME_X_DISPLAY_INFO (cf) == FRAME_X_DISPLAY_INFO (f)
+	  && FRAME_FONT_OBJECT (f)
+	  && FRAME_FONT_OBJECT (f)->pixel_size == pixel_size)
+        {
+          xfs = FRAME_XIC_FONTSET (cf);
+          break;
+        }
+    }
+
+  if (! xfs)
+    {
+      char buf[256];
+      char **missing_list;
+      int missing_count;
+      char *def_string;
+      char *xlfd_format = "-*-*-medium-r-normal--%d-*-*-*-*-*";
+
+      sprintf (buf, xlfd_format, pixel_size);
+      missing_list = NULL;
+      xfs = XCreateFontSet (FRAME_X_DISPLAY (f), buf,
+			    &missing_list, &missing_count, &def_string);
+      if (missing_list)
+	XFreeStringList (missing_list);
+      if (! xfs)
+	{
+	  /* List of pixel sizes most likely available.  Find one that
+	     is closest to pixel_size.  */
+	  int sizes[] = {0, 8, 10, 11, 12, 14, 17, 18, 20, 24, 26, 34, 0};
+	  int *smaller, *larger;
+
+	  for (smaller = sizes; smaller[1]; smaller++)
+	    if (smaller[1] >= pixel_size)
+	      break;
+	  larger = smaller + 1;
+	  if (*larger == pixel_size)
+	    larger++;
+	  while (*smaller || *larger)
+	    {
+	      int this_size;
+
+	      if (! *larger)
+		this_size = *smaller--;
+	      else if (! *smaller)
+		this_size = *larger++;
+	      else if (pixel_size - *smaller < *larger - pixel_size)
+		this_size = *smaller--;
+	      else
+		this_size = *larger++;
+	      sprintf (buf, xlfd_format, this_size);
+	      missing_list = NULL;
+	      xfs = XCreateFontSet (FRAME_X_DISPLAY (f), buf,
+				    &missing_list, &missing_count, &def_string);
+	      if (missing_list)
+		XFreeStringList (missing_list);
+	      if (xfs)
+		break;
+	    }
+	}
+    }
+
+  return xfs;
+}
+#endif	/* USE_FONT_BACKEND */
+
 /* Free the X fontset of frame F if it is the last frame using it.  */
 
 void
@@ -2244,6 +2325,11 @@ create_frame_xic (f)
     return;
 
   /* Create X fontset. */
+#ifdef USE_FONT_BACKEND
+  if (enable_font_backend)
+    xfs = xic_create_xfontset2 (f);
+  else
+#endif
   xfs = xic_create_xfontset
     (f, (FRAME_FONTSET (f) < 0) ? NULL
         : (char *) SDATA (fontset_ascii (FRAME_FONTSET (f))));
@@ -2402,6 +2488,11 @@ xic_set_xfontset (f, base_fontname)
 
   xic_free_xfontset (f);
 
+#ifdef USE_FONT_BACKEND
+  if (enable_font_backend)
+    xfs = xic_create_xfontset2 (f);
+  else
+#endif
   xfs = xic_create_xfontset (f, base_fontname);
 
   attr = XVaCreateNestedList (0, XNFontSet, xfs, NULL);

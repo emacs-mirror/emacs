@@ -1,3 +1,51 @@
+2006-11-29  Kenichi Handa  <handa@m17n.org>
+
+	* mail/emacsbug.el (report-emacs-bug): Insert also the value of
+	XMODIFIERS.
+
+2006-11-28  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Fix maintainer email.  Eliminate function declaration
+	that kept compatibility with older Emacs version.
+	(ps-print-version): New version (6.7).
+
+2006-11-28  Kenichi Handa  <handa@m17n.org>
+
+	* international/quail.el (quail-get-translations): Make
+	quail-current-key multibyte if not yet done.
+
+2006-11-27  Zhang Wei  <id.brep@gmail.com>
+
+	* language/chinese.el ("Chinese-GBK"): Add tutorial.
+	("Chinese-GB18030"): Add sample-text and tutorial.
+
+	* international/fontset.el (font-encoding-alist): Add gb18030.
+	(setup-default-fontset): Likewise.
+	(x-pixel-size-width-font-regexp, vertical-centering-font-regexp):
+	Add gbk and gb18030.
+	(charset-script-alist): Likewise.
+
+	* international/characters.el: Put property
+	preferred-coding-system to gbk and gb18030.
+
+	* international/mule-cmds.el (locale-language-names): Add an entry
+	for "zh_CN.UTF-8" and change "chs" to "Chinese-GBK".
+
+	* faces.el (face-font-registry-alternatives): Add gb18030.
+
+2006-11-22  Vinicius Jose Latorre  <viniciusjl@ig.com.br>  (tiny change)
+
+	* ps-mule.el: Fix maintainer email.
+
+2006-11-22  Kenichi Handa  <handa@m17n.org>
+
+	* language/european.el ("Turkish"): Sync with HEAD.
+
+	* international/characters.el: Sync with HEAD.
+
+	* international/mule-cmds.el (set-default-coding-systems): Sync
+	with HEAD.
+
 2006-11-21  Kenichi Handa  <handa@m17n.org>
 
 	* international/quail.el (quail-insert-kbd-layout): Check the

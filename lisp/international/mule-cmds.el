@@ -340,9 +340,13 @@ This also sets the following values:
 	(or (local-variable-p 'buffer-file-coding-system buffer)
 	    (ucs-set-table-for-input buffer))))
 
-  (if (and default-enable-multibyte-characters (not (eq system-type 'darwin)))
+  (if (eq system-type 'darwin)
       ;; The file-name coding system on Darwin systems is always utf-8.
-      (setq default-file-name-coding-system coding-system))
+      (setq default-file-name-coding-system 'utf-8)
+    (if (and default-enable-multibyte-characters
+	     (or (not coding-system)
+		 (coding-system-get coding-system 'ascii-compatible-p)))
+	(setq default-file-name-coding-system coding-system)))
   ;; If coding-system is nil, honor that on MS-DOS as well, so
   ;; that they could reset the terminal coding system.
   (unless (and (eq window-system 'pc) coding-system)
@@ -2262,6 +2266,7 @@ Setting this variable directly does not take effect.  See
     ("zh_CN.GB2312" "Chinese-GB")
     ("zh_CN.GBK" "Chinese-GBK")
     ("zh_CN.GB18030" "Chinese-GB18030")
+    ("zh_CN.UTF-8" . "Chinese-GBK")
     ("zh_CN" . "Chinese-GB")
     ("zh" . "Chinese-GB")
     ("zu" . "Latin-1") ; Zulu
@@ -2281,7 +2286,7 @@ Setting this variable directly does not take effect.  See
     ("sp" . "Cyrillic-ISO") ; Serbian (Cyrillic alphabet), e.g. X11R6.4
     ("su" . "Latin-1") ; Finnish, e.g. Solaris 2.6
     ("jp" . "Japanese") ; e.g. MS Windows
-    ("chs" . "Chinese-GB") ; MS Windows Chinese Simplified
+    ("chs" . "Chinese-GBK") ; MS Windows Chinese Simplified
     ("cht" . "Chinese-BIG5") ; MS Windows Chinese Traditional
     ("gbz" . "UTF-8") ; MS Windows Dari Persian
     ("div" . "UTF-8") ; MS Windows Divehi (Maldives)

@@ -52,6 +52,8 @@ int enable_font_backend;
 
 Lisp_Object Qfontp;
 
+Lisp_Object Qopentype;
+
 /* Important character set symbols.  */
 Lisp_Object Qiso8859_1, Qiso10646_1, Qunicode_bmp, Qunicode_sip;
 
@@ -749,7 +751,7 @@ font_parse_xlfd (name, font)
   int i, j;
   Lisp_Object dpi, spacing;
   int avgwidth;
-  char *f[XLFD_LAST_INDEX];
+  char *f[XLFD_LAST_INDEX + 1];
   Lisp_Object val;
   char *p;
 
@@ -2822,7 +2824,7 @@ register_font_driver (driver, f)
 	   SDATA (SYMBOL_NAME (driver->type)));
 
   for (prev = NULL, list = root; list; prev = list, list = list->next)
-    if (list->driver->type == driver->type)
+    if (EQ (list->driver->type, driver->type))
       error ("Duplicated font driver: %s", SDATA (SYMBOL_NAME (driver->type)));
 
   list = malloc (sizeof (struct font_driver_list));
@@ -3550,7 +3552,7 @@ DEFUN ("query-font", Fquery_font, Squery_font, 1, 1, 0,
        doc: /* Return information about FONT-OBJECT.
 The value is a vector:
   [ NAME FILENAME PIXEL-SIZE SIZE ASCENT DESCENT SPACE-WIDTH AVERAGE-WIDTH
-    OTF-CAPABILITY ]
+    CAPABILITY ]
 
 NAME is a string of the font name (or nil if the font backend doesn't
 provide a name).
@@ -3565,10 +3567,19 @@ SIZE is a maximum advance width of the font in pixel.
 ASCENT, DESCENT, SPACE-WIDTH, AVERAGE-WIDTH are metrics of the font in
 pixel.
 
-OTF-CAPABILITY is a cons (GSUB . GPOS), where GSUB shows which "GSUB"
-features the font supports, and GPOS shows which "GPOS" features the
-font supports.   Both GSUB and GPOS are lists of the format:
-  ((SCRIPT (LANGSYS FEATURE ...) ...) ...)
+CAPABILITY is a list whose first element is a symbol representing the
+font format \(x, opentype, truetype, type1, pcf, or bdf) and the
+remaining elements describes a detail of the font capability.
+
+If the font is OpenType font, the form of the list is
+  \(opentype GSUB GPOS)
+where GSUB shows which "GSUB" features the font supports, and GPOS
+shows which "GPOS" features the font supports.  Both GSUB and GPOS are
+lists of the format:
+  \((SCRIPT (LANGSYS FEATURE ...) ...) ...)
+
+If the font is not OpenType font, currently the length of the form is
+one.
 
 SCRIPT is a symbol representing OpenType script tag.
 
@@ -3600,7 +3611,9 @@ If the font is not OpenType font, OTF-CAPABILITY is nil.  */)
   ASET (val, 6, make_number (font->font.space_width));
   ASET (val, 7, make_number (font->font.average_width));
   if (font->driver->otf_capability)
-    ASET (val, 8, font->driver->otf_capability (font));
+    ASET (val, 8, Fcons (Qopentype, font->driver->otf_capability (font)));
+  else
+    ASET (val, 8, Fcons (font->format, Qnil));
   return val;
 }
 
@@ -3759,6 +3772,7 @@ syms_of_font ()
   font_family_alist = Qnil;
 
   DEFSYM (Qfontp, "fontp");
+  DEFSYM (Qopentype, "opentype");
 
   DEFSYM (Qiso8859_1, "iso8859-1");
   DEFSYM (Qiso10646_1, "iso10646-1");

@@ -191,3 +191,12 @@ It may be interesting if Emacs supports a frame buffer directly and
 have these font driver.
 	ftfbfont.c -- font-driver on FB for FreeType fonts.
 	bdffbfont.c -- font-driver on FB for BDF fonts.
+
+Note: The fontset related codes are not yet matuared to work well with
+the font backend method.  So, for instance, even if you start Emacs
+as something like this:
+  % emacs --enable-font-backend -fn tahoma
+Non-ASCII Latin characters will not be displayed by the font "tahoma".
+In such a case, please try this:
+
+(set-fontset-font "fontset-default" 'latin '("tahoma" . "unicode-bmp"))

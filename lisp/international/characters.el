@@ -433,11 +433,6 @@
 
 (let ((tbl (standard-case-table)) c)
 
-;; In some languages, U+0049 LATIN CAPITAL LETTER I and U+0131 LATIN
-;; SMALL LETTER DOTLESS I make a case pair, and so do U+0130 LATIN
-;; CAPITAL LETTER I WITH DOT ABOVE and U+0069 LATIN SMALL LETTER I.
-;; See the Turkish language environment.
-
   ;; Latin-1
 
   ;; Fixme: Some of the non-word syntaxes here perhaps should be
@@ -485,8 +480,20 @@
 	 (zerop (% c 2))
 	 (set-case-syntax-pair (1- c) c tbl))
     (setq c (1+ c)))
-  (set-downcase-syntax  ?İ ?i tbl)
-  (set-upcase-syntax    ?I ?ı tbl)
+
+
+  ;; In some languages, such as Turkish, U+0049 LATIN CAPITAL LETTER I
+  ;; and U+0131 LATIN SMALL LETTER DOTLESS I make a case pair, and so
+  ;; do U+0130 LATIN CAPITAL LETTER I WITH DOT ABOVE and U+0069 LATIN
+  ;; SMALL LETTER I.
+
+  ;; We used to set up half of those correspondence unconditionally,
+  ;; but that makes searches slow.  So now we don't set up either half
+  ;; of these correspondences by default.
+
+  ;; (set-downcase-syntax  ?İ ?i tbl)
+  ;; (set-upcase-syntax    ?I ?ı tbl)
+
   (set-case-syntax-pair ?Ĳ ?ĳ tbl)
   (set-case-syntax-pair ?Ĵ ?ĵ tbl)
   (set-case-syntax-pair ?Ķ ?ķ tbl)
@@ -834,12 +841,16 @@
 	   (cyrillic-iso8859-5	. cyrillic-iso-8bit)
 	   (latin-iso8859-9	. iso-latin-5)
 	   (japanese-jisx0208-1978 . iso-2022-jp)
-	   (chinese-gb2312	. cn-gb-2312)
+	   (chinese-gb2312	. chinese-iso-8bit)
+	   (chinese-gbk		. chinese-gbk)
+	   (gb18030-2-byte	. chinese-gb18030)
+	   (gb18030-4-byte-bmp	. chinese-gb18030)
+	   (gb18030-4-byte-smp	. chinese-gb18030)
+	   (gb18030-4-byte-ext-1 . chinese-gb18030)
+	   (gb18030-4-byte-ext-2 . chinese-gb18030)
 	   (japanese-jisx0208	. iso-2022-jp)
 	   (korean-ksc5601	. iso-2022-kr)
 	   (japanese-jisx0212	. iso-2022-jp)
-	   (chinese-cns11643-1	. iso-2022-cn)
-	   (chinese-cns11643-2	. iso-2022-cn)
 	   (chinese-big5-1	. chinese-big5)
 	   (chinese-big5-2	. chinese-big5)
 	   (chinese-sisheng	. iso-2022-7bit)
@@ -854,6 +865,8 @@
 	   (indian-glyph	. devanagari)
 	   (tibetan-1-column	. tibetan)
 	   (ethiopic		. iso-2022-7bit)
+	   (chinese-cns11643-1	. iso-2022-cn)
+	   (chinese-cns11643-2	. iso-2022-cn)
 	   (chinese-cns11643-3	. iso-2022-cn)
 	   (chinese-cns11643-4	. iso-2022-cn)
 	   (chinese-cns11643-5	. iso-2022-cn)

@@ -1,3 +1,57 @@
+2006-11-30  Kenichi Handa  <handa@m17n.org>
+
+	* search.c (simple_search): Fix previous change.
+
+2006-11-29  Kenichi Handa  <handa@m17n.org>
+
+	* xftfont.c (ftfont_font_format): Extern declaration.
+
+	* frame.c (x_set_font): Fix the second arg to fs_query_fontset.
+
+	* xfont.c (xfont_driver): Initialize ftfont_driver.type by 0.
+	(xfont_list): Don't directly use Lisp_Object as an operand of &&.
+
+	* ftfont.c (ftfont_driver): Initialize ftfont_driver.type by 0.
+	(ftfont_font_format): Fix previous change.
+
+	* font.h (Ffont_xlfd_name): EXFUN it.
+
+	* font.c (font_parse_xlfd): Fix the array size of `f'.
+	(register_font_driver): Use EQ to compare driver->type.
+
+	* xfns.c (xic_create_xfontset2) [USE_FONT_BACKEND]: New function.
+	(create_frame_xic) [USE_FONT_BACKEND]: Call xic_create_xfontset2.
+	(xic_set_xfontset) [USE_FONT_BACKEND]: Likewise.
+
+2006-11-27  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_pattern_entity): Check if FC_FONTFORMAT is
+	defined.
+	(ftfont_list_generic_family, ftfont_list, ftfont_font_format):
+	Likewise.
+
+2006-11-24  Kenichi Handa  <handa@m17n.org>
+
+	* xfont.c (xfont_open): Set font->format.
+
+	* xftfont.c (xftfont_open): Set font->format.
+
+	* ftfont.c (ftfont_pattern_entity): Add fontformat in a pattern.
+	(ftfont_list): Include FC_FONTFORMAT in FcObject.
+	(ftfont_open): Set font->format.
+	(ftfont_font_format): New function.
+
+	* font.h (struct font): New memeber format.
+
+	* font.c (Qopentype): New variable.
+	(syms_of_font): Defsym it.
+	(Fquery_font): Change the format of the last element of the return
+	value.
+
+2006-11-22  Kenichi Handa  <handa@m17n.org>
+
+	* search.c (simple_search): Fix sync with HEAD.
+
 2006-11-17  Kenichi Handa  <handa@m17n.org>
 
 	* xfns.c (xic_create_xfontset): Try the default fontset name as a
