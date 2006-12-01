@@ -1332,7 +1332,7 @@ Please send all bug fixes and enhancements to
 ;;
 ;; Faces are always treated as opaque.
 ;;
-;; Epoch, Lucid and Emacs 19 not supported.  At all.
+;; Epoch, Lucid and Emacs 22 not supported.  At all.
 ;;
 ;; Fixed-pitch fonts work better for line folding, but are not required.
 ;;
