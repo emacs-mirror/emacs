@@ -1034,6 +1034,21 @@ jit-lock-defer-contextually is renamed jit-lock-contextually and
 jit-lock-context-time determines the delay after which contextual
 refontification takes place.
 
+---
+*** lazy-lock is considered obsolete.
+
+The `lazy-lock' package is superseded by `jit-lock' and is considered
+obsolete.  `jit-lock' is activated by default; if you wish to continue
+using `lazy-lock', activate it in your ~/.emacs like this:
+
+  (setq font-lock-support-mode 'lazy-lock-mode)
+
+If you invoke `lazy-lock-mode' directly rather than through
+`font-lock-support-mode', it now issues a warning:
+
+  "Use font-lock-support-mode rather than calling lazy-lock-mode"
+
+
 ** Menu support:
 
 ---
