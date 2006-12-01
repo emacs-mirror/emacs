@@ -212,11 +212,13 @@ always load any particular Lisp file in the same way.  However, you can
 load a Lisp file as unibyte, on any one occasion, by typing @kbd{C-x
 @key{RET} c raw-text @key{RET}} immediately before loading it.
 
-  The mode line indicates whether multibyte character support is enabled
-in the current buffer.  If it is, there are two or more characters (most
-often two dashes) before the colon near the beginning of the mode line.
-When multibyte characters are not enabled, nothing precedes the colon
-except a single dash.
+  The mode line indicates whether multibyte character support is
+enabled in the current buffer.  If it is, there are two or more
+characters (most often two dashes) near the beginning of the mode
+line, before the indication of the visited file's end-of-line
+convention (colon, backslash, etc.).  When multibyte characters
+are not enabled, nothing precedes the colon except a single dash.
+@xref{Mode Line}, for more details about this.
 
 @node Language Environments
 @section Language Environments
