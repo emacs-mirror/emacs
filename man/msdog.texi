@@ -518,6 +518,16 @@ character.  If the value is a character, use that character to escape
 any quote characters that appear; otherwise chose a suitable escape
 character based on the type of the program.
 
+@ifnottex
+@findex w32-shell-execute
+  The function @code{w32-shell-execute} can be useful for writing
+customized commands that run MS-Windows applications registered to
+handle a certain standard Windows operation for a specific type of
+document or file.  This function is a wrapper around the Windows
+@code{ShellExecute} API.  See the MS-Windows API documentation for
+more details.
+@end ifnottex
+
 @node Windows Printing
 @section Printing and MS-Windows
 
