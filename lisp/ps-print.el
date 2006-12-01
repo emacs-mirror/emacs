@@ -10,12 +10,12 @@
 ;; Maintainer: Kenichi Handa <handa@m17n.org> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Time-stamp: <2006/11/28 18:27:15 vinicius>
-;; Version: 6.7
+;; Time-stamp: <2006/12/01 11:17:19 vinicius>
+;; Version: 7.0
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
-(defconst ps-print-version "6.7"
-  "ps-print.el, v 6.7 <2006/11/28 vinicius>
+(defconst ps-print-version "7.0"
+  "ps-print.el, v 7.0 <2006/12/01 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
