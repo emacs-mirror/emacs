@@ -1,3 +1,7 @@
+2006-12-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (Fw32_shell_execute): Doc fix.
+
 2006-11-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (move_it_to): Correctly count tab glyphs for continued
