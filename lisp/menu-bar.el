@@ -1018,9 +1018,9 @@ mail status in mode line"))
 
 (define-key menu-bar-options-menu [case-fold-search]
   (menu-bar-make-toggle toggle-case-fold-search case-fold-search
-			"Case-Insensitive Search"
-			"Case-Insensitive Search %s"
-			"Ignore letter-case in search"))
+	    "Case-Insensitive Search"
+	    "Case-Insensitive Search %s for buffers without local setting"
+	    "Ignore letter-case in search for buffers without local setting"))
 
 (defun menu-bar-text-mode-auto-fill ()
   (interactive)
