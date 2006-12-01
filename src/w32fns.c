@@ -8044,17 +8044,39 @@ DEFUN ("w32-shell-execute", Fw32_shell_execute, Sw32_shell_execute, 2, 4, 0,
        doc: /* Get Windows to perform OPERATION on DOCUMENT.
 This is a wrapper around the ShellExecute system function, which
 invokes the application registered to handle OPERATION for DOCUMENT.
-OPERATION is typically \"open\", \"print\" or \"explore\" (but can be
-nil for the default action), and DOCUMENT is typically the name of a
-document file or URL, but can also be a program executable to run or
-a directory to open in the Windows Explorer.
 
-If DOCUMENT is a program executable, PARAMETERS can be a string
-containing command line parameters, but otherwise should be nil.
+OPERATION is either nil or a string that names a supported operation.
+What operations can be used depends on the particular DOCUMENT and its
+handler application, but typically it is one of the following common
+operations:
 
-SHOW-FLAG can be used to control whether the invoked application is hidden
-or minimized.  If SHOW-FLAG is nil, the application is displayed normally,
-otherwise it is an integer representing a ShowWindow flag:
+ \"open\"    - open DOCUMENT, which could be a file, a directory, or an
+               executable program.  If it is an application, that
+               application is launched in the current buffer's default
+               directory.  Otherwise, the application associated with
+               DOCUMENT is launched in the buffer's default directory.
+ \"print\"   - print DOCUMENT, which must be a file
+ \"explore\" - start the Windows Explorer on DOCUMENT
+ \"edit\"    - launch an editor and open DOCUMENT for editing; which
+               editor is launched depends on the association for the
+               specified DOCUMENT
+ \"find\"    - initiate search starting from DOCUMENT which must specify
+               a directory
+ nil       - invoke the default OPERATION, or \"open\" if default is
+               not defined or unavailable
+
+DOCUMENT is typically the name of a document file or a URL, but can
+also be a program executable to run, or a directory to open in the
+Windows Explorer.
+
+If DOCUMENT is a program executable, the optional arg PARAMETERS can
+be a string containing command line parameters that will be passed to
+the program; otherwise, PARAMETERS should be nil or unspecified.
+
+Second optional argument SHOW-FLAG can be used to control how the
+application will be displayed when it is invoked.  If SHOW-FLAG is nil
+or unspceified, the application is displayed normally, otherwise it is
+an integer representing a ShowWindow flag:
 
   0 - start hidden
   1 - start normally
