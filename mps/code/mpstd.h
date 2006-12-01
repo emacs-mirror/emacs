@@ -186,6 +186,24 @@
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    8 /* .macos.ppc.align */
 
+/* GCC 4.0.1 (As supplied by Apple on Mac OS X 10.4.8 on an Intel Mac),
+ * gcc -E -dM
+ * And above for xcppgc.
+ */
+
+#elif defined(CONFIG_PF_XCI3GC) \
+      || defined(__APPLE__) && defined(__i386__) && defined(__MACH__) \
+         && defined(__GNUC__)
+#define MPS_PF_XCI3GC
+#define MPS_PF_STRING   "xci3gc"
+#define MPS_OS_XC
+#define MPS_ARCH_I3
+#define MPS_BUILD_GC
+#define MPS_T_WORD      unsigned long
+#define MPS_WORD_WIDTH  32
+#define MPS_WORD_SHIFT  5
+#define MPS_PF_ALIGN    4       /* I'm just guessing. */
+
 /* GCC 2.5.8, gcc -E -dM, (__SVR4 indicates Solaris) */
 
 #elif defined(CONFIG_PF_SUS8GC) \
