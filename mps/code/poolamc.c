@@ -421,7 +421,7 @@ static Res AMCBufInit(Buffer buffer, Pool pool, va_list args)
     /* Set up the buffer to be allocating in the nursery. */
     amcbuf->gen = amc->nursery;
   } else {
-    amcbuf->gen = NULL; /* no gen yet -- see <design/poolamc/#forward.gen> */
+    amcbuf->gen = NULL; /* no gen yet -- see <design/poolamc/#gen.forward> */
   }
   amcbuf->sig = amcBufSig;
   AVERT(amcBuf, amcbuf);
