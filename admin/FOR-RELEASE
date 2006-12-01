@@ -55,6 +55,8 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** christopher.ian.moore@gmail.com, Nov 30: too much recursion in gnus-sort-threads-1.
 
+** rmg@gnu.org, Nov 29: saved user abbrevs and system abbrevs
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
