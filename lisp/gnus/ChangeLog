@@ -1,3 +1,13 @@
+2006-11-30  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml2015.el (mml2015-pgg-clear-verify): Replace encode-coding-string
+	with mm-encode-coding-string.
+
+2006-11-29  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nneething.el (nneething-decode-file-name): Replace
+	decode-coding-string with mm-decode-coding-string.
+
 2006-11-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* gnus-agent.el (gnus-agent-expire-unagentized-dirs)

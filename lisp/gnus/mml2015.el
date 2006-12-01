@@ -785,7 +785,7 @@
     (if (condition-case err
 	    (prog1
 		(mm-with-unibyte-buffer
-		  (insert (encode-coding-string text coding-system))
+		  (insert (mm-encode-coding-string text coding-system))
 		  (pgg-verify-region (point-min) (point-max) nil t))
 	      (goto-char (point-min))
 	      (while (search-forward "\r\n" nil t)

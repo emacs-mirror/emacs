@@ -303,7 +303,7 @@ included.")
       (setq buf (cons (string (string-to-number (match-string 1 file) 16))
 		      (cons (substring file pos (match-beginning 0)) buf))
 	    pos (match-end 0)))
-    (decode-coding-string
+    (mm-decode-coding-string
      (apply (function concat)
 	    (nreverse (cons (substring file pos) buf)))
      (or coding-system nnmail-pathname-coding-system))))
