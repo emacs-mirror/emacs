@@ -1,6 +1,6 @@
 2006-12-01  Nick Roberts  <nickrob@snap.net.nz>
 
-	* menu-bar.el (toggle-case-fold-search): Clarfify doc/help string and
+	* menu-bar.el (toggle-case-fold-search): Clarify doc/help string and
 	mini-buffer message.
 
 2006-12-01  Juanma Barranquero  <lekktu@gmail.com>
