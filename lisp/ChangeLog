@@ -1,8 +1,12 @@
+2006-12-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* descr-text.el (describe-char-unicodedata-file): Fix typo in docstring.
+
 2006-12-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-mule.el: Eliminate Emacs 20 compatibility.
 
-	* ps-print.el : Eliminate Emacs 20 & 21 compatibility.
+	* ps-print.el: Eliminate Emacs 20 & 21 compatibility.
 	(ps-print-version): New Version 6.7.
 	(ps-print-quote): Replace '?\ ' by '?\s'.
 
@@ -56,12 +60,12 @@
 
 2006-11-30  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* ps-bdf.el : Fix maintainer email.
+	* ps-bdf.el: Fix maintainer email.
 
-	* ps-mule.el : Fix maintainer email.  Define functions for Emacs 20
+	* ps-mule.el: Fix maintainer email.  Define functions for Emacs 20
 	compatibility.
 
-	* ps-print.el : Fix maintainer email.  Define functions for Emacs 20 &
+	* ps-print.el: Fix maintainer email.  Define functions for Emacs 20 &
 	21 compatibility.
 	(ps-print-quote): Replace '?\s' by '?\ ' to keep compatibility with
 	Emacs 20 & 21.
