@@ -163,34 +163,7 @@
       (defalias 'string-make-multibyte 'copy-sequence))
   (or (fboundp 'encode-char)
       (defun encode-char (ch ccs)
-	ch))
-
-  ;; For Emacs 20 compatibility
-  (if (and (boundp 'mule-version)
-	   (string< (symbol-value 'mule-version) "5.0"))
-      ;; mule package is loaded and mule version is lesser than 5.0
-      (progn
-	(or (fboundp 'encode-composition-rule)
-	    (defun encode-composition-rule (rule)
-	      (if (= (car rule) 4) (setcar rule 10))
-	      (if (= (cdr rule) 4) (setcdr rule 10))
-	      (+ (* (car rule) 12) (cdr rule))))
-	(or (fboundp 'find-composition)
-	    (defun find-composition (pos &rest ignore)
-	      (let ((ch (char-after pos)))
-		(and ch (eq (char-charset ch) 'composition)
-		     (let ((components (decompose-composite-char ch 'vector t)))
-		       (list pos (ps-mule-next-point pos) components
-			     (integerp (aref components 1)) nil
-			     (char-width ch))))))))
-    ;; mule package isn't loaded
-    (or (fboundp 'encode-composition-rule)
-	(defun encode-composition-rule (rule)
-	  130))
-    (or (fboundp 'find-composition)
-	(defun find-composition (pos &rest ignore)
-	  nil))
-    ))
+	ch)))
 
 
 ;;;###autoload
