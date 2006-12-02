@@ -1,3 +1,13 @@
+2006-12-02  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-toggle-set-mark): Doc fix.
+	(cua-repeat-replace-region): Make M-v more robust.
+	(cua-paste-pop-rotate-temporarily): New defcustom.
+	(cua-paste-pop): Use it.
+	(cua-auto-mark-last-change): New defcustom.
+	(cua-pop-to-last-change): New helper function.
+	(cua-set-mark): Use them.
+
 2006-12-01  Nick Roberts  <nickrob@snap.net.nz>
 
 	* menu-bar.el (toggle-case-fold-search): Clarify doc/help string and
