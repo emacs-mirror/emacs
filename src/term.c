@@ -2300,6 +2300,7 @@ clear_tty_hooks (struct terminal *terminal)
   terminal->mouse_position_hook = 0;
   terminal->frame_rehighlight_hook = 0;
   terminal->frame_raise_lower_hook = 0;
+  terminal->fullscreen_hook = 0;
   terminal->set_vertical_scroll_bar_hook = 0;
   terminal->condemn_scroll_bars_hook = 0;
   terminal->redeem_scroll_bar_hook = 0;

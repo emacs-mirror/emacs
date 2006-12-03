@@ -1,3 +1,7 @@
+2006-10-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Makefile.in (lwlib-utils.o): Use CPPFLAGS.
+
 2006-09-15  Jay Belanger  <belanger@truman.edu>
 
 	* COPYING: Replace "Library Public License" by "Lesser Public
@@ -8,25 +12,25 @@
 	* xlwmenu.c: Include xterm.h if emacs instead of declaring functions
 	used.
 	(string_width): Declare as static.
-	(Start, pop_up_menu): Set is_hint to 0 before calling 
+	(Start, pop_up_menu): Set is_hint to 0 before calling
 	handle_motion_event.
 	(pop_up_menu): Return value and parameters for x_catch_errors and
 	x_uncatch_errors changed.
 
 2005-09-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* xlwmenu.c (find_next_selectable): 
+	* xlwmenu.c (find_next_selectable):
 	(find_prev_selectable): Add missing parameter
 	declarations.
 
 2005-09-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* xlwmenu.c: Fix the return type for x_clear_errors and
-	x_uncatch_errors. 
+	x_uncatch_errors.
 
 2005-07-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* lwlib-Xm.c (make_menu_in_widget): Disable drag and drop for 
+	* lwlib-Xm.c (make_menu_in_widget): Disable drag and drop for
 	labels in menu bar.
 
 2005-07-04  Lute Kamstra  <lute@gnu.org>
@@ -1311,6 +1315,7 @@
 
 ;; Local Variables:
 ;; coding: iso-2022-7bit-unix
+;; add-log-time-zone-rule: t
 ;; End:
 
     Copyright (C) 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2006

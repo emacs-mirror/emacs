@@ -189,7 +189,7 @@ Ispell's ultimate default dictionary."
   :type 'string)
 
 (defcustom flyspell-check-tex-math-command nil
-  "Non nil means check even inside TeX math environment.
+  "Non-nil means check even inside TeX math environment.
 TeX math environments are discovered by the TEXMATHP that implemented
 inside the texmathp.el Emacs package.  That package may be found at:
 http://strw.leidenuniv.nl/~dominik/Tools"
@@ -412,6 +412,7 @@ property of the major mode name.")
     (define-key map flyspell-auto-correct-binding 'flyspell-auto-correct-previous-word)
     (define-key map [(control ?\,)] 'flyspell-goto-next-error)
     (define-key map [(control ?\.)] 'flyspell-auto-correct-word)
+    (define-key map [?\C-c ?$] 'flyspell-correct-word-before-point)
     map)
   "Minor mode keymap for Flyspell mode--for the whole buffer.")
 
@@ -1999,52 +2000,62 @@ But don't look beyond what's visible on the screen."
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-correct-word ...                                        */
 ;;*---------------------------------------------------------------------*/
+
 (defun flyspell-correct-word (event)
   "Pop up a menu of possible corrections for a misspelled word.
 The word checked is the word at the mouse position."
   (interactive "e")
-  ;; use the correct dictionary
-  (flyspell-accept-buffer-local-defs)
-  ;; retain cursor location (I don't know why but save-excursion here fails).
   (let ((save (point)))
     (mouse-set-point event)
-    (let ((cursor-location (point))
-	  (word (flyspell-get-word nil)))
-      (if (consp word)
-	  (let ((start (car (cdr word)))
-		(end (car (cdr (cdr word))))
-		(word (car word))
-		poss ispell-filter)
-	    ;; now check spelling of word.
-	    (ispell-send-string "%\n") ;put in verbose mode
-	    (ispell-send-string (concat "^" word "\n"))
-	    ;; wait until ispell has processed word
-            (while (progn
-                     (accept-process-output ispell-process)
-                     (not (string= "" (car ispell-filter)))))
-	    ;; Remove leading empty element
-	    (setq ispell-filter (cdr ispell-filter))
-	    ;; ispell process should return something after word is sent.
-	    ;; Tag word as valid (i.e., skip) otherwise
-	    (or ispell-filter
-		(setq ispell-filter '(*)))
-	    (if (consp ispell-filter)
-		(setq poss (ispell-parse-output (car ispell-filter))))
-	    (cond
-	     ((or (eq poss t) (stringp poss))
-	      ;; don't correct word
-	      t)
-	     ((null poss)
-	      ;; ispell error
-	      (error "Ispell: error in Ispell process"))
-	     ((featurep 'xemacs)
-	      (flyspell-xemacs-popup
-               poss word cursor-location start end save))
-	     (t
-	      ;; The word is incorrect, we have to propose a replacement.
-              (flyspell-do-correct (flyspell-emacs-popup event poss word)
-                                   poss word cursor-location start end save)))
-	    (ispell-pdict-save t))))))
+    (flyspell-correct-word-before-point event save)))
+
+(defun flyspell-correct-word-before-point (&optional event opoint)
+  "Pop up a menu of possible corrections for misspelled word before point.
+If EVENT is non-nil, it is the mouse event that invoked this operation;
+that controls where to put the menu.
+If OPOINT is non-nil, restore point there after adjusting it for replacement."
+  (interactive)
+  (unless (mouse-position)
+    (error "Pop-up menus do not work on this terminal"))
+  ;; use the correct dictionary
+  (flyspell-accept-buffer-local-defs)
+  (let ((cursor-location (point))
+	(word (flyspell-get-word nil)))
+    (if (consp word)
+	(let ((start (car (cdr word)))
+	      (end (car (cdr (cdr word))))
+	      (word (car word))
+	      poss ispell-filter)
+	  ;; now check spelling of word.
+	  (ispell-send-string "%\n")	;put in verbose mode
+	  (ispell-send-string (concat "^" word "\n"))
+	  ;; wait until ispell has processed word
+	  (while (progn
+		   (accept-process-output ispell-process)
+		   (not (string= "" (car ispell-filter)))))
+	  ;; Remove leading empty element
+	  (setq ispell-filter (cdr ispell-filter))
+	  ;; ispell process should return something after word is sent.
+	  ;; Tag word as valid (i.e., skip) otherwise
+	  (or ispell-filter
+	      (setq ispell-filter '(*)))
+	  (if (consp ispell-filter)
+	      (setq poss (ispell-parse-output (car ispell-filter))))
+	  (cond
+	   ((or (eq poss t) (stringp poss))
+	    ;; don't correct word
+	    t)
+	   ((null poss)
+	    ;; ispell error
+	    (error "Ispell: error in Ispell process"))
+	   ((featurep 'xemacs)
+	    (flyspell-xemacs-popup
+	     poss word cursor-location start end opoint))
+	   (t
+	    ;; The word is incorrect, we have to propose a replacement.
+	    (flyspell-do-correct (flyspell-emacs-popup event poss word)
+				 poss word cursor-location start end opoint)))
+	  (ispell-pdict-save t)))))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-do-correct ...                                      */

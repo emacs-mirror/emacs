@@ -113,7 +113,7 @@
 ;;;###autoload
 (defvar tramp-unified-filenames (not (featurep 'xemacs))
   "Non-nil means to use unified Ange-FTP/Tramp filename syntax.
-Nil means to use a separate filename syntax for Tramp.")
+Otherwise, use a separate filename syntax for Tramp.")
 
 ;; Load foreign methods.  Because they do require Tramp internally, this
 ;; must be done with the `eval-after-load' trick.
@@ -149,12 +149,11 @@ Nil means to use a separate filename syntax for Tramp.")
 		    (when (featurep 'tramp-smb)
 		      (unload-feature 'tramp-smb 'force)))))))
 
-(eval-when-compile
-  (require 'cl)
-  (require 'custom)
-  ;; Emacs 19.34 compatibility hack -- is this needed?
-  (or (>= emacs-major-version 20)
-      (load "cl-seq")))
+(require 'cl)
+(require 'custom)
+;; Emacs 19.34 compatibility hack -- is this needed?
+(or (>= emacs-major-version 20)
+    (load "cl-seq"))
 
 (unless (boundp 'custom-print-functions)
   (defvar custom-print-functions nil))	; not autoloaded before Emacs 20.4
@@ -674,9 +673,9 @@ various functions for details."
 
 (defcustom tramp-default-method
   (if (and (fboundp 'executable-find)
-	   (executable-find "plink"))
-      "plink"
-    "ssh")
+	   (executable-find "pscp"))
+      "pscp"
+    "scp")
   "*Default method to use for transferring files.
 See `tramp-methods' for possibilities.
 Also see `tramp-default-method-alist'."
@@ -941,6 +940,17 @@ The answer will be provided by `tramp-action-terminal', which see."
   "Regular expression matching keep-date problems in (s)cp operations.
 Copying has been performed successfully already, so this message can
 be ignored safely."
+  :group 'tramp
+  :type 'regexp)
+
+(defcustom tramp-copy-failed-regexp
+  (concat "\\(.+: "
+          (regexp-opt '("Permission denied"
+                        "not a regular file"
+                        "is a directory"
+                        "No such file or directory") t)
+          "\\)\\s-*")
+  "Regular expression matching copy problems in (s)cp operations."
   :group 'tramp
   :type 'regexp)
 
@@ -1341,6 +1351,7 @@ corresponding PATTERN matches, the ACTION function is called."
 (defcustom tramp-actions-copy-out-of-band
   '((tramp-password-prompt-regexp tramp-action-password)
     (tramp-wrong-passwd-regexp tramp-action-permission-denied)
+    (tramp-copy-failed-regexp tramp-action-copy-failed)
     (tramp-process-alive-regexp tramp-action-out-of-band))
   "List of pattern/action pairs.
 This list is used for copying/renaming with out-of-band methods.
@@ -3175,12 +3186,13 @@ be a local filename.  The method used must be an out-of-band method."
       (message "Transferring %s to %s..." filename newname)
 
       ;; Use rcp-like program for file transfer.
-      (let ((p (apply 'start-process (buffer-name trampbuf) trampbuf
-		      copy-program copy-args)))
-	(tramp-set-process-query-on-exit-flag p nil)
-	(tramp-process-actions p multi-method method user host
-			       tramp-actions-copy-out-of-band))
-      (kill-buffer trampbuf)
+      (unwind-protect
+          (let ((p (apply 'start-process (buffer-name trampbuf) trampbuf
+                          copy-program copy-args)))
+            (tramp-set-process-query-on-exit-flag p nil)
+            (tramp-process-actions p multi-method method user host
+                                   tramp-actions-copy-out-of-band))
+        (kill-buffer trampbuf))
       (message "Transferring %s to %s...done" filename newname)
 
       ;; Set the mode.
@@ -5354,6 +5366,11 @@ Returns nil if none was found, else the command is returned."
   (kill-process p)
   (throw 'tramp-action 'permission-denied))
 
+(defun tramp-action-copy-failed (p multi-method method user host)
+  "Signal copy failed."
+  (kill-process p)
+  (error "%s" (match-string 1)))
+
 (defun tramp-action-yesno (p multi-method method user host)
   "Ask the user for confirmation using `yes-or-no-p'.
 Send \"yes\" to remote process on confirmation, abort otherwise.
@@ -5410,9 +5427,6 @@ The terminal type can be configured with `tramp-terminal-type'."
 	       (tramp-message 10 "'set mode' error ignored.")
 	       (tramp-message 9 "Process has finished.")
 	       (throw 'tramp-action 'ok))
-	   (goto-char (point-min))
-	   (when (re-search-forward "^.cp.?: \\(.+: Permission denied.?\\)$" nil t)
-	     (error "Remote host: %s" (match-string 1)))
 	   (tramp-message 9 "Process has died.")
 	   (throw 'tramp-action 'process-died)))
 	(t nil)))

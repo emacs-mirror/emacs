@@ -147,7 +147,7 @@ info.dvi: $(INFOSOURCES)
 $(infodir)/emacs: $(EMACSSOURCES)
 	$(MAKEINFO) emacs.texi
 
-emacs.dvi: $(EMACSSOURCES) $(srcdir)/xresmini.texi
+emacs.dvi: $(EMACSSOURCES)
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/emacs.texi
 
 # This target is here so you could easily get the list of the *.texi

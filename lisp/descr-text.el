@@ -185,13 +185,13 @@ otherwise."
 
 (defcustom describe-char-unicodedata-file nil
   "Location of Unicode data file.
-This is the UnicodeData.txt file from the Unicode consortium, used for
+This is the UnicodeData.txt file from the Unicode Consortium, used for
 diagnostics.  If it is non-nil `describe-char' will print data
 looked up from it.  This facility is mostly of use to people doing
 multilingual development.
 
-This is a fairly large file, not typically present on GNU systems.  At
-the time of writing it is at the URL
+This is a fairly large file, not typically present on GNU systems.
+At the time of writing it is at the URL
 `http://www.unicode.org/Public/UNIDATA/UnicodeData.txt'."
   :group 'mule
   :version "22.1"

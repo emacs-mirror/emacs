@@ -6,16 +6,16 @@
 ;; Author: Jim Thompson (was <thompson@wg2.waii.com>)
 ;;	Jacques Duthen (was <duthen@cegelec-red.fr>)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;;	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
-;; Maintainer: Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
+;;	Kenichi Handa <handa@m17n.org> (multi-byte characters)
+;; Maintainer: Kenichi Handa <handa@m17n.org> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Time-stamp: <2005/06/27 00:57:22 vinicius>
-;; Version: 6.6.7
+;; Time-stamp: <2006/12/01 09:59:01 vinicius>
+;; Version: 6.7
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
-(defconst ps-print-version "6.6.7"
-  "ps-print.el, v 6.6.7 <2005/06/27 vinicius>
+(defconst ps-print-version "6.7"
+  "ps-print.el, v 6.7 <2006/12/01 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -1332,7 +1332,7 @@ Please send all bug fixes and enhancements to
 ;;
 ;; Faces are always treated as opaque.
 ;;
-;; Epoch, Lucid and Emacs 19 not supported.  At all.
+;; Epoch, Lucid and Emacs 21 not supported.  At all.
 ;;
 ;; Fixed-pitch fonts work better for line folding, but are not required.
 ;;
@@ -1459,29 +1459,9 @@ Please send all bug fixes and enhancements to
 	   (error "`ps-print' doesn't support Epoch"))
 	  (t
 	   (unless (and (boundp 'emacs-major-version)
-			(> emacs-major-version 19))
-	     (error "`ps-print' only supports Emacs 20 and higher"))
+			(>= emacs-major-version 22))
+	     (error "`ps-print' only supports Emacs 22 and higher"))
 	   'emacs))))
-
-
-;; For Emacs 20.2 and the earlier version.
-
-(or (fboundp 'set-buffer-multibyte)
-    (defun set-buffer-multibyte (arg)
-      (setq enable-multibyte-characters arg)))
-
-(or (fboundp 'string-as-unibyte)
-    (defun string-as-unibyte (arg) arg))
-
-(or (fboundp 'string-as-multibyte)
-    (defun string-as-multibyte (arg) arg))
-
-(or (fboundp 'char-charset)
-    (defun char-charset (arg) 'ascii))
-
-(or (fboundp 'charset-after)
-    (defun charset-after (&optional arg)
-      (char-charset (char-after arg))))
 
 
 ;; GNU Emacs
@@ -1545,7 +1525,7 @@ Please send all bug fixes and enhancements to
        (defun ps-face-background-name (face)
 	 (ps-xemacs-color-name (face-background face)))
        )
-      (t				; emacs
+      (t				; emacs 22 or higher
        (defvar mark-active nil)
        (defun ps-mark-active-p ()
 	 mark-active)

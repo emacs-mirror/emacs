@@ -735,7 +735,7 @@ expression from a list of strings.  He also extended @file{comint.el},
 originally written by Olin Shivers.
 
 @item
-Bengt Martensson, Mark Shapiro, Mike Newton, Aaron Larson, and Stefan
+Bengt Martensson, Marc Shapiro, Mike Newton, Aaron Larson, and Stefan
 Schoef, wrote @file{bibtex.el}, a mode for editing Bib@TeX{}
 bibliography files.
 

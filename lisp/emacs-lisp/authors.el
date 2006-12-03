@@ -43,6 +43,7 @@ files.")
 (defconst authors-aliases
   '(
     ("Andrew Csillag" "Drew Csillag")
+    ("Anna M. Bigatti" "Anna Bigatti")
     ("Barry A. Warsaw" "Barry A. Warsaw, Century Computing, Inc."
      "Barry A. Warsaw, ITB" "Barry Warsaw")
     ("Bj,Av(Brn Torkelsson" "Bjorn Torkelsson")
@@ -176,7 +177,7 @@ listed.")
 Changes to files in this list are not listed.")
 
 (defconst authors-fixed-entries
-  '(("Richard M. Stallman" :wrote "[The original GNU emacs and numerous files]")
+  '(("Richard M. Stallman" :wrote "[The original GNU Emacs and numerous files]")
     ("Joseph Arceneaux" :wrote "xrdb.c")
     ("Blitz Product Development Corporation" :wrote "ispell.el")
     ("Frank Bresz" :wrote "diff.el")

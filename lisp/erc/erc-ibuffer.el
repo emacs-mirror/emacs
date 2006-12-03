@@ -91,14 +91,14 @@
     " "))
 
 (define-ibuffer-column erc-server-name (:name "Server")
-  (if (and (boundp 'erc-server-process) (processp erc-server-process))
+  (if (and erc-server-process (processp erc-server-process))
       (with-current-buffer (process-buffer erc-server-process)
 	(or erc-server-announced-name erc-session-server))
     ""))
 
 (define-ibuffer-column erc-target (:name "Target")
   (if (eq major-mode 'erc-mode)
-      (cond ((and (boundp 'erc-server-process) (processp erc-server-process)
+      (cond ((and erc-server-process (processp erc-server-process)
 		  (eq (current-buffer) (process-buffer erc-server-process)))
 	     (concat "Server " erc-session-server ":"
 		     (erc-port-to-string erc-session-port)))
@@ -125,7 +125,7 @@
     ""))
 
 (define-ibuffer-column erc-away (:name "A")
-  (if (and (boundp 'erc-server-process)
+  (if (and erc-server-process
 	   (processp erc-server-process)
 	   (with-current-buffer (process-buffer erc-server-process)
 	     erc-away))

@@ -75,7 +75,7 @@ The SOUP packet file name will be inserted at the %s.")
   "*Regular expression matching SOUP packets in `nnsoup-packet-directory'.")
 
 (defvoo nnsoup-always-save t
-  "If non nil commit the reply buffer on each message send.
+  "If non-nil commit the reply buffer on each message send.
 This is necessary if using message mode outside Gnus with nnsoup as a
 backend for the messages.")
 

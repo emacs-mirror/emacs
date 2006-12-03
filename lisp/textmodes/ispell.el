@@ -217,7 +217,7 @@
 	"Empty replacement for defgroup when not supplied.")))
 
 (defgroup ispell nil
-  "User variables for emacs ispell interface."
+  "User variables for Emacs ispell interface."
   :group 'applications)
 
 (if (not (fboundp 'buffer-substring-no-properties))
@@ -496,7 +496,7 @@ These can override the values in `ispell-dictionary-alist'.
 
 To make permanent changes to your dictionary definitions, you
 will need to make your changes in this variable, save, and then
-re-start emacs."
+re-start Emacs."
   :type '(repeat (list (choice :tag "Dictionary"
 			       (string :tag "Dictionary name")
 			       (const :tag "default" nil))
@@ -900,13 +900,13 @@ and added as a submenu of the \"Edit\" menu.")
 	     (buffer-string))))
 	 ;; Search for the named dictionaries.
 	 (found
-	  (delq nil 
+	  (delq nil
 		(mapcar #'ispell-aspell-find-dictionary dictionaries))))
     ;; Ensure aspell's alias dictionary will override standard
     ;; definitions.
     (setq found (ispell-aspell-add-aliases found))
     ;; Merge into FOUND any elements from the standard ispell-dictionary-alist
-    ;; which have no element in FOUND at all.    
+    ;; which have no element in FOUND at all.
     (dolist (dict ispell-dictionary-alist)
       (unless (assoc (car dict) found)
 	(setq found (nconc found (list dict)))))
@@ -2104,7 +2104,7 @@ SPC:   Accept word this time.
 `m':   Place typed-in value in personal dictionary, then recheck current word.
 `C-l':  redraws screen
 `C-r':  recursive edit
-`C-z':  suspend emacs or iconify frame"
+`C-z':  suspend Emacs or iconify frame"
 
   (if (equal ispell-help-in-bufferp 'electric)
       (progn
@@ -2136,7 +2136,7 @@ SPC:   Accept word this time.
 `m':   Place typed-in value in personal dictionary, then recheck current word.
 `C-l':  redraws screen
 `C-r':  recursive edit
-`C-z':  suspend emacs or iconify frame")
+`C-z':  suspend Emacs or iconify frame")
 		     nil	;undocumented requirement of with-electric-help
 		     ))))
 

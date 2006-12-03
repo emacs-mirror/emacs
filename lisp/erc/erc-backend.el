@@ -416,7 +416,7 @@ Currently this is called by `erc-send-input'."
 
 (defun erc-server-process-alive ()
   "Return non-nil when `erc-server-process' is open or running."
-  (and (boundp 'erc-server-process)
+  (and erc-server-process
        (processp erc-server-process)
        (memq (process-status erc-server-process) '(run open))))
 
@@ -512,8 +512,8 @@ action."
              (not (string-match "^failed with code 111" event)))
         ;; Yuck, this should perhaps funcall
         ;; erc-server-reconnect-function with no args
-        (erc erc-session-server erc-session-port erc-server-current-nick
-             erc-session-user-full-name t erc-session-password)
+        (erc-open erc-session-server erc-session-port erc-server-current-nick
+                  erc-session-user-full-name t erc-session-password)
       ;; terminate, do not reconnect
       (erc-display-message nil 'error (current-buffer)
                            'terminated ?e event))))
@@ -673,7 +673,8 @@ protection algorithm."
               (error nil)))))
       (when erc-server-flood-queue
         (setq erc-server-flood-timer
-              (run-at-time 2 nil #'erc-server-send-queue buffer))))))
+              (run-at-time (+ 0.2 erc-server-flood-penalty)
+                           nil #'erc-server-send-queue buffer))))))
 
 (defun erc-message (message-command line &optional force)
   "Send LINE to the server as a privmsg or a notice.
@@ -1038,11 +1039,11 @@ add things to `%s' instead."
         (let* ((str (cond
                      ;; If I have joined a channel
                      ((erc-current-nick-p nick)
-                      (setq buffer (erc erc-session-server erc-session-port
-                                        nick erc-session-user-full-name
-                                        nil nil
-                                        erc-default-recipients chnl
-                                        erc-server-process))
+                      (setq buffer (erc-open erc-session-server erc-session-port
+                                             nick erc-session-user-full-name
+                                             nil nil
+                                             erc-default-recipients chnl
+                                             erc-server-process))
                       (when buffer
                         (set-buffer buffer)
                         (erc-add-default-channel chnl)
@@ -1225,7 +1226,7 @@ add things to `%s' instead."
         (when buffer
           (with-current-buffer buffer
             ;; update the chat partner info.  Add to the list if private
-            ;; message.	 We will accumulate private identities indefinitely
+            ;; message.  We will accumulate private identities indefinitely
             ;; at this point.
             (erc-update-channel-member (if privp nick tgt) nick nick
                                        privp nil nil host login nil nil t)
@@ -1340,7 +1341,7 @@ add things to `%s' instead."
 According to RFC 2812, suggests alternate servers on the network.
 Many servers, however, use this code to show which parameters they have set,
 for example, the network identifier, maximum allowed topic length, whether
-certain commands are accepted and more.	 See documentation for
+certain commands are accepted and more.  See documentation for
 `erc-server-parameters' for more information on the parameters sent.
 
 A server may send more than one 005 message."
@@ -1583,11 +1584,11 @@ See `erc-display-server-message'." nil
   "NAMES notice." nil
   (let ((channel (third (erc-response.command-args parsed)))
         (users (erc-response.contents parsed)))
-    (erc-with-buffer (channel proc)
-      (erc-channel-receive-names users))
     (erc-display-message parsed 'notice (or (erc-get-buffer channel proc)
                                             'active)
-                         's353 ?c channel ?u users)))
+                         's353 ?c channel ?u users)
+    (erc-with-buffer (channel proc)
+      (erc-channel-receive-names users))))
 
 (define-erc-response-handler (366)
   "End of NAMES." nil
@@ -1598,11 +1599,16 @@ See `erc-display-server-message'." nil
   "Channel ban list entries" nil
   (multiple-value-bind (channel banmask setter time)
       (cdr (erc-response.command-args parsed))
-    (erc-display-message parsed 'notice 'active 's367
-                         ?c channel
-                         ?b banmask
-                         ?s setter
-                         ?t time)))
+    ;; setter and time are not standard
+    (if setter
+        (erc-display-message parsed 'notice 'active 's367-set-by
+                             ?c channel
+                             ?b banmask
+                             ?s setter
+                             ?t (or time ""))
+      (erc-display-message parsed 'notice 'active 's367
+                           ?c channel
+                           ?b banmask))))
 
 (define-erc-response-handler (368)
   "End of channel ban list" nil

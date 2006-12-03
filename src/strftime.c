@@ -69,9 +69,9 @@ extern char *tzname[];
 #if DO_MULTIBYTE
 # if HAVE_MBRLEN
 #  include <wchar.h>
-#   ifdef HAVE_SYS__MBSTATE_H	/* previously tested __hpux */
-#     include <sys/_mbstate_t.h>
-#   endif
+#  ifdef HAVE_SYS__MBSTATE_T_H       /* previously tested __hpux */
+#   include <sys/_mbstate_t.h>
+#  endif
 #  if !defined (mbsinit) && !defined (HAVE_MBSINIT)
 #   define mbsinit(ps) 1
 #  endif /* !defined (mbsinit) && !defined (HAVE_MBSINIT) */

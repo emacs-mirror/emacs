@@ -1,3 +1,53 @@
+2006-12-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* DEVEL.HUMOR: Another entry.
+
+2006-08-14  Masatake YAMATO  <jet@gyve.org>
+
+	* etags.1: Added / to the end of DEVAR regex.
+
+2006-11-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.1 (DESCRIPTION): Suggest also `server-mode'.
+	(OPTIONS): Document `-f', `--server-file' and EMACS_SERVER_FILE.
+
+2006-11-20  Michael Olson  <mwolson@gnu.org>
+
+	* NEWS: Change M-x erc-select to M-x erc.
+
+2006-11-20  Sun Yijiang  <sunyijiang@gmail.com>
+
+	* TUTORIAL.cn: Updated.
+
+2006-11-17  Carsten Dominik  <dominik@science.uva.nl>
+
+	* orgcard.tex (section{Agenda Views}): Document `C-k'.
+
+2006-11-13  Carsten Dominik  <dominik@science.uva.nl>
+
+	* orgcard.tex: Version number change.
+
+2006-11-13  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.0.3.
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 8.0.3.
+
+2006-11-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* DEVEL.HUMOR: Two more entries.
+
+2006-11-10  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* orgcard.tex (section{Archiving}): Document C-TAB.
+	(section{TODO Items and Checkboxes}): Checkbox keys moved to this
+	section, added documentation for the key `C-c #'.
+
+2006-11-05  Slawomir Nowaczyk  <slawek@cs.lth.se>  (tiny change)
+
+	* emacs.py (eargs): Provide eldoc message for builtin types.
+	  Make sure eargs always outputs sentinel, to avoid Emacs freeze.
+
 2006-10-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs.py (eargs): Return expected _emacs_out string even if
@@ -58,6 +108,11 @@
 
 	* PROBLEMS (are): Emacs compiled with Gtk+ crashes when closing a
 	display (x-close-connection).
+
+2006-09-03  Diane Murray  <disumu@x3y2z1.net>
+
+	* erc.texi (Getting Started, Connecting): Changed erc-select to
+	erc.
 
 2006-09-02  Juri Linkov  <juri@jurta.org>
 
@@ -3115,6 +3170,7 @@
 
 ;; Local Variables:
 ;; coding: iso-2022-7bit
+;; add-log-time-zone-rule: t
 ;; End:
 
     Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001

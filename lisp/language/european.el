@@ -368,7 +368,22 @@ and it selects the Spanish tutorial."))
 	     (unibyte-display . iso-latin-5)
 	     (input-method . "turkish-postfix")
 	     (sample-text . "Turkish (T,M|(Brk,Mg(Be)	Merhaba")
-	     (documentation . t)))
+	     (documentation . t)
+	     (setup-function . turkish-case-conversion-enable)
+	     (exit-function . turkish-case-conversion-disable)))
+
+(defun turkish-case-conversion-enable ()
+  "Set up Turkish case conversion of `i' and `I' into `$,1 P(B' and `$,1 Q(B'."
+  (let ((table (standard-case-table)))
+    (set-case-syntax-pair ?$,1 P(B ?i table)
+    (set-case-syntax-pair ?I ?$,1 Q(B table)))
+
+(defun turkish-case-conversion-disable ()
+  "Set up normal (non-Turkish) case conversion of `i' into `I'."
+  (let ((table (standard-case-table)))
+    (set-case-syntax-pair ?I ?i table)
+    (set-case-syntax ?$,1 P(B "w" table)
+    (set-case-syntax ?$,1 Q(B "w" table)))
 
 ;; Polish ISO 8859-2 environment.
 ;; Maintainer: Wlodek Bzyl <matwb@univ.gda.pl>

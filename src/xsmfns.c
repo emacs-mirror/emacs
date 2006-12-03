@@ -570,7 +570,7 @@ See also `x-session-previous-id', `emacs-save-session-functions',
   DEFVAR_LISP ("x-session-previous-id", &Vx_session_previous_id,
     doc: /* The previous session id Emacs got from session manager.
 If Emacs is running on a window system that has a session manager, the
-session manager gives Emacs a session id.  It is feasible for Emacs lisp
+session manager gives Emacs a session id.  It is feasible for Emacs Lisp
 code to use the session id to save configuration in, for example, a file
 with a file name based on the session id.  If Emacs is running when the
 window system is shut down, the session manager remembers that Emacs was

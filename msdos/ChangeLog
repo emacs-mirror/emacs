@@ -1,3 +1,7 @@
+2006-11-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp (CFLAGS_SOUND): Edit out.
+
 2006-09-15  Jay Belanger  <belanger@truman.edu>
 
 	* COPYING: Replace "Library Public License" by "Lesser Public
@@ -617,6 +621,7 @@
 
 ;; Local Variables:
 ;; coding: iso-2022-7bit-unix
+;; add-log-time-zone-rule: t
 ;; End:
 
     Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2003,

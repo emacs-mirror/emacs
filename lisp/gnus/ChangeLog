@@ -1,7 +1,101 @@
+2006-11-30  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml2015.el (mml2015-pgg-clear-verify): Replace encode-coding-string
+	with mm-encode-coding-string.
+
+2006-11-29  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nneething.el (nneething-decode-file-name): Replace
+	decode-coding-string with mm-decode-coding-string.
+
+2006-11-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnus-agent.el (gnus-agent-expire-unagentized-dirs)
+	(gnus-agent-regenerate-group): Fix space/tab mixup in messages.
+
+	* gnus-art.el (gnus-article-x-face-command, gnus-numeric-save-name):
+	* gnus-group.el (gnus-group-sort-function, gnus-group-line-format)
+	(gnus-group-mode, gnus-group-read-group, gnus-group-delete-group)
+	(gnus-group-make-directory-group, gnus-group-transpose-groups):
+	* gnus-start.el (gnus-options-subscribe, gnus-options-not-subscribe)
+	(gnus-subscribe-newsgroup, gnus-1):
+	* gnus-sum.el (gnus-summary-make-false-root, gnus-make-threads):
+	* gnus.el (gnus-nntp-server, gnus-use-cross-reference)
+	(gnus-valid-select-methods, total-expire, gnus-summary-line-format)
+	(gnus-group-read-only-p): Fix space/tab mixup in docstrings.
+
+2006-11-21  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-string-to-multibyte): Alias to identity in XEmacs.
+
+2006-11-18  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* mm-uu.el (mm-uu-pgp-signed-extract-1): Make last fix more thorough
+	and comment it.
+
+	* nnslashdot.el (nnslashdot-retrieve-headers-1): Update regexp.
+
+2006-11-15  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-util.el (gnus-extract-address-components): Improve comment.
+
+2006-11-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-util.el (gnus-extract-address-components): Work with address in
+	which the name portion contains @.
+
+2006-11-14  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.el (gnus-start): Move custom group up.
+	(gnus-select-method): Don't autoload, but make it available for
+	`customize-variable'.
+	(gnus-getenv-nntpserver): Don't autoload.
+
+2006-11-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml.el (mml-generate-mime-1): Use mm-string-as-unibyte instead of
+	mm-with-unibyte-current-buffer to make string unibyte.
+
+	* mm-decode.el (mm-insert-part): Use mm-string-to-multibyte instead of
+	mm-string-as-multibyte.
+
+2006-11-09  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el: Merge from the trunk to fix the bug WRT double encoded
+	subjects.
+	(message-replacement-char): New variable.
+	(message-fix-before-sending): Use it.
+	(message-simplify-subject): New function to remove duplicate code.
+	(message-reply, message-followup): Use it.
+	(message-simplify-subject-functions): New variable.
+	(message-strip-subject-encoded-words): New function
+
+2006-11-08  Wolfgang Jenkner  <wjenkner@inode.at>  (tiny change)
+
+	* gnus-sum.el (gnus-summary-catchup): Use gnus-sorted-intersection
+	instead of gnus-intersection because arguments of gnus-sorted-nunion
+	must be sorted.  This avoids corruption of gnus-newsgroup-unreads.
+
+2006-11-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnus-diary.el (gnus-diary-delay-format-function):
+	* nndiary.el (nndiary-reminders):
+	* nnsoup.el (nnsoup-always-save): Use "non-nil" in docstrings.
+
+2006-11-01  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-art.el (article-hide-boring-headers): Fetch date from
+	gnus-original-article-buffer to avoid problems with localized date
+	strings.
+
+2006-10-30  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* html2text.el (html2text-format-tags): Avoid infloop on open tags.
+
 2006-10-29  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* mm-util.el (mm-codepage-iso-8859-list, mm-codepage-ibm-list): New
-	variables.
+	* mm-util.el (mm-codepage-iso-8859-list, mm-codepage-ibm-list):
+	New variables.
 	(mm-setup-codepage-iso-8859, mm-setup-codepage-ibm): New functions.
 	(mm-charset-synonym-alist): Move some entries to
 	mm-codepage-iso-8859-list.
@@ -610,7 +704,7 @@
 	(rfc2231-encode-string): Be sure to work on multibyte buffer at
 	first, and after mm-encode-body, change the buffer to unibyte.
 
-2006-03-21  Daniel Pittman <daniel@rimspace.net>
+2006-03-21  Daniel Pittman  <daniel@rimspace.net>
 
 	* nnimap.el (nnimap-request-update-info-internal): Optimize.
 	Don't `gnus-uncompress-range' to avoid excessive memory usage.
@@ -4484,6 +4578,7 @@ See ChangeLog.2 for earlier changes.
 ;; Local Variables:
 ;; coding: iso-2022-7bit
 ;; fill-column: 79
+;; add-log-time-zone-rule: t
 ;; End:
 
 ;;; arch-tag: 3f33a3e7-090d-492b-bedd-02a1417d32b4

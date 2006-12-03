@@ -88,7 +88,7 @@
 
 ;;;###autoload
 (defun regexp-opt (strings &optional paren)
-  "Return a regexp to match a string in STRINGS.
+  "Return a regexp to match a string in the list STRINGS.
 Each string should be unique in STRINGS and should not contain any regexps,
 quoted or not.  If optional PAREN is non-nil, ensure that the returned regexp
 is enclosed by at least one regexp grouping construct.

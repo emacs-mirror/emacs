@@ -480,7 +480,7 @@ static int live_symbol_p P_ ((struct mem_node *, void *));
 static int live_float_p P_ ((struct mem_node *, void *));
 static int live_misc_p P_ ((struct mem_node *, void *));
 static void mark_maybe_object P_ ((Lisp_Object));
-static void mark_memory P_ ((void *, void *));
+static void mark_memory P_ ((void *, void *, int));
 static void mem_init P_ ((void));
 static struct mem_node *mem_insert P_ ((void *, void *, enum mem_type));
 static void mem_insert_fixup P_ ((struct mem_node *));
@@ -4330,11 +4330,13 @@ mark_maybe_pointer (p)
 }
 
 
-/* Mark Lisp objects referenced from the address range START..END.  */
+/* Mark Lisp objects referenced from the address range START+OFFSET..END
+   or END+OFFSET..START. */
 
 static void
-mark_memory (start, end)
+mark_memory (start, end, offset)
      void *start, *end;
+     int offset;
 {
   Lisp_Object *p;
   void **pp;
@@ -4353,7 +4355,7 @@ mark_memory (start, end)
     }
 
   /* Mark Lisp_Objects.  */
-  for (p = (Lisp_Object *) start; (void *) p < end; ++p)
+  for (p = (Lisp_Object *) ((char *) start + offset); (void *) p < end; ++p)
     mark_maybe_object (*p);
 
   /* Mark Lisp data pointed to.  This is necessary because, in some
@@ -4374,7 +4376,7 @@ mark_memory (start, end)
      away.  The only reference to the life string is through the
      pointer `s'.  */
 
-  for (pp = (void **) start; (void *) pp < end; ++pp)
+  for (pp = (void **) ((char *) start + offset); (void *) pp < end; ++pp)
     mark_maybe_pointer (*pp);
 }
 
@@ -4553,7 +4555,11 @@ static void
 mark_stack ()
 {
   int i;
-  jmp_buf j;
+  /* jmp_buf may not be aligned enough on darwin-ppc64 */
+  union aligned_jmpbuf {
+    Lisp_Object o;
+    jmp_buf j;
+  } j;
   volatile int stack_grows_down_p = (char *) &j > (char *) stack_base;
   void *end;
 
@@ -4584,7 +4590,7 @@ mark_stack ()
     }
 #endif /* GC_SETJMP_WORKS */
 
-  setjmp (j);
+  setjmp (j.j);
   end = stack_grows_down_p ? (char *) &j + sizeof j : (char *) &j;
 #endif /* not GC_SAVE_REGISTERS_ON_STACK */
 
@@ -4599,7 +4605,7 @@ mark_stack ()
 #endif
 #endif
   for (i = 0; i < sizeof (Lisp_Object); i += GC_LISP_OBJECT_ALIGNMENT)
-    mark_memory ((char *) stack_base + i, end);
+    mark_memory (stack_base, end, i);
   /* Allow for marking a secondary stack, like the register stack on the
      ia64.  */
 #ifdef GC_MARK_SECONDARY_STACK

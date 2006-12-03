@@ -258,7 +258,7 @@ not need to be wrapped, move point to the next line and return t."
 		     (if (> longlines-wrap-point (point))
 			 (setq longlines-wrap-point
 			       (1- longlines-wrap-point))))
-		 (insert-before-markers-and-inherit ?\ )
+		 (insert-before-markers-and-inherit ?\s)
 		 (backward-char 1)
 		 (delete-char -1)
 		 (forward-char 1))

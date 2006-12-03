@@ -67,17 +67,8 @@ COMPILE_FIRST = \
 
 emacs = "$(EMACS)" $(EMACSOPT)
 
-# Common command to find subdirectories
-
-setwins=subdirs=`find $$wd -type d -print`; \
-	for file in $$subdirs; do \
-	   case $$file in */Old | */RCS | */CVS | */CVS/* | */=* ) ;; \
-		*) wins="$$wins $$file" ;; \
-	   esac; \
-        done
-
 # Have to define the list of subdirs manually when not using sh.
-WINS=\
+WINS_ALMOST=\
 	calc \
 	calendar \
 	emacs-lisp \
@@ -90,12 +81,14 @@ WINS=\
 	mail \
 	mh-e \
 	net \
-	obsolete \
 	play \
 	progmodes \
 	term \
 	textmodes \
 	url
+
+WINS= $(WINS_ALMOST) \
+	obsolete
 
 doit:
 
@@ -160,10 +153,10 @@ loaddefs.el-CMD:
 # WARNING: Do NOT split the part inside $(ARGQUOTE)s into multiple lines as
 #          this can break with GNU Make 3.81 and later if sh.exe is used.
 autoloads: $(lisp)/loaddefs.el doit
-	@echo Directories: . $(WINS)
+	@echo Directories: . $(WINS_ALMOST)
 	$(emacs) -l autoload \
 		--eval $(ARGQUOTE)(setq find-file-hook nil find-file-suppress-same-file-warnings t)$(ARGQUOTE) \
-		-f w32-batch-update-autoloads "$(lisp)/loaddefs.el" . $(WINS)
+		-f w32-batch-update-autoloads "$(lisp)/loaddefs.el" . $(WINS_ALMOST)
 
 $(lisp)/subdirs.el:
 	$(MAKE) $(MFLAGS) update-subdirs

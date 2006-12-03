@@ -134,7 +134,7 @@ static int load_force_doc_strings;
 /* Nonzero means read should convert strings to unibyte.  */
 static int load_convert_to_unibyte;
 
-/* Function to use for loading an Emacs lisp source file (not
+/* Function to use for loading an Emacs Lisp source file (not
    compiled) instead of readevalloop.  */
 Lisp_Object Vload_source_file_function;
 
@@ -4119,7 +4119,7 @@ The default is nil, which means use the function `read'.  */);
   Vload_read_function = Qnil;
 
   DEFVAR_LISP ("load-source-file-function", &Vload_source_file_function,
-	       doc: /* Function called in `load' for loading an Emacs lisp source file.
+	       doc: /* Function called in `load' for loading an Emacs Lisp source file.
 This function is for doing code conversion before reading the source file.
 If nil, loading is done without any code conversion.
 Arguments are FULLNAME, FILE, NOERROR, NOMESSAGE, where

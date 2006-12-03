@@ -6815,7 +6815,12 @@ move_it_to (it, to_charpos, to_x, to_y, to_vpos, op)
 	  break;
 
 	case MOVE_LINE_CONTINUED:
-	  it->continuation_lines_width += it->current_x;
+	  /* For continued lines ending in a tab, some of the glyphs
+	     associated with the tab are displayed on the current
+	     line.  Since it->current_x does not include these glyphs,
+	     we use it->last_visible_x instead.  */
+	  it->continuation_lines_width +=
+	    (it->c == '\t') ? it->last_visible_x : it->current_x;
 	  break;
 
 	default:
@@ -17396,7 +17401,7 @@ pint2str (buf, width, d)
 
 /* Write a null-terminated, right justified decimal and "human
    readable" representation of the nonnegative integer D to BUF using
-   a minimal field width WIDTH.	 D should be smaller than 999.5e24. */
+   a minimal field width WIDTH.  D should be smaller than 999.5e24. */
 
 static const char power_letter[] =
   {
@@ -22650,7 +22655,7 @@ note_mouse_highlight (f, x, y)
   struct buffer *b;
 
   /* When a menu is active, don't highlight because this looks odd.  */
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NTGUI)
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
   if (popup_activated ())
     return;
 #endif

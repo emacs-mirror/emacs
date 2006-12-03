@@ -15,7 +15,7 @@
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
@@ -110,7 +110,7 @@ have all the sub-threads as children.
 If this variable is `adopt', Gnus will make one of the \"children\"
 the parent and mark all the step-children as such.
 If this variable is `empty', the \"children\" are printed with empty
-subject fields.	 (Or rather, they will be printed with a string
+subject fields.  (Or rather, they will be printed with a string
 given by the `gnus-summary-same-subject' variable.)"
   :group 'gnus-thread
   :type '(choice (const :tag "off" nil)
@@ -3975,7 +3975,7 @@ If NO-DISPLAY, don't generate a summary buffer."
     infloop))
 
 (defun gnus-make-threads ()
-  "Go through the dependency hashtb and find the roots.	 Return all threads."
+  "Go through the dependency hashtb and find the roots.  Return all threads."
   (let (threads)
     (while (catch 'infloop
 	     (mapatoms
@@ -4481,7 +4481,7 @@ If LINE, insert the rebuilt thread starting on line LINE."
     ;; First go up in this thread until we find the root.
     (setq last-id (gnus-root-id id)
 	  headers (message-flatten-list (gnus-id-to-thread last-id)))
-    ;; We have now found the real root of this thread.	It might have
+    ;; We have now found the real root of this thread.  It might have
     ;; been gathered into some loose thread, so we have to search
     ;; through the threads to find the thread we wanted.
     (let ((threads gnus-newsgroup-threads)
@@ -5927,7 +5927,7 @@ The resulting hash table is returned, or nil if no Xrefs were found."
       (let ((case-fold-search t)
 	    in-reply-to header p lines chars)
 	(goto-char (point-min))
-	;; Search to the beginning of the next header.	Error messages
+	;; Search to the beginning of the next header.  Error messages
 	;; do not begin with 2 or 3.
 	(while (re-search-forward "^[23][0-9]+ " nil t)
 	  (setq id nil
@@ -5935,7 +5935,7 @@ The resulting hash table is returned, or nil if no Xrefs were found."
 	  ;; This implementation of this function, with nine
 	  ;; search-forwards instead of the one re-search-forward and
 	  ;; a case (which basically was the old function) is actually
-	  ;; about twice as fast, even though it looks messier.	 You
+	  ;; about twice as fast, even though it looks messier.  You
 	  ;; can't have everything, I guess.  Speed and elegance
 	  ;; doesn't always go hand in hand.
 	  (setq
@@ -10470,8 +10470,8 @@ The number of articles marked as read is returned."
 			gnus-newsgroup-dormant nil))
 		(setq gnus-newsgroup-unreads
 		      (gnus-sorted-nunion
-                       (gnus-intersection gnus-newsgroup-unreads
-                                          gnus-newsgroup-downloadable)
+                       (gnus-sorted-intersection gnus-newsgroup-unreads
+						 gnus-newsgroup-downloadable)
                        gnus-newsgroup-unfetched)))
 	    ;; We actually mark all articles as canceled, which we
 	    ;; have to do when using auto-expiry or adaptive scoring.

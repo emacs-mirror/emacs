@@ -666,11 +666,11 @@ extern Lisp_Object mac_aedesc_to_lisp P_ ((const AEDesc *));
 extern OSErr mac_ae_put_lisp P_ ((AEDescList *, UInt32, Lisp_Object));
 #if TARGET_API_MAC_CARBON
 extern OSStatus create_apple_event_from_event_ref P_ ((EventRef, UInt32,
-						       EventParamName *,
-						       EventParamType *,
+						       const EventParamName *,
+						       const EventParamType *,
 						       AppleEvent *));
 extern OSErr create_apple_event_from_drag_ref P_ ((DragRef, UInt32,
-						   FlavorType *,
+						   const FlavorType *,
 						   AppleEvent *));
 extern CFStringRef cfstring_create_with_utf8_cstring P_ ((const char *));
 extern CFStringRef cfstring_create_with_string P_ ((Lisp_Object));
@@ -683,9 +683,10 @@ extern Lisp_Object cfboolean_to_lisp P_ ((CFBooleanRef));
 extern Lisp_Object cfobject_desc_to_lisp P_ ((CFTypeRef));
 extern Lisp_Object cfproperty_list_to_lisp P_ ((CFPropertyListRef, int, int));
 #endif
-extern void xrm_merge_string_database P_ ((XrmDatabase, char *));
-extern Lisp_Object xrm_get_resource P_ ((XrmDatabase, char *, char *));
-extern XrmDatabase xrm_get_preference_database P_ ((char *));
+extern void xrm_merge_string_database P_ ((XrmDatabase, const char *));
+extern Lisp_Object xrm_get_resource P_ ((XrmDatabase, const char *,
+					 const char *));
+extern XrmDatabase xrm_get_preference_database P_ ((const char *));
 EXFUN (Fmac_get_preference, 4);
 
 /* arch-tag: 6b4ca125-5bef-476d-8ee8-31ed808b7e79

@@ -21,13 +21,18 @@
 #undef LD_SWITCH_SYSTEM
 #ifdef __ELF__
 
-/*  Han Boetes <han@mijncomputer.nl> says this
-    is necessary,  otherwise Emacs dumps core on elf systems.  */
+  /*  Han Boetes <han@mijncomputer.nl> says this
+      is necessary,  otherwise Emacs dumps core on elf systems.  */
 #define LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_tmp -Z
 
-#else
+/* The version of gcc on OpenBSD doesn't search /usr/local/lib by
+   default.  */
+#define LD_SWITCH_X_DEFAULT -L/usr/local/lib
 
+#else
+  
 #define LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_tmp
+#define LD_SWITCH_X_DEFAULT -L/usr/local/lib
 
 #endif
 

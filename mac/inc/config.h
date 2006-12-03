@@ -102,16 +102,13 @@ Boston, MA 02110-1301, USA.  */
 /* #undef HAVE_ALSA */
 
 /* Define to 1 if you have the `bcmp' function. */
-/* #define HAVE_BCMP */
+/* #undef HAVE_BCMP */
 
 /* Define to 1 if you have the `bcopy' function. */
-/* #define HAVE_BCOPY */
+/* #undef HAVE_BCOPY */
 
 /* Define to 1 if you have the `bzero' function. */
-/* #define HAVE_BZERO */
-
-/* Define to 1 if CancelMenuTracking is available (Mac OSX). */
-/* #undef HAVE_CANCELMENUTRACKING */
+/* #undef HAVE_BZERO */
 
 /* Define to 1 if you are using the Carbon API on Mac OS X. */
 /* #undef HAVE_CARBON */
@@ -451,7 +448,7 @@ Boston, MA 02110-1301, USA.  */
 /* #undef HAVE_MREMAP */
 
 /* Define to 1 if you have the <net/if.h> header file. */
-/* #define HAVE_NET_IF_H */
+/* #undef HAVE_NET_IF_H */
 
 /* Define to 1 if you have the <nlist.h> header file. */
 /* #undef HAVE_NLIST_H */

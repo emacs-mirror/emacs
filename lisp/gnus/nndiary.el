@@ -263,7 +263,7 @@ not 'century, sorry).
 
 NOTE: the units of measure actually express dates, not durations: if you
 use 'week, messages will pop up on Sundays at 00:00 (or Mondays if
-`nndiary-week-starts-on-monday' is non nil) and *not* 7 days before the
+`nndiary-week-starts-on-monday' is non-nil) and *not* 7 days before the
 appointement, if you use 'month, messages will pop up on the first day of
 each months, at 00:00 and so on.
 

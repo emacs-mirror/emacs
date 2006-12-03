@@ -1,7 +1,227 @@
+2006-11-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* erc.el (erc-cmd-BANLIST, erc-cmd-MASSUNBAN): Simplify.
+	(erc-prompt-for-channel-key, erc-ignore-reply-list, erc-send-post-hook)
+	(erc-active-buffer, erc-join-buffer, erc-frame-alist, erc-with-buffer)
+	(erc-modules, erc-display-message-highlight, erc-process-input-line)
+	(erc-cmd-HELP, erc-server-hooks, erc-echo-notice-in-user-buffers)
+	(erc-format-my-nick, erc-echo-notice-in-user-and-target-buffers)
+	(erc-echo-notice-in-first-user-buffer, erc-connection-established)
+	(erc-update-user-nick, erc-update-channel-member, erc-highlight-notice)
+	(erc-command-symbol, erc-add-query, erc-process-script-line)
+	(erc-determine-parameters, erc-client-info, erc-popup-input-buffer):
+	(erc-script-echo): Fix typos in docstrings.
+	(erc-channel-user-op-p, erc-channel-user-voice-p, erc-startup-file-list)
+	(define-erc-module, erc-once-with-server-event)
+	(erc-once-with-server-event-global, erc-debug-irc-protocol)
+	(erc-log-irc-protocol, erc-cmd-LOAD, erc-update-user)
+	(erc-update-current-channel-member, erc-load-script):
+	(erc-mode-line-away-status-format): Doc fixes.
+
+2006-11-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* erc.el (erc-after-connect, erc-open-ssl-stream)
+	(erc-display-line-1, erc-display-line):
+	* erc-backend.el (005): Fix space/tab mixup in docstrings.
+
+2006-11-20  Michael Olson  <mwolson@gnu.org>
+
+	* erc.el (erc-version-string): Call this Version 5.2 stable
+	pre-release, since it diverges slightly from our 5.2 branch, in
+	that unstable features are not included.
+	(erc-update-modules): Display better error message when module not
+	found.
+
+2006-11-12  Michael Olson  <mwolson@gnu.org>
+
+	* erc-log.el: Save all log buffers when Emacs exits, in case
+	someone ignores the warning about open processes.  Remove the
+	advice code in the commentary.
+	(erc-save-query-buffers): Docfix.
+	(erc-log-save-all-buffers): New function that saves all ERC
+	buffers to logs.
+	(erc-current-logfile): Fix bug in filename selection, where the
+	current buffer was erroneously being preferred over the given
+	buffer.
+
+2006-11-08  Michael Olson  <mwolson@gnu.org>
+
+	* erc.el (erc-string-to-port): Avoid error when a numerical port
+	is passed.  Thanks to Zekeriya KOÇ for the report.
+
+2006-11-08  Łukasz Demianiuk  <ldemianiuk@gmail.com>  (tiny change)
+
+	* erc.el (erc-header-line): Fix typo.
+
+2006-11-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* erc-dcc.el (erc-dcc-send-file): Fix typo in error message.
+
+	* erc.el (read-passwd):
+	* erc-autoaway.el (erc-autoaway-reestablish-idletimer):
+	* erc-truncate.el (truncate): Fix typo in docstring.
+
+2006-10-21  Michael Olson  <mwolson@gnu.org>
+
+	* erc.el (erc-iswitchb): Fix bug when hitting C-c C-b without
+	first loading iswitchb.  Thanks to Leo for the report.
+
+2006-10-10  Michael Olson  <mwolson@gnu.org>
+
+	* erc.el (erc-default-port): Make the default be 6667 instead of
+	ircd. since Mac OS X apparently has problems with looking up that
+	port name.
+
+	* erc-backend.el (353): Receive names after displaying the initial
+	message, instead of before.
+
+2006-10-05  Diane Murray  <disumu@x3y2z1.net>
+
+	* erc.el (erc-my-nick-face): New face.
+	(erc): Use FULL-NAME argument, not `erc-user-full-name'.  This
+	fixes a bug where the :full-name argument passed to the function
+	was not respected.
+	(erc-format-my-nick): Use `erc-my-nick-face'.  This should help
+	make it easier to find messages you sent in conversations when
+	`erc-show-my-nick' is non-nil.
+	(erc-compute-server): Doc fix.
+
+2006-09-11  Michael Olson  <mwolson@gnu.org>
+
+	* erc-nicklist.el (erc-nicklist-insert-contents): Add missing
+	parenthesis.  Thanks to Stephan Stahl for the report.
+
+2006-09-10  Eric Hanchrow  <offby1@blarg.net>
+
+	* erc.el (erc-cmd-IGNORE): Prompt user if this might be a regexp
+	instead of a single user.
+
+2006-09-10  Michael Olson  <mwolson@gnu.org>
+
+	* erc.el (erc-generate-new-buffer-name): If this is a server
+	buffer and a process exists already, create a new buffer.
+	(erc-open): If the IRC session was continued, restore the old
+	point.  Thanks to Stephan Stahl for the report.
+	(erc-member-ignore-case): Coding style tweak.
+	(erc-cmd-UNIGNORE): Quote the user before comparison.  If we don't
+	find the user listed verbatim, try to match them against the list
+	using string-match.  In this case, prompt as to whether the regexp
+	should be removed.
+	(erc-ignored-user-p): Remove CL-ism.
+
+	* erc-autoaway.el (erc-autoaway-possibly-set-away): Check to see
+	whether we are already away.
+
+	* erc-menu.el: Fix potential compiler warning.
+
+2006-09-07  Diane Murray  <disumu@x3y2z1.net>
+
+	* erc.el: Updated Commentary and URL.
+	(erc-iswitchb, erc-display-line, erc-set-modes, erc-update-modes)
+	(erc-arrange-session-in-multiple-windows): No need to check if
+	`erc-server-process' is bound.
+	(erc-server-buffer-live-p): Doc fix.
+	(erc-part-from-channel): Don't use any initial contents at prompt.
+	(erc-format-nick, erc-format-@nick): Doc fix.  Use `when'.
+	(s367): Fixed to support only banmask and channel which is the
+	standard.  Also, there's no reason to add a message to each banned
+	user entry trying to persuade the user to use /banlist instead of
+	/mode #channel +b.  That part of the message was a little
+	confusing, anyways.
+	(s367-set-by): New catalog entry.  The user who set the ban and
+	the time of ban seem to be specific to only certain servers such
+	as freenode.
+
+	* erc-autoaway.el (erc-autoaway-idletimer): Doc fix.
+
+	* erc-backend.el (erc-server-process-alive): No need to check if
+	`erc-server-process' is bound.
+	(367): Use s367 or s367-set-by where appropriate.
+
+	* erc-compat.el: Fixed URL.
+
+	* erc-dcc.el: Updated copyright years.  Added Usage section.
+	Changed supported Emacs version number from 21.3.50 to 22 in
+	Commentary.
+
+	* erc-ibuffer.el (erc-server-name, erc-target, erc-away): No need
+	to check if `erc-server-process' is bound.
+
+	* erc-nicklist.el: Added to the Commentary section an explanation
+	that `erc-nicklist-quit' should be called from within the nicklist
+	buffer.  Set file coding to utf-8 so a contributor's name is
+	displayed correctly.
+	(erc-nicklist-icons-directory): Use customize type directory
+	instead of string.
+	(erc-nicklist-insert-contents): Set bbdb-nick to an empty string
+	if it wasn't found.  This fixes a bug where an error would occur
+	when using `string=' on bbdb-nick if it was nil.
+
+	* erc-replace.el: Removed URL from file information since it
+	doesn't exist.
+
+	* erc-sound.el: Updated copyright years.  Fixed Commentary and
+	added Usage section.
+	(define-erc-module): Add and remove `erc-ctcp-query-SOUND' to
+	`erc-ctcp-query-SOUND-hook' here.  Removed the keybinding
+	definitions.
+	(erc-play-sound, erc-default-sound, erc-cmd-SOUND)
+	(erc-ctcp-query-SOUND): Doc fix.
+	(erc-play-command): Removed, not necessary anymore.
+	(erc-ctcp-query-SOUND-hook): Set to nil as default.  Moved up
+	higher in code, added docstring.
+	(erc-play-sound): Use `play-sound-file'.  It exists in GNU Emacs
+	as well since version 21 or earlier.  Removed commented-out older
+	version of function.
+
+	* NEWS: Fixed formatting, added channel tracking change.
+
+2006-09-03  Diane Murray  <disumu@x3y2z1.net>
+
+	* erc.el: M-x erc RET can now be used to start ERC.
+	(erc-open): Renamed from `erc'.
+	(erc-before-connect): Change erc-select to erc.
+	(erc): Renamed from `erc-select'.  Use `erc-open'.
+	(erc-select): Defined as alias of `erc'.
+	(erc-ssl): Renamed from `erc-select-ssl'.  Use `erc'.
+	(erc-select-ssl): Defined as alias of `erc-ssl'.
+	(erc-cmd-SERVER): Use `erc'.
+	(erc-query, erc-handle-irc-url): Use `erc-open'.
+
+	* erc-backend.el (erc-process-sentinel-1, JOIN): Use `erc-open'.
+
+	* erc-menu.el (erc-menu-definition): Use `erc'.
+
+	* erc-networks.el: Updated copyright years.
+	(erc-server-select): Use keyword arguments when calling `erc'.
+
+	* erc.texi (Getting Started, Connecting): Changed erc-select to
+	erc.
+
+	* NEWS: Added note about these changes.
+
+2006-08-21  Diane Murray  <disumu@x3y2z1.net>
+
+	* erc-track.el (erc-track-mode-line-mouse-face): New variable.
+	(erc-make-mode-line-buffer-name): Add help-echo and mouse-face
+	properties to channel name.
+
+2006-08-14  Diane Murray  <disumu@x3y2z1.net>
+
+	* erc-menu.el: Updated copyright years.  Removed EmacsWiki URL.
+	(erc-menu-definition): Name the menu "ERC" instead of "IRC" to
+	avoid confusion with rcirc and other clients.
+
 2006-08-13  Romain Francoise  <romain@orebokech.com>
 
 	* erc-match.el (erc-log-matches-make-buffer): End `y-or-n-p'
 	prompt with a space.
+
+2006-08-11  Michael Olson  <mwolson@gnu.org>
+
+	* erc-fill.el (erc-fill): Skip any initial empty lines so that we
+	avoid errors when inserting disconnect messages and other messages
+	that begin with newlines.
 
 2006-08-07  Michael Olson  <mwolson@gnu.org>
 
@@ -19,6 +239,9 @@
 	'disconnected-noreconnect entries.  Avoid long lines.
 
 2006-08-06  Michael Olson  <mwolson@gnu.org>
+
+	* erc-backend.el (erc-server-send-queue): Update from Circe
+	version of this function.
 
 	* erc.el (erc-arrange-session-in-multiple-windows): Fix bug with
 	multi-tty Emacs.
@@ -256,7 +479,7 @@
 
 2006-05-01  Edward O'Connor  <ted@oconnor.cx>
 
-	* erc-goodies.el: (erc-handle-irc-url): New function, suitable as
+	* erc-goodies.el (erc-handle-irc-url): New function, suitable as
 	a value for `url-irc-function'.
 
 2006-04-18  Diane Murray  <disumu@x3y2z1.net>
@@ -360,14 +583,14 @@
 
 2006-02-12  Michael Olson  <mwolson@gnu.org>
 
-	* erc-autoaway.el, erc-dcc.el, erc-ezbounce.el, erc-fill.el,
-	erc-goodies.el, erc-hecomplete.el, erc-ibuffer.el, erc-identd.el,
-	erc-imenu.el, erc-join.el, erc-lang.el, erc-list.el, erc-log.el,
-	erc-match.el, erc-menu.el, erc-netsplit.el, erc-networks.el,
-	erc-notify.el, erc-page.el, erc-pcomplete.el, erc-replace.el,
-	erc-ring.el, erc-services.el, erc-sound.el, erc-speedbar.el,
-	erc-spelling.el, erc-track.el, erc-truncate.el, erc-xdcc.el: Add
-	2006 to copyright years, to comply with the changed guidelines.
+	* erc-autoaway.el, erc-dcc.el, erc-ezbounce.el, erc-fill.el
+	* erc-goodies.el, erc-hecomplete.el, erc-ibuffer.el, erc-identd.el
+	* erc-imenu.el, erc-join.el, erc-lang.el, erc-list.el, erc-log.el
+	* erc-match.el, erc-menu.el, erc-netsplit.el, erc-networks.el
+	* erc-notify.el, erc-page.el, erc-pcomplete.el, erc-replace.el
+	* erc-ring.el, erc-services.el, erc-sound.el, erc-speedbar.el
+	* erc-spelling.el, erc-track.el, erc-truncate.el, erc-xdcc.el:
+	Add 2006 to copyright years, to comply with the changed guidelines.
 
 2006-02-11  Michael Olson  <mwolson@gnu.org>
 
@@ -528,7 +751,7 @@
 
 2006-01-29  Edward O'Connor  <ted@oconnor.cx>
 
-	* erc-viper.el: Remove. Now that ERC is included in Emacs, these
+	* erc-viper.el: Remove.  Now that ERC is included in Emacs, these
 	work-arounds live in Viper itself.
 
 2006-01-28  Michael Olson  <mwolson@gnu.org>
@@ -669,10 +892,10 @@
 2006-01-22  Johan Bockgård  <bojohan@users.sourceforge.net>
 
 	* erc-track.el: Use `(eval-when-compile (require 'cl))' (for
-	`case'). Doc fixes.
+	`case').  Doc fixes.
 	(erc-find-parsed-property): Simplify.
-	(erc-track-get-active-buffer): Fix logic. Simplify.
-	(erc-track-switch-buffer): Remove unused variable `dir'. Simplify.
+	(erc-track-get-active-buffer): Fix logic.  Simplify.
+	(erc-track-switch-buffer): Remove unused variable `dir'.  Simplify.
 
 	* erc-speak.el: Doc fixes.
 	(erc-speak-region): `propertize' --> `erc-propertize'.
@@ -863,6 +1086,7 @@ See ChangeLog.05 for earlier changes.
 
 ;; Local Variables:
 ;; coding: utf-8
+;; add-log-time-zone-rule: t
 ;; End:
 
 ;; arch-tag: 865a75f6-2bcb-46df-bf0c-b514dadf688a

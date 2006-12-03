@@ -63,9 +63,9 @@ Bourne shell or its equivalent \(not tcsh) is needed for \"2>\"."
 (defun pgg-pgp-process-region (start end passphrase program args)
   (let* ((errors-file-name (pgg-make-temp-file "pgg-errors"))
 	 (args
-	  (append args
+	  (concat args
 		  pgg-pgp-extra-args
-		  (list (concat "2>" errors-file-name))))
+                  " 2>" (shell-quote-argument errors-file-name)))
 	 (shell-file-name pgg-pgp-shell-file-name)
 	 (shell-command-switch pgg-pgp-shell-command-switch)
 	 (process-environment process-environment)
@@ -83,9 +83,8 @@ Bourne shell or its equivalent \(not tcsh) is needed for \"2>\"."
 	  (let ((coding-system-for-read 'binary)
 		(coding-system-for-write 'binary))
 	    (setq process
-		  (apply #'funcall
-			 #'start-process-shell-command "*PGP*" output-buffer
-			 program args)))
+		  (start-process-shell-command "*PGP*" output-buffer
+                                               (concat program " " args))))
 	  (set-process-sentinel process #'ignore)
 	  (when passphrase
 	    (process-send-string process (concat passphrase "\n")))
@@ -142,15 +141,14 @@ Bourne shell or its equivalent \(not tcsh) is needed for \"2>\"."
 				    pgg-pgp-user-id)
 			    pgg-pgp-user-id))))
 	 (args
-	  (append
-	   `("+encrypttoself=off +verbose=1" "+batchmode"
-	     "+language=us" "-fate"
-	     ,@(if recipients
-		   (mapcar (lambda (rcpt) (concat "\"" rcpt "\""))
-			   (append recipients
-				   (if pgg-encrypt-for-me
-				       (list pgg-pgp-user-id))))))
-	   (if sign '("-s" "-u" pgg-pgp-user-id)))))
+	  (concat
+	   "+encrypttoself=off +verbose=1 +batchmode +language=us -fate "
+           (if recipients
+               (mapconcat 'shell-quote-argument
+                          (append recipients
+                                  (if pgg-encrypt-for-me
+                                      (list pgg-pgp-user-id)))))
+           (if sign (concat " -s -u " (shell-quote-argument pgg-pgp-user-id))))))
     (pgg-pgp-process-region start end nil pgg-pgp-program args)
     (pgg-process-when-success nil)))
 
@@ -166,7 +164,7 @@ passphrase cache or user."
 	      (pgg-read-passphrase
 	       (format "PGP passphrase for %s: " pgg-pgp-user-id) key)))
 	 (args
-	  '("+verbose=1" "+batchmode" "+language=us" "-f")))
+	  "+verbose=1 +batchmode +language=us -f"))
     (pgg-pgp-process-region start end passphrase pgg-pgp-program args)
     (pgg-process-when-success
       (if pgg-cache-passphrase
@@ -184,9 +182,9 @@ passphrase cache or user."
 	       (format "PGP passphrase for %s: " pgg-pgp-user-id)
 	       (pgg-pgp-lookup-key pgg-pgp-user-id 'sign))))
 	 (args
-	  (list (if clearsign "-fast" "-fbast")
-		"+verbose=1" "+language=us" "+batchmode"
-		"-u" pgg-pgp-user-id)))
+	  (concat (if clearsign "-fast" "-fbast")
+		" +verbose=1 +language=us +batchmode"
+		" -u " (shell-quote-argument pgg-pgp-user-id))))
     (pgg-pgp-process-region start end passphrase pgg-pgp-program args)
     (pgg-process-when-success
       (goto-char (point-min))
@@ -204,7 +202,7 @@ passphrase cache or user."
 (defun pgg-pgp-verify-region (start end &optional signature)
   "Verify region between START and END as the detached signature SIGNATURE."
   (let* ((orig-file (pgg-make-temp-file "pgg"))
-	 (args '("+verbose=1" "+batchmode" "+language=us"))
+	 (args "+verbose=1 +batchmode +language=us")
 	 (orig-mode (default-file-modes)))
     (unwind-protect
 	(progn
@@ -216,8 +214,8 @@ passphrase cache or user."
     (if (stringp signature)
 	(progn
 	  (copy-file signature (setq signature (concat orig-file ".asc")))
-	  (setq args (append args (list signature orig-file))))
-      (setq args (append args (list orig-file))))
+	  (setq args (concat args " " (shell-quote-argument signature)))))
+    (setq args (concat args " " (shell-quote-argument orig-file)))
     (pgg-pgp-process-region (point)(point) nil pgg-pgp-program args)
     (delete-file orig-file)
     (if signature (delete-file signature))
@@ -237,8 +235,8 @@ passphrase cache or user."
   "Insert public key at point."
   (let* ((pgg-pgp-user-id (or pgg-pgp-user-id pgg-default-user-id))
 	 (args
-	  (list "+verbose=1" "+batchmode" "+language=us" "-kxaf"
-		(concat "\"" pgg-pgp-user-id "\""))))
+	  (concat "+verbose=1 +batchmode +language=us -kxaf "
+                  (shell-quote-argument pgg-pgp-user-id))))
     (pgg-pgp-process-region (point)(point) nil pgg-pgp-program args)
     (insert-buffer-substring pgg-output-buffer)))
 
@@ -247,8 +245,8 @@ passphrase cache or user."
   (let* ((pgg-pgp-user-id (or pgg-pgp-user-id pgg-default-user-id))
 	 (key-file (pgg-make-temp-file "pgg"))
 	 (args
-	  (list "+verbose=1" "+batchmode" "+language=us" "-kaf"
-		key-file)))
+	  (concat "+verbose=1 +batchmode +language=us -kaf "
+                  (shell-quote-argument key-file))))
     (let ((coding-system-for-write 'raw-text-dos))
       (write-region start end key-file))
     (pgg-pgp-process-region start end nil pgg-pgp-program args)
@@ -257,5 +255,5 @@ passphrase cache or user."
 
 (provide 'pgg-pgp)
 
-;;; arch-tag: 076b7801-37b2-49a6-97c3-218fdecde33c
+;; arch-tag: 076b7801-37b2-49a6-97c3-218fdecde33c
 ;;; pgg-pgp.el ends here

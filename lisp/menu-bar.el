@@ -1018,9 +1018,9 @@ mail status in mode line"))
 
 (define-key menu-bar-options-menu [case-fold-search]
   (menu-bar-make-toggle toggle-case-fold-search case-fold-search
-			"Case-Insensitive Search"
-			"Case-Insensitive Search %s"
-			"Ignore letter-case in search"))
+	    "Case-Insensitive Search"
+	    "Case-Insensitive Search %s for buffers without local setting"
+	    "Ignore letter-case in search for buffers without local setting"))
 
 (defun menu-bar-text-mode-auto-fill ()
   (interactive)
@@ -1090,9 +1090,6 @@ mail status in mode line"))
 (define-key menu-bar-games-menu [zone]
   '(menu-item "Zone Out"  zone
 	      :help "Play tricks with Emacs display when Emacs is idle"))
-(define-key menu-bar-games-menu [yow]
-  '(menu-item "Random Quotation"  yow
-	      :help "Display a random Zippy quotation"))
 (define-key menu-bar-games-menu [tetris]
   '(menu-item "Tetris"  tetris))
 (define-key menu-bar-games-menu [solitaire]
@@ -1599,14 +1596,14 @@ Buffers menu is regenerated."
 			       name))))
 		 ;; Compute the maximum length of any name.
 		 (dolist (buf buffer-list)
-		   (unless (eq ?\  (aref (cdr buf) 0))
+		   (unless (eq ?\s (aref (cdr buf) 0))
 		     (setq menu-bar-update-buffers-maxbuf
 			   (max menu-bar-update-buffers-maxbuf
 				(length (cdr buf))))))
 		 ;; Set ALIST to an alist of the form
 		 ;; ITEM-STRING . BUFFER
 		 (dolist (buf buffer-list)
-		   (unless (eq ?\  (aref (cdr buf) 0))
+		   (unless (eq ?\s (aref (cdr buf) 0))
 		     (push (menu-bar-update-buffers-1 buf) alist)))
 		 ;; Now make the actual list of items, and add
 		 ;; some miscellaneous buffer commands to the end.
@@ -1669,7 +1666,7 @@ Buffers menu is regenerated."
 			     'menu-item
 			     "List All Buffers"
 			     'list-buffers
-			     :help "Pop up a window listing all emacs buffers"
+			     :help "Pop up a window listing all Emacs buffers"
 			     ))))
 	 (setq buffers-menu
 	       (nconc buffers-menu menu-bar-buffers-menu-command-entries))

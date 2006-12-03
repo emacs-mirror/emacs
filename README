@@ -1,28 +1,29 @@
-This directory tree holds version 22.0.91 of GNU Emacs, the extensible,
+This directory tree holds version 23.0.51 of GNU Emacs, the extensible,
 customizable, self-documenting real-time display editor.
 
-You may encounter bugs in this release.  If you do, please report
-them; your bug reports are valuable contributions to the FSF, since
-they allow us to notice and fix problems on machines we don't have, or
-in code we don't use often.  See the file BUGS for more information on
-how to report bugs.
+The file INSTALL in this directory says how to build and install GNU
+Emacs on various systems, once you have unpacked or checked out the
+entire Emacs file tree.
 
 See the file etc/NEWS for information on new features and other
 user-visible changes in recent versions of Emacs.
 
-The file INSTALL in this directory says how to bring up GNU Emacs on
-various systems, once you have loaded the entire subtree of this
-directory.
-
 The file etc/PROBLEMS contains information on many common problems that
 occur in building, installing and running Emacs.
 
-Reports of bugs in Emacs should be sent to the mailing list
-bug-gnu-emacs@gnu.org.  See the "Bugs" section of the Emacs
-manual for more information on how to report bugs.  (The file `BUGS'
-in this directory explains how you can find and read that section
-using the Info files that come with Emacs.)  See `etc/MAILINGLISTS'
-for more information on mailing lists relating to GNU packages.
+You may encounter bugs in this release.  If you do, please report
+them; your bug reports are valuable contributions to the FSF, since
+they allow us to notice and fix problems on machines we don't have, or
+in code we don't use often.  Please send bug reports for released
+versions of Emacs sent to the mailing list bug-gnu-emacs@gnu.org.
+Please send bug reports for pretest versions of Emacs, and versions
+from the Savannah.gnu.org repository, to emacs-pretest-bugs@gnu.org.
+
+See the "Bugs" section of the Emacs manual for more information on how
+to report bugs.  (The file `BUGS' in this directory explains how you
+can find and read that section using the Info files that come with
+Emacs.)  See `etc/MAILINGLISTS' for more information on mailing lists
+relating to GNU packages.
 
 The `etc' subdirectory contains several other files, named in capital
 letters, which you might consider looking at when installing GNU
@@ -86,20 +87,3 @@ There are several subdirectories:
 that aren't part of the standard distribution of the OS.  The
 platform-specific README files and installation instructions should
 list the required tools.
-
-VMS info:
-
-Emacs 19.x and above do not compile out of the box on OpenVMS.
-Richard Levitte <levitte@lp.se> is distributing and maintaining a
-version of Emacs (currently based on version 19.28, but soon moving to
-19.34 and then 20.1) that compiles and works on OpenVMS 5.5 and above
-on both VAX and Alpha architectures.  For more information see
-
-  http://www.lp.se/gnu-vms/software/released1/emacs.html
-
-There is also some effort going on with Emacs 21.  Source code is
-available at ftp://ftp.nvg.ntnu.no/pub/vms/emacs/.  Look for most
-recent stuff with ls -lta.
-
-It is a working "development" version (editing and much more works).
-More developers are needed; contact roart@nvg.ntnu.no.

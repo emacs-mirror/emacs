@@ -28,7 +28,7 @@
 ;;    up or down lines in any buffer causes all the buffers to mirror
 ;;    the scrolling.  It hooks into the post-command-hook to check for
 ;;    potential scrolling commands and if we're locked, mirrors them in all
-;;    windows.	This allows us to grab line-at-a-time scrolling as well as
+;;    windows.  This allows us to grab line-at-a-time scrolling as well as
 ;;    screen-at-a-time scrolling, and doesn't remap any of the keyboard
 ;;    commands to do it.
 

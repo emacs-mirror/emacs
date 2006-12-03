@@ -6195,7 +6195,7 @@ face for italic.  */)
   (attributes, display)
      Lisp_Object attributes, display;
 {
-  int supports, i;
+  int supports = 0, i;
   Lisp_Object frame;
   struct frame *f;
   struct face *def_face;
@@ -7089,10 +7089,18 @@ realize_default_face (f)
 #ifdef HAVE_WINDOW_SYSTEM
 #ifdef HAVE_X_WINDOWS
   if (FRAME_X_P (f) && face->font != FRAME_FONT (f))
-    /* As the font specified for the frame was not acceptable as a
-       font for the default face (perhaps because auto-scaled fonts
-       are rejected), we must adjust the frame font.  */
-    x_set_font (f, build_string (face->font_name), Qnil);
+    {
+      /* This can happen when making a frame on a display that does
+ 	 not support the default font.  */
+      if (!face->font)
+ 	return 0;
+ 
+      /* Otherwise, the font specified for the frame was not
+ 	 acceptable as a font for the default face (perhaps because
+ 	 auto-scaled fonts are rejected), so we must adjust the frame
+ 	 font.  */
+      x_set_font (f, build_string (face->font_name), Qnil);
+    }
 #endif	/* HAVE_X_WINDOWS */
 #endif	/* HAVE_WINDOW_SYSTEM */
   return 1;

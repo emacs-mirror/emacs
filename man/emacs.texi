@@ -5,7 +5,7 @@
 
 @c The edition number appears in several places in this file
 @set EDITION   Sixteenth
-@set EMACSVER  22.0.90
+@set EMACSVER  22.0.91
 
 @copying
 This is the @value{EDITION} edition of the @cite{GNU Emacs Manual},
@@ -1027,7 +1027,7 @@ Contributors to GNU Emacs include Jari Aalto, Per Abrahamsen, Tomas
 Abrahamsson, Jay K.@: Adams, Michael Albinus, Nagy Andras, Ralf
 Angeli, Joe Arceneaux, Miles Bader, David Bakhash, Juanma Barranquero,
 Eli Barzilay, Steven L.@: Baur, Jay Belanger, Alexander L.@: Belikoff,
-Boaz Ben-Zvi, Karl Berry, Ray Blaak, Jim Blandy, Johan Bockg@aa{}rd,
+Boaz Ben-Zvi, Karl Berry, Anna M.@: Bigatti, Ray Blaak, Jim Blandy, Johan Bockg@aa{}rd,
 Per Bothner, Terrence Brannon, Frank Bresz, Peter Breton, Emmanuel
 Briot, Kevin Broadey, Vincent Broman, David M.@: Brown, Georges
 Brun-Cottan, Joe Buehler, W@l{}odek Bzyl, Bill Carpenter, Per
@@ -1082,7 +1082,7 @@ Schaefer, Holger Schauer, William Schelter, Ralph Schleicher, Gregor
 Schmid, Michael Schmidt, Ronald S. Schnell, Philippe Schnoebelen, Jan
 Schormann, Alex Schroeder, Stephen Schoef, Raymond Scholz, Randal
 Schwartz, Oliver Seidel, Manuel Serrano, Hovav Shacham, Stanislav
-Shalunov, Mark Shapiro, Richard Sharman, Olin Shivers, Espen Skoglund,
+Shalunov, Marc Shapiro, Richard Sharman, Olin Shivers, Espen Skoglund,
 Rick Sladkey, Lynn Slater, Chris Smith, David Smith, Paul D.@: Smith,
 Andre Spiegel, Michael Staats, William Sommerfeld, Michael Staats,
 Reiner Steib, Sam Steingold, Ake Stenhoff, Peter Stephenson, Ken
@@ -1586,12 +1586,7 @@ Public License instead of this License.
 
 @include doclicense.texi
 @include cmdargs.texi
-@iftex
-@include xresmini.texi
-@end iftex
-@ifnottex
 @include xresources.texi
-@end ifnottex
 
 @include anti.texi
 @include macos.texi

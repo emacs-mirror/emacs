@@ -551,8 +551,8 @@ If CONTINUE is non-nil, use the `comment-continue' markers if any."
 	    (indent-to comment-column)
 	    ;; Ensure there's a space before the comment for things
 	    ;; like sh where it matters (as well as being neater).
-	    (unless (memq (char-before) '(nil ?\n ?\t ?\ ))
-	      (insert ?\ ))
+	    (unless (memq (char-before) '(nil ?\n ?\t ?\s))
+	      (insert ?\s))
 	    (setq begpos (point))
 	    (insert starter)
 	    (setq cpos (point-marker))

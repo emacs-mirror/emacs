@@ -248,7 +248,7 @@ the sort order."
     (while (< i 256)
       (modify-syntax-entry i "w" table)
       (setq i (1+ i)))
-    (modify-syntax-entry ?\  " " table)
+    (modify-syntax-entry ?\s " " table)
     (modify-syntax-entry ?\t " " table)
     (modify-syntax-entry ?\n " " table)
     (modify-syntax-entry ?\. "_" table)	; for floating pt. numbers. -wsr
@@ -505,8 +505,9 @@ Use \\[untabify] to convert tabs to spaces before sorting."
 	  ;; Use the sort utility if we can; it is 4 times as fast.
 	  ;; Do not use it if there are any non-font-lock properties
 	  ;; in the region, since the sort utility would lose the
-	  ;; properties.
-	  (let ((sort-args (list (if reverse "-rt\n" "-t\n")
+	  ;; properties.  Tabs are used as field separator; on NetBSD,
+	  ;; sort complains if "\n" is used as field separator.
+	  (let ((sort-args (list (if reverse "-rt\t" "-t\t")
 				 (format "-k1.%d,1.%d"
 					 (1+ col-start)
 					 (1+ col-end)))))

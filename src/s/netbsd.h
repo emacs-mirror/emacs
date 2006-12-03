@@ -138,5 +138,10 @@
 
 #define GC_MARK_STACK	GC_MAKE_GCPROS_NOOPS
 
+/* Use sigprocmask and friends instead of sigblock;
+   sigblock is considered obsolete on NetBSD.  */
+
+#define POSIX_SIGNALS	1
+
 /* arch-tag: e80f364a-04e9-4faf-93cb-f36a0fe95c81
    (do not change this comment) */

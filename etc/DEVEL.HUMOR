@@ -136,3 +136,35 @@ without attempting any course of action that requires an advance
 course in divination.
    There'd be quite a sensational market for that, you know."
                                     -- Emilio Lopes and David Kastrup
+
+----------------------------------------------------------------------
+
+  "[T]here may be a good reason since the code explicitly checks for
+this; see keyboard.c:789 [...]"
+  "I think I understand, but I can't find the code in keyboard.c.  Do
+you really mean 'line 789'?  Of which revision?"
+  "Sorry; by 789, I mean 3262 :-P"
+                                   -- Chong Yidong and Stefan Monnier
+
+----------------------------------------------------------------------
+
+  "[...] In my opinion, your change does not either increase or
+decrease readability.  It's a tossup."
+  "Uh, setting tem to '', an artificial empty string, in order to have
+j incremented once again before breaking out of the finished loop is
+readable?
+   Is this kind of 'readable' synonymous to 'comprehensible with
+serious effort', reminiscent of mathematicians' use of 'trivial' as
+synonymous with 'provable with serious effort'?"
+                                              -- RMS and David Kastrup
+
+----------------------------------------------------------------------
+
+Re: New Emacs Icon and Tango
+
+  "What about using the 'happy face' with gnu horns?"
+  "It would make Emacs the object of ridicule until the end of time."
+  "Isn't it already?"
+  "It's the object of ridicule until the end of _tape_.  The jury is
+still out about that end of time thing."
+                 -- Kim F. Storm, Miles Bader, RMS and David Kastrup

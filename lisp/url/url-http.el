@@ -92,7 +92,7 @@ request.")
 
 (defun url-http-mark-connection-as-free (host port proc)
   (url-http-debug "Marking connection as free: %s:%d %S" host port proc)
-  (when (memq (process-status proc) '(open run))
+  (when (memq (process-status proc) '(open run connect))
     (set-process-buffer proc nil)
     (set-process-sentinel proc 'url-http-idle-sentinel)
     (puthash (cons host port)
@@ -104,7 +104,7 @@ request.")
   (let ((conns (gethash (cons host port) url-http-open-connections))
 	(found nil))
     (while (and conns (not found))
-      (if (not (memq (process-status (car conns)) '(run open)))
+      (if (not (memq (process-status (car conns)) '(run open connect)))
 	  (progn
 	    (url-http-debug "Cleaning up dead process: %s:%d %S"
 			    host port (car conns))
@@ -151,13 +151,15 @@ request.")
 
 (defun url-http-create-request (url &optional ref-url)
   "Create an HTTP request for URL, referred to by REF-URL."
-  (declare (special proxy-object proxy-info))
+  (declare (special proxy-object proxy-info 
+		    url-http-method url-http-data
+		    url-http-extra-headers))
   (let* ((extra-headers)
 	 (request nil)
-	 (no-cache (cdr-safe (assoc "Pragma" url-request-extra-headers)))
+	 (no-cache (cdr-safe (assoc "Pragma" url-http-extra-headers)))
 	 (proxy-obj (and (boundp 'proxy-object) proxy-object))
 	 (proxy-auth (if (or (cdr-safe (assoc "Proxy-Authorization"
-					      url-request-extra-headers))
+					      url-http-extra-headers))
 			     (not proxy-obj))
 			 nil
 		       (let ((url-basic-auth-storage
@@ -166,7 +168,7 @@ request.")
 	 (real-fname (concat (url-filename (or proxy-obj url))
 			     (url-recreate-url-attributes (or proxy-obj url))))
 	 (host (url-host (or proxy-obj url)))
-	 (auth (if (cdr-safe (assoc "Authorization" url-request-extra-headers))
+	 (auth (if (cdr-safe (assoc "Authorization" url-http-extra-headers))
 		   nil
 		 (url-get-authentication (or
 					  (and (boundp 'proxy-info)
@@ -191,12 +193,12 @@ request.")
 		 (memq 'lastloc url-privacy-level)))
 	(setq ref-url nil))
 
-    ;; url-request-extra-headers contains an assoc-list of
+    ;; url-http-extra-headers contains an assoc-list of
     ;; header/value pairs that we need to put into the request.
     (setq extra-headers (mapconcat
 			 (lambda (x)
 			   (concat (car x) ": " (cdr x)))
-			 url-request-extra-headers "\r\n"))
+			 url-http-extra-headers "\r\n"))
     (if (not (equal extra-headers ""))
 	(setq extra-headers (concat extra-headers "\r\n")))
 
@@ -219,7 +221,7 @@ request.")
            (delq nil
             (list
              ;; The request
-             (or url-request-method "GET") " "
+             (or url-http-method "GET") " "
              (if proxy-obj (url-recreate-url proxy-obj) real-fname)
              " HTTP/" url-http-version "\r\n"
              ;; Version of MIME we speak
@@ -267,7 +269,7 @@ request.")
                                                (equal "https" (url-type url)))
              ;; If-modified-since
              (if (and (not no-cache)
-                      (member url-request-method '("GET" nil)))
+                      (member url-http-method '("GET" nil)))
                  (let ((tm (url-is-cached (or proxy-obj url))))
                    (if tm
                        (concat "If-modified-since: "
@@ -277,15 +279,15 @@ request.")
                           "Referer: " ref-url "\r\n"))
              extra-headers
              ;; Length of data
-             (if url-request-data
+             (if url-http-data
                  (concat
                   "Content-length: " (number-to-string
-                                      (length url-request-data))
+                                      (length url-http-data))
                   "\r\n"))
              ;; End request
              "\r\n"
              ;; Any data
-             url-request-data))
+             url-http-data))
            ""))
     (url-http-debug "Request is: \n%s" request)
     request))
@@ -303,21 +305,35 @@ This allows us to use `mail-fetch-field', etc."
   (declare (special status success url-http-method url-http-data
 		    url-callback-function url-callback-arguments))
   (url-http-debug "Handling %s authentication" (if proxy "proxy" "normal"))
-  (let ((auth (or (mail-fetch-field (if proxy "proxy-authenticate" "www-authenticate"))
-		  "basic"))
+  (let ((auths (or (nreverse
+		    (mail-fetch-field
+		     (if proxy "proxy-authenticate" "www-authenticate")
+		     nil nil t))
+		  '("basic")))
 	(type nil)
 	(url (url-recreate-url url-current-object))
 	(url-basic-auth-storage 'url-http-real-basic-auth-storage)
-	)
-
+	auth
+	(strength 0))
     ;; Cheating, but who cares? :)
     (if proxy
 	(setq url-basic-auth-storage 'url-http-proxy-basic-auth-storage))
 
-    (setq auth (url-eat-trailing-space (url-strip-leading-spaces auth)))
-    (if (string-match "[ \t]" auth)
-	(setq type (downcase (substring auth 0 (match-beginning 0))))
-      (setq type (downcase auth)))
+    ;; find strongest supported auth
+    (dolist (this-auth auths)
+      (setq this-auth (url-eat-trailing-space 
+		       (url-strip-leading-spaces 
+			this-auth)))
+      (let* ((this-type 
+	      (if (string-match "[ \t]" this-auth)
+		  (downcase (substring this-auth 0 (match-beginning 0)))
+		(downcase this-auth)))
+	     (registered (url-auth-registered this-type))
+	     (this-strength (cddr registered)))
+	(when (and registered (> this-strength strength))
+	  (setq auth this-auth
+		type this-type
+		strength this-strength))))
 
     (if (not (url-auth-registered type))
 	(progn
@@ -342,14 +358,19 @@ This allows us to use `mail-fetch-field', etc."
 
 (defun url-http-parse-response ()
   "Parse just the response code."
-  (declare (special url-http-end-of-headers url-http-response-status))
+  (declare (special url-http-end-of-headers url-http-response-status
+		    url-http-response-version))
   (if (not url-http-end-of-headers)
       (error "Trying to parse HTTP response code in odd buffer: %s" (buffer-name)))
   (url-http-debug "url-http-parse-response called in (%s)" (buffer-name))
   (goto-char (point-min))
   (skip-chars-forward " \t\n")		; Skip any blank crap
   (skip-chars-forward "HTTP/")		; Skip HTTP Version
-  (read (current-buffer))
+  (setq url-http-response-version
+	(buffer-substring (point)
+			  (progn
+			    (skip-chars-forward "[0-9].")
+			    (point))))
   (setq url-http-response-status (read (current-buffer))))
 
 (defun url-http-handle-cookies ()
@@ -375,6 +396,7 @@ should be shown to the user."
   ;; The comments after each status code handled are taken from RFC
   ;; 2616 (HTTP/1.1)
   (declare (special url-http-end-of-headers url-http-response-status
+		    url-http-response-version
 		    url-http-method url-http-data url-http-process
 		    url-callback-function url-callback-arguments))
 
@@ -391,9 +413,19 @@ should be shown to the user."
   (mail-narrow-to-head)
   ;;(narrow-to-region (point-min) url-http-end-of-headers)
   (let ((connection (mail-fetch-field "Connection")))
-    (if (and connection
-	     (string= (downcase connection) "close"))
+    ;; In HTTP 1.0, keep the connection only if there is a
+    ;; "Connection: keep-alive" header.
+    ;; In HTTP 1.1 (and greater), keep the connection unless there is a
+    ;; "Connection: close" header
+    (cond 
+     ((string= url-http-response-version "1.0")
+      (unless (and connection
+		   (string= (downcase connection) "keep-alive"))
 	(delete-process url-http-process)))
+     (t
+      (when (and connection
+		 (string= (downcase connection) "close"))
+	(delete-process url-http-process)))))
   (let ((class nil)
 	(success nil))
     (setq class (/ url-http-response-status 100))
@@ -803,7 +835,7 @@ the callback to be triggered."
       (progn
 	;; Found the end of the document!  Wheee!
 	(url-display-percentage nil nil)
-	(message "Reading... done.")
+	(url-lazy-message "Reading... done.")
 	(if (url-http-parse-headers)
 	    (url-http-activate-callback)))))
 
@@ -912,122 +944,121 @@ the end of the document."
 		    url-http-response-status))
   (url-http-debug "url-http-wait-for-headers-change-function (%s)"
 		  (buffer-name))
-  (if (not (bobp))
-      (let ((end-of-headers nil)
-	    (old-http nil)
-	    (content-length nil))
-	(goto-char (point-min))
-	(if (not (looking-at "^HTTP/[1-9]\\.[0-9]"))
-	    ;; Not HTTP/x.y data, must be 0.9
-	    ;; God, I wish this could die.
-	    (setq end-of-headers t
-		  url-http-end-of-headers 0
-		  old-http t)
-	  (if (re-search-forward "^\r*$" nil t)
-	      ;; Saw the end of the headers
-	      (progn
-		(url-http-debug "Saw end of headers... (%s)" (buffer-name))
-		(setq url-http-end-of-headers (set-marker (make-marker)
-							  (point))
-		      end-of-headers t)
-		(url-http-clean-headers))))
+  (when (not (bobp))
+    (let ((end-of-headers nil)
+	  (old-http nil)
+	  (content-length nil))
+      (goto-char (point-min))
+      (if (and (looking-at ".*\n")	; have one line at least
+	       (not (looking-at "^HTTP/[1-9]\\.[0-9]")))
+	  ;; Not HTTP/x.y data, must be 0.9
+	  ;; God, I wish this could die.
+	  (setq end-of-headers t
+		url-http-end-of-headers 0
+		old-http t)
+	(when (re-search-forward "^\r*$" nil t)
+	  ;; Saw the end of the headers
+	  (url-http-debug "Saw end of headers... (%s)" (buffer-name))
+	  (setq url-http-end-of-headers (set-marker (make-marker)
+						    (point))
+		end-of-headers t)
+	  (url-http-clean-headers)))
 
-	(if (not end-of-headers)
-	    ;; Haven't seen the end of the headers yet, need to wait
-	    ;; for more data to arrive.
-	    nil
-	  (if old-http
-	      (message "HTTP/0.9 How I hate thee!")
-	    (progn
-	      (url-http-parse-response)
-	      (mail-narrow-to-head)
-	      ;;(narrow-to-region (point-min) url-http-end-of-headers)
-	      (setq url-http-transfer-encoding (mail-fetch-field
-						"transfer-encoding")
-		    url-http-content-type (mail-fetch-field "content-type"))
-	      (if (mail-fetch-field "content-length")
-		  (setq url-http-content-length
-			(string-to-number (mail-fetch-field "content-length"))))
-	      (widen)))
-	  (if url-http-transfer-encoding
-	      (setq url-http-transfer-encoding
-		    (downcase url-http-transfer-encoding)))
+      (if (not end-of-headers)
+	  ;; Haven't seen the end of the headers yet, need to wait
+	  ;; for more data to arrive.
+	  nil
+	(if old-http
+	    (message "HTTP/0.9 How I hate thee!")
+	  (progn
+	    (url-http-parse-response)
+	    (mail-narrow-to-head)
+	    ;;(narrow-to-region (point-min) url-http-end-of-headers)
+	    (setq url-http-transfer-encoding (mail-fetch-field
+					      "transfer-encoding")
+		  url-http-content-type (mail-fetch-field "content-type"))
+	    (if (mail-fetch-field "content-length")
+		(setq url-http-content-length
+		      (string-to-number (mail-fetch-field "content-length"))))
+	    (widen)))
+	(when url-http-transfer-encoding
+	  (setq url-http-transfer-encoding
+		(downcase url-http-transfer-encoding)))
 
+	(cond
+	 ((or (= url-http-response-status 204)
+	      (= url-http-response-status 205))
+	  (url-http-debug "%d response must have headers only (%s)."
+			  url-http-response-status (buffer-name))
+	  (when (url-http-parse-headers)
+	    (url-http-activate-callback)))
+	 ((string= "HEAD" url-http-method)
+	  ;; A HEAD request is _ALWAYS_ terminated by the header
+	  ;; information, regardless of any entity headers,
+	  ;; according to section 4.4 of the HTTP/1.1 draft.
+	  (url-http-debug "HEAD request must have headers only (%s)."
+			  (buffer-name))
+	  (when (url-http-parse-headers)
+	    (url-http-activate-callback)))
+	 ((string= "CONNECT" url-http-method)
+	  ;; A CONNECT request is finished, but we cannot stick this
+	  ;; back on the free connectin list
+	  (url-http-debug "CONNECT request must have headers only.")
+	  (when (url-http-parse-headers)
+	    (url-http-activate-callback)))
+	 ((equal url-http-response-status 304)
+	  ;; Only allowed to have a header section.  We have to handle
+	  ;; this here instead of in url-http-parse-headers because if
+	  ;; you have a cached copy of something without a known
+	  ;; content-length, and try to retrieve it from the cache, we'd
+	  ;; fall into the 'being dumb' section and wait for the
+	  ;; connection to terminate, which means we'd wait for 10
+	  ;; seconds for the keep-alives to time out on some servers.
+	  (when (url-http-parse-headers)
+	    (url-http-activate-callback)))
+	 (old-http
+	  ;; HTTP/0.9 always signaled end-of-connection by closing the
+	  ;; connection.
+	  (url-http-debug
+	   "Saw HTTP/0.9 response, connection closed means end of document.")
+	  (setq url-http-after-change-function
+		'url-http-simple-after-change-function))
+	 ((equal url-http-transfer-encoding "chunked")
+	  (url-http-debug "Saw chunked encoding.")
+	  (setq url-http-after-change-function
+		'url-http-chunked-encoding-after-change-function)
+	  (when (> nd url-http-end-of-headers)
+	    (url-http-debug
+	     "Calling initial chunked-encoding for extra data at end of headers")
+	    (url-http-chunked-encoding-after-change-function
+	     (marker-position url-http-end-of-headers) nd
+	     (- nd url-http-end-of-headers))))
+	 ((integerp url-http-content-length)
+	  (url-http-debug
+	   "Got a content-length, being smart about document end.")
+	  (setq url-http-after-change-function
+		'url-http-content-length-after-change-function)
 	  (cond
-	   ((or (= url-http-response-status 204)
-		(= url-http-response-status 205))
-	    (url-http-debug "%d response must have headers only (%s)."
-			    url-http-response-status (buffer-name))
-	    (if (url-http-parse-headers)
-		(url-http-activate-callback)))
-	   ((string= "HEAD" url-http-method)
-	    ;; A HEAD request is _ALWAYS_ terminated by the header
-	    ;; information, regardless of any entity headers,
-	    ;; according to section 4.4 of the HTTP/1.1 draft.
-	    (url-http-debug "HEAD request must have headers only (%s)."
-			    (buffer-name))
-	    (if (url-http-parse-headers)
-		(url-http-activate-callback)))
-	   ((string= "CONNECT" url-http-method)
-	    ;; A CONNECT request is finished, but we cannot stick this
-	    ;; back on the free connectin list
-	    (url-http-debug "CONNECT request must have headers only.")
-	    (if (url-http-parse-headers)
-		(url-http-activate-callback)))
-	   ((equal url-http-response-status 304)
-	    ;; Only allowed to have a header section.  We have to handle
-	    ;; this here instead of in url-http-parse-headers because if
-	    ;; you have a cached copy of something without a known
-	    ;; content-length, and try to retrieve it from the cache, we'd
-	    ;; fall into the 'being dumb' section and wait for the
-	    ;; connection to terminate, which means we'd wait for 10
-	    ;; seconds for the keep-alives to time out on some servers.
-	    (if (url-http-parse-headers)
-		(url-http-activate-callback)))
-	   (old-http
-	    ;; HTTP/0.9 always signaled end-of-connection by closing the
-	    ;; connection.
+	   ((= 0 url-http-content-length)
+	    ;; We got a NULL body!  Activate the callback
+	    ;; immediately!
 	    (url-http-debug
-	     "Saw HTTP/0.9 response, connection closed means end of document.")
-	    (setq url-http-after-change-function
-		  'url-http-simple-after-change-function))
-	   ((equal url-http-transfer-encoding "chunked")
-	    (url-http-debug "Saw chunked encoding.")
-	    (setq url-http-after-change-function
-		  'url-http-chunked-encoding-after-change-function)
-	    (if (> nd url-http-end-of-headers)
-		(progn
-		  (url-http-debug
-		   "Calling initial chunked-encoding for extra data at end of headers")
-		  (url-http-chunked-encoding-after-change-function
-		   (marker-position url-http-end-of-headers) nd
-		   (- nd url-http-end-of-headers)))))
-	   ((integerp url-http-content-length)
-	    (url-http-debug
-	     "Got a content-length, being smart about document end.")
-	    (setq url-http-after-change-function
-		  'url-http-content-length-after-change-function)
-	    (cond
-	     ((= 0 url-http-content-length)
-	      ;; We got a NULL body!  Activate the callback
-	      ;; immediately!
-	      (url-http-debug
-	       "Got 0-length content-length, activating callback immediately.")
-	      (if (url-http-parse-headers)
-		  (url-http-activate-callback)))
-	     ((> nd url-http-end-of-headers)
-	      ;; Have some leftover data
-	      (url-http-debug "Calling initial content-length for extra data at end of headers")
-	      (url-http-content-length-after-change-function
-	       (marker-position url-http-end-of-headers)
-	       nd
-	       (- nd url-http-end-of-headers)))
-	     (t
-	      nil)))
+	     "Got 0-length content-length, activating callback immediately.")
+	    (when (url-http-parse-headers)
+	      (url-http-activate-callback)))
+	   ((> nd url-http-end-of-headers)
+	    ;; Have some leftover data
+	    (url-http-debug "Calling initial content-length for extra data at end of headers")
+	    (url-http-content-length-after-change-function
+	     (marker-position url-http-end-of-headers)
+	     nd
+	     (- nd url-http-end-of-headers)))
 	   (t
-	    (url-http-debug "No content-length, being dumb.")
-	    (setq url-http-after-change-function
-		  'url-http-simple-after-change-function)))))
+	    nil)))
+	 (t
+	  (url-http-debug "No content-length, being dumb.")
+	  (setq url-http-after-change-function
+		'url-http-simple-after-change-function)))))
     ;; We are still at the beginning of the buffer... must just be
     ;; waiting for a response.
     (url-http-debug "Spinning waiting for headers..."))
@@ -1054,7 +1085,8 @@ CBARGS as the arguments."
 		    url-http-chunked-length
 		    url-http-chunked-start
 		    url-http-chunked-counter
-		    url-http-process))
+		    url-http-process
+		    proxy-object))
   (let ((connection (url-http-find-free-connection (url-host url)
 						   (url-port url)))
 	(buffer (generate-new-buffer (format " *http %s:%d*"
@@ -1077,6 +1109,7 @@ CBARGS as the arguments."
 		       url-http-content-length
 		       url-http-transfer-encoding
 		       url-http-after-change-function
+		       url-http-response-version
 		       url-http-response-status
 		       url-http-chunked-length
 		       url-http-chunked-counter
@@ -1089,6 +1122,7 @@ CBARGS as the arguments."
 		       url-http-data
 		       url-http-target-url))
 	  (set (make-local-variable var) nil))
+	(make-local-variable 'proxy-object)
 
 	(setq url-http-method (or url-request-method "GET")
 	      url-http-extra-headers url-request-extra-headers
@@ -1128,7 +1162,7 @@ CBARGS as the arguments."
     (cond
      ((string= (substring why 0 4) "open")
       (set-process-sentinel proc 'url-http-end-of-document-sentinel)
-      (process-send-string proc (url-http-create-request url-current-object)))
+      (process-send-string proc (url-http-create-request url-http-target-url)))
      (t
       (setf (car url-callback-arguments)
 	    (nconc (list :error (list 'error 'connection-failed why

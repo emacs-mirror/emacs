@@ -1,3 +1,58 @@
+2006-11-26  Magnus Henoch  <mange@freemail.hu>
+
+	* url-http.el (url-http-wait-for-headers-change-function): Use
+	`when' instead of `if' when possible.
+	(url-http): Define url-http-response-version.
+	(url-http-parse-response): Set it.
+	(url-http-parse-headers): Use it to determine keep-alive behavior.
+
+2006-11-23  Diane Murray  <disumu@x3y2z1.net>
+
+	* url-http.el (url-http-content-length-after-change-function): Use
+	`url-lazy-message'.
+
+	* url-util.el (url-display-percentage): Only show a message if
+	`url-show-status' is non-nil.
+
+2006-11-15  Magnus Henoch  <mange@freemail.hu>
+
+	* url-http.el (url-http): Make proxy-object buffer-local, to
+	handle proxied asynchronous connections correctly.
+
+	* url-parse.el (url-generic-parse-url): Use with-temp-buffer.
+
+2006-11-15  Shun-ichi GOTO  <gotoh@taiyo.co.jp>  (tiny change)
+
+	* url-http.el (url-http-wait-for-headers-change-function):
+	Defer detection of HTTP 0.9 until we have at least one line.
+
+2006-11-10  Shun-ichi GOTO  <gotoh@taiyo.co.jp>  (tiny change)
+
+	* url-http.el (url-http-mark-connection-as-free)
+	(url-http-find-free-connection): Don't treat process with status
+	`connect' as free.
+	(url-http-async-sentinel): Request correct url.
+
+2006-11-08  Magnus Henoch  <mange@freemail.hu>
+
+	* url-http.el (url-http-handle-authentication): If there are
+	several authentication headers, use the strongest available
+	method.
+
+	* url.el (url-retrieve-synchronously): Allow quitting when
+	inhibit-quit is t.
+
+2006-11-03  Shun-ichi GOTO  <gotoh@taiyo.co.jp>  (tiny change)
+
+	* url-http.el (url-http-handle-authentication): If there are
+	several authentication headers, use the first with a supported
+	method.
+
+2006-11-01  Magnus Henoch  <mange@freemail.hu>
+
+	* url-http.el (url-http-create-request): Use buffer-local
+	equivalents of dynamically bound variables.
+
 2006-10-29  Magnus Henoch  <mange@freemail.hu>
 
 	* url-gw.el (url-open-stream): Really use asynchronous
@@ -26,13 +81,13 @@
 
 2006-10-16  Magnus Henoch  <mange@freemail.hu>
 
-	* url-http.el (url-https-create-secure-wrapper): Always use tls
-	gateway method.
+	* url-http.el (url-https-create-secure-wrapper):
+	Always use tls gateway method.
 
 2006-10-12  Magnus Henoch  <mange@freemail.hu>
 
-	* url-http.el (url-http-find-free-connection): Handle
-	url-open-stream returning nil.
+	* url-http.el (url-http-find-free-connection):
+	Handle url-open-stream returning nil.
 
 2006-10-11  Magnus Henoch  <mange@freemail.hu>
 
@@ -444,7 +499,7 @@
 2004-11-20  Masatake YAMATO  <jet@gyve.org>
 
 	* url.el (url-mm-callback): Delay the invocation
-	of `mm-destroy-parts'. Invoke `mm-destroy-parts'
+	of `mm-destroy-parts'.  Invoke `mm-destroy-parts'
 	when the buffer is killed.
 
 2004-11-12  Masatake YAMATO  <jet@gyve.org>
@@ -454,7 +509,7 @@
 2004-11-02  Masatake YAMATO  <jet@gyve.org>
 
 	* url-imap.el (url-imap-open-host): Don't use
-	`string-to-int'. The port returned by `url-port'
+	`string-to-int'.  The port returned by `url-port'
 	is expected to be an integer.
 
 	* url-irc.el (url-irc): Ditto.
@@ -668,7 +723,7 @@
 	* lisp/url.el (url-retrieve-synchronously): Use sleep-for, not
 	sit-for.  From monnier@gnu.org.
 
-2002-11-04  Walter C. Pelissero <walter@pelissero.org>
+2002-11-04  Walter C. Pelissero  <walter@pelissero.org>
 
 	* lisp/url-methods.el (url-scheme-register-proxy): Make sure to convert
 	port numbers to integers when creating the URL objects for proxies.
@@ -1204,7 +1259,7 @@
 	* lisp/url-nfs.el: Fix `file-truname' typo.
 
 	* lisp/url-news.el: Require cl when compiling.
-	(url-warn, gnus-group-read-ephemeral-group):  Autoload.
+	(url-warn, gnus-group-read-ephemeral-group): Autoload.
 	(url-nntp-default-port, url-news-default-port, url-nntp): Delete.
 	(url-news-fetch-newsgroup): Declare gnus-group-buffer special.
 
@@ -1390,7 +1445,7 @@
 	* lisp/url-history.el: Avoid cl-...hash functions.
 	(url): Require.
 
-	* lisp/url-gw.el, lisp/url-cookie.el:  Require cl only when compiling.
+	* lisp/url-gw.el, lisp/url-cookie.el: Require cl only when compiling.
 
 2000-10-03  William M. Perry  <wmperry@aventail.com>
 
@@ -1455,7 +1510,7 @@
 	* configure.in: Checks to make sure that Gnus was found, since we
 	HAVE to have it now.  Removed conditional compilation of url-cid.el
 
-1999-12-16  Eric Marsden <emarsden@mail.dotcom.fr>
+1999-12-16  Eric Marsden  <emarsden@mail.dotcom.fr>
 
 	* lisp/url-util.el (url-get-url-at-point): Allow URLs wrapped in
 	() to have periods at the end of the chunk.
@@ -1508,7 +1563,7 @@
 	nnimap-server-buffer or `nnimap-open-server' chokes trying to use
 	the current buffer as the IMAP server buffer, which fails miserably.
 
-1999-12-11  Simon Josefsson <jas@pdc.kth.se>
+1999-12-11  Simon Josefsson  <jas@pdc.kth.se>
 
 	* lisp/url-imap.el: Initial (rough) implementation for IMAP urls.
 
@@ -1528,7 +1583,7 @@
 	* lisp/url-http.el (mail-parse): Since we use functions from here,
 	we should require it, eh?
 
-1999-12-10 01:57:01  Shenghuo ZHU  <zsh@cs.rochester.edu>
+1999-12-10  Shenghuo ZHU  <zsh@cs.rochester.edu>
 
 	* lisp/url-cookie.el (url-cookie-multiple-line): One line cookie
 	if nil.
@@ -1677,6 +1732,7 @@
 
 Local variables:
 coding: utf-8
+add-log-time-zone-rule: t
 End:
 
 ;; arch-tag: ac117078-3091-4533-be93-098162ac2926

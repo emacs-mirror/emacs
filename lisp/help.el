@@ -361,7 +361,7 @@ With argument, display info only for the selected version."
 	  ((<= version 18)
 	   (setq version (format "%d" version)))
 	  ((> version emacs-major-version)
-	   (error "No news about emacs %d (yet)" version))))
+	   (error "No news about Emacs %d (yet)" version))))
   (let* ((vn (if (stringp version)
 		 (string-to-number version)
 	       version))
@@ -887,7 +887,7 @@ appeared on the mode-line."
 		    (cond
 		     ((= 0 (length i))
 		      nil)
-		     ((eq (aref i 0) ?\ )
+		     ((eq (aref i 0) ?\s)
 		      (substring i 1))
 		     (t
 		      i))))
@@ -909,7 +909,7 @@ is currently activated with completion."
   "Return a minor mode symbol from its indicator on the modeline."
   ;; remove first space if existed
   (if (and (< 0 (length indicator))
-	   (eq (aref indicator 0) ?\ ))
+	   (eq (aref indicator 0) ?\s))
       (setq indicator (substring indicator 1)))
   (let ((minor-modes minor-mode-alist)
 	result)
@@ -920,7 +920,7 @@ is currently activated with completion."
 	;; remove first space if existed
 	(if (and (stringp anindicator)
 		 (> (length anindicator) 0)
-		 (eq (aref anindicator 0) ?\ ))
+		 (eq (aref anindicator 0) ?\s))
 	    (setq anindicator (substring anindicator 1)))
 	(if (equal indicator anindicator)
 	    (setq result minor-mode

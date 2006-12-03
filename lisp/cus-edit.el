@@ -466,6 +466,37 @@
   :version "22.1"
   :prefix "mac-")
 
+;;; Custom mode keymaps
+
+(defvar custom-mode-map
+  ;; This keymap should be dense, but a dense keymap would prevent inheriting
+  ;; "\r" bindings from the parent map.
+  ;; Actually, this misfeature of dense keymaps was fixed on 2001-11-26.
+  (let ((map (make-keymap)))
+    (set-keymap-parent map widget-keymap)
+    (define-key map [remap self-insert-command] 'Custom-no-edit)
+    (define-key map "\^m" 'Custom-newline)
+    (define-key map " " 'scroll-up)
+    (define-key map "\177" 'scroll-down)
+    (define-key map "\C-c\C-c" 'Custom-set)
+    (define-key map "\C-x\C-s" 'Custom-save)
+    (define-key map "q" 'Custom-buffer-done)
+    (define-key map "u" 'Custom-goto-parent)
+    (define-key map "n" 'widget-forward)
+    (define-key map "p" 'widget-backward)
+    map)
+  "Keymap for `custom-mode'.")
+
+(defvar custom-mode-link-map
+  (let ((map (make-keymap)))
+    (set-keymap-parent map custom-mode-map)
+    (define-key map [down-mouse-2] nil)
+    (define-key map [down-mouse-1] 'mouse-drag-region)
+    (define-key map [mouse-2] 'widget-move-and-invoke)
+    map)
+  "Local keymap for links in `custom-mode'.")
+
+
 ;;; Utilities.
 
 (defun custom-split-regexp-maybe (regexp)
@@ -521,7 +552,7 @@ WIDGET is the widget to apply the filter entries of MENU on."
   "List of prefixes that should be ignored by `custom-unlispify'.")
 
 (defcustom custom-unlispify-menu-entries t
-  "Display menu entries as words instead of symbols if non nil."
+  "Display menu entries as words instead of symbols if non-nil."
   :group 'custom-menu
   :type 'boolean)
 
@@ -568,7 +599,7 @@ WIDGET is the widget to apply the filter entries of MENU on."
 	   (buffer-string)))))
 
 (defcustom custom-unlispify-tag-names t
-  "Display tag names as words instead of symbols if non nil."
+  "Display tag names as words instead of symbols if non-nil."
   :group 'custom-buffer
   :type 'boolean)
 
@@ -846,7 +877,7 @@ it were the arg to `interactive' (which see) to interactively read the value.
 If the variable has a `custom-type' property, it must be a widget and the
 `:prompt-value' property of that widget will be used for reading the value.
 
-If optional COMMENT argument is non nil, also prompt for a comment and return
+If optional COMMENT argument is non-nil, also prompt for a comment and return
 it as the third element in the list."
   (let* ((var (read-variable prompt-var))
 	 (minibuffer-help-form '(describe-variable var))
@@ -1781,6 +1812,8 @@ item in another window.\n\n"))
 (define-widget 'custom-manual 'info-link
   "Link to the manual entry for this customization option."
   :help-echo "Read the manual entry for this option."
+  :keymap custom-mode-link-map
+  :follow-link 'mouse-face
   :button-face 'custom-link
   :mouse-face 'highlight
   :pressed-face 'highlight
@@ -3631,7 +3664,7 @@ restoring it to the state of a face that has never been customized."
 ;;; The `hook' Widget.
 
 (define-widget 'hook 'list
-  "A emacs lisp hook"
+  "An Emacs Lisp hook."
   :value-to-internal (lambda (widget value)
 		       (if (and value (symbolp value))
 			   (list value)
@@ -3673,6 +3706,8 @@ restoring it to the state of a face that has never been customized."
   :mouse-face 'highlight
   :pressed-face 'highlight
   :help-echo "Create customization buffer for this group."
+  :keymap custom-mode-link-map
+  :follow-link 'mouse-face
   :action 'custom-group-link-action)
 
 (defun custom-group-link-action (widget &rest ignore)
@@ -4149,6 +4184,8 @@ if only the first line of the docstring is shown."))
 ;;;###autoload
 (defun custom-save-all ()
   "Save all customizations in `custom-file'."
+  (when (and (null custom-file) init-file-had-error)
+    (error "Cannot save customizations; init file was not fully loaded"))
   (let* ((filename (custom-file))
 	 (recentf-exclude (if recentf-mode
 			      (cons (concat "\\`"
@@ -4156,7 +4193,8 @@ if only the first line of the docstring is shown."))
 					    "\\'")
 				    recentf-exclude)))
 	 (old-buffer (find-buffer-visiting filename)))
-    (with-current-buffer (or old-buffer (find-file-noselect filename))
+    (with-current-buffer (let ((find-file-visit-truename t))
+			   (or old-buffer (find-file-noselect filename)))
       (unless (eq major-mode 'emacs-lisp-mode)
 	(emacs-lisp-mode))
       (let ((inhibit-read-only t))
@@ -4267,7 +4305,7 @@ This function does not save the buffer."
 			    (eq (get symbol 'force-value)
 				'rogue))))
 	      (comment (get symbol 'saved-variable-comment)))
-	  ;; Check REQUESTS for validity. 
+	  ;; Check REQUESTS for validity.
 	  (dolist (request requests)
 	    (when (and (symbolp request) (not (featurep request)))
 	      (message "Unknown requested feature: %s" request)
@@ -4448,25 +4486,6 @@ The format is suitable for use with `easy-menu-define'."
 		(if (consp menu) (cdr menu) menu)))))
 
 ;;; The Custom Mode.
-
-(defvar custom-mode-map
-  ;; This keymap should be dense, but a dense keymap would prevent inheriting
-  ;; "\r" bindings from the parent map.
-  ;; Actually, this misfeature of dense keymaps was fixed on 2001-11-26.
-  (let ((map (make-keymap)))
-    (set-keymap-parent map widget-keymap)
-    (define-key map [remap self-insert-command] 'Custom-no-edit)
-    (define-key map "\^m" 'Custom-newline)
-    (define-key map " " 'scroll-up)
-    (define-key map "\177" 'scroll-down)
-    (define-key map "\C-c\C-c" 'Custom-set)
-    (define-key map "\C-x\C-s" 'Custom-save)
-    (define-key map "q" 'Custom-buffer-done)
-    (define-key map "u" 'Custom-goto-parent)
-    (define-key map "n" 'widget-forward)
-    (define-key map "p" 'widget-backward)
-    map)
-  "Keymap for `custom-mode'.")
 
 (defun Custom-no-edit (pos &optional event)
   "Invoke button at POS, or refuse to allow editing of Custom buffer."

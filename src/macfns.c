@@ -251,7 +251,7 @@ typedef struct colormap_t
   char *name;
 } colormap_t;
 
-colormap_t mac_color_map[] =
+static const colormap_t mac_color_map[] =
 {
   { RGB_TO_ULONG(255, 250, 250), "snow" },
   { RGB_TO_ULONG(248, 248, 255), "ghost white" },
@@ -1009,7 +1009,7 @@ colormap_t mac_color_map[] =
 
 Lisp_Object
 mac_color_map_lookup (colorname)
-     char *colorname;
+     const char *colorname;
 {
   Lisp_Object ret = Qnil;
   int i;
@@ -3092,18 +3092,30 @@ If omitted or nil, that stands for the selected frame's display.  */)
      Lisp_Object display;
 {
   struct mac_display_info *dpyinfo = check_x_display_info (display);
+
   /* Only of the main display.  */
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
-  CGSize size;
+#if MAC_OS_X_VERSION_MIN_REQUIRED == 1020
+  if (CGDisplayScreenSize != NULL)
+#endif
+    {
+      CGSize size;
 
-  BLOCK_INPUT;
-  size = CGDisplayScreenSize (kCGDirectMainDisplay);
-  UNBLOCK_INPUT;
+      BLOCK_INPUT;
+      size = CGDisplayScreenSize (kCGDirectMainDisplay);
+      UNBLOCK_INPUT;
 
-  return make_number ((int) (size.height + .5f));
-#else
-  /* This is an approximation.  */
-  return make_number ((int) (dpyinfo->height * 25.4 / dpyinfo->resy));
+      return make_number ((int) (size.height + .5f));
+    }
+#if MAC_OS_X_VERSION_MIN_REQUIRED == 1020
+  else
+#endif
+#endif	/* MAC_OS_X_VERSION_MAX_ALLOWED >= 1030  */
+#if MAC_OS_X_VERSION_MAX_ALLOWED < 1030 || MAC_OS_X_VERSION_MIN_REQUIRED == 1020
+    {
+      /* This is an approximation.  */
+      return make_number ((int) (dpyinfo->height * 25.4 / dpyinfo->resy));
+    }
 #endif
 }
 
@@ -3116,18 +3128,30 @@ If omitted or nil, that stands for the selected frame's display.  */)
      Lisp_Object display;
 {
   struct mac_display_info *dpyinfo = check_x_display_info (display);
+
   /* Only of the main display.  */
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
-  CGSize size;
+#if MAC_OS_X_VERSION_MIN_REQUIRED == 1020
+  if (CGDisplayScreenSize != NULL)
+#endif
+    {
+      CGSize size;
 
-  BLOCK_INPUT;
-  size = CGDisplayScreenSize (kCGDirectMainDisplay);
-  UNBLOCK_INPUT;
+      BLOCK_INPUT;
+      size = CGDisplayScreenSize (kCGDirectMainDisplay);
+      UNBLOCK_INPUT;
 
-  return make_number ((int) (size.width + .5f));
-#else
-  /* This is an approximation.  */
-  return make_number ((int) (dpyinfo->width * 25.4 / dpyinfo->resx));
+      return make_number ((int) (size.width + .5f));
+    }
+#if MAC_OS_X_VERSION_MIN_REQUIRED == 1020
+  else
+#endif
+#endif	/* MAC_OS_X_VERSION_MAX_ALLOWED >= 1030  */
+#if MAC_OS_X_VERSION_MAX_ALLOWED < 1030 || MAC_OS_X_VERSION_MIN_REQUIRED == 1020
+    {
+      /* This is an approximation.  */
+      return make_number ((int) (dpyinfo->width * 25.4 / dpyinfo->resx));
+    }
 #endif
 }
 

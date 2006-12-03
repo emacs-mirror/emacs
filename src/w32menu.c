@@ -235,10 +235,6 @@ static int menu_items_n_panes;
 /* Current depth within submenus.  */
 static int menu_items_submenu_depth;
 
-/* Flag which when set indicates a dialog or menu has been posted by
-   Xt on behalf of one of the widget sets.  */
-static int popup_activated_flag;
-
 static int next_menubar_widget_id;
 
 /* This is set nonzero after the user activates the menu bar, and set
@@ -2148,7 +2144,6 @@ w32_dialog_show (f, keymaps, title, header, error)
 
   /* Display the menu.  */
   lw_pop_up_all_widgets (dialog_id);
-  popup_activated_flag = 1;
 
   /* Process events that apply to the menu.  */
   popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), dialog_id);
@@ -2428,13 +2423,6 @@ fill_in_menu (HMENU menu, widget_value *wv)
   return 1;
 }
 
-int
-popup_activated ()
-{
-  /* popup_activated_flag not actually used on W32 */
-  return 0;
-}
-
 /* Display help string for currently pointed to menu item. Not
    supported on NT 3.51 and earlier, as GetMenuItemInfo is not
    available. */
@@ -2537,6 +2525,21 @@ w32_free_menu_strings (hwnd)
 
 #endif /* HAVE_MENUS */
 
+/* The following is used by delayed window autoselection.  */
+
+DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_p, 0, 0, 0,
+       doc: /* Return t if a menu or popup dialog is active on selected frame.  */)
+     ()
+{
+#ifdef HAVE_MENUS
+  FRAME_PTR f;
+  f = SELECTED_FRAME ();
+  return (f->output_data.w32->menubar_active > 0) ? Qt : Qnil;
+#else
+  return Qnil;
+#endif /* HAVE_MENUS */
+}
+
 void syms_of_w32menu ()
 {
 	globals_of_w32menu ();
@@ -2549,6 +2552,7 @@ void syms_of_w32menu ()
   staticpro (&Qdebug_on_next_call);
 
   defsubr (&Sx_popup_menu);
+  defsubr (&Smenu_or_popup_active_p);
 #ifdef HAVE_MENUS
   defsubr (&Sx_popup_dialog);
 #endif

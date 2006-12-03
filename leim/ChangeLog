@@ -1,3 +1,12 @@
+2006-11-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* quail/greek.el ("greek-mizuochi"): Remove spurious initial newline
+	in docstring.
+
+2006-11-04  Romain Francoise  <romain@orebokech.com>
+
+	* Makefile.in (bootstrap-clean): New target.
+
 2006-10-12  Kenichi Handa  <handa@m17n.org>
 
 	* Makefile.in (install): Be sure to make ${INSTALLDIR} before `cd'
@@ -94,19 +103,16 @@
 
 2005-06-04  Eli Zaretskii  <eliz@gnu.org>
 
-	* makefile.w32-in (distclean): Fix a typo (colon was after
-	"clean").
+	* makefile.w32-in (distclean): Fix a typo (colon was after "clean").
 	(extraclean): New target, emulates Makefile.in.
 
 2005-04-06  Kenichi Handa  <handa@m17n.org>
 
-	* quail/sgml-input.el ("sgml"): Enable quail-completion by typing
-	TAB.
+	* quail/sgml-input.el ("sgml"): Enable quail-completion by typing TAB.
 
 2005-03-26  Kenichi Handa  <handa@m17n.org>
 
-	* quail/latin-ltx.el ("TeX"): Enable quail-completion by typing
-	TAB.
+	* quail/latin-ltx.el ("TeX"): Enable quail-completion by typing TAB.
 
 2005-03-18  Kenichi Handa  <handa@m17n.org>
 
@@ -166,7 +172,7 @@
 
 2004-07-01  David Kastrup  <dak@gnu.org>
 
-	* quail/greek.el ("((") ("))"): add quotation mark shorthands.
+	* quail/greek.el ("((") ("))"): Add quotation mark shorthands.
 
 2004-06-30  Andreas Schwab  <schwab@suse.de>
 
@@ -217,7 +223,7 @@
 
 2004-05-01  Kenichi Handa  <handa@m17n.org>
 
-	* Makefile.in (OTHERS): Raname from MISC.
+	* Makefile.in (OTHERS): Rename from MISC.
 	(MISC): Rename from MISC-DIC.
 	(WORLD): Adjute for the above changes.
 	(TIT-MISC, NON-TIT-MISC): New targets.
@@ -1626,6 +1632,7 @@
 
 ;; Local Variables:
 ;; coding: iso-2022-7bit
+;; add-log-time-zone-rule: t
 ;; End:
 
     Copyright (C) 1997, 1998, 1999, 2001 Free Software Foundation, Inc.

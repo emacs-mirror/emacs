@@ -299,7 +299,8 @@ have been moved to C-h F, C-h K and C-h S.
 See below under "incremental search changes".
 
 ---
-** C-x C-f RET, typing nothing in the minibuffer, is no longer a special case.
+** C-x C-f RET (find-file), typing nothing in the minibuffer, is no longer
+a special case.
 
 Since the default input is the current directory, this has the effect
 of specifying the current directory.  Normally that means to visit the
@@ -1033,6 +1034,21 @@ jit-lock-defer-contextually is renamed jit-lock-contextually and
 jit-lock-context-time determines the delay after which contextual
 refontification takes place.
 
+---
+*** lazy-lock is considered obsolete.
+
+The `lazy-lock' package is superseded by `jit-lock' and is considered
+obsolete.  `jit-lock' is activated by default; if you wish to continue
+using `lazy-lock', activate it in your ~/.emacs like this:
+
+  (setq font-lock-support-mode 'lazy-lock-mode)
+
+If you invoke `lazy-lock-mode' directly rather than through
+`font-lock-support-mode', it now issues a warning:
+
+  "Use font-lock-support-mode rather than calling lazy-lock-mode"
+
+
 ** Menu support:
 
 ---
@@ -1184,7 +1200,7 @@ characters instead, depending on how the terminal (or terminal
 emulator) works.  Use `set-keyboard-coding-system' (or customize
 keyboard-coding-system) if you prefer META to work (the old default)
 or if the locale doesn't describe the character set actually generated
-by the keyboard.  See Info node `Single-Byte Character Support'.
+by the keyboard.  See Info node `Unibyte Mode'.
 
 +++
 *** The new command `revert-buffer-with-coding-system' (C-x RET r)
@@ -1454,8 +1470,11 @@ otherwise behaves quite similarly to the bash version.
 but declared obsolete.
 
 +++
-*** The EMACS environment variable now defaults to Emacs's absolute
-file name, instead of to "t".
+*** The new INSIDE_EMACS environment variable is set to "t" in
+subshells running inside Emacs.  This supersedes the EMACS environment
+variable, which will be removed in a future Emacs release.  Programs
+that need to know whether they are started inside Emacs should check
+INSIDE_EMACS instead of EMACS.
 
 ** M-x Compile changes:
 
@@ -1686,8 +1705,8 @@ ERC is a powerful, modular, and extensible IRC client for Emacs.
 To see what modules are available, type
 M-x customize-option erc-modules RET.
 
-To start an IRC session, type M-x erc-select, and follow the prompts
-for server, port, and nick.
+To start an IRC session, type M-x erc, and follow the prompts for
+server, port, and nick.
 
 ---
 ** Rcirc is now part of the Emacs distribution.
@@ -3279,7 +3298,7 @@ See the file GNUS-NEWS or the node "Oort Gnus" in the Gnus manual for details.
 ---
 ** MH-E changes.
 
-Upgraded to MH-E version 8.0.2.  There have been major changes since
+Upgraded to MH-E version 8.0.3.  There have been major changes since
 version 5.0.2; see MH-E-NEWS for details.
 
 ** Calendar changes:

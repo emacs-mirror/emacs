@@ -144,7 +144,7 @@ viper-insert-basic-map.  Not recommended, except for novice users.")
   "Auxiliary map for global user-defined bindings in Emacs state.")
 
 (defvar  viper-emacs-kbd-map  (make-sparse-keymap)
-  "This keymap keeps Vi-style kbd macros for emacs mode.")
+  "This keymap keeps Vi-style kbd macros for Emacs mode.")
 
 (viper-deflocalvar viper-emacs-local-user-map  (make-sparse-keymap)
   "Auxiliary map for local user-defined bindings in Emacs state.")
@@ -160,10 +160,10 @@ viper-insert-basic-map.  Not recommended, except for novice users.")
 
 ;; Some important keys used in viper
 (defcustom viper-toggle-key [(control ?z)]  ; "\C-z"
-  "The key used to change states from emacs to Vi and back.
+  "The key used to change states from Emacs to Vi and back.
 In insert mode, this key also functions as Meta.
 
-Enter as a sexp. Examples: \"\\C-z\", [(control ?z)]."
+Enter as a sexp.  Examples: \"\\C-z\", [(control ?z)]."
   :type 'sexp
   :group 'viper
   :set (lambda (symbol value)

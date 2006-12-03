@@ -106,8 +106,8 @@ If Emacs is not running under a window system,
 (defcustom file-name-shadow-tty-properties
   '(before-string "{" after-string "} " field shadow)
   "Properties given to the `shadowed' part of a filename in the minibuffer.
-Only used when `file-name-shadow-mode' is active and emacs
-is not running under a window-system; if emacs is running under a window
+Only used when `file-name-shadow-mode' is active and Emacs
+is not running under a window-system; if Emacs is running under a window
 system, `file-name-shadow-properties' is used instead."
   :type file-name-shadow-properties-custom-type
   :group 'minibuffer

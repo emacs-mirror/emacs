@@ -1741,6 +1741,8 @@ Signal an error if there is no backup file."
             ;; into a sequence of chars.
             (decode-coding-inserted-region
              (point-min) (point-max) file t nil nil t)
+            ;; Set buffer-file-coding-system.
+            (after-insert-file-set-coding (buffer-size) t)
 	    (set-buffer-modified-p nil)
 	    (let ((buffer-file-name (expand-file-name file)))
 	      (after-find-file))

@@ -285,7 +285,7 @@ Keymap to display on minor modes.")
 	;; 	  "\
 	;; mouse-1: select window, mouse-2: delete others, mouse-3: delete,
 	;; drag-mouse-1: resize, C-mouse-2: split horizontally"
-	"mouse-1: select (drag to resize), mouse-2: delete others, mouse-3: delete this")
+	"mouse-1: select (drag to resize), mouse-2 = C-x 1, mouse-3 = C-x 0")
        (dashes (propertize "--" 'help-echo help-echo))
        (standard-mode-line-format
 	(list

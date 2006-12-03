@@ -38,10 +38,10 @@ Distribution date of this version of MULE (multilingual environment).")
 (defun load-with-code-conversion (fullname file &optional noerror nomessage)
   "Execute a file of Lisp code named FILE whose absolute name is FULLNAME.
 The file contents are decoded before evaluation if necessary.
-If optional second arg NOERROR is non-nil,
+If optional third arg NOERROR is non-nil,
  report no error if FILE doesn't exist.
 Print messages at start and end of loading unless
- optional third arg NOMESSAGE is non-nil.
+ optional fourth arg NOMESSAGE is non-nil.
 Return t if file exists."
   (if (null (file-readable-p fullname))
       (and (null noerror)
@@ -71,8 +71,7 @@ Return t if file exists."
 	  (let ((load-file-name fullname)
 		(set-auto-coding-for-load t)
 		(inhibit-file-name-operation nil))
-	    (save-excursion
-	      (set-buffer buffer)
+	    (with-current-buffer buffer
 	      ;; Don't let deactivate-mark remain set.
 	      (let (deactivate-mark)
 		(insert-file-contents fullname))
@@ -100,7 +99,7 @@ Return t if file exists."
 	  (kill-buffer buffer)))
       (unless purify-flag
  	(do-after-load-evaluation fullname))
-      
+
       (unless (or nomessage noninteractive)
 	(if source
 	    (message "Loading %s (source)...done" file)
@@ -118,7 +117,7 @@ Return t if file exists."
 	      (< (aref vector 0) 160)))))
 
 (defsubst charsetp (object)
-  "T if OBJECT is a charset."
+  "Return t if OBJECT is a charset."
   (and (symbolp object) (vectorp (get object 'charset))))
 
 (defsubst charset-info (charset)
@@ -268,7 +267,7 @@ See the function `charset-info' for more detail."
 CODE1 and CODE2 are optional, but if you don't supply
 sufficient position codes, return a generic character which stands for
 all characters or group of characters in the character set.
-A generic character can be used to index a char table (e.g. syntax-table).
+A generic character can be used to index a char table (e.g. `syntax-table').
 
 Such character sets as ascii, eight-bit-control, and eight-bit-graphic
 don't have corresponding generic characters.  If CHARSET is one of
@@ -1683,8 +1682,7 @@ cons (CODING . SOURCE), where CODING is the specified coding
 system and SOURCE is a symbol `auto-coding-alist',
 `auto-coding-regexp-alist', `coding:', or `auto-coding-functions'
 indicating by what CODING is specified.  Note that the validity
-of CODING is not checked; it's callers responsibility to check
-it.
+of CODING is not checked; it's callers responsibility to check it.
 
 If nothing is specified, the return value is nil."
   (or (let ((coding-system (auto-coding-alist-lookup filename)))
@@ -1705,7 +1703,7 @@ If nothing is specified, the return value is nil."
 	;; and for "unibyte:" at the head and tail of SIZE bytes.
 	(setq head-found (or (search-forward "coding:" head-end t)
 			     (search-forward "unibyte:" head-end t)
-			     (search-forward "enable-character-translation:" 
+			     (search-forward "enable-character-translation:"
 					     head-end t)))
 	(if (and head-found (> head-found tail-start))
 	    ;; Head and tail are overlapped.
@@ -1879,7 +1877,7 @@ The optional second arg VISIT non-nil means that we are visiting a file."
 		      (set-buffer-multibyte nil))
 		  (set-buffer-multibyte nil))
 		(setq inserted (- pos-marker (point)))))
-	  (set-buffer-modified-p modified-p))))
+	  (restore-buffer-modified-p modified-p))))
   inserted)
 
 ;; The coding-spec and eol-type of coding-system returned is decided
@@ -2231,8 +2229,7 @@ Value is what BODY returns."
 	   (progn
 	     (set-category-table ,table)
 	     ,@body)
-	 (save-current-buffer
-	   (set-buffer ,old-buffer)
+	 (with-current-buffer ,old-buffer
 	   (set-category-table ,old-table))))))
 
 (defun define-translation-hash-table (symbol table)

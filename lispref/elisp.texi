@@ -7,7 +7,7 @@
 @c Version of the manual and of Emacs.
 @c Please remember to update the edition number in README as well.
 @set VERSION  2.9
-@set EMACSVER 22.0.90
+@set EMACSVER 22.0.91
 
 @dircategory Emacs
 @direntry
@@ -614,7 +614,7 @@ Keymaps
 * Key Lookup::                  How extracting elements from keymaps works.
 * Functions for Key Lookup::    How to request key lookup.
 * Changing Key Bindings::       Redefining a key in a keymap.
-* Remapping Commands::          Bindings that translate one command to another.
+* Remapping Commands::          A keymap can translate one command to another.
 * Key Binding Commands::        Interactive interfaces for redefining keys.
 * Scanning Keymaps::            Looking through all keymaps, for printing help.
 * Menu Keymaps::		A keymap can define a menu for X

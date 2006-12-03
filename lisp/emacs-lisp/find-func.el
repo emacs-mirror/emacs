@@ -147,9 +147,9 @@ See the functions `find-function' and `find-variable'."
 
 (defun find-library-name (library)
   "Return the absolute file name of the Lisp source of LIBRARY."
-  ;; Strip off the extension to take advantage of library suffixes in
-  ;; the call to `locate-file'.
-  (if (string-match "\\.el\\(c\\(\\..*\\)?\\)?\\'" library)
+  ;; If the library is byte-compiled, try to find a source library by
+  ;; the same name.
+  (if (string-match "\\.el\\(c\\(\\..*\\)?\\)\\'" library)
       (setq library (replace-match "" t t library)))
   (or (locate-file library
 		   (or find-function-source-path load-path)
@@ -264,7 +264,7 @@ not selected.  If the function definition can't be found in
 the buffer, returns (BUFFER).
 
 If the file where FUNCTION is defined is not known, then it is
-searched for in `find-function-source-path' if non nil, otherwise
+searched for in `find-function-source-path' if non-nil, otherwise
 in `load-path'."
   (if (not function)
       (error "You didn't specify a function"))
@@ -357,7 +357,7 @@ places point before the definition.
 Set mark before moving, if the buffer already existed.
 
 The library where FUNCTION is defined is searched for in
-`find-function-source-path', if non nil, otherwise in `load-path'.
+`find-function-source-path', if non-nil, otherwise in `load-path'.
 See also `find-function-recenter-line' and `find-function-after-hook'."
   (interactive (find-function-read))
   (find-function-do-it function nil 'switch-to-buffer))
@@ -387,7 +387,7 @@ the point of the definition.  The buffer is not selected.
 If the variable's definition can't be found in the buffer, return (BUFFER).
 
 The library where VARIABLE is defined is searched for in FILE or
-`find-function-source-path', if non nil, otherwise in `load-path'."
+`find-function-source-path', if non-nil, otherwise in `load-path'."
   (if (not variable)
       (error "You didn't specify a variable")
     (let ((library (or file
@@ -406,7 +406,7 @@ places point before the definition.
 Set mark before moving, if the buffer already existed.
 
 The library where VARIABLE is defined is searched for in
-`find-function-source-path', if non nil, otherwise in `load-path'.
+`find-function-source-path', if non-nil, otherwise in `load-path'.
 See also `find-function-recenter-line' and `find-function-after-hook'."
   (interactive (find-function-read 'defvar))
   (find-function-do-it variable 'defvar 'switch-to-buffer))
@@ -436,7 +436,7 @@ variable, `defface' for a face.  This function does not switch to the
 buffer nor display it.
 
 The library where SYMBOL is defined is searched for in FILE or
-`find-function-source-path', if non nil, otherwise in `load-path'."
+`find-function-source-path', if non-nil, otherwise in `load-path'."
   (cond
    ((not symbol)
     (error "You didn't specify a symbol"))
@@ -461,7 +461,7 @@ places point before the definition.
 Set mark before moving, if the buffer already existed.
 
 The library where FACE is defined is searched for in
-`find-function-source-path', if non nil, otherwise in `load-path'.
+`find-function-source-path', if non-nil, otherwise in `load-path'.
 See also `find-function-recenter-line' and `find-function-after-hook'."
   (interactive (find-function-read 'defface))
   (find-function-do-it face 'defface 'switch-to-buffer))

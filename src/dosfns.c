@@ -213,7 +213,7 @@ DEFUN ("msdos-mouse-disable", Fmsdos_mouse_disable, Smsdos_mouse_disable, 0, 0, 
 }
 
 DEFUN ("insert-startup-screen", Finsert_startup_screen, Sinsert_startup_screen, 0, 0, "",
-       doc: /* Insert copy of screen contents prior to starting emacs.
+       doc: /* Insert copy of screen contents prior to starting Emacs.
 Return nil if startup screen is not available.  */)
      ()
 {

@@ -48,6 +48,10 @@
 (define-key xterm-function-map "\eO2Q" [S-f2])
 (define-key xterm-function-map "\eO2R" [S-f3])
 (define-key xterm-function-map "\eO2S" [S-f4])
+(define-key xterm-function-map "\e[1;2P" [S-f1])
+(define-key xterm-function-map "\e[1;2Q" [S-f2])
+(define-key xterm-function-map "\e[1;2R" [S-f3])
+(define-key xterm-function-map "\e[1;2S" [S-f4])
 (define-key xterm-function-map "\e[15;2~" [S-f5])
 (define-key xterm-function-map "\e[17;2~" [S-f6])
 (define-key xterm-function-map "\e[18;2~" [S-f7])
@@ -316,7 +320,7 @@
     ;; MODIFIER-FUNCTION_KEY, where modifier is S-, C, A-, C-S-.  The
     ;; code here subsitutes the corresponding defintions in
     ;; function-key-map. This substitution is needed because if a key
-    ;; definition if found in function-key-map, there are no further
+    ;; definition is found in function-key-map, there are no further
     ;; lookups in other keymaps.
     (substitute-key-definition [f13] [S-f1] local-function-key-map)
     (substitute-key-definition [f14] [S-f2] local-function-key-map)

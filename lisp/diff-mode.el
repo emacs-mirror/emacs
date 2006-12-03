@@ -120,8 +120,8 @@ when editing big diffs)."
     ("\C-m" . diff-goto-source)
     ([mouse-2] . diff-goto-source)
     ;; From XEmacs' diff-mode.
-;; Standard M-w is useful, so don't change M-W.
-;;    ("W" . widen)
+    ;; Standard M-w is useful, so don't change M-W.
+    ;;("W" . widen)
     ;;("." . diff-goto-source)		;display-buffer
     ;;("f" . diff-goto-source)		;find-file
     ("o" . diff-goto-source)		;other-window
@@ -153,6 +153,8 @@ when editing big diffs)."
     ("\C-c\C-s" . diff-split-hunk)
     ("\C-c\C-t" . diff-test-hunk)
     ("\C-c\C-u" . diff-context->unified)
+    ;; `d' because it duplicates the context :-(  --Stef
+    ("\C-c\C-d" . diff-unified->context)
     ("\C-c\C-w" . diff-refine-hunk)
     ("\C-c\C-f" . next-error-follow-minor-mode))
   "Keymap for `diff-mode'.  See also `diff-mode-shared-map'.")

@@ -1533,7 +1533,7 @@ the various files."
 			   (not (eq major-mode 'hexl-mode)))
 		  (if (buffer-modified-p)
 		      (if (y-or-n-p
-			   (format 
+			   (format
 			    (if rawfile
 				"The file %s is already visited normally,
 and you have edited the buffer.  Now you have asked to visit it literally,
@@ -1553,7 +1553,7 @@ Do you want to save the file, and visit it normally instead? ")
 			    (find-file-noselect-1 buf filename nowarn
 						  rawfile truename number))
 			(if (y-or-n-p
-			     (format 
+			     (format
 			      (if rawfile
 				  "\
 Do you want to discard your changes, and visit the file literally now? "
@@ -1563,8 +1563,8 @@ Do you want to discard your changes, and visit the file normally now? ")))
 						  rawfile truename number)
 			  (error (if rawfile "File already visited non-literally"
 				   "File already visited literally"))))
-		    (if (y-or-n-p 
-			 (format 
+		    (if (y-or-n-p
+			 (format
 			  (if rawfile
 			      "The file %s is already visited normally.
 You have asked to visit it literally,
@@ -2821,8 +2821,8 @@ the old visited file has been renamed to the new name FILENAME."
     (let ((buffer (and filename (find-buffer-visiting filename))))
       (and buffer (not (eq buffer (current-buffer)))
 	   (not no-query)
-	   (not (y-or-n-p (message "A buffer is visiting %s; proceed? "
-				   filename)))
+	   (not (y-or-n-p (format "A buffer is visiting %s; proceed? "
+                                  filename)))
 	   (error "Aborted")))
     (or (equal filename buffer-file-name)
 	(progn
@@ -4082,6 +4082,11 @@ non-nil, it is called instead of rereading visited file contents."
 			      "File %s no longer exists!"
 			    "Cannot revert nonexistent file %s")
 			  file-name))
+		  ((not (file-readable-p file-name))
+		   (error (if buffer-file-number
+			      "File %s no longer readable!"
+			    "Cannot revert unreadable file %s")
+			  file-name))
 		  (t
 		   ;; Bind buffer-file-name to nil
 		   ;; so that we don't try to lock the file.
@@ -4095,6 +4100,16 @@ non-nil, it is called instead of rereading visited file contents."
 			  (if auto-save-p 'auto-save-coding
 			    (or coding-system-for-read
 				buffer-file-coding-system-explicit))))
+		     (if (and (not enable-multibyte-characters)
+			      coding-system-for-read
+			      (not (memq (coding-system-base
+					  coding-system-for-read)
+					 '(no-conversion raw-text))))
+			 ;; As a coding system suitable for multibyte
+			 ;; buffer is specified, make the current
+			 ;; buffer multibyte.
+			 (set-buffer-multibyte t))
+
 		     ;; This force after-insert-file-set-coding
 		     ;; (called from insert-file-contents) to set
 		     ;; buffer-file-coding-system to a proper value.

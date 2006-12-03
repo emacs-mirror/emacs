@@ -264,11 +264,12 @@ facilities that have been added more recently."
 ;; this way can never be run in Emacs 18, and may even cause it to crash.")
 
 (defcustom byte-optimize t
-  "*Enables optimization in the byte compiler.
-nil means don't do any optimization.
-t means do all optimizations.
-`source' means do source-level optimizations only.
-`byte' means do code-level optimizations only."
+  "*Enable optimization in the byte compiler.
+Possible values are:
+  nil      - no optimization
+  t        - all optimizations
+  `source' - source-level optimizations only
+  `byte'   - code-level optimizations only"
   :group 'bytecomp
   :type '(choice (const :tag "none" nil)
 		 (const :tag "all" t)
@@ -336,7 +337,7 @@ If it is 'byte, then only byte-level optimizations will be logged."
 (defcustom byte-compile-warnings t
   "*List of warnings that the byte-compiler should issue (t for all).
 
-Elements of the list may be be:
+Elements of the list may be:
 
   free-vars   references to variables not in the current lexical scope.
   unresolved  calls to unknown functions.
@@ -2864,8 +2865,12 @@ That command is designed for interactive use only" fn))
 
 (defmacro byte-compile-get-constant (const)
   `(or (if (stringp ,const)
-	   (assoc-default ,const byte-compile-constants
-			  'equal-including-properties nil)
+	   ;; In a string constant, treat properties as significant.
+	   (let (result)
+	     (dolist (elt byte-compile-constants)
+	       (if (equal-including-properties (car elt) ,const)
+		   (setq result elt)))
+	     result)
 	 (assq ,const byte-compile-constants))
        (car (setq byte-compile-constants
 		  (cons (list ,const) byte-compile-constants)))))

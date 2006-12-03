@@ -244,7 +244,8 @@ static void x_new_focus_frame P_ ((struct x_display_info *, struct frame *));
 static void mac_focus_changed P_ ((int, struct mac_display_info *,
 				   struct frame *, struct input_event *));
 static void x_detect_focus_change P_ ((struct mac_display_info *,
-				       EventRecord *, struct input_event *));
+				       const EventRecord *,
+				       struct input_event *));
 static void XTframe_rehighlight P_ ((struct frame *));
 static void x_frame_rehighlight P_ ((struct x_display_info *));
 static void x_draw_hollow_cursor P_ ((struct window *, struct glyph_row *));
@@ -640,7 +641,7 @@ mac_create_bitmap_from_bitmap_data (bitmap, bits, w, h)
      char *bits;
      int w, h;
 {
-  static unsigned char swap_nibble[16]
+  static const unsigned char swap_nibble[16]
     = { 0x0, 0x8, 0x4, 0xc,    /* 0000 1000 0100 1100 */
 	0x2, 0xa, 0x6, 0xe,    /* 0010 1010 0110 1110 */
 	0x1, 0x9, 0x5, 0xd,    /* 0001 1001 0101 1101 */
@@ -826,9 +827,9 @@ atsu_get_text_layout_with_text_ptr (text, text_length, style, text_layout)
 
   if (saved_text_layout == NULL)
     {
-      UniCharCount lengths[] = {kATSUToTextEnd};
-      ATSUAttributeTag tags[] = {kATSULineLayoutOptionsTag};
-      ByteCount sizes[] = {sizeof (ATSLineLayoutOptions)};
+      static const UniCharCount lengths[] = {kATSUToTextEnd};
+      static const ATSUAttributeTag tags[] = {kATSULineLayoutOptionsTag};
+      static const ByteCount sizes[] = {sizeof (ATSLineLayoutOptions)};
       static ATSLineLayoutOptions line_layout =
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
 	kATSLineDisableAllLayoutOperations | kATSLineUseDeviceMetrics
@@ -837,7 +838,7 @@ atsu_get_text_layout_with_text_ptr (text, text_length, style, text_layout)
 	kATSLineIsDisplayOnly | kATSLineFractDisable
 #endif
 	;
-      ATSUAttributeValuePtr values[] = {&line_layout};
+      static const ATSUAttributeValuePtr values[] = {&line_layout};
 
       err = ATSUCreateTextLayoutWithTextPtr (text,
 					     kATSUFromTextBeginning,
@@ -960,11 +961,11 @@ mac_draw_string_common (f, gc, x, y, buf, nchars, bg_width,
       else
 	{
 	  CGrafPtr port;
-	  CGContextRef context;
+	  static CGContextRef context;
 	  float port_height = FRAME_PIXEL_HEIGHT (f);
-	  ATSUAttributeTag tags[] = {kATSUCGContextTag};
-	  ByteCount sizes[] = {sizeof (CGContextRef)};
-	  ATSUAttributeValuePtr values[] = {&context};
+	  static const ATSUAttributeTag tags[] = {kATSUCGContextTag};
+	  static const ByteCount sizes[] = {sizeof (CGContextRef)};
+	  static const ATSUAttributeValuePtr values[] = {&context};
 
 #if USE_CG_DRAWING
 	  context = mac_begin_cg_clip (f, gc);
@@ -1359,20 +1360,31 @@ mac_draw_image_string_cg (f, gc, x, y, buf, nchars, bg_width, overstrike_p)
   if (GC_FONT (gc)->mac_fontsize <= cg_text_anti_aliasing_threshold)
     CGContextSetShouldAntialias (context, false);
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
-  CGContextSetTextPosition (context, gx, gy);
-  CGContextShowGlyphsWithAdvances (context, glyphs, advances, nchars);
-  if (overstrike_p)
+#if MAC_OS_X_VERSION_MIN_REQUIRED == 1020
+  if (CGContextShowGlyphsWithAdvances != NULL)
+#endif
     {
-      CGContextSetTextPosition (context, gx + 1.0f, gy);
+      CGContextSetTextPosition (context, gx, gy);
       CGContextShowGlyphsWithAdvances (context, glyphs, advances, nchars);
-    }
-#else
-  for (i = 0; i < nchars; i++)
-    {
-      CGContextShowGlyphsAtPoint (context, gx, gy, glyphs + i, 1);
       if (overstrike_p)
-	CGContextShowGlyphsAtPoint (context, gx + 1.0f, gy, glyphs + i, 1);
-      gx += advances[i].width;
+	{
+	  CGContextSetTextPosition (context, gx + 1.0f, gy);
+	  CGContextShowGlyphsWithAdvances (context, glyphs, advances, nchars);
+	}
+    }
+#if MAC_OS_X_VERSION_MIN_REQUIRED == 1020
+  else
+#endif
+#endif	/* MAC_OS_X_VERSION_MAX_ALLOWED >= 1030  */
+#if MAC_OS_X_VERSION_MAX_ALLOWED < 1030 || MAC_OS_X_VERSION_MIN_REQUIRED == 1020
+    {
+      for (i = 0; i < nchars; i++)
+	{
+	  CGContextShowGlyphsAtPoint (context, gx, gy, glyphs + i, 1);
+	  if (overstrike_p)
+	    CGContextShowGlyphsAtPoint (context, gx + 1.0f, gy, glyphs + i, 1);
+	  gx += advances[i].width;
+	}
     }
 #endif
 #if USE_CG_DRAWING
@@ -2196,7 +2208,7 @@ pcm_init (pcm, count)
 
 static enum pcm_status
 pcm_get_status (pcm)
-     XCharStruct *pcm;
+     const XCharStruct *pcm;
 {
   int height = pcm->ascent + pcm->descent;
 
@@ -4219,7 +4231,7 @@ mac_focus_changed (type, dpyinfo, frame, bufp)
 static void
 x_detect_focus_change (dpyinfo, event, bufp)
      struct mac_display_info *dpyinfo;
-     EventRecord *event;
+     const EventRecord *event;
      struct input_event *bufp;
 {
   struct frame *frame;
@@ -5232,7 +5244,7 @@ static void
 x_scroll_bar_handle_click (bar, part_code, er, bufp)
      struct scroll_bar *bar;
      ControlPartCode part_code;
-     EventRecord *er;
+     const EventRecord *er;
      struct input_event *bufp;
 {
   int win_y, top_range;
@@ -6695,11 +6707,12 @@ xlfdpat_destroy (pat)
 
 static struct xlfdpat *
 xlfdpat_create (pattern)
-     char *pattern;
+     const char *pattern;
 {
   struct xlfdpat *pat;
   int nblocks, i, skip;
   unsigned char last_char, *p, *q, *anychar_head;
+  const unsigned char *ptr;
   struct xlfdpat_block *blk;
 
   pat = xmalloc (sizeof (struct xlfdpat));
@@ -6710,9 +6723,9 @@ xlfdpat_create (pattern)
   anychar_head = NULL;
   q = pat->buf;
   last_char = '\0';
-  for (p = pattern; *p; p++)
+  for (ptr = pattern; *ptr; ptr++)
     {
-      unsigned char c = *p;
+      unsigned char c = *ptr;
 
       if (c == '*')
 	if (last_char == '*')
@@ -6816,14 +6829,15 @@ xlfdpat_exact_p (pat)
    that the pattern in *BLK matches with its prefix.  Return NULL
    there is no such strings.  STRING must be lowered in advance.  */
 
-static char *
+static const char *
 xlfdpat_block_match_1 (blk, string, start_max)
      struct xlfdpat_block *blk;
-     unsigned char *string;
+     const unsigned char *string;
      int start_max;
 {
   int start, infinity;
-  unsigned char *p, *s;
+  unsigned char *p;
+  const unsigned char *s;
 
   xassert (blk->len > 0);
   xassert (start_max + blk->len <= strlen (string));
@@ -6880,17 +6894,17 @@ xlfdpat_block_match_1 (blk, string, start_max)
   ((b)->len == 1 ? memchr ((s), (b)->last_char, (m) + 1) \
    : xlfdpat_block_match_1 (b, s, m))
 
-/* Check if XLFD pattern PAT, which is generated by `xfldpat_create',
+/* Check if XLFD pattern PAT, which is generated by `xlfdpat_create',
    matches with STRING.  STRING must be lowered in advance.  */
 
 static int
 xlfdpat_match (pat, string)
      struct xlfdpat *pat;
-     unsigned char *string;
+     const unsigned char *string;
 {
   int str_len, nblocks, i, start_max;
   struct xlfdpat_block *blk;
-  unsigned char *s;
+  const unsigned char *s;
 
   xassert (pat->nblocks > 0);
 
@@ -7061,7 +7075,7 @@ decode_mac_font_name (name, size, coding_system)
 
 static char *
 mac_to_x_fontname (name, size, style, charset)
-     char *name;
+     const char *name;
      int size;
      Style style;
      char *charset;
@@ -7108,7 +7122,8 @@ const int kDefaultFontSize = 12;
 
 static int
 parse_x_font_name (xf, family, size, style, charset)
-     char *xf, *family;
+     const char *xf;
+     char *family;
      int *size;
      Style *style;
      char *charset;
@@ -7191,10 +7206,10 @@ add_font_name_table_entry (char *font_name)
 
 static void
 add_mac_font_name (name, size, style, charset)
-     char *name;
+     const char *name;
      int size;
      Style style;
-     char *charset;
+     const char *charset;
 {
   if (size > 0)
     add_font_name_table_entry (mac_to_x_fontname (name, size, style, charset));
@@ -7496,7 +7511,7 @@ enum xlfd_scalable_field_index
     XLFD_SCL_LAST
   };
 
-static int xlfd_scalable_fields[] =
+static const int xlfd_scalable_fields[] =
   {
     6,				/* PIXEL_SIZE */
     7,				/* POINT_SIZE */
@@ -7506,14 +7521,16 @@ static int xlfd_scalable_fields[] =
 
 static Lisp_Object
 mac_do_list_fonts (pattern, maxnames)
-     char *pattern;
+     const char *pattern;
      int maxnames;
 {
   int i, n_fonts = 0;
   Lisp_Object font_list = Qnil;
   struct xlfdpat *pat;
-  char *scaled, *ptr;
-  int scl_val[XLFD_SCL_LAST], *field, *val;
+  char *scaled;
+  const char *ptr;
+  int scl_val[XLFD_SCL_LAST], *val;
+  const int *field;
   int exact;
 
   if (font_name_table == NULL)  /* Initialize when first used.  */
@@ -7763,7 +7780,8 @@ x_compute_min_glyph_bounds (f)
    fields are present, none is '*'.  */
 
 static int
-is_fully_specified_xlfd (char *p)
+is_fully_specified_xlfd (p)
+     const char *p;
 {
   int i;
   char *q;
@@ -7840,18 +7858,21 @@ mac_load_query_font (f, fontname)
   if (strcmp (charset, "iso10646-1") == 0) /* XXX */
     {
       OSStatus err;
-      ATSUAttributeTag tags[] = {kATSUFontTag, kATSUSizeTag,
-				 kATSUQDBoldfaceTag, kATSUQDItalicTag};
-      ByteCount sizes[] = {sizeof (ATSUFontID), sizeof (Fixed),
-			   sizeof (Boolean), sizeof (Boolean)};
+      static const ATSUAttributeTag tags[] =
+	{kATSUFontTag, kATSUSizeTag,
+	 kATSUQDBoldfaceTag, kATSUQDItalicTag};
+      static const ByteCount sizes[] =
+	{sizeof (ATSUFontID), sizeof (Fixed),
+	 sizeof (Boolean), sizeof (Boolean)};
       static Fixed size_fixed;
       static Boolean bold_p, italic_p;
-      ATSUAttributeValuePtr values[] = {&font_id, &size_fixed,
-					&bold_p, &italic_p};
-      ATSUFontFeatureType types[] = {kAllTypographicFeaturesType,
-				     kDiacriticsType};
-      ATSUFontFeatureSelector selectors[] = {kAllTypeFeaturesOffSelector,
-					     kDecomposeDiacriticsSelector};
+      static const ATSUAttributeValuePtr values[] =
+	{&font_id, &size_fixed,
+	 &bold_p, &italic_p};
+      static const ATSUFontFeatureType types[] =
+	{kAllTypographicFeaturesType, kDiacriticsType};
+      static const ATSUFontFeatureSelector selectors[] =
+	{kAllTypeFeaturesOffSelector, kDecomposeDiacriticsSelector};
       Lisp_Object font_id_cons;
       FMFontStyle style;
 
@@ -8642,7 +8663,7 @@ extern void terminate_applescript();
    except `clear' (-> <clear>) on the KeyPad, `enter' (-> <kp-enter>)
    on the right of the Cmd key on laptops, and fn + `enter' (->
    <linefeed>). */
-static unsigned char keycode_to_xkeysym_table[] = {
+static const unsigned char keycode_to_xkeysym_table[] = {
   /*0x00*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   /*0x10*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   /*0x20*/ 0, 0, 0, 0, 0x0d /*return*/, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -8679,7 +8700,7 @@ static unsigned char keycode_to_xkeysym_table[] = {
    keyboard, and they may not be the same on other types of keyboards.
    If the destination is identical to the source (f1 ... f12), it
    doesn't map `fn' key to a modifier.  */
-static unsigned char fn_keycode_to_keycode_table[] = {
+static const unsigned char fn_keycode_to_keycode_table[] = {
   /*0x00*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   /*0x10*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   /*0x20*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -9137,7 +9158,9 @@ do_apple_menu (SInt16 menu_item)
    Mesander and IM - Window Manager A.  */
 
 static void
-do_grow_window (WindowPtr w, EventRecord *e)
+do_grow_window (w, e)
+     WindowPtr w;
+     const EventRecord *e;
 {
   Rect limit_rect;
   int rows, columns, width, height;
@@ -9321,8 +9344,8 @@ mac_store_event_ref_as_apple_event (class, id, class_key, id_key,
      Lisp_Object class_key, id_key;
      EventRef event;
      UInt32 num_params;
-     EventParamName *names;
-     EventParamType *types;
+     const EventParamName *names;
+     const EventParamType *types;
 {
   OSStatus err = eventNotHandledErr;
   Lisp_Object binding;
@@ -9383,10 +9406,10 @@ mac_handle_command_event (next_handler, event, data)
 {
   OSStatus result, err;
   HICommand command;
-  static EventParamName names[] = {kEventParamDirectObject,
-				   kEventParamKeyModifiers};
-  static EventParamType types[] = {typeHICommand,
-				   typeUInt32};
+  static const EventParamName names[] =
+    {kEventParamDirectObject, kEventParamKeyModifiers};
+  static const EventParamType types[] =
+    {typeHICommand, typeUInt32};
   int num_params = sizeof (names) / sizeof (names[0]);
 
   result = CallNextEventHandler (next_handler, event);
@@ -9410,7 +9433,8 @@ mac_handle_command_event (next_handler, event, data)
 static OSStatus
 init_command_handler ()
 {
-  EventTypeSpec specs[] = {{kEventClassCommand, kEventCommandProcess}};
+  static const EventTypeSpec specs[] =
+    {{kEventClassCommand, kEventCommandProcess}};
   static EventHandlerUPP handle_command_eventUPP = NULL;
 
   if (handle_command_eventUPP == NULL)
@@ -9570,18 +9594,18 @@ mac_handle_window_event (next_handler, event, data)
     case kEventWindowToolbarSwitchMode:
       result = CallNextEventHandler (next_handler, event);
       {
-	static EventParamName names[] = {kEventParamDirectObject,
-					 kEventParamWindowMouseLocation,
-					 kEventParamKeyModifiers,
-					 kEventParamMouseButton,
-					 kEventParamClickCount,
-					 kEventParamMouseChord};
-	static EventParamType types[] = {typeWindowRef,
-					 typeQDPoint,
-					 typeUInt32,
-					 typeMouseButton,
-					 typeUInt32,
-					 typeUInt32};
+	static const EventParamName names[] = {kEventParamDirectObject,
+					       kEventParamWindowMouseLocation,
+					       kEventParamKeyModifiers,
+					       kEventParamMouseButton,
+					       kEventParamClickCount,
+					       kEventParamMouseChord};
+	static const EventParamType types[] = {typeWindowRef,
+					       typeQDPoint,
+					       typeUInt32,
+					       typeMouseButton,
+					       typeUInt32,
+					       typeUInt32};
 	int num_params = sizeof (names) / sizeof (names[0]);
 
 	err = mac_store_event_ref_as_apple_event (0, 0,
@@ -9688,18 +9712,18 @@ mac_handle_font_event (next_handler, event, data)
   OSStatus result, err;
   Lisp_Object id_key;
   int num_params;
-  EventParamName *names;
-  EventParamType *types;
-  static EventParamName names_sel[] = {kEventParamATSUFontID,
-				       kEventParamATSUFontSize,
-				       kEventParamFMFontFamily,
-				       kEventParamFMFontSize,
-				       kEventParamFontColor};
-  static EventParamType types_sel[] = {typeATSUFontID,
-				       typeATSUSize,
-				       typeFMFontFamily,
-				       typeFMFontSize,
-				       typeFontColor};
+  const EventParamName *names;
+  const EventParamType *types;
+  static const EventParamName names_sel[] = {kEventParamATSUFontID,
+					     kEventParamATSUFontSize,
+					     kEventParamFMFontFamily,
+					     kEventParamFMFontSize,
+					     kEventParamFontColor};
+  static const EventParamType types_sel[] = {typeATSUFontID,
+					     typeATSUSize,
+					     typeFMFontFamily,
+					     typeFMFontSize,
+					     typeFontColor};
 
   result = CallNextEventHandler (next_handler, event);
   if (result != eventNotHandledErr)
@@ -9740,10 +9764,10 @@ mac_handle_text_input_event (next_handler, event, data)
   OSStatus result, err = noErr;
   Lisp_Object id_key = Qnil;
   int num_params;
-  EventParamName *names;
-  EventParamType *types;
+  const EventParamName *names;
+  const EventParamType *types;
   static UInt32 seqno_uaia = 0;
-  static EventParamName names_uaia[] =
+  static const EventParamName names_uaia[] =
     {kEventParamTextInputSendComponentInstance,
      kEventParamTextInputSendRefCon,
      kEventParamTextInputSendSLRec,
@@ -9756,7 +9780,7 @@ mac_handle_text_input_event (next_handler, event, data)
      kEventParamTextInputSendTextServiceEncoding,
      kEventParamTextInputSendTextServiceMacEncoding,
      EVENT_PARAM_TEXT_INPUT_SEQUENCE_NUMBER};
-  static EventParamType types_uaia[] =
+  static const EventParamType types_uaia[] =
     {typeComponentInstance,
      typeLongInteger,
      typeIntlWritingCode,
@@ -9773,12 +9797,12 @@ mac_handle_text_input_event (next_handler, event, data)
      typeUInt32,
      typeUInt32,
      typeUInt32};
-  static EventParamName names_ufke[] =
+  static const EventParamName names_ufke[] =
     {kEventParamTextInputSendComponentInstance,
      kEventParamTextInputSendRefCon,
      kEventParamTextInputSendSLRec,
      kEventParamTextInputSendText};
-  static EventParamType types_ufke[] =
+  static const EventParamType types_ufke[] =
     {typeComponentInstance,
      typeLongInteger,
      typeIntlWritingCode,
@@ -9931,12 +9955,12 @@ mac_store_service_event (event)
   OSStatus err;
   Lisp_Object id_key;
   int num_params;
-  EventParamName *names;
-  EventParamType *types;
-  static EventParamName names_pfm[] = {kEventParamServiceMessageName,
-				       kEventParamServiceUserData};
-  static EventParamType types_pfm[] = {typeCFStringRef,
-				       typeCFStringRef};
+  const EventParamName *names;
+  const EventParamType *types;
+  static const EventParamName names_pfm[] =
+    {kEventParamServiceMessageName, kEventParamServiceUserData};
+  static const EventParamType types_pfm[] =
+    {typeCFStringRef, typeCFStringRef};
 
   switch (GetEventKind (event))
     {
@@ -9974,7 +9998,7 @@ install_window_handler (window)
 {
   OSStatus err = noErr;
 #if USE_CARBON_EVENTS
-  EventTypeSpec specs_window[] =
+  static const EventTypeSpec specs_window[] =
     {{kEventClassWindow, kEventWindowUpdate},
      {kEventClassWindow, kEventWindowGetIdealSize},
      {kEventClassWindow, kEventWindowBoundsChanging},
@@ -9992,16 +10016,18 @@ install_window_handler (window)
      {kEventClassWindow, kEventWindowFocusRelinquish},
 #endif
   };
-  EventTypeSpec specs_mouse[] = {{kEventClassMouse, kEventMouseWheelMoved}};
+  static const EventTypeSpec specs_mouse[] =
+    {{kEventClassMouse, kEventMouseWheelMoved}};
   static EventHandlerUPP handle_window_eventUPP = NULL;
   static EventHandlerUPP handle_mouse_eventUPP = NULL;
 #if USE_MAC_FONT_PANEL
-  EventTypeSpec specs_font[] = {{kEventClassFont, kEventFontPanelClosed},
-				{kEventClassFont, kEventFontSelection}};
+  static const EventTypeSpec specs_font[] =
+    {{kEventClassFont, kEventFontPanelClosed},
+     {kEventClassFont, kEventFontSelection}};
   static EventHandlerUPP handle_font_eventUPP = NULL;
 #endif
 #if USE_MAC_TSM
-  EventTypeSpec specs_text_input[] =
+  static const EventTypeSpec specs_text_input[] =
     {{kEventClassTextInput, kEventTextInputUpdateActiveInputArea},
      {kEventClassTextInput, kEventTextInputUnicodeForKeyEvent},
      {kEventClassTextInput, kEventTextInputOffsetToPos}};
@@ -11218,7 +11244,7 @@ mac_initialize_display_info ()
 
 static XrmDatabase
 mac_make_rdb (xrm_option)
-     char *xrm_option;
+     const char *xrm_option;
 {
   XrmDatabase database;
 

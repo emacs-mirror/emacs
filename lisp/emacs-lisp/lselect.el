@@ -191,7 +191,7 @@ secondary selection instead of the primary selection."
   "If there is a selection, delete the text it covers, and copy it to
 both the kill ring and the Clipboard."
   (interactive)
-  (or (x-selection-owner-p) (error "emacs does not own the primary selection"))
+  (or (x-selection-owner-p) (error "Emacs does not own the primary selection"))
   (setq last-command nil)
   (or primary-selection-extent
       (error "the primary selection is not an extent?"))
@@ -205,7 +205,7 @@ both the kill ring and the Clipboard."
   "If there is a selection, delete the text it covers *without* copying it to
 the kill ring or the Clipboard."
   (interactive)
-  (or (x-selection-owner-p) (error "emacs does not own the primary selection"))
+  (or (x-selection-owner-p) (error "Emacs does not own the primary selection"))
   (setq last-command nil)
   (or primary-selection-extent
       (error "the primary selection is not an extent?"))
@@ -219,7 +219,7 @@ the kill ring or the Clipboard."
   "If there is a selection, copy it to both the kill ring and the Clipboard."
   (interactive)
   (setq last-command nil)
-  (or (x-selection-owner-p) (error "emacs does not own the primary selection"))
+  (or (x-selection-owner-p) (error "Emacs does not own the primary selection"))
   (or primary-selection-extent
       (error "the primary selection is not an extent?"))
   (save-excursion

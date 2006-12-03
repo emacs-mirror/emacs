@@ -44,7 +44,7 @@
     map))
 
 (defun subprocess-input (name str)
-  "Handles input from a subprocess.  Called by Emacs."
+  "Handle input from a subprocess.  Called by Emacs."
   (if display-subprocess-window
       (display-buffer subprocess-buf))
   (with-current-buffer subprocess-buf
@@ -56,7 +56,7 @@
   (setq subprocess-running nil))
 
 (defun start-subprocess ()
-  "Spawns an asynchronous subprocess with output redirected to
+  "Spawn an asynchronous subprocess with output redirected to
 the buffer *COMMAND*.  Within this buffer, use C-m to send
 the last line to the subprocess or to bring another line to
 the end."
@@ -98,7 +98,7 @@ the end."
   ;;     (delete-file output-filename))))
 
 (defun subprocess-command ()
-  "Starts asynchronous subprocess if not running and switches to its window."
+  "Start asynchronous subprocess if not running and switch to its window."
   (interactive)
   (if (not subprocess-running)
       (start-subprocess))
@@ -106,8 +106,8 @@ the end."
        (progn (pop-to-buffer subprocess-buf) (goto-char (point-max)))))
 
 (defun command-send-input ()
-  "If at last line of buffer, sends the current line to
-the spawned subprocess.  Otherwise brings back current
+  "If at last line of buffer, send the current line to
+the spawned subprocess.  Otherwise bring back current
 line to the last line for resubmission."
   (interactive)
   (beginning-of-line)
@@ -134,7 +134,7 @@ line to the last line for resubmission."
          current-line)))))
 
 (defun command-kill-line ()
-  "Kills the current line.  Used in command mode."
+  "Kill the current line.  Used in command mode."
   (interactive)
   (beginning-of-line)
   (kill-line))

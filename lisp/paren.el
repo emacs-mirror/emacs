@@ -220,7 +220,7 @@ in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
 			(point))))
 	      (if show-paren-overlay-1
 		  (move-overlay show-paren-overlay-1 from to (current-buffer))
-		(setq show-paren-overlay-1 (make-overlay from to)))
+		(setq show-paren-overlay-1 (make-overlay from to nil t)))
 	      ;; Always set the overlay face, since it varies.
 	      (overlay-put show-paren-overlay-1 'priority show-paren-priority)
 	      (overlay-put show-paren-overlay-1 'face face)))
@@ -243,7 +243,7 @@ in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
 			  (forward-point (- dir))))))
 	    (if show-paren-overlay
 		(move-overlay show-paren-overlay from to (current-buffer))
-	      (setq show-paren-overlay (make-overlay from to))))
+	      (setq show-paren-overlay (make-overlay from to nil t))))
 	  ;;
 	  ;; Always set the overlay face, since it varies.
 	  (overlay-put show-paren-overlay 'priority show-paren-priority)

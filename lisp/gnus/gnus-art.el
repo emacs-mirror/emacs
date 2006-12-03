@@ -15,7 +15,7 @@
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
@@ -265,7 +265,7 @@ regexp.  If it matches, the text in question is not a signature."
 display -"))
   "*String or function to be executed to display an X-Face header.
 If it is a string, the command will be executed in a sub-shell
-asynchronously.	 The compressed face will be piped to this command."
+asynchronously.  The compressed face will be piped to this command."
   :type `(choice string
 		 (function-item gnus-display-x-face-in-from)
 		 function)
@@ -1917,7 +1917,11 @@ always hide."
 				'string<))))
 		    (gnus-article-hide-header "reply-to")))))
 	     ((eq elem 'date)
-	      (let ((date (message-fetch-field "date")))
+	      (let ((date (with-current-buffer gnus-original-article-buffer
+			    ;; If date in `gnus-article-buffer' is localized
+			    ;; (`gnus-treat-date-user-defined'),
+			    ;; `days-between' might fail.
+			    (message-fetch-field "date"))))
 		(when (and date
 			   (< (days-between (current-time-string) date)
 			      4))
@@ -3637,7 +3641,7 @@ Otherwise, it is like ~/News/news/group/num."
 (defun gnus-numeric-save-name (newsgroup headers &optional last-file)
   "Generate file name from NEWSGROUP, HEADERS, and optional LAST-FILE.
 If variable `gnus-use-long-file-name' is non-nil, it is
-~/News/news.group/num.	Otherwise, it is like ~/News/news/group/num."
+~/News/news.group/num.  Otherwise, it is like ~/News/news/group/num."
   (let ((default
 	  (expand-file-name
 	   (concat (if (gnus-use-long-file-name 'not-save)

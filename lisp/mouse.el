@@ -241,7 +241,7 @@ not it is actually displayed."
 			  (cons 'keymap
 				(cons (concat
 				       (capitalize (subst-char-in-string
-						    ?- ?\  (symbol-name
+						    ?- ?\s (symbol-name
 							    minor-mode)))
 				       " Menu")
 				      (cdr menu)))))
@@ -846,7 +846,7 @@ at the same position."
       ;; Should we instead decide that `action' takes a `posn'?
       (if (consp pos)
 	  (with-current-buffer (window-buffer (posn-window pos))
-	    (funcall action (posn-point pos)))	
+	    (funcall action (posn-point pos)))
 	(funcall action pos)))
      (t action))))
 
@@ -889,7 +889,7 @@ at the same position."
   (let ((range (mouse-start-end start end mode)))
     (move-overlay ol (car range) (nth 1 range))))
 
-(defun mouse-drag-track (start-event  &optional 
+(defun mouse-drag-track (start-event  &optional
 				      do-mouse-drag-region-post-process)
     "Track mouse drags by highlighting area between point and cursor.
 The region will be defined with mark and point, and the overlay
@@ -983,8 +983,8 @@ should only be used by mouse-drag-region."
 	  (let* ((fun (key-binding (vector (car event))))
 		 (do-multi-click   (and (> (event-click-count event) 0)
 					(functionp fun)
-					(not (memq fun 
-						   '(mouse-set-point 
+					(not (memq fun
+						   '(mouse-set-point
 						     mouse-set-region))))))
 	    ;; Run the binding of the terminating up-event, if possible.
 	    (if (and (not (= (overlay-start mouse-drag-overlay)
@@ -1885,7 +1885,7 @@ and selects that window."
     (setq tail buffers)
     (while tail
       (let ((elt (car tail)))
-	(if (/= (aref (buffer-name elt) 0) ?\ )
+	(if (/= (aref (buffer-name elt) 0) ?\s)
 	    (setq head
 		  (cons
 		   (cons
@@ -2377,7 +2377,7 @@ and selects that window."
   "X fonts suitable for use in Emacs.")
 
 (defun mouse-set-font (&rest fonts)
-  "Select an emacs font from a list of known good fonts and fontsets."
+  "Select an Emacs font from a list of known good fonts and fontsets."
   (interactive
    (progn (unless (display-multi-font-p)
 	    (error "Cannot change fonts on this display"))
@@ -2416,7 +2416,7 @@ and selects that window."
 
 (global-set-key [mouse-2]	'mouse-yank-at-click)
 ;; Allow yanking also when the corresponding cursor is "in the fringe".
-(global-set-key [right-fringe mouse-2] [mouse-2])
+(global-set-key [right-fringe mouse-2] 'mouse-yank-at-click)
 (global-set-key [mouse-3]	'mouse-save-then-kill)
 
 ;; By binding these to down-going events, we let the user use the up-going

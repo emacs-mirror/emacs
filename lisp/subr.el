@@ -877,7 +877,7 @@ and `event-end' functions."
 
 (defsubst posn-image (position)
   "Return the image object of POSITION.
-Value is an list (image ...), or nil if not an image.
+Value is a list (image ...), or nil if not an image.
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions."
   (nth 7 position))
@@ -1108,11 +1108,11 @@ other hooks, such as major mode hooks, can do the job."
        ((eq compare-fn 'eql)
 	(memql element (symbol-value list-var)))
        (t
-	(let (present)
-	  (dolist (elt (symbol-value list-var))
-	    (if (funcall compare-fn element elt)
-		(setq present t)))
-	  present)))
+	(let ((lst (symbol-value list-var)))
+	  (while (and lst
+		      (not (funcall compare-fn element (car lst))))
+	    (setq lst (cdr lst)))
+          lst)))
       (symbol-value list-var)
     (set list-var
 	 (if append
@@ -1892,7 +1892,7 @@ EXIT-CHAR it is swallowed; otherwise it is then available as
 input (as a command if nothing else).
 Display MESSAGE (optional fourth arg) in the echo area.
 If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
-  (or exit-char (setq exit-char ?\ ))
+  (or exit-char (setq exit-char ?\s))
   (let ((inhibit-read-only t)
 	;; Don't modify the undo list at all.
 	(buffer-undo-list t)
@@ -1960,8 +1960,10 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
   "Clear BEG and END of overlays whose property NAME has value VAL.
 Overlays might be moved and/or split.
 BEG and END default respectively to the beginning and end of buffer."
+  ;; This speeds up the loops over overlays.
   (unless beg (setq beg (point-min)))
   (unless end (setq end (point-max)))
+  (overlay-recenter end)
   (if (< end beg)
       (setq beg (prog1 end (setq end beg))))
   (save-excursion

@@ -2090,10 +2090,10 @@ whether or not it is currently displayed in some window.  */)
       it_start = IT_CHARPOS (it);
 
       /* We expect the call to move_it_to, further down, to overshoot
-	 if the starting point is on an image, stretch glyph, or Lisp
-	 string.  We won't need to backtrack in this situation, except
-	 for one corner case: when the Lisp string contains a
-	 newline.  */
+	 if the starting point is on an image, stretch glyph,
+	 composition, or Lisp string.  We won't need to backtrack in
+	 this situation, except for one corner case: when the Lisp
+	 string contains a newline.  */
       if (it.method == GET_FROM_STRING)
 	{
 	  const char *s = SDATA (it.string);
@@ -2106,7 +2106,8 @@ whether or not it is currently displayed in some window.  */)
 	}
       else
 	it_overshoot_expected_p = (it.method == GET_FROM_IMAGE
-				   || it.method == GET_FROM_STRETCH);
+				   || it.method == GET_FROM_STRETCH
+				   || it.method == GET_FROM_COMPOSITION);
 
       reseat_at_previous_visible_line_start (&it);
       it.current_x = it.hpos = 0;

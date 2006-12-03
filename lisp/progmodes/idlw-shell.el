@@ -6,7 +6,7 @@
 ;;          Carsten Dominik <dominik@astro.uva.nl>
 ;;          Chris Chase <chase@att.com>
 ;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
-;; Version: 6.0_em22
+;; Version: 6.1_em22
 ;; Keywords: processes
 
 ;; This file is part of GNU Emacs.
@@ -31,7 +31,7 @@
 ;; This mode is for IDL version 5 or later.  It should work on
 ;; Emacs>20.3 or XEmacs>20.4.
 ;;
-;; Runs IDL as an inferior process of Emacs, much like the emacs
+;; Runs IDL as an inferior process of Emacs, much like the Emacs
 ;; `shell' or `telnet' commands.  Provides command history and
 ;; searching.  Provides debugging commands available in buffers
 ;; visiting IDL procedure files, e.g., breakpoint setting, stepping,
@@ -252,7 +252,7 @@ to set this option to nil."
   :group 'idlwave-shell-general-setup
   :type 'boolean)
 
-(defcustom idlwave-shell-file-name-chars "~/A-Za-z0-9+:_.$#%={}\\-"
+(defcustom idlwave-shell-file-name-chars "~/A-Za-z0-9+:_.$#%={}\\- "
   "The characters allowed in file names, as a string.
 Used for file name completion. Must not contain `'', `,' and `\"'
 because these are used as separators by IDL."
@@ -1573,7 +1573,8 @@ and then calls `idlwave-shell-send-command' for any pending commands."
 		      (re-search-backward idlwave-shell-prompt-pattern nil t)
 		      (goto-char (match-end 0))
 		      (setq idlwave-shell-command-output
-		      (buffer-substring-no-properties (point-min) (point)))
+			    (buffer-substring-no-properties 
+			     (point-min) (point)))
 		      (delete-region (point-min) (point)))
 		  (setq idlwave-shell-command-output
 			(with-current-buffer (process-buffer proc)
@@ -2101,7 +2102,7 @@ HEAP_GC, /VERBOSE"
 Change the default directory for the process buffer to concur."
   (save-excursion
     (set-buffer (idlwave-shell-buffer))
-    (if (string-match ",___cur[\n\r]\\(\\S-*\\) *[\n\r]"
+    (if (string-match ",___cur[\n\r ]+\\([^\n\r]+\\)[\n\r]"
 		      idlwave-shell-command-output)
 	(let ((dir (substring idlwave-shell-command-output 
 			      (match-beginning 1) (match-end 1))))
@@ -4099,13 +4100,15 @@ Otherwise, just expand the file name."
 
 ;(define-key idlwave-shell-mode-map "\M-?" 'comint-dynamic-list-completions)
 ;(define-key idlwave-shell-mode-map "\t" 'comint-dynamic-complete)
+(define-key idlwave-shell-mode-map "\C-w"     'comint-kill-region)
 (define-key idlwave-shell-mode-map "\t"       'idlwave-shell-complete)
 (define-key idlwave-shell-mode-map "\M-\t"    'idlwave-shell-complete)
 (define-key idlwave-shell-mode-map "\C-c\C-s" 'idlwave-shell)
 (define-key idlwave-shell-mode-map "\C-c?"    'idlwave-routine-info)
 (define-key idlwave-shell-mode-map "\C-g"     'idlwave-keyboard-quit)
 (define-key idlwave-shell-mode-map "\M-?"     'idlwave-context-help)
-(define-key idlwave-shell-mode-map [(control meta ?\?)] 'idlwave-online-help)
+(define-key idlwave-shell-mode-map [(control meta ?\?)] 
+  'idlwave-help-assistant-help-with-topic)
 (define-key idlwave-shell-mode-map "\C-c\C-i" 'idlwave-update-routine-info)
 (define-key idlwave-shell-mode-map "\C-c\C-y" 'idlwave-shell-char-mode-loop)
 (define-key idlwave-shell-mode-map "\C-c\C-x" 'idlwave-shell-send-char)

@@ -1,9 +1,44 @@
+2006-11-29  Richard Stallman  <rms@gnu.org>
+
+	* frames.texi (Visibility of Frames): Explain visible windows
+	can be covered by others.  Add xref for raise-frame.
+
+2006-11-28  Richard Stallman  <rms@gnu.org>
+
+	* searching.texi (Regexp Special): Update when ^ is special.
+
+2006-11-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* customize.texi (Customization, Common Keywords)
+	(Group Definitions, Variable Definitions, Composite Types)
+	(Type Keywords, Customization Types): Add index entries for
+	various customization keywords.
+
+2006-11-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* modes.texi (Multiline Font Lock): Rephrase some parts for clarity.
+
+2006-11-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* frames.texi (Window System Selections): Remove clipboard from
+	description of selection-coding-system.
+
+2006-11-06  Richard Stallman  <rms@gnu.org>
+
+	* lists.texi (List Variables): Document COMPARE-FN.
+
+	* keymaps.texi: Avoid use of "binding" to mean a relation;
+	use it only to refer to the meaning associated with a key.
+	(Keymaps): Change menu node description.
+
+	* elisp.texi (Top): Change menu node description.
+
+	* display.texi (Managing Overlays): Document overlay-recenter.
+
 2006-10-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Makefile.in: Use relative paths to avoid advertising filesystem
 	contents during compilation.
-
-	* makefile.w32-in: Likewise.
 
 2006-10-23  Kim F. Storm  <storm@cua.dk>
 
@@ -5435,6 +5470,7 @@ Tue Apr 11 12:23:28 1989  Robert J. Chassell  (bob@rice-chex.ai.mit.edu)
 
 ;; Local Variables:
 ;; coding: iso-2022-7bit
+;; add-log-time-zone-rule: t
 ;; End:
 
     Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,

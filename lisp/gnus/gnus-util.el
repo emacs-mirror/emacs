@@ -202,8 +202,13 @@ is slower."
     ;; First find the address - the thing with the @ in it.  This may
     ;; not be accurate in mail addresses, but does the trick most of
     ;; the time in news messages.
-    (when (string-match "\\b[^@ \t<>]+[!@][^@ \t<>]+\\b" from)
-      (setq address (substring from (match-beginning 0) (match-end 0))))
+    (cond (;; Check ``<foo@bar>'' first in order to handle the quite common
+	   ;; form ``"abc@xyz" <foo@bar>'' (i.e. ``@'' as part of a comment)
+	   ;; correctly.
+	   (string-match "<\\([^@ \t<>]+[!@][^@ \t<>]+\\)>" from)
+	   (setq address (substring from (match-beginning 1) (match-end 1))))
+	  ((string-match "\\b[^@ \t<>]+[!@][^@ \t<>]+\\b" from)
+	   (setq address (substring from (match-beginning 0) (match-end 0)))))
     ;; Then we check whether the "name <address>" format is used.
     (and address
 	 ;; Linear white space is not required.

@@ -1,4 +1,406 @@
-2006-10-29  Mark Davies  <mark@mcs.vuw.ac.nz> (tiny change)
+2006-12-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (Fw32_shell_execute): Doc fix.
+
+2006-11-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (move_it_to): Correctly count tab glyphs for continued
+	lines ending in tab.
+
+2006-11-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_raise_frame): Move setting of _NET_ACTIVE_WINDOW
+	property ...
+	(XTframe_raise_lower): ... to here.
+
+2006-11-30  Kenichi Handa  <handa@m17n.org>
+
+	* regex.c (regex_compile): Fix previous change.
+
+2006-11-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* sound.c (Fplay_sound_internal): Remove spurious newline in docstring.
+
+2006-11-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* config.in: Regenerate.
+
+2006-11-28  Kenichi Handa  <handa@m17n.org>
+
+	* regex.c (regex_compile): Don't call SET_LIST_BIT with a
+	multibyte character.
+
+2006-11-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* s/aix4-2.h: Undefine _NO_PROTO.  Suggested by Joe Buehler.
+
+2006-11-27  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (set_window_buffer): Refactor recent changes.
+
+2006-11-27  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (w32_msg_worker): Declare correctly.
+	(w32_initialize): Don't cast w32_msg_worker.
+
+	* w32fns.c (w32_msg_worker): Define as WINAPI and arg as void pointer.
+
+2006-11-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* m/amdx86-64.h: Look for standard libs in /usr/lib64 only if that
+	directory exists.
+
+2006-11-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* w16select.c (Fw16_set_clipboard_data): Fix the call to sit_for
+	as per the calling sequence change on 2006-07-11.
+
+2006-11-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.c (set_window_buffer): Use BLOCK_INPUT.
+
+2006-11-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* fns.c (substring_both): Add missing address operator.
+
+2006-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fns.c: Use AREF/ASIZE macros.
+	(concat): Provide the full ANSI prototype.
+
+2006-11-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* buffer.c (syms_of_buffer) <buffer-undo-list>: Doc fix.
+
+2006-11-23  William Smith  <William.Smith@global360.com>  (tiny change)
+
+	* strftime.c (HAVE_SYS__MBSTATE_T_H): Fix typo.
+
+2006-11-02  Alfred M. Szmidt  <ams@gnu.org>  (tiny change)
+
+	* s/openbsd.h (LD_SWITCH_SYSTEM): Remove /usr/pkg/lib and
+	/usr/pkg/lib from the library search path.
+	(LD_SWITCH_X_DEFAULT): New macro.
+
+2006-11-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.c (set_window_buffer): Clear mouse highlight if it is in
+	this window.
+
+2006-11-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfaces.c (realize_default_face): Check if the default font name
+	exists on this display before trying to use it.
+
+2006-11-21  Richard Stallman  <rms@gnu.org>
+
+	* fileio.c: Break line before &&, not after.
+
+2006-11-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* fns.c (concat) [!__GNUC__]: Add prototype.
+
+2006-11-20  Kenichi Handa  <handa@m17n.org>
+
+	* fileio.c (Fread_file_name_internal): Use SBYTES (not SCHARS) to
+	check the tailing slash of a filename.
+
+2006-11-20  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>  (tiny change)
+
+	* indent.c (Fvertical_motion): Include composition in the case of
+	overshoot expected.
+
+2006-11-19  Andreas Schwab  <schwab@gnu.org>
+
+	* xfaces.c (Fdisplay_supports_face_attributes_p): Initialize supports.
+
+	* xmenu.c (Fx_popup_menu): Initialize selection.
+
+2006-11-18  Andreas Schwab  <schwab@suse.de>
+
+	* s/gnu-linux.h (GC_MARK_SECONDARY_STACK): Update call to mark_memory.
+
+2006-11-17  Tetsurou Okazaki  <okazaki@be.to>  (tiny change)
+
+	* xterm.c (do_ewmh_fullscreen): Declare variable before XSETFRAME
+	to avoid gcc 2.96 error.
+
+2006-11-17  NIIMI Satoshi  <sa2c@sa2c.net>  (tiny change)
+
+	* search.c (simple_search): In the loop of backward searching,
+	check also the byte position against the limit.
+
+2006-11-14  Romain Francoise  <romain@orebokech.com>
+
+	* minibuf.c (Fcompleting_read): Fix typo in docstring.
+
+2006-11-14  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (code_convert_region): Initialize coding->heading_ascii.
+	(decode_coding_string, code_convert_region): Likewise.
+
+2006-11-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* config.in: Regenerate.
+
+	* macfns.c (Fx_display_mm_height, Fx_display_mm_width)
+	[MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+	&& MAC_OS_X_VERSION_MIN_REQUIRED == 1020]: Check if
+	CGDisplayScreenSize is available.
+
+	* macmenu.c (menu_quit_handler, install_menu_quit_handler):
+	Replace `#ifdef HAVE_CANCELMENUTRACKING' with
+	`#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030'.
+	(install_menu_quit_handler) [MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+	&& MAC_OS_X_VERSION_MIN_REQUIRED == 1020]: Check if
+	CancelMenuTracking is available.
+
+	* macterm.c [USE_CG_TEXT_DRAWING] (mac_draw_image_string_cg)
+	[MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+	&& MAC_OS_X_VERSION_MIN_REQUIRED == 1020]: Check if
+	CGContextShowGlyphsWithAdvances is available.
+
+2006-11-13  Jason Rumney  <jasonr@gnu.org>
+
+	* s/ms-w32.h: Define HAVE_INET_SOCKETS.
+
+2006-11-13  Nozomu Ando  <nand@mac.com>
+
+	* alloc.c (mark_memory): New argument OFFSET.  All uses changed.
+	Fix address calculations for case END < START.
+	(mark_stack): Impose Lisp_Object alignment on jmp_buf.
+
+2006-11-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* coding.c (Fencode_sjis_char, Fencode_big5_char):
+	Improve argument/docstring consistency.
+
+	* editfns.c (Fmessage): Doc fixes.
+
+	* process.c (syms_of_process) <delete-exited-processes>: Doc fix.
+
+2006-11-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xmenu.c (popup_activated): Define outside HAVE_MENUS.
+
+2006-11-12  Romain Francoise  <romain@orebokech.com>
+
+	* xselect.c (selection-coding-system): Fix docstring.
+
+2006-11-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* category.c (Fchar_category_set): Improve arg/docstring consistency.
+
+	* data.c (Flogxor):
+	* fns.c (Frandom, Flength, Fsafe_length, Fstring_bytes)
+	(Fstring_equal, Fcompare_strings, Fstring_lessp, Fcopy_sequence)
+	(Fstring_make_unibyte): Fix typos in docstrings.
+
+2006-11-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.h (struct x_display_info): Fix indentation.
+
+	* xterm.c (do_ewmh_fullscreen, XTfullscreen_hook): New functions.
+	(x_check_fullscreen): Call do_ewmh_fullscreen.
+	(x_initialize): Set fullscreen_hook to XTfullscreen_hook.
+
+	* frame.c (x_set_fullscreen): Call fullscreen_hook if set.
+
+	* term.c: Define fullscreen_hook.
+	(syms_of_term): Initialize fullscreen_hook to NULL.
+
+	* termhooks.h: Add fullscreen_hook.
+
+2006-11-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bytecode.c (Fbyte_code):
+	* data.c (Fmakunbound): Use SYMBOL_CONSTANT_P macro.
+
+2006-11-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lread.c (syms_of_lread):
+	* xsmfns.c (syms_of_xsmfns): Fix typo in docstring.
+
+2006-11-06  Martin Rudalics  <rudalics@gmx.at>
+
+	* macmenu.c (Fmenu_or_popup_active_p): Define outside HAVE_MENUS.
+
+	* w32menu.c (Fmenu_or_popup_active_p): Define outside HAVE_MENUS.
+	Return nil if building without menus.
+
+	* xmenu.c (Fmenu_or_popup_active_p): Define outside HAVE_MENUS.
+	Return nil if building without menus.
+
+2006-11-05  Mark Davies  <mark@mcs.vuw.ac.nz>  (tiny change)
+
+	* s/netbsd.h (POSIX_SIGNALS): Define.
+
+2006-11-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* macmenu.c (Fmenu_or_popup_active_p): New function.
+	(syms_of_macmenu): Defsubr it.
+
+	* w32menu.c (Fmenu_or_popup_active_p): New function.
+	(syms_of_w32menu): Defsubr it.
+	(popup_activated_flag, popup_activated): Remove.
+
+	* xdisp.c (note_mouse_highlight) [HAVE_NTGUI]: Don't bother to
+	check popup_activated.
+
+	* xmenu.c (Fmenu_or_popup_active_p): New function.
+	(syms_of_xmenu): Defsubr it.
+
+2006-11-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* unexmacosx.c (malloc_cookie): Remove unused variable.
+	(region_list_head, region_list_tail, lca, nlc, infile_lc_highest_addr)
+	(text_seg_lowest_offset, mh, curr_header_offset, infd, outfd)
+	(emacs_zone, data_segment_old_fileoff, data_segment_scp)
+	(num_unexec_regions, unexec_regions): Make variables static.
+	(print_regions, find_emacs_zone_regions): Make static.
+	(unexec_region_info): New typedef.
+	(unexec_regions): Change type from vm_range_t[] to unexec_region_info[].
+	All uses changed.
+	(unexec_regions_recorder): Subtract size of trailing null pages from
+	filesize.  Show filesize.
+	(unexec_regions_merge): Don't merge if null pages of preceding region
+	is not too small.  Use long format in printf.
+	(copy_segment, copy_data_segment): Show filesize.
+	(copy_data_segment): Write filesize bytes of region data.
+	Adjust filesize in segment command accordingly.
+	(dump_it): Use long format in printf.
+
+2006-11-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dosfns.c (Finsert_startup_screen):
+	* fns.c (Ffeaturep, syms_of_fns):
+	* frame.c (syms_of_frame): Fix typos in docstrings.
+
+	* unexcw.c (unexec): Fix typo in output message.
+
+2006-11-04  Ralf Angeli  <angeli@caeruleus.net>
+
+	* w32fns.c (w32_createwindow): Remove code for handling -geometry
+	command line option and `initial-frame-alist' which is superfluous
+	after the last change to `w32_createwindow'.
+
+2006-11-04  Slawomir Nowaczyk  <slawek@cs.lth.se>  (tiny change)
+
+	* w32proc.c (sys_wait): Only wait for processes with fd<0.
+	Others should be handled by sys_select instead.  Fixes problems
+	with (progn (start-process "" nil "ls") (call-process "ls")).
+
+2006-11-04  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
+
+	* xmenu.c (Fmenu_bar_open): Declare variable before BLOCK_INPUT to
+	avoid gcc 2.95 error.
+
+2006-11-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* gtkutil.c (update_frame_tool_bar): If icon image is invalid and
+	wicon is null, insert an empty button.
+
+2006-11-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_raise_frame): Send _NET_ACTIVE_WINDOW when raising the
+	window.
+
+2006-11-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs.c (Fkill_emacs): Fix typo in docstring.
+
+2006-11-02  Nozomu Ando  <nand@mac.com>
+
+	* unexmacosx.c (mach_header, segment_command, vm_region, section)
+	[_LP64]: New defines.
+	(VM_REGION_BASIC_INFO_COUNT, VM_REGION_BASIC_INFO, LC_SEGMENT)
+	(MH_MAGIC) [_LP64]: Redefine.
+	(delta): Remove variable.
+	(curr_file_offset, pagesize): New variables.
+	(ROUNDUP_TO_PAGE_BOUNDARY): New macro.
+	(data_segment_old_fileoff): Initialize explicitly.
+	(print_region, unexec_regions_recorder, print_load_command_name)
+	(copy_segment, copy_data_segment): Use long format in printf.
+	(MAX_UNEXEC_REGIONS): Increase to 400.
+	(unexec_regions_recorder): Don't warn too many regions here.
+	(find_emacs_zone_regions): Warn too many regions here.
+	(print_load_command_name) [_LP64]: Show correct load command name.
+	(copy_segment, copy_data_segment): Use variable `curr_file_offset'.
+	Show starting virtual memory address.  Don't show ending file offset.
+	(copy_symtab, copy_dysymtab, copy_twolevelhints): New argument DELTA.
+	(dump_it): Use new local variable `linkedit_delta' and pass to them.
+	Error if trying to handle multiple DATA segments.
+	(unexec): Initialize variable `pagesize'.
+
+2006-11-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* eval.c (Fcatch): Doc fix.
+
+2006-10-31  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* image.c [MAC_OS] (image_load_qt_1, xpm_scan, xpm_make_color_table_v)
+	(xpm_put_color_table_v,	xpm_get_color_table_v, xpm_make_color_table_h)
+	(xpm_put_color_table_h, xpm_get_color_table_h, xpm_str_to_color_key)
+	(xpm_load_image): Add const qualifier to arguments.
+	[MAC_OS] (xpm_color_key_strings): Make static const.
+
+	* mac.c (create_apple_event_from_event_ref)
+	(create_apple_event_from_drag_ref, skip_white_space, parse_comment)
+	(parse_include_file, parse_binding, parse_component)
+	(parse_resource_name, parse_value, parse_resource_line)
+	(xrm_merge_string_database, xrm_get_resource)
+	(xrm_get_preference_database): Add const qualifier to arguments.
+	[MAC_OSX] (sys_select): Make variable `context' static const.
+
+	* macfns.c (mac_color_map): Make static const.
+	(mac_color_map_lookup): Add const qualifier to arguments.
+
+	* macmenu.c (install_menu_quit_handler): Make variable `typesList'
+	static const.
+	(name_is_separator): Add const qualifier to arguments.
+
+	* macselect.c (init_service_handler): Make variable `specs' static
+	const.
+
+	* macterm.c (mac_create_bitmap_from_bitmap_data): Make variable
+	`swap_nibbles' static const.
+	(atsu_get_text_layout_with_text_ptr): Make variables `lengths',
+	`tags', `sizes', `values' static const.
+	(mac_draw_string_common): Make variables `context' static.
+	Make variables `tags', `sizes', and `values' static const.
+	(pcm_get_status, x_detect_focus_change, x_scroll_bar_handle_click)
+	(xlfdpat_create, xlfdpat_block_match_1, xlfdpat_match)
+	(mac_to_x_fontname, parse_x_font_name, add_mac_font_name)
+	(mac_do_list_fonts, is_fully_specified_xlfd, do_grow_window)
+	(mac_store_event_ref_as_apple_event, mac_make_rdb): Add const
+	qualifier to arguments.
+	(xlfd_scalable_fields, keycode_to_xkeysym_table)
+	(fn_keycode_to_keycode_table): Make static const.
+	(mac_load_query_font): Make variables `tags', `sizes', `values',
+	`types', and `selectors' static const.
+	(mac_handle_command_event, mac_handle_window_event):
+	Make variables `names' and `types' static const.
+	(init_command_handler, install_window_handler): Make variables
+	`specs*' static const.
+	(mac_handle_font_event, mac_handle_text_input_event)
+	(mac_store_service_event): Make variables `names' and `types'
+	const.  Make variables `names_*' and `types_*' static const.
+
+	* macterm.h (create_apple_event_from_event_ref)
+	(create_apple_event_from_drag_ref, xrm_merge_string_database)
+	(xrm_get_resource, xrm_get_preference_database): Add const
+	qualifier to arguments in externs.
+
+2006-10-31  Kenichi Handa  <handa@m17n.org>
+
+	* xfns.c (xic_create_xfontset): Fix previous change.
+
+2006-10-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* s/openbsd.h (LD_SWITCH_SYSTEM): Add /usr/pkg/lib and
+	/usr/pkg/lib to library search path.
+
+2006-10-29  Mark Davies  <mark@mcs.vuw.ac.nz>  (tiny change)
 
 	* ralloc.c (relinquish): Use a long for excess space counter to
 	handle 64-bit case correctly.
@@ -69,7 +471,7 @@
 2006-10-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (get_utf8_string): Remove warnings with casts.
-	(xg_tool_bar_button_cb): Ditto
+	(xg_tool_bar_button_cb): Ditto.
 	(xg_tool_bar_callback): Ditto.
 
 2006-10-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
@@ -532,7 +934,7 @@
 	* editfns.c (Fsystem_name): Mention "host" in the doc string.
 	(syms_of_editfns) <system-name>: Likewise.
 
-2006-08-27  Martin Rudalics  <rudalics@gmx.at>
+2006-09-08  Martin Rudalics  <rudalics@gmx.at>
 
 	* xdisp.c (mouse_autoselect_window): Remove.
 	(Vmouse_autoselect_window): New variable.  DEFVAR_LISP it.
@@ -10932,7 +11334,7 @@
 	precedence.
 	(XTread_socket) [TARGET_API_MAC_CARBON]: Don't specify drag area.
 
-2004-10-05  Jan Dj,Ad(Brv.  <jan.h.d@swipnet.se>
+2004-10-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* config.in: Regenerate.
 
@@ -15311,7 +15713,7 @@
 	Set BUF_INTERVALS (buffer)->up_obj when appropriate.
 	Handle over_used when splitting UNDER.
 
-2003-09-30  YAMAMOTO  Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+2003-09-30  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* regex.c (regex_compile): Free the stack when returning from function.
 
@@ -19549,7 +19951,7 @@
 
 	* alloca.c: Undo ifdef change accidentally made on 12-04.
 
-2002-12-06  Francesco Potorti`  <pot@gnu.org>
+2002-12-06  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* xfns.c (png_load): Avoid double gamma correction for PNG images.
 
@@ -19870,7 +20272,7 @@
 	* fns.c (Fcopy_sequence): Doc fix.
 	(Fmap_char_table): Cast `call2'.
 
-2002-11-14  Francesco Potorti`  <pot@gnu.org>
+2002-11-14  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* s/sol2-8.h: New file.
 
@@ -26188,6 +26590,7 @@ See ChangeLog.9 for earlier changes.
 
 ;; Local Variables:
 ;; coding: iso-2022-7bit
+;; add-log-time-zone-rule: t
 ;; End:
 
     Copyright (C) 2001, 2002, 2003, 2004, 2005,

@@ -438,7 +438,8 @@ When matching a string instead of a buffer, @samp{^} matches at the
 beginning of the string or after a newline character.
 
 For historical compatibility reasons, @samp{^} can be used only at the
-beginning of the regular expression, or after @samp{\(} or @samp{\|}.
+beginning of the regular expression, or after @samp{\(}, @samp{\(?:}
+or @samp{\|}.
 
 @item @samp{$}
 @cindex @samp{$} in regexp

@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2006-08-26.17}
+\def\texinfoversion{2006-11-08.17}
 %
 % Copyright (C) 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006 Free
@@ -156,6 +156,18 @@
 % Since the category of space is not known, we have to be careful.
 \chardef\spacecat = 10
 \def\spaceisspace{\catcode`\ =\spacecat}
+
+% sometimes characters are active, so we need control sequences.
+\chardef\colonChar = `\:
+\chardef\commaChar = `\,
+\chardef\dashChar  = `\-
+\chardef\dotChar   = `\.
+\chardef\exclamChar= `\!
+\chardef\lquoteChar= `\`
+\chardef\questChar = `\?
+\chardef\rquoteChar= `\'
+\chardef\semiChar  = `\;
+\chardef\underChar = `\_
 
 % Ignore a token.
 %
@@ -1243,6 +1255,11 @@ where each line of input produces a line of output.}
   \HyPsdSubst{)}{\realbackslash)}{#1}%
 }
 
+\newhelp\nopdfimagehelp{Texinfo supports .png, .jpg, .jpeg, and .pdf images
+with PDF output, and none of those formats could be found.  (.eps cannot
+be supported due to the design of the PDF format; use regular TeX (DVI
+output) for that.)}
+
 \ifpdf
   \input pdfcolor
   \pdfcatalog{/PageMode /UseOutlines}%
@@ -1250,6 +1267,36 @@ where each line of input produces a line of output.}
   \def\dopdfimage#1#2#3{%
     \def\imagewidth{#2}\setbox0 = \hbox{\ignorespaces #2}%
     \def\imageheight{#3}\setbox2 = \hbox{\ignorespaces #3}%
+    %
+    % pdftex (and the PDF format) support .png, .jpg, .pdf (among
+    % others).  Let's try in that order.
+    \let\pdfimgext=\empty
+    \begingroup
+      \openin 1 #1.png \ifeof 1
+        \openin 1 #1.jpg \ifeof 1
+          \openin 1 #1.jpeg \ifeof 1
+            \openin 1 #1.JPG \ifeof 1
+              \openin 1 #1.pdf \ifeof 1
+                \errhelp = \nopdfimagehelp
+                \errmessage{Could not find image file #1 for pdf}%
+              \else
+                \gdef\pdfimgext{pdf}%
+              \fi
+            \else
+              \gdef\pdfimgext{JPG}%
+            \fi
+          \else
+            \gdef\pdfimgext{jpeg}%
+          \fi
+        \else
+          \gdef\pdfimgext{jpg}%
+        \fi
+      \else
+        \gdef\pdfimgext{png}%
+      \fi
+      \closein 1
+    \endgroup
+    %
     % without \immediate, pdftex seg faults when the same image is
     % included twice.  (Version 3.14159-pre-1.0-unofficial-20010704.)
     \ifnum\pdftexversion < 14
@@ -1260,9 +1307,9 @@ where each line of input produces a line of output.}
       \ifdim \wd0 >0pt width \imagewidth \fi
       \ifdim \wd2 >0pt height \imageheight \fi
       \ifnum\pdftexversion<13
-         #1.pdf%
+         #1.\pdfimgext
        \else
-         {#1.pdf}%
+         {#1.\pdfimgext}%
        \fi
     \ifnum\pdftexversion < 14 \else
       \pdfrefximage \pdflastximage
@@ -1976,13 +2023,6 @@ where each line of input produces a line of output.}
 % Can't use plain's \frenchspacing because it uses the `\x notation, and
 % sometimes \x has an active definition that messes things up.
 %
-\chardef\colonChar = `\:
-\chardef\commaChar = `\,
-\chardef\dotChar   = `\.
-\chardef\exclamChar= `\!
-\chardef\questChar = `\?
-\chardef\semiChar  = `\;
-%
 \catcode`@=11
   \def\plainfrenchspacing{%
     \sfcode\dotChar  =\@m \sfcode\questChar=\@m \sfcode\exclamChar=\@m
@@ -2010,6 +2050,7 @@ where each line of input produces a line of output.}
      \hbox{\raise0.4pt\hbox{\vphantom{\angleleft}}#1}}%
     \kern-0.4pt\hrule}%
   \kern-.06em\raise0.4pt\hbox{\angleright}}}}
+\def\key #1{{\nohyphenation \uppercase{#1}}\null}
 % The old definition, with no lozenge:
 %\def\key #1{{\ttsl \nohyphenation \uppercase{#1}}\null}
 \def\ctrl #1{{\tt \rawbackslash \hat}#1}
@@ -2051,11 +2092,14 @@ where each line of input produces a line of output.}
 % and arrange explicitly to hyphenate at a dash.
 %  -- rms.
 {
-  \catcode`\-=\active \catcode`\_=\active \catcode`\'=\active
+  \catcode`\-=\active \catcode`\_=\active
+  \catcode`\'=\active \catcode`\`=\active
   %
   \global\def\code{\begingroup
-    \catcode`\-=\active  \catcode`\_=\active \catcode`\'=\active
-    \let'\singlequotechar
+    \catcode\rquoteChar=\active \catcode\lquoteChar=\active
+    \let'\codequoteright \let`\codequoteleft
+    %
+    \catcode\dashChar=\active  \catcode\underChar=\active
     \ifallowcodebreaks
      \let-\codedash
      \let_\codeunder
@@ -5410,11 +5454,23 @@ where each line of input produces a line of output.}
 % evince), the lilypond developers report.  xpdf does work with the
 % regular 0x27.  
 % 
-\def\singlequotechar{%
+\def\codequoteright{%
   \expandafter\ifx\csname SETcodequoteundirected\endcsname\relax
     '%
   \else
     \char'15
+  \fi
+}
+%
+% and a similar option for the left quote char vs. a grave accent.
+% Modern fonts display ASCII 0x60 as a grave accent, so some people like
+% the code environments to do likewise.
+% 
+\def\codequoteleft{%
+  \expandafter\ifx\csname SETcodequotebacktick\endcsname\relax
+    `%
+  \else
+    \char'22
   \fi
 }
 %
@@ -5431,12 +5487,15 @@ where each line of input produces a line of output.}
     }%
   }
   \catcode`\'=\active
-  \gdef\quoteexpand{%
-    \catcode`\'=\active
-    \def'{\singlequotechar}
-  }%
+  \gdef\rquoteexpand{\catcode\rquoteChar=\active \def'{\codequoteright}}%
+  %
+  \catcode`\`=\active
+  \gdef\lquoteexpand{\catcode\lquoteChar=\active \def`{\codequoteleft}}%
+  %
+  \gdef\quoteexpand{\rquoteexpand \lquoteexpand}%
 \endgroup
-%
+
+% start the verbatim environment.
 \def\setupverbatim{%
   \let\nonarrowing = t%
   \nonfillstart

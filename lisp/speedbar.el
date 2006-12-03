@@ -2157,7 +2157,7 @@ Groups may optionally contain a position."
 	     ))))
 
 (defun speedbar-generic-list-tag-p (sublst)
-  "Non nil if SUBLST is a tag."
+  "Non-nil if SUBLST is a tag."
   (and (stringp (car-safe sublst))
        (or (and (number-or-marker-p (cdr-safe sublst))
 		(not (cdr-safe (cdr-safe sublst))))
@@ -2681,7 +2681,15 @@ Also resets scanner functions."
 			     "Updating speedbar to special mode: %s...done"
 			     major-mode)
 			    (speedbar-message nil))))
-		    (speedbar-update-localized-contents))
+
+ 		  ;; Update all the contents if directories change!
+ 		  (unless (and (or (member major-mode speedbar-ignored-modes)
+				   (eq af (speedbar-current-frame))
+				   (not (buffer-file-name)))
+			       ;; Always update for GUD.
+			       (not (string-equal "GUD"
+				     speedbar-initial-expansion-list-name)))
+		    (speedbar-update-localized-contents)))
 		(select-frame af))
 	    ;; Now run stealthy updates of time-consuming items
 	    (speedbar-stealthy-updates)))))

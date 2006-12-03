@@ -741,6 +741,12 @@ space does not end a sentence, so don't break a line there."
 	       (looking-at (regexp-quote prefix))))
     (goto-char (match-end 0))))
 
+(defun fill-minibuffer-function (arg)
+  "Fill a paragraph in the minibuffer, ignoring the prompt."
+  (save-restriction 
+    (narrow-to-region (minibuffer-prompt-end) (point-max))
+    (fill-paragraph arg)))
+
 (defun fill-paragraph (arg)
   "Fill paragraph at or after point.  Prefix ARG means justify as well.
 If `sentence-end-double-space' is non-nil, then period followed by one
@@ -755,8 +761,13 @@ If `fill-paragraph-function' is nil, return the `fill-prefix' used for filling."
 		 (barf-if-buffer-read-only)
 		 (list (if current-prefix-arg 'full))))
   ;; First try fill-paragraph-function.
-  (or (and fill-paragraph-function
-	   (let ((function fill-paragraph-function)
+  (or (and (or fill-paragraph-function
+	       (and (window-minibuffer-p (selected-window))
+		    (= 1 (point-min))))
+	   (let ((function (or fill-paragraph-function
+			       ;; In the minibuffer, don't count the width
+			       ;; of the prompt.
+			       'fill-minibuffer-function))
 		 ;; If fill-paragraph-function is set, it probably takes care
 		 ;; of comments and stuff.  If not, it will have to set
 		 ;; fill-paragraph-handle-comment back to t explicitly or

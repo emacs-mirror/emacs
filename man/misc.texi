@@ -486,12 +486,16 @@ also change the coding system for a running subshell by typing
 @kbd{C-x @key{RET} p} in the shell buffer.  @xref{Communication
 Coding}.
 
+@cindex @env{INSIDE_EMACS} environment variable
+  Emacs sets the envitonment variable @env{INSIDE_EMACS} to @code{t}
+in the subshell.  Programs can check this variable to determine
+whether they are running inside an Emacs subshell.
+
 @cindex @env{EMACS} environment variable
-  Unless the environment variable @env{EMACS} is already defined,
-Emacs defines it in the subshell, with value equal to Emacs's absolute
-file name.  A shell script
-can check this variable to determine whether it has been run from an
-Emacs subshell.
+  Emacs also sets the @env{EMACS} environment variable to @code{t} if
+it is not already defined.  @strong{Warning:} This environment
+variable is deprecated.  Programs that check this variable should be
+changed to check @env{INSIDE_EMACS} instead.
 
 @node Shell Mode
 @subsection Shell Mode

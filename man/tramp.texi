@@ -456,11 +456,10 @@ filenames in July 2002.
 @cindex configuration
 
 @cindex default configuration
-@value{tramp} is (normally) fully functional when it is initially installed.
-It is initially configured to use the @command{ssh} program to connect
-to the remote host and to use base64 or uu encoding to transfer the
-files through that shell connection.  So in the easiest case, you just
-type @kbd{C-x C-f} and then enter the filename
+@value{tramp} is (normally) fully functional when it is initially
+installed.  It is initially configured to use the @command{scp}
+program to connect to the remote host.  So in the easiest case, you
+just type @kbd{C-x C-f} and then enter the filename
 @file{@value{prefix}@var{user}@@@var{machine}@value{postfix}@var{/path/to.file}}.
 
 On some hosts, there are problems with opening a connection.  These are
@@ -1036,7 +1035,7 @@ choice.  This variable controls which method will be used when a method
 is not specified in the @value{tramp} file name.  For example:
 
 @lisp
-(setq tramp-default-method "scp")
+(setq tramp-default-method "ssh")
 @end lisp
 
 @vindex tramp-default-method-alist

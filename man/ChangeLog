@@ -1,3 +1,132 @@
+2006-12-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* mule.texi (Enabling Multibyte): Rephrase the confusing reference to a
+	colon in the mode line.
+
+	* msdog.texi (Windows Processes) [@ifnottex]: Mention
+	w32-shell-execute.
+
+2006-11-26  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Watch Expressions): Mention SPC for expanding/
+	contracting watch expressions.
+
+2006-11-26  Kim F. Storm  <storm@cua.dk>
+
+	* kmacro.texi (Basic Keyboard Macro): Mention F3/F4 more.
+
+2006-11-26  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Debugger Operation): Define text command mode.
+	Clarify how tooltips work.
+	(GDB Graphical Interface): Explain how to run in text command mode
+	more clearly.
+
+2006-11-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* mule.texi (Defining Fontsets): Fix use of `charset' and `font'.
+
+2006-11-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* anti.texi (Antinews): Mention --server-file and TCP sockets.
+
+2006-11-20  Michael Olson  <mwolson@gnu.org>
+
+	* erc.texi: Call this the 5.2 stable pre-release of ERC.
+
+2006-11-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* misc.texi (Interactive Shell): INSIDE_EMACS is set to t,
+	and EMACS is deprecated.
+
+2006-11-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (emacs.dvi): Remove xresmini.texi.
+
+2006-11-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* Makefile.in (emacs.dvi): Remove xresmini.texi.
+
+	* emacs.texi: Include xresources.texi both for info and dvi.
+
+	* xresources.texi: Merge text from xresmini.texi.
+
+2006-11-17  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Fix typos.
+	(Agenda commands): Document `C-k'.
+
+2006-11-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* url.texi (http/https): Fix a typo in the HTTP URL.
+
+2006-11-14  Stephen Leake  <stephen_leake@stephe-leake.org>
+
+	* ada-mode.texi: Total rewrite.
+
+2006-11-13  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Minor typo fixes.
+
+2006-11-13  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E manual version 8.0.3.
+
+	* mh-e.texi (VERSION, EDITION, UPDATED, UPDATE-MONTH): Update for
+	release 8.0.3.
+
+	* mh-e.texi (Incorporating Mail): Use output of "mhparam Path"
+	to set MAILDIR.
+	(Reading Mail): Document the customization of read-mail-command
+	for MH-E.
+	(Viewing Attachments): Document mm-discouraged-alternatives.
+	(Tool Bar): Fix Texinfo for mh-xemacs-use-tool-bar-flag.
+	(Junk): Add more information about the settings of mh-junk-background
+	in a program.  Add /usr/bin/mh to PATH in examples.
+
+2006-11-12  Richard Stallman  <rms@gnu.org>
+
+	* woman.texi: Update author address but say he no longer maintains it.
+
+2006-11-12  Roberto Rodr,Am(Bguez  <lanubeblanca@googlemail.com>  (tiny change)
+
+	* glossary.texi: Fix typos.
+
+2006-11-10  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (ARCHIVE tag): Document C-TAB for forcing cycling of
+	archived trees.
+	(Checkboxes): Section moved to chapter 5, and extended.
+	(The date/time prompt): New section.
+	(Link abbreviations): New section.
+	(Presentation and sorting): New section.
+	(Custom agenda views): Section completely rewritten.
+	(Summary): Compare with Planner.
+	(Feedback): More info about creating backtraces.
+	(Plain lists): Modified example.
+	(Breaking down tasks): New section.
+	(Custom time format): New section.
+	(Time stamps): Document inactive timestamps.
+	(Setting tags): More details about fast tag selection.
+	(Block agenda): New section.
+	(Custom agenda views): Section rewritten.
+	(Block agenda): New section.
+
+2006-11-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Configuration): scp is the default method.
+	(Default Method): Use ssh as example for another method.
+
+2006-11-06  Richard Stallman  <rms@gnu.org>
+
+	* emacs.texi (Acknowledgments): Fix name spelling, add Anna Bigatti.
+
+	* ack.texi (Acknowledgments): Fix name spelling.
+
+2006-11-01  Juri Linkov  <juri@jurta.org>
+
+	* search.texi (Word Search): Document incremental word search.
+
 2006-10-28  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi (Acknowledgments): Add cal-html author.
@@ -6419,7 +6548,7 @@
 
 2003-02-01  Kevin Ryde  <user42@zip.com.au>
 
-        * glossary.texi (Glossary): Correction to cl cross reference.
+	* glossary.texi (Glossary): Correction to cl cross reference.
 
 2003-01-20  Richard M. Stallman  <rms@gnu.org>
 
@@ -6852,7 +6981,7 @@
 	`info' file.
 
 	* frames.texi (Creating Frames): Mention `C-x 5' instead of `C-x
-  	4' where appropriate.
+	4' where appropriate.
 
 1993-10-20  Brian Fox  (bfox@ai.mit.edu)
 
@@ -7032,6 +7161,7 @@
 ;; Local Variables:
 ;; coding: iso-2022-7bit
 ;; fill-column: 79
+;; add-log-time-zone-rule: t
 ;; End:
 
     Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,

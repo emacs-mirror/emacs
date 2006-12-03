@@ -5,7 +5,7 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2006/09/15 18:53:14 vinicius>
+;; Time-stamp: <2006/11/08 12:01:50 vinicius>
 ;; Keywords: wp, print, PostScript
 ;; Version: 6.8.4
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
@@ -68,7 +68,7 @@ Please send all bug fixes and enhancements to
 ;; interface to ps-print package and it also provides some extra stuff.
 ;;
 ;; To download the latest ps-print package see
-;; `http://www.cpqd.com.br/~vinicius/emacs/ps-print.tar.gz'.
+;; `http://www.emacswiki.org/cgi-bin/emacs/download/ps-print.tar.gz'.
 ;; Please, see README file for ps-print installation instructions.
 ;;
 ;; `printing' was inspired on:
@@ -958,8 +958,8 @@ Please send all bug fixes and enhancements to
 ;;
 ;; * For `printing' package:
 ;;
-;;    printing	`http://www.cpqd.com.br/~vinicius/emacs/printing.el.gz'
-;;    ps-print	`http://www.cpqd.com.br/~vinicius/emacs/ps-print.tar.gz'
+;;    printing	`http://www.emacswiki.org/cgi-bin/emacs/download/printing.el'
+;;    ps-print	`http://www.emacswiki.org/cgi-bin/emacs/download/ps-print.tar.gz'
 ;;
 ;; * For GNU or Unix system:
 ;;
@@ -3087,7 +3087,7 @@ Calls `pr-update-menus' to adjust menus."
     ;; third... time, but "print" item exists only in the first load.
     (cond
      ;; Emacs 20
-     ((string< emacs-version "21.")
+     ((< emacs-major-version 21)
       (easy-menu-change '("tools") "Printing" pr-menu-spec pr-menu-print-item)
       (when pr-menu-print-item
 	(easy-menu-remove-item nil '("tools") pr-menu-print-item)
@@ -3096,23 +3096,24 @@ Calls `pr-update-menus' to adjust menus."
 				  (pr-get-symbol "Printing")))))
      ;; Emacs 21 & 22
      (t
-      (let* ((has-file  (lookup-key global-map (vector 'menu-bar 'file)))
-	     (item-file (if has-file '("file") '("files"))))
+      (let ((menu-file (if (= emacs-major-version 21)
+			   '("menu-bar" "files") ; Emacs 21
+			 '("menu-bar" "file")))) ; Emacs 22 or higher
 	(cond
 	 (pr-menu-print-item
-	  (easy-menu-change item-file "Print" pr-menu-spec "print-buffer")
-	  (let ((items '("print-buffer"          "print-region"
-			 "ps-print-buffer-faces" "ps-print-region-faces"
-			 "ps-print-buffer"       "ps-print-region")))
-	    (while items
-	      (easy-menu-remove-item nil item-file (car items))
-	      (setq items (cdr items)))
-	    (setq pr-menu-print-item nil
-		  pr-menu-bar (vector 'menu-bar
-				      (if has-file 'file 'files)
-				      (pr-get-symbol "Print")))))
+	  (easy-menu-add-item global-map menu-file
+			      (easy-menu-create-menu "Print" pr-menu-spec)
+			      "print-buffer")
+	  (dolist (item '("print-buffer"          "print-region"
+			  "ps-print-buffer-faces" "ps-print-region-faces"
+			  "ps-print-buffer"       "ps-print-region"))
+	    (easy-menu-remove-item global-map menu-file item))
+	  (setq pr-menu-print-item nil
+		pr-menu-bar (vector 'menu-bar
+				    (pr-get-symbol (nth 1 menu-file))
+				    (pr-get-symbol "Print"))))
 	 (t
-	  (easy-menu-change item-file "Print" pr-menu-spec))))))))
+	  (easy-menu-change (cdr menu-file) "Print" pr-menu-spec))))))))
   (pr-update-menus t))
 
 
@@ -6054,7 +6055,9 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
   ;; header
   (let ((versions (concat "printing v" pr-version
 			  "    ps-print v" ps-print-version)))
-    (widget-insert (make-string (- 79 (length versions)) ?\s) versions))
+    ;; to keep compatibility with Emacs 20 & 21:
+    ;; DO NOT REPLACE `?\ ' BY `?\s'
+    (widget-insert (make-string (- 79 (length versions)) ?\ ) versions))
   (pr-insert-italic "\nCurrent Directory : " 1)
   (pr-insert-italic default-directory)
 

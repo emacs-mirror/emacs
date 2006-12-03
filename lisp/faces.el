@@ -1293,6 +1293,7 @@ If FRAME is omitted or nil, use the selected frame."
 	      (insert "   undefined face.\n")
 	    (let ((customize-label "customize this face")
 		  file-name)
+	      (insert (concat " (" (propertize "sample" 'font-lock-face f) ")"))
 	      (princ (concat " (" customize-label ")\n"))
 	      (insert "Documentation: "
 		      (or (face-documentation f)

@@ -809,7 +809,7 @@ then no newline is inserted."
 This is used by the functions that automatically insert or align the
 line continuation backslashes in multiline macros.  If any line in the
 macro exceeds this column then the next tab stop from that line is
-used as alignment column instead."
+used as alignment column instead.  See also `c-backslash-max-column'."
   :type 'integer
   :group 'c)
 ;;;###autoload(put 'c-backslash-column 'safe-local-variable 'integerp)

@@ -45,7 +45,7 @@
 ;; external variables
 
 (defvar vip-emacs-local-map nil
-  "Local map used in emacs mode.  (Buffer-specific.)")
+  "Local map used in Emacs mode.  (Buffer-specific.)")
 
 (defvar vip-insert-local-map nil
   "Local map used in insert command mode.  (Buffer-specific.)")
@@ -447,7 +447,7 @@ Type `n' to quit this window for now.\n")
   (vip-change-mode 'insert-mode))
 
 (defun vip-change-mode-to-emacs ()
-  "Change mode to emacs mode."
+  "Change mode to Emacs mode."
   (interactive)
   (vip-change-mode 'emacs-mode))
 

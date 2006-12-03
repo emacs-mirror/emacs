@@ -6,9 +6,8 @@
 ;; This file is part of GNU Emacs.
 
 ;; Authors: Daniel Pfeiffer, Markus Heritsch, Rolf Ebert <ebert@waporo.muc.de>
-;; Maintainer: Emmanuel Briot <briot@gnat.com>
+;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: languages, ada
-;; Rolf Ebert's version: 2.26
 
 ;;; Commentary:
 ;; This file is now automatically loaded from ada-mode.el, and creates a submenu
@@ -64,11 +63,11 @@
 (require 'ada-mode)
 
 (defun ada-func-or-proc-name ()
-  ;; Get the name of the current function or procedure."
+  "Return the name of the current function or procedure."
   (save-excursion
     (let ((case-fold-search t))
       (if (re-search-backward ada-procedure-start-regexp nil t)
-	  (buffer-substring (match-beginning 3) (match-end 3))
+	  (match-string 5)
 	"NAME?"))))
 
 ;;; ---- statement skeletons ------------------------------------------
@@ -305,7 +304,7 @@ Invoke right after `ada-function-spec' or `ada-procedure-spec'."
 	(backward-char 1)
 	(forward-sexp 1)))
     (if (looking-at ";")
-        (delete-char 1)))
+	(delete-char 1)))
   " is" \n
    _ \n
    < "begin" \n
@@ -446,21 +445,21 @@ Invoke right after `ada-function-spec' or `ada-procedure-spec'."
 
 
 (define-skeleton ada-or-accept
-  "Insert an or statement, prompting for the condition name."
+  "Insert an accept alternative, prompting for the condition name."
   ()
   < "or\n"
   (ada-accept))
 
 
 (define-skeleton ada-or-delay
-  "Insert a delay statement, prompting for the delay value."
+  "Insert a delay alternative, prompting for the delay value."
   "[delay value]: "
   < "or\n"
   > "delay " str ";")
 
 
 (define-skeleton ada-or-terminate
-  "Insert a terminate statement."
+  "Insert a terminate alternative."
   ()
   < "or\n"
   > "terminate;")

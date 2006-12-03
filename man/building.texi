@@ -536,10 +536,11 @@ allowed.  GUD assumes that the first argument not starting with a
 @subsection Debugger Operation
 
 @cindex fringes, and current execution line in GUD
-  When you run a debugger with GUD using the textual interface, the
-debugger uses an Emacs buffer for its ordinary input and output.  This
-is called the GUD buffer.  Input and output from the program you are
-debugging also use this buffer.
+  Generally when you run a debugger with GUD, the debugger uses an Emacs
+buffer for its ordinary input and output.  This is called the GUD
+buffer.  Input and output from the program you are debugging also use
+this buffer.  We call this @dfn{text command mode}.  The GDB Graphical
+Interface can use further buffers (@pxref{GDB Graphical Interface}).
 
   The debugger displays the source files of the program by visiting
 them in Emacs buffers.  An arrow in the left fringe indicates the
@@ -563,13 +564,13 @@ to be reflected in the debugger's tables.
   The Tooltip facility (@pxref{Tooltips}) provides support for GUD@.
 You activate this feature by turning on the minor mode
 @code{gud-tooltip-mode}.  Then you can display a variable's value in a
-tooltip simply by pointing at it with the mouse.  In graphical mode,
-with a C program, you can also display the @code{#define} directive
-associated with an identifier when the program is not executing.  This
-operates in the GUD buffer and in source buffers with major modes in
-the list @code{gud-tooltip-modes}.  If the variable
-@code{gud-tooltip-echo-area} is non-@code{nil} then the variable's
-value is displayed in the echo area.
+tooltip simply by pointing at it with the mouse.  This operates in the
+GUD buffer and in source buffers with major modes in the list
+@code{gud-tooltip-modes}.  If the variable @code{gud-tooltip-echo-area}
+is non-@code{nil} then the variable's value is displayed in the echo
+area.  When debugging a C program using the GDB Graphical Interface, you
+can also display macro definitions associated with an identifier when
+the program is not executing.
 
   GUD tooltips are disabled when you use GDB in text command mode
 (@pxref{GDB Graphical Interface}), because displaying an expression's
@@ -828,11 +829,13 @@ operation you must not change these values during the GDB session.
 @vindex gud-gdb-command-name
 @findex gdba
   You can also run GDB in text command mode, like other debuggers.  To
-do this, set @code{gud-gdb-command-name} to @code{"gdb --fullname"} or
-edit the startup command in the minibuffer to say that.  You need to
-do use text command mode to run multiple debugging sessions within one
-Emacs session.  If you have customized @code{gud-gdb-command-name} in
-that way, you can use @kbd{M-x gdba} to invoke GDB in graphical mode.
+do this, replace the GDB @code{"--annotate=3"} option with
+@code{"--fullname"} either in the minibuffer for the current Emacs
+session, or the custom variable @code{gud-gdb-command-name} for all
+future sessions.  You need to use text command mode to debug multiple
+programs within one Emacs session.  If you have customized
+@code{gud-gdb-command-name} in this way, you can use @kbd{M-x gdba} to
+invoke GDB in graphical mode.
 
 @menu
 * GDB-UI Layout::               Control the number of displayed buffers.
@@ -1097,7 +1100,7 @@ also display the frame address as a tooltip to help identify the frame
 in which they were defined.
 
   To expand or contract a complex data type, click @kbd{Mouse-2}
-on the tag to the left of the expression.
+or press @key{SPC} on the tag to the left of the expression.
 
 @kindex D @r{(GDB speedbar)}
 @findex gdb-var-delete

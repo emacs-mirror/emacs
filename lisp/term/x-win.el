@@ -2147,6 +2147,8 @@ The actual text stored in the X cut buffer is what encoded from this value.")
 (defvar x-last-selected-text-cut-encoded nil
   "The value of the X cut buffer last time we selected or pasted text.
 This is the actual text stored in the X cut buffer.")
+(defvar x-last-cut-buffer-coding 'iso-latin-1
+  "The coding we last used to encode/decode the text from the X cut buffer")
 
 (defvar x-cut-buffer-max 20000 ; Note this value is overridden below.
   "Max number of characters to put in the cut buffer.
@@ -2172,9 +2174,10 @@ in the clipboard."
 	       x-last-selected-text-cut-encoded ""))
 	(t
 	 (setq x-last-selected-text-cut text
+	       x-last-cut-buffer-coding 'iso-latin-1
 	       x-last-selected-text-cut-encoded
-	       (encode-coding-string text (or locale-coding-system
-					      'iso-latin-1)))
+	       ;; ICCCM says cut buffer always contain ISO-Latin-1
+	       (encode-coding-string text 'iso-latin-1))
 	 (x-set-cut-buffer x-last-selected-text-cut-encoded push)))
   (x-set-selection 'PRIMARY text)
   (setq x-last-selected-text-primary text)
@@ -2340,23 +2343,28 @@ order until succeed.")
     ;; from what we remebered them to be last time we did a
     ;; cut/paste operation.
     (setq cut-text
-	  (cond;; check cut buffer
-	   ((or (not cut-text) (string= cut-text ""))
-	    (setq x-last-selected-text-cut nil))
-	   ;; This short cut doesn't work because x-get-cut-buffer
-	   ;; always returns a newly created string.
-	   ;; ((eq      cut-text x-last-selected-text-cut) nil)
-	   ((string= cut-text x-last-selected-text-cut-encoded)
-	    ;; See the comment above.  No need of this recording.
-	    ;; Record the newer string,
-	    ;; so subsequent calls can use the `eq' test.
-	    ;; (setq x-last-selected-text-cut cut-text)
-	    nil)
-	   (t
-	    (setq x-last-selected-text-cut-encoded cut-text
+	  (let ((next-coding (or next-selection-coding-system 'iso-latin-1)))
+	    (cond;; check cut buffer
+	     ((or (not cut-text) (string= cut-text ""))
+	      (setq x-last-selected-text-cut nil))
+	     ;; This short cut doesn't work because x-get-cut-buffer 	 
+	     ;; always returns a newly created string. 	 
+	     ;; ((eq      cut-text x-last-selected-text-cut) nil) 	 
+	     ((and (string= cut-text x-last-selected-text-cut-encoded)
+		   (eq x-last-cut-buffer-coding next-coding))
+	      ;; See the comment above.  No need of this recording. 	 
+	      ;; Record the newer string, 	 
+	      ;; so subsequent calls can use the `eq' test. 	 
+	      ;; (setq x-last-selected-text-cut cut-text) 	 
+	      nil)
+	     (t
+	      (setq x-last-selected-text-cut-encoded cut-text
+		  x-last-cut-buffer-coding next-coding
 		  x-last-selected-text-cut
-		  (decode-coding-string cut-text (or locale-coding-system
-						     'iso-latin-1))))))
+		  ;; ICCCM says cut buffer always contain ISO-Latin-1, but
+		  ;; use next-selection-coding-system if not nil.
+		  (decode-coding-string 
+		   cut-text next-coding))))))
 
     ;; As we have done one selection, clear this now.
     (setq next-selection-coding-system nil)

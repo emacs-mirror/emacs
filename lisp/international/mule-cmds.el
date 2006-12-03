@@ -337,11 +337,13 @@ This also sets the following values:
 	(or (local-variable-p 'buffer-file-coding-system buffer)
 	    (ucs-set-table-for-input buffer))))
 
-  (if (and default-enable-multibyte-characters (not (eq system-type 'darwin))
-	   (or (not coding-system)
-	       (not (coding-system-get coding-system 'ascii-incompatible))))
+  (if (eq system-type 'darwin)
       ;; The file-name coding system on Darwin systems is always utf-8.
-      (setq default-file-name-coding-system coding-system))
+      (setq default-file-name-coding-system 'utf-8)
+    (if (and default-enable-multibyte-characters
+	     (or (not coding-system)
+		 (not (coding-system-get coding-system 'ascii-incompatible))))
+	(setq default-file-name-coding-system coding-system)))
   ;; If coding-system is nil, honor that on MS-DOS as well, so
   ;; that they could reset the terminal coding system.
   (unless (and (eq window-system 'pc) coding-system)

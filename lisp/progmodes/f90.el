@@ -1007,8 +1007,9 @@ All others return `comment-column', leaving at least one space after code."
 		(skip-chars-backward " \t")
 		(bolp)))
 	 (f90-calculate-indent))
-	(t (skip-chars-backward " \t")
-	   (max (if (bolp) 0 (1+ (current-column))) comment-column))))
+	(t (save-excursion
+             (skip-chars-backward " \t")
+             (max (if (bolp) 0 (1+ (current-column))) comment-column)))))
 
 (defsubst f90-present-statement-cont ()
   "Return continuation properties of present statement.
@@ -1470,6 +1471,7 @@ If run in the middle of a line, the line is not broken."
   (interactive "*r")
   (let ((end-region-mark (copy-marker end-region))
         (save-point (point-marker))
+        (case-fold-search t)
 	block-list ind-lev ind-curr ind-b cont struct beg-struct end-struct)
     (goto-char beg-region)
     ;; First find a line which is not a continuation line or comment.

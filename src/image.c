@@ -2395,7 +2395,7 @@ image_load_qt_1 (f, img, type, fss, dh)
      struct frame *f;
      struct image *img;
      OSType type;
-     FSSpec *fss;
+     const FSSpec *fss;
      Handle dh;
 {
   ComponentResult err;
@@ -2409,8 +2409,7 @@ image_load_qt_1 (f, img, type, fss, dh)
   XImagePtr ximg;
   RGBColor bg_color;
 
-  err = OpenADefaultComponent (GraphicsImporterComponentType,
-			       type, &gi);
+  err = OpenADefaultComponent (GraphicsImporterComponentType, type, &gi);
   if (err != noErr)
     {
       image_error ("Cannot get importer component for `%s'", img->spec, Qnil);
@@ -4112,25 +4111,25 @@ xpm_load (f, img)
 /* XPM support functions for Mac OS where libxpm is not available.
    Only XPM version 3 (without any extensions) is supported.  */
 
-static int xpm_scan P_ ((unsigned char **, unsigned char *,
-			 unsigned char **, int *));
+static int xpm_scan P_ ((const unsigned char **, const unsigned char *,
+			 const unsigned char **, int *));
 static Lisp_Object xpm_make_color_table_v
-  P_ ((void (**) (Lisp_Object, unsigned char *, int, Lisp_Object),
-       Lisp_Object (**) (Lisp_Object, unsigned char *, int)));
-static void xpm_put_color_table_v P_ ((Lisp_Object, unsigned char *,
+  P_ ((void (**) (Lisp_Object, const unsigned char *, int, Lisp_Object),
+       Lisp_Object (**) (Lisp_Object, const unsigned char *, int)));
+static void xpm_put_color_table_v P_ ((Lisp_Object, const unsigned char *,
 				       int, Lisp_Object));
 static Lisp_Object xpm_get_color_table_v P_ ((Lisp_Object,
-					      unsigned char *, int));
+					      const unsigned char *, int));
 static Lisp_Object xpm_make_color_table_h
-  P_ ((void (**) (Lisp_Object, unsigned char *, int, Lisp_Object),
-       Lisp_Object (**) (Lisp_Object, unsigned char *, int)));
-static void xpm_put_color_table_h P_ ((Lisp_Object, unsigned char *,
+  P_ ((void (**) (Lisp_Object, const unsigned char *, int, Lisp_Object),
+       Lisp_Object (**) (Lisp_Object, const unsigned char *, int)));
+static void xpm_put_color_table_h P_ ((Lisp_Object, const unsigned char *,
 				       int, Lisp_Object));
 static Lisp_Object xpm_get_color_table_h P_ ((Lisp_Object,
-					      unsigned char *, int));
-static int xpm_str_to_color_key P_ ((char *));
+					      const unsigned char *, int));
+static int xpm_str_to_color_key P_ ((const char *));
 static int xpm_load_image P_ ((struct frame *, struct image *,
-			       unsigned char *, unsigned char *));
+			       const unsigned char *, const unsigned char *));
 
 /* Tokens returned from xpm_scan.  */
 
@@ -4150,7 +4149,7 @@ enum xpm_token
 
 static int
 xpm_scan (s, end, beg, len)
-     unsigned char **s, *end, **beg;
+     const unsigned char **s, *end, **beg;
      int *len;
 {
   int c;
@@ -4216,8 +4215,8 @@ xpm_scan (s, end, beg, len)
 
 static Lisp_Object
 xpm_make_color_table_v (put_func, get_func)
-     void (**put_func) (Lisp_Object, unsigned char *, int, Lisp_Object);
-     Lisp_Object (**get_func) (Lisp_Object, unsigned char *, int);
+     void (**put_func) (Lisp_Object, const unsigned char *, int, Lisp_Object);
+     Lisp_Object (**get_func) (Lisp_Object, const unsigned char *, int);
 {
   *put_func = xpm_put_color_table_v;
   *get_func = xpm_get_color_table_v;
@@ -4227,7 +4226,7 @@ xpm_make_color_table_v (put_func, get_func)
 static void
 xpm_put_color_table_v (color_table, chars_start, chars_len, color)
      Lisp_Object color_table;
-     unsigned char *chars_start;
+     const unsigned char *chars_start;
      int chars_len;
      Lisp_Object color;
 {
@@ -4237,7 +4236,7 @@ xpm_put_color_table_v (color_table, chars_start, chars_len, color)
 static Lisp_Object
 xpm_get_color_table_v (color_table, chars_start, chars_len)
      Lisp_Object color_table;
-     unsigned char *chars_start;
+     const unsigned char *chars_start;
      int chars_len;
 {
   return XVECTOR (color_table)->contents[*chars_start];
@@ -4245,8 +4244,8 @@ xpm_get_color_table_v (color_table, chars_start, chars_len)
 
 static Lisp_Object
 xpm_make_color_table_h (put_func, get_func)
-     void (**put_func) (Lisp_Object, unsigned char *, int, Lisp_Object);
-     Lisp_Object (**get_func) (Lisp_Object, unsigned char *, int);
+     void (**put_func) (Lisp_Object, const unsigned char *, int, Lisp_Object);
+     Lisp_Object (**get_func) (Lisp_Object, const unsigned char *, int);
 {
   *put_func = xpm_put_color_table_h;
   *get_func = xpm_get_color_table_h;
@@ -4259,7 +4258,7 @@ xpm_make_color_table_h (put_func, get_func)
 static void
 xpm_put_color_table_h (color_table, chars_start, chars_len, color)
      Lisp_Object color_table;
-     unsigned char *chars_start;
+     const unsigned char *chars_start;
      int chars_len;
      Lisp_Object color;
 {
@@ -4274,7 +4273,7 @@ xpm_put_color_table_h (color_table, chars_start, chars_len, color)
 static Lisp_Object
 xpm_get_color_table_h (color_table, chars_start, chars_len)
      Lisp_Object color_table;
-     unsigned char *chars_start;
+     const unsigned char *chars_start;
      int chars_len;
 {
   struct Lisp_Hash_Table *table = XHASH_TABLE (color_table);
@@ -4292,11 +4291,11 @@ enum xpm_color_key {
   XPM_COLOR_KEY_C
 };
 
-static char xpm_color_key_strings[][4] = {"s", "m", "g4", "g", "c"};
+static const char xpm_color_key_strings[][4] = {"s", "m", "g4", "g", "c"};
 
 static int
 xpm_str_to_color_key (s)
-     char *s;
+     const char *s;
 {
   int i;
 
@@ -4312,15 +4311,15 @@ static int
 xpm_load_image (f, img, contents, end)
      struct frame *f;
      struct image *img;
-     unsigned char *contents, *end;
+     const unsigned char *contents, *end;
 {
-  unsigned char *s = contents, *beg, *str;
+  const unsigned char *s = contents, *beg, *str;
   unsigned char buffer[BUFSIZ];
   int width, height, x, y;
   int num_colors, chars_per_pixel;
   int len, LA1;
-  void (*put_color_table) (Lisp_Object, unsigned char *, int, Lisp_Object);
-  Lisp_Object (*get_color_table) (Lisp_Object, unsigned char *, int);
+  void (*put_color_table) (Lisp_Object, const unsigned char *, int, Lisp_Object);
+  Lisp_Object (*get_color_table) (Lisp_Object, const unsigned char *, int);
   Lisp_Object frame, color_symbols, color_table;
   int best_key, have_mask = 0;
   XImagePtr ximg = NULL, mask_img = NULL;

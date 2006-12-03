@@ -4439,7 +4439,7 @@ w32_read_socket (sd, expected, hold_quit)
 		/* Ignore any mouse motion that happened before this
 		   event; any subsequent mouse-movement Emacs events
 		   should reflect only motion after the
-		   ButtonPress.	 */
+		   ButtonPress.  */
 		f->mouse_moved = 0;
 	      }
 	    last_mouse_frame = f;
@@ -6282,7 +6282,7 @@ x_delete_display (dpyinfo)
 
 /* Set up use of W32.  */
 
-DWORD w32_msg_worker ();
+DWORD WINAPI w32_msg_worker (void * arg);
 
 void
 x_flush (struct frame * f)
@@ -6388,8 +6388,8 @@ w32_initialize ()
     PeekMessage (&msg, NULL, 0, 0, PM_NOREMOVE);
 
     hWindowsThread = CreateThread (NULL, 0,
-			       (LPTHREAD_START_ROUTINE) w32_msg_worker,
-			       0, 0, &dwWindowsThreadId);
+                                   w32_msg_worker,
+                                   0, 0, &dwWindowsThreadId);
 
     GetMessage (&msg, NULL, WM_EMACS_DONE, WM_EMACS_DONE);
   }

@@ -1,3 +1,17 @@
+2006-11-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* INSTALL: Add descriptions about configuration and invocation.
+	Capitalize `Carbon'.
+
+2006-11-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* inc/config.h: Sync with src/config.in.
+
+2006-11-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* INSTALL: Remove descriptions about --without-x.  Remove
+	--without-carbon from configure options for X11 build.
+
 2006-09-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* INSTALL: Remove descriptions about experimental flags.
@@ -438,7 +452,7 @@
 	GetScrapFlavorFlags.
 
 	* src/macfns.c: Synchronize with changes in w32fns.c.
- 	[MAC_OSX]: Include Carbon headers.
+	[MAC_OSX]: Include Carbon headers.
 	(x_real_positions): Use Carbon routine GetWindowPortBounds.
 	(x_set_scroll_bar_width): Set width of scroll bar to 16.
 	(x_make_gc): Remove static qualifier.
@@ -846,6 +860,7 @@
 
 ;; Local Variables:
 ;; coding: iso-2022-7bit-unix
+;; add-log-time-zone-rule: t
 ;; End:
 
     Copyright (C) 2001, 2002, 2003, 2004, 2005,

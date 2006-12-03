@@ -2125,7 +2125,7 @@ This command is executed when texinfmt sees @item inside @multitable."
         (setq tab-number (1+ tab-number)))
       (let ((needed-tabs (- (length table-widths) tab-number)))
         (when (> needed-tabs 0)
-              (goto-char (point-min)) 
+              (goto-char (point-min))
               (end-of-line)
               (while (> needed-tabs 0)
                 (insert "@w{ }\n@tab")
@@ -4292,7 +4292,7 @@ the @ifeq command."
 
 (defun batch-texinfo-format ()
   "Runs  texinfo-format-buffer  on the files remaining on the command line.
-Must be used only with -batch, and kills emacs on completion.
+Must be used only with -batch, and kills Emacs on completion.
 Each file will be processed even if an error occurred previously.
 For example, invoke
   \"emacs -batch -funcall batch-texinfo-format $docs/ ~/*.texinfo\"."

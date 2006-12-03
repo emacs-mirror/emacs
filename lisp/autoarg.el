@@ -119,7 +119,7 @@ then invokes the normal binding of \\[autoarg-terminate].
 With ARG, turn Autoarg mode on if ARG is positive, off otherwise.
 \\<autoarg-kp-mode-map>
 This is similar to \\[autoarg-mode] but rebinds the keypad keys `kp-1'
-&c to supply digit arguments.
+etc. to supply digit arguments.
 
 \\{autoarg-kp-mode-map}"
   nil " Aakp" autoarg-kp-mode-map :global t :group 'keyboard

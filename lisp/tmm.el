@@ -304,7 +304,7 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
       (if char (setq tmm-short-cuts (cons char tmm-short-cuts)))
       (cons (concat (if char (concat (char-to-string char) tmm-mid-prompt)
                       ;; keep them lined up in columns
-                      (make-string (1+ (length tmm-mid-prompt)) ?\ ))
+                      (make-string (1+ (length tmm-mid-prompt)) ?\s))
                     str)
             (cdr elt))))))
 

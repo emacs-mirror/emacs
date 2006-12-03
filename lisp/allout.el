@@ -66,7 +66,7 @@
 ;;
 ;; The outline menubar additions provide quick reference to many of
 ;; the features, and see the docstring of the variable `allout-init'
-;; for instructions on priming your emacs session for automatic
+;; for instructions on priming your Emacs session for automatic
 ;; activation of allout-mode.
 ;;
 ;; See the docstring of the variables `allout-layout' and
@@ -891,12 +891,12 @@ This is properly set by `set-allout-regexp'.")
 (make-variable-buffer-local 'allout-plain-bullets-string-len)
 
 ;;;_   = allout-doublecheck-at-and-shallower
-(defconst allout-doublecheck-at-and-shallower 3
-  "Verify apparent topics of this depth and shallower as being non-aberrant.
+(defconst allout-doublecheck-at-and-shallower 2
+  "Validate apparent topics of this depth and shallower as being non-aberrant.
 
 Verified with `allout-aberrant-container-p'.  This check's usefulness is
-limited to shallow prospects, because the determination of aberrance
-depends on the mistaken item being followed by a legitimate item of
+limited to shallow depths, because the determination of aberrance
+is according to the mistaken item being followed by a legitimate item of
 excessively greater depth.")
 ;;;_   X allout-reset-header-lead (header-lead)
 (defun allout-reset-header-lead (header-lead)
@@ -1380,7 +1380,7 @@ are random binary characters to avoid exposing greater susceptibility to
 search attacks.
 
 The verifier string is retained as an Emacs file variable, as well as in
-the emacs buffer state, if file variable adjustments are enabled.  See
+the Emacs buffer state, if file variable adjustments are enabled.  See
 `allout-enable-file-variable-adjustment' for details about that.")
 (make-variable-buffer-local 'allout-passphrase-verifier-string)
 ;;;###autoload
@@ -1392,7 +1392,7 @@ the emacs buffer state, if file variable adjustments are enabled.  See
 See the description of `allout-passphrase-hint-handling' for details about how
 the reminder is deployed.
 
-The hint is retained as an Emacs file variable, as well as in the emacs buffer
+The hint is retained as an Emacs file variable, as well as in the Emacs buffer
 state, if file variable adjustments are enabled.  See
 `allout-enable-file-variable-adjustment' for details about that.")
 (make-variable-buffer-local 'allout-passphrase-hint-string)
@@ -1506,6 +1506,18 @@ and the place for the cursor after the decryption is done."
     (goto-char (cadr allout-after-save-decrypt))
     (setq allout-after-save-decrypt nil))
   )
+;;;_   = allout-inhibit-aberrance-doublecheck nil
+;; In some exceptional moments, disparate topic depths need to be allowed
+;; momentarily, eg when one topic is being yanked into another and they're
+;; about to be reconciled.  let-binding allout-inhibit-aberrance-doublecheck
+;; prevents the aberrance doublecheck to allow, eg, the reconciliation
+;; processing to happen in the presence of such discrepancies.  It should
+;; almost never be needed, however.
+(defvar allout-inhibit-aberrance-doublecheck nil
+  "Internal state, for momentarily inhibits aberrance doublecheck.
+
+This should only be momentarily let-bound non-nil, not set
+non-nil in a lasting way.")
 
 ;;;_ #2 Mode activation
 ;;;_  = allout-explicitly-deactivated
@@ -2194,27 +2206,16 @@ to return the current depth of the most recently matched topic."
 
 ;;;_  - Position Assessment
 ;;;_   : Location Predicates
-;;;_    > allout-on-current-heading-p ()
-(defun allout-on-current-heading-p ()
-  "Return non-nil if point is on current visible topics' header line.
-
-Actually, returns prefix beginning point."
-  (save-excursion
-    (allout-beginning-of-current-line)
-    (and (looking-at allout-regexp)
-         (allout-prefix-data)
-         (or (> allout-recent-depth allout-doublecheck-at-and-shallower)
-             (not (allout-aberrant-container-p))))))
-;;;_    > allout-on-heading-p ()
-(defalias 'allout-on-heading-p 'allout-on-current-heading-p)
-;;;_    > allout-e-o-prefix-p ()
-(defun allout-e-o-prefix-p ()
-  "True if point is located where current topic prefix ends, heading begins."
-  (and (save-excursion (let ((inhibit-field-text-motion t))
-                         (beginning-of-line))
-		       (looking-at allout-regexp))
-       (= (point)(save-excursion (allout-end-of-prefix)(point)))))
-;;;_    > allout-aberrant-container-p ()
+;;;_    > allout-do-doublecheck ()
+(defsubst allout-do-doublecheck ()
+  "True if current item conditions qualify for checking on topic aberrance."
+  (and
+   ;; presume integrity of outline and yanked content during yank - necessary,
+   ;; to allow for level disparity of yank location and yanked text:
+   (not allout-inhibit-aberrance-doublecheck)
+   ;; allout-doublecheck-at-and-shallower is ceiling for doublecheck:
+   (<= allout-recent-depth allout-doublecheck-at-and-shallower)))
+;;;_     > allout-aberrant-container-p ()
 (defun allout-aberrant-container-p ()
   "True if topic, or next sibling with children, contains them discontinuously.
 
@@ -2247,7 +2248,7 @@ exceeds the topic by more than one."
         (goto-char allout-recent-prefix-beginning)
         (cond
          ;; sibling - continue:
-         ((eq allout-recent-depth depth)) 
+         ((eq allout-recent-depth depth))
          ;; first offspring is excessive - aberrant:
          ((> allout-recent-depth (1+ depth))
           (setq done t aberrant t))
@@ -2259,6 +2260,26 @@ exceeds the topic by more than one."
       ;; recalibrate allout-recent-*
       (allout-depth)
       nil)))
+;;;_    > allout-on-current-heading-p ()
+(defun allout-on-current-heading-p ()
+  "Return non-nil if point is on current visible topics' header line.
+
+Actually, returns prefix beginning point."
+  (save-excursion
+    (allout-beginning-of-current-line)
+    (and (looking-at allout-regexp)
+         (allout-prefix-data)
+         (or (not (allout-do-doublecheck))
+             (not (allout-aberrant-container-p))))))
+;;;_    > allout-on-heading-p ()
+(defalias 'allout-on-heading-p 'allout-on-current-heading-p)
+;;;_    > allout-e-o-prefix-p ()
+(defun allout-e-o-prefix-p ()
+  "True if point is located where current topic prefix ends, heading begins."
+  (and (save-excursion (let ((inhibit-field-text-motion t))
+                         (beginning-of-line))
+		       (looking-at allout-regexp))
+       (= (point)(save-excursion (allout-end-of-prefix)(point)))))
 ;;;_   : Location attributes
 ;;;_    > allout-depth ()
 (defun allout-depth ()
@@ -2390,8 +2411,7 @@ Outermost is first."
     (allout-depth)
     (let ((beginning-of-body
            (save-excursion
-             (while (and (<= allout-recent-depth
-                             allout-doublecheck-at-and-shallower)
+             (while (and (allout-do-doublecheck)
                          (allout-aberrant-container-p)
                          (allout-previous-visible-heading 1)))
              (allout-beginning-of-current-entry)
@@ -2443,7 +2463,7 @@ We skip anomolous low-level topics, a la `allout-aberrant-container-p'."
 
   (when (re-search-forward allout-line-boundary-regexp nil 0)
     (allout-prefix-data)
-    (and (<= allout-recent-depth allout-doublecheck-at-and-shallower)
+    (and (allout-do-doublecheck)
          ;; this will set allout-recent-* on the first non-aberrant topic,
          ;; whether it's the current one or one that disqualifies it:
          (allout-aberrant-container-p))
@@ -2464,13 +2484,13 @@ We skip anomolous low-level topics, a la `allout-aberrant-container-p'."
 
   (if (bobp)
       nil
-    ;; allout-goto-prefix-doublechecked calls us, so we can't use it here.
     (let ((start-point (point)))
+      ;; allout-goto-prefix-doublechecked calls us, so we can't use it here.
       (allout-goto-prefix)
       (when (or (re-search-backward allout-line-boundary-regexp nil 0)
                 (looking-at allout-bob-regexp))
         (goto-char (allout-prefix-data))
-        (if (and (<= allout-recent-depth allout-doublecheck-at-and-shallower)
+        (if (and (allout-do-doublecheck)
                  (allout-aberrant-container-p))
             (or (allout-previous-heading)
                 (and (goto-char start-point)
@@ -2705,11 +2725,11 @@ Like `allout-goto-prefix', but shallow topics \(according to
 `allout-doublecheck-at-and-shallower') are checked and
 disqualified for child containment discontinuity, according to
 `allout-aberrant-container-p'."
-  (allout-goto-prefix)
-  (if (and (<= allout-recent-depth allout-doublecheck-at-and-shallower)
-           (allout-aberrant-container-p))
-      (allout-previous-heading)
-    (point)))
+  (if (allout-goto-prefix)
+      (if (and (allout-do-doublecheck)
+               (allout-aberrant-container-p))
+          (allout-previous-heading)
+        (point))))
 
 ;;;_   > allout-end-of-prefix ()
 (defun allout-end-of-prefix (&optional ignore-decorations)
@@ -2745,13 +2765,13 @@ of (before any) topics, in which case we return nil."
 
   (allout-beginning-of-current-line)
   (let ((bol-point (point)))
-    (allout-goto-prefix-doublechecked)
-    (if (<= (point) bol-point)
-        (if (interactive-p)
-            (allout-end-of-prefix)
-          (point))
-      (goto-char (point-min))
-      nil)))
+    (if (allout-goto-prefix-doublechecked)
+        (if (<= (point) bol-point)
+            (if (interactive-p)
+                (allout-end-of-prefix)
+              (point))
+          (goto-char (point-min))
+          nil))))
 ;;;_   > allout-back-to-heading ()
 (defalias 'allout-back-to-heading 'allout-back-to-current-heading)
 ;;;_   > allout-pre-next-prefix ()
@@ -2871,7 +2891,15 @@ collapsed."
   "Ascend one level, returning t if successful, nil if not."
   (prog1
       (if (allout-beginning-of-level)
-          (allout-previous-heading))
+          (let ((bolevel (point))
+                (bolevel-depth allout-recent-depth))
+            (allout-previous-heading)
+            (if (< allout-recent-depth bolevel-depth)
+                allout-recent-depth
+              ;; some topic after file's first is at lower depth than first:
+              (goto-char bolevel)
+              (allout-depth)
+              nil)))
     (if (interactive-p) (allout-end-of-prefix))))
 ;;;_   > allout-descend-to-depth (depth)
 (defun allout-descend-to-depth (depth)
@@ -2918,6 +2946,7 @@ Return the start point of the new topic if successful, nil otherwise."
       nil
     (let ((target-depth (or depth (allout-depth)))
           (start-point (point))
+          (start-prefix-beginning allout-recent-prefix-beginning)
           (count 0)
           leaping
 	  last-depth)
@@ -2941,7 +2970,9 @@ Return the start point of the new topic if successful, nil otherwise."
                    nil)))
             ((and (not (eobp))
                   (and (> (or last-depth (allout-depth)) 0)
-                       (= allout-recent-depth target-depth)))
+                       (= allout-recent-depth target-depth))
+                  (not (= start-prefix-beginning
+                          allout-recent-prefix-beginning)))
              allout-recent-prefix-beginning)
             (t
              (goto-char start-point)
@@ -3067,8 +3098,7 @@ Move to buffer limit in indicated direction if headings are exhausted."
                   ;; not a header line, keep looking:
                   t
                 (allout-prefix-data)
-                (if (and (<= allout-recent-depth
-                             allout-doublecheck-at-and-shallower)
+                (if (and (allout-do-doublecheck)
                          (allout-aberrant-container-p))
                     ;; skip this aberrant prospective header line:
                     t
@@ -3480,8 +3510,6 @@ case.)
 
 If OFFER-RECENT-BULLET is true, offer to use the bullet of the prior sibling.
 
-Runs 
-
 Nuances:
 
 - Creation of new topics is with respect to the visible topic
@@ -3828,6 +3856,7 @@ this function."
          (mb allout-recent-prefix-beginning)
          (me allout-recent-prefix-end)
          (current-bullet (buffer-substring-no-properties (- me 1) me))
+         (has-annotation (get-text-property mb 'allout-was-hidden))
          (new-prefix (allout-make-topic-prefix current-bullet
                                                 nil
                                                 new-depth
@@ -3853,6 +3882,11 @@ this function."
                (looking-at "[0-9]+"))
 	  (allout-unprotected
 	   (delete-region (match-beginning 0)(match-end 0))))
+
+      ;; convey 'allout-was-hidden annotation, if original had it:
+      (if has-annotation
+          (put-text-property 0 (length new-prefix) 'allout-was-hidden t
+                             new-prefix))
 
 					; Put in new prefix:
       (allout-unprotected (insert new-prefix))
@@ -4117,7 +4151,10 @@ the file can be adjusted to any positive depth, however."
                      (> (1+ current-depth)
                         (1+ predecessor-depth)))
                 (error (concat "Disallowed shift deeper than"
-                               " containing topic's children."))))))
+                               " containing topic's children."))
+              (allout-back-to-current-heading)
+              (if (< allout-recent-depth (1+ current-depth))
+                  (allout-show-children))))))
     (let ((where (point)))
       (allout-rebullet-topic 1 (and (> arg 1) 'sans-offspring))
       (run-hook-with-args 'allout-structure-shifted-hook arg where))))
@@ -4183,10 +4220,11 @@ subtopics into siblings of the item."
            (depth (allout-depth)))
 
       (allout-annotate-hidden beg end)
-
       (if (and (not beg-hidden) (not end-hidden))
           (allout-unprotected (kill-line arg))
         (kill-line arg))
+      (allout-deannotate-hidden beg end)
+
       (if allout-numbered-bullet
           (save-excursion               ; Renumber subsequent topics if needed:
             (if (not (looking-at allout-regexp))
@@ -4218,6 +4256,7 @@ allout-yank-processing for exposure recovery."
   (interactive)
   (let* ((inhibit-field-text-motion t)
          (beg (prog1 (allout-back-to-current-heading) (beginning-of-line)))
+         end
          (depth allout-recent-depth))
     (allout-end-of-current-subtree)
     (if (and (/= (current-column) 0) (not (eobp)))
@@ -4231,9 +4270,13 @@ allout-yank-processing for exposure recovery."
                           (string= (buffer-substring (- beg 2) beg) "\n\n"))))
 	    (forward-char 1)))
 
-    (allout-annotate-hidden beg (point))
+    (allout-annotate-hidden beg (setq end (point)))
+    (unwind-protect
+        (allout-unprotected (kill-region beg end))
+      (if buffer-read-only
+          ;; eg, during copy-as-kill.
+          (allout-deannotate-hidden beg end)))
 
-    (allout-unprotected (kill-region beg (point)))
     (save-excursion
       (allout-renumber-to-depth depth))
     (run-hook-with-args 'allout-structure-deleted-hook depth (point))))
@@ -4251,8 +4294,7 @@ allout-yank-processing for exposure recovery."
 
   (let ((was-modified (buffer-modified-p))
         (buffer-read-only nil))
-    (allout-unprotected
-     (remove-text-properties begin end '(allout-was-hidden t)))
+    (allout-deannotate-hidden begin end)
     (save-excursion
       (goto-char begin)
       (let (done next prev overlay)
@@ -4279,9 +4321,19 @@ allout-yank-processing for exposure recovery."
               (when next
                 (goto-char next)
                 (allout-unprotected
-                 (put-text-property (overlay-start overlay) next
-                                    'allout-was-hidden t))))))))
+                 (let ((buffer-undo-list t))
+                   (put-text-property (overlay-start overlay) next
+                                      'allout-was-hidden t)))))))))
     (set-buffer-modified-p was-modified)))
+;;;_    > allout-deannotate-hidden (begin end)
+(defun allout-deannotate-hidden (begin end)
+  "Remove allout hidden-text annotation between BEGIN and END."
+
+  (allout-unprotected
+   (let ((inhibit-read-only t)
+         (buffer-undo-list t))
+     ;(remove-text-properties begin end '(allout-was-hidden t))
+     )))
 ;;;_    > allout-hide-by-annotation (begin end)
 (defun allout-hide-by-annotation (begin end)
   "Translate text properties indicating exposure status into actual exposure."
@@ -4309,16 +4361,10 @@ allout-yank-processing for exposure recovery."
                                                          nil end))
             (overlay-put (make-overlay prev next)
                          'category 'allout-exposure-category)
-            (allout-unprotected
-             (remove-text-properties prev next '(allout-was-hidden t)))
+            (allout-deannotate-hidden prev next)
             (setq prev next)
             (if next (goto-char next)))))
       (set-buffer-modified-p was-modified))))
-;;;_    > allout-remove-exposure-annotation (begin end)
-(defun allout-remove-exposure-annotation (begin end)
-  "Remove text properties indicating exposure status."
-  (remove-text-properties begin end '(allout-was-hidden t)))
-
 ;;;_    > allout-yank-processing ()
 (defun allout-yank-processing (&optional arg)
 
@@ -4345,108 +4391,117 @@ however, are left exactly like normal, non-allout-specific yanks."
 					; region around subject:
   (if (< (allout-mark-marker t) (point))
       (exchange-point-and-mark))
-  (allout-unprotected
-   (let* ((subj-beg (point))
-          (into-bol (bolp))
-          (subj-end (allout-mark-marker t))
-          ;; 'resituate' if yanking an entire topic into topic header:
-          (resituate (and (allout-e-o-prefix-p)
-                          (looking-at allout-regexp)
-                          (allout-prefix-data)))
-          ;; `rectify-numbering' if resituating (where several topics may
-          ;; be resituating) or yanking a topic into a topic slot (bol):
-          (rectify-numbering (or resituate
-                                 (and into-bol (looking-at allout-regexp)))))
-     (if resituate
-                                        ; The yanked stuff is a topic:
-         (let* ((prefix-len (- (match-end 1) subj-beg))
-                (subj-depth allout-recent-depth)
-                (prefix-bullet (allout-recent-bullet))
-                (adjust-to-depth
-                 ;; Nil if adjustment unnecessary, otherwise depth to which
-                 ;; adjustment should be made:
-                 (save-excursion
-                   (and (goto-char subj-end)
-                        (eolp)
-                        (goto-char subj-beg)
-                        (and (looking-at allout-regexp)
-                             (progn
-                               (beginning-of-line)
-                               (not (= (point) subj-beg)))
-                             (looking-at allout-regexp)
-                             (allout-prefix-data))
-                        allout-recent-depth)))
-                (more t))
-           (setq rectify-numbering allout-numbered-bullet)
-           (if adjust-to-depth
+  (let* ((subj-beg (point))
+         (into-bol (bolp))
+         (subj-end (allout-mark-marker t))
+         ;; 'resituate' if yanking an entire topic into topic header:
+         (resituate (and (let ((allout-inhibit-aberrance-doublecheck t))
+                           (allout-e-o-prefix-p))
+                         (looking-at allout-regexp)
+                         (allout-prefix-data)))
+         ;; `rectify-numbering' if resituating (where several topics may
+         ;; be resituating) or yanking a topic into a topic slot (bol):
+         (rectify-numbering (or resituate
+                                (and into-bol (looking-at allout-regexp)))))
+    (if resituate
+        ;; Yanking a topic into the start of a topic - reconcile to fit:
+        (let* ((inhibit-field-text-motion t)
+               (prefix-len (if (not (match-end 1))
+                               1
+                             (- (match-end 1) subj-beg)))
+               (subj-depth allout-recent-depth)
+               (prefix-bullet (allout-recent-bullet))
+               (adjust-to-depth
+                ;; Nil if adjustment unnecessary, otherwise depth to which
+                ;; adjustment should be made:
+                (save-excursion
+                  (and (goto-char subj-end)
+                       (eolp)
+                       (goto-char subj-beg)
+                       (and (looking-at allout-regexp)
+                            (progn
+                              (beginning-of-line)
+                              (not (= (point) subj-beg)))
+                            (looking-at allout-regexp)
+                            (allout-prefix-data))
+                       allout-recent-depth)))
+               (more t))
+          (setq rectify-numbering allout-numbered-bullet)
+          (if adjust-to-depth
                                         ; Do the adjustment:
-               (progn
-                 (save-restriction
-                   (narrow-to-region subj-beg subj-end)
+              (progn
+                (save-restriction
+                  (narrow-to-region subj-beg subj-end)
                                         ; Trim off excessive blank
                                         ; line at end, if any:
-                   (goto-char (point-max))
-                   (if (looking-at "^$")
-                       (allout-unprotected (delete-char -1)))
+                  (goto-char (point-max))
+                  (if (looking-at "^$")
+                      (allout-unprotected (delete-char -1)))
                                         ; Work backwards, with each
                                         ; shallowest level,
                                         ; successively excluding the
                                         ; last processed topic from
                                         ; the narrow region:
-                   (while more
-                     (allout-back-to-current-heading)
+                  (while more
+                    (allout-back-to-current-heading)
                                         ; go as high as we can in each bunch:
-                     (while (allout-ascend))
-                     (save-excursion
+                    (while (allout-ascend))
+                    (save-excursion
+                      (allout-unprotected
                        (allout-rebullet-topic-grunt (- adjust-to-depth
-						       subj-depth))
-                       (allout-depth))
-                     (if (setq more (not (bobp)))
-                         (progn (widen)
-                                (forward-char -1)
-                                (narrow-to-region subj-beg (point))))))
-                 ;; Preserve new bullet if it's a distinctive one, otherwise
-                 ;; use old one:
-                 (if (string-match (regexp-quote prefix-bullet)
-                                   allout-distinctive-bullets-string)
+                                                       subj-depth)))
+                      (allout-depth))
+                    (if (setq more (not (bobp)))
+                        (progn (widen)
+                               (forward-char -1)
+                               (narrow-to-region subj-beg (point))))))
+                ;; Preserve new bullet if it's a distinctive one, otherwise
+                ;; use old one:
+                (if (string-match (regexp-quote prefix-bullet)
+                                  allout-distinctive-bullets-string)
                                         ; Delete from bullet of old to
                                         ; before bullet of new:
-                     (progn
-                       (beginning-of-line)
-                       (delete-region (point) subj-beg)
-                       (set-marker (allout-mark-marker t) subj-end)
-                       (goto-char subj-beg)
-                       (allout-end-of-prefix))
+                    (progn
+                      (beginning-of-line)
+                      (allout-unprotected
+                       (delete-region (point) subj-beg))
+                      (set-marker (allout-mark-marker t) subj-end)
+                      (goto-char subj-beg)
+                      (allout-end-of-prefix))
                                         ; Delete base subj prefix,
                                         ; leaving old one:
-                   (delete-region (point) (+ (point)
-                                             prefix-len
-                                             (- adjust-to-depth subj-depth)))
+                  (allout-unprotected
+                   (progn
+                     (delete-region (point) (+ (point)
+                                               prefix-len
+                                               (- adjust-to-depth
+                                                  subj-depth)))
                                         ; and delete residual subj
                                         ; prefix digits and space:
-                   (while (looking-at "[0-9]") (delete-char 1))
-                   (if (looking-at " ") (delete-char 1))))
-             (exchange-point-and-mark))))
-     (if rectify-numbering
-         (progn
-           (save-excursion
+                     (while (looking-at "[0-9]") (delete-char 1))
+                     (if (looking-at " ") (delete-char 1))))))
+            (exchange-point-and-mark))))
+    (if rectify-numbering
+        (progn
+          (save-excursion
                                         ; Give some preliminary feedback:
-             (message "... reconciling numbers")
+            (message "... reconciling numbers")
                                         ; ... and renumber, in case necessary:
-             (goto-char subj-beg)
-             (if (allout-goto-prefix-doublechecked)
+            (goto-char subj-beg)
+            (if (allout-goto-prefix-doublechecked)
+                (allout-unprotected
                  (allout-rebullet-heading nil            ;;; solicit
-					  (allout-depth) ;;; depth
-					  nil            ;;; number-control
-					  nil            ;;; index
-					  t))
-             (message ""))))
-     (if (or into-bol resituate)
-         (allout-hide-by-annotation (point) (allout-mark-marker t))
-       (allout-remove-exposure-annotation (allout-mark-marker t) (point)))
-     (if (not resituate)
-         (exchange-point-and-mark))
-     (run-hook-with-args 'allout-structure-added-hook subj-beg subj-end))))
+                                          (allout-depth) ;;; depth
+                                          nil            ;;; number-control
+                                          nil            ;;; index
+                                          t)))
+            (message ""))))
+    (if (or into-bol resituate)
+        (allout-hide-by-annotation (point) (allout-mark-marker t))
+      (allout-deannotate-hidden (allout-mark-marker t) (point)))
+    (if (not resituate)
+        (exchange-point-and-mark))
+    (run-hook-with-args 'allout-structure-added-hook subj-beg subj-end)))
 ;;;_    > allout-yank (&optional arg)
 (defun allout-yank (&optional arg)
   "`allout-mode' yank, with depth and numbering adjustment of yanked topics.
@@ -5671,7 +5726,7 @@ If allout customization var `allout-passphrase-verifier-handling' is
 non-nil, an entry for `allout-passphrase-verifier-string' and its value is
 added to an Emacs 'local variables' section at the end of the file, which
 is created if necessary.  That setting is for retention of the passphrase
-verifier across emacs sessions.
+verifier across Emacs sessions.
 
 Similarly, `allout-passphrase-hint-string' stores a user-provided reminder
 about their passphrase, and `allout-passphrase-hint-handling' specifies
@@ -5711,7 +5766,7 @@ See `allout-toggle-current-subtree-encryption' for more details."
                        " shift it in to make it encryptable")))
 
     (let* ((allout-buffer (current-buffer))
-           ;; Asses location:
+           ;; Assess location:
            (bullet-pos allout-recent-prefix-beginning)
            (after-bullet-pos (point))
            (was-encrypted
@@ -5745,7 +5800,29 @@ See `allout-toggle-current-subtree-encryption' for more details."
                       '(symmetric nil)))
            (for-key-type (car key-info))
            (for-key-identity (cadr key-info))
-           (fetch-pass (and fetch-pass (member fetch-pass '(16 (16))))))
+           (fetch-pass (and fetch-pass (member fetch-pass '(16 (16)))))
+           (was-coding-system buffer-file-coding-system))
+
+      (when (not was-encrypted)
+        ;; ensure that non-ascii chars pending encryption are noticed before
+        ;; they're encrypted, so the coding system is set to accomodate
+        ;; them.
+        (setq buffer-file-coding-system
+              (select-safe-coding-system subtree-beg subtree-end))
+        ;; if the coding system for the text being encrypted is different
+        ;; than that prevailing, then there a real risk that the coding
+        ;; system can't be noticed by emacs when the file is visited.  to
+        ;; mitigate that, offer to preserve the coding system using a file
+        ;; local variable.
+        (if (and (not (equal buffer-file-coding-system
+                             was-coding-system))
+                 (yes-or-no-p
+                  (format (concat "Register coding system %s as file local"
+                                  " var?  Necessary when only encrypted text"
+                                  " is in that coding system. ")
+                          buffer-file-coding-system)))
+            (allout-adjust-file-variable "buffer-file-coding-system"
+                                         buffer-file-coding-system)))
 
       (setq result-text
             (allout-encrypt-string subject-text was-encrypted
@@ -5834,6 +5911,10 @@ Returns the resulting string, or nil if the transformation fails."
                                       target-prompt-id
                                     (or (buffer-file-name allout-buffer)
                                         target-prompt-id))))
+         (encoding (with-current-buffer allout-buffer
+                     buffer-file-coding-system))
+         (multibyte (with-current-buffer allout-buffer
+                     enable-multibyte-characters))
          (strip-plaintext-regexps
           (if (not decrypt)
               (allout-get-configvar-values
@@ -5869,6 +5950,13 @@ Returns the resulting string, or nil if the transformation fails."
         (with-temp-buffer
 
           (insert text)
+
+          ;; convey the text characteristics of the original buffer:
+          (set-buffer-multibyte multibyte)
+          (when encoding
+            (set-buffer-file-coding-system encoding)
+            (if (not decrypt)
+                (encode-coding-region (point-min) (point-max) encoding)))
 
           (when (and strip-plaintext-regexps (not decrypt))
             (dolist (re strip-plaintext-regexps)
@@ -6356,7 +6444,7 @@ setup for auto-startup."
 
   (save-excursion
     (goto-char (point-min))
-    (if (looking-at allout-regexp)
+    (if (allout-goto-prefix)
 	t
       (allout-open-topic 2)
       (insert (concat "Dummy outline topic header - see"
@@ -6393,7 +6481,7 @@ Returns list `(beginning-point prefix-string suffix-string)'."
   )
 ;;;_   > allout-adjust-file-variable (varname value)
 (defun allout-adjust-file-variable (varname value)
-  "Adjust the setting of an emacs file variable named VARNAME to VALUE.
+  "Adjust the setting of an Emacs file variable named VARNAME to VALUE.
 
 This activity is inhibited if either `enable-local-variables'
 `allout-enable-file-variable-adjustment' are nil.
@@ -6404,7 +6492,7 @@ variables, itself, is created if not already present.  When created, the
 section lines \(including the section line) exist as second-level topics in
 a top-level topic at the end of the file.
 
-enable-local-variables must be true for any of this to happen."
+`enable-local-variables' must be true for any of this to happen."
   (if (not (and enable-local-variables
                 allout-enable-file-variable-adjustment))
       nil

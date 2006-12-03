@@ -5816,7 +5816,7 @@ make_lispy_event (event)
 	position = make_lispy_position (f, &event->x, &event->y,
 					event->timestamp);
 
-	/* Set double or triple modifiers to indicate the wheel speed.	*/
+	/* Set double or triple modifiers to indicate the wheel speed.  */
 	{
 	  /* On window-system frames, use the value of
 	     double-click-fuzz as is.  On other frames, interpret it
@@ -5870,7 +5870,7 @@ make_lispy_event (event)
 
 	  if (event->modifiers & up_modifier)
 	    {
-	      /* Emit a wheel-up event.	 */
+	      /* Emit a wheel-up event.  */
 	      event->modifiers &= ~up_modifier;
 	      symbol_num = 0;
 	    }
@@ -5885,7 +5885,7 @@ make_lispy_event (event)
 	       the up_modifier set.  */
 	    abort ();
 
-	  /* Get the symbol we should use for the wheel event.	*/
+	  /* Get the symbol we should use for the wheel event.  */
 	  head = modify_event_symbol (symbol_num,
 				      event->modifiers,
 				      Qmouse_click,

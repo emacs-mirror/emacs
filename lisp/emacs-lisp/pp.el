@@ -161,7 +161,7 @@ Ignores leading comment characters."
     (set-syntax-table stab)
     (if arg
 	(insert (pp-to-string (eval exp)))
-      (pp-eval-expression exp))))
+      (pp-eval-expression (eval exp)))))
 
 ;;; Test cases for quote
 ;; (pp-eval-expression ''(quote quote))

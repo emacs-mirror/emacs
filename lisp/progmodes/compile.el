@@ -61,7 +61,7 @@
 
 ;; TYPE is 0 for info or 1 for warning if the message matcher identified it as
 ;; such, 2 otherwise (for a real error).  END-LOC is a LOC pointing to the
-;; other end, if the parsed message contained a range.	If the end of the
+;; other end, if the parsed message contained a range.  If the end of the
 ;; range didn't specify a COLUMN, it defaults to -1, meaning end of line.
 ;; These are the value of the `message' text-properties in the compilation
 ;; buffer.
@@ -397,7 +397,7 @@ be added."
 (defvar compilation-directory-matcher
   '("\\(?:Entering\\|Leavin\\(g\\)\\) directory `\\(.+\\)'$" (2 . 1))
   "A list for tracking when directories are entered or left.
-Nil means not to track directories, e.g. if all file names are absolute.  The
+If nil, do not track directories, e.g. if all file names are absolute.  The
 first element is the REGEXP matching these messages.  It can match any number
 of variants, e.g. different languages.  The remaining elements are all of the
 form (DIR .  LEAVE).  If for any one of these the DIR'th subexpression
@@ -499,7 +499,7 @@ This only affects platforms that support asynchronous processes (see
 
 ;; A weak per-compilation-buffer hash indexed by (FILENAME . DIRECTORY).  Each
 ;; value is a FILE-STRUCTURE as described above, with the car eq to the hash
-;; key.	 This holds the tree seen from root, for storing new nodes.
+;; key.  This holds the tree seen from root, for storing new nodes.
 (defvar compilation-locs ())
 
 (defvar compilation-debug nil
@@ -627,12 +627,12 @@ Faces `compilation-error-face', `compilation-warning-face',
       keymap compilation-button-map
       help-echo "mouse-2: visit this directory")))
 
-;; Data type `reverse-ordered-alist' retriever.	 This function retrieves the
+;; Data type `reverse-ordered-alist' retriever.  This function retrieves the
 ;; KEY element from the ALIST, creating it in the right position if not already
 ;; present. ALIST structure is
 ;; '(ANCHOR (KEY1 ...) (KEY2 ...)... (KEYn ALIST ...))
 ;; ANCHOR is ignored, but necessary so that elements can be inserted.  KEY1
-;; may be nil.	The other KEYs are ordered backwards so that growing line
+;; may be nil.  The other KEYs are ordered backwards so that growing line
 ;; numbers can be inserted in front and searching can abort after half the
 ;; list on average.
 (eval-when-compile		    ;Don't keep it at runtime if not needed.
@@ -1069,7 +1069,8 @@ Returns the compilation buffer created."
 	      ;; Set the EMACS variable, but
 	      ;; don't override users' setting of $EMACS.
 	      (unless (getenv "EMACS")
-		(list (concat "EMACS=" invocation-directory invocation-name)))
+		(list "EMACS=t"))
+	      (list "INSIDE_EMACS=t")
 	      (copy-sequence process-environment))))
 	(set (make-local-variable 'compilation-arguments)
 	     (list command mode name-function highlight-regexp))

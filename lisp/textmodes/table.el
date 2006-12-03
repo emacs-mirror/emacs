@@ -4692,7 +4692,7 @@ of line."
     (point)))
 
 (defun table--row-column-insertion-point-p (&optional columnp)
-  "Return non nil if it makes sense to insert a row or a column at point."
+  "Return non-nil if it makes sense to insert a row or a column at point."
   (and (not buffer-read-only)
        (or (get-text-property (point) 'table-cell)
 	   (let ((column (current-column)))

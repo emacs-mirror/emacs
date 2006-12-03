@@ -2143,27 +2143,35 @@ xic_create_xfontset (f, base_fontname)
   if (!xfs)
     {
       char *fontsetname = xic_create_fontsetname (base_fontname, False);
-      char *p0 = fontsetname, *p1;
 
       /* New fontset.  */
-      /* FONTSETNAME contains a list of font names (specific fonts
-	 first, general fonts last), but giving that to XCreateFontSet
-	 at once occasionally fails (bug of X?).  So, we try to call
-	 XCreateFontSet for each fontname.  */
-
-      while (p0)
+      xfs = XCreateFontSet (FRAME_X_DISPLAY (f),
+			    fontsetname, &missing_list,
+			    &missing_count, &def_string);
+      if (missing_list)
+	XFreeStringList (missing_list);
+      if (! xfs)
 	{
-	  p1 = strchr (p0, ',');
-	  if (p1)
-	    *p1 = '\0';
-	  xfs = XCreateFontSet (FRAME_X_DISPLAY (f),
-				p0, &missing_list,
-				&missing_count, &def_string);
-	  if (missing_list)
-	    XFreeStringList (missing_list);
-	  if (xfs)
-	    break;
-	  p0 = p1 ? p1 + 1 : NULL;
+	  /* FONTSETNAME contains a list of font names (specific fonts
+	     first, general fonts last), but giving that to
+	     XCreateFontSet at once occasionally fails (bug of X?).
+	     So, we try to call XCreateFontSet for each fontname.  */
+	  char *p0 = fontsetname, *p1;
+
+	  while (p0)
+	    {
+	      p1 = strchr (p0, ',');
+	      if (p1)
+		*p1 = '\0';
+	      xfs = XCreateFontSet (FRAME_X_DISPLAY (f),
+				    p0, &missing_list,
+				    &missing_count, &def_string);
+	      if (missing_list)
+		XFreeStringList (missing_list);
+	      if (xfs)
+		break;
+	      p0 = p1 ? p1 + 1 : NULL;
+	    }
 	}
       xfree (fontsetname);
     }

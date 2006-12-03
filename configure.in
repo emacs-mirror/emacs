@@ -237,6 +237,9 @@ case "${canonical}" in
     opsys=freebsd
     case "${canonical}" in
       alpha*-*-freebsd*)	machine=alpha ;;
+      ia64-*-freebsd*)		machine=ia64 ;;
+      sparc64-*-freebsd*)	machine=sparc ;;
+      powerpc-*-freebsd*)	machine=macppc ;;
       i[3456]86-*-freebsd*)	machine=intel386 ;;
       amd64-*-freebsd*|x86_64-*-freebsd*) machine=amdx86-64 ;;
     esac
@@ -1482,6 +1485,16 @@ dnl Do this early because it can frob feature test macros for Unix-98 &c.
 AC_SYS_LARGEFILE
 
 
+### The standard library on x86-64 GNU/Linux distributions can 
+### be located in either /usr/lib64 or /usr/lib.
+case "${canonical}" in
+  x86_64-*-linux-gnu* )
+    if test -d /usr/lib64; then
+      AC_DEFINE(HAVE_X86_64_LIB64_DIR, 1,
+        [Define to 1 if the file /usr/lib64 exists.])
+fi
+esac
+
 dnl This function defintion taken from Gnome 2.0
 dnl PKG_CHECK_MODULES(GSTUFF, gtk+-2.0 >= 1.3 glib = 1.3.4, action-if, action-not)
 dnl defines GSTUFF_LIBS, GSTUFF_CFLAGS, see pkg-config man page
@@ -1776,7 +1789,13 @@ fi
 if test "${window_system}" = x11 && test "${HAVE_CARBON}" = yes; then
   if test "${with_carbon+set}" != set \
      && test "${carbon_appdir_x+set}" != set; then
-    HAVE_CARBON=no
+    for var in with_x with_x_toolkit with_gtk with_xim \
+               with_xpm with_jpeg with_tiff with_gif with_png; do
+      if eval test \"\${$var+set}\" = set; then
+        HAVE_CARBON=no
+        break
+      fi
+    done
   fi
 fi
 if test "${HAVE_CARBON}" = yes; then
@@ -2410,15 +2429,6 @@ if test "${HAVE_CARBON}" = "yes"; then
   fi
   # We also have mouse menus.
   HAVE_MENUS=yes
-
-  tmp_CFLAGS="$CFLAGS"
-  CFLAGS="$CFLAGS -framework Carbon"
-  AC_CHECK_FUNC(CancelMenuTracking, have_cmt=yes, have_cmt=no)
-  if test "$have_cmt" = yes; then
-    AC_DEFINE(HAVE_CANCELMENUTRACKING, 1,
-              [Define to 1 if CancelMenuTracking is available (Mac OSX).])
-  fi
-  CFLAGS="$tmp_CFLAGS"
 fi
 
 ### Use session management (-lSM -lICE) if available

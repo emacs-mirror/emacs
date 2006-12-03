@@ -3,7 +3,7 @@
 ;; Copyright (C) 2002, 2003, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
-;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?EmacsIRCClient
+;; URL: http://www.emacswiki.org/cgi-bin/wiki/ERC
 
 ;; This file is part of GNU Emacs.
 

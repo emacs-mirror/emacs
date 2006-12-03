@@ -1,3 +1,13 @@
+2006-11-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* admin.el (set-version): Set version number in
+	lib-src/makefile.w32-in.
+
+2006-11-06  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* FOR-RELEASE (BUGS): Remove "Build failure under Suse 10.0" was
+	due to a local miss-configuration.
+
 2006-10-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* make-announcement (OLD): Remove LEIM references in announcement
@@ -387,6 +397,7 @@
 
 ;; Local Variables:
 ;; coding: iso-2022-7bit
+;; add-log-time-zone-rule: t
 ;; End:
 
     Copyright (C) 2001 Free Software Foundation, Inc.

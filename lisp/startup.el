@@ -290,7 +290,8 @@ from being initialized."
 
 (defvar init-file-debug nil)
 
-(defvar init-file-had-error nil)
+(defvar init-file-had-error nil
+  "Non-nil if there was an error loading the user's init file.")
 
 (defvar normal-top-level-add-subdirs-inode-list nil)
 
@@ -1133,8 +1134,16 @@ Getting New Versions\tHow to obtain the latest version of Emacs
 More Manuals / Ordering Manuals       Buying printed manuals from the FSF\n")
   (:face (variable-pitch :weight bold)
 	 "Useful File menu items:\n"
-	 :face variable-pitch "\
-Exit Emacs\t\t(Or type Control-x followed by Control-c)
+	 :face variable-pitch
+	 "Exit Emacs\t\t(Or type "
+	 :face default
+	 "Control-x"
+	 :face variable-pitch
+	 " followed by "
+	 :face default
+	 "Control-c"
+	 :face variable-pitch
+	 ")
 Recover Crashed Session\tRecover files you were editing before a crash
 
 
@@ -1249,16 +1258,19 @@ where FACE is a valid face specification, as it can be used with
    :face 'variable-pitch
    "You can do basic editing with the menu bar and scroll bar \
 using the mouse.\n\n")
-  (if fancy-splash-outer-buffer
-      (fancy-splash-insert
-       :face 'variable-pitch
-       (substitute-command-keys
-	(concat
-	 "Type \\[recenter] to begin editing"
-	 (if (equal (buffer-name fancy-splash-outer-buffer)
-		    "*scratch*")
-	     ".\n"
-	   " your file.\n"))))))
+  (when fancy-splash-outer-buffer
+    (fancy-splash-insert
+     :face 'variable-pitch
+     "Type "
+     :face 'default
+     (substitute-command-keys
+      "\\[recenter]")
+     :face 'variable-pitch
+     " to begin editing"
+     (if (equal (buffer-name fancy-splash-outer-buffer)
+		"*scratch*")
+	 ".\n"
+       " your file.\n"))))
 
 (defun fancy-splash-tail ()
   "Insert the tail part of the splash screen into the current buffer."
@@ -1285,7 +1297,11 @@ using the mouse.\n\n")
 	  t)
 	 (fancy-splash-insert :face '(variable-pitch :foreground "red")
 			      "\n\nIf an Emacs session crashed recently, "
-			      "type Meta-x recover-session RET\nto recover"
+			      "type "
+			      :face '(fixed-pitch :foreground "red")
+			      "Meta-x recover-session RET"
+			      :face '(variable-pitch :foreground "red")
+			      "\nto recover"
 			      " the files you were editing."))))
 
 (defun fancy-splash-screens-1 (buffer)
@@ -1350,7 +1366,7 @@ mouse."
 	    timer)
 	(save-selected-window
 	  (select-frame frame)
-	  (switch-to-buffer "GNU Emacs")
+	  (switch-to-buffer " GNU Emacs")
 	  (setq splash-buffer (current-buffer))
 	  (catch 'stop-splashing
 	    (unwind-protect
@@ -1879,7 +1895,12 @@ With a prefix argument, any user input hides the splash screen."
                          (setq line 0)
                          (unless (< column 1)
                            (move-to-column (1- column)))
-                         (setq column 0))))))))
+                         (setq column 0))))))
+	  ;; In unusual circumstances, the execution of Lisp code due
+	  ;; to command-line options can cause the last visible frame
+	  ;; to be deleted.  In this case, kill emacs to avoid an
+	  ;; abort later.
+	  (unless (frame-live-p (selected-frame)) (kill-emacs nil))))
 
       ;; If 3 or more files visited, and not all visible,
       ;; show user what they all are.  But leave the last one current.

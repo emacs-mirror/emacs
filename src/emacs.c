@@ -2055,7 +2055,7 @@ sort_args (argc, argv)
 DEFUN ("kill-emacs", Fkill_emacs, Skill_emacs, 0, 1, "P",
        doc: /* Exit the Emacs job and kill it.
 If ARG is an integer, return ARG as the exit program code.
-If ARG is a  string, stuff it as keyboard input.
+If ARG is a string, stuff it as keyboard input.
 
 The value of `kill-emacs-hook', if not void,
 is a list of functions (of no args),

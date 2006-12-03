@@ -280,7 +280,7 @@ epaths-force: FRC
 	  -e 's;/[*] *arch-tag:.*;/*;') &&		\
 	${srcdir}/move-if-change epaths.h.$$$$ src/epaths.h
 
-# For parallel make, src should be build before leim.
+# For parallel make, src should be built before leim.
 # "export PARALLEL=0" is for SGI's Make, to prevent it from
 # running more than 1 process in the leim directory, especially for
 # the $TIT files there.
@@ -518,7 +518,7 @@ install-arch-indep: mkdir info
 	     ${INSTALL_INFO} --info-dir=$(DESTDIR)${infodir} $(DESTDIR)${infodir}/$$elt); \
 	  done; \
 	else true; fi
-	-chmod -R a+r $(DESTDIR)${datadir}/emacs ${COPYDESTS} $(DESTDIR)${infodir}
+	-chmod -R a+r $(DESTDIR)${datadir}/emacs/${version} $(DESTDIR)${datadir}/emacs/site-lisp ${COPYDESTS} $(DESTDIR)${infodir}
 	thisdir=`/bin/pwd`; \
 	cd ${srcdir}/etc; \
 	for page in emacs emacsclient etags ctags ; do \
@@ -790,6 +790,7 @@ bootstrap-build: FRC
 ### Used for `bootstrap' to avoid deleting existing dumped Emacs executables.
 bootstrap-clean-before: bootstrap-clean-before-fast FRC
 	(cd lisp;     $(MAKE) $(MFLAGS) bootstrap-clean)
+	(cd leim;     $(MAKE) $(MFLAGS) bootstrap-clean)
 
 ### Used for `bootfast' to avoid deleting existing dumped Emacs executables
 ### and compiled .elc files.

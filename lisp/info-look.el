@@ -250,10 +250,10 @@ system."
 ;;;###autoload
 (defun info-lookup-symbol (symbol &optional mode)
   "Display the definition of SYMBOL, as found in the relevant manual.
-When this command is called interactively, it reads SYMBOL from the minibuffer.
-In the minibuffer, use M-n to yank the default argument value
-into the minibuffer so you can edit it.
-The default symbol is the one found at point.
+When this command is called interactively, it reads SYMBOL from the
+minibuffer.  In the minibuffer, use M-n to yank the default argument
+value into the minibuffer so you can edit it.  The default symbol is the
+one found at point.
 
 With prefix arg a query for the symbol help mode is offered."
   (interactive
@@ -566,6 +566,45 @@ Return nil if there is nothing appropriate in the buffer near point."
 	       (concat prefix name))))
     (error nil)))
 
+(defun info-lookup-guess-custom-symbol ()
+  "Get symbol at point in custom buffers."
+  (condition-case nil
+      (save-excursion
+	(let ((case-fold-search t)
+	      (ignored-chars "][()`',:.\" \t\n")
+	      (significant-chars "^][()`',:.\" \t\n")
+	      beg end)
+	  (cond
+	   ((and (memq (get-char-property (point) 'face)
+			 '(custom-variable-tag custom-variable-tag-face))
+		   (setq beg (previous-single-char-property-change
+			      (point) 'face nil (line-beginning-position)))
+		   (setq end (next-single-char-property-change
+			      (point) 'face nil (line-end-position)))
+		   (> end beg))
+	    (subst-char-in-string
+	     ?\s ?\- (buffer-substring-no-properties beg end)))
+	   ((or (and (looking-at (concat "[" significant-chars "]"))
+		     (save-excursion
+		       (skip-chars-backward significant-chars)
+		       (setq beg (point)))
+		     (skip-chars-forward significant-chars)
+		     (setq end (point))
+		     (> end beg))
+		(and (looking-at "[ \t\n]")
+		     (looking-back (concat "[" significant-chars "]"))
+		     (setq end (point))
+		     (skip-chars-backward significant-chars)
+		     (setq beg (point))
+		     (> end beg))
+		(and (skip-chars-forward ignored-chars)
+		     (setq beg (point))
+		     (skip-chars-forward significant-chars)
+		     (setq end (point))
+		     (> end beg)))
+	    (buffer-substring-no-properties beg end)))))
+    (error nil)))
+
 ;;;###autoload
 (defun info-complete-symbol (&optional mode)
   "Perform completion on symbol preceding point."
@@ -789,7 +828,7 @@ Return nil if there is nothing appropriate in the buffer near point."
 
 (info-lookup-maybe-add-help
  :mode 'emacs-lisp-mode
- :regexp "[^][()'\" \t\n]+"
+ :regexp "[^][()`',\" \t\n]+"
  :doc-spec '(;; Commands with key sequences appear in nodes as `foo' and
              ;; those without as `M-x foo'.
              ("(emacs)Command Index"  nil "`\\(M-x[ \t\n]+\\)?" "'")
@@ -806,13 +845,13 @@ Return nil if there is nothing appropriate in the buffer near point."
 
 (info-lookup-maybe-add-help
  :mode 'lisp-interaction-mode
- :regexp "[^][()'\" \t\n]+"
+ :regexp "[^][()`',\" \t\n]+"
  :parse-rule 'ignore
  :other-modes '(emacs-lisp-mode))
 
 (info-lookup-maybe-add-help
  :mode 'lisp-mode
- :regexp "[^()'\" \t\n]+"
+ :regexp "[^()`',\" \t\n]+"
  :parse-rule 'ignore
  :other-modes '(emacs-lisp-mode))
 
@@ -913,6 +952,18 @@ Return nil if there is nothing appropriate in the buffer near point."
 	      ;; This gets functions in evaluated classes.  Other
 	      ;; possible patterns don't seem to work too well.
 	      "`" "(")))
+
+(info-lookup-maybe-add-help
+ :mode 'custom-mode
+ :ignore-case t
+ :regexp "[^][()`',:\" \t\n]+"
+ :parse-rule 'info-lookup-guess-custom-symbol
+ :other-modes '(emacs-lisp-mode))
+
+(info-lookup-maybe-add-help
+ :mode 'help-mode
+ :regexp "[^][()`',:\" \t\n]+"
+ :other-modes '(emacs-lisp-mode))
 
 (provide 'info-look)
 

@@ -632,6 +632,7 @@ echo "Making links to \`info'"
 echo "Making links to \`man'"
 (cd man
  ln *.texi *.aux *.cps *.fns *.kys *.vrs ../${tempdir}/man
+ ln makefile.w32-in ../${tempdir}/man
  test -f README && ln README ../${tempdir}/man
  test -f Makefile.in && ln Makefile.in ../${tempdir}/man
  ln ChangeLog ../${tempdir}/man
@@ -646,6 +647,7 @@ echo "Making links to \`lispref'"
  ln `ls -1 *.texi` ../${tempdir}/lispref
  ln *.aux *.cps *.fns *.kys *.vrs ../${tempdir}/lispref
  ln *.txt *.el spellfile tindex.pl ../${tempdir}/lispref
+ ln makefile.w32-in ../${tempdir}/lispref
  test -f README && ln README ../${tempdir}/lispref
  test -f Makefile.in && ln Makefile.in ../${tempdir}/lispref
  ln ChangeLog ../${tempdir}/lispref
@@ -656,6 +658,7 @@ echo "Making links to \`lispref'"
 echo "Making links to \`lispintro'"
 (cd lispintro
  ln *.texi *.aux *.cps *.fns *.kys *.vrs *.eps ../${tempdir}/lispintro
+ ln makefile.w32-in ../${tempdir}/lispintro
  test -f texinfo.tex && ln texinfo.tex ../${tempdir}/lispintro
  test -f README && ln README ../${tempdir}/lispintro
  test -f Makefile.in && ln Makefile.in ../${tempdir}/lispintro

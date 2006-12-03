@@ -1689,7 +1689,7 @@ Lisp_Object Vminibuffer_completing_file_name;
 DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 8, 0,
        doc: /* Read a string in the minibuffer, with completion.
 PROMPT is a string to prompt with; normally it ends in a colon and a space.
-TABLE can be an list of strings, an alist, an obarray or a hash table.
+TABLE can be a list of strings, an alist, an obarray or a hash table.
 TABLE can also be a function to do the completion itself.
 PREDICATE limits completion to a subset of TABLE.
 See `try-completion' and `all-completions' for more details

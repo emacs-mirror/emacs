@@ -6,7 +6,7 @@
 ;;          Carsten Dominik <dominik@science.uva.nl>
 ;;          Chris Chase <chase@att.com>
 ;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
-;; Version: 6.0_em22
+;; Version: 6.1_em22
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
@@ -1393,7 +1393,7 @@ Normally a space.")
   "Character which is inserted as a last character on previous line by
    \\[idlwave-split-line] to begin a continuation line.  Normally $.")
 
-(defconst idlwave-mode-version "6.0_em22")
+(defconst idlwave-mode-version "6.1_em22")
 
 (defmacro idlwave-keyword-abbrev (&rest args)
   "Creates a function for abbrev hooks to call `idlwave-check-abbrev' with args."
@@ -1595,7 +1595,8 @@ Capitalize system variables - action only
 (define-key idlwave-mode-map "\C-c\C-t"   'idlwave-find-module-this-file)
 (define-key idlwave-mode-map "\C-c?"      'idlwave-routine-info)
 (define-key idlwave-mode-map "\M-?"       'idlwave-context-help)
-(define-key idlwave-mode-map [(control meta ?\?)] 'idlwave-online-help)
+(define-key idlwave-mode-map [(control meta ?\?)] 
+  'idlwave-help-assistant-help-with-topic)
 ;; Pickup both forms of Esc/Meta binding
 (define-key idlwave-mode-map [(meta tab)] 'idlwave-complete)
 (define-key idlwave-mode-map [?\e?\t] 'idlwave-complete)
@@ -1779,7 +1780,7 @@ idlwave-mode-abbrev-table unless TABLE is non-nil."
 
 ;;;###autoload
 (defun idlwave-mode ()
-  "Major mode for editing IDL source files (version 6.0_em22).
+  "Major mode for editing IDL source files (version 6.1_em22).
 
 The main features of this mode are
 
@@ -1940,11 +1941,15 @@ The main features of this mode are
   (set (make-local-variable 'paragraph-ignore-fill-prefix) nil)
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
 
+  ;; ChangeLog
+  (set (make-local-variable 'add-log-current-defun-function) 
+       'idlwave-current-routine-fullname)
+
   ;; Set tag table list to use IDLTAGS as file name.
   (if (boundp 'tag-table-alist)
       (add-to-list 'tag-table-alist '("\\.pro$" . "IDLTAGS")))
 
-  ;; Font-lock additions - originally Phil Williams, then Ulrik Dickow
+  ;; Font-lock additions
   ;; Following line is for Emacs - XEmacs uses the corresponding property
   ;; on the `idlwave-mode' symbol.
   (set (make-local-variable 'font-lock-defaults) idlwave-font-lock-defaults)
@@ -1969,7 +1974,6 @@ The main features of this mode are
 		     ";"
 		     'idlwave-forward-block nil))
 
-
   ;; Make a local post-command-hook and add our hook to it
   ;; NB: `make-local-hook' needed for older/alternative Emacs compatibility
   ;; (make-local-hook 'post-command-hook)
@@ -1980,7 +1984,7 @@ The main features of this mode are
   ;; (make-local-hook 'kill-buffer-hook)
   (add-hook 'kill-buffer-hook 'idlwave-kill-buffer-update nil 'local)
   ;; (make-local-hook 'after-save-hook)
-  ;; (add-hook 'after-save-hook 'idlwave-save-buffer-update nil 'local)
+  (add-hook 'after-save-hook 'idlwave-save-buffer-update nil 'local)
   (add-hook 'after-save-hook 'idlwave-revoke-license-to-kill nil 'local)
 
   ;; Setup directories and file, if necessary
@@ -2521,6 +2525,10 @@ The marks are pushed."
 		(message "Could not find end of doc library header.")))
 	  (message "Could not find doc library header start.")
 	  (goto-char here)))))
+
+(defun idlwave-current-routine-fullname ()
+  (let ((name (idlwave-current-routine)))
+    (idlwave-make-full-name (nth 2 name) (car name))))
 
 (defun idlwave-current-routine ()
   "Return (NAME TYPE CLASS) of current routine."
@@ -3478,8 +3486,6 @@ if `idlwave-auto-fill-split-string' is non-nil."
 	  (idlwave-indent-line)
 	  ;; Prevent actions do-auto-fill which calls indent-line-function.
 	  (let (idlwave-do-actions
-		(paragraph-start ".")
-		(paragraph-separate ".")
 		(fill-nobreak-predicate
 		 (if (and (idlwave-in-quote)
 			  idlwave-auto-fill-split-string)
@@ -3650,6 +3656,7 @@ location on mark ring so that the user can return to previous point."
 	  (insert "\n;\n;\t")
 	  (run-hooks 'idlwave-timestamp-hook))
       (error "No valid DOCLIB header"))))
+
 
 ;;; CJC 3/16/93
 ;;; Interface to expand-region-abbrevs which did not work when the
@@ -4387,7 +4394,7 @@ Does not run after automatic updates of buffer or the shell.")
   (idlwave-update-routine-info '(16)))
 
 (defun idlwave-rescan-asynchronously ()
-  "Dispatch another emacs instance to update the idlwave catalog.
+  "Dispatch another Emacs instance to update the idlwave catalog.
 After the process finishes normally, the first access to routine info
 will re-read the catalog."
   (interactive)
@@ -4892,19 +4899,14 @@ Cache to disk for quick recovery."
 	 (elem-cnt 0)
 	 props rinfo msg-cnt elem type nelem class-result alias
 	 routines routine-aliases statement-aliases sysvar-aliases
-	 buf version-string)
+	 version-string)
     (if (not (file-exists-p catalog-file))
 	(error "No such XML routine info file: %s" catalog-file)
       (if (not (file-readable-p catalog-file))
 	  (error "Cannot read XML routine info file: %s" catalog-file)))
     (require 'xml)
     (message "Reading XML routine info...")
-    (unwind-protect
-	(progn
-	  ;; avoid warnings about read-only files
-	  (setq buf (find-file-noselect catalog-file 'nowarn))
-	  (setq rinfo (xml-parse-file catalog-file)))
-      (if (bufferp buf) (kill-buffer buf)))
+    (setq rinfo (xml-parse-file catalog-file))
     (message "Reading XML routine info...done")
     (setq rinfo (assq 'CATALOG rinfo))
     (unless rinfo (error "Failed to parse XML routine info"))
@@ -7713,7 +7715,7 @@ property indicating the link is added."
      ((eq mode 'set)
       (if entry
 	  (setq link
-		(if (setq target (cdr (assoc word tags)))
+		(if (setq target (cdr (assoc-string word tags t)))
 		  (idlwave-substitute-link-target main target)
 		main)))) ;; setting dynamic!!!
      (t (error "This should not happen")))))
@@ -7762,8 +7764,7 @@ property indicating the link is added."
 (defun idlwave-class-or-superclass-with-tag (class tag)
   "Find and return the CLASS or one of its superclass with the
 associated TAG, if any."
-  (let ((sclasses (cons class (cdr (assq 'all-inherits
-					 (idlwave-class-info class)))))
+  (let ((sclasses (cons class (idlwave-all-class-inherits class)))
 	cl)
    (catch 'exit
      (while sclasses
@@ -9231,6 +9232,8 @@ Assumes that point is at the beginning of the unit as found by
      "--"
      ["Info" idlwave-info t]
      "--"
+     ["Help with Topic" idlwave-help-assistant-help-with-topic 
+      idlwave-help-use-assistant]
      ["Launch IDL Help" idlwave-launch-idlhelp t])))
 
 (defvar idlwave-mode-debug-menu-def

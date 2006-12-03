@@ -20,22 +20,17 @@
 #  Boston, MA 02110-1301, USA.
 #
 
-ALL = make-docfile hexl ctags etags movemail ebrowse sorted-doc digest-doc
+ALL = make-docfile hexl ctags etags movemail ebrowse sorted-doc digest-doc emacsclient
 
 .PHONY: $(ALL)
 
+VERSION		= 22.0.91
+
 LOCAL_FLAGS	= -DWINDOWSNT -DDOS_NT -DSTDC_HEADERS=1 -DNO_LDAV=1 \
 		  -DNO_ARCHIVES=1 -DHAVE_CONFIG_H=1 -I../nt/inc \
-                  -I../src
+		  -I../src
 
-# don't know what (if) to do with these yet...
-#
-#		$(BLD)/server.exe	\
-#		$(BLD)/emacstool.exe	\
-#		$(BLD)/emacsclient.exe	\
-#		$(BLD)/cvtmail.exe	\
-
-LIBS	      = $(BASE_LIBS) $(ADVAPI32)
+LIBS 		= $(BASE_LIBS) $(ADVAPI32)
 
 $(BLD)/make-docfile.exe: 	$(BLD)/make-docfile.$(O) $(BLD)/ntlib.$(O)
 		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(BLD)/make-docfile.$(O) $(BLD)/ntlib.$(O) $(LIBS)
@@ -59,6 +54,7 @@ movemail:	$(BLD) $(BLD)/movemail.exe
 fakemail:	$(BLD) $(BLD)/fakemail.exe
 sorted-doc:	$(BLD) $(BLD)/sorted-doc.exe
 digest-doc:	$(BLD) $(BLD)/digest-doc.exe
+emacsclient:	$(BLD) $(BLD)/emacsclient.exe $(BLD)/emacsclientw.exe
 
 test-distrib:	$(BLD) $(BLD)/test-distrib.exe
 	"$(BLD)/test-distrib.exe" "$(SRC)/testfile"
@@ -74,6 +70,29 @@ $(BLD)/movemail.exe:	$(MOVEMAILOBJS) getopt.h
 # put wsock32.lib before $(LIBS) to ensure we don't link to ws2_32.lib
 		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(MOVEMAILOBJS) $(WSOCK32) $(LIBS)
 
+ECLIENT_CFLAGS = -DHAVE_GETCWD -DHAVE_STRERROR -DVERSION="\"$(VERSION)\""
+ECLIENTOBJS =	$(BLD)/emacsclient.$(O) \
+		$(BLD)/getopt.$(O) \
+		$(BLD)/getopt1.$(O) \
+		$(BLD)/ntlib.$(O)
+TRES =		../nt/$(BLD)/emacs.res
+
+$(TRES):	../nt/emacs.rc
+		$(RC) $(RC_OUT)../nt/$(BLD)/emacs.res $(ALL_DEPS)
+
+$(BLD)/emacsclient.exe:		$(ECLIENTOBJS)
+# put wsock32.lib before $(LIBS) to ensure we don't link to ws2_32.lib
+		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(ECLIENTOBJS) $(WSOCK32) $(LIBS)
+
+$(BLD)/emacsclientw.exe:	$(ECLIENTOBJS) $(TRES)
+# put wsock32.lib before $(LIBS) to ensure we don't link to ws2_32.lib
+		$(LINK) $(LINK_OUT)$@ $(TRES) -mwindows $(LINK_FLAGS) $(ECLIENTOBJS) $(WSOCK32) $(LIBS)
+
+# emacsclient.$(O) depends on makefile.w32-in because makefile.w32-in
+# can be edited to define VERSION string, which is part of ECLIENT_CFLAGS.
+$(BLD)/emacsclient.$(O):	emacsclient.c makefile.w32-in
+		$(CC) $(CFLAGS) $(ECLIENT_CFLAGS) $(CC_OUT)$@ emacsclient.c
+
 ETAGSOBJ      = $(BLD)/etags.$(O) \
 		$(BLD)/getopt.$(O) \
 		$(BLD)/getopt1.$(O) \
@@ -85,9 +104,9 @@ $(BLD)/etags.exe: 	$(ETAGSOBJ)
 
 
 EBROWSEOBJ    = $(BLD)/ebrowse.$(O) \
-                $(BLD)/getopt.$(O) \
-                $(BLD)/getopt1.$(O) \
-                $(BLD)/ntlib.$(O)
+		$(BLD)/getopt.$(O) \
+		$(BLD)/getopt1.$(O) \
+		$(BLD)/ntlib.$(O)
 
 $(BLD)/ebrowse.exe:     $(EBROWSEOBJ)
 		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(EBROWSEOBJ) $(LIBS)
@@ -116,14 +135,6 @@ ctags.c:	etags.c
 CTAGS_CFLAGS  = -DCTAGS $(ETAGS_CFLAGS)
 $(BLD)/ctags.$(O): ctags.c
 		$(CC) $(CFLAGS) $(CTAGS_CFLAGS) $(CC_OUT)$@ ctags.c
-
-#
-# don't know what to do with these yet...
-#
-# $(BLD)/emacstool.exe: 	$(BLD)/emacstool.$(O)
-# $(BLD)/server.exe: 		$(BLD)/server.$(O)
-# $(BLD)/cvtmail.exe: 		$(BLD)/cvtmail.$(O)
-# $(BLD)/emacsclient.exe: 	$(BLD)/emacsclient.$(O)
 
 #
 # From ..\src\Makefile.in
@@ -263,6 +274,15 @@ lisp2 = \
 	$(lispsource)window.elc \
 	$(lispsource)version.el
 
+# This is needed the first time we build the tree, since temacs.exe
+# does not exist yet, and the DOC rule needs it to rebuild DOC whenever
+# Emacs is rebuilt.
+../src/$(BLD)/temacs.exe:
+	- mkdir "../src/$(OBJDIR)"
+	- mkdir "../src/$(BLD)"
+	@echo temacs > temacs.exe
+	$(CP) temacs.exe ../src/$(BLD)
+	- $(DEL) temacs.exe
 
 DOC	      = DOC
 $(DOC):		$(BLD) $(BLD)/make-docfile.exe ../src/$(BLD)/temacs.exe $(lisp1) $(lisp2)
@@ -296,6 +316,8 @@ install:	$(INSTALL_FILES)
 		$(CP) $(BLD)/movemail.exe $(INSTALL_DIR)/bin
 		$(CP) $(BLD)/sorted-doc.exe $(INSTALL_DIR)/bin
 		$(CP) $(BLD)/digest-doc.exe $(INSTALL_DIR)/bin
+		$(CP) $(BLD)/emacsclient.exe $(INSTALL_DIR)/bin
+		$(CP) $(BLD)/emacsclientw.exe $(INSTALL_DIR)/bin
 		- mkdir "$(INSTALL_DIR)/etc"
 		$(CP) $(DOC) $(INSTALL_DIR)/etc
 
@@ -351,9 +373,6 @@ $(BLD)/ctags.$(O) : \
 	$(SRC)/ntlib.h \
 	$(SRC)/getopt.h
 
-$(BLD)/cvtmail.$(O) : \
-	$(SRC)/cvtmail.c
-
 $(BLD)/digest-doc.$(O) : \
 	$(SRC)/digest-doc.c
 
@@ -362,10 +381,6 @@ $(BLD)/emacsclient.$(O) : \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/lib-src/../src/config.h
-
-$(BLD)/emacstool.$(O) : \
-	$(SRC)/emacstool.c \
-	$(EMACS_ROOT)/nt/inc/sys/file.h
 
 $(BLD)/etags.$(O) : \
 	$(SRC)/etags.c \
@@ -428,7 +443,7 @@ $(BLD)/movemail.$(O) : \
 	$(EMACS_ROOT)/lib-src/../src/syswait.h \
 	$(EMACS_ROOT)/nt/inc/pwd.h \
 	$(SRC)/ntlib.h
-		$(CC) $(CFLAGS) -DUSG $(CC_OUT)$@ movemail.c
+	$(CC) $(CFLAGS) -DUSG $(CC_OUT)$@ movemail.c
 
 $(BLD)/ntlib.$(O) : \
 	$(SRC)/ntlib.c \
