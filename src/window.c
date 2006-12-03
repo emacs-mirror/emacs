@@ -3353,7 +3353,7 @@ set_window_buffer (window, buffer, run_hooks_p, keep_margins_p)
 
 #ifdef HAVE_WINDOW_SYSTEM
   BLOCK_INPUT;
-  if (f && FRAME_X_OUTPUT (f)
+  if (f && FRAME_WINDOW_P (f) && FRAME_X_OUTPUT (f)
       && (dpyinfo = FRAME_X_DISPLAY_INFO (f))
       && EQ (window, dpyinfo->mouse_face_window))
     clear_mouse_face (dpyinfo);
