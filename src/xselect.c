@@ -964,6 +964,12 @@ x_handle_selection_request (event)
       Atom type;
       int nofree;
 
+      if (CONSP (converted_selection) && NILP (XCDR (converted_selection)))
+        {
+          x_decline_selection_request (event);
+          goto DONE2;
+        }
+
       lisp_data_to_selection_data (SELECTION_EVENT_DISPLAY (event),
 				   converted_selection,
 				   &data, &type, &size, &format, &nofree);
@@ -979,6 +985,8 @@ x_handle_selection_request (event)
       if (!nofree)
 	xfree (data);
     }
+
+ DONE2:
   unbind_to (count, Qnil);
 
  DONE:

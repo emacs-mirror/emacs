@@ -1969,6 +1969,13 @@ Repeating the command scrolls the completion window."
 
 ;;;; Skeletons
 
+(defcustom python-use-skeletons nil
+  "Non-nil means template skeletons will be automagically inserted.
+This happens when pressing \"if<SPACE>\", for example, to prompt for
+the if condition."
+  :type 'boolean
+  :group 'python)
+
 (defvar python-skeletons nil
   "Alist of named skeletons for Python mode.
 Elements are of the form (NAME . EXPANDER-FUNCTION).")
@@ -1986,7 +1993,8 @@ The default contents correspond to the elements of `python-skeletons'.")
 	 (function (intern (concat "python-insert-" name))))
     `(progn
        (add-to-list 'python-skeletons ',(cons name function))
-       (define-abbrev python-mode-abbrev-table ,name "" ',function nil t)
+       (if python-use-skeletons
+	   (define-abbrev python-mode-abbrev-table ,name "" ',function nil t))
        (define-skeleton ,function
 	 ,(format "Insert Python \"%s\" template." name)
 	 ,@elements)))))

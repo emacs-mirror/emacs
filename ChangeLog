@@ -1,3 +1,29 @@
+2006-10-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* README: Bump version number to 22.0.90.
+
+	* AUTHORS: Regenerate.
+
+	* configure: Regenerate.
+
+2006-10-23  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* viper-cmd.el (viper-prefix-arg-com): define gg as G0
+	
+	* viper-ex.el (ex-read): quote file argument.
+	
+	* ediff-diff.el (ediff-same-file-contents): expand file names.
+	
+	* ediff-mult.el (ediff-append-custom-diff): quote shell file arguments.
+	
+2006-10-23  Andreas Schwab  <schwab@suse.de>
+
+	* configure.in: Make sure x_default_search_path is always set even
+	when x_libraries is empty, and look in .../share as well for each
+	library directory.
+
+	* configure: Regenerate.
+
 2006-10-03  Kim F. Storm  <storm@cua.dk>
 
 	* AUTHORS: Regenerate.

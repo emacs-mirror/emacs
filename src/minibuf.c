@@ -133,7 +133,8 @@ int minibuffer_auto_raise;
 
 static Lisp_Object last_exact_completion;
 
-extern Lisp_Object Voverriding_local_map;
+/* Keymap for reading expressions.  */
+Lisp_Object Vread_expression_map;
 
 Lisp_Object Quser_variable_p;
 
@@ -142,6 +143,10 @@ Lisp_Object Qminibuffer_default;
 Lisp_Object Qcurrent_input_method, Qactivate_input_method;
 
 Lisp_Object Qcase_fold_search;
+
+Lisp_Object Qread_expression_history;
+
+extern Lisp_Object Voverriding_local_map;
 
 extern Lisp_Object Qmouse_face;
 
@@ -1046,7 +1051,9 @@ arguments are used as in `read-from-minibuffer'.)  */)
      (prompt, initial_contents)
      Lisp_Object prompt, initial_contents;
 {
-  return Feval (Fread_minibuffer (prompt, initial_contents));
+  return Feval (read_minibuf (Vread_expression_map, initial_contents,
+			      prompt, Qnil, 1, Qread_expression_history,
+			      make_number (0), Qnil, 0, 0));
 }
 
 /* Functions that use the minibuffer to read various things. */
@@ -2814,6 +2821,9 @@ syms_of_minibuf ()
   Qcase_fold_search = intern ("case-fold-search");
   staticpro (&Qcase_fold_search);
 
+  Qread_expression_history = intern ("read-expression-history");
+  staticpro (&Qread_expression_history);
+
   DEFVAR_LISP ("read-buffer-function", &Vread_buffer_function,
 	       doc: /* If this is non-nil, `read-buffer' does its work by calling this function.  */);
   Vread_buffer_function = Qnil;
@@ -2938,6 +2948,10 @@ properties.  */);
      initialization-order problems.  */
   Vminibuffer_prompt_properties
     = Fcons (intern ("read-only"), Fcons (Qt, Qnil));
+
+  DEFVAR_LISP ("read-expression-map", &Vread_expression_map,
+	       doc: /* Minibuffer keymap used for reading Lisp expressions.  */);
+  Vread_expression_map = Qnil;
 
   defsubr (&Sset_minibuffer_window);
   defsubr (&Sread_from_minibuffer);

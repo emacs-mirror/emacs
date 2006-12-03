@@ -91,7 +91,6 @@ Mile End Road, London E1 4NS, UK
 @menu
 * Introduction::        Introduction
 * Background::          Background
-* Installation::        Installation and Setup
 * Finding::             Finding and Formatting Man Pages
 * Browsing::            Browsing Man Pages
 * Customization::       Customization
@@ -127,7 +126,7 @@ WoMan implements a subset of the formatting performed by the Emacs
 @code{man} (or @code{manual-entry}) command to format a Unix-style
 @dfn{manual page} (usually abbreviated to @dfn{man page}) for display,
 but without calling any external programs.  It is intended to emulate
-the whole of the @code{ROFF -man} macro package, plus those @code{ROFF}
+the whole of the @code{roff -man} macro package, plus those @code{roff}
 requests (@pxref{Background, , Background}) that are most commonly used
 in man pages.  However, the emulation is modified to include the
 reformatting done by the Emacs @code{man} command.  No hyphenation is
@@ -145,7 +144,7 @@ small- and medium-size pages).
 
 This browser works quite well on simple well-written man files.  It
 works less well on idiosyncratic files that ``break the rules'' or use
-the more obscure @code{ROFF} requests directly.  Current test results
+the more obscure @code{roff} requests directly.  Current test results
 are available in the file
 @uref{http://centaur.maths.qmw.ac.uk/Emacs/WoMan/files/woman.status,
 @file{woman.status}}.
@@ -169,7 +168,7 @@ Reporting Bugs}.
 
 @c ===================================================================
 
-@node Background, Installation, Introduction, Top
+@node Background, Finding, Introduction, Top
 @comment  node-name,  next,  previous,  up
 @chapter Background
 @cindex background
@@ -178,31 +177,31 @@ WoMan is a browser for traditional Unix-style manual page documentation.
 Each such document is conventionally referred to as a @dfn{manual page},
 or @dfn{man page} for short, even though some are very much longer than
 one page.  A man page is a document written using the Unix ``man''
-macros, which are themselves written in the NROFF/TROFF text processing
-markup language.  @code{NROFF} and @code{TROFF} are text processors
+macros, which are themselves written in the nroff/troff text processing
+markup language.  @code{nroff} and @code{troff} are text processors
 originally written for the UNIX operating system by Joseph F. Ossanna at
 Bell Laboratories, Murray Hill, New Jersey, USA@.  They are closely
 related, and except in the few cases where the distinction between them
-is important I will refer to them both ambiguously as @dfn{ROFF}.
+is important I will refer to them both ambiguously as @code{roff}.
 
-@code{ROFF} markup consists of @dfn{requests} and @dfn{escape
+@code{roff} markup consists of @dfn{requests} and @dfn{escape
 sequences}.  A request occupies a complete line and begins with either a
 period or a single forward quote.  An escape sequences is embedded
 within the input text and begins (by default) with a backslash.  The
-original man macro package defines 20 new @code{ROFF} requests
+original man macro package defines 20 new @code{roff} requests
 implemented as macros, which were considered to be sufficient for
 writing man pages.  But whilst in principle man pages use only the man
-macros, in practice a significant number use many other @code{ROFF}
+macros, in practice a significant number use many other @code{roff}
 requests.
 
-The distinction between @code{TROFF} and @code{NROFF} is that
-@code{TROFF} was designed to drive a phototypesetter whereas
-@code{NROFF} was designed to produce essentially @acronym{ASCII} output for a
+The distinction between @code{troff} and @code{nroff} is that
+@code{troff} was designed to drive a phototypesetter whereas
+@code{nroff} was designed to produce essentially @acronym{ASCII} output for a
 character-based device similar to a teletypewriter (usually abbreviated
-to ``teletype'' or ``tty'').  Hence, @code{TROFF} supports much finer
-control over output positioning than does @code{NROFF} and can be seen
+to ``teletype'' or ``tty'').  Hence, @code{troff} supports much finer
+control over output positioning than does @code{nroff} and can be seen
 as a forerunner of @TeX{}.  Traditionally, man pages are either
-formatted by @code{TROFF} for typesetting or by @code{NROFF} for
+formatted by @code{troff} for typesetting or by @code{nroff} for
 printing on a character printer or displaying on a screen.  Of course,
 over the last 25 years or so, the distinction between typeset output on
 paper and characters on a screen has become blurred by the fact that
@@ -214,8 +213,8 @@ Nevertheless, Unix-style manual page documentation is still normally
 browsed on screen by running a program called @code{man}.  This program
 looks in a predefined set of directories for the man page matching a
 specified topic, then either formats the source file by running
-@code{NROFF} or recovers a pre-formatted file, and displays it via a
-pager such as @code{more}.  @code{NROFF} normally formats for a printer,
+@code{nroff} or recovers a pre-formatted file, and displays it via a
+pager such as @code{more}.  @code{nroff} normally formats for a printer,
 so it paginates the output, numbers the pages, etc., most of which is
 irrelevant when the document is browsed as a continuous scrollable
 document on screen.  The only concession to on-screen browsing normally
@@ -228,7 +227,7 @@ command, see @ref{Documentation, man, Documentation Commands, emacs, GNU
 Emacs Manual}.
 This command runs @code{man} as described above, perhaps in
 the background, and then post-processes the output to remove much of the
-@code{NROFF} pagination such as page headers and footers, and places the
+@code{nroff} pagination such as page headers and footers, and places the
 result into an Emacs buffer.  It puts this buffer into a special major
 mode, which is tailored for man page browsing, and provides a number of
 useful navigation commands, support for following references, etc.  It
@@ -236,7 +235,7 @@ provides some support for special display faces (fonts), but no special
 menu or mouse support.  The Emacs man package appears to have been
 developed over about 10 years, from the late 1980s to the late 1990s.
 
-There is considerable inefficiency in having @code{NROFF} paginate a
+There is considerable inefficiency in having @code{nroff} paginate a
 document and then removing most of the pagination!
 
 WoMan is an Emacs Lisp library that provides an emulation of the
@@ -253,22 +252,22 @@ with Unix-style manual page documentation.  This may be difficult to
 read because ports of the Unix-style @code{man} program can be a little
 awkward to set up.  I decided that it should not be too hard to emulate
 the 20 @code{man} macros directly, without treating them as macros and
-largely ignoring the underlying @code{ROFF} requests, given the text
+largely ignoring the underlying @code{roff} requests, given the text
 processing capabilities of Emacs.  This proved to be essentially true,
 and it did not take a great deal of work to be able to format simple man
 pages acceptably.
 
 One problem arose with the significant number of man pages that use
-@code{ROFF} requests in addition to the @code{man} macros, and since
+@code{roff} requests in addition to the @code{man} macros, and since
 releasing the first version of WoMan I have been continually extending
-it to support more @code{ROFF} requests.  WoMan can now format a
+it to support more @code{roff} requests.  WoMan can now format a
 significant proportion of the man pages that I have tested, either well
 or at least readably.  However, I have added capabilities partly by
 making additional passes through the document, a design that is
 fundamentally flawed.  This can only be solved by a major re-design of
 WoMan to handle the major formatting within a single recursive pass,
 rather than the present multiple passes without any significant
-recursion.  There are some @code{ROFF} requests that cannot be handled
+recursion.  There are some @code{roff} requests that cannot be handled
 satisfactorily within the present design.  Some of these are currently
 handled by kludges that ``usually more or less work.''
 
@@ -288,227 +287,18 @@ WoMan has (this) texinfo documentation!
 WoMan @emph{does not} replace @code{man}, although it does use a number
 of the facilities implemented in the Emacs @code{man} library.  WoMan
 and man can happily co-exist, which is very useful for comparison and
-debugging purposes.  The only way in which WoMan affects @code{man} is
-that it adds a timer to indicate how long @code{man} has taken to format
-a man page.  The timing is as compatible as possible with the timing
-built into WoMan, for as fair a comparison as possible.  The time
-comparison seems to depend on the details of the platform, the version
-of @code{man} in use, etc, but times are similar and WoMan is never
-significantly slower than @code{man}.  This is despite the fact that
-WoMan is running byte code whereas most of the formatting done by
-@code{man} uses machine code, and is a testimony to the quality of the
-Emacs Lisp system.
+debugging purposes.
 
-@code{NROFF} simulates non-@acronym{ASCII} characters by using one or more
+@code{nroff} simulates non-@acronym{ASCII} characters by using one or more
 @acronym{ASCII} characters.  WoMan should be able to do much better than
 this.  I have recently begun to add support for WoMan to use more of the
 characters in its default font and to use a symbol font, and it is an
 aspect that I intend to develop further in the near future.  It should
-be possible to move WoMan from an emulation of @code{NROFF} to an
-emulation of @code{TROFF} as GNU Emacs moves to providing bit-mapped
+be possible to move WoMan from an emulation of @code{nroff} to an
+emulation of @code{troff} as GNU Emacs moves to providing bit-mapped
 display facilities.
 
-@c ===================================================================
-
-@node Installation, Finding, Background, Top
-@comment  node-name,  next,  previous,  up
-@chapter Installation and Setup
-@cindex installation
-@cindex setup
-
-No installation is necessary if you just want to run the version of
-WoMan distributed with GNU Emacs 21 or later, although some additional
-setup may still be desirable.
-
-If you are installing @file{woman.el}, either to update the version
-distributed with GNU Emacs or because WoMan was not distributed with
-your version of Emacs, then you need to put the file in a directory in
-your Emacs load path and byte compile it.  A good directory to use is
-the @file{site-lisp} directory in your Emacs file tree, e.g.@:
-@file{/usr/local/share/emacs/@var{version}/site-lisp/} (where
-@var{version} is your Emacs version), provided you have write access to
-it.  If you use a directory that is not included by default in your
-Emacs load path then you need to add something like this to your
-@file{.emacs} initialization file:
-
-@lisp
-(add-to-list 'load-path "my-lisp")
-@end lisp
-
-@noindent
-where @file{my-lisp} is the pathname of the directory.  @xref{Init File, ,
-The Init File ~/.emacs, emacs, The Emacs Editor}, for further details on
-customizing Emacs in general.
-
-You can byte-compile the file by using the Emacs command
-@code{byte-compile-file} or by opening the directory containing the
-file, putting point on it and pressing the key @kbd{B}.  (In fact, if
-the file is compiled then it is only the compiled file that needs to be
-in the Emacs load path, but leaving the source file there will do no
-harm.)
-
-@heading Setup
-
-Setup that is either necessary or desirable consists of adding a small
-amount of Emacs Lisp code to your @file{.emacs} initialization file.  It
-may be necessary (or at least convenient) to make WoMan autoload (if you
-are not running GNU Emacs 21 or later) and to set the search path used
-by the @code{woman} interface.  You may also find it convenient to make
-various WoMan menu and key bindings available and to make WoMan
-customizable even before WoMan has been loaded.
-
-It is possible to run WoMan from a command line (from outside or even
-from inside Emacs) by suitably configuring your command interpreter.
-
-@menu
-* Autoloading::         Autoloading
-* Search Path::         Search Path
-* Auto Bindings::       Preloading Menu and Key Bindings
-* Auto Customization::  Preloading Customization
-* Command Line::        Command Line Access
-@end menu
-
-
-@node Autoloading, Search Path, Installation, Installation
-@comment  node-name,  next,  previous,  up
-@section Autoloading
-@cindex autoloading
-
-If you are not running GNU Emacs 21 or later then you are recommended to
-add these autoloads to your @file{.emacs} file:
-
-@lisp
-(autoload 'woman "woman"
-  "Decode and browse a Unix man page." t)
-(autoload 'woman-find-file "woman"
-  "Find, decode and browse a specific Unix man-page file." t)
-(autoload 'woman-dired-find-file "woman"
-  "In dired, run the WoMan man-page browser on this file." t)
-@end lisp
-
-@noindent
-(In GNU Emacs 21 and later these autoloads are predefined.)
-
-
-@node Search Path, Auto Bindings, Autoloading, Installation
-@comment  node-name,  next,  previous,  up
-@section Search Path
-@cindex search path
-
-The next step is necessary if you want to use the friendliest WoMan
-interface, which is recommended in general.  If the @code{MANPATH}
-environment variable is set then WoMan will use it; alternatively (or
-additionally), if your platform uses a man configuration file (as do
-many versions of Linux) then WoMan will use it, provided it can find it.
-(This may need configuration.  @xref{Interface Options, , Interface
-Options}.)  If these mechanisms correctly define the search path for man
-pages then no further action is required.
-
-Otherwise you may need to customize the user option
-@code{woman-manpath}, and you may also want to customize the user option
-@code{woman-path}.  @xref{Customization, , Customization}.  Now you can
-execute the extended command @code{woman} and enter or select a manual
-topic using completion, and if necessary select a filename, again using
-completion.  By default, WoMan suggests the word nearest to point in the
-current buffer as the topic.
-
-
-@node Auto Bindings, Auto Customization, Search Path, Installation
-@comment  node-name,  next,  previous,  up
-@section Preloading Menu and Key Bindings
-@cindex preloading menu and key bindings
-@cindex menu bindings, preloading
-@cindex key bindings, preloading
-@cindex bindings, preloading
-
-Once WoMan is loaded it adds an item to the @samp{Help} menu and defines
-one or more keys in dired mode to run WoMan on the current file.  If you
-would like these facilities always to be available, even before WoMan is
-loaded, then add the following to your @file{.emacs} file:
-
-@lisp
-(define-key-after menu-bar-manuals-menu [woman]
-  '(menu-item "Read Man Page (WoMan)..." woman
-              :help "Man-page documentation Without Man") t)
-
-(add-hook 'dired-mode-hook
-          (lambda ()
-            (define-key dired-mode-map "W" 'woman-dired-find-file)))
-@end lisp
-
-(By default, WoMan will automatically define the dired keys @kbd{W} and
-@kbd{w} when it loads, but only if they are not already defined.  This
-behavior is controlled by the user option @code{woman-dired-keys}.
-Note that the @code{dired-x} (dired extra) package binds
-@code{dired-copy-filename-as-kill} to the key @kbd{w}, although @kbd{W}
-appears to be unused.  The @code{dired-x} package will over-write the
-WoMan binding for @kbd{w}, whereas (by default) WoMan will not overwrite
-the @code{dired-x} binding.)
-
-
-@node Auto Customization, Command Line, Auto Bindings, Installation
-@comment  node-name,  next,  previous,  up
-@section Preloading Customization
-@cindex preloading customization
-@cindex customization, preloading
-
-WoMan supports the GNU Emacs 20+ customization facility, and puts a
-customization group called @code{WoMan} in the @code{Help} group under
-the top-level @code{Emacs} group.  In order to be able to customize
-WoMan without first loading it, add the following to your @file{.emacs}
-file:
-
-@lisp
-(defgroup woman nil
-  "Browse UNIX manual pages `wo (without) man'."
-  :tag "WoMan" :group 'help :load "woman")
-@end lisp
-
-
-@node Command Line,  , Auto Customization, Installation
-@comment  node-name,  next,  previous,  up
-@section Command Line Access
-@cindex command line access
-
-If you really want to square the man-woman circle then you can!  If you
-run the GNU command interpreter @code{bash} then you might care to
-define the following @code{bash} function in your @code{bash}
-initialization file @file{.bashrc}:
-
-@example
-man() @{ gnudoit -q '(raise-frame (selected-frame)) (woman' \"$1\" ')' ; @}
-@end example
-
-If you use a Microsoft command interpreter (@file{command.com} or
-@file{cmd.exe}) then you can create a file called @file{man.bat}
-somewhere in your path containing the two lines:
-
-@example
-@@echo off
-gnudoit -q (raise-frame (selected-frame)) (woman \"%1\")
-@end example
-
-and then (e.g.@: from a command prompt or the @samp{Run...} option in the
-Windows @samp{Start} menu) just execute
-
-@example
-man man_page_name
-@end example
-
-(Of course, if you already have a @code{man} command installed then you
-could call these commands @code{woman} instead of @code{man}.)
-
-The above examples assume that you have the @code{gnuserv} Emacs
-client-server package installed (which I recommend).  It would be
-possible to do something similar by calling Emacs directly, but that is
-less satisfactory, because you are likely to end up with multiple copies
-of Emacs running, which is generally inelegant, inefficient and
-inconvenient.  If you run a different command interpreter then something
-similar to the above suggestions should be possible.
-
-@c ===================================================================
-
-@node Finding, Browsing, Installation, Top
+@node Finding, Browsing, Background, Top
 @comment  node-name,  next,  previous,  up
 @chapter Finding and Formatting Man Pages
 @cindex using, finding man pages
@@ -572,19 +362,18 @@ setting WoMan file paths.
 
 The topic interface is accessed principally via the command
 @code{woman}.  The same command can be accessed via the menu item
-@samp{Help->Manuals->Read Man Page (WoMan)...} either once WoMan has been
-loaded or if it is set up specially.  @xref{Installation, , Installation
-and Setup}.  The command reads a manual topic in the minibuffer, which
-can be the @dfn{basename} of a man file anywhere in the man file
-structure.  The ``basename'' in this context means the filename without
-any directory component and without any extension or suffix components
-that relate to the file type.  So, for example, if there is a compressed
-source file in Chapter 5 of the UNIX Programmer's Manual with the full
-pathname @file{/usr/local/man/man5/man.conf.5.gz} then the topic is
-@code{man.conf}.  Provided WoMan is configured correctly, this topic
-will appear among the completions offered by @code{woman}.  If more than
-one file has the same topic name then WoMan will prompt for which file
-to format.  Completion of topics is case insensitive.
+@samp{Help->Manuals->Read Man Page (WoMan)...} once WoMan has been
+loaded.  The command reads a manual topic in the minibuffer, which can
+be the @dfn{basename} of a man file anywhere in the man file
+structure.  The ``basename'' in this context means the filename
+without any directory component and without any extension or suffix
+components that relate to the file type.  So, for example, if there is
+a compressed source file in Chapter 5 of the UNIX Programmer's Manual
+with the full pathname @file{/usr/local/man/man5/man.conf.5.gz} then
+the topic is @code{man.conf}.  Provided WoMan is configured correctly,
+this topic will appear among the completions offered by @code{woman}.
+If more than one file has the same topic name then WoMan will prompt
+for which file to format.  Completion of topics is case insensitive.
 
 Clearly, @code{woman} has to know where to look for man files and there
 are two customizable user options that store this information:
@@ -834,7 +623,7 @@ blank lines squeezed to a single blank line.
 @cindex fonts
 @cindex faces
 
-Fonts used by @code{ROFF} are handled by WoMan as faces, the details of
+Fonts used by @code{roff} are handled by WoMan as faces, the details of
 which are customizable.  @xref{Faces, , Faces}.  WoMan supports both the
 italic and bold fonts normally used in man pages, together with a single
 face to represent all unknown fonts (which are occasionally used in
@@ -1070,15 +859,12 @@ is distributed with GNU Emacs.
 @chapter Customization
 @cindex customization
 
-All WoMan user options are customizable, and it is recommended to change
-them only via the standard Emacs customization facilities.  WoMan
-defines a top-level customization group called @code{WoMan} under the
-parent group @code{Help}.  The WoMan customization group is available
-only once WoMan has been loaded unless it is specially set up to be
-automatically available.  @xref{Auto Customization, , Preloading
-Customization}.  It can be accessed either via the standard Emacs
-facilities, e.g.@: via the @samp{Help->Customize} submenu, or via the
-WoMan major mode menu.
+All WoMan user options are customizable, and it is recommended to
+change them only via the standard Emacs customization facilities.
+WoMan defines a top-level customization group called @code{WoMan}
+under the parent group @code{Help}.  It can be accessed either via the
+standard Emacs facilities, e.g.@: via the @samp{Help->Customize}
+submenu, or via the WoMan major mode menu.
 
 The top-level WoMan group contains only a few general options and three
 subgroups.  The hooks are provided only for special purposes that, for
@@ -1385,7 +1171,7 @@ headings.  Default is @code{t}.  [Heading emboldening is @emph{not} standard
 
 @item woman-ignore
 A boolean value.  If non-@code{nil} then unrecognised requests etc. are
-ignored.  Default is @code{t}.  This gives the standard @code{ROFF} behavior.
+ignored.  Default is @code{t}.  This gives the standard @code{roff} behavior.
 If @code{nil} then they are left in the buffer, which may aid debugging.
 
 @item woman-preserve-ascii
@@ -1395,8 +1181,8 @@ WoMan buffer.  Otherwise, non-@acronym{ASCII} characters (that display as
 saved to a file.  Default is @code{nil}.
 
 @item woman-emulation
-WoMan emulation, currently either @code{NROFF} or @code{TROFF}.  Default
-is @code{NROFF}.  @code{TROFF} emulation is experimental and largely
+WoMan emulation, currently either @code{nroff} or @code{troff}.  Default
+is @code{nroff}.  @code{troff} emulation is experimental and largely
 untested.
 @end vtable
 
@@ -1417,8 +1203,8 @@ either colors or different fonts.
 
 @item woman-italic-face
 Face for italic font in man pages.  Default: italic, underlined,
-foreground red.  This is overkill!  @code{TROFF} uses just italic;
-@code{NROFF} uses just underline.  You should probably select either
+foreground red.  This is overkill!  @code{troff} uses just italic;
+@code{nroff} uses just underline.  You should probably select either
 italic or underline as you prefer, but not both, although italic and
 underline work together perfectly well!
 
@@ -1494,7 +1280,7 @@ At present, all warnings should be treated with some suspicion.
 Uninterpreted escape sequences are also logged (in some cases).
 
 By resetting the variable @code{woman-ignore} to @code{nil} (by default
-it is @code{t}), uninterpreted @code{ROFF} requests can optionally be
+it is @code{t}), uninterpreted @code{roff} requests can optionally be
 left in the formatted buffer to indicate precisely where they occurred.
 @xref{Interface Options, , Interface Options}.
 
@@ -1514,7 +1300,7 @@ left in the formatted buffer to indicate precisely where they occurred.
 WoMan currently assumes 10 characters per inch horizontally, hence a
 horizontal resolution of 24 basic units, and 5 lines per inch
 vertically, hence a vertical resolution of 48 basic units.
-(@code{NROFF} uses 240 per inch.)
+(@code{nroff} uses 240 per inch.)
 
 @heading Vertical spacing and blank lines
 

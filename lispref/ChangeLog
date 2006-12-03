@@ -1,3 +1,11 @@
+2006-10-23  Kim F. Storm  <storm@cua.dk>
+
+	* commands.texi (Event Input Misc): Update unread-command-events.
+
+2006-10-23  Nick Roberts  <nickrob@snap.net.nz>
+
+	* lists.texi (Sets And Lists): Fix typos.
+
 2006-10-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* control.texi (Processing of Errors): Use @var for an argument,

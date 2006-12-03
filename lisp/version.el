@@ -27,7 +27,7 @@
 
 ;;; Code:
 
-(defconst emacs-version "22.0.51" "\
+(defconst emacs-version "22.0.91" "\
 Version numbers of this version of Emacs.")
 
 (defconst emacs-major-version
@@ -64,6 +64,8 @@ to the system configuration; look at `system-configuration' instead."
 		       ((featurep 'gtk)
 			(concat ", GTK+ Version " gtk-version-string))
 		       ((featurep 'x-toolkit) ", X toolkit")
+		       ((boundp 'mac-carbon-version-string)
+			(concat ", Carbon Version " mac-carbon-version-string))
 		       (t ""))
 		 (if (and (boundp 'x-toolkit-scroll-bars)
 			  (memq x-toolkit-scroll-bars '(xaw xaw3d)))

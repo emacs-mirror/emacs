@@ -909,7 +909,7 @@ Syntax:
 
 The component types specify the choices, with one radio button for
 each.  The widget's value will be that of the chosen @var{type}
-argument.  This widget matches any value that matching at least one of
+argument.  This widget matches any value that matches at least one of
 the specified @var{type} arguments.
 
 The following extra properties are recognized.
@@ -1351,8 +1351,8 @@ and @sc{cdr} have two specified types.  It uses this syntax:
 @end deffn
 
 @deffn Widget choice
-The @code{choice} widget specifies a set of values that match any one
-of a fixed set of types.  Its syntax is as follows:
+The value matched by a @code{choice} widget must have one of a fixed
+set of types.  The widget's syntax is as follows:
 
 @example
 @var{type} ::= (choice [@var{keyword} @var{argument}]...  @var{type} ... )
@@ -1384,12 +1384,12 @@ a number.
 The above suffice for specifying fixed size lists and vectors.  To get
 variable length lists and vectors, you can use a @code{choice},
 @code{set}, or @code{repeat} widget together with the @code{:inline}
-keyword.  If any component of a composite widget has the @code{:inline}
-keyword set, its value must be a list which will then be spliced into
-the composite.  For example, to specify a list whose first element must
-be a file name, and whose remaining elements should either be the
-symbol @code{t} or two files, you can use the following widget
-specification:
+keyword.  If any component of a composite widget has the
+@code{:inline} keyword set, its value must be a list which will then
+be spliced into the composite.  For example, to specify a list whose
+first element must be a file name, and whose remaining elements should
+either be the symbol @code{t} or two strings (file names), you can use
+the following widget specification:
 
 @example
 (list file

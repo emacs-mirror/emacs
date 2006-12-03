@@ -2078,8 +2078,9 @@ remember_mouse_glyph (f, gx, gy, rect)
   /* Try to determine frame pixel position and size of the glyph under
      frame pixel coordinates X/Y on frame F.  */
 
-  window = window_from_coordinates (f, gx, gy, &part, &x, &y, 0);
-  if (NILP (window))
+  if (!f->glyphs_initialized_p
+      || (window = window_from_coordinates (f, gx, gy, &part, &x, &y, 0),
+	  NILP (window)))
     {
       width = FRAME_SMALLEST_CHAR_WIDTH (f);
       height = FRAME_SMALLEST_FONT_HEIGHT (f);
@@ -16603,6 +16604,9 @@ display_mode_line (w, face_id, format)
   int count = SPECPDL_INDEX ();
 
   init_iterator (&it, w, -1, -1, NULL, face_id);
+  /* Don't extend on a previously drawn mode-line.
+     This may happen if called from pos_visible_p.  */
+  it.glyph_row->enabled_p = 0;
   prepare_desired_row (it.glyph_row);
 
   it.glyph_row->mode_line_p = 1;

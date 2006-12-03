@@ -2029,13 +2029,14 @@ xic_create_fontsetname (base_fontname, motif)
       else
 	{
 	  int len;
-	  char *p1 = NULL, *p2 = NULL;
+	  char *p1 = NULL, *p2 = NULL, *p3 = NULL;
 	  char *font_allcs = NULL;
 	  char *font_allfamilies = NULL;
 	  char *font_all = NULL;
 	  char *allcs = "*-*-*-*-*-*-*";
 	  char *allfamilies = "-*-*-";
 	  char *all = "*-*-*-*-";
+	  char *base;
 
 	  for (i = 0, p = base_fontname; i < 8; p++)
 	    {
@@ -2046,8 +2047,27 @@ xic_create_fontsetname (base_fontname, motif)
 		    p1 = p + 1;
 		  else if (i == 7)
 		    p2 = p + 1;
+		  else if (i == 6)
+		    p3 = p + 1;
 		}
 	    }
+	  /* If base_fontname specifies ADSTYLE, make it a
+	     wildcard.  */
+	  if (*p3 != '*')
+	    {
+	      int diff = (p2 - p3) - 2;
+
+	      base = alloca (strlen (base_fontname) + 1);
+	      bcopy (base_fontname, base, p3 - base_fontname);
+	      base[p3 - base_fontname] = '*';
+	      base[(p3 - base_fontname) + 1] = '-';
+	      strcpy (base + (p3 - base_fontname) + 2, p2);
+	      p = base + (p - base_fontname) - diff;
+	      p1 = base + (p1 - base_fontname);
+	      p2 = base + (p2 - base_fontname) - diff;
+	      base_fontname = base;
+	    }
+
 	  /* Build the font spec that matches all charsets.  */
 	  len = p - base_fontname + strlen (allcs) + 1;
 	  font_allcs = (char *) alloca (len);
@@ -2055,7 +2075,8 @@ xic_create_fontsetname (base_fontname, motif)
 	  bcopy (base_fontname, font_allcs, p - base_fontname);
 	  strcat (font_allcs, allcs);
 
-	  /* Build the font spec that matches all families.  */
+	  /* Build the font spec that matches all families and
+	     add-styles.  */
 	  len = p - p1 + strlen (allcs) + strlen (allfamilies) + 1;
 	  font_allfamilies = (char *) alloca (len);
 	  bzero (font_allfamilies, len);
@@ -2122,13 +2143,28 @@ xic_create_xfontset (f, base_fontname)
   if (!xfs)
     {
       char *fontsetname = xic_create_fontsetname (base_fontname, False);
+      char *p0 = fontsetname, *p1;
 
       /* New fontset.  */
-      xfs = XCreateFontSet (FRAME_X_DISPLAY (f),
-                            fontsetname, &missing_list,
-                            &missing_count, &def_string);
-      if (missing_list)
-        XFreeStringList (missing_list);
+      /* FONTSETNAME contains a list of font names (specific fonts
+	 first, general fonts last), but giving that to XCreateFontSet
+	 at once occasionally fails (bug of X?).  So, we try to call
+	 XCreateFontSet for each fontname.  */
+
+      while (p0)
+	{
+	  p1 = strchr (p0, ',');
+	  if (p1)
+	    *p1 = '\0';
+	  xfs = XCreateFontSet (FRAME_X_DISPLAY (f),
+				p0, &missing_list,
+				&missing_count, &def_string);
+	  if (missing_list)
+	    XFreeStringList (missing_list);
+	  if (xfs)
+	    break;
+	  p0 = p1 ? p1 + 1 : NULL;
+	}
       xfree (fontsetname);
     }
 

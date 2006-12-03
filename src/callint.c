@@ -58,11 +58,8 @@ static Lisp_Object preserved_fns;
 /* Marker used within call-interactively to refer to point.  */
 static Lisp_Object point_marker;
 
-/* Buffer for the prompt text used in Fcall_interactively.  */
-static char *callint_message;
-
-/* Allocated length of that buffer.  */
-static int callint_message_size;
+/* String for the prompt text used in Fcall_interactively.  */
+static Lisp_Object callint_message;
 
 /* ARGSUSED */
 DEFUN ("interactive", Finteractive, Sinteractive, 0, UNEVALLED, 0,
@@ -266,7 +263,6 @@ invoke it.  If KEYS is omitted or nil, the return value of
      Lisp_Object function, record_flag, keys;
 {
   Lisp_Object *args, *visargs;
-  unsigned char **argstrings;
   Lisp_Object fun;
   Lisp_Object specs;
   Lisp_Object filter_specs;
@@ -492,7 +488,6 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
   args = (Lisp_Object *) alloca ((count + 1) * sizeof (Lisp_Object));
   visargs = (Lisp_Object *) alloca ((count + 1) * sizeof (Lisp_Object));
-  argstrings = (unsigned char **) alloca ((count + 1) * sizeof (char *));
   varies = (int *) alloca ((count + 1) * sizeof (int));
 
   for (i = 0; i < (count + 1); i++)
@@ -516,34 +511,17 @@ invoke it.  If KEYS is omitted or nil, the return value of
       prompt1[sizeof prompt1 - 1] = 0;
       tem1 = (char *) index (prompt1, '\n');
       if (tem1) *tem1 = 0;
-      /* Fill argstrings with a vector of C strings
-	 corresponding to the Lisp strings in visargs.  */
-      for (j = 1; j < i; j++)
-	argstrings[j]
-	  = (EQ (visargs[j], Qnil)
-	     ? (unsigned char *) ""
-	     : SDATA (visargs[j]));
 
-      /* Process the format-string in prompt1, putting the output
-	 into callint_message.  Make callint_message bigger if necessary.
-	 We don't use a buffer on the stack, because the contents
-	 need to stay stable for a while.  */
-      while (1)
-	{
-	  int nchars = doprnt (callint_message, callint_message_size,
-			       prompt1, (char *)0,
-			       j - 1, (char **) argstrings + 1);
-	  if (nchars < callint_message_size - 1)
-	    break;
-	  callint_message_size *= 2;
-	  callint_message
-	    = (char *) xrealloc (callint_message, callint_message_size);
-	}
+      visargs[0] = build_string (prompt1);
+      if (index (prompt1, '%'))
+	callint_message = Fformat (i, visargs);
+      else
+	callint_message = visargs[0];
 
       switch (*tem)
 	{
 	case 'a':		/* Symbol defined as a function */
-	  visargs[i] = Fcompleting_read (build_string (callint_message),
+	  visargs[i] = Fcompleting_read (callint_message,
 					 Vobarray, Qfboundp, Qt,
 					 Qnil, Qnil, Qnil, Qnil);
 	  /* Passing args[i] directly stimulates compiler bug */
@@ -555,17 +533,17 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  args[i] = Fcurrent_buffer ();
 	  if (EQ (selected_window, minibuf_window))
 	    args[i] = Fother_buffer (args[i], Qnil, Qnil);
-	  args[i] = Fread_buffer (build_string (callint_message), args[i], Qt);
+	  args[i] = Fread_buffer (callint_message, args[i], Qt);
 	  break;
 
 	case 'B':		/* Name of buffer, possibly nonexistent */
-	  args[i] = Fread_buffer (build_string (callint_message),
+	  args[i] = Fread_buffer (callint_message,
 				  Fother_buffer (Fcurrent_buffer (), Qnil, Qnil),
 				  Qnil);
 	  break;
 
         case 'c':		/* Character */
-	  args[i] = Fread_char (build_string (callint_message), Qnil, Qnil);
+	  args[i] = Fread_char (callint_message, Qnil, Qnil);
 	  message1_nolog ((char *) 0);
 	  /* Passing args[i] directly stimulates compiler bug */
 	  teml = args[i];
@@ -573,7 +551,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  break;
 
 	case 'C':		/* Command: symbol with interactive function */
-	  visargs[i] = Fcompleting_read (build_string (callint_message),
+	  visargs[i] = Fcompleting_read (callint_message,
 					 Vobarray, Qcommandp,
 					 Qt, Qnil, Qnil, Qnil, Qnil);
 	  /* Passing args[i] directly stimulates compiler bug */
@@ -589,24 +567,24 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  break;
 
 	case 'D':		/* Directory name. */
-	  args[i] = Fread_file_name (build_string (callint_message), Qnil,
+	  args[i] = Fread_file_name (callint_message, Qnil,
 				     current_buffer->directory, Qlambda, Qnil,
 				     Qfile_directory_p);
 	  break;
 
 	case 'f':		/* Existing file name. */
-	  args[i] = Fread_file_name (build_string (callint_message),
+	  args[i] = Fread_file_name (callint_message,
 				     Qnil, Qnil, Qlambda, Qnil, Qnil);
 	  break;
 
 	case 'F':		/* Possibly nonexistent file name. */
-	  args[i] = Fread_file_name (build_string (callint_message),
+	  args[i] = Fread_file_name (callint_message,
 				     Qnil, Qnil, Qnil, Qnil, Qnil);
 	  break;
 
 	case 'G':		/* Possibly nonexistent file name,
 				   default to directory alone. */
-	  args[i] = Fread_file_name (build_string (callint_message),
+	  args[i] = Fread_file_name (callint_message,
 				     Qnil, Qnil, Qnil, build_string (""), Qnil);
 	  break;
 
@@ -618,7 +596,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  {
 	    int speccount1 = SPECPDL_INDEX ();
 	    specbind (Qcursor_in_echo_area, Qt);
-	    args[i] = Fread_key_sequence (build_string (callint_message),
+	    args[i] = Fread_key_sequence (callint_message,
 					  Qnil, Qnil, Qnil, Qnil);
 	    unbind_to (speccount1, Qnil);
 	    teml = args[i];
@@ -646,7 +624,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  {
 	    int speccount1 = SPECPDL_INDEX ();
 	    specbind (Qcursor_in_echo_area, Qt);
-	    args[i] = Fread_key_sequence (build_string (callint_message),
+	    args[i] = Fread_key_sequence (callint_message,
 					  Qnil, Qt, Qnil, Qnil);
 	    teml = args[i];
 	    visargs[i] = Fkey_description (teml, Qnil);
@@ -706,7 +684,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
 	case 'M':		/* String read via minibuffer with
 				   inheriting the current input method.  */
-	  args[i] = Fread_string (build_string (callint_message),
+	  args[i] = Fread_string (callint_message,
 				  Qnil, Qnil, Qnil, Qt);
 	  break;
 
@@ -726,7 +704,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 		  }
 		first = 0;
 
-		tem = Fread_from_minibuffer (build_string (callint_message),
+		tem = Fread_from_minibuffer (callint_message,
 					     Qnil, Qnil, Qnil, Qnil, Qnil,
 					     Qnil);
 		if (! STRINGP (tem) || SCHARS (tem) == 0)
@@ -736,7 +714,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	      }
 	    while (! NUMBERP (args[i]));
 	  }
-	  visargs[i] = last_minibuf_string;
+	  visargs[i] = args[i];
 	  break;
 
 	case 'P':		/* Prefix arg in raw form.  Does no I/O.  */
@@ -766,12 +744,12 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
 	case 's':		/* String read via minibuffer without
 				   inheriting the current input method.  */
-	  args[i] = Fread_string (build_string (callint_message),
+	  args[i] = Fread_string (callint_message,
 				  Qnil, Qnil, Qnil, Qnil);
 	  break;
 
 	case 'S':		/* Any symbol.  */
-	  visargs[i] = Fread_string (build_string (callint_message),
+	  visargs[i] = Fread_string (callint_message,
 				     Qnil, Qnil, Qnil, Qnil);
 	  /* Passing args[i] directly stimulates compiler bug */
 	  teml = visargs[i];
@@ -780,17 +758,17 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
 	case 'v':		/* Variable name: symbol that is
 				   user-variable-p. */
-	  args[i] = Fread_variable (build_string (callint_message), Qnil);
+	  args[i] = Fread_variable (callint_message, Qnil);
 	  visargs[i] = last_minibuf_string;
 	  break;
 
 	case 'x':		/* Lisp expression read but not evaluated */
-	  args[i] = Fread_minibuffer (build_string (callint_message), Qnil);
+	  args[i] = Fread_minibuffer (callint_message, Qnil);
 	  visargs[i] = last_minibuf_string;
 	  break;
 
 	case 'X':		/* Lisp expression read and evaluated */
-	  args[i] = Feval_minibuffer (build_string (callint_message), Qnil);
+	  args[i] = Feval_minibuffer (callint_message, Qnil);
 	  visargs[i] = last_minibuf_string;
  	  break;
 
@@ -804,13 +782,13 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  else
 	    {
 	      args[i]
-		= Fread_non_nil_coding_system (build_string (callint_message));
+		= Fread_non_nil_coding_system (callint_message);
 	      visargs[i] = last_minibuf_string;
 	    }
 	  break;
 
 	case 'z':		/* Coding-system symbol or nil */
-	  args[i] = Fread_coding_system (build_string (callint_message), Qnil);
+	  args[i] = Fread_coding_system (callint_message, Qnil);
 	  visargs[i] = last_minibuf_string;
 	  break;
 
@@ -914,6 +892,9 @@ syms_of_callint ()
   point_marker = Fmake_marker ();
   staticpro (&point_marker);
 
+  callint_message = Qnil;
+  staticpro (&callint_message);
+
   preserved_fns = Fcons (intern ("region-beginning"),
 			 Fcons (intern ("region-end"),
 				Fcons (intern ("point"),
@@ -952,10 +933,6 @@ syms_of_callint ()
 
   Qmouse_leave_buffer_hook = intern ("mouse-leave-buffer-hook");
   staticpro (&Qmouse_leave_buffer_hook);
-
-  callint_message_size = 100;
-  callint_message = (char *) xmalloc (callint_message_size);
-
 
   DEFVAR_KBOARD ("prefix-arg", Vprefix_arg,
 		 doc: /* The value of the prefix argument for the next editing command.

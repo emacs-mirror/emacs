@@ -1720,11 +1720,18 @@ else
   window_system=x11
 fi
 
-if test "${x_libraries}" != NONE && test -n "${x_libraries}"; then
-  LD_SWITCH_X_SITE=-L`echo ${x_libraries} | sed -e "s/:/ -L/g"`
-  LD_SWITCH_X_SITE_AUX=-R`echo ${x_libraries} | sed -e "s/:/ -R/g"`
+if test "${x_libraries}" != NONE; then
+  if test -n "${x_libraries}"; then
+    LD_SWITCH_X_SITE=-L`echo ${x_libraries} | sed -e "s/:/ -L/g"`
+    LD_SWITCH_X_SITE_AUX=-R`echo ${x_libraries} | sed -e "s/:/ -R/g"`
+  fi
   x_default_search_path=""
-  for x_library in `echo ${x_libraries} | sed -e "s/:/ /g"`; do
+  x_search_path=${x_libraries}
+  if test -z "${x_search_path}"; then
+    x_search_path=/usr/lib
+  fi
+  for x_library in `echo ${x_search_path}: | \
+		    sed -e "s/:/ /g" -e p -e "s:/lib[[^ /]]* :/share :g"`; do
     x_search_path="\
 ${x_library}/X11/%L/%T/%N%C%S:\
 ${x_library}/X11/%l/%T/%N%C%S:\

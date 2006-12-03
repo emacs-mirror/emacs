@@ -2620,6 +2620,18 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       c = XCAR (Vunread_command_events);
       Vunread_command_events = XCDR (Vunread_command_events);
 
+      reread = 1;
+
+      /* Undo what sit-for did when it unread additional keys
+	 inside universal-argument.  */
+
+      if (CONSP (c)
+	  && EQ (XCAR (c), Qt))
+	{
+	  reread = 0;
+	  c = XCDR (c);
+	}
+
       /* Undo what read_char_x_menu_prompt did when it unread
 	 additional keys returned by Fx_popup_menu.  */
       if (CONSP (c)
@@ -2633,7 +2645,6 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
 	  && (EQ (c, Qtool_bar) || EQ (c, Qmenu_bar)))
 	*used_mouse_menu = 1;
 
-      reread = 1;
       goto reread_for_input_method;
     }
 
@@ -11626,7 +11637,10 @@ so that you can determine whether the command was run by mouse or not.  */);
 
   DEFVAR_LISP ("unread-command-events", &Vunread_command_events,
 	       doc: /* List of events to be read as the command input.
-These events are processed first, before actual keyboard input.  */);
+These events are processed first, before actual keyboard input.
+Events read from this list are not normally added to `this-command-keys',
+as they will already have been added once as they were read for the first time.
+An element of the form (t . EVENT) forces EVENT to be added to that list.  */);
   Vunread_command_events = Qnil;
 
   DEFVAR_INT ("unread-command-char", &unread_command_char,

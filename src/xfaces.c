@@ -6705,10 +6705,10 @@ best_matching_font (f, attrs, fonts, nfonts, width_ratio, needs_overstrike)
 	{
 	  /* We want a bold font, but didn't get one; try to use
 	     overstriking instead to simulate bold-face.  However,
-	     don't overstrike an already-bold fontn unless the
+	     don't overstrike an already-bold font unless the
 	     desired weight grossly exceeds the available weight.  */
 	  if (got_weight > XLFD_WEIGHT_MEDIUM)
-	    *needs_overstrike = (got_weight - want_weight) > 2;
+	    *needs_overstrike = (want_weight - got_weight) > 2;
 	  else
 	    *needs_overstrike = 1;
 	}

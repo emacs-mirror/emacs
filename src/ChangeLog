@@ -1,3 +1,58 @@
+2006-10-27  Ben North  <ben@redfrontdoor.org>  (tiny change)
+
+	* w32term.c (x_draw_glyph_string_foreground): Set background mode
+	to TRANSPARENT before using overstrike to simulate bold faces.
+
+	* xfaces.c (best_matching_font): Fix logic to decide whether to
+	use overstriking to simulate bold-face (it was reversed).
+
+2006-10-23  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (remember_mouse_glyph): Do nothing if glyphs are not
+	initialized.
+
+	* keyboard.c (read_char): Make an element (t . EVENT) in
+	unread-command-events add EVENT to the current command's key sequence.
+	(syms_of_keyboard) <unread-command-events>: Update doc.
+
+2006-10-21  Richard Stallman  <rms@gnu.org>
+
+	* minibuf.c (Vread_expression_map): Define here.
+	(Qread_expression_history): New variable.
+	(syms_of_minibuf): Initialize them.
+	(Feval_minibuffer): Use Vread_expression_map and
+	Qread_expression_history.
+
+2006-10-21  Kenichi Handa  <handa@m17n.org>
+
+	* xfns.c (xic_create_fontsetname): If ADSTYLE field is not a wild
+	card, change it to "*".
+	(xic_create_xfontset): Call XCreateFontSet for each single
+	fontname in fontsetname.
+
+2006-10-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* callint.c (callint_message): Convert to a Lisp string.
+	(syms_of_callint): Initialize it.
+	(callint_message_size): Var deleted.
+	(Fcall_interactively): Use Fformat instead of doprnt to construct
+	prompt string.
+
+2006-10-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (display_mode_line): Clear enabled_p flag on mode-line row.
+
+2006-10-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (Vmac_carbon_version_string) [TARGET_API_MAC_CARBON]:
+	New variable.
+	(syms_of_macfns) [TARGET_API_MAC_CARBON]: Defvar it.
+
+2006-10-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xselect.c (x_handle_selection_request): If the converted_selection
+	is NIL or XCDR (converted_selection) is NIL, decline the request.
+
 2006-10-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (get_utf8_string): Remove warnings with casts.
@@ -67,8 +122,8 @@
 	(x_draw_glyph_string_foreground): Use overstrike when needed.
 	(x_draw_composite_glyph_string_foreground): Likewise.
 	Use mac_draw_image_string_16 instead of mac_draw_string_16.
-	(mac_load_query_font): Rename from XLoadQueryFont.  Take argument F
-	instead of DPY.  All uses changed.  Don't save/restore font.
+	(mac_load_query_font): Rename from XLoadQueryFont.  Take argument
+	F instead of DPY.  All uses changed.  Don't save/restore font.
 
 2006-10-07  Ralf Angeli  <angeli@caeruleus.net>
 
@@ -111,7 +166,7 @@
 
 2006-09-30  Eli Zaretskii  <eliz@gnu.org>
 
-	* config.in Regenerated.
+	* config.in: Regenerated.
 
 2006-09-29  Juri Linkov  <juri@jurta.org>
 

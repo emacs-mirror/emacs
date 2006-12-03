@@ -1011,11 +1011,14 @@ Mostly we check word delimiters."
 			  (not (memq (char-after (1- start)) '(?\} ?\\)))))
 		 flyspell-mark-duplications-flag
 		 (save-excursion
-		   (goto-char (1- start))
-		   (let ((p (flyspell-word-search-backward
-			     word
-			     (- start (1+ (- end start))))))
-		     (and p (/= p (1- start))))))
+		   (goto-char start)
+		   (let* ((bound
+			   (- start
+			      (- end start)
+			      (- (skip-chars-backward " \t\n\f"))))
+			  (p (when (>= bound (point-min))
+			       (flyspell-word-search-backward word bound))))
+		     (and p (/= p start)))))
 	    ;; yes, this is a doublon
 	    (flyspell-highlight-incorrect-region start end 'doublon)
 	    nil)
@@ -1472,7 +1475,7 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
     (flyspell-word)     ; Make sure current word is checked
     (backward-word 1)
     (while (and (< (point) end)
-		(re-search-forward "\\b\\([^ \n\t]+\\)[ \n\t]+\\1\\b"
+		(re-search-forward "\\<\\(\\w+\\)\\>[ \n\t\f]+\\1\\>"
 				   end 'move))
       (flyspell-word)
       (backward-word 1))
@@ -1708,7 +1711,9 @@ is itself incorrect, but suspiciously repeated."
 	    ;; now we can use a new overlay
 	    (setq flyspell-overlay
 		  (make-flyspell-overlay
-		   beg end 'flyspell-incorrect 'highlight)))))))
+		   beg end
+		   (if (eq poss 'doublon) 'flyspell-duplicate 'flyspell-incorrect)
+		   'highlight)))))))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-highlight-duplicate-region ...                          */

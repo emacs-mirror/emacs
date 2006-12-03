@@ -178,7 +178,7 @@ in some cases, especially in the Vi Insert state. John Hawkins
 <jshawkin@@eecs.umich.edu> has provided a set of customizations, which
 enables additional Emacs bindings under Viper.  These customizations can be
 included in your @file{~/.viper} file and are found at the following URL:
-@file{http://www.eecs.umich.edu/~jshawkin/viper-sample}.
+@file{http://traeki.freeshell.org/files/viper-sample}.
 
 @menu
 * Emacs Preliminaries::         Basic concepts in Emacs.

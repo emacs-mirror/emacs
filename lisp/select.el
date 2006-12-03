@@ -152,6 +152,41 @@ Cut buffers are considered obsolete; you should use selections instead."
 ;;; Every selection type that Emacs handles is implemented this way, except
 ;;; for TIMESTAMP, which is a special case.
 
+(eval-when-compile (require 'ccl))
+
+(define-ccl-program ccl-check-utf-8
+  '(0
+    ((r0 = 1)
+     (loop
+      (read-if (r1 < #x80) (repeat)
+	((r0 = 0)
+	 (if (r1 < #xC2) (end))
+	 (read r2)
+	 (if ((r2 & #xC0) != #x80) (end))
+	 (if (r1 < #xE0) ((r0 = 1) (repeat)))
+	 (read r2)
+	 (if ((r2 & #xC0) != #x80) (end))
+	 (if (r1 < #xF0) ((r0 = 1) (repeat)))
+	 (read r2)
+	 (if ((r2 & #xC0) != #x80) (end))
+	 (if (r1 < #xF8) ((r0 = 1) (repeat)))
+	 (read r2)
+	 (if ((r2 & #xC0) != #x80) (end))
+	 (if (r1 == #xF8) ((r0 = 1) (repeat)))
+	 (end))))))
+  "Check if the input unibyte string is a valid UTF-8 sequence or not.
+If it is valid, set the register `r0' to 1, else set it to 0.")
+
+(defun string-utf-8-p (string)
+  "Return non-nil iff STRING is a unibyte string of valid UTF-8 sequence."
+  (if (or (not (stringp string))
+	  (multibyte-string-p string))
+      (error "Not a unibyte string: %s" string))
+  (let ((status (make-vector 9 0)))
+    (ccl-execute-on-string ccl-check-utf-8 status string)
+    (= (aref status 0) 1)))
+
+
 (defun xselect-convert-to-string (selection type value)
   (let (str coding)
     ;; Get the actual string from VALUE.
@@ -223,11 +258,10 @@ Cut buffers are considered obsolete; you should use selections instead."
 	      (setq str (encode-coding-string str coding))))
 
 	   ((eq type 'UTF8_STRING)
-	    (let ((charsets (find-charset-string str)))
-	      (if (or (memq 'eight-bit-control charsets)
-		      (memq 'eight-bit-graphic charsets))
-		  (setq type 'STRING)
-		(setq str (encode-coding-string str 'utf-8)))))
+	    (if (multibyte-string-p str)
+		(setq str (encode-coding-string str 'utf-8)))
+	    (if (not (string-utf-8-p str))
+		(setq str nil))) ;; Decline request as we don't have UTF-8 data.
 	   (t
 	    (error "Unknow selection type: %S" type))
 	   )))

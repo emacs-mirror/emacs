@@ -2680,13 +2680,18 @@ If called with a prefix argument, ask for the file type."
 			  (t (setq err (format "%c unknown. " char))
 			     nil))))
       (setq type found)))
-  (let* ((file (expand-file-name file))
-	 (name (gnus-generate-new-group-name
-		(gnus-group-prefixed-name
-		 (file-name-nondirectory file) '(nndoc "")))))
+  (setq file (expand-file-name file))
+  (let ((name (gnus-generate-new-group-name
+	       (gnus-group-prefixed-name
+		(file-name-nondirectory file) '(nndoc ""))))
+	(encodable (mm-coding-system-p 'utf-8)))
     (gnus-group-make-group
-     (gnus-group-real-name name)
-     (list 'nndoc file
+     (if encodable
+	 (mm-encode-coding-string (gnus-group-real-name name) 'utf-8)
+       (gnus-group-real-name name))
+     (list 'nndoc (if encodable
+		      (mm-encode-coding-string file 'utf-8)
+		    file)
 	   (list 'nndoc-address file)
 	   (list 'nndoc-article-type (or type 'guess))))))
 

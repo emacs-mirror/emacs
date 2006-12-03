@@ -1,3 +1,18 @@
+2006-10-20  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-group.el (gnus-group-make-doc-group): Work for non-ASCII group
+	names.
+
+	* gnus-sum.el (gnus-select-newsgroup): Decode group name.
+
+2006-10-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-headers-to-generate): Fix typo in docstring.
+
+2006-10-19  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.el (gnus-mime): Remove unused custom group.
+
 2006-10-13  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
 
 	* mm-uu.el (mm-uu-pgp-signed-extract-1): Use RFC 2440 definition of

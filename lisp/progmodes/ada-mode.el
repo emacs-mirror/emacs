@@ -31,9 +31,9 @@
 ;;; This mode is a major mode for editing Ada83 and Ada95 source code.
 ;;; This is a major rewrite of the file packaged with Emacs-20.  The
 ;;; ada-mode is composed of four lisp files, ada-mode.el, ada-xref.el,
-;;; ada-prj.el and ada-stmt.el.  Only this file (ada-mode.el) is
+;;; ada-prj.el and ada-stmt.el. Only this file (ada-mode.el) is
 ;;; completely independent from the GNU Ada compiler Gnat, distributed
-;;; by Ada Core Technologies.  All the other files rely heavily on
+;;; by Ada Core Technologies. All the other files rely heavily on
 ;;; features provided only by Gnat.
 ;;;
 ;;; Note: this mode will not work with Emacs 19. If you are on a VMS
@@ -962,7 +962,7 @@ OLD-LEN indicates what the length of the replaced text was."
 
 (defsubst ada-in-string-p (&optional parse-result)
   "Return t if point is inside a string.
-If parse-result is non-nil, use is instead of calling `parse-partial-sexp'."
+If PARSE-RESULT is non-nil, use it instead of calling `parse-partial-sexp'."
   (nth 3 (or parse-result
              (parse-partial-sexp
               (line-beginning-position) (point)))))
@@ -2410,8 +2410,8 @@ offset."
        ;; else
 
        ((looking-at "else\\>")
-	(if (save-excursion  (ada-goto-previous-word)
-			     (looking-at "\\<or\\>"))
+	(if (save-excursion (ada-goto-previous-word)
+                            (looking-at "\\<or\\>"))
 	    (ada-indent-on-previous-lines nil orgpoint orgpoint)
 	  (save-excursion
 	    (ada-goto-matching-start 1 nil t)
@@ -4205,9 +4205,9 @@ of the region.  Otherwise, operate only on the current line."
 (defun ada-untab-hard ()
   "Indent current line to previous tab stop."
   (interactive)
-  (let  ((bol (save-excursion (progn (beginning-of-line) (point))))
-         (eol (save-excursion (progn (end-of-line) (point)))))
-    (indent-rigidly bol eol  (- 0 ada-indent))))
+  (let ((bol (save-excursion (progn (beginning-of-line) (point))))
+        (eol (save-excursion (progn (end-of-line) (point)))))
+    (indent-rigidly bol eol (- 0 ada-indent))))
 
 
 
@@ -4217,7 +4217,7 @@ of the region.  Otherwise, operate only on the current line."
 
 ;;  Not needed any more for Emacs 21.2, but still needed for backward
 ;;  compatibility
-(defun ada-remove-trailing-spaces  ()
+(defun ada-remove-trailing-spaces ()
   "Remove trailing spaces in the whole buffer."
   (interactive)
   (save-match-data
@@ -4904,7 +4904,7 @@ or the spec otherwise."
   (let ((is-spec nil)
 	(is-body nil)
 	(suffixes ada-spec-suffixes)
-	(name  (buffer-file-name)))
+	(name (buffer-file-name)))
 
     ;;  Guess whether we have a spec or a body, and get the basename of the
     ;;  file. Since the extension may not start with '.', we can not use

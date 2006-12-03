@@ -1,3 +1,35 @@
+2006-10-27  Richard Stallman  <rms@gnu.org>
+
+	* woman.texi: Downcase nroff/troff/roff.
+	(Installation): Chapter deleted.  Some xrefs deleted.
+	(Background): woman doesn't advise man ;-).
+
+2006-10-26  Roberto Rodr,Am(Bguez  <lanubeblanca@googlemail.com>  (tiny change)
+
+	* ada-mode.texi (Project files, Identifier completion)
+	(Automatic Casing, Debugging, Using non-standard file names)
+	(Working Remotely): Fix typos.
+
+2006-10-23  Richard Stallman  <rms@gnu.org>
+
+	* abbrevs.texi (Expanding Abbrevs): Expansion happens only when
+	Abbrev mode is enabled.
+
+2006-10-20  Masatake YAMATO  <jet@gyve.org>
+
+	* cc-mode.texi (Sample .emacs File): Added missing `)' in
+	sample code `my-c-initialization-hook'.
+
+2006-10-19  Stuart D. Herring  <herring@lanl.gov>
+
+	* widget.texi: Fix typos.
+
+2006-10-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): Remove questions marked with
+	"???".  There have been no complaints for years, so the information
+	must be appropriate.
+
 2006-10-16  Richard Stallman  <rms@gnu.org>
 
 	* widget.texi: Use @var instead of capitalization.
@@ -11,9 +43,9 @@
 	gnus-dired-attach.
 	(Selecting a Group): Fix typo.
 
-2006-10-12  Roberto Rodr,Am(Bguez  <lanubeblanca@googlemail.com>
+2006-10-12  Roberto Rodr,Am(Bguez  <lanubeblanca@googlemail.com>  (tiny change)
 
-	* widget.texi: Fix typos (tiny change)
+	* widget.texi: Fix typos.
 
 2006-10-11  Kim F. Storm  <storm@cua.dk>
 

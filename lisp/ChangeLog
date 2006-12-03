@@ -1,3 +1,125 @@
+2006-10-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* version.el (emacs-version): Bump version number to 22.0.90.
+
+2006-10-26  John W. Eaton  <jwe@octave.org>
+
+	* progmodes/octave-inf.el (inferior-octave-has-built-in-variables):
+	New defvar.
+	(inferior-octave-resync-dirs): Check to see whether Octave has
+	built-in variables and set inferior-octave-has-built-in-variables.
+	Check inferior-octave-has-built-in-variables to decide whether to
+	send commands that set built-in variables or call functions to
+	change Octave's behavior.
+	Send "disp (pwd ())" to Octave instead of just "pwd".
+	(inferior-octave-startup): Send "more off" to Octave instead of
+	"page_screen_output = 0".
+
+2006-10-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/cl-indent.el (lisp-indent-259): Indent nil's in the
+	pattern normally.
+
+2006-10-26  Nick Roberts  <nickrob@snap.net.nz>
+
+	* bindings.el (mode-line-mode-menu): Remove bindings for global
+	minor modes (line/column number) as they are on the menubar.
+
+2006-10-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* term/w32-win.el (x-handle-name-switch): Doc fix.
+	(w32-standard-fontset-spec): Fix typo in docstring.
+
+	* midnight.el (midnight-buffer-display-time): Doc fix.
+	(clean-buffer-list-kill-never-buffer-names): Add "*server*".
+
+2006-10-22  martin rudalics  <rudalics@gmx.at>
+
+	* textmodes/flyspell.el (flyspell-check-region-doublons):
+	Fix last fix.
+
+2006-10-23  Nick Roberts  <nickrob@snap.net.nz>
+
+	* bindings.el (mode-line-mode-menu): List global minor modes
+	before local ones.
+
+2006-10-23  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (add-to-list): Optimize if compare-fn is `eq' or `eql'.
+	(sit-for): If last command was a prefix arg, add the read-ahead
+	event to unread-command-events as (t . EVENT) so it will be added
+	to this-command-keys by read-key-sequence.
+
+2006-10-22  martin rudalics  <rudalics@gmx.at>
+
+	* textmodes/flyspell.el (flyspell-word): Skip past all previous
+	whitespace when checking doublons.
+	(flyspell-check-region-doublons): Fix doublon regexp.
+	(flyspell-highlight-incorrect-region): Highlight doublons using
+	flyspell-duplicate face.
+
+	* progmodes/cperl-mode.el (cperl-invalid-face): Fix defcustom.
+
+2006-10-22  John Wiegley  <johnw@newartisans.com>
+
+	* progmodes/python.el (python-use-skeletons): python-mode was
+	auto-inserting templates (for those with abbrev-mode on), not only
+	by default -- *but without a configuration variable to disable
+	it*.  This rendered python-mode completely useless for me, so I
+	have added `python-use-skeletons', which is now off by default.
+
+2006-10-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/cperl-mode.el (cperl-mode): Don't assume
+	font-lock-multiline is auto-local (it's not).
+	(cperl-windowed-init): Ensure that cperl-font-lock-multiline is
+	initialized before calling cperl-init-faces.
+
+2006-10-22  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-info-stack-custom): Don't try to give
+	gdb-stack-position a value when there is no fringe.
+
+	* bindings.el (mode-line-mode-menu): Disable auto-revert-tail-mode
+	indicator if not visiting a file.
+
+2006-10-20  David Kastrup  <dak@gnu.org>
+
+	* window.el (kill-buffer-and-window): Fix a bug where an aborted
+	operation would still cause some window to collapse later.
+
+2006-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-switch-backend): Try to be more careful with unwanted
+	side-effect due to mixing various backends's file properties.
+
+	* vc-svn.el (vc-svn-parse-status): Remove unused arg `localp'.
+	Add arg `filename' instead.  Don't set vc-backend if `filename' is set.
+	Return `filename's status if applicable.  Update callers.
+
+2006-10-19  Kenichi Handa  <handa@m17n.org>
+
+	* international/kkc.el (kkc-region): When a key sequence is not
+	defined, append (this-single-command-raw-keys) to
+	unread-input-method-events.
+
+2006-10-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/ada-mode.el (ada-in-string-p): Doc fix.
+
+2006-10-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* version.el (emacs-version): Use mac-carbon-version-string.
+
+	* term/macterm.el (res-geometry): Apply 2006-10-18 change for x-win.el.
+
+2006-10-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* select.el (ccl-check-utf-8, string-utf-8-p): New functions
+	(by Kenichi Handa).
+	(xselect-convert-to-string): Decline requests for UTF8_STRING if
+	the selection is not UTF-8.
+
 2006-10-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/ada-mode.el (ada-83-string-keywords)
@@ -39,8 +161,8 @@
 
 2006-10-18  Martin Rudalics  <rudalics@gmx.at>
 
-	* textmodes/flyspell.el (flyspell-word-search-backward): Set
-	inhibit-point-motion-hooks to avoid looping due to intangibile
+	* textmodes/flyspell.el (flyspell-word-search-backward):
+	Set inhibit-point-motion-hooks to avoid looping due to intangibile
 	text.
 
 2006-10-16  Richard Stallman  <rms@gnu.org>
@@ -301,7 +423,7 @@
 
 	After 5.10:
 
-	This code may lock Emacs hard!!!  Use on your own risk!
+	This code may lock Emacs hard!!!  Use at your own risk!
 
 	(cperl-font-locking): New internal variable.
 	(cperl-beginning-of-property): New function.
@@ -315,7 +437,7 @@
 			recursively.
 		Bound `next-single-property-change' via `point-max'.
 	(cperl-unwind-to-safe): Bound likewise
-	(cperl-font-lock-fontify-region-function): Likewise
+	(cperl-font-lock-fontify-region-function): Likewise.
 	(cperl-find-pods-heres): Mark as recursive for `cperl-to-comment-or-eol'
 		Initialization of `cperl-font-lock-multiline-start' could be
 		missed if the "main" fontification did not run due to the
@@ -542,7 +664,7 @@
 
 	* autoinsert.el (auto-insert-alist): Doc fix.
 
-2006-10-07  Johan Bockg,be(Brd  <bojohan@dd.chalmers.se>
+2006-10-07  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
 	* mouse-sel.el (mouse-insert-selection-internal):
 	Use insert-for-yank, so that yank handlers are run.
@@ -2043,7 +2165,7 @@
 	(python-symbol-completions): Use python-imports.
 	(python-module-path, ffap-alist): Add support for ffap.
 	(python-skeletons, python-mode-abbrev-table, def-python-skeleton)
-	(pythin-insert-*, python-default-template, python-expand-template):
+	(python-insert-*, python-default-template, python-expand-template):
 	Add templates/skeletons.
 	(python-setup-brm): Support for Bicycle Repair Man.
 	(python-abbrev-syntax-table): New var.
@@ -26932,7 +27054,7 @@
 
 	* emacs-lisp/lisp-mode.el (lisp-mode-variables):
 	Add ;;;###autoload to `outline-regexp'.  Suggested by Stefan Monnier
-	<monnier@iro.umontreal.ca>
+	<monnier@iro.umontreal.ca>.
 	(lisp-outline-level): Improve efficiency.  Suggested by David
 	Kastrup <dak@gnu.org>.
 
@@ -27344,7 +27466,7 @@
 
 	* progmodes/gdb-ui.el (gdb-info-breakpoints-custom)
 	(gdb-goto-breakpoint): Make breakpoint handling work on template
-	functions in C++.  Reported by Martin Reed <mjreed@essex.ac.uk>
+	functions in C++.  Reported by Martin Reed <mjreed@essex.ac.uk>.
 	(gdb-assembler-custom): Update to recognize breakpoint information
 	added on 2005-01-19.
 
@@ -27617,10 +27739,10 @@
 	(tramp-do-copy-or-rename-file-directly): Mask `cp -p' error.
 	Call `set-file-modes' when appropriate.
 	(tramp-action-out-of-band): Mask `scp -p' error.  Reported by Isak
-	Johnsson <isak@hypergene.com>
+	Johnsson <isak@hypergene.com>.
 	(tramp-get-buffer, tramp-get-debug-buffer): Discard the undo list
 	of both Tramp buffer and debug buffer.  Reported by Joakim Verona
-	<joakim@verona.se>
+	<joakim@verona.se>.
 	(tramp-file-name-for-operation): Mark `shell-command' as magic for
 	Emacs only.
 
@@ -27666,7 +27788,7 @@
 	* simple.el (eval-expression-print-format): Avoid warning
 	about edebug-active.
 
-2005-01-15  James R. Van Zandt  <jrvz@comcast.net>  (Tiny change)
+2005-01-15  James R. Van Zandt  <jrvz@comcast.net>  (tiny change)
 
 	* progmodes/sh-script.el: Code copied from make-mode.el
 	with small changes,

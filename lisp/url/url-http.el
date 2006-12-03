@@ -92,11 +92,12 @@ request.")
 
 (defun url-http-mark-connection-as-free (host port proc)
   (url-http-debug "Marking connection as free: %s:%d %S" host port proc)
-  (set-process-buffer proc nil)
-  (set-process-sentinel proc 'url-http-idle-sentinel)
-  (puthash (cons host port)
-	      (cons proc (gethash (cons host port) url-http-open-connections))
-	      url-http-open-connections)
+  (when (memq (process-status proc) '(open run))
+    (set-process-buffer proc nil)
+    (set-process-sentinel proc 'url-http-idle-sentinel)
+    (puthash (cons host port)
+	     (cons proc (gethash (cons host port) url-http-open-connections))
+	     url-http-open-connections))
   nil)
 
 (defun url-http-find-free-connection (host port)
@@ -336,8 +337,8 @@ This allows us to use `mail-fetch-field', etc."
 	  (let ((url-request-method url-http-method)
 		(url-request-data url-http-data)
 		(url-request-extra-headers url-http-extra-headers))
-	    (url-retrieve url url-callback-function
-                          url-callback-arguments)))))))
+	    (url-retrieve-internal url url-callback-function
+				   url-callback-arguments)))))))
 
 (defun url-http-parse-response ()
   "Parse just the response code."
@@ -520,18 +521,21 @@ should be shown to the user."
            (let ((url-request-method url-http-method)
 		 (url-request-data url-http-data)
 		 (url-request-extra-headers url-http-extra-headers))
-             ;; Put in the current buffer a forwarding pointer to the new
-             ;; destination buffer.
-             ;; FIXME: This is a hack to fix url-retrieve-synchronously
-             ;; without changing the API.  Instead url-retrieve should
-             ;; either simply not return the "destination" buffer, or it
-             ;; should take an optional `dest-buf' argument.
-             (set (make-local-variable 'url-redirect-buffer)
-                  (url-retrieve redirect-uri url-callback-function
-                                (cons :redirect
-                                      (cons redirect-uri
-                                            url-callback-arguments))))
-	     (url-mark-buffer-as-dead (current-buffer))))))
+	     ;; Remember that the request was redirected.
+	     (setf (car url-callback-arguments)
+		   (nconc (list :redirect redirect-uri)
+			  (car url-callback-arguments)))
+              ;; Put in the current buffer a forwarding pointer to the new
+              ;; destination buffer.
+              ;; FIXME: This is a hack to fix url-retrieve-synchronously
+              ;; without changing the API.  Instead url-retrieve should
+              ;; either simply not return the "destination" buffer, or it
+              ;; should take an optional `dest-buf' argument.
+              (set (make-local-variable 'url-redirect-buffer)
+		   (url-retrieve-internal
+		    redirect-uri url-callback-function
+		    url-callback-arguments)
+		   (url-mark-buffer-as-dead (current-buffer)))))))
       (4				; Client error
        ;; 400 Bad Request
        ;; 401 Unauthorized
@@ -653,7 +657,13 @@ should be shown to the user."
 	  ;; The request could not be understood by the server due to
 	  ;; malformed syntax.  The client SHOULD NOT repeat the
 	  ;; request without modifications.
-	  (setq success t))))
+	  (setq success t)))
+       ;; Tell the callback that an error occurred, and what the
+       ;; status code was.
+       (when success
+	 (setf (car url-callback-arguments)
+	       (nconc (list :error (list 'error 'http url-http-response-status))
+		      (car url-callback-arguments)))))
       (5
        ;; 500 Internal server error
        ;; 501 Not implemented
@@ -702,7 +712,13 @@ should be shown to the user."
 	  ;; which received this status code was the result of a user
 	  ;; action, the request MUST NOT be repeated until it is
 	  ;; requested by a separate user action.
-	  nil)))
+	  nil))
+       ;; Tell the callback that an error occurred, and what the
+       ;; status code was.
+       (when success
+	 (setf (car url-callback-arguments)
+	       (nconc (list :error (list 'error 'http url-http-response-status))
+		      (car url-callback-arguments)))))
       (otherwise
        (error "Unknown class of HTTP response code: %d (%d)"
 	      class url-http-response-status)))
@@ -1089,10 +1105,37 @@ CBARGS as the arguments."
                                     url-current-object))
 
 	(set-process-buffer connection buffer)
-	(set-process-sentinel connection 'url-http-end-of-document-sentinel)
 	(set-process-filter connection 'url-http-generic-filter)
-	(process-send-string connection (url-http-create-request url))))
+	(let ((status (process-status connection)))
+	  (cond
+	   ((eq status 'connect)
+	    ;; Asynchronous connection
+	    (set-process-sentinel connection 'url-http-async-sentinel))
+	   ((eq status 'failed)
+	    ;; Asynchronous connection failed
+	    (error "Could not create connection to %s:%d" (url-host url)
+		   (url-port url)))
+	   (t
+	    (set-process-sentinel connection 'url-http-end-of-document-sentinel)
+	    (process-send-string connection (url-http-create-request url)))))))
     buffer))
+
+(defun url-http-async-sentinel (proc why)
+  (declare (special url-callback-arguments))
+  ;; We are performing an asynchronous connection, and a status change
+  ;; has occurred.
+  (with-current-buffer (process-buffer proc)
+    (cond
+     ((string= (substring why 0 4) "open")
+      (set-process-sentinel proc 'url-http-end-of-document-sentinel)
+      (process-send-string proc (url-http-create-request url-current-object)))
+     (t
+      (setf (car url-callback-arguments)
+	    (nconc (list :error (list 'error 'connection-failed why
+				      :host (url-host url-current-object)
+				      :service (url-port url-current-object)))
+		   (car url-callback-arguments)))
+      (url-http-activate-callback)))))
 
 ;; Since Emacs 19/20 does not allow you to change the
 ;; `after-change-functions' hook in the midst of running them, we fake

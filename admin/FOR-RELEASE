@@ -36,22 +36,14 @@ attention of Windows users to fixing them.
 
 ** Drew Adams 12 Aug bug rpt: overlay  display artifact: trace left behind
 Windows only bug. Bug appears only when Cleartype enabled, probably related
-to the hack introduced on 2005-07-01 to fix some other Cleartype problem. 
+to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** henman@it.to-be.co.jp 09 Aug 2006: ispell.el problem on Cygwin.
   (Did we decide that is unreproducible?)
 
 * BUGS
 
-** Monnier, Oct 15: Strange behavior of C-u in the presence of sit-for in p-c-h
-
-** miyoshi@meadowy.org, Oct 16: Emacs allocates unnecessary memory
-
-** david.reitter@gmail.com, Oct 16: url-retrieve may cause hang  
-
-** id.brep@gmail.com, Oct 17: `.newsrc.eld' saves chinese group name in wrong coding
-
-** bojohan+mail@dd.chalmers.se, Oct 17: Formatting `interactive' strings.
+** david.reitter@gmail.com, Oct 16: url-retrieve may cause hang
 
 * DOCUMENTATION
 
