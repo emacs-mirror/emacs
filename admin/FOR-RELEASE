@@ -43,8 +43,15 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 * BUGS
 
-** hashiz@tomba.meridiani.jp, Oct 6: bootstrap failure on FreeBSD 6.2
-Can't be reproduced on GNU/Linux.
+** Monnier, Oct 15: Strange behavior of C-u in the presence of sit-for in p-c-h
+
+** miyoshi@meadowy.org, Oct 16: Emacs allocates unnecessary memory
+
+** david.reitter@gmail.com, Oct 16: url-retrieve may cause hang  
+
+** id.brep@gmail.com, Oct 17: `.newsrc.eld' saves chinese group name in wrong coding
+
+** bojohan+mail@dd.chalmers.se, Oct 17: Formatting `interactive' strings.
 
 * DOCUMENTATION
 

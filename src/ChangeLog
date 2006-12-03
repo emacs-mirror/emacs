@@ -1,3 +1,26 @@
+2006-10-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (get_utf8_string): Remove warnings with casts.
+	(xg_tool_bar_button_cb): Ditto
+	(xg_tool_bar_callback): Ditto.
+
+2006-10-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispnew.c (adjust_frame_glyphs_for_frame_redisplay): Remove unused
+	variable ch_dim.
+	(adjust_frame_glyphs_for_window_redisplay): Likewise.  Don't allocate
+	menu bar window matrices on non-X systems.
+
+	* mac.c (Fmac_get_preference, Fmac_code_convert_string): Add GCPROs.
+
+	* macterm.c (mac_query_char_extents): Don't return glyph ID if layout
+	adjustment is needed.
+	(mac_load_query_font): Check if width and height are positive.
+
+2006-10-14  Richard Stallman  <rms@gnu.org>
+
+	* sysdep.c (init_sys_modes): Delete DEFVAR_LISP in the wrong place.
+
 2006-10-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (decode_mode_spec): Ignore %c and %l constructs in frame

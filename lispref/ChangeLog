@@ -1,3 +1,32 @@
+2006-10-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* control.texi (Processing of Errors): Use @var for an argument,
+	not @code.
+
+2006-10-16  Richard Stallman  <rms@gnu.org>
+
+	* edebug.texi (Edebug Recursive Edit): Minor cleanup.
+
+	* keymaps.texi (Format of Keymaps): Show all the keymap element
+	patterns that result from menu items.
+	(Key Lookup): Minor cleanups.
+
+	* modes.texi (Precalculated Fontification): Don't say that
+	not setting font-lock-defaults avoids loading font-lock.
+
+	* help.texi (Documentation): Move xref to Emacs Manual here.
+	(Documentation Basics): From here.
+	Also doc emacs-lisp-docstring-fill-column.
+
+	* elisp.texi: Update version and ISBN.
+
+	* commands.texi (Interactive Call): Clarify KEYS arg to
+	call-interactively is a vector.
+	(Command Loop Info): Delete anchor in this-command-keys.
+	Add anchor in this-command-keys-vector.
+	(Recursive Editing): Document how recursive-edit
+	handles the current buffer.
+
 2006-10-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frames.texi (Frame Titles): %c and %l are ignored in
@@ -2179,7 +2208,7 @@
 	* elisp.texi (Top): Update detailed menu for node changes.
 
 	* modes.texi (Modes): Update Menu.
-	(Hooks):  Move to beginning of chapter.
+	(Hooks): Move to beginning of chapter.
 	Most minor modes run mode hooks too.
 	`add-hook' can handle void hooks or hooks whose value is a single
 	function.
@@ -3444,7 +3473,7 @@
 	(Quoted Character Input): Clarify description of
 	`read-quoted-char' and fix example.
 	(Quitting): Add `with-local-quit'.
-	(Disabling Commands):  Correct and clarify descriptions of
+	(Disabling Commands): Correct and clarify descriptions of
 	`enable-command' and `disable-command'.
 	Mention what happens if `disabled-command-hook' is nil.
 	(Keyboard Macros): Mention LOOPFUNC arg to `execute-kbd-macro'.
@@ -3758,7 +3787,7 @@
 
 2004-04-04  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* backups.texi:  Various small changes in addition to:
+	* backups.texi: Various small changes in addition to:
 	(Making Backups): Mention return value of `backup-buffer'.
 	(Auto-Saving): Mention optional FORCE argument to
 	`delete-auto-save-file-if-necessary'.
@@ -5339,7 +5368,7 @@ Sat Aug 11 17:39:10 1990  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
 Tue Jun 26 09:57:26 1990  David Lawrence  (tale@geech)
 
-	* files.texi:  Noted that completion-ignored-extensions is ignored
+	* files.texi: Noted that completion-ignored-extensions is ignored
 	when making *Completions*.
 
 Fri Jun  8 16:44:44 EDT 1990 Jay Fenlason (hack@ai.mit.edu)
@@ -5374,7 +5403,7 @@ Mon Apr 24 21:02:55 1989  Robert J. Chassell  (bob@rice-chex.ai.mit.edu)
 
 Mon Apr 17 18:56:50 1989  Robert J. Chassell  (bob@rice-chex.ai.mit.edu)
 
-	* texinfo.tex:  temporarily added
+	* texinfo.tex: Temporarily added
 		\let\result=\dblarrow
 		\def\error{{\it ERROR} \longdblarrow}
 	We need to do this better soon.

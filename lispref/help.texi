@@ -22,6 +22,9 @@ of documentation strings is not sufficient as a manual because a good
 manual is not organized in that fashion; it is organized in terms of
 topics of discussion.
 
+  For commands to access documentation strings, see @ref{Help, ,
+Help, emacs, The GNU Emacs Manual}.
+
 @menu
 * Documentation Basics::      Good style for doc strings.
                                 Where to put them.  How Emacs stores them.
@@ -63,6 +66,10 @@ documentation is displayed.  This allows documentation strings to refer
 to the keys for related commands and be accurate even when a user
 rearranges the key bindings.  (@xref{Keys in Documentation}.)
 
+@vindex emacs-lisp-docstring-fill-column
+  Emacs Lisp mode fills documentation strings to the width
+specified by @code{emacs-lisp-docstring-fill-column}.
+
   In Emacs Lisp, a documentation string is accessible through the
 function or variable that it describes:
 
@@ -99,9 +106,6 @@ documentation string.  The functions @code{documentation} and
 @code{documentation-property} use that information to fetch the
 documentation string from the appropriate file; this is transparent to
 the user.
-
-  For information on the uses of documentation strings, see @ref{Help, ,
-Help, emacs, The GNU Emacs Manual}.
 
 @c Wordy to prevent overfull hbox.  --rjc 15mar92
   The @file{emacs/lib-src} directory contains two utilities that you can

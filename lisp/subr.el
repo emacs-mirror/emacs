@@ -2195,6 +2195,12 @@ If UNDO is present and non-nil, it is a function that will be called
 
     (unless (nth 2 handler) ;; NOEXCLUDE
       (remove-yank-excluded-properties opoint (point)))
+
+    ;; If last inserted char has properties, mark them as rear-nonsticky.
+    (if (and (> end opoint)
+	     (text-properties-at (1- end)))
+	(put-text-property (1- end) end 'rear-nonsticky t))
+
     (if (eq yank-undo-function t)  ;; not set by FUNCTION
 	(setq yank-undo-function (nth 3 handler))) ;; UNDO
     (if (nth 4 handler) ;; COMMAND

@@ -7,7 +7,7 @@
 @c Version of the manual and of Emacs.
 @c Please remember to update the edition number in README as well.
 @set VERSION  2.9
-@set EMACSVER 22.0.51
+@set EMACSVER 22.1
 
 @dircategory Emacs
 @direntry
@@ -74,7 +74,7 @@ Published by the Free Software Foundation @*
 51 Franklin St, Fifth Floor @*
 Boston, MA 02110-1301 @*
 USA @*
-ISBN 1-882114-73-6
+ISBN 1-882114-74-4
 
 @sp 1
 Cover art by Etienne Suvasa.

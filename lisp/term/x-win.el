@@ -2477,12 +2477,15 @@ order until succeed.")
 				 (cons '(user-size . t) parsed))))
 	  ;; All geometry parms apply to the initial frame.
 	  (setq initial-frame-alist (append initial-frame-alist parsed))
-	  ;; The size parms apply to all frames.
-	  (if (assq 'height parsed)
+	  ;; The size parms apply to all frames.  Don't set it if there are 
+	  ;; sizes there already (from command line).
+	  (if (and (assq 'height parsed)
+		   (not (assq 'height default-frame-alist)))
 	      (setq default-frame-alist
 		    (cons (cons 'height (cdr (assq 'height parsed)))
 			  default-frame-alist)))
-	  (if (assq 'width parsed)
+	  (if (and (assq 'width parsed)
+		   (not (assq 'width default-frame-alist)))
 	      (setq default-frame-alist
 		    (cons (cons 'width (cdr (assq 'width parsed)))
 			  default-frame-alist))))))

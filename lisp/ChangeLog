@@ -1,11 +1,96 @@
+2006-10-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/ada-mode.el (ada-83-string-keywords)
+	(ada-last-which-function-line ada-no-auto-case, ada-indent-region)
+	(ada-which-compiler, ada-align-modes, ada-adjust-case-buffer)
+	(ada-looking-at-semi-private, ada-get-body-name):
+	Fix typos in docstrings.
+	(ada-create-case-exception, ada-create-case-exception-substring):
+	Fix typos in error messages.
+	(ada-goto-matching-end, ada-narrow-to-defun): Doc fixes.
+
+2006-10-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* term/x-win.el (res-geometry): Don't set geometry from Xresources
+	to default-frame-alist if default-frame-alist already contains
+	width/height.
+
+2006-10-18  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/pp.el (pp-eval-expression): Use `X' to read value.
+	Non-interactive arg is the value, not the expression.
+
+	* simple.el (read-expression-map): Just set it, no defvar.
+
+	* subr.el (insert-for-yank-1): If last inserted char has
+	properties, mark them as rear-nonsticky.
+
+	* recentf.el (recentf-mode): Doc fix.
+
+	* facemenu.el (facemenu-add-new-face): Defend against symbol
+	that isn't a face name.
+
+	* dired-aux.el (dired-do-copy): Doc fix.
+
+2006-10-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (line-move-1): Ignore fields when moving to the
+	beginning of line to avoid getting point stuck.
+
+2006-10-18  Martin Rudalics  <rudalics@gmx.at>
+
+	* textmodes/flyspell.el (flyspell-word-search-backward): Set
+	inhibit-point-motion-hooks to avoid looping due to intangibile
+	text.
+
+2006-10-16  Richard Stallman  <rms@gnu.org>
+
+	* help-fns.el (describe-function-1): Special case optimization
+	for self-insert-command.
+
+2006-10-16  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-reread-directory): Work in `dir' mode too.
+
+2006-10-15  Martin Rudalics  <rudalics@gmx.at>
+
+	* textmodes/table.el: Require 'regexp-opt.
+
+2006-10-15  Lennart Borgman  <lennart.borgman.073@student.lu.se>
+
+	* progmodes/flymake.el (flymake-get-project-include-dirs-imp):
+	Use shell-quote-argument.
+
+	* shell.el (explicit-bash-args): Likewise.
+
+	* progmodes/ada-xref.el (ada-find-in-src-path): Likewise.
+	Use grep -E rather than egrep.
+
+2006-10-15  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+
+	* ido.el (ido-exhibit): Allow `-', `_', and trailing `$' in user id.
+
+2006-10-15  Kim F. Storm  <storm@cua.dk>
+
+	* filesets.el (filesets-run-cmd--repl-fn): Use shell-quote-argument.
+
+2006-10-14  Lennart Borgman  <lennart.borgman.073@student.lu.se>
+
+	* filesets.el (filesets-cmd-shell-command): Quote buffer-file-name
+	to protect whitespace and metacharacters from the shell.
+
 2006-10-13  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
 
-	* apropos.el (apropos-pattern-quoted): Fix a typo in a doc
-	string.
+	* apropos.el (apropos-pattern-quoted): Fix a typo in a doc string.
 
 2006-10-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* subr.el (start-process-shell-command): Doc fix.
+
+2006-10-13  Andrea Russo  <rastandy@salug.it>  (tiny change)
+
+	* info-look.el <maxima-mode, inferior-maxima-mode>: Allow [0-9] in
+	the regexp for Maxima symbols.
 
 2006-10-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -19,8 +104,13 @@
 
 2006-10-12  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/reftex-global.el (reftex-create-tags-file): Quote file
-	arguments.
+	* textmodes/reftex-global.el (reftex-create-tags-file):
+	Quote file arguments.
+
+2006-10-12  Richard Stallman  <rms@gnu.org>
+
+	* files.el (file-name-history): Add defvar.
+	(save-some-buffers-action-alist): Improve description strings.
 
 2006-10-12  Andreas Schwab  <schwab@suse.de>
 
@@ -380,7 +470,7 @@
 		was inverted;
 		Support `comment-column' = 0.
 
-2006-10-11  Martin Rudalics <rudalics@gmx.at>
+2006-10-11  Martin Rudalics  <rudalics@gmx.at>
 
 	* dnd.el (dnd-handle-one-url): Fix typo in doc-string.
 	* help-at-pt.el (scan-buf-move-to-region): Likewise.
@@ -424,8 +514,8 @@
 
 2006-10-08  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el (gdb-speedbar-expand-node): Burp if
-	GUD buffer has been killed.
+	* progmodes/gdb-ui.el (gdb-speedbar-expand-node):
+	Burp if GUD buffer has been killed.
 
 2006-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 

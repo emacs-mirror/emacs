@@ -1,3 +1,23 @@
+2006-10-13  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* mm-uu.el (mm-uu-pgp-signed-extract-1): Use RFC 2440 definition of
+	"blank line" when searching for end of armor headers.
+
+2006-10-11  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gmm-utils.el (gmm-write-region): Fix variable name.
+
+2006-10-10  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gmm-utils.el (gmm-write-region): New function based on compatibility
+	code from `mm-make-temp-file'.
+
+	* mm-util.el (mm-make-temp-file): Use `gmm-write-region'.
+
+	* nnmaildir.el (nnmaildir--update-nov)
+	(nnmaildir-request-replace-article, nnmaildir-request-accept-article):
+	Use `gmm-write-region'.
+
 2006-10-04  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-sum.el (gnus-summary-make-menu-bar): Clarify

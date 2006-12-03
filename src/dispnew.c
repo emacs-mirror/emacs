@@ -1786,11 +1786,9 @@ check_matrix_invariants (w)
 
    X and Y are column/row within the frame glyph matrix where
    sub-matrices for the window tree rooted at WINDOW must be
-   allocated.  CH_DIM contains the dimensions of the smallest
-   character that could be used during display.  DIM_ONLY_P non-zero
-   means that the caller of this function is only interested in the
-   result matrix dimension, and matrix adjustments should not be
-   performed.
+   allocated.  DIM_ONLY_P non-zero means that the caller of this
+   function is only interested in the result matrix dimension, and
+   matrix adjustments should not be performed.
 
    The function returns the total width/height of the sub-matrices of
    the window tree.  If called on a frame root window, the computation
@@ -2038,8 +2036,7 @@ required_matrix_width (w)
 
 
 /* Allocate window matrices for window-based redisplay.  W is the
-   window whose matrices must be allocated/reallocated.  CH_DIM is the
-   size of the smallest character that could potentially be used on W.  */
+   window whose matrices must be allocated/reallocated.  */
 
 static void
 allocate_matrices_for_window_redisplay (w)
@@ -2272,7 +2269,6 @@ static void
 adjust_frame_glyphs_for_frame_redisplay (f)
      struct frame *f;
 {
-  struct dim ch_dim;
   struct dim matrix_dim;
   int pool_changed_p;
   int window_change_flags;
@@ -2280,10 +2276,6 @@ adjust_frame_glyphs_for_frame_redisplay (f)
 
   if (!FRAME_LIVE_P (f))
     return;
-
-  /* Determine the smallest character in any font for F.  On
-     console windows, all characters have dimension (1, 1).  */
-  ch_dim.width = ch_dim.height = 1;
 
   top_window_y = FRAME_TOP_MARGIN (f);
 
@@ -2373,22 +2365,14 @@ static void
 adjust_frame_glyphs_for_window_redisplay (f)
      struct frame *f;
 {
-  struct dim ch_dim;
   struct window *w;
 
   xassert (FRAME_WINDOW_P (f) && FRAME_LIVE_P (f));
 
-  /* Get minimum sizes.  */
-#ifdef HAVE_WINDOW_SYSTEM
-  ch_dim.width = FRAME_SMALLEST_CHAR_WIDTH (f);
-  ch_dim.height = FRAME_SMALLEST_FONT_HEIGHT (f);
-#else
-  ch_dim.width = ch_dim.height = 1;
-#endif
-
   /* Allocate/reallocate window matrices.  */
   allocate_matrices_for_window_redisplay (XWINDOW (FRAME_ROOT_WINDOW (f)));
 
+#ifdef HAVE_X_WINDOWS
   /* Allocate/ reallocate matrices of the dummy window used to display
      the menu bar under X when no X toolkit support is available.  */
 #if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
@@ -2412,7 +2396,8 @@ adjust_frame_glyphs_for_window_redisplay (f)
     XSETFASTINT (w->total_cols, FRAME_TOTAL_COLS (f));
     allocate_matrices_for_window_redisplay (w);
   }
-#endif /* not USE_X_TOOLKIT */
+#endif /* not USE_X_TOOLKIT && not USE_GTK */
+#endif /* HAVE_X_WINDOWS */
 
 #ifndef USE_GTK
   /* Allocate/ reallocate matrices of the tool bar window.  If we

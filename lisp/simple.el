@@ -985,12 +985,11 @@ in *Help* buffer.  See also the command `describe-char'."
 		     (single-key-description char))
 		   encoding-msg pos total percent col hscroll))))))
 
-(defvar read-expression-map
-  (let ((m (make-sparse-keymap)))
-    (define-key m "\M-\t" 'lisp-complete-symbol)
-    (set-keymap-parent m minibuffer-local-map)
-    m)
-  "Minibuffer keymap used for reading Lisp expressions.")
+;; Initialize read-expression-map.  It is defined at C level.
+(let ((m (make-sparse-keymap)))
+  (define-key m "\M-\t" 'lisp-complete-symbol)
+  (set-keymap-parent m minibuffer-local-map)
+  (setq read-expression-map m))
 
 (defvar read-expression-history nil)
 
@@ -3617,7 +3616,14 @@ Outline mode sets this."
 	      ;; The logic of this is the same as the loop above,
 	      ;; it just goes in the other direction.
 	      (while (and (< arg 0) (not done))
-		(beginning-of-line)
+		;; For completely consistency with the forward-motion
+		;; case, we should call beginning-of-line here.
+		;; However, if point is inside a field and on a
+		;; continued line, the call to (vertical-motion -1)
+		;; below won't move us back far enough; then we return
+		;; to the same column in line-move-finish, and point
+		;; gets stuck -- cyd
+		(forward-line 0)
 		(cond
 		 ((bobp)
 		  (if (not noerror)

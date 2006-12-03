@@ -2139,7 +2139,7 @@ If @code{gnus-auto-select-first} is non-@code{nil}, select an article
 automatically when entering a group with the @kbd{SPACE} command.
 Which article this is is controlled by the
 @code{gnus-auto-select-subject} variable.  Valid values for this
-variable is:
+variable are:
 
 @table @code
 
@@ -24471,7 +24471,7 @@ Save table: (spam-stat-save)
 @subsection Dired
 @cindex dired
 
-@code{gnus-dired-minor-mode} provided some useful functions for dired
+@code{gnus-dired-minor-mode} provides some useful functions for dired
 buffers.  It is enabled with
 @lisp
 (add-hook 'dired-mode-hook 'turn-on-gnus-dired-mode)
@@ -24480,6 +24480,7 @@ buffers.  It is enabled with
 @table @kbd
 @item C-c C-m C-a
 @findex gnus-dired-attach
+@cindex attachments, selection via dired
 Send dired's marked files as an attachment (@code{gnus-dired-attach}).
 You will be prompted for a message buffer.
 

@@ -862,7 +862,7 @@ handle errors that return control to the Emacs command loop.  The
 function should take three arguments: @var{data}, a list of the same
 form that @code{condition-case} would bind to its variable;
 @var{context}, a string describing the situation in which the error
-occurred, or (more often) @code{nil}; and @code{caller}, the Lisp
+occurred, or (more often) @code{nil}; and @var{caller}, the Lisp
 function which called the primitive that signaled the error.
 @end defvar
 

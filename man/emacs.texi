@@ -71,7 +71,7 @@ Software Foundation raise funds for GNU development.''
 @insertcopying
 
 @sp 2
-ISBN 1-882114-06-X @*
+ISBN 1-882114-86-8*
 Published by the Free Software Foundation @*
 51 Franklin Street, Fifth Floor @*
 Boston, MA 02110-1301 USA

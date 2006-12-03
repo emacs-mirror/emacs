@@ -1421,16 +1421,6 @@ init_sys_modes (tty_out)
 {
   struct emacs_tty tty;
 
-#ifdef MAC_OS8
-/* cus-start.el complains if delete-exited-processes is not defined */
-#ifndef subprocesses
-  DEFVAR_BOOL ("delete-exited-processes", &delete_exited_processes,
-	       doc: /* *Non-nil means delete processes immediately when they exit.
-nil means don't delete them until `list-processes' is run.  */);
-  delete_exited_processes = 0;
-#endif
-#endif /* MAC_OS8 */
-
 #ifdef VMS
 #if 0
   static int oob_chars[2] = {0, 1 << 7}; /* catch C-g's */

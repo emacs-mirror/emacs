@@ -174,13 +174,18 @@ ordinary binding applies to events of a particular @dfn{event type},
 which is always a character or a symbol.  @xref{Classifying Events}.
 In this kind of binding, @var{binding} is a command.
 
-@item (@var{type} @var{item-name} .@: @var{binding})
-This specifies a binding which is also a menu item
-named @var{item-name}.  @xref{Simple Menu Items}.
+@item (@var{type} @var{item-name} @r{[}@var{cache}@r{]} .@: @var{binding})
+This specifies a binding which is also a simple menu item that
+displays as @var{item-name} in the menu.  @var{cache}, if present,
+caches certain information for display in the menu.  @xref{Simple Menu
+Items}.
+
+@item (@var{type} @var{item-name} @var{help-string} @r{[}@var{cache}@r{]} .@: @var{binding})
+This is a simple menu item with help string @var{help-string}.
 
 @item (@var{type} menu-item .@: @var{details})
-This specifies a binding which is also a menu item and allows use of
-other features.  @xref{Extended Menu Items}.
+This specifies a binding which is also an extended menu item.  This
+allows use of other features.  @xref{Extended Menu Items}.
 
 @item (t .@: @var{binding})
 @cindex default key binding
@@ -203,9 +208,10 @@ keymap}.  Other keymaps are called @dfn{sparse keymaps}.
 @cindex keymap prompt string
 @cindex overall prompt string
 @cindex prompt string of keymap
-Aside from bindings, a keymap can also have a string as an element.
-This is called the @dfn{overall prompt string} and makes it possible to
-use the keymap as a menu.  @xref{Defining Menus}.
+Aside from elements that specify bindings for keys, a keymap can also
+have a string as an element.  This is called the @dfn{overall prompt
+string} and makes it possible to use the keymap as a menu.
+@xref{Defining Menus}.
 @end table
 
 When the binding is @code{nil}, it doesn't constitute a definition
@@ -932,11 +938,11 @@ keymap.
 
   Let's use the term @dfn{keymap entry} to describe the value found by
 looking up an event type in a keymap.  (This doesn't include the item
-string and other extra elements in menu key bindings, because
+string and other extra elements in a keymap element for a menu item, because
 @code{lookup-key} and other key lookup functions don't include them in
-the returned value.)  While any Lisp object may be stored in a keymap as
-a keymap entry, not all make sense for key lookup.  Here is a table of
-the meaningful kinds of keymap entries:
+the returned value.)  While any Lisp object may be stored in a keymap
+as a keymap entry, not all make sense for key lookup.  Here is a table
+of the meaningful types of keymap entries:
 
 @table @asis
 @item @code{nil}
@@ -964,7 +970,7 @@ event of the key sequence is looked up in @var{keymap}.
 
 @item @var{list}
 @cindex list in keymap
-The meaning of a list depends on the types of the elements of the list.
+The meaning of a list depends on what it contains:
 
 @itemize @bullet
 @item

@@ -373,7 +373,7 @@ Return that buffer."
 	   mm-security-handle 'gnus-details
 	   (format "Clear verification not supported by `%s'.\n" mml2015-use))))
       (goto-char (point-min))
-      (if (search-forward "\n\n" nil t)
+      (if (re-search-forward "\n[\t ]*\n" nil t)
 	  (delete-region (point-min) (point)))
       (if (re-search-forward mm-uu-pgp-beginning-signature nil t)
 	  (delete-region (match-beginning 0) (point-max)))
