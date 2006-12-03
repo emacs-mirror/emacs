@@ -2,6 +2,10 @@
 
 	* Makefile.in: Fix Copyright format.
 
+	* configure.in (AH_TOP): Add missing Copyright year.
+
+	* update-subdirs: Add missing Copyright years.
+
 2006-11-27  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
 
 	* Makefile.in: Touch only the parts of the share/emacs directory

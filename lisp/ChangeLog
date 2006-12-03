@@ -1,3 +1,18 @@
+2006-12-03  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/cc-align.el
+	* progmodes/cc-awk.el
+	* progmodes/cc-cmds.el
+	* progmodes/cc-compat.el
+	* progmodes/cc-defs.el
+	* progmodes/cc-engine.el
+	* progmodes/cc-langs.el
+	* progmodes/cc-menus.el
+	* progmodes/cc-mode.el
+	* progmodes/cc-styles.el
+	* progmodes/cc-vars.el
+	* progmodes/vhdl-mode.el: Fix Copyright format.
+
 2006-12-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mouse.el (mouse-drag-track): Suppress automatic hscrolling for
