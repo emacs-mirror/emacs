@@ -1,3 +1,20 @@
+2006-10-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure: Regenerate using autoconf 2.59.
+
+2006-10-29  Jeramey Crawford  <jeramey@jeramey.com>
+
+	* configure.in: Enable x86-64 OpenBSD compilation.
+
+2006-10-28  Glenn Morris  <rgm@gnu.org>
+
+	* AUTHORS: Add cal-html.el author.
+
+2006-10-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* make-dist: Make links to mac/make-package and
+	mac/Emacs.app/Contents/Resources/Emacs.icns.
+
 2006-10-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* README: Bump version number to 22.0.90.
@@ -7,15 +24,15 @@
 	* configure: Regenerate.
 
 2006-10-23  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
+
 	* viper-cmd.el (viper-prefix-arg-com): define gg as G0
-	
+
 	* viper-ex.el (ex-read): quote file argument.
-	
+
 	* ediff-diff.el (ediff-same-file-contents): expand file names.
-	
+
 	* ediff-mult.el (ediff-append-custom-diff): quote shell file arguments.
-	
+
 2006-10-23  Andreas Schwab  <schwab@suse.de>
 
 	* configure.in: Make sure x_default_search_path is always set even

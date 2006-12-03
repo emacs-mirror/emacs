@@ -534,8 +534,8 @@ should be shown to the user."
               (set (make-local-variable 'url-redirect-buffer)
 		   (url-retrieve-internal
 		    redirect-uri url-callback-function
-		    url-callback-arguments)
-		   (url-mark-buffer-as-dead (current-buffer)))))))
+		    url-callback-arguments))
+	      (url-mark-buffer-as-dead (current-buffer))))))
       (4				; Client error
        ;; 400 Bad Request
        ;; 401 Unauthorized

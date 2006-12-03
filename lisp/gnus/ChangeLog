@@ -1,3 +1,30 @@
+2006-10-29  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mm-util.el (mm-codepage-iso-8859-list, mm-codepage-ibm-list): New
+	variables.
+	(mm-setup-codepage-iso-8859, mm-setup-codepage-ibm): New functions.
+	(mm-charset-synonym-alist): Move some entries to
+	mm-codepage-iso-8859-list.
+	(mm-charset-synonym-alist, mm-charset-override-alist): Add
+	iso-8859-8/windows-1255 and iso-8859-9/windows-1254.
+
+2006-10-29  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-set-mode-line): Quote % in group name.
+
+2006-10-28  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-agent.el (gnus-agent-make-mode-line-string): Make it compatible
+	with Emacs 21 and XEmacs.
+
+2006-10-26  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mm-view.el: Add interactive arg to html2text autoload.
+
+2006-10-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-move-article): Use no-encode for `B B'.
+
 2006-10-20  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-group.el (gnus-group-make-doc-group): Work for non-ASCII group
@@ -12,6 +39,7 @@
 2006-10-19  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.el (gnus-mime): Remove unused custom group.
+	(gnus-getenv-nntpserver, gnus-select-method): Autoload.
 
 2006-10-13  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
 

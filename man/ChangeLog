@@ -1,3 +1,12 @@
+2006-10-28  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): Add cal-html author.
+
+	* calendar.texi (Writing Calendar Files): Rename section (was "LaTeX
+	Calendar").  Describe new package cal-html.
+	* emacs.texi (Top): Rename old node "LaTeX Calendar" to "Writing
+	Calendar Files."
+
 2006-10-27  Richard Stallman  <rms@gnu.org>
 
 	* woman.texi: Downcase nroff/troff/roff.

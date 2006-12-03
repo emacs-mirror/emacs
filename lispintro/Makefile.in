@@ -25,7 +25,7 @@ SHELL = @SHELL@
 srcdir = @srcdir@
 VPATH = @srcdir@
 
-infodir = ${srcdir}/../info
+infodir = ../info
 
 INFO_SOURCES = ${srcdir}/emacs-lisp-intro.texi
 # The file name eintr must fit within 5 characters, to allow for
@@ -45,7 +45,7 @@ info: $(INFO_TARGETS)
 dvi: $(DVI_TARGETS)
 
 ${infodir}/eintr: ${INFO_SOURCES}
-	$(MAKEINFO) -o $@ $(srcdir)/emacs-lisp-intro.texi
+	cd $(srcdir); $(MAKEINFO) emacs-lisp-intro.texi -o $(infodir)/eintr
 
 emacs-lisp-intro.dvi: ${INFO_SOURCES}
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/emacs-lisp-intro.texi

@@ -254,7 +254,7 @@ Might do a non-blocking connection; use `process-status' to check."
 			  (make-network-process :name name :buffer buffer
 						:host host :service service
 						:nowait 
-						(and nil (featurep 'make-network-process '(:nowait t)))))
+						(featurep 'make-network-process '(:nowait t))))
 			 (socks
 			  (socks-open-network-stream name buffer host service))
 			 (telnet

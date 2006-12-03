@@ -1,3 +1,10 @@
+2006-10-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Makefile.in: Use relative paths to avoid advertising filesystem
+	contents during compilation.
+
+	* makefile.w32-in: Likewise.
+
 2006-10-23  Kim F. Storm  <storm@cua.dk>
 
 	* commands.texi (Event Input Misc): Update unread-command-events.

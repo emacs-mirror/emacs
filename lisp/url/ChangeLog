@@ -1,3 +1,12 @@
+2006-10-29  Magnus Henoch  <mange@freemail.hu>
+
+	* url-gw.el (url-open-stream): Really use asynchronous
+	connections (accidentally disabled during debugging).
+
+2006-10-28  Magnus Henoch  <mange@freemail.hu>
+
+	* url-http.el (url-http-parse-headers): Fix misplaced paren.
+
 2006-10-27  Magnus Henoch  <mange@freemail.hu>
 
 	* url-http.el (url-http-mark-connection-as-free): Verify that

@@ -152,6 +152,8 @@ Andy Norman: wrote ange-ftp.el
 
 Andy Petrusenco: changed w32term.c
 
+Anna M. Bigatti: wrote cal-html.el
+
 Ari Roponen: changed atimer.c startup.el
 
 Arisawa Akihiro: changed mm-decode.el mm-view.el ps-print.el time.el

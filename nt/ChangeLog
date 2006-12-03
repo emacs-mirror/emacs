@@ -1,3 +1,8 @@
+2006-10-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* runemacs.c (WinMain): Process all recognized arguments, not just
+	the first one.  Remove unused variable sec_desc.
+
 2006-09-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.nt (HAVE_LANGINFO_CODESET): Define.
@@ -63,7 +68,7 @@
 
 2005-07-30  Eli Zaretskii  <eliz@gnu.org>
 
-	* config.nt: (HAVE_GETOPT_H, HAVE_GETOPT_LONG_ONLY): Undefine.
+	* config.nt (HAVE_GETOPT_H, HAVE_GETOPT_LONG_ONLY): Undefine.
 
 2005-07-29  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -437,7 +442,7 @@
 2001-03-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* configure.bat: Make the checkw32api* labels be distinct in the
-        first 8 characters.
+	first 8 characters.
 
 2001-03-17  Andrew Innes  <andrewi@gnu.org>
 

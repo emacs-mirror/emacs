@@ -118,7 +118,14 @@ Boston, MA 02110-1301, USA.  */
 #undef LIB_STANDARD
 #define LIB_STANDARD -lgcc -lc -lgcc /usr/lib/crtn.o
 
-#else /* !__FreeBSD__ */
+#elif defined(__OpenBSD__)
+
+#undef START_FILES
+#define START_FILES pre-crt0.o /usr/lib/crt0.o /usr/lib/crtbegin.o
+#undef LIB_STANDARD
+#define LIB_STANDARD -lgcc -lc -lgcc /usr/lib/crtend.o
+
+#else /* !__OpenBSD__ && !__FreeBSD__ */
 
 #undef START_FILES
 #define START_FILES pre-crt0.o /usr/lib64/crt1.o /usr/lib64/crti.o

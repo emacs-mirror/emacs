@@ -714,7 +714,7 @@ The Calendar and the Diary
 * Scroll Calendar::     Bringing earlier or later months onto the screen.
 * Counting Days::       How many days are there between two dates?
 * General Calendar::    Exiting or recomputing the calendar.
-* LaTeX Calendar::      Print a calendar using LaTeX.
+* Writing Calendar Files:: Writing calendars to files of various formats.
 * Holidays::            Displaying dates of holidays.
 * Sunrise/Sunset::      Displaying local times of sunrise and sunset.
 * Lunar Phases::        Displaying phases of the moon.

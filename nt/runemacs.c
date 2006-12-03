@@ -33,7 +33,7 @@ Boston, MA 02110-1301, USA.  */
    is running emacs.exe already, you cannot install a newer version.
    By defining CHOOSE_NEWEST_EXE, you can name your new emacs.exe
    something else which matches "emacs*.exe", and runemacs will
-   automatically select the newest emacs executeable in the bin directory.
+   automatically select the newest emacs executable in the bin directory.
    (So you'll probably be able to delete the old version some hours/days
    later).
 */
@@ -49,7 +49,6 @@ WinMain (HINSTANCE hSelf, HINSTANCE hPrev, LPSTR cmdline, int nShow)
 {
   STARTUPINFO start;
   SECURITY_ATTRIBUTES sec_attrs;
-  SECURITY_DESCRIPTOR sec_desc;
   PROCESS_INFORMATION child;
   int wait_for_child = FALSE;
   DWORD priority_class = NORMAL_PRIORITY_CLASS;
@@ -85,13 +84,13 @@ WinMain (HINSTANCE hSelf, HINSTANCE hPrev, LPSTR cmdline, int nShow)
       goto error;
     do
       {
-        if (wfd.ftLastWriteTime.dwHighDateTime > best_time.dwHighDateTime
-            || (wfd.ftLastWriteTime.dwHighDateTime == best_time.dwHighDateTime
-                && wfd.ftLastWriteTime.dwLowDateTime > best_time.dwLowDateTime))
-          {
-            best_time = wfd.ftLastWriteTime;
-            strcpy (best_name, wfd.cFileName);
-          }
+	if (wfd.ftLastWriteTime.dwHighDateTime > best_time.dwHighDateTime
+	    || (wfd.ftLastWriteTime.dwHighDateTime == best_time.dwHighDateTime
+		&& wfd.ftLastWriteTime.dwLowDateTime > best_time.dwLowDateTime))
+	  {
+	    best_time = wfd.ftLastWriteTime;
+	    strcpy (best_name, wfd.cFileName);
+	  }
       }
     while (FindNextFile (fh, &wfd));
     FindClose (fh);
@@ -109,9 +108,9 @@ WinMain (HINSTANCE hSelf, HINSTANCE hPrev, LPSTR cmdline, int nShow)
     {
       if (strncmp (cmdline+1, "wait", 4) == 0)
 	{
-      wait_for_child = TRUE;
-      cmdline += 5;
-    }
+	  wait_for_child = TRUE;
+	  cmdline += 5;
+	}
       else if (strncmp (cmdline+1, "high", 4) == 0)
 	{
 	  priority_class = HIGH_PRIORITY_CLASS;
@@ -124,7 +123,10 @@ WinMain (HINSTANCE hSelf, HINSTANCE hPrev, LPSTR cmdline, int nShow)
 	}
       else
 	break;
+      /* Look for next argument.  */
+      while (*++cmdline == ' ');
     }
+
   strcat (new_cmdline, cmdline);
 
   /* Set emacs_dir variable if runemacs was in "%emacs_dir%\bin".  */

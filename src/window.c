@@ -3590,7 +3590,7 @@ See `same-window-buffer-names' and `same-window-regexps'.  */)
 DEFUN ("display-buffer", Fdisplay_buffer, Sdisplay_buffer, 1, 3,
        "BDisplay buffer: \nP",
        doc: /* Make BUFFER appear in some window but don't select it.
-BUFFER must  be the name of an existing buffer, or, when called from Lisp,
+BUFFER must be the name of an existing buffer, or, when called from Lisp,
 a buffer.
 If BUFFER is shown already in some window, just use that one,
 unless the window is the selected window and the optional second

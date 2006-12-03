@@ -1,3 +1,16 @@
+2006-10-29  Mark Davies  <mark@mcs.vuw.ac.nz> (tiny change)
+
+	* ralloc.c (relinquish): Use a long for excess space counter to
+	handle 64-bit case correctly.
+
+2006-10-29  Jeramey Crawford  <jeramey@jeramey.com>
+
+	* m/amdx86-64.h: Add defines for OpenBSD x86-64.
+
+2006-10-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* window.c (Fdisplay_buffer): Fix typo in docstring.
+
 2006-10-27  Ben North  <ben@redfrontdoor.org>  (tiny change)
 
 	* w32term.c (x_draw_glyph_string_foreground): Set background mode
@@ -431,7 +444,7 @@
 	avoid confusing redisplay by placing the cursor outside the visible
 	window area.
 
-2006-09-13  YAMAMOTO Mitsuharu <mituharu@math.s.chiba-u.ac.jp>
+2006-09-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* xterm.c (x_initialize): Don't install Xt event timer here.
 	(x_timeout_atimer_activated_flag): New var.
@@ -2176,7 +2189,7 @@
 	* xdisp.c (display_tool_bar_line): Restore entire tool-bar
 	geometry when backtracking in case last image doesn't fit on line.
 
-2006-05-18  MIYOSHI Masanori <miyoshi@meadowy.org>  (tiny change)
+2006-05-18  MIYOSHI Masanori  <miyoshi@meadowy.org>  (tiny change)
 
 	* xdisp.c (display_tool_bar_line): Don't adjust tool-bar height by
 	more than height of one frame default line.
