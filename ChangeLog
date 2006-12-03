@@ -1,3 +1,7 @@
+2006-12-03  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Fix Copyright format.
+
 2006-11-27  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
 
 	* Makefile.in: Touch only the parts of the share/emacs directory
