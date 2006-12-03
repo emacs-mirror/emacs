@@ -1,3 +1,35 @@
+2006-12-03  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-ascend): Add an optional argument to preserve
+	original position of point when unsuccessful.  Also, fix a
+	docstring error.
+	(allout-yank-processing): Fix depth shift of multiple-topic so yanks
+	work again, using allout-ascend's new option.
+	(allout-setup-mode-map): Extracted from allout-mode to initialize
+	allout-mode-map.  Call it on file load, so the mode docstring
+	substitutions work even if allout mode has not yet been invoked.
+	(allout-mode): Use new allout-setup-mode-map to track any keybinding
+	customizations since the map was last processed.  Also,	refine the
+	docstring so it's ship-shape for release.
+	(allout-default-layout, allout-beginning-of-line-cycles)
+	(allout-distinctive-bullets-string, allout-use-mode-specific-leader)
+	(allout-encrypt-unencrypted-on-saves, allout-inhibit-auto-fill)
+	(allout-version, allout-layout, allout-infer-body-reindent)
+	(allout-infer-header-lead-and-primary-bullet, allout-view-change-hook)
+	(allout-init, allout-mode, allout-next-heading, allout-chart-subtree)
+	(allout-previous-heading, allout-goto-prefix-doublechecked)
+	(allout-current-bullet-pos, allout-next-sibling-leap)
+	(allout-pre-command-business, allout-encrypted-type-prefix)
+	(allout-make-topic-prefix, allout-open-topic, allout-rebullet-heading)
+	(allout-rebullet-topic, allout-rebullet-topic-grunt)
+	(allout-flag-region, allout-expose-topic, allout-expose-topic)
+	(allout-old-expose-topic, allout-listify-exposed)
+	(allout-process-exposed, allout-latex-verb-quote)
+	(allout-latex-verbatim-quote-curr-line, allout-adjust-file-variable)
+	(allout-toggle-current-subtree-encryption)
+	(allout-toggle-subtree-encryption, allout-bullet-isearch):
+	Remove extraneous open-paren and close paren string escapes.
+
 2006-12-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/ada-xref.el (is-windows, ada-find-in-src-path): Doc fixes.
