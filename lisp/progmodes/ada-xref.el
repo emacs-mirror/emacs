@@ -117,7 +117,7 @@ the filename at the end.  This is the same syntax as in the project file."
 	  " ${comp_opt}")
   "*Default command to be used to compile a single file.
 Emacs will substitute the current filename for ${full_current}, or add
-the filename at the end. This is the same syntax as in the project file."
+the filename at the end.  This is the same syntax as in the project file."
   :type 'string :group 'ada)
 
 (defcustom ada-prj-default-debugger "${cross_prefix}gdb"
@@ -148,7 +148,7 @@ Otherwise, ask the user for the name of the project file to use."
   :type 'boolean :group 'ada)
 
 (defconst is-windows (memq system-type (quote (windows-nt)))
-  "True if we are running on Windows NT or Windows 95.")
+  "True if we are running on Windows.")
 
 (defcustom ada-tight-gvd-integration nil
   "*If non-nil, a new Emacs frame will be swallowed in GVD when debugging.
@@ -208,7 +208,7 @@ we need to use `/d' or the drive is never changed.")
 \"&&\" for now.")
 
 (defconst ada-xref-pos-ring-max 16
-  "Number of positions kept in the list ada-xref-pos-ring.")
+  "Number of positions kept in the list `ada-xref-pos-ring'.")
 
 (defvar ada-operator-re
   "\\+\\|-\\|/\\|\\*\\*\\|\\*\\|=\\|&\\|abs\\|mod\\|rem\\|and\\|not\\|or\\|xor\\|<=\\|<\\|>=\\|>"
@@ -218,11 +218,11 @@ we need to use `/d' or the drive is never changed.")
   "Associative list of project files with properties.
 It has the format: (project project ...)
 A project has the format: (project-file . project-plist)
-\(See 'apropos plist' for operations on property lists).  See
-ada-xref-set-default-prj-values for the list of valid properties.  The
-current project is retrieved with ada-xref-current-project.  Properties
-are retrieved with ada-xref-get-project-field, set with
-ada-xref-set-project-field.  If project properties are accessed with no
+\(See 'apropos plist' for operations on property lists).
+See `ada-xref-set-default-prj-values' for the list of valid properties.
+The current project is retrieved with `ada-xref-current-project'.
+Properties are retrieved with `ada-xref-get-project-field', set with
+`ada-xref-set-project-field'.  If project properties are accessed with no
 project file, a (nil . default-properties) entry is created.")
 
 
@@ -257,7 +257,7 @@ project file, a (nil . default-properties) entry is created.")
 ;; -----------------------------------------------------------------------
 
 (defun ada-quote-cmd (cmd)
-  "Duplicate all \\ characters in CMD so that it can be passed to `compile'."
+  "Duplicate all `\\' characters in CMD so that it can be passed to `compile'."
   (mapconcat 'identity (split-string cmd "\\\\") "\\\\"))
 
 (defun ada-find-executable (exec-name)
@@ -418,8 +418,8 @@ replaced by the name including the extension."
 Project variables are substituted.
 
 Note that for src_dir and obj_dir, you should rather use
-`ada-xref-get-src-dir-field' or `ada-xref-get-obj-dir-field' which will in
-addition return the default paths."
+`ada-xref-get-src-dir-field' or `ada-xref-get-obj-dir-field'
+which will in addition return the default paths."
 
   (let* ((project-plist (cdr (ada-xref-current-project)))
 	 value)
@@ -1166,7 +1166,7 @@ If ARG is not nil, ask for user confirmation."
   "Recompile the current file.
 If ARG is not nil, ask for user confirmation of the command.
 PRJ-FIELD is the name of the field to use in the project file to get the
-command, and should be either comp_cmd (default) or check_cmd."
+command, and should be either `comp_cmd' (default) or `check_cmd'."
   (interactive "P")
   (ada-require-project-file)
   (let* ((field (if prj-field prj-field 'comp_cmd))
@@ -1368,8 +1368,8 @@ project file."
   "Update the cross-references for FILE.
 This in fact recompiles FILE to create ALI-FILE-NAME.
 This function returns the name of the file that was recompiled to generate
-the cross-reference information.  Note that the ali file can then be deduced by
-replacing the file extension with `.ali'."
+the cross-reference information.  Note that the ali file can then be deduced
+by replacing the file extension with `.ali'."
   ;; kill old buffer
   (if (and ali-file-name
 	   (get-file-buffer ali-file-name))
@@ -1539,8 +1539,8 @@ the project file."
 
 (defun ada-get-ada-file-name (file original-file)
   "Create the complete file name (+directory) for FILE.
-The original file (where the user was) is ORIGINAL-FILE.  Search in project
-file for possible paths."
+The original file (where the user was) is ORIGINAL-FILE.
+Search in project file for possible paths."
 
   (save-excursion
 
@@ -1940,9 +1940,8 @@ This function attempts to find the possible declarations for the identifier
 anywhere in the object path.
 This command requires the external `egrep' program to be available.
 
-This works well when one is using an external librarie and wants
-to find the declaration and documentation of the subprograms one is
-is using."
+This works well when one is using an external librarie and wants to find
+the declaration and documentation of the subprograms one is using."
 ;; FIXME: what does this function do?
   (let (list
 	(dirs (ada-xref-get-obj-dir-field))
@@ -2274,7 +2273,7 @@ This function typically is to be hooked into `ff-file-created-hook'."
 (defun ada-xref-initialize ()
   "Function called by `ada-mode-hook' to initialize the ada-xref.el package.
 For instance, it creates the gnat-specific menus, sets some hooks for
-`find-file'..."
+`find-file'."
   (remove-hook 'ff-file-created-hook 'ada-make-body) ; from global hook
   (remove-hook 'ff-file-created-hook 'ada-make-body t) ; from local hook
   (add-hook 'ff-file-created-hook 'ada-make-body-gnatstub nil t)
