@@ -1,3 +1,10 @@
+2006-12-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/ada-xref.el (is-windows, ada-find-in-src-path): Doc fixes.
+	(ada-xref-pos-ring-max, ada-xref-project-files, ada-xref-initialize)
+	(ada-prj-default-comp-cmd, ada-quote-cmd, ada-compile-current):
+	Fix typos in docstrings.
+
 2006-12-03  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/cc-align.el
