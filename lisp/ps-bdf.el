@@ -11,7 +11,6 @@
 
 ;; Keywords: wp, BDF, font, PostScript
 ;; Maintainer: Kenichi Handa <handa@m17n.org>
-;; Time-stamp: <2003/07/11 21:13:44 vinicius>
 
 ;; This file is part of GNU Emacs.
 

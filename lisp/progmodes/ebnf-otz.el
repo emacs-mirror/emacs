@@ -5,7 +5,6 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/11/19 22:24:07 vinicius>
 ;; Keywords: wp, ebnf, PostScript
 ;; Version: 1.0
 
