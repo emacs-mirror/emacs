@@ -2725,7 +2725,7 @@ When this command inserts killed text into the buffer, it honors
 `yank-excluded-properties' and `yank-handler' as described in the
 doc string for `insert-for-yank-1', which see.
 
-See also the command \\[yank-pop]."
+See also the command `yank-pop' (\\[yank-pop])."
   (interactive "*P")
   (setq yank-window-start (window-start))
   ;; If we don't get all the way thru, make last-command indicate that

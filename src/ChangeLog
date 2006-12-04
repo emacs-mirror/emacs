@@ -1,4 +1,188 @@
-2006-10-29  Mark Davies  <mark@mcs.vuw.ac.nz> (tiny change)
+2006-11-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lread.c (syms_of_lread):
+	* xsmfns.c (syms_of_xsmfns): Fix typo in docstring.
+
+2006-11-06  Martin Rudalics  <rudalics@gmx.at>
+
+	* macmenu.c (Fmenu_or_popup_active_p): Define outside HAVE_MENUS.
+
+	* w32menu.c (Fmenu_or_popup_active_p): Define outside HAVE_MENUS.
+	Return nil if building without menus.
+
+	* xmenu.c (Fmenu_or_popup_active_p): Define outside HAVE_MENUS.
+	Return nil if building without menus.
+
+2006-11-05  Mark Davies  <mark@mcs.vuw.ac.nz>  (tiny change)
+
+	* s/netbsd.h (POSIX_SIGNALS): Defined.
+
+2006-11-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* macmenu.c (Fmenu_or_popup_active_p): New function.
+	(syms_of_macmenu): Defsubr it.
+
+	* w32menu.c (Fmenu_or_popup_active_p): New function.
+	(syms_of_w32menu): Defsubr it.
+	(popup_activated_flag, popup_activated): Remove.
+
+	* xdisp.c (note_mouse_highlight) [HAVE_NTGUI]: Don't bother to
+	check popup_activated.
+
+	* xmenu.c (Fmenu_or_popup_active_p): New function.
+	(syms_of_xmenu): Defsubr it.
+
+2006-11-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* unexmacosx.c (malloc_cookie): Remove unused variable.
+	(region_list_head, region_list_tail, lca, nlc, infile_lc_highest_addr)
+	(text_seg_lowest_offset, mh, curr_header_offset, infd, outfd)
+	(emacs_zone, data_segment_old_fileoff, data_segment_scp)
+	(num_unexec_regions, unexec_regions): Make variables static.
+	(print_regions, find_emacs_zone_regions): Make static.
+	(unexec_region_info): New typedef.
+	(unexec_regions): Change type from vm_range_t[] to unexec_region_info[].
+	All uses changed.
+	(unexec_regions_recorder): Subtract size of trailing null pages from
+	filesize.  Show filesize.
+	(unexec_regions_merge): Don't merge if null pages of preceding region
+	is not too small.  Use long format in printf.
+	(copy_segment, copy_data_segment): Show filesize.
+	(copy_data_segment): Write filesize bytes of region data.  Adjust
+	filesize in segment command accordingly.
+	(dump_it): Use long format in printf.
+
+2006-11-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dosfns.c (Finsert_startup_screen):
+	* fns.c (Ffeaturep, syms_of_fns):
+	* frame.c (syms_of_frame): Fix typos in docstrings.
+
+	* unexcw.c (unexec): Fix typo in output message.
+
+2006-11-04  Ralf Angeli  <angeli@caeruleus.net>
+
+	* w32fns.c (w32_createwindow): Remove code for handling -geometry
+	command line option and `initial-frame-alist' which is superfluous
+	after the last change to `w32_createwindow'.
+
+2006-11-04  Slawomir Nowaczyk  <slawek@cs.lth.se>  (tiny change)
+
+	* w32proc.c (sys_wait): Only wait for processes with fd<0.
+	Others should be handled by sys_select instead.  Fixes problems
+	with (progn (start-process "" nil "ls") (call-process "ls")).
+
+2006-11-04  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
+
+	* xmenu.c (Fmenu_bar_open): Declare variable before BLOCK_INPUT to
+	avoid gcc 2.95 error.
+
+2006-11-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* gtkutil.c (update_frame_tool_bar): If icon image is invalid and
+	wicon is null, insert an empty button.
+
+2006-11-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_raise_frame): Send _NET_ACTIVE_WINDOW when raising the
+	window.
+
+2006-11-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs.c (Fkill_emacs): Fix typo in docstring.
+
+2006-11-02  Nozomu Ando  <nand@mac.com>
+
+	* unexmacosx.c (mach_header, segment_command, vm_region, section)
+	[_LP64]: New defines.
+	(VM_REGION_BASIC_INFO_COUNT, VM_REGION_BASIC_INFO, LC_SEGMENT)
+	(MH_MAGIC) [_LP64]: Redefine.
+	(delta): Remove variable.
+	(curr_file_offset, pagesize): New variables.
+	(ROUNDUP_TO_PAGE_BOUNDARY): New macro.
+	(data_segment_old_fileoff): Initialize explicitly.
+	(print_region, unexec_regions_recorder, print_load_command_name)
+	(copy_segment, copy_data_segment): Use long format in printf.
+	(MAX_UNEXEC_REGIONS): Increase to 400.
+	(unexec_regions_recorder): Don't warn too many regions here.
+	(find_emacs_zone_regions): Warn too many regions here.
+	(print_load_command_name) [_LP64]: Show correct load command name.
+	(copy_segment, copy_data_segment): Use variable `curr_file_offset'.
+	Show starting virtual memory address.  Don't show ending file offset.
+	(copy_symtab, copy_dysymtab, copy_twolevelhints): New argument DELTA.
+	(dump_it): Use new local variable `linkedit_delta' and pass to them.
+	Error if trying to handle multiple DATA segments.
+	(unexec): Initialize variable `pagesize'.
+
+2006-11-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* eval.c (Fcatch): Doc fix.
+
+2006-10-31  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* image.c [MAC_OS] (image_load_qt_1, xpm_scan, xpm_make_color_table_v)
+	(xpm_put_color_table_v,	xpm_get_color_table_v, xpm_make_color_table_h)
+	(xpm_put_color_table_h, xpm_get_color_table_h, xpm_str_to_color_key)
+	(xpm_load_image): Add const qualifier to arguments.
+	[MAC_OS] (xpm_color_key_strings): Make static const.
+
+	* mac.c (create_apple_event_from_event_ref)
+	(create_apple_event_from_drag_ref, skip_white_space, parse_comment)
+	(parse_include_file, parse_binding, parse_component)
+	(parse_resource_name, parse_value, parse_resource_line)
+	(xrm_merge_string_database, xrm_get_resource)
+	(xrm_get_preference_database): Add const qualifier to arguments.
+	[MAC_OSX] (sys_select): Make variable `context' static const.
+
+	* macfns.c (mac_color_map): Make static const.
+	(mac_color_map_lookup): Add const qualifier to arguments.
+
+	* macmenu.c (install_menu_quit_handler): Make variable `typesList'
+	static const.
+	(name_is_separator): Add const qualifier to arguments.
+
+	* macselect.c (init_service_handler): Make variable `specs' static
+	const.
+
+	* macterm.c (mac_create_bitmap_from_bitmap_data): Make variable
+	`swap_nibbles' static const.
+	(atsu_get_text_layout_with_text_ptr): Make variables `lengths',
+	`tags', `sizes', `values' static const.
+	(mac_draw_string_common): Make variables `context' static.  Make
+	variables `tags', `sizes', and `values' static const.
+	(pcm_get_status, x_detect_focus_change, x_scroll_bar_handle_click)
+	(xlfdpat_create, xlfdpat_block_match_1, xlfdpat_match)
+	(mac_to_x_fontname, parse_x_font_name, add_mac_font_name)
+	(mac_do_list_fonts, is_fully_specified_xlfd, do_grow_window)
+	(mac_store_event_ref_as_apple_event, mac_make_rdb): Add const
+	qualifier to arguments.
+	(xlfd_scalable_fields, keycode_to_xkeysym_table)
+	(fn_keycode_to_keycode_table): Make static const.
+	(mac_load_query_font): Make variables `tags', `sizes', `values',
+	`types', and `selectors' static const.
+	(mac_handle_command_event, mac_handle_window_event): Make
+	variables `names' and `types' static const.
+	(init_command_handler, install_window_handler): Make variables
+	`specs*' static const.
+	(mac_handle_font_event, mac_handle_text_input_event)
+	(mac_store_service_event): Make variables `names' and `types'
+	const.  Make variables `names_*' and `types_*' static const.
+
+	* macterm.h (create_apple_event_from_event_ref)
+	(create_apple_event_from_drag_ref, xrm_merge_string_database)
+	(xrm_get_resource, xrm_get_preference_database): Add const
+	qualifier to arguments in externs.
+
+2006-10-31  Kenichi Handa  <handa@m17n.org>
+
+	* xfns.c (xic_create_xfontset): Fix previous change.
+
+2006-10-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* s/openbsd.h (LD_SWITCH_SYSTEM): Add /usr/pkg/lib and
+	/usr/pkg/lib to library search path.
+
+2006-10-29  Mark Davies  <mark@mcs.vuw.ac.nz>  (tiny change)
 
 	* ralloc.c (relinquish): Use a long for excess space counter to
 	handle 64-bit case correctly.

@@ -1,9 +1,10 @@
-;;; ada-prj.el --- easy editing of project files for the ada-mode
+;;; ada-prj.el --- GUI editing of project files for the ada-mode
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006 
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006
 ;; Free Software Foundation, Inc.
 
 ;; Author: Emmanuel Briot <briot@gnat.com>
+;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: languages, ada, project file
 
 ;; This file is part of GNU Emacs.
@@ -32,6 +33,10 @@
 ;;; files.
 ;;; Internally, a project file is represented as a property list, with each
 ;;; field of the project file matching one property of the list.
+
+
+;;; History:
+;;
 
 ;;; Code:
 
@@ -64,7 +69,7 @@
 ;; ----- Functions --------------------------------------------------------
 
 (defun ada-prj-new ()
-  "Open a new project file"
+  "Open a new project file."
   (interactive)
   (let* ((prj
 	  (if (and ada-prj-default-project-file
@@ -93,7 +98,7 @@ If there is none, opens a new project file"
   "Set SYMBOL to the property list of the project file FILENAME.
 If FILENAME is null, read the file associated with ADA-BUFFER. If no
 project file is found, returns the default values."
-
+;; FIXME: rationalize arguments; make ada-buffer optional?
   (if (and filename
 	   (not (string= filename ""))
 	   (assoc filename ada-xref-project-files))
@@ -108,7 +113,7 @@ project file is found, returns the default values."
 
 
 (defun ada-prj-save-specific-option (field)
-  "Returns the string to print in the project file to save FIELD.
+  "Return the string to print in the project file to save FIELD.
 If the current value of FIELD is the default value, returns an empty string."
   (if (string= (plist-get ada-prj-current-values field)
 	       (plist-get ada-prj-default-values field))
@@ -170,7 +175,7 @@ If the current value of FIELD is the default value, returns an empty string."
     (kill-buffer nil)
 
     ;; kill the editor buffer
-    (kill-buffer "*Customize Ada Mode*")
+    (kill-buffer "*Edit Ada Mode Project*")
 
     ;; automatically set the new project file as the active one
     (set 'ada-prj-default-project-file file-name)
@@ -208,7 +213,7 @@ If the current value of FIELD is the default value, returns an empty string."
   ))
 
 (defun ada-prj-subdirs-of (dir)
-  "Returns a list of all the subdirectories of dir, recursively."
+  "Return a list of all the subdirectories of DIR, recursively."
   (let ((subdirs (directory-files dir t "^[^.].*"))
 	(dirlist (list dir)))
     (while subdirs
@@ -220,7 +225,7 @@ If the current value of FIELD is the default value, returns an empty string."
     dirlist))
 
 (defun ada-prj-load-directory (field &optional file-name)
-  "Append the content of FILE-NAME to FIELD in the current project file.
+  "Append to FIELD in the current project the subdirectories of FILE-NAME.
 If FILE-NAME is nil, ask the user for the name."
 
   ;;  Do not use an external dialog for this, since it wouldn't allow
@@ -238,8 +243,7 @@ If FILE-NAME is nil, ask the user for the name."
   (ada-prj-display-page 2))
 
 (defun ada-prj-display-page (tab-num)
-  "Display one of the pages available in the notebook. TAB-NUM should have
-a value between 1 and the maximum number of pages.
+  "Display page TAB-NUM in the notebook.
 The current buffer must be the project editing buffer."
 
   (let ((inhibit-read-only t))
@@ -255,7 +259,7 @@ The current buffer must be the project editing buffer."
 
   ;;  Display the tabs
 
-  (widget-insert "\n               Project and Editor configuration.\n
+  (widget-insert "\n               Project configuration.\n
   ___________    ____________    ____________    ____________    ____________\n / ")
   (widget-create 'push-button :notify
 		 (lambda (&rest dummy) (ada-prj-display-page 1)) "General")
@@ -346,9 +350,9 @@ Note that src_dir includes both the build directory
 and the standard runtime."
       t t
       (mapconcat (lambda(x)
-                   (concat "           " x))
-                 ada-xref-runtime-library-specs-path
-                 "\n")
+		   (concat "           " x))
+		 ada-xref-runtime-library-specs-path
+		 "\n")
       )
     (widget-insert "\n\n")
 
@@ -361,9 +365,9 @@ Note that obj_dir includes both the build directory
 and the standard runtime."
       t t
       (mapconcat (lambda(x)
-                   (concat "           " x))
-                 ada-xref-runtime-library-ali-path
-                 "\n")
+		   (concat "           " x))
+		 ada-xref-runtime-library-ali-path
+		 "\n")
       )
     (widget-insert "\n\n")
     )
@@ -512,7 +516,7 @@ If FILENAME is given, edit that file."
 	  (ada-reread-prj-file)))
 
       ;;  Else start the interactive editor
-      (switch-to-buffer "*Customize Ada Mode*")
+      (switch-to-buffer "*Edit Ada Mode Project*")
 
       (ada-xref-set-default-prj-values 'ada-prj-default-values ada-buffer)
       (ada-prj-initialize-values 'ada-prj-current-values
@@ -536,30 +540,30 @@ If FILENAME is given, edit that file."
 ;; ---------------- Utilities --------------------------------
 
 (defun ada-prj-set-list (string ada-list &optional is-directory)
-  "Join the strings in ADA-LIST into a single string.
-Each name is put on a separate line that begins with STRING.
-If IS-DIRECTORY is non-nil, each name is explicitly converted to a
-directory name."
+  "Prepend STRING to strings in ADA-LIST, return new-line separated string.
+If IS-DIRECTORY is non-nil, each element of ADA-LIST is explicitly
+converted to a directory name."
 
   (mapconcat (lambda (x) (concat string "="
 				 (if is-directory
 				     (file-name-as-directory x)
 				   x)))
-             ada-list "\n"))
+	     ada-list "\n"))
 
 
 (defun ada-prj-field-modified (widget &rest dummy)
-  "Callback called each time the value of WIDGET is modified. Save the
-change in ada-prj-current-values so that selecting another page and coming
-back keeps the new value."
+  "Callback for modification of WIDGET.
+Remaining args DUMMY are ignored.
+Save the change in `ada-prj-current-values' so that selecting
+another page and coming back keeps the new value."
   (set 'ada-prj-current-values
        (plist-put ada-prj-current-values
 		  (widget-get widget ':prj-field)
 		  (widget-value widget))))
 
 (defun ada-prj-display-help (widget widget-modified event)
-  "An help button in WIDGET was clicked on. The parameters are so that
-this function can be used as :notify for the widget."
+  "Callback for help button in WIDGET.
+Parameters WIDGET-MODIFIED, EVENT match :notify for the widget."
   (let ((text (widget-get widget 'prj-help)))
     (if event
 	;;  If we have a mouse-event, popup a menu
@@ -575,6 +579,8 @@ this function can be used as :notify for the widget."
       )))
 
 (defun ada-prj-show-value (widget widget-modified event)
+  "Show the current field value in WIDGET.
+Parameters WIDGET-MODIFIED, EVENT match :notify for the widget."
   (let* ((field (widget-get widget ':prj-field))
 	 (value (plist-get ada-prj-current-values field))
 	 (inhibit-read-only t)

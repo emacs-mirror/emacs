@@ -296,7 +296,7 @@ If ARG is omitted, point is placed at the end of the expanded text."
 (defvar expand-list nil "Temporary variable used by the Expand package.")
 
 (defvar expand-pos nil
-  "If non nil, stores a vector containing markers to positions defined by the last expansion.
+  "If non-nil, stores a vector containing markers to positions defined by the last expansion.
 This variable is local to a buffer.")
 (make-variable-buffer-local 'expand-pos)
 

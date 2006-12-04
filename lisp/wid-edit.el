@@ -598,7 +598,7 @@ automatically."
   :type 'directory)
 
 (defcustom widget-image-enable t
-  "If non nil, use image buttons in widgets when available."
+  "If non-nil, use image buttons in widgets when available."
   :version "21.1"
   :group 'widgets
   :type 'boolean)
@@ -1719,7 +1719,7 @@ If END is omitted, it defaults to the length of LIST."
 ;;; The `push-button' Widget.
 
 ;; (defcustom widget-push-button-gui t
-;;   "If non nil, use GUI push buttons when available."
+;;   "If non-nil, use GUI push buttons when available."
 ;;   :group 'widgets
 ;;   :type 'boolean)
 
@@ -2562,7 +2562,7 @@ Return an alist of (TYPE MATCH)."
 ;;; The `editable-list' Widget.
 
 ;; (defcustom widget-editable-list-gui nil
-;;   "If non nil, use GUI push-buttons in editable list when available."
+;;   "If non-nil, use GUI push-buttons in editable list when available."
 ;;   :type 'boolean
 ;;   :group 'widgets)
 

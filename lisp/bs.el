@@ -441,7 +441,7 @@ naming a sort behavior.  Default is \"by nothing\" which means no sorting."
 
 (defvar bs--show-all nil
   "Flag whether showing all buffers regardless of current configuration.
-Non nil means to show all buffers.  Otherwise show buffers
+Non-nil means to show all buffers.  Otherwise show buffers
 defined by current configuration `bs-current-configuration'.")
 
 (defvar bs--window-config-coming-from nil
@@ -583,7 +583,7 @@ a special function.  SORT-DESCRIPTION is an element of `bs-sort-functions'."
 
 (defun bs--redisplay (&optional keep-line-p sort-description)
   "Redisplay whole Buffer Selection Menu.
-If KEEP-LINE-P is non nil the point will stay on current line.
+If KEEP-LINE-P is non-nil the point will stay on current line.
 SORT-DESCRIPTION is an element of `bs-sort-functions'"
   (let ((line (1+ (count-lines 1 (point)))))
     (bs-show-in-buffer (bs-buffer-list nil sort-description))

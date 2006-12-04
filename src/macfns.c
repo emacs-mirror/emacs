@@ -251,7 +251,7 @@ typedef struct colormap_t
   char *name;
 } colormap_t;
 
-colormap_t mac_color_map[] =
+static const colormap_t mac_color_map[] =
 {
   { RGB_TO_ULONG(255, 250, 250), "snow" },
   { RGB_TO_ULONG(248, 248, 255), "ghost white" },
@@ -1009,7 +1009,7 @@ colormap_t mac_color_map[] =
 
 Lisp_Object
 mac_color_map_lookup (colorname)
-     char *colorname;
+     const char *colorname;
 {
   Lisp_Object ret = Qnil;
   int i;

@@ -22636,7 +22636,7 @@ note_mouse_highlight (f, x, y)
   struct buffer *b;
 
   /* When a menu is active, don't highlight because this looks odd.  */
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NTGUI)
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
   if (popup_activated ())
     return;
 #endif

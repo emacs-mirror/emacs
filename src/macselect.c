@@ -1616,10 +1616,11 @@ remove_drag_handler (window)
 void
 init_service_handler ()
 {
-  EventTypeSpec specs[] = {{kEventClassService, kEventServiceGetTypes},
-			   {kEventClassService, kEventServiceCopy},
-			   {kEventClassService, kEventServicePaste},
-			   {kEventClassService, kEventServicePerform}};
+  static const EventTypeSpec specs[] =
+    {{kEventClassService, kEventServiceGetTypes},
+     {kEventClassService, kEventServiceCopy},
+     {kEventClassService, kEventServicePaste},
+     {kEventClassService, kEventServicePerform}};
   InstallApplicationEventHandler (NewEventHandlerUPP (mac_handle_service_event),
 				  GetEventTypeCount (specs), specs, NULL, NULL);
 }

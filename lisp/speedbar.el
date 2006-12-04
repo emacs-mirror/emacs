@@ -2157,7 +2157,7 @@ Groups may optionally contain a position."
 	     ))))
 
 (defun speedbar-generic-list-tag-p (sublst)
-  "Non nil if SUBLST is a tag."
+  "Non-nil if SUBLST is a tag."
   (and (stringp (car-safe sublst))
        (or (and (number-or-marker-p (cdr-safe sublst))
 		(not (cdr-safe (cdr-safe sublst))))

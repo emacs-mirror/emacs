@@ -438,7 +438,7 @@ delete the text being replaced, as in standard Vi."
 ;; confused in some cases. So, this var is nulled for now.
 ;; (defcustom viper-emacs-state-cursor-color "Magenta"
 (defcustom viper-emacs-state-cursor-color nil
-  "Cursor color when Viper is in emacs state."
+  "Cursor color when Viper is in Emacs state."
   :type 'string
   :group 'viper)
 (if (fboundp 'make-variable-frame-local)

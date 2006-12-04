@@ -1500,7 +1500,8 @@ install_menu_quit_handler (kind, menu_handle)
      MenuHandle menu_handle;
 {
 #ifdef HAVE_CANCELMENUTRACKING
-  EventTypeSpec typesList[] = { { kEventClassKeyboard, kEventRawKeyDown } };
+  static const EventTypeSpec typesList[] =
+    {{kEventClassKeyboard, kEventRawKeyDown}};
   int id;
 
   for (id = min_menu_id[kind]; id < min_menu_id[kind + 1]; id++)
@@ -2428,9 +2429,9 @@ mac_dialog_show (f, keymaps, title, header, error_name)
 /* Is this item a separator? */
 static int
 name_is_separator (name)
-     char *name;
+     const char *name;
 {
-  char *start = name;
+  const char *start = name;
 
   /* Check if name string consists of only dashes ('-').  */
   while (*name == '-') name++;
@@ -2641,6 +2642,17 @@ dispose_menus (kind, id)
 }
 
 #endif /* HAVE_MENUS */
+
+/* The following is used by delayed window autoselection.  */
+
+DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_p, 0, 0, 0,
+       doc: /* Return t if a menu or popup dialog is active.  */)
+     ()
+{
+  /* Always return Qnil since menu selection functions do not return
+     until a selection has been made or cancelled.  */
+  return Qnil;
+}
 
 void
 syms_of_macmenu ()
@@ -2652,6 +2664,7 @@ syms_of_macmenu ()
   staticpro (&Qdebug_on_next_call);
 
   defsubr (&Sx_popup_menu);
+  defsubr (&Smenu_or_popup_active_p);
 #ifdef HAVE_MENUS
   defsubr (&Sx_popup_dialog);
 #endif

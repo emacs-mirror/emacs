@@ -4,7 +4,7 @@
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Michelangelo Grigni <mic@mathcs.emory.edu>
-;; Maintainer: Rajesh Vaidheeswarran  <rv@gnu.org>
+;; Maintainer: FSF
 ;; Created: 29 Mar 1993
 ;; Keywords: files, hypermedia, matching, mouse, convenience
 ;; X-URL: ftp://ftp.mathcs.emory.edu/pub/mic/emacs/

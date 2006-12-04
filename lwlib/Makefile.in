@@ -47,7 +47,7 @@ liblw.a: $(OBJS)
 
 # Depend on Makefile so that we recompile if TOOLKIT_DEFINES changes.
 lwlib.o:  $(srcdir)/lwlib.c  Makefile
-	$(CC) -c $(TOOLKIT_DEFINES) $(ALL_CFLAGS) $(srcdir)/lwlib.c
+	$(CC) -c $(CPPFLAGS) $(TOOLKIT_DEFINES) $(ALL_CFLAGS) $(srcdir)/lwlib.c
 
 lwlib-utils.o: lwlib-utils.c lwlib-utils.h
 lwlib.o:       lwlib.c lwlib.h lwlib-int.h lwlib-Xaw.h lwlib-Xlw.h

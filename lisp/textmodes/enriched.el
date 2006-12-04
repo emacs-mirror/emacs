@@ -66,7 +66,7 @@
 (defface fixed
   '((t (:weight bold)))
   "Face used for text that must be shown in fixed width.
-Currently, emacs can only display fixed-width fonts, but this may change.
+Currently, Emacs can only display fixed-width fonts, but this may change.
 This face is used for text specifically marked as fixed-width, for example
 in text/enriched files."
   :group 'enriched)

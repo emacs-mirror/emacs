@@ -449,7 +449,7 @@ After that, changing the prefix key requires manipulating keymaps."
 	(if follow-mode
 	    menu
 	  '(["Activate          " follow-mode t]))))
-    
+
     mainmap)
   "Minor mode keymap for Follow mode.")
 
@@ -473,7 +473,7 @@ are \" Fw\", or simply \"\"."
   :group 'follow)
 
 (defvar follow-avoid-tail-recenter-p (not (featurep 'xemacs))
-  "*When non-nil, patch emacs so that tail windows won't be recentered.
+  "*When non-nil, patch Emacs so that tail windows won't be recentered.
 
 A \"tail window\" is a window that displays only the end of
 the buffer.  Normally it is practical for the user that empty

@@ -256,7 +256,7 @@ Any pair that has the same PREDICATE is first removed."
 
 (defun custom-print-install ()
   "Replace print functions with general, customizable, Lisp versions.
-The emacs subroutines are saved away, and you can reinstall them
+The Emacs subroutines are saved away, and you can reinstall them
 by running `custom-print-uninstall'."
   (interactive)
   (mapcar 'cust-print-set-function-cell
@@ -271,7 +271,7 @@ by running `custom-print-uninstall'."
   t)
 
 (defun custom-print-uninstall ()
-  "Reset print functions to their emacs subroutines."
+  "Reset print functions to their Emacs subroutines."
   (interactive)
   (mapcar 'cust-print-set-function-cell
 	  '((prin1 cust-print-original-prin1)
@@ -375,7 +375,7 @@ The argument used by %s must be a string or a symbol;
 the argument used by %d, %b, %o, %x or %c must be a number.
 
 This is the custom-print replacement for the standard `format'.  It
-calls the emacs `format' after first making strings for list,
+calls the Emacs `format' after first making strings for list,
 vector, or symbol args.  The format specification for such args should
 be `%s' in any case, so a string argument will also work.  The string
 is generated with `custom-prin1-to-string', which quotes quotable

@@ -1395,8 +1395,13 @@ If FRAME is nil or not given, use the selected frame.  */)
      Lisp_Object frame;
 {
   GtkWidget *menubar;
+  FRAME_PTR f;
+
+  /* gcc 2.95 doesn't accept the FRAME_PTR declaration after
+     BLOCK_INPUT.  */
+
   BLOCK_INPUT;
-  FRAME_PTR f = check_x_frame (frame);
+  f = check_x_frame (frame);
 
   if (FRAME_EXTERNAL_MENU_BAR (f))
     set_frame_menubar (f, 0, 1);
@@ -1409,7 +1414,7 @@ If FRAME is nil or not given, use the selected frame.  */)
 
       gtk_menu_shell_select_item (GTK_MENU_SHELL (menubar),
                                   GTK_WIDGET (children->data));
-      
+
       popup_activated_flag = 1;
       g_list_free (children);
     }
@@ -3756,6 +3761,20 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 #endif /* not USE_X_TOOLKIT */
 
 #endif /* HAVE_MENUS */
+
+
+/* The following is used by delayed window autoselection.  */
+
+DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_p, 0, 0, 0,
+       doc: /* Return t if a menu or popup dialog is active.  */)
+     ()
+{
+#ifdef HAVE_MENUS
+  return (popup_activated ()) ? Qt : Qnil;
+#else
+  return Qnil;
+#endif /* HAVE_MENUS */
+}
 
 void
 syms_of_xmenu ()
@@ -3773,6 +3792,7 @@ syms_of_xmenu ()
 #endif
 
   defsubr (&Sx_popup_menu);
+  defsubr (&Smenu_or_popup_active_p);
 
 #if defined (USE_GTK) || defined (USE_X_TOOLKIT)
   defsubr (&Smenu_bar_open);

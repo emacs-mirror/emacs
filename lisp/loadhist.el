@@ -119,7 +119,9 @@ return the feature \(symbol\)."
 			   (mapcar (lambda (feature)
 				     (list (symbol-name feature)))
 				   features)
-			   nil t)))
+			   ;; Complete only features loaded from a file
+			   #'(lambda (f) (feature-file (intern (car f))))
+			   t)))
 
 (defvaralias 'loadhist-hook-functions 'unload-feature-special-hooks)
 (defvar unload-feature-special-hooks

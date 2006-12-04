@@ -4387,7 +4387,7 @@ Does not run after automatic updates of buffer or the shell.")
   (idlwave-update-routine-info '(16)))
 
 (defun idlwave-rescan-asynchronously ()
-  "Dispatch another emacs instance to update the idlwave catalog.
+  "Dispatch another Emacs instance to update the idlwave catalog.
 After the process finishes normally, the first access to routine info
 will re-read the catalog."
   (interactive)

@@ -293,6 +293,8 @@ Note: The search is conducted only within 10%, at the beginning of the file."
 It takes the same format as the TZ argument of `set-time-zone-rule'.
 If nil, use local time.
 If t, use universal time.")
+(put 'add-log-time-zone-rule 'safe-local-variable
+     '(lambda (x) (or (booleanp x) (stringp x))))
 
 (defun add-log-iso8601-time-zone (&optional time)
   (let* ((utc-offset (or (car (current-time-zone time)) 0))

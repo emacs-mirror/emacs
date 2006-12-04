@@ -211,7 +211,7 @@ specify 'this\\&that' in the appropriate spam definition field."
   :group 'rmail-spam-filter)
 
 (defvar rsf-scanning-messages-now nil
-  "Non nil when `rmail-spam-filter' scans messages.
+  "Non-nil when `rmail-spam-filter' scans messages.
 This is for interaction with `rsf-bbdb-auto-delete-spam-entries'.")
 
 ;; the advantage over the automatic filter definitions is the AND conjunction

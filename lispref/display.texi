@@ -1259,6 +1259,21 @@ foo
      @result{} t
 @end example
 
+  Emacs stores the overlays of each buffer in two lists, divided
+around an arbitrary ``center position.''  One list extends backwards
+through the buffer from that center position, and the other extends
+forwards from that center position.  The center position can be anywhere
+in the buffer.
+
+@defun overlay-recenter pos
+This function recenters the overlays of the current buffer around
+position @var{pos}.  That makes overlay lookup faster for positions
+near @var{pos}, but slower for positions far away from @var{pos}.
+@end defun
+
+  A loop that scans the buffer forwards, creating overlays, can run
+faster if you do @code{(overlay-recenter (point-max))} first.
+
 @node Overlay Properties
 @subsection Overlay Properties
 

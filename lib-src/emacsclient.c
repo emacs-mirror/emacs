@@ -26,19 +26,49 @@ Boston, MA 02110-1301, USA.  */
 #include <config.h>
 #endif
 
+#ifdef WINDOWSNT
+
+# include <malloc.h>
+# include <stdlib.h>
+
+# define HAVE_SOCKETS
+# define HAVE_INET_SOCKETS
+# define NO_SOCKETS_IN_FILE_SYSTEM
+
+# define HSOCKET SOCKET
+# define CLOSE_SOCKET closesocket
+# define INITIALIZE() (initialize_sockets ())
+
+#else /* !WINDOWSNT */
+
+# ifdef HAVE_INET_SOCKETS
+#  include <netinet/in.h>
+# endif
+
+# define INVALID_SOCKET -1
+# define HSOCKET int
+# define CLOSE_SOCKET close
+# define INITIALIZE()
+
+#endif /* !WINDOWSNT */
+
 #undef signal
 
 #include <ctype.h>
 #include <stdio.h>
-#include <getopt.h>
+#include "getopt.h"
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 
 #ifdef VMS
 # include "vms-pwd.h"
-#else
+#else /* not VMS */
+#ifdef WINDOWSNT
+# include <io.h>
+#else /* not WINDOWSNT */
 # include <pwd.h>
+#endif /* not WINDOWSNT */
 #endif /* not VMS */
 
 char *getenv (), *getwd ();
@@ -46,6 +76,29 @@ char *(getcwd) ();
 
 #ifndef VERSION
 #define VERSION "unspecified"
+#endif
+
+#define SEND_STRING(data) (send_to_emacs (s, (data)))
+#define SEND_QUOTED(data) (quote_file_name (s, (data)))
+
+#ifndef EXIT_SUCCESS
+#define EXIT_SUCCESS 0
+#endif
+
+#ifndef EXIT_FAILURE
+#define EXIT_FAILURE 1
+#endif
+
+#ifndef FALSE
+#define FALSE 0
+#endif
+
+#ifndef TRUE
+#define TRUE 1
+#endif
+
+#ifndef NO_RETURN
+#define NO_RETURN
 #endif
 
 /* Name used to invoke this program.  */
@@ -62,10 +115,13 @@ char *display = NULL;
 
 /* If non-NULL, the name of an editor to fallback to if the server
    is not running.  --alternate-editor.   */
-const char * alternate_editor = NULL;
+const char *alternate_editor = NULL;
 
 /* If non-NULL, the filename of the UNIX socket.  */
 char *socket_name = NULL;
+
+/* If non-NULL, the filename of the authentication file.  */
+char *server_file = NULL;
 
 void print_help_and_exit () NO_RETURN;
 
@@ -76,7 +132,10 @@ struct option longopts[] =
   { "help",	no_argument,	   NULL, 'H' },
   { "version",	no_argument,	   NULL, 'V' },
   { "alternate-editor", required_argument, NULL, 'a' },
+#ifndef NO_SOCKETS_IN_FILE_SYSTEM
   { "socket-name",	required_argument, NULL, 's' },
+#endif
+  { "server-file",	required_argument, NULL, 'f' },
   { "display",	required_argument, NULL, 'd' },
   { 0, 0, 0, 0 }
 };
@@ -94,7 +153,12 @@ decode_options (argc, argv)
   while (1)
     {
       int opt = getopt_long (argc, argv,
-			     "VHnea:s:d:", longopts, 0);
+#ifndef NO_SOCKETS_IN_FILE_SYSTEM
+			     "VHnea:s:f:d:",
+#else
+                             "VHnea:f:d:",
+#endif
+                             longopts, 0);
 
       if (opt == EOF)
 	break;
@@ -110,8 +174,14 @@ decode_options (argc, argv)
 	  alternate_editor = optarg;
 	  break;
 
+#ifndef NO_SOCKETS_IN_FILE_SYSTEM
 	case 's':
 	  socket_name = optarg;
+	  break;
+#endif
+
+	case 'f':
+	  server_file = optarg;
 	  break;
 
 	case 'd':
@@ -156,9 +226,13 @@ The following OPTIONS are accepted:\n\
 -H, --help              Print this usage information message\n\
 -n, --no-wait           Don't wait for the server to return\n\
 -e, --eval              Evaluate the FILE arguments as ELisp expressions\n\
--d, --display=DISPLAY   Visit the file in the given display\n\
--s, --socket-name=FILENAME\n\
-                        Set the filename of the UNIX socket for communication\n\
+-d, --display=DISPLAY   Visit the file in the given display\n"
+#ifndef NO_SOCKETS_IN_FILE_SYSTEM
+"-s, --socket-name=FILENAME\n\
+                        Set the filename of the UNIX socket for communication\n"
+#endif
+"-f, --server-file=FILENAME\n\
+			Set the filename of the TCP configuration file\n\
 -a, --alternate-editor=EDITOR\n\
                         Editor to fallback to if the server is not running\n\
 \n\
@@ -166,14 +240,112 @@ Report bugs to bug-gnu-emacs@gnu.org.\n", progname);
   exit (EXIT_SUCCESS);
 }
 
+
+/*
+  Try to run a different command, or --if no alternate editor is
+  defined-- exit with an errorcode.
+*/
+void
+fail (argc, argv)
+     int argc;
+     char **argv;
+{
+  if (alternate_editor)
+    {
+      int i = optind - 1;
+#ifdef WINDOWSNT
+      argv[i] = (char *)alternate_editor;
+#endif
+      execvp (alternate_editor, argv + i);
+      fprintf (stderr, "%s: error executing alternate editor \"%s\"\n",
+               progname, alternate_editor);
+    }
+  exit (EXIT_FAILURE);
+}
+
+
+#if !defined (HAVE_SOCKETS) || !defined (HAVE_INET_SOCKETS)
+
+int
+main (argc, argv)
+     int argc;
+     char **argv;
+{
+  fprintf (stderr, "%s: Sorry, the Emacs server is supported only\n",
+	   argv[0]);
+  fprintf (stderr, "on systems with Berkeley sockets.\n");
+
+  fail (argc, argv);
+}
+
+#else /* HAVE_SOCKETS && HAVE_INET_SOCKETS */
+
+#ifdef WINDOWSNT
+# include <winsock2.h>
+#else
+# include <sys/types.h>
+# include <sys/socket.h>
+# include <sys/un.h>
+# include <sys/stat.h>
+# include <errno.h>
+#endif
+
+#define AUTH_KEY_LENGTH      64
+#define SEND_BUFFER_SIZE   4096
+
+extern char *strerror ();
+extern int errno;
+
+/* Buffer to accumulate data to send in TCP connections.  */
+char send_buffer[SEND_BUFFER_SIZE + 1];
+int sblen = 0;	/* Fill pointer for the send buffer.  */
+
+/* Let's send the data to Emacs when either
+   - the data ends in "\n", or
+   - the buffer is full (but this shouldn't happen)
+   Otherwise, we just accumulate it.  */
+void
+send_to_emacs (s, data)
+     HSOCKET s;
+     char *data;
+{
+  while (data)
+    {
+      int dlen = strlen (data);
+      if (dlen + sblen >= SEND_BUFFER_SIZE)
+	{
+	  int part = SEND_BUFFER_SIZE - sblen;
+	  strncpy (&send_buffer[sblen], data, part);
+	  data += part;
+	  sblen = SEND_BUFFER_SIZE;
+	}
+      else if (dlen)
+	{
+	  strcpy (&send_buffer[sblen], data);
+	  data = NULL;
+	  sblen += dlen;
+	}
+      else
+	break;
+
+      if (sblen == SEND_BUFFER_SIZE
+	  || (sblen > 0 && send_buffer[sblen-1] == '\n'))
+	{
+	  int sent = send (s, send_buffer, sblen, 0);
+	  if (sent != sblen)
+	    strcpy (send_buffer, &send_buffer[sent]);
+	  sblen -= sent;
+	}
+    }
+}
+
 /* In NAME, insert a & before each &, each space, each newline, and
    any initial -.  Change spaces to underscores, too, so that the
    return value never contains a space.  */
-
 void
-quote_file_name (name, stream)
+quote_file_name (s, name)
+     HSOCKET s;
      char *name;
-     FILE *stream;
 {
   char *copy = (char *) malloc (strlen (name) * 2 + 1);
   char *p, *q;
@@ -203,73 +375,202 @@ quote_file_name (name, stream)
     }
   *q++ = 0;
 
-  fprintf (stream, "%s", copy);
+  SEND_STRING (copy);
 
   free (copy);
 }
 
-/* Like malloc but get fatal error if memory is exhausted.  */
-
-long *
-xmalloc (size)
-     unsigned int size;
+int
+file_name_absolute_p (filename)
+     const unsigned char *filename;
 {
-  long *result = (long *) malloc (size);
-  if (result == NULL)
-  {
-    perror ("malloc");
-    exit (EXIT_FAILURE);
-  }
-  return result;
+  /* Sanity check, it shouldn't happen.  */
+  if (! filename) return FALSE;
+
+  /* /xxx is always an absolute path.  */
+  if (filename[0] == '/') return TRUE;
+
+  /* Empty filenames (which shouldn't happen) are relative.  */
+  if (filename[0] == '\0') return FALSE;
+
+#ifdef WINDOWSNT
+  /* X:\xxx is always absolute; X:xxx is an error and will fail.  */
+  if (islower (tolower (filename[0]))
+      && filename[1] == ':' && filename[2] == '\\')
+    return TRUE;
+
+  /* Both \xxx and \\xxx\yyy are absolute.  */
+  if (filename[0] == '\\') return TRUE;
+#endif
+
+  return FALSE;
 }
+
+#ifdef WINDOWSNT
+/* Wrapper to make WSACleanup a cdecl, as required by atexit().	 */
+void
+__cdecl close_winsock ()
+{
+  WSACleanup ();
+}
+
+/* Initialize the WinSock2 library.  */
+void
+initialize_sockets ()
+{
+  WSADATA wsaData;
+
+  if (WSAStartup (MAKEWORD (2, 0), &wsaData))
+    {
+      fprintf (stderr, "%s: error initializing WinSock2", progname);
+      exit (EXIT_FAILURE);
+    }
+
+  atexit (close_winsock);
+}
+#endif /* WINDOWSNT */
 
 /*
-  Try to run a different command, or --if no alternate editor is
-  defined-- exit with an errorcode.
+ * Read the information needed to set up a TCP comm channel with
+ * the Emacs server: host, port, pid and authentication string.
 */
-void
-fail (argc, argv)
-     int argc;
-     char **argv;
+int
+get_server_config (server, authentication)
+     struct sockaddr_in *server;
+     char *authentication;
 {
-  if (alternate_editor)
+  char dotted[32];
+  char *port;
+  char *pid;
+  FILE *config = NULL;
+
+  if (file_name_absolute_p (server_file))
+    config = fopen (server_file, "rb");
+  else
     {
-      int i = optind - 1;
-      execvp (alternate_editor, argv + i);
-      return;
+      char *home = getenv ("HOME");
+
+      if (home)
+        {
+          char *path = alloca (32 + strlen (home) + strlen (server_file));
+          sprintf (path, "%s/.emacs.d/server/%s", home, server_file);
+          config = fopen (path, "rb");
+        }
+#ifdef WINDOWSNT
+      if (!config && (home = getenv ("APPDATA")))
+        {
+          char *path = alloca (32 + strlen (home) + strlen (server_file));
+          sprintf (path, "%s/.emacs.d/server/%s", home, server_file);
+          config = fopen (path, "rb");
+        }
+#endif
+    }
+
+  if (! config)
+    return FALSE;
+
+  if (fgets (dotted, sizeof dotted, config)
+      && (port = strchr (dotted, ':'))
+      && (pid = strchr (port, ' ')))
+    {
+      *port++ = '\0';
+      *pid++  = '\0';
     }
   else
     {
+      fprintf (stderr, "%s: invalid configuration info", progname);
       exit (EXIT_FAILURE);
     }
+
+  server->sin_family = AF_INET;
+  server->sin_addr.s_addr = inet_addr (dotted);
+  server->sin_port = htons (atoi (port));
+
+  if (! fread (authentication, AUTH_KEY_LENGTH, 1, config))
+    {
+      fprintf (stderr, "%s: cannot read authentication info", progname);
+      exit (EXIT_FAILURE);
+    }
+
+  fclose (config);
+
+#ifdef WINDOWSNT
+  /*
+    Modern Windows restrict which processes can set the foreground window.
+    So, for emacsclient to be able to force Emacs into the foreground, we
+    have to call AllowSetForegroundWindow().  Unfortunately, older Windows
+    (W95, W98 and NT) don't have this function, so we have to check first.
+
+    We're doing this here because it has to be done before sending info
+    to Emacs, and otherwise we'll need a global variable just to pass around
+    the pid, which is also inelegant.
+   */
+  {
+    HMODULE hUser32;
+
+    if (hUser32 = LoadLibrary ("user32.dll"))
+      {
+        void (*set_fg)(DWORD);
+        if (set_fg = GetProcAddress (hUser32, "AllowSetForegroundWindow"))
+          set_fg (atoi (pid));
+        FreeLibrary (hUser32);
+      }
+  }
+#endif
+
+  return TRUE;
 }
 
-
-
-#if !defined (HAVE_SOCKETS) || defined (NO_SOCKETS_IN_FILE_SYSTEM)
-
-int
-main (argc, argv)
-     int argc;
-     char **argv;
+HSOCKET
+set_tcp_socket ()
 {
-  fprintf (stderr, "%s: Sorry, the Emacs server is supported only\n",
-	   argv[0]);
-  fprintf (stderr, "on systems with Berkeley sockets.\n");
+  HSOCKET s;
+  struct sockaddr_in server;
+  struct linger l_arg = {1, 1};
+  char auth_string[AUTH_KEY_LENGTH + 1];
 
-  fail (argc, argv);
+  if (! get_server_config (&server, auth_string))
+    return INVALID_SOCKET;
+
+  if (server.sin_addr.s_addr != inet_addr ("127.0.0.1"))
+    fprintf (stderr, "%s: connected to remote socket at %s\n",
+             progname, inet_ntoa (server.sin_addr));
+
+  /*
+   * Open up an AF_INET socket
+   */
+  if ((s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
+    {
+      fprintf (stderr, "%s: ", progname);
+      perror ("socket");
+      return INVALID_SOCKET;
+    }
+
+  /*
+   * Set up the socket
+   */
+  if (connect (s, (struct sockaddr *) &server, sizeof server) < 0)
+    {
+      fprintf (stderr, "%s: ", progname);
+      perror ("connect");
+      return INVALID_SOCKET;
+    }
+
+  setsockopt (s, SOL_SOCKET, SO_LINGER, (char *) &l_arg, sizeof l_arg);
+
+  /*
+   * Send the authentication
+   */
+  auth_string[AUTH_KEY_LENGTH] = '\0';
+
+  SEND_STRING ("-auth ");
+  SEND_STRING (auth_string);
+  SEND_STRING ("\n");
+
+  return s;
 }
 
-#else /* HAVE_SOCKETS */
-
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/un.h>
-#include <sys/stat.h>
-#include <errno.h>
-
-extern char *strerror ();
-extern int errno;
+#if !defined (NO_SOCKETS_IN_FILE_SYSTEM)
 
 /* Three possibilities:
    2 - can't be `stat'ed		(sets errno)
@@ -291,28 +592,11 @@ socket_status (socket_name)
   return 0;
 }
 
-int
-main (argc, argv)
-     int argc;
-     char **argv;
+HSOCKET
+set_local_socket ()
 {
-  int s, i, needlf = 0;
-  FILE *out, *in;
+  HSOCKET s;
   struct sockaddr_un server;
-  char *cwd, *str;
-  char string[BUFSIZ];
-
-  progname = argv[0];
-
-  /* Process options.  */
-  decode_options (argc, argv);
-
-  if ((argc - optind < 1) && !eval)
-    {
-      fprintf (stderr, "%s: file name or argument required\n", progname);
-      fprintf (stderr, "Try `%s --help' for more information\n", progname);
-      exit (EXIT_FAILURE);
-    }
 
   /*
    * Open up an AF_UNIX socket in this person's home directory
@@ -320,9 +604,9 @@ main (argc, argv)
 
   if ((s = socket (AF_UNIX, SOCK_STREAM, 0)) < 0)
     {
-      fprintf (stderr, "%s: ", argv[0]);
+      fprintf (stderr, "%s: ", progname);
       perror ("socket");
-      fail (argc, argv);
+      return INVALID_SOCKET;
     }
 
   server.sun_family = AF_UNIX;
@@ -352,7 +636,7 @@ main (argc, argv)
     else
       {
 	fprintf (stderr, "%s: socket-name %s too long",
-		 argv[0], socket_name);
+		 progname, socket_name);
 	exit (EXIT_FAILURE);
       }
 
@@ -387,7 +671,7 @@ main (argc, argv)
 		else
 		  {
 		    fprintf (stderr, "%s: socket-name %s too long",
-			     argv[0], socket_name);
+			     progname, socket_name);
 		    exit (EXIT_FAILURE);
 		  }
 
@@ -399,60 +683,128 @@ main (argc, argv)
 	  }
       }
 
-     switch (sock_status)
-       {
-       case 1:
-	 /* There's a socket, but it isn't owned by us.  This is OK if
-	    we are root. */
-	 if (0 != geteuid ())
-	   {
-	     fprintf (stderr, "%s: Invalid socket owner\n", argv[0]);
-	     fail (argc, argv);
-	   }
-	 break;
+    switch (sock_status)
+      {
+      case 1:
+        /* There's a socket, but it isn't owned by us.  This is OK if
+           we are root. */
+        if (0 != geteuid ())
+          {
+            fprintf (stderr, "%s: Invalid socket owner\n", progname);
+	    return INVALID_SOCKET;
+          }
+        break;
 
-       case 2:
-	 /* `stat' failed */
-	 if (saved_errno == ENOENT)
-	   fprintf (stderr,
-		    "%s: can't find socket; have you started the server?\n\
+      case 2:
+        /* `stat' failed */
+        if (saved_errno == ENOENT)
+          fprintf (stderr,
+                   "%s: can't find socket; have you started the server?\n\
 To start the server in Emacs, type \"M-x server-start\".\n",
-		    argv[0]);
-	 else
-	   fprintf (stderr, "%s: can't stat %s: %s\n",
-		    argv[0], server.sun_path, strerror (saved_errno));
-	 fail (argc, argv);
-	 break;
-       }
+		   progname);
+        else
+          fprintf (stderr, "%s: can't stat %s: %s\n",
+		   progname, server.sun_path, strerror (saved_errno));
+        return INVALID_SOCKET;
+      }
   }
 
   if (connect (s, (struct sockaddr *) &server, strlen (server.sun_path) + 2)
       < 0)
     {
-      fprintf (stderr, "%s: ", argv[0]);
+      fprintf (stderr, "%s: ", progname);
       perror ("connect");
-      fail (argc, argv);
+      return INVALID_SOCKET;
     }
 
-  /* We use the stream OUT to send our command to the server.  */
-  if ((out = fdopen (s, "r+")) == NULL)
+  return s;
+}
+#endif /* ! NO_SOCKETS_IN_FILE_SYSTEM */
+
+HSOCKET
+set_socket ()
+{
+  HSOCKET s;
+
+  INITIALIZE ();
+
+#ifndef NO_SOCKETS_IN_FILE_SYSTEM
+  /* Explicit --socket-name argument.  */
+  if (socket_name)
     {
-      fprintf (stderr, "%s: ", argv[0]);
-      perror ("fdopen");
-      fail (argc, argv);
+      s = set_local_socket ();
+      if ((s != INVALID_SOCKET) || alternate_editor)
+        return s;
+
+      fprintf (stderr, "%s: error accessing socket \"%s\"",
+               progname, socket_name);
+      exit (EXIT_FAILURE);
+    }
+#endif
+
+  /* Explicit --server-file arg or EMACS_SERVER_FILE variable.  */
+  if (!server_file)
+    server_file = getenv ("EMACS_SERVER_FILE");
+
+  if (server_file)
+    {
+      s = set_tcp_socket ();
+      if ((s != INVALID_SOCKET) || alternate_editor)
+        return s;
+
+      fprintf (stderr, "%s: error accessing server file \"%s\"",
+               progname, server_file);
+      exit (EXIT_FAILURE);
     }
 
-  /* We use the stream IN to read the response.
-     We used to use just one stream for both output and input
-     on the socket, but reversing direction works nonportably:
-     on some systems, the output appears as the first input;
-     on other systems it does not.  */
-  if ((in = fdopen (s, "r+")) == NULL)
+#ifndef NO_SOCKETS_IN_FILE_SYSTEM
+  /* Implicit local socket.  */
+  s = set_local_socket ();
+  if (s != INVALID_SOCKET)
+    return s;
+#endif
+
+  /* Implicit server file.  */
+  server_file = "server";
+  s = set_tcp_socket ();
+  if ((s != INVALID_SOCKET) || alternate_editor)
+    return s;
+
+  /* No implicit or explicit socket, and no alternate editor.  */
+  fprintf (stderr, "%s: No socket or alternate editor.  Please use:\n\n"
+#ifndef NO_SOCKETS_IN_FILE_SYSTEM
+"\t--socket-name\n"
+#endif
+"\t--server-file      (or environment variable EMACS_SERVER_FILE)\n\
+\t--alternate-editor (or environment variable ALTERNATE_EDITOR)\n",
+           progname);
+  exit (EXIT_FAILURE);
+}
+
+int
+main (argc, argv)
+     int argc;
+     char **argv;
+{
+  HSOCKET s;
+  int i, rl, needlf = 0;
+  char *cwd;
+  char string[BUFSIZ+1];
+
+  progname = argv[0];
+
+  /* Process options.  */
+  decode_options (argc, argv);
+
+  if ((argc - optind < 1) && !eval)
     {
-      fprintf (stderr, "%s: ", argv[0]);
-      perror ("fdopen");
-      fail (argc, argv);
+      fprintf (stderr, "%s: file name or argument required\n", progname);
+      fprintf (stderr, "Try `%s --help' for more information\n", progname);
+      exit (EXIT_FAILURE);
     }
+
+  if ((s = set_socket ()) == INVALID_SOCKET)
+    fail (argc, argv);
 
 #ifdef HAVE_GETCWD
   cwd = getcwd (string, sizeof string);
@@ -462,27 +814,26 @@ To start the server in Emacs, type \"M-x server-start\".\n",
   if (cwd == 0)
     {
       /* getwd puts message in STRING if it fails.  */
-
 #ifdef HAVE_GETCWD
-      fprintf (stderr, "%s: %s (%s)\n", argv[0],
+      fprintf (stderr, "%s: %s (%s)\n", progname,
 	       "Cannot get current working directory", strerror (errno));
 #else
-      fprintf (stderr, "%s: %s (%s)\n", argv[0], string, strerror (errno));
+      fprintf (stderr, "%s: %s (%s)\n", progname, string, strerror (errno));
 #endif
       fail (argc, argv);
     }
 
   if (nowait)
-    fprintf (out, "-nowait ");
+    SEND_STRING ("-nowait ");
 
   if (eval)
-    fprintf (out, "-eval ");
+    SEND_STRING ("-eval ");
 
   if (display)
     {
-      fprintf (out, "-display ");
-      quote_file_name (display, out);
-      fprintf (out, " ");
+      SEND_STRING ("-display ");
+      SEND_QUOTED (display);
+      SEND_STRING (" ");
     }
 
   if ((argc - optind > 0))
@@ -497,61 +848,62 @@ To start the server in Emacs, type \"M-x server-start\".\n",
 	      while (isdigit ((unsigned char) *p) || *p == ':') p++;
 	      if (*p != 0)
 		{
-		  quote_file_name (cwd, out);
-		  fprintf (out, "/");
+		  SEND_QUOTED (cwd);
+		  SEND_STRING ("/");
 		}
 	    }
-	  else if (*argv[i] != '/')
+          else if (! file_name_absolute_p (argv[i]))
 	    {
-	      quote_file_name (cwd, out);
-	      fprintf (out, "/");
+	      SEND_QUOTED (cwd);
+	      SEND_STRING ("/");
 	    }
 
-	  quote_file_name (argv[i], out);
-	  fprintf (out, " ");
+	  SEND_QUOTED (argv[i]);
+	  SEND_STRING (" ");
 	}
     }
   else
     {
-      while ((str = fgets (string, BUFSIZ, stdin)))
+      while (fgets (string, BUFSIZ, stdin))
 	{
-	  quote_file_name (str, out);
+	  SEND_QUOTED (string);
 	}
-      fprintf (out, " ");
+      SEND_STRING (" ");
     }
 
-  fprintf (out, "\n");
-  fflush (out);
+  SEND_STRING ("\n");
 
   /* Maybe wait for an answer.   */
-  if (nowait)
-    return EXIT_SUCCESS;
-
-  if (!eval)
+  if (!nowait)
     {
-      printf ("Waiting for Emacs...");
-      needlf = 2;
+      if (!eval)
+        {
+          printf ("Waiting for Emacs...");
+          needlf = 2;
+        }
+      fflush (stdout);
+
+      /* Now, wait for an answer and print any messages.  */
+      while ((rl = recv (s, string, BUFSIZ, 0)) > 0)
+        {
+	  string[rl] = '\0';
+          if (needlf == 2)
+            printf ("\n");
+	  printf ("%s", string);
+	  needlf = string[0] == '\0' ? needlf : string[strlen (string) - 1] != '\n';
+        }
+
+      if (needlf)
+        printf ("\n");
+      fflush (stdout);
     }
-  fflush (stdout);
 
-  /* Now, wait for an answer and print any messages.  */
-  while ((str = fgets (string, BUFSIZ, in)))
-    {
-      if (needlf == 2)
-	printf ("\n");
-      printf ("%s", str);
-      needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
-    }
-
-  if (needlf)
-    printf ("\n");
-  fflush (stdout);
-
+  CLOSE_SOCKET (s);
   return EXIT_SUCCESS;
 }
 
-#endif /* HAVE_SOCKETS */
-
+#endif /* HAVE_SOCKETS && HAVE_INET_SOCKETS */
+
 #ifndef HAVE_STRERROR
 char *
 strerror (errnum)

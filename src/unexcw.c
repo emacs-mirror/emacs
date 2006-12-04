@@ -262,7 +262,7 @@ unexec (char *outfile, char *infile, unsigned start_data, unsigned d1,
   if (bss_sbrk_did_unexec)
     {
       /* can only dump once */
-      printf ("You can only dump emacs once on this platform.\n");
+      printf ("You can only dump Emacs once on this platform.\n");
       return (1);
     }
 

@@ -77,7 +77,7 @@
 ;; Variables
 
 (defgroup handwrite nil
-  "Turns your emacs buffer into a handwritten document."
+  "Turns your Emacs buffer into a handwritten document."
   :prefix "handwrite-"
   :group 'games)
 

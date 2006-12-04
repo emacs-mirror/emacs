@@ -527,6 +527,16 @@ START-EVENT is the mouse click event."
       #'ruler-mode-mouse-del-tab-stop)
     (define-key km [header-line (control down-mouse-2)]
       #'ruler-mode-toggle-show-tab-stops)
+    (define-key km [header-line (shift mouse-1)]
+      'ignore)
+    (define-key km [header-line (shift mouse-3)]
+      'ignore)
+    (define-key km [header-line (control mouse-1)]
+      'ignore)
+    (define-key km [header-line (control mouse-3)]
+      'ignore)
+    (define-key km [header-line (control mouse-2)]
+      'ignore)
     km)
   "Keymap for ruler minor mode.")
 

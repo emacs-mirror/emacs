@@ -808,7 +808,7 @@ other client."
                        (erc-ip-to-decimal (nth 0 contact))
                        (nth 1 contact)
                        size)))
-    (error "`make-network-process' not supported by your emacs.")))
+    (error "`make-network-process' not supported by your Emacs")))
 
 ;;; GET handling
 

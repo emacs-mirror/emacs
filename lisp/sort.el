@@ -505,8 +505,9 @@ Use \\[untabify] to convert tabs to spaces before sorting."
 	  ;; Use the sort utility if we can; it is 4 times as fast.
 	  ;; Do not use it if there are any non-font-lock properties
 	  ;; in the region, since the sort utility would lose the
-	  ;; properties.
-	  (let ((sort-args (list (if reverse "-rt\n" "-t\n")
+	  ;; properties.  Tabs are used as field separator; on NetBSD,
+	  ;; sort complains if "\n" is used as field separator.
+	  (let ((sort-args (list (if reverse "-rt\t" "-t\t")
 				 (format "-k1.%d,1.%d"
 					 (1+ col-start)
 					 (1+ col-end)))))

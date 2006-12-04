@@ -1280,6 +1280,11 @@ be carried out at the same time:
    For more about lbxproxy, see:
    http://www.xfree86.org/4.3.0/lbxproxy.1.html
 
+5) If copying and killing is slow, try to disable the interaction with the
+   native system's clipboard by adding these lines to your .emacs file:
+     (setq interprogram-cut-function nil)
+     (setq interprogram-paste-function nil)
+
 *** Emacs gives the error, Couldn't find per display information.
 
 This can result if the X server runs out of memory because Emacs uses
@@ -2322,7 +2327,16 @@ This results from a bug in a VERY old version of GNU Sed.  To solve
 the problem, install the current version of GNU Sed, then rerun
 Emacs's configure script.
 
-*** Building the MS-Windows port with Cygwin GCC can fail.
+*** Building the Cygwin port for MS-Windows can fail with some GCC version
+
+Building Emacs 22 with Cygwin builds of GCC 3.4.4-1 and 3.4.4-2 is
+reported to either fail or cause Emacs to segfault at run time.  In
+addition, the Cygwin GCC 3.4.4-2 has problems with generating debug
+info.  Cygwin users are advised not to use these versions of GCC for
+compiling Emacs.  GCC versions 4.0.3 and 4.1.1 reportedly build a
+working Cygwin binary of Emacs, so we recommend these GCC versions.
+
+*** Building the native MS-Windows port with Cygwin GCC can fail.
 
 Emacs may not build using recent Cygwin builds of GCC, such as Cygwin
 version 1.1.8, using the default configure settings.  It appears to be

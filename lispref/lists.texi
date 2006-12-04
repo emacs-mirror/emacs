@@ -713,12 +713,14 @@ l
 
   Two functions modify lists that are the values of variables.
 
-@defun add-to-list symbol element &optional append
+@defun add-to-list symbol element &optional append compare-fn
 This function sets the variable @var{symbol} by consing @var{element}
 onto the old value, if @var{element} is not already a member of that
 value.  It returns the resulting list, whether updated or not.  The
 value of @var{symbol} had better be a list already before the call.
-Membership is tested using @code{equal}.
+@code{add-to-list} uses @var{compare-fn} to compare @var{element}
+against existing list members; if @var{compare-fn} is @code{nil}, it
+uses @code{equal}.
 
 Normally, if @var{element} is added, it is added to the front of
 @var{symbol}, but if the optional argument @var{append} is

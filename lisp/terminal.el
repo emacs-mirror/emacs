@@ -1162,7 +1162,7 @@ subprocess started."
   (setq inhibit-quit t)			;sport death
   (use-local-map terminal-map)
   (run-hooks 'terminal-mode-hook)
-  (message "Entering emacs terminal-emulator...  Type %s %s for help"
+  (message "Entering Emacs terminal-emulator...  Type %s %s for help"
 	   (single-key-description terminal-escape-char)
 	   (mapconcat 'single-key-description
 		      (where-is-internal 'te-escape-help terminal-escape-map t)

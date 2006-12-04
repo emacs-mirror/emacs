@@ -330,11 +330,11 @@ This is done after the message is completely prepped, and you'll be
 looking at the top of the message in a buffer when you get the prompt.
 If set to the symbol 'queued, give the confirmation prompt only while
 running the queue (however, the prompt is always suppressed if you are
-processing the queue via feedmail-run-the-queue-no-prompts).  If set
+processing the queue via `feedmail-run-the-queue-no-prompts').  If set
 to the symbol 'immediate, give the confirmation prompt only when
 sending immediately.  For any other non-nil value, prompt in both
 cases.  You can give a timeout for the prompt; see variable
-feedmail-confirm-outgoing-timeout."
+`feedmail-confirm-outgoing-timeout'."
   :group 'feedmail-misc
   :type 'boolean
   )
@@ -344,7 +344,7 @@ feedmail-confirm-outgoing-timeout."
   "*If non-nil, a timeout in seconds at the send confirmation prompt.
 If a positive number, it's a timeout before sending.  If a negative
 number, it's a timeout before not sending.  This will not work if your
-version of Emacs doesn't include the function y-or-n-p-with-timeout
+version of Emacs doesn't include the function `y-or-n-p-with-timeout'
 \(e.g., some versions of XEmacs\)."
   :group 'feedmail-misc
   :type '(choice (const nil) integer)
@@ -355,7 +355,7 @@ version of Emacs doesn't include the function y-or-n-p-with-timeout
   "*If non-nil remove Bcc: lines from the message headers.
 In any case, the Bcc: lines do participate in the composed address
 list.  You may want to leave them in if you're using sendmail
-\(see feedmail-buffer-eating-function\)."
+\(see `feedmail-buffer-eating-function'\)."
   :group 'feedmail-headers
   :type 'boolean
   )
@@ -365,7 +365,7 @@ list.  You may want to leave them in if you're using sendmail
   "*If non-nil remove Resent-Bcc: lines from the message headers.
 In any case, the Resent-Bcc: lines do participate in the composed
 address list.  You may want to leave them in if you're using sendmail
-\(see feedmail-buffer-eating-function\)."
+\(see `feedmail-buffer-eating-function'\)."
   :group 'feedmail-headers
   :type 'boolean
   )
@@ -410,7 +410,7 @@ as-is.  The filling is done after mail address alias expansion."
 
 
 (defcustom feedmail-fill-to-cc-fill-column default-fill-column
-  "*Fill column used by feedmail-fill-to-cc."
+  "*Fill column used by `feedmail-fill-to-cc'."
   :group 'feedmail-headers
   :type 'integer
   )
@@ -481,7 +481,7 @@ another function, but let's not be ridiculous).  If a string, it
 should be just the contents of the header, not the name of the header
 itself nor the trailing newline.  If a function, it will be called
 with no arguments.  For an explanation of fiddle-plexes, see the
-documentation for the variable feedmail-fiddle-plex-blurb.  In all
+documentation for the variable `feedmail-fiddle-plex-blurb'.  In all
 cases the name element of the fiddle-plex is ignored and is hardwired
 by feedmail to either \"X-Sender\" or \"X-Resent-Sender\".
 
@@ -498,7 +498,7 @@ header is fiddled after the From: header is fiddled."
   "*If non-nil, force writing file as binary (this applies to queues and Fcc:).
 On systems where there is a difference between binary and text files,
 feedmail will temporarily manipulate the values of `buffer-file-type'
-and/or default-buffer-file-type to make the writing as binary.  If
+and/or `default-buffer-file-type' to make the writing as binary.  If
 nil, writing will be in text mode.  On systems where there is no
 distinction or where it is controlled by other variables or other
 means, this option has no effect."
@@ -521,7 +521,7 @@ another function, but let's not be ridiculous).  If a string, it
 should be just the contents of the header, not the name of the header
 itself nor the trailing newline.  If a function, it will be called
 with no arguments.  For an explanation of fiddle-plexes, see the
-documentation for the variable feedmail-fiddle-plex-blurb.  In all
+documentation for the variable `feedmail-fiddle-plex-blurb'.  In all
 cases the name element of the fiddle-plex is ignored and is hardwired
 by feedmail to either \"X-From\" or \"X-Resent-From\".
 
@@ -544,7 +544,7 @@ change the value of `user-mail-address' to be the same while the message
 is being sent.  If there is no Sender: header, use the From: header,
 if any.  Address values are taken from the actual message just before
 it is sent, and the process is independent of the values of
-feedmail-from-line and/or feedmail-sender-line.
+`feedmail-from-line' and/or `feedmail-sender-line'.
 
 There are many and good reasons for having the message header
 From:/Sender: be different from the message envelope \"from\"
@@ -595,7 +595,7 @@ another function, but let's not be ridiculous).  If a string, it
 should be just the contents of the header, not the name of the header
 itself nor the trailing newline.  If a function, it will be called
 with no arguments.  For an explanation of fiddle-plexes, see the
-documentation for the variable feedmail-fiddle-plex-blurb.  In all
+documentation for the variable `feedmail-fiddle-plex-blurb'.  In all
 cases the name element of the fiddle-plex is ignored and is hardwired
 by feedmail to either \"X-Mailer\" or \"X-Resent-Mailer\"."
   :group 'feedmail-headers
@@ -619,7 +619,7 @@ should be just the contents of the header, not the name of the header
 itself nor the trailing newline.  If a function, it will be called
 with one argument: the possibly-nil name of the file associated with
 the message buffer.  For an explanation of fiddle-plexes, see the
-documentation for the variable feedmail-fiddle-plex-blurb.  In all
+documentation for the variable `feedmail-fiddle-plex-blurb'.  In all
 cases the name element of the fiddle-plex is ignored and is hardwired
 by feedmail to either \"Message-Id\" or \"Resent-Message-Id\".
 
@@ -655,7 +655,7 @@ If nil, nothing is done about Date:.
 
 If t, a Date: header of a predetermined format is produced, but only
 if there is not already a Date: in the message.  A value of t is
-equivalent to using the function feedmail-default-date-generator.
+equivalent to using the function `feedmail-default-date-generator'.
 
 If neither nil nor t, it may be a string, a fiddle-plex, or a function
 which returns either nil, t, a string, or a fiddle-plex (or, in fact,
@@ -664,7 +664,7 @@ should be just the contents of the header, not the name of the header
 itself nor the trailing newline.  If a function, it will be called
 with one argument: the possibly-nil name of the file associated with
 the message buffer.  For an explanation of fiddle-plexes, see the
-documentation for the variable feedmail-fiddle-plex-blurb.  In all
+documentation for the variable `feedmail-fiddle-plex-blurb'.  In all
 cases the name element of the fiddle-plex is ignored and is hardwired
 by feedmail to either \"Date\" or \"Resent-Date\".
 
@@ -700,10 +700,10 @@ fiddle-plex.
 
 feedmail will use this list of fiddle-plexes to manipulate user-specified
 message header fields.  It does this after it has completed all normal
-message header field manipulation and before calling feedmail-last-chance-hook.
+message header field manipulation and before calling `feedmail-last-chance-hook'.
 
 For an explanation of fiddle-plexes, see the documentation for the
-variable feedmail-fiddle-plex-blurb.  In contrast to some other fiddle-plex
+variable `feedmail-fiddle-plex-blurb'.  In contrast to some other fiddle-plex
 manipulation functions, in this context, it makes no sense to have an element
 which is nil, t, or a simple string."
   :group 'feedmail-headers
@@ -727,7 +727,7 @@ it, you should avoid it since it is inherently less efficient than normal
 multiple delivery.  One reason to use it is to overcome mis-featured mail
 transports which betray your trust by revealing Bcc: addressees in the
 headers of a message.  Another use is to do a crude form of mailmerge, for
-which see feedmail-spray-address-fiddle-plex-list.
+which see `feedmail-spray-address-fiddle-plex-list'.
 
 If one of the calls to the buffer-eating function results in an error,
 what happens next is carelessly defined, so beware."
@@ -736,12 +736,12 @@ what happens next is carelessly defined, so beware."
   )
 
 (defvar feedmail-spray-this-address nil
-  "Do not set or change this variable.  See feedmail-spray-address-fiddle-plex-list.")
+  "Do not set or change this variable.  See `feedmail-spray-address-fiddle-plex-list'.")
 
 (defcustom feedmail-spray-address-fiddle-plex-list nil
   "User-supplied specification for a crude form of mailmerge capability.
 When spraying is enabled, feedmail composes a list of envelope addresses.
-In turn, feedmail-spray-this-address is temporarily set to each address
+In turn, `feedmail-spray-this-address' is temporarily set to each address
 \(stripped of any comments and angle brackets\) and calls a function which
 fiddles message headers according to this variable.  See the documentation for
 `feedmail-fiddle-plex-blurb', for an overview of fiddle-plex data structures.
@@ -772,15 +772,15 @@ For example,
 
 The idea of the example is that, during spray mode, as each message is
 about to be transmitted to an individual address, the function will be
-called and will consult feedmail-spray-this-address to find the
+called and will consult `feedmail-spray-this-address' to find the
 stripped envelope email address (no comments or angle brackets).  The
 function should return an embellished form of the address.
 
 The recipe for sending form letters is:  (1) create a message with all
 addressees on Bcc: headers; (2) tell feedmail to remove Bcc: headers
 before sending the message; (3) create a function which will embellish
-stripped addresses, if desired; (4) define feedmail-spray-address-fiddle-plex-list
-appropriately; (5) send the message with feedmail-enable-spray set
+stripped addresses, if desired; (4) define `feedmail-spray-address-fiddle-plex-list'
+appropriately; (5) send the message with `feedmail-enable-spray' set
 non-nil; (6) stand back and watch co-workers wonder at how efficient
 you are at accomplishing inherently inefficient things."
   :group 'feedmail-spray
@@ -809,7 +809,7 @@ versa by pretending to send it and then selecting whichever queue
 directory you want at the prompt.  The right thing will happen.
 
 To transmit all the messages in the queue, invoke the command
-feedmail-run-the-queue or feedmail-run-the-queue-no-prompts."
+`feedmail-run-the-queue' or `feedmail-run-the-queue-no-prompts'."
   :group 'feedmail-queue
   :type 'boolean
   )
@@ -818,7 +818,7 @@ feedmail-run-the-queue or feedmail-run-the-queue-no-prompts."
 (defcustom feedmail-queue-runner-confirm-global nil
   "*If non-nil, give a y-or-n confirmation prompt before running the queue.
 Prompt even if the queue is about to be processed as a result of a call to
-feedmail-run-the-queue-no-prompts.  This gives you a way to bail out
+`feedmail-run-the-queue-no-prompts'.  This gives you a way to bail out
 without having to answer no to the individual message prompts."
   :group 'feedmail-queue
   :type 'boolean)
@@ -868,7 +868,7 @@ without a prompt."
 (defcustom feedmail-ask-before-queue-prompt "FQM: Message action (q, i, d, e, ?)? [%s]: "
   "*A string which will be used for the message action prompt.
 If it contains a \"%s\", that will be replaced with the value of
-feedmail-ask-before-queue-default."
+`feedmail-ask-before-queue-default'."
   :group 'feedmail-queue
   :type 'string
   )
@@ -877,7 +877,7 @@ feedmail-ask-before-queue-default."
 (defcustom feedmail-ask-before-queue-reprompt "FQM: Please type q, i, d, or e; or ? for help [%s]: "
   "*A string which will be used for repompting after invalid input.
 If it contains a \"%s\", that will be replaced with the value of
-feedmail-ask-before-queue-default."
+`feedmail-ask-before-queue-default'."
   :group 'feedmail-queue
   :type 'string
   )
@@ -921,7 +921,7 @@ the help for the message action prompt."
 All of the values are function names, except help, which is a special
 symbol that calls up help for the prompt (the help describes the
 actions from the standard alist).  To customize your own choices,
-define a similar alist called feedmail-prompt-before-queue-user-alist.
+define a similar alist called `feedmail-prompt-before-queue-user-alist'.
 The actual alist used for message action will be the standard alist
 overlaid with the user-alist.  To neutralize an item in the standard
 alist without providing a replacement, define an appropriate element
@@ -929,7 +929,7 @@ in the user alist with a value of nil." )
 
 
 (defcustom feedmail-prompt-before-queue-user-alist nil
-  "See feedmail-prompt-before-queue-standard-alist."
+  "See `feedmail-prompt-before-queue-standard-alist'."
   :group 'feedmail-queue
   :type '(repeat (cons character function))
   )
@@ -940,10 +940,10 @@ in the user alist with a value of nil." )
 When the message action prompt is shown, the user can as for verbose help,
 at which point a buffer pops up describing the meaning of possible
 responses to the prompt.  Through various customizations (see, for
-example, feedmail-prompt-before-queue-user-alist), the available responses
+example, `feedmail-prompt-before-queue-user-alist'), the available responses
 and the prompt itself can be changed.  If this variable is set to a string
 value, that string is written to the help buffer after the standard info.
-It may contain embedded line breaks.  It will be printed via princ."
+It may contain embedded line breaks.  It will be printed via `princ'."
   :group 'feedmail-queue
   :type '(choice (const nil) string)
   )
@@ -955,7 +955,7 @@ It may contain embedded line breaks.  It will be printed via princ."
     (after-draft . feedmail-queue-reminder-medium)
     (after-run . feedmail-queue-reminder-brief)
     (on-demand . feedmail-run-the-queue-global-prompt))
-  "See feedmail-queue-reminder."
+  "See `feedmail-queue-reminder'."
   :group 'feedmail-queue
   :type '(repeat (cons (choice :tag "Event"
 			       (const on-demand)
@@ -1017,7 +1017,7 @@ used."
 (defcustom feedmail-queue-use-send-time-for-message-id nil
   "*If non-nil, use send time for the Message-Id: header value.
 This variable is used by the default Message-Id: generating function,
-feedmail-default-message-id-generator.  If nil, the default, the
+`feedmail-default-message-id-generator'.  If nil, the default, the
 last-modified timestamp of the queue file is used to create the
 message Message-Id: header; if there is no queue file, the current time is
 used."
@@ -1061,7 +1061,7 @@ any."
 When feedmail queues a message, it creates a unique file name.  By default,
 the file name is based in part on the subject of the message being queued.
 If there is no subject, consult this variable.  See documentation for the
-function feedmail-queue-subject-slug-maker.
+function `feedmail-queue-subject-slug-maker'.
 
 If t, an innocuous default is used.
 
@@ -1083,8 +1083,8 @@ it's not expected to be a complete filename."
   "*The FQM suffix used to distinguish feedmail queued message files.
 You probably want this to be a period followed by some letters and/or
 digits.  The distinction is to be able to tell them from other random
-files that happen to be in the feedmail-queue-directory or
-feedmail-queue-draft-directory. By the way, FQM stands for feedmail
+files that happen to be in the `feedmail-queue-directory' or
+`feedmail-queue-draft-directory'.  By the way, FQM stands for feedmail
 queued message."
   :group 'feedmail-queue
   :type 'string
@@ -1133,20 +1133,20 @@ variable, but may depend on its value as described here.")
 
 
 (defun feedmail-mail-send-hook-splitter ()
-  "Facilitate dividing mail-send-hook things into queued and immediate cases.
-If you have mail-send-hook functions that should only be called for sending/
+  "Facilitate dividing `mail-send-hook' things into queued and immediate cases.
+If you have `mail-send-hook' functions that should only be called for sending/
 queueing messages or only be called for the sending of queued messages, this is
-for you.  Add this function to mail-send-hook with something like this:
+for you.  Add this function to `mail-send-hook' with something like this:
 
 	(add-hook 'mail-send-hook 'feedmail-mail-send-hook-splitter)
 
-Then add the functions you want called to either feedmail-mail-send-hook-queued
-or feedmail-mail-send-hook, as apprpriate.  The distinction is that
-feedmail-mail-send-hook will be called when you send mail from a composition
+Then add the functions you want called to either `feedmail-mail-send-hook-queued'
+or `feedmail-mail-send-hook', as apprpriate.  The distinction is that
+`feedmail-mail-send-hook' will be called when you send mail from a composition
 buffer (typically by typing C-c C-c), whether the message is sent immediately
-or placed in the queue or drafts directory.  feedmail-mail-send-hook-queued is
+or placed in the queue or drafts directory.  `feedmail-mail-send-hook-queued' is
 called when messages are being sent from the queue directory, typically via a
-call to feedmail-run-the-queue."
+call to `feedmail-run-the-queue'."
   (if feedmail-queue-runner-is-active
       (run-hooks 'feedmail-mail-send-hook-queued)
     (run-hooks 'feedmail-mail-send-hook))
@@ -1154,15 +1154,15 @@ call to feedmail-run-the-queue."
 
 
 (defvar feedmail-mail-send-hook nil
-  "*See documentation for feedmail-mail-send-hook-splitter.")
+  "*See documentation for `feedmail-mail-send-hook-splitter'.")
 
 
 (defvar feedmail-mail-send-hook-queued nil
-  "*See documentation for feedmail-mail-send-hook-splitter.")
+  "*See documentation for `feedmail-mail-send-hook-splitter'.")
 
 
 (defun feedmail-confirm-addresses-hook-example ()
-  "An example of a feedmail-last-chance-hook.
+  "An example of a `feedmail-last-chance-hook'.
 It shows the simple addresses and gets a confirmation.  Use as:
  (setq feedmail-last-chance-hook 'feedmail-confirm-addresses-hook-example)."
   (save-window-excursion
@@ -1179,10 +1179,10 @@ It shows the simple addresses and gets a confirmation.  Use as:
 It has already had all the header prepping from the standard package.
 The next step after running the hook will be to push the buffer into a
 subprocess that mails the mail.  The hook might be interested in
-these: (1) feedmail-prepped-text-buffer contains the header and body
-of the message, ready to go; (2) feedmail-address-list contains a list
+these: (1) `feedmail-prepped-text-buffer' contains the header and body
+of the message, ready to go; (2) `feedmail-address-list' contains a list
 of simplified recipients of addresses which are to be given to the
-subprocess (the hook may change the list); (3) feedmail-error-buffer
+subprocess (the hook may change the list); (3) `feedmail-error-buffer'
 is an empty buffer intended to soak up errors for display to the user.
 If the hook allows interactive activity, the user should not send more
 mail while in the hook since some of the internal buffers will be
@@ -1197,10 +1197,10 @@ reused and things will get confused."
 It has already had all the header prepping from the standard package.
 The next step after running the hook will be to save the message via
 Fcc: processing. The hook might be interested in these: (1)
-feedmail-prepped-text-buffer contains the header and body of the
-message, ready to go; (2) feedmail-address-list contains a list of
+`feedmail-prepped-text-buffer' contains the header and body of the
+message, ready to go; (2) `feedmail-address-list' contains a list of
 simplified recipients of addressees to whom the message was sent (3)
-feedmail-error-buffer is an empty buffer intended to soak up errors
+`feedmail-error-buffer' is an empty buffer intended to soak up errors
 for display to the user.  If the hook allows interactive activity, the
 user should not send more mail while in the hook since some of the
 internal buffers will be reused and things will get confused."
@@ -1213,7 +1213,7 @@ internal buffers will be reused and things will get confused."
   "*A function to set the proper mode of a message file.
 Called when the message is read back out of the queue directory with a single
 argument, the optional argument used in the call to
-feedmail-run-the-queue or feedmail-run-the-queue-no-prompts.
+`feedmail-run-the-queue' or `feedmail-run-the-queue-no-prompts'.
 
 Most people want `mail-mode', so the default value is an anonymous
 function which is just a wrapper to ignore the supplied argument when
@@ -1235,7 +1235,7 @@ When trying to send a queued message, if the value of this variable is
 non-nil, feedmail will first try to send the message using the value
 of `mail-header-separator'.  If it can't find that, it will temporarily
 set `mail-header-separator' to the value of
-feedmail-queue-alternative-mail-header-separator and try again."
+`feedmail-queue-alternative-mail-header-separator' and try again."
   :group 'feedmail-queue
   :type '(choice (const nil) string)
   )
@@ -1245,11 +1245,11 @@ feedmail-queue-alternative-mail-header-separator and try again."
   "*Function to initiate sending a message file.
 Called for each message read back out of the queue directory with a
 single argument, the optional argument used in the call to
-feedmail-run-the-queue or feedmail-run-the-queue-no-prompts.
+`feedmail-run-the-queue' or `feedmail-run-the-queue-no-prompts'.
 Interactively, that argument will be the prefix argument.  Most people
-want mail-send-and-exit (bound to C-c C-c in mail-mode), but here's
-your chance to have something different.  Called with funcall, not
-call-interactively."
+want `mail-send-and-exit' (bound to C-c C-c in mail-mode), but here's
+your chance to have something different.  Called with `funcall', not
+`call-interactively'."
   :group 'feedmail-queue
   :type 'function
   )
@@ -1291,11 +1291,11 @@ The function's three (mandatory) arguments are: (1) the buffer
 containing the prepped message; (2) a buffer where errors should be
 directed; and (3) a list containing the addresses individually as
 strings.  Three popular choices for this are
-feedmail-buffer-to-binmail, feedmail-buffer-to-smtpmail, and
-feedmail-buffer-to-sendmail.  If you use the sendmail form, you
-probably want to set feedmail-nuke-bcc and/or feedmail-nuke-resent-bcc
+`feedmail-buffer-to-binmail', `feedmail-buffer-to-smtpmail', and
+`feedmail-buffer-to-sendmail'.  If you use the sendmail form, you
+probably want to set `feedmail-nuke-bcc' and/or `feedmail-nuke-resent-bcc'
 to nil.  If you use the binmail form, check the value of
-feedmail-binmail-template."
+`feedmail-binmail-template'."
   :group 'feedmail-misc
   :type 'function
   )
@@ -1306,7 +1306,7 @@ feedmail-binmail-template."
 It can result in any command understandable by /bin/sh.  Might not
 work at all in non-Unix environments.  The single '%s', if present,
 gets replaced by the space-separated, simplified list of addressees.
-Used in feedmail-buffer-to-binmail to form the shell command which
+Used in `feedmail-buffer-to-binmail' to form the shell command which
 will receive the contents of the prepped buffer as stdin.  If you'd
 like your errors to come back as mail instead of immediately in a
 buffer, try /bin/rmail instead of /bin/mail (this can be accomplished
@@ -1535,13 +1535,13 @@ with various lower-level mechanisms to provide features such as queueing."
 
 ;;;###autoload
 (defun feedmail-run-the-queue-no-prompts (&optional arg)
-  "Like feedmail-run-the-queue, but suppress confirmation prompts."
+  "Like `feedmail-run-the-queue', but suppress confirmation prompts."
   (interactive "p")
   (let ((feedmail-confirm-outgoing nil)) (feedmail-run-the-queue arg)))
 
 ;;;###autoload
 (defun feedmail-run-the-queue-global-prompt (&optional arg)
-  "Like feedmail-run-the-queue, but with a global confirmation prompt.
+  "Like `feedmail-run-the-queue', but with a global confirmation prompt.
 This is generally most useful if run non-interactively, since you can
 bail out with an appropriate answer to the global confirmation prompt."
   (interactive "p")
@@ -1678,7 +1678,7 @@ backup file names and the like)."
   "Perform some kind of reminder activity about queued and draft messages.
 Called with an optional symbol argument which says what kind of event
 is triggering the reminder activity.  The default is 'on-demand, which
-is what you typically would use if you were putting this in your emacs start-up
+is what you typically would use if you were putting this in your Emacs start-up
 or mail hook code.  Other recognized values for WHAT-EVENT (these are passed
 internally by feedmail):
 
@@ -1687,11 +1687,11 @@ internally by feedmail):
    after-draft          (a message has just been placed in the draft directory)
    after-run            (the queue has just been run, possibly sending messages)
 
-WHAT-EVENT is used as a key into the table feedmail-queue-reminder-alist.  If
+WHAT-EVENT is used as a key into the table `feedmail-queue-reminder-alist'.  If
 the associated value is a function, it is called without arguments and is expected
 to perform the reminder activity.  You can supply your own reminder functions
-by redefining feedmail-queue-reminder-alist.  If you don't want any reminders,
-you can set feedmail-queue-reminder-alist to nil."
+by redefining `feedmail-queue-reminder-alist'.  If you don't want any reminders,
+you can set `feedmail-queue-reminder-alist' to nil."
   (interactive "p")
   (let ((key (if (and what-event (symbolp what-event)) what-event 'on-demand)) entry reminder)
     (setq entry (assoc key feedmail-queue-reminder-alist))
@@ -1871,7 +1871,7 @@ the counts."
 Optional argument QUEUE-DIRECTORY specifies into which directory the
 file will be placed.  The name is based on the Subject: header (if
 there is one).  If there is no subject,
-feedmail-queue-default-file-slug is consulted Special characters are
+`feedmail-queue-default-file-slug' is consulted.  Special characters are
 mapped to mostly alphanumerics for safety."
   (let ((eoh-marker) (case-fold-search t) (subject "") (s-point))
     (setq eoh-marker (feedmail-find-eoh))
@@ -2152,7 +2152,7 @@ mapped to mostly alphanumerics for safety."
   "Internal feedmail function for jamming fields into message header.
 NAME, VALUE, ACTION, and FOLDING are the four elements of a
 fiddle-plex, as described in the documentation for the variable
-feedmail-fiddle-plex-blurb."
+`feedmail-fiddle-plex-blurb'."
   (let ((case-fold-search t)
 	(header-colon (concat (regexp-quote name) ":"))
 	header-regexp eoh-marker has-like ag-like val-like that-point)
@@ -2249,7 +2249,7 @@ feedmail-fiddle-plex-blurb."
 
 
 (defun feedmail-envelope-deducer (eoh-marker)
-  "If feedmail-deduce-envelope-from is false, simply return `user-mail-address'.
+  "If `feedmail-deduce-envelope-from' is false, simply return `user-mail-address'.
 Else, look for Sender: or From: (or Resent-*) and
 return that value."
   (if (not feedmail-deduce-envelope-from)
@@ -2345,7 +2345,7 @@ return that value."
 
 
 (defun feedmail-fiddle-date (maybe-file)
-  "Fiddle Date:.  See documentation of feedmail-date-generator."
+  "Fiddle Date:.  See documentation of `feedmail-date-generator'."
   ;; default is to fall off the end of the list and do nothing
   (cond
    ;; nil means do nothing
@@ -2377,7 +2377,7 @@ return that value."
 (defun feedmail-default-message-id-generator (maybe-file)
   "Default function for generating Message-Id: header contents.
 Based on a date and a sort of random number for tie breaking.  Unless
-feedmail-message-id-suffix is defined, uses `user-mail-address', so be
+`feedmail-message-id-suffix' is defined, uses `user-mail-address', so be
 sure it's set."
   (let ((date-time)
 	(end-stuff (if feedmail-message-id-suffix feedmail-message-id-suffix user-mail-address)))
@@ -2395,7 +2395,7 @@ sure it's set."
   )
 
 (defun feedmail-fiddle-message-id (maybe-file)
-  "Fiddle Message-Id:.  See documentation of feedmail-message-id-generator."
+  "Fiddle Message-Id:.  See documentation of `feedmail-message-id-generator'."
   ;; default is to fall off the end of the list and do nothing
   (cond
    ;; nil means do nothing
@@ -2436,7 +2436,7 @@ sure it's set."
 
 
 (defun feedmail-fiddle-x-mailer ()
-  "Fiddle X-Mailer:.  See documentation of feedmail-x-mailer-line."
+  "Fiddle X-Mailer:.  See documentation of `feedmail-x-mailer-line'."
   ;; default is to fall off the end of the list and do nothing
   (cond
    ;; t is the same a using the function feedmail-default-x-mailer-generator, so let it and recurse
@@ -2464,7 +2464,7 @@ sure it's set."
 
 
 (defun feedmail-fiddle-spray-address (addy-plex)
-  "Fiddle header for single spray address.  Uses feedmail-spray-this-address."
+  "Fiddle header for single spray address.  Uses `feedmail-spray-this-address'."
   ;; default is to fall off the end of the list and do nothing
   (cond
    ;; nil means do nothing
@@ -2607,7 +2607,7 @@ Resent-To:, Resent-Cc:, and Resent-Bcc:."
 (defun feedmail-deduce-address-list (message-buffer header-start header-end addr-regexp address-list)
   "Get address list with all comments and other excitement trimmed.
 Addresses are collected only from headers whose names match the fourth
-argument Returns a list of strings.  Duplicate addresses will have
+argument.  Returns a list of strings.  Duplicate addresses will have
 been weeded out."
   (let ((simple-address)
 	(address-blob)
