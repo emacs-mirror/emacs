@@ -95,12 +95,7 @@
 
 	* descr-text.el (describe-char-unicodedata-file): Fix typo in docstring.
 
-<<<<<<< ChangeLog
->>>>>>> 1.10388
-2006-12-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
-=======
 2006-12-01  Ben North  <ben@redfrontdoor.org>
->>>>>>> 1.10392
 
 	* paren.el: Fix the highlight overlay extension when the user types a
 	sequence of char very fast just before the open parenthesis.
