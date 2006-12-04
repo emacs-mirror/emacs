@@ -3112,7 +3112,9 @@ Calls `pr-update-menus' to adjust menus."
 				    (pr-get-symbol (nth 1 menu-file))
 				    (pr-get-symbol "Print"))))
 	 (t
-	  (easy-menu-change (cdr menu-file) "Print" pr-menu-spec))))))))
+	  (easy-menu-add-item global-map menu-file
+			      (easy-menu-create-menu "Print" pr-menu-spec)))
+	 ))))))
   (pr-update-menus t))
 
 
