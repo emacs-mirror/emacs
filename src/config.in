@@ -1,7 +1,7 @@
 /* src/config.in.  Generated from configure.in by autoheader.  */
 
 /* GNU Emacs site configuration template file.
-   Copyright (C) 1988, 1993, 1994, 1999, 2000, 2002, 2004, 2005, 2006
+   Copyright (C) 1988, 1993, 1994, 1999, 2000, 2001, 2002, 2004, 2005, 2006
              Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -570,6 +570,9 @@ Boston, MA 02110-1301, USA.  */
 
 /* Define to 1 if `struct utimbuf' is declared by <utime.h>. */
 #undef HAVE_STRUCT_UTIMBUF
+
+/* Define to 1 if you have the `sync' function. */
+#undef HAVE_SYNC
 
 /* Define to 1 if you have the `sysinfo' function. */
 #undef HAVE_SYSINFO
