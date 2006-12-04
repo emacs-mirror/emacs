@@ -1,5 +1,7 @@
 2006-12-04  Nick Roberts  <nickrob@snap.net.nz>
 
+	* simple.el (toggle-truncate-lines): Clarify doc string.
+
 	* progmodes/gdb-ui.el (gdb-var-delete-children): New function.
 	(gdb-speedbar-expand-node): Use it.
 
