@@ -366,6 +366,7 @@ This program reformats a Lisp object with indentation chosen to look nice.
   The basic indentation commands indent a single line according to the
 usual conventions of the language you are editing.
 
+@need 1000
 @table @kbd
 @item @key{TAB}
 Adjust indentation of current line.

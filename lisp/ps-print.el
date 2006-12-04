@@ -12,7 +12,7 @@
 ;; Keywords: wp, print, PostScript
 ;; Time-stamp: <2005/06/27 00:57:22 vinicius>
 ;; Version: 6.6.7
-;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
+;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 (defconst ps-print-version "6.6.7"
   "ps-print.el, v 6.6.7 <2005/06/27 vinicius>

@@ -750,7 +750,10 @@ map_keymap_call (key, val, fun, dummy)
 DEFUN ("map-keymap", Fmap_keymap, Smap_keymap, 2, 3, 0,
        doc: /* Call FUNCTION once for each event binding in KEYMAP.
 FUNCTION is called with two arguments: the event that is bound, and
-the definition it is bound to.
+the definition it is bound to.  If the event is an integer, it may be
+a generic character (see Info node `(elisp)Splitting Characters'), and
+that means that all actual character events belonging to that generic
+character are bound to the definition.
 
 If KEYMAP has a parent, the parent's bindings are included as well.
 This works recursively: if the parent has itself a parent, then the
@@ -1153,7 +1156,7 @@ binding KEY to DEF is added at the front of KEYMAP.  */)
 
   meta_bit = VECTORP (key) ? meta_modifier : 0x80;
 
-  if (VECTORP (def) && ASIZE (def) > 0 && CONSP (AREF (def, make_number (0))))
+  if (VECTORP (def) && ASIZE (def) > 0 && CONSP (AREF (def, 0)))
     { /* DEF is apparently an XEmacs-style keyboard macro.  */
       Lisp_Object tmp = Fmake_vector (make_number (ASIZE (def)), Qnil);
       int i = ASIZE (def);
@@ -1607,13 +1610,12 @@ specified buffer position instead of point are used.
 
       /* We are not interested in locations without event data */
 
-      if (EVENT_HAS_PARAMETERS (event)) {
-	Lisp_Object kind;
-
-	kind = EVENT_HEAD_KIND (EVENT_HEAD (event));
-	if (EQ (kind, Qmouse_click))
-	  position = EVENT_START (event);
-      }
+      if (EVENT_HAS_PARAMETERS (event))
+	{
+	  Lisp_Object kind = EVENT_HEAD_KIND (EVENT_HEAD (event));
+	  if (CONSP (XCDR (event)) && EQ (kind, Qmouse_click))
+	    position = EVENT_START (event);
+	}
     }
 
   /* Key sequences beginning with mouse clicks
@@ -1706,7 +1708,8 @@ specified buffer position instead of point are used.
 	      
 	      pos = XCDR (string);
 	      string = XCAR (string);
-	      if (XINT (pos) >= 0
+	      if (INTEGERP (pos)
+		  && XINT (pos) >= 0
 		  && XINT (pos) < SCHARS (string))
 		{
 		  map = Fget_text_property (pos, Qlocal_map, string);
@@ -2382,16 +2385,29 @@ around function keys and event symbols.  */)
       else
 	SPLIT_CHAR (without_bits, charset, c1, c2);
 
-      if (charset
-	  && CHARSET_DEFINED_P (charset)
-	  && ((c1 >= 0 && c1 < 32)
-	      || (c2 >= 0 && c2 < 32)))
+      if (! CHAR_VALID_P (without_bits, 1))
+	{
+	  char buf[256];
+
+	  sprintf (buf, "Invalid char code %d", XINT (key));
+	  return build_string (buf);
+	}
+      else if (charset
+	       && ((c1 == 0 && c2 == -1) || c2 == 0))
 	{
 	  /* Handle a generic character.  */
 	  Lisp_Object name;
-	  name = CHARSET_TABLE_INFO (charset, CHARSET_LONG_NAME_IDX);
+	  char buf[256];
+
+	  name = CHARSET_TABLE_INFO (charset, CHARSET_SHORT_NAME_IDX);
 	  CHECK_STRING (name);
-	  return concat2 (build_string ("Character set "), name);
+	  if (c1 == 0)
+	    /* Only a charset is specified.   */
+	    sprintf (buf, "Generic char %d: all of ", without_bits);
+	  else
+	    /* 1st code-point of 2-dimensional charset is specified.   */
+	    sprintf (buf, "Generic char %d: row %d of ", without_bits, c1);
+	  return concat2 (build_string (buf), name);
 	}
       else
 	{

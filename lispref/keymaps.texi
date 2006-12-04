@@ -94,6 +94,9 @@ function key names with @samp{<@dots{}>}.
 (kbd "<f1> SPC") @result{} [f1 32]
 (kbd "C-M-<down>") @result{} [C-M-down]
 @end example
+
+This macro is not meant for use with arguments that vary---only
+with string constants.
 @end defmac
 
 @node Keymap Basics
@@ -169,6 +172,15 @@ keymap.
 This specifies one binding, for events of type @var{type}.  Each
 ordinary binding applies to events of a particular @dfn{event type},
 which is always a character or a symbol.  @xref{Classifying Events}.
+In this kind of binding, @var{binding} is a command.
+
+@item (@var{type} @var{item-name} .@: @var{binding})
+This specifies a binding which is also a menu item
+named @var{item-name}.  @xref{Simple Menu Items}.
+
+@item (@var{type} menu-item .@: @var{details})
+This specifies a binding which is also a menu item and allows use of
+other features.  @xref{Extended Menu Items}.
 
 @item (t .@: @var{binding})
 @cindex default key binding
@@ -1947,6 +1959,13 @@ This function returns the overall prompt string of @var{keymap},
 or @code{nil} if it has none.
 @end defun
 
+The menu's items are the bindings in the keymap.  Each binding
+associates an event type to a definition, but the event types have no
+significance for the menu appearance.  (Usually we use pseudo-events,
+symbols that the keyboard cannot generate, as the event types for menu
+item bindings.)  The menu is generated entirely from the bindings that
+correspond in the keymap to these events.
+
 The order of items in the menu is the same as the order of bindings in
 the keymap.  Since @code{define-key} puts new bindings at the front, you
 should define the menu items starting at the bottom of the menu and
@@ -1967,8 +1986,8 @@ an existing menu, you can specify its position in the menu using
 @node Simple Menu Items
 @subsubsection Simple Menu Items
 
-  The simpler and older way to define a menu keymap binding
-looks like this:
+  The simpler (and original) way to define a menu item is to bind some
+event type (it doesn't matter what event type) to a binding like this:
 
 @example
 (@var{item-string} . @var{real-binding})
@@ -1984,25 +2003,26 @@ built with the Gtk+ toolkit.@footnote{In this case, the text is first
 encoded using the @code{utf-8} coding system and then rendered by the
 toolkit as it sees fit.}
 
-You can also supply a second string, called the help string, as follows:
+  You can also supply a second string, called the help string, as follows:
 
 @example
 (@var{item-string} @var{help} . @var{real-binding})
 @end example
 
+@noindent
 @var{help} specifies a ``help-echo'' string to display while the mouse
 is on that item in the same way as @code{help-echo} text properties
 (@pxref{Help display}).
 
-As far as @code{define-key} is concerned, @var{item-string} and
+  As far as @code{define-key} is concerned, @var{item-string} and
 @var{help-string} are part of the event's binding.  However,
 @code{lookup-key} returns just @var{real-binding}, and only
 @var{real-binding} is used for executing the key.
 
-If @var{real-binding} is @code{nil}, then @var{item-string} appears in
+  If @var{real-binding} is @code{nil}, then @var{item-string} appears in
 the menu but cannot be selected.
 
-If @var{real-binding} is a symbol and has a non-@code{nil}
+  If @var{real-binding} is a symbol and has a non-@code{nil}
 @code{menu-enable} property, that property is an expression that
 controls whether the menu item is enabled.  Every time the keymap is
 used to display a menu, Emacs evaluates the expression, and it enables
@@ -2010,12 +2030,12 @@ the menu item only if the expression's value is non-@code{nil}.  When a
 menu item is disabled, it is displayed in a ``fuzzy'' fashion, and
 cannot be selected.
 
-The menu bar does not recalculate which items are enabled every time you
+  The menu bar does not recalculate which items are enabled every time you
 look at a menu.  This is because the X toolkit requires the whole tree
 of menus in advance.  To force recalculation of the menu bar, call
 @code{force-mode-line-update} (@pxref{Mode Line Format}).
 
-You've probably noticed that menu items show the equivalent keyboard key
+  You've probably noticed that menu items show the equivalent keyboard key
 sequence (if any) to invoke the same command.  To save time on
 recalculation, menu display caches this information in a sublist in the
 binding, like this:
@@ -2035,9 +2055,9 @@ the item strings themselves, since that is redundant.
 @kindex menu-item
 
   An extended-format menu item is a more flexible and also cleaner
-alternative to the simple format.  It consists of a list that starts
-with the symbol @code{menu-item}.  To define a non-selectable string,
-the item looks like this:
+alternative to the simple format.  You define an event type with a
+binding that's a list starting with the symbol @code{menu-item}.
+For a non-selectable string, the binding looks like this:
 
 @example
 (menu-item @var{item-name})
@@ -2048,7 +2068,7 @@ A string starting with two or more dashes specifies a separator line;
 see @ref{Menu Separators}.
 
   To define a real menu item which can be selected, the extended format
-item looks like this:
+binding looks like this:
 
 @example
 (menu-item @var{item-name} @var{real-binding}

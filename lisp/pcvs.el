@@ -618,7 +618,6 @@ If non-nil, NEW means to create a new buffer no matter what."
 	 (str (car hf))
 	 (done "")
 	 (tin (ewoc-nth cvs-cookies 0)))
-    (if (eq (length str) 2) (setq str ""))
     ;; look for the first *real* fileinfo (to determine emptyness)
     (while
 	(and tin
@@ -626,14 +625,17 @@ If non-nil, NEW means to create a new buffer no matter what."
 		   '(MESSAGE DIRCHANGE)))
       (setq tin (ewoc-next cvs-cookies tin)))
     (if add
-	(setq str (concat "-- Running " cmd " ...\n" str))
+        (progn
+          ;; Remove the default empty line, if applicable.
+          (if (not (string-match "." str)) (setq str "\n"))
+          (setq str (concat "-- Running " cmd " ...\n" str)))
       (if (not (string-match
 		(concat "^-- Running " (regexp-quote cmd) " \\.\\.\\.\n") str))
 	  (error "Internal PCL-CVS error while removing message")
 	(setq str (replace-match "" t t str))
-	(if (zerop (length str)) (setq str "\n"))
-	(setq done (concat "-- last cmd: " cmd " --"))))
-    (setq str (concat str "\n") done (concat done "\n"))
+        ;; Re-add the default empty line, if applicable.
+        (if (not (string-match "." str)) (setq str "\n\n"))
+	(setq done (concat "-- last cmd: " cmd " --\n"))))
     ;; set the new header and footer
     (ewoc-set-hf cvs-cookies
 		 str (concat "\n--------------------- "

@@ -410,7 +410,7 @@ This is called by `post-command-hook' after each command."
 
 (defun longlines-window-change-function ()
   "Re-wrap the buffer if the window width has changed.
-This is called by `window-size-change-functions'."
+This is called by `window-configuration-change-hook'."
   (when (/= fill-column (- (window-width) window-min-width))
     (setq fill-column (- (window-width) window-min-width))
     (let ((mod (buffer-modified-p)))

@@ -62,8 +62,11 @@ For each step, check for possible errors.
      echo directory: emacs/pretest > FILE.directive      (for a pretest)
      echo directory: emacs > FILE.directive              (for a release)
      gpg --clearsign FILE.directive
-    Upload by anonymous ftp to ftp://ftp-upload.gnu.org/incoming/ftp/
-    the files FILE, FILE.sig, FILE.directive.asc
+    Upload by anonymous ftp to ftp://ftp-upload.gnu.org/ the files FILE,
+    FILE.sig, FILE.directive.asc.
+    For a release, place the files in the /incoming/ftp directory.
+    For a pretest, place the files in /incoming/alpha instead, so that
+    they appear on ftp://alpha.gnu.org/.
 
 13. After five minutes, verify that the files are visible at
     ftp://alpha.gnu.org/gnu/emacs/pretest/ for a pretest, at

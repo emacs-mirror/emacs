@@ -216,6 +216,9 @@ leim-list.el: ${SUBDIRS} ${NON-TIT-MISC} changed.tit changed.misc ${srcdir}/leim
 	sed -n '/^[^;]/ p' < ${srcdir}/leim-ext.el >> $@
 
 install: all
+	if [ ! -d ${INSTALLDIR} ] ; then \
+          ${srcdir}/${dot}${dot}/mkinstalldirs ${INSTALLDIR}; \
+	else true; fi
 	if [ x`(cd ${INSTALLDIR} && /bin/pwd)` != x`(/bin/pwd)` ] ; then \
 	  rm -rf ${INSTALLDIR}/leim-list.el; \
 	  rm -rf ${INSTALLDIR}/quail ${INSTALLDIR}/ja-dic ; \

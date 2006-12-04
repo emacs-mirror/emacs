@@ -253,7 +253,7 @@ superset of iso-8859-1."
 		       :tag "Other options"
 		       (cons (symbol :tag "From charset")
 			     (symbol :tag "To charset"))))
-  :version "23.0" ;; No Gnus
+  :version "22.1" ;; Gnus 5.10.9
   :group 'mime)
 
 (defcustom mm-charset-eval-alist
@@ -270,7 +270,7 @@ If an article is encoded in an unknown CHARSET, FORM is
 evaluated.  This allows to load additional libraries providing
 charsets on demand.  If supported by your Emacs version, you
 could use `autoload-coding-system' here."
-  :version "23.0" ;; No Gnus
+  :version "22.1" ;; Gnus 5.10.9
   :type '(list (set :inline t
 		    (const (windows-1250 . (mm-codepage-setup 1250 t)))
 		    (const (windows-1251 . (mm-codepage-setup 1251 t)))
@@ -1126,17 +1126,11 @@ If SUFFIX is non-nil, add that at the end of the file name."
 			     (setq file (concat file suffix)))
 			 (if dir-flag
 			     (make-directory file)
-			   (if (or (featurep 'xemacs)
-				   (= emacs-major-version 20))
-			       ;; NOTE: This is unsafe if Emacs 20
-			       ;; users and XEmacs users don't use
-			       ;; a secure temp directory.
-			       (if (file-exists-p file)
-				   (signal 'file-already-exists
-					   (list "File exists" file))
-				 (write-region "" nil file nil 'silent))
-			     (write-region "" nil file nil 'silent
-					   nil 'excl)))
+			   ;; NOTE: This is unsafe if Emacs 20
+			   ;; users and XEmacs users don't use
+			   ;; a secure temp directory.
+			   (gmm-write-region "" nil file nil 'silent
+					     nil 'excl))
 			 nil)
 		     (file-already-exists t)
 		     ;; The Emacs 20 and XEmacs versions of

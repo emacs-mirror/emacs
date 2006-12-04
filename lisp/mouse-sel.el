@@ -737,7 +737,8 @@ If `mouse-yank-at-point' is non-nil, insert at point instead."
     (mouse-set-point event))
   (when mouse-sel-get-selection-function
     (push-mark (point) 'nomsg)
-    (insert (or (funcall mouse-sel-get-selection-function selection) ""))))
+  (insert-for-yank
+   (or (funcall mouse-sel-get-selection-function selection) ""))))
 
 ;;=== Handle loss of selections ===========================================
 

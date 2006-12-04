@@ -123,8 +123,10 @@ request.")
            ;; like authentication.  But we use another buffer afterwards.
            (unwind-protect
                (let ((proc (url-open-stream host buf host port)))
-                 ;; Drop the temp buffer link before killing the buffer.
-                 (set-process-buffer proc nil)
+		 ;; url-open-stream might return nil.
+		 (when (processp proc)
+		   ;; Drop the temp buffer link before killing the buffer.
+		   (set-process-buffer proc nil))
                  proc)
              (kill-buffer buf)))))))
 
@@ -1151,19 +1153,19 @@ CBARGS as the arguments."
 (defalias 'url-http-file-readable-p 'url-http-file-exists-p)
 
 (defun url-http-head-file-attributes (url &optional id-format)
-  (let ((buffer (url-http-head url))
-	(attributes nil))
+  (let ((buffer (url-http-head url)))
     (when buffer
-      (setq attributes (make-list 11 nil))
-      (setf (nth 1 attributes) 1)	; Number of links to file
-      (setf (nth 2 attributes) 0)	; file uid
-      (setf (nth 3 attributes) 0)	; file gid
-      (setf (nth 7 attributes)		; file size
-	    (url-http-symbol-value-in-buffer 'url-http-content-length
-					     buffer -1))
-      (setf (nth 8 attributes) (eval-when-compile (make-string 10 ?-)))
-      (kill-buffer buffer))
-    attributes))
+      (prog1
+          (list
+           nil                          ;dir / link / normal file
+           1                            ;number of links to file.
+           0 0                          ;uid ; gid
+           nil nil nil                  ;atime ; mtime ; ctime
+           (url-http-symbol-value-in-buffer 'url-http-content-length
+                                            buffer -1)
+           (eval-when-compile (make-string 10 ?-))
+           nil nil nil)          ;whether gid would change ; inode ; device.
+        (kill-buffer buffer)))))
 
 ;;;###autoload
 (defun url-http-file-attributes (url &optional id-format)
@@ -1244,6 +1246,35 @@ p3p
 	    ))))
     (if buffer (kill-buffer buffer))
     options))
+
+;; HTTPS.  This used to be in url-https.el, but that file collides
+;; with url-http.el on systems with 8-character file names.
+(require 'tls)
+
+;;;###autoload
+(defconst url-https-default-port 443 "Default HTTPS port.")
+;;;###autoload
+(defconst url-https-asynchronous-p t "HTTPS retrievals are asynchronous.")
+;;;###autoload
+(defalias 'url-https-expand-file-name 'url-http-expand-file-name)
+
+(defmacro url-https-create-secure-wrapper (method args)
+  `(defun ,(intern (format (if method "url-https-%s" "url-https") method)) ,args
+    ,(format "HTTPS wrapper around `%s' call." (or method "url-http"))
+    (let ((url-gateway-method (condition-case ()
+				  (require 'ssl)
+				(error 'tls))))
+      (,(intern (format (if method "url-http-%s" "url-http") method))
+       ,@(remove '&rest (remove '&optional args))))))
+
+;;;###autoload (autoload 'url-https "url-http")
+(url-https-create-secure-wrapper nil (url callback cbargs))
+;;;###autoload (autoload 'url-https-file-exists-p "url-http")
+(url-https-create-secure-wrapper file-exists-p (url))
+;;;###autoload (autoload 'url-https-file-readable-p "url-http")
+(url-https-create-secure-wrapper file-readable-p (url))
+;;;###autoload (autoload 'url-https-file-attributes "url-http")
+(url-https-create-secure-wrapper file-attributes (url &optional id-format))
 
 (provide 'url-http)
 

@@ -678,6 +678,8 @@ $(BLD)/fns.$(O) : \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h \
+	$(EMACS_ROOT)/nt/inc/langinfo.h \
+	$(EMACS_ROOT)/nt/inc/nl_types.h \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
@@ -993,6 +995,8 @@ $(BLD)/w32proc.$(O) : \
 	$(SRC)/w32proc.c \
 	$(SRC)/s/ms-w32.h \
 	$(SRC)/m/intel386.h \
+	$(EMACS_ROOT)/nt/inc/langinfo.h \
+	$(EMACS_ROOT)/nt/inc/nl_types.h \
 	$(SRC)/config.h \
 	$(SRC)/process.h \
 	$(SRC)/syssignal.h \

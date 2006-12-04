@@ -2224,7 +2224,6 @@ If INITIAL is non-nil, it specifies the initial input string."
   (let ((ido-current-directory (ido-expand-directory default))
 	(ido-context-switch-command switch-cmd)
 	ido-directory-nonreadable ido-directory-too-big
-	(minibuffer-completing-file-name t)
 	filename)
 
     (if (or (not ido-mode) (ido-is-slow-ftp-host))
@@ -2268,9 +2267,10 @@ If INITIAL is non-nil, it specifies the initial input string."
 
       (unless filename
 	(setq ido-saved-vc-hb vc-handled-backends)
-	(setq filename (ido-read-internal item
-					  (or prompt "Find file: ")
-					  'ido-file-history nil nil initial)))
+	(let ((minibuffer-completing-file-name t))
+	  (setq filename (ido-read-internal item
+					    (or prompt "Find file: ")
+					    'ido-file-history nil nil initial))))
 
       ;; Choose the file name: either the text typed in, or the head
       ;; of the list of matches
@@ -3084,12 +3084,14 @@ for first matching file."
   (let ((oa (ido-file-extension-order a n))
 	(ob (ido-file-extension-order b n)))
     (cond
-     ((= oa ob)
-      lessp)
      ((and oa ob)
-      (if lessp
-	  (> oa ob)
-	(< oa ob)))
+      (cond
+       ((= oa ob)
+	lessp)
+       (lessp
+	(> oa ob))
+       (t
+	(< oa ob))))
      (oa
       (not lessp))
      (ob
@@ -3136,7 +3138,12 @@ for first matching file."
   (let ((filenames
 	 (split-string
 	  (shell-command-to-string
-	   (concat "find " dir " -name \"" (if prefix "" "*") file "*\" -type " (if finddir "d" "f") " -print"))))
+	   (concat "find "
+		   (shell-quote-argument dir)
+		   " -name "
+		   (shell-quote-argument
+		    (concat (if prefix "" "*") file "*"))
+		   " -type " (if finddir "d" "f") " -print"))))
 	filename d f
 	res)
     (while filenames

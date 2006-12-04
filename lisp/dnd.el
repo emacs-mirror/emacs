@@ -91,7 +91,7 @@ The handler is first located by looking at `dnd-protocol-alist'.
 If no match is found here, and the value of `browse-url-browser-function'
 is a pair of (REGEXP . FUNCTION), those regexps are tried for a match.
 If no match is found, just call `dnd-insert-text'.
-WINDOW is where the drop happend, ACTION is the action for the drop,
+WINDOW is where the drop happened, ACTION is the action for the drop,
 URL is what has been dropped.
 Returns ACTION."
   (require 'browse-url)

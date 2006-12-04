@@ -35,7 +35,7 @@
 (defgroup gmm nil
   "Utility functions for Gnus, Message and MML"
   :prefix "gmm-"
-  :version "23.0" ;; No Gnus
+  :version "22.1" ;; Gnus 5.10.9
   :group 'lisp)
 
 ;; Helper functions from `gnus-utils.el': gmm-verbose, gmm-message, gmm-error
@@ -400,6 +400,21 @@ If mode is nil, use `major-mode' of the curent buffer."
        (intern (let ((mode (symbol-name major-mode)))
 		 (string-match "^\\(.+\\)-mode$" mode)
 		 (match-string 1 mode))))))
+
+(defun gmm-write-region (start end filename &optional append visit
+			       lockname mustbenew)
+  "Compatibility function for `write-region'.
+
+In XEmacs, the seventh argument of `write-region' specifies the
+coding-system."
+  (if (and mustbenew
+	   (or (featurep 'xemacs)
+	       (= emacs-major-version 20)))
+      (if (file-exists-p filename)
+	  (signal 'file-already-exists
+		  (list "File exists" filename))
+	(write-region start end filename append visit lockname))
+    (write-region start end filename append visit lockname mustbenew)))
 
 (provide 'gmm-utils)
 

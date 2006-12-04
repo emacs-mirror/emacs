@@ -43,7 +43,8 @@ struct regexp_cache
   struct regexp_cache *next;
   Lisp_Object regexp, whitespace_regexp;
   /* Syntax table for which the regexp applies.  We need this because
-     of character classes.  */
+     of character classes.  If this is t, then the compiled pattern is valid
+     for any syntax-table.  */
   Lisp_Object syntax_table;
   struct re_pattern_buffer buf;
   char fastmap[0400];
@@ -170,11 +171,11 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
   cp->posix = posix;
   cp->buf.multibyte = multibyte;
   cp->whitespace_regexp = Vsearch_spaces_regexp;
-  cp->syntax_table = current_buffer->syntax_table;
-  /* Doing BLOCK_INPUT here has the effect that
-     the debugger won't run if an error occurs.
-     Why is BLOCK_INPUT needed here?  */
-  BLOCK_INPUT;
+  /* rms: I think BLOCK_INPUT is not needed here any more,
+     because regex.c defines malloc to call xmalloc.
+     Using BLOCK_INPUT here means the debugger won't run if an error occurs.
+     So let's turn it off.  */
+  /*  BLOCK_INPUT;  */
   old = re_set_syntax (RE_SYNTAX_EMACS
 		       | (posix ? 0 : RE_NO_POSIX_BACKTRACKING));
 
@@ -184,10 +185,14 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
   val = (char *) re_compile_pattern ((char *)raw_pattern,
 				     raw_pattern_size, &cp->buf);
 
+  /* If the compiled pattern hard codes some of the contents of the
+     syntax-table, it can only be reused with *this* syntax table.  */
+  cp->syntax_table = cp->buf.used_syntax ? current_buffer->syntax_table : Qt;
+
   re_set_whitespace_regexp (NULL);
 
   re_set_syntax (old);
-  UNBLOCK_INPUT;
+  /* UNBLOCK_INPUT;  */
   if (val)
     xsignal1 (Qinvalid_regexp, build_string (val));
 
@@ -211,7 +216,8 @@ shrink_regexp_cache ()
     }
 }
 
-/* Clear the regexp cache.
+/* Clear the regexp cache w.r.t. a particular syntax table,
+   because it was changed.
    There is no danger of memory leak here because re_compile_pattern
    automagically manages the memory in each re_pattern_buffer struct,
    based on its `allocated' and `buffer' values.  */
@@ -221,7 +227,11 @@ clear_regexp_cache ()
   int i;
 
   for (i = 0; i < REGEXP_CACHE_SIZE; ++i)
-    searchbufs[i].regexp = Qnil;
+    /* It's tempting to compare with the syntax-table we've actually changd,
+       but it's not sufficient because char-table inheritance mewans that
+       modifying one syntax-table can change others at the same time.  */
+    if (!EQ (searchbufs[i].syntax_table, Qt))
+      searchbufs[i].regexp = Qnil;
 }
 
 /* Compile a regexp if necessary, but first check to see if there's one in
@@ -260,10 +270,8 @@ compile_pattern (pattern, regp, translate, posix, multibyte)
 	  && EQ (cp->buf.translate, (! NILP (translate) ? translate : make_number (0)))
 	  && cp->posix == posix
 	  && cp->buf.multibyte == multibyte
-	  /* TODO: Strictly speaking, we only need to match syntax
-	     tables when a character class like [[:space:]] occurs in
-	     the pattern. -- cyd*/
-	  && EQ (cp->syntax_table, current_buffer->syntax_table)
+	  && (EQ (cp->syntax_table, Qt)
+	      || EQ (cp->syntax_table, current_buffer->syntax_table))
 	  && !NILP (Fequal (cp->whitespace_regexp, Vsearch_spaces_regexp)))
 	break;
 

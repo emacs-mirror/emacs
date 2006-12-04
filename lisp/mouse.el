@@ -778,7 +778,7 @@ If the click is in the echo area, display the `*Messages*' buffer."
 (defun mouse-posn-property (pos property)
   "Look for a property at click position.
 POS may be either a buffer position or a click position like
-those returned from `start-event'.  If the click position is on
+those returned from `event-start'.  If the click position is on
 a string, the text property PROPERTY is examined.
 If this is nil or the click is not on a string, then
 the corresponding buffer position is searched for PROPERTY.

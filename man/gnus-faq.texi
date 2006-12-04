@@ -172,13 +172,14 @@ Where and how to get Gnus?
 
 @subsubheading Answer
 
-The latest released version of Gnus isn't included in
-Emacs 21, therefor you should get the Gnus tarball from
-@uref{http://www.gnus.org/dist/gnus.tar.gz}
-or via anonymous FTP from 
+Gnus is released independent from releases of Emacs and XEmacs.
+Therefore, the version bundled with Emacs or the version in XEmacs'
+package system might not be up to date (e.g. Gnus 5.9 bundled with Emacs
+20 is outdated).
+@c
+You can get the latest released version of Gnus from
+@uref{http://www.gnus.org/dist/gnus.tar.gz} or via anonymous FTP from
 @uref{ftp://ftp.gnus.org/pub/gnus/gnus.tar.gz}.
-If you use XEmacs instead of Emacs you can use XEmacs'
-package system instead.
 
 @node [1.4]
 @subsubheading Question 1.4

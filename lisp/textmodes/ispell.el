@@ -2613,8 +2613,9 @@ By just answering RET you can find out what the current dictionary is."
   (cond ((equal dict "")
 	 (ispell-internal-change-dictionary)
 	 (message "Using %s dictionary"
-		  (or ispell-local-dictionary ispell-dictionary "default")))
-	((equal dict (or ispell-local-dictionary
+		  (or (and (not arg) ispell-local-dictionary)
+		      ispell-dictionary "default")))
+	((equal dict (or (and (not arg) ispell-local-dictionary)
 			 ispell-dictionary "default"))
 	 ;; Specified dictionary is the default already. Could reload
 	 ;; the dictionaries if needed.

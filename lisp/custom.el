@@ -210,11 +210,11 @@ The following keywords are meaningful:
 	`custom-initialize-reset'.
 :set	VALUE should be a function to set the value of the symbol.
 	It takes two arguments, the symbol to set and the value to
-	give it.  The default choice of function is `custom-set-default'.
+	give it.  The default choice of function is `set-default'.
 :get	VALUE should be a function to extract the value of symbol.
 	The function takes one argument, a symbol, and should return
 	the current value for that symbol.  The default choice of function
-	is `custom-default-value'.
+	is `default-value'.
 :require
 	VALUE should be a feature symbol.  If you save a value
 	for this option, then when your `.emacs' file loads the value,

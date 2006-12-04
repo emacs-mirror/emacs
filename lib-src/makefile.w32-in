@@ -318,7 +318,7 @@ cleanall:	clean
 # Headers we would preprocess if we could.
 #
 ../src/config.h:	../nt/$(CONFIG_H)
-			echo config.h has changed. Re-run configure.bat.
+			echo $(CONFIG_H) has changed.  Re-run configure.bat.
 			exit -1
 
 getopt.h:		getopt_.h

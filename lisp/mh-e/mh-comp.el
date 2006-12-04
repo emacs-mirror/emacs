@@ -127,7 +127,7 @@ Used by the \\[mh-edit-again] and \\[mh-extract-rejected-mail] commands.")
         (make-syntax-table text-mode-syntax-table))
   (modify-syntax-entry ?% "." mh-letter-mode-syntax-table))
 
-(defvar mh-send-args nil
+(defvar mh-send-args ""
   "Extra args to pass to \"send\" command.")
 
 (defvar mh-annotate-char nil

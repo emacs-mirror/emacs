@@ -109,6 +109,7 @@ Lisp_Object Qtty_color_mode;
 
 Lisp_Object Qfullscreen, Qfullwidth, Qfullheight, Qfullboth;
 
+Lisp_Object Qinhibit_face_set_after_frame_default;
 Lisp_Object Qface_set_after_frame_default;
 
 
@@ -2729,12 +2730,20 @@ x_set_frame_parameters (f, alist)
           || EQ (prop, Qfullscreen))
 	{
 	  register Lisp_Object param_index, old_value;
+	  int count = SPECPDL_INDEX ();
 
 	  old_value = get_frame_param (f, prop);
  	  fullscreen_is_being_set |= EQ (prop, Qfullscreen);
 
 	  if (NILP (Fequal (val, old_value)))
 	    {
+	      /* For :font attributes, the frame_parm_handler
+		 x_set_font calls `face-set-after-frame-default'.
+		 Unless we bind inhibit-face-set-after-frame-default
+		 here, this would reset the :font attribute that we
+		 just applied to the default value for new faces.  */
+	      specbind (Qinhibit_face_set_after_frame_default, Qt);
+
 	      store_frame_param (f, prop, val);
 
 	      param_index = Fget (prop, Qx_frame_parameter);
@@ -2743,6 +2752,8 @@ x_set_frame_parameters (f, alist)
 		      < sizeof (frame_parms)/sizeof (frame_parms[0]))
 		  && rif->frame_parm_handlers[XINT (param_index)])
 		(*(rif->frame_parm_handlers[XINT (param_index)])) (f, val, old_value);
+
+	      unbind_to (count, Qnil);
 	    }
 	}
     }
@@ -4003,6 +4014,10 @@ syms_of_frame ()
 
   Qface_set_after_frame_default = intern ("face-set-after-frame-default");
   staticpro (&Qface_set_after_frame_default);
+
+  Qinhibit_face_set_after_frame_default
+    = intern ("inhibit-face-set-after-frame-default");
+  staticpro (&Qinhibit_face_set_after_frame_default);
 
   Qfullwidth = intern ("fullwidth");
   staticpro (&Qfullwidth);

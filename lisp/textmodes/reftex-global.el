@@ -38,7 +38,8 @@ The TAGS file is also immediately visited with `visit-tags-table'."
   (reftex-access-scan-info current-prefix-arg)
   (let* ((master (reftex-TeX-master-file))
          (files  (reftex-all-document-files))
-         (cmd    (format "etags %s" (mapconcat 'identity files " "))))
+         (cmd    (format "etags %s" (mapconcat 'shell-quote-argument
+					       files " "))))
     (save-excursion
       (set-buffer (reftex-get-file-buffer-force master))
       (message "Running etags to create TAGS file...")

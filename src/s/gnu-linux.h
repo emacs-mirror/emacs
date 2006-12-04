@@ -142,8 +142,12 @@ Boston, MA 02110-1301, USA.  */
    movemail.c will use `maillock' when MAILDIR, HAVE_LIBMAIL and
    HAVE_MAILLOCK_H are defined, so the following appears to be the
    correct logic.  -- fx */
+/* We must check for HAVE_LIBLOCKFILE too, as movemail does.
+   liblockfile is a Free Software replacement for libmail, used on
+   Debian systems and elsewhere. -rfr */
 
-#if !(defined (HAVE_LIBMAIL) && defined (HAVE_MAILLOCK_H))
+#if !((defined (HAVE_LIBMAIL) || defined (HAVE_LIBLOCKFILE)) &&	\
+      defined (HAVE_MAILLOCK_H))
 #define MAIL_USE_FLOCK
 #endif
 

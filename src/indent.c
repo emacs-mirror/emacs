@@ -2074,7 +2074,7 @@ whether or not it is currently displayed in some window.  */)
     {
       int it_start;
       int oselective;
-      int start_on_image_or_stretch_or_string_p;
+      int it_overshoot_expected_p;
 
       SET_TEXT_POS (pt, PT, PT_BYTE);
       start_display (&it, w, pt);
@@ -2086,9 +2086,26 @@ whether or not it is currently displayed in some window.  */)
 	 while the end position is really at some X > 0, the same X that
 	 PT had.  */
       it_start = IT_CHARPOS (it);
-      start_on_image_or_stretch_or_string_p = (it.method == GET_FROM_IMAGE
-					       || it.method == GET_FROM_STRETCH
-					       || it.method == GET_FROM_STRING);
+
+      /* We expect the call to move_it_to, further down, to overshoot
+	 if the starting point is on an image, stretch glyph, or Lisp
+	 string.  We won't need to backtrack in this situation, except
+	 for one corner case: when the Lisp string contains a
+	 newline.  */
+      if (it.method == GET_FROM_STRING)
+	{
+	  const char *s = SDATA (it.string);
+	  const char *e = s + SBYTES (it.string);
+
+	  while (s < e && *s != '\n')
+	    ++s;
+
+	  it_overshoot_expected_p = (s == e);
+	}
+      else
+	it_overshoot_expected_p = (it.method == GET_FROM_IMAGE
+				   || it.method == GET_FROM_STRETCH);
+
       reseat_at_previous_visible_line_start (&it);
       it.current_x = it.hpos = 0;
       /* Temporarily disable selective display so we don't move too far */
@@ -2099,10 +2116,9 @@ whether or not it is currently displayed in some window.  */)
 
       /* Move back if we got too far.  This may happen if
 	 truncate-lines is on and PT is beyond right margin.
-	 It may also happen if it_start is on an image, stretch
-	 glyph, or string -- in that case, don't go back.  */
+	 Don't go back if the overshoot is expected (see above).  */
       if (IT_CHARPOS (it) > it_start && XINT (lines) > 0
-	  && !start_on_image_or_stretch_or_string_p)
+	  && !it_overshoot_expected_p)
 	move_it_by_lines (&it, -1, 0);
 
       it.vpos = 0;

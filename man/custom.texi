@@ -231,7 +231,11 @@ the way up to a master group called @code{Emacs}.
 top-level @code{Emacs} group and the second-level groups immediately
 under it.  It looks like this, in part:
 
+@c we want the buffer example to all be on one page, but unfortunately
+@c that's quite a bit of text, so force all space to the bottom.
+@page
 @smallexample
+@group
 /- Emacs group: ---------------------------------------------------\
       [State]: visible group members are all at standard values.
    Customization of the One True Editor.
@@ -246,7 +250,7 @@ Interfacing to external utilities.
 @var{more second-level groups}
 
 \- Emacs group end ------------------------------------------------/
-
+@end group
 @end smallexample
 
 @noindent

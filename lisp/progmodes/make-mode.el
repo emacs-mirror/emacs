@@ -836,8 +836,8 @@ Makefile mode can be configured by modifying the following variables:
  	  nil nil
  	  ((?$ . "."))
  	  backward-paragraph
-	  (font-lock-syntactic-keywords . makefile-font-lock-syntactic-keywords)
-	  (font-lock-support-mode)))	; JIT breaks on long series of continuation lines.
+	  (font-lock-syntactic-keywords
+	   . makefile-font-lock-syntactic-keywords)))
 
   ;; Add-log.
   (make-local-variable 'add-log-current-defun-function)

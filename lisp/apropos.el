@@ -142,7 +142,7 @@ If value is `verbose', the computed score is shown for each match."
   "Apropos pattern as entered by user.")
 
 (defvar apropos-pattern-quoted nil
-  "Apropos pattern passed through `regexp-quoute'.")
+  "Apropos pattern passed through `regexp-quote'.")
 
 (defvar apropos-words ()
   "Current list of apropos words extracted from `apropos-pattern'.")

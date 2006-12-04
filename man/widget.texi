@@ -158,7 +158,7 @@ it will be autoloaded when needed.
 @comment  node-name,  next,  previous,  up
 @section User Interface
 
-A form consist of read only text for documentation and some fields,
+A form consists of read only text for documentation and some fields,
 where each field contains two parts, a tag and a value.  The tags are
 used to identify the fields, so the documentation can refer to the
 @samp{foo field}, meaning the field tagged with @samp{Foo}. Here is an
@@ -195,7 +195,7 @@ Select one:
 @b{[Apply Form]} @b{[Reset Form]}
 @end example
 
-The top level widgets in is example are tagged @samp{Name},
+The top level widgets in this example are tagged @samp{Name},
 @samp{Choose}, @samp{Address}, @samp{_other work_}, @samp{Numbers},
 @samp{Select multiple}, @samp{Select one}, @samp{[Apply Form]}, and
 @samp{[Reset Form]}.  There are basically two things the user can do
@@ -277,19 +277,19 @@ The list is created by the @code{editable-list} widget.
 @cindex embedded buttons
 @item Embedded Buttons
 The @samp{@b{_other work_}} is an example of an embedded
-button.  Embedded buttons are not associated with a fields, but can serve
+button.  Embedded buttons are not associated with any fields, but can serve
 any purpose, such as implementing hypertext references.  They are
 usually created by the @code{link} widget.
 @item The @samp{@b{[ ]}} and @samp{@b{[X]}} buttons
 Activating one of these will convert it to the other.  This is useful
-for implementing multiple-choice fields.  You can create it with the
+for implementing multiple-choice fields.  You can create them with the
 @code{checkbox} widget.
 @item The @samp{@b{( )}} and @samp{@b{(*)}} buttons
 Only one radio button in a @code{radio-button-choice} widget can be
 selected at any time.  When you invoke one of the unselected radio
 buttons, it will be selected and the previous selected radio button will
 become unselected.
-@item The @samp{@b{[Apply Form]}} @samp{@b{[Reset Form]}} buttons
+@item The @samp{@b{[Apply Form]}} and @samp{@b{[Reset Form]}} buttons
 These are explicit buttons made with the @code{push-button} widget.  The
 main difference from the @code{link} widget is that the buttons will be
 displayed as GUI buttons when possible.
@@ -492,7 +492,7 @@ property, @var{argument} is the value of the property, and @var{args}
 are interpreted in a widget specific way.
 
 @cindex keyword arguments
-The following keyword arguments that apply to all widgets:
+The following keyword arguments apply to all widgets:
 
 @table @code
 @vindex value@r{ keyword}
@@ -807,7 +807,7 @@ TYPE ::= (editable-field [KEYWORD ARGUMENT]... [ VALUE ])
 @end example
 
 The @var{value}, if present, is used to initialize the @code{:value}
-property.  The value should be a string, which will be inserted in
+property.  The value should be a string, which will be inserted in the
 field.  This widget will match all string values.
 
 The following extra properties are recognized:
@@ -1349,7 +1349,7 @@ second component.  There must be exactly two components.
 
 @deffn Widget list
 The value of a @code{list} widget is a list containing the value of
-each of its component.
+each of its components.
 @end deffn
 
 @deffn Widget vector
@@ -1359,11 +1359,11 @@ each of its component.
 
 The above suffice for specifying fixed size lists and vectors.  To get
 variable length lists and vectors, you can use a @code{choice},
-@code{set}, or @code{repeat} widgets together with the @code{:inline}
-keywords.  If any component of a composite widget has the @code{:inline}
+@code{set}, or @code{repeat} widget together with the @code{:inline}
+keyword.  If any component of a composite widget has the @code{:inline}
 keyword set, its value must be a list which will then be spliced into
 the composite.  For example, to specify a list whose first element must
-be a file name, and whose remaining arguments should either by the
+be a file name, and whose remaining arguments should either be the
 symbol @code{t} or two files, you can use the following widget
 specification:
 
@@ -1390,7 +1390,7 @@ and has a similar syntax.
 
 @deffn Widget set
 Allows you to specify a type which must be a list whose elements all
-belong to given set.  The elements of the list are not significant.
+belong to the given set.  The elements of the list are not significant.
 This is implemented on top of the @code{checklist} basic widget, and has
 a similar syntax.
 @end deffn

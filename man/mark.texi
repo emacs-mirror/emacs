@@ -334,11 +334,11 @@ Put region around current page (@code{mark-page}).
 @kbd{M-@@} (@code{mark-word}) puts the mark at the end of the next
 word, while @kbd{C-M-@@} (@code{mark-sexp}) puts it at the end of the
 next balanced expression (@pxref{Expressions}).  These commands handle
-arguments just like @kbd{M-f} and @kbd{C-M-f}.  If you repeat these
-commands, that extends the region.  For example, you can type either
-@kbd{C-u 2 M-@@} or @kbd{M-@@ M-@@} to mark the next two words.  This
-command also extends the region when the mark is active in Transient
-Mark mode, regardless of the last command.
+arguments just like @kbd{M-f} and @kbd{C-M-f}.  Repeating these
+commands extends the region.  For example, you can type either
+@kbd{C-u 2 M-@@} or @kbd{M-@@ M-@@} to mark the next two words.  These
+commands also extend the region in Transient Mark mode, regardless of
+the last command.
 
 @kindex C-x h
 @findex mark-whole-buffer
@@ -347,7 +347,7 @@ buffer.  For example, @kbd{M-h} (@code{mark-paragraph}) moves point to
 the beginning of the paragraph that surrounds or follows point, and
 puts the mark at the end of that paragraph (@pxref{Paragraphs}).  It
 prepares the region so you can indent, case-convert, or kill a whole
-paragraph.  With prefix argument, if the argument's value is positive,
+paragraph.  With a prefix argument, if the argument's value is positive,
 @kbd{M-h} marks that many paragraphs starting with the one surrounding
 point.  If the prefix argument is @minus{}@var{n}, @kbd{M-h} also
 marks @var{n} paragraphs, running back form the one surrounding point.

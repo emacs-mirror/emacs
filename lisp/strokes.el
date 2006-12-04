@@ -142,6 +142,8 @@
 ;; the user to enter strokes which "remove the pencil from the paper"
 ;; so to speak, so one character can have multiple strokes.
 
+;; NOTE (Oct 7, 2006): The URLs below seem to be invalid!!!
+
 ;; You can read more about strokes at:
 
 ;; http://www.mit.edu/people/cadet/strokes-help.html
@@ -211,7 +213,6 @@ static char * stroke_xpm[] = {
 (defgroup strokes nil
   "Control Emacs through mouse strokes."
   :link '(emacs-commentary-link "strokes")
-  :link '(url-link "http://www.mit.edu/people/cadet/strokes-help.html")
   :group 'mouse)
 
 (defcustom strokes-modeline-string " Strokes"

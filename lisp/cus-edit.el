@@ -1521,13 +1521,18 @@ Otherwise use brackets."
 	    (widget-insert description))
 	(widget-insert (format ".
 %s buttons; type RET or click mouse-1 to actuate one.
-Editing a setting changes only the text in the buffer.
-Use the setting's State button to set it or save changes in it.
-Saving a change normally works by editing your Emacs init file.
-See "
+Editing a setting changes only the text in the buffer."
 			       (if custom-raised-buttons
 				   "`Raised' text indicates"
 				 "Square brackets indicate")))
+	(if init-file-user
+	    (widget-insert "
+Use the setting's State button to set it or save changes in it.
+Saving a change normally works by editing your Emacs init file.")
+	    (widget-insert "
+\nSince you started Emacs with `-q', which inhibits use of the
+Emacs init file, you cannot save settings into the Emacs init file."))
+	(widget-insert "\nSee ")
 	(widget-create 'custom-manual
 		       :tag "Custom file"
 		       "(emacs)Saving Customizations")
@@ -4152,6 +4157,8 @@ if only the first line of the docstring is shown."))
 				    recentf-exclude)))
 	 (old-buffer (find-buffer-visiting filename)))
     (with-current-buffer (or old-buffer (find-file-noselect filename))
+      (unless (eq major-mode 'emacs-lisp-mode)
+	(emacs-lisp-mode))
       (let ((inhibit-read-only t))
 	(custom-save-variables)
 	(custom-save-faces))
@@ -4548,6 +4555,13 @@ if that value is non-nil."
   (setq widget-documentation-face 'custom-documentation)
   (make-local-variable 'widget-button-face)
   (setq widget-button-face custom-button)
+
+  ;; We need this because of the "More" button on docstrings.
+  ;; Otherwise clicking on "More" can push point offscreen, which
+  ;; causes the window to recenter on point, which pushes the
+  ;; newly-revealed docstring offscreen; which is annoying.  -- cyd.
+  (set (make-local-variable 'widget-button-click-moves-point) t)
+
   (set (make-local-variable 'widget-button-pressed-face) custom-button-pressed)
   (set (make-local-variable 'widget-mouse-face) custom-button-mouse)
 

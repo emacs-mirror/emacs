@@ -64,10 +64,6 @@ modification status and major and minor modes of the buffer that is
 displayed in the window.  The selected window's mode line appears in a
 different color.  @xref{Mode Line}, for full details on the mode line.
 
-@iftex
-@break
-@end iftex
-
 @node Split Window
 @section Splitting Windows
 

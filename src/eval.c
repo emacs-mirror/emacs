@@ -28,6 +28,10 @@ Boston, MA 02110-1301, USA.  */
 #include "dispextern.h"
 #include <setjmp.h>
 
+#if HAVE_X_WINDOWS
+#include "xterm.h"
+#endif
+
 /* This definition is duplicated in alloc.c and keyboard.c */
 /* Putting it in lisp.h makes cc bomb out! */
 

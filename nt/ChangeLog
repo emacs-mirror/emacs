@@ -1,3 +1,11 @@
+2006-09-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (HAVE_LANGINFO_CODESET): Define.
+
+	* inc/langinfo.h: New file.
+
+	* inc/nl_types.h: New file.
+
 2006-09-15  Jay Belanger  <belanger@truman.edu>
 
 	* COPYING: Replace "Library Public License" by "Lesser Public

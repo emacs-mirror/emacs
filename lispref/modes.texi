@@ -1966,7 +1966,7 @@ meaningful distinction only on certain operating systems (@pxref{MS-DOS
 File Types}).
 
 @item %z
-The mnemonics of buffer, terminal, and keyboard coding systems.
+The mnemonics of keyboard, terminal, and buffer coding systems.
 
 @item %Z
 Like @samp{%z}, but including the end-of-line format.

@@ -157,6 +157,12 @@ is minibuffer."
 					 (< (length x) (length y))))
 			       ", ")
 		    ">"))))))
+;;;_  = icomplete-with-completion-tables
+(defvar icomplete-with-completion-tables '(internal-complete-buffer)
+  "Specialized completion tables with which icomplete should operate.
+
+Icomplete does not operate with any specialized completion tables
+except those on this list.")
 
 ;;;_ > icomplete-mode (&optional prefix)
 ;;;###autoload
@@ -184,8 +190,9 @@ Conditions are:
   (and (window-minibuffer-p (selected-window))
        (not executing-kbd-macro)
        minibuffer-completion-table
-       ;; (or minibuffer-completing-file-name
-       (not (functionp minibuffer-completion-table)))) ;; )
+       (or (not (functionp minibuffer-completion-table))
+           (member minibuffer-completion-table
+                   icomplete-with-completion-tables))))
 
 ;;;_ > icomplete-minibuffer-setup ()
 (defun icomplete-minibuffer-setup ()

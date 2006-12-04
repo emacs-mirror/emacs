@@ -658,22 +658,34 @@ else
   } while (0)
 
 
-/* If P is after LIMIT, advance P to the previous character boundary.
-   It assumes that P is already at a character boundary of the sane
-   mulitbyte form whose beginning address is LIMIT.  */
+/* If P is after LIMIT, advance P to the previous character boundary.  */
 
 #define PREV_CHAR_BOUNDARY(p, limit)					\
   do {									\
     if ((p) > (limit))							\
       {									\
 	const unsigned char *p0 = (p);					\
+	const unsigned char *p_limit = max (limit, p0 - MAX_MULTIBYTE_LENGTH);\
 	do {								\
 	  p0--;								\
-	} while (p0 >= limit && ! CHAR_HEAD_P (*p0));			\
-	(p) = (BYTES_BY_CHAR_HEAD (*p0) == (p) - p0) ? p0 : (p) - 1;	\
+	} while (p0 >= p_limit && ! CHAR_HEAD_P (*p0));			\
+	/* If BBCH(*p0) > p-p0, it means we were not on a boundary.  */	\
+	(p) = (BYTES_BY_CHAR_HEAD (*p0) >= (p) - p0) ? p0 : (p) - 1;	\
       }									\
   } while (0)
 
+#define AT_CHAR_BOUNDARY_P(result, p, limit)	\
+  do {						\
+    if (CHAR_HEAD_P (*(p)) || (p) <= limit)	\
+      /* Optimization for the common case. */	\
+      (result) = 1;				\
+    else					\
+      {						\
+	const unsigned char *p_aux = (p)+1;	\
+	PREV_CHAR_BOUNDARY (p_aux, limit);	\
+	(result) = (p_aux == (p));		\
+      }						\
+} while (0)
 
 #ifdef emacs
 

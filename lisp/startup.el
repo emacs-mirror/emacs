@@ -779,6 +779,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   (custom-reevaluate-setting 'mouse-wheel-up-event)
   (custom-reevaluate-setting 'file-name-shadow-mode)
   (custom-reevaluate-setting 'send-mail-function)
+  (custom-reevaluate-setting 'focus-follows-mouse)
 
   ;; Register default TTY colors for the case the terminal hasn't a
   ;; terminal init file.
@@ -1388,7 +1389,7 @@ mouse."
     (if (or (window-minibuffer-p)
 	    (window-dedicated-p (selected-window)))
 	(pop-to-buffer (current-buffer))
-      (switch-to-buffer "GNU Emacs"))
+      (switch-to-buffer "*About GNU Emacs*"))
     (setq buffer-read-only nil)
     (erase-buffer)
     (if pure-space-overflow
@@ -1604,7 +1605,9 @@ Type \\[describe-distribution] for information on getting the latest version."))
             (error (pop-to-buffer (current-buffer))))))
       ;; Unwind ... ensure splash buffer is killed
       (if hide-on-input
-	  (kill-buffer "GNU Emacs")))))
+	  (kill-buffer "GNU Emacs")
+	(switch-to-buffer "GNU Emacs")
+	(rename-buffer "*About GNU Emacs*" t)))))
 
 
 (defun startup-echo-area-message ()
@@ -1623,8 +1626,9 @@ Type \\[describe-distribution] for information on getting the latest version."))
 (defun display-splash-screen (&optional hide-on-input)
   "Display splash screen according to display.
 Fancy splash screens are used on graphic displays,
-normal otherwise."
-  (interactive)
+normal otherwise.
+With a prefix argument, any user input hides the splash screen."
+  (interactive "P")
   (if (use-fancy-splash-screens-p)
       (fancy-splash-screens hide-on-input)
     (normal-splash-screen hide-on-input)))

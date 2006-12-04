@@ -746,6 +746,28 @@ If there's no subdirectory, delete DIRECTORY as well."
       (unless dir
 	(delete-directory directory)))))
 
+;; The following two functions are used in gnus-registry.
+;; They were contributed by Andreas Fuchs <asf@void.at>.
+(defun gnus-alist-to-hashtable (alist)
+  "Build a hashtable from the values in ALIST."
+  (let ((ht (make-hash-table
+	     :size 4096
+	     :test 'equal)))
+    (mapc
+     (lambda (kv-pair)
+       (puthash (car kv-pair) (cdr kv-pair) ht))
+     alist)
+     ht))
+
+(defun gnus-hashtable-to-alist (hash)
+  "Build an alist from the values in HASH."
+  (let ((list nil))
+    (maphash
+     (lambda (key value)
+       (setq list (cons (cons key value) list)))
+     hash)
+    list))
+
 (defun gnus-strip-whitespace (string)
   "Return STRING stripped of all whitespace."
   (while (string-match "[\r\n\t ]+" string)
@@ -1615,6 +1637,25 @@ empty directories from OLD-PATH."
       'set-process-query-on-exit-flag)
   (defalias 'gnus-set-process-query-on-exit-flag
     'process-kill-without-query))
+
+(if (fboundp 'with-local-quit)
+    (defalias 'gnus-with-local-quit 'with-local-quit)
+  (defmacro gnus-with-local-quit (&rest body)
+    "Execute BODY, allowing quits to terminate BODY but not escape further.
+When a quit terminates BODY, `gnus-with-local-quit' returns nil but
+requests another quit.  That quit will be processed as soon as quitting
+is allowed once again.  (Immediately, if `inhibit-quit' is nil.)"
+    ;;(declare (debug t) (indent 0))
+    `(condition-case nil
+	 (let ((inhibit-quit nil))
+	   ,@body)
+       (quit (setq quit-flag t)
+	     ;; This call is to give a chance to handle quit-flag
+	     ;; in case inhibit-quit is nil.
+	     ;; Without this, it will not be handled until the next function
+	     ;; call, and that might allow it to exit thru a condition-case
+	     ;; that intends to handle the quit signal next time.
+	     (eval '(ignore nil))))))
 
 (provide 'gnus-util)
 

@@ -1204,11 +1204,12 @@ this matches any month, day, or year, respectively.  Thus, a diary entry
   If you prefer the European style of writing dates---in which the day
 comes before the month---type @kbd{M-x european-calendar} while in the
 calendar, or set the variable @code{european-calendar-style} to @code{t}
-@emph{before} using any calendar or diary command.  This mode interprets
-all dates in the diary in the European manner, and also uses European
-style for displaying diary dates.  (Note that there is no comma after
-the @var{monthname} in the European style.)  To go back to the (default)
-American style of writing dates, type @kbd{M-x american-calendar}.
+with @kbd{M-x customize}, or @emph{before} using any calendar or diary
+command.  This mode interprets all dates in the diary in the European
+manner, and also uses European style for displaying diary dates.  (Note
+that there is no comma after the @var{monthname} in the European style.)
+To go back to the (default) American style of writing dates, type
+@kbd{M-x american-calendar}.
 
   You can use the name of a day of the week as a generic date which
 applies to any date falling on that day of the week.  You can abbreviate
