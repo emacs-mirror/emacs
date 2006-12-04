@@ -1,7 +1,11 @@
+2006-12-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* facemenu.el (facemenu-unlisted-faces): Put obsolescence info in
+	the call to `make-obsolete-variable', not in the docstring.
+
 2006-12-04  Chong Yidong  <cyd@stupidchicken.com>
 
-	* facemenu.el (facemenu-unlisted-faces): Define as obsolete
-	variable.
+	* facemenu.el (facemenu-unlisted-faces): Define as obsolete variable.
 
 2006-12-04  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
