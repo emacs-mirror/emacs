@@ -1,3 +1,9 @@
+2006-12-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* configure.in (HAVE_SYNC): New test.
+
+	* configure: Regenerate.
+
 2006-12-03  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in: Fix Copyright format.
