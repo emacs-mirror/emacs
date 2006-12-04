@@ -51,84 +51,90 @@
 
 <p>Here's how it happens in the MPS, since about 2001-03.</p>
 
+<p><em>(Note that this is an early (and incomplete) design and implementation of a pool-independent chain mechanism.  It replaced the earlier pool-action model.)</em></p>
+
 <p>This story is for AMC pools in a VM arena.</p>
 
 
 <h2>Concepts and Datastructures</h2>
 
+<p><em>(The diagram below illustrates several chains, which could all exist simultaneously.  The middle chain, with two generations and one AMC pool, is typical).</em></p>
+
+<p><img src="chain3small.png" alt="diagram of chains, GenDescs, and PoolGens, derived from //info.ravenbrook.com/project/mps/master/code/chain.h#9" /></p>
+
 <dl>
-  <dt>Zone</dt>
-  <dd>Stripe of memory.</dd>
+  <dt>zone</dt>
+  <dd>A stripe of memory.  The MPS divides the address space into 32 zones (typically).</dd>
 </dl>
 
 
 <h2>Set-up</h2>
 
-<p>Say the mutator creates an array of 2 mps_gen_param_s structs:</p>
+<p><em>(Referring to diagram above, see the middle chain: a chain with two generations and one AMC pool)</em></p>
+
+<p>Say the mutator wants a 100 KB nursery, a 200 KB intermediate generation, and the rest for older stuff.  Mutator creates an array of 2 mps_gen_param_s structs:</p>
 <ul>
   <li> { 100KB, 90% mortality }, </li>
   <li> { 200KB, 50% mortality } </li>
 </ul>
 
-<p>It passes this array to mps_chain_create, and then uses the chain to create a new AMC pool.</p>
+<p>Mutator passes this array to mps_chain_create, and then uses the chain to create a new AMC pool.</p>
 
 <p>The Chain contains an array of two GenDescs: numbers 0 and 1.  The AMC pool creates *three* PoolGens:</p>
 <ul>
-  <li> PoolGen 0 is linked to GenDesc 0;</li>
-  <li> PoolGen 1 is linked to GenDesc 1;</li>
-  <li> PoolGen 2 is linked to the arena-wide "topGen" GenDesc.</li>
+  <li> PoolGen nr=0 is linked to GenDesc at index 0;</li>
+  <li> PoolGen nr=1 is linked to GenDesc at index 1;</li>
+  <li> PoolGen nr=2 is linked to the arena-wide "topGen" GenDesc.</li>
 </ul>
+
+<p>What specifies the generation number?  Two different (and contradictory) things:</p>
+<ul>
+  <li> the Chain has an array of GenDescs: the GenDesc's <strong>index</strong> in this array is its "generation";</li>
+  <li> the PoolGen struct has <code>Serial nr;  /*generation number*/</code>: this <strong>PoolGen "nr"</strong> is its "generation".</li>
+</ul>
+<p>(The GenDesc itself, which has size and mortality and is perhaps the place you'd expect, does not store a generation number).</p>
 
 <p>The PoolGen newSizes are zero.  The GenDesc zonesets are empty.</p>
 
 
 <h2>Accumulating objects</h2>
 
-<p>Mutator creates and uses an allocation buffer, making new objects accumulate in the nursery generation.</p>
+<p>As the mutator allocates, and as minor collections promote and preserve objects, each "generation" keeps track of its <strong>size</strong> and <strong>location</strong>.  For each new segment that AMCBufferFill gets:</p>
+<ul>
+  <li>the segment's size is added into the PoolGen's <strong>newSize</strong> accumulator;</li>
+  <li>the segment's zoneset is unioned into the GenDesc's <strong>zoneset</strong> accumulator (by calling PoolGenUpdateZones).</li>
+</ul>
+
+<p>When AMCBufferFill asks for new memory segments, it passes the PoolGen's "nr" generation number (0 for mutator allocation in the nursery, 1 or 2 etc when preserving objects) as a segment-placement preference (with SegPrefGen).</p>
+
+<p>ArenaVM tries hard to keep all segments for a given SegPrefGen-number together in the same zone or zones, and separate from the zones used for all other things.  (Such as: zones used by other generation numbers, blacklist zones, and as-yet unused zones).</p>
+
+<p>So <em>hopefully</em> the zoneset for a "nr" generation number will be disjoint from other uses of memory.  [Note: if a zoneset gets polluted because of address-space pressure, there's currently no way to 'heal' it again afterwards.  That's not good enough for a long-running client.  See also the "barge" flag in arenavm's pagesFindFreeWithSegPref().  RHSK 2006-12-04]</p>
 
 
-<h3>Placement</h3>
+<h2>Triggering a collection</h2>
 
-<p>When AMCBufferFill asks for new memory segments, it passes the PoolGen's "nr" generation number (0 for mutator allocation, 1 or 2 for preserved objects) as a segment-placement preference (with SegPrefGen).</p>
+<p>All collections start from ArenaStep().  There are two routes into ArenaStep: an explicit call to mps_arena_step(), or an implicit one from the 'time-stealing' ArenaPolls in mps_alloc, mps_reserve, and mps_alloc_pattern_end/reset.</p>
 
-<p>ArenaVM tries hard to keep all segments for this SegPrefGen-number together in the same zone or zones, and separate from the zones used for all other things.  (Such as: zones with other generations, blacklist zones, and as-yet unused zones).</p>
+<p>There are three trigger conditions:</p>
 
+<p>Firstly, lots of "spare time".  An MPS client's explicit call to mps_arena_step() can say "I've got some spare time" by passing a non-zero interval and multiplier.  If (interval x multiplier) is big enough, and it's been long enough since the last one, <strong>start a full collection</strong>.</p>
 
-<h3>How big, and where, is this generation?</h3>
-
-<p>AMCBufferFill does this accounting:
-  
-<p>The segment's size is added into the PoolGen's newSize.</p>
-
-<p>The segment's zoneset is unioned into the GenDesc zoneset (by calling  PoolGenUpdateZones).</p>
-
-
-<h2>Call paths that may trigger a collection</h2>
-
-<p>All collections start from ArenaStep().  There are two routes into ArenaStep: an explicit call to mps_arena_step(), or an implicit one from the time-stealing ArenaPolls in mps_alloc, mps_reserve, and mps_alloc_pattern_end/reset.</p>
-
-
-<h2>Triggering a full collection</h2>
-
-
-<h3>Condition</h3>
-
-<p>There are two trigger conditions:</p>
-
-<p>Firstly, lots of "spare time".  An explicit call to mps_arena_step() can specify non-zero interval and multiplier.  If (interval x multiplier) is big enough, and it's been long enough since the last one, start a full collection.</p>
-
-<p>Secondly (when ArenaStep calls TracePoll) the infamous "dynamic criterion".  The plan is to start a full collection soon enough so that we don't completely run out of memory.  I hope that the idea of this is:</p>
+<p>Secondly (when ArenaStep calls TracePoll) the infamous "dynamic criterion" is assessed.  The MPS needs quite a lot of memory to do a full collection.  Memory is being gobbled up by client allocation, and if the MPS waits too long it could get completely 'wedged' or 'chock-a-block', with insufficient free space to do a full collection.  It must start a full collection soon enough that we don't completely run out of memory in the middle of doing it.  Calculating this criterion is tricky, but I think the idea is:</p>
 
 <ol>
-  <li> look ahead to how much extra forwarding-space would be required for a full collection;</li>
-  <li> add how much extra client-allocation would occur during collection;</li>
-  <li> and compare it against ArenaAvail.</li>
+  <li> if we started a full collection now, how much extra forwarding-space would the collector use, before reclaiming?;</li>
+  <li> and how much additional client-allocation would occur in the meanwhile (while the MPS is doing this incremental full collection)?;</li>
+  <li> add these together and compare it against ArenaAvail.</li>
+  <li> if we're about to run out of room (according to our hopefully pessimistic estimates), then <strong>start a full collection</strong> now.</li>
 </ol>
 
-<p>Both trigger conditions call traceStartCollectAll().</p>
+<p>Both these full-collection triggers call traceStartCollectAll().</p>
+
+<p>Thirdly, if no full collection is triggered, look for a chain whose GenDesc 0 is 'over capacity': the sum of the chain's PoolGen 0 newSizes exceeds the GenDesc's capacity.  If there's a choice, pick the chain whose Gen 0 is most over capacity.  An over-capacity chain will <strong>start a minor collection</strong>, by calling ChainCondemnAuto().  [Note that we only look at "newSize".  I don't understand what this means, or how it differs from "totalSize".  It may be a consequence of nailing, or ramps, perhaps?  RHSK 2006-12-01]</p>
 
 
-<h3>What to condemn</h3>
+<h2>Full collection: what gets condemned</h2>
 
 <p>traceStartCollectAll() finds all chains, all the PoolGens in Gen 0 of those chains, all the pools those PoolGens are part of, all the segments of those pools, and condemns all those segments:</p>
 
@@ -142,30 +148,24 @@
     for Seg in (PoolGen->pool)->SegRing:
       TraceWhiten(Seg)</pre>
 
-<p>Note that AMS pools have a Gen-0-only chain (and so get condemned).</p>
-
-<p>Note that LO and AWL pools also have a Gen-0-only chain (and so get condemned).  [This is despite their segment-placement preference being hardwired to SegPrefGen-number 1; yuk!  RHSK 2006-12-01]</p>
+<p>So all automatic (garbage collected) pools <strong>must</strong> have a chain (even if they aren't generational) or their objects won't get condemned.  AMS pools have a Gen-0-only chain.  LO and AWL pools also have a Gen-0-only chain [but their segment-placement preference is hardwired to SegPrefGen-number 1!  Beware!  RHSK 2006-12-01].</p>
 
 
-<h2>Triggering a minor collection</h2>
+<h2>Minor collection: what gets condemned</h2>
+
+<p>The first step is to choose which generations to condemn.  The minor collection looks at one chain, and will always condemn the nursery, plus any adjacent higher generations that are also over-capacity.  (So if gens 0, 1, and 3 are over-capacity, but 2 is not over-capacity yet, then a minor collection will condemn 0 and 1, but not 2 or 3).  ChainCondemnAuto() finds the <strong>list of adjacent GenDescs</strong> that are over-capacity in this chain only.</p>
+
+<p>The second step is not obvious: these GenDescs have been recording the zoneset of all the segments ever added into that GenDesc (as long as the pool noted it by calling PoolGenUpdateZones).  ChainCondemnAuto() calls TraceCondemnZones() to condemn <strong>the full zoneset ever touched</strong> by a segment in any of the condemned GenDescs.</p>
+
+<p>Why condemn the whole zoneset?  Well, minor collections rely on remembered sets to work well, and the MPS implements remembered sets by recording the zone summary of references in a segment.  We hope that the references that will keep the survivors alive are concentrated in only a few older-generation pages, which we can cheaply find using their zone summaries.  Because of this, if the nursery we are trying to collect lives in zoneset 23 (say), we may as well collect everything in zoneset 23 at the same time, even if it also contains objects from a different chain.</p>
+
+<p>So the major determiner of which objects will get collected together is what <strong>SegPrefGen-number</strong> gets passed in the call to pagesFindFreeWithSegPref() when allocating a new segment.  The generational AWL pool takes this number from the PoolGen's "nr" field.  Some other pools hardwire it (AWLGen = 1, LOGen = 1).  Some do not set it (AMS).</p>
+
+<p>To condemn the zoneset, TraceCondemnZones() uses the SegFirst/SegNext() iterator, and for <strong>every segment that is wholly within the condemned zones</strong>, it calls TraceAddWhite(seg).</p>
+
+<p>WARNING: AWL and LO pools do not take a chain argument; they each have a 'hidden' Gen-0-only chain with hardwired values.  AWL's Gen-0 capacity is hardwired to SizeMAX KB, so AWL objects will never trigger a minor collection.  LO's Gen-0 capacity is hardwired to 1024 KB, so each 1 MB of new LO allocation will trigger a minor collection; the condemned zones may contain AMC-generation-1 objects.</p>
 
 
-<h3>Condition</h3>
-
-<p>A minor collection is triggered if there's a chain whose GenDesc 0 is 'over capacity': the sum of the PoolGen 0 newSizes exceeds the GenDesc's capacity.  (If there's a choice, pick the chain whose Gen 0 is most over capacity).</p>
-
-<p>[Note that we only look at "newSize".  I don't understand what this means, or how it differs from totalSize.  (It may be a consequence of nailing, perhaps?).  RHSK 2006-12-01]</p>
-
-
-<h3>What to condemn</h3>
-
-<p>For the triggering chain, ChainCondemnAuto() finds the list of GenDescs to condemn: GenDesc 0 and each higher GenDesc that's also over its capacity.  (That is: where the sum of newSizes exceeds capacity, as before).</p>
-
-<p>These GenDescs have been recording the zoneset of all the segments ever added into that GenDesc, as long as the pool noted it by calling PoolGenUpdateZones(PoolGen, Seg).</p>
-
-<p>ChainCondemnAuto() calls TraceCondemnZones() to condemn the full zoneset ever touched by any segment in any of the condemned GenDescs.</p>
-
-<p>TraceCondemnZones() uses the SegFirst/SegNext() iterator, and for every segment that is wholly within the condemned zones, it calls TraceAddWhite(seg).</p>
 
 
 <h2>Progress of a collection</h2>
@@ -176,6 +176,7 @@
 <pre>
   2006-11-30  RHSK  Created, incomplete.
   2006-12-01  RHSK  What triggers a GC?
+  2006-12-04  RHSK  What triggers a GC: clarify and expand, add diagram
 </pre>
 
 
