@@ -1586,13 +1586,14 @@ The precise meaning of the event parameters and the way these
 parameters are used to display the help-echo text are described in
 @ref{Text help-echo}.
 
-@cindex @code{usr1-signal} event
-@cindex @code{usr2-signal} event
-@item usr1-signal
-@itemx usr2-signal
-These events are generated when the Emacs process receives the signals
-@code{SIGUSR1} and @code{SIGUSR2}.  They contain no additional data
-because signals do not carry additional information.
+@cindex @code{signal usr1} event
+@cindex @code{signal usr2} event
+@cindex user signals
+@item signal usr1
+@itemx signal usr2
+These event sequences are generated when the Emacs process receives
+the signals @code{SIGUSR1} and @code{SIGUSR2}.  They contain no
+additional data because signals do not carry additional information.
 @end table
 
   If one of these events arrives in the middle of a key sequence---that
@@ -1630,6 +1631,16 @@ into another window.  That produces a pair of events like these:
 (M-S-drag-mouse-2 (#<window 18 on NEWS> mode-line (33 . 31) -457844)
                   (#<window 20 on carlton-sanskrit.tex> 161 (33 . 3)
                    -453816))
+@end smallexample
+
+To handle a SIGUSR1 signal, define an interactive function, and
+bind it to the @code{signal usr1} event sequence:
+
+@smallexample
+(defun usr1-handler ()
+  (interactive)
+  (message "Got USR1 signal"))
+(global-set-key [signal usr1] 'usr1-handler)
 @end smallexample
 
 @node Classifying Events
