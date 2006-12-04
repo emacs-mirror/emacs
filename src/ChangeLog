@@ -1,3 +1,23 @@
+2006-12-04  Kim F. Storm  <storm@cua.dk>
+
+	* emacs.c (handle_USR1_signal, handle_USR2_signal): Replace by...
+	(handle_user_signal): ... this, which generates two USER_SIGNAL_EVENTs
+	first with code == 0 [signal] and one with code == sig number.
+	(main): Use it as handler for SIGUR1 and SIGUSR2.
+
+	* keyboard.c (kbd_buffer_store_event_hold): Don't throw-on-input
+	if first event in [signal xxx] sequence.
+	(lispy_user_signals, Qusr1_signal, Qusr2_signal): Remove.
+	(syms_of_keyboard): Don't intern and staticpro them.
+	(Qsignal, Qusr1, Qusr2): Declare.
+	(syms_of_keyboard): Intern and staticpro them.
+	(make_lispy_event): Return them for USER_SIGNAL_EVENTs.
+
+	* process.c (Qsignal): Declare extern.
+	(syms_of_process): Don't intern/staticpro them here.
+
+	* process.c (read_process_output): Abort if carryover < 0.
+
 2006-12-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* config.in: Regenerate.
