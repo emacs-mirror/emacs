@@ -1,3 +1,8 @@
+2006-12-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* descr-text.el (describe-char-unicode-data): Use a hidden buffer for
+	Unicode data file pointed to by `describe-char-unicodedata-file'.
+
 2006-12-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/sgml-mode.el (sgml-font-lock-keywords-1): Fix pathological
