@@ -5,7 +5,6 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2006/11/08 12:01:50 vinicius>
 ;; Keywords: wp, print, PostScript
 ;; Version: 6.8.4
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre

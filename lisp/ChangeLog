@@ -1,3 +1,19 @@
+2006-12-04  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* progmodes/ebnf-abn.el:
+	* progmodes/ebnf-bnf.el:
+	* progmodes/ebnf-dtd.el:
+	* progmodes/ebnf-ebx.el:
+	* progmodes/ebnf-iso.el:
+	* progmodes/ebnf-otz.el:
+	* progmodes/ebnf-yac.el:
+	* progmodes/ebnf2ps.el:
+	* delim-col.el:
+	* printing.el:
+	* ps-bdf.el:
+	* ps-mule.el:
+	* ps-print.el: Remove 'Time-stamp' comment mark.
+
 2006-12-04  Stephen Leake  <stephen_leake@stephe-leake.org>
 
 	* progmodes/ada-xref.el (ada-check-current): Doc fix.
