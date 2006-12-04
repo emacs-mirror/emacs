@@ -132,6 +132,16 @@ just before \"Other\" at the end."
   :type 'boolean
   :group 'facemenu)
 
+(defvar facemenu-unlisted-faces
+  `(modeline region secondary-selection highlight scratch-face
+    ,(purecopy "^font-lock-") ,(purecopy "^gnus-") ,(purecopy "^message-")
+    ,(purecopy "^ediff-") ,(purecopy "^term-") ,(purecopy "^vc-")
+    ,(purecopy "^widget-") ,(purecopy "^custom-") ,(purecopy "^vm-"))
+  "*List of faces that are of no interest to the user.
+This variable is obsolete, and has no effect on the Face menu.
+Use the variable `facemenu-listed-faces' instead.")
+(make-obsolete-variable 'facemenu-unlisted-faces 'facemenu-listed-faces)
+
 (defcustom facemenu-listed-faces nil
   "*List of faces to include in the Face menu.
 Each element should be a symbol, the name of a face.
