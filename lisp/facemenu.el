@@ -137,10 +137,9 @@ just before \"Other\" at the end."
     ,(purecopy "^font-lock-") ,(purecopy "^gnus-") ,(purecopy "^message-")
     ,(purecopy "^ediff-") ,(purecopy "^term-") ,(purecopy "^vc-")
     ,(purecopy "^widget-") ,(purecopy "^custom-") ,(purecopy "^vm-"))
-  "*List of faces that are of no interest to the user.
-This variable is obsolete, and has no effect on the Face menu.
-Use the variable `facemenu-listed-faces' instead.")
-(make-obsolete-variable 'facemenu-unlisted-faces 'facemenu-listed-faces)
+  "*List of faces that are of no interest to the user.")
+(make-obsolete-variable 'facemenu-unlisted-faces 'facemenu-listed-faces
+			"since 22.1,\nand has no effect on the Face menu")
 
 (defcustom facemenu-listed-faces nil
   "*List of faces to include in the Face menu.
