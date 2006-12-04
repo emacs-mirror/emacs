@@ -1021,7 +1021,9 @@ For the format of LINE-ERR-INFO, see `flymake-ler-make-ler'."
       (progn
 	(flymake-get-project-include-dirs-from-cache basedir))
     ;;else
-    (let* ((command-line  (concat "make -C\"" basedir "\" DUMPVARS=INCLUDE_DIRS dumpvars"))
+    (let* ((command-line  (concat "make -C "
+				  (shell-quote-argument basedir)
+				  " DUMPVARS=INCLUDE_DIRS dumpvars"))
 	   (output        (shell-command-to-string command-line))
 	   (lines         (flymake-split-string output "\n"))
 	   (count         (length lines))

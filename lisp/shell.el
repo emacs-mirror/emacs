@@ -298,7 +298,9 @@ Value is a list of strings, which may be nil."
 	     (equal name "bash")
 	     (file-executable-p prog)
 	     (string-match "bad option"
-			   (shell-command-to-string (concat prog " --noediting"))))
+			   (shell-command-to-string
+			    (concat (shell-quote-argument prog)
+				    " --noediting"))))
 	'("-i")
       '("--noediting" "-i")))
   "Args passed to inferior shell by \\[shell], if the shell is bash.

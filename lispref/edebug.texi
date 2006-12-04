@@ -1044,9 +1044,9 @@ The variables @code{last-command}, @code{this-command},
 @code{track-mouse}.  Commands used within Edebug do not affect these
 variables outside of Edebug.
 
-The key sequence returned by @code{this-command-keys} is changed by
-executing commands within Edebug and there is no way to reset
-the key sequence from Lisp.
+Executing commands within Edebug can change the key sequence that
+would be returned by @code{this-command-keys}, and there is no way to
+reset the key sequence from Lisp.
 
 Edebug cannot save and restore the value of
 @code{unread-command-events}.  Entering Edebug while this variable has a

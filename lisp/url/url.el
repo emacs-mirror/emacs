@@ -128,13 +128,39 @@ URL is either a string or a parsed URL.
 
 CALLBACK is called when the object has been completely retrieved, with
 the current buffer containing the object, and any MIME headers associated
-with it.  Normally it gets the arguments in the list CBARGS.
-However, if what we find is a redirect, CALLBACK is given
-two additional args, `:redirect' and the redirected URL,
-followed by CBARGS.
+with it.  It is called as (apply CALLBACK STATUS CBARGS).
+STATUS is a list with an even number of elements representing
+what happened during the request, with most recent events first,
+or an empty list if no events have occurred.  Each pair is one of:
+
+\(:redirect REDIRECTED-TO) - the request was redirected to this URL
+\(:error (ERROR-SYMBOL . DATA)) - an error occurred.  The error can be
+signaled with (signal ERROR-SYMBOL DATA).
 
 Return the buffer URL will load into, or nil if the process has
-already completed."
+already completed (i.e. URL was a mailto URL or similar; in this case
+the callback is not called).
+
+The variables `url-request-data', `url-request-method' and
+`url-request-extra-headers' can be dynamically bound around the
+request; dynamic binding of other variables doesn't necessarily
+take effect."
+;;; XXX: There is code in Emacs that does dynamic binding
+;;; of the following variables around url-retrieve:
+;;; url-standalone-mode, url-gateway-unplugged, w3-honor-stylesheets,
+;;; url-confirmation-func, url-cookie-multiple-line,
+;;; url-cookie-{{,secure-}storage,confirmation}
+;;; url-standalone-mode and url-gateway-unplugged should work as
+;;; usual.  url-confirmation-func is only used in nnwarchive.el and
+;;; webmail.el; the latter should be updated.  Is
+;;; url-cookie-multiple-line needed anymore?  The other url-cookie-*
+;;; are (for now) only used in synchronous retrievals.
+  (url-retrieve-internal url callback (cons nil cbargs)))
+
+(defun url-retrieve-internal (url callback cbargs)
+  "Internal function; external interface is `url-retrieve'.
+CBARGS is what the callback will actually receive - the first item is
+the list of events, as described in the docstring of `url-retrieve'."
   (url-do-setup)
   (url-gc-dead-buffers)
   (if (stringp url)
@@ -211,6 +237,9 @@ no further processing).  URL is either a string or a parsed URL."
                 ;; clear that it's a bug, but even then we need to decide how
                 ;; url-http can then warn us that the download has completed.
                 ;; In the mean time, we use this here workaround.
+		;; XXX: The callback must always be called.  Any
+		;; exception is a bug that should be fixed, not worked
+		;; around.
                 (setq retrieval-done t))
             ;; We used to use `sit-for' here, but in some cases it wouldn't
             ;; work because apparently pending keyboard input would always

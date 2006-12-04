@@ -523,8 +523,8 @@ get_utf8_string (str)
       char *cp, *up;
       GError *error = NULL;
 
-      while (! (cp = g_locale_to_utf8 (p, -1, &bytes_read,
-                                             &bytes_written, &error))
+      while (! (cp = g_locale_to_utf8 ((char *)p, -1, &bytes_read,
+                                       &bytes_written, &error))
              && error->code == G_CONVERT_ERROR_ILLEGAL_SEQUENCE)
         {
           ++nr_bad;
@@ -541,13 +541,13 @@ get_utf8_string (str)
       if (cp) g_free (cp);
 
       up = utf8_str = xmalloc (strlen (str) + nr_bad * 4 + 1);
-      p = str;
+      p = (unsigned char *)str;
 
-      while (! (cp = g_locale_to_utf8 (p, -1, &bytes_read,
+      while (! (cp = g_locale_to_utf8 ((char *)p, -1, &bytes_read,
                                        &bytes_written, &error))
              && error->code == G_CONVERT_ERROR_ILLEGAL_SEQUENCE)
         {
-          strncpy (up, p, bytes_written);
+          strncpy (up, (char *)p, bytes_written);
           sprintf (up + bytes_written, "\\%03o", p[bytes_written]);
           up[bytes_written+4] = '\0';
           up += bytes_written+4;
@@ -3362,8 +3362,9 @@ xg_tool_bar_button_cb (widget, event, user_data)
     GdkEventButton *event;
     gpointer        user_data;
 {
-  g_object_set_data (G_OBJECT (user_data), XG_TOOL_BAR_LAST_MODIFIER,
-                     (gpointer) event->state);
+  /* Casts to avoid warnings when gpointer is 64 bits and int is 32 bits */
+  gpointer ptr = (gpointer) (EMACS_INT) event->state;
+  g_object_set_data (G_OBJECT (user_data), XG_TOOL_BAR_LAST_MODIFIER, ptr);
   return FALSE;
 }
 
@@ -3375,7 +3376,8 @@ xg_tool_bar_callback (w, client_data)
 {
   /* The EMACS_INT cast avoids a warning. */
   int idx = (int) (EMACS_INT) client_data;
-  int mod = (int) g_object_get_data (G_OBJECT (w), XG_TOOL_BAR_LAST_MODIFIER);
+  int mod = (int) (EMACS_INT) g_object_get_data (G_OBJECT (w),
+                                                 XG_TOOL_BAR_LAST_MODIFIER);
 
   FRAME_PTR f = (FRAME_PTR) g_object_get_data (G_OBJECT (w), XG_FRAME_DATA);
   Lisp_Object key, frame;

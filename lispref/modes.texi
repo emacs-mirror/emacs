@@ -2816,8 +2816,7 @@ which construct their text programmatically, such as
 
 If your mode does not use any of the other machinery of Font Lock
 (i.e. it only uses the @code{font-lock-face} property), it should not
-set the variable @code{font-lock-defaults}.  That way, it will not
-cause loading of the @file{font-lock} library.
+set the variable @code{font-lock-defaults}.
 
 @node Faces for Font Lock
 @subsection Faces for Font Lock

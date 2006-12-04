@@ -1916,8 +1916,12 @@ is using."
       (set-buffer (get-buffer-create "*grep*"))
       (while dirs
 	(insert (shell-command-to-string
-		 (concat "egrep -i -h '^X|" regexp "( |$)' "
-			 (file-name-as-directory (car dirs)) "*.ali")))
+		 (concat
+		  "grep -E -i -h "
+		  (shell-quote-argument (concat "^X|" regexp "( |$)"))
+		  " "
+		  (shell-quote-argument (file-name-as-directory (car dirs)))
+		  "*.ali")))
 	(set 'dirs (cdr dirs)))
 
       ;;  Now parse the output

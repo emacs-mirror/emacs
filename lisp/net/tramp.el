@@ -2018,11 +2018,10 @@ If VAR is nil, then we bind `v' to the structure and `multi-method',
      ,@body))
 
 (put 'with-parsed-tramp-file-name 'lisp-indent-function 2)
-;; To be activated for debugging containing this macro
-;; It works only when VAR is nil.  Otherwise, it can be deactivated by
-;; (put 'with-parsed-tramp-file-name 'edebug-form-spec 0)
-;; I'm too stupid to write a precise SPEC for it.
-(put 'with-parsed-tramp-file-name 'edebug-form-spec t)
+;; Enable debugging.
+(def-edebug-spec with-parsed-tramp-file-name (form symbolp body))
+;; Highlight as keyword.
+(font-lock-add-keywords 'emacs-lisp-mode '("\\<with-parsed-tramp-file-name\\>"))
 
 (defmacro tramp-let-maybe (variable value &rest body)
   "Let-bind VARIABLE to VALUE in BODY, but only if VARIABLE is not obsolete.
@@ -2905,7 +2904,7 @@ and `rename'.  FILENAME and NEWNAME must be absolute file names."
   (unless ok-if-already-exists
     (when (file-exists-p newname)
       (signal 'file-already-exists
-              (list newname))))
+              (list "File already exists" newname))))
   (let ((t1 (tramp-tramp-file-p filename))
 	(t2 (tramp-tramp-file-p newname))
 	v1-multi-method v1-method v1-user v1-host v1-localname
@@ -2978,10 +2977,10 @@ and `rename'.  FILENAME and NEWNAME must be absolute file names."
       ;; copy-program can be invoked.
       (if (and (not v1-multi-method)
 	       (not v2-multi-method)
-	       (or (tramp-method-out-of-band-p
-		    v1-multi-method v1-method v1-user v1-host)
-		   (tramp-method-out-of-band-p
-		    v2-multi-method v2-method v2-user v2-host)))
+	       (or (and t1 (tramp-method-out-of-band-p
+                            v1-multi-method v1-method v1-user v1-host))
+		   (and t2 (tramp-method-out-of-band-p
+                            v2-multi-method v2-method v2-user v2-host))))
 	  (tramp-do-copy-or-rename-file-out-of-band
 	   op filename newname keep-date)
 	;; Use the generic method via a Tramp buffer.
@@ -5045,7 +5044,7 @@ TIME is an Emacs internal time value as returned by `current-time'."
 			    multi-method method user host
 			    (format "TZ=UTC; export TZ; touch -t %s %s"
 				    touch-time
-				    localname)
+				    (tramp-shell-quote-argument localname))
 			    t))
 	      (pop-to-buffer buf)
 	      (error "tramp-touch: touch failed, see buffer `%s' for details"

@@ -5,7 +5,7 @@
 
 @c The edition number appears in several places in this file
 @set EDITION   Sixteenth
-@set EMACSVER  22.1
+@set EMACSVER  22.0.90
 
 @copying
 This is the @value{EDITION} edition of the @cite{GNU Emacs Manual},
@@ -71,7 +71,7 @@ Software Foundation raise funds for GNU development.''
 @insertcopying
 
 @sp 2
-ISBN 1-882114-06-X @*
+ISBN 1-882114-86-8*
 Published by the Free Software Foundation @*
 51 Franklin Street, Fifth Floor @*
 Boston, MA 02110-1301 USA
@@ -714,7 +714,7 @@ The Calendar and the Diary
 * Scroll Calendar::     Bringing earlier or later months onto the screen.
 * Counting Days::       How many days are there between two dates?
 * General Calendar::    Exiting or recomputing the calendar.
-* LaTeX Calendar::      Print a calendar using LaTeX.
+* Writing Calendar Files:: Writing calendars to files of various formats.
 * Holidays::            Displaying dates of holidays.
 * Sunrise/Sunset::      Displaying local times of sunrise and sunset.
 * Lunar Phases::        Displaying phases of the moon.

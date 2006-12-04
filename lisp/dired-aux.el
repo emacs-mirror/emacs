@@ -1560,7 +1560,10 @@ When operating on multiple or marked files, you specify a directory,
 and new copies of these files are made in that directory
 with the same names that the files currently have.  The default
 suggested for the target directory depends on the value of
-`dired-dwim-target', which see."
+`dired-dwim-target', which see.
+
+This command copies symbolic links by creating new ones,
+like `cp -d'."
   (interactive "P")
   (let ((dired-recursive-copies dired-recursive-copies))
     (dired-do-create-files 'copy (function dired-copy-file)

@@ -4611,6 +4611,7 @@ otherwise.  */)
   CFStringRef app_id, key_str;
   CFPropertyListRef app_plist = NULL, plist;
   Lisp_Object result = Qnil, tmp;
+  struct gcpro gcpro1, gcpro2;
 
   if (STRINGP (key))
     key = Fcons (key, Qnil);
@@ -4626,6 +4627,8 @@ otherwise.  */)
   CHECK_SYMBOL (format);
   if (!NILP (hash_bound))
     CHECK_NUMBER (hash_bound);
+
+  GCPRO2 (key, format);
 
   BLOCK_INPUT;
 
@@ -4680,6 +4683,8 @@ otherwise.  */)
   CFRelease (app_id);
 
   UNBLOCK_INPUT;
+
+  UNGCPRO;
 
   return result;
 }
@@ -4846,6 +4851,7 @@ On successful conversion, return the result string, else return nil.  */)
      Lisp_Object string, source, target, normalization_form;
 {
   Lisp_Object result = Qnil;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   CFStringEncoding src_encoding, tgt_encoding;
   CFStringRef str = NULL;
 
@@ -4855,6 +4861,8 @@ On successful conversion, return the result string, else return nil.  */)
   if (!INTEGERP (target) && !STRINGP (target))
     CHECK_SYMBOL (target);
   CHECK_SYMBOL (normalization_form);
+
+  GCPRO4 (string, source, target, normalization_form);
 
   BLOCK_INPUT;
 
@@ -4895,6 +4903,8 @@ On successful conversion, return the result string, else return nil.  */)
     }
 
   UNBLOCK_INPUT;
+
+  UNGCPRO;
 
   return result;
 }

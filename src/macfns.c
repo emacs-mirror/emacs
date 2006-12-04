@@ -51,6 +51,14 @@ Boston, MA 02110-1301, USA.  */
 
 extern void free_frame_menubar ();
 
+#if TARGET_API_MAC_CARBON
+
+/* Carbon version info */
+
+static Lisp_Object Vmac_carbon_version_string;
+
+#endif	/* TARGET_API_MAC_CARBON */
+
 /* Non-zero means we're allowed to display an hourglass cursor.  */
 
 int display_hourglass_p;
@@ -4717,6 +4725,22 @@ PIXEL_SIZE field of the name, font finding mechanism gets faster for
 such a font.  This is especially effective for such large fonts as
 Chinese, Japanese, and Korean.  */);
   Vx_pixel_size_width_font_regexp = Qnil;
+
+#if TARGET_API_MAC_CARBON
+  DEFVAR_LISP ("mac-carbon-version-string", &Vmac_carbon_version_string,
+    doc: /* Version info for Carbon API.  */);
+  {
+    OSErr err;
+    UInt32 response;
+    char carbon_version[16] = "Unknown";
+
+    err = Gestalt (gestaltCarbonVersion, &response);
+    if (err == noErr)
+      sprintf (carbon_version, "%u.%u.%u",
+	       (response >> 8) & 0xf, (response >> 4) & 0xf, response & 0xf);
+    Vmac_carbon_version_string = build_string (carbon_version);
+  }
+#endif	/* TARGET_API_MAC_CARBON */
 
   /* X window properties.  */
   defsubr (&Sx_change_window_property);

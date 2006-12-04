@@ -2012,6 +2012,18 @@ Optional prefix argument specifies number of years." t)
   "Make a buffer with LaTeX commands for a year's calendar (Filofax).
 Optional prefix argument specifies number of years." t)
 
+(autoload 'cal-html-cursor-month "cal-html"
+  "Write an HTML calendar file for numeric MONTH of four-digit YEAR.
+The output directory DIR is created if necessary.  Interactively,
+MONTH and YEAR are taken from the calendar cursor position.  Note
+that any existing output files are overwritten." t)
+
+(autoload 'cal-html-cursor-year "cal-html"
+  "Write HTML calendar files (index and monthly pages) for four-digit YEAR.
+The output directory DIR is created if necessary.  Interactively,
+YEAR is taken from the calendar cursor position.  Note that any
+existing output files are overwritten." t)
+
 (autoload 'mark-calendar-holidays "holidays"
   "Mark notable days in the calendar window."
   t)
@@ -2288,6 +2300,8 @@ movement commands will not work correctly."
     (define-key map "iBm" 'insert-monthly-bahai-diary-entry)
     (define-key map "iBy" 'insert-yearly-bahai-diary-entry)
     (define-key map "?"   'calendar-goto-info-node)
+    (define-key map "Hm" 'cal-html-cursor-month)
+    (define-key map "Hy" 'cal-html-cursor-year)
     (define-key map "tm" 'cal-tex-cursor-month)
     (define-key map "tM" 'cal-tex-cursor-month-landscape)
     (define-key map "td" 'cal-tex-cursor-day)

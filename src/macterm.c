@@ -1198,7 +1198,12 @@ mac_query_char_extents (style, c,
 		err1 = ATSUGetGlyphInfo (text_layout, kATSUFromTextBeginning,
 					 kATSUToTextEnd, &count,
 					 &glyph_info_array);
-	      if (err1 == noErr)
+	      if (err1 == noErr
+		  /* Make sure that we don't have to make layout
+		     adjustments.  */
+		  && glyph_info_array.glyphs[0].deltaY == 0.0f
+		  && glyph_info_array.glyphs[0].idealX == 0.0f
+		  && glyph_info_array.glyphs[0].screenX == 0)
 		{
 		  xassert (glyph_info_array.glyphs[0].glyphID);
 		  *cg_glyph = glyph_info_array.glyphs[0].glyphID;
@@ -7963,7 +7968,8 @@ mac_load_query_font (f, fontname)
 				    NULL
 #endif
 				    );
-      if (err != noErr)
+      if (err != noErr
+	  || space_bounds->width <= 0 || FONT_HEIGHT (font) <= 0)
 	{
 	  mac_unload_font (&one_mac_display_info, font);
 	  return NULL;
