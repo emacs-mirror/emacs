@@ -1190,7 +1190,7 @@ command, and should be either `comp_cmd' (default) or `check_cmd'."
     (compile (ada-quote-cmd cmd))))
 
 (defun ada-check-current (&optional arg)
-  "Recompile the current file.
+  "Check the current file for syntax errors.
 If ARG is not nil, ask for user confirmation of the command."
   (interactive "P")
   (ada-compile-current arg 'check_cmd))
@@ -2211,6 +2211,7 @@ This is a GNAT specific function that uses gnatkrunch."
 (defun ada-make-body-gnatstub (&optional interactive)
   "Create an Ada package body in the current buffer.
 This function uses the `gnatstub' program to create the body.
+If INTERACTIVE is nil, kill the current buffer.
 This function typically is to be hooked into `ff-file-created-hook'."
   (interactive "p")
   (ada-require-project-file)
@@ -2220,9 +2221,8 @@ This function typically is to be hooked into `ff-file-created-hook'."
   ;; If the current buffer is the body (as is the case when calling this
   ;; function from ff-file-created-hook), then kill this temporary buffer
   (unless interactive
-    (progn
-      (set-buffer-modified-p nil)
-      (kill-buffer (current-buffer))))
+    (set-buffer-modified-p nil)
+    (kill-buffer (current-buffer)))
 
 
   ;;  Make sure the current buffer is the spec (this might not be the case
