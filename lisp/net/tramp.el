@@ -326,24 +326,35 @@ This variable defaults to the value of `tramp-encoding-shell'."
               (tramp-login-program        "ssh")
               (tramp-copy-program         "scp")
               (tramp-remote-sh            "/bin/sh")
-              (tramp-login-args           ("-e" "none"))
-              (tramp-copy-args            nil)
+              (tramp-login-args           ("-o" "ControlPath=%t.%%r@%%h:%%p"
+					   "-o" "ControlMaster=yes"
+					   "-e" "none"))
+              (tramp-copy-args            ("-o" "ControlPath=%t.%%r@%%h:%%p"
+					   "-o" "ControlMaster=auto"))
               (tramp-copy-keep-date-arg   "-p")
 	      (tramp-password-end-of-line nil))
      ("scp1"  (tramp-connection-function  tramp-open-connection-rsh)
               (tramp-login-program        "ssh")
               (tramp-copy-program         "scp")
               (tramp-remote-sh            "/bin/sh")
-              (tramp-login-args           ("-1" "-e" "none"))
-              (tramp-copy-args            ("-1"))
+              (tramp-login-args           ("-o" "ControlPath=%t.%%r@%%h:%%p"
+					   "-o" "ControlMaster=yes"
+					   "-1" "-e" "none"))
+              (tramp-copy-args            ("-o" "ControlPath=%t.%%r@%%h:%%p"
+					   "-o" "ControlMaster=auto"
+					   "-1"))
               (tramp-copy-keep-date-arg   "-p")
 	      (tramp-password-end-of-line nil))
      ("scp2"  (tramp-connection-function  tramp-open-connection-rsh)
               (tramp-login-program        "ssh")
               (tramp-copy-program         "scp")
               (tramp-remote-sh            "/bin/sh")
-              (tramp-login-args           ("-2" "-e" "none"))
-              (tramp-copy-args            ("-2"))
+              (tramp-login-args           ("-o" "ControlPath=%t.%%r@%%h:%%p"
+					   "-o" "ControlMaster=yes"
+					   "-2" "-e" "none"))
+              (tramp-copy-args            ("-o" "ControlPath=%t.%%r@%%h:%%p"
+					   "-o" "ControlMaster=auto"
+					   "-2"))
               (tramp-copy-keep-date-arg   "-p")
 	      (tramp-password-end-of-line nil))
      ("scp1_old"
@@ -566,6 +577,7 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     If `tramp-connection-function' is `tramp-open-connection-su', then
     \"%u\" in this list is replaced by the user name, and \"%%\" can
     be used to obtain a literal percent character.
+    \"%t\" is replaced by the temporary file name for `scp'-like methods.
   * `tramp-copy-program'
     This specifies the name of the program to use for remotely copying
     the file; this might be the absolute filename of rcp or the name of
@@ -3152,6 +3164,14 @@ be a local filename.  The method used must be an out-of-band method."
 	      v2-user v2-host
 	      (tramp-shell-quote-argument v2-localname))))
 
+    ;; Handle ControlMaster/ControlPath
+    (setq copy-args
+	  (mapcar
+	   (lambda (x)
+	     (format-spec
+	      x `((?t . ,(format "/tmp/%s" tramp-temp-name-prefix)))))
+	   copy-args))
+
     ;; Handle keep-date argument
     (when keep-date
       (if t1
@@ -5491,6 +5511,7 @@ The terminal type can be configured with `tramp-terminal-type'."
 
 (defun tramp-process-actions (p multi-method method user host actions)
   "Perform actions until success."
+  (tramp-message 10 "%s" (mapconcat 'identity (process-command p) " "))
   (let (exit)
     (while (not exit)
       (tramp-message 9 "Waiting for prompts from remote shell")
@@ -5661,10 +5682,14 @@ arguments, and xx will be used as the host name to connect to.
 			multi-method
 			(tramp-find-method multi-method method user host)
 			user host 'tramp-login-program))
-	  (login-args (tramp-get-method-parameter
-		     multi-method
-		     (tramp-find-method multi-method method user host)
-		     user host 'tramp-login-args))
+	  (login-args (mapcar
+		       (lambda (x)
+			 (format-spec
+			  x `((?t . ,(format "/tmp/%s" tramp-temp-name-prefix)))))
+		       (tramp-get-method-parameter
+			multi-method
+			(tramp-find-method multi-method method user host)
+			user host 'tramp-login-args)))
 	  (real-host host))
       ;; The following should be changed.  We need a more general
       ;; mechanism to parse extra host args.
