@@ -1,3 +1,7 @@
+2006-12-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed2v2.inp (HAVE_SYNC): Define.
+
 2006-11-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed1v2.inp (CFLAGS_SOUND): Edit out.

@@ -1,3 +1,9 @@
+2006-12-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.texi (Acknowledgments): Fix Arne J@o{}rgensen's name.
+
+	* ack.texi (Acknowledgments): Fix Arne J@o{}rgensen's name.
+
 2006-12-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* mule.texi (Enabling Multibyte): Rephrase the confusing reference to a
