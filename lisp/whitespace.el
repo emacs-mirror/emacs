@@ -571,7 +571,7 @@ See `whitespace-buffer' docstring for a summary of the problems."
 
 	;; Call this recursively till everything is taken care of
 	(if whitespace-any
-	    (whitespace-cleanup-internal)
+	    (whitespace-cleanup-internal region-only)
 	  ;; if we are done, talk to the user
 	  (progn
 	    (unless whitespace-silent
