@@ -1,3 +1,8 @@
+2006-12-04  Stephen Leake  <stephen_leake@stephe-leake.org>
+
+	* progmodes/ada-xref.el (ada-check-current): Doc fix.
+	(ada-make-body-gnatstub): Doc fix.  Remove redundant `progn'.
+
 2006-12-04  Kim F. Storm  <storm@cua.dk>
 
 	* bindings.el (global-map): Bind [signal t] to ignore, to have
