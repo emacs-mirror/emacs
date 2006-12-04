@@ -664,7 +664,7 @@ exec_byte_code (bytestr, vector, maxdepth, args_template, nargs, args)
 	    if (SYMBOLP (sym)
 		&& !EQ (val, Qunbound)
 		&& !XSYMBOL (sym)->indirect_variable
-		&& !XSYMBOL (sym)->constant
+		&& !SYMBOL_CONSTANT_P (sym)
 		&& !MISCP (XSYMBOL (sym)->value))
 	      XSYMBOL (sym)->value = val;
 	    else

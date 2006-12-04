@@ -2416,7 +2416,7 @@ and selects that window."
 
 (global-set-key [mouse-2]	'mouse-yank-at-click)
 ;; Allow yanking also when the corresponding cursor is "in the fringe".
-(global-set-key [right-fringe mouse-2] [mouse-2])
+(global-set-key [right-fringe mouse-2] 'mouse-yank-at-click)
 (global-set-key [mouse-3]	'mouse-save-then-kill)
 
 ;; By binding these to down-going events, we let the user use the up-going

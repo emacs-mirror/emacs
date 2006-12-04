@@ -1,5 +1,5 @@
 % Reference Card for Org Mode
-\def\orgversionnumber{4.44}
+\def\orgversionnumber{4.56}
 \def\year{2006}
 %
 %**start of header
@@ -284,6 +284,7 @@ are preserved on all copies.
 \key{rotate current subtree between states}{TAB}
 \key{rotate entire buffer between states}{S-TAB}
 \key{show the whole file}{C-c C-a}
+\key{reveal context around point}{C-c C-r}
 %\key{show branches}{C-c C-k}
 
 \section{Motion}
@@ -298,8 +299,6 @@ are preserved on all copies.
 
 \key{insert new heading/item at current level}{M-RET}
 \key{insert new TODO entry/checkbox item}{M-S-RET}
-\key{toggle checkbox(es) in region/entry/at point}{C-c C-x C-b}
-\key{toggle checkbox at point}{C-c C-c}
 
 \key{promote current heading up one level}{M-LEFT}
 \key{demote current heading down one level}{M-RIGHT}
@@ -315,8 +314,9 @@ are preserved on all copies.
 \section{Archiving}
 
 \key{toggle ARCHIVE tag}{C-c C-x C-a}
-\metax{mark fully dine children}{C-u C-c C-x C-a}
-\key{move subtree to achive file}{C-c \$}
+\metax{mark fully done children}{C-u C-c C-x C-a}
+\key{force cycling of an ARCHIVEd tree}{C-TAB}
+\key{move subtree to archive file}{C-c \$}
 \key{move all fully done children}{C-u C-c \$}
 To set archive location for current file, add a line like$^2$:
 \vskip -1mm
@@ -330,7 +330,7 @@ To set archive location for current file, add a line like$^2$:
 \key{view TODO's in sparse tree}{C-c C-v}
 \key{global TODO list in agenda mode}{C-c t$^1$}
 \key{create sparse tree with all deadlines due}{C-c C-w}
-\key{time sorted view of current org file}{C-c C-r}
+\key{time sorted view of current org file}{C-c a L}
 %\key{agenda for the week}{C-c a$^1$}
 %\key{agenda for date at cursor}{C-c C-o}
 
@@ -425,10 +425,11 @@ formula, \kbd{:=} a named-field formula.
 \key{insert file link with file name completion}{C-u C-c C-l}
 \key{edit (also hidden part of) link at point}{C-c C-l}
 
-\key{open file links in emacs (\kbd{C-u} : in emacs)}{C-c C-o}
-\key{open link at point (3: in emacs)}{mouse-2/3}
-%\key{open file links in emacs}{mouse-3}
-%\key{record a position in mark ring}{C-c \%}
+\key{open file links in emacs}{C-c C-o}
+\key{...force open in emacs/other window}{C-u C-c C-o}
+\key{open link at point}{mouse-1/2}
+\key{...force open in emacs/other window}{mouse-3}
+\key{record a position in mark ring}{C-c \%}
 \key{jump back to last followed link(s)}{C-c \&}
 
 {\bf Internal Links}
@@ -444,10 +445,10 @@ formula, \kbd{:=} a named-field formula.
 \key{\kbd{file:/home/dominik/img/mars.jpg}}{\rm file, absolute}
 \key{\kbd{file:papers/last.pdf}}{\rm file, relative}
 \key{\kbd{file:projects.org::*that text}}{\rm find headline}
-\key{\kbd{file:projects.org::find me}}{\rm find tgt/string}
+\key{\kbd{file:projects.org::find me}}{\rm find trgt/string}
 %\key{\kbd{file:projects.org::/regexp/}}{\rm regexp search}
 \key{\kbd{http://www.astro.uva.nl/~dominik}}{\rm on the web}
-\key{\kbd{mailto:adent@galaxy.net}}{\rm EMail address}
+\key{\kbd{mailto:adent@galaxy.net}}{\rm Email address}
 \key{\kbd{news:comp.emacs}}{\rm Usenet group}
 \key{\kbd{bbdb:Richard Stallman}}{\rm BBDB person}
 \key{\kbd{gnus:group}}{\rm GNUS group}
@@ -494,7 +495,7 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 
 \centerline{(for version \orgversionnumber)}
 
-\section{TODO Items}
+\section{TODO Items and Checkboxes}
 
 \key{rotate the state of the current item}{C-c C-t}
 \key{view TODO items in a sparse tree}{C-c C-v}
@@ -507,6 +508,12 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 
 \key{\kbd{\#+SEQ_TODO: TODO TRY BLUFF DONE}}{\rm todo workflow}
 \key{\kbd{\#+TYP_TODO: Phil home work DONE}}{\rm todo types}
+
+\key{insert new checkbox item in plain list}{M-S-RET}
+\key{toggle checkbox(es) in region/entry/at point}{C-c C-x C-b}
+\key{toggle checkbox at point}{C-c C-c}
+\metax{checkbox statistics cookies: insert {\tt [/]} or {\tt [\%]}}{}
+\key{update checkbox statistics (\kbd{C-u} : whole file)}{C-c \#}
 
 \section{Tags}
 
@@ -535,6 +542,7 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 %\key{... forward/backward one day}{S-LEFT/RIGHT}
 %\key{... forward/backward one week}{S-UP/DOWN}
 %\key{... forward/backward one month}{M-S-LEFT/RIGT}
+\key{Toggle custom format display for dates/times}{C-c C-x C-t}
 
 
 \section{Clocking Time}
@@ -546,11 +554,6 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 \key{display total subtree times}{C-c C-x C-d}
 \key{remove displayed times}{C-c C-c}
 \key{insert/update table with clock report}{C-c C-x C-r}
-
-\section{Dynamic Blocks}
-
-\key{update dynamic block at point}{C-c C-x C-u}
-\metax{update all dynamic blocks}{C-u C-c C-x C-u}
 
 \section{LaTeX and cdlatex-mode}
 
@@ -568,8 +571,10 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 \key{compile global TODO list}{C-c a t$^1$}
 \key{compile TODO list for specific keyword}{C-c a T$^1$}
 \key{match tags in agenda files}{C-c a m$^1$}
+\key{match tags in TODO entries}{C-c a M$^1$}
+\key{show timeline of current org file}{C-c a L$^1$}
+\key{configure custom commands}{C-c a C$^1$}
 \key{agenda for date at cursor}{C-c C-o}
-\key{show timeline of current org file}{C-c C-r}
 
 \vskip 1mm
 To set categories, add lines like$^2$:
@@ -582,11 +587,11 @@ To set categories, add lines like$^2$:
 
 {\bf View Org file}
 
-\key{show original location of item}{SPC}
-\key{... also available with}{mouse-3}
+\key{show original location of item}{SPC/mouse-3}
+%\key{... also available with}{mouse-3}
 \key{show and recenter window}{L}
-\key{goto original location in other window}{TAB}
-\key{... also available with}{mouse-2}
+\key{goto original location in other window}{TAB/mouse-2}
+%\key{... also available with}{mouse-2}
 \key{goto original location, delete other windows}{RET}
 \key{toggle follow-mode}{f}
 
@@ -607,6 +612,7 @@ To set categories, add lines like$^2$:
 
 \key{digit argument}{0-9}
 \key{change state of current TODO item}{t}
+\key{kill item and source}{C-k}
 \key{show tags of current headline}{T}
 \key{set tags for current headline}{:}
 \key{toggle ARCHIVE tag}{a}
@@ -717,6 +723,11 @@ Subtrees whose header starts with COMMENT are never exported.
 %S-LEFT  $\to$ M--             S-RIGHT $\to$ M-+
 %S-RET   $\to$ C-S-RET
 %\endexample
+
+\section{Dynamic Blocks}
+
+\key{update dynamic block at point}{C-c C-x C-u}
+\metax{update all dynamic blocks}{C-u C-c C-x C-u}
 
 \section{Notes}
 $^1$ This is only a suggestion for a binding of this command.  Choose

@@ -67,7 +67,7 @@
   (save-excursion
     (let ((case-fold-search t))
       (if (re-search-backward ada-procedure-start-regexp nil t)
-	  (buffer-substring (match-beginning 3) (match-end 3))
+	  (match-string 5)
 	"NAME?"))))
 
 ;;; ---- statement skeletons ------------------------------------------
@@ -445,21 +445,21 @@ Invoke right after `ada-function-spec' or `ada-procedure-spec'."
 
 
 (define-skeleton ada-or-accept
-  "Insert an or statement, prompting for the condition name."
+  "Insert an accept alternative, prompting for the condition name."
   ()
   < "or\n"
   (ada-accept))
 
 
 (define-skeleton ada-or-delay
-  "Insert a delay statement, prompting for the delay value."
+  "Insert a delay alternative, prompting for the delay value."
   "[delay value]: "
   < "or\n"
   > "delay " str ";")
 
 
 (define-skeleton ada-or-terminate
-  "Insert a terminate statement."
+  "Insert a terminate alternative."
   ()
   < "or\n"
   > "terminate;")

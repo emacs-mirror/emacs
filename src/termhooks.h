@@ -120,6 +120,11 @@ extern void (*frame_rehighlight_hook) P_ ((struct frame *));
    windows.  */
 extern void (*frame_raise_lower_hook) P_ ((struct frame *f, int raise));
 
+/* If the value of the frame parameter changed, whis hook is called.
+   For example, if going from fullscreen to not fullscreen this hook
+   may do something OS dependent, like extended window manager hints on X11.  */
+extern void (*fullscreen_hook) P_ ((struct frame *f));
+
 
 /* Scroll bar hooks.  */
 

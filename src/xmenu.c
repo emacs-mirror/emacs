@@ -822,7 +822,7 @@ no quit occurs and `x-popup-menu' returns nil.  */)
   int xpos = 0, ypos = 0;
   Lisp_Object title;
   char *error_name = NULL;
-  Lisp_Object selection;
+  Lisp_Object selection = Qnil;
   FRAME_PTR f = NULL;
   Lisp_Object x, y, window;
   int keymaps = 0;
@@ -1486,14 +1486,6 @@ x_activate_menubar (f)
 
   /* Ignore this if we get it a second time.  */
   f->output_data.x->saved_menu_event->type = 0;
-}
-
-/* Detect if a dialog or menu has been posted.  */
-
-int
-popup_activated ()
-{
-  return popup_activated_flag;
 }
 
 /* This callback is invoked when the user selects a menubar cascade
@@ -3762,6 +3754,13 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 
 #endif /* HAVE_MENUS */
 
+/* Detect if a dialog or menu has been posted.  */
+
+int
+popup_activated ()
+{
+  return popup_activated_flag;
+}
 
 /* The following is used by delayed window autoselection.  */
 

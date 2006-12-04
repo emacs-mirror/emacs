@@ -1514,7 +1514,7 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 	    int this_len_byte = len_byte;
 	    unsigned char *p = pat;
 
-	    if (pos - len < lim)
+	    if (this_pos < lim || this_pos_byte < lim_byte)
 	      goto stop;
 
 	    while (this_len > 0)

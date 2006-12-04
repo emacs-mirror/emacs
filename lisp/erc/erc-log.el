@@ -43,14 +43,6 @@
 ;;
 ;; (require 'erc-log)
 ;;
-;; You may optionally want the following code, to save all ERC buffers
-;; without confirmation when exiting emacs:
-;;
-;; (defadvice save-buffers-kill-emacs (before save-logs (&rest args) activate)
-;;  (save-some-buffers t (lambda ()
-;;                         (when (and (eq major-mode 'erc-mode)
-;;                                    (not (null buffer-file-name))) t))))
-;;
 ;; If you only want to save logs for some buffers, customise the
 ;; variable `erc-enable-logging'.
 
@@ -213,6 +205,7 @@ also be a predicate function. To only log when you are not set away, use:
      (add-hook 'erc-send-post-hook 'erc-save-buffer-in-logs))
    (add-hook 'erc-kill-buffer-hook 'erc-save-buffer-in-logs)
    (add-hook 'erc-kill-channel-hook 'erc-save-buffer-in-logs)
+   (add-hook 'kill-emacs-hook 'erc-log-save-all-buffers)
    (add-hook 'erc-quit-hook 'erc-conditional-save-queries)
    (add-hook 'erc-part-hook 'erc-conditional-save-buffer)
    ;; append, so that 'erc-initialize-log-marker runs first
@@ -225,6 +218,7 @@ also be a predicate function. To only log when you are not set away, use:
    (remove-hook 'erc-send-post-hook 'erc-save-buffer-in-logs)
    (remove-hook 'erc-kill-buffer-hook 'erc-save-buffer-in-logs)
    (remove-hook 'erc-kill-channel-hook 'erc-save-buffer-in-logs)
+   (remove-hook 'kill-emacs-hook 'erc-log-save-all-buffers)
    (remove-hook 'erc-quit-hook 'erc-conditional-save-queries)
    (remove-hook 'erc-part-hook 'erc-conditional-save-buffer)
    (remove-hook 'erc-connect-pre-hook 'erc-log-setup-logging)
@@ -263,7 +257,7 @@ Returns nil iff `erc-server-buffer-p' returns t."
       (not (erc-server-buffer-p)))))
 
 (defun erc-save-query-buffers (process)
-  "Save all buffers process."
+  "Save all buffers of the given PROCESS."
   (erc-with-all-buffers-of-server process
 				  nil
 				  (erc-save-buffer-in-logs)))
@@ -277,6 +271,12 @@ Returns nil iff `erc-server-buffer-p' returns t."
   "Save Query buffers of PROCESS if `erc-save-queries-on-quit' is t."
   (when erc-save-queries-on-quit
     (erc-save-query-buffers process)))
+
+;; Make sure that logs get saved, even if someone overrides the active
+;; process prompt for a quick exit from Emacs
+(defun erc-log-save-all-buffers ()
+  (dolist (buffer (erc-buffer-list))
+    (erc-save-buffer-in-logs buffer)))
 
 ;;;###autoload
 (defun erc-logging-enabled (&optional buffer)
@@ -309,7 +309,7 @@ The result is converted to lowercase, as IRC is case-insensitive"
    (erc-log-standardize-name
     (funcall erc-generate-log-file-name-function
 	     (or buffer (current-buffer))
-	     (or (erc-default-target) (buffer-name buffer))
+	     (or (buffer-name buffer) (erc-default-target))
 	     (erc-current-nick)
 	     erc-session-server erc-session-port))
    erc-log-channels-directory))

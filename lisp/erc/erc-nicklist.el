@@ -29,7 +29,7 @@
 ;; This provides a minimal mIRC style nicklist buffer for ERC.  To
 ;; activate, do M-x erc-nicklist RET in the channel buffer you want
 ;; the nicklist to appear for.  To close and quit the nicklist
-;; buffer, do M-x erc-nicklist-quit RET.
+;; buffer, do M-x erc-nicklist-quit RET from within the nicklist buffer.
 ;;
 ;; TODO:
 ;; o Somehow associate nicklist windows with channel windows so they
@@ -97,7 +97,7 @@ By \"chat medium\", we mean IRC, AOL, MSN, ICQ, etc."
   "*Directory of the PNG files for chat icons.
 Icons are displayed if `erc-nicklist-use-icons' is non-nil."
   :group 'erc-nicklist
-  :type 'string)
+  :type 'directory)
 
 (defcustom erc-nicklist-voiced-position 'bottom
   "*Position of voiced nicks in the nicklist.
@@ -207,7 +207,9 @@ Seach for the BBDB record of this contact.  If not found, return nil."
 	   (channels (erc-server-user-buffers server-user))
 	   (op       (erc-channel-user-op channel-user))
 	   (voice    (erc-channel-user-voice channel-user))
-	   (bbdb-nick (erc-nicklist-search-for-nick (concat login "@" host)))
+	   (bbdb-nick (or (erc-nicklist-search-for-nick
+			   (concat login "@" host))
+			  ""))
 	   (away-status (if voice "" "\n(Away)"))
 	   (balloon-text (concat bbdb-nick (if (string= "" bbdb-nick)
 					       "" "\n")
@@ -406,6 +408,7 @@ list has all the voiced users according to
 ;; Local Variables:
 ;; indent-tabs-mode: t
 ;; tab-width: 8
+;; coding: utf-8
 ;; End:
 
 ;; arch-tag: db37a256-87a7-4544-bd90-e5f16c9f5ca5

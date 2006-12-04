@@ -110,6 +110,13 @@ but will have their capitals in bold."
   :group 'glasses
   :type 'boolean)
 
+(defcustom glasses-separate-parentheses-exceptions
+  '("^#[\t ]*define[\t ]*[A-Za-z0-9_-]* ?($")
+  "List of regexp that are exceptions for `glasses-separate-parentheses-p'.
+They are matched to the current line truncated to the point where the
+parenthesis expression starts."
+  :group 'glasses
+  :type '(repeat regexp))
 
 (defcustom glasses-uncapitalize-p nil
   "If non-nil, downcase embedded capital letters in identifiers.
@@ -153,6 +160,14 @@ Used in :set parameter of some customized glasses variables."
 
 ;;; Utility functions
 
+(defun glasses-parenthesis-exception-p (beg end)
+  "Tell if (BEG, END) is an exception to `glasses-separate-parentheses-p'.
+See `glasses-separate-parentheses-exceptions'."
+  (save-match-data
+    (let ((str (buffer-substring beg end)))
+      (catch 'match
+	(dolist (re glasses-separate-parentheses-exceptions)
+	  (and (string-match re str) (throw 'match t)))))))
 
 (defun glasses-set-overlay-properties ()
   "Set properties of glasses overlays.
@@ -232,8 +247,9 @@ CATEGORY is the overlay category.  If it is nil, use the `glasses' category."
 	(when glasses-separate-parentheses-p
 	  (goto-char beg)
 	  (while (re-search-forward "[a-zA-Z]_*\\(\(\\)" end t)
-	    (glasses-make-overlay (match-beginning 1) (match-end 1)
-				  'glasses-parenthesis)))))))
+	    (unless (glasses-parenthesis-exception-p (point-at-bol) (match-end 1))
+	      (glasses-make-overlay (match-beginning 1) (match-end 1)
+				    'glasses-parenthesis))))))))
 
 
 (defun glasses-make-unreadable (beg end)
@@ -247,30 +263,31 @@ CATEGORY is the overlay category.  If it is nil, use the `glasses' category."
   "Convert current buffer to unreadable identifiers and return nil.
 This function modifies buffer contents, it removes all the separators,
 recognized according to the current value of the variable `glasses-separator'."
-  (when (and glasses-convert-on-write-p
-	     (not (string= glasses-separator "")))
+  (when glasses-convert-on-write-p
     (let ((case-fold-search nil)
 	  (separator (regexp-quote glasses-separator)))
       (save-excursion
-	(goto-char (point-min))
-	(while (re-search-forward
-		(format "[a-z]\\(%s\\)[A-Z]\\|[A-Z]\\(%s\\)[A-Z][a-z]"
-			separator separator)
-		nil t)
-	  (let ((n (if (match-string 1) 1 2)))
-	    (replace-match "" t nil nil n)
-	    (goto-char (match-end n))))
-	(unless (string= glasses-separator glasses-original-separator)
+	(unless (string= glasses-separator "")
 	  (goto-char (point-min))
-	  (while (re-search-forward (format "[a-zA-Z0-9]\\(%s+\\)[a-zA-Z0-9]"
-					    separator)
-				    nil t)
-	    (replace-match glasses-original-separator nil nil nil 1)
-	    (goto-char (match-beginning 1))))
+	  (while (re-search-forward
+		  (format "[a-z]\\(%s\\)[A-Z]\\|[A-Z]\\(%s\\)[A-Z][a-z]"
+			  separator separator)
+		  nil t)
+	    (let ((n (if (match-string 1) 1 2)))
+	      (replace-match "" t nil nil n)
+	      (goto-char (match-end n))))
+	  (unless (string= glasses-separator glasses-original-separator)
+	    (goto-char (point-min))
+	    (while (re-search-forward (format "[a-zA-Z0-9]\\(%s+\\)[a-zA-Z0-9]"
+					      separator)
+				      nil t)
+	      (replace-match glasses-original-separator nil nil nil 1)
+	      (goto-char (match-beginning 1)))))
 	(when glasses-separate-parentheses-p
 	  (goto-char (point-min))
 	  (while (re-search-forward "[a-zA-Z]_*\\( \\)\(" nil t)
-	    (replace-match "" t nil nil 1))))))
+	    (unless (glasses-parenthesis-exception-p (point-at-bol) (1+ (match-end 1)))
+	      (replace-match "" t nil nil 1)))))))
   ;; nil must be returned to allow use in write file hooks
   nil)
 

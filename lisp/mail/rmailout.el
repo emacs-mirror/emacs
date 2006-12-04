@@ -408,7 +408,7 @@ FILE-NAME defaults, interactively, from the Subject field of the message."
     (goto-char (point-min))
     (search-forward "\n\n")
     (and (file-exists-p file-name)
-	 (not (y-or-n-p (message "File %s exists; overwrite? " file-name)))
+	 (not (y-or-n-p (format "File %s exists; overwrite? " file-name)))
 	 (error "Operation aborted"))
     (write-region (point) (point-max) file-name)
     (if (equal major-mode 'rmail-mode)

@@ -57,8 +57,9 @@ license to the document, as described in section 6 of the license.
 @author Queen Mary and Westfield College
 @author (University of London)
 @author Mile End Road, London E1 4NS, UK
-@author @email{F.J.Wright@@qmw.ac.uk}
+@author @email{F.J.Wright@@qmul.ac.uk}
 @author @uref{http://centaur.maths.qmw.ac.uk/}
+@c He no longer maintains this manual.
 @sp 2
 @author Manual Last Updated @value{UPDATED}
 

@@ -250,7 +250,7 @@ supports version 1.1, specified in RFC 2616.  (This supersedes 1.0,
 defined in RFC 1945) HTTP URLs have the following form, where most of
 the parts are optional:
 @example
-http://@var{user}:@var{password}@var{host}:@var{port}/@var{path}?@var{searchpart}#@var{fragment}
+http://@var{user}:@var{password}@@@var{host}:@var{port}/@var{path}?@var{searchpart}#@var{fragment}
 @end example
 @c The @code{:@var{port}} part is optional, and @var{port} defaults to
 @c 80.  The @code{/@var{path}} part, if present, is a slash-separated

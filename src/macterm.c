@@ -1360,20 +1360,31 @@ mac_draw_image_string_cg (f, gc, x, y, buf, nchars, bg_width, overstrike_p)
   if (GC_FONT (gc)->mac_fontsize <= cg_text_anti_aliasing_threshold)
     CGContextSetShouldAntialias (context, false);
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
-  CGContextSetTextPosition (context, gx, gy);
-  CGContextShowGlyphsWithAdvances (context, glyphs, advances, nchars);
-  if (overstrike_p)
+#if MAC_OS_X_VERSION_MIN_REQUIRED == 1020
+  if (CGContextShowGlyphsWithAdvances != NULL)
+#endif
     {
-      CGContextSetTextPosition (context, gx + 1.0f, gy);
+      CGContextSetTextPosition (context, gx, gy);
       CGContextShowGlyphsWithAdvances (context, glyphs, advances, nchars);
-    }
-#else
-  for (i = 0; i < nchars; i++)
-    {
-      CGContextShowGlyphsAtPoint (context, gx, gy, glyphs + i, 1);
       if (overstrike_p)
-	CGContextShowGlyphsAtPoint (context, gx + 1.0f, gy, glyphs + i, 1);
-      gx += advances[i].width;
+	{
+	  CGContextSetTextPosition (context, gx + 1.0f, gy);
+	  CGContextShowGlyphsWithAdvances (context, glyphs, advances, nchars);
+	}
+    }
+#if MAC_OS_X_VERSION_MIN_REQUIRED == 1020
+  else
+#endif
+#endif	/* MAC_OS_X_VERSION_MAX_ALLOWED >= 1030  */
+#if MAC_OS_X_VERSION_MAX_ALLOWED < 1030 || MAC_OS_X_VERSION_MIN_REQUIRED == 1020
+    {
+      for (i = 0; i < nchars; i++)
+	{
+	  CGContextShowGlyphsAtPoint (context, gx, gy, glyphs + i, 1);
+	  if (overstrike_p)
+	    CGContextShowGlyphsAtPoint (context, gx + 1.0f, gy, glyphs + i, 1);
+	  gx += advances[i].width;
+	}
     }
 #endif
 #if USE_CG_DRAWING

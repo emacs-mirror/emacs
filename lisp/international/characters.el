@@ -912,12 +912,6 @@
 
 (let ((tbl (standard-case-table)) c)
 
-;; In some languages, U+0049 LATIN CAPITAL LETTER I and U+0131 LATIN
-;; SMALL LETTER DOTLESS I make a case pair, and so do U+0130 LATIN
-;; CAPITAL LETTER I WITH DOT ABOVE and U+0069 LATIN SMALL LETTER I.
-;; Thus we have to check language-environment to handle casing
-;; correctly.  Currently only I<->i is available.
-
   ;; Latin Extended-A, Latin Extended-B
   (setq c #x0100)
   (while (<= c #x0233)
@@ -933,8 +927,20 @@
 	 (set-case-syntax-pair
 	  (decode-char 'ucs (1- c)) (decode-char 'ucs c) tbl))
     (setq c (1+ c)))
-  (set-downcase-syntax  ?$,1 P(B ?i tbl)
-  (set-upcase-syntax    ?I ?$,1 Q(B tbl)
+
+
+  ;; In some languages, such as Turkish, U+0049 LATIN CAPITAL LETTER I
+  ;; and U+0131 LATIN SMALL LETTER DOTLESS I make a case pair, and so
+  ;; do U+0130 LATIN CAPITAL LETTER I WITH DOT ABOVE and U+0069 LATIN
+  ;; SMALL LETTER I.
+
+  ;; We used to set up half of those correspondence unconditionally,
+  ;; but that makes searches slow.  So now we don't set up either half
+  ;; of these correspondences by default.
+
+  ;;  (set-downcase-syntax  ?$,1 P(B ?i tbl)
+  ;;  (set-upcase-syntax    ?I ?$,1 Q(B tbl)
+
   (set-case-syntax-pair ?$,1 R(B ?$,1 S(B tbl)
   (set-case-syntax-pair ?$,1 T(B ?$,1 U(B tbl)
   (set-case-syntax-pair ?$,1 V(B ?$,1 W(B tbl)

@@ -1090,9 +1090,6 @@ mail status in mode line"))
 (define-key menu-bar-games-menu [zone]
   '(menu-item "Zone Out"  zone
 	      :help "Play tricks with Emacs display when Emacs is idle"))
-(define-key menu-bar-games-menu [yow]
-  '(menu-item "Random Quotation"  yow
-	      :help "Display a random Zippy quotation"))
 (define-key menu-bar-games-menu [tetris]
   '(menu-item "Tetris"  tetris))
 (define-key menu-bar-games-menu [solitaire]

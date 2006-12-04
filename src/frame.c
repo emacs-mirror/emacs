@@ -3034,6 +3034,9 @@ x_set_fullscreen (f, new_value, old_value)
     f->want_fullscreen = FULLSCREEN_WIDTH;
   else if (EQ (new_value, Qfullheight))
     f->want_fullscreen = FULLSCREEN_HEIGHT;
+
+  if (fullscreen_hook != NULL) 
+    fullscreen_hook (f);
 }
 
 

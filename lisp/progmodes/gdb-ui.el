@@ -312,11 +312,11 @@ Also display the main routine in the disassembly buffer if present."
   :version "22.1")
 
 (defcustom gdb-many-windows nil
-  "Nil means just pop up the GUD buffer unless `gdb-show-main' is t.
-In this case it starts with two windows: one displaying the GUD
+  "If nil just pop up the GUD buffer unless `gdb-show-main' is t.
+In this case start with two windows: one displaying the GUD
 buffer and the other with the source file with the main routine
-of the debugged program.  Non-nil means display the layout shown for
-`gdba'."
+of the debugged program.  Non-nil means display the layout shown
+for `gdba'."
   :type 'boolean
   :group 'gud
   :version "22.1")

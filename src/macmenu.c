@@ -319,7 +319,7 @@ restore_menu_items (saved)
   menu_items_used = XINT (XCAR (saved));
   saved = XCDR (saved);
   menu_items_n_panes = XINT (XCAR (saved));
-  saved = XCDR (saved);  
+  saved = XCDR (saved);
   menu_items_submenu_depth = XINT (XCAR (saved));
   return Qnil;
 }
@@ -1453,7 +1453,7 @@ update_submenu_strings (first_wv)
 /* Event handler function that pops down a menu on C-g.  We can only pop
    down menus if CancelMenuTracking is present (OSX 10.3 or later).  */
 
-#ifdef HAVE_CANCELMENUTRACKING
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
 static pascal OSStatus
 menu_quit_handler (nextHandler, theEvent, userData)
      EventHandlerCallRef nextHandler;
@@ -1487,7 +1487,7 @@ menu_quit_handler (nextHandler, theEvent, userData)
 
   return CallNextEventHandler (nextHandler, theEvent);
 }
-#endif /* HAVE_CANCELMENUTRACKING */
+#endif	/* MAC_OS_X_VERSION_MAX_ALLOWED >= 1030 */
 
 /* Add event handler to all menus that belong to KIND so we can detect C-g.
    MENU_HANDLE is the root menu of the tracking session to dismiss
@@ -1499,11 +1499,15 @@ install_menu_quit_handler (kind, menu_handle)
      enum mac_menu_kind kind;
      MenuHandle menu_handle;
 {
-#ifdef HAVE_CANCELMENUTRACKING
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
   static const EventTypeSpec typesList[] =
     {{kEventClassKeyboard, kEventRawKeyDown}};
   int id;
 
+#if MAC_OS_X_VERSION_MIN_REQUIRED == 1020
+  if (CancelMenuTracking == NULL)
+    return;
+#endif
   for (id = min_menu_id[kind]; id < min_menu_id[kind + 1]; id++)
     {
       MenuHandle menu = GetMenuHandle (id);
@@ -1512,9 +1516,9 @@ install_menu_quit_handler (kind, menu_handle)
 	break;
       InstallMenuEventHandler (menu, menu_quit_handler,
 			       GetEventTypeCount (typesList),
-                               typesList, menu_handle, NULL);
+			       typesList, menu_handle, NULL);
     }
-#endif /* HAVE_CANCELMENUTRACKING */
+#endif	/* MAC_OS_X_VERSION_MAX_ALLOWED >= 1030 */
 }
 
 /* Set the contents of the menubar widgets of frame F.

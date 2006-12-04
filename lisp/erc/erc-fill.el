@@ -122,7 +122,15 @@ characters. Set to nil to disable."
 You can put this on `erc-insert-modify-hook' and/or `erc-send-modify-hook'."
   (unless (erc-string-invisible-p (buffer-substring (point-min) (point-max)))
     (when erc-fill-function
-      (funcall erc-fill-function))))
+      ;; skip initial empty lines
+      (goto-char (point-min))
+      (save-match-data
+        (while (and (looking-at "[ \t\n]*$")
+                    (= (forward-line 1) 0))))
+      (unless (eobp)
+        (save-restriction
+          (narrow-to-region (point) (point-max))
+          (funcall erc-fill-function))))))
 
 (defun erc-fill-static ()
   "Fills a text such that messages start at column `erc-fill-static-center'."

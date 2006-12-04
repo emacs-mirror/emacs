@@ -208,22 +208,64 @@ is non-nil.
 
 If variable `beginning-of-defun-function' is non-nil, its value
 is called as a function to find the defun's beginning."
-  (interactive "p")
-  (if beginning-of-defun-function
-      (if (> (setq arg (or arg 1)) 0)
-	  (dotimes (i arg)
-	    (funcall beginning-of-defun-function))
-	;; Better not call end-of-defun-function directly, in case
-	;; it's not defined.
-	(end-of-defun (- arg)))
-    (and arg (< arg 0) (not (eobp)) (forward-char 1))
+  (interactive "p") ; change this to "P", maybe, if we ever come to pass ARG
+		    ; to beginning-of-defun-function.
+  (unless arg (setq arg 1))		; The call might not be interactive.
+  (cond
+   (beginning-of-defun-function
+    (if (> arg 0)
+	(dotimes (i arg)
+	  (funcall beginning-of-defun-function))
+      ;; Better not call end-of-defun-function directly, in case
+      ;; it's not defined.
+      (end-of-defun (- arg))))
+
+   ((or defun-prompt-regexp open-paren-in-column-0-is-defun-start)
+    (and (< arg 0) (not (eobp)) (forward-char 1))
     (and (re-search-backward (if defun-prompt-regexp
 				 (concat (if open-paren-in-column-0-is-defun-start
 					     "^\\s(\\|" "")
 					 "\\(?:" defun-prompt-regexp "\\)\\s(")
 			       "^\\s(")
-			     nil 'move (or arg 1))
-	 (progn (goto-char (1- (match-end 0)))) t)))
+			     nil 'move arg)
+	 (progn (goto-char (1- (match-end 0)))) t))
+
+   (t
+    ;; Column 0 has no significance - so scan forward from BOB to see how
+    ;; nested point is, then carry on from there.
+    (let* ((floor (point-min))
+	   (ceiling (point-max))
+	   (pps-state (let (syntax-begin-function
+			    font-lock-beginning-of-syntax-function)
+			(syntax-ppss)))
+	   (nesting-depth (nth 0 pps-state)))
+      (save-restriction
+	(widen)
+	;; Get outside of any string or comment.
+	(if (nth 8 pps-state)
+	    (goto-char (nth 8 pps-state)))
+
+	(cond
+	 ((> arg 0)
+	  (when (> nesting-depth 0)
+	    (up-list (- nesting-depth))
+	    (setq arg (1- arg)))
+	  ;; We're now outside of any defun.
+	  (backward-list arg)
+	  (if (< (point) floor) (goto-char floor)))
+
+	 ((< arg 0)
+	  (cond
+	   ((> nesting-depth 0)
+	    (up-list nesting-depth)
+	    (setq arg (1+ arg)))
+	   ((not (looking-at "\\s("))
+	    ;; We're between defuns, and not at the start of one.
+	    (setq arg (1+ arg))))
+	  (forward-list (- arg))
+	  (down-list)
+	  (backward-char)
+	  (if (> (point) ceiling) (goto-char ceiling)))))))))
 
 (defvar end-of-defun-function nil
   "If non-nil, function for function `end-of-defun' to call.
