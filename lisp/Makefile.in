@@ -61,6 +61,12 @@ COMPILE_FIRST = \
 	$(lisp)/progmodes/cc-mode.el \
 	$(lisp)/progmodes/cc-vars.el
 
+# Value of max-lisp-eval-depth when compiling the files in COMPILE_FIRST.
+# During bootstrapping the byte-compiler is run interpreted when compiling
+# itself, and uses more stack than usual.
+#
+COMPILE_FIRST_STACK_DEPTH = 1000
+
 # The actual Emacs command run in the targets below.
 
 emacs = EMACSLOADPATH=$(lisp) $(EMACS) $(EMACSOPT)
@@ -166,7 +172,9 @@ compile: $(lisp)/subdirs.el mh-autoloads doit
 	  if test -f $$el; \
 	  then \
 	    echo Compiling $$el; \
-	    $(emacs) -f batch-byte-compile-if-not-done $$el || exit 1; \
+	    $(emacs) \
+		--eval "(setq max-lisp-eval-depth $(COMPILE_FIRST_STACK_DEPTH))" \
+		-f batch-byte-compile-if-not-done $$el || exit 1; \
 	  fi \
 	done
 
@@ -185,7 +193,9 @@ compile-always: $(lisp)/subdirs.el mh-autoloads doit
 	  if test -f $$el; \
 	  then \
 	    echo Compiling $$el; \
-	    $(emacs) -f batch-byte-compile $$el || exit 1; \
+	    $(emacs) \
+		--eval "(setq max-lisp-eval-depth $(COMPILE_FIRST_STACK_DEPTH))" \
+		-f batch-byte-compile $$el || exit 1; \
 	  fi \
 	done
 
