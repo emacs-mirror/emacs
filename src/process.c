@@ -149,7 +149,8 @@ Boston, MA 02110-1301, USA.  */
 #include "atimer.h"
 
 Lisp_Object Qprocessp;
-Lisp_Object Qrun, Qstop, Qsignal;
+Lisp_Object Qrun, Qstop;
+extern Lisp_Object Qsignal;
 Lisp_Object Qopen, Qclosed, Qconnect, Qfailed, Qlisten;
 Lisp_Object Qlocal, Qipv4, Qdatagram;
 #ifdef AF_INET6
@@ -5139,6 +5140,9 @@ read_process_output (proc, channel)
 	}
 
       carryover = nbytes - coding->consumed;
+      if (carryover < 0)
+	abort ();
+
       if (SCHARS (p->decoding_buf) < carryover)
 	p->decoding_buf = make_uninit_string (carryover);
       bcopy (chars + coding->consumed, SDATA (p->decoding_buf),
@@ -5249,11 +5253,15 @@ read_process_output (proc, channel)
 	    }
 	}
       carryover = nbytes - coding->consumed;
+      if (carryover < 0)
+	abort ();
+
       if (SCHARS (p->decoding_buf) < carryover)
 	p->decoding_buf = make_uninit_string (carryover);
       bcopy (chars + coding->consumed, SDATA (p->decoding_buf),
 	     carryover);
       XSETINT (p->decoding_carryover, carryover);
+
       /* Adjust the multibyteness of TEXT to that of the buffer.  */
       if (NILP (current_buffer->enable_multibyte_characters)
 	  != ! STRING_MULTIBYTE (text))
@@ -6997,8 +7005,6 @@ syms_of_process ()
   staticpro (&Qrun);
   Qstop = intern ("stop");
   staticpro (&Qstop);
-  Qsignal = intern ("signal");
-  staticpro (&Qsignal);
 
   /* Qexit is already staticpro'd by syms_of_eval; don't staticpro it
      here again.
