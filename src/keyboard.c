@@ -5074,7 +5074,7 @@ Lisp_Object *scroll_bar_parts[] = {
 };
 
 /* User signal events.  */
-Lisp_Object Qsignal, Qusr1, Qusr2;
+Lisp_Object Qsignal;
 
 /* A vector, indexed by button number, giving the down-going location
    of currently depressed buttons, both scroll bar and non-scroll bar.
@@ -5952,10 +5952,14 @@ make_lispy_event (event)
 	{
 	case 0:
 	  return Qsignal;
+#ifdef SIGUSR1
 	case SIGUSR1:
-	  return Qusr1;
+	  return intern ("usr1");
+#endif
+#ifdef SIGUSR2
 	case SIGUSR2:
-	  return Qusr2;
+	  return intern ("usr2");
+#endif
 	default:
 	  return make_number (event->code);
 	}
@@ -11033,10 +11037,6 @@ syms_of_keyboard ()
 
   Qsignal = intern ("signal");
   staticpro (&Qsignal);
-  Qusr1 = intern ("usr1");
-  staticpro (&Qusr1);
-  Qusr2 = intern ("usr2");
-  staticpro (&Qusr2);
 
   Qmenu_enable = intern ("menu-enable");
   staticpro (&Qmenu_enable);
