@@ -3784,7 +3784,8 @@ kbd_buffer_store_event_hold (event, hold_quit)
   if (!NILP (Vthrow_on_input)
       && event->kind != FOCUS_IN_EVENT
       && event->kind != HELP_EVENT
-      && event->kind != DEICONIFY_EVENT)
+      && event->kind != DEICONIFY_EVENT
+      && !(event->kind == USER_SIGNAL_EVENT && event->code == 0))
     {
       Vquit_flag = Vthrow_on_input;
       /* If we're inside a function that wants immediate quits,
@@ -5073,13 +5074,7 @@ Lisp_Object *scroll_bar_parts[] = {
 };
 
 /* User signal events.  */
-Lisp_Object Qusr1_signal, Qusr2_signal;
-
-Lisp_Object *lispy_user_signals[] =
-{
-  &Qusr1_signal, &Qusr2_signal
-};
-
+Lisp_Object Qsignal, Qusr1, Qusr2;
 
 /* A vector, indexed by button number, giving the down-going location
    of currently depressed buttons, both scroll bar and non-scroll bar.
@@ -5953,7 +5948,17 @@ make_lispy_event (event)
 
     case USER_SIGNAL_EVENT:
       /* A user signal.  */
-      return *lispy_user_signals[event->code];
+      switch (event->code)
+	{
+	case 0:
+	  return Qsignal;
+	case SIGUSR1:
+	  return Qusr1;
+	case SIGUSR2:
+	  return Qusr2;
+	default:
+	  return make_number (event->code);
+	}
 
     case SAVE_SESSION_EVENT:
       return Qsave_session;
@@ -11026,10 +11031,12 @@ syms_of_keyboard ()
   staticpro (&Qmac_apple_event);
 #endif
 
-  Qusr1_signal = intern ("usr1-signal");
-  staticpro (&Qusr1_signal);
-  Qusr2_signal = intern ("usr2-signal");
-  staticpro (&Qusr2_signal);
+  Qsignal = intern ("signal");
+  staticpro (&Qsignal);
+  Qusr1 = intern ("usr1");
+  staticpro (&Qusr1);
+  Qusr2 = intern ("usr2");
+  staticpro (&Qusr2);
 
   Qmenu_enable = intern ("menu-enable");
   staticpro (&Qmenu_enable);
