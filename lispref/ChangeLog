@@ -1,3 +1,8 @@
+2006-12-04  Kim F. Storm  <storm@cua.dk>
+
+	* commands.texi (Misc Events): Update signal events.
+	(Event Examples): Add signal example.
+
 2006-11-29  Richard Stallman  <rms@gnu.org>
 
 	* frames.texi (Visibility of Frames): Explain visible windows

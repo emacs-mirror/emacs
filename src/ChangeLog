@@ -9,12 +9,13 @@
 	if first event in [signal xxx] sequence.
 	(lispy_user_signals, Qusr1_signal, Qusr2_signal): Remove.
 	(syms_of_keyboard): Don't intern and staticpro them.
-	(Qsignal, Qusr1, Qusr2): Declare.
-	(syms_of_keyboard): Intern and staticpro them.
-	(make_lispy_event): Return them for USER_SIGNAL_EVENTs.
+	(Qsignal): Declare here.
+	(syms_of_keyboard): Intern and staticpro it.
+	(make_lispy_event): Use it.  Intern symbols on the fly for other
+	USER_SIGNAL_EVENTs events.
 
 	* process.c (Qsignal): Declare extern.
-	(syms_of_process): Don't intern/staticpro them here.
+	(syms_of_process): Don't intern/staticpro it here.
 
 	* process.c (read_process_output): Abort if carryover < 0.
 
