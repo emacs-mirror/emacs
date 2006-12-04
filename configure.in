@@ -2489,7 +2489,7 @@ strerror fpathconf select mktime euidaccess getpagesize tzset setlocale \
 utimes setrlimit setpgid getcwd getwd shutdown getaddrinfo \
 __fpending mblen mbrlen mbsinit strsignal setitimer ualarm index rindex \
 sendto recvfrom getsockopt setsockopt getsockname getpeername \
-gai_strerror mkstemp getline getdelim mremap memmove fsync bzero \
+gai_strerror mkstemp getline getdelim mremap memmove fsync sync bzero \
 memset memcmp difftime memcpy mempcpy mblen mbrlen posix_memalign)
 
 AC_CHECK_HEADERS(sys/un.h)
