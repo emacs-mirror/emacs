@@ -368,11 +368,11 @@ managers, so try setting this to nil, if prefix override doesn't work."
 
 (defcustom cua-paste-pop-rotate-temporarily nil
   "*If non-nil, \\[cua-paste-pop] only rotates the kill-ring temporarily.
-This means that \\[cua-paste] always inserts the most recent kill, while one or
-more \\[cua-paste-pop]'s immediately following it will replace the previous text
-with the next older element on the `kill-ring'.  If \\[cua-paste-pop] is used after
-any other command, it will insert the same element from the `kill-ring' as last
-time it was used."
+This means that both \\[yank] and the first \\[yank-pop] in a sequence always insert
+the most recently killed text.  Each immediately following \\[cua-paste-pop] replaces
+the previous text with the next older element on the `kill-ring'.
+With prefix arg, \\[universal-argument] \\[yank-pop] inserts the same text as the most
+recent \\[yank-pop] (or \\[yank]) command."
   :type 'boolean
   :group 'cua)
 
@@ -935,9 +935,11 @@ If global mark is active, copy from register or one character."
 ;; C-y M-y M-y => only rotates kill ring temporarily,
 ;;                so next C-y yanks what previous C-y yanked,
 ;;
-;; But: After another command, M-y remembers the temporary
+;; M-y M-y M-y => equivalent to C-y M-y M-y
+;;
+;; But: After another command, C-u M-y remembers the temporary
 ;;      kill-ring position, so
-;; M-y         => yanks what the last M-y yanked
+;; C-u M-y     => yanks what the last M-y yanked
 ;;
 
 (defvar cua-paste-pop-count nil)
@@ -962,18 +964,17 @@ behaviour, see `cua-paste-pop-rotate-temporarily'."
 	(setq cua-paste-pop-count rotate)
 	(setq last-command 'yank)
 	(yank-pop cua-paste-pop-count))
-       ((eq last-command 'cua-paste-pop)
-	(unless (consp arg)
-	  (setq cua-paste-pop-count (+ cua-paste-pop-count rotate)))
+       ((and (eq last-command 'cua-paste-pop) (not (consp arg)))
+	(setq cua-paste-pop-count (+ cua-paste-pop-count rotate))
 	(setq last-command 'yank)
 	(yank-pop cua-paste-pop-count))
        (t
-	(setq cua-paste-pop-count (+ cua-paste-pop-count rotate -1))
+	(setq cua-paste-pop-count
+	      (if (consp arg) (+ cua-paste-pop-count rotate -1) 1))
 	(yank (1+ cua-paste-pop-count)))))
     ;; Undo rotating the kill-ring, so next C-y will
     ;; yank the original head.
-    (unless (consp arg)
-      (setq kill-ring-yank-pointer kill-ring))
+    (setq kill-ring-yank-pointer kill-ring)
     (setq this-command 'cua-paste-pop))))
 
 (defun cua-exchange-point-and-mark (arg)
