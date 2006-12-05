@@ -1,3 +1,10 @@
+2006-12-05  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-paste-pop-rotate-temporarily): Doc fix.
+	(cua-paste-pop): Rework last change for cua-paste-pop-rotate-temporarily,
+	so first M-y and C-y works alike, pasting the head of the kill-ring, and
+	prefix arg C-u M-y inserts the text inserted by the last M-y command.
+
 2006-12-05  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
 
 	* cmuscheme.el (run-scheme, scheme-start-file): Search the start
