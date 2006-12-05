@@ -4651,7 +4651,11 @@ Gets set in cached XML rinfo, or `idlw-rinfo.el'.")
 	      props (car (cdr pelem)))
 	(cond
 	 ((eq ptype 'SUPERCLASS)
-	  (push (cdr (assq 'name props)) inherits))
+	  (let ((pname (cdr (assq 'name props)))
+		(plink (cdr (assq 'link props))))
+	    (unless (and (string= pname "None")
+			 (string= plink "None"))
+	      (push pname inherits))))
 
 	 ((eq ptype 'PROPERTY)
 	  (let ((pname (cdr (assq 'name props)))
