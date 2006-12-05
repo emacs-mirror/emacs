@@ -1,3 +1,10 @@
+2006-12-05  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+
+	* NEWS (Changes to cmuscheme): Mention the alternative for
+	`~/.emacs_SCHEMEPROG' which is `~/.emacs.d/init_SCHEMEPROG.scm'.
+	(Init file changes): Same for `~/.emacs_SHELL' versus
+	`~/.emacs.d/init_SHELL.sh'.
+
 2006-12-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* DEVEL.HUMOR: Another entry.

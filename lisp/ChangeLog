@@ -1,3 +1,11 @@
+2006-12-05  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+
+	* cmuscheme.el (run-scheme, scheme-start-file): Search the start
+	file in ~/.emacs.d as `init_SCHEMENAME.scm' instead.
+
+	* shell.el (shell): Search the start file in ~/.emacs.d as
+	`init_SHELLNAME.sh' instead.
+
 2006-12-05  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/cperl-mode.el (cperl-mode)
