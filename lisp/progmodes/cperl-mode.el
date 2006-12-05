@@ -1681,9 +1681,8 @@ or as help on variables `cperl-tips', `cperl-problems',
 			  [(control c) (control h) f])))
   (setq major-mode cperl-use-major-mode)
   (setq mode-name "CPerl")
-  (if (not cperl-mode-abbrev-table)
-      (let ((prev-a-c abbrevs-changed))
-	(define-abbrev-table 'cperl-mode-abbrev-table '(
+  (let ((prev-a-c abbrevs-changed))
+    (define-abbrev-table 'cperl-mode-abbrev-table '(
 		("if" "if" cperl-electric-keyword 0)
 		("elsif" "elsif" cperl-electric-keyword 0)
 		("while" "while" cperl-electric-keyword 0)
@@ -1704,7 +1703,7 @@ or as help on variables `cperl-tips', `cperl-problems',
 		("over" "over" cperl-electric-pod 0)
 		("head1" "head1" cperl-electric-pod 0)
 		("head2" "head2" cperl-electric-pod 0)))
-	(setq abbrevs-changed prev-a-c)))
+	(setq abbrevs-changed prev-a-c))
   (setq local-abbrev-table cperl-mode-abbrev-table)
   (if (cperl-val 'cperl-electric-keywords)
       (abbrev-mode 1))
