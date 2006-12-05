@@ -119,7 +119,8 @@ MISC= \
 	$(srcdir)/quail/ethiopic.elc \
 	$(srcdir)/quail/ipa.elc \
 	$(srcdir)/quail/hebrew.elc \
-	$(srcdir)/quail/georgian.elc
+	$(srcdir)/quail/georgian.elc \
+	$(srcdir)/quail/sisheng.elc
 
 MISC_DIC=\
 	quail/tsang-b5.elc	\
