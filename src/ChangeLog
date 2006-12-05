@@ -516,7 +516,7 @@
 2006-10-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xselect.c (x_handle_selection_request): If the converted_selection
-	is NIL or XCDR (converted_selection) is NIL, decline the request.
+	is nil or XCDR (converted_selection) is nil, decline the request.
 
 2006-10-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -2621,8 +2621,8 @@
 	(struct sound_device): Add period_size.
 	(wav_play, au_play): Use period_size if set.
 
-	* Makefile.in (CFLAGS_SOUND): New flags for ALSA
-	(ALL_CFLAGS): Add CFLAGS_SOUND
+	* Makefile.in (CFLAGS_SOUND): New flags for ALSA.
+	(ALL_CFLAGS): Add CFLAGS_SOUND.
 
 2006-05-18  Kenichi Handa  <handa@m17n.org>
 
@@ -4246,8 +4246,8 @@
 
 2006-01-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* gtkutil.c (update_frame_tool_bar): Use new tool bar functions
-	(gtk_toolbar_insert) so we can have tool bars of different sizes.
+	* gtkutil.c (update_frame_tool_bar): Use new tool bar function
+	gtk_toolbar_insert() so we can have tool bars of different sizes.
 
 2006-01-30  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -4575,7 +4575,7 @@
 
 2005-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* xfns.c: x_show_hidden_files, new variable.
+	* xfns.c (x_show_hidden_files): New variable.
 	(syms_of_xfns): Defvar it.
 
 	* gtkutil.c (xg_toggle_visibility_cb): New function.
@@ -6860,7 +6860,7 @@
 
 	* w32console.c (initialize_w32_display): Detect when the console
 	dimensions are insane, and default to 80x25 instead.
-	(w32_use_full_screen_buffer): Default to NIL.
+	(w32_use_full_screen_buffer): Default to nil.
 
 2005-07-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -10069,7 +10069,7 @@
 
 	* xterm.c (x_calc_absolute_position): Don't subtract outer_pixel_diff
 	for left and top calculations.  Remove call to x_real_positions.
-	[Bug report by Drew Adams in November]
+	[Bug report by Drew Adams in November.]
 	(x_check_expected_move): Do not set change_gravity to 1 when calling
 	x_set_offset.
 
@@ -10119,8 +10119,8 @@
 	new variables main_thread and alloc_mutex,
 	define (UN)BLOCK_INPUT_ALLOC to use alloc_mutex to protect
 	emacs_blocked_* calls and only do (UN)BLOCK_INPUT in the main thread.
-	If not HAVE_GTK_AND_PTHREAD, (UN)BLOCK_INPUT_ALLOC is the same as
-	(UN)BLOCK_INPUT.
+	If not HAVE_GTK_AND_PTHREAD, (UN)BLOCK_INPUT_ALLOC is the same
+	as (UN)BLOCK_INPUT.
 	(emacs_blocked_free, emacs_blocked_malloc)
 	(emacs_blocked_realloc): Use (UN)BLOCK_INPUT_ALLOC.
 	(uninterrupt_malloc): Initialize main_thread and alloc_mutex.
@@ -10130,7 +10130,7 @@
 
 	* emacs.c (Fdump_emacs): Call reset_malloc_hooks.
 
-	* keyboard.c: Conditionally include pthread.h
+	* keyboard.c: Conditionally include pthread.h.
 	(handle_async_input, input_available_signalt): If not in the main
 	thread, block signal, send signal to main thread and return.
 
@@ -10940,7 +10940,7 @@
 
 2004-11-02  Kim F. Storm  <storm@cua.dk>
 
-	* Makefile.in (callproc.o): Depend on blockinput.h atimer.h systime.h.
+	* Makefile.in (callproc.o): Depend on blockinput.h, atimer.h, systime.h.
 
 2004-11-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -11001,10 +11001,9 @@
 	* w32fns.c (Fx_file_dialog): Add parameter only_dir_p.
 	Check only_dir_p instead of comparing prompt to "Dired".
 
-	* gtkutil.c (xg_get_file_with_chooser)
-	(xg_get_file_with_selection): New functions, only defined ifdef
-	HAVE_GTK_FILE_CHOOSER_DIALOG_NEW and HAVE_GTK_FILE_SELECTION_NEW
-	respectively.
+	* gtkutil.c (xg_get_file_with_chooser, xg_get_file_with_selection):
+	New functions, only defined ifdef HAVE_GTK_FILE_CHOOSER_DIALOG_NEW
+	and HAVE_GTK_FILE_SELECTION_NEW respectively.
 	(xg_get_file_name): Add parameter only_dir_p.
 	Call xg_get_file_with_chooser or xg_get_file_with_selection
 	depending on HAVE_GTK_FILE* and the value of use_old_gtk_file_dialog.
@@ -11041,7 +11040,7 @@
 	tool_bar_items to assignment of result.
 
 	* atimer.c (alarm_signal_handler): Do not call set_alarm if
-	pending_atmers is non-zero.
+	pending_atimers is non-zero.
 
 2004-10-31  Kim F. Storm  <storm@cua.dk>
 
@@ -14661,14 +14660,14 @@
 	* xterm.c (handle_one_xevent): Call x_handle_dnd_message for
 	ClientMessages.
 
-	* xselect.c: Include termhooks.h and X11/Xproto.h
+	* xselect.c: Include termhooks.h and X11/Xproto.h.
 	(x_check_property_data, x_fill_property_data)
 	(x_property_data_to_lisp, mouse_position_for_drop)
 	(Fx_get_atom_name, x_handle_dnd_message): New functions for DND support.
 	(Fx_send_client_event): Move here from xfns.c.
 	(syms_of_xselect): Add Sx_get_atom_name and Sx_send_client_message.
 
-	* xfns.c (x-send-client-message): Move to xselect.c
+	* xfns.c (x-send-client-message): Move to xselect.c.
 	(Fx_change_window_property): Add optional arguments TYPE, FORMAT and
 	OUTER_P.
 	(Fx_window_property): Add optional arguments TYPE, SOURCE, DELETE_P,
@@ -18229,7 +18228,7 @@
 
 2003-03-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* xdisp.c (get_glyph_string_clip_rect): Remove ; at end of #endif
+	* xdisp.c (get_glyph_string_clip_rect): Remove ; at end of #endif.
 
 	* gtkutil.h: Take two more arguments to xg_update_scrollbar_pos.
 	(XG_SB_RANGE): New define.
@@ -18466,7 +18465,7 @@
 	* gtkutil.c: Removed handle_fixed_child, struct xg_last_sb_pos.
 	(xg_resize_widgets): Don't call foreach(handle_fixed_child).
 	(xg_gtk_scroll_destroy): Remove free of struct xg_last_sb_pos.
-	(scroll_bar_button_cb): Set bar->dragging to NIL on button release.
+	(scroll_bar_button_cb): Set bar->dragging to nil on button release.
 	(xg_create_scroll_bar): Pass bar to button event callback.
 	(xg_find_top_left_in_fixed): New function.
 	(xg_update_scrollbar_pos): Don't call gdk_window_clear on
@@ -18767,7 +18766,7 @@
 2003-02-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* keyboard.c (cancel_hourglass_unwind): Surround with
-	#ifdef HAVE_X_WINDOWS
+	#ifdef HAVE_X_WINDOWS.
 
 2003-02-25  Kenichi Handa  <handa@m17n.org>
 
@@ -19328,7 +19327,7 @@
 
 2003-01-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* gtkutil.c: Must include stdio.h before termhooks.h
+	* gtkutil.c: Must include stdio.h before termhooks.h.
 
 2003-01-21  Dave Love  <fx@gnu.org>
 
@@ -19374,7 +19373,7 @@
 	* xterm.c (handle_one_xevent): Surround popup_activated
 	with #ifdef:s for non-toolkit version.
 
-	* Makefile.in (XOBJ): Add gtkutil.o if USE_GTK
+	* Makefile.in (XOBJ): Add gtkutil.o if USE_GTK.
 	(gtkutil.o): New file.
 	(TOOLKIT_DEFINES): Set to -DUSE_GTK if HAVE_GTK.
 	(LIBW): Set to @GTK_LIBS@ if USE_GTK.
@@ -19420,7 +19419,7 @@
 	(syms_of_xterm): Set Vx_toolkit_scroll_bars for USE_GTK.
 
 	* xmenu.c: Include gtkutil.h for USE_GTK.
-	(Fx_popup_menu): Use current position if x and y is NIL.
+	(Fx_popup_menu): Use current position if x and y are nil.
 	(single_menu_item, single_menu_item, Fx_popup_dialog):
 	Check for USE_GTK.
 	(popup_widget_loop): New function for USE_GTK.
@@ -19450,7 +19449,7 @@
 	(x_set_tool_bar_lines): Call update_frame_tool_bar for USE_GTK.
 	(x_set_name, x_set_title): Call gtk_window_set_title for USE_GTK.
 	(x_window): Call xg_create_frame_widgets for USE_GTK.
-	(Fx_create_frame): Check for USE_GTK
+	(Fx_create_frame): Check for USE_GTK.
 	(Fx_file_dialog): New implementation for USE_GTK.
 
 	* xdisp.c: Add check for USE_GTK for extern void set_frame_menubar.
@@ -19477,7 +19476,7 @@
 	* dispnew.c (adjust_frame_glyphs_for_window_redisplay):
 	Add check for USE_GTK.
 
-	* config.in: Added HAVE_GTK
+	* config.in: Added HAVE_GTK.
 
 	* alloc.c (Fgarbage_collect): Call xg_mark_data for GTK.
 
@@ -20703,7 +20702,7 @@
 	Only when it is non-nil, handle composition sequence.
 	(setup_coding_system) <0>: Don't force composition handling.
 
-	* Makefile.in (lisp, shortlisp): Add utf-16.elc
+	* Makefile.in (lisp, shortlisp): Add utf-16.elc.
 
 2002-09-29  Richard M. Stallman  <rms@gnu.org>
 
