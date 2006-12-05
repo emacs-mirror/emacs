@@ -1,6 +1,6 @@
 ;;; shell.el --- specialized comint.el for running the shell
 
-;; Copyright (C) 1988, 1993, 1994, 1995, 1996, 1997, 2000,
+;; Copyright (C) 1988, 1993, 1994, 1995, 1996, 1997, 2000, 2001,
 ;;   2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
