@@ -148,12 +148,12 @@
     for Seg in (PoolGen->pool)->SegRing:
       TraceWhiten(Seg)</pre>
 
-<p>So all automatic (garbage collected) pools <strong>must</strong> have a chain (even if they aren't generational) or their objects won't get condemned.  AMS pools have a Gen-0-only chain.  LO and AWL pools also have a Gen-0-only chain [but their segment-placement preference is hardwired to SegPrefGen-number 1!  Beware!  RHSK 2006-12-01].</p>
+<p>So all automatic (garbage collected) pools <strong>must</strong> have a chain (even if they aren't generational) or their objects won't get condemned.</p>
 
 
 <h2>Minor collection: what gets condemned</h2>
 
-<p>The first step is to choose which generations to condemn.  The minor collection looks at one chain, and will always condemn the nursery, plus any adjacent higher generations that are also over-capacity.  (So if gens 0, 1, and 3 are over-capacity, but 2 is not over-capacity yet, then a minor collection will condemn 0 and 1, but not 2 or 3).  ChainCondemnAuto() finds the <strong>list of adjacent GenDescs</strong> that are over-capacity in this chain only.</p>
+<p>The first step is to find the <strong>list of adjacent GenDescs</strong> that are over-capacity in this chain only: Gen 0 (the nursery), plus any adjacent higher generations that are also over-capacity.  (So if gens 0, 1, and 3 are over-capacity, but 2 is not over-capacity yet, then a minor collection will condemn 0 and 1, but not 2 or 3).</p>
 
 <p>The second step is not obvious: these GenDescs have been recording the zoneset of all the segments ever added into that GenDesc (as long as the pool noted it by calling PoolGenUpdateZones).  ChainCondemnAuto() calls TraceCondemnZones() to condemn <strong>the full zoneset ever touched</strong> by a segment in any of the condemned GenDescs.</p>
 
@@ -163,20 +163,96 @@
 
 <p>To condemn the zoneset, TraceCondemnZones() uses the SegFirst/SegNext() iterator, and for <strong>every segment that is wholly within the condemned zones</strong>, it calls TraceAddWhite(seg).</p>
 
-<p>WARNING: AWL and LO pools do not take a chain argument; they each have a 'hidden' Gen-0-only chain with hardwired values.  AWL's Gen-0 capacity is hardwired to SizeMAX KB, so AWL objects will never trigger a minor collection.  LO's Gen-0 capacity is hardwired to 1024 KB, so each 1 MB of new LO allocation will trigger a minor collection; the condemned zones may contain AMC-generation-1 objects.</p>
+
+<h2>Other poolclasses: AMS, LO, AWL</h2>
+
+<p>What do automatic (garbage collected) pools need to do in order to:</p>
+<ul>
+  <li> trigger a collection?</li>
+  <li> have dead objects collected by a collection? (whether triggered by this pool or not)</li>
+</ul>
+
+<p>Full collections are triggered by total committed memory (ArenaCommitted - ArenaSpareCommitted), so allocation in any pool -- automatic or manual -- can trigger one.</p>
+
+<p>To have dead objects collected by a full collection, automatic pools <strong>must</strong> have a chain with a Gen 0 (even if they aren't generational).</p>
+
+<p>Minor collections are triggered by an over-capacity Gen 0.  Automatic pools only trigger a minor collection if they are incrementing the newSize in PoolGen 0, and the GenDesc 0 capacity is set to an achieveable value.</p>
+
+<p>A minor collection condemns a set of zones.  To control which minor collections it participates in (has its dead objects collected by), an automatic pool should make sure its segments are in suitable zones, such as by calling SegAlloc with a SegPrefGen-number that matches one used by a pool that is going to trigger minor collections (such as AMC).</p>
+
+<p>Here's what the actual AMS, LO, and AWL pools do currently:</p>
+
+<p>AMS pools have a Gen-0-only chain, so AMS objects are collected by full collections.  Allocating AMS objects increments the PoolGen 0 newSize, and AMS Gen 0 capacity is set by the client: the capacity can be tuned to make AMS allocation trigger a minor collection at a suitable time.  AMS-triggered minor collections will condemn all AMS objects.  AMS does <strong>not</strong> specify a SegPrefGen-number, so arenavm allocates segments in the first non-blacklisted zone with enough space.  This means an AMS-triggered minor collection (which condemns all AMS objects) will condemn a 'random' subset of zones used for all automatic pools, which could include a random selection of parts of AMC generations.  Conversely, AMC's generationally-structured minor collections will also collect random subsets of AMS objects.</p>
+
+<p>LO and AWL pools do <strong>not</strong> take a chain argument, but they have a 'hidden' Gen-0-only chain, so their objects are collected by full collections.  The hidden chains have hardwired Gen 0 capacity.  AWL's Gen 0 capacity is hardwired to SizeMAX KB, so AWL objects will never trigger a minor collection.  LO's Gen 0 capacity is hardwired to 1024 KB, and it increments PoolGen 0 newSize, so each 1 MB of new LO allocation will trigger a minor collection.  Both AWL and LO  segment-placement preference is hardwired to SegPrefGen-number 1 (note inconsistency with the PoolGen "nr"!).  LO-triggered minor collections will tend to also condemn some or all AMC-generation-1 objects (but no AMC nursery objects) and some or all AWL objects.  Conversely, AMC-triggered minor collections that include AMC-generation-1 will tend to also condemn some or all LO and AWL objects.</p>
 
 
+<h2>Rate of Collection Progress</h2>
+
+<p>The MPS can regulate its progress by comparison to:</p>
+<ul>
+  <li> amount of allocation;</li>
+  <li> mps_clock()-time.</li>
+</ul>
+
+<p>Amount of allocation is the traditional way for the MPS to measure time.  MPS source code often calls such an amount a "time" when it is used for rate-control purposes, even though the units are bytes (or sometimes KiB = 1024 bytes).  Amount can be total, or some subclass such as just mutator-allocated objects, or just objects in one particular pool or generation.  The amount can be everything since arena-creation, or just the delta since some event such as the last collection (of a specified subclass of objects).  The amount can be of object bytes only, or can be rounded up to include MPS overheads such as alignment rounding and partly-filled segments.  Sometimes the amount is incremented and decremented with approximate tallies, and a systematic error or drift could be introduced.</p>
+
+<p>Regulation by mps_clock()-time is new, using the mps_clocks_per_sec() scale added for the "opportunism" feature (2003-02-17 change 39673 version 1.101; see <a href="timeline.html">timeline</a>).  It is only used when the mutator calls mps_arena_step() with a time interval.</p>
+  
+<p>The rate at which the collection is advanced is called the trace rate, and is given a fixed value by TraceStart().  The units are how many bytes of live objects to scan in each traceQuantum().</p>
+
+<p>Determining the trace rate follows three logical steps:</p>
+<dl>
+  <dt>ArenaPollALLOCTIME (bytes)</dt>
+  <dd>increment of globals-&gt;fillMutatorSize required before ArenaPoll() does anything</dd>
+  
+  <dt>TraceStart finishingTime (bytes)</dt>
+  <dd>TraceStart interpretation: the collection must complete before globals->fillMutatorSize has increased by finishingTime.  So assuming all the work will be done by 'time-stealing' ArenaPoll()s, there are nPolls = ( finishingTime / ArenaPollALLOCTIME ) polls available in which to do the work.</dd>
+  
+  <dt>trace-&gt;rate (bytes)</dt>
+  <dd>In each ArenaPoll that does some work, traceQuantum() will scan trace-&gt;rate bytes.  (The count of bytes scanned by this collection is called the traceWorkClock).  TraceStart determines what trace-&gt;rate should be by adding Foundation + estimated Survivors to get the total number of bytes that will need to be scanned, and dividing by the number of ArenaPolls we want this scanning to take.  Estimated survivors is condemned x (1 - mortality).</dd>
+</dl>
+
+<p>For full collections, finishingTime (units: mutator allocated bytes) is chosen so that this much mutator allocation, plus a hardwired estimate of how much will survive the full collection (49%), all of which is assumed to be new allocation (preserved by copy, not preserved in place), will exactly exhaust ArenaAvail().</p>
+
+<p>For minor collections, ChainCondemnAuto() carefully calculates a weighted overall mortality.  The finishingTime (units: mutator allocated bytes) is hardwired proportional to the amount <strong>condemned</strong> by this collection.</p>
+
+<p>[Why is it proportional to condemned?  I don't know.  Making it proportional to the amount to be scanned would 'steal' a more predictable fraction of time from the mutator, surely?  We want to control both the long term average eagerness of the collector, and its short term eagerness during a collection (assuming these are different, ie. that some of the time there is no collection happening at all).  The long term  eagerness is controlled by what triggers a GC and what is condemned, not by the trace-&gt;rate.  The short-term eagerness is surely about stealing no more than x% of time from mutator allocation, so should compare collector CPU cycles (ie. amount we scan) to mutator allocation CPU cycles (ie. fillMutatorSize).  RHSK 2006-12-05]</p>
 
 
-<h2>Progress of a collection</h2>
+<h2>Advancing the Collection</h2>
+
+<p>Four things advance the collection:</p>
+<ol>
+  <li> barrier hit;</li>
+  <li> implicit 'time-stealing' ArenaPolls in mps_alloc, mps_reserve, and mps_alloc_pattern_end/reset;</li>
+  <li> explicit client calls to mps_arena_step(interval);</li>
+  <li> mps_arena_park() (and other calls that complete the current collection before returning)</li>
+</ol>
+
+<p>How much work does each one do?</p>
+
+<p>Barrier hits do the minimum possible: scan one unit of protection.</p>
+
+<p>ArenaPoll: if the arena is not clamped and the mutator has allocated ArenaPollALLOCTIME bytes (or more) since the last time ArenaPoll did some work, it will do a minimal ArenaStep.</p>
+
+<p>ArenaStep calls TracePoll once (minimal), or if given a time interval repeatedly until the time has elapsed.</p>
+
+<p>TracePoll may start a new collection.  If there is a collection, it will do exactly one traceQuantum().</p>
+
+<p>traceQuantum() scans trace-&gt;rate bytes of live objects.  (Actually it always scans a whole segment at a time, and even if it scans way too much this time it will still scan at least trace-&gt;rate bytes next time too).</p>
+
+<p>mps_arena_park will loop doing traceQuantums until the collection is complete.</p>
+
 
   
 <h2><a id="section-B" name="section-B">B. Document History</a></h2>
 
 <pre>
-  2006-11-30  RHSK  Created, incomplete.
+  2006-11-30  RHSK  Created after much research, incomplete.
   2006-12-01  RHSK  What triggers a GC?
   2006-12-04  RHSK  What triggers a GC: clarify and expand, add diagram
+  2006-12-05  RHSK  AMS, LO, AWL.  Rate.  What advances a collection?
 </pre>
 
 
