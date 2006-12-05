@@ -2893,7 +2893,6 @@ STRING are replaced by `-' and substrings are converted to lower case."
 
 (defun vhdl-mode-abbrev-table-init ()
   "Initialize `vhdl-mode-abbrev-table'."
-  (when vhdl-mode-abbrev-table (clear-abbrev-table vhdl-mode-abbrev-table))
   (define-abbrev-table 'vhdl-mode-abbrev-table
     (append
      (when (memq 'vhdl vhdl-electric-keywords)
