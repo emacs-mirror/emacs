@@ -1,3 +1,10 @@
+2006-12-05  Glenn Morris  <rgm@gnu.org>
+
+	* abbrev.c (Qforce): New Lisp_Object.
+	(Fdefine_abbrev): Do not overwrite non-system abbrevs with system
+	abbrevs, unless 'force is applied.
+	(syms_of_abbrev): Add Qforce.
+
 2006-12-04  Kim F. Storm  <storm@cua.dk>
 
 	* process.c (parse_signal): Rename macro from handle_signal.
