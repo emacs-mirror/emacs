@@ -847,23 +847,24 @@ Based on `comint-mode-map'.")
 (defvar sql-mode-abbrev-table nil
   "Abbrev table used in `sql-mode' and `sql-interactive-mode'.")
 (unless sql-mode-abbrev-table
-  (define-abbrev-table 'sql-mode-abbrev-table nil)
-  (mapcar
-    ;; In Emacs 21.3+, provide SYSTEM-FLAG to define-abbrev.
-   '(lambda (abbrev)
-      (let ((name (car abbrev))
-	    (expansion (cdr abbrev)))
-	(condition-case nil
-	    (define-abbrev sql-mode-abbrev-table name expansion nil 0 t)
-	  (error
-	   (define-abbrev sql-mode-abbrev-table name expansion)))))
-   '(("ins" "insert")
-    ("upd" "update")
-    ("del" "delete")
-    ("sel" "select")
-    ("proc" "procedure")
-    ("func" "function")
-    ("cr" "create"))))
+  (define-abbrev-table 'sql-mode-abbrev-table nil))
+
+(mapcar
+ ;; In Emacs 21.3+, provide SYSTEM-FLAG to define-abbrev.
+ '(lambda (abbrev)
+    (let ((name (car abbrev))
+          (expansion (cdr abbrev)))
+      (condition-case nil
+          (define-abbrev sql-mode-abbrev-table name expansion nil 0 t)
+        (error
+         (define-abbrev sql-mode-abbrev-table name expansion)))))
+ '(("ins" "insert")
+   ("upd" "update")
+   ("del" "delete")
+   ("sel" "select")
+   ("proc" "procedure")
+   ("func" "function")
+   ("cr" "create")))
 
 ;; Syntax Table
 
