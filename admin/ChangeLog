@@ -400,7 +400,8 @@
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2001 Free Software Foundation, Inc.
+    Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006  Free Software
+	Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
 

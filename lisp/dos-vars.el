@@ -1,6 +1,6 @@
 ;;; dos-vars.el --- MS-Dos specific user options
 
-;; Copyright (C) 1998, 2002, 2003, 2004, 2005,
+;; Copyright (C) 1998, 2001, 2002, 2003, 2004, 2005,
 ;;   2006 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF

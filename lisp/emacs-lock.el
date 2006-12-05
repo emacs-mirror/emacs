@@ -1,6 +1,6 @@
 ;;; emacs-lock.el --- prevents you from exiting Emacs if a buffer is locked
 
-;; Copyright (C) 1994, 1997, 2002, 2003, 2004,
+;; Copyright (C) 1994, 1997, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc
 
 ;; Author: Tom Wurgler <twurgler@goodyear.com>

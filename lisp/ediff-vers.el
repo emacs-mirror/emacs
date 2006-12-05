@@ -1,6 +1,6 @@
 ;;; ediff-vers.el --- version control interface to Ediff
 
-;; Copyright (C) 1995, 1996, 1997, 2002, 2003, 2004,
+;; Copyright (C) 1995, 1996, 1997, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
