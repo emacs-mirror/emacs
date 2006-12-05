@@ -239,7 +239,7 @@ xftfont_open (f, entity, pixel_size)
   pat = FcPatternCreate ();
   FcPatternAddString (pat, FC_FILE, file);
   FcPatternAddDouble (pat, FC_PIXEL_SIZE, pixel_size);
-  FcPatternAddBool (pat, FC_ANTIALIAS, FcTrue);
+  /*FcPatternAddBool (pat, FC_ANTIALIAS, FcTrue);*/
 
   BLOCK_INPUT;
   XftDefaultSubstitute (display, FRAME_X_SCREEN_NUMBER (f), pat);
