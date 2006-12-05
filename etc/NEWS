@@ -235,8 +235,8 @@ displays a buffer menu.  This option turns the buffer menu off.
 +++
 ** Init file changes
 If the init file ~/.emacs does not exist, Emacs will try
-~/.emacs.d/init.el or ~/.emacs.d/init.elc.  You can also put the shell
-init file .emacs_SHELL under ~/.emacs.d.
+~/.emacs.d/init.el or ~/.emacs.d/init.elc.  Likewise, if the shell init file
+~/.emacs_SHELL is not found, Emacs will try ~/.emacs.d/init_SHELL.sh.
 
 +++
 ** Emacs now reads the standard abbrevs file ~/.abbrev_defs
@@ -2162,9 +2162,9 @@ at point is suggested as default, but not inserted at the prompt.
 *** Emacs now offers to start Scheme if the user tries to
 evaluate a Scheme expression but no Scheme subprocess is running.
 
-*** If a file `.emacs_NAME' (where NAME is the name of the Scheme interpreter)
-exists in the user's home directory or in ~/.emacs.d, its
-contents are sent to the Scheme subprocess upon startup.
+*** If the file ~/.emacs_NAME or ~/.emacs.d/init_NAME.scm (where NAME
+is the name of the Scheme interpreter) exists, its contents are sent
+to the Scheme subprocess upon startup.
 
 *** There are new commands to instruct the Scheme interpreter to trace
 procedure calls (`scheme-trace-procedure') and to expand syntactic forms
