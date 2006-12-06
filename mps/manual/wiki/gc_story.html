@@ -105,14 +105,14 @@
   <li>the segment's zoneset is unioned into the GenDesc's <strong>zoneset</strong> accumulator (by calling PoolGenUpdateZones).</li>
 </ul>
 
-<p>When AMCBufferFill asks for new memory segments, it passes the PoolGen's "nr" generation number (0 for mutator allocation in the nursery, 1 or 2 etc when preserving objects) as a segment-placement preference (with SegPrefGen).</p>
+<p>When AMCBufferFill calls SegAlloc() to ask for new memory segments, it passes the PoolGen's "nr" generation number (0 for mutator allocation in the nursery, 1 or 2 etc when preserving objects) as the SegPrefGen segment-placement preference.</p>
 
-<p>ArenaVM tries hard to keep all segments for a given SegPrefGen-number together in the same zone or zones, and separate from the zones used for all other things.  (Such as: zones used by other generation numbers, blacklist zones, and as-yet unused zones).</p>
+<p>ArenaVM tries hard to keep all segments for a given SegPrefGen-number together in the same zone or zones, and separate from the zones used for various other things.  (Such as: zones used by other generation numbers, blacklist zones, and as-yet unused zones).</p>
 
 <p>So <em>hopefully</em> the zoneset for a "nr" generation number will be disjoint from other uses of memory.  [Note: if a zoneset gets polluted because of address-space pressure, there's currently no way to 'heal' it again afterwards.  That's not good enough for a long-running client.  See also the "barge" flag in arenavm's pagesFindFreeWithSegPref().  RHSK 2006-12-04]</p>
 
 
-<h2>Triggering a collection</h2>
+<h2 id="triggering">Triggering a collection</h2>
 
 <p>All collections start from ArenaStep().  There are two routes into ArenaStep: an explicit call to mps_arena_step(), or an implicit one from the 'time-stealing' ArenaPolls in mps_alloc, mps_reserve, and mps_alloc_pattern_end/reset.</p>
 
@@ -120,21 +120,23 @@
 
 <p>Firstly, lots of "spare time".  An MPS client's explicit call to mps_arena_step() can say "I've got some spare time" by passing a non-zero interval and multiplier.  If (interval x multiplier) is big enough, and it's been long enough since the last one, <strong>start a full collection</strong>.</p>
 
-<p>Secondly (when ArenaStep calls TracePoll) the infamous "dynamic criterion" is assessed.  The MPS needs quite a lot of memory to do a full collection.  Memory is being gobbled up by client allocation, and if the MPS waits too long it could get completely 'wedged' or 'chock-a-block', with insufficient free space to do a full collection.  It must start a full collection soon enough that we don't completely run out of memory in the middle of doing it.  Calculating this criterion is tricky, but I think the idea is:</p>
+<p>Secondly (when ArenaStep calls TracePoll) the infamous "dynamic criterion" is assessed.  The MPS needs quite a lot of memory to do a full collection.  Memory is being gobbled up by client allocation, and if the MPS waits too long it could get completely 'wedged' or 'chock-a-block', with insufficient free space to do a full collection.  It must start a full collection soon enough that we don't completely run out of memory in the middle of doing it.  In fact, the MPS should start the full collection even earlier than that, so that the collection can progress at a gentle incremental pace, in parallel with ongoing client allocation.  Calculating this criterion is tricky, but I think the idea is:</p>
 
 <ol>
   <li> if we started a full collection now, how much extra forwarding-space would the collector use, before reclaiming?;</li>
-  <li> and how much additional client-allocation would occur in the meanwhile (while the MPS is doing this incremental full collection)?;</li>
+  <li> if we performed the collection incrementally at our preferred work rate, how much additional client-allocation would happen in the time before the collection is complete?;</li>
   <li> add these together and compare it against ArenaAvail.</li>
   <li> if we're about to run out of room (according to our hopefully pessimistic estimates), then <strong>start a full collection</strong> now.</li>
 </ol>
 
-<p>Both these full-collection triggers call traceStartCollectAll().</p>
+<p>In both cases, the decision about whether a full collection is due is  based on <strong>total committed memory</strong> (ArenaCommitted - ArenaSpareCommitted), so allocation in any pool (even a manual one) can contribute to triggering a full collection.  Both these full-collection triggers call traceStartCollectAll().  </p>
 
-<p>Thirdly, if no full collection is triggered, look for a chain whose GenDesc 0 is 'over capacity': the sum of the chain's PoolGen 0 newSizes exceeds the GenDesc's capacity.  If there's a choice, pick the chain whose Gen 0 is most over capacity.  An over-capacity chain will <strong>start a minor collection</strong>, by calling ChainCondemnAuto().  [Note that we only look at "newSize".  I don't understand what this means, or how it differs from "totalSize".  It may be a consequence of nailing, or ramps, perhaps?  RHSK 2006-12-01]</p>
+<p>Thirdly, if no full collection is triggered, look for a chain with a full Gen 0: where the sum of the chain's PoolGen 0 newSizes exceeds GenDesc 0 capacity.  If there's a choice, pick the chain whose Gen 0 is most over capacity.  The most over-capacity chain will <strong>start a minor collection</strong>, by calling ChainCondemnAuto().  Because the decision is based on PoolGen 0 newSize, automatic pools only trigger a minor collection if they are incrementing the newSize in their PoolGen 0, and their GenDesc 0 capacity is set to an achieveable value.</p>
+
+<p>"newSize" means how much has accumulated since the last time this generation was condemned; it does not count objects that survived-in-place at the last collection.  TotalSize = previousSurvivorsSize + newSize.  AMC usually preserves by promotion to the next generation, so previousSurvivorsSize is small.  Other pools (such as AMS) preserve in place, so previousSurvivorsSize tends to build up.  If we assume that most previous survivors will survive again, then (newSize x mortality) gives an estimate of how much garbage we might expect to reclaim.</p>
 
 
-<h2>Full collection: what gets condemned</h2>
+<h2 id="full_collection">Full collection: what gets condemned</h2>
 
 <p>traceStartCollectAll() finds all chains, all the PoolGens in Gen 0 of those chains, all the pools those PoolGens are part of, all the segments of those pools, and condemns all those segments:</p>
 
@@ -159,24 +161,16 @@
 
 <p>Why condemn the whole zoneset?  Well, minor collections rely on remembered sets to work well, and the MPS implements remembered sets by recording the zone summary of references in a segment.  We hope that the references that will keep the survivors alive are concentrated in only a few older-generation pages, which we can cheaply find using their zone summaries.  Because of this, if the nursery we are trying to collect lives in zoneset 23 (say), we may as well collect everything in zoneset 23 at the same time, even if it also contains objects from a different chain.</p>
 
-<p>So the major determiner of which objects will get collected together is what <strong>SegPrefGen-number</strong> gets passed in the call to pagesFindFreeWithSegPref() when allocating a new segment.  The generational AWL pool takes this number from the PoolGen's "nr" field.  Some other pools hardwire it (AWLGen = 1, LOGen = 1).  Some do not set it (AMS).</p>
+<p>So the major determiner of which objects will get collected at the same time is what <strong>SegPrefGen-number</strong> their pool passes in its call SegAlloc() when allocating a new segment.  The generational AMC pool takes this number from the PoolGen's "nr" field.  Some other pools hardwire it (AWLGen = 1, LOGen = 1).  Some do not set it (AMS).</p>
 
 <p>To condemn the zoneset, TraceCondemnZones() uses the SegFirst/SegNext() iterator, and for <strong>every segment that is wholly within the condemned zones</strong>, it calls TraceAddWhite(seg).</p>
 
 
 <h2>Other poolclasses: AMS, LO, AWL</h2>
 
-<p>What do automatic (garbage collected) pools need to do in order to:</p>
-<ul>
-  <li> trigger a collection?</li>
-  <li> have dead objects collected by a collection? (whether triggered by this pool or not)</li>
-</ul>
+<p>Full collections are easy: all pools can trigger a full collection (see <a href="#triggering">"Triggering"</a> above).  Automatic pools must have a chain with a GenDesc 0 PoolGen, so that their objects get condemned by a full collection (see <a href="full_collection">"Full collection"</a> above).</p>
 
-<p>Full collections are triggered by total committed memory (ArenaCommitted - ArenaSpareCommitted), so allocation in any pool -- automatic or manual -- can trigger one.</p>
-
-<p>To have dead objects collected by a full collection, automatic pools <strong>must</strong> have a chain with a Gen 0 (even if they aren't generational).</p>
-
-<p>Minor collections are triggered by an over-capacity Gen 0.  Automatic pools only trigger a minor collection if they are incrementing the newSize in PoolGen 0, and the GenDesc 0 capacity is set to an achieveable value.</p>
+<p>Minor collections are trickier.  They are triggered by an over-capacity Gen 0.  Automatic pools only trigger a minor collection if they are incrementing the newSize in PoolGen 0, and the GenDesc 0 capacity is set to an achieveable value.</p>
 
 <p>A minor collection condemns a set of zones.  To control which minor collections it participates in (has its dead objects collected by), an automatic pool should make sure its segments are in suitable zones, such as by calling SegAlloc with a SegPrefGen-number that matches one used by a pool that is going to trigger minor collections (such as AMC).</p>
 
@@ -210,14 +204,14 @@
   <dd>TraceStart interpretation: the collection must complete before globals->fillMutatorSize has increased by finishingTime.  So assuming all the work will be done by 'time-stealing' ArenaPoll()s, there are nPolls = ( finishingTime / ArenaPollALLOCTIME ) polls available in which to do the work.</dd>
   
   <dt>trace-&gt;rate (bytes)</dt>
-  <dd>In each ArenaPoll that does some work, traceQuantum() will scan trace-&gt;rate bytes.  (The count of bytes scanned by this collection is called the traceWorkClock).  TraceStart determines what trace-&gt;rate should be by adding Foundation + estimated Survivors to get the total number of bytes that will need to be scanned, and dividing by the number of ArenaPolls we want this scanning to take.  Estimated survivors is condemned x (1 - mortality).</dd>
+  <dd>In each ArenaPoll that does some work, traceQuantum() will scan trace-&gt;rate bytes (or more: it always scans a whole segment at a time).  The total number of bytes scanned so far by this collection is called the traceWorkClock.  TraceStart determines what trace-&gt;rate should be by adding Foundation + estimated Survivors to get the total number of bytes that will need to be scanned, and dividing by the number of ArenaPolls we want this scanning to take.  Estimated survivors is condemned x (1 - mortality).</dd>
 </dl>
 
 <p>For full collections, finishingTime (units: mutator allocated bytes) is chosen so that this much mutator allocation, plus a hardwired estimate of how much will survive the full collection (49%), all of which is assumed to be new allocation (preserved by copy, not preserved in place), will exactly exhaust ArenaAvail().</p>
 
 <p>For minor collections, ChainCondemnAuto() carefully calculates a weighted overall mortality.  The finishingTime (units: mutator allocated bytes) is hardwired proportional to the amount <strong>condemned</strong> by this collection.</p>
 
-<p>[Why is it proportional to condemned?  I don't know.  Making it proportional to the amount to be scanned would 'steal' a more predictable fraction of time from the mutator, surely?  We want to control both the long term average eagerness of the collector, and its short term eagerness during a collection (assuming these are different, ie. that some of the time there is no collection happening at all).  The long term  eagerness is controlled by what triggers a GC and what is condemned, not by the trace-&gt;rate.  The short-term eagerness is surely about stealing no more than x% of time from mutator allocation, so should compare collector CPU cycles (ie. amount we scan) to mutator allocation CPU cycles (ie. fillMutatorSize).  RHSK 2006-12-05]</p>
+<p>[Why is it proportional to condemned?  I don't know.  Making it proportional to <em>the amount to be scanned</em> would 'steal' a more predictable fraction of time from the mutator, surely?  We want to control the short term eagerness during a collection.  (The long term  eagerness is controlled by what triggers a GC and what is condemned, not by the trace-&gt;rate....  as long as long-term eagerness is lower than short-term eagerness, ie. as long as some of the time there is no collection happening at all).  The short-term eagerness is surely about stealing no more than x% of time from mutator allocation, so should compare collector CPU cycles (ie. amount we scan) to mutator allocation CPU cycles (ie. fillMutatorSize).  RHSK 2006-12-05]</p>
 
 
 <h2>Advancing the Collection</h2>
@@ -240,7 +234,7 @@
 
 <p>TracePoll may start a new collection.  If there is a collection, it will do exactly one traceQuantum().</p>
 
-<p>traceQuantum() scans trace-&gt;rate bytes of live objects.  (Actually it always scans a whole segment at a time, and even if it scans way too much this time it will still scan at least trace-&gt;rate bytes next time too).</p>
+<p>traceQuantum() scans trace-&gt;rate bytes of live objects.  (Actually it always scans a whole segment at a time, and even if it scans too much this time it will still scan at least trace-&gt;rate bytes next time too).</p>
 
 <p>mps_arena_park will loop doing traceQuantums until the collection is complete.</p>
 
@@ -253,6 +247,7 @@
   2006-12-01  RHSK  What triggers a GC?
   2006-12-04  RHSK  What triggers a GC: clarify and expand, add diagram
   2006-12-05  RHSK  AMS, LO, AWL.  Rate.  What advances a collection?
+  2006-12-06  RHSK  correct dynamic criterion, newSize, trace rate
 </pre>
 
 
