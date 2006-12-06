@@ -240,6 +240,10 @@ xftfont_open (f, entity, pixel_size)
   FcPatternAddString (pat, FC_FILE, file);
   FcPatternAddDouble (pat, FC_PIXEL_SIZE, pixel_size);
   /*FcPatternAddBool (pat, FC_ANTIALIAS, FcTrue);*/
+  val = AREF (entity, FONT_FAMILY_INDEX);
+  if (! NILP (val))
+    FcPatternAddString (pat, FC_FAMILY, (FcChar8 *) SDATA (SYMBOL_NAME (val)));
+  FcConfigSubstitute (NULL, pat, FcMatchPattern);
 
   BLOCK_INPUT;
   XftDefaultSubstitute (display, FRAME_X_SCREEN_NUMBER (f), pat);
