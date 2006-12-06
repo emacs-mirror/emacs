@@ -4561,7 +4561,7 @@ If LINE, insert the rebuilt thread starting on line LINE."
   (if (not gnus-thread-sort-functions)
       threads
     (gnus-message 8 "Sorting threads...")
-    (let ((max-lisp-eval-depth 5000))
+    (let ((max-lisp-eval-depth (max 5000 max-lisp-eval-depth)))
       (prog1 (gnus-sort-threads-1
 	 threads
 	 (gnus-make-sort-function gnus-thread-sort-functions))
@@ -8165,7 +8165,7 @@ fetch-old-headers verbiage, and so on."
   ;; will really go down to a leaf article first, before slowly
   ;; working its way up towards the root.
   (when thread
-    (let* ((max-lisp-eval-depth 5000)
+    (let* ((max-lisp-eval-depth (max 5000 max-lisp-eval-depth))
 	   (children
 	   (if (cdr thread)
 	       (apply '+ (mapcar 'gnus-summary-limit-children
