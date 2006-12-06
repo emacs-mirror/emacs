@@ -1039,29 +1039,33 @@ collectively an @dfn{entry}.  A heading line together with all following
 deeper heading lines and their body lines is called a @dfn{subtree}.
 
 @vindex outline-regexp
-  You can customize the criterion for distinguishing heading lines
-by setting the variable @code{outline-regexp}.  Any line whose
-beginning has a match for this regexp is considered a heading line.
-Matches that start within a line (not at the left margin) do not count.
-The length of the matching text determines the level of the heading;
-longer matches make a more deeply nested level.  Thus, for example,
-if a text formatter has commands @samp{@@chapter}, @samp{@@section}
-and @samp{@@subsection} to divide the document into chapters and
-sections, you could make those lines count as heading lines by
-setting @code{outline-regexp} to @samp{"@@chap\\|@@\\(sub\\)*section"}.
-Note the trick: the two words @samp{chapter} and @samp{section} are equally
+  You can customize the criterion for distinguishing heading lines by
+setting the variable @code{outline-regexp}.  (The recommended ways to
+do this are in a major mode function or with a file local variable.)
+Any line whose beginning has a match for this regexp is considered a
+heading line.  Matches that start within a line (not at the left
+margin) do not count.
+
+  The length of the matching text determines the level of the heading;
+longer matches make a more deeply nested level.  Thus, for example, if
+a text formatter has commands @samp{@@chapter}, @samp{@@section} and
+@samp{@@subsection} to divide the document into chapters and sections,
+you could make those lines count as heading lines by setting
+@code{outline-regexp} to @samp{"@@chap\\|@@\\(sub\\)*section"}.  Note
+the trick: the two words @samp{chapter} and @samp{section} are equally
 long, but by defining the regexp to match only @samp{chap} we ensure
 that the length of the text matched on a chapter heading is shorter,
-so that Outline mode will know that sections are contained in chapters.
-This works as long as no other command starts with @samp{@@chap}.
+so that Outline mode will know that sections are contained in
+chapters.  This works as long as no other command starts with
+@samp{@@chap}.
 
 @vindex outline-level
-  You can change the rule for calculating the level of a heading line
-by setting the variable @code{outline-level}.  The value of
-@code{outline-level} should be a function that takes no arguments and
-returns the level of the current heading.  Some major modes such as C,
-Nroff, and Emacs Lisp mode set this variable and @code{outline-regexp}
-in order to work with Outline minor mode.
+  You can explicitly specify a rule for calculating the level of a
+heading line by setting the variable @code{outline-level}.  The value
+of @code{outline-level} should be a function that takes no arguments
+and returns the level of the current heading.  The recommended ways to
+set this variable are in a major mode command or with a file local
+variable.
 
 @node Outline Motion
 @subsection Outline Motion Commands
