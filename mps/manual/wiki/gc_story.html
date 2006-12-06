@@ -51,7 +51,7 @@
 
 <p>Here's the story of how it happens in the MPS, since the pool-independent chain mechanism was put in about 2001-03.</p>
 
-<p><em>(Note that the MPS pool-independent chain mechanism is an early (and incomplete) design and implementation.  It replaced both the earlier pool-action model, and the AMC-only generation mechanism.)</em></p>
+<p><em>(Note that the MPS pool-independent chain mechanism is an early (and incomplete) design and implementation.  It replaced both the earlier pool-action model, and the AMC-only generation mechanism.  Chains could be generalized to a directed acyclic graph in the future, perhaps.)</em></p>
 
 <p>This story concentrates on AMC pools in a VM arena.</p>
 
@@ -96,6 +96,8 @@
   <li> PoolGen nr=2 is linked to the arena-wide "topGen" GenDesc.</li>
 </ul>
 
+<p><em>[Warning: most PoolGen nr's are an index into the gens[] array.  The exception is AMC's top gen: you have to remember it is part of arena->topGen, or you'll read past the end of the gens[] array.  RHSK 2006-12-06]</em></p>
+
 <p>What specifies the generation number?  Three different (and possibly contradictory) things:</p>
 <ul>
   <li> the Chain has an array of GenDescs: the GenDesc's <strong>index</strong> in this array is its "generation";</li>
@@ -130,6 +132,8 @@
 
 <p>Firstly, lots of "spare time".  An MPS client's explicit call to mps_arena_step() can say "I've got some spare time" by passing a non-zero interval and multiplier.  If (interval x multiplier) is big enough, and it's been long enough since the last one, <strong>start a full collection</strong>.</p>
 
+<p><em>[Note: There are many hardwired constants in this trigger.  And in fact it may have problems.  For example: it tries to have its full collections running for 10% of mps_clock() (ie. wall clock) time.  It estimates T, and checks whether 10 T has elapsed since the last full collection it triggered.  If committed memory is growing, then each time the trigger checks T will be a bit larger, so 10 T might be receding further into the future, not getting closer.  A bit like saying "I tidied my desk 7 days ago, and it will take 1 day to tidy, so I'll wait 3 more days".  When the 3 days are up, more papers have accumulated, so you estimate that tidying will take 1.5 days...  RHSK 2006-12-06]</em></p>
+
 <p>Secondly (when ArenaStep calls TracePoll) the infamous "dynamic criterion" is assessed.  The MPS needs quite a lot of memory to do a full collection.  Memory is being gobbled up by client allocation, and if the MPS waits too long it could get completely 'wedged' or 'chock-a-block', with insufficient free space to do a full collection.  It must start a full collection soon enough that we don't completely run out of memory in the middle of doing it.  In fact, the MPS should start the full collection even earlier than that, so that the collection can progress at a gentle incremental pace, in parallel with ongoing client allocation.  Calculating this criterion is tricky, but I think the idea is:</p>
 
 <ol>
@@ -138,6 +142,8 @@
   <li> add these together and compare it against ArenaAvail.</li>
   <li> if we're about to run out of room (according to our hopefully pessimistic estimates), then <strong>start a full collection</strong> now.</li>
 </ol>
+
+<p><em>[Note: ArenaAvail may not be meaningful, especially for a VM arena.  Someone more familiar with ArenaReserved() should check.  But I note here its major effect on the "dynamic criterion" trigger.  RHSK 2006-12-06]</em></p>
 
 <p>In both cases, the decision about whether a full collection is due is  based on <strong>total committed memory</strong> (ArenaCommitted - ArenaSpareCommitted), so allocation in any pool (even a manual one) can contribute to triggering a full collection.  Both these full-collection triggers call traceStartCollectAll().  </p>
 
@@ -161,6 +167,8 @@
       TraceWhiten(Seg)</pre>
 
 <p>So all automatic (garbage collected) pools <strong>must</strong> have a chain (even if they aren't generational) or their objects won't get condemned.</p>
+
+<p>By the way: MRG pools are scanned, but not collected: in other words they are manual (hence the "M" in their name).  They do not have a chain.</p>
 
 
 <h2>Minor collection: what gets condemned</h2>
@@ -188,8 +196,9 @@
 
 <p>AMS pools have a Gen-0-only chain, so AMS objects are collected by full collections.  Allocating AMS objects increments the PoolGen 0 newSize, and AMS Gen 0 capacity is set by the client: the capacity can be tuned to make AMS allocation trigger a minor collection at a suitable time.  AMS-triggered minor collections will condemn all AMS objects.  AMS does <strong>not</strong> specify a SegPrefGen-number, so arenavm allocates segments in the first non-blacklisted zone with enough space.  This means an AMS-triggered minor collection (which condemns all AMS objects) will condemn a 'random' subset of zones used for all automatic pools, which could include a random selection of parts of AMC generations.  Conversely, AMC's generationally-structured minor collections will also collect random subsets of AMS objects.</p>
 
-<p>LO and AWL pools do <strong>not</strong> take a chain argument, but they have a 'hidden' Gen-0-only chain, so their objects are collected by full collections.  The hidden chains have hardwired Gen 0 capacity.  AWL's Gen 0 capacity is hardwired to SizeMAX KB, so AWL objects will never trigger a minor collection.  LO's Gen 0 capacity is hardwired to 1024 KB, and it increments PoolGen 0 newSize, so each 1 MB of new LO allocation will trigger a minor collection.  Both AWL and LO  segment-placement preference is hardwired to SegPrefGen-number 1 (note inconsistency with the PoolGen "nr"!).  LO-triggered minor collections will tend to also condemn some or all AMC-generation-1 objects (but no AMC nursery objects) and some or all AWL objects.  Conversely, AMC-triggered minor collections that include AMC-generation-1 will tend to also condemn some or all LO and AWL objects.</p>
+<p>LO and AWL pools do <strong>not</strong> take a chain argument, but they have a 'hidden' Gen-0-only chain, so their objects are collected by full collections.  The hidden chains have hardwired Gen 0 capacity.  AWL's Gen 0 capacity is hardwired to SizeMAX KB, so AWL objects will never trigger a minor collection.  LO's Gen 0 capacity is hardwired to 1024 KB, and it increments PoolGen 0 newSize, so each 1 MB of new LO allocation will trigger a minor collection.  Both AWL and LO  segment-placement preference is hardwired to SegPrefGen-number 1 (note inconsistency with the PoolGen "nr"!).  LO-triggered minor collections will tend to also condemn some or all AMC-generation-1 objects (but no AMC nursery objects), some or all AWL objects, and some AMS objects.  Conversely, AMC-triggered minor collections that include AMC-generation-1 will tend to also condemn some or all LO and AWL objects, and some AMS objects.</p>
 
+<p><em>[To summarise this section: the behaviour is complex, hard to predict, and may not have been designed to be like this.  AMS not specifying a SegPrefGen, and arenavm treating that as "anywhere but blacklist", is probably a bug, especially now there are client-tunable AMS triggered minor collections.  This whole area should probably be looked at.  RHSK 2006-12-06].</em></p>
 
 <h2>Rate of Collection Progress</h2>
 
@@ -249,6 +258,12 @@
 <p>mps_arena_park will loop doing traceQuantums until the collection is complete.</p>
 
 
+<h2>When the collection has finished</h2>
+
+<p>Reclaim only happens at the end of collection.  Hopefully lots of segments will be white (dead), and will be released, shrinking ArenaCommitted.</p>
+
+<p>[Future: Indeed, in some sense, reclaim can only happen at the end of collection.  A large collection C could be subdivided into smaller collections C1 and C2, and perhaps C1 might finish earlier.  But choosing how to subdivide is a combinatorial problem, unless the mutator can give us a clue.]</p>
+
   
 <h2><a id="section-B" name="section-B">B. Document History</a></h2>
 
@@ -259,6 +274,7 @@
   2006-12-05  RHSK  AMS, LO, AWL.  Rate.  What advances a collection?
   2006-12-06  RHSK  correct dynamic criterion, newSize, trace rate
   2006-12-06  RHSK  Purpose.  Generation can mean 3 things.
+  2006-12-06  RHSK  Notes on problem areas.  Reclaim.  Simplify diagram.
 </pre>
 
 
