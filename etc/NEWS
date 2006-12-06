@@ -3814,7 +3814,7 @@ deleting the part of subprocess output that matches the input.
 there is no longer a shortage of memory.
 
 ** When Emacs receives a USR1 or USR2 signal, this generates
-an input event: usr1-signal or usr2-signal.
+input event sequences: [signal usr1] or [signal usr2].
 
 * Lisp Changes in Emacs 22.1
 
