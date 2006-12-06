@@ -82,11 +82,11 @@ $(TRES):	../nt/emacs.rc
 
 $(BLD)/emacsclient.exe:		$(ECLIENTOBJS)
 # put wsock32.lib before $(LIBS) to ensure we don't link to ws2_32.lib
-		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(ECLIENTOBJS) $(WSOCK32) $(LIBS)
+		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(ECLIENTOBJS) $(WSOCK32) $(USER32) $(LIBS)
 
 $(BLD)/emacsclientw.exe:	$(ECLIENTOBJS) $(TRES)
 # put wsock32.lib before $(LIBS) to ensure we don't link to ws2_32.lib
-		$(LINK) $(LINK_OUT)$@ $(TRES) -mwindows $(LINK_FLAGS) $(ECLIENTOBJS) $(WSOCK32) $(LIBS)
+		$(LINK) $(LINK_OUT)$@ $(TRES) -mwindows $(LINK_FLAGS) $(ECLIENTOBJS) $(WSOCK32) $(USER32) $(LIBS)
 
 # emacsclient.$(O) depends on makefile.w32-in because makefile.w32-in
 # can be edited to define VERSION string, which is part of ECLIENT_CFLAGS.
