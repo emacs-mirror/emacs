@@ -1,3 +1,7 @@
+2006-12-06  Kenichi Handa  <handa@m17n.org>
+
+	* xftfont.c (xftfont_open): Call FcConfigSubstitute.
+
 2006-12-05  Kenichi Handa  <handa@m17n.org>
 
 	* xftfont.c (xftfont_open): Don't enable antialias explicitly.
