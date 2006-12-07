@@ -1,6 +1,6 @@
 ;;; trace.el --- tracing facility for Emacs Lisp functions
 
-;; Copyright (C) 1993, 1998, 2000, 2002, 2003, 2004,
+;; Copyright (C) 1993, 1998, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Hans Chalupsky <hans@cs.buffalo.edu>
