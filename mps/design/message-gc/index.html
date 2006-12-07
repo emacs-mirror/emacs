@@ -56,13 +56,6 @@ collectively they are called GC Messages. </p>
 
   <dd> <p> These messages are generated once per GC at the end of a GC. </p> </dd>
 
-  <dt> mps_message_type_gc_generation() </dt>
-
-  <dd> <p> (new in gcgenmsg branch) These messages are generated once
-  per generation per GC. A single such message explains how a generation
-  intends to participate in the collection. They are useful to experts
-  and interesting to other parties. </p> </dd>
-
 </dl>
 
 <p> The intended readership is project staff. </p>
@@ -85,7 +78,8 @@ here. </p>
 <ul>
 
   <li><p> MPS staff must be able to tell what collections are happening
-    in order to be able to introspect about the overall MPS process. </p>
+    in order to be able to introspect about the overall MPS process.
+    </p>
 
     <p> This
     is so that bugs can be diagnosed and general MPS behaviour can be
@@ -99,12 +93,30 @@ here. </p>
 
 </ul>
 
-<p> We intend to meet that requirement by implementing a message
-that is generated per generation per collection
-(mps_message_type_gc_generation) and a message that is generated per
+<p> We meet part of that requirement by implementing 
+  a message that is generated per
 collection (mps_message_type_gc_start). </p>
 
-<p>We have the
+<p> We have the following requirements on per GC messages: </p>
+
+<ul>
+
+  <li> <p> Must be able to tell why we are starting a collection. See
+  job000666 for why we start collections. </p> </li>
+
+</ul>
+
+<h3>Unimplemented mps_message_type_gc_generation</h3>
+
+<p><em>This section for historical interest only.</em></p>
+
+<p> A proposal to meet the full requirement by implementing a message
+that is generated per generation per collection
+(mps_message_type_gc_generation) 
+<strong>has not been implemented</strong>, 
+but the requirements have been retained here: </p>
+
+<p>We would have the
 following requirements on per generation messages: </p>
 
 <ul>
@@ -140,64 +152,8 @@ following requirements on per generation messages: </p>
 
 </ul>
 
-<p> We have the following requirements on per GC messages: </p>
-
-<ul>
-
-  <li> <p> Must be able to tell why we are starting a collection. See
-  job000666 for why we start collections. </p> </li>
-
-</ul>
 
 <h2><a id="section-4" name="section-4">4. Implementation</a></h2>
-
-<h3><a id="section-4.1" name="section-4.1">4.1. A new per generation
-message class (mps_message_type_gc_generation).</a></h3>
-
-<p> Message in this class will support: </p>
-
-<ul>
-  
-  <li><p> identification; each generation will be identified by
-  (pool class, pool serial number, generation serial number). </p></li>
-
-  <li><p> get condemned size </p></li>
-
-  <li><p> get non-condemned size </p></li>
-
-  <li><p> get forwarding gen </p></li>
-
-</ul>
-
-<p> Condemned size / not condemned size correspond to accessors for
-MPS_MESSAGE_TYPE_GC as well.  We could have some sort of collectable
-class that has both the existing "gc" and the new "gc generation" type
-as sublcasses, but I don't think I'll bother for now.</p>
-
-<h4><a id="section-4.1.1" name="section-4.1.1">4.1.1. Message instances.</a></h4>
-
-<p> A message instance will be associated with a generation structure.
-Specifically the PoolGenStruct; there is one of these per generation
-in a pool that uses Chains for collection policy management.  The
-message struct will be a member of PoolGenStruct to simplify memory
-management as per the general <a href="../message">message design</a>.
-</p>
-
-<p> Choice: could put all the actual info in the PoolGenStruct and have
-a generic message member (this is simplest if only PoolGenStruct wants
-to implement the message) or could create a new gcgen message struct and
-embed that in PoolGenStruct (which allows other parts of the MPS to
-implement the message). </p>
-
-<p> For now we will put the info (condemned size, etc) in the
-PoolGenStruct and embed a generic message structure.  As per the trace
-design, there will be a new intermediate struct, private to the PoolGen
-module, that contains the info required for the message.
-PoolGenMessageStruct. </p>
-
-<p> There will only be one message and set of info per generation.
-Generally data will refer to the most recent trace; multiple concurrent
-traces are not very well suported by this design. </p>
 
 <h3><a id="section-4.2" name="section-4.2">4.2 A new per collection
 message class (mps_message_type_gc_start)</a></h3>
@@ -223,56 +179,6 @@ the arena queue (at the end of the trace).</p>
 
 <dl>
 
-  <dt><code>int mps_message_type_gc_generation()</code></dt>
-
-  <dd> <p> Public interface.  Returns the message type for gc gen
-  messages. </p> </dd>
-
-  <dt><code> const char *mps_message_gc_generation_name(mps_arena_t,
-  mps_message_t)</code></dt>
-
-  <dd> <p> Public interface.  Returns a string pointer that identifies
-  this generation.  The contents of the string shall not be modified by
-  the client.  The string and the pointer are only valid as long as the
-  message has not been discarded (with
-  <code>mps_message_discard</code>). </p>
-  
-  <p> The string should be of the form: "[" <em>pool-class</em> ":"
-  <em>pool-instance-number</em> "," <em>generation-number</em> "]" </p> </dd>
-
-  <dt><code>size_t mps_message_gc_generation_condemned_size(mps_arena_t,
-  mps_message_t)</code></dt>
-
-  <dd> <p> Public interface.  Reports the number of condemned bytes in
-  this generation for this collection.  May be an estimate. </p> </dd>
-
-  <dt>
-  <code>size_t mps_message_gc_generation_not_condemned_size(mps_arena_t,
-  mps_message_t)</code></dt>
-
-  <dd> <p> Public interface.  Reports the number of bytes occupied by
-  objects in this generation that are not condemned for this collection.
-  May be an estimate. </p> </dd>
-
-  <dt><code>const char
-  *mps_mesage_gc_generation_forward(mps_arena_t,
-  mps_message_t)</code></dt>
-
-  <dd> <p> Public interface.  Returns a string pointer that identifies
-  where survivors from this generation are being forwarded to.  The
-  contents of the string shall not be modified by the client.  The
-  string and the pointer are only valid as long as the message has not
-  been discarded (with <code>mps_message_discard</code>). </p>
-
-  <p> Generally this string will identify a generation and should be in
-  a similar form to the id string (returned by
-  <code>mps_message_gc_generation_id</code> </p> </dd>
-
-  <dt> <code> MPS_MESSAGE_TYPE_GC_GENERATION </code> </dt>
-
-  <dd> <p> Private interface.  An enum member that identifies the message
-  type. </p> </dd>
-
   <dt> <code> int mps_message_type_gc_start() </code> </dt>
 
   <dd> <p> Public interface.  Returns the MPS message type. </p></dd>
@@ -286,26 +192,6 @@ the arena queue (at the end of the trace).</p>
   <p> The contents of the string must not be modified by the client.  The
   string and the pointer are only valid as long as the message has not
   been discarded (with <code>mps_message_discard</code>). </p> </dd>
-
-  <dt> PoolGen and PoolClass interface </dt>
-
-  <dd> <p> There needs to be an interface between the implementation of the
-  gc generation messages (which is expected to be PoolGen in locus.c)
-  and the Pool Classes in order that the information contained in the
-  message can be gathered. </p>
-  
-  <p> Pool Classes condemn objects on a
-  segment-by-segment basis; it seems most natural for PoolGen to keep a
-  condemned bytes counter and for the Pool Class to update this counter
-  as it condemns objects.  The number of not-condemned bytes can be
-  estimated by PoolGen as (totalSize - condemned). </p>
-
-  <p> PoolGen knows the pool and the serial number so can id the
-  generation without involving anyone else. </p>
-
-  <p> The forwarding generation will have to be filled in by the Pool
-  Class.  Message can hold a fixed size char buffer that the pool class
-  can fill with textual description. </p> </dd>
 
 </dl>
 
@@ -353,6 +239,16 @@ should be written. </p>
 <td><a href="mailto:drj@ravenbrook.com">DRJ</a></td>
 
 <td>Created.</td>
+
+</tr>
+
+<tr valign="top">
+
+<td>2006-12-07</td>
+
+<td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
+
+<td>Remove mps_message_type_gc_generation (not implemented).</td>
 
 </tr>
 
