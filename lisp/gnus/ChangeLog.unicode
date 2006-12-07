@@ -1,3 +1,9 @@
+2006-11-27  Zhang Wei  <id.brep@gmail.com>
+
+	* rfc2047.el (rfc2047-charset-encoding-alist): Add gbk and GB18030.
+
+	* mm-util.el (mm-mime-mule-charset-alist): Add gbk and GB18030.
+
 2006-09-25  Kenichi Handa  <handa@m17n.org>
 
 	* gnus-start.el (gnus-gnus-to-quick-newsrc-format): Use correct

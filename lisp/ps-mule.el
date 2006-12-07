@@ -8,7 +8,6 @@
 ;; Maintainer: Kenichi Handa <handa@m17n.org> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript, multibyte, mule
-;; Time-stamp: <2003/05/14 22:19:41 vinicius>
 
 ;; This file is part of GNU Emacs.
 
