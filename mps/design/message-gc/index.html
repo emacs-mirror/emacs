@@ -47,16 +47,16 @@ collectively they are called GC Messages. </p>
 
 <dl>
 
-  <dt> <p> mps_message_type_gc_start() </p> </dt>
+  <dt> mps_message_type_gc_start() </dt>
 
   <dd> <p> (new in gcgenmsg branch) These messages are generated once per GC at the start of a
   GC. </p> </dd>
 
-  <dt> <p> mps_message_type_gc() </p> </dt>
+  <dt> mps_message_type_gc() </dt>
 
   <dd> <p> These messages are generated once per GC at the end of a GC. </p> </dd>
 
-  <dt> <p> mps_message_type_gc_generation() </p> </dt>
+  <dt> mps_message_type_gc_generation() </dt>
 
   <dd> <p> (new in gcgenmsg branch) These messages are generated once
   per generation per GC. A single such message explains how a generation
@@ -104,7 +104,7 @@ that is generated per generation per collection
 (mps_message_type_gc_generation) and a message that is generated per
 collection (mps_message_type_gc_start). </p>
 
-We have the
+<p>We have the
 following requirements on per generation messages: </p>
 
 <ul>
@@ -117,8 +117,9 @@ following requirements on per generation messages: </p>
   allocation in the nursery generations) will condemn a particular set
   of zones. There may be generations which have some object in one zone
   and some objects in another; they may have only some of their objects
-  condemned by a per zone condemnation strategy. </p>
+  condemned by a per zone condemnation strategy. </p></li>
 
+  <li>
   <p> For each generation for each collection we would like
     to know the following:  </p>
 
@@ -135,6 +136,7 @@ following requirements on per generation messages: </p>
     much free space there is, how much overhead there is. </p></li>
 
   </ul>
+  </li>
 
 </ul>
 
@@ -200,7 +202,7 @@ traces are not very well suported by this design. </p>
 <h3><a id="section-4.2" name="section-4.2">4.2 A new per collection
 message class (mps_message_type_gc_start)</a></h3>
 
-<p>Messages in this class support:<p>
+<p>Messages in this class support:</p>
 
 <ul>
 
@@ -221,13 +223,13 @@ the arena queue (at the end of the trace).</p>
 
 <dl>
 
-  <dt> <p><code>int mps_message_type_gc_generation()</code></p> </dt>
+  <dt><code>int mps_message_type_gc_generation()</code></dt>
 
   <dd> <p> Public interface.  Returns the message type for gc gen
   messages. </p> </dd>
 
-  <dt> <p><code> const char *mps_message_gc_generation_name(mps_arena_t,
-  mps_message_t)</code></p> </dt>
+  <dt><code> const char *mps_message_gc_generation_name(mps_arena_t,
+  mps_message_t)</code></dt>
 
   <dd> <p> Public interface.  Returns a string pointer that identifies
   this generation.  The contents of the string shall not be modified by
@@ -238,23 +240,23 @@ the arena queue (at the end of the trace).</p>
   <p> The string should be of the form: "[" <em>pool-class</em> ":"
   <em>pool-instance-number</em> "," <em>generation-number</em> "]" </p> </dd>
 
-  <dt> <p><code>size_t mps_message_gc_generation_condemned_size(mps_arena_t,
-  mps_message_t)</code></p> </dt>
+  <dt><code>size_t mps_message_gc_generation_condemned_size(mps_arena_t,
+  mps_message_t)</code></dt>
 
   <dd> <p> Public interface.  Reports the number of condemned bytes in
   this generation for this collection.  May be an estimate. </p> </dd>
 
   <dt>
-  <p><code>size_t mps_message_gc_generation_not_condemned_size(mps_arena_t,
-  mps_message_t)</code></p> </dt>
+  <code>size_t mps_message_gc_generation_not_condemned_size(mps_arena_t,
+  mps_message_t)</code></dt>
 
   <dd> <p> Public interface.  Reports the number of bytes occupied by
   objects in this generation that are not condemned for this collection.
-  May be an estimate. <p> </dd>
+  May be an estimate. </p> </dd>
 
-  <dt> <p></code>const char
+  <dt><code>const char
   *mps_mesage_gc_generation_forward(mps_arena_t,
-  mps_message_t)</code><p> </dt>
+  mps_message_t)</code></dt>
 
   <dd> <p> Public interface.  Returns a string pointer that identifies
   where survivors from this generation are being forwarded to.  The
