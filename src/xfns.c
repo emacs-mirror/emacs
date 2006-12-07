@@ -2178,7 +2178,7 @@ xic_create_xfontset (f, base_fontname)
 #ifdef DEBUG_XIC_FONTSET
 static void
 print_fontset_result (xfs, name)
-     XFtonSet xfs;
+     XFontSet xfs;
      char *name;
 {
   if (xfs)
