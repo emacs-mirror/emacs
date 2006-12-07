@@ -119,5 +119,5 @@ clean:
 
 distclean: clean
 
-maintainer-clean: clean
-	- $(DEL) elisp elisp-* elisp.dvi elisp.oaux
+maintainer-clean: distclean
+	- $(DEL) elisp.dvi elisp.oaux
