@@ -6148,7 +6148,7 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
  got_it:
 
 #define parse_signal(NAME, VALUE)		\
-  else if (!strcasecmp (name, NAME))		\
+  else if (!xstricmp (name, NAME))		\
     XSETINT (sigcode, VALUE)
 
   if (INTEGERP (sigcode))
@@ -6160,7 +6160,7 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
       CHECK_SYMBOL (sigcode);
       name = SDATA (SYMBOL_NAME (sigcode));
 
-      if (!strncasecmp(name, "sig", 3))
+      if (!strncmp(name, "SIG", 3) || !strncmp(name, "sig", 3))
 	name += 3;
 
       if (0)
