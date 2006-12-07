@@ -2174,6 +2174,21 @@ xic_create_xfontset (f, base_fontname)
 }
 
 #ifdef USE_FONT_BACKEND
+
+#ifdef DEBUG_XIC_FONTSET
+static void
+print_fontset_result (xfs, name)
+     XFtonSet xfs;
+     char *name;
+{
+  if (xfs)
+    fprintf (stderr, "XIC Fontset created: %s\n", name);
+  else
+    fprintf (stderr, "XIC Fontset failed: %s\n", name);
+}
+#endif
+
+
 static XFontSet
 xic_create_xfontset2 (f)
      struct frame *f;
@@ -2210,6 +2225,9 @@ xic_create_xfontset2 (f)
       missing_list = NULL;
       xfs = XCreateFontSet (FRAME_X_DISPLAY (f), buf,
 			    &missing_list, &missing_count, &def_string);
+#ifdef DEBUG_XIC_FONTSET
+      print_fontset_result (xfs, buf);
+#endif
       if (missing_list)
 	XFreeStringList (missing_list);
       if (! xfs)
@@ -2241,6 +2259,9 @@ xic_create_xfontset2 (f)
 	      missing_list = NULL;
 	      xfs = XCreateFontSet (FRAME_X_DISPLAY (f), buf,
 				    &missing_list, &missing_count, &def_string);
+#ifdef DEBUG_XIC_FONTSET
+	      print_fontset_result (xfs, buf);
+#endif
 	      if (missing_list)
 		XFreeStringList (missing_list);
 	      if (xfs)
