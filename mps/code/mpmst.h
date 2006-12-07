@@ -201,18 +201,12 @@ typedef struct MessageClassStruct {
   /* methods specific to MessageTypeGC */
   MessageGCLiveSizeMethod gcLiveSize;
   
-  /* methods specific to MessageTypeGC and MessageTypeGCGen */
+  /* methods specific to MessageTypeGC */
   MessageGCCondemnedSizeMethod gcCondemnedSize;
   MessageGCNotCondemnedSizeMethod gcNotCondemnedSize;
 
   /* methods specific to MessageTypeGCStart */
   MessageGCStartWhyMethod gcStartWhy;
-
-  /* methods specific to MessageTypeGCGen */
-#if 0 /* @@@@ */
-  MessageGCGenNameMethod gcGenName;
-  MessageGCGenForwardMethod gcGenForward;
-#endif
 
   Sig endSig;                   /* <design/message/#class.sig.double> */
 } MessageClassStruct;
