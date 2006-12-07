@@ -81,7 +81,7 @@
 
 <p><a href="chain3.png"><img src="chain3.png" alt="MPS Chain datastructure: controls garbage collection.  Original drawing: chain3.graffle, derived from //info.ravenbrook.com/project/mps/master/code/chain.h#9" /></a></p>
 
-<p>Refer to the middle chain "AMC pool (3 generations)" in the diagram above.  Say the mutator wants a 100 KB nursery (Gen 0), a 200 KB intermediate generation (Gen 1), and the rest of memory for older stuff (Gen 2).  Mutator creates an array of two mps_gen_param_s structs:</p>
+<p>Refer to the middle chain "AMC pool (3 generations)" in the diagram above.  Say the mutator wants three generations: a 100 KB nursery (Gen 0), a 200 KB intermediate generation (Gen 1), and the rest of memory for older stuff (Gen 2).  Mutator creates an array of *two* mps_gen_param_s structs:</p>
 <ul>
   <li> { 100KB, 90% mortality }, </li>
   <li> { 200KB, 50% mortality } </li>
@@ -96,15 +96,22 @@
   <li> PoolGen nr=2 is linked to the arena-wide "topGen" GenDesc.</li>
 </ul>
 
-<p><em>[Warning: most PoolGen nr's are an index into the gens[] array.  The exception is AMC's top gen: you have to remember it is part of arena->topGen, or you'll read past the end of the gens[] array.  RHSK 2006-12-06]</em></p>
+<p></p>
 
-<p>What specifies the generation number?  Three different (and possibly contradictory) things:</p>
+<p>What does "generation number" mean?  Beware: three different (and possibly contradictory) things:</p>
 <ul>
-  <li> the Chain has an array of GenDescs: the GenDesc's <strong>index</strong> in this array is its "generation";</li>
-  <li> the PoolGen struct has <code>Serial nr;  /*generation number*/</code>: this <strong>PoolGen "nr"</strong> is its "generation".</li>
-  <li> the pool may call SegAlloc() with a SegPrefGen generation number: this <strong>SegPrefGen-number</strong> is its "generation".</li>
+  <li> the <strong>GenDesc index</strong> of a GenDesc in the Chain's gens[] array;</li>
+  <li> the <strong>PoolGen nr</strong> field in a PoolGen struct;</li>
+  <li> the <strong>SegPrefGen-number</strong> the pool passes to SegAlloc().</li>
 </ul>
-<p>(The GenDesc itself, which has size and mortality and is perhaps the place you'd expect, does not store a generation number).</p>
+
+<p><em>(The GenDesc itself, which has size and mortality and is perhaps the place you'd expect, does not store a generation number).</em></p>
+
+<p>Okay, so what does "generation" really mean?  Is it the set of size limits that trigger a collection, or the set of things that are collected in response to that trigger?  This will be answered in full below, but the summary is:</p>
+
+<p>PoolGen nr and GenDesc index are local to a Chain and relate to the first concept: triggering.  PoolGen nr = GenDesc index, except that AMC top PoolGens have no corresponding GenDesc index: take care not to read past the end of the gens[] array.</p>
+
+<p>SegPrefGen-number embodies the second concept: an arena-wide generation number that tends to determine which objects are collected at the same time.  For AMC, SegPrefGen-number = PoolGen nr.  For non-generational pools SegPrefGen-number is hardwired, or unset.</p>
 
 <p>The PoolGen newSizes are zero initially.  The GenDesc zonesets are empty initially.</p>
 
@@ -275,6 +282,7 @@
   2006-12-06  RHSK  correct dynamic criterion, newSize, trace rate
   2006-12-06  RHSK  Purpose.  Generation can mean 3 things.
   2006-12-06  RHSK  Notes on problem areas.  Reclaim.  Simplify diagram.
+  2006-12-07  RHSK  What does generation really mean?
 </pre>
 
 
