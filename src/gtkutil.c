@@ -3684,6 +3684,9 @@ update_frame_tool_bar (f)
       struct image *img;
       Lisp_Object image;
       GtkWidget *wicon = iter ? GTK_WIDGET (iter->data) : 0;
+      GtkToolItem *ti = NULL;
+      GtkWidget *wvbox;
+      GList *chlist;
 
       if (iter) iter = g_list_next (iter);
 
@@ -3723,22 +3726,40 @@ update_frame_tool_bar (f)
           if (wicon)
 	    gtk_widget_hide (wicon);
 	  else
+            /* Insert an empty (non-image) button */
 	    gtk_toolbar_insert (GTK_TOOLBAR (x->toolbar_widget),
 				gtk_tool_button_new (NULL, ""),
 				i);
           continue;
         }
 
-      if (! wicon)
+      if (wicon)
+        {
+          /* The child of the tool bar is a button.  Inside that button
+             is a vbox.  Inside that vbox is the GtkImage.  */
+          wvbox = gtk_bin_get_child (GTK_BIN (wicon));
+          chlist = gtk_container_get_children (GTK_CONTAINER (wvbox));
+          if (chlist == NULL)
+            /* In this case, we inserted an empty button (above) with no image */
+            ti = GTK_TOOL_ITEM (wicon);
+        }
+
+      if (! wicon || ti != NULL)
         {
           GtkWidget *w = xg_get_image_for_pixmap (f, img, x->widget, NULL);
-          GtkToolItem *ti = gtk_tool_button_new (w, "");
-
           gtk_misc_set_padding (GTK_MISC (w), hmargin, vmargin);
 
-          gtk_toolbar_insert (GTK_TOOLBAR (x->toolbar_widget),
-                              ti,
-                              i);
+
+          if (ti == NULL)
+            {
+              ti = gtk_tool_button_new (w, "");
+
+              gtk_toolbar_insert (GTK_TOOLBAR (x->toolbar_widget), ti, i);
+            }
+          else
+            gtk_tool_button_set_icon_widget (GTK_TOOL_BUTTON (ti), w);
+
+
           /* The EMACS_INT cast avoids a warning. */
           g_signal_connect (GTK_WIDGET (ti), "clicked",
                             GTK_SIGNAL_FUNC (xg_tool_bar_callback),

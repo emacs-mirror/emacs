@@ -3784,7 +3784,8 @@ kbd_buffer_store_event_hold (event, hold_quit)
   if (!NILP (Vthrow_on_input)
       && event->kind != FOCUS_IN_EVENT
       && event->kind != HELP_EVENT
-      && event->kind != DEICONIFY_EVENT)
+      && event->kind != DEICONIFY_EVENT
+      && !(event->kind == USER_SIGNAL_EVENT && event->code == 0))
     {
       Vquit_flag = Vthrow_on_input;
       /* If we're inside a function that wants immediate quits,
@@ -5073,13 +5074,7 @@ Lisp_Object *scroll_bar_parts[] = {
 };
 
 /* User signal events.  */
-Lisp_Object Qusr1_signal, Qusr2_signal;
-
-Lisp_Object *lispy_user_signals[] =
-{
-  &Qusr1_signal, &Qusr2_signal
-};
-
+Lisp_Object Qsignal;
 
 /* A vector, indexed by button number, giving the down-going location
    of currently depressed buttons, both scroll bar and non-scroll bar.
@@ -5706,7 +5701,7 @@ make_lispy_event (event)
 	position = make_lispy_position (f, &event->x, &event->y,
 					event->timestamp);
 
-	/* Set double or triple modifiers to indicate the wheel speed.	*/
+	/* Set double or triple modifiers to indicate the wheel speed.  */
 	{
 	  /* On window-system frames, use the value of
 	     double-click-fuzz as is.  On other frames, interpret it
@@ -5760,7 +5755,7 @@ make_lispy_event (event)
 
 	  if (event->modifiers & up_modifier)
 	    {
-	      /* Emit a wheel-up event.	 */
+	      /* Emit a wheel-up event.  */
 	      event->modifiers &= ~up_modifier;
 	      symbol_num = 0;
 	    }
@@ -5775,7 +5770,7 @@ make_lispy_event (event)
 	       the up_modifier set.  */
 	    abort ();
 
-	  /* Get the symbol we should use for the wheel event.	*/
+	  /* Get the symbol we should use for the wheel event.  */
 	  head = modify_event_symbol (symbol_num,
 				      event->modifiers,
 				      Qmouse_click,
@@ -5953,7 +5948,21 @@ make_lispy_event (event)
 
     case USER_SIGNAL_EVENT:
       /* A user signal.  */
-      return *lispy_user_signals[event->code];
+      switch (event->code)
+	{
+	case 0:
+	  return Qsignal;
+#ifdef SIGUSR1
+	case SIGUSR1:
+	  return intern ("usr1");
+#endif
+#ifdef SIGUSR2
+	case SIGUSR2:
+	  return intern ("usr2");
+#endif
+	default:
+	  return make_number (event->code);
+	}
 
     case SAVE_SESSION_EVENT:
       return Qsave_session;
@@ -11025,10 +11034,8 @@ syms_of_keyboard ()
   staticpro (&Qmac_apple_event);
 #endif
 
-  Qusr1_signal = intern ("usr1-signal");
-  staticpro (&Qusr1_signal);
-  Qusr2_signal = intern ("usr2-signal");
-  staticpro (&Qusr2_signal);
+  Qsignal = intern ("signal");
+  staticpro (&Qsignal);
 
   Qmenu_enable = intern ("menu-enable");
   staticpro (&Qmenu_enable);

@@ -1,6 +1,6 @@
 ;;; cmuscheme.el --- Scheme process in a buffer. Adapted from tea.el
 
-;; Copyright (C) 1988, 1994, 1997, 2002, 2003, 2004,
+;; Copyright (C) 1988, 1994, 1997, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <olin.shivers@cs.cmu.edu>
@@ -244,7 +244,8 @@ Defaults to a regexp ignoring all inputs of 0, 1, or 2 letters."
 If there is a process already running in `*scheme*', switch to that buffer.
 With argument, allows you to edit the command line (default is value
 of `scheme-program-name').
-If a file `~/.emacs_SCHEMENAME' exists, it is given as initial input.
+If the file `~/.emacs_SCHEMENAME' or `~/.emacs.d/init_SCHEMENAME.scm' exists,
+it is given as initial input.
 Note that this may lose due to a timing error if the Scheme processor
 discards input when it starts up.
 Runs the hook `inferior-scheme-mode-hook' \(after the `comint-mode-hook'
@@ -268,12 +269,12 @@ is run).
   "Return the name of the start file corresponding to PROG.
 Search in the directories \"~\" and \"~/.emacs.d\", in this
 order.  Return nil if no start file found."
-  (let* ((name (concat ".emacs_" (file-name-nondirectory prog)))
-         (start-file (concat "~/" name)))
+  (let ((progname (file-name-nondirectory prog))
+	(start-file (concat "~/.emacs_" progname))
+	(alt-start-file (concat "~/.emacs.d/init_" progname ".scm")))
     (if (file-exists-p start-file)
         start-file
-      (let ((start-file (concat "~/.emacs.d/" name)))
-        (and (file-exists-p start-file) start-file)))))
+      (and (file-exists-p alt-start-file) alt-start-file))))
 
 (defun scheme-send-region (start end)
   "Send the current region to the inferior Scheme process."

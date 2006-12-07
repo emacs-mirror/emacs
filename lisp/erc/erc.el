@@ -474,7 +474,7 @@ Removes all users in the current channel.  This is called by
     (clrhash erc-channel-users)))
 
 (defsubst erc-channel-user-op-p (nick)
-  "Return `t' if NICK is an operator in the current channel."
+  "Return t if NICK is an operator in the current channel."
   (and nick
        (hash-table-p erc-channel-users)
        (let ((cdata (erc-get-channel-user nick)))
@@ -482,7 +482,7 @@ Removes all users in the current channel.  This is called by
 	      (erc-channel-user-op (cdr cdata))))))
 
 (defsubst erc-channel-user-voice-p (nick)
-  "Return `t' if NICK has voice in the current channel."
+  "Return t if NICK has voice in the current channel."
   (and nick
        (hash-table-p erc-channel-users)
        (let ((cdata (erc-get-channel-user nick)))
@@ -774,7 +774,7 @@ set if some hacker is trying to flood you away."
   :type 'boolean)
 
 (defcustom erc-prompt-for-channel-key nil
-  "Prompt for channel key when using `erc-join-channel' interactively"
+  "Prompt for channel key when using `erc-join-channel' interactively."
   :group 'erc
   :type 'boolean)
 
@@ -807,7 +807,7 @@ whose identifier matches, the message will not be processed.
 CAVEAT: ERC doesn't know about the user and host of anyone who
 was already in the channel when you joined, but never said
 anything, so it won't be able to match the user and host of those
-people. You can update the ERC internal info using /WHO *."
+people.  You can update the ERC internal info using /WHO *."
   :group 'erc-ignore
   :type '(repeat regexp))
 
@@ -827,9 +827,9 @@ See `erc-server-flood-margin' for other flood-related parameters.")
   "List of files to try for a startup script.
 The first existent and readable one will get executed.
 
-If the filename ends with `.el' it is presumed to be an emacs-lisp
+If the filename ends with `.el' it is presumed to be an Emacs Lisp
 script and it gets (load)ed.  Otherwise is is treated as a bunch of
-regular IRC commands"
+regular IRC commands."
   :group 'erc-scripts
   :type '(repeat file))
 
@@ -841,7 +841,7 @@ directory in the list."
   :type '(repeat directory))
 
 (defcustom erc-script-echo t
-  "*If not-NIL, echo the IRC script commands locally."
+  "*If non-nil, echo the IRC script commands locally."
   :group 'erc-scripts
   :type 'boolean)
 
@@ -1042,7 +1042,7 @@ At this point, all modifications from prior hook functions are done.
 NOTE: The functions on this hook are called _before_ sending a command
 to the server.
 
-This function is called with narrowing, ala `erc-send-modify-hook'"
+This function is called with narrowing, ala `erc-send-modify-hook'."
   :group 'erc-hooks
   :type 'hook
   :options '(erc-make-read-only))
@@ -1198,7 +1198,7 @@ DOC is the documentation string to use for the minor mode.
 ENABLE-BODY is a list of expressions used to enable the mode.
 DISABLE-BODY is a list of expressions used to disable the mode.
 If LOCAL-P is non-nil, the mode will be created as a buffer-local
-mode.  Rather than a global one.
+mode, rather than a global one.
 
 This will define a minor mode called erc-NAME-mode, possibly
 an alias erc-ALIAS-mode, as well as the helper functions
@@ -1266,7 +1266,7 @@ You should make sure that `current-buffer' is a server buffer.
 This function temporarily adds a function to EVENT's hook to
 execute FORMS.  After FORMS are run, the function is removed from
 EVENT's hook.  The last expression of FORMS should be either nil
-or t.  nil indicates that the other functions on EVENT's hook
+or t, where nil indicates that the other functions on EVENT's hook
 should be run too, and t indicates that other functions should
 not be run.
 
@@ -1294,7 +1294,7 @@ capabilities."
 This function temporarily prepends a function to EVENT's hook to
 execute FORMS.  After FORMS are run, the function is removed from
 EVENT's hook.  The last expression of FORMS should be either nil
-or t.  nil indicates that the other functions on EVENT's hook
+or t, where nil indicates that the other functions on EVENT's hook
 should be run too, and t indicates that other functions should
 not be run.
 
@@ -1390,7 +1390,7 @@ If BUFFER is nil, the current buffer is used."
 (defvar erc-active-buffer nil
   "The current active buffer, the one where the user typed the last command.
 Defaults to the server buffer, and should only be set in the
-server buffer")
+server buffer.")
 (make-variable-buffer-local 'erc-active-buffer)
 
 (defun erc-active-buffer ()
@@ -1447,7 +1447,7 @@ Turning on `erc-mode' runs the hook `erc-mode-hook'."
 'window-noselect - in another window, but don't select that one,
 'frame - in another frame,
 'bury - bury it in a new buffer,
-any other value - in place of the current buffer"
+any other value - in place of the current buffer."
   :group 'erc-buffers
   :type '(choice (const window)
 		 (const window-noselect)
@@ -1457,7 +1457,7 @@ any other value - in place of the current buffer"
 
 (defcustom erc-frame-alist nil
   "*Alist of frame parameters for creating erc frames.
-A value of `nil means to use `default-frame-alist'."
+A value of nil means to use `default-frame-alist'."
   :group 'erc-buffers
   :type '(repeat (cons :format "%v"
 		       (symbol :tag "Parameter")
@@ -1573,7 +1573,7 @@ SPEC should have the form
 If TARGET is a buffer, use it.  Otherwise, use the buffer
 matching TARGET in the process specified by PROCESS.
 
-If PROCESS is nil, use the current `erc-server-process'
+If PROCESS is nil, use the current `erc-server-process'.
 See `erc-get-buffer' for details.
 
 See also `with-current-buffer'.
@@ -1762,7 +1762,7 @@ all channel buffers on all servers."
 (defcustom erc-modules '(netsplit fill button match track completion readonly
 				  ring autojoin noncommands irccontrols
 				  stamp list)
-  "A list of modules which erc should enable.
+  "A list of modules which ERC should enable.
 If you set the value of this without using `customize' remember to call
 \(erc-update-modules) after you change it.  When using `customize', modules
 removed from the list will be disabled."
@@ -2022,7 +2022,7 @@ parameters, SERVER, PORT and NICK."
 
 (defcustom erc-after-connect nil
   "Hook called after connecting to a server.
-This hook gets executed when an end of MOTD has been received.	All
+This hook gets executed when an end of MOTD has been received.  All
 functions in here get called with the parameters SERVER and NICK."
   :group 'erc-hooks
   :type 'hook)
@@ -2119,7 +2119,7 @@ Arguments are the same as for `erc'."
 (defun erc-open-ssl-stream (name buffer host port)
   "Open an SSL stream to an IRC server.
 The process will be given the name NAME, its target buffer will be
-BUFFER.	 HOST and PORT specify the connection target."
+BUFFER.  HOST and PORT specify the connection target."
   (when (require 'tls)
     (let ((proc (open-tls-stream name buffer host port)))
       ;; Ugly hack, but it works for now. Problem is it is
@@ -2137,7 +2137,7 @@ BUFFER.	 HOST and PORT specify the connection target."
 
 The buffer is created if it doesn't exist.
 
-NOTE: If this variable is non-nil, and you kill the the only
+NOTE: If this variable is non-nil, and you kill the only
 visible \"*erc-protocol*\" buffer, it will be recreated shortly,
 but you won't see it.
 
@@ -2152,7 +2152,7 @@ This only has any effect if `erc-debug-irc-protocol' is non-nil.
 The buffer is created if it doesn't exist.
 
 If OUTBOUND is non-nil, STRING is being sent to the IRC server
-and appears in erc-input-face in the buffer."
+and appears in face `erc-input-face' in the buffer."
   (when erc-debug-irc-protocol
     (let ((network-name (or (ignore-errors (erc-network-name))
 			    "???")))
@@ -2236,7 +2236,7 @@ I.e. any char in it has the `invisible' property set."
 
 (defun erc-display-line-1 (string buffer)
   "Display STRING in `erc-mode' BUFFER.
-Auxiliary function used in `erc-display-line'.	The line gets filtered to
+Auxiliary function used in `erc-display-line'.  The line gets filtered to
 interpret the control characters.  Then, `erc-insert-pre-hook' gets called.
 If `erc-insert-this' is still t, STRING gets inserted into the buffer.
 Afterwards, `erc-insert-modify' and `erc-insert-post-hook' get called.
@@ -2320,8 +2320,8 @@ or omitted, the default ERC buffer for the `erc-session-server' is used.
 The BUFFER can be an actual buffer, a list of buffers, 'all or 'active.
 If BUFFER = 'all, the string is displayed in all the ERC buffers for the
 current session.  'active means the current active buffer
-\(`erc-active-buffer').	 If the buffer can't be resolved, the current
-buffer is used.	 `erc-display-line-1' is used to display STRING.
+\(`erc-active-buffer').  If the buffer can't be resolved, the current
+buffer is used.  `erc-display-line-1' is used to display STRING.
 
 If STRING is nil, the function does nothing."
   (let ((inhibit-point-motion-hooks t)
@@ -2347,9 +2347,9 @@ If STRING is nil, the function does nothing."
 	(erc-display-line-1 string (current-buffer))))))
 
 (defun erc-display-message-highlight (type string)
-  "Highlight STRING according to TYPE, where erc-TYPE-face is an erc face.
+  "Highlight STRING according to TYPE, where erc-TYPE-face is an ERC face.
 
-See also `erc-make-notice'"
+See also `erc-make-notice'."
   (cond ((eq type 'notice)
 	 (erc-make-notice string))
 	(t
@@ -2435,7 +2435,7 @@ Returns non-nil if the command is actually sent to the server, and nil
 otherwise.
 
 If the command in the LINE is not bound as a function `erc-cmd-<COMMAND>',
-it is passed to `erc-cmd-default'.  If LINE is not a command (ie. doesn't
+it is passed to `erc-cmd-default'.  If LINE is not a command (i.e. doesn't
 start with /<COMMAND>) then it is sent as a message.
 
 An optional FORCE argument forces sending the line when flood
@@ -2661,7 +2661,7 @@ VERSION and so on.  It is called with ARGS."
 
 If FUNC contains a valid function or variable, help about that
 will be displayed.  If FUNC is empty, display an apropos about
-erc commands.  Otherwise, do apropos in the erc namespace
+ERC commands.  Otherwise, do `apropos' in the ERC namespace
 \(\"erc-.*LINE\"\).
 
 Examples:
@@ -2787,9 +2787,9 @@ LINE has the format: \"#CHANNEL NICK REASON\" or \"NICK REASON\"."
 
 (defun erc-cmd-LOAD (line)
   "Load the script provided in the LINE.
-If LINE continues beyond the file name,
-the rest of it is put in a (local) variable
-`erc-script-args', which can be used in elisp scripts.
+If LINE continues beyond the file name, the rest of
+it is put in a (local) variable `erc-script-args',
+which can be used in Emacs Lisp scripts.
 
 The optional FORCE argument is ignored here - you can't force loading
 a script after exceeding the flood threshold."
@@ -3356,7 +3356,7 @@ The ban list is fetched from the server if necessary."
 				  (and (boundp 'fill-column)
 				       fill-column)
 				  (1- (window-width))))
-	     (separator (make-string erc-fill-column (string-to-char "=")))
+	     (separator (make-string erc-fill-column ?=))
 	     (fmt (concat
 		   "%-" (number-to-string (/ erc-fill-column 2)) "s"
 		   "%" (number-to-string (/ erc-fill-column 2)) "s")))
@@ -3422,7 +3422,7 @@ Unban all currently banned users in the current channel."
        (lambda (x)
 	 (erc-server-send
 	  (format "MODE %s -%s %s" (erc-default-target)
-		  (make-string (length x) (string-to-char "b"))
+		  (make-string (length x) ?b)
 			(mapconcat 'identity x " "))))
        (erc-group-list bans 3))))
 	t))))
@@ -3800,7 +3800,7 @@ See also `erc-display-error-notice'."
 
 (defgroup erc-server-hooks nil
   "Server event callbacks.
-Every server event - like numeric replies - has it's own hook.
+Every server event - like numeric replies - has its own hook.
 Those hooks are all called using `run-hook-with-args-until-success'.
 They receive as first argument the process object from where the event
 originated from,
@@ -3879,7 +3879,7 @@ See also `erc-format-nick-function'."
       (concat voice op (erc-server-user-nickname user)))))
 
 (defun erc-format-my-nick ()
-  "Return the beginning of this user's message, correctly propertized"
+  "Return the beginning of this user's message, correctly propertized."
   (if erc-show-my-nick
       (let ((open "<")
 	    (close "> ")
@@ -3948,7 +3948,7 @@ returns non-nil iff there is at least one buffer for which the
 sender is a member.
 
 See also: `erc-echo-notice-in-first-user-buffer',
-`erc-buffer-list-with-nick'"
+`erc-buffer-list-with-nick'."
   (let ((buffers (erc-buffer-list-with-nick sender erc-server-process)))
     (if buffers
 	(progn (erc-display-message parsed nil buffers s) t)
@@ -3963,7 +3963,7 @@ at least one buffer for which the sender is a member or the
 default target.
 
 See also: `erc-echo-notice-in-user-buffers',
-`erc-buffer-list-with-nick'"
+`erc-buffer-list-with-nick'."
   (let ((buffers (erc-buffer-list-with-nick sender erc-server-process)))
     (add-to-list 'buffers buffer)
     (if buffers
@@ -3978,7 +3978,7 @@ returns non-nil iff there is at least one buffer for which the
 sender is a member.
 
 See also: `erc-echo-notice-in-user-buffers',
-`erc-buffer-list-with-nick'"
+`erc-buffer-list-with-nick'."
   (let ((buffers (erc-buffer-list-with-nick sender erc-server-process)))
     (if buffers
 	(progn (erc-display-message parsed nil (car buffers) s) t)
@@ -4061,7 +4061,7 @@ See also: `erc-echo-notice-in-user-buffers',
 (defun erc-connection-established (proc parsed)
   "Run just after connection.
 
-Set user modes and run `erc-after-connect hook'."
+Set user modes and run `erc-after-connect' hook."
   (unless erc-server-connected ; only once per session
     (let ((server (or erc-server-announced-name (erc-response.sender parsed)))
 	  (nick (car (erc-response.command-args parsed ))))
@@ -4391,7 +4391,7 @@ The buffer where the change happened is current while this hook is called."
   "Updates the stored user information for the user with nickname
 NICK.
 
-See also: `erc-update-user'"
+See also: `erc-update-user'."
   (erc-update-user (erc-get-server-user nick) new-nick
 		   host login full-name info))
 
@@ -4402,9 +4402,9 @@ struct.  Any of NEW-NICK, HOST, LOGIN, FULL-NAME, INFO which are
 non-nil and not equal to the existing values for USER are used to
 replace the stored values in USER.
 
-If, any only if a change is made,
+If, and only if, a change is made,
 `erc-channel-members-changed-hook' is run for each channel for
-which USER is a member, and `t' is returned."
+which USER is a member, and t is returned."
   (let (changed)
     (when user
       (when (and new-nick
@@ -4441,10 +4441,10 @@ which USER is a member, and `t' is returned."
 	update-message-time)
   "Updates the stored user information for the user with nickname
 NICK.  `erc-update-user' is called to handle changes to nickname,
-host, login, full-name, and info.  If `op' or `voice' are
-non-nil, they must be equal to either `on' or `off', in which
-case the operator or voice status of USER in the current channel
-is changed accordingly.  If `update-message-time' is non-nil, the
+HOST, LOGIN, FULL-NAME, and INFO.  If OP or VOICE are non-nil,
+they must be equal to either `on' or `off', in which case the
+operator or voice status of the user in the current channel is
+changed accordingly.  If UPDATE-MESSAGE-TIME is non-nil, the
 last-message-time of the user in the current channel is set
 to (current-time).
 
@@ -4453,7 +4453,7 @@ information if it is not already present in the user or channel
 lists.
 
 If, and only if, changes are made, or the user is added,
-`erc-channel-members-updated-hook' is run, and `t' is returned.
+`erc-channel-members-updated-hook' is run, and t is returned.
 
 See also: `erc-update-user' and `erc-update-channel-member'."
   (let* (changed user-changed
@@ -4519,7 +4519,7 @@ See also: `erc-update-user' and `erc-update-channel-member'."
   "Updates user and channel information for the user with
 nickname NICK in channel CHANNEL.
 
-See also: `erc-update-current-channel-member'"
+See also: `erc-update-current-channel-member'."
   (erc-with-buffer
    (channel)
    (erc-update-current-channel-member nick new-nick add op voice host
@@ -4527,8 +4527,8 @@ See also: `erc-update-current-channel-member'"
 				      update-message-time)))
 
 (defun erc-remove-current-channel-member (nick)
-  "Remove NICK from current channel membership list.  Runs
-`erc-channel-members-changed-hook'."
+  "Remove NICK from current channel membership list.
+Runs `erc-channel-members-changed-hook'."
   (let ((channel-data (erc-get-channel-user nick)))
     (when channel-data
       (erc-remove-channel-user nick)
@@ -4733,7 +4733,7 @@ So far the following TYPE/L pairs are supported:
 
 (defun erc-highlight-notice (s)
   "Highlight notice message S and return it.
-See also variable `erc-notice-highlight-type'"
+See also variable `erc-notice-highlight-type'."
   (cond
    ((eq erc-notice-highlight-type 'prefix)
     (erc-put-text-property 0 (length erc-notice-prefix)
@@ -4950,7 +4950,7 @@ current position."
 	  (run-hooks 'erc-send-post-hook))))))
 
 (defun erc-command-symbol (command)
-  "Return the erc command symbol for COMMAND if it exists and is bound."
+  "Return the ERC command symbol for COMMAND if it exists and is bound."
   (let ((cmd (intern-soft (format "erc-cmd-%s" (upcase command)))))
     (when (fboundp cmd) cmd)))
 
@@ -5049,7 +5049,7 @@ See also `erc-downcase'."
 (defun erc-add-query (nickname)
   "Add QUERY'd NICKNAME to the default channel list.
 
-The previous default target of QUERY type gets removed"
+The previous default target of QUERY type gets removed."
   (let ((d1 (car erc-default-recipients))
 	(d2 (cdr erc-default-recipients))
 	(qt (cons 'QUERY (downcase nickname))))
@@ -5274,8 +5274,8 @@ See also `erc-startup-file-list'."
 
 FILE must be the full name, it is not searched in the
 `erc-script-path'.  If the filename ends with `.el', then load it
-as a emacs-lisp program.  Otherwise, treat it as a regular IRC
-script"
+as an Emacs Lisp program.  Otherwise, treat it as a regular IRC
+script."
   (erc-log (concat "erc-load-script: " file))
   (cond
    ((string-match "\\.el$" file)
@@ -5287,13 +5287,13 @@ script"
   "Process an IRC script LINE.
 
 Does script-specific substitutions (script arguments, current nick,
-server, etc.)  in LINE and returns it.
+server, etc.) in LINE and returns it.
 
 Substitutions are: %C and %c = current target (channel or nick),
 %S %s = current server, %N %n = my current nick, and %x is x verbatim,
 where x is any other character;
 $* = the entire argument string, $1 = the first argument, $2 = the second,
-end so on."
+and so on."
   (if (not args) (setq args ""))
   (let* ((arg-esc-regexp "\\(\\$\\(\\*\\|[1-9][0-9]*\\)\\)\\([^0-9]\\|$\\)")
 	 (percent-regexp "\\(%.\\)")
@@ -5418,10 +5418,10 @@ user input."
   "Determine the connection and authentication parameters.
 Sets the buffer local variables:
 
-- erc-session-server
-- erc-session-port
-- erc-session-full-name
-- erc-server-current-nick"
+- `erc-session-server'
+- `erc-session-port'
+- `erc-session-full-name'
+- `erc-server-current-nick'"
   (setq erc-session-server (erc-compute-server server)
 	erc-session-port (or port erc-default-port)
 	erc-session-user-full-name (erc-compute-full-name name))
@@ -5563,7 +5563,7 @@ See also `erc-emacs-time-to-erc-time'."
 
 (defun erc-client-info (s)
   "Return CTCP CLIENTINFO on command S.
-If S is NIL or an empty string then return general CLIENTINFO"
+If S is nil or an empty string then return general CLIENTINFO."
   (if (or (not s) (string= s ""))
       (concat
        (apply #'concat
@@ -5701,7 +5701,7 @@ displayed hostnames."
   "(AWAY since %a %b %d %H:%M) "
   "When you're away on a server, this is shown in the mode line.
 This should be a string with substitution variables recognized by
-format-time-message."
+`format-time-string'."
   :group 'erc-mode-line-and-header
   :type 'string)
 
@@ -5918,7 +5918,7 @@ All windows are opened in the current frame."
 	(balance-windows)))))
 
 (defun erc-popup-input-buffer ()
-  "Provide a input buffer."
+  "Provide an input buffer."
    (interactive)
    (let ((buffer-name (generate-new-buffer-name "*ERC input*"))
 	 (mode (intern

@@ -1,6 +1,6 @@
 ;;; whitespace.el --- warn about and clean bogus whitespaces in the file
 
-;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Rajesh Vaidheeswarran <rv@gnu.org>
@@ -571,7 +571,7 @@ See `whitespace-buffer' docstring for a summary of the problems."
 
 	;; Call this recursively till everything is taken care of
 	(if whitespace-any
-	    (whitespace-cleanup-internal)
+	    (whitespace-cleanup-internal region-only)
 	  ;; if we are done, talk to the user
 	  (progn
 	    (unless whitespace-silent

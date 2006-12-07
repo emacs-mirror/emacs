@@ -38,6 +38,7 @@ CPPFLAGS=@CPPFLAGS@
 LDFLAGS=@LDFLAGS@
 LN_S=@LN_S@
 EXEEXT=@EXEEXT@
+version=@version@
 # Substitute an assignment for the MAKE variable, because
 # BSD doesn't have it as a default.
 @SET_MAKE@
@@ -1347,11 +1348,11 @@ ${emacsapp}Contents/Resources/Emacs.rsrc: ../mac/src/Emacs.r
 ${libsrc}emacstool${EXEEXT}: ${libsrc}emacstool.c
 	cd ${libsrc}; ${MAKE} ${MFLAGS} emacstool${EXEEXT}
 bootstrapclean:
-	rm -f bootstrap-emacs${EXEEXT}
+	rm -f bootstrap-emacs${EXEEXT} emacs-${version}${EXEEXT}
 mostlyclean:
 	rm -f temacs${EXEEXT} prefix-args${EXEEXT} core *.core \#* *.o libXMenu11.a liblw.a
 	rm -f ../etc/DOC
-	rm -f bootstrap-emacs${EXEEXT}
+	rm -f bootstrap-emacs${EXEEXT} emacs-${version}${EXEEXT}
 	rm -f buildobj.lst
 clean: mostlyclean
 	rm -f emacs-*${EXEEXT} emacs${EXEEXT}

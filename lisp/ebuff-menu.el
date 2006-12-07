@@ -1,6 +1,6 @@
 ;;; ebuff-menu.el --- electric-buffer-list mode
 
-;; Copyright (C) 1985, 1986, 1994, 2002, 2003, 2004,
+;; Copyright (C) 1985, 1986, 1994, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Richard Mlynarik <mly@ai.mit.edu>
@@ -73,7 +73,7 @@ Run hooks in `electric-buffer-menu-mode-hook' on entry.
 		  (catch 'electric-buffer-menu-select
 		    (message "<<< Press Return to bury the buffer list >>>")
 		    (if (eq (setq unread-command-events (list (read-event)))
-			    ?\ )
+			    ?\s)
 			(progn (setq unread-command-events nil)
 			       (throw 'electric-buffer-menu-select nil)))
 		    (let ((start-point (point))

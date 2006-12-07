@@ -132,6 +132,15 @@ just before \"Other\" at the end."
   :type 'boolean
   :group 'facemenu)
 
+(defvar facemenu-unlisted-faces
+  `(modeline region secondary-selection highlight scratch-face
+    ,(purecopy "^font-lock-") ,(purecopy "^gnus-") ,(purecopy "^message-")
+    ,(purecopy "^ediff-") ,(purecopy "^term-") ,(purecopy "^vc-")
+    ,(purecopy "^widget-") ,(purecopy "^custom-") ,(purecopy "^vm-"))
+  "*List of faces that are of no interest to the user.")
+(make-obsolete-variable 'facemenu-unlisted-faces 'facemenu-listed-faces
+			"since 22.1,\nand has no effect on the Face menu")
+
 (defcustom facemenu-listed-faces nil
   "*List of faces to include in the Face menu.
 Each element should be a symbol, the name of a face.
@@ -685,8 +694,11 @@ This is called whenever you create a new face, and at other times."
 	    symbol (intern name)))
     (setq menu 'facemenu-face-menu)
     (setq docstring
-	  (format "Select face `%s' for subsequent insertion."
-		  name))
+	  (format "Select face `%s' for subsequent insertion.
+If the mark is active and there is no prefix argument,
+apply face `%s' to the region instead.
+This command was defined by `facemenu-add-new-face'."
+		  name name))
     (cond ((facemenu-iterate ; check if equivalent face is already in the menu
 	    (lambda (m) (and (listp m)
 			     (symbolp (car m))

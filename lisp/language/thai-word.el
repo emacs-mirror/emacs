@@ -10805,7 +10805,7 @@ the current word list."
 
 
 ;; Move point forward to the end of Thai word which follows point and
-;; update VEC.	VEC is a vector of three elements used to cache word
+;; update VEC.  VEC is a vector of three elements used to cache word
 ;; end positions.  The Nth element, if non-nil, is a list of end
 ;; points of the Nth word, or t indicating that there is no Thai
 ;; character.  LIMIT limits the point movement.
@@ -10886,7 +10886,7 @@ the current word list."
 	  nil)
 	(progn
 	  ;; We found four succeeding Thai words (or LIMIT has been
-	  ;; reached).	Move to the end of the first word.
+	  ;; reached).  Move to the end of the first word.
 	  (goto-char (car v0))
 	  ;; Update VEC for the next function call.  If no larger word
 	  ;; positions have been found, set the corresponding vector
@@ -10899,7 +10899,7 @@ the current word list."
 	      (aset vec 1 v2)
 	      (aset vec 2 v3)))) ; exit function successfully
 
-      ;; We didn't find four consecutive words.	 If we have found a
+      ;; We didn't find four consecutive words.  If we have found a
       ;; `second best' solution and the length of those two words is
       ;; longer than the longest word we can see at the current point,
       ;; adopt the second best solution.  This decision is based on

@@ -329,8 +329,7 @@ Return t if file exists."
 	  (let ((load-file-name fullname)
 		(set-auto-coding-for-load t)
 		(inhibit-file-name-operation nil))
-	    (save-excursion
-	      (set-buffer buffer)
+	    (with-current-buffer buffer
 	      ;; Don't let deactivate-mark remain set.
 	      (let (deactivate-mark)
 		(insert-file-contents fullname))
@@ -2203,8 +2202,7 @@ Value is what BODY returns."
 	   (progn
 	     (set-category-table ,table)
 	     ,@body)
-	 (save-current-buffer
-	   (set-buffer ,old-buffer)
+	 (with-current-buffer ,old-buffer
 	   (set-category-table ,old-table))))))
 
 (defun define-translation-hash-table (symbol table)

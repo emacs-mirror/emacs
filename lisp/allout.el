@@ -162,7 +162,7 @@ The types of elements in the layout specification are:
  :   - repeat spec - apply the preceeding element to all siblings at
        current level, *up to* those siblings that would be covered by specs
        following the `:' on the list.  Ie, apply to all topics at level but
-       trailing ones accounted for by trailing specs.  \(Only the first of
+       trailing ones accounted for by trailing specs.  (Only the first of
        multiple colons at the same level is honored - later ones are ignored.)
  *   - completely exposes the topic, including bodies
  +   - exposes all subtopics, but not the bodies
@@ -230,9 +230,9 @@ advance as follows:
  - if the cursor is on the headline and not the start of the headline:
    then it goes to the start of the headline
  - if the cursor is on the start of the headline:
-   then it goes to the bullet character \(for hotspot navigation\)
+   then it goes to the bullet character (for hotspot navigation)
  - if the cursor is on the bullet character:
-   then it goes to the first column of that line \(the headline\)
+   then it goes to the first column of that line (the headline)
  - if the cursor is on the first column of the headline:
    then it goes to the start of the headline within the item body.
 
@@ -324,14 +324,14 @@ of this var to take effect."
 
 These bullets are used to distinguish topics from the run-of-the-mill
 ones.  They are not used in the standard topic headers created by
-the topic-opening, shifting, and rebulleting \(eg, on topic shift,
+the topic-opening, shifting, and rebulleting (eg, on topic shift,
 topic paste, blanket rebulleting) routines, but are offered among the
 choices for rebulleting.  They are not altered by the above automatic
 rebulleting, so they can be used to characterize topics, eg:
 
  `?' question topics
- `\(' parenthetic comment \(with a matching close paren inside)
- `[' meta-note \(with a matching close ] inside)
+ `(' parenthetic comment (with a matching close paren inside)
+ `[' meta-note (with a matching close ] inside)
  `\"' a quotation
  `=' value settings
  `~' \"more or less\"
@@ -367,13 +367,13 @@ String values are used as literals, not regular expressions, so
 do not escape any regulare-expression characters.
 
 Value t means to first check for assoc value in `allout-mode-leaders'
-alist, then use comment-start string, if any, then use default \(`.').
+alist, then use comment-start string, if any, then use default (`.').
 \(See note about use of comment-start strings, below.)
 
 Set to the symbol for either of `allout-mode-leaders' or
 `comment-start' to use only one of them, respectively.
 
-Value nil means to always use the default \(`.') and leave
+Value nil means to always use the default (`.') and leave
 `allout-primary-bullet' unaltered.
 
 comment-start strings that do not end in spaces are tripled in
@@ -605,7 +605,7 @@ The idea is to prevent file-system exposure of any un-encrypted stuff, and
 mostly covers both deliberate file writes and auto-saves.
 
  - Yes: encrypt all topics pending encryption, even if it's the one
-        currently being edited.  \(In that case, the currently edited topic
+        currently being edited.  (In that case, the currently edited topic
         will be automatically decrypted before any user interaction, so they
         can continue editing but the copy on the file system will be
         encrypted.)
@@ -619,7 +619,7 @@ mostly covers both deliberate file writes and auto-saves.
  - No: leave it to the user to encrypt any unencrypted topics.
 
 For practical reasons, auto-saves always use the 'except-current policy
-when auto-encryption is enabled.  \(Otherwise, spurious passphrase prompts
+when auto-encryption is enabled.  (Otherwise, spurious passphrase prompts
 and unavoidable timing collisions are too disruptive.)  If security for a
 file requires that even the current topic is never auto-saved in the clear,
 disable auto-saves for that file."
@@ -717,8 +717,8 @@ unless optional third, non-nil element is present.")
 
 You can customize this setting to set it for all allout buffers, or set it
 in individual buffers if you want to inhibit auto-fill only in particular
-buffers.  \(You could use a function on `allout-mode-hook' to inhibit
-auto-fill according, eg, to the major mode.\)
+buffers.  (You could use a function on `allout-mode-hook' to inhibit
+auto-fill according, eg, to the major mode.)
 
 If you don't set this and auto-fill-mode is enabled, allout will use the
 value that `normal-auto-fill-function', if any, when allout mode starts, or
@@ -783,7 +783,7 @@ For details, see `allout-toggle-current-subtree-encryption's docstring."
 ;;;_  : Version
 ;;;_   = allout-version
 (defvar allout-version "2.2.1"
-  "Version of currently loaded outline package.  \(allout.el)")
+  "Version of currently loaded outline package.  (allout.el)")
 ;;;_   > allout-version
 (defun allout-version (&optional here)
   "Return string describing the loaded outline version."
@@ -800,7 +800,7 @@ For details, see `allout-toggle-current-subtree-encryption's docstring."
 (defvar allout-layout nil            ; LEAVE GLOBAL VALUE NIL - see docstring.
   "Buffer-specific setting for allout layout.
 
-In buffers where this is non-nil \(and if `allout-init' has been run, to
+In buffers where this is non-nil (and if `allout-init' has been run, to
 enable this behavior), `allout-mode' will be automatically activated.  The
 layout dictated by the value will be used to set the initial exposure when
 `allout-mode' is activated.
@@ -812,12 +812,12 @@ The value would typically be set by a file local variable.  For
 example, the following lines at the bottom of an Emacs Lisp file:
 
 ;;;Local variables:
-;;;allout-layout: \(0 : -1 -1 0)
+;;;allout-layout: (0 : -1 -1 0)
 ;;;End:
 
 dictate activation of `allout-mode' mode when the file is visited
 \(presuming allout-init was already run), followed by the
-equivalent of `\(allout-expose-topic 0 : -1 -1 0)'.  \(This is
+equivalent of `(allout-expose-topic 0 : -1 -1 0)'.  (This is
 the layout used for the allout.el source file.)
 
 `allout-default-layout' describes the specification format.
@@ -930,7 +930,7 @@ Works according to settings of:
        `allout-use-mode-specific-leader'
 and    `allout-mode-leaders'.
 
-Apply this via \(re)activation of `allout-mode', rather than
+Apply this via (re)activation of `allout-mode', rather than
 invoking it directly."
   (let* ((use-leader (and (boundp 'allout-use-mode-specific-leader)
 			  (if (or (stringp allout-use-mode-specific-leader)
@@ -977,7 +977,7 @@ invoking it directly."
 (defun allout-infer-body-reindent ()
   "Determine proper setting for `allout-reindent-bodies'.
 
-Depends on default setting of `allout-reindent-bodies' \(which see)
+Depends on default setting of `allout-reindent-bodies' (which see)
 and presence of setting for `comment-start', to tell whether the
 file is programming code."
   (if (and allout-reindent-bodies
@@ -1295,7 +1295,7 @@ their settings before allout-mode was started."
   "Symbol for use as allout invisible-text overlay category.")
 ;;;_   x allout-view-change-hook
 (defvar allout-view-change-hook nil
-  "*\(Deprecated\) A hook run after allout outline exposure changes.
+  "*(Deprecated) A hook run after allout outline exposure changes.
 
 Switch to using `allout-exposure-change-hook' instead.  Both hooks are
 currently respected, but the other conveys the details of the exposure
@@ -1531,12 +1531,12 @@ So `allout-post-command-business' should not reactivate it...")
 
 MODE is one of the following symbols:
 
- - nil \(or no argument) deactivate auto-activation/layout;
+ - nil (or no argument) deactivate auto-activation/layout;
  - `activate', enable auto-activation only;
  - `ask', enable auto-activation, and enable auto-layout but with
    confirmation for layout operation solicited from user each time;
  - `report', just report and return the current auto-activation state;
- - anything else \(eg, t) for auto-activation and auto-layout, without
+ - anything else (eg, t) for auto-activation and auto-layout, without
    any confirmation check.
 
 Use this function to setup your Emacs session for automatic activation
@@ -1598,7 +1598,7 @@ the following two lines in your Emacs init file:
 			((eq mode 'ask)
 			 (message
 			  (concat "Outline mode auto-activation and "
-				  "-layout \(upon confirmation) enabled."))
+				  "-layout (upon confirmation) enabled."))
 			 'ask)
 			((message
 			  "Outline mode auto-activation and -layout enabled.")
@@ -1649,92 +1649,111 @@ symbol.  Allout outline mode always runs as a minor mode.
 Allout outline mode provides extensive outline oriented formatting and
 manipulation.  It enables structural editing of outlines, as well as
 navigation and exposure.  It also is specifically aimed at
-accommodating syntax-sensitive text like programming languages.  \(For
+accommodating syntax-sensitive text like programming languages.  (For
 an example, see the allout code itself, which is organized as an allout
 outline.)
 
-In addition to outline navigation and exposure, allout includes:
+In addition to typical outline navigation and exposure, allout includes:
 
- - topic-oriented repositioning, promotion/demotion, cut, and paste
- - integral outline exposure-layout
+ - topic-oriented authoring, including keystroke-based topic creation,
+   repositioning, promotion/demotion, cut, and paste
  - incremental search with dynamic exposure and reconcealment of hidden text
- - automatic topic-number maintenance
+ - adjustable format, so programming code can be developed in outline-structure
  - easy topic encryption and decryption
- - \"Hot-spot\" operation, for single-keystroke maneuvering and
-    exposure control.  \(See the allout-mode docstring.)
+ - \"Hot-spot\" operation, for single-keystroke maneuvering and exposure control
+ - integral outline layout, for automatic initial exposure when visiting a file
+ - independent extensibility, using comprehensive exposure and authoring hooks
 
 and many other features.
 
-Below is a description of the bindings, and then explanation of
+Below is a description of the key bindings, and then explanation of
 special `allout-mode' features and terminology.  See also the outline
 menubar additions for quick reference to many of the features, and see
 the docstring of the function `allout-init' for instructions on
 priming your emacs session for automatic activation of `allout-mode'.
 
+The bindings are dictated by the customizable `allout-keybindings-list'
+variable.  We recommend customizing `allout-command-prefix' to use just
+`\\C-c' as the command prefix, if the allout bindings don't conflict with
+any personal bindings you have on \\C-c.  In any case, outline structure
+navigation and authoring is simplified by positioning the cursor on an
+item's bullet character, the \"hot-spot\" - then you can invoke allout
+commands with just the un-prefixed, un-control-shifted command letters.
+This is described further in the HOT-SPOT Operation section.
 
-The bindings are dictated by the `allout-keybindings-list' and
-`allout-command-prefix' variables.
+        Exposure Control:
+        ----------------
+\\[allout-hide-current-subtree]   `allout-hide-current-subtree'
+\\[allout-show-children] `allout-show-children'
+\\[allout-show-current-subtree] `allout-show-current-subtree'
+\\[allout-show-current-entry] `allout-show-current-entry'
+\\[allout-show-all]   `allout-show-all'
 
-	Navigation:				   Exposure Control:
-	----------                                 ----------------
-\\[allout-next-visible-heading] allout-next-visible-heading     | \\[allout-hide-current-subtree] allout-hide-current-subtree
-\\[allout-previous-visible-heading] allout-previous-visible-heading | \\[allout-show-children] allout-show-children
-\\[allout-up-current-level] allout-up-current-level         | \\[allout-show-current-subtree] allout-show-current-subtree
-\\[allout-forward-current-level] allout-forward-current-level    | \\[allout-show-current-entry] allout-show-current-entry
-\\[allout-backward-current-level] allout-backward-current-level   | \\[allout-show-all] allout-show-all
-\\[allout-end-of-entry] allout-end-of-entry
-\\[allout-beginning-of-current-entry] allout-beginning-of-current-entry, alternately, goes to hot-spot
+        Navigation:
+        ----------
+\\[allout-next-visible-heading] `allout-next-visible-heading'
+\\[allout-previous-visible-heading] `allout-previous-visible-heading'
+\\[allout-up-current-level] `allout-up-current-level'
+\\[allout-forward-current-level] `allout-forward-current-level'
+\\[allout-backward-current-level] `allout-backward-current-level'
+\\[allout-end-of-entry] `allout-end-of-entry'
+\\[allout-beginning-of-current-entry] `allout-beginning-of-current-entry' (alternately, goes to hot-spot)
+\\[allout-beginning-of-line]  `allout-beginning-of-line' - like regular beginning-of-line, but
+     if immediately repeated cycles to the beginning of the current item
+     and then to the hot-spot (if `allout-beginning-of-line-cycles' is set).
 
-	Topic Header Production:
-	-----------------------
-\\[allout-open-sibtopic]	allout-open-sibtopic	Create a new sibling after current topic.
-\\[allout-open-subtopic]	allout-open-subtopic	... an offspring of current topic.
-\\[allout-open-supertopic]	allout-open-supertopic	... a sibling of the current topic's parent.
 
-	Topic Level and Prefix Adjustment:
-	---------------------------------
-\\[allout-shift-in]	allout-shift-in	Shift current topic and all offspring deeper.
-\\[allout-shift-out]	allout-shift-out	... less deep.
-\\[allout-rebullet-current-heading]	allout-rebullet-current-heading Prompt for alternate bullet for
-					 current topic.
-\\[allout-rebullet-topic]	allout-rebullet-topic	Reconcile bullets of topic and its offspring
-				- distinctive bullets are not changed, others
-				  alternated according to nesting depth.
-\\[allout-number-siblings]	allout-number-siblings	Number bullets of topic and siblings - the
-				offspring are not affected.  With repeat
-				count, revoke numbering.
+        Topic Header Production:
+        -----------------------
+\\[allout-open-sibtopic] `allout-open-sibtopic' Create a new sibling after current topic.
+\\[allout-open-subtopic]   `allout-open-subtopic' ... an offspring of current topic.
+\\[allout-open-supertopic] `allout-open-supertopic' ... a sibling of the current topic's parent.
 
-	Topic-oriented Killing and Yanking:
-	----------------------------------
-\\[allout-kill-topic]	allout-kill-topic	Kill current topic, including offspring.
-\\[allout-copy-topic-as-kill]	allout-copy-topic-as-kill Copy current topic, including offspring.
-\\[allout-kill-line]	allout-kill-line	kill-line, attending to outline structure.
-\\[allout-copy-line-as-kill]	allout-copy-line-as-kill Copy line but don't delete it.
-\\[allout-yank]	allout-yank		Yank, adjusting depth of yanked topic to
-				depth of heading if yanking into bare topic
-				heading (ie, prefix sans text).
-\\[allout-yank-pop]	allout-yank-pop	Is to allout-yank as yank-pop is to yank
+        Topic Level and Prefix Adjustment:
+        ---------------------------------
+\\[allout-shift-in] `allout-shift-in'   Shift current topic and all offspring deeper
+\\[allout-shift-out] `allout-shift-out' ... less deep
+\\[allout-rebullet-current-heading] `allout-rebullet-current-heading' Prompt for alternate bullet for
+            current topic
+\\[allout-rebullet-topic] `allout-rebullet-topic'   Reconcile bullets of topic and
+            its' offspring - distinctive bullets are not changed, others
+            are alternated according to nesting depth.
+\\[allout-number-siblings] `allout-number-siblings'  Number bullets of topic and siblings -
+           the offspring are not affected.
+           With repeat count, revoke numbering.
 
-	Topic-oriented Encryption:
-	-------------------------
-\\[allout-toggle-current-subtree-encryption]	allout-toggle-current-subtree-encryption Encrypt/Decrypt topic content
+        Topic-oriented Killing and Yanking:
+        ----------------------------------
+\\[allout-kill-topic] `allout-kill-topic'   Kill current topic, including offspring.
+\\[allout-copy-topic-as-kill] `allout-copy-topic-as-kill' Copy current topic, including offspring.
+\\[allout-kill-line]     `allout-kill-line'    kill-line, attending to outline structure.
+\\[allout-copy-line-as-kill]     `allout-copy-line-as-kill' Copy line but don't delete it.
+\\[allout-yank] `allout-yank'        Yank, adjusting depth of yanked topic to
+                             depth of heading if yanking into bare topic
+                             heading (ie, prefix sans text).
+\\[allout-yank-pop]     `allout-yank-pop'       Is to allout-yank as yank-pop is to yank
 
-	Misc commands:
-	-------------
-M-x outlineify-sticky		Activate outline mode for current buffer,
-				and establish a default file-var setting
-				for `allout-layout'.
-\\[allout-mark-topic]   	allout-mark-topic
-\\[allout-copy-exposed-to-buffer]     allout-copy-exposed-to-buffer
-				Duplicate outline, sans concealed text, to
-				buffer with name derived from derived from that
-				of current buffer - \"*BUFFERNAME exposed*\".
-\\[allout-flatten-exposed-to-buffer]	allout-flatten-exposed-to-buffer
-				Like above 'copy-exposed', but convert topic
-				prefixes to section.subsection... numeric
-				format.
-\\[eval-expression] (allout-init t)	Setup Emacs session for outline mode
-				auto-activation.
+        Topic-oriented Encryption:
+        -------------------------
+\\[allout-toggle-current-subtree-encryption] `allout-toggle-current-subtree-encryption'
+          Encrypt/Decrypt topic content
+
+        Misc commands:
+        -------------
+M-x outlineify-sticky       Activate outline mode for current buffer,
+                            and establish a default file-var setting
+                            for `allout-layout'.
+\\[allout-mark-topic]       `allout-mark-topic'
+\\[allout-copy-exposed-to-buffer] `allout-copy-exposed-to-buffer'
+                            Duplicate outline, sans concealed text, to
+                            buffer with name derived from derived from that
+                            of current buffer - \"*BUFFERNAME exposed*\".
+\\[allout-flatten-exposed-to-buffer] `allout-flatten-exposed-to-buffer'
+                            Like above 'copy-exposed', but convert topic
+                            prefixes to section.subsection... numeric
+                            format.
+\\[eval-expression] (allout-init t) Setup Emacs session for outline mode
+                            auto-activation.
 
                   Topic Encryption
 
@@ -1742,17 +1761,22 @@ Outline mode supports gpg encryption of topics, with support for
 symmetric and key-pair modes, passphrase timeout, passphrase
 consistency checking, user-provided hinting for symmetric key
 mode, and auto-encryption of topics pending encryption on save.
-\(Topics pending encryption are, by default, automatically
-encrypted during file saves; if you're editing the contents of
-such a topic, it is automatically decrypted for continued
-editing.)  The aim is reliable topic privacy while preventing
-accidents like neglected encryption before saves, forgetting
-which passphrase was used, and other practical pitfalls.
 
-See `allout-toggle-current-subtree-encryption' function docstring and
-`allout-encrypt-unencrypted-on-saves' customization variable for details.
+Topics pending encryption are, by default, automatically
+encrypted during file saves.  If the contents of the topic
+containing the cursor was encrypted for a save, it is
+automatically decrypted for continued editing.
 
-		 HOT-SPOT Operation
+The aim of these measures is reliable topic privacy while
+preventing accidents like neglected encryption before saves,
+forgetting which passphrase was used, and other practical
+pitfalls.
+
+See `allout-toggle-current-subtree-encryption' function docstring
+and `allout-encrypt-unencrypted-on-saves' customization variable
+for details.
+
+                 HOT-SPOT Operation
 
 Hot-spot operation provides a means for easy, single-keystroke outline
 navigation and exposure control.
@@ -1765,85 +1789,108 @@ would invoke the command typically bound to \"C-c<space>C-f\"
 
 Thus, by positioning the cursor on a topic bullet, you can
 execute the outline navigation and manipulation commands with a
-single keystroke.  Regular navigation keys (eg, \\[forward-char], \\[next-line]) never get
+single keystroke.  Regular navigation keys (eg, \\[forward-char], \\[next-line]) don't get
 this special translation, so you can use them to get out of the
-hot-spot and back to normal operation.
+hot-spot and back to normal editing operation.
 
-Note that the command `allout-beginning-of-current-entry' \(\\[allout-beginning-of-current-entry]\)
-will move to the hot-spot when the cursor is already located at the
-beginning of the current entry, so you usually can hit \\[allout-beginning-of-current-entry]
-twice in a row to get to the hot-spot.
+In allout-mode, the normal beginning-of-line command (\\[allout-beginning-of-line]]) is
+replaced with one that makes it easy to get to the hot-spot.  If you
+repeat it immediately it cycles (if `allout-beginning-of-line-cycles'
+is set) to the beginning of the item and then, if you hit it again
+immediately, to the hot-spot.  Similarly, `allout-beginning-of-current-entry'
+\(\\[allout-beginning-of-current-entry]) moves to the hot-spot when the cursor is already located
+at the beginning of the current entry.
 
-			    Terminology
+                             Extending Allout
+
+Allout exposure and authoring activites all have associated
+hooks, by which independent code can cooperate with allout
+without changes to the allout core.  Here are key ones:
+
+`allout-mode-hook'
+`allout-mode-deactivate-hook'
+`allout-exposure-change-hook'
+`allout-structure-added-hook'
+`allout-structure-deleted-hook'
+`allout-structure-shifted-hook'
+
+                            Terminology
 
 Topic hierarchy constituents - TOPICS and SUBTOPICS:
 
-TOPIC:	A basic, coherent component of an Emacs outline.  It can
-	contain and be contained by other topics.
-CURRENT topic:
-	The visible topic most immediately containing the cursor.
-DEPTH:	The degree of nesting of a topic; it increases with
-	containment.  Also called the:
-LEVEL:	The same as DEPTH.
+ITEM:   A unitary outline element, including the HEADER and ENTRY text.
+TOPIC:  An ITEM and any ITEMs contained within it, ie having greater DEPTH
+        and with no intervening items of lower DEPTH than the container.
+CURRENT ITEM:
+        The visible ITEM most immediately containing the cursor.
+DEPTH:  The degree of nesting of an ITEM; it increases with containment.
+        The DEPTH is determined by the HEADER PREFIX.  The DEPTH is also
+        called the:
+LEVEL:  The same as DEPTH.
 
 ANCESTORS:
-	The topics that contain a topic.
-PARENT:	A topic's immediate ancestor.  It has a depth one less than
-	the topic.
+        Those ITEMs whose TOPICs contain an ITEM.
+PARENT: An ITEM's immediate ANCESTOR.  It has a DEPTH one less than that
+        of the ITEM.
 OFFSPRING:
-	The topics contained by a topic;
+        The ITEMs contained within an ITEM's TOPIC.
 SUBTOPIC:
-	An immediate offspring of a topic;
-CHILDREN:
-	The immediate offspring of a topic.
+        An OFFSPRING of its ANCESTOR TOPICs.
+CHILD:
+        An immediate SUBTOPIC of its PARENT.
 SIBLINGS:
-	Topics having the same parent and depth.
+        TOPICs having the same PARENT and DEPTH.
 
 Topic text constituents:
 
-HEADER:	The first line of a topic, include the topic PREFIX and header
-	text.
-PREFIX: The leading text of a topic which distinguishes it from normal
-        text.  It has a strict form, which consists of a prefix-lead
-        string, padding, and a bullet.  The bullet may be followed by a
+HEADER: The first line of an ITEM, include the ITEM PREFIX and HEADER
+        text.
+ENTRY:  The text content of an ITEM, before any OFFSPRING, but including
+        the HEADER text and distinct from the ITEM PREFIX.
+BODY:   Same as ENTRY.
+PREFIX: The leading text of an ITEM which distinguishes it from normal
+        ENTRY text.  Allout recognizes the outline structure according
+        to the strict PREFIX format.  It consists of a PREFIX-LEAD string,
+        PREFIX-PADDING, and a BULLET.  The BULLET might be followed by a
         number, indicating the ordinal number of the topic among its
-        siblings, a space, and then the header text.
+        siblings, or an asterisk indicating encryption, plus an optional
+        space.  After that is the ITEM HEADER text, which is not part of
+        the PREFIX.
 
-	The relative length of the PREFIX determines the nesting depth
-	of the topic.
+        The relative length of the PREFIX determines the nesting DEPTH
+        of the ITEM.
 PREFIX-LEAD:
-	The string at the beginning of a topic prefix, normally a `.'.
-	It can be customized by changing the setting of
-	`allout-header-prefix' and then reinitializing `allout-mode'.
+        The string at the beginning of a HEADER PREFIX, by default a `.'.
+        It can be customized by changing the setting of
+        `allout-header-prefix' and then reinitializing `allout-mode'.
 
-	By setting the prefix-lead to the comment-string of a
-	programming language, you can embed outline structuring in
-	program code without interfering with the language processing
-	of that code.  See `allout-use-mode-specific-leader'
-	docstring for more detail.
+        When the PREFIX-LEAD is set to the comment-string of a
+        programming language, outline structuring can be embedded in
+        program code without interfering with processing of the text
+        (by emacs or the language processor) as program code.  This
+        setting happens automatically when allout mode is used in
+        programming-mode buffers.  See `allout-use-mode-specific-leader'
+        docstring for more detail.
 PREFIX-PADDING:
-	Spaces or asterisks which separate the prefix-lead and the
-	bullet, determining the depth of the topic.
-BULLET: A character at the end of the topic prefix, it must be one of
-	the characters listed on `allout-plain-bullets-string' or
+        Spaces or asterisks which separate the PREFIX-LEAD and the
+        bullet, determining the ITEM's DEPTH.
+BULLET: A character at the end of the ITEM PREFIX, it must be one of
+        the characters listed on `allout-plain-bullets-string' or
         `allout-distinctive-bullets-string'.  (See the documentation
         for these variables for more details.)  The default choice of
-	bullet when generating topics varies in a cycle with the depth of
-	the topic.
-ENTRY:	The text contained in a topic before any offspring.
-BODY:	Same as ENTRY.
-
+        BULLET when generating ITEMs varies in a cycle with the DEPTH of
+        the ITEM.
 
 EXPOSURE:
- 	The state of a topic which determines the on-screen visibility
-	of its offspring and contained text.
+        The state of a TOPIC which determines the on-screen visibility
+        of its OFFSPRING and contained ENTRY text.
 CONCEALED:
-	Topics and entry text whose display is inhibited.  Contiguous
-	units of concealed text is represented by `...' ellipses.
+        TOPICs and ENTRY text whose EXPOSURE is inhibited.  Concealed
+        text is represented by \"...\" ellipses.
 
-	Concealed topics are effectively collapsed within an ancestor.
-CLOSED:	A topic whose immediate offspring and body-text is concealed.
-OPEN:	A topic that is not closed, though its offspring or body may be."
+        CONCEALED TOPICs are effectively collapsed within an ANCESTOR.
+CLOSED: A TOPIC whose immediate OFFSPRING and body-text is CONCEALED.
+OPEN:	A TOPIC that is not CLOSED, though its OFFSPRING or BODY may be."
 ;;;_    . Code
   (interactive "P")
 
@@ -1934,22 +1981,8 @@ OPEN:	A topic that is not closed, though its offspring or body may be."
          extend))
 
       ;; Produce map from current version of allout-keybindings-list:
-      (setq allout-mode-map
-            (produce-allout-mode-map allout-keybindings-list))
-      (substitute-key-definition 'beginning-of-line
-                                 'allout-beginning-of-line
-                                 allout-mode-map global-map)
-      (substitute-key-definition 'move-beginning-of-line
-                                 'allout-beginning-of-line
-                                 allout-mode-map global-map)
-      (substitute-key-definition 'end-of-line
-                                 'allout-end-of-line
-                                 allout-mode-map global-map)
-      (substitute-key-definition 'move-end-of-line
-                                 'allout-end-of-line
-                                 allout-mode-map global-map)
+      (allout-setup-mode-map)
       (produce-allout-mode-menubar-entries)
-      (fset 'allout-mode-map allout-mode-map)
 
       ;; Include on minor-mode-map-alist, if not already there:
       (if (not (member '(allout-mode . allout-mode-map)
@@ -2039,6 +2072,31 @@ OPEN:	A topic that is not closed, though its offspring or body may be."
     allout-mode
     )					; let*
   )  					; defun
+
+(defun allout-setup-mode-map ()
+  "Establish allout-mode bindings."
+  (setq-default allout-mode-map
+                (produce-allout-mode-map allout-keybindings-list))
+  (setq allout-mode-map
+        (produce-allout-mode-map allout-keybindings-list))
+  (substitute-key-definition 'beginning-of-line
+                             'allout-beginning-of-line
+                             allout-mode-map global-map)
+  (substitute-key-definition 'move-beginning-of-line
+                             'allout-beginning-of-line
+                             allout-mode-map global-map)
+  (substitute-key-definition 'end-of-line
+                             'allout-end-of-line
+                             allout-mode-map global-map)
+  (substitute-key-definition 'move-end-of-line
+                             'allout-end-of-line
+                             allout-mode-map global-map)
+  (fset 'allout-mode-map allout-mode-map))
+
+;; ensure that allout-mode-map has some setting even if allout-mode hasn't
+;; been invoked:
+(allout-setup-mode-map)
+
 ;;;_  > allout-minor-mode
 (defalias 'allout-minor-mode 'allout-mode)
 
@@ -2453,7 +2511,7 @@ Outermost is first."
             (t (allout-end-of-entry))))))
 ;;;_   > allout-next-heading ()
 (defsubst allout-next-heading ()
-  "Move to the heading for the topic \(possibly invisible) after this one.
+  "Move to the heading for the topic (possibly invisible) after this one.
 
 Returns the location of the heading, or nil if none found.
 
@@ -2476,7 +2534,7 @@ We skip anomolous low-level topics, a la `allout-aberrant-container-p'."
   (if (not (allout-goto-prefix-doublechecked)) (allout-next-heading)))
 ;;;_   > allout-previous-heading ()
 (defun allout-previous-heading ()
-  "Move to the prior \(possibly invisible) heading line.
+  "Move to the prior (possibly invisible) heading line.
 
 Return the location of the beginning of the heading, or nil if not found.
 
@@ -2526,7 +2584,7 @@ We skip anomolous low-level topics, a la `allout-aberrant-container-p'."
 (defun allout-chart-subtree (&optional levels visible orig-depth prev-depth)
   "Produce a location \"chart\" of subtopics of the containing topic.
 
-Optional argument LEVELS specifies a depth limit \(relative to start
+Optional argument LEVELS specifies a depth limit (relative to start
 depth) for the chart.  Null LEVELS means no limit.
 
 When optional argument VISIBLE is non-nil, the chart includes
@@ -2663,7 +2721,7 @@ start point."
     result))
 ;;;_   X allout-chart-spec (chart spec &optional exposing)
 ;; (defun allout-chart-spec (chart spec &optional exposing)
-;;   "Not yet \(if ever) implemented.
+;;   "Not yet (if ever) implemented.
 
 ;; Produce exposure directives given topic/subtree CHART and an exposure SPEC.
 
@@ -2684,7 +2742,7 @@ start point."
 ;;  - bare positive values indicate that this topic header should be
 ;;    opened.
 ;;  - Lists signify the beginning and end points of regions that should
-;;    be flagged, and the flag to employ.  (For concealment: `\(\?r\)', and
+;;    be flagged, and the flag to employ.  (For concealment: `(\?r)', and
 ;;    exposure:"
 ;;   (while spec
 ;;     (cond ((listp spec)
@@ -2721,7 +2779,7 @@ Returns the point at the beginning of the prefix, or nil if none."
 (defun allout-goto-prefix-doublechecked ()
   "Put point at beginning of immediately containing outline topic.
 
-Like `allout-goto-prefix', but shallow topics \(according to
+Like `allout-goto-prefix', but shallow topics (according to
 `allout-doublecheck-at-and-shallower') are checked and
 disqualified for child containment discontinuity, according to
 `allout-aberrant-container-p'."
@@ -2749,7 +2807,7 @@ otherwise skip white space between bullet and ensuing text."
     (allout-current-depth)))
 ;;;_   > allout-current-bullet-pos ()
 (defun allout-current-bullet-pos ()
-  "Return position of current \(visible) topic's bullet."
+  "Return position of current (visible) topic's bullet."
 
   (if (not (allout-current-depth))
       nil
@@ -2887,19 +2945,31 @@ collapsed."
         (if (interactive-p) (allout-end-of-prefix))
         (and last-ascended allout-recent-depth))))
 ;;;_   > allout-ascend ()
-(defun allout-ascend ()
-  "Ascend one level, returning t if successful, nil if not."
+(defun allout-ascend (&optional dont-move-if-unsuccessful)
+  "Ascend one level, returning resulting depth if successful, nil if not.
+
+Point is left at the beginning of the level whether or not
+successful, unless optional DONT-MOVE-IF-UNSUCCESSFUL is set, in
+which case point is returned to its original starting location."
+  (if dont-move-if-unsuccessful
+      (setq dont-move-if-unsuccessful (point)))
   (prog1
       (if (allout-beginning-of-level)
           (let ((bolevel (point))
                 (bolevel-depth allout-recent-depth))
             (allout-previous-heading)
-            (if (< allout-recent-depth bolevel-depth)
-                allout-recent-depth
-              ;; some topic after file's first is at lower depth than first:
-              (goto-char bolevel)
-              (allout-depth)
-              nil)))
+            (cond ((< allout-recent-depth bolevel-depth)
+                   allout-recent-depth)
+                  ((= allout-recent-depth bolevel-depth)
+                   (if dont-move-if-unsuccessful
+                       (goto-char dont-move-if-unsuccessful))
+                   (allout-depth)
+                   nil)
+                  (t
+                   ;; some topic after very first is lower depth than first:
+                   (goto-char bolevel)
+                   (allout-depth)
+                   nil))))
     (if (interactive-p) (allout-end-of-prefix))))
 ;;;_   > allout-descend-to-depth (depth)
 (defun allout-descend-to-depth (depth)
@@ -2990,7 +3060,7 @@ Return the start point of the new topic if successful, nil otherwise.
 
 Costs more than regular `allout-next-sibling' for short traversals:
 
- - we have to check the prior \(next, if travelling backwards)
+ - we have to check the prior (next, if travelling backwards)
    item to confirm connectivity with the prior topic, and
  - if confirmed, we have to reestablish the allout-recent-* settings with
    some extra navigation
@@ -3219,7 +3289,7 @@ reinterpreted as the corresponding control-character in the
 the cursor which has moved as a result of such reinterpretation is
 positioned on the bullet character of the destination topic.
 
-The upshot is that you can get easy, single \(ie, unmodified\) key
+The upshot is that you can get easy, single (ie, unmodified) key
 outline maneuvering operations by positioning the cursor on the bullet
 char.  When in this mode you can use regular cursor-positioning
 command/keystrokes to relocate the cursor off of a bullet character to
@@ -3329,7 +3399,7 @@ Offer one suitable for current depth DEPTH as default."
                    (allout-get-bullet)))))
 ;;;_   > allout-encrypted-type-prefix (&optional prefix)
 (defun allout-encrypted-type-prefix (&optional prefix)
-  "True if current header prefix bullet is for an encrypted entry \(body)."
+  "True if current header prefix bullet is for an encrypted entry (body)."
   (and allout-topic-encryption-bullet
         (string= allout-topic-encryption-bullet
                  (if prefix
@@ -3380,8 +3450,8 @@ the current topics' depth.
 
 If SOLICIT is non-nil, then the choice of bullet is solicited from
 user.  If it's a character, then that character is offered as the
-default, otherwise the one suited to the context \(according to
-distinction or depth) is offered.  \(This overrides other options,
+default, otherwise the one suited to the context (according to
+distinction or depth) is offered.  (This overrides other options,
 including, eg, a distinctive PRIOR-BULLET.)  If non-nil, then the
 context-specific bullet is used.
 
@@ -3505,7 +3575,7 @@ whitespace - in which case open is done on the current line.
 
 When adding an offspring, it will be added immediately after the parent if
 the other offspring are exposed, or after the last child if the offspring
-are hidden.  \(The intervening offspring will be exposed in the latter
+are hidden.  (The intervening offspring will be exposed in the latter
 case.)
 
 If OFFER-RECENT-BULLET is true, offer to use the bullet of the prior sibling.
@@ -3823,7 +3893,7 @@ All args are optional.
 
 If SOLICIT is non-nil, then the choice of bullet is solicited from
 user.  If it's a character, then that character is offered as the
-default, otherwise the one suited to the context \(according to
+default, otherwise the one suited to the context (according to
 distinction or depth) is offered.  If non-nil, then the
 context-specific bullet is just used.
 
@@ -3921,7 +3991,7 @@ this function."
 Descends into invisible as well as visible topics, however.
 
 When optional sans-offspring is non-nil, subtopics are not
-shifted.  \(Shifting a topic outwards without shifting its
+shifted.  (Shifting a topic outwards without shifting its
 offspring is disallowed, since this would create a \"containment
 discontinuity\", where the depth difference between a topic and
 its immediate offspring is greater than one.)
@@ -3962,7 +4032,7 @@ Several subsequent args are for internal recursive use by the function
 itself: STARTING-DEPTH, STARTING-POINT, and INDEX.
 
 Finally, if optional SANS-OFFSPRING is non-nil then the offspring
-are not shifted.  \(Shifting a topic outwards without shifting
+are not shifted.  (Shifting a topic outwards without shifting
 its offspring is disallowed, since this would create a
 \"containment discontinuity\", where the depth difference between
 a topic and its immediate offspring is greater than one..)"
@@ -4445,7 +4515,7 @@ however, are left exactly like normal, non-allout-specific yanks."
                   (while more
                     (allout-back-to-current-heading)
                                         ; go as high as we can in each bunch:
-                    (while (allout-ascend))
+                    (while (allout-ascend t))
                     (save-excursion
                       (allout-unprotected
                        (allout-rebullet-topic-grunt (- adjust-to-depth
@@ -4598,9 +4668,9 @@ by pops to non-distinctive yanks.  Bug..."
   "Conceal text between FROM and TO if FLAG is non-nil, else reveal it.
 
 Exposure-change hook `allout-exposure-change-hook' is run with the same
-arguments as this function, after the exposure changes are made.  \(The old
+arguments as this function, after the exposure changes are made.  (The old
 `allout-view-change-hook' is being deprecated, and eventually will not be
-invoked.\)"
+invoked.)"
 
   ;; We use outline invisibility spec.
   (remove-overlays from to 'category 'allout-exposure-category)
@@ -4900,7 +4970,7 @@ SPEC is either a number or a list.
 
 Successive specs on a list are applied to successive sibling topics.
 
-A simple spec \(either a number, one of a few symbols, or the null
+A simple spec (either a number, one of a few symbols, or the null
 list) dictates the exposure for the corresponding topic.
 
 Non-null lists recursively designate exposure specs for respective
@@ -4923,7 +4993,7 @@ Simple (numeric and null-list) specs are interpreted as follows:
        apply prior element to all siblings at current level, *up to*
        those siblings that would be covered by specs following the `:'
        on the list.  Ie, apply to all topics at level but the last
-       ones.  \(Only first of multiple colons at same level is
+       ones.  (Only first of multiple colons at same level is
        respected - subsequent ones are discarded.)
   *  - completely opens the topic, including bodies.
   +  - shows all the sub headers, but not the bodies
@@ -5006,7 +5076,7 @@ Examples:
 ;;;_   > allout-old-expose-topic (spec &rest followers)
 (defun allout-old-expose-topic (spec &rest followers)
 
-  "Deprecated.  Use `allout-expose-topic' \(with different schema
+  "Deprecated.  Use `allout-expose-topic' (with different schema
 format) instead.
 
 Dictate wholesale exposure scheme for current topic, according to SPEC.
@@ -5203,7 +5273,7 @@ the prefix:
 
  list - Present prefix as numeric section.subsection..., starting with
 	section indicated by the list, innermost nesting first.
- `indent' \(symbol) -  Convert header prefixes to all white space,
+ `indent' (symbol) -  Convert header prefixes to all white space,
 		       except for distinctive bullets.
 
 The elements of the list produced are lists that represents a topic
@@ -5332,7 +5402,7 @@ alternate presentation form:
  X`flat-indented' - Prefix is like `flat' for first topic at each
  X		   level, but subsequent topics have only leaf topic
  X		   number, padded with blanks to line up with first.
- `indent' \(symbol) -  Convert header prefixes to all white space,
+ `indent' (symbol) -  Convert header prefixes to all white space,
 		       except for distinctive bullets.
 
 Defaults:
@@ -5484,7 +5554,7 @@ used verbatim."
 ;;;_   > allout-latex-verb-quote (string &optional flow)
 (defun allout-latex-verb-quote (string &optional flow)
   "Return copy of STRING for literal reproduction across LaTeX processing.
-Expresses the original characters \(including carriage returns) of the
+Expresses the original characters (including carriage returns) of the
 string across LaTeX processing."
   (mapconcat (function
 	      (lambda (char)
@@ -5496,9 +5566,9 @@ string across LaTeX processing."
 	     ""))
 ;;;_   > allout-latex-verbatim-quote-curr-line ()
 (defun allout-latex-verbatim-quote-curr-line ()
-  "Express line for exact \(literal) representation across LaTeX processing.
+  "Express line for exact (literal) representation across LaTeX processing.
 
-Adjust line contents so it is unaltered \(from the original line)
+Adjust line contents so it is unaltered (from the original line)
 across LaTeX processing, within the context of a `verbatim'
 environment.  Leaves point at the end of the line."
   (let ((inhibit-field-text-motion t))
@@ -5673,7 +5743,7 @@ With repeat count, copy the exposed portions of entire buffer."
   "Encrypt clear or decrypt encoded text of visibly-containing topic's contents.
 
 Optional FETCH-PASS universal argument provokes key-pair encryption with
-single universal argument.  With doubled universal argument \(value = 16),
+single universal argument.  With doubled universal argument (value = 16),
 it forces prompting for the passphrase regardless of availability from the
 passphrase cache.  With no universal argument, the appropriate passphrase
 is obtained from the cache, if available, else from the user.
@@ -5684,10 +5754,10 @@ Currently only GnuPG encryption is supported.
 encryption, include the option ``armor'' in your ~/.gnupg/gpg.conf file.
 
 Both symmetric-key and key-pair encryption is implemented.  Symmetric is
-the default, use a single \(x4) universal argument for keypair mode.
+the default, use a single (x4) universal argument for keypair mode.
 
 Encrypted topic's bullet is set to a `~' to signal that the contents of the
-topic \(body and subtopics, but not heading) is pending encryption or
+topic (body and subtopics, but not heading) is pending encryption or
 encrypted.  `*' asterisk immediately after the bullet signals that the body
 is encrypted, its' absence means the topic is meant to be encrypted but is
 not.  When a file with topics pending encryption is saved, topics pending
@@ -5695,7 +5765,7 @@ encryption are encrypted.  See allout-encrypt-unencrypted-on-saves for
 auto-encryption specifics.
 
 \**NOTE WELL** that automatic encryption that happens during saves will
-default to symmetric encryption - you must manually \(re)encrypt key-pair
+default to symmetric encryption - you must manually (re)encrypt key-pair
 encrypted topics if you want them to continue to use the key-pair cipher.
 
 Level-one topics, with prefix consisting solely of an `*' asterisk, cannot be
@@ -5708,7 +5778,7 @@ The encryption passphrase is solicited if not currently available in the
 passphrase cache from a recent encryption action.
 
 The solicited passphrase is retained for reuse in a buffer-specific cache
-for some set period of time \(default, 60 seconds), after which the string
+for some set period of time (default, 60 seconds), after which the string
 is nulled.  The passphrase cache timeout is customized by setting
 `pgg-passphrase-cache-expiry'.
 
@@ -5731,7 +5801,7 @@ verifier across Emacs sessions.
 Similarly, `allout-passphrase-hint-string' stores a user-provided reminder
 about their passphrase, and `allout-passphrase-hint-handling' specifies
 when the hint is presented, or if passphrase hints are disabled.  If
-enabled \(see the `allout-passphrase-hint-handling' docstring for details),
+enabled (see the `allout-passphrase-hint-handling' docstring for details),
 the hint string is stored in the local-variables section of the file, and
 solicited whenever the passphrase is changed."
   (interactive "P")
@@ -5742,10 +5812,10 @@ solicited whenever the passphrase is changed."
   )
 ;;;_  > allout-toggle-subtree-encryption (&optional fetch-pass)
 (defun allout-toggle-subtree-encryption (&optional fetch-pass)
-  "Encrypt clear text or decrypt encoded topic contents \(body and subtopics.)
+  "Encrypt clear text or decrypt encoded topic contents (body and subtopics.)
 
 Optional FETCH-PASS universal argument provokes key-pair encryption with
-single universal argument.  With doubled universal argument \(value = 16),
+single universal argument.  With doubled universal argument (value = 16),
 it forces prompting for the passphrase regardless of availability from the
 passphrase cache.  With no universal argument, the appropriate passphrase
 is obtained from the cache, if available, else from the user.
@@ -6489,7 +6559,7 @@ This activity is inhibited if either `enable-local-variables'
 When enabled, an entry for the variable is created if not already present,
 or changed if established with a different value.  The section for the file
 variables, itself, is created if not already present.  When created, the
-section lines \(including the section line) exist as second-level topics in
+section lines (including the section line) exist as second-level topics in
 a top-level topic at the end of the file.
 
 `enable-local-variables' must be true for any of this to happen."
@@ -6818,7 +6888,7 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
 ;;;_ #10 Unfinished
 ;;;_  > allout-bullet-isearch (&optional bullet)
 (defun allout-bullet-isearch (&optional bullet)
-  "Isearch \(regexp) for topic with bullet BULLET."
+  "Isearch (regexp) for topic with bullet BULLET."
   (interactive)
   (if (not bullet)
       (setq bullet (solicit-char-in-string

@@ -361,9 +361,9 @@ pthread_t main_thread;
 #endif
 
 
-#ifdef SIGUSR1
+#if defined (SIGUSR1) || defined (SIGUSR2)
 SIGTYPE
-handle_USR1_signal (sig)
+handle_user_signal (sig)
      int sig;
 {
   struct input_event buf;
@@ -374,25 +374,10 @@ handle_USR1_signal (sig)
   buf.frame_or_window = selected_frame;
 
   kbd_buffer_store_event (&buf);
-}
-#endif /* SIGUSR1 */
-
-#ifdef SIGUSR2
-SIGTYPE
-handle_USR2_signal (sig)
-     int sig;
-{
-  struct input_event buf;
-
-  SIGNAL_THREAD_CHECK (sig);
-  bzero (&buf, sizeof buf);
-  buf.kind = USER_SIGNAL_EVENT;
-  buf.code = 1;
-  buf.frame_or_window = selected_frame;
-
+  buf.code = sig;
   kbd_buffer_store_event (&buf);
 }
-#endif /* SIGUSR2 */
+#endif
 
 /* Handle bus errors, invalid instruction, etc.  */
 SIGTYPE
@@ -1229,10 +1214,10 @@ main (argc, argv
       signal (SIGILL, fatal_error_signal);
       signal (SIGTRAP, fatal_error_signal);
 #ifdef SIGUSR1
-      signal (SIGUSR1, handle_USR1_signal);
-#ifdef SIGUSR2
-      signal (SIGUSR2, handle_USR2_signal);
+      signal (SIGUSR1, handle_user_signal);
 #endif
+#ifdef SIGUSR2
+      signal (SIGUSR2, handle_user_signal);
 #endif
 #ifdef SIGABRT
       signal (SIGABRT, fatal_error_signal);

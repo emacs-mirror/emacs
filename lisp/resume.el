@@ -1,6 +1,6 @@
 ;;; resume.el --- process command line args from within a suspended Emacs job
 
-;; Copyright (C) 1992, 2002, 2003, 2004, 2005,
+;; Copyright (C) 1992, 2001, 2002, 2003, 2004, 2005,
 ;;   2006 Free Software Foundation, Inc.
 
 ;; Author: Joe Wells <jbw@bucsf.bu.edu>
@@ -52,7 +52,7 @@
   "*This file is where arguments are placed for a suspended Emacs job.")
 
 (defvar resume-emacs-args-buffer " *Command Line Args*"
-  "Buffer that is used by resume-process-args.")
+  "Buffer that is used by `resume-process-args'.")
 
 (defun resume-process-args ()
   "Handler for command line args given when Emacs is resumed."

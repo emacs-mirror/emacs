@@ -4081,6 +4081,11 @@ non-nil, it is called instead of rereading visited file contents."
 			      "File %s no longer exists!"
 			    "Cannot revert nonexistent file %s")
 			  file-name))
+		  ((not (file-readable-p file-name))
+		   (error (if buffer-file-number
+			      "File %s no longer readable!"
+			    "Cannot revert unreadable file %s")
+			  file-name))
 		  (t
 		   ;; Bind buffer-file-name to nil
 		   ;; so that we don't try to lock the file.

@@ -596,11 +596,12 @@ Return nil if PATTERN doesn't conform to XLFD."
 
 (defun x-compose-font-name (fields &optional reduce)
   "Compose X fontname from FIELDS.
-FIELDS is a vector of XLFD fields, the length 12.
+FIELDS is a vector of XLFD fields, of length 12.
 If a field is nil, wild-card letter `*' is embedded.
-Optional argument REDUCE is always ignored.  It exists just for
-backward compatibility."
+Optional argument REDUCE exists just for backward compatibility,
+and is always ignored."
   (concat "-" (mapconcat (lambda (x) (or x "*")) fields "-")))
+
 
 (defun x-must-resolve-font-name (xlfd-fields)
   "Like `x-resolve-font-name', but always return a font name.
@@ -656,7 +657,7 @@ replaced by the corresponding fields in XLFD-FIELDS."
 (defun fontset-name-p (fontset)
   "Return non-nil if FONTSET is valid as fontset name.
 A valid fontset name should conform to XLFD (X Logical Font Description)
-with \"fontset\" in `<CHARSET_REGISTRY> field."
+with \"fontset\" in `<CHARSET_REGISTRY>' field."
   (and (string-match xlfd-tight-regexp fontset)
        (string= (match-string (1+ xlfd-regexp-registry-subnum) fontset)
 		"fontset")))
@@ -768,7 +769,7 @@ to map charsets to scripts.")
 					 &optional style-variant noerror)
   "Create a fontset from fontset specification string FONTSET-SPEC.
 FONTSET-SPEC is a string of the format:
-	FONTSET-NAME,SCRIPT-NAME0:FONT-NAME0,SCRIPT-NAME1:FONT-NAME1, ...
+	FONTSET-NAME,SCRIPT0:FONT0,SCRIPT1:FONT1, ...
 Any number of SPACE, TAB, and NEWLINE can be put before and after commas.
 
 When a frame uses the fontset as the `font' parameter, the frame's
@@ -777,8 +778,8 @@ default font name is derived from FONTSET-NAME by substituting
 is \"ascii\", use the corresponding FONT-NAMEn as the default font
 name.
 
-Optional 2nd and 3rd arguments are ignored.  They exist just for
-backward compatibility.
+Optional 2nd and 3rd arguments exist just for backward compatibility,
+and are ignored.
 
 It returns a name of the created fontset.
 
@@ -817,11 +818,11 @@ which case, the corresponding script is decided by the variable
 					    fontset-name)
   "Create a fontset from an ASCII font FONT.
 
-Optional 1st arg RESOLVED-FONT is a resolved name of FONT.  If
-omitted, `x-resolve-font-name' is called to get the resolved name.  At
-this time, if FONT is not available, an error is signaled.
+Optional 2nd arg RESOLVED-FONT is a resolved name of FONT.
+If omitted, `x-resolve-font-name' is called to get the resolved name.
+At this time, if FONT is not available, an error is signaled.
 
-Optional 2nd arg FONTSET-NAME is a string to be used in
+Optional 3rd arg FONTSET-NAME is a string to be used in
 `<CHARSET_ENCODING>' fields of a new fontset name.  If it is omitted,
 an appropriate name is generated automatically.
 

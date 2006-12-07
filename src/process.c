@@ -149,7 +149,8 @@ Boston, MA 02110-1301, USA.  */
 #include "atimer.h"
 
 Lisp_Object Qprocessp;
-Lisp_Object Qrun, Qstop, Qsignal;
+Lisp_Object Qrun, Qstop;
+extern Lisp_Object Qsignal;
 Lisp_Object Qopen, Qclosed, Qconnect, Qfailed, Qlisten;
 Lisp_Object Qlocal, Qipv4, Qdatagram;
 #ifdef AF_INET6
@@ -6127,8 +6128,8 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
 
  got_it:
 
-#define handle_signal(NAME, VALUE)		\
-  else if (!strcmp (name, NAME))		\
+#define parse_signal(NAME, VALUE)		\
+  else if (!strcasecmp (name, NAME))		\
     XSETINT (sigcode, VALUE)
 
   if (INTEGERP (sigcode))
@@ -6140,106 +6141,106 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
       CHECK_SYMBOL (sigcode);
       name = SDATA (SYMBOL_NAME (sigcode));
 
-      if (!strncmp(name, "SIG", 3))
+      if (!strncasecmp(name, "sig", 3))
 	name += 3;
 
       if (0)
 	;
-#ifdef SIGHUP
-      handle_signal ("HUP", SIGHUP);
-#endif
-#ifdef SIGINT
-      handle_signal ("INT", SIGINT);
-#endif
-#ifdef SIGQUIT
-      handle_signal ("QUIT", SIGQUIT);
-#endif
-#ifdef SIGILL
-      handle_signal ("ILL", SIGILL);
-#endif
-#ifdef SIGABRT
-      handle_signal ("ABRT", SIGABRT);
-#endif
-#ifdef SIGEMT
-      handle_signal ("EMT", SIGEMT);
-#endif
-#ifdef SIGKILL
-      handle_signal ("KILL", SIGKILL);
-#endif
-#ifdef SIGFPE
-      handle_signal ("FPE", SIGFPE);
-#endif
-#ifdef SIGBUS
-      handle_signal ("BUS", SIGBUS);
-#endif
-#ifdef SIGSEGV
-      handle_signal ("SEGV", SIGSEGV);
-#endif
-#ifdef SIGSYS
-      handle_signal ("SYS", SIGSYS);
-#endif
-#ifdef SIGPIPE
-      handle_signal ("PIPE", SIGPIPE);
-#endif
-#ifdef SIGALRM
-      handle_signal ("ALRM", SIGALRM);
-#endif
-#ifdef SIGTERM
-      handle_signal ("TERM", SIGTERM);
-#endif
-#ifdef SIGURG
-      handle_signal ("URG", SIGURG);
-#endif
-#ifdef SIGSTOP
-      handle_signal ("STOP", SIGSTOP);
-#endif
-#ifdef SIGTSTP
-      handle_signal ("TSTP", SIGTSTP);
-#endif
-#ifdef SIGCONT
-      handle_signal ("CONT", SIGCONT);
-#endif
-#ifdef SIGCHLD
-      handle_signal ("CHLD", SIGCHLD);
-#endif
-#ifdef SIGTTIN
-      handle_signal ("TTIN", SIGTTIN);
-#endif
-#ifdef SIGTTOU
-      handle_signal ("TTOU", SIGTTOU);
-#endif
-#ifdef SIGIO
-      handle_signal ("IO", SIGIO);
-#endif
-#ifdef SIGXCPU
-      handle_signal ("XCPU", SIGXCPU);
-#endif
-#ifdef SIGXFSZ
-      handle_signal ("XFSZ", SIGXFSZ);
-#endif
-#ifdef SIGVTALRM
-      handle_signal ("VTALRM", SIGVTALRM);
-#endif
-#ifdef SIGPROF
-      handle_signal ("PROF", SIGPROF);
-#endif
-#ifdef SIGWINCH
-      handle_signal ("WINCH", SIGWINCH);
-#endif
-#ifdef SIGINFO
-      handle_signal ("INFO", SIGINFO);
-#endif
 #ifdef SIGUSR1
-      handle_signal ("USR1", SIGUSR1);
+      parse_signal ("usr1", SIGUSR1);
 #endif
 #ifdef SIGUSR2
-      handle_signal ("USR2", SIGUSR2);
+      parse_signal ("usr2", SIGUSR2);
+#endif
+#ifdef SIGTERM
+      parse_signal ("term", SIGTERM);
+#endif
+#ifdef SIGHUP
+      parse_signal ("hup", SIGHUP);
+#endif
+#ifdef SIGINT
+      parse_signal ("int", SIGINT);
+#endif
+#ifdef SIGQUIT
+      parse_signal ("quit", SIGQUIT);
+#endif
+#ifdef SIGILL
+      parse_signal ("ill", SIGILL);
+#endif
+#ifdef SIGABRT
+      parse_signal ("abrt", SIGABRT);
+#endif
+#ifdef SIGEMT
+      parse_signal ("emt", SIGEMT);
+#endif
+#ifdef SIGKILL
+      parse_signal ("kill", SIGKILL);
+#endif
+#ifdef SIGFPE
+      parse_signal ("fpe", SIGFPE);
+#endif
+#ifdef SIGBUS
+      parse_signal ("bus", SIGBUS);
+#endif
+#ifdef SIGSEGV
+      parse_signal ("segv", SIGSEGV);
+#endif
+#ifdef SIGSYS
+      parse_signal ("sys", SIGSYS);
+#endif
+#ifdef SIGPIPE
+      parse_signal ("pipe", SIGPIPE);
+#endif
+#ifdef SIGALRM
+      parse_signal ("alrm", SIGALRM);
+#endif
+#ifdef SIGURG
+      parse_signal ("urg", SIGURG);
+#endif
+#ifdef SIGSTOP
+      parse_signal ("stop", SIGSTOP);
+#endif
+#ifdef SIGTSTP
+      parse_signal ("tstp", SIGTSTP);
+#endif
+#ifdef SIGCONT
+      parse_signal ("cont", SIGCONT);
+#endif
+#ifdef SIGCHLD
+      parse_signal ("chld", SIGCHLD);
+#endif
+#ifdef SIGTTIN
+      parse_signal ("ttin", SIGTTIN);
+#endif
+#ifdef SIGTTOU
+      parse_signal ("ttou", SIGTTOU);
+#endif
+#ifdef SIGIO
+      parse_signal ("io", SIGIO);
+#endif
+#ifdef SIGXCPU
+      parse_signal ("xcpu", SIGXCPU);
+#endif
+#ifdef SIGXFSZ
+      parse_signal ("xfsz", SIGXFSZ);
+#endif
+#ifdef SIGVTALRM
+      parse_signal ("vtalrm", SIGVTALRM);
+#endif
+#ifdef SIGPROF
+      parse_signal ("prof", SIGPROF);
+#endif
+#ifdef SIGWINCH
+      parse_signal ("winch", SIGWINCH);
+#endif
+#ifdef SIGINFO
+      parse_signal ("info", SIGINFO);
 #endif
       else
 	error ("Undefined signal name %s", name);
     }
 
-#undef handle_signal
+#undef parse_signal
 
   return make_number (kill (pid, XINT (sigcode)));
 }
@@ -6985,8 +6986,6 @@ syms_of_process ()
   staticpro (&Qrun);
   Qstop = intern ("stop");
   staticpro (&Qstop);
-  Qsignal = intern ("signal");
-  staticpro (&Qsignal);
 
   /* Qexit is already staticpro'd by syms_of_eval; don't staticpro it
      here again.

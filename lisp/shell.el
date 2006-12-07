@@ -1,6 +1,6 @@
 ;;; shell.el --- specialized comint.el for running the shell
 
-;; Copyright (C) 1988, 1993, 1994, 1995, 1996, 1997, 2000,
+;; Copyright (C) 1988, 1993, 1994, 1995, 1996, 1997, 2000, 2001,
 ;;   2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
@@ -521,9 +521,9 @@ If BUFFER exists and shell process is running, just switch to BUFFER.
 Program used comes from variable `explicit-shell-file-name',
  or (if that is nil) from the ESHELL environment variable,
  or else from SHELL if there is no ESHELL.
-If a file `~/.emacs_SHELLNAME' exists, it is given as initial input
- (Note that this may lose due to a timing error if the shell
-  discards input when it starts up.)
+If a file `~/.emacs_SHELLNAME' exists, or `~/.emacs.d/init_SHELLNAME.sh',
+it is given as initial input (Note that this may lose due to a timing
+error if the shell discards input when it starts up).
 The buffer is put in Shell mode, giving commands for sending input
 and controlling the subjobs of the shell.  See `shell-mode'.
 See also the variable `shell-prompt-pattern'.
@@ -556,8 +556,8 @@ Otherwise, one argument `-i' is passed to the shell.
 	   (name (file-name-nondirectory prog))
 	   (startfile (concat "~/.emacs_" name))
 	   (xargs-name (intern-soft (concat "explicit-" name "-args"))))
-      (if (not (file-exists-p startfile))
-	  (setq startfile (concat "~/.emacs.d/.emacs_" name)))
+      (unless (file-exists-p startfile)
+	(setq startfile (concat "~/.emacs.d/init_" name ".sh")))
       (apply 'make-comint-in-buffer "shell" buffer prog
 	     (if (file-exists-p startfile) startfile)
 	     (if (and xargs-name (boundp xargs-name))

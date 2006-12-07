@@ -1494,6 +1494,16 @@ dnl Do this early because it can frob feature test macros for Unix-98 &c.
 AC_SYS_LARGEFILE
 
 
+### The standard library on x86-64 GNU/Linux distributions can 
+### be located in either /usr/lib64 or /usr/lib.
+case "${canonical}" in
+  x86_64-*-linux-gnu* )
+    if test -d /usr/lib64; then
+      AC_DEFINE(HAVE_X86_64_LIB64_DIR, 1,
+        [Define to 1 if the file /usr/lib64 exists.])
+fi
+esac
+
 dnl This function defintion taken from Gnome 2.0
 dnl PKG_CHECK_MODULES(GSTUFF, gtk+-2.0 >= 1.3 glib = 1.3.4, action-if, action-not)
 dnl defines GSTUFF_LIBS, GSTUFF_CFLAGS, see pkg-config man page
@@ -2572,7 +2582,7 @@ strerror fpathconf select mktime euidaccess getpagesize tzset setlocale \
 utimes setrlimit setpgid getcwd getwd shutdown getaddrinfo \
 __fpending mblen mbrlen mbsinit strsignal setitimer ualarm index rindex \
 sendto recvfrom getsockopt setsockopt getsockname getpeername \
-gai_strerror mkstemp getline getdelim mremap memmove fsync bzero \
+gai_strerror mkstemp getline getdelim mremap memmove fsync sync bzero \
 memset memcmp difftime memcpy mempcpy mblen mbrlen posix_memalign)
 
 AC_CHECK_HEADERS(sys/un.h)
@@ -2957,7 +2967,7 @@ if test "${REL_ALLOC}" = "yes" ; then
 fi
 
 AH_TOP([/* GNU Emacs site configuration template file.
-   Copyright (C) 1988, 1993, 1994, 1999, 2000, 2002, 2004, 2005, 2006
+   Copyright (C) 1988, 1993, 1994, 1999, 2000, 2001, 2002, 2004, 2005, 2006
              Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.

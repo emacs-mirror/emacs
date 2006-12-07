@@ -7,6 +7,7 @@
 @node Customization, Loading, Macros, Top
 @chapter Writing Customization Definitions
 
+@cindex customization definitions
   This chapter describes how to declare user options for customization,
 and also customization groups for classifying them.  We use the term
 @dfn{customization item} to include both kinds of customization
@@ -23,6 +24,7 @@ definitions---as well as face definitions (@pxref{Defining Faces}).
 @node Common Keywords
 @section Common Item Keywords
 
+@cindex customization keywords
   All kinds of customization declarations (for variables and groups, and
 for faces) accept keyword arguments for specifying various information.
 This section describes some keywords that apply to all kinds.
@@ -34,6 +36,7 @@ display one name.
 
 @table @code
 @item :tag @var{label}
+@kindex tag@r{, customization keyword}
 Use @var{label}, a string, instead of the item's name, to label the
 item in customization menus and buffers.  @strong{Don't use a tag
 which is substantially different from the item's real name; that would
@@ -45,6 +48,7 @@ specify a dash where normally a hyphen would be converted to a space:
   :tag "Cursor In Non-selected Windows"
 @end example
 
+@kindex group@r{, customization keyword}
 @item :group @var{group}
 Put this customization item in group @var{group}.  When you use
 @code{:group} in a @code{defgroup}, it makes the new group a subgroup of
@@ -55,6 +59,7 @@ more than one group.  Displaying any of those groups will show this
 item.  Please don't overdo this, since the result would be annoying.
 
 @item :link @var{link-data}
+@kindex link@r{, customization keyword}
 Include an external link after the documentation string for this item.
 This is a sentence containing an active field which references some
 other documentation.
@@ -114,11 +119,13 @@ An item can have more than one external link; however, most items have
 none at all.
 
 @item :load @var{file}
+@kindex load@r{, customization keyword}
 Load file @var{file} (a string) before displaying this customization
 item.  Loading is done with @code{load-library}, and only if the file is
 not already loaded.
 
 @item :require @var{feature}
+@kindex require@r{, customization keyword}
 Execute @code{(require '@var{feature})} when your saved customizations
 set the value of this item.  @var{feature} should be a symbol.
 
@@ -127,11 +134,13 @@ a feature such as a minor mode, and just setting the variable won't have
 any effect unless the code which implements the mode is loaded.
 
 @item :version @var{version}
+@kindex version@r{, customization keyword}
 This option specifies that the item was first introduced in Emacs
 version @var{version}, or that its default value was changed in that
 version.  The value @var{version} must be a string.
 
 @item :package-version '(@var{package} . @var{version})
+@kindex package-version@r{, customization keyword}
 This option specifies that the item was first introduced in
 @var{package} version @var{version}, or that its meaning or default
 value was changed in that version.  The value of @var{package} is a
@@ -179,6 +188,7 @@ choice is the official name of the package, such as MH-E or Gnus.
 @node Group Definitions
 @section Defining Custom Groups
 
+@cindex custom groups, how to define
   Each Emacs Lisp package should have one main customization group which
 contains all the options, faces and other groups in the package.  If the
 package has a small number of options and faces, use just one group and
@@ -221,6 +231,7 @@ also use this keyword in @code{defgroup}:
 
 @table @code
 @item :prefix @var{prefix}
+@kindex prefix@r{, @code{defgroup} keyword}
 If the name of an item in the group starts with @var{prefix}, then the
 tag for that item is constructed (by default) by omitting @var{prefix}.
 
@@ -249,6 +260,8 @@ turn this feature back on, if someone would like to do the work.
 @node Variable Definitions
 @section Defining Customization Variables
 
+@cindex customization variables, how to define
+@cindex declare user-editable variables
   Use @code{defcustom} to declare user-editable variables.
 
 @defmac defcustom option standard doc [keyword value]@dots{}
@@ -297,6 +310,7 @@ values are legitimate, and how to display the value.
 @xref{Customization Types}, for more information.
 
 @item :options @var{list}
+@kindex options@r{, @code{defcustom} keyword}
 Specify @var{list} as the list of reasonable values for use in this
 option.  The user is not restricted to using only these values, but they
 are offered as convenient alternatives.
@@ -306,6 +320,7 @@ This is meaningful only for certain types, currently including
 individual types for a description of how to use @code{:options}.
 
 @item :set @var{setfunction}
+@kindex set@r{, @code{defcustom} keyword}
 Specify @var{setfunction} as the way to change the value of this
 option.  The function @var{setfunction} should take two arguments, a
 symbol (the option name) and the new value, and should do whatever is
@@ -314,6 +329,7 @@ mean simply setting the option as a Lisp variable).  The default for
 @var{setfunction} is @code{set-default}.
 
 @item :get @var{getfunction}
+@kindex get@r{, @code{defcustom} keyword}
 Specify @var{getfunction} as the way to extract the value of this
 option.  The function @var{getfunction} should take one argument, a
 symbol, and should return whatever customize should use as the
@@ -327,6 +343,7 @@ is almost surely a mistake to specify @code{getfunction} for a value
 that really is stored in a Lisp variable.
 
 @item :initialize @var{function}
+@kindex initialize@r{, @code{defcustom} keyword}
 @var{function} should be a function used to initialize the variable
 when the @code{defcustom} is evaluated.  It should take two arguments,
 the option name (a symbol) and the value.  Here are some predefined
@@ -374,6 +391,7 @@ variables and functions will be defined, so there will not be an error.
 @end table
 
 @item :set-after @var{variables}
+@kindex set-after@r{, @code{defcustom} keyword}
 When setting variables according to saved customizations, make sure to
 set the variables @var{variables} before this one; in other words, delay
 setting this variable until after those others have been handled.  Use
@@ -425,11 +443,13 @@ an expression which evaluates to the value.
 @node Customization Types
 @section Customization Types
 
+@cindex customization types
   When you define a user option with @code{defcustom}, you must specify
 its @dfn{customization type}.  That is a Lisp object which describes (1)
 which values are legitimate and (2) how to display the value in the
 customization buffer for editing.
 
+@kindex type@r{, @code{defcustom} keyword}
   You specify the customization type in @code{defcustom} with the
 @code{:type} keyword.  The argument of @code{:type} is evaluated, but
 only once when the @code{defcustom} is executed, so it isn't useful
@@ -905,10 +925,12 @@ purposes.  This is useful for a type that appears inside of a
 @code{choice}.
 
 @item :match-alternatives @var{criteria}
+@kindex match-alternatives@r{, customization keyword}
 Use @var{criteria} to match possible values.  This is used only in
 @code{restricted-sexp}.
 
 @item :args @var{argument-list}
+@kindex args@r{, customization keyword}
 Use the elements of @var{argument-list} as the arguments of the type
 construct.  For instance, @code{(const :args (foo))} is equivalent to
 @code{(const foo)}.  You rarely need to write @code{:args} explicitly,
@@ -986,6 +1008,7 @@ If @code{nil} is not a valid value for the alternative, then it is
 essential to specify a valid default with @code{:value}.
 
 @item :format @var{format-string}
+@kindex format@r{, customization keyword}
 This string will be inserted in the buffer to represent the value
 corresponding to the type.  The following @samp{%} escapes are available
 for use in @var{format-string}:
@@ -1024,14 +1047,18 @@ Display a literal @samp{%}.
 @end table
 
 @item :action @var{action}
+@kindex action@r{, customization keyword}
 Perform @var{action} if the user clicks on a button.
 
 @item :button-face @var{face}
+@kindex button-face@r{, customization keyword}
 Use the face @var{face} (a face name or a list of face names) for button
 text displayed with @samp{%[@dots{}%]}.
 
 @item :button-prefix @var{prefix}
 @itemx :button-suffix @var{suffix}
+@kindex button-prefix@r{, customization keyword}
+@kindex button-suffix@r{, customization keyword}
 These specify the text to display before and after a button.
 Each can be:
 
@@ -1051,6 +1078,7 @@ Use @var{tag} (a string) as the tag for the value (or part of the value)
 that corresponds to this type.
 
 @item :doc @var{doc}
+@kindex doc@r{, customization keyword}
 Use @var{doc} as the documentation string for this value (or part of the
 value) that corresponds to this type.  In order for this to work, you
 must specify a value for @code{:format}, and use @samp{%d} or @samp{%h}
@@ -1061,6 +1089,7 @@ provide more information about the meanings of alternatives inside a
 @code{:choice} type or the parts of some other composite type.
 
 @item :help-echo @var{motion-doc}
+@kindex help-echo@r{, customization keyword}
 When you move to this item with @code{widget-forward} or
 @code{widget-backward}, it will display the string @var{motion-doc} in
 the echo area.  In addition, @var{motion-doc} is used as the mouse
@@ -1069,6 +1098,7 @@ to yield a help string.  If it is a function, it is called with one
 argument, the widget.
 
 @item :match @var{function}
+@kindex match@r{, customization keyword}
 Specify how to decide whether a value matches the type.  The
 corresponding value, @var{function}, should be a function that accepts
 two arguments, a widget and a value; it should return non-@code{nil} if

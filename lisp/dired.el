@@ -1045,9 +1045,9 @@ Preserves old cursor, marks/flags, hidden-p."
     ;; treat top level dir extra (it may contain wildcards)
     (dired-uncache
      (if (consp dired-directory) (car dired-directory) dired-directory))
-    (dired-readin)
+    ;; Run dired-after-readin-hook just once, below.
     (let ((dired-after-readin-hook nil))
-      ;; don't run that hook for each subdir...
+      (dired-readin)
       (dired-insert-old-subdirs old-subdir-alist))
     (dired-mark-remembered mark-alist)	; mark files that were marked
     ;; ... run the hook for the whole buffer, and only after markers

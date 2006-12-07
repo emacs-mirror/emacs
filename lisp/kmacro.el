@@ -24,15 +24,14 @@
 
 ;;; Commentary:
 
-;; The kmacro package is an alternative user interface to emacs'
-;; keyboard macro functionality.  This functionality is normally bound
-;; to C-x (, C-x ), and C-x e, but these bindings are too hard to
-;; type to be really useful for doing small repeated tasks.
+;; The kmacro package provides the user interface to emacs' basic
+;; keyboard macro functionality.  With kmacro, two function keys are
+;; dedicated to keyboard macros, by default F3 and F4.
 
-;; With kmacro, two function keys are dedicated to keyboard macros,
-;; by default F3 and F4.  Personally, I prefer F1 and F2, but those
-;; keys already have default bindings.
-;;
+;; Note: The traditional bindings C-x (, C-x ), and C-x e are still
+;; supported, but for some users these bindings are too hard to type
+;; to be really useful for doing small repeated tasks.
+
 ;; To start defining a keyboard macro, use F3.  To end the macro,
 ;; use F4, and to call the macro also use F4.  This makes it very
 ;; easy to repeat a macro immediately after defining it.
@@ -54,7 +53,6 @@
 ;; through the macro ring, and you can swap the first and second
 ;; elements with C-x C-k C-t.  To delete the first element in the
 ;; macro ring, use C-x C-k C-d.
-;;
 ;;
 ;; You can also use C-x C-k C-s to start a macro, and C-x C-k C-k to
 ;; end it; then use C-k to execute it immediately, or C-x C-k C-k to

@@ -113,23 +113,23 @@ If set, the server accepts remote connections; otherwise it is local."
 (put 'server-auth-dir 'risky-local-variable t)
 
 (defcustom server-raise-frame t
-  "*If non-nil, raise frame when switching to a buffer."
+  "If non-nil, raise frame when switching to a buffer."
   :group 'server
   :type 'boolean
   :version "22.1")
 
 (defcustom server-visit-hook nil
-  "*Hook run when visiting a file for the Emacs server."
+  "Hook run when visiting a file for the Emacs server."
   :group 'server
   :type 'hook)
 
 (defcustom server-switch-hook nil
-  "*Hook run when switching to a buffer for the Emacs server."
+  "Hook run when switching to a buffer for the Emacs server."
   :group 'server
   :type 'hook)
 
 (defcustom server-done-hook nil
-  "*Hook run when done editing a buffer for the Emacs server."
+  "Hook run when done editing a buffer for the Emacs server."
   :group 'server
   :type 'hook)
 
@@ -149,7 +149,7 @@ When a buffer is marked as \"done\", it is removed from this list.")
 (put 'server-buffer-clients 'permanent-local t)
 
 (defcustom server-window nil
-  "*Specification of the window to use for selecting Emacs server buffers.
+  "Specification of the window to use for selecting Emacs server buffers.
 If nil, use the selected window.
 If it is a function, it should take one argument (a buffer) and
 display and select it.  A common value is `pop-to-buffer'.
@@ -168,14 +168,14 @@ Only programs can do so."
 		 (function :tag "Other function")))
 
 (defcustom server-temp-file-regexp "^/tmp/Re\\|/draft$"
-  "*Regexp matching names of temporary files.
+  "Regexp matching names of temporary files.
 These are deleted and reused after each edit by the programs that
 invoke the Emacs server."
   :group 'server
   :type 'regexp)
 
 (defcustom server-kill-new-buffers t
-  "*Whether to kill buffers when done with them.
+  "Whether to kill buffers when done with them.
 If non-nil, kill a buffer unless it already existed before editing
 it with Emacs server.  If nil, kill only buffers as specified by
 `server-temp-file-regexp'.
@@ -403,6 +403,16 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
     (when prev
       (setq string (concat prev string))
       (process-put proc :previous-string nil)))
+  (when (> (recursion-depth) 0)
+    ;; We're inside a minibuffer already, so if the emacs-client is trying
+    ;; to open a frame on a new display, we might end up with an unusable
+    ;; frame because input from that display will be blocked (until exiting
+    ;; the minibuffer).  Better exit this minibuffer right away.
+    ;; Similarly with recursive-edits such as the splash screen.
+    (process-put proc :previous-string string)
+    (run-with-timer 0 nil (lexical-let ((proc proc))
+                            (lambda () (server-process-filter proc ""))))
+    (top-level))
   ;; If the input is multiple lines,
   ;; process each line individually.
   (while (string-match "\n" string)

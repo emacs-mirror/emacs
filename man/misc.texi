@@ -478,7 +478,8 @@ either or both of these default initializations.
 @file{~/.emacs_@var{shellname}} as input, if it exists, where
 @var{shellname} is the name of the file that the shell was loaded
 from.  For example, if you use bash, the file sent to it is
-@file{~/.emacs_bash}.
+@file{~/.emacs_bash}.  If this file is not found, Emacs tries to fallback
+on @file{~/.emacs.d/init_@var{shellname}.sh}.
 
   To specify a coding system for the shell, you can use the command
 @kbd{C-x @key{RET} c} immediately before @kbd{M-x shell}.  You can

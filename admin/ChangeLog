@@ -1,3 +1,8 @@
+2006-11-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* admin.el (set-version): Set version number in
+	lib-src/makefile.w32-in.
+
 2006-11-06  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* FOR-RELEASE (BUGS): Remove "Build failure under Suse 10.0" was
@@ -395,7 +400,8 @@
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2001 Free Software Foundation, Inc.
+    Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006  Free Software
+	Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
 

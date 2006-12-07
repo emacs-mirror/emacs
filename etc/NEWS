@@ -310,8 +310,8 @@ displays a buffer menu.  This option turns the buffer menu off.
 +++
 ** Init file changes
 If the init file ~/.emacs does not exist, Emacs will try
-~/.emacs.d/init.el or ~/.emacs.d/init.elc.  You can also put the shell
-init file .emacs_SHELL under ~/.emacs.d.
+~/.emacs.d/init.el or ~/.emacs.d/init.elc.  Likewise, if the shell init file
+~/.emacs_SHELL is not found, Emacs will try ~/.emacs.d/init_SHELL.sh.
 
 +++
 ** Emacs now reads the standard abbrevs file ~/.abbrev_defs
@@ -1109,6 +1109,21 @@ jit-lock-defer-contextually is renamed jit-lock-contextually and
 jit-lock-context-time determines the delay after which contextual
 refontification takes place.
 
+---
+*** lazy-lock is considered obsolete.
+
+The `lazy-lock' package is superseded by `jit-lock' and is considered
+obsolete.  `jit-lock' is activated by default; if you wish to continue
+using `lazy-lock', activate it in your ~/.emacs like this:
+
+  (setq font-lock-support-mode 'lazy-lock-mode)
+
+If you invoke `lazy-lock-mode' directly rather than through
+`font-lock-support-mode', it now issues a warning:
+
+  "Use font-lock-support-mode rather than calling lazy-lock-mode"
+
+
 ** Menu support:
 
 ---
@@ -1260,7 +1275,7 @@ characters instead, depending on how the terminal (or terminal
 emulator) works.  Use `set-keyboard-coding-system' (or customize
 keyboard-coding-system) if you prefer META to work (the old default)
 or if the locale doesn't describe the character set actually generated
-by the keyboard.  See Info node `Single-Byte Character Support'.
+by the keyboard.  See Info node `Unibyte Mode'.
 
 +++
 *** The new command `revert-buffer-with-coding-system' (C-x RET r)
@@ -2222,9 +2237,9 @@ at point is suggested as default, but not inserted at the prompt.
 *** Emacs now offers to start Scheme if the user tries to
 evaluate a Scheme expression but no Scheme subprocess is running.
 
-*** If a file `.emacs_NAME' (where NAME is the name of the Scheme interpreter)
-exists in the user's home directory or in ~/.emacs.d, its
-contents are sent to the Scheme subprocess upon startup.
+*** If the file ~/.emacs_NAME or ~/.emacs.d/init_NAME.scm (where NAME
+is the name of the Scheme interpreter) exists, its contents are sent
+to the Scheme subprocess upon startup.
 
 *** There are new commands to instruct the Scheme interpreter to trace
 procedure calls (`scheme-trace-procedure') and to expand syntactic forms
@@ -3873,8 +3888,9 @@ deleting the part of subprocess output that matches the input.
 ** The variable `memory-full' now remains t until
 there is no longer a shortage of memory.
 
++++
 ** When Emacs receives a USR1 or USR2 signal, this generates
-an input event: usr1-signal or usr2-signal.
+input event sequences: [signal usr1] or [signal usr2].
 
 * Lisp Changes in Emacs 22.1
 

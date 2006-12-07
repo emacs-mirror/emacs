@@ -1,6 +1,6 @@
 ;;; macros.el --- non-primitive commands for keyboard macros
 
-;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1995, 2002, 2003,
+;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1995, 2001, 2002, 2003,
 ;;   2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -130,7 +130,7 @@ use this command, and then save the file."
       (if (vectorp definition)
 	  (let ((len (length definition)) (i 0) char mods)
 	    (while (< i len)
-	      (insert (if (zerop i) ?\[ ?\ ))
+	      (insert (if (zerop i) ?\[ ?\s))
 	      (setq char (aref definition i)
 		    i (1+ i))
 	      (cond ((not (numberp char))

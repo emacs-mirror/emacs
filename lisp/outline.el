@@ -894,7 +894,8 @@ Show the heading too, if it is currently invisible."
 		(or first (> (funcall outline-level) level)))
       (setq first nil)
       (outline-next-heading))
-    (if (bolp)
+    (if (and (bolp) (not (eolp)))
+	;; We stopped at a nonempty line (the next heading).
 	(progn
 	  ;; Go to end of line before heading
 	  (forward-char -1)

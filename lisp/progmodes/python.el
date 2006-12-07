@@ -408,6 +408,7 @@ The criteria are that the line isn't a comment or in string and
 See also `\\[python-guess-indent]'"
   :group 'python
   :type 'integer)
+(put 'python-indent 'safe-local-variable 'integerp)
 
 (defcustom python-guess-indent t
   "Non-nil means Python mode guesses `python-indent' for the buffer."

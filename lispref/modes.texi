@@ -3067,16 +3067,19 @@ will rehighlight the whole construct if any part of it is changed.  In
 some cases you can do this automatically by setting the
 @code{font-lock-multiline} variable, which see.
 @item
-Rely on @code{jit-lock-contextually}.  This will only rehighlight the part
-of the construct that follows the actual change, and will do it after
-a short delay.  This only works if the highlighting of the various
-parts of your multiline construct never depends on text in subsequent
-lines.  Since @code{jit-lock-contextually} is activated by default,
-this can be an attractive solution.
+Make sure @code{jit-lock-contextually} is set and rely on it doing its
+job.  This will only rehighlight the part of the construct that
+follows the actual change, and will do it after a short delay.
+This only works if the highlighting of the various parts of your
+multiline construct never depends on text in subsequent lines.
+Since @code{jit-lock-contextually} is activated by default, this can
+be an attractive solution.
 @item
 Place a @code{jit-lock-defer-multiline} property on the construct.
-This works only if @code{jit-lock-contextually} is used, but it can
-handle the case where highlighting depends on subsequent lines.
+This works only if @code{jit-lock-contextually} is used, and with the
+same delay before rehighlighting, but like @code{font-lock-multiline},
+it also handles the case where highlighting depends on
+subsequent lines.
 @end itemize
 
 @menu
@@ -3089,7 +3092,7 @@ handle the case where highlighting depends on subsequent lines.
 @subsubsection Font Lock Multiline
 
   One way to ensure reliable rehighlighting of multiline Font Lock
-constructs is to put on the text property @code{font-lock-multiline}.
+constructs is to put on them the text property @code{font-lock-multiline}.
 It should be present and non-@code{nil} for text that is part of a
 multiline construct.
 

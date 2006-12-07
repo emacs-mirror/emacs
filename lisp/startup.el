@@ -1376,7 +1376,7 @@ mouse."
 	    timer)
 	(save-selected-window
 	  (select-frame frame)
-	  (switch-to-buffer "GNU Emacs")
+	  (switch-to-buffer " GNU Emacs")
 	  (setq splash-buffer (current-buffer))
 	  (catch 'stop-splashing
 	    (unwind-protect

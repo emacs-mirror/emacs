@@ -1481,7 +1481,7 @@ skip_chars (forwardp, string, lim, handle_iso_classes)
 	      const unsigned char *class_beg = str + i_byte + 1;
 	      const unsigned char *class_end = class_beg;
 	      const unsigned char *class_limit = str + size_byte - 2;
-	      /* Leave room for the null.	 */
+	      /* Leave room for the null.  */
 	      unsigned char class_name[CHAR_CLASS_MAX_LENGTH + 1];
 	      re_wctype_t cc;
 

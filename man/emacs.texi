@@ -1050,7 +1050,7 @@ Jesper Harder, Markus Heritsch, Karl Heuer, Manabu Higashida, Anders
 Holst, Jeffrey C.@: Honig, Kurt Hornik, Tom Houlder, Joakim Hove,
 Denis Howe, Lars Ingebrigtsen, Andrew Innes, Seiichiro Inoue, Pavel
 Janik, Paul Jarc, Ulf Jasper, Michael K. Johnson, Kyle Jones, Terry
-Jones, Simon Josefsson, Arne J@/orgensen, Tomoji Kagatani, Brewster
+Jones, Simon Josefsson, Arne J@o{}rgensen, Tomoji Kagatani, Brewster
 Kahle, Lute Kamstra, David Kastrup, David Kaufman, Henry Kautz, Taichi
 Kawabata, Howard Kaye, Michael Kifer, Richard King, Peter Kleiweg,
 Shuhei Kobayashi, Pavel Kobiakov, Larry K.@: Kolodney, David M.@:

@@ -462,9 +462,10 @@ A large number or nil slows down menu responsiveness."
 	      "Delete the text in region between mark and current position"))
 (defvar yank-menu (cons "Select Yank" nil))
 (fset 'yank-menu (cons 'keymap yank-menu))
-(define-key menu-bar-edit-menu [select-paste]
-  '(menu-item "Select and Paste" yank-menu
-	      :enable (and (cdr yank-menu) (not buffer-read-only))))
+(define-key menu-bar-edit-menu [paste-from-menu]
+  '(menu-item "Paste from kill menu" yank-menu
+	      :enable (and (cdr yank-menu) (not buffer-read-only))
+	      :help "Choose a string from the kill ring and paste it"))
 (define-key menu-bar-edit-menu [paste]
   '(menu-item "Paste" yank
 	      :enable (and
@@ -623,8 +624,8 @@ by \"Save Options\" in Custom buffers.")
 		 (let ((set (or (get ',variable 'custom-set) 'set-default))
 		       (get (or (get ',variable 'custom-get) 'default-value)))
 		   (funcall set ',variable (not (funcall get ',variable))))))
-	   (message ,message "enabled")
-  	 (message ,message "disabled"))
+	   (message ,message "enabled globally")
+  	 (message ,message "disabled globally"))
        ;; The function `customize-mark-as-set' must only be called when
        ;; a variable is set interactively, as the purpose is to mark it as
        ;; a candidate for "Save Options", and we do not want to save options
@@ -814,7 +815,7 @@ mail status in mode line"))
   (menu-bar-make-toggle toggle-indicate-empty-lines indicate-empty-lines
 			"Empty Line Indicators"
 			"Indicating of empty lines %s"
-			"Indicate trailing empty lines in fringe"))
+			"Indicate trailing empty lines in fringe, globally"))
 
 (defun menu-bar-showhide-fringe-menu-customize ()
   "Show customization buffer for `fringe-mode'."
@@ -1018,9 +1019,9 @@ mail status in mode line"))
 
 (define-key menu-bar-options-menu [case-fold-search]
   (menu-bar-make-toggle toggle-case-fold-search case-fold-search
-			"Case-Insensitive Search"
-			"Case-Insensitive Search %s"
-			"Ignore letter-case in search"))
+	    "Case-Insensitive Search"
+	    "Case-Insensitive Search %s"
+	    "Globally ignore letter-case in search"))
 
 (defun menu-bar-text-mode-auto-fill ()
   (interactive)
@@ -1596,14 +1597,14 @@ Buffers menu is regenerated."
 			       name))))
 		 ;; Compute the maximum length of any name.
 		 (dolist (buf buffer-list)
-		   (unless (eq ?\  (aref (cdr buf) 0))
+		   (unless (eq ?\s (aref (cdr buf) 0))
 		     (setq menu-bar-update-buffers-maxbuf
 			   (max menu-bar-update-buffers-maxbuf
 				(length (cdr buf))))))
 		 ;; Set ALIST to an alist of the form
 		 ;; ITEM-STRING . BUFFER
 		 (dolist (buf buffer-list)
-		   (unless (eq ?\  (aref (cdr buf) 0))
+		   (unless (eq ?\s (aref (cdr buf) 0))
 		     (push (menu-bar-update-buffers-1 buf) alist)))
 		 ;; Now make the actual list of items, and add
 		 ;; some miscellaneous buffer commands to the end.

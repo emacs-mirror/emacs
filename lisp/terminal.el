@@ -1,6 +1,6 @@
 ;;; terminal.el --- terminal emulator for GNU Emacs
 
-;; Copyright (C) 1986, 1987, 1988, 1989, 1993, 1994, 2002, 2003,
+;; Copyright (C) 1986, 1987, 1988, 1989, 1993, 1994, 2001, 2002, 2003,
 ;;   2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Richard Mlynarik <mly@eddie.mit.edu>
@@ -567,10 +567,10 @@ together with a command \\<terminal-edit-map>to return to terminal emulation: \\
         (let ((p (point)))
           (cond ((search-forward "\n" (+ p width) 'move)
                  (forward-char -1)
-                 (insert-char ?\  (- width (- (point) p)))
+                 (insert-char ?\s (- width (- (point) p)))
                  (forward-char 1))
                 ((eobp)
-                 (insert-char ?\  (- width (- (point) p))))
+                 (insert-char ?\s (- width (- (point) p))))
                 ((= (following-char) ?\n)
                  (forward-char 1))
                 (t
@@ -642,7 +642,7 @@ together with a command \\<terminal-edit-map>to return to terminal emulation: \\
 	   (forward-char 1)
 	   (delete-region (point)
 			  (+ (point) (length terminal-more-break-insertion)))
-	   (insert-char ?\  te-width)
+	   (insert-char ?\s te-width)
 	   (goto-char te-more-old-point)))
     (setq te-more-old-point nil)
     (let ((te-more-count 259259))
@@ -693,7 +693,7 @@ move to start of new line, clear to end of line."
 		   (insert ?\n))))
     (forward-char 1)
     (delete-region (point) (+ (point) te-width)))
-  (insert-char ?\  te-width)
+  (insert-char ?\s te-width)
   (beginning-of-line)
   (te-set-window-start))
 
@@ -717,7 +717,7 @@ move to start of new line, clear to end of line."
   (save-excursion
     (let ((n (- (point) (progn (end-of-line) (point)))))
       (delete-region (point) (+ (point) n))
-      (insert-char ?\  (- n)))))
+      (insert-char ?\s (- n)))))
 
 
 ;; ^p C
@@ -727,7 +727,7 @@ move to start of new line, clear to end of line."
     (while (progn (end-of-line) (not (eobp)))
       (forward-char 1) (end-of-line)
       (delete-region (- (point) te-width) (point))
-      (insert-char ?\  te-width))))
+      (insert-char ?\s te-width))))
 
 
 ;; ^p ^l
@@ -737,7 +737,7 @@ move to start of new line, clear to end of line."
   (let ((i 0))
     (while (< i te-height)
       (setq i (1+ i))
-      (insert-char ?\  te-width)
+      (insert-char ?\s te-width)
       (insert ?\n)))
   (delete-region (1- (point-max)) (point-max))
   (goto-char (point-min))
@@ -750,13 +750,13 @@ move to start of new line, clear to end of line."
       ();(error "fooI")
     (save-excursion
       (let* ((line (- te-height (/ (- (point) (point-min)) (1+ te-width)) -1))
-	     (n (min (- (te-get-char) ?\ ) line))
+	     (n (min (- (te-get-char) ?\s) line))
 	     (i 0))
 	(delete-region (- (point-max) (* n (1+ te-width))) (point-max))
 	(if (eq (point) (point-max)) (insert ?\n))
 	(while (< i n)
 	  (setq i (1+ i))
-	  (insert-char ?\  te-width)
+	  (insert-char ?\s te-width)
 	  (or (eq i line) (insert ?\n))))))
   (setq te-more-count -1))
 
@@ -766,7 +766,7 @@ move to start of new line, clear to end of line."
   (if (not (bolp))
       ();(error "fooD")
     (let* ((line (- te-height (/ (- (point) (point-min)) (1+ te-width)) -1))
-	   (n (min (- (te-get-char) ?\ ) line))
+	   (n (min (- (te-get-char) ?\s) line))
 	   (i 0))
       (delete-region (point)
 		     (min (+ (point) (* n (1+ te-width))) (point-max)))
@@ -774,7 +774,7 @@ move to start of new line, clear to end of line."
 	(goto-char (point-max))
 	(while (< i n)
 	  (setq i (1+ i))
-	  (insert-char ?\  te-width)
+	  (insert-char ?\s te-width)
 	  (or (eq i line) (insert ?\n))))))
   (setq te-more-count -1))
 
@@ -798,7 +798,7 @@ move to start of new line, clear to end of line."
   (if (bolp)
       ()
     (delete-region (1- (point)) (point))
-    (insert ?\ )
+    (insert ?\s)
     (forward-char -1)))
 
 ;; ^p ^g
@@ -815,7 +815,7 @@ move to start of new line, clear to end of line."
 	nil
       (delete-char (- n))
       (goto-char p)
-      (insert-char ?\  n))
+      (insert-char ?\s n))
     (goto-char p)))
 
 ;; ^p d count+32  (should be ^p ^d but cretinous un*x won't send ^d chars!!!)
@@ -825,7 +825,7 @@ move to start of new line, clear to end of line."
 		 (- (progn (end-of-line) (point)) p))))
     (if (<= n 0)
 	nil
-      (insert-char ?\  n)
+      (insert-char ?\s n)
       (goto-char p)
       (delete-char n))
     (goto-char p)))
@@ -862,7 +862,7 @@ move to start of new line, clear to end of line."
 	  (delete-char 1)
 	  (goto-char (point-max))
 	  (insert ?\n)
-	  (insert-char ?\  te-width)
+	  (insert-char ?\s te-width)
 	  (beginning-of-line))
       (forward-line 1))
     (move-to-column column))

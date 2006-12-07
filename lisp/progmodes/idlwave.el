@@ -3486,8 +3486,6 @@ if `idlwave-auto-fill-split-string' is non-nil."
 	  (idlwave-indent-line)
 	  ;; Prevent actions do-auto-fill which calls indent-line-function.
 	  (let (idlwave-do-actions
-		(paragraph-start ".")
-		(paragraph-separate ".")
 		(fill-nobreak-predicate
 		 (if (and (idlwave-in-quote)
 			  idlwave-auto-fill-split-string)
@@ -4653,7 +4651,11 @@ Gets set in cached XML rinfo, or `idlw-rinfo.el'.")
 	      props (car (cdr pelem)))
 	(cond
 	 ((eq ptype 'SUPERCLASS)
-	  (push (cdr (assq 'name props)) inherits))
+	  (let ((pname (cdr (assq 'name props)))
+		(plink (cdr (assq 'link props))))
+	    (unless (and (string= pname "None")
+			 (string= plink "None"))
+	      (push pname inherits))))
 
 	 ((eq ptype 'PROPERTY)
 	  (let ((pname (cdr (assq 'name props)))

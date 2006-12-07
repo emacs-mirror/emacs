@@ -1,6 +1,6 @@
 ;;; delim-col.el --- prettify all columns in a region or rectangle
 
-;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
