@@ -1,4 +1,4 @@
-;; leim-ext.el -- extra leim configulation	-*- coding:iso-2022-7bit; -*-
+;; leim-ext.el -- extra leim configuration	-*- coding:iso-2022-7bit; -*-
 
 ;; Copyright (C) 2004, 2006
 ;;   Free Software Foundation, Inc.
