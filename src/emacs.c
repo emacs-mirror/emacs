@@ -2457,7 +2457,8 @@ Special values:
   `ms-dos'      compiled as an MS-DOS application.
   `windows-nt'  compiled as a native W32 application.
   `cygwin'      compiled using the Cygwin library.
-  `vax-vms' or `axp-vms': compiled for a (Open)VMS system.
+  `vax-vms' or
+  `axp-vms'     compiled for a (Open)VMS system.
 Anything else indicates some sort of Unix system.  */);
   Vsystem_type = intern (SYSTEM_TYPE);
 
