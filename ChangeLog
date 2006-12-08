@@ -666,7 +666,7 @@
 
 	* make-dist (lispref): Do include lispref/index.texi.
 
-2004-01-06  Eric Hanchrow <offby1@blarg.net> (tiny change)
+2004-01-06  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
 
 	* make-dist (tempdir): Include cursors in nt/icons.
 
@@ -1913,7 +1913,7 @@
 
 2000-06-02  Dave Love  <fx@gnu.org>
 
-	* Makefile.in: (install-arch-indep): Add pcl-cvs to list of info
+	* Makefile.in (install-arch-indep): Add pcl-cvs to list of info
 	files.
 
 	* configure.in: Don't specify -n32 flag for mips-sgi-irix6.5.
@@ -2073,7 +2073,7 @@
 
 1999-12-04  Dave Love  <fx@gnu.org>
 
-	* Makefile.in: (install-arch-indep): Depend on `info'.
+	* Makefile.in (install-arch-indep): Depend on `info'.
 	(install-strip): Use `install' as sub-make target.
 
 1999-11-23  Ken Raeburn  <raeburn@gnu.org>
