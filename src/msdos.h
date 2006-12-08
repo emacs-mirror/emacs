@@ -53,7 +53,7 @@ typedef int Pixmap;
 typedef int Display;
 typedef int Window;
 typedef int XRectangle;
-#define PIX_TYPE int
+#define PIX_TYPE unsigned long
 #define XDISPLAY
 
 /* A stripped version of struct x_display_info in xterm.h, which see.  */
