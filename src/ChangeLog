@@ -1,3 +1,7 @@
+2006-12-08  Kenichi Handa  <handa@m17n.org>
+
+	* xterm.c (x_query_font): Use xstricmp instead off strcasecmp.
+
 2006-12-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs.c (syms_of_emacs) <system-type>: Doc fix.
