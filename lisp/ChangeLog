@@ -1,3 +1,8 @@
+2006-12-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/browse-url.el (browse-url): Set DISPLAY to the one of the
+	current frame, in case we're connected to several displays.
+
 2006-12-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* frame.el (other-frame): Doc fix.
@@ -20,9 +25,10 @@
 2006-12-05  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el (cua-paste-pop-rotate-temporarily): Doc fix.
-	(cua-paste-pop): Rework last change for cua-paste-pop-rotate-temporarily,
-	so first M-y and C-y works alike, pasting the head of the kill-ring, and
-	prefix arg C-u M-y inserts the text inserted by the last M-y command.
+	(cua-paste-pop): Rework last change for
+	cua-paste-pop-rotate-temporarily, so first M-y and C-y works alike,
+	pasting the head of the kill-ring, and prefix arg C-u M-y inserts the
+	text inserted by the last M-y command.
 
 2006-12-05  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
 
@@ -39,8 +45,7 @@
 	* progmodes/fortran.el (fortran-mode-abbrev-table)
 	* progmodes/octave-mod.el (octave-abbrev-table)
 	* progmodes/sql.el (sql-mode-abbrev-table): Define abbrevs even
-	if abbrev-table is non-nil (saved user abbrevs may have been
-	restored).
+	if abbrev-table is non-nil (saved user abbrevs may have been restored).
 
 	* progmodes/vhdl-mode.el (vhdl-mode-abbrev-table-init): Do not
 	clear abbrev table, else saved abbrevs will not be restored.
