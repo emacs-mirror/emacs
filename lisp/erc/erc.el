@@ -2,7 +2,6 @@
 
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
 ;;   2006 Free Software Foundation, Inc.
-;; Copyright (C) 2004 Brian Palmer
 
 ;; Author: Alexander L. Belikoff (alexander@belikoff.net)
 ;; Contributors: Sergey Berezin (sergey.berezin@cs.cmu.edu),
@@ -1761,7 +1760,7 @@ all channel buffers on all servers."
 
 (defcustom erc-modules '(netsplit fill button match track completion readonly
 				  ring autojoin noncommands irccontrols
-				  stamp list)
+				  stamp)
   "A list of modules which ERC should enable.
 If you set the value of this without using `customize' remember to call
 \(erc-update-modules) after you change it.  When using `customize', modules
@@ -1792,7 +1791,6 @@ removed from the list will be disabled."
     (const :tag "Launch an identd server on port 8113" identd)
     (const :tag "Highlight or remove IRC control characters"
 	   irccontrols)
-    (const :tag "List channels in a separate buffer" list)
     (const :tag "Save buffers in logs" log)
     (const :tag "Highlight pals, fools, and other keywords" match)
     (const :tag "Detect netsplits" netsplit)

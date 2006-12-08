@@ -1,3 +1,7 @@
+2006-12-08  Michael Olson  <mwolson@gnu.org>
+
+	* erc.texi (Modules): Remove documentation for list module.
+
 2006-12-06  Richard Stallman  <rms@gnu.org>
 
 	* text.texi (Outline Format): Say to set outline-regexp

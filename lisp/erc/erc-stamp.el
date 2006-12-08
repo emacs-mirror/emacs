@@ -266,8 +266,8 @@ be printed just before the window-width."
 	(indent-to pos)
 	(setq from (point))
 	(insert string))
-      (erc-put-text-property from (1+ (point)) 'field 'erc-timestamp)
-      (erc-put-text-property from (1+ (point)) 'rear-nonsticky t)
+      (erc-put-text-property from (point) 'field 'erc-timestamp)
+      (erc-put-text-property from (point) 'rear-nonsticky t)
       (when erc-timestamp-intangible
 	(erc-put-text-property from (1+ (point)) 'intangible t)))))
 
