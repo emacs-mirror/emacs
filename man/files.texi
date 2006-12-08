@@ -2433,6 +2433,13 @@ in Emacs.  @xref{Misc Buffer}.
 contents of the specified file into the current buffer at point,
 leaving point unchanged before the contents and the mark after them.
 
+@findex insert-file-literally
+  @kbd{M-x insert-file-literally} is like @kbd{C-x i}, except it
+inserts the specified file with no conversion of the contents: no
+format conversion (@pxref{Formatted Text}), no character code
+conversion (@pxref{Coding Systems}), and no automatic uncompression
+(@pxref{Compressed Files}).
+
 @findex write-region
   @kbd{M-x write-region} is the inverse of @kbd{M-x insert-file}; it
 copies the contents of the region into the specified file.  @kbd{M-x
