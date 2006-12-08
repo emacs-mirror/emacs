@@ -1,3 +1,7 @@
+2006-12-08  NAKAJI Hiroyuki  <nakaji@jp.freebsd.org> (tiny change)
+
+	* m/amdx86-64.h: Add support for Solaris 10 on x86-64.
+
 2006-12-08  Kenichi Handa  <handa@m17n.org>
 
 	* xterm.c (x_query_font): Use xstricmp instead off strcasecmp.
