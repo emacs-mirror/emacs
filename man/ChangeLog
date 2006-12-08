@@ -1,5 +1,8 @@
 2006-12-08  Eli Zaretskii  <eliz@gnu.org>
 
+	* cmdargs.texi (Colors): Note that --color is intended for overriding
+	the terminal defaults, not for normal invocation.
+
 	* misc.texi (Emacs Server): Improve wording.  Don't mention the
 	``server program''.  Add a cross-reference to "Init File" node.
 	(Invoking emacsclient): Add index entries.  Document both short and
