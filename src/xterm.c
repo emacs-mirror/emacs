@@ -10203,8 +10203,8 @@ x_query_font (f, fontname)
 
   for (i = 0; i < dpyinfo->n_fonts; i++)
     if (dpyinfo->font_table[i].name
-	&& (!strcasecmp (dpyinfo->font_table[i].name, fontname)
-	    || !strcasecmp (dpyinfo->font_table[i].full_name, fontname)))
+	&& (!xstricmp (dpyinfo->font_table[i].name, fontname)
+	    || !xstricmp (dpyinfo->font_table[i].full_name, fontname)))
       return (dpyinfo->font_table + i);
   return NULL;
 }
