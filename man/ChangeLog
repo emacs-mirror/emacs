@@ -1,3 +1,7 @@
+2006-12-09  Richard Stallman  <rms@gnu.org>
+
+	* misc.texi (Invoking emacsclient): Simplify TCP file text.
+
 2006-12-08  Kevin Rodgers <ihs_4664@yahoo.com>
 
 	* files.texi (Misc File Ops): Document insert-file-literally.
