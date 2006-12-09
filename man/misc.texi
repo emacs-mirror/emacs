@@ -1406,23 +1406,18 @@ expressions to evaluate, not a list of files to visit.
 
 @cindex @env{EMACS_SERVER_FILE} environment variable
 When you start the Emacs server (by calling @code{server-start}),
-Emacs creates a file with information about the TCP connection to the
-server: the host where Emacs runs, the port where it listens for
-@code{emacsclient} requests, and the authentication string to use for
-the connection.  @code{emacsclient} uses this information if it needs
-to connect to the server via TCP.  By default, this TCP configuration
-file is placed in the @file{~/.emacs.d/server/} directory@footnote{
-On MS-Windows, if @env{HOME} is not set or the TCP configuration file
-cannot be found there, Emacs in addition attempts to find the file in
-the @file{.emacs.d/server/} subdirectory of the directory pointed
-to by the @env{APPDATA} environment variable, which is a user-specific
-directory for application data files.  This is similar to what Emacs
-does on MS-Windows to search for the user's @file{.emacs} file.}
-; you can
-direct @code{emacsclient} to use a different file with the @samp{-f
-@var{file}} or @samp{--server-file=@var{file}} option, or by defining
-the @env{EMACS_SERVER_FILE} environment variable that points to the
-non-default TCP configuration file.
+Emacs creates a file with information about TCP connection to the
+server: the host where Emacs is running, the port where it is
+listening, and an authentication string.  @code{emacsclient} uses this
+information if it needs to connect to the server via TCP.  By default,
+the file goes in the @file{~/.emacs.d/server/} directory@footnote{On
+MS-Windows, if @env{HOME} is not set or the TCP configuration file
+cannot be found there, Emacs also looks for the file in the
+@file{.emacs.d/server/} subdirectory of the directory pointed to by
+the @env{APPDATA} environment variable.}.  You can specify the file
+name to use with the @samp{-f @var{file}} or
+@samp{--server-file=@var{file}} options, or by setting
+@env{EMACS_SERVER_FILE} environment variable to the file name.
 
 @node Printing, Sorting, Emacs Server, Top
 @section Printing Hard Copies
