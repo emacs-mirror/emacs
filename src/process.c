@@ -6102,7 +6102,7 @@ If PROCESS is a network process, resume handling of incoming traffic.  */)
 DEFUN ("signal-process", Fsignal_process, Ssignal_process,
        2, 2, "sProcess (name or number): \nnSignal code: ",
        doc: /* Send PROCESS the signal with code SIGCODE.
-PROCESS may also be an integer specifying the process id of the
+PROCESS may also be a number specifying the process id of the
 process to signal; in this case, the process need not be a child of
 this Emacs.
 SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
@@ -6119,7 +6119,7 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
 
   if (FLOATP (process))
     {
-      pid = (pid_t) XFLOAT (process);
+      pid = (pid_t) XFLOAT_DATA (process);
       goto got_it;
     }
 
