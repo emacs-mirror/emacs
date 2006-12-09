@@ -517,7 +517,10 @@ says how many lines to move; default is one line."
 				 (1- (match-beginning 1)) 'old-link
 				 (match-string-no-properties 1))
               (put-text-property (match-end 1) (1+ (match-end 1)) 'end-link t)
-	      (put-text-property (1- (match-beginning 1))
+              (put-text-property (1- (match-beginning 1))
+				 (match-beginning 1)
+				 'rear-nonsticky '(read-only))
+	      (put-text-property (match-beginning 1)
 				 (match-end 1) 'read-only nil)))
         (forward-line)
 	(beginning-of-line)))))
