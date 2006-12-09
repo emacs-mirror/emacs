@@ -34,6 +34,10 @@
 
 	* international/mule-cmds.el (register-input-method): Doc fix.
 
+2006-12-09  Masayuki Ataka  <masayuki.ataka@gmail.com>  (tiny change)
+
+	* cmuscheme.el (scheme-start-file): Use `let*', not `let'.
+
 2006-12-09  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
 
 	* textmodes/flyspell.el (flyspell-hack-local-variables-hook): New.
