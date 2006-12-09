@@ -1,6 +1,6 @@
 ;;; cookie1.el --- retrieve random phrases from fortune cookie files
 
-;; Copyright (C) 1993, 2002, 2003, 2004, 2005, 2006,
+;; Copyright (C) 1993, 2001, 2002, 2003, 2004, 2005, 2006,
 ;;   2006 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>

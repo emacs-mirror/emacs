@@ -1,6 +1,6 @@
 ;;; footnote.el --- footnote support for message mode  -*- coding: iso-latin-1;-*-
 
-;; Copyright (C) 1997, 2000, 2002, 2003, 2004,
+;; Copyright (C) 1997, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Steven L Baur <steve@xemacs.org>

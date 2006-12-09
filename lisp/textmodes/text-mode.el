@@ -1,6 +1,6 @@
 ;;; text-mode.el --- text mode, and its idiosyncratic commands
 
-;; Copyright (C) 1985, 1992, 1994, 2002, 2003, 2004,
+;; Copyright (C) 1985, 1992, 1994, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF

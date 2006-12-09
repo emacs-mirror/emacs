@@ -1,6 +1,6 @@
 ;;; fast-lock.el --- automagic text properties caching for fast Font Lock mode
 
-;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 2002, 2003, 2004,
+;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Simon Marshall <simon@gnu.org>
