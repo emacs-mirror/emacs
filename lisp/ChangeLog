@@ -1,5 +1,9 @@
 2006-12-09  Eli Zaretskii  <eliz@gnu.org>
 
+	* emacs-lisp/find-func.el (find-variable): Doc fix.
+
+	* help-fns.el (variable-at-point): Doc fix.
+
 	* w32-fns.el (w32-append-code-lines): New function.
 
 2006-12-09  Romain Francoise  <romain@orebokech.com>
