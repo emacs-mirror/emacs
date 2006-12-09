@@ -283,10 +283,13 @@ or \\[wdired-abort-changes] to abort changes")))
         (when (and filename
 		   (not (member (file-name-nondirectory filename) '("." ".."))))
 	  (dired-move-to-filename)
-	  (put-text-property (- (point) 2) (1- (point)) 'old-name filename)
-	  (put-text-property b-protection (1- (point)) 'read-only t)
-	  (setq b-protection (dired-move-to-end-of-filename t)))
-	(put-text-property (point) (1+ (point)) 'end-name t)
+	  ;; The rear-nonsticky property below shall ensure that text preceding
+	  ;; the filename can't be modified.
+	  (add-text-properties
+	   (1- (point)) (point) `(old-name ,filename rear-nonsticky (read-only)))
+	  (put-text-property b-protection (point) 'read-only t)
+	  (setq b-protection (dired-move-to-end-of-filename t))
+	  (put-text-property (point) (1+ (point)) 'end-name t))
         (forward-line))
       (put-text-property b-protection (point-max) 'read-only t))))
 
@@ -312,20 +315,21 @@ relies on WDired buffer's properties.  Optional arg NO-DIR with value
 non-nil means don't include directory.  Optional arg OLD with value
 non-nil means return old filename."
   ;; FIXME: Use dired-get-filename's new properties.
-  (let* ((end (line-end-position))
-         (beg (next-single-property-change
-               (line-beginning-position) 'old-name nil end)))
-    (unless (eq beg end)
-      (let ((file
-             (if old
-                 (get-text-property beg 'old-name)
-               (wdired-normalize-filename
-                (buffer-substring-no-properties
-                 (+ 2 beg) (next-single-property-change (1+ beg) 'end-name))))))
-        (if (or no-dir old)
-            file
-          (and file (> (length file) 0)
-               (concat (dired-current-directory) file)))))))
+  (let (beg end file)
+    (save-excursion
+      (setq end (line-end-position))
+      (beginning-of-line)
+      (setq beg (next-single-property-change (point) 'old-name nil end))
+      (unless (eq beg end)
+	(if old
+	    (setq file (get-text-property beg 'old-name))
+	  (setq end (next-single-property-change (1+ beg) 'end-name))
+	  (setq file (buffer-substring-no-properties (1+ beg) end)))
+	(and file (setq file (wdired-normalize-filename file))))
+      (if (or no-dir old)
+	  file
+	(and file (> (length file) 0)
+             (concat (dired-current-directory) file))))))
 
 
 (defun wdired-change-to-dired-mode ()
@@ -333,9 +337,9 @@ non-nil means return old filename."
   (or (eq major-mode 'wdired-mode)
       (error "Not a Wdired buffer"))
   (let ((inhibit-read-only t))
-    (remove-text-properties (point-min) (point-max)
-			    '(read-only nil local-map nil)))
-  (put-text-property 1 2 'front-sticky nil)
+    (remove-text-properties
+     (point-min) (point-max)
+     '(front-sticky nil rear-nonsticky nil read-only nil keymap nil)))
   (use-local-map dired-mode-map)
   (force-mode-line-update)
   (setq buffer-read-only t)
@@ -368,46 +372,42 @@ non-nil means return old filename."
 	(errors 0)
 	file-ori file-new tmp-value)
     (save-excursion
-      (if (and wdired-allow-to-redirect-links
-	       (fboundp 'make-symbolic-link))
-	  (progn
-	    (setq tmp-value (wdired-do-symlink-changes))
-	    (setq errors (cdr tmp-value))
-	    (setq changes (car tmp-value))))
-      (if (and wdired-allow-to-change-permissions
-	       (boundp 'wdired-col-perm)) ; could have been changed
-	  (progn
-	    (setq tmp-value (wdired-do-perm-changes))
-	    (setq errors (+ errors (cdr tmp-value)))
-	    (setq changes (or changes (car tmp-value)))))
+      (when (and wdired-allow-to-redirect-links
+		 (fboundp 'make-symbolic-link))
+	(setq tmp-value (wdired-do-symlink-changes))
+	(setq errors (cdr tmp-value))
+	(setq changes (car tmp-value)))
+      (when (and wdired-allow-to-change-permissions
+		 (boundp 'wdired-col-perm)) ; could have been changed
+	(setq tmp-value (wdired-do-perm-changes))
+	(setq errors (+ errors (cdr tmp-value)))
+	(setq changes (or changes (car tmp-value))))
       (goto-char (point-max))
       (while (not (bobp))
 	(setq file-ori (wdired-get-filename nil t))
-	(if file-ori
-	    (setq file-new (wdired-get-filename)))
-	(if (and file-ori (not (equal file-new file-ori)))
-	    (progn
-	      (setq changes t)
-	      (if (not file-new) ;empty filename!
-		  (setq files-deleted (cons file-ori files-deleted))
-		(progn
-		  (setq file-new (substitute-in-file-name file-new))
-		  (if wdired-use-interactive-rename
-		      (wdired-search-and-rename file-ori file-new)
-                    ;; If dired-rename-file autoloads dired-aux while
-                    ;; dired-backup-overwrite is locally bound,
-                    ;; dired-backup-overwrite won't be initialized.
-                    ;; So we must ensure dired-aux is loaded.
-                    (require 'dired-aux)
-		    (condition-case err
-			(let ((dired-backup-overwrite nil))
-			  (dired-rename-file file-ori file-new
-					     overwrite))
-		      (error
-		       (setq errors (1+ errors))
-		       (dired-log (concat "Rename `" file-ori "' to `"
-					  file-new "' failed:\n%s\n")
-				  err))))))))
+	(when file-ori
+	  (setq file-new (wdired-get-filename)))
+	(when (and file-ori (not (equal file-new file-ori)))
+	  (setq changes t)
+	  (if (not file-new)		;empty filename!
+	      (setq files-deleted (cons file-ori files-deleted))
+	    (setq file-new (substitute-in-file-name file-new))
+	    (if wdired-use-interactive-rename
+		(wdired-search-and-rename file-ori file-new)
+	      ;; If dired-rename-file autoloads dired-aux while
+	      ;; dired-backup-overwrite is locally bound,
+	      ;; dired-backup-overwrite won't be initialized.
+	      ;; So we must ensure dired-aux is loaded.
+	      (require 'dired-aux)
+	      (condition-case err
+		  (let ((dired-backup-overwrite nil))
+		    (dired-rename-file file-ori file-new
+				       overwrite))
+		(error
+		 (setq errors (1+ errors))
+		 (dired-log (concat "Rename `" file-ori "' to `"
+				    file-new "' failed:\n%s\n")
+			    err))))))
 	(forward-line -1)))
     (if changes
         (revert-buffer) ;The "revert" is necessary to re-sort the buffer
@@ -417,10 +417,10 @@ non-nil means return old filename."
 					   end-link nil end-perm nil
 					   old-perm nil perm-changed nil))
 	(message "(No changes to be performed)")))
-    (if files-deleted
-        (wdired-flag-for-deletion files-deleted))
-    (if (> errors 0)
-        (dired-log-summary (format "%d rename actions failed" errors) nil)))
+    (when files-deleted
+      (wdired-flag-for-deletion files-deleted))
+    (when (> errors 0)
+      (dired-log-summary (format "%d rename actions failed" errors) nil)))
   (set-buffer-modified-p nil)
   (setq buffer-undo-list nil))
 
@@ -446,10 +446,9 @@ non-nil means return old filename."
               (dired-do-create-files-regexp
                (function dired-rename-file)
                "Move" 1 ".*" filename-new nil t))
-          (progn
-            (forward-line -1)
-            (beginning-of-line)
-            (setq exit-while (= 1 (point)))))))))
+	  (forward-line -1)
+	  (beginning-of-line)
+	  (setq exit-while (bobp)))))))
 
 ;; marks a list of files for deletion
 (defun wdired-flag-for-deletion (filenames-ori)
@@ -527,15 +526,17 @@ says how many lines to move; default is one line."
 (defun wdired-get-previous-link (&optional old move)
   "Return the next symlink target.
 If OLD, return the old target.  If MOVE, move point before it."
-  (let ((beg (previous-single-property-change (point) 'old-link nil)))
-    (when beg
-      (let ((target
-             (if old
-                 (get-text-property (1- beg) 'old-link)
-               (buffer-substring-no-properties
-                (1+ beg) (next-single-property-change beg 'end-link)))))
-        (if move (goto-char (1- beg)))
-        (and target (wdired-normalize-filename target))))))
+  (let (beg end target)
+    (setq beg (previous-single-property-change (point) 'old-link nil))
+    (if beg
+	(progn
+	  (if old
+	      (setq target (get-text-property (1- beg) 'old-link))
+	    (setq end (next-single-property-change beg 'end-link))
+	    (setq target (buffer-substring-no-properties (1+ beg) end)))
+	  (if move (goto-char (1- beg)))))
+    (and target (wdired-normalize-filename target))))
+
 
 ;; Perform the changes in the target of the changed links.
 (defun wdired-do-symlink-changes ()
@@ -613,29 +614,34 @@ Like original function but it skips read-only words."
     (define-key map [down-mouse-1] 'wdired-mouse-toggle-bit)
     map))
 
-;; Put a local-map to the permission bits of the files, and store the
+;; Put a keymap property to the permission bits of the files, and store the
 ;; original name and permissions as a property
 (defun wdired-preprocess-perms ()
-  (let ((inhibit-read-only t)
-	filename)
+  (let ((inhibit-read-only t))
     (set (make-local-variable 'wdired-col-perm) nil)
     (save-excursion
       (goto-char (point-min))
       (while (not (eobp))
-	(if (and (not (looking-at dired-re-sym))
-		 (setq filename (wdired-get-filename)))
-	    (progn
-	      (re-search-forward dired-re-perms)
-	      (or wdired-col-perm
-		  (setq wdired-col-perm (- (current-column) 9)))
-	      (if (eq wdired-allow-to-change-permissions 'advanced)
-		  (put-text-property (match-beginning 0) (match-end 0)
-				     'read-only nil)
-		(put-text-property (1+ (match-beginning 0)) (match-end 0)
-				   'keymap wdired-perm-mode-map))
-	      (put-text-property (match-end 0) (1+ (match-end 0)) 'end-perm t)
-	      (put-text-property (match-beginning 0) (1+ (match-beginning 0))
-				 'old-perm (match-string-no-properties 0))))
+	(when (and (not (looking-at dired-re-sym))
+		   (wdired-get-filename)
+		   (re-search-forward dired-re-perms (line-end-position) 'eol))
+	  (let ((begin (match-beginning 0))
+		(end (match-end 0)))
+	    (unless wdired-col-perm
+	      (setq wdired-col-perm (- (current-column) 9)))
+	    (if (eq wdired-allow-to-change-permissions 'advanced)
+		(progn
+		  (put-text-property begin end 'read-only nil)
+		  ;; make first permission bit writable
+		  (put-text-property
+		   (1- begin) begin 'rear-nonsticky '(read-only)))
+	      ;; avoid that keymap applies to text following permissions
+	      (add-text-properties
+	       (1+ begin) end
+	       `(keymap ,wdired-perm-mode-map rear-nonsticky (keymap))))
+	    (put-text-property end (1+ end) 'end-perm t)
+	    (put-text-property
+	     begin (1+ begin) 'old-perm (match-string-no-properties 0))))
         (forward-line)
 	(beginning-of-line)))))
 
@@ -661,24 +667,27 @@ Like original function but it skips read-only words."
         (put-text-property 0 1 'read-only t new-bit)
         (insert new-bit)
         (delete-char 1)
-	(put-text-property pos-prop (1- pos-prop) 'perm-changed t))
+	(put-text-property (1- pos-prop) pos-prop 'perm-changed t)
+	(put-text-property (1- (point)) (point) 'rear-nonsticky '(keymap)))
     (forward-char 1)))
 
 (defun wdired-toggle-bit ()
   "Toggle the permission bit at point."
   (interactive)
   (let ((inhibit-read-only t)
-	(new-bit (cond
-                  ((not (eq (char-after (point)) ?-)) "-")
-                  ((= (% (- (current-column) wdired-col-perm) 3) 0) "r")
-                  ((= (% (- (current-column) wdired-col-perm) 3) 1) "w")
-                  (t "x")))
+	(new-bit "-")
 	(pos-prop (- (point) (- (current-column) wdired-col-perm))))
+    (if (eq (char-after (point)) ?-)
+	(setq new-bit	
+	      (if (= (% (- (current-column) wdired-col-perm) 3) 0) "r"
+		(if (= (% (- (current-column) wdired-col-perm) 3) 1) "w"
+		  "x"))))
     (put-text-property 0 1 'keymap wdired-perm-mode-map new-bit)
     (put-text-property 0 1 'read-only t new-bit)
     (insert new-bit)
     (delete-char 1)
-    (put-text-property pos-prop (1- pos-prop) 'perm-changed t)))
+    (put-text-property (1- pos-prop) pos-prop 'perm-changed t)
+    (put-text-property (1- (point)) (point) 'rear-nonsticky '(keymap))))
 
 (defun wdired-mouse-toggle-bit (event)
   "Toggle the permission bit that was left clicked."
@@ -690,28 +699,23 @@ Like original function but it skips read-only words."
 ;; Allowed chars for 2000 bit are Ssl in position 6
 ;; Allowed chars for 1000 bit are Tt  in position 9
 (defun wdired-perms-to-number (perms)
-  (+
-   (if (= (elt perms 1) ?-) 0 400)
-   (if (= (elt perms 2) ?-) 0 200)
-   (case (elt perms 3)
-     (?- 0)
-     (?S 4000)
-     (?s 4100)
-     (t 100))
-   (if (= (elt perms 4) ?-) 0 40)
-   (if (= (elt perms 5) ?-) 0 20)
-   (case (elt perms 6)
-     (?- 0)
-     (?S 2000)
-     (?s 2010)
-     (t 10))
-   (if (= (elt perms 7) ?-) 0 4)
-   (if (= (elt perms 8) ?-) 0 2)
-   (case (elt perms 9)
-     (?- 0)
-     (?T 1000)
-     (?t 1001)
-     (t 1))))
+  (let ((nperm 0777))
+    (if (= (elt perms 1) ?-) (setq nperm (- nperm 400)))
+    (if (= (elt perms 2) ?-) (setq nperm (- nperm 200)))
+    (let ((p-bit (elt perms 3)))
+      (if (memq p-bit '(?- ?S)) (setq nperm (- nperm 100)))
+      (if (memq p-bit '(?s ?S)) (setq nperm (+ nperm 4000))))
+    (if (= (elt perms 4) ?-) (setq nperm (- nperm 40)))
+    (if (= (elt perms 5) ?-) (setq nperm (- nperm 20)))
+    (let ((p-bit (elt perms 6)))
+      (if (memq p-bit '(?- ?S ?l)) (setq nperm (- nperm 10)))
+      (if (memq p-bit '(?s ?S ?l)) (setq nperm (+ nperm 2000))))
+    (if (= (elt perms 7) ?-) (setq nperm (- nperm 4)))
+    (if (= (elt perms 8) ?-) (setq nperm (- nperm 2)))
+    (let ((p-bit (elt perms 9)))
+      (if (memq p-bit '(?- ?T)) (setq nperm (- nperm 1)))
+      (if (memq p-bit '(?t ?T)) (setq nperm (+ nperm 1000))))
+    nperm))
 
 ;; Perform the changes in the permissions of the files that have
 ;; changed.
