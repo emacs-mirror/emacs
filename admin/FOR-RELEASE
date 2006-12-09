@@ -56,8 +56,11 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 ** Should CC mode set beginning-of-defun-function?
 
 ** Need papers from Rubini for his code in t-mouse.el
+  Sent instructions.
 
 ** jpff@cs.bath.ac.uk, Dec 7: Failure to submit second netnews message.
+
+** Doc meaning of `font-lock-defaults' = nil.
 
 * DOCUMENTATION
 
