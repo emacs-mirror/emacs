@@ -120,4 +120,4 @@ clean:
 distclean: clean
 
 maintainer-clean: distclean
-	- $(DEL) elisp.dvi elisp.oaux
+	- $(DEL) elisp elisp-? elisp-?? elisp.dvi elisp.oaux
