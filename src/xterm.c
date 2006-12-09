@@ -8753,20 +8753,26 @@ XTframe_raise_lower (f, raise_flag)
 {
   if (raise_flag)
     {
-      Lisp_Object frame;
-      const char *atom = "_NET_ACTIVE_WINDOW";
+      /* The following code is needed for `raise-frame' to work on
+	 some versions of metacity; see Window Manager
+	 Specification/Extended Window Manager Hints at
+	 http://freedesktop.org/wiki/Standards_2fwm_2dspec
+
+	 However, on other versions (metacity 2.17.2-1.fc7), it
+	 reportedly causes hangs when resizing frames.  */
+
+      /* Lisp_Object frame;
+         const char *atom = "_NET_ACTIVE_WINDOW"; */
 
       x_raise_frame (f);
-      /* See Window Manager Specification/Extended Window Manager Hints at
-         http://freedesktop.org/wiki/Standards_2fwm_2dspec */
 
-      XSETFRAME (frame, f);
-      Fx_send_client_event (frame, make_number (0), frame,
+      /* XSETFRAME (frame, f);
+         Fx_send_client_event (frame, make_number (0), frame,
                             make_unibyte_string (atom, strlen (atom)),
                             make_number (32),
                             Fcons (make_number (1),
                                    Fcons (make_number (time (NULL) * 1000),
-                                          Qnil)));
+				   Qnil))); */
     }
   else
     x_lower_frame (f);
