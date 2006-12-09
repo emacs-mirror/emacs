@@ -149,7 +149,7 @@ While this input method is active, the variable
   (interactive)
   (with-output-to-temp-buffer "*Help*"
     (princ "\
-Input method: ucs (mode line indicator:U)
+Input method: ucs (mode line indicator:U+)
 
 Input as Unicode: U<hex> or u<hex>, where <hex> is a four-digit hex number.")))
 
