@@ -1,3 +1,22 @@
+2006-12-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* wdired.el (wdired-change-to-wdired-mode, wdired-finish-edit)
+        (wdired-search-and-rename): Simplify code.
+	(wdired-preprocess-files, wdired-preprocess-perms): Make
+        read-only property of preceding character rear-nonsticky to
+        avoid that it can be modified.  Put old-name and old-link
+        properties on character preceding name and replace
+        put-text-property by add-text-properties.
+        (wdired-get-filename, wdired-get-previous-link): Get old-name
+        and old-link properties from character preceding name and
+        simplify code.
+	(wdired-preprocess-perms, wdired-set-bit, wdired-toggle-bit)
+        (wdired-perms-to-number): Make local-map property
+        rear-nonsticky to avoid that text following permissions may be
+        modified.  Use add-text-properties instead of put-text-property
+        when changing a permission bit.
+	(wdired-change-to-dired-mode): Remove stickiness properties.
+
 2006-12-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* international/mule-cmds.el (register-input-method): Doc fix.
