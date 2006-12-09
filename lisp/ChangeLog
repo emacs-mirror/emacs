@@ -1,3 +1,8 @@
+2006-12-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* wdired.el (wdired-preprocess-symlinks): Make the spaces after
+	symlink arrows read-only and non-rear-sticky.
+
 2006-12-09  Martin Rudalics  <rudalics@gmx.at>
 
 	* wdired.el (wdired-change-to-wdired-mode, wdired-finish-edit)
