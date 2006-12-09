@@ -3046,7 +3046,7 @@ Fourth arg STOPBEFORE non-nil means stop when come to
  any character that starts a sexp.
 Fifth arg OLDSTATE is a list like what this function returns.
  It is used to initialize the state of the parse.  Elements number 1, 2, 6
- and 8 are ignored; you can leave off element 8 (the last) entirely.
+ and 8 are ignored.
 Sixth arg COMMENTSTOP non-nil means stop at the start of a comment.
  If it is symbol `syntax-table', stop after the start of a comment or a
  string, or after end of a comment or a string.  */)
