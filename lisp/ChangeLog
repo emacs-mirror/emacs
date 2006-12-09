@@ -1,3 +1,10 @@
+2006-12-09  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+
+	* textmodes/flyspell.el (flyspell-hack-local-variables-hook): New.
+	Force buffer local defs evaluation on local variables loading.
+	(flyspell-mode-on, flyspell-mode-off): Use it in
+	`hack-local-variables-hook'.
+
 2006-12-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs-lisp/find-func.el (find-variable): Doc fix.
