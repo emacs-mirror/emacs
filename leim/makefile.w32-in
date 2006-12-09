@@ -184,11 +184,12 @@ $(MISC_DIC):
 	    -f batch-byte-compile $(MISC_DIC:.elc=.el)
 
 #
-# WARNING: Do NOT split the part inside $(ARGQUOTE)s into multiple lines as
+# WARNING: Do NOT split the parts inside $(ARGQUOTE)s into multiple lines as
 #          this can break with GNU Make 3.81 and later if sh.exe is used.
-leim-list.el: $(SUBDIRS) $(WORLD)
+leim-list.el: $(SUBDIRS) $(WORLD) $(srcdir)/leim-ext.el
 	$(RUN_EMACS) -l $(buildlisppath)/international/quail \
 	    --eval $(ARGQUOTE)(update-leim-list-file $(DQUOTE).$(DQUOTE))$(ARGQUOTE)
+	$(RUN_EMACS) --eval $(ARGQUOTE)(w32-append-code-lines $(DQUOTE)$@$(DQUOTE) $(DQUOTE)$(srcdir)/leim-ext.el$(DQUOTE))$(ARGQUOTE)
 
 install: all
 	- mkdir "$(INSTALLDIR)"
