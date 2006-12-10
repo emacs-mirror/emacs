@@ -8309,15 +8309,15 @@ do_ewmh_fullscreen (f)
       Atom *atoms = XListProperties (FRAME_X_DISPLAY (f),
                                      FRAME_X_DISPLAY_INFO (f)->root_window,
                                      &num);
-      if (atoms && num > 0) 
+      if (atoms && num > 0)
         {
           char **names = (char **) xmalloc (num * sizeof(*names));
-          if (XGetAtomNames (FRAME_X_DISPLAY (f), atoms, num, names)) 
+          if (XGetAtomNames (FRAME_X_DISPLAY (f), atoms, num, names))
             {
               int i;
-              for (i = 0; i < num; ++i) 
+              for (i = 0; i < num; ++i)
                 {
-                  if (!have_net_atom) 
+                  if (!have_net_atom)
                     have_net_atom = strncmp (names[i], "_NET_", 5) == 0;
                   XFree (names[i]);
                 }
@@ -8330,7 +8330,7 @@ do_ewmh_fullscreen (f)
       FRAME_X_DISPLAY_INFO (f)->have_net_atoms = have_net_atom;
     }
 
-  if (have_net_atom) 
+  if (have_net_atom)
     {
       Lisp_Object frame;
       const char *atom = "_NET_WM_STATE";
@@ -8343,7 +8343,7 @@ do_ewmh_fullscreen (f)
 
       /* If there are _NET_ atoms we assume we have extended window manager
          hints.  */
-      switch (f->want_fullscreen) 
+      switch (f->want_fullscreen)
         {
         case FULLSCREEN_BOTH:
           what = fs;
@@ -8399,7 +8399,7 @@ static void
 XTfullscreen_hook (f)
      FRAME_PTR f;
 {
-  if (f->async_visible) 
+  if (f->async_visible)
     {
       BLOCK_INPUT;
       do_ewmh_fullscreen (f);
@@ -8419,7 +8419,7 @@ x_check_fullscreen (f)
     {
       int width, height, ign;
 
-      if (do_ewmh_fullscreen (f)) 
+      if (do_ewmh_fullscreen (f))
         return;
 
       x_real_positions (f, &f->left_pos, &f->top_pos);
@@ -11146,7 +11146,7 @@ syms_of_xterm ()
   DEFVAR_BOOL ("x-use-underline-position-properties",
 	       &x_use_underline_position_properties,
      doc: /* *Non-nil means make use of UNDERLINE_POSITION font properties.
-nil means ignore them.  If you encounter fonts with bogus
+A value of nil means ignore them.  If you encounter fonts with bogus
 UNDERLINE_POSITION font properties, for example 7x13 on XFree prior
 to 4.1, set this to nil.  */);
   x_use_underline_position_properties = 1;
@@ -11154,9 +11154,9 @@ to 4.1, set this to nil.  */);
   DEFVAR_BOOL ("x-underline-at-descent-line",
 	       &x_underline_at_descent_line,
      doc: /* *Non-nil means to draw the underline at the same place as the descent line.
-nil means to draw the underline according to the value of the variable
-`x-use-underline-position-properties', which is usually at the baseline
-level.  The default value is nil.  */);
+A value of nil means to draw the underline according to the value of the
+variable `x-use-underline-position-properties', which is usually at the
+baseline level.  The default value is nil.  */);
   x_underline_at_descent_line = 0;
 
   DEFVAR_BOOL ("x-mouse-click-focus-ignore-position",
