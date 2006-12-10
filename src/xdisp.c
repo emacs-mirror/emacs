@@ -21856,7 +21856,7 @@ show_mouse_face (dpyinfo, draw)
     }
 
   /* Change the mouse cursor.  */
-  if (draw == DRAW_NORMAL_TEXT)
+  if (draw == DRAW_NORMAL_TEXT && !EQ (dpyinfo->mouse_face_window, f->tool_bar_window))
     rif->define_frame_cursor (f, FRAME_X_OUTPUT (f)->text_cursor);
   else if (draw == DRAW_MOUSE_FACE)
     rif->define_frame_cursor (f, FRAME_X_OUTPUT (f)->hand_cursor);
