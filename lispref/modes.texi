@@ -2358,7 +2358,9 @@ Lock mode is enabled, to set all the other variables.
 @defvar font-lock-defaults
 This variable is set by major modes, as a buffer-local variable, to
 specify how to fontify text in that mode.  It automatically becomes
-buffer-local when you set it.  The value should look like this:
+buffer-local when you set it.  If its value is @code{nil}, no
+highlighting is performed.  If non-@code{nil}, the value should look
+like this:
 
 @example
 (@var{keywords} [@var{keywords-only} [@var{case-fold}
@@ -2374,9 +2376,10 @@ The first symbol specifies how to do level 1 fontification, the second
 symbol how to do level 2, and so on.  @xref{Levels of Font Lock}.
 
 The second element, @var{keywords-only}, specifies the value of the
-variable @code{font-lock-keywords-only}.  If this is non-@code{nil},
-syntactic fontification (of strings and comments) is not performed.
-@xref{Syntactic Font Lock}.
+variable @code{font-lock-keywords-only}.  If this is omitted or
+@code{nil}, syntactic fontification (of strings and comments) is also
+performed.  If this is non-@code{nil}, such fontification is not
+performed.  @xref{Syntactic Font Lock}.
 
 The third element, @var{case-fold}, specifies the value of
 @code{font-lock-keywords-case-fold-search}.  If it is non-@code{nil},
