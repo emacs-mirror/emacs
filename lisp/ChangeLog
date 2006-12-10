@@ -1,3 +1,8 @@
+2006-12-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* menu-bar.el (menu-bar-showhide-menu, menu-bar-tools-menu)
+	(menu-bar-help-menu): Tooltip fixes.  Suggested by Francis Wright.
+
 2006-12-10  Masatake YAMATO  <jet@gyve.org>
 
 	* progmodes/ld-script.el (ld-script-keywords): Fix a typo.
