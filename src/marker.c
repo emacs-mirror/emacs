@@ -848,7 +848,7 @@ see `marker-insertion-type'.  */)
 DEFUN ("marker-insertion-type", Fmarker_insertion_type,
        Smarker_insertion_type, 1, 1, 0,
        doc: /* Return insertion type of MARKER: t if it stays after inserted text.
-nil means the marker stays before text inserted there.  */)
+The value nil means the marker stays before text inserted there.  */)
      (marker)
      register Lisp_Object marker;
 {
