@@ -915,7 +915,7 @@ DEFUN ("string-to-syntax", Fstring_to_syntax, Sstring_to_syntax, 1, 1, 0,
        doc: /* Convert a syntax specification STRING into syntax cell form.
 STRING should be a string as it is allowed as argument of
 `modify-syntax-entry'.  Value is the equivalent cons cell
-(CODE . MATCHING-CHAR) that can be used as value of a `syntax-table'
+\(CODE . MATCHING-CHAR) that can be used as value of a `syntax-table'
 text property.  */)
      (string)
      Lisp_Object string;
