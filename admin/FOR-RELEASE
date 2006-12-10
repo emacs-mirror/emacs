@@ -60,8 +60,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** jpff@cs.bath.ac.uk, Dec 7: Failure to submit second netnews message.
 
-** Doc meaning of `font-lock-defaults' = nil.
-
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
