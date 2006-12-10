@@ -1,3 +1,7 @@
+2006-12-10  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (show_mouse_face): Never use text cursor in tool-bar.
+
 2006-12-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* abbrev.c (syms_of_abbrev) <last-abbrev-text>:
