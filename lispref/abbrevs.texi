@@ -165,7 +165,10 @@ returns @code{nil}, @code{expand-abbrev} also returns @code{nil}, as
 if expansion had not really occurred.
 
 If @var{system-flag} is non-@code{nil}, that marks the abbrev as a
-``system'' abbrev with the @code{system-type} property.
+``system'' abbrev with the @code{system-type} property.  Unless
+@var{system-flag} has the value @code{force}, a ``system'' abbrev will
+not overwrite an existing definition for a non-``system'' abbrev of the
+same name.
 
 Normally the function @code{define-abbrev} sets the variable
 @code{abbrevs-changed} to @code{t}, if it actually changes the abbrev.
