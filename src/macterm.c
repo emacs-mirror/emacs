@@ -11676,7 +11676,7 @@ syms_of_macterm ()
   DEFVAR_BOOL ("x-use-underline-position-properties",
 	       &x_use_underline_position_properties,
      doc: /* *Non-nil means make use of UNDERLINE_POSITION font properties.
-nil means ignore them.  If you encounter fonts with bogus
+A value of nil means ignore them.  If you encounter fonts with bogus
 UNDERLINE_POSITION font properties, for example 7x13 on XFree prior
 to 4.1, set this to nil.
 
@@ -11686,9 +11686,9 @@ NOTE: Not supported on Mac yet.  */);
   DEFVAR_BOOL ("x-underline-at-descent-line",
 	       &x_underline_at_descent_line,
      doc: /* *Non-nil means to draw the underline at the same place as the descent line.
-nil means to draw the underline according to the value of the variable
-`x-use-underline-position-properties', which is usually at the baseline
-level.  The default value is nil.  */);
+A value of nil means to draw the underline according to the value of the
+variable `x-use-underline-position-properties', which is usually at the
+baseline level.  The default value is nil.  */);
   x_underline_at_descent_line = 0;
 
   DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
@@ -11735,8 +11735,8 @@ unexpected results for some keys on non-US/GB keyboards.  */);
 	       &Vmac_emulate_three_button_mouse,
     doc: /* *Specify a way of three button mouse emulation.
 The value can be nil, t, or the symbol `reverse'.
-nil means that no emulation should be done and the modifiers should be
-placed on the mouse-1 event.
+A value of nil means that no emulation should be done and the modifiers
+should be placed on the mouse-1 event.
 t means that when the option-key is held down while pressing the mouse
 button, the click will register as mouse-2 and while the command-key
 is held down, the click will register as mouse-3.
