@@ -1,6 +1,7 @@
 ;;; korean.el --- support for Korean -*- coding: iso-2022-7bit; no-byte-compile: t -*-
 
-;; Copyright (C) 1998  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2001, 2002, 2003, 2004, 2005, 2006
+;;   Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1998
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021

@@ -1,6 +1,7 @@
 ;;; latin-1.el --- set up case-conversion and syntax tables for ISO Latin-1
 
-;; Copyright (C) 1988, 1997, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1997, 2001, 2002, 2003, 2004, 2005, 2006
+;;   Free Software Foundation, Inc.
 
 ;; Author: Howard Gayle
 ;; Maintainer: FSF

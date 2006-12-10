@@ -1,7 +1,7 @@
 ;;; ucs-tables.el --- translation to, from and via Unicode  -*- coding: iso-2022-7bit -*-
 
-;; Copyright (C) 2001, 2002, 2003, 2005  Free Software Foundation, Inc.
-;; Copyright (C) 2002, 2003
+;; Copyright (C) 2001, 2002, 2003, 2005, 2006  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
