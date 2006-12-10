@@ -2651,38 +2651,6 @@ if test "x$HAVE_TIMEVAL" = xyes; then
   fi
 fi
 
-# This defines (or not) HAVE_TZNAME and HAVE_TM_ZONE.
-AC_STRUCT_TIMEZONE
-
-dnl Note that AC_STRUCT_TIMEZONE doesn't do what you might expect.
-if test "$ac_cv_func_gettimeofday" = yes; then
-  AC_CACHE_CHECK([for struct timezone], emacs_cv_struct_timezone,
-    [AC_TRY_COMPILE([#include <sys/time.h>],
-    [struct timezone tz;],
-    dnl It may be that we can't call gettimeofday with a non-null pointer,
-    dnl even though we have struct timezone (e.g. HPUX).  In that case
-    dnl we'll lie about struct timezone.
-    [AC_TRY_RUN([
-#ifdef TIME_WITH_SYS_TIME
-#include <sys/time.h>
-#include <time.h>
-#else
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#else
-#include <time.h>
-#endif
-#endif
-main () {
-  struct timeval time;
-  struct timezone dummy;
-  exit (gettimeofday (&time, &dummy));
-}],
-      emacs_cv_struct_timezone=yes,
-      emacs_cv_struct_timezone=no, emacs_cv_struct_timezone=yes)],
-    emacs_cv_struct_timezone=no)])
-fi
-
 ok_so_far=yes
 AC_CHECK_FUNC(socket, , ok_so_far=no)
 if test $ok_so_far = yes; then
