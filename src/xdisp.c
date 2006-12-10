@@ -17258,9 +17258,9 @@ for details) to use.
 
 Optional second arg FACE specifies the face property to put
 on all characters for which no face is specified.
-t means whatever face the window's mode line currently uses
+The value t means whatever face the window's mode line currently uses
 \(either `mode-line' or `mode-line-inactive', depending).
-nil means the default is no face property.
+A value of nil means the default is no face property.
 If FACE is an integer, the value string has no text properties.
 
 Optional third and fourth args WINDOW and BUFFER specify the window
