@@ -23977,7 +23977,7 @@ Value is a number or a cons (WIDTH-DPI . HEIGHT-DPI).  */);
   truncate_partial_width_windows = 1;
 
   DEFVAR_BOOL ("mode-line-inverse-video", &mode_line_inverse_video,
-    doc: /* nil means display the mode-line/header-line/menu-bar in the default face.
+    doc: /* When nil, display the mode-line/header-line/menu-bar in the default face.
 Any other value means to use the appropriate face, `mode-line',
 `header-line', or `menu' respectively.  */);
   mode_line_inverse_video = 1;
