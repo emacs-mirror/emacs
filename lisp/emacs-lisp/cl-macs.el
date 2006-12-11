@@ -2292,10 +2292,15 @@ copier, a `NAME-p' predicate, and setf-able `NAME-SLOT' accessors.
 			     (if (cadr (memq :read-only (cddr desc)))
 				 (list 'error (format "%s is a read-only slot"
 						      accessor))
-			       (list 'cl-struct-setf-expander 'cl-x
-				     (list 'quote name) (list 'quote accessor)
-				     (and pred-check (list 'quote pred-check))
-				     pos)))
+			       ;; If cl is loaded only for compilation,
+			       ;; the call to cl-struct-setf-expander would
+			       ;; cause a warning because it may not be
+			       ;; defined at run time.  Suppress that warning.
+			       (list 'with-no-warnings
+				     (list 'cl-struct-setf-expander 'cl-x
+					   (list 'quote name) (list 'quote accessor)
+					   (and pred-check (list 'quote pred-check))
+					   pos))))
 		       forms)
 	      (if print-auto
 		  (nconc print-func
