@@ -1,3 +1,4 @@
+#!/usr/bin/python
 #How to test a release before shipping it to Configura
 
 #You have a candidate release.  This document tells you how to test it before shipping it -- quick tests.  
@@ -25,17 +26,19 @@ def runtest(test, variety, testout):
   os.system("echo .")
   os.system("echo .")
   os.system("echo .")
-  os.system("echo --- %s (%s) ---" % (test, variety) )
-  os.system("echo --- %s (%s) --- >>%s" % (test, variety, testout) )
-  os.system("nmake /f w3i3mv.nmk VARIETY=%s %s.exe >>%s" % (variety, test, testout) )
-  os.system(".\w3i3mv\%s\%s.exe >>%s" % (variety, test, testout) )
+  os.system("echo --- %s {%s} ---" % (test, variety) )
+  os.system("echo --- %s {%s} --- >>%s" % (test, variety, testout) )
+#  os.system("nmake /f w3i3mv.nmk VARIETY=%s %s.exe >>%s" % (variety, test, testout) )
+#  os.system(".\w3i3mv\%s\%s.exe >>%s" % (variety, test, testout) )
+  os.system("make -f xcppgc.gmk VARIETY=%s %s >>%s" % (variety, test, testout) )
+  os.system("./xcppgc/%s/%s >>%s" % (variety, test, testout) )
 
 def runtestlist( lTest, lVariety, testout ):
   # clear testout
   os.system("echo . >%s" % testout)
 
-  os.system("echo === Tests: (%s) (%s) ===" % (lTest, lVariety) )
-  os.system("echo === Tests: (%s) (%s) === >>%s" % (lTest, lVariety, testout) )
+  os.system("echo === Tests: {%s} {%s} ===" % (lTest, lVariety) )
+  os.system("echo === Tests: {%s} {%s} === >>%s" % (lTest, lVariety, testout) )
   for test in lTest:
     for variety in lVariety:
       runtest(test, variety, testout)
@@ -43,9 +46,12 @@ def runtestlist( lTest, lVariety, testout ):
 
 runtestlist([
     "amcss",
+    "amsss",
     "finalcv",
-#    "awlut",  # awlut.obj : error LNK2001: unresolved external symbol _dylan_weak_dependent
+    "awlut",
     "awluthe",
+    "mpsicv",
+    "messtest",
  ], ["ci", "we", "wi"], testout)
 
 os.system("echo DONE")
