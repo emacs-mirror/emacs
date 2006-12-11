@@ -223,20 +223,26 @@ static void traceStartWhyToString(char *s, size_t len, int why)
   AVER(why < TraceStartWhyLIMIT);
 
   switch(why) {
-  case TraceStartWhyNURSERY:
-    r = "Nursery generation is full.";
+  case TraceStartWhyCHAIN_GEN0CAP:
+    r = "Generation 0 of a chain has reached capacity:"
+        " start a minor collection.";
     break;
-  case TraceStartWhyGLOBAL:
-    r = "Preventing global exhaustion of memory.";
+  case TraceStartWhyDYNAMICCRITERION:
+    r = "Need to start full collection now, or there won't be enough"
+        " memory (ArenaAvail) to complete it.";
     break;
   case TraceStartWhyOPPORTUNISM:
-    r = "Opportunism.";
+    r = "Opportunism: client predicts plenty of idle time,"
+        " so start full collection.";
     break;
-  case TraceStartWhyCLIENT:
-    r = "Client request.";
+  case TraceStartWhyCLIENTFULL_INCREMENTAL:
+    r = "Client requests: start incremental full collection now.";
+    break;
+  case TraceStartWhyCLIENTFULL_BLOCK:
+    r = "Client requests: immediate full collection.";
     break;
   case TraceStartWhyWALK:
-    r = "Walking.";
+    r = "Walking all live objects.";
     break;
   default:
     NOTREACHED;
@@ -1730,7 +1736,7 @@ Size TracePoll(Globals globals)
     dynamicDeferral = (double)ArenaAvail(arena) - (double)sConsTrace;
 
     if (dynamicDeferral < 0.0) { /* start full GC */
-      res = traceStartCollectAll(&trace, arena, TraceStartWhyGLOBAL);
+      res = traceStartCollectAll(&trace, arena, TraceStartWhyDYNAMICCRITERION);
       if (res != ResOK)
         goto failStart;
       scannedSize = traceWorkClock(trace);
@@ -1754,7 +1760,7 @@ Size TracePoll(Globals globals)
       if (firstTime < 0) {
         double mortality;
 
-        res = TraceCreate(&trace, arena, TraceStartWhyNURSERY);
+        res = TraceCreate(&trace, arena, TraceStartWhyCHAIN_GEN0CAP);
         AVER(res == ResOK);
         res = ChainCondemnAuto(&mortality, firstChain, trace);
         if (res != ResOK) /* should try some other trace, really @@@@ */
