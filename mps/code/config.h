@@ -212,7 +212,7 @@
 /* Length (in chars) of a char buffer used to store the reason why a
    collection started in the TraceStartMessageStruct (used by
    mps_message_type_gc_start). */
-#define TRACE_START_MESSAGE_WHY_LEN 64
+#define TRACE_START_MESSAGE_WHY_LEN 128
 
 
 

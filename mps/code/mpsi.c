@@ -346,7 +346,7 @@ mps_res_t mps_arena_start_collect(mps_space_t mps_space)
   Res res;
   Arena arena = (Arena)mps_space;
   ArenaEnter(arena);
-  res = ArenaStartCollect(ArenaGlobals(arena), TraceStartWhyCLIENT);
+  res = ArenaStartCollect(ArenaGlobals(arena), TraceStartWhyCLIENTFULL_INCREMENTAL);
   ArenaLeave(arena);
   return res;
 }
@@ -356,7 +356,7 @@ mps_res_t mps_arena_collect(mps_space_t mps_space)
   Res res;
   Arena arena = (Arena)mps_space;
   ArenaEnter(arena);
-  res = ArenaCollect(ArenaGlobals(arena), TraceStartWhyCLIENT);
+  res = ArenaCollect(ArenaGlobals(arena), TraceStartWhyCLIENTFULL_BLOCK);
   ArenaLeave(arena);
   return res;
 }
