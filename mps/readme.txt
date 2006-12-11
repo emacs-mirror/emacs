@@ -69,6 +69,12 @@ Other changes:
 <http://www.ravenbrook.com/project/mps/issue/job001421/>
   - the default "all" build now builds mps library and plinth, on 
     all platforms.
+
+<http://www.ravenbrook.com/project/mps/issue/job001530/>
+  - Mac OS X on Intel now buildable; see build notes.
+
+Some work-in-progress MPS documentation is available; see:
+  manual/wiki/index.html
 ]
 
 This is release 1.106.2, made on 2006-04-11.
