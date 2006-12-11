@@ -1,3 +1,9 @@
+2006-12-11  Richard Stallman  <rms@gnu.org>
+
+	* modes.texi (Font Lock Basics): Explain how nil for font-lock-defaults
+	affects face menu.  Explain how to make it non-nil without enabling
+	any fontification.
+
 2006-12-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* modes.texi (Font Lock Basics): Document nil value of
