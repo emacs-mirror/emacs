@@ -404,14 +404,17 @@ enum {
   TraceFINISHED
 };
 
-/* TraceStart reasons.  Reasons for why a trace is started. */
+/* TraceStart reasons: the trigger that caused a trace to start. */
+/* Make these specific trigger names, not broad categories; */
+/* and if a new trigger is added, add a new reason. */
 
 enum {
   TraceStartWhyBASE = 1, /* not a reason, the base of the enum. */
-  TraceStartWhyNURSERY = TraceStartWhyBASE,
-  TraceStartWhyGLOBAL,
-  TraceStartWhyOPPORTUNISM,
-  TraceStartWhyCLIENT,
+  TraceStartWhyCHAIN_GEN0CAP = TraceStartWhyBASE,  /* start minor */
+  TraceStartWhyDYNAMICCRITERION, /* start full */
+  TraceStartWhyOPPORTUNISM,      /* start full */
+  TraceStartWhyCLIENTFULL_INCREMENTAL,   /* start full */
+  TraceStartWhyCLIENTFULL_BLOCK, /* do full */
   TraceStartWhyWALK,
   TraceStartWhyLIMIT /* not a reason, the limit of the enum. */
 };
