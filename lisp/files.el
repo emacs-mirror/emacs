@@ -2926,7 +2926,7 @@ Interactively, confirmation is required unless you supply a prefix argument."
   (interactive
    (list (if buffer-file-name
 	     (read-file-name "Write file: "
-				 nil nil nil nil)
+			     nil nil nil nil)
 	   (read-file-name "Write file: " default-directory
 			   (expand-file-name
 			    (file-name-nondirectory (buffer-name))
