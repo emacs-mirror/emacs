@@ -1,3 +1,7 @@
+2006-12-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (unread-command-char): Reformat obsolescence info.
+
 2006-12-11  Richard Stallman  <rms@gnu.org>
 
 	* emacs-lisp/cl-macs.el (defstruct): Suppress warnings

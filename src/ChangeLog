@@ -4,6 +4,8 @@
 	<default-scroll-up-aggressively, default-scroll-down-aggressively>:
 	<line-spacing, left-margin>: Doc fixes.
 
+	* xdisp.c (syms_of_xdisp) <mode-line-inverse-video>: Doc fix.
+
 2006-12-10  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (show_mouse_face): Never use text cursor in tool-bar.
