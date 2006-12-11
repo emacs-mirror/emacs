@@ -5431,13 +5431,13 @@ This is the same as (default-value 'fringe-cursor-alist').  */);
 		     &buffer_defaults.scroll_up_aggressively,
 		     doc: /* Default value of `scroll-up-aggressively'.
 This value applies in buffers that don't have their own local values.
-This variable is an alias for (default-value 'scroll-up-aggressively).  */);
+This is the same as (default-value 'scroll-up-aggressively).  */);
 
   DEFVAR_LISP_NOPRO ("default-scroll-down-aggressively",
 		     &buffer_defaults.scroll_down_aggressively,
 		     doc: /* Default value of `scroll-down-aggressively'.
 This value applies in buffers that don't have their own local values.
-This variable is an alias for (default-value 'scroll-down-aggressively).  */);
+This is the same as (default-value 'scroll-down-aggressively).  */);
 
   DEFVAR_PER_BUFFER ("header-line-format",
 		     &current_buffer->header_line_format,
@@ -5531,7 +5531,7 @@ Interactively, you can set the buffer local value using \\[set-fill-column].  */
 
   DEFVAR_PER_BUFFER ("left-margin", &current_buffer->left_margin,
 		     make_number (Lisp_Int),
-		     doc: /* *Column for the default indent-line-function to indent to.
+		     doc: /* *Column for the default `indent-line-function' to indent to.
 Linefeed indents to this column in Fundamental mode.  */);
 
   DEFVAR_PER_BUFFER ("tab-width", &current_buffer->tab_width,
@@ -6036,12 +6036,12 @@ this variable has no effect; the cursor appears as a hollow box.  */);
 		     doc: /* Additional space to put between lines when displaying a buffer.
 The space is measured in pixels, and put below lines on window systems.
 If value is a floating point number, it specifies the spacing relative
-to the default frame line height.  nil means add no extra space.  */);
+to the default frame line height.  A value of nil means add no extra space.  */);
 
   DEFVAR_PER_BUFFER ("cursor-in-non-selected-windows",
 		     &current_buffer->cursor_in_non_selected_windows, Qnil,
     doc: /* *Cursor type to display in non-selected windows.
-t means to use hollow box cursor.  See `cursor-type' for other values.  */);
+The value t means to use hollow box cursor.  See `cursor-type' for other values.  */);
 
   DEFVAR_LISP ("kill-buffer-query-functions", &Vkill_buffer_query_functions,
 	       doc: /* List of functions called with no args to query before killing a buffer.  */);
