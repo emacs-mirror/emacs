@@ -77,7 +77,7 @@ typedef PoolClass AbstractSegBufPoolClass; /* <code/poolabs.c> */
 typedef PoolClass AbstractScanPoolClass; /* <code/poolabs.c> */
 typedef PoolClass AbstractCollectPoolClass; /* <code/poolabs.c> */
 typedef struct TraceStartMessageStruct
-  *TraceStartMessage;                   /* <design/mesage-gc> */
+  *TraceStartMessage;                   /* <design/message-gc> */
 typedef struct TraceStruct *Trace;      /* <design/trace/> */
 typedef struct ScanStateStruct *ScanState; /* <design/trace/> */
 typedef struct ChainStruct *Chain;      /* <design/trace/> */
@@ -424,7 +424,7 @@ enum {
   MessageTypeFINALIZATION,
   MessageTypeGC,
   MessageTypeGCSTART,
-  MessageTypeLIMIT
+  MessageTypeLIMIT /* not a message type, the limit of the enum. */
 };
 
 
