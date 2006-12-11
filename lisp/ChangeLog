@@ -1,3 +1,8 @@
+2006-12-11  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/cl-macs.el (defstruct): Suppress warnings
+	about calls to cl-struct-setf-expander.
+
 2006-12-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ediff-merg.el (ediff-show-clashes-only): Doc fix.
