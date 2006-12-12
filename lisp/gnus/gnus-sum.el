@@ -3352,7 +3352,7 @@ buffer that was in action when the last article was fetched."
 	  gnus-thread-indent-array-level gnus-thread-indent-level)
     (while (>= n 0)
       (aset gnus-thread-indent-array n
-	    (make-string (* n gnus-thread-indent-level) ?\s))
+	    (make-string (* n gnus-thread-indent-level) ? ))
       (setq n (1- n)))))
 
 (defun gnus-update-summary-mark-positions ()
