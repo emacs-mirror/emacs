@@ -64,6 +64,13 @@ Defect discovered:
     call would fail.
 Fixed: mps_arena_formatted_objects_walk() will now work.
 
+<http://www.ravenbrook.com/project/mps/issue/job000666/>
+  - when MPS starts a garbage collection, it now tells 
+    the client by posting a message of the new type
+    mps_message_type_gc_start().  The message includes 
+    a textual explanation (for the client programmer) 
+    of why this collection was triggered.
+
 Other changes:
 
 <http://www.ravenbrook.com/project/mps/issue/job001421/>
