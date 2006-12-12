@@ -1,3 +1,7 @@
+2006-12-12  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* progmodes/idlw-help.el: Fixed copyright notice.
+
 2006-12-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/syntax.el (syntax-ppss-toplevel-pos): New fun.
