@@ -427,7 +427,7 @@ enum {
 enum {
   MessageTypeFINALIZATION,  /* MPS_MESSAGE_TYPE_FINALIZATION */
   MessageTypeGC,  /* MPS_MESSAGE_TYPE_GC */
-  MessageTypeGCSTART,
+  MessageTypeGCSTART,  /* MPS_MESSAGE_TYPE_GC_START */
   MessageTypeLIMIT /* not a message type, the limit of the enum. */
 };
 
