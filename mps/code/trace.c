@@ -1544,8 +1544,15 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
   arena = trace->arena;
 
   message = TraceStartMessageMessage(&trace->startMessage);
-  /* Check message is not on queue.  If it _is_ then client
-     must have not read it yet. */
+  /* Attempt to re-use message.
+   * @@@@ This is not done safely, because we fail to record 
+   * whether the client has discarded the message yet.  See 
+   * design/message/#lifecycle.  We might over-write message 
+   * fields the client is still looking at.
+   * @@@@ Half-way measure: check message is not on queue.  
+   * If it _is_ then client has not read the last Post yet, so 
+   * we just silently drop the message for this TraceStart.
+   */
   if(!MessageOnQueue(message)) {
     MessagePost(arena, message);
   }
