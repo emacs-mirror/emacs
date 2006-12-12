@@ -2031,7 +2031,7 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
   struct frame *f;
   struct face *face;
   Lisp_Object charset, rfont_def;
-  int charset_id;
+  int cs_id;
 
   if (NILP (position))
     {
@@ -2040,7 +2040,7 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
       f = XFRAME (selected_frame);
       face_id = DEFAULT_FACE_ID;
       pos = -1;
-      charset_id = -1;
+      cs_id = -1;
     }
   else
     {
@@ -2067,16 +2067,15 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
       face_id = face_at_buffer_position (w, pos, -1, -1, &dummy, pos + 100, 0);
       charset = Fget_char_property (position, Qcharset, Qnil);
       if (CHARSETP (charset))
-	charset_id = XINT (CHARSET_SYMBOL_ID (charset));
+	cs_id = XINT (CHARSET_SYMBOL_ID (charset));
       else
-	charset_id = -1;
+	cs_id = -1;
     }
   if (! CHAR_VALID_P (c, 0))
     return Qnil;
   face_id = FACE_FOR_CHAR (f, FACE_FROM_ID (f, face_id), c, pos, Qnil);
   face = FACE_FROM_ID (f, face_id);
-  rfont_def = fontset_font (FONTSET_FROM_ID (face->fontset), c, face,
-			    charset_id);
+  rfont_def = fontset_font (FONTSET_FROM_ID (face->fontset), c, face, cs_id);
 #ifdef USE_FONT_BACKEND
   if (enable_font_backend)
     {
