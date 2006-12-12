@@ -1,7 +1,7 @@
 /* mpmst.h: MEMORY POOL MANAGER DATA STRUCTURES
  *
  * $Id$
- * Copyright (c) 2001,2003 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2003, 2006 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2001 Global Graphics Software.
  *
  * .design: This header file crosses module boundaries.  The relevant
@@ -200,8 +200,13 @@ typedef struct MessageClassStruct {
 
   /* methods specific to MessageTypeGC */
   MessageGCLiveSizeMethod gcLiveSize;
+  
+  /* methods specific to MessageTypeGC */
   MessageGCCondemnedSizeMethod gcCondemnedSize;
   MessageGCNotCondemnedSizeMethod gcNotCondemnedSize;
+
+  /* methods specific to MessageTypeGCStart */
+  MessageGCStartWhyMethod gcStartWhy;
 
   Sig endSig;                   /* <design/message/#class.sig.double> */
 } MessageClassStruct;
@@ -442,6 +447,20 @@ typedef struct LDStruct {
   RefSet rs;            /* RefSet of Add'ed references */
 } LDStruct;
 
+/* TraceStartMessage
+ *
+ * See <design/message-gc/>.
+ *
+ * Embedded in TraceStruct. */
+
+#define TraceStartMessageSig ((Sig)0x51926535) /* SIG TRaceStartMeSsage */
+
+typedef struct TraceStartMessageStruct {
+  Sig sig;
+  char why[TRACE_START_MESSAGE_WHY_LEN];
+  MessageStruct messageStruct;
+} TraceStartMessageStruct;
+
 
 /* ScanState
  *
@@ -525,6 +544,9 @@ typedef struct TraceStruct {
   Size preservedInPlaceSize;    /* bytes preserved in place */
   STATISTIC_DECL(Count reclaimCount); /* segments reclaimed */
   STATISTIC_DECL(Count reclaimSize); /* bytes reclaimed */
+  /* Always allocated message structure.  Implements
+     mps_message_type_gc_start().  See <design/message-gc/> */
+  TraceStartMessageStruct startMessage;
 } TraceStruct;
 
 
@@ -708,7 +730,7 @@ typedef struct AllocPatternStruct {
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2003 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2003, 2006 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

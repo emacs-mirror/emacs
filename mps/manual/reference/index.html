@@ -7494,7 +7494,11 @@ is used to indicate that the client has no further use for the specified message
 
 <h4>Description</h4>
 
-<p>Currently, the only type of message that supports this property is  <code><a href="#mps_message_type_gc">mps_message_type_gc</a></code>, such messages are generated whenever a garbage collectioncompletes. This method returns an approximation to the size of the set of objects that werecondemned in that collection.</p>
+<p>Currently, the only type of message that supports this property is
+<code><a href="#mps_message_type_gc">mps_message_type_gc</a></code>,
+such messages are generated whenever a garbage collection completes. This
+method returns an approximation to the size of the set of objects that
+were condemned in that collection.</p>
 
 
 <h4>Example</h4>
@@ -7626,6 +7630,84 @@ is used to indicate that the client has no further use for the specified message
 
 <p>Currently, the only type of message that supports this property is <code><a href="#mps_message_type_gc">mps_message_type_gc</a></code>; such messages are generated whenever a garbage collectioncompletes. This method returns an approximation to the size of the set of objects that were incollected pools (so potentially subject to garbage collection), but were not condemned in thatcollection.</p>
 
+
+<h4>Example</h4>
+
+
+<h4>Error Handling</h4>
+
+
+<h4>See Also</h4>
+
+<p>
+
+<code>mps_message_*</code></p>
+
+
+<h3>function <code><a id="mps_message_gc_start_why"
+  name="mps_message_gc_start_why">mps_message_gc_start_why</a></code></h3>
+
+
+<h4>Name</h4>
+
+<p><code><a href="#mps_message_gc_start_why">mps_message_gc_start_why</a></code></p>
+
+
+<h4>Summary</h4>
+
+<p><code class="source"> mps_message_gc_start_why </code> returns the a
+string that describes why a particular collection started. </p>
+
+
+<h4>Associated Protocols</h4>
+
+<p>Message, GC.</p>
+
+
+<h4>Syntax</h4>
+
+<p><code class="source"> const char * mps_message_gc_start_why(mps_arena_t arena,mps_message_t message) </code></p>
+
+
+<h4>Arguments</h4>
+
+<p>
+  <code class="source">
+    arena
+  </code>
+  -- the arena
+</p>
+
+<p>
+  <code class="source">
+    message
+  </code>
+  -- a message of a message type that supports this method
+  (<code>mps_message_type_gc_start()</code>)
+</p>
+
+
+<h4>Returned Values</h4>
+
+<p> A pointer to a string that is a
+  textual explanation of why this collection is starting. </p>
+
+
+<h4>Resources</h4>
+
+<p><code class="filename"> mps.h </code></p>
+
+
+<h4>Description</h4>
+
+<p>Currently, the only type of message that supports this property is
+<code><a href="#mps_message_type_gc_start">mps_message_type_gc_start</a></code>;
+such messages are generated whenever a garbage collection starts.
+This method returns a string describing why the collection started. </p>
+
+<p> The contents of the string must not be modified by the client.  The
+string and the pointer are only valid as long as the message has not
+been discarded (with <code>mps_message_discard</code>). </p> 
 
 <h4>Example</h4>
 
@@ -8231,6 +8313,96 @@ is used to indicate that the client has no further use for the specified message
     not_condemned = mps_message_gc_not_condemned_size(arena,message);
     mps_message_discard(arena, message);
     process_collection_stats(live, condemned, not_condemned);
+  }
+}
+</pre>
+
+
+<h4>Error Handling</h4>
+
+<p>Cannot fail.</p>
+
+
+<h4>See Also</h4>
+
+<p>
+
+<code>mps_message_*</code>.</p>
+
+
+<h3>function <code><a id="mps_message_type_gc_start"
+name="mps_message_type_gc_start">mps_message_type_gc_start</a></code></h3>
+
+
+<h4>Name</h4>
+
+<p><code><a href="#mps_message_type_gc_start">mps_message_type_gc_start</a></code></p>
+
+
+<h4>Summary</h4>
+
+<p>
+<code><a href="#mps_message_type_gc_start">mps_message_type_gc_start</a></code>
+returns the type of garbage collection start messages.</p>
+
+
+<h4>Associated Protocols</h4>
+
+<p>Message.</p>
+
+
+<h4>Syntax</h4>
+
+<p><code class="source"> mps_message_type_t mps_message_type_gc_start(void) </code></p>
+
+
+<h4>Arguments</h4>
+
+<p>None.</p>
+
+
+<h4>Returned Values</h4>
+
+<p>The type of garbage collection start messages.</p>
+
+
+<h4>Resources</h4>
+
+<p>
+  <code class="filename">
+    mps.h
+  </code>
+</p>
+
+
+<h4>Description</h4>
+
+<p>
+<code><a href="#mps_message_type_gc_start">mps_message_type_gc_start</a></code>
+returns the type of garbage collection start messages.
+The messages contain information about why the collection started. See
+<code>mps_message_gc_start_why</code>.
+</p>
+
+<p>The access methods specific to a message of this type are:</p>
+
+<ul>
+
+  <li><p><code class="source"> mps_message_gc_start_why </code> --
+  Returns a string that is a description of why the collection started.
+  </p></li>
+
+</ul>
+
+
+<h4>Example</h4>
+
+<pre>
+{
+  mps_message_t message;
+  if(mps_message_get(&amp;message, arena, mps_message_type_gc_start())) {
+    printf("Collection started; reason: %s\n",
+      mps_message_gc_start_why(arena, message));
   }
 }
 </pre>
@@ -10196,7 +10368,9 @@ href="#mps_telemetry_control">mps_telemetry_control</a></code></p>
 
 <h4>Summary</h4>
 
-<p>This function associates an identifier returned from <code><a href="#mps_telemetry_intern">mps_telemetry_intern</a></code>, and hence astring, with an address, in the telemetry stream.</p>
+<p>This function associates an identifier returned from <code><a
+href="#mps_telemetry_intern">mps_telemetry_intern</a></code>, and hence
+a string, with an address, in the telemetry stream.</p>
 
 
 <h4>Associated Protocols</h4>

@@ -463,7 +463,8 @@ static MessageClassStruct MRGMessageClassStruct = {
   MRGMessageFinalizationRef,   /* FinalizationRef */
   MessageNoGCLiveSize,         /* GCLiveSize */   
   MessageNoGCCondemnedSize,    /* GCCondemnedSize */
-  MessageNoGCNotCondemnedSize, /* GCNoteCondemnedSize */
+  MessageNoGCNotCondemnedSize, /* GCNotCondemnedSize */
+  MessageNoGCStartWhy,         /* GCStartWhy */
   MessageClassSig              /* <design/message/#class.sig.double> */
 };
 

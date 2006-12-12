@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+
+<title>GC Messages</title>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#000099" vlink="#660066" alink="#FF0000">
+
+<div align="center">
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+<p><i><a href="/project/mps/">Memory Pool System Project</a></i></p>
+
+<hr />
+
+<h1>GC Messages</h1>
+
+<address>
+<a href="mailto:drj@ravenbrook.com">David Jones</a>,
+<a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>,
+2003-02-17
+</address>
+
+</div>
+
+<h2><a id="section-1" name="section-1">1. Introduction</a></h2>
+
+<p> This document describes the design of a set of
+<a href="../message/">MPS message</a> classes.  The messages from these
+classes are emitted according to various important phases in a GC cycle;
+collectively they are called GC Messages. </p>
+
+<p> The current classes are: </p>
+
+<dl>
+
+  <dt> mps_message_type_gc_start() </dt>
+
+  <dd> <p> (new in gcgenmsg branch) These messages are generated once per GC at the start of a
+  GC. </p> </dd>
+
+  <dt> mps_message_type_gc() </dt>
+
+  <dd> <p> These messages are generated once per GC at the end of a GC. </p> </dd>
+
+</dl>
+
+<p> The intended readership is project staff. </p>
+
+<p> This document is not confidential. </p>
+
+<h2><a id="section-2" name="section-2">2. Background, MPS messages and
+collections</a></h2>
+
+<p> This needs filling in.  Taken as read and understood for now. </p>
+
+<p> Note that some of the implementation (of mps_message_type_gc)
+pre-dates this design; it may not be documented accurately (or at all)
+here. </p>
+
+<h2><a id="section-3" name="section-3">3. Requirements</a></h2>
+
+<p> The primary requirement is: </p>
+
+<ul>
+
+  <li><p> MPS staff must be able to tell what collections are happening
+    in order to be able to introspect about the overall MPS process.
+    </p>
+
+    <p> This
+    is so that bugs can be diagnosed and general MPS behaviour can be
+    reasoned about.  A typical problem is that a customer reports "Why
+    when this collection happens doesn't this 20 MB of garbage get
+    collected?".  At a minimum we need to know what was condemned in any
+    particular collection; it useful to know what is going to happen to
+    survivors. </p>
+
+  </li>
+
+</ul>
+
+<p> We meet part of that requirement by implementing 
+  a message that is generated per
+collection (mps_message_type_gc_start). </p>
+
+<p> We have the following requirements on per GC messages: </p>
+
+<ul>
+
+  <li> <p> Must be able to tell why we are starting a collection. See
+  job000666 for why we start collections. </p> </li>
+
+</ul>
+
+<h3>Unimplemented mps_message_type_gc_generation</h3>
+
+<p><em>This section for historical interest only.</em></p>
+
+<p> A proposal to meet the full requirement by implementing a message
+that is generated per generation per collection
+(mps_message_type_gc_generation) 
+<strong>has not been implemented</strong>, 
+but the requirements have been retained here: </p>
+
+<p>We would have the
+following requirements on per generation messages: </p>
+
+<ul>
+
+  <li><p> Must be able to tell for any generation whether it is
+  condemned for each collection that occurs.  In practise, due to the
+  flexible nature of the MPS, a generation might not be either
+  all-condemned or all-foundation for any particular collection.  In
+  particular the commonest sort of collection (collections driven by
+  allocation in the nursery generations) will condemn a particular set
+  of zones. There may be generations which have some object in one zone
+  and some objects in another; they may have only some of their objects
+  condemned by a per zone condemnation strategy. </p></li>
+
+  <li>
+  <p> For each generation for each collection we would like
+    to know the following:  </p>
+
+  <ul>
+
+    <li><p> Number of bytes condemned in this generation. </p></li>
+
+    <li><p> Number of bytes occupied by objects and not condemned.  </p></li>
+
+    <li><p> Where survivors are going (that is, what generation are
+    survivors are being promoted to. </p></li>
+
+    <li><p> (Not essential) Other byte counts for this generation: How
+    much free space there is, how much overhead there is. </p></li>
+
+  </ul>
+  </li>
+
+</ul>
+
+
+<h2><a id="section-4" name="section-4">4. Implementation</a></h2>
+
+<h3><a id="section-4.2" name="section-4.2">4.2 A new per collection
+message class (mps_message_type_gc_start)</a></h3>
+
+<p>Messages in this class support:</p>
+
+<ul>
+
+  <li> <p> Being able to tell why a collection is starting. </p> </li>
+
+</ul>
+
+<h4><a id="section-4.2.1" name="section-4.2.1">4.2.1 Message
+instances.</a></h4>
+
+<p> As well as TraceMessageStruct (for mps_message_type_gc) there will
+be a TraceStartMessageStruct.  Could this be rolled into
+TraceMessageStruct? Not really (maybe with a redesign) as
+TraceMessageStruct is dynamically allocated as the message is posted to
+the arena queue (at the end of the trace).</p>
+
+<h2><a id="section-5" name="section-5">5. Interface</a></h2>
+
+<dl>
+
+  <dt> <code> int mps_message_type_gc_start() </code> </dt>
+
+  <dd> <p> Public interface.  Returns the MPS message type. </p></dd>
+
+  <dt> <code> const char *mps_message_gc_start_why(mps_arena_t,
+  mps_message_t) </code> </dt>
+
+  <dd> <p> Public interface.  Returns a pointer to a string that is a
+  textual explanation of why this collection is starting. </p>
+
+  <p> The contents of the string must not be modified by the client.  The
+  string and the pointer are only valid as long as the message has not
+  been discarded (with <code>mps_message_discard</code>). </p> </dd>
+
+</dl>
+
+<h2><a id="section-6" name="section-6">6. Testing</a></h2>
+
+<p> amcss already collects and reports mps_message_type_gc.  It should
+be simple to extend it to mps_message_type_gc_start and
+mps_message_type_gc_generation.  </p>
+
+<p> Using amcss might not give a very good coverage.  In particular not
+all the available reasons will appear.  Perhaps a more dedicated test
+should be written. </p>
+
+<h2><a id="section-A" name="section-A">A. References</a></h2>
+
+<!-- Template Entry
+
+<table>
+
+<tr valign="top">
+
+<td>[<a id="ref-#REF#" name="ref-#REF#" href="#REF_URL#">#REF_NAME#</a>]</td>
+
+<td>
+  "#REF_TITLE#";
+  #REF_AUTHOR#;
+  &lt;URL: <a href="#REF_URL#">#REF_URL#</a>&gt;;
+  #REF_DATE#.
+</td>
+
+</tr>
+
+</table>
+
+-->
+
+<h2><a id="section-B" name="section-B">B. Document History</a></h2>
+
+<table>
+
+<tr valign="top">
+
+<td>2003-02-17</td>
+
+<td><a href="mailto:drj@ravenbrook.com">DRJ</a></td>
+
+<td>Created.</td>
+
+</tr>
+
+<tr valign="top">
+
+<td>2006-12-07</td>
+
+<td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
+
+<td>Remove mps_message_type_gc_generation (not implemented).</td>
+
+</tr>
+
+</table>
+
+
+<h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
+
+<p> This document is copyright &copy; 1995-2002, 2006 <a
+href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights
+reserved.  This is an open source license.  Contact Ravenbrook for
+commercial licensing options. </p>
+
+<p> Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met: </p>
+
+<ol>
+
+<li> Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer. </li>
+
+<li> Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution. </li>
+
+<li> Redistributions in any form must be accompanied by information
+on how to obtain complete source code for the this software and any
+accompanying software that uses this software.  The source code must
+either be included in the distribution or be available for no more
+than the cost of distribution plus a nominal fee, and must be freely
+redistributable under reasonable conditions.  For an executable file,
+complete source code means the source code for all modules it contains. It
+does not include source code for modules or files that typically accompany
+the major components of the operating system on which the executable
+file runs. </li>
+
+</ol>
+
+<p> <strong> This software is provided by the copyright holders and contributors "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement, are disclaimed.  In no event shall the copyright holders and contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage. </strong> </p>
+
+
+<hr />
+
+<div align="center">
+
+<p><code>$Id: //info.ravenbrook.com/project/mps/branch/2003-02-17/gcgenmsg/design/message/index.html#1 $</code></p>
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+</div>
+
+</body>
+
+</html>
