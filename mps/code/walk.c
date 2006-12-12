@@ -310,7 +310,7 @@ static Res ArenaRootsWalk(Globals arenaGlobals, mps_roots_stepper_t f,
   /* call the client closure.  This fix method must perform no tracing */
   /* operations of its own. */
 
-  res = TraceCreate(&trace, arena);
+  res = TraceCreate(&trace, arena, TraceStartWhyWALK);
   /* Have to fail if no trace available.  Unlikely due to .assume.parked. */
   if (res != ResOK)
     return res;

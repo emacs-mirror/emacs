@@ -1,7 +1,7 @@
 /* amsss.c: POOL CLASS AMS STRESS TEST
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2002, 2006 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * .design: Adapted from amcss.c, but not counting collections, just
@@ -42,6 +42,50 @@ static mps_ap_t ap;
 static mps_addr_t exactRoots[exactRootsCOUNT];
 static mps_addr_t ambigRoots[ambigRootsCOUNT];
 static size_t totalSize = 0;
+
+
+/* report - report statistics from any messages */
+
+static void report()
+{
+  static int nStart = 0;
+  static int nComplete = 0;
+  mps_message_type_t type;
+
+  while(mps_message_queue_type(&type, arena)) {
+    mps_message_t message;
+
+    cdie(mps_message_get(&message, arena, type), "message get");
+
+    switch(type) {
+    /* @@@@ is using these macros in a switch supported? */
+    case mps_message_type_gc_start():
+      printf("\nCollection start %d.  Because:\n", ++nStart);
+      printf("%s\n", mps_message_gc_start_why(arena, message));
+
+      break;
+    case mps_message_type_gc():
+      {
+        size_t live, condemned, not_condemned;
+
+        live = mps_message_gc_live_size(arena, message);
+        condemned = mps_message_gc_condemned_size(arena, message);
+        not_condemned = mps_message_gc_not_condemned_size(arena, message);
+
+        printf("\nCollection complete %d:\n", ++nComplete);
+        printf("live %lu\n", (unsigned long)live);
+        printf("condemned %lu\n", (unsigned long)condemned);
+        printf("not_condemned %lu\n", (unsigned long)not_condemned);
+      }
+      break;
+    default:
+      cdie(0, "unknown message type");
+    }
+    mps_message_discard(arena, message);
+  }
+
+  return;
+}
 
 
 /* make -- object allocation and init */
@@ -142,6 +186,7 @@ static void *test(void *arg, size_t haveAmbigous)
     ++objs;
     if (objs % 256 == 0) {
       printf(".");
+      report();
       fflush(stdout);
     }
   }
@@ -169,31 +214,33 @@ int main(int argc, char **argv)
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "arena_create");
+  mps_message_type_enable(arena, mps_message_type_gc_start());
+  mps_message_type_enable(arena, mps_message_type_gc());
   die(mps_thread_reg(&thread, arena), "thread_reg");
   die(mps_fmt_create_A(&format, arena, dylan_fmt_A()), "fmt_create");
   die(mps_chain_create(&chain, arena, 1, testChain), "chain_create");
 
-  printf("\nAMS Debug\n");
+  printf("\n\n****************************** Testing AMS Debug\n");
   die(mps_pool_create(&pool, arena, mps_class_ams_debug(), &freecheckOptions,
                       format, chain, FALSE),
       "pool_create(ams_debug,share)");
   mps_tramp(&r, test, pool, 0);
   mps_pool_destroy(pool);
 
-  printf("\nAMS Debug\n");
+  printf("\n\n****************************** Testing AMS Debug\n");
   die(mps_pool_create(&pool, arena, mps_class_ams_debug(), &freecheckOptions,
                       format, chain, TRUE),
       "pool_create(ams_debug,ambig)");
   mps_tramp(&r, test, pool, 1);
   mps_pool_destroy(pool);
 
-  printf("\nAMS\n");
+  printf("\n\n****************************** Testing AMS\n");
   die(mps_pool_create(&pool, arena, mps_class_ams(), format, chain, TRUE),
       "pool_create(ams,ambig)");
   mps_tramp(&r, test, pool, 1);
   mps_pool_destroy(pool);
 
-  printf("\nAMS\n");
+  printf("\n\n****************************** Testing AMS\n");
   die(mps_pool_create(&pool, arena, mps_class_ams(), format, chain, FALSE),
       "pool_create(ams,share)");
   mps_tramp(&r, test, pool, 0);
@@ -212,7 +259,7 @@ int main(int argc, char **argv)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2002, 2006 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

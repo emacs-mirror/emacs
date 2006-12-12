@@ -290,6 +290,7 @@ extern Arena MessageArena(Message message);
 extern void MessageInit(Arena arena, Message message,
                         MessageClass class, MessageType type);
 extern void MessageFinish(Message message);
+extern Bool MessageOnQueue(Message message);
 extern void MessagePost(Arena arena, Message message);
 extern Bool MessagePoll(Arena arena);
 extern MessageType MessageGetType(Message message);
@@ -309,6 +310,7 @@ extern void MessageFinalizationRef(Ref *refReturn,
 extern Size MessageGCLiveSize(Message message);
 extern Size MessageGCCondemnedSize(Message message);
 extern Size MessageGCNotCondemnedSize(Message message);
+extern const char *MessageGCStartWhy(Message message);
 
 /* Convenience methods */
 extern void MessageNoFinalizationRef(Ref *refReturn,
@@ -316,6 +318,7 @@ extern void MessageNoFinalizationRef(Ref *refReturn,
 extern Size MessageNoGCLiveSize(Message message);
 extern Size MessageNoGCCondemnedSize(Message message);
 extern Size MessageNoGCNotCondemnedSize(Message message);
+extern const char *MessageNoGCStartWhy(Message message);
 
 
 /* Trace Interface -- see <code/trace.c> */
@@ -350,7 +353,7 @@ extern RefSet ScanStateSummary(ScanState ss);
 extern Bool TraceIdCheck(TraceId id);
 extern Bool TraceSetCheck(TraceSet ts);
 extern Bool TraceCheck(Trace trace);
-extern Res TraceCreate(Trace *traceReturn, Arena arena);
+extern Res TraceCreate(Trace *traceReturn, Arena arena, int why);
 extern void TraceDestroy(Trace trace);
 
 extern Res TraceAddWhite(Trace trace, Seg seg);
@@ -480,8 +483,8 @@ extern void ArenaRelease(Globals globals);
 extern void ArenaPark(Globals globals);
 extern void ArenaExposeRemember(Globals globals, int remember);
 extern void ArenaRestoreProtection(Globals globals);
-extern Res ArenaStartCollect(Globals globals);
-extern Res ArenaCollect(Globals globals);
+extern Res ArenaStartCollect(Globals globals, int why);
+extern Res ArenaCollect(Globals globals, int why);
 extern Bool ArenaHasAddr(Arena arena, Addr addr);
 
 extern Res ControlInit(Arena arena);
