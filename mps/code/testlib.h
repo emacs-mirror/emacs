@@ -99,7 +99,7 @@ extern void die(mps_res_t res, const char *s);
 
 /* die_expect -- get expected result or die
  *
- * If the first argument is not  thename as the second argument,
+ * If the first argument is not the same as the second argument,
  * prints the third argument on stderr and exits the program. 
  * Otherwise does nothing.
  *

@@ -1,7 +1,7 @@
 /* mpmtypes.h: MEMORY POOL MANAGER TYPES
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2002, 2006 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2001 Global Graphics Software.
  *
  * .design: <design/type/>
@@ -76,6 +76,8 @@ typedef PoolClass AbstractBufferPoolClass; /* <code/poolabs.c> */
 typedef PoolClass AbstractSegBufPoolClass; /* <code/poolabs.c> */
 typedef PoolClass AbstractScanPoolClass; /* <code/poolabs.c> */
 typedef PoolClass AbstractCollectPoolClass; /* <code/poolabs.c> */
+typedef struct TraceStartMessageStruct
+  *TraceStartMessage;                   /* <design/message-gc> */
 typedef struct TraceStruct *Trace;      /* <design/trace/> */
 typedef struct ScanStateStruct *ScanState; /* <design/trace/> */
 typedef struct ChainStruct *Chain;      /* <design/trace/> */
@@ -232,6 +234,7 @@ typedef void (*MessageFinalizationRefMethod)
 typedef Size (*MessageGCLiveSizeMethod)(Message message);
 typedef Size (*MessageGCCondemnedSizeMethod)(Message message);
 typedef Size (*MessageGCNotCondemnedSizeMethod)(Message message);
+typedef const char * (*MessageGCStartWhyMethod)(Message message);
 
 
 /* Message Types -- <design/message/> and elsewhere */
@@ -402,6 +405,21 @@ enum {
   TraceFINISHED
 };
 
+/* TraceStart reasons: the trigger that caused a trace to start. */
+/* Make these specific trigger names, not broad categories; */
+/* and if a new trigger is added, add a new reason. */
+
+enum {
+  TraceStartWhyBASE = 1, /* not a reason, the base of the enum. */
+  TraceStartWhyCHAIN_GEN0CAP = TraceStartWhyBASE,  /* start minor */
+  TraceStartWhyDYNAMICCRITERION, /* start full */
+  TraceStartWhyOPPORTUNISM,      /* start full */
+  TraceStartWhyCLIENTFULL_INCREMENTAL,   /* start full */
+  TraceStartWhyCLIENTFULL_BLOCK, /* do full */
+  TraceStartWhyWALK,
+  TraceStartWhyLIMIT /* not a reason, the limit of the enum. */
+};
+
 
 /* MessageTypes -- see <design/message/> */
 /* .message.types: Keep in sync with <code/mps.h#message.types> */
@@ -409,7 +427,8 @@ enum {
 enum {
   MessageTypeFINALIZATION,  /* MPS_MESSAGE_TYPE_FINALIZATION */
   MessageTypeGC,  /* MPS_MESSAGE_TYPE_GC */
-  MessageTypeLIMIT
+  MessageTypeGCSTART,
+  MessageTypeLIMIT /* not a message type, the limit of the enum. */
 };
 
 
@@ -449,7 +468,7 @@ typedef double WriteFD;
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2002, 2006 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -698,8 +698,9 @@ Bool ArenaStep(Globals globals, double interval, double multiplier)
   stepped = FALSE;
 
   if (arenaShouldCollectWorld(arena, interval, multiplier,
-                              start, clocks_per_sec)) {
-    ArenaStartCollect(globals);
+                              start, clocks_per_sec))
+  {
+    ArenaStartCollect(globals, TraceStartWhyOPPORTUNISM);
     arena->lastWorldCollect = start;
     stepped = TRUE;
   }

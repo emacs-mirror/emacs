@@ -47,33 +47,54 @@ static mps_addr_t exactRoots[exactRootsCOUNT];
 static mps_addr_t ambigRoots[ambigRootsCOUNT];
 
 
-/* report - report statistics from any terminated GCs */
+/* report - report statistics from any messages */
 
 static void report(mps_arena_t arena)
 {
-  mps_message_t message;
   static int nCollections = 0;
+  mps_message_type_t type;
     
-  while (mps_message_get(&message, arena, mps_message_type_gc())) {
-    size_t live, condemned, not_condemned;
+  while(mps_message_queue_type(&type, arena)) {
+    mps_message_t message;
 
-    live = mps_message_gc_live_size(arena, message);
-    condemned = mps_message_gc_condemned_size(arena, message);
-    not_condemned = mps_message_gc_not_condemned_size(arena, message);
+    cdie(mps_message_get(&message, arena, type), "message get");
 
-    printf("\nCollection %d finished:\n", ++nCollections);
-    printf("live %lu\n", (unsigned long)live);
-    printf("condemned %lu\n", (unsigned long)condemned);
-    printf("not_condemned %lu\n", (unsigned long)not_condemned);
+    switch(type) {
+    /* @@@@ is using these macros in a switch supported? */
+    case mps_message_type_gc():
+      {
+	size_t live, condemned, not_condemned;
 
+	live = mps_message_gc_live_size(arena, message);
+	condemned = mps_message_gc_condemned_size(arena, message);
+	not_condemned = mps_message_gc_not_condemned_size(arena, message);
+
+	printf("\nCollection %d finished:\n", ++nCollections);
+	printf("live %lu\n", (unsigned long)live);
+	printf("condemned %lu\n", (unsigned long)condemned);
+	printf("not_condemned %lu\n", (unsigned long)not_condemned);
+
+	if(condemned > (gen1SIZE + gen2SIZE + (size_t)128) * 1024) {
+	  /* When condemned size is larger than could happen in a gen 2
+	   * collection (discounting ramps, natch), guess that was a dynamic
+	   * collection, and reset the commit limit, so it doesn't run out. */
+	  die(mps_arena_commit_limit_set(arena, 2 * testArenaSIZE),
+	    "set limit");
+	}
+      }
+      break;
+    case mps_message_type_gc_start():
+      printf("\nCollection started.  Because:\n");
+      printf("%s\n", mps_message_gc_start_why(arena, message));
+
+      break;
+    default:
+      cdie(0, "unknown message type");
+    }
     mps_message_discard(arena, message);
-
-    if (condemned > (gen1SIZE + gen2SIZE + (size_t)128) * 1024)
-      /* When condemned size is larger than could happen in a gen 2
-       * collection (discounting ramps, natch), guess that was a dynamic
-       * collection, and reset the commit limit, so it doesn't run out. */
-      die(mps_arena_commit_limit_set(arena, 2 * testArenaSIZE), "set limit");
   }
+
+  return;
 }
 
 
@@ -276,6 +297,7 @@ int main(int argc, char **argv)
   die(mps_arena_create(&arena, mps_arena_class_vm(), 2*testArenaSIZE),
       "arena_create");
   mps_message_type_enable(arena, mps_message_type_gc());
+  mps_message_type_enable(arena, mps_message_type_gc_start());
   die(mps_arena_commit_limit_set(arena, testArenaSIZE), "set limit");
   die(mps_thread_reg(&thread, arena), "thread_reg");
   mps_tramp(&r, test, arena, 0);

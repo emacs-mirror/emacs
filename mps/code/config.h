@@ -1,7 +1,7 @@
 /* config.h: MPS CONFIGURATION
  *
  * $Id$
- * Copyright (c) 2001,2003 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2003, 2006 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * PURPOSE
@@ -209,6 +209,10 @@
 #define TraceLIMIT ((size_t)1)
 /* I count 4 function calls to scan, 10 to copy. */
 #define TraceCopyScanRATIO (1.5)
+/* Length (in chars) of a char buffer used to store the reason why a
+   collection started in the TraceStartMessageStruct (used by
+   mps_message_type_gc_start). */
+#define TRACE_START_MESSAGE_WHY_LEN 128
 
 /* Chosen so that the RememberedSummaryBlockStruct packs nicely into
    pages */
@@ -323,7 +327,7 @@
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2003 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2003, 2006 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  *

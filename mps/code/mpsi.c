@@ -1,7 +1,7 @@
 /* mpsi.c: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
  * $Id$
- * Copyright (c) 2001,2003 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2003, 2006 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -371,7 +371,7 @@ mps_res_t mps_arena_start_collect(mps_space_t mps_space)
   Res res;
   Arena arena = (Arena)mps_space;
   ArenaEnter(arena);
-  res = ArenaStartCollect(ArenaGlobals(arena));
+  res = ArenaStartCollect(ArenaGlobals(arena), TraceStartWhyCLIENTFULL_INCREMENTAL);
   ArenaLeave(arena);
   return res;
 }
@@ -381,7 +381,7 @@ mps_res_t mps_arena_collect(mps_space_t mps_space)
   Res res;
   Arena arena = (Arena)mps_space;
   ArenaEnter(arena);
-  res = ArenaCollect(ArenaGlobals(arena));
+  res = ArenaCollect(ArenaGlobals(arena), TraceStartWhyCLIENTFULL_BLOCK);
   ArenaLeave(arena);
   return res;
 }
@@ -1745,6 +1745,24 @@ size_t mps_message_gc_not_condemned_size(mps_arena_t mps_arena,
   return (size_t)size;
 }
 
+/* MPS_MESSAGE_TYPE_GC_START */
+const char *mps_message_gc_start_why(mps_arena_t mps_arena,
+  mps_message_t mps_message)
+{
+  const char *s;
+  Arena arena = (Arena)mps_arena;
+  Message message = (Message)mps_message;
+
+  ArenaEnter(arena);
+
+  AVERT(Arena, arena);
+
+  s = MessageGCStartWhy(message);
+
+  ArenaLeave(arena);
+
+  return s;
+}
 
 /* Telemetry */
 
@@ -1945,7 +1963,7 @@ void mps_chain_destroy(mps_chain_t mps_chain)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2003 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2003, 2006 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

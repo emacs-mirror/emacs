@@ -1,7 +1,7 @@
 /* messtest.c: MESSAGE TEST
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2003 Ravenbrook Limited.  See end of file for license.
  */
 
 #include "mpm.h"
@@ -34,7 +34,8 @@ static MessageClassStruct DFMessageClassStruct = {
   MessageNoFinalizationRef,    /* FinalizationRef */
   MessageNoGCLiveSize,         /* GCLiveSize */   
   MessageNoGCCondemnedSize,    /* GCCondemnedSize */
-  MessageNoGCNotCondemnedSize, /* GCNoteCondemnedSize */
+  MessageNoGCNotCondemnedSize, /* GCNotCondemnedSize */
+  MessageNoGCStartWhy,         /* GCStartWhy */
   MessageClassSig              /* <design/message/#class.sig.double> */
 };
 
@@ -49,6 +50,7 @@ static MessageClassStruct DGCMessageClassStruct = {
   MessageNoGCLiveSize,         /* GCLiveSize */   
   MessageNoGCCondemnedSize,    /* GCCondemnedSize */
   MessageNoGCNotCondemnedSize, /* GCNoteCondemnedSize */
+  MessageNoGCStartWhy,         /* GCStartWhy */
   MessageClassSig              /* <design/message/#class.sig.double> */
 };
 
@@ -271,7 +273,7 @@ extern int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2003 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
