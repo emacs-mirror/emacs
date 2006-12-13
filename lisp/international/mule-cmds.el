@@ -2598,6 +2598,9 @@ See also `locale-charset-language-names', `locale-language-names',
 		   (not (coding-system-equal coding-system
 					     locale-coding-system)))
 	  (prefer-coding-system coding-system)
+	  ;; Fixme: perhaps prefer-coding-system should set this too.
+	  ;; But it's not the time to do such a fundamental change.
+	  (setq default-sendmail-coding-system coding-system)
 	  (setq locale-coding-system coding-system))))
 
     ;; On Windows, override locale-coding-system,
