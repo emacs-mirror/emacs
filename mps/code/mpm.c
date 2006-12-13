@@ -18,7 +18,7 @@
 SRCID(mpm, "$Id$");
 
 
-#if defined(CHECK)
+#if defined(AVER_AND_CHECK)
 
 
 /* CheckLevel -- Control check level 
@@ -26,7 +26,7 @@ SRCID(mpm, "$Id$");
  * This controls the behaviour of Check methods (see impl.h.check).
  */
 
-unsigned CheckLevel = CHECK_DEFAULT;
+unsigned CheckLevel = CHECKLEVEL_INITIAL;
 
 
 /* MPMCheck -- test MPM assumptions */
@@ -123,7 +123,7 @@ Bool AlignCheck(Align align)
 }
 
 
-#endif /* defined(CHECK) */
+#endif /* defined(AVER_AND_CHECK) */
 
 
 /* WordIsAligned -- test whether a word is aligned */

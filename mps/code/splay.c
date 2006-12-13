@@ -763,7 +763,7 @@ static Res SplayNodeDescribe(SplayNode node, mps_lib_FILE *stream,
                              SplayNodeDescribeMethod nodeDescribe) {
   Res res;
 
-#if defined(CHECK)
+#if defined(AVER_AND_CHECK)
   if (!SplayNodeCheck(node)) return ResFAIL;
   /* stream and nodeDescribe checked by SplayTreeDescribe */
 #endif
@@ -1005,7 +1005,7 @@ Res SplayTreeDescribe(SplayTree tree, mps_lib_FILE *stream,
                       SplayNodeDescribeMethod nodeDescribe) {
   Res res;
 
-#if defined(CHECK)
+#if defined(AVER_AND_CHECK)
   if (!SplayTreeCheck(tree)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
   if (!FUNCHECK(nodeDescribe)) return ResFAIL;

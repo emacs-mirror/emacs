@@ -31,7 +31,7 @@
 
 #if defined(CONFIG_VAR_HI) || defined(CONFIG_VAR_HE) /* Hot varieties */
 #define CONFIG_DEBUG
-#define CHECK_DEFAULT CheckNONE
+#define CHECKLEVEL_INITIAL CheckLevelMINIMAL
 #elif defined(CONFIG_VAR_CI) || defined(CONFIG_VAR_CE) /* Cool varieties */
 #define CONFIG_DEBUG
 #define CONFIG_ASSERT
@@ -42,21 +42,23 @@
 #elif defined(CONFIG_VAR_II)    /* Ice, Internal; variety.ii */
 #define CONFIG_LOG
 #define CONFIG_DEBUG
-#define CHECK_DEFAULT CheckNONE
+#define CHECKLEVEL_INITIAL CheckLevelMINIMAL
 /* also CONFIG_VAR_WI and CONFIG_VAR_WE, for which all switches are off. */
 #endif
 
 
 #if defined(CONFIG_ASSERT)
-#define CHECK
+/* AVER, AVERT, NOTREACHED, CHECKx */
+#define AVER_AND_CHECK
 #define MPS_ASSERT_STRING "asserted"
 #else
-#define CHECK_NONE
+#define AVER_AND_CHECK_NONE
 #define MPS_ASSERT_STRING "nonasserted"
 #endif
 
 
 #if defined(CONFIG_LOG)
+/* TELEMETRY = LOG = EVENTs */
 #define EVENT
 #define MPS_LOG_STRING "logging"
 #else
@@ -66,6 +68,8 @@
 
 
 #if defined(CONFIG_DEBUG)
+/* DEBUG = DIAGNOSTICS = STATISTICs = METERs */
+/* WARNING: this changes the size and fields of MPS structs */
 #define DIAGNOSTICS
 #define MPS_DEBUG_STRING "debug"
 #else
@@ -125,7 +129,7 @@
  * are suddenly unused, etc.  We aren't interested in these
  */
 
-#if defined(CHECK_NONE)
+#if defined(AVER_AND_CHECK_NONE)
 
 /* "unreferenced formal parameter" */
 #pragma warning(disable: 4100)
@@ -133,7 +137,7 @@
 /* "unreferenced local function has been removed" */
 #pragma warning(disable: 4505)
 
-#endif /* CHECK_NONE */
+#endif /* AVER_AND_CHECK_NONE */
 
 #endif /* MPS_BUILD_MV */
 
@@ -267,7 +271,7 @@
 #define THREAD_SINGLE
 #define PROTECTION_NONE
 #define DONGLE_NONE
-#define PROD_CHECK_DEFAULT CheckNONE /* CheckSHALLOW is too slow for SW */
+#define PROD_CHECKLEVEL_INITIAL CheckLevelMINIMAL /* CheckLevelSHALLOW is too slow for SW */
 
 #elif defined(CONFIG_PROD_DYLAN)
 #define MPS_PROD_STRING         "dylan"
@@ -276,7 +280,7 @@
 #define THREAD_MULTI
 #define PROTECTION
 #define DONGLE_NONE
-#define PROD_CHECK_DEFAULT CheckSHALLOW
+#define PROD_CHECKLEVEL_INITIAL CheckLevelSHALLOW
 
 #elif defined(CONFIG_PROD_MPS)
 #define MPS_PROD_STRING         "mps"
@@ -285,7 +289,7 @@
 #define THREAD_MULTI
 #define PROTECTION
 #define DONGLE_NONE
-#define PROD_CHECK_DEFAULT CheckSHALLOW
+#define PROD_CHECKLEVEL_INITIAL CheckLevelSHALLOW
 
 #else
 #error "No target product configured."
@@ -299,11 +303,11 @@
  */
 #define ARENA_SIZE              ((Size)1<<30)
 
-/* if CHECK_DEFAULT hasn't been defined already (e.g. by a variety, or
+/* if CHECKLEVEL_INITIAL hasn't been defined already (e.g. by a variety, or
  * in a makefile), take the value from the product. */
 
-#ifndef CHECK_DEFAULT
-#define CHECK_DEFAULT PROD_CHECK_DEFAULT
+#ifndef CHECKLEVEL_INITIAL
+#define CHECKLEVEL_INITIAL PROD_CHECKLEVEL_INITIAL
 #endif
 
 
