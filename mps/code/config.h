@@ -23,47 +23,57 @@
 
 /* First deal with old-style CONFIG_VAR_* build directives.  These
  * must be translated into the new directives CONFIG_ASSERT,
- * CONFIG_LOG, and CONFIG_DEBUG.
+ * CONFIG_DEBUG, and CONFIG_LOG.
  *
  * One day the old build system may be converted to use the new
  * directives.
  */
 
-#if defined(CONFIG_VAR_HI) || defined(CONFIG_VAR_HE) /* Hot varieties */
-#define CONFIG_DEBUG
+#if defined(CONFIG_VAR_WI) || defined(CONFIG_VAR_WE) /* Hot varieties */
+/* no asserts */
+/* ... so CHECKLEVEL_INITIAL is irrelevant */
+/* no debug diagnostic statistic meters */
+/* no telemetry log events */
+
+#elif defined(CONFIG_VAR_HI) || defined(CONFIG_VAR_HE) /* Hot varieties */
+/* no asserts */
 #define CHECKLEVEL_INITIAL CheckLevelMINIMAL
+/* @@@@ no asserts, so setting CHECKLEVEL_INITIAL has no effect! */
+#define CONFIG_DEBUG
+/* no telemetry log events */
+
 #elif defined(CONFIG_VAR_CI) || defined(CONFIG_VAR_CE) /* Cool varieties */
-#define CONFIG_DEBUG
 #define CONFIG_ASSERT
+/* ... let PRODUCT determine CHECKLEVEL_INITIAL */
+#define CONFIG_DEBUG
+/* no telemetry log events */
+
 #elif defined(CONFIG_VAR_TI)    /* Telemetry, Internal; variety.ti */
-#define CONFIG_DEBUG
 #define CONFIG_ASSERT
-#define CONFIG_LOG
-#elif defined(CONFIG_VAR_II)    /* Ice, Internal; variety.ii */
-#define CONFIG_LOG
+/* ... let PRODUCT determine CHECKLEVEL_INITIAL */
 #define CONFIG_DEBUG
+#define CONFIG_LOG
+
+#elif defined(CONFIG_VAR_II)    /* Ice, Internal; variety.ii */
+/* no asserts */
 #define CHECKLEVEL_INITIAL CheckLevelMINIMAL
-/* also CONFIG_VAR_WI and CONFIG_VAR_WE, for which all switches are off. */
+/* @@@@ no asserts, so setting CHECKLEVEL_INITIAL has no effect! */
+#define CONFIG_DEBUG
+#define CONFIG_LOG
 #endif
 
 
+/* Build Features */
+
+
 #if defined(CONFIG_ASSERT)
-/* AVER, AVERT, NOTREACHED, CHECKx */
+/* asserts: AVER, AVERT, NOTREACHED, CHECKx */
+/* note: a direct call to ASSERT() will *still* fire */
 #define AVER_AND_CHECK
 #define MPS_ASSERT_STRING "asserted"
 #else
 #define AVER_AND_CHECK_NONE
 #define MPS_ASSERT_STRING "nonasserted"
-#endif
-
-
-#if defined(CONFIG_LOG)
-/* TELEMETRY = LOG = EVENTs */
-#define EVENT
-#define MPS_LOG_STRING "logging"
-#else
-#define EVENT_NONE
-#define MPS_LOG_STRING "nonlogging"
 #endif
 
 
@@ -76,6 +86,17 @@
 #define DIAGNOSTICS_NONE
 #define MPS_DEBUG_STRING "nondebug"
 #endif
+
+
+#if defined(CONFIG_LOG)
+/* TELEMETRY = LOG = EVENTs */
+#define EVENT
+#define MPS_LOG_STRING "logging"
+#else
+#define EVENT_NONE
+#define MPS_LOG_STRING "nonlogging"
+#endif
+
 
 #define MPS_VARIETY_STRING \
   MPS_ASSERT_STRING "." MPS_LOG_STRING "." MPS_DEBUG_STRING
