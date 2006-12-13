@@ -1,7 +1,7 @@
 ;;; thai.el --- support for Thai -*- coding: iso-2022-7bit; no-byte-compile: t -*-
 
-;; Copyright (C) 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005, 2006
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 ;; Copyright (C) 1997, 1998, 2000, 2001, 2002, 2003, 2004, 2005,
