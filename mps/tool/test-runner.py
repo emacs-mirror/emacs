@@ -28,10 +28,10 @@ def runtest(test, variety, testout):
   os.system("echo .")
   os.system("echo --- %s {%s} ---" % (test, variety) )
   os.system("echo --- %s {%s} --- >>%s" % (test, variety, testout) )
-#  os.system("nmake /f w3i3mv.nmk VARIETY=%s %s.exe >>%s" % (variety, test, testout) )
-#  os.system(".\w3i3mv\%s\%s.exe >>%s" % (variety, test, testout) )
-  os.system("make -f xcppgc.gmk VARIETY=%s %s >>%s" % (variety, test, testout) )
-  os.system("./xcppgc/%s/%s >>%s" % (variety, test, testout) )
+  os.system("nmake /f w3i3mv.nmk VARIETY=%s %s.exe >>%s" % (variety, test, testout) )
+  os.system(".\w3i3mv\%s\%s.exe >>%s" % (variety, test, testout) )
+#  os.system("make -f xcppgc.gmk VARIETY=%s %s >>%s" % (variety, test, testout) )
+#  os.system("./xcppgc/%s/%s >>%s" % (variety, test, testout) )
 
 def runtestlist( lTest, lVariety, testout ):
   # clear testout
@@ -52,7 +52,7 @@ runtestlist([
     "awluthe",
     "mpsicv",
     "messtest",
- ], ["ci", "we", "wi"], testout)
+ ], ["ci", "ce", "hi", "he", "we", "wi", "ti"], testout)
 
 os.system("echo DONE")
 
