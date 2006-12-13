@@ -61,7 +61,7 @@
  * are suddenly unused, etc.  We aren't interested in these.
  */
 
-#if defined(CHECK_NONE)
+#if defined(AVER_AND_CHECK_NONE)
 
 /* "unreferenced formal parameter" */
 #pragma warning(disable: 4100)

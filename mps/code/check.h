@@ -32,9 +32,12 @@
 extern unsigned CheckLevel;
 
 enum {
-  CheckNONE = 0,
-  CheckSHALLOW = 1,
-  CheckDEEP = 2
+  CheckLevelMINIMAL = 0,  /* local sig check only */
+  CheckLevelSHALLOW = 1,  /* local invariants, */
+                          /* and adjacent (up, down) sig checks */
+  CheckLevelDEEP = 2      /* local invariants, */
+                          /* and adjacent up sig checks */
+                          /* and recursive down full type checks */
 };
 
 
@@ -43,25 +46,25 @@ enum {
  * AVER and AVERT are used to assert conditions in the code.
  */
 
-#if defined(CHECK_NONE)
+#if defined(AVER_AND_CHECK_NONE)
 
 #define AVER(cond)                  DISCARD(cond)
 #define AVERT(type, val)            DISCARD(type ## Check(val))
 #define AVER_CRITICAL(cond)         DISCARD(cond)
 #define AVERT_CRITICAL(type, val)   DISCARD(type ## Check(val))
 
-#elif defined(CHECK)
+#elif defined(AVER_AND_CHECK)
 
 #define AVER(cond)                  ASSERT(cond, #cond)
 #define AVERT(type, val)            ASSERT(type ## Check(val), \
                                            "TypeCheck " #type ": " #val)
 #define AVER_CRITICAL(cond) \
   BEGIN \
-    if (CheckLevel != CheckNONE) ASSERT(cond, #cond); \
+    if (CheckLevel != CheckLevelMINIMAL) ASSERT(cond, #cond); \
   END
 #define AVERT_CRITICAL(type, val) \
   BEGIN \
-    if (CheckLevel != CheckNONE) \
+    if (CheckLevel != CheckLevelMINIMAL) \
       ASSERT(type ## Check(val), "TypeCheck " #type ": " #val); \
   END
 
@@ -82,8 +85,9 @@ enum {
 
 
 /* NOTREACHED -- control should never reach this statement */
+/* This is a sort of AVER; it is equivalent to AVER(FALSE). */
 
-#if defined(CHECK)
+#if defined(AVER_AND_CHECK)
 
 #define NOTREACHED \
   BEGIN \
@@ -101,12 +105,15 @@ enum {
  *
  * Must be thread safe.  See <design/interface-c/#thread-safety>
  * and <design/interface-c/#check.space>.
+ *
+ * @@@@ This is a test, not a CHECK macro -- it does not assert.
+ * It should be renamed MATCHSIG.  RHSK 2006-12-13.
  */
 
 #define CHECKT(type, val)       ((val) != NULL && (val)->sig == type ## Sig)
 
 
-#if defined(CHECK_NONE)
+#if defined(AVER_AND_CHECK_NONE)
 
 
 #define CHECKS(type, val) DISCARD(CHECKT(type, val))
@@ -121,6 +128,7 @@ enum {
 
 
 /* CHECKS -- Check Signature */
+/* (if CheckLevel == CheckLevelMINIMAL, this is all we check) */
 
 #define CHECKS(type, val)       ASSERT(CHECKT(type, val), \
                                        "SigCheck " #type ": " #val)
@@ -134,11 +142,11 @@ enum {
 #define CHECKL(cond) \
   BEGIN \
     switch(CheckLevel) { \
-    case CheckNONE: \
+    case CheckLevelMINIMAL: \
       NOOP; \
       break; \
-    case CheckSHALLOW: \
-    case CheckDEEP: \
+    case CheckLevelSHALLOW: \
+    case CheckLevelDEEP: \
       ASSERT(cond, #cond); \
       break; \
     } \
@@ -150,14 +158,14 @@ enum {
 #define CHECKD(type, val) \
   BEGIN \
     switch(CheckLevel) { \
-    case CheckNONE: \
+    case CheckLevelMINIMAL: \
       NOOP; \
       break; \
-    case CheckSHALLOW: \
+    case CheckLevelSHALLOW: \
       ASSERT(CHECKT(type, val), \
              "SigCheck " #type ": " #val); \
       break; \
-    case CheckDEEP: \
+    case CheckLevelDEEP: \
       ASSERT(type ## Check(val), \
              "TypeCheck " #type ": " #val); \
       break; \
@@ -170,14 +178,14 @@ enum {
 #define CHECKD_NOSIG(type, val) \
   BEGIN \
     switch(CheckLevel) { \
-    case CheckNONE: \
+    case CheckLevelMINIMAL: \
       NOOP; \
       break; \
-    case CheckSHALLOW: \
+    case CheckLevelSHALLOW: \
       ASSERT((val) != NULL, \
              "NullCheck " #type ": " #val); \
       break; \
-    case CheckDEEP: \
+    case CheckLevelDEEP: \
       ASSERT(type ## Check(val), \
              "TypeCheck " #type ": " #val); \
       break; \
@@ -190,11 +198,11 @@ enum {
 #define CHECKU(type, val) \
   BEGIN \
     switch(CheckLevel) { \
-    case CheckNONE: \
+    case CheckLevelMINIMAL: \
       NOOP; \
       break; \
-    case CheckSHALLOW: \
-    case CheckDEEP: \
+    case CheckLevelSHALLOW: \
+    case CheckLevelDEEP: \
       ASSERT(CHECKT(type, val), \
              "SigCheck " #type ": " #val); \
       break; \
@@ -207,11 +215,11 @@ enum {
 #define CHECKU_NOSIG(type, val) \
   BEGIN \
     switch(CheckLevel) { \
-    case CheckNONE: \
+    case CheckLevelMINIMAL: \
       NOOP; \
       break; \
-    case CheckSHALLOW: \
-    case CheckDEEP: \
+    case CheckLevelSHALLOW: \
+    case CheckLevelDEEP: \
       ASSERT((val) != NULL, \
              "NullCheck " #type ": " #val); \
       break; \
@@ -230,11 +238,16 @@ enum {
  * in knowing that <code/mps.h> matches the MPM.  See also
  * mail.richard.1996-08-07.09-49.  [This paragraph is intended to
  * satisfy rule.impl.trick.]
+ *
+ * @@@@ These are tests, not CHECK macros -- they do not assert.
+ * They should be renamed MATCHTYPE etc.  RHSK 2006-12-13.
  */
 
+/* compile-time check */
 #define CHECKLVALUE(lv1, lv2) \
   ((void)sizeof((lv1) = (lv2)), (void)sizeof((lv2) = (lv1)), TRUE)
 
+/* aims to test whether t1 and t2 are assignment-compatible */
 #define CHECKTYPE(t1, t2) \
   (sizeof(t1) == sizeof(t2) && \
    CHECKLVALUE(*((t1 *)0), *((t2 *)0)))
