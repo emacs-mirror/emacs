@@ -29,17 +29,16 @@
  * directives.
  */
 
-#if defined(CONFIG_VAR_WI) || defined(CONFIG_VAR_WE) /* Hot varieties */
+#if defined(CONFIG_VAR_WI) || defined(CONFIG_VAR_WE) /* White-hot varieties */
 /* no asserts */
 /* ... so CHECKLEVEL_INITIAL is irrelevant */
 /* no debug diagnostic statistic meters */
 /* no telemetry log events */
 
 #elif defined(CONFIG_VAR_HI) || defined(CONFIG_VAR_HE) /* Hot varieties */
-/* no asserts */
+#define CONFIG_ASSERT
 #define CHECKLEVEL_INITIAL CheckLevelMINIMAL
-/* @@@@ no asserts, so setting CHECKLEVEL_INITIAL has no effect! */
-#define CONFIG_DEBUG
+/* no debug diagnostic statistic meters */
 /* no telemetry log events */
 
 #elif defined(CONFIG_VAR_CI) || defined(CONFIG_VAR_CE) /* Cool varieties */
@@ -54,11 +53,10 @@
 #define CONFIG_DEBUG
 #define CONFIG_LOG
 
-#elif defined(CONFIG_VAR_II)    /* Ice, Internal; variety.ii */
-/* no asserts */
+#elif defined(CONFIG_VAR_II)    /* Ice, Internal; variety.ii (HotLog) */
+#define CONFIG_ASSERT
 #define CHECKLEVEL_INITIAL CheckLevelMINIMAL
-/* @@@@ no asserts, so setting CHECKLEVEL_INITIAL has no effect! */
-#define CONFIG_DEBUG
+/* no debug diagnostic statistic meters */
 #define CONFIG_LOG
 #endif
 
