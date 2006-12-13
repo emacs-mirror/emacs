@@ -1668,22 +1668,25 @@ If `erc-track-mode' is in enabled, put the last element of
 Due to some yet unresolved reason, global function `iswitchb-mode'
 needs to be active for this function to work."
   (interactive "P")
-  (eval-and-compile
+  (eval-when-compile
     (require 'iswitchb))
-  (let ((iswitchb-make-buflist-hook
-	 (lambda ()
-	   (setq iswitchb-temp-buflist
-		 (mapcar 'buffer-name
-			 (erc-buffer-list
-			  nil
-			  (when arg erc-server-process)))))))
-    (switch-to-buffer
-     (iswitchb-read-buffer
-      "Switch-to: "
-      (if (boundp 'erc-modified-channels-alist)
-	  (buffer-name (caar (last erc-modified-channels-alist)))
-	nil)
-      t))))
+  (let ((enabled iswitchb-mode))
+    (or enabled (iswitchb-mode 1))
+    (let ((iswitchb-make-buflist-hook
+	   (lambda ()
+	     (setq iswitchb-temp-buflist
+		   (mapcar 'buffer-name
+			   (erc-buffer-list
+			    nil
+			    (when arg erc-server-process)))))))
+      (switch-to-buffer
+       (iswitchb-read-buffer
+	"Switch-to: "
+	(if (boundp 'erc-modified-channels-alist)
+	    (buffer-name (caar (last erc-modified-channels-alist)))
+	  nil)
+	t)))
+    (or enabled (iswitchb-mode -1))))
 
 (defun erc-channel-list (proc)
   "Return a list of channel buffers.
