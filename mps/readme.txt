@@ -71,6 +71,11 @@ Fixed: mps_arena_formatted_objects_walk() will now work.
     a textual explanation (for the client programmer) 
     of why this collection was triggered.
 
+<http://www.ravenbrook.com/project/mps/issue/job001545/>
+<http://www.ravenbrook.com/project/mps/issue/job001546/>
+  - hot varieties contain asserts (AVERs and checks) now
+  - hot varieties do not gather statistics
+
 Other changes:
 
 <http://www.ravenbrook.com/project/mps/issue/job001421/>
