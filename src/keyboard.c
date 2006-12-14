@@ -699,6 +699,9 @@ static SIGTYPE interrupt_signal P_ ((int signalnum));
 static void timer_start_idle P_ ((void));
 static void timer_stop_idle P_ ((void));
 static void timer_resume_idle P_ ((void));
+static SIGTYPE handle_user_signal P_ ((int));
+static char *find_user_signal_name P_ ((int));
+static int store_user_signal_events P_ ((void));
 
 /* Nonzero means don't try to suspend even if the operating system seems
    to support it.  */
@@ -5948,20 +5951,16 @@ make_lispy_event (event)
 
     case USER_SIGNAL_EVENT:
       /* A user signal.  */
-      switch (event->code)
+      if (event->code == 0)
+	return Qsignal;
+      else
 	{
-	case 0:
-	  return Qsignal;
-#ifdef SIGUSR1
-	case SIGUSR1:
-	  return intern ("usr1");
-#endif
-#ifdef SIGUSR2
-	case SIGUSR2:
-	  return intern ("usr2");
-#endif
-	default:
-	  return make_number (event->code);
+	  char *name = find_user_signal_name (event->code);
+
+	  if (name)
+	    return intern (name);
+	  else
+	    return make_number (event->code);
 	}
 
     case SAVE_SESSION_EVENT:
@@ -6799,6 +6798,10 @@ read_avail_input (expected)
   register int i;
   int nread = 0;
 
+  /* Store pending user signal events, if any.  */
+  if (store_user_signal_events ())
+    expected = 0;
+
   if (read_socket_hook)
     {
       int nr;
@@ -7020,6 +7023,133 @@ reinvoke_input_signal ()
 #endif
 }
 
+
+
+/* User signal events.  */
+
+struct user_signal_info
+{
+  /* Signal number.  */
+  int sig;
+
+  /* Name of the signal.  */
+  char *name;
+
+  /* Number of pending signals.  */
+  int npending;
+
+  struct user_signal_info *next;
+};
+
+/* List of user signals. */
+static struct user_signal_info *user_signals = NULL;
+
+void
+add_user_signal (sig, name)
+     int sig;
+     const char *name;
+{
+  struct user_signal_info *p;
+
+  for (p = user_signals; p; p = p->next)
+    if (p->sig == sig)
+      /* Already added.  */
+      return;
+
+  p = xmalloc (sizeof (struct user_signal_info));
+  p->sig = sig;
+  p->name = xstrdup (name);
+  p->npending = 0;
+  p->next = user_signals;
+  user_signals = p;
+
+  signal (sig, handle_user_signal);
+}
+
+static SIGTYPE
+handle_user_signal (sig)
+     int sig;
+{
+  int old_errno = errno;
+  struct user_signal_info *p;
+
+#if defined (USG) && !defined (POSIX_SIGNALS)
+  /* USG systems forget handlers when they are used;
+     must reestablish each time */
+  signal (sig, handle_user_signal);
+#endif
+
+  SIGNAL_THREAD_CHECK (sig);
+
+  for (p = user_signals; p; p = p->next)
+    if (p->sig == sig)
+      {
+	p->npending++;
+#ifdef SIGIO
+	if (interrupt_input)
+	  kill (getpid (), SIGIO);
+	else
+#endif
+	  {
+	    /* Tell wait_reading_process_output that it needs to wake
+	       up and look around.  */
+	    if (input_available_clear_time)
+	      EMACS_SET_SECS_USECS (*input_available_clear_time, 0, 0);
+	  }
+	break;
+      }
+
+  errno = old_errno;
+}
+
+static char *
+find_user_signal_name (sig)
+     int sig;
+{
+  struct user_signal_info *p;
+
+  for (p = user_signals; p; p = p->next)
+    if (p->sig == sig)
+      return p->name;
+
+  return NULL;
+}
+
+static int
+store_user_signal_events ()
+{
+  struct user_signal_info *p;
+  struct input_event buf;
+  int nstored = 0;
+
+  for (p = user_signals; p; p = p->next)
+    if (p->npending > 0)
+      {
+	SIGMASKTYPE mask;
+
+	if (nstored == 0)
+	  {
+	    bzero (&buf, sizeof buf);
+	    buf.kind = USER_SIGNAL_EVENT;
+	    buf.frame_or_window = selected_frame;
+	  }
+	nstored += p->npending;
+
+	mask = sigblock (sigmask (p->sig));
+	do
+	  {
+	    buf.code = 0;
+	    kbd_buffer_store_event (&buf);
+	    buf.code = p->sig;
+	    kbd_buffer_store_event (&buf);
+	    p->npending--;
+	  }
+	while (p->npending > 0);
+	sigsetmask (mask);
+      }
+
+  return nstored;
+}
 
 
 static void menu_bar_item P_ ((Lisp_Object, Lisp_Object, Lisp_Object, void*));
