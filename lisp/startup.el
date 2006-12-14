@@ -1451,9 +1451,12 @@ we put it on this frame."
 				      (if (and (display-color-p)
 					       (image-type-available-p 'xpm))
 					  "splash.xpm" "splash.pbm"))))
-	       (image-height (and img (cdr (image-size img))))
-	       (window-height (1- (window-height (frame-selected-window frame)))))
-	  (> window-height (+ image-height 19)))))))
+	       (image-height (and img (cdr (image-size img nil frame))))
+	       ;; We test frame-height so that, if the frame is split
+	       ;; by displaying a warning, that doesn't cause the normal
+	       ;; splash screen to be used.
+	       (frame-height (1- (frame-height frame))))
+	  (> frame-height (+ image-height 19)))))))
 
 
 (defun normal-splash-screen (&optional hide-on-input)
