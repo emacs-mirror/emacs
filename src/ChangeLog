@@ -1,3 +1,19 @@
+2006-12-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* emacs.c (handle_user_signal): Move function to keyboard.c.
+	(main): Use add_user_signal for SIGUSR1 and SIGUSR2.
+
+	* keyboard.c (make_lispy_event): Use find_user_signal_name.
+	(read_avail_input): Store pending user signal events.
+	(struct user_signal_info): New struct.
+	(user_signals): New variable.
+	(add_user_signal, store_user_signal_events find_user_signal_name):
+	New functions.
+	(handle_user_signal): Move function from emacs.c.  Don't store
+	USER_SIGNAL_EVENT here, but increment number of pending signals.
+
+	* keyboard.h (add_user_signals): Add extern.
+
 2006-12-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* buffer.c (syms_of_buffer) <cursor-in-non-selected-windows>:
