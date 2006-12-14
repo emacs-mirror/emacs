@@ -4,6 +4,7 @@
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
+;; Maintainer: FSF
 ;; Keywords: convenience languages lisp
 
 ;; This file is part of GNU Emacs.
