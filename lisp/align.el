@@ -1075,7 +1075,7 @@ current position."
 			   (eq (char-before pos) ?\\))
 		 (setq count (1+ count) pos (1- pos)))
 	       (eq (mod count 2) 1))
-	     (goto-char (match-beginning 2))))
+	     (goto-char (match-beginning (if reverse 1 2)))))
     result))
 
 (defun align-new-section-p (beg end separator)
