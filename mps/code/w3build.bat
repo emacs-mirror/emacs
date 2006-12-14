@@ -1,9 +1,9 @@
 @rem impl.bat.gathconf: GATHERING A RELEASE FOR CONFIGURA
 @rem
+@rem $HopeName: !gathconf.bat(trunk.1) $
 @rem $Id$
 @rem Copyright (C) 2000 Harlequin Limited.  All rights reserved.
-@rem Copyright (C) 2005 Ravenbrook Limited.  All rights reserved.
-@rem Copyright (C) 2006 Ravenbrook Limited.  All rights reserved.
+@rem Copyright (C) 2005-2006 Ravenbrook Limited.  All rights reserved.
 
 rmdir /q/s w3i3mv
 nmake /f w3i3mv.nmk VARIETY=we mps.lib mpsplan.lib mpsplcb.lib mpsdy.dll
