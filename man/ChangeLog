@@ -1,3 +1,8 @@
+2006-12-13  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Hiding Headers): Document that `long-to' and `many-to'
+	also applies to Cc.
+
 2006-12-12  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (X-Face): Clarify.  Say which programs are required on

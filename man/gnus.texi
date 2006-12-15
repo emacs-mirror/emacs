@@ -10975,15 +10975,15 @@ the current group's @code{to-address} parameter.
 Remove the @code{To} header if it only contains the address identical to
 the current group's @code{to-list} parameter.
 @item cc-list
-Remove the @code{CC} header if it only contains the address identical to
+Remove the @code{Cc} header if it only contains the address identical to
 the current group's @code{to-list} parameter.
 @item date
 Remove the @code{Date} header if the article is less than three days
 old.
 @item long-to
-Remove the @code{To} header if it is very long.
+Remove the @code{To} and/or @code{Cc} header if it is very long.
 @item many-to
-Remove all @code{To} headers if there are more than one.
+Remove all @code{To} and/or @code{Cc} headers if there are more than one.
 @end table
 
 To include these three elements, you could say something like:
