@@ -1844,7 +1844,7 @@ characters themselves (@code{sgml-name-8bit-mode}).
 Run a shell command (which you must specify) to validate the current
 buffer as SGML (@code{sgml-validate}).
 
-@item C-x TAB
+@item C-c TAB
 @kindex C-c TAB @r{(SGML mode)}
 @findex sgml-tags-invisible
 Toggle the visibility of existing tags in the buffer.  This can be
