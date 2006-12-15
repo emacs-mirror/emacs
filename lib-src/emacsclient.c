@@ -298,6 +298,42 @@ Report bugs to bug-gnu-emacs@gnu.org.\n", progname);
 }
 
 
+#ifdef WINDOWSNT
+
+/*
+  execvp() wrapper for Windows. Quotes arguments with embedded spaces.
+
+  This is necessary due to the broken implementation of exec* routines in
+  the Microsoft libraries: they concatenate the arguments together without
+  quoting special characters, and pass the result to CreateProcess, with
+  predictably bad results.  By contrast, Posix execvp passes the arguments
+  directly into the argv[] array of the child process.
+*/
+int
+w32_execvp (path, argv)
+     char *path;
+     char **argv;
+{
+  int i;
+
+  argv[0] = (char *) alternate_editor;
+
+  for (i = 0; argv[i]; i++)
+    if (strchr (argv[i], ' '))
+      {
+	char *quoted = alloca (strlen (argv[i]) + 3);
+	sprintf (quoted, "\"%s\"", argv[i]);
+	argv[i] = quoted;
+      }
+
+  return execvp (path, argv);
+}
+
+#undef execvp
+#define execvp w32_execvp
+
+#endif /* WINDOWSNT */
+
 /*
   Try to run a different command, or --if no alternate editor is
   defined-- exit with an errorcode.
@@ -310,9 +346,7 @@ fail (argc, argv)
   if (alternate_editor)
     {
       int i = optind - 1;
-#ifdef WINDOWSNT
-      argv[i] = (char *)alternate_editor;
-#endif
+
       execvp (alternate_editor, argv + i);
       message (TRUE, "%s: error executing alternate editor \"%s\"\n",
                progname, alternate_editor);
