@@ -1,3 +1,7 @@
+2006-12-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.c (USAGE3): Clarify documentation of --color.
+
 2006-12-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* mac.c (wakeup_from_rne_enabled_p) [TARGET_API_MAC_CARBON]: New

@@ -1,3 +1,15 @@
+2006-12-15  Kevin Gallagher <Kevin.Gallagher@boeing.com>
+
+	* emulation/edt.el (edt-xserver): 
+	* emulation/edt-mapper.el (edt-xserver): Replace `/' with a `-',
+	to fix a problem on Cygwin.
+
+	* emulation/edt.el
+	* emulation/edt-mapper.el
+	* emulation/edt-lk201.el
+	* emulation/edt-pc.el
+	* emulation/edt-vt100.el: Update maintainer's email address.
+
 2006-12-15  Simon Marshall  <simon@gnu.org>
 
 	* progmodes/cc-fonts.el (c-font-lock-declarations): Fix previous
