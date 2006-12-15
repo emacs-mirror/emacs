@@ -1,3 +1,7 @@
+2006-12-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* text.texi (HTML Mode): Fix "C-c TAB".
+
 2006-12-13  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Hiding Headers): Document that `long-to' and `many-to'
