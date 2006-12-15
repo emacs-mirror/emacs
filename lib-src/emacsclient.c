@@ -153,7 +153,7 @@ struct option longopts[] =
 
 #ifdef WINDOWSNT
 int
-w32_window_app()
+w32_window_app ()
 {
   static int window_app = -1;
   char szTitle[MAX_PATH];
@@ -300,13 +300,13 @@ Report bugs to bug-gnu-emacs@gnu.org.\n", progname);
 #ifdef WINDOWSNT
 
 /*
-  execvp() wrapper for Windows. Quotes arguments with embedded spaces.
+  execvp wrapper for Windows. Quotes arguments with embedded spaces.
 
   This is necessary due to the broken implementation of exec* routines in
   the Microsoft libraries: they concatenate the arguments together without
   quoting special characters, and pass the result to CreateProcess, with
   predictably bad results.  By contrast, Posix execvp passes the arguments
-  directly into the argv[] array of the child process.
+  directly into the argv array of the child process.
 */
 int
 w32_execvp (path, argv)
@@ -497,7 +497,7 @@ file_name_absolute_p (filename)
 }
 
 #ifdef WINDOWSNT
-/* Wrapper to make WSACleanup a cdecl, as required by atexit().  */
+/* Wrapper to make WSACleanup a cdecl, as required by atexit.  */
 void
 __cdecl close_winsock ()
 {
@@ -892,7 +892,7 @@ main (argc, argv)
   /*
     Modern Windows restrict which processes can set the foreground window.
     emacsclient can allow Emacs to grab the focus by calling the function
-    AllowSetForegroundWindow().  Unfortunately, older Windows (W95, W98
+    AllowSetForegroundWindow.  Unfortunately, older Windows (W95, W98
     and NT) lack this function, so we have to check its availability.
    */
   if (emacs_pid)
