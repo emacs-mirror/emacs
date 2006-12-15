@@ -1,3 +1,14 @@
+2006-12-15  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c (ignore_mouse_drag_p): New global var.
+	(some_mouse_moved): Return 0 if it is non-zero.
+	(make_lispy_event): Generate click event on mouse up if
+	ignore_mouse_drag_p is non-zero, even if mouse moved.
+	Clear ignore_mouse_drag_p on mouse down/up.
+
+	* xdisp.c (redisplay_window): Set ignore_mouse_drag_p if tool-bar
+	is resized to avoid generating a mouse drag event.
+
 2006-12-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32fns.c (w32_wnd_proc): Force non-tooltip frames to respect the
