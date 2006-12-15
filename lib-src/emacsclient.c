@@ -152,9 +152,6 @@ struct option longopts[] =
 /* Message functions. */
 
 #ifdef WINDOWSNT
-/* I first tried to check for STDOUT.  The check did not work,
-   I get a valid handle also in nonconsole apps.
-   Instead I test for console title, which seems to work.  */
 int
 w32_window_app()
 {
@@ -162,6 +159,8 @@ w32_window_app()
   char szTitle[MAX_PATH];
 
   if (window_app < 0)
+    /* Checking for STDOUT does not work; it's a valid handle also in
+       nonconsole apps.  Testing for the console title seems to work. */
     window_app = (GetConsoleTitleA (szTitle, MAX_PATH) == 0);
 
   return window_app;
@@ -316,6 +315,7 @@ w32_execvp (path, argv)
 {
   int i;
 
+  /* Required to allow a .BAT script as alternate editor.  */
   argv[0] = (char *) alternate_editor;
 
   for (i = 0; argv[i]; i++)
