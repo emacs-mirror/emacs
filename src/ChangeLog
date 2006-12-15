@@ -1,3 +1,36 @@
+2006-12-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (wakeup_from_rne_enabled_p) [TARGET_API_MAC_CARBON]: New
+	variable.
+	(ENABLE_WAKEUP_FROM_RNE, DISABLE_WAKEUP_FROM_RNE): New macros.
+	[!MAC_OSX] (select): Use them.
+	[MAC_OSX] (select_and_poll_event, sys_select): Likewise.
+	(mac_wakeup_from_rne) [TARGET_API_MAC_CARBON]: New function.
+
+	* macfns.c (mac_atsu_font_face_attributes) [USE_ATSUI]: Add extern.
+	(Fmac_atsu_font_face_attributes) [USE_ATSUI]: New function.
+	(syms_of_macfns) [USE_ATSUI]: Defsubr it.
+
+	* macselect.c [TARGET_API_MAC_CARBON] (mac_do_receive_drag): Use
+	mac_wakeup_from_rne instead of mac_post_mouse_moved_event.
+
+	* macterm.c (mac_query_char_extents) [USE_ATSUI]: Don't call
+	ATSUGetGlyphBounds if not necessary.
+	(Vmac_atsu_font_table) [USE_ATSUI]: Remove Variable.
+	(syms_of_macterm) [USE_ATSUI]: Don't defvar it.
+	(fm_get_style_from_font, atsu_find_font_from_family_name)
+	(atsu_find_font_family_name, mac_atsu_font_face_attributes)
+	[USE_ATSUI]: New functions.
+	(init_font_name_table) [USE_ATSUI]: Use atsu_find_font_family_name.
+	(mac_load_query_font) [USE_ATSUI]: Use atsu_find_font_from_family_name.
+	Don't get metrics for Latin-1 right half characters.
+	(mac_load_query_font): Don't load font if space width is not positive.
+	[TARGET_API_MAC_CARBON] (mac_store_event_ref_as_apple_event): Use
+	mac_wakeup_from_rne instead of mac_post_mouse_moved_event.
+	(XTread_socket): Call SelectWindow when unfocused frame is clicked.
+
+	* macterm.h (mac_wakeup_from_rne) [TARGET_API_MAC_CARBON]: Add extern.
+
 2006-12-15  Kim F. Storm  <storm@cua.dk>
 
 	* keyboard.c (ignore_mouse_drag_p): New global var.
@@ -23,8 +56,8 @@
 	(read_avail_input): Store pending user signal events.
 	(struct user_signal_info): New struct.
 	(user_signals): New variable.
-	(add_user_signal, store_user_signal_events find_user_signal_name):
-	New functions.
+	(add_user_signal, store_user_signal_events)
+	(find_user_signal_name): New functions.
 	(handle_user_signal): Move function from emacs.c.  Don't store
 	USER_SIGNAL_EVENT here, but increment number of pending signals.
 
