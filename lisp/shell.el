@@ -520,10 +520,11 @@ If BUFFER exists but shell process is not running, make new shell.
 If BUFFER exists and shell process is running, just switch to BUFFER.
 Program used comes from variable `explicit-shell-file-name',
  or (if that is nil) from the ESHELL environment variable,
+ or (if that is nil) from `shell-file-name'
  or else from SHELL if there is no ESHELL.
 If a file `~/.emacs_SHELLNAME' exists, or `~/.emacs.d/init_SHELLNAME.sh',
-it is given as initial input (Note that this may lose due to a timing
-error if the shell discards input when it starts up).
+it is given as initial input (but this may be lost, due to a timing
+error, if the shell discards input when it starts up).
 The buffer is put in Shell mode, giving commands for sending input
 and controlling the subjobs of the shell.  See `shell-mode'.
 See also the variable `shell-prompt-pattern'.
