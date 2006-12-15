@@ -2992,7 +2992,8 @@ regex_compile (pattern, size, syntax, bufp)
 			  if (re_iswctype (btowc (ch), cc))
 			    {
 			      c = TRANSLATE (ch);
-			      SET_LIST_BIT (c);
+			      if (c < (1 << BYTEWIDTH))
+				SET_LIST_BIT (c);
 			    }
 
 			if (target_multibyte)
