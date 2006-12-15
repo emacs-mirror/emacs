@@ -1438,12 +1438,24 @@ usage: (track-mouse BODY ...)  */)
 }
 
 /* If mouse has moved on some frame, return one of those frames.
-   Return 0 otherwise.  */
+
+   Return 0 otherwise.
+
+   If ignore_mouse_drag_p is non-zero, ignore (implicit) mouse movement
+   after resizing the tool-bar window.  */
+
+int ignore_mouse_drag_p;
 
 static FRAME_PTR
 some_mouse_moved ()
 {
   Lisp_Object tail, frame;
+
+  if (ignore_mouse_drag_p)
+    {
+      //ignore_mouse_drag_p = 0;
+      return 0;
+    }
 
   FOR_EACH_FRAME (tail, frame)
     {
@@ -5592,6 +5604,7 @@ make_lispy_event (event)
 	      double_click_count = 1;
 	    button_down_time = event->timestamp;
 	    *start_pos_ptr = Fcopy_alist (position);
+	    ignore_mouse_drag_p = 0;
 	  }
 
 	/* Now we're releasing a button - check the co-ordinates to
@@ -5627,8 +5640,13 @@ make_lispy_event (event)
 		    ydiff = XINT (event->y) - XINT (XCDR (down));
 		  }
 
-		if (xdiff < double_click_fuzz && xdiff > - double_click_fuzz
-		    && ydiff < double_click_fuzz && ydiff > - double_click_fuzz
+		if (ignore_mouse_drag_p)
+		  {
+		    event->modifiers |= click_modifier;
+		    ignore_mouse_drag_p = 0;
+		  }
+		else if (xdiff < double_click_fuzz && xdiff > - double_click_fuzz
+			 && ydiff < double_click_fuzz && ydiff > - double_click_fuzz
 		  /* Maybe the mouse has moved a lot, caused scrolling, and
 		     eventually ended up at the same screen position (but
 		     not buffer position) in which case it is a drag, not
