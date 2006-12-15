@@ -1,3 +1,10 @@
+2006-12-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (w32_execvp): New function; wrapper for `execvp'.
+	(execvp) [WINDOWSNT]: Redefine to `w32_execvp'.
+	(fail): Remove Windows-specific fix (subsumed into w32_execvp).
+	Suggestions and comment by Eli Zaretskii.
+
 2006-12-06  Christoph Conrad  <christoph.conrad@gmx.de>
 
 	* makefile.w32-in ($(BLD)/emacsclient.exe, $(BLD)/emacsclientw.exe):
@@ -19,11 +26,11 @@
 	(set_tcp_socket): Make the message for non-local connections
 	informational rather than an error.
 
-2006-11-28  Kevin Ryde <user42@zip.com.au>  (tiny change)
+2006-11-28  Kevin Ryde  <user42@zip.com.au>  (tiny change)
 
 	* etags.c (readline): Check for double quote after #line.
 
-2006-11-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>  (tiny change)
+2006-11-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* etags.c (readline): sscanf could in principle return 2.
 
@@ -55,8 +62,8 @@
 
 2006-11-24  Michael Mauger  <mmaug@yahoo.com>
 
-	* emacsclient.c (file_name_absolute_p) [WINDOWSNT]: Support
-	absolute file names with forward slashes.
+	* emacsclient.c (file_name_absolute_p) [WINDOWSNT]: Support absolute
+	file names with forward slashes.
 
 2006-11-23  Juanma Barranquero  <lekktu@gmail.com>
 
