@@ -3,6 +3,7 @@
 ;; Copyright (C) 2004, 2005, 2006 John Wiegley
 
 ;; Author: John Wiegley <johnw@gnu.org>
+;; Maintainer: FSF
 ;; Created: 16 Apr 2004
 ;; Version: 1.5
 ;; Keywords: lisp
