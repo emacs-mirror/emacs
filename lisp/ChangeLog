@@ -5,10 +5,10 @@
 	instead of mac-atsu-font-table.
 	(fontset-default): Specify argument MAXIMUM in x-list-fonts calls.
 
-2006-12-14  Stephen Leake  <stephen_leake@member.fsf.org> (tiny change)
+2006-12-14  Stephen Leake  <stephen_leake@member.fsf.org>
 
-	* align.el (align-match-tex-pattern): Fix a rare bug which hanged
-	Emacs.
+	* align.el (align-match-tex-pattern): Fix a rare bug which
+	hanged Emacs.
 
 2006-12-14  Richard Stallman  <rms@gnu.org>
 
@@ -17,12 +17,12 @@
 
 2006-12-13  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-cmds.el (set-locale-environment): Set
-	default-sendmail-coding-system too.
+	* international/mule-cmds.el (set-locale-environment):
+	Set default-sendmail-coding-system too.
 
 2006-12-12  J.D. Smith  <jdsmith@as.arizona.edu>
 
-	* progmodes/idlw-help.el: Fixed copyright notice.
+	* progmodes/idlw-help.el: Fix copyright notice.
 
 2006-12-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
