@@ -303,7 +303,7 @@ Display options:\n\
                                   used for debugging Emacs\n\
 --border-color, -bd COLOR       main border color\n\
 --border-width, -bw WIDTH       width of main border\n\
---color, --color=MODE           color mode for character terminals;\n\
+--color, --color=MODE           override color mode for character terminals;\n\
                                   MODE defaults to `auto', and can also\n\
                                   be `never', `auto', `always',\n\
                                   or a mode name like `ansi8'\n\
