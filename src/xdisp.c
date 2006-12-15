@@ -13451,8 +13451,11 @@ redisplay_window (window, just_this_one_p)
 
 #endif
 
-      if (redisplay_tool_bar_p)
-        redisplay_tool_bar (f);
+      if (redisplay_tool_bar_p && redisplay_tool_bar (f))
+	{
+	  extern int ignore_mouse_drag_p;
+	  ignore_mouse_drag_p = 1;
+	}
 #endif
     }
 
