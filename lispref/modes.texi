@@ -2358,7 +2358,12 @@ Lock mode is enabled, to set all the other variables.
 @defvar font-lock-defaults
 This variable is set by major modes, as a buffer-local variable, to
 specify how to fontify text in that mode.  It automatically becomes
-buffer-local when you set it.  The value should look like this:
+buffer-local when you set it.  If its value is @code{nil}, Font-Lock
+mode does no highlighting, and you can use the @samp{Faces} menu
+(under @samp{Edit} and then @samp{Text Properties} in the menu bar) to
+assign faces explicitly to text in the buffer.
+
+If non-@code{nil}, the value should look like this:
 
 @example
 (@var{keywords} [@var{keywords-only} [@var{case-fold}
@@ -2374,9 +2379,10 @@ The first symbol specifies how to do level 1 fontification, the second
 symbol how to do level 2, and so on.  @xref{Levels of Font Lock}.
 
 The second element, @var{keywords-only}, specifies the value of the
-variable @code{font-lock-keywords-only}.  If this is non-@code{nil},
-syntactic fontification (of strings and comments) is not performed.
-@xref{Syntactic Font Lock}.
+variable @code{font-lock-keywords-only}.  If this is omitted or
+@code{nil}, syntactic fontification (of strings and comments) is also
+performed.  If this is non-@code{nil}, such fontification is not
+performed.  @xref{Syntactic Font Lock}.
 
 The third element, @var{case-fold}, specifies the value of
 @code{font-lock-keywords-case-fold-search}.  If it is non-@code{nil},
@@ -2402,6 +2408,13 @@ use these @var{other-vars} to set other variables that affect
 fontification, aside from those you can control with the first five
 elements.  @xref{Other Font Lock Variables}.
 @end defvar
+
+  If your mode fontifies text explicitly by adding
+@code{font-lock-face} properties, it can specify @code{(nil t)} for
+@code{font-lock-defaults} to turn off all automatic fontification.
+However, this is not required; it is possible to fontify some things
+using @code{font-lock-face} properties and set up automatic
+fontification for other parts of the text.
 
 @node Search-based Fontification
 @subsection Search-based Fontification

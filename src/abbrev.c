@@ -679,7 +679,7 @@ for any particular abbrev defined in both.  */);
 
   DEFVAR_LISP ("last-abbrev-text", &Vlast_abbrev_text,
 	       doc: /* The exact text of the last abbrev expanded.
-nil if the abbrev has already been unexpanded.  */);
+A value of nil means the abbrev has already been unexpanded.  */);
 
   DEFVAR_INT ("last-abbrev-location", &last_abbrev_point,
 	      doc: /* The location of the start of the last abbrev expanded.  */);

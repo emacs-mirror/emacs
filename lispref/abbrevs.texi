@@ -131,9 +131,12 @@ to add these to @var{name} separately.)
 @comment  node-name,  next,  previous,  up
 @section Defining Abbrevs
   @code{define-abbrev} is the low-level basic function for defining an
-abbrev in a specified abbrev table.  When major modes predefine
-standard abbrevs, they should call @code{define-abbrev} and specify
-@code{t} for @var{system-flag}.
+abbrev in a specified abbrev table.  When major modes predefine standard
+abbrevs, they should call @code{define-abbrev} and specify @code{t} for
+@var{system-flag}.  Be aware that any saved non-``system'' abbrevs are
+restored at startup, i.e. before some major modes are loaded.  Major modes
+should therefore not assume that when they are first loaded their abbrev
+tables are empty.
 
 @defun define-abbrev table name expansion &optional hook count system-flag
 This function defines an abbrev named @var{name}, in @var{table}, to
@@ -165,7 +168,10 @@ returns @code{nil}, @code{expand-abbrev} also returns @code{nil}, as
 if expansion had not really occurred.
 
 If @var{system-flag} is non-@code{nil}, that marks the abbrev as a
-``system'' abbrev with the @code{system-type} property.
+``system'' abbrev with the @code{system-type} property.  Unless
+@var{system-flag} has the value @code{force}, a ``system'' abbrev will
+not overwrite an existing definition for a non-``system'' abbrev of the
+same name.
 
 Normally the function @code{define-abbrev} sets the variable
 @code{abbrevs-changed} to @code{t}, if it actually changes the abbrev.

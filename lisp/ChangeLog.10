@@ -294,7 +294,7 @@
 	properties completely.
 
 	* progmodes/cc-fonts.el (c-cpp-matchers): Handle line
-	continuations in cpp expressions. Do not fontify symbols after
+	continuations in cpp expressions.  Do not fontify symbols after
 	#ifdef etc as variables since that isn't consistent with how
 	the face is used elsewhere (i.e. only for the definition of
 	the symbol).
@@ -492,7 +492,7 @@
 	directives are now considered part of the keywords to make
 	things easier.
 
-	* progmodes/cc-defs.el: (c-(up|down)-list-(forward|backward)):
+	* progmodes/cc-defs.el (c-(up|down)-list-(forward|backward)):
 	Make the position optional and added docstrings.
 
 	(c-go-(up|down)-list-(forward|backward)): Add variants of the
@@ -742,7 +742,7 @@
 	(c-simple-skip-symbol-backward, c-syntactic-content)
 	(c-remove-<>-paren-properties): New helper functions.
 
-	* progmodes/cc-defs.el: (c-clear-char-syntax)
+	* progmodes/cc-defs.el (c-clear-char-syntax)
 	(c-mark-paren-open, c-mark-paren-close): New support functions
 	to handle syntactic properties on C++ template arglist brackets.
 	(c-put-type-face, c-put-reference-face): Helpers to put faces on
@@ -1074,7 +1074,7 @@
 	(iswitchb-xemacs): Delete variable and use (featurep 'xemacs)
 	and fboundp instead.
 	(iswitchb-completions): Remove two redundant arguments and local
-	variables. (All above from Stefan Monnier).
+	variables.  (All above from Stefan Monnier).
 
 2003-06-20  Masatake YAMATO  <jet@gyve.org>
 
@@ -1182,7 +1182,7 @@
 	(gud-find-c-expr): Simplify.
 
 	* progmodes/fortran.el (fortran-gud-syntax-table): Syntax table
-	for parsing Fortran expressions for gud-print. (Stefan Monnier)
+	for parsing Fortran expressions for gud-print.  (Stefan Monnier)
 	(fortran-mode): Add local variable gud-find-expr.
 
 	* progmodes/cc-mode.el (c-mode): Add local variable gud-find-expr.
@@ -1285,7 +1285,7 @@
 
 	* emacs-lisp/debug.el (debug): Fix call to message.
 
-2003-06-16  Michael Mauger  <mmaug@yahoo.com> (tiny change)
+2003-06-16  Michael Mauger  <mmaug@yahoo.com>  (tiny change)
 
 	* emulation/cua-base.el (cua-mode): Use explicit arg to turn off
 	minor modes.
@@ -2183,7 +2183,7 @@
 	when requested.
 	(gud-menu-map): Add a toggle button to menubar for gdb-many-windows.
 	(gdb-many-windows): Define explicitly as a function and a variable
-	(formerly as a minor mode). These need to be global so layout can
+	(formerly as a minor mode).  These need to be global so layout can
 	be reset from any buffer.
 	(gdb-assembler-mode): Keep fringe outside margin as the overlay
 	arrow is not used for assembler.
@@ -2257,7 +2257,7 @@
 
 	* net/tramp-efs.el: New file.
 
-2003-05-24 Michael Albinus  <Michael.Albinus@alcatel.de>
+2003-05-24  Michael Albinus  <Michael.Albinus@alcatel.de>
 
 	* net/tramp.el (tramp-handle-file-truename): `sym' shouldn't be
 	quoted.
@@ -2302,7 +2302,7 @@
 	(forms--mode-commands): Don't bind \t in the maps where
 	we call forms--mode-commands1.
 
-2003-05-23  Taro Kawagishi <tarok@acm.org>
+2003-05-23  Taro Kawagishi  <tarok@acm.org>
 
 	* arc-mode.el (archive-lzh-summarize): Calculate correct total
 	header size for LZH level 1 header.
@@ -2396,7 +2396,7 @@
 	choices buffer.
 	(ispell-show-choices): Directly select `choices-window'.
 	(ispell-help): Use default buffer size for electric help.
-	(ispell-adjusted-window-height): Correct for xemacs detection.
+	(ispell-adjusted-window-height): Correct for XEmacs detection.
 	(ispell-start-process): Don't double specify dictionary file name.
 	(ispell-init-process): Set `ispell-library-path' each call.
 	(ispell-change-dictionary): Now only completes valid dictionaries.
@@ -3831,7 +3831,7 @@
 2003-04-13  Masatake YAMATO  <jet@gyve.org>
 
 	* bindings.el (toplevel): Don't change the face
-	of major-mode on the mode line. Setting the face on
+	of major-mode on the mode line.  Setting the face on
 	the mode line code is installed by my mistake in
 	my last change.
 
@@ -3876,7 +3876,7 @@
 	(describe-minor-mode-from-symbol):
 	Renamed from (old) describe-minor-mode.
 	Use describe-minor-mode-completion-table-for-symbol.
-	Don't use eval. Just use symbol-name.
+	Don't use eval.  Just use symbol-name.
 	(describe-minor-mode-from-indicator): Document is updated.
 	Use `format-mode-line'.
 	Use describe-minor-mode-from-symbol instead of describe-minor-mode.
@@ -3933,7 +3933,7 @@
 2003-04-11  Masatake YAMATO  <jet@gyve.org>
 
 	* progmodes/etags.el (select-tags-table-mode-map):
-	Don't create new keymap. Instead copy from button-buffer-map.
+	Don't create new keymap.  Instead copy from button-buffer-map.
 	Bind push-button to `t' instead of binding
 	select-tags-table-select directly
 	(tags-select-tags-table): New button.
@@ -4124,7 +4124,7 @@
 	the same order as that in the buffer list,
 	(desktop-save): Put buffers in the order given in desktop file,
 	regardless of what handlers do.
-	(desktop-file-version): New variable. Version number of desktop
+	(desktop-file-version): New variable.  Version number of desktop
 	file format.
 	(desktop-create-buffer-form): Variable deleted.
 	(desktop-save): New customizable variable.
@@ -4134,7 +4134,7 @@
 	(desktop-file-name): New function to convert a filename to the
 	format specified in `desktop-file-name-format'.
 	(desktop-create-buffer): Parameters renamed to descriptive
-	systematic names. These parameters are visible to handlers.
+	systematic names.  These parameters are visible to handlers.
 	Renames:
 	ver    -> desktop-file-version
 	mim    -> desktop-buffer-minor-modes
@@ -4157,7 +4157,7 @@
 	(desktop-change-dir): New function.
 	(desktop-save-in-load-dir): New function.  Save desktop in
 	directory from which it was loaded.
-	(desktop-revert): New function. Revert to the last loaded desktop.
+	(desktop-revert): New function.  Revert to the last loaded desktop.
 
 2003-04-06  Masatake YAMATO  <jet@gyve.org>
 
@@ -5624,7 +5624,7 @@
 	Face markup of calendar and diary displays: Any entry line that
 	ends with [foo:value] where foo is a face attribute (except :box
 	:stipple) or with [face:blah] tags, will have these values applied
-	to the calendar and fancy diary displays. These attributes "stack"
+	to the calendar and fancy diary displays.  These attributes "stack"
 	on calendar displays.  File-wide attributes can be defined as
 	follows: the first line matching "^# [tag:value]" defines the
 	value for that particular tag.  All of the tags' regexps can be
@@ -6260,7 +6260,7 @@
 	of unrecognized entries indicating syntax errors in ChangeLog files.
 	(authors-coding-system): New variable.
 	(authors-many-files): Update doc string.
-	(authors-aliases): Change format. Now one entry with multiple
+	(authors-aliases): Change format.  Now one entry with multiple
 	aliases per author.
 	(authors-valid-file-names, authors-renamed-files-alist)
 	(authors-renamed-files-regexps): New variables.
@@ -6363,7 +6363,7 @@
 
 2003-01-25  Bill Wohler  <wohler@newt.com>
 
-	* mh-e: Created directory. ChangeLog will appear in a week when we
+	* mh-e: Created directory.  ChangeLog will appear in a week when we
 	release version 7.2.
 
 	* mail/mh-alias.el, mail/mh-comp.el, mail/mh-customize.el, mail/mh-e.el,
@@ -6532,7 +6532,7 @@
 
 	* gud.el (gud-display-line): If the current file is newer than its
 	buffer, offer to reread the file.
-	(gud-keep-buffer): New buffer local variable. Ensures offer to
+	(gud-keep-buffer): New buffer local variable.  Ensures offer to
 	reread file is made just once.
 
 2003-01-20  Stefan Monnier  <monnier@cs.yale.edu>
@@ -6862,7 +6862,7 @@
 2003-01-11  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gud.el (gud-kill-buffer-hook): Save gud-minor-mode type.
-	(gud-reset): New function. Reset environment at end of debugging.
+	(gud-reset): New function.  Reset environment at end of debugging.
 	(gud-sentinel): Call gud-reset or gdb-reset.
 	(gud-menu-map, gud-tool-bar-map, gdb): Change gud-goto to gud-until.
 
@@ -6870,7 +6870,7 @@
 	to find out if variable shuld be dereferenced.
 	(gud-display1): Exit if there is `No symbol'.
 	(gdb-expressions-mode-map): Correction to key-binding.
-	(gdb-reset): New function. Reset environment at end of debugging.
+	(gdb-reset): New function.  Reset environment at end of debugging.
 	(gdb-quit): Remove.
 
 2003-01-10  Dave Love  <fx@gnu.org>
@@ -7159,7 +7159,7 @@
 	(gdb-mouse-goto-breakpoint, gdb-frames-select): New functions.
 	(gdb-frames-mouse-select): Simplify.
 	Make keybindings (gdb-goto-breakpoint, gdb-frames-select, etc)
-	consistent with other modes in emacs.
+	consistent with other modes in Emacs.
 	(gdb-display-source-buffer): Return window of source buffer
 	for (gud-display-line).
 
@@ -7395,8 +7395,8 @@
 
 2002-12-21  Nick Roberts  <nick@nick.uklinux.net>
 
-	* gdb-ui.el: Remove the concept of an instance. This means that
-	a lot of functions have been renamed. Accessors are prefixed with
+	* gdb-ui.el: Remove the concept of an instance.  This means that
+	a lot of functions have been renamed.  Accessors are prefixed with
 	gdb-get, setters with gdb-set and the word instance has been
 	removed from many function and variable names.
 	(gdb-display-buffer): Protect source buffer as well
@@ -7575,7 +7575,7 @@
 2002-12-13  Markus Rost  <rost@math.ohio-state.edu>
 
 	* emacs-lisp/easy-mmode.el (define-minor-mode):
-	Use `custom-current-group'. Pass all groups to the hook.
+	Use `custom-current-group'.  Pass all groups to the hook.
 	(easy-mmode-define-global-mode): Use `custom-current-group'.
 
 	* international/mule-cmds.el (current-language-environment):
@@ -7993,7 +7993,7 @@
 2002-11-30  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (gdb-many-windows): Define as a minor mode.
-	(toggle-gdb-windows): Remove. (Patch from Stefan Monnier)
+	(toggle-gdb-windows): Remove.  (Patch from Stefan Monnier)
 
 	* tooltip.el (tooltip-gud-process-output): Handle annotations that
 	are output with gdba in gdb-ui.el.
@@ -8115,7 +8115,7 @@
 	* tooltip.el (tooltip-gud-print-command): Add server prefix to the
 	print command for gdb to keep it out of the command history.
 
-	* gdb-ui.el: Major re-organisation. Simplify legacy gdba
+	* gdb-ui.el: Major re-organisation.  Simplify legacy gdba
 	code to allow only one gdb process.
 
 2002-11-23  Markus Rost  <rost@math.ohio-state.edu>
@@ -8129,7 +8129,7 @@
 
 2002-11-21  Nick Roberts  <nick@nick.uklinux.net>
 
-	* gdb-ui.el : General tidying. Patches from Stefan Monnier.
+	* gdb-ui.el : General tidying.  Patches from Stefan Monnier.
 
 2002-11-20  Simon Josefsson  <jas@extundo.com>
 
@@ -9372,11 +9372,11 @@
 	append slash only if result doesn't end in a slash already.
 	(tramp-handle-file-truename): Restructure logic.  If list of steps
 	is nil, return "/" as the real name.
-	(tramp-completion-mode): Add "\\(" and "\\)". Otherwise,
+	(tramp-completion-mode): Add "\\(" and "\\)".  Otherwise,
 	`match-string' doesn't make sense.  From Michael Albinus.
-	(tramp-host-with-port-regexp): New defcustom. Equal to previous
+	(tramp-host-with-port-regexp): New defcustom.  Equal to previous
 	`tramp-host-regexp'.  From Michael Albinus.
-	(tramp-host-regexp): Taken off hashes in host names. Otherwise,
+	(tramp-host-regexp): Taken off hashes in host names.  Otherwise,
 	scanning files like .rhosts would take comments as host names.
 	From Michael Albinus.
 	(tramp-file-name-structure, tramp-multi-file-name-hop-structure):
@@ -10009,7 +10009,7 @@
 	(occur-next, occur-prev): Use it.
 
 	* progmodes/sh-script.el (sh-mark-init): Don't set `occur-buffer'.
-	(sh-mark-line): Likewise. Use 'occur-target and 'occur-match
+	(sh-mark-line): Likewise.  Use 'occur-target and 'occur-match
 	instead of 'occur and 'occur-point.
 
 	* eshell/em-unix.el (eshell-occur-mode-mouse-goto)
@@ -10096,7 +10096,7 @@
 	(tramp-parse-netrc, tramp-parse-netrc-group): New functions.
 	(tramp-user-regexp): " \t" are not user regexp characters.
 	(tramp-completion-handle-file-name-all-completions):
-	Remove Ange-FTP cmpletion. It has a bug not handling the "/ftp:" prefix
+	Remove Ange-FTP cmpletion.  It has a bug not handling the "/ftp:" prefix
 	completely, and it returns local completions as well.
 	(tramp-completion-function-alist-ftp): New constant.
 	(tramp-completion-function-alist): Add completion function for "ftp".
@@ -10275,27 +10275,26 @@
 2002-09-07  Michael Albinus  <Michael.Albinus@alcatel.de>
 
 	* net/tramp.el (tramp-methods): Remove `tramp-completion-function'
-	entries. They are handled now by `tramp-completion-function-alist'.
-	(tramp-completion-function): Defvar removed. I've never used
-	it. Hmm.
+	entries.  They are handled now by `tramp-completion-function-alist'.
+	(tramp-completion-function): Defvar removed.  I've never used it.  Hmm.
 	(tramp-get-completion-function)
 	(tramp-get-completion-rsh, tramp-get-completion-ssh)
 	(tramp-get-completion-telnet, tramp-get-completion-su):
 	Functions removed as well.  Not necessary any longer due to extended
 	customization means.
-	(tramp-completion-function-alist): New defcustom. Holds all
+	(tramp-completion-function-alist): New defcustom.  Holds all
 	FUNCTION FILE pairs used for user and host name completion
 	relevant for METHOD.
 	(tramp-completion-function-alist-rsh)
 	(tramp-completion-function-alist-ssh)
 	(tramp-completion-function-alist-telnet)
 	(tramp-completion-function-alist-su): Defconst for initializing
-	`tramp-completion-function-alist'. Unfortunately, mainly UNIX-like
-	values are known for me until now. Needs to be completed for at
+	`tramp-completion-function-alist'.  Unfortunately, mainly UNIX-like
+	values are known for me until now.  Needs to be completed for at
 	least VMS++ like operating systems.
 	(tramp-set-completion-function)
 	(tramp-get-completion-function): New functions for configuration
-	of `tramp-completion-function-alist'. The old definition of
+	of `tramp-completion-function-alist'.  The old definition of
 	`tramp-get-completion-function' has been discarded.
 	(tramp-completion-handle-file-name-all-completions):
 	Change function call for user/host completion according to definition
@@ -10332,7 +10331,7 @@
 	(tramp-get-completion-user-host): Accept user names as they are if
 	typed until "@".
 	(tramp-completion-mode): Replace `last-input-char' by modern
-	`last-input-event'. Check for `event-modifiers'.
+	`last-input-event'.  Check for `event-modifiers'.
 
 2002-09-06  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
@@ -10391,8 +10390,8 @@
 	(tramp-make-multi-tramp-file-format-unified)
 	(tramp-make-multi-tramp-file-format-separate): Removed.
 	(tramp-make-tramp-file-name): Allow partial tramp file
-	names. Generate tramp file format on-the-fly depending on
-	parameters. Apply atomar format strings resp expressions.
+	names.  Generate tramp file format on-the-fly depending on
+	parameters.  Apply atomar format strings resp expressions.
 	(tramp-get-completion-methods)
 	(tramp-get-completion-user-host): Apply `tramp-make-tramp-file-name'.
 	(tramp-parse-hosts-group): Take all host names and IP addresses
@@ -10444,7 +10443,7 @@
 
 	* net/tramp.el (tramp-get-completion-methods)
 	(tramp-get-completion-rsh)
-	(tramp-get-completion-ssh): Add "[" for Xemacs.
+	(tramp-get-completion-ssh): Add "[" for XEmacs.
 	(tramp-completion-file-name-regexp-separate): Expression adapted.
 	(tramp-completion-file-name-handler-alist): Add handler for
 	`file-name-directory' and `file-name-nondirectory'.
@@ -10455,7 +10454,7 @@
 	(tramp-completion-handle-file-name-all-completions):
 	Apply `tramp-completion-run-real-handler'.
 	(tramp-parse-rhosts)
-	(tramp-parse-shosts): Use `with-temp-buffer'. `result$,1!=(B renamed to
+	(tramp-parse-shosts): Use `with-temp-buffer'.  `result' renamed to
 	`res' (otherwise side effects in XEmacs).
 
 2002-08-24  Michael Albinus  <Michael.Albinus@alcatel.de>
@@ -10470,7 +10469,7 @@
 	(tramp-get-completion-ssh): Doc string tuned.
 	(tramp-methods): Doc string and custom type extended for
 	`tramp-completion-function'.
-	(tramp-completion-function): Variable added. Is it really used?
+	(tramp-completion-function): Variable added.  Is it really used?
 	Other variables like `tramp-completion-function' aren't used.
 	(tramp-completion-file-name-handler-alist): Add handler for
 	`file-name-completion'.
@@ -10518,7 +10517,7 @@
 
 	* net/tramp.el (tramp-invoke-ange-ftp): `tramp-disable-ange-ftp'
 	must be called again after activating `ange-ftp'.
-	(tramp-ange-ftp-file-name-p): Check for Xemacs.
+	(tramp-ange-ftp-file-name-p): Check for XEmacs.
 
 2002-08-08  Michael Albinus  <Michael.Albinus@alcatel.de>
 
@@ -10528,7 +10527,7 @@
 	tramp-invoke-ange-ftp 'write-region.
 	(tramp-handle-set-file-modes): Change order of FILENAME and MODE
 	passing to tramp-invoke-ange-ftp 'set-file-modes.
-	(tramp-flatten-list): New function. Maybe this functionality does
+	(tramp-flatten-list): New function.  Maybe this functionality does
 	exist already elsewhere in the libraries.
 	(tramp-invoke-ange-ftp): Apply `tramp-flatten-list' to parameter
 	list in order to avoid nested lists, f.e. when invoked from
@@ -10660,7 +10659,7 @@
 
 2002-09-18  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
-	* ielm.el: (*1, *2, *3): New variables.
+	* ielm.el (*1, *2, *3): New variables.
 	(ielm-eval-input): Make temporary buffers current on entry and
 	exit to the let bindings for *, ** and ***.
 	(inferior-emacs-lisp-mode): Mention *1, *2 and *3 in the docstring.
@@ -10961,7 +10960,7 @@
 2002-09-12  Simon Josefsson  <jas@extundo.com>
 
 	* mail/smtpmail.el (smtpmail-send-it): Don't use : in filenames
-	(for cygwin). Suggested by Andrew Senior <aws@watson.ibm.com>.
+	(for cygwin).  Suggested by Andrew Senior <aws@watson.ibm.com>.
 	Use expand-file-name.  Also don't require time-stamp.
 
 2002-09-11  Richard M. Stallman  <rms@gnu.org>
@@ -11259,7 +11258,7 @@
 2002-09-08  Kim F. Storm  <storm@cua.dk>
 
 	* kmacro.el (kmacro-end-and-call-macro): New command to end and
-	call keyboard macro in one step. Bind it to C-x e by default.
+	call keyboard macro in one step.  Bind it to C-x e by default.
 	(kmacro-call-macro): Use format-kbd-macro.
 	(kmacro-step-edit-macro): New command to interactively step edit
 	and execute last keyboard macro.
@@ -11459,7 +11458,7 @@
 
 	From Michael Albinus <Michael.Albinus@alcatel.de>:
 	* net/tramp.el (tramp-invoke-ange-ftp):
-	(tramp-ange-ftp-file-name-p): Check for Xemacs.
+	(tramp-ange-ftp-file-name-p): Check for XEmacs.
 	(tramp-do-copy-or-rename-file): Don't pass KEEP-DATE to
 	tramp-invoke-ange-ftp 'rename.
 	(tramp-handle-write-region): Don't pass LOCKNAME and CONFIRM to
@@ -12552,7 +12551,7 @@
 
 	* warnings.el (lwarn, warn, warning-levels): Doc fix.
 	(warning-suppress-log-types): Fix typo.
-	(display-warning): Fix typo. Remove useless assignment to free variable
+	(display-warning): Fix typo.  Remove useless assignment to free variable
 	`group-string'.
 
 2002-07-25  Markus Rost  <rost@math.ohio-state.edu>
@@ -13371,8 +13370,8 @@
 	* files.el (after-find-file): Don't check for read-only status
 	of files just created (and not yet saved on disk).
 
-	* ido.el (ido-completion-help): Changed xemacs specific code to
-	avoid byte compiler warning in GNU emacs.
+	* ido.el (ido-completion-help): Changed XEmacs specific code to
+	avoid byte compiler warning in GNU Emacs.
 	(ido-set-matches1): Use regexp-quote instead of identity.
 	(ido-complete-space): New function.
 	(ido-define-mode-map): Bind it to SPACE.
@@ -13696,7 +13695,7 @@
 	* faces.el (describe-face): Capitalize "not documented" message.
 
 	* help-fns.el (describe-variable): Likewise.
-	(describe-function-1): Likewise. Also, document the obsolescence
+	(describe-function-1): Likewise.  Also, document the obsolescence
 	of the function, if applicable.
 
 2002-06-26  Juanma Barranquero  <lektu@terra.es>
@@ -14190,7 +14189,7 @@
 	(italic): Try underlining for displays that don't support real italics.
 	* cus-edit.el (custom-display): Add support for `supports' predicate.
 	* term/tty-colors.el (color-name-rgb-alist): Use 16-bit RGB values
-	instead of 8-bit, for consistency with the rest of emacs.
+	instead of 8-bit, for consistency with the rest of Emacs.
 	(tty-color-canonicalize): Only copy COLOR if we need to change it.
 	(tty-color-approximate): Scale values from `color-name-rgb-alist'
 	appropriately.  Return the whole color description, rather than
@@ -14553,7 +14552,7 @@
 
 2002-05-24  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
-	* progmodes/f90.el: (f90-end-of-subprogram): Remove the final
+	* progmodes/f90.el (f90-end-of-subprogram): Remove the final
 	`forward-line'.
 	(f90-end-of-block, f90-beginning-of-block, f90-next-block-end)
 	(f90-previous-block-start): New navigation commands.
@@ -14587,7 +14586,7 @@
 	(apropos-calc-scores, apropos-score-str, apropos-score-doc)
 	(apropos-score-symbol): New functions.
 	(apropos-command, apropos, apropos-value, apropos-documentation):
-	Allow keywords in addition to regexp. Added scoring.
+	Allow keywords in addition to regexp.  Added scoring.
 	(apropos-documentation-check-doc-file)
 	(apropos-documentation-check-elc-file): Added scoring.
 	(apropos-print): Sort according to score.
@@ -15271,7 +15270,7 @@
 	(mouse-wheel-scroll-screen): Remove.
 	([mouse-wheel], [C-mouse-wheel], [S-mouse-wheel]): Use mwheel-scroll.
 
-	* w32-vars.el: (mouse-wheel-scroll-amount): Remove.
+	* w32-vars.el (mouse-wheel-scroll-amount): Remove.
 
 2002-05-04  Markus Rost  <rost@math.ohio-state.edu>
 
@@ -15964,7 +15963,7 @@
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-mode.el: (c-define-abbrev-table): New function to
+	* progmodes/cc-mode.el (c-define-abbrev-table): New function to
 	pass the SYSTEM-FLAG to `define-abbrev' in a way that works in
 	emacsen that doesn't support it.
 
@@ -16480,7 +16479,7 @@
 	and macros.
 
 	(c-in-literal): No longer recognizes macros as literals by
-	default. An extra flag argument is required to do that.
+	default.  An extra flag argument is required to do that.
 
 	(c-macro-start, c-query-macro-start)
 	(c-query-and-set-macro-start): Added a cache for the macro
@@ -16848,9 +16847,9 @@
 	(scroll-all-beginning-of-buffer-all, scroll-all-end-of-buffer-all):
 	New functions.
 
-	* files.el: (auto-mode-alist): .f95 files in f90-mode.
+	* files.el (auto-mode-alist): .f95 files in f90-mode.
 
-	* progmodes/fortran.el: (fortran-beginning-do): Make regexp match
+	* progmodes/fortran.el (fortran-beginning-do): Make regexp match
 	a DO statement irrespective of numeric label.
 
 2002-04-20  Glenn Morris  <gmorris@ast.cam.ac.uk>
@@ -16956,7 +16955,7 @@
 
 2002-04-16  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* viper-ex.el: Patch by Samuel Padgett. Copyright papers received.
+	* viper-ex.el: Patch by Samuel Padgett.  Copyright papers received.
 	(viper-ex-print-buf-name): New variable.
 	(viper-ex-print-buf): New variable.
 	(ex-token-alist): Invoke ex-print on ":print" Ex commands.
@@ -17448,7 +17447,7 @@
 2002-04-02  Mike Williams  <mdub@bigfoot.com>
 
 	* textmodes/sgml-mode.el (sgml-close-tag): Rename from
-	sgml-insert-end-tag. Simplify by using sgml-lexical-context.
+	sgml-insert-end-tag.  Simplify by using sgml-lexical-context.
 	(sgml-get-context): Remove use of sgml-inside-tag-p.
 	(sgml-inside-tag-p): Remove.
 	(sgml-looking-back-at): Short-circuit at beg of buffer.
@@ -17493,7 +17492,7 @@
 
 	* textmodes/xml-lite.el: Removed much redundant stuff.
 	(xml-lite-parse-tag-backward): Simplify parsing by assuming we
-	always start within text. Make use of sgml-unclosed-tag-p.
+	always start within text.  Make use of sgml-unclosed-tag-p.
 
 2002-04-01  Ville Skytt,Ad(B  <ville.skytta@xemacs.org>
 
@@ -18368,7 +18367,7 @@
 
 	* ediff-init.el: Comments.
 
-	* ediff-hook.el: Got rid of autoloads. Not needed, since the hook
+	* ediff-hook.el: Got rid of autoloads.  Not needed, since the hook
 	is loaded.
 
 	* ediff-mult.el (ediff-intersect-directories)
@@ -18383,7 +18382,7 @@
 
 	* ediff-util.el (ediff-compute-custom-diffs-maybe): Buglet fix.
 	(ediff-inferior-compare-regions): Use
-	ediff-clone-buffer-for-region-comparison. Better and simpler interface.
+	ediff-clone-buffer-for-region-comparison.  Better and simpler interface.
 
 	* ediff.el (ediff-directories-internal): Cleanup.
 	(ediff-clone-buffer-for-region-comparison): Better interface.
@@ -19140,7 +19139,7 @@
 2002-02-10  Michael Kifer  <kifer@cs.stonybrook.edu>
 
 	* viper-util.el (viper-read-key-sequence): Fix so it'll read
-	fast key sequences in emacs native mode
+	fast key sequences in Emacs native mode
 	(viper-events-to-keys): Delete.
 
 	* viper.el (describe-key, describe-key-briefly): Get rid of
@@ -19705,7 +19704,7 @@
 
 2002-01-20  Colin Walters  <walters@verbum.org>
 
-	* ibuffer.el: (toplevel) Require `ibuf-ext', which is now compiled
+	* ibuffer.el (toplevel): Require `ibuf-ext', which is now compiled
 	with `byte-compile-dynamic'.
 	(ibuffer-default-directory, toplevel): Doc files.
 
@@ -20050,7 +20049,7 @@
 
 	* viper-init.el (viper-cond-compile-for-xemacs-or-emacs):
 	new macro that replaces viper-emacs-p and viper-xemacs-p in many
-	cases. Used to reduce the number of warnings.
+	cases.  Used to reduce the number of warnings.
 
 	* viper-cmd.el: Use viper-cond-compile-for-xemacs-or-emacs.
 	(viper-standard-value): Move here from viper.el.
@@ -21766,7 +21765,7 @@
 
 2001-11-25  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
-	* mail/rmail.el (rmail-enable-mime-composing): New. A lightweight
+	* mail/rmail.el (rmail-enable-mime-composing): New.  A lightweight
 	version of rmail-enable-mime.
 	(rmail-forward): Use it.
 
@@ -22028,7 +22027,7 @@
 
 	* emacs-lisp/lisp.el (mark-sexp): Mark more if repeated.
 
-	* progmodes/cc-engine.el (c-parse-state): Typo. From Martin Stjernholm.
+	* progmodes/cc-engine.el (c-parse-state): Typo.  From Martin Stjernholm.
 
 	* mwheel.el (mouse-wheel-scroll-amount): Allow float values.
 	(mouse-wheel-progessive-speed): New var.
@@ -22600,7 +22599,7 @@
 	* calc/calc-macs.el (calc-record-compilation-date-macro): Return a
 	simple `setq' form.
 
-	* calc/calc-ext.el: (toplevel): Require calc.
+	* calc/calc-ext.el (toplevel): Require calc.
 	(calc-fancy-prefix-map): New.
 	(calc-fancy-prefix): Use it.
 	(calc-fancy-prefix-other-key): New.
@@ -23233,7 +23232,7 @@
 
 2001-10-26  Jason Rumney  <jasonr@gnu.org>
 
-	* w32-fns.el: (w32-charset-info-alist): Use ANSI for iso10646-1
+	* w32-fns.el (w32-charset-info-alist): Use ANSI for iso10646-1
 	when UNICODE is not defined.
 
 2001-10-26  Sam Steingold  <sds@gnu.org>
@@ -23547,7 +23546,8 @@ See ChangeLog.9 for earlier changes.
 ;; coding: iso-2022-7bit
 ;; End:
 
-    Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+    Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006
+    Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
 

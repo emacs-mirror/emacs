@@ -52,6 +52,14 @@
 (defsubst syntax-ppss-depth (ppss)
   (nth 0 ppss))
 
+(defun syntax-ppss-toplevel-pos (ppss)
+  "Return the last preceding position at toplevel.
+\"At toplevel\" means that it is outside of any syntactic entity:
+outside of any parentheses, or comments, or strings.
+Returns nil iff PPSS itself corresponds to a toplevel position."
+  (or (car (nth 9 ppss))
+      (nth 8 ppss)))      
+
 (defsubst syntax-ppss-context (ppss)
   (cond
    ((nth 3 ppss) 'string)

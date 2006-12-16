@@ -16,7 +16,7 @@ without express or implied warranty.
 
 */
 
-/* Copyright (C) 2002, 2003, 2004, 2005,
+/* Copyright (C) 2001, 2002, 2003, 2004, 2005,
                  2006 Free Software Foundation, Inc.  */
 
 /* arch-tag: c689b1bc-a3ba-41a1-baa0-a3622b5445b2

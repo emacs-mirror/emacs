@@ -924,13 +924,13 @@ mail status in mode line"))
 
 (define-key menu-bar-showhide-menu [showhide-tooltip-mode]
   (list 'menu-item "Tooltips" 'tooltip-mode
-	:help "Toggle tooltips on/off"
+	:help "Turn tooltips on/off"
 	:visible  `(and (display-graphic-p) (fboundp 'x-show-tip))
 	:button `(:toggle . tooltip-mode)))
 
 (define-key menu-bar-showhide-menu [menu-bar-mode]
   '(menu-item "Menu-bar" menu-bar-mode
-	      :help "Toggle menu-bar on/off"
+	      :help "Turn menu-bar on/off"
 	      :button (:toggle . menu-bar-mode)))
 
 (define-key menu-bar-showhide-menu [showhide-tool-bar]
@@ -1127,7 +1127,8 @@ mail status in mode line"))
   '(menu-item "Programmable Calculator" calc
 	      :help "Invoke the Emacs built-in full scientific calculator"))
 (define-key menu-bar-tools-menu [calendar]
-  '(menu-item "Calendar" calendar))
+  '(menu-item "Calendar" calendar
+	      :help "Invoke the Emacs built-in calendar"))
 
 (define-key menu-bar-tools-menu [separator-net]
   '("--"))
@@ -1386,12 +1387,14 @@ key, a click, or a menu-item"))
   '(menu-item "Send Bug Report..." report-emacs-bug
 	      :help "Send e-mail to Emacs maintainers"))
 (define-key menu-bar-help-menu [emacs-problems]
-  '(menu-item "Emacs Known Problems" view-emacs-problems))
+  '(menu-item "Emacs Known Problems" view-emacs-problems
+	      :help "Read about known problems with Emacs"))
 (define-key menu-bar-help-menu [emacs-news]
   '(menu-item "Emacs News" view-emacs-news
 	      :help "New features of this version"))
 (define-key menu-bar-help-menu [emacs-faq]
-  '(menu-item "Emacs FAQ" view-emacs-FAQ))
+  '(menu-item "Emacs FAQ" view-emacs-FAQ
+	      :help "Frequently asked (and answered) questions about Emacs"))
 
 (defun help-with-tutorial-spec-language ()
   "Use the Emacs tutorial, specifying which language you want."

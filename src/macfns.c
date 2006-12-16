@@ -4597,6 +4597,30 @@ This is for internal use only.  Use `mac-font-panel-mode' instead.  */)
   return Qnil;
 }
 #endif
+
+#if USE_ATSUI
+extern Lisp_Object mac_atsu_font_face_attributes P_ ((ATSUFontID));
+
+DEFUN ("mac-atsu-font-face-attributes", Fmac_atsu_font_face_attributes,
+       Smac_atsu_font_face_attributes, 1, 1, 0,
+  doc: /* Return plist of face attributes and values for ATSU font ID.
+ID is specified by either an integer or a float.  */)
+     (id)
+     Lisp_Object id;
+{
+  ATSUFontID font_id;
+  Lisp_Object result;
+
+  check_mac ();
+  CHECK_NUMBER_OR_FLOAT(id);
+  font_id = NUMBERP (id) ? XINT (id) : (ATSUFontID) XFLOAT (id);
+  BLOCK_INPUT;
+  result = mac_atsu_font_face_attributes (font_id);
+  UNBLOCK_INPUT;
+  return result;
+}
+#endif
+
 
 /***********************************************************************
 			    Initialization
@@ -4828,6 +4852,9 @@ Chinese, Japanese, and Korean.  */);
   defsubr (&Smac_clear_font_name_table);
 #if USE_MAC_FONT_PANEL
   defsubr (&Smac_set_font_panel_visibility);
+#endif
+#if USE_ATSUI
+  defsubr (&Smac_atsu_font_face_attributes);
 #endif
 }
 

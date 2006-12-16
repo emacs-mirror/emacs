@@ -1,8 +1,9 @@
 ;;; mule-cmds.el --- commands for mulitilingual environment -*-coding: iso-2022-7bit -*-
 
-;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
-;;   Free Software Foundation, Inc.
-;; Copyright (C) 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
+;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+;;   2006  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005, 2006
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
@@ -859,7 +860,7 @@ and TO is ignored."
 
   (let ((no-other-defaults nil)
 	auto-cs)
-    (unless (or (stringp from) find-file-literally)    
+    (unless (or (stringp from) find-file-literally)
       ;; Find an auto-coding that is specified for the the current
       ;; buffer and file from the region FROM and TO.
       (save-excursion
@@ -921,7 +922,7 @@ It is highly recommended to fix it before writing to a file."
 		(rassq base default-coding-system)
 		(setq default-coding-system
 		      (append default-coding-system
-			      (list (cons default-buffer-file-coding-system 
+			      (list (cons default-buffer-file-coding-system
 					  base)))))))
 
       ;; If the most preferred coding system has the property mime-charset,
@@ -948,10 +949,10 @@ It is highly recommended to fix it before writing to a file."
 	(let ((default-eol-type (coding-system-eol-type
 				 (caar default-coding-system))))
 	  (if (and (vectorp default-eol-type) buffer-file-coding-system)
-	      (setq default-eol-type (coding-system-eol-type 
+	      (setq default-eol-type (coding-system-eol-type
 				      buffer-file-coding-system)))
 	  (if (and (vectorp default-eol-type) default-buffer-file-coding-system)
-	      (setq default-eol-type (coding-system-eol-type 
+	      (setq default-eol-type (coding-system-eol-type
 				      default-buffer-file-coding-system)))
 	  (if (and default-eol-type (not (vectorp default-eol-type)))
 	      (dolist (elt default-coding-system)
@@ -1235,7 +1236,7 @@ in the European submenu in each of those two menus."
 
     (dolist (elt alist)
       (set-language-info-internal lang-env (car elt) (cdr elt)))
-    
+
     (if (equal lang-env current-language-environment)
 	(set-language-environment lang-env))))
 
@@ -1358,10 +1359,8 @@ See the function `register-input-method' for the meanings of the elements.")
 
 (defun register-input-method (input-method lang-env &rest args)
   "Register INPUT-METHOD as an input method for language environment LANG-ENV.
-INPUT-METHOD and LANG-ENV are symbols or strings.
 
-The remaining arguments are:
-	ACTIVATE-FUNC, TITLE, DESCRIPTION, and ARGS...
+INPUT-METHOD and LANG-ENV are symbols or strings.
 ACTIVATE-FUNC is a function to call to activate this method.
 TITLE is a string to show in the mode line when this method is active.
 DESCRIPTION is a string describing this method and what it is good for.
@@ -1379,7 +1378,8 @@ string specified in this function takes precedence.)
 
 The commands `describe-input-method' and `list-input-methods' need
 these duplicated values to show some information about input methods
-without loading the relevant Quail packages."
+without loading the relevant Quail packages.
+\n(fn INPUT-METHOD LANG-ENV ACTIVATE-FUNC TITLE DESCRIPTION &rest ARGS)"
   (if (symbolp lang-env)
       (setq lang-env (symbol-name lang-env)))
   (if (symbolp input-method)
@@ -2598,6 +2598,9 @@ See also `locale-charset-language-names', `locale-language-names',
 		   (not (coding-system-equal coding-system
 					     locale-coding-system)))
 	  (prefer-coding-system coding-system)
+	  ;; Fixme: perhaps prefer-coding-system should set this too.
+	  ;; But it's not the time to do such a fundamental change.
+	  (setq default-sendmail-coding-system coding-system)
 	  (setq locale-coding-system coding-system))))
 
     ;; On Windows, override locale-coding-system,

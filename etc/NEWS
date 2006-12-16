@@ -1870,10 +1870,10 @@ are left unspecified and can be bound individually through the global
 or local keymaps.
 
 +++
-** The new kmacro package provides a simpler user interface to
-emacs' keyboard macro facilities.
+** Emacs' keyboard macro facilities have been enhanced by the new
+kmacro package.
 
-Basically, it uses two function keys (default F3 and F4) like this:
+Keyboard macros are now defined and executed via the F3 and F4 keys:
 F3 starts a macro, F4 ends the macro, and pressing F4 again executes
 the last macro.  While defining the macro, F3 inserts a counter value
 which automatically increments every time the macro is executed.
@@ -1888,8 +1888,8 @@ manipulating the macro counter and format via C-x C-k C-c,
 C-x C-k C-a, and C-x C-k C-f.  See the commentary in kmacro.el
 for more commands.
 
-The normal macro bindings C-x (, C-x ), and C-x e now interfaces to
-the keyboard macro ring.
+The original macro bindings C-x (, C-x ), and C-x e are still
+available, but they now interface to the keyboard macro ring too.
 
 The C-x e command now automatically terminates the current macro
 before calling it, if used while defining a macro.

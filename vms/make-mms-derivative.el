@@ -1,6 +1,6 @@
 ;;; make-mms-derivative.el --- framework to do horrible things for VMS support
 
-;; Copyright (C) 2005, 2006 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Thien-Thi Nguyen <ttn@gnu.org>
 ;; Keywords: maint build vms mms makefile levitte autoconf war-is-a-lose

@@ -1,6 +1,6 @@
 ;;; morse.el --- convert text to morse code and back             -*- coding: utf-8 -*-
 
-;; Copyright (C) 1995, 2002, 2003, 2004, 2005,
+;; Copyright (C) 1995, 2001, 2002, 2003, 2004, 2005,
 ;;   2006 Free Software Foundation, Inc.
 
 ;; Author: Rick Farnbach <rick_farnbach@MENTORG.COM>

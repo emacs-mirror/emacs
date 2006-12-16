@@ -1,6 +1,6 @@
 ;;; decipher.el --- cryptanalyze monoalphabetic substitution ciphers
 ;;
-;; Copyright (C) 1995, 1996, 2002, 2003, 2004,
+;; Copyright (C) 1995, 1996, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 ;;
 ;; Author: Christopher J. Madsen <chris_madsen@geocities.com>

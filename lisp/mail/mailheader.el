@@ -1,6 +1,6 @@
 ;;; mailheader.el --- mail header parsing, merging, formatting
 
-;; Copyright (C) 1996, 2002, 2003, 2004, 2005,
+;; Copyright (C) 1996, 2001, 2002, 2003, 2004, 2005,
 ;;   2006 Free Software Foundation, Inc.
 
 ;; Author: Erik Naggum <erik@naggum.no>

@@ -2,7 +2,6 @@
 
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
 ;;   2006 Free Software Foundation, Inc.
-;; Copyright (C) 2004 Brian Palmer
 
 ;; Author: Alexander L. Belikoff (alexander@belikoff.net)
 ;; Contributors: Sergey Berezin (sergey.berezin@cs.cmu.edu),
@@ -1669,22 +1668,25 @@ If `erc-track-mode' is in enabled, put the last element of
 Due to some yet unresolved reason, global function `iswitchb-mode'
 needs to be active for this function to work."
   (interactive "P")
-  (eval-and-compile
+  (eval-when-compile
     (require 'iswitchb))
-  (let ((iswitchb-make-buflist-hook
-	 (lambda ()
-	   (setq iswitchb-temp-buflist
-		 (mapcar 'buffer-name
-			 (erc-buffer-list
-			  nil
-			  (when arg erc-server-process)))))))
-    (switch-to-buffer
-     (iswitchb-read-buffer
-      "Switch-to: "
-      (if (boundp 'erc-modified-channels-alist)
-	  (buffer-name (caar (last erc-modified-channels-alist)))
-	nil)
-      t))))
+  (let ((enabled iswitchb-mode))
+    (or enabled (iswitchb-mode 1))
+    (let ((iswitchb-make-buflist-hook
+	   (lambda ()
+	     (setq iswitchb-temp-buflist
+		   (mapcar 'buffer-name
+			   (erc-buffer-list
+			    nil
+			    (when arg erc-server-process)))))))
+      (switch-to-buffer
+       (iswitchb-read-buffer
+	"Switch-to: "
+	(if (boundp 'erc-modified-channels-alist)
+	    (buffer-name (caar (last erc-modified-channels-alist)))
+	  nil)
+	t)))
+    (or enabled (iswitchb-mode -1))))
 
 (defun erc-channel-list (proc)
   "Return a list of channel buffers.
@@ -1761,7 +1763,7 @@ all channel buffers on all servers."
 
 (defcustom erc-modules '(netsplit fill button match track completion readonly
 				  ring autojoin noncommands irccontrols
-				  stamp list)
+				  stamp)
   "A list of modules which ERC should enable.
 If you set the value of this without using `customize' remember to call
 \(erc-update-modules) after you change it.  When using `customize', modules
@@ -1792,7 +1794,6 @@ removed from the list will be disabled."
     (const :tag "Launch an identd server on port 8113" identd)
     (const :tag "Highlight or remove IRC control characters"
 	   irccontrols)
-    (const :tag "List channels in a separate buffer" list)
     (const :tag "Save buffers in logs" log)
     (const :tag "Highlight pals, fools, and other keywords" match)
     (const :tag "Detect netsplits" netsplit)

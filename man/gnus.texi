@@ -10975,15 +10975,15 @@ the current group's @code{to-address} parameter.
 Remove the @code{To} header if it only contains the address identical to
 the current group's @code{to-list} parameter.
 @item cc-list
-Remove the @code{CC} header if it only contains the address identical to
+Remove the @code{Cc} header if it only contains the address identical to
 the current group's @code{to-list} parameter.
 @item date
 Remove the @code{Date} header if the article is less than three days
 old.
 @item long-to
-Remove the @code{To} header if it is very long.
+Remove the @code{To} and/or @code{Cc} header if it is very long.
 @item many-to
-Remove all @code{To} headers if there are more than one.
+Remove all @code{To} and/or @code{Cc} headers if there are more than one.
 @end table
 
 To include these three elements, you could say something like:
@@ -22175,21 +22175,26 @@ have suitable conversion or display programs installed.  If your Emacs
 has image support the default action is to display the face before the
 @code{From} header.  If there's no native @code{X-Face} support, Gnus
 will try to convert the @code{X-Face} header using external programs
-from the @code{pbmplus} package and friends.  For XEmacs it's faster if
-XEmacs has been compiled with @code{X-Face} support.  The default action
-under Emacs without image support is to fork off the @code{display}
-program.
+from the @code{pbmplus} package and friends, see below.  For XEmacs it's
+faster if XEmacs has been compiled with @code{X-Face} support.  The
+default action under Emacs without image support is to fork off the
+@code{display} program.
 
-On a GNU/Linux system, the @code{display} program is from the
+On a GNU/Linux system, the @code{display} program is included in the
 ImageMagick package.  For external conversion programs look for packages
 with names like @code{netpbm}, @code{libgr-progs} and @code{compface}.
+On Windows, you may use the packages @code{netpbm} and @code{compface}
+from @url{http://gnuwin32.sourceforge.net}.  You need to add the
+@code{bin} directory to your @code{PATH} environment variable.
+@c In fact only the following DLLs and binaries seem to be required:
+@c compface1.dll uncompface.exe libnetpbm10.dll icontopbm.exe
 
-The variable that controls this is the
-@code{gnus-article-x-face-command} variable.  If this variable is a
+The variable @code{gnus-article-x-face-command} controls which programs
+are used to display the @code{X-Face} header.  If this variable is a
 string, this string will be executed in a sub-shell.  If it is a
 function, this function will be called with the face as the argument.
-If @code{gnus-article-x-face-too-ugly} (which is a regexp) matches
-the @code{From} header, the face will not be shown.
+If @code{gnus-article-x-face-too-ugly} (which is a regexp) matches the
+@code{From} header, the face will not be shown.
 
 (Note: @code{x-face} is used in the variable/function names, not
 @code{xface}).

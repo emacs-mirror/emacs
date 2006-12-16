@@ -422,10 +422,6 @@ Launch an identd server on port 8113
 @item irccontrols
 Highlight or remove IRC control characters
 
-@cindex modules, list
-@item list
-List channels nicely in a separate buffer
-
 @cindex modules, log
 @item log
 Save buffers in logs

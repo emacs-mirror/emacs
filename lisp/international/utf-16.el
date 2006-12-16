@@ -1,7 +1,8 @@
 ;;; utf-16.el --- UTF-16 encoding/decoding
 
-;; Copyright (C) 2001, 2002, 2003, 2004  Free Software Foundation, Inc.
-;; Copyright (C) 2002, 2003, 2004
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006
+;;   Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 

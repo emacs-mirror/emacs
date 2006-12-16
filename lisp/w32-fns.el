@@ -469,5 +469,19 @@ that Emacs is unable to cope with."
 	 (expand-file-name (pop command-line-args-left))))
     (batch-update-autoloads)))
 
+(defun w32-append-code-lines (orig extra)
+  "Append non-empty non-comment lines in the file EXTRA to the file ORIG.
+
+This function saves all buffers and kills the Emacs session, without asking
+for any permissions.
+
+This is required because the Windows build environment is not required
+to include Sed, which is used by leim/Makefile.in to do the job."
+  (find-file orig)
+  (goto-char (point-max))
+  (insert-file-contents extra)
+  (delete-matching-lines "^$\\|^;")
+  (save-buffers-kill-emacs t))
+
 ;;; arch-tag: c49b48cc-0f4f-454f-a274-c2dc34815e14
 ;;; w32-fns.el ends here

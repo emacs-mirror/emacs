@@ -1,6 +1,6 @@
 ;;; mac-win.el --- parse switches controlling interface with Mac window system -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Andrew Choi <akochoi@mac.com>
@@ -82,7 +82,6 @@
 (defvar mac-service-selection)
 (defvar mac-system-script-code)
 (defvar mac-apple-event-map)
-(defvar mac-atsu-font-table)
 (defvar mac-font-panel-mode)
 (defvar mac-ts-active-input-overlay)
 (defvar x-invocation-args)
@@ -1791,7 +1790,8 @@ With numeric ARG, display the font panel if and only if ARG is positive."
   (let* ((ae (mac-event-ae event))
 	 (fm-font-size (mac-ae-number ae "fmsz"))
 	 (atsu-font-id (mac-ae-number ae "auid"))
-	 (attribute-values (gethash atsu-font-id mac-atsu-font-table)))
+	 (attribute-values (and atsu-font-id
+				(mac-atsu-font-face-attributes atsu-font-id))))
     (if fm-font-size
 	(setq attribute-values
 	      `(:height ,(* 10 fm-font-size) ,@attribute-values)))
@@ -2459,7 +2459,7 @@ It returns a name of the created fontset."
 
 ;; Setup the default fontset.
 (setup-default-fontset)
-(cond ((x-list-fonts "*-iso10646-1")
+(cond ((x-list-fonts "*-iso10646-1" nil nil 1)
        ;; Use ATSUI (if available) for the following charsets.
        (dolist
 	   (charset '(latin-iso8859-1
@@ -2471,7 +2471,7 @@ It returns a name of the created fontset."
 		      vietnamese-viscii-lower vietnamese-viscii-upper
 		      lao ethiopic tibetan))
 	 (set-fontset-font nil charset '(nil . "iso10646-1"))))
-      ((null (x-list-fonts "*-iso8859-1"))
+      ((null (x-list-fonts "*-iso8859-1" nil nil 1))
        ;; Add Mac-encoding fonts unless ETL fonts are installed.
        (fontset-add-mac-fonts "fontset-default")))
 

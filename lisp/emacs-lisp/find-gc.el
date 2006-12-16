@@ -1,6 +1,6 @@
 ;;; find-gc.el --- detect functions that call the garbage collector
 
-;; Copyright (C) 1992, 2002, 2003, 2004, 2005,
+;; Copyright (C) 1992, 2001, 2002, 2003, 2004, 2005,
 ;;   2006 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF

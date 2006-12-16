@@ -1,6 +1,7 @@
 ;;; ogonek.el --- change the encoding of Polish diacritics
 
-;; Copyright (C) 1997, 1998, 2001  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 2001, 2002, 2003, 2004, 2005, 2006
+;;   Free Software Foundation, Inc.
 
 ;; Author: W{\l}odek Bzyl, Ryszard Kubiak
 ;; Maintainer: rysiek@ipipan.gda.pl (Ryszard Kubiak)
