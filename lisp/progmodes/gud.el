@@ -394,8 +394,6 @@ t means that there is no stack, and we are in display-file mode.")
     (define-key gud-speedbar-key-map "e" 'speedbar-edit-line)
     (define-key gud-speedbar-key-map "\C-m" 'speedbar-edit-line)
     (define-key gud-speedbar-key-map " " 'speedbar-toggle-line-expansion)
-    (define-key gud-speedbar-key-map "[" 'speedbar-expand-line-descendants)
-    (define-key gud-speedbar-key-map "]" 'speedbar-contract-line-descendants)
     (define-key gud-speedbar-key-map "D" 'gdb-var-delete)
     (define-key gud-speedbar-key-map "p" 'gud-pp))
 
@@ -624,7 +622,7 @@ required by the caller."
 
     ;; Does the remaining text look like it might end with the
     ;; beginning of another marker?  If it does, then keep it in
-    ;; gud-marker-acc until we receive the rest of it.	Since we
+    ;; gud-marker-acc until we receive the rest of it.  Since we
     ;; know the full marker regexp above failed, it's pretty simple to
     ;; test for marker starts.
     (if (string-match "\n\\(\032.*\\)?\\'" gud-marker-acc)
@@ -680,15 +678,19 @@ directory and source-file directory for your debugger.  By
 default this command starts GDB using a graphical interface.  See
 `gdba' for more information.
 
-To run GDB in text command mode, set `gud-gdb-command-name' to
-\"gdb --fullname\" and include the pathname, if necessary."
+To run GDB in text command mode, replace the GDB \"--annotate=3\"
+option with \"--fullname\" either in the minibuffer for the
+current Emacs session, or the custom variable
+`gud-gdb-command-name' for all future sessions.  You need to use
+text command mode to debug multiple programs within one Emacs
+session."
   (interactive (list (gud-query-cmdline 'gdb)))
 
   (if (and gud-comint-buffer
 	   (buffer-name gud-comint-buffer)
 	   (get-buffer-process gud-comint-buffer)
 	   (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba)))
-      (error "Multiple debugging is only supported with \"gdb --fullname\""))
+      (error "Multiple debugging requires restarting in text command mode"))
 
   (gud-common-init command-line nil 'gud-gdb-marker-filter)
   (set (make-local-variable 'gud-minor-mode) 'gdb)
@@ -1457,7 +1459,7 @@ into one that invokes an Emacs-enabled debugging session.
 
     ;; Does the remaining text look like it might end with the
     ;; beginning of another marker?  If it does, then keep it in
-    ;; gud-marker-acc until we receive the rest of it.	Since we
+    ;; gud-marker-acc until we receive the rest of it.  Since we
     ;; know the full marker regexp above failed, it's pretty simple to
     ;; test for marker starts.
     (if (string-match "\032.*\\'" gud-marker-acc)
@@ -1562,7 +1564,7 @@ and source-file directory for your debugger."
 
     ;; Does the remaining text look like it might end with the
     ;; beginning of another marker?  If it does, then keep it in
-    ;; gud-marker-acc until we receive the rest of it.	Since we
+    ;; gud-marker-acc until we receive the rest of it.  Since we
     ;; know the full marker regexp above failed, it's pretty simple to
     ;; test for marker starts.
     (if (string-match gud-pdb-marker-regexp-start gud-marker-acc)
@@ -1861,7 +1863,7 @@ extension EXTN.  Normally EXTN is given as the regular expression
     (forward-char))
   (forward-char))
 
-;; Move point past the following block.	 There may be (legal) cruft before
+;; Move point past the following block.  There may be (legal) cruft before
 ;; the block's opening brace.  There must be a block or it's the end of life
 ;; in petticoat junction.
 (defun gud-jdb-skip-block ()
@@ -2049,7 +2051,7 @@ extension EXTN.  Normally EXTN is given as the regular expression
 	massaged-args)))
 
 ;; Search for an association with P, a fully qualified class name, in
-;; gud-jdb-class-source-alist.	The asssociation gives the fully
+;; gud-jdb-class-source-alist.  The asssociation gives the fully
 ;; qualified file name of the source file which produced the class.
 (defun gud-jdb-find-source-file (p)
   (cdr (assoc p gud-jdb-class-source-alist)))
@@ -2217,7 +2219,7 @@ nil)
 (defun jdb (command-line)
   "Run jdb with command line COMMAND-LINE in a buffer.
 The buffer is named \"*gud*\" if no initial class is given or
-\"*gud-<initial-class-basename>*\" if there is.	 If the \"-classpath\"
+\"*gud-<initial-class-basename>*\" if there is.  If the \"-classpath\"
 switch is given, omit all whitespace between it and its value.
 
 See `gud-jdb-use-classpath' and `gud-jdb-classpath' documentation for
@@ -2794,7 +2796,7 @@ Obeying it means displaying in another window the specified file and line."
 	    (cond ((or (< pos (point-min)) (> pos (point-max)))
 		   (widen)
 		   (goto-char pos))))
-	  (when window 
+	  (when window
 	    (set-window-point window gud-overlay-arrow-position)
 	    (if (memq gud-minor-mode '(gdbmi gdba))
 		(setq gdb-source-window window)))))))

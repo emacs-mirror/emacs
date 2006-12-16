@@ -1,6 +1,6 @@
 ;;; format.el --- read and save files in multiple formats
 
-;; Copyright (C) 1994, 1995, 1997, 1999, 2002, 2003, 2004,
+;; Copyright (C) 1994, 1995, 1997, 1999, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>

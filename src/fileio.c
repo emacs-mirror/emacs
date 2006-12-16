@@ -3541,11 +3541,7 @@ Use the current time if TIME is nil.  TIME is in the format of
   return Qt;
 }
 
-#ifdef __NetBSD__
-#define unix 42
-#endif
-
-#ifdef unix
+#ifdef HAVE_SYNC
 DEFUN ("unix-sync", Funix_sync, Sunix_sync, 0, 0, "",
        doc: /* Tell Unix to finish all pending disk updates.  */)
      ()
@@ -3554,7 +3550,7 @@ DEFUN ("unix-sync", Funix_sync, Sunix_sync, 0, 0, "",
   return Qnil;
 }
 
-#endif /* unix */
+#endif /* HAVE_SYNC */
 
 DEFUN ("file-newer-than-file-p", Ffile_newer_than_file_p, Sfile_newer_than_file_p, 2, 2, 0,
        doc: /* Return t if file FILE1 is newer than file FILE2.
@@ -6793,7 +6789,7 @@ A non-nil value may result in data loss!  */);
   defsubr (&Sread_file_name);
   defsubr (&Snext_read_file_uses_dialog_p);
 
-#ifdef unix
+#ifdef HAVE_SYNC
   defsubr (&Sunix_sync);
 #endif
 }

@@ -3265,6 +3265,10 @@ set_window_buffer (window, buffer, run_hooks_p, keep_margins_p)
   struct window *w = XWINDOW (window);
   struct buffer *b = XBUFFER (buffer);
   int count = SPECPDL_INDEX ();
+#ifdef HAVE_WINDOW_SYSTEM
+  struct frame *f = XFRAME (w->frame);
+  Display_Info *dpyinfo;
+#endif
 
   w->buffer = buffer;
 
@@ -3344,6 +3348,15 @@ set_window_buffer (window, buffer, run_hooks_p, keep_margins_p)
 	  && ! NILP (Vrun_hooks))
 	call1 (Vrun_hooks, Qwindow_configuration_change_hook);
     }
+
+#ifdef HAVE_WINDOW_SYSTEM
+  BLOCK_INPUT;
+  if (f && FRAME_X_OUTPUT (f)
+      && (dpyinfo = FRAME_X_DISPLAY_INFO (f))
+      && EQ (window, dpyinfo->mouse_face_window))
+    clear_mouse_face (dpyinfo);
+  UNBLOCK_INPUT;
+#endif
 
   unbind_to (count, Qnil);
 }

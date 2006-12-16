@@ -1,6 +1,6 @@
 ;;; sort.el --- commands to sort text in an Emacs buffer
 
-;; Copyright (C) 1986, 1987, 1994, 1995, 2002, 2003,
+;; Copyright (C) 1986, 1987, 1994, 1995, 2001, 2002, 2003,
 ;;   2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Howie Kaye
@@ -248,7 +248,7 @@ the sort order."
     (while (< i 256)
       (modify-syntax-entry i "w" table)
       (setq i (1+ i)))
-    (modify-syntax-entry ?\  " " table)
+    (modify-syntax-entry ?\s " " table)
     (modify-syntax-entry ?\t " " table)
     (modify-syntax-entry ?\n " " table)
     (modify-syntax-entry ?\. "_" table)	; for floating pt. numbers. -wsr

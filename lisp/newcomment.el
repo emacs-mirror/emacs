@@ -1,6 +1,6 @@
 ;;; newcomment.el --- (un)comment regions of buffers
 
-;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: code extracted from Emacs-20's simple.el
@@ -551,8 +551,8 @@ If CONTINUE is non-nil, use the `comment-continue' markers if any."
 	    (indent-to comment-column)
 	    ;; Ensure there's a space before the comment for things
 	    ;; like sh where it matters (as well as being neater).
-	    (unless (memq (char-before) '(nil ?\n ?\t ?\ ))
-	      (insert ?\ ))
+	    (unless (memq (char-before) '(nil ?\n ?\t ?\s))
+	      (insert ?\s))
 	    (setq begpos (point))
 	    (insert starter)
 	    (setq cpos (point-marker))

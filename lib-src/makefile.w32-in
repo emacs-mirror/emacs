@@ -24,11 +24,13 @@ ALL = make-docfile hexl ctags etags movemail ebrowse sorted-doc digest-doc emacs
 
 .PHONY: $(ALL)
 
+VERSION		= 22.0.91
+
 LOCAL_FLAGS	= -DWINDOWSNT -DDOS_NT -DSTDC_HEADERS=1 -DNO_LDAV=1 \
 		  -DNO_ARCHIVES=1 -DHAVE_CONFIG_H=1 -I../nt/inc \
 		  -I../src
 
-LIBS	      = $(BASE_LIBS) $(ADVAPI32)
+LIBS 		= $(BASE_LIBS) $(ADVAPI32)
 
 $(BLD)/make-docfile.exe: 	$(BLD)/make-docfile.$(O) $(BLD)/ntlib.$(O)
 		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(BLD)/make-docfile.$(O) $(BLD)/ntlib.$(O) $(LIBS)
@@ -68,21 +70,27 @@ $(BLD)/movemail.exe:	$(MOVEMAILOBJS) getopt.h
 # put wsock32.lib before $(LIBS) to ensure we don't link to ws2_32.lib
 		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(MOVEMAILOBJS) $(WSOCK32) $(LIBS)
 
-ECLIENT_CFLAGS = -DHAVE_GETCWD -DHAVE_STRERROR
+ECLIENT_CFLAGS = -DHAVE_GETCWD -DHAVE_STRERROR -DVERSION="\"$(VERSION)\""
 ECLIENTOBJS =	$(BLD)/emacsclient.$(O) \
 		$(BLD)/getopt.$(O) \
 		$(BLD)/getopt1.$(O) \
 		$(BLD)/ntlib.$(O)
+TRES =		../nt/$(BLD)/emacs.res
+
+$(TRES):	../nt/emacs.rc
+		$(RC) $(RC_OUT)../nt/$(BLD)/emacs.res $(ALL_DEPS)
 
 $(BLD)/emacsclient.exe:		$(ECLIENTOBJS)
 # put wsock32.lib before $(LIBS) to ensure we don't link to ws2_32.lib
-		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(ECLIENTOBJS) $(WSOCK32) $(LIBS)
+		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(ECLIENTOBJS) $(WSOCK32) $(USER32) $(LIBS)
 
-$(BLD)/emacsclientw.exe:	$(ECLIENTOBJS)
+$(BLD)/emacsclientw.exe:	$(ECLIENTOBJS) $(TRES)
 # put wsock32.lib before $(LIBS) to ensure we don't link to ws2_32.lib
-		$(LINK) $(LINK_OUT)$@ -mwindows $(LINK_FLAGS) $(ECLIENTOBJS) $(WSOCK32) $(LIBS)
+		$(LINK) $(LINK_OUT)$@ $(TRES) -mwindows $(LINK_FLAGS) $(ECLIENTOBJS) $(WSOCK32) $(USER32) $(LIBS)
 
-$(BLD)/emacsclient.$(O):	emacsclient.c
+# emacsclient.$(O) depends on makefile.w32-in because makefile.w32-in
+# can be edited to define VERSION string, which is part of ECLIENT_CFLAGS.
+$(BLD)/emacsclient.$(O):	emacsclient.c makefile.w32-in
 		$(CC) $(CFLAGS) $(ECLIENT_CFLAGS) $(CC_OUT)$@ emacsclient.c
 
 ETAGSOBJ      = $(BLD)/etags.$(O) \

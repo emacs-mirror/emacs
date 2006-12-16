@@ -1,3 +1,55 @@
+2006-12-06  Richard Stallman  <rms@gnu.org>
+
+	* text.texi (Outline Format): Say to set outline-regexp
+	and outline-level with major modes and file local variables.
+
+2006-12-05  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+
+	* anti.texi (Antinews): Mention the alternative to
+	`~/.emacs_SHELLNAME', which is `~/.emacs.d/init_SHELLNAME.sh'.
+
+	* faq.texi (^M in the shell buffer): Ditto.
+
+	* misc.texi (Interactive Shell): Ditto.
+
+2006-12-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.texi (Acknowledgments): Fix Arne J@o{}rgensen's name.
+
+	* ack.texi (Acknowledgments): Fix Arne J@o{}rgensen's name.
+
+2006-12-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* mule.texi (Enabling Multibyte): Rephrase the confusing reference to a
+	colon in the mode line.
+
+	* msdog.texi (Windows Processes) [@ifnottex]: Mention
+	w32-shell-execute.
+
+2006-11-26  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Watch Expressions): Mention SPC for expanding/
+	contracting watch expressions.
+
+2006-11-26  Kim F. Storm  <storm@cua.dk>
+
+	* kmacro.texi (Basic Keyboard Macro): Mention F3/F4 more.
+
+2006-11-26  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Debugger Operation): Define text command mode.
+	Clarify how tooltips work.
+	(GDB Graphical Interface): Explain how to run in text command mode
+	more clearly.
+
+2006-11-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* mule.texi (Defining Fontsets): Fix use of `charset' and `font'.
+
+2006-11-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* anti.texi (Antinews): Mention --server-file and TCP sockets.
+
 2006-11-20  Michael Olson  <mwolson@gnu.org>
 
 	* erc.texi: Call this the 5.2 stable pre-release of ERC.

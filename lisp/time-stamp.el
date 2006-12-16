@@ -491,7 +491,7 @@ and all `time-stamp-format' compatibility."
 		 (or (eq ?. cur-char)
 		     (eq ?, cur-char) (eq ?: cur-char) (eq ?@ cur-char)
 		     (eq ?- cur-char) (eq ?+ cur-char) (eq ?_ cur-char)
-		     (eq ?\  cur-char) (eq ?# cur-char) (eq ?^ cur-char)
+		     (eq ?\s cur-char) (eq ?# cur-char) (eq ?^ cur-char)
 		     (and (eq ?\( cur-char)
 			  (not (eq prev-char ?\\))
 			  (setq paren-level (1+ paren-level)))
@@ -710,23 +710,16 @@ around literals."
 ;;; Some functions used in time-stamp-format
 
 ;;; These functions have been obsolete since 1995
-;;; and will be removed in Emacs 22.
+;;; and will be removed in a future Emacs release.
 ;;; Meanwhile, discourage other packages from using them.
-(let ((obsolete-functions '(time-stamp-month-dd-yyyy
-			    time-stamp-dd/mm/yyyy
-			    time-stamp-mon-dd-yyyy
-			    time-stamp-dd-mon-yy
-			    time-stamp-yy/mm/dd
-			    time-stamp-yyyy/mm/dd
-			    time-stamp-yyyy-mm-dd
-			    time-stamp-yymmdd
-			    time-stamp-hh:mm:ss
-			    time-stamp-hhmm)))
-  (while obsolete-functions
-    (make-obsolete (car obsolete-functions)
-		   "use time-stamp-string or format-time-string instead."
-		   "20.1")
-    (setq obsolete-functions (cdr obsolete-functions))))
+(dolist (function '(time-stamp-month-dd-yyyy time-stamp-dd/mm/yyyy
+		    time-stamp-mon-dd-yyyy   time-stamp-dd-mon-yy
+		    time-stamp-yy/mm/dd      time-stamp-yyyy/mm/dd
+		    time-stamp-yyyy-mm-dd    time-stamp-yymmdd
+		    time-stamp-hh:mm:ss      time-stamp-hhmm))
+  (make-obsolete function
+		 "use `time-stamp-string' or `format-time-string' instead."
+		 "20.1"))
 
 ;;; pretty form, suitable for a title page
 

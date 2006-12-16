@@ -1,6 +1,7 @@
 ;;; admin.el --- utilities for Emacs administration
 
-;; Copyright (C) 2001, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006  Free Software
+;;   Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -87,6 +88,9 @@ Root must be the root of an Emacs source tree."
 				(submatch (1+ (in "0-9."))))))
   (set-version-in-file root "lispref/elisp.texi" version
 		       (rx (and "EMACSVER" (1+ space)
+				(submatch (1+ (in "0-9."))))))
+  (set-version-in-file root "lib-src/makefile.w32-in" version
+		       (rx (and "VERSION" (0+ space) "=" (0+ space)
 				(submatch (1+ (in "0-9."))))))
   ;; nt/emacs.rc also contains the version number, but in an awkward
   ;; format. It must contain four components, separated by commas, and

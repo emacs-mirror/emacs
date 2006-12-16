@@ -588,6 +588,9 @@ Boston, MA 02110-1301, USA.  */
 /* Define to 1 if `struct utimbuf' is declared by <utime.h>. */
 #define HAVE_STRUCT_UTIMBUF 1
 
+/* Define to 1 if you have the `sync' function. */
+/* #undef HAVE_SYNC */
+
 /* Define to 1 if you have the `sysinfo' function. */
 /* #undef HAVE_SYSINFO */
 
@@ -714,6 +717,9 @@ Boston, MA 02110-1301, USA.  */
 
 /* Define to 1 if you have the X11R6 or newer version of Xt. */
 /* #undef HAVE_X11XTR6 */
+
+/* Define to 1 if the file /usr/lib64 exists. */
+/* #undef HAVE_X86_64_LIB64_DIR */
 
 /* Define to 1 if you have the Xaw3d library (-lXaw3d). */
 /* #undef HAVE_XAW3D */

@@ -185,13 +185,13 @@ otherwise."
 
 (defcustom describe-char-unicodedata-file nil
   "Location of Unicode data file.
-This is the UnicodeData.txt file from the Unicode consortium, used for
+This is the UnicodeData.txt file from the Unicode Consortium, used for
 diagnostics.  If it is non-nil `describe-char' will print data
 looked up from it.  This facility is mostly of use to people doing
 multilingual development.
 
-This is a fairly large file, not typically present on GNU systems.  At
-the time of writing it is at the URL
+This is a fairly large file, not typically present on GNU systems.
+At the time of writing it is at the URL
 `http://www.unicode.org/Public/UNIDATA/UnicodeData.txt'."
   :group 'mule
   :version "22.1"
@@ -212,11 +212,10 @@ The list is null if CHAR isn't found in `describe-char-unicodedata-file'."
   (when describe-char-unicodedata-file
     (unless (file-exists-p describe-char-unicodedata-file)
       (error "`unicodedata-file' %s not found" describe-char-unicodedata-file))
-    (with-current-buffer
-	;; Find file in fundamental mode to avoid, e.g. flyspell turned
-	;; on for .txt.  Don't use RAWFILE arg in case of DOS line endings.
-	(let ((auto-mode-alist))
-	  (find-file-noselect describe-char-unicodedata-file))
+    (with-current-buffer (get-buffer-create " *Unicode Data*")
+      (when (zerop (buffer-size))
+	;; Don't use -literally in case of DOS line endings.
+	(insert-file-contents describe-char-unicodedata-file))
       (goto-char (point-min))
       (let ((hex (format "%04X" char))
 	    found first last)

@@ -1,3 +1,29 @@
+2006-11-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* erc.el (erc-cmd-BANLIST, erc-cmd-MASSUNBAN): Simplify.
+	(erc-prompt-for-channel-key, erc-ignore-reply-list, erc-send-post-hook)
+	(erc-active-buffer, erc-join-buffer, erc-frame-alist, erc-with-buffer)
+	(erc-modules, erc-display-message-highlight, erc-process-input-line)
+	(erc-cmd-HELP, erc-server-hooks, erc-echo-notice-in-user-buffers)
+	(erc-format-my-nick, erc-echo-notice-in-user-and-target-buffers)
+	(erc-echo-notice-in-first-user-buffer, erc-connection-established)
+	(erc-update-user-nick, erc-update-channel-member, erc-highlight-notice)
+	(erc-command-symbol, erc-add-query, erc-process-script-line)
+	(erc-determine-parameters, erc-client-info, erc-popup-input-buffer):
+	(erc-script-echo): Fix typos in docstrings.
+	(erc-channel-user-op-p, erc-channel-user-voice-p, erc-startup-file-list)
+	(define-erc-module, erc-once-with-server-event)
+	(erc-once-with-server-event-global, erc-debug-irc-protocol)
+	(erc-log-irc-protocol, erc-cmd-LOAD, erc-update-user)
+	(erc-update-current-channel-member, erc-load-script):
+	(erc-mode-line-away-status-format): Doc fixes.
+
+2006-11-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* erc.el (erc-after-connect, erc-open-ssl-stream)
+	(erc-display-line-1, erc-display-line):
+	* erc-backend.el (005): Fix space/tab mixup in docstrings.
+
 2006-11-20  Michael Olson  <mwolson@gnu.org>
 
 	* erc.el (erc-version-string): Call this Version 5.2 stable

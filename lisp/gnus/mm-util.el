@@ -92,12 +92,6 @@
      ;; (string-to-multibyte s)   ~= (decode-coding-string s 'binary)
      ;; (string-make-multibyte s) ~= (decode-coding-string s locale-coding-system)
      (string-as-multibyte . identity)
-     (string-to-multibyte
-      . (lambda (string)
-	  "Return a multibyte string with the same individual chars as string."
-	  (mapconcat
-	   (lambda (ch) (mm-string-as-multibyte (char-to-string ch)))
-	   string "")))
      (multibyte-string-p . ignore)
      (insert-byte . insert-char)
      (multibyte-char-to-unibyte . identity))))
@@ -127,6 +121,19 @@ This is a compatibility function for different Emacsen."
 	  (setq string (replace-match newtext nil literal string))
 	  (setq start (- (length string) tail))))
       string))))
+
+(defalias 'mm-string-to-multibyte
+  (cond
+   ((featurep 'xemacs)
+    'identity)
+   ((fboundp 'string-to-multibyte)
+    'string-to-multibyte)
+   (t
+    (lambda (string)
+      "Return a multibyte string with the same individual chars as string."
+      (mapconcat
+       (lambda (ch) (mm-string-as-multibyte (char-to-string ch)))
+       string "")))))
 
 (eval-and-compile
   (defalias 'mm-char-or-char-int-p

@@ -835,7 +835,7 @@ x_reply_selection_request (event, format, data, size, type)
 	    break;
 
 	  /* Now wait for the requester to ack this chunk by deleting the
-	     property.	 This can run random lisp code or signal.  */
+	     property.  This can run random lisp code or signal.  */
 	  TRACE1 ("Waiting for increment ACK (deletion of %s)",
 		  XGetAtomName (display, reply.property));
 	  wait_for_property_change (wait_object);
@@ -2710,11 +2710,11 @@ FRAME is on.  If FRAME is nil, the selected frame is used.  */)
   else
     error ("ATOM must be a symbol or a string");
 
-  for (i = 0; i < dpyinfo->x_dnd_atoms_length; ++i) 
+  for (i = 0; i < dpyinfo->x_dnd_atoms_length; ++i)
     if (dpyinfo->x_dnd_atoms[i] == x_atom)
       return Qnil;
 
-  if (dpyinfo->x_dnd_atoms_length == dpyinfo->x_dnd_atoms_size) 
+  if (dpyinfo->x_dnd_atoms_length == dpyinfo->x_dnd_atoms_size)
     {
       dpyinfo->x_dnd_atoms_size *= 2;
       dpyinfo->x_dnd_atoms = xrealloc (dpyinfo->x_dnd_atoms,
@@ -2744,7 +2744,7 @@ x_handle_dnd_message (f, event, dpyinfo, bufp)
   int idata[5];
   size_t i;
 
-  for (i = 0; i < dpyinfo->x_dnd_atoms_length; ++i) 
+  for (i = 0; i < dpyinfo->x_dnd_atoms_length; ++i)
     if (dpyinfo->x_dnd_atoms[i] == event->message_type) break;
 
   if (i == dpyinfo->x_dnd_atoms_length) return 0;

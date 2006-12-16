@@ -1,3 +1,28 @@
+2006-12-04  Kim F. Storm  <storm@cua.dk>
+
+	* commands.texi (Misc Events): Update signal events.
+	(Event Examples): Add signal example.
+
+2006-11-29  Richard Stallman  <rms@gnu.org>
+
+	* frames.texi (Visibility of Frames): Explain visible windows
+	can be covered by others.  Add xref for raise-frame.
+
+2006-11-28  Richard Stallman  <rms@gnu.org>
+
+	* searching.texi (Regexp Special): Update when ^ is special.
+
+2006-11-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* customize.texi (Customization, Common Keywords)
+	(Group Definitions, Variable Definitions, Composite Types)
+	(Type Keywords, Customization Types): Add index entries for
+	various customization keywords.
+
+2006-11-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* modes.texi (Multiline Font Lock): Rephrase some parts for clarity.
+
 2006-11-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* frames.texi (Window System Selections): Remove clipboard from

@@ -385,8 +385,8 @@ program\\|subroutine\\)\\>[ \t]*\\(\\sw+\\)?"
                             "dabs" "cabs" "mod" "amod" "dmod" "isign"
                             "sign" "dsign" "idim" "dim" "ddim" "dprod"
                             "max" "max0" "amax1" "dmax1" "amax0" "max1"
-                            "min0" "amin1" "dmin1" "amin0" "min1" "len"
-                            "index" "lge" "lgt" "lle" "llt" "aimag"
+                            "min" "min0" "amin1" "dmin1" "amin0" "min1"
+                            "len" "index" "lge" "lgt" "lle" "llt" "aimag"
                             "conjg" "sqrt" "dsqrt" "csqrt" "exp" "dexp"
                             "cexp" "log" "alog" "dlog" "clog" "log10"
                             "alog10" "dlog10" "sin" "dsin" "csin" "cos"
@@ -604,80 +604,82 @@ Used in the Fortran entry in `hs-special-modes-alist'.")
 
 
 (defvar fortran-mode-abbrev-table
-  (let (abbrevs-changed)
+  (progn
     (define-abbrev-table 'fortran-mode-abbrev-table nil)
-    ;; Use the 6th arg (SYSTEM-FLAG) of define-abbrev if possible.
-    ;; Only use `apply' to quieten the byte-compiler.
-    (mapcar
-     (function (lambda (element)
-                 (condition-case nil
-                     (apply 'define-abbrev fortran-mode-abbrev-table
-                            (append element '(nil 0 t)))
-                   (wrong-number-of-arguments
-                    (apply 'define-abbrev fortran-mode-abbrev-table
-                           (append element '(nil 0)))))))
-     '((";au"   "automatic"         )
-       (";b"    "byte"              )
-       (";bd"   "block data"        )
-       (";ch"   "character"         )
-       (";cl"   "close"             )
-       (";c"    "continue"          )
-       (";cm"   "common"            )
-       (";cx"   "complex"           )
-       (";df"   "define"            )
-       (";di"   "dimension"         )
-       (";do"   "double"            )
-       (";dc"   "double complex"    )
-       (";dp"   "double precision"  )
-       (";dw"   "do while"          )
-       (";e"    "else"              )
-       (";ed"   "enddo"             )
-       (";el"   "elseif"            )
-       (";en"   "endif"             )
-       (";eq"   "equivalence"       )
-       (";ew"   "endwhere"          )
-       (";ex"   "external"          )
-       (";ey"   "entry"             )
-       (";f"    "format"            )
-       (";fa"   ".false."           )
-       (";fu"   "function"          )
-       (";g"    "goto"              )
-       (";im"   "implicit"          )
-       (";ib"   "implicit byte"     )
-       (";ic"   "implicit complex"  )
-       (";ich"  "implicit character")
-       (";ii"   "implicit integer"  )
-       (";il"   "implicit logical"  )
-       (";ir"   "implicit real"     )
-       (";inc"  "include"           )
-       (";in"   "integer"           )
-       (";intr" "intrinsic"         )
-       (";l"    "logical"           )
-       (";n"    "namelist"          )
-       (";o"    "open"              )   ; was ;op
-       (";pa"   "parameter"         )
-       (";pr"   "program"           )
-       (";ps"   "pause"             )
-       (";p"    "print"             )
-       (";rc"   "record"            )
-       (";re"   "real"              )
-       (";r"    "read"              )
-       (";rt"   "return"            )
-       (";rw"   "rewind"            )
-       (";s"    "stop"              )
-       (";sa"   "save"              )
-       (";st"   "structure"         )
-       (";sc"   "static"            )
-       (";su"   "subroutine"        )
-       (";tr"   ".true."            )
-       (";ty"   "type"              )
-       (";vo"   "volatile"          )
-       (";w"    "write"             )
-       (";wh"   "where"             )))
-    fortran-mode-abbrev-table))
+    fortran-mode-abbrev-table)
+  "Abbrev table for Fortran mode.")
+
+(let (abbrevs-changed)
+  ;; Use the 6th arg (SYSTEM-FLAG) of define-abbrev if possible.
+  ;; Only use `apply' to quieten the byte-compiler.
+  (mapcar
+   (function (lambda (element)
+               (condition-case nil
+                   (apply 'define-abbrev fortran-mode-abbrev-table
+                          (append element '(nil 0 t)))
+                 (wrong-number-of-arguments
+                  (apply 'define-abbrev fortran-mode-abbrev-table
+                         (append element '(nil 0)))))))
+   '((";au"   "automatic"         )
+     (";b"    "byte"              )
+     (";bd"   "block data"        )
+     (";ch"   "character"         )
+     (";cl"   "close"             )
+     (";c"    "continue"          )
+     (";cm"   "common"            )
+     (";cx"   "complex"           )
+     (";df"   "define"            )
+     (";di"   "dimension"         )
+     (";do"   "double"            )
+     (";dc"   "double complex"    )
+     (";dp"   "double precision"  )
+     (";dw"   "do while"          )
+     (";e"    "else"              )
+     (";ed"   "enddo"             )
+     (";el"   "elseif"            )
+     (";en"   "endif"             )
+     (";eq"   "equivalence"       )
+     (";ew"   "endwhere"          )
+     (";ex"   "external"          )
+     (";ey"   "entry"             )
+     (";f"    "format"            )
+     (";fa"   ".false."           )
+     (";fu"   "function"          )
+     (";g"    "goto"              )
+     (";im"   "implicit"          )
+     (";ib"   "implicit byte"     )
+     (";ic"   "implicit complex"  )
+     (";ich"  "implicit character")
+     (";ii"   "implicit integer"  )
+     (";il"   "implicit logical"  )
+     (";ir"   "implicit real"     )
+     (";inc"  "include"           )
+     (";in"   "integer"           )
+     (";intr" "intrinsic"         )
+     (";l"    "logical"           )
+     (";n"    "namelist"          )
+     (";o"    "open"              )     ; was ;op
+     (";pa"   "parameter"         )
+     (";pr"   "program"           )
+     (";ps"   "pause"             )
+     (";p"    "print"             )
+     (";rc"   "record"            )
+     (";re"   "real"              )
+     (";r"    "read"              )
+     (";rt"   "return"            )
+     (";rw"   "rewind"            )
+     (";s"    "stop"              )
+     (";sa"   "save"              )
+     (";st"   "structure"         )
+     (";sc"   "static"            )
+     (";su"   "subroutine"        )
+     (";tr"   ".true."            )
+     (";ty"   "type"              )
+     (";vo"   "volatile"          )
+     (";w"    "write"             )
+     (";wh"   "where"             ))))
 
 
-
 ;;;###autoload
 (defun fortran-mode ()
   "Major mode for editing Fortran code in fixed format.
@@ -968,7 +970,7 @@ See also `fortran-window-create'."
 	    (error (error "No room for Fortran window")))
 	  (message "Type SPC to continue editing.")
 	  (let ((char (read-event)))
-	    (or (equal char (string-to-char " "))
+	    (or (equal char ?\s)
 		(setq unread-command-events (list char))))))
     (fortran-window-create)))
 

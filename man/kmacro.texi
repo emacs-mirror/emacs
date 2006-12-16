@@ -46,19 +46,19 @@ intelligent or general.  For such things, Lisp must be used.
 @section Basic Use
 
 @table @kbd
-@item C-x (
-@itemx @key{F3}
+@item @key{F3}
+@itemx C-x (
 Start defining a keyboard macro (@code{kmacro-start-macro}).
+@item @key{F4}
+If a keyboard macro is being defined, end the definition; otherwise,
+execute the most recent keyboard macro
+(@code{kmacro-end-or-call-macro}).
 @item C-x )
 End the definition of a keyboard macro (@code{kmacro-end-macro}).
 @item C-x e
 Execute the most recent keyboard macro (@code{kmacro-end-and-call-macro}).
 First end the definition of the keyboard macro, if currently defining it.
 To immediately execute the keyboard macro again, just repeat the @kbd{e}.
-@item @key{F4}
-If a keyboard macro is being defined, end the definition; otherwise,
-execute the most recent keyboard macro
-(@code{kmacro-end-or-call-macro}).
 @item C-u C-x (
 Re-execute last keyboard macro, then add more keys to its definition.
 @item C-u C-u C-x (
@@ -68,17 +68,19 @@ Run the last keyboard macro on each line that begins in the region
 (@code{apply-macro-to-region-lines}).
 @end table
 
+@kindex F3
+@kindex F4
 @kindex C-x (
 @kindex C-x )
 @kindex C-x e
 @findex kmacro-start-macro
 @findex kmacro-end-macro
 @findex kmacro-end-and-call-macro
-  To start defining a keyboard macro, type the @kbd{C-x (} command
+  To start defining a keyboard macro, type the @kbd{F3} or @kbd{C-x (} command
 (@code{kmacro-start-macro}).  From then on, your keys continue to be
 executed, but also become part of the definition of the macro.  @samp{Def}
 appears in the mode line to remind you of what is going on.  When you are
-finished, the @kbd{C-x )} command (@code{kmacro-end-macro}) terminates the
+finished, the @kbd{F4} or @kbd{C-x )} command (@code{kmacro-end-macro}) terminates the
 definition (without becoming part of it!).  For example,
 
 @example
@@ -115,7 +117,14 @@ MS-DOS, @kbd{C-@key{BREAK}}).
 
   The key @key{F4} is like a combination of @kbd{C-x )} and @kbd{C-x
 e}.  If you're defining a macro, @key{F4} ends the definition.
-Otherwise it executes the last macro.
+Otherwise it executes the last macro.  For example,
+
+@example
+F3 xyz F4 F4 F4
+@end example
+
+@noindent
+inserts @samp{xyzxyzxyz} in the current buffer.
 
   If you wish to repeat an operation at regularly spaced places in the
 text, define a macro and include as part of the macro the commands to move
@@ -152,7 +161,8 @@ you invoked the keyboard macro, it also necessarily exits the keyboard
 macro as part of the process.
 
   After you have terminated the definition of a keyboard macro, you can add
-to the end of its definition by typing @kbd{C-u C-x (}.  This is equivalent
+to the end of its definition by typing @kbd{C-u F3} or @kbd{C-u C-x (}.
+This is equivalent
 to plain @kbd{C-x (} followed by retyping the whole definition so far.  As
 a consequence it re-executes the macro as previously defined.
 

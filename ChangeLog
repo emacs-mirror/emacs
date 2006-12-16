@@ -1,3 +1,28 @@
+2006-12-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* configure.in (HAVE_SYNC): New test.
+
+	* configure: Regenerate.
+
+2006-12-03  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Fix Copyright format.
+
+	* configure.in (AH_TOP): Add missing Copyright year.
+
+	* update-subdirs: Add missing Copyright years.
+
+2006-11-27  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
+
+	* Makefile.in: Touch only the parts of the share/emacs directory
+	specific to this version.
+
+2006-11-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in (HAVE_X86_64_LIB64_DIR): New test.
+
+	* configure: Regenerate.
+
 2006-11-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* configure.in (HAVE_CANCELMENUTRACKING): Remove test.
@@ -356,7 +381,7 @@
 
 	Update FSF's address in GPL notices.
 
-2005-06-19  J,bi(Br,bt(Bme Marant  <jerome@marant.org>
+2005-06-19  J,Ai(Br,At(Bme Marant  <jerome@marant.org>
 
 	* Makefile.in (epaths-force): Protect both lisppath and
 	buildlisppath from whitespace.
@@ -445,7 +470,7 @@
 	* Makefile.in (install-arch-indep, uninstall): Add url and org
 	manuals.
 
-2004-12-07  Stefan  <monnier@iro.umontreal.ca>
+2004-12-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* configure.in (INLINE, RE_TRANSLATE_P): Move patches mistakenly
 	committed to src/config.in.
@@ -515,7 +540,7 @@
 	* configure.in (HAVE_RANDOM_HEAPSTART): Change AC_MSG_ERROR to
 	AC_MSG_WARN.  Move output of warning message to end of configure run.
 
-2004-10-05  Jan Dj,Ad(Brv.  <jan.h.d@swipnet.se>
+2004-10-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in (HAVE_RANDOM_HEAPSTART): Rename HAVE_EXECSHIELD.
 	Run test to see if heap start address is random.
@@ -637,7 +662,7 @@
 
 	* configure.in <darwin>: Use fink packages if available.
 
-2004-01-25  Jerome Marant  <jmarant@free.fr>  (tiny change)
+2004-01-25  J,Ai(Br,At(Bme Marant  <jmarant@free.fr>  (tiny change)
 
 	* make-dist (lispref): Do include lispref/index.texi.
 
@@ -946,7 +971,7 @@
 
 	* configure.in (*-sunos5*, *-solaris*): Use sol2-8.
 
-2002-11-14  Francesco Potorti`  <pot@gnu.org>
+2002-11-14  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* configure.in (*-sunos5.8*, *-solaris2.8*): New configurations.
 
@@ -1200,7 +1225,7 @@
 
 	These changes make Leim part of the standard distribution:
 
-	* README: Add info about the `leim' directory
+	* README: Add info about the `leim' directory.
 
 	* INSTALL: Remove text that describes Leim as a separate package.
 
@@ -1768,8 +1793,7 @@
 2000-08-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* configure.in <making srcdir absolute>: Unset CDPATH in case $PWD
-	contains a relative path.  Protect against unusable values of
-	$PWD.
+	contains a relative path.  Protect against unusable values of $PWD.
 
 2000-08-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -1780,8 +1804,7 @@
 
 2000-08-07  Gerd Moellmann  <gerd@gnu.org>
 
-	* Makefile.in (config.status): Prepend `$(srcdir)/' to
-	`configure'.
+	* Makefile.in (config.status): Prepend `$(srcdir)/' to `configure'.
 
 2000-08-03  Gerd Moellmann  <gerd@gnu.org>
 
@@ -2147,7 +2170,7 @@
 
 1999-08-18  Dave Love  <fx@gnu.org>
 
-	* configure.in: : Check for termcap.h.
+	* configure.in: Check for termcap.h.
 
 1999-08-15  Gerd Moellmann  <gerd@gnu.org>
 
@@ -2260,8 +2283,8 @@
 
 1998-12-04  Andreas Schwab  <schwab@delysid.gnu.org>
 
-	* Makefile.in: Don't install customize info file.  Run
-	install-info on viper info file.
+	* Makefile.in: Don't install customize info file.
+	Run install-info on viper info file.
 
 1998-11-29  Richard Stallman  <rms@psilocin.ai.mit.edu>
 
@@ -2481,7 +2504,7 @@
 
 1997-09-30  Karl Eichwalder  <ke@suse.de>
 
-	* Makefile.in (install-arch-indep): install the widget info file.
+	* Makefile.in (install-arch-indep): Install the widget info file.
 
 1997-09-24  Jonathan I. Kamens  <jik@kamens.brookline.ma.us>
 
@@ -2493,8 +2516,7 @@
 
 1997-09-21  Erik Naggum  <erik@naggum.no>
 
-	* make-dist (making links to `src'): Keep timestamp on copied
-	files.
+	* make-dist (making links to `src'): Keep timestamp on copied files.
 
 	* make-delta: New script to produce delta distributions.
 
@@ -2655,7 +2677,7 @@
 	* make-dist (etc): Really avoid symlinks now.
 	(lisp): Don't delete from subdirs the things we never copy.
 
-1997-07-07  Ken'ichi Handa  <handa@psilocin.gnu.ai.mit.edu>
+1997-07-07  Kenichi Handa  <handa@psilocin.gnu.ai.mit.edu>
 
 	* Makefile.in (install-arch-indep): Correct the target name.
 	The first letter `i' was dropped by the previous change of mine.
@@ -2680,12 +2702,12 @@
 
 	* Makefile.in (install-leim): Correct previous change.
 
-1997-07-02  Ken'ichi Handa  <handa@psilocin.gnu.ai.mit.edu>
+1997-07-02  Kenichi Handa  <handa@psilocin.gnu.ai.mit.edu>
 
 	* Makefile.in (install-leim): New target.
 	(install): Depend on install-leim.
 
-1997-07-01  Ken'ichi Handa  <handa@psilocin.gnu.ai.mit.edu>
+1997-07-01  Kenichi Handa  <handa@psilocin.gnu.ai.mit.edu>
 
 	* Makefile.in (SUBDIR): Add leim.
 	(SUBDIR_MAKEFILES): Add leim/Makefile.
@@ -2721,16 +2743,14 @@
 
 1997-06-22  Dave Love  <d.love@dl.ac.uk>
 
-	* Makefile.in (lib-src): Depend on src/config.h (e.g. for
-	movemail.o).
-	(src/config.h): New target to re-configure if src/config.in
-	is patched.
+	* Makefile.in (lib-src): Depend on src/config.h (e.g. for movemail.o).
+	(src/config.h): New target to re-configure if src/config.in is patched.
 
 1997-06-18  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
 	* configure.in (shutdown): Check for `shutdown' function.
 
-1997-06-18  Ken'ichi Handa  <handa@psilocin.gnu.ai.mit.edu>
+1997-06-18  Kenichi Handa  <handa@psilocin.gnu.ai.mit.edu>
 
 	* update-subdirs: Include the directory "language" in subdirs.
 
@@ -2767,15 +2787,14 @@
 1997-04-09  Marcus G. Daniels  <marcus@cathcart.sysc.pdx.edu>
 
 	* configure.in (doug_lea_malloc):  First check for SYSTEM_MALLOC,
-	in case it is desirable to disable the GNU malloc features with
-	glibc.
+	in case it is desirable to disable the GNU malloc features with glibc.
 
 1997-04-08  Marcus G. Daniels  <marcus@cathcart.sysc.pdx.edu>
 
 	* configure.in (DOUG_LEA_MALLOC):
 	Define if malloc_{get,set}_state exist.
 
-1997-03-05  Ken'ichi Handa  <handa@etl.go.jp>
+1997-03-05  Kenichi Handa  <handa@etl.go.jp>
 
 	* make-dist: Make links for files under lisp/language.
 
@@ -2967,7 +2986,7 @@
 
 1996-07-11  Bill Mann  <dvmann@dvncr.praxisint.com>
 
-	* configure.in: Use s/usg5-4-3.h for ncr-i[3456]86-sysv4.3
+	* configure.in: Use s/usg5-4-3.h for ncr-i[3456]86-sysv4.3.
 
 1996-07-07  Karl Heuer  <kwzh@gnu.ai.mit.edu>
 
@@ -3490,8 +3509,8 @@
 
 1995-06-22  Paul Eggert  <eggert@twinsun.com>
 
-	* configure.in: Treat SunOS 4.1.4 like SunOS 4.1.3.
-	(Likewise for SunOS 4.1.5 thorugh 4.1.9, should they ever exist.)
+	* configure.in: Treat SunOS 4.1.4 like SunOS 4.1.3.  (Likewise for
+	SunOS 4.1.5 thorugh 4.1.9, should they ever exist.)
 
 1995-06-22  Paul Eggert  <eggert@twinsun.com>
 
@@ -3563,7 +3582,7 @@
 
 1995-05-22  enami tsugutomo  <enami@sys.ptg.sony.co.jp>
 
-	* configure.in: pass arg to sqrt.
+	* configure.in: Pass arg to sqrt.
 
 1995-05-18  Karl Heuer  <kwzh@hal.gnu.ai.mit.edu>
 
@@ -3575,8 +3594,7 @@
 
 1995-05-09  David J. MacKenzie  <djm@geech.gnu.ai.mit.edu>
 
-	* configure.in: Use sqrt (more portable) instead of fmod in -lm
-	check.
+	* configure.in: Use sqrt (more portable) instead of fmod in -lm check.
 
 1995-05-09  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -3593,9 +3611,9 @@
 
 1995-05-06  David J. MacKenzie  <djm@geech.gnu.ai.mit.edu>
 
-	* configure.in: Make sure CDPATH doesn't mess up PWD check.  Check
-	whether X bitmaps are in X11/bitmaps instead of bitmaps.  Use fmod
-	instead of logb in -lm check.
+	* configure.in: Make sure CDPATH doesn't mess up PWD check.
+	Check whether X bitmaps are in X11/bitmaps instead of bitmaps.
+	Use fmod instead of logb in -lm check.
 
 1995-05-03  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -3615,7 +3633,7 @@
 	* configure.in (*-sun-sunos4.1.3*): Use shared libraries,
 	since that's what the header file expects.
 
-1995-04-24  Francesco Potorti`  (pot@cnuce.cnr.it)
+1995-04-24  Francesco Potort,Al(B  (pot@cnuce.cnr.it)
 
 	* configure.in (m68k-motorola-sysv*): Distinguish between 68030
 	and 68040 based machines when choosing options for gnucc.
@@ -3644,7 +3662,7 @@
 1995-04-06  Simon Leinen  <simon@lia.di.epfl.ch>
 
 	* Makefile.in (install-arch-indep, dist):
-	look for `update-subdir' in $(srcdir).
+	Look for `update-subdir' in $(srcdir).
 
 1995-04-06  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -3680,8 +3698,8 @@
 
 1995-02-02  David J. MacKenzie  <djm@geech.gnu.ai.mit.edu>
 
-	* configure.in: Create a .gdbinit that sources the real one, if
-	using a different build directory.
+	* configure.in: Create a .gdbinit that sources the real one,
+	if using a different build directory.
 
 1995-01-23  Karl Heuer  <kwzh@hal.gnu.ai.mit.edu>
 
@@ -6396,8 +6414,8 @@
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2006
-	Free Software Foundation, Inc.
+    Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
+	2003, 2004, 2005, 2006  Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
 

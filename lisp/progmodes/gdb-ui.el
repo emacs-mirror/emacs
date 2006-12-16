@@ -40,8 +40,8 @@
 ;; This file has evolved from gdba.el that was included with GDB 5.0 and
 ;; written by Tom Lord and Jim Kingdon.  It uses GDB's annotation interface.
 ;; You don't need to know about annotations to use this mode as a debugger,
-;; but if you are interested developing the mode itself, then see the
-;; Annotations section in the GDB info manual.
+;; but if you are interested developing the mode itself, see the Annotations
+;; section in the GDB info manual.
 
 ;; GDB developers plan to make the annotation interface obsolete.  A new
 ;; interface called GDB/MI (machine interface) has been designed to replace
@@ -51,9 +51,9 @@
 ;; still under development and is part of a process to migrate Emacs from
 ;; annotations to GDB/MI.
 
-;; This mode SHOULD WORK WITH GDB 5.0 onwards but you will NEED GDB 6.0
-;; onwards to use watch expressions.  It works best with GDB 6.4 where
-;; watch expressions will update more quickly.
+;; This mode SHOULD WORK WITH GDB 5.0 or later but you will NEED AT LEAST
+;; GDB 6.0 to use watch expressions.  It works best with GDB 6.4 or later
+;; where watch expressions will update more quickly.
 
 ;;; Windows Platforms:
 
@@ -81,12 +81,14 @@
 ;;    "gdb --annotate=2 myprog" to keep source buffer/selected frame fixed.
 
 ;;; Problems with watch expressions, GDB/MI:
+
 ;; 1) They go out of scope when the inferior is re-run.
 ;; 2) -stack-list-locals has a type field but also prints type in values field.
 ;; 3) VARNUM increments even when variable object is not created
 ;;    (maybe trivial).
 
 ;;; TODO:
+
 ;; 1) Use MI command -data-read-memory for memory window.
 ;; 2) Use tree-widget.el instead of the speedbar for watch-expressions?
 ;; 3) Mark breakpoint locations on scroll-bar of source buffer?
@@ -871,6 +873,14 @@ type_changed=\".*?\".*?}")
 	      (if (string-match (concat (car var) "\\.") (car varchild))
 		  (setq gdb-var-list (delq varchild gdb-var-list)))))))))
 
+(defun gdb-var-delete-children (varnum)
+  "Delete children of variable object point from the speedbar."
+  (gdb-enqueue-input
+   (list
+    (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
+	(concat "server interpreter mi \"-var-delete -c " varnum "\"\n")
+      (concat "-var-delete -c " varnum "\n")) 'ignore)))
+
 (defun gdb-edit-value (text token indent)
   "Assign a value to a variable displayed in the speedbar."
   (let* ((var (nth (- (count-lines (point-min) (point)) 2) gdb-var-list))
@@ -914,6 +924,7 @@ INDENT is the current indentation depth."
 	       (dolist (var gdb-var-list)
 		 (if (string-match (concat token "\\.") (car var))
 		     (setq gdb-var-list (delq var gdb-var-list))))
+	       (gdb-var-delete-children token)
 	       (speedbar-change-expand-button-char ?+)
 	       (speedbar-delete-subblock indent))
 	      (t (error "Ooops...  not sure what to do")))

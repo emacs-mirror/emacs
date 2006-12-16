@@ -34,6 +34,7 @@ Boston, MA 02110-1301, USA.  */
 
 # include <malloc.h>
 # include <stdlib.h>
+# include <windows.h>
 
 # define NO_SOCKETS_IN_FILE_SYSTEM
 
@@ -58,6 +59,7 @@ Boston, MA 02110-1301, USA.  */
 
 #undef signal
 
+#include <stdarg.h>
 #include <ctype.h>
 #include <stdio.h>
 #include "getopt.h"
@@ -127,6 +129,9 @@ char *socket_name = NULL;
 /* If non-NULL, the filename of the authentication file.  */
 char *server_file = NULL;
 
+/* PID of the Emacs server process.  */
+int emacs_pid = 0;
+
 void print_help_and_exit () NO_RETURN;
 
 struct option longopts[] =
@@ -143,6 +148,53 @@ struct option longopts[] =
   { "display",	required_argument, NULL, 'd' },
   { 0, 0, 0, 0 }
 };
+
+/* Message functions. */
+
+#ifdef WINDOWSNT
+/* I first tried to check for STDOUT.  The check did not work,
+   I get a valid handle also in nonconsole apps.
+   Instead I test for console title, which seems to work.  */
+int
+w32_window_app()
+{
+  static int window_app = -1;
+  char szTitle[MAX_PATH];
+
+  if (window_app < 0)
+    window_app = (GetConsoleTitleA (szTitle, MAX_PATH) == 0);
+
+  return window_app;
+}
+#endif
+
+void
+message (int is_error, char *message, ...)
+{
+  char msg [2048];
+  va_list args;
+
+  va_start (args, message);
+  vsprintf (msg, message, args);
+  va_end (args);
+
+#ifdef WINDOWSNT
+  if (w32_window_app ())
+    {
+      if (is_error)
+	MessageBox (NULL, msg, "Emacsclient ERROR", MB_ICONERROR);
+      else
+	MessageBox (NULL, msg, "Emacsclient", MB_ICONINFORMATION);
+    }
+  else
+#endif
+    {
+      FILE *f = is_error ? stderr : stdout;
+
+      fputs (msg, f);
+      fflush (f);
+    }
+}
 
 /* Decode the options from argv and argc.
    The global variable `optind' will say how many arguments we used up.  */
@@ -201,7 +253,7 @@ decode_options (argc, argv)
 	  break;
 
 	case 'V':
-	  printf ("emacsclient %s\n", VERSION);
+	  message (FALSE, "emacsclient %s\n", VERSION);
 	  exit (EXIT_SUCCESS);
 	  break;
 
@@ -210,7 +262,7 @@ decode_options (argc, argv)
 	  break;
 
 	default:
-	  fprintf (stderr, "Try `%s --help' for more information\n", progname);
+	  message (TRUE, "Try `%s --help' for more information\n", progname);
 	  exit (EXIT_FAILURE);
 	  break;
 	}
@@ -220,25 +272,26 @@ decode_options (argc, argv)
 void
 print_help_and_exit ()
 {
-  printf (
+  message (FALSE,
 	  "Usage: %s [OPTIONS] FILE...\n\
 Tell the Emacs server to visit the specified files.\n\
 Every FILE can be either just a FILENAME or [+LINE[:COLUMN]] FILENAME.\n\
 \n\
 The following OPTIONS are accepted:\n\
--V, --version           Just print a version info and return\n\
--H, --help              Print this usage information message\n\
--n, --no-wait           Don't wait for the server to return\n\
--e, --eval              Evaluate the FILE arguments as ELisp expressions\n\
--d, --display=DISPLAY   Visit the file in the given display\n"
+\n\
+-V, --version		Just print version info and return\n\
+-H, --help   		Print this usage information message\n\
+-e, --eval   		Evaluate FILE arguments as Lisp expressions\n\
+-n, --no-wait		Don't wait for the server to return\n\
+-d, --display=DISPLAY	Visit the file in the given display\n"
 #ifndef NO_SOCKETS_IN_FILE_SYSTEM
 "-s, --socket-name=FILENAME\n\
-                        Set the filename of the UNIX socket for communication\n"
+			Set filename of the UNIX socket for communication\n"
 #endif
 "-f, --server-file=FILENAME\n\
-			Set the filename of the TCP configuration file\n\
+			Set filename of the TCP authentication file\n\
 -a, --alternate-editor=EDITOR\n\
-                        Editor to fallback to if the server is not running\n\
+			Editor to fallback to if server is not running\n\
 \n\
 Report bugs to bug-gnu-emacs@gnu.org.\n", progname);
   exit (EXIT_SUCCESS);
@@ -261,7 +314,7 @@ fail (argc, argv)
       argv[i] = (char *)alternate_editor;
 #endif
       execvp (alternate_editor, argv + i);
-      fprintf (stderr, "%s: error executing alternate editor \"%s\"\n",
+      message (TRUE, "%s: error executing alternate editor \"%s\"\n",
                progname, alternate_editor);
     }
   exit (EXIT_FAILURE);
@@ -275,9 +328,8 @@ main (argc, argv)
      int argc;
      char **argv;
 {
-  fprintf (stderr, "%s: Sorry, the Emacs server is supported only\n",
+  message (TRUE, "%s: Sorry, the Emacs server is supported only\non systems with Berkely sockets.\n",
 	   argv[0]);
-  fprintf (stderr, "on systems with Berkeley sockets.\n");
 
   fail (argc, argv);
 }
@@ -399,8 +451,8 @@ file_name_absolute_p (filename)
 
 #ifdef WINDOWSNT
   /* X:\xxx is always absolute; X:xxx is an error and will fail.  */
-  if (islower (tolower (filename[0]))
-      && filename[1] == ':' && filename[2] == '\\')
+  if (isalpha (filename[0])
+      && filename[1] == ':' && (filename[2] == '\\' || filename[2] == '/'))
     return TRUE;
 
   /* Both \xxx and \\xxx\yyy are absolute.  */
@@ -411,7 +463,7 @@ file_name_absolute_p (filename)
 }
 
 #ifdef WINDOWSNT
-/* Wrapper to make WSACleanup a cdecl, as required by atexit().	 */
+/* Wrapper to make WSACleanup a cdecl, as required by atexit().  */
 void
 __cdecl close_winsock ()
 {
@@ -426,7 +478,7 @@ initialize_sockets ()
 
   if (WSAStartup (MAKEWORD (2, 0), &wsaData))
     {
-      fprintf (stderr, "%s: error initializing WinSock2", progname);
+      message (TRUE, "%s: error initializing WinSock2", progname);
       exit (EXIT_FAILURE);
     }
 
@@ -482,7 +534,7 @@ get_server_config (server, authentication)
     }
   else
     {
-      fprintf (stderr, "%s: invalid configuration info", progname);
+      message (TRUE, "%s: invalid configuration info", progname);
       exit (EXIT_FAILURE);
     }
 
@@ -492,35 +544,13 @@ get_server_config (server, authentication)
 
   if (! fread (authentication, AUTH_KEY_LENGTH, 1, config))
     {
-      fprintf (stderr, "%s: cannot read authentication info", progname);
+      message (TRUE, "%s: cannot read authentication info", progname);
       exit (EXIT_FAILURE);
     }
 
   fclose (config);
 
-#ifdef WINDOWSNT
-  /*
-    Modern Windows restrict which processes can set the foreground window.
-    So, for emacsclient to be able to force Emacs into the foreground, we
-    have to call AllowSetForegroundWindow().  Unfortunately, older Windows
-    (W95, W98 and NT) don't have this function, so we have to check first.
-
-    We're doing this here because it has to be done before sending info
-    to Emacs, and otherwise we'll need a global variable just to pass around
-    the pid, which is also inelegant.
-   */
-  {
-    HMODULE hUser32;
-
-    if (hUser32 = LoadLibrary ("user32.dll"))
-      {
-        FARPROC set_fg;
-        if (set_fg = GetProcAddress (hUser32, "AllowSetForegroundWindow"))
-          set_fg (atoi (pid));
-        FreeLibrary (hUser32);
-      }
-  }
-#endif
+  emacs_pid = atoi (pid);
 
   return TRUE;
 }
@@ -537,7 +567,7 @@ set_tcp_socket ()
     return INVALID_SOCKET;
 
   if (server.sin_addr.s_addr != inet_addr ("127.0.0.1"))
-    fprintf (stderr, "%s: connected to remote socket at %s\n",
+    message (FALSE, "%s: connected to remote socket at %s\n",
              progname, inet_ntoa (server.sin_addr));
 
   /*
@@ -545,8 +575,7 @@ set_tcp_socket ()
    */
   if ((s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
     {
-      fprintf (stderr, "%s: ", progname);
-      perror ("socket");
+      message (TRUE, "%s: socket: %s\n", progname, strerror (errno));
       return INVALID_SOCKET;
     }
 
@@ -555,8 +584,7 @@ set_tcp_socket ()
    */
   if (connect (s, (struct sockaddr *) &server, sizeof server) < 0)
     {
-      fprintf (stderr, "%s: ", progname);
-      perror ("connect");
+      message (TRUE, "%s: connect: %s\n", progname, strerror (errno));
       return INVALID_SOCKET;
     }
 
@@ -608,8 +636,7 @@ set_local_socket ()
 
   if ((s = socket (AF_UNIX, SOCK_STREAM, 0)) < 0)
     {
-      fprintf (stderr, "%s: ", progname);
-      perror ("socket");
+      message (TRUE, "%s: socket: %s\n", progname, strerror (errno));
       return INVALID_SOCKET;
     }
 
@@ -639,7 +666,7 @@ set_local_socket ()
       strcpy (server.sun_path, socket_name);
     else
       {
-	fprintf (stderr, "%s: socket-name %s too long",
+	message (TRUE, "%s: socket-name %s too long",
 		 progname, socket_name);
 	exit (EXIT_FAILURE);
       }
@@ -674,7 +701,7 @@ set_local_socket ()
 		  strcpy (server.sun_path, socket_name);
 		else
 		  {
-		    fprintf (stderr, "%s: socket-name %s too long",
+		    message (TRUE, "%s: socket-name %s too long",
 			     progname, socket_name);
 		    exit (EXIT_FAILURE);
 		  }
@@ -694,7 +721,7 @@ set_local_socket ()
            we are root. */
         if (0 != geteuid ())
           {
-            fprintf (stderr, "%s: Invalid socket owner\n", progname);
+            message (TRUE, "%s: Invalid socket owner\n", progname);
 	    return INVALID_SOCKET;
           }
         break;
@@ -702,12 +729,12 @@ set_local_socket ()
       case 2:
         /* `stat' failed */
         if (saved_errno == ENOENT)
-          fprintf (stderr,
+          message (TRUE,
                    "%s: can't find socket; have you started the server?\n\
 To start the server in Emacs, type \"M-x server-start\".\n",
 		   progname);
         else
-          fprintf (stderr, "%s: can't stat %s: %s\n",
+          message (TRUE, "%s: can't stat %s: %s\n",
 		   progname, server.sun_path, strerror (saved_errno));
         return INVALID_SOCKET;
       }
@@ -716,8 +743,7 @@ To start the server in Emacs, type \"M-x server-start\".\n",
   if (connect (s, (struct sockaddr *) &server, strlen (server.sun_path) + 2)
       < 0)
     {
-      fprintf (stderr, "%s: ", progname);
-      perror ("connect");
+      message (TRUE, "%s: connect: %s\n", progname, strerror (errno));
       return INVALID_SOCKET;
     }
 
@@ -740,7 +766,7 @@ set_socket ()
       if ((s != INVALID_SOCKET) || alternate_editor)
         return s;
 
-      fprintf (stderr, "%s: error accessing socket \"%s\"",
+      message (TRUE, "%s: error accessing socket \"%s\"",
                progname, socket_name);
       exit (EXIT_FAILURE);
     }
@@ -756,7 +782,7 @@ set_socket ()
       if ((s != INVALID_SOCKET) || alternate_editor)
         return s;
 
-      fprintf (stderr, "%s: error accessing server file \"%s\"",
+      message (TRUE, "%s: error accessing server file \"%s\"",
                progname, server_file);
       exit (EXIT_FAILURE);
     }
@@ -775,7 +801,7 @@ set_socket ()
     return s;
 
   /* No implicit or explicit socket, and no alternate editor.  */
-  fprintf (stderr, "%s: No socket or alternate editor.  Please use:\n\n"
+  message (TRUE, "%s: No socket or alternate editor.  Please use:\n\n"
 #ifndef NO_SOCKETS_IN_FILE_SYSTEM
 "\t--socket-name\n"
 #endif
@@ -802,8 +828,8 @@ main (argc, argv)
 
   if ((argc - optind < 1) && !eval)
     {
-      fprintf (stderr, "%s: file name or argument required\n", progname);
-      fprintf (stderr, "Try `%s --help' for more information\n", progname);
+      message (TRUE, "%s: file name or argument required\nTry `%s --help' for more information\n",
+              progname, progname);
       exit (EXIT_FAILURE);
     }
 
@@ -818,14 +844,36 @@ main (argc, argv)
   if (cwd == 0)
     {
       /* getwd puts message in STRING if it fails.  */
+      message (TRUE, "%s: %s (%s)\n", progname,
 #ifdef HAVE_GETCWD
-      fprintf (stderr, "%s: %s (%s)\n", progname,
-	       "Cannot get current working directory", strerror (errno));
+	       "Cannot get current working directory",
 #else
-      fprintf (stderr, "%s: %s (%s)\n", progname, string, strerror (errno));
+	       string,
 #endif
+	       strerror (errno));
       fail (argc, argv);
     }
+
+#ifdef WINDOWSNT
+  /*
+    Modern Windows restrict which processes can set the foreground window.
+    emacsclient can allow Emacs to grab the focus by calling the function
+    AllowSetForegroundWindow().  Unfortunately, older Windows (W95, W98
+    and NT) lack this function, so we have to check its availability.
+   */
+  if (emacs_pid)
+    {
+      HMODULE hUser32;
+
+      if (hUser32 = LoadLibrary ("user32.dll"))
+	{
+	  FARPROC set_fg;
+	  if (set_fg = GetProcAddress (hUser32, "AllowSetForegroundWindow"))
+	    set_fg (emacs_pid);
+	  FreeLibrary (hUser32);
+	}
+    }
+#endif
 
   if (nowait)
     SEND_STRING ("-nowait ");

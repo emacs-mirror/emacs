@@ -1,6 +1,6 @@
 ;;; reposition.el --- center a Lisp function or comment on the screen
 
-;; Copyright (C) 1991, 1994, 2002, 2003, 2004,
+;; Copyright (C) 1991, 1994, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Michael D. Ernst <mernst@theory.lcs.mit.edu>

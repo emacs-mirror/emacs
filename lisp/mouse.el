@@ -241,7 +241,7 @@ not it is actually displayed."
 			  (cons 'keymap
 				(cons (concat
 				       (capitalize (subst-char-in-string
-						    ?- ?\  (symbol-name
+						    ?- ?\s (symbol-name
 							    minor-mode)))
 				       " Menu")
 				      (cdr menu)))))
@@ -925,7 +925,11 @@ should only be used by mouse-drag-region."
 	 (click-count (1- (event-click-count start-event)))
 	 (remap-double-click (and on-link
 				  (eq mouse-1-click-follows-link 'double)
-				  (= click-count 1))))
+				  (= click-count 1)))
+	 ;; Suppress automatic hscrolling, because that is a nuisance
+	 ;; when setting point near the right fringe (but see below).
+	 (automatic-hscrolling-saved automatic-hscrolling)
+	 (automatic-hscrolling nil))
     (setq mouse-selection-click-count click-count)
     ;; In case the down click is in the middle of some intangible text,
     ;; use the end of that text, and put it in START-POINT.
@@ -946,6 +950,11 @@ should only be used by mouse-drag-region."
                      (memq (car-safe event) '(switch-frame select-window))))
           (if (memq (car-safe event) '(switch-frame select-window))
 	      nil
+	    ;; Automatic hscrolling did not occur during the call to
+	    ;; `read-event'; but if the user subsequently drags the
+	    ;; mouse, go ahead and hscroll.
+	    (let ((automatic-hscrolling automatic-hscrolling-saved))
+	      (redisplay))
 	    (setq end (event-end event)
 		  end-point (posn-point end))
 	    (if (numberp end-point)
@@ -1885,7 +1894,7 @@ and selects that window."
     (setq tail buffers)
     (while tail
       (let ((elt (car tail)))
-	(if (/= (aref (buffer-name elt) 0) ?\ )
+	(if (/= (aref (buffer-name elt) 0) ?\s)
 	    (setq head
 		  (cons
 		   (cons

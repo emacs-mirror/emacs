@@ -262,10 +262,10 @@ that buffer is rejected."
 	(next-error-buffer-p (current-buffer) nil
 			     extra-test-inclusive extra-test-exclusive)
 	(progn
-	  (message "This is the only next-error capable buffer")
+	  (message "This is the only buffer with error message locations")
 	  (current-buffer)))
    ;; 6. Give up.
-   (error "No next-error capable buffer found")))
+   (error "No buffers contain error message locations")))
 
 (defun next-error (&optional arg reset)
   "Visit next `next-error' message and corresponding source code.
@@ -4329,7 +4329,7 @@ The variable `selective-display' has a separate value for each buffer."
 (defvaralias 'default-indicate-unused-lines 'default-indicate-empty-lines)
 
 (defun toggle-truncate-lines (&optional arg)
-  "Toggle whether to fold or truncate long lines on the screen.
+  "Toggle whether to fold or truncate long lines for the current buffer.
 With arg, truncate long lines iff arg is positive.
 Note that in side-by-side windows, truncation is always enabled."
   (interactive "P")

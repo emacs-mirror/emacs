@@ -43,6 +43,7 @@ files.")
 (defconst authors-aliases
   '(
     ("Andrew Csillag" "Drew Csillag")
+    ("Anna M. Bigatti" "Anna Bigatti")
     ("Barry A. Warsaw" "Barry A. Warsaw, Century Computing, Inc."
      "Barry A. Warsaw, ITB" "Barry Warsaw")
     ("Bj,Av(Brn Torkelsson" "Bjorn Torkelsson")

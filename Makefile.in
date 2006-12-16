@@ -2,8 +2,8 @@
 # DIST: make most of the changes to this file you might want, so try
 # DIST: that first.
 
-# Copyright (C) 1992,93,94,95,96,97,98,1999,2000,01,02,03,04,2005,2006
-#   Free Software Foundation, Inc.
+# Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
+#   2001, 2002, 2003, 2004, 2005, 2006  Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -518,7 +518,7 @@ install-arch-indep: mkdir info
 	     ${INSTALL_INFO} --info-dir=$(DESTDIR)${infodir} $(DESTDIR)${infodir}/$$elt); \
 	  done; \
 	else true; fi
-	-chmod -R a+r $(DESTDIR)${datadir}/emacs ${COPYDESTS} $(DESTDIR)${infodir}
+	-chmod -R a+r $(DESTDIR)${datadir}/emacs/${version} $(DESTDIR)${datadir}/emacs/site-lisp ${COPYDESTS} $(DESTDIR)${infodir}
 	thisdir=`/bin/pwd`; \
 	cd ${srcdir}/etc; \
 	for page in emacs emacsclient etags ctags ; do \

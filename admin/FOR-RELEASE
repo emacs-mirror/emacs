@@ -43,11 +43,21 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 * BUGS
 
+** make-network-process :nowait t doesn't work for non-local targets
+   on Windows.
+   If it cannot be fixed, (featurep 'make-network-process '(:nowait t))
+   should return nil.
+
 ** Document use of gpg-agent
 
-** seltenreich@gmx.de, Nov 19: Failed assertion on make-frame-on-display
+** monnier@iro.umontreal.ca, Nov 24:
+  gnus-summary-tick-article-forward doesn't work any more?
 
-** jbuehler@spirentcom.com, Nov 20: AIX 5.2 loadup failure
+** christopher.ian.moore@gmail.com, Nov 30: too much recursion in gnus-sort-threads-1.
+
+** dooglus@gmail.com, Dec 1: Replacement of spaces in wdired
+
+** Should CC mode set beginning-of-defun-function?
 
 * DOCUMENTATION
 

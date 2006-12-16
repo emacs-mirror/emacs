@@ -583,7 +583,7 @@ Return nil if there is nothing appropriate in the buffer near point."
 			      (point) 'face nil (line-end-position)))
 		   (> end beg))
 	    (subst-char-in-string
-	     ?\ ?\- (buffer-substring-no-properties beg end)))
+	     ?\s ?\- (buffer-substring-no-properties beg end)))
 	   ((or (and (looking-at (concat "[" significant-chars "]"))
 		     (save-excursion
 		       (skip-chars-backward significant-chars)

@@ -1015,14 +1015,14 @@ alsa_configure (sd)
 
   val = sd->format;
   err = snd_pcm_hw_params_set_format (p->handle, p->hwparams, val);
-  if (err < 0) 
+  if (err < 0)
     alsa_sound_perror ("Could not set sound format", err);
 
   uval = sd->sample_rate;
   err = snd_pcm_hw_params_set_rate_near (p->handle, p->hwparams, &uval, 0);
   if (err < 0)
     alsa_sound_perror ("Could not set sample rate", err);
-  
+
   val = sd->channels;
   err = snd_pcm_hw_params_set_channels (p->handle, p->hwparams, val);
   if (err < 0)
@@ -1072,11 +1072,11 @@ alsa_configure (sd)
   p->hwparams = NULL;
   snd_pcm_sw_params_free (p->swparams);
   p->swparams = NULL;
-  
+
   err = snd_pcm_prepare (p->handle);
   if (err < 0)
     alsa_sound_perror ("Could not prepare audio interface for use", err);
-  
+
   if (sd->volume > 0)
     {
       int chn;
@@ -1098,7 +1098,7 @@ alsa_configure (sd)
                     long pmin, pmax;
                     snd_mixer_selem_get_playback_volume_range (e, &pmin, &pmax);
                     long vol = pmin + (sd->volume * (pmax - pmin)) / 100;
-                    
+
                     for (chn = 0; chn <= SND_MIXER_SCHN_LAST; chn++)
                       snd_mixer_selem_set_playback_volume (e, chn, vol);
                   }
@@ -1230,9 +1230,9 @@ alsa_write (sd, buffer, nbytes)
                                        err);
                 }
             }
-          else 
+          else
             alsa_sound_perror ("Error writing to sound device", err);
-          
+
         }
       else
         nwritten += err * fact;
@@ -1374,7 +1374,7 @@ do_play_sound (psz_file, ui_volume)
 DEFUN ("play-sound-internal", Fplay_sound_internal, Splay_sound_internal, 1, 1, 0,
        doc: /* Play sound SOUND.
 
-Internal use only, use `play-sound' instead.\n  */)
+Internal use only, use `play-sound' instead.  */)
      (sound)
      Lisp_Object sound;
 {

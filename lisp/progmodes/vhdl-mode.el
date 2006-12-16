@@ -1,12 +1,13 @@
 ;;; vhdl-mode.el --- major mode for editing VHDL code
 
-;; Copyright (C) 1992-2003, 2004, 2005, 2006  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
+;;   2001, 2002, 2003, 2004, 2005, 2006  Free Software Foundation, Inc.
 
 ;; Authors:     Reto Zimmermann <reto@gnu.org>
 ;;              Rodney J. Whitby <software.vhdl-mode@rwhitby.net>
 ;; Maintainer:  Reto Zimmermann <reto@gnu.org>
 ;; Keywords:    languages vhdl
-;; WWW:         http://opensource.ethz.ch/emacs/vhdl-mode.html
+;; WWW:         http://www.iis.ee.ethz.ch/~zimmi/emacs/vhdl-mode.html
 
 (defconst vhdl-version "3.33.6"
   "VHDL Mode version number.")
@@ -2892,7 +2893,6 @@ STRING are replaced by `-' and substrings are converted to lower case."
 
 (defun vhdl-mode-abbrev-table-init ()
   "Initialize `vhdl-mode-abbrev-table'."
-  (when vhdl-mode-abbrev-table (clear-abbrev-table vhdl-mode-abbrev-table))
   (define-abbrev-table 'vhdl-mode-abbrev-table
     (append
      (when (memq 'vhdl vhdl-electric-keywords)

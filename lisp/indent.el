@@ -512,7 +512,7 @@ Use \\[edit-tab-stops] to edit them interactively."
 	(let ((opoint (point)))
 	  (delete-horizontal-space t)
 	  (indent-to (car tabs)))
-      (insert ?\ ))))
+      (insert ?\s))))
 
 (defun move-to-tab-stop ()
   "Move point to next defined tab-stop column.
@@ -529,11 +529,11 @@ Use \\[edit-tab-stops] to edit them interactively."
 	    (goto-char before)
 	    ;; If we just added a tab, or moved over one,
 	    ;; delete any superfluous spaces before the old point.
-	    (if (and (eq (preceding-char) ?\ )
+	    (if (and (eq (preceding-char) ?\s)
 		     (eq (following-char) ?\t))
 		(let ((tabend (* (/ (current-column) tab-width) tab-width)))
 		  (while (and (> (current-column) tabend)
-			      (eq (preceding-char) ?\ ))
+			      (eq (preceding-char) ?\s))
 		    (forward-char -1))
 		  (delete-region (point) before))))))))
 

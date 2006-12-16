@@ -6,8 +6,7 @@
 ;;   Registration Number H14PRO021
 
 ;; Keywords: wp, BDF, font, PostScript
-;; Maintainer: Kenichi Handa <handa@etl.go.jp>
-;; Time-stamp: <2003/07/11 21:13:44 vinicius>
+;; Maintainer: Kenichi Handa <handa@m17n.org>
 
 ;; This file is part of GNU Emacs.
 

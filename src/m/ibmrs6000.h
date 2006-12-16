@@ -44,7 +44,7 @@ Boston, MA 02110-1301, USA.  */
 #define IBMR2AIX
 
 /* Use type int rather than a union, to represent Lisp_Object */
-/* This is desirable for most machines.	 */
+/* This is desirable for most machines.  */
 
 #define NO_UNION_TYPE
 
@@ -72,7 +72,7 @@ Boston, MA 02110-1301, USA.  */
 
 /* The data segment in this machine always starts at address 0x20000000.
    An address of data cannot be stored correctly in a Lisp object;
-   we always lose the high bits.  We must tell XPNTR to add them back.	*/
+   we always lose the high bits.  We must tell XPNTR to add them back.  */
 
 #ifndef USG5_4
 #define DATA_SEG_BITS 0x20000000
@@ -86,7 +86,7 @@ Boston, MA 02110-1301, USA.  */
 #define PURE_SEG_BITS 0x30000000
 
 /* Use shared memory.  */
-/* This is turned off because it does not always work.	See etc/AIX.DUMP.  */
+/* This is turned off because it does not always work.  See etc/AIX.DUMP.  */
 /* #define HAVE_SHM */
 #define SHMKEY 5305035		/* used for shared memory code segments */
 #endif /* CANNOT_DUMP */
