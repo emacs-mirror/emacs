@@ -3729,7 +3729,8 @@ for first matching file."
 	  (set-buffer temp-buf)
 	  (setq win (get-buffer-window temp-buf))
 	  (if (pos-visible-in-window-p (point-max) win)
-	      (if (or ido-completion-buffer-all-completions (boundp 'ido-completion-buffer-full))
+	      (if (or ido-completion-buffer-all-completions
+		      (boundp 'ido-completion-buffer-full))
 		  (set-window-start win (point-min))
 		(with-no-warnings
 		  (set (make-local-variable 'ido-completion-buffer-full) t))
@@ -3742,6 +3743,13 @@ for first matching file."
 	(with-output-to-temp-buffer ido-completion-buffer
 	  (let ((completion-list (sort
 				  (cond
+				   (ido-directory-too-big
+				    (setq ido-directory-too-big nil
+					  ido-ignored-list nil
+					  ido-cur-list (ido-all-completions)
+					  ido-rescan t)
+				    (ido-set-matches)
+				    (or ido-matches ido-cur-list))
 				   (ido-use-merged-list
 				    (ido-flatten-merged-list (or ido-matches ido-cur-list)))
 				   ((or full-list ido-completion-buffer-all-completions)
