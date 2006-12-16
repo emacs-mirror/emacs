@@ -173,9 +173,9 @@ default ignores letter-case in file names during completion.
 @vindex w32-get-true-file-attributes
   If the variable @code{w32-get-true-file-attributes} is
 non-@code{nil} (the default), Emacs tries to determine the accurate
-link counts for files.  This option is only useful on the NT family of
-Windows (2K/XP/2K3), and it considerably slows down Dired and other
-features, so use it only on fast machines.
+link counts for files.  This option is only useful on NTFS volumes,
+and it considerably slows down Dired and other features, so use it
+only on fast machines.
 
 @node ls in Lisp
 @section Emulation of @code{ls} on MS-Windows
@@ -234,10 +234,11 @@ that @file{ls-lisp.el} displays.  The value should be a list that
 contains one or more of the symbols @code{links}, @code{uid}, and
 @code{gid}.  @code{links} means display the count of different file
 names that are associated with (a.k.a.@: @dfn{links to}) the file's
-data.  @code{uid} means display the numerical identifier of the user
-who owns the file.  @code{gid} means display the numerical identifier
-of the file owner's group.  The default value is @code{(links uid gid)}
-i.e.@: all the 3 optional attributes are displayed.
+data; this is only useful on NTFS volumes.  @code{uid} means display
+the numerical identifier of the user who owns the file.  @code{gid}
+means display the numerical identifier of the file owner's group.  The
+default value is @code{(links uid gid)} i.e.@: all the 3 optional
+attributes are displayed.
 
 @vindex ls-lisp-emulation
   The variable @code{ls-lisp-emulation} controls the flavour of the
