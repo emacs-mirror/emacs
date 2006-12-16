@@ -1287,6 +1287,7 @@ is used to further constrain the set of candidates.  */)
   tail = alist;
   if (type == 2)
     {
+      alist = check_obarray (alist);
       obsize = XVECTOR (alist)->size;
       bucket = XVECTOR (alist)->contents[index];
     }
