@@ -1,11 +1,15 @@
+2006-12-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuf.c (Ftry_completion): Use `check_obarray' if ALIST is a vector.
+
 2006-12-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs.c (USAGE3): Clarify documentation of --color.
 
 2006-12-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* mac.c (wakeup_from_rne_enabled_p) [TARGET_API_MAC_CARBON]: New
-	variable.
+	* mac.c (wakeup_from_rne_enabled_p) [TARGET_API_MAC_CARBON]:
+	New variable.
 	(ENABLE_WAKEUP_FROM_RNE, DISABLE_WAKEUP_FROM_RNE): New macros.
 	[!MAC_OSX] (select): Use them.
 	[MAC_OSX] (select_and_poll_event, sys_select): Likewise.
@@ -20,7 +24,7 @@
 
 	* macterm.c (mac_query_char_extents) [USE_ATSUI]: Don't call
 	ATSUGetGlyphBounds if not necessary.
-	(Vmac_atsu_font_table) [USE_ATSUI]: Remove Variable.
+	(Vmac_atsu_font_table) [USE_ATSUI]: Remove variable.
 	(syms_of_macterm) [USE_ATSUI]: Don't defvar it.
 	(fm_get_style_from_font, atsu_find_font_from_family_name)
 	(atsu_find_font_family_name, mac_atsu_font_face_attributes)
