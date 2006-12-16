@@ -427,11 +427,13 @@ its normal effect: for example, @kbd{@key{Lwindow}} opens the
 @kindex AltGr @r{(MS-Windows)}
 @cindex AltGr key (MS-Windows)
   The variable @code{w32-recognize-altgr} controls whether the
-combination of the right @key{Alt} and left @key{Ctrl} keys pressed
-together is recognized as the @key{AltGr} key.  The default is
-@code{t}, which means this key combination produces @code{AltGr};
-setting it to @code{nil} causes this key combination to be interpreted
-normally (as the combination of @key{CTRL} and @key{META} modifiers).
+@key{AltGr} key (if it exists on your keyboard), or its equivalent,
+the combination of the right @key{Alt} and left @key{Ctrl} keys
+pressed together, is recognized as the @key{AltGr} key.  The default
+is @code{t}, which means these keys produce @code{AltGr}; setting it
+to @code{nil} causes @key{AltGr} or the equivalent key combination to
+be interpreted as the combination of @key{CTRL} and @key{META}
+modifiers.
 @end ifnottex
 
 @node Windows Mouse
