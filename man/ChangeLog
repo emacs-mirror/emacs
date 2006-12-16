@@ -1,3 +1,7 @@
+2006-12-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (Windows Keyboard): Clarify `w32-recognize-altgr' effect.
+
 2006-12-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* text.texi (HTML Mode): Fix "C-c TAB".
