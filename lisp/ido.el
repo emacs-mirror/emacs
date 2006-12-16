@@ -2589,7 +2589,9 @@ C-x C-f ... C-d  enter dired on current directory."
   "Toggle ignoring files specified with `ido-ignore-files'."
   (interactive)
   (if ido-directory-too-big
-      (setq ido-directory-too-big nil)
+      (progn
+	(message "Reading directory...")
+	(setq ido-directory-too-big nil))
     (setq ido-process-ignore-lists (not ido-process-ignore-lists)))
   (setq ido-text-init ido-text)
   (setq ido-exit 'refresh)
@@ -3744,6 +3746,7 @@ for first matching file."
 	  (let ((completion-list (sort
 				  (cond
 				   (ido-directory-too-big
+				    (message "Reading directory...")
 				    (setq ido-directory-too-big nil
 					  ido-ignored-list nil
 					  ido-cur-list (ido-all-completions)
