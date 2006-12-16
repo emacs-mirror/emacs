@@ -1,5 +1,8 @@
 2006-12-16  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32fns.c (w32-window-exists-p): New function.
+	(syms_of_w32fns): Defsubr it.
+
 	* prefix-args.c [STDC_HEADERS]: Include stdlib.h.
 
 2006-12-16  Juanma Barranquero  <lekktu@gmail.com>

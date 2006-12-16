@@ -1,3 +1,7 @@
+2006-12-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* PROBLEMS: Document problems with rebasing Cygwin DLLs.
+
 2006-12-08  Michael Olson  <mwolson@gnu.org>
 
 	* ERC-NEWS: Note that the list module has been removed.
