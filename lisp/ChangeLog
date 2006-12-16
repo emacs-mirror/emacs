@@ -2,6 +2,8 @@
 
 	* ido.el (ido-completion-help): Build ido-cur-list and ido-matches
 	if ido-directory-too-big is set on entry.
+	(ido-toggle-ignore, ido-completion-help): Print message while
+	reading big directory.
 
 2006-12-15  Richard Stallman  <rms@gnu.org>
 
