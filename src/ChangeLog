@@ -1,3 +1,7 @@
+2006-12-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuf.c (Ftry_completion): Check that obarray buckets are symbols.
+
 2006-12-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (w32-window-exists-p): New function.
