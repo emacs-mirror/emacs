@@ -1,3 +1,7 @@
+2006-12-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* prefix-args.c [STDC_HEADERS]: Include stdlib.h.
+
 2006-12-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* minibuf.c (Ftry_completion): Use `check_obarray' if ALIST is a vector.

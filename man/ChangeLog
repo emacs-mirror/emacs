@@ -1,6 +1,10 @@
 2006-12-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdog.texi (Windows Keyboard): Clarify `w32-recognize-altgr' effect.
+	(Windows Files): `w32-get-true-file-attributes' is only relevant for
+	NTFS volumes.
+	(ls in Lisp): `links' in `ls-lisp-verbosity' is only relevant to NTFS
+	volumes.
 
 2006-12-15  Eli Zaretskii  <eliz@gnu.org>
 
