@@ -89,7 +89,7 @@
     ;; 3.5.2 PROVIDE
     "PROVIDE"
     ;; 3.5.3 PROVIDE_HIDDEN
-    "PROVIDE_HIDEN"
+    "PROVIDE_HIDDEN"
     ;; 3.6 SECTIONS Command
     "SECTIONS" 
     ;; 3.6.4.2 Input Section Wildcard Patterns

@@ -1179,7 +1179,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	  ;; The below code attempts to fontify the case constants in
 	  ;; c-label-face-name, but it cannot catch every case [sic].
 	  ;; And do we want to fontify case constants anyway?
-	  nil
+	  (c-forward-label t match-pos nil)
 ;;;	  (when (c-forward-label t match-pos nil)
 ;;;	    ;; Can't use `c-fontify-types-and-refs' here since we
 ;;;	    ;; should use the label face.

@@ -1,3 +1,20 @@
+2006-12-13  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* legacy-gnus-agent.el: Add Copyright notice.
+
+2006-12-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* gnus-sum.el (gnus-make-thread-indent-array): Fix last change.
+
+2006-12-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* gnus-sum.el (gnus-make-thread-indent-array): New optional arg
+	specifying array size.
+	(gnus-summary-insert-line, gnus-summary-prepare-threads): Regrow indent
+	array if it is too small.
+	(gnus-sort-threads-recursive): Renamed from gnus-sort-thread-1.
+	(gnus-sort-threads-loop): New function.
+
 2006-12-06  Chris Moore  <dooglus@gmail.com>  (tiny change)
 
 	* gnus-sum.el (gnus-sort-threads, gnus-summary-limit-children):

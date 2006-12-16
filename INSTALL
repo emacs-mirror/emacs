@@ -383,6 +383,16 @@ to look in `/bar/mylib' for libraries, pass the -O3 optimization
 switch to the compiler, and link against libfoo.a and libbar.a
 libraries in addition to the standard ones.
 
+For some libraries, like Gtk+, fontconfig and ALSA, `configure' use 
+pkg-config to find where those libraries are installed. 
+If you wan't pkg-config to look in special directories, you have to set 
+the environment variable PKG_CONFIG_PATH to point to the directories 
+where the .pc-files for those libraries are.
+For example:
+
+ PKG_CONFIG_PATH='/usr/local/alsa/lib/pkgconfig:/opt/gtk+-2.8/lib/pkgconfig' \
+   ./configure
+
 The work of `configure' can be done by editing various files in the
 distribution, but using `configure' is easier.  See the section called
 "CONFIGURATION BY HAND" below if you want to do the configuration

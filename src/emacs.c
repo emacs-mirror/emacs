@@ -303,7 +303,7 @@ Display options:\n\
                                   used for debugging Emacs\n\
 --border-color, -bd COLOR       main border color\n\
 --border-width, -bw WIDTH       width of main border\n\
---color, --color=MODE           color mode for character terminals;\n\
+--color, --color=MODE           override color mode for character terminals;\n\
                                   MODE defaults to `auto', and can also\n\
                                   be `never', `auto', `always',\n\
                                   or a mode name like `ansi8'\n\
@@ -360,24 +360,6 @@ void (*fatal_error_signal_hook) P_ ((void));
 pthread_t main_thread;
 #endif
 
-
-#if defined (SIGUSR1) || defined (SIGUSR2)
-SIGTYPE
-handle_user_signal (sig)
-     int sig;
-{
-  struct input_event buf;
-
-  SIGNAL_THREAD_CHECK (sig);
-  bzero (&buf, sizeof buf);
-  buf.kind = USER_SIGNAL_EVENT;
-  buf.frame_or_window = selected_frame;
-
-  kbd_buffer_store_event (&buf);
-  buf.code = sig;
-  kbd_buffer_store_event (&buf);
-}
-#endif
 
 /* Handle bus errors, invalid instruction, etc.  */
 SIGTYPE
@@ -1214,10 +1196,10 @@ main (argc, argv
       signal (SIGILL, fatal_error_signal);
       signal (SIGTRAP, fatal_error_signal);
 #ifdef SIGUSR1
-      signal (SIGUSR1, handle_user_signal);
+      add_user_signal (SIGUSR1, "usr1");
 #endif
 #ifdef SIGUSR2
-      signal (SIGUSR2, handle_user_signal);
+      add_user_signal (SIGUSR2, "usr2");
 #endif
 #ifdef SIGABRT
       signal (SIGABRT, fatal_error_signal);
@@ -2478,7 +2460,8 @@ Special values:
   `ms-dos'      compiled as an MS-DOS application.
   `windows-nt'  compiled as a native W32 application.
   `cygwin'      compiled using the Cygwin library.
-  `vax-vms' or `axp-vms': compiled for a (Open)VMS system.
+  `vax-vms' or
+  `axp-vms'     compiled for a (Open)VMS system.
 Anything else indicates some sort of Unix system.  */);
   Vsystem_type = intern (SYSTEM_TYPE);
 

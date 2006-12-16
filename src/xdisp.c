@@ -13600,8 +13600,11 @@ redisplay_window (window, just_this_one_p)
 
 #endif
 
-      if (redisplay_tool_bar_p)
-        redisplay_tool_bar (f);
+      if (redisplay_tool_bar_p && redisplay_tool_bar (f))
+	{
+	  extern int ignore_mouse_drag_p;
+	  ignore_mouse_drag_p = 1;
+	}
 #endif
     }
 
@@ -17407,9 +17410,9 @@ for details) to use.
 
 Optional second arg FACE specifies the face property to put
 on all characters for which no face is specified.
-t means whatever face the window's mode line currently uses
+The value t means whatever face the window's mode line currently uses
 \(either `mode-line' or `mode-line-inactive', depending).
-nil means the default is no face property.
+A value of nil means the default is no face property.
 If FACE is an integer, the value string has no text properties.
 
 Optional third and fourth args WINDOW and BUFFER specify the window
@@ -22155,7 +22158,7 @@ show_mouse_face (dpyinfo, draw)
     }
 
   /* Change the mouse cursor.  */
-  if (draw == DRAW_NORMAL_TEXT)
+  if (draw == DRAW_NORMAL_TEXT && !EQ (dpyinfo->mouse_face_window, f->tool_bar_window))
     rif->define_frame_cursor (f, FRAME_X_OUTPUT (f)->text_cursor);
   else if (draw == DRAW_MOUSE_FACE)
     rif->define_frame_cursor (f, FRAME_X_OUTPUT (f)->hand_cursor);
@@ -24276,7 +24279,7 @@ Value is a number or a cons (WIDTH-DPI . HEIGHT-DPI).  */);
   truncate_partial_width_windows = 1;
 
   DEFVAR_BOOL ("mode-line-inverse-video", &mode_line_inverse_video,
-    doc: /* nil means display the mode-line/header-line/menu-bar in the default face.
+    doc: /* When nil, display the mode-line/header-line/menu-bar in the default face.
 Any other value means to use the appropriate face, `mode-line',
 `header-line', or `menu' respectively.  */);
   mode_line_inverse_video = 1;

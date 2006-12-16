@@ -1035,6 +1035,7 @@ other client."
     (setq erc-dcc-entry-data entry)
     (setq erc-dcc-unprocessed-output "")
     (setq erc-insert-marker (set-marker (make-marker) (point-max)))
+    (setq erc-input-marker (make-marker))
     (erc-display-prompt buffer (point-max))
     (set-process-buffer proc buffer)
     (add-hook 'kill-buffer-hook 'erc-dcc-chat-buffer-killed nil t)

@@ -1,6 +1,6 @@
 ;;; page.el --- page motion commands for Emacs
 
-;; Copyright (C) 1985, 2002, 2003, 2004, 2005,
+;; Copyright (C) 1985, 2001, 2002, 2003, 2004, 2005,
 ;;   2006 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF

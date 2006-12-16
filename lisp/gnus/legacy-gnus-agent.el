@@ -1,10 +1,39 @@
+;;; gnus-agent.el --- Legacy unplugged support for Gnus
+
+;; Copyright (C) 2004, 2005, 2006 Free Software Foundation, Inc.
+
+;; Author: Kevin Greiner <kgreiner@xpediantsolutions.com>
+;; Keywords: news
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
+
+;;; Commentary:
+
+;; Conversion functions for the Agent.
+
+;;; Code:
 (require 'gnus-start)
 (require 'gnus-util)
 (require 'gnus-range)
 (require 'gnus-agent)
 
-; Oort Gnus v0.08 - This release updated agent to no longer use
-;                   history file and to support a compressed alist.
+;; Oort Gnus v0.08 - This release updated agent to no longer use
+;;                   history file and to support a compressed alist.
 
 (defvar gnus-agent-compressed-agentview-search-only nil)
 
@@ -224,4 +253,7 @@ possible that the hook was persistently saved."
 ;; the .newsrc.eld file.
 (gnus-convert-mark-converter-prompt 'gnus-agent-unhook-expire-days t)
 
-;;; arch-tag: 845c7b8a-88f7-4468-b8d7-94e8fc72cf1a
+(provide 'legacy-gnus-agent)
+
+;; arch-tag: 845c7b8a-88f7-4468-b8d7-94e8fc72cf1a
+;;; legacy-gnus-agent.el ends here

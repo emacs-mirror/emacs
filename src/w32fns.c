@@ -3707,8 +3707,11 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 		   However for top/left sizing we will need to fix the X
 		   and Y positions as well.  */
 
-		lppos->cx -= wdiff;
-		lppos->cy -= hdiff;
+		int cx_mintrack = GetSystemMetrics (SM_CXMINTRACK);
+		int cy_mintrack = GetSystemMetrics (SM_CYMINTRACK);
+
+		lppos->cx = max (lppos->cx - wdiff, cx_mintrack);
+		lppos->cy = max (lppos->cy - hdiff, cy_mintrack);
 
 		if (wp.showCmd != SW_SHOWMAXIMIZED
 		    && (lppos->flags & SWP_NOMOVE) == 0)
@@ -3732,9 +3735,6 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       goto dflt;
 
     case WM_GETMINMAXINFO:
-      /* Hack to correct bug that allows Emacs frames to be resized
-	 below the Minimum Tracking Size.  */
-      ((LPMINMAXINFO) lParam)->ptMinTrackSize.y++;
       /* Hack to allow resizing the Emacs frame above the screen size.
 	 Note that Windows 9x limits coordinates to 16-bits.  */
       ((LPMINMAXINFO) lParam)->ptMaxTrackSize.x = 32767;

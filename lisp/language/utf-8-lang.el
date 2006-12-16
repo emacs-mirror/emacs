@@ -1,6 +1,7 @@
 ;;; utf-8-lang.el --- generic UTF-8 language environment -*- no-byte-compile: t -*-
 
-;; Copyright (C) 2001  Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006
+;;   Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n

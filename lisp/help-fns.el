@@ -400,7 +400,7 @@ face (according to `face-differs-from-default-p')."
 
 ;;;###autoload
 (defun variable-at-point (&optional any-symbol)
-  "Return the bound variable symbol found around point.
+  "Return the bound variable symbol found at or before point.
 Return 0 if there is no such symbol.
 If ANY-SYMBOL is non-nil, don't insist the symbol be bound."
   (or (condition-case ()

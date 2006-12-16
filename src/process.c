@@ -6083,7 +6083,7 @@ If PROCESS is a network process, resume handling of incoming traffic.  */)
 DEFUN ("signal-process", Fsignal_process, Ssignal_process,
        2, 2, "sProcess (name or number): \nnSignal code: ",
        doc: /* Send PROCESS the signal with code SIGCODE.
-PROCESS may also be an integer specifying the process id of the
+PROCESS may also be a number specifying the process id of the
 process to signal; in this case, the process need not be a child of
 this Emacs.
 SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
@@ -6100,7 +6100,7 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
 
   if (FLOATP (process))
     {
-      pid = (pid_t) XFLOAT (process);
+      pid = (pid_t) XFLOAT_DATA (process);
       goto got_it;
     }
 
@@ -6129,7 +6129,7 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
  got_it:
 
 #define parse_signal(NAME, VALUE)		\
-  else if (!strcasecmp (name, NAME))		\
+  else if (!xstricmp (name, NAME))		\
     XSETINT (sigcode, VALUE)
 
   if (INTEGERP (sigcode))
@@ -6141,7 +6141,7 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
       CHECK_SYMBOL (sigcode);
       name = SDATA (SYMBOL_NAME (sigcode));
 
-      if (!strncasecmp(name, "sig", 3))
+      if (!strncmp(name, "SIG", 3) || !strncmp(name, "sig", 3))
 	name += 3;
 
       if (0)

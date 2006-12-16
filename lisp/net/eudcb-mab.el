@@ -3,6 +3,7 @@
 ;; Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@newartisans.com>
+;; Maintainer: FSF
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.

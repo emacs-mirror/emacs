@@ -1280,7 +1280,8 @@ buffer position instead of point are used. */)
 
 DEFUN ("lookup-key", Flookup_key, Slookup_key, 2, 3, 0,
        doc: /* In keymap KEYMAP, look up key sequence KEY.  Return the definition.
-nil means undefined.  See doc of `define-key' for kinds of definitions.
+A value of nil means undefined.  See doc of `define-key'
+for kinds of definitions.
 
 A number as value means KEY is "too long";
 that is, characters or symbols in it except for the last one
@@ -1655,13 +1656,13 @@ specified buffer position instead of point are used.
      are read using the keymaps of the buffer clicked on, not
      the current buffer.  So we may have to switch the buffer
      here. */
-  
+
   if (CONSP (position))
     {
       Lisp_Object window;
-      
+
       window = POSN_WINDOW (position);
-	  
+
       if (WINDOWP (window)
 	  && BUFFERP (XWINDOW (window)->buffer)
 	  && XBUFFER (XWINDOW (window)->buffer) != current_buffer)
@@ -1673,13 +1674,13 @@ specified buffer position instead of point are used.
 	     would not be a problem here, but it is easier to keep
 	     things the same.
 	  */
-	      
+
 	  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
-	  
+
 	  set_buffer_internal (XBUFFER (XWINDOW (window)->buffer));
 	}
     }
-  
+
   if (! NILP (current_kboard->Voverriding_terminal_local_map))
     {
       value = Flookup_key (current_kboard->Voverriding_terminal_local_map,
@@ -1702,8 +1703,8 @@ specified buffer position instead of point are used.
 	: MARKERP (position) ? marker_position (position)
 	: PT;
 
-      local_map = get_local_map (pt, current_buffer, Qlocal_map); 
-      keymap = get_local_map (pt, current_buffer, Qkeymap); 
+      local_map = get_local_map (pt, current_buffer, Qlocal_map);
+      keymap = get_local_map (pt, current_buffer, Qkeymap);
 
       if (CONSP (position))
 	{
@@ -1711,7 +1712,7 @@ specified buffer position instead of point are used.
 
 	  /* For a mouse click, get the local text-property keymap
 	     of the place clicked on, rather than point.  */
-	  
+
 	  if (POSN_INBUFFER_P (position))
 	    {
 	      Lisp_Object pos;
@@ -1722,7 +1723,7 @@ specified buffer position instead of point are used.
 		{
 		  local_map = get_local_map (XINT (pos),
 					     current_buffer, Qlocal_map);
-		  
+
 		  keymap = get_local_map (XINT (pos),
 					  current_buffer, Qkeymap);
 		}
@@ -1733,12 +1734,12 @@ specified buffer position instead of point are used.
 	     string displayed via the `display' property,
 	     consider `local-map' and `keymap' properties of
 	     that string.  */
-	  
+
 	  if (string = POSN_STRING (position),
 	      (CONSP (string) && STRINGP (XCAR (string))))
 	    {
 	      Lisp_Object pos, map;
-	      
+
 	      pos = XCDR (string);
 	      string = XCAR (string);
 	      if (INTEGERP (pos)
@@ -1754,7 +1755,7 @@ specified buffer position instead of point are used.
 		    keymap = map;
 		}
 	    }
-	  
+
 	}
 
       if (! NILP (keymap))

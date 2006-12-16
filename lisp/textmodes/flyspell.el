@@ -1,6 +1,6 @@
 ;;; flyspell.el --- on-the-fly spell checker
 
-;; Copyright (C) 1998, 2000, 2002, 2003, 2004,
+;; Copyright (C) 1998, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Manuel Serrano <Manuel.Serrano@sophia.inria.fr>
@@ -541,6 +541,11 @@ in your .emacs file.
             (member (or ispell-local-dictionary ispell-dictionary)
                     flyspell-dictionaries-that-consider-dash-as-word-delimiter)))))
 
+(defun flyspell-hack-local-variables-hook ()
+  ;; When local variables are loaded, see if the dictionary context
+  ;; has changed.
+  (flyspell-accept-buffer-local-defs 'force))
+
 (defun flyspell-kill-ispell-hook ()
   (setq flyspell-last-buffer nil)
   (dolist (buf (buffer-list))
@@ -579,6 +584,9 @@ in your .emacs file.
   (add-hook 'pre-command-hook (function flyspell-pre-command-hook) t t)
   ;; we bound flyspell action to after-change hook
   (add-hook 'after-change-functions 'flyspell-after-change-function nil t)
+  ;; we bound flyspell action to hack-local-variables-hook
+  (add-hook 'hack-local-variables-hook
+	    (function flyspell-hack-local-variables-hook) t t)
   ;; set flyspell-generic-check-word-predicate based on the major mode
   (let ((mode-predicate (get major-mode 'flyspell-mode-predicate)))
     (if mode-predicate
@@ -684,6 +692,8 @@ not the very same deplacement command."
   (remove-hook 'post-command-hook (function flyspell-post-command-hook) t)
   (remove-hook 'pre-command-hook (function flyspell-pre-command-hook) t)
   (remove-hook 'after-change-functions 'flyspell-after-change-function t)
+  (remove-hook 'hack-local-variables-hook
+	       (function flyspell-hack-local-variables-hook) t)
   ;; we remove all the flyspell hilightings
   (flyspell-delete-all-overlays)
   ;; we have to erase pre cache variables

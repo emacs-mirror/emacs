@@ -760,17 +760,23 @@ Prompts for a URL, defaulting to the URL at or before point.  Variable
   (interactive (browse-url-interactive-arg "URL: "))
   (unless (interactive-p)
     (setq args (or args (list browse-url-new-window-flag))))
-  (if (functionp browse-url-browser-function)
-      (apply browse-url-browser-function url args)
-    ;; The `function' can be an alist; look down it for first match
-    ;; and apply the function (which might be a lambda).
-    (catch 'done
-      (dolist (bf browse-url-browser-function)
-	(when (string-match (car bf) url)
-	  (apply (cdr bf) url args)
-	  (throw 'done t)))
-      (error "No browse-url-browser-function matching URL %s"
-	     url))))
+  (let ((process-environment (copy-sequence process-environment)))
+    ;; When connected to various displays, be careful to use the display of
+    ;; the currently selected frame, rather than the original start display,
+    ;; which may not even exist any more.
+    (if (stringp (frame-parameter (selected-frame) 'display))
+        (setenv "DISPLAY" (frame-parameter (selected-frame) 'display)))
+    (if (functionp browse-url-browser-function)
+        (apply browse-url-browser-function url args)
+      ;; The `function' can be an alist; look down it for first match
+      ;; and apply the function (which might be a lambda).
+      (catch 'done
+        (dolist (bf browse-url-browser-function)
+          (when (string-match (car bf) url)
+            (apply (cdr bf) url args)
+            (throw 'done t)))
+        (error "No browse-url-browser-function matching URL %s"
+               url)))))
 
 ;;;###autoload
 (defun browse-url-at-point (&optional arg)

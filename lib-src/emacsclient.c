@@ -152,16 +152,15 @@ struct option longopts[] =
 /* Message functions. */
 
 #ifdef WINDOWSNT
-/* I first tried to check for STDOUT.  The check did not work,
-   I get a valid handle also in nonconsole apps.
-   Instead I test for console title, which seems to work.  */
 int
-w32_window_app()
+w32_window_app ()
 {
   static int window_app = -1;
   char szTitle[MAX_PATH];
 
   if (window_app < 0)
+    /* Checking for STDOUT does not work; it's a valid handle also in
+       nonconsole apps.  Testing for the console title seems to work. */
     window_app = (GetConsoleTitleA (szTitle, MAX_PATH) == 0);
 
   return window_app;
@@ -298,6 +297,43 @@ Report bugs to bug-gnu-emacs@gnu.org.\n", progname);
 }
 
 
+#ifdef WINDOWSNT
+
+/*
+  execvp wrapper for Windows. Quotes arguments with embedded spaces.
+
+  This is necessary due to the broken implementation of exec* routines in
+  the Microsoft libraries: they concatenate the arguments together without
+  quoting special characters, and pass the result to CreateProcess, with
+  predictably bad results.  By contrast, Posix execvp passes the arguments
+  directly into the argv array of the child process.
+*/
+int
+w32_execvp (path, argv)
+     char *path;
+     char **argv;
+{
+  int i;
+
+  /* Required to allow a .BAT script as alternate editor.  */
+  argv[0] = (char *) alternate_editor;
+
+  for (i = 0; argv[i]; i++)
+    if (strchr (argv[i], ' '))
+      {
+	char *quoted = alloca (strlen (argv[i]) + 3);
+	sprintf (quoted, "\"%s\"", argv[i]);
+	argv[i] = quoted;
+      }
+
+  return execvp (path, argv);
+}
+
+#undef execvp
+#define execvp w32_execvp
+
+#endif /* WINDOWSNT */
+
 /*
   Try to run a different command, or --if no alternate editor is
   defined-- exit with an errorcode.
@@ -310,9 +346,7 @@ fail (argc, argv)
   if (alternate_editor)
     {
       int i = optind - 1;
-#ifdef WINDOWSNT
-      argv[i] = (char *)alternate_editor;
-#endif
+
       execvp (alternate_editor, argv + i);
       message (TRUE, "%s: error executing alternate editor \"%s\"\n",
                progname, alternate_editor);
@@ -463,7 +497,7 @@ file_name_absolute_p (filename)
 }
 
 #ifdef WINDOWSNT
-/* Wrapper to make WSACleanup a cdecl, as required by atexit().  */
+/* Wrapper to make WSACleanup a cdecl, as required by atexit.  */
 void
 __cdecl close_winsock ()
 {
@@ -858,7 +892,7 @@ main (argc, argv)
   /*
     Modern Windows restrict which processes can set the foreground window.
     emacsclient can allow Emacs to grab the focus by calling the function
-    AllowSetForegroundWindow().  Unfortunately, older Windows (W95, W98
+    AllowSetForegroundWindow.  Unfortunately, older Windows (W95, W98
     and NT) lack this function, so we have to check its availability.
    */
   if (emacs_pid)

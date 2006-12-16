@@ -2805,6 +2805,11 @@ Give an empty topic name to go to the Index node itself."
 	(kill-buffer Info-complete-menu-buffer)))))
   (if (equal Info-current-file "dir")
       (error "The Info directory node has no index; use m to select a manual"))
+  ;; Strip leading colon in topic; index format does not allow them.
+  (if (and (stringp topic)
+	   (> (length topic) 0)
+	   (= (aref topic 0) ?:))
+      (setq topic (substring topic 1)))
   (let ((orignode Info-current-node)
 	(pattern (format "\n\\* +\\([^\n]*%s[^\n]*\\):[ \t]+\\([^\n]*\\)\\.\\(?:[ \t\n]*(line +\\([0-9]+\\))\\)?"
 			 (regexp-quote topic)))

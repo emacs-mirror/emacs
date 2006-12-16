@@ -149,31 +149,32 @@ request.")
 	      (concat " (" (or url-system-type url-os-type) ")"))
 	     (t "")))))
 
-(defun url-http-create-request (url &optional ref-url)
-  "Create an HTTP request for URL, referred to by REF-URL."
-  (declare (special proxy-object proxy-info 
+(defun url-http-create-request (&optional ref-url)
+  "Create an HTTP request for `url-http-target-url', referred to by REF-URL."
+  (declare (special proxy-info 
 		    url-http-method url-http-data
 		    url-http-extra-headers))
+  (url-http-debug "url-proxy-object is %s\n" url-proxy-object)
   (let* ((extra-headers)
 	 (request nil)
 	 (no-cache (cdr-safe (assoc "Pragma" url-http-extra-headers)))
-	 (proxy-obj (and (boundp 'proxy-object) proxy-object))
+	 (using-proxy (not (eq url-current-object url-http-target-url)))
 	 (proxy-auth (if (or (cdr-safe (assoc "Proxy-Authorization"
 					      url-http-extra-headers))
-			     (not proxy-obj))
+			     (not using-proxy))
 			 nil
 		       (let ((url-basic-auth-storage
 			      'url-http-proxy-basic-auth-storage))
-			 (url-get-authentication url nil 'any nil))))
-	 (real-fname (concat (url-filename (or proxy-obj url))
-			     (url-recreate-url-attributes (or proxy-obj url))))
-	 (host (url-host (or proxy-obj url)))
+			 (url-get-authentication url-http-target-url nil 'any nil))))
+	 (real-fname (concat (url-filename url-http-target-url)
+			     (url-recreate-url-attributes url-http-target-url)))
+	 (host (url-host url-http-target-url))
 	 (auth (if (cdr-safe (assoc "Authorization" url-http-extra-headers))
 		   nil
 		 (url-get-authentication (or
 					  (and (boundp 'proxy-info)
 					       proxy-info)
-					  url) nil 'any nil))))
+					  url-http-target-url) nil 'any nil))))
     (if (equal "" real-fname)
 	(setq real-fname "/"))
     (setq no-cache (and no-cache (string-match "no-cache" no-cache)))
@@ -222,12 +223,12 @@ request.")
             (list
              ;; The request
              (or url-http-method "GET") " "
-             (if proxy-obj (url-recreate-url proxy-obj) real-fname)
+             (if using-proxy (url-recreate-url url-http-target-url) real-fname)
              " HTTP/" url-http-version "\r\n"
              ;; Version of MIME we speak
              "MIME-Version: 1.0\r\n"
              ;; (maybe) Try to keep the connection open
-             "Connection: " (if (or proxy-obj
+             "Connection: " (if (or using-proxy
                                     (not url-http-attempt-keepalives))
                                 "close" "keep-alive") "\r\n"
                                 ;; HTTP extensions we support
@@ -235,11 +236,11 @@ request.")
                  (format
                   "Extension: %s\r\n" url-extensions-header))
              ;; Who we want to talk to
-             (if (/= (url-port (or proxy-obj url))
+             (if (/= (url-port url-http-target-url)
                      (url-scheme-get-property
-                      (url-type (or proxy-obj url)) 'default-port))
+                      (url-type url-http-target-url) 'default-port))
                  (format
-                  "Host: %s:%d\r\n" host (url-port (or proxy-obj url)))
+                  "Host: %s:%d\r\n" host (url-port url-http-target-url))
                (format "Host: %s\r\n" host))
              ;; Who its from
              (if url-personal-mail-address
@@ -266,11 +267,11 @@ request.")
              auth
              ;; Cookies
              (url-cookie-generate-header-lines host real-fname
-                                               (equal "https" (url-type url)))
+                                               (equal "https" (url-type url-http-target-url)))
              ;; If-modified-since
              (if (and (not no-cache)
                       (member url-http-method '("GET" nil)))
-                 (let ((tm (url-is-cached (or proxy-obj url))))
+                 (let ((tm (url-is-cached url-http-target-url)))
                    (if tm
                        (concat "If-modified-since: "
                                (url-get-normalized-date tm) "\r\n"))))
@@ -1085,8 +1086,7 @@ CBARGS as the arguments."
 		    url-http-chunked-length
 		    url-http-chunked-start
 		    url-http-chunked-counter
-		    url-http-process
-		    proxy-object))
+		    url-http-process))
   (let ((connection (url-http-find-free-connection (url-host url)
 						   (url-port url)))
 	(buffer (generate-new-buffer (format " *http %s:%d*"
@@ -1122,7 +1122,6 @@ CBARGS as the arguments."
 		       url-http-data
 		       url-http-target-url))
 	  (set (make-local-variable var) nil))
-	(make-local-variable 'proxy-object)
 
 	(setq url-http-method (or url-request-method "GET")
 	      url-http-extra-headers url-request-extra-headers
@@ -1134,9 +1133,8 @@ CBARGS as the arguments."
 	      url-callback-function callback
 	      url-callback-arguments cbargs
 	      url-http-after-change-function 'url-http-wait-for-headers-change-function
-	      url-http-target-url (if (boundp 'proxy-object)
-                                      proxy-object
-                                    url-current-object))
+	      url-http-target-url (or url-proxy-object
+				      url-current-object))
 
 	(set-process-buffer connection buffer)
 	(set-process-filter connection 'url-http-generic-filter)
@@ -1151,7 +1149,7 @@ CBARGS as the arguments."
 		   (url-port url)))
 	   (t
 	    (set-process-sentinel connection 'url-http-end-of-document-sentinel)
-	    (process-send-string connection (url-http-create-request url)))))))
+	    (process-send-string connection (url-http-create-request)))))))
     buffer))
 
 (defun url-http-async-sentinel (proc why)
@@ -1162,7 +1160,7 @@ CBARGS as the arguments."
     (cond
      ((string= (substring why 0 4) "open")
       (set-process-sentinel proc 'url-http-end-of-document-sentinel)
-      (process-send-string proc (url-http-create-request url-http-target-url)))
+      (process-send-string proc (url-http-create-request)))
      (t
       (setf (car url-callback-arguments)
 	    (nconc (list :error (list 'error 'connection-failed why

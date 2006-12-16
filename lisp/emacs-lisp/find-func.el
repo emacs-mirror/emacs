@@ -397,7 +397,7 @@ The library where VARIABLE is defined is searched for in FILE or
 
 ;;;###autoload
 (defun find-variable (variable)
-  "Find the definition of the VARIABLE near point.
+  "Find the definition of the VARIABLE at or before point.
 
 Finds the library containing the definition of the variable
 near point (selected by `variable-at-point') in a buffer and

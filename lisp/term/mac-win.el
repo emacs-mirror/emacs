@@ -1,6 +1,6 @@
 ;;; mac-win.el --- parse switches controlling interface with Mac window system -*-coding: utf-8
 
-;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Andrew Choi <akochoi@mac.com>
@@ -82,7 +82,6 @@
 (defvar mac-service-selection)
 (defvar mac-system-script-code)
 (defvar mac-apple-event-map)
-(defvar mac-atsu-font-table)
 (defvar mac-font-panel-mode)
 (defvar mac-ts-active-input-overlay)
 (defvar x-invocation-args)
@@ -1841,7 +1840,8 @@ With numeric ARG, display the font panel if and only if ARG is positive."
   (let* ((ae (mac-event-ae event))
 	 (fm-font-size (mac-ae-number ae "fmsz"))
 	 (atsu-font-id (mac-ae-number ae "auid"))
-	 (attribute-values (gethash atsu-font-id mac-atsu-font-table)))
+	 (attribute-values (and atsu-font-id
+				(mac-atsu-font-face-attributes atsu-font-id))))
     (if fm-font-size
 	(setq attribute-values
 	      `(:height ,(* 10 fm-font-size) ,@attribute-values)))

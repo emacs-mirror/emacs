@@ -10,6 +10,11 @@ known as `erc' is now `erc-open'.
 
 ** Changes and additions to modules
 
+*** Channel lists (erc-list.el)
+
+**** This has been removed from Emacs 22, since a major contributor
+to it has not yet assigned changes.
+
 *** Channel tracking (erc-track.el)
 
 **** Use mouse-face and help-echo for channel names in the mode-line.

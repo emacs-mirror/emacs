@@ -1567,8 +1567,7 @@ mac_do_receive_drag (window, refcon, drag)
     {
       mac_store_drag_event (window, mouse_pos, modifiers, &apple_event);
       AEDisposeDesc (&apple_event);
-      /* Post a harmless event so as to wake up from ReceiveNextEvent.  */
-      mac_post_mouse_moved_event ();
+      mac_wakeup_from_rne ();
       return noErr;
     }
   else
