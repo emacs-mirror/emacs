@@ -52,7 +52,7 @@
   :type '(choice (const :tag "New `--recipient' option" "--recipient")
 		 (const :tag "Old `--remote-user' option" "--remote-user")))
 
-(defcustom pgg-gpg-use-agent nil
+(defcustom pgg-gpg-use-agent t
   "Whether to use gnupg agent for key caching."
   :group 'pgg-gpg
   :type 'boolean)
