@@ -1264,7 +1264,7 @@ set_internal (symbol, newval, buf, bindflag)
 	  XSETCAR (XBUFFER_LOCAL_VALUE (valcontents)->cdr,
 		   tem1);
 
-	  /* Set `buffer' and `frame' slots for thebinding now loaded.  */
+	  /* Set `buffer' and `frame' slots for the binding now loaded.  */
 	  XSETBUFFER (XBUFFER_LOCAL_VALUE (valcontents)->buffer, buf);
 	  XBUFFER_LOCAL_VALUE (valcontents)->frame = selected_frame;
 	}
