@@ -1,5 +1,9 @@
 2006-12-17  Alan Mackenzie  <acm@muc.de>
 
+	* emacs-lisp/lisp.el (beginning-of-defun-raw): Optimise (for
+	speed) the case when open-paren-in-column-0-is-defun-start is nil.
+	Based on code by Martin Rudalics.
+
 	* progmodes/cc-mode.el (c-basic-common-init): don't set
 	open-paren-in-column-0-is-defun-start to nil any more.
 
