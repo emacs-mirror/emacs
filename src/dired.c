@@ -402,6 +402,9 @@ common to all file names in DIRECTORY that start with FILE.
 If there is only one and FILE matches it exactly, returns t.
 Returns nil if DIRECTORY contains no name starting with FILE.
 
+If PREDICATE is non-nil, call PREDICATE with each possible
+completion (in absolute form) and ignore it if PREDICATE returns nil.
+
 This function ignores some of the possible completions as
 determined by the variable `completion-ignored-extensions', which see.  */)
      (file, directory, predicate)
