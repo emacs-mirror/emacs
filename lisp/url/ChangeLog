@@ -1734,9 +1734,14 @@
 
 	* Initial checkin of rewritten URL library.
 
-Local variables:
-coding: utf-8
-add-log-time-zone-rule: t
-End:
+;; Local variables:
+;; coding: utf-8
+;; add-log-time-zone-rule: t
+;; End:
+
+    Copyright (C) 1999, 2001, 2002, 2004, 2005,
+	2006  Free Software Foundation, Inc.
+  Copying and distribution of this file, with or without modification,
+  are permitted provided the copyright notice and this notice are preserved.
 
 ;; arch-tag: ac117078-3091-4533-be93-098162ac2926
