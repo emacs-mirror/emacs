@@ -1,3 +1,9 @@
+2006-12-17  Kim F. Storm  <storm@cua.dk>
+
+	* outline.el (outline-isearch-open-invisible-function): New defvar.
+	(outline-flag-region): Use it if non-nil for isearch-open-invisible
+	overlay property instead of outline-isearch-open-invisible.
+
 2006-12-16  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-completion-help): Build ido-cur-list and ido-matches
