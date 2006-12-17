@@ -1,3 +1,7 @@
+2006-12-17  Glenn Morris  <rgm@gnu.org>
+
+	* abbrevs.texi (Editing Abbrevs): Mention system abbrevs.
+
 2006-12-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdog.texi (Windows Keyboard): Clarify `w32-recognize-altgr' effect.
