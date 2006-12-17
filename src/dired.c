@@ -395,7 +395,7 @@ ID-FORMAT specifies the preferred format of attributes uid and gid, see
 Lisp_Object file_name_completion ();
 
 DEFUN ("file-name-completion", Ffile_name_completion, Sfile_name_completion,
-       2, 2, 0,
+       2, 3, 0,
        doc: /* Complete file name FILE in directory DIRECTORY.
 Returns the longest string
 common to all file names in DIRECTORY that start with FILE.
@@ -404,8 +404,8 @@ Returns nil if DIRECTORY contains no name starting with FILE.
 
 This function ignores some of the possible completions as
 determined by the variable `completion-ignored-extensions', which see.  */)
-     (file, directory)
-     Lisp_Object file, directory;
+     (file, directory, predicate)
+     Lisp_Object file, directory, predicate;
 {
   Lisp_Object handler;
 
@@ -413,15 +413,15 @@ determined by the variable `completion-ignored-extensions', which see.  */)
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (directory, Qfile_name_completion);
   if (!NILP (handler))
-    return call3 (handler, Qfile_name_completion, file, directory);
+    return call4 (handler, Qfile_name_completion, file, directory, predicate);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (file, Qfile_name_completion);
   if (!NILP (handler))
-    return call3 (handler, Qfile_name_completion, file, directory);
+    return call4 (handler, Qfile_name_completion, file, directory, predicate);
 
-  return file_name_completion (file, directory, 0, 0);
+  return file_name_completion (file, directory, 0, 0, predicate);
 }
 
 DEFUN ("file-name-all-completions", Ffile_name_all_completions,
@@ -445,21 +445,25 @@ These are all file names in directory DIRECTORY which begin with FILE.  */)
   if (!NILP (handler))
     return call3 (handler, Qfile_name_all_completions, file, directory);
 
-  return file_name_completion (file, directory, 1, 0);
+  return file_name_completion (file, directory, 1, 0, Qnil);
 }
 
 static int file_name_completion_stat ();
 
 Lisp_Object
-file_name_completion (file, dirname, all_flag, ver_flag)
+file_name_completion (file, dirname, all_flag, ver_flag, predicate)
      Lisp_Object file, dirname;
      int all_flag, ver_flag;
+     Lisp_Object predicate;
 {
   DIR *d;
   int bestmatchsize = 0, skip;
   register int compare, matchsize;
   unsigned char *p1, *p2;
   int matchcount = 0;
+  /* If ALL_FLAG is 1, BESTMATCH is the list of all matches, decoded.
+     If ALL_FLAG is 0, BESTMATCH is either nil
+     or the best match so far, not decoded.  */
   Lisp_Object bestmatch, tem, elt, name;
   Lisp_Object encoded_file;
   Lisp_Object encoded_dir;
@@ -567,8 +571,8 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 #ifndef TRIVIAL_DIRECTORY_ENTRY
 #define TRIVIAL_DIRECTORY_ENTRY(n) (!strcmp (n, ".") || !strcmp (n, ".."))
 #endif
-	      /* "." and ".." are never interesting as completions, but are
-		 actually in the way in a directory contains only one file.  */
+	      /* "." and ".." are never interesting as completions, and are
+		 actually in the way in a directory with only one file.  */
 	      if (!passcount && TRIVIAL_DIRECTORY_ENTRY (dp->d_name))
 		continue;
 	      if (!passcount && len > SCHARS (encoded_file))
@@ -649,30 +653,38 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 		continue;
 	    }
 
-	  /* Update computation of how much all possible completions match */
+	  /* This is a possible completion */
+	  if (directoryp)
+	    {
+	      /* This completion is a directory; make it end with '/' */
+	      name = Ffile_name_as_directory (make_string (dp->d_name, len));
+	    }
+	  else
+	    name = make_string (dp->d_name, len);
+
+	  /* Test the predicate, if any.  */
+
+	  if (!NILP (predicate))
+	    {
+	      Lisp_Object decoded;
+	      decoded = Fexpand_file_name (DECODE_FILE (name), dirname);
+	      if (NILP (call1 (predicate, decoded)))
+		continue;
+	    }
+
+	  /* Suitably record this match.  */
 
 	  matchcount++;
 
-	  if (all_flag || NILP (bestmatch))
+	  if (all_flag)
 	    {
-	      /* This is a possible completion */
-	      if (directoryp)
-		{
-		  /* This completion is a directory; make it end with '/' */
-		  name = Ffile_name_as_directory (make_string (dp->d_name, len));
-		}
-	      else
-		name = make_string (dp->d_name, len);
-	      if (all_flag)
-		{
-		  name = DECODE_FILE (name);
-		  bestmatch = Fcons (name, bestmatch);
-		}
-	      else
-		{
-		  bestmatch = name;
-		  bestmatchsize = SCHARS (name);
-		}
+	      name = DECODE_FILE (name);
+	      bestmatch = Fcons (name, bestmatch);
+	    }
+	  else if (NILP (bestmatch))
+	    {
+	      bestmatch = name;
+	      bestmatchsize = SCHARS (name);
 	    }
 	  else
 	    {
@@ -708,11 +720,7 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 			 == SCHARS (bestmatch)))
 		       && !bcmp (p2, SDATA (encoded_file), SCHARS (encoded_file))
 		       && bcmp (p1, SDATA (encoded_file), SCHARS (encoded_file))))
-		    {
-		      bestmatch = make_string (dp->d_name, len);
-		      if (directoryp)
-			bestmatch = Ffile_name_as_directory (bestmatch);
-		    }
+		    bestmatch = name;
 		}
 
 	      /* If this dirname all matches, see if implicit following
@@ -835,7 +843,7 @@ DEFUN ("file-name-all-versions", Ffile_name_all_versions,
      (file, directory)
      Lisp_Object file, directory;
 {
-  return file_name_completion (file, directory, 1, 1);
+  return file_name_completion (file, directory, 1, 1, Qnil);
 }
 
 DEFUN ("file-version-limit", Ffile_version_limit, Sfile_version_limit, 1, 1, 0,
