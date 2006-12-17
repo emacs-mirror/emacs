@@ -2,6 +2,18 @@
 
 	* url-gw.el (url-gateway-nslookup-program): Doc fix.
 
+2006-12-08  Magnus Henoch  <mange@freemail.hu>
+
+	* url-proxy.el (url-proxy-object): New variable.
+	(url-proxy): Bind it instead of `proxy-object'.
+
+	* url-http.el (url-http-create-request): Remove url argument, use
+	the buffer-local variable `url-http-target-url' instead.  Both
+	callers updated.  Simplify proxy handling.
+	(url-http): Don't make proxy-object buffer local.
+
+	* url.el (url-retrieve-internal): Bind url-proxy-object to nil.
+
 2006-11-26  Magnus Henoch  <mange@freemail.hu>
 
 	* url-http.el (url-http-wait-for-headers-change-function): Use
