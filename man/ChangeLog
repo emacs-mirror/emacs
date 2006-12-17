@@ -1,3 +1,9 @@
+2006-12-17  Alan Mackenzie  <acm@muc.de>
+
+	* programs.texi (Left Margin Paren): Remove the bit which says
+	that CC Mode sets open-paren-in-column-0-is-defun-start to nil.
+	Discuss some of the issues of setting this option to nil.
+
 2006-12-17  Glenn Morris  <rgm@gnu.org>
 
 	* abbrevs.texi (Editing Abbrevs): Mention system abbrevs.
