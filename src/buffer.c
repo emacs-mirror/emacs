@@ -1331,15 +1331,16 @@ See `kill-buffer'."
  */
 DEFUN ("kill-buffer", Fkill_buffer, Skill_buffer, 1, 1, "bKill buffer: ",
        doc: /* Kill the buffer BUFFER.
-The argument may be a buffer or may be the name of a buffer.
-An argument of nil means kill the current buffer.
+The argument may be a buffer or the name of a buffer.
+With a nil argument, kill the current buffer.
 
-Value is t if the buffer is actually killed, nil if user says no.
+Value is t if the buffer is actually killed, nil otherwise.
 
-The value of `kill-buffer-hook' (which may be local to that buffer),
-if not void, is a list of functions to be called, with no arguments,
-before the buffer is actually killed.  The buffer to be killed is current
-when the hook functions are called.
+The functions in `kill-buffer-query-functions' are called with BUFFER as
+the current buffer.  If any of them returns nil, the buffer is not killed.
+
+The hook `kill-buffer-hook' is run before the buffer is actually killed.
+The buffer being killed will be current while the hook is running.
 
 Any processes that have this buffer as the `process-buffer' are killed
 with SIGHUP.  */)
@@ -6015,7 +6016,7 @@ is a member of the list.  */);
   Vinhibit_read_only = Qnil;
 
   DEFVAR_PER_BUFFER ("cursor-type", &current_buffer->cursor_type, Qnil,
-     doc: /* Cursor to use when this buffer is in the selected window.
+		     doc: /* Cursor to use when this buffer is in the selected window.
 Values are interpreted as follows:
 
   t 		  use the cursor specified for the frame
@@ -6040,11 +6041,13 @@ to the default frame line height.  A value of nil means add no extra space.  */)
 
   DEFVAR_PER_BUFFER ("cursor-in-non-selected-windows",
 		     &current_buffer->cursor_in_non_selected_windows, Qnil,
-    doc: /* *Cursor type to display in non-selected windows.
+		     doc: /* *Cursor type to display in non-selected windows.
 The value t means to use hollow box cursor.  See `cursor-type' for other values.  */);
 
   DEFVAR_LISP ("kill-buffer-query-functions", &Vkill_buffer_query_functions,
-	       doc: /* List of functions called with no args to query before killing a buffer.  */);
+	       doc: /* List of functions called with no args to query before killing a buffer.
+The buffer being killed will be current while the functions are running.
+If any of them returns nil, the buffer is not killed.  */);
   Vkill_buffer_query_functions = Qnil;
 
   DEFVAR_LISP ("change-major-mode-hook", &Vchange_major_mode_hook,
