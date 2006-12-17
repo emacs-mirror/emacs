@@ -4548,6 +4548,7 @@ autoloaded when not really necessary.
 *** The function `make-auto-save-file-name' is now handled by file
 name handlers.  This will be exploited for remote files mainly.
 
++++
 *** The function `file-name-completion' accepts an optional argument
 PREDICATE, and rejects completion candidates that don't satisfy PREDICATE.
 
