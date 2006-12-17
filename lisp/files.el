@@ -2141,6 +2141,7 @@ to decide the buffer's major mode.
 
 If FUNCTION is nil, then it is not called.  (That is a way of saying
 \"allow `auto-mode-alist' to decide for these files.\")")
+(put 'magic-mode-alist 'risky-local-variable t)
 
 (defvar magic-mode-regexp-match-limit 4000
   "Upper limit on `magic-mode-alist' regexp matches.")
@@ -3228,6 +3229,12 @@ doesn't exist, it is created."
       (if (string-match (car elt) file)
 	  (setq backup-directory (cdr elt)
 		alist nil)))
+    ;; If backup-directory is relative, it should be relative to the
+    ;; file's directory.  By expanding explicitly here, we avoid
+    ;; depending on default-directory.
+    (if backup-directory
+	(setq backup-directory (expand-file-name backup-directory
+						 (file-name-directory file))))
     (if (and backup-directory (not (file-exists-p backup-directory)))
 	(condition-case nil
 	    (make-directory backup-directory 'parents)
