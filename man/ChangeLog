@@ -1,3 +1,7 @@
+2006-12-17  Sascha Wilde  <wilde@sha-bang.de>
+
+	* pgg.texi: Added short note on gpg-agent to the introduction.
+
 2006-12-17  Alan Mackenzie  <acm@muc.de>
 
 	* programs.texi (Left Margin Paren): Remove the bit which says
