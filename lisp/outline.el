@@ -690,6 +690,11 @@ This puts point at the start of the current subtree, and mark at the end."
     (goto-char beg)))
 
 
+(defvar outline-isearch-open-invisible-function nil
+  "Function called if `isearch' finishes in an invisible overlay.
+The function is called with the overlay as its only argument.
+If nil, `show-entry' is called to reveal the invisible text.")
+
 (put 'outline 'reveal-toggle-invisible 'outline-reveal-toggle-invisible)
 (defun outline-flag-region (from to flag)
   "Hide or show lines from FROM to TO, according to FLAG.
@@ -698,7 +703,9 @@ If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
   (when flag
     (let ((o (make-overlay from to)))
       (overlay-put o 'invisible 'outline)
-      (overlay-put o 'isearch-open-invisible 'outline-isearch-open-invisible)))
+      (overlay-put o 'isearch-open-invisible
+		   (or outline-isearch-open-invisible-function
+		       'outline-isearch-open-invisible))))
   ;; Seems only used by lazy-lock.  I.e. obsolete.
   (run-hooks 'outline-view-change-hook))
 
