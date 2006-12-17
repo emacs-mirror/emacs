@@ -5,6 +5,10 @@
 
 2006-12-17  Richard Stallman  <rms@gnu.org>
 
+	* simple.el (delete-horizontal-space): Use prefix arg.
+
+	* help-fns.el (describe-variable): Improve blank separator lines.
+
 	* files.el (magic-mode-alist): Mark as risky.
 
 	* files.el (make-backup-file-name-1):

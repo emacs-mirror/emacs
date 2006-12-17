@@ -1,5 +1,12 @@
 2006-12-17  Richard Stallman  <rms@gnu.org>
 
+	* loading.texi (Named Features): Explain subfeatures better.
+
+	* customize.texi: Use "option" only for user options.
+	For the keyword values inside defcustom etc, say "keywords".
+	For :options value's elements, say "elements".
+	:group should not be omitted.
+
 	* syntax.texi (Parsing Expressions): Split up node.
 	(Motion via Parsing, Position Parse, Parser State)
 	(Low-Level Parsing, Control Parsing): New subnodes.
