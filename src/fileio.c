@@ -6159,7 +6159,7 @@ DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_inte
   if (NILP (action))
     {
       specdir = Ffile_name_directory (string);
-      val = Ffile_name_completion (name, realdir);
+      val = Ffile_name_completion (name, realdir, Vread_file_name_predicate);
       UNGCPRO;
       if (!STRINGP (val))
 	{
