@@ -531,9 +531,11 @@ that requires a literal mode spec at compile time."
   ;; heuristic that open parens in column 0 are defun starters.  Since
   ;; we have c-state-cache, that heuristic isn't useful and only causes
   ;; trouble, so turn it off.
-  (when (memq 'col-0-paren c-emacs-features)
-    (make-local-variable 'open-paren-in-column-0-is-defun-start)
-    (setq open-paren-in-column-0-is-defun-start nil))
+;; 2006/12/17: This facility is somewhat confused, and doesn't really seem
+;; helpful.  Comment it out for now.
+;;   (when (memq 'col-0-paren c-emacs-features)
+;;     (make-local-variable 'open-paren-in-column-0-is-defun-start)
+;;     (setq open-paren-in-column-0-is-defun-start nil))
 
   (c-clear-found-types)
 
