@@ -726,8 +726,14 @@ The argument @var{feature} must be a symbol.  @code{provide} returns
 @var{feature}.
 
 If provided, @var{subfeatures} should be a list of symbols indicating
-a set of specific subfeatures provided by this version of @var{feature}.
-You can test the presence of a subfeature using @code{featurep}.
+a set of specific subfeatures provided by this version of
+@var{feature}.  You can test the presence of a subfeature using
+@code{featurep}.  The idea of subfeatures is that you use them when a
+package (which is one @var{feature}) is complex enough to make it
+useful to give names to various parts or functionalities of the
+package, which might or might not be loaded, or might or might not be
+present in a given version.  @xref{Network Feature Testing}, for
+an example.
 
 @smallexample
 features
