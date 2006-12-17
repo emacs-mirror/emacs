@@ -575,8 +575,11 @@ it is displayed along with the global value."
                             (documentation-property alias 'variable-documentation))))
               (unless (eq alias variable)
                 (princ (format "\nThis variable is an alias for `%s'.\n" alias)))
+	      (if (or obsolete safe-var)
+		  (terpri))
+
               (when obsolete
-                (princ "\nThis variable is obsolete")
+                (princ "This variable is obsolete")
                 (if (cdr obsolete) (princ (format " since %s" (cdr obsolete))))
                 (princ ";") (terpri)
                 (princ (if (stringp (car obsolete)) (car obsolete)
@@ -587,9 +590,8 @@ it is displayed along with the global value."
 		(princ "if its value\nsatisfies the predicate ")
 		(princ (if (byte-code-function-p safe-var)
 			   "which is byte-compiled expression.\n"
-			 (format "`%s'.\n" safe-var)))
-		(terpri))
-	      (princ "Documentation:\n")
+			 (format "`%s'.\n" safe-var))))
+	      (princ "\nDocumentation:\n")
               (princ (or doc "Not documented as a variable.")))
 	    ;; Make a link to customize if this variable can be customized.
 	    (if (custom-variable-p variable)
