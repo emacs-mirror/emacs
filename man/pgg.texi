@@ -77,7 +77,12 @@ and that you are familiar with its basic functions.
 By default, PGG uses GnuPG, but Pretty Good Privacy version 2 or version
 5 are also supported.  If you are new to such a system, I recommend that
 you should look over the GNU Privacy Handbook (GPH) which is available
-at @uref{http://www.gnupg.org/gph/}.
+at @uref{http://www.gnupg.org/documentation/}.
+
+When using GnuPG the additional use of the gpg-agent (@pxref{Caching
+passphrase}) is highly recommended, as it provides the most secure way
+for input and caching of passphrases.  Please refer to the documentation
+of GnuPG for details on installation and usage.
 
 @node How to use
 @chapter How to use
