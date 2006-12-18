@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.56b
+;; Version: 4.56c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -3238,7 +3238,7 @@ The following commands are available:
 (defsubst org-current-line (&optional pos)
   (save-excursion
     (and pos (goto-char pos))
-    (+ (if (bolp) 1 0) (count-lines (point-min) (point)))))
+    (+ (if (bolp) 1 0) (count-lines 1 (point)))))
 
 (defun org-current-time ()
   "Current time, possibly rounded to `org-time-stamp-rounding-minutes'."
@@ -12375,11 +12375,11 @@ with `org-table-paste-rectangle'."
 	 (rpl (if cut "  " nil)))
     (goto-char beg)
     (org-table-check-inside-data-field)
-    (setq l01 (count-lines (point-min) (point))
+    (setq l01 (org-current-line)
 	  c01 (org-table-current-column))
     (goto-char end)
     (org-table-check-inside-data-field)
-    (setq l02 (count-lines (point-min) (point))
+    (setq l02 (org-current-line)
 	  c02 (org-table-current-column))
     (setq l1 (min l01 l02) l2 (max l01 l02)
 	  c1 (min c01 c02) c2 (max c01 c02))
@@ -12410,7 +12410,7 @@ lines."
     (error "First cut/copy a region to paste!"))
   (org-table-check-inside-data-field)
   (let* ((clip org-table-clip)
-	 (line (count-lines (point-min) (point)))
+	 (line (org-current-line))
 	 (col (org-table-current-column))
 	 (org-enable-table-editor t)
 	 (org-table-automatic-realign nil)
