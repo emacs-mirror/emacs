@@ -56,8 +56,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** kbd_buffer_store_event[_hold] called from outside signal handlers.
 
-** font-lock-defaults = (nil t) is slow?
-
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
