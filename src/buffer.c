@@ -5357,7 +5357,7 @@ This is the same as (default-value 'left-margin).  */);
 
   DEFVAR_LISP_NOPRO ("default-tab-width",
 		     &buffer_defaults.tab_width,
-    doc: /* Default value of `tab-width' for buffers that do not override it.
+		     doc: /* Default value of `tab-width' for buffers that do not override it.
 This is the same as (default-value 'tab-width).  */);
 
   DEFVAR_LISP_NOPRO ("default-case-fold-search",
