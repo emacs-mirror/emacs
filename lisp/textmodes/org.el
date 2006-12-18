@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.56c
+;; Version: 4.56d
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -114,7 +114,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "4.56b"
+(defvar org-version "4.56d"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -3211,6 +3211,9 @@ The following commands are available:
   ;; Paragraphs and auto-filling
   (org-set-autofill-regexps)
   (org-update-radio-target-regexp)
+  ;; Make isearch reveal context after success
+  (org-set-local 'outline-isearch-open-invisible-function
+		 (lambda (&rest ignore) (org-show-context nil t)))
 
   (if (and org-insert-mode-line-in-empty-file
 	   (interactive-p)
@@ -5691,6 +5694,7 @@ When SIBLINGS is non-nil, show all siblings on each hierarchy level."
 	(save-excursion
 	  (and (if heading-p (org-goto-sibling) (outline-next-heading))
 	       (org-flag-heading nil))))
+      (when siblings (org-show-siblings))
       (when hierarchy-p
 	;; show all higher headings, possibly with siblings
 	(save-excursion
@@ -5699,12 +5703,15 @@ When SIBLINGS is non-nil, show all siblings on each hierarchy level."
 			(error nil))
 		      (not (bobp)))
 	    (org-flag-heading nil)
-	    (when siblings
-	      (save-excursion
-		(while (org-goto-sibling) (org-flag-heading nil)))
-	      (save-excursion
-		(while (org-goto-sibling 'previous)
-		  (org-flag-heading nil))))))))))
+	    (when siblings (org-show-siblings))))))))
+
+(defun org-show-siblings ()
+  "Show all siblings of the current headline."
+  (save-excursion
+    (while (org-goto-sibling) (org-flag-heading nil)))
+  (save-excursion
+    (while (org-goto-sibling 'previous)
+      (org-flag-heading nil))))
 
 (defun org-reveal (&optional siblings)
   "Show current entry, hierarchy above it, and the following headline.
