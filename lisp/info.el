@@ -1551,6 +1551,8 @@ PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
 	    (node-regexp "Node: *\\([^,\n]*\\) *[,\n\t]"))
 	(save-excursion
 	  (save-restriction
+	    (or Info-tag-table-marker
+		(error "No Info tags found"))
 	    (if (marker-buffer Info-tag-table-marker)
 		(let ((marker Info-tag-table-marker))
 		  (set-buffer (marker-buffer marker))
