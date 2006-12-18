@@ -53,10 +53,12 @@
   (nth 0 ppss))
 
 (defun syntax-ppss-toplevel-pos (ppss)
-  "Return the last preceding position at toplevel.
-\"At toplevel\" means that it is outside of any syntactic entity:
-outside of any parentheses, or comments, or strings.
-Returns nil iff PPSS itself corresponds to a toplevel position."
+  "Get the latest syntactically outermost position found in a syntactic scan.
+PPSS is a scan state, as returned by `partial-parse-sexp' or `syntax-ppss'.
+An \"outermost position\" means one that it is outside of any syntactic entity:
+outside of any parentheses, comments, or strings encountered in the scan.
+If no such position is recorded in PPSS (because the end of the scan was
+itself at the outermost level), return nil."
   (or (car (nth 9 ppss))
       (nth 8 ppss)))      
 
