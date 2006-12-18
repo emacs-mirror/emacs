@@ -1,3 +1,10 @@
+2006-12-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c [WINDOWSNT] (set_fg, get_wc): New variables.
+	[WINDOWSNT] (w32_find_emacs_process, w32_give_focus): New functions.
+	(main) [WINDOWSNT]: Remove code to release the focus; call
+	w32_give_focus instead.
+
 2006-12-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacsclient.c (w32_execvp): New function; wrapper for `execvp'.
@@ -454,10 +461,9 @@
 
 2005-07-13  Ken Raeburn  <raeburn@gnu.org>
 
-	* pop.c: Don't include des.h (or variants thereof); krb.h will do
-	it.
-	(sendline): Add the \r\n to the line in a temporary buffer, and
-	write it all at once.
+	* pop.c: Don't include des.h (or variants thereof); krb.h will do it.
+	(sendline): Add the \r\n to the line in a temporary buffer, and write
+	it all at once.
 
 2005-07-04  Lute Kamstra  <lute@gnu.org>
 
@@ -497,10 +503,9 @@
 
 2005-02-04  Andreas Schwab  <schwab@suse.de>
 
-	* movemail.c (fatal): Accept third parameter and pass down to
-	error.
-	(pfatal_with_name): Pass error string as format parameter instead
-	of as part of format string.
+	* movemail.c (fatal): Accept third parameter and pass down to error.
+	(pfatal_with_name): Pass error string as format parameter instead of
+	as part of format string.
 	(pfatal_and_delete): Likewise.
 	(main): Adjust call to fatal.
 	(xmalloc): Likewise.
@@ -511,8 +516,7 @@
 
 2004-12-26  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* make-docfile.c: Include stdlib.h even if WINDOWSNT is not
-	defined.
+	* make-docfile.c: Include stdlib.h even if WINDOWSNT is not defined.
 
 2004-12-15  Andreas Schwab  <schwab@suse.de>
 
@@ -578,8 +582,7 @@
 
 2004-05-10  Thien-Thi Nguyen  <ttn@gnu.org>
 
-	* test-distrib.c (main): For failing cases, exit with
-	`EXIT_FAILURE'.
+	* test-distrib.c (main): For failing cases, exit with `EXIT_FAILURE'.
 
 2004-05-08  Jason Rumney  <jasonr@gnu.org>
 
@@ -752,8 +755,7 @@
 
 2003-04-27  Oliver Scholz  <alkibiades@gmx.de>
 
-	* update-game-score.c (read_scores): Fix corruption of scores on
-	read.
+	* update-game-score.c (read_scores): Fix corruption of scores on read.
 
 2003-04-12  Stefan Monnier  <monnier@cs.yale.edu>
 
