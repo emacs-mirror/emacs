@@ -1,3 +1,8 @@
+2006-12-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/syntax.el (syntax-ppss-flush-cache, syntax-ppss):
+	Use syntax-ppss-toplevel-pos.
+
 2006-12-18  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-current-line): Make sure that lines are
@@ -18,7 +23,7 @@
 	speed) the case when open-paren-in-column-0-is-defun-start is nil.
 	Based on code by Martin Rudalics.
 
-	* progmodes/cc-mode.el (c-basic-common-init): don't set
+	* progmodes/cc-mode.el (c-basic-common-init): Don't set
 	open-paren-in-column-0-is-defun-start to nil any more.
 
 2006-12-17  Richard Stallman  <rms@gnu.org>
@@ -41,8 +46,8 @@
 
 	* calendar/icalendar.el (icalendar-version): Increase to "0.14".
 	(icalendar--rris): First try Emacs, then XEmacs.
-	(icalendar--convert-ical-to-diary): Doc fix.  Insert
-	newline at end of target file.
+	(icalendar--convert-ical-to-diary): Doc fix.
+	Insert newline at end of target file.
 
 2006-12-17  Kim F. Storm  <storm@cua.dk>
 
