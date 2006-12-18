@@ -1,3 +1,9 @@
+2006-12-18  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-mode): Show context after isearch.
+	(org-show-siblings): New function.
+	(org-show-context): Use `org-show-siblings'.
+
 2006-12-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/syntax.el (syntax-ppss-flush-cache, syntax-ppss):
