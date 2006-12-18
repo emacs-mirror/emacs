@@ -181,7 +181,7 @@ typedef const struct SrcIdStruct {
 #define BS_DEL(ty, s, i)        BS_DIFF((s), BS_SINGLE(ty, (i)))
 #define BS_SUPER(s1, s2)        (BS_INTER((s1), (s2)) == (s2))
 #define BS_SUB(s1, s2)          BS_SUPER((s2), (s1))
-#define BS_IS_SINGLE(s)         (((s) & ((s)-1)) == 0)
+#define BS_IS_SINGLE(s)         (  ((s) != 0)  &&  (((s) & ((s)-1)) == 0)  )
 #define BS_SYM_DIFF(s1, s2)     ((s1) ^ (s2))
 
 
