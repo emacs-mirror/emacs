@@ -421,7 +421,12 @@ keys are passed to Windows or swallowed by Emacs.  If the value is
 otherwise it is passed to Windows.  The default is @code{t} for both
 of these variables.  Passing each of these keys to Windows produces
 its normal effect: for example, @kbd{@key{Lwindow}} opens the
-@code{Start} menu, etc.
+@code{Start} menu, etc.@footnote{
+Some combinations of the ``Windows'' keys with other keys are caught
+by Windows at low level in a way that Emacs currently cannot prevent.
+For example, @kbd{@key{Lwindow} r} always pops up the Windows
+@samp{Run} dialog.  Customizing the value of
+@code{w32-phantom-key-code} might help in some cases, though.}
 
 @vindex w32-recognize-altgr
 @kindex AltGr @r{(MS-Windows)}
