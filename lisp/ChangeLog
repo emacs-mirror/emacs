@@ -1,3 +1,10 @@
+2006-12-18  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-current-line): Make sure that lines are
+	counted from beginning of buffer.
+	(org-table-copy-region, org-table-paste-rectangle): Make sure that
+	lines are counted from beginning of buffer.
+
 2006-12-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* info.el (Info-build-node-completions): Signal error if tag-table
