@@ -1,5 +1,8 @@
 2006-12-17  Chong Yidong  <cyd@stupidchicken.com>
 
+	* info.el (Info-build-node-completions): Signal error if tag-table
+	marker is not found.
+
 	* pgg-gpg.el (pgg-gpg-use-agent): Default to t.
 
 2006-12-17  Alan Mackenzie  <acm@muc.de>
