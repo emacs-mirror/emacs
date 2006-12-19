@@ -149,8 +149,7 @@ Boston, MA 02110-1301, USA.  */
 #include "atimer.h"
 
 Lisp_Object Qprocessp;
-Lisp_Object Qrun, Qstop;
-extern Lisp_Object Qsignal;
+Lisp_Object Qrun, Qstop, Qsignal;
 Lisp_Object Qopen, Qclosed, Qconnect, Qfailed, Qlisten;
 Lisp_Object Qlocal, Qipv4, Qdatagram;
 #ifdef AF_INET6
@@ -7005,6 +7004,8 @@ syms_of_process ()
   staticpro (&Qrun);
   Qstop = intern ("stop");
   staticpro (&Qstop);
+  Qsignal = intern ("signal");
+  staticpro (&Qsignal);
 
   /* Qexit is already staticpro'd by syms_of_eval; don't staticpro it
      here again.
