@@ -3815,7 +3815,9 @@ there is no longer a shortage of memory.
 
 +++
 ** When Emacs receives a USR1 or USR2 signal, this generates
-input event sequences: [signal usr1] or [signal usr2].
+input events: sigusr1 or sigusr2.  Use special-event-map to
+handle these events.
+
 
 * Lisp Changes in Emacs 22.1
 

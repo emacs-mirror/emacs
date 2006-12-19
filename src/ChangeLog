@@ -1,3 +1,23 @@
+2006-12-19  Kim F. Storm  <storm@cua.dk>
+
+	Rework 2006-12-04 change.  A SIGUSR1 (SIGUSR2) signal now generates
+	a sigusr1 event instead of [signal usr1] sequence, and signal events
+	are now supposed to be handled via special-event-map.
+
+	* keyboard.c (kbd_buffer_store_event_hold): Undo 2006-12-04 change.
+	(make_lispy_event): Don't generate Qsignal prefix for code 0.
+	Abort if signal code is unknown.
+	(store_user_signal_events): Don't make Qsignal prefix (code 0).
+	(Qsignal): Move declaration back to process.c.
+	(syms_of_keyboard): Don't intern or staticpro it here.
+
+	* process.c (Qsignal): Declare here.
+	(syms_of_process): Intern or staticpro it.
+
+	* emacs.c (main): Rename user signals to sigusr1 and sigusr2.
+
+	* .gdbinit: Pass on SIGUSR1 and SIGUSR2 to Emacs.
+
 2006-12-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* buffer.c (syms_of_buffer) <buffer-display-table>:

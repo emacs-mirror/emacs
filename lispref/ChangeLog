@@ -1,3 +1,9 @@
+2006-12-19  Kim F. Storm  <storm@cua.dk>
+
+	* commands.texi (Misc Events): User signals now result in sigusr1
+	and sigusr2 events which are handled through special-event-map.
+	(Special Events): User signals and drag-n-drop are special.
+
 2006-12-17  Richard Stallman  <rms@gnu.org>
 
 	* loading.texi (Named Features): Explain subfeatures better.
