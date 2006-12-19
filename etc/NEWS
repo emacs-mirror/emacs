@@ -5517,10 +5517,16 @@ of multiline constructs so that such constructs get properly recognized.
 ** Major mode mechanism changes:
 
 +++
-*** `set-auto-mode' now gives the interpreter magic line (if present)
-precedence over the file name.  Likewise an `<?xml' or `<!DOCTYPE'
-declaration will give the buffer XML or SGML mode, based on the new
-variable `magic-mode-alist'.
+*** New variable `magic-mode-alist' determines major mode for a file by
+looking the file contents.  It take precedence over `auto-mode-alist'.
+
++++
+*** An interpreter magic line (if present) takes precedence over the
+file name when setting the major mode.
+
++++
+*** XML or SGML major mode is selected when file starts with an `<?xml'
+or `<!DOCTYPE' declaration.
 
 +++
 *** Use the new function `run-mode-hooks' to run the major mode's mode hook.

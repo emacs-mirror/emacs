@@ -1,3 +1,10 @@
+2006-12-19  Kim F. Storm  <storm@cua.dk>
+
+	* files.el (magic-mode-alist): Allow matching file type by
+	calling a function at bob.  Check for image types by calling
+	image-type-from-buffer.  Suggested by Juanma Barranquero.
+	(set-auto-mode): Do it.
+
 2006-12-19  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-methods): Introduce new method `scpc'.
