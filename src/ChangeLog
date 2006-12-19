@@ -1,10 +1,15 @@
+2006-12-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* buffer.c (syms_of_buffer) <buffer-display-table>:
+	<scroll-up-aggressively, scroll-down-aggressively>: Doc fixes.
+
 2006-12-17  Richard Stallman  <rms@gnu.org>
 
 	* fileio.c (Fread_file_name_internal): Pass Vread_file_name_predicate
 	to Ffile_name_completion.
 
 	* dired.c (file_name_completion): New arg PREDICATE.  Some cleanup.
-	(file_name_completion): New arg PREDICATE.
+	(Ffile_name_completion): New arg PREDICATE.
 
 2006-12-17  Juanma Barranquero  <lekktu@gmail.com>
 
