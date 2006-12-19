@@ -35,11 +35,11 @@
 
 (defconst image-type-header-regexps
   '(("\\`/[\t\n\r ]*\\*.*XPM.\\*/" . xpm)
-    ("\\`P[1-6]" . pbm)
+    ("\\`P[1-6][[:space:]]+\\(?:#.*[[:space:]]+\\)*[0-9]+[[:space:]]+[0-9]+" . pbm)
     ("\\`GIF8" . gif)
-    ("\\`\211PNG\r\n" . png)
+    ("\\`\x89PNG\r\n\x1a\n" . png)
     ("\\`[\t\n\r ]*#define" . xbm)
-    ("\\`\\(MM\0\\*\\|II\\*\0\\)" . tiff)
+    ("\\`\\(?:MM\0\\*\\|II\\*\0\\)" . tiff)
     ("\\`[\t\n\r ]*%!PS" . postscript)
     ("\\`\xff\xd8" . (image-jpeg-p . jpeg)))
   "Alist of (REGEXP . IMAGE-TYPE) pairs used to auto-detect image types.
