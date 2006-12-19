@@ -245,6 +245,9 @@ Boston, MA 02110-1301, USA.  */
 /* Define to 1 if you have the `gtk_file_selection_new' function. */
 #undef HAVE_GTK_FILE_SELECTION_NEW
 
+/* Define to 1 if you have the `gtk_main' function. */
+#undef HAVE_GTK_MAIN
+
 /* Define to 1 if GTK can handle more than one display. */
 #undef HAVE_GTK_MULTIDISPLAY
 
