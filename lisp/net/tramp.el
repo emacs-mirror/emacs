@@ -705,7 +705,7 @@ various functions for details."
     (if	(or (fboundp 'password-read)
 	    ;; ssh-agent is running.
 	    (getenv "SSH_AUTH_SOCK")
-	    (getnev "SSH_AGENT_PID"))
+	    (getenv "SSH_AGENT_PID"))
 	"scp"
       "ssh"))
    ;; Fallback.
