@@ -5518,7 +5518,7 @@ of multiline constructs so that such constructs get properly recognized.
 
 +++
 *** New variable `magic-mode-alist' determines major mode for a file by
-looking the file contents.  It take precedence over `auto-mode-alist'.
+looking at the file contents.  It takes precedence over `auto-mode-alist'.
 
 +++
 *** An interpreter magic line (if present) takes precedence over the
