@@ -5679,9 +5679,9 @@ primitives `aref' and `aset' can be used to access elements of a char-table.
 Each of the char-table elements control how to display the corresponding
 text character: the element at index C in the table says how to display
 the character whose code is C.  Each element should be a vector of
-characters or nil.  nil means display the character in the default fashion;
-otherwise, the characters from the vector are delivered to the screen
-instead of the original character.
+characters or nil.  The value nil means display the character in the
+default fashion; otherwise, the characters from the vector are delivered
+to the screen instead of the original character.
 
 For example, (aset buffer-display-table ?X ?Y) will cause Emacs to display
 a capital Y instead of each X character.
@@ -5812,7 +5812,7 @@ cursor type.  */);
 		     &current_buffer->scroll_up_aggressively, Qnil,
 		     doc: /* How far to scroll windows upward.
 If you move point off the bottom, the window scrolls automatically.
-This variable controls how far it scrolls.  nil, the default,
+This variable controls how far it scrolls.  The value nil, the default,
 means scroll to center point.  A fraction means scroll to put point
 that fraction of the window's height from the bottom of the window.
 When the value is 0.0, point goes at the bottom line, which in the simple
@@ -5825,7 +5825,7 @@ between 0.0 and 1.0, inclusive.  */);
 		     &current_buffer->scroll_down_aggressively, Qnil,
 		     doc: /* How far to scroll windows downward.
 If you move point off the top, the window scrolls automatically.
-This variable controls how far it scrolls.  nil, the default,
+This variable controls how far it scrolls.  The value nil, the default,
 means scroll to center point.  A fraction means scroll to put point
 that fraction of the window's height from the top of the window.
 When the value is 0.0, point goes at the top line, which in the simple
