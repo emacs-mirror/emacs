@@ -2115,7 +2115,8 @@ of the regular expression.  The mode is then determined as the mode
 associated with that interpreter in `interpreter-mode-alist'.")
 
 (defvar magic-mode-alist
-  `(;; The < comes before the groups (but the first) to reduce backtracking.
+  `((image-type-from-buffer . image-mode)
+    ;; The < comes before the groups (but the first) to reduce backtracking.
     ;; TODO: UTF-16 <?xml may be preceded by a BOM 0xff 0xfe or 0xfe 0xff.
     ;; We use [ \t\n] instead of `\\s ' to make regex overflow less likely.
     (,(let* ((incomment-re "\\(?:[^-]\\|-[^-]\\)")
@@ -2134,10 +2135,11 @@ associated with that interpreter in `interpreter-mode-alist'.")
     ("%![^V]" . ps-mode)
     ("# xmcd " . conf-unix-mode))
   "Alist of buffer beginnings vs. corresponding major mode functions.
-Each element looks like (REGEXP . FUNCTION).  After visiting a file,
-if REGEXP matches the text at the beginning of the buffer,
-`normal-mode' will call FUNCTION rather than allowing `auto-mode-alist'
-to decide the buffer's major mode.
+Each element looks like (REGEXP . FUNCTION) or (MATCH-FUNCTION . FUNCTION).
+After visiting a file, if REGEXP matches the text at the beginning of the
+buffer, or calling MATCH-FUNCTION returns non-nil, `normal-mode' will
+call FUNCTION rather than allowing `auto-mode-alist' to decide the buffer's
+major mode.
 
 If FUNCTION is nil, then it is not called.  (That is a way of saying
 \"allow `auto-mode-alist' to decide for these files.\")")
@@ -2225,7 +2227,9 @@ only set the major mode, if that would change it."
 						(+ (point-min) magic-mode-regexp-match-limit)))
 			 (assoc-default nil magic-mode-alist
 					(lambda (re dummy)
-					  (looking-at re))))))
+					  (if (functionp re)
+					      (funcall re)
+					    (looking-at re)))))))
 	  (set-auto-mode-0 done keep-mode-if-same)
 	;; Compare the filename against the entries in auto-mode-alist.
 	(if buffer-file-name
