@@ -11462,8 +11462,8 @@ Polling is automatically disabled in all other cases.  */);
 
   DEFVAR_LISP ("double-click-time", &Vdouble_click_time,
 	       doc: /* *Maximum time between mouse clicks to make a double-click.
-Measured in milliseconds.  nil means disable double-click recognition;
-t means double-clicks have no time limit and are detected
+Measured in milliseconds.  The value nil means disable double-click
+recognition; t means double-clicks have no time limit and are detected
 by position only.  */);
   Vdouble_click_time = make_number (500);
 
