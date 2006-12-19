@@ -1,3 +1,9 @@
+2006-12-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* keyboard.c (syms_of_keyboard) <double-click-time>:
+	* mac.c (Fmac_code_convert_string):
+	* search.c (Fsearch_forward): Doc fixes.
+
 2006-12-19  Kim F. Storm  <storm@cua.dk>
 
 	Rework 2006-12-04 change.  A SIGUSR1 (SIGUSR2) signal now generates
