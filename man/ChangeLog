@@ -1,3 +1,7 @@
+2006-12-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (External transfer methods): Describe new method `scpc'.
+
 2006-12-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdog.texi (Windows Keyboard): Add a footnote about "Windows" keys
