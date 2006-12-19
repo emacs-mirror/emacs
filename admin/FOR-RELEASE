@@ -54,7 +54,7 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 ** Need papers from Rubini for his code in t-mouse.el
   Sent instructions.
 
-** kbd_buffer_store_event[_hold] called from outside signal handlers.
+** Cleanup sigusrX handling.
 
 * DOCUMENTATION
 
