@@ -102,17 +102,21 @@ the element has the form @code{(@var{regexp} @var{mode-function}
 @vindex magic-mode-alist
   Sometimes the major mode is determined from the way the file's text
 begins.  The variable @code{magic-mode-alist} controls this.  Its value
-is a list of elements of this form:
+is a list of elements of these forms:
 
 @example
 (@var{regexp} . @var{mode-function})
+(@var{match-function} . @var{mode-function})
 @end example
 
 @noindent
-This looks like an element of @code{auto-mode-alist}, but it doesn't work
-the same: this @var{regexp} is matched against the text at the start
-of the buffer, not against the file name.  @code{magic-mode-alist}
-takes priority over @code{auto-mode-alist}.
+The first form looks like an element of @code{auto-mode-alist}, but it
+doesn't work the same: this @var{regexp} is matched against the text
+at the start of the buffer, not against the file name.  Likewise, the
+second form calls @var{match-function} at the beginning of the buffer,
+and if the function returns non-@code{nil}, the @var{mode-function} is
+called.  @code{magic-mode-alist} takes priority over
+@code{auto-mode-alist}.
 
   You can specify the major mode to use for editing a certain file by
 special text in the first nonblank line of the file.  The
