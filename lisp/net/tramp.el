@@ -326,35 +326,24 @@ This variable defaults to the value of `tramp-encoding-shell'."
               (tramp-login-program        "ssh")
               (tramp-copy-program         "scp")
               (tramp-remote-sh            "/bin/sh")
-              (tramp-login-args           ("-o" "ControlPath=%t.%%r@%%h:%%p"
-					   "-o" "ControlMaster=yes"
-					   "-e" "none"))
-              (tramp-copy-args            ("-o" "ControlPath=%t.%%r@%%h:%%p"
-					   "-o" "ControlMaster=auto"))
+              (tramp-login-args           ("-e" "none"))
+              (tramp-copy-args            nil)
               (tramp-copy-keep-date-arg   "-p")
 	      (tramp-password-end-of-line nil))
      ("scp1"  (tramp-connection-function  tramp-open-connection-rsh)
               (tramp-login-program        "ssh")
               (tramp-copy-program         "scp")
               (tramp-remote-sh            "/bin/sh")
-              (tramp-login-args           ("-o" "ControlPath=%t.%%r@%%h:%%p"
-					   "-o" "ControlMaster=yes"
-					   "-1" "-e" "none"))
-              (tramp-copy-args            ("-o" "ControlPath=%t.%%r@%%h:%%p"
-					   "-o" "ControlMaster=auto"
-					   "-1"))
+              (tramp-login-args           ("-1" "-e" "none"))
+              (tramp-copy-args            ("-1"))
               (tramp-copy-keep-date-arg   "-p")
 	      (tramp-password-end-of-line nil))
      ("scp2"  (tramp-connection-function  tramp-open-connection-rsh)
               (tramp-login-program        "ssh")
               (tramp-copy-program         "scp")
               (tramp-remote-sh            "/bin/sh")
-              (tramp-login-args           ("-o" "ControlPath=%t.%%r@%%h:%%p"
-					   "-o" "ControlMaster=yes"
-					   "-2" "-e" "none"))
-              (tramp-copy-args            ("-o" "ControlPath=%t.%%r@%%h:%%p"
-					   "-o" "ControlMaster=auto"
-					   "-2"))
+              (tramp-login-args           ("-2" "-e" "none"))
+              (tramp-copy-args            ("-2"))
               (tramp-copy-keep-date-arg   "-p")
 	      (tramp-password-end-of-line nil))
      ("scp1_old"
@@ -482,6 +471,17 @@ This variable defaults to the value of `tramp-encoding-shell'."
               (tramp-login-args           nil)
               (tramp-copy-args            nil)
               (tramp-copy-keep-date-arg   nil)
+	      (tramp-password-end-of-line nil))
+     ("scpc"  (tramp-connection-function  tramp-open-connection-rsh)
+              (tramp-login-program        "ssh")
+              (tramp-copy-program         "scp")
+              (tramp-remote-sh            "/bin/sh")
+              (tramp-login-args           ("-o" "ControlPath=%t.%%r@%%h:%%p"
+					   "-o" "ControlMaster=yes"
+					   "-e" "none"))
+              (tramp-copy-args            ("-o" "ControlPath=%t.%%r@%%h:%%p"
+					   "-o" "ControlMaster=auto"))
+              (tramp-copy-keep-date-arg   "-p")
 	      (tramp-password-end-of-line nil))
      ("scpx"  (tramp-connection-function  tramp-open-connection-rsh)
               (tramp-login-program        "ssh")
@@ -684,33 +684,32 @@ various functions for details."
   :type '(repeat (list string function string)))
 
 (defcustom tramp-default-method
-  (or
+  (cond
    ;; An external copy method seems to be preferred, because it is
    ;; much more performant for large files, and it hasn't too serious
    ;; delays for small files.  But it must be ensured that there
-   ;; aren't permanent password queries.  Either the copy method shall
-   ;; reuse other channels (ControlMaster of OpenSSH does it), a
-   ;; password agent like "ssh-agent" or "Pageant" shall run, or the
-   ;; optional password.el package shall be active for password caching.
-   (and (fboundp 'executable-find)
-	;; Check whether PuTTY is installed.
-	(executable-find "pscp")
-	(if (or
-	     ;; password.el is loaded.
-	     (fboundp 'password-read)
-	     ;; Pageant is running.
-	     (and (fboundp 'w32-window-exists-p)
-		  (funcall (symbol-function 'w32-window-exists-p)
-			   "Pageant" "Pageant")))
-	    ;; We know that the password will not be retrieved again.
-	    "pscp"
-	  ;; When "pscp" exists, there is also "plink".
-	  "plink"))
-   ;; Under UNIX, ControlMaster is activated.  This does not work
-   ;; under Cygwin, but ssh-agent must be enabled then anyway due to
-   ;; the pseudo-tty problem of Cygwin's OpenSSH implementation.  So
-   ;; it doesn't hurt to use "scp".
-   "scp")
+   ;; aren't permanent password queries.  Either a password agent like
+   ;; "ssh-agent" or "Pageant" shall run, or the optional password.el
+   ;; package shall be active for password caching.
+   ((executable-find "pscp")
+    ;; PuTTY is installed.
+    (if	(or (fboundp 'password-read)
+	    ;; Pageant is running.
+	    (and (fboundp 'w32-window-exists-p)
+		 (funcall (symbol-function 'w32-window-exists-p)
+			  "Pageant" "Pageant")))
+	"pscp"
+      "plink"))
+   ;; There is an ssh installation.
+   ((executable-find "scp")
+    (if	(or (fboundp 'password-read)
+	    ;; ssh-agent is running.
+	    (getenv "SSH_AUTH_SOCK")
+	    (getnev "SSH_AGENT_PID"))
+	"scp"
+      "ssh"))
+   ;; Fallback.
+   (t "ftp"))
   "*Default method to use for transferring files.
 See `tramp-methods' for possibilities.
 Also see `tramp-default-method-alist'."
