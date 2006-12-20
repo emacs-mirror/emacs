@@ -1,9 +1,8 @@
 2006-12-20  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/ange-ftp.el (ange-ftp-file-name-completion): Handle optional
-	parameter PREDICATE.
-
-	* lisp/tramp.el (tramp-handle-file-name-completion)
+	* net/tramp.el (tramp-default-method): We still need to check for
+	`executable-find', because it is not bound under Emacs 20.
+	(tramp-handle-file-name-completion)
 	(tramp-completion-handle-file-name-completion): Handle optional
 	parameter PREDICATE.
 	(tramp-find-default-method): Add code for default values.
