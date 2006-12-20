@@ -41,7 +41,7 @@
  * configuration file containing regexp definitions for etags.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is $Revision: 17.22 $";
+char pot_etags_version[] = "@(#) pot revision number is 17.23";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -3163,7 +3163,7 @@ static void
 make_C_tag (isfun)
      bool isfun;
 {
-  /* This function should never be called when token.valid is FALSE, but
+  /* This function is never called when token.valid is FALSE, but
      we must protect against invalid input or internal errors. */
   if (!DEBUG && !token.valid)
     return;
@@ -3493,7 +3493,6 @@ C_entries (c_ext, inf)
 				  off += 1;
 				  len -= 1;
 				}
-			      len = toklen;
 			      linebuffer_setlen (&token_name, len);
 			      strncpy (token_name.buffer,
 				       newlb.buffer + off, len);
