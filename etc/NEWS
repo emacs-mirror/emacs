@@ -6,10 +6,10 @@ See the end for copying conditions.
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
 If possible, use M-x report-emacs-bug.
 
-This file is about changes in emacs version 22.
+This file is about changes in Emacs version 22.
 
 See files NEWS.21, NEWS.20, NEWS.19, NEWS.18, and NEWS.1-17 for changes
-in older emacs versions.
+in older Emacs versions.
 
 You can narrow news to a specific version by calling `view-emacs-news'
 with a prefix argument or by typing C-u C-h C-n.
