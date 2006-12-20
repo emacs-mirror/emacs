@@ -137,6 +137,11 @@ Boston, MA 02110-1301, USA.  */
 
 #define HAVE_SOCKETS 1
 
+/* But our select implementation doesn't allow us to make non-blocking
+   connects.  So until that is fixed, this is necessary:  */
+
+#define BROKEN_NON_BLOCKING_CONNECT 1
+
 /* Define this symbol if your system has the functions bcopy, etc. */
 
 #define BSTRING
