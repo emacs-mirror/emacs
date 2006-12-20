@@ -130,8 +130,7 @@
 
 2006-09-03  Diane Murray  <disumu@x3y2z1.net>
 
-	* erc.texi (Getting Started, Connecting): Changed erc-select to
-	erc.
+	* erc.texi (Getting Started, Connecting): Changed erc-select to erc.
 
 2006-09-02  Juri Linkov  <juri@jurta.org>
 
@@ -1392,7 +1391,7 @@
 2004-09-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* e/eterm.ti: Change the strings for smso and rmso.
-	e/eterm: Regenerate.
+	* e/eterm: Regenerate.
 
 2004-09-09  Thien-Thi Nguyen  <ttn@gnu.org>
 
@@ -2535,7 +2534,7 @@
 	* EUROPE: Renamed to ORDERS.EUROPE.  DISTRIB now has a pointer
 	to it at the beginning.
 
-	* OOOONEWS, OOOONEWS: Nuked.  It's version  19 --- nobody needs the
+	* OOOONEWS, OOOONEWS: Nuked.  It's version 19 --- nobody needs the
 	version 15 and 17 files anymore.
 
 	All files marked "Nuked" have actually been moved to =-prefixed

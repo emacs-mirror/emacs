@@ -68,9 +68,9 @@
 	superseding the old separate derived mode in awk-mode.el.
 
 	* progmodes/cc-vars.el, cc-mode-19.el, progmodes/cc-langs.el,
-	progmodes/cc-mode.el, progmodes/cc-defs.el,
-	progmodes/cc-engine.el, progmodes/cc-fonts.el: Changes for the
-	new AWK support.
+	* progmodes/cc-mode.el, progmodes/cc-defs.el,
+	* progmodes/cc-engine.el, progmodes/cc-fonts.el:
+	Changes for the new AWK support.
 
 2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
@@ -101,7 +101,7 @@
 	emacsen that doesn't have it.
 
 	* progmodes/cc-styles.el, progmodes/cc-vars.el,
-	progmodes/cc-cmds.el: Fixes for the syntactic symbols for
+	* progmodes/cc-cmds.el: Fixes for the syntactic symbols for
 	module and composition blocks.
 
 	* progmodes/cc-mode.el (c-basic-common-init):
@@ -122,8 +122,8 @@
 	macros in C99.
 
 	* progmodes/cc-menus.el, progmodes/cc-langs.el,
-	progmodes/cc-engine.el, progmodes/cc-fonts.el,
-	progmodes/cc-cmds.el: Fixed various regexps to use POSIX char
+	* progmodes/cc-engine.el, progmodes/cc-fonts.el,
+	* progmodes/cc-cmds.el: Fixed various regexps to use POSIX char
 	classes when that is supported.
 
 	* progmodes/cc-defs.el (c-alpha, c-alnum, c-digit, c-upper, c-lower):
@@ -170,7 +170,6 @@
 
 	* progmodes/cc-engine.el: Fixes in face handling to cope with
 	doc comments.
-
 	(c-find-decl-spots): More failsafe skipping of comments and
 	strings that only have been partially fontified.
 
@@ -494,7 +493,6 @@
 
 	* progmodes/cc-defs.el (c-(up|down)-list-(forward|backward)):
 	Make the position optional and added docstrings.
-
 	(c-go-(up|down)-list-(forward|backward)): Add variants of the
 	above that move point and return successfulness instead.
 
@@ -668,10 +666,9 @@
 	each (X)Emacs flavor.
 
 	* progmodes/cc-vars.el, progmodes/cc-defs.el,
-	progmodes/cc-engine.el, progmodes/cc-mode.el:
+	* progmodes/cc-engine.el, progmodes/cc-mode.el:
 	Use `lookup-syntax-properties' in XEmacs to control whether the
 	syntax-table property has any effect or not.
-
 	(c-parse-sexp-lookup-properties): New macro that expands to either
 	`parse-sexp-lookup-properties' or `lookup-syntax-properties'.
 
@@ -750,12 +747,12 @@
 	in progmodes/cc-engine.el.
 
 	* progmodes/cc-engine.el, progmodes/cc-fonts.el,
-	progmodes/cc-langs.el: Fix the names on a number of regexp
+	* progmodes/cc-langs.el: Fix the names on a number of regexp
 	language variables to conform to the nomenclature and
 	shortened some names.
 
 	* progmodes/cc-align.el, progmodes/cc-cmds.el,
-	progmodes/cc-fonts.el, progmodes/cc-engine.el
+	* progmodes/cc-fonts.el, progmodes/cc-engine.el
 	(c-syntactic-re-search-forward): Remove the COUNT argument
 	since it's never used.  Add an argument to tell which
 	subexpression whose end should be tested for syntactic
@@ -803,7 +800,6 @@
 	This fixes a performance problem that could occur when
 	`fill-paragraph' is used in font lock mode on a comment at the
 	end of a large class or function.
-
 	(c-state-cache-start): Fix buffer localness.
 
 	* progmodes/cc-langs.el: Updates from the C99 standard (or
@@ -842,7 +838,6 @@
 	table for types: If a name is recognized as a type in a
 	declaration it's added in an obarray to be able to recognize
 	it in other ambiguous declarations.
-
 	(c-remove-ws): New helper function to canonicalize fully
 	qualified identifiers for `c-found-types'.
 
@@ -851,14 +846,12 @@
 
 	* progmodes/cc-align.el (c-lineup-arglist-close-under-paren):
 	Work correctly with nested arglist-cont-nonempty symbols.
-
 	(c-lineup-arglist-operators): New lineup function to line up infix
 	operators under the open paren of the surrounding sexp.
 
 	* progmodes/cc-engine.el (c-forward-syntactic-ws): Fix a bug
 	that could cause an infinite loop if something that looks like
 	a macro begins in the middle of a line.
-
 	(c-parse-state): Fix a bug that could cause `c-state-cache'
 	to contain two conses in sequence when there's an unbalanced
 	open paren in a macro.
@@ -874,13 +867,11 @@
 	string, or a macro.
 
 	* progmodes/cc-align.el, progmodes/cc-cmds.el,
-	progmodes/cc-engine.el (c-forward-single-comment,
-	c-forward-comments, c-backward-single-comment,
-	c-backward-comments): New replacements for `c-forward-comment'
-	that wraps `forward-comment' more efficiently in each of the
-	four different cases it's actually used.  These replacements
-	also treats line continuations as whitespace.
-
+	* progmodes/cc-engine.el (c-forward-single-comment)
+	(c-forward-comments, c-backward-single-comment, c-backward-comments):
+	New replacements for `c-forward-comment' that wraps `forward-comment'
+	more efficiently in each of the four different cases it's actually
+	used.  These replacements also treats line continuations as whitespace.
 	(c-forward-comment): Remove.  The four different cases above
 	are basically different, so it's better to make them into
 	separate functions than choose between them at runtime using
@@ -936,7 +927,7 @@
 	matter.
 
 	* progmodes/cc-align.el, progmodes/cc-defs.el,
-	progmodes/cc-engine.el, progmodes/cc-vars.el
+	* progmodes/cc-engine.el, progmodes/cc-vars.el
 	(c-guess-basic-syntax, c-calc-offset)
 	(c-get-syntactic-indentation, c-syntactic-context):
 	Extend the representation of the syntactic context: Previously it was
@@ -990,16 +981,13 @@
 	position for defun-open in K&R style functions.
 
 	* progmodes/cc-engine.el (c-in-knr-argdecl): Don't trip up on macros.
-
 	(c-search-decl-header-end): Handle C++ template arguments more
 	correctly.
-
 	(c-beginning-of-decl-1): Fix when the declaration is first in a macro.
 
 	* progmodes/cc-engine.el (c-beginning-of-decl-1): Better way
 	to handle protection labels, one which doesn't get confused by
 	inherit colons.
-
 	(c-end-of-decl-1): Don't treat functions that have "class" or
 	"struct" in the return type as classes or structs.
 
@@ -1230,7 +1218,7 @@
 	(tramp-file-name-handler): Do not invoke the old remote-shell handler.
 	(tramp-find-foreign-file-name-handler): Return after first match
 	is found.  From Francis Litterio <franl@world.std.com>.
-	(tramp-handle-file-newer-than-file-p):  `tramp-time-diff' returns
+	(tramp-handle-file-newer-than-file-p): `tramp-time-diff' returns
 	integer, not list.  Do not apply `car' to the return value of
 	`tramp-time-diff'.  Reported by David D. Smith
 	<ultrasoul@ultrasoul.com>.
@@ -1460,7 +1448,7 @@
 
 	* info.el (Info-fontify-node): Don't refill over lines ending in a
 	period; this should fix problems with lists like one in the
-	(emacs)Library Keywords section.
+	"(emacs)Library Keywords" section.
 
 2003-06-05  Markus Rost  <rost@math.ohio-state.edu>
 
@@ -1652,7 +1640,7 @@
 	* textmodes/bibtex.el: Long overdue merge.
 	Don't require `compile' since it seems unnecessary.
 	For all internal variables and functions the docstring comments have
-	been converted into proper docstrings
+	been converted into proper docstrings.
 	(bibtex-maintainer-address, bibtex-maintainer-salutation)
 	(bibtex-version): Remove support for bug reporting.
 	(bibtex-field-delimiters, bibtex-entry-delimiters)
@@ -2012,7 +2000,7 @@
 
 	* international/mule.el (ctext-non-standard-encodings-alist):
 	Rename from non-standard-icccm-encodings-alist.
-	(ctext-non-standard-encodings-regexp): New variable
+	(ctext-non-standard-encodings-regexp): New variable.
 	(ctext-post-read-conversion): Full rewrite.
 	(ctext-non-standard-designations-alist): Rename from
 	non-standard-designations-alist.
@@ -2182,7 +2170,7 @@
 	(gdb-display-source-buffer): Display assembler during execution,
 	when requested.
 	(gud-menu-map): Add a toggle button to menubar for gdb-many-windows.
-	(gdb-many-windows): Define explicitly as a function and a variable
+	(gdb-many-windows): Define explicitly as a function and a variable.
 	(formerly as a minor mode).  These need to be global so layout can
 	be reset from any buffer.
 	(gdb-assembler-mode): Keep fringe outside margin as the overlay
@@ -2674,7 +2662,7 @@
 	(gdb-invalidate-breakpoints-and-assembler): Remove.
 	(gdb-current-address): Remove.
 	(gdb-previous-address): New variable.
-	(gud-until): Extend to work in Assembler buffer
+	(gud-until): Extend to work in Assembler buffer.
 	(gdb-append-to-inferior-io): Select IO buffer when there is output.
 	(gdb-assembler-custom): Try to get line marker (arrow) to display
 	in window.  Correct parsing for OS dependent output syntax of Gdb
@@ -3343,7 +3331,7 @@
 	(ada-prj-find-prj-file): New parameter FILE.
 	(ada-parse-prj-file): Take into account the ADA_INCLUDE_PATH and
 	ADA_OBJECTS_PATH environment variables.  Minor reorganization of the
-	code
+	code.
 	(ada-get-all-references): Add support for GNAT 3.16 cross-references.
 
 	* progmodes/ada-prj.el (ada-prj-add-keymap): Move to ada-mode.el
@@ -3448,7 +3436,7 @@
 	(recentf-sort-directories-ascending)
 	(recentf-sort-directories-descending)
 	(recentf-show-basenames-ascending)
-	(recentf-show-basenames-descending: In-line.   Better code.  Doc fix.
+	(recentf-show-basenames-descending): In-line.  Better code.  Doc fix.
 	(recentf-show-basenames)
 	(recentf-relative-filter): Better code.  Doc fix.
 	(recentf-arrange-by-rule-subfilter): Doc fix.  Improve :set code.
@@ -3768,7 +3756,7 @@
 
 	* font-core.el (font-lock-maximum-size, font-lock-verbose): Remove.
 	(font-lock-multiline, font-lock-fontified, font-lock-set-defaults):
-	Move back to font-lock.el
+	Move back to font-lock.el.
 	(font-lock-default-function): Use font-lock-mode-internal.
 
 	* files.el (auto-mode-alist): Add entries for *.ins and *.dtx.
@@ -3935,7 +3923,7 @@
 	* progmodes/etags.el (select-tags-table-mode-map):
 	Don't create new keymap.  Instead copy from button-buffer-map.
 	Bind push-button to `t' instead of binding
-	select-tags-table-select directly
+	select-tags-table-select directly.
 	(tags-select-tags-table): New button.
 	(select-tags-table): Put a button for each selections.
 
@@ -4070,14 +4058,14 @@
 	* international/utf-16.el (utf-16-le-decode-loop)
 	(utf-16-be-decode-loop): New temporary variables.
 	(ccl-decode-mule-utf-16-le): Use utf-16-le-decode-loop.
-	(ccl-decode-mule-utf-16-be): Use utf-16-be-decode-loop
+	(ccl-decode-mule-utf-16-be): Use utf-16-be-decode-loop.
 	(ccl-decode-mule-utf-16-le-with-signature)
 	(ccl-decode-mule-utf-16-be-with-signature)
 	(ccl-decode-mule-utf-16): New CCL programs.
 	(utf-16-le-encode-loop, utf-16-be-encode-loop): New temporary
 	variables.
 	(ccl-encode-mule-utf-16-le): Use utf-16-le-encode-loop.
-	(ccl-encode-mule-utf-16-be): Use utf-16-be-encode-loop
+	(ccl-encode-mule-utf-16-be): Use utf-16-be-encode-loop.
 	(ccl-encode-mule-utf-16-le-with-signature)
 	(ccl-encode-mule-utf-16-be-with-signature): New CCL programs.
 	(mule-utf-16-post-read-conversion): New function.
@@ -4141,7 +4129,7 @@
 	pt     -> desktop-buffer-point
 	mk     -> desktop-buffer-mark
 	ro     -> desktop-buffer-read-only
-	locals -> desktop-buffer-locals
+	locals -> desktop-buffer-locals.
 	(desktop-buffer-major-mode, desktop-buffer-file-name)
 	(desktop-buffer-name): Delete unused customizable variables.
 	(desktop-buffer-misc): Delete unused variable.
@@ -5354,8 +5342,8 @@
 	of buffer.  This enables recognition of end of HERE-doc "as one types".
 	Require "\n" after trailing tag of HERE-doc.
 	\( made non-quoting outside of string/comment (gdj-contributed).
-	Likewise for \$.  Remove `here-doc-group' text property at start
-	(makes this property reliable).
+	Likewise for \$.  Remove `here-doc-group' text property at
+	start (makes this property reliable).
 	Text property `first-format-line' ==> t.
 	Do not recognize $opt_s and $opt::s as s///.
 	(cperl-after-block-p): Optional arg pre-block to check for a pre-block
@@ -5919,7 +5907,7 @@
 	I did it accidently.  Infinite loop ...
 	(tramp-get-device): `tramp-make-tramp-file-name' must not be
 	called with NIL path.  It fails in case of multi-method.
-	(tramp-file-name-for-operation):  Apply `expand-file-name' for
+	(tramp-file-name-for-operation): Apply `expand-file-name' for
 	relative file names only.  Otherwise there might be problems if
 	the default directory is another Tramp directory as the directory
 	the file is based on.
@@ -5968,7 +5956,7 @@
 
 	* net/tramp-smb.el (tramp-smb-file-name-handler-alist):
 	Apply `tramp-handle-directory-file-name'.
-	(tramp-smb-handle-file-attributes):  Apply `tramp-get-device'.
+	(tramp-smb-handle-file-attributes): Apply `tramp-get-device'.
 	ATIME and CTIME are (0 0) now (= "don't know"), which is more honest.
 	(tramp-smb-handle-make-directory): Use Emacs file name primitives
 	instead of calling tramp-smb-handle-* equivalents directly.
@@ -6072,7 +6060,7 @@
 	regexp subpattern 5)
 	(time-stamp-pattern): Initialize to nil to avoid regexp work in
 	default case.
-	(time-stamp-string): Call set-time-zone-rule instead of setenv
+	(time-stamp-string): Call set-time-zone-rule instead of setenv.
 	(time-stamp-hhmmss): Remove (not needed after all).
 	(time-stamp-month-dd-yyyy, time-stamp-dd/mm/yyyy)
 	(time-stamp-mon-dd-yyyy, time-stamp-dd-mon-yy, time-stamp-yy/mm/dd)
@@ -6735,10 +6723,10 @@
 
 2003-01-13  Markus Rost  <rost@math.ohio-state.edu>
 
-	* cus-dep.el (custom-make-dependencies):  Don't set standard-value
+	* cus-dep.el (custom-make-dependencies): Don't set standard-value
 	and version numbers for variables.  Handle faces.
 
-	* cus-edit.el (customize-changed-options):  Doc addition.  Load the
+	* cus-edit.el (customize-changed-options): Doc addition.  Load the
 	version deps earlier.  Use other tests for groups and variables.
 	Handle faces.
 
@@ -6960,7 +6948,7 @@
 	* cus-edit.el (custom-variable-prompt): Doc change.
 	Use custom-variable-p.
 	(customize-option): Remove search in loaddefs.el.
-	(customize-apropos):  Use custom-variable-p.
+	(customize-apropos): Use custom-variable-p.
 	(custom-save-variables): Use custom-variable-p to detect
 	non-rogue variables.
 
@@ -7972,7 +7960,7 @@
 2002-12-02  Fran,Ag(Bois Pinard  <pinard@iro.umontreal.ca>
 
 	* progmodes/make-mode.el (makefile-font-lock-keywords): Highlight
-	more make keywords:  defined, endef, override, export, unexport
+	more make keywords: defined, endef, override, export, unexport
 	and vpath.
 
 2002-12-02  Dave Love  <fx@gnu.org>
@@ -8028,7 +8016,7 @@
 	Make search for message delimiter case-sensitive.
 
 	* simple.el (yank-window-start): New variable.
-	(yank): Record yank-window-start
+	(yank): Record yank-window-start.
 	(yank-pop): Use yank-window-start.
 
 	* info.el (Info-additional-directory-list): Doc fix.
@@ -9441,8 +9429,8 @@
 	menu pseudo-keys generated by easymenu which are lowercase in
 	Emacs 22.1.
 
-	* progmodes/ada-xref.el
-	(ada-xref-update-project-menu,ada-add-ada-menu): Ditto.
+	* progmodes/ada-xref.el (ada-xref-update-project-menu)
+	(ada-add-ada-menu): Ditto.
 
 2002-10-03  John Paul Wallington  <jpw@shootybangbang.com>
 
@@ -12757,8 +12745,8 @@
 
 	* textmodes/reftex-vars.el (reftex-index-verify-function): New option.
 	(reftex-bibliography-commands): New option.
-	(reftex-toc-split-windows-horizontally): New option
-	(reftex-toc-split-windows-horizontally-fraction): New option
+	(reftex-toc-split-windows-horizontally): New option.
+	(reftex-toc-split-windows-horizontally-fraction): New option.
 	(reftex-include-file-commands): New option.
 	(reftex-cite-format-builtin): Added ?n for nocite.
 
@@ -12767,7 +12755,7 @@
 
 	* textmodes/reftex-toc.el (reftex-re-enlarge):
 	Handle horizontal splitting.
-	(reftex-toc): Handle horizontal splitting
+	(reftex-toc): Handle horizontal splitting.
 	(reftex-last-window-width): New variable.
 
 	* textmodes/reftex-parse.el (reftex-locate-bibliography-files):
@@ -14168,7 +14156,7 @@
 	(comint-send-input, comint-output-filter): Use text properties
 	instead of overlays.
 	(comint-insert-clicked-input): Rewrite to work with text
-	properties as well as overlays
+	properties as well as overlays.
 	(comint-snapshot-last-prompt): Snapshot using text properties.
 	(comint-get-old-input-default, comint-extract-string): Don't copy
 	text properties.
@@ -15672,9 +15660,9 @@
 	(sendmail-send-it): Use it.
 
 	* mail/smtpmail.el (smtpmail-queue-counter): New variable.
-	(smtpmail-send-it): Use it to construct new queue filenames
-	(needed if you send more than one message per second, which is
-	possible if you use Gnus Agent).
+	(smtpmail-send-it): Use it to construct new queue filenames (needed
+	if you send more than one message per second, which is possible if
+	you use Gnus Agent).
 
 	* mail/smtpmail.el (smtpmail-auth-credentials): Support netrc
 	files as well.
@@ -15949,8 +15937,8 @@
 
 2002-04-22  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
-	* international/mule-diag.el (list-input-methods-1): Doc fix
-	(LEIM is now part of the standard distribution).
+	* international/mule-diag.el (list-input-methods-1): Doc fix (LEIM is
+	now part of the standard distribution).
 
 	* tmm.el (tmm-completion-prompt): Doc fix.
 
@@ -15970,7 +15958,7 @@
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* progmodes/cc-align.el, progmodes/cc-engine.el,
-	progmodes/cc-styles.el, progmodes/cc-vars.el
+	* progmodes/cc-styles.el, progmodes/cc-vars.el
 	(c-guess-basic-syntax, c-lineup-topmost-intro-cont):
 	Find correct anchor for statement-cont in top level constructs.
 	Analyze variable initializations in top level constructs as
@@ -16667,9 +16655,9 @@
 	(c-least-enclosing-brace): Added optional second arg to limit
 	the search to before a certain point.
 
-	* progmodes/cc-engine.el (c-guess-basic-syntax): Fixed bug
-	which could cause incorrect analysis if a cached state is used
-	(usually only happens when an electric key reindents a line).
+	* progmodes/cc-engine.el (c-guess-basic-syntax): Fixed bug which
+	could cause incorrect analysis if a cached state is used (usually
+	only happens when an electric key reindents a line).
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
@@ -18376,7 +18364,7 @@
 	(ediff-draw-dir-diffs): Now supports the "C" command in directory
 	difference buffer.
 	(ediff-dir-diff-copy-file): New function that implements copying
-	of files from one Ediff dir to another
+	of files from one Ediff dir to another.
 	(ediff-bury-dir-diffs-buffer): Kills the buffer instead.
 	(ediff-append-custom-diff): Better error msgs.
 
@@ -18734,7 +18722,7 @@
 
 2002-02-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	Support for ICCCM  Extended Segments in X selections:
+	Support for ICCCM Extended Segments in X selections:
 
 	* international/mule-conf.el (ctext-no-compositions): New coding
 	system.
@@ -19059,8 +19047,7 @@
 	`current-language-environment' and `default-input-method' when
 	marked as customized.
 
-	* international/mule-cmds.el
-	(setup-specified-language-environment):
+	* international/mule-cmds.el (setup-specified-language-environment):
 	Mark `current-language-environment' as customized.
 	(set-input-method): Mark `default-input-method' as customized when
 	called interactively.
@@ -19139,7 +19126,7 @@
 2002-02-10  Michael Kifer  <kifer@cs.stonybrook.edu>
 
 	* viper-util.el (viper-read-key-sequence): Fix so it'll read
-	fast key sequences in Emacs native mode
+	fast key sequences in Emacs native mode.
 	(viper-events-to-keys): Delete.
 
 	* viper.el (describe-key, describe-key-briefly): Get rid of
@@ -19149,7 +19136,7 @@
 	Use ediff-has-gutter-support.
 
 	* ediff-util.el (ediff-dispose-of-variant-according-to-user):
-	check if buff is alive.
+	Check if buff is alive.
 
 	* ediff.el: Typo in comment.
 
@@ -19397,7 +19384,7 @@
 	* textmodes/flyspell.el (flyspell-issue-message-flag): New user option.
 	(flyspell-mode-on, flyspell-notify-misspell)
 	(flyspell-small-region, flyspell-external-point-words)
-	(flyspell-large-region): Use it
+	(flyspell-large-region): Use it.
 	(flyspell-before-incorrect-word-string)
 	(flyspell-after-incorrect-word-string): New user options.
 	(make-flyspell-overlay): Use them.
@@ -19883,7 +19870,7 @@
 	Move view-emacs-FAQ from F to C-f.
 	Move view-emacs-problems from P to C-e.
 	Bindings moved here from mule-cmds.el.
-	C-l binding for describe-language-environment deleted
+	C-l binding for describe-language-environment deleted.
 	(help-for-help): Update for all these changes.
 
 	* emacs-lisp/copyright.el (copyright-regexp): Make (C) optional.
@@ -20048,12 +20035,12 @@
 2002-01-07  Michael Kifer  <kifer@cs.stonybrook.edu>
 
 	* viper-init.el (viper-cond-compile-for-xemacs-or-emacs):
-	new macro that replaces viper-emacs-p and viper-xemacs-p in many
+	New macro that replaces viper-emacs-p and viper-xemacs-p in many
 	cases.  Used to reduce the number of warnings.
 
 	* viper-cmd.el: Use viper-cond-compile-for-xemacs-or-emacs.
 	(viper-standard-value): Move here from viper.el.
-	(viper-set-unread-command-events): Move to viper-util.el
+	(viper-set-unread-command-events): Move to viper-util.el.
 	(viper-check-minibuffer-overlay): Make sure
 	viper-minibuffer-overlay is moved to cover the entire input field.
 
@@ -20264,8 +20251,8 @@
 
 2002-01-03  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
-	* time.el (display-time-load-average-threshold): Fix defcustom
-	(add type and group).
+	* time.el (display-time-load-average-threshold):
+	Fix defcustom (add type and group).
 
 	* net/ange-ftp.el (ange-ftp-shell-command): Remove port
 	specification from the hostname.
@@ -21002,7 +20989,7 @@
 
 	* language/ind-util.el: Don't require cl.
 	(indian-glyph-char, indian-glyph-max-char)
-	(indian-char-glyph): Moved from indian.el
+	(indian-char-glyph): Moved from indian.el.
 	(indian--puthash-char, mapthread): Don't quote lambda.
 	(indian--map): New function.
 	(indian--puthash-v, indian--puthash-c, indian--puthash-m)
@@ -21887,8 +21874,8 @@
 
 2001-11-22  Colin Walters  <walters@debian.org>
 
-	* calc/calc-misc.el (calc-info): Don't perform voodoo, just
-	(info "Calc").
+	* calc/calc-misc.el (calc-info): Don't perform voodoo,
+	just (info "Calc").
 	(report-calc-bug): Use reporter.el.
 
 	* mail/reporter.el (reporter-submit-bug-report): Doc fixes.
@@ -23266,7 +23253,7 @@
 	(ps-mode-menu-main): Submenu with options on/off was replaced with
 	a toggle button.
 	(ps-mode, ps-run-mode): Define with `define-derived-mode'
-	(ps-mode): Autoload cookie added on same line as comment
+	(ps-mode): Autoload cookie added on same line as comment.
 	(ps-mode-tabkey, ps-mode-backward-delete-char):
 	(ps-mode-r-balance): Replace `delete-horizontal-space' and
 	`indent-to' with `indent-line-to'
