@@ -56,8 +56,8 @@ $(BLD)/preprep.exe: $(BLD)/preprep.$(O)
 # The resource file.  NT 3.10 requires the use of cvtres; even though
 # it is not necessary on later versions, it is still ok to use it.
 #
-$(TRES):	emacs.rc
-		$(RC) $(RC_OUT)$(BLD)/emacs.res $(ALL_DEPS)
+$(TRES):	emacs.rc $(BLD)
+		$(RC) $(RC_OUT)$(BLD)/emacs.res $<
 
 runemacs:	  $(BLD) $(BLD)/runemacs.exe
 $(BLD)/runemacs.exe: $(BLD)/runemacs.$(O) $(TRES)
@@ -67,12 +67,14 @@ $(BLD)/runemacs.exe: $(BLD)/runemacs.$(O) $(TRES)
 which-sh:
 	@echo Using $(THE_SHELL) as shell.
 
+$(BLD)/addpm.$(O) $(BLD)/ddeclient.$(O) $(BLD)/runemacs.$(O) $(BLD)/cmdproxy.$(O) $(BLD)/addsection.$(O) $(BLD)/preprep.$(O): $(BLD)
+
 #
 # Build emacs
 #
 all:	which-sh $(BLD) $(ALL) maybe-bootstrap all-other-dirs-$(MAKETYPE)
 
-all-other-dirs-nmake:
+all-other-dirs-nmake: addsection
 	cd ..\lib-src
 	$(MAKE) $(MFLAGS) all
 	cd ..\src
@@ -83,7 +85,7 @@ all-other-dirs-nmake:
 	$(MAKE) $(MFLAGS) all
 	cd ..\nt
 
-all-other-dirs-gmake:
+all-other-dirs-gmake: addsection
 	$(MAKE) $(MFLAGS) -C ../lib-src all
 	$(MAKE) $(MFLAGS) -C ../src all
 	$(MAKE) $(MFLAGS) -C ../lisp all
@@ -129,7 +131,7 @@ maybe-bootstrap-SH: doit
 
 bootstrap:	addsection bootstrap-$(MAKETYPE) all
 
-bootstrap-nmake:
+bootstrap-nmake: addsection
 	cd ..\lisp
 	$(MAKE) $(MFLAGS) bootstrap-clean
 	cd ..\src
@@ -145,7 +147,7 @@ bootstrap-nmake:
 	$(MAKE) $(MFLAGS) DOC
 	cd ..\nt
 
-bootstrap-gmake:
+bootstrap-gmake: addsection
 	$(MAKE) $(MFLAGS) -C ../lisp bootstrap-clean
 	$(MAKE) $(MFLAGS) -C ../src clean
 	$(MAKE) $(MFLAGS) -C ../lib-src clean
