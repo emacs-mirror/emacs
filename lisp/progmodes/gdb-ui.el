@@ -79,6 +79,8 @@
 ;; 5) If you wish to call procedures from your program in GDB
 ;;    e.g "call myproc ()", "p mysquare (5)" then use level 2 annotations
 ;;    "gdb --annotate=2 myprog" to keep source buffer/selected frame fixed.
+;; 6) After detaching from a process, clicking on the "GO" icon on toolbar
+;;    (gud-go) sends "continue" to GDB (should be "run").
 
 ;;; Problems with watch expressions, GDB/MI:
 
@@ -874,7 +876,7 @@ type_changed=\".*?\".*?}")
 		  (setq gdb-var-list (delq varchild gdb-var-list)))))))))
 
 (defun gdb-var-delete-children (varnum)
-  "Delete children of variable object point from the speedbar."
+  "Delete children of variable object at point from the speedbar."
   (gdb-enqueue-input
    (list
     (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
@@ -1401,7 +1403,7 @@ sink to `user' in `gdb-stopping', that is fine."
     (if (and gdb-frame-begin gdb-printing)
 	(setq gud-overlay-arrow-position gud-old-arrow)
     ;;Pop up GUD buffer to display current frame when it doesn't have source
-    ;;information i.e id not compiled with -g as with libc routines generally.
+    ;;information i.e if not compiled with -g as with libc routines generally.
     (if gdb-same-frame
 	(gdb-display-gdb-buffer)
       (gdb-frame-gdb-buffer))
@@ -1415,6 +1417,7 @@ sink to `user' in `gdb-stopping', that is fine."
 		  (gdb-invalidate-frames)
 		  'delete))))))
   (unless (member gdb-inferior-status '("exited" "signal"))
+    (setq gdb-active-process t) ;Just for attaching case.
     (setq gdb-inferior-status "stopped")
     (gdb-force-mode-line-update
      (propertize gdb-inferior-status 'face font-lock-warning-face)))
