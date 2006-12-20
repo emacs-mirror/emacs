@@ -48,6 +48,7 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 * BUGS
 
+** document gpg-agent.
 
 ** monnier@iro.umontreal.ca, Nov 24:
   gnus-summary-tick-article-forward doesn't work any more?
@@ -55,6 +56,7 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 ** Need papers from Rubini for his code in t-mouse.el
   Sent instructions.
 
+** Implement new Info index format.
 
 * DOCUMENTATION
 

@@ -87,6 +87,8 @@ current buffer.
   with evaluating definitions of the same function from different files,
   recording which file the latest definition came from.
 
+** make back_comment use syntax-ppss or equivalent.
+
 * Important features:
 
 ** Provide user-friendly ways to list all available font families,
