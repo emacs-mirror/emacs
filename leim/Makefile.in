@@ -203,7 +203,7 @@ changed.misc: ${MISC-SOURCES}
 	  -f batch-miscdic-convert -dir quail ${srcdir}/MISC-DIC; \
 	  echo "changed" > $@
 
-leim-list.el: ${SUBDIRS} ${NON-TIT-MISC} changed.tit changed.misc ${srcdir}/leim-ext.el
+leim-list.el: ${SUBDIRS} ${TIT-MISC} changed.tit changed.misc ${srcdir}/leim-ext.el
 	${RUN-EMACS}  -l ${buildlisppath}/international/quail \
 	  -f batch-byte-compile-if-not-done ${TIT-MISC:.elc=.el}
 	if [ x`(cd ${srcdir} && /bin/pwd)` = x`(/bin/pwd)` ] ; then \
