@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.56d
+;; Version: 4.56e
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -114,7 +114,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "4.56d"
+(defvar org-version "4.56e"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -16285,6 +16285,7 @@ The images can be removed again with \\[org-ctrl-c-ctrl-c]."
 (define-key org-mode-map [(tab)]      'org-cycle)
 (define-key org-mode-map [(control tab)] 'org-force-cycle-archived)
 (define-key org-mode-map [(meta tab)] 'org-complete)
+(define-key org-mode-map "\M-\t" 'org-complete)
 ;; The following line is necessary under Suse GNU/Linux
 (unless (featurep 'xemacs)
   (define-key org-mode-map [S-iso-lefttab]  'org-shifttab))
