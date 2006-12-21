@@ -3818,6 +3818,10 @@ there is no longer a shortage of memory.
 input events: sigusr1 or sigusr2.  Use special-event-map to
 handle these events.
 
++++
+** A hex or octal escape in a string constant forces the string to
+be multibyte or unibyte, respectively.
+
 
 * Lisp Changes in Emacs 22.1
 
