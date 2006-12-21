@@ -1,3 +1,7 @@
+2006-12-21  Kim F. Storm  <storm@cua.dk>
+
+	* w32.c (_sys_wait_accept): Fix handle leak.
+
 2006-12-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* sound.c: Include <alsa/asoundlib.h> if ALSA_SUBDIR_INCLUDE is
