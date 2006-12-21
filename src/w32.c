@@ -3698,10 +3698,10 @@ int _sys_wait_accept (int fd)
     {
       rc = WaitForSingleObject (hEv, INFINITE);
       pfn_WSAEventSelect (SOCK_HANDLE (fd), NULL, 0);
-      pfn_WSACloseEvent (hEv);
       if (rc == WAIT_OBJECT_0)
 	cp->status = STATUS_READ_SUCCEEDED;
     }
+  pfn_WSACloseEvent (hEv);
 
   return cp->status;
 }
@@ -4127,7 +4127,7 @@ BOOL WINAPI shutdown_handler(DWORD type)
       shut_down_emacs (0, 0, Qnil);
     }
 
-  /* Allow other handlers to handle this signal.  */  
+  /* Allow other handlers to handle this signal.  */
   return FALSE;
 }
 
