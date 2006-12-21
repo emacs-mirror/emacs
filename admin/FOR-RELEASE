@@ -58,6 +58,8 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** Implement new Info index format.
 
+** Fix calendar mode line scroll buttons.
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
