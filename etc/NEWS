@@ -681,7 +681,8 @@ when the file name contains wildcard characters.
 
 +++
 *** find-alternate-file replaces the current file with multiple files,
-when the file name contains wildcard characters.
+when the file name contains wildcard characters.  It now asks if you
+wish save your changes and not just offer to kill the buffer.
 
 +++
 *** Auto Compression mode is now enabled by default.
