@@ -246,6 +246,7 @@ info-gmake:
 clean:	clean-other-dirs-$(MAKETYPE)
 	- $(DEL) *~ $(COMPILER_TEMP_FILES)
 	- $(DEL_TREE) $(OBJDIR)
+	- $(DEL) stamp_BLD
 	- $(DEL) ../etc/DOC ../etc/DOC-X
 
 clean-other-dirs-nmake:

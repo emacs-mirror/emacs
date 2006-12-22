@@ -329,6 +329,7 @@ clean:
 		- $(DEL) ctags.c
 		- $(DEL) getopt.h
 		- $(DEL_TREE) $(OBJDIR)
+		- $(DEL) stamp_BLD
 
 cleanall:	clean
 		- $(DEL_TREE) obj
