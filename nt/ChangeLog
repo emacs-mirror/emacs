@@ -1,13 +1,29 @@
+2006-12-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* gmake.defs (stamp_BLD): Rename from $(BLD).  Create a file
+	stamp_BLD after creating the $(BLD) directory.
+
+	* nmake.defs (stamp_BLD): Rename from $(BLD).  Create a file
+	stamp_BLD after creating the $(BLD) directory.
+
+	* makefile.w32-in (addpm, ddeclient, cmdproxy, addsection)
+	(preprep, $(TRES), runemacs)
+	($(BLD)/addpm.$(O), $(BLD)/ddeclient.$(O), $(BLD)/runemacs.$(O))
+	($(BLD)/cmdproxy.$(O), (BLD)/addsection.$(O), $(BLD)/preprep.$(O)):
+	Depend on stamp_BLD instead of on $(BLD).
+	(XMFLAGS): New macro.
+	(all-other-dirs-nmake, all-other-dirs-gmake, recompile-nmake)
+	(recompile-gmake, bootstrap-gmake, bootstrap-clean-gmake)
+	(install-other-dirs-gmake, info-gmake, clean-other-dirs-gmake)
+	(cleanall-other-dirs-gmake): Pass $(XMFLAGS) to sub-Make.
+
 2006-12-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in ($(TRES)): Depend on $(BLD).  Use $< instead of
 	$(ALL_DEPS).
-	($(BLD)/addpm.$(O):
-	$(BLD)/ddeclient.$(O):
-	$(BLD)/runemacs.$(O):
-	$(BLD)/cmdproxy.$(O):
-	$(BLD)/addsection.$(O):
-	$(BLD)/preprep.$(O)): New dependency on $(BLD).
+	($(BLD)/addpm.$(O), $(BLD)/ddeclient.$(O), $(BLD)/runemacs.$(O)
+	($(BLD)/cmdproxy.$(O), $(BLD)/addsection.$(O), $(BLD)/preprep.$(O)):
+	New dependency on $(BLD).
 	(all-other-dirs-nmake, all-other-dirs-gmake, bootstrap-nmake)
 	(bootstrap-gmake): Depend on addsection.
 
