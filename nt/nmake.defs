@@ -148,8 +148,9 @@ OBJDIR          = obj-spd
 !endif
 $(OBJDIR):;	-mkdir $(OBJDIR)
 BLD             = $(OBJDIR)/$(ARCH)
-$(BLD):         $(OBJDIR)
+stamp_BLD:      $(OBJDIR)
 		-mkdir "$(BLD)"
+		echo $(BLD) > $@
 
 COMPILER_TEMP_FILES = *.pdb
 
