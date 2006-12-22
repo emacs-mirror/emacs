@@ -135,7 +135,8 @@ maybe-bootstrap-SH: doit
 	  exit -1; \
 	fi
 
-bootstrap:	addsection bootstrap-$(MAKETYPE) all
+bootstrap:	addsection bootstrap-$(MAKETYPE)
+	$(MAKE) $(MFLAGS) $(XMFLAGS) all
 
 bootstrap-nmake: addsection
 	cd ..\lisp
