@@ -1,3 +1,8 @@
+2006-12-22  Ben North  <ben@redfrontdoor.org>  (tiny change)
+
+	* outline.el (outline-next-visible-heading): Fix the case with a
+	header at end-of-file with no final newline.
+
 2006-12-22  Robert Thorpe  <rthorpe@realworldtech.com>  (tiny change)
 
 	* indent.el (tab-always-indent): Doc fix.
