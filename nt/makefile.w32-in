@@ -157,7 +157,7 @@ bootstrap-gmake: addsection
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lisp bootstrap-clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src clean
-	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src bootstrap
+	$(MAKE) $(MFLAGS) $(XMFLAGS) XMFLAGS="$(XMFLAGS)" -C ../src bootstrap
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src bootstrap-clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lisp bootstrap
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src DOC
