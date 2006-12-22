@@ -8,6 +8,7 @@
 	only issued once per changed key.
 	(tutorial--remove-remarks): Delete unused code-path.
 	(lang-strings): Remove extraneous formatting.
+	(tutorial--save-tutorial): Prompt before saving tutorial state.
 
 2006-12-21  Chong Yidong  <cyd@stupidchicken.com>
 
