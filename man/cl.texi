@@ -4086,7 +4086,7 @@ accepts a @code{:key} argument which is used to preprocess data
 fed to the @var{predicate} function.  For example,
 
 @example
-(setq data (sort data 'string-lessp :key 'downcase))
+(setq data (sort* data 'string-lessp :key 'downcase))
 @end example
 
 @noindent
