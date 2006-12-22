@@ -1,5 +1,8 @@
 2006-12-22  Chong Yidong  <cyd@stupidchicken.com>
 
+	* info.el (Info-fontify-maximum-menu-size): Bump to 1000000.
+	(Info-fontify-node): Do fontify indices.
+
 	* tutorial.el (tutorial--detailed-help): Remove unnecessary link
 	to the Emacs Lisp reference manual.
 	(tutorial--tab-map): Remove.  All callers changed.
