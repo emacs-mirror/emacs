@@ -27,27 +27,29 @@ ALL		= addpm ddeclient runemacs cmdproxy addsection preprep
 
 TRES		= $(BLD)/emacs.res
 
-addpm:		  $(BLD) $(BLD)/addpm.exe
+XMFLAGS		=
+
+addpm:		  stamp_BLD $(BLD)/addpm.exe
 $(BLD)/addpm.exe: $(BLD)/addpm.$(O)
 		  $(LINK) $(LINK_OUT)$@ \
 		  $(LINK_FLAGS) $(ALL_DEPS) $(BASE_LIBS) $(ADVAPI32) $(USER32)
 
-ddeclient:	  $(BLD) $(BLD)/ddeclient.exe
+ddeclient:	  stamp_BLD $(BLD)/ddeclient.exe
 $(BLD)/ddeclient.exe: $(BLD)/ddeclient.$(O)
 		  $(LINK) $(LINK_OUT)$@ \
 		  $(LINK_FLAGS) $(ALL_DEPS) $(BASE_LIBS) $(ADVAPI32) $(USER32)
 
-cmdproxy:	  $(BLD) $(BLD)/cmdproxy.exe
+cmdproxy:	  stamp_BLD $(BLD)/cmdproxy.exe
 $(BLD)/cmdproxy.exe: $(BLD)/cmdproxy.$(O)
 		  $(LINK) $(LINK_OUT)$@ \
 		  $(LINK_FLAGS) $(ALL_DEPS) $(BASE_LIBS) $(USER32)
 
-addsection:	  $(BLD) $(BLD)/addsection.exe
+addsection:	  stamp_BLD $(BLD)/addsection.exe
 $(BLD)/addsection.exe: $(BLD)/addsection.$(O)
 		  $(LINK) $(LINK_OUT)$@ \
 		  $(LINK_FLAGS) $(ALL_DEPS) $(BASE_LIBS) $(USER32)
 
-preprep:	  $(BLD) $(BLD)/preprep.exe
+preprep:	  stamp_BLD $(BLD)/preprep.exe
 $(BLD)/preprep.exe: $(BLD)/preprep.$(O)
 		  $(LINK) $(LINK_OUT)$@ \
 		  $(LINK_FLAGS) $(ALL_DEPS) $(BASE_LIBS)
@@ -56,10 +58,10 @@ $(BLD)/preprep.exe: $(BLD)/preprep.$(O)
 # The resource file.  NT 3.10 requires the use of cvtres; even though
 # it is not necessary on later versions, it is still ok to use it.
 #
-$(TRES):	emacs.rc $(BLD)
+$(TRES):	emacs.rc stamp_BLD
 		$(RC) $(RC_OUT)$(BLD)/emacs.res $<
 
-runemacs:	  $(BLD) $(BLD)/runemacs.exe
+runemacs:	  stamp_BLD $(BLD)/runemacs.exe
 $(BLD)/runemacs.exe: $(BLD)/runemacs.$(O) $(TRES)
 		  $(LINK) $(LINK_OUT)$@ $(SUBSYSTEM_WINDOWS) \
 		  $(LINK_FLAGS) $(ALL_DEPS) $(BASE_LIBS) $(ADVAPI32) $(USER32)
@@ -67,39 +69,43 @@ $(BLD)/runemacs.exe: $(BLD)/runemacs.$(O) $(TRES)
 which-sh:
 	@echo Using $(THE_SHELL) as shell.
 
-$(BLD)/addpm.$(O) $(BLD)/ddeclient.$(O) $(BLD)/runemacs.$(O) $(BLD)/cmdproxy.$(O) $(BLD)/addsection.$(O) $(BLD)/preprep.$(O): $(BLD)
+# These depend on stamp_BLD to make sure the $(BLD) directory is created
+# before the compilation begins, even if Make runs several commands
+# in parallel under "make -j".
+#
+$(BLD)/addpm.$(O) $(BLD)/ddeclient.$(O) $(BLD)/runemacs.$(O) $(BLD)/cmdproxy.$(O) $(BLD)/addsection.$(O) $(BLD)/preprep.$(O): stamp_BLD
 
 #
 # Build emacs
 #
-all:	which-sh $(BLD) $(ALL) maybe-bootstrap all-other-dirs-$(MAKETYPE)
+all:	which-sh stamp_BLD $(ALL) maybe-bootstrap all-other-dirs-$(MAKETYPE)
 
 all-other-dirs-nmake: addsection
 	cd ..\lib-src
-	$(MAKE) $(MFLAGS) all
+	$(MAKE) $(MFLAGS) $(XMFLAGS) all
 	cd ..\src
-	$(MAKE) $(MFLAGS) all
+	$(MAKE) $(MFLAGS) $(XMFLAGS) all
 	cd ..\lisp
-	$(MAKE) $(MFLAGS) all
+	$(MAKE) $(MFLAGS) $(XMFLAGS) all
 	cd ..\leim
-	$(MAKE) $(MFLAGS) all
+	$(MAKE) $(MFLAGS) $(XMFLAGS) all
 	cd ..\nt
 
 all-other-dirs-gmake: addsection
-	$(MAKE) $(MFLAGS) -C ../lib-src all
-	$(MAKE) $(MFLAGS) -C ../src all
-	$(MAKE) $(MFLAGS) -C ../lisp all
-	$(MAKE) $(MFLAGS) -C ../leim all
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src all
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src all
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lisp all
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../leim all
 
 recompile:	recompile-$(MAKETYPE)
 
 recompile-nmake:
 	cd ..\lisp
-	$(MAKE) $(MFLAGS) recompile
+	$(MAKE) $(MFLAGS) $(XMFLAGS) recompile
 	cd ..\nt
 
 recompile-gmake:
-	$(MAKE) $(MFLAGS) -C ../lisp recompile
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lisp recompile
 
 #### Bootstrapping.
 
@@ -148,13 +154,13 @@ bootstrap-nmake: addsection
 	cd ..\nt
 
 bootstrap-gmake: addsection
-	$(MAKE) $(MFLAGS) -C ../lisp bootstrap-clean
-	$(MAKE) $(MFLAGS) -C ../src clean
-	$(MAKE) $(MFLAGS) -C ../lib-src clean
-	$(MAKE) $(MFLAGS) -C ../src bootstrap
-	$(MAKE) $(MFLAGS) -C ../src bootstrap-clean
-	$(MAKE) $(MFLAGS) -C ../lisp bootstrap
-	$(MAKE) $(MFLAGS) -C ../lib-src DOC
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lisp bootstrap-clean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src clean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src clean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src bootstrap
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src bootstrap-clean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lisp bootstrap
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src DOC
 
 bootstrap-clean: bootstrap-clean-$(MAKETYPE)
 
@@ -165,8 +171,8 @@ bootstrap-clean-nmake:
 	$(MAKE) $(MFLAGS) bootstrap-clean
 
 bootstrap-clean-gmake:
-	$(MAKE) $(MFLAGS) -C ../src bootstrap-clean
-	$(MAKE) $(MFLAGS) -C ../lisp bootstrap-clean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src bootstrap-clean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lisp bootstrap-clean
 
 $(INSTALL_DIR):
 	- mkdir "$(INSTALL_DIR)"
@@ -211,10 +217,10 @@ install-other-dirs-nmake:
 	cd ..\nt
 
 install-other-dirs-gmake:
-	$(MAKE) $(MFLAGS) -C ../lib-src install
-	$(MAKE) $(MFLAGS) -C ../src install
-	$(MAKE) $(MFLAGS) -C ../lisp install
-	$(MAKE) $(MFLAGS) -C ../leim install
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src install
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src install
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lisp install
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../leim install
 
 force-info:
 # Note that man/makefile knows how to
@@ -231,9 +237,9 @@ info-nmake:
 	$(MAKE) $(MFLAGS) info
 
 info-gmake:
-	$(MAKE) $(MFLAGS) -C ../man info
-	$(MAKE) $(MFLAGS) -C ../lispref info
-	$(MAKE) $(MFLAGS) -C ../lispintro info
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../man info
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lispref info
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lispintro info
 #
 # Maintenance
 #
@@ -260,10 +266,10 @@ clean-other-dirs-nmake:
 	cd ..\nt
 
 clean-other-dirs-gmake:
-	$(MAKE) $(MFLAGS) -C ../lib-src clean
-	$(MAKE) $(MFLAGS) -C ../src clean
-	$(MAKE) $(MFLAGS) -C ../lisp clean
-	$(MAKE) $(MFLAGS) -C ../leim clean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src clean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src clean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lisp clean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../leim clean
 
 cleanall-other-dirs-nmake:
 	cd ..\lib-src
@@ -273,8 +279,8 @@ cleanall-other-dirs-nmake:
 	cd ..\nt
 
 cleanall-other-dirs-gmake:
-	$(MAKE) $(MFLAGS) -C ../lib-src cleanall
-	$(MAKE) $(MFLAGS) -C ../src cleanall
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src cleanall
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src cleanall
 
 cleanall: clean cleanall-other-dirs-$(MAKETYPE)
 	 - $(DEL_TREE) obj
