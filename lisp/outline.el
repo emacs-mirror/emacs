@@ -652,19 +652,24 @@ A heading line is one that starts with a `*' (or that
   (if (< arg 0)
       (beginning-of-line)
     (end-of-line))
-  (while (and (not (bobp)) (< arg 0))
-    (while (and (not (bobp))
-		(re-search-backward (concat "^\\(?:" outline-regexp "\\)")
-				    nil 'move)
-		(outline-invisible-p)))
-    (setq arg (1+ arg)))
-  (while (and (not (eobp)) (> arg 0))
-    (while (and (not (eobp))
-		(re-search-forward (concat "^\\(?:" outline-regexp "\\)")
-				   nil 'move)
-		(outline-invisible-p (match-beginning 0))))
-    (setq arg (1- arg)))
-  (beginning-of-line))
+  (let (found-heading-p)
+    (while (and (not (bobp)) (< arg 0))
+      (while (and (not (bobp))
+		  (setq found-heading-p
+			(re-search-backward
+			 (concat "^\\(?:" outline-regexp "\\)")
+			 nil 'move))
+		  (outline-invisible-p)))
+      (setq arg (1+ arg)))
+    (while (and (not (eobp)) (> arg 0))
+      (while (and (not (eobp))
+		  (setq found-heading-p
+			(re-search-forward
+			 (concat "^\\(?:" outline-regexp "\\)")
+			 nil 'move))
+		  (outline-invisible-p (match-beginning 0))))
+      (setq arg (1- arg)))
+    (if found-heading-p (beginning-of-line))))
 
 (defun outline-previous-visible-heading (arg)
   "Move to the previous heading line.
