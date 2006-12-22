@@ -3,6 +3,7 @@
 	* makefile.w32-in (bootstrap-gmake): Pass XMFLAGS="$(XMFLAGS)"
 	command-line argument to sub-Make in src, since src/makefile.w32-in
 	invokes Make recursively during bootstrap.
+	(clean): Delete stamp_BLD.
 
 	* gmake.defs (stamp_BLD): Rename from $(BLD).  Create a file
 	stamp_BLD after creating the $(BLD) directory.

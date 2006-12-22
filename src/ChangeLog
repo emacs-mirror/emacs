@@ -5,6 +5,7 @@
 	($(OBJ0) $(OBJ1) $(WIN32OBJ)): New dependency on stamp_BLD.
 	(bootstrap-temacs): Pass $(XMFLAGS) to sub-make.
 	($(OBJ0) $(OBJ1) $(WIN32OBJ) lastfile.$(O)): Add lastfile.$(O).
+	(clean): Delete stamp_BLD.
 
 2006-12-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
