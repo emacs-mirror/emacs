@@ -4,6 +4,7 @@
 	command-line argument to sub-Make in src, since src/makefile.w32-in
 	invokes Make recursively during bootstrap.
 	(clean): Delete stamp_BLD.
+	(bootstrap): Make `all' explicitly in a recursive Make.
 
 	* gmake.defs (stamp_BLD): Rename from $(BLD).  Create a file
 	stamp_BLD after creating the $(BLD) directory.
