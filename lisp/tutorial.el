@@ -644,9 +644,10 @@ showing changed keys.  It also saves the point position and the
 position where the display of changed bindings was inserted."
   ;; This runs in a hook so protect it:
   (condition-case err
-      (tutorial--save-tutorial-to (tutorial--saved-file))
-    (error (message "Error saving tutorial state: %s" (error-message-string err))
-           (sit-for 4))))
+      (if (y-or-n-p "Save your position in the tutorial? ")
+	  (tutorial--save-tutorial-to (tutorial--saved-file)))
+    (error (message "Error saving tutorial state: %s"
+		    (error-message-string err)))))
 
 (defun tutorial--save-tutorial-to (saved-file)
   "Save the tutorial buffer to SAVED-FILE.
