@@ -1490,4 +1490,4 @@ $(BLD)/w32bdf.$(O): \
 # Each object file depends on stamp_BLD, because in parallel builds we must
 # make sure $(BLD) exists before starting compilations.
 #
-$(OBJ0) $(OBJ1) $(WIN32OBJ): stamp_BLD
+$(OBJ0) $(OBJ1) $(WIN32OBJ) lastfile.$(O): stamp_BLD
