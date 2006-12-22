@@ -1,3 +1,10 @@
+2006-12-22  Mark Davies  <mark@mcs.vuw.ac.nz>
+
+	* configure.in: Add support for NetBSD on x86-64, hp800 and sh3el.
+	Remove redundant entry for powerpc-apple-netbsd.
+
+	* configure: Regenerate.
+
 2006-12-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* configure: Regenerate with autoconf 2.61.
