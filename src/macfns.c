@@ -1969,9 +1969,9 @@ mac_update_proxy_icon (f)
     {
       AEDesc desc;
 #ifdef MAC_OSX
-      FSRef fref;
+      FSRef fref, fref_proxy;
 #else
-      FSSpec fss;
+      FSSpec fss, fss_proxy;
 #endif
       Boolean changed;
       Lisp_Object encoded_file_name = ENCODE_FILE (file_name);
@@ -1997,10 +1997,19 @@ mac_update_proxy_icon (f)
 	{
 	  if (alias)
 	    {
+	      /* (FS)ResolveAlias never sets `changed' to true if
+		 `alias' is minimal.  */
 #ifdef MAC_OSX
-	      err = FSUpdateAlias (NULL, &fref, alias, &changed);
+	      err = FSResolveAlias (NULL, alias, &fref_proxy, &changed);
+	      if (err == noErr)
+		err = FSCompareFSRefs (&fref, &fref_proxy);
 #else
-	      err = UpdateAlias (NULL, &fss, alias, &changed);
+	      err = ResolveAlias (NULL, alias, &fss_proxy, &changed);
+	      if (err == noErr)
+		err = !(fss.vRefNum == fss_proxy.vRefNum
+			&& fss.parID == fss_proxy.parID
+			&& EqualString (fss.name, fss_proxy.name,
+					false, true));
 #endif
 	    }
 	  if (err != noErr || alias == NULL)
@@ -2051,11 +2060,11 @@ mac_update_title_bar (f, save_match_data)
 	 confusing.  */
       || (!MINI_WINDOW_P (w)
 	  && (modified_p != !NILP (w->last_had_star))))
-    SetWindowModified (FRAME_MAC_WINDOW (f),
-		       !MINI_WINDOW_P (w) && modified_p);
-
-  if (windows_or_buffers_changed)
-    mac_update_proxy_icon (f);
+    {
+      SetWindowModified (FRAME_MAC_WINDOW (f),
+			 !MINI_WINDOW_P (w) && modified_p);
+      mac_update_proxy_icon (f);
+    }
 #endif
 }
 
