@@ -2224,7 +2224,6 @@ _ACEOF
       m68k-*-netbsd*)
 			# This is somewhat bogus.
 			machine=hp9000s300 ;;
-      powerpc-apple-netbsd*) machine=macppc ;;
       mips-*-netbsd*)	machine=pmax ;;
       mipsel-*-netbsd*)	machine=pmax ;;
       mipseb-*-netbsd*)	machine=pmax ;;
@@ -2233,6 +2232,9 @@ _ACEOF
       sparc*-*-netbsd*)	machine=sparc ;;
       vax-*-netbsd*)	machine=vax ;;
       arm-*-netbsd*)	machine=arm ;;
+      x86_64-*-netbsd*)	machine=amdx86-64 ;;
+      hppa-*-netbsd*)	machine=hp800 ;;
+      shle-*-netbsd*)	machine=sh3el ;;
     esac
   ;;
 
