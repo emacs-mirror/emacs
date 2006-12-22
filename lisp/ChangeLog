@@ -1,3 +1,14 @@
+2006-12-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* tutorial.el (tutorial--detailed-help): Remove unnecessary link
+	to the Emacs Lisp reference manual.
+	(tutorial--tab-map): Remove.  All callers changed.
+	(tutorial--find-changed-keys): New elt QUIET, used to...
+	(tutorial--display-changes): ...ensure that warning messages are
+	only issued once per changed key.
+	(tutorial--remove-remarks): Delete unused code-path.
+	(lang-strings): Remove extraneous formatting.
+
 2006-12-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* tutorial.el: Remove `cl' requirement.  Clean up whitespace.
