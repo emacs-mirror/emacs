@@ -125,12 +125,16 @@ Boston, MA 02110-1301, USA.  */
 #undef LIB_STANDARD
 #define LIB_STANDARD -lgcc -lc -lgcc /usr/lib/crtend.o
 
+#elif defined(__NetBSD__)
+
+/* LIB_STANDARD and START_FILES set correctly in s/netbsd.h */
+
 #elif defined(sun)
 
 #undef START_FILES
 #undef LIB_STANDARD
 
-#else /* !__OpenBSD__ && !__FreeBSD__ && !sun */
+#else /* !__OpenBSD__ && !__FreeBSD__ && !__NetBSD__ && !sun */
 
 #undef START_FILES
 #ifdef HAVE_X86_64_LIB64_DIR
