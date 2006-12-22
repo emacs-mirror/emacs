@@ -1,3 +1,14 @@
+2006-12-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (make-docfile, ctags, etags, ebrowse, hexl)
+	(movemail, fakemail, sorted-doc, digest-doc, emacsclient)
+	(test-distrib, $(DOC), all): depend on stamp_BLD instead of $(BLD).
+	($(BLD)/make-docfile.$(O) $(BLD)/hexl.$(O) $(BLD)/fakemail.$(O))
+	($(BLD)/sorted-doc.$(O) $(BLD)/digest-doc.$(O))
+	($(BLD)/test-distrib.$(O) $(GETOPTOBJS) $(MOVEMAILOBJS))
+	($(BLD)/emacsclient.$(O) $(BLD)/etags.$(O) $(BLD)/regex.$(O))
+	($(BLD)/ebrowse.$(O) $(BLD)/ctags.$(O)): Depend on stamp_BLD.
+
 2006-12-20  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* etags.c (C_entries): DEFUN names were longer by one: corrected.

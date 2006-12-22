@@ -1,3 +1,10 @@
+2006-12-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (emacs, temacs): Depend on stamp_BLD instead of
+	$(BLD).
+	($(OBJ0) $(OBJ1) $(WIN32OBJ)): New dependency on stamp_BLD.
+	(bootstrap-temacs): Pass $(XMFLAGS) to sub-make.
+
 2006-12-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macfns.c (mac_update_title_bar) [TARGET_API_MAC_CARBON]: Call

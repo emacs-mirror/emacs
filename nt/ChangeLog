@@ -1,5 +1,9 @@
 2006-12-22  Eli Zaretskii  <eliz@gnu.org>
 
+	* makefile.w32-in (bootstrap-gmake): Pass XMFLAGS="$(XMFLAGS)"
+	command-line argument to sub-Make in src, since src/makefile.w32-in
+	invokes Make recursively during bootstrap.
+
 	* gmake.defs (stamp_BLD): Rename from $(BLD).  Create a file
 	stamp_BLD after creating the $(BLD) directory.
 
