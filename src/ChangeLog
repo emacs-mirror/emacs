@@ -1,3 +1,10 @@
+2006-12-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (mac_update_title_bar) [TARGET_API_MAC_CARBON]: Call
+	mac_update_proxy_icon also when buffer modification flag changed.
+	[TARGET_API_MAC_CARBON] (mac_update_proxy_icon): Don't update alias,
+	but compare FSRef/FSSpec of resolved alias.
+
 2006-12-21  Kim F. Storm  <storm@cua.dk>
 
 	* w32.c (_sys_wait_accept): Fix handle leak.
