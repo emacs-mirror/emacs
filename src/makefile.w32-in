@@ -250,7 +250,7 @@ clean:
 	- $(DEL) *~ "s/*~" "m/*~"
 	- $(DEL) $(COMPILER_TEMP_FILES)
 	- $(DEL_TREE) $(OBJDIR)
-	- (DEL) stamp_BLD
+	- $(DEL) stamp_BLD
 
 distclean:	clean
 	- $(DEL) config.h epaths.h
