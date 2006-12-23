@@ -1453,7 +1453,7 @@ some_mouse_moved ()
 
   if (ignore_mouse_drag_p)
     {
-      //ignore_mouse_drag_p = 0;
+      /* ignore_mouse_drag_p = 0; */
       return 0;
     }
 
