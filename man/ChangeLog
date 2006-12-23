@@ -1,3 +1,7 @@
+2006-12-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* calendar.texi (Scroll Calendar): < and > are switched.
+
 2006-12-23  Kevin Rodgers  <ihs_4664@yahoo.com>
 
 	* killing.texi (Deletion): Describe M-\ prefix argument.
