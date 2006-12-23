@@ -1,3 +1,7 @@
+2006-12-23  Kevin Rodgers  <ihs_4664@yahoo.com>
+
+	* killing.texi (Deletion): Describe M-\ prefix argument.
+
 2006-12-23  Richard Stallman  <rms@gnu.org>
 
 	* search.texi (Regexp Search): Explain why forward and reverse regexp

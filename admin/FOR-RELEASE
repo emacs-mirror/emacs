@@ -50,13 +50,17 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** document gpg-agent.
 
-** monnier@iro.umontreal.ca, Nov 24:
-  gnus-summary-tick-article-forward doesn't work any more?
-
 ** Need papers from Rubini for his code in t-mouse.el
   Sent instructions.
 
 ** Fix calendar mode line scroll buttons.
+
+** lennart.borgman.073@student.lu.se, Dec 21: 
+  Saving when the coding system can't code all buffer characters
+
+** Report that datagrams don't work on Windows.
+
+** Bug in ESHELL that Wiegley is supposed to fix.
 
 * DOCUMENTATION
 
