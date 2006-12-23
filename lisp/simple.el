@@ -706,7 +706,7 @@ Leave one space or none, according to the context."
 
 (defun delete-horizontal-space (&optional backward-only)
   "Delete all spaces and tabs around point.
-If BACKWARD-ONLY is non-nil, only delete spaces before point."
+If BACKWARD-ONLY is non-nil, only delete them before point."
   (interactive "*P")
   (let ((orig-pos (point)))
     (delete-region
