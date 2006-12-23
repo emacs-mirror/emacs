@@ -3305,8 +3305,12 @@ version 5.0.2; see MH-E-NEWS for details.
 ** Calendar changes:
 
 +++
+*** The meanings of C-x < and C-x > have been interchanged.
+< means to scroll backward in time, and > means to scroll forward.
+
++++
 *** You can now use < and >, instead of C-x < and C-x >, to scroll
-the calendar left or right.  (The old key bindings still work too.)
+the calendar left or right.
 
 +++
 *** There is a new calendar package, icalendar.el, that can be used to
