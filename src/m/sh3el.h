@@ -105,3 +105,5 @@ Boston, MA 02111-1307, USA.  */
    you should also check `etc/MACHINES' to make sure its descriptions
    of known problems in that configuration should be updated.  */
 
+/* arch-tag: ee325990-6f40-47a2-b9df-60ecf3599899
+   (do not change this comment) */
