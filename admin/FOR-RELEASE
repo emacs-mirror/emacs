@@ -60,6 +60,8 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** Bug in ESHELL that Wiegley is supposed to fix.
 
+** Make woman detect use of the doc macros and give a clear error message.
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
