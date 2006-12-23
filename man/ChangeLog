@@ -1,3 +1,13 @@
+2006-12-23  Richard Stallman  <rms@gnu.org>
+
+	* search.texi (Regexp Search): Explain why forward and reverse regexp
+	search are not mirror images.
+
+2006-12-22  Kevin Ryde  <user42@zip.com.au>
+
+	* cl.texi (Sorting Sequences): Typo in sort*, example showed plain
+	"sort" instead of "sort*".
+
 2006-12-19  Richard Stallman  <rms@gnu.org>
 
 	* calc.texi (History and Acknowledgements): Recognize that Emacs
