@@ -1,3 +1,9 @@
+2006-12-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (bootstrap-clean): Run bootstrap-clean-$(SHELLTYPE)
+	explicitly in a recursive Make, not implicitly through prerequisites,
+	since the latter is wrong under parallel builds.
+
 2006-12-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32-fns.el (convert-standard-filename): Wrap in
