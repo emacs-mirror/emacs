@@ -171,7 +171,9 @@
   (run-hook-with-args 'viper-before-change-functions beg end))
 
 (defsubst viper-post-command-sentinel ()
-  (run-hooks 'viper-post-command-hooks)
+  (condition-case conds
+      (run-hooks 'viper-post-command-hooks)
+    (error (viper-message-conditions conds)))
   (if (eq viper-current-state 'vi-state)
       (viper-restore-cursor-color 'after-insert-mode)))
 
@@ -926,8 +928,7 @@ Vi's prefix argument will be used.  Otherwise, the prefix argument passed to
 
     (condition-case nil
 	(let (viper-vi-kbd-minor-mode) ; execute without kbd macros
-	  (setq result (eval form))
-	  )
+	  (setq result (eval form)))
       (error
        (signal 'quit nil)))
 
@@ -1971,9 +1972,16 @@ Undo previous insertion and inserts new."
 	(if (and (eobp)
 		 (not (bolp))
 		 require-final-newline
+		 ;; add newline only if we actually edited buffer. otherwise it
+		 ;; might unintentionally modify binary buffers
+		 (buffer-modified-p) 
 		 (not (viper-is-in-minibuffer))
 		 (not buffer-read-only))
-	    (insert "\n")))
+	    ;; text property may be read-only
+	    (condition-case nil
+		(insert "\n")
+	      (error nil))
+	  ))
       ))
 
 (defun viper-yank-defun ()
