@@ -267,6 +267,8 @@ endif
 
 LINK_FLAGS	= $(ARCH_LDFLAGS) $(DEBUG_LINK) $(NOCYGWIN) $(USER_LDFLAGS)
 
+export XMFLAGS
+
 .DEFAULT:
 
 $(BLD)/%.o: %.c
