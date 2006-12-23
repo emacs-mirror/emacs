@@ -82,13 +82,13 @@ all:	which-sh stamp_BLD $(ALL) maybe-bootstrap all-other-dirs-$(MAKETYPE)
 
 all-other-dirs-nmake: addsection
 	cd ..\lib-src
-	$(MAKE) $(MFLAGS) $(XMFLAGS) all
+	$(MAKE) $(MFLAGS) all
 	cd ..\src
-	$(MAKE) $(MFLAGS) $(XMFLAGS) all
+	$(MAKE) $(MFLAGS) all
 	cd ..\lisp
-	$(MAKE) $(MFLAGS) $(XMFLAGS) all
+	$(MAKE) $(MFLAGS) all
 	cd ..\leim
-	$(MAKE) $(MFLAGS) $(XMFLAGS) all
+	$(MAKE) $(MFLAGS) all
 	cd ..\nt
 
 all-other-dirs-gmake: addsection
@@ -101,7 +101,7 @@ recompile:	recompile-$(MAKETYPE)
 
 recompile-nmake:
 	cd ..\lisp
-	$(MAKE) $(MFLAGS) $(XMFLAGS) recompile
+	$(MAKE) $(MFLAGS) recompile
 	cd ..\nt
 
 recompile-gmake:
@@ -158,7 +158,7 @@ bootstrap-gmake: addsection
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lisp bootstrap-clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src clean
-	$(MAKE) $(MFLAGS) $(XMFLAGS) XMFLAGS="$(XMFLAGS)" -C ../src bootstrap
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src bootstrap
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src bootstrap-clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lisp bootstrap
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src DOC
