@@ -1,3 +1,9 @@
+2006-12-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* calendar/calendar.el (calendar-mode-map): Switch < and >.
+	(calendar-mode-line-format): Use mouse-1 bindings, and tweak
+	formatting.
+
 2006-12-23  Richard Stallman  <rms@gnu.org>
 
 	* simple.el (delete-horizontal-space): Doc fix.
