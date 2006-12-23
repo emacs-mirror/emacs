@@ -62,6 +62,8 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** Make woman detect use of the doc macros and give a clear error message.
 
+** sdl.web@gmail.com, Dec 23: Gnus weird behavior.
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
