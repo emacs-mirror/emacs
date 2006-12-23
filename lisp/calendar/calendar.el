@@ -2199,12 +2199,12 @@ movement commands will not work correctly."
                  downcase-region upcase-region kill-region
                  copy-region-as-kill capitalize-region write-region))
       (define-key map (vector 'remap c) 'calendar-not-implemented))
-    (define-key map ">"     'scroll-calendar-right)
-    (define-key map "\C-x>" 'scroll-calendar-right)
+    (define-key map "<"     'scroll-calendar-right)
+    (define-key map "\C-x<" 'scroll-calendar-right)
     (define-key map [prior] 'scroll-calendar-right-three-months)
     (define-key map "\ev"   'scroll-calendar-right-three-months)
-    (define-key map "<"     'scroll-calendar-left)
-    (define-key map "\C-x<" 'scroll-calendar-left)
+    (define-key map ">"     'scroll-calendar-left)
+    (define-key map "\C-x>" 'scroll-calendar-left)
     (define-key map [next]  'scroll-calendar-left-three-months)
     (define-key map "\C-v"  'scroll-calendar-left-three-months)
     (define-key map "\C-b"  'calendar-backward-day)
@@ -2337,42 +2337,40 @@ movement commands will not work correctly."
 
 (defvar calendar-mode-line-format
   (list
-   (propertize (substitute-command-keys
-		"\\<calendar-mode-map>\\[scroll-calendar-left]")
-	       'help-echo "mouse-2: scroll left"
+   (propertize "<"
+	       'help-echo "mouse-1: previous month"
 	       'mouse-face 'mode-line-highlight
-	       'keymap (make-mode-line-mouse-map 'mouse-2
-						 'mouse-scroll-calendar-left))
+	       'keymap (make-mode-line-mouse-map 'mouse-1
+						 'mouse-scroll-calendar-right))
    "Calendar"
    (concat
     (propertize
      (substitute-command-keys
       "\\<calendar-mode-map>\\[calendar-goto-info-node] info")
-     'help-echo "mouse-2: read Info on Calendar"
+     'help-echo "mouse-1: read Info on Calendar"
      'mouse-face 'mode-line-highlight
-     'keymap (make-mode-line-mouse-map 'mouse-2 'calendar-goto-info-node))
-    "/"
+     'keymap (make-mode-line-mouse-map 'mouse-1 'calendar-goto-info-node))
+    " / "
     (propertize
      (substitute-command-keys
-     "\\<calendar-mode-map>\\[calendar-other-month] other")
-     'help-echo "mouse-2: choose another month"
+     " \\<calendar-mode-map>\\[calendar-other-month] other")
+     'help-echo "mouse-1: choose another month"
      'mouse-face 'mode-line-highlight
      'keymap (make-mode-line-mouse-map
-	      'mouse-2 'mouse-calendar-other-month))
-    "/"
+	      'mouse-1 'mouse-calendar-other-month))
+    " / "
     (propertize
      (substitute-command-keys
      "\\<calendar-mode-map>\\[calendar-goto-today] today")
-     'help-echo "mouse-2: go to today's date"
+     'help-echo "mouse-1: go to today's date"
      'mouse-face 'mode-line-highlight
-     'keymap (make-mode-line-mouse-map 'mouse-2 #'calendar-goto-today)))
+     'keymap (make-mode-line-mouse-map 'mouse-1 #'calendar-goto-today)))
    '(calendar-date-string (calendar-current-date) t)
-   (propertize (substitute-command-keys
-		"\\<calendar-mode-map>\\[scroll-calendar-right]")
-	       'help-echo "mouse-2: scroll right"
+   (propertize ">"
+	       'help-echo "mouse-1: next month"
 	       'mouse-face 'mode-line-highlight
 	       'keymap (make-mode-line-mouse-map
-			'mouse-2 'mouse-scroll-calendar-right)))
+			'mouse-1 'mouse-scroll-calendar-left)))
   "The mode line of the calendar buffer.
 
 This must be a list of items that evaluate to strings--those strings are
