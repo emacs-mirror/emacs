@@ -1,5 +1,7 @@
 2006-12-23  Eli Zaretskii  <eliz@gnu.org>
 
+	* gmake.defs: Export XMFLAGS.
+
 	* makefile.w32-in (all-other-dirs-nmake, recompile-nmake): Don't
 	use $(XMFLAGS).
 
