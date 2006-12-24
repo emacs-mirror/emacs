@@ -418,18 +418,18 @@ Keywords}.  Here is an example, from the library @file{saveplace.el}:
 If a customization item has a type such as @code{hook} or
 @code{alist}, which supports @code{:options}, you can add additional
 values to the list from outside the @code{defcustom} declaration by
-calling @code{custom-add-option}.  For example, if you define a
+calling @code{custom-add-frequent-value}.  For example, if you define a
 function @code{my-lisp-mode-initialization} intended to be called from
 @code{emacs-lisp-mode-hook}, you might want to add that to the list of
 reasonable values for @code{emacs-lisp-mode-hook}, but not by editing
 its definition.  You can do it thus:
 
 @example
-(custom-add-option 'emacs-lisp-mode-hook
-                   'my-lisp-mode-initialization)
+(custom-add-frequent-value 'emacs-lisp-mode-hook
+   'my-lisp-mode-initialization)
 @end example
 
-@defun custom-add-option symbol value
+@defun custom-add-frequent-value symbol value
 For the customization option @var{symbol}, add @var{value} to the
 list of reasonable values.
 
