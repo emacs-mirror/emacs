@@ -74,15 +74,19 @@ PGG requires at least one implementation of privacy guard system.
 This document assumes that you have already obtained and installed them
 and that you are familiar with its basic functions.
 
-By default, PGG uses GnuPG, but Pretty Good Privacy version 2 or version
-5 are also supported.  If you are new to such a system, I recommend that
-you should look over the GNU Privacy Handbook (GPH) which is available
-at @uref{http://www.gnupg.org/documentation/}.
+By default, PGG uses GnuPG.  If you are new to such a system, I
+recommend that you should look over the GNU Privacy Handbook (GPH)
+which is available at @uref{http://www.gnupg.org/documentation/}.
 
-When using GnuPG the additional use of the gpg-agent (@pxref{Caching
-passphrase}) is highly recommended, as it provides the most secure way
-for input and caching of passphrases.  Please refer to the documentation
-of GnuPG for details on installation and usage.
+When using GnuPG, we recommend the use of the @code{gpg-agent}
+program, which is distributed with versions 2.0 and later of GnuPG.
+This is a daemon to manage private keys independently from any
+protocol, and provides the most secure way to input and cache your
+passphrases (@pxref{Caching passphrase}).  By default, PGG will
+attempt to use @code{gpg-agent} if it is running.  @xref{Invoking
+GPG-AGENT,,,gnupg,Using the GNU Privacy Guard}.
+
+PGG also supports Pretty Good Privacy version 2 or version 5.
 
 @node How to use
 @chapter How to use
@@ -243,8 +247,8 @@ Elapsed time for expiration in seconds.
 When using GnuPG (gpg) as PGP scheme you can use @code{gpg-agent} for
 caching@footnote{Actually @code{gpg-agent} does not cache passphrases
 but private keys.  On the other hand, from a users point of view this
-technical difference isn't visible.}.  If non-@code{nil} try to use a
-running @code{gpg-agent}.  It defaults to @code{nil}.
+technical difference isn't visible.}.  It defaults to @code{t}.
+Setting this to @code{nil} is not recommended.
 @end defvar
 
 @node Default user identity
