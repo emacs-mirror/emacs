@@ -838,7 +838,7 @@ can take care of filling.  JUSTIFY is used as in `fill-paragraph'."
 	     (commark
 	      (comment-string-strip (buffer-substring comstart comin) nil t))
 	     (comment-re
-	      (if (string-match comment-start-skip (concat commark "a"))
+	      (if (string-match comment-start-skip (concat "\0" commark "a"))
 		  (concat "[ \t]*" (regexp-quote commark)
 			  ;; Make sure we only match comments that use
 			  ;; the exact same comment marker.
