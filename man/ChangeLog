@@ -1,3 +1,9 @@
+2006-12-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pgg.texi (Caching passphrase): Default for pgg-gpg-use-agent changed
+	to t.
+	(Prerequisites): Add explanation about gpg-agent.
+
 2006-12-24  Kevin Ryde  <user42@zip.com.au>
 
 	* calendar.texi (Holidays): US daylight savings begins second Sunday
