@@ -59,7 +59,7 @@ $(BLD)/preprep.exe: $(BLD)/preprep.$(O)
 # it is not necessary on later versions, it is still ok to use it.
 #
 $(TRES):	emacs.rc stamp_BLD
-		$(RC) $(RC_OUT)$(BLD)/emacs.res $<
+		$(RC) $(RC_OUT)$(BLD)/emacs.res emacs.rc
 
 runemacs:	  stamp_BLD $(BLD)/runemacs.exe
 $(BLD)/runemacs.exe: $(BLD)/runemacs.$(O) $(TRES)
