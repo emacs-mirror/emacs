@@ -11,6 +11,16 @@
 	* custom.el (custom-add-frequent-value): Alias for
 	custom-add-option.
 
+2006-12-23  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* ediff-diff.el (ediff-diff-options): clarify docstring.
+	(ediff-setup-diff-regions): disallow -u in ediff-diff-options.
+	
+	* viper-cmd.el (viper-post-command-sentinel): protect against errors in
+	hooks.
+	(viper-add-newline-at-eob-if-necessary): add newline only if we
+	actually modify buffer; ignore errors if occur.
+	
 2006-12-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* calendar/calendar.el (calendar-mode-map): Switch < and >.

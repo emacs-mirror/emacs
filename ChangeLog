@@ -1,13 +1,7 @@
-2006-12-23  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
-	* ediff-diff.el (ediff-diff-options): clarify docstring.
-	(ediff-setup-diff-regions): disallow -u in ediff-diff-options.
-	
-	* viper-cmd.el (viper-post-command-sentinel): protect against errors in
-	hooks.
-	(viper-add-newline-at-eob-if-necessary): add newline only if we
-	actually modify buffer; ignore errors if occur.
-	
+2006-12-24  Richard Stallman  <rms@gnu.org>
+
+	* configure.in: Require Autoconf 2.61.
+
 2006-12-22  Mark Davies  <mark@mcs.vuw.ac.nz>
 
 	* configure.in: Add support for NetBSD on x86-64, hp800 and sh3el.
