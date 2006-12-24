@@ -1,5 +1,10 @@
 2006-12-24  Michaël Cadilhac  <michael.cadilhac@lrde.org>
 
+	* textmodes/fill.el (fill-comment-paragraph): Prevent the use of
+	an optimized comment regexp if `comment-start-skip' uses a ^.
+
+2006-12-24  Michaël Cadilhac  <michael.cadilhac@lrde.org>
+
 	* bs.el (bs--up): Remove interactive spec.
 
 2006-12-24  Chong Yidong  <cyd@stupidchicken.com>
