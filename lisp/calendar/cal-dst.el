@@ -346,6 +346,7 @@ This function respects the value of `calendar-dst-check-each-year-flag'."
                       (cadr (calendar-dst-find-startend year))
                     (nth 4 calendar-current-time-zone-cache))))
         (if expr (eval expr)))
+      ;; New US rules commencing 2007.	ftp://elsie.nci.nih.gov/pub/.
       (and (not (zerop calendar-daylight-time-offset))
            (calendar-nth-named-day 2 0 3 year))))
 
@@ -356,6 +357,7 @@ This function respects the value of `calendar-dst-check-each-year-flag'."
                       (nth 2 (calendar-dst-find-startend year))
                     (nth 5 calendar-current-time-zone-cache))))
         (if expr (eval expr)))
+      ;; New US rules commencing 2007.	ftp://elsie.nci.nih.gov/pub/.
       (and (not (zerop calendar-daylight-time-offset))
            (calendar-nth-named-day 1 0 11 year))))
 
