@@ -70,6 +70,8 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** Reconsider using Image mode for eps files?
 
+** How should C-x C-v ask about saving?
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
