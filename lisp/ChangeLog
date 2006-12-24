@@ -1,3 +1,11 @@
+2006-12-24  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-encrypt-string): Inhibit use of agent within
+	body of let form where encryption happens.  Acknowledge non-use of
+	gpg-agent in docstring.
+	(allout-toggle-subtree-encryption): Acknowledge non-use of
+	gpg-agent in docstring.
+
 2006-12-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* custom.el (custom-add-frequent-value): Alias for
