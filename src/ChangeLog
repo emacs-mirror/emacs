@@ -68,7 +68,7 @@
 
 2006-12-19  Juanma Barranquero  <lekktu@gmail.com>
 
-	* buffer.c (syms_of_buffer) <buffer-display-table>:
+	* buffer.c (syms_of_buffer) <buffer-display-table>
 	<scroll-up-aggressively, scroll-down-aggressively>: Doc fixes.
 
 2006-12-17  Richard Stallman  <rms@gnu.org>

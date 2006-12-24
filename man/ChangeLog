@@ -1,3 +1,10 @@
+2006-12-24  Kevin Ryde  <user42@zip.com.au>
+
+	* calendar.texi (Holidays): US daylight savings begins second Sunday
+	in March for 2007 onwards.
+	(Daylight Savings): Show new US default daylight savings rules, 2nd
+	Sun in Mar to 1st Sun in Nov, now in cal-dst.el.
+
 2006-12-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* calendar.texi (Scroll Calendar): < and > are switched.

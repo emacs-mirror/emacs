@@ -1,3 +1,18 @@
+2006-12-24  Kevin Ryde  <user42@zip.com.au>
+
+	* calendar/cal-dst.el (calendar-dst-starts): Default to second Sunday
+	in March.
+	(calendar-dst-ends): Default to first Sunday in November.
+
+2006-12-24  Richard Stallman  <rms@gnu.org>
+
+	* image.el (image-type-header-regexps): Element is now (REGEXP
+	IMAGE-TYPE NOT-ALWAYS).
+	(image-type-from-data): Handle new format of image-type-header-regexps.
+	(image-type-from-buffer): Likewise.
+	New arg INCLUDE-MAYBES.
+	(image-type-from-file-header): Pass t for INCLUDE-MAYBES.
+
 2006-12-24  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout.el (allout-encrypt-string): Inhibit use of agent within
