@@ -529,7 +529,7 @@ a calendar window.
 practice}, not historical fact.  Historically, for instance, the start
 of daylight savings time and even its existence have varied from year to
 year, but present United States law mandates that daylight savings time
-begins on the first Sunday in April.  When the daylight savings rules
+begins on the second Sunday in March.  When the daylight savings rules
 are set up for the United States, Emacs always uses the present
 definition, even though it is wrong for some prior years.
 
@@ -1592,14 +1592,14 @@ day in the solar and lunar calculations.
   The values for Cambridge, Massachusetts are as follows:
 
 @example
-(calendar-nth-named-day 1 0 4 year)
-(calendar-nth-named-day -1 0 10 year)
+(calendar-nth-named-day 2 0 3 year)
+(calendar-nth-named-day 1 0 11 year)
 @end example
 
 @noindent
-That is, the first 0th day (Sunday) of the fourth month (April) in
-the year specified by @code{year}, and the last Sunday of the tenth month
-(October) of that year.  If daylight savings time were
+That is, the second 0th day (Sunday) of the third month (March) in
+the year specified by @code{year}, and the first Sunday of the eleventh month
+(November) of that year.  If daylight savings time were
 changed to start on October 1, you would set
 @code{calendar-daylight-savings-starts} to this:
 
