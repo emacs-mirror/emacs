@@ -45,7 +45,9 @@
 ;;  - Symmetric-key and key-pair topic encryption, plus symmetric passphrase
 ;;    mnemonic support, with verification against an established passphrase
 ;;    (using a stashed encrypted dummy string) and user-supplied hint
-;;    maintenance.  (See allout-toggle-current-subtree-encryption docstring.)
+;;    maintenance.  (See allout-toggle-current-subtree-encryption docstring.
+;;    Currently only GnuPG encryption is supported, and integration
+;;    with gpg-agent is not yet implemented.)
 ;;  - Automatic topic-number maintenance
 ;;  - "Hot-spot" operation, for single-keystroke maneuvering and
 ;;    exposure control (see the allout-mode docstring)
@@ -5748,7 +5750,8 @@ it forces prompting for the passphrase regardless of availability from the
 passphrase cache.  With no universal argument, the appropriate passphrase
 is obtained from the cache, if available, else from the user.
 
-Currently only GnuPG encryption is supported.
+Currently only GnuPG encryption is supported, and integration
+with gpg-agent is not yet implemented.
 
 \**NOTE WELL** that the encrypted text must be ascii-armored.  For gnupg
 encryption, include the option ``armor'' in your ~/.gnupg/gpg.conf file.
@@ -5820,7 +5823,8 @@ it forces prompting for the passphrase regardless of availability from the
 passphrase cache.  With no universal argument, the appropriate passphrase
 is obtained from the cache, if available, else from the user.
 
-Currently only GnuPG encryption is supported.
+Currently only GnuPG encryption is supported, and integration
+with gpg-agent is not yet implemented.
 
 \**NOTE WELL** that the encrypted text must be ascii-armored.  For gnupg
 encryption, include the option ``armor'' in your ~/.gnupg/gpg.conf file.
@@ -5996,7 +6000,9 @@ Returns the resulting string, or nil if the transformation fails."
          (rejected (or rejected 0))
          (rejections-left (- allout-encryption-ciphertext-rejection-ceiling
                              rejected))
-         result-text status)
+         result-text status
+         ;; Inhibit use of gpg-agent in the scope of this let:
+         (pgg-gpg-use-agent nil))
 
     (if (and fetch-pass (not passphrase))
         ;; Force later fetch by evicting passphrase from the cache.
