@@ -1,10 +1,7 @@
-2006-12-24  Michaël Cadilhac  <michael.cadilhac@lrde.org>
+2006-12-24  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
 
 	* textmodes/fill.el (fill-comment-paragraph): Prevent the use of
 	an optimized comment regexp if `comment-start-skip' uses a ^.
-
-2006-12-24  Michaël Cadilhac  <michael.cadilhac@lrde.org>
-
 	* bs.el (bs--up): Remove interactive spec.
 
 2006-12-24  Chong Yidong  <cyd@stupidchicken.com>
@@ -42,12 +39,12 @@
 
 2006-12-23  Michael Kifer  <kifer@cs.stonybrook.edu>
 	
-	* ediff-diff.el (ediff-diff-options): clarify docstring.
-	(ediff-setup-diff-regions): disallow -u in ediff-diff-options.
+	* ediff-diff.el (ediff-diff-options): Clarify docstring.
+	(ediff-setup-diff-regions): Disallow -u in ediff-diff-options.
 	
-	* viper-cmd.el (viper-post-command-sentinel): protect against errors in
+	* viper-cmd.el (viper-post-command-sentinel): Protect against errors in
 	hooks.
-	(viper-add-newline-at-eob-if-necessary): add newline only if we
+	(viper-add-newline-at-eob-if-necessary): Add newline only if we
 	actually modify buffer; ignore errors if occur.
 	
 2006-12-23  Chong Yidong  <cyd@stupidchicken.com>
@@ -302,9 +299,9 @@
 
 2006-12-10  Juanma Barranquero  <lekktu@gmail.com>
 
-	* replace.el (replace-match-data, replace-match-maybe-edit):
-	* calc/calc-aent.el (calc-eval-error):
-	* emulation/vi.el (vi-char-argument):
+	* replace.el (replace-match-data, replace-match-maybe-edit),
+	* calc/calc-aent.el (calc-eval-error),
+	* emulation/vi.el (vi-char-argument),
 	* progmodes/cc-langs.el (c-at-vsemi-p-fn)
 	(c-vsemi-status-unknown-p-fn): Doc fixes.
 
@@ -3560,7 +3557,7 @@
 
 2006-09-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* term/mac-win.el: (show-hide-font-panel): New HI command ID symbol.
+	* term/mac-win.el (show-hide-font-panel): New HI command ID symbol.
 	(mac-apple-event-map): Define its handler.
 
 2006-09-07  Toby Allsopp  <Toby.Allsopp@navman.com>  (tiny change)
@@ -4772,7 +4769,7 @@
 
 2006-07-20  Jay Belanger  <belanger@truman.edu>
 
-	* calc.el (calc-previous-alg-entry):  Remove variable.
+	* calc.el (calc-previous-alg-entry): Remove variable.
 
 	* calc-aent.el (calc-alg-entry-history, calc-quick-calc-history):
 	New variables.
