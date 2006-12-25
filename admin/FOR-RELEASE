@@ -56,8 +56,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 ** lennart.borgman.073@student.lu.se, Dec 21: 
   Saving when the coding system can't code all buffer characters
 
-** Report that datagrams don't work on Windows.
-
 ** Bug in ESHELL that Wiegley is supposed to fix.
 
 ** sdl.web@gmail.com, Dec 23: Gnus weird behavior.
