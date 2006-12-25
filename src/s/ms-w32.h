@@ -142,6 +142,11 @@ Boston, MA 02110-1301, USA.  */
 
 #define BROKEN_NON_BLOCKING_CONNECT 1
 
+/* And the select implementation does 1-byte read-ahead waiting
+   for received packets, so datagrams are broken too.  */
+
+#define BROKEN_DATAGRAM_SOCKETS 1
+
 /* Define this symbol if your system has the functions bcopy, etc. */
 
 #define BSTRING
