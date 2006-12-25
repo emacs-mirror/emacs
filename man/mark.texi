@@ -192,7 +192,7 @@ region active again by typing @kbd{C-x C-x}.
 
 @item
 If Delete Selection mode is also enabled, some commands delete the
-region when used while the mark is active.  @xref{Graphical Kill}.
+region when used while the mark is active.  @xref{Mouse Commands}.
 
 @item
 Quitting with @kbd{C-g} deactivates the mark.
