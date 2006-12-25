@@ -56,14 +56,14 @@ an error message when this happens.  But if you set the variable
 @code{kill-read-only-ok} to a non-@code{nil} value, they just print a
 message in the echo area to explain why the text has not been erased.
 
+  You can also use the mouse to kill and yank.  @xref{Cut and Paste}.
+
 @menu
 * Deletion::            Commands for deleting small amounts of text and
                           blank areas.
 * Killing by Lines::    How to kill entire lines of text at one time.
 * Other Kill Commands:: Commands to kill large regions of text and
                           syntactic units such as words and sentences.
-* Graphical Kill::      The kill ring on graphical displays:
-                          yanking between applications.
 @end menu
 
 @need 1500
@@ -250,28 +250,6 @@ search backward and kill text before point.
 and @kbd{M-d} (@pxref{Words}); balanced expressions, with @kbd{C-M-k}
 (@pxref{Expressions}); and sentences, with @kbd{C-x @key{DEL}} and
 @kbd{M-k} (@pxref{Sentences}).@refill
-
-@node Graphical Kill
-@subsection Killing on Graphical Displays
-
-  On graphical displays with window systems, the most recent kill done
-in Emacs is also the primary selection, if it is more recent than any
-selection you made in another program.  This means that the paste
-commands of other window-based applications copy the text that you
-killed in Emacs.  In addition, Emacs yank commands treat other
-applications' selections as part of the kill ring, so you can yank
-them into Emacs.
-
-@cindex Delete Selection mode
-@cindex mode, Delete Selection
-@findex delete-selection-mode
-  Many graphical applications follow the convention that insertion while text
-is selected deletes the selected text.  You can make Emacs behave this
-way by enabling Delete Selection mode---with @kbd{M-x
-delete-selection-mode} or using Custom.  Another effect of this mode
-is that @key{DEL}, @kbd{C-d} and some other keys, when a selection
-exists, will kill the whole selection.  It also enables Transient Mark
-mode (@pxref{Transient Mark}).
 
 @node Yanking, Accumulating Text, Killing, Top
 @section Yanking
@@ -676,7 +654,7 @@ However, if you don't want to override these bindings Emacs at all, set
 activates and highlights the region over which they move.  The
 standard (unshifted) movement keys deactivate the mark, and typed text
 replaces the active region as in Delete-Selection mode
-(@pxref{Graphical Kill}).
+(@pxref{Mouse Commands}).
 
   To enter an Emacs command like @kbd{C-x C-f} while the mark is
 active, use one of the following methods: either hold @kbd{Shift}
