@@ -72,6 +72,22 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** Delete prematurely applied allout.el changes.
 
+** sdl.web@gmail.com, Dec 24: load-path missing?
+
+** lennart.borgman.073@student.lu.se, Dec 16: 
+  compilation-previous-error fails if first error is at start of buffer
+
+** CC mode fixes to be installed.
+
+** W3 status with latest url package.
+
+** Fix up the notices in oldXMenu properly.
+
+** bruno@clisp.org's patches for location of Info file directory.
+
+** disumu@x3y2z1.net, Nov 22: 
+  URL not following some 302 redirects after recent changes
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
