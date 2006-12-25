@@ -16,18 +16,18 @@
 2006-12-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in: Detect alsa/asoundlib.h also.
-	* configure: Regenerate
-	
+	* configure: Regenerate.
+
 2006-12-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* configure.in: Check if Gtk+ compiles at all.
-	
+	* configure.in: Check if GTK+ compiles at all.
+
 2006-12-10  Andreas Schwab  <schwab@suse.de>
 
 	* configure.in: Remove check for struct timezone, its result is
 	never used.
 
-2006-12-08  NAKAJI Hiroyuki  <nakaji@jp.freebsd.org> (tiny change)
+2006-12-08  NAKAJI Hiroyuki  <nakaji@jp.freebsd.org>  (tiny change)
 
 	* configure.in: Add support for Solaris 10 on x86-64.
 
@@ -870,7 +870,7 @@
 
 	* Makefile.in (INSTALL_INFO): Get install-info command from configure.
 
-	* configure.in: Add tests for install-info
+	* configure.in: Add tests for install-info.
 
 2002-12-09  Markus Rost  <rost@math.ohio-state.edu>
 
@@ -1320,7 +1320,7 @@
 
 2001-11-06  Sam Steingold  <sds@gnu.org>
 
-	* configure.in: Added a check for <nlist.h>
+	* configure.in: Added a check for <nlist.h>.
 
 2001-11-01  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
@@ -1893,8 +1893,8 @@
 
 2000-05-05  Gerd Moellmann  <gerd@gnu.org>
 
-	* make-dist: Make a link for lib-src/grep-changelog.  Copy
-	install-sh.
+	* make-dist: Make a link for lib-src/grep-changelog.
+	Copy install-sh.
 
 2000-05-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
