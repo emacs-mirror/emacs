@@ -1,3 +1,16 @@
+2006-12-25  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* startup.el: (fancy-splash-last-input-event): New variable.
+	(fancy-splash-special-event-action): New function.
+	(fancy-splash-screens): Temporarily bind special events to it.
+	Execute command for saved special event before exiting from
+	recursive editing.
+
+	* term/mac-win.el: (mac-keyboard-translate-char, mac-unread-string):
+	New functions.
+	(mac-ts-update-active-input-area, mac-ts-unicode-for-key-event):
+	Use mac-unread-string.
+
 2006-12-24  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
 
 	* textmodes/fill.el (fill-comment-paragraph): Prevent the use of
