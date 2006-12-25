@@ -1,3 +1,19 @@
+2006-12-25  Richard Stallman  <rms@gnu.org>
+
+	* emacs.texi (Top): Update subnode menus.
+
+	* mark.texi (Transient Mark): Fix xref.
+
+	* killing.texi (Graphical Kill): Node deleted.
+	(Killing): Add xref to Cut and Paste.
+	(CUA Bindings): Update xref.
+
+	* frames.texi (Cut and Paste): New section to hold other nodes.
+	(Mouse Commands): Node demoted.
+	(Cut/Paste Other App): Split out from Mouse Commands.
+	(Word and Line Mouse): Likewise.
+	(Secondary Selection, Clipboard): Nodes demoted.
+
 2006-12-25  Kevin Ryde  <user42@zip.com.au>
 
 	* cl.texi (Sorting Sequences): In sort*, add a little cautionary note

@@ -1,3 +1,10 @@
+2006-12-25  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el:
+	(sql-mode-abbrev-table): Corrected initialization.
+	(sql-mode-syntax-table): Disable double quoted strings.
+	(sql-mode-font-lock-object-name): Added TYPE and TYPE BODY.
+
 2006-12-25  Kim F. Storm  <storm@cua.dk>
 
 	* emacs-lisp/authors.el (authors-renamed-files-alist): Add tcover-*.el.
