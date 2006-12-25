@@ -64,8 +64,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** allout problem because pgg ignores its passphrases.
 
-** Roland.Winkler@physik.uni-erlangen.de, Dec 23: fortran-fill-paragraph fails.
-
 ** Reconsider using Image mode for eps files?
 
 ** How should C-x C-v ask about saving?
@@ -87,6 +85,8 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** disumu@x3y2z1.net, Nov 22: 
   URL not following some 302 redirects after recent changes
+
+** dwm@meer.net, Dec 24: etags/ctags v22.0.92 break Linux kernel
 
 * DOCUMENTATION
 
