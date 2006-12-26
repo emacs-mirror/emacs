@@ -710,11 +710,6 @@ With arg, enter name of variable to be watched in the minibuffer."
 			 (buffer-substring (region-beginning) (region-end))
 		       (tooltip-identifier-from-point (point))))))
 	      (speedbar 1)
-	      (catch 'already-watched
-		(dolist (var gdb-var-list)
-		  (unless (string-match "\\." (car var))
-		    (if (string-equal expr (nth 1 var))
-			(throw 'already-watched nil))))
 		(set-text-properties 0 (length expr) nil expr)
 		(gdb-enqueue-input
 		 (list
@@ -722,7 +717,7 @@ With arg, enter name of variable to be watched in the minibuffer."
 		      (concat
 		       "server interpreter mi \"-var-create - * "  expr "\"\n")
 		    (concat"-var-create - * "  expr "\n"))
-		  `(lambda () (gdb-var-create-handler ,expr))))))))
+		  `(lambda () (gdb-var-create-handler ,expr)))))))
       (message "gud-watch is a no-op in this mode."))))
 
 (defconst gdb-var-create-regexp
@@ -851,29 +846,21 @@ type_changed=\".*?\".*?}")
   (interactive)
   (if (memq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
 	    '(gdbmi gdba))
-      (let ((text (speedbar-line-text)))
-	;; Can't use \\S-+ for whitespace because
-	;; speedbar has a whacky syntax table.
-	(string-match "\\([^ \t]+\\)" text)
-	(let ((expr (match-string 1 text)) var varnum)
-	  (catch 'expr-found
-	    (dolist (var1 gdb-var-list)
-	      (when (string-equal expr (nth 1 var1))
-		(setq var var1)
-		(setq varnum (car var1))
-		(throw 'expr-found nil))))
-	  (unless (string-match "\\." (car var))
-	    (gdb-enqueue-input
-	     (list
-	      (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
-		      'gdba)
-		  (concat "server interpreter mi \"-var-delete " varnum "\"\n")
-		(concat "-var-delete " varnum "\n"))
-		   'ignore))
-	    (setq gdb-var-list (delq var gdb-var-list))
-	    (dolist (varchild gdb-var-list)
-	      (if (string-match (concat (car var) "\\.") (car varchild))
-		  (setq gdb-var-list (delq varchild gdb-var-list)))))))))
+      (let* ((var (nth (- (count-lines (point-min) (point)) 2) gdb-var-list))
+	     (varnum (car var)))
+	(if (string-match "\\." (car var))
+	    (message-box "Can only delete a root expression")
+	  (gdb-enqueue-input
+	   (list
+	    (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
+		    'gdba)
+		(concat "server interpreter mi \"-var-delete " varnum "\"\n")
+	      (concat "-var-delete " varnum "\n"))
+	    'ignore))
+	  (setq gdb-var-list (delq var gdb-var-list))
+	  (dolist (varchild gdb-var-list)
+	    (if (string-match (concat (car var) "\\.") (car varchild))
+		(setq gdb-var-list (delq varchild gdb-var-list))))))))
 
 (defun gdb-var-delete-children (varnum)
   "Delete children of variable object at point from the speedbar."
@@ -1017,7 +1004,7 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
 		      'gdb-partial-output-name)
 
 (defun gdb-partial-output-name ()
-  (concat "*partial-output-"
+  (concat " *partial-output-"
 	  (gdb-get-target-string)
 	  "*"))
 
@@ -1788,7 +1775,7 @@ static char *magick[] = {
     (dolist (buffer (buffer-list))
       (with-current-buffer buffer
 	(if (and (memq gud-minor-mode '(gdba gdbmi))
-		 (not (string-match "\\`\\*.+\\*\\'" (buffer-name))))
+		 (not (string-match "\\` ?\\*.+\\*\\'" (buffer-name))))
 	    (gdb-remove-breakpoint-icons (point-min) (point-max)))))
     (with-current-buffer (gdb-get-buffer 'gdb-breakpoints-buffer)
       (save-excursion
@@ -2937,7 +2924,7 @@ Kills the gdb buffers, and resets variables and the source buffers."
     (unless (eq buffer gud-comint-buffer)
       (with-current-buffer buffer
 	(if (memq gud-minor-mode '(gdbmi gdba))
-	    (if (string-match "\\`\\*.+\\*\\'" (buffer-name))
+	    (if (string-match "\\` ?\\*.+\\*\\'" (buffer-name))
 		(kill-buffer nil)
 	      (gdb-remove-breakpoint-icons (point-min) (point-max) t)
 	      (setq gud-minor-mode nil)
