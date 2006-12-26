@@ -1,3 +1,9 @@
+2006-12-26  Guanpeng Xu  <herberteuler@hotmail.com> (tiny change)
+
+	* add-log.el (add-log-current-defun): Call `forward-sexp'
+	multiple times to pick a member function name defined as
+	part of nested classes/namespaces.
+
 2006-12-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* emacs-lisp/easymenu.el (easy-menu-change): New arg MAP to indicate
@@ -2959,7 +2965,7 @@
 
 	* add-log.el (add-log-current-defun): Use `forward-sexp'
 	instead of `forward-word' to pick c++::symbol.
-	Reported by Herbert Euler <herberteuler@hotmail.com>.
+	Reported by Guanpeng Xu <herberteuler@hotmail.com>.
 
 2006-09-22  Kenichi Handa  <handa@m17n.org>
 
