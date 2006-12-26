@@ -49,7 +49,7 @@
 	(set_tcp_socket): Make the message for non-local connections
 	informational rather than an error.
 
-2006-11-28  Kevin Ryde  <user42@zip.com.au>  (tiny change)
+2006-11-28  Kevin Ryde  <user42@zip.com.au>
 
 	* etags.c (readline): Check for double quote after #line.
 
