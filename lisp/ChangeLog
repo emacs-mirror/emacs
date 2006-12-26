@@ -1,3 +1,13 @@
+2006-12-26  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gud-watch): Allow duplicate names for watch
+	expressions.
+	(gdb-var-delete): Handle duplicate names.  Print message for non
+	root expressions.
+	(gdb-partial-output-name): Start buffer name with a space.
+	(gdb-info-breakpoints-custom, gdb-reset): Handle space in above
+	buffer name.
+
 2006-12-26  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
 
 	* mail/footnote.el (Footnote-insert-footnote): Fix the search of the
