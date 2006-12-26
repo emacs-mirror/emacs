@@ -1,3 +1,11 @@
+2006-12-26  Richard Stallman  <rms@gnu.org>
+
+	* image.el (image-type-header-regexps): Change element format
+	to include third item NOT-ALWAYS.
+	(image-type-from-data): Handle new format.
+	(image-type-from-buffer): Handle new format.  New arg INCLUDE-MAYBES.
+	(image-type-from-file-header): Pass t for INCLUDE-MAYBES.
+
 2006-12-26  Guanpeng Xu  <herberteuler@hotmail.com> (tiny change)
 
 	* add-log.el (add-log-current-defun): Call `forward-sexp'
