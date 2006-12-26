@@ -34,20 +34,27 @@
 
 
 (defconst image-type-header-regexps
-  '(("\\`/[\t\n\r ]*\\*.*XPM.\\*/" . xpm)
-    ("\\`P[1-6][[:space:]]+\\(?:#.*[[:space:]]+\\)*[0-9]+[[:space:]]+[0-9]+" . pbm)
-    ("\\`GIF8" . gif)
-    ("\\`\x89PNG\r\n\x1a\n" . png)
-    ("\\`[\t\n\r ]*#define" . xbm)
-    ("\\`\\(?:MM\0\\*\\|II\\*\0\\)" . tiff)
-    ("\\`[\t\n\r ]*%!PS" . postscript)
-    ("\\`\xff\xd8" . (image-jpeg-p . jpeg)))
-  "Alist of (REGEXP . IMAGE-TYPE) pairs used to auto-detect image types.
+  '(("\\`/[\t\n\r ]*\\*.*XPM.\\*/" xpm)
+    ("\\`P[1-6][[:space:]]+\\(?:#.*[[:space:]]+\\)*[0-9]+[[:space:]]+[0-9]+" pbm)
+    ("\\`GIF8" gif)
+    ("\\`\x89PNG\r\n\x1a\n" png)
+    ("\\`[\t\n\r ]*#define" xbm)
+    ("\\`\\(?:MM\0\\*\\|II\\*\0\\)" tiff)
+    ("\\`[\t\n\r ]*%!PS" postscript t)
+    ("\\`\xff\xd8" (image-jpeg-p . jpeg)))
+  "Alist of (REGEXP IMAGE-TYPE) pairs used to auto-detect image types.
 When the first bytes of an image file match REGEXP, it is assumed to
-be of image type IMAGE-TYPE if IMAGE-TYPE is a symbol.  If not a symbol,
-IMAGE-TYPE must be a pair (PREDICATE . TYPE).  PREDICATE is called
-with one argument, a string containing the image data.  If PREDICATE returns
-a non-nil value, TYPE is the image's type.")
+be of image type IMAGE-TYPE if IMAGE-TYPE is a symbol.
+
+An element can also be (REGEXP IMAGE-TYPE NOT-ALWAYS).  If
+NOT-ALWAYS is non-nil, that means that REGEXP identifies a
+file that _can_ be treated as an image of type IMAGE-TYPE,
+but such files should not be spontaneously treated as images.
+
+IMAGE-TYPE can be a pair (PREDICATE . TYPE) instead of a
+symbol.  Then PREDICATE is called with one argument, a
+string containing the image data.  If PREDICATE returns a
+non-nil value, TYPE is the image's type.")
 
 (defconst image-type-file-name-regexps
   '(("\\.png\\'" . png)
@@ -205,7 +212,7 @@ be determined."
 	type)
     (while types
       (let ((regexp (car (car types)))
-	    (image-type (cdr (car types))))
+	    (image-type (nth 1 (car types))))
 	(if (or (and (symbolp image-type)
 		     (string-match regexp data))
 		(and (consp image-type)
@@ -218,17 +225,22 @@ be determined."
 
 
 ;;;###autoload
-(defun image-type-from-buffer ()
+(defun image-type-from-buffer (&optional include-maybes)
   "Determine the image type from data in the current buffer.
-Value is a symbol specifying the image type or nil if type cannot
-be determined."
+Value is a symbol specifying the image type, or nil if none
+corresponds to the buffer contents.
+
+If INCLUDE-MAYBES is nil (the default), we return nil for 
+file types that should not always be treated as images
+even though they can be so treated."
   (let ((types image-type-header-regexps)
 	type
 	(opoint (point)))
     (goto-char (point-min))
     (while types
       (let ((regexp (car (car types)))
-	    (image-type (cdr (car types)))
+	    (image-type (nth 1 (car types)))
+	    (not-always (nth 2 (car types)))
 	    data)
 	(if (or (and (symbolp image-type)
 		     (looking-at regexp))
@@ -241,7 +253,10 @@ be determined."
 					 (min (point-max)
 					      (+ (point-min) 256))))))
 		     (setq image-type (cdr image-type))))
-	    (setq type image-type
+	    ;; If this entry says "not always",
+	    ;; treat it as nil, unless INCLUDE-MAYBES is t.
+	    (setq type (if (or include-maybes (not not-always))
+			   image-type)
 		  types nil)
 	  (setq types (cdr types)))))
     (goto-char opoint)
@@ -261,7 +276,7 @@ be determined."
        (with-temp-buffer
 	 (set-buffer-multibyte nil)
 	 (insert-file-contents-literally file nil 0 256)
-	 (image-type-from-buffer))))
+	 (image-type-from-buffer t))))
 
 
 ;;;###autoload
