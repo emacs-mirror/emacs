@@ -5,6 +5,10 @@
 
 2006-12-26  Richard Stallman  <rms@gnu.org>
 
+	* cus-edit.el (custom-browse-sort-alphabetically)
+	(custom-buffer-sort-alphabetically)
+	(custom-menu-sort-alphabetically): Doc fixes.  Add autoloads.
+
 	* image.el (image-type-header-regexps): Change element format
 	to include third item NOT-ALWAYS.
 	(image-type-from-data): Handle new format.
