@@ -29,6 +29,7 @@ SHELL = /bin/sh
 # Here are the things that we expect ../configure to edit.
 version=@version@
 prefix=@prefix@
+datarootdir=@datarootdir@
 datadir=@datadir@
 srcdir=@srcdir@
 
