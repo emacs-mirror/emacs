@@ -1,3 +1,7 @@
+2006-12-26  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (datarootdir): Define.
+
 2006-12-24  Richard Stallman  <rms@gnu.org>
 
 	* configure.in: Require Autoconf 2.61.
