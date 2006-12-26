@@ -526,12 +526,8 @@ categories of holidays.  You can use this command even if you don't have
 a calendar window.
 
   The dates used by Emacs for holidays are based on @emph{current
-practice}, not historical fact.  Historically, for instance, the start
-of daylight savings time and even its existence have varied from year to
-year, but present United States law mandates that daylight savings time
-begins on the second Sunday in March.  When the daylight savings rules
-are set up for the United States, Emacs always uses the present
-definition, even though it is wrong for some prior years.
+practice}, not historical fact.  For example Veteran's Day began in
+1919, but is shown in earlier years.
 
 @node Sunrise/Sunset
 @section Times of Sunrise and Sunset
