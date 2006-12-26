@@ -762,7 +762,7 @@ If `fill-paragraph-function' is nil, return the `fill-prefix' used for filling."
 		 (list (if current-prefix-arg 'full))))
   ;; First try fill-paragraph-function.
   (or (and (or fill-paragraph-function
-	       (and (window-minibuffer-p (selected-window))
+	       (and (minibufferp (current-buffer))
 		    (= 1 (point-min))))
 	   (let ((function (or fill-paragraph-function
 			       ;; In the minibuffer, don't count the width
