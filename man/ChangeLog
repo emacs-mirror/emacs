@@ -1,3 +1,8 @@
+2006-12-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (Windows Keyboard): Mention widespread Windows bindings,
+	and how to get them back.
+
 2006-12-26  Richard Stallman  <rms@gnu.org>
 
 	* calendar.texi (Holidays): Holiday listing is based on current
