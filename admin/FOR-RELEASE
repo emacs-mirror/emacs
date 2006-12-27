@@ -53,7 +53,7 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 ** Need papers from Rubini for his code in t-mouse.el
   Sent instructions.
 
-** lennart.borgman.073@student.lu.se, Dec 21: 
+** lennart.borgman.073@student.lu.se, Dec 21:
   Saving when the coding system can't code all buffer characters
 
 ** Bug in ESHELL that Wiegley is supposed to fix.
@@ -66,7 +66,7 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** Delete prematurely applied allout.el changes.
 
-** lennart.borgman.073@student.lu.se, Dec 16: 
+** lennart.borgman.073@student.lu.se, Dec 16:
   compilation-previous-error fails if first error is at start of buffer
 
 ** CC mode fixes to be installed.
@@ -77,12 +77,10 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** bruno@clisp.org's patches for location of Info file directory.
 
-** disumu@x3y2z1.net, Nov 22: 
+** disumu@x3y2z1.net, Nov 22:
   URL not following some 302 redirects after recent changes
 
 ** dwm@meer.net, Dec 24: etags/ctags v22.0.92 break Linux kernel
-
-** storm@cua.dk: AUTHORS is generated wrong for testcover.el.
 
 ** Give recommendations for redefining window manager keys
   to avoid interference with Emacs.
