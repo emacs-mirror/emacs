@@ -737,18 +737,18 @@ DEFAULT is the coding system to use by default in the query."
 	      (insert "\n")
 	      (fill-region-as-paragraph pos (point)))
 	    (when rejected
-	      (insert "These safely encodes the target text,
-but it is not recommended for encoding text in this context,
+	      (insert "These safely encode the text in the buffer,
+but are not recommended for encoding text in this context,
 e.g., for sending an email message.\n ")
 	      (dolist (x rejected)
 		(princ " ") (princ x))
 	      (insert "\n"))
 	    (when unsafe
-	      (insert (if rejected "And the others"
+	      (insert (if rejected "The other coding systems"
 			"However, each of them")
-		      " encountered these problematic characters:\n")
+		      " encountered characters it couldn't encode:\n")
 	      (dolist (coding unsafe)
-		(insert (format "  %s:" (car coding)))
+		(insert (format "  %s cannot encode these:" (car coding)))
 		(let ((i 0)
 		      (func1
 		       #'(lambda (bufname pos)
@@ -790,14 +790,15 @@ e.g., for sending an email message.\n ")
 		(insert "\n"))
 	      (insert "\
 
-Click those characters to jump to the place they appear,\n"
+Click a character to jump to the place it appears,\n"
 		      (substitute-command-keys "\
-and there \\[universal-argument] \\[what-cursor-position] will give information about it.\n"))))
+where `\\[universal-argument] \\[what-cursor-position]' will give information about it.\n"))))
 	  (insert (substitute-command-keys "\nSelect \
-one of the following safe coding systems,\n\
-or cancel the writing by \\[keyboard-quit] and edit the buffer,\n\
-or specify any other coding system at the risk of
-losing the problematic characters.\n"))
+one of the safe coding systems listed below,\n\
+or cancel the writing with \\[keyboard-quit] and edit the buffer\n\
+   to remove or modify the problematic characters,\n\
+or specify any other coding system (and risk losing\n\
+   the problematic characters).\n\n"))
 	  (let ((pos (point))
 		(fill-prefix "  "))
 	    (dolist (x codings)
