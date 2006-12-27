@@ -189,7 +189,8 @@ typedef struct mps_fmt_A_s {
   mps_fmt_isfwd_t isfwd;
   mps_fmt_pad_t   pad;
 } mps_fmt_A_s;
-typedef struct mps_fmt_A_s *mps_fmt_A_t;  /* deprecated */
+typedef struct mps_fmt_A_s *mps_fmt_A_t;
+/* type-name mps_fmt_A_t is deprecated: use mps_fmt_A_s* instead */
 
 typedef struct mps_fmt_B_s {
   mps_align_t     align;
@@ -201,7 +202,8 @@ typedef struct mps_fmt_B_s {
   mps_fmt_pad_t   pad;
   mps_fmt_class_t mps_class;
 } mps_fmt_B_s;
-typedef struct mps_fmt_B_s *mps_fmt_B_t;  /* deprecated */
+typedef struct mps_fmt_B_s *mps_fmt_B_t;
+/* type-name mps_fmt_B_t is deprecated: use mps_fmt_B_s* instead */
 
 
 typedef struct mps_fmt_auto_header_s {
