@@ -1,3 +1,12 @@
+2006-12-28  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* etags.c (readline): When creating a relative file name from a
+	#line directive, leave the file name alone.  The previous
+	behaviour was to make it relative to the tags file directory,
+	under the hypothesis that the #line directive file name was
+	relative to the directory of the tagged file.  That hypothesis is
+	wrong with Cpp and Lex.
+
 2006-12-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (make-docfile, ctags, etags, ebrowse, hexl)
