@@ -153,7 +153,8 @@ typedef PSID_IDENTIFIER_AUTHORITY (WINAPI * GetSidIdentifierAuthority_Proc) (
     PSID pSid);
 
   /* ** A utility function ** */
-static BOOL is_windows_9x ()
+static BOOL
+is_windows_9x ()
 {
   static BOOL s_b_ret=0;
   OSVERSIONINFO os_ver;
@@ -2871,7 +2872,8 @@ int h_errno = 0;
 /* function to set h_errno for compatability; map winsock error codes to
    normal system codes where they overlap (non-overlapping definitions
    are already in <sys/socket.h> */
-static void set_errno ()
+static void
+set_errno ()
 {
   if (winsock_lib == NULL)
     h_errno = EINVAL;
@@ -2892,7 +2894,8 @@ static void set_errno ()
   errno = h_errno;
 }
 
-static void check_errno ()
+static void
+check_errno ()
 {
   if (h_errno == 0 && winsock_lib != NULL)
     pfn_WSASetLastError (0);
@@ -3676,7 +3679,8 @@ _sys_read_ahead (int fd)
   return cp->status;
 }
 
-int _sys_wait_accept (int fd)
+int
+_sys_wait_accept (int fd)
 {
   HANDLE hEv;
   child_process * cp;
@@ -4136,7 +4140,8 @@ BOOL WINAPI shutdown_handler(DWORD type)
 	must always be initialized on startup even when the global variable
 	initialized is non zero (see the function main in emacs.c).
 */
-void globals_of_w32 ()
+void
+globals_of_w32 ()
 {
   g_b_init_is_windows_9x = 0;
   g_b_init_open_process_token = 0;
