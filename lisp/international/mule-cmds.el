@@ -787,19 +787,21 @@ e.g., for sending an email message.\n ")
 		    (setq i (1+ i))))
 		(insert "\n"))
 	      (insert "\
-The first problematic character is at point in the displayed buffer,\n"
+
+Click those characters to jump to the place they appear,\n"
 		      (substitute-command-keys "\
 and \\[universal-argument] \\[what-cursor-position] will give information about it.\n"))))
-	  (insert "\nSelect \
-one of the following safe coding systems, or edit the buffer:\n")
+	  (insert (substitute-command-keys "\nSelect \
+one of the following safe coding systems,\n\
+or cancel the writing by \\[keyboard-quit] and edit the buffer,\n\
+or specify any other coding system at the risk of
+losing the problematic characters.\n"))
 	  (let ((pos (point))
 		(fill-prefix "  "))
 	    (dolist (x codings)
 	      (princ "  ") (princ x))
 	    (insert "\n")
-	    (fill-region-as-paragraph pos (point)))
-	  (insert "Or specify any other coding system
-at the risk of losing the problematic characters.\n")))
+	    (fill-region-as-paragraph pos (point)))))
 
       ;; Read a coding system.
       (setq coding-system
