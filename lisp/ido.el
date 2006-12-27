@@ -3579,6 +3579,9 @@ for first matching file."
 			    (/= (aref name 0) ?.)))
 		      (string-match re name))
 		 (cond
+		  ((and (eq ido-cur-item 'buffer)
+			(string= name (buffer-name ido-entry-buffer)))
+		   (setq matches (cons item matches)))
 		  ((and full-re (string-match full-re name))
 		   (setq full-matches (cons item full-matches)))
 		  ((and suffix-re (string-match suffix-re name))
