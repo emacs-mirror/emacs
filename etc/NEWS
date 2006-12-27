@@ -3792,6 +3792,7 @@ w32-use-full-screen-buffer to t.
 ** The `read-file-name' function now returns a null string if the
 user just types RET.
 
++++
 ** The function find-operation-coding-system may be called with a cons
 (FILENAME . BUFFER) in the second argument if the first argument
 OPERATION is `insert-file-contents', and thus a function registered in
