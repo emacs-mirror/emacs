@@ -2900,7 +2900,7 @@ usage: (make-network-process &rest ARGS)  */)
   /* Make QCaddress an alias for :local (server) or :remote (client).  */
   QCaddress = is_server ? QClocal : QCremote;
 
-  /* :wait BOOL */
+  /* :nowait BOOL */
   if (!is_server && socktype == SOCK_STREAM
       && (tem = Fplist_get (contact, QCnowait), !NILP (tem)))
     {
