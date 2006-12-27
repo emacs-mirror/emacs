@@ -1,3 +1,10 @@
+2006-12-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-arch.el (vc-arch-find-version): New function.
+
+	* vc-hooks.el (vc-version-backup-file-name): Revision names may be
+	composed of arbitrary characters (even /) in some systems.
+
 2006-12-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* international/mule-cmds.el (select-safe-coding-system-interactively):
