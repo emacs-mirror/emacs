@@ -1046,6 +1046,9 @@ so that it doesn't interfere with other minibuffer usage.")
 ;; Stores the current ido item type ('file, 'dir, 'buffer, or 'list).
 (defvar ido-cur-item)
 
+;;; Stores the current default item
+(defvar ido-default-item)
+
 ;; Stores the current list of items that will be searched through.
 ;; The list is ordered, so that the most interesting item comes first,
 ;; although by default, the files visible in the current frame are put
@@ -3580,6 +3583,8 @@ for first matching file."
 		      (string-match re name))
 		 (cond
 		  ((and (eq ido-cur-item 'buffer)
+			(or (not (stringp ido-default-item))
+			    (not (string= name ido-default-item)))
 			(string= name (buffer-name ido-entry-buffer)))
 		   (setq matches (cons item matches)))
 		  ((and full-re (string-match full-re name))
