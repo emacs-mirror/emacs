@@ -772,6 +772,7 @@ e.g., for sending an email message.\n ")
 			  (insert-text-button
 			   (cdr elt)
 			   :type 'help-xref
+			   'face 'link
 			   'help-echo
 			   "mouse-2, RET: jump to this character"
 			   'help-function func1
@@ -779,6 +780,7 @@ e.g., for sending an email message.\n ")
 			(insert-text-button
 			 "..."
 			 :type 'help-xref
+			 'face 'link
 			 'help-echo
 			 "mouse-2, RET: next unencodable character"
 			 'help-function func2
@@ -790,7 +792,7 @@ e.g., for sending an email message.\n ")
 
 Click those characters to jump to the place they appear,\n"
 		      (substitute-command-keys "\
-and \\[universal-argument] \\[what-cursor-position] will give information about it.\n"))))
+and there \\[universal-argument] \\[what-cursor-position] will give information about it.\n"))))
 	  (insert (substitute-command-keys "\nSelect \
 one of the following safe coding systems,\n\
 or cancel the writing by \\[keyboard-quit] and edit the buffer,\n\
