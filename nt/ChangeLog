@@ -1,3 +1,10 @@
+2006-12-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Update table of supported Make ports.  Show "make -j"
+	command that is known to work.
+
+	* configure.bat: Update table of supported Make ports.
+
 2006-12-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in ($(TRES)): Don't use $<, as nmake supports it
