@@ -2031,6 +2031,12 @@ for Emacs 22. In particular, the mode-line is now position sensitive.
 
 * Changes in Specialized Modes and Packages in Emacs 22.1:
 
+** Changes in Shell Mode
+
+*** Shell output normally scrolls so that the input line is at the
+bottom of the window -- thus showing the maximum possible text.  (This
+is similar to the way sequential output to a terminal works.)
+
 ** Changes in Dired
 
 +++
@@ -3781,6 +3787,10 @@ w32-use-full-screen-buffer to t.
 `mac-command-modifier' and `mac-option-modifier' instead.
 
 * Incompatible Lisp Changes in Emacs 22.1
+
++++
+** The `read-file-name' function now returns a null string if the
+user just types RET.
 
 ** The function find-operation-coding-system may be called with a cons
 (FILENAME . BUFFER) in the second argument if the first argument
