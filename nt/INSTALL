@@ -48,7 +48,7 @@
      With GNU Make, you can use the -j command-line option to have
      Make execute several commands at once, like this:
 
-       gmake -j 4 XMFLAGS="-j 3"
+       gmake -j 2 XMFLAGS="-j 2"
 
      The XMFLAGS variable overrides the default behavior of GNU Make
      on Windows, whereby recursive Make invocations reset the maximum
@@ -106,6 +106,9 @@
   build (latest versions of the Cygwin toolkit, at least since v1.3.3,
   include the MinGW headers and libraries as an integral part).
 
+  Note that building Emacs with Visual Studio 2005 is not supported at
+  this time.
+
   The rest of this file assumes you have a working development
   environment.  If you just installed  such an environment, try
   building a trivial C "Hello world" program, and see if it works.  If
@@ -143,7 +146,7 @@
     cygwin compiled make 3.80:           fails?[6]     fails?[6]
     cygwin compiled make 3.81:           fails         fails?[6]
     mingw32 compiled make 3.79.1:        okay          okay
-    mingw32 compiled make 3.80:          okay          unknown[6]
+    mingw32 compiled make 3.80:          okay          okay[6]
     mingw32 compiled make 3.81:          okay          okay[7]
 
   Notes:
@@ -156,7 +159,7 @@
     [4] may fail on Windows 9X and Windows ME; if so, install Bash.
     [5] fails when building leim due to the use of cygwin style paths.
         May work if building emacs without leim.
-    [6] please report if you try this combination.
+    [6] not recommended; please report if you try this combination.
     [7] tested only on Windows XP.
 
   Other compilers may work, but specific reports from people that have
