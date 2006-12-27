@@ -21,6 +21,9 @@
 #  the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 #  Boston, MA 02110-1301, USA.
 
+# FIXME: This file uses DOS EOLs.  Convert to Unix after 22.1 is out
+#        (and remove or replace this comment).
+
 ALL		= addpm ddeclient runemacs cmdproxy addsection preprep
 
 .PHONY: $(ALL)
