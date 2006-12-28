@@ -41,7 +41,7 @@
  * configuration file containing regexp definitions for etags.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 17.23";
+char pot_etags_version[] = "@(#) pot revision number is 17.25";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -4686,8 +4686,16 @@ Makefile_targets (inf)
       while (*bp != '\0' && *bp != '=' && *bp != ':')
 	bp++;
       if (*bp == ':' || (globals && *bp == '='))
-	make_tag (lb.buffer, bp - lb.buffer, TRUE,
-		  lb.buffer, bp - lb.buffer + 1, lineno, linecharno);
+	{
+	  /* We should detect if there is more than one tag, but we do not.
+	     We just skip initial and final spaces. */
+	  char * namestart = skip_spaces (lb.buffer);
+	  while (--bp > namestart)
+	    if (!notinname (*bp))
+	      break;
+	  make_tag (namestart, bp - namestart + 1, TRUE,
+		    lb.buffer, bp - lb.buffer + 2, lineno, linecharno);
+	}
     }
 }
 
@@ -6277,7 +6285,7 @@ readline (lbp, stream)
 		  name = lbp->buffer + start;
 		  *endp = '\0';
 		  canonicalize_filename (name); /* for DOS */
-		  taggedabsname = absolute_filename (name, curfdp->infabsdir);
+		  taggedabsname = absolute_filename (name, tagfiledir);
 		  if (filename_is_absolute (name)
 		      || filename_is_absolute (curfdp->infname))
 		    taggedfname = savestr (taggedabsname);
