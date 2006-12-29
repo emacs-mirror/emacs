@@ -1,3 +1,8 @@
+2006-12-29  Kim F. Storm  <storm@cua.dk>
+
+	* processes.texi (Bindat Spec): Explain eval forms and lengths better.
+	Add count and index variables for eval forms in repeat blocks.
+
 2006-12-24  Richard Stallman  <rms@gnu.org>
 
 	* customize.texi (Variable Definitions): Document
