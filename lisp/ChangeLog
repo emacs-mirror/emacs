@@ -1,3 +1,8 @@
+2006-12-29  Nick Roberts  <nickrob@snap.net.nz>
+
+	* dired.el (dired-sort-other): Move test for dired-mode...
+	(dired-sort-set-modeline): ...to here.
+
 2006-12-29  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
 
 	* textmodes/fill.el (fill-comment-paragraph): Document 2006-12-24
