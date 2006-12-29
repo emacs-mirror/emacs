@@ -386,7 +386,6 @@ typedef int pid_t;
 #define pclose    _pclose
 #define putw	  _putw
 #define umask	  _umask
-#define utime	  _utime
 #define utimbuf	  _utimbuf
 #define index     strchr
 #define rindex    strrchr
@@ -398,6 +397,7 @@ typedef int pid_t;
 
 #if !defined (_MSC_VER) || (_MSC_VER < 1400)
 #define tzname    _tzname
+#define utime	  _utime
 #endif
 
 #ifdef HAVE_NTGUI
