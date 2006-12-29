@@ -83,7 +83,9 @@ void mps_lib_assert_fail(const char *message)
 {
   fflush(stdout); /* synchronize */
   fprintf(stderr, "\nMPS ASSERTION FAILURE: %s\n", message);
+  fprintf(stdout, "\nMPS ASSERTION FAILURE: %s\n", message);
   fflush(stderr); /* make sure the message is output */
+  fflush(stdout); /* make sure the message is output */
   abort();
 }
 
