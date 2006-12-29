@@ -1,6 +1,7 @@
 2006-12-29  Jason Rumney  <jasonr@gnu.org>
 
 	* s/ms-w32.h (tzname): Do not define in msvc8.
+	(umask): Do not define in msvc8.
 
 	* regex.c (regerror): Change parameter name err_code.
 

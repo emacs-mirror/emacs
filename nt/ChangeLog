@@ -1,3 +1,9 @@
+2006-12-29  Jason Rumney  <jasonr@gnu.org>
+
+	* nmake.defs (TEMACS_EXTRA_LINK): Remove duplicated flags from
+	DEBUG_LINK.
+	(DEBUG_LINK): Remove -debugtype:both
+
 2006-12-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* INSTALL: Update table of supported Make ports.  Show "make -j"
