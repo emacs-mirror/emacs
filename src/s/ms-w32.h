@@ -395,7 +395,10 @@ typedef int pid_t;
 #define strnicmp  _strnicmp
 #define stricmp   _stricmp
 #define tzset     _tzset
+
+#if !defined (_MSC_VER) || (_MSC_VER < 1400)
 #define tzname    _tzname
+#endif
 
 #ifdef HAVE_NTGUI
 #define abort	w32_abort
