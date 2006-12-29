@@ -1106,6 +1106,15 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
            TRACE_SET_ITER_END(ti, trace, ts, arena);
       });
 
+    {
+      static int fOnce = 0;
+      if (!fOnce && !RefSetSub(ss.unfixedSummary, SegSummary(seg))) {
+        fOnce = 1;
+        
+        SegDescribe(seg, mps_lib_get_stderr());
+      }
+    }
+
     /* following is true whether or not scan was total */
     /* See <design/scan/#summary.subset>. */
     AVER(RefSetSub(ss.unfixedSummary, SegSummary(seg)));
@@ -1541,6 +1550,8 @@ static Res rootGrey(Root root, void *p)
   return ResOK;
 }
 
+#include <stdio.h>
+
 void TraceStart(Trace trace, double mortality, double finishingTime)
 {
   Arena arena;
@@ -1568,6 +1579,7 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
    * we just silently drop the message for this TraceStart.
    */
   if(!MessageOnQueue(message)) {
+    printf(" TraceStart: %s\n", trace->startMessage.why);
     MessagePost(arena, message);
   }
 
@@ -1631,6 +1643,7 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
       nPolls = (double)LONG_MAX;
     /* rate equals scanning work per number of polls available */
     trace->rate = (trace->foundation + sSurvivors) / (long)nPolls + 1;
+    printf(" nPolls: %f, trace->rate: %lu\n", nPolls, trace->rate);
   }
 
   STATISTIC_STAT(EVENT_PWWWWDD(TraceStatCondemn, trace,
@@ -1710,6 +1723,7 @@ static Res traceStartCollectAll(Trace *traceReturn, Arena arena, int why)
     goto failCondemn;
   finishingTime = ArenaAvail(arena)
                   - trace->condemned * (1.0 - TraceTopGenMortality);
+  printf(" traceStartCollectAll: finishingTime: %f\n", finishingTime);
   if (finishingTime < 0) {
     /* Run out of time, should really try a smaller collection. @@@@ */
     finishingTime = 0.0;
@@ -1757,6 +1771,7 @@ Size TracePoll(Globals globals)
     dynamicDeferral = (double)ArenaAvail(arena) - (double)sConsTrace;
 
     if (dynamicDeferral < 0.0) { /* start full GC */
+      printf(" TracePoll: dynamicDeferral: %f, ArenaAvail: %lu\n", dynamicDeferral, ArenaAvail(arena));
       res = traceStartCollectAll(&trace, arena, TraceStartWhyDYNAMICCRITERION);
       if (res != ResOK)
         goto failStart;
