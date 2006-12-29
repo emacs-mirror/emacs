@@ -86,16 +86,110 @@
     memory for an allocation point.</dd>
 </dl>
 
+
+<h3>Pieces of memory</h3>
+
+<h4>Pools getting raw memory from the Arena</h4>
+<p>This memory will be used for client objects.  
+  There are two interfaces:
+   a high-level "segment" interface, 
+   and a simpler "arena memory" interface. </p>
+<dl>
+  <dt> segment (internal) </dt>
+  <dd>
+    <p>= a contiguous piece of memory of arbitrary size, 
+      with associated properties for participating in garbage 
+      collection (see SegStruct).</p>
+    <p>A pool may call SegAlloc() to request a segment from the arena. 
+      The segment is the unit of pool-to-pool and pool-to-MPM 
+      interaction for GC.</p>
+    <p>Design: <a href="../../design/seg/">design/seg</a>.</p>
+    <p>Interface: SegAlloc() et al in <a href="../../code/mpm.h">mpm.h</a>.</p>
+    <p>Historical note: before 'sunset on segments' (1999-11-18, change 21000) a 
+      segment was a VM page.</p>
+  </dd>
+  
+  <dt> arena memory (internal) </dt>
+  <dd>
+    <p>= a contiguous piece of memory of arbitrary size, 
+      returned by ArenaAlloc()</p>
+    <p>A pool may call ArenaAlloc() to request raw memory from the 
+      arena.  This is a simpler interface than segments, suitable 
+      for simple pools that do not participate in garbage collection, 
+      pools used internally by the MPM, etc.</p>
+    <p>(Note: this ArenaAlloc() interface is sometimes 
+      called the "tract" interface).</p>
+  </dd>
+</dl>
+
+<h4>Pools getting memory for administrative use</h4> 
+<p>This memory will be used for the pool's administrative 
+  datastructures, such as allocation 
+  tables.</p>
+<dl>  
+  <dt> control memory (internal) </dt>
+  <dd>
+    <p>Pools use ControlAlloc() and ControlFree() to obtain 
+      or free control memory.</p>
+  </dd>
+</dl>
+
+<h4>How the arena handles memory</h4>
+<p>See tract.c.</p>
+<dl>  
+  <dt> chunk (internal) </dt>
+  <dd>
+    <p>= a contiguous (I think) piece of address space that has 
+    been reserved (I think) by the arena</p>
+    <p>arena-&gt;primary points to the arena's first chunk</p>
+  </dd>
+  
+  <dt> page (internal) </dt>
+  <dd>= unit of granularity of arena allocation; object corresponding to one operating-system VM page </dd>
+  
+  <dt> tract (internal) </dt>
+  <dd>= a page that is allocated to a pool</dd>
+  
+</dl>
+
 <p>Other terms:</p>
 <dl>
-  <dt> Format (mps.h) </dt>
+  <dt> <a id="foreign_code">foreign code</a> (mps.h) </dt>
+  <dd>From the MPS client's point of view, foreign code is 
+    external code (outside the client and MPS), which is not 
+    aware of and does not cooperate with the MPS.  
+    Examples include the operating system, graphics libraries,
+    etc.
+    Before the client passes MPS memory references to foreign 
+    code, it must ensure that the memory is not going to be moved, 
+    collected, or 
+    <a href="http://www.memorymanagement.org/glossary/p.html#protection">protected</a> by the MPS.
+    Some pool classes (eg. 
+    <a href="pool_classes.html#mps_class_lo"><code>mps_class_lo</code></a>
+    ) are specially 
+    designed for this.
+    </dd>
+
+  <dt> format (mps.h) </dt>
   <dd>A collection of client-implemented Format Methods, 
-    which MPS uses to ask questions about objects.
+    which MPS uses to ask the client questions about objects.
     See <a href="gc.html">GC</a>.</dd>
 
   <dt> Attr (internal) </dt>
   <dd>A bitset of pool or pool class attributes.
-    See <a href="../../design/type/#attr">design/type/#attr</a></dd>
+    See 
+    <a href="../../design/type/index.html#attr">design/type/#attr</a>.
+  </dd>
+
+  <dt> Ring (internal) </dt>
+  <dd>A Parent node, linked to zero or more Child nodes.  
+    Used throughout MPS internals.  See 
+    <a href="../../design/ring/index.html">design/ring</a>.
+    The <code>RING_FOR</code> macro visits all Child nodes.
+    Note: when a node (RingStruct) appears in a larger structure, 
+    there is (alas) no indication whether it is the parent node, 
+    or a child node.
+  </dd>
 </dl>
 
 <h2><a id="section-B" name="section-B">B. Document History</a></h2>
@@ -103,6 +197,9 @@
 <pre>
   2006-06-06  RHSK  Created.
   2006-06-21  RHSK  Scope of terms; client/mutator, ap/buffer.
+  2006-07-03  RHSK  Ring.
+  2006-08-02  RHSK  Foreign code.  Format (clarify).
+  2006-08-14  RHSK  Pieces of memory: chunk, segment, tract, page
 </pre>
 
 

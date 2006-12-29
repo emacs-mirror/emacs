@@ -190,7 +190,7 @@
     neo-&gt;type = TYPE_OBJECT;
     neo-&gt;size = SIZE_OBJECT;
     neo-&gt;parent = parent;
-    neo-&gt;family = parent-&gt;family;
+    neo-&gt;tribe = parent-&gt;tribe;
     neo-&gt;child = NULL;
     /* neo (ambiguous reference) preserves the new object */
   } while (! mps_commit(ap, p, SIZE_OBJECT));
@@ -436,7 +436,7 @@ fail_make_object:
   int              formatcode;  /* FORMAT_CLIENT, _FWD, or _PAD */
   int              type;
   size_t           size;
-  struct object_s *family;
+  struct object_s *tribe;
   struct object_s *parent;
   struct object_s *child;
 } object; 
@@ -456,7 +456,7 @@ int make_object(mps_ap_t ap, object *parent)
     neo-&gt;type = TYPE_OBJECT;
     neo-&gt;size = SIZE_OBJECT;
     neo-&gt;parent = parent;
-    neo-&gt;family = neo-&gt;parent-&gt;family;  /*--- incorrect-1 ---*/
+    neo-&gt;tribe = neo-&gt;parent-&gt;tribe;  /*--- incorrect-1 ---*/
     parent-&gt;child = neo;  /*--- incorrect-2 ---*/
     
     /* neo (ambiguous reference) preserves the new object */
@@ -474,7 +474,7 @@ fail_make_object:
 
 <p>Incorrect-1: do not read references from the new object.  
   Dereferencing <code>neo-&gt;parent</code> is illegal.
-  (The code should use <code>parent-&gt;family</code>).</p>
+  (The code should use <code>parent-&gt;tribe</code>).</p>
 
 <p>Incorrect-2: making an exact reference to the new object is illegal.
   (The code should only do this after a successful commit).</p>

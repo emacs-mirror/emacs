@@ -42,25 +42,205 @@
 
 <p> This wiki article contains incomplete and informal notes about the MPS, the precursor to more formal documentation.  Not confidential.  Readership: MPS users and developers.  </p>
 
-<h2>Some notes about MPS pool classes</h2>
+<h2>How to choose the right MPS pool class</h2>
 
-<p>A useful survey from 1998:
+<p>We would like a 'map' from a client's requirements to the 
+  recommended pool class:</p>
+<blockquote><pre>
+Do you need garbage collection?
+Do you have objects with no references in them?
+Do you need to pass buffers to system calls?
+etc etc
+You need mps_class_lo.
+</pre></blockquote>
+  
+<p> For now, the closest we have to this is a survey from 1998 that 
+  still contains confidential material:
   <a href="/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/doc/mps/guide/pool-classes/">guide.mps.pool-classes by RIT</a>
   <sup><a href="index.html#not-publicly-available" title="this document is not publicly available">&empty;</a></sup>.</p>
 
-<p>Other notes:</p>
+
+<h2>Some notes about MPS pool classes</h2>
+
 <dl>
-  <dt>mps_class_lo</dt>
-  <dd>Leaf Only pool class, for objects that contain no references.
-    Unit test: locv.c.
+  <dt>mps_class_amc</dt>
+  <dd>
+    <p>General-purpose automatic (collecting) pool class.
+      This is the most 'advanced' pool class in the MPS, intended 
+      for most client objects.</p>
+    <p>AMC is "Automatic, Mostly Copying": it uses copying collection 
+      except when prevented by ambiguous references.  It is 
+      generational.</p>
+    <p>Chain: specify capacity and mortality of generations 0..N-1.  
+      Survivors from N-1 get promoted into an arena-wide topGen 
+      (often anachronistically called the "dynamic" generation).</p>
   </dd>
+
+  <dt>mps_class_amcz</dt>
+  <dd>
+    <p>General-purpose leaf-only pool class (for objects that contain no references).
+      A variant of AMC (the Z means "Zero rank", ie. containing no references).</p>
+  </dd>
+
+  <dt>mps_class_ams</dt>
+  <dd>
+    <p>Non-moving automatic (collecting) pool class.</p>
+    <p>AMS is "Automatic Mark &amp; Sweep".  Not generational.</p>
+    <p>Chain: specify capacity and mortality of 'generation' 0.  
+      [Why?  Perhaps to trigger nursery-like collections?
+      New 2001-03-02. RHSK 2006-11-27]</p>
+  </dd>
+
+  <dt><a id="mps_class_lo">mps_class_lo</a></dt>
+  <dd>
+    <p>Non-moving, non-protecting, automatic (collecting), 
+      Leaf Only pool class (for objects that contain no references).
+      Unit test: locv.c.  RefMan: -undocumented-.</p>
+    <p>This pool class should really be called "flat data 
+      that needs to be accessed by 
+      <a href="glossary.html#foreign_code">foreign code</a>"
+       -- it's ideal for allocating a buffer to pass to an 
+       operating system I/O call.  It is not very fast.
+       [Conversation with DRJ, 2006-07].</p>
+    <p>(For a general-purpose leaf-only pool see AMCZ).</p>
+    <p>[Internal note: has a dummy chain: 1MiB 20%]</p>
+  </dd>
+
+  <dt>mps_class_awl</dt>
+  <dd>
+    <p>For weak references, linked to normal references.
+      See further AWL notes below.</p>
+    <p>[Internal note: has a dummy chain: 2^32KiB 50%]</p>
+  </dd>
+
 </dl>
+
+<h2>AWL: FindDependentMethod and format scan method</h2>
+
+<p>You need to pass a <code>FindDependentMethod</code> to 
+  mps_pool_create.
+  Here are some notes:</p>
+  
+<blockquote><pre>
+...
+The &quot;dependent object&quot; is an object which
+the scan method is permitted to update.  The awlScanObject function
+Exposes that object before the scan and Covers it afterwards, to allow
+the update to take place.  It also discards the MPS &quot;summary&quot; for that
+object&apos;s segment (the &quot;summary&quot; of a segment is a conservative
+approximation of the objects pointed to by objects in that segment;
+since the scan method is now allowed to update the segment to point to
+anything else, the summary has to be discarded).
+
+If the keys and values of hash tables are stored in separate linear
+tables (a key table and a value table), then for a weak-key table the
+scan method for the key table may need to update the value table (to
+null out the corresponding value if a key goes away on fix).  So the
+dependent object for the key table is the value table.  For weak-value
+tables, the relationship is the other way around.
+
+The dylan format works like that, and here&apos;s the relevant code from my
+auto-header variant of that.  First dylan_weak_dependent, which is the
+dependent-object method.  Then dylan_scan_contig_weak, which is the
+innermost part of the scan method for those weak tables.  The comment
+&quot;delete corresponding entry&quot; is where the scan method updates the
+value table.
+
+
+/* dylan_weak_dependent -- returns the linked object, if any.
+ */
+
+extern mps_addr_t dylan_weak_dependent(mps_addr_t parent)
+{
+  mps_word_t *object;
+  mps_word_t *wrapper;
+  mps_word_t fword;
+  mps_word_t fl;
+  mps_word_t ff;
+
+  assert(parent != NULL);
+  object = (mps_word_t *)parent;
+  wrapper = (mps_word_t *)object[0];
+  assert(dylan_wrapper_check(wrapper));
+  fword = wrapper[3];
+  ff = fword &amp; 3;
+  /* traceable fixed part */
+  assert(ff == 1);
+  fl = fword &amp; ~3uL;
+  /* at least one fixed field */
+  assert(fl &gt;= 1);
+  return (mps_addr_t) object[1];
+}
+
+/* Scan weakly a contiguous array of references in [base, limit). */
+/* Only required to scan vectors for Dylan Weak Tables. */
+/* Depends on the vector length field being scannable (ie a tagged */
+/* integer). */
+/* When a reference that has been fixed to NULL is detected the */
+/* corresponding reference in the associated table (pointed to be the */
+/* assoc variable) will be deleted. */
+
+static mps_res_t
+dylan_scan_contig_weak(mps_ss_t mps_ss,
+                       mps_addr_t *base, mps_addr_t *limit,
+                       mps_addr_t *objectBase, mps_addr_t *assoc)
+{
+  mps_addr_t *p;
+  mps_res_t res;
+  mps_addr_t r;
+
+  MPS_SCAN_BEGIN(mps_ss) {
+    p = base;
+    goto skip_inc;
+  loop:
+    ++p;
+  skip_inc:
+    if(p &gt;= limit)
+      goto out;
+    r = *p;
+    if(((mps_word_t)r &amp; 3) != 0) /* non-pointer */
+      goto loop;
+    if(!MPS_FIX1(mps_ss, r))
+      goto loop;
+    res = MPS_FIX2(mps_ss, p);
+    if(res == MPS_RES_OK) {
+      if(*p == 0 &amp;&amp; r != 0) {
+        if(assoc != NULL) {
+          assoc[p-objectBase] = 0;      /* delete corresponding entry */
+        }
+      }
+      goto loop;
+    }
+    return res;
+  out:
+    assert(p == limit);
+  } MPS_SCAN_END(mps_ss);
+
+  return MPS_RES_OK;
+}
+
+If your scan method won&apos;t need to update any other object while
+scanning a weak object, the dependent-object method should return
+NULL.
+</pre></blockquote>
+
+<p>Source:
+  <a href="http://info.ravenbrook.com/mail/2002/04/12/15-52-29/0.txt">//info.ravenbrook.com/mail/2002/04/12/15-52-29/0.txt</a>
+<sup><a href="index.html#not-publicly-available" title="this document is not publicly available">&empty;</a></sup>
+  <a href="http://info.ravenbrook.com/mail/2002/04/12/15-56-15/0.txt">//info.ravenbrook.com/mail/2002/04/12/15-56-15/0.txt</a>
+<sup><a href="index.html#not-publicly-available" title="this document is not publicly available">&empty;</a></sup>
+.</p>
 
 <h2><a id="section-B" name="section-B">B. Document History</a></h2>
 
 <pre>
   2006-06-02  RHSK  Created.
   2006-06-23  RHSK  Link to RIT's 1998 guide.mps.pool-classes.
+  2006-06-28  RHSK  Notes on AWL dependent object and scan method.
+  2006-08-02  RHSK  LO is for foreign code; for leaf-only use AMCZ.
+                    How to choose the right pool class.
+  2006-08-07  RHSK  AMC.
+  2006-11-27  RHSK  Chains.
 </pre>
 
 
