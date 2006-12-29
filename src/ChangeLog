@@ -1,3 +1,21 @@
+2006-12-29  Kim F. Storm  <storm@cua.dk>
+
+	* frame.h (struct frame): New member minimize_tool_bar_window_p.
+
+	* xdisp.c (auto_resize_tool_bars_p): Replace with ...
+	(Vauto_resize_tool_bars): ... this.
+	(syms_of_xdisp): DEFVAR_LISP and initialize it.  Update doc string
+	to describe new value `grow-only', and use of C-l.
+	(display_tool_bar_line): Only use default face for border below
+	toolbar if not grow-only (to get acceptable visual appearence).
+	Explicitly set visible_height for empty toolbar lines.
+	(redisplay_tool_bar): Handle `grow-only' setting.  Check and clear
+	minimize_tool_bar_window_p flag.
+
+	* window.c (Frecenter): Set minimize_tool_bar_window_p flag
+	when called without arg to redraw with minimum toolbar height.
+	Update doc string.
+
 2006-12-29  Jason Rumney  <jasonr@gnu.org>
 
 	* s/ms-w32.h (tzname): Do not define in msvc8.
