@@ -139,7 +139,7 @@ SYS_LDFLAGS	= -nologo -release -incremental:no -version:3.10 -swaprun:cd -swapru
 
 # see comments in allocate_heap in w32heap.c before changing any of the
 # -stack, -heap, or -base settings.
-TEMACS_EXTRA_LINK = -stack:0x00800000 -heap:0x00100000 -base:0x01000000 -debug:full -debugtype:both -pdb:$(BLD)\temacs.pdb -machine:$(ARCH) $(SUBSYSTEM_CONSOLE) -entry:_start -map:$(BLD)\temacs.map $(EXTRA_LINK)
+TEMACS_EXTRA_LINK = -stack:0x00800000 -heap:0x00100000 -base:0x01000000 -pdb:$(BLD)\temacs.pdb -machine:$(ARCH) $(SUBSYSTEM_CONSOLE) -entry:_start -map:$(BLD)\temacs.map $(EXTRA_LINK)
 
 !ifdef NOOPT
 OBJDIR          = obj
@@ -173,7 +173,7 @@ DEBUG_FLAG =
 DEBUG_LINK =
 !else
 DEBUG_FLAG = -Zi
-DEBUG_LINK = -debug:full -debugtype:both
+DEBUG_LINK = -debug:full
 !endif
 
 !if "$(ARCH)" == "i386"
