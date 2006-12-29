@@ -53,7 +53,7 @@
 
 <h2>Addenda</h2>
 
-<h3><code>mps_class_amc</code>, <code>mps_class_ams</code>: chain parameter</h3>
+<h3>new parameter "chain" required for <code>mps_class_amc</code>, <code>mps_class_ams</code></h3>
 
 <p>Create a chain with <code>mps_chain_create</code>, and pass it as argument to <code>mps_pool_create</code> for these two pool classes.</p>
 
@@ -61,10 +61,18 @@
 
 <p>Pool class AMC is generational: the chain specifies capacity and predicted mortality of each generation.  These capacities are not limits: they are used for scheduling collection of the AMC objects.</p>
 
+<p>The way chains affect garbage collection is discussed in the <a href="gc_story.html">GC Story</a> article.</p>
 
-<h3><code>mps_arena_step</code> and <code>mps_arena_start_collect</code></h3>
 
-<p>See:</p>
+<h3>new functions: <code>mps_arena_step</code>, <code>mps_arena_start_collect</code></h3>
+
+<p>When the client has some idle-time, it is permitted to call <code>mps_arena_step(arena, interval, multiplier)</code> to allow MPS to do collection work.  The "interval" argument (units: seconds) specifies how much time the MPS is permitted to take with this mps_arena_step call.  The "multiplier" argument specifies how many further similar calls to mps_arena_step the Client expects to make in this period of idle time.  The idea is that the MPS should return before "interval" is exhausted, and should only eagerly commence long-duration operations that consume CPU (such as a full collection) if those operations are expected to be completed within "multiplier * interval" seconds.</p>
+
+<p>Note that <code>mps_arena_step</code> will still step, even if the arena has been clamped.  This is to allow a client to advance a collection only at these mps_arena_step points (but note that barrier hits will also cause collection work).</p>
+
+<p>The client is permitted to request a full collection with <code>mps_arena_start_collect</code>.  The MPS returns 'asynchronously' from this call, usually before full collection has completed.  (Contrast the <a href="../reference/#mps_arena_collect"><code>mps_arena_collect</code></a> call, which does not return until the full collection has completed).  Work on the full collection then proceeds incrementally, just as it does when the MPS schedules a full collection automatically.</p>
+
+<p>Fuller documentation is currently only in email.  See:</p>
 <ol>
   <li>
     <a href="http://info.ravenbrook.com/mail/2002/07/01/20-46-08/0.txt">http://info.ravenbrook.com/mail/2002/07/01/20-46-08/0.txt</a>
@@ -80,13 +88,13 @@
   </li>
 </ol>
 
-<p>Note that <code>mps_arena_step</code> will still step, even if the arena has been clamped.  This is to allow a client to advance a collection only at these mps_arena_step points (but note that barrier hits will also cause collection work).</p>
-
 
 <h2><a id="section-B" name="section-B">B. Document History</a></h2>
 
 <pre>
-  2006-11-28  RHSK  Created: chain for AMC and AMS; mps_arena_step and mps_arena_start_collect.
+  2006-11-28  RHSK  Created: chain for AMC and AMS; mps_arena_step 
+                    and mps_arena_start_collect.
+  2006-12-29  RHSK  More comments on chain and arena_start/_step.
 </pre>
 
 
