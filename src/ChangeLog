@@ -1,3 +1,9 @@
+2006-12-29  Jason Rumney  <jasonr@gnu.org>
+
+	* s/ms-w32.h (tzname): Do not define in msvc8.
+
+	* regex.c (regerror): Change parameter name err_code.
+
 2006-12-26  Richard Stallman  <rms@gnu.org>
 
 	* search.c (Fsearch_forward): Doc fix.
