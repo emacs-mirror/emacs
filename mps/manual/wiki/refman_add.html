@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+  <title>MPS Wiki: Reference Manual Addenda</title>
+  <style type = "text/css">
+    <!--
+    div.banner {text-align:center}
+    dt {font-weight:bold}
+    
+    -->
+  </style>
+</head>
+
+<body>
+
+<div class="banner">
+
+<p>
+<a href="/">Ravenbrook</a>
+/ <a href="/project/">Projects</a>
+/ <a href="/project/mps/">Memory Pool System</a>
+/ <a href="/project/mps/master/">Master Product Sources</a>
+/ <a href="/project/mps/master/manual/">Manuals</a>
+/ <a href="/project/mps/master/manual/wiki/">Wiki</a>
+</p>
+
+<p><i><a href="/project/mps/">Memory Pool System Project</a></i></p>
+
+<hr />
+
+<h1>MPS Wiki: Reference Manual Addenda</h1>
+
+<address>
+<a href="mailto:rhsk@ravenbrook.com">Richard Kistruck</a>,
+<a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>,
+2006-11-28
+</address>
+
+</div>
+
+<p> This wiki article contains incomplete and informal notes about the MPS, the precursor to more formal documentation.  Not confidential.  Readership: MPS users and developers.  </p>
+
+<h2>Introduction</h2>
+
+<p>This is a temporary collection of addenda (additions and corrections) that should go into the reference manual (RefMan).  It is much better to put corrections straight into the reference manual (if possible), instead of here.</p>
+
+<p>...But sometimes you need to collect information, of which some should go to RefMan and some should go into design docs etc.  You can collect that sort of information here.</p>
+
+<p>...And sometimes it really doesn't seem that all this information should be part of the declared public interface.</p>
+
+
+<h2>Addenda</h2>
+
+<h3><code>mps_class_amc</code>, <code>mps_class_ams</code>: chain parameter</h3>
+
+<p>Create a chain with <code>mps_chain_create</code>, and pass it as argument to <code>mps_pool_create</code> for these two pool classes.</p>
+
+<p>Pool class AMS is non-generational, and must have a chain with one element ('generation') specifying a capacity and predicted mortality.  This capacity is not a limit: it is only used to prompt collection of the AMS objects.</p>
+
+<p>Pool class AMC is generational: the chain specifies capacity and predicted mortality of each generation.  These capacities are not limits: they are used for scheduling collection of the AMC objects.</p>
+
+
+<h3><code>mps_arena_step</code> and <code>mps_arena_start_collect</code></h3>
+
+<p>See:</p>
+<ol>
+  <li>
+    <a href="http://info.ravenbrook.com/mail/2002/07/01/20-46-08/0.txt">http://info.ravenbrook.com/mail/2002/07/01/20-46-08/0.txt</a>
+    <sup><a href="index.html#not-publicly-available" title="this document is not publicly available">&empty;</a></sup>
+  </li>
+  <li>
+    <a href="http://info.ravenbrook.com/mail/2003/01/03/14-13-25/0.txt">http://info.ravenbrook.com/mail/2003/01/03/14-13-25/0.txt</a>
+    <sup><a href="index.html#not-publicly-available" title="this document is not publicly available">&empty;</a></sup>
+  </li>
+  <li>
+    <a href="http://info.ravenbrook.com/mail/2003/01/06/21-36-55/0.txt">http://info.ravenbrook.com/mail/2003/01/06/21-36-55/0.txt</a>
+    <sup><a href="index.html#not-publicly-available" title="this document is not publicly available">&empty;</a></sup>
+  </li>
+</ol>
+
+<p>Note that <code>mps_arena_step</code> will still step, even if the arena has been clamped.  This is to allow a client to advance a collection only at these mps_arena_step points (but note that barrier hits will also cause collection work).</p>
+
+
+<h2><a id="section-B" name="section-B">B. Document History</a></h2>
+
+<pre>
+  2006-11-28  RHSK  Created: chain for AMC and AMS; mps_arena_step and mps_arena_start_collect.
+</pre>
+
+
+<h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
+
+<p> This document is copyright &copy; 2006 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+
+<p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
+
+<ol>
+
+<li> Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. </li>
+
+<li> Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. </li>
+
+<li> Redistributions in any form must be accompanied by information on how to obtain complete source code for the this software and any accompanying software that uses this software.  The source code must either be included in the distribution or be available for no more than the cost of distribution plus a nominal fee, and must be freely redistributable under reasonable conditions.  For an executable file, complete source code means the source code for all modules it contains. It does not include source code for modules or files that typically accompany the major components of the operating system on which the executable file runs. </li>
+
+</ol>
+
+<p> <strong> This software is provided by the copyright holders and contributors "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement, are disclaimed.  In no event shall the copyright holders and contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage. </strong> </p>
+
+
+<hr />
+
+<div class="banner">
+
+<p><code>$Id$</code></p>
+
+<p>
+<a href="/">Ravenbrook</a>
+/ <a href="/project/">Projects</a>
+/ <a href="/project/mps/">Memory Pool System</a>
+/ <a href="/project/mps/master/">Master Product Sources</a>
+/ <a href="/project/mps/master/manual/">Manuals</a>
+/ <a href="/project/mps/master/manual/wiki/">Wiki</a>
+</p>
+
+</div>
+
+</body>
+
+</html>
