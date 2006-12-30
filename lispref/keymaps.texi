@@ -669,7 +669,7 @@ current active keymaps.  The result is @code{nil} if @var{key} is
 undefined in the keymaps.
 
 The argument @var{accept-defaults} controls checking for default
-bindings, as in @code{lookup-key}.  @xref{Functions for Key Lookup}.
+bindings, as in @code{lookup-key} (@pxref{Functions for Key Lookup}).
 
 When commands are remapped (@pxref{Remapping Commands}),
 @code{key-binding} normally processes command remappings so as to
