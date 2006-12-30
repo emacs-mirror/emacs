@@ -1,3 +1,15 @@
+2006-12-30  Richard Stallman  <rms@gnu.org>
+
+	* files.el (make-backup-file-name-1): Precompute abs name
+	but don't lose the relative name.
+
+	* international/mule-cmds.el (select-safe-coding-system-interactively):
+	Fix message.
+
+2006-12-30  Kevin Rodgers  <kevin.d.rodgers@gmail.com>
+
+	* files.el (backup-buffer): Show entire backup file name in msg.
+
 2006-12-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* image.el (image-type-header-regexps, image-type-from-data)

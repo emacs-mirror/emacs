@@ -1,3 +1,7 @@
+2006-12-30  Richard Stallman  <rms@gnu.org>
+
+	* keymap.c (Fdefine_key): Doc fix.
+
 2006-12-29  Kim F. Storm  <storm@cua.dk>
 
 	* frame.h (struct frame): New member minimize_tool_bar_window_p.
