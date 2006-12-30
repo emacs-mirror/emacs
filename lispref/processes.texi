@@ -2166,13 +2166,15 @@ unpacked or packed.  The result of the evaluation should be one of the
 above-listed type specifications.
 @end table
 
-For a fixed-size field, the length @var{len} is given as an
-integer specifying the number of bytes in the field.  When the
-length of a field is not fixed, it typically depends on the value of a
-preceding field.  In this case, the length can be given either by
-that field's name as specified for @code{bindat-get-field} below, or by
-an expression @code{(eval @var{form})} where @var{form} should
-evaluate to an integer, specifying the field length.
+For a fixed-size field, the length @var{len} is given as an integer
+specifying the number of bytes in the field.
+
+When the length of a field is not fixed, it typically depends on the
+value of a preceding field.  In this case, the length @var{len} can be
+given either as a list @code{(@var{name} ...)} identifying a
+@dfn{field name} in the format specified for @code{bindat-get-field}
+below, or by an expression @code{(eval @var{form})} where @var{form}
+should evaluate to an integer, specifying the field length.
 
 A field specification generally has the form @code{([@var{name}]
 @var{handler})}.  The square braces indicate that @var{name} is
