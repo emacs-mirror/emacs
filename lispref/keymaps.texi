@@ -2540,6 +2540,11 @@ zero value suppresses the tool bar.  If the value is nonzero, and
 @code{auto-resize-tool-bars} is non-@code{nil}, the tool bar expands and
 contracts automatically as needed to hold the specified contents.
 
+  If the value of @code{auto-resize-tool-bars} is @code{grow-only},
+the tool bar expands automatically, but does not contract automatically.
+To contract the tool bar, the user has to redraw the frame by entering
+@kbd{C-l}.
+
   The tool bar contents are controlled by a menu keymap attached to a
 fake ``function key'' called @code{tool-bar} (much like the way the menu
 bar is controlled).  So you define a tool bar item using
@@ -2667,6 +2672,10 @@ specifies the local map to make the definition in.  The argument
 If this variable is non-@code{nil}, the tool bar automatically resizes to
 show all defined tool bar items---but not larger than a quarter of the
 frame's height.
+
+If the value is @code{grow-only}, the tool bar expands automatically,
+but does not contract automatically.  To contract the tool bar, the
+user has to redraw the frame by entering @kbd{C-l}.
 @end defvar
 
 @defvar auto-raise-tool-bar-buttons
