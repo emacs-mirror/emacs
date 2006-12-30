@@ -916,6 +916,11 @@ Due to technical limitations in how Emacs interacts with windowing
 systems, these constructs often failed to render properly, and could
 even cause Emacs to crash.
 
++++
+*** If value of `auto-resize-tool-bars' is `grow-only', the tool bar
+will expand as needed, but not contract automatically.  To contract
+the tool bar, you must type C-l.
+
 ** Cursor display changes:
 
 +++

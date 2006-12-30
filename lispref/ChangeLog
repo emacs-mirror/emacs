@@ -1,3 +1,8 @@
+2006-12-30  Kim F. Storm  <storm@cua.dk>
+
+	* keymaps.texi (Tool Bar): Describe `grow-only' value of
+	`auto-resize-tool-bars'.
+
 2006-12-30  Richard Stallman  <rms@gnu.org>
 
 	* keymaps.texi (Active Keymaps): Fix previous change.
