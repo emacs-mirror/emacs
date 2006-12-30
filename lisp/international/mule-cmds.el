@@ -790,7 +790,7 @@ e.g., for sending an email message.\n ")
 		(insert "\n"))
 	      (insert "\
 
-Click a character to jump to the place it appears,\n"
+Click on a character to jump to the place it appears,\n"
 		      (substitute-command-keys "\
 where `\\[universal-argument] \\[what-cursor-position]' will give information about it.\n"))))
 	  (insert (substitute-command-keys "\nSelect \
