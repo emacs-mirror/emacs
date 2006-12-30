@@ -1,3 +1,10 @@
+2006-12-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_tool_bar_button_cb): Save last modifier on widget.
+	(xg_tool_bar_callback): Remove check for button.
+	(update_frame_tool_bar): Put an event box in the tool bar and a button
+	in the event box.  Attach enter/leave-notify-event to the event box.
+
 2006-12-30  Richard Stallman  <rms@gnu.org>
 
 	* keymap.c (Fdefine_key): Doc fix.
