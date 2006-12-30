@@ -274,7 +274,7 @@ With zero or negative ARG turn mode off.
 (defalias 'easy-mmode-define-global-mode 'define-global-minor-mode)
 ;;;###autoload
 (defmacro define-global-minor-mode (global-mode mode turn-on &rest keys)
-  "Make GLOBAL-MODE out of the buffer-local minor MODE.
+  "Make a global mode GLOBAL-MODE corresponding to buffer-local minor MODE.
 TURN-ON is a function that will be called with no args in every buffer
   and that should try to turn MODE on if applicable for that buffer.
 KEYS is a list of CL-style keyword arguments.  As the minor mode
