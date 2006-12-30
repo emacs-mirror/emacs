@@ -1,3 +1,14 @@
+2006-12-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image.el (image-type-header-regexps, image-type-from-data)
+	(image-type-from-buffer, image-type-from-file-header):
+	Revert changes from 2006-12-26.
+	(image-type-auto-detectable): New variable.
+	(image-type-auto-detected-p): New function.
+
+	* files.el (magic-mode-alist): Detect image files with
+	`image-type-auto-detected-p' instead of `image-type-from-buffer'.
+
 2006-12-29  Nick Roberts  <nickrob@snap.net.nz>
 
 	* dired.el (dired-sort-other): Move test for dired-mode...
@@ -73,7 +84,7 @@
 	(image-type-from-buffer): Handle new format.  New arg INCLUDE-MAYBES.
 	(image-type-from-file-header): Pass t for INCLUDE-MAYBES.
 
-2006-12-26  Guanpeng Xu  <herberteuler@hotmail.com> (tiny change)
+2006-12-26  Guanpeng Xu  <herberteuler@hotmail.com>  (tiny change)
 
 	* add-log.el (add-log-current-defun): Call `forward-sexp'
 	multiple times to pick a member function name defined as
@@ -125,15 +136,6 @@
 	* calendar/cal-dst.el (calendar-dst-starts): Default to second Sunday
 	in March.
 	(calendar-dst-ends): Default to first Sunday in November.
-
-2006-12-24  Richard Stallman  <rms@gnu.org>
-
-	* image.el (image-type-header-regexps): Element is now (REGEXP
-	IMAGE-TYPE NOT-ALWAYS).
-	(image-type-from-data): Handle new format of image-type-header-regexps.
-	(image-type-from-buffer): Likewise.
-	New arg INCLUDE-MAYBES.
-	(image-type-from-file-header): Pass t for INCLUDE-MAYBES.
 
 2006-12-24  Ken Manheimer  <ken.manheimer@gmail.com>
 
