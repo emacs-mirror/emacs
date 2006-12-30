@@ -1,5 +1,7 @@
 2006-12-30  Kim F. Storm  <storm@cua.dk>
 
+	* killing.texi (CUA Bindings): Fix typo.
+
 	* xresources.texi (Table of Resources): Mention grow-only value for
 	auto-resize-tool-bars.
 
