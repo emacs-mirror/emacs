@@ -82,6 +82,9 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 ** lennart.borgman.073@student.lu.se, Dec 29:
   How global is a define-global-minor-mode mode
 He says that customizing such a mode simply does not work.
+RMS says that there is no code in the generated defcustom,
+or elsewhere in the generated code, to implement setting that variable
+through the custom mechanism.
 
 ** b.riefenstahl@turtle-trading.net, Dec 29:
   GTK build crashes under X
@@ -90,7 +93,6 @@ He says that customizing such a mode simply does not work.
   Two GTK version bugs.
 
 ** pgg bugs reported by rms.
-
 
 * DOCUMENTATION
 
