@@ -1,3 +1,19 @@
+2006-12-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.55.
+
+	* net/tramp.el (tramp-completion-mode): Use `wholenump' instead of
+	`integerp'.  `char-equal' could fail else in case of negative
+	numbers.  Reported by Toby Speight <T.M.Speight.90@cantab.net>.
+	(top): Check for `font-lock-add-keywords' before calling; it
+	doesn't exist under XEmacs.
+	(tramp-yn-prompt-regexp): Fix regexp.  Add question from plink.
+	(tramp-completion-mode): Remove clause (not
+	tramp-unified-filenames), because the function is called in other
+	context too, where this check results in wrong results in the
+	XEmacs case on Windows.
+	(tramp-touch): UTC handling is not possible for XEmacs.
+
 2006-12-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* scroll-bar.el (previous-scroll-bar-mode): New variable
