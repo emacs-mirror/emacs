@@ -1,3 +1,11 @@
+2006-12-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* scroll-bar.el (previous-scroll-bar-mode): New variable
+	(set-scroll-bar-mode): Set previous-scroll-bar-mode.
+	(scroll-bar-mode): Use previous-scroll-bar-mode if set.
+
+	* term/x-win.el: Set scroll bar mode to right if set by X resources.
+
 2006-12-30  Richard Stallman  <rms@gnu.org>
 
 	* files.el (make-backup-file-name-1): Precompute abs name
