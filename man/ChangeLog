@@ -1,3 +1,32 @@
+2006-12-29  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Customizing Articles): Add index entries for all
+	gnus-treat-* variables.
+
+2006-12-29  Jouni K. Sepp,Ad(Bnen  <jks@iki.fi>
+
+	* gnus.texi (IMAP): Fix incorrect explanation of
+	nnimap-search-uids-not-since-is-evil in documentation for
+	nnimap-expunge-search-string.
+
+2006-12-27  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (ifile spam filtering): Rename spam-ifile-database-path to
+	spam-ifile-database.
+
+2006-12-26  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Spam Package Configuration Examples): Don't encourage to
+	rebind C-s.
+
+2006-12-26  Jouni K. Sepp,Ad(Bnen  <jks@iki.fi>
+
+	* gnus.texi (Group Parameters, Group Maintenance, Topic Commands)
+	(Mail Group Commands, Expiring Mail, IMAP): Add index entries for
+	"expiring mail".
+	(IMAP): Document nnimap-search-uids-not-since-is-evil and
+	nnimap-nov-is-evil.
+
 2006-12-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdog.texi (Windows Keyboard): Mention widespread Windows bindings,

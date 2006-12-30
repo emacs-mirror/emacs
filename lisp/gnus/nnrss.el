@@ -418,8 +418,10 @@ otherwise return nil."
       (nnheader-remove-cr-followed-by-lf)
       ;; Decode text according to the encoding attribute.
       (when (setq cs (nnrss-get-encoding))
-	(mm-decode-coding-region (point-min) (point-max) cs)
-	(mm-enable-multibyte))
+	(insert (prog1
+		    (mm-decode-coding-string (buffer-string) cs)
+		  (erase-buffer)
+		  (mm-enable-multibyte))))
       (goto-char (point-min))
 
       ;; Because xml-parse-region can't deal with anything that isn't

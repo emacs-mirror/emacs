@@ -94,8 +94,10 @@
 	    (if pgg-passphrase-coding-system
 		(progn
 		  (setq encoded-passphrase-with-new-line
-			(encode-coding-string passphrase-with-newline
-					      pgg-passphrase-coding-system))
+			(encode-coding-string
+			 passphrase-with-newline
+			 (coding-system-change-eol-conversion
+			  pgg-passphrase-coding-system 'unix)))
 		  (pgg-clear-string passphrase-with-newline))
 	      (setq encoded-passphrase-with-new-line passphrase-with-newline
 		    passphrase-with-newline nil))

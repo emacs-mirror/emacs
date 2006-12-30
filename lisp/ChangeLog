@@ -121,6 +121,13 @@
 	* textmodes/fill.el (fill-paragraph): Check for a minibuffer
 	rather than for being in a minibuffer window.
 
+2006-12-25  Daiki Ueno  <ueno@unixuser.org>
+
+	* pgg-def.el (pgg-passphrase-coding-system): Default to nil instead of
+	locale-coding-system.
+	* pgg-gpg.el (pgg-gpg-process-region): Encode passphrase with eol-type
+	LF.
+
 2006-12-25  Michael R. Mauger  <mmaug@yahoo.com>
 
 	* progmodes/sql.el (sql-mode-abbrev-table): Corrected initialization.
