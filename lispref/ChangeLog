@@ -1,3 +1,7 @@
+2006-12-30  Richard Stallman  <rms@gnu.org>
+
+	* keymaps.texi (Active Keymaps): Fix previous change.
+
 2006-12-30  Nick Roberts  <nickrob@snap.net.nz>
 
 	* keymaps.texi (Active Keymaps): Make xref to lookup-key.
