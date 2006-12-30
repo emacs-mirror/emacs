@@ -3031,7 +3031,7 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 				       (convert-standard-filename
 					"~/%backup%~")))
 		     (message "Cannot write backup file; backing up in %s"
-			      (file-name-nondirectory backupname))
+			      backupname)
 		     (sleep-for 1)
 		     (backup-buffer-copy real-file-name backupname modes)))
 		  (setq buffer-backed-up t)
@@ -3227,7 +3227,7 @@ doesn't exist, it is created."
 (defun make-backup-file-name-1 (file)
   "Subroutine of `make-backup-file-name' and `find-backup-file-name'."
   (let ((alist backup-directory-alist)
-	elt backup-directory)
+	elt backup-directory abs-backup-directory)
     (while alist
       (setq elt (pop alist))
       (if (string-match (car elt) file)
@@ -3237,12 +3237,14 @@ doesn't exist, it is created."
     ;; file's directory.  By expanding explicitly here, we avoid
     ;; depending on default-directory.
     (if backup-directory
-	(setq backup-directory (expand-file-name backup-directory
-						 (file-name-directory file))))
-    (if (and backup-directory (not (file-exists-p backup-directory)))
+	(setq abs-backup-directory
+	      (expand-file-name backup-directory
+				(file-name-directory file))))
+    (if (and abs-backup-directory (not (file-exists-p abs-backup-directory)))
 	(condition-case nil
-	    (make-directory backup-directory 'parents)
-	  (file-error (setq backup-directory nil))))
+	    (make-directory abs-backup-directory 'parents)
+	  (file-error (setq backup-directory nil
+			    abs-backup-directory nil))))
     (if (null backup-directory)
 	file
       (if (file-name-absolute-p backup-directory)
@@ -3273,9 +3275,7 @@ doesn't exist, it is created."
 	      (replace-regexp-in-string "!" "!!" file))
 	     backup-directory))
 	(expand-file-name (file-name-nondirectory file)
-			  (file-name-as-directory
-			   (expand-file-name backup-directory
-					     (file-name-directory file))))))))
+			  (file-name-as-directory abs-backup-directory))))))
 
 (defun backup-file-name-p (file)
   "Return non-nil if FILE is a backup file name (numeric or not).
