@@ -1876,6 +1876,16 @@ in that case, this function acts as if `enable-local-variables' were t."
   (if (fboundp 'ucs-set-table-for-input) ; don't lose when building
       (ucs-set-table-for-input)))
 
+(defcustom auto-mode-case-fold nil
+  "Non-nil means to try second pass through `auto-mode-alist'.
+This means that if the first case-sensitive search through the alist fails
+to find a matching major mode, a second case-insensitive search is made.
+On systems with case-insensitive file names, this variable is ignored,
+since only a single case-sensitive search through the alist is made."
+  :group 'files
+  :version "22.1"
+  :type 'boolean)
+
 (defvar auto-mode-alist
   ;; Note: The entries for the modes defined in cc-mode.el (c-mode,
   ;; c++-mode, java-mode and more) are added through autoload
@@ -2238,15 +2248,29 @@ only set the major mode, if that would change it."
 	      (setq name (file-name-sans-versions name))
 	      (while name
 		;; Find first matching alist entry.
-		(let ((case-fold-search
-		       (memq system-type '(vax-vms windows-nt cygwin))))
-		  (if (and (setq mode (assoc-default name auto-mode-alist
-						     'string-match))
-			   (consp mode)
-			   (cadr mode))
-		      (setq mode (car mode)
-			    name (substring name 0 (match-beginning 0)))
-		    (setq name)))
+		(setq mode
+		      (if (memq system-type '(vax-vms windows-nt cygwin))
+			  ;; System is case-insensitive.
+			  (let ((case-fold-search t))
+			    (assoc-default name auto-mode-alist
+					   'string-match))
+			;; System is case-sensitive.
+			(or
+			 ;; First match case-sensitively.
+			 (let ((case-fold-search nil))
+			   (assoc-default name auto-mode-alist
+					  'string-match))
+			 ;; Fallback to case-insensitive match.
+			 (and auto-mode-case-fold
+			      (let ((case-fold-search t))
+				(assoc-default name auto-mode-alist
+					       'string-match))))))
+		(if (and mode
+			 (consp mode)
+			 (cadr mode))
+		    (setq mode (car mode)
+			  name (substring name 0 (match-beginning 0)))
+		  (setq name))
 		(when mode
 		  (set-auto-mode-0 mode keep-mode-if-same)))))))))
 
