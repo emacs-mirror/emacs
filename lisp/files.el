@@ -1881,7 +1881,7 @@ in that case, this function acts as if `enable-local-variables' were t."
 This means that if the first case-sensitive search through the alist fails
 to find a matching major mode, a second case-insensitive search is made.
 On systems with case-insensitive file names, this variable is ignored,
-since only a single case-sensitive search through the alist is made."
+since only a single case-insensitive search through the alist is made."
   :group 'files
   :version "22.1"
   :type 'boolean)
