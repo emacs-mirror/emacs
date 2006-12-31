@@ -1,3 +1,10 @@
+2006-12-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (update_frame_tool_bar): Connect create-menu-proxy with
+	xg_tool_bar_menu_proxy.
+	(xg_tool_bar_menu_proxy): New function.
+	(xg_tool_bar_proxy_callback): New function.
+
 2006-12-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_tool_bar_button_cb): Save last modifier on widget.
