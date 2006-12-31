@@ -1,7 +1,6 @@
-2006-12-31  Romain Francoise <romain@orebokech.com>
+2006-12-31  Romain Francoise  <romain@orebokech.com>
 
-	* net/tramp.el (tramp-default-method): Don't call `symbol-function'.
-	Apply `funcall' directly on 'executable-find.
+	* net/tramp.el (tramp-default-method): Don't use `symbol-function'.
 
 2006-12-31  Kim F. Storm  <storm@cua.dk>
 
