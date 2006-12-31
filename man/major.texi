@@ -148,6 +148,14 @@ which allows you to specify local variables as well, like this:
 @noindent
 @xref{File Variables}, for more information about this.
 
+@vindex auto-mode-case-fold
+  On systems with case-insensitive file names, only a single
+case-insensitive search through the @code{auto-mode-alist} is made.
+On other systems, Emacs normally performs a single case-sensitive
+search through the alist, but if you set this variable to a
+non-@code{nil} value, Emacs will perform a second case-insensitive
+search if the first search fails.
+
 @vindex interpreter-mode-alist
   When a file's contents begin with @samp{#!}, it can serve as an
 executable shell command, which works by running an interpreter named on
