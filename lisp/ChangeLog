@@ -1,3 +1,9 @@
+2006-12-31  Kim F. Storm  <storm@cua.dk>
+
+	* files.el (auto-mode-case-fold): New defcustom.
+	(set-auto-mode): If non-nil, perform second case-sensitive pass
+	through auto-mode-alist if first pass failed.
+
 2006-12-30  Richard Stallman  <rms@gnu.org>
 
 	* emacs-lisp/easy-mmode.el (define-global-minor-mode): Doc fix.
@@ -5,7 +11,7 @@
 2006-12-30  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout.el (allout-encrypt-string): Handle symmetric-key
-	passphrase caching but leave keypair caching to pgg.  
+	passphrase caching but leave keypair caching to pgg.
 
 2006-12-30  Michael Albinus  <michael.albinus@gmx.de>
 

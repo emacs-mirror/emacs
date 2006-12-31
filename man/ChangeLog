@@ -1,3 +1,7 @@
+2006-12-31  Kim F. Storm  <storm@cua.dk>
+
+	* major.texi (Choosing Modes): Document auto-mode-case-fond.
+
 2006-12-30  Kim F. Storm  <storm@cua.dk>
 
 	* killing.texi (CUA Bindings): Fix typo.
