@@ -693,20 +693,18 @@ various functions for details."
   ;; another good choice because of the "ControlMaster" option, but
   ;; this is a more modern alternative in OpenSSH 4, which cannot be
   ;; taken as default.
-  (let ((e-f (and (fboundp 'executable-find)
-		  (symbol-function 'executable-find))))
+  (let ((e-f (fboundp 'executable-find)))
     (cond
      ;; PuTTY is installed.
-     ((and e-f (funcall e-f "pscp"))
+     ((and e-f (funcall 'executable-find "pscp"))
       (if (or (fboundp 'password-read)
 	      ;; Pageant is running.
 	      (and (fboundp 'w32-window-exists-p)
-		   (funcall (symbol-function 'w32-window-exists-p)
-			    "Pageant" "Pageant")))
+		   (funcall 'w32-window-exists-p "Pageant" "Pageant")))
 	  "pscp"
 	"plink"))
      ;; There is an ssh installation.
-     ((and e-f (funcall e-f "scp"))
+     ((and e-f (funcall 'executable-find "scp"))
       (if (or (fboundp 'password-read)
 	      ;; ssh-agent is running.
 	      (getenv "SSH_AUTH_SOCK")
