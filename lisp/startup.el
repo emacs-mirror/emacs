@@ -1189,6 +1189,7 @@ Values less than twice `fancy-splash-delay' are ignored."
 (defvar fancy-splash-help-echo nil)
 (defvar fancy-splash-stop-time nil)
 (defvar fancy-splash-outer-buffer nil)
+(defvar fancy-splash-last-input-event nil)
 
 (defun fancy-splash-insert (&rest args)
   "Insert text into the current buffer, with faces.
@@ -1362,6 +1363,7 @@ mouse."
 	    splash-buffer
 	    (old-minor-mode-map-alist minor-mode-map-alist)
 	    (old-emulation-mode-map-alists emulation-mode-map-alists)
+	    (old-special-event-map special-event-map)
 	    (frame (fancy-splash-frame))
 	    timer)
 	(save-selected-window
@@ -1382,6 +1384,20 @@ mouse."
 		  (define-key map [mouse-movement] 'ignore)
 		  (define-key map [mode-line t] 'ignore)
 		  (define-key map [select-window] 'ignore)
+ 		  ;; Temporarily bind special events to
+ 		  ;; fancy-splash-special-event-action so as to stop
+ 		  ;; displaying splash screens with such events.
+ 		  ;; Otherwise, drag-n-drop into splash screens may
+ 		  ;; leave us in recursive editing with invisible
+ 		  ;; cursors for a while.
+ 		  (setq special-event-map (make-sparse-keymap))
+ 		  (map-keymap
+ 		   (lambda (key def)
+ 		     (define-key special-event-map (vector key)
+ 		       (if (eq def 'ignore)
+ 			   'ignore
+ 			 'fancy-splash-special-event-action)))
+ 		   old-special-event-map)
 		  (setq display-hourglass nil
 			minor-mode-map-alist nil
 			emulation-mode-map-alists nil
@@ -1398,11 +1414,18 @@ mouse."
 	      (cancel-timer timer)
 	      (setq display-hourglass old-hourglass
 		    minor-mode-map-alist old-minor-mode-map-alist
-		    emulation-mode-map-alists old-emulation-mode-map-alists)
+		    emulation-mode-map-alists old-emulation-mode-map-alists
+		    special-event-map old-special-event-map)
 	      (kill-buffer splash-buffer)
 	      (when (frame-live-p frame)
 		(select-frame frame)
-		(switch-to-buffer fancy-splash-outer-buffer))))))
+		(switch-to-buffer fancy-splash-outer-buffer))
+	      (when fancy-splash-last-input-event
+		(setq last-input-event fancy-splash-last-input-event
+		      fancy-splash-last-input-event nil)
+ 		(command-execute (lookup-key special-event-map
+ 					     (vector last-input-event))
+ 				 nil (vector last-input-event) t))))))
     ;; If hide-on-input is nil, don't hide the buffer on input.
     (if (or (window-minibuffer-p)
 	    (window-dedicated-p (selected-window)))
@@ -1429,6 +1452,14 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
 	  (view-mode-enter nil 'kill-buffer))
       (goto-char (point-min)))))
 
+(defun fancy-splash-special-event-action ()
+  "Save the last event and stop displaying the splash screen buffer.
+This is an internal function used to turn off the splash screen after
+the user caused an input event that is bound in `special-event-map'"
+  (interactive)
+  (setq fancy-splash-last-input-event last-input-event)
+  (throw 'exit nil))
+
 
 (defun fancy-splash-frame ()
   "Return the frame to use for the fancy splash screen.
@@ -1454,9 +1485,12 @@ we put it on this frame."
 				      (if (and (display-color-p)
 					       (image-type-available-p 'xpm))
 					  "splash.xpm" "splash.pbm"))))
-	       (image-height (and img (cdr (image-size img))))
-	       (window-height (1- (window-height (frame-selected-window frame)))))
-	  (> window-height (+ image-height 19)))))))
+	       (image-height (and img (cdr (image-size img nil frame))))
+	       ;; We test frame-height so that, if the frame is split
+	       ;; by displaying a warning, that doesn't cause the normal
+	       ;; splash screen to be used.
+	       (frame-height (1- (frame-height frame))))
+	  (> frame-height (+ image-height 19)))))))
 
 
 (defun normal-splash-screen (&optional hide-on-input)

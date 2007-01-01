@@ -62,7 +62,7 @@ Valid values are the symbols `default-A', `default-B', and `combined'."
   '("<<<<<<< variant A" A ">>>>>>> variant B" B  "####### Ancestor" Ancestor "======= end")
   "*Pattern to be used for combining difference regions in buffers A and B.
 The value must be a list of the form
-(STRING1 bufspec1  STRING2 bufspec2 STRING3 bufspec3 STRING4)
+\(STRING1 bufspec1  STRING2 bufspec2 STRING3 bufspec3 STRING4)
 where bufspec is the symbol A, B, or Ancestor. For instance, if the value is
 '(STRING1 A  STRING2 Ancestor STRING3 B STRING4) then the
 combined text will look like this:
@@ -82,7 +82,7 @@ STRING4
 (defcustom ediff-show-clashes-only nil
   "*If t, show only those diff regions where both buffers disagree with the ancestor.
 This means that regions that have status prefer-A or prefer-B will be
-skipped over.  nil means show all regions."
+skipped over.  A value of nil means show all regions."
   :type 'boolean
   :group 'ediff-merge
   )

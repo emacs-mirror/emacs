@@ -1554,7 +1554,7 @@ DEFUN ("eval-buffer", Feval_buffer, Seval_buffer, 0, 5, "",
 Programs can pass two arguments, BUFFER and PRINTFLAG.
 BUFFER is the buffer to evaluate (nil means use current buffer).
 PRINTFLAG controls printing of output:
-nil means discard it; anything else is stream for print.
+A value of nil means discard it; anything else is stream for print.
 
 If the optional third argument FILENAME is non-nil,
 it specifies the file name to use for `load-history'.
@@ -1603,7 +1603,7 @@ When called from programs, expects two arguments,
 giving starting and ending indices in the current buffer
 of the text to be executed.
 Programs can pass third argument PRINTFLAG which controls output:
-nil means discard it; anything else is stream for printing it.
+A value of nil means discard it; anything else is stream for printing it.
 Also the fourth argument READ-FUNCTION, if non-nil, is used
 instead of `read' to read each expression.  It gets one argument
 which is the input stream for reading characters.

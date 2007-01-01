@@ -428,13 +428,17 @@ Otherwise, the value is whatever the function
   'follow-link t
   'help-echo "mouse-2, RET: display this man page"
   'func nil
-  'action (lambda (button) 
-	    (funcall 
-	     (button-get button 'func)
-	     (let ((func (button-get button 'Man-target-string)))
-	       (if func
-		   (if (functionp func) (funcall func) func)
-		 (button-label button))))))
+  'action #'Man-xref-button-action)
+
+(defun Man-xref-button-action (button) 
+  (let ((target (button-get button 'Man-target-string)))
+    (funcall 
+     (button-get button 'func)
+     (cond ((null target)
+	    (button-label button))
+	   ((functionp target)
+	    (funcall target (button-start button)))
+	   (t target)))))
 
 (define-button-type 'Man-xref-man-page 
   :supertype 'Man-abstract-xref-man-page
@@ -636,11 +640,12 @@ a new value."
 ;; ======================================================================
 ;; default man entry: get word under point
 
-(defsubst Man-default-man-entry ()
-  "Make a guess at a default manual entry.
-This guess is based on the text surrounding the cursor."
+(defsubst Man-default-man-entry (&optional pos)
+  "Make a guess at a default manual entry based on the text at POS.
+If POS is nil, the current point is used."
   (let (word)
     (save-excursion
+      (if pos (goto-char pos))
       ;; Default man entry title is any word the cursor is on, or if
       ;; cursor not on a word, then nearest preceding word.
       (skip-chars-backward "-a-zA-Z0-9._+:")

@@ -5,7 +5,6 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2006/11/08 12:01:50 vinicius>
 ;; Keywords: wp, print, PostScript
 ;; Version: 6.8.4
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
@@ -3113,7 +3112,9 @@ Calls `pr-update-menus' to adjust menus."
 				    (pr-get-symbol (nth 1 menu-file))
 				    (pr-get-symbol "Print"))))
 	 (t
-	  (easy-menu-change (cdr menu-file) "Print" pr-menu-spec))))))))
+	  (easy-menu-add-item global-map menu-file
+			      (easy-menu-create-menu "Print" pr-menu-spec)))
+	 ))))))
   (pr-update-menus t))
 
 

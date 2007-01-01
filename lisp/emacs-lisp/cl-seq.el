@@ -1,6 +1,6 @@
 ;;; cl-seq.el --- Common Lisp features, part 3  -*-byte-compile-dynamic: t;-*-
 
-;; Copyright (C) 1993, 2002, 2003, 2004, 2005,
+;; Copyright (C) 1993, 2001, 2002, 2003, 2004, 2005,
 ;;   2006 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>

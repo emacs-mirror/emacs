@@ -682,6 +682,7 @@ extern Lisp_Object cfdate_to_lisp P_ ((CFDateRef));
 extern Lisp_Object cfboolean_to_lisp P_ ((CFBooleanRef));
 extern Lisp_Object cfobject_desc_to_lisp P_ ((CFTypeRef));
 extern Lisp_Object cfproperty_list_to_lisp P_ ((CFPropertyListRef, int, int));
+extern void mac_wakeup_from_rne P_ ((void));
 #endif
 extern void xrm_merge_string_database P_ ((XrmDatabase, const char *));
 extern Lisp_Object xrm_get_resource P_ ((XrmDatabase, const char *,

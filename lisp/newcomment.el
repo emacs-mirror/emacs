@@ -1,6 +1,6 @@
 ;;; newcomment.el --- (un)comment regions of buffers
 
-;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: code extracted from Emacs-20's simple.el

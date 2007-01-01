@@ -486,7 +486,7 @@ required by the caller."
 				       (car (nth 1 var-list))))
 		    (setq char ?-)
 		  (setq char ?+))
-		(if (string-match "\\*$" type)
+		(if (string-match "\\*$\\|\\*&$" type)
 		    (speedbar-make-tag-line
 		     'bracket char
 		     'gdb-speedbar-expand-node varnum

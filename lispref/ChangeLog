@@ -1,3 +1,96 @@
+2006-12-30  Kim F. Storm  <storm@cua.dk>
+
+	* keymaps.texi (Tool Bar): Describe `grow-only' value of
+	`auto-resize-tool-bars'.
+
+2006-12-30  Richard Stallman  <rms@gnu.org>
+
+	* keymaps.texi (Active Keymaps): Fix previous change.
+
+2006-12-30  Nick Roberts  <nickrob@snap.net.nz>
+
+	* keymaps.texi (Active Keymaps): Make xref to lookup-key.
+
+2006-12-30  Kim F. Storm  <storm@cua.dk>
+
+	* processes.texi (Bindat Spec): Clarify using field names in
+	length specifications.
+
+2006-12-29  Kim F. Storm  <storm@cua.dk>
+
+	* processes.texi (Bindat Spec): Explain eval forms and lengths better.
+	Add count and index variables for eval forms in repeat blocks.
+
+2006-12-24  Richard Stallman  <rms@gnu.org>
+
+	* customize.texi (Variable Definitions): Document
+	new name custom-add-frequent-value.
+
+2006-12-19  Kim F. Storm  <storm@cua.dk>
+
+	* commands.texi (Misc Events): User signals now result in sigusr1
+	and sigusr2 events which are handled through special-event-map.
+	(Special Events): User signals and drag-n-drop are special.
+
+2006-12-17  Richard Stallman  <rms@gnu.org>
+
+	* loading.texi (Named Features): Explain subfeatures better.
+
+	* customize.texi: Use "option" only for user options.
+	For the keyword values inside defcustom etc, say "keywords".
+	For :options value's elements, say "elements".
+	:group should not be omitted.
+
+	* syntax.texi (Parsing Expressions): Split up node.
+	(Motion via Parsing, Position Parse, Parser State)
+	(Low-Level Parsing, Control Parsing): New subnodes.
+	(Parser State): Document syntax-ppss-toplevel-pos.
+
+	* positions.texi (List Motion): Punctuation fix.
+
+	* files.texi (File Name Completion): Document PREDICATE arg
+	to file-name-completion.
+
+2006-12-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* internals.texi (Building Emacs, Writing Emacs Primitives): Add
+	index entries.
+
+2006-12-11  Richard Stallman  <rms@gnu.org>
+
+	* modes.texi (Font Lock Basics): Explain how nil for font-lock-defaults
+	affects face menu.  Explain how to make it non-nil without enabling
+	any fontification.
+
+2006-12-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* modes.texi (Font Lock Basics): Document nil value of
+	font-lock-defaults.
+
+2006-12-10  Glenn Morris  <rgm@gnu.org>
+
+	* abbrevs.texi (Defining Abbrevs): Mention `define-abbrev' 'force
+	value for system-flag argument.  Abbrev tables may not be empty
+	when major modes are loaded.
+
+2006-12-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (maintainer-clean): Partially revert last
+	change; delete "elisp-?" and "elisp-??" instead of "elisp-*"
+	to protect elisp-covers.texi.
+
+2006-12-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (maintainer-clean): Depend on `distclean'.
+	Don't remove elisp* info files; they are already deleted by the
+	`clean' and `distclean' targets, and they are in the $(infodir)
+	directory, not the current one.
+
+2006-12-04  Kim F. Storm  <storm@cua.dk>
+
+	* commands.texi (Misc Events): Update signal events.
+	(Event Examples): Add signal example.
+
 2006-11-29  Richard Stallman  <rms@gnu.org>
 
 	* frames.texi (Visibility of Frames): Explain visible windows
@@ -360,7 +453,7 @@
 
 2006-07-31  Nick Roberts  <nickrob@snap.net.nz>
 
-	* modes.texi (Minor Mode Conventions): Update link for add-to-list.
+	* modes.texi (Minor Mode Conventions): Update xref for add-to-list.
 
 	* lists.texi (Sets And Lists): Likewise.
 

@@ -34,11 +34,8 @@ so that you can use many of the features described in this chapter.
 @xref{MS-DOS Mouse}.
 @end ifnottex
 
-
 @menu
-* Mouse Commands::      Moving, cutting, and pasting, with the mouse.
-* Secondary Selection:: Cutting without altering point and mark.
-* Clipboard::           Using the clipboard for selections.
+* Cut and Paste::       Mouse commands for cut and paste.
 * Mouse References::    Using the mouse to select an item from a list.
 * Menu Mouse Clicks::   Mouse clicks that bring up menus.
 * Mode Line Mouse::     Mouse clicks on the mode line.
@@ -60,8 +57,22 @@ so that you can use many of the features described in this chapter.
 * Text-Only Mouse::     Using the mouse in text-only terminals.
 @end menu
 
+@node Cut and Paste
+@section Killing and Yanking on Graphical Displays
+
+  This section describes facilities for selecting a region, killing,
+and yanking using the mouse.
+
+@menu
+* Mouse Commands::      Moving, cutting, and pasting, with the mouse.
+* Cut/Paste Other App:: Transfering text between Emacs and other apps.
+* Word and Line Mouse:: Mouse commands for selecting whole words or lines.
+* Secondary Selection:: Cutting without altering point and mark.
+* Clipboard::           Using the clipboard for selections.
+@end menu
+
 @node Mouse Commands
-@section Mouse Commands for Editing
+@subsection Mouse Commands for Editing
 @cindex mouse buttons (what they do)
 
   The mouse commands for selecting and copying a region are mostly
@@ -154,27 +165,6 @@ entire words or lines.
 
 If you use @kbd{Mouse-3} a second time consecutively, at the same place,
 that kills the region already selected.
-
-@item Double-Mouse-1
-This key sets the region around the word which you click on.  If you
-click on a character with ``symbol'' syntax (such as underscore, in C
-mode), it sets the region around the symbol surrounding that character.
-
-If you click on a character with open-parenthesis or close-parenthesis
-syntax, it sets the region around the parenthetical grouping
-which that character starts or ends.  If you click on a character with
-string-delimiter syntax (such as a singlequote or doublequote in C), it
-sets the region around the string constant (using heuristics to figure
-out whether that character is the beginning or the end of it).
-
-@item Double-Drag-Mouse-1
-This key selects a region made up of the words you drag across.
-
-@item Triple-Mouse-1
-This key sets the region around the line you click on.
-
-@item Triple-Drag-Mouse-1
-This key selects a region made up of the lines you drag across.
 @end table
 
   The simplest way to kill text with the mouse is to press @kbd{Mouse-1}
@@ -190,6 +180,20 @@ and press @kbd{Mouse-2}.  @xref{Yanking}.  However, if
 point.  Then it does not matter where you click, or even which of the
 frame's windows you click on.  The default value is @code{nil}.  This
 variable also affects yanking the secondary selection.
+
+@cindex Delete Selection mode
+@cindex mode, Delete Selection
+@findex delete-selection-mode
+  Many graphical applications follow the convention that insertion while text
+is selected deletes the selected text.  You can make Emacs behave this
+way by enabling Delete Selection mode---with @kbd{M-x
+delete-selection-mode} or using Custom.  Another effect of this mode
+is that @key{DEL}, @kbd{C-d} and some other keys, when a selection
+exists, will kill the whole selection.  It also enables Transient Mark
+mode (@pxref{Transient Mark}).
+
+@node Cut/Paste Other App
+@subsection Cut and Paste with Other Window Applications
 
 @cindex cutting
 @cindex pasting
@@ -224,8 +228,36 @@ to yank, the kill ring contents are used.
 system for selections, use @kbd{C-x @key{RET} x} or @kbd{C-x @key{RET}
 X}.  @xref{Communication Coding}.
 
+@node Word and Line Mouse
+@subsection Mouse Commands for Words and Lines
+
+  These variants of @kbd{Mouse-1} select entire words or lines at a time.
+
+@table @kbd
+@item Double-Mouse-1
+This key sets the region around the word which you click on.  If you
+click on a character with ``symbol'' syntax (such as underscore, in C
+mode), it sets the region around the symbol surrounding that character.
+
+If you click on a character with open-parenthesis or close-parenthesis
+syntax, it sets the region around the parenthetical grouping
+which that character starts or ends.  If you click on a character with
+string-delimiter syntax (such as a singlequote or doublequote in C), it
+sets the region around the string constant (using heuristics to figure
+out whether that character is the beginning or the end of it).
+
+@item Double-Drag-Mouse-1
+This key selects a region made up of the words you drag across.
+
+@item Triple-Mouse-1
+This key sets the region around the line you click on.
+
+@item Triple-Drag-Mouse-1
+This key selects a region made up of the lines you drag across.
+@end table
+
 @node Secondary Selection
-@section Secondary Selection
+@subsection Secondary Selection
 @cindex secondary selection
 
   The @dfn{secondary selection} is another way of selecting text using
@@ -280,7 +312,7 @@ yanks at point.  Then it does not matter precisely where you click; all
 that matters is which window you click on.  @xref{Mouse Commands}.
 
 @node Clipboard
-@section Using the Clipboard
+@subsection Using the Clipboard
 @cindex clipboard
 @vindex x-select-enable-clipboard
 @findex menu-bar-enable-clipboard

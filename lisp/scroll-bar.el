@@ -75,6 +75,7 @@ SIDE must be the symbol `left' or `right'."
 ;;;; Helpful functions for enabling and disabling scroll bars.
 
 (defvar scroll-bar-mode)
+(defvar previous-scroll-bar-mode nil)
 
 (defvar scroll-bar-mode-explicit nil
   "Non-nil means `set-scroll-bar-mode' should really do something.
@@ -85,6 +86,9 @@ This is nil while loading `scroll-bar.el', and t afterward.")
 
 (defun set-scroll-bar-mode (value)
   "Set `scroll-bar-mode' to VALUE and put the new value into effect."
+  (if scroll-bar-mode
+      (setq previous-scroll-bar-mode scroll-bar-mode))
+
   (setq scroll-bar-mode value)
 
   (when scroll-bar-mode-explicit
@@ -124,7 +128,8 @@ turn off scroll bars; otherwise, turn on scroll bars."
 			       (not scroll-bar-mode)
 			     (setq flag (prefix-numeric-value flag))
 			     (or (not (numberp flag)) (>= flag 0)))
-			   default-frame-scroll-bars)))
+			   (or previous-scroll-bar-mode
+			       default-frame-scroll-bars))))
 
 (defun toggle-scroll-bar (arg)
   "Toggle whether or not the selected frame has vertical scroll bars.

@@ -3343,16 +3343,17 @@ buffer that was in action when the last article was fetched."
       t
     (not (cdr (gnus-data-find-list article)))))
 
-(defun gnus-make-thread-indent-array ()
-  (let ((n 200))
-    (unless (and gnus-thread-indent-array
-		 (= gnus-thread-indent-level gnus-thread-indent-array-level))
-      (setq gnus-thread-indent-array (make-vector 201 "")
-	    gnus-thread-indent-array-level gnus-thread-indent-level)
-      (while (>= n 0)
-	(aset gnus-thread-indent-array n
-	      (make-string (* n gnus-thread-indent-level) ? ))
-	(setq n (1- n))))))
+(defun gnus-make-thread-indent-array (&optional n)
+  (when (or n
+	    (progn (setq n 200) nil)
+	    (null gnus-thread-indent-array)
+	    (/= gnus-thread-indent-level gnus-thread-indent-array-level))
+    (setq gnus-thread-indent-array (make-vector (1+ n) "")
+	  gnus-thread-indent-array-level gnus-thread-indent-level)
+    (while (>= n 0)
+      (aset gnus-thread-indent-array n
+	    (make-string (* n gnus-thread-indent-level) ? ))
+      (setq n (1- n)))))
 
 (defun gnus-update-summary-mark-positions ()
   "Compute where the summary marks are to go."
@@ -3451,6 +3452,9 @@ buffer that was in action when the last article was fetched."
 				 gnus-tmp-expirable gnus-tmp-subject-or-nil
 				 &optional gnus-tmp-dummy gnus-tmp-score
 				 gnus-tmp-process)
+  (if (>= gnus-tmp-level (length gnus-thread-indent-array))
+      (gnus-make-thread-indent-array (max (* 2 (length gnus-thread-indent-array))
+					  gnus-tmp-level)))
   (let* ((gnus-tmp-indentation (aref gnus-thread-indent-array gnus-tmp-level))
 	 (gnus-tmp-lines (mail-header-lines gnus-tmp-header))
 	 (gnus-tmp-score (or gnus-tmp-score gnus-summary-default-score 0))
@@ -4549,23 +4553,46 @@ If LINE, insert the rebuilt thread starting on line LINE."
 	      (1+ (gnus-point-at-eol))
 	    (gnus-delete-line)))))))
 
-(defun gnus-sort-threads-1 (threads func)
+(defun gnus-sort-threads-recursive (threads func)
   (sort (mapcar (lambda (thread)
 		  (cons (car thread)
 			(and (cdr thread)
-			     (gnus-sort-threads-1 (cdr thread) func))))
+			     (gnus-sort-threads-recursive (cdr thread) func))))
 		threads) func))
+
+(defun gnus-sort-threads-loop (threads func)
+  (let* ((superthread (cons nil threads))
+  	 (stack (list (cons superthread threads)))
+  	 remaining-threads thread)
+    (while stack
+      (setq remaining-threads (cdr (car stack)))
+      (if remaining-threads
+  	  (progn (setq thread (car remaining-threads))
+  		 (setcdr (car stack) (cdr remaining-threads))
+  		 (if (cdr thread)
+  		     (push (cons thread (cdr thread)) stack)))
+  	(setq thread (caar stack))
+  	(setcdr thread (sort (cdr thread) func))
+  	(pop stack)))
+    (cdr superthread)))
 
 (defun gnus-sort-threads (threads)
   "Sort THREADS."
   (if (not gnus-thread-sort-functions)
       threads
     (gnus-message 8 "Sorting threads...")
-    (let ((max-lisp-eval-depth 5000))
-      (prog1 (gnus-sort-threads-1
-	 threads
-	 (gnus-make-sort-function gnus-thread-sort-functions))
-        (gnus-message 8 "Sorting threads...done")))))
+    (prog1
+	(condition-case nil
+	    (let ((max-lisp-eval-depth (max max-lisp-eval-depth 5000)))
+	      (gnus-sort-threads-recursive
+	       threads (gnus-make-sort-function gnus-thread-sort-functions)))
+	  ;; Even after binding max-lisp-eval-depth, the recursive
+	  ;; sorter might fail for very long threads.  In that case,
+	  ;; try using a (less well-tested) non-recursive sorter.
+	  (error (gnus-sort-threads-loop
+		  threads (gnus-make-sort-function
+			   gnus-thread-sort-functions))))
+      (gnus-message 8 "Sorting threads...done"))))
 
 (defun gnus-sort-articles (articles)
   "Sort ARTICLES."
@@ -4990,6 +5017,10 @@ or a straight list of headers."
 		      gnus-tmp-closing-bracket ?\>)
 	      (setq gnus-tmp-opening-bracket ?\[
 		    gnus-tmp-closing-bracket ?\]))
+	    (if (>= gnus-tmp-level (length gnus-thread-indent-array))
+		(gnus-make-thread-indent-array
+		 (max (* 2 (length gnus-thread-indent-array))
+		      gnus-tmp-level)))
 	    (setq
 	     gnus-tmp-indentation
 	     (aref gnus-thread-indent-array gnus-tmp-level)
@@ -7302,6 +7333,9 @@ If UNREAD, only unread articles are selected.
 If SUBJECT, only articles with SUBJECT are selected.
 If BACKWARD, the previous article is selected instead of the next."
   (interactive "P")
+  ;; Make sure we are in the summary buffer.
+  (unless (eq major-mode 'gnus-summary-mode)
+    (set-buffer gnus-summary-buffer))
   (cond
    ;; Is there such an article?
    ((and (gnus-summary-search-forward unread subject backward)
@@ -7956,7 +7990,7 @@ article."
   (interactive)
   (let ((gnus-verbose (max 6 gnus-verbose)))
     (if (not gnus-newsgroup-dormant)
-	(gnus-message 3 "No cached articles for this group")
+	(gnus-message 3 "No dormant articles for this group")
       (gnus-summary-goto-subjects gnus-newsgroup-dormant))))
 
 (defun gnus-summary-limit-include-dormant ()
@@ -8165,7 +8199,7 @@ fetch-old-headers verbiage, and so on."
   ;; will really go down to a leaf article first, before slowly
   ;; working its way up towards the root.
   (when thread
-    (let* ((max-lisp-eval-depth 5000)
+    (let* ((max-lisp-eval-depth (max 5000 max-lisp-eval-depth))
 	   (children
 	   (if (cdr thread)
 	       (apply '+ (mapcar 'gnus-summary-limit-children

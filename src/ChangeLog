@@ -1,3 +1,348 @@
+2006-12-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (update_frame_tool_bar): Connect create-menu-proxy with
+	xg_tool_bar_menu_proxy.
+	(xg_tool_bar_menu_proxy): New function.
+	(xg_tool_bar_proxy_callback): New function.
+
+2006-12-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_tool_bar_button_cb): Save last modifier on widget.
+	(xg_tool_bar_callback): Remove check for button.
+	(update_frame_tool_bar): Put an event box in the tool bar and a button
+	in the event box.  Attach enter/leave-notify-event to the event box.
+
+2006-12-30  Richard Stallman  <rms@gnu.org>
+
+	* keymap.c (Fdefine_key): Doc fix.
+
+2006-12-29  Kim F. Storm  <storm@cua.dk>
+
+	* frame.h (struct frame): New member minimize_tool_bar_window_p.
+
+	* xdisp.c (auto_resize_tool_bars_p): Replace with ...
+	(Vauto_resize_tool_bars): ... this.
+	(syms_of_xdisp): DEFVAR_LISP and initialize it.  Update doc string
+	to describe new value `grow-only', and use of C-l.
+	(display_tool_bar_line): Only use default face for border below
+	toolbar if not grow-only (to get acceptable visual appearence).
+	Explicitly set visible_height for empty toolbar lines.
+	(redisplay_tool_bar): Handle `grow-only' setting.  Check and clear
+	minimize_tool_bar_window_p flag.
+
+	* window.c (Frecenter): Set minimize_tool_bar_window_p flag
+	when called without arg to redraw with minimum toolbar height.
+	Update doc string.
+
+2006-12-29  Jason Rumney  <jasonr@gnu.org>
+
+	* s/ms-w32.h (tzname): Do not define in msvc8.
+	(utime): Do not define in msvc8.
+
+	* regex.c (regerror): Change parameter name err_code.
+
+2006-12-26  Richard Stallman  <rms@gnu.org>
+
+	* search.c (Fsearch_forward): Doc fix.
+
+	* callint.c (Finteractive): Doc fix.
+
+2006-12-25  Kim F. Storm  <storm@cua.dk>
+
+	* s/ms-w32.h (BROKEN_DATAGRAM_SOCKETS): Define it.
+
+2006-12-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* keyboard.c (some_mouse_moved): Fix last change.
+
+2006-12-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* callproc.c (syms_of_callproc) <shell-file-name>: Doc fix.
+
+2006-12-22  Mark Davies  <mark@mcs.vuw.ac.nz>
+
+	* m/amdx86-64.h, m/hp800.h: Add support for NetBSD.
+	* m/sh3el.h: New file.
+
+2006-12-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (emacs, temacs): Depend on stamp_BLD instead of
+	$(BLD).
+	($(OBJ0) $(OBJ1) $(WIN32OBJ)): New dependency on stamp_BLD.
+	(bootstrap-temacs): Pass $(XMFLAGS) to sub-make.
+	($(OBJ0) $(OBJ1) $(WIN32OBJ)): Add lastfile.$(O) and firstfile.$(O).
+	(clean): Delete stamp_BLD.
+
+2006-12-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (mac_update_title_bar) [TARGET_API_MAC_CARBON]: Call
+	mac_update_proxy_icon also when buffer modification flag changed.
+	[TARGET_API_MAC_CARBON] (mac_update_proxy_icon): Don't update alias,
+	but compare FSRef/FSSpec of resolved alias.
+
+2006-12-21  Kim F. Storm  <storm@cua.dk>
+
+	* w32.c (_sys_wait_accept): Fix handle leak.
+
+2006-12-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* sound.c: Include <alsa/asoundlib.h> if ALSA_SUBDIR_INCLUDE is
+	defined.
+
+2006-12-20  Kim F. Storm  <storm@cua.dk>
+
+	* s/ms-w32.h (BROKEN_NON_BLOCKING_CONNECT): Define it.
+
+2006-12-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* keyboard.c (syms_of_keyboard) <double-click-time>:
+	* mac.c (Fmac_code_convert_string):
+	* search.c (Fsearch_forward): Doc fixes.
+
+2006-12-19  Kim F. Storm  <storm@cua.dk>
+
+	Rework 2006-12-04 change.  A SIGUSR1 (SIGUSR2) signal now generates
+	a sigusr1 event instead of [signal usr1] sequence, and signal events
+	are now supposed to be handled via special-event-map.
+
+	* keyboard.c (kbd_buffer_store_event_hold): Undo 2006-12-04 change.
+	(make_lispy_event): Don't generate Qsignal prefix for code 0.
+	Abort if signal code is unknown.
+	(store_user_signal_events): Don't make Qsignal prefix (code 0).
+	(Qsignal): Move declaration back to process.c.
+	(syms_of_keyboard): Don't intern or staticpro it here.
+
+	* process.c (Qsignal): Declare here.
+	(syms_of_process): Intern or staticpro it.
+
+	* emacs.c (main): Rename user signals to sigusr1 and sigusr2.
+
+	* .gdbinit: Pass on SIGUSR1 and SIGUSR2 to Emacs.
+
+2006-12-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* buffer.c (syms_of_buffer) <buffer-display-table>
+	<scroll-up-aggressively, scroll-down-aggressively>: Doc fixes.
+
+2006-12-17  Richard Stallman  <rms@gnu.org>
+
+	* fileio.c (Fread_file_name_internal): Pass Vread_file_name_predicate
+	to Ffile_name_completion.
+
+	* dired.c (file_name_completion): New arg PREDICATE.  Some cleanup.
+	(Ffile_name_completion): New arg PREDICATE.
+
+2006-12-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* buffer.c (Fkill_buffer): Doc fix.
+	(syms_of_buffer) <kill-buffer-query-functions>: Doc fix.
+
+2006-12-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuf.c (Ftry_completion): Check that obarray buckets are symbols.
+
+2006-12-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (w32-window-exists-p): New function.
+	(syms_of_w32fns): Defsubr it.
+
+	* prefix-args.c [STDC_HEADERS]: Include stdlib.h.
+
+2006-12-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuf.c (Ftry_completion): Use `check_obarray' if ALIST is a vector.
+
+2006-12-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.c (USAGE3): Clarify documentation of --color.
+
+2006-12-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (wakeup_from_rne_enabled_p) [TARGET_API_MAC_CARBON]:
+	New variable.
+	(ENABLE_WAKEUP_FROM_RNE, DISABLE_WAKEUP_FROM_RNE): New macros.
+	[!MAC_OSX] (select): Use them.
+	[MAC_OSX] (select_and_poll_event, sys_select): Likewise.
+	(mac_wakeup_from_rne) [TARGET_API_MAC_CARBON]: New function.
+
+	* macfns.c (mac_atsu_font_face_attributes) [USE_ATSUI]: Add extern.
+	(Fmac_atsu_font_face_attributes) [USE_ATSUI]: New function.
+	(syms_of_macfns) [USE_ATSUI]: Defsubr it.
+
+	* macselect.c [TARGET_API_MAC_CARBON] (mac_do_receive_drag): Use
+	mac_wakeup_from_rne instead of mac_post_mouse_moved_event.
+
+	* macterm.c (mac_query_char_extents) [USE_ATSUI]: Don't call
+	ATSUGetGlyphBounds if not necessary.
+	(Vmac_atsu_font_table) [USE_ATSUI]: Remove variable.
+	(syms_of_macterm) [USE_ATSUI]: Don't defvar it.
+	(fm_get_style_from_font, atsu_find_font_from_family_name)
+	(atsu_find_font_family_name, mac_atsu_font_face_attributes)
+	[USE_ATSUI]: New functions.
+	(init_font_name_table) [USE_ATSUI]: Use atsu_find_font_family_name.
+	(mac_load_query_font) [USE_ATSUI]: Use atsu_find_font_from_family_name.
+	Don't get metrics for Latin-1 right half characters.
+	(mac_load_query_font): Don't load font if space width is not positive.
+	[TARGET_API_MAC_CARBON] (mac_store_event_ref_as_apple_event): Use
+	mac_wakeup_from_rne instead of mac_post_mouse_moved_event.
+	(XTread_socket): Call SelectWindow when unfocused frame is clicked.
+
+	* macterm.h (mac_wakeup_from_rne) [TARGET_API_MAC_CARBON]: Add extern.
+
+2006-12-15  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c (ignore_mouse_drag_p): New global var.
+	(some_mouse_moved): Return 0 if it is non-zero.
+	(make_lispy_event): Generate click event on mouse up if
+	ignore_mouse_drag_p is non-zero, even if mouse moved.
+	Clear ignore_mouse_drag_p on mouse down/up.
+
+	* xdisp.c (redisplay_window): Set ignore_mouse_drag_p if tool-bar
+	is resized to avoid generating a mouse drag event.
+
+2006-12-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (w32_wnd_proc): Force non-tooltip frames to respect the
+	minimum tracking size.  Remove non-working old hack to do the same.
+
+2006-12-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* emacs.c (handle_user_signal): Move function to keyboard.c.
+	(main): Use add_user_signal for SIGUSR1 and SIGUSR2.
+
+	* keyboard.c (make_lispy_event): Use find_user_signal_name.
+	(read_avail_input): Store pending user signal events.
+	(struct user_signal_info): New struct.
+	(user_signals): New variable.
+	(add_user_signal, store_user_signal_events)
+	(find_user_signal_name): New functions.
+	(handle_user_signal): Move function from emacs.c.  Don't store
+	USER_SIGNAL_EVENT here, but increment number of pending signals.
+
+	* keyboard.h (add_user_signals): Add extern.
+
+2006-12-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* buffer.c (syms_of_buffer) <cursor-in-non-selected-windows>:
+	<default-scroll-up-aggressively, default-scroll-down-aggressively>:
+	<line-spacing, left-margin>: Doc fixes.
+
+	* xdisp.c (syms_of_xdisp) <mode-line-inverse-video>: Doc fix.
+
+2006-12-10  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (show_mouse_face): Never use text cursor in tool-bar.
+
+2006-12-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* abbrev.c (syms_of_abbrev) <last-abbrev-text>:
+	* buffer.c (syms_of_buffer) <default-major-mode>:
+	* keymap.c (Flookup_key):
+	* lread.c (Feval_buffer, Feval_region):
+	* macterm.c (syms_of_macterm) <x-use-underline-position-properties>:
+	<x-underline-at-descent-line, mac-emulate-three-button-mouse>:
+	* marker.c (Fmarker_insertion_type):
+	* minibuf.c (syms_of_minibuf) <minibuffer-completion-table>:
+	* msdos.c (syms_of_msdos) <delete-exited-processes>:
+	* w32term.c (syms_of_w32term) <x-use-underline-position-properties>:
+	<x-underline-at-descent-line>:
+	* xdisp.c (format-mode-line):
+	* xterm.c (syms_of_xterm) <x-use-underline-position-properties>:
+	<x-underline-at-descent-line>: Doc fixes.
+
+2006-12-10  Andreas Schwab  <schwab@suse.de>
+
+	* systime.h (EMACS_GET_TIME): Remove check for
+	HAVE_STRUCT_TIMEZONE which is never defined.
+
+2006-12-10  Alan Mackenzie  <acm@muc.de>
+
+	* syntax.c (Fpartial_parse_sexp): Correct Docco: Elt 8 of the
+	result is now neither the last elt nor optional for OLDSTATE.
+
+2006-12-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* process.c (Fsignal_process): Doc fix.  Use XFLOAT_DATA to
+	extract the process ID from a Lisp float.
+
+2006-12-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.c (XTframe_raise_lower): Comment out _NET_ACTIVE_WINDOW code.
+
+2006-12-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.h (PIX_TYPE): Redefine as `unsigned long', for 64-bit
+	platforms where long is 64-bit.
+
+	* msdos.h (PIX_TYPE): Redefine as `unsigned long'.
+
+2006-12-08  NAKAJI Hiroyuki  <nakaji@jp.freebsd.org>  (tiny change)
+
+	* m/amdx86-64.h: Add support for Solaris 10 on x86-64.
+
+2006-12-08  Kenichi Handa  <handa@m17n.org>
+
+	* xterm.c (x_query_font): Use xstricmp instead off strcasecmp.
+
+2006-12-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs.c (syms_of_emacs) <system-type>: Doc fix.
+
+2006-12-07  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (parse_signal): Use xstricmp instead of strcasecmp.
+	(Fsignal_process): Don't use strncasecmp.
+
+2006-12-05  Glenn Morris  <rgm@gnu.org>
+
+	* abbrev.c (Qforce): New Lisp_Object.
+	(Fdefine_abbrev): Do not overwrite non-system abbrevs with system
+	abbrevs, unless 'force is applied.
+	(syms_of_abbrev): Add Qforce.
+
+2006-12-04  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (parse_signal): Rename macro from handle_signal.
+	(Fsignal_process): Also accept lower-case variants of signal
+	names (to align with signal names generated by Emacs itself).
+
+	* emacs.c (handle_USR1_signal, handle_USR2_signal): Replace by...
+	(handle_user_signal): ... this, which generates two USER_SIGNAL_EVENTs
+	first with code == 0 [signal] and one with code == sig number.
+	(main): Use it as handler for SIGUR1 and SIGUSR2.
+
+	* keyboard.c (kbd_buffer_store_event_hold): Don't throw-on-input
+	if first event in [signal xxx] sequence.
+	(lispy_user_signals, Qusr1_signal, Qusr2_signal): Remove.
+	(syms_of_keyboard): Don't intern and staticpro them.
+	(Qsignal): Declare here.
+	(syms_of_keyboard): Intern and staticpro it.
+	(make_lispy_event): Use it.  Intern symbols on the fly for other
+	USER_SIGNAL_EVENTs events.
+
+	* process.c (Qsignal): Declare extern.
+	(syms_of_process): Don't intern/staticpro it here.
+
+	* process.c (read_process_output): Abort if carryover < 0.
+
+2006-12-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* config.in: Regenerate.
+
+	* fileio.c [__NetBSD__]: Don't define `unix'.
+	(Funix_sync, syms_of_fileio): Use `#ifdef HAVE_SYNC' instead of
+	`#ifdef unix'.
+
+2006-12-04  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (version): New variable, set by configure.
+	(bootstrapclean, mostlyclean): Also remove emacs-${version}.
+
+2006-12-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (update_frame_tool_bar): Handle modifying a toolbar item
+	without an image.
+
 2006-12-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (Fw32_shell_execute): Doc fix.
@@ -466,7 +811,7 @@
 2006-10-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xselect.c (x_handle_selection_request): If the converted_selection
-	is NIL or XCDR (converted_selection) is NIL, decline the request.
+	is nil or XCDR (converted_selection) is nil, decline the request.
 
 2006-10-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -2571,8 +2916,8 @@
 	(struct sound_device): Add period_size.
 	(wav_play, au_play): Use period_size if set.
 
-	* Makefile.in (CFLAGS_SOUND): New flags for ALSA
-	(ALL_CFLAGS): Add CFLAGS_SOUND
+	* Makefile.in (CFLAGS_SOUND): New flags for ALSA.
+	(ALL_CFLAGS): Add CFLAGS_SOUND.
 
 2006-05-18  Kenichi Handa  <handa@m17n.org>
 
@@ -4196,8 +4541,8 @@
 
 2006-01-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* gtkutil.c (update_frame_tool_bar): Use new tool bar functions
-	(gtk_toolbar_insert) so we can have tool bars of different sizes.
+	* gtkutil.c (update_frame_tool_bar): Use new tool bar function
+	gtk_toolbar_insert() so we can have tool bars of different sizes.
 
 2006-01-30  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -4525,7 +4870,7 @@
 
 2005-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* xfns.c: x_show_hidden_files, new variable.
+	* xfns.c (x_show_hidden_files): New variable.
 	(syms_of_xfns): Defvar it.
 
 	* gtkutil.c (xg_toggle_visibility_cb): New function.
@@ -6810,7 +7155,7 @@
 
 	* w32console.c (initialize_w32_display): Detect when the console
 	dimensions are insane, and default to 80x25 instead.
-	(w32_use_full_screen_buffer): Default to NIL.
+	(w32_use_full_screen_buffer): Default to nil.
 
 2005-07-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -10019,7 +10364,7 @@
 
 	* xterm.c (x_calc_absolute_position): Don't subtract outer_pixel_diff
 	for left and top calculations.  Remove call to x_real_positions.
-	[Bug report by Drew Adams in November]
+	[Bug report by Drew Adams in November.]
 	(x_check_expected_move): Do not set change_gravity to 1 when calling
 	x_set_offset.
 
@@ -10069,8 +10414,8 @@
 	new variables main_thread and alloc_mutex,
 	define (UN)BLOCK_INPUT_ALLOC to use alloc_mutex to protect
 	emacs_blocked_* calls and only do (UN)BLOCK_INPUT in the main thread.
-	If not HAVE_GTK_AND_PTHREAD, (UN)BLOCK_INPUT_ALLOC is the same as
-	(UN)BLOCK_INPUT.
+	If not HAVE_GTK_AND_PTHREAD, (UN)BLOCK_INPUT_ALLOC is the same
+	as (UN)BLOCK_INPUT.
 	(emacs_blocked_free, emacs_blocked_malloc)
 	(emacs_blocked_realloc): Use (UN)BLOCK_INPUT_ALLOC.
 	(uninterrupt_malloc): Initialize main_thread and alloc_mutex.
@@ -10080,7 +10425,7 @@
 
 	* emacs.c (Fdump_emacs): Call reset_malloc_hooks.
 
-	* keyboard.c: Conditionally include pthread.h
+	* keyboard.c: Conditionally include pthread.h.
 	(handle_async_input, input_available_signalt): If not in the main
 	thread, block signal, send signal to main thread and return.
 
@@ -10890,7 +11235,7 @@
 
 2004-11-02  Kim F. Storm  <storm@cua.dk>
 
-	* Makefile.in (callproc.o): Depend on blockinput.h atimer.h systime.h.
+	* Makefile.in (callproc.o): Depend on blockinput.h, atimer.h, systime.h.
 
 2004-11-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -10951,10 +11296,9 @@
 	* w32fns.c (Fx_file_dialog): Add parameter only_dir_p.
 	Check only_dir_p instead of comparing prompt to "Dired".
 
-	* gtkutil.c (xg_get_file_with_chooser)
-	(xg_get_file_with_selection): New functions, only defined ifdef
-	HAVE_GTK_FILE_CHOOSER_DIALOG_NEW and HAVE_GTK_FILE_SELECTION_NEW
-	respectively.
+	* gtkutil.c (xg_get_file_with_chooser, xg_get_file_with_selection):
+	New functions, only defined ifdef HAVE_GTK_FILE_CHOOSER_DIALOG_NEW
+	and HAVE_GTK_FILE_SELECTION_NEW respectively.
 	(xg_get_file_name): Add parameter only_dir_p.
 	Call xg_get_file_with_chooser or xg_get_file_with_selection
 	depending on HAVE_GTK_FILE* and the value of use_old_gtk_file_dialog.
@@ -10991,7 +11335,7 @@
 	tool_bar_items to assignment of result.
 
 	* atimer.c (alarm_signal_handler): Do not call set_alarm if
-	pending_atmers is non-zero.
+	pending_atimers is non-zero.
 
 2004-10-31  Kim F. Storm  <storm@cua.dk>
 
@@ -14611,14 +14955,14 @@
 	* xterm.c (handle_one_xevent): Call x_handle_dnd_message for
 	ClientMessages.
 
-	* xselect.c: Include termhooks.h and X11/Xproto.h
+	* xselect.c: Include termhooks.h and X11/Xproto.h.
 	(x_check_property_data, x_fill_property_data)
 	(x_property_data_to_lisp, mouse_position_for_drop)
 	(Fx_get_atom_name, x_handle_dnd_message): New functions for DND support.
 	(Fx_send_client_event): Move here from xfns.c.
 	(syms_of_xselect): Add Sx_get_atom_name and Sx_send_client_message.
 
-	* xfns.c (x-send-client-message): Move to xselect.c
+	* xfns.c (x-send-client-message): Move to xselect.c.
 	(Fx_change_window_property): Add optional arguments TYPE, FORMAT and
 	OUTER_P.
 	(Fx_window_property): Add optional arguments TYPE, SOURCE, DELETE_P,
@@ -18179,7 +18523,7 @@
 
 2003-03-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* xdisp.c (get_glyph_string_clip_rect): Remove ; at end of #endif
+	* xdisp.c (get_glyph_string_clip_rect): Remove ; at end of #endif.
 
 	* gtkutil.h: Take two more arguments to xg_update_scrollbar_pos.
 	(XG_SB_RANGE): New define.
@@ -18416,7 +18760,7 @@
 	* gtkutil.c: Removed handle_fixed_child, struct xg_last_sb_pos.
 	(xg_resize_widgets): Don't call foreach(handle_fixed_child).
 	(xg_gtk_scroll_destroy): Remove free of struct xg_last_sb_pos.
-	(scroll_bar_button_cb): Set bar->dragging to NIL on button release.
+	(scroll_bar_button_cb): Set bar->dragging to nil on button release.
 	(xg_create_scroll_bar): Pass bar to button event callback.
 	(xg_find_top_left_in_fixed): New function.
 	(xg_update_scrollbar_pos): Don't call gdk_window_clear on
@@ -18717,7 +19061,7 @@
 2003-02-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* keyboard.c (cancel_hourglass_unwind): Surround with
-	#ifdef HAVE_X_WINDOWS
+	#ifdef HAVE_X_WINDOWS.
 
 2003-02-25  Kenichi Handa  <handa@m17n.org>
 
@@ -19278,7 +19622,7 @@
 
 2003-01-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* gtkutil.c: Must include stdio.h before termhooks.h
+	* gtkutil.c: Must include stdio.h before termhooks.h.
 
 2003-01-21  Dave Love  <fx@gnu.org>
 
@@ -19324,7 +19668,7 @@
 	* xterm.c (handle_one_xevent): Surround popup_activated
 	with #ifdef:s for non-toolkit version.
 
-	* Makefile.in (XOBJ): Add gtkutil.o if USE_GTK
+	* Makefile.in (XOBJ): Add gtkutil.o if USE_GTK.
 	(gtkutil.o): New file.
 	(TOOLKIT_DEFINES): Set to -DUSE_GTK if HAVE_GTK.
 	(LIBW): Set to @GTK_LIBS@ if USE_GTK.
@@ -19370,7 +19714,7 @@
 	(syms_of_xterm): Set Vx_toolkit_scroll_bars for USE_GTK.
 
 	* xmenu.c: Include gtkutil.h for USE_GTK.
-	(Fx_popup_menu): Use current position if x and y is NIL.
+	(Fx_popup_menu): Use current position if x and y are nil.
 	(single_menu_item, single_menu_item, Fx_popup_dialog):
 	Check for USE_GTK.
 	(popup_widget_loop): New function for USE_GTK.
@@ -19400,7 +19744,7 @@
 	(x_set_tool_bar_lines): Call update_frame_tool_bar for USE_GTK.
 	(x_set_name, x_set_title): Call gtk_window_set_title for USE_GTK.
 	(x_window): Call xg_create_frame_widgets for USE_GTK.
-	(Fx_create_frame): Check for USE_GTK
+	(Fx_create_frame): Check for USE_GTK.
 	(Fx_file_dialog): New implementation for USE_GTK.
 
 	* xdisp.c: Add check for USE_GTK for extern void set_frame_menubar.
@@ -19427,7 +19771,7 @@
 	* dispnew.c (adjust_frame_glyphs_for_window_redisplay):
 	Add check for USE_GTK.
 
-	* config.in: Added HAVE_GTK
+	* config.in: Added HAVE_GTK.
 
 	* alloc.c (Fgarbage_collect): Call xg_mark_data for GTK.
 
@@ -20653,7 +20997,7 @@
 	Only when it is non-nil, handle composition sequence.
 	(setup_coding_system) <0>: Don't force composition handling.
 
-	* Makefile.in (lisp, shortlisp): Add utf-16.elc
+	* Makefile.in (lisp, shortlisp): Add utf-16.elc.
 
 2002-09-29  Richard M. Stallman  <rms@gnu.org>
 

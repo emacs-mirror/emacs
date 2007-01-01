@@ -6517,7 +6517,7 @@ the cursor have no effect.  */);
   DEFVAR_BOOL ("x-use-underline-position-properties",
 	       &x_use_underline_position_properties,
      doc: /* *Non-nil means make use of UNDERLINE_POSITION font properties.
-nil means ignore them.  If you encounter fonts with bogus
+A value of nil means ignore them.  If you encounter fonts with bogus
 UNDERLINE_POSITION font properties, for example 7x13 on XFree prior
 to 4.1, set this to nil.
 
@@ -6527,9 +6527,9 @@ NOTE: Not supported on MS-Windows yet.  */);
   DEFVAR_BOOL ("x-underline-at-descent-line",
 	       &x_underline_at_descent_line,
      doc: /* *Non-nil means to draw the underline at the same place as the descent line.
-nil means to draw the underline according to the value of the variable
-`x-use-underline-position-properties', which is usually at the baseline
-level.  The default value is nil.  */);
+A value of nil means to draw the underline according to the value of the
+variable `x-use-underline-position-properties', which is usually at the
+baseline level.  The default value is nil.  */);
   x_underline_at_descent_line = 0;
 
   DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,

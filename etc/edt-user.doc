@@ -5,8 +5,8 @@ File:  edt-user.doc  ---  EDT Emulation User Instructions
 Copyright (C) 1986, 1992, 1994, 1995, 1999, 2000, 2002, 2003, 2004,
    2005, 2006 Free Software Foundation, Inc.
 
-Author: Kevin Gallagher <kevingal@onramp.net>
-Maintainer: Kevin Gallagher <kevingal@onramp.net>
+Author: Kevin Gallagher <Kevin.Gallagher@boeing.com>
+Maintainer: Kevin Gallagher <Kevin.Gallagher@boeing.com>
 Keywords: emulations
 
 This file is part of GNU Emacs.
@@ -928,7 +928,7 @@ G-F12: Delete Other Windows       |   (PF1)  |   (PF2)  |   (PF3)  |   (PF4)  |
 G-HELP: Emacs Help                |   PAGE   |Scroll Win|Open Line |  DEL W   |
    DO: Execute extended command   |    (7)   |    (8)   |    (9)   |   (-)    |
   C-a: Beginning of Line          |Ex Ext Cmd|Fill Parag|Elim Tabs |  UND W   |
-  C-b: Switch to Buffer           +----------+----------+----------+----------+
+  C-b: Backward Character         +----------+----------+----------+----------+
   C-d: Delete Character           |  ADVANCE |  BACKUP  | CUT/COPY |  DEL C   |
   C-e: End of Line                |    (4)   |    (5)   |    (6)   |   (,)    |
   C-f: Forward Character          |   BOTTOM |    TOP   |   Yank   |  UND C   |

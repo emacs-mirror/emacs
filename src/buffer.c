@@ -1344,15 +1344,16 @@ See `kill-buffer'."
  */
 DEFUN ("kill-buffer", Fkill_buffer, Skill_buffer, 1, 1, "bKill buffer: ",
        doc: /* Kill the buffer BUFFER.
-The argument may be a buffer or may be the name of a buffer.
-An argument of nil means kill the current buffer.
+The argument may be a buffer or the name of a buffer.
+With a nil argument, kill the current buffer.
 
-Value is t if the buffer is actually killed, nil if user says no.
+Value is t if the buffer is actually killed, nil otherwise.
 
-The value of `kill-buffer-hook' (which may be local to that buffer),
-if not void, is a list of functions to be called, with no arguments,
-before the buffer is actually killed.  The buffer to be killed is current
-when the hook functions are called.
+The functions in `kill-buffer-query-functions' are called with BUFFER as
+the current buffer.  If any of them returns nil, the buffer is not killed.
+
+The hook `kill-buffer-hook' is run before the buffer is actually killed.
+The buffer being killed will be current while the hook is running.
 
 Any processes that have this buffer as the `process-buffer' are killed
 with SIGHUP.  */)
@@ -5385,8 +5386,8 @@ This is the same as (default-value 'fill-column).  */);
 This is the same as (default-value 'left-margin).  */);
 
   DEFVAR_LISP_NOPRO ("default-tab-width",
-	      &buffer_defaults.tab_width,
-    doc: /* Default value of `tab-width' for buffers that do not override it.
+		     &buffer_defaults.tab_width,
+		     doc: /* Default value of `tab-width' for buffers that do not override it.
 This is the same as (default-value 'tab-width).  */);
 
   DEFVAR_LISP_NOPRO ("default-case-fold-search",
@@ -5461,13 +5462,13 @@ This is the same as (default-value 'fringe-cursor-alist').  */);
 		     &buffer_defaults.scroll_up_aggressively,
 		     doc: /* Default value of `scroll-up-aggressively'.
 This value applies in buffers that don't have their own local values.
-This variable is an alias for (default-value 'scroll-up-aggressively).  */);
+This is the same as (default-value 'scroll-up-aggressively).  */);
 
   DEFVAR_LISP_NOPRO ("default-scroll-down-aggressively",
 		     &buffer_defaults.scroll_down_aggressively,
 		     doc: /* Default value of `scroll-down-aggressively'.
 This value applies in buffers that don't have their own local values.
-This variable is an alias for (default-value 'scroll-down-aggressively).  */);
+This is the same as (default-value 'scroll-down-aggressively).  */);
 
   DEFVAR_PER_BUFFER ("header-line-format",
 		     &current_buffer->header_line_format,
@@ -5530,8 +5531,8 @@ Decimal digits after the % specify field width to which to pad.  */);
 
   DEFVAR_LISP_NOPRO ("default-major-mode", &buffer_defaults.major_mode,
 		     doc: /* *Major mode for new buffers.  Defaults to `fundamental-mode'.
-nil here means use current buffer's major mode, provided it is not
-marked as "special".
+A value of nil means use current buffer's major mode,
+provided it is not marked as "special".
 
 When a mode is used by default, `find-file' switches to it
 before it reads the contents into the buffer and before
@@ -5561,7 +5562,7 @@ Interactively, you can set the buffer local value using \\[set-fill-column].  */
 
   DEFVAR_PER_BUFFER ("left-margin", &current_buffer->left_margin,
 		     make_number (Lisp_Int),
-		     doc: /* *Column for the default indent-line-function to indent to.
+		     doc: /* *Column for the default `indent-line-function' to indent to.
 Linefeed indents to this column in Fundamental mode.  */);
 
   DEFVAR_PER_BUFFER ("tab-width", &current_buffer->tab_width,
@@ -5708,9 +5709,9 @@ primitives `aref' and `aset' can be used to access elements of a char-table.
 Each of the char-table elements control how to display the corresponding
 text character: the element at index C in the table says how to display
 the character whose code is C.  Each element should be a vector of
-characters or nil.  nil means display the character in the default fashion;
-otherwise, the characters from the vector are delivered to the screen
-instead of the original character.
+characters or nil.  The value nil means display the character in the
+default fashion; otherwise, the characters from the vector are delivered
+to the screen instead of the original character.
 
 For example, (aset buffer-display-table ?X ?Y) will cause Emacs to display
 a capital Y instead of each X character.
@@ -5841,7 +5842,7 @@ cursor type.  */);
 		     &current_buffer->scroll_up_aggressively, Qnil,
 		     doc: /* How far to scroll windows upward.
 If you move point off the bottom, the window scrolls automatically.
-This variable controls how far it scrolls.  nil, the default,
+This variable controls how far it scrolls.  The value nil, the default,
 means scroll to center point.  A fraction means scroll to put point
 that fraction of the window's height from the bottom of the window.
 When the value is 0.0, point goes at the bottom line, which in the simple
@@ -5854,7 +5855,7 @@ between 0.0 and 1.0, inclusive.  */);
 		     &current_buffer->scroll_down_aggressively, Qnil,
 		     doc: /* How far to scroll windows downward.
 If you move point off the top, the window scrolls automatically.
-This variable controls how far it scrolls.  nil, the default,
+This variable controls how far it scrolls.  The value nil, the default,
 means scroll to center point.  A fraction means scroll to put point
 that fraction of the window's height from the top of the window.
 When the value is 0.0, point goes at the top line, which in the simple
@@ -6045,7 +6046,7 @@ is a member of the list.  */);
   Vinhibit_read_only = Qnil;
 
   DEFVAR_PER_BUFFER ("cursor-type", &current_buffer->cursor_type, Qnil,
-     doc: /* Cursor to use when this buffer is in the selected window.
+		     doc: /* Cursor to use when this buffer is in the selected window.
 Values are interpreted as follows:
 
   t 		  use the cursor specified for the frame
@@ -6066,15 +6067,17 @@ this variable has no effect; the cursor appears as a hollow box.  */);
 		     doc: /* Additional space to put between lines when displaying a buffer.
 The space is measured in pixels, and put below lines on window systems.
 If value is a floating point number, it specifies the spacing relative
-to the default frame line height.  nil means add no extra space.  */);
+to the default frame line height.  A value of nil means add no extra space.  */);
 
   DEFVAR_PER_BUFFER ("cursor-in-non-selected-windows",
 		     &current_buffer->cursor_in_non_selected_windows, Qnil,
-    doc: /* *Cursor type to display in non-selected windows.
-t means to use hollow box cursor.  See `cursor-type' for other values.  */);
+		     doc: /* *Cursor type to display in non-selected windows.
+The value t means to use hollow box cursor.  See `cursor-type' for other values.  */);
 
   DEFVAR_LISP ("kill-buffer-query-functions", &Vkill_buffer_query_functions,
-	       doc: /* List of functions called with no args to query before killing a buffer.  */);
+	       doc: /* List of functions called with no args to query before killing a buffer.
+The buffer being killed will be current while the functions are running.
+If any of them returns nil, the buffer is not killed.  */);
   Vkill_buffer_query_functions = Qnil;
 
   DEFVAR_LISP ("change-major-mode-hook", &Vchange_major_mode_hook,

@@ -1,6 +1,6 @@
 ;;; authors.el --- utility for maintaining Emacs' AUTHORS file -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 2000, 2002, 2003, 2004, 2005,
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005,
 ;;   2006 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
@@ -75,7 +75,7 @@ files.")
     (nil "(afs@hplb.hpl.hp.com)")
     (nil "<Use-Author-Address-Header@\\[127.1\\]>")
     (nil "Code Extracted")
-    (nil "Fsf")
+    (nil "\\`FSF")
     (nil "ISO-2022-JP")
     ("Jaeyoun Chung" "Jae-youn Chung" "Jae-you Chung" "Chung Jae-youn")
     ("Jan Dj,Ad(Brv" "Jan D." "Jan Djarv")
@@ -300,6 +300,8 @@ found) in the repository.")
     ("GETTING.GNU.SOFTWARE" . "FTP")
     ("leim-Makefile" . "leim/Makefile")
     ("leim-Makefile.in" . "leim/Makefile.in")
+    ("emacs-lisp/testcover-ses.el" . "tcover-ses.el")
+    ("emacs-lisp/testcover-unsafep.el" . "tcover-unsafep.el")
     ("INSTALL-CVS" . "INSTALL.CVS")
     )
   "Alist of files which have been renamed during their lifetime.

@@ -60,7 +60,7 @@ static Lisp_Object point_marker;
 
 /* String for the prompt text used in Fcall_interactively.  */
 static Lisp_Object callint_message;
-
+
 /* ARGSUSED */
 DEFUN ("interactive", Finteractive, Sinteractive, 0, UNEVALLED, 0,
        doc: /* Specify a way of parsing arguments for interactive use of a function.
@@ -102,7 +102,7 @@ K -- Key sequence to be redefined (do not downcase the last event).
 m -- Value of mark as number.  Does not do I/O.
 M -- Any string.  Inherits the current input method.
 n -- Number read using minibuffer.
-N -- Raw prefix arg, or if none, do like code `n'.
+N -- Numeric prefix arg, or if none, do like code `n'.
 p -- Prefix arg converted to number.  Does not do I/O.
 P -- Prefix arg in raw form.  Does not do I/O.
 r -- Region: point and mark as 2 numeric args, smallest first.  Does no I/O.
@@ -688,7 +688,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 				  Qnil, Qnil, Qnil, Qt);
 	  break;
 
-	case 'N':		/* Prefix arg, else number from minibuffer */
+	case 'N':		/* Prefix arg as number, else number from minibuffer */
 	  if (!NILP (prefix_arg))
 	    goto have_prefix_arg;
 	case 'n':		/* Read number from minibuffer.  */

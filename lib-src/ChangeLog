@@ -1,3 +1,48 @@
+2006-12-28  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* etags.c (readline): When creating a relative file name from a
+	#line directive, leave the file name alone.  The previous
+	behaviour was to make it relative to the tags file directory,
+	under the hypothesis that the #line directive file name was
+	relative to the directory of the tagged file.  That hypothesis is
+	wrong with Cpp and Lex.
+	(Makefile_targets): Do not include spaces in tag names.
+
+2006-12-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (make-docfile, ctags, etags, ebrowse, hexl)
+	(movemail, fakemail, sorted-doc, digest-doc, emacsclient)
+	(test-distrib, $(DOC), all): depend on stamp_BLD instead of $(BLD).
+	($(BLD)/make-docfile.$(O) $(BLD)/hexl.$(O) $(BLD)/fakemail.$(O))
+	($(BLD)/sorted-doc.$(O) $(BLD)/digest-doc.$(O))
+	($(BLD)/test-distrib.$(O) $(GETOPTOBJS) $(MOVEMAILOBJS))
+	($(BLD)/emacsclient.$(O) $(BLD)/etags.$(O) $(BLD)/regex.$(O))
+	($(BLD)/ebrowse.$(O) $(BLD)/ctags.$(O)): Depend on stamp_BLD.
+	(clean): Delete stamp_BLD.
+
+2006-12-20  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* etags.c (C_entries): DEFUN names were longer by one: corrected.
+
+2006-12-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c [WINDOWSNT] (set_fg, get_wc): New variables.
+	[WINDOWSNT] (w32_find_emacs_process, w32_give_focus): New functions.
+	(main) [WINDOWSNT]: Remove code to release the focus; call
+	w32_give_focus instead.
+
+2006-12-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (w32_execvp): New function; wrapper for `execvp'.
+	(execvp) [WINDOWSNT]: Redefine to `w32_execvp'.
+	(fail): Remove Windows-specific fix (subsumed into w32_execvp).
+	Suggestions and comment by Eli Zaretskii.
+
+2006-12-06  Christoph Conrad  <christoph.conrad@gmx.de>
+
+	* makefile.w32-in ($(BLD)/emacsclient.exe, $(BLD)/emacsclientw.exe):
+	Use $(USER32) for compatibility with Visual Studio .NET 2003.
+
 2006-11-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacsclient.c (emacs_pid): New variable.
@@ -14,11 +59,11 @@
 	(set_tcp_socket): Make the message for non-local connections
 	informational rather than an error.
 
-2006-11-28  Kevin Ryde <user42@zip.com.au>  (tiny change)
+2006-11-28  Kevin Ryde  <user42@zip.com.au>
 
 	* etags.c (readline): Check for double quote after #line.
 
-2006-11-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>  (tiny change)
+2006-11-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* etags.c (readline): sscanf could in principle return 2.
 
@@ -50,8 +95,8 @@
 
 2006-11-24  Michael Mauger  <mmaug@yahoo.com>
 
-	* emacsclient.c (file_name_absolute_p) [WINDOWSNT]: Support
-	absolute file names with forward slashes.
+	* emacsclient.c (file_name_absolute_p) [WINDOWSNT]: Support absolute
+	file names with forward slashes.
 
 2006-11-23  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -442,10 +487,9 @@
 
 2005-07-13  Ken Raeburn  <raeburn@gnu.org>
 
-	* pop.c: Don't include des.h (or variants thereof); krb.h will do
-	it.
-	(sendline): Add the \r\n to the line in a temporary buffer, and
-	write it all at once.
+	* pop.c: Don't include des.h (or variants thereof); krb.h will do it.
+	(sendline): Add the \r\n to the line in a temporary buffer, and write
+	it all at once.
 
 2005-07-04  Lute Kamstra  <lute@gnu.org>
 
@@ -485,10 +529,9 @@
 
 2005-02-04  Andreas Schwab  <schwab@suse.de>
 
-	* movemail.c (fatal): Accept third parameter and pass down to
-	error.
-	(pfatal_with_name): Pass error string as format parameter instead
-	of as part of format string.
+	* movemail.c (fatal): Accept third parameter and pass down to error.
+	(pfatal_with_name): Pass error string as format parameter instead of
+	as part of format string.
 	(pfatal_and_delete): Likewise.
 	(main): Adjust call to fatal.
 	(xmalloc): Likewise.
@@ -499,8 +542,7 @@
 
 2004-12-26  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* make-docfile.c: Include stdlib.h even if WINDOWSNT is not
-	defined.
+	* make-docfile.c: Include stdlib.h even if WINDOWSNT is not defined.
 
 2004-12-15  Andreas Schwab  <schwab@suse.de>
 
@@ -566,8 +608,7 @@
 
 2004-05-10  Thien-Thi Nguyen  <ttn@gnu.org>
 
-	* test-distrib.c (main): For failing cases, exit with
-	`EXIT_FAILURE'.
+	* test-distrib.c (main): For failing cases, exit with `EXIT_FAILURE'.
 
 2004-05-08  Jason Rumney  <jasonr@gnu.org>
 
@@ -740,8 +781,7 @@
 
 2003-04-27  Oliver Scholz  <alkibiades@gmx.de>
 
-	* update-game-score.c (read_scores): Fix corruption of scores on
-	read.
+	* update-game-score.c (read_scores): Fix corruption of scores on read.
 
 2003-04-12  Stefan Monnier  <monnier@cs.yale.edu>
 

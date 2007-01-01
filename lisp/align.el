@@ -1,9 +1,10 @@
 ;;; align.el --- align text to a specific column, by regexp
 
-;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
-;; Author: John Wiegley <johnw@gnu.org>
+;; Author: John Wiegley <johnw@gnu.org> 
+;; Maintainer: FSF
 ;; Keywords: convenience languages lisp
 
 ;; This file is part of GNU Emacs.
@@ -1074,7 +1075,7 @@ current position."
 			   (eq (char-before pos) ?\\))
 		 (setq count (1+ count) pos (1- pos)))
 	       (eq (mod count 2) 1))
-	     (goto-char (match-beginning 2))))
+	     (goto-char (match-beginning (if reverse 1 2)))))
     result))
 
 (defun align-new-section-p (beg end separator)

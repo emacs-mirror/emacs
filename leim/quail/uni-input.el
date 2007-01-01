@@ -1,7 +1,7 @@
 ;;; uni-input.el --- Hex Unicode input method
 
 ;; Copyright (C) 2001, 2003, 2006  Free Software Foundation, Inc.
-;; Copyright (C) 2004
+;; Copyright (C) 2004, 2005, 2006
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
@@ -149,7 +149,7 @@ While this input method is active, the variable
   (interactive)
   (with-output-to-temp-buffer "*Help*"
     (princ "\
-Input method: ucs (mode line indicator:U)
+Input method: ucs (mode line indicator:U+)
 
 Input as Unicode: U<hex> or u<hex>, where <hex> is a four-digit hex number.")))
 

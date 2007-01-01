@@ -1,6 +1,7 @@
 ;;; cl-macs.el --- Common Lisp macros -*-byte-compile-dynamic: t;-*-
 
-;; Copyright (C) 1993, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001, 2002, 2003, 2004, 2005, 2006
+;;   Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Version: 2.02
@@ -2291,10 +2292,15 @@ copier, a `NAME-p' predicate, and setf-able `NAME-SLOT' accessors.
 			     (if (cadr (memq :read-only (cddr desc)))
 				 (list 'error (format "%s is a read-only slot"
 						      accessor))
-			       (list 'cl-struct-setf-expander 'cl-x
-				     (list 'quote name) (list 'quote accessor)
-				     (and pred-check (list 'quote pred-check))
-				     pos)))
+			       ;; If cl is loaded only for compilation,
+			       ;; the call to cl-struct-setf-expander would
+			       ;; cause a warning because it may not be
+			       ;; defined at run time.  Suppress that warning.
+			       (list 'with-no-warnings
+				     (list 'cl-struct-setf-expander 'cl-x
+					   (list 'quote name) (list 'quote accessor)
+					   (and pred-check (list 'quote pred-check))
+					   pos))))
 		       forms)
 	      (if print-auto
 		  (nconc print-func

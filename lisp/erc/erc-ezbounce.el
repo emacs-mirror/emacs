@@ -126,7 +126,7 @@ in the alist is `nil', prompt for the appropriate values."
 
 ;;;###autoload
 (defun erc-ezb-init-session-list (message)
-  "Reset the EZBounce session list to NIL."
+  "Reset the EZBounce session list to nil."
   (setq erc-ezb-session-list nil)
   (setq erc-ezb-inside-session-listing t))
 
@@ -134,7 +134,7 @@ in the alist is `nil', prompt for the appropriate values."
 (defun erc-ezb-end-of-session-list (message)
   "Indicate the end of the EZBounce session listing."
   (setq erc-ezb-inside-session-listing nil))
-  
+
 ;;;###autoload
 (defun erc-ezb-add-session (message)
   "Add an EZBounce session to the session list."
@@ -157,7 +157,7 @@ in the alist is `nil', prompt for the appropriate values."
 	     (read-from-minibuffer "IRC port: "
 				   (erc-port-to-string "6667")))))
       (erc-server-send (format "CONN %s %s" server port)))))
-    
+
 
 ;;;###autoload
 (defun erc-ezb-select-session ()
@@ -173,7 +173,7 @@ in the alist is `nil', prompt for the appropriate values."
 (defun erc-ezb-initialize ()
   "Add EZBouncer convenience functions to ERC."
   (add-hook 'erc-server-NOTICE-functions 'erc-ezb-notice-autodetect))
-	
+
 (provide 'erc-ezbounce)
 
 ;; arch-tag: e972aa7b-a9f4-4d16-a489-074ec7a1002e

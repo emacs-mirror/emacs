@@ -240,28 +240,28 @@ On Windows and DOS, replace invalid characters.  On DOS, make
 sure to obey the 8.3 limitations.  On Windows, turn Cygwin names
 into native names, and also turn slashes into backslashes if the
 shell requires it (see `w32-shell-dos-semantics')."
-  (let ((name
-         (save-match-data
-           (if (string-match "\\`/cygdrive/\\([a-zA-Z]\\)/" filename)
+  (save-match-data
+    (let ((name
+	   (if (string-match "\\`/cygdrive/\\([a-zA-Z]\\)/" filename)
                (replace-match "\\1:/" t nil filename)
-             (copy-sequence filename))))
-	(start 0))
-    ;; leave ':' if part of drive specifier
-    (if (and (> (length name) 1)
-	     (eq (aref name 1) ?:))
-	(setq start 2))
-    ;; destructively replace invalid filename characters with !
-    (while (string-match "[?*:<>|\"\000-\037]" name start)
-      (aset name (match-beginning 0) ?!)
-      (setq start (match-end 0)))
-    ;; convert directory separators to Windows format
-    ;; (but only if the shell in use requires it)
-    (when (w32-shell-dos-semantics)
-      (setq start 0)
-      (while (string-match "/" name start)
-	(aset name (match-beginning 0) ?\\)
-	(setq start (match-end 0))))
-    name))
+             (copy-sequence filename)))
+	  (start 0))
+      ;; leave ':' if part of drive specifier
+      (if (and (> (length name) 1)
+	       (eq (aref name 1) ?:))
+	  (setq start 2))
+      ;; destructively replace invalid filename characters with !
+      (while (string-match "[?*:<>|\"\000-\037]" name start)
+	(aset name (match-beginning 0) ?!)
+	(setq start (match-end 0)))
+      ;; convert directory separators to Windows format
+      ;; (but only if the shell in use requires it)
+      (when (w32-shell-dos-semantics)
+	(setq start 0)
+	(while (string-match "/" name start)
+	  (aset name (match-beginning 0) ?\\)
+	  (setq start (match-end 0))))
+      name)))
 
 ;;; Fix interface to (X-specific) mouse.el
 (defun x-set-selection (type data)
@@ -468,6 +468,20 @@ that Emacs is unable to cope with."
   (let ((generated-autoload-file
 	 (expand-file-name (pop command-line-args-left))))
     (batch-update-autoloads)))
+
+(defun w32-append-code-lines (orig extra)
+  "Append non-empty non-comment lines in the file EXTRA to the file ORIG.
+
+This function saves all buffers and kills the Emacs session, without asking
+for any permissions.
+
+This is required because the Windows build environment is not required
+to include Sed, which is used by leim/Makefile.in to do the job."
+  (find-file orig)
+  (goto-char (point-max))
+  (insert-file-contents extra)
+  (delete-matching-lines "^$\\|^;")
+  (save-buffers-kill-emacs t))
 
 ;;; arch-tag: c49b48cc-0f4f-454f-a274-c2dc34815e14
 ;;; w32-fns.el ends here

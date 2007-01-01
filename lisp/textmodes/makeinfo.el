@@ -1,6 +1,6 @@
 ;;; makeinfo.el --- run makeinfo conveniently
 
-;; Copyright (C) 1991, 1993, 2002, 2003, 2004,
+;; Copyright (C) 1991, 1993, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Robert J. Chassell

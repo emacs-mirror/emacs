@@ -135,13 +135,13 @@ any effect unless the code which implements the mode is loaded.
 
 @item :version @var{version}
 @kindex version@r{, customization keyword}
-This option specifies that the item was first introduced in Emacs
+This keyword specifies that the item was first introduced in Emacs
 version @var{version}, or that its default value was changed in that
 version.  The value @var{version} must be a string.
 
 @item :package-version '(@var{package} . @var{version})
 @kindex package-version@r{, customization keyword}
-This option specifies that the item was first introduced in
+This keyword specifies that the item was first introduced in
 @var{package} version @var{version}, or that its meaning or default
 value was changed in that version.  The value of @var{package} is a
 symbol and @var{version} is a string.
@@ -289,7 +289,9 @@ evaluate at any time.  We recommend avoiding backquotes in
 @var{standard}, because they are not expanded when editing the value,
 so list values will appear to have the wrong structure.
 
-If you specify the @code{:set} option, to make the variable take other
+Every @code{defcustom} should specify @code{:group} at least once.
+
+If you specify the @code{:set} keyword, to make the variable take other
 special actions when set through the customization buffer, the
 variable's documentation string should tell the user specifically how
 to do the same job in hand-written Lisp code.
@@ -309,9 +311,9 @@ Use @var{type} as the data type for this option.  It specifies which
 values are legitimate, and how to display the value.
 @xref{Customization Types}, for more information.
 
-@item :options @var{list}
+@item :options @var{value-list}
 @kindex options@r{, @code{defcustom} keyword}
-Specify @var{list} as the list of reasonable values for use in this
+Specify the list of reasonable values for use in this
 option.  The user is not restricted to using only these values, but they
 are offered as convenient alternatives.
 
@@ -399,7 +401,7 @@ setting this variable until after those others have been handled.  Use
 those other variables already have their intended values.
 @end table
 
-  The @code{:require} option is useful for an option that turns on the
+  The @code{:require} keyword is useful for an option that turns on the
 operation of a certain feature.  Assuming that the package is coded to
 check the value of the option, you still need to arrange for the package
 to be loaded.  You can do that with @code{:require}.  @xref{Common
@@ -413,25 +415,26 @@ Keywords}.  Here is an example, from the library @file{saveplace.el}:
   :group 'save-place)
 @end example
 
-If a customization item has a type such as @code{hook} or @code{alist},
-which supports @code{:options}, you can add additional options to the
-item, outside the @code{defcustom} declaration, by calling
-@code{custom-add-option}.  For example, if you define a function
-@code{my-lisp-mode-initialization} intended to be called from
+If a customization item has a type such as @code{hook} or
+@code{alist}, which supports @code{:options}, you can add additional
+values to the list from outside the @code{defcustom} declaration by
+calling @code{custom-add-frequent-value}.  For example, if you define a
+function @code{my-lisp-mode-initialization} intended to be called from
 @code{emacs-lisp-mode-hook}, you might want to add that to the list of
-options for @code{emacs-lisp-mode-hook}, but not by editing its
-definition.   You can do it thus:
+reasonable values for @code{emacs-lisp-mode-hook}, but not by editing
+its definition.  You can do it thus:
 
 @example
-(custom-add-option 'emacs-lisp-mode-hook
-                   'my-lisp-mode-initialization)
+(custom-add-frequent-value 'emacs-lisp-mode-hook
+   'my-lisp-mode-initialization)
 @end example
 
-@defun custom-add-option symbol option
-To the customization @var{symbol}, add @var{option}.
+@defun custom-add-frequent-value symbol value
+For the customization option @var{symbol}, add @var{value} to the
+list of reasonable values.
 
-The precise effect of adding @var{option} depends on the customization
-type of @var{symbol}.
+The precise effect of adding a value depends on the customization type
+of @var{symbol}.
 @end defun
 
 Internally, @code{defcustom} uses the symbol property
@@ -567,9 +570,9 @@ value), with a checkbox to include or exclude or disable the key/value
 pair from the alist.  The user will not be able to edit the keys
 specified by the @code{:options} keyword argument.
 
-The argument to the @code{:options} keywords should be a list of option
-specifications.  Ordinarily, the options are simply atoms, which are the
-specified keys.  For example:
+The argument to the @code{:options} keywords should be a list of
+specifications for reasonable keys in the alist.  Ordinarily, they are
+simply atoms, which stand for themselves as.  For example:
 
 @smallexample
 :options '("foo" "bar" "baz")
@@ -579,11 +582,11 @@ specified keys.  For example:
 specifies that there are three ``known'' keys, namely @code{"foo"},
 @code{"bar"} and @code{"baz"}, which will always be shown first.
 
-You may want to restrict the value type for specific keys, for example,
-the value associated with the @code{"bar"} key can only be an integer.
-You can specify this by using a list instead of an atom in the option
-specification.  The first element will specify the key, like before,
-while the second element will specify the value type.
+You may want to restrict the value type for specific keys, for
+example, the value associated with the @code{"bar"} key can only be an
+integer.  You can specify this by using a list instead of an atom in
+the list.  The first element will specify the key, like before, while
+the second element will specify the value type.  For example:
 
 @smallexample
 :options '("foo" ("bar" integer) "baz")

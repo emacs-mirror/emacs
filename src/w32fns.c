@@ -3706,8 +3706,11 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 		   However for top/left sizing we will need to fix the X
 		   and Y positions as well.  */
 
-		lppos->cx -= wdiff;
-		lppos->cy -= hdiff;
+		int cx_mintrack = GetSystemMetrics (SM_CXMINTRACK);
+		int cy_mintrack = GetSystemMetrics (SM_CYMINTRACK);
+
+		lppos->cx = max (lppos->cx - wdiff, cx_mintrack);
+		lppos->cy = max (lppos->cy - hdiff, cy_mintrack);
 
 		if (wp.showCmd != SW_SHOWMAXIMIZED
 		    && (lppos->flags & SWP_NOMOVE) == 0)
@@ -3731,9 +3734,6 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       goto dflt;
 
     case WM_GETMINMAXINFO:
-      /* Hack to correct bug that allows Emacs frames to be resized
-	 below the Minimum Tracking Size.  */
-      ((LPMINMAXINFO) lParam)->ptMinTrackSize.y++;
       /* Hack to allow resizing the Emacs frame above the screen size.
 	 Note that Windows 9x limits coordinates to 16-bits.  */
       ((LPMINMAXINFO) lParam)->ptMaxTrackSize.x = 32767;
@@ -8349,6 +8349,30 @@ is set to off if the low bit of NEW-STATE is zero, otherwise on.  */)
     }
   return Qnil;
 }
+
+DEFUN ("w32-window-exists-p", Fw32_window_exists_p, Sw32_window_exists_p,
+       2, 2, 0,
+       doc: /* Return non-nil if a window exists with the specified CLASS and NAME.
+
+This is a direct interface to the Windows API FindWindow function.  */)
+  (class, name)
+Lisp_Object class, name;
+{
+  HWND hnd;
+
+  if (!NILP (class))
+    CHECK_STRING (class);
+  if (!NILP (name))
+    CHECK_STRING (name);
+
+  hnd = FindWindow (STRINGP (class) ? ((LPCTSTR) SDATA (class)) : NULL,
+		    STRINGP (name)  ? ((LPCTSTR) SDATA (name))  : NULL);
+  if (!hnd)
+    return Qnil;
+  return Qt;
+}
+
+
 
 DEFUN ("file-system-info", Ffile_system_info, Sfile_system_info, 1, 1, 0,
        doc: /* Return storage information about the file system FILENAME is on.
@@ -8915,6 +8939,7 @@ versions of Windows) characters.  */);
 
     staticpro (&Qw32_charset_unicode);
     Qw32_charset_unicode = intern ("w32-charset-unicode");
+  }
 #endif
 
 #if 0 /* TODO: Port to W32 */
@@ -8959,6 +8984,7 @@ versions of Windows) characters.  */);
   defsubr (&Sw32_registered_hot_keys);
   defsubr (&Sw32_reconstruct_hot_key);
   defsubr (&Sw32_toggle_lock_key);
+  defsubr (&Sw32_window_exists_p);
   defsubr (&Sw32_find_bdf_fonts);
 
   defsubr (&Sfile_system_info);

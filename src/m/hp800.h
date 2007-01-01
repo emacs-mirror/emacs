@@ -174,6 +174,14 @@ Boston, MA 02110-1301, USA.  */
 #define rindex strrchr
 
 #endif /* __hpux */
+
+/* Systems with GCC don't need to lose. */
+#ifdef __NetBSD__
+# ifdef __GNUC__
+#  define alloca __builtin_alloca
+#  define HAVE_ALLOCA
+# endif /* __GNUC__ */
+#endif /* __NetBSD__ */
 
 /* arch-tag: 809436e6-1645-4b92-b40d-2de5d6e7227c
    (do not change this comment) */

@@ -1,3 +1,22 @@
+2006-12-17  Richard Stallman  <rms@gnu.org>
+
+	* TUTORIAL: Say that C-d and DEL with arg do killing.
+
+2006-12-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* PROBLEMS: Document problems with rebasing Cygwin DLLs.
+
+2006-12-08  Michael Olson  <mwolson@gnu.org>
+
+	* ERC-NEWS: Note that the list module has been removed.
+
+2006-12-05  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+
+	* NEWS (Changes to cmuscheme): Mention the alternative for
+	`~/.emacs_SCHEMEPROG' which is `~/.emacs.d/init_SCHEMEPROG.scm'.
+	(Init file changes): Same for `~/.emacs_SHELL' versus
+	`~/.emacs.d/init_SHELL.sh'.
+
 2006-12-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* DEVEL.HUMOR: Another entry.
@@ -111,8 +130,7 @@
 
 2006-09-03  Diane Murray  <disumu@x3y2z1.net>
 
-	* erc.texi (Getting Started, Connecting): Changed erc-select to
-	erc.
+	* erc.texi (Getting Started, Connecting): Changed erc-select to erc.
 
 2006-09-02  Juri Linkov  <juri@jurta.org>
 
@@ -1373,7 +1391,7 @@
 2004-09-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* e/eterm.ti: Change the strings for smso and rmso.
-	e/eterm: Regenerate.
+	* e/eterm: Regenerate.
 
 2004-09-09  Thien-Thi Nguyen  <ttn@gnu.org>
 
@@ -2516,7 +2534,7 @@
 	* EUROPE: Renamed to ORDERS.EUROPE.  DISTRIB now has a pointer
 	to it at the beginning.
 
-	* OOOONEWS, OOOONEWS: Nuked.  It's version  19 --- nobody needs the
+	* OOOONEWS, OOOONEWS: Nuked.  It's version 19 --- nobody needs the
 	version 15 and 17 files anymore.
 
 	All files marked "Nuked" have actually been moved to =-prefixed

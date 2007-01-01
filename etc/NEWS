@@ -6,10 +6,10 @@ See the end for copying conditions.
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
 If possible, use M-x report-emacs-bug.
 
-This file is about changes in emacs version 22.
+This file is about changes in Emacs version 22.
 
 See files NEWS.21, NEWS.20, NEWS.19, NEWS.18, and NEWS.1-17 for changes
-in older emacs versions.
+in older Emacs versions.
 
 You can narrow news to a specific version by calling `view-emacs-news'
 with a prefix argument or by typing C-u C-h C-n.
@@ -235,8 +235,8 @@ displays a buffer menu.  This option turns the buffer menu off.
 +++
 ** Init file changes
 If the init file ~/.emacs does not exist, Emacs will try
-~/.emacs.d/init.el or ~/.emacs.d/init.elc.  You can also put the shell
-init file .emacs_SHELL under ~/.emacs.d.
+~/.emacs.d/init.el or ~/.emacs.d/init.elc.  Likewise, if the shell init file
+~/.emacs_SHELL is not found, Emacs will try ~/.emacs.d/init_SHELL.sh.
 
 +++
 ** Emacs now reads the standard abbrevs file ~/.abbrev_defs
@@ -681,7 +681,8 @@ when the file name contains wildcard characters.
 
 +++
 *** find-alternate-file replaces the current file with multiple files,
-when the file name contains wildcard characters.
+when the file name contains wildcard characters.  It now asks if you
+wish save your changes and not just offer to kill the buffer.
 
 +++
 *** Auto Compression mode is now enabled by default.
@@ -914,6 +915,11 @@ or when the frame is resized.
 Due to technical limitations in how Emacs interacts with windowing
 systems, these constructs often failed to render properly, and could
 even cause Emacs to crash.
+
++++
+*** If value of `auto-resize-tool-bars' is `grow-only', the tool bar
+will expand as needed, but not contract automatically.  To contract
+the tool bar, you must type C-l.
 
 ** Cursor display changes:
 
@@ -1870,10 +1876,10 @@ are left unspecified and can be bound individually through the global
 or local keymaps.
 
 +++
-** The new kmacro package provides a simpler user interface to
-emacs' keyboard macro facilities.
+** Emacs' keyboard macro facilities have been enhanced by the new
+kmacro package.
 
-Basically, it uses two function keys (default F3 and F4) like this:
+Keyboard macros are now defined and executed via the F3 and F4 keys:
 F3 starts a macro, F4 ends the macro, and pressing F4 again executes
 the last macro.  While defining the macro, F3 inserts a counter value
 which automatically increments every time the macro is executed.
@@ -1888,8 +1894,8 @@ manipulating the macro counter and format via C-x C-k C-c,
 C-x C-k C-a, and C-x C-k C-f.  See the commentary in kmacro.el
 for more commands.
 
-The normal macro bindings C-x (, C-x ), and C-x e now interfaces to
-the keyboard macro ring.
+The original macro bindings C-x (, C-x ), and C-x e are still
+available, but they now interface to the keyboard macro ring too.
 
 The C-x e command now automatically terminates the current macro
 before calling it, if used while defining a macro.
@@ -2030,6 +2036,12 @@ for Emacs 22. In particular, the mode-line is now position sensitive.
 
 * Changes in Specialized Modes and Packages in Emacs 22.1:
 
+** Changes in Shell Mode
+
+*** Shell output normally scrolls so that the input line is at the
+bottom of the window -- thus showing the maximum possible text.  (This
+is similar to the way sequential output to a terminal works.)
+
 ** Changes in Dired
 
 +++
@@ -2162,9 +2174,9 @@ at point is suggested as default, but not inserted at the prompt.
 *** Emacs now offers to start Scheme if the user tries to
 evaluate a Scheme expression but no Scheme subprocess is running.
 
-*** If a file `.emacs_NAME' (where NAME is the name of the Scheme interpreter)
-exists in the user's home directory or in ~/.emacs.d, its
-contents are sent to the Scheme subprocess upon startup.
+*** If the file ~/.emacs_NAME or ~/.emacs.d/init_NAME.scm (where NAME
+is the name of the Scheme interpreter) exists, its contents are sent
+to the Scheme subprocess upon startup.
 
 *** There are new commands to instruct the Scheme interpreter to trace
 procedure calls (`scheme-trace-procedure') and to expand syntactic forms
@@ -3304,8 +3316,12 @@ version 5.0.2; see MH-E-NEWS for details.
 ** Calendar changes:
 
 +++
+*** The meanings of C-x < and C-x > have been interchanged.
+< means to scroll backward in time, and > means to scroll forward.
+
++++
 *** You can now use < and >, instead of C-x < and C-x >, to scroll
-the calendar left or right.  (The old key bindings still work too.)
+the calendar left or right.
 
 +++
 *** There is a new calendar package, icalendar.el, that can be used to
@@ -3777,6 +3793,11 @@ w32-use-full-screen-buffer to t.
 
 * Incompatible Lisp Changes in Emacs 22.1
 
++++
+** The `read-file-name' function now returns a null string if the
+user just types RET.
+
++++
 ** The function find-operation-coding-system may be called with a cons
 (FILENAME . BUFFER) in the second argument if the first argument
 OPERATION is `insert-file-contents', and thus a function registered in
@@ -3813,8 +3834,15 @@ deleting the part of subprocess output that matches the input.
 ** The variable `memory-full' now remains t until
 there is no longer a shortage of memory.
 
++++
 ** When Emacs receives a USR1 or USR2 signal, this generates
-an input event: usr1-signal or usr2-signal.
+input events: sigusr1 or sigusr2.  Use special-event-map to
+handle these events.
+
++++
+** A hex or octal escape in a string constant forces the string to
+be multibyte or unibyte, respectively.
+
 
 * Lisp Changes in Emacs 22.1
 
@@ -4547,6 +4575,10 @@ autoloaded when not really necessary.
 *** The function `make-auto-save-file-name' is now handled by file
 name handlers.  This will be exploited for remote files mainly.
 
++++
+*** The function `file-name-completion' accepts an optional argument
+PREDICATE, and rejects completion candidates that don't satisfy PREDICATE.
+
 ** Input changes:
 
 +++
@@ -4556,7 +4588,7 @@ maximum time to wait for input, in seconds.  If no input arrives after
 this time elapses, the functions stop waiting and return nil.
 
 +++
-*** An interactive specification can now use the code letter 'U' to get
+*** An interactive specification can now use the code letter `U' to get
 the up-event that was discarded in case the last key sequence read for a
 previous `k' or `K' argument was a down-event; otherwise nil is used.
 
@@ -5512,10 +5544,25 @@ of multiline constructs so that such constructs get properly recognized.
 ** Major mode mechanism changes:
 
 +++
-*** `set-auto-mode' now gives the interpreter magic line (if present)
-precedence over the file name.  Likewise an `<?xml' or `<!DOCTYPE'
-declaration will give the buffer XML or SGML mode, based on the new
-variable `magic-mode-alist'.
+*** If new variable `auto-mode-case-fold' is set to a non-nil value,
+Emacs will perform a second case-insensitive search through
+`auto-mode-alist' if the first case-sensitive search fails.
+This means that a file FILE.TXT is opened in text-mode, and a file PROG.PY
+is opened in python-mode.  Note however, that independent of this
+setting, *.C files are usually recognized as C++ files.
+It also has no effect on systems with case-insensitive file names.
+
++++
+*** New variable `magic-mode-alist' determines major mode for a file by
+looking at the file contents.  It takes precedence over `auto-mode-alist'.
+
++++
+*** An interpreter magic line (if present) takes precedence over the
+file name when setting the major mode.
+
++++
+*** XML or SGML major mode is selected when file starts with an `<?xml'
+or `<!DOCTYPE' declaration.
 
 +++
 *** Use the new function `run-mode-hooks' to run the major mode's mode hook.

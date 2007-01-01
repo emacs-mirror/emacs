@@ -2,8 +2,8 @@
 # DIST: make most of the changes to this file you might want, so try
 # DIST: that first.
 
-# Copyright (C) 1992,93,94,95,96,97,98,1999,2000,01,02,03,04,2005,2006
-#   Free Software Foundation, Inc.
+# Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
+#   2001, 2002, 2003, 2004, 2005, 2006  Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -109,6 +109,10 @@ exec_prefix=@exec_prefix@
 # Where to install Emacs and other binaries that people will want to
 # run directly (like etags).
 bindir=@bindir@
+
+# The root of the directory tree for read-only architecture-independent
+# data files.  ${datadir}, ${infodir} and ${mandir} are based on this.
+datarootdir=@datarootdir@
 
 # Where to install architecture-independent data files.	 ${lispdir}
 # and ${etcdir} are subdirectories of this.

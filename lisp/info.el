@@ -145,7 +145,7 @@ The Lisp code is executed when the node is selected.")
   :type 'boolean
   :group 'info)
 
-(defcustom Info-fontify-maximum-menu-size 100000
+(defcustom Info-fontify-maximum-menu-size 1000000
   "*Maximum size of menu to fontify if `font-lock-mode' is non-nil."
   :type 'integer
   :group 'info)
@@ -1551,6 +1551,8 @@ PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
 	    (node-regexp "Node: *\\([^,\n]*\\) *[,\n\t]"))
 	(save-excursion
 	  (save-restriction
+	    (or Info-tag-table-marker
+		(error "No Info tags found"))
 	    (if (marker-buffer Info-tag-table-marker)
 		(let ((marker Info-tag-table-marker))
 		  (set-buffer (marker-buffer marker))
@@ -2805,6 +2807,11 @@ Give an empty topic name to go to the Index node itself."
 	(kill-buffer Info-complete-menu-buffer)))))
   (if (equal Info-current-file "dir")
       (error "The Info directory node has no index; use m to select a manual"))
+  ;; Strip leading colon in topic; index format does not allow them.
+  (if (and (stringp topic)
+	   (> (length topic) 0)
+	   (= (aref topic 0) ?:))
+      (setq topic (substring topic 1)))
   (let ((orignode Info-current-node)
 	(pattern (format "\n\\* +\\([^\n]*%s[^\n]*\\):[ \t]+\\([^\n]*\\)\\.\\(?:[ \t\n]*(line +\\([0-9]+\\))\\)?"
 			 (regexp-quote topic)))
@@ -3932,7 +3939,6 @@ the variable `Info-file-list-for-emacs'."
       (goto-char (point-min))
       (when (and (or not-fontified-p fontify-visited-p)
                  (search-forward "\n* Menu:" nil t)
-                 (not (Info-index-node))
                  ;; Don't take time to annotate huge menus
                  (< (- (point-max) (point)) Info-fontify-maximum-menu-size))
         (let ((n 0)

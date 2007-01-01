@@ -1,7 +1,7 @@
 ;;; vc-hooks.el --- resident support for version-control
 
-;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2002,
-;;   2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2001,
+;;   2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
@@ -625,9 +625,10 @@ the user should be returned; if REGEXP is non-nil that means to return
 a regexp for matching all such backup files, regardless of the version."
   (if regexp
       (concat (regexp-quote (file-name-nondirectory file))
-              "\\.~[0-9.]+" (unless manual "\\.") "~")
+              "\\.~.+" (unless manual "\\.") "~")
     (expand-file-name (concat (file-name-nondirectory file)
-                              ".~" (or rev (vc-workfile-version file))
+                              ".~" (subst-char-in-string
+                                    ?/ ?_ (or rev (vc-workfile-version file)))
                               (unless manual ".") "~")
                       (file-name-directory file))))
 

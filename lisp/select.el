@@ -3,7 +3,7 @@
 ;; Maintainer: FSF
 ;; Keywords: internal
 
-;; Copyright (C) 1993, 1994, 2002, 2003, 2004,
+;; Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 ;; Based partially on earlier release by Lucid.
 

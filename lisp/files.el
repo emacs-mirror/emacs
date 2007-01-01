@@ -1695,6 +1695,16 @@ This function ensures that none of these modifications will take place."
   (if (file-directory-p filename)
       (signal 'file-error (list "Opening input file" "file is a directory"
                                 filename)))
+  ;; Check whether the file is uncommonly large (see find-file-noselect):
+  (let (size)
+    (when (and large-file-warning-threshold
+	       (setq size (nth 7 (file-attributes filename)))
+	       (> size large-file-warning-threshold)
+	       (not (y-or-n-p
+		     (format "File %s is large (%dMB), really insert? "
+			     (file-name-nondirectory filename)
+			     (/ size 1048576)))))
+      (error "Aborted")))
   (let* ((buffer (find-buffer-visiting (abbreviate-file-name (file-truename filename))
                                        #'buffer-modified-p))
          (tem (funcall insert-func filename)))
@@ -1865,6 +1875,16 @@ in that case, this function acts as if `enable-local-variables' were t."
 
   (if (fboundp 'ucs-set-table-for-input) ; don't lose when building
       (ucs-set-table-for-input)))
+
+(defcustom auto-mode-case-fold nil
+  "Non-nil means to try second pass through `auto-mode-alist'.
+This means that if the first case-sensitive search through the alist fails
+to find a matching major mode, a second case-insensitive search is made.
+On systems with case-insensitive file names, this variable is ignored,
+since only a single case-insensitive search through the alist is made."
+  :group 'files
+  :version "22.1"
+  :type 'boolean)
 
 (defvar auto-mode-alist
   ;; Note: The entries for the modes defined in cc-mode.el (c-mode,
@@ -2105,7 +2125,8 @@ of the regular expression.  The mode is then determined as the mode
 associated with that interpreter in `interpreter-mode-alist'.")
 
 (defvar magic-mode-alist
-  `(;; The < comes before the groups (but the first) to reduce backtracking.
+  `((image-type-auto-detected-p . image-mode)
+    ;; The < comes before the groups (but the first) to reduce backtracking.
     ;; TODO: UTF-16 <?xml may be preceded by a BOM 0xff 0xfe or 0xfe 0xff.
     ;; We use [ \t\n] instead of `\\s ' to make regex overflow less likely.
     (,(let* ((incomment-re "\\(?:[^-]\\|-[^-]\\)")
@@ -2124,13 +2145,15 @@ associated with that interpreter in `interpreter-mode-alist'.")
     ("%![^V]" . ps-mode)
     ("# xmcd " . conf-unix-mode))
   "Alist of buffer beginnings vs. corresponding major mode functions.
-Each element looks like (REGEXP . FUNCTION).  After visiting a file,
-if REGEXP matches the text at the beginning of the buffer,
-`normal-mode' will call FUNCTION rather than allowing `auto-mode-alist'
-to decide the buffer's major mode.
+Each element looks like (REGEXP . FUNCTION) or (MATCH-FUNCTION . FUNCTION).
+After visiting a file, if REGEXP matches the text at the beginning of the
+buffer, or calling MATCH-FUNCTION returns non-nil, `normal-mode' will
+call FUNCTION rather than allowing `auto-mode-alist' to decide the buffer's
+major mode.
 
 If FUNCTION is nil, then it is not called.  (That is a way of saying
 \"allow `auto-mode-alist' to decide for these files.\")")
+(put 'magic-mode-alist 'risky-local-variable t)
 
 (defvar magic-mode-regexp-match-limit 4000
   "Upper limit on `magic-mode-alist' regexp matches.")
@@ -2214,7 +2237,9 @@ only set the major mode, if that would change it."
 						(+ (point-min) magic-mode-regexp-match-limit)))
 			 (assoc-default nil magic-mode-alist
 					(lambda (re dummy)
-					  (looking-at re))))))
+					  (if (functionp re)
+					      (funcall re)
+					    (looking-at re)))))))
 	  (set-auto-mode-0 done keep-mode-if-same)
 	;; Compare the filename against the entries in auto-mode-alist.
 	(if buffer-file-name
@@ -2223,15 +2248,29 @@ only set the major mode, if that would change it."
 	      (setq name (file-name-sans-versions name))
 	      (while name
 		;; Find first matching alist entry.
-		(let ((case-fold-search
-		       (memq system-type '(vax-vms windows-nt cygwin))))
-		  (if (and (setq mode (assoc-default name auto-mode-alist
-						     'string-match))
-			   (consp mode)
-			   (cadr mode))
-		      (setq mode (car mode)
-			    name (substring name 0 (match-beginning 0)))
-		    (setq name)))
+		(setq mode
+		      (if (memq system-type '(vax-vms windows-nt cygwin))
+			  ;; System is case-insensitive.
+			  (let ((case-fold-search t))
+			    (assoc-default name auto-mode-alist
+					   'string-match))
+			;; System is case-sensitive.
+			(or
+			 ;; First match case-sensitively.
+			 (let ((case-fold-search nil))
+			   (assoc-default name auto-mode-alist
+					  'string-match))
+			 ;; Fallback to case-insensitive match.
+			 (and auto-mode-case-fold
+			      (let ((case-fold-search t))
+				(assoc-default name auto-mode-alist
+					       'string-match))))))
+		(if (and mode
+			 (consp mode)
+			 (cadr mode))
+		    (setq mode (car mode)
+			  name (substring name 0 (match-beginning 0)))
+		  (setq name))
 		(when mode
 		  (set-auto-mode-0 mode keep-mode-if-same)))))))))
 
@@ -2917,7 +2956,7 @@ Interactively, confirmation is required unless you supply a prefix argument."
   (interactive
    (list (if buffer-file-name
 	     (read-file-name "Write file: "
-				 nil nil nil nil)
+			     nil nil nil nil)
 	   (read-file-name "Write file: " default-directory
 			   (expand-file-name
 			    (file-name-nondirectory (buffer-name))
@@ -3017,7 +3056,7 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 				       (convert-standard-filename
 					"~/%backup%~")))
 		     (message "Cannot write backup file; backing up in %s"
-			      (file-name-nondirectory backupname))
+			      backupname)
 		     (sleep-for 1)
 		     (backup-buffer-copy real-file-name backupname modes)))
 		  (setq buffer-backed-up t)
@@ -3213,16 +3252,24 @@ doesn't exist, it is created."
 (defun make-backup-file-name-1 (file)
   "Subroutine of `make-backup-file-name' and `find-backup-file-name'."
   (let ((alist backup-directory-alist)
-	elt backup-directory)
+	elt backup-directory abs-backup-directory)
     (while alist
       (setq elt (pop alist))
       (if (string-match (car elt) file)
 	  (setq backup-directory (cdr elt)
 		alist nil)))
-    (if (and backup-directory (not (file-exists-p backup-directory)))
+    ;; If backup-directory is relative, it should be relative to the
+    ;; file's directory.  By expanding explicitly here, we avoid
+    ;; depending on default-directory.
+    (if backup-directory
+	(setq abs-backup-directory
+	      (expand-file-name backup-directory
+				(file-name-directory file))))
+    (if (and abs-backup-directory (not (file-exists-p abs-backup-directory)))
 	(condition-case nil
-	    (make-directory backup-directory 'parents)
-	  (file-error (setq backup-directory nil))))
+	    (make-directory abs-backup-directory 'parents)
+	  (file-error (setq backup-directory nil
+			    abs-backup-directory nil))))
     (if (null backup-directory)
 	file
       (if (file-name-absolute-p backup-directory)
@@ -3253,9 +3300,7 @@ doesn't exist, it is created."
 	      (replace-regexp-in-string "!" "!!" file))
 	     backup-directory))
 	(expand-file-name (file-name-nondirectory file)
-			  (file-name-as-directory
-			   (expand-file-name backup-directory
-					     (file-name-directory file))))))))
+			  (file-name-as-directory abs-backup-directory))))))
 
 (defun backup-file-name-p (file)
   "Return non-nil if FILE is a backup file name (numeric or not).

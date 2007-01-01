@@ -2470,6 +2470,10 @@ order until succeed.")
 	  ;; generated from FONT.
 	  (create-fontset-from-ascii-font font resolved-name "startup"))))
 
+  ;; Set scroll bar mode to right if set by X resources. Default is left.
+  (if (equal (x-get-resource "verticalScrollBars" "ScrollBars") "right")
+      (customize-set-variable 'scroll-bar-mode 'right))
+
   ;; Apply a geometry resource to the initial frame.  Put it at the end
   ;; of the alist, so that anything specified on the command line takes
   ;; precedence.

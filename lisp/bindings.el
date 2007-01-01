@@ -1072,6 +1072,10 @@ language you are using."
 
 (define-key ctl-x-4-map "c" 'clone-indirect-buffer-other-window)
 
+;; Signal handlers
+(define-key special-event-map [sigusr1] 'ignore)
+(define-key special-event-map [sigusr2] 'ignore)
+
 ;; Don't look for autoload cookies in this file.
 ;; Local Variables:
 ;; no-update-autoloads: t

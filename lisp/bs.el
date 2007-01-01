@@ -999,7 +999,6 @@ Uses function `vc-toggle-read-only'."
 (defun bs--up ()
   "Move cursor vertically up one line.
 If on top of buffer list go to last line."
-  (interactive "p")
   (if (> (count-lines 1 (point)) bs-header-lines-length)
       (forward-line -1)
     (goto-char (point-max))

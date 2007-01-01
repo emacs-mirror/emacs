@@ -1,6 +1,6 @@
 ;;; woman.el --- browse UN*X manual pages `wo (without) man'
 
-;; Copyright (C) 2000, 2002, 2003, 2004, 2005,
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005,
 ;;   2006 Free Software Foundation, Inc.
 
 ;; Author: Francis J. Wright <F.J.Wright@qmul.ac.uk>
@@ -2102,6 +2102,18 @@ No external programs are used."
   (interactive)				; mainly for testing
   (WoMan-log-begin)
   (run-hooks 'woman-pre-format-hook)
+
+  ;; look for macro sets that woman cannot handle:
+  (goto-char (point-min))
+  (let ((case-fold-search nil))
+    (unless (and (re-search-forward "^\\.SH[ \n]" (point-max) t)
+		 (progn (goto-char (point-min))
+			(re-search-forward "^\\.TH[ \n]" (point-max) t))
+		 (progn (goto-char (point-min))
+			(not (re-search-forward "^\\.\\([pnil]p\\|sh\\)[ \n]"
+						(point-max) t))))
+      (error "WoMan can only format manpages written in the an format")))
+
   (and (boundp 'font-lock-mode) font-lock-mode (font-lock-mode -1))
   ;; (fundamental-mode)
   (let ((start-time (current-time))	; (HIGH LOW MICROSEC)

@@ -1,7 +1,7 @@
 ;;; sh-script.el --- shell-script editing commands for Emacs
 
-;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1999, 2001, 2003, 2004, 2005,
-;;  2006  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1999, 2001, 2002,
+;;  2003, 2004, 2005, 2006  Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Version: 2.0f
@@ -1890,7 +1890,7 @@ To revert all these variables to the global values, use
 command `sh-reset-indent-vars-to-global-values'."
   (interactive)
   (mapcar 'make-local-variable sh-var-list)
-  (message "Indentation variable are now local."))
+  (message "Indentation variables are now local."))
 
 (defun sh-reset-indent-vars-to-global-values ()
   "Reset local indentation variables to the global values.

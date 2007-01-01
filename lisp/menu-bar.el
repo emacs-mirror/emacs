@@ -462,9 +462,10 @@ A large number or nil slows down menu responsiveness."
 	      "Delete the text in region between mark and current position"))
 (defvar yank-menu (cons "Select Yank" nil))
 (fset 'yank-menu (cons 'keymap yank-menu))
-(define-key menu-bar-edit-menu [select-paste]
-  '(menu-item "Select and Paste" yank-menu
-	      :enable (and (cdr yank-menu) (not buffer-read-only))))
+(define-key menu-bar-edit-menu [paste-from-menu]
+  '(menu-item "Paste from kill menu" yank-menu
+	      :enable (and (cdr yank-menu) (not buffer-read-only))
+	      :help "Choose a string from the kill ring and paste it"))
 (define-key menu-bar-edit-menu [paste]
   '(menu-item "Paste" yank
 	      :enable (and
@@ -623,8 +624,8 @@ by \"Save Options\" in Custom buffers.")
 		 (let ((set (or (get ',variable 'custom-set) 'set-default))
 		       (get (or (get ',variable 'custom-get) 'default-value)))
 		   (funcall set ',variable (not (funcall get ',variable))))))
-	   (message ,message "enabled")
-  	 (message ,message "disabled"))
+	   (message ,message "enabled globally")
+  	 (message ,message "disabled globally"))
        ;; The function `customize-mark-as-set' must only be called when
        ;; a variable is set interactively, as the purpose is to mark it as
        ;; a candidate for "Save Options", and we do not want to save options
@@ -814,7 +815,7 @@ mail status in mode line"))
   (menu-bar-make-toggle toggle-indicate-empty-lines indicate-empty-lines
 			"Empty Line Indicators"
 			"Indicating of empty lines %s"
-			"Indicate trailing empty lines in fringe"))
+			"Indicate trailing empty lines in fringe, globally"))
 
 (defun menu-bar-showhide-fringe-menu-customize ()
   "Show customization buffer for `fringe-mode'."
@@ -923,13 +924,13 @@ mail status in mode line"))
 
 (define-key menu-bar-showhide-menu [showhide-tooltip-mode]
   (list 'menu-item "Tooltips" 'tooltip-mode
-	:help "Toggle tooltips on/off"
+	:help "Turn tooltips on/off"
 	:visible  `(and (display-graphic-p) (fboundp 'x-show-tip))
 	:button `(:toggle . tooltip-mode)))
 
 (define-key menu-bar-showhide-menu [menu-bar-mode]
   '(menu-item "Menu-bar" toggle-menu-bar-mode-from-frame
-	      :help "Toggle menu-bar on/off"
+	      :help "Turn menu-bar on/off"
 	      :button (:toggle . (> (frame-parameter nil 'menu-bar-lines) 0))))
 
 (define-key menu-bar-showhide-menu [showhide-tool-bar]
@@ -1019,8 +1020,8 @@ mail status in mode line"))
 (define-key menu-bar-options-menu [case-fold-search]
   (menu-bar-make-toggle toggle-case-fold-search case-fold-search
 	    "Case-Insensitive Search"
-	    "Case-Insensitive Search %s for buffers without local setting"
-	    "Ignore letter-case in search for buffers without local setting"))
+	    "Case-Insensitive Search %s"
+	    "Globally ignore letter-case in search"))
 
 (defun menu-bar-text-mode-auto-fill ()
   (interactive)
@@ -1126,7 +1127,8 @@ mail status in mode line"))
   '(menu-item "Programmable Calculator" calc
 	      :help "Invoke the Emacs built-in full scientific calculator"))
 (define-key menu-bar-tools-menu [calendar]
-  '(menu-item "Calendar" calendar))
+  '(menu-item "Calendar" calendar
+	      :help "Invoke the Emacs built-in calendar"))
 
 (define-key menu-bar-tools-menu [separator-net]
   '("--"))
@@ -1385,12 +1387,14 @@ key, a click, or a menu-item"))
   '(menu-item "Send Bug Report..." report-emacs-bug
 	      :help "Send e-mail to Emacs maintainers"))
 (define-key menu-bar-help-menu [emacs-problems]
-  '(menu-item "Emacs Known Problems" view-emacs-problems))
+  '(menu-item "Emacs Known Problems" view-emacs-problems
+	      :help "Read about known problems with Emacs"))
 (define-key menu-bar-help-menu [emacs-news]
   '(menu-item "Emacs News" view-emacs-news
 	      :help "New features of this version"))
 (define-key menu-bar-help-menu [emacs-faq]
-  '(menu-item "Emacs FAQ" view-emacs-FAQ))
+  '(menu-item "Emacs FAQ" view-emacs-FAQ
+	      :help "Frequently asked (and answered) questions about Emacs"))
 
 (defun help-with-tutorial-spec-language ()
   "Use the Emacs tutorial, specifying which language you want."

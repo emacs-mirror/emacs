@@ -1,7 +1,7 @@
 /* src/config.in.  Generated from configure.in by autoheader.  */
 
 /* GNU Emacs site configuration template file.
-   Copyright (C) 1988, 1993, 1994, 1999, 2000, 2002, 2004, 2005, 2006
+   Copyright (C) 1988, 1993, 1994, 1999, 2000, 2001, 2002, 2004, 2005, 2006
              Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -120,6 +120,10 @@ Boston, MA 02110-1301, USA.  */
 /* Define to 1 if you have the declaration of `sys_siglist', and to 0 if you
    don't. */
 #undef HAVE_DECL_SYS_SIGLIST
+
+/* Define to 1 if you have the declaration of `tzname', and to 0 if you don't.
+   */
+#undef HAVE_DECL_TZNAME
 
 /* Define to 1 if you have the declaration of `__sys_siglist', and to 0 if you
    don't. */
@@ -244,6 +248,9 @@ Boston, MA 02110-1301, USA.  */
 
 /* Define to 1 if you have the `gtk_file_selection_new' function. */
 #undef HAVE_GTK_FILE_SELECTION_NEW
+
+/* Define to 1 if you have the `gtk_main' function. */
+#undef HAVE_GTK_MAIN
 
 /* Define to 1 if GTK can handle more than one display. */
 #undef HAVE_GTK_MULTIDISPLAY
@@ -571,6 +578,9 @@ Boston, MA 02110-1301, USA.  */
 /* Define to 1 if `struct utimbuf' is declared by <utime.h>. */
 #undef HAVE_STRUCT_UTIMBUF
 
+/* Define to 1 if you have the `sync' function. */
+#undef HAVE_SYNC
+
 /* Define to 1 if you have the `sysinfo' function. */
 #undef HAVE_SYSINFO
 
@@ -796,7 +806,7 @@ Boston, MA 02110-1301, USA.  */
 
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
-   automatically deduced at run-time.
+   automatically deduced at runtime.
 	STACK_DIRECTION > 0 => grows toward higher addresses
 	STACK_DIRECTION < 0 => grows toward lower addresses
 	STACK_DIRECTION = 0 => direction of growth unknown */

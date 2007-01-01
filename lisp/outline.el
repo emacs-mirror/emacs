@@ -652,19 +652,24 @@ A heading line is one that starts with a `*' (or that
   (if (< arg 0)
       (beginning-of-line)
     (end-of-line))
-  (while (and (not (bobp)) (< arg 0))
-    (while (and (not (bobp))
-		(re-search-backward (concat "^\\(?:" outline-regexp "\\)")
-				    nil 'move)
-		(outline-invisible-p)))
-    (setq arg (1+ arg)))
-  (while (and (not (eobp)) (> arg 0))
-    (while (and (not (eobp))
-		(re-search-forward (concat "^\\(?:" outline-regexp "\\)")
-				   nil 'move)
-		(outline-invisible-p (match-beginning 0))))
-    (setq arg (1- arg)))
-  (beginning-of-line))
+  (let (found-heading-p)
+    (while (and (not (bobp)) (< arg 0))
+      (while (and (not (bobp))
+		  (setq found-heading-p
+			(re-search-backward
+			 (concat "^\\(?:" outline-regexp "\\)")
+			 nil 'move))
+		  (outline-invisible-p)))
+      (setq arg (1+ arg)))
+    (while (and (not (eobp)) (> arg 0))
+      (while (and (not (eobp))
+		  (setq found-heading-p
+			(re-search-forward
+			 (concat "^\\(?:" outline-regexp "\\)")
+			 nil 'move))
+		  (outline-invisible-p (match-beginning 0))))
+      (setq arg (1- arg)))
+    (if found-heading-p (beginning-of-line))))
 
 (defun outline-previous-visible-heading (arg)
   "Move to the previous heading line.
@@ -690,6 +695,11 @@ This puts point at the start of the current subtree, and mark at the end."
     (goto-char beg)))
 
 
+(defvar outline-isearch-open-invisible-function nil
+  "Function called if `isearch' finishes in an invisible overlay.
+The function is called with the overlay as its only argument.
+If nil, `show-entry' is called to reveal the invisible text.")
+
 (put 'outline 'reveal-toggle-invisible 'outline-reveal-toggle-invisible)
 (defun outline-flag-region (from to flag)
   "Hide or show lines from FROM to TO, according to FLAG.
@@ -698,7 +708,9 @@ If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
   (when flag
     (let ((o (make-overlay from to)))
       (overlay-put o 'invisible 'outline)
-      (overlay-put o 'isearch-open-invisible 'outline-isearch-open-invisible)))
+      (overlay-put o 'isearch-open-invisible
+		   (or outline-isearch-open-invisible-function
+		       'outline-isearch-open-invisible))))
   ;; Seems only used by lazy-lock.  I.e. obsolete.
   (run-hooks 'outline-view-change-hook))
 
@@ -894,7 +906,8 @@ Show the heading too, if it is currently invisible."
 		(or first (> (funcall outline-level) level)))
       (setq first nil)
       (outline-next-heading))
-    (if (bolp)
+    (if (and (bolp) (not (eolp)))
+	;; We stopped at a nonempty line (the next heading).
 	(progn
 	  ;; Go to end of line before heading
 	  (forward-char -1)

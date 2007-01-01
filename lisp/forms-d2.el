@@ -1,5 +1,8 @@
 ;;; forms-d2.el --- demo forms-mode -*- no-byte-compile: t -*-
 
+;; Copyright (C) 1991, 1994, 1995, 1996, 1997, 2001, 2002, 2003,
+;;   2004, 2005, 2006 Free Software Foundation, Inc.
+
 ;; Author: Johan Vromans <jvromans@squirrel.nl>
 ;; Created: 1989
 

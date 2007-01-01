@@ -2144,7 +2144,7 @@ Unsigned integer in little endian order, with length 2, 3 and 4, respectively.
 String of length @var{len}.
 
 @item strz @var{len}
-Zero-terminated string of length @var{len}.
+Zero-terminated string, in a fixed-size field with length @var{len}.
 
 @item vec @var{len}
 Vector of @var{len} bytes.
@@ -2166,6 +2166,16 @@ unpacked or packed.  The result of the evaluation should be one of the
 above-listed type specifications.
 @end table
 
+For a fixed-size field, the length @var{len} is given as an integer
+specifying the number of bytes in the field.
+
+When the length of a field is not fixed, it typically depends on the
+value of a preceding field.  In this case, the length @var{len} can be
+given either as a list @code{(@var{name} ...)} identifying a
+@dfn{field name} in the format specified for @code{bindat-get-field}
+below, or by an expression @code{(eval @var{form})} where @var{form}
+should evaluate to an integer, specifying the field length.
+
 A field specification generally has the form @code{([@var{name}]
 @var{handler})}.  The square braces indicate that @var{name} is
 optional.  (Don't use names that are symbols meaningful as type
@@ -2184,21 +2194,6 @@ Unpack/pack this field according to the type specification @var{type}.
 @item eval @var{form}
 Evaluate @var{form}, a Lisp expression, for side-effect only.  If the
 field name is specified, the value is bound to that field name.
-@var{form} can access and update these dynamically bound variables:
-
-@table @code
-@item bindat-raw
-The data as a byte array.
-
-@item bindat-idx
-Current index into bindat-raw of the unpacking or packing operation.
-
-@item struct
-Alist.
-
-@item last
-Value of the last field processed.
-@end table
 
 @item fill @var{len}
 Skip @var{len} bytes.  In packing, this leaves them unchanged,
@@ -2235,9 +2230,37 @@ of @var{form}.  A non-@code{nil} result indicates a match.
 @item repeat @var{count} @var{field-specs}@dots{}
 Process the @var{field-specs} recursively, in order, then repeat
 starting from the first one, processing all the specs @var{count}
-times overall.  @var{count} may be an integer, or a list of one
-element that names a previous field.  For correct operation, each spec
-in @var{field-specs} must include a name.
+times overall.  The @var{count} is given using the same formats as a
+field length---if an @code{eval} form is used, it is evaluated just once.
+For correct operation, each spec in @var{field-specs} must include a name.
+@end table
+
+For the @code{(eval @var{form})} forms used in a bindat specification,
+the @var{form} can access and update these dynamically bound variables
+during evaluation:
+
+@table @code
+@item last
+Value of the last field processed.
+
+@item bindat-raw
+The data as a byte array.
+
+@item bindat-idx
+Current index into bindat-raw of the unpacking or packing operation.
+
+@item struct
+The alist containing the structured data that have been unpacked so
+far, or the entire structure being packed.  You can use
+@code{bindat-get-field} to access specific fields of this structure.
+
+@item count
+@itemx index
+Inside a @code{repeat} block, these contain the maximum number of
+repetitions (as specified by the @var{count} parameter), and the
+current repetition number (counting from 0).  Setting @code{count} to
+zero will terminate the inner-most repeat block after the current
+repetition has completed.
 @end table
 
 @node Bindat Functions

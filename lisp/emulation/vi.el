@@ -820,7 +820,7 @@ The given COUNT is remembered for future scrollings."
 
 (defun vi-char-argument (arg)
   "Get following character (could be any CHAR) as part of the prefix argument.
-Possible prefix-arg cases are NIL, INTEGER, (NIL . CHAR) or (INTEGER . CHAR)."
+Possible prefix-arg cases are nil, INTEGER, (nil . CHAR) or (INTEGER . CHAR)."
   (interactive "P")
   (let ((char (read-char)))
     (cond ((null arg) (setq prefix-arg (cons nil char)))

@@ -53,7 +53,8 @@ change."
   :group 'calendar)
 
 (defvar calendar-current-time-zone-cache nil
-  "Cache for result of calendar-current-time-zone.")
+  "Cache for result of `calendar-current-time-zone'.")
+(put 'calendar-current-time-zone-cache 'risky-local-variable t)
 
 (defvar calendar-system-time-basis
   (calendar-absolute-from-gregorian '(1 1 1970))
@@ -345,8 +346,9 @@ This function respects the value of `calendar-dst-check-each-year-flag'."
                       (cadr (calendar-dst-find-startend year))
                     (nth 4 calendar-current-time-zone-cache))))
         (if expr (eval expr)))
+      ;; New US rules commencing 2007.	ftp://elsie.nci.nih.gov/pub/.
       (and (not (zerop calendar-daylight-time-offset))
-           (calendar-nth-named-day 1 0 4 year))))
+           (calendar-nth-named-day 2 0 3 year))))
 
 (defun calendar-dst-ends (year)
   "Return the date of YEAR on which Daylight Saving Time ends.
@@ -355,8 +357,9 @@ This function respects the value of `calendar-dst-check-each-year-flag'."
                       (nth 2 (calendar-dst-find-startend year))
                     (nth 5 calendar-current-time-zone-cache))))
         (if expr (eval expr)))
+      ;; New US rules commencing 2007.	ftp://elsie.nci.nih.gov/pub/.
       (and (not (zerop calendar-daylight-time-offset))
-           (calendar-nth-named-day -1 0 10 year))))
+           (calendar-nth-named-day 1 0 11 year))))
 
 
 ;;;###autoload

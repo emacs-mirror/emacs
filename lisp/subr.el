@@ -943,7 +943,8 @@ is converted into a string by expressing it in decimal."
 (make-obsolete-variable 'directory-sep-char "do not use it." "21.1")
 (make-obsolete-variable 'mode-line-inverse-video "use the appropriate faces instead." "21.1")
 (make-obsolete-variable 'unread-command-char
-  "use `unread-command-events' instead.  That variable is a list of events to reread, so it now uses nil to mean `no event', instead of -1."
+  "use `unread-command-events' instead.  That variable is a list of events
+to reread, so it now uses nil to mean `no event', instead of -1."
   "before 19.15")
 
 ;; Lisp manual only updated in 22.1.

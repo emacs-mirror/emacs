@@ -1,6 +1,6 @@
 ;;; assoc.el --- insert/delete/sort functions on association lists
 
-;; Copyright (C) 1996, 2002, 2003, 2004, 2005,
+;; Copyright (C) 1996, 2001, 2002, 2003, 2004, 2005,
 ;;   2006 Free Software Foundation, Inc.
 
 ;; Author: Barry A. Warsaw <bwarsaw@cen.com>

@@ -406,6 +406,20 @@ Return non-nil if FILE is unchanged."
 
 (defun vc-arch-init-version () nil)
 
+;;; Less obvious implementations.
+
+(defun vc-arch-find-version (file rev buffer)
+  (let ((out (make-temp-file "vc-out")))
+    (unwind-protect
+        (progn
+          (with-temp-buffer
+            (vc-arch-command (current-buffer) 1 nil "file-diffs" file rev)
+            (call-process-region (point-min) (point-max)
+                                 "patch" nil nil nil "-R" "-o" out file))
+          (with-current-buffer buffer
+            (insert-file-contents out)))
+      (delete-file out))))
+
 (provide 'vc-arch)
 
 ;; arch-tag: a35c7c1c-5237-429d-88ef-3d718fd2e704

@@ -83,7 +83,7 @@ EMACS_INT last_abbrev_point;
 
 Lisp_Object Vpre_abbrev_expand_hook, Qpre_abbrev_expand_hook;
 
-Lisp_Object Qsystem_type, Qcount;
+Lisp_Object Qsystem_type, Qcount, Qforce;
 
 DEFUN ("make-abbrev-table", Fmake_abbrev_table, Smake_abbrev_table, 0, 0, 0,
        doc: /* Create a new, empty abbrev table object.  */)
@@ -107,7 +107,7 @@ DEFUN ("clear-abbrev-table", Fclear_abbrev_table, Sclear_abbrev_table, 1, 1, 0,
     XVECTOR (table)->contents[i] = make_number (0);
   return Qnil;
 }
-
+
 DEFUN ("define-abbrev", Fdefine_abbrev, Sdefine_abbrev, 3, 6, 0,
        doc: /* Define an abbrev in TABLE named NAME, to expand to EXPANSION and call HOOK.
 NAME must be a string.
@@ -123,13 +123,25 @@ usage-count, which is incremented each time the abbrev is used.
 \(The default is zero.)
 
 SYSTEM-FLAG, if non-nil, says that this is a "system" abbreviation
-which should not be saved in the user's abbreviation file.  */)
+which should not be saved in the user's abbreviation file.
+Unless SYSTEM-FLAG is `force', a system abbreviation will not
+overwrite a non-system abbreviation of the same name.  */)
      (table, name, expansion, hook, count, system_flag)
      Lisp_Object table, name, expansion, hook, count, system_flag;
 {
   Lisp_Object sym, oexp, ohook, tem;
   CHECK_VECTOR (table);
   CHECK_STRING (name);
+
+  /* If defining a system abbrev, do not overwrite a non-system abbrev
+     of the same name, unless 'force is used. */
+  if (!NILP (system_flag) && !EQ (system_flag, Qforce))
+    {
+      sym = Fintern_soft (name, table);
+
+      if (!NILP (SYMBOL_VALUE (sym)) &&
+          NILP (Fplist_get (XSYMBOL (sym)->plist, Qsystem_type))) return Qnil;
+    }
 
   if (NILP (count))
     count = make_number (0);
@@ -640,6 +652,9 @@ syms_of_abbrev ()
   Qcount = intern ("count");
   staticpro (&Qcount);
 
+  Qforce = intern ("force");
+  staticpro (&Qforce);
+
   DEFVAR_LISP ("abbrev-table-name-list", &Vabbrev_table_name_list,
 	       doc: /* List of symbols whose values are abbrev tables.  */);
   Vabbrev_table_name_list = Fcons (intern ("fundamental-mode-abbrev-table"),
@@ -664,7 +679,7 @@ for any particular abbrev defined in both.  */);
 
   DEFVAR_LISP ("last-abbrev-text", &Vlast_abbrev_text,
 	       doc: /* The exact text of the last abbrev expanded.
-nil if the abbrev has already been unexpanded.  */);
+A value of nil means the abbrev has already been unexpanded.  */);
 
   DEFVAR_INT ("last-abbrev-location", &last_abbrev_point,
 	      doc: /* The location of the start of the last abbrev expanded.  */);

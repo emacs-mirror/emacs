@@ -34,6 +34,10 @@ handle 2 noprint pass
 # Make it work like SIGINT normally does.
 handle SIGTSTP nopass
 
+# Pass on user signals
+handle SIGUSR1 noprint pass
+handle SIGUSR2 noprint pass
+
 # Don't pass SIGALRM to Emacs.  This makes problems when
 # debugging.
 handle SIGALRM ignore

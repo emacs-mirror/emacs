@@ -5,7 +5,7 @@
 
 @c The edition number appears in several places in this file
 @set EDITION   Sixteenth
-@set EMACSVER  22.0.91
+@set EMACSVER  22.0.92
 
 @copying
 This is the @value{EDITION} edition of the @cite{GNU Emacs Manual},
@@ -297,8 +297,6 @@ Killing and Moving Text
 * Killing by Lines::	How to kill entire lines of text at one time.
 * Other Kill Commands:: Commands to kill large regions of text and
 			  syntactic units such as words and sentences.
-* Graphical Kill::      The kill ring on graphical displays:
-                          yanking between applications.
 * CUA Bindings::        Using @kbd{C-x}, @kbd{C-c}, @kbd{C-v} for copy
                           and paste, with enhanced rectangle support.
 
@@ -441,9 +439,7 @@ Multiple Windows
 
 Frames and X Windows
 
-* Mouse Commands::      Moving, cutting, and pasting, with the mouse.
-* Secondary Selection:: Cutting without altering point and mark.
-* Clipboard::           Using the clipboard for selections.
+* Cut and Paste::       Mouse commands for cut and paste.
 * Mouse References::    Using the mouse to select an item from a list.
 * Menu Mouse Clicks::   Mouse clicks that bring up menus.
 * Mode Line Mouse::     Mouse clicks on the mode line.
@@ -1050,7 +1046,7 @@ Jesper Harder, Markus Heritsch, Karl Heuer, Manabu Higashida, Anders
 Holst, Jeffrey C.@: Honig, Kurt Hornik, Tom Houlder, Joakim Hove,
 Denis Howe, Lars Ingebrigtsen, Andrew Innes, Seiichiro Inoue, Pavel
 Janik, Paul Jarc, Ulf Jasper, Michael K. Johnson, Kyle Jones, Terry
-Jones, Simon Josefsson, Arne J@/orgensen, Tomoji Kagatani, Brewster
+Jones, Simon Josefsson, Arne J@o{}rgensen, Tomoji Kagatani, Brewster
 Kahle, Lute Kamstra, David Kastrup, David Kaufman, Henry Kautz, Taichi
 Kawabata, Howard Kaye, Michael Kifer, Richard King, Peter Kleiweg,
 Shuhei Kobayashi, Pavel Kobiakov, Larry K.@: Kolodney, David M.@:

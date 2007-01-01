@@ -173,9 +173,9 @@ default ignores letter-case in file names during completion.
 @vindex w32-get-true-file-attributes
   If the variable @code{w32-get-true-file-attributes} is
 non-@code{nil} (the default), Emacs tries to determine the accurate
-link counts for files.  This option is only useful on the NT family of
-Windows (2K/XP/2K3), and it considerably slows down Dired and other
-features, so use it only on fast machines.
+link counts for files.  This option is only useful on NTFS volumes,
+and it considerably slows down Dired and other features, so use it
+only on fast machines.
 
 @node ls in Lisp
 @section Emulation of @code{ls} on MS-Windows
@@ -234,10 +234,11 @@ that @file{ls-lisp.el} displays.  The value should be a list that
 contains one or more of the symbols @code{links}, @code{uid}, and
 @code{gid}.  @code{links} means display the count of different file
 names that are associated with (a.k.a.@: @dfn{links to}) the file's
-data.  @code{uid} means display the numerical identifier of the user
-who owns the file.  @code{gid} means display the numerical identifier
-of the file owner's group.  The default value is @code{(links uid gid)}
-i.e.@: all the 3 optional attributes are displayed.
+data; this is only useful on NTFS volumes.  @code{uid} means display
+the numerical identifier of the user who owns the file.  @code{gid}
+means display the numerical identifier of the file owner's group.  The
+default value is @code{(links uid gid)} i.e.@: all the 3 optional
+attributes are displayed.
 
 @vindex ls-lisp-emulation
   The variable @code{ls-lisp-emulation} controls the flavour of the
@@ -332,6 +333,13 @@ directory, whereas @file{.emacs} does not.
   This section describes the Windows-specific features related to
 keyboard input in Emacs.
 
+@cindex MS-Windows keyboard shortcuts
+  Many key combinations (known as ``keyboard shortcuts'') that are in
+widespread use in MS-Windows programs are taken by various Emacs
+features.  Examples include @kbd{C-C}, @kbd{C-X}, @kbd{C-Z},
+@kbd{C-A}, and @kbd{W-SPC}.  You can get some of them back by turning
+on CUA Mode (@pxref{CUA Bindings}).
+
 @kindex F10 @r{(MS-Windows)}
 @cindex menu bar access using keyboard @r{(MS-Windows)}
   The @key{F10} key on Windows activates the menu bar in a way that
@@ -420,16 +428,24 @@ keys are passed to Windows or swallowed by Emacs.  If the value is
 otherwise it is passed to Windows.  The default is @code{t} for both
 of these variables.  Passing each of these keys to Windows produces
 its normal effect: for example, @kbd{@key{Lwindow}} opens the
-@code{Start} menu, etc.
+@code{Start} menu, etc.@footnote{
+Some combinations of the ``Windows'' keys with other keys are caught
+by Windows at low level in a way that Emacs currently cannot prevent.
+For example, @kbd{@key{Lwindow} r} always pops up the Windows
+@samp{Run} dialog.  Customizing the value of
+@code{w32-phantom-key-code} might help in some cases, though.}
 
 @vindex w32-recognize-altgr
 @kindex AltGr @r{(MS-Windows)}
 @cindex AltGr key (MS-Windows)
-  The variable @code{w32-recognize-altgr} controls whether the right
-@key{Alt} and left @key{Ctrl} keys are recognized as the @key{AltGr}
-key.  The default is @code{t}, which means these keys produce
-@code{AltGr}; setting them to @code{nil} causes these keys to be
-interpreted normally (as the respective modifiers).
+  The variable @code{w32-recognize-altgr} controls whether the
+@key{AltGr} key (if it exists on your keyboard), or its equivalent,
+the combination of the right @key{Alt} and left @key{Ctrl} keys
+pressed together, is recognized as the @key{AltGr} key.  The default
+is @code{t}, which means these keys produce @code{AltGr}; setting it
+to @code{nil} causes @key{AltGr} or the equivalent key combination to
+be interpreted as the combination of @key{CTRL} and @key{META}
+modifiers.
 @end ifnottex
 
 @node Windows Mouse

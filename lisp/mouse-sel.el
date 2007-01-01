@@ -244,6 +244,10 @@ primary selection and region."
   :group 'mouse-sel
   (if mouse-sel-mode
       (progn
+	;; If mouse-2 has never been done by the user, initialize the
+	;; `event-kind' property to ensure that `follow-link' clicks
+	;; are interpreted correctly.
+	(put 'mouse-2 'event-kind 'mouse-click)
 	(add-hook 'x-lost-selection-functions 'mouse-sel-lost-selection-hook)
 	(when mouse-sel-default-bindings
 	  ;; Save original bindings and replace them with new ones.

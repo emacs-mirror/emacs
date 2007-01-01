@@ -66,7 +66,8 @@ functions.
 We have standardized on one location for the user init file: the file
 named @file{.emacs} in your home directory.  Emacs will not look for
 the init file in @file{~/.emacs.d/init.el}.  Similarly, don't try
-putting @file{.emacs_SHELL} in @file{~/.emacs.d}; Emacs won't find it.
+putting @file{.emacs_SHELL} as @file{init_SHELL.sh} in
+@file{~/.emacs.d}; Emacs won't find it.
 
 @item
 Emacs will not read @file{~/.abbrev_defs} automatically.  If you want

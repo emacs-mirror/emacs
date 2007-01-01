@@ -1,6 +1,6 @@
 ;;; scroll-all.el --- scroll all buffers together minor mode
 
-;; Copyright (C) 1997, 2002, 2003, 2004, 2005,
+;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005,
 ;;   2006 Free Software Foundation, Inc.
 
 ;; Author: Gary D. Foster <Gary.Foster@corp.sun.com>

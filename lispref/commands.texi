@@ -1586,13 +1586,33 @@ The precise meaning of the event parameters and the way these
 parameters are used to display the help-echo text are described in
 @ref{Text help-echo}.
 
-@cindex @code{usr1-signal} event
-@cindex @code{usr2-signal} event
-@item usr1-signal
-@itemx usr2-signal
-These events are generated when the Emacs process receives the signals
-@code{SIGUSR1} and @code{SIGUSR2}.  They contain no additional data
-because signals do not carry additional information.
+@cindex @code{sigusr1} event
+@cindex @code{sigusr2} event
+@cindex user signals
+@item sigusr1
+@itemx sigusr2
+These events are generated when the Emacs process receives
+the signals @code{SIGUSR1} and @code{SIGUSR2}.  They contain no
+additional data because signals do not carry additional information.
+
+To catch a user signal, bind the corresponding event to an interactive
+command in the @code{special-event-map} (@pxref{Active Keymaps}).
+The command is called with no arguments, and the specific signal event is
+available in @code{last-input-event}.  For example:
+
+@example
+(defun sigusr-handler ()
+  (interactive)
+  (message "Caught signal %S" last-input-event))
+
+(define-key special-event-map [sigusr1] 'sigusr-handler)
+@end example
+
+To test the signal handler, you can make Emacs send a signal to itself:
+
+@example
+(signal-process (emacs-pid) 'sigusr1)
+@end example
 @end table
 
   If one of these events arrives in the middle of a key sequence---that
@@ -1630,6 +1650,16 @@ into another window.  That produces a pair of events like these:
 (M-S-drag-mouse-2 (#<window 18 on NEWS> mode-line (33 . 31) -457844)
                   (#<window 20 on carlton-sanskrit.tex> 161 (33 . 3)
                    -453816))
+@end smallexample
+
+To handle a SIGUSR1 signal, define an interactive function, and
+bind it to the @code{signal usr1} event sequence:
+
+@smallexample
+(defun usr1-handler ()
+  (interactive)
+  (message "Got USR1 signal"))
+(global-set-key [signal usr1] 'usr1-handler)
 @end smallexample
 
 @node Classifying Events
@@ -2623,8 +2653,9 @@ These events do, however, appear in @code{last-input-event} immediately
 after they are read, and this is the way for the event's definition to
 find the actual event.
 
-The events types @code{iconify-frame}, @code{make-frame-visible} and
-@code{delete-frame} are normally handled in this way.  The keymap which
+The events types @code{iconify-frame}, @code{make-frame-visible},
+@code{delete-frame}, @code{drag-n-drop}, and user signals like
+@code{sigusr1} are normally handled in this way.  The keymap which
 defines how to handle special events---and which events are special---is
 in the variable @code{special-event-map} (@pxref{Active Keymaps}).
 

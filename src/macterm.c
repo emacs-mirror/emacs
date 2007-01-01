@@ -1154,7 +1154,8 @@ mac_query_char_extents (style, c,
       UniChar ch = c;
 
       err = atsu_get_text_layout_with_text_ptr (&ch, 1, style, &text_layout);
-      if (err == noErr)
+      if (err == noErr
+	  && (font_ascent_return || font_descent_return || overall_return))
 	{
 	  ATSTrapezoid glyph_bounds;
 
@@ -6987,7 +6988,6 @@ static Lisp_Object fm_font_family_alist;
 static Lisp_Object atsu_font_id_hash;
 /* Alist linking Font Manager style to face attributes.  */
 static Lisp_Object fm_style_face_attributes_alist;
-static Lisp_Object Vmac_atsu_font_table;
 extern Lisp_Object QCfamily, QCweight, QCslant, Qnormal, Qbold, Qitalic;
 #endif
 
@@ -7224,6 +7224,73 @@ add_mac_font_name (name, size, style, charset)
 }
 
 #if USE_ATSUI
+static FMFontStyle
+fm_get_style_from_font (font)
+     FMFont font;
+{
+  OSStatus err;
+  FMFontStyle style = normal;
+  ByteCount len;
+  UInt16 mac_style;
+  FMFontFamily font_family;
+#define FONT_HEADER_MAC_STYLE_OFFSET (4*4 + 2*2 + 8*2 + 2*4)
+
+  /* FMGetFontFamilyInstanceFromFont returns `normal' as the style of
+     some font (e.g., Optima) even if it is `bold'.  */
+  err = FMGetFontTable (font, 'head', FONT_HEADER_MAC_STYLE_OFFSET,
+			sizeof (mac_style), &mac_style, &len);
+  if (err == noErr
+      && len >= FONT_HEADER_MAC_STYLE_OFFSET + sizeof (mac_style))
+    style = EndianU16_BtoN (mac_style);
+  else
+    FMGetFontFamilyInstanceFromFont (font, &font_family, &style);
+
+  return style;
+}
+
+static ATSUFontID
+atsu_find_font_from_family_name (family)
+     const char *family;
+{
+  struct Lisp_Hash_Table *h = XHASH_TABLE (atsu_font_id_hash);
+  unsigned hash_code;
+  int i;
+  Lisp_Object rest, best;
+  FMFontStyle min_style, style;
+
+  i = hash_lookup (h, make_unibyte_string (family, strlen (family)),
+		   &hash_code);
+  if (i < 0)
+    return kATSUInvalidFontID;
+
+  rest = HASH_VALUE (h, i);
+  if (INTEGERP (rest) || (CONSP (rest) && INTEGERP (XCDR (rest))))
+    return cons_to_long (rest);
+
+  rest = Fnreverse (rest);
+  best = XCAR (rest);
+  rest = XCDR (rest);
+  if (!NILP (rest)
+      && (min_style = fm_get_style_from_font (cons_to_long (best))) != normal)
+    do
+      {
+	style = fm_get_style_from_font (cons_to_long (XCAR (rest)));
+	if (style < min_style)
+	  {
+	    best = XCAR (rest);
+	    if (style == normal)
+	      break;
+	    else
+	      min_style = style;
+	  }
+	rest = XCDR (rest);
+      }
+    while (!NILP (rest));
+
+  HASH_VALUE (h, i) = best;
+  return cons_to_long (best);
+}
+
 static Lisp_Object
 fm_style_to_face_attributes (fm_style)
      FMFontStyle fm_style;
@@ -7243,6 +7310,44 @@ fm_style_to_face_attributes (fm_style)
 	   fm_style_face_attributes_alist);
 
   return tem;
+}
+
+static Lisp_Object
+atsu_find_font_family_name (font_id)
+     ATSUFontID font_id;
+{
+  OSStatus err;
+  ByteCount len;
+  Lisp_Object family = Qnil;
+
+  err = ATSUFindFontName (font_id, kFontFamilyName,
+			  kFontMacintoshPlatform, kFontNoScript,
+			  kFontNoLanguage, 0, NULL, &len, NULL);
+  if (err == noErr)
+    {
+      family = make_uninit_string (len);
+      err = ATSUFindFontName (font_id, kFontFamilyName,
+			      kFontMacintoshPlatform, kFontNoScript,
+			      kFontNoLanguage, len, SDATA (family),
+			      NULL, NULL);
+    }
+  if (err == noErr)
+    decode_mac_font_name (SDATA (family), len + 1, Qnil);
+
+  return family;
+}
+
+Lisp_Object
+mac_atsu_font_face_attributes (font_id)
+     ATSUFontID font_id;
+{
+  Lisp_Object family, style_attrs;
+
+  family = atsu_find_font_family_name (font_id);
+  if (NILP (family))
+    return Qnil;
+  style_attrs = fm_style_to_face_attributes (fm_get_style_from_font (font_id));
+  return Fcons (QCfamily, Fcons (family, style_attrs));
 }
 #endif
 
@@ -7275,9 +7380,8 @@ init_font_name_table ()
       unsigned hash_code;
       ItemCount nfonts, i;
       ATSUFontID *font_ids = NULL;
-      Ptr name;
-      ByteCount name_len;
-      Lisp_Object family;
+      Lisp_Object prev_family = Qnil;
+      int j;
 
       atsu_font_id_hash =
 	make_hash_table (Qequal, make_number (DEFAULT_HASH_SIZE),
@@ -7295,41 +7399,25 @@ init_font_name_table ()
       if (err == noErr)
 	for (i = 0; i < nfonts; i++)
 	  {
-	    err = ATSUFindFontName (font_ids[i], kFontFamilyName,
-				    kFontMacintoshPlatform, kFontNoScript,
-				    kFontNoLanguage, 0, NULL, &name_len, NULL);
-	    if (err != noErr)
-	      continue;
-	    name = xmalloc (name_len + 1);
-	    name[name_len] = '\0';
-	    err = ATSUFindFontName (font_ids[i], kFontFamilyName,
-				    kFontMacintoshPlatform, kFontNoScript,
-				    kFontNoLanguage, name_len, name,
-				    NULL, NULL);
-	    if (err == noErr)
-	      {
-		FMFontFamily ff;
-		FMFontStyle style = normal;
+	    Lisp_Object family;
 
-		decode_mac_font_name (name, name_len + 1, Qnil);
-		family = make_unibyte_string (name, name_len);
-		FMGetFontFamilyInstanceFromFont (font_ids[i], &ff, &style);
-		Fputhash ((font_ids[i] > MOST_POSITIVE_FIXNUM
-			   ? make_float (font_ids[i])
-			   : make_number (font_ids[i])),
-			  Fcons (QCfamily,
-				 Fcons (family,
-					fm_style_to_face_attributes (style))),
-			  Vmac_atsu_font_table);
-		if (*name != '.'
-		    && hash_lookup (h, family, &hash_code) < 0)
-		  {
-		    add_mac_font_name (name, 0, normal, "iso10646-1");
-		    hash_put (h, family, long_to_cons (font_ids[i]),
-			      hash_code);
-		  }
+	    family = atsu_find_font_family_name (font_ids[i]);
+	    if (NILP (family) || SREF (family, 0) == '.')
+	      continue;
+	    if (!NILP (Fequal (prev_family, family)))
+	      family = prev_family;
+	    else
+	      j = hash_lookup (h, family, &hash_code);
+	    if (j < 0)
+	      {
+		add_mac_font_name (SDATA (family), 0, normal, "iso10646-1");
+		j = hash_put (h, family, Fcons (long_to_cons (font_ids[i]),
+						Qnil), hash_code);
 	      }
-	    xfree (name);
+	    else if (EQ (prev_family, family))
+	      HASH_VALUE (h, j) = Fcons (long_to_cons (font_ids[i]),
+					 HASH_VALUE (h, j));
+	    prev_family = family;
 	  }
       if (font_ids)
 	xfree (font_ids);
@@ -7873,14 +7961,11 @@ mac_load_query_font (f, fontname)
 	{kAllTypographicFeaturesType, kDiacriticsType};
       static const ATSUFontFeatureSelector selectors[] =
 	{kAllTypeFeaturesOffSelector, kDecomposeDiacriticsSelector};
-      Lisp_Object font_id_cons;
       FMFontStyle style;
 
-      font_id_cons = Fgethash (make_unibyte_string (family, strlen (family)),
-			       atsu_font_id_hash, Qnil);
-      if (NILP (font_id_cons))
-	return NULL;
-      font_id = cons_to_long (font_id_cons);
+      font_id = atsu_find_font_from_family_name (family);
+      if (font_id == kATSUInvalidFontID)
+	return;
       size_fixed = Long2Fix (size);
       bold_p = (fontface & bold) != 0;
       italic_p = (fontface & italic) != 0;
@@ -8004,11 +8089,19 @@ mac_load_query_font (f, fontname)
 	    continue;
 	  else if (c == 0x7f)
 	    {
-	      c = 0x9f;
-	      continue;
+#if USE_CG_TEXT_DRAWING
+	      if (font->cg_glyphs)
+		{
+		  c = 0x9f;
+		  pcm = NULL;
+		  continue;
+		}
+#endif
+	      break;
 	    }
 
-	  mac_query_char_extents (font->mac_style, c, NULL, NULL, pcm + c,
+	  mac_query_char_extents (font->mac_style, c, NULL, NULL,
+				  pcm ? pcm + c : NULL,
 #if USE_CG_TEXT_DRAWING
 				  (font->cg_glyphs ? font->cg_glyphs + c
 				   : NULL)
@@ -8026,6 +8119,8 @@ mac_load_query_font (f, fontname)
 	      font->cg_font = NULL;
 	      xfree (font->cg_glyphs);
 	      font->cg_glyphs = NULL;
+	      if (pcm == NULL)
+		break;
 	    }
 #endif
 	}
@@ -8033,6 +8128,7 @@ mac_load_query_font (f, fontname)
   else
 #endif
     {
+      OSStatus err;
       FontInfo the_fontinfo;
       int is_two_byte_font;
 
@@ -8115,8 +8211,13 @@ mac_load_query_font (f, fontname)
 		 sizeof (XCharStruct) * (0xff - 0x20 + 1));
 
 	  space_bounds = font->bounds.per_char;
-	  mac_query_char_extents (NULL, 0x20, &font->ascent, &font->descent,
-				  space_bounds, NULL);
+	  err = mac_query_char_extents (NULL, 0x20, &font->ascent,
+					&font->descent, space_bounds, NULL);
+	  if (err != noErr || space_bounds->width <= 0)
+	    {
+	      mac_unload_font (&one_mac_display_info, font);
+	      return NULL;
+	    }
 
 	  for (c = 0x21, pcm = space_bounds + 1; c <= 0xff; c++, pcm++)
 	    mac_query_char_extents (NULL, c, NULL, NULL, pcm, NULL);
@@ -9365,9 +9466,7 @@ mac_store_event_ref_as_apple_event (class, id, class_key, id_key,
 	    {
 	      mac_store_apple_event (class_key, id_key, &apple_event);
 	      AEDisposeDesc (&apple_event);
-	      /* Post a harmless event so as to wake up from
-		 ReceiveNextEvent.  */
-	      mac_post_mouse_moved_event ();
+	      mac_wakeup_from_rne ();
 	    }
 	}
     }
@@ -10404,7 +10503,9 @@ XTread_socket (sd, expected, hold_quit)
 #else
 		    FrontWindow ()
 #endif
-		    != window_ptr)
+		    != window_ptr
+		    || (mac_window_to_frame (window_ptr)
+			!= dpyinfo->x_focus_frame))
 		  SelectWindow (window_ptr);
 		else
 		  {
@@ -11677,7 +11778,7 @@ syms_of_macterm ()
   DEFVAR_BOOL ("x-use-underline-position-properties",
 	       &x_use_underline_position_properties,
      doc: /* *Non-nil means make use of UNDERLINE_POSITION font properties.
-nil means ignore them.  If you encounter fonts with bogus
+A value of nil means ignore them.  If you encounter fonts with bogus
 UNDERLINE_POSITION font properties, for example 7x13 on XFree prior
 to 4.1, set this to nil.
 
@@ -11687,9 +11788,9 @@ NOTE: Not supported on Mac yet.  */);
   DEFVAR_BOOL ("x-underline-at-descent-line",
 	       &x_underline_at_descent_line,
      doc: /* *Non-nil means to draw the underline at the same place as the descent line.
-nil means to draw the underline according to the value of the variable
-`x-use-underline-position-properties', which is usually at the baseline
-level.  The default value is nil.  */);
+A value of nil means to draw the underline according to the value of the
+variable `x-use-underline-position-properties', which is usually at the
+baseline level.  The default value is nil.  */);
   x_underline_at_descent_line = 0;
 
   DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
@@ -11736,8 +11837,8 @@ unexpected results for some keys on non-US/GB keyboards.  */);
 	       &Vmac_emulate_three_button_mouse,
     doc: /* *Specify a way of three button mouse emulation.
 The value can be nil, t, or the symbol `reverse'.
-nil means that no emulation should be done and the modifiers should be
-placed on the mouse-1 event.
+A value of nil means that no emulation should be done and the modifiers
+should be placed on the mouse-1 event.
 t means that when the option-key is held down while pressing the mouse
 button, the click will register as mouse-2 and while the command-key
 is held down, the click will register as mouse-3.
@@ -11788,15 +11889,6 @@ CODING_SYSTEM is a coding system corresponding to TEXT-ENCODING.  */);
     Fcons (list3 (build_string ("mac-roman"),
 		  make_number (smRoman), Qnil), Qnil);
 
-#if USE_ATSUI
-  DEFVAR_LISP ("mac-atsu-font-table", &Vmac_atsu_font_table,
-    doc: /* Hash table of ATSU font IDs vs plist of attributes and values.  */);
-  Vmac_atsu_font_table =
-    make_hash_table (Qeql, make_number (DEFAULT_HASH_SIZE),
-		     make_float (DEFAULT_REHASH_SIZE),
-		     make_float (DEFAULT_REHASH_THRESHOLD),
-		     Qnil, Qnil, Qnil);
-#endif
 #if USE_MAC_TSM
   DEFVAR_LISP ("mac-ts-active-input-overlay", &Vmac_ts_active_input_overlay,
     doc: /* Overlay used to display Mac TSM active input area.  */);

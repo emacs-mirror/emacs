@@ -358,6 +358,7 @@ extern void gen_help_event P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
 extern void kbd_buffer_store_help_event P_ ((Lisp_Object, Lisp_Object));
 extern Lisp_Object menu_item_eval_property P_ ((Lisp_Object));
 extern int  kbd_buffer_events_waiting P_ ((int));
+extern void add_user_signals P_ ((int, const char *));
 
 extern int tty_read_avail_input P_ ((struct terminal *, int,
                                      struct input_event *));

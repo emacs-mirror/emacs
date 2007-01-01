@@ -40,8 +40,8 @@
 ;; This file has evolved from gdba.el that was included with GDB 5.0 and
 ;; written by Tom Lord and Jim Kingdon.  It uses GDB's annotation interface.
 ;; You don't need to know about annotations to use this mode as a debugger,
-;; but if you are interested developing the mode itself, then see the
-;; Annotations section in the GDB info manual.
+;; but if you are interested developing the mode itself, see the Annotations
+;; section in the GDB info manual.
 
 ;; GDB developers plan to make the annotation interface obsolete.  A new
 ;; interface called GDB/MI (machine interface) has been designed to replace
@@ -51,9 +51,9 @@
 ;; still under development and is part of a process to migrate Emacs from
 ;; annotations to GDB/MI.
 
-;; This mode SHOULD WORK WITH GDB 5.0 onwards but you will NEED GDB 6.0
-;; onwards to use watch expressions.  It works best with GDB 6.4 where
-;; watch expressions will update more quickly.
+;; This mode SHOULD WORK WITH GDB 5.0 or later but you will NEED AT LEAST
+;; GDB 6.0 to use watch expressions.  It works best with GDB 6.4 or later
+;; where watch expressions will update more quickly.
 
 ;;; Windows Platforms:
 
@@ -79,14 +79,18 @@
 ;; 5) If you wish to call procedures from your program in GDB
 ;;    e.g "call myproc ()", "p mysquare (5)" then use level 2 annotations
 ;;    "gdb --annotate=2 myprog" to keep source buffer/selected frame fixed.
+;; 6) After detaching from a process, clicking on the "GO" icon on toolbar
+;;    (gud-go) sends "continue" to GDB (should be "run").
 
 ;;; Problems with watch expressions, GDB/MI:
+
 ;; 1) They go out of scope when the inferior is re-run.
 ;; 2) -stack-list-locals has a type field but also prints type in values field.
 ;; 3) VARNUM increments even when variable object is not created
 ;;    (maybe trivial).
 
 ;;; TODO:
+
 ;; 1) Use MI command -data-read-memory for memory window.
 ;; 2) Use tree-widget.el instead of the speedbar for watch-expressions?
 ;; 3) Mark breakpoint locations on scroll-bar of source buffer?
@@ -706,11 +710,6 @@ With arg, enter name of variable to be watched in the minibuffer."
 			 (buffer-substring (region-beginning) (region-end))
 		       (tooltip-identifier-from-point (point))))))
 	      (speedbar 1)
-	      (catch 'already-watched
-		(dolist (var gdb-var-list)
-		  (unless (string-match "\\." (car var))
-		    (if (string-equal expr (nth 1 var))
-			(throw 'already-watched nil))))
 		(set-text-properties 0 (length expr) nil expr)
 		(gdb-enqueue-input
 		 (list
@@ -718,7 +717,7 @@ With arg, enter name of variable to be watched in the minibuffer."
 		      (concat
 		       "server interpreter mi \"-var-create - * "  expr "\"\n")
 		    (concat"-var-create - * "  expr "\n"))
-		  `(lambda () (gdb-var-create-handler ,expr))))))))
+		  `(lambda () (gdb-var-create-handler ,expr)))))))
       (message "gud-watch is a no-op in this mode."))))
 
 (defconst gdb-var-create-regexp
@@ -847,29 +846,29 @@ type_changed=\".*?\".*?}")
   (interactive)
   (if (memq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
 	    '(gdbmi gdba))
-      (let ((text (speedbar-line-text)))
-	;; Can't use \\S-+ for whitespace because
-	;; speedbar has a whacky syntax table.
-	(string-match "\\([^ \t]+\\)" text)
-	(let ((expr (match-string 1 text)) var varnum)
-	  (catch 'expr-found
-	    (dolist (var1 gdb-var-list)
-	      (when (string-equal expr (nth 1 var1))
-		(setq var var1)
-		(setq varnum (car var1))
-		(throw 'expr-found nil))))
-	  (unless (string-match "\\." (car var))
-	    (gdb-enqueue-input
-	     (list
-	      (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
-		      'gdba)
-		  (concat "server interpreter mi \"-var-delete " varnum "\"\n")
-		(concat "-var-delete " varnum "\n"))
-		   'ignore))
-	    (setq gdb-var-list (delq var gdb-var-list))
-	    (dolist (varchild gdb-var-list)
-	      (if (string-match (concat (car var) "\\.") (car varchild))
-		  (setq gdb-var-list (delq varchild gdb-var-list)))))))))
+      (let* ((var (nth (- (count-lines (point-min) (point)) 2) gdb-var-list))
+	     (varnum (car var)))
+	(if (string-match "\\." (car var))
+	    (message-box "Can only delete a root expression")
+	  (gdb-enqueue-input
+	   (list
+	    (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
+		    'gdba)
+		(concat "server interpreter mi \"-var-delete " varnum "\"\n")
+	      (concat "-var-delete " varnum "\n"))
+	    'ignore))
+	  (setq gdb-var-list (delq var gdb-var-list))
+	  (dolist (varchild gdb-var-list)
+	    (if (string-match (concat (car var) "\\.") (car varchild))
+		(setq gdb-var-list (delq varchild gdb-var-list))))))))
+
+(defun gdb-var-delete-children (varnum)
+  "Delete children of variable object at point from the speedbar."
+  (gdb-enqueue-input
+   (list
+    (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
+	(concat "server interpreter mi \"-var-delete -c " varnum "\"\n")
+      (concat "-var-delete -c " varnum "\n")) 'ignore)))
 
 (defun gdb-edit-value (text token indent)
   "Assign a value to a variable displayed in the speedbar."
@@ -914,6 +913,7 @@ INDENT is the current indentation depth."
 	       (dolist (var gdb-var-list)
 		 (if (string-match (concat token "\\.") (car var))
 		     (setq gdb-var-list (delq var gdb-var-list))))
+	       (gdb-var-delete-children token)
 	       (speedbar-change-expand-button-char ?+)
 	       (speedbar-delete-subblock indent))
 	      (t (error "Ooops...  not sure what to do")))
@@ -1004,7 +1004,7 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
 		      'gdb-partial-output-name)
 
 (defun gdb-partial-output-name ()
-  (concat "*partial-output-"
+  (concat " *partial-output-"
 	  (gdb-get-target-string)
 	  "*"))
 
@@ -1390,7 +1390,7 @@ sink to `user' in `gdb-stopping', that is fine."
     (if (and gdb-frame-begin gdb-printing)
 	(setq gud-overlay-arrow-position gud-old-arrow)
     ;;Pop up GUD buffer to display current frame when it doesn't have source
-    ;;information i.e id not compiled with -g as with libc routines generally.
+    ;;information i.e if not compiled with -g as with libc routines generally.
     (if gdb-same-frame
 	(gdb-display-gdb-buffer)
       (gdb-frame-gdb-buffer))
@@ -1404,6 +1404,7 @@ sink to `user' in `gdb-stopping', that is fine."
 		  (gdb-invalidate-frames)
 		  'delete))))))
   (unless (member gdb-inferior-status '("exited" "signal"))
+    (setq gdb-active-process t) ;Just for attaching case.
     (setq gdb-inferior-status "stopped")
     (gdb-force-mode-line-update
      (propertize gdb-inferior-status 'face font-lock-warning-face)))
@@ -1774,7 +1775,7 @@ static char *magick[] = {
     (dolist (buffer (buffer-list))
       (with-current-buffer buffer
 	(if (and (memq gud-minor-mode '(gdba gdbmi))
-		 (not (string-match "\\`\\*.+\\*\\'" (buffer-name))))
+		 (not (string-match "\\` ?\\*.+\\*\\'" (buffer-name))))
 	    (gdb-remove-breakpoint-icons (point-min) (point-max)))))
     (with-current-buffer (gdb-get-buffer 'gdb-breakpoints-buffer)
       (save-excursion
@@ -2923,7 +2924,7 @@ Kills the gdb buffers, and resets variables and the source buffers."
     (unless (eq buffer gud-comint-buffer)
       (with-current-buffer buffer
 	(if (memq gud-minor-mode '(gdbmi gdba))
-	    (if (string-match "\\`\\*.+\\*\\'" (buffer-name))
+	    (if (string-match "\\` ?\\*.+\\*\\'" (buffer-name))
 		(kill-buffer nil)
 	      (gdb-remove-breakpoint-icons (point-min) (point-max) t)
 	      (setq gud-minor-mode nil)

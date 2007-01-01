@@ -1,6 +1,6 @@
 ;;; completion.el --- dynamic word-completion code
 
-;; Copyright (C) 1990, 1993, 1995, 1997, 2002, 2003, 2004,
+;; Copyright (C) 1990, 1993, 1995, 1997, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF

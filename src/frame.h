@@ -456,6 +456,10 @@ struct frame
 
   /* Set to non-zero when current redisplay has updated frame.  */
   unsigned updated_p : 1;
+
+  /* Set to non-zero to minimize tool-bar height even when
+     auto-resize-tool-bar is set to grow-only.  */
+  unsigned minimize_tool_bar_window_p : 1;
 };
 
 #ifdef MULTI_KBOARD

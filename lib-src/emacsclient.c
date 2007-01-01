@@ -301,16 +301,15 @@ get_current_dir_name ()
 /* Message functions. */
 
 #ifdef WINDOWSNT
-/* I first tried to check for STDOUT.  The check did not work,
-   I get a valid handle also in nonconsole apps.
-   Instead I test for console title, which seems to work.  */
 int
-w32_window_app()
+w32_window_app ()
 {
   static int window_app = -1;
   char szTitle[MAX_PATH];
 
   if (window_app < 0)
+    /* Checking for STDOUT does not work; it's a valid handle also in
+       nonconsole apps.  Testing for the console title seems to work. */
     window_app = (GetConsoleTitleA (szTitle, MAX_PATH) == 0);
 
   return window_app;
@@ -488,9 +487,7 @@ fail (void)
   if (alternate_editor)
     {
       int i = optind - 1;
-#ifdef WINDOWSNT
-      main_argv[i] = (char *)alternate_editor;
-#endif
+
       execvp (alternate_editor, main_argv + i);
       message (TRUE, "%s: error executing alternate editor \"%s\"\n",
 	       progname, alternate_editor);
@@ -683,7 +680,7 @@ file_name_absolute_p (filename)
 }
 
 #ifdef WINDOWSNT
-/* Wrapper to make WSACleanup a cdecl, as required by atexit().  */
+/* Wrapper to make WSACleanup a cdecl, as required by atexit.  */
 void
 __cdecl close_winsock ()
 {
@@ -707,10 +704,47 @@ initialize_sockets ()
 #endif /* WINDOWSNT */
 
 
+#ifdef WINDOWSNT
+
+/*
+  execvp wrapper for Windows. Quotes arguments with embedded spaces.
+
+  This is necessary due to the broken implementation of exec* routines in
+  the Microsoft libraries: they concatenate the arguments together without
+  quoting special characters, and pass the result to CreateProcess, with
+  predictably bad results.  By contrast, Posix execvp passes the arguments
+  directly into the argv array of the child process.
+*/
+int
+w32_execvp (path, argv)
+     char *path;
+     char **argv;
+{
+  int i;
+
+  /* Required to allow a .BAT script as alternate editor.  */
+  argv[0] = (char *) alternate_editor;
+
+  for (i = 0; argv[i]; i++)
+    if (strchr (argv[i], ' '))
+      {
+	char *quoted = alloca (strlen (argv[i]) + 3);
+	sprintf (quoted, "\"%s\"", argv[i]);
+	argv[i] = quoted;
+      }
+
+  return execvp (path, argv);
+}
+
+#undef execvp
+#define execvp w32_execvp
+
+#endif /* WINDOWSNT */
+
 /*
  * Read the information needed to set up a TCP comm channel with
  * the Emacs server: host, port, pid and authentication string.
-*/
+ */
 int
 get_server_config (server, authentication)
      struct sockaddr_in *server;
@@ -1145,6 +1179,62 @@ set_socket ()
   exit (EXIT_FAILURE);
 }
 
+#ifdef WINDOWSNT
+FARPROC set_fg;  /* Pointer to AllowSetForegroundWindow.  */
+FARPROC get_wc;  /* Pointer to RealGetWindowClassA.  */
+
+BOOL CALLBACK
+w32_find_emacs_process (hWnd, lParam)
+     HWND hWnd;
+     LPARAM lParam;
+{
+  DWORD pid;
+  char class[6];
+
+  /* Reject any window not of class "Emacs".  */
+  if (! get_wc (hWnd, class, sizeof (class))
+      || strcmp (class, "Emacs"))
+    return TRUE;
+
+  /* We only need the process id, not the thread id.  */
+  (void) GetWindowThreadProcessId (hWnd, &pid);
+
+  /* Not the one we're looking for.  */
+  if (pid != (DWORD) emacs_pid) return TRUE;
+
+  /* OK, let's raise it.  */
+  set_fg (emacs_pid);
+
+  /* Stop enumeration.  */
+  return FALSE;
+}
+
+/*
+ * Search for a window of class "Emacs" and owned by a process with
+ * process id = emacs_pid.  If found, allow it to grab the focus.
+ */
+void
+w32_give_focus ()
+{
+  HMODULE hUser32;
+
+  /* It should'nt happen when dealing with TCP sockets.  */
+  if (!emacs_pid) return;
+
+  if (!(hUser32 = LoadLibrary ("user32.dll"))) return;
+
+  /* Modern Windows restrict which processes can set the foreground window.
+     emacsclient can allow Emacs to grab the focus by calling the function
+     AllowSetForegroundWindow.  Unfortunately, older Windows (W95, W98 and
+     NT) lack this function, so we have to check its availability.  */
+  if ((set_fg = GetProcAddress (hUser32, "AllowSetForegroundWindow"))
+      && (get_wc = GetProcAddress (hUser32, "RealGetWindowClassA")))
+    EnumWindows (w32_find_emacs_process, (LPARAM) 0);
+
+  FreeLibrary (hUser32);
+}
+#endif
+
 int
 main (argc, argv)
      int argc;
@@ -1184,24 +1274,7 @@ main (argc, argv)
     }
 
 #ifdef WINDOWSNT
-  /*
-    Modern Windows restrict which processes can set the foreground window.
-    emacsclient can allow Emacs to grab the focus by calling the function
-    AllowSetForegroundWindow().  Unfortunately, older Windows (W95, W98
-    and NT) lack this function, so we have to check its availability.
-  */
-  if (emacs_pid)
-    {
-      HMODULE hUser32;
-
-      if (hUser32 = LoadLibrary ("user32.dll"))
-	{
-	  FARPROC set_fg;
-	  if (set_fg = GetProcAddress (hUser32, "AllowSetForegroundWindow"))
-	    set_fg (emacs_pid);
-	  FreeLibrary (hUser32);
-	}
-    }
+  w32_give_focus ();
 #endif
 
   /* First of all, send our version number for verification. */

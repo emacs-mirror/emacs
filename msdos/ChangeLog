@@ -1,3 +1,7 @@
+2006-12-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed2v2.inp (HAVE_SYNC): Define.
+
 2006-11-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed1v2.inp (CFLAGS_SOUND): Edit out.
@@ -620,7 +624,7 @@
 	* sed1.inp: New file for changing src/makefile.in.in into src/makefile
 
 ;; Local Variables:
-;; coding: iso-2022-7bit-unix
+;; coding: iso-2022-7bit
 ;; add-log-time-zone-rule: t
 ;; End:
 

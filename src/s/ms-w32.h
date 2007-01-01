@@ -137,6 +137,16 @@ Boston, MA 02110-1301, USA.  */
 
 #define HAVE_SOCKETS 1
 
+/* But our select implementation doesn't allow us to make non-blocking
+   connects.  So until that is fixed, this is necessary:  */
+
+#define BROKEN_NON_BLOCKING_CONNECT 1
+
+/* And the select implementation does 1-byte read-ahead waiting
+   for received packets, so datagrams are broken too.  */
+
+#define BROKEN_DATAGRAM_SOCKETS 1
+
 /* Define this symbol if your system has the functions bcopy, etc. */
 
 #define BSTRING
@@ -376,7 +386,6 @@ typedef int pid_t;
 #define pclose    _pclose
 #define putw	  _putw
 #define umask	  _umask
-#define utime	  _utime
 #define utimbuf	  _utimbuf
 #define index     strchr
 #define rindex    strrchr
@@ -385,7 +394,11 @@ typedef int pid_t;
 #define strnicmp  _strnicmp
 #define stricmp   _stricmp
 #define tzset     _tzset
+
+#if !defined (_MSC_VER) || (_MSC_VER < 1400)
 #define tzname    _tzname
+#define utime	  _utime
+#endif
 
 #ifdef HAVE_NTGUI
 #define abort	w32_abort

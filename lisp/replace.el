@@ -1341,7 +1341,7 @@ with the `noescape' argument set.
 
 (defun replace-match-data (integers reuse &optional new)
   "Like `match-data', but markers in REUSE get invalidated.
-If NEW is non-NIL, it is set and returned instead of fresh data,
+If NEW is non-nil, it is set and returned instead of fresh data,
 but coerced to the correct value of INTEGERS."
   (or (and new
 	   (progn
@@ -1357,7 +1357,7 @@ NEWTEXT, FIXEDCASE, LITERAL are just passed on.  If NOEDIT is true, no
 check for `\\?' is made to save time.  MATCH-DATA is used for the
 replacement.  In case editing is done, it is changed to use markers.
 
-The return value is non-NIL if there has been no `\\?' or NOEDIT was
+The return value is non-nil if there has been no `\\?' or NOEDIT was
 passed in.  If LITERAL is set, no checking is done, anyway."
   (unless (or literal noedit)
     (setq noedit t)
@@ -1486,7 +1486,7 @@ make, or the user didn't cancel the call."
 				 ;; For speed, use only integers and
 				 ;; reuse the list used last time.
 				 (replace-match-data t real-match-data)))))
-	  
+
 	  ;; Record whether the match is nonempty, to avoid an infinite loop
 	  ;; repeatedly matching the same empty string.
 	  (setq nonempty-match

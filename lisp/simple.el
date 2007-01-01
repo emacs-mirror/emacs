@@ -694,8 +694,8 @@ Leave one space or none, according to the context."
 
 (defun delete-horizontal-space (&optional backward-only)
   "Delete all spaces and tabs around point.
-If BACKWARD-ONLY is non-nil, only delete spaces before point."
-  (interactive "*")
+If BACKWARD-ONLY is non-nil, only delete them before point."
+  (interactive "*P")
   (let ((orig-pos (point)))
     (delete-region
      (if backward-only
@@ -4321,7 +4321,7 @@ The variable `selective-display' has a separate value for each buffer."
 (defvaralias 'default-indicate-unused-lines 'default-indicate-empty-lines)
 
 (defun toggle-truncate-lines (&optional arg)
-  "Toggle whether to fold or truncate long lines on the screen.
+  "Toggle whether to fold or truncate long lines for the current buffer.
 With arg, truncate long lines iff arg is positive.
 Note that in side-by-side windows, truncation is always enabled."
   (interactive "P")

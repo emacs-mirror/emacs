@@ -1754,7 +1754,8 @@ syms_of_callproc ()
 
   DEFVAR_LISP ("shell-file-name", &Vshell_file_name,
 	       doc: /* *File name to load inferior shells from.
-Initialized from the SHELL environment variable.  */);
+Initialized from the SHELL environment variable, or to a system-dependent
+default if SHELL is not set.  */);
 
   DEFVAR_LISP ("exec-path", &Vexec_path,
 	       doc: /* *List of directories to search programs to run in subprocesses.

@@ -427,11 +427,11 @@ t means to show all source files."
   :type 'integer)
 
 (defcustom idlwave-library-path nil
-  "Library path for Windows and MacOS (OS9).  Not needed under Unix.
+  "Library path for Windows and MacOS (OS9).  Not needed under UNIX.
 When selecting the directories to scan for IDL user catalog routine
 info, IDLWAVE can, under UNIX, query the shell for the exact search
 path \(the value of !PATH).  However, under Windows and MacOS
-(pre-OSX), the IDLWAVE shell does not work.  In this case, this
+\(pre-OSX), the IDLWAVE shell does not work.  In this case, this
 variable can be set to specify the paths where IDLWAVE can find PRO
 files.  The shell will only be asked for a list of paths when this
 variable is nil.  The value is a list of directories.  A directory
@@ -1595,7 +1595,7 @@ Capitalize system variables - action only
 (define-key idlwave-mode-map "\C-c\C-t"   'idlwave-find-module-this-file)
 (define-key idlwave-mode-map "\C-c?"      'idlwave-routine-info)
 (define-key idlwave-mode-map "\M-?"       'idlwave-context-help)
-(define-key idlwave-mode-map [(control meta ?\?)] 
+(define-key idlwave-mode-map [(control meta ?\?)]
   'idlwave-help-assistant-help-with-topic)
 ;; Pickup both forms of Esc/Meta binding
 (define-key idlwave-mode-map [(meta tab)] 'idlwave-complete)
@@ -1942,7 +1942,7 @@ The main features of this mode are
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
 
   ;; ChangeLog
-  (set (make-local-variable 'add-log-current-defun-function) 
+  (set (make-local-variable 'add-log-current-defun-function)
        'idlwave-current-routine-fullname)
 
   ;; Set tag table list to use IDLTAGS as file name.
@@ -4651,7 +4651,11 @@ Gets set in cached XML rinfo, or `idlw-rinfo.el'.")
 	      props (car (cdr pelem)))
 	(cond
 	 ((eq ptype 'SUPERCLASS)
-	  (push (cdr (assq 'name props)) inherits))
+	  (let ((pname (cdr (assq 'name props)))
+		(plink (cdr (assq 'link props))))
+	    (unless (and (string= pname "None")
+			 (string= plink "None"))
+	      (push pname inherits))))
 
 	 ((eq ptype 'PROPERTY)
 	  (let ((pname (cdr (assq 'name props)))
@@ -9232,7 +9236,7 @@ Assumes that point is at the beginning of the unit as found by
      "--"
      ["Info" idlwave-info t]
      "--"
-     ["Help with Topic" idlwave-help-assistant-help-with-topic 
+     ["Help with Topic" idlwave-help-assistant-help-with-topic
       idlwave-help-use-assistant]
      ["Launch IDL Help" idlwave-launch-idlhelp t])))
 

@@ -1,6 +1,7 @@
 ;;; latin-2.el --- set up case-conversion and syntax tables for ISO Latin-2
 
-;; Copyright (C) 1995, 1997, 2005  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 2001, 2002, 2003, 2004, 2005,
+;;   2006  Free Software Foundation, Inc.
 
 ;; Author: Michael Gschwind (mike@vlsivie.tuwien.ac.at)
 ;; Maintainer: FSF

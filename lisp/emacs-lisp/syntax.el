@@ -52,6 +52,22 @@
 (defsubst syntax-ppss-depth (ppss)
   (nth 0 ppss))
 
+(defun syntax-ppss-toplevel-pos (ppss)
+  "Get the latest syntactically outermost position found in a syntactic scan.
+PPSS is a scan state, as returned by `partial-parse-sexp' or `syntax-ppss'.
+An \"outermost position\" means one that it is outside of any syntactic entity:
+outside of any parentheses, comments, or strings encountered in the scan.
+If no such position is recorded in PPSS (because the end of the scan was
+itself at the outermost level), return nil."
+  ;; BEWARE! We rely on the undocumented 9th field.  The 9th field currently
+  ;; contains the list of positions of the enclosing open-parens.
+  ;; I.e. those positions are outside of any string/comment and the first of
+  ;; those is outside of any paren (i.e. corresponds to a nil ppss).
+  ;; If this list is empty but we are in a string or comment, then the 8th
+  ;; field contains a similar "toplevel" position.
+  (or (car (nth 9 ppss))
+      (nth 8 ppss)))
+
 (defsubst syntax-ppss-context (ppss)
   (cond
    ((nth 3 ppss) 'string)
@@ -87,8 +103,7 @@ point (where the PPSS is equivalent to nil).")
     ;; depend on the text after BEG (which is presumably changed).  So if
     ;; BEG=(car (nth 10 syntax-ppss-last)) don't reuse that data because the
     ;; assumed nil state at BEG may not be valid any more.
-    (if (<= beg (or (car (nth 10 syntax-ppss-last))
-                    (nth 9 syntax-ppss-last)
+    (if (<= beg (or (syntax-ppss-toplevel-pos (cdr syntax-ppss-last))
                     (nth 3 syntax-ppss-last)
                     0))
 	(setq syntax-ppss-last nil)
@@ -136,22 +151,14 @@ Point is at POS when this function returns."
 	  (cond
 	   ;; Use OLD-PPSS if possible and close enough.
 	   ((and (not old-pos) old-ppss
-		 ;; BEWARE! We rely on the undocumented 9th field.  The 9th
-		 ;; field currently contains the list of positions of
-		 ;; open-parens of the enclosing parens.  I.e. those
-		 ;; positions are outside of any string/comment
-		 ;; and the first of those is outside of any paren
-		 ;; (i.e. corresponds to a nil ppss).  If this list is empty
-		 ;; but we are in a string or comment, then the 8th field
-		 ;; contains a similar "toplevel" position.  If `pt-min' is
-		 ;; too far from `pos', we could try to use other positions
-		 ;; in (nth 9 old-ppss), but that doesn't seem to happen in
-		 ;; practice and it would complicate this code (and the
-		 ;; before-change-function code even more).  But maybe it
-		 ;; would be useful in "degenerate" cases such as when the
-		 ;; whole file is wrapped in a set of parenthesis.
-		 (setq pt-min (or (car (nth 9 old-ppss))
-				  (nth 8 old-ppss)
+                 ;; If `pt-min' is too far from `pos', we could try to use
+		 ;; other positions in (nth 9 old-ppss), but that doesn't
+		 ;; seem to happen in practice and it would complicate this
+		 ;; code (and the before-change-function code even more).
+		 ;; But maybe it would be useful in "degenerate" cases such
+		 ;; as when the whole file is wrapped in a set
+		 ;; of parentheses.
+		 (setq pt-min (or (syntax-ppss-toplevel-pos old-ppss)
 				  (nth 2 old-ppss)))
 		 (<= pt-min pos) (< (- pos pt-min) syntax-ppss-max-span))
 	    (incf (car (aref syntax-ppss-stats 1)))

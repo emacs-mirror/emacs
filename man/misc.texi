@@ -478,7 +478,8 @@ either or both of these default initializations.
 @file{~/.emacs_@var{shellname}} as input, if it exists, where
 @var{shellname} is the name of the file that the shell was loaded
 from.  For example, if you use bash, the file sent to it is
-@file{~/.emacs_bash}.
+@file{~/.emacs_bash}.  If this file is not found, Emacs tries to fallback
+on @file{~/.emacs.d/init_@var{shellname}.sh}.
 
   To specify a coding system for the shell, you can use the command
 @kbd{C-x @key{RET} c} immediately before @kbd{M-x shell}.  You can
@@ -1243,28 +1244,36 @@ variable @env{EDITOR} to specify which editor to run.  If you set
 @env{EDITOR} to @samp{emacs}, they invoke Emacs---but in an
 inconvenient fashion, by starting a new, separate Emacs process.  This
 is inconvenient because it takes time and because the new Emacs process
-doesn't share the buffers in any existing Emacs process.
+doesn't share the buffers with any existing Emacs process.
 
   You can arrange to use your existing Emacs process as the editor for
-programs like @code{mail} by using the Emacs client and Emacs server
-programs.  Here is how.
+programs like @code{mail} by using the Emacs client program and the
+server that is part of Emacs.  Here is how.
 
 @cindex @env{TEXEDIT} environment variable
-  First, the preparation.  Within Emacs, call the function
-@code{server-start}.  (Your @file{.emacs} file can do this automatically
-if you add the expression @code{(server-start)} to it.)  Then, outside
-Emacs, set the @env{EDITOR} environment variable to @samp{emacsclient}.
-(Note that some programs use a different environment variable; for
-example, to make @TeX{} use @samp{emacsclient}, you should set the
-@env{TEXEDIT} environment variable to @samp{emacsclient +%d %s}.)
+@findex server-start
+  First, the preparations.  Within Emacs, call the function
+@code{server-start}.  (Your @file{.emacs} init file can do this
+automatically if you add the expression @code{(server-start)} to it,
+see @ref{Init File}.)  Then, outside Emacs, set the @env{EDITOR}
+environment variable to @samp{emacsclient}.  (Note that some programs
+use a different environment variable; for example, to make @TeX{} use
+@samp{emacsclient}, you should set the @env{TEXEDIT} environment
+variable to @samp{emacsclient +%d %s}.)
+
+@pindex emacs.bash
+@cindex Bash command to use Emacs server
+  As an alternative to using @code{emacsclient}, the file
+@file{etc/emacs.bash} defines a Bash command @code{edit} which will
+communicate with a running Emacs session, or start one if none exist.
 
 @kindex C-x #
 @findex server-edit
-  Then, whenever any program invokes your specified @env{EDITOR}
+  Now, whenever any program invokes your specified @env{EDITOR}
 program, the effect is to send a message to your principal Emacs telling
 it to visit a file.  (That's what the program @code{emacsclient} does.)
 Emacs displays the buffer immediately and you can immediately begin
-editing it.
+editing it in the already running Emacs session.
 
   When you've finished editing that buffer, type @kbd{C-x #}
 (@code{server-edit}).  This saves the file and sends a message back to
@@ -1296,8 +1305,8 @@ kills it if the file name matches the regular expression
 each one a unique ``server name'', using the variable
 @code{server-name}.  For example, @kbd{M-x set-variable @key{RET}
 server-name @key{RET} foo @key{RET}} sets the server name to
-@samp{foo}.  The @code{emacsclient} program can visit a server by name
-using the @samp{-s} option.  @xref{Invoking emacsclient}.
+@samp{foo}.  The @code{emacsclient} program can specify a server by
+name using the @samp{-s} option.  @xref{Invoking emacsclient}.
 
   While @code{mail} or another application is waiting for
 @code{emacsclient} to finish, @code{emacsclient} does not read terminal
@@ -1334,6 +1343,7 @@ automatically when you finish with them.
 
 @node Invoking emacsclient,, Emacs Server, Emacs Server
 @subsection Invoking @code{emacsclient}
+@cindex @code{emacsclient} invocation and options
 
   To run the @code{emacsclient} program, specify file names as arguments,
 and optionally line numbers as well, like this:
@@ -1362,37 +1372,52 @@ a client buffer, the next client buffer is automatically selected.
 @code{emacsclient}, then it returns immediately.  (You can take as
 long as you like to edit the files in Emacs.)
 
-  The option @samp{--alternate-editor=@var{command}} specifies a
-command to run if @code{emacsclient} fails to contact Emacs.  This is
-useful when running @code{emacsclient} in a script.  For example, the
-following setting for the @env{EDITOR} environment variable will
-always give you an editor, even if no Emacs server is running:
+  The option @samp{-a @var{command}} or
+@samp{--alternate-editor=@var{command}} specifies a command to run if
+@code{emacsclient} fails to contact Emacs.  This is useful when
+running @code{emacsclient} in a script.  For example, the following
+setting for the @env{EDITOR} environment variable will always give you
+an editor, even if no Emacs server is running:
 
 @example
 EDITOR="emacsclient --alternate-editor emacs +%d %s"
 @end example
 
 @noindent
+@cindex @env{ALTERNATE_EDITOR} environment variable
 The environment variable @env{ALTERNATE_EDITOR} has the same effect, with
 the value of the @samp{--alternate-editor} option taking precedence.
 
-@pindex emacs.bash
-  Alternatively, the file @file{etc/emacs.bash} defines a bash
-function which will communicate with a running Emacs server, or start
-one if none exists.
-
 If you use several displays, you can tell Emacs on which display to
-open the given files with the option @samp{--display=@var{DISPLAY}}.
-This can be used typically when connecting from home to an Emacs
-server running on your machine at your workplace.
+open the given files with the @samp{-d @var{display}} or
+@samp{--display=@var{display}} option to @code{emacsclient}.  This is
+handy when connecting from home to an Emacs session running on your
+machine at your workplace.
 
 If there is more than one Emacs server running, you can specify a
-server name with the option @samp{-s @var{name}}.
+server name with the @samp{-s @var{name}} or
+@samp{--socket-name=@var{name}} option to @code{emacsclient}.  (This
+option is not supported on MS-Windows.)
 
 You can also use @code{emacsclient} to execute any piece of Emacs Lisp
-code, using the option @samp{--eval}.  When this option is given, the
-rest of the arguments is not taken as a list of files to visit but as
-a list of expressions to evaluate.
+code, using the @samp{-e} or @samp{--eval} option.  When this option
+is given, the rest of the arguments is interpreted as a list of
+expressions to evaluate, not a list of files to visit.
+
+@cindex @env{EMACS_SERVER_FILE} environment variable
+When you start the Emacs server (by calling @code{server-start}),
+Emacs creates a file with information about TCP connection to the
+server: the host where Emacs is running, the port where it is
+listening, and an authentication string.  @code{emacsclient} uses this
+information if it needs to connect to the server via TCP.  By default,
+the file goes in the @file{~/.emacs.d/server/} directory@footnote{On
+MS-Windows, if @env{HOME} is not set or the TCP configuration file
+cannot be found there, Emacs also looks for the file in the
+@file{.emacs.d/server/} subdirectory of the directory pointed to by
+the @env{APPDATA} environment variable.}.  You can specify the file
+name to use with the @samp{-f @var{file}} or
+@samp{--server-file=@var{file}} options, or by setting
+@env{EMACS_SERVER_FILE} environment variable to the file name.
 
 @node Printing, Sorting, Emacs Server, Top
 @section Printing Hard Copies

@@ -156,7 +156,7 @@ all:            $(ALL)
 #
 # The dumped executable
 #
-emacs:          $(BLD) $(EMACS)
+emacs:          stamp_BLD $(EMACS)
 $(EMACS):       $(DOC) $(TEMACS)
 	"$(THISDIR)/$(BLD)/temacs.exe" -batch -l loadup dump
 	-"$(THISDIR)/$(BLD)/emacs.exe" -q -batch -f list-load-path-shadows
@@ -167,7 +167,7 @@ $(EMACS):       $(DOC) $(TEMACS)
 # If preload runs out of memory, increase the last argument to addsection
 # (it is the preload heap size in MB).
 #
-temacs:         $(BLD) $(TEMACS)
+temacs:         stamp_BLD $(TEMACS)
 $(TEMACS):      $(TLIB0) $(TLIB1) $(TLIBW32) $(TLASTLIB) $(TOBJ) $(TRES) \
 		  ../nt/$(BLD)/addsection.exe
 	$(LINK) $(LINK_OUT)$(TEMACS_TMP) $(FULL_LINK_FLAGS) $(TOBJ) $(TRES) $(LIBS)
@@ -185,7 +185,7 @@ bootstrap: bootstrap-emacs
 # WARNING: Do NOT split the part inside $(ARGQUOTE)s into multiple lines as
 #          this can break with GNU Make 3.81 and later if sh.exe is used.
 bootstrap-temacs:
-	$(MAKE) $(MFLAGS) temacs CFLAGS=$(ARGQUOTE)$(CFLAGS) -DPURESIZE=5000000$(ARGQUOTE)
+	$(MAKE) $(MFLAGS) $(XMFLAGS) temacs CFLAGS=$(ARGQUOTE)$(CFLAGS) -DPURESIZE=5000000$(ARGQUOTE)
 
 #
 # Dump an Emacs executable named bootstrap-emacs containing the
@@ -250,6 +250,7 @@ clean:
 	- $(DEL) *~ "s/*~" "m/*~"
 	- $(DEL) $(COMPILER_TEMP_FILES)
 	- $(DEL_TREE) $(OBJDIR)
+	- $(DEL) stamp_BLD
 
 distclean:	clean
 	- $(DEL) config.h epaths.h
@@ -1486,3 +1487,8 @@ $(BLD)/w32bdf.$(O): \
 	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32term.h
+
+# Each object file depends on stamp_BLD, because in parallel builds we must
+# make sure $(BLD) exists before starting compilations.
+#
+$(OBJ0) $(OBJ1) $(WIN32OBJ) $(BLD)/lastfile.$(O) $(BLD)/firstfile.$(O): stamp_BLD
