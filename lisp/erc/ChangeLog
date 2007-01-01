@@ -1,4 +1,4 @@
-2006-12-13  Leo  <sdl.web@gmail.com>
+2006-12-13  Leo  <sdl.web@gmail.com>  (tiny change)
 
 	* erc.el (erc-iswitchb): Temporarily enable iswitchb mode if it
 	isn't active already, instead of leaving it on.

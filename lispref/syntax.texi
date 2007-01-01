@@ -597,26 +597,26 @@ expression prefix syntax class, and characters with the @samp{p} flag.
 @end defun
 
 @node Parsing Expressions
-@section Parsing Balanced Expressions
+@section Parsing Expressions
 
-  Here are several functions for parsing and scanning balanced
+  This section describes functions for parsing and scanning balanced
 expressions, also known as @dfn{sexps}.  Basically, a sexp is either a
-balanced parenthetical grouping, or a symbol name (a sequence of
-characters whose syntax is either word constituent or symbol
-constituent).  However, characters whose syntax is expression prefix
-are treated as part of the sexp if they appear next to it.
+balanced parenthetical grouping, a string, or a symbol name (a
+sequence of characters whose syntax is either word constituent or
+symbol constituent).  However, characters whose syntax is expression
+prefix are treated as part of the sexp if they appear next to it.
 
   The syntax table controls the interpretation of characters, so these
 functions can be used for Lisp expressions when in Lisp mode and for C
 expressions when in C mode.  @xref{List Motion}, for convenient
 higher-level functions for moving over balanced expressions.
 
-  A syntax table only describes how each character changes the state
-of the parser, rather than describing the state itself.  For example,
-a string delimiter character toggles the parser state between
-``in-string'' and ``in-code'' but the characters inside the string do
-not have any particular syntax to identify them as such.  For example
-(note that 15 is the syntax code for generic string delimiters),
+  A character's syntax controls how it changes the state of the
+parser, rather than describing the state itself.  For example, a
+string delimiter character toggles the parser state between
+``in-string'' and ``in-code,'' but the syntax of characters does not
+directly say whether they are inside a string.  For example (note that
+15 is the syntax code for generic string delimiters),
 
 @example
 (put-text-property 1 9 'syntax-table '(15 . nil))
@@ -627,46 +627,128 @@ does not tell Emacs that the first eight chars of the current buffer
 are a string, but rather that they are all string delimiters.  As a
 result, Emacs treats them as four consecutive empty string constants.
 
-  Every time you use the parser, you specify it a starting state as
-well as a starting position.  If you omit the starting state, the
-default is ``top level in parenthesis structure,'' as it would be at
-the beginning of a function definition.  (This is the case for
-@code{forward-sexp}, which blindly assumes that the starting point is
-in such a state.)
+@menu
+* Motion via Parsing::       Motion functions that work by parsing.
+* Position Parse::           Determining the syntactic state of a position.
+* Parser State::             How Emacs represents a syntactic state.
+* Low-Level Parsing::        Parsing across a specified region.
+* Control Parsing::          Parameters that affect parsing.
+@end menu
 
-@defun parse-partial-sexp start limit &optional target-depth stop-before state stop-comment
-This function parses a sexp in the current buffer starting at
-@var{start}, not scanning past @var{limit}.  It stops at position
-@var{limit} or when certain criteria described below are met, and sets
-point to the location where parsing stops.  It returns a value
-describing the status of the parse at the point where it stops.
+@node Motion via Parsing
+@subsection Motion Commands Based on Parsing
 
-If @var{state} is @code{nil}, @var{start} is assumed to be at the top
-level of parenthesis structure, such as the beginning of a function
-definition.  Alternatively, you might wish to resume parsing in the
-middle of the structure.  To do this, you must provide a @var{state}
-argument that describes the initial status of parsing.
+  This section describes simple point-motion functions that operate
+based on parsing expressions.
 
-@cindex parenthesis depth
-If the third argument @var{target-depth} is non-@code{nil}, parsing
-stops if the depth in parentheses becomes equal to @var{target-depth}.
-The depth starts at 0, or at whatever is given in @var{state}.
+@defun scan-lists from count depth
+This function scans forward @var{count} balanced parenthetical groupings
+from position @var{from}.  It returns the position where the scan stops.
+If @var{count} is negative, the scan moves backwards.
 
-If the fourth argument @var{stop-before} is non-@code{nil}, parsing
-stops when it comes to any character that starts a sexp.  If
-@var{stop-comment} is non-@code{nil}, parsing stops when it comes to the
-start of a comment.  If @var{stop-comment} is the symbol
-@code{syntax-table}, parsing stops after the start of a comment or a
-string, or the end of a comment or a string, whichever comes first.
+If @var{depth} is nonzero, parenthesis depth counting begins from that
+value.  The only candidates for stopping are places where the depth in
+parentheses becomes zero; @code{scan-lists} counts @var{count} such
+places and then stops.  Thus, a positive value for @var{depth} means go
+out @var{depth} levels of parenthesis.
 
-@cindex parse state
-The fifth argument @var{state} is a ten-element list of the same form
-as the value of this function, described below.  The return value of
-one call may be used to initialize the state of the parse on another
-call to @code{parse-partial-sexp}.
+Scanning ignores comments if @code{parse-sexp-ignore-comments} is
+non-@code{nil}.
 
-The result is a list of ten elements describing the final state of
-the parse:
+If the scan reaches the beginning or end of the buffer (or its
+accessible portion), and the depth is not zero, an error is signaled.
+If the depth is zero but the count is not used up, @code{nil} is
+returned.
+@end defun
+
+@defun scan-sexps from count
+This function scans forward @var{count} sexps from position @var{from}.
+It returns the position where the scan stops.  If @var{count} is
+negative, the scan moves backwards.
+
+Scanning ignores comments if @code{parse-sexp-ignore-comments} is
+non-@code{nil}.
+
+If the scan reaches the beginning or end of (the accessible part of) the
+buffer while in the middle of a parenthetical grouping, an error is
+signaled.  If it reaches the beginning or end between groupings but
+before count is used up, @code{nil} is returned.
+@end defun
+
+@defun forward-comment count
+This function moves point forward across @var{count} complete comments
+     (that is, including the starting delimiter and the terminating
+delimiter if any), plus any whitespace encountered on the way.  It
+moves backward if @var{count} is negative.  If it encounters anything
+other than a comment or whitespace, it stops, leaving point at the
+place where it stopped.  This includes (for instance) finding the end
+of a comment when moving forward and expecting the beginning of one.
+The function also stops immediately after moving over the specified
+number of complete comments.  If @var{count} comments are found as
+expected, with nothing except whitespace between them, it returns
+@code{t}; otherwise it returns @code{nil}.
+
+This function cannot tell whether the ``comments'' it traverses are
+embedded within a string.  If they look like comments, it treats them
+as comments.
+@end defun
+
+To move forward over all comments and whitespace following point, use
+@code{(forward-comment (buffer-size))}.  @code{(buffer-size)} is a good
+argument to use, because the number of comments in the buffer cannot
+exceed that many.
+
+@node Position Parse
+@subsection Finding the Parse State for a Position
+
+  For syntactic analysis, such as in indentation, often the useful
+thing is to compute the syntactic state corresponding to a given buffer
+position.  This function does that conveniently.
+
+@defun syntax-ppss &optional pos
+This function returns the parser state (see next section) that the
+parser would reach at position @var{pos} starting from the beginning
+of the buffer.  This is equivalent to @code{(parse-partial-sexp
+(point-min) @var{pos})}, except that @code{syntax-ppss} uses a cache
+to speed up the computation.  Due to this optimization, the 2nd value
+(previous complete subexpression) and 6th value (minimum parenthesis
+depth) of the returned parser state are not meaningful.
+@end defun
+
+   @code{syntax-ppss} automatically hooks itself to
+@code{before-change-functions} to keep its cache consistent.  But
+updating can fail if @code{syntax-ppss} is called while
+@code{before-change-functions} is temporarily let-bound, or if the
+buffer is modified without obeying the hook, such as when using
+@code{inhibit-modification-hooks}.  For this reason, it is sometimes
+necessary to flush the cache manually.
+
+@defun syntax-ppss-flush-cache beg
+This function flushes the cache used by @code{syntax-ppss}, starting at
+position @var{beg}.
+@end defun
+
+  Major modes can make @code{syntax-ppss} run faster by specifying
+where it needs to start parsing.
+
+@defvar syntax-begin-function
+If this is non-@code{nil}, it should be a function that moves to an
+earlier buffer position where the parser state is equivalent to
+@code{nil}---in other words, a position outside of any comment,
+string, or parenthesis.  @code{syntax-ppss} uses it to further
+optimize its computations, when the cache gives no help.
+@end defvar
+
+@node Parser State
+@subsection Parser State
+@cindex parser state
+
+  A @dfn{parser state} is a list of ten elements describing the final
+state of parsing text syntactically as part of an expression.  The
+parsing functions in the following sections return a parser state as
+the value, and in some cases accept one as an argument also, so that
+you can resume parsing after it stops.  Here are the meanings of the
+elements of the parser state:
 
 @enumerate 0
 @item
@@ -721,81 +803,65 @@ data is subject to change; it is used if you pass this list
 as the @var{state} argument to another call.
 @end enumerate
 
-Elements 1, 2, and 6 are ignored in the argument @var{state}.  Element
-8 is used only to set the corresponding element of the return value,
-in certain simple cases.  Element 9 is used only to set element 1 of
-the return value, in trivial cases where parsing starts and stops
-within the same pair of parentheses.
+  Elements 1, 2, and 6 are ignored in a state which you pass as an
+argument to continue parsing, and elements 8 and 9 are used only in
+trivial cases.  Those elements serve primarily to convey information
+to the Lisp program which does the parsing.
 
-@cindex indenting with parentheses
-This function is most often used to compute indentation for languages
-that have nested parentheses.
+  One additional piece of useful information is available from a
+parser state using this function:
+
+@defun syntax-ppss-toplevel-pos state
+This function extracts, from parser state @var{state}, the last
+position scanned in the parse which was at top level in grammatical
+structure.  ``At top level'' means outside of any parentheses,
+comments, or strings.
+
+The value is @code{nil} if @var{state} represents a parse which has
+arrived at a top level position.
 @end defun
 
-@defun syntax-ppss &optional pos
-This function returns the state that the parser would have at position
-@var{pos}, if it were started with a default start state at the
-beginning of the buffer.  Thus, it is equivalent to
-@code{(parse-partial-sexp (point-min) @var{pos})}, except that
-@code{syntax-ppss} uses a cache to speed up the computation.  Also,
-the 2nd value (previous complete subexpression) and 6th value (minimum
-parenthesis depth) of the returned state are not meaningful.
+  We have provided this access function rather than document how the
+data is represented in the state, because we plan to change the
+representation in the future.
+
+@node Low-Level Parsing
+@subsection Low-Level Parsing
+
+  The most basic way to use the expression parser is to tell it
+to start at a given position with a certain state, and parse up to
+a specified end position.
+
+@defun parse-partial-sexp start limit &optional target-depth stop-before state stop-comment
+This function parses a sexp in the current buffer starting at
+@var{start}, not scanning past @var{limit}.  It stops at position
+@var{limit} or when certain criteria described below are met, and sets
+point to the location where parsing stops.  It returns a parser state
+describing the status of the parse at the point where it stops.
+
+@cindex parenthesis depth
+If the third argument @var{target-depth} is non-@code{nil}, parsing
+stops if the depth in parentheses becomes equal to @var{target-depth}.
+The depth starts at 0, or at whatever is given in @var{state}.
+
+If the fourth argument @var{stop-before} is non-@code{nil}, parsing
+stops when it comes to any character that starts a sexp.  If
+@var{stop-comment} is non-@code{nil}, parsing stops when it comes to the
+start of a comment.  If @var{stop-comment} is the symbol
+@code{syntax-table}, parsing stops after the start of a comment or a
+string, or the end of a comment or a string, whichever comes first.
+
+If @var{state} is @code{nil}, @var{start} is assumed to be at the top
+level of parenthesis structure, such as the beginning of a function
+definition.  Alternatively, you might wish to resume parsing in the
+middle of the structure.  To do this, you must provide a @var{state}
+argument that describes the initial status of parsing.  The value
+returned by a previous call to @code{parse-partial-sexp} will do
+nicely.
 @end defun
 
-@defun syntax-ppss-flush-cache beg
-This function flushes the cache used by @code{syntax-ppss}, starting at
-position @var{beg}.
-
-When @code{syntax-ppss} is called, it automatically hooks itself
-to @code{before-change-functions} to keep its cache consistent.
-But this can fail if @code{syntax-ppss} is called while
-@code{before-change-functions} is temporarily let-bound, or if the
-buffer is modified without obeying the hook, such as when using
-@code{inhibit-modification-hooks}.  For this reason, it is sometimes
-necessary to flush the cache manually.
-@end defun
-
-@defvar syntax-begin-function
-If this is non-@code{nil}, it should be a function that moves to an
-earlier buffer position where the parser state is equivalent to
-@code{nil}---in other words, a position outside of any comment,
-string, or parenthesis.  @code{syntax-ppss} uses it to supplement its
-cache.
-@end defvar
-
-@defun scan-lists from count depth
-This function scans forward @var{count} balanced parenthetical groupings
-from position @var{from}.  It returns the position where the scan stops.
-If @var{count} is negative, the scan moves backwards.
-
-If @var{depth} is nonzero, parenthesis depth counting begins from that
-value.  The only candidates for stopping are places where the depth in
-parentheses becomes zero; @code{scan-lists} counts @var{count} such
-places and then stops.  Thus, a positive value for @var{depth} means go
-out @var{depth} levels of parenthesis.
-
-Scanning ignores comments if @code{parse-sexp-ignore-comments} is
-non-@code{nil}.
-
-If the scan reaches the beginning or end of the buffer (or its
-accessible portion), and the depth is not zero, an error is signaled.
-If the depth is zero but the count is not used up, @code{nil} is
-returned.
-@end defun
-
-@defun scan-sexps from count
-This function scans forward @var{count} sexps from position @var{from}.
-It returns the position where the scan stops.  If @var{count} is
-negative, the scan moves backwards.
-
-Scanning ignores comments if @code{parse-sexp-ignore-comments} is
-non-@code{nil}.
-
-If the scan reaches the beginning or end of (the accessible part of) the
-buffer while in the middle of a parenthetical grouping, an error is
-signaled.  If it reaches the beginning or end between groupings but
-before count is used up, @code{nil} is returned.
-@end defun
+@node Control Parsing
+@subsection Parameters to Control Parsing
 
 @defvar multibyte-syntax-as-symbol
 If this variable is non-@code{nil}, @code{scan-sexps} treats all
@@ -816,29 +882,6 @@ The behavior of @code{parse-partial-sexp} is also affected by
 
 You can use @code{forward-comment} to move forward or backward over
 one comment or several comments.
-
-@defun forward-comment count
-This function moves point forward across @var{count} complete comments
-(that is, including the starting delimiter and the terminating
-delimiter if any), plus any whitespace encountered on the way.  It
-moves backward if @var{count} is negative.  If it encounters anything
-other than a comment or whitespace, it stops, leaving point at the
-place where it stopped.  This includes (for instance) finding the end
-of a comment when moving forward and expecting the beginning of one.
-The function also stops immediately after moving over the specified
-number of complete comments.  If @var{count} comments are found as
-expected, with nothing except whitespace between them, it returns
-@code{t}; otherwise it returns @code{nil}.
-
-This function cannot tell whether the ``comments'' it traverses are
-embedded within a string.  If they look like comments, it treats them
-as comments.
-@end defun
-
-To move forward over all comments and whitespace following point, use
-@code{(forward-comment (buffer-size))}.  @code{(buffer-size)} is a good
-argument to use, because the number of comments in the buffer cannot
-exceed that many.
 
 @node Standard Syntax Tables
 @section Some Standard Syntax Tables

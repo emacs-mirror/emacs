@@ -133,9 +133,13 @@ are `-I REGEXP', to ignore changes whose lines match the REGEXP."
 (defcustom ediff-diff-options ""
   "*Options to pass to `ediff-diff-program'.
 If Unix diff is used as `ediff-diff-program',
- then a useful option is `-w', to ignore space.
-Options `-c' and `-i' are not allowed. Case sensitivity can be
- toggled interactively using \\[ediff-toggle-ignore-case]."
+then a useful option is `-w', to ignore space.
+Options `-c', `-u', and `-i' are not allowed. Case sensitivity can be
+toggled interactively using \\[ediff-toggle-ignore-case].
+
+This variable is not for customizing the look of the differences produced by
+the command \\[ediff-show-diff-output]. Use the variable 
+`ediff-custom-diff-options' for that."
   :set 'ediff-reset-diff-options
   :type 'string
   :group 'ediff-diff)
@@ -254,10 +258,10 @@ one optional arguments, diff-number to refine.")
 ;; ediff-setup-diff-regions-function, which can also have the value
 ;; ediff-setup-diff-regions3, which takes 4 arguments.
 (defun ediff-setup-diff-regions (file-A file-B file-C)
-  ;; looking for '-c', '-i', or a 'c', 'i' among clustered non-long options
-  (if (string-match "^-[ci]\\| -[ci]\\|\\(^\\| \\)-[^- ]+[ci]"
+  ;; looking for '-c', '-i', '-u', or 'c', 'i', 'u' among clustered non-long options
+  (if (string-match "^-[ciu]\\| -[ciu]\\|\\(^\\| \\)-[^- ]+[ciu]"
 		    ediff-diff-options)
-      (error "Options `-c' and `-i' are not allowed in `ediff-diff-options'"))
+      (error "Options `-c', `-u', and `-i' are not allowed in `ediff-diff-options'"))
 
   ;; create, if it doesn't exist
   (or (ediff-buffer-live-p ediff-diff-buffer)

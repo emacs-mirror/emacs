@@ -33,21 +33,11 @@
 ;;; Code:
 
 (require 'help-mode) ;; for function help-buffer
-(eval-when-compile (require 'cl))
 
 (defface tutorial-warning-face
-  '((((class color) (min-colors 88) (background light))
-     (:foreground "Red1" :weight bold))
-    (((class color) (min-colors 88) (background dark))
-     (:foreground "Pink" :weight bold))
-    (((class color) (min-colors 16) (background light))
-     (:foreground "Red1" :weight bold))
-    (((class color) (min-colors 16) (background dark))
-     (:foreground "Pink" :weight bold))
-    (((class color) (min-colors 8)) (:foreground "red"))
-    (t (:inverse-video t :weight bold)))
+  '((t :inherit font-lock-warning-face))
   "Face used to highlight warnings in the tutorial."
-  :group 'font-lock-faces)
+  :group 'help)
 
 (defvar tutorial--point-before-chkeys 0
   "Point before display of key changes.")
@@ -168,8 +158,7 @@ options:
                       where
                       " to get the function `"
                       (format "%s" db)
-                      "'."))
-            )
+                      "'.")))
           (fill-region (point-min) (point)))))
       (print-help-return-message))))
 
@@ -213,110 +202,83 @@ LEFT and RIGHT are the elements to compare."
        ((and (symbolp cx)
              (symbolp cy))
         (string< (symbol-name cy)
-                 (symbol-name cx)))
-       ))))
+                 (symbol-name cx)))))))
 
 (defconst tutorial--default-keys
-  (let* (
-         ;; On window system suspend Emacs is replaced in the
-         ;; default keymap so honor this here.
-         (suspend-emacs (if window-system
+  ;; On window system, `suspend-emacs' is replaced in the default
+  ;; keymap
+  (let* ((suspend-emacs (if window-system
                             'iconify-or-deiconify-frame
                           'suspend-emacs))
          (default-keys
-           `(
-             ;; These are not mentioned but are basic:
-             (ESC-prefix [27])
+           `((ESC-prefix [27])
              (Control-X-prefix [?\C-x])
              (mode-specific-command-prefix [?\C-c])
-
              (save-buffers-kill-emacs [?\C-x ?\C-c])
-
 
              ;; * SUMMARY
              (scroll-up [?\C-v])
              (scroll-down [?\M-v])
              (recenter [?\C-l])
 
-
              ;; * BASIC CURSOR CONTROL
              (forward-char [?\C-f])
              (backward-char [?\C-b])
-
              (forward-word [?\M-f])
              (backward-word [?\M-b])
-
              (next-line [?\C-n])
              (previous-line [?\C-p])
-
              (move-beginning-of-line [?\C-a])
              (move-end-of-line [?\C-e])
-
              (backward-sentence [?\M-a])
              (forward-sentence [?\M-e])
-
              (newline "\r")
-
              (beginning-of-buffer [?\M-<])
              (end-of-buffer [?\M->])
-
              (universal-argument [?\C-u])
-
 
              ;; * WHEN EMACS IS HUNG
              (keyboard-quit [?\C-g])
 
-
              ;; * DISABLED COMMANDS
              (downcase-region [?\C-x ?\C-l])
-
 
              ;; * WINDOWS
              (delete-other-windows [?\C-x ?1])
              ;; C-u 0 C-l
              ;; Type CONTROL-h k CONTROL-f.
 
-
              ;; * INSERTING AND DELETING
              ;; C-u 8 * to insert ********.
-
              (delete-backward-char [backspace])
              (delete-backward-char "\d")
              (delete-char [?\C-d])
-
              (backward-kill-word [(meta backspace)])
              (kill-word [?\M-d])
-
              (kill-line [?\C-k])
              (kill-sentence [?\M-k])
-
              (set-mark-command [?\C-@])
              (set-mark-command [?\C- ])
              (kill-region [?\C-w])
              (yank [?\C-y])
              (yank-pop [?\M-y])
 
-
              ;; * UNDO
              (advertised-undo [?\C-x ?u])
              (advertised-undo [?\C-x ?u])
 
-
              ;; * FILES
              (find-file [?\C-x ?\C-f])
              (save-buffer [?\C-x ?\C-s])
-
 
              ;; * BUFFERS
              (list-buffers [?\C-x ?\C-b])
              (switch-to-buffer [?\C-x ?b])
              (save-some-buffers [?\C-x ?s])
 
-
              ;; * EXTENDING THE COMMAND SET
              ;; C-x	Character eXtend.  Followed by one character.
              (execute-extended-command [?\M-x])
-
              ;; C-x C-f		Find file
              ;; C-x C-s		Save file
              ;; C-x s		Save some buffers
@@ -326,18 +288,14 @@ LEFT and RIGHT are the elements to compare."
              ;; C-x 1		Delete all but one window
              ;; C-x u		Undo
 
-
              ;; * MODE LINE
              (describe-mode [?\C-h ?m])
-
              (set-fill-column [?\C-x ?f])
              (fill-paragraph [?\M-q])
-
 
              ;; * SEARCHING
              (isearch-forward [?\C-s])
              (isearch-backward [?\C-r])
-
 
              ;; * MULTIPLE WINDOWS
              (split-window-vertically [?\C-x ?2])
@@ -345,25 +303,20 @@ LEFT and RIGHT are the elements to compare."
              (other-window [?\C-x ?o])
              (find-file-other-window [?\C-x ?4 ?\C-f])
 
-
              ;; * RECURSIVE EDITING LEVELS
              (keyboard-escape-quit [27 27 27])
-
 
              ;; * GETTING MORE HELP
              ;; The most basic HELP feature is C-h c
              (describe-key-briefly [?\C-h ?c])
              (describe-key [?\C-h ?k])
 
-
              ;; * MORE FEATURES
              ;; F10
 
-
              ;; * CONCLUSION
              ;;(iconify-or-deiconify-frame [?\C-z])
-             (,suspend-emacs [?\C-z])
-             )))
+             (,suspend-emacs [?\C-z]))))
     (sort default-keys 'tutorial--sort-keys))
   "Default Emacs key bindings that the tutorial depends on.")
 
@@ -374,7 +327,6 @@ LEFT and RIGHT are the elements to compare."
                      (interactive-p))
     (with-current-buffer (help-buffer)
       (let* ((tutorial-buffer  (button-get button 'tutorial-buffer))
-             ;;(tutorial-arg     (button-get button 'tutorial-arg))
              (explain-key-desc (button-get button 'explain-key-desc))
              (changed-keys (with-current-buffer tutorial-buffer
                              (save-excursion
@@ -384,7 +336,7 @@ LEFT and RIGHT are the elements to compare."
         (when changed-keys
           (insert
            "The following key bindings used in the tutorial had been changed
-from Emacs default in the " (buffer-name tutorial-buffer) " buffer:\n\n" )
+from the Emacs default in the " (buffer-name tutorial-buffer) " buffer:\n\n" )
           (let ((frm "   %-9s %-27s %-11s %s\n"))
             (insert (format frm "Key" "Standard Binding" "Is Now On" "Remark")))
           (dolist (tk changed-keys)
@@ -405,7 +357,7 @@ from Emacs default in the " (buffer-name tutorial-buffer) " buffer:\n\n" )
                 (insert "   " key-txt " ")
                 (setq tot-len (length key-txt))
                 (when (> 9 tot-len)
-                  (insert (make-string (- 9 tot-len) ? ))
+                  (insert (make-string (- 9 tot-len) ?\s))
                   (setq tot-len 9))
                 ;; Insert a link describing the old binding:
                 (insert-button def-fun-txt
@@ -417,7 +369,7 @@ from Emacs default in the " (buffer-name tutorial-buffer) " buffer:\n\n" )
                                'follow-link t)
                 (setq tot-len (+ tot-len (length def-fun-txt)))
                 (when (> 36 tot-len)
-                  (insert (make-string (- 36 tot-len) ? )))
+                  (insert (make-string (- 36 tot-len) ?\s)))
                 (when (listp where)
                   (setq where "list"))
                 ;; Tell where the old binding is now:
@@ -438,29 +390,18 @@ from Emacs default in the " (buffer-name tutorial-buffer) " buffer:\n\n" )
                 (insert "\n")))))
 
         (insert "
-It is legitimate to change key bindings, but changed bindings do not
-correspond to what the tutorial says.  (See also " )
-        (insert-button "Key Binding Conventions"
-                       'action
-                       (lambda(button) (interactive)
-                         (info
-                          "(elisp) Key Binding Conventions")
-                         (message "Type C-x 0 to close the new window"))
-                       'follow-link t)
-        (insert ".)\n\n")
+It is OK to change key bindings, but changed bindings do not
+correspond to what the tutorial says.\n\n")
         (print-help-return-message)))))
 
 (defun tutorial--find-changed-keys (default-keys)
-  "Find the key bindings that have changed.
-Check if the default Emacs key bindings that the tutorial depends
-on have been changed.
+  "Find the key bindings used in the tutorial that have changed.
+Return a list with elements of the form
 
-Return a list with the keys that have been changed.  The element
-of this list have the following format:
+  '(KEY DEF-FUN DEF-FUN-TXT WHERE REMARK QUIET)
 
-  \(list KEY DEF-FUN DEF-FUN-TXT WHERE REMARK)
+where
 
-Where
   KEY         is a key sequence whose standard binding has been changed
   DEF-FUN     is the standard binding of KEY
   DEF-FUN-TXT is a short descriptive text for DEF-FUN
@@ -477,9 +418,10 @@ Where
               rest of the list is used to show information when
               the user clicks the link.
 
-              KEY-FUN is the actual binding for KEY."
+              KEY-FUN is the actual binding for KEY.
+  QUIET       is t if this changed keybinding should be handled quietly.
+              This is used by `tutorial--display-changes'."
   (let (changed-keys remark)
-    ;; (default-keys tutorial--default-keys))
     (dolist (kdf default-keys)
       ;; The variables below corresponds to those with the same names
       ;; described in the doc string.
@@ -518,26 +460,21 @@ Where
                    (setq remark (list "cua-mode, more info" 'cua-mode))
                    nil)
                   ((and cua-mode
-                        (or
-                         (and (eq def-fun 'ESC-prefix)
-                              (equal key-fun
+                        (or (and (eq def-fun 'ESC-prefix)
+				 (equal key-fun
                                      `(keymap
-                                       (118 . cua-repeat-replace-region))))
-                         (and (eq def-fun 'mode-specific-command-prefix)
-                              (equal key-fun
-                                     '(keymap
-                                       (timeout . copy-region-as-kill))))
-                         (and (eq def-fun 'Control-X-prefix)
-                              (equal key-fun
-                                     '(keymap (timeout . kill-region))))))
+                                       (118 . cua-repeat-replace-region)))
+				 (setq def-fun-txt "\"ESC prefix\""))
+			    (and (eq def-fun 'mode-specific-command-prefix)
+				 (equal key-fun
+					'(keymap
+					  (timeout . copy-region-as-kill)))
+				 (setq def-fun-txt "\"C-c prefix\""))
+			    (and (eq def-fun 'Control-X-prefix)
+				 (equal key-fun
+					'(keymap (timeout . kill-region)))
+				 (setq def-fun-txt "\"C-x prefix\""))))
                    (setq remark (list "cua-mode replacement" 'cua-mode))
-                   (cond
-                    ((eq def-fun 'mode-specific-command-prefix)
-                     (setq def-fun-txt "\"C-c prefix\""))
-                    ((eq def-fun 'Control-X-prefix)
-                     (setq def-fun-txt "\"C-x prefix\""))
-                    ((eq def-fun 'ESC-prefix)
-                     (setq def-fun-txt "\"ESC prefix\"")))
                    (setq where "Same key")
                    nil)
                   ;; viper-mode specials:
@@ -567,124 +504,110 @@ Where
                                key-fun def-fun key where))
                    nil))
           (add-to-list 'changed-keys
-                       (list key def-fun def-fun-txt where remark)))))
+                       (list key def-fun def-fun-txt where remark nil)))))
     changed-keys))
 
-(defvar tutorial--tab-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [tab] 'forward-button)
-    (define-key map [(shift tab)] 'backward-button)
-    (define-key map [(meta tab)] 'backward-button)
-    map)
-  "Keymap that allows tabbing between buttons.")
+(defun tutorial--key-description (key)
+  (let ((desc (key-description key)))
+    (cond ((string= "ESC" desc) "<ESC>")
+	  ((string= "RET" desc) "<Return>")
+	  ((string= "DEL" desc) "<Delback>")
+	  (t desc))))
 
-(defun tutorial--display-changes (changed-keys)
+(defun tutorial--display-changes ()
   "Display changes to some default key bindings.
 If some of the default key bindings that the tutorial depends on
 have been changed then display the changes in the tutorial buffer
-with some explanatory links.
-
-CHANGED-KEYS should be a list in the format returned by
-`tutorial--find-changed-keys'."
-  (when (or changed-keys
-            (boundp 'viper-mode-string))
+with some explanatory links."
+  (let* ((changed-keys (tutorial--find-changed-keys
+			tutorial--default-keys))
+	 ;; Alist of element (DESC . CK) where DESC is the
+	 ;; key-description of a changed key and CK is the
+	 ;; corresponding element in `changed-keys'.
+	 (changed-keys-alist
+	  (mapcar (lambda (ck) (cons (tutorial--key-description (car ck)) ck))
+		  changed-keys))
+	 changed-key
+	 (start (point))
+	 (case-fold-search nil)
+	 (keybindings-regexp
+	  (concat "[[:space:]]\\("
+		  (mapconcat (lambda (kdf) (regexp-quote
+					    (tutorial--key-description
+					     (nth 1 kdf))))
+			     tutorial--default-keys
+			     "\\|")
+		  "\\)[[:punct:][:space:]]")))
     ;; Need the custom button face for viper buttons:
-    (when (boundp 'viper-mode-string)
-      (require 'cus-edit))
-    (let ((start (point))
-          end
-          (head  (get-lang-string tutorial--lang 'tut-chgdhead))
-          (head2 (get-lang-string tutorial--lang 'tut-chgdhead2)))
-      (when (and head head2)
-        (goto-char tutorial--point-before-chkeys)
-        (insert head)
-        (insert-button head2
-                       'tutorial-buffer
-                       (current-buffer)
-                       ;;'tutorial-arg arg
-                       'action
-                       'tutorial--detailed-help
-                       'follow-link t
-                       'face 'link)
-        (insert "]\n\n" )
-        (when changed-keys
-          (dolist (tk changed-keys)
-            (let* ((def-fun     (nth 1 tk))
-                   (key         (nth 0 tk))
-                   (def-fun-txt (nth 2 tk))
-                   (where       (nth 3 tk))
-                   (remark      (nth 4 tk))
-                   (rem-fun (command-remapping def-fun))
-                   (key-txt (key-description key))
-                   (key-fun (key-binding key))
-                   tot-len)
-              (unless (eq def-fun key-fun)
-                ;; Mark the key in the tutorial text
-                (unless (string= "Same key" where)
-                  (let ((here (point))
-			(case-fold-search nil)
-                        (key-desc (key-description key)))
-                    (cond ((string= "ESC" key-desc)
-			   (setq key-desc "<ESC>"))
-			  ((string= "RET" key-desc)
-			   (setq key-desc "<Return>"))
-			  ((string= "DEL" key-desc)
-			   (setq key-desc "<Delback>")))
-                    (while (re-search-forward
-			    (concat "[[:space:]]\\("
-                                    (regexp-quote key-desc)
-				    "\\)[[:space:]]") nil t)
-                      (put-text-property (match-beginning 1)
-                                         (match-end 1)
-                                         'tutorial-remark 'only-colored)
-                      (put-text-property (match-beginning 1)
-                                         (match-end 1)
-                                         'face 'tutorial-warning-face)
-                      (forward-line)
-                      (let ((s  (get-lang-string tutorial--lang 'tut-chgdkey))
-                            (s2 (get-lang-string tutorial--lang 'tut-chgdkey2))
-                            (start (point))
-                            end)
-                        (when (and s s2)
-                          (setq s (format s key-desc where s2))
-                          (insert s)
-                          (insert-button s2
-                                         'tutorial-buffer
-                                         (current-buffer)
-                                         ;;'tutorial-arg arg
-                                         'action
-                                         'tutorial--detailed-help
-                                         'explain-key-desc key-desc
-                                         'follow-link t
-                                         'face 'link)
-                          (insert "] **")
-                          (insert "\n")
-                          (setq end (point))
-                          (put-text-property start end 'local-map tutorial--tab-map)
-                          ;; Add a property so we can remove the remark:
-                          (put-text-property start end 'tutorial-remark t)
-                          (put-text-property start end
-                                             'face 'tutorial-warning-face)
-                          (put-text-property start end 'read-only t))))
-                    (goto-char here)))))))
+    (if (boundp 'viper-mode-string) (require 'cus-edit))
 
+    (if (or changed-keys (boundp 'viper-mode-string))
+	(let ((head  (get-lang-string tutorial--lang 'tut-chgdhead))
+	      (head2 (get-lang-string tutorial--lang 'tut-chgdhead2)))
+	  (when (and head head2)
+	    (goto-char tutorial--point-before-chkeys)
+	    (insert head " [")
+	    (insert-button head2 'tutorial-buffer (current-buffer)
+			   'action 'tutorial--detailed-help
+			   'follow-link t 'face 'link)
+	    (insert "]\n\n")
+	    (add-text-properties tutorial--point-before-chkeys (point)
+				 '(tutorial-remark remark
+				   face tutorial-warning-face
+				   read-only t)))))
 
-        (setq end (point))
-        ;; Make the area with information about change key
-        ;; bindings stand out:
-        (put-text-property start end 'tutorial-remark t)
-        (put-text-property start end
-                           'face 'tutorial-warning-face)
-        ;; Make it possible to use Tab/S-Tab between fields in
-        ;; this area:
-        (put-text-property start end 'local-map tutorial--tab-map)
-        (setq tutorial--point-after-chkeys (point-marker))
-        ;; Make this area read-only:
-        (put-text-property start end 'read-only t)))))
+    ;; Scan the tutorial for all key sequences.
+    (goto-char (point-min))
+    (while (re-search-forward keybindings-regexp (point-max) t)
+      ;; Then highlight each rebound key sequence.
+      ;; This avoids issuing a warning for, e.g., C-x C-b if C-b is rebound.
+      (setq changed-key (assoc (match-string 1) changed-keys-alist))
+      (and changed-key
+	   (not (get-text-property (match-beginning 1) 'tutorial-remark))
+	   (let* ((desc    (car changed-key))
+		  (ck      (cdr changed-key))
+		  (key     (nth 0 ck))
+		  (def-fun (nth 1 ck))
+		  (where   (nth 3 ck))
+		  s1 s2 help-string)
+	     (unless (string= where "Same key")
+	       (setq tutorial--point-after-chkeys (point-marker)
+		     s1 (get-lang-string tutorial--lang 'tut-chgdkey)
+		     s2 (get-lang-string tutorial--lang 'tut-chgdkey2)
+		     help-string (and s1 s2 (format s1 desc where)))
+	       (add-text-properties (match-beginning 1) (match-end 1)
+				    '(face tutorial-warning-face
+				      tutorial-remark key-sequence))
+	       (if help-string
+		   (if (nth 5 ck)
+		       ;; Put help string in the tooltip.
+		       (put-text-property (match-beginning 1) (match-end 1)
+					  'help-echo help-string)
+		     ;; Put help string in the buffer.
+		     (save-excursion
+		       (setcar (nthcdr 5 ck) t)
+		       (forward-line)
+		       ;; Two or more changed keys were on the same line.
+		       (while (eq (get-text-property (point) 'tutorial-remark)
+				  'remark)
+			 (forward-line))
+		       (setq start (point))
+		       (insert "** " help-string " [")
+		       (insert-button s2 'tutorial-buffer (current-buffer)
+				      'action 'tutorial--detailed-help
+				      'explain-key-desc desc 'follow-link t
+				      'face 'link)
+		       (insert "] **\n")
+		       (add-text-properties start (point)
+					    '(tutorial-remark remark
+					      rear-nonsticky t
+					      face tutorial-warning-face
+					      read-only t)))))))))))
 
 (defun tutorial--saved-dir ()
-  "Directory where to save tutorials."
-  (expand-file-name ".emacstut" "~/"))
+  "Directory to which tutorials are saved."
+  (expand-file-name "tutorial"
+		    (if (eq system-type 'ms-dos) "~/_emacs.d/" "~/.emacs.d/")))
 
 (defun tutorial--saved-file ()
   "File name in which to save tutorials."
@@ -711,11 +634,8 @@ CHANGED-KEYS should be a list in the format returned by
         (unless prop-end
           (setq prop-end (point-max)))
         (goto-char prop-end)
-        (if (eq prop-val 'only-colored)
-            (put-text-property prop-start prop-end 'face '(:background nil))
-          (let ((orig-text (get-text-property prop-start 'tutorial-orig)))
-            (delete-region prop-start prop-end)
-            (when orig-text (insert orig-text))))))))
+        (unless (eq prop-val 'key-sequence)
+	  (delete-region prop-start prop-end))))))
 
 (defun tutorial--save-tutorial ()
   "Save the tutorial buffer.
@@ -724,9 +644,10 @@ showing changed keys.  It also saves the point position and the
 position where the display of changed bindings was inserted."
   ;; This runs in a hook so protect it:
   (condition-case err
-      (tutorial--save-tutorial-to (tutorial--saved-file))
-    (error (message "Error saving tutorial state: %s" (error-message-string err))
-           (sit-for 4))))
+      (if (y-or-n-p "Save your position in the tutorial? ")
+	  (tutorial--save-tutorial-to (tutorial--saved-file)))
+    (error (message "Error saving tutorial state: %s"
+		    (error-message-string err)))))
 
 (defun tutorial--save-tutorial-to (saved-file)
   "Save the tutorial buffer to SAVED-FILE.
@@ -908,13 +829,7 @@ Run the Viper tutorial? "))
           (forward-line)
           (setq tutorial--point-before-chkeys (point-marker)))
 
-
-        ;; Check if there are key bindings that may disturb the
-        ;; tutorial.  If so tell the user.
-        (let ((changed-keys (tutorial--find-changed-keys tutorial--default-keys)))
-          (when changed-keys
-            (tutorial--display-changes changed-keys)))
-
+	(tutorial--display-changes)
 
         ;; Clear message:
         (unless dont-ask-for-revert
@@ -971,22 +886,17 @@ Run the Viper tutorial? "))
 ;; are currently only used in the tutorial.
 
 (defconst lang-strings
-  '(
-    ("English" .
-     (
-      (tut-chgdkey . "** The key %s has been rebound, but you can use %s instead [")
-      (tut-chgdkey2 . "More information")
+  '(("English" .
+     ((tut-chgdkey . "%s has been rebound, but you can use %s instead")
+      (tut-chgdkey2 . "More")
       (tut-chgdhead . "
  NOTICE: The main purpose of the Emacs tutorial is to teach you
  the most important standard Emacs commands (key bindings).
  However, your Emacs has been customized by changing some of
  these basic editing commands, so it doesn't correspond to the
  tutorial.  We have inserted colored notices where the altered
- commands have been introduced. [")
-      (tut-chgdhead2 . "Details")
-      )
-     )
-    )
+ commands have been introduced.")
+      (tut-chgdhead2 . "More"))))
   "Language specific strings for Emacs.
 This is an association list with the keys equal to the strings
 that can be returned by `read-language-name'.  The elements in

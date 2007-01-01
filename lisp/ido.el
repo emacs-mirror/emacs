@@ -1046,6 +1046,9 @@ so that it doesn't interfere with other minibuffer usage.")
 ;; Stores the current ido item type ('file, 'dir, 'buffer, or 'list).
 (defvar ido-cur-item)
 
+;;; Stores the current default item
+(defvar ido-default-item)
+
 ;; Stores the current list of items that will be searched through.
 ;; The list is ordered, so that the most interesting item comes first,
 ;; although by default, the files visible in the current frame are put
@@ -2589,7 +2592,9 @@ C-x C-f ... C-d  enter dired on current directory."
   "Toggle ignoring files specified with `ido-ignore-files'."
   (interactive)
   (if ido-directory-too-big
-      (setq ido-directory-too-big nil)
+      (progn
+	(message "Reading directory...")
+	(setq ido-directory-too-big nil))
     (setq ido-process-ignore-lists (not ido-process-ignore-lists)))
   (setq ido-text-init ido-text)
   (setq ido-exit 'refresh)
@@ -3577,6 +3582,11 @@ for first matching file."
 			    (/= (aref name 0) ?.)))
 		      (string-match re name))
 		 (cond
+		  ((and (eq ido-cur-item 'buffer)
+			(or (not (stringp ido-default-item))
+			    (not (string= name ido-default-item)))
+			(string= name (buffer-name ido-entry-buffer)))
+		   (setq matches (cons item matches)))
 		  ((and full-re (string-match full-re name))
 		   (setq full-matches (cons item full-matches)))
 		  ((and suffix-re (string-match suffix-re name))
@@ -3729,7 +3739,8 @@ for first matching file."
 	  (set-buffer temp-buf)
 	  (setq win (get-buffer-window temp-buf))
 	  (if (pos-visible-in-window-p (point-max) win)
-	      (if (or ido-completion-buffer-all-completions (boundp 'ido-completion-buffer-full))
+	      (if (or ido-completion-buffer-all-completions
+		      (boundp 'ido-completion-buffer-full))
 		  (set-window-start win (point-min))
 		(with-no-warnings
 		  (set (make-local-variable 'ido-completion-buffer-full) t))
@@ -3742,6 +3753,14 @@ for first matching file."
 	(with-output-to-temp-buffer ido-completion-buffer
 	  (let ((completion-list (sort
 				  (cond
+				   (ido-directory-too-big
+				    (message "Reading directory...")
+				    (setq ido-directory-too-big nil
+					  ido-ignored-list nil
+					  ido-cur-list (ido-all-completions)
+					  ido-rescan t)
+				    (ido-set-matches)
+				    (or ido-matches ido-cur-list))
 				   (ido-use-merged-list
 				    (ido-flatten-merged-list (or ido-matches ido-cur-list)))
 				   ((or full-list ido-completion-buffer-all-completions)

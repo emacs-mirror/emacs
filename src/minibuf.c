@@ -1287,6 +1287,7 @@ is used to further constrain the set of candidates.  */)
   tail = alist;
   if (type == 2)
     {
+      alist = check_obarray (alist);
       obsize = XVECTOR (alist)->size;
       bucket = XVECTOR (alist)->contents[index];
     }
@@ -1310,6 +1311,8 @@ is used to further constrain the set of candidates.  */)
 	{
 	  if (!EQ (bucket, zero))
 	    {
+	      if (!SYMBOLP (bucket))
+		error ("Bad data in guts of obarray");
 	      elt = bucket;
 	      eltstring = elt;
 	      if (XSYMBOL (bucket)->next)

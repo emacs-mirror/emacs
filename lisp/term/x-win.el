@@ -2484,6 +2484,10 @@ order until succeed.")
   (if res-selection-timeout
       (setq x-selection-timeout (string-to-number res-selection-timeout))))
 
+;; Set scroll bar mode to right if set by X resources. Default is left.
+(if (equal (x-get-resource "verticalScrollBars" "ScrollBars") "right")
+    (customize-set-variable 'scroll-bar-mode 'right))
+
 (defun x-win-suspend-error ()
   (error "Suspending an Emacs running under X makes no sense"))
 (add-hook 'suspend-hook 'x-win-suspend-error)

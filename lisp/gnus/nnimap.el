@@ -375,7 +375,10 @@ and the second %s is replaced by a date criterium.
 One useful (and perhaps the only useful) value to change this to would
 be `UID %s NOT SENTSINCE %s' to make nnimap use the Date: header
 instead of the internal date of messages.  See section 6.4.4 of RFC
-2060 for more information on valid strings.")
+2060 for more information on valid strings.
+
+However, if `nnimap-search-uids-not-since-is-evil' is true, this
+variable has no effect since the search logic is reversed.")
 
 (defvoo nnimap-importantize-dormant t
   "If non-nil, mark \"dormant\" articles as \"ticked\" for other IMAP clients.

@@ -43,7 +43,18 @@
        gmake
 
      (If you are building from CVS, say "make bootstrap" or "nmake
-     bootstrap" instead and avoid using Cygwin make.)
+     bootstrap" instead, and avoid using Cygwin make.)
+
+     With GNU Make, you can use the -j command-line option to have
+     Make execute several commands at once, like this:
+
+       gmake -j 2 XMFLAGS="-j 2"
+
+     The XMFLAGS variable overrides the default behavior of GNU Make
+     on Windows, whereby recursive Make invocations reset the maximum
+     number of simultaneous commands to 1.  The above command allows
+     up to 4 simultaneous commands at once in the top-level Make, and
+     up to 3 in each one of the recursive Make's.
 
   4. Generate the Info manuals (only if you are building out of CVS, and
      if you have makeinfo.exe installed):
@@ -95,6 +106,9 @@
   build (latest versions of the Cygwin toolkit, at least since v1.3.3,
   include the MinGW headers and libraries as an integral part).
 
+  Note that building Emacs with Visual Studio 2005 is not supported at
+  this time.
+
   The rest of this file assumes you have a working development
   environment.  If you just installed  such an environment, try
   building a trivial C "Hello world" program, and see if it works.  If
@@ -132,7 +146,7 @@
     cygwin compiled make 3.80:           fails?[6]     fails?[6]
     cygwin compiled make 3.81:           fails         fails?[6]
     mingw32 compiled make 3.79.1:        okay          okay
-    mingw32 compiled make 3.80:          okay          unknown[6]
+    mingw32 compiled make 3.80:          okay          okay[6]
     mingw32 compiled make 3.81:          okay          okay[7]
 
   Notes:
@@ -145,7 +159,7 @@
     [4] may fail on Windows 9X and Windows ME; if so, install Bash.
     [5] fails when building leim due to the use of cygwin style paths.
         May work if building emacs without leim.
-    [6] please report if you try this combination.
+    [6] not recommended; please report if you try this combination.
     [7] tested only on Windows XP.
 
   Other compilers may work, but specific reports from people that have
@@ -251,6 +265,18 @@
   conversions will be lossy, etc.  You can safely ignore these messages.
   The warnings may be fixed in the main FSF source at some point, but
   until then we will just live with them.
+
+  With GNU Make, you can use the -j command-line option to have Make
+  execute several commands at once, like this:
+
+    gmake -j 4 XMFLAGS="-j 3"
+
+  The XMFLAGS variable overrides the default behavior of GNU Make on
+  Windows, whereby recursive Make invocations reset the maximum number
+  of simultaneous commands to 1.  The above command allows up to 4
+  simultaneous commands at once in the top-level Make, and up to 3 in
+  each one of the recursive Make's; you can use other numbers of jobs,
+  if you wish.
 
   If you are building from CVS, the following commands will produce
   the Info manuals (which are not part of the CVS repository):

@@ -74,8 +74,12 @@ Boston, MA 02110-1301, USA.  */
 #include <soundcard.h>
 #endif
 #ifdef HAVE_ALSA
+#ifdef ALSA_SUBDIR_INCLUDE
+#include <alsa/asoundlib.h>
+#else
 #include <asoundlib.h>
-#endif
+#endif /* ALSA_SUBDIR_INCLUDE */
+#endif /* HAVE_ALSA */
 
 /* END: Non Windows Includes */
 

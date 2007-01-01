@@ -351,14 +351,18 @@ All unmarked article in such group receive the spam mark on group entry."
   "Spam ifile configuration."
   :group 'spam)
 
-(defcustom spam-ifile-path (executable-find "ifile")
-  "File path of the ifile executable program."
+(make-obsolete-variable 'spam-ifile-path 'spam-ifile-program)
+;; "22.1" ;; Gnus 5.10.9
+(defcustom spam-ifile-program (executable-find "ifile")
+  "Name of the ifile program."
   :type '(choice (file :tag "Location of ifile")
 		 (const :tag "ifile is not installed"))
   :group 'spam-ifile)
 
-(defcustom spam-ifile-database-path nil
-  "File path of the ifile database."
+(make-obsolete-variable 'spam-ifile-database-path 'spam-ifile-database)
+;; "22.1" ;; Gnus 5.10.9
+(defcustom spam-ifile-database nil
+  "File name of the ifile database."
   :type '(choice (file :tag "Location of the ifile database")
 		 (const :tag "Use the default"))
   :group 'spam-ifile)
@@ -386,8 +390,10 @@ your main source of newsgroup names."
   "Spam bogofilter configuration."
   :group 'spam)
 
-(defcustom spam-bogofilter-path (executable-find "bogofilter")
-  "File path of the Bogofilter executable program."
+(make-obsolete-variable 'spam-bogofilter-path 'spam-bogofilter-program)
+;; "22.1" ;; Gnus 5.10.9
+(defcustom spam-bogofilter-program (executable-find "bogofilter")
+  "Name of the Bogofilter program."
   :type '(choice (file :tag "Location of bogofilter")
 		 (const :tag "Bogofilter is not installed"))
   :group 'spam-bogofilter)
@@ -423,7 +429,8 @@ your main source of newsgroup names."
   :group 'spam-bogofilter)
 
 (defcustom spam-bogofilter-database-directory nil
-  "Directory path of the Bogofilter databases."
+  "Location of the Bogofilter database.
+When nil, use the default location."
   :type '(choice (directory
 		  :tag "Location of the Bogofilter database directory")
 		 (const :tag "Use the default"))
@@ -434,8 +441,8 @@ your main source of newsgroup names."
   :group 'spam)
 
 (defcustom spam-spamoracle-database nil
-  "Location of spamoracle database file. When nil, use the default
-spamoracle database."
+  "Location of spamoracle database file.
+When nil, use the default spamoracle database."
   :type '(choice (directory :tag "Location of spamoracle database file.")
 		 (const :tag "Use the default"))
   :group 'spam-spamoracle)
@@ -1370,11 +1377,12 @@ functions")
 ;;; check the ifile backend; return nil if the mail was NOT classified
 ;;; as spam
 
+
 (defun spam-get-ifile-database-parameter ()
-  "Get the command-line parameter for ifile's database from
-  spam-ifile-database-path."
-  (if spam-ifile-database-path
-      (format "--db-file=%s" spam-ifile-database-path)
+  "Return the command-line parameter for ifile's database.
+See `spam-ifile-database'."
+  (if spam-ifile-database
+      (format "--db-file=%s" spam-ifile-database)
     nil))
 
 (defun spam-check-ifile ()
@@ -1390,7 +1398,7 @@ functions")
 	(save-excursion
 	  (set-buffer article-buffer-name)
 	  (apply 'call-process-region
-		 (point-min) (point-max) spam-ifile-path
+		 (point-min) (point-max) spam-ifile-program
 		 nil temp-buffer-name nil "-c"
 		 (if db-param `(,db-param "-q") `("-q"))))
 	;; check the return now (we're back in the temp buffer)
@@ -1418,7 +1426,7 @@ Uses `gnus-newsgroup-name' if category is nil (for ham registration)."
 	  (when (stringp article-string)
 	    (insert article-string))))
       (apply 'call-process-region
-	     (point-min) (point-max) spam-ifile-path
+	     (point-min) (point-max) spam-ifile-program
 	     nil nil nil
 	     add-or-delete-option category
 	     (if db `(,db "-h") `("-h"))))))
@@ -1702,7 +1710,7 @@ REMOVE not nil, remove the ADDRESSES."
 	  (set-buffer article-buffer-name)
 	  (apply 'call-process-region
 		 (point-min) (point-max)
-		 spam-bogofilter-path
+		 spam-bogofilter-program
 		 nil temp-buffer-name nil
 		 (if db `("-d" ,db "-v") `("-v"))))
 	(setq return (spam-check-bogofilter-headers score))))
@@ -1728,7 +1736,7 @@ REMOVE not nil, remove the ADDRESSES."
 
 	  (apply 'call-process-region
 		 (point-min) (point-max)
-		 spam-bogofilter-path
+		 spam-bogofilter-program
 		 nil nil nil switch
 		 (if db `("-d" ,db "-v") `("-v"))))))))
 

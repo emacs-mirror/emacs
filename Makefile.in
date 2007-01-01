@@ -110,6 +110,10 @@ exec_prefix=@exec_prefix@
 # run directly (like etags).
 bindir=@bindir@
 
+# The root of the directory tree for read-only architecture-independent
+# data files.  ${datadir}, ${infodir} and ${mandir} are based on this.
+datarootdir=@datarootdir@
+
 # Where to install architecture-independent data files.	 ${lispdir}
 # and ${etcdir} are subdirectories of this.
 datadir=@datadir@

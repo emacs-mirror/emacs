@@ -7333,6 +7333,9 @@ If UNREAD, only unread articles are selected.
 If SUBJECT, only articles with SUBJECT are selected.
 If BACKWARD, the previous article is selected instead of the next."
   (interactive "P")
+  ;; Make sure we are in the summary buffer.
+  (unless (eq major-mode 'gnus-summary-mode)
+    (set-buffer gnus-summary-buffer))
   (cond
    ;; Is there such an article?
    ((and (gnus-summary-search-forward unread subject backward)
@@ -7987,7 +7990,7 @@ article."
   (interactive)
   (let ((gnus-verbose (max 6 gnus-verbose)))
     (if (not gnus-newsgroup-dormant)
-	(gnus-message 3 "No cached articles for this group")
+	(gnus-message 3 "No dormant articles for this group")
       (gnus-summary-goto-subjects gnus-newsgroup-dormant))))
 
 (defun gnus-summary-limit-include-dormant ()

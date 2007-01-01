@@ -679,8 +679,9 @@ if that fails, the doc string with `custom-guess-doc-alist'."
 
 ;;; Sorting.
 
+;;;###autoload
 (defcustom custom-browse-sort-alphabetically nil
-  "If non-nil, sort members of each customization group alphabetically."
+  "If non-nil, sort customization group alphabetically in `custom-browse'."
   :type 'boolean
   :group 'custom-browse)
 
@@ -698,8 +699,9 @@ If `last', order groups after non-groups."
   :type 'boolean
   :group 'custom-browse)
 
+;;;###autoload
 (defcustom custom-buffer-sort-alphabetically nil
-  "If non-nil, sort members of each customization group alphabetically."
+  "If non-nil, sort each customization group alphabetically in Custom buffer."
   :type 'boolean
   :group 'custom-buffer)
 
@@ -712,8 +714,9 @@ If `last', order groups after non-groups."
 		 (const :tag "none" nil))
   :group 'custom-buffer)
 
+;;;###autoload
 (defcustom custom-menu-sort-alphabetically nil
-  "If non-nil, sort members of each customization group alphabetically."
+  "If non-nil, sort each customization group alphabetically in menus."
   :type 'boolean
   :group 'custom-menu)
 

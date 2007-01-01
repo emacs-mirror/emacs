@@ -45,7 +45,9 @@
 ;;  - Symmetric-key and key-pair topic encryption, plus symmetric passphrase
 ;;    mnemonic support, with verification against an established passphrase
 ;;    (using a stashed encrypted dummy string) and user-supplied hint
-;;    maintenance.  (See allout-toggle-current-subtree-encryption docstring.)
+;;    maintenance.  (See allout-toggle-current-subtree-encryption docstring.
+;;    Currently only GnuPG encryption is supported, and integration
+;;    with gpg-agent is not yet implemented.)
 ;;  - Automatic topic-number maintenance
 ;;  - "Hot-spot" operation, for single-keystroke maneuvering and
 ;;    exposure control (see the allout-mode docstring)
@@ -5748,9 +5750,9 @@ it forces prompting for the passphrase regardless of availability from the
 passphrase cache.  With no universal argument, the appropriate passphrase
 is obtained from the cache, if available, else from the user.
 
-Currently only GnuPG encryption is supported.
+Only GnuPG encryption is supported.
 
-\**NOTE WELL** that the encrypted text must be ascii-armored.  For gnupg
+\*NOTE WELL* that the encrypted text must be ascii-armored.  For gnupg
 encryption, include the option ``armor'' in your ~/.gnupg/gpg.conf file.
 
 Both symmetric-key and key-pair encryption is implemented.  Symmetric is
@@ -5764,8 +5766,8 @@ not.  When a file with topics pending encryption is saved, topics pending
 encryption are encrypted.  See allout-encrypt-unencrypted-on-saves for
 auto-encryption specifics.
 
-\**NOTE WELL** that automatic encryption that happens during saves will
-default to symmetric encryption - you must manually (re)encrypt key-pair
+\*NOTE WELL* that automatic encryption that happens during saves will
+default to symmetric encryption - you must deliberately (re)encrypt key-pair
 encrypted topics if you want them to continue to use the key-pair cipher.
 
 Level-one topics, with prefix consisting solely of an `*' asterisk, cannot be
@@ -5777,10 +5779,8 @@ encrypted.  If you want to encrypt the contents of a top-level topic, use
 The encryption passphrase is solicited if not currently available in the
 passphrase cache from a recent encryption action.
 
-The solicited passphrase is retained for reuse in a buffer-specific cache
-for some set period of time (default, 60 seconds), after which the string
-is nulled.  The passphrase cache timeout is customized by setting
-`pgg-passphrase-cache-expiry'.
+The solicited passphrase is retained for reuse in a cache, if enabled.  See
+`pgg-cache-passphrase' and `pgg-passphrase-cache-expiry' for details.
 
   Symmetric Passphrase Hinting and Verification
 
@@ -5820,7 +5820,8 @@ it forces prompting for the passphrase regardless of availability from the
 passphrase cache.  With no universal argument, the appropriate passphrase
 is obtained from the cache, if available, else from the user.
 
-Currently only GnuPG encryption is supported.
+Currently only GnuPG encryption is supported, and integration
+with gpg-agent is not yet implemented.
 
 \**NOTE WELL** that the encrypted text must be ascii-armored.  For gnupg
 encryption, include the option ``armor'' in your ~/.gnupg/gpg.conf file.
@@ -5996,7 +5997,11 @@ Returns the resulting string, or nil if the transformation fails."
          (rejected (or rejected 0))
          (rejections-left (- allout-encryption-ciphertext-rejection-ceiling
                              rejected))
-         result-text status)
+         result-text status
+         ;; Inhibit gpg-agent use for symmetric keys in the scope of this let:
+         (pgg-gpg-use-agent (if (equal key-type 'keypair)
+                                pgg-gpg-use-agent
+                              nil)))
 
     (if (and fetch-pass (not passphrase))
         ;; Force later fetch by evicting passphrase from the cache.
@@ -6004,12 +6009,9 @@ Returns the resulting string, or nil if the transformation fails."
 
     (catch 'encryption-failed
 
-        ;; Obtain the passphrase if we don't already have one and we're not
-        ;; doing a keypair encryption:
-        (if (not (or passphrase
-                     (and (equal key-type 'keypair)
-                          (not decrypt))))
-
+        ;; We handle only symmetric-key passphrase caching.
+        (if (and (not passphrase)
+                 (not (equal key-type 'keypair)))
             (setq passphrase (allout-obtain-passphrase for-key
                                                        target-cache-id
                                                        target-prompt-id

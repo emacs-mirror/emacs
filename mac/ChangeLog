@@ -863,7 +863,7 @@
 	* src/macterm.c: New file.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit-unix
+;; coding: iso-2022-7bit
 ;; add-log-time-zone-rule: t
 ;; End:
 

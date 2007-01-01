@@ -1,3 +1,156 @@
+2006-12-31  Kim F. Storm  <storm@cua.dk>
+
+	* major.texi (Choosing Modes): Document auto-mode-case-fond.
+
+2006-12-30  Kim F. Storm  <storm@cua.dk>
+
+	* killing.texi (CUA Bindings): Fix typo.
+
+	* xresources.texi (Table of Resources): Mention grow-only value for
+	auto-resize-tool-bars.
+
+2006-12-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.55.
+
+	* trampver.texi: Update release number.
+
+2006-12-29  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Customizing Articles): Add index entries for all
+	gnus-treat-* variables.
+
+2006-12-29  Jouni K. Sepp,Ad(Bnen  <jks@iki.fi>
+
+	* gnus.texi (IMAP): Fix incorrect explanation of
+	nnimap-search-uids-not-since-is-evil in documentation for
+	nnimap-expunge-search-string.
+
+2006-12-27  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (ifile spam filtering): Rename spam-ifile-database-path to
+	spam-ifile-database.
+
+2006-12-26  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Spam Package Configuration Examples): Don't encourage to
+	rebind C-s.
+
+2006-12-26  Jouni K. Sepp,Ad(Bnen  <jks@iki.fi>
+
+	* gnus.texi (Group Parameters, Group Maintenance, Topic Commands)
+	(Mail Group Commands, Expiring Mail, IMAP): Add index entries for
+	"expiring mail".
+	(IMAP): Document nnimap-search-uids-not-since-is-evil and
+	nnimap-nov-is-evil.
+
+2006-12-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (Windows Keyboard): Mention widespread Windows bindings,
+	and how to get them back.
+
+2006-12-26  Richard Stallman  <rms@gnu.org>
+
+	* calendar.texi (Holidays): Holiday listing is based on current
+	practice, but DST is not.
+
+2006-12-25  Richard Stallman  <rms@gnu.org>
+
+	* emacs.texi (Top): Update subnode menus.
+
+	* mark.texi (Transient Mark): Fix xref.
+
+	* killing.texi (Graphical Kill): Node deleted.
+	(Killing): Add xref to Cut and Paste.
+	(CUA Bindings): Update xref.
+
+	* frames.texi (Cut and Paste): New section to hold other nodes.
+	(Mouse Commands): Node demoted.
+	(Cut/Paste Other App): Split out from Mouse Commands.
+	(Word and Line Mouse): Likewise.
+	(Secondary Selection, Clipboard): Nodes demoted.
+
+2006-12-25  Kevin Ryde  <user42@zip.com.au>
+
+	* cl.texi (Sorting Sequences): In sort*, add a little cautionary note
+	about the key procedure being used heavily.
+
+2006-12-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pgg.texi (Caching passphrase): Default for pgg-gpg-use-agent changed
+	to t.
+	(Prerequisites): Add explanation about gpg-agent.
+
+2006-12-24  Kevin Ryde  <user42@zip.com.au>
+
+	* calendar.texi (Holidays): US daylight savings begins second Sunday
+	in March for 2007 onwards.
+	(Daylight Savings): Show new US default daylight savings rules, 2nd
+	Sun in Mar to 1st Sun in Nov, now in cal-dst.el.
+
+2006-12-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* calendar.texi (Scroll Calendar): < and > are switched.
+
+2006-12-23  Kevin Rodgers  <ihs_4664@yahoo.com>
+
+	* killing.texi (Deletion): Describe M-\ prefix argument.
+
+2006-12-23  Richard Stallman  <rms@gnu.org>
+
+	* search.texi (Regexp Search): Explain why forward and reverse regexp
+	search are not mirror images.
+
+2006-12-22  Kevin Ryde  <user42@zip.com.au>
+
+	* cl.texi (Sorting Sequences): Typo in sort*, example showed plain
+	"sort" instead of "sort*".
+
+2006-12-19  Richard Stallman  <rms@gnu.org>
+
+	* calc.texi (History and Acknowledgements): Recognize that Emacs
+	now does have floating point.
+
+2006-12-19  Kim F. Storm  <storm@cua.dk>
+
+	* major.texi (Choosing Modes): Describe match-function elements for
+	magic-mode-alist.
+
+2006-12-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (External transfer methods): Describe new method `scpc'.
+
+2006-12-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (Windows Keyboard): Add a footnote about "Windows" keys
+	peculiarities.
+
+2006-12-18  Richard Stallman  <rms@gnu.org>
+
+	* abbrevs.texi (Editing Abbrevs): Fix previous change.
+
+2006-12-17  Sascha Wilde  <wilde@sha-bang.de>
+
+	* pgg.texi: Added short note on gpg-agent to the introduction.
+
+2006-12-17  Alan Mackenzie  <acm@muc.de>
+
+	* programs.texi (Left Margin Paren): Remove the bit which says
+	that CC Mode sets open-paren-in-column-0-is-defun-start to nil.
+	Discuss some of the issues of setting this option to nil.
+
+2006-12-17  Glenn Morris  <rgm@gnu.org>
+
+	* abbrevs.texi (Editing Abbrevs): Mention system abbrevs.
+
+2006-12-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (Windows Keyboard): Clarify `w32-recognize-altgr' effect.
+	(Windows Files): `w32-get-true-file-attributes' is only relevant for
+	NTFS volumes.
+	(ls in Lisp): `links' in `ls-lisp-verbosity' is only relevant to NTFS
+	volumes.
+
 2006-12-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* text.texi (HTML Mode): Fix "C-c TAB".

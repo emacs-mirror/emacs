@@ -1539,7 +1539,8 @@ To make a long story short, Emacs Lisp turned out to be a distressingly
 solid implementation of Lisp, and the humble task of calculating
 turned out to be more open-ended than one might have expected.
 
-Emacs Lisp doesn't have built-in floating point math, so it had to be
+Emacs Lisp didn't have built-in floating point math (now it does), so
+this had to be
 simulated in software.  In fact, Emacs integers will only comfortably
 fit six decimal digits or so---not enough for a decent calculator.  So
 I had to write my own high-precision integer code as well, and once I had
