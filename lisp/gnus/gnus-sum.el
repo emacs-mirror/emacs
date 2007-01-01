@@ -7990,7 +7990,7 @@ article."
   (interactive)
   (let ((gnus-verbose (max 6 gnus-verbose)))
     (if (not gnus-newsgroup-dormant)
-	(gnus-message 3 "No cached articles for this group")
+	(gnus-message 3 "No dormant articles for this group")
       (gnus-summary-goto-subjects gnus-newsgroup-dormant))))
 
 (defun gnus-summary-limit-include-dormant ()
