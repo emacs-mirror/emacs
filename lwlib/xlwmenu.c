@@ -161,6 +161,10 @@ xlwMenuResources[] =
      offset(menu.select), XtRCallback, (XtPointer)NULL},
   {XtNhighlightCallback, XtCCallback, XtRCallback, sizeof(XtPointer),
      offset(menu.highlight), XtRCallback, (XtPointer)NULL},
+  {XtNenterCallback, XtCCallback, XtRCallback, sizeof(XtPointer),
+     offset(menu.enter), XtRCallback, (XtPointer)NULL},
+  {XtNleaveCallback, XtCCallback, XtRCallback, sizeof(XtPointer),
+     offset(menu.leave), XtRCallback, (XtPointer)NULL},
   {XtNmenu, XtCMenu, XtRPointer, sizeof(XtPointer),
      offset(menu.contents), XtRImmediate, (XtPointer)NULL},
   {XtNcursor, XtCCursor, XtRCursor, sizeof(Cursor),
@@ -1186,8 +1190,17 @@ display_menu (mw, level, just_compute_p, highlighted_pos, hit, hit_return,
 	{
 	  if (val->enabled)
 	    *hit_return = val;
-	  else
-	    no_return = 1;
+	  else 
+            no_return = 1;
+          if (mw->menu.inside_entry != val) 
+            {
+              if (mw->menu.inside_entry)
+                XtCallCallbackList ((Widget)mw, mw->menu.leave,
+                                    (XtPointer) mw->menu.inside_entry);
+              mw->menu.inside_entry = val;
+              XtCallCallbackList ((Widget)mw, mw->menu.enter,
+                                  (XtPointer) mw->menu.inside_entry);
+            }
 	}
 
       if (horizontal_p)
@@ -1452,7 +1465,7 @@ motion_event_is_in_menu (mw, ev, level, relative_pos)
   relative_pos->x = ev->x_root - x;
   relative_pos->y = ev->y_root - y;
   return (x - shadow < ev->x_root && ev->x_root < x + ws->width
-	  && y - shadow < ev->y_root && ev->y_root < y + ws->height);
+          && y - shadow < ev->y_root && ev->y_root < y + ws->height);
 }
 
 static Boolean
@@ -1465,6 +1478,7 @@ map_event_to_widget_value (mw, ev, val, level)
   int 		i;
   XPoint	relative_pos;
   window_state*	ws;
+  int inside = 0;
 
   *val = NULL;
 
@@ -1474,6 +1488,7 @@ map_event_to_widget_value (mw, ev, val, level)
       ws = &mw->menu.windows [i];
       if (ws && motion_event_is_in_menu (mw, ev, i, &relative_pos))
 	{
+          inside = 1;
 	  display_menu (mw, i, True, NULL, &relative_pos, val, NULL, NULL);
 
 	  if (*val)
@@ -1483,6 +1498,15 @@ map_event_to_widget_value (mw, ev, val, level)
 	    }
 	}
     }
+
+  if (!inside) 
+    {
+      if (mw->menu.inside_entry != NULL) 
+        XtCallCallbackList ((Widget)mw, mw->menu.leave,
+                            (XtPointer) mw->menu.inside_entry);
+      mw->menu.inside_entry = NULL;
+    }
+
   return False;
 }
 
@@ -2416,6 +2440,7 @@ pop_up_menu (mw, event)
 
   next_release_must_exit = 0;
 
+  mw->menu.inside_entry = NULL;
   XtCallCallbackList ((Widget)mw, mw->menu.open, NULL);
 
   if (XtIsShell (XtParent ((Widget)mw)))
