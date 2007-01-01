@@ -1,3 +1,7 @@
+2007-01-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xresources.texi (Table of Resources): Add scrollBarWidth resource.
+
 2007-01-01  Richard Stallman  <rms@gnu.org>
 
 	* commands.texi (User Input): Document keys stolen by window mangers.
