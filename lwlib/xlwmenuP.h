@@ -64,6 +64,7 @@ typedef struct _XlwMenu_part
   Cursor	cursor_shape;
   XtCallbackList	open;
   XtCallbackList	select, highlight;
+  XtCallbackList        enter, leave;
   widget_value*	contents;
   int		horizontal;
 
@@ -76,6 +77,7 @@ typedef struct _XlwMenu_part
   int			old_depth;
   widget_value**	old_stack;
   int			old_stack_length;
+  widget_value*         inside_entry;
 
   /* New state after the user moved */
   int			new_depth;
