@@ -289,15 +289,15 @@ Switch foreground and background default colors if @samp{on}, use colors as
 specified if @samp{off}.
 @end ifnottex
 
-@item @code{scrollBarWidth} (class @code{ScrollBarWidth})
-@cindex scrollbar width
-The scroll bar width in pixels, equivalent to the frame parameter
-@code{scroll-bar-width}.
-
 @item @code{screenGamma} (class @code{ScreenGamma})
 @cindex gamma correction
 Gamma correction for colors, equivalent to the frame parameter
 @code{screen-gamma}.
+
+@item @code{scrollBarWidth} (class @code{ScrollBarWidth})
+@cindex scrollbar width
+The scroll bar width in pixels, equivalent to the frame parameter
+@code{scroll-bar-width}.
 
 @ifnottex
 @item @code{selectionFont} (class @code{SelectionFont})
