@@ -486,7 +486,7 @@ work just fine right out of the box.  Note however that you might not
 have the latest @ccmode{} release and might want to upgrade your copy
 (see below).
 
-You should probably start by reading the entire chapter
+You should probably start by skimming through the entire chapter
 @ref{Commands} to get an overview of @ccmode{}'s capabilities.
 
 After trying out some commands, you may dislike some aspects of
@@ -687,7 +687,7 @@ that begins at the line's left margin.
 @item
 When it's @code{nil}, the command indents the line by an extra
 @code{c-basic-offset} columns.  A prefix argument acts as a
-multiplier.  A bare prefix (@kbd{C-u @key{TAB}} is equivalent to -1,
+multiplier.  A bare prefix (@kbd{C-u @key{TAB}}) is equivalent to -1,
 removing @code{c-basic-offset} columns from the indentation.
 @end itemize
 
@@ -880,29 +880,28 @@ lines.
 @ccmode{} contains some useful commands for moving around in C code.
 
 @table @asis
-@item @kbd{M-x c-beginning-of-defun}
-@itemx @kbd{M-x c-end-of-defun}
+@item @kbd{C-M-a}
+@itemx @kbd{C-M-e}
 @findex c-beginning-of-defun
 @findex c-end-of-defun
-@findex beginning-of-defun (c-)
-@findex end-of-defun (c-)
-@findex beginning-of-defun
-@findex end-of-defun
-Move to the start or end of the current top-level definition.  This is
-the outermost brace pair which encloses point, together with the
-function header or similar preamble which precedes the opening brace.
+
+Move to the beginning or end of the current or next function.  Other
+constructs (such as a structs or classes) which have a brace block
+also count as ``functions'' here.  To move over several functions, you
+can give these commands a repeat count.
+
+The start of a function is at its header.  The end of the function is
+after its closing brace, or after the semicolon of a construct (such
+as a @code{struct}) which doesn't end at the brace.  These two
+commands try to leave point at the beginning of a line near the actual
+start or end of the function.  This occasionally causes point not to
+move at all.
+
 These functions are analogous to the Emacs built-in commands
 @code{beginning-of-defun} and @code{end-of-defun}, except they
 eliminate the constraint that the top-level opening brace of the defun
 must be in column zero.  See @ref{Defuns,,,@emacsman{},
 @emacsmantitle{}}, for more information.
-
-Depending on the coding style you're using, you might prefer these two
-commands to the standard Emacs ones.  If so, consider binding them to
-@kbd{C-M-a} and @kbd{C-M-e}.  @xref{Sample .emacs File}.  This
-customization won't affect the special bindings for these key
-sequences in force in AWK Mode.  For backwards compatibility reasons,
-the default bindings for @kbd{C-M-a} and @kbd{C-M-e} remain in effect.
 
 @item @kbd{C-M-a} (AWK Mode) (@code{c-awk-beginning-of-defun})
 @itemx @kbd{C-M-e} (AWK Mode) (@code{c-awk-end-of-defun})
@@ -912,11 +911,9 @@ the default bindings for @kbd{C-M-a} and @kbd{C-M-e} remain in effect.
 @findex awk-beginning-of-defun (c-)
 @findex c-awk-end-of-defun
 @findex awk-end-of-defun (c-)
-Move back to the beginning or forward to the end of the current AWK
-defun.  These functions are bound to @kbd{C-M-a} and @kbd{C-M-e} by
-default in AWK Mode.  They can take prefix-arguments, their
-functionality being entirely equivalent to @code{beginning-of-defun}
-and @code{end-of-defun}.
+Move to the beginning or end of the current or next AWK defun.  These
+commands can take prefix-arguments, their functionality being entirely
+equivalent to @code{beginning-of-defun} and @code{end-of-defun}.
 
 AWK Mode @dfn{defuns} are either pattern/action pairs (either of which
 might be implicit) or user defined functions.  Having the @samp{@{} and
@@ -1094,7 +1091,10 @@ prefix like @code{c-indent-new-comment-line}.  In normal code it's
 indented like @code{newline-and-indent} would do.  In macros it acts
 like @code{newline-and-indent} but additionally inserts and optionally
 aligns the line ending backslash so that the macro remains unbroken.
-@xref{Custom Macros}, for details about the backslash alignment.
+@xref{Custom Macros}, for details about the backslash alignment.  In a
+string, a backslash is inserted only if the string is within a
+macro@footnote{In GCC, unescaped line breaks within strings are
+valid.}.
 
 This function is not bound to a key by default, but it's intended to be
 used on the @kbd{RET} key.  If you like the behavior of
@@ -1710,6 +1710,25 @@ buffers by typing @kbd{M-x c-subword-mode}.
 Here are the various other commands that didn't fit anywhere else:
 
 @table @asis
+@item @kbd{C-c .} (@code{c-set-style})
+@kindex C-c .
+@findex c-set-style
+@findex set-style (c-)
+Switch to the specified style in the current buffer.  Use like this:
+
+@example
+@kbd{C-c . @var{style-name} @key{RET}}
+@end example
+
+You can use the @key{TAB} in the normal way to do completion on the
+style name.  Note that all style names are case insensitive, even the
+ones you define yourself.
+
+Setting a style in this way does @emph{not} automatically reindent your
+file.  For commands that you can use to view the effect of your changes,
+see @ref{Indentation Commands} and @ref{Filling and Breaking}.
+
+For details of the @ccmode{} style system, see @ref{Styles}.
 @item @kbd{C-c :} (@code{c-scope-operator})
 @kindex C-c :
 @findex c-scope-operator
@@ -2363,7 +2382,7 @@ last thing when you enter that language mode.
 @end defvar
 
 Although these hooks are variables defined in @ccmode{}, you can give
-them values before @ccmode{}'s code is loaded - indeed, this is the
+them values before @ccmode{}'s code is loaded---indeed, this is the
 only way to use @code{c-initialization-hook}.  Their values aren't
 overwritten when @ccmode{} gets loaded.
 
@@ -2476,6 +2495,11 @@ Commas});@*
 @cindex styles
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+By @dfn{style} we mean the layout of the code---things like how many
+columns to indent a block of code, whether an opening brace gets
+indented to the level of the code it encloses, or of the construct
+that introduces it, or ``hangs'' at the end of a line.
+
 Most people only need to edit code formatted in just a few well-defined
 and consistent styles.  For example, their organization might impose a
 ``blessed'' style that all its programmers must conform to.  Similarly,
@@ -2577,34 +2601,18 @@ afterwards.
 @subsection Choosing a Style
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-Use @kbd{C-c .} to choose a style interactively:
-
-@deffn Command c-set-style style-name
-@findex set-style (c-)
-@kindex C-c .
-Switch to the specified style in the current buffer.  Use
-interactively like this:
-
-@example
-@kbd{C-c . @var{style-name} @key{RET}}
-@end example
-
-You can use the @key{TAB} in the normal way to do completion on the
-style name.  Note that all style names are case insensitive, even the
-ones you define yourself.
-
-Setting a style in this way does @emph{not} automatically reindent your
-file.  For commands that you can use to view the effect of your changes,
-see @ref{Indentation Commands} and @ref{Filling and Breaking}.
-@end deffn
-
-The default style in all newly created buffers is @code{gnu}, except
-in Java and AWK modes where it's @code{java} and @code{awk}.
+When you create a new buffer, its style will be set from
+@code{c-default-style}.  The factory default is the style @code{gnu},
+except in Java and AWK modes where it's @code{java} and @code{awk}.
 
 Remember that if you set a style variable with the Customization
 interface or at the top level of your @file{.emacs} file before the
 style system is initialised (@pxref{Config Basics}), this setting will
 override the one that the style system would have given the variable.
+
+To set a buffer's style interactively, use the command @kbd{C-c .}
+(@pxref{Other Commands}).  To set it from a file's local variable
+list, @ref{File Styles}.
 
 @defopt c-default-style
 @vindex default-style (c-)
@@ -3247,8 +3255,8 @@ the proper functioning of @ccmode{}.
 
 This variable is also bound in three other circumstances:
 (i)@w{ }when calling a c-hanging-semi&comma-criteria function
-(@pxref{Hanging Semicolons and Commas}; (ii)@w{ }when calling a
-line-up function (@pxref{Custom Line-Up}; (iii)@w{ }when calling a
+(@pxref{Hanging Semicolons and Commas}); (ii)@w{ }when calling a
+line-up function (@pxref{Custom Line-Up}); (iii)@w{ }when calling a
 c-special-indent-hook function (@pxref{Other Indentation}).
 @end defvar
 
@@ -3430,7 +3438,11 @@ newlines after semicolons inside one-line inline method definitions
 @dfn{Clean-ups} are mechanisms which remove (or exceptionally, add)
 whitespace in specific circumstances and are complementary to colon
 and brace hanging.  You enable a clean-up by adding its symbol into
-@code{c-cleanup-list}.
+@code{c-cleanup-list}, e.g. like this:
+
+@example
+(add-to-list 'c-cleanup-list 'space-before-funcall)
+@end example
 
 On the surface, it would seem that clean-ups overlap the functionality
 provided by the @code{c-hanging-*-alist} variables.  Clean-ups,
@@ -3661,10 +3673,11 @@ it's only an empty parenthesis pair.  I.e. you will get @samp{signal
 closing parenthesis is typed.
 
 @item comment-close-slash
-When inside a block comment, terminate the comment when you type a
-slash at the beginning of a line (i.e. immediately after the comment
-prefix).  This clean-up removes whitespace preceding the slash and if
-needed, inserts a star to complete the token @samp{*/}.
+When inside a block comment, terminate the comment when you type a slash
+at the beginning of a line (i.e. immediately after the comment prefix).
+This clean-up removes whitespace preceding the slash and if needed,
+inserts a star to complete the token @samp{*/}.  Type @kbd{C-q /} in this
+situation if you just want a literal @samp{/} inserted.
 @end table
 
 
@@ -5182,7 +5195,7 @@ If an offset specification evaluates to @code{nil}, then a relative
 offset of 0 (zero) is used@footnote{There is however a variable
 @code{c-strict-syntax-p} that when set to non-@code{nil} will cause an
 error to be signaled in that case.  It's now considered obsolete since
-it doesn't work well with some of the alignment functions that returns
+it doesn't work well with some of the alignment functions that return
 @code{nil} instead of zero.  You should therefore leave
 @code{c-strict-syntax-p} set to @code{nil}.}.
 
@@ -6549,18 +6562,16 @@ anchoring position to indent the line in that case.
 @appendix Sample .emacs File
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-@verbatim
-;; Here's a sample .emacs file fragment that might help you along the
-;; way.  Just copy this region and paste it into your .emacs file.
-;; You might want to change some of the actual values.
+Here's a sample .emacs file fragment that might help you along the way.
+Just copy this region and paste it into your .emacs file.  You might want
+to change some of the actual values.
 
-;; Make some non-standard key bindings.  We can put these in
+@verbatim
+;; Make a non-standard key binding.  We can put this in
 ;; c-mode-base-map because c-mode-map, c++-mode-map, and so on,
 ;; inherit from it.
 (defun my-c-initialization-hook ()
-  (define-key c-mode-base-map "\C-m" 'c-context-line-break)
-  (define-key c-mode-base-map [?\C-\M-a] 'c-beginning-of-defun)
-  (define-key c-mode-base-map [?\C-\M-e] 'c-end-of-defun))
+  (define-key c-mode-base-map "\C-m" 'c-context-line-break))
 (add-hook 'c-initialization-hook 'my-c-initialization-hook)
 
 ;; offset customizations not in my-c-style
@@ -6647,9 +6658,6 @@ embodied in the @code{beginning-of-defun} function.  @ccmode now
 caches syntactic information much better, so that the delay caused by
 searching for such a brace when it's not in column 0 is minimal,
 except perhaps when you've just moved a long way inside the file.
-Don't forget to rebind @kbd{C-M-a} and @kbd{C-M-e} to the @ccmode{}
-functions @code{beginning-of-defun} and @code{end-of-defun} if you're
-going to be hanging your braces! @xref{Sample .emacs File}.
 
 @findex defun-prompt-regexp
 @vindex c-Java-defun-prompt-regexp
@@ -6726,6 +6734,12 @@ more info.
 
 @itemize @bullet
 @item
+@ccmode{} doesn't support trigraphs.  (These are character sequences
+such as @samp{??(}, which represents @samp{[}.  They date from a time
+when some character sets didn't have all the characters that C needs,
+and are now utterly obsolete.)
+
+@item
 There is no way to apply auto newline settings (@pxref{Auto-newlines})
 on already typed lines.  That's only a feature to ease interactive
 editing.
@@ -6747,6 +6761,25 @@ When a non-nested template is used in a declaration, @ccmode{} indents
 it and font-locks it OK.  Templates used in expressions, and nested
 templates do not fare so well.  Sometimes a workaround is to refontify
 the expression after typing the closing @samp{>}.
+
+@item
+On loading @ccmode{}, sometimes this error message appears:
+
+@example
+File mode specification error: (void-variable c-font-lock-keywords-3)
+@end example
+
+This is due to a bug in the function @code{eval-after-load} in some
+versions of (X)Emacs.  It can manifest itself when there is a symbolic
+link in the path of the directory which contains (X)Emacs.  As a
+workaround, put the following into your @file{.emacs} file, fairly
+early on:
+
+@example
+(defun my-load-cc-fonts ()
+  (require "cc-fonts"))
+(add-hook 'c-initialization-hook 'my-load-cc-fonts)
+@end example
 @end itemize
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
