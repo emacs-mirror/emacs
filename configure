@@ -614,7 +614,121 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS MAINT build build_cpu build_vendor build_os host host_cpu host_vendor host_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP EGREP LN_S INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB INSTALL_INFO GZIP_PROG LIBSOUND PKG_CONFIG ALSA_CFLAGS ALSA_LIBS CFLAGS_SOUND SET_MAKE GTK_CFLAGS GTK_LIBS XFT_CFLAGS XFT_LIBS FREETYPE_CFLAGS FREETYPE_LIBS FONTCONFIG_CFLAGS FONTCONFIG_LIBS HAVE_LIBOTF LIBOTF_CFLAGS LIBOTF_LIBS ALLOCA liblockfile LIBOBJS NEED_SETGID KMEM_GROUP GETLOADAVG_LIBS GETOPT_H GETOPTOBJS version configuration canonical srcdir lispdir locallisppath lisppath x_default_search_path etcdir archlibdir docdir bitmapdir gamedir gameuser c_switch_system c_switch_machine LD_SWITCH_X_SITE LD_SWITCH_X_SITE_AUX C_SWITCH_X_SITE X_TOOLKIT_TYPE machfile opsysfile carbon_appdir LTLIBOBJS'
+ac_header_list=
+ac_func_list=
+ac_subst_vars='SHELL
+PATH_SEPARATOR
+PACKAGE_NAME
+PACKAGE_TARNAME
+PACKAGE_VERSION
+PACKAGE_STRING
+PACKAGE_BUGREPORT
+exec_prefix
+prefix
+program_transform_name
+bindir
+sbindir
+libexecdir
+datarootdir
+datadir
+sysconfdir
+sharedstatedir
+localstatedir
+includedir
+oldincludedir
+docdir
+infodir
+htmldir
+dvidir
+pdfdir
+psdir
+libdir
+localedir
+mandir
+DEFS
+ECHO_C
+ECHO_N
+ECHO_T
+LIBS
+build_alias
+host_alias
+target_alias
+MAINT
+build
+build_cpu
+build_vendor
+build_os
+host
+host_cpu
+host_vendor
+host_os
+CC
+CFLAGS
+LDFLAGS
+CPPFLAGS
+ac_ct_CC
+EXEEXT
+OBJEXT
+CPP
+GREP
+EGREP
+LN_S
+INSTALL_PROGRAM
+INSTALL_SCRIPT
+INSTALL_DATA
+RANLIB
+INSTALL_INFO
+GZIP_PROG
+LIBSOUND
+PKG_CONFIG
+ALSA_CFLAGS
+ALSA_LIBS
+
+CFLAGS_SOUND
+SET_MAKE
+XMKMF
+GTK_CFLAGS
+GTK_LIBS
+XFT_CFLAGS
+XFT_LIBS
+FREETYPE_CFLAGS
+FREETYPE_LIBS
+FONTCONFIG_CFLAGS
+FONTCONFIG_LIBS
+HAVE_LIBOTF
+LIBOTF_CFLAGS
+LIBOTF_LIBS
+ALLOCA
+liblockfile
+LIBOBJS
+NEED_SETGID
+KMEM_GROUP
+GETLOADAVG_LIBS
+GETOPT_H
+GETOPTOBJS
+version
+configuration
+canonical
+srcdir
+lispdir
+locallisppath
+lisppath
+x_default_search_path
+etcdir
+archlibdir
+bitmapdir
+gamedir
+gameuser
+c_switch_system
+c_switch_machine
+LD_SWITCH_X_SITE
+LD_SWITCH_X_SITE_AUX
+C_SWITCH_X_SITE
+X_TOOLKIT_TYPE
+machfile
+opsysfile
+carbon_appdir
+LTLIBOBJS'
 ac_subst_files=''
       ac_precious_vars='build_alias
 host_alias
@@ -1834,19 +1948,19 @@ if test "${with_png+set}" = set; then
 fi
 
 
-# Check whether --with-freetype or --without-freetype was given.
+# Check whether --with-freetype was given.
 if test "${with_freetype+set}" = set; then
-  withval="$with_freetype"
+  withval=$with_freetype;
+fi
 
-fi;
 
-# Check whether --with-xft or --without-xft was given.
+# Check whether --with-xft was given.
 if test "${with_xft+set}" = set; then
-  withval="$with_xft"
+  withval=$with_xft;
+fi
 
-fi;
 
-# Check whether --with-gtk or --without-gtk was given.
+# Check whether --with-gtk was given.
 if test "${with_gtk+set}" = set; then
   withval=$with_gtk;
 fi
@@ -1881,15 +1995,15 @@ if test "${enable_carbon_app+set}" = set; then
 fi
 
 
-# Check whether --enable-font-backend or --disable-font-backend was given.
+# Check whether --enable-font-backend was given.
 if test "${enable_font_backend+set}" = set; then
-  enableval="$enable_font_backend"
-  USE_FONT_BACKEND=$enableval
+  enableval=$enable_font_backend; USE_FONT_BACKEND=$enableval
 else
   USE_FONT_BACKEND=no
-fi;
+fi
 
-# Check whether --enable-asserts or --disable-asserts was given.
+
+# Check whether --enable-asserts was given.
 if test "${enable_asserts+set}" = set; then
   enableval=$enable_asserts; USE_XASSERTS=$enableval
 else
@@ -12404,8 +12518,8 @@ if test "${HAVE_X11}" = "yes"; then
   if test -z "$PKG_CONFIG"; then
     # Extract the first word of "pkg-config", so it can be a program name with args.
 set dummy pkg-config; ac_word=$2
-echo "$as_me:$LINENO: checking for $ac_word" >&5
-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
+{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
 if test "${ac_cv_path_PKG_CONFIG+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
@@ -12420,58 +12534,58 @@ do
   IFS=$as_save_IFS
   test -z "$as_dir" && as_dir=.
   for ac_exec_ext in '' $ac_executable_extensions; do
-  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
     ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
     echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
 done
 done
+IFS=$as_save_IFS
 
   test -z "$ac_cv_path_PKG_CONFIG" && ac_cv_path_PKG_CONFIG="no"
   ;;
 esac
 fi
 PKG_CONFIG=$ac_cv_path_PKG_CONFIG
-
 if test -n "$PKG_CONFIG"; then
-  echo "$as_me:$LINENO: result: $PKG_CONFIG" >&5
-echo "${ECHO_T}$PKG_CONFIG" >&6
+  { echo "$as_me:$LINENO: result: $PKG_CONFIG" >&5
+echo "${ECHO_T}$PKG_CONFIG" >&6; }
 else
-  echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
+  { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
 fi
+
 
   fi
 
   if test "$PKG_CONFIG" = "no" ; then
-     echo "*** The pkg-config script could not be found. Make sure it is"
-     echo "*** in your path, or give the full path to pkg-config with"
-     echo "*** the PKG_CONFIG environment variable or --with-pkg-config-prog."
-     echo "*** Or see http://www.freedesktop.org/software/pkgconfig to get pkg-config."
+     HAVE_XFT=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
      if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
-        echo "$as_me:$LINENO: checking for xft >= 0.13.0" >&5
-echo $ECHO_N "checking for xft >= 0.13.0... $ECHO_C" >&6
+        { echo "$as_me:$LINENO: checking for xft >= 0.13.0" >&5
+echo $ECHO_N "checking for xft >= 0.13.0... $ECHO_C" >&6; }
 
-        if $PKG_CONFIG --exists "xft >= 0.13.0" ; then
-            echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6
+        if $PKG_CONFIG --exists "xft >= 0.13.0" 2>&5; then
+            { echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6; }
             succeeded=yes
 
-            echo "$as_me:$LINENO: checking XFT_CFLAGS" >&5
-echo $ECHO_N "checking XFT_CFLAGS... $ECHO_C" >&6
+            { echo "$as_me:$LINENO: checking XFT_CFLAGS" >&5
+echo $ECHO_N "checking XFT_CFLAGS... $ECHO_C" >&6; }
             XFT_CFLAGS=`$PKG_CONFIG --cflags "xft >= 0.13.0"`
-            echo "$as_me:$LINENO: result: $XFT_CFLAGS" >&5
-echo "${ECHO_T}$XFT_CFLAGS" >&6
+            { echo "$as_me:$LINENO: result: $XFT_CFLAGS" >&5
+echo "${ECHO_T}$XFT_CFLAGS" >&6; }
 
-            echo "$as_me:$LINENO: checking XFT_LIBS" >&5
-echo $ECHO_N "checking XFT_LIBS... $ECHO_C" >&6
+            { echo "$as_me:$LINENO: checking XFT_LIBS" >&5
+echo $ECHO_N "checking XFT_LIBS... $ECHO_C" >&6; }
             XFT_LIBS=`$PKG_CONFIG --libs "xft >= 0.13.0"`
-            echo "$as_me:$LINENO: result: $XFT_LIBS" >&5
-echo "${ECHO_T}$XFT_LIBS" >&6
+            { echo "$as_me:$LINENO: result: $XFT_LIBS" >&5
+echo "${ECHO_T}$XFT_LIBS" >&6; }
         else
+            { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
             XFT_CFLAGS=""
             XFT_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
@@ -12502,17 +12616,17 @@ echo "${ECHO_T}$XFT_LIBS" >&6
       CFLAGS="$CFLAGS $XFT_CFLAGS"
       LIBS="$XFT_LIBS $LIBS"
       if test "${ac_cv_header_X11_Xft_Xft_h+set}" = set; then
-  echo "$as_me:$LINENO: checking for X11/Xft/Xft.h" >&5
-echo $ECHO_N "checking for X11/Xft/Xft.h... $ECHO_C" >&6
+  { echo "$as_me:$LINENO: checking for X11/Xft/Xft.h" >&5
+echo $ECHO_N "checking for X11/Xft/Xft.h... $ECHO_C" >&6; }
 if test "${ac_cv_header_X11_Xft_Xft_h+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 fi
-echo "$as_me:$LINENO: result: $ac_cv_header_X11_Xft_Xft_h" >&5
-echo "${ECHO_T}$ac_cv_header_X11_Xft_Xft_h" >&6
+{ echo "$as_me:$LINENO: result: $ac_cv_header_X11_Xft_Xft_h" >&5
+echo "${ECHO_T}$ac_cv_header_X11_Xft_Xft_h" >&6; }
 else
   # Is the header compilable?
-echo "$as_me:$LINENO: checking X11/Xft/Xft.h usability" >&5
-echo $ECHO_N "checking X11/Xft/Xft.h usability... $ECHO_C" >&6
+{ echo "$as_me:$LINENO: checking X11/Xft/Xft.h usability" >&5
+echo $ECHO_N "checking X11/Xft/Xft.h usability... $ECHO_C" >&6; }
 cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
@@ -12523,41 +12637,37 @@ $ac_includes_default
 #include <X11/Xft/Xft.h>
 _ACEOF
 rm -f conftest.$ac_objext
-if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
-  (eval $ac_compile) 2>conftest.er1
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_compile") 2>conftest.er1
   ac_status=$?
   grep -v '^ *+' conftest.er1 >conftest.err
   rm -f conftest.er1
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_c_werror_flag"
-			 || test ! -s conftest.err'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; } &&
-	 { ac_try='test -s conftest.$ac_objext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
   ac_header_compiler=yes
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
-ac_header_compiler=no
+	ac_header_compiler=no
 fi
-rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
-echo "$as_me:$LINENO: result: $ac_header_compiler" >&5
-echo "${ECHO_T}$ac_header_compiler" >&6
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+{ echo "$as_me:$LINENO: result: $ac_header_compiler" >&5
+echo "${ECHO_T}$ac_header_compiler" >&6; }
 
 # Is the header present?
-echo "$as_me:$LINENO: checking X11/Xft/Xft.h presence" >&5
-echo $ECHO_N "checking X11/Xft/Xft.h presence... $ECHO_C" >&6
+{ echo "$as_me:$LINENO: checking X11/Xft/Xft.h presence" >&5
+echo $ECHO_N "checking X11/Xft/Xft.h presence... $ECHO_C" >&6; }
 cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
@@ -12566,24 +12676,22 @@ cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 #include <X11/Xft/Xft.h>
 _ACEOF
-if { (eval echo "$as_me:$LINENO: \"$ac_cpp conftest.$ac_ext\"") >&5
-  (eval $ac_cpp conftest.$ac_ext) 2>conftest.er1
+if { (ac_try="$ac_cpp conftest.$ac_ext"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_cpp conftest.$ac_ext") 2>conftest.er1
   ac_status=$?
   grep -v '^ *+' conftest.er1 >conftest.err
   rm -f conftest.er1
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } >/dev/null; then
-  if test -s conftest.err; then
-    ac_cpp_err=$ac_c_preproc_warn_flag
-    ac_cpp_err=$ac_cpp_err$ac_c_werror_flag
-  else
-    ac_cpp_err=
-  fi
-else
-  ac_cpp_err=yes
-fi
-if test -z "$ac_cpp_err"; then
+  (exit $ac_status); } >/dev/null && {
+	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       }; then
   ac_header_preproc=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -12591,9 +12699,10 @@ sed 's/^/| /' conftest.$ac_ext >&5
 
   ac_header_preproc=no
 fi
+
 rm -f conftest.err conftest.$ac_ext
-echo "$as_me:$LINENO: result: $ac_header_preproc" >&5
-echo "${ECHO_T}$ac_header_preproc" >&6
+{ echo "$as_me:$LINENO: result: $ac_header_preproc" >&5
+echo "${ECHO_T}$ac_header_preproc" >&6; }
 
 # So?  What about this header?
 case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
@@ -12617,30 +12726,23 @@ echo "$as_me: WARNING: X11/Xft/Xft.h:     section \"Present But Cannot Be Compil
 echo "$as_me: WARNING: X11/Xft/Xft.h: proceeding with the preprocessor's result" >&2;}
     { echo "$as_me:$LINENO: WARNING: X11/Xft/Xft.h: in the future, the compiler will take precedence" >&5
 echo "$as_me: WARNING: X11/Xft/Xft.h: in the future, the compiler will take precedence" >&2;}
-    (
-      cat <<\_ASBOX
-## ------------------------------------------ ##
-## Report this to the AC_PACKAGE_NAME lists.  ##
-## ------------------------------------------ ##
-_ASBOX
-    ) |
-      sed "s/^/$as_me: WARNING:     /" >&2
+
     ;;
 esac
-echo "$as_me:$LINENO: checking for X11/Xft/Xft.h" >&5
-echo $ECHO_N "checking for X11/Xft/Xft.h... $ECHO_C" >&6
+{ echo "$as_me:$LINENO: checking for X11/Xft/Xft.h" >&5
+echo $ECHO_N "checking for X11/Xft/Xft.h... $ECHO_C" >&6; }
 if test "${ac_cv_header_X11_Xft_Xft_h+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   ac_cv_header_X11_Xft_Xft_h=$ac_header_preproc
 fi
-echo "$as_me:$LINENO: result: $ac_cv_header_X11_Xft_Xft_h" >&5
-echo "${ECHO_T}$ac_cv_header_X11_Xft_Xft_h" >&6
+{ echo "$as_me:$LINENO: result: $ac_cv_header_X11_Xft_Xft_h" >&5
+echo "${ECHO_T}$ac_cv_header_X11_Xft_Xft_h" >&6; }
 
 fi
 if test $ac_cv_header_X11_Xft_Xft_h = yes; then
-  echo "$as_me:$LINENO: checking for XftFontOpen in -lXft" >&5
-echo $ECHO_N "checking for XftFontOpen in -lXft... $ECHO_C" >&6
+  { echo "$as_me:$LINENO: checking for XftFontOpen in -lXft" >&5
+echo $ECHO_N "checking for XftFontOpen in -lXft... $ECHO_C" >&6; }
 if test "${ac_cv_lib_Xft_XftFontOpen+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
@@ -12653,56 +12755,53 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-/* Override any gcc2 internal prototype to avoid an error.  */
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
 #ifdef __cplusplus
 extern "C"
 #endif
-/* We use char because int might match the return type of a gcc2
-   builtin and then its argument prototype would still apply.  */
 char XftFontOpen ();
 int
 main ()
 {
-XftFontOpen ();
+return XftFontOpen ();
   ;
   return 0;
 }
 _ACEOF
 rm -f conftest.$ac_objext conftest$ac_exeext
-if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
-  (eval $ac_link) 2>conftest.er1
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
   ac_status=$?
   grep -v '^ *+' conftest.er1 >conftest.err
   rm -f conftest.er1
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_c_werror_flag"
-			 || test ! -s conftest.err'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; } &&
-	 { ac_try='test -s conftest$ac_exeext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
   ac_cv_lib_Xft_XftFontOpen=yes
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
-ac_cv_lib_Xft_XftFontOpen=no
+	ac_cv_lib_Xft_XftFontOpen=no
 fi
-rm -f conftest.err conftest.$ac_objext \
+
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
       conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-echo "$as_me:$LINENO: result: $ac_cv_lib_Xft_XftFontOpen" >&5
-echo "${ECHO_T}$ac_cv_lib_Xft_XftFontOpen" >&6
+{ echo "$as_me:$LINENO: result: $ac_cv_lib_Xft_XftFontOpen" >&5
+echo "${ECHO_T}$ac_cv_lib_Xft_XftFontOpen" >&6; }
 if test $ac_cv_lib_Xft_XftFontOpen = yes; then
   HAVE_XFT=yes
 fi
@@ -12743,8 +12842,8 @@ elif test "x${with_freetype}" != "xno"; then
   if test -z "$PKG_CONFIG"; then
     # Extract the first word of "pkg-config", so it can be a program name with args.
 set dummy pkg-config; ac_word=$2
-echo "$as_me:$LINENO: checking for $ac_word" >&5
-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
+{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
 if test "${ac_cv_path_PKG_CONFIG+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
@@ -12759,58 +12858,58 @@ do
   IFS=$as_save_IFS
   test -z "$as_dir" && as_dir=.
   for ac_exec_ext in '' $ac_executable_extensions; do
-  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
     ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
     echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
 done
 done
+IFS=$as_save_IFS
 
   test -z "$ac_cv_path_PKG_CONFIG" && ac_cv_path_PKG_CONFIG="no"
   ;;
 esac
 fi
 PKG_CONFIG=$ac_cv_path_PKG_CONFIG
-
 if test -n "$PKG_CONFIG"; then
-  echo "$as_me:$LINENO: result: $PKG_CONFIG" >&5
-echo "${ECHO_T}$PKG_CONFIG" >&6
+  { echo "$as_me:$LINENO: result: $PKG_CONFIG" >&5
+echo "${ECHO_T}$PKG_CONFIG" >&6; }
 else
-  echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
+  { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
 fi
+
 
   fi
 
   if test "$PKG_CONFIG" = "no" ; then
-     echo "*** The pkg-config script could not be found. Make sure it is"
-     echo "*** in your path, or give the full path to pkg-config with"
-     echo "*** the PKG_CONFIG environment variable or --with-pkg-config-prog."
-     echo "*** Or see http://www.freedesktop.org/software/pkgconfig to get pkg-config."
+     HAVE_FREETYPE=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
      if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
-        echo "$as_me:$LINENO: checking for freetype2" >&5
-echo $ECHO_N "checking for freetype2... $ECHO_C" >&6
+        { echo "$as_me:$LINENO: checking for freetype2" >&5
+echo $ECHO_N "checking for freetype2... $ECHO_C" >&6; }
 
-        if $PKG_CONFIG --exists "freetype2" ; then
-            echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6
+        if $PKG_CONFIG --exists "freetype2" 2>&5; then
+            { echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6; }
             succeeded=yes
 
-            echo "$as_me:$LINENO: checking FREETYPE_CFLAGS" >&5
-echo $ECHO_N "checking FREETYPE_CFLAGS... $ECHO_C" >&6
+            { echo "$as_me:$LINENO: checking FREETYPE_CFLAGS" >&5
+echo $ECHO_N "checking FREETYPE_CFLAGS... $ECHO_C" >&6; }
             FREETYPE_CFLAGS=`$PKG_CONFIG --cflags "freetype2"`
-            echo "$as_me:$LINENO: result: $FREETYPE_CFLAGS" >&5
-echo "${ECHO_T}$FREETYPE_CFLAGS" >&6
+            { echo "$as_me:$LINENO: result: $FREETYPE_CFLAGS" >&5
+echo "${ECHO_T}$FREETYPE_CFLAGS" >&6; }
 
-            echo "$as_me:$LINENO: checking FREETYPE_LIBS" >&5
-echo $ECHO_N "checking FREETYPE_LIBS... $ECHO_C" >&6
+            { echo "$as_me:$LINENO: checking FREETYPE_LIBS" >&5
+echo $ECHO_N "checking FREETYPE_LIBS... $ECHO_C" >&6; }
             FREETYPE_LIBS=`$PKG_CONFIG --libs "freetype2"`
-            echo "$as_me:$LINENO: result: $FREETYPE_LIBS" >&5
-echo "${ECHO_T}$FREETYPE_LIBS" >&6
+            { echo "$as_me:$LINENO: result: $FREETYPE_LIBS" >&5
+echo "${ECHO_T}$FREETYPE_LIBS" >&6; }
         else
+            { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
             FREETYPE_CFLAGS=""
             FREETYPE_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
@@ -12840,8 +12939,8 @@ echo "${ECHO_T}$FREETYPE_LIBS" >&6
   if test -z "$PKG_CONFIG"; then
     # Extract the first word of "pkg-config", so it can be a program name with args.
 set dummy pkg-config; ac_word=$2
-echo "$as_me:$LINENO: checking for $ac_word" >&5
-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
+{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
 if test "${ac_cv_path_PKG_CONFIG+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
@@ -12856,58 +12955,58 @@ do
   IFS=$as_save_IFS
   test -z "$as_dir" && as_dir=.
   for ac_exec_ext in '' $ac_executable_extensions; do
-  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
     ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
     echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
 done
 done
+IFS=$as_save_IFS
 
   test -z "$ac_cv_path_PKG_CONFIG" && ac_cv_path_PKG_CONFIG="no"
   ;;
 esac
 fi
 PKG_CONFIG=$ac_cv_path_PKG_CONFIG
-
 if test -n "$PKG_CONFIG"; then
-  echo "$as_me:$LINENO: result: $PKG_CONFIG" >&5
-echo "${ECHO_T}$PKG_CONFIG" >&6
+  { echo "$as_me:$LINENO: result: $PKG_CONFIG" >&5
+echo "${ECHO_T}$PKG_CONFIG" >&6; }
 else
-  echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
+  { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
 fi
+
 
   fi
 
   if test "$PKG_CONFIG" = "no" ; then
-     echo "*** The pkg-config script could not be found. Make sure it is"
-     echo "*** in your path, or give the full path to pkg-config with"
-     echo "*** the PKG_CONFIG environment variable or --with-pkg-config-prog."
-     echo "*** Or see http://www.freedesktop.org/software/pkgconfig to get pkg-config."
+     HAVE_FC=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
      if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
-        echo "$as_me:$LINENO: checking for fontconfig" >&5
-echo $ECHO_N "checking for fontconfig... $ECHO_C" >&6
+        { echo "$as_me:$LINENO: checking for fontconfig" >&5
+echo $ECHO_N "checking for fontconfig... $ECHO_C" >&6; }
 
-        if $PKG_CONFIG --exists "fontconfig" ; then
-            echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6
+        if $PKG_CONFIG --exists "fontconfig" 2>&5; then
+            { echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6; }
             succeeded=yes
 
-            echo "$as_me:$LINENO: checking FONTCONFIG_CFLAGS" >&5
-echo $ECHO_N "checking FONTCONFIG_CFLAGS... $ECHO_C" >&6
+            { echo "$as_me:$LINENO: checking FONTCONFIG_CFLAGS" >&5
+echo $ECHO_N "checking FONTCONFIG_CFLAGS... $ECHO_C" >&6; }
             FONTCONFIG_CFLAGS=`$PKG_CONFIG --cflags "fontconfig"`
-            echo "$as_me:$LINENO: result: $FONTCONFIG_CFLAGS" >&5
-echo "${ECHO_T}$FONTCONFIG_CFLAGS" >&6
+            { echo "$as_me:$LINENO: result: $FONTCONFIG_CFLAGS" >&5
+echo "${ECHO_T}$FONTCONFIG_CFLAGS" >&6; }
 
-            echo "$as_me:$LINENO: checking FONTCONFIG_LIBS" >&5
-echo $ECHO_N "checking FONTCONFIG_LIBS... $ECHO_C" >&6
+            { echo "$as_me:$LINENO: checking FONTCONFIG_LIBS" >&5
+echo $ECHO_N "checking FONTCONFIG_LIBS... $ECHO_C" >&6; }
             FONTCONFIG_LIBS=`$PKG_CONFIG --libs "fontconfig"`
-            echo "$as_me:$LINENO: result: $FONTCONFIG_LIBS" >&5
-echo "${ECHO_T}$FONTCONFIG_LIBS" >&6
+            { echo "$as_me:$LINENO: result: $FONTCONFIG_LIBS" >&5
+echo "${ECHO_T}$FONTCONFIG_LIBS" >&6; }
         else
+            { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
             FONTCONFIG_CFLAGS=""
             FONTCONFIG_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
@@ -12943,8 +13042,8 @@ _ACEOF
 
   # Extract the first word of "libotf-config", so it can be a program name with args.
 set dummy libotf-config; ac_word=$2
-echo "$as_me:$LINENO: checking for $ac_word" >&5
-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
+{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
 if test "${ac_cv_prog_HAVE_LIBOTF+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
@@ -12957,25 +13056,27 @@ do
   IFS=$as_save_IFS
   test -z "$as_dir" && as_dir=.
   for ac_exec_ext in '' $ac_executable_extensions; do
-  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
     ac_cv_prog_HAVE_LIBOTF="yes"
     echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
 done
 done
+IFS=$as_save_IFS
 
   test -z "$ac_cv_prog_HAVE_LIBOTF" && ac_cv_prog_HAVE_LIBOTF="no"
 fi
 fi
 HAVE_LIBOTF=$ac_cv_prog_HAVE_LIBOTF
 if test -n "$HAVE_LIBOTF"; then
-  echo "$as_me:$LINENO: result: $HAVE_LIBOTF" >&5
-echo "${ECHO_T}$HAVE_LIBOTF" >&6
+  { echo "$as_me:$LINENO: result: $HAVE_LIBOTF" >&5
+echo "${ECHO_T}$HAVE_LIBOTF" >&6; }
 else
-  echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
+  { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
 fi
+
 
   if test "${HAVE_LIBOTF}" = "yes"; then
 
@@ -14151,19 +14252,10 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   rm -f conftest.er1
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_c_werror_flag"			 || test ! -s conftest.err'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; } &&
-	 { ac_try='test -s conftest.$ac_objext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
   ac_header_compiler=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -15628,19 +15720,10 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   rm -f conftest.er1
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_c_werror_flag"			 || test ! -s conftest.err'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; } &&
-	 { ac_try='test -s conftest.$ac_objext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
   ac_header_compiler=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -16422,19 +16505,11 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   rm -f conftest.er1
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_c_werror_flag"			 || test ! -s conftest.err'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; } &&
-	 { ac_try='test -s conftest$ac_exeext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
   eval "$as_ac_var=yes"
 else
   echo "$as_me: failed program was:" >&5
@@ -16579,19 +16654,11 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   rm -f conftest.er1
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_c_werror_flag"			 || test ! -s conftest.err'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; } &&
-	 { ac_try='test -s conftest$ac_exeext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
   ac_cv_lib_elf_elf_begin=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -16654,19 +16721,11 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   rm -f conftest.er1
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_c_werror_flag"			 || test ! -s conftest.err'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; } &&
-	 { ac_try='test -s conftest$ac_exeext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
   ac_cv_lib_kvm_kvm_open=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -16728,19 +16787,11 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   rm -f conftest.er1
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_c_werror_flag"			 || test ! -s conftest.err'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; } &&
-	 { ac_try='test -s conftest$ac_exeext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
   ac_cv_lib_util_getloadavg=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -18016,19 +18067,10 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   rm -f conftest.er1
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_c_werror_flag"			 || test ! -s conftest.err'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; } &&
-	 { ac_try='test -s conftest.$ac_objext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
   ac_cv_member_struct_nlist_n_un_n_name=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -18246,60 +18288,7 @@ rm -f conftest*
 # We used to try defining _XOPEN_SOURCE=500 too, to work around a bug
 # in glibc 2.1.3, but that breaks too many other things.
 # If you want fseeko and ftello with glibc, upgrade to a fixed glibc.
-echo "$as_me:$LINENO: checking for fseeko" >&5
-echo $ECHO_N "checking for fseeko... $ECHO_C" >&6
-if test "${ac_cv_func_fseeko+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-#include <stdio.h>
-int
-main ()
-{
-return fseeko && fseeko (stdin, 0, 0);
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.$ac_objext conftest$ac_exeext
-if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
-  (eval $ac_link) 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_c_werror_flag"			 || test ! -s conftest.err'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; } &&
-	 { ac_try='test -s conftest$ac_exeext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
-  ac_cv_func_fseeko=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-ac_cv_func_fseeko=no
-fi
-rm -f conftest.err conftest.$ac_objext \
-      conftest$ac_exeext conftest.$ac_ext
-fi
-echo "$as_me:$LINENO: result: $ac_cv_func_fseeko" >&5
-echo "${ECHO_T}$ac_cv_func_fseeko" >&6
-if test $ac_cv_func_fseeko = yes; then
+if test $ac_cv_sys_largefile_source != unknown; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_FSEEKO 1
@@ -18610,19 +18599,10 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   rm -f conftest.er1
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_c_werror_flag"			 || test ! -s conftest.err'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; } &&
-	 { ac_try='test -s conftest.$ac_objext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
   ac_cv_have_decl_optreset=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -18986,19 +18966,11 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   rm -f conftest.er1
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_c_werror_flag"			 || test ! -s conftest.err'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; } &&
-	 { ac_try='test -s conftest$ac_exeext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
   ac_cv_lib_intl_strftime=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -19444,19 +19416,11 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   rm -f conftest.er1
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_c_werror_flag"			 || test ! -s conftest.err'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; } &&
-	 { ac_try='test -s conftest$ac_exeext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
   ac_cv_func___res_send=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -19744,19 +19708,11 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   rm -f conftest.er1
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_c_werror_flag"			 || test ! -s conftest.err'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; } &&
-	 { ac_try='test -s conftest$ac_exeext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
   ac_cv_lib_hesiod_hes_getmailhost=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -21947,19 +21903,10 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   rm -f conftest.er1
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_c_werror_flag"			 || test ! -s conftest.err'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; } &&
-	 { ac_try='test -s conftest.$ac_objext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
   ac_header_compiler=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -23008,19 +22955,10 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   rm -f conftest.er1
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_c_werror_flag"			 || test ! -s conftest.err'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; } &&
-	 { ac_try='test -s conftest.$ac_objext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
   ac_cv_type_size_t=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -23077,19 +23015,10 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   rm -f conftest.er1
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_c_werror_flag"			 || test ! -s conftest.err'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; } &&
-	 { ac_try='test -s conftest.$ac_objext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
   ac_cv_type_mbstate_t=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -24210,6 +24139,15 @@ SET_MAKE!$SET_MAKE$ac_delim
 XMKMF!$XMKMF$ac_delim
 GTK_CFLAGS!$GTK_CFLAGS$ac_delim
 GTK_LIBS!$GTK_LIBS$ac_delim
+XFT_CFLAGS!$XFT_CFLAGS$ac_delim
+XFT_LIBS!$XFT_LIBS$ac_delim
+FREETYPE_CFLAGS!$FREETYPE_CFLAGS$ac_delim
+FREETYPE_LIBS!$FREETYPE_LIBS$ac_delim
+FONTCONFIG_CFLAGS!$FONTCONFIG_CFLAGS$ac_delim
+FONTCONFIG_LIBS!$FONTCONFIG_LIBS$ac_delim
+HAVE_LIBOTF!$HAVE_LIBOTF$ac_delim
+LIBOTF_CFLAGS!$LIBOTF_CFLAGS$ac_delim
+LIBOTF_LIBS!$LIBOTF_LIBS$ac_delim
 ALLOCA!$ALLOCA$ac_delim
 liblockfile!$liblockfile$ac_delim
 LIBOBJS!$LIBOBJS$ac_delim
@@ -24226,15 +24164,6 @@ lispdir!$lispdir$ac_delim
 locallisppath!$locallisppath$ac_delim
 lisppath!$lisppath$ac_delim
 x_default_search_path!$x_default_search_path$ac_delim
-etcdir!$etcdir$ac_delim
-archlibdir!$archlibdir$ac_delim
-bitmapdir!$bitmapdir$ac_delim
-gamedir!$gamedir$ac_delim
-gameuser!$gameuser$ac_delim
-c_switch_system!$c_switch_system$ac_delim
-c_switch_machine!$c_switch_machine$ac_delim
-LD_SWITCH_X_SITE!$LD_SWITCH_X_SITE$ac_delim
-LD_SWITCH_X_SITE_AUX!$LD_SWITCH_X_SITE_AUX$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -24276,6 +24205,15 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+etcdir!$etcdir$ac_delim
+archlibdir!$archlibdir$ac_delim
+bitmapdir!$bitmapdir$ac_delim
+gamedir!$gamedir$ac_delim
+gameuser!$gameuser$ac_delim
+c_switch_system!$c_switch_system$ac_delim
+c_switch_machine!$c_switch_machine$ac_delim
+LD_SWITCH_X_SITE!$LD_SWITCH_X_SITE$ac_delim
+LD_SWITCH_X_SITE_AUX!$LD_SWITCH_X_SITE_AUX$ac_delim
 C_SWITCH_X_SITE!$C_SWITCH_X_SITE$ac_delim
 X_TOOLKIT_TYPE!$X_TOOLKIT_TYPE$ac_delim
 machfile!$machfile$ac_delim
@@ -24284,157 +24222,14 @@ carbon_appdir!$carbon_appdir$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-# No need to generate the scripts if there are no CONFIG_FILES.
-# This happens for instance when ./config.status config.h
-if test -n "\$CONFIG_FILES"; then
-  # Protect against being on the right side of a sed subst in config.status.
-  sed 's/,@/@@/; s/@,/@@/; s/,;t t\$/@;t t/; /@;t t\$/s/[\\\\&,]/\\\\&/g;
-   s/@@/,@/; s/@@/@,/; s/@;t t\$/,;t t/' >\$tmp/subs.sed <<\\CEOF
-s,@SHELL@,$SHELL,;t t
-s,@PATH_SEPARATOR@,$PATH_SEPARATOR,;t t
-s,@PACKAGE_NAME@,$PACKAGE_NAME,;t t
-s,@PACKAGE_TARNAME@,$PACKAGE_TARNAME,;t t
-s,@PACKAGE_VERSION@,$PACKAGE_VERSION,;t t
-s,@PACKAGE_STRING@,$PACKAGE_STRING,;t t
-s,@PACKAGE_BUGREPORT@,$PACKAGE_BUGREPORT,;t t
-s,@exec_prefix@,$exec_prefix,;t t
-s,@prefix@,$prefix,;t t
-s,@program_transform_name@,$program_transform_name,;t t
-s,@bindir@,$bindir,;t t
-s,@sbindir@,$sbindir,;t t
-s,@libexecdir@,$libexecdir,;t t
-s,@datadir@,$datadir,;t t
-s,@sysconfdir@,$sysconfdir,;t t
-s,@sharedstatedir@,$sharedstatedir,;t t
-s,@localstatedir@,$localstatedir,;t t
-s,@libdir@,$libdir,;t t
-s,@includedir@,$includedir,;t t
-s,@oldincludedir@,$oldincludedir,;t t
-s,@infodir@,$infodir,;t t
-s,@mandir@,$mandir,;t t
-s,@build_alias@,$build_alias,;t t
-s,@host_alias@,$host_alias,;t t
-s,@target_alias@,$target_alias,;t t
-s,@DEFS@,$DEFS,;t t
-s,@ECHO_C@,$ECHO_C,;t t
-s,@ECHO_N@,$ECHO_N,;t t
-s,@ECHO_T@,$ECHO_T,;t t
-s,@LIBS@,$LIBS,;t t
-s,@MAINT@,$MAINT,;t t
-s,@build@,$build,;t t
-s,@build_cpu@,$build_cpu,;t t
-s,@build_vendor@,$build_vendor,;t t
-s,@build_os@,$build_os,;t t
-s,@host@,$host,;t t
-s,@host_cpu@,$host_cpu,;t t
-s,@host_vendor@,$host_vendor,;t t
-s,@host_os@,$host_os,;t t
-s,@CC@,$CC,;t t
-s,@CFLAGS@,$CFLAGS,;t t
-s,@LDFLAGS@,$LDFLAGS,;t t
-s,@CPPFLAGS@,$CPPFLAGS,;t t
-s,@ac_ct_CC@,$ac_ct_CC,;t t
-s,@EXEEXT@,$EXEEXT,;t t
-s,@OBJEXT@,$OBJEXT,;t t
-s,@CPP@,$CPP,;t t
-s,@EGREP@,$EGREP,;t t
-s,@LN_S@,$LN_S,;t t
-s,@INSTALL_PROGRAM@,$INSTALL_PROGRAM,;t t
-s,@INSTALL_SCRIPT@,$INSTALL_SCRIPT,;t t
-s,@INSTALL_DATA@,$INSTALL_DATA,;t t
-s,@RANLIB@,$RANLIB,;t t
-s,@ac_ct_RANLIB@,$ac_ct_RANLIB,;t t
-s,@INSTALL_INFO@,$INSTALL_INFO,;t t
-s,@GZIP_PROG@,$GZIP_PROG,;t t
-s,@LIBSOUND@,$LIBSOUND,;t t
-s,@PKG_CONFIG@,$PKG_CONFIG,;t t
-s,@ALSA_CFLAGS@,$ALSA_CFLAGS,;t t
-s,@ALSA_LIBS@,$ALSA_LIBS,;t t
-s,@CFLAGS_SOUND@,$CFLAGS_SOUND,;t t
-s,@SET_MAKE@,$SET_MAKE,;t t
-s,@GTK_CFLAGS@,$GTK_CFLAGS,;t t
-s,@GTK_LIBS@,$GTK_LIBS,;t t
-s,@XFT_CFLAGS@,$XFT_CFLAGS,;t t
-s,@XFT_LIBS@,$XFT_LIBS,;t t
-s,@FREETYPE_CFLAGS@,$FREETYPE_CFLAGS,;t t
-s,@FREETYPE_LIBS@,$FREETYPE_LIBS,;t t
-s,@FONTCONFIG_CFLAGS@,$FONTCONFIG_CFLAGS,;t t
-s,@FONTCONFIG_LIBS@,$FONTCONFIG_LIBS,;t t
-s,@HAVE_LIBOTF@,$HAVE_LIBOTF,;t t
-s,@LIBOTF_CFLAGS@,$LIBOTF_CFLAGS,;t t
-s,@LIBOTF_LIBS@,$LIBOTF_LIBS,;t t
-s,@ALLOCA@,$ALLOCA,;t t
-s,@liblockfile@,$liblockfile,;t t
-s,@LIBOBJS@,$LIBOBJS,;t t
-s,@NEED_SETGID@,$NEED_SETGID,;t t
-s,@KMEM_GROUP@,$KMEM_GROUP,;t t
-s,@GETLOADAVG_LIBS@,$GETLOADAVG_LIBS,;t t
-s,@GETOPT_H@,$GETOPT_H,;t t
-s,@GETOPTOBJS@,$GETOPTOBJS,;t t
-s,@version@,$version,;t t
-s,@configuration@,$configuration,;t t
-s,@canonical@,$canonical,;t t
-s,@srcdir@,$srcdir,;t t
-s,@lispdir@,$lispdir,;t t
-s,@locallisppath@,$locallisppath,;t t
-s,@lisppath@,$lisppath,;t t
-s,@x_default_search_path@,$x_default_search_path,;t t
-s,@etcdir@,$etcdir,;t t
-s,@archlibdir@,$archlibdir,;t t
-s,@docdir@,$docdir,;t t
-s,@bitmapdir@,$bitmapdir,;t t
-s,@gamedir@,$gamedir,;t t
-s,@gameuser@,$gameuser,;t t
-s,@c_switch_system@,$c_switch_system,;t t
-s,@c_switch_machine@,$c_switch_machine,;t t
-s,@LD_SWITCH_X_SITE@,$LD_SWITCH_X_SITE,;t t
-s,@LD_SWITCH_X_SITE_AUX@,$LD_SWITCH_X_SITE_AUX,;t t
-s,@C_SWITCH_X_SITE@,$C_SWITCH_X_SITE,;t t
-s,@X_TOOLKIT_TYPE@,$X_TOOLKIT_TYPE,;t t
-s,@machfile@,$machfile,;t t
-s,@opsysfile@,$opsysfile,;t t
-s,@carbon_appdir@,$carbon_appdir,;t t
-s,@LTLIBOBJS@,$LTLIBOBJS,;t t
-CEOF
-
-_ACEOF
-
-  cat >>$CONFIG_STATUS <<\_ACEOF
-  # Split the substitutions into bite-sized pieces for seds with
-  # small command number limits, like on Digital OSF/1 and HP-UX.
-  ac_max_sed_lines=48
-  ac_sed_frag=1 # Number of current file.
-  ac_beg=1 # First line for current file.
-  ac_end=$ac_max_sed_lines # Line after last line for current file.
-  ac_more_lines=:
-  ac_sed_cmds=
-  while $ac_more_lines; do
-    if test $ac_beg -gt 1; then
-      sed "1,${ac_beg}d; ${ac_end}q" $tmp/subs.sed >$tmp/subs.frag
-    else
-      sed "${ac_end}q" $tmp/subs.sed >$tmp/subs.frag
-    fi
-    if test ! -s $tmp/subs.frag; then
-      ac_more_lines=false
-    else
-      # The purpose of the label and of the branching condition is to
-      # speed up the sed processing (if there are no `@' at all, there
-      # is no need to browse any of the substitutions).
-      # These are the two extra sed commands mentioned above.
-      (echo ':t
-  /@[a-zA-Z_][a-zA-Z_0-9]*@/!b' && cat $tmp/subs.frag) >$tmp/subs-$ac_sed_frag.sed
-      if test -z "$ac_sed_cmds"; then
-	ac_sed_cmds="sed -f $tmp/subs-$ac_sed_frag.sed"
-      else
-	ac_sed_cmds="$ac_sed_cmds | sed -f $tmp/subs-$ac_sed_frag.sed"
-      fi
-      ac_sed_frag=`expr $ac_sed_frag + 1`
-      ac_beg=$ac_end
-      ac_end=`expr $ac_end + $ac_max_sed_lines`
-    fi
-  done
-  if test -z "$ac_sed_cmds"; then
-    ac_sed_cmds=cat
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 15; then
+    break
+  elif $ac_last_try; then
+    { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
+echo "$as_me: error: could not make $CONFIG_STATUS" >&2;}
+   { (exit 1); exit 1; }; }
+  else
+    ac_delim="$ac_delim!$ac_delim _$ac_delim!! "
   fi
 done
 
