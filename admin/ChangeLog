@@ -1,3 +1,8 @@
+2007-01-01  Miles Bader  <miles@gnu.org>
+
+	* quick-install-emacs (get_config_var): Deal with weird magic
+	string inserted by recent versions of autoconf.
+
 2006-11-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* admin.el (set-version): Set version number in
