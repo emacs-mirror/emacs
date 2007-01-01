@@ -720,7 +720,7 @@
             (not (search-forward-regexp c-awk-regexp-sign-re (1+ /point) t))
           (search-forward-regexp c-awk-div-sign-re (1+ /point) t))
         ;; A division sign.
-      (progn (goto-char (1+ /point)) nil)
+	(progn (goto-char (1+ /point)) nil)
       ;; A regexp opener
       ;; Jump over the regexp innards, setting the match data.
       (goto-char /point)
