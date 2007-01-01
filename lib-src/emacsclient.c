@@ -171,8 +171,8 @@ char *server_file = NULL;
 /* PID of the Emacs server process.  */
 int emacs_pid = 0;
 
-/* File handles for communicating with Emacs. */
-FILE *out, *in;
+/* Socket used to communicate with the Emacs server process.  */
+HSOCKET s;
 
 void print_help_and_exit () NO_RETURN;
 
@@ -906,9 +906,7 @@ handle_sigcont (int signalnum)
   if (tcgetpgrp (1) == getpgrp ())
     {
       /* We are in the foreground. */
-      fprintf (out, "-resume \n");
-      fflush (out);
-      fsync (fileno (out));
+      SEND_STRING ("-resume \n");
     }
   else
     {
@@ -932,12 +930,8 @@ handle_sigtstp (int signalnum)
   int old_errno = errno;
   sigset_t set;
   
-  if (out)
-    {
-      fprintf (out, "-suspend \n");
-      fflush (out);
-      fsync (fileno (out));
-    }
+  if (s)
+    SEND_STRING ("-suspend \n");
 
   /* Unblock this signal and call the default handler by temprarily
      changing the handler and resignalling. */
@@ -1240,7 +1234,6 @@ main (argc, argv)
      int argc;
      char **argv;
 {
-  HSOCKET s;
   int i, rl, needlf = 0;
   char *cwd, *str;
   char string[BUFSIZ+1];
@@ -1410,7 +1403,7 @@ main (argc, argv)
                 SEND_STRING ("-eval ");
               else
                 SEND_STRING ("-file ");
-              SEND_QUOTED (out);
+              SEND_QUOTED (str);
             }
           SEND_STRING (" ");
         }
@@ -1473,7 +1466,7 @@ main (argc, argv)
           fprintf (stderr, "*ERROR*: %s", str);
           needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
         }
-      else if (strprefix ("-suspend ", str))
+      else if (strprefix ("-suspend ", string))
         {
           /* -suspend: Suspend this terminal, i.e., stop the process. */
           if (needlf)
