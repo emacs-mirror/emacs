@@ -1,6 +1,15 @@
+2007-01-01  Richard Stallman  <rms@gnu.org>
+
+	* commands.texi (User Input): Document keys stolen by window mangers.
+
+2006-12-31  Richard Stallman  <rms@gnu.org>
+
+	* custom.texi (Specific Customization): Document customize-option
+	instead of customize-variable.
+
 2006-12-31  Kim F. Storm  <storm@cua.dk>
 
-	* major.texi (Choosing Modes): Document auto-mode-case-fond.
+	* major.texi (Choosing Modes): Document auto-mode-case-fold.
 
 2006-12-30  Kim F. Storm  <storm@cua.dk>
 
@@ -44,6 +53,7 @@
 	(IMAP): Document nnimap-search-uids-not-since-is-evil and
 	nnimap-nov-is-evil.
 
+>>>>>>> 1.1170
 2006-12-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdog.texi (Windows Keyboard): Mention widespread Windows bindings,
