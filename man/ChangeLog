@@ -1,3 +1,31 @@
+2007-01-01  Alan Mackenzie  <acm@muc.de>
+
+	* cc-mode.texi ("Limitations and Known Bugs"): Document problems with
+	eval-after-load in Emacs <=21 and a workaround.  Document that
+	trigraphs are not supported.
+
+2007-01-01  Alan Mackenzie  <acm@muc.de>
+
+	* cc-mode.texi ("Filling and Breaking"): Amend the doc for
+	c-context-line-break.  When invoked within a string, preserve
+	whitespace.  Add a backslash only when also in a macro.
+
+2007-01-01  Alan Mackenzie  <acm@muc.de>
+
+	* cc-mode.texi ("Choosing a Style"): Mention c-file-style.
+
+2007-01-01  Alan Mackenzie  <acm@muc.de>
+
+	* cc-mode.texi ("Movement Commands", "Sample .emacs File"): C-M-[ae]
+	are now bound by default to c-\(beginning\|end\)-of-defun by default.
+
+2007-01-01  Alan Mackenzie  <acm@muc.de>
+
+	* cc-mode.texi ("Other Commands"): Move c-set-style (C-c .) here from
+	"Choosing a Style".
+
+	* cc-mode.texi ("Styles"): Add @dfn{style}.
+
 2007-01-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xresources.texi (Table of Resources): Add scrollBarWidth resource.
