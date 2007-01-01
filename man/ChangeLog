@@ -53,7 +53,6 @@
 	(IMAP): Document nnimap-search-uids-not-since-is-evil and
 	nnimap-nov-is-evil.
 
->>>>>>> 1.1170
 2006-12-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdog.texi (Windows Keyboard): Mention widespread Windows bindings,
