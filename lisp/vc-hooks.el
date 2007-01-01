@@ -625,9 +625,10 @@ the user should be returned; if REGEXP is non-nil that means to return
 a regexp for matching all such backup files, regardless of the version."
   (if regexp
       (concat (regexp-quote (file-name-nondirectory file))
-              "\\.~[0-9.]+" (unless manual "\\.") "~")
+              "\\.~.+" (unless manual "\\.") "~")
     (expand-file-name (concat (file-name-nondirectory file)
-                              ".~" (or rev (vc-workfile-version file))
+                              ".~" (subst-char-in-string
+                                    ?/ ?_ (or rev (vc-workfile-version file)))
                               (unless manual ".") "~")
                       (file-name-directory file))))
 

@@ -3098,15 +3098,18 @@ The idea is to set this buffer-locally in special dired buffers.")
   ;; Modeline display of "by name" or "by date" guarantees the user a
   ;; match with the corresponding regexps.  Non-matching switches are
   ;; shown literally.
-  (setq mode-name
-	(let (case-fold-search)
-	  (cond ((string-match dired-sort-by-name-regexp dired-actual-switches)
-		 "Dired by name")
-		((string-match dired-sort-by-date-regexp dired-actual-switches)
-		 "Dired by date")
-		(t
-		 (concat "Dired " dired-actual-switches)))))
-  (force-mode-line-update))
+  (when (eq major-mode 'dired-mode)
+    (setq mode-name
+	  (let (case-fold-search)
+	    (cond ((string-match 
+		    dired-sort-by-name-regexp dired-actual-switches)
+		   "Dired by name")
+		  ((string-match
+		    dired-sort-by-date-regexp dired-actual-switches)
+		   "Dired by date")
+		  (t
+		   (concat "Dired " dired-actual-switches)))))
+    (force-mode-line-update)))
 
 (defun dired-sort-toggle-or-edit (&optional arg)
   "Toggle between sort by date/name and refresh the dired buffer.
@@ -3162,7 +3165,7 @@ set the minor mode accordingly, others appear literally in the mode line.
 With optional second arg NO-REVERT, don't refresh the listing afterwards."
   (dired-sort-R-check switches)
   (setq dired-actual-switches switches)
-  (if (eq major-mode 'dired-mode) (dired-sort-set-modeline))
+  (dired-sort-set-modeline)
   (or no-revert (revert-buffer)))
 
 (defvar dired-subdir-alist-pre-R nil

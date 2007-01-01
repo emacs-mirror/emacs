@@ -67,8 +67,8 @@
 # define regfree(preg) __regfree (preg)
 # define regexec(pr, st, nm, pm, ef) __regexec (pr, st, nm, pm, ef)
 # define regcomp(preg, pattern, cflags) __regcomp (preg, pattern, cflags)
-# define regerror(errcode, preg, errbuf, errbuf_size) \
-	__regerror(errcode, preg, errbuf, errbuf_size)
+# define regerror(err_code, preg, errbuf, errbuf_size) \
+	__regerror(err_code, preg, errbuf, errbuf_size)
 # define re_set_registers(bu, re, nu, st, en) \
 	__re_set_registers (bu, re, nu, st, en)
 # define re_match_2(bufp, string1, size1, string2, size2, pos, regs, stop) \
@@ -6625,12 +6625,15 @@ regexec (preg, string, nmatch, pmatch, eflags)
 WEAK_ALIAS (__regexec, regexec)
 
 
-/* Returns a message corresponding to an error code, ERRCODE, returned
-   from either regcomp or regexec.   We don't use PREG here.  */
+/* Returns a message corresponding to an error code, ERR_CODE, returned
+   from either regcomp or regexec.   We don't use PREG here.
+
+   ERR_CODE was previously called ERRCODE, but that name causes an
+   error with msvc8 compiler.  */
 
 size_t
-regerror (errcode, preg, errbuf, errbuf_size)
-    int errcode;
+regerror (err_code, preg, errbuf, errbuf_size)
+    int err_code;
     const regex_t *preg;
     char *errbuf;
     size_t errbuf_size;
@@ -6638,15 +6641,15 @@ regerror (errcode, preg, errbuf, errbuf_size)
   const char *msg;
   size_t msg_size;
 
-  if (errcode < 0
-      || errcode >= (sizeof (re_error_msgid) / sizeof (re_error_msgid[0])))
+  if (err_code < 0
+      || err_code >= (sizeof (re_error_msgid) / sizeof (re_error_msgid[0])))
     /* Only error codes returned by the rest of the code should be passed
        to this routine.  If we are given anything else, or if other regex
        code generates an invalid error code, then the program has a bug.
        Dump core so we can fix it.  */
     abort ();
 
-  msg = gettext (re_error_msgid[errcode]);
+  msg = gettext (re_error_msgid[err_code]);
 
   msg_size = strlen (msg) + 1; /* Includes the null.  */
 

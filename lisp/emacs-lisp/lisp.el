@@ -185,13 +185,18 @@ With ARG, do it that many times.  Negative arg -N
 means move forward to Nth following beginning of defun.
 Returns t unless search stops due to beginning or end of buffer.
 
-Normally a defun starts when there is a char with open-parenthesis
-syntax at the beginning of a line.  If `defun-prompt-regexp' is
-non-nil, then a string which matches that regexp may precede the
-open-parenthesis, and point ends up at the beginning of the line.
-
 If variable `beginning-of-defun-function' is non-nil, its value
-is called as a function to find the defun's beginning."
+is called as a function to find the defun's beginning.
+
+Normally a defun is assumed to start where there is a char with
+open-parenthesis syntax at the beginning of a line.  If
+`defun-prompt-regexp' is non-nil, then a string which matches
+that regexp may precede the open-parenthesis, and point ends up
+at the beginning of the line.
+
+If `defun-prompt-regexp' and `open-paren-in-column-0-is-defun-start'
+are both nil, the function instead finds an open-paren at the
+outermost level."
   (interactive "p")
   (or (not (eq this-command 'beginning-of-defun))
       (eq last-command 'beginning-of-defun)
@@ -208,9 +213,9 @@ is non-nil.
 
 If variable `beginning-of-defun-function' is non-nil, its value
 is called as a function to find the defun's beginning."
-  (interactive "p") ; change this to "P", maybe, if we ever come to pass ARG
-		    ; to beginning-of-defun-function.
-  (unless arg (setq arg 1))		; The call might not be interactive.
+  (interactive "p")   ; change this to "P", maybe, if we ever come to pass ARG
+                      ; to beginning-of-defun-function.
+  (unless arg (setq arg 1))
   (cond
    (beginning-of-defun-function
     (if (> arg 0)
@@ -230,42 +235,56 @@ is called as a function to find the defun's beginning."
 			     nil 'move arg)
 	 (progn (goto-char (1- (match-end 0)))) t))
 
+   ;; If open-paren-in-column-0-is-defun-start and defun-prompt-regexp
+   ;; are both nil, column 0 has no significance - so scan forward
+   ;; from BOB to see how nested point is, then carry on from there.
+   ;;
+   ;; It is generally not a good idea to land up here, because the
+   ;; call to scan-lists below can be extremely slow.  This is because
+   ;; back_comment in syntax.c may have to scan from bob to find the
+   ;; beginning of each comment.  Fixing this is not trivial -- cyd.
+
+   ((eq arg 0))
    (t
-    ;; Column 0 has no significance - so scan forward from BOB to see how
-    ;; nested point is, then carry on from there.
-    (let* ((floor (point-min))
-	   (ceiling (point-max))
-	   (pps-state (let (syntax-begin-function
-			    font-lock-beginning-of-syntax-function)
-			(syntax-ppss)))
-	   (nesting-depth (nth 0 pps-state)))
+    (let ((floor (point-min))
+	  (ceiling (point-max))
+	  (arg-+ve (> arg 0)))
       (save-restriction
 	(widen)
-	;; Get outside of any string or comment.
-	(if (nth 8 pps-state)
-	    (goto-char (nth 8 pps-state)))
+	(let ((ppss (let (syntax-begin-function
+			  font-lock-beginning-of-syntax-function)
+		      (syntax-ppss)))
+	      ;; position of least enclosing paren, or nil.
+	      encl-pos)
+	  ;; Back out of any comment/string, so that encl-pos will always
+	  ;; become nil if we're at top-level.
+	  (when (nth 8 ppss)
+	    (goto-char (nth 8 ppss))
+	    (setq ppss (syntax-ppss)))	; should be fast, due to cache.
+	  (setq encl-pos (syntax-ppss-toplevel-pos ppss))
+	  (if encl-pos (goto-char encl-pos))
 
-	(cond
-	 ((> arg 0)
-	  (when (> nesting-depth 0)
-	    (up-list (- nesting-depth))
-	    (setq arg (1- arg)))
-	  ;; We're now outside of any defun.
-	  (backward-list arg)
-	  (if (< (point) floor) (goto-char floor)))
+	  (and encl-pos arg-+ve (setq arg (1- arg)))
+	  (and (not encl-pos) (not arg-+ve) (not (looking-at "\\s("))
+	       (setq arg (1+ arg)))
 
-	 ((< arg 0)
-	  (cond
-	   ((> nesting-depth 0)
-	    (up-list nesting-depth)
-	    (setq arg (1+ arg)))
-	   ((not (looking-at "\\s("))
-	    ;; We're between defuns, and not at the start of one.
-	    (setq arg (1+ arg))))
-	  (forward-list (- arg))
-	  (down-list)
-	  (backward-char)
-	  (if (> (point) ceiling) (goto-char ceiling)))))))))
+	  (condition-case nil   ; to catch crazy parens.
+	      (progn
+		(goto-char (scan-lists (point) (- arg) 0))
+		(if arg-+ve
+		    (if (>= (point) floor)
+			t
+		      (goto-char floor)
+		      nil)
+		  ;; forward to next (, or trigger the c-c
+		  (goto-char (1- (scan-lists (point) 1 -1)))
+		  (if (<= (point) ceiling)
+		      t
+		    (goto-char ceiling)
+		    nil)))
+	    (error
+	     (goto-char (if arg-+ve floor ceiling))
+	     nil))))))))
 
 (defvar end-of-defun-function nil
   "If non-nil, function for function `end-of-defun' to call.

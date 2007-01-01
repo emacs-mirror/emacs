@@ -44,6 +44,7 @@ the real runnable Emacs executable.  These arguments direct
 environment, resulting in an Emacs that is still impure but no longer
 bare.
 
+@cindex dumping Emacs
   It takes a substantial time to load the standard Lisp files.  Luckily,
 you don't have to do this each time you run Emacs; @file{temacs} can
 dump out an executable program called @file{emacs} that has these files
@@ -86,6 +87,7 @@ calling @code{Snarf-documentation} (@pxref{Definition of
 Snarf-documentation,, Accessing Documentation}).
 
 @cindex @file{site-init.el}
+@cindex preloading additional functions and variables
   You can specify other Lisp expressions to execute just before dumping
 by putting them in a library named @file{site-init.el}.  This file is
 executed after the documentation strings are found.
@@ -491,6 +493,7 @@ Emacs session.
 @node Writing Emacs Primitives
 @appendixsec Writing Emacs Primitives
 @cindex primitive function internals
+@cindex writing Emacs primitives
 
   Lisp primitives are Lisp functions implemented in C.  The details of
 interfacing the C function so that Lisp can call it are handled by a few
@@ -539,6 +542,7 @@ usage: (or CONDITIONS ...)  */)
 @end group
 @end smallexample
 
+@cindex @code{DEFUN}, C macro to define Lisp primitives
   Let's start with a precise explanation of the arguments to the
 @code{DEFUN} macro.  Here is a template for them:
 
@@ -619,6 +623,8 @@ receives exactly two arguments: the first is the number of Lisp
 arguments, and the second is the address of a block containing their
 values.  They have types @code{int} and @w{@code{Lisp_Object *}}.
 
+@cindex @code{GCPRO} and @code{UNGCPRO}
+@cindex protect C variables from garbage collection
   Within the function @code{For} itself, note the use of the macros
 @code{GCPRO1} and @code{UNGCPRO}.  @code{GCPRO1} is used to
 ``protect'' a variable from garbage collection---to inform the garbage
@@ -672,6 +678,7 @@ macro.  (This definition is used because those systems put all variables
 declared static in a place that becomes read-only after dumping, whether
 they have initializers or not.)
 
+@cindex @code{defsubr}, Lisp symbol for a primitive
   Defining the C function is not enough to make a Lisp primitive
 available; you must also create the Lisp symbol for the primitive and
 store a suitable subr object in its function cell.  The code looks like
@@ -696,6 +703,8 @@ of these functions are called, and add a call to
 
 @anchor{Defining Lisp variables in C}
 @vindex byte-boolean-vars
+@cindex defining Lisp variables in C
+@cindex @code{DEFVAR_INT}, @code{DEFVAR_LISP}, @code{DEFVAR_BOOL}
   The function @code{syms_of_@var{filename}} is also the place to define
 any C variables that are to be visible as Lisp variables.
 @code{DEFVAR_LISP} makes a C variable of type @code{Lisp_Object} visible
@@ -706,6 +715,7 @@ with a value that is either @code{t} or @code{nil}.  Note that variables
 defined with @code{DEFVAR_BOOL} are automatically added to the list
 @code{byte-boolean-vars} used by the byte compiler.
 
+@cindex @code{staticpro}, protect file-scope variables from GC
   If you define a file-scope C variable of type @code{Lisp_Object},
 you must protect it from garbage-collection by calling @code{staticpro}
 in @code{syms_of_@var{filename}}, like this:

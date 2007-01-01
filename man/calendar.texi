@@ -240,9 +240,9 @@ the months on it.  Scrolling the calendar means moving the strip
 horizontally, so that new months become visible in the window.
 
 @table @kbd
-@item <
-Scroll calendar one month forward (@code{scroll-calendar-left}).
 @item >
+Scroll calendar one month forward (@code{scroll-calendar-left}).
+@item <
 Scroll calendar one month backward (@code{scroll-calendar-right}).
 @item C-v
 @itemx @key{NEXT}
@@ -254,16 +254,15 @@ Scroll calendar three months backward
 (@code{scroll-calendar-right-three-months}).
 @end table
 
-@kindex < @r{(Calendar mode)}
-@findex scroll-calendar-left
 @kindex > @r{(Calendar mode)}
+@findex scroll-calendar-left
+@kindex < @r{(Calendar mode)}
 @findex scroll-calendar-right
   The most basic calendar scroll commands scroll by one month at a
 time.  This means that there are two months of overlap between the
-display before the command and the display after.  @kbd{<} scrolls
-the calendar contents one month to the left; that is, it moves the
-display forward in time.  @kbd{>} scrolls the contents to the
-right, which moves backwards in time.
+display before the command and the display after.  @kbd{>} scrolls the
+calendar contents one month forward in time.  @kbd{<} scrolls the
+contents one month backwards in time.
 
 @kindex C-v @r{(Calendar mode)}
 @findex scroll-calendar-left-three-months
@@ -527,12 +526,8 @@ categories of holidays.  You can use this command even if you don't have
 a calendar window.
 
   The dates used by Emacs for holidays are based on @emph{current
-practice}, not historical fact.  Historically, for instance, the start
-of daylight savings time and even its existence have varied from year to
-year, but present United States law mandates that daylight savings time
-begins on the first Sunday in April.  When the daylight savings rules
-are set up for the United States, Emacs always uses the present
-definition, even though it is wrong for some prior years.
+practice}, not historical fact.  For example Veteran's Day began in
+1919, but is shown in earlier years.
 
 @node Sunrise/Sunset
 @section Times of Sunrise and Sunset
@@ -1593,14 +1588,14 @@ day in the solar and lunar calculations.
   The values for Cambridge, Massachusetts are as follows:
 
 @example
-(calendar-nth-named-day 1 0 4 year)
-(calendar-nth-named-day -1 0 10 year)
+(calendar-nth-named-day 2 0 3 year)
+(calendar-nth-named-day 1 0 11 year)
 @end example
 
 @noindent
-That is, the first 0th day (Sunday) of the fourth month (April) in
-the year specified by @code{year}, and the last Sunday of the tenth month
-(October) of that year.  If daylight savings time were
+That is, the second 0th day (Sunday) of the third month (March) in
+the year specified by @code{year}, and the first Sunday of the eleventh month
+(November) of that year.  If daylight savings time were
 changed to start on October 1, you would set
 @code{calendar-daylight-savings-starts} to this:
 

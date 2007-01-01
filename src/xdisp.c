@@ -290,10 +290,12 @@ Lisp_Object Vtool_bar_button_margin;
 
 EMACS_INT tool_bar_button_relief;
 
-/* Non-zero means automatically resize tool-bars so that all tool-bar
-   items are visible, and no blank lines remain.  */
+/* Non-nil means automatically resize tool-bars so that all tool-bar
+   items are visible, and no blank lines remain.
 
-int auto_resize_tool_bars_p;
+   If value is `grow-only', only make tool-bar bigger.  */
+
+Lisp_Object Vauto_resize_tool_bars;
 
 /* Non-zero means draw block and hollow cursor as wide as the glyph
    under it.  For example, if a block cursor is over a tab, it will be
@@ -9854,9 +9856,16 @@ display_tool_bar_line (it, height)
  out:;
 
   row->displays_text_p = row->used[TEXT_AREA] != 0;
-  /* Use default face for the border below the tool bar.  */
-  if (!row->displays_text_p)
+
+  /* Use default face for the border below the tool bar.
+
+     FIXME: When auto-resize-tool-bars is grow-only, there is
+     no additional border below the possibly empty tool-bar lines.
+     So to make the extra empty lines look "normal", we have to
+     use the tool-bar face for the border too.  */
+  if (!row->displays_text_p && !EQ (Vauto_resize_tool_bars, Qgrow_only))
     it->face_id = DEFAULT_FACE_ID;
+
   extend_face_to_end_of_line (it);
   last = row->glyphs[TEXT_AREA] + row->used[TEXT_AREA] - 1;
   last->right_box_line_p = 1;
@@ -9878,6 +9887,7 @@ display_tool_bar_line (it, height)
   if (!row->displays_text_p)
     {
       row->height = row->phys_height = it->last_visible_y - row->y;
+      row->visible_height = row->height;
       row->ascent = row->phys_ascent = 0;
       row->extra_line_spacing = 0;
     }
@@ -9980,7 +9990,6 @@ redisplay_tool_bar (f)
   struct window *w;
   struct it it;
   struct glyph_row *row;
-  int change_height_p = 0;
 
 #ifdef USE_GTK
   if (FRAME_EXTERNAL_TOOL_BAR (f))
@@ -10075,10 +10084,10 @@ redisplay_tool_bar (f)
   w->desired_matrix->no_scrolling_p = 1;
   w->must_be_updated_p = 1;
 
-  if (auto_resize_tool_bars_p)
+  if (!NILP (Vauto_resize_tool_bars))
     {
-      int nlines, nrows;
       int max_tool_bar_height = MAX_FRAME_TOOL_BAR_HEIGHT (f);
+      int change_height_p = 0;
 
       /* If we couldn't display everything, change the tool-bar's
 	 height if there is room for more.  */
@@ -10104,29 +10113,40 @@ redisplay_tool_bar (f)
 
       /* Resize windows as needed by changing the `tool-bar-lines'
 	 frame parameter.  */
-      if (change_height_p
-	  && (nlines = tool_bar_lines_needed (f, &nrows),
-	      nlines != WINDOW_TOTAL_LINES (w)))
+      if (change_height_p)
 	{
 	  extern Lisp_Object Qtool_bar_lines;
 	  Lisp_Object frame;
 	  int old_height = WINDOW_TOTAL_LINES (w);
+	  int nrows;
+	  int nlines = tool_bar_lines_needed (f, &nrows);
 
-	  XSETFRAME (frame, f);
-	  Fmodify_frame_parameters (frame,
-				    Fcons (Fcons (Qtool_bar_lines,
-						  make_number (nlines)),
-					   Qnil));
-	  if (WINDOW_TOTAL_LINES (w) != old_height)
+	  change_height_p = ((EQ (Vauto_resize_tool_bars, Qgrow_only)
+			      && !f->minimize_tool_bar_window_p)
+			     ? (nlines > old_height)
+			     : (nlines != old_height));
+	  f->minimize_tool_bar_window_p = 0;
+
+	  if (change_height_p)
 	    {
-	      clear_glyph_matrix (w->desired_matrix);
-	      f->n_tool_bar_rows = nrows;
-	      fonts_changed_p = 1;
+	      XSETFRAME (frame, f);
+	      Fmodify_frame_parameters (frame,
+					Fcons (Fcons (Qtool_bar_lines,
+						      make_number (nlines)),
+					       Qnil));
+	      if (WINDOW_TOTAL_LINES (w) != old_height)
+		{
+		  clear_glyph_matrix (w->desired_matrix);
+		  f->n_tool_bar_rows = nrows;
+		  fonts_changed_p = 1;
+		  return 1;
+		}
 	    }
 	}
     }
 
-  return change_height_p;
+  f->minimize_tool_bar_window_p = 0;
+  return 0;
 }
 
 
@@ -13596,7 +13616,7 @@ redisplay_window (window, just_this_one_p)
 #else
       redisplay_tool_bar_p = WINDOWP (f->tool_bar_window)
         && (FRAME_TOOL_BAR_LINES (f) > 0
-            || auto_resize_tool_bars_p);
+            || !NILP (Vauto_resize_tool_bars));
 
 #endif
 
@@ -24376,12 +24396,13 @@ Autoselection selects the minibuffer only if it is active, and never
 unselects the minibuffer if it is active.  */);
   Vmouse_autoselect_window = Qnil;
 
-  DEFVAR_BOOL ("auto-resize-tool-bars", &auto_resize_tool_bars_p,
+  DEFVAR_LISP ("auto-resize-tool-bars", &Vauto_resize_tool_bars,
     doc: /* *Non-nil means automatically resize tool-bars.
-This increases a tool-bar's height if not all tool-bar items are visible.
-It decreases a tool-bar's height when it would display blank lines
-otherwise.  */);
-  auto_resize_tool_bars_p = 1;
+This dynamically changes the tool-bar's height to the minimum height
+that is needed to make all tool-bar items visible.
+If value is `grow-only', the tool-bar's height is only increased
+automatically; to decreace the tool-bar height, use \\[recenter].  */);
+  Vauto_resize_tool_bars = Qt;
 
   DEFVAR_BOOL ("auto-raise-tool-bar-buttons", &auto_raise_tool_bar_buttons_p,
     doc: /* *Non-nil means raise tool-bar buttons when the mouse moves over them.  */);

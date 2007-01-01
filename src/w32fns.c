@@ -8411,6 +8411,30 @@ is set to off if the low bit of NEW-STATE is zero, otherwise on.  */)
     }
   return Qnil;
 }
+
+DEFUN ("w32-window-exists-p", Fw32_window_exists_p, Sw32_window_exists_p,
+       2, 2, 0,
+       doc: /* Return non-nil if a window exists with the specified CLASS and NAME.
+
+This is a direct interface to the Windows API FindWindow function.  */)
+  (class, name)
+Lisp_Object class, name;
+{
+  HWND hnd;
+
+  if (!NILP (class))
+    CHECK_STRING (class);
+  if (!NILP (name))
+    CHECK_STRING (name);
+
+  hnd = FindWindow (STRINGP (class) ? ((LPCTSTR) SDATA (class)) : NULL,
+		    STRINGP (name)  ? ((LPCTSTR) SDATA (name))  : NULL);
+  if (!hnd)
+    return Qnil;
+  return Qt;
+}
+
+
 
 DEFUN ("file-system-info", Ffile_system_info, Sfile_system_info, 1, 1, 0,
        doc: /* Return storage information about the file system FILENAME is on.
@@ -8977,6 +9001,7 @@ versions of Windows) characters.  */);
 
     staticpro (&Qw32_charset_unicode);
     Qw32_charset_unicode = intern ("w32-charset-unicode");
+  }
 #endif
 
 #if 0 /* TODO: Port to W32 */
@@ -9021,6 +9046,7 @@ versions of Windows) characters.  */);
   defsubr (&Sw32_registered_hot_keys);
   defsubr (&Sw32_reconstruct_hot_key);
   defsubr (&Sw32_toggle_lock_key);
+  defsubr (&Sw32_window_exists_p);
   defsubr (&Sw32_find_bdf_fonts);
 
   defsubr (&Sfile_system_info);

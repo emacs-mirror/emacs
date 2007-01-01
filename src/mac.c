@@ -4852,8 +4852,8 @@ DEFUN ("mac-code-convert-string", Fmac_code_convert_string, Smac_code_convert_st
        doc: /* Convert STRING from SOURCE encoding to TARGET encoding.
 The conversion is performed using the converter provided by the system.
 Each encoding is specified by either a coding system symbol, a mime
-charset string, or an integer as a CFStringEncoding value.  Nil for
-encoding means UTF-16 in native byte order, no byte order mark.
+charset string, or an integer as a CFStringEncoding value.  An encoding
+of nil means UTF-16 in native byte order, no byte order mark.
 On Mac OS X 10.2 and later, you can do Unicode Normalization by
 specifying the optional argument NORMALIZATION-FORM with a symbol NFD,
 NFKD, NFC, NFKC, HFS+D, or HFS+C.

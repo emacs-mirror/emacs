@@ -624,7 +624,7 @@
 	* sed1.inp: New file for changing src/makefile.in.in into src/makefile
 
 ;; Local Variables:
-;; coding: iso-2022-7bit-unix
+;; coding: iso-2022-7bit
 ;; add-log-time-zone-rule: t
 ;; End:
 

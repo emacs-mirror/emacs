@@ -23,7 +23,7 @@ dnl  along with GNU Emacs; see the file COPYING.  If not, write to the
 dnl  Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 dnl  Boston, MA 02110-1301, USA.
 
-AC_PREREQ(2.54)dnl
+AC_PREREQ(2.61)dnl
 AC_INIT(src/lisp.h)
 AC_CONFIG_HEADER(src/config.h:src/config.in)
 
@@ -269,7 +269,6 @@ dnl see the `changequote' comment above.
       m68k-*-netbsd*)
 			# This is somewhat bogus.
 			machine=hp9000s300 ;;
-      powerpc-apple-netbsd*) machine=macppc ;;
       mips-*-netbsd*)	machine=pmax ;;
       mipsel-*-netbsd*)	machine=pmax ;;
       mipseb-*-netbsd*)	machine=pmax ;;
@@ -278,6 +277,9 @@ dnl see the `changequote' comment above.
       sparc*-*-netbsd*)	machine=sparc ;;
       vax-*-netbsd*)	machine=vax ;;
       arm-*-netbsd*)	machine=arm ;;
+      x86_64-*-netbsd*)	machine=amdx86-64 ;;
+      hppa-*-netbsd*)	machine=hp800 ;;
+      shle-*-netbsd*)	machine=sh3el ;;
     esac
   ;;
 
@@ -1576,9 +1578,30 @@ if test "${with_sound}" != "no"; then
   fi
   PKG_CHECK_MODULES(ALSA, $ALSA_MODULES, HAVE_ALSA=yes, HAVE_ALSA=no)
   if test $HAVE_ALSA = yes; then
+    SAVE_CFLAGS="$CFLAGS"
+    SAVE_LDFLAGS="$LDFLAGS"
+    CFLAGS="$ALSA_CFLAGS $CFLAGS"
+    LDFLAGS="$ALSA_LIBS $LDFLAGS"
+    AC_TRY_COMPILE([#include <asoundlib.h>], [snd_lib_error_set_handler (0);],
+                    emacs_alsa_normal=yes,
+	            emacs_alsa_normal=no)
+    if test "$emacs_alsa_normal" != yes; then
+      AC_TRY_COMPILE([#include <alsa/asoundlib.h>],
+                     [snd_lib_error_set_handler (0);],
+                     emacs_alsa_subdir=yes,
+	             emacs_alsa_subdir=no)
+      if test "$emacs_alsa_subdir" != yes; then
+        AC_MSG_ERROR([pkg-config found alsa, but it does not compile.  See config.log for error messages.])
+      fi
+      ALSA_CFLAGS="$ALSA_CFLAGS -DALSA_SUBDIR_INCLUDE"
+    fi
+
+    CFLAGS="$SAVE_CFLAGS"
+    LDFLAGS="$SAVE_LDFLAGS"
     LIBSOUND="$LIBSOUND $ALSA_LIBS"
     CFLAGS_SOUND="$CFLAGS_SOUND $ALSA_CFLAGS"
     AC_DEFINE(HAVE_ALSA, 1, [Define to 1 if ALSA is available.])
+    AC_SUBST()
   fi
   AC_SUBST(CFLAGS_SOUND)
 fi
@@ -2052,6 +2075,9 @@ fail;
 fi
 
 HAVE_GTK=no
+if test "${with_gtk}" = "yes" && test "$USE_X_TOOLKIT" = "gtk"; then
+  USE_X_TOOLKIT=none
+fi
 if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "gtk"; then
   if test "$USE_X_TOOLKIT" != "none" && test "$USE_X_TOOLKIT" != "maybe"; then
     AC_MSG_ERROR([Conflicting options, --with-gtk is incompatible with --with-x-toolkit=${with_x_toolkit}]);
@@ -2071,6 +2097,13 @@ if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "gtk"; then
   C_SWITCH_X_SITE="$C_SWITCH_X_SITE $GTK_CFLAGS"
   CFLAGS="$CFLAGS $GTK_CFLAGS"
   LIBS="$GTK_LIBS $LIBS"
+  dnl Try to compile a simple GTK program.
+  GTK_COMPILES=no
+  AC_CHECK_FUNCS(gtk_main, GTK_COMPILES=yes)
+  if test "${GTK_COMPILES}" != "yes"; then
+    AC_MSG_ERROR([Gtk+ wanted, but it does not compile, see config.log.  Maybe some x11-devel files missing?]);
+  fi
+  
   HAVE_GTK=yes
   AC_DEFINE(HAVE_GTK, 1, [Define to 1 if using GTK.])
   USE_X_TOOLKIT=none

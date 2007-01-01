@@ -326,35 +326,24 @@ This variable defaults to the value of `tramp-encoding-shell'."
               (tramp-login-program        "ssh")
               (tramp-copy-program         "scp")
               (tramp-remote-sh            "/bin/sh")
-              (tramp-login-args           ("-o" "ControlPath=%t.%%r@%%h:%%p"
-					   "-o" "ControlMaster=yes"
-					   "-e" "none"))
-              (tramp-copy-args            ("-o" "ControlPath=%t.%%r@%%h:%%p"
-					   "-o" "ControlMaster=auto"))
+              (tramp-login-args           ("-e" "none"))
+              (tramp-copy-args            nil)
               (tramp-copy-keep-date-arg   "-p")
 	      (tramp-password-end-of-line nil))
      ("scp1"  (tramp-connection-function  tramp-open-connection-rsh)
               (tramp-login-program        "ssh")
               (tramp-copy-program         "scp")
               (tramp-remote-sh            "/bin/sh")
-              (tramp-login-args           ("-o" "ControlPath=%t.%%r@%%h:%%p"
-					   "-o" "ControlMaster=yes"
-					   "-1" "-e" "none"))
-              (tramp-copy-args            ("-o" "ControlPath=%t.%%r@%%h:%%p"
-					   "-o" "ControlMaster=auto"
-					   "-1"))
+              (tramp-login-args           ("-1" "-e" "none"))
+              (tramp-copy-args            ("-1"))
               (tramp-copy-keep-date-arg   "-p")
 	      (tramp-password-end-of-line nil))
      ("scp2"  (tramp-connection-function  tramp-open-connection-rsh)
               (tramp-login-program        "ssh")
               (tramp-copy-program         "scp")
               (tramp-remote-sh            "/bin/sh")
-              (tramp-login-args           ("-o" "ControlPath=%t.%%r@%%h:%%p"
-					   "-o" "ControlMaster=yes"
-					   "-2" "-e" "none"))
-              (tramp-copy-args            ("-o" "ControlPath=%t.%%r@%%h:%%p"
-					   "-o" "ControlMaster=auto"
-					   "-2"))
+              (tramp-login-args           ("-2" "-e" "none"))
+              (tramp-copy-args            ("-2"))
               (tramp-copy-keep-date-arg   "-p")
 	      (tramp-password-end-of-line nil))
      ("scp1_old"
@@ -482,6 +471,17 @@ This variable defaults to the value of `tramp-encoding-shell'."
               (tramp-login-args           nil)
               (tramp-copy-args            nil)
               (tramp-copy-keep-date-arg   nil)
+	      (tramp-password-end-of-line nil))
+     ("scpc"  (tramp-connection-function  tramp-open-connection-rsh)
+              (tramp-login-program        "ssh")
+              (tramp-copy-program         "scp")
+              (tramp-remote-sh            "/bin/sh")
+              (tramp-login-args           ("-o" "ControlPath=%t.%%r@%%h:%%p"
+					   "-o" "ControlMaster=yes"
+					   "-e" "none"))
+              (tramp-copy-args            ("-o" "ControlPath=%t.%%r@%%h:%%p"
+					   "-o" "ControlMaster=auto"))
+              (tramp-copy-keep-date-arg   "-p")
 	      (tramp-password-end-of-line nil))
      ("scpx"  (tramp-connection-function  tramp-open-connection-rsh)
               (tramp-login-program        "ssh")
@@ -684,10 +684,39 @@ various functions for details."
   :type '(repeat (list string function string)))
 
 (defcustom tramp-default-method
-  (if (and (fboundp 'executable-find)
-	   (executable-find "pscp"))
-      "pscp"
-    "scp")
+  ;; An external copy method seems to be preferred, because it is much
+  ;; more performant for large files, and it hasn't too serious delays
+  ;; for small files.  But it must be ensured that there aren't
+  ;; permanent password queries.  Either a password agent like
+  ;; "ssh-agent" or "Pageant" shall run, or the optional password.el
+  ;; package shall be active for password caching.  "scpc" would be
+  ;; another good choice because of the "ControlMaster" option, but
+  ;; this is a more modern alternative in OpenSSH 4, which cannot be
+  ;; taken as default.
+  (let ((e-f (fboundp 'executable-find)))
+    (cond
+     ;; PuTTY is installed.
+     ((and e-f (funcall 'executable-find "pscp"))
+      (if (or (fboundp 'password-read)
+	      ;; Pageant is running.
+	      (and (fboundp 'w32-window-exists-p)
+		   (funcall 'w32-window-exists-p "Pageant" "Pageant")))
+	  "pscp"
+	"plink"))
+     ;; There is an ssh installation.
+     ((and e-f (funcall 'executable-find "scp"))
+      (if (or (fboundp 'password-read)
+	      ;; ssh-agent is running.
+	      (getenv "SSH_AUTH_SOCK")
+	      (getenv "SSH_AGENT_PID"))
+	  "scp"
+	"ssh"))
+     ;; Under Emacs 20, `executable-find' does not exists.  So we
+     ;; couldn't check whether there is an ssh implementation.  Let's
+     ;; hope the best.
+     ((not e-f) "ssh")
+     ;; Fallback.
+     (t "ftp")))
   "*Default method to use for transferring files.
 See `tramp-methods' for possibilities.
 Also see `tramp-default-method-alist'."
@@ -925,8 +954,10 @@ See also `tramp-yn-prompt-regexp'."
   :type 'regexp)
 
 (defcustom tramp-yn-prompt-regexp
-  (concat (regexp-opt '("Store key in cache? (y/n)") t)
-	  "\\s-*")
+  (concat
+   (regexp-opt '("Store key in cache? (y/n)"
+		 "Update cached key? (y/n, Return cancels connection)") t)
+   "\\s-*")
   "Regular expression matching all y/n queries which need to be confirmed.
 The confirmation should be done with y or n.
 The regexp should match at end of buffer.
@@ -2044,7 +2075,9 @@ If VAR is nil, then we bind `v' to the structure and `multi-method',
 ;; Enable debugging.
 (def-edebug-spec with-parsed-tramp-file-name (form symbolp body))
 ;; Highlight as keyword.
-(font-lock-add-keywords 'emacs-lisp-mode '("\\<with-parsed-tramp-file-name\\>"))
+(when (functionp 'font-lock-add-keywords)
+  (funcall 'font-lock-add-keywords
+	   'emacs-lisp-mode '("\\<with-parsed-tramp-file-name\\>")))
 
 (defmacro tramp-let-maybe (variable value &rest body)
   "Let-bind VARIABLE to VALUE in BODY, but only if VARIABLE is not obsolete.
@@ -2834,17 +2867,18 @@ of."
 
 
 ;; The following isn't needed for Emacs 20 but for 19.34?
-(defun tramp-handle-file-name-completion (filename directory)
+(defun tramp-handle-file-name-completion
+  (filename directory &optional predicate)
   "Like `file-name-completion' for tramp files."
   (unless (tramp-tramp-file-p directory)
     (error
      "tramp-handle-file-name-completion invoked on non-tramp directory `%s'"
      directory))
-  (with-parsed-tramp-file-name directory nil
-    (try-completion
-     filename
-     (mapcar (lambda (x) (cons x nil))
-	     (file-name-all-completions filename directory)))))
+  (try-completion
+   filename
+   (mapcar 'list (file-name-all-completions filename directory))
+   (when predicate
+     (lambda (x) (funcall predicate (expand-file-name (car x) directory))))))
 
 ;; cp, mv and ln
 
@@ -4494,7 +4528,6 @@ Falls back to normal file name handler if no tramp file name handler exists."
   "Checks whether method / user name / host name completion is active."
   (cond
    (tramp-completion-mode t)
-   ((not tramp-unified-filenames) t)
    ((string-match "^/.*:.*:$" file) nil)
    ((string-match
      (concat tramp-prefix-regexp
@@ -4503,7 +4536,7 @@ Falls back to normal file name handler if no tramp file name handler exists."
     (member (match-string 1 file) (mapcar 'car tramp-methods)))
    ((or (equal last-input-event 'tab)
   	;; Emacs
-  	(and (integerp last-input-event)
+  	(and (wholenump last-input-event)
 	     (or
 	      ;; ?\t has event-modifier 'control
 	      (char-equal last-input-event ?\t)
@@ -4605,10 +4638,14 @@ Falls back to normal file name handler if no tramp file name handler exists."
 
 ;; Method, host name and user name completion for a file.
 ;;;###autoload
-(defun tramp-completion-handle-file-name-completion (filename directory)
+(defun tramp-completion-handle-file-name-completion
+  (filename directory &optional predicate)
   "Like `file-name-completion' for tramp files."
-  (try-completion filename
-   (mapcar 'list (file-name-all-completions filename directory))))
+  (try-completion
+   filename
+   (mapcar 'list (file-name-all-completions filename directory))
+   (when predicate
+     (lambda (x) (funcall predicate (expand-file-name (car x) directory))))))
 
 ;; I misuse a little bit the tramp-file-name structure in order to handle
 ;; completion possibilities for partial methods / user names / host names.
@@ -5068,13 +5105,23 @@ hosts, or files, disagree."
 (defun tramp-touch (file time)
   "Set the last-modified timestamp of the given file.
 TIME is an Emacs internal time value as returned by `current-time'."
-  (let ((touch-time (format-time-string "%Y%m%d%H%M.%S" time t)))
+  (let* ((utc
+	  ;; With GNU Emacs, `format-time-string' has an optional
+	  ;; parameter UNIVERSAL.  This is preferred.
+	  (and (functionp 'subr-arity)
+	       (= 3 (cdr (funcall (symbol-function 'subr-arity)
+				  (symbol-function 'format-time-string))))))
+	 (touch-time
+	  (if utc
+	      (format-time-string "%Y%m%d%H%M.%S" time t)
+	    (format-time-string "%Y%m%d%H%M.%S" time))))
     (if (tramp-tramp-file-p file)
 	(with-parsed-tramp-file-name file nil
 	  (let ((buf (tramp-get-buffer multi-method method user host)))
 	    (unless (zerop (tramp-send-command-and-check
 			    multi-method method user host
-			    (format "TZ=UTC; export TZ; touch -t %s %s"
+			    (format "%s touch -t %s %s"
+				    (if utc "TZ=UTC; export TZ;" "")
 				    touch-time
 				    (tramp-shell-quote-argument localname))
 			    t))
@@ -6943,8 +6990,8 @@ localname (file name on remote host)."
 	item)
     (while choices
       (setq item (pop choices))
-      (when (and (string-match (nth 0 item) (or host ""))
-		 (string-match (nth 1 item) (or user "")))
+      (when (and (string-match (or (nth 0 item) "") (or host ""))
+		 (string-match (or (nth 1 item) "") (or user "")))
 	(setq method (nth 2 item))
 	(setq choices nil)))
     method))

@@ -2232,10 +2232,13 @@ default directory, and has five files whose names begin with @samp{f}:
 @end example
 @end defun
 
-@defun file-name-completion filename directory
+@defun file-name-completion filename directory &optional predicate
 This function completes the file name @var{filename} in directory
 @var{directory}.  It returns the longest prefix common to all file names
-in directory @var{directory} that start with @var{filename}.
+in directory @var{directory} that start with @var{filename}.  If
+@var{predicate} is non-@code{nil} then it ignores possible completions
+that don't satisfy @var{predicate}, after calling that function
+with one argument, the expanded absolute file name.
 
 If only one match exists and @var{filename} matches it exactly, the
 function returns @code{t}.  The function returns @code{nil} if directory

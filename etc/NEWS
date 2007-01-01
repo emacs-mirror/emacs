@@ -6,10 +6,10 @@ See the end for copying conditions.
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
 If possible, use M-x report-emacs-bug.
 
-This file is about changes in emacs version 22.
+This file is about changes in Emacs version 22.
 
 See files NEWS.21, NEWS.20, NEWS.19, NEWS.18, and NEWS.1-17 for changes
-in older emacs versions.
+in older Emacs versions.
 
 You can narrow news to a specific version by calling `view-emacs-news'
 with a prefix argument or by typing C-u C-h C-n.
@@ -756,7 +756,8 @@ when the file name contains wildcard characters.
 
 +++
 *** find-alternate-file replaces the current file with multiple files,
-when the file name contains wildcard characters.
+when the file name contains wildcard characters.  It now asks if you
+wish save your changes and not just offer to kill the buffer.
 
 +++
 *** Auto Compression mode is now enabled by default.
@@ -989,6 +990,11 @@ or when the frame is resized.
 Due to technical limitations in how Emacs interacts with windowing
 systems, these constructs often failed to render properly, and could
 even cause Emacs to crash.
+
++++
+*** If value of `auto-resize-tool-bars' is `grow-only', the tool bar
+will expand as needed, but not contract automatically.  To contract
+the tool bar, you must type C-l.
 
 ** Cursor display changes:
 
@@ -2104,6 +2110,12 @@ events from the console.  It still requires gpm to work but has been updated
 for Emacs 22. In particular, the mode-line is now position sensitive.
 
 * Changes in Specialized Modes and Packages in Emacs 22.1:
+
+** Changes in Shell Mode
+
+*** Shell output normally scrolls so that the input line is at the
+bottom of the window -- thus showing the maximum possible text.  (This
+is similar to the way sequential output to a terminal works.)
 
 ** Changes in Dired
 
@@ -3379,8 +3391,12 @@ version 5.0.2; see MH-E-NEWS for details.
 ** Calendar changes:
 
 +++
+*** The meanings of C-x < and C-x > have been interchanged.
+< means to scroll backward in time, and > means to scroll forward.
+
++++
 *** You can now use < and >, instead of C-x < and C-x >, to scroll
-the calendar left or right.  (The old key bindings still work too.)
+the calendar left or right.
 
 +++
 *** There is a new calendar package, icalendar.el, that can be used to
@@ -3852,6 +3868,11 @@ w32-use-full-screen-buffer to t.
 
 * Incompatible Lisp Changes in Emacs 22.1
 
++++
+** The `read-file-name' function now returns a null string if the
+user just types RET.
+
++++
 ** The function find-operation-coding-system may be called with a cons
 (FILENAME . BUFFER) in the second argument if the first argument
 OPERATION is `insert-file-contents', and thus a function registered in
@@ -3890,7 +3911,13 @@ there is no longer a shortage of memory.
 
 +++
 ** When Emacs receives a USR1 or USR2 signal, this generates
-input event sequences: [signal usr1] or [signal usr2].
+input events: sigusr1 or sigusr2.  Use special-event-map to
+handle these events.
+
++++
+** A hex or octal escape in a string constant forces the string to
+be multibyte or unibyte, respectively.
+
 
 * Lisp Changes in Emacs 22.1
 
@@ -4623,6 +4650,10 @@ autoloaded when not really necessary.
 *** The function `make-auto-save-file-name' is now handled by file
 name handlers.  This will be exploited for remote files mainly.
 
++++
+*** The function `file-name-completion' accepts an optional argument
+PREDICATE, and rejects completion candidates that don't satisfy PREDICATE.
+
 ** Input changes:
 
 +++
@@ -4632,7 +4663,7 @@ maximum time to wait for input, in seconds.  If no input arrives after
 this time elapses, the functions stop waiting and return nil.
 
 +++
-*** An interactive specification can now use the code letter 'U' to get
+*** An interactive specification can now use the code letter `U' to get
 the up-event that was discarded in case the last key sequence read for a
 previous `k' or `K' argument was a down-event; otherwise nil is used.
 
@@ -5588,10 +5619,25 @@ of multiline constructs so that such constructs get properly recognized.
 ** Major mode mechanism changes:
 
 +++
-*** `set-auto-mode' now gives the interpreter magic line (if present)
-precedence over the file name.  Likewise an `<?xml' or `<!DOCTYPE'
-declaration will give the buffer XML or SGML mode, based on the new
-variable `magic-mode-alist'.
+*** If new variable `auto-mode-case-fold' is set to a non-nil value,
+Emacs will perform a second case-insensitive search through
+`auto-mode-alist' if the first case-sensitive search fails.
+This means that a file FILE.TXT is opened in text-mode, and a file PROG.PY
+is opened in python-mode.  Note however, that independent of this
+setting, *.C files are usually recognized as C++ files.
+It also has no effect on systems with case-insensitive file names.
+
++++
+*** New variable `magic-mode-alist' determines major mode for a file by
+looking at the file contents.  It takes precedence over `auto-mode-alist'.
+
++++
+*** An interpreter magic line (if present) takes precedence over the
+file name when setting the major mode.
+
++++
+*** XML or SGML major mode is selected when file starts with an `<?xml'
+or `<!DOCTYPE' declaration.
 
 +++
 *** Use the new function `run-mode-hooks' to run the major mode's mode hook.

@@ -3977,7 +3977,7 @@ E.g.,
 							  ange-ftp-this-dir))
 	(ange-ftp-real-file-name-all-completions file ange-ftp-this-dir)))))
 
-(defun ange-ftp-file-name-completion (file dir)
+(defun ange-ftp-file-name-completion (file dir &optional predicate)
   (let ((ange-ftp-this-dir (expand-file-name dir)))
     (if (ange-ftp-ftp-name ange-ftp-this-dir)
 	(progn
@@ -4005,8 +4005,13 @@ E.g.,
 	   file
 	   (nconc (ange-ftp-generate-root-prefixes)
 		  (ange-ftp-real-file-name-all-completions
-		   file ange-ftp-this-dir)))
-	(ange-ftp-real-file-name-completion file ange-ftp-this-dir)))))
+		   file ange-ftp-this-dir))
+	   predicate)
+	(if predicate
+	    (ange-ftp-real-file-name-completion
+	     file ange-ftp-this-dir predicate)
+	  (ange-ftp-real-file-name-completion
+	   file ange-ftp-this-dir))))))
 
 
 (defun ange-ftp-file-name-completion-1 (file tbl dir &optional predicate)

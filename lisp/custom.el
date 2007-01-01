@@ -536,6 +536,7 @@ For other custom types, this has no effect."
   (let ((options (get symbol 'custom-options)))
     (unless (member option options)
       (put symbol 'custom-options (cons option options)))))
+(defalias 'custom-add-frequent-value 'custom-add-option)
 
 (defun custom-add-link (symbol widget)
   "To the custom option SYMBOL add the link WIDGET."

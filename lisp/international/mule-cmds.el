@@ -719,18 +719,18 @@ DEFAULT is the coding system to use by default in the query."
 	      (insert "\n")
 	      (fill-region-as-paragraph pos (point)))
 	    (when rejected
-	      (insert "These safely encodes the target text,
-but it is not recommended for encoding text in this context,
+	      (insert "These safely encode the text in the buffer,
+but are not recommended for encoding text in this context,
 e.g., for sending an email message.\n ")
 	      (dolist (x rejected)
 		(princ " ") (princ x))
 	      (insert "\n"))
 	    (when unsafe
-	      (insert (if rejected "And the others"
+	      (insert (if rejected "The other coding systems"
 			"However, each of them")
-		      " encountered these problematic characters:\n")
+		      " encountered characters it couldn't encode:\n")
 	      (dolist (coding unsafe)
-		(insert (format "  %s:" (car coding)))
+		(insert (format "  %s cannot encode these:" (car coding)))
 		(let ((i 0)
 		      (func1
 		       #'(lambda (bufname pos)
@@ -754,6 +754,7 @@ e.g., for sending an email message.\n ")
 			  (insert-text-button
 			   (cdr elt)
 			   :type 'help-xref
+			   'face 'link
 			   'help-echo
 			   "mouse-2, RET: jump to this character"
 			   'help-function func1
@@ -761,6 +762,7 @@ e.g., for sending an email message.\n ")
 			(insert-text-button
 			 "..."
 			 :type 'help-xref
+			 'face 'link
 			 'help-echo
 			 "mouse-2, RET: next unencodable character"
 			 'help-function func2
@@ -769,19 +771,22 @@ e.g., for sending an email message.\n ")
 		    (setq i (1+ i))))
 		(insert "\n"))
 	      (insert "\
-The first problematic character is at point in the displayed buffer,\n"
+
+Click on a character to jump to the place it appears,\n"
 		      (substitute-command-keys "\
-and \\[universal-argument] \\[what-cursor-position] will give information about it.\n"))))
-	  (insert "\nSelect \
-one of the following safe coding systems, or edit the buffer:\n")
+where `\\[universal-argument] \\[what-cursor-position]' will give information about it.\n"))))
+	  (insert (substitute-command-keys "\nSelect \
+one of the safe coding systems listed below,\n\
+or cancel the writing with \\[keyboard-quit] and edit the buffer\n\
+   to remove or modify the problematic characters,\n\
+or specify any other coding system (and risk losing\n\
+   the problematic characters).\n\n"))
 	  (let ((pos (point))
 		(fill-prefix "  "))
 	    (dolist (x codings)
 	      (princ "  ") (princ x))
 	    (insert "\n")
-	    (fill-region-as-paragraph pos (point)))
-	  (insert "Or specify any other coding system
-at the risk of losing the problematic characters.\n")))
+	    (fill-region-as-paragraph pos (point)))))
 
       ;; Read a coding system.
       (setq coding-system

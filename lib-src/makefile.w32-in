@@ -24,7 +24,7 @@ ALL = make-docfile hexl ctags etags movemail ebrowse sorted-doc digest-doc emacs
 
 .PHONY: $(ALL)
 
-VERSION		= 22.0.91
+VERSION		= 22.0.92
 
 LOCAL_FLAGS	= -DWINDOWSNT -DDOS_NT -DSTDC_HEADERS=1 -DNO_LDAV=1 \
 		  -DNO_ARCHIVES=1 -DHAVE_CONFIG_H=1 -I../nt/inc \
@@ -45,18 +45,18 @@ $(BLD)/digest-doc.exe: 	$(BLD)/digest-doc.$(O)
 $(BLD)/test-distrib.exe: $(BLD)/test-distrib.$(O)
 		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(BLD)/test-distrib.$(O) $(LIBS)
 
-make-docfile:	$(BLD) $(BLD)/make-docfile.exe
-ctags:		$(BLD) $(BLD)/ctags.exe
-etags:		$(BLD) $(BLD)/etags.exe
-ebrowse:        $(BLD) $(BLD)/ebrowse.exe
-hexl:		$(BLD) $(BLD)/hexl.exe
-movemail:	$(BLD) $(BLD)/movemail.exe
-fakemail:	$(BLD) $(BLD)/fakemail.exe
-sorted-doc:	$(BLD) $(BLD)/sorted-doc.exe
-digest-doc:	$(BLD) $(BLD)/digest-doc.exe
-emacsclient:	$(BLD) $(BLD)/emacsclient.exe $(BLD)/emacsclientw.exe
+make-docfile:	stamp_BLD $(BLD)/make-docfile.exe
+ctags:		stamp_BLD $(BLD)/ctags.exe
+etags:		stamp_BLD $(BLD)/etags.exe
+ebrowse:        stamp_BLD $(BLD)/ebrowse.exe
+hexl:		stamp_BLD $(BLD)/hexl.exe
+movemail:	stamp_BLD $(BLD)/movemail.exe
+fakemail:	stamp_BLD $(BLD)/fakemail.exe
+sorted-doc:	stamp_BLD $(BLD)/sorted-doc.exe
+digest-doc:	stamp_BLD $(BLD)/digest-doc.exe
+emacsclient:	stamp_BLD $(BLD)/emacsclient.exe $(BLD)/emacsclientw.exe
 
-test-distrib:	$(BLD) $(BLD)/test-distrib.exe
+test-distrib:	stamp_BLD $(BLD)/test-distrib.exe
 	"$(BLD)/test-distrib.exe" "$(SRC)/testfile"
 
 GETOPTOBJS = $(BLD)/getopt.$(O) $(BLD)/getopt1.$(O)
@@ -275,7 +275,7 @@ lisp2 = \
 	- $(DEL) temacs.exe
 
 DOC	      = DOC
-$(DOC):		$(BLD) $(BLD)/make-docfile.exe ../src/$(BLD)/temacs.exe $(lisp1) $(lisp2)
+$(DOC):		stamp_BLD $(BLD)/make-docfile.exe ../src/$(BLD)/temacs.exe $(lisp1) $(lisp2)
 		- $(DEL) $(DOC)
 		"$(THISDIR)/$(BLD)/make-docfile" -o $(DOC) -d ../src $(obj)
 		"$(THISDIR)/$(BLD)/make-docfile" -a $(DOC) -d ../src $(lisp1)
@@ -291,7 +291,7 @@ $(DOC):		$(BLD) $(BLD)/make-docfile.exe ../src/$(BLD)/temacs.exe $(lisp1) $(lisp
 #
 # Build the executables
 #
-all:		$(BLD) $(ALL) $(DOC)
+all:		stamp_BLD $(ALL) $(DOC)
 
 #
 # Assuming INSTALL_DIR is defined, build and install emacs in it.
@@ -319,6 +319,7 @@ clean:
 		- $(DEL) ctags.c
 		- $(DEL) getopt.h
 		- $(DEL_TREE) $(OBJDIR)
+		- $(DEL) stamp_BLD
 
 cleanall:	clean
 		- $(DEL_TREE) obj
@@ -472,3 +473,16 @@ $(BLD)/timer.$(O) : \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/lib-src/../src/config.h
+
+# The following dependencies are for supporting parallel builds, where
+# we must make sure $(BLD) exists before any compilation starts.
+#
+$(BLD)/make-docfile.$(O) $(BLD)/hexl.$(O) $(BLD)/fakemail.$(O): stamp_BLD
+
+$(BLD)/sorted-doc.$(O) $(BLD)/digest-doc.$(O): stamp_BLD
+
+$(BLD)/test-distrib.$(O) $(GETOPTOBJS) $(MOVEMAILOBJS): stamp_BLD
+
+$(BLD)/emacsclient.$(O) $(BLD)/etags.$(O) $(BLD)/regex.$(O): stamp_BLD
+
+$(BLD)/ebrowse.$(O) $(BLD)/ctags.$(O): stamp_BLD

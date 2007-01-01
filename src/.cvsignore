@@ -19,3 +19,4 @@ prefix-args
 stamp-oldxmenu
 temacs
 buildobj.lst
+stamp_BLD

@@ -1453,7 +1453,7 @@ some_mouse_moved ()
 
   if (ignore_mouse_drag_p)
     {
-      //ignore_mouse_drag_p = 0;
+      /* ignore_mouse_drag_p = 0; */
       return 0;
     }
 
@@ -3799,8 +3799,7 @@ kbd_buffer_store_event_hold (event, hold_quit)
   if (!NILP (Vthrow_on_input)
       && event->kind != FOCUS_IN_EVENT
       && event->kind != HELP_EVENT
-      && event->kind != DEICONIFY_EVENT
-      && !(event->kind == USER_SIGNAL_EVENT && event->code == 0))
+      && event->kind != DEICONIFY_EVENT)
     {
       Vquit_flag = Vthrow_on_input;
       /* If we're inside a function that wants immediate quits,
@@ -5088,9 +5087,6 @@ Lisp_Object *scroll_bar_parts[] = {
   &Qup, &Qdown, &Qtop, &Qbottom, &Qend_scroll, &Qratio
 };
 
-/* User signal events.  */
-Lisp_Object Qsignal;
-
 /* A vector, indexed by button number, giving the down-going location
    of currently depressed buttons, both scroll bar and non-scroll bar.
 
@@ -5969,17 +5965,12 @@ make_lispy_event (event)
 
     case USER_SIGNAL_EVENT:
       /* A user signal.  */
-      if (event->code == 0)
-	return Qsignal;
-      else
-	{
-	  char *name = find_user_signal_name (event->code);
-
-	  if (name)
-	    return intern (name);
-	  else
-	    return make_number (event->code);
-	}
+      {
+	char *name = find_user_signal_name (event->code);
+	if (!name)
+	  abort ();
+	return intern (name);
+      }
 
     case SAVE_SESSION_EVENT:
       return Qsave_session;
@@ -7156,8 +7147,6 @@ store_user_signal_events ()
 	mask = sigblock (sigmask (p->sig));
 	do
 	  {
-	    buf.code = 0;
-	    kbd_buffer_store_event (&buf);
 	    buf.code = p->sig;
 	    kbd_buffer_store_event (&buf);
 	    p->npending--;
@@ -11182,9 +11171,6 @@ syms_of_keyboard ()
   staticpro (&Qmac_apple_event);
 #endif
 
-  Qsignal = intern ("signal");
-  staticpro (&Qsignal);
-
   Qmenu_enable = intern ("menu-enable");
   staticpro (&Qmenu_enable);
   Qmenu_alias = intern ("menu-alias");
@@ -11475,8 +11461,8 @@ Polling is automatically disabled in all other cases.  */);
 
   DEFVAR_LISP ("double-click-time", &Vdouble_click_time,
 	       doc: /* *Maximum time between mouse clicks to make a double-click.
-Measured in milliseconds.  nil means disable double-click recognition;
-t means double-clicks have no time limit and are detected
+Measured in milliseconds.  The value nil means disable double-click
+recognition; t means double-clicks have no time limit and are detected
 by position only.  */);
   Vdouble_click_time = make_number (500);
 

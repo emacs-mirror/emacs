@@ -4086,13 +4086,15 @@ accepts a @code{:key} argument which is used to preprocess data
 fed to the @var{predicate} function.  For example,
 
 @example
-(setq data (sort data 'string-lessp :key 'downcase))
+(setq data (sort* data 'string-lessp :key 'downcase))
 @end example
 
 @noindent
 sorts @var{data}, a sequence of strings, into increasing alphabetical
 order without regard to case.  A @code{:key} function of @code{car}
-would be useful for sorting association lists.
+would be useful for sorting association lists.  It should only be a
+simple accessor though, it's used heavily in the current
+implementation.
 
 The @code{sort*} function is destructive; it sorts lists by actually
 rearranging the @code{cdr} pointers in suitable fashion.

@@ -1196,10 +1196,10 @@ main (argc, argv
       signal (SIGILL, fatal_error_signal);
       signal (SIGTRAP, fatal_error_signal);
 #ifdef SIGUSR1
-      add_user_signal (SIGUSR1, "usr1");
+      add_user_signal (SIGUSR1, "sigusr1");
 #endif
 #ifdef SIGUSR2
-      add_user_signal (SIGUSR2, "usr2");
+      add_user_signal (SIGUSR2, "sigusr2");
 #endif
 #ifdef SIGABRT
       signal (SIGABRT, fatal_error_signal);

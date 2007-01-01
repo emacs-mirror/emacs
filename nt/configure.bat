@@ -25,27 +25,38 @@ rem   YOU'LL NEED THE FOLLOWING UTILITIES TO MAKE EMACS:
 rem
 rem   + MS Windows 95/98/Me or NT/2000/XP
 rem   + either MSVC 2.x or later, or gcc-2.95 or later (with gmake 3.75
-rem     or later) and the Mingw32 and W32 API headers and libraries
+rem     or later) and the Mingw32 and W32 API headers and libraries.
+rem   + Visual Studio 2005 is not supported at this time.
 rem
 rem For reference, here is a list of which builds of gmake are known to
 rem work or not, and whether they work in the presence and/or absence of
 rem sh.exe.
 rem
 rem                                       sh exists     no sh
-rem  cygwin b20.1 make (3.75):            okay[1]       fails[2]
+rem  cygwin b20.1 make (3.75):            fails[1,5]    fails[2,5]
 rem  MSVC compiled gmake 3.77:            okay          okay
 rem  MSVC compiled gmake 3.78.1:          okay          okay
 rem  MSVC compiled gmake 3.79.1:          okay          okay
-rem  mingw32/gcc-2.92.2 make (3.77):      okay          okay
-rem  cygwin compiled gmake 3.77:          okay[1]       fails[2]
-rem  cygwin compiled gmake 3.78.1:        okay          fails[2]
-rem  cygwin compiled gmake 3.79.1:        couldn't build make[3]
+rem  mingw32/gcc-2.92.2 make (3.77):      okay          okay[4]
+rem  cygwin compiled gmake 3.77:          fails[1,5]    fails[2,5]
+rem  cygwin compiled gmake 3.78.1:        fails[5]      fails[2,5]
+rem  cygwin compiled gmake 3.79.1:        fails[3,5]    fails[2?,5]
+rem  cygwin compiled make 3.80:           fails?[6]     fails?[6]
+rem  cygwin compiled make 3.81:           fails         fails?[6]
+rem  mingw32 compiled make 3.79.1:        okay          okay
+rem  mingw32 compiled make 3.80:          okay          okay?[6]
+rem  mingw32 compiled make 3.81:          okay          okay[7]
 rem
 rem [1] doesn't cope with makefiles with DOS line endings, so must mount
 rem     emacs source with text!=binary.
 rem [2] fails when needs to invoke shell commands; okay invoking gcc etc.
-rem [3] requires LC_MESSAGES support to build; maybe 2.95.x update to
-rem     cygwin provides this?
+rem [3] requires LC_MESSAGES support to build; cannot build with early
+rem     versions of cygwin.
+rem [4] may fail on Windows 9X and Windows ME; if so, install Bash.
+rem [5] fails when building leim due to the use of cygwin style paths.
+rem     May work if building emacs without leim.
+rem [6] not recommended; please report if you try this combination.
+rem [7] tested only on Windows XP.
 rem
 
 if exist config.log del config.log

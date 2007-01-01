@@ -35,11 +35,11 @@
 
 (defconst image-type-header-regexps
   '(("\\`/[\t\n\r ]*\\*.*XPM.\\*/" . xpm)
-    ("\\`P[1-6]" . pbm)
+    ("\\`P[1-6][[:space:]]+\\(?:#.*[[:space:]]+\\)*[0-9]+[[:space:]]+[0-9]+" . pbm)
     ("\\`GIF8" . gif)
-    ("\\`\211PNG\r\n" . png)
+    ("\\`\x89PNG\r\n\x1a\n" . png)
     ("\\`[\t\n\r ]*#define" . xbm)
-    ("\\`\\(MM\0\\*\\|II\\*\0\\)" . tiff)
+    ("\\`\\(?:MM\0\\*\\|II\\*\0\\)" . tiff)
     ("\\`[\t\n\r ]*%!PS" . postscript)
     ("\\`\xff\xd8" . (image-jpeg-p . jpeg)))
   "Alist of (REGEXP . IMAGE-TYPE) pairs used to auto-detect image types.
@@ -63,6 +63,24 @@ a non-nil value, TYPE is the image's type.")
 When the name of an image file match REGEXP, it is assumed to
 be of image type IMAGE-TYPE.")
 
+(defvar image-type-auto-detectable
+  '((pbm . t)
+    (xbm . t)
+    (bmp . maybe)
+    (gif . maybe)
+    (png . maybe)
+    (xpm . maybe)
+    (jpeg . maybe)
+    (tiff . maybe)
+    (postscript . nil))
+  "Alist of (IMAGE-TYPE . AUTODETECT) pairs used to auto-detect image files.
+\(See `image-type-auto-detected-p').
+
+AUTODETECT can be
+ - t      always auto-detect.
+ - nil    never auto-detect.
+ - maybe  auto-detect only if the image type is available
+	    (see `image-type-available-p').")
 
 (defvar image-load-path nil
   "List of locations in which to search for image files.
@@ -308,12 +326,27 @@ Optional DATA-P non-nil means FILE-OR-DATA is a string containing image data."
     (error "Invalid image type `%s'" type))
   type)
 
+
 ;;;###autoload
 (defun image-type-available-p (type)
   "Return non-nil if image type TYPE is available.
 Image types are symbols like `xbm' or `jpeg'."
   (and (fboundp 'init-image-library)
        (init-image-library type image-library-alist)))
+
+
+;;;###autoload
+(defun image-type-auto-detected-p ()
+  "Return t iff the current buffer contains an auto-detectable image.
+Whether image types are auto-detectable or not depends on the setting
+of the variable `image-type-auto-detectable'.
+
+This function is intended to be used from `magic-mode-alist' (which see)."
+  (let* ((type (image-type-from-buffer))
+	 (auto (and type (cdr (assq type image-type-auto-detectable)))))
+    (and auto
+	 (or (eq auto t)
+	     (image-type-available-p type)))))
 
 
 ;;;###autoload

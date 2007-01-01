@@ -374,7 +374,12 @@ pre-mh-loaddefs.el-CMD:
 # sources only.
 
 # Need separate version for sh and native cmd.exe
-bootstrap-clean: bootstrap-clean-$(SHELLTYPE) $(lisp)/loaddefs.el
+# Note that bootstrap-clean-$(SHELLTYPE) copies ldefs-boot.el to loaddefs.el,
+# and thus the almost-empty loaddefs.el crafted by the $(lisp)/loaddefs.el
+# target can NOT be built _after_ bootstrap-clean-$(SHELLTYPE) does its
+# thing, or else an empty loaddefs.el will overwrite the full one.
+bootstrap-clean: $(lisp)/loaddefs.el
+	$(MAKE) $(MFLAGS) bootstrap-clean-$(SHELLTYPE)
 
 bootstrap-clean-CMD:
 #	if exist "$(EMACS)" $(MAKE) $(MFLAGS) autoloads

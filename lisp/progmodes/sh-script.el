@@ -1890,7 +1890,7 @@ To revert all these variables to the global values, use
 command `sh-reset-indent-vars-to-global-values'."
   (interactive)
   (mapcar 'make-local-variable sh-var-list)
-  (message "Indentation variable are now local."))
+  (message "Indentation variables are now local."))
 
 (defun sh-reset-indent-vars-to-global-values ()
   "Reset local indentation variables to the global values.
