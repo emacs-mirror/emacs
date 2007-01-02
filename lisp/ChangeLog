@@ -13,55 +13,35 @@
 	the first continuation line in a macro gets the symbol
 	`cpp-define-intro', the others getting `statement', or whatever.
 
-2007-01-01  Alan Mackenzie  <acm@muc.de>
-
 	* progmodes/cc-cmds.el (c-context-line-break): When invoked within
 	a string, preserve whitespace.  Add a backslash only when also in
 	a macro.
 
-2007-01-01  Alan Mackenzie  <acm@muc.de>
-
 	* progmodes/cc-defs.el: Correct typos.
-
-2007-01-01  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-cmds.el (c-context-line-break): Don't indent the
 	new line after an escaped EOL in a string.
 
-2007-01-01  Alan Mackenzie  <acm@muc.de>
-
 	* progmodes/cc-engine.el (c-forward-label): Recognise "foo:" as a
 	label when it directly follows "else", "do", ....
-
-2007-01-01  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-engine.el (c-backward-<>-arglist): Tolerate empty
 	angle brackets (as seen in "explicit specialisations" of C++
 	templates).
 
-2007-01-01  Alan Mackenzie  <acm@muc.de>
-
 	* progmodes/cc-vars.el (c-indentation-style): Mention c-file-style
 	in the doc-string.
-
-2007-01-01  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-cmds.el (c-mask-paragraph): Fix for C comments,
 	when the comment ender looks like "=========*/" and is alone on
 	its line.
 
-2007-01-01  Alan Mackenzie  <acm@muc.de>
-
 	* progmodes/cc-langs.el, progmodes/cc-engine.el: Correct the
 	spelling of c-opt-op-identiTier-prefix, t -> f.  Leave an alias
 	for the old name.
 
-2007-01-01  Alan Mackenzie  <acm@muc.de>
-
 	* progmodes/cc-mode.el: Bind C-M-a and C-M-e to
 	c-\(beginning\|end\)-of-defun by default.
-
-2007-01-01  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-align.el (c-lineup-gnu-DEFUN-intro-cont): New
 	line-up function, for the DEFUN macro in the Emacs C sources.
@@ -69,8 +49,6 @@
 
 	* progmodes/cc-styles.el (c-style-alist): Use this new function in
 	the "gnu" style.
-
-2007-01-01  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-cmds.el (c-electric-slash): Extend the handling of
 	clean-up comment-close-slash also to work when there's a comment
@@ -84,8 +62,6 @@
 	(c-backward-to-nth-BOF-{, c-forward-to-nth-EOF-}): New functions to
 	support c-\(beginning\|end\)-of-defun.
 
-2007-01-01  Alan Mackenzie  <acm@muc.de>
-
 	* progmodes/cc-engine.el (c-forward-label): Analyze ":"
 	expressions more rigorously, to exclude bit-field specifiers from
 	being classed as labels.
@@ -94,14 +70,10 @@
 	(c-beginning-of-decl-1): Whilst searching for "=" as evidence of a
 	stmt boundary, check for "operator=", etc.
 
-2007-01-01  Alan Mackenzie  <acm@muc.de>
-
 	* progmodes/cc-mode.el (c-postprocess-file-styles): Bind
 	inhibit-read-only to t, around the call to
 	c-remove-any-local-eval-or-mode-variables, so that it works on a
 	RO file.
-
-2007-01-01  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-defs.el (c-version): Update the version number to
 	"5.31.4".
