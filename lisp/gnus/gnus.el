@@ -16,7 +16,7 @@
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
@@ -1335,7 +1335,7 @@ non-numeric prefix - `C-u M-x gnus', in short."
 
 (defcustom gnus-nntp-server nil
   "*The name of the host running the NNTP server.
-This variable is semi-obsolete.	 Use the `gnus-select-method'
+This variable is semi-obsolete.  Use the `gnus-select-method'
 variable instead."
   :group 'gnus-server
   :type '(choice (const :tag "disable" nil)
@@ -1478,7 +1478,7 @@ group."
 (defcustom gnus-use-cross-reference t
   "*Non-nil means that cross referenced articles will be marked as read.
 If nil, ignore cross references.  If t, mark articles as read in
-subscribed newsgroups.	If neither t nor nil, mark as read in all
+subscribed newsgroups.  If neither t nor nil, mark as read in all
 newsgroups."
   :group 'gnus-server
   :type '(choice (const :tag "off" nil)
@@ -1697,7 +1697,7 @@ of the select method.  The other elements may be the category of
 this method (i. e., `post', `mail', `none' or whatever) or other
 properties that this method has (like being respoolable).
 If you implement a new select method, all you should have to change is
-this variable.	I think."
+this variable.  I think."
   :group 'gnus-server
   :type '(repeat (group (string :tag "Name")
 			(radio-button-choice (const :format "%v " post)
@@ -1851,7 +1851,7 @@ which to perform auto-expiry.  This only makes sense for mail groups."
  "*Groups in which to perform expiry of all read articles.
 Use with extreme caution.  All groups that match this regexp will be
 expiring - which means that all read articles will be deleted after
-\(say) one week.	 (This only goes for mail groups and the like, of
+\(say) one week.  (This only goes for mail groups and the like, of
 course.)"
  :variable-group nnmail-expire
  :variable-type '(choice (const nil)
@@ -2983,7 +2983,7 @@ with some simple extensions.
 The %U (status), %R (replied) and %z (zcore) specs have to be handled
 with care.  For reasons of efficiency, Gnus will compute what column
 these characters will end up in, and \"hard-code\" that.  This means that
-it is invalid to have these specs after a variable-length spec.	 Well,
+it is invalid to have these specs after a variable-length spec.  Well,
 you might not be arrested, but your summary buffer will look strange,
 which is bad enough.
 
@@ -3368,7 +3368,7 @@ GROUP can either be a string (a group name) or a select method."
 
 (defun gnus-group-read-only-p (&optional group)
   "Check whether GROUP supports editing or not.
-If GROUP is nil, `gnus-newsgroup-name' will be checked instead.	 Note
+If GROUP is nil, `gnus-newsgroup-name' will be checked instead.  Note
 that that variable is buffer-local to the summary buffers."
   (let ((group (or group gnus-newsgroup-name)))
     (not (gnus-check-backend-function 'request-replace-article group))))
@@ -4043,7 +4043,7 @@ If NEWSGROUP is nil, return the global kill file name instead."
     (not method)))
 
 (defun gnus-server-extend-method (group method)
-  ;; This function "extends" a virtual server.	If the server is
+  ;; This function "extends" a virtual server.  If the server is
   ;; "hello", and the select method is ("hello" (my-var "something"))
   ;; in the group "alt.alt", this will result in a new virtual server
   ;; called "hello+alt.alt".

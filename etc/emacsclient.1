@@ -29,10 +29,10 @@ default editor.
 
 For
 .B emacsclient
-to work, you need an already running Emacs with a server.  Within Emacs, call
-the function
-`server-start'.  (Your `.emacs' file can do this automatically if you
-add the expression `(server-start)' to it.)
+to work, you need an already running Emacs with a server.  Within Emacs,
+call the functions `server-start' or `server-mode'.  (Your `.emacs' file
+can do this automatically if you add either `(server-start)' or
+`(server-mode 1)' to it.)
 
 When you've finished editing the buffer, type `C-x #'
 (`server-edit').  This saves the file and sends a message back to the
@@ -57,7 +57,11 @@ do not visit files but instead evaluate the arguments as Emacs
 Lisp expressions.
 .TP
 .B \-s, \-\-socket-name=FILENAME
-Use socket named FILENAME for communication.
+use socket named FILENAME for communication.
+.TP
+.B \-f, \-\-server-file=FILENAME
+use TCP configuration file FILENAME for communication.
+This can also be specified via the `EMACS_SERVER_FILE' environment variable.
 .TP
 .B \-a, \-\-alternate-editor=EDITOR
 if the Emacs server is not running, run the specified editor instead.

@@ -1,6 +1,6 @@
 ;;; landmark.el --- neural-network robot that learns landmarks
 
-;; Copyright (C) 1996, 1997, 2000, 2002, 2003, 2004,
+;; Copyright (C) 1996, 1997, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Terrence Brannon (was: <brannon@rana.usc.edu>)
@@ -75,7 +75,7 @@
 ;; The board is a rectangular grid. We code empty squares with 0, X's with 1
 ;; and O's with 6. The rectangle is recorded in a one dimensional vector
 ;; containing padding squares (coded with -1). These squares allow us to
-;; detect when we are trying to move out of the board.	We denote a square by
+;; detect when we are trying to move out of the board.  We denote a square by
 ;; its (X,Y) coords, or by the INDEX corresponding to them in the vector.  The
 ;; leftmost topmost square has coords (1,1) and index lm-board-width + 2.
 ;; Similarly, vectors between squares may be given by two DX, DY coords or by

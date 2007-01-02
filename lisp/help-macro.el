@@ -1,6 +1,6 @@
 ;;; help-macro.el --- makes command line help such as help-for-help
 
-;; Copyright (C) 1993, 1994, 2002, 2003, 2004,
+;; Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Lynn Slater <lrs@indetech.com>
@@ -152,7 +152,7 @@ and then returns."
 				 (progn
 				   (if (eq (car-safe char) 'switch-frame)
 				       (handle-switch-frame char))
-				   (if (memq char '(?\C-v ?\ ))
+				   (if (memq char '(?\C-v ?\s))
 				       (scroll-up))
 				   (if (or (memq char '(?\177 ?\M-v
 							delete backspace))

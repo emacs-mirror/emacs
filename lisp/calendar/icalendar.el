@@ -73,6 +73,10 @@
 
 ;;  * Import from ical to diary:
 ;;    + Need more properties for icalendar-import-format
+;;      (added all that Mozilla Calendar uses)
+;;      From iCal specifications (RFC2445: 4.8.1), icalendar.el lacks
+;;      ATTACH, CATEGORIES, COMMENT, GEO, PERCENT-COMPLETE (VTODO),
+;;      PRIORITY, RESOURCES) not considering date/time and time-zone
 ;;    + check vcalendar version
 ;;    + check (unknown) elements
 ;;    + recurring events!
@@ -97,7 +101,7 @@
 
 ;;; Code:
 
-(defconst icalendar-version "0.13"
+(defconst icalendar-version "0.14"
   "Version number of icalendar.el.")
 
 ;; ======================================================================
@@ -226,12 +230,12 @@ buffer."
   "Replace regular expression in string.
 Pass ARGS to `replace-regexp-in-string' (Emacs) or to
 `replace-in-string' (XEmacs)."
+  (if (fboundp 'replace-regexp-in-string)
+      ;; Emacs:
+      (apply 'replace-regexp-in-string args)
   ;; XEmacs:
-  (if (fboundp 'replace-in-string)
-      (save-match-data ;; apparently XEmacs needs save-match-data
-        (apply 'replace-in-string args))
-    ;; Emacs:
-    (apply 'replace-regexp-in-string args)))
+    (save-match-data ;; apparently XEmacs needs save-match-data
+      (apply 'replace-in-string args))))
 
 (defun icalendar--read-element (invalue inparams)
   "Recursively read the next iCalendar element in the current buffer.
@@ -1549,7 +1553,7 @@ buffer `*icalendar-errors*'."
 (defun icalendar--convert-ical-to-diary (ical-list diary-file
                                                    &optional do-not-ask
                                                    non-marking)
-  "Convert Calendar data to an Emacs diary file.
+  "Convert iCalendar data to an Emacs diary file.
 Import VEVENTS from the iCalendar object ICAL-LIST and saves them to a
 DIARY-FILE.  If DO-NOT-ASK is nil the user is asked for each event
 whether to actually import it.  NON-MARKING determines whether diary
@@ -1680,6 +1684,13 @@ written into the buffer `*icalendar-errors*'."
          (setq error-string (format "%s\n%s\nCannot handle this event: %s"
                                     error-val error-string e))
          (message "%s" error-string))))
+    ;; insert final newline
+    (let ((b (find-buffer-visiting diary-file)))
+      (when b
+        (save-current-buffer
+          (set-buffer b)
+          (goto-char (point-max))
+          (insert "\n"))))
     (if found-error
         (save-current-buffer
           (set-buffer (get-buffer-create "*icalendar-errors*"))

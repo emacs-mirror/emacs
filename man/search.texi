@@ -488,6 +488,13 @@ search can make the cursor move back and start again.  For example, if
 you have searched for @samp{foo} and you add @samp{\|bar}, the cursor
 backs up in case the first @samp{bar} precedes the first @samp{foo}.
 
+  Forward and backward regexp search are not symmetrical, because
+regexp matching in Emacs always operates forward, starting with the
+beginning of the regexp.  Thus, forward regexp search scans forward,
+trying a forward match at each possible starting position.  Backward
+regexp search scans backward, trying a forward match at each possible
+starting position.  These search methods are not mirror images.
+
 @findex re-search-forward
 @findex re-search-backward
   Nonincremental search for a regexp is done by the functions

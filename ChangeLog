@@ -1,15 +1,74 @@
+2006-12-26  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (datarootdir): Define.
+
+2006-12-24  Richard Stallman  <rms@gnu.org>
+
+	* configure.in: Require Autoconf 2.61.
+
+2006-12-22  Mark Davies  <mark@mcs.vuw.ac.nz>
+
+	* configure.in: Add support for NetBSD on x86-64, hp800 and sh3el.
+	Remove redundant entry for powerpc-apple-netbsd.
+
+	* configure: Regenerate.
+
+2006-12-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure: Regenerate with autoconf 2.61.
+
+2006-12-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* configure.in: Detect alsa/asoundlib.h also.
+	* configure: Regenerate.
+
+2006-12-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* configure.in: Check if GTK+ compiles at all.
+
+2006-12-10  Andreas Schwab  <schwab@suse.de>
+
+	* configure.in: Remove check for struct timezone, its result is
+	never used.
+
+2006-12-08  NAKAJI Hiroyuki  <nakaji@jp.freebsd.org>  (tiny change)
+
+	* configure.in: Add support for Solaris 10 on x86-64.
+
+2006-12-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* INSTALL (DETAILED BUILDING AND INSTALLATION): Document usage
+	of PKG_CONFIG_PATH.
+
+2006-12-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* configure.in (HAVE_SYNC): New test.
+
+2006-12-03  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Fix Copyright format.
+
+	* configure.in (AH_TOP): Add missing Copyright year.
+
+	* update-subdirs: Add missing Copyright years.
+
+2006-11-27  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
+
+	* Makefile.in: Touch only the parts of the share/emacs directory
+	specific to this version.
+
+2006-11-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in (HAVE_X86_64_LIB64_DIR): New test.
+
 2006-11-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* configure.in (HAVE_CANCELMENUTRACKING): Remove test.
-
-	* configure: Regenerate.
 
 2006-11-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* configure.in: Prefer X11 to Carbon only when some X-specific
 	option is specified (Thanks to Jan Dj,Ad(Brv and Andreas Schwab).
-
-	* configure: Regenerate.
 
 2006-11-04  Romain Francoise  <romain@orebokech.com>
 
@@ -24,10 +83,6 @@
 
 	* make-dist: Add makefile.w32-in to the man, lispref and lispintro
 	directories.
-
-2006-10-29  Chong Yidong  <cyd@stupidchicken.com>
-
-	* configure: Regenerate using autoconf 2.59.
 
 2006-10-29  Jeramey Crawford  <jeramey@jeramey.com>
 
@@ -46,25 +101,11 @@
 
 	* README: Bump version number to 22.0.90.
 
-	* AUTHORS: Regenerate.
-
-	* configure: Regenerate.
-
 2006-10-23  Andreas Schwab  <schwab@suse.de>
 
 	* configure.in: Make sure x_default_search_path is always set even
 	when x_libraries is empty, and look in .../share as well for each
 	library directory.
-
-	* configure: Regenerate.
-
-2006-10-03  Kim F. Storm  <storm@cua.dk>
-
-	* AUTHORS: Regenerate.
-
-2006-09-30  Eli Zaretskii  <eliz@gnu.org>
-
-	* configure: Regenerate.
 
 2006-09-28  Kenichi Handa  <handa@m17n.org>
 
@@ -81,10 +122,6 @@
 	* make-dist (EMACS): Exit and fail if the EMACS environment
 	variable is set to something other than an absolute file name.
 
-2006-09-07  Kim F. Storm  <storm@cua.dk>
-
-	* AUTHORS: Regenerate.
-
 2006-08-16  Andreas Schwab  <schwab@suse.de>
 
 	* configure.in (PKG_CHECK_MODULES): Use AS_MESSAGE_LOG_FD instead
@@ -100,10 +137,6 @@
 	$PKG_CONFIG --exists "$2" to config.log.
 	* configure: Regenerate.
 
-2006-07-14  Kim F. Storm  <storm@cua.dk>
-
-	* AUTHORS: Regenerate.
-
 2006-07-08  Richard Stallman  <rms@gnu.org>
 
 	* INSTALL (DETAILED BUILDING AND INSTALLATION): Minor corrections.
@@ -114,8 +147,6 @@
 	Add section on copyright years (from admin/notes/years).
 
 2006-07-08  Eli Zaretskii  <eliz@gnu.org>
-
-	* configure: Regenerate.
 
 	* configure.in (PKG_CHECK_MODULES): Redirect stderr of pkg-config
 	to /dev/null, since we don't need the error message, just the
@@ -142,22 +173,13 @@
 
 	* CONTRIBUTE: New file.
 
-2006-06-25  Kim F. Storm  <storm@cua.dk>
-
-	* AUTHORS: Regenerate.
-
 2006-06-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* INSTALL: Mention www.nongnu.org pages that list free Unicode fonts.
 
-2006-06-05  Kim F. Storm  <storm@cua.dk>
-
-	* AUTHORS: Regenerate.
-
 2006-05-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in: Add check for ALSA.
-	* configure: Regenerate.
 
 2006-05-06  Eli Zaretskii  <eliz@gnu.org>
 
@@ -168,10 +190,6 @@
 2006-04-20  Ramprasad B  <ramprasad_i82@yahoo.com>
 
 	* Copyright (sources/emacs): Update copyright year(s).
-
-2006-04-01  Eli Zaretskii  <eliz@gnu.org>
-
-	* configure: Regenerate.
 
 2006-04-01  Emanuele Giaquinta  <emanuele.giaquinta@gmail.com>  (tiny change)
 
@@ -196,10 +214,6 @@
 	* Makefile.in (install, uninstall): Add DESTDIR variable to
 	support staged installations.
 
-2006-02-14  Eli Zaretskii  <eliz@gnu.org>
-
-	* configure: Regenerate.
-
 2006-02-14  Richard M. Stallman  <rms@gnu.org>
 
 	* configure.in (s390x-*-linux-gnu*): New configuration.
@@ -207,7 +221,6 @@
 2006-01-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in: Require GTK 2.4 or newer.
-	* configure: Regenerate.
 
 2006-01-29  Michael Olson  <mwolson@gnu.org>
 
@@ -231,12 +244,10 @@
 
 	* configure.in: Move AC_AIX and AC_GNU_SOURCE before first compile
 	check.
-	* configure: Regenerate.
 
 2006-01-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* configure.in: Use -Wno-pointer-sign if available.
-	* configure: Regenerate.
 
 2005-12-29  Andreas Schwab  <schwab@suse.de>
 
@@ -265,14 +276,12 @@
 2005-11-01  Romain Francoise  <romain@orebokech.com>
 
 	* configure.in: Check for gzip.
-	* configure: Regenerate.
 
 	* Makefile.in (install): Compress source files.
 
 2005-10-24  Steven Tamm  <steventamm@mac.com>
 
 	* configure.in: Fix darwin386 configuration issue.
-	* configure: Regenerate.
 
 2005-10-22  Eli Zaretskii  <eliz@gnu.org>
 
@@ -299,7 +308,6 @@
 
 	* configure.in: Prefer Carbon if --enable-carbon-app or
 	--with-carbon is explicitly specified even when X11 is detected.
-	* configure: Regenerate.
 
 2005-09-15  Ulf Jasper  <ulf.jasper@web.de>
 
@@ -307,16 +315,11 @@
 	Handle newsticker manual.
 	(info): Add - to commands.
 
-2005-09-11  Kim F. Storm  <storm@cua.dk>
-
-	* AUTHORS: Regenerate.
-
 2005-09-10  Giuseppe Scrivano  <gscrivano@gmail.com>
 
 	Remove the MAXPATHLEN limitations:
 
 	* configure.in (AC_CHECK_FUNCS): Check for get_current_dir_name.
-	* configure: Regenerate.
 
 2005-09-09  Eli Zaretskii  <eliz@gnu.org>
 
@@ -350,13 +353,12 @@
 2005-07-06  Lute Kamstra  <lute@gnu.org>
 
 	* configure.in: Fix capitalization.
-	* configure: Regenerate.
 
 2005-07-04  Lute Kamstra  <lute@gnu.org>
 
 	Update FSF's address in GPL notices.
 
-2005-06-19  J,bi(Br,bt(Bme Marant  <jerome@marant.org>
+2005-06-19  J,Ai(Br,At(Bme Marant  <jerome@marant.org>
 
 	* Makefile.in (epaths-force): Protect both lisppath and
 	buildlisppath from whitespace.
@@ -364,24 +366,20 @@
 2005-06-08  Steven Tamm  <steventamm@mac.com>
 
 	* configure.in: Support Darwin/MacOSX on Intel
-	* configure: Regenerate.
 
 2005-06-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in (HAVE_CANCELMENUTRACKING): New test.
-	* configure: Regenerate.
 
 2005-05-11  J,Ai(Br,At(Bme Marant  <jmarant@marant.org>
 
 	* configure.in: Add --enable-locallisppath.
-	* configure: Regenerate.
 
 2005-05-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* configure.in: Don't check HAVE_CARBON if HAVE_X11 is set to yes.
 	Check HAVE_CARBON before USE_TOOLKIT_SCROLL_BARS.  Define
 	USE_TOOLKIT_SCROLL_BARS by default if HAVE_CARBON is set to yes.
-	* configure: Regenerate.
 
 2005-05-07  J,Ai(Br,At(Bme Marant  <jerome@marant.org>
 
@@ -392,12 +390,10 @@
 2005-04-23  Andreas Schwab  <schwab@suse.de>
 
 	* configure.in: Remove duplicate match for powerpc configuration.
-	* configure: Regenerate.
 
 2005-04-20  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* configure.in: Check for <pwd.h>.
-	* configure: Regenerate.
 
 2005-04-14  Lute Kamstra  <lute@gnu.org>
 
@@ -418,12 +414,10 @@
 2005-03-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in: Only add XASSERTS to cppflags.
-	* configure: Regenerate.
 
 2005-03-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in: Added --enable-asserts.
-	* configure: Regenerate.
 
 2005-02-09  Kim F. Storm  <storm@cua.dk>
 
@@ -433,7 +427,6 @@
 2005-01-19  Steven Tamm  <steventamm@mac.com>
 
 	* configure.in: Check for <sys/utsname.h>.
-	* configure: Regenerate.
 
 2004-12-11  Kim F. Storm  <storm@cua.dk>
 
@@ -445,7 +438,7 @@
 	* Makefile.in (install-arch-indep, uninstall): Add url and org
 	manuals.
 
-2004-12-07  Stefan  <monnier@iro.umontreal.ca>
+2004-12-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* configure.in (INLINE, RE_TRANSLATE_P): Move patches mistakenly
 	committed to src/config.in.
@@ -454,7 +447,6 @@
 
 	* configure.in: If $HAVE_GTK_FILE_CHOOSER = yes, check for
 	pthreads and define HAVE_GTK_AND_PTHREAD.
-	* configure: Regenerate.
 
 2004-12-05  Richard M. Stallman  <rms@gnu.org>
 
@@ -488,7 +480,6 @@
 2004-11-06  Lars Brinkhoff  <lars@nocrew.org>
 
 	* configure.in: Add check for getrusage.
-	* configure: Regenerate.
 
 2004-11-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -497,25 +488,21 @@
 	(HAVE_GTK): Only set with_toolkit_scroll_bars if not explicitly set
 	to no.
 
-	* configure: Rebuild.
-
 2004-10-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in (HAVE_PERSONALITY_LINUX32): New test if PER_LINUX32
 	can be set.  Remove SETARCH test.
-	* configure: Rebuild.
 
 2004-10-08  Steven Tamm  <steventamm@mac.com>
 
 	* configure.in (HAVE_MALLOC_MALLOC_H): Test for malloc/malloc.h
-	* configure: Rebuild.
 
 2004-10-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in (HAVE_RANDOM_HEAPSTART): Change AC_MSG_ERROR to
 	AC_MSG_WARN.  Move output of warning message to end of configure run.
 
-2004-10-05  Jan Dj,Ad(Brv.  <jan.h.d@swipnet.se>
+2004-10-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in (HAVE_RANDOM_HEAPSTART): Rename HAVE_EXECSHIELD.
 	Run test to see if heap start address is random.
@@ -528,12 +515,10 @@
 2004-09-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in (HAVE_EXECSHIELD): Only define on x86.
-	* configure: Rebuild.
 
 2004-09-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in: Check for exec-shield.
-	* configure: Rebuild.
 
 2004-08-06  Andreas Schwab  <schwab@suse.de>
 
@@ -637,11 +622,11 @@
 
 	* configure.in <darwin>: Use fink packages if available.
 
-2004-01-25  Jerome Marant  <jmarant@free.fr>  (tiny change)
+2004-01-25  J,Ai(Br,At(Bme Marant  <jmarant@free.fr>  (tiny change)
 
 	* make-dist (lispref): Do include lispref/index.texi.
 
-2004-01-06  Eric Hanchrow <offby1@blarg.net> (tiny change)
+2004-01-06  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
 
 	* make-dist (tempdir): Include cursors in nt/icons.
 
@@ -672,7 +657,6 @@
 
 	* configure.in (powerpc-apple-darwin*): Use ${CC-cc} instead of
 	hardcoding gcc.
-	* configure: Rebuild.
 
 2003-11-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -748,10 +732,6 @@
 2003-06-29  Dave Love  <fx@gnu.org>
 
 	* configure.in: Fix XRegisterIMInstantiateCallback check for gcc.
-
-2003-06-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
-
-	* configure: Regenerate.
 
 2003-06-23  Dave Love  <fx@gnu.org>
 
@@ -853,13 +833,7 @@
 	* Makefile.in: Use @EXEEXT@ for Cygwin.
 	Use USERNAME if LOGNAME is not set (for Cygwin).
 
-	* configure.in:
-	* configure: Add opsys=cygwin.
-
-2003-01-29  Kim F. Storm  <storm@cua.dk>
-
-	* AUTHORS: Regenerate using new format (after fixing numerous
-	formatting errors in the ChangeLog files).
+	* configure.in: Add opsys=cygwin.
 
 2003-01-22  Andreas Schwab  <schwab@suse.de>
 
@@ -900,7 +874,7 @@
 
 	* Makefile.in (INSTALL_INFO): Get install-info command from configure.
 
-	* configure.in: Add tests for install-info
+	* configure.in: Add tests for install-info.
 
 2002-12-09  Markus Rost  <rost@math.ohio-state.edu>
 
@@ -946,7 +920,7 @@
 
 	* configure.in (*-sunos5*, *-solaris*): Use sol2-8.
 
-2002-11-14  Francesco Potorti`  <pot@gnu.org>
+2002-11-14  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* configure.in (*-sunos5.8*, *-solaris2.8*): New configurations.
 
@@ -1200,7 +1174,7 @@
 
 	These changes make Leim part of the standard distribution:
 
-	* README: Add info about the `leim' directory
+	* README: Add info about the `leim' directory.
 
 	* INSTALL: Remove text that describes Leim as a separate package.
 
@@ -1350,7 +1324,7 @@
 
 2001-11-06  Sam Steingold  <sds@gnu.org>
 
-	* configure.in: Added a check for <nlist.h>
+	* configure.in: Added a check for <nlist.h>.
 
 2001-11-01  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
@@ -1768,8 +1742,7 @@
 2000-08-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* configure.in <making srcdir absolute>: Unset CDPATH in case $PWD
-	contains a relative path.  Protect against unusable values of
-	$PWD.
+	contains a relative path.  Protect against unusable values of $PWD.
 
 2000-08-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -1780,8 +1753,7 @@
 
 2000-08-07  Gerd Moellmann  <gerd@gnu.org>
 
-	* Makefile.in (config.status): Prepend `$(srcdir)/' to
-	`configure'.
+	* Makefile.in (config.status): Prepend `$(srcdir)/' to `configure'.
 
 2000-08-03  Gerd Moellmann  <gerd@gnu.org>
 
@@ -1890,7 +1862,7 @@
 
 2000-06-02  Dave Love  <fx@gnu.org>
 
-	* Makefile.in: (install-arch-indep): Add pcl-cvs to list of info
+	* Makefile.in (install-arch-indep): Add pcl-cvs to list of info
 	files.
 
 	* configure.in: Don't specify -n32 flag for mips-sgi-irix6.5.
@@ -1925,8 +1897,8 @@
 
 2000-05-05  Gerd Moellmann  <gerd@gnu.org>
 
-	* make-dist: Make a link for lib-src/grep-changelog.  Copy
-	install-sh.
+	* make-dist: Make a link for lib-src/grep-changelog.
+	Copy install-sh.
 
 2000-05-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -2050,7 +2022,7 @@
 
 1999-12-04  Dave Love  <fx@gnu.org>
 
-	* Makefile.in: (install-arch-indep): Depend on `info'.
+	* Makefile.in (install-arch-indep): Depend on `info'.
 	(install-strip): Use `install' as sub-make target.
 
 1999-11-23  Ken Raeburn  <raeburn@gnu.org>
@@ -2147,7 +2119,7 @@
 
 1999-08-18  Dave Love  <fx@gnu.org>
 
-	* configure.in: : Check for termcap.h.
+	* configure.in: Check for termcap.h.
 
 1999-08-15  Gerd Moellmann  <gerd@gnu.org>
 
@@ -2260,8 +2232,8 @@
 
 1998-12-04  Andreas Schwab  <schwab@delysid.gnu.org>
 
-	* Makefile.in: Don't install customize info file.  Run
-	install-info on viper info file.
+	* Makefile.in: Don't install customize info file.
+	Run install-info on viper info file.
 
 1998-11-29  Richard Stallman  <rms@psilocin.ai.mit.edu>
 
@@ -2481,7 +2453,7 @@
 
 1997-09-30  Karl Eichwalder  <ke@suse.de>
 
-	* Makefile.in (install-arch-indep): install the widget info file.
+	* Makefile.in (install-arch-indep): Install the widget info file.
 
 1997-09-24  Jonathan I. Kamens  <jik@kamens.brookline.ma.us>
 
@@ -2493,8 +2465,7 @@
 
 1997-09-21  Erik Naggum  <erik@naggum.no>
 
-	* make-dist (making links to `src'): Keep timestamp on copied
-	files.
+	* make-dist (making links to `src'): Keep timestamp on copied files.
 
 	* make-delta: New script to produce delta distributions.
 
@@ -2655,7 +2626,7 @@
 	* make-dist (etc): Really avoid symlinks now.
 	(lisp): Don't delete from subdirs the things we never copy.
 
-1997-07-07  Ken'ichi Handa  <handa@psilocin.gnu.ai.mit.edu>
+1997-07-07  Kenichi Handa  <handa@psilocin.gnu.ai.mit.edu>
 
 	* Makefile.in (install-arch-indep): Correct the target name.
 	The first letter `i' was dropped by the previous change of mine.
@@ -2680,12 +2651,12 @@
 
 	* Makefile.in (install-leim): Correct previous change.
 
-1997-07-02  Ken'ichi Handa  <handa@psilocin.gnu.ai.mit.edu>
+1997-07-02  Kenichi Handa  <handa@psilocin.gnu.ai.mit.edu>
 
 	* Makefile.in (install-leim): New target.
 	(install): Depend on install-leim.
 
-1997-07-01  Ken'ichi Handa  <handa@psilocin.gnu.ai.mit.edu>
+1997-07-01  Kenichi Handa  <handa@psilocin.gnu.ai.mit.edu>
 
 	* Makefile.in (SUBDIR): Add leim.
 	(SUBDIR_MAKEFILES): Add leim/Makefile.
@@ -2721,16 +2692,14 @@
 
 1997-06-22  Dave Love  <d.love@dl.ac.uk>
 
-	* Makefile.in (lib-src): Depend on src/config.h (e.g. for
-	movemail.o).
-	(src/config.h): New target to re-configure if src/config.in
-	is patched.
+	* Makefile.in (lib-src): Depend on src/config.h (e.g. for movemail.o).
+	(src/config.h): New target to re-configure if src/config.in is patched.
 
 1997-06-18  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
 	* configure.in (shutdown): Check for `shutdown' function.
 
-1997-06-18  Ken'ichi Handa  <handa@psilocin.gnu.ai.mit.edu>
+1997-06-18  Kenichi Handa  <handa@psilocin.gnu.ai.mit.edu>
 
 	* update-subdirs: Include the directory "language" in subdirs.
 
@@ -2767,15 +2736,14 @@
 1997-04-09  Marcus G. Daniels  <marcus@cathcart.sysc.pdx.edu>
 
 	* configure.in (doug_lea_malloc):  First check for SYSTEM_MALLOC,
-	in case it is desirable to disable the GNU malloc features with
-	glibc.
+	in case it is desirable to disable the GNU malloc features with glibc.
 
 1997-04-08  Marcus G. Daniels  <marcus@cathcart.sysc.pdx.edu>
 
 	* configure.in (DOUG_LEA_MALLOC):
 	Define if malloc_{get,set}_state exist.
 
-1997-03-05  Ken'ichi Handa  <handa@etl.go.jp>
+1997-03-05  Kenichi Handa  <handa@etl.go.jp>
 
 	* make-dist: Make links for files under lisp/language.
 
@@ -2967,7 +2935,7 @@
 
 1996-07-11  Bill Mann  <dvmann@dvncr.praxisint.com>
 
-	* configure.in: Use s/usg5-4-3.h for ncr-i[3456]86-sysv4.3
+	* configure.in: Use s/usg5-4-3.h for ncr-i[3456]86-sysv4.3.
 
 1996-07-07  Karl Heuer  <kwzh@gnu.ai.mit.edu>
 
@@ -3490,8 +3458,8 @@
 
 1995-06-22  Paul Eggert  <eggert@twinsun.com>
 
-	* configure.in: Treat SunOS 4.1.4 like SunOS 4.1.3.
-	(Likewise for SunOS 4.1.5 thorugh 4.1.9, should they ever exist.)
+	* configure.in: Treat SunOS 4.1.4 like SunOS 4.1.3.  (Likewise for
+	SunOS 4.1.5 thorugh 4.1.9, should they ever exist.)
 
 1995-06-22  Paul Eggert  <eggert@twinsun.com>
 
@@ -3563,7 +3531,7 @@
 
 1995-05-22  enami tsugutomo  <enami@sys.ptg.sony.co.jp>
 
-	* configure.in: pass arg to sqrt.
+	* configure.in: Pass arg to sqrt.
 
 1995-05-18  Karl Heuer  <kwzh@hal.gnu.ai.mit.edu>
 
@@ -3575,8 +3543,7 @@
 
 1995-05-09  David J. MacKenzie  <djm@geech.gnu.ai.mit.edu>
 
-	* configure.in: Use sqrt (more portable) instead of fmod in -lm
-	check.
+	* configure.in: Use sqrt (more portable) instead of fmod in -lm check.
 
 1995-05-09  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -3593,9 +3560,9 @@
 
 1995-05-06  David J. MacKenzie  <djm@geech.gnu.ai.mit.edu>
 
-	* configure.in: Make sure CDPATH doesn't mess up PWD check.  Check
-	whether X bitmaps are in X11/bitmaps instead of bitmaps.  Use fmod
-	instead of logb in -lm check.
+	* configure.in: Make sure CDPATH doesn't mess up PWD check.
+	Check whether X bitmaps are in X11/bitmaps instead of bitmaps.
+	Use fmod instead of logb in -lm check.
 
 1995-05-03  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -3615,7 +3582,7 @@
 	* configure.in (*-sun-sunos4.1.3*): Use shared libraries,
 	since that's what the header file expects.
 
-1995-04-24  Francesco Potorti`  (pot@cnuce.cnr.it)
+1995-04-24  Francesco Potort,Al(B  (pot@cnuce.cnr.it)
 
 	* configure.in (m68k-motorola-sysv*): Distinguish between 68030
 	and 68040 based machines when choosing options for gnucc.
@@ -3644,7 +3611,7 @@
 1995-04-06  Simon Leinen  <simon@lia.di.epfl.ch>
 
 	* Makefile.in (install-arch-indep, dist):
-	look for `update-subdir' in $(srcdir).
+	Look for `update-subdir' in $(srcdir).
 
 1995-04-06  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -3680,8 +3647,8 @@
 
 1995-02-02  David J. MacKenzie  <djm@geech.gnu.ai.mit.edu>
 
-	* configure.in: Create a .gdbinit that sources the real one, if
-	using a different build directory.
+	* configure.in: Create a .gdbinit that sources the real one,
+	if using a different build directory.
 
 1995-01-23  Karl Heuer  <kwzh@hal.gnu.ai.mit.edu>
 
@@ -6396,8 +6363,8 @@
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2006
-	Free Software Foundation, Inc.
+    Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
+	2003, 2004, 2005, 2006  Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
 

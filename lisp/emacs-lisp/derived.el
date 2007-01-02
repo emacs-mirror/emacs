@@ -1,7 +1,7 @@
 ;;; derived.el --- allow inheritance of major modes
 ;; (formerly mode-clone.el)
 
-;; Copyright (C) 1993, 1994, 1999, 2002, 2003, 2004,
+;; Copyright (C) 1993, 1994, 1999, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: David Megginson (dmeggins@aix1.uottawa.ca)

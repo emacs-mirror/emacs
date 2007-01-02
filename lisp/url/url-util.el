@@ -244,12 +244,13 @@ Will not do anything if `url-show-status' is nil."
 
 ;;;###autoload
 (defun url-display-percentage (fmt perc &rest args)
-  (if (null fmt)
-      (if (fboundp 'clear-progress-display)
-	  (clear-progress-display))
-    (if (and (fboundp 'progress-display) perc)
-	(apply 'progress-display fmt perc args)
-      (apply 'message fmt args))))
+  (when url-show-status
+    (if (null fmt)
+	(if (fboundp 'clear-progress-display)
+	    (clear-progress-display))
+      (if (and (fboundp 'progress-display) perc)
+	  (apply 'progress-display fmt perc args)
+	(apply 'message fmt args)))))
 
 ;;;###autoload
 (defun url-percentage (x y)

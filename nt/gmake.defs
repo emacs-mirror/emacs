@@ -200,8 +200,9 @@ OBJDIR          = oo-spd
 endif
 $(OBJDIR):;	-mkdir "$(OBJDIR)"
 BLD             = $(OBJDIR)/$(ARCH)
-$(BLD):         $(OBJDIR)
+stamp_BLD:      $(OBJDIR)
 		-mkdir "$(BLD)"
+		echo $(BLD) > $@
 
 COMPILER_TEMP_FILES =
 
@@ -265,6 +266,8 @@ ERROR Unknown architecture type "$(ARCH)".
 endif
 
 LINK_FLAGS	= $(ARCH_LDFLAGS) $(DEBUG_LINK) $(NOCYGWIN) $(USER_LDFLAGS)
+
+export XMFLAGS
 
 .DEFAULT:
 

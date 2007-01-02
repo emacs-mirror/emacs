@@ -699,6 +699,9 @@ static SIGTYPE interrupt_signal P_ ((int signalnum));
 static void timer_start_idle P_ ((void));
 static void timer_stop_idle P_ ((void));
 static void timer_resume_idle P_ ((void));
+static SIGTYPE handle_user_signal P_ ((int));
+static char *find_user_signal_name P_ ((int));
+static int store_user_signal_events P_ ((void));
 
 /* Nonzero means don't try to suspend even if the operating system seems
    to support it.  */
@@ -1435,12 +1438,24 @@ usage: (track-mouse BODY ...)  */)
 }
 
 /* If mouse has moved on some frame, return one of those frames.
-   Return 0 otherwise.  */
+
+   Return 0 otherwise.
+
+   If ignore_mouse_drag_p is non-zero, ignore (implicit) mouse movement
+   after resizing the tool-bar window.  */
+
+int ignore_mouse_drag_p;
 
 static FRAME_PTR
 some_mouse_moved ()
 {
   Lisp_Object tail, frame;
+
+  if (ignore_mouse_drag_p)
+    {
+      /* ignore_mouse_drag_p = 0; */
+      return 0;
+    }
 
   FOR_EACH_FRAME (tail, frame)
     {
@@ -5072,15 +5087,6 @@ Lisp_Object *scroll_bar_parts[] = {
   &Qup, &Qdown, &Qtop, &Qbottom, &Qend_scroll, &Qratio
 };
 
-/* User signal events.  */
-Lisp_Object Qusr1_signal, Qusr2_signal;
-
-Lisp_Object *lispy_user_signals[] =
-{
-  &Qusr1_signal, &Qusr2_signal
-};
-
-
 /* A vector, indexed by button number, giving the down-going location
    of currently depressed buttons, both scroll bar and non-scroll bar.
 
@@ -5594,6 +5600,7 @@ make_lispy_event (event)
 	      double_click_count = 1;
 	    button_down_time = event->timestamp;
 	    *start_pos_ptr = Fcopy_alist (position);
+	    ignore_mouse_drag_p = 0;
 	  }
 
 	/* Now we're releasing a button - check the co-ordinates to
@@ -5629,8 +5636,13 @@ make_lispy_event (event)
 		    ydiff = XINT (event->y) - XINT (XCDR (down));
 		  }
 
-		if (xdiff < double_click_fuzz && xdiff > - double_click_fuzz
-		    && ydiff < double_click_fuzz && ydiff > - double_click_fuzz
+		if (ignore_mouse_drag_p)
+		  {
+		    event->modifiers |= click_modifier;
+		    ignore_mouse_drag_p = 0;
+		  }
+		else if (xdiff < double_click_fuzz && xdiff > - double_click_fuzz
+			 && ydiff < double_click_fuzz && ydiff > - double_click_fuzz
 		  /* Maybe the mouse has moved a lot, caused scrolling, and
 		     eventually ended up at the same screen position (but
 		     not buffer position) in which case it is a drag, not
@@ -5706,7 +5718,7 @@ make_lispy_event (event)
 	position = make_lispy_position (f, &event->x, &event->y,
 					event->timestamp);
 
-	/* Set double or triple modifiers to indicate the wheel speed.	*/
+	/* Set double or triple modifiers to indicate the wheel speed.  */
 	{
 	  /* On window-system frames, use the value of
 	     double-click-fuzz as is.  On other frames, interpret it
@@ -5760,7 +5772,7 @@ make_lispy_event (event)
 
 	  if (event->modifiers & up_modifier)
 	    {
-	      /* Emit a wheel-up event.	 */
+	      /* Emit a wheel-up event.  */
 	      event->modifiers &= ~up_modifier;
 	      symbol_num = 0;
 	    }
@@ -5775,7 +5787,7 @@ make_lispy_event (event)
 	       the up_modifier set.  */
 	    abort ();
 
-	  /* Get the symbol we should use for the wheel event.	*/
+	  /* Get the symbol we should use for the wheel event.  */
 	  head = modify_event_symbol (symbol_num,
 				      event->modifiers,
 				      Qmouse_click,
@@ -5953,7 +5965,12 @@ make_lispy_event (event)
 
     case USER_SIGNAL_EVENT:
       /* A user signal.  */
-      return *lispy_user_signals[event->code];
+      {
+	char *name = find_user_signal_name (event->code);
+	if (!name)
+	  abort ();
+	return intern (name);
+      }
 
     case SAVE_SESSION_EVENT:
       return Qsave_session;
@@ -6790,6 +6807,10 @@ read_avail_input (expected)
   register int i;
   int nread = 0;
 
+  /* Store pending user signal events, if any.  */
+  if (store_user_signal_events ())
+    expected = 0;
+
   if (read_socket_hook)
     {
       int nr;
@@ -7011,6 +7032,131 @@ reinvoke_input_signal ()
 #endif
 }
 
+
+
+/* User signal events.  */
+
+struct user_signal_info
+{
+  /* Signal number.  */
+  int sig;
+
+  /* Name of the signal.  */
+  char *name;
+
+  /* Number of pending signals.  */
+  int npending;
+
+  struct user_signal_info *next;
+};
+
+/* List of user signals. */
+static struct user_signal_info *user_signals = NULL;
+
+void
+add_user_signal (sig, name)
+     int sig;
+     const char *name;
+{
+  struct user_signal_info *p;
+
+  for (p = user_signals; p; p = p->next)
+    if (p->sig == sig)
+      /* Already added.  */
+      return;
+
+  p = xmalloc (sizeof (struct user_signal_info));
+  p->sig = sig;
+  p->name = xstrdup (name);
+  p->npending = 0;
+  p->next = user_signals;
+  user_signals = p;
+
+  signal (sig, handle_user_signal);
+}
+
+static SIGTYPE
+handle_user_signal (sig)
+     int sig;
+{
+  int old_errno = errno;
+  struct user_signal_info *p;
+
+#if defined (USG) && !defined (POSIX_SIGNALS)
+  /* USG systems forget handlers when they are used;
+     must reestablish each time */
+  signal (sig, handle_user_signal);
+#endif
+
+  SIGNAL_THREAD_CHECK (sig);
+
+  for (p = user_signals; p; p = p->next)
+    if (p->sig == sig)
+      {
+	p->npending++;
+#ifdef SIGIO
+	if (interrupt_input)
+	  kill (getpid (), SIGIO);
+	else
+#endif
+	  {
+	    /* Tell wait_reading_process_output that it needs to wake
+	       up and look around.  */
+	    if (input_available_clear_time)
+	      EMACS_SET_SECS_USECS (*input_available_clear_time, 0, 0);
+	  }
+	break;
+      }
+
+  errno = old_errno;
+}
+
+static char *
+find_user_signal_name (sig)
+     int sig;
+{
+  struct user_signal_info *p;
+
+  for (p = user_signals; p; p = p->next)
+    if (p->sig == sig)
+      return p->name;
+
+  return NULL;
+}
+
+static int
+store_user_signal_events ()
+{
+  struct user_signal_info *p;
+  struct input_event buf;
+  int nstored = 0;
+
+  for (p = user_signals; p; p = p->next)
+    if (p->npending > 0)
+      {
+	SIGMASKTYPE mask;
+
+	if (nstored == 0)
+	  {
+	    bzero (&buf, sizeof buf);
+	    buf.kind = USER_SIGNAL_EVENT;
+	    buf.frame_or_window = selected_frame;
+	  }
+	nstored += p->npending;
+
+	mask = sigblock (sigmask (p->sig));
+	do
+	  {
+	    buf.code = p->sig;
+	    kbd_buffer_store_event (&buf);
+	    p->npending--;
+	  }
+	while (p->npending > 0);
+	sigsetmask (mask);
+      }
+
+  return nstored;
+}
 
 
 static void menu_bar_item P_ ((Lisp_Object, Lisp_Object, Lisp_Object, void*));
@@ -11025,11 +11171,6 @@ syms_of_keyboard ()
   staticpro (&Qmac_apple_event);
 #endif
 
-  Qusr1_signal = intern ("usr1-signal");
-  staticpro (&Qusr1_signal);
-  Qusr2_signal = intern ("usr2-signal");
-  staticpro (&Qusr2_signal);
-
   Qmenu_enable = intern ("menu-enable");
   staticpro (&Qmenu_enable);
   Qmenu_alias = intern ("menu-alias");
@@ -11320,8 +11461,8 @@ Polling is automatically disabled in all other cases.  */);
 
   DEFVAR_LISP ("double-click-time", &Vdouble_click_time,
 	       doc: /* *Maximum time between mouse clicks to make a double-click.
-Measured in milliseconds.  nil means disable double-click recognition;
-t means double-clicks have no time limit and are detected
+Measured in milliseconds.  The value nil means disable double-click
+recognition; t means double-clicks have no time limit and are detected
 by position only.  */);
   Vdouble_click_time = make_number (500);
 

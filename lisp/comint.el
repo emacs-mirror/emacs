@@ -132,7 +132,7 @@
 ;;  comint-eol-on-send			boolean	...
 ;;  comint-process-echoes		boolean	...
 ;;  comint-scroll-to-bottom-on-input	symbol	For scroll behavior
-;;  comint-scroll-to-bottom-on-output	symbol	...
+;;  comint-move-point-for-output	symbol	...
 ;;  comint-scroll-show-maximum-output	boolean	...
 ;;  comint-accum-marker			maker	  For comint-accumulate
 ;;
@@ -770,7 +770,7 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 		  (format "TERMCAP=emacs:co#%d:tc=unknown:" (window-width))))
 	  (unless (getenv "EMACS")
 	    (list "EMACS=t"))
-	  (list "INSIDE_EMACS=t")
+	  (list (format "INSIDE_EMACS=%s,comint" emacs-version))
 	  process-environment))
 	(default-directory
 	  (if (file-accessible-directory-p default-directory)
@@ -804,8 +804,6 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 
 (defun comint-insert-input (event)
   "In a Comint buffer, set the current input to the previous input at point."
-  ;; This doesn't use "e" because it is supposed to work
-  ;; for events without parameters.
   (interactive "e")
   (mouse-set-point event)
   (let ((pos (point)))

@@ -41,7 +41,7 @@
  * configuration file containing regexp definitions for etags.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 17.20";
+char pot_etags_version[] = "@(#) pot revision number is 17.25";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -3163,7 +3163,7 @@ static void
 make_C_tag (isfun)
      bool isfun;
 {
-  /* This function should never be called when token.valid is FALSE, but
+  /* This function is never called when token.valid is FALSE, but
      we must protect against invalid input or internal errors. */
   if (!DEBUG && !token.valid)
     return;
@@ -3493,7 +3493,6 @@ C_entries (c_ext, inf)
 				  off += 1;
 				  len -= 1;
 				}
-			      len = toklen;
 			      linebuffer_setlen (&token_name, len);
 			      strncpy (token_name.buffer,
 				       newlb.buffer + off, len);
@@ -4687,8 +4686,16 @@ Makefile_targets (inf)
       while (*bp != '\0' && *bp != '=' && *bp != ':')
 	bp++;
       if (*bp == ':' || (globals && *bp == '='))
-	make_tag (lb.buffer, bp - lb.buffer, TRUE,
-		  lb.buffer, bp - lb.buffer + 1, lineno, linecharno);
+	{
+	  /* We should detect if there is more than one tag, but we do not.
+	     We just skip initial and final spaces. */
+	  char * namestart = skip_spaces (lb.buffer);
+	  while (--bp > namestart)
+	    if (!notinname (*bp))
+	      break;
+	  make_tag (namestart, bp - namestart + 1, TRUE,
+		    lb.buffer, bp - lb.buffer + 2, lineno, linecharno);
+	}
     }
 }
 
@@ -4955,7 +4962,7 @@ Lua_functions (inf)
       if (bp[0] != 'f' && bp[0] != 'l')
 	continue;
 
-      LOOKING_AT (bp, "local");	/* skip possible "local" */
+      (void)LOOKING_AT (bp, "local"); /* skip possible "local" */
 
       if (LOOKING_AT (bp, "function"))
 	get_tag (bp, NULL);
@@ -5137,7 +5144,7 @@ TeX_commands (inf)
 		if (!opgrp || *p == TEX_clgrp)
 		  {
 		    while (*p != '\0' && *p != TEX_opgrp && *p != TEX_clgrp)
-		      *p++;
+		      p++;
 		    linelen = p - lb.buffer + 1;
 		  }
 		make_tag (cp, namelen, TRUE,
@@ -6256,15 +6263,14 @@ readline (lbp, stream)
       /* Check whether this is a #line directive. */
       if (result > 12 && strneq (lbp->buffer, "#line ", 6))
 	{
-	  int start, lno;
+	  unsigned int lno;
+	  int start = 0;
 
-	  if (DEBUG) start = 0;	/* shut up the compiler */
-	  if (sscanf (lbp->buffer, "#line %d %n\"", &lno, &start) >= 1
-	      && lbp->buffer[start] == '"')
+	  if (sscanf (lbp->buffer, "#line %u \"%n", &lno, &start) >= 1
+	      && start > 0)	/* double quote character found */
 	    {
-	      char *endp = lbp->buffer + ++start;
+	      char *endp = lbp->buffer + start;
 
-	      assert (start > 0);
 	      while ((endp = etags_strchr (endp, '"')) != NULL
 		     && endp[-1] == '\\')
 		endp++;
@@ -6279,7 +6285,7 @@ readline (lbp, stream)
 		  name = lbp->buffer + start;
 		  *endp = '\0';
 		  canonicalize_filename (name); /* for DOS */
-		  taggedabsname = absolute_filename (name, curfdp->infabsdir);
+		  taggedabsname = absolute_filename (name, tagfiledir);
 		  if (filename_is_absolute (name)
 		      || filename_is_absolute (curfdp->infname))
 		    taggedfname = savestr (taggedabsname);

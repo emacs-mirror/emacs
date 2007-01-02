@@ -1,7 +1,7 @@
 ;;; easymenu.el --- support the easymenu interface for defining a menu
 
-;; Copyright (C) 1994, 1996, 1998, 1999, 2000, 2002, 2003, 2004,
-;;   2005, 2006 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1996, 1998, 1999, 2000, 2001, 2002, 2003,
+;;   2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Keywords: emulations
 ;; Author: Richard Stallman <rms@gnu.org>
@@ -443,12 +443,16 @@ When non-nil, NOEXP indicates that CALLBACK cannot be an expression
     command))
 
 ;;;###autoload
-(defun easy-menu-change (path name items &optional before)
+(defun easy-menu-change (path name items &optional before map)
   "Change menu found at PATH as item NAME to contain ITEMS.
 PATH is a list of strings for locating the menu that
 should contain a submenu named NAME.
 ITEMS is a list of menu items, as in `easy-menu-define'.
 These items entirely replace the previous items in that submenu.
+
+If MAP is specified, it should normally be a keymap; nil stands for the local
+menu-bar keymap.  It can also be a symbol, which has earlier been used as the
+first argument in a call to `easy-menu-define', or the value of such a symbol.
 
 If the menu located by PATH has no submenu named NAME, add one.
 If the optional argument BEFORE is present, add it just before
@@ -456,7 +460,7 @@ the submenu named BEFORE, otherwise add it at the end of the menu.
 
 To implement dynamic menus, either call this from
 `menu-bar-update-hook' or use a menu filter."
-  (easy-menu-add-item nil path (easy-menu-create-menu name items) before))
+  (easy-menu-add-item map path (easy-menu-create-menu name items) before))
 
 ;; XEmacs needs the following two functions to add and remove menus.
 ;; In Emacs this is done automatically when switching keymaps, so

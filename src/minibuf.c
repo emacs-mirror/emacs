@@ -1287,6 +1287,7 @@ is used to further constrain the set of candidates.  */)
   tail = alist;
   if (type == 2)
     {
+      alist = check_obarray (alist);
       obsize = XVECTOR (alist)->size;
       bucket = XVECTOR (alist)->contents[index];
     }
@@ -1310,6 +1311,8 @@ is used to further constrain the set of candidates.  */)
 	{
 	  if (!EQ (bucket, zero))
 	    {
+	      if (!SYMBOLP (bucket))
+		error ("Bad data in guts of obarray");
 	      elt = bucket;
 	      eltstring = elt;
 	      if (XSYMBOL (bucket)->next)
@@ -2868,10 +2871,10 @@ The value may alternatively be a function, which is given three arguments:
   STRING, the current buffer contents;
   PREDICATE, the predicate for filtering possible matches;
   CODE, which says what kind of things to do.
-CODE can be nil, t or `lambda'.
-nil means to return the best completion of STRING, or nil if there is none.
-t means to return a list of all possible completions of STRING.
-`lambda' means to return t if STRING is a valid completion as it stands.  */);
+CODE can be nil, t or `lambda':
+  nil    -- return the best completion of STRING, or nil if there is none.
+  t      -- return a list of all possible completions of STRING.
+  lambda -- return t if STRING is a valid completion as it stands.  */);
   Vminibuffer_completion_table = Qnil;
 
   DEFVAR_LISP ("minibuffer-completion-predicate", &Vminibuffer_completion_predicate,

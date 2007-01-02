@@ -1,6 +1,6 @@
 ;;; mac-win.el --- parse switches controlling interface with Mac window system -*-coding: utf-8
 
-;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Andrew Choi <akochoi@mac.com>
@@ -82,7 +82,6 @@
 (defvar mac-service-selection)
 (defvar mac-system-script-code)
 (defvar mac-apple-event-map)
-(defvar mac-atsu-font-table)
 (defvar mac-font-panel-mode)
 (defvar mac-ts-active-input-overlay)
 (defvar x-invocation-args)
@@ -1841,7 +1840,8 @@ With numeric ARG, display the font panel if and only if ARG is positive."
   (let* ((ae (mac-event-ae event))
 	 (fm-font-size (mac-ae-number ae "fmsz"))
 	 (atsu-font-id (mac-ae-number ae "auid"))
-	 (attribute-values (gethash atsu-font-id mac-atsu-font-table)))
+	 (attribute-values (and atsu-font-id
+				(mac-atsu-font-face-attributes atsu-font-id))))
     (if fm-font-size
 	(setq attribute-values
 	      `(:height ,(* 10 fm-font-size) ,@attribute-values)))
@@ -2014,6 +2014,22 @@ the echo area or in a buffer where the cursor is not displayed."
    (mac-split-string-by-property-change string)
    ""))
 
+(defun mac-keyboard-translate-char (ch)
+  (if (and (char-valid-p ch)
+	   (or (char-table-p keyboard-translate-table)
+	       (and (or (stringp keyboard-translate-table)
+			(vectorp keyboard-translate-table))
+		    (> (length keyboard-translate-table) ch))))
+      (or (aref keyboard-translate-table ch) ch)
+    ch))
+
+(defun mac-unread-string (string)
+  ;; Unread characters and insert them in a keyboard macro being
+  ;; defined.
+  (apply 'isearch-unread
+	 (mapcar 'mac-keyboard-translate-char
+		 (mac-replace-untranslated-utf-8-chars string))))
+
 (defun mac-ts-update-active-input-area (event)
   "Update Mac TSM active input area according to EVENT.
 The confirmed text is converted to Emacs input events and pushed
@@ -2092,11 +2108,7 @@ either in the current buffer or in the echo area."
 		      (point) (point) (current-buffer))
 	(overlay-put mac-ts-active-input-overlay 'before-string
 		     active-input-string))
-      ;; Unread confirmed characters and insert them in a keyboard
-      ;; macro being defined.
-      (apply 'isearch-unread
-	     (append (mac-replace-untranslated-utf-8-chars
-		      (funcall decode-fun confirmed coding)) '())))
+      (mac-unread-string (funcall decode-fun confirmed coding)))
     ;; The event is successfully processed.  Sync the sequence number.
     (setq mac-ts-update-active-input-area-seqno (1+ seqno))))
 
@@ -2109,11 +2121,7 @@ either in the current buffer or in the echo area."
 	 (coding (or (cdr (assq (car script-language)
 				mac-script-code-coding-systems))
 		     'mac-roman)))
-    ;; Unread characters and insert them in a keyboard macro being
-    ;; defined.
-    (apply 'isearch-unread
-	   (append (mac-replace-untranslated-utf-8-chars
-		    (mac-utxt-to-string text coding)) '()))))
+    (mac-unread-string (mac-utxt-to-string text coding))))
 
 ;; kEventClassTextInput/kEventTextInputUpdateActiveInputArea
 (define-key mac-apple-event-map [text-input update-active-input-area]

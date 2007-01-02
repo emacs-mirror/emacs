@@ -1,7 +1,7 @@
 ;;; greek.el --- Quail package for inputting Greek -*-coding: iso-2022-7bit-*-
 
 ;; Copyright (C) 2001, 2002, 2003, 2004, 2006  Free Software Foundation, Inc.
-;; Copyright (C) 1997, 2001
+;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
@@ -137,8 +137,8 @@ Sorry, accents and terminal sigma are not supported in JIS."
 
 ;;
 
-(quail-define-package "greek-mizuochi" "Greek" "CG" t "
-The Mizuochi input method for Classical Greek using mule-unicode-0100-24ff.
+(quail-define-package "greek-mizuochi" "Greek" "CG" t
+"The Mizuochi input method for Classical Greek using mule-unicode-0100-24ff.
 
 -------------------------------------
 character     capital	      small

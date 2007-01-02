@@ -104,7 +104,7 @@ linked Emacs under SunOS 4.x"
   :group 'url-gateway)
 
 (defcustom url-gateway-nslookup-program "nslookup"
-  "*If non-NIL then a string naming nslookup program."
+  "*If non-nil then a string naming nslookup program."
   :type '(choice (const :tag "None" :value nil) string)
   :group 'url-gateway)
 
@@ -253,7 +253,7 @@ Might do a non-blocking connection; use `process-status' to check."
 			  ;; Use non-blocking socket if we can.
 			  (make-network-process :name name :buffer buffer
 						:host host :service service
-						:nowait 
+						:nowait
 						(featurep 'make-network-process '(:nowait t))))
 			 (socks
 			  (socks-open-network-stream name buffer host service))

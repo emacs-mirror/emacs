@@ -1,6 +1,6 @@
 ;;; userlock.el --- handle file access contention between multiple users
 
-;; Copyright (C) 1985, 1986, 2002, 2003, 2004,
+;; Copyright (C) 1985, 1986, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -87,9 +87,9 @@ in any way you like."
 (defun ask-user-about-lock-help ()
   (with-output-to-temp-buffer "*Help*"
     (princ "It has been detected that you want to modify a file that someone else has
-already started modifying in EMACS.
+already started modifying in Emacs.
 
-You can <s>teal the file; The other user becomes the
+You can <s>teal the file; the other user becomes the
   intruder if (s)he ever unmodifies the file and then changes it again.
 You can <p>roceed; you edit at your own (and the other user's) risk.
 You can <q>uit; don't modify this file.")

@@ -1203,17 +1203,19 @@ moved by the OS to the selected frame.)
 @cindex frame visibility
 
 A window frame may be @dfn{visible}, @dfn{invisible}, or
-@dfn{iconified}.  If it is visible, you can see its contents.  If it is
-iconified, the frame's contents do not appear on the screen, but an icon
-does.  If the frame is invisible, it doesn't show on the screen, not
-even as an icon.
+@dfn{iconified}.  If it is visible, you can see its contents, unless
+other windows cover it.  If it is iconified, the frame's contents do
+not appear on the screen, but an icon does.  If the frame is
+invisible, it doesn't show on the screen, not even as an icon.
 
 Visibility is meaningless for terminal frames, since only the selected
 one is actually displayed in any case.
 
 @deffn Command make-frame-visible &optional frame
-This function makes frame @var{frame} visible.  If you omit @var{frame},
-it makes the selected frame visible.
+This function makes frame @var{frame} visible.  If you omit
+@var{frame}, it makes the selected frame visible.  This does not raise
+the frame, but you can do that with @code{raise-frame} if you wish
+(@pxref{Raising and Lowering}).
 @end deffn
 
 @deffn Command make-frame-invisible &optional frame force

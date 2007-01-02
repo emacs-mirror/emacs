@@ -216,7 +216,7 @@ Usually run by inclusion in `minibuffer-setup-hook'."
   "Remove completions display \(if any) prior to new user input.
 Should be run in on the minibuffer `pre-command-hook'.  See `icomplete-mode'
 and `minibuffer-setup-hook'."
-  (when icomplete-eoinput
+  (when (and icomplete-mode icomplete-eoinput)
 
     (unless (>= icomplete-eoinput (point-max))
       (let ((buffer-undo-list t)) ; prevent entry
@@ -230,7 +230,7 @@ and `minibuffer-setup-hook'."
   "Insert icomplete completions display.
 Should be run via minibuffer `post-command-hook'.  See `icomplete-mode'
 and `minibuffer-setup-hook'."
-  (when (icomplete-simple-completing-p)
+  (when (and icomplete-mode (icomplete-simple-completing-p))
     (save-excursion
       (goto-char (point-max))
       ;; Register the end of input, so we know where the extra stuff

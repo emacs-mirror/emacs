@@ -38,5 +38,6 @@ config.cache
 Makefile
 emacs*.tar.gz
 leim*.tar.gz
+lock
 *.xdelta
 autom4te.cache

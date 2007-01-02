@@ -1,6 +1,6 @@
-;;; rot13.el --- display a buffer in rot13
+;;; rot13.el --- display a buffer in ROT13
 
-;; Copyright (C) 1988, 2002, 2003, 2004, 2005,
+;; Copyright (C) 1988, 2001, 2002, 2003, 2004, 2005,
 ;;   2006 Free Software Foundation, Inc.
 
 ;; Author: Howard Gayle
@@ -27,7 +27,7 @@
 
 ;; The entry point, `rot13-other-window', performs a Caesar cipher
 ;; encrypt/decrypt on the current buffer and displays the result in another
-;; window.  Rot13 encryption is sometimes used on USENET as a read-at-your-
+;; window.  ROT13 encryption is sometimes used on USENET as a read-at-your-
 ;; own-risk wrapper for material some might consider offensive, such as
 ;; ethnic humor.
 ;;
@@ -48,7 +48,7 @@
       (aset table (+ i ?A) (vector (+ (% (+ i 13) 26) ?A)))
       (setq i (1+ i)))
     table)
-  "Char table for rot 13 display.")
+  "Char table for ROT13 display.")
 
 (defvar rot13-translate-table
   (let ((str (make-string 127 0))
@@ -62,11 +62,11 @@
       (aset str (+ i ?A) (+ (% (+ i 13) 26) ?A))
       (setq i (1+ i)))
     str)
-  "String table for rot 13 translation.")
+  "String table for ROT13 translation.")
 
 ;;;###autoload
 (defun rot13 (object &optional start end)
-  "Return Rot13 encryption of OBJECT, a buffer or string."
+  "Return ROT13 encryption of OBJECT, a buffer or string."
   (if (bufferp object)
       (with-current-buffer object
 	(rot13-region start end))
@@ -74,7 +74,7 @@
 
 ;;;###autoload
 (defun rot13-string (string)
-  "Return Rot13 encryption of STRING."
+  "Return ROT13 encryption of STRING."
   (with-temp-buffer
     (insert string)
     (rot13-region (point-min) (point-max))
@@ -82,18 +82,18 @@
 
 ;;;###autoload
 (defun rot13-region (start end)
-  "Rot13 encrypt the region between START and END in current buffer."
+  "ROT13 encrypt the region between START and END in current buffer."
   (interactive "r")
   (translate-region start end rot13-translate-table))
 
 ;;;###autoload
 (defun rot13-other-window ()
-  "Display current buffer in rot 13 in another window.
+  "Display current buffer in ROT13 in another window.
 The text itself is not modified, only the way it is displayed is affected.
 
-To terminate the rot13 display, delete that window.  As long as that window
+To terminate the ROT13 display, delete that window.  As long as that window
 is not deleted, any buffer displayed in it will become instantly encoded
-in rot 13.
+in ROT13.
 
 See also `toggle-rot13-mode'."
   (interactive)
@@ -102,7 +102,7 @@ See also `toggle-rot13-mode'."
 
 ;;;###autoload
 (defun toggle-rot13-mode ()
-  "Toggle the use of rot 13 encoding for the current window."
+  "Toggle the use of ROT13 encoding for the current window."
   (interactive)
   (if (eq (window-display-table (selected-window)) rot13-display-table)
       (set-window-display-table (selected-window) nil)

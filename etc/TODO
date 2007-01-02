@@ -87,6 +87,8 @@ current buffer.
   with evaluating definitions of the same function from different files,
   recording which file the latest definition came from.
 
+** make back_comment use syntax-ppss or equivalent.
+
 * Important features:
 
 ** Provide user-friendly ways to list all available font families,
@@ -493,10 +495,24 @@ but which can also be used as a modifier).
 
 * Internal changes
 
+** Merge ibuffer.el and buff-menu.el.
+   More specifically do what's needed to make ibuffer.el the default,
+   or just an extension of buff-menu.el.
+
+** Use pcomplete by default in shell-mode.
+   This means to make it behave (by default) more like the current code.
+   Use it also for read-shell-command, M-x compile, ...
+
+** Merge sendmail.el and messages.el.
+   Probably not a complete merge, but at least arrange for messages.el to be
+   a derived mode of sendmail.el.  Or arrange for messages.el to be split
+   into a small core and "the rest" so that we use less resources as long as
+   we stick to the features provided in sendmail.el.
+
 ** Replace gmalloc.c with the modified Doug Lea code from the current
-  GNU libc so that the special mmapping of buffers can be removed --
-  that apparently loses under Solaris, at least. [fx has mostly done
-  this.]
+   GNU libc so that the special mmapping of buffers can be removed --
+   that apparently loses under Solaris, at least. [fx has mostly done
+   this.]
 
 ** Rewrite make-docfile to be clean and maintainable.
 

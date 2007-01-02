@@ -66,7 +66,8 @@ functions.
 We have standardized on one location for the user init file: the file
 named @file{.emacs} in your home directory.  Emacs will not look for
 the init file in @file{~/.emacs.d/init.el}.  Similarly, don't try
-putting @file{.emacs_SHELL} in @file{~/.emacs.d}; Emacs won't find it.
+putting @file{.emacs_SHELL} as @file{init_SHELL.sh} in
+@file{~/.emacs.d}; Emacs won't find it.
 
 @item
 Emacs will not read @file{~/.abbrev_defs} automatically.  If you want
@@ -212,8 +213,9 @@ only be one Emacs server running at a time.  The @code{server-mode}
 command and @code{server-name} user option have been eliminated.
 
 @item
-The @file{emacsclient} program no longer accepts the @samp{--eval} and
-@samp{--display} command line options.
+The @file{emacsclient} program no longer accepts the @samp{--eval},
+@samp{--display} and @samp{--server-file} command line options, and
+can only establish local connections using Unix domain sockets.
 
 @item
 The command @code{quail-show-key}, for showing how to input a

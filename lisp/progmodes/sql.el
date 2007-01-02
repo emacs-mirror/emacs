@@ -5,7 +5,7 @@
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Michael Mauger <mmaug@yahoo.com>
-;; Version: 2.0.1
+;; Version: 2.0.2
 ;; Keywords: comm languages processes
 ;; URL: http://savannah.gnu.org/cgi-bin/viewcvs/emacs/emacs/lisp/progmodes/sql.el
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?SqlMode
@@ -30,26 +30,40 @@
 ;;; Commentary:
 
 ;; Please send bug reports and bug fixes to the mailing list at
-;; sql.el@gnu.org.  If you want to subscribe to the mailing list, send
-;; mail to sql.el-request@gnu.org with `subscribe sql.el FIRSTNAME
-;; LASTNAME' in the mail body.
+;; help-gnu-emacs@gnu.org.  If you want to subscribe to the mailing
+;; list, see the web page at
+;; http://lists.gnu.org/mailman/listinfo/help-gnu-emacs for
+;; instructions.  I monitor this list actively.  If you send an e-mail
+;; to Alex Schroeder it usually makes it to me when Alex has a chance
+;; to forward them along (Thanks, Alex).
 
-;; This file provides a sql-mode and a sql-interactive-mode.  My goals
-;; were two simple modes providing syntactic hilighting.  The
-;; interactive mode had to provide a command-line history; the other
-;; mode had to provide "send region/buffer to SQL interpreter"
-;; functions.  "simple" in this context means easy to use, easy to
-;; maintain and little or no bells and whistles.
+;; This file provides a sql-mode and a sql-interactive-mode.  The
+;; original goals were two simple modes providing syntactic
+;; highlighting.  The interactive mode had to provide a command-line
+;; history; the other mode had to provide "send region/buffer to SQL
+;; interpreter" functions.  "simple" in this context means easy to
+;; use, easy to maintain and little or no bells and whistles.  This
+;; has changed somewhat as experience with the mode has accumulated.
+
+;; Support for different flavors of SQL and command interpreters was
+;; available in early versions of sql.el.  This support has been
+;; extended and formalized in later versions.  Part of the impetus for
+;; the improved support of SQL flavors was borne out of the current
+;; maintainer's consulting experience.  In the past fifteen years, I
+;; have used Oracle, Sybase, Informix, MySQL, Postgres, and SQLServer.
+;; On some assignments, I have used two or more of these concurrently.
 
 ;; If anybody feels like extending this sql mode, take a look at the
 ;; above mentioned modes and write a sqlx-mode on top of this one.  If
 ;; this proves to be difficult, please suggest changes that will
-;; facilitate your plans.
+;; facilitate your plans.  Facilities have been provided to add
+;; products and product-specific configuration.
 
 ;; sql-interactive-mode is used to interact with a SQL interpreter
 ;; process in a SQLi buffer (usually called `*SQL*').  The SQLi buffer
-;; is created by calling a SQL interpreter-specific entry function.  Do
-;; *not* call sql-interactive-mode by itself.
+;; is created by calling a SQL interpreter-specific entry function or
+;; sql-product-interactive.  Do *not* call sql-interactive-mode by
+;; itself.
 
 ;; The list of currently supported interpreters and the corresponding
 ;; entry function used to create the SQLi buffers is shown with
@@ -847,23 +861,24 @@ Based on `comint-mode-map'.")
 (defvar sql-mode-abbrev-table nil
   "Abbrev table used in `sql-mode' and `sql-interactive-mode'.")
 (unless sql-mode-abbrev-table
-  (define-abbrev-table 'sql-mode-abbrev-table nil)
-  (mapcar
-    ;; In Emacs 21.3+, provide SYSTEM-FLAG to define-abbrev.
-   '(lambda (abbrev)
-      (let ((name (car abbrev))
-	    (expansion (cdr abbrev)))
-	(condition-case nil
-	    (define-abbrev sql-mode-abbrev-table name expansion nil 0 t)
-	  (error
-	   (define-abbrev sql-mode-abbrev-table name expansion)))))
-   '(("ins" "insert")
-    ("upd" "update")
-    ("del" "delete")
-    ("sel" "select")
-    ("proc" "procedure")
-    ("func" "function")
-    ("cr" "create"))))
+  (define-abbrev-table 'sql-mode-abbrev-table nil))
+
+(mapcar
+ ;; In Emacs 22+, provide SYSTEM-FLAG to define-abbrev.
+ '(lambda (abbrev)
+    (let ((name (car abbrev))
+          (expansion (cdr abbrev)))
+      (condition-case nil
+          (define-abbrev sql-mode-abbrev-table name expansion nil 0 t)
+        (error
+         (define-abbrev sql-mode-abbrev-table name expansion)))))
+ '(("ins"  . "insert")
+   ("upd"  . "update")
+   ("del"  . "delete")
+   ("sel"  . "select")
+   ("proc" . "procedure")
+   ("func" . "function")
+   ("cr"   . "create")))
 
 ;; Syntax Table
 
@@ -872,13 +887,15 @@ Based on `comint-mode-map'.")
     ;; C-style comments /**/ (see elisp manual "Syntax Flags"))
     (modify-syntax-entry ?/ ". 14" table)
     (modify-syntax-entry ?* ". 23" table)
-    ;; double-dash starts comment
+    ;; double-dash starts comments
     (modify-syntax-entry ?- ". 12b" table)
-    ;; newline and formfeed end coments
+    ;; newline and formfeed end comments
     (modify-syntax-entry ?\n "> b" table)
     (modify-syntax-entry ?\f "> b" table)
-    ;; single quotes (') quotes delimit strings
+    ;; single quotes (') delimit strings
     (modify-syntax-entry ?' "\"" table)
+    ;; double quotes (") don't delimit strings
+    (modify-syntax-entry ?\" "." table)
     ;; backslash is no escape character
     (modify-syntax-entry ?\\ "." table)
     table)
@@ -887,12 +904,13 @@ Based on `comint-mode-map'.")
 ;; Font lock support
 
 (defvar sql-mode-font-lock-object-name
-  (list (concat "^\\s-*\\(create\\|drop\\|alter\\)\\s-+" ;; lead off with CREATE, DROP or ALTER
-		"\\(\\w+\\s-+\\)*"  ;; optional intervening keywords
-		"\\(table\\|view\\|package\\(\\s-+body\\)?\\|proc\\(edure\\)?"
-		"\\|function\\|trigger\\|sequence\\|rule\\|default\\)\\s-+"
-		"\\(\\w+\\)")
-	6 'font-lock-function-name-face)
+  (eval-when-compile
+    (list (concat "^\\s-*\\(?:create\\|drop\\|alter\\)\\s-+" ;; lead off with CREATE, DROP or ALTER
+		  "\\(?:\\w+\\s-+\\)*"  ;; optional intervening keywords
+		  "\\(?:table\\|view\\|\\(?:package\\|type\\)\\(?:\\s-+body\\)?\\|proc\\(?:edure\\)?"
+		  "\\|function\\|trigger\\|sequence\\|rule\\|default\\)\\s-+"
+		  "\\(\\w+\\)")
+	  1 'font-lock-function-name-face))
 
   "Pattern to match the names of top-level objects.
 

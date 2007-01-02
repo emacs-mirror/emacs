@@ -44,6 +44,14 @@ Boston, MA 02110-1301, USA.  */
    If I can't write a completely portable program to do this in C,
    I'm quitting and taking up gardening.  */
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+
+#if STDC_HEADERS
+# include <stdlib.h>		/* for proper declaration of `exit' */
+#endif
+
 #include <stdio.h>
 
 int

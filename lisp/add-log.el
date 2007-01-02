@@ -1,7 +1,7 @@
 ;;; add-log.el --- change log maintenance commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1988, 1993, 1994, 1997, 1998, 2000, 2002,
-;;   2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1988, 1993, 1994, 1997, 1998, 2000, 2001,
+;;   2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: tools
@@ -916,7 +916,19 @@ Has a preference of looking backwards."
 			       ;; Include certain keywords if they
 			       ;; precede the name.
 			       (setq middle (point))
-			       (forward-sexp -1)
+			       ;; Single (forward-sexp -1) invocation is
+			       ;; not enough for C++ member function defined 
+			       ;; as part of nested class and/or namespace 
+			       ;; like:
+			       ;;
+			       ;;   void 
+			       ;;   foo::bar::baz::bazz ()
+			       ;;   { ...
+			       ;; 
+			       ;; Here we have to move the point to 
+			       ;; the beginning of foo, not bazz.
+			       (while (not (looking-back "\\(^\\|[ \t]\\)"))
+				 (forward-sexp -1))
 			       ;; Is this C++ method?
 			       (when (and (< 2 middle)
 					  (string= (buffer-substring (- middle 2)

@@ -1,7 +1,8 @@
 ;;; cc-vars.el --- user customization variables for CC Mode
 
-;; Copyright (C) 1985,1987,1992-2003, 2004, 2005, 2006 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
+;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006  Free Software
+;;   Foundation, Inc.
 
 ;; Authors:    1998- Martin Stjernholm
 ;;             1992-1999 Barry A. Warsaw
@@ -809,7 +810,7 @@ then no newline is inserted."
 This is used by the functions that automatically insert or align the
 line continuation backslashes in multiline macros.  If any line in the
 macro exceeds this column then the next tab stop from that line is
-used as alignment column instead."
+used as alignment column instead.  See also `c-backslash-max-column'."
   :type 'integer
   :group 'c)
 ;;;###autoload(put 'c-backslash-column 'safe-local-variable 'integerp)

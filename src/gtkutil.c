@@ -3350,11 +3350,8 @@ xg_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
    get them.  */
 #define XG_TOOL_BAR_LAST_MODIFIER "emacs-tool-bar-modifier"
 
-
-/* Callback function invoked when a tool bar item is pressed.
-   W is the button widget in the tool bar that got pressed,
-   CLIENT_DATA is an integer that is the index of the button in the
-   tool bar.  0 is the first button.  */
+/* The key for storing the button widget in its proxy menu item. */
+#define XG_TOOL_BAR_PROXY_BUTTON "emacs-tool-bar-proxy-button"
 
 static gboolean
 xg_tool_bar_button_cb (widget, event, user_data)
@@ -3364,10 +3361,15 @@ xg_tool_bar_button_cb (widget, event, user_data)
 {
   /* Casts to avoid warnings when gpointer is 64 bits and int is 32 bits */
   gpointer ptr = (gpointer) (EMACS_INT) event->state;
-  g_object_set_data (G_OBJECT (user_data), XG_TOOL_BAR_LAST_MODIFIER, ptr);
+  g_object_set_data (G_OBJECT (widget), XG_TOOL_BAR_LAST_MODIFIER, ptr);
   return FALSE;
 }
 
+
+/* Callback function invoked when a tool bar item is pressed.
+   W is the button widget in the tool bar that got pressed,
+   CLIENT_DATA is an integer that is the index of the button in the
+   tool bar.  0 is the first button.  */
 
 static void
 xg_tool_bar_callback (w, client_data)
@@ -3404,6 +3406,92 @@ xg_tool_bar_callback (w, client_data)
      this is written.  */
   event.modifiers = x_x_to_emacs_modifiers (FRAME_X_DISPLAY_INFO (f), mod);
   kbd_buffer_store_event (&event);
+}
+
+/* Callback function invoked when a tool bar item is pressed in a detached
+   tool bar or the overflow drop down menu.
+   We just call xg_tool_bar_callback.
+   W is the menu item widget that got pressed,
+   CLIENT_DATA is an integer that is the index of the button in the
+   tool bar.  0 is the first button.  */
+
+static void
+xg_tool_bar_proxy_callback (w, client_data)
+     GtkWidget *w;
+     gpointer client_data;
+{
+  GtkWidget *wbutton = GTK_WIDGET (g_object_get_data (G_OBJECT (w),
+                                                      XG_TOOL_BAR_PROXY_BUTTON));
+  xg_tool_bar_callback (wbutton, client_data);
+}
+
+/* This callback is called when a tool item should create a proxy item,
+   such as for the overflow menu.  Also called when the tool bar is detached.
+   If we don't create a proxy menu item, the detached tool bar will be
+   blank.  */
+
+static gboolean
+xg_tool_bar_menu_proxy (toolitem, user_data)
+     GtkToolItem *toolitem;
+     gpointer user_data;
+{
+  GtkWidget *weventbox = gtk_bin_get_child (GTK_BIN (toolitem));
+  GtkButton *wbutton = GTK_BUTTON (gtk_bin_get_child (GTK_BIN (weventbox)));
+  GtkWidget *wmenuitem = gtk_image_menu_item_new ();
+  GtkWidget *wmenuimage;
+
+  if (gtk_button_get_use_stock (wbutton)) 
+    wmenuimage = gtk_image_new_from_stock (gtk_button_get_label (wbutton),
+                                           GTK_ICON_SIZE_MENU);
+  else
+    {
+      GtkImage *wimage = GTK_IMAGE (gtk_bin_get_child (GTK_BIN (wbutton)));
+      GtkSettings *settings = gtk_widget_get_settings (GTK_WIDGET (wbutton));
+      GtkImageType store_type = gtk_image_get_storage_type (wimage);
+      if (store_type == GTK_IMAGE_STOCK)
+        {
+          gchar *stock_id;
+          gtk_image_get_stock (wimage, &stock_id, NULL);
+          wmenuimage = gtk_image_new_from_stock (stock_id, GTK_ICON_SIZE_MENU);
+        }
+      else if (store_type == GTK_IMAGE_ICON_SET)
+        {
+          GtkIconSet *icon_set;
+          gtk_image_get_icon_set (wimage, &icon_set, NULL);
+          wmenuimage = gtk_image_new_from_icon_set (icon_set,
+                                                    GTK_ICON_SIZE_MENU);
+        }
+      else if (store_type == GTK_IMAGE_PIXBUF)
+        {
+          gint width, height;
+      
+          if (settings &&
+              gtk_icon_size_lookup_for_settings (settings, GTK_ICON_SIZE_MENU,
+                                                 &width, &height))
+            {
+              GdkPixbuf *src_pixbuf, *dest_pixbuf;
+
+              src_pixbuf = gtk_image_get_pixbuf (wimage);
+              dest_pixbuf = gdk_pixbuf_scale_simple (src_pixbuf, width, height,
+                                                     GDK_INTERP_BILINEAR);
+
+              wmenuimage = gtk_image_new_from_pixbuf (dest_pixbuf);
+            }
+        }
+    }
+  if (wmenuimage)
+    gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (wmenuitem), wmenuimage);
+
+  g_signal_connect (G_OBJECT (wmenuitem),
+                    "activate",
+                    GTK_SIGNAL_FUNC (xg_tool_bar_proxy_callback),
+                    user_data);
+
+  g_object_set_data (G_OBJECT (wmenuitem), XG_TOOL_BAR_PROXY_BUTTON,
+                     (gpointer) wbutton);
+  gtk_tool_item_set_proxy_menu_item (toolitem, "Emacs toolbar item", wmenuitem);
+
+  return TRUE;
 }
 
 /* This callback is called when a tool bar is detached.  We must set
@@ -3490,9 +3578,6 @@ xg_tool_bar_help_callback (w, event, client_data)
   int idx = (int) (EMACS_INT) client_data;
   FRAME_PTR f = (FRAME_PTR) g_object_get_data (G_OBJECT (w), XG_FRAME_DATA);
   Lisp_Object help, frame;
-
-  if (! GTK_IS_BUTTON (w))
-    return FALSE;
 
   if (! f || ! f->n_tool_bar_items || NILP (f->tool_bar_items))
     return FALSE;
@@ -3631,10 +3716,9 @@ update_frame_tool_bar (f)
 {
   int i;
   GtkRequisition old_req, new_req;
-  GList *icon_list;
-  GList *iter;
   struct x_output *x = f->output_data.x;
   int hmargin, vmargin;
+  GtkToolItem *ti;
 
   if (! FRAME_GTK_WIDGET (f))
     return;
@@ -3670,9 +3754,6 @@ update_frame_tool_bar (f)
 
   gtk_widget_size_request (x->toolbar_widget, &old_req);
 
-  icon_list = gtk_container_get_children (GTK_CONTAINER (x->toolbar_widget));
-  iter = icon_list;
-
   for (i = 0; i < f->n_tool_bar_items; ++i)
     {
 #define PROP(IDX) AREF (f->tool_bar_items, i * TOOL_BAR_ITEM_NSLOTS + (IDX))
@@ -3683,9 +3764,16 @@ update_frame_tool_bar (f)
       int img_id;
       struct image *img;
       Lisp_Object image;
-      GtkWidget *wicon = iter ? GTK_WIDGET (iter->data) : 0;
+      GtkWidget *wbutton;
+      GtkWidget *weventbox;
 
-      if (iter) iter = g_list_next (iter);
+      ti = gtk_toolbar_get_nth_item (GTK_TOOLBAR (x->toolbar_widget), i);
+
+      if (ti)
+        {
+          weventbox = gtk_bin_get_child (GTK_BIN (ti));
+          wbutton = gtk_bin_get_child (GTK_BIN (weventbox));
+        }
 
       /* If image is a vector, choose the image according to the
 	 button state.  */
@@ -3710,7 +3798,7 @@ update_frame_tool_bar (f)
       /* Ignore invalid image specifications.  */
       if (!valid_image_p (image))
         {
-          if (wicon) gtk_widget_hide (wicon);
+          if (ti) gtk_widget_hide_all (GTK_WIDGET (ti));
           continue;
         }
 
@@ -3720,39 +3808,55 @@ update_frame_tool_bar (f)
 
       if (img->load_failed_p || img->pixmap == None)
         {
-          if (wicon)
-	    gtk_widget_hide (wicon);
+          if (ti)
+	    gtk_widget_hide_all (GTK_WIDGET (ti));
 	  else
-	    gtk_toolbar_insert (GTK_TOOLBAR (x->toolbar_widget),
-				gtk_tool_button_new (NULL, ""),
-				i);
+            {
+              /* Insert an empty (non-image) button */
+              weventbox = gtk_event_box_new ();
+              wbutton = gtk_button_new ();
+              gtk_button_set_focus_on_click (GTK_BUTTON (wbutton), FALSE);
+              gtk_button_set_relief (GTK_BUTTON (wbutton), GTK_RELIEF_NONE);
+              gtk_container_add (GTK_CONTAINER (weventbox), wbutton);
+              ti = gtk_tool_item_new ();
+              gtk_container_add (GTK_CONTAINER (ti), weventbox);
+              gtk_toolbar_insert (GTK_TOOLBAR (x->toolbar_widget), ti, i);
+            }
           continue;
         }
 
-      if (! wicon)
+      if (ti == NULL)
         {
           GtkWidget *w = xg_get_image_for_pixmap (f, img, x->widget, NULL);
-          GtkToolItem *ti = gtk_tool_button_new (w, "");
-
           gtk_misc_set_padding (GTK_MISC (w), hmargin, vmargin);
+          wbutton = gtk_button_new ();
+          gtk_button_set_focus_on_click (GTK_BUTTON (wbutton), FALSE);
+          gtk_button_set_relief (GTK_BUTTON (wbutton), GTK_RELIEF_NONE);
+          gtk_container_add (GTK_CONTAINER (wbutton), w);
+          weventbox = gtk_event_box_new ();
+          gtk_container_add (GTK_CONTAINER (weventbox), wbutton);
+          ti = gtk_tool_item_new ();
+          gtk_container_add (GTK_CONTAINER (ti), weventbox);
+          gtk_toolbar_insert (GTK_TOOLBAR (x->toolbar_widget), ti, i);
 
-          gtk_toolbar_insert (GTK_TOOLBAR (x->toolbar_widget),
-                              ti,
-                              i);
+
           /* The EMACS_INT cast avoids a warning. */
-          g_signal_connect (GTK_WIDGET (ti), "clicked",
+          g_signal_connect (G_OBJECT (ti), "create-menu-proxy",
+                            GTK_SIGNAL_FUNC (xg_tool_bar_menu_proxy),
+                            (gpointer) (EMACS_INT) i);
+
+          g_signal_connect (G_OBJECT (wbutton), "clicked",
                             GTK_SIGNAL_FUNC (xg_tool_bar_callback),
                             (gpointer) (EMACS_INT) i);
 
-          gtk_widget_show (GTK_WIDGET (ti));
-          gtk_widget_show (GTK_WIDGET (w));
+          gtk_widget_show_all (GTK_WIDGET (ti));
 
           /* Save the image so we can see if an update is needed when
              this function is called again.  */
           g_object_set_data (G_OBJECT (w), XG_TOOL_BAR_IMAGE_DATA,
                              (gpointer)img->pixmap);
 
-          g_object_set_data (G_OBJECT (ti), XG_FRAME_DATA, (gpointer)f);
+          g_object_set_data (G_OBJECT (weventbox), XG_FRAME_DATA, (gpointer)f);
 
           /* Catch expose events to overcome an annoying redraw bug, see
              comment for xg_tool_bar_item_expose_callback.  */
@@ -3761,46 +3865,37 @@ update_frame_tool_bar (f)
                             G_CALLBACK (xg_tool_bar_item_expose_callback),
                             0);
 
-          gtk_widget_set_sensitive (GTK_WIDGET (ti), enabled_p);
-          gtk_tool_item_set_homogeneous (GTK_TOOL_ITEM (ti), FALSE);
+          gtk_widget_set_sensitive (wbutton, enabled_p);
+          gtk_tool_item_set_homogeneous (ti, FALSE);
           
-          while (! GTK_IS_BUTTON (w))
-            w = gtk_widget_get_parent (w);
-
           /* Callback to save modifyer mask (Shift/Control, etc).  GTK makes
              no distinction based on modifiers in the activate callback,
              so we have to do it ourselves.  */
-          g_signal_connect (w, "button-release-event",
+          g_signal_connect (wbutton, "button-release-event",
                             GTK_SIGNAL_FUNC (xg_tool_bar_button_cb),
-                            ti);
+                            NULL);
 
-          g_object_set_data (G_OBJECT (w), XG_FRAME_DATA, (gpointer)f);
+          g_object_set_data (G_OBJECT (wbutton), XG_FRAME_DATA, (gpointer)f);
 
           /* Use enter/leave notify to show help.  We use the events
              rather than the GtkButton specific signals "enter" and
              "leave", so we can have only one callback.  The event
              will tell us what kind of event it is.  */
           /* The EMACS_INT cast avoids a warning. */
-          g_signal_connect (G_OBJECT (w),
+          g_signal_connect (G_OBJECT (weventbox),
                             "enter-notify-event",
                             G_CALLBACK (xg_tool_bar_help_callback),
                             (gpointer) (EMACS_INT) i);
-          g_signal_connect (G_OBJECT (w),
+          g_signal_connect (G_OBJECT (weventbox),
                             "leave-notify-event",
                             G_CALLBACK (xg_tool_bar_help_callback),
                             (gpointer) (EMACS_INT) i);
         }
       else
         {
-          /* The child of the tool bar is a button.  Inside that button
-             is a vbox.  Inside that vbox is the GtkImage.  */
-          GtkWidget *wvbox = gtk_bin_get_child (GTK_BIN (wicon));
-          GList *chlist = gtk_container_get_children (GTK_CONTAINER (wvbox));
-          GtkImage *wimage = GTK_IMAGE (chlist->data);
+          GtkWidget *wimage = gtk_bin_get_child (GTK_BIN (wbutton));
           Pixmap old_img = (Pixmap)g_object_get_data (G_OBJECT (wimage),
                                                       XG_TOOL_BAR_IMAGE_DATA);
-          g_list_free (chlist);
-
           gtk_misc_set_padding (GTK_MISC (wimage), hmargin, vmargin);
 
           if (old_img != img->pixmap)
@@ -3809,21 +3904,20 @@ update_frame_tool_bar (f)
           g_object_set_data (G_OBJECT (wimage), XG_TOOL_BAR_IMAGE_DATA,
                              (gpointer)img->pixmap);
 
-          gtk_widget_set_sensitive (wicon, enabled_p);
-          gtk_widget_show (wicon);
-        }
+          gtk_widget_set_sensitive (wbutton, enabled_p);
+          gtk_widget_show_all (GTK_WIDGET (ti));
+       }
 
 #undef PROP
     }
 
   /* Remove buttons not longer needed.  We just hide them so they
      can be reused later on.  */
-  while (iter)
+  do
     {
-      GtkWidget *w = GTK_WIDGET (iter->data);
-      gtk_widget_hide (w);
-      iter = g_list_next (iter);
-    }
+      ti = gtk_toolbar_get_nth_item (GTK_TOOLBAR (x->toolbar_widget), i++);
+      if (ti) gtk_widget_hide_all (GTK_WIDGET (ti));
+    } while (ti != NULL);
 
   gtk_widget_size_request (x->toolbar_widget, &new_req);
   if (old_req.height != new_req.height
@@ -3832,8 +3926,6 @@ update_frame_tool_bar (f)
       FRAME_TOOLBAR_HEIGHT (f) = new_req.height;
       xg_resize_outer_widget (f, FRAME_COLS (f), FRAME_LINES (f));
     }
-
-  if (icon_list) g_list_free (icon_list);
 
   UNBLOCK_INPUT;
 }

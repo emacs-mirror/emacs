@@ -1,6 +1,6 @@
 ;;; autoarg.el --- make digit keys supply prefix args
 
-;; Copyright (C) 1998, 2000, 2002, 2003, 2004,
+;; Copyright (C) 1998, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author:  Dave Love <fx@gnu.org>
@@ -119,7 +119,7 @@ then invokes the normal binding of \\[autoarg-terminate].
 With ARG, turn Autoarg mode on if ARG is positive, off otherwise.
 \\<autoarg-kp-mode-map>
 This is similar to \\[autoarg-mode] but rebinds the keypad keys `kp-1'
-&c to supply digit arguments.
+etc. to supply digit arguments.
 
 \\{autoarg-kp-mode-map}"
   nil " Aakp" autoarg-kp-mode-map :global t :group 'keyboard

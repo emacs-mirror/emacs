@@ -1,6 +1,6 @@
 ;;; scroll-all.el --- scroll all buffers together minor mode
 
-;; Copyright (C) 1997, 2002, 2003, 2004, 2005,
+;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005,
 ;;   2006 Free Software Foundation, Inc.
 
 ;; Author: Gary D. Foster <Gary.Foster@corp.sun.com>
@@ -28,7 +28,7 @@
 ;;    up or down lines in any buffer causes all the buffers to mirror
 ;;    the scrolling.  It hooks into the post-command-hook to check for
 ;;    potential scrolling commands and if we're locked, mirrors them in all
-;;    windows.	This allows us to grab line-at-a-time scrolling as well as
+;;    windows.  This allows us to grab line-at-a-time scrolling as well as
 ;;    screen-at-a-time scrolling, and doesn't remap any of the keyboard
 ;;    commands to do it.
 

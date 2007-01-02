@@ -87,7 +87,7 @@
 Each element looks like (REGEXP . NUM).
 NUM specifies which parenthesized expression in the regexp.
 
-image filename regex exsamples:
+Examples of image filename regexps:
     file://foo.png
     `file://foo.png'
     \\[\\[foo.gif]]
@@ -116,7 +116,7 @@ image filename regex exsamples:
     (locate-library filename t path)))
 
 (defun iimage-mode-buffer (arg)
-"Display/Undisplay Images.
+"Display/undisplay images.
 With numeric ARG, display the images if and only if ARG is positive."
   (interactive)
   (let ((ing (if (numberp arg)

@@ -767,7 +767,7 @@ If `fill-paragraph-function' is nil, return the `fill-prefix' used for filling."
 		 (list (if current-prefix-arg 'full))))
   ;; First try fill-paragraph-function.
   (or (and (or fill-paragraph-function
-	       (and (window-minibuffer-p (selected-window))
+	       (and (minibufferp (current-buffer))
 		    (= 1 (point-min))))
 	   (let ((function (or fill-paragraph-function
 			       ;; In the minibuffer, don't count the width
@@ -843,14 +843,16 @@ can take care of filling.  JUSTIFY is used as in `fill-paragraph'."
 	     (commark
 	      (comment-string-strip (buffer-substring comstart comin) nil t))
 	     (comment-re
-	      (if (string-match comment-start-skip (concat commark "a"))
+	      ;; `commark' is surrounded with arbitrary text (`\0' and `a')
+	      ;;  to make sure it can be used as an optimization of
+	      ;; `comment-start-skip' in the middle of a line.  For example,
+	      ;; `commark' can't be used with the "@c" in TeXinfo (hence
+	      ;; the `a') or with the "C" at BOL in Fortran (hence the `\0').
+	      (if (string-match comment-start-skip (concat "\0" commark "a"))
 		  (concat "[ \t]*" (regexp-quote commark)
 			  ;; Make sure we only match comments that use
 			  ;; the exact same comment marker.
 			  "[^" (substring commark -1) "]")
-		;; If the commark needs to be followed by some special
-		;; set of characters (like @c in TeXinfo), we can't
-		;; rely just on `commark'.
 		(concat "[ \t]*\\(?:" comment-start-skip "\\)")))
 	     (comment-fill-prefix	; Compute a fill prefix.
 	      (save-excursion

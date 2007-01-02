@@ -1,6 +1,6 @@
 ;;; tpu-mapper.el --- create a TPU-edt X-windows keymap file
 
-;; Copyright (C) 1993, 1994, 1995, 2002, 2003, 2004,
+;; Copyright (C) 1993, 1994, 1995, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>

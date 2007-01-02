@@ -1,6 +1,7 @@
 ;;; georgian.el --- language support for Georgian -*- no-byte-compile: t -*-
 
-;; Copyright (C) 2001, 2003  Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006
+;;   Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n

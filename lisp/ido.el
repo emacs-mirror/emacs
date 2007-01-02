@@ -1046,6 +1046,9 @@ so that it doesn't interfere with other minibuffer usage.")
 ;; Stores the current ido item type ('file, 'dir, 'buffer, or 'list).
 (defvar ido-cur-item)
 
+;;; Stores the current default item
+(defvar ido-default-item)
+
 ;; Stores the current list of items that will be searched through.
 ;; The list is ordered, so that the most interesting item comes first,
 ;; although by default, the files visible in the current frame are put
@@ -1141,6 +1144,11 @@ so that it doesn't interfere with other minibuffer usage.")
 	    (kill-buffer b)
 	  (pop-to-buffer b t t)
 	  (setq truncate-lines t)))))
+
+(defun ido-local-file-exists-p (file)
+  "Tell if FILE exists locally."
+  (let (file-name-handler-alist)
+    (file-exists-p file)))
 
 (defun ido-unc-hosts (&optional query)
   "Return list of UNC host names."
@@ -1561,7 +1569,8 @@ With ARG, turn ido speed-up on if arg is positive, off otherwise."
     (define-key map [(meta down)] 'ido-next-work-directory)
     (define-key map [backspace] 'ido-delete-backward-updir)
     (define-key map "\d"        'ido-delete-backward-updir)
-    (define-key map [(meta backspace)] 'ido-delete-backward-word-updir)
+    (define-key map [remap backward-kill-word] 'ido-delete-backward-word-updir)  ; M-DEL
+
     (define-key map [(control backspace)] 'ido-up-directory)
     (define-key map "\C-l" 'ido-reread-directory)
     (define-key map [(meta ?d)] 'ido-wide-find-dir-or-delete-dir)
@@ -2068,8 +2077,9 @@ If INITIAL is non-nil, it specifies the initial input string."
 	      (ido-set-current-directory (file-name-directory (substring ido-current-directory 0 -1))))
 	  (setq ido-set-default-item t))
 
-	 ((and (string-match (if ido-enable-tramp-completion "..[:@]\\'" "..:\\'") ido-selected)
-	       (ido-is-root-directory)) ;; Ange-ftp or Tramp
+	 ((and (string-match (if ido-enable-tramp-completion ".[:@]\\'" ".:\\'") ido-selected)
+	       (ido-is-root-directory) ;; Ange-ftp or Tramp
+	       (not (ido-local-file-exists-p ido-selected)))
 	  (ido-set-current-directory ido-current-directory ido-selected)
 	  (ido-trace "tramp prefix" ido-selected)
 	  (if (ido-is-slow-ftp-host)
@@ -2079,7 +2089,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 
 	 ((or (string-match "[/\\][^/\\]" ido-selected)
 	      (and (memq system-type '(windows-nt ms-dos))
-		   (string-match "\\`.:" ido-selected)))
+		   (string-match "\\`[a-zA-Z]:" ido-selected)))
 	  (ido-set-current-directory (file-name-directory ido-selected))
 	  (setq ido-set-default-item t))
 
@@ -2428,7 +2438,8 @@ If INITIAL is non-nil, it specifies the initial input string."
      ((and (= 1 (length ido-matches))
 	   (not (and ido-enable-tramp-completion
 		     (string-equal ido-current-directory "/")
-		     (string-match "..[@:]\\'" (ido-name (car ido-matches))))))
+		     (string-match ".[@:]\\'" (ido-name (car ido-matches)))))
+		     (not (ido-local-file-exists-p (ido-name (car ido-matches)))))
       ;; only one choice, so select it.
       (if (not ido-confirm-unique-completion)
 	  (exit-minibuffer)
@@ -2581,7 +2592,9 @@ C-x C-f ... C-d  enter dired on current directory."
   "Toggle ignoring files specified with `ido-ignore-files'."
   (interactive)
   (if ido-directory-too-big
-      (setq ido-directory-too-big nil)
+      (progn
+	(message "Reading directory...")
+	(setq ido-directory-too-big nil))
     (setq ido-process-ignore-lists (not ido-process-ignore-lists)))
   (setq ido-text-init ido-text)
   (setq ido-exit 'refresh)
@@ -3438,9 +3451,11 @@ for first matching file."
       (let ((default-directory ido-current-directory))
 	(ido-to-end ;; move ftp hosts and visited files to end
 	 (delq nil (mapcar
-		    (lambda (x) (if (or (string-match "..:\\'" x)
+		    (lambda (x) (if (or (and (string-match ".:\\'" x)
+					     (not (ido-local-file-exists-p x)))
 					(and (not (ido-final-slash x))
-					     (get-file-buffer x))) x))
+					     (let (file-name-handler-alist)
+					       (get-file-buffer x)))) x))
 		    ido-temp-list)))))
     (ido-to-end  ;; move . files to end
      (delq nil (mapcar
@@ -3567,6 +3582,11 @@ for first matching file."
 			    (/= (aref name 0) ?.)))
 		      (string-match re name))
 		 (cond
+		  ((and (eq ido-cur-item 'buffer)
+			(or (not (stringp ido-default-item))
+			    (not (string= name ido-default-item)))
+			(string= name (buffer-name ido-entry-buffer)))
+		   (setq matches (cons item matches)))
 		  ((and full-re (string-match full-re name))
 		   (setq full-matches (cons item full-matches)))
 		  ((and suffix-re (string-match suffix-re name))
@@ -3719,7 +3739,8 @@ for first matching file."
 	  (set-buffer temp-buf)
 	  (setq win (get-buffer-window temp-buf))
 	  (if (pos-visible-in-window-p (point-max) win)
-	      (if (or ido-completion-buffer-all-completions (boundp 'ido-completion-buffer-full))
+	      (if (or ido-completion-buffer-all-completions
+		      (boundp 'ido-completion-buffer-full))
 		  (set-window-start win (point-min))
 		(with-no-warnings
 		  (set (make-local-variable 'ido-completion-buffer-full) t))
@@ -3732,6 +3753,14 @@ for first matching file."
 	(with-output-to-temp-buffer ido-completion-buffer
 	  (let ((completion-list (sort
 				  (cond
+				   (ido-directory-too-big
+				    (message "Reading directory...")
+				    (setq ido-directory-too-big nil
+					  ido-ignored-list nil
+					  ido-cur-list (ido-all-completions)
+					  ido-rescan t)
+				    (ido-set-matches)
+				    (or ido-matches ido-cur-list))
 				   (ido-use-merged-list
 				    (ido-flatten-merged-list (or ido-matches ido-cur-list)))
 				   ((or full-list ido-completion-buffer-all-completions)
@@ -4154,8 +4183,9 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 	    (setq refresh t))
 	  ))
 
-	 ((and (string-match (if ido-enable-tramp-completion "..[:@]\\'" "..:\\'") contents)
-	       (ido-is-root-directory)) ;; Ange-ftp or tramp
+	 ((and (string-match (if ido-enable-tramp-completion ".[:@]\\'" ".:\\'") contents)
+	       (ido-is-root-directory) ;; Ange-ftp or tramp
+	       (not (ido-local-file-exists-p contents)))
 	  (ido-set-current-directory ido-current-directory contents)
 	  (when (ido-is-slow-ftp-host)
 	    (setq ido-exit 'fallback)

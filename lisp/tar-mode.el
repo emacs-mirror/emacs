@@ -361,7 +361,7 @@ MODE should be an integer which is a file mode value."
 		  ((eq type 29) ?M)	; multivolume continuation
 		  ((eq type 35) ?S)	; sparse
 		  ((eq type 38) ?V)	; volume header
-		  (t ?\ )
+		  (t ?\s)
 		  )
 	    (tar-grind-file-mode mode)
 	    (if (= 0 (length uname)) uid uname)
@@ -937,7 +937,7 @@ for this to be permanent."
   (save-excursion
     (goto-char (point-min))
     (while (< (point) tar-header-offset)
-      (if (not (eq (following-char) ?\ ))
+      (if (not (eq (following-char) ?\s))
 	  (progn (delete-char 1) (insert " ")))
       (forward-line 1))))
 

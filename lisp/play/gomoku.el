@@ -29,7 +29,7 @@
 
 ;; RULES:
 ;;
-;; Gomoku is a game played between two players on a rectangular board.	Each
+;; Gomoku is a game played between two players on a rectangular board.  Each
 ;; player, in turn, marks a free square of its choice. The winner is the first
 ;; one to mark five contiguous squares in any direction (horizontally,
 ;; vertically or diagonally).
@@ -212,9 +212,9 @@ is non-nil."
 ;;;
 
 ;; The board is a rectangular grid. We code empty squares with 0, X's with 1
-;; and O's with 6. The rectangle is recorded in a one dimensional vector
-;; containing padding squares (coded with -1). These squares allow us to
-;; detect when we are trying to move out of the board.	We denote a square by
+;; and O's with 6.  The rectangle is recorded in a one dimensional vector
+;; containing padding squares (coded with -1).  These squares allow us to
+;; detect when we are trying to move out of the board.  We denote a square by
 ;; its (X,Y) coords, or by the INDEX corresponding to them in the vector.  The
 ;; leftmost topmost square has coords (1,1) and index gomoku-board-width + 2.
 ;; Similarly, vectors between squares may be given by two DX, DY coords or by
@@ -230,7 +230,7 @@ is non-nil."
   "Vector recording the actual state of the Gomoku board.")
 
 (defvar gomoku-vector-length nil
-  "Length of gomoku-board vector.")
+  "Length of `gomoku-board' vector.")
 
 (defvar gomoku-draw-limit nil
   ;; This is usually set to 70% of the number of squares.
@@ -250,7 +250,7 @@ is non-nil."
   (/ index (1+ gomoku-board-width)))
 
 (defun gomoku-init-board ()
-  "Create the gomoku-board vector and fill it with initial values."
+  "Create the `gomoku-board' vector and fill it with initial values."
   (setq gomoku-board (make-vector gomoku-vector-length 0))
   ;; Every square is 0 (i.e. empty) except padding squares:
   (let ((i 0) (ii (1- gomoku-vector-length)))
@@ -671,11 +671,11 @@ that DVAL has been added on SQUARE."
      (cond ((< gomoku-number-of-moves 20)
 	    "This was a REALLY QUICK win.")
 	   (gomoku-human-refused-draw
-	    "I won... Too bad you refused my offer of a draw!")
+	    "I won...  Too bad you refused my offer of a draw!")
 	   (gomoku-human-took-back
-	    "I won... Taking moves back will not help you!")
+	    "I won...  Taking moves back will not help you!")
 	   ((not gomoku-emacs-played-first)
-	    "I won... Playing first did not help you much!")
+	    "I won...  Playing first did not help you much!")
 	   ((and (zerop gomoku-number-of-human-wins)
 		 (zerop gomoku-number-of-draws)
 		 (> gomoku-number-of-emacs-wins 1))
@@ -875,9 +875,9 @@ If the game is finished, this command requests for another game."
     (let (square score)
       (setq square (gomoku-point-square))
       (cond ((null square)
-	     (error "Your point is not on a square. Retry!"))
+	     (error "Your point is not on a square.  Retry!"))
 	    ((not (zerop (aref gomoku-board square)))
-	     (error "Your point is not on a free square. Retry!"))
+	     (error "Your point is not on a free square.  Retry!"))
 	    (t
 	     (setq score (aref gomoku-score-table square))
 	     (gomoku-play-move square 1)
@@ -902,7 +902,7 @@ If the game is finished, this command requests for another game."
     (sit-for 4)
     (gomoku-prompt-for-other-game))
    ((zerop gomoku-number-of-human-moves)
-    (message "You have not played yet... Your move?"))
+    (message "You have not played yet...  Your move?"))
    (t
     (message "One moment, please...")
     ;; It is possible for the user to let Emacs play several consecutive
@@ -937,7 +937,7 @@ If the game is finished, this command requests for another game."
 (defun gomoku-prompt-for-move ()
   "Display a message asking for Human's move."
   (message (if (zerop gomoku-number-of-human-moves)
-	       "Your move? (move to a free square and hit X, RET ...)"
+	       "Your move?  (Move to a free square and hit X, RET ...)"
 	       "Your move?"))
   ;; This may seem silly, but if one omits the following line (or a similar
   ;; one), the cursor may very well go to some place where POINT is not.
@@ -951,7 +951,7 @@ If the game is finished, this command requests for another game."
 
 (defun gomoku-offer-a-draw ()
   "Offer a draw and return t if Human accepted it."
-  (or (y-or-n-p "I offer you a draw. Do you accept it? ")
+  (or (y-or-n-p "I offer you a draw.  Do you accept it? ")
       (not (setq gomoku-human-refused-draw t))))
 
 ;;;

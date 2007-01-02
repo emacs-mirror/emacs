@@ -2358,7 +2358,12 @@ Lock mode is enabled, to set all the other variables.
 @defvar font-lock-defaults
 This variable is set by major modes, as a buffer-local variable, to
 specify how to fontify text in that mode.  It automatically becomes
-buffer-local when you set it.  The value should look like this:
+buffer-local when you set it.  If its value is @code{nil}, Font-Lock
+mode does no highlighting, and you can use the @samp{Faces} menu
+(under @samp{Edit} and then @samp{Text Properties} in the menu bar) to
+assign faces explicitly to text in the buffer.
+
+If non-@code{nil}, the value should look like this:
 
 @example
 (@var{keywords} [@var{keywords-only} [@var{case-fold}
@@ -2374,9 +2379,10 @@ The first symbol specifies how to do level 1 fontification, the second
 symbol how to do level 2, and so on.  @xref{Levels of Font Lock}.
 
 The second element, @var{keywords-only}, specifies the value of the
-variable @code{font-lock-keywords-only}.  If this is non-@code{nil},
-syntactic fontification (of strings and comments) is not performed.
-@xref{Syntactic Font Lock}.
+variable @code{font-lock-keywords-only}.  If this is omitted or
+@code{nil}, syntactic fontification (of strings and comments) is also
+performed.  If this is non-@code{nil}, such fontification is not
+performed.  @xref{Syntactic Font Lock}.
 
 The third element, @var{case-fold}, specifies the value of
 @code{font-lock-keywords-case-fold-search}.  If it is non-@code{nil},
@@ -2402,6 +2408,13 @@ use these @var{other-vars} to set other variables that affect
 fontification, aside from those you can control with the first five
 elements.  @xref{Other Font Lock Variables}.
 @end defvar
+
+  If your mode fontifies text explicitly by adding
+@code{font-lock-face} properties, it can specify @code{(nil t)} for
+@code{font-lock-defaults} to turn off all automatic fontification.
+However, this is not required; it is possible to fontify some things
+using @code{font-lock-face} properties and set up automatic
+fontification for other parts of the text.
 
 @node Search-based Fontification
 @subsection Search-based Fontification
@@ -3067,16 +3080,19 @@ will rehighlight the whole construct if any part of it is changed.  In
 some cases you can do this automatically by setting the
 @code{font-lock-multiline} variable, which see.
 @item
-Rely on @code{jit-lock-contextually}.  This will only rehighlight the part
-of the construct that follows the actual change, and will do it after
-a short delay.  This only works if the highlighting of the various
-parts of your multiline construct never depends on text in subsequent
-lines.  Since @code{jit-lock-contextually} is activated by default,
-this can be an attractive solution.
+Make sure @code{jit-lock-contextually} is set and rely on it doing its
+job.  This will only rehighlight the part of the construct that
+follows the actual change, and will do it after a short delay.
+This only works if the highlighting of the various parts of your
+multiline construct never depends on text in subsequent lines.
+Since @code{jit-lock-contextually} is activated by default, this can
+be an attractive solution.
 @item
 Place a @code{jit-lock-defer-multiline} property on the construct.
-This works only if @code{jit-lock-contextually} is used, but it can
-handle the case where highlighting depends on subsequent lines.
+This works only if @code{jit-lock-contextually} is used, and with the
+same delay before rehighlighting, but like @code{font-lock-multiline},
+it also handles the case where highlighting depends on
+subsequent lines.
 @end itemize
 
 @menu
@@ -3089,7 +3105,7 @@ handle the case where highlighting depends on subsequent lines.
 @subsubsection Font Lock Multiline
 
   One way to ensure reliable rehighlighting of multiline Font Lock
-constructs is to put on the text property @code{font-lock-multiline}.
+constructs is to put on them the text property @code{font-lock-multiline}.
 It should be present and non-@code{nil} for text that is part of a
 multiline construct.
 

@@ -2,7 +2,8 @@
 
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006
 ;;   Free Software Foundation, Inc.
-;; Copyright (C) 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005, 2006
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 ;; Copyright (C) 2003
@@ -329,8 +330,7 @@ Return t if file exists."
 	  (let ((load-file-name fullname)
 		(set-auto-coding-for-load t)
 		(inhibit-file-name-operation nil))
-	    (save-excursion
-	      (set-buffer buffer)
+	    (with-current-buffer buffer
 	      ;; Don't let deactivate-mark remain set.
 	      (let (deactivate-mark)
 		(insert-file-contents fullname))
@@ -2203,8 +2203,7 @@ Value is what BODY returns."
 	   (progn
 	     (set-category-table ,table)
 	     ,@body)
-	 (save-current-buffer
-	   (set-buffer ,old-buffer)
+	 (with-current-buffer ,old-buffer
 	   (set-category-table ,old-table))))))
 
 (defun define-translation-hash-table (symbol table)

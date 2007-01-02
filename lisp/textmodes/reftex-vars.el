@@ -1,5 +1,6 @@
 ;;; reftex-vars.el --- configuration variables for RefTeX
-;; Copyright (C) 1997, 1998, 1999, 2003, 2004, 2005,
+
+;; Copyright (C) 1997, 1998, 1999, 2001, 2002, 2003, 2004, 2005,
 ;;   2006 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>

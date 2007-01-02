@@ -172,6 +172,7 @@ the list of events, as described in the docstring of `url-retrieve'."
   (unless (url-type url)
     (error "Bad url: %s" (url-recreate-url url)))
   (let ((loader (url-scheme-get-property (url-type url) 'loader))
+	(url-proxy-object nil)
 	(url-using-proxy (if (url-host url)
 			     (url-find-proxy-for-url url (url-host url))))
 	(buffer nil)

@@ -15,7 +15,7 @@
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
@@ -265,7 +265,7 @@ regexp.  If it matches, the text in question is not a signature."
 display -"))
   "*String or function to be executed to display an X-Face header.
 If it is a string, the command will be executed in a sub-shell
-asynchronously.	 The compressed face will be piped to this command."
+asynchronously.  The compressed face will be piped to this command."
   :type `(choice string
 		 (function-item gnus-display-x-face-in-from)
 		 function)
@@ -1325,12 +1325,11 @@ See Info node `(gnus)Customizing Articles' for details."
 
 (defcustom gnus-treat-display-x-face
   (and (not noninteractive)
-       (or (and (fboundp 'image-type-available-p)
-		(image-type-available-p 'xbm)
-		(string-match "^0x" (shell-command-to-string "uncompface"))
-		(executable-find "icontopbm"))
-	   (and (featurep 'xemacs)
-		(featurep 'xface)))
+       (gnus-image-type-available-p 'xbm)
+       (if (featurep 'xemacs)
+	   (featurep 'xface)
+	 (and (string-match "^0x" (shell-command-to-string "uncompface"))
+	      (executable-find "icontopbm")))
        'head)
   "Display X-Face headers.
 Valid values are nil, t, `head', `last', an integer or a predicate.
@@ -1362,10 +1361,7 @@ See Info node `(gnus)Customizing Articles' and Info node
 
 (defcustom gnus-treat-display-face
   (and (not noninteractive)
-       (or (and (fboundp 'image-type-available-p)
-		(image-type-available-p 'png))
-	   (and (featurep 'xemacs)
-		(featurep 'png)))
+       (gnus-image-type-available-p 'png)
        'head)
   "Display Face headers.
 Valid values are nil, t, `head', `last', an integer or a predicate.
@@ -1378,12 +1374,7 @@ See Info node `(gnus)Customizing Articles' and Info node
   :type gnus-article-treat-head-custom)
 (put 'gnus-treat-display-face 'highlight t)
 
-(defcustom gnus-treat-display-smileys
-  (if (or (and (featurep 'xemacs)
-	       (featurep 'xpm))
-	  (and (fboundp 'image-type-available-p)
-	       (image-type-available-p 'pbm)))
-      t nil)
+(defcustom gnus-treat-display-smileys (gnus-image-type-available-p 'xpm)
   "Display smileys.
 Valid values are nil, t, `head', `last', an integer or a predicate.
 See Info node `(gnus)Customizing Articles' and Info node
@@ -3641,7 +3632,7 @@ Otherwise, it is like ~/News/news/group/num."
 (defun gnus-numeric-save-name (newsgroup headers &optional last-file)
   "Generate file name from NEWSGROUP, HEADERS, and optional LAST-FILE.
 If variable `gnus-use-long-file-name' is non-nil, it is
-~/News/news.group/num.	Otherwise, it is like ~/News/news/group/num."
+~/News/news.group/num.  Otherwise, it is like ~/News/news/group/num."
   (let ((default
 	  (expand-file-name
 	   (concat (if (gnus-use-long-file-name 'not-save)

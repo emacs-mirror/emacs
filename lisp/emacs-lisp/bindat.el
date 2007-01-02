@@ -319,8 +319,8 @@
 	 ((eq type 'struct)
 	  (setq data (bindat--unpack-group (eval len))))
 	 ((eq type 'repeat)
-	  (let ((index 0))
-	    (while (< index len)
+	  (let ((index 0) (count len))
+	    (while (< index count)
 	      (setq data (cons (bindat--unpack-group (nthcdr tail item)) data))
 	      (setq index (1+ index)))
 	    (setq data (nreverse data))))
@@ -415,8 +415,8 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 	  (bindat--length-group
 	   (if field (bindat-get-field struct field) struct) (eval len)))
 	 ((eq type 'repeat)
-	  (let ((index 0))
-	    (while (< index len)
+	  (let ((index 0) (count len))
+	    (while (< index count)
 	      (bindat--length-group
                (nth index (bindat-get-field struct field))
                (nthcdr tail item))
@@ -559,8 +559,8 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 	  (bindat--pack-group
 	   (if field (bindat-get-field struct field) struct) (eval len)))
 	 ((eq type 'repeat)
-	  (let ((index 0))
-	    (while (< index len)
+	  (let ((index 0) (count len))
+	    (while (< index count)
 	      (bindat--pack-group
                (nth index (bindat-get-field struct field))
                (nthcdr tail item))

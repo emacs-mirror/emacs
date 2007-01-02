@@ -232,9 +232,9 @@
 
 (defvar calc-eval-error nil
   "Determines how calc handles errors.
-NIL means return a list containing the character position of error.
+If nil, return a list containing the character position of error.
 STRING means return error message as string rather than list.
-T means abort and give an error message.")
+The value t means abort and give an error message.")
 
 (defun calc-eval-error (msg)
   (if calc-eval-error
@@ -700,10 +700,10 @@ in Calc algebraic input.")
 			  (math-read-token))))))
 	    ((or (and (>= ch ?0) (<= ch ?9))
 		 (and (eq ch '?\.)
-		      (eq (string-match "\\.[0-9]" math-exp-str math-exp-pos) 
+		      (eq (string-match "\\.[0-9]" math-exp-str math-exp-pos)
                           math-exp-pos))
 		 (and (eq ch '?_)
-		      (eq (string-match "_\\.?[0-9]" math-exp-str math-exp-pos) 
+		      (eq (string-match "_\\.?[0-9]" math-exp-str math-exp-pos)
                           math-exp-pos)
 		      (or (eq math-exp-pos 0)
 			  (and (memq calc-language '(nil flat big unform
@@ -713,7 +713,7 @@ in Calc algebraic input.")
 				   (1- math-exp-pos))))))
 	     (or (and (eq calc-language 'c)
 		      (string-match "0[xX][0-9a-fA-F]+" math-exp-str math-exp-pos))
-		 (string-match "_?\\([0-9]+.?0*@ *\\)?\\([0-9]+.?0*' *\\)?\\(0*\\([2-9]\\|1[0-4]\\)\\(#\\|\\^\\^\\)[0-9a-dA-D.]+[eE][-+_]?[0-9]+\\|0*\\([2-9]\\|[0-2][0-9]\\|3[0-6]\\)\\(#\\|\\^\\^\\)[0-9a-zA-Z:.]+\\|[0-9]+:[0-9:]+\\|[0-9.]+\\([eE][-+_]?[0-9]+\\)?\"?\\)?" 
+		 (string-match "_?\\([0-9]+.?0*@ *\\)?\\([0-9]+.?0*' *\\)?\\(0*\\([2-9]\\|1[0-4]\\)\\(#\\|\\^\\^\\)[0-9a-dA-D.]+[eE][-+_]?[0-9]+\\|0*\\([2-9]\\|[0-2][0-9]\\|3[0-6]\\)\\(#\\|\\^\\^\\)[0-9a-zA-Z:.]+\\|[0-9]+:[0-9:]+\\|[0-9.]+\\([eE][-+_]?[0-9]+\\)?\"?\\)?"
                                math-exp-str math-exp-pos))
 	     (setq math-exp-token 'number
 		   math-expr-data (math-match-substring math-exp-str 0)
@@ -751,7 +751,7 @@ in Calc algebraic input.")
 		   math-expr-data (math-match-substring math-exp-str 0)
 		   math-exp-pos (match-end 0)))
 	    ((and (eq ch ?\")
-		  (string-match "\\(\"\\([^\"\\]\\|\\\\.\\)*\\)\\(\"\\|\\'\\)" 
+		  (string-match "\\(\"\\([^\"\\]\\|\\\\.\\)*\\)\\(\"\\|\\'\\)"
                                 math-exp-str math-exp-pos))
 	     (if (eq calc-language 'eqn)
 		 (progn
@@ -765,9 +765,9 @@ in Calc algebraic input.")
 		     math-exp-pos (match-end 0))))
 	    ((and (= ch ?\\) (eq calc-language 'tex)
 		  (< math-exp-pos (1- (length math-exp-str))))
-	     (or (string-match "\\\\hbox *{\\([a-zA-Z0-9]+\\)}" 
+	     (or (string-match "\\\\hbox *{\\([a-zA-Z0-9]+\\)}"
                                math-exp-str math-exp-pos)
-		 (string-match "\\(\\\\\\([a-zA-Z]+\\|[^a-zA-Z]\\)\\)" 
+		 (string-match "\\(\\\\\\([a-zA-Z]+\\|[^a-zA-Z]\\)\\)"
                                math-exp-str math-exp-pos))
 	     (setq math-exp-token 'symbol
 		   math-exp-pos (match-end 0)
@@ -791,11 +791,11 @@ in Calc algebraic input.")
 			     (aset math-exp-str right ?\])))))))
 	    ((and (= ch ?\\) (eq calc-language 'latex)
 		  (< math-exp-pos (1- (length math-exp-str))))
-	     (or (string-match "\\\\hbox *{\\([a-zA-Z0-9]+\\)}" 
+	     (or (string-match "\\\\hbox *{\\([a-zA-Z0-9]+\\)}"
                                math-exp-str math-exp-pos)
-                 (string-match "\\\\text *{\\([a-zA-Z0-9]+\\)}" 
+                 (string-match "\\\\text *{\\([a-zA-Z0-9]+\\)}"
                                math-exp-str math-exp-pos)
-		 (string-match "\\(\\\\\\([a-zA-Z]+\\|[^a-zA-Z]\\)\\)" 
+		 (string-match "\\(\\\\\\([a-zA-Z]+\\|[^a-zA-Z]\\)\\)"
                                math-exp-str math-exp-pos))
 	     (setq math-exp-token 'symbol
 		   math-exp-pos (match-end 0)
@@ -821,7 +821,7 @@ in Calc algebraic input.")
                                  (string= envname "pmatrix"))
                              (if (string-match (concat "\\\\end{" envname "}")
                                                math-exp-str math-exp-pos)
-                                 (setq math-exp-str 
+                                 (setq math-exp-str
                                        (replace-match "]" t t math-exp-str))
                                (error "%s" (concat "No closing \\end{" envname "}"))))))
                       ((and (eq (nth 1 code) 'mat)
@@ -852,7 +852,7 @@ in Calc algebraic input.")
 	     (setq math-exp-token 'punc
 		   math-expr-data (math-match-substring math-exp-str 0)
 		   math-exp-pos (match-end 0))
-	     (and (eq (string-match "\\\\dots\\." math-exp-str math-exp-pos) 
+	     (and (eq (string-match "\\\\dots\\." math-exp-str math-exp-pos)
                       math-exp-pos)
 		  (setq math-exp-pos (match-end 0)))
 	     (if (memq (aref math-expr-data 0) '(?~ ?^))

@@ -1,6 +1,6 @@
 ;;; novice.el --- handling of disabled commands ("novice mode") for Emacs
 
-;; Copyright (C) 1985, 1986, 1987, 1994, 2002, 2003, 2004,
+;; Copyright (C) 1985, 1986, 1987, 1994, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -95,7 +95,7 @@ SPC to try the command just this once, but leave it disabled.
        (while (progn (setq char (read-event))
 		     (or (not (numberp char))
 			 (not (memq (downcase char)
-				    '(?! ?y ?n ?\  ?\C-g)))))
+				    '(?! ?y ?n ?\s ?\C-g)))))
 	 (ding)
 	 (message "Please type y, n, ! or SPC (the space bar): "))))
     (setq char (downcase char))

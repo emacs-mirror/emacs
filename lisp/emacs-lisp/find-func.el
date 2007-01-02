@@ -147,9 +147,9 @@ See the functions `find-function' and `find-variable'."
 
 (defun find-library-name (library)
   "Return the absolute file name of the Lisp source of LIBRARY."
-  ;; Strip off the extension to take advantage of library suffixes in
-  ;; the call to `locate-file'.
-  (if (string-match "\\.el\\(c\\(\\..*\\)?\\)?\\'" library)
+  ;; If the library is byte-compiled, try to find a source library by
+  ;; the same name.
+  (if (string-match "\\.el\\(c\\(\\..*\\)?\\)\\'" library)
       (setq library (replace-match "" t t library)))
   (or (locate-file library
 		   (or find-function-source-path load-path)
@@ -397,7 +397,7 @@ The library where VARIABLE is defined is searched for in FILE or
 
 ;;;###autoload
 (defun find-variable (variable)
-  "Find the definition of the VARIABLE near point.
+  "Find the definition of the VARIABLE at or before point.
 
 Finds the library containing the definition of the variable
 near point (selected by `variable-at-point') in a buffer and

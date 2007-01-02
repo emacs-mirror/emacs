@@ -317,9 +317,17 @@ If the value is nil, use a shifted prefix key to inhibit the override."
   :group 'cua)
 
 (defcustom cua-toggle-set-mark t
-  "*In non-nil, the `cua-set-mark' command toggles the mark."
+  "*If non-nil, the `cua-set-mark' command toggles the mark."
   :type '(choice (const :tag "Disabled" nil)
 		 (other :tag "Enabled" t))
+  :group 'cua)
+
+(defcustom cua-auto-mark-last-change nil
+  "*If non-nil, set implicit mark at position of last buffer change.
+This means that \\[universal-argument] \\[cua-set-mark] will jump to the position
+of the last buffer change before jumping to the explicit marks on the mark ring.
+See `cua-set-mark' for details."
+  :type 'boolean
   :group 'cua)
 
 (defcustom cua-enable-register-prefix 'not-ctrl-u
@@ -358,6 +366,15 @@ managers, so try setting this to nil, if prefix override doesn't work."
   :type 'boolean
   :group 'cua)
 
+(defcustom cua-paste-pop-rotate-temporarily nil
+  "*If non-nil, \\[cua-paste-pop] only rotates the kill-ring temporarily.
+This means that both \\[yank] and the first \\[yank-pop] in a sequence always insert
+the most recently killed text.  Each immediately following \\[cua-paste-pop] replaces
+the previous text with the next older element on the `kill-ring'.
+With prefix arg, \\[universal-argument] \\[yank-pop] inserts the same text as the most
+recent \\[yank-pop] (or \\[yank]) command."
+  :type 'boolean
+  :group 'cua)
 
 ;;; Rectangle Customization
 
@@ -912,15 +929,53 @@ If global mark is active, copy from register or one character."
 	(clipboard-yank))
        (t (yank arg)))))))
 
+
+;; cua-paste-pop-rotate-temporarily == t mechanism:
+;;
+;; C-y M-y M-y => only rotates kill ring temporarily,
+;;                so next C-y yanks what previous C-y yanked,
+;;
+;; M-y M-y M-y => equivalent to C-y M-y M-y
+;;
+;; But: After another command, C-u M-y remembers the temporary
+;;      kill-ring position, so
+;; C-u M-y     => yanks what the last M-y yanked
+;;
+
+(defvar cua-paste-pop-count nil)
+
 (defun cua-paste-pop (arg)
   "Replace a just-pasted text or rectangle with a different text.
-See `yank-pop' for details."
+See `yank-pop' for details about the default behaviour.  For an alternative
+behaviour, see `cua-paste-pop-rotate-temporarily'."
   (interactive "P")
-  (if (eq last-command 'cua--paste-rectangle)
-      (progn
-	(undo)
-	(yank arg))
-    (yank-pop (prefix-numeric-value arg))))
+  (cond
+   ((eq last-command 'cua--paste-rectangle)
+    (undo)
+    (yank arg))
+   ((not cua-paste-pop-rotate-temporarily)
+    (yank-pop (prefix-numeric-value arg)))
+   (t
+    (let ((rotate (if (consp arg) 1 (prefix-numeric-value arg))))
+      (cond
+       ((or (null cua-paste-pop-count)
+	    (eq last-command 'yank)
+	    (eq last-command 'cua-paste))
+	(setq cua-paste-pop-count rotate)
+	(setq last-command 'yank)
+	(yank-pop cua-paste-pop-count))
+       ((and (eq last-command 'cua-paste-pop) (not (consp arg)))
+	(setq cua-paste-pop-count (+ cua-paste-pop-count rotate))
+	(setq last-command 'yank)
+	(yank-pop cua-paste-pop-count))
+       (t
+	(setq cua-paste-pop-count
+	      (if (consp arg) (+ cua-paste-pop-count rotate -1) 1))
+	(yank (1+ cua-paste-pop-count)))))
+    ;; Undo rotating the kill-ring, so next C-y will
+    ;; yank the original head.
+    (setq kill-ring-yank-pointer kill-ring)
+    (setq this-command 'cua-paste-pop))))
 
 (defun cua-exchange-point-and-mark (arg)
   "Exchanges point and mark, but don't activate the mark.
@@ -961,14 +1016,14 @@ of text."
 		(if (and s (= (cdr u) s))
 		    (setq s (car u))
 		  (setq s (car u) e (cdr u)))))))
-	  (setq cua--repeat-replace-text
-		(cond ((and s e (<= s e) (= s (mark t)))
-		       (filter-buffer-substring s e nil t))
-		      ((and (null s) (eq u elt)) ;; nothing inserted
-		       "")
-		      (t
-		       (message "Cannot locate replacement text")
-		       nil))))))
+	  (cond ((and s e (<= s e) (= s (mark t)))
+		 (setq cua--repeat-replace-text
+		       (filter-buffer-substring s e nil t)))
+		((and (null s) (eq u elt)) ;; nothing inserted
+		 (setq cua--repeat-replace-text
+		       ""))
+		(t
+		 (message "Cannot locate replacement text"))))))
     (setq cua--last-deleted-region-pos nil))
   (if (and cua--last-deleted-region-text
 	   cua--repeat-replace-text
@@ -985,6 +1040,28 @@ of text."
 
 ;;; Shift activated / extended region
 
+(defun cua-pop-to-last-change ()
+  (let ((undo-list buffer-undo-list)
+	pos elt)
+    (while (and (not pos)
+		(consp undo-list))
+      (setq elt (car undo-list)
+	    undo-list (cdr undo-list))
+      (cond
+       ((integerp elt)
+	(setq pos elt))
+       ((not (consp elt)))
+       ((and (integerp (cdr elt))
+	     (or (integerp (car elt)) (stringp (car elt))))
+	(setq pos (cdr elt)))
+       ((and (eq (car elt) 'apply) (consp (cdr elt)) (integerp (cadr elt)))
+	(setq pos (nth 3 elt)))))
+    (when (and pos
+	       (/= pos (point))
+	       (>= pos (point-min)) (<= pos (point-max)))
+      (goto-char pos)
+      t)))
+
 (defun cua-set-mark (&optional arg)
   "Set mark at where point is, clear mark, or jump to mark.
 
@@ -993,12 +1070,15 @@ mark, and push old mark position on local mark ring; also push mark on
 global mark ring if last mark was set in another buffer.
 
 With argument, jump to mark, and pop a new position for mark off
-the local mark ring \(this does not affect the global mark ring\).
+the local mark ring (this does not affect the global mark ring).
 Use \\[pop-global-mark] to jump to a mark off the global mark ring
-\(see `pop-global-mark'\).
+\(see `pop-global-mark').
+
+If `cua-auto-mark-last-change' is non-nil, this command behaves as if there
+was an implicit mark at the position of the last buffer change.
 
 Repeating the command without the prefix jumps to the next position
-off the local \(or global\) mark ring.
+off the local (or global) mark ring.
 
 With a double \\[universal-argument] prefix argument, unconditionally set mark."
   (interactive "P")
@@ -1013,7 +1093,9 @@ With a double \\[universal-argument] prefix argument, unconditionally set mark."
     (pop-global-mark))
    (arg
     (setq this-command 'pop-to-mark-command)
-    (pop-to-mark-command))
+    (or (and cua-auto-mark-last-change
+	     (cua-pop-to-last-change))
+	(pop-to-mark-command)))
    ((and cua-toggle-set-mark mark-active)
     (cua--deactivate)
     (message "Mark Cleared"))

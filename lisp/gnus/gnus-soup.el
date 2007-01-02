@@ -1,6 +1,6 @@
 ;;; gnus-soup.el --- SOUP packet writing support for Gnus
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2002, 2003, 2004,
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@iesd.auc.dk>

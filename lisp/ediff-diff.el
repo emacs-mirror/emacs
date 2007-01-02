@@ -133,9 +133,13 @@ are `-I REGEXP', to ignore changes whose lines match the REGEXP."
 (defcustom ediff-diff-options ""
   "*Options to pass to `ediff-diff-program'.
 If Unix diff is used as `ediff-diff-program',
- then a useful option is `-w', to ignore space.
-Options `-c' and `-i' are not allowed. Case sensitivity can be
- toggled interactively using \\[ediff-toggle-ignore-case]."
+then a useful option is `-w', to ignore space.
+Options `-c', `-u', and `-i' are not allowed. Case sensitivity can be
+toggled interactively using \\[ediff-toggle-ignore-case].
+
+This variable is not for customizing the look of the differences produced by
+the command \\[ediff-show-diff-output]. Use the variable 
+`ediff-custom-diff-options' for that."
   :set 'ediff-reset-diff-options
   :type 'string
   :group 'ediff-diff)
@@ -254,10 +258,10 @@ one optional arguments, diff-number to refine.")
 ;; ediff-setup-diff-regions-function, which can also have the value
 ;; ediff-setup-diff-regions3, which takes 4 arguments.
 (defun ediff-setup-diff-regions (file-A file-B file-C)
-  ;; looking for '-c', '-i', or a 'c', 'i' among clustered non-long options
-  (if (string-match "^-[ci]\\| -[ci]\\|\\(^\\| \\)-[^- ]+[ci]"
+  ;; looking for '-c', '-i', '-u', or 'c', 'i', 'u' among clustered non-long options
+  (if (string-match "^-[ciu]\\| -[ciu]\\|\\(^\\| \\)-[^- ]+[ciu]"
 		    ediff-diff-options)
-      (error "Options `-c' and `-i' are not allowed in `ediff-diff-options'"))
+      (error "Options `-c', `-u', and `-i' are not allowed in `ediff-diff-options'"))
 
   ;; create, if it doesn't exist
   (or (ediff-buffer-live-p ediff-diff-buffer)
@@ -1274,9 +1278,7 @@ delimiter regions"))
 		;; Similarly for Windows-*
 		;; In DOS, must synchronize because DOS doesn't have
 		;; asynchronous processes.
-		(condition-case nil
-		    (apply 'call-process program nil buffer nil args)
-		  (error (format "Cannot execute program %S." program)))
+		(apply 'call-process program nil buffer nil args)
 	      ;; On other systems, do it asynchronously.
 	      (setq proc (get-buffer-process buffer))
 	      (if proc (kill-process proc))
@@ -1447,14 +1449,12 @@ arguments to `skip-chars-forward'."
   "Return t if files F1 and F2 have identical contents."
   (if (and (not (file-directory-p f1))
            (not (file-directory-p f2)))
-      (condition-case nil
-	  (let ((res
-		 (apply 'call-process ediff-cmp-program nil nil nil
-			(append ediff-cmp-options (list (expand-file-name f1)
-							(expand-file-name f2))))
-		 ))
-	    (and (numberp res) (eq res 0)))
-	(error (format "Cannot execute program %S." ediff-cmp-program)))
+      (let ((res
+	     (apply 'call-process ediff-cmp-program nil nil nil
+		    (append ediff-cmp-options (list (expand-file-name f1)
+						    (expand-file-name f2))))
+	     ))
+	(and (numberp res) (eq res 0)))
     ))
 
 

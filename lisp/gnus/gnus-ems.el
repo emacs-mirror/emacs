@@ -211,7 +211,10 @@
 
 (defun gnus-image-type-available-p (type)
   (and (fboundp 'image-type-available-p)
-       (image-type-available-p type)))
+       (image-type-available-p type)
+       (if (fboundp 'display-images-p)
+	   (display-images-p)
+	 t)))
 
 (defun gnus-create-image (file &optional type data-p &rest props)
   (let ((face (plist-get props :face)))

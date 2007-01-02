@@ -2691,9 +2691,8 @@ cancel_all_deferred_msgs ()
   PostThreadMessage (dwWindowsThreadId, WM_NULL, 0, 0);
 }
 
-DWORD
-w32_msg_worker (dw)
-     DWORD dw;
+DWORD WINAPI
+w32_msg_worker (void *arg)
 {
   MSG msg;
   deferred_msg dummy_buf;
@@ -3709,8 +3708,11 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 		   However for top/left sizing we will need to fix the X
 		   and Y positions as well.  */
 
-		lppos->cx -= wdiff;
-		lppos->cy -= hdiff;
+		int cx_mintrack = GetSystemMetrics (SM_CXMINTRACK);
+		int cy_mintrack = GetSystemMetrics (SM_CYMINTRACK);
+
+		lppos->cx = max (lppos->cx - wdiff, cx_mintrack);
+		lppos->cy = max (lppos->cy - hdiff, cy_mintrack);
 
 		if (wp.showCmd != SW_SHOWMAXIMIZED
 		    && (lppos->flags & SWP_NOMOVE) == 0)
@@ -3734,9 +3736,6 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       goto dflt;
 
     case WM_GETMINMAXINFO:
-      /* Hack to correct bug that allows Emacs frames to be resized
-	 below the Minimum Tracking Size.  */
-      ((LPMINMAXINFO) lParam)->ptMinTrackSize.y++;
       /* Hack to allow resizing the Emacs frame above the screen size.
 	 Note that Windows 9x limits coordinates to 16-bits.  */
       ((LPMINMAXINFO) lParam)->ptMaxTrackSize.x = 32767;
@@ -8108,17 +8107,39 @@ DEFUN ("w32-shell-execute", Fw32_shell_execute, Sw32_shell_execute, 2, 4, 0,
        doc: /* Get Windows to perform OPERATION on DOCUMENT.
 This is a wrapper around the ShellExecute system function, which
 invokes the application registered to handle OPERATION for DOCUMENT.
-OPERATION is typically \"open\", \"print\" or \"explore\" (but can be
-nil for the default action), and DOCUMENT is typically the name of a
-document file or URL, but can also be a program executable to run or
-a directory to open in the Windows Explorer.
 
-If DOCUMENT is a program executable, PARAMETERS can be a string
-containing command line parameters, but otherwise should be nil.
+OPERATION is either nil or a string that names a supported operation.
+What operations can be used depends on the particular DOCUMENT and its
+handler application, but typically it is one of the following common
+operations:
 
-SHOW-FLAG can be used to control whether the invoked application is hidden
-or minimized.  If SHOW-FLAG is nil, the application is displayed normally,
-otherwise it is an integer representing a ShowWindow flag:
+ \"open\"    - open DOCUMENT, which could be a file, a directory, or an
+               executable program.  If it is an application, that
+               application is launched in the current buffer's default
+               directory.  Otherwise, the application associated with
+               DOCUMENT is launched in the buffer's default directory.
+ \"print\"   - print DOCUMENT, which must be a file
+ \"explore\" - start the Windows Explorer on DOCUMENT
+ \"edit\"    - launch an editor and open DOCUMENT for editing; which
+               editor is launched depends on the association for the
+               specified DOCUMENT
+ \"find\"    - initiate search starting from DOCUMENT which must specify
+               a directory
+ nil       - invoke the default OPERATION, or \"open\" if default is
+               not defined or unavailable
+
+DOCUMENT is typically the name of a document file or a URL, but can
+also be a program executable to run, or a directory to open in the
+Windows Explorer.
+
+If DOCUMENT is a program executable, the optional arg PARAMETERS can
+be a string containing command line parameters that will be passed to
+the program; otherwise, PARAMETERS should be nil or unspecified.
+
+Second optional argument SHOW-FLAG can be used to control how the
+application will be displayed when it is invoked.  If SHOW-FLAG is nil
+or unspceified, the application is displayed normally, otherwise it is
+an integer representing a ShowWindow flag:
 
   0 - start hidden
   1 - start normally
@@ -8391,6 +8412,30 @@ is set to off if the low bit of NEW-STATE is zero, otherwise on.  */)
     }
   return Qnil;
 }
+
+DEFUN ("w32-window-exists-p", Fw32_window_exists_p, Sw32_window_exists_p,
+       2, 2, 0,
+       doc: /* Return non-nil if a window exists with the specified CLASS and NAME.
+
+This is a direct interface to the Windows API FindWindow function.  */)
+  (class, name)
+Lisp_Object class, name;
+{
+  HWND hnd;
+
+  if (!NILP (class))
+    CHECK_STRING (class);
+  if (!NILP (name))
+    CHECK_STRING (name);
+
+  hnd = FindWindow (STRINGP (class) ? ((LPCTSTR) SDATA (class)) : NULL,
+		    STRINGP (name)  ? ((LPCTSTR) SDATA (name))  : NULL);
+  if (!hnd)
+    return Qnil;
+  return Qt;
+}
+
+
 
 DEFUN ("file-system-info", Ffile_system_info, Sfile_system_info, 1, 1, 0,
        doc: /* Return storage information about the file system FILENAME is on.
@@ -8957,6 +9002,7 @@ versions of Windows) characters.  */);
 
     staticpro (&Qw32_charset_unicode);
     Qw32_charset_unicode = intern ("w32-charset-unicode");
+  }
 #endif
 
 #if 0 /* TODO: Port to W32 */
@@ -9001,6 +9047,7 @@ versions of Windows) characters.  */);
   defsubr (&Sw32_registered_hot_keys);
   defsubr (&Sw32_reconstruct_hot_key);
   defsubr (&Sw32_toggle_lock_key);
+  defsubr (&Sw32_window_exists_p);
   defsubr (&Sw32_find_bdf_fonts);
 
   defsubr (&Sfile_system_info);

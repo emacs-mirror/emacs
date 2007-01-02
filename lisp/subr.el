@@ -943,7 +943,8 @@ is converted into a string by expressing it in decimal."
 (make-obsolete-variable 'directory-sep-char "do not use it." "21.1")
 (make-obsolete-variable 'mode-line-inverse-video "use the appropriate faces instead." "21.1")
 (make-obsolete-variable 'unread-command-char
-  "use `unread-command-events' instead.  That variable is a list of events to reread, so it now uses nil to mean `no event', instead of -1."
+  "use `unread-command-events' instead.  That variable is a list of events
+to reread, so it now uses nil to mean `no event', instead of -1."
   "before 19.15")
 
 ;; Lisp manual only updated in 22.1.
@@ -1892,7 +1893,7 @@ EXIT-CHAR it is swallowed; otherwise it is then available as
 input (as a command if nothing else).
 Display MESSAGE (optional fourth arg) in the echo area.
 If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
-  (or exit-char (setq exit-char ?\ ))
+  (or exit-char (setq exit-char ?\s))
   (let ((inhibit-read-only t)
 	;; Don't modify the undo list at all.
 	(buffer-undo-list t)

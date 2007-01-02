@@ -430,7 +430,7 @@ file name or is inside a subdirectory."
   (save-excursion
     (forward-line 0)
     (looking-at (concat "."
-			(make-string (1- locate-filename-indentation) ?\ )
+			(make-string (1- locate-filename-indentation) ?\s)
 			"\\(/\\|[A-Za-z]:\\)"))))
 
 (defun locate-mouse-view-file (event)
@@ -478,7 +478,7 @@ do not work in subdirectories.
   ;; This should support both Unix and Windoze style names
   (setq directory-listing-before-filename-regexp
 	(concat "^."
-		(make-string (1- locate-filename-indentation) ?\ )
+		(make-string (1- locate-filename-indentation) ?\s)
 		"\\(/\\|[A-Za-z]:\\)\\|"
 		(default-value 'directory-listing-before-filename-regexp)))
   (make-local-variable 'dired-actual-switches)
@@ -486,7 +486,7 @@ do not work in subdirectories.
   (make-local-variable 'dired-permission-flags-regexp)
   (setq dired-permission-flags-regexp
 	(concat "^.\\("
-		(make-string (1- locate-filename-indentation) ?\ )
+		(make-string (1- locate-filename-indentation) ?\s)
 		"\\)\\|"
 		(default-value 'dired-permission-flags-regexp)))
   (make-local-variable 'revert-buffer-function)
@@ -511,7 +511,7 @@ do not work in subdirectories.
     (locate-insert-header search-string)
 
     (while (not (eobp))
-      (insert-char ?\  locate-filename-indentation t)
+      (insert-char ?\s locate-filename-indentation t)
       (locate-set-properties)
       (forward-line 1)))
   (goto-char (point-min)))

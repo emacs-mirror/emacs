@@ -72,7 +72,7 @@ enum text_cursor_kinds
 
 #if !defined(HAVE_X_WINDOWS)
 
-#define PIX_TYPE int
+#define PIX_TYPE unsigned long
 
 /* A (mostly empty) x_output structure definition for building Emacs
    on Unix and GNU/Linux without X support.  */
@@ -484,6 +484,10 @@ struct frame
 
   /* Set to non-zero when current redisplay has updated frame.  */
   unsigned updated_p : 1;
+
+  /* Set to non-zero to minimize tool-bar height even when
+     auto-resize-tool-bar is set to grow-only.  */
+  unsigned minimize_tool_bar_window_p : 1;
 };
 
 #ifdef MULTI_KBOARD

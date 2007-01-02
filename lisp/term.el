@@ -1,6 +1,6 @@
 ;;; term.el --- general command interpreter in a window stuff
 
-;; Copyright (C) 1988, 1990, 1992, 1994, 1995, 2002, 2003,
+;; Copyright (C) 1988, 1990, 1992, 1994, 1995, 2001, 2002, 2003,
 ;;   2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Per Bothner <per@bothner.com>
@@ -1420,8 +1420,12 @@ The main purpose is to get rid of the local keymap."
 	   (format "TERMINFO=%s" data-directory)
 	   (format term-termcap-format "TERMCAP="
 		   term-term-name term-height term-width)
-	   ;; Breaks `./configure' of w3 and url which try to run $EMACS.
+	   ;; We are going to get rid of the binding for EMACS,
+	   ;; probably in Emacs 23, because it breaks
+	   ;; `./configure' of some packages that expect it to
+	   ;; say where to find EMACS.
 	   (format "EMACS=%s (term:%s)" emacs-version term-protocol-version)
+	   (format "INSIDE_EMACS=%s,term:%s" emacs-version term-protocol-version)
 	   (format "LINES=%d" term-height)
 	   (format "COLUMNS=%d" term-width))
 	  process-environment))

@@ -517,7 +517,7 @@ in messages,
 @end itemize
 
 @item
-Arne J@/orgensen wrote @file{latexenc.el}, a package to
+Arne J@o{}rgensen wrote @file{latexenc.el}, a package to
 automatically guess the correct coding system in LaTeX files.
 
 @item

@@ -156,23 +156,11 @@ from Lisp, but in Emacs we use it for all languages.
 @cindex open-parenthesis in leftmost column
 @cindex ( in leftmost column
   Emacs assumes by default that any opening delimiter found at the
-left margin is the start of a top-level definition, or defun.  You can
-override this default by setting this user option:
-
-@defvar open-paren-in-column-0-is-defun-start
-If this user option is set to @code{t} (the default), opening
-parentheses or braces at column zero always start defuns.  When it's
-@code{nil}, defuns are found by searching for parens or braces at the
-outermost level.  Some major modes, including C and related modes, set
-@code{open-paren-in-column-0-is-defun-start} buffer-locally to
-@code{nil}
-@end defvar
-
-  In modes where @code{open-paren-in-column-0-is-defun-start} is
-@code{t}, @strong{don't put an opening delimiter at the left margin
-unless it is a defun start}.  For instance, never put an
+left margin is the start of a top-level definition, or defun.
+Therefore, @strong{don't put an opening delimiter at the left margin
+unless it should have that significance}.  For instance, never put an
 open-parenthesis at the left margin in a Lisp file unless it is the
-start of a top-level list.
+start of a top-level list.  
 
   If you don't follow this convention, not only will you have trouble
 when you explicitly use the commands for motion by defuns; other
@@ -182,10 +170,10 @@ mode (@pxref{Font Lock}).
 
   The most likely problem case is when you want an opening delimiter
 at the start of a line inside a string.  To avoid trouble, put an
-escape character (@samp{\}, in Emacs Lisp, @samp{/} in some other Lisp
-dialects) before the opening delimiter.  This will not affect the
-contents of the string, but will prevent that opening delimiter from
-starting a defun.  Here's an example:
+escape character (@samp{\}, in C and Emacs Lisp, @samp{/} in some
+other Lisp dialects) before the opening delimiter.  This will not
+affect the contents of the string, but will prevent that opening
+delimiter from starting a defun.  Here's an example:
 
 @example
   (insert "Foo:
@@ -196,6 +184,25 @@ starting a defun.  Here's an example:
   To help you catch violations of this convention, Font Lock mode
 highlights confusing opening delimiters (those that ought to be
 quoted) in bold red.
+
+If you need to override this convention, you can so by setting this
+user option:
+
+@defvar open-paren-in-column-0-is-defun-start
+If this user option is set to @code{t} (the default), opening
+parentheses or braces at column zero always start defuns.  When it's
+@code{nil}, defuns are found by searching for parens or braces at the
+outermost level.
+@end defvar
+
+  Usually, you shouldn't need to set
+@code{open-paren-in-column-0-is-defun-start} to @code{nil}.  However,
+if your buffer contains parentheses or braces in column zero which
+don't start defuns and this confuses Emacs, it sometimes helps to set
+the option to @code{nil}.  Be aware, though, that this will make
+scrolling and display in large buffers quite sluggish, and that
+parentheses and braces must be correctly matched throughout the buffer
+for it to work properly.
 
   In the earliest days, the original Emacs found defuns by moving
 upward a level of parentheses or braces until there were no more
@@ -1557,10 +1564,10 @@ preprocessor commands.
 @table @kbd
 @item C-c C-@key{DEL}
 @itemx C-c @key{DEL}
-@findex c-hungry-backspace
+@findex c-hungry-delete-backwards
 @kindex C-c C-@key{DEL} (C Mode)
 @kindex C-c @key{DEL} (C Mode)
-@code{c-hungry-backspace}---Delete the entire block of whitespace
+@code{c-hungry-delete-backwards}---Delete the entire block of whitespace
 preceding point.
 
 @item C-c C-d

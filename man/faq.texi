@@ -2761,7 +2761,7 @@ if ($?EMACS) then
 endif
 @end example
 
-Or put this in your @file{.emacs_tcsh} file:
+Or put this in your @file{.emacs_tcsh} or @file{~/.emacs.d/init_tcsh.sh} file:
 
 @example
 unset edit

@@ -50,7 +50,9 @@ Don't rebind TAB unless you really need to.")
   "*Controls the operation of the TAB key.
 If t, hitting TAB always just indents the current line.
 If nil, hitting TAB indents the current line if point is at the left margin
-  or in the line's indentation, otherwise it insert a \"real\" tab character."
+or in the line's indentation, otherwise it insert a \"real\" TAB character.
+Most programming language modes have their own variable to control this,
+e.g., `c-tab-always-indent', and do not respect this variable."
   :group 'indent
   :type '(choice (const nil) (const t) (const always)))
 
@@ -512,7 +514,7 @@ Use \\[edit-tab-stops] to edit them interactively."
 	(let ((opoint (point)))
 	  (delete-horizontal-space t)
 	  (indent-to (car tabs)))
-      (insert ?\ ))))
+      (insert ?\s))))
 
 (defun move-to-tab-stop ()
   "Move point to next defined tab-stop column.
@@ -529,11 +531,11 @@ Use \\[edit-tab-stops] to edit them interactively."
 	    (goto-char before)
 	    ;; If we just added a tab, or moved over one,
 	    ;; delete any superfluous spaces before the old point.
-	    (if (and (eq (preceding-char) ?\ )
+	    (if (and (eq (preceding-char) ?\s)
 		     (eq (following-char) ?\t))
 		(let ((tabend (* (/ (current-column) tab-width) tab-width)))
 		  (while (and (> (current-column) tabend)
-			      (eq (preceding-char) ?\ ))
+			      (eq (preceding-char) ?\s))
 		    (forward-char -1))
 		  (delete-region (point) before))))))))
 

@@ -1,6 +1,7 @@
 ;;; devanagari.el --- Support for Devanagari -*- coding: iso-2022-7bit; no-byte-compile: t -*-
 
-;; Copyright (C) 1996, 1997, 2001  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 2001, 2002, 2003, 2004, 2005, 2006
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer:  KAWABATA, Taichi <kawabata@m17n.org>
 ;; Keywords: multilingual, Indian, Devanagari

@@ -3265,6 +3265,10 @@ set_window_buffer (window, buffer, run_hooks_p, keep_margins_p)
   struct window *w = XWINDOW (window);
   struct buffer *b = XBUFFER (buffer);
   int count = SPECPDL_INDEX ();
+#ifdef HAVE_WINDOW_SYSTEM
+  struct frame *f = XFRAME (w->frame);
+  Display_Info *dpyinfo;
+#endif
 
   w->buffer = buffer;
 
@@ -3344,6 +3348,15 @@ set_window_buffer (window, buffer, run_hooks_p, keep_margins_p)
 	  && ! NILP (Vrun_hooks))
 	call1 (Vrun_hooks, Qwindow_configuration_change_hook);
     }
+
+#ifdef HAVE_WINDOW_SYSTEM
+  BLOCK_INPUT;
+  if (f && FRAME_X_OUTPUT (f)
+      && (dpyinfo = FRAME_X_DISPLAY_INFO (f))
+      && EQ (window, dpyinfo->mouse_face_window))
+    clear_mouse_face (dpyinfo);
+  UNBLOCK_INPUT;
+#endif
 
   unbind_to (count, Qnil);
 }
@@ -5714,8 +5727,10 @@ With prefix argument ARG, recenter putting point on screen line ARG
 relative to the current window.  If ARG is negative, it counts up from the
 bottom of the window.  (ARG should be less than the height of the window.)
 
-If ARG is omitted or nil, erase the entire frame and then
-redraw with point in the center of the current window.
+If ARG is omitted or nil, erase the entire frame and then redraw with point
+in the center of the current window.  If `auto-resize-tool-bars' is set to
+`grow-only', this resets the tool-bar's height to the minimum height needed.
+
 Just C-u as prefix means put point in the center of the window
 and redisplay normally--don't erase and redraw the frame.  */)
      (arg)
@@ -5740,8 +5755,10 @@ and redisplay normally--don't erase and redraw the frame.  */)
       for (i = 0; i < n_compositions; i++)
 	composition_table[i]->font = NULL;
 
-      Fredraw_frame (w->frame);
-      SET_FRAME_GARBAGED (XFRAME (WINDOW_FRAME (w)));
+      WINDOW_XFRAME (w)->minimize_tool_bar_window_p = 1;
+
+      Fredraw_frame (WINDOW_FRAME (w));
+      SET_FRAME_GARBAGED (WINDOW_XFRAME (w));
       center_p = 1;
     }
   else if (CONSP (arg)) /* Just C-u. */

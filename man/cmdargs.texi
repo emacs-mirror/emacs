@@ -951,8 +951,12 @@ Reverse video---swap the foreground and background colors.
 @item --color=@var{mode}
 @opindex --color
 @cindex standard colors on a character terminal
-For a character terminal only, specify the mode of color support.  The
-parameter @var{mode} can be one of the following:
+@cindex override character terminal color support
+For a character terminal only, specify the mode of color support.
+This option is intended for overriding the number of supported colors
+that the character terminal advertises in its @code{termcap} or
+@code{terminfo} database.  The parameter @var{mode} can be one of the
+following:
 @table @samp
 @item never
 @itemx no

@@ -1,6 +1,6 @@
 ;;; tabify.el --- tab conversion commands for Emacs
 
-;; Copyright (C) 1985, 1994, 2002, 2003, 2004,
+;; Copyright (C) 1985, 1994, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -52,7 +52,7 @@ The variable `tab-width' controls the spacing of tab stops."
 
 (defvar tabify-regexp " [ \t]+"
   "Regexp matching whitespace that tabify should consider.
-Usually this will be \" [ \\t]+\" to match two or more spaces or tabs.
+Usually this will be \" [ \\t]+\" to match a space followed by whitespace.
 \"^\\t* [ \\t]+\" is also useful, for tabifying only initial whitespace.")
 
 ;;;###autoload

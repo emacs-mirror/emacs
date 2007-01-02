@@ -1,6 +1,6 @@
 ;;; float-sup.el --- define some constants useful for floating point numbers.
 
-;; Copyright (C) 1985, 1986, 1987, 2002, 2003, 2004,
+;; Copyright (C) 1985, 1986, 1987, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF

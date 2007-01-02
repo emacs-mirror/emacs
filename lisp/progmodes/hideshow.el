@@ -706,6 +706,7 @@ and `case-fold-search' are both t."
       (if (and c-reg (nth 0 c-reg))
           ;; point is inside a comment, and that comment is hidable
           (goto-char (nth 0 c-reg))
+	(end-of-line)
         (when (and (not c-reg)
                    (hs-find-block-beginning)
                    (looking-at hs-block-start-regexp))

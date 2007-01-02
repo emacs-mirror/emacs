@@ -1,7 +1,8 @@
 ;;; cc-langs.el --- language specific settings for CC Mode
 
-;; Copyright (C) 1985,1987,1992-2003, 2004, 2005, 2006 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
+;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006  Free Software
+;;   Foundation, Inc.
 
 ;; Authors:    1998- Martin Stjernholm
 ;;             1992-1999 Barry A. Warsaw
@@ -1330,7 +1331,7 @@ properly."
 (c-lang-defconst c-at-vsemi-p-fn
   "Contains a function \"Is there a virtual semicolon at POS or point?\".
 Such a function takes one optional parameter, a buffer position (defaults to
-point), and returns NIL or t.  This variable contains NIL for languages which
+point), and returns nil or t.  This variable contains nil for languages which
 don't have EOL terminated statements. "
   t nil
   awk 'c-awk-at-vsemi-p)
@@ -1341,7 +1342,7 @@ don't have EOL terminated statements. "
 The (admittedly kludgey) purpose of such a function is to prevent an infinite
 recursion in c-beginning-of-statement-1 when point starts at a `while' token.
 The function MUST NOT UNDER ANY CIRCUMSTANCES call c-beginning-of-statement-1,
-even indirectly.  This variable contains NIL for languages which don't have
+even indirectly.  This variable contains nil for languages which don't have
 EOL terminated statements."
   t nil
   awk 'c-awk-vsemi-status-unknown-p)

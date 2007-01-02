@@ -705,7 +705,7 @@ This variable does not have any effect on MS-Windows."
 	   (set-mouse-position (selected-frame) (1- (frame-width)) 0))))
 
 (defun other-frame (arg)
-  "Select the ARG'th different visible frame on current display, and raise it.
+  "Select the ARGth different visible frame on current display, and raise it.
 All frames are arranged in a cyclic order.
 This command selects the frame ARG steps away in that order.
 A negative ARG moves in the opposite order.
@@ -881,7 +881,7 @@ pixels) is kept by adjusting the numbers of the lines and columns."
 (defun set-frame-parameter (frame parameter value)
   "Set frame parameter PARAMETER to VALUE on FRAME.
 If FRAME is nil, it defaults to the selected frame.
-See `modify-frame-parameters.'"
+See `modify-frame-parameters'."
   (modify-frame-parameters frame (list (cons parameter value))))
 
 (defun set-background-color (color-name)

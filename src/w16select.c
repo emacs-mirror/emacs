@@ -590,7 +590,7 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
 	    message2 (system_error_msg, sizeof (system_error_msg) - 1, 0);
 	    break;
 	}
-      sit_for (2, 0, 0, 1, 1);
+      sit_for (make_number (2), 0, 2);
     }
 
  done:

@@ -3,8 +3,8 @@
 ;; Copyright (C) 1986, 1992, 1993, 1994, 1995, 2000, 2001, 2002, 2003,
 ;;   2004, 2005, 2006 Free Software Foundation, Inc.
 
-;; Author: Kevin Gallagher <kevingal@onramp.net>
-;; Maintainer: Kevin Gallagher <kevingal@onramp.net>
+;; Author: Kevin Gallagher <Kevin.Gallagher@boeing.com>
+;; Maintainer: Kevin Gallagher <Kevin.Gallagher@boeing.com>
 ;; Keywords: emulations
 
 ;; This file is part of GNU Emacs.
@@ -339,8 +339,12 @@ This means that an edt-user.el file was found in the user's `load-path'.")
 
 (defconst edt-xserver (if (eq edt-window-system 'x)
 			  (if edt-x-emacs19-p
-			      (replace-in-string (x-server-vendor) "[ _]" "-")
-			    (subst-char-in-string ?  ?- (x-server-vendor)))
+			      ;; The Cygwin window manager has a `/' in its
+			      ;; name, which breaks the generated file name of
+			      ;; the custom key map file.  Replace `/' with a
+			      ;; `-' to work around that.
+			      (replace-in-string (x-server-vendor) "[ /]" "-")
+			    (subst-char-in-string ?/ ?- (subst-char-in-string ?  ?- (x-server-vendor))))
 			nil)
   "Indicates X server vendor name, if applicable.")
 

@@ -79,6 +79,15 @@ static ComponentInstance as_scripting_component;
 /* The single script context used for all script executions.  */
 static OSAID as_script_context;
 
+#if TARGET_API_MAC_CARBON
+static int wakeup_from_rne_enabled_p = 0;
+#define ENABLE_WAKEUP_FROM_RNE (wakeup_from_rne_enabled_p = 1)
+#define DISABLE_WAKEUP_FROM_RNE (wakeup_from_rne_enabled_p = 0)
+#else
+#define ENABLE_WAKEUP_FROM_RNE 0
+#define DISABLE_WAKEUP_FROM_RNE 0
+#endif
+
 #ifndef MAC_OSX
 static OSErr posix_pathname_to_fsspec P_ ((const char *, FSSpec *));
 static OSErr fsspec_to_posix_pathname P_ ((const FSSpec *, char *, int));
@@ -2431,6 +2440,7 @@ select (nfds, rfds, wfds, efds, timeout)
      BLOCK_INPUT block, in case that some input has already been read
      asynchronously.  */
   BLOCK_INPUT;
+  ENABLE_WAKEUP_FROM_RNE;
   if (!detect_input_pending ())
     {
 #if TARGET_API_MAC_CARBON
@@ -2461,6 +2471,7 @@ select (nfds, rfds, wfds, efds, timeout)
 	}
 #endif /* not TARGET_API_MAC_CARBON */
     }
+  DISABLE_WAKEUP_FROM_RNE;
   UNBLOCK_INPUT;
 
   if (err == noErr)
@@ -4841,8 +4852,8 @@ DEFUN ("mac-code-convert-string", Fmac_code_convert_string, Smac_code_convert_st
        doc: /* Convert STRING from SOURCE encoding to TARGET encoding.
 The conversion is performed using the converter provided by the system.
 Each encoding is specified by either a coding system symbol, a mime
-charset string, or an integer as a CFStringEncoding value.  Nil for
-encoding means UTF-16 in native byte order, no byte order mark.
+charset string, or an integer as a CFStringEncoding value.  An encoding
+of nil means UTF-16 in native byte order, no byte order mark.
 On Mac OS X 10.2 and later, you can do Unicode Normalization by
 specifying the optional argument NORMALIZATION-FORM with a symbol NFD,
 NFKD, NFC, NFKC, HFS+D, or HFS+C.
@@ -5023,6 +5034,7 @@ select_and_poll_event (nfds, rfds, wfds, efds, timeout)
      BLOCK_INPUT block, in case that some input has already been read
      asynchronously.  */
   BLOCK_INPUT;
+  ENABLE_WAKEUP_FROM_RNE;
   if (!detect_input_pending ())
     {
       EMACS_TIME select_timeout;
@@ -5045,6 +5057,7 @@ select_and_poll_event (nfds, rfds, wfds, efds, timeout)
 				  kEventLeaveInQueue, NULL);
 	}
     }
+  DISABLE_WAKEUP_FROM_RNE;
   UNBLOCK_INPUT;
 
   if (r != 0)
@@ -5124,6 +5137,7 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 	 BLOCK_INPUT block, in case that some input has already been
 	 read asynchronously.  */
       BLOCK_INPUT;
+      ENABLE_WAKEUP_FROM_RNE;
       if (!detect_input_pending ())
 	{
 	  int minfd, fd;
@@ -5184,6 +5198,7 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 		CFRunLoopRemoveSource (runloop, source, kCFRunLoopDefaultMode);
 	      }
 	}
+      DISABLE_WAKEUP_FROM_RNE;
       UNBLOCK_INPUT;
 
       if (err == noErr || err == eventLoopQuitErr)
@@ -5385,6 +5400,16 @@ init_mac_osx_environment ()
 }
 #endif /* MAC_OSX */
 
+#if TARGET_API_MAC_CARBON
+void
+mac_wakeup_from_rne ()
+{
+  if (wakeup_from_rne_enabled_p)
+    /* Post a harmless event so as to wake up from
+       ReceiveNextEvent.  */
+    mac_post_mouse_moved_event ();
+}
+#endif
 
 void
 syms_of_mac ()

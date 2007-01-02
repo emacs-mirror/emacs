@@ -1,8 +1,8 @@
 ;;; iso-cvt.el --- translate ISO 8859-1 from/to various encodings -*- coding: iso-latin-1 -*-
 ;; This file was formerly called gm-lingo.el.
 
-;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 2000, 2003, 2004
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 2000, 2001,
+;;   2002, 2003, 2004, 2005, 2006  Free Software Foundation, Inc.
 
 ;; Author: Michael Gschwind <mike@vlsivie.tuwien.ac.at>
 ;; Keywords: tex, iso, latin, i18n

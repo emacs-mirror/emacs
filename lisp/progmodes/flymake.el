@@ -2,8 +2,8 @@
 
 ;; Copyright (C) 2003, 2004, 2005, 2006  Free Software Foundation
 
-;; Author:  Pavel Kobiakov <pk_at_work@yahoo.com>
-;; Maintainer: Pavel Kobiakov <pk_at_work@yahoo.com>
+;; Author:  Pavel Kobyakov <pk_at_work@yahoo.com>
+;; Maintainer: Pavel Kobyakov <pk_at_work@yahoo.com>
 ;; Version: 0.3
 ;; Keywords: c languages tools
 
@@ -117,6 +117,30 @@ Zero-length substrings at the beginning and end of the list are omitted."
       'line-end-position
     (lambda (&optional arg) (save-excursion (end-of-line arg) (point)))))
 
+(defun flymake-posn-at-point-as-event (&optional position window dx dy)
+  "Return pixel position of top left corner of glyph at POSITION,
+relative to top left corner of WINDOW, as a mouse-1 click
+event (identical to the event that would be triggered by clicking
+mouse button 1 at the top left corner of the glyph).
+
+POSITION and WINDOW default to the position of point in the
+selected window.
+
+DX and DY specify optional offsets from the top left of the glyph."
+  (unless window (setq window (selected-window)))
+  (unless position (setq position (window-point window)))
+  (unless dx (setq dx 0))
+  (unless dy (setq dy 0))
+
+  (let* ((pos (posn-at-point position window))
+         (x-y (posn-x-y pos))
+         (edges (window-inside-pixel-edges window))
+         (win-x-y (window-pixel-edges window)))
+    ;; adjust for window edges
+    (setcar (nthcdr 2 pos)
+            (cons (+ (car x-y) (car  edges) (- (car win-x-y))  dx)
+                  (+ (cdr x-y) (cadr edges) (- (cadr win-x-y)) dy)))
+    (list 'mouse-1 pos)))
 
 (defun flymake-popup-menu (menu-data)
   "Pop up the flymake menu at point, using the data MENU-DATA.
@@ -134,7 +158,7 @@ MENU-DATA is a list of error and warning messages returned by
 	(popup-menu (flymake-make-xemacs-menu menu-data)
                     (make-event 'button-press fake-event-props)))
     (x-popup-menu (if (eval-when-compile (fboundp 'posn-at-point))
-                      (posn-at-point)
+                      (flymake-posn-at-point-as-event)
                     (list (flymake-get-point-pixel-pos) (selected-window)))
                   (flymake-make-emacs-menu menu-data))))
 

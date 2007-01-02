@@ -1,6 +1,6 @@
 ;;; page-ext.el --- extended page handling commands
 
-;; Copyright (C) 1990, 1991, 1993, 1994, 2002, 2003, 2004,
+;; Copyright (C) 1990, 1991, 1993, 1994, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Maintainer: Robert J. Chassell <bob@gnu.org>

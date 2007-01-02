@@ -1,6 +1,6 @@
 ;;; sun-fns.el --- subroutines of Mouse handling for Sun windows
 
-;; Copyright (C) 1987, 2002, 2003, 2004, 2005,
+;; Copyright (C) 1987, 2001, 2002, 2003, 2004, 2005,
 ;;   2006 Free Software Foundation, Inc.
 
 ;; Author: Jeff Peck <peck@sun.com>

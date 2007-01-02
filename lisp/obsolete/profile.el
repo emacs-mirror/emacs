@@ -1,6 +1,6 @@
 ;;; profile.el --- Emacs profiler (OBSOLETE; use elp.el instead)
 
-;; Copyright (C) 1992, 1994, 1998, 2002, 2003, 2004,
+;; Copyright (C) 1992, 1994, 1998, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Boaz Ben-Zvi <boaz@lcs.mit.edu>
