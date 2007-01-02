@@ -1,3 +1,15 @@
+2007-01-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.h (xg_menu_item_cb_data_): Remove highlight_id and
+	unhighlight_id.
+
+	* gtkutil.c (menuitem_highlight_callback): Invoked widget is the
+	parent of the menu item.  Get menu item widget from event.
+	(xg_create_one_menuitem, xg_update_menu_item): highlight_id and
+	unhighlight_id has been removed.
+	(create_menus): Connect enter/leave-notify-event to the menu instead
+	of individual items.
+
 2006-12-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (update_frame_tool_bar): Connect create-menu-proxy with
