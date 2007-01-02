@@ -325,7 +325,7 @@
 
 ;; better be defined before Viper custom group.
 (defvar viper-custom-file-name (convert-standard-filename "~/.viper")
-  "Viper customisation file.
+  "Viper customization file.
 If set by the user, this must be done _before_ Viper is loaded in `~/.emacs'.")
 
 (defgroup viper nil
@@ -360,7 +360,7 @@ user decide when to invoke Viper in a major mode."
 			    (t 'ask))
   "To Viperize or not to Viperize.
 If t, viperize Emacs.  If nil -- don't.  If `ask', ask the user.
-This variable is used primatily when Viper is being loaded.
+This variable is used primarily when Viper is being loaded.
 
 Must be set in `~/.emacs' before Viper is loaded.
 DO NOT set this variable interactively, unless you are using the customization
