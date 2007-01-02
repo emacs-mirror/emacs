@@ -4,6 +4,7 @@
 	(no_duplicates): Static variables for the above option.
 	(print_help): Do not print help for --no-warn, now undocumented.
 	(add_node): Allow duplicate tags in ctags mode unless --no-duplicates.
+	(main): Pass the -u option to sort in ctags mode.
 
 2006-12-28  Francesco Potort,Al(B  <pot@gnu.org>
 
