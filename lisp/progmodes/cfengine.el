@@ -89,7 +89,7 @@ This includes those for cfservd as well as cfagent."))
   ;; In the main syntax-table, backslash is marked as a punctuation, because
   ;; of its use in DOS-style directory separators.  Here we try to recognize
   ;; the cases where backslash is used as an escape inside strings.
-  '(("\\(\\(?:\\\\\\)+\\)\"" . "\\")))
+  '(("\\(\\(?:\\\\\\)+\\)\"" 1 "\\")))
 
 (defvar cfengine-imenu-expression
   `((nil ,(concat "^[ \t]*" (eval-when-compile
