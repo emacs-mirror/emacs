@@ -79,6 +79,8 @@ current buffer.
 
 ** The toolbar should show keyboard equivalents in its tooltips.
 
+** Add function to redraw the tool bar.
+
 ** Modify allout.el to use overlays, like outline.el.
 
 ** M-! M-n should fetch the buffer-file-name as the default.
