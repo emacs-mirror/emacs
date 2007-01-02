@@ -1,5 +1,8 @@
 2007-01-02  Juanma Barranquero  <lekktu@gmail.com>
 
+	* emulation/viper.el (viper-custom-file-name, viper-mode):
+	Fix typos in docstrings.
+
 	* subr.el (momentary-string-display): After moving point, set POS
 	variable to it to avoid later errors once the buffer is modified.
 	Doc fix.
