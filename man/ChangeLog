@@ -1,3 +1,21 @@
+2007-01-02  Richard Stallman  <rms@gnu.org>
+
+	* custom.texi (Changing a Variable): Minor clarification.
+	(Specific Customization): customize-customized => customize-unsaved.
+
+	* entering.texi (Entering Emacs): Clean up text about restarting 
+	Emacs for each file.
+
+	* misc.texi (Shell Options): Minor cleanup.
+
+	* msdog.texi (Windows Keyboard): Explain that Windows was incompatible
+	with Emacs, not vice versa.
+
+	* programs.texi (Symbol Completion): Recommend customizing window
+	manager.
+
+	* xresources.texi (Resources): Minor fix.
+
 2007-01-02  Daiki Ueno  <ueno@unixuser.org>
 
 	* message.texi (Using PGP/MIME): Document gpg-agent usage.

@@ -5,6 +5,8 @@
 
 2007-01-02  Richard Stallman  <rms@gnu.org>
 
+	* wid-edit.el (widget-choose): Avoid ugly error for function keys.
+
 	* progmodes/cfengine.el (cfengine-font-lock-syntactic-keywords): 
 	Fix format of value.
 
