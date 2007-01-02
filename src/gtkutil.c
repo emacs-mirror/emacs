@@ -1718,9 +1718,9 @@ menuitem_destroy_callback (w, client_data)
 }
 
 /* Callback called when the pointer enters/leaves a menu item.
-   W is the menu item.
+   W is the parent of the menu item.
    EVENT is either an enter event or leave event.
-   CLIENT_DATA points to the xg_menu_item_cb_data associated with the W.
+   CLIENT_DATA is not used.
 
    Returns FALSE to tell GTK to keep processing this event.  */
 
@@ -1730,15 +1730,21 @@ menuitem_highlight_callback (w, event, client_data)
      GdkEventCrossing *event;
      gpointer client_data;
 {
-  if (client_data)
-    {
-      xg_menu_item_cb_data *data = (xg_menu_item_cb_data*) client_data;
-      gpointer call_data = event->type == GDK_LEAVE_NOTIFY ? 0 : client_data;
+  GdkEvent ev;
+  GtkWidget *subwidget;
+  xg_menu_item_cb_data *data;
 
+  ev.crossing = *event;
+  subwidget = gtk_get_event_widget (&ev);
+  data = (xg_menu_item_cb_data *) g_object_get_data (G_OBJECT (subwidget),
+                                                     XG_ITEM_DATA);
+  if (data)
+    {
       if (! NILP (data->help) && data->cl_data->highlight_cb)
         {
+          gpointer call_data = event->type == GDK_LEAVE_NOTIFY ? 0 : data;
           GtkCallback func = (GtkCallback) data->cl_data->highlight_cb;
-          (*func) (w, call_data);
+          (*func) (subwidget, call_data);
         }
     }
 
@@ -2004,7 +2010,7 @@ xg_create_one_menuitem (item, f, select_cb, highlight_cb, cl_data, group)
 
   xg_list_insert (&xg_menu_item_cb_list, &cb_data->ptrs);
 
-  cb_data->unhighlight_id = cb_data->highlight_id = cb_data->select_id = 0;
+  cb_data->select_id = 0;
   cb_data->help = item->help;
   cb_data->cl_data = cl_data;
   cb_data->call_data = item->call_data;
@@ -2023,22 +2029,6 @@ xg_create_one_menuitem (item, f, select_cb, highlight_cb, cl_data, group)
       if (select_cb)
         cb_data->select_id
           = g_signal_connect (G_OBJECT (w), "activate", select_cb, cb_data);
-    }
-
-  if (! NILP (item->help) && highlight_cb)
-    {
-      /* We use enter/leave notify instead of select/deselect because
-         select/deselect doesn't go well with detached menus.  */
-      cb_data->highlight_id
-        = g_signal_connect (G_OBJECT (w),
-                            "enter-notify-event",
-                            G_CALLBACK (menuitem_highlight_callback),
-                            cb_data);
-      cb_data->unhighlight_id
-        = g_signal_connect (G_OBJECT (w),
-                            "leave-notify-event",
-                            G_CALLBACK (menuitem_highlight_callback),
-                            cb_data);
     }
 
   return w;
@@ -2123,6 +2113,17 @@ create_menus (data, f, select_cb, deactivate_cb, highlight_cb,
       {
         wmenu = gtk_menu_new ();
         xg_set_screen (wmenu, f);
+        /* Connect this to the menu instead of items so we get enter/leave for
+           disabled items also.  TODO:  Still does not get enter/leave for
+           disabled items in detached menus.  */
+        g_signal_connect (G_OBJECT (wmenu),
+                          "enter-notify-event",
+                          G_CALLBACK (menuitem_highlight_callback),
+                          NULL);
+        g_signal_connect (G_OBJECT (wmenu),
+                          "leave-notify-event",
+                          G_CALLBACK (menuitem_highlight_callback),
+                          NULL);
       }
       else wmenu = gtk_menu_bar_new ();
 
@@ -2618,37 +2619,6 @@ xg_update_menu_item (val, w, select_cb, highlight_cb, cl_data)
         {
           g_signal_handler_disconnect (w, cb_data->select_id);
           cb_data->select_id = 0;
-        }
-
-      if (NILP (cb_data->help))
-        {
-          /* Shall not have help.  Remove if any existed previously.  */
-          if (cb_data->highlight_id)
-            {
-              g_signal_handler_disconnect (G_OBJECT (w),
-                                           cb_data->highlight_id);
-              cb_data->highlight_id = 0;
-            }
-          if (cb_data->unhighlight_id)
-            {
-              g_signal_handler_disconnect (G_OBJECT (w),
-                                           cb_data->unhighlight_id);
-              cb_data->unhighlight_id = 0;
-            }
-        }
-      else if (! cb_data->highlight_id && highlight_cb)
-        {
-          /* Have help now, but didn't previously.  Add callback.  */
-          cb_data->highlight_id
-            = g_signal_connect (G_OBJECT (w),
-                                "enter-notify-event",
-                                G_CALLBACK (menuitem_highlight_callback),
-                                cb_data);
-          cb_data->unhighlight_id
-            = g_signal_connect (G_OBJECT (w),
-                                "leave-notify-event",
-                                G_CALLBACK (menuitem_highlight_callback),
-                                cb_data);
         }
     }
 }
