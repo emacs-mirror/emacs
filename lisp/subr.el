@@ -1887,6 +1887,7 @@ menu bar menus and the frame title."
 (defun momentary-string-display (string pos &optional exit-char message)
   "Momentarily display STRING in the buffer at POS.
 Display remains until next event is input.
+If POS is a marker, only its position is used; its buffer is ignored.
 Optional third arg EXIT-CHAR can be a character, event or event
 description list.  EXIT-CHAR defaults to SPC.  If the input is
 EXIT-CHAR it is swallowed; otherwise it is then available as
@@ -1904,6 +1905,8 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
 	(progn
 	  (save-excursion
 	    (goto-char pos)
+	    ;; To avoid trouble with out-of-bounds position
+	    (setq pos (point))
 	    ;; defeat file locking... don't try this at home, kids!
 	    (setq buffer-file-name nil)
 	    (insert-before-markers string)
