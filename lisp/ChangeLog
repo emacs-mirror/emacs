@@ -1,3 +1,12 @@
+2007-01-02  Richard Stallman  <rms@gnu.org>
+
+	* progmodes/cfengine.el (cfengine-font-lock-syntactic-keywords): 
+	Fix format of value.
+
+	* cus-edit.el (customize-unsaved): Renamed from customize-customized.
+	Change messages accordingly.
+	(customize-customized): Now alias.
+	
 2007-01-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* files.el (version-control): Doc fix.
