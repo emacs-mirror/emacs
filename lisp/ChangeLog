@@ -1,4 +1,8 @@
-2007-01-01  acm  <acm@muc.de>
+2007-01-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* files.el (version-control): Doc fix.
+
+2007-01-01  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-engine.el (c-guess-basic-syntax, case 5N): Check
 	the format of c-state-cache is valid for an optimisation before
@@ -17,11 +21,11 @@
 
 2007-01-01  Alan Mackenzie  <acm@muc.de>
 
-	* /progmodes/cc-defs.el.  Correct typos.
+	* progmodes/cc-defs.el: Correct typos.
 
 2007-01-01  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-cmds.el (c-context-line-break): don't indent the
+	* progmodes/cc-cmds.el (c-context-line-break): Don't indent the
 	new line after an escaped EOL in a string.
 
 2007-01-01  Alan Mackenzie  <acm@muc.de>
@@ -31,7 +35,7 @@
 
 2007-01-01  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-engine.el (c-backward-<>-arglist): tolerate empty
+	* progmodes/cc-engine.el (c-backward-<>-arglist): Tolerate empty
 	angle brackets (as seen in "explicit specialisations" of C++
 	templates).
 
@@ -54,7 +58,7 @@
 
 2007-01-01  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-mode.el (): Bind C-M-a and C-M-e to
+	* progmodes/cc-mode.el: Bind C-M-a and C-M-e to
 	c-\(beginning\|end\)-of-defun by default.
 
 2007-01-01  Alan Mackenzie  <acm@muc.de>
@@ -63,7 +67,7 @@
 	line-up function, for the DEFUN macro in the Emacs C sources.
 	Only used in "gnu" style.
 
-	* progmodes/cc-styles.el (c-style-alist): use this new function in
+	* progmodes/cc-styles.el (c-style-alist): Use this new function in
 	the "gnu" style.
 
 2007-01-01  Alan Mackenzie  <acm@muc.de>
@@ -76,8 +80,8 @@
 	for initial and final adjustments.  M-- C-M-[ae] now go to the
 	right defuns when the starting point is between defuns.  They use
 	the four new functions:
-	(c-in-function-trailer-p, c-where-wrt-brace-construct,
-	c-backward-to-nth-BOF-{, c-forward-to-nth-EOF-}): new functions to
+	(c-in-function-trailer-p, c-where-wrt-brace-construct)
+	(c-backward-to-nth-BOF-{, c-forward-to-nth-EOF-}): New functions to
 	support c-\(beginning\|end\)-of-defun.
 
 2007-01-01  Alan Mackenzie  <acm@muc.de>
@@ -92,7 +96,7 @@
 
 2007-01-01  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-mode.el (c-postprocess-file-styles): bind
+	* progmodes/cc-mode.el (c-postprocess-file-styles): Bind
 	inhibit-read-only to t, around the call to
 	c-remove-any-local-eval-or-mode-variables, so that it works on a
 	RO file.
