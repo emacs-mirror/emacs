@@ -1,3 +1,19 @@
+2007-01-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xlwmenu.c (xlwMenuResources): Add XtNleaveCallback, XtNenterCallback.
+	(display_menu, map_event_to_widget_value): Generate enter and
+	leave callbacks.
+	(pop_up_menu): Initialize mw->menu.inside_entry.
+
+	* xlwmenu.h (XtNleaveCallback, XtNenterCallback): New strings.
+
+	* xlwmenuP.h (_XlwMenu_part): Add enter/leave callbacks and
+	inside_entry.
+
+	* lwlib-Xlw.c (enter_hook, leave_hook): New functions
+	(xlw_create_menubar, xlw_create_popup_menu): Connect XtNenter/leave
+	to enter/leave_hook.
+
 2006-10-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Makefile.in (lwlib-utils.o): Use CPPFLAGS.

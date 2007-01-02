@@ -622,10 +622,10 @@ name:
  empty-defun-braces  -- Clean up empty defun braces by placing the
                         braces on the same line.  Clean up occurs when
                         the defun closing brace is typed.
- one-liner-defun     -- If the code inside a function body is a single
-                        line then remove any newlines between that
-                        line and the defun braces so that the whole
-                        body becomes a single line.
+ one-liner-defun     -- If the code inside a function body can fit in
+                        a single line, then remove any newlines
+                        between that line and the defun braces so that
+                        the whole body becomes a single line.
                         `c-max-one-liner-length' gives the maximum
                         length allowed for the resulting line.  Clean
                         up occurs when the closing brace is typed.
@@ -1604,7 +1604,8 @@ statically (e.g. with `setq').")
 
 (defvar c-indentation-style nil
   "Name of the currently installed style.
-Don't change this directly; call `c-set-style' instead.")
+Don't change this directly; call `c-set-style' instead, or set the variable
+`c-file-style' in the file's Local Variable list.")
 
 (defvar c-current-comment-prefix nil
   "The current comment prefix regexp.

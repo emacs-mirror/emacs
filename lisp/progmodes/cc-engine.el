@@ -255,6 +255,18 @@ comment at the start of cc-engine.el for more info."
 	     (forward-char)
 	     t))))
 
+(defun c-forward-over-cpp-define-id ()
+  ;; Assuming point is at the "#" that introduces a preprocessor
+  ;; directive, it's moved forward to the end of the identifier which is
+  ;; "#define"d (or whatever c-opt-cpp-macro-define specifies).  Non-nil
+  ;; is returned in this case, in all other cases nil is returned and
+  ;; point isn't moved.
+  ;;
+  ;; This function might do hidden buffer changes.
+  (when (and c-opt-cpp-macro-define-id
+	     (looking-at c-opt-cpp-macro-define-id))
+    (goto-char (match-end 0))))
+
 (defun c-forward-to-cpp-define-body ()
   ;; Assuming point is at the "#" that introduces a preprocessor
   ;; directive, it's moved forward to the start of the definition body
@@ -2442,14 +2454,14 @@ comment at the start of cc-engine.el for more info."
 		(= (c-backward-token-2 0) 0))
 
        (cond ((and (looking-at c-overloadable-operators-regexp)
-		   (or (not c-opt-op-identitier-prefix)
+		   (or (not c-opt-op-identifier-prefix)
 		       (and (= (c-backward-token-2 1) 0)
-			    (looking-at c-opt-op-identitier-prefix))))
+			    (looking-at c-opt-op-identifier-prefix))))
 	      (point))
 
 	     ((save-excursion
-		(and c-opt-op-identitier-prefix
-		     (looking-at c-opt-op-identitier-prefix)
+		(and c-opt-op-identifier-prefix
+		     (looking-at c-opt-op-identifier-prefix)
 		     (= (c-forward-token-2 1) 0)
 		     (looking-at c-overloadable-operators-regexp)))
 	      (point))))
@@ -3843,7 +3855,7 @@ comment at the start of cc-engine.el for more info."
 	;; good start position for the search, so do it.
 	(c-find-decl-prefix-search)))
 
-    ;; Now loop.  We already got the first match.
+    ;; Now loop.  Round what?  (ACM, 2006/7/5).  We already got the first match.
 
     (while (progn
 	     (while (and
@@ -4534,41 +4546,42 @@ comment at the start of cc-engine.el for more info."
 	  (goto-char start)
 	  nil)
 
-      (while (and
+      (while (progn
 	      (c-syntactic-skip-backward "^<;{}" limit t)
 
-	      (if (eq (char-before) ?<)
-		  t
-		;; Stopped at bob or a char that isn't allowed in an
-		;; arglist, so we've failed.
-		(goto-char start)
-		nil)
+	      (and
+	       (if (eq (char-before) ?<)
+		   t
+		 ;; Stopped at bob or a char that isn't allowed in an
+		 ;; arglist, so we've failed.
+		 (goto-char start)
+		 nil)
 
-	      (if (> (point)
-		     (progn (c-beginning-of-current-token)
-			    (point)))
-		  ;; If we moved then the "<" was part of some
-		  ;; multicharacter token.
-		  t
+	       (if (> (point)
+		      (progn (c-beginning-of-current-token)
+			     (point)))
+		   ;; If we moved then the "<" was part of some
+		   ;; multicharacter token.
+		   t
 
-		(backward-char)
-		(let ((beg-pos (point)))
-		  (if (c-forward-<>-arglist all-types)
-		      (cond ((= (point) start)
-			     ;; Matched the arglist.  Break the while.
-			     (goto-char beg-pos)
-			     nil)
-			    ((> (point) start)
-			     ;; We started from a non-paren ">" inside an
-			     ;; arglist.
-			     (goto-char start)
-			     nil)
-			    (t
-			     ;; Matched a shorter arglist.  Can be a nested
-			     ;; one so continue looking.
-			     (goto-char beg-pos)
-			     t))
-		    t)))))
+		 (backward-char)
+		 (let ((beg-pos (point)))
+		   (if (c-forward-<>-arglist all-types)
+		       (cond ((= (point) start)
+			      ;; Matched the arglist.  Break the while.
+			      (goto-char beg-pos)
+			      nil)
+			     ((> (point) start)
+			      ;; We started from a non-paren ">" inside an
+			      ;; arglist.
+			      (goto-char start)
+			      nil)
+			     (t
+			      ;; Matched a shorter arglist.  Can be a nested
+			      ;; one so continue looking.
+			      (goto-char beg-pos)
+			      t))
+		     t))))))
 
       (/= (point) start))))
 
@@ -5793,17 +5806,32 @@ y	  ;; True if there's a suffix match outside the outermost
       nil))))
 
 (defun c-forward-label (&optional assume-markup preceding-token-end limit)
-  ;; Assuming the point is at the beginning of a token, check if it
-  ;; starts a label and if so move over it and return t, otherwise
-  ;; don't move and return nil.  The end of the label is taken to be
-  ;; the end of the first submatch in `c-opt-extra-label-key' if it
-  ;; matched, otherwise it's the colon.  The point is directly after
-  ;; the end on return.  The terminating char is marked with
-  ;; `c-decl-end' to improve recognition of the following declaration
-  ;; or statement.
+  ;; Assuming that point is at the beginning of a token, check if it starts a
+  ;; label and if so move over it and return t, otherwise don't move and
+  ;; return nil.  "Label" here means "most things with a colon".
+  ;;
+  ;; More precisely, a "label" is regarded as one of:
+  ;; (i) a goto target like "foo:";
+  ;; (ii) A case label - either the entire construct "case FOO:" or just the
+  ;;   bare "case", should the colon be missing;
+  ;; (iii) a keyword which needs a colon, like "default:" or "private:";
+  ;; (iv) One of QT's "extended" C++ variants of
+  ;; "private:"/"protected:"/"public:"/"more:" looking like "public slots:".
+  ;; (v) One of the keywords matched by `c-opt-extra-label-key' (without any
+  ;;   colon).  Currently (2006-03), this applies only to Objective C's
+  ;;   keywords "@private", "@protected", and "@public".
+  ;;
+  ;; One of the things which will NOT be recognised as a label is a bit-field
+  ;; element of a struct, something like "int foo:5".
+  ;;
+  ;; The end of the label is taken to be just after the colon, or the end of
+  ;; the first submatch in `c-opt-extra-label-key'.  The point is directly
+  ;; after the end on return.  The terminating char gets marked with
+  ;; `c-decl-end' to improve recognition of the following declaration or
+  ;; statement.
   ;;
   ;; If ASSUME-MARKUP is non-nil, it's assumed that the preceding
-  ;; label, if any, has been marked up like that.
+  ;; label, if any, has already been marked up like that.
   ;;
   ;; If PRECEDING-TOKEN-END is given, it should be the first position
   ;; after the preceding token, i.e. on the other side of the
@@ -5819,8 +5847,11 @@ y	  ;; True if there's a suffix match outside the outermost
   ;;
   ;; This function might do hidden buffer changes.
 
-  (let ((start (point)))
+  (let ((start (point))
+	qt-symbol-idx
+	macro-start)			; if we're in one.
     (cond
+     ;; "case" or "default" (Doesn't apply to AWK). 
      ((looking-at c-label-kwds-regexp)
       (let ((kwd-end (match-end 1)))
 	;; Record only the keyword itself for fontification, since in
@@ -5840,7 +5871,7 @@ y	  ;; True if there's a suffix match outside the outermost
 		 (match-beginning 2))
 
 	    (progn
-	      (goto-char (match-beginning 2))
+	      (goto-char (match-beginning 2)) ; just after the :
 	      (c-put-c-type-property (1- (point)) 'c-decl-end)
 	      t)
 
@@ -5851,6 +5882,7 @@ y	  ;; True if there's a suffix match outside the outermost
 	  (goto-char kwd-end)
 	  t)))
 
+     ;; @private, @protected, @public, in Objective C, or similar.
      ((and c-opt-extra-label-key
 	   (looking-at c-opt-extra-label-key))
       ;; For a `c-opt-extra-label-key' match, we record the whole
@@ -5862,7 +5894,8 @@ y	  ;; True if there's a suffix match outside the outermost
       (c-put-c-type-property (1- (point)) 'c-decl-end)
       t)
 
-     ((and c-recognize-colon-labels
+     ;; All other cases of labels.
+     ((and c-recognize-colon-labels	; nil for AWK and IDL, otherwise t.
 
 	   ;; A colon label must have something before the colon.
 	   (not (eq (char-after) ?:))
@@ -5890,7 +5923,8 @@ y	  ;; True if there's a suffix match outside the outermost
 		 (save-excursion
 		   (goto-char (1- preceding-token-end))
 		   (c-beginning-of-current-token)
-		   (looking-at c-label-prefix-re))
+		   (or (looking-at c-label-prefix-re)
+		       (looking-at c-block-stmt-1-key)))
 
 		 (and (eq (char-before preceding-token-end) ?\))
 		      (c-after-conditional)))
@@ -5899,7 +5933,8 @@ y	  ;; True if there's a suffix match outside the outermost
 	       (save-excursion
 		 (goto-char (1- preceding-token-end))
 		 (c-beginning-of-current-token)
-		 (looking-at c-label-prefix-re))
+		 (or (looking-at c-label-prefix-re)
+		     (looking-at c-block-stmt-1-key)))
 
 	       (cond
 		((eq (char-before preceding-token-end) ?\))
@@ -5907,26 +5942,52 @@ y	  ;; True if there's a suffix match outside the outermost
 
 		((eq (char-before preceding-token-end) ?:)
 		 ;; Might be after another label, so check it recursively.
-		 (save-excursion
-		   (goto-char (1- preceding-token-end))
-		   ;; Essentially the same as the
-		   ;; `c-syntactic-re-search-forward' regexp below.
-		   (c-syntactic-skip-backward "^-]:?;}=*/%&|,<>!@+" nil t)
-		   (let ((pte (point))
-			 ;; If the caller turned on recording for us,
-			 ;; it shouldn't apply when we check the
-			 ;; preceding label.
-			 c-record-type-identifiers)
-		     (c-forward-syntactic-ws)
-		     (c-forward-label nil pte start))))))))
+		 (save-restriction
+		   (save-excursion
+		     (goto-char (1- preceding-token-end))
+		     ;; Essentially the same as the
+		     ;; `c-syntactic-re-search-forward' regexp below.
+		     (setq macro-start
+			   (save-excursion (and (c-beginning-of-macro)
+						(point))))
+		     (if macro-start (narrow-to-region macro-start (point-max)))
+		     (c-syntactic-skip-backward "^-]:?;}=*/%&|,<>!@+" nil t)
+		     ;; Note: the following should work instead of the
+		     ;; narrow-to-region above.  Investigate why not,
+		     ;; sometime.  ACM, 2006-03-31.
+		     ;; (c-syntactic-skip-backward "^-]:?;}=*/%&|,<>!@+"
+		     ;;				    macro-start t)
+		     (let ((pte (point))
+			   ;; If the caller turned on recording for us,
+			   ;; it shouldn't apply when we check the
+			   ;; preceding label.
+			   c-record-type-identifiers)
+		       ;; A label can't start at a cpp directive.  Check for
+		       ;; this, since c-forward-syntactic-ws would foul up on it.
+		       (unless (and c-opt-cpp-prefix (looking-at c-opt-cpp-prefix))
+			 (c-forward-syntactic-ws)
+			 (c-forward-label nil pte start))))))))))
 
-	   ;; Check that the next nonsymbol token is ":".  Allow '('
-	   ;; for the sake of macro arguments.  FIXME: Should build
-	   ;; this regexp from the language constants.
-	   (c-syntactic-re-search-forward
-	    "[[:?;{=*/%&|,<>!@+-]" limit t t)
-	   (eq (char-before) ?:)
-	   (not (eq (char-after) ?:)))
+	   ;; Check that the next nonsymbol token is ":", or that we're in one
+	   ;; of QT's "slots" declarations.  Allow '(' for the sake of macro
+	   ;; arguments.  FIXME: Should build this regexp from the language
+	   ;; constants.
+	   (when (c-syntactic-re-search-forward
+		  "[ \t[:?;{=*/%&|,<>!@+-]" limit t t) ; not at EOB
+	     (backward-char)
+	     (setq qt-symbol-idx
+		   (and (c-major-mode-is 'c++-mode)
+			(string-match
+			 "\\(p\\(r\\(ivate\\|otected\\)\\|ublic\\)\\|more\\)\\>"
+			 (buffer-substring start (point)))))
+	     (c-forward-syntactic-ws limit)
+	     (when (or (looking-at ":\\([^:]\\|\\'\\)") ; A single colon.
+		       (and qt-symbol-idx
+			    (search-forward-regexp "\\=slots\\>" limit t)
+			    (progn (c-forward-syntactic-ws limit)
+				   (looking-at ":\\([^:]\\|\\'\\)")))) ; A single colon
+	       (forward-char)		; to after the colon.
+	       t)))
 
       (save-restriction
 	(narrow-to-region start (point))
@@ -6145,8 +6206,8 @@ comment at the start of cc-engine.el for more info."
 	      ;; so that we don't get stuck on that instead of the
 	      ;; function arglist.
 	      (c-forward-sexp))
-	     ((and c-opt-op-identitier-prefix
-		   (looking-at c-opt-op-identitier-prefix))
+	     ((and c-opt-op-identifier-prefix
+		   (looking-at c-opt-op-identifier-prefix))
 	      ;; Don't trip up on "operator ()".
 	      (c-forward-token-2 2 t)))
        (and (< (point) beg)
@@ -6263,10 +6324,10 @@ comment at the start of cc-engine.el for more info."
     (and c-overloadable-operators-regexp
 	 (zerop (c-backward-token-2 1 nil lim))
 	 (looking-at c-overloadable-operators-regexp)
-	 (or (not c-opt-op-identitier-prefix)
+	 (or (not c-opt-op-identifier-prefix)
 	     (and
 	      (zerop (c-backward-token-2 1 nil lim))
-	      (looking-at c-opt-op-identitier-prefix)))
+	      (looking-at c-opt-op-identifier-prefix)))
 	 (point))))
 
 (defsubst c-backward-to-block-anchor (&optional lim)
@@ -6314,7 +6375,7 @@ comment at the start of cc-engine.el for more info."
 		 ;; operator token preceded by "operator".
 		 (save-excursion
 		   (and (c-safe (c-backward-sexp) t)
-			(looking-at c-opt-op-identitier-prefix)))
+			(looking-at c-opt-op-identifier-prefix)))
 		 (and (eq (char-before) ?<)
 		      (c-with-syntax-table c++-template-syntax-table
 			(if (c-safe (goto-char (c-up-list-forward (point))))
@@ -6354,6 +6415,10 @@ comment at the start of cc-engine.el for more info."
       ;; construct, i.e. if it isn't preceded by ';', '}', ':', bob,
       ;; or an open paren.
       (let ((beg (point)) tentative-move)
+	;; Go back one "statement" each time round the loop until we're just
+	;; after a ;, }, or :, or at BOB or the start of a macro or start of
+	;; an ObjC method.  This will move over a multiple declaration whose
+	;; components are comma separated.
 	(while (and
 		;; Must check with c-opt-method-key in ObjC mode.
 		(not (and c-opt-method-key
@@ -6397,25 +6462,39 @@ comment at the start of cc-engine.el for more info."
 			   knr-argdecl-start))
 	    (goto-char fallback-pos))))
 
-      ;; `c-beginning-of-statement-1' counts each brace block as a
-      ;; separate statement, so the result will be 'previous if we've
-      ;; moved over any.  If they were brace list initializers we might
-      ;; not have moved over a declaration boundary though, so change it
-      ;; to 'same if we've moved past a '=' before '{', but not ';'.
-      ;; (This ought to be integrated into `c-beginning-of-statement-1',
-      ;; so we avoid this extra pass which potentially can search over a
-      ;; large amount of text.)
+      ;; `c-beginning-of-statement-1' counts each brace block as a separate
+      ;; statement, so the result will be 'previous if we've moved over any.
+      ;; So change our result back to 'same if necessary.
+      ;;
+      ;; If they were brace list initializers we might not have moved over a
+      ;; declaration boundary though, so change it to 'same if we've moved
+      ;; past a '=' before '{', but not ';'.  (This ought to be integrated
+      ;; into `c-beginning-of-statement-1', so we avoid this extra pass which
+      ;; potentially can search over a large amount of text.).  Take special
+      ;; pains not to get mislead by C++'s "operator=", and the like.
       (if (and (eq move 'previous)
 	       (c-with-syntax-table (if (c-major-mode-is 'c++-mode)
 					c++-template-syntax-table
 				      (syntax-table))
 		 (save-excursion
-		   (and (c-syntactic-re-search-forward "[;={]" start t t t)
-			(eq (char-before) ?=)
-			(c-syntactic-re-search-forward "[;{]" start t t)
-			(eq (char-before) ?{)
-			(c-safe (goto-char (c-up-list-forward (point))) t)
-			(not (c-syntactic-re-search-forward ";" start t t))))))
+		   (and
+		    (progn
+		      (while  ; keep going back to "[;={"s until we either find
+			    ; no more, or get to one which isn't an "operator ="
+			  (and (c-syntactic-re-search-forward "[;={]" start t t t)
+			       (eq (char-before) ?=)
+			       c-overloadable-operators-regexp
+			       c-opt-op-identifier-prefix
+			       (save-excursion
+				 (eq (c-backward-token-2) 0)
+				 (looking-at c-overloadable-operators-regexp)
+				 (eq (c-backward-token-2) 0)
+				 (looking-at c-opt-op-identifier-prefix))))
+		      (eq (char-before) ?=))
+		    (c-syntactic-re-search-forward "[;{]" start t t)
+		    (eq (char-before) ?{)
+		    (c-safe (goto-char (c-up-list-forward (point))) t)
+		    (not (c-syntactic-re-search-forward ";" start t t))))))
 	  (cons 'same nil)
 	(cons move nil)))))
 
@@ -6725,8 +6804,8 @@ comment at the start of cc-engine.el for more info."
 			(setq braceassignp
 			      (cond
 			       ;; Check for operator =
-			       ((and c-opt-op-identitier-prefix
-				     (looking-at c-opt-op-identitier-prefix))
+			       ((and c-opt-op-identifier-prefix
+				     (looking-at c-opt-op-identifier-prefix))
 				nil)
 			       ;; Check for `<opchar>= in Pike.
 			       ((and (c-major-mode-is 'pike-mode)
@@ -7000,6 +7079,11 @@ comment at the start of cc-engine.el for more info."
 			  stop-at-boi-only
 			  containing-sexp
 			  paren-state)
+  ;; Add the indicated SYNTAX-SYMBOL to `c-syntactic-context', extending it as
+  ;; needed with further syntax elements of the types `substatement',
+  ;; `inexpr-statement', `arglist-cont-nonempty', `statement-block-intro', and
+  ;; `defun-block-intro'.
+  ;; 
   ;; Do the generic processing to anchor the given syntax symbol on
   ;; the preceding statement: Skip over any labels and containing
   ;; statements on the same line, and then search backward until we
@@ -8085,7 +8169,9 @@ comment at the start of cc-engine.el for more info."
 	      (and (eq (char-before) ?})
 		   (save-excursion
 		     (let ((start (point)))
-		       (if c-state-cache
+		       (if (and c-state-cache
+				(consp (car c-state-cache))
+				(eq (cdar c-state-cache) (point)))
 			   ;; Speed up the backward search a bit.
 			   (goto-char (caar c-state-cache)))
 		       (c-beginning-of-decl-1 containing-sexp)
@@ -8103,26 +8189,30 @@ comment at the start of cc-engine.el for more info."
 
 	   ;; CASE 5J: we are at the topmost level, make
 	   ;; sure we skip back past any access specifiers
-	   ((save-excursion
-	      (setq placeholder (point))
-	      (or (memq char-before-ip '(?\; ?{ ?} nil))
-		  (c-at-vsemi-p before-ws-ip)
-		  (when (and (eq char-before-ip ?:)
-			     (eq (c-beginning-of-statement-1 lim)
-				 'label))
-		    (c-backward-syntactic-ws lim)
-		    (setq placeholder (point)))
-		  (and (c-major-mode-is 'objc-mode)
-		       (catch 'not-in-directive
-			 (c-beginning-of-statement-1 lim)
-			 (setq placeholder (point))
-			 (while (and (c-forward-objc-directive)
-				     (< (point) indent-point))
-			   (c-forward-syntactic-ws)
-			   (if (>= (point) indent-point)
-			       (throw 'not-in-directive t))
-			   (setq placeholder (point)))
-			 nil))))
+	   ((and
+	     ;; A macro continuation line is never at top level.
+	     (not (and macro-start
+		       (> indent-point macro-start)))
+	     (save-excursion
+	       (setq placeholder (point))
+	       (or (memq char-before-ip '(?\; ?{ ?} nil))
+		   (c-at-vsemi-p before-ws-ip)
+		   (when (and (eq char-before-ip ?:)
+			      (eq (c-beginning-of-statement-1 lim)
+				  'label))
+		     (c-backward-syntactic-ws lim)
+		     (setq placeholder (point)))
+		   (and (c-major-mode-is 'objc-mode)
+			(catch 'not-in-directive
+			  (c-beginning-of-statement-1 lim)
+			  (setq placeholder (point))
+			  (while (and (c-forward-objc-directive)
+				      (< (point) indent-point))
+			    (c-forward-syntactic-ws)
+			    (if (>= (point) indent-point)
+				(throw 'not-in-directive t))
+			    (setq placeholder (point)))
+			  nil)))))
 	    ;; For historic reasons we anchor at bol of the last
 	    ;; line of the previous declaration.  That's clearly
 	    ;; highly bogus and useless, and it makes our lives hard
@@ -8176,6 +8266,11 @@ comment at the start of cc-engine.el for more info."
 			   (c-after-special-operator-id lim))))
 	    (c-beginning-of-statement-1 (c-safe-position (point) paren-state))
 	    (c-add-syntax 'template-args-cont (c-point 'boi)))
+
+	   ;; CASE 5Q: we are at a statement within a macro.
+	   (macro-start
+	    (c-beginning-of-statement-1 containing-sexp)
+	    (c-add-stmt-syntax 'statement nil t containing-sexp paren-state))
 
 	   ;; CASE 5M: we are at a topmost continuation line
 	   (t

@@ -288,8 +288,9 @@ control).  See \"cc-mode.el\" for more info."
 			       c-mode-base-map global-map))
 
   ;; RMS says don't make these the default.
-;;  (define-key c-mode-base-map "\e\C-a"    'c-beginning-of-defun)
-;;  (define-key c-mode-base-map "\e\C-e"    'c-end-of-defun)
+  ;; (April 2006): RMS has now approved these commands as defaults.
+  (define-key c-mode-base-map "\e\C-a"    'c-beginning-of-defun)
+  (define-key c-mode-base-map "\e\C-e"    'c-end-of-defun)
 
   (define-key c-mode-base-map "\C-c\C-n"  'c-forward-conditional)
   (define-key c-mode-base-map "\C-c\C-p"  'c-backward-conditional)
@@ -728,8 +729,8 @@ Note that the style variables are always made local to the buffer."
     ;; We prevent this by temporarily removing `mode' from the Local Variables
     ;; section.
     (if (or c-file-style c-file-offsets)
-	(c-tentative-buffer-changes
-	  (let ((hack-local-variables-hook nil))
+	(let ((hack-local-variables-hook nil) (inhibit-read-only t))
+	  (c-tentative-buffer-changes
 	    (c-remove-any-local-eval-or-mode-variables)
 	    (hack-local-variables))
 	  nil))))

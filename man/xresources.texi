@@ -294,6 +294,11 @@ specified if @samp{off}.
 Gamma correction for colors, equivalent to the frame parameter
 @code{screen-gamma}.
 
+@item @code{scrollBarWidth} (class @code{ScrollBarWidth})
+@cindex scrollbar width
+The scroll bar width in pixels, equivalent to the frame parameter
+@code{scroll-bar-width}.
+
 @ifnottex
 @item @code{selectionFont} (class @code{SelectionFont})
 Font name for pop-up menu items, in non-toolkit versions of Emacs.  (For
