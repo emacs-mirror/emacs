@@ -334,11 +334,14 @@ directory, whereas @file{.emacs} does not.
 keyboard input in Emacs.
 
 @cindex MS-Windows keyboard shortcuts
-  Many key combinations (known as ``keyboard shortcuts'') that are in
-widespread use in MS-Windows programs are taken by various Emacs
-features.  Examples include @kbd{C-C}, @kbd{C-X}, @kbd{C-Z},
-@kbd{C-A}, and @kbd{W-SPC}.  You can get some of them back by turning
-on CUA Mode (@pxref{CUA Bindings}).
+  Many key combinations (known as ``keyboard shortcuts'') that have
+conventional uses in MS-Windows programs conflict with traditional
+Emacs commands.  This conflict arose because the designers of Windows
+did not concern themselves with how Emacs used these characters.
+Examples include @kbd{C-c}, @kbd{C-x}, @kbd{C-z}, @kbd{C-a}, and
+@kbd{W-@key{SPC}}.  You can redefine some of them with meanings more
+like the MS-Windows meanings by enabling CUA Mode (@pxref{CUA
+Bindings}).
 
 @kindex F10 @r{(MS-Windows)}
 @cindex menu bar access using keyboard @r{(MS-Windows)}
