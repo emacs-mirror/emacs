@@ -983,7 +983,7 @@ POSITION in the minibuffer.  Any integer value less than or equal to
 one puts point at the beginning of the string.  *Note* that this
 behavior differs from the way such arguments are used in `completing-read'
 and some related functions, which use zero-indexing for POSITION.  */)
-(prompt, initial_contents, keymap, read, hist, default_value, inherit_input_method)
+   (prompt, initial_contents, keymap, read, hist, default_value, inherit_input_method)
      Lisp_Object prompt, initial_contents, keymap, read, hist, default_value;
      Lisp_Object inherit_input_method;
 {
