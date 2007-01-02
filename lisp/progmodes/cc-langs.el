@@ -685,6 +685,16 @@ definition, or nil if the language doesn't have any."
 (c-lang-defvar c-opt-cpp-macro-define-start
   (c-lang-const c-opt-cpp-macro-define-start))
 
+(c-lang-defconst c-opt-cpp-macro-define-id
+  ;; Regexp matching everything up to the end of the identifier defined
+  ;; by a cpp define.
+  t (if (c-lang-const c-opt-cpp-macro-define)
+	(concat (c-lang-const c-opt-cpp-prefix)	; #
+		(c-lang-const c-opt-cpp-macro-define) ; define
+		"[ \t]+\\(\\sw\\|_\\)+")))
+(c-lang-defvar c-opt-cpp-macro-define-id
+  (c-lang-const c-opt-cpp-macro-define-id))
+
 (c-lang-defconst c-cpp-expr-directives
   "List if cpp directives (without the prefix) that are followed by an
 expression."
@@ -882,7 +892,7 @@ since CC Mode treats every identifier as an expression."
 
 (c-lang-defconst c-overloadable-operators
   "List of the operators that are overloadable, in their \"identifier
-form\".  See also `c-op-identitier-prefix'."
+form\".  See also `c-op-identifier-prefix'."
   t    nil
   c++  '("new" "delete" ;; Can be followed by "[]" but we ignore that.
 	 "+" "-" "*" "/" "%"
@@ -905,7 +915,7 @@ form\".  See also `c-op-identitier-prefix'."
 (c-lang-defvar c-overloadable-operators-regexp
   (c-lang-const c-overloadable-operators-regexp))
 
-(c-lang-defconst c-opt-op-identitier-prefix
+(c-lang-defconst c-opt-op-identifier-prefix
   "Regexp matching the token before the ones in
 `c-overloadable-operators' when operators are specified in their
 \"identifier form\".  This typically matches \"operator\" in C++ where
@@ -916,8 +926,15 @@ identifier is listed in `c-overloadable-operators'.
 This regexp is assumed to not match any non-operator identifier."
   t   nil
   c++ (c-make-keywords-re t '("operator")))
-(c-lang-defvar c-opt-op-identitier-prefix
-  (c-lang-const c-opt-op-identitier-prefix))
+(c-lang-defvar c-opt-op-identifier-prefix
+  (c-lang-const c-opt-op-identifier-prefix))
+
+;; Note: the following alias is an old name which was a mis-spelling.  It has
+;; been corrected above and throughout cc-engine.el.  It will be removed at
+;; some release very shortly in the future.  ACM, 2006-04-14.
+(defalias 'c-opt-op-identitier-prefix 'c-opt-op-identifier-prefix)
+(make-obsolete-variable 'c-opt-op-identitier-prefix 'c-opt-op-identifier-prefix
+			"CC Mode 5.31.4, 2006-04-14")
 
 (c-lang-defconst c-other-op-syntax-tokens
   "List of the tokens made up of characters in the punctuation or

@@ -1,5 +1,8 @@
 Tasks needed before the next release.
 
+* UPDATE COPYRIGHTS (Happy New Year :-)
+
+
 * TO BE DONE SHORTLY BEFORE RELEASE
 
 ** Check for widow and orphan lines in manuals;
@@ -8,7 +11,6 @@ make sure all the pages really look ok in the manual as formatted.
 ** Check for text in manuals that assumes current version is 21.
 
 ** Update AUTHORS.
-[Done 2006-10-03]
 
 ** Regenerate the postscript files of the reference cards in etc.
 

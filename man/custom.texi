@@ -625,8 +625,9 @@ structure of groups, here are other ways to specify the settings that
 you want to customize.
 
 @table @kbd
-@item M-x customize-variable @key{RET} @var{variable} @key{RET}
-Set up a customization buffer with just one variable, @var{variable}.
+@item M-x customize-option @key{RET} @var{option} @key{RET}
+Set up a customization buffer with just one user option variable,
+@var{option}.
 @item M-x customize-face @key{RET} @var{face} @key{RET}
 Set up a customization buffer with just one face, @var{face}.
 @item M-x customize-group @key{RET} @var{group} @key{RET}
@@ -634,7 +635,7 @@ Set up a customization buffer with just one group, @var{group}.
 @item M-x customize-apropos @key{RET} @var{regexp} @key{RET}
 Set up a customization buffer with all the settings and groups that
 match @var{regexp}.
-@item M-x customize-changed-options @key{RET} @var{version} @key{RET}
+@item M-x customize-changed @key{RET} @var{version} @key{RET}
 Set up a customization buffer with all the settings and groups
 whose meaning has changed since Emacs version @var{version}.
 @item M-x customize-saved
@@ -645,15 +646,16 @@ Set up a customization buffer containing all settings that you have
 customized but not saved.
 @end table
 
-@findex customize-variable
-  If you want to alter a particular variable with the customization
+@findex customize-option
+  If you want to alter a particular user option with the customization
 buffer, and you know its name, you can use the command @kbd{M-x
-customize-variable} and specify the variable name.  This sets up the
-customization buffer with just one variable---the one that you asked
-for.  Editing, setting and saving the value work as described above,
-but only for the specified variable.  Minibuffer completion is handy
-if you only know part of the name.  However, this command can only see
-options that have been loaded in the current Emacs session.
+customize-option} and specify the user option (variable) name.  This
+sets up the customization buffer with just one user option---the one
+that you asked for.  Editing, setting and saving the value work as
+described above, but only for the specified user option.  Minibuffer
+completion is handy if you only know part of the name.  However, this
+command can only see options that have been loaded in the current
+Emacs session.
 
 @findex customize-face
   Likewise, you can modify a specific face, chosen by name, using
@@ -663,9 +665,9 @@ on the character after point.
 @findex customize-group
   You can also set up the customization buffer with a specific group,
 using @kbd{M-x customize-group}.  The immediate contents of the chosen
-group, including settings (variables and faces), and other groups, all
-appear as well (even if not already loaded).  However, the subgroups'
-own contents are not included.
+group, including settings (user options and faces), and other groups,
+all appear as well (even if not already loaded).  However, the
+subgroups' own contents are not included.
 
 @findex customize-apropos
   For a more general way of controlling what to customize, you can use
