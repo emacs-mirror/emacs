@@ -242,9 +242,9 @@ breaks any hard links between it and other files."
 
 (defcustom version-control nil
   "Control use of version numbers for backup files.
-t means make numeric backup versions unconditionally.
-nil means make them for files that have some already.
-`never' means do not make them."
+When t, make numeric backup versions unconditionally.
+When nil, make them for files that have some already.
+The value `never' means do not make them."
   :type '(choice (const :tag "Never" never)
 		 (const :tag "If existing" nil)
 		 (other :tag "Always" t))
