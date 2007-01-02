@@ -983,8 +983,8 @@ to the bottom before inserting.  The default is @code{nil}.
 
 @vindex comint-scroll-show-maximum-output
   If @code{comint-scroll-show-maximum-output} is non-@code{nil}, then
-arrival of output when point is at the end tries to place the last line of
-text at the bottom line of the window, so as to show as much useful
+arrival of output when point is at the end tries to scroll the last
+line of text to the bottom line of the window, showing as much useful
 text as possible.  (This mimics the scrolling behavior of most
 terminals.)  The default is @code{t}.
 
