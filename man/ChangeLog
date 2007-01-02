@@ -1,3 +1,11 @@
+2007-01-02  Daiki Ueno  <ueno@unixuser.org>
+
+	* message.texi (Using PGP/MIME): Document gpg-agent usage.
+
+2007-01-02  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.texi (Security): Split into sub-nodes.
+
 2007-01-01  Alan Mackenzie  <acm@muc.de>
 
 	* cc-mode.texi ("Limitations and Known Bugs"): Document problems with
