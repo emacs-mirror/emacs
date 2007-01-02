@@ -90,6 +90,29 @@ Works with: topmost-intro-cont."
 		       (c-after-special-operator-id))))
 	c-basic-offset)))
 
+(defun c-lineup-gnu-DEFUN-intro-cont (langelem)
+  "Line up the continuation lines of a DEFUN macro in the Emacs C source.
+These lines are indented as though they were `knr-argdecl-intro' lines.
+Return nil when we're not in such a construct.
+
+This function is for historical compatibility with how previous CC Modes (5.28
+and earlier) indented such lines.
+
+Here is an example:
+
+DEFUN (\"forward-char\", Fforward_char, Sforward_char, 0, 1, \"p\",
+       doc: /* Move point right N characters (left if N is negative).
+On reaching end of buffer, stop and signal error.  */)
+     (n)                      <- c-lineup-gnu-DEFUN-into-cont
+     Lisp_Object n;           <- c-lineup-gnu-DEFUN-into-cont
+
+Works with: topmost-intro-cont."
+  (save-excursion
+    (let (case-fold-search)
+      (goto-char (c-langelem-pos langelem))
+      (if (looking-at "\\<DEFUN\\>")
+	  (c-calc-offset '(knr-argdecl-intro))))))
+
 (defun c-block-in-arglist-dwim (arglist-start)
   ;; This function implements the DWIM to avoid far indentation of
   ;; brace block constructs in arguments in `c-lineup-arglist' etc.

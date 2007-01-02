@@ -134,6 +134,15 @@ because the keyboard input routines catch these special sequences
 and convert them to function key events before any other part of Emacs
 gets to see them.
 
+@cindex keys stolen by window manager
+@cindex window manager, keys stolen by
+  On graphical displays, the window manager is likely to block the
+character @kbd{Meta-@key{TAB}} before Emacs can see it.  It may also
+block @kbd{Meta-@key{SPC}}, @kbd{C-M-d} and @kbd{C-M-l}.  If you have
+these problems, we recommend that you customize your window manager to
+turn off those commands, or put them on key combinations that Emacs
+does not use.
+
 @node Keys, Commands, User Input, Top
 @section Keys
 

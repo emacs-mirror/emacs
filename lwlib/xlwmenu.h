@@ -44,6 +44,8 @@ Boston, MA 02110-1301, USA.  */
 #define XtNopen "open"
 #define XtNselect "select"
 #define XtNhighlightCallback "highlightCallback"
+#define XtNenterCallback "enterCallback"
+#define XtNleaveCallback "leaveCallback"
 #define XtNmenuBorderWidth "menuBorderWidth"
 #define XtNhorizontal "horizontal"
 #define XtCHorizontal "Horizontal"

@@ -136,7 +136,7 @@ fi
 CONFIG_STATUS="$BUILD/config.status"
 get_config_var ()
 {
-  if ! sed -n "s/^s\(.\)@$1@\1\(.*\)\1.*$/\2/p" $CONFIG_STATUS | sed q | grep ''
+  if ! sed -n "s/^s\(.\)@$1@\1\(|#_!!_#|\)*\(.*\)\1.*$/\3/p" $CONFIG_STATUS | sed q | grep ''
   then
     echo 1>&2 "$me: $1: Configuration variable not found in $CONFIG_STATUS"
     exit 4
