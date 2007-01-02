@@ -1460,8 +1460,11 @@ main (argc, argv)
   if (CTAGS)
     if (append_to_tagfile || update)
       {
-	char cmd[2*BUFSIZ+10];
-	sprintf (cmd, "sort -o %.*s %.*s", BUFSIZ, tagfile, BUFSIZ, tagfile);
+	char cmd[2*BUFSIZ+20];
+	/* Maybe these should be used:
+	   setenv ("LC_COLLATE", "C", 1);
+	   setenv ("LC_ALL", "C", 1); */
+	sprintf (cmd, "sort -u -o %.*s %.*s", BUFSIZ, tagfile, BUFSIZ, tagfile);
 	exit (system (cmd));
       }
   return EXIT_SUCCESS;
