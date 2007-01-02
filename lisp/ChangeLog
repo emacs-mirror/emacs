@@ -1,3 +1,9 @@
+2007-01-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (momentary-string-display): After moving point, set POS
+	variable to it to avoid later errors once the buffer is modified.
+	Doc fix.
+
 2007-01-02  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-cmds.el (c-mask-paragraph): In a block comment,
@@ -7,13 +13,13 @@
 
 	* wid-edit.el (widget-choose): Avoid ugly error for function keys.
 
-	* progmodes/cfengine.el (cfengine-font-lock-syntactic-keywords): 
+	* progmodes/cfengine.el (cfengine-font-lock-syntactic-keywords):
 	Fix format of value.
 
 	* cus-edit.el (customize-unsaved): Renamed from customize-customized.
 	Change messages accordingly.
 	(customize-customized): Now alias.
-	
+
 2007-01-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* files.el (version-control): Doc fix.
@@ -2317,8 +2323,8 @@
 
 2006-10-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* select.el (ccl-check-utf-8, string-utf-8-p): New functions
-	(by Kenichi Handa).
+	* select.el (ccl-check-utf-8, string-utf-8-p): New functions (by
+	Kenichi Handa).
 	(xselect-convert-to-string): Decline requests for UTF8_STRING if
 	the selection is not UTF-8.
 
