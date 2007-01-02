@@ -1330,9 +1330,12 @@ symbol names.
   The character @kbd{M-@key{TAB}} runs a command to complete the
 partial symbol before point against the set of meaningful symbol
 names.  This command inserts at point any additional characters that
-it can determine from the partial name.  (If your window manager
-defines @kbd{M-@key{TAB}} to switch windows, you can type
-@kbd{@key{ESC} @key{TAB}} or @kbd{C-M-i}.)
+it can determine from the partial name.
+
+  If your window manager defines @kbd{M-@key{TAB}} to switch windows,
+you can type @kbd{@key{ESC} @key{TAB}} or @kbd{C-M-i} instead.
+However, most window managers let you customize these shortcuts, and
+we recommend that you change any that get in the way of use of Emacs.
 
   If the partial name in the buffer has multiple possible completions
 that differ in the very next character, so that it is impossible to
