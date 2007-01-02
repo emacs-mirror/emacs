@@ -3750,7 +3750,7 @@ command to conveniently insert and align the necessary backslashes."
   ;; Note that this function does not do any hidden buffer changes.
 
   (let (fill
-	;; beg and end limits the region to narrow.  end is a marker.
+	;; beg and end limit the region to narrow.  end is a marker.
 	beg end
 	;; tmp-pre and tmp-post mark strings that are temporarily
 	;; inserted at the start and end of the region.  tmp-pre is a
@@ -3836,12 +3836,13 @@ command to conveniently insert and align the necessary backslashes."
 	    (setq apply-outside-literal t))
 
 	   ((eq c-lit-type 'c)		; Block comment.
-	    (when (>= end (cdr c-lit-limits))
-	      ;; The region includes the comment ender.  If it's on its own
-	      ;; line, it stays on its own line.  If it's got company on the
-	      ;; line, it keeps (at least one word of) it.  "=====*/" counts
-	      ;; as a comment ender here, but "===== */" doesn't and "foo*/"
-	      ;; doesn't.
+	    (when (and (>= end (cdr c-lit-limits))
+		       (> (point-max) (cdr c-lit-limits)))
+	      ;; There is a comment ender, and the region includes it.  If
+	      ;; it's on its own line, it stays on its own line.  If it's got
+	      ;; company on the line, it keeps (at least one word of) it.
+	      ;; "=====*/" counts as a comment ender here, but "===== */"
+	      ;; doesn't and "foo*/" doesn't.
 	      (unless
 		  (save-excursion
 		    (goto-char (cdr c-lit-limits))
