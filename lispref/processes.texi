@@ -2247,7 +2247,7 @@ Value of the last field processed.
 The data as a byte array.
 
 @item bindat-idx
-Current index into bindat-raw of the unpacking or packing operation.
+Current index (within @code{bindat-raw}) for unpacking or packing.
 
 @item struct
 The alist containing the structured data that have been unpacked so
