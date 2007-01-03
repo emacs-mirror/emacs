@@ -2112,7 +2112,7 @@ No external programs are used."
 		 (progn (goto-char (point-min))
 			(not (re-search-forward "^\\.\\([pnil]p\\|sh\\)[ \n]"
 						(point-max) t))))
-      (error "WoMan can only format manpages written in the an format")))
+      (error "WoMan can only format man pages written with the usual `-man' macros")))
 
   (and (boundp 'font-lock-mode) font-lock-mode (font-lock-mode -1))
   ;; (fundamental-mode)
