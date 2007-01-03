@@ -153,7 +153,7 @@ options:
                   (insert "\n\nYou can use M-x "
                           (format "%s" db)
                           " RET instead."))
-              (insert "\n\nWith you current key bindings"
+              (insert "\n\nWith your current key bindings"
                       " you can use the key "
                       where
                       " to get the function `"
