@@ -1,3 +1,9 @@
+2007-01-03  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Customizing Articles): Use index entries for gnus-treat-*
+	variables only in info to avoid redundant entries in the printed
+	manual.
+
 2007-01-02  Richard Stallman  <rms@gnu.org>
 
 	* custom.texi (Changing a Variable): Minor clarification.

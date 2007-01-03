@@ -11217,72 +11217,100 @@ variable, which is a list of regular expressions that are matched to the
 type of the part.  This variable is ignored if the value of the
 controlling variable is a predicate list, as described above.
 
+@ifinfo
+@c Avoid sort of redundant entries in the same section for the printed
+@c manual, but add them in info to allow `i gnus-treat-foo-bar RET' or
+@c `i foo-bar'.
+@vindex gnus-treat-buttonize
+@vindex gnus-treat-buttonize-head
+@vindex gnus-treat-capitalize-sentences
+@vindex gnus-treat-overstrike
+@vindex gnus-treat-strip-cr
+@vindex gnus-treat-strip-headers-in-body
+@vindex gnus-treat-strip-leading-blank-lines
+@vindex gnus-treat-strip-multiple-blank-lines
+@vindex gnus-treat-strip-pem
+@vindex gnus-treat-strip-trailing-blank-lines
+@vindex gnus-treat-unsplit-urls
+@vindex gnus-treat-wash-html
+@vindex gnus-treat-date-english
+@vindex gnus-treat-date-iso8601
+@vindex gnus-treat-date-lapsed
+@vindex gnus-treat-date-local
+@vindex gnus-treat-date-original
+@vindex gnus-treat-date-user-defined
+@vindex gnus-treat-date-ut
+@vindex gnus-treat-from-picon
+@vindex gnus-treat-mail-picon
+@vindex gnus-treat-newsgroups-picon
+@vindex gnus-treat-display-smileys
+@vindex gnus-treat-body-boundary
+@vindex gnus-treat-display-x-face
+@vindex gnus-treat-display-face
+@vindex gnus-treat-emphasize
+@vindex gnus-treat-fill-article
+@vindex gnus-treat-fill-long-lines
+@vindex gnus-treat-hide-boring-headers
+@vindex gnus-treat-hide-citation
+@vindex gnus-treat-hide-citation-maybe
+@vindex gnus-treat-hide-headers
+@vindex gnus-treat-hide-signature
+@vindex gnus-treat-strip-banner
+@vindex gnus-treat-strip-list-identifiers
+@vindex gnus-treat-highlight-citation
+@vindex gnus-treat-highlight-headers
+@vindex gnus-treat-highlight-signature
+@vindex gnus-treat-play-sounds
+@vindex gnus-treat-translate
+@vindex gnus-treat-x-pgp-sig
+@vindex gnus-treat-unfold-headers
+@vindex gnus-treat-fold-headers
+@vindex gnus-treat-fold-newsgroups
+@vindex gnus-treat-leading-whitespace
+@end ifinfo
+
 The following treatment options are available.  The easiest way to
 customize this is to examine the @code{gnus-article-treat} customization
 group.  Values in parenthesis are suggested sensible values.  Others are
 possible but those listed are probably sufficient for most people.
 
 @table @code
-@vindex gnus-treat-buttonize
 @item gnus-treat-buttonize (t, integer)
-@vindex gnus-treat-buttonize-head
 @item gnus-treat-buttonize-head (head)
 
 @xref{Article Buttons}.
 
-@vindex gnus-treat-capitalize-sentences
 @item gnus-treat-capitalize-sentences (t, integer)
-@vindex gnus-treat-overstrike
 @item gnus-treat-overstrike (t, integer)
-@vindex gnus-treat-strip-cr
 @item gnus-treat-strip-cr (t, integer)
-@vindex gnus-treat-strip-headers-in-body
 @item gnus-treat-strip-headers-in-body (t, integer)
-@vindex gnus-treat-strip-leading-blank-lines
 @item gnus-treat-strip-leading-blank-lines (t, integer)
-@vindex gnus-treat-strip-multiple-blank-lines
 @item gnus-treat-strip-multiple-blank-lines (t, integer)
-@vindex gnus-treat-strip-pem
 @item gnus-treat-strip-pem (t, last, integer)
-@vindex gnus-treat-strip-trailing-blank-lines
 @item gnus-treat-strip-trailing-blank-lines (t, last, integer)
-@vindex gnus-treat-unsplit-urls
 @item gnus-treat-unsplit-urls (t, integer)
-@vindex gnus-treat-wash-html
 @item gnus-treat-wash-html (t, integer)
 
 @xref{Article Washing}.
 
-@vindex gnus-treat-date-english
 @item gnus-treat-date-english (head)
-@vindex gnus-treat-date-iso8601
 @item gnus-treat-date-iso8601 (head)
-@vindex gnus-treat-date-lapsed
 @item gnus-treat-date-lapsed (head)
-@vindex gnus-treat-date-local
 @item gnus-treat-date-local (head)
-@vindex gnus-treat-date-original
 @item gnus-treat-date-original (head)
-@vindex gnus-treat-date-user-defined
 @item gnus-treat-date-user-defined (head)
-@vindex gnus-treat-date-ut
 @item gnus-treat-date-ut (head)
 
 @xref{Article Date}.
 
-@vindex gnus-treat-from-picon
 @item gnus-treat-from-picon (head)
-@vindex gnus-treat-mail-picon
 @item gnus-treat-mail-picon (head)
-@vindex gnus-treat-newsgroups-picon
 @item gnus-treat-newsgroups-picon (head)
 
 @xref{Picons}.
 
-@vindex gnus-treat-display-smileys
 @item gnus-treat-display-smileys (t, integer)
 
-@vindex gnus-treat-body-boundary
 @item gnus-treat-body-boundary (head)
 
 @vindex gnus-body-boundary-delimiter
