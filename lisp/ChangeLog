@@ -1,3 +1,8 @@
+2007-01-03  acm  <acm@muc.de>
+
+	* progmode/cc-cmds.el (c-mask-paragraph): Fix yesterday's buggy
+	patch.
+
 2007-01-03  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
 
 	* tutorial.el (tutorial--describe-nonstandard-key): Fix typo.
