@@ -74,6 +74,7 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 ** disumu@x3y2z1.net, Nov 22:
   URL not following some 302 redirects after recent changes
 
+** storm@cua.dk, Jan 2: Bug in incremental undrawing of mouseover highlighting
 ** lennart.borgman.073@student.lu.se, Dec 29:
   How global is a define-global-minor-mode mode
 He says that customizing such a mode simply does not work.
@@ -88,6 +89,11 @@ through the custom mechanism.
   Two GTK version bugs.
 
 ** pgg bugs reported by rms.
+
+** sdl.web@gmail.com, Jan 1: Executable deleted after first run
+  If user has write access to installed `emacs', it gets deleted.
+
+** (global-set-key "\M-k" 'bury-buffer) confuses tutorial warnings.
 
 * DOCUMENTATION
 
