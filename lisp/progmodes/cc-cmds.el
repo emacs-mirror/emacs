@@ -3836,8 +3836,13 @@ command to conveniently insert and align the necessary backslashes."
 	    (setq apply-outside-literal t))
 
 	   ((eq c-lit-type 'c)		; Block comment.
-	    (when (and (>= end (cdr c-lit-limits))
-		       (> (point-max) (cdr c-lit-limits)))
+	    (when
+		(or (> end (cdr c-lit-limits))
+		    (and (= end (cdr c-lit-limits))
+			 (eq (char-before end) ?/)
+			 (eq (char-before (1- end)) ?*)
+			 ;; disallow "/*/"
+			 (> (- (cdr c-lit-limits) (car c-lit-limits)) 3)))
 	      ;; There is a comment ender, and the region includes it.  If
 	      ;; it's on its own line, it stays on its own line.  If it's got
 	      ;; company on the line, it keeps (at least one word of) it.
