@@ -409,7 +409,7 @@ Keywords}.  Here is an example, from the library @file{saveplace.el}:
 
 @example
 (defcustom save-place nil
-  "*Non-nil means automatically save place in each file..."
+  "Non-nil means automatically save place in each file..."
   :type 'boolean
   :require 'saveplace
   :group 'save-place)
@@ -461,7 +461,7 @@ example:
 
 @example
 (defcustom diff-command "diff"
-  "*The command to use to run diff."
+  "The command to use to run diff."
   :type '(string)
   :group 'diff)
 @end example
