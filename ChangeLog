@@ -1,3 +1,9 @@
+2007-01-02  Stephen C. Gilardi  <scgilardi@gmail.com>  (tiny change)
+
+	* configure.in: Detect and use fink-installed in intel-based Mac
+	builds; change Apple Darwin section to support both PowerPC and
+	Intel-based Macs.
+
 2006-12-26  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in (datarootdir): Define.

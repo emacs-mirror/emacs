@@ -1,4 +1,8 @@
-2007-01-03  acm  <acm@muc.de>
+2007-01-03  Richard Stallman  <rms@gnu.org>
+
+	* woman.el (woman-decode-buffer): Clarify error message.
+
+2007-01-03  Alan Mackenzie  <acm@muc.de>
 
 	* progmode/cc-cmds.el (c-mask-paragraph): Fix yesterday's buggy
 	patch.

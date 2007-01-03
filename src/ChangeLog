@@ -1,3 +1,7 @@
+2007-01-03  Richard Stallman  <rms@gnu.org>
+
+	* window.c (Fwindow_end): Check BUF_OVERLAY_MODIFF like BUF_MODIFF.
+
 2007-01-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.h (xg_menu_item_cb_data_): Remove highlight_id and
