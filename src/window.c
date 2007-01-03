@@ -1182,7 +1182,8 @@ if it isn't already recorded.  */)
 
   if (! NILP (update)
       && ! (! NILP (w->window_end_valid)
-	    && XFASTINT (w->last_modified) >= BUF_MODIFF (b))
+	    && XFASTINT (w->last_modified) >= BUF_MODIFF (b)
+	    && XFASTINT (w->last_overlay_modified) => BUF_OVERLAY_MODIFF (b))
       && !noninteractive)
     {
       struct text_pos startp;
