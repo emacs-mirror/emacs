@@ -336,12 +336,12 @@ keyboard input in Emacs.
 @cindex MS-Windows keyboard shortcuts
   Many key combinations (known as ``keyboard shortcuts'') that have
 conventional uses in MS-Windows programs conflict with traditional
-Emacs commands.  This conflict arose because the designers of Windows
-did not concern themselves with how Emacs used these characters.
-Examples include @kbd{C-c}, @kbd{C-x}, @kbd{C-z}, @kbd{C-a}, and
-@kbd{W-@key{SPC}}.  You can redefine some of them with meanings more
-like the MS-Windows meanings by enabling CUA Mode (@pxref{CUA
-Bindings}).
+Emacs commands.  This conflict arose because the designers of the CUA
+interface implemented by MS-Windows did not try to avoid conflict with
+Emacs.  Examples of conflicts include @kbd{C-c}, @kbd{C-x}, @kbd{C-z},
+@kbd{C-a}, and @kbd{W-@key{SPC}}.  You can redefine some of them with
+meanings more like the MS-Windows meanings by enabling CUA Mode
+(@pxref{CUA Bindings}).
 
 @kindex F10 @r{(MS-Windows)}
 @cindex menu bar access using keyboard @r{(MS-Windows)}
