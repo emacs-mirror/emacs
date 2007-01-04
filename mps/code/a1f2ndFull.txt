@@ -1,0 +1,1044 @@
+.
+=== Tests: {[mpsicv, mpsicv, mpsicv, mpsicv, mpsicv, mpsicv, mpsicv, mpsicv, mpsicv, mpsicv]} {[hi]} ===
+--- mpsicv {hi} ---
+xcppgc: xcppgc/hi/version.o
+xcppgc: xcppgc/hi/mpsicv
+Randomizing 21011 times.
+collections: 0
+i == 0
+c: 0
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 1, 4218 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 2, 16956 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 3, 21242 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 4, 25367 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 5, 29698 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 6, 33956 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 7, 38149 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 8, 42488 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 9, 46602 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 10, 50775 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 11, 54975 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 12, 59115 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 13, 63201 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 14, 71668 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 15, 75736 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 16, 79661 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 17, 83526 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 18, 87377 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 19, 91337 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 20, 104012 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 21, 107686 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 22, 111485 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 23, 115204 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 24, 119068 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 25, 122770 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 26, 141189 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 27, 144751 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 28, 148232 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 29, 151641 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 30, 155224 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 31, 158762 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 32, 185658 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 33, 188990 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 34, 193593 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 35, 198169 objects.
+Objects 200000.
+
+arena_commit_test:
+ committed: 8822784, reserved: 16777216, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 8822784)
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ exit alloc loop, iAlloc: 2552, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ TraceStart: Client requests: immediate full collection.
+mps_arena_collect OK.
+alloc_v_test OK.
+collections: 38
+i == 0
+c: 38
+Objects 200000.
+
+arena_commit_test:
+ committed: 10215424, reserved: 33558528, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 10215424)
+ exit alloc loop, iAlloc: 648, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ TraceStart: Client requests: immediate full collection.
+mps_arena_collect OK.
+alloc_v_test OK.
+--- mpsicv {hi} ---
+xcppgc: xcppgc/hi/version.o
+xcppgc: xcppgc/hi/mpsicv
+Randomizing 21026 times.
+collections: 0
+i == 0
+c: 0
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 1, 4217 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 2, 16955 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 3, 21241 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 4, 25366 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 5, 29697 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 6, 33955 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 7, 38148 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 8, 42487 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 9, 46601 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 10, 50774 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 11, 54974 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 12, 59114 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 13, 63200 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 14, 71667 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 15, 75735 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 16, 79660 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 17, 83525 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 18, 87376 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 19, 91336 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 20, 104011 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 21, 107685 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 22, 111484 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 23, 115203 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 24, 119067 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 25, 122769 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 26, 141188 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 27, 144750 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 28, 148231 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 29, 151640 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 30, 155223 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 31, 158761 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 32, 185657 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 33, 188989 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 34, 193592 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 35, 198168 objects.
+Objects 200000.
+
+arena_commit_test:
+ committed: 8822784, reserved: 16777216, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 8822784)
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+
+MPS ASSERTION FAILURE: RefSetSub(ss.unfixedSummary, SegSummary(seg))
+trace.c
+1120
+--- mpsicv {hi} ---
+xcppgc: xcppgc/hi/version.o
+xcppgc: xcppgc/hi/mpsicv
+Randomizing 21041 times.
+collections: 0
+i == 0
+c: 0
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 1, 4218 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 2, 16954 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 3, 21240 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 4, 25365 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 5, 29696 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 6, 33981 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 7, 38244 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 8, 42491 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 9, 46625 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 10, 50799 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 11, 54908 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 12, 59039 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 13, 63122 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 14, 71560 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 15, 75658 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 16, 79490 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 17, 83456 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 18, 87356 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 19, 91238 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 20, 103929 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 21, 107615 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 22, 111415 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 23, 115137 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 24, 119004 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 25, 122741 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 26, 142542 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 27, 146112 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 28, 149600 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 29, 153018 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 30, 156587 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 31, 160137 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 32, 187000 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 33, 190316 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 34, 194912 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 35, 199348 objects.
+Objects 200000.
+
+arena_commit_test:
+ committed: 8957952, reserved: 16777216, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 8957952)
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ exit alloc loop, iAlloc: 2644, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ TraceStart: Client requests: immediate full collection.
+mps_arena_collect OK.
+alloc_v_test OK.
+collections: 38
+i == 0
+c: 38
+Objects 200000.
+
+arena_commit_test:
+ committed: 10256384, reserved: 33558528, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 10256384)
+ exit alloc loop, iAlloc: 684, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ TraceStart: Client requests: immediate full collection.
+mps_arena_collect OK.
+alloc_v_test OK.
+--- mpsicv {hi} ---
+xcppgc: xcppgc/hi/version.o
+xcppgc: xcppgc/hi/mpsicv
+Randomizing 21058 times.
+collections: 0
+i == 0
+c: 0
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 1, 4215 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 2, 16951 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 3, 21237 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 4, 25362 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 5, 29693 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 6, 33978 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 7, 38241 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 8, 42488 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 9, 46622 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 10, 50796 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 11, 54905 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 12, 59036 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 13, 63119 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 14, 71557 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 15, 75655 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 16, 79487 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 17, 83453 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 18, 87353 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 19, 91235 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 20, 103926 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 21, 107612 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 22, 111412 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 23, 115134 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 24, 119001 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 25, 122738 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 26, 142539 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 27, 146109 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 28, 149597 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 29, 153015 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 30, 156584 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 31, 160134 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 32, 186997 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 33, 190313 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 34, 194909 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 35, 199345 objects.
+Objects 200000.
+
+arena_commit_test:
+ committed: 8957952, reserved: 16777216, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 8957952)
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ exit alloc loop, iAlloc: 2648, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ TraceStart: Client requests: immediate full collection.
+mps_arena_collect OK.
+alloc_v_test OK.
+collections: 38
+i == 0
+c: 38
+Objects 200000.
+
+arena_commit_test:
+ committed: 10252288, reserved: 33558528, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 10252288)
+ exit alloc loop, iAlloc: 680, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ TraceStart: Client requests: immediate full collection.
+mps_arena_collect OK.
+alloc_v_test OK.
+--- mpsicv {hi} ---
+xcppgc: xcppgc/hi/version.o
+xcppgc: xcppgc/hi/mpsicv
+Randomizing 21075 times.
+collections: 0
+i == 0
+c: 0
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 1, 4214 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 2, 16950 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 3, 21236 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 4, 25361 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 5, 29692 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 6, 33977 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 7, 38240 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 8, 42487 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 9, 46621 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 10, 50795 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 11, 54904 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 12, 59035 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 13, 63118 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 14, 71556 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 15, 75654 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 16, 79486 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 17, 83452 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 18, 87352 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 19, 91234 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 20, 103925 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 21, 107611 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 22, 111411 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 23, 115133 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 24, 119000 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 25, 122737 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 26, 142538 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 27, 146108 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 28, 149596 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 29, 153014 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 30, 156583 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 31, 160133 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 32, 186996 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 33, 190312 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 34, 194908 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 35, 199344 objects.
+Objects 200000.
+
+arena_commit_test:
+ committed: 8957952, reserved: 16777216, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 8957952)
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ exit alloc loop, iAlloc: 2648, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ TraceStart: Client requests: immediate full collection.
+mps_arena_collect OK.
+alloc_v_test OK.
+collections: 38
+i == 0
+c: 38
+Objects 200000.
+
+arena_commit_test:
+ committed: 10252288, reserved: 33558528, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 10252288)
+ exit alloc loop, iAlloc: 680, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ TraceStart: Client requests: immediate full collection.
+mps_arena_collect OK.
+alloc_v_test OK.
+--- mpsicv {hi} ---
+xcppgc: xcppgc/hi/version.o
+xcppgc: xcppgc/hi/mpsicv
+Randomizing 21092 times.
+collections: 0
+i == 0
+c: 0
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 1, 4222 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 2, 16951 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 3, 21237 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 4, 25362 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 5, 29693 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 6, 33978 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 7, 38241 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 8, 42488 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 9, 46622 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 10, 50796 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 11, 54905 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 12, 59036 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 13, 63119 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 14, 71557 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 15, 75655 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 16, 79487 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 17, 83453 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 18, 87353 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 19, 91235 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 20, 103926 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 21, 107612 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 22, 111412 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 23, 115134 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 24, 119001 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 25, 122738 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 26, 142539 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 27, 146109 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 28, 149597 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 29, 153015 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 30, 156584 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 31, 160134 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 32, 186997 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 33, 190313 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 34, 194909 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 35, 199345 objects.
+Objects 200000.
+
+arena_commit_test:
+ committed: 8957952, reserved: 16777216, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 8957952)
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ exit alloc loop, iAlloc: 2648, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ TraceStart: Client requests: immediate full collection.
+mps_arena_collect OK.
+alloc_v_test OK.
+collections: 38
+i == 0
+c: 38
+Objects 200000.
+
+arena_commit_test:
+ committed: 10252288, reserved: 33558528, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 10252288)
+ exit alloc loop, iAlloc: 680, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ TraceStart: Client requests: immediate full collection.
+mps_arena_collect OK.
+alloc_v_test OK.
+--- mpsicv {hi} ---
+xcppgc: xcppgc/hi/version.o
+xcppgc: xcppgc/hi/mpsicv
+Randomizing 21109 times.
+collections: 0
+i == 0
+c: 0
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 1, 4221 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 2, 16950 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 3, 21236 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 4, 25361 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 5, 29692 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 6, 33977 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 7, 38240 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 8, 42487 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 9, 46621 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 10, 50795 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 11, 54904 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 12, 59035 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 13, 63118 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 14, 71556 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 15, 75654 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 16, 79486 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 17, 83452 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 18, 87352 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 19, 91234 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 20, 103925 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 21, 107611 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 22, 111411 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 23, 115133 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 24, 119000 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 25, 122737 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 26, 142538 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 27, 146108 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 28, 149596 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 29, 153014 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 30, 156583 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 31, 160133 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 32, 186996 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 33, 190312 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 34, 194908 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 35, 199344 objects.
+Objects 200000.
+
+arena_commit_test:
+ committed: 8957952, reserved: 16777216, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 8957952)
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ exit alloc loop, iAlloc: 2648, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ TraceStart: Client requests: immediate full collection.
+mps_arena_collect OK.
+alloc_v_test OK.
+collections: 38
+i == 0
+c: 38
+Objects 200000.
+
+arena_commit_test:
+ committed: 10252288, reserved: 33558528, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 10252288)
+ exit alloc loop, iAlloc: 680, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ TraceStart: Client requests: immediate full collection.
+mps_arena_collect OK.
+alloc_v_test OK.
+--- mpsicv {hi} ---
+xcppgc: xcppgc/hi/version.o
+xcppgc: xcppgc/hi/mpsicv
+Randomizing 21128 times.
+collections: 0
+i == 0
+c: 0
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 1, 4217 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 2, 16946 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 3, 21232 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 4, 25357 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 5, 29688 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 6, 33973 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 7, 38236 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 8, 42483 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 9, 46617 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 10, 50791 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 11, 54900 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 12, 59031 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 13, 63114 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 14, 71552 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 15, 75650 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 16, 79482 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 17, 83448 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 18, 87348 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 19, 91230 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 20, 103921 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 21, 107607 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 22, 111407 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 23, 115129 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 24, 118996 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 25, 122733 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 26, 142534 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 27, 146104 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 28, 149592 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 29, 153010 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 30, 156579 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 31, 160129 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 32, 186992 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 33, 190308 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 34, 194904 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 35, 199340 objects.
+Objects 200000.
+
+arena_commit_test:
+ committed: 8957952, reserved: 16777216, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 8957952)
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ exit alloc loop, iAlloc: 2656, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ TraceStart: Client requests: immediate full collection.
+mps_arena_collect OK.
+alloc_v_test OK.
+collections: 38
+i == 0
+c: 38
+Objects 200000.
+
+arena_commit_test:
+ committed: 10248192, reserved: 33558528, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 10248192)
+ exit alloc loop, iAlloc: 680, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ TraceStart: Client requests: immediate full collection.
+mps_arena_collect OK.
+alloc_v_test OK.
+--- mpsicv {hi} ---
+xcppgc: xcppgc/hi/version.o
+xcppgc: xcppgc/hi/mpsicv
+Randomizing 21149 times.
+collections: 0
+i == 0
+c: 0
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 1, 4217 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 2, 16946 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 3, 21232 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 4, 25357 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 5, 29688 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 6, 33973 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 7, 38236 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 8, 42483 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 9, 46617 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 10, 50791 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 11, 54900 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 12, 59031 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 13, 63114 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 14, 71552 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 15, 75650 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 16, 79482 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 17, 83448 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 18, 87348 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 19, 91230 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 20, 103921 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 21, 107607 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 22, 111407 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 23, 115129 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 24, 118996 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 25, 122733 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 26, 142534 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 27, 146104 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 28, 149592 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 29, 153010 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 30, 156579 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 31, 160129 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 32, 186992 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 33, 190308 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 34, 194904 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 35, 199340 objects.
+Objects 200000.
+
+arena_commit_test:
+ committed: 8957952, reserved: 16777216, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 8957952)
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ exit alloc loop, iAlloc: 2656, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ TraceStart: Client requests: immediate full collection.
+mps_arena_collect OK.
+alloc_v_test OK.
+collections: 38
+i == 0
+c: 38
+Objects 200000.
+
+arena_commit_test:
+ committed: 10248192, reserved: 33558528, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 10248192)
+ exit alloc loop, iAlloc: 680, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ TraceStart: Client requests: immediate full collection.
+mps_arena_collect OK.
+alloc_v_test OK.
+--- mpsicv {hi} ---
+xcppgc: xcppgc/hi/version.o
+xcppgc: xcppgc/hi/mpsicv
+Randomizing 21168 times.
+collections: 0
+i == 0
+c: 0
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 1, 4214 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 2, 16943 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 3, 21229 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 4, 25354 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 5, 29685 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 6, 33970 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 7, 38233 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 8, 42480 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 9, 46614 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 10, 50788 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 11, 54897 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 12, 59028 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 13, 63111 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 14, 71549 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 15, 75647 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 16, 79479 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 17, 83445 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 18, 87345 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 19, 91227 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 20, 103918 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 21, 107604 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 22, 111404 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 23, 115126 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 24, 118993 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 25, 122730 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 26, 142531 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 27, 146101 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 28, 149589 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 29, 153007 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 30, 156576 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 31, 160126 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 32, 186989 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 33, 190305 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 34, 194901 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+Collection 35, 199337 objects.
+Objects 200000.
+
+arena_commit_test:
+ committed: 8957952, reserved: 16777216, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 8957952)
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ exit alloc loop, iAlloc: 2656, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ TraceStart: Client requests: immediate full collection.
+mps_arena_collect OK.
+alloc_v_test OK.
+collections: 38
+i == 0
+c: 38
+Objects 200000.
+
+arena_commit_test:
+ committed: 10248192, reserved: 33558528, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 10248192)
+ exit alloc loop, iAlloc: 680, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ TraceStart: Client requests: immediate full collection.
+mps_arena_collect OK.
+alloc_v_test OK.
