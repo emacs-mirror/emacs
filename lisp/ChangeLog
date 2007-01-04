@@ -1,3 +1,8 @@
+2007-01-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* files.el (find-file-noselect-1, set-visited-file-name): 
+	Allow backup-enable-predicate to be nil.
+	
 2007-01-04  Kevin Rodgers  <kevin.d.rodgers@gmail.com>
 
 	* subr.el (momentary): New face.

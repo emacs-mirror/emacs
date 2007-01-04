@@ -1,5 +1,7 @@
 2007-01-04  Richard Stallman  <rms@gnu.org>
 
+	* ebrowse.texi: Change C-c b to C-c C-m.
+
 	* msdog.texi (Windows Keyboard): Clarify previous change.
 
 2007-01-03  Reiner Steib  <Reiner.Steib@gmx.de>
