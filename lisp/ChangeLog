@@ -1,3 +1,8 @@
+2007-01-04  Andreas Schwab  <schwab@suse.de>
+
+	* progmodes/ebrowse.el (ebrowse-global-prefix-key): Fix typo in
+	last change.
+
 2007-01-03  Richard Stallman  <rms@gnu.org>
 
 	* woman.el (woman-decode-buffer): Clarify error message.
