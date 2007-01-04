@@ -1650,7 +1650,8 @@ Do you want to revisit the file normally now? ")
       (setq default-directory (file-name-directory buffer-file-name))
       ;; Turn off backup files for certain file names.  Since
       ;; this is a permanent local, the major mode won't eliminate it.
-      (and (not (funcall backup-enable-predicate buffer-file-name))
+      (and backup-enable-predicate
+	   (not (funcall backup-enable-predicate buffer-file-name))
 	   (progn
 	     (make-local-variable 'backup-inhibited)
 	     (setq backup-inhibited t)))
@@ -2904,6 +2905,7 @@ the old visited file has been renamed to the new name FILENAME."
   ;; Turn off backup files for certain file names.
   ;; Since this is a permanent local, the major mode won't eliminate it.
   (and buffer-file-name
+       backup-enable-predicate
        (not (funcall backup-enable-predicate buffer-file-name))
        (progn
 	 (make-local-variable 'backup-inhibited)
