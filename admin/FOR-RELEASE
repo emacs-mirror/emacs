@@ -88,9 +88,6 @@ through the custom mechanism.
 
 ** pgg bugs reported by rms.
 
-** sdl.web@gmail.com, Jan 1: Executable deleted after first run
-  If user has write access to installed `emacs', it gets deleted.
-
 ** (global-set-key "\M-k" 'bury-buffer) confuses tutorial warnings.
 
 ** sgml-xml-auto-coding-function should detect that HTML-like start text
