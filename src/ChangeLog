@@ -1,3 +1,7 @@
+2007-01-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* window.c (Fwindow_end): Fix use of >= operator.
+
 2007-01-03  Richard Stallman  <rms@gnu.org>
 
 	* window.c (Fwindow_end): Check BUF_OVERLAY_MODIFF like BUF_MODIFF.
