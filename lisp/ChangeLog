@@ -1,5 +1,7 @@
 2007-01-05  Richard Stallman  <rms@gnu.org>
 
+	* image.el (image-type-header-regexps): Recognize xbm more strictly.
+
 	* simple.el (backward-kill-word): Doc fix.
 
 2007-01-05  Romain Francoise  <romain@orebokech.com>
