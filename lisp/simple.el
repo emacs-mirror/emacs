@@ -4096,7 +4096,7 @@ With argument, do this that many times."
   (kill-region (point) (progn (forward-word arg) (point))))
 
 (defun backward-kill-word (arg)
-  "Kill characters backward until encountering the end of a word.
+  "Kill characters backward until encountering the beginning of a word.
 With argument, do this that many times."
   (interactive "p")
   (kill-word (- arg)))
