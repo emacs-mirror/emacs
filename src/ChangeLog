@@ -1,3 +1,51 @@
+2007-01-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* editfns.c (Fformat_time_string, Fdecode_time, Fencode_time)
+	(Fcurrent_time_string, Fcurrent_time_zone): Add BLOCK_INPUT around
+	gmtime/localtime/emacs_memftimeu/mktime.
+
+	* mac.c (Fmac_set_file_creator): Use MAC_EMACS_CREATOR_CODE
+	instead of 'EMAx'.
+	[!MAC_OSX] (sys_open, sys_creat, sys_fopen): Likewise.
+
+	* macgui.h (struct _XGC) [USE_CG_DRAWING
+	&& MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]: New members cg_fore_color
+	and cg_back_color.
+
+	* macmenu.c (Vshow_help_function) [TARGET_API_MAC_CARBON]: Add extern.
+	(restore_show_help_function, menu_target_item_handler)
+	[TARGET_API_MAC_CARBON]: New functions.
+	(install_menu_target_item_handler): New function.
+	(add_menu_item) [TARGET_API_MAC_CARBON]: Set help string as menu
+	item property.
+
+	* macterm.c (CG_SET_FILL_COLOR_MAYBE_WITH_CGCOLOR)
+	(CG_SET_FILL_COLOR_WITH_GC_FOREGROUND)
+	(CG_SET_FILL_COLOR_WITH_GC_BACKGROUND)
+	(CG_SET_STROKE_COLOR_MAYBE_WITH_CGCOLOR)
+	(CG_SET_STROKE_COLOR_WITH_GC_FOREGROUND): New macros.
+	(mac_cg_color_space_rgb) [USE_CG_DRAWING]: New variable.
+	(mac_cg_color_black) [USE_CG_DRAWING
+	&& MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]: New variable.
+	(init_cg_color) [USE_CG_DRAWING]: New function.
+	(mac_draw_line, mac_draw_rectangle) [USE_CG_DRAWING]: Use
+	CG_SET_STROKE_COLOR_WITH_GC_FOREGROUND instead of CG_SET_STROKE_COLOR.
+	(mac_erase_rectangle, mac_clear_window, mac_draw_cg_image)
+	(mac_fill_rectangle, mac_draw_image_string_cg) [USE_CG_DRAWING]:
+	Use CG_SET_FILL_COLOR_WITH_GC_FOREGROUND or
+	CG_SET_FILL_COLOR_WITH_GC_BACKGROUND instead of CG_SET_FILL_COLOR.
+	(mac_draw_string_common) [MAC_OSX && USE_ATSUI]: Likewise.
+	(XCreateGC, XFreeGC, XSetForeground, XSetBackground) [USE_CG_DRAWING
+	&& MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]: Use gc->cg_fore_color	and/or
+	gc->cg_back_color.
+	(install_drag_handler, remove_drag_handler): Make extern.
+	(install_menu_target_item_handler): Add extern.
+	(install_window_handler): Call install_menu_target_item_handler.
+	[MAC_OS8] (main): Use MAC_EMACS_CREATOR_CODE instead of 'EMAx'.
+	(mac_initialize) [USE_CG_DRAWING]: Call init_cg_color. 
+
+	* macterm.h (MAC_EMACS_CREATOR_CODE): New enumerator.
+
 2007-01-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* window.c (Fwindow_end): Fix use of >= operator.
