@@ -1450,6 +1450,80 @@ update_submenu_strings (first_wv)
 }
 
 
+#if TARGET_API_MAC_CARBON
+extern Lisp_Object Vshow_help_function;
+
+static Lisp_Object
+restore_show_help_function (old_show_help_function)
+     Lisp_Object old_show_help_function;
+{
+  Vshow_help_function = old_show_help_function;
+
+  return Qnil;
+}
+
+static pascal OSStatus
+menu_target_item_handler (next_handler, event, data)
+     EventHandlerCallRef next_handler;
+     EventRef event;
+     void *data;
+{
+  OSStatus err, result;
+  MenuRef menu;
+  MenuItemIndex menu_item;
+  Lisp_Object help;
+  GrafPtr port;
+  int specpdl_count = SPECPDL_INDEX ();
+
+  result = CallNextEventHandler (next_handler, event);
+
+  err = GetEventParameter (event, kEventParamDirectObject, typeMenuRef,
+			   NULL, sizeof (MenuRef), NULL, &menu);
+  if (err == noErr)
+    err = GetEventParameter (event, kEventParamMenuItemIndex,
+			     typeMenuItemIndex, NULL,
+			     sizeof (MenuItemIndex), NULL, &menu_item);
+  if (err == noErr)
+    err = GetMenuItemProperty (menu, menu_item,
+			       MAC_EMACS_CREATOR_CODE, 'help',
+			       sizeof (Lisp_Object), NULL, &help);
+  if (err != noErr)
+    help = Qnil;
+
+  /* Temporarily bind Vshow_help_function to Qnil because we don't
+     want tooltips during menu tracking.  */
+  record_unwind_protect (restore_show_help_function, Vshow_help_function);
+  Vshow_help_function = Qnil;
+  GetPort (&port);
+  show_help_echo (help, Qnil, Qnil, Qnil, 1);
+  SetPort (port);
+  unbind_to (specpdl_count, Qnil);
+
+  return err == noErr ? noErr : result;
+}
+#endif
+
+OSStatus
+install_menu_target_item_handler (window)
+     WindowPtr window;
+{
+  OSStatus err = noErr;
+#if TARGET_API_MAC_CARBON
+  static const EventTypeSpec specs[] =
+    {{kEventClassMenu, kEventMenuTargetItem}};
+  static EventHandlerUPP menu_target_item_handlerUPP = NULL;
+
+  if (menu_target_item_handlerUPP == NULL)
+    menu_target_item_handlerUPP =
+      NewEventHandlerUPP (menu_target_item_handler);
+
+  err = InstallWindowEventHandler (window, menu_target_item_handlerUPP,
+				   GetEventTypeCount (specs), specs,
+				   NULL, NULL);
+#endif
+  return err;
+}
+
 /* Event handler function that pops down a menu on C-g.  We can only pop
    down menus if CancelMenuTracking is present (OSX 10.3 or later).  */
 
@@ -2485,6 +2559,10 @@ add_menu_item (menu, pos, wv)
         EnableMenuItem (menu, pos);
       else
         DisableMenuItem (menu, pos);
+
+      if (STRINGP (wv->help))
+	SetMenuItemProperty (menu, pos, MAC_EMACS_CREATOR_CODE, 'help',
+			     sizeof (Lisp_Object), &wv->help);
 #else  /* ! TARGET_API_MAC_CARBON */
       item_name[sizeof (item_name) - 1] = '\0';
       strncpy (item_name, wv->name, sizeof (item_name) - 1);
