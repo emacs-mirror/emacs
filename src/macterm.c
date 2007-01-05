@@ -270,16 +270,63 @@ static void XSetFont P_ ((Display *, GC, XFontStruct *));
 #define GC_BACK_COLOR(gc)	(&(gc)->back_color)
 #define GC_FONT(gc)		((gc)->xgcv.font)
 #define FRAME_NORMAL_GC(f)	((f)->output_data.mac->normal_gc)
-#define CG_SET_FILL_COLOR(context, color)			\
+
+#define CG_SET_FILL_COLOR(context, color)				\
   CGContextSetRGBFillColor (context,					\
 			    RED_FROM_ULONG (color) / 255.0f,		\
 			    GREEN_FROM_ULONG (color) / 255.0f,		\
 			    BLUE_FROM_ULONG (color) / 255.0f, 1.0f)
-#define CG_SET_STROKE_COLOR(context, color)		\
+#if USE_CG_DRAWING && MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+#if MAC_OS_X_VERSION_MIN_REQUIRED == 1020
+#define CG_SET_FILL_COLOR_MAYBE_WITH_CGCOLOR(context, color, cg_color) \
+  do {								       \
+    if (CGColorGetTypeID != NULL)				       \
+      CGContextSetFillColorWithColor (context, cg_color);	       \
+    else							       \
+      CG_SET_FILL_COLOR (context, color);			       \
+  } while (0)
+#else
+#define CG_SET_FILL_COLOR_MAYBE_WITH_CGCOLOR(context, color, cg_color)	\
+  CGContextSetFillColorWithColor (context, cg_color)
+#endif
+#else
+#define CG_SET_FILL_COLOR_MAYBE_WITH_CGCOLOR(context, color, cg_color)	\
+  CG_SET_FILL_COLOR (context, color)
+#endif
+#define CG_SET_FILL_COLOR_WITH_GC_FOREGROUND(context, gc)		\
+  CG_SET_FILL_COLOR_MAYBE_WITH_CGCOLOR (context, (gc)->xgcv.foreground,	\
+					(gc)->cg_fore_color)
+#define CG_SET_FILL_COLOR_WITH_GC_BACKGROUND(context, gc)		\
+  CG_SET_FILL_COLOR_MAYBE_WITH_CGCOLOR (context, (gc)->xgcv.background,	\
+					(gc)->cg_back_color)
+
+
+#define CG_SET_STROKE_COLOR(context, color)				\
   CGContextSetRGBStrokeColor (context,					\
 			      RED_FROM_ULONG (color) / 255.0f,		\
 			      GREEN_FROM_ULONG (color) / 255.0f,	\
 			      BLUE_FROM_ULONG (color) / 255.0f, 1.0f)
+#if USE_CG_DRAWING && MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+#if MAC_OS_X_VERSION_MIN_REQUIRED == 1020
+#define CG_SET_STROKE_COLOR_MAYBE_WITH_CGCOLOR(context, color, cg_color) \
+  do {								       \
+    if (CGColorGetTypeID != NULL)				       \
+      CGContextSetStrokeColorWithColor (context, cg_color);	       \
+    else							       \
+      CG_SET_STROKE_COLOR (context, color);			       \
+  } while (0)
+#else
+#define CG_SET_STROKE_COLOR_MAYBE_WITH_CGCOLOR(context, color, cg_color) \
+  CGContextSetStrokeColorWithColor (context, cg_color)
+#endif
+#else
+#define CG_SET_STROKE_COLOR_MAYBE_WITH_CGCOLOR(context, color, cg_color) \
+  CG_SET_STROKE_COLOR (context, color)
+#endif
+#define CG_SET_STROKE_COLOR_WITH_GC_FOREGROUND(context, gc) \
+  CG_SET_STROKE_COLOR_MAYBE_WITH_CGCOLOR (context, (gc)->xgcv.foreground, \
+					  (gc)->cg_fore_color)
+
 #if USE_CG_DRAWING
 #define FRAME_CG_CONTEXT(f)	((f)->output_data.mac->cg_context)
 
@@ -287,6 +334,29 @@ static void XSetFont P_ ((Display *, GC, XFontStruct *));
 
 static int max_fringe_bmp = 0;
 static CGImageRef *fringe_bmp = 0;
+
+static CGColorSpaceRef mac_cg_color_space_rgb;
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+static CGColorRef mac_cg_color_black;
+#endif
+
+static void
+init_cg_color ()
+{
+  mac_cg_color_space_rgb = CGColorSpaceCreateDeviceRGB ();
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+#if MAC_OS_X_VERSION_MIN_REQUIRED == 1020
+  /* Don't check the availability of CGColorCreate; this symbol is
+     defined even in Mac OS X 10.1.  */
+  if (CGColorGetTypeID != NULL)
+#endif
+    {
+      float rgba[] = {0.0f, 0.0f, 0.0f, 1.0f};
+
+      mac_cg_color_black = CGColorCreate (mac_cg_color_space_rgb, rgba);
+    }
+#endif
+}
 
 static CGContextRef
 mac_begin_cg_clip (f, gc)
@@ -401,7 +471,7 @@ mac_draw_line (f, gc, x1, y1, x2, y2)
     gy1 += 0.5f, gy2 += 0.5f;
 
   context = mac_begin_cg_clip (f, gc);
-  CG_SET_STROKE_COLOR (context, gc->xgcv.foreground);
+  CG_SET_STROKE_COLOR_WITH_GC_FOREGROUND (context, gc);
   CGContextBeginPath (context);
   CGContextMoveToPoint (context, gx1, gy1);
   CGContextAddLineToPoint (context, gx2, gy2);
@@ -485,7 +555,7 @@ mac_erase_rectangle (f, gc, x, y, width, height)
   CGContextRef context;
 
   context = mac_begin_cg_clip (f, gc);
-  CG_SET_FILL_COLOR (context, gc->xgcv.background);
+  CG_SET_FILL_COLOR_WITH_GC_BACKGROUND (context, gc);
   CGContextFillRect (context, CGRectMake (x, y, width, height));
   mac_end_cg_clip (f);
 #else
@@ -527,7 +597,7 @@ mac_clear_window (f)
   GC gc = FRAME_NORMAL_GC (f);
 
   context = mac_begin_cg_clip (f, NULL);
-  CG_SET_FILL_COLOR (context, gc->xgcv.background);
+  CG_SET_FILL_COLOR_WITH_GC_BACKGROUND (context, gc);
   CGContextFillRect (context, CGRectMake (0, 0, FRAME_PIXEL_WIDTH (f),
 					  FRAME_PIXEL_HEIGHT (f)));
   mac_end_cg_clip (f);
@@ -570,14 +640,14 @@ mac_draw_cg_image (image, f, gc, src_x, src_y, width, height,
   context = mac_begin_cg_clip (f, gc);
   if (!overlay_p)
     {
-      CG_SET_FILL_COLOR (context, gc->xgcv.background);
+      CG_SET_FILL_COLOR_WITH_GC_BACKGROUND (context, gc);
       CGContextFillRect (context, dest_rect);
     }
   CGContextClipToRect (context, dest_rect);
   CGContextScaleCTM (context, 1, -1);
   CGContextTranslateCTM (context, 0, -port_height);
   if (CGImageIsMask (image))
-    CG_SET_FILL_COLOR (context, gc->xgcv.foreground);
+    CG_SET_FILL_COLOR_WITH_GC_FOREGROUND (context, gc);
   CGContextDrawImage (context,
 		      CGRectMake (dest_x - src_x,
 				  port_height - (dest_y - src_y
@@ -764,7 +834,7 @@ mac_fill_rectangle (f, gc, x, y, width, height)
   CGContextRef context;
 
   context = mac_begin_cg_clip (f, gc);
-  CG_SET_FILL_COLOR (context, gc->xgcv.foreground);
+  CG_SET_FILL_COLOR_WITH_GC_FOREGROUND (context, gc);
   CGContextFillRect (context, CGRectMake (x, y, width, height));
   mac_end_cg_clip (f);
 #else
@@ -795,7 +865,7 @@ mac_draw_rectangle (f, gc, x, y, width, height)
   CGContextRef context;
 
   context = mac_begin_cg_clip (f, gc);
-  CG_SET_STROKE_COLOR (context, gc->xgcv.foreground);
+  CG_SET_STROKE_COLOR_WITH_GC_FOREGROUND (context, gc);
   CGContextStrokeRect (context,
 		       CGRectMake (x + 0.5f, y + 0.5f, width, height));
   mac_end_cg_clip (f);
@@ -982,7 +1052,7 @@ mac_draw_string_common (f, gc, x, y, buf, nchars, bg_width,
 #endif
 	      if (bg_width)
 		{
-		  CG_SET_FILL_COLOR (context, gc->xgcv.background);
+		  CG_SET_FILL_COLOR_WITH_GC_BACKGROUND (context, gc);
 		  CGContextFillRect
 		    (context,
 		     CGRectMake (x, y - FONT_BASE (GC_FONT (gc)),
@@ -993,7 +1063,7 @@ mac_draw_string_common (f, gc, x, y, buf, nchars, bg_width,
 #if !USE_CG_DRAWING
 	    }
 #endif
-	  CG_SET_FILL_COLOR (context, gc->xgcv.foreground);
+	  CG_SET_FILL_COLOR_WITH_GC_FOREGROUND (context, gc);
 	  err = ATSUSetLayoutControls (text_layout,
 				       sizeof (tags) / sizeof (tags[0]),
 				       tags, sizes, values);
@@ -1344,7 +1414,7 @@ mac_draw_image_string_cg (f, gc, x, y, buf, nchars, bg_width, overstrike_p)
 #endif
       if (bg_width)
 	{
-	  CG_SET_FILL_COLOR (context, gc->xgcv.background);
+	  CG_SET_FILL_COLOR_WITH_GC_BACKGROUND (context, gc);
 	  CGContextFillRect
 	    (context,
 	     CGRectMake (gx, y - FONT_BASE (GC_FONT (gc)),
@@ -1355,7 +1425,7 @@ mac_draw_image_string_cg (f, gc, x, y, buf, nchars, bg_width, overstrike_p)
 #if !USE_CG_DRAWING
     }
 #endif
-  CG_SET_FILL_COLOR (context, gc->xgcv.foreground);
+  CG_SET_FILL_COLOR_WITH_GC_FOREGROUND (context, gc);
   CGContextSetFont (context, GC_FONT (gc)->cg_font);
   CGContextSetFontSize (context, GC_FONT (gc)->mac_fontsize);
   if (GC_FONT (gc)->mac_fontsize <= cg_text_anti_aliasing_threshold)
@@ -1567,6 +1637,16 @@ XCreateGC (display, window, mask, xgcv)
   GC gc = xmalloc (sizeof (*gc));
 
   bzero (gc, sizeof (*gc));
+#if USE_CG_DRAWING && MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+#if MAC_OS_X_VERSION_MIN_REQUIRED == 1020
+  if (CGColorGetTypeID != NULL)
+#endif
+    {
+      gc->cg_fore_color = gc->cg_back_color = mac_cg_color_black;
+      CGColorRetain (gc->cg_fore_color);
+      CGColorRetain (gc->cg_back_color);
+    }
+#endif
   XChangeGC (display, gc, mask, xgcv);
 
   return gc;
@@ -1582,6 +1662,10 @@ XFreeGC (display, gc)
 {
   if (gc->clip_region)
     DisposeRgn (gc->clip_region);
+#if USE_CG_DRAWING && MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+  CGColorRelease (gc->cg_fore_color);
+  CGColorRelease (gc->cg_back_color);
+#endif
   xfree (gc);
 }
 
@@ -1618,6 +1702,29 @@ XSetForeground (display, gc, color)
       gc->fore_color.red = RED16_FROM_ULONG (color);
       gc->fore_color.green = GREEN16_FROM_ULONG (color);
       gc->fore_color.blue = BLUE16_FROM_ULONG (color);
+#if USE_CG_DRAWING && MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+#if MAC_OS_X_VERSION_MIN_REQUIRED == 1020
+      if (CGColorGetTypeID != NULL)
+#endif
+	{
+	  CGColorRelease (gc->cg_fore_color);
+	  if (color == 0)
+	    {
+	      gc->cg_fore_color = mac_cg_color_black;
+	      CGColorRetain (gc->cg_fore_color);
+	    }
+	  else
+	    {
+	      float rgba[4];
+
+	      rgba[0] = gc->fore_color.red / 65535.0f;
+	      rgba[1] = gc->fore_color.green / 65535.0f;
+	      rgba[2] = gc->fore_color.blue / 65535.0f;
+	      rgba[3] = 1.0f;
+	      gc->cg_fore_color = CGColorCreate (mac_cg_color_space_rgb, rgba);
+	    }
+	}
+#endif
     }
 }
 
@@ -1636,6 +1743,29 @@ XSetBackground (display, gc, color)
       gc->back_color.red = RED16_FROM_ULONG (color);
       gc->back_color.green = GREEN16_FROM_ULONG (color);
       gc->back_color.blue = BLUE16_FROM_ULONG (color);
+#if USE_CG_DRAWING && MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+#if MAC_OS_X_VERSION_MIN_REQUIRED == 1020
+      if (CGColorGetTypeID != NULL)
+#endif
+	{
+	  CGColorRelease (gc->cg_back_color);
+	  if (color == 0)
+	    {
+	      gc->cg_back_color = mac_cg_color_black;
+	      CGColorRetain (gc->cg_back_color);
+	    }
+	  else
+	    {
+	      float rgba[4];
+
+	      rgba[0] = gc->back_color.red / 65535.0f;
+	      rgba[1] = gc->back_color.green / 65535.0f;
+	      rgba[2] = gc->back_color.blue / 65535.0f;
+	      rgba[3] = 1.0f;
+	      gc->cg_back_color = CGColorCreate (mac_cg_color_space_rgb, rgba);
+	    }
+	}
+#endif
     }
 }
 
@@ -8738,14 +8868,18 @@ extern void mac_find_apple_event_spec P_ ((AEEventClass, AEEventID,
 extern OSErr init_coercion_handler P_ ((void));
 
 /* Drag and Drop */
-OSErr install_drag_handler P_ ((WindowRef));
-void remove_drag_handler P_ ((WindowRef));
+extern OSErr install_drag_handler P_ ((WindowRef));
+extern void remove_drag_handler P_ ((WindowRef));
+
+/* Showing help echo string during menu tracking  */
+extern OSStatus install_menu_target_item_handler P_ ((WindowPtr));
 
 #if USE_CARBON_EVENTS
 #ifdef MAC_OSX
 extern void init_service_handler ();
 static Lisp_Object Qservice, Qpaste, Qperform;
 #endif
+
 /* Window Event Handler */
 static pascal OSStatus mac_handle_window_event (EventHandlerCallRef,
 						EventRef, void *);
@@ -10168,6 +10302,8 @@ install_window_handler (window)
 #endif
   if (err == noErr)
     err = install_drag_handler (window);
+  if (err == noErr)
+    err = install_menu_target_item_handler (window);
 
   return err;
 }
@@ -10215,7 +10351,7 @@ main (void)
 
 #if __MWERKS__
   /* set creator and type for files created by MSL */
-  _fcreator = 'EMAx';
+  _fcreator = MAC_EMACS_CREATOR_CODE;
   _ftype = 'TEXT';
 #endif
 
@@ -11691,6 +11827,8 @@ mac_initialize ()
 #endif
 
 #if USE_CG_DRAWING
+  init_cg_color ();
+
   mac_init_fringe ();
 #endif
 
