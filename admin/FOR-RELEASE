@@ -90,10 +90,6 @@ through the custom mechanism.
 
 ** (global-set-key "\M-k" 'bury-buffer) confuses tutorial warnings.
 
-** sgml-xml-auto-coding-function should detect that HTML-like start text
-isn't really at the start of the file.
-
-
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
