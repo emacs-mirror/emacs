@@ -1,3 +1,7 @@
+2007-01-05  Richard Stallman  <rms@gnu.org>
+
+	* modes.texi (Defining Minor Modes): Fix previous change.
+
 2007-01-03  Richard Stallman  <rms@gnu.org>
 
 	* customize.texi (Variable Definitions, Customization Types): 

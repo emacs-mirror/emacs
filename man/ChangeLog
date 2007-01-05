@@ -1,3 +1,7 @@
+2007-01-05  Richard Stallman  <rms@gnu.org>
+
+	* anti.texi (Antinews): Mention M-x shell scrolling.
+
 2007-01-05  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (Watch Expressions): Describe gdb-max-children.
