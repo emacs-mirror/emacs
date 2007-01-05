@@ -2074,7 +2074,7 @@ whether or not it is currently displayed in some window.  */)
     {
       int it_start;
       int oselective;
-      int it_overshoot_expected_p;
+      int it_overshoot_expected;
 
       SET_TEXT_POS (pt, PT, PT_BYTE);
       start_display (&it, w, pt);
@@ -2100,12 +2100,16 @@ whether or not it is currently displayed in some window.  */)
 	  while (s < e && *s != '\n')
 	    ++s;
 
-	  it_overshoot_expected_p = (s == e);
+	  /* If there is no newline in the string, we need to check
+	     whether there is a newline immediately after the string
+	     in move_it_to below.  This may happen if there is an
+	     overlay with an after-string just before the newline.  */
+	  it_overshoot_expected = (s == e) ? -1 : 0;
 	}
       else
-	it_overshoot_expected_p = (it.method == GET_FROM_IMAGE
-				   || it.method == GET_FROM_STRETCH
-				   || it.method == GET_FROM_COMPOSITION);
+	it_overshoot_expected = (it.method == GET_FROM_IMAGE
+				 || it.method == GET_FROM_STRETCH
+				 || it.method == GET_FROM_COMPOSITION);
 
       reseat_at_previous_visible_line_start (&it);
       it.current_x = it.hpos = 0;
@@ -2119,7 +2123,10 @@ whether or not it is currently displayed in some window.  */)
 	 truncate-lines is on and PT is beyond right margin.
 	 Don't go back if the overshoot is expected (see above).  */
       if (IT_CHARPOS (it) > it_start && XINT (lines) > 0
-	  && !it_overshoot_expected_p)
+	  && (!it_overshoot_expected
+	      || (it_overshoot_expected < 0
+		  && it.method == GET_FROM_BUFFER
+		  && it.c == '\n')))
 	move_it_by_lines (&it, -1, 0);
 
       it.vpos = 0;
