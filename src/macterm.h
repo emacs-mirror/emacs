@@ -531,6 +531,11 @@ struct scroll_bar {
 #define HOURGLASS_HEIGHT 16
 
 /* Some constants that are used locally.  */
+/* Creator code for Emacs on Mac OS.  */
+enum {
+  MAC_EMACS_CREATOR_CODE	= 'EMAx'
+};
+
 /* Apple event descriptor types */
 enum {
   TYPE_FILE_NAME		= 'fNam'
