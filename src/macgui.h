@@ -244,6 +244,14 @@ typedef struct _XGC
   /* QuickDraw background color.  */
   RGBColor back_color;
 
+#if USE_CG_DRAWING && MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+  /* Quartz 2D foreground color.  */
+  CGColorRef cg_fore_color;
+
+  /* Quartz 2D background color.  */
+  CGColorRef cg_back_color;
+#endif
+
 #define MAX_CLIP_RECTS 2
   /* Number of clipping rectangles.  */
   int n_clip_rects;
