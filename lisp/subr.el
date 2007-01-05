@@ -1884,11 +1884,6 @@ menu bar menus and the frame title."
   (if all (save-excursion (set-buffer (other-buffer))))
   (set-buffer-modified-p (buffer-modified-p)))
 
-(defface momentary
-  '((t (:inherit mode-line)))
-  "Face for momentarily displaying text in the current buffer."
-  :group 'display)
-
 (defun momentary-string-display (string pos &optional exit-char message)
   "Momentarily display STRING in the buffer at POS.
 Display remains until next event is input.
