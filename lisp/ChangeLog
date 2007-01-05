@@ -1,6 +1,11 @@
+2007-01-05  Romain Francoise  <romain@orebokech.com>
+
+	* international/mule.el (sgml-html-meta-auto-coding-function):
+	Ensure that the buffer contains a HTML document.
+
 2007-01-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* faces.el (momentary): Move here ... 
+	* faces.el (momentary): Move here ...
 	* subr.el (momentary): ... from here.
 
 2007-01-05  Nick Roberts  <nickrob@snap.net.nz>
@@ -11,9 +16,9 @@
 
 2007-01-04  Juanma Barranquero  <lekktu@gmail.com>
 
-	* files.el (find-file-noselect-1, set-visited-file-name): 
+	* files.el (find-file-noselect-1, set-visited-file-name):
 	Allow backup-enable-predicate to be nil.
-	
+
 2007-01-04  Kevin Rodgers  <kevin.d.rodgers@gmail.com>
 
 	* subr.el (momentary): New face.
