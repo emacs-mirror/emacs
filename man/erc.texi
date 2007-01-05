@@ -274,6 +274,11 @@ itself.  An example follows.
 Once ERC is loaded, the command @kbd{M-x erc} will start ERC and
 prompt for the server to connect to.
 
+If the connection goes away at some point, ERC will try to reconnect
+automatically.  If it fails to reconnect, and you want to try to
+manually reestablish the connection at some later point, switch to an
+ERC buffer and run the /RECONNECT command.
+
 @c PRE5_2: Sample session, including:
 @c - connect to Freenode
 @c - /join #emacs

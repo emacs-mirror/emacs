@@ -1,3 +1,7 @@
+2007-01-05  Michael Olson  <mwolson@gnu.org>
+
+	* erc.texi (Getting Started): Update for /RECONNECT command.
+
 2007-01-04  Richard Stallman  <rms@gnu.org>
 
 	* ebrowse.texi: Change C-c b to C-c C-m.

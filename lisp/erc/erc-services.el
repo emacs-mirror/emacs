@@ -94,7 +94,7 @@ communication with those Services."
   (interactive
    (list (intern (completing-read
 		  "Choose Nickserv identify mode (RET to disable): "
-		  '(("autodetect") ("nick-change")) nil t))))
+		  '(("autodetect") ("nick-change") ("both")) nil t))))
   (cond ((eq mode 'autodetect)
 	 (setq erc-nickserv-identify-mode 'autodetect)
 	 (add-hook 'erc-server-NOTICE-functions
@@ -111,6 +111,14 @@ communication with those Services."
 		   'erc-nickserv-identify-on-nick-change)
 	 (remove-hook 'erc-server-NOTICE-functions
 		      'erc-nickserv-identify-autodetect))
+	((eq mode 'both)
+	 (setq erc-nickserv-identify-mode 'both)
+	 (add-hook 'erc-server-NOTICE-functions
+		   'erc-nickserv-identify-autodetect)
+	 (add-hook 'erc-after-connect
+		   'erc-nickserv-identify-on-connect)
+	 (add-hook 'erc-nick-changed-functions
+		   'erc-nickserv-identify-on-nick-change))
 	(t
 	 (setq erc-nickserv-identify-mode nil)
 	 (remove-hook 'erc-server-NOTICE-functions
@@ -120,22 +128,25 @@ communication with those Services."
 	 (remove-hook 'erc-nick-changed-functions
 		      'erc-nickserv-identify-on-nick-change))))
 
-(defcustom erc-nickserv-identify-mode 'autodetect
+(defcustom erc-nickserv-identify-mode 'both
   "The mode which is used when identifying to Nickserv.
 
 Possible settings are:.
 
 'autodetect  - Identify when the real Nickserv sends an identify request.
 'nick-change - Identify when you change your nickname.
+'both        - Do the former if the network supports it, otherwise do the
+               latter.
 nil          - Disables automatic Nickserv identification.
 
 You can also use M-x erc-nickserv-identify-mode to change modes."
   :group 'erc-services
   :type '(choice (const autodetect)
 		 (const nick-change)
+		 (const both)
 		 (const nil))
   :set (lambda (sym val)
-	 (set-default sym val)
+	 (set sym val)
 	 (erc-nickserv-identify-mode val)))
 
 (defcustom erc-prompt-for-nickserv-password t
@@ -156,12 +167,14 @@ Example of use:
 	  (list :tag "Network"
 		(choice :tag "Network name"
 			(const freenode)
+			(const OFTC)
 			(const DALnet)
 			(const GalaxyNet)
 			(const SlashNET)
 			(const BRASnet)
 			(const iip)
 			(const Austnet)
+			(const Azzurra)
 			(symbol :tag "Network name"))
 		(repeat :tag "Nickname and password"
 			(cons :tag "Identity"
@@ -209,24 +222,24 @@ Example of use:
      "IDENTIFY"
      nil
      "")
-     (Austnet
-      "NickOP!service@austnet.org"
-      "/msg\\s-NickOP@austnet.org\\s-identify\\s-<password>"
-      "nickop@austnet.org"
-      "identify"
-      nil)
-     (Azzurra
-      "NickServ!service@azzurra.org"
-      "/ns\\s-IDENTIFY\\s-password"
-      "NickServ"
-      "IDENTIFY"
-      nil)
-     (OFTC
-      "NickServ!services@services.oftc.net"
-      "/msg\\s-NickServ\\s-IDENTIFY\\s-\^_password"
-      "NickServ"
-      "IDENTIFY"
-      nil))
+    (Austnet
+     "NickOP!service@austnet.org"
+     "/msg\\s-NickOP@austnet.org\\s-identify\\s-<password>"
+     "nickop@austnet.org"
+     "identify"
+     nil)
+    (Azzurra
+     "NickServ!service@azzurra.org"
+     "/ns\\s-IDENTIFY\\s-password"
+     "NickServ"
+     "IDENTIFY"
+     nil)
+    (OFTC
+     "NickServ!services@services.oftc.net"
+     "/msg\\s-NickServ\\s-IDENTIFY\\s-\^_password"
+     "NickServ"
+     "IDENTIFY"
+     nil))
    "Alist of NickServer details, sorted by network.
 Every element in the list has the form
   \(SYMBOL NICKSERV REGEXP NICK KEYWORD USE-CURRENT ANSWER)
@@ -279,14 +292,18 @@ password for this nickname, otherwise try to send it automatically."
 
 (defun erc-nickserv-identify-on-connect (server nick)
   "Identify to Nickserv after the connection to the server is established."
-  (unless (and (null erc-nickserv-passwords)
-	       (null erc-prompt-for-nickserv-password))
+  (unless (or (and (null erc-nickserv-passwords)
+		   (null erc-prompt-for-nickserv-password))
+	      (and (eq erc-nickserv-identify-mode 'both)
+		   (nth 2 (assoc (erc-network) erc-nickserv-alist))))
     (erc-nickserv-call-identify-function nick)))
 
 (defun erc-nickserv-identify-on-nick-change (nick old-nick)
   "Identify to Nickserv whenever your nick changes."
-  (unless (and (null erc-nickserv-passwords)
-	       (null erc-prompt-for-nickserv-password))
+  (unless (or (and (null erc-nickserv-passwords)
+		   (null erc-prompt-for-nickserv-password))
+	      (and (eq erc-nickserv-identify-mode 'both)
+		   (nth 2 (assoc (erc-network) erc-nickserv-alist))))
     (erc-nickserv-call-identify-function nick)))
 
 (defun erc-nickserv-call-identify-function (nickname)
