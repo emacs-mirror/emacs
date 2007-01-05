@@ -1,3 +1,8 @@
+2007-01-05  Kim F. Storm  <storm@cua.dk>
+
+	* indent.c (Fvertical_motion): Fix it overshoot check for overlay
+	strings without embedded newlines immediately followed by newline.
+
 2007-01-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* editfns.c (Fformat_time_string, Fdecode_time, Fencode_time)
@@ -42,7 +47,7 @@
 	(install_menu_target_item_handler): Add extern.
 	(install_window_handler): Call install_menu_target_item_handler.
 	[MAC_OS8] (main): Use MAC_EMACS_CREATOR_CODE instead of 'EMAx'.
-	(mac_initialize) [USE_CG_DRAWING]: Call init_cg_color. 
+	(mac_initialize) [USE_CG_DRAWING]: Call init_cg_color.
 
 	* macterm.h (MAC_EMACS_CREATOR_CODE): New enumerator.
 
