@@ -242,9 +242,9 @@ breaks any hard links between it and other files."
 
 (defcustom version-control nil
   "Control use of version numbers for backup files.
-t means make numeric backup versions unconditionally.
-nil means make them for files that have some already.
-`never' means do not make them."
+When t, make numeric backup versions unconditionally.
+When nil, make them for files that have some already.
+The value `never' means do not make them."
   :type '(choice (const :tag "Never" never)
 		 (const :tag "If existing" nil)
 		 (other :tag "Always" t))
@@ -1650,7 +1650,8 @@ Do you want to revisit the file normally now? ")
       (setq default-directory (file-name-directory buffer-file-name))
       ;; Turn off backup files for certain file names.  Since
       ;; this is a permanent local, the major mode won't eliminate it.
-      (and (not (funcall backup-enable-predicate buffer-file-name))
+      (and backup-enable-predicate
+	   (not (funcall backup-enable-predicate buffer-file-name))
 	   (progn
 	     (make-local-variable 'backup-inhibited)
 	     (setq backup-inhibited t)))
@@ -2905,6 +2906,7 @@ the old visited file has been renamed to the new name FILENAME."
   ;; Turn off backup files for certain file names.
   ;; Since this is a permanent local, the major mode won't eliminate it.
   (and buffer-file-name
+       backup-enable-predicate
        (not (funcall backup-enable-predicate buffer-file-name))
        (progn
 	 (make-local-variable 'backup-inhibited)

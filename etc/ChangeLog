@@ -1,3 +1,7 @@
+2006-06-30  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* etags.1: Undocument the --no-warn option.
+
 2006-12-17  Richard Stallman  <rms@gnu.org>
 
 	* TUTORIAL: Say that C-d and DEL with arg do killing.

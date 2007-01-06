@@ -95,7 +95,7 @@
 
 ;;; Variables also used at compile time.
 
-(defconst c-version "5.31.3"
+(defconst c-version "5.31.4"
   "CC Mode version number.")
 
 (defconst c-version-sym (intern c-version))
@@ -764,7 +764,7 @@ be after it."
 ;; call `c-beginning-of-statement-1'.
 ;;
 ;; The macro `c-vsemi-status-unknown-p' will typically check the cacheing
-;; scheme used by the `c-at-vsemp-p-fn', hence the name - the status is
+;; scheme used by the `c-at-vsemi-p-fn', hence the name - the status is
 ;; "unknown" if there is no cache entry current for the line. 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1620,7 +1620,7 @@ itself is evaluated."
 
 (defmacro c-lang-defconst (name &rest args)
   "Set the language specific values of the language constant NAME.
-The second argument can be an optional docstring.  The rest of the
+The second argument can optionally be a docstring.  The rest of the
 arguments are one or more repetitions of LANG VAL where LANG specifies
 the language(s) that VAL applies to.  LANG is the name of the
 language, i.e. the mode name without the \"-mode\" suffix, or a list
@@ -1717,7 +1717,7 @@ constant.  A file is identified by its base name."
 	;; Emacs has a weird bug where it seems to fail to read
 	;; backquote lists from byte compiled files correctly (,@
 	;; forms, to be specific), so make sure the bindings in the
-	;; expansion below doesn't contain any backquote stuff.
+	;; expansion below don't contain any backquote stuff.
 	;; (XEmacs handles it correctly and doesn't need this for that
 	;; reason, but we also use this expansion handle
 	;; `c-lang-defconst-eval-immediately' and to register

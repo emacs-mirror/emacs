@@ -896,6 +896,12 @@ Changed values are highlighted with the face `font-lock-warning-face'."
   :group 'gud
   :version "22.1")
 
+(defcustom gdb-max-children 40
+  "Maximum number of children allowed before Emacs asks"
+  :type 'integer
+  :group 'gud
+  :version "22.1")
+
 (defun gdb-speedbar-expand-node (text token indent)
   "Expand the node the user clicked on.
 TEXT is the text of the button we clicked on, a + or - item.
@@ -904,11 +910,17 @@ INDENT is the current indentation depth."
   (if (and gud-comint-buffer (buffer-name gud-comint-buffer))
       (progn
 	(cond ((string-match "+" text)	;expand this node
-	       (if (and (eq (buffer-local-value
-			     'gud-minor-mode gud-comint-buffer) 'gdba)
-			(string-equal gdb-version "pre-6.4"))
-		   (gdb-var-list-children token)
-		 (gdb-var-list-children-1 token)))
+	       (let* ((var (assoc token gdb-var-list))
+		      (expr (nth 1 var)) (children (nth 2 var)))
+		 (if (or (<= (string-to-number children) gdb-max-children)
+			  (y-or-n-p
+			   (format
+			    "%s has %s children. Continue? " expr children)))
+		     (if (and (eq (buffer-local-value
+				   'gud-minor-mode gud-comint-buffer) 'gdba)
+			      (string-equal gdb-version "pre-6.4"))
+			 (gdb-var-list-children token)
+		       (gdb-var-list-children-1 token)))))
 	      ((string-match "-" text)	;contract this node
 	       (dolist (var gdb-var-list)
 		 (if (string-match (concat token "\\.") (car var))

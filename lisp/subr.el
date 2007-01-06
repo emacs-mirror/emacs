@@ -1887,6 +1887,7 @@ menu bar menus and the frame title."
 (defun momentary-string-display (string pos &optional exit-char message)
   "Momentarily display STRING in the buffer at POS.
 Display remains until next event is input.
+If POS is a marker, only its position is used; its buffer is ignored.
 Optional third arg EXIT-CHAR can be a character, event or event
 description list.  EXIT-CHAR defaults to SPC.  If the input is
 EXIT-CHAR it is swallowed; otherwise it is then available as
@@ -1894,30 +1895,21 @@ input (as a command if nothing else).
 Display MESSAGE (optional fourth arg) in the echo area.
 If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
   (or exit-char (setq exit-char ?\s))
-  (let ((inhibit-read-only t)
-	;; Don't modify the undo list at all.
-	(buffer-undo-list t)
-	(modified (buffer-modified-p))
-	(name buffer-file-name)
-	insert-end)
+  (let ((momentary-overlay (make-overlay pos pos nil t)))
+    (overlay-put momentary-overlay 'before-string
+		 (propertize string 'face 'momentary))
     (unwind-protect
 	(progn
-	  (save-excursion
-	    (goto-char pos)
-	    ;; defeat file locking... don't try this at home, kids!
-	    (setq buffer-file-name nil)
-	    (insert-before-markers string)
-	    (setq insert-end (point))
-	    ;; If the message end is off screen, recenter now.
-	    (if (< (window-end nil t) insert-end)
-		(recenter (/ (window-height) 2)))
-	    ;; If that pushed message start off the screen,
-	    ;; scroll to start it at the top of the screen.
-	    (move-to-window-line 0)
-	    (if (> (point) pos)
-		(progn
-		  (goto-char pos)
-		  (recenter 0))))
+	  ;; If the message end is off screen, recenter now.
+	  (if (< (window-end nil t) (+ pos (length string)))
+	      (recenter (/ (window-height) 2)))
+	  ;; If that pushed message start off the screen,
+	  ;; scroll to start it at the top of the screen.
+	  (move-to-window-line 0)
+	  (if (> (point) pos)
+	      (progn
+		(goto-char pos)
+		(recenter 0)))
 	  (message (or message "Type %s to continue editing.")
 		   (single-key-description exit-char))
 	  (let (char)
@@ -1937,11 +1929,7 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
 	      (or (eq char exit-char)
 		  (eq char (event-convert-list exit-char))
 		  (setq unread-command-events (list char))))))
-      (if insert-end
-	  (save-excursion
-	    (delete-region pos insert-end)))
-      (setq buffer-file-name name)
-      (set-buffer-modified-p modified))))
+      (delete-overlay momentary-overlay))))
 
 
 ;;;; Overlay operations

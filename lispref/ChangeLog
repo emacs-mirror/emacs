@@ -1,3 +1,22 @@
+2007-01-05  Richard Stallman  <rms@gnu.org>
+
+	* modes.texi (Defining Minor Modes): Fix previous change.
+
+2007-01-03  Richard Stallman  <rms@gnu.org>
+
+	* customize.texi (Variable Definitions, Customization Types): 
+	Don't use * in doc string for defcustom.
+
+2007-01-02  Richard Stallman  <rms@gnu.org>
+
+	* variables.texi (Variable Aliases): Clarify that aliases vars
+	always have the same value.
+
+	* processes.texi (Bindat Spec): Fix Texinfo usage.
+
+	* modes.texi (Defining Minor Modes): Explain effect of command
+	defined with define-global-minor-mode on new buffers.
+
 2006-12-30  Kim F. Storm  <storm@cua.dk>
 
 	* keymaps.texi (Tool Bar): Describe `grow-only' value of

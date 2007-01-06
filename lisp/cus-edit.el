@@ -1320,9 +1320,11 @@ suggest to customize that face, if it's customizable."
      (format "*Customize Face: %s*"
 	     (custom-unlispify-tag-name face)))))
 
+(defalias 'customize-customized 'customize-unsaved)
+
 ;;;###autoload
-(defun customize-customized ()
-  "Customize all user options set since the last save in this session."
+(defun customize-unsaved ()
+  "Customize all user options set in this session but not saved."
   (interactive)
   (let ((found nil))
     (mapatoms (lambda (symbol)
@@ -1335,9 +1337,9 @@ suggest to customize that face, if it's customizable."
 		     (boundp symbol)
 		     (push (list symbol 'custom-variable) found))))
     (if (not found)
-	(error "No customized user options")
+	(error "No user options are set but unsaved")
       (custom-buffer-create (custom-sort-items found t nil)
-			    "*Customize Customized*"))))
+			    "*Customize Unsaved*"))))
 
 ;;;###autoload
 (defun customize-rogue ()

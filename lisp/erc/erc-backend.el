@@ -179,9 +179,17 @@ WALLCHOPS - supports sending messages to all operators in a channel")
 This variable is buffer-local.")
 (make-variable-buffer-local 'erc-server-connected)
 
+(defvar erc-server-reconnect-count 0
+  "Number of times we have failed to reconnect to the current server.")
+(make-variable-buffer-local 'erc-server-reconnect-count)
+
 (defvar erc-server-quitting nil
   "Non-nil if the user requests a quit.")
 (make-variable-buffer-local 'erc-server-quitting)
+
+(defvar erc-server-banned nil
+  "Non-nil if the user is denied access because of a server ban.")
+(make-variable-buffer-local 'erc-server-banned)
 
 (defvar erc-server-lines-sent nil
   "Line counter.")
@@ -258,6 +266,23 @@ protection algorithm.")
 Reconnection will happen automatically for any unexpected disconnection."
   :group 'erc-server
   :type 'boolean)
+
+(defcustom erc-server-reconnect-attempts 2
+  "The number of times that ERC will attempt to reestablish a
+broken connection, or t to always attempt to reconnect.
+
+This only has an effect if `erc-server-auto-reconnect' is non-nil."
+  :group 'erc-server
+  :type '(choice (const :tag "Always reconnect" t)
+                 integer))
+
+(defcustom erc-server-reconnect-timeout 1
+  "The amount of time, in seconds, that ERC will wait between
+successive reconnect attempts.
+
+If a key is pressed while ERC is waiting, it will stop waiting."
+  :group 'erc-server
+  :type 'number)
 
 (defcustom erc-split-line-length 440
   "*The maximum length of a single message.
@@ -434,6 +459,7 @@ We will store server variables in the current buffer."
     (message "%s...done" msg))
   ;; Misc server variables
   (setq erc-server-quitting nil)
+  (setq erc-server-banned nil)
   (setq erc-server-last-sent-time (erc-current-time))
   (setq erc-server-last-ping-time (erc-current-time))
   (setq erc-server-lines-sent 0)
@@ -456,6 +482,21 @@ We will store server variables in the current buffer."
       (erc-display-message nil nil (current-buffer)
                            "Opening connection..\n")
     (erc-login)))
+
+(defun erc-server-reconnect ()
+"Reestablish the current IRC connection.
+Make sure you are in an ERC buffer when running this."
+  (let ((server (erc-server-buffer)))
+    (unless (and server
+                 (buffer-live-p server))
+      (error "Couldn't switch to server buffer"))
+    (with-current-buffer server
+      (erc-update-mode-line)
+      (erc-set-active-buffer (current-buffer))
+      (setq erc-server-last-sent-time 0)
+      (setq erc-server-lines-sent 0)
+      (erc-open erc-session-server erc-session-port erc-server-current-nick
+                erc-session-user-full-name t erc-session-password))))
 
 (defun erc-server-filter-function (process string)
   "The process filter for the ERC server."
@@ -485,11 +526,24 @@ We will store server variables in the current buffer."
                                (match-end 0))))
             (erc-parse-server-response process line)))))))
 
+(defsubst erc-server-reconnect-p (event)
+  "Return non-nil if ERC should attempt to reconnect automatically.
+EVENT is the message received from the closed connection process."
+  (and erc-server-auto-reconnect
+       (not erc-server-banned)
+       ;; make sure we don't infinitely try to reconnect, unless the
+       ;; user wants that
+       (or (eq erc-server-reconnect-attempts t)
+           (and (integerp erc-server-reconnect-attempts)
+                (< erc-server-reconnect-count erc-server-reconnect-attempts)))
+       (not (string-match "^deleted" event))
+       ;; open-network-stream-nowait error for connection refused
+       (not (string-match "^failed with code 111" event))))
+
 (defun erc-process-sentinel-1 (event)
-  "This will be called when erc-process-sentinel has decided that we
-are going to quit.  Determine whether user has quit or whether erc has
-been terminated.  Conditionally try to reconnect and take appropriate
-action."
+  "Called when `erc-process-sentinel' has decided that we're disconnecting.
+Determine whether user has quit or whether erc has been terminated.
+Conditionally try to reconnect and take appropriate action."
   (if erc-server-quitting
       ;; normal quit
       (progn
@@ -498,25 +552,26 @@ action."
           (set-buffer-modified-p nil)
           (kill-buffer (current-buffer))))
     ;; unexpected disconnect
-    (erc-display-message nil 'error (current-buffer)
-                         (if erc-server-auto-reconnect
-                             'disconnected
-                           'disconnected-noreconnect))
-    (erc-update-mode-line)
-    (erc-set-active-buffer (current-buffer))
-    (setq erc-server-last-sent-time 0)
-    (setq erc-server-lines-sent 0)
-    (if (and erc-server-auto-reconnect
-             (not (string-match "^deleted" event))
-             ;; open-network-stream-nowait error for connection refused
-             (not (string-match "^failed with code 111" event)))
-        ;; Yuck, this should perhaps funcall
-        ;; erc-server-reconnect-function with no args
-        (erc-open erc-session-server erc-session-port erc-server-current-nick
-                  erc-session-user-full-name t erc-session-password)
-      ;; terminate, do not reconnect
-      (erc-display-message nil 'error (current-buffer)
-                           'terminated ?e event))))
+    (let ((again t))
+      (while again
+        (setq again nil)
+        (erc-display-message nil 'error (current-buffer)
+                             (if (erc-server-reconnect-p event)
+                                 'disconnected
+                               'disconnected-noreconnect))
+        (if (erc-server-reconnect-p event)
+            (condition-case err
+                (progn
+                  (erc-server-reconnect)
+                  (setq erc-server-reconnect-count 0))
+              (error (when (integerp erc-server-reconnect-attempts)
+                       (setq erc-server-reconnect-count
+                             (1+ erc-server-reconnect-count))
+                       (sit-for erc-server-reconnect-timeout)
+                       (setq again t))))
+          ;; terminate, do not reconnect
+          (erc-display-message nil 'error (current-buffer)
+                               'terminated ?e event))))))
 
 (defun erc-process-sentinel (cproc event)
   "Sentinel function for ERC process."
@@ -1708,6 +1763,14 @@ See `erc-display-server-message'." nil
                        ?c (second (erc-response.command-args parsed))
                        ?m (erc-response.contents parsed)))
 
+(define-erc-response-handler (465)
+  "You are banned from this server." nil
+  (setq erc-server-banned t)
+  ;; show the server's message, as a reason might be provided
+  (erc-display-error-notice
+   parsed
+   (erc-response.contents parsed)))
+
 (define-erc-response-handler (474)
   "Banned from channel errors" nil
   (erc-display-message parsed '(notice error) nil
@@ -1741,7 +1804,7 @@ See `erc-display-server-message'." nil
     (erc-display-message parsed '(error notice) 'active 's482
                          ?c channel ?m message)))
 
-(define-erc-response-handler (431 445 446 451 462 463 464 465 481 483 484 485
+(define-erc-response-handler (431 445 446 451 462 463 464 481 483 484 485
                                   491 501 502)
   ;; 431 - No nickname given
   ;; 445 - SUMMON has been disabled
@@ -1750,7 +1813,6 @@ See `erc-display-server-message'." nil
   ;; 462 - Unauthorized command (already registered)
   ;; 463 - Your host isn't among the privileged
   ;; 464 - Password incorrect
-  ;; 465 - You are banned from this server
   ;; 481 - Need IRCop privileges
   ;; 483 - You can't kill a server!
   ;; 484 - Your connection is restricted!

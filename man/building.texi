@@ -1099,8 +1099,11 @@ value for pointers and just the name and type otherwise.  Root expressions
 also display the frame address as a tooltip to help identify the frame
 in which they were defined.
 
-  To expand or contract a complex data type, click @kbd{Mouse-2}
-or press @key{SPC} on the tag to the left of the expression.
+  To expand or contract a complex data type, click @kbd{Mouse-2} or
+press @key{SPC} on the tag to the left of the expression.  Emacs asks
+for confirmation before expanding the expression if its number of
+immediate children exceeds the value of the variable
+@code{gdb-max-children}.
 
 @kindex D @r{(GDB speedbar)}
 @findex gdb-var-delete

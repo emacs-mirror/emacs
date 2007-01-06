@@ -1,3 +1,8 @@
+2007-01-05  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-soup.el (gnus-soup): New custom group.  Make user variables
+	customizable.
+
 2006-12-30  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
 
 	* gnus-sum.el (gnus-summary-insert-dormant-articles): Fix typo in

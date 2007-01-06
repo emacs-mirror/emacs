@@ -173,6 +173,11 @@ nothing to do with it.  To control fontification in Info mode, use the
 variable @code{Info-fontify}.
 
 @item
+@samp{M-x shell} is now completely standard in regard to scrolling
+behavior.  It no longer has the option of scrolling the input line to
+the bottom of the window the way a text terminal running a shell does.
+
+@item
 The Grep package has been merged with Compilation mode.  Many
 grep-specific commands and user options have thus been eliminated.
 Also, @kbd{M-x grep} never tries the GNU grep @samp{-H} option,

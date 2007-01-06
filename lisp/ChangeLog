@@ -1,3 +1,173 @@
+2007-01-05  Takaaki Ota  <Takaaki.Ota@am.sony.com>
+
+	* textmodes/table.el (table--warn-incompatibility):
+	Use display-warning instead of momentary-string-display.
+
+2007-01-05  Richard Stallman  <rms@gnu.org>
+
+	* image.el (image-type-header-regexps): Recognize xbm more strictly.
+
+	* simple.el (backward-kill-word): Doc fix.
+
+2007-01-05  Romain Francoise  <romain@orebokech.com>
+
+	* international/mule.el (sgml-html-meta-auto-coding-function):
+	Ensure that the buffer contains a HTML document.
+
+2007-01-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* faces.el (momentary): Move here ...
+	* subr.el (momentary): ... from here.
+
+2007-01-05  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-max-children): New customizable variable.
+	(gdb-speedbar-expand-node): Ask user for confirmation before expanding
+	large structures/arrays.
+
+2007-01-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* files.el (find-file-noselect-1, set-visited-file-name):
+	Allow backup-enable-predicate to be nil.
+
+2007-01-04  Kevin Rodgers  <kevin.d.rodgers@gmail.com>
+
+	* subr.el (momentary): New face.
+	(momentary-string-display): Display the string via a temporary
+	overlay using the new face, instead of inserting it in the buffer.
+
+2007-01-04  Andreas Schwab  <schwab@suse.de>
+
+	* progmodes/ebrowse.el (ebrowse-global-prefix-key): Fix typo in
+	last change.
+
+2007-01-03  Richard Stallman  <rms@gnu.org>
+
+	* woman.el (woman-decode-buffer): Clarify error message.
+
+2007-01-03  Alan Mackenzie  <acm@muc.de>
+
+	* progmode/cc-cmds.el (c-mask-paragraph): Fix yesterday's buggy
+	patch.
+
+2007-01-03  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
+
+	* tutorial.el (tutorial--describe-nonstandard-key): Fix typo.
+
+2007-01-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* iswitchb.el (iswitchb-global-map): Use command-remapping if available.
+
+2007-01-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emulation/viper.el (viper-custom-file-name, viper-mode):
+	Fix typos in docstrings.
+
+	* subr.el (momentary-string-display): After moving point, set POS
+	variable to it to avoid later errors once the buffer is modified.
+	Doc fix.
+
+2007-01-02  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-mask-paragraph): In a block comment,
+	check that the "*/" is present before trying to manipulate it.
+
+2007-01-02  Richard Stallman  <rms@gnu.org>
+
+	* wid-edit.el (widget-choose): Avoid ugly error for function keys.
+
+	* progmodes/cfengine.el (cfengine-font-lock-syntactic-keywords):
+	Fix format of value.
+
+	* cus-edit.el (customize-unsaved): Rename from customize-customized.
+	Change messages accordingly.
+	(customize-customized): Now alias.
+
+2007-01-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* files.el (version-control): Doc fix.
+
+2007-01-01  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-guess-basic-syntax, case 5N):
+	Check the format of c-state-cache is valid for an optimisation before
+	using it.
+
+	* progmodes/cc-engine.el (c-guess-basic-syntax): New case 5Q "we
+	are at a statement within a macro".  Other changes so that only
+	the first continuation line in a macro gets the symbol
+	`cpp-define-intro', the others getting `statement', or whatever.
+
+	* progmodes/cc-cmds.el (c-context-line-break): When invoked within
+	a string, preserve whitespace.  Add a backslash only when also in
+	a macro.
+
+	* progmodes/cc-defs.el: Correct typos.
+
+	* progmodes/cc-cmds.el (c-context-line-break): Don't indent the
+	new line after an escaped EOL in a string.
+
+	* progmodes/cc-engine.el (c-forward-label): Recognise "foo:" as a
+	label when it directly follows "else", "do", ....
+
+	* progmodes/cc-engine.el (c-backward-<>-arglist): Tolerate empty
+	angle brackets (as seen in "explicit specialisations" of C++
+	templates).
+
+	* progmodes/cc-vars.el (c-indentation-style): Mention c-file-style
+	in the doc-string.
+
+	* progmodes/cc-cmds.el (c-mask-paragraph): Fix for C comments,
+	when the comment ender looks like "=========*/" and is alone on
+	its line.
+
+	* progmodes/cc-langs.el, progmodes/cc-engine.el: Correct the
+	spelling of c-opt-op-identiTier-prefix, t -> f.  Leave an alias
+	for the old name.
+
+	* progmodes/cc-mode.el: Bind C-M-a and C-M-e to
+	c-\(beginning\|end\)-of-defun by default.
+
+	* progmodes/cc-align.el (c-lineup-gnu-DEFUN-intro-cont):
+	New line-up function, for the DEFUN macro in the Emacs C sources.
+	Only used in "gnu" style.
+
+	* progmodes/cc-styles.el (c-style-alist): Use this new function in
+	the "gnu" style.
+
+	* progmodes/cc-cmds.el (c-electric-slash): Extend the handling of
+	clean-up comment-close-slash also to work when there's a comment
+	terminator on the line.
+	(c-beginning-of-defun, c-end-of-defun): Refactor and optimise
+	these for large arg - only take account of top level {..}, except
+	for initial and final adjustments.  M-- C-M-[ae] now go to the
+	right defuns when the starting point is between defuns.  They use
+	the four new functions:
+	(c-in-function-trailer-p, c-where-wrt-brace-construct)
+	(c-backward-to-nth-BOF-{, c-forward-to-nth-EOF-}): New functions to
+	support c-\(beginning\|end\)-of-defun.
+
+	* progmodes/cc-engine.el (c-forward-label): Analyze ":"
+	expressions more rigorously, to exclude bit-field specifiers from
+	being classed as labels.
+	(c-forward-label): When analyzing a ":" within a macro, be careful
+	about using c-forward-syntactic-ws at the macro beginning.
+	(c-beginning-of-decl-1): Whilst searching for "=" as evidence of a
+	stmt boundary, check for "operator=", etc.
+
+	* progmodes/cc-mode.el (c-postprocess-file-styles):
+	Bind inhibit-read-only to t, around the call to
+	c-remove-any-local-eval-or-mode-variables, so that it works on a
+	RO file.
+
+	* progmodes/cc-defs.el (c-version): Update the version number to
+	"5.31.4".
+
+2007-01-01  Richard Stallman  <rms@gnu.org>
+
+	* isearch.el (isearch-done): Use FOUND-POINT or FOUND-START
+	only if we restored isearch-window-configuration.
+
 2006-12-31  Romain Francoise  <romain@orebokech.com>
 
 	* net/tramp.el (tramp-default-method): Don't use `symbol-function'.
@@ -165,9 +335,9 @@
 
 2006-12-25  Michael R. Mauger  <mmaug@yahoo.com>
 
-	* progmodes/sql.el (sql-mode-abbrev-table): Corrected initialization.
+	* progmodes/sql.el (sql-mode-abbrev-table): Correct initialization.
 	(sql-mode-syntax-table): Disable double quoted strings.
-	(sql-mode-font-lock-object-name): Added TYPE and TYPE BODY.
+	(sql-mode-font-lock-object-name): Add TYPE and TYPE BODY.
 
 2006-12-25  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -2216,8 +2386,8 @@
 
 2006-10-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* select.el (ccl-check-utf-8, string-utf-8-p): New functions
-	(by Kenichi Handa).
+	* select.el (ccl-check-utf-8, string-utf-8-p): New functions (by
+	Kenichi Handa).
 	(xselect-convert-to-string): Decline requests for UTF8_STRING if
 	the selection is not UTF-8.
 

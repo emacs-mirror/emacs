@@ -784,13 +784,15 @@ NOPUSH is t and EDIT is t."
   (lazy-highlight-cleanup lazy-highlight-cleanup)
   (let ((found-start (window-start (selected-window)))
 	(found-point (point)))
-    (if isearch-window-configuration
-	(set-window-configuration isearch-window-configuration))
-
-    (if isearch-small-window
-	(goto-char found-point)
-      ;; Exiting the save-window-excursion clobbers window-start; restore it.
-      (set-window-start (selected-window) found-start t)))
+    (when isearch-window-configuration
+      (set-window-configuration isearch-window-configuration)
+      (if isearch-small-window
+	  (goto-char found-point)
+	;; set-window-configuration clobbers window-start; restore it.
+	;; This has an annoying side effect of clearing the last_modiff
+	;; field of the window, which can cause unwanted scrolling,
+	;; so don't do it unless truly necessary.
+	(set-window-start (selected-window) found-start t))))
 
   (setq isearch-mode nil)
   (if isearch-input-method-local-p

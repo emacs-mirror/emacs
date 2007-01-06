@@ -8,6 +8,20 @@ an alias of `erc'. Likewise, `erc-select-ssl' has been renamed to
 `erc-ssl' with `erc-select-ssl' as its alias.  The function that was
 known as `erc' is now `erc-open'.
 
+** New command: /RECONNECT
+This command tries to reconnect to the current IRC server exactly
+once.  It does not work in server buffers (throws an error before the
+command is run), but works in query and channel buffers.
+
+** New options
+
+*** erc-server-reconnect-attempts: Determines the number of
+reconnection attempts that ERC will make per server.
+
+*** erc-server-reconnect-timeout: New option that determines the
+amount of time, in seconds, that ERC will wait between successive
+reconnect attempts.
+
 ** Changes and additions to modules
 
 *** Channel lists (erc-list.el)

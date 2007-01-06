@@ -1678,7 +1678,9 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
   /* This is probably enough.  */
   size = SBYTES (format_string) * 6 + 50;
 
+  BLOCK_INPUT;
   tm = ut ? gmtime (&value) : localtime (&value);
+  UNBLOCK_INPUT;
   if (! tm)
     error ("Specified time is not representable");
 
@@ -1690,18 +1692,22 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
       int result;
 
       buf[0] = '\1';
+      BLOCK_INPUT;
       result = emacs_memftimeu (buf, size, SDATA (format_string),
 				SBYTES (format_string),
 				tm, ut);
+      UNBLOCK_INPUT;
       if ((result > 0 && result < size) || (result == 0 && buf[0] == '\0'))
 	return code_convert_string_norecord (make_unibyte_string (buf, result),
 					     Vlocale_coding_system, 0);
 
       /* If buffer was too small, make it bigger and try again.  */
+      BLOCK_INPUT;
       result = emacs_memftimeu (NULL, (size_t) -1,
 				SDATA (format_string),
 				SBYTES (format_string),
 				tm, ut);
+      UNBLOCK_INPUT;
       size = result + 1;
     }
 }
@@ -1732,7 +1738,9 @@ DOW and ZONE.)  */)
   if (! lisp_time_argument (specified_time, &time_spec, NULL))
     error ("Invalid time specification");
 
+  BLOCK_INPUT;
   decoded_time = localtime (&time_spec);
+  UNBLOCK_INPUT;
   if (! decoded_time)
     error ("Specified time is not representable");
   XSETFASTINT (list_args[0], decoded_time->tm_sec);
@@ -1748,7 +1756,9 @@ DOW and ZONE.)  */)
 
   /* Make a copy, in case gmtime modifies the struct.  */
   save_tm = *decoded_time;
+  BLOCK_INPUT;
   decoded_time = gmtime (&time_spec);
+  UNBLOCK_INPUT;
   if (decoded_time == 0)
     list_args[8] = Qnil;
   else
@@ -1804,7 +1814,11 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
   if (CONSP (zone))
     zone = Fcar (zone);
   if (NILP (zone))
-    time = mktime (&tm);
+    {
+      BLOCK_INPUT;
+      time = mktime (&tm);
+      UNBLOCK_INPUT;
+    }
   else
     {
       char tzbuf[100];
@@ -1829,7 +1843,9 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
 	 value doesn't suffice, since that would mishandle leap seconds.  */
       set_time_zone_rule (tzstring);
 
+      BLOCK_INPUT;
       time = mktime (&tm);
+      UNBLOCK_INPUT;
 
       /* Restore TZ to previous value.  */
       newenv = environ;
@@ -1873,7 +1889,9 @@ but this is considered obsolete.  */)
   /* Convert to a string, checking for out-of-range time stamps.
      Don't use 'ctime', as that might dump core if VALUE is out of
      range.  */
+  BLOCK_INPUT;
   tm = localtime (&value);
+  UNBLOCK_INPUT;
   if (! (tm && TM_YEAR_IN_ASCTIME_RANGE (tm->tm_year) && (tem = asctime (tm))))
     error ("Specified time is not representable");
 
@@ -1929,9 +1947,21 @@ the data it can't find.  */)
   struct tm *t;
   struct tm gmt;
 
-  if (lisp_time_argument (specified_time, &value, NULL)
-      && (t = gmtime (&value)) != 0
-      && (gmt = *t, t = localtime (&value)) != 0)
+  if (!lisp_time_argument (specified_time, &value, NULL))
+    t = NULL;
+  else
+    {
+      BLOCK_INPUT;
+      t = gmtime (&value);
+      if (t)
+	{
+	  gmt = *t;
+	  t = localtime (&value);
+	}
+      UNBLOCK_INPUT;
+    }
+
+  if (t)
     {
       int offset = tm_diff (t, &gmt);
       char *s = 0;

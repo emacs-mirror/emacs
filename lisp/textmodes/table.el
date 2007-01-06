@@ -6,7 +6,7 @@
 ;; Keywords: wp, convenience
 ;; Author: Takaaki Ota <Takaaki.Ota@am.sony.com>
 ;; Created: Sat Jul 08 2000 13:28:45 (PST)
-;; Revised: Thu Jul 20 2006 17:30:09 (PDT)
+;; Revised: Wed Jan 03 2007 13:23:46 (PST)
 
 ;; This file is part of GNU Emacs.
 
@@ -5358,7 +5358,7 @@ is non-nil.  The warning is done only once per session for each item."
     (cond ((and (featurep 'xemacs)
 		(not (get 'table-disable-incompatibility-warning 'xemacs)))
 	   (put 'table-disable-incompatibility-warning 'xemacs t)
-	   (momentary-string-display
+	   (display-warning 'table
 	    "
 *** Warning ***
 
@@ -5369,12 +5369,12 @@ such that a border characters dissolve into adjacent cells.  Please be
 aware of this.
 
 "
-	    (save-excursion (forward-line 1) (point))))
+	    :warning))
 	  ((and (boundp 'flyspell-mode)
 		flyspell-mode
 		(not (get 'table-disable-incompatibility-warning 'flyspell)))
 	   (put 'table-disable-incompatibility-warning 'flyspell t)
-	   (momentary-string-display
+	   (display-warning 'table
 	    "
 *** Warning ***
 
@@ -5383,7 +5383,7 @@ package.  The flyspell version 1.5d at http://kaolin.unice.fr/~serrano
 works better than the previous versions however not fully compatible.
 
 "
-	    (save-excursion (forward-line 1) (point))))
+	    :warning))
 	  )))
 
 (defun table--cell-blank-str (&optional n)

@@ -1,3 +1,85 @@
+2007-01-05  Richard Stallman  <rms@gnu.org>
+
+	* anti.texi (Antinews): Mention M-x shell scrolling.
+
+2007-01-05  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Watch Expressions): Describe gdb-max-children.
+
+2007-01-05  Michael Olson  <mwolson@gnu.org>
+
+	* erc.texi (Getting Started): Update for /RECONNECT command.
+
+2007-01-04  Richard Stallman  <rms@gnu.org>
+
+	* ebrowse.texi: Change C-c b to C-c C-m.
+
+	* msdog.texi (Windows Keyboard): Clarify previous change.
+
+2007-01-03  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Customizing Articles): Use index entries for gnus-treat-*
+	variables only in info to avoid redundant entries in the printed
+	manual.
+
+2007-01-02  Richard Stallman  <rms@gnu.org>
+
+	* custom.texi (Changing a Variable): Minor clarification.
+	(Specific Customization): customize-customized => customize-unsaved.
+
+	* entering.texi (Entering Emacs): Clean up text about restarting 
+	Emacs for each file.
+
+	* misc.texi (Shell Options): Minor cleanup.
+
+	* msdog.texi (Windows Keyboard): Explain that Windows was incompatible
+	with Emacs, not vice versa.
+
+	* programs.texi (Symbol Completion): Recommend customizing window
+	manager.
+
+	* xresources.texi (Resources): Minor fix.
+
+2007-01-02  Daiki Ueno  <ueno@unixuser.org>
+
+	* message.texi (Using PGP/MIME): Document gpg-agent usage.
+
+2007-01-02  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.texi (Security): Split into sub-nodes.
+
+2007-01-01  Alan Mackenzie  <acm@muc.de>
+
+	* cc-mode.texi ("Limitations and Known Bugs"): Document problems with
+	eval-after-load in Emacs <=21 and a workaround.  Document that
+	trigraphs are not supported.
+
+2007-01-01  Alan Mackenzie  <acm@muc.de>
+
+	* cc-mode.texi ("Filling and Breaking"): Amend the doc for
+	c-context-line-break.  When invoked within a string, preserve
+	whitespace.  Add a backslash only when also in a macro.
+
+2007-01-01  Alan Mackenzie  <acm@muc.de>
+
+	* cc-mode.texi ("Choosing a Style"): Mention c-file-style.
+
+2007-01-01  Alan Mackenzie  <acm@muc.de>
+
+	* cc-mode.texi ("Movement Commands", "Sample .emacs File"): C-M-[ae]
+	are now bound by default to c-\(beginning\|end\)-of-defun by default.
+
+2007-01-01  Alan Mackenzie  <acm@muc.de>
+
+	* cc-mode.texi ("Other Commands"): Move c-set-style (C-c .) here from
+	"Choosing a Style".
+
+	* cc-mode.texi ("Styles"): Add @dfn{style}.
+
+2007-01-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xresources.texi (Table of Resources): Add scrollBarWidth resource.
+
 2007-01-01  Richard Stallman  <rms@gnu.org>
 
 	* commands.texi (User Input): Document keys stolen by window mangers.
@@ -53,7 +135,6 @@
 	(IMAP): Document nnimap-search-uids-not-since-is-evil and
 	nnimap-nov-is-evil.
 
->>>>>>> 1.1170
 2006-12-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdog.texi (Windows Keyboard): Mention widespread Windows bindings,

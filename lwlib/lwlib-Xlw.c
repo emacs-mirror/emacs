@@ -84,6 +84,25 @@ highlight_hook (w, client_data, call_data)
 }
 
 static void
+enter_hook (w, client_data, call_data)
+     Widget w;
+     XtPointer client_data;
+     XtPointer call_data;
+{
+  highlight_hook (w, client_data, call_data);
+}
+
+static void
+leave_hook (w, client_data, call_data)
+     Widget w;
+     XtPointer client_data;
+     XtPointer call_data;
+{
+  highlight_hook (w, client_data, NULL);
+}
+
+
+static void
 pre_hook (w, client_data, call_data)
      Widget w;
      XtPointer client_data;
@@ -152,8 +171,8 @@ xlw_create_menubar (instance)
 
   XtAddCallback (widget, XtNopen, pre_hook, (XtPointer)instance);
   XtAddCallback (widget, XtNselect, pick_hook, (XtPointer)instance);
-  XtAddCallback (widget, XtNhighlightCallback, highlight_hook,
-		 (XtPointer)instance);
+  XtAddCallback (widget, XtNleaveCallback, leave_hook, (XtPointer)instance);
+  XtAddCallback (widget, XtNenterCallback, enter_hook, (XtPointer)instance);
   return widget;
 }
 
@@ -179,8 +198,8 @@ xlw_create_popup_menu (instance)
 			     popup_shell, al, ac);
 
   XtAddCallback (widget, XtNselect, pick_hook, (XtPointer)instance);
-  XtAddCallback (widget, XtNhighlightCallback, highlight_hook,
-		 (XtPointer)instance);
+  XtAddCallback (widget, XtNleaveCallback, leave_hook, (XtPointer)instance);
+  XtAddCallback (widget, XtNenterCallback, enter_hook, (XtPointer)instance);
 
   return popup_shell;
 }
