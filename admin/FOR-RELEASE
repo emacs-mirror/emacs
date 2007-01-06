@@ -92,6 +92,9 @@ through the custom mechanism.
 
 ** jpff@cs.bath.ac.uk, Jan 5: Failure to submit second netnews message
 
+** KSNetz@UseNet.ArcorNews.DE, Jan 5: 
+    url-http.el: calling the callback function for proxy connections
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
