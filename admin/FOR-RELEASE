@@ -95,8 +95,6 @@ through the custom mechanism.
 ** KSNetz@UseNet.ArcorNews.DE, Jan 5: 
     url-http.el: calling the callback function for proxy connections
 
-** hhalvors@Princeton.EDU, Jan 5: autocomplete error  (in Tramp)
-
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
