@@ -2678,7 +2678,7 @@ are effectively trimmed).  If nil, all zero-length substrings are retained,
 which correctly parses CSV format, for example.
 
 Note that the effect of `(split-string STRING)' is the same as
-`(split-string STRING split-string-default-separators t)').  In the rare
+`(split-string STRING split-string-default-separators t)'.  In the rare
 case that you wish to retain zero-length substrings when splitting on
 whitespace, use `(split-string STRING split-string-default-separators)'.
 
