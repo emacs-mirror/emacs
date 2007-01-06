@@ -1,3 +1,8 @@
+2007-01-05  Takaaki Ota  <Takaaki.Ota@am.sony.com>
+
+	* textmodes/table.el (table--warn-incompatibility):
+	Use display-warning instead of momentary-string-display.
+
 2007-01-05  Richard Stallman  <rms@gnu.org>
 
 	* image.el (image-type-header-regexps): Recognize xbm more strictly.

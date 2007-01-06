@@ -90,6 +90,8 @@ through the custom mechanism.
 
 ** (global-set-key "\M-k" 'bury-buffer) confuses tutorial warnings.
 
+** jpff@cs.bath.ac.uk, Jan 5: Failure to submit second netnews message
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
