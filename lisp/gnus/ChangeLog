@@ -1,3 +1,7 @@
+2007-01-06  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-soup.el: Add missing :group in previous change.
+
 2007-01-05  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-soup.el (gnus-soup): New custom group.  Make user variables
