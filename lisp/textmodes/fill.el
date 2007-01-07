@@ -838,18 +838,22 @@ can take care of filling.  JUSTIFY is used as in `fill-paragraph'."
 	     (commark
 	      (comment-string-strip (buffer-substring comstart comin) nil t))
 	     (comment-re
-	      ;; `commark' is surrounded with arbitrary text (`\0' and `a')
-	      ;;  to make sure it can be used as an optimization of
-	      ;; `comment-start-skip' in the middle of a line.  For example,
-	      ;; `commark' can't be used with the "@c" in TeXinfo (hence
-	      ;; the `a') or with the "C" at BOL in Fortran (hence the `\0').
-	      (if (string-match comment-start-skip (concat "\0" commark "a"))
-		  (concat "[ \t]*" (regexp-quote commark)
-			  ;; Make sure we only match comments that use
-			  ;; the exact same comment marker.
-			  "[^" (substring commark -1) "]")
-		(concat "[ \t]*\\(?:" comment-start-skip "\\)")))
-	     (comment-fill-prefix	; Compute a fill prefix.
+              ;; A regexp more specialized than comment-start-skip, that only
+              ;; matches the current commark rather than any valid commark.
+              ;; 
+              ;; The specialized regexp only works for "normal" comment
+              ;; syntax, not for Texinfo's "@c" (which can't be immediately
+              ;; followed by word-chars) or Fortran's "C" (which needs to be
+              ;; at bol), so check that comment-start-skip indeed allows the
+              ;; commark to appear in the middle of the line and followed by
+              ;; word chars.  The choice of "\0" and "a" is mostly arbitrary.
+              (if (string-match comment-start-skip (concat "\0" commark "a"))
+                  (concat "[ \t]*" (regexp-quote commark)
+                          ;; Make sure we only match comments that
+                          ;; use the exact same comment marker.
+                          "[^" (substring commark -1) "]")
+                (concat "[ \t]*\\(?:" comment-start-skip "\\)")))
+             (comment-fill-prefix	; Compute a fill prefix.
 	      (save-excursion
 		(goto-char comstart)
 		(if has-code-and-comment
