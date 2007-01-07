@@ -1,3 +1,8 @@
+2007-01-07  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-langs.el (c-operators, c-filter-ops): Amend
+	doc-string and comments.
+
 2007-01-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* files.el (abbreviate-file-name): Doc fix.
