@@ -2177,7 +2177,7 @@ either in the current buffer or in the echo area."
     ("TIFF" . mac-dnd-insert-TIFF))
   "Which function to call to handle a drop of that type.
 The function takes three arguments, WINDOW, ACTION and DATA.
-WINDOW is where the drop occured, ACTION is always `private' on
+WINDOW is where the drop occurred, ACTION is always `private' on
 Mac.  DATA is the drop data.  Unlike the x-dnd counterpart, the
 return value of the function is not significant.
 
