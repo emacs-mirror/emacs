@@ -1,3 +1,13 @@
+2007-01-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* battery.el (battery-search-for-one-match-in-files):
+	* bindings.el (mode-line-minor-mode-help):
+	* x-dnd.el (x-dnd-types-alist):
+	* calendar/icalendar.el (icalendar-import-buffer):
+	* term/mac-win.el (mac-dnd-types-alist): Fix typo in docstring.
+
+	* progmodes/vhdl-mode.el (vhdl-save-caches): Fix typo in error message.
+
 2007-01-07  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
 
 	* replace.el (replace-regexp): Fix typo in docstring.
