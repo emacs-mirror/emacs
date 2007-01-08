@@ -1,3 +1,16 @@
+2007-01-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.h (x_display_info): New: net_supported_atoms,
+	nr_net_supported_atoms and net_supported_window.
+
+	* xterm.c: New variable last_user_time.
+	(handle_one_xevent): Set last_user_time from events that have Time.
+	Set net_supported_window to 0 when reparented.
+	(wm_supports): New function.
+	(do_ewmh_fullscreen): Use wm_supports to check for _NET_WM_STATE.
+	(x_term_init): Initialize net_supported_atoms, nr_net_supported_atoms
+	and net_supported_window.
+
 2007-01-05  Kim F. Storm  <storm@cua.dk>
 
 	* indent.c (Fvertical_motion): Fix it overshoot check for overlay
