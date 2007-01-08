@@ -1,5 +1,8 @@
 2007-01-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* keyboard.c (init_keyboard): Initialize interrupt_input_blocked and
+	interrupt_input_pending.
+
 	* xterm.h (x_display_info): New: net_supported_atoms,
 	nr_net_supported_atoms and net_supported_window.
 
