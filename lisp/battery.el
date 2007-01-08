@@ -455,7 +455,7 @@ The following %-sequences are provided:
 
 (defun battery-search-for-one-match-in-files (files regexp match-num)
   "Search REGEXP in the content of the files listed in FILES.
-If a match occured, return the parenthesized expression numbered by
+If a match occurred, return the parenthesized expression numbered by
 MATCH-NUM in the match.  Otherwise, return nil."
   (with-temp-buffer
     (catch 'found

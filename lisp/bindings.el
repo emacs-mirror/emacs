@@ -468,7 +468,7 @@ Menu of mode operations in the mode line.")
   (x-popup-menu event mode-line-mode-menu))
 
 (defun mode-line-minor-mode-help (event)
-  "Describe minor mode for EVENT occured on minor modes area of the mode line."
+  "Describe minor mode for EVENT occurred on minor modes area of the mode line."
   (interactive "@e")
   (let ((indicator (car (nth 4 (car (cdr event))))))
     (describe-minor-mode-from-indicator indicator)))
