@@ -11020,6 +11020,8 @@ init_keyboard ()
   do_mouse_tracking = Qnil;
 #endif
   input_pending = 0;
+  interrupt_input_blocked = 0;
+  interrupt_input_pending = 0;
 
   /* This means that command_loop_1 won't try to select anything the first
      time through.  */
