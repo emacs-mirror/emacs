@@ -13851,7 +13851,7 @@ entity ENT-KEY."
 	    (vhdl-save-cache (car project-list))
 	    (setq project-list (cdr project-list)))
 	  (message "Saving hierarchy caches...done")))
-    (error (progn (vhdl-warning "ERROR:  An error occured while saving the hierarchy caches")
+    (error (progn (vhdl-warning "ERROR:  An error occurred while saving the hierarchy caches")
 		  (sit-for 2)))))
 
 (defun vhdl-save-cache (key)
