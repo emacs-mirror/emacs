@@ -1,3 +1,10 @@
+2007-01-09  Lennart Borgman  <lennart.borgman.073@student.lu.se>
+
+	* tutorial.el (tutorial--display-changes): Show M-x sequence if no
+	keybinding is found.
+	(tutorial--find-changed-keys): Never treat null keybinding as a
+	remapping.
+
 2007-01-09  martin rudalics  <rudalics@gmx.at>
 
 	* wdired.el (wdired-xcase-word): Skip non-word read-only
