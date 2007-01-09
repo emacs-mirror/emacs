@@ -44,8 +44,6 @@ Boston, MA 02110-1301, USA.  */
 #define FONT_BASE(f)    ((f)->ascent)
 #define FONT_DESCENT(f) ((f)->descent)
 
-#define FONT_MAX_WIDTH(f) FONT_WIDTH(f)  /* fix later */
-
 /* Structure recording bitmaps and reference count.
    If REFCOUNT is 0 then this record is free to be reused.  */
 
@@ -617,13 +615,12 @@ extern Pixmap XCreatePixmapFromBitmapData P_ ((Display *, WindowPtr, char *,
 					       unsigned long, unsigned long,
 					       unsigned int));
 extern void XFreePixmap P_ ((Display *, Pixmap));
-extern GC XCreateGC P_ ((Display *, Window, unsigned long, XGCValues *));
+extern GC XCreateGC P_ ((Display *, void *, unsigned long, XGCValues *));
 extern void XFreeGC P_ ((Display *, GC));
 extern void XSetForeground P_ ((Display *, GC, unsigned long));
 extern void XSetBackground P_ ((Display *, GC, unsigned long));
 extern void XSetWindowBackground P_ ((Display *, WindowPtr, unsigned long));
-extern void mac_draw_line_to_pixmap P_ ((Display *, Pixmap, GC, int, int,
-					 int, int));
+extern void XDrawLine P_ ((Display *, Pixmap, GC, int, int, int, int));
 extern void mac_clear_area P_ ((struct frame *, int, int,
 				unsigned int, unsigned int));
 extern void mac_unload_font P_ ((struct mac_display_info *, XFontStruct *));
@@ -638,6 +635,9 @@ extern void do_apple_menu P_ ((SInt16));
 #endif
 #if USE_CG_DRAWING
 extern void mac_prepare_for_quickdraw P_ ((struct frame *));
+#endif
+#ifdef MAC_OSX
+extern int mac_quit_char_key_p P_ ((UInt32, UInt32));
 #endif
 
 #define FONT_TYPE_FOR_UNIBYTE(font, ch) 0
