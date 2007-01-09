@@ -24,7 +24,7 @@ Boston, MA 02110-1301, USA.  */
 #ifndef EMACS_MACGUI_H
 #define EMACS_MACGUI_H
 
-typedef int Display;  /* fix later */
+typedef struct _XDisplay Display; /* opaque */
 
 typedef Lisp_Object XrmDatabase;
 
