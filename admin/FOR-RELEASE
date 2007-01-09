@@ -88,8 +88,6 @@ through the custom mechanism.
 
 ** pgg bugs reported by rms.
 
-** (global-set-key "\M-k" 'bury-buffer) confuses tutorial warnings.
-
 ** jpff@cs.bath.ac.uk, Jan 5: Failure to submit second netnews message
 
 ** KSNetz@UseNet.ArcorNews.DE, Jan 5: 
