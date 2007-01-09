@@ -876,6 +876,32 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 
 #ifdef HAVE_MENUS
 
+/* Regard ESC and C-g as Cancel even without the Cancel button.  */
+
+#ifdef MAC_OSX
+static Boolean
+mac_dialog_modal_filter (dialog, event, item_hit)
+     DialogRef dialog;
+     EventRecord *event;
+     DialogItemIndex *item_hit;
+{
+  Boolean result;
+
+  result = StdFilterProc (dialog, event, item_hit);
+  if (result == false
+      && (event->what == keyDown || event->what == autoKey)
+      && ((event->message & charCodeMask) == kEscapeCharCode
+	  || mac_quit_char_key_p (event->modifiers,
+				  (event->message & keyCodeMask) >> 8)))
+    {
+      *item_hit = kStdCancelItemIndex;
+      return true;
+    }
+
+  return result;
+}
+#endif
+
 DEFUN ("x-popup-dialog", Fx_popup_dialog, Sx_popup_dialog, 2, 3, 0,
        doc: /* Pop up a dialog box and return user's selection.
 POSITION specifies which frame to use.
@@ -961,6 +987,96 @@ for instance using the window manager, then this produces a quit and
        but I don't want to make one now.  */
     CHECK_WINDOW (window);
 
+#ifdef MAC_OSX
+  /* Special treatment for Fmessage_box, Fyes_or_no_p, and Fy_or_n_p.  */
+  if (EQ (position, Qt)
+      && STRINGP (Fcar (contents))
+      && ((!NILP (Fequal (XCDR (contents),
+			  Fcons (Fcons (build_string ("OK"), Qt), Qnil)))
+	   && EQ (header, Qt))
+	  || (!NILP (Fequal (XCDR (contents),
+			     Fcons (Fcons (build_string ("Yes"), Qt),
+				    Fcons (Fcons (build_string ("No"), Qnil),
+					   Qnil))))
+	      && NILP (header))))
+    {
+      OSStatus err = noErr;
+      AlertStdCFStringAlertParamRec param;
+      CFStringRef error_string, explanation_string;
+      DialogRef alert;
+      DialogItemIndex item_hit;
+      Lisp_Object tem;
+
+      tem = Fstring_match (concat3 (build_string ("\\("),
+				    call0 (intern ("sentence-end")),
+				    build_string ("\\)\n")),
+			   XCAR (contents), Qnil);
+      BLOCK_INPUT;
+      if (NILP (tem))
+	{
+	  error_string = cfstring_create_with_string (XCAR (contents));
+	  if (error_string == NULL)
+	    err = memFullErr;
+	  explanation_string = NULL;
+	}
+      else
+	{
+	  tem = Fmatch_end (make_number (1));
+	  error_string =
+	    cfstring_create_with_string (Fsubstring (XCAR (contents),
+						     make_number (0), tem));
+	  if (error_string == NULL)
+	    err = memFullErr;
+	  else
+	    {
+	      XSETINT (tem, XINT (tem) + 1);
+	      explanation_string =
+		cfstring_create_with_string (Fsubstring (XCAR (contents),
+							 tem, Qnil));
+	      if (explanation_string == NULL)
+		{
+		  CFRelease (error_string);
+		  err = memFullErr;
+		}
+	    }
+	}
+      if (err == noErr)
+	err = GetStandardAlertDefaultParams (&param,
+					     kStdCFStringAlertVersionOne);
+      if (err == noErr)
+	{
+	  param.movable = true;
+	  param.position = kWindowAlertPositionParentWindow;
+	  if (NILP (header))
+	    {
+	      param.defaultText = CFSTR ("Yes");
+	      param.otherText = CFSTR ("No");
+#if 0
+	      param.cancelText = CFSTR ("Cancel");
+	      param.cancelButton = kAlertStdAlertCancelButton;
+#endif
+	    }
+	  err = CreateStandardAlert (kAlertNoteAlert, error_string,
+				     explanation_string, &param, &alert);
+	  CFRelease (error_string);
+	  if (explanation_string)
+	    CFRelease (explanation_string);
+	}
+      if (err == noErr)
+	err = RunStandardAlert (alert, mac_dialog_modal_filter, &item_hit);
+      UNBLOCK_INPUT;
+
+      if (err == noErr)
+	{
+	  if (item_hit == kStdCancelItemIndex)
+	    Fsignal (Qquit, Qnil);
+	  else if (item_hit == kStdOkItemIndex)
+	    return Qt;
+	  else
+	    return Qnil;
+	}
+    }
+#endif
 #ifndef HAVE_DIALOGS
   /* Display a menu with these alternatives
      in the middle of frame F.  */
@@ -1537,8 +1653,6 @@ menu_quit_handler (nextHandler, theEvent, userData)
   OSStatus err;
   UInt32 keyCode;
   UInt32 keyModifiers;
-  extern int mac_quit_char_modifiers;
-  extern int mac_quit_char_keycode;
 
   err = GetEventParameter (theEvent, kEventParamKeyCode,
 			   typeUInt32, NULL, sizeof(UInt32), NULL, &keyCode);
@@ -1548,8 +1662,7 @@ menu_quit_handler (nextHandler, theEvent, userData)
 			     typeUInt32, NULL, sizeof(UInt32),
 			     NULL, &keyModifiers);
 
-  if (err == noErr && keyCode == mac_quit_char_keycode
-      && keyModifiers == mac_quit_char_modifiers)
+  if (err == noErr && mac_quit_char_key_p (keyModifiers, keyCode))
     {
       MenuRef menu = userData != 0
         ? (MenuRef)userData : AcquireRootMenu ();
