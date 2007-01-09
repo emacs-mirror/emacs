@@ -1,3 +1,8 @@
+2007-01-09  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el
+	(select-safe-coding-system-interactively): Fix message.
+
 2007-01-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el: (tramp-process-one-action): Remove `with-timeout'.
@@ -313,6 +318,11 @@
 
 	* ido.el (ido-set-matches-1): Fix last change.  If default item is
 	current buffer, it is ok to be first.
+
+2006-12-27  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (select-safe-coding-system-interactively):
+	Use face `link' for problematic chars.
 
 2006-12-27  Kenichi Handa  <handa@m17n.org>
 
