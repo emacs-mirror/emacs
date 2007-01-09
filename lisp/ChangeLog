@@ -1,3 +1,11 @@
+2007-01-09  Richard Stallman  <rms@gnu.org>
+
+	* progmodes/compile.el (compile): Doc fix.
+
+2007-01-09  Markus Triska  <markus.triska@gmx.at>
+
+	* tumme.el (tumme-display-thumb): Doc fix.
+
 2007-01-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* battery.el (battery-search-for-one-match-in-files):
