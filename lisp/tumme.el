@@ -1646,7 +1646,7 @@ Ask user for number of images to show and the delay in between."
 
 ;;;###autoload
 (defun tumme-display-thumb ()
-  "Shorthard for `tumme-display-thumbs' with prefix argument."
+  "Shorthand for `tumme-display-thumbs' with prefix argument."
   (interactive)
   (tumme-display-thumbs t nil t))
 
