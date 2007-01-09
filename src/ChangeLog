@@ -1,3 +1,44 @@
+2007-01-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* callproc.c (Fcall_process_region) [HAVE_MKSTEMP]: Add BLOCK_INPUT
+	around mkstemp.
+
+	* image.c (XDrawLine) [MAC_OS]: Remove macro.
+	(XCreateGC_pixmap) [!HAVE_NTGUI]: Likewise.
+	(x_disable_image) [!HAVE_NTGUI]: Use XCreateGC instead of
+	XCreateGC_pixmap.
+
+	* macgui.h (Display): Typedef to opaque type.
+
+	* macmenu.c (mac_dialog_modal_filter) [MAC_OSX]: New function.
+	(Fx_popup_dialog) [MAC_OSX]: Use standard alert if called from
+	Fmessage_box, Fyes_or_no_p, or Fy_or_n_p.
+	[MAC_OS_X_VERSION_MAX_ALLOWED >= 1030] (menu_quit_handler): Use
+	mac_quit_char_key_p.
+
+	* macterm.c (XDrawLine): Rename from mac_draw_line_to_pixmap.
+	(XCreateGC): Change type of 2nd argument to void *.
+	(XFreeGC) [USE_CG_DRAWING && MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]:
+	Fix last change.
+	(mac_to_emacs_modifiers): Change return type to int.
+	[USE_CARBON_EVENTS] (mac_event_to_emacs_modifiers): Likewise.
+	(mac_mapped_modifiers): New function.
+	(XTread_socket): Use it.
+	[USE_TSM] (mac_handle_text_input_event): Likewise.
+	(do_window_update) [USE_CG_DRAWING]: Call mac_prepare_for_quickdraw.
+	(mac_quit_char_modifiers, mac_quit_char_keycode) [MAC_OSX]: Remove
+	variables.
+	(mac_determine_quit_char_modifiers, init_quit_char_handler)
+	[MAC_OSX]: Remove functions.
+	(make_ctrl_char) [MAC_OSX]: Add extern.
+	(mac_quit_char_key_p) [MAC_OSX]: New function.
+	(mac_initialize) [MAC_OSX]: Don't call init_quit_char_handler.
+
+	* macterm.h (FONT_MAX_WIDTH): Remove unused macro.
+	(XCreateGC): Change type in extern.
+	(XDrawLine): Rename from mac_draw_line_to_pixmap.
+	(mac_quit_char_key_p) [MAC_OSX]: Add extern.
+
 2007-01-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* keyboard.c (init_keyboard): Initialize interrupt_input_blocked and
