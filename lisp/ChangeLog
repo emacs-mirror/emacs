@@ -5,10 +5,9 @@
 	(tutorial--find-changed-keys): Never treat null keybinding as a
 	remapping.
 
-2007-01-09  martin rudalics  <rudalics@gmx.at>
+2007-01-09  Martin Rudalics  <rudalics@gmx.at>
 
-	* wdired.el (wdired-xcase-word): Skip non-word read-only
-	characters.
+	* wdired.el (wdired-xcase-word): Skip non-word read-only characters.
 
 2007-01-09  Kenichi Handa  <handa@m17n.org>
 
@@ -17,7 +16,7 @@
 
 2007-01-09  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el: (tramp-process-one-action): Remove `with-timeout'.
+	* net/tramp.el (tramp-process-one-action): Remove `with-timeout'.
 	(tramp-process-actions): Add optional parameter TIMEOUT.
 	(tramp-open-connection-telnet, tramp-open-connection-rsh)
 	(tramp-open-connection-su): Add timeout of 60".
