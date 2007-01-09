@@ -1,3 +1,10 @@
+2007-01-09  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-fontify-node): Don't hide node names of index entries.
+
+	* faces.el (momentary): Change :group to basic-faces where all
+	basic faces belong to.  Add :version.
+
 2007-01-09  Lennart Borgman  <lennart.borgman.073@student.lu.se>
 
 	* tutorial.el (tutorial--display-changes): Show M-x sequence if no
