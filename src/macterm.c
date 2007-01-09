@@ -505,8 +505,10 @@ mac_draw_line (f, gc, x1, y1, x2, y2)
 #endif
 }
 
+/* Mac version of XDrawLine (to Pixmap).  */
+
 void
-mac_draw_line_to_pixmap (display, p, gc, x1, y1, x2, y2)
+XDrawLine (display, p, gc, x1, y1, x2, y2)
      Display *display;
      Pixmap p;
      GC gc;
@@ -1628,9 +1630,9 @@ XChangeGC (display, gc, mask, xgcv)
 /* Mac replacement for XCreateGC.  */
 
 GC
-XCreateGC (display, window, mask, xgcv)
+XCreateGC (display, d, mask, xgcv)
      Display *display;
-     Window window;
+     void *d;
      unsigned long mask;
      XGCValues *xgcv;
 {
@@ -1663,8 +1665,13 @@ XFreeGC (display, gc)
   if (gc->clip_region)
     DisposeRgn (gc->clip_region);
 #if USE_CG_DRAWING && MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
-  CGColorRelease (gc->cg_fore_color);
-  CGColorRelease (gc->cg_back_color);
+#if MAC_OS_X_VERSION_MIN_REQUIRED == 1020
+  if (CGColorGetTypeID != NULL)
+#endif
+    {
+      CGColorRelease (gc->cg_fore_color);
+      CGColorRelease (gc->cg_back_color);
+    }
 #endif
   xfree (gc);
 }
@@ -8967,7 +8974,7 @@ static const unsigned char fn_keycode_to_keycode_table[] = {
 };
 #endif	/* MAC_OSX */
 
-static unsigned int
+static int
 #if USE_CARBON_EVENTS
 mac_to_emacs_modifiers (UInt32 mods)
 #else
@@ -9014,6 +9021,23 @@ mac_to_emacs_modifiers (EventModifiers mods)
   return result;
 }
 
+static UInt32
+mac_mapped_modifiers (modifiers)
+     UInt32 modifiers;
+{
+  UInt32 mapped_modifiers_all =
+    (NILP (Vmac_control_modifier) ? 0 : controlKey)
+    | (NILP (Vmac_option_modifier) ? 0 : optionKey)
+    | (NILP (Vmac_command_modifier) ? 0 : cmdKey);
+
+#ifdef MAC_OSX
+  mapped_modifiers_all |=
+    (NILP (Vmac_function_modifier) ? 0 : kEventKeyModifierFnMask);
+#endif
+
+  return mapped_modifiers_all & modifiers;
+}
+
 static int
 mac_get_emulated_btn ( UInt32 modifiers )
 {
@@ -9031,7 +9055,7 @@ mac_get_emulated_btn ( UInt32 modifiers )
 #if USE_CARBON_EVENTS
 /* Obtains the event modifiers from the event ref and then calls
    mac_to_emacs_modifiers.  */
-static UInt32
+static int
 mac_event_to_emacs_modifiers (EventRef eventRef)
 {
   UInt32 mods = 0;
@@ -9256,6 +9280,9 @@ do_window_update (WindowPtr win)
 	  GetPortVisibleRegion (GetWindowPort (win), region);
 	  GetRegionBounds (region, &r);
 	  expose_frame (f, r.left, r.top, r.right - r.left, r.bottom - r.top);
+#if USE_CG_DRAWING
+	  mac_prepare_for_quickdraw (f);
+#endif
 	  UpdateControls (win, region);
 	  DisposeRgn (region);
 #else
@@ -10067,21 +10094,10 @@ mac_handle_text_input_event (next_handler, event, data)
 	  err = GetEventParameter (kbd_event, kEventParamKeyModifiers,
 				   typeUInt32, NULL,
 				   sizeof (UInt32), NULL, &modifiers);
-	if (err == noErr)
-	  {
-	    mapped_modifiers =
-	      (NILP (Vmac_control_modifier) ? 0 : controlKey)
-	      | (NILP (Vmac_option_modifier) ? 0 : optionKey)
-	      | (NILP (Vmac_command_modifier) ? 0 : cmdKey);
-#ifdef MAC_OSX
-	    mapped_modifiers |=
-	      (NILP (Vmac_function_modifier) ? 0 : kEventKeyModifierFnMask);
-#endif
-	    if (modifiers & mapped_modifiers)
-	      /* There're mapped modifier keys.  Process it in
-		 XTread_socket.  */
-	      return eventNotHandledErr;
-	  }
+	if (err == noErr && mac_mapped_modifiers (modifiers))
+	  /* There're mapped modifier keys.  Process it in
+	     XTread_socket.  */
+	  return eventNotHandledErr;
 	if (err == noErr)
 	  err = GetEventParameter (kbd_event, kEventParamKeyUnicodes,
 				   typeUnicodeText, NULL, 0, &actual_size,
@@ -11032,20 +11048,12 @@ XTread_socket (sd, expected, hold_quit)
 	    SInt16 current_key_script;
 	    UInt32 modifiers = er.modifiers, mapped_modifiers;
 
-	    mapped_modifiers =
-	      (NILP (Vmac_control_modifier) ? 0 : controlKey)
-	      | (NILP (Vmac_option_modifier) ? 0 : optionKey)
-	      | (NILP (Vmac_command_modifier) ? 0 : cmdKey);
-
 #if USE_CARBON_EVENTS && defined (MAC_OSX)
-	    mapped_modifiers |=
-	      (NILP (Vmac_function_modifier) ? 0 : kEventKeyModifierFnMask);
-
 	    GetEventParameter (eventRef, kEventParamKeyModifiers,
 			       typeUInt32, NULL,
 			       sizeof (UInt32), NULL, &modifiers);
 #endif
-	    mapped_modifiers &= modifiers;
+	    mapped_modifiers = mac_mapped_modifiers (modifiers);
 
 #if USE_CARBON_EVENTS && (defined (MAC_OSX) || USE_MAC_TSM)
 	    /* When using Carbon Events, we need to pass raw keyboard
@@ -11639,34 +11647,33 @@ MakeMeTheFrontProcess ()
 }
 
 /***** Code to handle C-g testing  *****/
-
-/* Contains the Mac modifier formed from quit_char */
-int mac_quit_char_modifiers = 0;
-int mac_quit_char_keycode;
 extern int quit_char;
+extern int make_ctrl_char P_ ((int));
 
-static void
-mac_determine_quit_char_modifiers()
+int
+mac_quit_char_key_p (modifiers, key_code)
+     UInt32 modifiers, key_code;
 {
-  /* Todo: Determine modifiers from quit_char. */
-  UInt32 qc_modifiers = ctrl_modifier;
+  UInt32 char_code;
+  unsigned long some_state = 0;
+  Ptr kchr_ptr = (Ptr) GetScriptManagerVariable (smKCHRCache);
+  int c, emacs_modifiers;
 
-  /* Map modifiers */
-  mac_quit_char_modifiers = 0;
-  if (qc_modifiers & ctrl_modifier)  mac_quit_char_modifiers |= controlKey;
-  if (qc_modifiers & shift_modifier) mac_quit_char_modifiers |= shiftKey;
-  if (qc_modifiers & alt_modifier)   mac_quit_char_modifiers |= optionKey;
-}
+  /* Mask off modifier keys that are mapped to some Emacs modifiers.  */
+  key_code |= (modifiers & ~(mac_mapped_modifiers (modifiers)));
+  char_code = KeyTranslate (kchr_ptr, key_code, &some_state);
+  if (char_code & ~0xff)
+    return 0;
 
-static void
-init_quit_char_handler ()
-{
-  /* TODO: Let this support keys other the 'g' */
-  mac_quit_char_keycode = 5;
-  /* Look at <architecture/adb_kb_map.h> for details */
-  /* http://gemma.apple.com/techpubs/mac/Toolbox/Toolbox-40.html#MARKER-9-184*/
+  emacs_modifiers = mac_to_emacs_modifiers (modifiers);
+  if (emacs_modifiers & ctrl_modifier)
+    c = make_ctrl_char (char_code);
 
-  mac_determine_quit_char_modifiers();
+  c |= (emacs_modifiers
+	& (meta_modifier | alt_modifier
+	   | hyper_modifier | super_modifier));
+
+  return c == quit_char;
 }
 #endif	/* MAC_OSX */
 
@@ -11803,8 +11810,6 @@ mac_initialize ()
 #if USE_CARBON_EVENTS
 #ifdef MAC_OSX
   init_service_handler ();
-
-  init_quit_char_handler ();
 #endif	/* MAC_OSX */
 
   init_command_handler ();
