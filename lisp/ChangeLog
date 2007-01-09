@@ -1,3 +1,8 @@
+2007-01-09  martin rudalics  <rudalics@gmx.at>
+
+	* wdired.el (wdired-xcase-word): Skip non-word read-only
+	characters.
+
 2007-01-09  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el
