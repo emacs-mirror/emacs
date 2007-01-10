@@ -1,3 +1,8 @@
+2007-01-10  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/pp.el (pp-eval-expression): Once again eval the
+	argument, but read it as `X' does.
+
 2007-01-09  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-fontify-node): Don't hide node names of index entries.
