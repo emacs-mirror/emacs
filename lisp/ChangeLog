@@ -1,5 +1,8 @@
 2007-01-10  Richard Stallman  <rms@gnu.org>
 
+	* battery.el (battery-linux-proc-acpi): Use ignore-errors
+	around calls to directory-files.
+
 	* subr.el (momentary-string-display): Use save-excursion.
 
 	* emacs-lisp/pp.el (pp-eval-expression): Once again eval the

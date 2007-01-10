@@ -1,3 +1,8 @@
+2007-01-10  Richard Stallman  <rms@gnu.org>
+
+	* msdog.texi (Windows Keyboard): Yet another try to make
+	everyone happy with that passage.
+
 2007-01-05  Richard Stallman  <rms@gnu.org>
 
 	* anti.texi (Antinews): Mention M-x shell scrolling.
