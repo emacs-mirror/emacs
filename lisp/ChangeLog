@@ -1,5 +1,7 @@
 2007-01-10  Richard Stallman  <rms@gnu.org>
 
+	* subr.el (momentary-string-display): Use save-excursion.
+
 	* emacs-lisp/pp.el (pp-eval-expression): Once again eval the
 	argument, but read it as `X' does.
 
