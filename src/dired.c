@@ -1,6 +1,6 @@
 /* Lisp functions for making directory listings.
    Copyright (C) 1985, 1986, 1993, 1994, 1999, 2000, 2001, 2002, 2003,
-                 2004, 2005, 2006 Free Software Foundation, Inc.
+                 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -966,16 +966,18 @@ Elements of the attribute list are:
   values[1] = make_number (s.st_nlink);
   if (NILP (id_format) || EQ (id_format, Qinteger))
     {
-      values[2] = make_number (s.st_uid);
-      values[3] = make_number (s.st_gid);
+      values[2] = make_fixnum_or_float (s.st_uid);
+      values[3] = make_fixnum_or_float (s.st_gid);
     }
   else
     {
       BLOCK_INPUT;
       pw = (struct passwd *) getpwuid (s.st_uid);
-      values[2] = (pw ? build_string (pw->pw_name) : make_number (s.st_uid));
+      values[2] = (pw ? build_string (pw->pw_name)
+                  : make_fixnum_or_float (s.st_uid));
       gr = (struct group *) getgrgid (s.st_gid);
-      values[3] = (gr ? build_string (gr->gr_name) : make_number (s.st_gid));
+      values[3] = (gr ? build_string (gr->gr_name)
+                  : make_fixnum_or_float (s.st_gid));
       UNBLOCK_INPUT;
     }
   values[4] = make_time (s.st_atime);
