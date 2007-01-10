@@ -1,6 +1,6 @@
 /* protxcpp.c: PROTECTION FOR MAC OS X ON POWERPC
  *
- *  $Header$
+ *  $Id$
  *  Copyright (c) 2001,2005 Ravenbrook Limited.  See end of file for license.
  *
  *  Most of this was copied from protso.c and modified.
