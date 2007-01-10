@@ -93,6 +93,8 @@ through the custom mechanism.
 
 ** simon.marshall@misys.com, Jan 9: Possible mouse-face redisplay glitch
 
+** dooglus@gmail.com, Jan 10: problem with transparent PNG image display
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
