@@ -1905,11 +1905,11 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
 	      (recenter (/ (window-height) 2)))
 	  ;; If that pushed message start off the screen,
 	  ;; scroll to start it at the top of the screen.
-	  (move-to-window-line 0)
-	  (if (> (point) pos)
-	      (progn
+	  (save-excursion
+	    (move-to-window-line 0)
+	    (if (> (point) pos)
 		(goto-char pos)
-		(recenter 0)))
+	      (recenter 0)))
 	  (message (or message "Type %s to continue editing.")
 		   (single-key-description exit-char))
 	  (let (char)
