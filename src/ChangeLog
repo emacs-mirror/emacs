@@ -1,5 +1,8 @@
 2007-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* editfns.c (Fformat): Allow integer-format to work with floats of size
+	larger than most-positive-fixnum (but still smaller than MAXINT).
+
 	* dired.c (Ffile_attributes): Use floats for large uids/gids.
 
 2007-01-09  Eli Zaretskii  <eliz@gnu.org>
