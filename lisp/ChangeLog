@@ -1,3 +1,9 @@
+2007-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ffap.el (ffap-next-regexp, ffap-machine-p, ffap-newsgroup-regexp)
+	(ffap-newsgroup-p, ffap-alist, ffap-string-at-point-mode-alist)
+	(ffap-url-at-point): Use char-classes rather than "a-z".
+
 2007-01-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ediff-init.el (ediff-autostore-merges):

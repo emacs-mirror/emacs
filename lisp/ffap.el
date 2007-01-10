@@ -1,7 +1,7 @@
 ;;; ffap.el --- find file (or url) at point
 
 ;; Copyright (C) 1995, 1996, 1997, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006 Free Software Foundation, Inc.
+;;   2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Michelangelo Grigni <mic@mathcs.emory.edu>
 ;; Maintainer: FSF
@@ -310,7 +310,7 @@ For a fancy alternative, get `ffap-url.el'."
   ;;
   ;; It pays to put a big fancy regexp here, since ffap-guesser is
   ;; much more time-consuming than regexp searching:
-  "[/:.~a-zA-Z]/\\|@[a-zA-Z][-a-zA-Z0-9]*\\."
+  "[/:.~[:alpha:]]/\\|@[[:alpha:]][-[:alnum:]]*\\."
   "*Regular expression governing movements of `ffap-next'."
   :type 'regexp
   :group 'ffap)
@@ -426,7 +426,7 @@ Returned values:
   ;; (ffap-machine-p "mathcs" 5678 nil 'ping)
   ;; (ffap-machine-p "foo.bonk" nil nil 'ping)
   ;; (ffap-machine-p "foo.bonk.com" nil nil 'ping)
-  (if (or (string-match "[^-a-zA-Z0-9.]" host) ; Illegal chars (?)
+  (if (or (string-match "[^-[:alnum:].]" host) ; Illegal chars (?)
 	  (not (string-match "[^0-9]" host))) ; 1: a number? 2: quick reject
       nil
     (let* ((domain
@@ -575,7 +575,7 @@ Looks at `ffap-ftp-default-user', returns \"\" for \"localhost\"."
    (ffap-ftp-regexp (ffap-host-to-filename mach))
    ))
 
-(defvar ffap-newsgroup-regexp "^[a-z]+\\.[-+a-z_0-9.]+$"
+(defvar ffap-newsgroup-regexp "^[[:lower:]]+\\.[-+[:lower:]_0-9.]+$"
   "Strings not matching this fail `ffap-newsgroup-p'.")
 (defvar ffap-newsgroup-heads		; entirely inadequate
   '("alt" "comp" "gnu" "misc" "news" "sci" "soc" "talk")
@@ -601,7 +601,7 @@ Looks at `ffap-ftp-default-user', returns \"\" for \"localhost\"."
 	     (setq heads nil))
 	 (error nil)))
      (or ret (not heads)
-	 (let ((head (string-match "\\`\\([a-z]+\\)\\." string)))
+	 (let ((head (string-match "\\`\\([[:lower:]]+\\)\\." string)))
 	   (and head (setq head (substring string 0 (match-end 1)))
 		(member head heads)
 		(setq ret string))))
@@ -780,7 +780,7 @@ This uses ffap-file-exists-string, which may try adding suffixes from
     ("" . ffap-completable)		; completion, slow on some systems
     ("\\.info\\'" . ffap-info)		; gzip.info
     ("\\`info/" . ffap-info-2)		; info/emacs
-    ("\\`[-a-z]+\\'" . ffap-info-3)	; (emacs)Top [only in the parentheses]
+    ("\\`[-[:lower:]]+\\'" . ffap-info-3) ; (emacs)Top [only in the parentheses]
     ("\\.elc?\\'" . ffap-el)		; simple.el, simple.elc
     (emacs-lisp-mode . ffap-el-mode)	; rmail, gnus, simple, custom
     ;; (lisp-interaction-mode . ffap-el-mode) ; maybe
@@ -969,15 +969,15 @@ If t, `ffap-tex-init' will initialize this when needed.")
     ;; Slightly controversial decisions:
     ;; * strip trailing "@" and ":"
     ;; * no commas (good for latex)
-    (file "--:$+<>@-Z_a-z~*?" "<@" "@>;.,!:")
+    (file "--:$+<>@-Z_[:lower:]~*?" "<@" "@>;.,!:")
     ;; An url, or maybe a email/news message-id:
-    (url "--:=&?$+@-Z_a-z~#,%;*" "^A-Za-z0-9" ":;.,!?")
+    (url "--:=&?$+@-Z_[:lower:]~#,%;*" "^[:alnum:]" ":;.,!?")
     ;; Find a string that does *not* contain a colon:
-    (nocolon "--9$+<>@-Z_a-z~" "<@" "@>;.,!?")
+    (nocolon "--9$+<>@-Z_[:lower:]~" "<@" "@>;.,!?")
     ;; A machine:
-    (machine "-a-zA-Z0-9." "" ".")
+    (machine "-[:alnum:]." "" ".")
     ;; Mathematica paths: allow backquotes
-    (math-mode ",-:$+<>@-Z_a-z~`" "<" "@>;.,!?`:")
+    (math-mode ",-:$+<>@-Z_[:lower:]~`" "<" "@>;.,!?`:")
     )
   "Alist of \(MODE CHARS BEG END\), where MODE is a symbol,
 possibly a major-mode name, or one of the symbol
@@ -1062,7 +1062,7 @@ Assumes the buffer has not changed."
     (let ((name (ffap-string-at-point 'url)))
       (cond
        ((string-match "^url:" name) (setq name (substring name 4)))
-       ((and (string-match "\\`[^:</>@]+@[^:</>@]+[a-zA-Z0-9]\\'" name)
+       ((and (string-match "\\`[^:</>@]+@[^:</>@]+[[:alnum:]]\\'" name)
 	     ;; "foo@bar": could be "mailto" or "news" (a Message-ID).
 	     ;; Without "<>" it must be "mailto".  Otherwise could be
 	     ;; either, so consult `ffap-foo-at-bar-prefix'.
@@ -1074,7 +1074,7 @@ Assumes the buffer has not changed."
 			     "mailto")))
 	       (and prefix (setq name (concat prefix ":" name))))))
        ((ffap-newsgroup-p name) (setq name (concat "news:" name)))
-       ((and (string-match "\\`[a-z0-9]+\\'" name) ; <mic> <root> <nobody>
+       ((and (string-match "\\`[[:alnum:]]+\\'" name) ; <mic> <root> <nobody>
 	     (equal (ffap-string-around) "<>")
 	     ;;	(ffap-user-p name):
 	     (not (string-match "~" (expand-file-name (concat "~" name))))
