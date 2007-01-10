@@ -743,7 +743,7 @@ space does not end a sentence, so don't break a line there."
 
 (defun fill-minibuffer-function (arg)
   "Fill a paragraph in the minibuffer, ignoring the prompt."
-  (save-restriction 
+  (save-restriction
     (narrow-to-region (minibuffer-prompt-end) (point-max))
     (fill-paragraph arg)))
 
@@ -840,7 +840,7 @@ can take care of filling.  JUSTIFY is used as in `fill-paragraph'."
 	     (comment-re
               ;; A regexp more specialized than comment-start-skip, that only
               ;; matches the current commark rather than any valid commark.
-              ;; 
+              ;;
               ;; The specialized regexp only works for "normal" comment
               ;; syntax, not for Texinfo's "@c" (which can't be immediately
               ;; followed by word-chars) or Fortran's "C" (which needs to be
@@ -948,13 +948,13 @@ Ordinarily the variable `fill-column' controls the width.
 
 Noninteractively, the third argument JUSTIFY specifies which
 kind of justification to do: `full', `left', `right', `center',
-or `none' (equivalent to nil).  t means handle each paragraph
-as specified by its text properties.
+or `none' (equivalent to nil).  A value of t means handle each
+paragraph as specified by its text properties.
 
-The fourth arg NOSQUEEZE non-nil means to leave
-whitespace other than line breaks untouched, and fifth arg TO-EOP
-non-nil means to keep filling to the end of the paragraph (or next
-hard newline, if variable `use-hard-newlines' is on).
+The fourth arg NOSQUEEZE non-nil means to leave whitespace other
+than line breaks untouched, and fifth arg TO-EOP non-nil means
+to keep filling to the end of the paragraph (or next hard newline,
+if variable `use-hard-newlines' is on).
 
 Return the fill-prefix used for filling the last paragraph.
 
