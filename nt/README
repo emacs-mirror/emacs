@@ -1,7 +1,7 @@
 	     Emacs for Windows NT/2000 and Windows 95/98/ME
 
-  Copyright (C) 2001, 2002, 2003, 2004, 2005,
-     2006 Free Software Foundation, Inc.
+  Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006
+     2007 Free Software Foundation, Inc.
   See the end of the INSTALL file in this directory for copying permissions.
 
   This directory contains support for compiling and running GNU Emacs on
@@ -12,7 +12,7 @@
 
   Precompiled distributions are also available; ftp to
 
-	ftp://ftp.gnu.org/gnu/windows/emacs/latest/
+	ftp://ftp.gnu.org/gnu/emacs/windows/
 
   for the latest precompiled distributions.
 
@@ -59,22 +59,12 @@
   about it.  First check the file etc/PROBLEMS and the FAQ on the web
   page above to see if the bug is already known and if there are any
   workarounds.  If not, then check whether the bug has something to do
-  with code in your .emacs file, e.g. by invoking Emacs with the "-q
-  --no-site-file" options.
+  with code in your .emacs file, e.g. by invoking Emacs with the "-Q"
+  option.
 
-  If you decide that it is a bug in Emacs that might be specific to the
-  Windows port, send a message to the help-emacs-windows@gnu.org
-  mailing list describing the bug, the version of Emacs that you are
-  using, and the operating system that you are running on (Windows NT,
-  95 or 98 including service pack level if known).  If the bug is
-  related to subprocesses, also specify which shell you are using (e.g.,
-  include the values of `shell-file-name' and `shell-explicit-file-name'
-  in your message).
-
-  If you think the bug is not specific to the Windows port of Emacs,
-  then it is better to mail the bug report to bug-gnu-emacs@gnu.org so
-  that it will be seen by the right people.  If Emacs has been set up to
-  send mail, you can use the command M-x report-emacs-bug to create and
-  send the bug report, but in some cases there is a function to report
-  bugs in a specific package; e.g. M-x gnus-bug for Gnus, M-x
-  c-submit-bug-report for C/C++/Java mode, etc.
+  Use the built in bug reporting functionality in Emacs so that it
+  will be seen by the right people.  You can use the command M-x
+  report-emacs-bug to create and send the bug report, but in some
+  cases there is a function to report bugs in a specific package;
+  e.g. M-x gnus-bug for Gnus, M-x c-submit-bug-report for C/C++/Java
+  mode, etc.
