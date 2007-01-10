@@ -1,3 +1,8 @@
+2007-01-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ediff-init.el (ediff-autostore-merges):
+	* textmodes/fill.el (fill-region): Doc fix.
+
 2007-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* server.el (server-ensure-safe-dir): UIDs may be floats.
