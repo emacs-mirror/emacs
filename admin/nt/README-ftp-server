@@ -93,7 +93,7 @@
   Distributions for non-x86 platforms are no longer supplied. Older
   platforms supported by Windows NT no longer seem to be in demand,
   and Emacs is yet to be ported to 64bit Windows platforms. If you are
-  willing to help port Emacs to 64bit versions of Emacs, your
+  willing to help port Emacs to 64bit versions of Windows, your
   contribution will be welcome on the emacs-devel mailing list.
 
 * Unpacking distributions
