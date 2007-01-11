@@ -1,7 +1,7 @@
 ;;; hexl.el --- edit a file in a hex dump format using the hexl filter
 
 ;; Copyright (C) 1989, 1994, 1998, 2001, 2002, 2003, 2004,
-;;   2005, 2006 Free Software Foundation, Inc.
+;;   2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Keith Gabryelski <ag@wheaties.ai.mit.edu>
 ;; Maintainer: FSF
@@ -706,10 +706,10 @@ You may also type octal digits, to insert a character with that code."
   "Convert a binary buffer to hexl format.
 This discards the buffer's undo information."
   (interactive)
-  (and buffer-undo-list
+  (and (consp buffer-undo-list)
        (or (y-or-n-p "Converting to hexl format discards undo info; ok? ")
-	   (error "Aborted")))
-  (setq buffer-undo-list nil)
+	   (error "Aborted"))
+       (setq buffer-undo-list nil))
   ;; Don't decode text in the ASCII part of `hexl' program output.
   (let ((coding-system-for-read 'raw-text)
 	(coding-system-for-write buffer-file-coding-system)
@@ -731,10 +731,10 @@ This discards the buffer's undo information."
   "Convert a hexl format buffer to binary.
 This discards the buffer's undo information."
   (interactive)
-  (and buffer-undo-list
+  (and (consp buffer-undo-list)
        (or (y-or-n-p "Converting from hexl format discards undo info; ok? ")
-	   (error "Aborted")))
-  (setq buffer-undo-list nil)
+	   (error "Aborted"))
+       (setq buffer-undo-list nil))
   (let ((coding-system-for-write 'raw-text)
 	(coding-system-for-read buffer-file-coding-system)
 	(buffer-undo-list t))

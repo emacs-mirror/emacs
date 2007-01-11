@@ -1,3 +1,9 @@
+2007-01-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* hexl.el (hexlify-buffer, dehexlify-buffer): Don't complain and don't
+	activate undo when undo is not active.
+	Reported by Chris <christopher.ian.moore@gmail.com>.
+
 2007-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* ffap.el (ffap-next-regexp, ffap-machine-p, ffap-newsgroup-regexp)
