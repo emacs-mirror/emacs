@@ -1,3 +1,8 @@
+2007-01-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* alloc.c (BLOCK_INPUT_ALLOC, UNBLOCK_INPUT_ALLOC): Use pthread_equal,
+	block/unblock SIGIO.
+
 2007-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* editfns.c (Fformat): Allow integer-format to work with floats of size
