@@ -1,3 +1,9 @@
+2007-01-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-file-local-copy): Set
+	`enable-multibyte-characters' to nil.  Reported by Chris Moore
+	<christopher.ian.moore@gmail.com>.
+
 2007-01-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* diff-mode.el (diff-sanity-check-context-hunk-half)

@@ -3812,10 +3812,14 @@ This will break if COMMAND prints a newline, followed by the value of
 
 	       ;; Here is where loc-enc and loc-dec used to be let-bound.
 	       (if (and (symbolp loc-dec) (fboundp loc-dec))
-		   ;; If local decoding is a function, we call it.
+		   ;; If local decoding is a function, we call it.  We
+		   ;; must disable multibyte, because
+		   ;; `uudecode-decode-region' doesn't handle it
+		   ;; correctly.
 		   (let ((tmpbuf (get-buffer-create " *tramp tmp*")))
 		     (set-buffer tmpbuf)
 		     (erase-buffer)
+		     (set-buffer-multibyte nil)
 		     (insert-buffer-substring tramp-buf)
 		     (tramp-message-for-buffer
 		      multi-method method user host
