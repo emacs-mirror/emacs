@@ -1,3 +1,7 @@
+2007-01-11  Richard Stallman  <rms@gnu.org>
+
+	* msdog.texi (Windows Keyboard): Another small cleanup.
+
 2007-01-10  Richard Stallman  <rms@gnu.org>
 
 	* msdog.texi (Windows Keyboard): Yet another try to make
