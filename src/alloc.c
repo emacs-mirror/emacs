@@ -127,21 +127,21 @@ extern __malloc_size_t __malloc_extra_blocks;
 
 static pthread_mutex_t alloc_mutex;
 
-#define BLOCK_INPUT_ALLOC                       \
-  do                                            \
-    {                                           \
-      if (pthread_self () == main_thread)	\
-	BLOCK_INPUT;				\
-      pthread_mutex_lock (&alloc_mutex);	\
-    }                                           \
+#define BLOCK_INPUT_ALLOC                               \
+  do                                                    \
+    {                                                   \
+      if (pthread_equal (pthread_self (), main_thread)) \
+        sigblock (sigmask (SIGIO));                     \
+      pthread_mutex_lock (&alloc_mutex);                \
+    }                                                   \
   while (0)
-#define UNBLOCK_INPUT_ALLOC                     \
-  do                                            \
-    {                                           \
-      pthread_mutex_unlock (&alloc_mutex);	\
-      if (pthread_self () == main_thread)	\
-	UNBLOCK_INPUT;				\
-    }                                           \
+#define UNBLOCK_INPUT_ALLOC                             \
+  do                                                    \
+    {                                                   \
+      pthread_mutex_unlock (&alloc_mutex);              \
+      if (pthread_equal (pthread_self (), main_thread)) \
+        sigunblock (sigmask (SIGIO));                   \
+    }                                                   \
   while (0)
 
 #else /* SYSTEM_MALLOC || not HAVE_GTK_AND_PTHREAD */
