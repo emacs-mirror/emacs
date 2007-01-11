@@ -1,5 +1,9 @@
 2007-01-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* diff-mode.el (diff-sanity-check-context-hunk-half)
+	(diff-sanity-check-hunk): New functions.
+	(diff-find-source-location): Use'em to check the hunks are well-formed.
+
 	* hexl.el (hexlify-buffer, dehexlify-buffer): Don't complain and don't
 	activate undo when undo is not active.
 	Reported by Chris <christopher.ian.moore@gmail.com>.
