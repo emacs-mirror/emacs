@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
 <head>
-  <title>MPS Wiki: ARTICLE-TITLE</title>
+  <title>MPS Wiki: Trace</title>
   <style type = "text/css">
     <!--
     div.banner {text-align:center}
@@ -30,34 +30,92 @@
 
 <hr />
 
-<h1>MPS Wiki: ARTICLE-TITLE</h1>
+<h1>MPS Wiki: Trace</h1>
 
 <address>
 <a href="mailto:rhsk@ravenbrook.com">Richard Kistruck</a>,
 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>,
-2006-06-02
+2007-01-12
 </address>
 
 </div>
 
 <p> This wiki article contains incomplete and informal notes about the MPS, the precursor to more formal documentation.  Not confidential.  Readership: MPS users and developers.  </p>
 
+
+<h2>Introduction</h2>
+
+
+<p>Tracing is when the MPS follows the dag or references to find all reachable objects.</p>
+
+
+<h2>Setting up a trace</h2>
+
+
+<p><a href="trace.png"><img src="trace.png" alt="MPS Trace setup.  Original drawing: trace.graffle, derived from //info.ravenbrook.com/project/mps/master/code/trace.c#18, 2007-01-08" /></a></p>
+
+
+<h2>Advancing a trace</h2>
+
+
+<p>The unit of trace scanning is the Seg.  Trace scanning aims to make a seg <strong>non-grey</strong>.</p>
+
+
+<h3>Looping to make it non-grey</h3>
+
+<p> Note that refs can point backwards into the same seg, so a single linear scan of seg may not make seg non-grey.  In this case, is ScanSeg defined to loop until non-grey?  Or not?  Where is the loop?  In fact, for AMC, we can't be scanning at Ambig, so any object newly found, preserved, and greyed (during the scan) will be preserved-by-copy, into another segment (or at least -- given that buffers are currently attached at seg end only -- into a definitely <strong>later</strong> part of the same seg).  <em class="note">[I'm not confident of the accuracy of this paragraph -- see moreReturn in amcScanNailedOnce().  RHSK 2007-01-12]</em></p>
+
+
+<h3>Scan details</h3>
+
+<p>This is how a non-trivial scan of a seg happens in AMC:</p>
+
 <pre>
-replace ARTICLE-TITLE throughout
-correct Document Author (above) and Document History (below)
-add YOUR ARTICLE HERE.
+  traceScanSeg  /* without fail: if needed triggers emergency retry (cannot fail) */
+    traceScanSegRes
+      ScanStateInit
+        ss->fix = TraceFix, or TraceFixEmergency
+      ShieldExpose
+      PoolScan
+        (*pool->class->scan)
+          AMCScan
+            while (buffer still leaving wake)
+              (*pool->format->scan)(ss, base, limit);
+                [for example]
+                dylan_scan
+                  mps_fix
+                  MPS_FIX12
+                    (*ss->fix)(ss, ref_io)
+                      TraceFix
+                        TraceSetInter(TractWhite(tract(ref)), ss->traces) ?
+                          TRACT_SEG?
+                            PoolFix(pool, ss, seg, refIO)
+                            = (*pool->fix)(pool, ss, seg, refIO)
+      ShieldCover
 </pre>
+
+<p>Where:</p>
+
+<pre>
+PoolFix(pool, ss, seg, refIO)
+= (*pool->fix)(pool, ss, seg, refIO)
+  AMCFix, AMCHeaderFix
+    ShieldExpose
+    (*pool->format->isMoved)(ref)
+    ShieldCover
+</pre>
+
 
 <h2><a id="section-B" name="section-B">B. Document History</a></h2>
 
 <pre>
-  2006-06-02  RHSK  Created.
+  2007-01-12  RHSK  Created.
 </pre>
 
 
 <h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
 
-<p> This document is copyright &copy; 2006 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+<p> This document is copyright &copy; 2007 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
 
 <p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
 
