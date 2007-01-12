@@ -1406,6 +1406,8 @@ make, or the user didn't cancel the call."
 	(search-string from-string)
 	(real-match-data nil)		; the match data for the current match
 	(next-replacement nil)
+	;; This is non-nil if we know there is nothing for the user
+	;; to edit in the replacement.
 	(noedit nil)
 	(keep-going t)
 	(stack nil)
@@ -1517,8 +1519,7 @@ make, or the user didn't cancel the call."
 	      (set-match-data real-match-data)
 	      (setq next-replacement
 		    (funcall (car replacements) (cdr replacements)
-			     replace-count)
-		    noedit nil))
+			     replace-count) nil))
 	    (if (not query-flag)
 		(let ((inhibit-read-only
 		       query-replace-skip-read-only))
