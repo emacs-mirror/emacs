@@ -525,8 +525,8 @@ struct scroll_bar {
 #define MAC_AQUA_SMALL_VERTICAL_SCROLL_BAR_WIDTH (11)
 
 /* Size of hourglass controls */
-#define HOURGLASS_WIDTH 16
-#define HOURGLASS_HEIGHT 16
+#define HOURGLASS_WIDTH (16)
+#define HOURGLASS_HEIGHT (16)
 
 /* Some constants that are used locally.  */
 /* Creator code for Emacs on Mac OS.  */
@@ -636,9 +636,7 @@ extern void do_apple_menu P_ ((SInt16));
 #if USE_CG_DRAWING
 extern void mac_prepare_for_quickdraw P_ ((struct frame *));
 #endif
-#ifdef MAC_OSX
 extern int mac_quit_char_key_p P_ ((UInt32, UInt32));
-#endif
 
 #define FONT_TYPE_FOR_UNIBYTE(font, ch) 0
 #define FONT_TYPE_FOR_MULTIBYTE(font, ch) 0
