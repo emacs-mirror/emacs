@@ -1,3 +1,9 @@
+2007-01-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* dired.c (Ffile_attributes): Copy some members of `struct stat'
+	into int's to avoid GCC warnings about limited range of short in
+	arguments to FIXNUM_OVERFLOW_P.
+
 2007-01-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macmenu.c (HAVE_DIALOGS): Define if TARGET_API_MAC_CARBON.
