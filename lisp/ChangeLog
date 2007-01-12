@@ -1,3 +1,8 @@
+2007-01-12  Richard Stallman  <rms@gnu.org>
+
+	* replace.el (perform-replace): Don't clear NODENT when computing
+	the replacement string.
+
 2007-01-11  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-file-local-copy): Set
