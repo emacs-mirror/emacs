@@ -6572,6 +6572,9 @@ x_free_frame_resources (f)
   if (wp != tip_window)
     remove_window_handler (wp);
 
+#if USE_CG_DRAWING
+  mac_prepare_for_quickdraw (f);
+#endif
   DisposeWindow (wp);
   if (wp == tip_window)
     /* Neither WaitNextEvent nor ReceiveNextEvent receives `window
@@ -9051,6 +9054,38 @@ mac_get_emulated_btn ( UInt32 modifiers )
   }
   return result;
 }
+
+#if TARGET_API_MAC_CARBON
+/***** Code to handle C-g testing  *****/
+extern int quit_char;
+extern int make_ctrl_char P_ ((int));
+
+int
+mac_quit_char_key_p (modifiers, key_code)
+     UInt32 modifiers, key_code;
+{
+  UInt32 char_code;
+  unsigned long some_state = 0;
+  Ptr kchr_ptr = (Ptr) GetScriptManagerVariable (smKCHRCache);
+  int c, emacs_modifiers;
+
+  /* Mask off modifier keys that are mapped to some Emacs modifiers.  */
+  key_code |= (modifiers & ~(mac_mapped_modifiers (modifiers)));
+  char_code = KeyTranslate (kchr_ptr, key_code, &some_state);
+  if (char_code & ~0xff)
+    return 0;
+
+  emacs_modifiers = mac_to_emacs_modifiers (modifiers);
+  if (emacs_modifiers & ctrl_modifier)
+    c = make_ctrl_char (char_code);
+
+  c |= (emacs_modifiers
+	& (meta_modifier | alt_modifier
+	   | hyper_modifier | super_modifier));
+
+  return c == quit_char;
+}
+#endif
 
 #if USE_CARBON_EVENTS
 /* Obtains the event modifiers from the event ref and then calls
@@ -11607,35 +11642,6 @@ x_delete_display (dpyinfo)
 
 #ifdef MAC_OSX
 void
-mac_check_bundle()
-{
-  extern int inhibit_window_system;
-  extern int noninteractive;
-  CFBundleRef appsBundle;
-
-  /* No need to test if already -nw*/
-  if (inhibit_window_system || noninteractive)
-    return;
-
-  appsBundle = CFBundleGetMainBundle();
-  if (appsBundle != NULL)
-    {
-      CFStringRef cfBI = CFSTR("CFBundleIdentifier");
-      CFTypeRef res = CFBundleGetValueForInfoDictionaryKey(appsBundle, cfBI);
-      /* We found the bundle identifier, now we know we are valid. */
-      if (res != NULL)
-	{
-	  CFRelease(res);
-	  return;
-	}
-    }
-  /* MAC_TODO:  Have this start the bundled executable */
-
-  /* For now, prevent the fatal error by bringing it up in the terminal */
-  inhibit_window_system = 1;
-}
-
-void
 MakeMeTheFrontProcess ()
 {
   ProcessSerialNumber psn;
@@ -11644,36 +11650,6 @@ MakeMeTheFrontProcess ()
   err = GetCurrentProcess (&psn);
   if (err == noErr)
     (void) SetFrontProcess (&psn);
-}
-
-/***** Code to handle C-g testing  *****/
-extern int quit_char;
-extern int make_ctrl_char P_ ((int));
-
-int
-mac_quit_char_key_p (modifiers, key_code)
-     UInt32 modifiers, key_code;
-{
-  UInt32 char_code;
-  unsigned long some_state = 0;
-  Ptr kchr_ptr = (Ptr) GetScriptManagerVariable (smKCHRCache);
-  int c, emacs_modifiers;
-
-  /* Mask off modifier keys that are mapped to some Emacs modifiers.  */
-  key_code |= (modifiers & ~(mac_mapped_modifiers (modifiers)));
-  char_code = KeyTranslate (kchr_ptr, key_code, &some_state);
-  if (char_code & ~0xff)
-    return 0;
-
-  emacs_modifiers = mac_to_emacs_modifiers (modifiers);
-  if (emacs_modifiers & ctrl_modifier)
-    c = make_ctrl_char (char_code);
-
-  c |= (emacs_modifiers
-	& (meta_modifier | alt_modifier
-	   | hyper_modifier | super_modifier));
-
-  return c == quit_char;
 }
 #endif	/* MAC_OSX */
 
