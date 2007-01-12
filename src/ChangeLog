@@ -1,3 +1,29 @@
+2007-01-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macmenu.c (HAVE_DIALOGS): Define if TARGET_API_MAC_CARBON.
+	(mac_handle_dialog_event, install_dialog_event_handler)
+	(create_and_show_dialog) [TARGET_API_MAC_CARBON]: New functions.
+	(DIALOG_LEFT_MARGIN, DIALOG_TOP_MARGIN, DIALOG_RIGHT_MARGIN)
+	(DIALOG_BOTTOM_MARGIN, DIALOG_MIN_INNER_WIDTH)
+	(DIALOG_MAX_INNER_WIDTH, DIALOG_BUTTON_BUTTON_HORIZONTAL_SPACE)
+	(DIALOG_BUTTON_BUTTON_VERTICAL_SPACE, DIALOG_BUTTON_MIN_WIDTH)
+	(DIALOG_TEXT_MIN_HEIGHT, DIALOG_TEXT_BUTTONS_VERTICAL_SPACE)
+	(DIALOG_ICON_WIDTH, DIALOG_ICON_HEIGHT, DIALOG_ICON_LEFT_MARGIN)
+	(DIALOG_ICON_TOP_MARGIN) [TARGET_API_MAC_CARBON]: New macros.
+	(mac_dialog) [TARGET_API_MAC_CARBON]: Remove function.
+	(mac_dialog_show) [TARGET_API_MAC_CARBON]: Use create_and_show_dialog.
+
+	* macterm.c (x_free_frame_resources) [USE_CG_DRAWING]: Call
+	mac_prepare_for_quickdraw.
+	(quit_char, make_ctrl_char) [TARGET_API_MAC_CARBON]: Move externs
+	outside #ifdef MAC_OSX.
+	(mac_quit_char_key_p) [TARGET_API_MAC_CARBON]: Move function
+	outside #ifdef MAC_OSX.
+	(mac_check_bundle) [MAC_OSX]: Remove unused function.
+
+	* macterm.h (mac_quit_char_key_p): Move extern outside #ifdef MAC_OSX.
+	(HOURGLASS_WIDTH, HOURGLASS_HEIGHT): Parenthesize definitions.
+
 2007-01-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* alloc.c (BLOCK_INPUT_ALLOC, UNBLOCK_INPUT_ALLOC): Use pthread_equal,
