@@ -205,7 +205,10 @@ If FILE-NAME is non-nil, save the result to FILE-NAME."
 		(insert (apply 'concat (nreverse result)))))
 	  (or (markerp end) (setq end (set-marker (make-marker) end)))
 	  (goto-char start)
-	  (insert (apply 'concat (nreverse result)))
+	  (if enable-multibyte-characters
+	      (mapc #'(lambda (x) (insert (string-to-multibyte x)))
+		    (nreverse result))
+	    (insert (apply 'concat (nreverse result))))
 	  (delete-region (point) end))))))
 
 ;;;###autoload
