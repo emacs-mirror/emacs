@@ -1,3 +1,8 @@
+2007-01-12  Kenichi Handa  <handa@m17n.org>
+
+	* quail/uni-input.el (ucs-input-method): Signal an error for a
+	Unicode character that is not yet supported.
+
 2006-12-26  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in (datarootdir): Define.
