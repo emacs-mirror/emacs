@@ -107,13 +107,17 @@
 	      (let* ((n (string-to-number (apply 'string
 						 (cdr (nreverse events)))
 					  16))
-		     (c (decode-char 'ucs n))
-		     (status (make-vector 9 nil)))
+		     (c (decode-char 'ucs n)))
 		(if c
 		    (list c)
-		  (aset status 0 n)
-		  (string-to-list (ccl-execute-on-string
-				   'utf-8-ccl-encode status ""))))))
+		  ;; The intention of the following code is to insert
+		  ;; a correct UTF-8 sequence by raw bytes, but
+		  ;; currently it doesn't work.
+		  ;; (let ((status (make-vector 9 nil)))
+		  ;;   (aset status 0 n)
+		  ;;   (string-to-list (ccl-execute-on-string
+		  ;;                    'utf-8-ccl-encode status "")))
+		  (error "Character U+%04X is not yet supported" n)))))
 	(quail-delete-overlays)
 	(set-buffer-modified-p modified-p)
 	(run-hooks 'input-method-after-insert-chunk-hook)))))
