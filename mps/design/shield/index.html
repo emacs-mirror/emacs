@@ -65,6 +65,8 @@
 
 <p>When the collector wants to access object memory (that is, memory allocated by MPS), it must call <strong>ShieldEnter</strong>, then wrap any accesses with a <strong>ShieldExpose</strong> / <strong>ShieldCover</strong> pair, and finally call <strong>ShieldLeave</strong>.</p>
 
+<p>ShieldEnter and ShieldLeave are done by ArenaEnter and ArenaLeave (approximately) -- so the shield is always entered when we are within MPS code (approximately).</p>
+
 <p>ShieldExpose might for example be called around:</p>
 <ul>
   <li>format-scan (when Scanning);</li>
@@ -137,6 +139,7 @@
 <pre>
   2006-12-19  RHSK  Created: Guide, plus links to initial ideas.
   2007-01-04  RHSK  Minor text changes for clarity.
+  2007-01-12  RHSK  ShieldEnter/Leave done by ArenaEnter/Leave
 </pre>
 
 
