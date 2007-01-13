@@ -335,7 +335,7 @@ Used together with `tumme-cmd-rotate-original-options'."
   :group 'tumme)
 
 (defcustom tumme-cmd-rotate-original-options
-  "%p -rotate %d -copy all \"%o\" > %t"
+  "%p -rotate %d -copy all -outfile %t \"%o\""
   "Format of command used to rotate original image.
 Available options are %p which is replaced by
 `tumme-cmd-rotate-original-program', %d which is replaced by the
