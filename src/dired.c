@@ -930,7 +930,7 @@ Elements of the attribute list are:
   char modes[10];
   Lisp_Object handler;
   struct gcpro gcpro1;
-  int uid, gid, ino;
+  EMACS_INT uid, gid, ino;
 
   filename = Fexpand_file_name (filename, Qnil);
 
