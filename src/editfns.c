@@ -1314,7 +1314,10 @@ DEFUN ("user-uid", Fuser_uid, Suser_uid, 0, 0, 0,
 Value is an integer or float, depending on the value.  */)
      ()
 {
-  return make_fixnum_or_float (geteuid ());
+  /* Assignment to EMACS_INT stops GCC whining about limited range of
+     data type.  */
+  EMACS_INT euid = geteuid ();
+  return make_fixnum_or_float (euid);
 }
 
 DEFUN ("user-real-uid", Fuser_real_uid, Suser_real_uid, 0, 0, 0,
@@ -1322,7 +1325,10 @@ DEFUN ("user-real-uid", Fuser_real_uid, Suser_real_uid, 0, 0, 0,
 Value is an integer or float, depending on the value.  */)
      ()
 {
-  return make_fixnum_or_float (getuid ());
+  /* Assignment to EMACS_INT stops GCC whining about limited range of
+     data type.  */
+  EMACS_INT uid = getuid ();
+  return make_fixnum_or_float (uid);
 }
 
 DEFUN ("user-full-name", Fuser_full_name, Suser_full_name, 0, 1, 0,
