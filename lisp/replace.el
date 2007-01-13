@@ -1519,7 +1519,7 @@ make, or the user didn't cancel the call."
 	      (set-match-data real-match-data)
 	      (setq next-replacement
 		    (funcall (car replacements) (cdr replacements)
-			     replace-count) nil))
+			     replace-count)))
 	    (if (not query-flag)
 		(let ((inhibit-read-only
 		       query-replace-skip-read-only))
