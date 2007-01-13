@@ -1,5 +1,8 @@
 2007-01-13  Eli Zaretskii  <eliz@gnu.org>
 
+	* process.c (Fdelete_process, Fprocess_id, sigchld_handler): Copy
+	PID into EMACS_INT to avoid GCC warnings.
+
 	* fns.c (maybe_resize_hash_table): Copy new size of hash table
 	into EMACS_INT to avoid GCC warnings.
 
