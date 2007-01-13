@@ -1,3 +1,13 @@
+2007-01-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* fns.c (maybe_resize_hash_table): Copy new size of hash table
+	into EMACS_INT to avoid GCC warnings.
+
+	* editfns.c (Fuser_uid, Fuser_real_uid): Copy values returned by
+	geteuid and getuid into EMACS_INT to avoid GCC warnings.
+
+	* dired.c (Ffile_attributes): Fix last change.
+
 2007-01-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* dired.c (Ffile_attributes): Copy some members of `struct stat'
