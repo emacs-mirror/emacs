@@ -1,3 +1,7 @@
+2007-01-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* replace.el (perform-replace): Remove leftover code.
+
 2007-01-12  Richard Stallman  <rms@gnu.org>
 
 	* replace.el (perform-replace): Don't clear NODENT when computing
