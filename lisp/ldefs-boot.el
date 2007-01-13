@@ -5782,8 +5782,8 @@ suggest to customize that face, if it's customizable.
 
 \(fn &optional FACE)" t nil)
 
-(autoload (quote customize-customized) "cus-edit" "\
-Customize all user options set since the last save in this session.
+(autoload (quote customize-unsaved) "cus-edit" "\
+Customize all user options set in this session but not saved.
 
 \(fn)" t nil)
 
@@ -6029,11 +6029,10 @@ This function is designed to be added to hooks, for example:
 Non-nil if Global-Cwarn mode is enabled.
 See the command `global-cwarn-mode' for a description of this minor-mode.
 Setting this variable directly does not take effect;
-use either \\[customize] or the function `global-cwarn-mode'.")
+either customize it (see the info node `Easy Customization')
+or call the function `global-cwarn-mode'.")
 
-(custom-autoload (quote global-cwarn-mode) "cwarn")
-
-(put (quote global-cwarn-mode) (quote custom-set) (quote custom-set-minor-mode))
+(custom-autoload (quote global-cwarn-mode) "cwarn" nil)
 
 (autoload (quote global-cwarn-mode) "cwarn" "\
 Toggle Cwarn mode in every buffer.
@@ -6407,11 +6406,10 @@ no args, if that value is non-nil.
 Non-nil if Delete-Selection mode is enabled.
 See the command `delete-selection-mode' for a description of this minor-mode.
 Setting this variable directly does not take effect;
-use either \\[customize] or the function `delete-selection-mode'.")
+either customize it (see the info node `Easy Customization')
+or call the function `delete-selection-mode'.")
 
-(custom-autoload (quote delete-selection-mode) "delsel")
-
-(put (quote delete-selection-mode) (quote custom-set) (quote custom-set-minor-mode))
+(custom-autoload (quote delete-selection-mode) "delsel" nil)
 
 (autoload (quote delete-selection-mode) "delsel" "\
 Toggle Delete Selection mode.
@@ -7968,6 +7966,10 @@ PATH is a list of strings for locating the menu that
 should contain a submenu named NAME.
 ITEMS is a list of menu items, as in `easy-menu-define'.
 These items entirely replace the previous items in that submenu.
+
+If MAP is specified, it should normally be a keymap; nil stands for the local
+menu-bar keymap.  It can also be a symbol, which has earlier been used as the
+first argument in a call to `easy-menu-define', or the value of such a symbol.
 
 If MAP is specified, it should normally be a keymap; nil stands for the local
 menu-bar keymap.  It can also be a symbol, which has earlier been used as the
@@ -9690,7 +9692,7 @@ Use the `etags' program to make a tags table file.")
 A value of t means case-insensitive, a value of nil means case-sensitive.
 Any other value means use the setting of `case-fold-search'.")
 
-(custom-autoload (quote tags-case-fold-search) "etags")
+(custom-autoload (quote tags-case-fold-search) "etags" t)
 
 (defvar tags-table-list nil "\
 *List of file names of tags tables to search.
@@ -9699,7 +9701,7 @@ To switch to a new list of tags tables, setting this variable is sufficient.
 If you set this variable, do not also set `tags-file-name'.
 Use the `etags' program to make a tags table file.")
 
-(custom-autoload (quote tags-table-list) "etags")
+(custom-autoload (quote tags-table-list) "etags" t)
 
 (defvar tags-compression-info-list (quote ("" ".Z" ".bz2" ".gz" ".tgz")) "\
 *List of extensions tried by etags when jka-compr is used.
@@ -9708,7 +9710,7 @@ These extensions will be tried only if jka-compr was activated
 \(i.e. via customize of `auto-compression-mode' or by calling the function
 `auto-compression-mode').")
 
-(custom-autoload (quote tags-compression-info-list) "etags")
+(custom-autoload (quote tags-compression-info-list) "etags" t)
 
 (defvar tags-add-tables (quote ask-user) "\
 *Control whether to add a new tags table to the current list.
@@ -9716,14 +9718,14 @@ t means do; nil means don't (always start a new list).
 Any other value means ask the user whether to add a new tags table
 to the current list (as opposed to starting a new list).")
 
-(custom-autoload (quote tags-add-tables) "etags")
+(custom-autoload (quote tags-add-tables) "etags" t)
 
 (defvar find-tag-hook nil "\
 *Hook to be run by \\[find-tag] after finding a tag.  See `run-hooks'.
 The value in the buffer in which \\[find-tag] is done is used,
 not the value in the buffer \\[find-tag] goes to.")
 
-(custom-autoload (quote find-tag-hook) "etags")
+(custom-autoload (quote find-tag-hook) "etags" t)
 
 (defvar find-tag-default-function nil "\
 *A function of no arguments used by \\[find-tag] to pick a default tag.
@@ -9731,7 +9733,7 @@ If nil, and the symbol that is the value of `major-mode'
 has a `find-tag-default-function' property (see `put'), that is used.
 Otherwise, `find-tag-default' is used.")
 
-(custom-autoload (quote find-tag-default-function) "etags")
+(custom-autoload (quote find-tag-default-function) "etags" t)
 
 (autoload (quote tags-table-mode) "etags" "\
 Major mode for tags table file buffers.
@@ -13360,11 +13362,10 @@ is found.  A mode is excluded if it's in the list `hi-lock-exclude-modes'.
 Non-nil if Global-Hi-Lock mode is enabled.
 See the command `global-hi-lock-mode' for a description of this minor-mode.
 Setting this variable directly does not take effect;
-use either \\[customize] or the function `global-hi-lock-mode'.")
+either customize it (see the info node `Easy Customization')
+or call the function `global-hi-lock-mode'.")
 
-(custom-autoload (quote global-hi-lock-mode) "hi-lock")
-
-(put (quote global-hi-lock-mode) (quote custom-set) (quote custom-set-minor-mode))
+(custom-autoload (quote global-hi-lock-mode) "hi-lock" nil)
 
 (autoload (quote global-hi-lock-mode) "hi-lock" "\
 Toggle Hi-Lock mode in every buffer.
@@ -15009,6 +15010,15 @@ This function is intended to be used from `magic-mode-alist' (which see).
 
 \(fn)" nil nil)
 
+(autoload (quote image-type-auto-detected-p) "image" "\
+Return t iff the current buffer contains an auto-detectable image.
+Whether image types are auto-detectable or not depends on the setting
+of the variable `image-type-auto-detectable'.
+
+This function is intended to be used from `magic-mode-alist' (which see).
+
+\(fn)" nil nil)
+
 (autoload (quote create-image) "image" "\
 Create an image.
 FILE-OR-DATA is an image file name or image data.
@@ -15136,7 +15146,7 @@ setting this variable directly does not take effect unless
 `auto-image-file-mode' is re-enabled; this happens automatically when
 the variable is set using \\[customize].")
 
-(custom-autoload (quote image-file-name-extensions) "image-file")
+(custom-autoload (quote image-file-name-extensions) "image-file" nil)
 
 (defvar image-file-name-regexps nil "\
 *List of regexps matching image-file filenames.
@@ -15148,7 +15158,7 @@ enabled, setting this variable directly does not take effect unless
 `auto-image-file-mode' is re-enabled; this happens automatically when
 the variable is set using \\[customize].")
 
-(custom-autoload (quote image-file-name-regexps) "image-file")
+(custom-autoload (quote image-file-name-regexps) "image-file" nil)
 
 (autoload (quote image-file-name-regexp) "image-file" "\
 Return a regular expression matching image-file filenames.
@@ -15166,11 +15176,10 @@ the command `insert-file-contents'.
 Non-nil if Auto-Image-File mode is enabled.
 See the command `auto-image-file-mode' for a description of this minor-mode.
 Setting this variable directly does not take effect;
-use either \\[customize] or the function `auto-image-file-mode'.")
+either customize it (see the info node `Easy Customization')
+or call the function `auto-image-file-mode'.")
 
-(custom-autoload (quote auto-image-file-mode) "image-file")
-
-(put (quote auto-image-file-mode) (quote custom-set) (quote custom-set-minor-mode))
+(custom-autoload (quote auto-image-file-mode) "image-file" nil)
 
 (autoload (quote auto-image-file-mode) "image-file" "\
 Toggle visiting of image files as images.
@@ -15391,12 +15400,12 @@ Input matching this regexp is not saved on the input history in Inferior Lisp
 mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
 \(as in :a, :c, etc.)")
 
-(custom-autoload (quote inferior-lisp-filter-regexp) "inf-lisp")
+(custom-autoload (quote inferior-lisp-filter-regexp) "inf-lisp" t)
 
 (defvar inferior-lisp-program "lisp" "\
 *Program name for invoking an inferior Lisp in Inferior Lisp mode.")
 
-(custom-autoload (quote inferior-lisp-program) "inf-lisp")
+(custom-autoload (quote inferior-lisp-program) "inf-lisp" t)
 
 (defvar inferior-lisp-load-command "(load \"%s\")\n" "\
 *Format-string for building a Lisp expression to load a file.
@@ -15407,7 +15416,7 @@ The string \"(progn (load \\\"%s\\\" :verbose nil :print t) (values))\\n\"
 produces cosmetically superior output for this application,
 but it works only in Common Lisp.")
 
-(custom-autoload (quote inferior-lisp-load-command) "inf-lisp")
+(custom-autoload (quote inferior-lisp-load-command) "inf-lisp" t)
 
 (defvar inferior-lisp-prompt "^[^> \n]*>+:? *" "\
 Regexp to recognize prompts in the Inferior Lisp mode.
@@ -15425,7 +15434,7 @@ kcl: \"^>+ *\"
 
 This is a fine thing to set in your .emacs file or through Custom.")
 
-(custom-autoload (quote inferior-lisp-prompt) "inf-lisp")
+(custom-autoload (quote inferior-lisp-prompt) "inf-lisp" t)
 
 (defvar inferior-lisp-mode-hook (quote nil) "\
 *Hook for customising Inferior Lisp mode.")
@@ -16322,28 +16331,28 @@ Specifies the keypad setup for unshifted keypad keys when NumLock is off.
 When selecting the plain numeric keypad setup, the character returned by the
 decimal key must be specified.")
 
-(custom-autoload (quote keypad-setup) "keypad")
+(custom-autoload (quote keypad-setup) "keypad" nil)
 
 (defvar keypad-numlock-setup nil "\
 Specifies the keypad setup for unshifted keypad keys when NumLock is on.
 When selecting the plain numeric keypad setup, the character returned by the
 decimal key must be specified.")
 
-(custom-autoload (quote keypad-numlock-setup) "keypad")
+(custom-autoload (quote keypad-numlock-setup) "keypad" nil)
 
 (defvar keypad-shifted-setup nil "\
 Specifies the keypad setup for shifted keypad keys when NumLock is off.
 When selecting the plain numeric keypad setup, the character returned by the
 decimal key must be specified.")
 
-(custom-autoload (quote keypad-shifted-setup) "keypad")
+(custom-autoload (quote keypad-shifted-setup) "keypad" nil)
 
 (defvar keypad-numlock-shifted-setup nil "\
 Specifies the keypad setup for shifted keypad keys when NumLock is off.
 When selecting the plain numeric keypad setup, the character returned by the
 decimal key must be specified.")
 
-(custom-autoload (quote keypad-numlock-shifted-setup) "keypad")
+(custom-autoload (quote keypad-numlock-shifted-setup) "keypad" nil)
 
 (autoload (quote keypad-setup) "keypad" "\
 Set keypad bindings in function-key-map according to SETUP.
@@ -17286,7 +17295,7 @@ This function normally would be called when the message is sent.
 Otherwise, (the default) use a smaller, somewhat faster, and
 often correct parser.")
 
-(custom-autoload (quote mail-use-rfc822) "mail-utils")
+(custom-autoload (quote mail-use-rfc822) "mail-utils" t)
 
 (autoload (quote mail-file-babyl-p) "mail-utils" "\
 Not documented
@@ -23124,7 +23133,7 @@ SENDERS is a string of names separated by commas.
 
 By default, `identity' is set.")
 
-(custom-autoload (quote rmail-summary-line-decoder) "rmailsum")
+(custom-autoload (quote rmail-summary-line-decoder) "rmailsum" t)
 
 (defvar rmail-user-mail-address-regexp nil "\
 *Regexp matching user mail addresses.
@@ -23567,7 +23576,7 @@ Mode for automatic saving of minibuffer history.
 Set this by calling the `savehist-mode' function or using the customize
 interface.")
 
-(custom-autoload (quote savehist-mode) "savehist")
+(custom-autoload (quote savehist-mode) "savehist" nil)
 
 (autoload (quote savehist-mode) "savehist" "\
 Toggle savehist-mode.
@@ -24682,7 +24691,7 @@ For example, the form
 
 would give military-style times like `21:07 (UTC)'.")
 
-(custom-autoload (quote calendar-time-display-form) "solar")
+(custom-autoload (quote calendar-time-display-form) "solar" t)
 
 (defvar calendar-latitude nil "\
 *Latitude of `calendar-location-name' in degrees.
@@ -24694,7 +24703,7 @@ York City.
 
 This variable should be set in `site-start'.el.")
 
-(custom-autoload (quote calendar-latitude) "solar")
+(custom-autoload (quote calendar-latitude) "solar" t)
 
 (defvar calendar-longitude nil "\
 *Longitude of `calendar-location-name' in degrees.
@@ -24706,7 +24715,7 @@ York City.
 
 This variable should be set in `site-start'.el.")
 
-(custom-autoload (quote calendar-longitude) "solar")
+(custom-autoload (quote calendar-longitude) "solar" t)
 
 (defvar calendar-location-name (quote (let ((float-output-format "%.1f")) (format "%s%s, %s%s" (if (numberp calendar-latitude) (abs calendar-latitude) (+ (aref calendar-latitude 0) (/ (aref calendar-latitude 1) 60.0))) (if (numberp calendar-latitude) (if (> calendar-latitude 0) "N" "S") (if (equal (aref calendar-latitude 2) (quote north)) "N" "S")) (if (numberp calendar-longitude) (abs calendar-longitude) (+ (aref calendar-longitude 0) (/ (aref calendar-longitude 1) 60.0))) (if (numberp calendar-longitude) (if (> calendar-longitude 0) "E" "W") (if (equal (aref calendar-longitude 2) (quote east)) "E" "W"))))) "\
 *Expression evaluating to name of `calendar-longitude', `calendar-latitude'.
@@ -24715,7 +24724,7 @@ pair.
 
 This variable should be set in `site-start'.el.")
 
-(custom-autoload (quote calendar-location-name) "solar")
+(custom-autoload (quote calendar-location-name) "solar" t)
 
 (autoload (quote sunrise-sunset) "solar" "\
 Local time of sunrise and sunset for today.  Accurate to a few seconds.
@@ -28017,7 +28026,7 @@ Not documented
 (autoload (quote tramp-completion-handle-file-name-all-completions) "tramp" "\
 Like `file-name-all-completions' for partial tramp files.
 
-\(fn FILENAME DIRECTORY)" nil nil)
+\(fn FILENAME DIRECTORY &optional PREDICATE)" nil nil)
 
 (autoload (quote tramp-completion-handle-file-name-completion) "tramp" "\
 Like `file-name-completion' for tramp files.
@@ -30532,7 +30541,8 @@ Please submit bug reports and other feedback to the author, Neil W. Van Dyke
 Non-nil if Which-Function mode is enabled.
 See the command `which-function-mode' for a description of this minor-mode.
 Setting this variable directly does not take effect;
-use either \\[customize] or the function `which-function-mode'.")
+either customize it (see the info node `Easy Customization')
+or call the function `which-function-mode'.")
 
 (custom-autoload (quote which-function-mode) "which-func" nil)
 
@@ -30778,7 +30788,7 @@ Toggle Winner mode.
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `winner-mode'.")
 
-(custom-autoload (quote winner-mode) "winner")
+(custom-autoload (quote winner-mode) "winner" nil)
 
 (autoload (quote winner-mode) "winner" "\
 Toggle Winner mode.
@@ -31150,10 +31160,9 @@ Zone out, completely.
 ;;;;;;  "net/eudcb-bbdb.el" "net/eudcb-ldap.el" "net/eudcb-mab.el"
 ;;;;;;  "net/eudcb-ph.el" "net/ldap.el" "net/netrc.el" "net/tls.el"
 ;;;;;;  "net/tramp-smb.el" "net/tramp-util.el" "net/tramp-uu.el"
-;;;;;;  "net/tramp-vc.el" "net/trampver.el" "obsolete/bg-mouse.el"
-;;;;;;  "obsolete/hilit19.el" "obsolete/sc.el" "obsolete/uncompress.el"
-;;;;;;  "patcomp.el" "paths.el" "pcvs-info.el" "pcvs-parse.el" "pcvs-util.el"
-;;;;;;  "pgg-def.el" "pgg-parse.el" "pgg-pgp.el" "pgg-pgp5.el" "play/gamegrid.el"
+;;;;;;  "net/tramp-vc.el" "net/trampver.el" "patcomp.el" "paths.el"
+;;;;;;  "pcvs-info.el" "pcvs-parse.el" "pcvs-util.el" "pgg-def.el"
+;;;;;;  "pgg-parse.el" "pgg-pgp.el" "pgg-pgp5.el" "play/gamegrid.el"
 ;;;;;;  "play/gametree.el" "play/meese.el" "progmodes/ada-prj.el"
 ;;;;;;  "progmodes/cc-align.el" "progmodes/cc-awk.el" "progmodes/cc-bytecomp.el"
 ;;;;;;  "progmodes/cc-cmds.el" "progmodes/cc-defs.el" "progmodes/cc-fonts.el"

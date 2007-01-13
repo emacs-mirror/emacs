@@ -276,6 +276,10 @@ static Lisp_Object last_mouse_scroll_bar;
 
 static Time last_mouse_movement_time;
 
+/* Time for last user interaction as returned in X events.  */
+
+static Time last_user_time;
+
 /* Incremented by XTread_socket whenever it really tries to read
    events.  */
 
@@ -5882,6 +5886,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
       break;
 
     case SelectionNotify:
+      last_user_time = event.xselection.time;
 #ifdef USE_X_TOOLKIT
       if (! x_window_to_frame (dpyinfo, event.xselection.requestor))
         goto OTHER;
@@ -5890,6 +5895,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
       break;
 
     case SelectionClear:	/* Someone has grabbed ownership.  */
+      last_user_time = event.xselectionclear.time;
 #ifdef USE_X_TOOLKIT
       if (! x_window_to_frame (dpyinfo, event.xselectionclear.window))
         goto OTHER;
@@ -5906,6 +5912,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
       break;
 
     case SelectionRequest:	/* Someone wants our selection.  */
+      last_user_time = event.xselectionrequest.time;
 #ifdef USE_X_TOOLKIT
       if (!x_window_to_frame (dpyinfo, event.xselectionrequest.owner))
         goto OTHER;
@@ -5926,6 +5933,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
       break;
 
     case PropertyNotify:
+      last_user_time = event.xproperty.time;
 #if 0 /* This is plain wrong.  In the case that we are waiting for a
 	 PropertyNotify used as an ACK in incremental selection
 	 transfer, the property will be on the receiver's window.  */
@@ -5949,6 +5957,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 
           /* Perhaps reparented due to a WM restart.  Reset this.  */
           FRAME_X_DISPLAY_INFO (f)->wm_type = X_WMTYPE_UNKNOWN;
+          FRAME_X_DISPLAY_INFO (f)->net_supported_window = 0;
         }
       goto OTHER;
 
@@ -6107,6 +6116,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 
     case KeyPress:
 
+      last_user_time = event.xkey.time;
       ignore_next_mouse_click_timeout = 0;
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
@@ -6497,6 +6507,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 #endif
 
     case KeyRelease:
+      last_user_time = event.xkey.time;
 #ifdef HAVE_X_I18N
       /* Don't dispatch this event since XtDispatchEvent calls
          XFilterEvent, and two calls in a row may freeze the
@@ -6507,6 +6518,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 #endif
 
     case EnterNotify:
+      last_user_time = event.xcrossing.time;
       x_detect_focus_change (dpyinfo, &event, &inev.ie);
 
       f = x_any_window_to_frame (dpyinfo, event.xcrossing.window);
@@ -6547,6 +6559,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
       goto OTHER;
 
     case LeaveNotify:
+      last_user_time = event.xcrossing.time;
       x_detect_focus_change (dpyinfo, &event, &inev.ie);
 
       f = x_top_window_to_frame (dpyinfo, event.xcrossing.window);
@@ -6580,6 +6593,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 
     case MotionNotify:
       {
+        last_user_time = event.xmotion.time;
         previous_help_echo_string = help_echo_string;
         help_echo_string = Qnil;
 
@@ -6728,6 +6742,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 
         bzero (&compose_status, sizeof (compose_status));
 	last_mouse_glyph_frame = 0;
+        last_user_time = event.xbutton.time;
 
         if (dpyinfo->grabbed
             && last_mouse_frame
@@ -8336,39 +8351,110 @@ x_set_offset (f, xoff, yoff, change_gravity)
   UNBLOCK_INPUT;
 }
 
+/* Return non-zero if _NET_SUPPORTING_WM_CHECK window exists and _NET_SUPPORTED
+   on the root window for frame F contains ATOMNAME.
+   This is how a WM check shall be done according to the Window Manager
+   Specification/Extended Window Manager Hints at
+   http://freedesktop.org/wiki/Standards_2fwm_2dspec.  */
+
+static int
+wm_supports (f, atomname)
+     struct frame *f;
+     const char *atomname;
+{
+  Atom actual_type;
+  unsigned long actual_size, bytes_remaining;
+  int i, rc, actual_format;
+  Atom prop_atom;
+  Window wmcheck_window;
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Window target_window = dpyinfo->root_window;
+  long max_len = 65536;
+  Display *dpy = FRAME_X_DISPLAY (f);
+  unsigned char *tmp_data = NULL;
+  Atom target_type = XA_WINDOW;
+  Atom want_atom;
+
+  BLOCK_INPUT;
+
+  prop_atom = XInternAtom (dpy, "_NET_SUPPORTING_WM_CHECK", False);
+
+  x_catch_errors (dpy);
+  rc = XGetWindowProperty (dpy, target_window,
+                           prop_atom, 0, max_len, False, target_type,
+                           &actual_type, &actual_format, &actual_size,
+                           &bytes_remaining, &tmp_data);
+  
+  if (rc != Success || actual_type != XA_WINDOW || x_had_errors_p (dpy))
+    {
+      if (tmp_data) XFree (tmp_data);
+      x_uncatch_errors ();
+      UNBLOCK_INPUT;
+      return 0;
+    }
+
+  wmcheck_window = *(Window *) tmp_data;
+  XFree (tmp_data);
+
+  /* Check if window exists. */
+  XSelectInput (dpy, wmcheck_window, StructureNotifyMask);
+  x_sync (f);
+  if (x_had_errors_p (dpy))
+    {
+      x_uncatch_errors ();
+      UNBLOCK_INPUT;
+      return 0;
+    }
+
+  if (dpyinfo->net_supported_window != wmcheck_window)
+    {
+      /* Window changed, reload atoms */
+      if (dpyinfo->net_supported_atoms != NULL)
+        XFree (dpyinfo->net_supported_atoms);
+      dpyinfo->net_supported_atoms = NULL;
+      dpyinfo->nr_net_supported_atoms = 0;
+      dpyinfo->net_supported_window = 0;
+
+      target_type = XA_ATOM;
+      prop_atom = XInternAtom (dpy, "_NET_SUPPORTED", False);
+      tmp_data = NULL;
+      rc = XGetWindowProperty (dpy, target_window,
+                               prop_atom, 0, max_len, False, target_type,
+                               &actual_type, &actual_format, &actual_size,
+                               &bytes_remaining, &tmp_data);
+
+      if (rc != Success || actual_type != XA_ATOM || x_had_errors_p (dpy))
+        {
+          if (tmp_data) XFree (tmp_data);
+          x_uncatch_errors ();
+          UNBLOCK_INPUT;
+          return 0;
+        }
+
+      dpyinfo->net_supported_atoms = (Atom *)tmp_data;
+      dpyinfo->nr_net_supported_atoms = actual_size;
+      dpyinfo->net_supported_window = wmcheck_window;
+    }
+
+  rc = 0;
+  want_atom = XInternAtom (dpy, atomname, False);
+
+  for (i = 0; rc == 0 && i < dpyinfo->nr_net_supported_atoms; ++i) 
+    rc = dpyinfo->net_supported_atoms[i] == want_atom;
+
+  x_uncatch_errors ();
+  UNBLOCK_INPUT;
+
+  return rc;
+}
+
 /* Do fullscreen as specified in extended window manager hints */
+
 static int
 do_ewmh_fullscreen (f)
      struct frame *f;
 {
-  int have_net_atom = FRAME_X_DISPLAY_INFO (f)->have_net_atoms;
-
-  if (!have_net_atom)
-    {
-      int num;
-      Atom *atoms = XListProperties (FRAME_X_DISPLAY (f),
-                                     FRAME_X_DISPLAY_INFO (f)->root_window,
-                                     &num);
-      if (atoms && num > 0)
-        {
-          char **names = (char **) xmalloc (num * sizeof(*names));
-          if (XGetAtomNames (FRAME_X_DISPLAY (f), atoms, num, names))
-            {
-              int i;
-              for (i = 0; i < num; ++i)
-                {
-                  if (!have_net_atom)
-                    have_net_atom = strncmp (names[i], "_NET_", 5) == 0;
-                  XFree (names[i]);
-                }
-            }
-          xfree (names);
-        }
-      if (atoms)
-        XFree (atoms);
-
-      FRAME_X_DISPLAY_INFO (f)->have_net_atoms = have_net_atom;
-    }
+  int have_net_atom = wm_supports (f, "_NET_WM_STATE");
 
   if (have_net_atom)
     {
@@ -8395,6 +8481,9 @@ do_ewmh_fullscreen (f)
           what = fh;
           break;
         }
+
+      if (!wm_supports (f, what)) return 0;
+
 
       Fx_send_client_event (frame, make_number (0), frame,
                             make_unibyte_string (atom, strlen (atom)),
@@ -8796,23 +8885,27 @@ XTframe_raise_lower (f, raise_flag)
       /* The following code is needed for `raise-frame' to work on
 	 some versions of metacity; see Window Manager
 	 Specification/Extended Window Manager Hints at
-	 http://freedesktop.org/wiki/Standards_2fwm_2dspec
+	 http://freedesktop.org/wiki/Standards_2fwm_2dspec  */
 
-	 However, on other versions (metacity 2.17.2-1.fc7), it
+#if 0
+      /* However, on other versions (metacity 2.17.2-1.fc7), it
 	 reportedly causes hangs when resizing frames.  */
 
-      /* Lisp_Object frame;
-         const char *atom = "_NET_ACTIVE_WINDOW"; */
-
-      x_raise_frame (f);
-
-      /* XSETFRAME (frame, f);
-         Fx_send_client_event (frame, make_number (0), frame,
-                            make_unibyte_string (atom, strlen (atom)),
-                            make_number (32),
-                            Fcons (make_number (1),
-                                   Fcons (make_number (time (NULL) * 1000),
-				   Qnil))); */
+      const char *atom = "_NET_ACTIVE_WINDOW";
+      if (f->async_visible && wm_supports (f, atom))
+        {
+          Lisp_Object frame;
+          XSETFRAME (frame, f);
+          Fx_send_client_event (frame, make_number (0), frame,
+                                make_unibyte_string (atom, strlen (atom)),
+                                make_number (32),
+                                Fcons (make_number (1),
+                                       Fcons (make_number (last_user_time),
+                                              Qnil)));
+        }
+      else
+#endif
+        x_raise_frame (f);
     }
   else
     x_lower_frame (f);
@@ -10806,6 +10899,10 @@ x_term_init (display_name, xrm_option, resource_name)
   dpyinfo->x_dnd_atoms_length = 0;
   dpyinfo->x_dnd_atoms = xmalloc (sizeof (*dpyinfo->x_dnd_atoms)
                                   * dpyinfo->x_dnd_atoms_size);
+
+  dpyinfo->net_supported_atoms = NULL;
+  dpyinfo->nr_net_supported_atoms = 0;
+  dpyinfo->net_supported_window = 0;
 
   connection = ConnectionNumber (dpyinfo->display);
   dpyinfo->connection = connection;

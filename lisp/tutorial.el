@@ -446,7 +446,8 @@ where
             (cond ((eq key-fun def-fun)
                    ;; No rebinding, return t
                    t)
-                  ((eq key-fun (command-remapping def-fun))
+                  ((and key-fun
+			(eq key-fun (command-remapping def-fun)))
                    ;; Just a remapping, return t
                    t)
                   ;; cua-mode specials:
@@ -571,6 +572,8 @@ with some explanatory links."
 		  (where   (nth 3 ck))
 		  s1 s2 help-string)
 	     (unless (string= where "Same key")
+	       (when (string= where "")
+		 (setq where (format "M-x %s" def-fun)))
 	       (setq tutorial--point-after-chkeys (point-marker)
 		     s1 (get-lang-string tutorial--lang 'tut-chgdkey)
 		     s2 (get-lang-string tutorial--lang 'tut-chgdkey2)

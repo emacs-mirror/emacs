@@ -876,11 +876,11 @@ FMTS is a list of format specs for transforming the file name.
 Runs COMMAND, a shell command, in a separate process asynchronously
 with output going to the buffer `*compilation*'.
 
-If optional second arg COMINT is t the buffer will be in Comint mode with
-`compilation-shell-minor-mode'.
-
 You can then use the command \\[next-error] to find the next error message
 and move to the source code that caused it.
+
+If optional second arg COMINT is t the buffer will be in Comint mode with
+`compilation-shell-minor-mode'.
 
 Interactively, prompts for the command if `compilation-read-command' is
 non-nil; otherwise uses `compile-command'.  With prefix arg, always prompts.

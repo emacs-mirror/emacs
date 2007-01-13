@@ -1,3 +1,71 @@
+2007-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* editfns.c (Fformat): Allow integer-format to work with floats of size
+	larger than most-positive-fixnum (but still smaller than MAXINT).
+
+	* dired.c (Ffile_attributes): Use floats for large uids/gids.
+
+2007-01-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.c (syms_of_emacs) <path-separator>: Doc fix.
+
+2007-01-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* callproc.c (Fcall_process_region) [HAVE_MKSTEMP]: Add BLOCK_INPUT
+	around mkstemp.
+
+	* image.c (XDrawLine) [MAC_OS]: Remove macro.
+	(XCreateGC_pixmap) [!HAVE_NTGUI]: Likewise.
+	(x_disable_image) [!HAVE_NTGUI]: Use XCreateGC instead of
+	XCreateGC_pixmap.
+
+	* macgui.h (Display): Typedef to opaque type.
+
+	* macmenu.c (mac_dialog_modal_filter) [MAC_OSX]: New function.
+	(Fx_popup_dialog) [MAC_OSX]: Use standard alert if called from
+	Fmessage_box, Fyes_or_no_p, or Fy_or_n_p.
+	[MAC_OS_X_VERSION_MAX_ALLOWED >= 1030] (menu_quit_handler):
+	Use mac_quit_char_key_p.
+
+	* macterm.c (XDrawLine): Rename from mac_draw_line_to_pixmap.
+	(XCreateGC): Change type of 2nd argument to void *.
+	(XFreeGC) [USE_CG_DRAWING && MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]:
+	Fix last change.
+	(mac_to_emacs_modifiers): Change return type to int.
+	[USE_CARBON_EVENTS] (mac_event_to_emacs_modifiers): Likewise.
+	(mac_mapped_modifiers): New function.
+	(XTread_socket): Use it.
+	[USE_TSM] (mac_handle_text_input_event): Likewise.
+	(do_window_update) [USE_CG_DRAWING]: Call mac_prepare_for_quickdraw.
+	(mac_quit_char_modifiers, mac_quit_char_keycode) [MAC_OSX]:
+	Remove variables.
+	(mac_determine_quit_char_modifiers, init_quit_char_handler)
+	[MAC_OSX]: Remove functions.
+	(make_ctrl_char) [MAC_OSX]: Add extern.
+	(mac_quit_char_key_p) [MAC_OSX]: New function.
+	(mac_initialize) [MAC_OSX]: Don't call init_quit_char_handler.
+
+	* macterm.h (FONT_MAX_WIDTH): Remove unused macro.
+	(XCreateGC): Change type in extern.
+	(XDrawLine): Rename from mac_draw_line_to_pixmap.
+	(mac_quit_char_key_p) [MAC_OSX]: Add extern.
+
+2007-01-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* keyboard.c (init_keyboard): Initialize interrupt_input_blocked and
+	interrupt_input_pending.
+
+	* xterm.h (x_display_info): New: net_supported_atoms,
+	nr_net_supported_atoms and net_supported_window.
+
+	* xterm.c: New variable last_user_time.
+	(handle_one_xevent): Set last_user_time from events that have Time.
+	Set net_supported_window to 0 when reparented.
+	(wm_supports): New function.
+	(do_ewmh_fullscreen): Use wm_supports to check for _NET_WM_STATE.
+	(x_term_init): Initialize net_supported_atoms, nr_net_supported_atoms
+	and net_supported_window.
+
 2007-01-05  Kim F. Storm  <storm@cua.dk>
 
 	* indent.c (Fvertical_motion): Fix it overshoot check for overlay
@@ -148,8 +216,8 @@
 
 2006-12-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* macfns.c (mac_update_title_bar) [TARGET_API_MAC_CARBON]: Call
-	mac_update_proxy_icon also when buffer modification flag changed.
+	* macfns.c (mac_update_title_bar) [TARGET_API_MAC_CARBON]:
+	Call mac_update_proxy_icon also when buffer modification flag changed.
 	[TARGET_API_MAC_CARBON] (mac_update_proxy_icon): Don't update alias,
 	but compare FSRef/FSSpec of resolved alias.
 
@@ -242,8 +310,8 @@
 	(Fmac_atsu_font_face_attributes) [USE_ATSUI]: New function.
 	(syms_of_macfns) [USE_ATSUI]: Defsubr it.
 
-	* macselect.c [TARGET_API_MAC_CARBON] (mac_do_receive_drag): Use
-	mac_wakeup_from_rne instead of mac_post_mouse_moved_event.
+	* macselect.c [TARGET_API_MAC_CARBON] (mac_do_receive_drag):
+	Use mac_wakeup_from_rne instead of mac_post_mouse_moved_event.
 
 	* macterm.c (mac_query_char_extents) [USE_ATSUI]: Don't call
 	ATSUGetGlyphBounds if not necessary.
@@ -256,8 +324,8 @@
 	(mac_load_query_font) [USE_ATSUI]: Use atsu_find_font_from_family_name.
 	Don't get metrics for Latin-1 right half characters.
 	(mac_load_query_font): Don't load font if space width is not positive.
-	[TARGET_API_MAC_CARBON] (mac_store_event_ref_as_apple_event): Use
-	mac_wakeup_from_rne instead of mac_post_mouse_moved_event.
+	[TARGET_API_MAC_CARBON] (mac_store_event_ref_as_apple_event):
+	Use mac_wakeup_from_rne instead of mac_post_mouse_moved_event.
 	(XTread_socket): Call SelectWindow when unfocused frame is clicked.
 
 	* macterm.h (mac_wakeup_from_rne) [TARGET_API_MAC_CARBON]: Add extern.

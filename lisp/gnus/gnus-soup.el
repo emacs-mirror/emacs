@@ -45,18 +45,21 @@
 (defcustom gnus-soup-directory (nnheader-concat gnus-home-directory "SoupBrew/")
   "Directory containing an unpacked SOUP packet."
   :version "22.1" ;; Gnus 5.10.9
-  :type 'directory)
+  :type 'directory
+  :group 'gnus-soup)
 
 (defcustom gnus-soup-replies-directory
   (nnheader-concat gnus-soup-directory "SoupReplies/")
   "Directory where Gnus will do processing of replies."
   :version "22.1" ;; Gnus 5.10.9
-  :type 'directory)
+  :type 'directory
+  :group 'gnus-soup)
 
 (defcustom gnus-soup-prefix-file "gnus-prefix"
   "Name of the file where Gnus stores the last used prefix."
   :version "22.1" ;; Gnus 5.10.9
-  :type 'file)
+  :type 'file
+  :group 'gnus-soup)
 
 (defcustom gnus-soup-packer "tar cf - %s | gzip > $HOME/Soupout%d.tgz"
   "Format string command for packing a SOUP packet.
@@ -64,28 +67,33 @@ The SOUP files will be inserted where the %s is in the string.
 This string MUST contain both %s and %d.  The file number will be
 inserted where %d appears."
   :version "22.1" ;; Gnus 5.10.9
-  :type 'string)
+  :type 'string
+  :group 'gnus-soup)
 
 (defcustom gnus-soup-unpacker "gunzip -c %s | tar xvf -"
   "Format string command for unpacking a SOUP packet.
 The SOUP packet file name will be inserted at the %s."
   :version "22.1" ;; Gnus 5.10.9
-  :type 'string)
+  :type 'string
+  :group 'gnus-soup)
 
 (defcustom gnus-soup-packet-directory gnus-home-directory
   "Where gnus-soup will look for REPLIES packets."
   :version "22.1" ;; Gnus 5.10.9
-  :type 'directory)
+  :type 'directory
+  :group 'gnus-soup)
 
 (defcustom gnus-soup-packet-regexp "Soupin"
   "Regular expression matching SOUP REPLIES packets in `gnus-soup-packet-directory'."
   :version "22.1" ;; Gnus 5.10.9
-  :type 'regexp)
+  :type 'regexp
+  :group 'gnus-soup)
 
 (defcustom gnus-soup-ignored-headers "^Xref:"
   "Regexp to match headers to be removed when brewing SOUP packets."
   :version "22.1" ;; Gnus 5.10.9
-  :type 'regexp)
+  :type 'regexp
+  :group 'gnus-soup)
 
 ;;; Internal Variables:
 

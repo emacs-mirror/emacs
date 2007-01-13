@@ -1289,8 +1289,9 @@ Choose the buffer's name using `generate-new-buffer-name'."
 
 (defun abbreviate-file-name (filename)
   "Return a version of FILENAME shortened using `directory-abbrev-alist'.
-This also substitutes \"~\" for the user's home directory and
-removes automounter prefixes (see the variable `automount-dir-prefix')."
+This also substitutes \"~\" for the user's home directory (unless the
+home directory is a root directory) and removes automounter prefixes
+\(see the variable `automount-dir-prefix')."
   ;; Get rid of the prefixes added by the automounter.
   (save-match-data
     (if (and automount-dir-prefix

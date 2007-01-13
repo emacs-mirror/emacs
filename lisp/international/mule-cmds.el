@@ -788,10 +788,10 @@ e.g., for sending an email message.\n ")
 					  (car coding)))))
 		    (setq i (1+ i))))
 		(insert "\n"))
-	      (insert "\
+	      (insert (substitute-command-keys "\
 
-Click on a character to jump to the place it appears,\n"
-		      (substitute-command-keys "\
+Click on a character (or switch to this window by `\\[other-window]'\n\
+and select the characters by RET) to jump to the place it appears,\n\
 where `\\[universal-argument] \\[what-cursor-position]' will give information about it.\n"))))
 	  (insert (substitute-command-keys "\nSelect \
 one of the safe coding systems listed below,\n\

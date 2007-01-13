@@ -467,10 +467,9 @@ at the given position for each replacement.
 In interactive calls, the replacement text may contain `\\,'
 followed by a Lisp expression used as part of the replacement
 text.  Inside of that expression, `\\&' is a string denoting the
-whole match, `\\N' a partial matches, `\\#&' and `\\#N' the
-respective numeric values from `string-to-number', and `\\#'
-itself for `replace-count', the number of replacements occured so
-far.
+whole match, `\\N' a partial match, `\\#&' and `\\#N' the respective
+numeric values from `string-to-number', and `\\#' itself for
+`replace-count', the number of replacements occurred so far.
 
 If your Lisp expression is an identifier and the next letter in
 the replacement string would be interpreted as part of it, you

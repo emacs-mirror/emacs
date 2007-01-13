@@ -2179,14 +2179,15 @@ terminal type to a different value."
   :version "21.1"
   :group 'basic-faces)
 
-(defface momentary
-  '((t (:inherit mode-line)))
-  "Face for momentarily displaying text in the current buffer."
-  :group 'display)
-
 (defface vertical-border
   '((((type tty)) :inherit mode-line-inactive))
   "Face used for vertical window dividers on ttys."
+  :version "22.1"
+  :group 'basic-faces)
+
+(defface momentary
+  '((t (:inherit mode-line)))
+  "Face for momentarily displaying text in the current buffer."
   :version "22.1"
   :group 'basic-faces)
 

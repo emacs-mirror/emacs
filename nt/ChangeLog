@@ -1,3 +1,7 @@
+2007-01-10  Jason Rumney  <jasonr@gnu.org>
+
+	* README: Update URLs and advice about reporting bugs.
+
 2006-12-29  Jason Rumney  <jasonr@gnu.org>
 
 	* nmake.defs (TEMACS_EXTRA_LINK): Remove duplicated flags from

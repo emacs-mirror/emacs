@@ -396,7 +396,10 @@ struct x_display_info
   size_t x_dnd_atoms_size;
   size_t x_dnd_atoms_length;
 
-  int have_net_atoms;
+  /* Extended window manager hints, Atoms supported by the window manager  */
+  Atom *net_supported_atoms;
+  int nr_net_supported_atoms;
+  Window net_supported_window;
 };
 
 #ifdef HAVE_X_I18N

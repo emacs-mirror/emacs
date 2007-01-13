@@ -1107,7 +1107,11 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
 
 #ifdef HAVE_MKSTEMP
  {
-   int fd = mkstemp (tempfile);
+   int fd;
+
+   BLOCK_INPUT;
+   fd = mkstemp (tempfile);
+   UNBLOCK_INPUT;
    if (fd == -1)
      report_file_error ("Failed to open temporary file",
 			Fcons (Vtemp_file_name_pattern, Qnil));

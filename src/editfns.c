@@ -1,7 +1,7 @@
 /* Lisp functions pertaining to editing.
    Copyright (C) 1985, 1986, 1987, 1989, 1993, 1994, 1995, 1996,
                  1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006 Free Software Foundation, Inc.
+                 2005, 2006, 2007 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -3631,7 +3631,12 @@ usage: (format STRING &rest OBJECTS)  */)
 		if (*format != 'd' && *format != 'o' && *format != 'x'
 		    && *format != 'i' && *format != 'X' && *format != 'c')
 		  error ("Invalid format operation %%%c", *format);
-		args[n] = Ftruncate (args[n], Qnil);
+		/* This fails unnecessarily if args[n] is bigger than
+		   most-positive-fixnum but smaller than MAXINT.
+		   These cases are important because we sometimes use floats
+		   to represent such integer values (typically such values
+		   come from UIDs or PIDs).  */
+		/* args[n] = Ftruncate (args[n], Qnil); */
 	      }
 
 	    /* Note that we're using sprintf to print floats,
@@ -3799,8 +3804,15 @@ usage: (format STRING &rest OBJECTS)  */)
 		  else
 		    sprintf (p, this_format, XUINT (args[n]));
 		}
-	      else
+	      else if (format[-1] == 'e' || format[-1] == 'f' || format[-1] == 'g')
 		sprintf (p, this_format, XFLOAT_DATA (args[n]));
+	      else if (format[-1] == 'd')
+		/* Maybe we should use "%1.0f" instead so it also works
+		   for values larger than MAXINT.  */
+		sprintf (p, this_format, (EMACS_INT) XFLOAT_DATA (args[n]));
+	      else
+		/* Don't sign-extend for octal or hex printing.  */
+		sprintf (p, this_format, (EMACS_UINT) XFLOAT_DATA (args[n]));
 
 	      if (p > buf
 		  && multibyte

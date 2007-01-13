@@ -3996,7 +3996,9 @@ the variable `Info-file-list-for-emacs'."
 				    (setq res (car hl) hl nil)
 				  (setq hl (cdr hl))))
                               res))) 'info-xref-visited 'info-xref)))
-	      (when (and not-fontified-p (memq Info-hide-note-references '(t hide)))
+	      (when (and not-fontified-p
+			 (memq Info-hide-note-references '(t hide))
+			 (not (Info-index-node)))
 		(put-text-property (match-beginning 2) (1- (match-end 6))
 				   'invisible t)
 		;; Unhide the file name in parens

@@ -1905,11 +1905,11 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
 	      (recenter (/ (window-height) 2)))
 	  ;; If that pushed message start off the screen,
 	  ;; scroll to start it at the top of the screen.
-	  (move-to-window-line 0)
-	  (if (> (point) pos)
-	      (progn
+	  (save-excursion
+	    (move-to-window-line 0)
+	    (if (> (point) pos)
 		(goto-char pos)
-		(recenter 0)))
+	      (recenter 0)))
 	  (message (or message "Type %s to continue editing.")
 		   (single-key-description exit-char))
 	  (let (char)
@@ -2695,7 +2695,7 @@ are effectively trimmed).  If nil, all zero-length substrings are retained,
 which correctly parses CSV format, for example.
 
 Note that the effect of `(split-string STRING)' is the same as
-`(split-string STRING split-string-default-separators t)').  In the rare
+`(split-string STRING split-string-default-separators t)'.  In the rare
 case that you wish to retain zero-length substrings when splitting on
 whitespace, use `(split-string STRING split-string-default-separators)'.
 

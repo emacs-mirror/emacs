@@ -1,7 +1,37 @@
+2007-01-07  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-soup.el: Add missing :group in previous change.
+
 2007-01-05  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-soup.el (gnus-soup): New custom group.  Make user variables
 	customizable.
+
+2007-01-03  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* nnweb.el (nnweb-gmane-create-mapping): Put back code to merge the
+	headers read from disk with the ones newly found in the current search.
+	This should no longer cause problems, because the article numbers in
+	Gmane's `nov.php' output are ignored since the previous change.
+
+2006-01-03  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* nnweb.el (nnweb-gmane-create-mapping): Keep the mapping stable for
+	solid groups.
+
+2006-01-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnweb.el (nnweb-gmane-create-mapping): Use the article number from
+	the headers when creating the mapping to avoid mismappings.
+	(nnweb-gmane-create-mapping): Always nix out old mapping.
+
+2007-01-02  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* gmm-utils.el (gmm-tool-bar-style): Fix custom type.
+
+2007-01-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-display-external): Use itimer function for XEmacs.
 
 2006-12-30  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
 

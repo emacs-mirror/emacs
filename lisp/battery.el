@@ -357,15 +357,17 @@ The following %-sequences are provided:
     (list (cons ?c (or (and capacity (number-to-string capacity)) "N/A"))
 	  (cons ?L (or (battery-search-for-one-match-in-files
 			(mapcar (lambda (e) (concat e "/state"))
-				(directory-files "/proc/acpi/ac_adapter/"
-						 t "\\`[^.]"))
+				(ignore-errors
+				  (directory-files "/proc/acpi/ac_adapter/"
+						   t "\\`[^.]")))
 			"state: +\\(.*\\)$" 1)
 
 		       "N/A"))
 	  (cons ?d (or (battery-search-for-one-match-in-files
 			(mapcar (lambda (e) (concat e "/temperature"))
-				(directory-files "/proc/acpi/thermal_zone/"
-						 t "\\`[^.]"))
+				(ignore-errors
+				  (directory-files "/proc/acpi/thermal_zone/"
+						   t "\\`[^.]")))
 			"temperature: +\\([0-9]+\\) C$" 1)
 
 		       "N/A"))
@@ -455,7 +457,7 @@ The following %-sequences are provided:
 
 (defun battery-search-for-one-match-in-files (files regexp match-num)
   "Search REGEXP in the content of the files listed in FILES.
-If a match occured, return the parenthesized expression numbered by
+If a match occurred, return the parenthesized expression numbered by
 MATCH-NUM in the match.  Otherwise, return nil."
   (with-temp-buffer
     (catch 'found

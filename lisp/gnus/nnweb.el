@@ -480,7 +480,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 		    (from (mail-header-from header))
 		    (subject (mail-header-subject header))
 		    (rfc2047-encoding-type 'mime))
-		(when (string-match " \\([^:]+\\):\\([0-9]+\\)" xref)
+		(when (string-match " \\([^:]+\\)[:/]\\([0-9]+\\)" xref)
 		  (mail-header-set-xref
 		   header
 		   (format "http://article.gmane.org/%s/%s/raw"
@@ -496,11 +496,8 @@ Valid types include `google', `dejanews', and `gmane'.")
 					 (rfc2047-encode-string subject))
 
 		(unless (nnweb-get-hashtb (mail-header-xref header))
-		  (push
-		   (list
-		    (incf (cdr active))
-		    header)
-		   map)
+		  (mail-header-set-number header (incf (cdr active)))
+		  (push (list (mail-header-number header) header) map)
 		  (nnweb-set-hashtb (cadar map) (car map))))))
 	  (forward-line 1)))
       (nnheader-message 7 "Searching Gmane...done")

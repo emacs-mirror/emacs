@@ -86,14 +86,14 @@ through the custom mechanism.
 ** dooglus@gmail.com, Dec 29: 4 week-old pretest bugs
   Two GTK version bugs.
 
-** pgg bugs reported by rms.
-
-** (global-set-key "\M-k" 'bury-buffer) confuses tutorial warnings.
-
 ** jpff@cs.bath.ac.uk, Jan 5: Failure to submit second netnews message
 
 ** KSNetz@UseNet.ArcorNews.DE, Jan 5: 
     url-http.el: calling the callback function for proxy connections
+
+** simon.marshall@misys.com, Jan 9: Possible mouse-face redisplay glitch
+
+** dooglus@gmail.com, Jan 10: problem with transparent PNG image display
 
 * DOCUMENTATION
 

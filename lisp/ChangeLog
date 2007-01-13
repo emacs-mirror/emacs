@@ -1,3 +1,87 @@
+2007-01-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ediff-init.el (ediff-autostore-merges):
+	* textmodes/fill.el (fill-region): Doc fix.
+
+2007-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* server.el (server-ensure-safe-dir): UIDs may be floats.
+
+2007-01-10  Richard Stallman  <rms@gnu.org>
+
+	* battery.el (battery-linux-proc-acpi): Use ignore-errors
+	around calls to directory-files.
+
+	* subr.el (momentary-string-display): Use save-excursion.
+
+	* emacs-lisp/pp.el (pp-eval-expression): Once again eval the
+	argument, but read it as `X' does.
+
+2007-01-09  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-fontify-node): Don't hide node names of index entries.
+
+	* faces.el (momentary): Change :group to basic-faces where all
+	basic faces belong to.  Add :version.
+
+2007-01-09  Lennart Borgman  <lennart.borgman.073@student.lu.se>
+
+	* tutorial.el (tutorial--display-changes): Show M-x sequence if no
+	keybinding is found.
+	(tutorial--find-changed-keys): Never treat null keybinding as a
+	remapping.
+
+2007-01-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* wdired.el (wdired-xcase-word): Skip non-word read-only characters.
+
+2007-01-09  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el
+	(select-safe-coding-system-interactively): Fix message.
+
+2007-01-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-process-one-action): Remove `with-timeout'.
+	(tramp-process-actions): Add optional parameter TIMEOUT.
+	(tramp-open-connection-telnet, tramp-open-connection-rsh)
+	(tramp-open-connection-su): Add timeout of 60".
+
+2007-01-09  Richard Stallman  <rms@gnu.org>
+
+	* progmodes/compile.el (compile): Doc fix.
+
+2007-01-09  Markus Triska  <markus.triska@gmx.at>
+
+	* tumme.el (tumme-display-thumb): Doc fix.
+
+2007-01-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* battery.el (battery-search-for-one-match-in-files):
+	* bindings.el (mode-line-minor-mode-help):
+	* x-dnd.el (x-dnd-types-alist):
+	* calendar/icalendar.el (icalendar-import-buffer):
+	* term/mac-win.el (mac-dnd-types-alist): Fix typo in docstring.
+
+	* progmodes/vhdl-mode.el (vhdl-save-caches): Fix typo in error message.
+
+2007-01-07  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
+
+	* replace.el (replace-regexp): Fix typo in docstring.
+
+2007-01-07  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-langs.el (c-operators, c-filter-ops):
+	Amend doc-string and comments.
+
+2007-01-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (abbreviate-file-name): Doc fix.
+
+2007-01-06  Markus Triska  <triska@gmx.at>
+
+	* subr.el (split-string): Remove spurious ")" from doc string.
+
 2007-01-05  Takaaki Ota  <Takaaki.Ota@am.sony.com>
 
 	* textmodes/table.el (table--warn-incompatibility):
@@ -271,6 +355,11 @@
 
 	* ido.el (ido-set-matches-1): Fix last change.  If default item is
 	current buffer, it is ok to be first.
+
+2006-12-27  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (select-safe-coding-system-interactively):
+	Use face `link' for problematic chars.
 
 2006-12-27  Kenichi Handa  <handa@m17n.org>
 
