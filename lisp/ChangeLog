@@ -1,7 +1,16 @@
+2007-01-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* kmacro.el (kmacro-insert-counter, kmacro-set-counter)
+	(kmacro-start-macro-or-insert-counter)
+	(kmacro-step-edit-prefix-commands): Fix typos in docstrings.
+	(kmacro-call-ring-2nd, kmacro-call-ring-2nd-repeat): Doc fixes.
+
+	* emulation/keypad.el (keypad-setup): Fix typos in docstring.
+
 2007-01-13  Mathias Dahl  <mathias.dahl@gmail.com>
 
 	* tumme.el (tumme-cmd-rotate-original-options): Add -outfile
-	option. Remove redirect character ">".
+	option.  Remove redirect character ">".
 
 2007-01-13  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -26,7 +35,7 @@
 
 	* hexl.el (hexlify-buffer, dehexlify-buffer): Don't complain and don't
 	activate undo when undo is not active.
-	Reported by Chris <christopher.ian.moore@gmail.com>.
+	Reported by Chris Moore <christopher.ian.moore@gmail.com>.
 
 2007-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
