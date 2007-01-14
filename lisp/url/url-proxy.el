@@ -65,20 +65,17 @@
       (url-warn 'url (format "Unknown proxy directive: %s" proxy) 'critical)
       nil))))
 
-(defvar url-proxy-object nil
-  "The URL to access through a proxy.
-This variable is bound by `url-proxy'.  If this is non-nil, the
-scheme-specific loader should use its argument as the proxy, and
-the value of this variable as the object to retrieve.")
-
 (defun url-proxy (url callback &optional cbargs)
   ;; Retrieve URL from a proxy.
   ;; Expects `url-using-proxy' to be bound to the specific proxy to use."
   (setq url-using-proxy (url-generic-parse-url url-using-proxy))
-  (let ((url-proxy-object (copy-sequence url)))
-    (url-set-target url-proxy-object nil)
-    (url-http url-using-proxy callback cbargs)))
 
+  (cond
+   ((string= (url-type url-using-proxy) "http")
+    (url-http url callback cbargs))
+   (t
+    (error "Don't know how to use proxy `%s'" url-using-proxy))))
+  
 (provide 'url-proxy)
 
 ;;; arch-tag: 4ff8882e-e498-42b7-abc5-acb449cdbc62
