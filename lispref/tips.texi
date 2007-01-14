@@ -210,7 +210,7 @@ Constructs that define a function or variable should be macros,
 not functions, and their names should start with @samp{def}.
 
 @item
-Macros that define a functions or variables should take the name to be
+Macros that define a function or variable should take the name to be
 defined as the first argument.  That will help various tools find the
 definition automatically.  Avoid constructing the names in the macro
 itself, since that would confuse these tools.
