@@ -1,6 +1,6 @@
 ;;; vc-svn.el --- non-resident support for Subversion version-control
 
-;; Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Stefan Monnier <monnier@gnu.org>
@@ -495,7 +495,7 @@ and that it passes `vc-svn-global-switches' to it before FLAGS."
 					dirname)))
     (goto-char (point-min))
     (when (re-search-forward
-	   ;; Old `svn' used name="svn:dir", newer use just name="".
+	   ;; Old `svn' used name="svn:this_dir", newer use just name="".
 	   (concat "name=\"\\(?:svn:this_dir\\)?\"[\n\t ]*"
 		   "\\(?:[-a-z]+=\"[^\"]*\"[\n\t ]*\\)*?"
 		   "url=\"\\([^\"]+\\)\"") nil t)
@@ -511,9 +511,13 @@ information about FILENAME and return its status."
   (let (file status)
     (goto-char (point-min))
     (while (re-search-forward
-	    "^[ ADMCI?!~][ MC][ L][ +][ S]..\\([ *]\\) +\\([-0-9]+\\) +\\([0-9?]+\\) +\\([^ ]+\\) +" nil t)
-      (setq file (expand-file-name
-		  (buffer-substring (point) (line-end-position))))
+            ;; Ignore the files with status in [IX?].
+	    "^[ ACDGMR!~][ MC][ L][ +][ S]..\\([ *]\\) +\\([-0-9]+\\) +\\([0-9?]+\\) +\\([^ ]+\\) +" nil t)
+      ;; If the username contains spaces, the output format is ambiguous,
+      ;; so don't trust the output's filename unless we have to.
+      (setq file (or filename
+                     (expand-file-name
+                      (buffer-substring (point) (line-end-position)))))
       (setq status (char-after (line-beginning-position)))
       (unless (eq status ??)
 	;; `vc-BACKEND-registered' must not set vc-backend,

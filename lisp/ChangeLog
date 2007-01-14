@@ -1,3 +1,8 @@
+2007-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-svn.el (vc-svn-parse-status): Trust the filename argument more
+	than the program's output.
+
 2007-01-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* kmacro.el (kmacro-insert-counter, kmacro-set-counter)
@@ -27,8 +32,8 @@
 
 2007-01-11  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-handle-file-local-copy): Set
-	`enable-multibyte-characters' to nil.  Reported by Chris Moore
+	* net/tramp.el (tramp-handle-file-local-copy):
+	Set `enable-multibyte-characters' to nil.  Reported by Chris Moore
 	<christopher.ian.moore@gmail.com>.
 
 2007-01-11  Stefan Monnier  <monnier@iro.umontreal.ca>
