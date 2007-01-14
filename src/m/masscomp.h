@@ -1,6 +1,6 @@
 /* machine description file for Masscomp 5000 series running RTU, ucb universe.
-   Copyright (C) 1986, 2002, 2003, 2004, 2005,
-                 2006 Free Software Foundation, Inc.
+   Copyright (C) 1986, 2001, 2002, 2003, 2004, 2005,
+                 2006, 2007  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

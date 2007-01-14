@@ -1,6 +1,6 @@
 /* machine description file for Whitechapel Computer Works MG1 (ns16000 based).
-   Copyright (C) 1985, 2002, 2003, 2004, 2005,
-                 2006 Free Software Foundation, Inc.
+   Copyright (C) 1985, 2001, 2002, 2003, 2004, 2005,
+                 2006, 2007  Free Software Foundation, Inc.
    MG-1 version by L.M.McLoughlin
 
 This file is part of GNU Emacs.

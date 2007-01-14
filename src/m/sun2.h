@@ -1,8 +1,8 @@
 /* machine description file for Sun 68000's OPERATING SYSTEM version 2.
   Note that "sun2.h" refers to the operating system version, not the
   CPU model number.  See the MACHINES file for details.
-   Copyright (C) 1985, 1986, 2002, 2003, 2004,
-                 2005, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 2001, 2002, 2003, 2004,
+                 2005, 2006, 2007  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
