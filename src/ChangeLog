@@ -1,3 +1,9 @@
+2007-01-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macmenu.c [TARGET_API_MAC_CARBON] (create_and_show_dialog): Use
+	DisableControl for disabled items.  Set default button to first
+	enabled one.  Use icon of application in execution.
+
 2007-01-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* process.c (Fdelete_process, Fprocess_id, sigchld_handler): Copy
