@@ -5,7 +5,11 @@
 	(kmacro-step-edit-prefix-commands): Fix typos in docstrings.
 	(kmacro-call-ring-2nd, kmacro-call-ring-2nd-repeat): Doc fixes.
 
-	* emulation/keypad.el (keypad-setup): Fix typos in docstring.
+	* longlines.el (longlines-show-hard-newlines):
+	* ruler-mode.el (ruler-mode-ruler):
+	* emulation/keypad.el (keypad-setup):
+	* progmodes/antlr-mode.el (antlr-indent-at-bol-alist):
+	Fix typo in docstring.
 
 2007-01-13  Mathias Dahl  <mathias.dahl@gmail.com>
 
