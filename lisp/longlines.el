@@ -63,7 +63,7 @@ with differing widths."
   "Non-nil means each hard newline is marked on the screen.
 \(The variable `longlines-show-effect' controls what they look like.)
 You can also enable the display temporarily, using the command
-`longlines-show-hard-newlines'"
+`longlines-show-hard-newlines'."
   :group 'longlines
   :type 'boolean)
 
