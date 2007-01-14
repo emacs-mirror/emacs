@@ -29,6 +29,7 @@
 (eval-when-compile (require 'cl))
 (defvar url-http-extra-headers)
 (defvar url-http-target-url)
+(defvar url-http-proxy)
 (require 'url-gw)
 (require 'url-util)
 (require 'url-parse)
@@ -154,11 +155,10 @@ request.")
   (declare (special proxy-info 
 		    url-http-method url-http-data
 		    url-http-extra-headers))
-  (url-http-debug "url-proxy-object is %s\n" url-proxy-object)
   (let* ((extra-headers)
 	 (request nil)
 	 (no-cache (cdr-safe (assoc "Pragma" url-http-extra-headers)))
-	 (using-proxy (not (eq url-current-object url-http-target-url)))
+	 (using-proxy url-http-proxy)
 	 (proxy-auth (if (or (cdr-safe (assoc "Proxy-Authorization"
 					      url-http-extra-headers))
 			     (not using-proxy))
@@ -379,8 +379,7 @@ This allows us to use `mail-fetch-field', etc."
 The buffer must already be narrowed to the headers, so `mail-fetch-field' will
 work correctly."
   (let ((cookies (mail-fetch-field "Set-Cookie" nil nil t))
-	(cookies2 (mail-fetch-field "Set-Cookie2" nil nil t))
-	(url-current-object url-http-target-url))
+	(cookies2 (mail-fetch-field "Set-Cookie2" nil nil t)))
     (and cookies (url-http-debug "Found %d Set-Cookie headers" (length cookies)))
     (and cookies2 (url-http-debug "Found %d Set-Cookie2 headers" (length cookies2)))
     (while cookies
@@ -1087,18 +1086,16 @@ CBARGS as the arguments."
 		    url-http-chunked-start
 		    url-http-chunked-counter
 		    url-http-process))
-  (let ((connection (url-http-find-free-connection (url-host url)
-						   (url-port url)))
-	(buffer (generate-new-buffer (format " *http %s:%d*"
-					     (url-host url)
-					     (url-port url)))))
+  (let* ((host (url-host (or url-using-proxy url)))
+	 (port (url-port (or url-using-proxy url)))
+	 (connection (url-http-find-free-connection host port))
+	 (buffer (generate-new-buffer (format " *http %s:%d*" host port))))
     (if (not connection)
 	;; Failed to open the connection for some reason
 	(progn
 	  (kill-buffer buffer)
 	  (setq buffer nil)
-	  (error "Could not create connection to %s:%d" (url-host url)
-		 (url-port url)))
+	  (error "Could not create connection to %s:%d" host port))
       (with-current-buffer buffer
 	(mm-disable-multibyte)
 	(setq url-current-object url
@@ -1120,7 +1117,8 @@ CBARGS as the arguments."
 		       url-http-method
 		       url-http-extra-headers
 		       url-http-data
-		       url-http-target-url))
+		       url-http-target-url
+		       url-http-proxy))
 	  (set (make-local-variable var) nil))
 
 	(setq url-http-method (or url-request-method "GET")
@@ -1133,8 +1131,8 @@ CBARGS as the arguments."
 	      url-callback-function callback
 	      url-callback-arguments cbargs
 	      url-http-after-change-function 'url-http-wait-for-headers-change-function
-	      url-http-target-url (or url-proxy-object
-				      url-current-object))
+	      url-http-target-url url-current-object
+	      url-http-proxy url-using-proxy)
 
 	(set-process-buffer connection buffer)
 	(set-process-filter connection 'url-http-generic-filter)
@@ -1145,8 +1143,7 @@ CBARGS as the arguments."
 	    (set-process-sentinel connection 'url-http-async-sentinel))
 	   ((eq status 'failed)
 	    ;; Asynchronous connection failed
-	    (error "Could not create connection to %s:%d" (url-host url)
-		   (url-port url)))
+	    (error "Could not create connection to %s:%d" host port))
 	   (t
 	    (set-process-sentinel connection 'url-http-end-of-document-sentinel)
 	    (process-send-string connection (url-http-create-request)))))))
@@ -1164,8 +1161,8 @@ CBARGS as the arguments."
      (t
       (setf (car url-callback-arguments)
 	    (nconc (list :error (list 'error 'connection-failed why
-				      :host (url-host url-current-object)
-				      :service (url-port url-current-object)))
+				      :host (url-host (or url-http-proxy url-current-object))
+				      :service (url-port (or url-http-proxy url-current-object))))
 		   (car url-callback-arguments)))
       (url-http-activate-callback)))))
 
