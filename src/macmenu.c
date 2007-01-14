@@ -2447,7 +2447,7 @@ create_and_show_dialog (f, first_wv)
   short buttons_height, text_height, inner_width, inner_height;
   Rect empty_rect, *rects;
   WindowRef window = NULL;
-  ControlRef *buttons, text;
+  ControlRef *buttons, default_button = NULL, text;
 
   dialog_name = first_wv->name;
   nb_buttons = dialog_name[1] - '0';
@@ -2487,6 +2487,13 @@ create_and_show_dialog (f, first_wv)
 	      err = CreatePushButtonControl (window, &empty_rect,
 					     label, &buttons[i]);
 	      CFRelease (label);
+	    }
+	  if (err == noErr)
+	    {
+	      if (!wv->enabled)
+		err = DisableControl (buttons[i]);
+	      else if (default_button == NULL)
+		default_button = buttons[i];
 	    }
 	  if (err == noErr)
 	    {
@@ -2617,30 +2624,48 @@ create_and_show_dialog (f, first_wv)
   /* Create the application icon at the upper-left corner.  */
   if (err == noErr)
     {
-      ControlButtonContentInfo button_info;
-      IconRef icon_ref;
+      ControlButtonContentInfo content;
       ControlRef icon;
+      static const ProcessSerialNumber psn = {0, kCurrentProcess};
+#ifdef MAC_OSX
+      FSRef app_location;
+#else
+      ProcessInfoRec pinfo;
+      FSSpec app_spec;
+#endif
+      SInt16 unused;
 
-      button_info.contentType = kControlContentIconRef;
-      err = GetIconRef (kOnAppropriateDisk, MAC_EMACS_CREATOR_CODE,
-			kGenericApplicationIcon, &icon_ref);
+      content.contentType = kControlContentIconRef;
+#ifdef MAC_OSX
+      err = GetProcessBundleLocation (&psn, &app_location);
+      if (err == noErr)
+	err = GetIconRefFromFileInfo (&app_location, 0, NULL, 0, NULL,
+				      kIconServicesNormalUsageFlag,
+				      &content.u.iconRef, &unused);
+#else
+      bzero (&pinfo, sizeof (ProcessInfoRec));
+      pinfo.processInfoLength = sizeof (ProcessInfoRec);
+      pinfo.processAppSpec = &app_spec;
+      err = GetProcessInformation (&psn, &pinfo);
+      if (err == noErr)
+	err = GetIconRefFromFile (&app_spec, &content.u.iconRef, &unused);
+#endif
       if (err == noErr)
 	{
 	  Rect bounds;
 
-	  button_info.u.iconRef = icon_ref;
 	  SetRect (&bounds, DIALOG_ICON_LEFT_MARGIN, DIALOG_ICON_TOP_MARGIN,
 		   DIALOG_ICON_LEFT_MARGIN + DIALOG_ICON_WIDTH,
 		   DIALOG_ICON_TOP_MARGIN + DIALOG_ICON_HEIGHT);
-	  err = CreateIconControl (window, &bounds, &button_info,
-				   true, &icon);
-	  ReleaseIconRef (icon_ref);
+	  err = CreateIconControl (window, &bounds, &content, true, &icon);
+	  ReleaseIconRef (content.u.iconRef);
 	}
     }
 
   /* Show the dialog window and run event loop.  */
   if (err == noErr)
-    err = SetWindowDefaultButton (window, buttons[0]);
+    if (default_button)
+      err = SetWindowDefaultButton (window, default_button);
   if (err == noErr)
     err = install_dialog_event_handler (window);
   if (err == noErr)
