@@ -2460,11 +2460,11 @@ create_and_show_dialog (f, first_wv)
   SetRect (&empty_rect, 0, 0, 0, 0);
 
   /* Create dialog window.  */
-  err = CreateNewWindow (kMovableAlertWindowClass,
+  err = CreateNewWindow (kMovableModalWindowClass,
 			 kWindowStandardHandlerAttribute,
 			 &empty_rect, &window);
   if (err == noErr)
-    err = SetThemeWindowBackground (window, kThemeBrushAlertBackgroundActive,
+    err = SetThemeWindowBackground (window, kThemeBrushMovableModalBackground,
 				    true);
   if (err == noErr)
     err = SetWindowTitleWithCFString (window, (dialog_name[0] == 'Q'
@@ -2491,7 +2491,13 @@ create_and_show_dialog (f, first_wv)
 	  if (err == noErr)
 	    {
 	      if (!wv->enabled)
-		err = DisableControl (buttons[i]);
+		{
+#ifdef MAC_OSX
+		  err = DisableControl (buttons[i]);
+#else
+		  err = DeactivateControl (buttons[i]);
+#endif
+		}
 	      else if (default_button == NULL)
 		default_button = buttons[i];
 	    }
