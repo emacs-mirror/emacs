@@ -1,3 +1,8 @@
+2007-01-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-ae-quit-application): New function.
+	(mac-apple-event-map): Bind "quit application" Apple event to it.
+
 2007-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-svn.el (vc-svn-parse-status): Trust the filename argument more

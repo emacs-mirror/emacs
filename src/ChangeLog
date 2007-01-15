@@ -1,3 +1,13 @@
+2007-01-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macmenu.c [TARGET_API_MAC_CARBON] (create_and_show_dialog):
+	Create movable modal window instead of movable alert window.
+	[TARGET_API_MAC_CARBON] (create_and_show_dialog) [!MAC_OSX]: Use
+	DeactivateControl instead of DisableControl.
+
+	* macselect.c (Fmac_resume_apple_event): Set error number when
+	descriptor type of reply is non-null.
+
 2007-01-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macmenu.c [TARGET_API_MAC_CARBON] (create_and_show_dialog): Use
