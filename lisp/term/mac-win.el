@@ -1714,6 +1714,15 @@ in `selection-converter-alist', which see."
 	      nil t)))))
   (select-frame-set-input-focus (selected-frame)))
 
+(defun mac-ae-quit-application (event)
+  "Quit the application Emacs with the Apple event EVENT."
+  (interactive "e")
+  (let ((ae (mac-event-ae event)))
+    (unwind-protect
+	(save-buffers-kill-emacs)
+      ;; Reaches here if the user has canceled the quit.
+      (mac-resume-apple-event ae -128)))) ; userCanceledErr
+
 (defun mac-ae-get-url (event)
   "Open the URL specified by the Apple event EVENT.
 Currently the `mailto' scheme is supported."
@@ -1740,7 +1749,7 @@ Currently the `mailto' scheme is supported."
   'mac-ae-open-documents)
 (define-key mac-apple-event-map [core-event show-preferences] 'customize)
 (define-key mac-apple-event-map [core-event quit-application]
-  'save-buffers-kill-emacs)
+  'mac-ae-quit-application)
 
 (define-key mac-apple-event-map [internet-event get-url] 'mac-ae-get-url)
 
