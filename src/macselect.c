@@ -1390,7 +1390,7 @@ nil, which means the event is already resumed or expired.  */)
       ae = *p;
       *p = (*p)->next;
       if (INTEGERP (error_code)
-	  && ae->apple_event.descriptorType != typeNull)
+	  && ae->reply.descriptorType != typeNull)
 	{
 	  SInt32 errn = XINT (error_code);
 
