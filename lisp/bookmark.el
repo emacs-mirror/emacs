@@ -1007,14 +1007,18 @@ In Info, return the current node."
 (defun bookmark-buffer-file-name ()
   "Return the current buffer's file in a way useful for bookmarks.
 For example, if this is a Info buffer, return the Info file's name."
-  (if (eq major-mode 'Info-mode)
-        Info-current-file
-    (or
-     buffer-file-name
-     (if (and (boundp 'dired-directory) dired-directory)
-         (if (stringp dired-directory)
-             dired-directory
-           (car dired-directory))))))
+  (cond
+   ((eq major-mode 'Info-mode)
+    Info-current-file)
+   (buffer-file-name
+    ;; Abbreviate the path, both so it's shorter and so it's more
+    ;; portable.  E.g., the user's home dir might be a different
+    ;; path on different machines, but "~/" will still reach it.
+    (abbreviate-file-name buffer-file-name))
+   ((and (boundp 'dired-directory) dired-directory)
+    (if (stringp dired-directory)
+        dired-directory
+      (car dired-directory)))))
 
 
 (defun bookmark-maybe-load-default-file ()
