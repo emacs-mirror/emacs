@@ -63,13 +63,13 @@
 
 <h3>.scan.loop:</h3>
 
-<p>If the seg is full and non-white (eg. all grey) when scanning starts, then a single linear scan will make the seg non-grey (in fact: all black).</p>
+<p>.scan.loop.once:  If the seg is full and non-white (eg. all grey) when scanning starts, then a single linear scan will make the seg non-grey (in fact: all black).  In this case only, we do not need a loop.</p>
 
 <p>Otherwise, there are two ways new grey objects can appear in the segment while we are scanning it:</p>
 
-<p>.scan.loop.white: if the seg contains some white objects when we start a linear scan, then a Ref that points backwards into the same seg can fix and grey an object that was skipped as white when the linear scan passed over it.  So scanning must loop until the whole seg is non-grey.</p>
+<p>.scan.loop.white:  If the seg contains some white objects when we start a linear scan, then a Ref that points backwards into the same seg can fix and grey an object that was skipped as white when the linear scan passed over it.  So scanning must loop until the whole seg is non-grey.</p>
 
-<p>.scan.loop.buffer: if the seg is buffered, and the buffer is Forwarding-grey or Mutator-grey (not yet implemented), then new grey objects can arrive during the scan.</p>
+<p>.scan.loop.buffer:  If the seg is buffered, and the buffer is Forwarding-grey or Mutator-grey (not yet implemented), then new grey objects can arrive during the scan.</p>
 
 
 <h3>.scan.total:</h3>
