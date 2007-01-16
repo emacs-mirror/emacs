@@ -1059,14 +1059,18 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
       AVER(BufferIsReady(buffer));
       BufferDetach(buffer, pool);
     } else {                        /* mutator buffer */
-      if (BufferScanLimit(buffer) == SegBase(seg))
+      if (BufferScanLimit(buffer) == SegBase(seg)) {
         /* There's nothing but the buffer, don't condemn. */
         return ResOK;
-      else /* if (BufferScanLimit(buffer) == BufferLimit(buffer)) { */
+      }
+      /* [The following else-if section is just a comment added in */
+      /*  1998-10-08.  It has never worked.  RHSK 2007-01-16] */
+      /* else if (BufferScanLimit(buffer) == BufferLimit(buffer)) { */
         /* The buffer is full, so it won't be used by the mutator. */
         /* @@@@ We should detach it, but can't for technical reasons. */
         /* BufferDetach(buffer, pool); */
-      /* } else */ {
+      /* } */
+      else {
         /* There is an active buffer, make sure it's nailed. */
         if (!amcSegHasNailboard(seg)) {
           if (SegNailed(seg) == TraceSetEMPTY) {
@@ -1093,8 +1097,8 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
         }
         /* We didn't condemn the buffer, subtract it from the count. */
         /* @@@@ We could subtract all the nailed grains. */
-	/* Relies on unsigned arithmetic wrapping round */
-	/* on under- and overflow (which it does). */
+        /* Relies on unsigned arithmetic wrapping round */
+        /* on under- and overflow (which it does). */
         trace->condemned -= AddrOffset(BufferScanLimit(buffer),
                                        BufferLimit(buffer));
       }
