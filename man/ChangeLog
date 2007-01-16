@@ -1,3 +1,8 @@
+2007-01-16  Glenn Morris  <rgm@gnu.org>
+
+	* abbrevs.texi (Editing Abbrevs): Describe how to disable a system
+	abbrev.
+
 2007-01-11  Richard Stallman  <rms@gnu.org>
 
 	* msdog.texi (Windows Keyboard): Another small cleanup.
