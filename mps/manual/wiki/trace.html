@@ -46,7 +46,7 @@
 <h2>Introduction</h2>
 
 
-<p>Tracing is when the MPS follows the dag or references to find all reachable objects.</p>
+<p>Tracing is when the MPS follows the dag of references to find all reachable objects.</p>
 
 
 <h2>Setting up a trace</h2>
@@ -65,11 +65,11 @@
 
 <p>.scan.loop.once:  If the seg is full and non-white (eg. all grey) when scanning starts, then a single linear scan will make the seg non-grey (in fact: all black).  In this case only, we do not need a loop.</p>
 
-<p>Otherwise, there are two ways new grey objects can appear in the segment while we are scanning it:</p>
+<p>Otherwise, there are two ways <strong>new grey objects</strong> can appear in the segment while we are scanning it:</p>
 
 <p>.scan.loop.white:  If the seg contains some white objects when we start a linear scan, then a Ref that points backwards into the same seg can fix and grey an object that was skipped as white when the linear scan passed over it.  So scanning must loop until the whole seg is non-grey.</p>
 
-<p>.scan.loop.buffer:  If the seg is buffered, and the buffer is Forwarding-grey or Mutator-grey (not yet implemented), then new grey objects can arrive during the scan.</p>
+<p>.scan.loop.buffer:  If the seg has, or could get, a Forwarding-grey (or Mutator-grey, not yet implemented) buffer, then new grey objects can arrive during the scan.  WARNING: buffers move around during scanning: a buffer could be attached, or detached, several times during scanning a single segment, especially in low memory situations.</p>
 
 
 <h3>.scan.total:</h3>
@@ -78,9 +78,9 @@
 
 <p>The current design is that the segment summary is <strong>not updated</strong> during the scan, even though the segment is gaining new Refs from relocating fixes.  Instead, the summary of Refs seen by the scan is kept in the scan state: <code>ss-&gt;unfixedSummary</code> and <code>ss-&gt;fixedSummary</code>.</p>
 
-<p>A scan does not necessarily see all objects: objects that were already black at scan start are usually skipped; and objects that remain white at scan end are always skipped.  This is the <code>!wasTotal</code> case, and the fixedSummary resulting from the scan must be unioned into the segment summary.</p>
+<p>.scan.total.not:  A scan does not necessarily see all objects: objects that were already black at scan start are usually skipped; and objects that remain white at scan end are always skipped.  This is the <code>!wasTotal</code> case, and the fixedSummary resulting from the scan must be unioned into the segment summary.</p>
 
-<p>But if all objects in the segment were scanned (eg. if whole seg was grey at scan start), PoolScan sets <code>wasTotal</code> to true to indicate this.  The trace then uses <code>ss-&gt;fixedSummary</code> to replace the old segment summary.</p>
+<p>.scan.total.yes:  But if all objects in the segment were scanned (eg. if whole seg was grey at scan start), PoolScan sets <code>wasTotal</code> to true to indicate this.  The trace then uses <code>ss-&gt;fixedSummary</code> to replace the old segment summary.</p>
 
 
 <h3>Scan details</h3>
