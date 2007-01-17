@@ -1,3 +1,7 @@
+2007-01-13  Michael Olson  <mwolson@gnu.org>
+
+	* ERC-NEWS: Mention new erc-capab.el file.
+
 2007-01-13  Glenn Morris  <rgm@gnu.org>
 
 	* MACHINES: Add information on compiling 32-bit Emacs on 64-bit

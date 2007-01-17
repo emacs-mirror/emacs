@@ -773,10 +773,6 @@ is in `erc-mode'."
 		      str)
    (erc-faces-in str)))
 
-(defun erc-find-parsed-property ()
-  "Find the next occurrence of the `erc-parsed' text property."
-  (text-property-not-all (point-min) (point-max) 'erc-parsed nil))
-
 ;;; Buffer switching
 
 (defvar erc-track-last-non-erc-buffer nil

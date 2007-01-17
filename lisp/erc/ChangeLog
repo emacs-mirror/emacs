@@ -1,3 +1,94 @@
+2007-01-13  Michael Olson  <mwolson@gnu.org>
+
+	* erc.el (erc-command-regexp): New variable that is used to match
+	a command.
+	(erc-send-input): Use it.  This fixes a bug where paths --
+	"/usr/bin/foo", for example -- were being displayed as commands,
+	but still sent correctly.
+	(erc-extract-command-from-line): Use it.
+
+	* erc.texi (Modules): Document erc-capab-identify.
+
+2007-01-11  Diane Murray  <disumu@x3y2z1.net>
+
+	* erc.el (erc-find-parsed-property): Moved here from erc-track.el
+	since it can be useful in general.
+
+	* erc-track.el (erc-find-parsed-property): Removed.
+
+	* erc-capab.el (erc-capab-find-parsed): Removed.
+	(erc-capab-identify-add-prefix): Use `erc-find-parsed-property'.
+
+	* erc.el (erc-open): Run `erc-before-connect' hook here.  This
+	makes sure the hook always gets called before a connection is
+	made, as some functions, like `erc-handle-irc-url', use `erc-open'
+	instead of `erc'.
+	(erc): Removed `erc-before-connect' hook.
+
+	* erc-menu.el (erc-menu-definition): Put items specific to
+	channels in a "Current channel" submenu.
+
+	* erc-backend.el (321, 323): Display channel list in server buffer
+	when not using the channel list module.
+
+	* erc.el: Updated copyright years.
+	(erc-version-string): Set to 5.2 (devel).
+	(erc-format-lag-time): Fixed to work when `erc-server-lag' is nil.
+	(erc-update-mode-line-buffer): Set the header face.
+
+2007-01-11  Michael Olson  <mwolson@gnu.org>
+
+	* erc-bbdb.el (erc-bbdb-popup-type): Fix customization type and
+	documentation.
+
+	* erc-services.el (erc-nickserv-identify-mode): Improve
+	documentation for nick-change option and move higher to fix
+	compiler warning.  Avoid a recursive load error.
+	(erc-nickserv-alist): Add simple entry for BitlBee, to avoid
+	"NickServ is AWAY: User is offline" error.  Oddly enough, bitlbee
+	was smart enough to recognize that as an authentication request
+	and log in regardless, which is why I didn't notice this earlier.
+	(erc-nickserv-alist-sender, erc-nickserv-alist-regexp)
+	(erc-nickserv-alist-nickserv, erc-nickserv-alist-ident-keyword)
+	(erc-nickserv-alist-use-nick-p)
+	(erc-nickserv-alist-ident-command): New accessors for
+	erc-nickserv-alist.  Using nth is unwieldy.
+	(erc-nickserv-identify-autodetect)
+	(erc-nickserv-identify-on-connect)
+	(erc-nickserv-identify-on-nick-change, erc-nickserv-identify): Use
+	the new accessors.
+
+2007-01-11  Diane Murray  <disumu@x3y2z1.net>
+
+	* NEWS: Added note for `erc-my-nick-face'.  Fixed capab-identify
+	wording.
+
+2007-01-10  Diane Murray  <disumu@x3y2z1.net>
+
+	* erc.el (erc-mode-line-format): Added %l to documentation.
+	(erc-header-line-format): Removed "[IRC]".  Use the new %l
+	replacement character.  Doc fix.
+	(erc-format-channel-modes): Removed lag code.  Removed parentheses
+	from mode string.
+	(erc-format-lag-time): New function.
+	(erc-update-mode-line-buffer): Use it.
+
+2007-01-09  Michael Olson  <mwolson@gnu.org>
+
+	* erc.el (erc-system-name): New option that determines the system
+	name to use when logging in.  The default is to figure this out by
+	calling `system-name'.
+	(erc-login): Use it.
+
+2007-01-07  Michael Olson  <mwolson@gnu.org>
+
+	* erc.el (erc-modules): Add the menu module.  This should fix a
+	bug with incorrect ERC submenus being displayed.
+
+	* erc-menu.el: Turn this into a module.
+	(erc-menu-add, erc-menu-remove): New functions that add and remove
+	the ERC menu.
+
 2006-12-28  Michael Olson  <mwolson@gnu.org>
 
 	* erc-list.el: Change header to mention that this is part of ERC,
@@ -645,7 +736,29 @@
 	<C-tab> for `erc-button-previous' as it is a more standard key
 	binding for this type of function.
 
+2006-02-28  Diane Murray  <disumu@x3y2z1.net>
+
+	* erc-capab.el: Removed things that were accidentally committed on
+	2006-02-20.  Removed Todo section.
+	(erc-capab-unidentified): Removed.
+
+2006-02-26  Michael Olson  <mwolson@gnu.org>
+
+	* erc-capab.el: Use (eval-when-compile (require 'cl)).
+	(erc-capab-unidentified): Fix compiler warning by specifying
+	group.
+
+2006-02-20  Diane Murray  <disumu@x3y2z1.net>
+
+	* erc-capab.el (erc-capab-send-identify-messages): Fixed comment
+	to explain thoughts better.  `erc-server-parameters' is an
+	associated list when it's set, not a string.
+
 2006-02-19  Michael Olson  <mwolson@gnu.org>
+
+	* erc-capab.el (erc-capab-send-identify-messages): Make sure some
+	parameters are strings before using them.  Thanks to Alejandro
+	Benitez for the report.
 
 	* erc.el (erc-version-string): Release ERC 5.1.2.
 
@@ -696,8 +809,13 @@
 
 2006-02-11  Michael Olson  <mwolson@gnu.org>
 
-	* erc.el (erc-update-modules): Make some requirements shorter, so
-	that it's easier to see why they are needed.
+	* erc.el (erc-update-modules): Handle erc-capab-identify
+	correctly.  Make some requirements shorter, so that it's easier to
+	see why they are needed.
+
+	* erc-capab.el: Add autoload cookie for capab-identify.
+	(erc-capab-send-identify-messages, erc-capab-identify-activate):
+	Minor whitespace fix in code.
 
 	* erc-stamp.el (erc-timestamp-use-align-to): Renamed from
 	`erc-timestamp-right-align-by-pixel'.  Set the default based on
@@ -721,10 +839,20 @@
 	(erc-list-channels): Was `erc-cmd-LIST', renamed.
 	(erc-list-channels-simple): New function.
 
-	* erc.el (erc-modules): Added `list' to enabled modules.  Moved
-	customization options left in source code.
+	* erc.el (erc-modules): Added `list' to enabled modules.  Changed
+	`capab-identify' description.  Moved customization options left in
+	source code.
 
 	* erc-menu.el (erc-menu-definition): Use `erc-list-channels'.
+
+	* erc-capab.el: Put a little more detail into Usage section.
+	(define-erc-module): Run `erc-capab-identify-setup' in all open
+	server buffers when enabling.
+	(erc-capab-identify-setup): Make PROC and PARSED optional
+	arguments.
+	(erc-capab-identify-add-prefix): Simplified nickname regexp.  This
+	should now also match nicknames that are formatted differently
+	than the default.
 
 	* erc-spelling.el (define-erc-module): Make sure there's a buffer
 	before calling `with-current-buffer'.
@@ -742,11 +870,33 @@
 2006-02-09  Diane Murray  <disumu@x3y2z1.net>
 
 	* erc.el (erc-get-parsed-vector, erc-get-parsed-vector-nick)
+	* erc-capab.el: Require erc.
+	(erc-capab-send-identify-messages): Use `erc-server-send'.
+	(erc-capab-identify-remove/set-identified-flag): Use 1 and 0 as
+	the flags so we can also check whether the `erc-identified' text
+	property is there at all.
+	(erc-capab-identify-add-prefix): Use `erc-capab-find-parsed'.
+	This fixes a bug where the prefix wasn't inserted when timestamps
+	are inserted on the right.  Tweaked nickname regexp.
+	(erc-capab-find-parsed): New function.
+	(erc-capab-get-unidentified-nickname): Updated to check for 0
+	flag.  Only get nickname if there's a nickuserhost associated with
+	this message.
+
+	* erc-capab.el: New file.  Adds the new module
+	`erc-capab-identify', which allows flagging of unidentified users
+	on servers running an ircd based on dancer - irc.freenode.net, for
+	example.
+
+	* erc.el (erc-modules): Added `capab-identify' to options.
+	(erc-get-parsed-vector, erc-get-parsed-vector-nick)
 	(erc-get-parsed-vector-type): Moved here from erc-match.el.
 
 	* erc-match.el (erc-get-parsed-vector, erc-get-parsed-vector-nick)
 	(erc-get-parsed-vector-type): Moved these functions to erc.el
 	since they can be useful outside of the text matching module.
+
+	* NEWS: Added erc-capab.el.
 
 	* erc-dcc.el, erc-stamp.el, erc-xdcc.el: Changed "Emacs IRC Client"
 	to "ERC".

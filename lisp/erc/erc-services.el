@@ -77,6 +77,29 @@ This group allows you to set variables to somewhat automate
 communication with those Services."
   :group 'erc)
 
+(defcustom erc-nickserv-identify-mode 'both
+  "The mode which is used when identifying to Nickserv.
+
+Possible settings are:.
+
+'autodetect  - Identify when the real Nickserv sends an identify request.
+'nick-change - Identify when you log in or change your nickname.
+'both        - Do the former if the network supports it, otherwise do the
+               latter.
+nil          - Disables automatic Nickserv identification.
+
+You can also use M-x erc-nickserv-identify-mode to change modes."
+  :group 'erc-services
+  :type '(choice (const autodetect)
+		 (const nick-change)
+		 (const both)
+		 (const nil))
+  :set (lambda (sym val)
+	 (set sym val)
+	 ;; avoid recursive load at startup
+	 (when (featurep 'erc-services)
+	   (erc-nickserv-identify-mode val))))
+
 ;;;###autoload (autoload 'erc-services-mode "erc-services" nil t)
 (define-erc-module services nickserv
   "This mode automates communication with services."
@@ -128,27 +151,6 @@ communication with those Services."
 	 (remove-hook 'erc-nick-changed-functions
 		      'erc-nickserv-identify-on-nick-change))))
 
-(defcustom erc-nickserv-identify-mode 'both
-  "The mode which is used when identifying to Nickserv.
-
-Possible settings are:.
-
-'autodetect  - Identify when the real Nickserv sends an identify request.
-'nick-change - Identify when you change your nickname.
-'both        - Do the former if the network supports it, otherwise do the
-               latter.
-nil          - Disables automatic Nickserv identification.
-
-You can also use M-x erc-nickserv-identify-mode to change modes."
-  :group 'erc-services
-  :type '(choice (const autodetect)
-		 (const nick-change)
-		 (const both)
-		 (const nil))
-  :set (lambda (sym val)
-	 (set sym val)
-	 (erc-nickserv-identify-mode val)))
-
 (defcustom erc-prompt-for-nickserv-password t
   "Ask for the password when identifying to NickServ."
   :group 'erc-services
@@ -184,7 +186,13 @@ Example of use:
 ;; Variables:
 
 (defcustom erc-nickserv-alist
-  '((DALnet
+  '((BitlBee
+     nil
+     nil
+     "&bitlbee"
+     "identify"
+     nil)
+    (DALnet
      "NickServ!service@dal.net"
      "/msg\\s-NickServ@services.dal.net\\s-IDENTIFY\\s-<password>"
      "NickServ@services.dal.net"
@@ -266,6 +274,24 @@ ANSWER is the command to use for the answer.  The default is 'privmsg.
 		  (string :tag "Command")
 		  (const :tag "No special command necessary" nil)))))
 
+(defsubst erc-nickserv-alist-sender (network &optional entry)
+  (nth 1 (or entry (assoc network erc-nickserv-alist))))
+
+(defsubst erc-nickserv-alist-regexp (network &optional entry)
+  (nth 2 (or entry (assoc network erc-nickserv-alist))))
+
+(defsubst erc-nickserv-alist-nickserv (network &optional entry)
+  (nth 3 (or entry (assoc network erc-nickserv-alist))))
+
+(defsubst erc-nickserv-alist-ident-keyword (network &optional entry)
+  (nth 4 (or entry (assoc network erc-nickserv-alist))))
+
+(defsubst erc-nickserv-alist-use-nick-p (network &optional entry)
+  (nth 5 (or entry (assoc network erc-nickserv-alist))))
+
+(defsubst erc-nickserv-alist-ident-command (network &optional entry)
+  (nth 6 (or entry (assoc network erc-nickserv-alist))))
+
 ;; Functions:
 
 (defun erc-nickserv-identify-autodetect (proc parsed)
@@ -277,14 +303,14 @@ password for this nickname, otherwise try to send it automatically."
   (unless (and (null erc-nickserv-passwords)
 	       (null erc-prompt-for-nickserv-password))
     (let* ((network (erc-network))
-	   (nickserv (nth 1 (assoc network erc-nickserv-alist)))
-	   (identify-regex (nth 2 (assoc network erc-nickserv-alist)))
+	   (sender (erc-nickserv-alist-sender network))
+	   (identify-regex (erc-nickserv-alist-regexp network))
 	   (sspec (erc-response.sender parsed))
 	   (nick (car (erc-response.command-args parsed)))
 	   (msg (erc-response.contents parsed)))
       ;; continue only if we're sure it's the real nickserv for this network
       ;; and it's asked us to identify
-      (when (and nickserv (equal sspec nickserv)
+      (when (and sender (equal sspec sender)
 		 (string-match identify-regex msg))
 	(erc-log "NickServ IDENTIFY request detected")
 	(erc-nickserv-call-identify-function nick)
@@ -295,7 +321,7 @@ password for this nickname, otherwise try to send it automatically."
   (unless (or (and (null erc-nickserv-passwords)
 		   (null erc-prompt-for-nickserv-password))
 	      (and (eq erc-nickserv-identify-mode 'both)
-		   (nth 2 (assoc (erc-network) erc-nickserv-alist))))
+		   (erc-nickserv-alist-regexp (erc-network))))
     (erc-nickserv-call-identify-function nick)))
 
 (defun erc-nickserv-identify-on-nick-change (nick old-nick)
@@ -303,7 +329,7 @@ password for this nickname, otherwise try to send it automatically."
   (unless (or (and (null erc-nickserv-passwords)
 		   (null erc-prompt-for-nickserv-password))
 	      (and (eq erc-nickserv-identify-mode 'both)
-		   (nth 2 (assoc (erc-network) erc-nickserv-alist))))
+		   (erc-nickserv-alist-regexp (erc-network))))
     (erc-nickserv-call-identify-function nick)))
 
 (defun erc-nickserv-call-identify-function (nickname)
@@ -333,12 +359,16 @@ When called interactively, read the password using `read-passwd'."
     (let* ((erc-auto-discard-away nil)
 	   (network (erc-network))
 	   (nickserv-info (assoc network erc-nickserv-alist))
-	   (nickserv (or (nth 3 nickserv-info) "NickServ"))
-	   (identify-word (or (nth 4 nickserv-info) "IDENTIFY"))
-	   (nick (if (nth 5 nickserv-info)
+	   (nickserv (or (erc-nickserv-alist-nickserv nil nickserv-info)
+			 "NickServ"))
+	   (identify-word (or (erc-nickserv-alist-ident-keyword
+			       nil nickserv-info)
+			      "IDENTIFY"))
+	   (nick (if (erc-nickserv-alist-use-nick-p nil nickserv-info)
 		     (concat (erc-current-nick) " ")
 		   ""))
-	   (msgtype (or (nth 6 nickserv-info) "PRIVMSG")))
+	   (msgtype (or (erc-nickserv-alist-ident-command nil nickserv-info)
+			"PRIVMSG")))
       (erc-message msgtype
 		   (concat nickserv " " identify-word " " nick password)))))
 

@@ -863,29 +863,29 @@ buffer, and sends back the replies after each block of data per the DCC
 protocol spec.  Well not really.  We write back a reply after each read,
 rather than every 1024 byte block, but nobody seems to care."
   (with-current-buffer (process-buffer proc)
-    (setq buffer-read-only nil) ;; FIXME
-    (goto-char (point-max))
-    (insert (string-make-unibyte str))
+    (let ((inhibit-read-only t))
+      (goto-char (point-max))
+      (insert (string-make-unibyte str))
 
-    (setq erc-dcc-byte-count (+ (length str) erc-dcc-byte-count))
-    (erc-assert (= erc-dcc-byte-count (1- (point-max))))
-    (and erc-verbose-dcc
-         (erc-display-message
-          nil 'notice erc-server-process
-          'dcc-get-bytes-received
-          ?f (file-name-nondirectory buffer-file-name)
-          ?b (number-to-string erc-dcc-byte-count)))
-    (cond
-     ((and (> (plist-get erc-dcc-entry-data :size) 0)
-           (> erc-dcc-byte-count (plist-get erc-dcc-entry-data :size)))
-      (erc-display-message
-       nil '(error notice) 'active
-       'dcc-get-file-too-long
-       ?f (file-name-nondirectory buffer-file-name))
-      (delete-process proc))
-     (t
-      (process-send-string
-       proc (erc-pack-int erc-dcc-byte-count 4))))))
+      (setq erc-dcc-byte-count (+ (length str) erc-dcc-byte-count))
+      (erc-assert (= erc-dcc-byte-count (1- (point-max))))
+      (and erc-verbose-dcc
+           (erc-display-message
+            nil 'notice erc-server-process
+            'dcc-get-bytes-received
+            ?f (file-name-nondirectory buffer-file-name)
+            ?b (number-to-string erc-dcc-byte-count)))
+      (cond
+       ((and (> (plist-get erc-dcc-entry-data :size) 0)
+             (> erc-dcc-byte-count (plist-get erc-dcc-entry-data :size)))
+        (erc-display-message
+         nil '(error notice) 'active
+         'dcc-get-file-too-long
+         ?f (file-name-nondirectory buffer-file-name))
+        (delete-process proc))
+       (t
+        (process-send-string
+         proc (erc-pack-int erc-dcc-byte-count 4)))))))
 
 
 (defun erc-dcc-get-sentinel (proc event)

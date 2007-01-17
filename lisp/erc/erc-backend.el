@@ -1535,7 +1535,7 @@ See `erc-display-server-message'." nil
 (define-erc-response-handler (321)
   "LIST header." nil
   (setq erc-channel-list nil)
-  (erc-display-message parsed 'notice 'active 's321))
+  (erc-display-message parsed 'notice proc 's321))
 
 (define-erc-response-handler (322)
   "LIST notice." nil
@@ -1545,7 +1545,7 @@ See `erc-display-server-message'." nil
       (add-to-list 'erc-channel-list (list channel))
       (erc-update-channel-topic channel topic)
       (erc-display-message
-       parsed 'notice 'active 's322
+       parsed 'notice proc 's322
        ?c channel ?u num-users ?t (or topic "")))))
 
 (define-erc-response-handler (324)

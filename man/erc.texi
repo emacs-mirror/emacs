@@ -406,6 +406,10 @@ Integrate with the Big Brother Database
 @item button
 Buttonize URLs, nicknames, and other text
 
+@cindex modules, capab-identify
+@item capab-identify
+Mark unidentified users on freenode and other servers supporting CAPAB.
+
 @cindex modules, completion
 @item pcomplete
 Complete nicknames and commands (programmable)

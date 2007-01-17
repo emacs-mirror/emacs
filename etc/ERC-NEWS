@@ -22,6 +22,17 @@ reconnection attempts that ERC will make per server.
 amount of time, in seconds, that ERC will wait between successive
 reconnect attempts.
 
+** New face: `erc-my-nick-face'
+This helps make it easier to distinguish messages sent by yourself
+from messages sent by other users when the value of the variable
+`erc-show-my-nick' is non-nil.
+
+** New modules
+
+*** Capab identify (erc-capab.el)
+Mark users who haven't identified to NickServ on servers supporting
+CAPAB IDENTIFY-MSG.
+
 ** Changes and additions to modules
 
 *** Channel lists (erc-list.el)
