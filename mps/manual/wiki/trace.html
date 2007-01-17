@@ -63,6 +63,8 @@
 
 <h3>.scan.loop:</h3>
 
+<p>Looping is all about <strong>completeness of de-greyening</strong>; it is affected by both colour and buffers.</p>
+
 <p>.scan.loop.once:  If the seg is full and non-white (eg. all grey) when scanning starts, then a single linear scan will make the seg non-grey (in fact: all black).  In this case only, we do not need a loop.</p>
 
 <p>Otherwise, there are two ways <strong>new grey objects</strong> can appear in the segment while we are scanning it:</p>
@@ -74,7 +76,7 @@
 
 <h3>.scan.total:</h3>
 
-<p>Total versus non-Total scans</p>
+<p>Total versus non-Total scans is all about <strong>updating the segment summary</strong>; it is affected by both colour and buffers.</p>
 
 <p>The current design is that the segment summary is <strong>not updated</strong> during the scan, even though the segment is gaining new Refs from relocating fixes.  Instead, the summary of Refs seen by the scan is kept in the scan state: <code>ss-&gt;unfixedSummary</code> and <code>ss-&gt;fixedSummary</code>.</p>
 
