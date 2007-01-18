@@ -92,8 +92,6 @@ through the custom mechanism.
 
 ** dooglus@gmail.com, Jan 10: problem with transparent PNG image display
 
-** christopher.ian.moore@gmail.com, Jan 10: hexl-mode's offer to...
-
 ** simon.marshall@misys.com, Jan 12: 
   Font-lock decides function call is function declaration in C+ +
 
