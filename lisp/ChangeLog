@@ -1,3 +1,10 @@
+2007-01-18  Bruno Haible  <bruno@clisp.org>
+
+	* info.el (Info-default-dirs): Change default info dir to
+	share/info.
+
+	* paths.el (Info-default-directory-list): Ditto.
+
 2007-01-18  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
 
 	* hexl.el (hexl-before-revert-hook): New function.
