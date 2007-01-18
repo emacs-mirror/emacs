@@ -52,7 +52,7 @@ Boston, MA 02110-1301, USA.  */
 /* Where the configuration process believes the info tree lives.  The
    lisp variable configure-info-directory gets its value from this
    macro, and is then used to set the Info-default-directory-list.  */
-#define PATH_INFO "/usr/local/info"
+#define PATH_INFO "/usr/local/share/info"
 
 /* Where Emacs should store game score files.  */
 #define PATH_GAME "/usr/local/var/games/emacs"
