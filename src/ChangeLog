@@ -1,3 +1,7 @@
+2007-01-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* epaths.in: Move PATH_DOC from local/info to local/share/info.
+
 2007-01-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macmenu.c [TARGET_API_MAC_CARBON] (create_and_show_dialog):
