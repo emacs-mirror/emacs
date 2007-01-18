@@ -504,10 +504,11 @@ are installed in the following directories:
 		useful for sites at which different kinds of machines
 		share the file system Emacs is installed on.
 
-`/usr/local/info' holds the on-line documentation for Emacs, known as
-		"info files".  Many other GNU programs are documented
-		using info files as well, so this directory stands
-		apart from the other, Emacs-specific directories.
+`/usr/local/share/info' holds the on-line documentation for Emacs,
+		known as "info files".  Many other GNU programs are
+		documented using info files as well, so this directory
+		stands apart from the other, Emacs-specific
+		directories.
 
 `/usr/local/man/man1' holds the man pages for the programs installed
 		in `/usr/local/bin'.
@@ -533,8 +534,8 @@ the command.  See the section below called `MAKE VARIABLES' for more
 information on this.
 
 8) Check the file `dir' in your site's info directory (usually
-/usr/local/info) to make sure that it has a menu entry for the Emacs
-info files.
+/usr/local/share/info) to make sure that it has a menu entry for the
+Emacs info files.
 
 9) If your system uses lock files to interlock access to mailer inbox files,
 then you might need to make the movemail program setuid or setgid
@@ -600,7 +601,7 @@ Here is a complete list of the variables you may want to set.
 	installed on.
 
 `infodir' indicates where to put the info files distributed with
-	Emacs; it defaults to `/usr/local/info'.
+	Emacs; it defaults to `/usr/local/share/info'.
 
 `mandir' indicates where to put the man pages for Emacs and its
 	utilities (like `etags'); it defaults to
