@@ -1,4 +1,4 @@
-2007-01-18  Chong Yidong  <cyd@stupidchicken.com>
+2007-01-18 Bruno Haible  <bruno@clisp.org>
 
 	* epaths.in: Move PATH_DOC from local/info to local/share/info.
 
