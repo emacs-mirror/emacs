@@ -61,17 +61,41 @@
 <p>The unit of trace scanning is the segment.  Trace calls <code>PoolScan(&amp;wasTotal, &amp;ss, SegPool(seg), seg)</code>.  PoolScan must make the seg <strong>non-grey</strong>, or return a failure code.</p>
 
 
+<h3>.scan.change:</h3>
+
+<p>When scan encounters a ref, the ref and the referent object get fixed.  Fixing can cause several kinds of change; these changes happen immediately, right in the middle of scanning.  WARNING: These changes can be <strong>on the same segment</strong> we are scanning:</p>
+
+<ul>
+  <li>.scan.change.ref: the ref encountered by scan may get updated or zapped (if the fixed object is relocated or dies);</li>
+  <li>.scan.change.obj: the fixed object may get overwritten with a forward or pad;</li>
+  <li>.scan.change.obj-colour: the fixed object may change colour (eg. get a nailboard mark);</li>
+  <li>.scan.change.buffer: the mechanics of forwarding may cause arbitrary buffer changes, as follows:
+    <ul>
+      <li>.scan.change.buffer.attach: a forwarding buffer may be attached;</li>
+      <li>.scan.change.buffer.new-obj: the fixed object may get forwarded into the segment (using the buffer);</li>
+      <li>.scan.change.buffer.detach: the forwarding buffer may be detached;</li>
+    </ul>
+  </li>
+  <li>.scan.change.mode: fixing may cause an immediate change in the segment's mode (mono-colour to mixed; unnailed to nailed; etc).  Mode change can cause object colour change.  The details depend on the pool class.</li>
+</ul>
+
+<p>Scanning code must behave correctly if these changes occur mid-scan.</p>
+
+
+
 <h3>.scan.loop:</h3>
 
-<p>Looping is all about <strong>completeness of de-greyening</strong>; it is affected by both colour and buffers.</p>
+<p>Looping is all about <strong>completeness of de-greying</strong>; it is affected by both colour and buffers.</p>
 
 <p>.scan.loop.once:  If the seg is full and non-white (eg. all grey) when scanning starts, then a single linear scan will make the seg non-grey (in fact: all black).  In this case only, we do not need a loop.</p>
 
 <p>Otherwise, there are two ways <strong>new grey objects</strong> can appear in the segment while we are scanning it:</p>
 
-<p>.scan.loop.white:  If the seg contains some white objects when we start a linear scan, then a Ref that points backwards into the same seg can fix and grey an object that was skipped as white when the linear scan passed over it.  So scanning must loop until the whole seg is non-grey.</p>
+<p>.scan.loop.white:  If the seg contains some white objects when we start a linear scan, then a Ref that points backwards into the same seg can fix and grey an object that was skipped as white when the linear scan passed over it.  So scanning must loop until it the whole seg is non-grey.  (This condition is a case of .scan.change.obj-colour).</p>
 
-<p>.scan.loop.buffer:  If the seg has, or could get, a Forwarding-grey (or Mutator-grey, not yet implemented) buffer, then new grey objects can arrive during the scan.  WARNING: buffers move around during scanning: a buffer could be attached, or detached, several times during scanning a single segment, especially in low memory situations.</p>
+<p>.scan.loop.buffer:  If the seg has, or could get, a Forwarding-grey (or Mutator-grey, not yet implemented) buffer, then new grey objects can arrive during the scan.  WARNING: buffers move around during scanning: a buffer could be attached, or detached, several times during scanning a single segment, especially in low memory situations.  (This condition is a case of .scan.change.buffer).</p>
+
+<p>.scan.loop.no-new-marks: The usual termination condition for .scan.loop.white is that the last iteration produced no new marks.  [Perhaps the same newMarks boolean is (or could be) touched by buffers, to provide the termination condition for .scan.loop.buffer?  RHSK 2007-01-17]</p>
 
 
 <h3>.scan.total:</h3>
@@ -82,7 +106,7 @@
 
 <p>.scan.total.not:  A scan does not necessarily see all objects: objects that were already black at scan start are usually skipped; and objects that remain white at scan end are always skipped.  This is the <code>!wasTotal</code> case, and the fixedSummary resulting from the scan must be unioned into the segment summary.</p>
 
-<p>.scan.total.yes:  But if all objects in the segment were scanned (eg. if whole seg was grey at scan start), PoolScan sets <code>wasTotal</code> to true to indicate this.  The trace then uses <code>ss-&gt;fixedSummary</code> to replace the old segment summary.</p>
+<p>.scan.total.yes:  But if all objects in the segment were scanned*, PoolScan sets <code>wasTotal</code> to true.  (*: for example, if the whole seg was grey at scan start).  The trace then uses <code>ss-&gt;fixedSummary</code> to replace the old segment summary.</p>
 
 
 <h3>Scan details</h3>
@@ -98,7 +122,7 @@
       PoolScan
         (*pool->class->scan)
           AMCScan
-            while (buffer still leaving wake)
+            while (buffer still leaving trail)
               (*pool->format->scan)(ss, base, limit);
                 [for example]
                 dylan_scan
@@ -106,10 +130,11 @@
                   MPS_FIX12
                     (*ss->fix)(ss, ref_io)
                       TraceFix
-                        TraceSetInter(TractWhite(tract(ref)), ss->traces) ?
+                        TraceSetInter(TractWhite(tract(ref)), ss->traces)?
                           TRACT_SEG?
                             PoolFix(pool, ss, seg, refIO)
                             = (*pool->fix)(pool, ss, seg, refIO)
+                              ...see below...
       ShieldCover
 </pre>
 
@@ -121,6 +146,7 @@ PoolFix(pool, ss, seg, refIO)
   AMCFix, AMCHeaderFix
     ShieldExpose
     (*pool->format->isMoved)(ref)
+    
     ShieldCover
 </pre>
 
@@ -130,6 +156,7 @@ PoolFix(pool, ss, seg, refIO)
 <pre>
   2007-01-12  RHSK  Created.
   2007-01-16  RHSK  .scan.loop, .scan.total.
+  2007-01-18  RHSK  .scan.change.
 </pre>
 
 
