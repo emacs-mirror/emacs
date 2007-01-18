@@ -463,12 +463,12 @@ Do the right thing if the file has been compressed or zipped."
 		     (expand-file-name "info/" installation-directory)
 		   (if invocation-directory
 		       (let ((infodir (expand-file-name
-				       "../info/"
+				       "../share/info/"
 				       invocation-directory)))
 			 (if (file-exists-p infodir)
 			     infodir
 			   (setq infodir (expand-file-name
-					  "../../../info/"
+					  "../../../share/info/"
 					  invocation-directory))
 			   (and (file-exists-p infodir)
 				infodir))))))
