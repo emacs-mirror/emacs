@@ -1,3 +1,7 @@
+2007-01-18  Bruno Haible  <bruno@clisp.org> (tiny change)
+
+	* emacs.1: Info files moved to share/info.
+
 2007-01-17  Romain Francoise  <romain@orebokech.com>
 
 	* emacs.1: Update bug-gnu-emacs address.  Remove reference to
