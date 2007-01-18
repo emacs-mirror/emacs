@@ -283,6 +283,7 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
     (setq font-lock-defaults '(hexl-font-lock-keywords t))
 
     ;; Add hooks to rehexlify or dehexlify on various events.
+    (add-hook 'before-revert-hook 'hexl-before-revert-hook nil t) 
     (add-hook 'after-revert-hook 'hexl-after-revert-hook nil t)
 
     (add-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer nil t)
@@ -317,10 +318,11 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
     (let ((isearch-search-fun-function nil))
       (isearch-search-fun))))
 
+(defun hexl-before-revert-hook ()
+  (remove-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer t))
+
 (defun hexl-after-revert-hook ()
-  (setq hexl-max-address (1- (buffer-size)))
-  (hexlify-buffer)
-  (set-buffer-modified-p nil))
+  (hexl-mode))
 
 (defvar hexl-in-save-buffer nil)
 
@@ -386,6 +388,7 @@ With arg, don't unhexlify buffer."
 	  (or (bobp) (setq original-point (1+ original-point))))
 	(goto-char original-point)))
 
+  (remove-hook 'before-revert-hook 'hexl-before-revert-hook t)
   (remove-hook 'after-revert-hook 'hexl-after-revert-hook t)
   (remove-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer t)
   (remove-hook 'post-command-hook 'hexl-follow-ascii-find t)
