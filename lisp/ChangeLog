@@ -1,4 +1,4 @@
-2007-01-18  Bruno Haible  <bruno@clisp.org>
+2007-01-18  Bruno Haible  <bruno@clisp.org> (tiny change)
 
 	* info.el (Info-default-dirs): Change default info dir to
 	share/info.
