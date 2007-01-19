@@ -1,3 +1,9 @@
+2007-01-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/compile.el (compilation-loop): New arg limit.  Handle
+	case where the first error is at point-min.
+	(compilation-next-error): New arg to compilation-loop call.
+
 2007-01-18  Bruno Haible  <bruno@clisp.org> (tiny change)
 
 	* info.el (Info-default-dirs): Change default info dir to
