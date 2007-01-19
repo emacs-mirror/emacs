@@ -248,7 +248,7 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      2 3 4 (1))
 
     (makepp
-     "^makepp: \\(?:\\(?:warning\\(:\\).*?\\|\\(Scanning\\|[LR]e?l?oading makefile\\|Imported\\) \\|.*?\\)\
+     "^makepp\\(?:\\(?:: warning\\(:\\).*?\\|\\(: Scanning\\|: [LR]e?l?oading makefile\\|: Imported\\|log:.*?\\) \\|: .*?\\)\
 `\\(\\(\\S +?\\)\\(?::\\([0-9]+\\)\\)?\\)['(]\\)"
      4 5 nil (1 . 2) 3
      ("`\\(\\(\\S +?\\)\\(?::\\([0-9]+\\)\\)?\\)['(]" nil nil
