@@ -1,3 +1,8 @@
+2007-01-19  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* nnsoup.el (nnsoup-directory, nnsoup-packer, nnsoup-packet-directory):
+	Use gnus-home-directory instead of "~/" or "$HOME".
+
 2007-01-12  Kenichi Handa  <handa@m17n.org>
 
 	* uudecode.el (uudecode-decode-region-internal): Make it work in a

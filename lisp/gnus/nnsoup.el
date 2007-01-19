@@ -37,7 +37,7 @@
 
 (nnoo-declare nnsoup)
 
-(defvoo nnsoup-directory "~/SOUP/"
+(defvoo nnsoup-directory (nnheader-concat gnus-home-directory "SOUP/")
   "*SOUP packet directory.")
 
 (defvoo nnsoup-tmp-directory
@@ -58,7 +58,9 @@
 (defvoo nnsoup-active-file (expand-file-name "active" nnsoup-directory)
   "Active file.")
 
-(defvoo nnsoup-packer "tar cf - %s | gzip > $HOME/Soupin%d.tgz"
+(defvoo nnsoup-packer (concat "tar cf - %s | gzip > "
+			      (expand-file-name gnus-home-directory)
+			      "Soupin%d.tgz")
   "Format string command for packing a SOUP packet.
 The SOUP files will be inserted where the %s is in the string.
 This string MUST contain both %s and %d.  The file number will be
@@ -68,7 +70,7 @@ inserted where %d appears.")
   "*Format string command for unpacking a SOUP packet.
 The SOUP packet file name will be inserted at the %s.")
 
-(defvoo nnsoup-packet-directory "~/"
+(defvoo nnsoup-packet-directory gnus-home-directory
   "*Where nnsoup will look for incoming packets.")
 
 (defvoo nnsoup-packet-regexp "Soupout"
