@@ -3,6 +3,10 @@
 	* uudecode.el (uudecode-decode-region-internal): Make it work in a
 	multibyte buffer.
 
+2007-01-14  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-sum.el (gnus-auto-select-first): Improve doc string.
+
 2007-01-07  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-soup.el: Add missing :group in previous change.

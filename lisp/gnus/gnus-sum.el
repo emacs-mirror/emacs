@@ -304,12 +304,20 @@ equal will be included."
   :type 'boolean)
 
 (defcustom gnus-auto-select-first t
-  "*If non-nil, select the article under point.
-Which article this is is controlled by the `gnus-auto-select-subject'
-variable.
+  "If non-nil, select an article on group entry.
+An article is selected automatically when entering a group
+e.g. with \\<gnus-group-mode-map>\\[gnus-group-read-group], or via `gnus-summary-next-page' or
+`gnus-summary-catchup-and-goto-next-group'.
+
+Which article is selected is controlled by the variable
+`gnus-auto-select-subject'.
 
 If you want to prevent automatic selection of articles in some
 newsgroups, set the variable to nil in `gnus-select-group-hook'."
+  ;; Commands include...
+  ;; \\<gnus-group-mode-map>\\[gnus-group-read-group]
+  ;; \\<gnus-summary-mode-map>\\[gnus-summary-next-page]
+  ;; \\<gnus-summary-mode-map>\\[gnus-summary-catchup-and-goto-next-group]
   :group 'gnus-group-select
   :type '(choice (const :tag "none" nil)
 		 (sexp :menu-tag "first" t)))
