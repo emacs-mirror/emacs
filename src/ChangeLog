@@ -1,3 +1,8 @@
+2007-01-19  Nick Roberts  <nickrob@snap.net.nz>
+
+	* .gdbinit: Reformat documentation so that first sentence
+	displays properly with "help user-defined" (like apropos).
+
 2007-01-18  Bruno Haible  <bruno@clisp.org> (tiny change)
 
 	* epaths.in: Move PATH_DOC from local/info to local/share/info.
