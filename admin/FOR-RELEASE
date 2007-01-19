@@ -60,9 +60,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** How should C-x C-v ask about saving?
 
-** lennart.borgman.073@student.lu.se, Dec 16:
-  compilation-previous-error fails if first error is at start of buffer
-
 ** W3 status with latest url package.
 
 ** Fix up the notices in oldXMenu properly.
