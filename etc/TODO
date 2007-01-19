@@ -341,6 +341,15 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
 ** Allow unknown image types to be rendered via an external program
   converting them to, say, PBM (in the same way as PostScript?).
 
+** Display images with alpha channels, such as png, with the current
+background color of whatever frame it is displayed in.  Currently, we
+use the default background color if specified in the png file, or, if
+that is unspecified, the background color of the frame in which the
+image was first created.  Ideally, the image should display the
+background color of whichever frame it is being displayed in.  The
+main complication is that this will require the loading of a new image
+object for each different background color.
+
 ** Allow displaying an X window from an external program in a buffer,
   e.g. to render graphics from Java applets.  [gerd and/or wmperry
   thought this was feasible.]
