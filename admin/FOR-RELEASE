@@ -50,9 +50,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 * BUGS
 
-** Need papers from Rubini for his code in t-mouse.el
-  Sent instructions.
-
 ** lennart.borgman.073@student.lu.se, Dec 21:
   Saving when the coding system can't code all buffer characters
 
@@ -79,13 +76,12 @@ through the custom mechanism.
 ** b.riefenstahl@turtle-trading.net, Dec 29:
   GTK build crashes under X
 
-** dooglus@gmail.com, Dec 29: 4 week-old pretest bugs
-  Two GTK version bugs.
-
 ** simon.marshall@misys.com, Jan 9: Possible mouse-face redisplay glitch
 
 ** simon.marshall@misys.com, Jan 12: 
   Font-lock decides function call is function declaration in C+ +
+
+** sdl.web@gmail.com, Jan 14: type-break crashes Emacs
 
 * DOCUMENTATION
 
