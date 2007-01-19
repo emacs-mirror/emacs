@@ -196,6 +196,8 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
   has advice] (x y) The overlay could also be a button that you could
   use to view the advice.
 
+** Add a function to get the insertion-type of the markers in an overlay.
+
 ** ange-ftp
 *** understand sftp
    This is hard to make work because sftp doesn't print status
