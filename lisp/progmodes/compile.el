@@ -1494,25 +1494,34 @@ Just inserts the text, but uses `insert-before-markers'."
   (with-current-buffer buffer
     (compilation-buffer-internal-p)))
 
-(defmacro compilation-loop (< property-change 1+ error)
-  `(while (,< n 0)
-      (or (setq pt (,property-change pt 'message))
-	  (error ,error compilation-error))
-      ;; prop 'message usually has 2 changes, on and off, so re-search if off
-      (or (setq msg (get-text-property pt 'message))
-	  (if (setq pt (,property-change pt 'message))
-	      (setq msg (get-text-property pt 'message)))
-	  (error ,error compilation-error))
-      (or (< (cadr msg) compilation-skip-threshold)
-	  (if different-file
-	      (eq (prog1 last (setq last (nth 2 (car msg))))
-		  last))
-	  (if compilation-skip-visited
-	      (nthcdr 4 (car msg)))
-	  (if compilation-skip-to-next-location
-	      (eq (car msg) loc))
-	  ;; count this message only if none of the above are true
-	  (setq n (,1+ n)))))
+(defmacro compilation-loop (< property-change 1+ error limit)
+  `(let (opt)
+     (while (,< n 0)
+       (setq opt pt)
+       (or (setq pt (,property-change pt 'message))
+	   ;; Handle the case where where the first error message is
+	   ;; at the start of the buffer, and n < 0.
+	   (if (or (eq (get-text-property ,limit 'message)
+		       (get-text-property opt 'message))
+		   (eq pt opt))
+	       (error ,error compilation-error)
+	     (setq pt ,limit)))
+       ;; prop 'message usually has 2 changes, on and off, so
+       ;; re-search if off
+       (or (setq msg (get-text-property pt 'message))
+	   (if (setq pt (,property-change pt 'message nil ,limit))
+	       (setq msg (get-text-property pt 'message)))
+	   (error ,error compilation-error))
+       (or (< (cadr msg) compilation-skip-threshold)
+	   (if different-file
+	       (eq (prog1 last (setq last (nth 2 (car msg))))
+		   last))
+	   (if compilation-skip-visited
+	       (nthcdr 4 (car msg)))
+	   (if compilation-skip-to-next-location
+	       (eq (car msg) loc))
+	   ;; count this message only if none of the above are true
+	   (setq n (,1+ n))))))
 
 (defun compilation-next-error (n &optional different-file pt)
   "Move point to the next error in the compilation buffer.
@@ -1542,12 +1551,13 @@ Does NOT find the source line like \\[next-error]."
 	  (compilation-loop > next-single-property-change 1-
 			    (if (get-buffer-process (current-buffer))
 				"No more %ss yet"
-			      "Moved past last %s"))
+			      "Moved past last %s")
+			    (point-max))
 	;; Don't move "back" to message at or before point.
 	;; Pass an explicit (point-min) to make sure pt is non-nil.
 	(setq pt (previous-single-property-change pt 'message nil (point-min)))
 	(compilation-loop < previous-single-property-change 1+
-			  "Moved back before first %s")))
+			  "Moved back before first %s" (point-min))))
     (goto-char pt)
     (or msg
 	(error "No %s here" compilation-error))))
