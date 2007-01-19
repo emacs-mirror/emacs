@@ -85,11 +85,7 @@ through the custom mechanism.
 ** dooglus@gmail.com, Dec 29: 4 week-old pretest bugs
   Two GTK version bugs.
 
-** jpff@cs.bath.ac.uk, Jan 5: Failure to submit second netnews message
-
 ** simon.marshall@misys.com, Jan 9: Possible mouse-face redisplay glitch
-
-** dooglus@gmail.com, Jan 10: problem with transparent PNG image display
 
 ** simon.marshall@misys.com, Jan 12: 
   Font-lock decides function call is function declaration in C+ +
