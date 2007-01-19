@@ -1,3 +1,7 @@
+2007-01-19  Daniel Pfeiffer  <occitan@esperanto.org> (small change)
+
+	* progmodes/compile.el: Add handling for makepplog.
+
 2007-01-19  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* textmodes/ispell.el (ispell-change-dictionary): Ensure that
