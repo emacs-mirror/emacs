@@ -1,3 +1,8 @@
+2007-01-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (read_key_sequence): Extract local map only if the
+	given position is in an accessible buffer region.
+
 2007-01-19  Nick Roberts  <nickrob@snap.net.nz>
 
 	* .gdbinit: Reformat documentation so that first sentence
