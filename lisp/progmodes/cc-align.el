@@ -4,7 +4,8 @@
 ;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006  Free Software
 ;;   Foundation, Inc.
 
-;; Authors:    1998- Martin Stjernholm
+;; Authors:    2004- Alan Mackenzie
+;;             1998- Martin Stjernholm
 ;;             1992-1999 Barry A. Warsaw
 ;;             1987 Dave Detlefs and Stewart Clamen
 ;;             1985 Richard M. Stallman
