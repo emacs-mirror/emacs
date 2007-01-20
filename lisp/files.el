@@ -1223,11 +1223,11 @@ killed."
   (unless (run-hook-with-args-until-failure 'kill-buffer-query-functions)
     (error "Aborted"))
   (when (and (buffer-modified-p) (buffer-file-name))
-    (if (yes-or-no-p (format "Buffer %s is modified; save it first? "
+    (if (yes-or-no-p (format "Buffer %s is modified; kill anyway? "
 			     (buffer-name)))
-	(save-buffer)
-      (unless (yes-or-no-p "Kill and replace the buffer without saving it? ")
-	(error "Aborted"))))
+	(unless (yes-or-no-p "Kill and replace the buffer without saving it? ")
+	  (error "Aborted"))
+      (save-buffer)))
   (let ((obuf (current-buffer))
 	(ofile buffer-file-name)
 	(onum buffer-file-number)
