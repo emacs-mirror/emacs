@@ -1,3 +1,10 @@
+2007-01-20  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-align.el, progmodes/cc-cmds.el,
+	progmodes/cc-defs.el, progmodes/cc-engine.el,
+	progmodes/cc-langs.el, progmodes/cc-styles.el,
+	progmodes/cc-vars.el: Add my name.
+
 2007-01-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (find-alternate-file): Revert query message to Emacs 21
