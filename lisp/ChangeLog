@@ -1,3 +1,8 @@
+2007-01-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (find-alternate-file): Revert query message to Emacs 21
+	version.
+
 2007-01-20  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
 
 	* progmodes/cperl-mode.el (cperl-electric-keywords): Document in
