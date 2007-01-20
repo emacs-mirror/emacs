@@ -490,6 +490,8 @@ alternative printed representations that can be displayed."
 	      (point (point)))
 	  (delete-region beg end)
 	  (insert (nth 1 value))
+	  (or (= beg point)
+	      (setq point (1- (point))))
 	  (last-sexp-setup-props beg (point)
 				 (nth 0 value)
 				 (nth 2 value)
