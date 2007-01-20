@@ -1,3 +1,7 @@
+2007-01-20  Markus Triska  <markus.triska@gmx.at>
+
+	* flymake.texi (Flymake mode): find-file-hook instead of ...-hooks.
+
 2007-01-13  Michael Olson  <mwolson@gnu.org>
 
 	* erc.texi (Modules): Mention capab-identify module.
