@@ -1,3 +1,8 @@
+2007-01-20  Nick Roberts  <nickrob@snap.net.nz>
+
+	* t-mouse.el: Update copyright following assignment by
+	Alessandro Rubini.
+
 2007-01-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* type-break.el (type-break-demo-hanoi, type-break-demo-life)
