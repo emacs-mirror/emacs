@@ -9286,7 +9286,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		    {
 		      pos = POSN_BUFFER_POSN (start);
 		      if (INTEGERP (pos)
-			  && XINT (pos) >= BEG && XINT (pos) <= Z)
+			  && XINT (pos) >= BEGV
+			  && XINT (pos) <= ZV)
 			{
 			  map_here = get_local_map (XINT (pos),
 						    current_buffer, Qlocal_map);
