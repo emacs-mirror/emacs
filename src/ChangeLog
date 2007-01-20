@@ -1,3 +1,9 @@
+2007-01-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (try_window): Clear mouse-face highlights first.
+
+	* window.c (set_window_buffer): Revert 2006-11-22 change.
+
 2007-01-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* .gdbinit (ppt, xtype, xmisctype, xint, xptr, xmarker, xframe)
