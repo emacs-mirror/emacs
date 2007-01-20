@@ -1,5 +1,10 @@
 2007-01-20  Alan Mackenzie  <acm@muc.de>
 
+	* progmodes/cc-defs.el (c-go-list-forward, c-go-list-backward):
+	new functions.
+
+2007-01-20  Alan Mackenzie  <acm@muc.de>
+
 	* progmodes/cc-align.el, progmodes/cc-cmds.el,
 	progmodes/cc-defs.el, progmodes/cc-engine.el,
 	progmodes/cc-langs.el, progmodes/cc-styles.el,
