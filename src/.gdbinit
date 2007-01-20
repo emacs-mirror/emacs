@@ -158,7 +158,8 @@ define ppt
   printf " SZ=%d\n", $t->gap_size
 end
 document ppt
-Print point beg end narrow and gap for current buffer.
+Print current buffer's point and boundaries.
+Prints values of point, beg, end, narrow, and gap for current buffer.
 end
 
 # Print out iterator given as first arg
@@ -520,7 +521,7 @@ define xtype
   end
 end
 document xtype
-Print the type of $ assuming it is an Emacs Lisp value.
+Print the type of $, assuming it is an Emacs Lisp value.
 If the first type printed is Lisp_Vector or Lisp_Misc,
 a second line gives the more precise type.
 end
@@ -542,7 +543,7 @@ define xmisctype
   echo \n
 end
 document xmisctype
-Print the specific type of $ assuming it is some misc type.
+Assume that $ is some misc type and print its specific type.
 end
 
 define xint
@@ -550,7 +551,7 @@ define xint
   print $int
 end
 document xint
-Print $ assuming it is an Emacs Lisp integer.  This gets the sign right.
+Print $ as an Emacs Lisp integer.  This gets the sign right.
 end
 
 define xptr
@@ -558,7 +559,7 @@ define xptr
   print (void *) $ptr
 end
 document xptr
-Print the pointer portion of $ assuming it is an Emacs Lisp value.
+Print the pointer portion of an Emacs Lisp value in $.
 end
 
 define xmarker
@@ -566,7 +567,8 @@ define xmarker
   print (struct Lisp_Marker *) $ptr
 end
 document xmarker
-Print $ as a marker pointer assuming it is an Emacs Lisp marker value.
+Print $ as a marker pointer.
+This command assumes that $ is an Emacs Lisp marker value.
 end
 
 define xoverlay
@@ -695,7 +697,8 @@ define xframe
   echo \n
 end
 document xframe
-Print $ as a frame pointer assuming it is an Emacs Lisp frame value.
+Print $ as a frame pointer.
+This command assumes $ is an Emacs Lisp frame value.
 end
 
 define xcompiled
@@ -778,8 +781,8 @@ define xbuffer
   echo \n
 end
 document xbuffer
-Set $ as a buffer pointer assuming it is an Emacs Lisp buffer value.
-Print the name of the buffer.
+Set $ as a buffer pointer and the name of the buffer.
+This command assumes $ is an Emacs Lisp buffer value.
 end
 
 define xhashtable
@@ -798,7 +801,7 @@ define xcons
   echo \n
 end
 document xcons
-Print the contents of $ assuming it is an Emacs Lisp cons.
+Print the contents of $ as an Emacs Lisp cons.
 end
 
 define nextcons
@@ -816,7 +819,7 @@ define xcar
   print/x ($type == Lisp_Cons ? ((struct Lisp_Cons *) $ptr)->car : 0)
 end
 document xcar
-Print the car of $ assuming it is an Emacs Lisp pair.
+Assume that $ is an Emacs Lisp pair and print its car.
 end
 
 define xcdr
@@ -825,7 +828,7 @@ define xcdr
   print/x ($type == Lisp_Cons ? ((struct Lisp_Cons *) $ptr)->u.cdr : 0)
 end
 document xcdr
-Print the cdr of $ assuming it is an Emacs Lisp pair.
+Assume that $ is an Emacs Lisp pair and print its cdr.
 end
 
 define xlist
