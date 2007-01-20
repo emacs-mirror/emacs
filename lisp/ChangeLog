@@ -1,5 +1,10 @@
 2007-01-20  Alan Mackenzie  <acm@muc.de>
 
+	* progmodes/cc-engine.el (c-in-knr-argdecl): Reformulate to do
+	much more rigorous analysis of putative K&R regions.
+
+2007-01-20  Alan Mackenzie  <acm@muc.de>
+
 	* progmodes/cc-defs.el (c-go-list-forward, c-go-list-backward):
 	new functions.
 
