@@ -155,7 +155,7 @@ file for which syntax check is possible. To do so, place the following
 line in @code{.emacs}:
 
 @lisp
-(add-hook 'find-file-hooks 'flymake-find-file-hook)
+(add-hook 'find-file-hook 'flymake-find-file-hook)
 @end lisp
 
 @node Running the syntax check
