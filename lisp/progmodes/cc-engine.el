@@ -6221,65 +6221,101 @@ comment at the start of cc-engine.el for more info."
   ;; `c-recognize-knr-p' is not checked.  If LIM is non-nil, it's a
   ;; position that bounds the backward search for the argument list.
   ;;
-  ;; Note: A declaration level context is assumed; the test can return
-  ;; false positives for statements.
+  ;; Point must be within a possible K&R region, e.g. just before a top-level
+  ;; "{".  It must be outside of parens and brackets.  The test can return
+  ;; false positives otherwise.
   ;;
   ;; This function might do hidden buffer changes.
 
   (save-excursion
     (save-restriction
+      ;; If we're in a macro, our search range is restricted to it.  Narrow to
+      ;; the searchable range.
+      (let* ((macro-start (c-query-macro-start))
+	     (lim (max (or lim (point-min)) (or macro-start (point-min))))
+	     before-lparen after-rparen)
+	(narrow-to-region lim (c-point 'eol))
 
-      ;; Go back to the closest preceding normal parenthesis sexp.  We
-      ;; take that as the argument list in the function header.  Then
-      ;; check that it's followed by some symbol before the next ';'
-      ;; or '{'.  If it does, it's the header of the K&R argdecl we're
-      ;; in.
-      (if lim (narrow-to-region lim (c-point 'eol)))
-      (let ((outside-macro (not (c-query-macro-start)))
-	    paren-end)
+	;; Search backwards for the defun's argument list.  We give up if we
+	;; encounter a "}" (end of a previous defun) or BOB.
+	;;
+	;; The criterion for a paren structure being the arg list is:
+	;; o - there is non-WS stuff after it but before any "{"; AND
+	;; o - the token after it isn't a ";" AND
+	;; o - it is preceded by either an identifier (the function name) or
+	;;   a macro expansion like "DEFUN (...)"; AND
+	;; o - its content is a non-empty comma-separated list of identifiers
+	;;   (an empty arg list won't have a knr region).
+	;;
+	;; The following snippet illustrates these rules:
+	;; int foo (bar, baz, yuk)
+	;;     int bar [] ;
+	;;     int (*baz) (my_type) ;
+	;;     int (*) (void) (*yuk) (void) ;
+	;; {
 
-	(catch 'done
-	  (while (if (and (setq paren-end (c-down-list-backward (point)))
-			  (eq (char-after paren-end) ?\)))
-		     (progn
-		       (goto-char (1+ paren-end))
-		       (if outside-macro
-			   (c-beginning-of-macro)))
-		   (throw 'done nil))))
+	(catch 'knr
+	  (while t ; go round one paren/bracket construct each time round.
+	    (or (c-syntactic-skip-backward "^)]}")
+		(throw 'knr nil))	; no more bpb pairs left.
+	    (cond ((eq (char-before) ?\))
+		   (setq after-rparen (point)))
+		  ((eq (char-before) ?\})
+		   (throw 'knr nil))
+		  (t (setq after-rparen nil))) ; "]"
 
-	(and (progn
-	       (c-forward-syntactic-ws)
-	       (looking-at "\\w\\|\\s_"))
+	    (if after-rparen
+	    ;; We're inside a paren.  Could it be our argument list....?
+	      (if
+		  (and
+		   (progn
+		     (goto-char after-rparen)
+		     (unless (c-go-list-backward) (throw 'knr nil)) ;
+		;; FIXME!!!  What about macros between the parens?  2007/01/20
+		     (setq before-lparen (point)))
 
-	     (save-excursion
-	       ;; The function header in a K&R declaration should only
-	       ;; contain identifiers separated by comma.  It should
-	       ;; also contain at least one identifier since there
-	       ;; wouldn't be anything to declare in the K&R region
-	       ;; otherwise.
-	       (when (c-go-up-list-backward paren-end)
-		 (forward-char)
-		 (catch 'knr-ok
-		   (while t
-		     (c-forward-syntactic-ws)
-		     (if (or (looking-at c-known-type-key)
-			     (looking-at c-keywords-regexp))
-			 (throw 'knr-ok nil))
-		     (c-forward-token-2)
-		     (if (eq (char-after) ?,)
-			 (forward-char)
-		       (throw 'knr-ok (and (eq (char-after) ?\))
-					   (= (point) paren-end))))))))
+		   ;; It can't be the arg list if next token is ; or {
+		   (progn (goto-char after-rparen)
+			  (c-forward-syntactic-ws)
+			  (not (memq (char-after) '(?\; ?\{))))
 
-	     (save-excursion
-	       ;; If it's a K&R declaration then we're now at the
-	       ;; beginning of the function arglist.  Check that there
-	       ;; isn't a '=' before it in this statement since that
-	       ;; means it some kind of initialization instead.
-	       (c-syntactic-skip-backward "^;=}{")
-	       (not (eq (char-before) ?=)))
+		   ;; Is the thing preceding the list an identifier (the
+		   ;; function name), or a macro expansion?
+		   (progn
+		     (goto-char before-lparen)
+		     (eq (c-backward-token-2) 0)
+		     (or (c-on-identifier)
+			 (and (eq (char-after) ?\))
+			      (c-go-up-list-backward)
+			      (eq (c-backward-token-2) 0)
+			      (c-on-identifier))))
 
-	     (point))))))
+		   ;; Have we got a non-empty list of comma-separated
+		   ;; identifiers?
+		   (progn
+		     (goto-char before-lparen)
+		     (c-forward-token-2) ; to first token inside parens
+		     (and
+		      (c-on-identifier)
+		      (c-forward-token-2)
+		      (catch 'id-list
+			(while (eq (char-after) ?\,)
+			  (c-forward-token-2)
+			  (unless (c-on-identifier) (throw 'id-list nil))
+			  (c-forward-token-2))
+			(eq (char-after) ?\))))))
+
+		  ;; ...Yes.  We've identified the function's argument list.
+		  (throw 'knr
+		       (progn (goto-char after-rparen)
+			      (c-forward-syntactic-ws)
+			      (point)))
+
+		;; ...No.  The current parens aren't the function's arg list.
+		(goto-char before-lparen))
+
+	      (or (c-go-list-backward)	; backwards over [ .... ]
+		  (throw 'knr nil)))))))))
 
 (defun c-skip-conditional ()
   ;; skip forward over conditional at point, including any predicate
