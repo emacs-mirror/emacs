@@ -1,3 +1,8 @@
+2007-01-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* type-break.el (type-break-demo-hanoi, type-break-demo-life)
+	(type-break-demo-boring): Call read-event instead of read-char.
+
 2007-01-19  Daniel Pfeiffer  <occitan@esperanto.org> (small change)
 
 	* progmodes/compile.el: Add handling for makepplog.
