@@ -1,3 +1,22 @@
+2007-01-20  Glenn Morris  <rgm@gnu.org>
+
+	* cd-dired-ref.tex (versionemacs): New def.
+	* cs-refcard.tex (versionemacs, versionyear): New defs.
+	* cs-survival.tex (versionemacs, versiondate): New defs.
+	* de-refcard.tex (versionemacs, versionyear): New defs.
+	* fr-refcard.tex (versionemacs, versionyear): New defs.
+	* fr-survival.tex (versionemacs, versiondate): New defs.
+	* orgcard.tex (versionyear): New def.
+	(shortcopyrightnotice): Only display last copyright year.
+	* pl-refcard.tex (versionemacs, versiondate): New defs.
+	* pt-br-refcard.tex (versionemacs, versionyear): New defs.
+	* refcard.tex (versionemacs, versionyear): New defs.
+	* ru-refcard.tex (versionemacs): New def.
+	* survival.tex (versionemacs): New def.
+	* sk-dired-ref.tex (versionemacs): New def.
+	* sk-refcard.tex (versionemacs, versionyear): New defs.
+	* sk-survival.tex (versionemacs): New def.
+
 2007-01-20  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
 
 	* MACHINES: Describe how 32-bit and 64-bit versions of Emacs can
