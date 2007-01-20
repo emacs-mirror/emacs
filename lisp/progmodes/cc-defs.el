@@ -580,6 +580,24 @@ right side of it."
 ;; Wrappers for common scan-lists cases, mainly because it's almost
 ;; impossible to get a feel for how that function works.
 
+(defmacro c-go-list-forward ()
+  "Move backward across one balanced group of parentheses.
+
+Return POINT when we succeed, NIL when we fail.  In the latter case, leave
+point unmoved."
+  `(c-safe (let ((endpos (scan-lists (point) 1 0)))
+	     (goto-char endpos)
+	     endpos)))
+
+(defmacro c-go-list-backward ()
+  "Move backward across one balanced group of parentheses.
+
+Return POINT when we succeed, NIL when we fail.  In the latter case, leave
+point unmoved."
+  `(c-safe (let ((endpos (scan-lists (point) -1 0)))
+	     (goto-char endpos)
+	     endpos)))
+
 (defmacro c-up-list-forward (&optional pos limit)
   "Return the first position after the list sexp containing POS,
 or nil if no such position exists.  The point is used if POS is left out.
