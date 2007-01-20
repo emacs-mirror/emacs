@@ -1,3 +1,9 @@
+2007-01-20  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
+
+	* progmodes/cperl-mode.el (cperl-electric-keywords): Document in
+	the doc string how to use personal abbrevs without electric
+	keywords.
+
 2007-01-20  Alin C. Soare  <alinsoar@voila.fr>  (tiny change)
 
 	* lisp/emacs-lisp/lisp-mode.el (last-sexp-toggle-display): Fixed
@@ -5270,7 +5276,7 @@
 	* textmodes/table.el: Add move-beginning-of-line and
 	move-end-of-line to Point Motion Only Group.
 
-2006-07-22  Eric Hanchrow  <offby1@blarg.net>
+2006-07-22  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
 
 	* progmodes/delphi.el (delphi-fill-comment): Use save-restriction.
 

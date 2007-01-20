@@ -1,3 +1,8 @@
+2007-01-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* .gdbinit (ppt, xtype, xmisctype, xint, xptr, xmarker, xframe)
+	(xbuffer, xcons, xcar, xcdr): Fix doc strings.
+
 2007-01-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keyboard.c (read_key_sequence): Extract local map only if the
@@ -14,17 +19,17 @@
 
 2007-01-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* macmenu.c [TARGET_API_MAC_CARBON] (create_and_show_dialog):
+	* macmenu.c (create_and_show_dialog) [TARGET_API_MAC_CARBON]:
 	Create movable modal window instead of movable alert window.
-	[TARGET_API_MAC_CARBON] (create_and_show_dialog) [!MAC_OSX]: Use
-	DeactivateControl instead of DisableControl.
+	(create_and_show_dialog) [!MAC_OSX]: Use DeactivateControl instead
+	of DisableControl.
 
 	* macselect.c (Fmac_resume_apple_event): Set error number when
 	descriptor type of reply is non-null.
 
 2007-01-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* macmenu.c [TARGET_API_MAC_CARBON] (create_and_show_dialog): Use
+	* macmenu.c (create_and_show_dialog) [TARGET_API_MAC_CARBON]: Use
 	DisableControl for disabled items.  Set default button to first
 	enabled one.  Use icon of application in execution.
 

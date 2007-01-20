@@ -1,3 +1,8 @@
+2007-01-20  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
+
+	* MACHINES: Describe how 32-bit and 64-bit versions of Emacs can
+	be compiled on Solaris systems.
+
 2007-01-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* TODO: Proper background color handling for pngs.
