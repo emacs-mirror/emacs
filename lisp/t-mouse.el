@@ -4,10 +4,7 @@
 ;; Maintainer: Nick Roberts <nickrob@gnu.org>
 ;; Keywords: mouse gpm linux
 
-;; Copyright (C) 1994,1995 Alessandro Rubini <rubini@linux.it>
-;;               parts are by Ian T Zimmermann <itz@rahul.net>, 1995,1998
-;; Copyright (C) 2006
-;; Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1998, 2006, 2007 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
