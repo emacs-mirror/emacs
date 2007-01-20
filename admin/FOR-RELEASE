@@ -81,8 +81,6 @@ through the custom mechanism.
 ** simon.marshall@misys.com, Jan 12: 
   Font-lock decides function call is function declaration in C+ +
 
-** sdl.web@gmail.com, Jan 14: type-break crashes Emacs
-
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
