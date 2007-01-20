@@ -352,7 +352,15 @@ Can be overwritten by `cperl-hairy' if nil."
 
 (defcustom cperl-electric-keywords nil
   "*Not-nil (and non-null) means keywords are electric in CPerl.
-Can be overwritten by `cperl-hairy' if nil."
+Can be overwritten by `cperl-hairy' if nil.
+
+Uses `abbrev-mode' to do the expansion.  If you want to use your
+own abbrevs in cperl-mode, but do not want keywords to be
+electric, you must redefine `cperl-mode-abbrev-table': do
+\\[edit-abbrevs], search for `cperl-mode-abbrev-table', and, in
+that paragraph, delete the words that appear at the ends of lines and
+that begin with \"cperl-electric\".
+"
   :type '(choice (const null) boolean)
   :group 'cperl-affected-by-hairy)
 
