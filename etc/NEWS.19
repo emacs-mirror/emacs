@@ -1,5 +1,5 @@
 GNU Emacs NEWS -- history of user-visible changes.  1992.
-Copyright (C) 1993, 1994, 1995, 2001, 2006 Free Software Foundation, Inc.
+Copyright (C) 1993, 1994, 1995, 2001, 2006, 2007 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 This file is about changes in emacs versions 19.
@@ -6520,7 +6520,7 @@ the tar file.
 ----------------------------------------------------------------------
 Copyright information:
 
-Copyright (C) 1993, 1994, 1995, 2001, 2006 Free Software Foundation, Inc.
+Copyright (C) 1993, 1994, 1995, 2001, 2006, 2007 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the

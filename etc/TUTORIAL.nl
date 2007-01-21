@@ -1204,8 +1204,8 @@ het Engelse origineel.)
 Deze versie van de inleiding valt onder copyright, net als GNU Emacs.
 Je mag deze inleiding verspreiden onder bepaalde voorwaarden:
 
-Copyright (C) 1985, 1996, 1997, 2003, 2004,
-   2005, 2006 Free Software Foundation, Inc.
+Copyright (C) 1985, 1996, 1997, 2001, 2002, 2003, 2004,
+   2005, 2006, 2007  Free Software Foundation, Inc.
 
    Iedereen mag letterlijke kopieën van dit document, zowel ontvangen
    als verspreiden, op elk medium, vooropgesteld dat de
