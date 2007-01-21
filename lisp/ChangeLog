@@ -1,3 +1,8 @@
+2007-01-21  Glenn Morris  <rgm@gnu.org>
+
+	* net/tramp.el (tramp-perl-encode, tramp-perl-decode): Update
+	copyrights.
+
 2007-01-21  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-cmds.el (c-where-wrt-brace-construct): Correct the
