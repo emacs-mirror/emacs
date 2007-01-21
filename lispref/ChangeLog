@@ -1,3 +1,7 @@
+2007-01-21  Richard Stallman  <rms@gnu.org>
+
+	* help.texi (Documentation): Add xref to Documentation Tips.
+
 2007-01-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* tips.texi (Coding Conventions): Fix typos.
