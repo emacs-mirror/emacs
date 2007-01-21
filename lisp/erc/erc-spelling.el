@@ -1,6 +1,6 @@
 ;;; erc-spelling.el --- use flyspell in ERC
 
-;; Copyright (C) 2005, 2006 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Jorgen Schaefer <forcer@forcix.cx>
 ;; Keywords: irc
