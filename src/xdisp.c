@@ -13540,14 +13540,6 @@ try_window (window, pos, check_margins)
   struct glyph_row *last_text_row = NULL;
   struct frame *f = XFRAME (w->frame);
 
-  /* Clear any existing mouse-face highlights.  */
-  if (FRAME_WINDOW_P (f))
-    {
-      update_begin (f);
-      rif->clear_window_mouse_face (w);
-      update_end (f);
-    }
-
   /* Make POS the new window start.  */
   set_marker_both (w->start, Qnil, CHARPOS (pos), BYTEPOS (pos));
 
