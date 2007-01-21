@@ -1383,8 +1383,7 @@ No indentation or other \"electric\" behavior is performed."
   ;;
   ;; This function might do hidden buffer changes.
   (save-excursion
-    (let* (pos
-	   kluge-start
+    (let* (kluge-start
 	   decl-result brace-decl-p
 	   (start (point))
 	   (paren-state (c-parse-state))
@@ -1417,11 +1416,12 @@ No indentation or other \"electric\" behavior is performed."
 	(setq kluge-start (point))
 	(setq decl-result
 	      (car (c-beginning-of-decl-1
+		    ;; NOTE: If we're in a K&R region, this might be the start
+		    ;; of a parameter declaration, not the actual function.
 		    (and least-enclosing ; LIMIT for c-b-of-decl-1
 			 (c-safe-position least-enclosing paren-state)))))
 
 	;; Has the declaration we've gone back to got braces?
-	(setq pos (point))	      ; the search limit for c-recognize-knr-p
 	(setq brace-decl-p
 	      (save-excursion
 		    (and (c-syntactic-re-search-forward "[;{]" nil t t)
@@ -1431,7 +1431,7 @@ No indentation or other \"electric\" behavior is performed."
 				  ;; ';' in a K&R argdecl.  In
 				  ;; that case the declaration
 				  ;; should contain a block.
-				  (c-in-knr-argdecl pos))))))
+				  (c-in-knr-argdecl))))))
 
 	(cond
 	 ((= (point) kluge-start)	; might be BOB or unbalanced parens.
