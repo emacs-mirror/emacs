@@ -22,8 +22,9 @@ of documentation strings is not sufficient as a manual because a good
 manual is not organized in that fashion; it is organized in terms of
 topics of discussion.
 
-  For commands to access documentation strings, see @ref{Help, ,
-Help, emacs, The GNU Emacs Manual}.
+  For commands to display documentation strings, see @ref{Help, ,
+Help, emacs, The GNU Emacs Manual}.  For the conventions for writing
+documentation strings, see @ref{Documentation Tips}.
 
 @menu
 * Documentation Basics::      Good style for doc strings.
