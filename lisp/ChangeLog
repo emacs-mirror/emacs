@@ -1,3 +1,14 @@
+2007-01-21  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-create-regexp)
+	(gdb-var-create-handler): Handle value field in GDB output of
+	-var-create.
+	(gdb-max-frames): New variable.
+	(gdb-stack-buffer, gdb-frames-select): Use it.
+	(gdb-info-stack-custom): Help user customize gdb-max-frames,
+	if necessary.
+	(gdb-get-frame-number): Simplify.
+
 2007-01-21  Glenn Morris  <rgm@gnu.org>
 
 	* net/tramp.el (tramp-perl-encode, tramp-perl-decode): Update
@@ -27,14 +38,10 @@
 
 2007-01-21  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el (gdb-var-create-regexp)
-	(gdb-var-create-handler): Handle value field in GDB output of
-	-var-create.
-	(gdb-max-frames): New variable.
-	(gdb-stack-buffer, gdb-frames-select): Use it.
-	(gdb-info-stack-custom): Help user customize gdb-max-frames,
-	if necessary.
-	(gdb-get-frame-number): Simplify.
+	* progmodes/gdb-ui.el (gdb-debug-log): Rename from gdb-debug-ring.
+	(gdb-debug-log-max): Rename from gdb-debug-ring-max.
+	(gud-gdba-marker-filter): Make a value of nil for gdb-debug-ring-max
+	mean unlimited.
 
 2007-01-20  Alan Mackenzie  <acm@muc.de>
 
