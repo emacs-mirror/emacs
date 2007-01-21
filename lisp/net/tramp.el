@@ -4,6 +4,8 @@
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007 Free Software Foundation, Inc.
 
+;; (copyright statements below in code to be updated with the above notice)
+
 ;; Author: Kai Gro,A_(Bjohann <kai.grossjohann@gmx.net>
 ;;         Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -1791,7 +1793,8 @@ on the remote host.")
 (defvar tramp-perl-encode
   "%s -e '
 # This script contributed by Juanma Barranquero <lektu@terra.es>.
-# Copyright (C) 2002, 2006 Free Software Foundation, Inc.
+# Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007
+#   Free Software Foundation, Inc.
 use strict;
 
 my %%trans = do {
@@ -1833,7 +1836,8 @@ This string is passed to `format', so percent characters need to be doubled.")
 (defvar tramp-perl-decode
   "%s -e '
 # This script contributed by Juanma Barranquero <lektu@terra.es>.
-# Copyright (C) 2002, 2006 Free Software Foundation, Inc.
+# Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007
+#   Free Software Foundation, Inc.
 use strict;
 
 my %%trans = do {
