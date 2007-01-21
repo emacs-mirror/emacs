@@ -1,3 +1,14 @@
+2007-01-21  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-create-regexp)
+	(gdb-var-create-handler): Handle value field in GDB output of
+	-var-create.
+	(gdb-max-frames): New variable.
+	(gdb-stack-buffer, gdb-frames-select): Use it.
+	(gdb-info-stack-custom): Help user customize gdb-max-frames,
+	if necessary.
+	(gdb-get-frame-number): Simplify.
+
 2007-01-20  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-engine.el (c-in-knr-argdecl): Reformulate to do
