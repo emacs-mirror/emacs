@@ -30,6 +30,9 @@ which case the original author should be removed and the year(s)
 transferred to the FSF); or else it is possible the file should not be
 in Emacs at all (please report!).
 
+When updating the copyright in a file (eg a .tex file) that generates
+another file distributed with Emacs, don't forget to check in a
+regenerated version of the target file.
 
 ------------------------------------------------------------------------------
 
