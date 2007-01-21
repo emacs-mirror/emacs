@@ -34,6 +34,10 @@ When updating the copyright in a file (eg a .tex file) that generates
 another file distributed with Emacs, don't forget to check in a
 regenerated version of the target file.
 
+For auto-generated files (eg ldefs-boot.el), RMS says (20061211,
+private mail): "Since they are automatically generated, it doesn't
+really matter what they say."
+
 ------------------------------------------------------------------------------
 
 
