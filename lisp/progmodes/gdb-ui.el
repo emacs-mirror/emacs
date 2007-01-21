@@ -274,19 +274,22 @@ detailed description of this mode.
   (gdb command-line)
   (gdb-init-1))
 
-(defcustom gdb-debug-ring-max 128
-  "Maximum size of `gdb-debug-ring'."
+(defcustom gdb-debug-log-max 128
+  "Maximum size of `gdb-debug-log'.  If nil, size is unlimited."
   :group 'gud
-  :type 'integer
+  :type '(choice (integer :tag "Number of elements")
+		 (const   :tag "Unlimited" nil))
   :version "22.1")
 
-(defvar gdb-debug-ring nil
-  "List of commands sent to and replies received from GDB.  Most recent
-commands are listed first.  This variable is used to debug GDB-UI.")
+(defvar gdb-debug-log nil
+  "List of commands sent to and replies received from GDB.  Most
+recent commands are listed first.  This list stores only the last
+'gdb-debug-log-max' values.  This variable is used to debug
+GDB-UI.")
 
 ;;;###autoload
 (defcustom gdb-enable-debug nil
-  "Non-nil means record the process input and output in `gdb-debug-ring'."
+  "Non-nil means record the process input and output in `gdb-debug-log'."
   :type 'boolean
   :group 'gud
   :version "22.1")
@@ -317,7 +320,7 @@ Also display the main routine in the disassembly buffer if present."
   :version "22.1")
 
 (defcustom gdb-many-windows nil
-  "If nil just pop up the GUD buffer unless `gdb-show-main' is t.
+  "If nil, just pop up the GUD buffer unless `gdb-show-main' is t.
 In this case start with two windows: one displaying the GUD
 buffer and the other with the source file with the main routine
 of the debugged program.  Non-nil means display the layout shown
@@ -551,7 +554,7 @@ With arg, use separate IO iff arg is positive."
 	gdb-error nil
 	gdb-macro-info nil
 	gdb-buffer-fringe-width (car (window-fringes))
-	gdb-debug-ring nil
+	gdb-debug-log nil
 	gdb-signalled nil
 	gdb-source-window nil
 	gdb-inferior-status nil
@@ -1134,7 +1137,7 @@ This filter may simply queue input for a later time."
     (if gud-running
 	(progn
 	  (let ((item (concat string "\n")))
-	    (if gdb-enable-debug (push (cons 'send item) gdb-debug-ring))
+	    (if gdb-enable-debug (push (cons 'send item) gdb-debug-log))
 	    (process-send-string proc item)))
       (if (and (string-match "\\\\$" string)
 	       (not comint-input-sender-no-newline)) ;;Try to catch C-d.
@@ -1163,7 +1166,7 @@ This filter may simply queue input for a later time."
 
 (defun gdb-send-item (item)
   (setq gdb-flush-pending-output nil)
-  (if gdb-enable-debug (push (cons 'send-item item) gdb-debug-ring))
+  (if gdb-enable-debug (push (cons 'send-item item) gdb-debug-log))
   (setq gdb-current-item item)
   (let ((process (get-buffer-process gud-comint-buffer)))
     (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
@@ -1514,9 +1517,10 @@ happens to be appropriate."
   (if gdb-flush-pending-output
       nil
     (when gdb-enable-debug
-	(push (cons 'recv string) gdb-debug-ring)
-	(if (> (length gdb-debug-ring) gdb-debug-ring-max)
-	  (setcdr (nthcdr (1- gdb-debug-ring-max) gdb-debug-ring) nil)))
+	(push (cons 'recv string) gdb-debug-log)
+	(if (and gdb-debug-log-max
+		 (> (length gdb-debug-log) gdb-debug-log-max))
+	    (setcdr (nthcdr (1- gdb-debug-log-max) gdb-debug-log) nil)))
     ;; Recall the left over gud-marker-acc from last time.
     (setq gud-marker-acc (concat gud-marker-acc string))
     ;; Start accumulating output for the GUD buffer.
