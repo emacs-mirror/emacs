@@ -1229,8 +1229,8 @@ software te gebruiken, te schrijven en te delen!
 This version of the tutorial, like GNU Emacs, is copyrighted, and
 comes with permission to distribute copies on certain conditions:
 
-Copyright (C) 1985, 1996, 1997, 2002, 2003, 2004,
-   2005, 2006 Free Software Foundation, Inc.
+Copyright (C) 1985, 1996, 1997, 2001, 2002, 2003, 2004,
+   2005, 2006, 2007  Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim
    copies of this document as received, in any medium, provided that
