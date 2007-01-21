@@ -224,7 +224,7 @@ resource 'vers' (1) {
 	92,		/* Non-final release # */
 	0,		/* Region code */
 	"22.0.92",	/* Short version number */
-	"22.0.92, Copyright \0xa9 2006 "
+	"22.0.92, Copyright \0xa9 2007 "
 	"Free Software Foundation, Inc." /* Long version number */
 };
 
