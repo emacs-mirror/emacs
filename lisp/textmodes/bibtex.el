@@ -530,7 +530,8 @@ directories specified in `bibtex-file-path'.  If an element is a directory,
 check all BibTeX files in this directory.  If an element is the symbol
 `bibtex-file-path', check all BibTeX files in `bibtex-file-path'."
   :group 'bibtex
-  :type '(repeat file))
+  :type '(repeat (choice (const :tag "bibtex-file-path" bibtex-file-path)
+                         directory file)))
 
 (defvar bibtex-file-path (getenv "BIBINPUTS")
   "*Colon separated list of paths to search for `bibtex-files'.")
