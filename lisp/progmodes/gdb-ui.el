@@ -123,9 +123,10 @@ address for root variables.")
 (defvar gdb-server-prefix nil)
 (defvar gdb-flush-pending-output nil)
 (defvar gdb-location-alist nil
-  "Alist of breakpoint numbers and full filenames.")
-(defvar gdb-active-process nil "GUD tooltips display variable values when t, \
-and #define directives otherwise.")
+  "Alist of breakpoint numbers and full filenames.  Only used for files that
+Emacs can't find.")
+(defvar gdb-active-process nil
+  "GUD tooltips display variable values when t, and macro definitions otherwise.")
 (defvar gdb-error "Non-nil when GDB is reporting an error.")
 (defvar gdb-macro-info nil
   "Non-nil if GDB knows that the inferior includes preprocessor macro info.")
@@ -280,8 +281,8 @@ detailed description of this mode.
   :version "22.1")
 
 (defvar gdb-debug-ring nil
-  "List of commands, most recent first, sent to and replies received from GDB.
-This variable is used to debug GDB-UI.")
+  "List of commands sent to and replies received from GDB.  Most recent
+commands are listed first.  This variable is used to debug GDB-UI.")
 
 ;;;###autoload
 (defcustom gdb-enable-debug nil
@@ -721,7 +722,7 @@ With arg, enter name of variable to be watched in the minibuffer."
       (message "gud-watch is a no-op in this mode."))))
 
 (defconst gdb-var-create-regexp
-  "name=\"\\(.*?\\)\",.*numchild=\"\\(.*?\\)\",.*type=\"\\(.*?\\)\"")
+  "name=\"\\(.*?\\)\",.*numchild=\"\\(.*?\\)\",\\(?:.*value=\\(\".*\"\\),\\)?.*type=\"\\(.*?\\)\"")
 
 (defun gdb-var-create-handler (expr)
   (goto-char (point-min))
@@ -733,20 +734,23 @@ With arg, enter name of variable to be watched in the minibuffer."
 		      (setq expr (concat gdb-selected-frame "::" expr))
 		    expr)
 		  (match-string 2)
-		  (match-string 3)
-		  nil nil gdb-frame-address)))
+		  (match-string 4)
+		  (if (match-string 3) (read (match-string 3)))
+		   nil gdb-frame-address)))
 	(push var gdb-var-list)
 	(unless (string-equal
 		 speedbar-initial-expansion-list-name "GUD")
 	  (speedbar-change-initial-expansion-list "GUD"))
-	(gdb-enqueue-input
-	 (list
-	  (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
-	      (concat "server interpreter mi \"0-var-evaluate-expression "
-		      (car var) "\"\n")
-	    (concat "0-var-evaluate-expression " (car var) "\n"))
-	  `(lambda () (gdb-var-evaluate-expression-handler
-		       ,(car var) nil)))))
+	(unless (nth 4 var)
+	  (gdb-enqueue-input
+	   (list
+	    (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
+		    'gdba)
+		(concat "server interpreter mi \"0-var-evaluate-expression "
+			(car var) "\"\n")
+	      (concat "0-var-evaluate-expression " (car var) "\n"))
+	      `(lambda () (gdb-var-evaluate-expression-handler
+			   ,(car var) nil))))))
     (if (search-forward "Undefined command" nil t)
 	(message-box "Watching expressions requires GDB 6.0 onwards")
       (message-box "No symbol \"%s\" in current context." expr))))
@@ -897,7 +901,7 @@ Changed values are highlighted with the face `font-lock-warning-face'."
   :version "22.1")
 
 (defcustom gdb-max-children 40
-  "Maximum number of children allowed before Emacs asks"
+  "Maximum number of children before expansion requires confirmation."
   :type 'integer
   :group 'gud
   :version "22.1")
@@ -2029,13 +2033,19 @@ static char *magick[] = {
 ;;
 ;; Alas, if your stack is deep, it is costly.
 ;;
+(defcustom gdb-max-frames 40
+  "Maximum number of frames displayed in call stack."
+  :type 'integer
+  :group 'gud
+  :version "22.1")
+
 (gdb-set-buffer-rules 'gdb-stack-buffer
 		      'gdb-stack-buffer-name
 		      'gdb-frames-mode)
 
 (def-gdb-auto-updated-buffer gdb-stack-buffer
   gdb-invalidate-frames
-  "server info stack\n"
+  (concat "server info stack " (number-to-string gdb-max-frames) "\n")
   gdb-info-stack-handler
   gdb-info-stack-custom)
 
@@ -2077,7 +2087,14 @@ static char *magick[] = {
 		(while (re-search-forward "\\(\\(\\sw\\|[_.]\\)+\\)=" el t)
 		  (put-text-property (match-beginning 1) (match-end 1)
 				     'face font-lock-variable-name-face))))
-	    (forward-line 1))))
+	    (forward-line 1))
+	  (forward-line -1)
+	  (when (looking-at "(More stack frames follow...)")
+	    (add-text-properties (match-beginning 0) (match-end 0)
+	     '(mouse-face highlight
+	       gdb-max-frames t
+	       help-echo
+               "mouse-2, RET: customize gdb-max-frames to see more frames")))))
       (when gdb-look-up-stack
 	    (goto-char (point-min))
 	    (when (re-search-forward "\\(\\S-+?\\):\\([0-9]+\\)" nil t)
@@ -2147,16 +2164,21 @@ static char *magick[] = {
     (end-of-line)
     (let* ((start (line-beginning-position))
 	   (pos (re-search-backward "^#*\\([0-9]+\\)" start t))
-	   (n (or (and pos (match-string-no-properties 1)) "0")))
+	   (n (or (and pos (match-string 1)) "0")))
       n)))
 
 (defun gdb-frames-select (&optional event)
   "Select the frame and display the relevant source."
   (interactive (list last-input-event))
   (if event (posn-set-point (event-end event)))
-  (gdb-enqueue-input
-   (list (concat gdb-server-prefix "frame "
-		 (gdb-get-frame-number) "\n") 'ignore)))
+  (if (get-text-property (point) 'gdb-max-frames)
+      (progn
+	(message-box "After setting gdb-max-frames, you need to enter\n\
+another GDB command e.g pwd, to see new frames")
+      (customize-variable-other-window 'gdb-max-frames))
+    (gdb-enqueue-input
+     (list (concat gdb-server-prefix "frame "
+		   (gdb-get-frame-number) "\n") 'ignore))))
 
 
 ;; Threads buffer.  This displays a selectable thread list.
@@ -2581,7 +2603,7 @@ corresponding to the mode line clicked."
 	   (propertize
 	    "-"
 	    'face font-lock-warning-face
-	    'help-echo "mouse-1: Decrement address"
+	    'help-echo "mouse-1: decrement address"
 	    'mouse-face 'mode-line-highlight
 	    'local-map
 	    (gdb-make-header-line-mouse-map
@@ -2601,7 +2623,7 @@ corresponding to the mode line clicked."
 	   "|"
 	   (propertize "+"
 		       'face font-lock-warning-face
-		       'help-echo "mouse-1: Increment address"
+		       'help-echo "mouse-1: increment address"
 		       'mouse-face 'mode-line-highlight
 		       'local-map (gdb-make-header-line-mouse-map
 				   'mouse-1
@@ -2611,7 +2633,7 @@ corresponding to the mode line clicked."
 	   "]: "
 	   (propertize gdb-memory-address
 		       'face font-lock-warning-face
-		       'help-echo "mouse-1: Set memory address"
+		       'help-echo "mouse-1: set memory address"
 		       'mouse-face 'mode-line-highlight
 		       'local-map (gdb-make-header-line-mouse-map
 				   'mouse-1
@@ -2619,7 +2641,7 @@ corresponding to the mode line clicked."
 	   "  Repeat Count: "
 	   (propertize (number-to-string gdb-memory-repeat-count)
 		       'face font-lock-warning-face
-		       'help-echo "mouse-1: Set repeat count"
+		       'help-echo "mouse-1: set repeat count"
 		       'mouse-face 'mode-line-highlight
 		       'local-map (gdb-make-header-line-mouse-map
 				   'mouse-1
@@ -2627,13 +2649,13 @@ corresponding to the mode line clicked."
 	   "  Display Format: "
 	   (propertize gdb-memory-format
 		       'face font-lock-warning-face
-		       'help-echo "mouse-3: Select display format"
+		       'help-echo "mouse-3: select display format"
 		       'mouse-face 'mode-line-highlight
 		       'local-map gdb-memory-format-map)
 	   "  Unit Size: "
 	   (propertize gdb-memory-unit
 		       'face font-lock-warning-face
-		       'help-echo "mouse-3: Select unit size"
+		       'help-echo "mouse-3: select unit size"
 		       'mouse-face 'mode-line-highlight
 		       'local-map gdb-memory-unit-map))))
   (set (make-local-variable 'font-lock-defaults)
@@ -3011,7 +3033,7 @@ of the current session."
       (if (member (if (string-equal gdb-version "pre-6.4")
 		      (file-name-nondirectory buffer-file-name)
 		    buffer-file-name)
-	  gdb-source-file-list)
+		  gdb-source-file-list)
 	  (with-current-buffer (find-buffer-visiting buffer-file-name)
 	    (set (make-local-variable 'gud-minor-mode)
 		 (buffer-local-value 'gud-minor-mode gud-comint-buffer))
