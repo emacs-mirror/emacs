@@ -6,7 +6,7 @@
 
 /* Declarations for `malloc' and friends.
    Copyright (C) 1990, 1991, 1992, 1993, 1995, 1996, 1999, 2002, 2003, 2004,
-                 2005, 2006 Free Software Foundation, Inc.
+                 2005, 2006, 2007 Free Software Foundation, Inc.
 		  Written May 1989 by Mike Haertel.
 
 This library is free software; you can redistribute it and/or
