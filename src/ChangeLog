@@ -1,3 +1,10 @@
+2007-01-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (try_window): Revert previous change.
+
+	* dispnew.c (update_text_area): Revert 2006-09-17 change.
+	Always redraw non-mode-line rows with mouse-face.
+
 2007-01-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (try_window): Clear mouse-face highlights first.
