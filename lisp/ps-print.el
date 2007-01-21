@@ -10,11 +10,11 @@
 ;; Maintainer: Kenichi Handa <handa@m17n.org> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Version: 6.7
+;; Version: 6.7.1
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
-(defconst ps-print-version "6.7"
-  "ps-print.el, v 6.7 <2006/12/01 vinicius>
+(defconst ps-print-version "6.7.1"
+  "ps-print.el, v 6.7.1 <2007/01/21 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -1490,6 +1490,7 @@ Please send all bug fixes and enhancements to
 (defalias 'ps-x-font-instance-properties      'font-instance-properties)
 (defalias 'ps-x-make-color-instance           'make-color-instance)
 (defalias 'ps-x-map-extents                   'map-extents)
+(defalias 'ps-x-frame-property                'frame-property)
 
 ;; GNU Emacs
 (defalias 'ps-e-face-bold-p         'face-bold-p)
@@ -1500,6 +1501,7 @@ Please send all bug fixes and enhancements to
 (defalias 'ps-e-overlay-end         'overlay-end)
 (defalias 'ps-e-x-color-values      'x-color-values)
 (defalias 'ps-e-color-values        'color-values)
+(defalias 'ps-e-frame-parameter     'frame-parameter)
 (if (fboundp 'find-composition)
     (defalias 'ps-e-find-composition 'find-composition)
   (defalias 'ps-e-find-composition 'ignore))
@@ -1523,6 +1525,8 @@ Please send all bug fixes and enhancements to
 	 (ps-xemacs-color-name (face-foreground face)))
        (defun ps-face-background-name (face)
 	 (ps-xemacs-color-name (face-background face)))
+       (defun ps-frame-parameter (param)
+	 (ps-x-frame-property nil param))
        )
       (t				; emacs 22 or higher
        (defvar mark-active nil)
@@ -1531,7 +1535,10 @@ Please send all bug fixes and enhancements to
        (defun ps-face-foreground-name (face)
 	 (face-foreground face nil t))
        (defun ps-face-background-name (face)
-	 (face-background face nil t))))
+	 (face-background face nil t))
+       (defun ps-frame-parameter (param)
+	 (ps-e-frame-parameter nil param))
+       ))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2985,8 +2992,8 @@ Any other value is treated as t."
   :version "20"
   :group 'ps-print-color)
 
-(defcustom ps-default-fg '(0.0 0.0 0.0) ; black
-  "*RGB values of the default foreground color.  Defaults to black.
+(defcustom ps-default-fg 'frame-parameter
+  "*RGB values of the default foreground color.
 
 The `ps-default-fg' variable contains the default foreground color used by
 ps-print, that is, if there is a face in a text that doesn't have a foreground
@@ -2996,6 +3003,8 @@ Valid values are:
 
    t		The foreground color of Emacs session will be used.
 
+   frame-parameter	The foreground-color frame parameter will be used.
+
    NUMBER	It's a real value between 0.0 (black) and 1.0 (white) that
 		indicate the gray color.
 
@@ -3010,12 +3019,13 @@ Valid values are:
 		Where RED, GREEN and BLUE are reals between 0.0 (no color) and
 		1.0 (full color).
 
-Any other value is ignored and black will be used.
+Any other value is ignored and black color will be used.
 
 It's used only when `ps-print-color-p' is non-nil."
   :type '(choice :menu-tag "Default Foreground Gray/Color"
 		 :tag "Default Foreground Gray/Color"
 		 (const :tag "Session Foreground" t)
+		 (const :tag "Frame Foreground" frame-parameter)
 		 (number :tag "Gray Scale" :value 0.0)
 		 (string :tag "Color Name" :value "black")
 		 (list :tag "RGB Color" :value (0.0 0.0 0.0)
@@ -3025,8 +3035,8 @@ It's used only when `ps-print-color-p' is non-nil."
   :version "20"
   :group 'ps-print-color)
 
-(defcustom ps-default-bg '(1.0 1.0 1.0) ; white
-  "*RGB values of the default background color.  Defaults to white.
+(defcustom ps-default-bg 'frame-parameter
+  "*RGB values of the default background color.
 
 The `ps-default-bg' variable contains the default background color used by
 ps-print, that is, if there is a face in a text that doesn't have a background
@@ -3035,6 +3045,8 @@ color, the `ps-default-bg' color should be used.
 Valid values are:
 
    t		The background color of Emacs session will be used.
+
+   frame-parameter	The background-color frame parameter will be used.
 
    NUMBER	It's a real value between 0.0 (black) and 1.0 (white) that
 		indicate the gray color.
@@ -3050,7 +3062,7 @@ Valid values are:
 		Where RED, GREEN and BLUE are reals between 0.0 (no color) and
 		1.0 (full color).
 
-Any other value is ignored and white will be used.
+Any other value is ignored and white color will be used.
 
 It's used only when `ps-print-color-p' is non-nil.
 
@@ -3058,6 +3070,7 @@ See also `ps-use-face-background'."
   :type '(choice :menu-tag "Default Background Gray/Color"
 		 :tag "Default Background Gray/Color"
 		 (const :tag "Session Background" t)
+		 (const :tag "Frame Background" frame-parameter)
 		 (number :tag "Gray Scale" :value 1.0)
 		 (string :tag "Color Name" :value "white")
 		 (list :tag "RGB Color" :value (1.0 1.0 1.0)
@@ -5895,14 +5908,22 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	       "[\000-\037\177]")
 	      (t "[\t\n\f]"))
 	ps-default-background (ps-rgb-color
-			       (if (eq ps-default-bg t)
-				   (ps-face-background-name 'default)
-				 ps-default-bg)
+			       (cond
+				((eq ps-default-bg 'frame-parameter)
+				 (ps-frame-parameter 'background-color))
+				((eq ps-default-bg t)
+				 (ps-face-background-name 'default))
+				(t
+				 ps-default-bg))
 			       1.0)
 	ps-default-foreground (ps-rgb-color
-			       (if (eq ps-default-fg t)
-				   (ps-face-foreground-name 'default)
-				 ps-default-fg)
+			       (cond
+				((eq ps-default-fg 'frame-parameter)
+				 (ps-frame-parameter 'foreground-color))
+				((eq ps-default-fg t)
+				 (ps-face-foreground-name 'default))
+				(t
+				 ps-default-fg))
 			       0.0)
 	ps-default-color (and (eq ps-print-color-p t) ps-default-foreground)
 	ps-current-color ps-default-color
@@ -6743,6 +6764,8 @@ If FACE is not a valid face name, it is used default face."
 				    (and (stringp ps-printer-name-option)
 					 ps-printer-name-option)
 				    ps-printer-name))))))
+	  (or (stringp ps-printer-name)
+	      (setq ps-printer-name nil))
 	  (apply (or ps-print-region-function 'call-process-region)
 		 (point-min) (point-max) ps-lpr-command nil
 		 (and (fboundp 'start-process) 0)
