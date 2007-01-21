@@ -1,7 +1,7 @@
 ;;; mac-win.el --- parse switches controlling interface with Mac window system -*-coding: iso-2022-7bit;-*-
 
 ;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006 Free Software Foundation, Inc.
+;;   2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Andrew Choi <akochoi@mac.com>
 ;; Keywords: terminals

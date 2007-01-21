@@ -1,6 +1,6 @@
 ;;; subst-ksc.el --- Unicode/KSC-5601 translation    -*-coding: euc-kr;-*-
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n

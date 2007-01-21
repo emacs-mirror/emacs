@@ -1,7 +1,7 @@
 ;;; float.el --- obsolete floating point arithmetic package
 
 ;; Copyright (C) 1986, 2001, 2002, 2003, 2004, 2005,
-;;   2006 Free Software Foundation, Inc.
+;;   2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Bill Rosenblatt
 ;; Maintainer: FSF

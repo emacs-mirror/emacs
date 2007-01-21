@@ -1,6 +1,6 @@
 ;;; rcirc.el --- default, simple IRC client.
 
-;; Copyright (C) 2005, 2006 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Ryan Yeske
 ;; URL: http://www.nongnu.org/rcirc

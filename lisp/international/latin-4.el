@@ -1,7 +1,7 @@
 ;;; latin-4.el --- set up case-conversion and syntax tables for ISO Latin-4
 
 ;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005,
-;;   2006  Free Software Foundation, Inc.
+;;   2006, 2007  Free Software Foundation, Inc.
 
 ;; Author: Erik Naggum
 ;; Maintainer: FSF
