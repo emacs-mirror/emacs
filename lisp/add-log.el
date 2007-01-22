@@ -813,51 +813,56 @@ Has a preference of looking backwards."
 						 (progn (forward-sexp 1)
 							(point))))
 		((memq major-mode add-log-c-like-modes)
-		 (beginning-of-line)
-		 ;; See if we are in the beginning part of a function,
-		 ;; before the open brace.  If so, advance forward.
-		 (while (not (looking-at "{\\|\\(\\s *$\\)"))
-		   (forward-line 1))
-		 (or (eobp)
-		     (forward-char 1))
-		 (let (maybe-beg)
-		   ;; Try to find the containing defun.
-		   (beginning-of-defun)
-		   (end-of-defun)
-		   ;; If the defun we found ends before the desired position,
-		   ;; see if there's a DEFUN construct
-		   ;; between that end and the desired position.
-		   (when (save-excursion
-			   (and (> location (point))
-				(re-search-forward "^DEFUN"
-						   (save-excursion
-						     (goto-char location)
-						     (line-end-position))
-						   t)
-				(re-search-forward "^{" nil t)
-				(setq maybe-beg (point))))
-		     ;; If so, go to the end of that instead.
-		     (goto-char maybe-beg)
-		     (end-of-defun)))
-		 ;; If the desired position is within the defun we found,
-		 ;; find the function name.
-		 (when (< location (point))
-		   ;; Move back over function body.
-		   (backward-sexp 1)
-		   (let (beg)
-		     ;; Skip back over typedefs and arglist.
-		     ;; Stop at the function definition itself
-		     ;; or at the line that follows end of function doc string.
-		     (forward-line -1)
-		     (while (and (not (bobp))
-				 (looking-at "[ \t\n]")
-				 (not (looking-back "[*]/)\n" (- (point) 4))))
-		       (forward-line -1))
-		     ;; If we found a doc string, this must be the DEFUN macro
-		     ;; used in Emacs.  Move back to the DEFUN line.
-		     (when (looking-back "[*]/)\n" (- (point) 4))
-		       (backward-sexp 1)
-		       (beginning-of-line))
+		 ;; See whether the point is inside a defun.
+		 (let (having-previous-defun
+		       having-next-defun
+		       previous-defun-end
+		       next-defun-beginning)
+		     
+		   (save-excursion
+		     (setq having-previous-defun
+			   (c-beginning-of-defun))
+		     (c-end-of-defun)
+		     ;; `c-end-of-defun' moves point to the line after
+		     ;; the function close, but the position we prefer
+		     ;; here is the position after the final }.
+		     (backward-sexp 1)
+		     (forward-sexp 1)
+		     (setq previous-defun-end (point)))
+
+		   (save-excursion
+		     (setq having-next-defun
+			   (c-end-of-defun))
+		     (c-beginning-of-defun)
+		     (setq next-defun-beginning (point)))
+
+		   (if (and having-next-defun
+			    (< location next-defun-beginning))
+		       (skip-syntax-forward " "))
+		   (if (and having-previous-defun
+			    (> location previous-defun-end))
+		       (skip-syntax-backward " "))
+		   (unless (or
+			    ;; When there is no previous defun, the
+			    ;; point is not in a defun if it is not at
+			    ;; the beginning of the next defun.
+			    (and (not having-previous-defun)
+				 (not (= (point)
+					 next-defun-beginning)))
+			    ;; When there is no next defun, the point
+			    ;; is not in a defun if it is not at the
+			    ;; end of the previous defun.
+			    (and (not having-next-defun)
+				 (not (= (point)
+					 previous-defun-end)))
+			    ;; If the point is between two defuns, it
+			    ;; is not in a defun.
+			    (and (> (point) previous-defun-end)
+				 (< (point) next-defun-beginning)))
+		     ;; If the point is already at the beginning of a
+		     ;; defun, there is no need to move point again.
+		     (if (not (= (point) next-defun-beginning))
+			 (c-beginning-of-defun))
 		     ;; Is this a DEFUN construct?  And is LOCATION in it?
 		     (if (and (looking-at "DEFUN\\b")
 			      (>= location (point)))
@@ -879,82 +884,82 @@ Has a preference of looking backwards."
 			   ;; Objective-C
 			   (change-log-get-method-definition)
 			 ;; Ordinary C function syntax.
-			 (setq beg (point))
-			 (if (and
-			      ;; Protect against "Unbalanced parens" error.
-			      (condition-case nil
-				  (progn
-				    (down-list 1) ; into arglist
-				    (backward-up-list 1)
-				    (skip-chars-backward " \t")
-				    t)
-				(error nil))
-			      ;; Verify initial pos was after
-			      ;; real start of function.
-			      (save-excursion
-				(goto-char beg)
-				;; For this purpose, include the line
-				;; that has the decl keywords.  This
-				;; may also include some of the
-				;; comments before the function.
-				(while (and (not (bobp))
-					    (save-excursion
-					      (forward-line -1)
-					      (looking-at "[^\n\f]")))
-				  (forward-line -1))
-				(>= location (point)))
-			      ;; Consistency check: going down and up
-			      ;; shouldn't take us back before BEG.
-			      (> (point) beg))
-			     (let (end middle)
-			       ;; Don't include any final whitespace
-			       ;; in the name we use.
-			       (skip-chars-backward " \t\n")
-			       (setq end (point))
-			       (backward-sexp 1)
-			       ;; Now find the right beginning of the name.
-			       ;; Include certain keywords if they
-			       ;; precede the name.
-			       (setq middle (point))
-			       ;; Single (forward-sexp -1) invocation is
-			       ;; not enough for C++ member function defined 
-			       ;; as part of nested class and/or namespace 
-			       ;; like:
-			       ;;
-			       ;;   void 
-			       ;;   foo::bar::baz::bazz ()
-			       ;;   { ...
-			       ;; 
-			       ;; Here we have to move the point to 
-			       ;; the beginning of foo, not bazz.
-			       (while (not (looking-back "\\(^\\|[ \t]\\)"))
-				 (forward-sexp -1))
-			       ;; Is this C++ method?
-			       (when (and (< 2 middle)
-					  (string= (buffer-substring (- middle 2)
-								     middle)
-						   "::"))
-				 ;; Include "classname::".
-				 (setq middle (point)))
-			       ;; Ignore these subparts of a class decl
-			       ;; and move back to the class name itself.
-			       (while (looking-at "public \\|private ")
-				 (skip-chars-backward " \t:")
+			 (let ((beg (point)))
+			   (if (and
+				;; Protect against "Unbalanced parens" error.
+				(condition-case nil
+				    (progn
+				      (down-list 1) ; into arglist
+				      (backward-up-list 1)
+				      (skip-chars-backward " \t")
+				      t)
+				  (error nil))
+				;; Verify initial pos was after
+				;; real start of function.
+				(save-excursion
+				  (goto-char beg)
+				  ;; For this purpose, include the line
+				  ;; that has the decl keywords.  This
+				  ;; may also include some of the
+				  ;; comments before the function.
+				  (while (and (not (bobp))
+					      (save-excursion
+						(forward-line -1)
+						(looking-at "[^\n\f]")))
+				    (forward-line -1))
+				  (>= location (point)))
+				;; Consistency check: going down and up
+				;; shouldn't take us back before BEG.
+				(> (point) beg))
+			       (let (end middle)
+				 ;; Don't include any final whitespace
+				 ;; in the name we use.
+				 (skip-chars-backward " \t\n")
 				 (setq end (point))
 				 (backward-sexp 1)
+				 ;; Now find the right beginning of the name.
+				 ;; Include certain keywords if they
+				 ;; precede the name.
 				 (setq middle (point))
-				 (forward-word -1))
-			       (and (bolp)
-				    (looking-at
-				     "enum \\|struct \\|union \\|class ")
-				    (setq middle (point)))
-			       (goto-char end)
-			       (when (eq (preceding-char) ?=)
-				 (forward-char -1)
-				 (skip-chars-backward " \t")
-				 (setq end (point)))
-			       (buffer-substring-no-properties
-				middle end))))))))
+				 ;; Single (forward-sexp -1) invocation is
+				 ;; not enough for C++ member function defined 
+				 ;; as part of nested class and/or namespace 
+				 ;; like:
+				 ;;
+				 ;;   void 
+				 ;;   foo::bar::baz::bazz ()
+				 ;;   { ...
+				 ;; 
+				 ;; Here we have to move the point to 
+				 ;; the beginning of foo, not bazz.
+				 (while (not (looking-back "\\(^\\|[ \t]\\)"))
+				   (forward-sexp -1))
+				 ;; Is this C++ method?
+				 (when (and (< 2 middle)
+					    (string= (buffer-substring (- middle 2)
+								       middle)
+						     "::"))
+				   ;; Include "classname::".
+				   (setq middle (point)))
+				 ;; Ignore these subparts of a class decl
+				 ;; and move back to the class name itself.
+				 (while (looking-at "public \\|private ")
+				   (skip-chars-backward " \t:")
+				   (setq end (point))
+				   (backward-sexp 1)
+				   (setq middle (point))
+				   (forward-word -1))
+				 (and (bolp)
+				      (looking-at
+				       "enum \\|struct \\|union \\|class ")
+				      (setq middle (point)))
+				 (goto-char end)
+				 (when (eq (preceding-char) ?=)
+				   (forward-char -1)
+				   (skip-chars-backward " \t")
+				   (setq end (point)))
+				 (buffer-substring-no-properties
+				  middle end)))))))))
 		((memq major-mode add-log-tex-like-modes)
 		 (if (re-search-backward
 		      "\\\\\\(sub\\)*\\(section\\|paragraph\\|chapter\\)"
