@@ -1687,6 +1687,26 @@ in `selection-converter-alist', which see."
 				       (+ (* i 10) 12)))))
     result))
 
+(defconst mac-keyboard-modifier-mask-alist
+  (mapcar
+   (lambda (modifier-bit)
+     (cons (car modifier-bit) (lsh 1 (cdr modifier-bit))))
+   '((command  . 8)			; cmdKeyBit
+     (shift    . 9)			; shiftKeyBit
+     (option   . 11)			; optionKeyBit
+     (control  . 12)			; controlKeyBit
+     (function . 17)))			; kEventKeyModifierFnBit
+  "Alist of Mac keyboard modifier symbols vs masks.")
+
+(defun mac-ae-keyboard-modifiers (ae)
+  (let ((modifiers-value (mac-ae-number ae "kmod"))
+	modifiers)
+    (if modifiers-value
+	(dolist (modifier-mask mac-keyboard-modifier-mask-alist)
+	  (if (/= (logand modifiers-value (cdr modifier-mask)) 0)
+	      (setq modifiers (cons (car modifier-mask) modifiers)))))
+    modifiers))
+
 (defun mac-ae-open-documents (event)
   "Open the documents specified by the Apple event EVENT."
   (interactive "e")
@@ -1762,9 +1782,8 @@ With no keyboard modifiers, it toggles the visibility of the
 frame where the tool-bar toggle button was pressed.  With some
 modifiers, it changes global tool-bar visibility setting."
   (interactive "e")
-  (let* ((ae (mac-event-ae event))
-	 (modifiers (cdr (mac-ae-parameter ae "kmod"))))
-    (if (and modifiers (not (string= modifiers "\000\000\000\000")))
+  (let ((ae (mac-event-ae event)))
+    (if (mac-ae-keyboard-modifiers ae)
 	;; Globally toggle tool-bar-mode if some modifier key is pressed.
 	(tool-bar-mode)
       (let ((frame (mac-ae-frame ae)))
@@ -2221,10 +2240,10 @@ See also `mac-dnd-known-types'."
 (defun mac-dnd-insert-TIFF (window action data)
   (dnd-insert-text window action (mac-TIFF-to-string data)))
 
-(defun mac-dnd-drop-data (event frame window data type)
+(defun mac-dnd-drop-data (event frame window data type &optional action)
+  (or action (setq action 'private))
   (let* ((type-info (assoc type mac-dnd-types-alist))
 	 (handler (cdr type-info))
-	 (action 'private)
 	 (w (posn-window (event-start event))))
     (when handler
       (if (and (windowp w) (window-live-p w)
@@ -2245,12 +2264,16 @@ See also `mac-dnd-known-types'."
 (defun mac-dnd-handle-drag-n-drop-event (event)
   "Receive drag and drop events."
   (interactive "e")
-  (let ((window (posn-window (event-start event))))
+  (let ((window (posn-window (event-start event)))
+	(ae (mac-event-ae event))
+	action)
     (when (windowp window) (select-window window))
-    (dolist (item (mac-ae-list (mac-event-ae event)))
+    (if (memq 'option (mac-ae-keyboard-modifiers ae))
+	(setq action 'copy))
+    (dolist (item (mac-ae-list ae))
       (if (not (equal (car item) "null"))
 	  (mac-dnd-drop-data event (selected-frame) window
-			     (cdr item) (car item)))))
+			     (cdr item) (car item) action))))
   (select-frame-set-input-focus (selected-frame)))
 
 ;;; Do the actual Windows setup here; the above code just defines
@@ -2591,7 +2614,6 @@ ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
 ;; Initiate drag and drop
 
 (define-key special-event-map [drag-n-drop] 'mac-dnd-handle-drag-n-drop-event)
-(define-key special-event-map [M-drag-n-drop] 'mac-dnd-handle-drag-n-drop-event)
 
 
 ;;;; Non-toolkit Scroll bars
