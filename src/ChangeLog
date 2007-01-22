@@ -1,3 +1,9 @@
+2007-01-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macselect.c [TARGET_API_MAC_CARBON] (mac_do_receive_drag): Don't
+	pass keyboard modifiers to mac_store_drag_event, but put them as
+	kEventParamKeyModifiers Apple event parameter.
+
 2007-01-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (try_window): Revert previous change.
