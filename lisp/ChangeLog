@@ -1,3 +1,7 @@
+2007-01-22  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
+
+	* hexl.el (hexl-mode-exit): Add missing quote.
+
 2007-01-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (mac-keyboard-modifier-mask-alist): New constant.
@@ -26,8 +30,8 @@
 
 2007-01-21  Glenn Morris  <rgm@gnu.org>
 
-	* net/tramp.el (tramp-perl-encode, tramp-perl-decode): Update
-	copyrights.
+	* net/tramp.el (tramp-perl-encode, tramp-perl-decode):
+	Update copyrights.
 
 2007-01-21  Alan Mackenzie  <acm@muc.de>
 
@@ -66,14 +70,14 @@
 2007-01-20  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-defs.el (c-go-list-forward, c-go-list-backward):
-	new functions.
+	New functions.
 
 2007-01-20  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-align.el, progmodes/cc-cmds.el,
-	progmodes/cc-defs.el, progmodes/cc-engine.el,
-	progmodes/cc-langs.el, progmodes/cc-styles.el,
-	progmodes/cc-vars.el: Add my name.
+	* progmodes/cc-defs.el, progmodes/cc-engine.el,
+	* progmodes/cc-langs.el, progmodes/cc-styles.el,
+	* progmodes/cc-vars.el: Add my name.
 
 2007-01-20  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -88,8 +92,8 @@
 
 2007-01-20  Alin C. Soare  <alinsoar@voila.fr>  (tiny change)
 
-	* lisp/emacs-lisp/lisp-mode.el (last-sexp-toggle-display): Fixed
-	cursor position when toggle abbreviated display.
+	* lisp/emacs-lisp/lisp-mode.el (last-sexp-toggle-display):
+	Fixed cursor position when toggle abbreviated display.
 
 2007-01-20  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -101,11 +105,10 @@
 	* type-break.el (type-break-demo-hanoi, type-break-demo-life)
 	(type-break-demo-boring): Call read-event instead of read-char.
 
-2007-01-19  Daniel Pfeiffer  <occitan@esperanto.org> (small change)
+2007-01-19  Daniel Pfeiffer  <occitan@esperanto.org>  (small change)
 
 	* progmodes/compile.el: Add handling for makepplog.
 
->>>>>>> 1.10581
 2007-01-19  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* textmodes/ispell.el (ispell-change-dictionary): Ensure that
@@ -113,11 +116,11 @@
 
 2007-01-19  Chong Yidong  <cyd@stupidchicken.com>
 
-	* progmodes/compile.el (compilation-loop): New arg limit.  Handle
-	case where the first error is at point-min.
+	* progmodes/compile.el (compilation-loop): New arg limit.
+	Handle case where the first error is at point-min.
 	(compilation-next-error): New arg to compilation-loop call.
 
-2007-01-18  Bruno Haible  <bruno@clisp.org> (tiny change)
+2007-01-18  Bruno Haible  <bruno@clisp.org>  (tiny change)
 
 	* info.el (Info-default-dirs): Change default info dir to
 	share/info.
@@ -147,7 +150,7 @@
 	* bookmark.el (bookmark-buffer-file-name): Abbreviate the bookmark
 	path.  Rewrite function in `cond' style for readability.
 
-	Suggested by: Stephen Eglen <S.J.Eglen{_AT_}damtp.cam.ac.uk>
+	Suggested by: Stephen Eglen <S.J.Eglen{_AT_}damtp.cam.ac.uk>.
 	(The path shortening, that is, not the rearrarangement.)
 
 2007-01-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
@@ -175,8 +178,8 @@
 
 2007-01-13  Mathias Dahl  <mathias.dahl@gmail.com>
 
-	* tumme.el (tumme-cmd-rotate-original-options): Add -outfile
-	option.  Remove redirect character ">".
+	* tumme.el (tumme-cmd-rotate-original-options): Add -outfile option.
+	Remove redirect character ">".
 
 2007-01-13  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -7433,8 +7436,8 @@
 2006-05-11  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* files.el, newcomment.el, outline.el, simple.el,
-	emacs-lisp/bytecomp.el, progmodes/cc-compat.el,
-	progmodes/cc-vars.el, progmodes/compile.el:
+	* emacs-lisp/bytecomp.el, progmodes/cc-compat.el,
+	* progmodes/cc-vars.el, progmodes/compile.el:
 	Move `safe-local-variable' declarations to the respective files.
 
 	* help-fns.el (describe-variable): Don't print safe-var if it is
@@ -11358,7 +11361,7 @@
 	Sync with Tramp 2.0.52.
 
 	* net/tramp.el, net/tramp-ftp.el, net/tramp-util.el,
-	net/tramp-vc.el: Add code for unloading Tramp.  See comment before
+	* net/tramp-vc.el: Add code for unloading Tramp.  See comment before
 	`tramp-unload-tramp' for checklist.
 
 	* net/tramp.el: Require `timer-funcs' instead of `timer' if in
