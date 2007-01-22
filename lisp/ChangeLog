@@ -1,3 +1,9 @@
+2007-01-22  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-active): Add xemacs test from ido-minibuffer-setup.
+	(ido-initiate-auto-merge, ido-exhibit, ido-minibuffer-setup)
+	(ido-tidy): Use ido-active.
+
 2007-01-22  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
 
 	* hexl.el (hexl-mode-exit): Add missing quote.
