@@ -1562,10 +1562,17 @@ mac_do_receive_drag (window, refcon, drag)
       GlobalToLocal (&mouse_pos);
       err = GetDragModifiers (drag, NULL, NULL, &modifiers);
     }
+  if (err == noErr)
+    {
+      UInt32 key_modifiers = modifiers;
+
+      err = AEPutParamPtr (&apple_event, kEventParamKeyModifiers,
+			   typeUInt32, &key_modifiers, sizeof (UInt32));
+    }
 
   if (err == noErr)
     {
-      mac_store_drag_event (window, mouse_pos, modifiers, &apple_event);
+      mac_store_drag_event (window, mouse_pos, 0, &apple_event);
       AEDisposeDesc (&apple_event);
       mac_wakeup_from_rne ();
       return noErr;
