@@ -1119,7 +1119,9 @@ so that it doesn't interfere with other minibuffer usage.")
 (defun ido-active (&optional merge)
   (if merge
       ido-use-merged-list
-    (and (boundp 'ido-completing-read) (= ido-use-mycompletion-depth (minibuffer-depth)))))
+    (and (boundp 'ido-completing-read)
+	 (or (featurep 'xemacs)
+	     (= ido-use-mycompletion-depth (minibuffer-depth))))))
 
 (defvar ido-trace-enable nil)
 
@@ -4121,7 +4123,7 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
   (ido-trace "\n*merge timeout*" buffer)
   (setq ido-auto-merge-timer nil)
   (when (and (buffer-live-p buffer)
-	     (= ido-use-mycompletion-depth (minibuffer-depth))
+	     (ido-active)
 	     (boundp 'ido-eoinput) ido-eoinput)
     (let ((contents (buffer-substring-no-properties (minibuffer-prompt-end) ido-eoinput)))
       (ido-trace "request merge")
@@ -4141,7 +4143,7 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
   ;; 1. It prints a default file name when there is no text yet entered.
   ;; 2. It calls my completion routine rather than the standard completion.
 
-  (when (= ido-use-mycompletion-depth (minibuffer-depth))
+  (when (ido-active)
     (let ((contents (buffer-substring-no-properties (minibuffer-prompt-end) (point-max)))
 	  (buffer-undo-list t)
 	  try-single-dir-match
@@ -4444,9 +4446,7 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 (defun ido-minibuffer-setup ()
   "Minibuffer setup hook for `ido'."
   ;; Copied from `icomplete-minibuffer-setup-hook'.
-  (when (and (boundp 'ido-completing-read)
-	     (or (featurep 'xemacs)
-		 (= ido-use-mycompletion-depth (minibuffer-depth))))
+  (when (ido-active)
     (add-hook 'pre-command-hook 'ido-tidy nil t)
     (add-hook 'post-command-hook 'ido-exhibit nil t)
     (setq cua-inhibit-cua-keys t)
@@ -4465,8 +4465,7 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
     (cancel-timer ido-auto-merge-timer)
     (setq ido-auto-merge-timer nil))
 
-  (if (and (boundp 'ido-use-mycompletion-depth)
-	   (= ido-use-mycompletion-depth (minibuffer-depth)))
+  (if (ido-active)
       (if (and (boundp 'ido-eoinput)
 	       ido-eoinput)
 
