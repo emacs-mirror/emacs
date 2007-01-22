@@ -283,7 +283,7 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
     (setq font-lock-defaults '(hexl-font-lock-keywords t))
 
     ;; Add hooks to rehexlify or dehexlify on various events.
-    (add-hook 'before-revert-hook 'hexl-before-revert-hook nil t) 
+    (add-hook 'before-revert-hook 'hexl-before-revert-hook nil t)
     (add-hook 'after-revert-hook 'hexl-after-revert-hook nil t)
 
     (add-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer nil t)
@@ -403,9 +403,9 @@ With arg, don't unhexlify buffer."
       (hl-line-mode 0))
   (when (boundp 'hexl-mode-old-hl-line-range-function)
     (setq hl-line-range-function hexl-mode-old-hl-line-range-function))
-  (when (boundp hexl-mode-old-hl-line-face)
+  (when (boundp 'hexl-mode-old-hl-line-face)
     (setq hl-line-face hexl-mode-old-hl-line-face))
- 
+
   (setq require-final-newline hexl-mode-old-require-final-newline)
   (setq mode-name hexl-mode-old-mode-name)
   (setq isearch-search-fun-function hexl-mode-old-isearch-search-fun-function)
