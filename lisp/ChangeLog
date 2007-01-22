@@ -1,3 +1,8 @@
+2007-01-21  Guanpeng Xu  <herberteuler@hotmail.com>
+
+	* add-log.el (add-log-current-defun): Use CC Mode functions to
+	find the beginning and end of a defun.
+
 2007-01-21  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-var-create-regexp)
@@ -90,6 +95,7 @@
 
 	* progmodes/compile.el: Add handling for makepplog.
 
+>>>>>>> 1.10581
 2007-01-19  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* textmodes/ispell.el (ispell-change-dictionary): Ensure that
@@ -593,7 +599,7 @@
 	(image-type-from-buffer): Handle new format.  New arg INCLUDE-MAYBES.
 	(image-type-from-file-header): Pass t for INCLUDE-MAYBES.
 
-2006-12-26  Guanpeng Xu  <herberteuler@hotmail.com>  (tiny change)
+2006-12-26  Guanpeng Xu  <herberteuler@hotmail.com>
 
 	* add-log.el (add-log-current-defun): Call `forward-sexp'
 	multiple times to pick a member function name defined as
