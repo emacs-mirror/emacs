@@ -553,7 +553,11 @@ it is displayed along with the global value."
 		;; of a symbol.
 		(set-syntax-table emacs-lisp-mode-syntax-table)
 		(goto-char val-start-pos)
-		(delete-region (point) (progn (end-of-line) (point)))
+		;; The line below previously read as
+		;; (delete-region (point) (progn (end-of-line) (point)))
+		;; which suppressed display of the buffer local value for
+		;; large values.
+		(when (looking-at "value is") (replace-match ""))
 		(save-excursion
 		  (insert "\n\nValue:")
 		  (set (make-local-variable 'help-button-cache)
@@ -563,7 +567,7 @@ it is displayed along with the global value."
 			       'action help-button-cache
 			       'follow-link t
 			       'help-echo "mouse-2, RET: show value")
-		(insert ".\n\n")))
+		(insert ".\n")))
 
  	    ;; Mention if it's an alias
             (let* ((alias (condition-case nil
