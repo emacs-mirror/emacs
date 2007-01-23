@@ -1,3 +1,14 @@
+2007-01-23  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* viper-keym.el (viper-insert-basic-map): deleted binding for S-TAB.
+	
+	* ediff-util.el (ediff-clone-buffer-for-region-comparison): change text
+	of message. Activate mark.
+	(ediff-activate-mark): set transient-mark-mode to t.
+	
+	* ediff.el (ediff-regions-wordwise,ediff-regions-linewise): changed
+	docstrings.
+	
 2007-01-23  Martin Rudalics  <rudalics@gmx.at>
 
 	* help-fns.el (describe-variable): Don't suppress display of

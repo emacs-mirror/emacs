@@ -3346,13 +3346,14 @@ Without an argument, it saves customized diff argument, if available
     (setq wind (ediff-get-visible-buffer-window cloned-buff))
     (select-window wind)
     (delete-other-windows)
+    (ediff-activate-mark)
     (split-window-vertically)
     (ediff-select-lowest-window)
     (setq other-wind (selected-window))
     (with-temp-buffer
       (erase-buffer)
       (insert
-       (format "\n   *******  Mark a region in buffer %s  *******\n"
+       (format "\n   *******  Mark a region in buffer %s (or confirm the existing one)  *******\n"
 	       (buffer-name cloned-buff)))
       (insert
        (ediff-with-current-buffer buff
@@ -4059,7 +4060,11 @@ Mail anyway? (y or n) ")
 (defun ediff-activate-mark ()
   (ediff-cond-compile-for-xemacs-or-emacs
    (zmacs-activate-region) ; xemacs
-   (setq mark-active t) ; emacs
+   (progn
+     (make-local-variable 'transient-mark-mode)
+     (setq mark-active t
+	   transient-mark-mode t) ; emacs
+     )
    ))
 
 (cond ((fboundp 'nuke-selective-display)
