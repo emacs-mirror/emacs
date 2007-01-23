@@ -1,3 +1,8 @@
+2007-01-23  Martin Rudalics  <rudalics@gmx.at>
+
+	* backups.texi (Reverting): Use "buffer" instead of "file"
+	when talking about major and minor modes.
+
 2007-01-21  Richard Stallman  <rms@gnu.org>
 
 	* help.texi (Documentation): Add xref to Documentation Tips.

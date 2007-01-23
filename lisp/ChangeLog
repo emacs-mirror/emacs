@@ -1,3 +1,8 @@
+2007-01-23  Martin Rudalics  <rudalics@gmx.at>
+
+	* help-fns.el (describe-variable): Don't suppress display of
+	buffer local value when the value is "large".
+
 2007-01-22  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-active): Add xemacs test from ido-minibuffer-setup.
@@ -144,7 +149,7 @@
 
 	* isearch.el (isearch-no-upper-case-p): Look for [:upper:] as well.
 
-2007-01-16  martin rudalics  <rudalics@gmx.at>
+2007-01-16  Martin Rudalics  <rudalics@gmx.at>
 
 	* textmodes/ispell.el (ispell-dictionary-alist-3): Replace "---"
 	by "-" in francais7 otherchars entry.
