@@ -1,3 +1,8 @@
+2007-01-24  Miles Bader  <miles@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-output-file-form)
+	(byte-compile-output-docform): Bind `print-circle' to t.
+
 2007-01-24  Kenichi Handa  <handa@m17n.org>
 
 	* international/ja-dic-cnv.el (skkdic-convert): Insert a related
