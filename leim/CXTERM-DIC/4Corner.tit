@@ -1,9 +1,11 @@
+# $Id: 4Corner.tit,v 1.2 1994/06/06 01:54:03 ygz Exp $
 # HANZI input table for cxterm
 # To be used by cxterm, convert me to .cit format first
 # .cit version 2
 ENCODE:	BIG5
+AUTOSELECT:	NO
 PROMPT:	四角號碼::\040
-AUTOSELECT:	NEVER
+#
 COMMENT 
 COMMENT Copyright (c) 2001 Christian Wittern <chris@ccbs.ntu.edu.tw>
 COMMENT 
@@ -14,11 +16,10 @@ COMMENT
 COMMENT	Authors: Dr. Urs App, Christian Wittern (Kyoto Univ, Japan)
 COMMENT
 COMMENT Input:  四角號碼 (及一附加碼)
-# input key definitions
+# define keys
 VALIDINPUTKEY:	0123456789
 WILDCARDKEY:	*
 WILDCHARKEY:	?
-# choice list keys
 SELECTKEY:	1\040
 SELECTKEY:	2
 SELECTKEY:	3
@@ -29,17 +30,11 @@ SELECTKEY:	7
 SELECTKEY:	8
 SELECTKEY:	9
 SELECTKEY:	0
+BACKSPACE:	\010\177
+DELETEALL:	\015\025
 MOVERIGHT:	.>
 MOVELEFT:	,<
-# pre-editing keys
-BACKSPACE:	\010\177		# ctrl-H,  DEL
-DELETEALL:	\015\025		# RETURN,  ctrl-U
-CURSOR-BEGIN:	\001			# ctrl-A
-CURSOR-END:	\005			# ctrl-E
-CURSOR-FORW:	\006			# ctrl-F
-CURSOR-BACK:	\002			# ctrl-B
-CURSOR-ERASE:	\004			# ctrl-D
-REPEATKEY:	\020\022		# ctrl-P,  ctrl-R
+REPEATKEY:	\020\022
 # the following line must not be removed
 BEGINDICTIONARY
 #
