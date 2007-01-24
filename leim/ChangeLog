@@ -6,7 +6,7 @@
 
 	* CXTERM-DIC/4Corner.tit, CXTERM-DIC/CCDOSPY.tit,
 	CXTERM-DIC/PY-b5.tit, CXTERM-DIC/QJ-b5.tit, CXTERM-DIC/QJ.tit,
-	CXTERM-DIC/SW.tit, CXTERM-DIC/TONEPY.tit: Re-copied from
+	CXTERM-DIC/SW.tit, CXTERM-DIC/TONEPY.tit: Updated from
 	X11R6/contrib/programs/cxterm.
 
 	* ja-dic/ja-dic.el: Regenerated.
