@@ -1,3 +1,16 @@
+2007-01-24  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-initial-position): New variable.
+	(ido-read-internal): Set it if default item is specified.
+	(ido-minibuffer-setup): Position cursor accordingly if set.
+	(ido-edit-input): C-e moves to end of input if not already there.
+	(ido-magic-backward-char): C-b does like M-b if prev char is /.
+	Don't switch to buffer mode if repeating C-b at start of input.
+	(ido-toggle-ignore): C-a only toggles ignore at start or end of
+	input; else it moves to start of input.
+	(ido-kill-buffer-at-head, ido-delete-file-at-head): If cursor is
+	not at end of input, delete rest of input, rather than normal op.
+
 2007-01-23  Michael Kifer  <kifer@cs.stonybrook.edu>
 
 	* viper-keym.el (viper-insert-basic-map): Delete binding for S-TAB.

@@ -1,3 +1,7 @@
+2007-01-24  Kim F. Storm  <storm@cua.dk>
+
+	* keymap.c (describe_map): Don't consider prefix keys to be shadowed.
+
 2007-01-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* editfns.c (Finsert_char): Doc fix.
