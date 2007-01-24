@@ -54583,4 +54583,5 @@
 ;;
 (provide 'ja-dic)
 
+;; arch-tag: 18f1f3f5-d706-4c5d-bdac-a6a762de287d
 ;;; ja-dic.el ends here
