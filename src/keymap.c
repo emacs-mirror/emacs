@@ -3455,9 +3455,13 @@ describe_map (map, prefix, elt_describer, partial, shadow,
 	      tem = shadow_lookup (shadow, kludge, Qt);
 	      if (!NILP (tem))
 		{
+		  /* If both bindings are keymaps, this key is a prefix key,
+		     so don't say it is shadowed.  */
+		  if (KEYMAPP (definition) && KEYMAPP (tem))
+		    ;
 		  /* Avoid generating duplicate entries if the
-		     shadowed binding has the same definition. */
-		  if (mention_shadow && !EQ (tem, definition))
+		     shadowed binding has the same definition.  */
+		  else if (mention_shadow && !EQ (tem, definition))
 		    this_shadowed = 1;
 		  else
 		    continue;
