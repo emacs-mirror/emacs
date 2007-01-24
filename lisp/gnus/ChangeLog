@@ -1,3 +1,10 @@
+2007-01-23  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-score.el (gnus-home-score-file, gnus-home-adapt-file): Fix
+	custom choice.
+
+	* gnus-art.el (gnus-signature-limit): Fix custom choice.
+
 2007-01-19  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* nnsoup.el (nnsoup-directory, nnsoup-packer, nnsoup-packet-directory):

@@ -242,7 +242,7 @@ regexp.  If it matches, the text in question is not a signature."
   :type '(choice (const nil)
 		 (integer :value 200)
 		 (number :value 4.0)
-		 (function :value fun)
+		 function
 		 (regexp :value ".*"))
   :group 'gnus-article-signature)
 

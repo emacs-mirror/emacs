@@ -204,10 +204,10 @@ It can be:
   :type '(choice string
 		 (repeat (choice string
 				 (cons regexp (repeat file))
-				 (function :value fun)))
+				 function))
 		 (function-item gnus-hierarchial-home-score-file)
 		 (function-item gnus-current-home-score-file)
-		 (function :value fun)))
+		 function))
 
 (defcustom gnus-home-adapt-file nil
   "Variable to control where new adaptive score entries are to go.
@@ -217,8 +217,8 @@ This variable allows the same syntax as `gnus-home-score-file'."
   :type '(choice string
 		 (repeat (choice string
 				 (cons regexp (repeat file))
-				 (function :value fun)))
-		 (function :value fun)))
+				 function))
+		 function))
 
 (defcustom gnus-default-adaptive-score-alist
   `((gnus-kill-file-mark)
