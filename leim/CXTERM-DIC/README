@@ -7,7 +7,7 @@ into these four.
 
 These are verbatim copies of what included in the directory
 contrib/clients/cxterm of the distribution of X11R6.  Each file
-contains a copyright notice.
+contains a license notice.
 
 (2) CCDOSPY.tit (copied from .../cxterm/dict/gb/CCDOSPY.tit)
     PY-b5.tit (renamed from .../cxterm/dict/big5/PY.tit)
@@ -16,7 +16,7 @@ contains a copyright notice.
 
 These are verbatim copies of what included in the directory
 contrib/clients/cxterm of the distribution of X11R6.  As those files
-themselves don't contain copyright notices, the section 6 of the file
+themselves don't contain license notices, the section 6 of the file
 .../cxterm/README should cover them.
 
 ============================================================
@@ -49,10 +49,10 @@ purpose.  It is provided "as is" without express or implied warranty.
 
 These are the versions modified by the original authors from what
 distributed with X11R5 to include proper copyright notices.  Each file
-contains a copyright notice.
+contains a license notice.
 
 (4) ECDICT.tit, Punct-b5.tit, Punct.tit
 
 These are verbatim copies of what distributed at
-ftp://ftp.ifcss.org/pub/software/.  Each file contains a copyright
+ftp://ftp.ifcss.org/pub/software/.  Each file contains a license
 notice.

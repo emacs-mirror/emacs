@@ -5,13 +5,13 @@ are categorised into these three.
     cangjie-table.cns
 
 These are verbatim copies of what distributed by the author Christian
-Wittern himself.  Each file contains a copyright notice.
+Wittern himself.  Each file contains a license notice.
 
 (2) CTLau.html
     CTLau-b5.html
 
 These are verbatim copies of what distributed at the authors home page
-<umunhum.stanford.edu/~lee/chicomp/> Each file contains a copyright
+<umunhum.stanford.edu/~lee/chicomp/> Each file contains a license
 notice.
 
 (3) pinyin.map
@@ -22,8 +22,8 @@ called CCE at:
 	http://ftp.debian.org/debian/dists/potato/main
 		/source/utils/cce_0.36.orig.tar.gz
 
-As those files themselves don't contain copyright notices, the
-copyright notice of the package itself should cover them.
+As those files themselves don't contain license notices, the
+copyright/license notice of the package itself should cover them.
 
 ============================================================
             Copyright (C) 1999, Rui He, herui@cs.duke.edu
