@@ -689,6 +689,8 @@ SET_MAKE
 XMKMF
 GTK_CFLAGS
 GTK_LIBS
+XFT_CFLAGS
+XFT_LIBS
 ALLOCA
 liblockfile
 LIBOBJS
@@ -11666,6 +11668,327 @@ cat >>confdefs.h <<\_ACEOF
 #define HAVE_GTK_AND_PTHREAD 1
 _ACEOF
 
+    fi
+  fi
+fi
+
+### Link with -lXft if available to work around a bug.
+HAVE_XFT=maybe
+if test "${HAVE_GTK}" = "yes"; then
+    if test "X${with_pkg_config_prog}" != X; then
+    PKG_CONFIG="${with_pkg_config_prog}"
+  fi
+
+
+  succeeded=no
+
+  if test -z "$PKG_CONFIG"; then
+    # Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
+if test "${ac_cv_path_PKG_CONFIG+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  case $PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_PKG_CONFIG" && ac_cv_path_PKG_CONFIG="no"
+  ;;
+esac
+fi
+PKG_CONFIG=$ac_cv_path_PKG_CONFIG
+if test -n "$PKG_CONFIG"; then
+  { echo "$as_me:$LINENO: result: $PKG_CONFIG" >&5
+echo "${ECHO_T}$PKG_CONFIG" >&6; }
+else
+  { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+fi
+
+
+  fi
+
+  if test "$PKG_CONFIG" = "no" ; then
+     HAVE_XFT=no
+  else
+     PKG_CONFIG_MIN_VERSION=0.9.0
+     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+        { echo "$as_me:$LINENO: checking for xft >= 0.13.0" >&5
+echo $ECHO_N "checking for xft >= 0.13.0... $ECHO_C" >&6; }
+
+        if $PKG_CONFIG --exists "xft >= 0.13.0" 2>&5; then
+            { echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6; }
+            succeeded=yes
+
+            { echo "$as_me:$LINENO: checking XFT_CFLAGS" >&5
+echo $ECHO_N "checking XFT_CFLAGS... $ECHO_C" >&6; }
+            XFT_CFLAGS=`$PKG_CONFIG --cflags "xft >= 0.13.0"`
+            { echo "$as_me:$LINENO: result: $XFT_CFLAGS" >&5
+echo "${ECHO_T}$XFT_CFLAGS" >&6; }
+
+            { echo "$as_me:$LINENO: checking XFT_LIBS" >&5
+echo $ECHO_N "checking XFT_LIBS... $ECHO_C" >&6; }
+            XFT_LIBS=`$PKG_CONFIG --libs "xft >= 0.13.0"`
+            { echo "$as_me:$LINENO: result: $XFT_LIBS" >&5
+echo "${ECHO_T}$XFT_LIBS" >&6; }
+        else
+            { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+            XFT_CFLAGS=""
+            XFT_LIBS=""
+            ## If we have a custom action on failure, don't print errors, but
+            ## do set a variable so people can do so.
+            XFT_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "xft >= 0.13.0"`
+
+        fi
+
+
+
+     else
+        echo "*** Your version of pkg-config is too old. You need version $PKG_CONFIG_MIN_VERSION or newer."
+        echo "*** See http://www.freedesktop.org/software/pkgconfig"
+     fi
+  fi
+
+  if test $succeeded = yes; then
+     :
+  else
+     HAVE_XFT=no
+  fi
+
+  if test "$HAVE_XFT" != no; then
+    OLD_CFLAGS="$CPPFLAGS"
+    OLD_CFLAGS="$CFLAGS"
+    OLD_LIBS="$LIBS"
+    CPPFLAGS="$CPPFLAGS $XFT_CFLAGS"
+    CFLAGS="$CFLAGS $XFT_CFLAGS"
+    LIBS="$XFT_LIBS $LIBS"
+    if test "${ac_cv_header_X11_Xft_Xft_h+set}" = set; then
+  { echo "$as_me:$LINENO: checking for X11/Xft/Xft.h" >&5
+echo $ECHO_N "checking for X11/Xft/Xft.h... $ECHO_C" >&6; }
+if test "${ac_cv_header_X11_Xft_Xft_h+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_header_X11_Xft_Xft_h" >&5
+echo "${ECHO_T}$ac_cv_header_X11_Xft_Xft_h" >&6; }
+else
+  # Is the header compilable?
+{ echo "$as_me:$LINENO: checking X11/Xft/Xft.h usability" >&5
+echo $ECHO_N "checking X11/Xft/Xft.h usability... $ECHO_C" >&6; }
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+$ac_includes_default
+#include <X11/Xft/Xft.h>
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+  ac_header_compiler=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_header_compiler=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+{ echo "$as_me:$LINENO: result: $ac_header_compiler" >&5
+echo "${ECHO_T}$ac_header_compiler" >&6; }
+
+# Is the header present?
+{ echo "$as_me:$LINENO: checking X11/Xft/Xft.h presence" >&5
+echo $ECHO_N "checking X11/Xft/Xft.h presence... $ECHO_C" >&6; }
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <X11/Xft/Xft.h>
+_ACEOF
+if { (ac_try="$ac_cpp conftest.$ac_ext"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_cpp conftest.$ac_ext") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } >/dev/null && {
+	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       }; then
+  ac_header_preproc=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+  ac_header_preproc=no
+fi
+
+rm -f conftest.err conftest.$ac_ext
+{ echo "$as_me:$LINENO: result: $ac_header_preproc" >&5
+echo "${ECHO_T}$ac_header_preproc" >&6; }
+
+# So?  What about this header?
+case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+  yes:no: )
+    { echo "$as_me:$LINENO: WARNING: X11/Xft/Xft.h: accepted by the compiler, rejected by the preprocessor!" >&5
+echo "$as_me: WARNING: X11/Xft/Xft.h: accepted by the compiler, rejected by the preprocessor!" >&2;}
+    { echo "$as_me:$LINENO: WARNING: X11/Xft/Xft.h: proceeding with the compiler's result" >&5
+echo "$as_me: WARNING: X11/Xft/Xft.h: proceeding with the compiler's result" >&2;}
+    ac_header_preproc=yes
+    ;;
+  no:yes:* )
+    { echo "$as_me:$LINENO: WARNING: X11/Xft/Xft.h: present but cannot be compiled" >&5
+echo "$as_me: WARNING: X11/Xft/Xft.h: present but cannot be compiled" >&2;}
+    { echo "$as_me:$LINENO: WARNING: X11/Xft/Xft.h:     check for missing prerequisite headers?" >&5
+echo "$as_me: WARNING: X11/Xft/Xft.h:     check for missing prerequisite headers?" >&2;}
+    { echo "$as_me:$LINENO: WARNING: X11/Xft/Xft.h: see the Autoconf documentation" >&5
+echo "$as_me: WARNING: X11/Xft/Xft.h: see the Autoconf documentation" >&2;}
+    { echo "$as_me:$LINENO: WARNING: X11/Xft/Xft.h:     section \"Present But Cannot Be Compiled\"" >&5
+echo "$as_me: WARNING: X11/Xft/Xft.h:     section \"Present But Cannot Be Compiled\"" >&2;}
+    { echo "$as_me:$LINENO: WARNING: X11/Xft/Xft.h: proceeding with the preprocessor's result" >&5
+echo "$as_me: WARNING: X11/Xft/Xft.h: proceeding with the preprocessor's result" >&2;}
+    { echo "$as_me:$LINENO: WARNING: X11/Xft/Xft.h: in the future, the compiler will take precedence" >&5
+echo "$as_me: WARNING: X11/Xft/Xft.h: in the future, the compiler will take precedence" >&2;}
+
+    ;;
+esac
+{ echo "$as_me:$LINENO: checking for X11/Xft/Xft.h" >&5
+echo $ECHO_N "checking for X11/Xft/Xft.h... $ECHO_C" >&6; }
+if test "${ac_cv_header_X11_Xft_Xft_h+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_cv_header_X11_Xft_Xft_h=$ac_header_preproc
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_header_X11_Xft_Xft_h" >&5
+echo "${ECHO_T}$ac_cv_header_X11_Xft_Xft_h" >&6; }
+
+fi
+if test $ac_cv_header_X11_Xft_Xft_h = yes; then
+  { echo "$as_me:$LINENO: checking for XftFontOpen in -lXft" >&5
+echo $ECHO_N "checking for XftFontOpen in -lXft... $ECHO_C" >&6; }
+if test "${ac_cv_lib_Xft_XftFontOpen+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lXft $XFT_LIBS $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char XftFontOpen ();
+int
+main ()
+{
+return XftFontOpen ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
+  ac_cv_lib_Xft_XftFontOpen=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_lib_Xft_XftFontOpen=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_lib_Xft_XftFontOpen" >&5
+echo "${ECHO_T}$ac_cv_lib_Xft_XftFontOpen" >&6; }
+if test $ac_cv_lib_Xft_XftFontOpen = yes; then
+  HAVE_XFT=yes
+fi
+
+fi
+
+
+
+    if test "${HAVE_XFT}" = "yes"; then
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_XFT 1
+_ACEOF
+
+
+      C_SWITCH_X_SITE="$C_SWITCH_X_SITE $XFT_CFLAGS"
+    else
+      CFLAGS="$OLD_CPPFLAGS"
+      CFLAGS="$OLD_CFLAGS"
+      LIBS="$OLD_LIBS"
     fi
   fi
 fi
@@ -23506,6 +23829,8 @@ SET_MAKE!$SET_MAKE$ac_delim
 XMKMF!$XMKMF$ac_delim
 GTK_CFLAGS!$GTK_CFLAGS$ac_delim
 GTK_LIBS!$GTK_LIBS$ac_delim
+XFT_CFLAGS!$XFT_CFLAGS$ac_delim
+XFT_LIBS!$XFT_LIBS$ac_delim
 ALLOCA!$ALLOCA$ac_delim
 liblockfile!$liblockfile$ac_delim
 LIBOBJS!$LIBOBJS$ac_delim
@@ -23529,8 +23854,6 @@ gamedir!$gamedir$ac_delim
 gameuser!$gameuser$ac_delim
 c_switch_system!$c_switch_system$ac_delim
 c_switch_machine!$c_switch_machine$ac_delim
-LD_SWITCH_X_SITE!$LD_SWITCH_X_SITE$ac_delim
-LD_SWITCH_X_SITE_AUX!$LD_SWITCH_X_SITE_AUX$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -23572,6 +23895,8 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+LD_SWITCH_X_SITE!$LD_SWITCH_X_SITE$ac_delim
+LD_SWITCH_X_SITE_AUX!$LD_SWITCH_X_SITE_AUX$ac_delim
 C_SWITCH_X_SITE!$C_SWITCH_X_SITE$ac_delim
 X_TOOLKIT_TYPE!$X_TOOLKIT_TYPE$ac_delim
 machfile!$machfile$ac_delim
@@ -23580,7 +23905,7 @@ carbon_appdir!$carbon_appdir$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 6; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 8; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

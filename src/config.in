@@ -713,6 +713,9 @@ Boston, MA 02110-1301, USA.  */
 /* Define to 1 if you're using XFree386. */
 #undef HAVE_XFREE386
 
+/* Define to 1 if you have the Xft library. */
+#undef HAVE_XFT
+
 /* Define to 1 if XIM is available */
 #undef HAVE_XIM
 
