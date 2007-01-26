@@ -1,5 +1,7 @@
 2007-01-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* gtkutil.c (xg_initialize): Call XftInit if HAVE_XFT.
+
 	* Makefile.in: Use XFT_LIBS if defined.
 
 2007-01-26  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>

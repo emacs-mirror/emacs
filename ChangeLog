@@ -1,3 +1,7 @@
+2007-01-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* configure.in: Add check for libXft.
+
 2007-01-18  Bruno Haible  <bruno@clisp.org> (tiny change)
 
 	* INSTALL: Info files moved to share/info.
