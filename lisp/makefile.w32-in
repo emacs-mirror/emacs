@@ -96,11 +96,11 @@ $(lisp)/cus-load.el:
 	touch $@
 # WARNING: Do NOT split the part inside $(ARGQUOTE)s into multiple lines as
 #          this can break with GNU Make 3.81 and later if sh.exe is used.
-custom-deps: $(lisp)/cus-load.el doit
+custom-deps: $(lisp)/cus-load.el $(lisp)/loaddefs.el doit
 	@echo Directories: $(WINS)
 	-$(emacs) -l cus-dep --eval $(ARGQUOTE)(setq find-file-hook nil)$(ARGQUOTE) -f custom-make-dependencies $(lisp) $(WINS)
 
-finder-data: doit
+finder-data: $(lisp)/loaddefs.el doit
 	@echo Directories: $(WINS)
 	$(emacs) -l finder -f finder-compile-keywords-make-dist $(lisp) $(WINS)
 
