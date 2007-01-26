@@ -1,7 +1,7 @@
 ;;; gnus-score.el --- scoring code for Gnus
 
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <amanda@iesd.auc.dk>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -204,10 +204,10 @@ It can be:
   :type '(choice string
 		 (repeat (choice string
 				 (cons regexp (repeat file))
-				 (function :value fun)))
+				 function))
 		 (function-item gnus-hierarchial-home-score-file)
 		 (function-item gnus-current-home-score-file)
-		 (function :value fun)))
+		 function))
 
 (defcustom gnus-home-adapt-file nil
   "Variable to control where new adaptive score entries are to go.
@@ -217,8 +217,8 @@ This variable allows the same syntax as `gnus-home-score-file'."
   :type '(choice string
 		 (repeat (choice string
 				 (cons regexp (repeat file))
-				 (function :value fun)))
-		 (function :value fun)))
+				 function))
+		 function))
 
 (defcustom gnus-default-adaptive-score-alist
   `((gnus-kill-file-mark)

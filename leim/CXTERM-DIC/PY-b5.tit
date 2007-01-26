@@ -1,14 +1,11 @@
+# $Id: PY-b5.tit,v 1.3 2007/01/24 06:35:08 handa Exp $
 # HANZI input table for cxterm
-# Generated from PY-b5.cit by cit2tit
 # To be used by cxterm, convert me to .cit format first
-# .cit version 1
+# .cit version 2
 ENCODE:	BIG5
-MULTICHOICE:	YES
-PROMPT:	¤¤¤å¿é¤J¡i«÷­µ¡j
+AUTOSELECT:	NO
+PROMPT:	º~¦r¿é¤J::«÷­µ::\040
 #
-COMMENT last modified by cyl@ifcss.org 1994 March 9
-COMMENT Modify by Wei-Chung Hwang, OCT 15, 1992.
-COMMENT
 COMMENT	º~»y«÷­µ¿é¤J¤è®×¤¶²Ð   (ª`­µ²Å¸¹¹ï·Ó)
 COMMENT	
 COMMENT				Án¥À (CONSONANT)
@@ -44,6 +41,8 @@ COMMENT	j+ -> ¸òÁn¥À j,q,x «÷ªº®É­Ô,   l+ -> ¸òÁn¥À l,n «÷ªº®É­Ô
 COMMENT
 # define keys
 VALIDINPUTKEY:	12345:abcdefghijklmnopqrstuvwxyz
+WILDCARDKEY:	*
+WILDCHARKEY:	?
 SELECTKEY:	1\040
 SELECTKEY:	2
 SELECTKEY:	3
@@ -163,7 +162,7 @@ bing2
 bing3	»æ¤þ¸[¬`ªÃ¬±ÎôÍÔÌ}ï@»Ð×®ÍÜÐ~Ò÷«ÌÎµ
 bing4	¨Ã¯f¨Ö¦}´¬ØÖïxÔR
 bing5	
-bo1	¬Á¼·­éµÔ²ÚågÒÜÞë×·ðÔø[ÔqÏYóQÌi
+bo1	ªi¬Á¼·­éµÔ²ÚågÒÜÞë×·ðÔø[ÔqÏYóQÌi
 bo2	§B³Õ¬fªy«k·i´ñ»éÁ¡²ä©­²íºä²ò½³»K¹YèÁ¹`õÎñÐçôÒJöJäc
 bo2	ñWìaàûñ®õfÕÅî¬ÀÐì`ÐcÑ´Þªß´èwïÌðcò¡ùRÓöù{ò®
 bo3	¶_Ã°×°
@@ -993,7 +992,7 @@ leng5
 li1	­ù
 li2	Â÷¼þ¾¤±ùÆXÂç¼ù¿©»©Æz²pºvöè¯WòÔ¸ÄÄùùÏáuîqõ¶Õ¼åúíÐëI
 li2	åøÍù÷ðÜÆ³ííÌñNùÎ÷ÑöÛößöxá}åËðÛóÑóîöàÄRÛzøMøuÓN÷Ç
-li3	§õ¨½¸Ì²zÂ§ùØ­ù¯@ÃU®[«Z¿CÅÝÄ¿Äùø×¾YßUàTÎ~øô
+li3	§õ¨½¸Ì²zÂ§­ù¯@ÃU®[«Z¿CÅÝÄ¿Äùø×¾YßUàTÎ~øô
 li4	¤O¥ß§QÄR¾úÃc¨Ò¾ä²ú¼FÀyÄr²É»YÆEÃwÄ×ÁõÄt¦O¯ï®ß·X«Wµg
 li4	Â~²Á©Ñ°æÅ°²|Ûàñò·ÌÄ÷ôUÍBõæòR÷eòtïgÒªôsê¼ÐkÑEÉv÷`°z
 li4	°¬ôqÒõâÔøHÌlÉñÅÏô¡Ð²ì¤ÏíïòÒÚÕ`×©ØdßSãtãïðVòHòrô¾öF

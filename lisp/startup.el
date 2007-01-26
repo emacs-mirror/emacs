@@ -1,7 +1,7 @@
 ;;; startup.el --- process Emacs shell arguments
 
 ;; Copyright (C) 1985, 1986, 1992, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+;;   2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -1302,7 +1302,7 @@ using the mouse.\n\n")
 			 (emacs-version)
 			 "\n"
 			 :face '(variable-pitch :height 0.5)
-			 "Copyright (C) 2006 Free Software Foundation, Inc.")
+			 "Copyright (C) 2007 Free Software Foundation, Inc.")
     (and auto-save-list-file-prefix
 	 ;; Don't signal an error if the
 	 ;; directory for auto-save-list files
@@ -1550,7 +1550,7 @@ More Manuals / Ordering Manuals    How to order printed manuals from the FSF
 ")
                 (insert "\n\n" (emacs-version)
                         "
-Copyright (C) 2006 Free Software Foundation, Inc."))
+Copyright (C) 2007 Free Software Foundation, Inc."))
 
             ;; No mouse menus, so give help using kbd commands.
 
@@ -1598,7 +1598,7 @@ If you have no Meta key, you may instead type ESC followed by the character.)")
 
             (insert "\n\n" (emacs-version)
                     "
-Copyright (C) 2006 Free Software Foundation, Inc.")
+Copyright (C) 2007 Free Software Foundation, Inc.")
 
             (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
                      (eq (key-binding "\C-h\C-d") 'describe-distribution)

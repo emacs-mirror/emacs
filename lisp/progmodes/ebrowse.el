@@ -1,7 +1,7 @@
 ;;; ebrowse.el --- Emacs C++ class browser & tags facility
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-;; 2002, 2003, 2004, 2005, 2006
+;; 2002, 2003, 2004, 2005, 2006, 2007
 ;; Free Software Foundation Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
@@ -4230,13 +4230,13 @@ NUMBER-OF-STATIC-VARIABLES:"
 ;;; Global key bindings
 
 ;;; The following can be used to bind key sequences starting with
-;;; prefix `\C-cb' to browse commands.
+;;; prefix `\C-c\C-m' to browse commands.
 
 (defvar ebrowse-global-map nil
   "*Keymap for Ebrowse commands.")
 
 
-(defvar ebrowse-global-prefix-key "\C-cC-m"
+(defvar ebrowse-global-prefix-key "\C-c\C-m"
   "Prefix key for Ebrowse commands.")
 
 

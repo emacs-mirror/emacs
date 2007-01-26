@@ -1,10 +1,11 @@
 ;;; cc-cmds.el --- user level commands for CC Mode
 
 ;; Copyright (C) 1985, 1987, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006  Free Software
-;;   Foundation, Inc.
+;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
+;;   Free Software Foundation, Inc.
 
-;; Authors:    1998- Martin Stjernholm
+;; Authors:    2003- Alan Mackenzie
+;;             1998- Martin Stjernholm
 ;;             1992-1999 Barry A. Warsaw
 ;;             1987 Dave Detlefs and Stewart Clamen
 ;;             1985 Richard M. Stallman
@@ -1382,8 +1383,7 @@ No indentation or other \"electric\" behavior is performed."
   ;;
   ;; This function might do hidden buffer changes.
   (save-excursion
-    (let* (pos
-	   kluge-start
+    (let* (kluge-start
 	   decl-result brace-decl-p
 	   (start (point))
 	   (paren-state (c-parse-state))
@@ -1416,11 +1416,12 @@ No indentation or other \"electric\" behavior is performed."
 	(setq kluge-start (point))
 	(setq decl-result
 	      (car (c-beginning-of-decl-1
+		    ;; NOTE: If we're in a K&R region, this might be the start
+		    ;; of a parameter declaration, not the actual function.
 		    (and least-enclosing ; LIMIT for c-b-of-decl-1
 			 (c-safe-position least-enclosing paren-state)))))
 
 	;; Has the declaration we've gone back to got braces?
-	(setq pos (point))	      ; the search limit for c-recognize-knr-p
 	(setq brace-decl-p
 	      (save-excursion
 		    (and (c-syntactic-re-search-forward "[;{]" nil t t)
@@ -1430,7 +1431,7 @@ No indentation or other \"electric\" behavior is performed."
 				  ;; ';' in a K&R argdecl.  In
 				  ;; that case the declaration
 				  ;; should contain a block.
-				  (c-in-knr-argdecl pos))))))
+				  (c-in-knr-argdecl))))))
 
 	(cond
 	 ((= (point) kluge-start)	; might be BOB or unbalanced parens.
@@ -3750,7 +3751,7 @@ command to conveniently insert and align the necessary backslashes."
   ;; Note that this function does not do any hidden buffer changes.
 
   (let (fill
-	;; beg and end limits the region to narrow.  end is a marker.
+	;; beg and end limit the region to narrow.  end is a marker.
 	beg end
 	;; tmp-pre and tmp-post mark strings that are temporarily
 	;; inserted at the start and end of the region.  tmp-pre is a
@@ -3836,12 +3837,18 @@ command to conveniently insert and align the necessary backslashes."
 	    (setq apply-outside-literal t))
 
 	   ((eq c-lit-type 'c)		; Block comment.
-	    (when (>= end (cdr c-lit-limits))
-	      ;; The region includes the comment ender.  If it's on its own
-	      ;; line, it stays on its own line.  If it's got company on the
-	      ;; line, it keeps (at least one word of) it.  "=====*/" counts
-	      ;; as a comment ender here, but "===== */" doesn't and "foo*/"
-	      ;; doesn't.
+	    (when
+		(or (> end (cdr c-lit-limits))
+		    (and (= end (cdr c-lit-limits))
+			 (eq (char-before end) ?/)
+			 (eq (char-before (1- end)) ?*)
+			 ;; disallow "/*/"
+			 (> (- (cdr c-lit-limits) (car c-lit-limits)) 3)))
+	      ;; There is a comment ender, and the region includes it.  If
+	      ;; it's on its own line, it stays on its own line.  If it's got
+	      ;; company on the line, it keeps (at least one word of) it.
+	      ;; "=====*/" counts as a comment ender here, but "===== */"
+	      ;; doesn't and "foo*/" doesn't.
 	      (unless
 		  (save-excursion
 		    (goto-char (cdr c-lit-limits))

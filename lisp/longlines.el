@@ -1,6 +1,6 @@
 ;;; longlines.el --- automatically wrap long lines
 
-;; Copyright (C) 2000, 2001, 2004, 2005, 2006 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Authors:    Kai Grossjohann <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 ;;             Alex Schroeder <alex@gnu.org>
@@ -63,7 +63,7 @@ with differing widths."
   "Non-nil means each hard newline is marked on the screen.
 \(The variable `longlines-show-effect' controls what they look like.)
 You can also enable the display temporarily, using the command
-`longlines-show-hard-newlines'"
+`longlines-show-hard-newlines'."
   :group 'longlines
   :type 'boolean)
 

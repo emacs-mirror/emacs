@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1999, 2002, 2003, 2004,
-@c   2005, 2006 Free Software Foundation, Inc.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1999, 2001, 2002, 2003,
+@c   2004, 2005, 2006, 2007  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/backups
 @node Backups and Auto-Saving, Buffers, Files, Top
@@ -683,7 +683,7 @@ Normally, @code{revert-buffer} asks for confirmation before it changes
 the buffer; but if the argument @var{noconfirm} is non-@code{nil},
 @code{revert-buffer} does not ask for confirmation.
 
-Normally, this command reinitializes the file's major and minor modes
+Normally, this command reinitializes the buffer's major and minor modes
 using @code{normal-mode}.  But if @var{preserve-modes} is
 non-@code{nil}, the modes remain unchanged.
 

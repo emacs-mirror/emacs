@@ -1,5 +1,5 @@
 GNU Emacs NEWS -- history of user-visible changes.  1992.
-Copyright (C) 1993, 1994, 1995, 2001, 2006 Free Software Foundation, Inc.
+Copyright (C) 1993, 1994, 1995, 2001, 2006, 2007 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 This file is about changes in emacs versions 19.
@@ -1039,7 +1039,7 @@ your working file with the latest version from the master.
 *** RCS customization.
 
 There is a new variable vc-consult-headers.  If it is t (the default),
-VC searches for RCS headers in working files (like `$Id: NEWS.19,v 1.1 2006/06/04 01:01:51 kfstorm Exp $') and
+VC searches for RCS headers in working files (like `$Id$') and
 determines the state of the file from them, not from the master file.
 This is fast and more reliable when you use branches.  (The variable
 was already present in Emacs 19.29, but didn't get mentioned in the
@@ -6520,7 +6520,7 @@ the tar file.
 ----------------------------------------------------------------------
 Copyright information:
 
-Copyright (C) 1993, 1994, 1995, 2001, 2006 Free Software Foundation, Inc.
+Copyright (C) 1993, 1994, 1995, 2001, 2006, 2007 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the

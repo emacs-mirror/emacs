@@ -1,6 +1,6 @@
 /* Display module for Mac OS.
    Copyright (C) 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006 Free Software Foundation, Inc.
+                 2005, 2006, 2007 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -43,8 +43,6 @@ Boston, MA 02110-1301, USA.  */
 #define FONT_HEIGHT(f)	((f)->ascent + (f)->descent)
 #define FONT_BASE(f)    ((f)->ascent)
 #define FONT_DESCENT(f) ((f)->descent)
-
-#define FONT_MAX_WIDTH(f) FONT_WIDTH(f)  /* fix later */
 
 /* Structure recording bitmaps and reference count.
    If REFCOUNT is 0 then this record is free to be reused.  */
@@ -527,10 +525,15 @@ struct scroll_bar {
 #define MAC_AQUA_SMALL_VERTICAL_SCROLL_BAR_WIDTH (11)
 
 /* Size of hourglass controls */
-#define HOURGLASS_WIDTH 16
-#define HOURGLASS_HEIGHT 16
+#define HOURGLASS_WIDTH (16)
+#define HOURGLASS_HEIGHT (16)
 
 /* Some constants that are used locally.  */
+/* Creator code for Emacs on Mac OS.  */
+enum {
+  MAC_EMACS_CREATOR_CODE	= 'EMAx'
+};
+
 /* Apple event descriptor types */
 enum {
   TYPE_FILE_NAME		= 'fNam'
@@ -612,13 +615,12 @@ extern Pixmap XCreatePixmapFromBitmapData P_ ((Display *, WindowPtr, char *,
 					       unsigned long, unsigned long,
 					       unsigned int));
 extern void XFreePixmap P_ ((Display *, Pixmap));
-extern GC XCreateGC P_ ((Display *, Window, unsigned long, XGCValues *));
+extern GC XCreateGC P_ ((Display *, void *, unsigned long, XGCValues *));
 extern void XFreeGC P_ ((Display *, GC));
 extern void XSetForeground P_ ((Display *, GC, unsigned long));
 extern void XSetBackground P_ ((Display *, GC, unsigned long));
 extern void XSetWindowBackground P_ ((Display *, WindowPtr, unsigned long));
-extern void mac_draw_line_to_pixmap P_ ((Display *, Pixmap, GC, int, int,
-					 int, int));
+extern void XDrawLine P_ ((Display *, Pixmap, GC, int, int, int, int));
 extern void mac_clear_area P_ ((struct frame *, int, int,
 				unsigned int, unsigned int));
 extern void mac_unload_font P_ ((struct mac_display_info *, XFontStruct *));
@@ -634,6 +636,7 @@ extern void do_apple_menu P_ ((SInt16));
 #if USE_CG_DRAWING
 extern void mac_prepare_for_quickdraw P_ ((struct frame *));
 #endif
+extern int mac_quit_char_key_p P_ ((UInt32, UInt32));
 
 #define FONT_TYPE_FOR_UNIBYTE(font, ch) 0
 #define FONT_TYPE_FOR_MULTIBYTE(font, ch) 0

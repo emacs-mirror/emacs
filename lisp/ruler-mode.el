@@ -1,7 +1,7 @@
 ;;; ruler-mode.el --- display a ruler in the header line
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005,
-;;   2006 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: David Ponce <david@dponce.com>
@@ -630,7 +630,7 @@ Optional argument PROPS specifies other text properties to apply."
   (apply 'propertize " " 'display (list 'space :width width) props))
 
 (defun ruler-mode-ruler ()
-  "Compute and return an header line ruler."
+  "Compute and return a header line ruler."
   (let* ((w (window-width))
          (m (window-margins))
          (f (window-fringes))

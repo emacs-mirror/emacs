@@ -206,7 +206,7 @@ Sales summary - Acme fundraising
 ;;; symbolic-formulas: (("Eastern area") ("West-district") ("North&South") ("Other"))
 ;;; End:
 
-;;; Copyright (c) 2002, 2006
+;;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007
 ;;; Free Software Foundation, Inc.
 
 ;;; COPYING PERMISSIONS:

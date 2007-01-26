@@ -1,7 +1,7 @@
 /* Keyboard and mouse input; editor command loop.
    Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1994, 1995,
                  1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006 Free Software Foundation, Inc.
+                 2005, 2006, 2007 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -9286,7 +9286,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		    {
 		      pos = POSN_BUFFER_POSN (start);
 		      if (INTEGERP (pos)
-			  && XINT (pos) >= BEG && XINT (pos) <= Z)
+			  && XINT (pos) >= BEGV
+			  && XINT (pos) <= ZV)
 			{
 			  map_here = get_local_map (XINT (pos),
 						    current_buffer, Qlocal_map);
@@ -11019,6 +11020,8 @@ init_keyboard ()
   do_mouse_tracking = Qnil;
 #endif
   input_pending = 0;
+  interrupt_input_blocked = 0;
+  interrupt_input_pending = 0;
 
   /* This means that command_loop_1 won't try to select anything the first
      time through.  */

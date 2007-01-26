@@ -1,7 +1,7 @@
 ;;; ispell.el --- interface to International Ispell Versions 3.1 and 3.2
 
 ;; Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author:           Ken Stevens <k.stevens@ieee.org>
 ;; Maintainer:       Ken Stevens <k.stevens@ieee.org>
@@ -574,7 +574,7 @@ re-start Emacs."
     "[A-Za-z^\\]" "[^A-Za-z^\\]"
     "[-'`\"]" t ("-C" "-d" "esperanto") "~tex" iso-8859-3)
    ("francais7"
-    "[A-Za-z]" "[^A-Za-z]" "[`'^---]" t nil nil iso-8859-1)
+    "[A-Za-z]" "[^A-Za-z]" "[`'^-]" t nil nil iso-8859-1)
    ("francais"				; Francais.aff
     "[A-Za-z\300\302\306\307\310\311\312\313\316\317\324\331\333\334\340\342\347\350\351\352\353\356\357\364\371\373\374]"
     "[^A-Za-z\300\302\306\307\310\311\312\313\316\317\324\331\333\334\340\342\347\350\351\352\353\356\357\364\371\373\374]"
@@ -623,7 +623,7 @@ re-start Emacs."
    ("polish"				; Polish mode
     "[A-Za-z\241\243\246\254\257\261\263\266\274\277\306\312\321\323\346\352\361\363]"
     "[^A-Za-z\241\243\246\254\257\261\263\266\274\277\306\312\321\323\346\352\361\363]"
-    "." nil nil nil iso-8859-2)
+    "[.]" nil nil nil iso-8859-2)
    ("portugues"				; Portuguese mode
     "[a-zA-Z\301\302\311\323\340\341\342\351\352\355\363\343\372]"
     "[^a-zA-Z\301\302\311\323\340\341\342\351\352\355\363\343\372]"
@@ -2577,6 +2577,7 @@ By just answering RET you can find out what the current dictionary is."
 	       (mapcar 'list (ispell-valid-dictionary-list)))
 	  nil t)
 	 current-prefix-arg))
+  (ispell-maybe-find-aspell-dictionaries)
   (unless arg (ispell-buffer-local-dict 'no-reload))
   (if (equal dict "default") (setq dict nil))
   ;; This relies on completing-read's bug of returning "" for no match

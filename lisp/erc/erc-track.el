@@ -1,6 +1,6 @@
 ;;; erc-track.el --- Track modified channel buffers
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Keywords: comm, faces
@@ -772,10 +772,6 @@ is in `erc-mode'."
 		      'face '(bold erc-current-nick-face)
 		      str)
    (erc-faces-in str)))
-
-(defun erc-find-parsed-property ()
-  "Find the next occurrence of the `erc-parsed' text property."
-  (text-property-not-all (point-min) (point-max) 'erc-parsed nil))
 
 ;;; Buffer switching
 

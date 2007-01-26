@@ -1,3 +1,54 @@
+2007-01-20  Glenn Morris  <rgm@gnu.org>
+
+	* cd-dired-ref.tex (versionemacs): New def.
+	* cs-refcard.tex (versionemacs, versionyear): New defs.
+	* cs-survival.tex (versionemacs, versiondate): New defs.
+	* de-refcard.tex (versionemacs, versionyear): New defs.
+	* fr-refcard.tex (versionemacs, versionyear): New defs.
+	* fr-survival.tex (versionemacs, versiondate): New defs.
+	* orgcard.tex (versionyear): New def.
+	(shortcopyrightnotice): Only display last copyright year.
+	* pl-refcard.tex (versionemacs, versiondate): New defs.
+	* pt-br-refcard.tex (versionemacs, versionyear): New defs.
+	* refcard.tex (versionemacs, versionyear): New defs.
+	* ru-refcard.tex (versionemacs): New def.
+	* survival.tex (versionemacs): New def.
+	* sk-dired-ref.tex (versionemacs): New def.
+	* sk-refcard.tex (versionemacs, versionyear): New defs.
+	* sk-survival.tex (versionemacs): New def.
+
+2007-01-20  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
+
+	* MACHINES: Describe how 32-bit and 64-bit versions of Emacs can
+	be compiled on Solaris systems.
+
+2007-01-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* TODO: Proper background color handling for pngs.
+
+2007-01-18  Bruno Haible  <bruno@clisp.org> (tiny change)
+
+	* emacs.1: Info files moved to share/info.
+
+2007-01-17  Romain Francoise  <romain@orebokech.com>
+
+	* emacs.1: Update bug-gnu-emacs address.  Remove reference to
+	info-gnu-emacs-request@prep.ai.mit.edu.  Update copyrights.
+
+2007-01-13  Michael Olson  <mwolson@gnu.org>
+
+	* ERC-NEWS: Mention new erc-capab.el file.
+
+2007-01-13  Glenn Morris  <rgm@gnu.org>
+
+	* MACHINES: Add information on compiling 32-bit Emacs on 64-bit
+	GNU/Linux.
+	* PROBLEMS: As above.
+
+2007-01-02  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* etags.1: Undocument the --no-warn option.
+
 2006-12-17  Richard Stallman  <rms@gnu.org>
 
 	* TUTORIAL: Say that C-d and DEL with arg do killing.
@@ -3192,7 +3243,7 @@
 ;; End:
 
     Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001
-	2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+	2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
 

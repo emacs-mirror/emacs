@@ -1,5 +1,5 @@
 /* Definitions and headers for GTK widgets.
-   Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -79,8 +79,6 @@ typedef struct xg_menu_item_cb_data_
 {
   xg_list_node  ptrs;
 
-  gulong        highlight_id;
-  gulong        unhighlight_id;
   gulong        select_id;
   Lisp_Object   help;
   gpointer	call_data;

@@ -1,6 +1,6 @@
 /* Implementation of GUI terminal on the Mac OS.
    Copyright (C) 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006 Free Software Foundation, Inc.
+                 2005, 2006, 2007 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -272,16 +272,63 @@ static void XSetFont P_ ((Display *, GC, XFontStruct *));
 #define GC_BACK_COLOR(gc)	(&(gc)->back_color)
 #define GC_FONT(gc)		((gc)->xgcv.font)
 #define FRAME_NORMAL_GC(f)	((f)->output_data.mac->normal_gc)
-#define CG_SET_FILL_COLOR(context, color)			\
+
+#define CG_SET_FILL_COLOR(context, color)				\
   CGContextSetRGBFillColor (context,					\
 			    RED_FROM_ULONG (color) / 255.0f,		\
 			    GREEN_FROM_ULONG (color) / 255.0f,		\
 			    BLUE_FROM_ULONG (color) / 255.0f, 1.0f)
-#define CG_SET_STROKE_COLOR(context, color)		\
+#if USE_CG_DRAWING && MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+#if MAC_OS_X_VERSION_MIN_REQUIRED == 1020
+#define CG_SET_FILL_COLOR_MAYBE_WITH_CGCOLOR(context, color, cg_color) \
+  do {								       \
+    if (CGColorGetTypeID != NULL)				       \
+      CGContextSetFillColorWithColor (context, cg_color);	       \
+    else							       \
+      CG_SET_FILL_COLOR (context, color);			       \
+  } while (0)
+#else
+#define CG_SET_FILL_COLOR_MAYBE_WITH_CGCOLOR(context, color, cg_color)	\
+  CGContextSetFillColorWithColor (context, cg_color)
+#endif
+#else
+#define CG_SET_FILL_COLOR_MAYBE_WITH_CGCOLOR(context, color, cg_color)	\
+  CG_SET_FILL_COLOR (context, color)
+#endif
+#define CG_SET_FILL_COLOR_WITH_GC_FOREGROUND(context, gc)		\
+  CG_SET_FILL_COLOR_MAYBE_WITH_CGCOLOR (context, (gc)->xgcv.foreground,	\
+					(gc)->cg_fore_color)
+#define CG_SET_FILL_COLOR_WITH_GC_BACKGROUND(context, gc)		\
+  CG_SET_FILL_COLOR_MAYBE_WITH_CGCOLOR (context, (gc)->xgcv.background,	\
+					(gc)->cg_back_color)
+
+
+#define CG_SET_STROKE_COLOR(context, color)				\
   CGContextSetRGBStrokeColor (context,					\
 			      RED_FROM_ULONG (color) / 255.0f,		\
 			      GREEN_FROM_ULONG (color) / 255.0f,	\
 			      BLUE_FROM_ULONG (color) / 255.0f, 1.0f)
+#if USE_CG_DRAWING && MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+#if MAC_OS_X_VERSION_MIN_REQUIRED == 1020
+#define CG_SET_STROKE_COLOR_MAYBE_WITH_CGCOLOR(context, color, cg_color) \
+  do {								       \
+    if (CGColorGetTypeID != NULL)				       \
+      CGContextSetStrokeColorWithColor (context, cg_color);	       \
+    else							       \
+      CG_SET_STROKE_COLOR (context, color);			       \
+  } while (0)
+#else
+#define CG_SET_STROKE_COLOR_MAYBE_WITH_CGCOLOR(context, color, cg_color) \
+  CGContextSetStrokeColorWithColor (context, cg_color)
+#endif
+#else
+#define CG_SET_STROKE_COLOR_MAYBE_WITH_CGCOLOR(context, color, cg_color) \
+  CG_SET_STROKE_COLOR (context, color)
+#endif
+#define CG_SET_STROKE_COLOR_WITH_GC_FOREGROUND(context, gc) \
+  CG_SET_STROKE_COLOR_MAYBE_WITH_CGCOLOR (context, (gc)->xgcv.foreground, \
+					  (gc)->cg_fore_color)
+
 #if USE_CG_DRAWING
 #define FRAME_CG_CONTEXT(f)	((f)->output_data.mac->cg_context)
 
@@ -289,6 +336,29 @@ static void XSetFont P_ ((Display *, GC, XFontStruct *));
 
 static int max_fringe_bmp = 0;
 static CGImageRef *fringe_bmp = 0;
+
+static CGColorSpaceRef mac_cg_color_space_rgb;
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+static CGColorRef mac_cg_color_black;
+#endif
+
+static void
+init_cg_color ()
+{
+  mac_cg_color_space_rgb = CGColorSpaceCreateDeviceRGB ();
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+#if MAC_OS_X_VERSION_MIN_REQUIRED == 1020
+  /* Don't check the availability of CGColorCreate; this symbol is
+     defined even in Mac OS X 10.1.  */
+  if (CGColorGetTypeID != NULL)
+#endif
+    {
+      float rgba[] = {0.0f, 0.0f, 0.0f, 1.0f};
+
+      mac_cg_color_black = CGColorCreate (mac_cg_color_space_rgb, rgba);
+    }
+#endif
+}
 
 static CGContextRef
 mac_begin_cg_clip (f, gc)
@@ -403,7 +473,7 @@ mac_draw_line (f, gc, x1, y1, x2, y2)
     gy1 += 0.5f, gy2 += 0.5f;
 
   context = mac_begin_cg_clip (f, gc);
-  CG_SET_STROKE_COLOR (context, gc->xgcv.foreground);
+  CG_SET_STROKE_COLOR_WITH_GC_FOREGROUND (context, gc);
   CGContextBeginPath (context);
   CGContextMoveToPoint (context, gx1, gy1);
   CGContextAddLineToPoint (context, gx2, gy2);
@@ -437,8 +507,10 @@ mac_draw_line (f, gc, x1, y1, x2, y2)
 #endif
 }
 
+/* Mac version of XDrawLine (to Pixmap).  */
+
 void
-mac_draw_line_to_pixmap (display, p, gc, x1, y1, x2, y2)
+XDrawLine (display, p, gc, x1, y1, x2, y2)
      Display *display;
      Pixmap p;
      GC gc;
@@ -487,7 +559,7 @@ mac_erase_rectangle (f, gc, x, y, width, height)
   CGContextRef context;
 
   context = mac_begin_cg_clip (f, gc);
-  CG_SET_FILL_COLOR (context, gc->xgcv.background);
+  CG_SET_FILL_COLOR_WITH_GC_BACKGROUND (context, gc);
   CGContextFillRect (context, CGRectMake (x, y, width, height));
   mac_end_cg_clip (f);
 #else
@@ -529,7 +601,7 @@ mac_clear_window (f)
   GC gc = FRAME_NORMAL_GC (f);
 
   context = mac_begin_cg_clip (f, NULL);
-  CG_SET_FILL_COLOR (context, gc->xgcv.background);
+  CG_SET_FILL_COLOR_WITH_GC_BACKGROUND (context, gc);
   CGContextFillRect (context, CGRectMake (0, 0, FRAME_PIXEL_WIDTH (f),
 					  FRAME_PIXEL_HEIGHT (f)));
   mac_end_cg_clip (f);
@@ -572,14 +644,14 @@ mac_draw_cg_image (image, f, gc, src_x, src_y, width, height,
   context = mac_begin_cg_clip (f, gc);
   if (!overlay_p)
     {
-      CG_SET_FILL_COLOR (context, gc->xgcv.background);
+      CG_SET_FILL_COLOR_WITH_GC_BACKGROUND (context, gc);
       CGContextFillRect (context, dest_rect);
     }
   CGContextClipToRect (context, dest_rect);
   CGContextScaleCTM (context, 1, -1);
   CGContextTranslateCTM (context, 0, -port_height);
   if (CGImageIsMask (image))
-    CG_SET_FILL_COLOR (context, gc->xgcv.foreground);
+    CG_SET_FILL_COLOR_WITH_GC_FOREGROUND (context, gc);
   CGContextDrawImage (context,
 		      CGRectMake (dest_x - src_x,
 				  port_height - (dest_y - src_y
@@ -766,7 +838,7 @@ mac_fill_rectangle (f, gc, x, y, width, height)
   CGContextRef context;
 
   context = mac_begin_cg_clip (f, gc);
-  CG_SET_FILL_COLOR (context, gc->xgcv.foreground);
+  CG_SET_FILL_COLOR_WITH_GC_FOREGROUND (context, gc);
   CGContextFillRect (context, CGRectMake (x, y, width, height));
   mac_end_cg_clip (f);
 #else
@@ -797,7 +869,7 @@ mac_draw_rectangle (f, gc, x, y, width, height)
   CGContextRef context;
 
   context = mac_begin_cg_clip (f, gc);
-  CG_SET_STROKE_COLOR (context, gc->xgcv.foreground);
+  CG_SET_STROKE_COLOR_WITH_GC_FOREGROUND (context, gc);
   CGContextStrokeRect (context,
 		       CGRectMake (x + 0.5f, y + 0.5f, width, height));
   mac_end_cg_clip (f);
@@ -984,7 +1056,7 @@ mac_draw_string_common (f, gc, x, y, buf, nchars, bg_width,
 #endif
 	      if (bg_width)
 		{
-		  CG_SET_FILL_COLOR (context, gc->xgcv.background);
+		  CG_SET_FILL_COLOR_WITH_GC_BACKGROUND (context, gc);
 		  CGContextFillRect
 		    (context,
 		     CGRectMake (x, y - FONT_BASE (GC_FONT (gc)),
@@ -995,7 +1067,7 @@ mac_draw_string_common (f, gc, x, y, buf, nchars, bg_width,
 #if !USE_CG_DRAWING
 	    }
 #endif
-	  CG_SET_FILL_COLOR (context, gc->xgcv.foreground);
+	  CG_SET_FILL_COLOR_WITH_GC_FOREGROUND (context, gc);
 	  err = ATSUSetLayoutControls (text_layout,
 				       sizeof (tags) / sizeof (tags[0]),
 				       tags, sizes, values);
@@ -1346,7 +1418,7 @@ mac_draw_image_string_cg (f, gc, x, y, buf, nchars, bg_width, overstrike_p)
 #endif
       if (bg_width)
 	{
-	  CG_SET_FILL_COLOR (context, gc->xgcv.background);
+	  CG_SET_FILL_COLOR_WITH_GC_BACKGROUND (context, gc);
 	  CGContextFillRect
 	    (context,
 	     CGRectMake (gx, y - FONT_BASE (GC_FONT (gc)),
@@ -1357,7 +1429,7 @@ mac_draw_image_string_cg (f, gc, x, y, buf, nchars, bg_width, overstrike_p)
 #if !USE_CG_DRAWING
     }
 #endif
-  CG_SET_FILL_COLOR (context, gc->xgcv.foreground);
+  CG_SET_FILL_COLOR_WITH_GC_FOREGROUND (context, gc);
   CGContextSetFont (context, GC_FONT (gc)->cg_font);
   CGContextSetFontSize (context, GC_FONT (gc)->mac_fontsize);
   if (GC_FONT (gc)->mac_fontsize <= cg_text_anti_aliasing_threshold)
@@ -1560,15 +1632,25 @@ XChangeGC (display, gc, mask, xgcv)
 /* Mac replacement for XCreateGC.  */
 
 GC
-XCreateGC (display, window, mask, xgcv)
+XCreateGC (display, d, mask, xgcv)
      Display *display;
-     Window window;
+     void *d;
      unsigned long mask;
      XGCValues *xgcv;
 {
   GC gc = xmalloc (sizeof (*gc));
 
   bzero (gc, sizeof (*gc));
+#if USE_CG_DRAWING && MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+#if MAC_OS_X_VERSION_MIN_REQUIRED == 1020
+  if (CGColorGetTypeID != NULL)
+#endif
+    {
+      gc->cg_fore_color = gc->cg_back_color = mac_cg_color_black;
+      CGColorRetain (gc->cg_fore_color);
+      CGColorRetain (gc->cg_back_color);
+    }
+#endif
   XChangeGC (display, gc, mask, xgcv);
 
   return gc;
@@ -1584,6 +1666,15 @@ XFreeGC (display, gc)
 {
   if (gc->clip_region)
     DisposeRgn (gc->clip_region);
+#if USE_CG_DRAWING && MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+#if MAC_OS_X_VERSION_MIN_REQUIRED == 1020
+  if (CGColorGetTypeID != NULL)
+#endif
+    {
+      CGColorRelease (gc->cg_fore_color);
+      CGColorRelease (gc->cg_back_color);
+    }
+#endif
   xfree (gc);
 }
 
@@ -1620,6 +1711,29 @@ XSetForeground (display, gc, color)
       gc->fore_color.red = RED16_FROM_ULONG (color);
       gc->fore_color.green = GREEN16_FROM_ULONG (color);
       gc->fore_color.blue = BLUE16_FROM_ULONG (color);
+#if USE_CG_DRAWING && MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+#if MAC_OS_X_VERSION_MIN_REQUIRED == 1020
+      if (CGColorGetTypeID != NULL)
+#endif
+	{
+	  CGColorRelease (gc->cg_fore_color);
+	  if (color == 0)
+	    {
+	      gc->cg_fore_color = mac_cg_color_black;
+	      CGColorRetain (gc->cg_fore_color);
+	    }
+	  else
+	    {
+	      float rgba[4];
+
+	      rgba[0] = gc->fore_color.red / 65535.0f;
+	      rgba[1] = gc->fore_color.green / 65535.0f;
+	      rgba[2] = gc->fore_color.blue / 65535.0f;
+	      rgba[3] = 1.0f;
+	      gc->cg_fore_color = CGColorCreate (mac_cg_color_space_rgb, rgba);
+	    }
+	}
+#endif
     }
 }
 
@@ -1638,6 +1752,29 @@ XSetBackground (display, gc, color)
       gc->back_color.red = RED16_FROM_ULONG (color);
       gc->back_color.green = GREEN16_FROM_ULONG (color);
       gc->back_color.blue = BLUE16_FROM_ULONG (color);
+#if USE_CG_DRAWING && MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+#if MAC_OS_X_VERSION_MIN_REQUIRED == 1020
+      if (CGColorGetTypeID != NULL)
+#endif
+	{
+	  CGColorRelease (gc->cg_back_color);
+	  if (color == 0)
+	    {
+	      gc->cg_back_color = mac_cg_color_black;
+	      CGColorRetain (gc->cg_back_color);
+	    }
+	  else
+	    {
+	      float rgba[4];
+
+	      rgba[0] = gc->back_color.red / 65535.0f;
+	      rgba[1] = gc->back_color.green / 65535.0f;
+	      rgba[2] = gc->back_color.blue / 65535.0f;
+	      rgba[3] = 1.0f;
+	      gc->cg_back_color = CGColorCreate (mac_cg_color_space_rgb, rgba);
+	    }
+	}
+#endif
     }
 }
 
@@ -6454,6 +6591,9 @@ x_free_frame_resources (f)
   if (wp != tip_window)
     remove_window_handler (wp);
 
+#if USE_CG_DRAWING
+  mac_prepare_for_quickdraw (f);
+#endif
   DisposeWindow (wp);
   if (wp == tip_window)
     /* Neither WaitNextEvent nor ReceiveNextEvent receives `window
@@ -8759,14 +8899,18 @@ extern void mac_find_apple_event_spec P_ ((AEEventClass, AEEventID,
 extern OSErr init_coercion_handler P_ ((void));
 
 /* Drag and Drop */
-OSErr install_drag_handler P_ ((WindowRef));
-void remove_drag_handler P_ ((WindowRef));
+extern OSErr install_drag_handler P_ ((WindowRef));
+extern void remove_drag_handler P_ ((WindowRef));
+
+/* Showing help echo string during menu tracking  */
+extern OSStatus install_menu_target_item_handler P_ ((WindowPtr));
 
 #if USE_CARBON_EVENTS
 #ifdef MAC_OSX
 extern void init_service_handler ();
 static Lisp_Object Qservice, Qpaste, Qperform;
 #endif
+
 /* Window Event Handler */
 static pascal OSStatus mac_handle_window_event (EventHandlerCallRef,
 						EventRef, void *);
@@ -8854,7 +8998,7 @@ static const unsigned char fn_keycode_to_keycode_table[] = {
 };
 #endif	/* MAC_OSX */
 
-static unsigned int
+static int
 #if USE_CARBON_EVENTS
 mac_to_emacs_modifiers (UInt32 mods)
 #else
@@ -8901,6 +9045,23 @@ mac_to_emacs_modifiers (EventModifiers mods)
   return result;
 }
 
+static UInt32
+mac_mapped_modifiers (modifiers)
+     UInt32 modifiers;
+{
+  UInt32 mapped_modifiers_all =
+    (NILP (Vmac_control_modifier) ? 0 : controlKey)
+    | (NILP (Vmac_option_modifier) ? 0 : optionKey)
+    | (NILP (Vmac_command_modifier) ? 0 : cmdKey);
+
+#ifdef MAC_OSX
+  mapped_modifiers_all |=
+    (NILP (Vmac_function_modifier) ? 0 : kEventKeyModifierFnMask);
+#endif
+
+  return mapped_modifiers_all & modifiers;
+}
+
 static int
 mac_get_emulated_btn ( UInt32 modifiers )
 {
@@ -8915,10 +9076,42 @@ mac_get_emulated_btn ( UInt32 modifiers )
   return result;
 }
 
+#if TARGET_API_MAC_CARBON
+/***** Code to handle C-g testing  *****/
+extern int quit_char;
+extern int make_ctrl_char P_ ((int));
+
+int
+mac_quit_char_key_p (modifiers, key_code)
+     UInt32 modifiers, key_code;
+{
+  UInt32 char_code;
+  unsigned long some_state = 0;
+  Ptr kchr_ptr = (Ptr) GetScriptManagerVariable (smKCHRCache);
+  int c, emacs_modifiers;
+
+  /* Mask off modifier keys that are mapped to some Emacs modifiers.  */
+  key_code |= (modifiers & ~(mac_mapped_modifiers (modifiers)));
+  char_code = KeyTranslate (kchr_ptr, key_code, &some_state);
+  if (char_code & ~0xff)
+    return 0;
+
+  emacs_modifiers = mac_to_emacs_modifiers (modifiers);
+  if (emacs_modifiers & ctrl_modifier)
+    c = make_ctrl_char (char_code);
+
+  c |= (emacs_modifiers
+	& (meta_modifier | alt_modifier
+	   | hyper_modifier | super_modifier));
+
+  return c == quit_char;
+}
+#endif
+
 #if USE_CARBON_EVENTS
 /* Obtains the event modifiers from the event ref and then calls
    mac_to_emacs_modifiers.  */
-static UInt32
+static int
 mac_event_to_emacs_modifiers (EventRef eventRef)
 {
   UInt32 mods = 0;
@@ -9143,6 +9336,9 @@ do_window_update (WindowPtr win)
 	  GetPortVisibleRegion (GetWindowPort (win), region);
 	  GetRegionBounds (region, &r);
 	  expose_frame (f, r.left, r.top, r.right - r.left, r.bottom - r.top);
+#if USE_CG_DRAWING
+	  mac_prepare_for_quickdraw (f);
+#endif
 	  UpdateControls (win, region);
 	  DisposeRgn (region);
 #else
@@ -9954,21 +10150,10 @@ mac_handle_text_input_event (next_handler, event, data)
 	  err = GetEventParameter (kbd_event, kEventParamKeyModifiers,
 				   typeUInt32, NULL,
 				   sizeof (UInt32), NULL, &modifiers);
-	if (err == noErr)
-	  {
-	    mapped_modifiers =
-	      (NILP (Vmac_control_modifier) ? 0 : controlKey)
-	      | (NILP (Vmac_option_modifier) ? 0 : optionKey)
-	      | (NILP (Vmac_command_modifier) ? 0 : cmdKey);
-#ifdef MAC_OSX
-	    mapped_modifiers |=
-	      (NILP (Vmac_function_modifier) ? 0 : kEventKeyModifierFnMask);
-#endif
-	    if (modifiers & mapped_modifiers)
-	      /* There're mapped modifier keys.  Process it in
-		 XTread_socket.  */
-	      return eventNotHandledErr;
-	  }
+	if (err == noErr && mac_mapped_modifiers (modifiers))
+	  /* There're mapped modifier keys.  Process it in
+	     XTread_socket.  */
+	  return eventNotHandledErr;
 	if (err == noErr)
 	  err = GetEventParameter (kbd_event, kEventParamKeyUnicodes,
 				   typeUnicodeText, NULL, 0, &actual_size,
@@ -10189,6 +10374,8 @@ install_window_handler (window)
 #endif
   if (err == noErr)
     err = install_drag_handler (window);
+  if (err == noErr)
+    err = install_menu_target_item_handler (window);
 
   return err;
 }
@@ -10236,7 +10423,7 @@ main (void)
 
 #if __MWERKS__
   /* set creator and type for files created by MSL */
-  _fcreator = 'EMAx';
+  _fcreator = MAC_EMACS_CREATOR_CODE;
   _ftype = 'TEXT';
 #endif
 
@@ -10893,20 +11080,12 @@ XTread_socket (sd, expected, hold_quit)
 	    SInt16 current_key_script;
 	    UInt32 modifiers = er.modifiers, mapped_modifiers;
 
-	    mapped_modifiers =
-	      (NILP (Vmac_control_modifier) ? 0 : controlKey)
-	      | (NILP (Vmac_option_modifier) ? 0 : optionKey)
-	      | (NILP (Vmac_command_modifier) ? 0 : cmdKey);
-
 #if USE_CARBON_EVENTS && defined (MAC_OSX)
-	    mapped_modifiers |=
-	      (NILP (Vmac_function_modifier) ? 0 : kEventKeyModifierFnMask);
-
 	    GetEventParameter (eventRef, kEventParamKeyModifiers,
 			       typeUInt32, NULL,
 			       sizeof (UInt32), NULL, &modifiers);
 #endif
-	    mapped_modifiers &= modifiers;
+	    mapped_modifiers = mac_mapped_modifiers (modifiers);
 
 #if USE_CARBON_EVENTS && (defined (MAC_OSX) || USE_MAC_TSM)
 	    /* When using Carbon Events, we need to pass raw keyboard
@@ -11460,35 +11639,6 @@ x_delete_display (dpyinfo)
 
 #ifdef MAC_OSX
 void
-mac_check_bundle()
-{
-  extern int inhibit_window_system;
-  extern int noninteractive;
-  CFBundleRef appsBundle;
-
-  /* No need to test if already -nw*/
-  if (inhibit_window_system || noninteractive)
-    return;
-
-  appsBundle = CFBundleGetMainBundle();
-  if (appsBundle != NULL)
-    {
-      CFStringRef cfBI = CFSTR("CFBundleIdentifier");
-      CFTypeRef res = CFBundleGetValueForInfoDictionaryKey(appsBundle, cfBI);
-      /* We found the bundle identifier, now we know we are valid. */
-      if (res != NULL)
-	{
-	  CFRelease(res);
-	  return;
-	}
-    }
-  /* MAC_TODO:  Have this start the bundled executable */
-
-  /* For now, prevent the fatal error by bringing it up in the terminal */
-  inhibit_window_system = 1;
-}
-
-void
 MakeMeTheFrontProcess ()
 {
   ProcessSerialNumber psn;
@@ -11497,37 +11647,6 @@ MakeMeTheFrontProcess ()
   err = GetCurrentProcess (&psn);
   if (err == noErr)
     (void) SetFrontProcess (&psn);
-}
-
-/***** Code to handle C-g testing  *****/
-
-/* Contains the Mac modifier formed from quit_char */
-int mac_quit_char_modifiers = 0;
-int mac_quit_char_keycode;
-extern int quit_char;
-
-static void
-mac_determine_quit_char_modifiers()
-{
-  /* Todo: Determine modifiers from quit_char. */
-  UInt32 qc_modifiers = ctrl_modifier;
-
-  /* Map modifiers */
-  mac_quit_char_modifiers = 0;
-  if (qc_modifiers & ctrl_modifier)  mac_quit_char_modifiers |= controlKey;
-  if (qc_modifiers & shift_modifier) mac_quit_char_modifiers |= shiftKey;
-  if (qc_modifiers & alt_modifier)   mac_quit_char_modifiers |= optionKey;
-}
-
-static void
-init_quit_char_handler ()
-{
-  /* TODO: Let this support keys other the 'g' */
-  mac_quit_char_keycode = 5;
-  /* Look at <architecture/adb_kb_map.h> for details */
-  /* http://gemma.apple.com/techpubs/mac/Toolbox/Toolbox-40.html#MARKER-9-184*/
-
-  mac_determine_quit_char_modifiers();
 }
 #endif	/* MAC_OSX */
 
@@ -11664,8 +11783,6 @@ mac_initialize ()
 #if USE_CARBON_EVENTS
 #ifdef MAC_OSX
   init_service_handler ();
-
-  init_quit_char_handler ();
 #endif	/* MAC_OSX */
 
   init_command_handler ();
@@ -11688,6 +11805,8 @@ mac_initialize ()
 #endif
 
 #if USE_CG_DRAWING
+  init_cg_color ();
+
   mac_init_fringe ();
 #endif
 

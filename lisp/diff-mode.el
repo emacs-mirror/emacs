@@ -1,7 +1,7 @@
 ;;; diff-mode.el --- a mode for viewing/editing context diffs
 
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006 Free Software Foundation, Inc.
+;;   2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: convenience patch diff
@@ -1083,6 +1083,83 @@ Only works for unified diffs."
 			      nil t)
 	   (equal (match-string 1) (match-string 2)))))
 
+(defun diff-sanity-check-context-hunk-half (lines)
+  (let ((count lines))
+    (while
+        (cond
+         ((and (memq (char-after) '(?\s ?! ?+ ?-))
+               (memq (char-after (1+ (point))) '(?\s ?\t)))
+          (decf count) t)
+         ((or (zerop count) (= count lines)) nil)
+         ((memq (char-after) '(?! ?+ ?-))
+          (if (not (and (eq (char-after (1+ (point))) ?\n)
+                        (y-or-n-p "Try to auto-fix whitespace loss damage? ")))
+              (error "End of hunk ambiguously marked")
+            (forward-char 1) (insert " ") (forward-line -1) t))
+         ((< lines 0)
+          (error "End of hunk ambiguously marked"))
+         ((not (y-or-n-p "Try to auto-fix whitespace loss and word-wrap damage? "))
+          (error "Abort!"))
+         ((eolp) (insert "  ") (forward-line -1) t)
+         (t (insert " ") (delete-region (- (point) 2) (- (point) 1)) t))
+      (forward-line))))
+
+(defun diff-sanity-check-hunk ()
+  (let (;; Every modification is protected by a y-or-n-p, so it's probably
+        ;; OK to override a read-only setting.
+        (inhibit-read-only t))
+    (save-excursion
+      (cond
+       ((not (looking-at diff-hunk-header-re))
+        (error "Not recognizable hunk header"))
+
+       ;; A context diff.
+       ((eq (char-after) ?*)
+        (if (not (looking-at "\\*\\{15\\}\n\\*\\*\\* \\([0-9]+\\),\\([0-9]+\\) \\*\\*\\*\\*$"))
+            (error "Unrecognized context diff first hunk header format")
+          (forward-line 2)
+          (diff-sanity-check-context-hunk-half
+           (1+ (- (string-to-number (match-string 2))
+                  (string-to-number (match-string 1)))))
+          (if (not (looking-at "--- \\([0-9]+\\),\\([0-9]+\\) ----$"))
+              (error "Unrecognized context diff second hunk header format")
+            (forward-line)
+            (diff-sanity-check-context-hunk-half
+             (1+ (- (string-to-number (match-string 2))
+                    (string-to-number (match-string 1))))))))
+
+       ;; A unified diff.
+       ((eq (char-after) ?@)
+        (if (not (looking-at
+                  "@@ -[0-9]+,\\([0-9]+\\) \\+[0-9]+,\\([0-9]+\\) @@$"))
+            (error "Unrecognized unified diff hunk header format")
+          (let ((before (string-to-number (match-string 1)))
+                (after (string-to-number (match-string 2))))
+            (forward-line)
+            (while
+                (case (char-after)
+                  (?\s (decf before) (decf after) t)
+                  (?- (decf before) t)
+                  (?+ (decf after) t)
+                  (t
+                   (cond
+                    ((and (zerop before) (zerop after)) nil)
+                    ((or (< before 0) (< after 0))
+                     (error (if (or (zerop before) (zerop after))
+                                "End of hunk ambiguously marked"
+                              "Hunk seriously messed up")))
+                    ((not (y-or-n-p "Try to auto-fix whitespace loss and word-wrap damage? "))
+                     (error "Abort!"))
+                    ((eolp) (insert " ") (forward-line -1) t)
+                    (t (insert " ")
+                       (delete-region (- (point) 2) (- (point) 1)) t))))
+              (forward-line)))))
+
+       ;; A plain diff.
+       (t
+        ;; TODO.
+        )))))
+
 (defun diff-hunk-text (hunk destp char-offset)
   "Return the literal source text from HUNK as (TEXT . OFFSET).
 If DESTP is nil, TEXT is the source, otherwise the destination text.
@@ -1210,6 +1287,11 @@ SWITCHED is non-nil if the patch is already applied."
   (save-excursion
     (let* ((other (diff-xor other-file diff-jump-to-old-file))
 	   (char-offset (- (point) (progn (diff-beginning-of-hunk) (point))))
+           ;; Check that the hunk is well-formed.  Otherwise diff-mode and
+           ;; the user may disagree on what constitutes the hunk
+           ;; (e.g. because an empty line truncates the hunk mid-course),
+           ;; leading to potentially nasty surprises for the user.
+           (_ (diff-sanity-check-hunk))
 	   (hunk (buffer-substring (point)
 				   (save-excursion (diff-end-of-hunk) (point))))
 	   (old (diff-hunk-text hunk reverse char-offset))

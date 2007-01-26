@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1985, 1986, 1987, 1992, 1993, 1994, 1995, 1996,
 ;;   1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006 Free Software Foundation, Inc.
+;;   2006, 2007 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -1223,11 +1223,11 @@ killed."
   (unless (run-hook-with-args-until-failure 'kill-buffer-query-functions)
     (error "Aborted"))
   (when (and (buffer-modified-p) (buffer-file-name))
-    (if (yes-or-no-p (format "Buffer %s is modified; save it first? "
+    (if (yes-or-no-p (format "Buffer %s is modified; kill anyway? "
 			     (buffer-name)))
-	(save-buffer)
-      (unless (yes-or-no-p "Kill and replace the buffer without saving it? ")
-	(error "Aborted"))))
+	(unless (yes-or-no-p "Kill and replace the buffer without saving it? ")
+	  (error "Aborted"))
+      (save-buffer)))
   (let ((obuf (current-buffer))
 	(ofile buffer-file-name)
 	(onum buffer-file-number)
@@ -1289,8 +1289,9 @@ Choose the buffer's name using `generate-new-buffer-name'."
 
 (defun abbreviate-file-name (filename)
   "Return a version of FILENAME shortened using `directory-abbrev-alist'.
-This also substitutes \"~\" for the user's home directory and
-removes automounter prefixes (see the variable `automount-dir-prefix')."
+This also substitutes \"~\" for the user's home directory (unless the
+home directory is a root directory) and removes automounter prefixes
+\(see the variable `automount-dir-prefix')."
   ;; Get rid of the prefixes added by the automounter.
   (save-match-data
     (if (and automount-dir-prefix
@@ -1650,7 +1651,8 @@ Do you want to revisit the file normally now? ")
       (setq default-directory (file-name-directory buffer-file-name))
       ;; Turn off backup files for certain file names.  Since
       ;; this is a permanent local, the major mode won't eliminate it.
-      (and (not (funcall backup-enable-predicate buffer-file-name))
+      (and backup-enable-predicate
+	   (not (funcall backup-enable-predicate buffer-file-name))
 	   (progn
 	     (make-local-variable 'backup-inhibited)
 	     (setq backup-inhibited t)))
@@ -2904,6 +2906,7 @@ the old visited file has been renamed to the new name FILENAME."
   ;; Turn off backup files for certain file names.
   ;; Since this is a permanent local, the major mode won't eliminate it.
   (and buffer-file-name
+       backup-enable-predicate
        (not (funcall backup-enable-predicate buffer-file-name))
        (progn
 	 (make-local-variable 'backup-inhibited)

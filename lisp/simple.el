@@ -1,7 +1,7 @@
 ;;; simple.el --- basic editing commands for Emacs
 
 ;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -4096,7 +4096,7 @@ With argument, do this that many times."
   (kill-region (point) (progn (forward-word arg) (point))))
 
 (defun backward-kill-word (arg)
-  "Kill characters backward until encountering the end of a word.
+  "Kill characters backward until encountering the beginning of a word.
 With argument, do this that many times."
   (interactive "p")
   (kill-word (- arg)))

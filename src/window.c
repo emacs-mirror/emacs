@@ -1,7 +1,7 @@
 /* Window creation, deletion and examination for GNU Emacs.
    Does not include redisplay.
    Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 2000,
-                 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+                 2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1182,7 +1182,8 @@ if it isn't already recorded.  */)
 
   if (! NILP (update)
       && ! (! NILP (w->window_end_valid)
-	    && XFASTINT (w->last_modified) >= BUF_MODIFF (b))
+	    && XFASTINT (w->last_modified) >= BUF_MODIFF (b)
+	    && XFASTINT (w->last_overlay_modified) >= BUF_OVERLAY_MODIFF (b))
       && !noninteractive)
     {
       struct text_pos startp;
@@ -3265,10 +3266,6 @@ set_window_buffer (window, buffer, run_hooks_p, keep_margins_p)
   struct window *w = XWINDOW (window);
   struct buffer *b = XBUFFER (buffer);
   int count = SPECPDL_INDEX ();
-#ifdef HAVE_WINDOW_SYSTEM
-  struct frame *f = XFRAME (w->frame);
-  Display_Info *dpyinfo;
-#endif
 
   w->buffer = buffer;
 
@@ -3348,15 +3345,6 @@ set_window_buffer (window, buffer, run_hooks_p, keep_margins_p)
 	  && ! NILP (Vrun_hooks))
 	call1 (Vrun_hooks, Qwindow_configuration_change_hook);
     }
-
-#ifdef HAVE_WINDOW_SYSTEM
-  BLOCK_INPUT;
-  if (f && FRAME_X_OUTPUT (f)
-      && (dpyinfo = FRAME_X_DISPLAY_INFO (f))
-      && EQ (window, dpyinfo->mouse_face_window))
-    clear_mouse_face (dpyinfo);
-  UNBLOCK_INPUT;
-#endif
 
   unbind_to (count, Qnil);
 }

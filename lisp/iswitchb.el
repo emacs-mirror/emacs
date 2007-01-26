@@ -1,7 +1,7 @@
 ;;; iswitchb.el --- switch between buffers using substrings
 
 ;; Copyright (C) 1996, 1997, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006 Free Software Foundation, Inc.
+;;   2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Stephen Eglen <stephen@gnu.org>
 ;; Maintainer: Stephen Eglen <stephen@gnu.org>
@@ -495,14 +495,13 @@ interfere with other minibuffer usage.")
 
 (defvar iswitchb-global-map
   (let ((map (make-sparse-keymap)))
-    (substitute-key-definition 'switch-to-buffer ; normally C-x b
-			       'iswitchb-buffer map global-map)
-    (substitute-key-definition 'switch-to-buffer-other-window ; C-x 4 b
-			       'iswitchb-buffer-other-window map global-map)
-    (substitute-key-definition 'switch-to-buffer-other-frame ; C-x 5 b
-			       'iswitchb-buffer-other-frame map global-map)
-    (substitute-key-definition 'display-buffer ; C-x 4 C-o
-			       'iswitchb-display-buffer map global-map)
+    (dolist (b '((switch-to-buffer . iswitchb-buffer)
+                 (switch-to-buffer-other-window . iswitchb-buffer-other-window)
+                 (switch-to-buffer-other-frame . iswitchb-buffer-other-frame)
+                 (display-buffer . iswitchb-display-buffer)))
+      (if (fboundp 'command-remapping)
+          (define-key map (vector 'remap (car b)) (cdr b))
+        (substitute-key-definition (car b) (cdr b) map global-map)))
     map)
   "Global keymap for `iswitchb-mode'.")
 

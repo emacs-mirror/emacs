@@ -1,8 +1,8 @@
 #						-*-Mode: Fundamental-*-
 # X keymap file for rlk with some emacsified bindings
 #
-# Copyright (c) 1999, 2003, 2006
-# Free software Foundation, Inc.
+# Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007
+#   Free Software Foundation, Inc.
 # See the end of the file for copying conditions.
 #
 # This file contains the default keyboard mapping.  The first column contains a X keyboard code; the other

@@ -1,7 +1,7 @@
 ;;; faces.el --- Lisp faces
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+;;   2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -2173,6 +2173,12 @@ created."
 (defface vertical-border
   '((((type tty)) :inherit mode-line-inactive))
   "Face used for vertical window dividers on ttys."
+  :version "22.1"
+  :group 'basic-faces)
+
+(defface momentary
+  '((t (:inherit mode-line)))
+  "Face for momentarily displaying text in the current buffer."
   :version "22.1"
   :group 'basic-faces)
 

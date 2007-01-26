@@ -1,9 +1,9 @@
 ;;; mule.el --- basic commands for multilingual environment
 
-;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006
+;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
 ;;   Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006
+;;   2005, 2006, 2007
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 ;; Copyright (C) 2003
@@ -2274,7 +2274,12 @@ This function is intended to be added to `auto-coding-functions'."
 			;; In case of no header, search only 10 lines.
 			(forward-line 10))
 		    (point))))
-  (when (re-search-forward "<meta\\s-+http-equiv=[\"']?content-type[\"']?\\s-+content=[\"']text/\\sw+;\\s-*charset=\\(.+?\\)[\"']" size t)
+  ;; Make sure that the buffer really contains an HTML document, by
+  ;; checking that it starts with a doctype or a <HTML> start tag
+  ;; (allowing for whitespace at bob).  Note: 'DOCTYPE NETSCAPE' is
+  ;; useful for Mozilla bookmark files.
+  (when (and (re-search-forward "\\`[[:space:]\n]*\\(<!doctype[[:space:]\n]+\\(html\\|netscape\\)\\|<html\\)" size t)
+	     (re-search-forward "<meta\\s-+http-equiv=[\"']?content-type[\"']?\\s-+content=[\"']text/\\sw+;\\s-*charset=\\(.+?\\)[\"']" size t))
     (let* ((match (match-string 1))
 	   (sym (intern (downcase match))))
       (if (coding-system-p sym)

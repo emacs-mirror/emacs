@@ -88,44 +88,25 @@
       leim-21.3-src.tar.gz
 
 
-* Distributions in multi-file .zip format
-
-  A second distribution in the form of multiple small .zip files is also
-  provided, for the benefit of people who have unreliable internet
-  connections, or who need to copy the distribution onto floppy disks:
-
-      em213b*.zip
-
-  This is equivalent to getting emacs-21.3-bin-i386.tar.gz above.
-  The lisp source is available as em213l*.zip.
-
-
 * Distributions for non-x86 platforms
 
-  I try to make this port available for all platforms supported by
-  Windows (it should build on all supported Windows NT/9x platforms).
-  However, I do not always have access to non-x86 platforms, and so I
-  cannot guarantee to provide precompiled distributions for the other
-  platforms myself.  If you find there are no binaries for your
-  platform, and you have access to a Microsoft compiler, then you can
-  download the source and compile Emacs yourself (and, if you do, please
-  consider contributing your executables; send me mail and we can make
-  arrangements for making them available on this ftp server.)
-
+  Distributions for non-x86 platforms are no longer supplied. Older
+  platforms supported by Windows NT no longer seem to be in demand,
+  and Emacs is yet to be ported to 64bit Windows platforms. If you are
+  willing to help port Emacs to 64bit versions of Windows, your
+  contribution will be welcome on the emacs-devel mailing list.
 
 * Unpacking distributions
 
-  Programs for handling the distribution file formats can be found in
-  the utilities directory: 
+  Ports of GNU gzip and GNU tar for handling the distribution file
+  formats can be found in several places that distribute ports of GNU
+  programs, for example:
 
-    http://mirrors.sunsite.dk/gnu/windows/emacs/utilities/
+    Cygwin:   http://www.cygwin.com/
+    GnuWin32: http://gnuwin32.sourceforge.net/
 
-  For gzipped tar files, you will need either gunzip.exe and tar.exe
-  together, or djtarnt.exe.  djtarnt.exe can also unpack .zip files.  I
-  strongly urge you to use these utilities since they were the ones used
-  to create the distributions; the most common problem people have in
-  trying to get Emacs to run is due to some other utility program
-  corrupting the distribution while unpacking.
+  Many other popular file compression utilities for Windows are also
+  able to handle gzipped tar files.
 
   Open a command prompt (MSDOS) window.  Decide on a directory in which
   to place Emacs.  Move the distribution to that directory, and then
@@ -151,25 +132,10 @@
   You may be prompted to rename or overwrite directories when using
   djtarnt: simply type return to continue (this is harmless).
 
-  If you have the multi-file .zip distribution, use djtarnt to unpack
-  all of the .zip files:
-
-    % djtarnt -x *.zip
-
   Once you have unpacked a precompiled distribution of Emacs, it should
   have the following subdirectories:
 
-	bin	etc	info	lisp	lock	site-lisp
-
-  If your utility failed to create the lock directory, then you can
-  simply create it by hand (it is initially empty).
-
-  One final step is needed only when installing from the multi-file .zip
-  distribution, in order to recreate emacs.exe from its fragments (it is
-  too big to fit on a floppy even when zipped):
-
-    % cd emacs-21.3\bin
-    % stitch
+	bin	etc	info	lisp	site-lisp
 
 
 * Unpacking with other tools
@@ -178,9 +144,9 @@
   the following to be sure the distribution was not corrupted:
 
   + Be sure to disable the CR/LF translation or the executables will be
-    unusable.  Older versions of WinZipNT would enable this translation
-    by default.  If you are using WinZipNT, disable it.  (I don't have
-    WinZipNT myself, and I do not know the specific commands necessary
+    unusable.  Older versions of WinZip would enable this translation
+    by default.  If you are using WinZip, disable it.  (I don't have
+    WinZip myself, and I do not know the specific commands necessary
     to disable it.)
 
   + Check that filenames were not truncated to 8.3.  For example, there
@@ -188,12 +154,9 @@
     abbrevli.el, your distribution has been corrupted while unpacking
     and Emacs will not start.
 
-  + I've been told that some utilities (WinZip again?) don't create the
-    lock subdirectory.  The lock subdirectory needs to be created.
-
-  + I've also had reports that the "gnu-win32" port of tar corrupts the
-    executables.  Use the version of tar or djtarnt in the utilities
-    directory instead.
+  + I've also had reports that some older "gnuwin32" port of tar
+    corrupts the executables.  Use the latest version from the gnuwin32
+    site or another port of tar instead.
 
   If you believe you have unpacked the distributions correctly and are
   still encountering problems, see the section on Further Information
@@ -204,11 +167,12 @@
 
   If you would like to compile Emacs from source, download the source
   distribution, unpack it in the same manner as a precompiled
-  distribution, and look in the file nt/INSTALL for detailed directions.
-  You can either use the Microsoft compiler included with Visual C++, or
-  GCC 2.95 or later with MinGW support, to compile the source.  The port
-  of GCC included in Cygwin is supported, but check the nt/INSTALL file
-  if you have trouble since some builds of GNU make aren't supported.
+  distribution, and look in the file nt/INSTALL for detailed
+  directions.  You can either use the Microsoft compiler included with
+  Visual C++ 2003 or earlier, or GCC 2.95 or later with MinGW support,
+  to compile the source.  The port of GCC included in Cygwin is
+  supported, but check the nt/INSTALL file if you have trouble since
+  some builds of GNU make aren't supported.
 
 
 * Further information
@@ -250,5 +214,8 @@
 
   Enjoy!
 
-  Andrew Innes
+  Jason Rumney
+  (jasonr@gnu.org)
+
+  Most of this README was contributed by former maintainer Andrew Innes
   (andrewi@gnu.org)

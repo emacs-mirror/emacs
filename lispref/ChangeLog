@@ -1,3 +1,35 @@
+2007-01-23  Martin Rudalics  <rudalics@gmx.at>
+
+	* backups.texi (Reverting): Use "buffer" instead of "file"
+	when talking about major and minor modes.
+
+2007-01-21  Richard Stallman  <rms@gnu.org>
+
+	* help.texi (Documentation): Add xref to Documentation Tips.
+
+2007-01-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* tips.texi (Coding Conventions): Fix typos.
+
+2007-01-05  Richard Stallman  <rms@gnu.org>
+
+	* modes.texi (Defining Minor Modes): Fix previous change.
+
+2007-01-03  Richard Stallman  <rms@gnu.org>
+
+	* customize.texi (Variable Definitions, Customization Types):
+	Don't use * in doc string for defcustom.
+
+2007-01-02  Richard Stallman  <rms@gnu.org>
+
+	* variables.texi (Variable Aliases): Clarify that aliases vars
+	always have the same value.
+
+	* processes.texi (Bindat Spec): Fix Texinfo usage.
+
+	* modes.texi (Defining Minor Modes): Explain effect of command
+	defined with define-global-minor-mode on new buffers.
+
 2006-12-30  Kim F. Storm  <storm@cua.dk>
 
 	* keymaps.texi (Tool Bar): Describe `grow-only' value of
@@ -53,8 +85,8 @@
 
 2006-12-16  Eli Zaretskii  <eliz@gnu.org>
 
-	* internals.texi (Building Emacs, Writing Emacs Primitives): Add
-	index entries.
+	* internals.texi (Building Emacs, Writing Emacs Primitives):
+	Add index entries.
 
 2006-12-11  Richard Stallman  <rms@gnu.org>
 
@@ -5567,7 +5599,7 @@ Tue Apr 11 12:23:28 1989  Robert J. Chassell  (bob@rice-chex.ai.mit.edu)
 ;; End:
 
     Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-      2005, 2006 Free Software Foundation, Inc.
+      2005, 2006, 2007 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
 

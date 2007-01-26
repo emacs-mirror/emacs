@@ -1,7 +1,7 @@
 /* Lisp functions pertaining to editing.
    Copyright (C) 1985, 1986, 1987, 1989, 1993, 1994, 1995, 1996,
                  1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006 Free Software Foundation, Inc.
+                 2005, 2006, 2007 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1312,7 +1312,10 @@ DEFUN ("user-uid", Fuser_uid, Suser_uid, 0, 0, 0,
 Value is an integer or float, depending on the value.  */)
      ()
 {
-  return make_fixnum_or_float (geteuid ());
+  /* Assignment to EMACS_INT stops GCC whining about limited range of
+     data type.  */
+  EMACS_INT euid = geteuid ();
+  return make_fixnum_or_float (euid);
 }
 
 DEFUN ("user-real-uid", Fuser_real_uid, Suser_real_uid, 0, 0, 0,
@@ -1320,7 +1323,10 @@ DEFUN ("user-real-uid", Fuser_real_uid, Suser_real_uid, 0, 0, 0,
 Value is an integer or float, depending on the value.  */)
      ()
 {
-  return make_fixnum_or_float (getuid ());
+  /* Assignment to EMACS_INT stops GCC whining about limited range of
+     data type.  */
+  EMACS_INT uid = getuid ();
+  return make_fixnum_or_float (uid);
 }
 
 DEFUN ("user-full-name", Fuser_full_name, Suser_full_name, 0, 1, 0,
@@ -1448,9 +1454,9 @@ most significant 16 bits of the seconds, while the second has the
 least significant 16 bits.  The third integer gives the microsecond
 count.
 
-On systems that can't determine the run time, get-internal-run-time
-does the same thing as current-time.  The microsecond count is zero on
-systems that do not provide resolution finer than a second.  */)
+On systems that can't determine the run time, `get-internal-run-time'
+does the same thing as `current-time'.  The microsecond count is zero
+on systems that do not provide resolution finer than a second.  */)
      ()
 {
 #ifdef HAVE_GETRUSAGE
@@ -1676,7 +1682,9 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
   /* This is probably enough.  */
   size = SBYTES (format_string) * 6 + 50;
 
+  BLOCK_INPUT;
   tm = ut ? gmtime (&value) : localtime (&value);
+  UNBLOCK_INPUT;
   if (! tm)
     error ("Specified time is not representable");
 
@@ -1688,18 +1696,22 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
       int result;
 
       buf[0] = '\1';
+      BLOCK_INPUT;
       result = emacs_memftimeu (buf, size, SDATA (format_string),
 				SBYTES (format_string),
 				tm, ut);
+      UNBLOCK_INPUT;
       if ((result > 0 && result < size) || (result == 0 && buf[0] == '\0'))
 	return code_convert_string_norecord (make_unibyte_string (buf, result),
 					     Vlocale_coding_system, 0);
 
       /* If buffer was too small, make it bigger and try again.  */
+      BLOCK_INPUT;
       result = emacs_memftimeu (NULL, (size_t) -1,
 				SDATA (format_string),
 				SBYTES (format_string),
 				tm, ut);
+      UNBLOCK_INPUT;
       size = result + 1;
     }
 }
@@ -1707,7 +1719,7 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
 DEFUN ("decode-time", Fdecode_time, Sdecode_time, 0, 1, 0,
        doc: /* Decode a time value as (SEC MINUTE HOUR DAY MONTH YEAR DOW DST ZONE).
 The optional SPECIFIED-TIME should be a list of (HIGH LOW . IGNORED),
-as from `current-time' and `file-attributes', or `nil' to use the
+as from `current-time' and `file-attributes', or nil to use the
 current time.  The obsolete form (HIGH . LOW) is also still accepted.
 The list has the following nine members: SEC is an integer between 0
 and 60; SEC is 60 for a leap second, which only some operating systems
@@ -1730,7 +1742,9 @@ DOW and ZONE.)  */)
   if (! lisp_time_argument (specified_time, &time_spec, NULL))
     error ("Invalid time specification");
 
+  BLOCK_INPUT;
   decoded_time = localtime (&time_spec);
+  UNBLOCK_INPUT;
   if (! decoded_time)
     error ("Specified time is not representable");
   XSETFASTINT (list_args[0], decoded_time->tm_sec);
@@ -1746,7 +1760,9 @@ DOW and ZONE.)  */)
 
   /* Make a copy, in case gmtime modifies the struct.  */
   save_tm = *decoded_time;
+  BLOCK_INPUT;
   decoded_time = gmtime (&time_spec);
+  UNBLOCK_INPUT;
   if (decoded_time == 0)
     list_args[8] = Qnil;
   else
@@ -1802,7 +1818,11 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
   if (CONSP (zone))
     zone = Fcar (zone);
   if (NILP (zone))
-    time = mktime (&tm);
+    {
+      BLOCK_INPUT;
+      time = mktime (&tm);
+      UNBLOCK_INPUT;
+    }
   else
     {
       char tzbuf[100];
@@ -1827,7 +1847,9 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
 	 value doesn't suffice, since that would mishandle leap seconds.  */
       set_time_zone_rule (tzstring);
 
+      BLOCK_INPUT;
       time = mktime (&tm);
+      UNBLOCK_INPUT;
 
       /* Restore TZ to previous value.  */
       newenv = environ;
@@ -1871,7 +1893,9 @@ but this is considered obsolete.  */)
   /* Convert to a string, checking for out-of-range time stamps.
      Don't use 'ctime', as that might dump core if VALUE is out of
      range.  */
+  BLOCK_INPUT;
   tm = localtime (&value);
+  UNBLOCK_INPUT;
   if (! (tm && TM_YEAR_IN_ASCTIME_RANGE (tm->tm_year) && (tem = asctime (tm))))
     error ("Specified time is not representable");
 
@@ -1927,9 +1951,21 @@ the data it can't find.  */)
   struct tm *t;
   struct tm gmt;
 
-  if (lisp_time_argument (specified_time, &value, NULL)
-      && (t = gmtime (&value)) != 0
-      && (gmt = *t, t = localtime (&value)) != 0)
+  if (!lisp_time_argument (specified_time, &value, NULL))
+    t = NULL;
+  else
+    {
+      BLOCK_INPUT;
+      t = gmtime (&value);
+      if (t)
+	{
+	  gmt = *t;
+	  t = localtime (&value);
+	}
+      UNBLOCK_INPUT;
+    }
+
+  if (t)
     {
       int offset = tm_diff (t, &gmt);
       char *s = 0;
@@ -2247,8 +2283,7 @@ usage: (insert-before-markers-and-inherit &rest ARGS)  */)
 }
 
 DEFUN ("insert-char", Finsert_char, Sinsert_char, 2, 3, 0,
-       doc: /* Insert COUNT (second arg) copies of CHARACTER (first arg).
-Both arguments are required.
+       doc: /* Insert COUNT copies of CHARACTER.
 Point, and before-insertion markers, are relocated as in the function `insert'.
 The optional third arg INHERIT, if non-nil, says to inherit text properties
 from adjoining text, if those properties are sticky.  */)
@@ -3271,7 +3306,7 @@ save_restriction_restore (data)
 DEFUN ("save-restriction", Fsave_restriction, Ssave_restriction, 0, UNEVALLED, 0,
        doc: /* Execute BODY, saving and restoring current buffer's restrictions.
 The buffer's restrictions make parts of the beginning and end invisible.
-(They are set up with `narrow-to-region' and eliminated with `widen'.)
+\(They are set up with `narrow-to-region' and eliminated with `widen'.)
 This special form, `save-restriction', saves the current buffer's restrictions
 when it is entered, and restores them when it is exited.
 So any `narrow-to-region' within BODY lasts only until the end of the form.
@@ -3733,7 +3768,12 @@ usage: (format STRING &rest OBJECTS)  */)
 		if (*format != 'd' && *format != 'o' && *format != 'x'
 		    && *format != 'i' && *format != 'X' && *format != 'c')
 		  error ("Invalid format operation %%%c", *format);
-		args[n] = Ftruncate (args[n], Qnil);
+		/* This fails unnecessarily if args[n] is bigger than
+		   most-positive-fixnum but smaller than MAXINT.
+		   These cases are important because we sometimes use floats
+		   to represent such integer values (typically such values
+		   come from UIDs or PIDs).  */
+		/* args[n] = Ftruncate (args[n], Qnil); */
 	      }
 
 	    /* Note that we're using sprintf to print floats,
@@ -3901,8 +3941,15 @@ usage: (format STRING &rest OBJECTS)  */)
 		  else
 		    sprintf (p, this_format, XUINT (args[n]));
 		}
-	      else
+	      else if (format[-1] == 'e' || format[-1] == 'f' || format[-1] == 'g')
 		sprintf (p, this_format, XFLOAT_DATA (args[n]));
+	      else if (format[-1] == 'd')
+		/* Maybe we should use "%1.0f" instead so it also works
+		   for values larger than MAXINT.  */
+		sprintf (p, this_format, (EMACS_INT) XFLOAT_DATA (args[n]));
+	      else
+		/* Don't sign-extend for octal or hex printing.  */
+		sprintf (p, this_format, (EMACS_UINT) XFLOAT_DATA (args[n]));
 
 	      if (p > buf
 		  && multibyte

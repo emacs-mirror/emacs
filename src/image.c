@@ -1,6 +1,6 @@
 /* Functions for image support on window system.
    Copyright (C) 1989, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-                 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+                 2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -122,8 +122,6 @@ typedef struct mac_bitmap_record Bitmap_Record;
 #define FRAME_X_VISUAL(f) FRAME_X_DISPLAY_INFO (f)->visual
 #define x_defined_color mac_defined_color
 #define DefaultDepthOfScreen(screen) (one_mac_display_info.n_planes)
-#define XDrawLine(display, w, gc, x1, y1, x2, y2) \
-	mac_draw_line_to_pixmap(display, w, gc, x1, y1, x2, y2)
 
 #endif /* MAC_OS */
 
@@ -5251,14 +5249,12 @@ x_disable_image (f, img)
       GC gc;
 
 #ifdef MAC_OS
-#define XCreateGC_pixmap(dpy, pixmap) XCreateGC (dpy, NULL, 0, NULL)
 #define MaskForeground(f)  PIX_MASK_DRAW
 #else
-#define XCreateGC_pixmap(dpy, pixmap) XCreateGC (dpy, pixmap, 0, NULL)
 #define MaskForeground(f)  WHITE_PIX_DEFAULT (f)
 #endif
 
-      gc = XCreateGC_pixmap (dpy, img->pixmap);
+      gc = XCreateGC (dpy, img->pixmap, 0, NULL);
       XSetForeground (dpy, gc, BLACK_PIX_DEFAULT (f));
       XDrawLine (dpy, img->pixmap, gc, 0, 0,
 		 img->width - 1, img->height - 1);
@@ -5268,7 +5264,7 @@ x_disable_image (f, img)
 
       if (img->mask)
 	{
-	  gc = XCreateGC_pixmap (dpy, img->mask);
+	  gc = XCreateGC (dpy, img->mask, 0, NULL);
 	  XSetForeground (dpy, gc, MaskForeground (f));
 	  XDrawLine (dpy, img->mask, gc, 0, 0,
 		     img->width - 1, img->height - 1);

@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+@c   2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Building, Maintaining, Programs, Top
 @chapter Compiling and Testing Programs
@@ -1099,8 +1099,11 @@ value for pointers and just the name and type otherwise.  Root expressions
 also display the frame address as a tooltip to help identify the frame
 in which they were defined.
 
-  To expand or contract a complex data type, click @kbd{Mouse-2}
-or press @key{SPC} on the tag to the left of the expression.
+  To expand or contract a complex data type, click @kbd{Mouse-2} or
+press @key{SPC} on the tag to the left of the expression.  Emacs asks
+for confirmation before expanding the expression if its number of
+immediate children exceeds the value of the variable
+@code{gdb-max-children}.
 
 @kindex D @r{(GDB speedbar)}
 @findex gdb-var-delete

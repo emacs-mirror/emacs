@@ -1,7 +1,7 @@
 ;;; keypad.el --- simplified keypad bindings
 
-;; Copyright (C) 2002, 2003, 2004, 2005,
-;;   2006 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006,
+;;   2007 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard convenience
@@ -194,9 +194,9 @@ decimal key must be specified."
 
 ;;;###autoload
 (defun keypad-setup (setup &optional numlock shift decimal)
-  "Set keypad bindings in function-key-map according to SETUP.
+  "Set keypad bindings in `function-key-map' according to SETUP.
 If optional second argument NUMLOCK is non-nil, the NumLock On bindings
-are changed. Otherwise, the NumLock Off bindings are changed.
+are changed.  Otherwise, the NumLock Off bindings are changed.
 If optional third argument SHIFT is non-nil, the shifted keypad
 keys are bound.
 

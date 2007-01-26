@@ -2938,6 +2938,8 @@ Valid values are:
 
    frame-parameter	The foreground-color frame parameter will be used.
 
+   frame-parameter	The foreground-color frame parameter will be used.
+
    NUMBER	It's a real value between 0.0 (black) and 1.0 (white) that
 		indicate the gray color.
 
@@ -2978,6 +2980,8 @@ color, the `ps-default-bg' color should be used.
 Valid values are:
 
    t		The background color of Emacs session will be used.
+
+   frame-parameter	The background-color frame parameter will be used.
 
    frame-parameter	The background-color frame parameter will be used.
 

@@ -1,6 +1,6 @@
 #  -*- Makefile -*- for GNU Emacs on the Microsoft W32 API.
 #  Copyright (C) 2000, 2001, 2002, 2003, 2004,
-#                2005, 2006 Free Software Foundation, Inc.
+#                2005, 2006, 2007 Free Software Foundation, Inc.
 #
 #  This file is part of GNU Emacs.
 #
@@ -24,7 +24,7 @@ ALL = make-docfile hexl ctags etags movemail ebrowse sorted-doc digest-doc emacs
 
 .PHONY: $(ALL)
 
-VERSION		= 22.0.92
+VERSION		= 22.0.93
 
 LOCAL_FLAGS	= -DWINDOWSNT -DDOS_NT -DSTDC_HEADERS=1 -DNO_LDAV=1 \
 		  -DNO_ARCHIVES=1 -DHAVE_CONFIG_H=1 -I../nt/inc \

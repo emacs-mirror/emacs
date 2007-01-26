@@ -1,6 +1,6 @@
 /* Definitions and headers for communication with X protocol.
    Copyright (C) 1989, 1993, 1994, 1998, 1999, 2000, 2001, 2002, 2003,
-                 2004, 2005, 2006 Free Software Foundation, Inc.
+                 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -396,7 +396,10 @@ struct x_display_info
   size_t x_dnd_atoms_size;
   size_t x_dnd_atoms_length;
 
-  int have_net_atoms;
+  /* Extended window manager hints, Atoms supported by the window manager  */
+  Atom *net_supported_atoms;
+  int nr_net_supported_atoms;
+  Window net_supported_window;
 };
 
 #ifdef HAVE_X_I18N

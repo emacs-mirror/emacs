@@ -1,10 +1,11 @@
 ;;; cc-langs.el --- language specific settings for CC Mode
 
 ;; Copyright (C) 1985, 1987, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006  Free Software
-;;   Foundation, Inc.
+;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
+;;   Free Software Foundation, Inc.
 
-;; Authors:    1998- Martin Stjernholm
+;; Authors:    2002- Alan Mackenzie
+;;             1998- Martin Stjernholm
 ;;             1992-1999 Barry A. Warsaw
 ;;             1987 Dave Detlefs and Stewart Clamen
 ;;             1985 Richard M. Stallman
@@ -208,23 +209,31 @@ the evaluated constant value at compile time."
   ;; Some helper functions used when building the language constants.
 
   (defun c-filter-ops (ops opgroup-filter op-filter &optional xlate)
-    ;; Used to filter operators from the list OPS in a DWIM:ey way:
-    ;; OPS either has the structure of `c-operators', as a single
+    ;; Extract a subset of the operators in the list OPS in a DWIM:ey
+    ;; way.  The return value is a plain list of operators:  
+    ;; 
+    ;; OPS either has the structure of `c-operators', is a single
     ;; group in `c-operators', or is a plain list of operators.
-    ;; OPGROUP-FILTER is used filter out the operator groups.  It can
-    ;; be t to choose all groups, a list of the group type symbols to
-    ;; accept, or a function which will be called with the group
-    ;; symbol for each group and should return non-nil for those to
-    ;; include.  OP-FILTER filters the individual operators in each
-    ;; group.  It can be t to choose all operators, a regexp to test
-    ;; against each operator, or a function which will be called for
-    ;; each operator and should return non-nil for those to include.
+    ;; 
+    ;; OPGROUP-FILTER specifies how to select the operator groups.  It
+    ;; can be t to choose all groups, a list of group type symbols
+    ;; (such as 'prefix) to accept, or a function which will be called
+    ;; with the group symbol for each group and should return non-nil
+    ;; if that group is to be included.
+    ;;
+    ;; OP-FILTER filters the individual operators in each group.  It
+    ;; can be t to choose all operators, a regexp to test against each
+    ;; operator, or a function which will be called for each operator
+    ;; and should return non-nil for those to include.
+    ;;
     ;; If XLATE is given, it's a function which is called for each
     ;; matching operator and its return value is collected instead.
     ;; If it returns a list, the elements are spliced directly into
     ;; the final result, which is returned as a list with duplicates
-    ;; removed using `equal'.  `c-mode-syntax-table' for the current
-    ;; mode is in effect during the whole procedure.
+    ;; removed using `equal'.
+    ;;
+    ;; `c-mode-syntax-table' for the current mode is in effect during
+    ;; the whole procedure.
     (unless (listp (car-safe ops))
       (setq ops (list ops)))
     (cond ((eq opgroup-filter t)
@@ -719,11 +728,11 @@ expression."
 (c-lang-defconst c-operators
   "List describing all operators, along with their precedence and
 associativity.  The order in the list corresponds to the precedence of
-the operators: The operators in each element is a group with the same
+the operators: The operators in each element are a group with the same
 precedence, and the group has higher precedence than the groups in all
-following elements.  The car of each element describes the type of of
-the operator group, and the cdr is a list of the operator tokens in
-it.  The operator group types are:
+following elements.  The car of each element describes the type of the
+operator group, and the cdr is a list of the operator tokens in it.
+The operator group types are:
 
 'prefix         Unary prefix operators.
 'postfix        Unary postfix operators.

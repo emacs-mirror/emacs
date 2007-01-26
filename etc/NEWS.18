@@ -1,5 +1,5 @@
 GNU Emacs NEWS -- history of user-visible changes.  17-Aug-1988
-Copyright (C) 1988, 2006 Free Software Foundation, Inc.
+Copyright (C) 1988, 2006, 2007  Free Software Foundation, Inc.
 See the end for copying conditions.
 
 This file is about changes in emacs version 18.
@@ -1601,7 +1601,7 @@ C_SWITCH_MACHINE can be defined by the m- file to specify extra `cc' switches.
 ----------------------------------------------------------------------
 Copyright information:
 
-Copyright (C) 1988, 2006 Free Software Foundation, Inc.
+Copyright (C) 1988, 2006, 2007  Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the

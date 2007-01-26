@@ -2359,6 +2359,16 @@ This results from a bug in a VERY old version of GNU Sed.  To solve
 the problem, install the current version of GNU Sed, then rerun
 Emacs's configure script.
 
+*** Building a 32-bit executable on a 64-bit GNU/Linux architecture.
+
+First ensure that the necessary 32-bit system libraries and include
+files are installed. Then use:
+
+  env CC="gcc -m32" ./configure --build=i386-linux-gnu \
+    --x-libraries=/usr/X11R6/lib
+
+(using the location of the 32-bit X libraries on your system).
+
 *** Building the Cygwin port for MS-Windows can fail with some GCC version
 
 Building Emacs 22 with Cygwin builds of GCC 3.4.4-1 and 3.4.4-2 is
@@ -3690,8 +3700,8 @@ This problem will not happen if the m-...h file for your type
 of machine defines NO_UNION_TYPE.
 
 
-Copyright 1987, 1988, 1989, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-   2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+Copyright (C) 1987, 1988, 1989, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+   2001, 2002, 2003, 2004, 2005, 2006, 2007  Free Software Foundation, Inc.
 
 Copying and redistribution of this file with or without modification
 are permitted without royalty provided this notice is preserved.

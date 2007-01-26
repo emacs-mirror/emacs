@@ -1,7 +1,7 @@
 ;;; vhdl-mode.el --- major mode for editing VHDL code
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006  Free Software Foundation, Inc.
+;;   2001, 2002, 2003, 2004, 2005, 2006, 2007  Free Software Foundation, Inc.
 
 ;; Authors:     Reto Zimmermann <reto@gnu.org>
 ;;              Rodney J. Whitby <software.vhdl-mode@rwhitby.net>
@@ -13851,7 +13851,7 @@ entity ENT-KEY."
 	    (vhdl-save-cache (car project-list))
 	    (setq project-list (cdr project-list)))
 	  (message "Saving hierarchy caches...done")))
-    (error (progn (vhdl-warning "ERROR:  An error occured while saving the hierarchy caches")
+    (error (progn (vhdl-warning "ERROR:  An error occurred while saving the hierarchy caches")
 		  (sit-for 2)))))
 
 (defun vhdl-save-cache (key)

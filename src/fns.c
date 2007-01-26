@@ -1,7 +1,7 @@
 /* Random utility Lisp functions.
    Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997,
                  1998, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006 Free Software Foundation, Inc.
+                 2005, 2006, 2007 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -4041,6 +4041,7 @@ maybe_resize_hash_table (h)
     {
       int old_size = HASH_TABLE_SIZE (h);
       int i, new_size, index_size;
+      EMACS_INT nsize;
 
       if (INTEGERP (h->rehash_size))
 	new_size = old_size + XFASTINT (h->rehash_size);
@@ -4050,7 +4051,10 @@ maybe_resize_hash_table (h)
       index_size = next_almost_prime ((int)
 				      (new_size
 				       / XFLOATINT (h->rehash_threshold)));
-      if (max (index_size, 2 * new_size) > MOST_POSITIVE_FIXNUM)
+      /* Assignment to EMACS_INT stops GCC whining about limited range
+	 of data type.  */
+      nsize = max (index_size, 2 * new_size);
+      if (nsize > MOST_POSITIVE_FIXNUM)
 	error ("Hash table too large to resize");
 
       h->key_and_value = larger_vector (h->key_and_value, 2 * new_size, Qnil);

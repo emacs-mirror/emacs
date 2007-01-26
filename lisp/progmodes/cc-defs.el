@@ -1,10 +1,11 @@
 ;;; cc-defs.el --- compile time definitions for CC Mode
 
 ;; Copyright (C) 1985, 1987, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006  Free Software
-;;   Foundation, Inc.
+;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
+;;   Free Software Foundation, Inc.
 
-;; Authors:    1998- Martin Stjernholm
+;; Authors:    2003- Alan Mackenzie
+;;             1998- Martin Stjernholm
 ;;             1992-1999 Barry A. Warsaw
 ;;             1987 Dave Detlefs and Stewart Clamen
 ;;             1985 Richard M. Stallman
@@ -578,6 +579,24 @@ right side of it."
 
 ;; Wrappers for common scan-lists cases, mainly because it's almost
 ;; impossible to get a feel for how that function works.
+
+(defmacro c-go-list-forward ()
+  "Move backward across one balanced group of parentheses.
+
+Return POINT when we succeed, NIL when we fail.  In the latter case, leave
+point unmoved."
+  `(c-safe (let ((endpos (scan-lists (point) 1 0)))
+	     (goto-char endpos)
+	     endpos)))
+
+(defmacro c-go-list-backward ()
+  "Move backward across one balanced group of parentheses.
+
+Return POINT when we succeed, NIL when we fail.  In the latter case, leave
+point unmoved."
+  `(c-safe (let ((endpos (scan-lists (point) -1 0)))
+	     (goto-char endpos)
+	     endpos)))
 
 (defmacro c-up-list-forward (&optional pos limit)
   "Return the first position after the list sexp containing POS,

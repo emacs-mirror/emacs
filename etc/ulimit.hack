@@ -37,8 +37,8 @@ exit 0
 #
 # Upon system reboot, all processes will inherit the new large ulimit.
 
-# Copyright (c) 1999, 2003, 2006
-# Free Software Foundation, Inc.
+# Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007
+#   Free Software Foundation, Inc.
 
 # COPYING PERMISSIONS:
 #

@@ -1,7 +1,9 @@
 Tasks needed before the next release.
 
 * UPDATE COPYRIGHTS (Happy New Year :-)
-
+  Done, I think. Please keep an eye out for any errors, eg copyrights
+  not at the start of the file that are easy to miss, as in
+  src/emacs.c.
 
 * TO BE DONE SHORTLY BEFORE RELEASE
 
@@ -50,34 +52,12 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 * BUGS
 
-** document gpg-agent.
-
-** Need papers from Rubini for his code in t-mouse.el
-  Sent instructions.
-
-** lennart.borgman.073@student.lu.se, Dec 21:
-  Saving when the coding system can't code all buffer characters
-
-** Bug in ESHELL that Wiegley is supposed to fix.
-
-** How should C-x C-v ask about saving?
-
-** lennart.borgman.073@student.lu.se, Dec 16:
-  compilation-previous-error fails if first error is at start of buffer
-
-** CC mode fixes to be installed.
-
 ** W3 status with latest url package.
 
 ** Fix up the notices in oldXMenu properly.
 
-** bruno@clisp.org's patches for location of Info file directory.
-
 ** disumu@x3y2z1.net, Nov 22:
   URL not following some 302 redirects after recent changes
-
-** Give recommendations for redefining window manager keys
-  to avoid interference with Emacs.
 
 ** lennart.borgman.073@student.lu.se, Dec 29:
   How global is a define-global-minor-mode mode
@@ -88,11 +68,14 @@ through the custom mechanism.
 
 ** b.riefenstahl@turtle-trading.net, Dec 29:
   GTK build crashes under X
+  Seems to be a libXft or gtk theme bug, not an Emacs bug.
+  However, a workaround is possible.
 
-** dooglus@gmail.com, Dec 29: 4 week-old pretest bugs
-  Two GTK version bugs.
+** simon.marshall@misys.com, Jan 12: 
+  Font-lock decides function call is function declaration in C+ +
 
-** pgg bugs reported by rms.
+** ZTHJWSQQAFHV@spammotel.com, Jan 12:
+  Color-theme problems in Emacs 22+ (Ubuntu, Windows)
 
 * DOCUMENTATION
 

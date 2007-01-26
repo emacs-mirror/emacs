@@ -1,6 +1,6 @@
 ;;; antlr-mode.el --- major mode for ANTLR grammar files
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
 ;; Free Software Foundation, Inc.
 ;;
 ;; Author: Christoph.Wedler@sap.com
@@ -319,7 +319,7 @@ function and REGEXP is a regular expression.
 
 If `antlr-language' equals to a MODE, the line starting at the first
 non-whitespace is matched by the corresponding REGEXP, and the line is
-part of an header action, indent the line at column 0 instead according
+part of a header action, indent the line at column 0 instead according
 to the normal rules of `antlr-indent-line'."
   :group 'antlr
   :type '(repeat (cons (function :tag "Major mode") regexp)))
@@ -1659,7 +1659,7 @@ Return \(LEVEL OPTION LOCATION)."
 		      :active active))
 	    (sort (mapcar 'car (elt antlr-options-alists (1- level)))
 		  'string-lessp))))
-    
+
 
 ;;;===========================================================================
 ;;;  Insert option: determine section-kind
@@ -1936,7 +1936,7 @@ For OLD, see `antlr-insert-option-do'."
     ;; stuff (no =, {, } or /) at point is not followed by ";"
     (insert ";")
     (backward-char)))
-	
+
 (defun antlr-insert-option-space (area old)
   "Find appropriate place to insert option, insert newlines/spaces.
 For AREA and OLD, see `antlr-insert-option-do'."
@@ -1956,7 +1956,7 @@ For AREA and OLD, see `antlr-insert-option-do'."
 		 (setq orig (point))
 	       (goto-char orig)))
 	(skip-chars-forward " \t")
-	
+
 	(if (looking-at "$\\|//")
 	    ;; just comment after point => skip (+ lines w/ same col comment)
 	    (let ((same (if (> (match-end 0) (match-beginning 0))

@@ -3,7 +3,7 @@ dnl To rebuild the `configure' script from this, execute the command
 dnl 	autoconf
 dnl in the directory containing this script.
 dnl
-dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006
+dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
 dnl  Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
@@ -385,6 +385,24 @@ dnl see the `changequote' comment above.
   ## Apollo, Domain/OS
   m68*-apollo-* )
     machine=apollo opsys=bsd4-3
+  ;;
+
+  ## Apple Darwin / Mac OS X
+  *-apple-darwin* )
+    case "${canonical}" in
+      i[3456]86-* )  machine=intel386 ;;
+      powerpc-* )    machine=powermac ;;
+      * )            unported=yes ;;
+    esac
+    opsys=darwin
+    # Define CPP as follows to make autoconf work correctly.
+    CPP="${CC-cc} -E -no-cpp-precomp"
+    # Use fink packages if available.
+    if test -d /sw/include && test -d /sw/lib; then
+      GCC_TEST_OPTIONS="-I/sw/include -L/sw/lib"
+      CPP="${CPP} ${GCC_TEST_OPTIONS}"
+      NON_GCC_TEST_OPTIONS=${GCC_TEST_OPTIONS}
+    fi
   ;;
 
   ## AT&T 3b2, 3b5, 3b15, 3b20
@@ -1161,19 +1179,6 @@ dnl see the `changequote' comment above.
   ## UXP/V
   f301-fujitsu-uxpv4.1)
     machine=f301 opsys=uxpv
-  ;;
-
-  ## Darwin / Mac OS X
-  powerpc-apple-darwin* )
-    machine=powermac opsys=darwin
-    # Define CPP as follows to make autoconf work correctly.
-    CPP="${CC-cc} -E -no-cpp-precomp"
-    # Use fink packages if available.
-    if test -d /sw/include && test -d /sw/lib; then
-	GCC_TEST_OPTIONS="-I/sw/include -L/sw/lib"
-        CPP="${CPP} ${GCC_TEST_OPTIONS}"
-	NON_GCC_TEST_OPTIONS=${GCC_TEST_OPTIONS}
-    fi
   ;;
 
   ## AMD x86-64 Linux-based GNU system
@@ -2969,7 +2974,7 @@ if test "${REL_ALLOC}" = "yes" ; then
 fi
 
 AH_TOP([/* GNU Emacs site configuration template file.
-   Copyright (C) 1988, 1993, 1994, 1999, 2000, 2001, 2002, 2004, 2005, 2006
+   Copyright (C) 1988, 1993, 1994, 1999, 2000, 2001, 2002, 2004, 2005, 2006, 2007
              Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
