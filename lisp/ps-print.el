@@ -10,11 +10,11 @@
 ;; Maintainer: Kenichi Handa <handa@m17n.org> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Version: 7.2
+;; Version: 7.2.1
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
-(defconst ps-print-version "7.2"
-  "ps-print.el, v 7.2 <2007/01/19 vinicius>
+(defconst ps-print-version "7.2.1"
+  "ps-print.el, v 7.2.1 <2007/01/26 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -2938,8 +2938,6 @@ Valid values are:
 
    frame-parameter	The foreground-color frame parameter will be used.
 
-   frame-parameter	The foreground-color frame parameter will be used.
-
    NUMBER	It's a real value between 0.0 (black) and 1.0 (white) that
 		indicate the gray color.
 
@@ -2980,8 +2978,6 @@ color, the `ps-default-bg' color should be used.
 Valid values are:
 
    t		The background color of Emacs session will be used.
-
-   frame-parameter	The background-color frame parameter will be used.
 
    frame-parameter	The background-color frame parameter will be used.
 
