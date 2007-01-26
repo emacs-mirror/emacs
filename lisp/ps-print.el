@@ -10,11 +10,11 @@
 ;; Maintainer: Kenichi Handa <handa@m17n.org> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Version: 7.1
+;; Version: 7.2
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
-(defconst ps-print-version "7.1"
-  "ps-print.el, v 7.1 <2007/01/21 vinicius>
+(defconst ps-print-version "7.2"
+  "ps-print.el, v 7.2 <2007/01/19 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -1445,6 +1445,7 @@ Please send all bug fixes and enhancements to
 
 (require 'lpr)
 
+
 (or (featurep 'lisp-float-type)
     (error "`ps-print' requires floating point support"))
 
@@ -1463,82 +1464,14 @@ Please send all bug fixes and enhancements to
 	   'emacs))))
 
 
-;; GNU Emacs
-(or (fboundp 'line-beginning-position)
-    (defun line-beginning-position (&optional n)
-      (save-excursion
-	(and n (/= n 1) (forward-line (1- n)))
-	(beginning-of-line)
-	(point))))
-
-
-;; to avoid compilation gripes
-
-;; XEmacs
-(defalias 'ps-x-color-instance-p              'color-instance-p)
-(defalias 'ps-x-color-instance-rgb-components 'color-instance-rgb-components)
-(defalias 'ps-x-color-name                    'color-name)
-(defalias 'ps-x-color-specifier-p             'color-specifier-p)
-(defalias 'ps-x-copy-coding-system            'copy-coding-system)
-(defalias 'ps-x-device-class                  'device-class)
-(defalias 'ps-x-extent-end-position           'extent-end-position)
-(defalias 'ps-x-extent-face                   'extent-face)
-(defalias 'ps-x-extent-priority               'extent-priority)
-(defalias 'ps-x-extent-start-position         'extent-start-position)
-(defalias 'ps-x-face-font-instance            'face-font-instance)
-(defalias 'ps-x-find-coding-system            'find-coding-system)
-(defalias 'ps-x-font-instance-properties      'font-instance-properties)
-(defalias 'ps-x-make-color-instance           'make-color-instance)
-(defalias 'ps-x-map-extents                   'map-extents)
-(defalias 'ps-x-frame-property                'frame-property)
-
-;; GNU Emacs
-(defalias 'ps-e-face-bold-p         'face-bold-p)
-(defalias 'ps-e-face-italic-p       'face-italic-p)
-(defalias 'ps-e-next-overlay-change 'next-overlay-change)
-(defalias 'ps-e-overlays-at         'overlays-at)
-(defalias 'ps-e-overlay-get         'overlay-get)
-(defalias 'ps-e-overlay-end         'overlay-end)
-(defalias 'ps-e-x-color-values      'x-color-values)
-(defalias 'ps-e-color-values        'color-values)
-(defalias 'ps-e-frame-parameter     'frame-parameter)
-(if (fboundp 'find-composition)
-    (defalias 'ps-e-find-composition 'find-composition)
-  (defalias 'ps-e-find-composition 'ignore))
-
-
 (defconst ps-windows-system
   (memq system-type '(emx win32 w32 mswindows ms-dos windows-nt)))
 (defconst ps-lp-system
   (memq system-type '(usg-unix-v dgux hpux irix)))
 
 
-(defun ps-xemacs-color-name (color)
-  (if (ps-x-color-specifier-p color)
-      (ps-x-color-name color)
-    color))
-
-
-(cond ((featurep 'xemacs)		; xemacs
-       (defalias 'ps-mark-active-p 'region-active-p)
-       (defun ps-face-foreground-name (face)
-	 (ps-xemacs-color-name (face-foreground face)))
-       (defun ps-face-background-name (face)
-	 (ps-xemacs-color-name (face-background face)))
-       (defun ps-frame-parameter (param)
-	 (ps-x-frame-property nil param))
-       )
-      (t				; emacs 23 or higher
-       (defvar mark-active nil)
-       (defun ps-mark-active-p ()
-	 mark-active)
-       (defun ps-face-foreground-name (face)
-	 (face-foreground face nil t))
-       (defun ps-face-background-name (face)
-	 (face-background face nil t))
-       (defun ps-frame-parameter (param)
-	 (ps-e-frame-parameter nil param))
-       ))
+;; Load XEmacs/Emacs definitions
+(eval-and-compile (require 'ps-def))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -3344,9 +3277,9 @@ It's like the very first character of buffer (or region) is ^L (\\014)."
 (defcustom ps-postscript-code-directory
   (or (if (featurep 'xemacs)
 	  (cond ((fboundp 'locate-data-directory) ; xemacs
-		 (locate-data-directory "ps-print"))
+		 (funcall 'locate-data-directory "ps-print"))
 		((boundp 'data-directory) ; xemacs
-		 data-directory)
+		 (symbol-value 'data-directory))
 		(t			; don't know what to do
 		 nil))
 	data-directory)			; emacs
@@ -3838,107 +3771,6 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
   (format-time-string "%T"))
 
 
-(and (featurep 'xemacs)
-     ;; XEmacs change: Need to check for emacs-major-version too.
-     (or (< emacs-major-version 19)
-	 (and (= emacs-major-version 19) (< emacs-minor-version 12)))
-     (setq ps-print-color-p nil))
-
-
-;; Return t if the device (which can be changed during an emacs session)
-;; can handle colors.
-;; This function is not yet implemented for GNU emacs.
-(cond ((and (featurep 'xemacs)
-	    ;; XEmacs change: Need to check for emacs-major-version too.
-	    (or (> emacs-major-version 19)
-		(and (= emacs-major-version 19)
-		     (>= emacs-minor-version 12)))) ; xemacs >= 19.12
-       (defun ps-color-device ()
-	 (eq (ps-x-device-class) 'color)))
-
-      (t				; emacs
-       (defun ps-color-device ()
-	 (if (fboundp 'color-values)
-	     (ps-e-color-values "Green")
-	   t))))
-
-
-(defun ps-mapper (extent list)
-  (nconc list
-	 (list (list (ps-x-extent-start-position extent) 'push extent)
-	       (list (ps-x-extent-end-position extent) 'pull extent)))
-  nil)
-
-(defun ps-extent-sorter (a b)
-  (< (ps-x-extent-priority a) (ps-x-extent-priority b)))
-
-(defun ps-xemacs-face-kind-p (face kind kind-regex)
-  (let* ((frame-font (or (ps-x-face-font-instance face)
-			 (ps-x-face-font-instance 'default)))
-	 (kind-cons
-	  (and frame-font
-	       (assq kind
-		     (ps-x-font-instance-properties frame-font))))
-	 (kind-spec (cdr-safe kind-cons))
-	 (case-fold-search t))
-    (and kind-spec (string-match kind-regex kind-spec))))
-
-(cond ((featurep 'xemacs)		; xemacs
-
-       ;; to avoid XEmacs compilation gripes
-       (defvar coding-system-for-write   nil)
-       (defvar coding-system-for-read    nil)
-       (defvar buffer-file-coding-system nil)
-
-       (and (fboundp 'find-coding-system)
-	    (or (ps-x-find-coding-system 'raw-text-unix)
-		(ps-x-copy-coding-system 'no-conversion-unix 'raw-text-unix)))
-
-       (defun ps-color-values (x-color)
-	 (let ((color (ps-xemacs-color-name x-color)))
-	   (cond
-	    ((fboundp 'x-color-values)
-	     (ps-e-x-color-values color))
-	    ((and (fboundp 'color-instance-rgb-components)
-		  (ps-color-device))
-	     (ps-x-color-instance-rgb-components
-	      (if (ps-x-color-instance-p x-color)
-		  x-color
-		(ps-x-make-color-instance color))))
-	    (t
-	     (error "No available function to determine X color values")))))
-
-       (defun ps-face-bold-p (face)
-	 (or (ps-xemacs-face-kind-p face 'WEIGHT_NAME "bold\\|demibold")
-	     (memq face ps-bold-faces))) ; Kludge-compatible
-
-       (defun ps-face-italic-p (face)
-	 (or (ps-xemacs-face-kind-p face 'ANGLE_NAME "i\\|o")
-	     (ps-xemacs-face-kind-p face 'SLANT "i\\|o")
-	     (memq face ps-italic-faces))) ; Kludge-compatible
-       )
-
-      (t				; emacs
-
-       (defun ps-color-values (x-color)
-	 (cond
-	  ((fboundp 'color-values)
-	   (ps-e-color-values x-color))
-	  ((fboundp 'x-color-values)
-	   (ps-e-x-color-values x-color))
-	  (t
-	   (error "No available function to determine X color values"))))
-
-       (defun ps-face-bold-p (face)
-	 (or (ps-e-face-bold-p face)
-	     (memq face ps-bold-faces)))
-
-       (defun ps-face-italic-p (face)
-	 (or (ps-e-face-italic-p face)
-	     (memq face ps-italic-faces)))
-       ))
-
-
 (defvar ps-print-color-scale 1.0)
 
 (defun ps-color-scale (color)
@@ -4018,15 +3850,6 @@ Note: No major/minor-mode is activated and no local variables are evaluated for
 (defvar ps-razchunk 0)
 
 (defvar ps-color-p nil)
-(defvar ps-color-format
-  (if (featurep 'xemacs)
-      ;; XEmacs will have to make do with %s (princ) for floats.
-      "%s %s %s"
-
-    ;; Emacs understands the %f format; we'll use it to limit color RGB
-    ;; values to three decimals to cut down some on the size of the
-    ;; PostScript output.
-    "%0.3f %0.3f %0.3f"))
 
 ;; These values determine how much print-height to deduct when headers/footers
 ;; are turned on.  This is a pretty clumsy way of handling it, but it'll do for
@@ -4904,15 +4727,6 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 		  (string-to-number	; upper y
 		   (buffer-substring (match-beginning 4) (match-end 4))))
 	(vector 0 0 0 0)))))
-
-
-;; Emacs understands the %f format; we'll use it to limit color RGB values
-;; to three decimals to cut down some on the size of the PostScript output.
-;; XEmacs will have to make do with %s (princ) for floats.
-
-(defvar ps-float-format (if (featurep 'xemacs)
-			    "%s "	; xemacs
-			  "%0.3f "))	; emacs
 
 
 (defun ps-float-format (value &optional default)
@@ -6442,125 +6256,7 @@ If FACE is not a valid face name, it is used default face."
   (save-restriction
     (narrow-to-region from to)
     (ps-print-ensure-fontified from to)
-    (let ((face 'default)
-	  (position to))
-      (cond
-       ((featurep 'xemacs)		; xemacs
-	;; Build the list of extents...
-	(let ((a (cons 'dummy nil))
-	      record type extent extent-list)
-	  (ps-x-map-extents 'ps-mapper nil from to a)
-	  (setq a (sort (cdr a) 'car-less-than-car)
-		extent-list nil)
-
-	  ;; Loop through the extents...
-	  (while a
-	    (setq record (car a)
-		  position (car record)
-
-		  record (cdr record)
-		  type (car record)
-
-		  record (cdr record)
-		  extent (car record))
-
-	    ;; Plot up to this record.
-	    ;; XEmacs 19.12: for some reason, we're getting into a
-	    ;; situation in which some of the records have
-	    ;; positions less than 'from'.  Since we've narrowed
-	    ;; the buffer, this'll generate errors.  This is a hack,
-	    ;; but don't call ps-plot-with-face unless from > point-min.
-	    (and (>= from (point-min))
-		 (ps-plot-with-face from (min position (point-max)) face))
-
-	    (cond
-	     ((eq type 'push)
-	      (and (ps-x-extent-face extent)
-		   (setq extent-list (sort (cons extent extent-list)
-					   'ps-extent-sorter))))
-
-	     ((eq type 'pull)
-	      (setq extent-list (sort (delq extent extent-list)
-				      'ps-extent-sorter))))
-
-	    (setq face (if extent-list
-			   (ps-x-extent-face (car extent-list))
-			 'default)
-		  from position
-		  a (cdr a)))))
-
-       (t				; emacs
-	(let ((property-change from)
-	      (overlay-change from)
-	      (save-buffer-invisibility-spec buffer-invisibility-spec)
-	      (buffer-invisibility-spec nil)
-	      before-string after-string)
-	  (while (< from to)
-	    (and (< property-change to)	; Don't search for property change
-					; unless previous search succeeded.
-		 (setq property-change (next-property-change from nil to)))
-	    (and (< overlay-change to)	; Don't search for overlay change
-					; unless previous search succeeded.
-		 (setq overlay-change (min (ps-e-next-overlay-change from)
-					   to)))
-	    (setq position (min property-change overlay-change)
-		  before-string nil
-		  after-string nil)
-	    ;; The code below is not quite correct,
-	    ;; because a non-nil overlay invisible property
-	    ;; which is inactive according to the current value
-	    ;; of buffer-invisibility-spec nonetheless overrides
-	    ;; a face text property.
-	    (setq face
-		  (cond ((let ((prop (get-text-property from 'invisible)))
-			   ;; Decide whether this invisible property
-			   ;; really makes the text invisible.
-			   (if (eq save-buffer-invisibility-spec t)
-			       (not (null prop))
-			     (or (memq prop save-buffer-invisibility-spec)
-				 (assq prop save-buffer-invisibility-spec))))
-			 'emacs--invisible--face)
-			((get-text-property from 'face))
-			(t 'default)))
-	    (let ((overlays (ps-e-overlays-at from))
-		  (face-priority -1))	; text-property
-	      (while (and overlays
-			  (not (eq face 'emacs--invisible--face)))
-		(let* ((overlay (car overlays))
-		       (overlay-invisible
-			(ps-e-overlay-get overlay 'invisible))
-		       (overlay-priority
-			(or (ps-e-overlay-get overlay 'priority) 0)))
-		  (and (> overlay-priority face-priority)
-		       (setq before-string
-			     (or (ps-e-overlay-get overlay 'before-string)
-				 before-string)
-			     after-string
-			     (or (and (<= (ps-e-overlay-end overlay) position)
-				      (ps-e-overlay-get overlay 'after-string))
-				 after-string)
-			     face-priority overlay-priority
-			     face
-			     (cond
-			      ((if (eq save-buffer-invisibility-spec t)
-				   (not (null overlay-invisible))
-				 (or (memq overlay-invisible
-					   save-buffer-invisibility-spec)
-				     (assq overlay-invisible
-					   save-buffer-invisibility-spec)))
-			       'emacs--invisible--face)
-			      ((ps-e-overlay-get overlay 'face))
-			      (t face)
-			      ))))
-		(setq overlays (cdr overlays))))
-	    ;; Plot up to this record.
-	    (and before-string
-		 (ps-plot-string before-string))
-	    (ps-plot-with-face from position face)
-	    (and after-string
-		 (ps-plot-string after-string))
-	    (setq from position)))))
-      (ps-plot-with-face from to face))))
+    (ps-generate-postscript-with-faces1 from to)))
 
 (defun ps-generate-postscript (from to)
   (ps-plot-region from to 0 nil))
@@ -6753,209 +6449,6 @@ If FACE is not a valid face name, it is used default face."
        (message "Won't override existing `kill-emacs-hook'"))
       (t
        (setq kill-emacs-hook 'ps-kill-emacs-check)))
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Sample Setup Code:
-
-
-;; This stuff is for anybody that's brave enough to look this far,
-;; and able to figure out how to use it.  It isn't really part of
-;; ps-print, but I'll leave it here in hopes it might be useful:
-
-;; WARNING!!! The following code is *sample* code only.
-;; Don't use it unless you understand what it does!
-
-(defmacro ps-prsc ()
-  `(if (featurep 'xemacs) 'f22           [f22]))
-(defmacro ps-c-prsc ()
-  `(if (featurep 'xemacs) '(control f22) [C-f22]))
-(defmacro ps-s-prsc ()
-  `(if (featurep 'xemacs) '(shift f22)   [S-f22]))
-
-;; A hook to bind to `rmail-mode-hook' to locally bind prsc and set the
-;; `ps-left-headers' specially for mail messages.
-(defun ps-rmail-mode-hook ()
-  (local-set-key (ps-prsc) 'ps-rmail-print-message-from-summary)
-  (setq ps-header-lines 3
-	ps-left-header
-	;; The left headers will display the message's subject, its
-	;; author, and the name of the folder it was in.
-	'(ps-article-subject ps-article-author buffer-name)))
-
-;; See `ps-gnus-print-article-from-summary'.  This function does the
-;; same thing for rmail.
-(defun ps-rmail-print-message-from-summary ()
-  (interactive)
-  (ps-print-message-from-summary 'rmail-summary-buffer "RMAIL"))
-
-;; Used in `ps-rmail-print-article-from-summary',
-;; `ps-gnus-print-article-from-summary' and `ps-vm-print-message-from-summary'.
-(defun ps-print-message-from-summary (summary-buffer summary-default)
-  (let ((ps-buf (or (and (boundp summary-buffer)
-			 (symbol-value summary-buffer))
-		    summary-default)))
-    (and (get-buffer ps-buf)
-	 (save-excursion
-	   (set-buffer ps-buf)
-	   (ps-spool-buffer-with-faces)))))
-
-;; Look in an article or mail message for the Subject: line.  To be
-;; placed in `ps-left-headers'.
-(defun ps-article-subject ()
-  (save-excursion
-    (goto-char (point-min))
-    (if (re-search-forward "^Subject:[ \t]+\\(.*\\)$" nil t)
-	(buffer-substring (match-beginning 1) (match-end 1))
-      "Subject ???")))
-
-;; Look in an article or mail message for the From: line.  Sorta-kinda
-;; understands RFC-822 addresses and can pull the real name out where
-;; it's provided.  To be placed in `ps-left-headers'.
-(defun ps-article-author ()
-  (save-excursion
-    (goto-char (point-min))
-    (if (re-search-forward "^From:[ \t]+\\(.*\\)$" nil t)
-	(let ((fromstring (buffer-substring (match-beginning 1) (match-end 1))))
-	  (cond
-
-	   ;; Try first to match addresses that look like
-	   ;; thompson@wg2.waii.com (Jim Thompson)
-	   ((string-match ".*[ \t]+(\\(.*\\))" fromstring)
-	    (substring fromstring (match-beginning 1) (match-end 1)))
-
-	   ;; Next try to match addresses that look like
-	   ;; Jim Thompson <thompson@wg2.waii.com> or
-	   ;; "Jim Thompson" <thompson@wg2.waii.com>
-	   ((string-match "\\(\"?\\)\\(.*\\)\\1[ \t]+<.*>" fromstring)
-	    (substring fromstring (match-beginning 2) (match-end 2)))
-
-	   ;; Couldn't find a real name -- show the address instead.
-	   (t fromstring)))
-      "From ???")))
-
-;; A hook to bind to `gnus-article-prepare-hook'.  This will set the
-;; `ps-left-headers' specially for gnus articles.  Unfortunately,
-;; `gnus-article-mode-hook' is called only once, the first time the *Article*
-;; buffer enters that mode, so it would only work for the first time
-;; we ran gnus.  The second time, this hook wouldn't get set up.  The
-;; only alternative is `gnus-article-prepare-hook'.
-(defun ps-gnus-article-prepare-hook ()
-  (setq ps-header-lines 3
-	ps-left-header
-	;; The left headers will display the article's subject, its
-	;; author, and the newsgroup it was in.
-	'(ps-article-subject ps-article-author gnus-newsgroup-name)))
-
-;; A hook to bind to `vm-mode-hook' to locally bind prsc and set the
-;; `ps-left-headers' specially for mail messages.
-(defun ps-vm-mode-hook ()
-  (local-set-key (ps-prsc) 'ps-vm-print-message-from-summary)
-  (setq ps-header-lines 3
-	ps-left-header
-	;; The left headers will display the message's subject, its
-	;; author, and the name of the folder it was in.
-	'(ps-article-subject ps-article-author buffer-name)))
-
-;; Every now and then I forget to switch from the *Summary* buffer to
-;; the *Article* before hitting prsc, and a nicely formatted list of
-;; article subjects shows up at the printer.  This function, bound to
-;; prsc for the gnus *Summary* buffer means I don't have to switch
-;; buffers first.
-;; sb:  Updated for Gnus 5.
-(defun ps-gnus-print-article-from-summary ()
-  (interactive)
-  (ps-print-message-from-summary 'gnus-article-buffer "*Article*"))
-
-;; See `ps-gnus-print-article-from-summary'.  This function does the
-;; same thing for vm.
-(defun ps-vm-print-message-from-summary ()
-  (interactive)
-  (ps-print-message-from-summary 'vm-mail-buffer ""))
-
-;; A hook to bind to bind to `gnus-summary-setup-buffer' to locally bind
-;; prsc.
-(defun ps-gnus-summary-setup ()
-  (local-set-key (ps-prsc) 'ps-gnus-print-article-from-summary))
-
-;; Look in an article or mail message for the Subject: line.  To be
-;; placed in `ps-left-headers'.
-(defun ps-info-file ()
-  (save-excursion
-    (goto-char (point-min))
-    (if (re-search-forward "File:[ \t]+\\([^, \t\n]*\\)" nil t)
-	(buffer-substring (match-beginning 1) (match-end 1))
-      "File ???")))
-
-;; Look in an article or mail message for the Subject: line.  To be
-;; placed in `ps-left-headers'.
-(defun ps-info-node ()
-  (save-excursion
-    (goto-char (point-min))
-    (if (re-search-forward "Node:[ \t]+\\([^,\t\n]*\\)" nil t)
-	(buffer-substring (match-beginning 1) (match-end 1))
-      "Node ???")))
-
-(defun ps-info-mode-hook ()
-  (setq ps-left-header
-	;; The left headers will display the node name and file name.
-	'(ps-info-node ps-info-file)))
-
-;; WARNING! The following function is a *sample* only, and is *not*
-;; meant to be used as a whole unless you understand what the effects
-;; will be!  (In fact, this is a copy of Jim's setup for ps-print --
-;; I'd be very surprised if it was useful to *anybody*, without
-;; modification.)
-
-(defun ps-jts-ps-setup ()
-  (global-set-key (ps-prsc) 'ps-spool-buffer-with-faces) ;f22 is prsc
-  (global-set-key (ps-s-prsc) 'ps-spool-region-with-faces)
-  (global-set-key (ps-c-prsc) 'ps-despool)
-  (add-hook 'gnus-article-prepare-hook 'ps-gnus-article-prepare-hook)
-  (add-hook 'gnus-summary-mode-hook 'ps-gnus-summary-setup)
-  (add-hook 'vm-mode-hook 'ps-vm-mode-hook)
-  (add-hook 'vm-mode-hooks 'ps-vm-mode-hook)
-  (add-hook 'Info-mode-hook 'ps-info-mode-hook)
-  (setq ps-spool-duplex t
-	ps-print-color-p nil
-	ps-lpr-command "lpr"
-	ps-lpr-switches '("-Jjct,duplex_long"))
-  'ps-jts-ps-setup)
-
-;; WARNING! The following function is a *sample* only, and is *not*
-;; meant to be used as a whole unless it corresponds to your needs.
-;; (In fact, this is a copy of Jack's setup for ps-print --
-;; I would not be that surprised if it was useful to *anybody*,
-;; without modification.)
-
-(defun ps-jack-setup ()
-  (setq ps-print-color-p  nil
-	ps-lpr-command    "lpr"
-	ps-lpr-switches   nil
-
-	ps-paper-type        'a4
-	ps-landscape-mode    t
-	ps-number-of-columns 2
-
-	ps-left-margin   (/ (* 72  1.0) 2.54) ;  1.0 cm
-	ps-right-margin  (/ (* 72  1.0) 2.54) ;  1.0 cm
-	ps-inter-column  (/ (* 72  1.0) 2.54) ;  1.0 cm
-	ps-bottom-margin (/ (* 72  1.5) 2.54) ;  1.5 cm
-	ps-top-margin    (/ (* 72  1.5) 2.54) ;  1.5 cm
-	ps-header-offset (/ (* 72  1.0) 2.54) ;  1.0 cm
-	ps-header-line-pad    .15
-	ps-print-header       t
-	ps-print-header-frame t
-	ps-header-lines       2
-	ps-show-n-of-n        t
-	ps-spool-duplex       nil
-
-	ps-font-family             'Courier
-	ps-font-size               5.5
-	ps-header-font-family      'Helvetica
-	ps-header-font-size        6
-	ps-header-title-font-size  8)
-  'ps-jack-setup)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

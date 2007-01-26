@@ -38,11 +38,7 @@
 ;;; Code:
 
 (eval-and-compile
-  (require 'ps-mule)
-
-  ;; to avoid XEmacs compilation gripes
-  (defvar installation-directory nil)
-  (defvar coding-system-for-read nil))
+  (require 'ps-mule))
 
 ;;;###autoload
 (defvar bdf-directory-list

@@ -1,3 +1,61 @@
+2007-01-25  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Split XEmacs/Emacs definitions and sample setup code
+	into separate files.
+	(ps-print-version): New Version 7.2.
+	(ps-postscript-code-directory): Fix XEmacs initialization.
+	(ps-generate-postscript-with-faces): Call
+	ps-generate-postscript-with-faces1 (new fun).
+	(ps-color-format, ps-float-format): Vars moved to ps-def.el.
+	(ps-xemacs-color-name, ps-mapper, ps-extent-sorter)
+	(ps-xemacs-face-kind-p, ps-mark-active-p, ps-face-foreground-name)
+	(ps-face-background-name, ps-frame-parameter, ps-color-device)
+	(ps-color-values, ps-face-bold-p, ps-face-italic-p): Funs moved to
+	ps-def.el.
+	(ps-prsc, ps-c-prsc, ps-s-prsc, ps-rmail-mode-hook)
+	(ps-rmail-print-message-from-summary, ps-print-message-from-summary)
+	(ps-article-subject, ps-article-author, ps-gnus-article-prepare-hook)
+	(ps-vm-mode-hook, ps-gnus-print-article-from-summary)
+	(ps-vm-print-message-from-summary, ps-gnus-summary-setup, ps-info-file)
+	(ps-info-node, ps-info-mode-hook, ps-jts-ps-setup, ps-jack-setup): Funs
+	moved to ps-samp.el.
+
+	* ps-bdf.el (installation-directory, coding-system-for-read): Vars
+	moved to ps-def.el.
+
+	* ps-mule.el (leading-code-private-22): Var moved to ps-def.el.
+	(charset-bytes, charset-dimension, charset-id, charset-width)
+	(find-charset-region, char-width, chars-in-region, forward-point)
+	(decompose-composite-char, encode-coding-string, coding-system-p)
+	(ccl-execute-on-string, define-ccl-program, multibyte-string-p)
+	(string-make-multibyte, encode-char): Funs moved to ps-def.el.
+
+	* ps-def.el: New file. XEmacs/Emacs definitions.
+	(ps-generate-postscript-with-faces1): New fun.
+	(ps-color-format, ps-float-format): Vars moved from ps-print.el.
+	(ps-xemacs-color-name, ps-mapper, ps-extent-sorter)
+	(ps-xemacs-face-kind-p, ps-mark-active-p, ps-face-foreground-name)
+	(ps-face-background-name, ps-frame-parameter, ps-color-device)
+	(ps-color-values, ps-face-bold-p, ps-face-italic-p): Funs moved from
+	ps-print.el.
+	(installation-directory, coding-system-for-read): Vars moved from
+	ps-bdf.el.
+	(leading-code-private-22): Var moved from ps-mule.el.
+	(charset-bytes, charset-dimension, charset-id, charset-width)
+	(find-charset-region, char-width, chars-in-region, forward-point)
+	(decompose-composite-char, encode-coding-string, coding-system-p)
+	(ccl-execute-on-string, define-ccl-program, multibyte-string-p)
+	(string-make-multibyte, encode-char): Funs moved from ps-mule.el.
+
+	* ps-samp.el: New file. Sample setup code.
+	(ps-prsc, ps-c-prsc, ps-s-prsc, ps-rmail-mode-hook)
+	(ps-rmail-print-message-from-summary, ps-print-message-from-summary)
+	(ps-article-subject, ps-article-author, ps-gnus-article-prepare-hook)
+	(ps-vm-mode-hook, ps-gnus-print-article-from-summary)
+	(ps-vm-print-message-from-summary, ps-gnus-summary-setup, ps-info-file)
+	(ps-info-node, ps-info-mode-hook, ps-jts-ps-setup, ps-jack-setup): Funs
+	moved from ps-print.el.
+
 2007-01-21  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el: Handle frame parameters (background and/or foreground
