@@ -1,3 +1,14 @@
+2007-01-26  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* alloc.c (BLOCK_INPUT_ALLOC, UNBLOCK_INPUT_ALLOC): Use
+	BLOCK_INPUT/UNBLOCK_INPUT.
+
+	* blockinput.h (interrupt_input_blocked): Declare volatile.
+
+	* keyboard.c (interrupt_input_blocked): Declare volatile.
+
+	* syssignal.h (SIGNAL_THREAD_CHECK): Use pthread_equal.
+
 2007-01-24  Kim F. Storm  <storm@cua.dk>
 
 	* keymap.c (describe_map): Don't consider prefix keys to be shadowed.
