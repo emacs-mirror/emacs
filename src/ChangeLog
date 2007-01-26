@@ -1,3 +1,7 @@
+2007-01-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* Makefile.in: Use XFT_LIBS if defined.
+
 2007-01-26  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* alloc.c (BLOCK_INPUT_ALLOC, UNBLOCK_INPUT_ALLOC): Use
