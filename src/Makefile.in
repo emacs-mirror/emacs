@@ -402,6 +402,11 @@ LIBXT=$(LIBW)
 #endif
 #endif /* not USE_X_TOOLKIT */
 
+#if HAVE_XFT
+#undef LIB_X11_LIB
+#define LIB_X11_LIB @XFT_LIBS@
+#endif /* HAVE_XFT */
+
 #if HAVE_XPM
 #ifndef LIBXPM
 #define LIBXPM -lXpm
