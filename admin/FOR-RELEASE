@@ -77,6 +77,10 @@ through the custom mechanism.
 ** ZTHJWSQQAFHV@spammotel.com, Jan 12:
   Color-theme problems in Emacs 22+ (Ubuntu, Windows)
 
+** jka-compr fails when default-directory is nonexistent.
+
+** Tramp fails when default-directory is nonexistent.
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
