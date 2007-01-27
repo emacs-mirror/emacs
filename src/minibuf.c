@@ -1686,11 +1686,16 @@ Lisp_Object Vminibuffer_completing_file_name;
 DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 8, 0,
        doc: /* Read a string in the minibuffer, with completion.
 PROMPT is a string to prompt with; normally it ends in a colon and a space.
-TABLE can be a list of strings, an alist, an obarray or a hash table.
-TABLE can also be a function to do the completion itself.
+
+TABLE can be a list of strings, an alist, an obarray or a hash table; their
+elements are tested to see if they begin with STRING.
+TABLE can also be a function to do the completion itself; it receives
+three arguments: the values STRING, PREDICATE and nil.
+Whatever it returns becomes the value of `try-completion'.
+
 PREDICATE limits completion to a subset of TABLE.
 See `try-completion' and `all-completions' for more details
- on completion, TABLE, and PREDICATE.
+ on completion, TABLE (called "alist" there), and PREDICATE.
 
 If REQUIRE-MATCH is non-nil, the user is not allowed to exit unless
  the input is (or completes to) an element of TABLE or is null.
