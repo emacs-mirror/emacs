@@ -72,7 +72,7 @@
      ;;
      ;; Keywords.
      (regexp-opt
-      '("BEGIN" "END" "break" "continue" "delete" "exit" "else" "for"
+      '("BEGIN" "END" "break" "continue" "delete" "do" "exit" "else" "for"
 	"getline" "if" "next" "print" "printf" "return" "while") 'words)
      ;;
      ;; Builtins.
