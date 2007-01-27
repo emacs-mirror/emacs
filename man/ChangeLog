@@ -1,3 +1,8 @@
+2007-01-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (ls in Lisp): Document ls-lisp-format-time-list and
+	ls-lisp-use-localized-time-format.
+
 2007-01-20  Markus Triska  <markus.triska@gmx.at>
 
 	* flymake.texi (Flymake mode): find-file-hook instead of ...-hooks.

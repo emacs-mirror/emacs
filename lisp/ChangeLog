@@ -1,3 +1,12 @@
+2007-01-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* ls-lisp.el (ls-lisp-use-localized-time-format): New defcustom.
+	(ls-lisp-format-time-list): Doc fix.  Mention
+	ls-lisp-use-localized-time-format.
+	(ls-lisp-format-time): Use ls-lisp-format-time-list if
+	ls-lisp-use-localized-time-format is non-nil, even if a valid
+	locale is defined.
+
 2007-01-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* jka-compr.el (jka-compr-shell): Doc fix.
