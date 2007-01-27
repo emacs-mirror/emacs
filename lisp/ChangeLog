@@ -1,3 +1,13 @@
+2007-01-27  Richard Stallman  <rms@gnu.org>
+
+	* obsolete/awk-mode.el (awk-font-lock-keywords): Add "do".
+
+2007-01-27  Guanpeng Xu  <herberteuler@hotmail.com>
+
+	* add-log.el (add-log-current-defun): Skip the semicolon ``;'' for
+        enum/union/struct/class definition.
+	Revert change to call `forward-sexp' multiple times.
+
 2007-01-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (hack-local-variables-confirm): Don't keep trying to
