@@ -1,3 +1,9 @@
+2007-01-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* unexhp9k800.c: Remove due to lack of legal papers.
+
+	* m/sr2k.h, m/hp800.h: Remove due to dependence on above.
+
 2007-01-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* keyboard.c (Fthis_command_keys, Fthis_command_keys_vector): Doc fix.
