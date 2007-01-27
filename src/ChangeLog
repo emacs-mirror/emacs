@@ -1,5 +1,7 @@
 2007-01-27  Eli Zaretskii  <eliz@gnu.org>
 
+	* keyboard.c (Fthis_command_keys, Fthis_command_keys_vector): Doc fix.
+
 	* minibuf.c (Fcompleting_read): Doc fix.
 
 2007-01-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
