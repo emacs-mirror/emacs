@@ -2505,6 +2505,7 @@ n  -- to ignore the local variables list.")
 			  ", or C-v to scroll")))
 	  (goto-char (point-min))
 	  (let ((cursor-in-echo-area t)
+		(executing-kbd-macro executing-kbd-macro)
 		(exit-chars
 		 (if offer-save '(?! ?y ?n ?\s ?\C-g) '(?y ?n ?\s ?\C-g)))
 		done)
@@ -2512,11 +2513,17 @@ n  -- to ignore the local variables list.")
 	      (message prompt)
 	      (setq char (read-event))
 	      (if (numberp char)
-		  (if (eq char ?\C-v)
-		      (condition-case nil
-			  (scroll-up)
-			(error (goto-char (point-min))))
-		    (setq done (memq (downcase char) exit-chars))))))
+		  (cond ((eq char ?\C-v)
+			 (condition-case nil
+			     (scroll-up)
+			   (error (goto-char (point-min)))))
+			;; read-event returns -1 if we are in a kbd
+			;; macro and there are no more events in the
+			;; macro.  In that case, attempt to get an
+			;; event interactively.
+			((and executing-kbd-macro (= char -1))
+			 (setq executing-kbd-macro nil))
+			(t (setq done (memq (downcase char) exit-chars)))))))
 	  (setq char (downcase char))
 	  (when (and offer-save (= char ?!) unsafe-vars)
 	    (dolist (elt unsafe-vars)
