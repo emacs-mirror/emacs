@@ -1,3 +1,7 @@
+2007-01-27  Jan Dj,AC$(Brv  <jhd@winter.localdomain>
+
+	* FOR-RELEASE: Removed Gtk/Xft issue.
+
 2007-01-01  Miles Bader  <miles@gnu.org>
 
 	* quick-install-emacs (get_config_var): Deal with weird magic
