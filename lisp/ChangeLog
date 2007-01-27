@@ -1,3 +1,8 @@
+2007-01-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-do-copy-or-rename-file-out-of-band): Set
+	default-directory to a sane value when calling start-process.
+
 2007-01-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* ls-lisp.el (ls-lisp-use-localized-time-format): New defcustom.
