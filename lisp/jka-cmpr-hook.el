@@ -248,10 +248,6 @@ APPEND-FLAG STRIP-EXTENSION-FLAG FILE-MAGIC-CHARS], where:
    file-magic-chars      is a string of characters that you would find
 			 at the beginning of a file compressed in this way.
 
-Because of the way `call-process' is defined, discarding the stderr output of
-a program adds the overhead of starting a shell each time the program is
-invoked.
-
 If you set this outside Custom while Auto Compression mode is
 already enabled \(as it is by default), you have to call
 `jka-compr-update' after setting it to properly update other
