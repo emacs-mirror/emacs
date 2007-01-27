@@ -66,11 +66,6 @@ RMS says that there is no code in the generated defcustom,
 or elsewhere in the generated code, to implement setting that variable
 through the custom mechanism.
 
-** b.riefenstahl@turtle-trading.net, Dec 29:
-  GTK build crashes under X
-  Seems to be a libXft or gtk theme bug, not an Emacs bug.
-  However, a workaround is possible.
-
 ** simon.marshall@misys.com, Jan 12: 
   Font-lock decides function call is function declaration in C+ +
 
