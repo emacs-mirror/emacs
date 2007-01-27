@@ -31,6 +31,10 @@ sk	Miroslav Vaško        No response
 
 Reminders sent out on 2006-06-08.
 
+Note: regardless of the above, the following files need to be
+regenerated to get updated copyright notices: sk-refcard.ps,
+pl-refcard.ps, cs-refcard.ps.
+
 ** Send an email to the various distributions, including the GNOME
 and KDE projects, to use the new Emacs icons in etc/images/icons.
 
