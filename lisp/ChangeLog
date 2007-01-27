@@ -1,3 +1,8 @@
+2007-01-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (hack-local-variables-confirm): Don't keep trying to
+	read an event from an empty kbd macro.
+
 2007-01-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* server.el (server-start): Mention LEAVE-DEAD arg in the doc string.
