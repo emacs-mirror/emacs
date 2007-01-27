@@ -1,3 +1,9 @@
+2007-01-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* jka-compr.el (jka-compr-shell): Doc fix.
+
+	* jka-cmpr-hook.el (jka-compr-compression-info-list): Doc fix.
+
 2007-01-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.ps: Fix background height.
@@ -10,8 +16,7 @@
 
 2007-01-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* Makefile.in (custom-deps, finder-data): Add dependency to
-	loaddefs.el. 
+	* Makefile.in (custom-deps, finder-data): Add dependency to loaddefs.el.
 
 2007-01-24  Miles Bader  <miles@gnu.org>
 
@@ -41,7 +46,7 @@
 	* viper-keym.el (viper-insert-basic-map): Delete binding for S-TAB.
 
 	* ediff-util.el (ediff-clone-buffer-for-region-comparison): Change text
-	of message. Activate mark.
+	of message.  Activate mark.
 	(ediff-activate-mark): Set transient-mark-mode to t.
 
 	* ediff.el (ediff-regions-wordwise, ediff-regions-linewise): Doc fix.
@@ -53,7 +58,7 @@
 
 2007-01-22  Kim F. Storm  <storm@cua.dk>
 
-	* ido.el (ido-active): Add xemacs test from ido-minibuffer-setup.
+	* ido.el (ido-active): Add XEmacs test from ido-minibuffer-setup.
 	(ido-initiate-auto-merge, ido-exhibit, ido-minibuffer-setup)
 	(ido-tidy): Use ido-active.
 
