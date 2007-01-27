@@ -1,3 +1,8 @@
+2007-01-27  Kevin Rodgers  <kevin.d.rodgers@gmail.com>
+
+	* PROBLEMS: More details about disabling features that hamper
+	performance with slow X connections.
+
 2007-01-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-prin1.ps (printBackground): Fix background height.

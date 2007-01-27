@@ -1,3 +1,12 @@
+2007-01-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* server.el (server-start): Mention LEAVE-DEAD arg in the doc string.
+
+2007-01-27  Ben North  <ben@redfrontdoor.org>
+
+	* outline.el (outline-promote, outline-demote): Doc fix.  Rename
+	the arg CHILDREN -> WHICH.
+
 2007-01-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-do-copy-or-rename-file-out-of-band): Set
