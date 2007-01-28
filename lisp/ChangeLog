@@ -1,3 +1,8 @@
+2007-01-28  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-global-keymap, cua--region-keymap):
+	Declare earlier to avoid byte compiler warnings.
+
 2007-01-28  Markus Triska  <markus.triska@gmx.at>
 
 	* speedbar.el (speedbar-make-specialized-keymap): Doc fix.
