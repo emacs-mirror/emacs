@@ -1149,6 +1149,11 @@ Copying Conditions\tConditions for redistributing and changing Emacs
 Getting New Versions\tHow to obtain the latest version of Emacs
 More Manuals / Ordering Manuals       Buying printed manuals from the FSF\n")
   (:face (variable-pitch :weight bold)
+	 "To quit a partially entered command, type "
+	 :face default
+	 "Control-g"
+	 :face variable-pitch
+	 "."
 	 "Useful File menu items:\n"
 	 :face variable-pitch
 	 "Exit Emacs\t\t(Or type "
@@ -1530,6 +1535,7 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
               (progn
                 (insert "\
 You can do basic editing with the menu bar and scroll bar using the mouse.
+To quit a partially entered command, type Control-g.
 
 Useful File menu items:
 Exit Emacs		(or type Control-x followed by Control-c)
