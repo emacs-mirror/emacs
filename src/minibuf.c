@@ -1230,22 +1230,25 @@ minibuf_conform_representation (string, basis)
 }
 
 DEFUN ("try-completion", Ftry_completion, Stry_completion, 2, 3, 0,
-       doc: /* Return common substring of all completions of STRING in ALIST.
-Each car of each element of ALIST (or each element if it is not a cons cell)
-is tested to see if it begins with STRING.  The possible matches may be
+       doc: /* Return common substring of all completions of STRING in COLLECTION.
+Test each possible completion specified by COLLECTION
+to see if it begins with STRING.  The possible completions may be
 strings or symbols.  Symbols are converted to strings before testing,
 see `symbol-name'.
-All that match are compared together; the longest initial sequence
-common to all matches is returned as a string.
-If there is no match at all, nil is returned.
-For a unique match which is exact, t is returned.
+All that match STRING are compared together; the longest initial sequence
+common to all these matches is the return value.
+If there is no match at all, the return value is nil.
+For a unique match which is exact, the return value is t.
 
-If ALIST is a hash-table, all the string and symbol keys are the
-possible matches.
-If ALIST is an obarray, the names of all symbols in the obarray
-are the possible matches.
+If COLLECTION is an alist, the keys (cars of elements) are the
+possible completions.  If an element is not a cons cell, then the
+element itself is the possible completion.
+If COLLECTION is a hash-table, all the keys that are strings or symbols
+are the possible completions.
+If COLLECTION is an obarray, the names of all symbols in the obarray
+are the possible completions.
 
-ALIST can also be a function to do the completion itself.
+COLLECTION can also be a function to do the completion itself.
 It receives three arguments: the values STRING, PREDICATE and nil.
 Whatever it returns becomes the value of `try-completion'.
 
@@ -1253,23 +1256,23 @@ If optional third argument PREDICATE is non-nil,
 it is used to test each possible match.
 The match is a candidate only if PREDICATE returns non-nil.
 The argument given to PREDICATE is the alist element
-or the symbol from the obarray.  If ALIST is a hash-table,
+or the symbol from the obarray.  If COLLECTION is a hash-table,
 predicate is called with two arguments: the key and the value.
 Additionally to this predicate, `completion-regexp-list'
 is used to further constrain the set of candidates.  */)
-     (string, alist, predicate)
-     Lisp_Object string, alist, predicate;
+     (string, collection, predicate)
+     Lisp_Object string, collection, predicate;
 {
   Lisp_Object bestmatch, tail, elt, eltstring;
   /* Size in bytes of BESTMATCH.  */
   int bestmatchsize = 0;
   /* These are in bytes, too.  */
   int compare, matchsize;
-  int type = (HASH_TABLE_P (alist) ? 3
-	      : VECTORP (alist) ? 2
-	      : NILP (alist) || (CONSP (alist)
-				 && (!SYMBOLP (XCAR (alist))
-				     || NILP (XCAR (alist)))));
+  int type = (HASH_TABLE_P (collection) ? 3
+	      : VECTORP (collection) ? 2
+	      : NILP (collection) || (CONSP (collection)
+				      && (!SYMBOLP (XCAR (collection))
+					  || NILP (XCAR (collection)))));
   int index = 0, obsize = 0;
   int matchcount = 0;
   int bindcount = -1;
@@ -1278,18 +1281,18 @@ is used to further constrain the set of candidates.  */)
 
   CHECK_STRING (string);
   if (type == 0)
-    return call3 (alist, string, predicate, Qnil);
+    return call3 (collection, string, predicate, Qnil);
 
   bestmatch = bucket = Qnil;
   zero = make_number (0);
 
-  /* If ALIST is not a list, set TAIL just for gc pro.  */
-  tail = alist;
+  /* If COLLECTION is not a list, set TAIL just for gc pro.  */
+  tail = collection;
   if (type == 2)
     {
-      alist = check_obarray (alist);
-      obsize = XVECTOR (alist)->size;
-      bucket = XVECTOR (alist)->contents[index];
+      collection = check_obarray (collection);
+      obsize = XVECTOR (collection)->size;
+      bucket = XVECTOR (collection)->contents[index];
     }
 
   while (1)
@@ -1324,19 +1327,19 @@ is used to further constrain the set of candidates.  */)
 	    break;
 	  else
 	    {
-	      bucket = XVECTOR (alist)->contents[index];
+	      bucket = XVECTOR (collection)->contents[index];
 	      continue;
 	    }
 	}
       else /* if (type == 3) */
 	{
-	  while (index < HASH_TABLE_SIZE (XHASH_TABLE (alist))
-		 && NILP (HASH_HASH (XHASH_TABLE (alist), index)))
+	  while (index < HASH_TABLE_SIZE (XHASH_TABLE (collection))
+		 && NILP (HASH_HASH (XHASH_TABLE (collection), index)))
 	    index++;
-	  if (index >= HASH_TABLE_SIZE (XHASH_TABLE (alist)))
+	  if (index >= HASH_TABLE_SIZE (XHASH_TABLE (collection)))
 	    break;
 	  else
-	    elt = eltstring = HASH_KEY (XHASH_TABLE (alist), index++);
+	    elt = eltstring = HASH_KEY (XHASH_TABLE (collection), index++);
 	}
 
       /* Is this element a possible completion? */
@@ -1389,7 +1392,7 @@ is used to further constrain the set of candidates.  */)
 		  GCPRO4 (tail, string, eltstring, bestmatch);
 		  tem = type == 3
 		    ? call2 (predicate, elt,
-			     HASH_VALUE (XHASH_TABLE (alist), index - 1))
+			     HASH_VALUE (XHASH_TABLE (collection), index - 1))
 		    : call1 (predicate, elt);
 		  UNGCPRO;
 		}
@@ -1498,19 +1501,22 @@ is used to further constrain the set of candidates.  */)
 }
 
 DEFUN ("all-completions", Fall_completions, Sall_completions, 2, 4, 0,
-       doc: /* Search for partial matches to STRING in ALIST.
-Each car of each element of ALIST (or each element if it is not a cons cell)
-is tested to see if it begins with STRING.  The possible matches may be
+       doc: /* Search for partial matches to STRING in COLLECTION.
+Test each of the possible completions specified by COLLECTION
+to see if it begins with STRING.  The possible completions may be
 strings or symbols.  Symbols are converted to strings before testing,
 see `symbol-name'.
-The value is a list of all the strings from ALIST that match.
+The value is a list of all the possible completions that match STRING.
 
-If ALIST is a hash-table, all the string and symbol keys are the
-possible matches.
-If ALIST is an obarray, the names of all symbols in the obarray
-are the possible matches.
+If COLLECTION is an alist, the keys (cars of elements) are the
+possible completions.  If an element is not a cons cell, then the
+element itself is the possible completion.
+If COLLECTION is a hash-table, all the keys that are strings or symbols
+are the possible completions.
+If COLLECTION is an obarray, the names of all symbols in the obarray
+are the possible completions.
 
-ALIST can also be a function to do the completion itself.
+COLLECTION can also be a function to do the completion itself.
 It receives three arguments: the values STRING, PREDICATE and t.
 Whatever it returns becomes the value of `all-completions'.
 
@@ -1518,24 +1524,24 @@ If optional third argument PREDICATE is non-nil,
 it is used to test each possible match.
 The match is a candidate only if PREDICATE returns non-nil.
 The argument given to PREDICATE is the alist element
-or the symbol from the obarray.  If ALIST is a hash-table,
+or the symbol from the obarray.  If COLLECTION is a hash-table,
 predicate is called with two arguments: the key and the value.
 Additionally to this predicate, `completion-regexp-list'
 is used to further constrain the set of candidates.
 
 If the optional fourth argument HIDE-SPACES is non-nil,
-strings in ALIST that start with a space
+strings in COLLECTION that start with a space
 are ignored unless STRING itself starts with a space.  */)
-     (string, alist, predicate, hide_spaces)
-     Lisp_Object string, alist, predicate, hide_spaces;
+     (string, collection, predicate, hide_spaces)
+     Lisp_Object string, collection, predicate, hide_spaces;
 {
   Lisp_Object tail, elt, eltstring;
   Lisp_Object allmatches;
-  int type = HASH_TABLE_P (alist) ? 3
-    : VECTORP (alist) ? 2
-    : NILP (alist) || (CONSP (alist)
-		       && (!SYMBOLP (XCAR (alist))
-			   || NILP (XCAR (alist))));
+  int type = HASH_TABLE_P (collection) ? 3
+    : VECTORP (collection) ? 2
+    : NILP (collection) || (CONSP (collection)
+			    && (!SYMBOLP (XCAR (collection))
+				|| NILP (XCAR (collection))));
   int index = 0, obsize = 0;
   int bindcount = -1;
   Lisp_Object bucket, tem, zero;
@@ -1543,16 +1549,16 @@ are ignored unless STRING itself starts with a space.  */)
 
   CHECK_STRING (string);
   if (type == 0)
-    return call3 (alist, string, predicate, Qt);
+    return call3 (collection, string, predicate, Qt);
   allmatches = bucket = Qnil;
   zero = make_number (0);
 
-  /* If ALIST is not a list, set TAIL just for gc pro.  */
-  tail = alist;
+  /* If COLLECTION is not a list, set TAIL just for gc pro.  */
+  tail = collection;
   if (type == 2)
     {
-      obsize = XVECTOR (alist)->size;
-      bucket = XVECTOR (alist)->contents[index];
+      obsize = XVECTOR (collection)->size;
+      bucket = XVECTOR (collection)->contents[index];
     }
 
   while (1)
@@ -1585,19 +1591,19 @@ are ignored unless STRING itself starts with a space.  */)
 	    break;
 	  else
 	    {
-	      bucket = XVECTOR (alist)->contents[index];
+	      bucket = XVECTOR (collection)->contents[index];
 	      continue;
 	    }
 	}
       else /* if (type == 3) */
 	{
-	  while (index < HASH_TABLE_SIZE (XHASH_TABLE (alist))
-		 && NILP (HASH_HASH (XHASH_TABLE (alist), index)))
+	  while (index < HASH_TABLE_SIZE (XHASH_TABLE (collection))
+		 && NILP (HASH_HASH (XHASH_TABLE (collection), index)))
 	    index++;
-	  if (index >= HASH_TABLE_SIZE (XHASH_TABLE (alist)))
+	  if (index >= HASH_TABLE_SIZE (XHASH_TABLE (collection)))
 	    break;
 	  else
-	    elt = eltstring = HASH_KEY (XHASH_TABLE (alist), index++);
+	    elt = eltstring = HASH_KEY (XHASH_TABLE (collection), index++);
 	}
 
       /* Is this element a possible completion? */
@@ -1659,7 +1665,7 @@ are ignored unless STRING itself starts with a space.  */)
 		  GCPRO4 (tail, eltstring, allmatches, string);
 		  tem = type == 3
 		    ? call2 (predicate, elt,
-			     HASH_VALUE (XHASH_TABLE (alist), index - 1))
+			     HASH_VALUE (XHASH_TABLE (collection), index - 1))
 		    : call1 (predicate, elt);
 		  UNGCPRO;
 		}
@@ -1686,19 +1692,14 @@ Lisp_Object Vminibuffer_completing_file_name;
 DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 8, 0,
        doc: /* Read a string in the minibuffer, with completion.
 PROMPT is a string to prompt with; normally it ends in a colon and a space.
-
-TABLE can be a list of strings, an alist, an obarray or a hash table; their
-elements are tested to see if they begin with STRING.
-TABLE can also be a function to do the completion itself; it receives
-three arguments: the values STRING, PREDICATE and nil.
-Whatever it returns becomes the value of `try-completion'.
-
-PREDICATE limits completion to a subset of TABLE.
+COLLECTION can be a list of strings, an alist, an obarray or a hash table.
+COLLECTION can also be a function to do the completion itself.
+PREDICATE limits completion to a subset of COLLECTION.
 See `try-completion' and `all-completions' for more details
- on completion, TABLE (called "alist" there), and PREDICATE.
+ on completion, COLLECTION, and PREDICATE.
 
 If REQUIRE-MATCH is non-nil, the user is not allowed to exit unless
- the input is (or completes to) an element of TABLE or is null.
+ the input is (or completes to) an element of COLLECTION or is null.
  If it is also not t, typing RET does not exit if it does non-null completion.
 If the input is null, `completing-read' returns DEF, or an empty string
  if DEF is nil, regardless of the value of REQUIRE-MATCH.
@@ -1732,8 +1733,8 @@ If INHERIT-INPUT-METHOD is non-nil, the minibuffer inherits
 
 Completion ignores case if the ambient value of
   `completion-ignore-case' is non-nil.  */)
-     (prompt, table, predicate, require_match, initial_input, hist, def, inherit_input_method)
-     Lisp_Object prompt, table, predicate, require_match, initial_input;
+     (prompt, collection, predicate, require_match, initial_input, hist, def, inherit_input_method)
+     Lisp_Object prompt, collection, predicate, require_match, initial_input;
      Lisp_Object hist, def, inherit_input_method;
 {
   Lisp_Object val, histvar, histpos, position;
@@ -1745,7 +1746,7 @@ Completion ignores case if the ambient value of
   init = initial_input;
   GCPRO1 (def);
 
-  specbind (Qminibuffer_completion_table, table);
+  specbind (Qminibuffer_completion_table, collection);
   specbind (Qminibuffer_completion_predicate, predicate);
   specbind (Qminibuffer_completion_confirm,
 	    EQ (require_match, Qt) ? Qnil : require_match);
@@ -1807,27 +1808,28 @@ Lisp_Object Fassoc_string ();
 DEFUN ("test-completion", Ftest_completion, Stest_completion, 2, 3, 0,
        doc: /* Return non-nil if STRING is a valid completion.
 Takes the same arguments as `all-completions' and `try-completion'.
-If ALIST is a function, it is called with three arguments:
+If COLLECTION is a function, it is called with three arguments:
 the values STRING, PREDICATE and `lambda'.  */)
-       (string, alist, predicate)
-     Lisp_Object string, alist, predicate;
+       (string, collection, predicate)
+     Lisp_Object string, collection, predicate;
 {
   Lisp_Object regexps, tail, tem = Qnil;
   int i = 0;
 
   CHECK_STRING (string);
 
-  if ((CONSP (alist) && (!SYMBOLP (XCAR (alist)) || NILP (XCAR (alist))))
-      || NILP (alist))
+  if ((CONSP (collection)
+       && (!SYMBOLP (XCAR (collection)) || NILP (XCAR (collection))))
+      || NILP (collection))
     {
-      tem = Fassoc_string (string, alist, completion_ignore_case ? Qt : Qnil);
+      tem = Fassoc_string (string, collection, completion_ignore_case ? Qt : Qnil);
       if (NILP (tem))
 	return Qnil;
     }
-  else if (VECTORP (alist))
+  else if (VECTORP (collection))
     {
       /* Bypass intern-soft as that loses for nil.  */
-      tem = oblookup (alist,
+      tem = oblookup (collection,
 		      SDATA (string),
 		      SCHARS (string),
 		      SBYTES (string));
@@ -1838,7 +1840,7 @@ the values STRING, PREDICATE and `lambda'.  */)
 	  else
 	    string = Fstring_make_multibyte (string);
 
-	  tem = oblookup (alist,
+	  tem = oblookup (collection,
 			  SDATA (string),
 			  SCHARS (string),
 			  SBYTES (string));
@@ -1846,9 +1848,9 @@ the values STRING, PREDICATE and `lambda'.  */)
 
       if (completion_ignore_case && !SYMBOLP (tem))
 	{
-	  for (i = XVECTOR (alist)->size - 1; i >= 0; i--)
+	  for (i = XVECTOR (collection)->size - 1; i >= 0; i--)
 	    {
-	      tail = XVECTOR (alist)->contents[i];
+	      tail = XVECTOR (collection)->contents[i];
 	      if (SYMBOLP (tail))
 		while (1)
 		  {
@@ -1870,9 +1872,9 @@ the values STRING, PREDICATE and `lambda'.  */)
       if (!SYMBOLP (tem))
 	return Qnil;
     }
-  else if (HASH_TABLE_P (alist))
+  else if (HASH_TABLE_P (collection))
     {
-      struct Lisp_Hash_Table *h = XHASH_TABLE (alist);
+      struct Lisp_Hash_Table *h = XHASH_TABLE (collection);
       i = hash_lookup (h, string, NULL);
       if (i >= 0)
 	tem = HASH_KEY (h, i);
@@ -1891,7 +1893,7 @@ the values STRING, PREDICATE and `lambda'.  */)
 	return Qnil;
     }
   else
-    return call3 (alist, string, predicate, Qlambda);
+    return call3 (collection, string, predicate, Qlambda);
 
   /* Reject this element if it fails to match all the regexps.  */
   if (CONSP (Vcompletion_regexp_list))
@@ -1912,8 +1914,8 @@ the values STRING, PREDICATE and `lambda'.  */)
   /* Finally, check the predicate.  */
   if (!NILP (predicate))
     {
-      return HASH_TABLE_P (alist)
-	? call2 (predicate, tem, HASH_VALUE (XHASH_TABLE (alist), i))
+      return HASH_TABLE_P (collection)
+	? call2 (predicate, tem, HASH_VALUE (XHASH_TABLE (collection), i))
 	: call1 (predicate, tem);
     }
   else
