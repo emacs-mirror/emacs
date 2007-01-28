@@ -1,11 +1,11 @@
 All *.tit files in this directory are dictionary files to use with
 the program cxterm.  Their source and copyright status are categorised
-into these four.
+into these four groups.
 
 (1) QJ-b5.tit (renamed from .../cxterm/dict/big5/QJ.tit)
     QJ.tit (copied from .../cxterm/dict/gb/QJ.tit)
 
-These are verbatim copies of what included in the directory
+These are verbatim copies of those included in the directory
 contrib/clients/cxterm of the distribution of X11R6.  Each file
 contains a license notice.
 
@@ -14,10 +14,10 @@ contains a license notice.
     SW.tit (copied from .../cxterm/dict/gb/SW.tit)
     TONEPY.tit (copied from .../cxterm/dict/gb/TONEPY.tit)
 
-These are verbatim copies of what included in the directory
+These are verbatim copies of those included in the directory
 contrib/clients/cxterm of the distribution of X11R6.  As those files
 themselves don't contain license notices, the section 6 of the file
-.../cxterm/README should cover them.
+.../cxterm/README should cover them:
 
 ============================================================
 6. COPYRIGHTS AND TERMS
@@ -47,12 +47,12 @@ purpose.  It is provided "as is" without express or implied warranty.
     ETZY.tit
     ZOZY.tit
 
-These are the versions modified by the original authors from what
+These are versions modified by the original authors from those
 distributed with X11R5 to include proper copyright notices.  Each file
 contains a license notice.
 
 (4) ECDICT.tit, Punct-b5.tit, Punct.tit
 
-These are verbatim copies of what distributed at
+These are verbatim copies of those distributed at
 ftp://ftp.ifcss.org/pub/software/.  Each file contains a license
 notice.
