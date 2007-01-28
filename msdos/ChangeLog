@@ -1,3 +1,7 @@
+2007-01-28  Glenn Morris  <rgm@gnu.org>
+
+	* COPYING.DJ: New file.
+
 2006-12-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed2v2.inp (HAVE_SYNC): Define.
