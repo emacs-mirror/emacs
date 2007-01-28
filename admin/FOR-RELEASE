@@ -80,7 +80,7 @@ through the custom mechanism.
 
 ** jka-compr fails when default-directory is nonexistent.
 
-** Tramp fails when default-directory is nonexistent.
+** Binding print-circle to nil in compilation for certain files.
 
 * DOCUMENTATION
 

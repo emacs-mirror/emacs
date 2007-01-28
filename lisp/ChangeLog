@@ -1,3 +1,26 @@
+2007-01-28  Richard Stallman  <rms@gnu.org>
+
+	* textmodes/fill.el (fill-paragraph-function): Doc fix.
+	(fill-paragraph): Bind fill-paragraph-function to t to avoid recursion.
+
+	* emacs-lisp/pp.el (pp-eval-last-sexp): Don't eval here.
+
+	* image.el (image-type-header-regexps): Make GIF regex more specific.
+
+	* tutorial.el (tutorial--default-keys): Check M-DEL, not `M-backspace'.
+	Don't check `backspace'.
+	(tutorial--find-changed-keys): Look up bindings in a temp buffer
+	in Fundamental mode.
+
+	* startup.el (fancy-splash-text, normal-splash-screen):
+	Mention C-g.
+
+	* simple.el (eval-expression): Don't use eval-last-sexp-print-value
+	when inserting in buffer.
+
+	* vc-arch.el (vc-arch-file-id): Move with-current-buffer
+	inside the if.
+
 2007-01-27  Richard Stallman  <rms@gnu.org>
 
 	* obsolete/awk-mode.el (awk-font-lock-keywords): Add "do".
