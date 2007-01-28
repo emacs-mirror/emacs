@@ -5,6 +5,8 @@ Tasks needed before the next release.
   not at the start of the file that are easy to miss, as in
   src/emacs.c.
 
+  See also the oustanding issues in admin/notes/copyright.
+
 * TO BE DONE SHORTLY BEFORE RELEASE
 
 ** Check for widow and orphan lines in manuals;

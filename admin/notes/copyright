@@ -168,12 +168,21 @@ lib-src/etags.c - no 'k.* arnold' in copyright.list'
  and insert whatever his license was for his code."
 
 
+lispref/back.texi, elisp-covers.texi, lay-flat.texi,
+two-volume-cross-refs.txt, two.el
+  - add standard notices to any decided to be non-trivial.
+
+
 lwlib/lwlib-int.h, lwlib.h - no copyright
 lwlib/Makefile.in, lwlib-utils.c, lwlib.c - copyright Lucid
 lwlib/lwlib-Xaw.c - copyright Chuck Thompson
 lwlib/lwlib.c - copyright Lucid, but FSF copyright was added in 2002 -
    was that correct?
   rms: "I asked Matthew Norwood about these, I believe."
+
+
+man/back.texi, trampver.texi
+  - add standard notices to any decided to be non-trivial.
 
 
 msdos/
