@@ -1,3 +1,12 @@
+2007-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* play/gamegrid.el (gamegrid-kill-timer): Cancel timer directly.
+	(gamegrid-add-score-with-update-game-score-1): Allow local quits
+	when calling update-game-score program.  Remove unnecessary
+	save-excursion.
+
+	* play/tetris.el (tetris-new-shape): Stop drawing if game is over.
+
 2007-01-28  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-breakpoint-regexp): Declare earlier to
