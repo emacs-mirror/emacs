@@ -8,6 +8,11 @@
  * two bytes of the file are tested for known signatures of executable
  * files.
  *
+ * Copyright (c) 1994 Eli Zaretskii <eliz@is.elta.co.il>
+ *
+ * This software may be used freely so long as this copyright notice is
+ * left intact.  There is no warranty on this software.
+ *
  */
 
 #include <libc/stubs.h>
