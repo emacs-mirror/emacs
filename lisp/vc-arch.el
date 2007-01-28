@@ -152,7 +152,7 @@ Only the value `maybe' can be trusted :-(."
 	(with-temp-buffer
 	  (insert-file-contents idfile)
 	  (looking-at ".*[^ \n\t]")
-	  (match-string 0)))
+	  (match-string 0))
       (with-current-buffer (find-file-noselect file)
 	(save-excursion
 	  (goto-char (point-max))
@@ -161,7 +161,7 @@ Only the value `maybe' can be trusted :-(."
 		    (goto-char (point-min))
 		    (re-search-forward vc-arch-tagline-re (+ (point) 1000) t)))
 	      (match-string 1)
-	    (concat "./" (file-relative-name file (vc-arch-root file))))))))
+	    (concat "./" (file-relative-name file (vc-arch-root file)))))))))
 
 (defun vc-arch-tagging-method (file)
   (with-current-buffer
