@@ -1,5 +1,8 @@
 2007-01-29  Eli Zaretskii  <eliz@gnu.org>
 
+	* elisp.texi (Top): Add "Standard Errors", "Standard Buffer-Local
+	Variables", and "Standard Keymaps" to the detailed menu.
+
 	* variables.texi (Future Local Variables): Add index entry.
 
 2007-01-28  Richard Stallman  <rms@gnu.org>
