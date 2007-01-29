@@ -404,7 +404,7 @@ LIBXT=$(LIBW)
 
 #if HAVE_XFT
 #undef LIB_X11_LIB /* XFT_LIBS includes -lX11 */
-XFT_LIBS=@XFT_LIBS@"
+XFT_LIBS=@XFT_LIBS@
 #endif /* HAVE_XFT */
 
 #if HAVE_XPM
