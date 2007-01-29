@@ -910,7 +910,7 @@ method `chinese-tonepy' with which you must specify tones by digits
   (let ((pos (point)))
     (insert-buffer-substring dicbuf)
     (goto-char pos)
-    (search-forward "^[a-z]")
+    (re-search-forward "^[a-z]")
     (beginning-of-line)
     (delete-region pos (point))
     (while (not (eobp))
