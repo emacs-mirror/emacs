@@ -1,3 +1,9 @@
+2007-01-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in: Restore support for hp800's not running HP-UX.
+
+	* configure: Regenerate.
+
 2007-01-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* configure.in: Remove support for hp800 and sr2k machine types.
