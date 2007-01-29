@@ -1,5 +1,9 @@
 2007-01-29  Chong Yidong  <cyd@stupidchicken.com>
 
+	* jka-compr.el (jka-compr-partial-uncompress)
+	(jka-compr-call-process): Rebind default-directory if it is
+	invalid.  Suggested by Chris Moore.
+
 	* comint.el (comint-insert-input): Handle situation where the
 	selected buffer is not the clicked buffer.
 
