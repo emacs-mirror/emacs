@@ -1,3 +1,7 @@
+2007-01-29  Kenichi Handa  <handa@m17n.org>
+
+	* international/titdic-cnv.el (py-converter): Fix previous change.
+
 2007-01-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* jka-compr.el (jka-compr-partial-uncompress)
