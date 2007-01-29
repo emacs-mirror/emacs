@@ -1,3 +1,7 @@
+2007-01-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnus-art.el (gnus-button-prefer-mid-or-mail): Fix typo in docstring.
+
 2007-01-23  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-score.el (gnus-home-score-file, gnus-home-adapt-file): Fix

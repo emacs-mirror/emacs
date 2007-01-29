@@ -2,6 +2,7 @@
 
 	* isearchb.el (isearchb-iswitchb):
 	* ps-print.el (ps-build-face-reference):
+	* emacs-lisp/shadow.el (list-load-path-shadows):
 	* eshell/esh-cmd.el (eshell-rewrite-for-command):
 	* international/mule.el (find-auto-coding):
 	* mail/supercite.el (sc-attrib-selection-list):
