@@ -740,7 +740,7 @@ be after it."
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; V i r t u a l   S e m i c o l o n s 
+;; V i r t u a l   S e m i c o l o n s
 ;;
 ;; In most CC Mode languages, statements are terminated explicitly by
 ;; semicolons or closing braces.  In some of the CC modes (currently only AWK
@@ -784,7 +784,7 @@ be after it."
 ;;
 ;; The macro `c-vsemi-status-unknown-p' will typically check the cacheing
 ;; scheme used by the `c-at-vsemi-p-fn', hence the name - the status is
-;; "unknown" if there is no cache entry current for the line. 
+;; "unknown" if there is no cache entry current for the line.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmacro c-at-vsemi-p (&optional pos)
@@ -1514,8 +1514,8 @@ might be present:
 		    (i.e. the syntax class `|').
 'pps-extended-state `parse-partial-sexp' returns a list with at least 10
 		    elements, i.e. it contains the position of the start of
-		    the last comment or string. It's always set - CC Mode no
-		    longer works in emacsen without this feature.
+		    the last comment or string.  It's always set - CC Mode
+                    no longer works in emacsen without this feature.
 'posix-char-classes The regexp engine understands POSIX character classes.
 'col-0-paren        It's possible to turn off the ad-hoc rule that a paren
 		    in column zero is the start of a defun.
