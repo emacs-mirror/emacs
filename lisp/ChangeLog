@@ -1,3 +1,8 @@
+2007-01-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* comint.el (comint-insert-input): Handle situation where the
+	selected buffer is not the clicked buffer.
+
 2007-01-29  Kenichi Handa  <handa@m17n.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-disable-print-circle): New
