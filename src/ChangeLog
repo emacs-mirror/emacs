@@ -1,3 +1,7 @@
+2007-01-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* m/hp800.h: Restore, removing HP-UX support.
+
 2007-01-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* Makefile.in: Use a variable, XFT_LIBS, instead #define LIB_X11_LIB.
