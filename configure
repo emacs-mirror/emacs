@@ -2235,6 +2235,7 @@ _ACEOF
       vax-*-netbsd*)	machine=vax ;;
       arm-*-netbsd*)	machine=arm ;;
       x86_64-*-netbsd*)	machine=amdx86-64 ;;
+      hppa-*-netbsd*)	machine=hp800 ;;
       shle-*-netbsd*)	machine=sh3el ;;
     esac
   ;;
@@ -2570,6 +2571,14 @@ _ACEOF
       *.1[0-9].* ) machine=hp9000s300 opsys=hpux9shr ;;
       *) machine=hp9000s300 opsys=hpux ;;
     esac
+  ;;
+
+  hppa*-*-linux-gnu* )
+    machine=hp800 opsys=gnu-linux
+  ;;
+
+  hppa*-*-nextstep* )
+    machine=hp800 opsys=nextstep
   ;;
 
   ## Orion machines
