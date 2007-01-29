@@ -365,6 +365,7 @@ Errors
 * Processing of Errors::    What Emacs does when you report an error.
 * Handling Errors::         How you can trap errors and continue execution.
 * Error Symbols::           How errors are classified for trapping them.
+* Standard Errors::         List of all error symbols.
 
 Variables
 
@@ -386,6 +387,8 @@ Variables
 * Variable Aliases::        Variables that are aliases for other variables.
 * Variables with Restricted Values::  Non-constant variables whose value can
                                         @emph{not} be an arbitrary Lisp object.
+* Standard Buffer-Local Variables::
+                            List of variables buffer-local in all buffers.
 
 Scoping Rules for Variable Bindings
 
@@ -617,8 +620,9 @@ Keymaps
 * Remapping Commands::          A keymap can translate one command to another.
 * Key Binding Commands::        Interactive interfaces for redefining keys.
 * Scanning Keymaps::            Looking through all keymaps, for printing help.
-* Menu Keymaps::		A keymap can define a menu for X
-				  or for use from the terminal.
+* Menu Keymaps::                A keymap can define a menu for X
+                                  or for use from the terminal.
+* Standard Keymaps::            List of standard keymaps.
 
 Major and Minor Modes
 
