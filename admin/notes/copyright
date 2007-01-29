@@ -97,6 +97,13 @@ lib-src/etags.c
 lib-src/getopt1.c, getopt_int.h
   - these are from the GNU C library. Leave the copyrights alone.
 
+lisp/play/tetris.el
+  - no special rules about the copyright. We note here that we believe
+  (2007/1) there is no problem with our use of the name "tetris" or
+  the concept.
+  rms: "My understanding is that game rules as such are not copyrightable."
+  <http://lists.gnu.org/archive/html/emacs-devel/2007-01/msg00960.html>
+
 lispref/doclicense.texi
 man/doclicense.texi
   - leave the copyright alone in this imported file.
