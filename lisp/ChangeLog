@@ -1,3 +1,7 @@
+2007-01-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/shadow.el (list-load-path-shadows): Doc fix.
+
 2007-01-29  Kenichi Handa  <handa@m17n.org>
 
 	* international/titdic-cnv.el (py-converter): Fix previous change.
@@ -13,16 +17,16 @@
 
 2007-01-29  Kenichi Handa  <handa@m17n.org>
 
-	* international/ja-dic-cnv.el (skkdic-convert): Add
-	byte-compile-disable-print-circle:t at the head.
+	* international/ja-dic-cnv.el (skkdic-convert):
+	Add byte-compile-disable-print-circle:t at the head.
 
-	* international/titdic-cnv.el (tit-process-header): Add
-	byte-compile-disable-print-circle:t at the head.
+	* international/titdic-cnv.el (tit-process-header):
+	Add byte-compile-disable-print-circle:t at the head.
 	(miscdic-convert): Likewise.
 	(py-converter): Skip the header comments.
 
-	* emacs-lisp/bytecomp.el (byte-compile-disable-print-circle): New
-	variable.
+	* emacs-lisp/bytecomp.el (byte-compile-disable-print-circle):
+	New variable.
 	(byte-compile-output-file-form): Bing print-circle to nil if
 	byte-compile-output-file-form is not nil.
 	(byte-compile-output-docform): Likewise.
