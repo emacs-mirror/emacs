@@ -1,3 +1,11 @@
+2007-01-29  Kenichi Handa  <handa@m17n.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-disable-print-circle): New
+	variable.
+	(byte-compile-output-file-form): Bing print-circle to nil if
+	byte-compile-output-file-form is not nil.
+	(byte-compile-output-docform): Likewise.
+
 2007-01-28  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el (cua-global-keymap, cua--region-keymap):
