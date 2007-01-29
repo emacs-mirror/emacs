@@ -1,3 +1,7 @@
+2007-01-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* variables.texi (Future Local Variables): Add index entry.
+
 2007-01-28  Richard Stallman  <rms@gnu.org>
 
 	* tips.texi (Coding Conventions): Clarify the tip about macros
