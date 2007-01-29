@@ -3313,7 +3313,7 @@ require slightly different versions of this line."
   "*Non-nil means build the reference face lists.
 
 ps-print sets this value to nil after it builds its internal reference lists of
-bold and italic faces.  By settings its value back to t, you can force ps-print
+bold and italic faces.  By setting its value back to t, you can force ps-print
 to rebuild the lists the next time you invoke one of the ...-with-faces
 commands.
 
