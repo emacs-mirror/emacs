@@ -1,3 +1,8 @@
+2007-01-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Secondary Selection): Window clicked does not matter
+	when mouse-yank-at-point is non-nil.
+
 2007-01-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdog.texi (ls in Lisp): Document ls-lisp-format-time-list and
