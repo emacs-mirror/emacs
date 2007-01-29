@@ -1,6 +1,26 @@
 2007-01-29  Juanma Barranquero  <lekktu@gmail.com>
 
-	* emacs-lisp/shadow.el (list-load-path-shadows): Doc fix.
+	* isearchb.el (isearchb-iswitchb):
+	* ps-print.el (ps-build-face-reference):
+	* eshell/esh-cmd.el (eshell-rewrite-for-command):
+	* international/mule.el (find-auto-coding):
+	* mail/supercite.el (sc-attrib-selection-list):
+	* progmodes/cc-defs.el (c-emacs-features):
+	* progmodes/cc-vars.el (c-offsets-alist):
+	* progmodes/flymake.el
+	(flymake-init-create-temp-source-and-master-buffer-copy):
+	Fix typos in docstrings (some suggested by Chris Moore).
+
+	* progmodes/vhdl-mode.el (vhdl-components-package-name)
+	(vhdl-get-library-unit, vhdl-corresponding-begin)
+	(vhdl-skip-case-alternative, vhdl-backward-skip-label)
+	(vhdl-align-region-2, vhdl-electric-dash, vhdl-case-word)
+	(vhdl-hooked-abbrev, vhdl-hs-forward-sexp-func)
+	(vhdl-font-lock-match-item): Fix typos in docstrings.
+	(vhdl-get-library-unit, vhdl-get-block-state, vhdl-sort-alist)
+	(vhdl-set-offset, vhdl-fix-case-region-1, vhdl-scan-directory-contents)
+	(vhdl-speedbar-insert-project-hierarchy):
+	Improve argument/docstring consistency.
 
 2007-01-29  Kenichi Handa  <handa@m17n.org>
 
