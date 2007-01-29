@@ -155,6 +155,12 @@ to keep: LEN chars starting BEG chars from the beginning."
 	;; to discard the part we don't want.
 	(let ((skip (/ beg jka-compr-dd-blocksize))
 	      (err-file (jka-compr-make-temp-name))
+	      ;; call-process barfs if default-directory is inaccessible.
+	      (default-directory
+		(if (and default-directory
+			 (file-accessible-directory-p default-directory))
+		    default-directory
+		  (file-name-directory infile)))
 	      count)
 	  ;; Update PREFIX based on the text that we won't read in.
 	  (setq prefix (- beg (* skip jka-compr-dd-blocksize))
@@ -193,45 +199,41 @@ to keep: LEN chars starting BEG chars from the beginning."
 
 
 (defun jka-compr-call-process (prog message infile output temp args)
-  (if jka-compr-use-shell
-
-      (let ((err-file (jka-compr-make-temp-name))
-	    (coding-system-for-read (or coding-system-for-read 'undecided))
-            (coding-system-for-write 'no-conversion))
-
-	(unwind-protect
-
-	    (or (memq
-		 (call-process jka-compr-shell infile
-			       (if (stringp output) nil output)
-			       nil
-			       "-c"
-			       (format "%s %s 2> %s %s"
-				       prog
-				       (mapconcat 'identity args " ")
-				       err-file
-				       (if (stringp output)
-					   (concat "> " output)
-					 "")))
-		 jka-compr-acceptable-retval-list)
-
-		(jka-compr-error prog args infile message err-file))
-
-	  (jka-compr-delete-temp-file err-file)))
-
-    (or (eq 0
-	 (apply 'call-process
-		prog
-		infile
-		(if (stringp output) temp output)
-		nil
-		args))
-	(jka-compr-error prog args infile message))
-
-    (and (stringp output)
-	 (with-current-buffer temp
-	   (write-region (point-min) (point-max) output)
-	   (erase-buffer)))))
+  ;; call-process barfs if default-directory is inaccessible.
+  (let ((default-directory
+	  (if (and default-directory
+		   (file-accessible-directory-p default-directory))
+	      default-directory
+	    (file-name-directory infile))))
+    (if jka-compr-use-shell
+	(let ((err-file (jka-compr-make-temp-name))
+	      (coding-system-for-read (or coding-system-for-read 'undecided))
+	      (coding-system-for-write 'no-conversion))
+	  (unwind-protect
+	      (or (memq
+		   (call-process jka-compr-shell infile
+				 (if (stringp output) nil output)
+				 nil
+				 "-c"
+				 (format "%s %s 2> %s %s"
+					 prog
+					 (mapconcat 'identity args " ")
+					 err-file
+					 (if (stringp output)
+					     (concat "> " output)
+					   "")))
+		   jka-compr-acceptable-retval-list)
+		  (jka-compr-error prog args infile message err-file))
+	    (jka-compr-delete-temp-file err-file)))
+      (or (eq 0
+	      (apply 'call-process
+		     prog infile (if (stringp output) temp output)
+		     nil args))
+	  (jka-compr-error prog args infile message))
+      (and (stringp output)
+	   (with-current-buffer temp
+	     (write-region (point-min) (point-max) output)
+	     (erase-buffer))))))
 
 
 ;; Support for temp files.  Much of this was inspired if not lifted
