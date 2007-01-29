@@ -1,7 +1,7 @@
 ;;; ls-lisp.el --- emulate insert-directory completely in Emacs Lisp
 
 ;; Copyright (C) 1992, 1994, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006 Free Software Foundation, Inc.
+;;   2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Modified by: Francis J. Wright <F.J.Wright@maths.qmw.ac.uk>
@@ -151,7 +151,10 @@ Otherwise they are treated as Emacs regexps (for backward compatibility)."
   '("%b %e %H:%M"
     "%b %e  %Y")
   "*List of `format-time-string' specs to display file time stamps.
-They are used whenever a locale is not specified to use instead.
+These specs are used ONLY if a valid locale can not be determined.
+
+If `ls-lisp-use-localized-time-format' is non-nil, these specs are used
+regardless of whether the locale can be determined.
 
 Syntax:  (EARLY-TIME-FORMAT OLD-TIME-FORMAT)
 
@@ -164,6 +167,15 @@ current year. The OLD-TIME-FORMAT is used for older files.  To use ISO
          \"%Y-%m-%d      \"))"
   :type '(list (string :tag "Early time format")
 	       (string :tag "Old time format"))
+  :group 'ls-lisp)
+
+(defcustom ls-lisp-use-localized-time-format nil
+  "*Non-nil causes ls-lisp to use `ls-lisp-format-time-list' even if
+a valid locale is specified.
+
+WARNING: Using localized date/time format might cause Dired columns
+to fail to lign up, e.g. if month names are not all of the same length."
+  :type 'boolean
   :group 'ls-lisp)
 
 (defvar original-insert-directory nil
@@ -567,8 +579,12 @@ All ls time options, namely c, t and u, are handled."
 	      (setq locale nil))
 	  (format-time-string
 	   (if (and (<= past-cutoff diff) (<= diff 0))
-	       (if locale "%m-%d %H:%M" (nth 0 ls-lisp-format-time-list))
-	     (if locale "%Y-%m-%d " (nth 1 ls-lisp-format-time-list)))
+	       (if (and locale (not ls-lisp-use-localized-time-format))
+		   "%m-%d %H:%M"
+		 (nth 0 ls-lisp-format-time-list))
+	     (if (and locale (not ls-lisp-use-localized-time-format))
+		 "%Y-%m-%d "
+	       (nth 1 ls-lisp-format-time-list)))
 	   time))
       (error "Unk  0  0000"))))
 

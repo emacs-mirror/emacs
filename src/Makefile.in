@@ -1,6 +1,6 @@
 # Makefile for GNU Emacs.
 # Copyright (C) 1985, 1987, 1988, 1993, 1994, 1995, 1999, 2000, 2001, 2002,
-#               2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+#               2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -401,6 +401,11 @@ LIBXT=$(LIBW) -lSM -lICE
 LIBXT=$(LIBW)
 #endif
 #endif /* not USE_X_TOOLKIT */
+
+#if HAVE_XFT
+#undef LIB_X11_LIB
+#define LIB_X11_LIB @XFT_LIBS@
+#endif /* HAVE_XFT */
 
 #if HAVE_XPM
 #ifndef LIBXPM

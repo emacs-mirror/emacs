@@ -1,7 +1,7 @@
 ;;; viper-keym.el --- Viper keymaps
 
 ;; Copyright (C) 1994, 1995, 1996, 1997, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006 Free Software Foundation, Inc.
+;;   2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
@@ -308,8 +308,6 @@ If running in a terminal, [(escape)] is not understood, so must use \"\\e\"."
 (define-key viper-insert-basic-map "\C-d" 'viper-backward-indent)
 (define-key viper-insert-basic-map "\C-w" 'viper-delete-backward-word)
 (define-key viper-insert-basic-map "\C-t" 'viper-forward-indent)
-(define-key viper-insert-basic-map
-  (if viper-xemacs-p [(shift tab)] [S-tab]) 'viper-insert-tab)
 (define-key viper-insert-basic-map viper-quoted-insert-key 'quoted-insert)
 (define-key viper-insert-basic-map "\C-?" 'viper-del-backward-char-in-insert)
 (define-key viper-insert-basic-map [backspace] 'viper-del-backward-char-in-insert)

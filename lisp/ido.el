@@ -1,7 +1,7 @@
 ;;; ido.el --- interactively do things with buffers and files.
 
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Based on: iswitchb by Stephen Eglen <stephen@cns.ed.ac.uk>
@@ -1040,6 +1040,10 @@ so that it doesn't interfere with other minibuffer usage.")
 (defvar ido-incomplete-regexp nil
   "Non-nil if an incomplete regexp is entered.")
 
+(defvar ido-initial-position nil
+  "Non-nil means to explicitly cursor on entry to minibuffer.
+Value is an integer which is number of chars to right of prompt.")
+
 ;;; Variables with dynamic bindings.
 ;;; Declared here to keep the byte compiler quiet.
 
@@ -1119,7 +1123,9 @@ so that it doesn't interfere with other minibuffer usage.")
 (defun ido-active (&optional merge)
   (if merge
       ido-use-merged-list
-    (and (boundp 'ido-completing-read) (= ido-use-mycompletion-depth (minibuffer-depth)))))
+    (and (boundp 'ido-completing-read)
+	 (or (featurep 'xemacs)
+	     (= ido-use-mycompletion-depth (minibuffer-depth))))))
 
 (defvar ido-trace-enable nil)
 
@@ -1850,6 +1856,8 @@ If INITIAL is non-nil, it specifies the initial input string."
 	(if (member ido-default-item ido-ignore-item-temp-list)
 	    (setq ido-default-item nil))
 	(ido-trace "new default" ido-default-item)
+	(if ido-default-item
+	    (setq ido-initial-position 0))
 	(setq ido-set-default-item nil))
 
       (if ido-process-ignore-lists-inhibit
@@ -2120,11 +2128,14 @@ If INITIAL is non-nil, it specifies the initial input string."
     ido-selected))
 
 (defun ido-edit-input ()
-  "Edit absolute file name entered so far with ido; terminate by RET."
+  "Edit absolute file name entered so far with ido; terminate by RET.
+If cursor is not at the end of the user input, move to end of input."
   (interactive)
-  (setq ido-text-init (if ido-matches (ido-name (car ido-matches)) ido-text))
-  (setq ido-exit 'edit)
-  (exit-minibuffer))
+  (if (not (eobp))
+      (end-of-line)
+    (setq ido-text-init (if ido-matches (ido-name (car ido-matches)) ido-text))
+    (setq ido-exit 'edit)
+    (exit-minibuffer)))
 
 ;;; MAIN FUNCTIONS
 (defun ido-buffer-internal (method &optional fallback prompt default initial switch-cmd)
@@ -2542,6 +2553,10 @@ C-x C-b C-b  fallback to non-ido `switch-to-buffer'."
   (cond
    ((> (point) (minibuffer-prompt-end))
     (forward-char -1))
+   ((eq last-command this-command)
+    (when (and (memq ido-cur-item '(file dir))
+	       (not (bobp)))
+      (ido-push-dir))) ; else do nothing
    ((eq ido-cur-item 'buffer)
     (ido-fallback-command))
    (ido-context-switch-command
@@ -2591,14 +2606,16 @@ C-x C-f ... C-d  enter dired on current directory."
 (defun ido-toggle-ignore ()
   "Toggle ignoring files specified with `ido-ignore-files'."
   (interactive)
-  (if ido-directory-too-big
-      (progn
-	(message "Reading directory...")
-	(setq ido-directory-too-big nil))
-    (setq ido-process-ignore-lists (not ido-process-ignore-lists)))
-  (setq ido-text-init ido-text)
-  (setq ido-exit 'refresh)
-  (exit-minibuffer))
+  (if (and (not (eobp)) (> (point) (minibuffer-prompt-end)))
+      (goto-char (minibuffer-prompt-end))
+    (if ido-directory-too-big
+	(progn
+	  (message "Reading directory...")
+	  (setq ido-directory-too-big nil))
+      (setq ido-process-ignore-lists (not ido-process-ignore-lists)))
+    (setq ido-text-init ido-text)
+    (setq ido-exit 'refresh)
+    (exit-minibuffer)))
 
 (defun ido-toggle-vc ()
   "Disable version control for this file."
@@ -3783,39 +3800,45 @@ for first matching file."
 
 ;;; KILL CURRENT BUFFER
 (defun ido-kill-buffer-at-head ()
-  "Kill the buffer at the head of `ido-matches'."
+  "Kill the buffer at the head of `ido-matches'.
+If cursor is not at the end of the user input, delete to end of input."
   (interactive)
-  (let ((enable-recursive-minibuffers t)
-	(buf (ido-name (car ido-matches))))
-    (when buf
-      (kill-buffer buf)
-      ;; Check if buffer still exists.
-      (if (get-buffer buf)
-	  ;; buffer couldn't be killed.
-	  (setq ido-rescan t)
-	;; else buffer was killed so remove name from list.
-	(setq ido-cur-list (delq buf ido-cur-list))))))
+  (if (not (eobp))
+      (kill-line)
+    (let ((enable-recursive-minibuffers t)
+	  (buf (ido-name (car ido-matches))))
+      (when buf
+	(kill-buffer buf)
+	;; Check if buffer still exists.
+	(if (get-buffer buf)
+	    ;; buffer couldn't be killed.
+	    (setq ido-rescan t)
+	  ;; else buffer was killed so remove name from list.
+	  (setq ido-cur-list (delq buf ido-cur-list)))))))
 
 ;;; DELETE CURRENT FILE
 (defun ido-delete-file-at-head ()
-  "Delete the file at the head of `ido-matches'."
+  "Delete the file at the head of `ido-matches'.
+If cursor is not at the end of the user input, delete to end of input."
   (interactive)
-  (let ((enable-recursive-minibuffers t)
-	(file (ido-name (car ido-matches))))
-    (if file
-	(setq file (concat ido-current-directory file)))
-    (when (and file
-	       (file-exists-p file)
-	       (not (file-directory-p file))
-	       (file-writable-p ido-current-directory)
-	       (yes-or-no-p (concat "Delete " file "? ")))
-      (delete-file file)
-      ;; Check if file still exists.
-      (if (file-exists-p file)
-	  ;; file could not be deleted
-	  (setq ido-rescan t)
-	;; else file was killed so remove name from list.
-	(setq ido-cur-list (delq (car ido-matches) ido-cur-list))))))
+  (if (not (eobp))
+      (kill-line)
+    (let ((enable-recursive-minibuffers t)
+	  (file (ido-name (car ido-matches))))
+      (if file
+	  (setq file (concat ido-current-directory file)))
+      (when (and file
+		 (file-exists-p file)
+		 (not (file-directory-p file))
+		 (file-writable-p ido-current-directory)
+		 (yes-or-no-p (concat "Delete " file "? ")))
+	(delete-file file)
+	;; Check if file still exists.
+	(if (file-exists-p file)
+	    ;; file could not be deleted
+	    (setq ido-rescan t)
+	  ;; else file was killed so remove name from list.
+	  (setq ido-cur-list (delq (car ido-matches) ido-cur-list)))))))
 
 
 ;;; VISIT CHOSEN BUFFER
@@ -4121,7 +4144,7 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
   (ido-trace "\n*merge timeout*" buffer)
   (setq ido-auto-merge-timer nil)
   (when (and (buffer-live-p buffer)
-	     (= ido-use-mycompletion-depth (minibuffer-depth))
+	     (ido-active)
 	     (boundp 'ido-eoinput) ido-eoinput)
     (let ((contents (buffer-substring-no-properties (minibuffer-prompt-end) ido-eoinput)))
       (ido-trace "request merge")
@@ -4141,7 +4164,7 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
   ;; 1. It prints a default file name when there is no text yet entered.
   ;; 2. It calls my completion routine rather than the standard completion.
 
-  (when (= ido-use-mycompletion-depth (minibuffer-depth))
+  (when (ido-active)
     (let ((contents (buffer-substring-no-properties (minibuffer-prompt-end) (point-max)))
 	  (buffer-undo-list t)
 	  try-single-dir-match
@@ -4444,16 +4467,17 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 (defun ido-minibuffer-setup ()
   "Minibuffer setup hook for `ido'."
   ;; Copied from `icomplete-minibuffer-setup-hook'.
-  (when (and (boundp 'ido-completing-read)
-	     (or (featurep 'xemacs)
-		 (= ido-use-mycompletion-depth (minibuffer-depth))))
+  (when (ido-active)
     (add-hook 'pre-command-hook 'ido-tidy nil t)
     (add-hook 'post-command-hook 'ido-exhibit nil t)
     (setq cua-inhibit-cua-keys t)
     (when (featurep 'xemacs)
       (ido-exhibit)
       (goto-char (point-min)))
-    (run-hooks 'ido-minibuffer-setup-hook)))
+    (run-hooks 'ido-minibuffer-setup-hook)
+    (when ido-initial-position
+      (goto-char (+ (minibuffer-prompt-end) ido-initial-position))
+      (setq ido-initial-position nil))))
 
 (defun ido-tidy ()
   "Pre command hook for `ido'."
@@ -4465,8 +4489,7 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
     (cancel-timer ido-auto-merge-timer)
     (setq ido-auto-merge-timer nil))
 
-  (if (and (boundp 'ido-use-mycompletion-depth)
-	   (= ido-use-mycompletion-depth (minibuffer-depth)))
+  (if (ido-active)
       (if (and (boundp 'ido-eoinput)
 	       ido-eoinput)
 

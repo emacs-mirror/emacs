@@ -7,7 +7,7 @@
 @c Version of the manual and of Emacs.
 @c Please remember to update the edition number in README as well.
 @set VERSION  2.9
-@set EMACSVER 22.0.92
+@set EMACSVER 22.0.93
 
 @dircategory Emacs
 @direntry
@@ -40,8 +40,8 @@ This is edition @value{VERSION} of the GNU Emacs Lisp
 Reference Manual, corresponding to Emacs version @value{EMACSVER}.
 
 Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998,
-1999, 2000, 2002, 2003, 2004, 2005, 2006 Free Software Foundation,
-Inc.
+1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007  Free Software
+Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

@@ -1,7 +1,7 @@
 ;;; jka-compr.el --- reading/writing/loading compressed files
 
 ;; Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: jka@ece.cmu.edu (Jay K. Adams)
 ;; Maintainer: FSF
@@ -47,18 +47,9 @@
 ;; The default value of this variable allows jka-compr to work with
 ;; Unix compress and gzip.
 ;;
-;; If you are concerned about the stderr output of gzip and other
-;; compression/decompression programs showing up in your buffers, you
-;; should set the discard-error flag in the compression-info-list.
-;; This will cause the stderr of all programs to be discarded.
-;; However, it also causes emacs to call compression/uncompression
-;; programs through a shell (which is specified by jka-compr-shell).
-;; This may be a drag if, on your system, starting up a shell is
-;; slow.
-;;
 ;; If you don't want messages about compressing and decompressing
-;; to show up in the echo area, you can set the compress-name and
-;; decompress-name fields of the jka-compr-compression-info-list to
+;; to show up in the echo area, you can set the compress-msg and
+;; decompress-msg fields of the jka-compr-compression-info-list to
 ;; nil.
 
 
@@ -105,9 +96,7 @@
 
 (defcustom jka-compr-shell "sh"
   "*Shell to be used for calling compression programs.
-The value of this variable only matters if you want to discard the
-stderr of a compression/decompression program (see the documentation
-for `jka-compr-compression-info-list')."
+NOTE: Not used in MS-DOS and Windows systems."
   :type 'string
   :group 'jka-compr)
 

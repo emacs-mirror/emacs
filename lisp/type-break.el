@@ -1,7 +1,7 @@
 ;;; type-break.el --- encourage rests from typing at appropriate intervals
 
 ;; Copyright (C) 1994, 1995, 1997, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman
 ;; Maintainer: Noah Friedman <friedman@splode.com>
@@ -1131,11 +1131,10 @@ With optional non-nil ALL, force redisplay of all mode-lines."
       (progn
         (hanoi (/ (window-width) 8))
         ;; Wait for user to come back.
-        (read-char)
+        (read-event)
         (kill-buffer "*Hanoi*"))
     (quit
-     ;; eat char
-     (read-char)
+     (read-event)
      (and (get-buffer "*Hanoi*")
           (kill-buffer "*Hanoi*")))))
 
@@ -1153,11 +1152,10 @@ With optional non-nil ALL, force redisplay of all mode-lines."
           (progn
             (life 3)
             ;; wait for user to return
-            (read-char)
+            (read-event)
             (kill-buffer "*Life*"))
         (life-extinct
          (message "%s" (get 'life-extinct 'error-message))
-         (sit-for 3)
          ;; restart demo
          (setq continue t))
         (quit
@@ -1246,7 +1244,7 @@ With optional non-nil ALL, force redisplay of all mode-lines."
                      message))))
             (goto-char (point-min))
             (sit-for 60))
-          (read-char)
+          (read-event)
           (kill-buffer buffer-name))
       (quit
        (and (get-buffer buffer-name)

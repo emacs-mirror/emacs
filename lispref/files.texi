@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2002, 2003,
-@c   2004, 2005, 2006 Free Software Foundation, Inc.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
+@c   2002, 2003, 2004, 2005, 2006, 2007  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/files
 @node Files, Backups and Auto-Saving, Documentation, Top
@@ -1157,11 +1157,12 @@ links, can be created by using the @code{add-name-to-file} function
 (@pxref{Changing Files}).
 
 @item
-The file's @acronym{UID} as a string or an integer.  If a string
-value cannot be looked up, the integer value is returned.
+The file's @acronym{UID}, normally as a string.  However, if it does
+not correspond to a named user, the value is an integer or a floating
+point number.
 
 @item
-The file's @acronym{GID} likewise.
+The file's @acronym{GID}, likewise.
 
 @item
 The time of last access, as a list of two integers.
@@ -2554,7 +2555,7 @@ whose match starts last in the file name gets precedence.  This rule
 is chosen so that handlers for jobs such as uncompression are handled
 first, before handlers for jobs such as remote file access.
 
-Here are the operations that a magic file name handler gets to handle:
+  Here are the operations that a magic file name handler gets to handle:
 
 @ifnottex
 @noindent
@@ -2703,6 +2704,14 @@ operations; then only those operations will call the handler.  This
 avoids inefficiency, but its main purpose is for autoloaded handler
 functions, so that they won't be loaded except when they have real
 work to do.
+
+  Simply deferring all operations to the usual primitives does not
+work.  For instance, if the file name handler applies to
+@code{file-exists-p}, then it must handle @code{load} itself, because
+the usual @code{load} code won't work properly in that case.  However,
+if the handler uses the @code{operations} property to say it doesn't
+handle @code{file-exists-p}, then it need not handle @code{load}
+nontrivially.
 
 @defvar inhibit-file-name-handlers
 This variable holds a list of handlers whose use is presently inhibited

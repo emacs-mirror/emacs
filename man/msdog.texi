@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+@c   2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Microsoft Windows, Manifesto, Mac OS, Top
 @appendix Emacs and Microsoft Windows/MS-DOS
@@ -280,6 +280,37 @@ restart Emacs, since @file{ls-lisp.el} is preloaded.
 file-name patterns are supported: if it is non-@code{nil} (the
 default), they are treated as shell-style wildcards; otherwise they
 are treated as Emacs regular expressions.
+
+@vindex ls-lisp-format-time-list
+  The variable @code{ls-lisp-format-time-list} defines how to format
+the date and time of files.  @emph{The value of this variable is
+ignored}, unless Emacs cannot determine the current locale.  (However,
+if the value of @code{ls-lisp-use-localized-time-format} is
+non-@code{nil}, Emacs obeys @code{ls-lisp-format-time-list} even if
+the current locale is available; see below.)
+
+The value of @code{ls-lisp-format-time-list} is a list of 2 strings.
+The first string is used if the file was modified within the current
+year, while the second string is used for older files.  In each of
+these two strings you can use @samp{%}-sequences to substitute parts
+of the time.  For example:
+@lisp
+("%b %e %H:%M" "%b %e  %Y")
+@end lisp
+
+@noindent
+Note that the strings substituted for these @samp{%}-sequences depend
+on the current locale.  @xref{Time Parsing,,, elisp, The Emacs Lisp
+Reference Manual}, for more about format time specs.
+
+@vindex ls-lisp-use-localized-time-format
+  Normally, Emacs formats the file time stamps in either traditional
+or ISO-style time format.  However, if the value of the variable
+@code{ls-lisp-use-localized-time-format} is non-@code{nil}, Emacs
+formats file time stamps according to what
+@code{ls-lisp-format-time-list} specifies.  The @samp{%}-sequences in
+@code{ls-lisp-format-time-list} produce locale-dependent month and day
+names, which might cause misalignment of columns in Dired display.
 @end ifnottex
 
 @node Windows HOME
@@ -336,12 +367,11 @@ keyboard input in Emacs.
 @cindex MS-Windows keyboard shortcuts
   Many key combinations (known as ``keyboard shortcuts'') that have
 conventional uses in MS-Windows programs conflict with traditional
-Emacs commands.  (These Emacs commands were established years before
-MS-Windows, and years before Microsoft.)  Examples of conflicts
-include @kbd{C-c}, @kbd{C-x}, @kbd{C-z}, @kbd{C-a}, and
-@kbd{W-@key{SPC}}.  You can redefine some of them with meanings more
-like the MS-Windows meanings by enabling CUA Mode (@pxref{CUA
-Bindings}).
+Emacs key bindings.  (These Emacs key bindings were established years
+before Microsoft was founded.)  Examples of conflicts include
+@kbd{C-c}, @kbd{C-x}, @kbd{C-z}, @kbd{C-a}, and @kbd{W-@key{SPC}}.
+You can redefine some of them with meanings more like the MS-Windows
+meanings by enabling CUA Mode (@pxref{CUA Bindings}).
 
 @kindex F10 @r{(MS-Windows)}
 @cindex menu bar access using keyboard @r{(MS-Windows)}

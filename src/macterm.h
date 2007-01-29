@@ -1,6 +1,6 @@
 /* Display module for Mac OS.
    Copyright (C) 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006 Free Software Foundation, Inc.
+                 2005, 2006, 2007 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -522,8 +522,8 @@ struct scroll_bar {
 #define MAC_AQUA_SMALL_VERTICAL_SCROLL_BAR_WIDTH (11)
 
 /* Size of hourglass controls */
-#define HOURGLASS_WIDTH 16
-#define HOURGLASS_HEIGHT 16
+#define HOURGLASS_WIDTH (16)
+#define HOURGLASS_HEIGHT (16)
 
 /* Some constants that are used locally.  */
 /* Creator code for Emacs on Mac OS.  */
@@ -633,9 +633,7 @@ extern void do_apple_menu P_ ((SInt16));
 #if USE_CG_DRAWING
 extern void mac_prepare_for_quickdraw P_ ((struct frame *));
 #endif
-#ifdef MAC_OSX
 extern int mac_quit_char_key_p P_ ((UInt32, UInt32));
-#endif
 
 #define FONT_TYPE_FOR_UNIBYTE(font, ch) 0
 #define FONT_TYPE_FOR_MULTIBYTE(font, ch) 0

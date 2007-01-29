@@ -1,7 +1,7 @@
 /* Keyboard and mouse input; editor command loop.
    Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1994, 1995,
                  1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006 Free Software Foundation, Inc.
+                 2005, 2006, 2007 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -89,7 +89,7 @@ extern int errno;
 /* Variables for blockinput.h: */
 
 /* Non-zero if interrupt input is blocked right now.  */
-int interrupt_input_blocked;
+volatile int interrupt_input_blocked;
 
 /* Nonzero means an input interrupt has arrived
    during the current critical section.  */
@@ -9493,7 +9493,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		    {
 		      pos = POSN_BUFFER_POSN (start);
 		      if (INTEGERP (pos)
-			  && XINT (pos) >= BEG && XINT (pos) <= Z)
+			  && XINT (pos) >= BEGV
+			  && XINT (pos) <= ZV)
 			{
 			  map_here = get_local_map (XINT (pos),
 						    current_buffer, Qlocal_map);
@@ -10507,7 +10508,9 @@ DEFUN ("this-command-keys", Fthis_command_keys, Sthis_command_keys, 0, 0, 0,
        doc: /* Return the key sequence that invoked this command.
 However, if the command has called `read-key-sequence', it returns
 the last key sequence that has been read.
-The value is a string or a vector.  */)
+The value is a string or a vector.
+
+See also `this-command-keys-vector'.  */)
      ()
 {
   return make_event_array (this_command_key_count,
@@ -10517,7 +10520,9 @@ The value is a string or a vector.  */)
 DEFUN ("this-command-keys-vector", Fthis_command_keys_vector, Sthis_command_keys_vector, 0, 0, 0,
        doc: /* Return the key sequence that invoked this command, as a vector.
 However, if the command has called `read-key-sequence', it returns
-the last key sequence that has been read.  */)
+the last key sequence that has been read.
+
+See also `this-command-keys'.  */)
      ()
 {
   return Fvector (this_command_key_count,

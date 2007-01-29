@@ -1,6 +1,6 @@
 ;;; wdired.el --- Rename files editing their names in dired buffers
 
-;; Copyright (C) 2004, 2005, 2006 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Filename: wdired.el
 ;; Author: Juan León Lahoz García <juanleon1@gmail.com>

@@ -1,3 +1,151 @@
+2007-01-28  Richard Stallman  <rms@gnu.org>
+
+	* minibuf.c (Ftry_completion, Fall_completions)
+	(Fcompleting_read, Ftest_completion):
+	Rename arg ALIST or TABLE to COLLECTION.
+
+2007-01-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* unexhp9k800.c: Remove due to lack of legal papers.
+
+	* m/sr2k.h, m/hp800.h: Remove due to dependence on above.
+
+2007-01-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* keyboard.c (Fthis_command_keys, Fthis_command_keys_vector): Doc fix.
+
+	* minibuf.c (Fcompleting_read): Doc fix.
+
+2007-01-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_initialize): Call XftInit if HAVE_XFT.
+
+	* Makefile.in: Use XFT_LIBS if defined.
+
+2007-01-26  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* alloc.c (BLOCK_INPUT_ALLOC, UNBLOCK_INPUT_ALLOC): Use
+	BLOCK_INPUT/UNBLOCK_INPUT.
+
+	* blockinput.h (interrupt_input_blocked): Declare volatile.
+
+	* keyboard.c (interrupt_input_blocked): Declare volatile.
+
+	* syssignal.h (SIGNAL_THREAD_CHECK): Use pthread_equal.
+
+2007-01-24  Kim F. Storm  <storm@cua.dk>
+
+	* keymap.c (describe_map): Don't consider prefix keys to be shadowed.
+
+2007-01-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* editfns.c (Finsert_char): Doc fix.
+	(Fget_internal_run_time, Fdecode_time): Fix typos in docstrings.
+
+2007-01-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macselect.c [TARGET_API_MAC_CARBON] (mac_do_receive_drag): Don't
+	pass keyboard modifiers to mac_store_drag_event, but put them as
+	kEventParamKeyModifiers Apple event parameter.
+
+2007-01-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (try_window): Revert previous change.
+
+	* dispnew.c (update_text_area): Revert 2006-09-17 change.
+	Always redraw non-mode-line rows with mouse-face.
+
+2007-01-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (try_window): Clear mouse-face highlights first.
+
+	* window.c (set_window_buffer): Revert 2006-11-22 change.
+
+2007-01-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* .gdbinit (ppt, xtype, xmisctype, xint, xptr, xmarker, xframe)
+	(xbuffer, xcons, xcar, xcdr): Fix doc strings.
+
+2007-01-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (read_key_sequence): Extract local map only if the
+	given position is in an accessible buffer region.
+
+2007-01-19  Nick Roberts  <nickrob@snap.net.nz>
+
+	* .gdbinit: Reformat documentation so that first sentence
+	displays properly with "help user-defined" (like apropos).
+
+2007-01-18  Bruno Haible  <bruno@clisp.org>  (tiny change)
+
+	* epaths.in: Move PATH_DOC from local/info to local/share/info.
+
+2007-01-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macmenu.c (create_and_show_dialog) [TARGET_API_MAC_CARBON]:
+	Create movable modal window instead of movable alert window.
+	(create_and_show_dialog) [!MAC_OSX]: Use DeactivateControl instead
+	of DisableControl.
+
+	* macselect.c (Fmac_resume_apple_event): Set error number when
+	descriptor type of reply is non-null.
+
+2007-01-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macmenu.c (create_and_show_dialog) [TARGET_API_MAC_CARBON]: Use
+	DisableControl for disabled items.  Set default button to first
+	enabled one.  Use icon of application in execution.
+
+2007-01-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* process.c (Fdelete_process, Fprocess_id, sigchld_handler):
+	Copy PID into EMACS_INT to avoid GCC warnings.
+
+	* fns.c (maybe_resize_hash_table): Copy new size of hash table
+	into EMACS_INT to avoid GCC warnings.
+
+	* editfns.c (Fuser_uid, Fuser_real_uid): Copy values returned by
+	geteuid and getuid into EMACS_INT to avoid GCC warnings.
+
+	* dired.c (Ffile_attributes): Fix last change.
+
+2007-01-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* dired.c (Ffile_attributes): Copy some members of `struct stat'
+	into int's to avoid GCC warnings about limited range of short in
+	arguments to FIXNUM_OVERFLOW_P.
+
+2007-01-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macmenu.c (HAVE_DIALOGS): Define if TARGET_API_MAC_CARBON.
+	(mac_handle_dialog_event, install_dialog_event_handler)
+	(create_and_show_dialog) [TARGET_API_MAC_CARBON]: New functions.
+	(DIALOG_LEFT_MARGIN, DIALOG_TOP_MARGIN, DIALOG_RIGHT_MARGIN)
+	(DIALOG_BOTTOM_MARGIN, DIALOG_MIN_INNER_WIDTH)
+	(DIALOG_MAX_INNER_WIDTH, DIALOG_BUTTON_BUTTON_HORIZONTAL_SPACE)
+	(DIALOG_BUTTON_BUTTON_VERTICAL_SPACE, DIALOG_BUTTON_MIN_WIDTH)
+	(DIALOG_TEXT_MIN_HEIGHT, DIALOG_TEXT_BUTTONS_VERTICAL_SPACE)
+	(DIALOG_ICON_WIDTH, DIALOG_ICON_HEIGHT, DIALOG_ICON_LEFT_MARGIN)
+	(DIALOG_ICON_TOP_MARGIN) [TARGET_API_MAC_CARBON]: New macros.
+	(mac_dialog) [TARGET_API_MAC_CARBON]: Remove function.
+	(mac_dialog_show) [TARGET_API_MAC_CARBON]: Use create_and_show_dialog.
+
+	* macterm.c (x_free_frame_resources) [USE_CG_DRAWING]: Call
+	mac_prepare_for_quickdraw.
+	(quit_char, make_ctrl_char) [TARGET_API_MAC_CARBON]: Move externs
+	outside #ifdef MAC_OSX.
+	(mac_quit_char_key_p) [TARGET_API_MAC_CARBON]: Move function
+	outside #ifdef MAC_OSX.
+	(mac_check_bundle) [MAC_OSX]: Remove unused function.
+
+	* macterm.h (mac_quit_char_key_p): Move extern outside #ifdef MAC_OSX.
+	(HOURGLASS_WIDTH, HOURGLASS_HEIGHT): Parenthesize definitions.
+
+2007-01-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* alloc.c (BLOCK_INPUT_ALLOC, UNBLOCK_INPUT_ALLOC): Use pthread_equal,
+	block/unblock SIGIO.
+
 2007-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* editfns.c (Fformat): Allow integer-format to work with floats of size
@@ -58,7 +206,7 @@
 	* xterm.h (x_display_info): New: net_supported_atoms,
 	nr_net_supported_atoms and net_supported_window.
 
-	* xterm.c: New variable last_user_time.
+	* xterm.c (last_user_time): New variable.
 	(handle_one_xevent): Set last_user_time from events that have Time.
 	Set net_supported_window to 0 when reparented.
 	(wm_supports): New function.
@@ -27079,7 +27227,7 @@ See ChangeLog.9 for earlier changes.
 ;; End:
 
     Copyright (C) 2001, 2002, 2003, 2004, 2005,
-	2006 Free Software Foundation, Inc.
+	2006, 2007 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
 

@@ -1,3 +1,367 @@
+2007-01-28  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-global-keymap, cua--region-keymap):
+	Declare earlier to avoid byte compiler warnings.
+
+2007-01-28  Markus Triska  <markus.triska@gmx.at>
+
+	* speedbar.el (speedbar-make-specialized-keymap): Doc fix.
+
+2007-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* play/gamegrid.el (gamegrid-kill-timer): Cancel timer directly.
+	(gamegrid-add-score-with-update-game-score-1): Allow local quits
+	when calling update-game-score program.  Remove unnecessary
+	save-excursion.
+
+	* play/tetris.el (tetris-new-shape): Stop drawing if game is over.
+
+2007-01-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-breakpoint-regexp): Declare earlier to
+	avoid compiler warning.
+	(gdb-var-update-handler-1): Consider that the MI field `in_scope'
+	might have values other than "true" or "false".
+
+2007-01-28  Richard Stallman  <rms@gnu.org>
+
+	* textmodes/fill.el (fill-paragraph-function): Doc fix.
+	(fill-paragraph): Bind fill-paragraph-function to t to avoid recursion.
+
+	* emacs-lisp/pp.el (pp-eval-last-sexp): Don't eval here.
+
+	* image.el (image-type-header-regexps): Make GIF regex more specific.
+
+	* tutorial.el (tutorial--default-keys): Check M-DEL, not `M-backspace'.
+	Don't check `backspace'.
+	(tutorial--find-changed-keys): Look up bindings in a temp buffer
+	in Fundamental mode.
+
+	* startup.el (fancy-splash-text, normal-splash-screen):
+	Mention C-g.
+
+	* simple.el (eval-expression): Don't use eval-last-sexp-print-value
+	when inserting in buffer.
+
+	* vc-arch.el (vc-arch-file-id): Move with-current-buffer
+	inside the if.
+
+2007-01-27  Richard Stallman  <rms@gnu.org>
+
+	* obsolete/awk-mode.el (awk-font-lock-keywords): Add "do".
+
+2007-01-27  Guanpeng Xu  <herberteuler@hotmail.com>
+
+	* add-log.el (add-log-current-defun): Skip the semicolon ``;'' for
+        enum/union/struct/class definition.
+	Revert change to call `forward-sexp' multiple times.
+
+2007-01-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (hack-local-variables-confirm): Don't keep trying to
+	read an event from an empty kbd macro.
+
+2007-01-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* server.el (server-start): Mention LEAVE-DEAD arg in the doc string.
+
+2007-01-27  Ben North  <ben@redfrontdoor.org>
+
+	* outline.el (outline-promote, outline-demote): Doc fix.  Rename
+	the arg CHILDREN -> WHICH.
+
+2007-01-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-do-copy-or-rename-file-out-of-band): Set
+	default-directory to a sane value when calling start-process.
+
+2007-01-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* ls-lisp.el (ls-lisp-use-localized-time-format): New defcustom.
+	(ls-lisp-format-time-list): Doc fix.  Mention
+	ls-lisp-use-localized-time-format.
+	(ls-lisp-format-time): Use ls-lisp-format-time-list if
+	ls-lisp-use-localized-time-format is non-nil, even if a valid
+	locale is defined.
+
+2007-01-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* jka-compr.el (jka-compr-shell): Doc fix.
+
+	* jka-cmpr-hook.el (jka-compr-compression-info-list): Doc fix.
+
+2007-01-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.ps: Fix background height.
+	(ps-print-version): New version 6.7.2.
+
+2007-01-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (finder-data, custom-deps): Depend on
+	$(lisp)/loaddefs.el.
+
+2007-01-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (custom-deps, finder-data): Add dependency to loaddefs.el.
+
+2007-01-24  Miles Bader  <miles@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-output-file-form)
+	(byte-compile-output-docform): Bind `print-circle' to t.
+
+2007-01-24  Kenichi Handa  <handa@m17n.org>
+
+	* international/ja-dic-cnv.el (skkdic-convert): Insert a related
+	file name of the original SKK dictionary file.
+
+2007-01-24  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-initial-position): New variable.
+	(ido-read-internal): Set it if default item is specified.
+	(ido-minibuffer-setup): Position cursor accordingly if set.
+	(ido-edit-input): C-e moves to end of input if not already there.
+	(ido-magic-backward-char): C-b does like M-b if prev char is /.
+	Don't switch to buffer mode if repeating C-b at start of input.
+	(ido-toggle-ignore): C-a only toggles ignore at start or end of
+	input; else it moves to start of input.
+	(ido-kill-buffer-at-head, ido-delete-file-at-head): If cursor is
+	not at end of input, delete rest of input, rather than normal op.
+
+2007-01-23  Michael Kifer  <kifer@cs.stonybrook.edu>
+
+	* viper-keym.el (viper-insert-basic-map): Delete binding for S-TAB.
+
+	* ediff-util.el (ediff-clone-buffer-for-region-comparison): Change text
+	of message.  Activate mark.
+	(ediff-activate-mark): Set transient-mark-mode to t.
+
+	* ediff.el (ediff-regions-wordwise, ediff-regions-linewise): Doc fix.
+
+2007-01-23  Martin Rudalics  <rudalics@gmx.at>
+
+	* help-fns.el (describe-variable): Don't suppress display of
+	buffer local value when the value is "large".
+
+2007-01-22  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-active): Add XEmacs test from ido-minibuffer-setup.
+	(ido-initiate-auto-merge, ido-exhibit, ido-minibuffer-setup)
+	(ido-tidy): Use ido-active.
+
+2007-01-22  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
+
+	* hexl.el (hexl-mode-exit): Add missing quote.
+
+2007-01-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-keyboard-modifier-mask-alist): New constant.
+	(mac-ae-keyboard-modifiers): New function.
+	(mac-handle-toolbar-switch-mode): Use it.
+	(mac-dnd-handle-drag-n-drop-event): Likewise.  Set action to `copy'
+	if keyboard modifiers on drop contain option key.
+	(mac-dnd-drop-data): Add optional argument `action'.
+	(special-event-map): Remove binding for M-drag-n-drop.
+
+2007-01-21  Guanpeng Xu  <herberteuler@hotmail.com>
+
+	* add-log.el (add-log-current-defun): Use CC Mode functions to
+	find the beginning and end of a defun.
+
+2007-01-21  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-create-regexp)
+	(gdb-var-create-handler): Handle value field in GDB output of
+	-var-create.
+	(gdb-max-frames): New variable.
+	(gdb-stack-buffer, gdb-frames-select): Use it.
+	(gdb-info-stack-custom): Help user customize gdb-max-frames,
+	if necessary.
+	(gdb-get-frame-number): Simplify.
+
+2007-01-21  Glenn Morris  <rgm@gnu.org>
+
+	* net/tramp.el (tramp-perl-encode, tramp-perl-decode):
+	Update copyrights.
+
+2007-01-21  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-where-wrt-brace-construct): Correct the
+	handling of K&R stuff.
+
+2007-01-21  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-files): Fix customization type.
+
+2007-01-21  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Handle frame parameters (background and/or foreground
+	colors) changing dynamically.  Reported by Leo <sdl.web@gmail.com>.
+	(ps-print-version): New version 6.7.1.
+	(ps-x-frame-property, ps-e-frame-parameter): New aliases.
+	(ps-frame-parameter): New fun.
+	(ps-default-fg, ps-default-bg): New default value ('frame-parameter).
+	Fix doc and customization.
+	(ps-begin-job): Get frame parameters (background and/or foreground
+	colors).
+	(ps-do-despool): Ensure ps-printer-name has a valid value.
+
+2007-01-21  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-debug-log): Rename from gdb-debug-ring.
+	(gdb-debug-log-max): Rename from gdb-debug-ring-max.
+	(gud-gdba-marker-filter): Make a value of nil for gdb-debug-ring-max
+	mean unlimited.
+
+2007-01-20  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-in-knr-argdecl): Reformulate to do
+	much more rigorous analysis of putative K&R regions.
+
+2007-01-20  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-defs.el (c-go-list-forward, c-go-list-backward):
+	New functions.
+
+2007-01-20  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-align.el, progmodes/cc-cmds.el,
+	* progmodes/cc-defs.el, progmodes/cc-engine.el,
+	* progmodes/cc-langs.el, progmodes/cc-styles.el,
+	* progmodes/cc-vars.el: Add my name.
+
+2007-01-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (find-alternate-file): Revert query message to Emacs 21
+	version.
+
+2007-01-20  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
+
+	* progmodes/cperl-mode.el (cperl-electric-keywords): Document in
+	the doc string how to use personal abbrevs without electric
+	keywords.
+
+2007-01-20  Alin C. Soare  <alinsoar@voila.fr>  (tiny change)
+
+	* lisp/emacs-lisp/lisp-mode.el (last-sexp-toggle-display):
+	Fixed cursor position when toggle abbreviated display.
+
+2007-01-20  Nick Roberts  <nickrob@snap.net.nz>
+
+	* t-mouse.el: Update copyright following assignment by
+	Alessandro Rubini.
+
+2007-01-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* type-break.el (type-break-demo-hanoi, type-break-demo-life)
+	(type-break-demo-boring): Call read-event instead of read-char.
+
+2007-01-19  Daniel Pfeiffer  <occitan@esperanto.org>  (small change)
+
+	* progmodes/compile.el: Add handling for makepplog.
+
+2007-01-19  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* textmodes/ispell.el (ispell-change-dictionary): Ensure that
+	aspell dictionaries are initialized when called non-interactively.
+
+2007-01-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/compile.el (compilation-loop): New arg limit.
+	Handle case where the first error is at point-min.
+	(compilation-next-error): New arg to compilation-loop call.
+
+2007-01-18  Bruno Haible  <bruno@clisp.org>  (tiny change)
+
+	* info.el (Info-default-dirs): Change default info dir to
+	share/info.
+
+	* paths.el (Info-default-directory-list): Ditto.
+
+2007-01-18  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
+
+	* hexl.el (hexl-before-revert-hook): New function.
+	(hexl-mode): Use it.
+	(hexl-after-revert-hook): Just call hexl-mode.
+	(hexl-mode-exit): Remove before-revert-hook.
+
+2007-01-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* isearch.el (isearch-no-upper-case-p): Look for [:upper:] as well.
+
+2007-01-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* textmodes/ispell.el (ispell-dictionary-alist-3): Replace "---"
+	by "-" in francais7 otherchars entry.
+	(ispell-dictionary-alist-5): Replace "." by "[.]" for polish
+	otherchars entry.
+
+2007-01-15  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-buffer-file-name): Abbreviate the bookmark
+	path.  Rewrite function in `cond' style for readability.
+
+	Suggested by: Stephen Eglen <S.J.Eglen{_AT_}damtp.cam.ac.uk>.
+	(The path shortening, that is, not the rearrarangement.)
+
+2007-01-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-ae-quit-application): New function.
+	(mac-apple-event-map): Bind "quit application" Apple event to it.
+
+2007-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-svn.el (vc-svn-parse-status): Trust the filename argument more
+	than the program's output.
+
+2007-01-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* kmacro.el (kmacro-insert-counter, kmacro-set-counter)
+	(kmacro-start-macro-or-insert-counter)
+	(kmacro-step-edit-prefix-commands): Fix typos in docstrings.
+	(kmacro-call-ring-2nd, kmacro-call-ring-2nd-repeat): Doc fixes.
+
+	* longlines.el (longlines-show-hard-newlines):
+	* ruler-mode.el (ruler-mode-ruler):
+	* emulation/keypad.el (keypad-setup):
+	* progmodes/antlr-mode.el (antlr-indent-at-bol-alist):
+	Fix typo in docstring.
+
+2007-01-13  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* tumme.el (tumme-cmd-rotate-original-options): Add -outfile option.
+	Remove redirect character ">".
+
+2007-01-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* replace.el (perform-replace): Remove leftover code.
+
+2007-01-12  Richard Stallman  <rms@gnu.org>
+
+	* replace.el (perform-replace): Don't clear NODENT when computing
+	the replacement string.
+
+2007-01-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-file-local-copy):
+	Set `enable-multibyte-characters' to nil.  Reported by Chris Moore
+	<christopher.ian.moore@gmail.com>.
+
+2007-01-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-sanity-check-context-hunk-half)
+	(diff-sanity-check-hunk): New functions.
+	(diff-find-source-location): Use'em to check the hunks are well-formed.
+
+	* hexl.el (hexlify-buffer, dehexlify-buffer): Don't complain and don't
+	activate undo when undo is not active.
+	Reported by Chris Moore <christopher.ian.moore@gmail.com>.
+
+2007-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ffap.el (ffap-next-regexp, ffap-machine-p, ffap-newsgroup-regexp)
+	(ffap-newsgroup-p, ffap-alist, ffap-string-at-point-mode-alist)
+	(ffap-url-at-point): Use char-classes rather than "a-z".
+
 2007-01-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ediff-init.el (ediff-autostore-merges):
@@ -398,7 +762,7 @@
 	(image-type-from-buffer): Handle new format.  New arg INCLUDE-MAYBES.
 	(image-type-from-file-header): Pass t for INCLUDE-MAYBES.
 
-2006-12-26  Guanpeng Xu  <herberteuler@hotmail.com>  (tiny change)
+2006-12-26  Guanpeng Xu  <herberteuler@hotmail.com>
 
 	* add-log.el (add-log-current-defun): Call `forward-sexp'
 	multiple times to pick a member function name defined as
@@ -1038,7 +1402,7 @@
 	* ps-mule.el: Eliminate Emacs 20 compatibility.
 
 	* ps-print.el: Eliminate Emacs 20 & 21 compatibility.
-	(ps-print-version): New Version 6.7.
+	(ps-print-version): New version 6.7.
 	(ps-print-quote): Replace '?\ ' by '?\s'.
 
 2006-11-30  Juanma Barranquero  <lekktu@gmail.com>
@@ -5148,7 +5512,7 @@
 	* textmodes/table.el: Add move-beginning-of-line and
 	move-end-of-line to Point Motion Only Group.
 
-2006-07-22  Eric Hanchrow  <offby1@blarg.net>
+2006-07-22  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
 
 	* progmodes/delphi.el (delphi-fill-comment): Use save-restriction.
 
@@ -7222,8 +7586,8 @@
 2006-05-11  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* files.el, newcomment.el, outline.el, simple.el,
-	emacs-lisp/bytecomp.el, progmodes/cc-compat.el,
-	progmodes/cc-vars.el, progmodes/compile.el:
+	* emacs-lisp/bytecomp.el, progmodes/cc-compat.el,
+	* progmodes/cc-vars.el, progmodes/compile.el:
 	Move `safe-local-variable' declarations to the respective files.
 
 	* help-fns.el (describe-variable): Don't print safe-var if it is
@@ -11147,7 +11511,7 @@
 	Sync with Tramp 2.0.52.
 
 	* net/tramp.el, net/tramp-ftp.el, net/tramp-util.el,
-	net/tramp-vc.el: Add code for unloading Tramp.  See comment before
+	* net/tramp-vc.el: Add code for unloading Tramp.  See comment before
 	`tramp-unload-tramp' for checklist.
 
 	* net/tramp.el: Require `timer-funcs' instead of `timer' if in
@@ -30717,7 +31081,7 @@ See ChangeLog.11 for earlier changes.
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2005, 2006 Free Software Foundation, Inc.
+    Copyright (C) 2005, 2006, 2007 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
 

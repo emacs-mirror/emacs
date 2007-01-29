@@ -1,7 +1,7 @@
 /* Tags file maker to go with GNU Emacs           -*- coding: latin-1 -*-
    Copyright (C) 1984, 1987, 1988, 1989, 1993, 1994, 1995,
                  1998, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006 Free Software Foundation, Inc. and Ken Arnold
+                 2005, 2006, 2007 Free Software Foundation, Inc. and Ken Arnold
 
  This file is not considered part of GNU Emacs.
 
@@ -841,7 +841,7 @@ static void
 print_version ()
 {
   printf ("%s (%s %s)\n", (CTAGS) ? "ctags" : "etags", EMACS_NAME, VERSION);
-  puts ("Copyright (C) 2006 Free Software Foundation, Inc. and Ken Arnold");
+  puts ("Copyright (C) 2007 Free Software Foundation, Inc. and Ken Arnold");
   puts ("This program is distributed under the same terms as Emacs");
 
   exit (EXIT_SUCCESS);

@@ -1,3 +1,17 @@
+2007-01-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in: Remove support for hp800 and sr2k machine types.
+
+	* configure: Regenerate.
+
+2007-01-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* configure.in: Add check for libXft.
+
+2007-01-18  Bruno Haible  <bruno@clisp.org> (tiny change)
+
+	* INSTALL: Info files moved to share/info.
+
 2007-01-02  Stephen C. Gilardi  <scgilardi@gmail.com>  (tiny change)
 
 	* configure.in: Detect and use fink-installed in intel-based Mac
@@ -6370,7 +6384,7 @@
 ;; End:
 
     Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
-	2003, 2004, 2005, 2006  Free Software Foundation, Inc.
+	2003, 2004, 2005, 2006, 2007  Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
 

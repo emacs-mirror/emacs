@@ -1,7 +1,7 @@
 rem  Hack to change/add environment variables in the makefiles for the
 rem  Windows platform.
 rem
-rem  Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+rem  Copyright (C) 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 rem
 rem  This file is part of GNU Emacs.
 rem

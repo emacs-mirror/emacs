@@ -1,5 +1,5 @@
 # Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 2000, 2001,
-#   2004, 2005, 2006 Free Software Foundation, Inc.
+#   2002, 2003, 2004, 2005, 2006, 2007  Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -158,7 +158,8 @@ define ppt
   printf " SZ=%d\n", $t->gap_size
 end
 document ppt
-Print point, beg, end, narrow, and gap for current buffer.
+Print current buffer's point and boundaries.
+Prints values of point, beg, end, narrow, and gap for current buffer.
 end
 
 # Print out iterator given as first arg
@@ -312,7 +313,7 @@ define pcursorx
   printf "y=%d x=%d vpos=%d hpos=%d", $cp->y, $cp->x, $cp->vpos, $cp->hpos
 end
 document pcursorx
-Pretty print a window cursor
+Pretty print a window cursor.
 end
 
 define pcursor
@@ -321,7 +322,7 @@ define pcursor
   printf "\n"
 end
 document pcursor
-Pretty print the output_cursor
+Pretty print the output_cursor.
 end
 
 define pwinx
@@ -381,7 +382,7 @@ define pwinx
 end
 document pwinx
 Pretty print a window structure.
-Takes one argument, a pointer to a window structure
+Takes one argument, a pointer to a window structure.
 end
 
 define pwin
@@ -447,7 +448,7 @@ define pgx
 end
 document pgx
 Pretty print a glyph structure.
-Takes one argument, a pointer to a glyph structure
+Takes one argument, a pointer to a glyph structure.
 end
 
 define pg
@@ -532,7 +533,8 @@ define xvectype
   echo \n
 end
 document xvectype
-Print the size or vector subtype of $, assuming it is a vector or pseudovector.
+Print the size or vector subtype of $.
+This command assumes that $ is a vector or pseudovector.
 end
 
 define xmisctype
@@ -541,7 +543,7 @@ define xmisctype
   echo \n
 end
 document xmisctype
-Print the specific type of $, assuming it is some misc type.
+Assume that $ is some misc type and print its specific type.
 end
 
 define xint
@@ -549,7 +551,7 @@ define xint
   print $int
 end
 document xint
-Print $, assuming it is an Emacs Lisp integer.  This gets the sign right.
+Print $ as an Emacs Lisp integer.  This gets the sign right.
 end
 
 define xptr
@@ -557,7 +559,7 @@ define xptr
   print (void *) $ptr
 end
 document xptr
-Print the pointer portion of $, assuming it is an Emacs Lisp value.
+Print the pointer portion of an Emacs Lisp value in $.
 end
 
 define xmarker
@@ -565,7 +567,8 @@ define xmarker
   print (struct Lisp_Marker *) $ptr
 end
 document xmarker
-Print $ as a marker pointer, assuming it is an Emacs Lisp marker value.
+Print $ as a marker pointer.
+This command assumes that $ is an Emacs Lisp marker value.
 end
 
 define xoverlay
@@ -573,7 +576,8 @@ define xoverlay
   print (struct Lisp_Overlay *) $ptr
 end
 document xoverlay
-Print $ as a overlay pointer, assuming it is an Emacs Lisp overlay value.
+Print $ as a overlay pointer.
+This command assumes that $ is an Emacs Lisp overlay value.
 end
 
 define xmiscfree
@@ -581,7 +585,8 @@ define xmiscfree
   print (struct Lisp_Free *) $ptr
 end
 document xmiscfree
-Print $ as a misc free-cell pointer, assuming it is an Emacs Lisp Misc value.
+Print $ as a misc free-cell pointer.
+This command assumes that $ is an Emacs Lisp Misc value.
 end
 
 define xintfwd
@@ -589,7 +594,8 @@ define xintfwd
   print (struct Lisp_Intfwd *) $ptr
 end
 document xintfwd
-Print $ as an integer forwarding pointer, assuming it is an Emacs Lisp Misc value.
+Print $ as an integer forwarding pointer.
+This command assumes that $ is an Emacs Lisp Misc value.
 end
 
 define xboolfwd
@@ -597,7 +603,8 @@ define xboolfwd
   print (struct Lisp_Boolfwd *) $ptr
 end
 document xboolfwd
-Print $ as a boolean forwarding pointer, assuming it is an Emacs Lisp Misc value.
+Print $ as a boolean forwarding pointer.
+This command assumes that $ is an Emacs Lisp Misc value.
 end
 
 define xobjfwd
@@ -605,7 +612,8 @@ define xobjfwd
   print (struct Lisp_Objfwd *) $ptr
 end
 document xobjfwd
-Print $ as an object forwarding pointer, assuming it is an Emacs Lisp Misc value.
+Print $ as an object forwarding pointer.
+This command assumes that $ is an Emacs Lisp Misc value.
 end
 
 define xbufobjfwd
@@ -613,7 +621,8 @@ define xbufobjfwd
   print (struct Lisp_Buffer_Objfwd *) $ptr
 end
 document xbufobjfwd
-Print $ as a buffer-local object forwarding pointer, assuming it is an Emacs Lisp Misc value.
+Print $ as a buffer-local object forwarding pointer.
+This command assumes that $ is an Emacs Lisp Misc value.
 end
 
 define xkbobjfwd
@@ -621,7 +630,8 @@ define xkbobjfwd
   print (struct Lisp_Kboard_Objfwd *) $ptr
 end
 document xkbobjfwd
-Print $ as a kboard-local object forwarding pointer, assuming it is an Emacs Lisp Misc value.
+Print $ as a kboard-local object forwarding pointer.
+This command assumes that $ is an Emacs Lisp Misc value.
 end
 
 define xbuflocal
@@ -629,7 +639,8 @@ define xbuflocal
   print (struct Lisp_Buffer_Local_Value *) $ptr
 end
 document xbuflocal
-Print $ as a buffer-local-value pointer, assuming it is an Emacs Lisp Misc value.
+Print $ as a buffer-local-value pointer.
+This command assumes that $ is an Emacs Lisp Misc value.
 end
 
 define xsymbol
@@ -673,7 +684,8 @@ define xprocess
   echo \n
 end
 document xprocess
-Print the address of the struct Lisp_process which the Lisp_Object $ points to.
+Print the address of the struct Lisp_process to which $ points.
+This command assumes that $ is a Lisp_Object.
 end
 
 define xframe
@@ -685,7 +697,8 @@ define xframe
   echo \n
 end
 document xframe
-Print $ as a frame pointer, assuming it is an Emacs Lisp frame value.
+Print $ as a frame pointer.
+This command assumes $ is an Emacs Lisp frame value.
 end
 
 define xcompiled
@@ -694,7 +707,8 @@ define xcompiled
   output ($->contents[0])@($->size & 0xff)
 end
 document xcompiled
-Print $ as a compiled function pointer, assuming it is an Emacs Lisp compiled value.
+Print $ as a compiled function pointer.
+This command assumes that $ is an Emacs Lisp compiled value.
 end
 
 define xwindow
@@ -721,7 +735,8 @@ define xwinconfig
   print (struct save_window_data *) $ptr
 end
 document xwinconfig
-Print $ as a window configuration pointer, assuming it is an Emacs Lisp window configuration value.
+Print $ as a window configuration pointer.
+This command assumes that $ is an Emacs Lisp window configuration value.
 end
 
 define xsubr
@@ -766,8 +781,8 @@ define xbuffer
   echo \n
 end
 document xbuffer
-Set $ as a buffer pointer, assuming it is an Emacs Lisp buffer value.
-Print the name of the buffer.
+Set $ as a buffer pointer and the name of the buffer.
+This command assumes $ is an Emacs Lisp buffer value.
 end
 
 define xhashtable
@@ -775,7 +790,8 @@ define xhashtable
   print (struct Lisp_Hash_Table *) $ptr
 end
 document xhashtable
-Set $ as a hash table pointer, assuming it is an Emacs Lisp hash table value.
+Set $ as a hash table pointer.
+This command assumes that $ is an Emacs Lisp hash table value.
 end
 
 define xcons
@@ -785,7 +801,7 @@ define xcons
   echo \n
 end
 document xcons
-Print the contents of $, assuming it is an Emacs Lisp cons.
+Print the contents of $ as an Emacs Lisp cons.
 end
 
 define nextcons
@@ -794,7 +810,7 @@ define nextcons
 end
 document nextcons
 Print the contents of the next cell in a list.
-This assumes that the last thing you printed was a cons cell contents
+This command assumes that the last thing you printed was a cons cell contents
 (type struct Lisp_Cons) or a pointer to one.
 end
 define xcar
@@ -803,7 +819,7 @@ define xcar
   print/x ($type == Lisp_Cons ? ((struct Lisp_Cons *) $ptr)->car : 0)
 end
 document xcar
-Print the car of $, assuming it is an Emacs Lisp pair.
+Assume that $ is an Emacs Lisp pair and print its car.
 end
 
 define xcdr
@@ -812,7 +828,7 @@ define xcdr
   print/x ($type == Lisp_Cons ? ((struct Lisp_Cons *) $ptr)->u.cdr : 0)
 end
 document xcdr
-Print the cdr of $, assuming it is an Emacs Lisp pair.
+Assume that $ is an Emacs Lisp pair and print its cdr.
 end
 
 define xlist
@@ -1007,7 +1023,7 @@ define which
   set debug_print (which_symbols ($arg0))
 end
 document which
-  Print symbols which references a given lisp object,
+  Print symbols which references a given lisp object
   either as its symbol value or symbol function.
 end
 

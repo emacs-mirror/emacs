@@ -1,6 +1,6 @@
 ;;; subst-gb2312.el --- Unicode/GB2312 translation     -*-coding: euc-china;-*-
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n

@@ -1,6 +1,6 @@
 ;;; mh-folder.el --- MH-Folder mode
 
-;; Copyright (C) 2002, 2003, 2005, 2006 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>

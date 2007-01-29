@@ -1,5 +1,5 @@
-# Copyright (c) 1999, 2003, 2006
-# Free software Foundation, Inc.
+# Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007
+# Free Software Foundation, Inc.
 #
 # This defines a csh command named `edit' which resumes an
 # existing Emacs or starts a new one if none exists.

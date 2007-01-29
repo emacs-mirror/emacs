@@ -31,6 +31,6 @@ dictionary (See below).
 ja-dic:
 
 This directory contains Emacs Lisp source file ja-dic.el which is
-generated from a source dictionary in SKK-DIC directory.  In addition,
-it contains a byte compiled file ja-dic.elc for users convenience
-because it takes rather long time to byte-compile ja-dic.el.
+generated from a source dictionary in SKK-DIC directory.  The
+inclusion of this file is for users convenience because it takes
+rather long time to generate it.

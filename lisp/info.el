@@ -1,7 +1,7 @@
 ;;; info.el --- info package for Emacs
 
 ;; Copyright (C) 1985, 1986, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help
@@ -463,12 +463,12 @@ Do the right thing if the file has been compressed or zipped."
 		     (expand-file-name "info/" installation-directory)
 		   (if invocation-directory
 		       (let ((infodir (expand-file-name
-				       "../info/"
+				       "../share/info/"
 				       invocation-directory)))
 			 (if (file-exists-p infodir)
 			     infodir
 			   (setq infodir (expand-file-name
-					  "../../../info/"
+					  "../../../share/info/"
 					  invocation-directory))
 			   (and (file-exists-p infodir)
 				infodir))))))

@@ -1,3 +1,7 @@
+2007-01-27  Jan Dj,AC$(Brv  <jhd@winter.localdomain>
+
+	* FOR-RELEASE: Removed Gtk/Xft issue.
+
 2007-01-01  Miles Bader  <miles@gnu.org>
 
 	* quick-install-emacs (get_config_var): Deal with weird magic
@@ -405,8 +409,8 @@
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006  Free Software
-	Foundation, Inc.
+    Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+	Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
 

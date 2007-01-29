@@ -3,7 +3,7 @@
 rem  Hack to run install-info with multiple info files on the command
 rem  line on the Windows platform.
 rem
-rem  Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+rem  Copyright (C) 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 rem
 rem  This file is part of GNU Emacs.
 rem

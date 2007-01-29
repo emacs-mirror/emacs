@@ -1,7 +1,7 @@
 ;;; simple.el --- basic editing commands for Emacs
 
 ;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -1067,7 +1067,7 @@ this command arranges for all errors to enter the debugger."
     (if eval-expression-insert-value
 	(with-no-warnings
 	 (let ((standard-output (current-buffer)))
-	   (eval-last-sexp-print-value (car values))))
+	   (prin1 (car values))))
       (prog1
           (prin1 (car values) t)
         (let ((str (eval-expression-print-format (car values))))

@@ -1,9 +1,10 @@
+# $Id: TONEPY.tit,v 1.4 2007/01/24 06:35:08 handa Exp $
 # HANZI input table for cxterm
 # To be used by cxterm, convert me to .cit format first
-# .cit version 1
+# .cit version 2
 ENCODE:	GB
-MULTICHOICE:	YES
-PROMPT:	汉字输入∷带调拼音∷
+AUTOSELECT:	NO
+PROMPT:	汉字输入∷带调拼音∷\040
 #
 COMMENT	带调拼音方案
 COMMENT
@@ -11,6 +12,8 @@ COMMENT 小写英文字母代表「拼音」符号， "u(yu) 则用 u: 表示∶
 COMMENT 音调用数字表示， 12345 分别代表阴平、阳平、上声、下声及轻声
 # define keys
 VALIDINPUTKEY:	12345:abcdefghijklmnopqrstuvwxyz
+WILDCARDKEY:	*
+WILDCHARKEY:	?
 SELECTKEY:	1\040
 SELECTKEY:	2
 SELECTKEY:	3

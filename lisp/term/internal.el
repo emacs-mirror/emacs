@@ -1,7 +1,7 @@
 ;;; internal.el --- support for PC internal terminal -*- coding: raw-text; no-byte-compile: t -*-
 
 ;; Copyright (C) 1993, 1994, 1998, 1999, 2001, 2002, 2003, 2004,
-;;   2005, 2006 Free Software Foundation, Inc.
+;;   2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
 

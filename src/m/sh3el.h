@@ -1,5 +1,5 @@
 /* machine description file for sh3el
-   Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 2006, 2007  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

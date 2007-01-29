@@ -1,7 +1,7 @@
 ;;; pp.el --- pretty printer for Emacs Lisp
 
 ;; Copyright (C) 1989, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006 Free Software Foundation, Inc.
+;;   2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Randal Schwartz <merlyn@stonehenge.com>
 ;; Keywords: lisp
@@ -158,7 +158,7 @@ Ignores leading comment characters."
     (set-syntax-table stab)
     (if arg
 	(insert (pp-to-string (eval exp)))
-      (pp-eval-expression (eval exp)))))
+      (pp-eval-expression exp))))
 
 ;;; Test cases for quote
 ;; (pp-eval-expression ''(quote quote))

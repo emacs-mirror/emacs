@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1985, 1986, 1987, 1992, 1993, 1994, 1995, 1996,
 ;;   1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006 Free Software Foundation, Inc.
+;;   2006, 2007 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -1223,11 +1223,11 @@ killed."
   (unless (run-hook-with-args-until-failure 'kill-buffer-query-functions)
     (error "Aborted"))
   (when (and (buffer-modified-p) (buffer-file-name))
-    (if (yes-or-no-p (format "Buffer %s is modified; save it first? "
+    (if (yes-or-no-p (format "Buffer %s is modified; kill anyway? "
 			     (buffer-name)))
-	(save-buffer)
-      (unless (yes-or-no-p "Kill and replace the buffer without saving it? ")
-	(error "Aborted"))))
+	(unless (yes-or-no-p "Kill and replace the buffer without saving it? ")
+	  (error "Aborted"))
+      (save-buffer)))
   (let ((obuf (current-buffer))
 	(ofile buffer-file-name)
 	(onum buffer-file-number)
@@ -2506,6 +2506,7 @@ n  -- to ignore the local variables list.")
 			  ", or C-v to scroll")))
 	  (goto-char (point-min))
 	  (let ((cursor-in-echo-area t)
+		(executing-kbd-macro executing-kbd-macro)
 		(exit-chars
 		 (if offer-save '(?! ?y ?n ?\s ?\C-g) '(?y ?n ?\s ?\C-g)))
 		done)
@@ -2513,11 +2514,17 @@ n  -- to ignore the local variables list.")
 	      (message prompt)
 	      (setq char (read-event))
 	      (if (numberp char)
-		  (if (eq char ?\C-v)
-		      (condition-case nil
-			  (scroll-up)
-			(error (goto-char (point-min))))
-		    (setq done (memq (downcase char) exit-chars))))))
+		  (cond ((eq char ?\C-v)
+			 (condition-case nil
+			     (scroll-up)
+			   (error (goto-char (point-min)))))
+			;; read-event returns -1 if we are in a kbd
+			;; macro and there are no more events in the
+			;; macro.  In that case, attempt to get an
+			;; event interactively.
+			((and executing-kbd-macro (= char -1))
+			 (setq executing-kbd-macro nil))
+			(t (setq done (memq (downcase char) exit-chars)))))))
 	  (setq char (downcase char))
 	  (when (and offer-save (= char ?!) unsafe-vars)
 	    (dolist (elt unsafe-vars)

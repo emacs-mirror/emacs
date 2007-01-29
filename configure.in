@@ -3,7 +3,7 @@ dnl To rebuild the `configure' script from this, execute the command
 dnl 	autoconf
 dnl in the directory containing this script.
 dnl
-dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006
+dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
 dnl  Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
@@ -269,7 +269,6 @@ dnl see the `changequote' comment above.
       vax-*-netbsd*)	machine=vax ;;
       arm-*-netbsd*)	machine=arm ;;
       x86_64-*-netbsd*)	machine=amdx86-64 ;;
-      hppa-*-netbsd*)	machine=hp800 ;;
       shle-*-netbsd*)	machine=sh3el ;;
     esac
   ;;
@@ -585,13 +584,6 @@ dnl see the `changequote' comment above.
     machine=nh6000 opsys=powerunix
     NON_GNU_CPP="cc -Xo -E -P"
   ;;
-  ## SR2001/SR2201 running HI-UX/MPP
-  hppa1.1-hitachi-hiuxmpp* )
-    machine=sr2k opsys=hiuxmpp
-  ;;
-  hppa1.1-hitachi-hiuxwe2* )
-    machine=sr2k opsys=hiuxwe2
-  ;;
   ## Honeywell XPS100
   xps*-honeywell-sysv* )
     machine=xps100 opsys=usg5-2
@@ -612,50 +604,6 @@ dnl see the `changequote' comment above.
       *.1[0-9].* ) machine=hp9000s300 opsys=hpux9shr ;;
       *) machine=hp9000s300 opsys=hpux ;;
     esac
-  ;;
-
-  ## HP 9000 series 700 and 800, running HP/UX
-  hppa*-hp-hpux7* )
-    machine=hp800 opsys=hpux
-  ;;
-  hppa*-hp-hpux8* )
-    machine=hp800 opsys=hpux8
-  ;;
-  hppa*-hp-hpux9shr* )
-    machine=hp800 opsys=hpux9shr
-  ;;
-  hppa*-hp-hpux9* )
-    machine=hp800 opsys=hpux9
-  ;;
-  hppa*-hp-hpux10.2* )
-    machine=hp800 opsys=hpux10-20
-  ;;
-  hppa*-hp-hpux10* )
-    machine=hp800 opsys=hpux10
-  ;;
-  hppa*-hp-hpux1[1-9]* )
-    machine=hp800 opsys=hpux11
-    CFLAGS="-D_INCLUDE__STDC_A1_SOURCE $CFLAGS"
-  ;;
-
-  hppa*-*-linux-gnu* )
-    machine=hp800 opsys=gnu-linux
-  ;;
-
-  ## HP 9000 series 700 and 800, running HP/UX
-  hppa*-hp-hpux* )
-    ## Cross-compilation?  Nah!
-    case "`uname -r`" in
-      ## Someone's system reports A.B8.05 for this.
-      ## I wonder what other possibilities there are.
-      *.B8.* ) machine=hp800 opsys=hpux8 ;;
-      *.08.* ) machine=hp800 opsys=hpux8 ;;
-      *.09.* ) machine=hp800 opsys=hpux9 ;;
-      *) machine=hp800 opsys=hpux10 ;;
-    esac
-  ;;
-  hppa*-*-nextstep* )
-    machine=hp800 opsys=nextstep
   ;;
 
   ## Orion machines
@@ -2153,6 +2101,37 @@ if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "gtk"; then
   fi
 fi
 
+### Link with -lXft if available to work around a bug.
+HAVE_XFT=maybe
+if test "${HAVE_GTK}" = "yes"; then
+  dnl Check if --with-pkg-config-prog has been given.
+  if test "X${with_pkg_config_prog}" != X; then
+    PKG_CONFIG="${with_pkg_config_prog}"
+  fi
+
+  PKG_CHECK_MODULES(XFT, xft >= 0.13.0, , HAVE_XFT=no)
+  if test "$HAVE_XFT" != no; then
+    OLD_CFLAGS="$CPPFLAGS"
+    OLD_CFLAGS="$CFLAGS"
+    OLD_LIBS="$LIBS"
+    CPPFLAGS="$CPPFLAGS $XFT_CFLAGS"
+    CFLAGS="$CFLAGS $XFT_CFLAGS"
+    LIBS="$XFT_LIBS $LIBS"
+    AC_CHECK_HEADER(X11/Xft/Xft.h,
+      AC_CHECK_LIB(Xft, XftFontOpen, HAVE_XFT=yes, , $XFT_LIBS))
+
+    if test "${HAVE_XFT}" = "yes"; then
+      AC_DEFINE(HAVE_XFT, 1, [Define to 1 if you have the Xft library.])
+      AC_SUBST(XFT_LIBS)
+      C_SWITCH_X_SITE="$C_SWITCH_X_SITE $XFT_CFLAGS"
+    else
+      CFLAGS="$OLD_CPPFLAGS"
+      CFLAGS="$OLD_CFLAGS"
+      LIBS="$OLD_LIBS"
+    fi
+  fi
+fi
+
 dnl Do not put whitespace before the #include statements below.
 dnl Older compilers (eg sunos4 cc) choke on it.
 if test x"${USE_X_TOOLKIT}" = xmaybe; then
@@ -2884,7 +2863,7 @@ if test "${REL_ALLOC}" = "yes" ; then
 fi
 
 AH_TOP([/* GNU Emacs site configuration template file.
-   Copyright (C) 1988, 1993, 1994, 1999, 2000, 2001, 2002, 2004, 2005, 2006
+   Copyright (C) 1988, 1993, 1994, 1999, 2000, 2001, 2002, 2004, 2005, 2006, 2007
              Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.

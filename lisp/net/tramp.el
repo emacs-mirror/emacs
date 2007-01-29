@@ -4,6 +4,8 @@
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007 Free Software Foundation, Inc.
 
+;; (copyright statements below in code to be updated with the above notice)
+
 ;; Author: Kai Gro,A_(Bjohann <kai.grossjohann@gmx.net>
 ;;         Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -1791,7 +1793,8 @@ on the remote host.")
 (defvar tramp-perl-encode
   "%s -e '
 # This script contributed by Juanma Barranquero <lektu@terra.es>.
-# Copyright (C) 2002, 2006 Free Software Foundation, Inc.
+# Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007
+#   Free Software Foundation, Inc.
 use strict;
 
 my %%trans = do {
@@ -1833,7 +1836,8 @@ This string is passed to `format', so percent characters need to be doubled.")
 (defvar tramp-perl-decode
   "%s -e '
 # This script contributed by Juanma Barranquero <lektu@terra.es>.
-# Copyright (C) 2002, 2006 Free Software Foundation, Inc.
+# Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007
+#   Free Software Foundation, Inc.
 use strict;
 
 my %%trans = do {
@@ -3241,8 +3245,13 @@ be a local filename.  The method used must be an out-of-band method."
 
       ;; Use rcp-like program for file transfer.
       (unwind-protect
-          (let ((p (apply 'start-process (buffer-name trampbuf) trampbuf
-                          copy-program copy-args)))
+          (let* ((default-directory
+		   (if (and (stringp default-directory)
+			    (file-accessible-directory-p default-directory))
+		       default-directory
+		     (tramp-temporary-file-directory)))
+		 (p (apply 'start-process (buffer-name trampbuf) trampbuf
+			   copy-program copy-args)))
             (tramp-set-process-query-on-exit-flag p nil)
             (tramp-process-actions p multi-method method user host
                                    tramp-actions-copy-out-of-band))
@@ -3812,10 +3821,14 @@ This will break if COMMAND prints a newline, followed by the value of
 
 	       ;; Here is where loc-enc and loc-dec used to be let-bound.
 	       (if (and (symbolp loc-dec) (fboundp loc-dec))
-		   ;; If local decoding is a function, we call it.
+		   ;; If local decoding is a function, we call it.  We
+		   ;; must disable multibyte, because
+		   ;; `uudecode-decode-region' doesn't handle it
+		   ;; correctly.
 		   (let ((tmpbuf (get-buffer-create " *tramp tmp*")))
 		     (set-buffer tmpbuf)
 		     (erase-buffer)
+		     (set-buffer-multibyte nil)
 		     (insert-buffer-substring tramp-buf)
 		     (tramp-message-for-buffer
 		      multi-method method user host

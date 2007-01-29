@@ -1,7 +1,7 @@
 /* Manipulation of keymaps
    Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995,
                  1998, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006 Free Software Foundation, Inc.
+                 2005, 2006, 2007 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -3448,9 +3448,13 @@ describe_map (map, prefix, elt_describer, partial, shadow,
 	      tem = shadow_lookup (shadow, kludge, Qt);
 	      if (!NILP (tem))
 		{
+		  /* If both bindings are keymaps, this key is a prefix key,
+		     so don't say it is shadowed.  */
+		  if (KEYMAPP (definition) && KEYMAPP (tem))
+		    ;
 		  /* Avoid generating duplicate entries if the
-		     shadowed binding has the same definition. */
-		  if (mention_shadow && !EQ (tem, definition))
+		     shadowed binding has the same definition.  */
+		  else if (mention_shadow && !EQ (tem, definition))
 		    this_shadowed = 1;
 		  else
 		    continue;

@@ -1,21 +1,17 @@
+# $Id: QJ-b5.tit,v 1.3 2007/01/24 06:35:08 handa Exp $
 # HANZI input table for cxterm
-# Generated from QJ-b5.cit by cit2tit
 # To be used by cxterm, convert me to .cit format first
-# .cit version 1
+# .cit version 2
 ENCODE:	BIG5
-MULTICHOICE:	NO
-PROMPT:	中文輸入【全形】
+AUTOSELECT:	YES
+PROMPT:	漢字輸入::全角::
 #
 COMMENT Copyright 1991 by Yongguang Zhang.      (ygz@cs.purdue.edu)
 COMMENT Permission to use/modify/copy for any purpose is hereby granted.
 COMMENT Absolutely no warranties.
-COMMENT Modify by Wei-Chung Hwang, OCT 15, 1992.
 # define keys
 VALIDINPUTKEY:	\040!"\043$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMN
 VALIDINPUTKEY:	OPQRSTUVWXYZ[\134]^_`abcdefghijklmnopqrstuvwxyz{|}~
-BACKSPACE:	\010\177
-DELETEALL:	\015\025
-REPEATKEY:	\020\022
 # the following line must not be removed
 BEGINDICTIONARY
 #

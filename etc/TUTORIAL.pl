@@ -1218,7 +1218,7 @@ Ta wersja samouczka, podobnie jak GNU Emacs, jest chroniona prawem
 autorskim, ale wolno j± kopiowaæ pod nastêpuj±cymi warunkami:
 
 Copyright (C) 1985, 1994, 2001, 2002, 2003, 2004,
-   2005, 2006 Free Software Foundation, Inc.
+   2005, 2006, 2007  Free Software Foundation, Inc.
 
 Zezwala siê na wykonywanie lub rozpowszechnianie
 wiernych kopii tego dokumentu w otrzymanej formie, na dowolnym

@@ -1,7 +1,7 @@
 ;;; replace.el --- replace commands for Emacs
 
 ;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1996, 1997, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+;;   2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -1406,6 +1406,8 @@ make, or the user didn't cancel the call."
 	(search-string from-string)
 	(real-match-data nil)		; the match data for the current match
 	(next-replacement nil)
+	;; This is non-nil if we know there is nothing for the user
+	;; to edit in the replacement.
 	(noedit nil)
 	(keep-going t)
 	(stack nil)
@@ -1517,8 +1519,7 @@ make, or the user didn't cancel the call."
 	      (set-match-data real-match-data)
 	      (setq next-replacement
 		    (funcall (car replacements) (cdr replacements)
-			     replace-count)
-		    noedit nil))
+			     replace-count)))
 	    (if (not query-flag)
 		(let ((inhibit-read-only
 		       query-replace-skip-read-only))

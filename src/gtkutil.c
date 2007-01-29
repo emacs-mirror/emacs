@@ -1,5 +1,5 @@
 /* Functions for creating and updating GTK widgets.
-   Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -3937,6 +3937,11 @@ xg_initialize ()
 {
   GtkBindingSet *binding_set;
 
+#if HAVE_XFT
+  /* Work around a bug with corrupted data if libXft gets unloaded.  This way
+     we keep it permanently linked in.  */
+  XftInit (0);
+#endif
   xg_ignore_gtk_scrollbar = 0;
   xg_detached_menus = 0;
   xg_menu_cb_list.prev = xg_menu_cb_list.next =

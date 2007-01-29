@@ -1,7 +1,7 @@
 ;;; jka-cmpr-hook.el --- preloaded code to enable jka-compr.el
 
 ;; Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2002, 2003,
-;;   2004, 2005, 2006 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: jka@ece.cmu.edu (Jay K. Adams)
 ;; Maintainer: FSF
@@ -247,10 +247,6 @@ APPEND-FLAG STRIP-EXTENSION-FLAG FILE-MAGIC-CHARS], where:
 
    file-magic-chars      is a string of characters that you would find
 			 at the beginning of a file compressed in this way.
-
-Because of the way `call-process' is defined, discarding the stderr output of
-a program adds the overhead of starting a shell each time the program is
-invoked.
 
 If you set this outside Custom while Auto Compression mode is
 already enabled \(as it is by default), you have to call

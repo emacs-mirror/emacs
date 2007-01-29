@@ -1,6 +1,6 @@
 /* Menu support for GNU Emacs on Mac OS.
    Copyright (C) 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006 Free Software Foundation, Inc.
+                 2005, 2006, 2007 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -77,10 +77,11 @@ static const int min_menu_id[] = {0, 1, 234, 235, 236, 256, 16384, 32768};
 
 #define DIALOG_WINDOW_RESOURCE 130
 
+#if TARGET_API_MAC_CARBON
 #define HAVE_DIALOGS 1
+#endif
 
 #undef HAVE_MULTILINGUAL_MENU
-#undef HAVE_DIALOGS /* TODO: Implement native dialogs.  */
 
 /******************************************************************/
 /* Definitions copied from lwlib.h */
@@ -2319,8 +2320,390 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 
 
 #ifdef HAVE_DIALOGS
-/* Construct native Mac OS menubar based on widget_value tree.  */
+/* Construct native Mac OS dialog based on widget_value tree.  */
 
+#if TARGET_API_MAC_CARBON
+
+static pascal OSStatus
+mac_handle_dialog_event (next_handler, event, data)
+     EventHandlerCallRef next_handler;
+     EventRef event;
+     void *data;
+{
+  OSStatus err;
+  WindowRef window = (WindowRef) data;
+
+  switch (GetEventClass (event))
+    {
+    case kEventClassCommand:
+      {
+	HICommand command;
+
+	err = GetEventParameter (event, kEventParamDirectObject,
+				 typeHICommand, NULL, sizeof (HICommand),
+				 NULL, &command);
+	if (err == noErr)
+	  if ((command.commandID & ~0xffff) == 'Bt\0\0')
+	    {
+	      SetWRefCon (window, command.commandID);
+	      err = QuitAppModalLoopForWindow (window);
+
+	      return err == noErr ? noErr : eventNotHandledErr;
+	    }
+
+	return CallNextEventHandler (next_handler, event);
+      }
+      break;
+
+    case kEventClassKeyboard:
+      {
+	OSStatus result;
+	char char_code;
+
+	result = CallNextEventHandler (next_handler, event);
+	if (result == noErr)
+	  return noErr;
+
+	err = GetEventParameter (event, kEventParamKeyMacCharCodes,
+				 typeChar, NULL, sizeof (char),
+				 NULL, &char_code);
+	if (err == noErr)
+	  switch (char_code)
+	    {
+	    case kEscapeCharCode:
+	      err = QuitAppModalLoopForWindow (window);
+	      break;
+
+	    default:
+	      {
+		UInt32 modifiers, key_code;
+
+		err = GetEventParameter (event, kEventParamKeyModifiers,
+					 typeUInt32, NULL, sizeof (UInt32),
+					 NULL, &modifiers);
+		if (err == noErr)
+		  err = GetEventParameter (event, kEventParamKeyCode,
+					   typeUInt32, NULL, sizeof (UInt32),
+					   NULL, &key_code);
+		if (err == noErr)
+		  if (mac_quit_char_key_p (modifiers, key_code))
+		    err = QuitAppModalLoopForWindow (window);
+		  else
+		    err = eventNotHandledErr;
+	      }
+	      break;
+	    }
+
+	return err == noErr ? noErr : result;
+      }
+      break;
+
+    default:
+      abort ();
+    }
+}
+
+static OSStatus
+install_dialog_event_handler (window)
+     WindowRef window;
+{
+  static const EventTypeSpec specs[] =
+    {{kEventClassCommand, kEventCommandProcess},
+     {kEventClassKeyboard, kEventRawKeyDown}};
+  static EventHandlerUPP handle_dialog_eventUPP = NULL;
+
+  if (handle_dialog_eventUPP == NULL)
+    handle_dialog_eventUPP = NewEventHandlerUPP (mac_handle_dialog_event);
+  return InstallWindowEventHandler (window, handle_dialog_eventUPP,
+				    GetEventTypeCount (specs), specs,
+				    window, NULL);
+}
+
+#define DIALOG_LEFT_MARGIN (112)
+#define DIALOG_TOP_MARGIN (24)
+#define DIALOG_RIGHT_MARGIN (24)
+#define DIALOG_BOTTOM_MARGIN (20)
+#define DIALOG_MIN_INNER_WIDTH (338)
+#define DIALOG_MAX_INNER_WIDTH (564)
+#define DIALOG_BUTTON_BUTTON_HORIZONTAL_SPACE (12)
+#define DIALOG_BUTTON_BUTTON_VERTICAL_SPACE (12)
+#define DIALOG_BUTTON_MIN_WIDTH (68)
+#define DIALOG_TEXT_MIN_HEIGHT (50)
+#define DIALOG_TEXT_BUTTONS_VERTICAL_SPACE (10)
+#define DIALOG_ICON_WIDTH (64)
+#define DIALOG_ICON_HEIGHT (64)
+#define DIALOG_ICON_LEFT_MARGIN (24)
+#define DIALOG_ICON_TOP_MARGIN (15)
+
+static int
+create_and_show_dialog (f, first_wv)
+     FRAME_PTR f;
+     widget_value *first_wv;
+{
+  OSStatus err;
+  char *dialog_name, *message;
+  int nb_buttons, first_group_count, i, result = 0;
+  widget_value *wv;
+  short buttons_height, text_height, inner_width, inner_height;
+  Rect empty_rect, *rects;
+  WindowRef window = NULL;
+  ControlRef *buttons, default_button = NULL, text;
+
+  dialog_name = first_wv->name;
+  nb_buttons = dialog_name[1] - '0';
+  first_group_count = nb_buttons - (dialog_name[4] - '0');
+
+  wv = first_wv->contents;
+  message = wv->value;
+
+  wv = wv->next;
+  SetRect (&empty_rect, 0, 0, 0, 0);
+
+  /* Create dialog window.  */
+  err = CreateNewWindow (kMovableModalWindowClass,
+			 kWindowStandardHandlerAttribute,
+			 &empty_rect, &window);
+  if (err == noErr)
+    err = SetThemeWindowBackground (window, kThemeBrushMovableModalBackground,
+				    true);
+  if (err == noErr)
+    err = SetWindowTitleWithCFString (window, (dialog_name[0] == 'Q'
+					       ? CFSTR ("Question")
+					       : CFSTR ("Information")));
+
+  /* Create button controls and measure their optimal bounds.  */
+  if (err == noErr)
+    {
+      buttons = alloca (sizeof (ControlRef) * nb_buttons);
+      rects = alloca (sizeof (Rect) * nb_buttons);
+      for (i = 0; i < nb_buttons; i++)
+	{
+	  CFStringRef label = cfstring_create_with_utf8_cstring (wv->value);
+
+	  if (label == NULL)
+	    err = memFullErr;
+	  else
+	    {
+	      err = CreatePushButtonControl (window, &empty_rect,
+					     label, &buttons[i]);
+	      CFRelease (label);
+	    }
+	  if (err == noErr)
+	    {
+	      if (!wv->enabled)
+		{
+#ifdef MAC_OSX
+		  err = DisableControl (buttons[i]);
+#else
+		  err = DeactivateControl (buttons[i]);
+#endif
+		}
+	      else if (default_button == NULL)
+		default_button = buttons[i];
+	    }
+	  if (err == noErr)
+	    {
+	      SInt16 unused;
+
+	      rects[i] = empty_rect;
+	      err = GetBestControlRect (buttons[i], &rects[i], &unused);
+	    }
+	  if (err == noErr)
+	    {
+	      OffsetRect (&rects[i], -rects[i].left, -rects[i].top);
+	      if (rects[i].right < DIALOG_BUTTON_MIN_WIDTH)
+		rects[i].right = DIALOG_BUTTON_MIN_WIDTH;
+	      else if (rects[i].right > DIALOG_MAX_INNER_WIDTH)
+		rects[i].right = DIALOG_MAX_INNER_WIDTH;
+
+	      err = SetControlCommandID (buttons[i],
+					 'Bt\0\0' + (int) wv->call_data);
+	    }
+	  if (err != noErr)
+	    break;
+	  wv = wv->next;
+	}
+    }
+
+  /* Layout buttons.  rects[i] is set relative to the bottom-right
+     corner of the inner box.  */
+  if (err == noErr)
+    {
+      short bottom, right, max_height, left_align_shift;
+
+      inner_width = DIALOG_MIN_INNER_WIDTH;
+      bottom = right = max_height = 0;
+      for (i = 0; i < nb_buttons; i++)
+	{
+	  if (right - rects[i].right < - inner_width)
+	    {
+	      if (i != first_group_count
+		  && right - rects[i].right >= - DIALOG_MAX_INNER_WIDTH)
+		inner_width = - (right - rects[i].right);
+	      else
+		{
+		  bottom -= max_height + DIALOG_BUTTON_BUTTON_VERTICAL_SPACE;
+		  right = max_height = 0;
+		}
+	    }
+	  if (max_height < rects[i].bottom)
+	    max_height = rects[i].bottom;
+	  OffsetRect (&rects[i], right - rects[i].right,
+		      bottom - rects[i].bottom);
+	  right = rects[i].left - DIALOG_BUTTON_BUTTON_HORIZONTAL_SPACE;
+	  if (i == first_group_count - 1)
+	    right -= DIALOG_BUTTON_BUTTON_HORIZONTAL_SPACE;
+	}
+      buttons_height = - (bottom - max_height);
+
+      left_align_shift = - (inner_width + rects[nb_buttons - 1].left);
+      for (i = nb_buttons - 1; i >= first_group_count; i--)
+	{
+	  if (bottom != rects[i].bottom)
+	    {
+	      left_align_shift = - (inner_width + rects[i].left);
+	      bottom = rects[i].bottom;
+	    }
+	  OffsetRect (&rects[i], left_align_shift, 0);
+	}
+    }
+
+  /* Create a static text control and measure its bounds.  */
+  if (err == noErr)
+    {
+      CFStringRef message_string;
+      Rect bounds;
+
+      message_string = cfstring_create_with_utf8_cstring (message);
+      if (message_string == NULL)
+	err = memFullErr;
+      else
+	{
+	  ControlFontStyleRec text_style;
+
+	  text_style.flags = 0;
+	  SetRect (&bounds, 0, 0, inner_width, 0);
+	  err = CreateStaticTextControl (window, &bounds, message_string,
+					 &text_style, &text);
+	  CFRelease (message_string);
+	}
+      if (err == noErr)
+	{
+	  SInt16 unused;
+
+	  bounds = empty_rect;
+	  err = GetBestControlRect (text, &bounds, &unused);
+	}
+      if (err == noErr)
+	{
+	  text_height = bounds.bottom - bounds.top;
+	  if (text_height < DIALOG_TEXT_MIN_HEIGHT)
+	    text_height = DIALOG_TEXT_MIN_HEIGHT;
+	}
+    }
+
+  /* Place buttons. */
+  if (err == noErr)
+    {
+      inner_height = (text_height + DIALOG_TEXT_BUTTONS_VERTICAL_SPACE
+		      + buttons_height);
+
+      for (i = 0; i < nb_buttons; i++)
+	{
+	  OffsetRect (&rects[i], DIALOG_LEFT_MARGIN + inner_width,
+		      DIALOG_TOP_MARGIN + inner_height);
+	  SetControlBounds (buttons[i], &rects[i]);
+	}
+    }
+
+  /* Place text.  */
+  if (err == noErr)
+    {
+      Rect bounds;
+
+      SetRect (&bounds, DIALOG_LEFT_MARGIN, DIALOG_TOP_MARGIN,
+	       DIALOG_LEFT_MARGIN + inner_width,
+	       DIALOG_TOP_MARGIN + text_height);
+      SetControlBounds (text, &bounds);
+    }
+
+  /* Create the application icon at the upper-left corner.  */
+  if (err == noErr)
+    {
+      ControlButtonContentInfo content;
+      ControlRef icon;
+      static const ProcessSerialNumber psn = {0, kCurrentProcess};
+#ifdef MAC_OSX
+      FSRef app_location;
+#else
+      ProcessInfoRec pinfo;
+      FSSpec app_spec;
+#endif
+      SInt16 unused;
+
+      content.contentType = kControlContentIconRef;
+#ifdef MAC_OSX
+      err = GetProcessBundleLocation (&psn, &app_location);
+      if (err == noErr)
+	err = GetIconRefFromFileInfo (&app_location, 0, NULL, 0, NULL,
+				      kIconServicesNormalUsageFlag,
+				      &content.u.iconRef, &unused);
+#else
+      bzero (&pinfo, sizeof (ProcessInfoRec));
+      pinfo.processInfoLength = sizeof (ProcessInfoRec);
+      pinfo.processAppSpec = &app_spec;
+      err = GetProcessInformation (&psn, &pinfo);
+      if (err == noErr)
+	err = GetIconRefFromFile (&app_spec, &content.u.iconRef, &unused);
+#endif
+      if (err == noErr)
+	{
+	  Rect bounds;
+
+	  SetRect (&bounds, DIALOG_ICON_LEFT_MARGIN, DIALOG_ICON_TOP_MARGIN,
+		   DIALOG_ICON_LEFT_MARGIN + DIALOG_ICON_WIDTH,
+		   DIALOG_ICON_TOP_MARGIN + DIALOG_ICON_HEIGHT);
+	  err = CreateIconControl (window, &bounds, &content, true, &icon);
+	  ReleaseIconRef (content.u.iconRef);
+	}
+    }
+
+  /* Show the dialog window and run event loop.  */
+  if (err == noErr)
+    if (default_button)
+      err = SetWindowDefaultButton (window, default_button);
+  if (err == noErr)
+    err = install_dialog_event_handler (window);
+  if (err == noErr)
+    {
+      SizeWindow (window,
+		  DIALOG_LEFT_MARGIN + inner_width + DIALOG_RIGHT_MARGIN,
+		  DIALOG_TOP_MARGIN + inner_height + DIALOG_BOTTOM_MARGIN,
+		  true);
+      err = RepositionWindow (window, FRAME_MAC_WINDOW (f),
+			      kWindowAlertPositionOnParentWindow);
+    }
+  if (err == noErr)
+    {
+      SetWRefCon (window, 0);
+      ShowWindow (window);
+      BringToFront (window);
+      err = RunAppModalLoopForWindow (window);
+    }
+  if (err == noErr)
+    {
+      UInt32 command_id = GetWRefCon (window);
+
+      if ((command_id & ~0xffff) == 'Bt\0\0')
+	result = command_id - 'Bt\0\0';
+    }
+
+  if (window)
+    DisposeWindow (window);
+
+  return result;
+}
+#else  /* not TARGET_API_MAC_CARBON */
 static int
 mac_dialog (widget_value *wv)
 {
@@ -2425,6 +2808,7 @@ mac_dialog (widget_value *wv)
 
   return i;
 }
+#endif  /* not TARGET_API_MAC_CARBON */
 
 static char * button_names [] = {
   "button1", "button2", "button3", "button4", "button5",
@@ -2557,10 +2941,10 @@ mac_dialog_show (f, keymaps, title, header, error_name)
   }
 
   /* Actually create the dialog.  */
-#ifdef HAVE_DIALOGS
-  menu_item_selection = mac_dialog (first_wv);
+#if TARGET_API_MAC_CARBON
+  menu_item_selection = create_and_show_dialog (f, first_wv);
 #else
-  menu_item_selection = 0;
+  menu_item_selection = mac_dialog (first_wv);
 #endif
 
   /* Free the widget_value objects we used to specify the contents.  */

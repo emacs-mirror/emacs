@@ -1,5 +1,5 @@
 GNU Emacs NEWS -- history of user-visible changes.  2006-06-04
-Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006
+Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
           Free Software Foundation, Inc.
 See the end for copying conditions.
 
@@ -119,6 +119,10 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 ---
 ** Support for GNU/Linux systems on X86-64 machines was added.
+
+---
+** Support for HP 9000 series 800 and Hitachi SR2001/SR2201 machines
+was removed.
 
 ---
 ** Mac OS 9 port now uses the Carbon API by default.  You can also
@@ -5975,7 +5979,7 @@ an error if the argument actually returns differing values.
 ----------------------------------------------------------------------
 Copyright information:
 
-Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006
+Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
 	  Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies

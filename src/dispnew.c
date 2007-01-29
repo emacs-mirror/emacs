@@ -1,7 +1,7 @@
 /* Updating of data structures for redisplay.
    Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995,
                  1997, 1998, 1999, 2000, 2001, 2002, 2003,
-                 2004, 2005, 2006 Free Software Foundation, Inc.
+                 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -4394,12 +4394,12 @@ update_text_area (w, vpos)
       || desired_row->phys_height != current_row->phys_height
       || desired_row->visible_height != current_row->visible_height
       || current_row->overlapped_p
-#if 0
-      /* This causes excessive flickering when mouse is moved across
-	 the mode line.  Luckily everything seems to work just fine
-	 without doing this.  KFS 2006-09-17.  */
-      || current_row->mouse_face_p
-#endif
+      /* This next line is necessary for correctly redrawing
+	 mouse-face areas after scrolling and other operations.
+	 However, it causes excessive flickering when mouse is moved
+	 across the mode line.  Luckily, turning it off for the mode
+	 line doesn't seem to hurt anything. -- cyd.  */
+      || (current_row->mouse_face_p && !current_row->mode_line_p)
       || current_row->x != desired_row->x)
     {
       rif->cursor_to (vpos, 0, desired_row->y, desired_row->x);

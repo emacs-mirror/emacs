@@ -1314,7 +1314,10 @@ DEFUN ("user-uid", Fuser_uid, Suser_uid, 0, 0, 0,
 Value is an integer or float, depending on the value.  */)
      ()
 {
-  return make_fixnum_or_float (geteuid ());
+  /* Assignment to EMACS_INT stops GCC whining about limited range of
+     data type.  */
+  EMACS_INT euid = geteuid ();
+  return make_fixnum_or_float (euid);
 }
 
 DEFUN ("user-real-uid", Fuser_real_uid, Suser_real_uid, 0, 0, 0,
@@ -1322,7 +1325,10 @@ DEFUN ("user-real-uid", Fuser_real_uid, Suser_real_uid, 0, 0, 0,
 Value is an integer or float, depending on the value.  */)
      ()
 {
-  return make_fixnum_or_float (getuid ());
+  /* Assignment to EMACS_INT stops GCC whining about limited range of
+     data type.  */
+  EMACS_INT uid = getuid ();
+  return make_fixnum_or_float (uid);
 }
 
 DEFUN ("user-full-name", Fuser_full_name, Suser_full_name, 0, 1, 0,
@@ -1450,9 +1456,9 @@ most significant 16 bits of the seconds, while the second has the
 least significant 16 bits.  The third integer gives the microsecond
 count.
 
-On systems that can't determine the run time, get-internal-run-time
-does the same thing as current-time.  The microsecond count is zero on
-systems that do not provide resolution finer than a second.  */)
+On systems that can't determine the run time, `get-internal-run-time'
+does the same thing as `current-time'.  The microsecond count is zero
+on systems that do not provide resolution finer than a second.  */)
      ()
 {
 #ifdef HAVE_GETRUSAGE
@@ -1715,7 +1721,7 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
 DEFUN ("decode-time", Fdecode_time, Sdecode_time, 0, 1, 0,
        doc: /* Decode a time value as (SEC MINUTE HOUR DAY MONTH YEAR DOW DST ZONE).
 The optional SPECIFIED-TIME should be a list of (HIGH LOW . IGNORED),
-as from `current-time' and `file-attributes', or `nil' to use the
+as from `current-time' and `file-attributes', or nil to use the
 current time.  The obsolete form (HIGH . LOW) is also still accepted.
 The list has the following nine members: SEC is an integer between 0
 and 60; SEC is 60 for a leap second, which only some operating systems
@@ -2279,8 +2285,7 @@ usage: (insert-before-markers-and-inherit &rest ARGS)  */)
 }
 
 DEFUN ("insert-char", Finsert_char, Sinsert_char, 2, 3, 0,
-       doc: /* Insert COUNT (second arg) copies of CHARACTER (first arg).
-Both arguments are required.
+       doc: /* Insert COUNT copies of CHARACTER.
 Point, and before-insertion markers, are relocated as in the function `insert'.
 The optional third arg INHERIT, if non-nil, says to inherit text properties
 from adjoining text, if those properties are sticky.  */)
@@ -3169,7 +3174,7 @@ save_restriction_restore (data)
 DEFUN ("save-restriction", Fsave_restriction, Ssave_restriction, 0, UNEVALLED, 0,
        doc: /* Execute BODY, saving and restoring current buffer's restrictions.
 The buffer's restrictions make parts of the beginning and end invisible.
-(They are set up with `narrow-to-region' and eliminated with `widen'.)
+\(They are set up with `narrow-to-region' and eliminated with `widen'.)
 This special form, `save-restriction', saves the current buffer's restrictions
 when it is entered, and restores them when it is exited.
 So any `narrow-to-region' within BODY lasts only until the end of the form.

@@ -1,7 +1,7 @@
 ;;; ediff.el --- a comprehensive visual interface to diff & patch
 
 ;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+;;   2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Created: February 2, 1994
@@ -922,10 +922,7 @@ If WIND-B is nil, use window next to WIND-A."
 ;;;###autoload
 (defun ediff-regions-wordwise (buffer-A buffer-B &optional startup-hooks)
   "Run Ediff on a pair of regions in specified buffers.
-Regions \(i.e., point and mark\) are assumed to be set in advance except
-for the second region in the case both regions are from the same buffer.
-In such a case the user is asked to interactively establish the second
-region.
+Regions \(i.e., point and mark\) can be set in advance or marked interactively.
 This function is effective only for relatively small regions, up to 200
 lines.  For large regions, use `ediff-regions-linewise'."
   (interactive
@@ -966,10 +963,7 @@ lines.  For large regions, use `ediff-regions-linewise'."
 ;;;###autoload
 (defun ediff-regions-linewise (buffer-A buffer-B &optional startup-hooks)
   "Run Ediff on a pair of regions in specified buffers.
-Regions \(i.e., point and mark\) are assumed to be set in advance except
-for the second region in the case both regions are from the same buffer.
-In such a case the user is asked to interactively establish the second
-region.
+Regions \(i.e., point and mark\) can be set in advance or marked interactively.
 Each region is enlarged to contain full lines.
 This function is effective for large regions, over 100-200
 lines.  For small regions, use `ediff-regions-wordwise'."

@@ -1,6 +1,6 @@
 /* Functions for Sun Windows menus and selection buffer.
    Copyright (C) 1987, 1999, 2001, 2002, 2003, 2004,
-                 2005, 2006 Free Software Foundation, Inc.
+                 2005, 2006, 2007 Free Software Foundation, Inc.
 
 This file is probably totally obsolete.  In any case, the FSF is
 unwilling to support it.  We agreed to include it in our distribution

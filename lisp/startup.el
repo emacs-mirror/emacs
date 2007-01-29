@@ -1,7 +1,7 @@
 ;;; startup.el --- process Emacs shell arguments
 
 ;; Copyright (C) 1985, 1986, 1992, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+;;   2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -1133,6 +1133,11 @@ Copying Conditions\tConditions for redistributing and changing Emacs
 Getting New Versions\tHow to obtain the latest version of Emacs
 More Manuals / Ordering Manuals       Buying printed manuals from the FSF\n")
   (:face (variable-pitch :weight bold)
+	 "To quit a partially entered command, type "
+	 :face default
+	 "Control-g"
+	 :face variable-pitch
+	 "."
 	 "Useful File menu items:\n"
 	 :face variable-pitch
 	 "Exit Emacs\t\t(Or type "
@@ -1282,7 +1287,7 @@ using the mouse.\n\n")
 			 (emacs-version)
 			 "\n"
 			 :face '(variable-pitch :height 0.5)
-			 "Copyright (C) 2006 Free Software Foundation, Inc.")
+			 "Copyright (C) 2007 Free Software Foundation, Inc.")
     (and auto-save-list-file-prefix
 	 ;; Don't signal an error if the
 	 ;; directory for auto-save-list files
@@ -1533,6 +1538,7 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
               (progn
                 (insert "\
 You can do basic editing with the menu bar and scroll bar using the mouse.
+To quit a partially entered command, type Control-g.
 
 Useful File menu items:
 Exit Emacs		(or type Control-x followed by Control-c)
@@ -1549,7 +1555,7 @@ More Manuals / Ordering Manuals    How to order printed manuals from the FSF
 ")
                 (insert "\n\n" (emacs-version)
                         "
-Copyright (C) 2006 Free Software Foundation, Inc."))
+Copyright (C) 2007 Free Software Foundation, Inc."))
 
 	    ;; No mouse menus, so give help using kbd commands.
 
@@ -1597,7 +1603,7 @@ If you have no Meta key, you may instead type ESC followed by the character.)")
 
 	    (insert "\n\n" (emacs-version)
 		    "
-Copyright (C) 2006 Free Software Foundation, Inc.")
+Copyright (C) 2007 Free Software Foundation, Inc.")
 
 	    (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
 		     (eq (key-binding "\C-h\C-d") 'describe-distribution)

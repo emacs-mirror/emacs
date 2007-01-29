@@ -84,8 +84,8 @@ grep -nH -e "xyzxyz" ../info/*
 
 
 
-Copyright (c) 2005, 2006
-Free software Foundation, Inc.
+Copyright (C) 2005, 2006, 2007
+Free Software Foundation, Inc.
 
 COPYING PERMISSIONS:
 

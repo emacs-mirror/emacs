@@ -4684,11 +4684,11 @@ Compile the program including the current buffer.  Default: run `make'.
 Runs COMMAND, a shell command, in a separate process asynchronously
 with output going to the buffer `*compilation*'.
 
-If optional second arg COMINT is t the buffer will be in Comint mode with
-`compilation-shell-minor-mode'.
-
 You can then use the command \\[next-error] to find the next error message
 and move to the source code that caused it.
+
+If optional second arg COMINT is t the buffer will be in Comint mode with
+`compilation-shell-minor-mode'.
 
 Interactively, prompts for the command if `compilation-read-command' is
 non-nil; otherwise uses `compile-command'.  With prefix arg, always prompts.
@@ -8638,10 +8638,7 @@ If WIND-B is nil, use window next to WIND-A.
 
 (autoload (quote ediff-regions-wordwise) "ediff" "\
 Run Ediff on a pair of regions in specified buffers.
-Regions (i.e., point and mark) are assumed to be set in advance except
-for the second region in the case both regions are from the same buffer.
-In such a case the user is asked to interactively establish the second
-region.
+Regions (i.e., point and mark) can be set in advance or marked interactively.
 This function is effective only for relatively small regions, up to 200
 lines.  For large regions, use `ediff-regions-linewise'.
 
@@ -8649,10 +8646,7 @@ lines.  For large regions, use `ediff-regions-linewise'.
 
 (autoload (quote ediff-regions-linewise) "ediff" "\
 Run Ediff on a pair of regions in specified buffers.
-Regions (i.e., point and mark) are assumed to be set in advance except
-for the second region in the case both regions are from the same buffer.
-In such a case the user is asked to interactively establish the second
-region.
+Regions (i.e., point and mark) can be set in advance or marked interactively.
 Each region is enlarged to contain full lines.
 This function is effective for large regions, over 100-200
 lines.  For small regions, use `ediff-regions-wordwise'.
@@ -15931,11 +15925,11 @@ re-start Emacs.")
 
 (setq ispell-dictionary-alist-2 (quote (("czech" "[A-Za-z\301\311\314\315\323\332\331\335\256\251\310\330\317\253\322\341\351\354\355\363\372\371\375\276\271\350\370\357\273\362]" "[^A-Za-z\301\311\314\315\323\332\331\335\256\251\310\330\317\253\322\341\351\354\355\363\372\371\375\276\271\350\370\357\273\362]" "" nil ("-B") nil iso-8859-2) ("dansk" "[A-Z\306\330\305a-z\346\370\345]" "[^A-Z\306\330\305a-z\346\370\345]" "[']" nil ("-C") nil iso-8859-1) ("deutsch" "[a-zA-Z\"]" "[^a-zA-Z\"]" "[']" t ("-C") "~tex" iso-8859-1) ("deutsch8" "[a-zA-Z\304\326\334\344\366\337\374]" "[^a-zA-Z\304\326\334\344\366\337\374]" "[']" t ("-C" "-d" "deutsch") "~latin1" iso-8859-1) ("english" "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil iso-8859-1))))
 
-(setq ispell-dictionary-alist-3 (quote (("esperanto" "[A-Za-z\246\254\266\274\306\330\335\336\346\370\375\376]" "[^A-Za-z\246\254\266\274\306\330\335\336\346\370\375\376]" "[-']" t ("-C") "~latin3" iso-8859-3) ("esperanto-tex" "[A-Za-z^\\]" "[^A-Za-z^\\]" "[-'`\"]" t ("-C" "-d" "esperanto") "~tex" iso-8859-3) ("francais7" "[A-Za-z]" "[^A-Za-z]" "[`'^---]" t nil nil iso-8859-1) ("francais" "[A-Za-z\300\302\306\307\310\311\312\313\316\317\324\331\333\334\340\342\347\350\351\352\353\356\357\364\371\373\374]" "[^A-Za-z\300\302\306\307\310\311\312\313\316\317\324\331\333\334\340\342\347\350\351\352\353\356\357\364\371\373\374]" "[-'.@]" t nil "~list" iso-8859-1) ("francais-tex" "[A-Za-z\300\302\306\307\310\311\312\313\316\317\324\331\333\334\340\342\347\350\351\352\353\356\357\364\371\373\374\\]" "[^A-Za-z\300\302\306\307\310\311\312\313\316\317\324\331\333\334\340\342\347\350\351\352\353\356\357\364\371\373\374\\]" "[-'^`\".@]" t nil "~tex" iso-8859-1))))
+(setq ispell-dictionary-alist-3 (quote (("esperanto" "[A-Za-z\246\254\266\274\306\330\335\336\346\370\375\376]" "[^A-Za-z\246\254\266\274\306\330\335\336\346\370\375\376]" "[-']" t ("-C") "~latin3" iso-8859-3) ("esperanto-tex" "[A-Za-z^\\]" "[^A-Za-z^\\]" "[-'`\"]" t ("-C" "-d" "esperanto") "~tex" iso-8859-3) ("francais7" "[A-Za-z]" "[^A-Za-z]" "[`'^-]" t nil nil iso-8859-1) ("francais" "[A-Za-z\300\302\306\307\310\311\312\313\316\317\324\331\333\334\340\342\347\350\351\352\353\356\357\364\371\373\374]" "[^A-Za-z\300\302\306\307\310\311\312\313\316\317\324\331\333\334\340\342\347\350\351\352\353\356\357\364\371\373\374]" "[-'.@]" t nil "~list" iso-8859-1) ("francais-tex" "[A-Za-z\300\302\306\307\310\311\312\313\316\317\324\331\333\334\340\342\347\350\351\352\353\356\357\364\371\373\374\\]" "[^A-Za-z\300\302\306\307\310\311\312\313\316\317\324\331\333\334\340\342\347\350\351\352\353\356\357\364\371\373\374\\]" "[-'^`\".@]" t nil "~tex" iso-8859-1))))
 
 (setq ispell-dictionary-alist-4 (quote (("german" "[a-zA-Z\"]" "[^a-zA-Z\"]" "[']" t ("-C") "~tex" iso-8859-1) ("german8" "[a-zA-Z\304\326\334\344\366\337\374]" "[^a-zA-Z\304\326\334\344\366\337\374]" "[']" t ("-C" "-d" "german") "~latin1" iso-8859-1) ("italiano" "[A-Z\300\301\310\311\314\315\322\323\331\332a-z\340\341\350\351\354\355\363\371\372]" "[^A-Z\300\301\310\311\314\315\322\323\331\332a-z\340\341\350\351\354\355\363\371\372]" "[-.]" nil ("-B" "-d" "italian") "~tex" iso-8859-1) ("nederlands" "[A-Za-z\300\301\302\303\304\305\307\310\311\312\313\314\315\316\317\322\323\324\325\326\331\332\333\334\340\341\342\343\344\345\347\350\351\352\353\354\355\356\357\361\362\363\364\365\366\371\372\373\374]" "[^A-Za-z\300\301\302\303\304\305\307\310\311\312\313\314\315\316\317\322\323\324\325\326\331\332\333\334\340\341\342\343\344\345\347\350\351\352\353\354\355\356\357\361\362\363\364\365\366\371\372\373\374]" "[']" t ("-C") nil iso-8859-1) ("nederlands8" "[A-Za-z\300\301\302\303\304\305\307\310\311\312\313\314\315\316\317\322\323\324\325\326\331\332\333\334\340\341\342\343\344\345\347\350\351\352\353\354\355\356\357\361\362\363\364\365\366\371\372\373\374]" "[^A-Za-z\300\301\302\303\304\305\307\310\311\312\313\314\315\316\317\322\323\324\325\326\331\332\333\334\340\341\342\343\344\345\347\350\351\352\353\354\355\356\357\361\362\363\364\365\366\371\372\373\374]" "[']" t ("-C") nil iso-8859-1))))
 
-(setq ispell-dictionary-alist-5 (quote (("norsk" "[A-Za-z\305\306\307\310\311\322\324\330\345\346\347\350\351\362\364\370]" "[^A-Za-z\305\306\307\310\311\322\324\330\345\346\347\350\351\362\364\370]" "[\"]" nil nil "~list" iso-8859-1) ("norsk7-tex" "[A-Za-z{}\\'^`]" "[^A-Za-z{}\\'^`]" "[\"]" nil ("-d" "norsk") "~plaintex" iso-8859-1) ("polish" "[A-Za-z\241\243\246\254\257\261\263\266\274\277\306\312\321\323\346\352\361\363]" "[^A-Za-z\241\243\246\254\257\261\263\266\274\277\306\312\321\323\346\352\361\363]" "." nil nil nil iso-8859-2) ("portugues" "[a-zA-Z\301\302\311\323\340\341\342\351\352\355\363\343\372]" "[^a-zA-Z\301\302\311\323\340\341\342\351\352\355\363\343\372]" "[']" t ("-C") "~latin1" iso-8859-1))))
+(setq ispell-dictionary-alist-5 (quote (("norsk" "[A-Za-z\305\306\307\310\311\322\324\330\345\346\347\350\351\362\364\370]" "[^A-Za-z\305\306\307\310\311\322\324\330\345\346\347\350\351\362\364\370]" "[\"]" nil nil "~list" iso-8859-1) ("norsk7-tex" "[A-Za-z{}\\'^`]" "[^A-Za-z{}\\'^`]" "[\"]" nil ("-d" "norsk") "~plaintex" iso-8859-1) ("polish" "[A-Za-z\241\243\246\254\257\261\263\266\274\277\306\312\321\323\346\352\361\363]" "[^A-Za-z\241\243\246\254\257\261\263\266\274\277\306\312\321\323\346\352\361\363]" "[.]" nil nil nil iso-8859-2) ("portugues" "[a-zA-Z\301\302\311\323\340\341\342\351\352\355\363\343\372]" "[^a-zA-Z\301\302\311\323\340\341\342\351\352\355\363\343\372]" "[']" t ("-C") "~latin1" iso-8859-1))))
 
 (setq ispell-dictionary-alist-6 (quote (("russian" "[\341\342\367\347\344\345\263\366\372\351\352\353\354\355\356\357\360\362\363\364\365\346\350\343\376\373\375\370\371\377\374\340\361\301\302\327\307\304\305\243\326\332\311\312\313\314\315\316\317\320\322\323\324\325\306\310\303\336\333\335\330\331\337\334\300\321]" "[^\341\342\367\347\344\345\263\366\372\351\352\353\354\355\356\357\360\362\363\364\365\346\350\343\376\373\375\370\371\377\374\340\361\301\302\327\307\304\305\243\326\332\311\312\313\314\315\316\317\320\322\323\324\325\306\310\303\336\333\335\330\331\337\334\300\321]" "" nil nil nil koi8-r) ("russianw" "[\300\301\302\303\304\305\250\306\307\310\311\312\313\314\315\316\317\320\321\322\323\324\325\326\327\330\331\334\333\332\335\336\337\340\341\342\343\344\345\270\346\347\350\351\352\353\354\355\356\357\360\361\362\363\364\365\366\367\370\371\374\373\372\375\376\377]" "[^\300\301\302\303\304\305\250\306\307\310\311\312\313\314\315\316\317\320\321\322\323\324\325\326\327\330\331\334\333\332\335\336\337\340\341\342\343\344\345\270\346\347\350\351\352\353\354\355\356\357\360\361\362\363\364\365\366\367\370\371\374\373\372\375\376\377]" "" nil nil nil windows-1251) ("slovak" "[A-Za-z\301\304\311\315\323\332\324\300\305\245\335\256\251\310\317\253\322\341\344\351\355\363\372\364\340\345\265\375\276\271\350\357\273\362]" "[^A-Za-z\301\304\311\315\323\332\324\300\305\245\335\256\251\310\317\253\322\341\344\351\355\363\372\364\340\345\265\375\276\271\350\357\273\362]" "" nil ("-B") nil iso-8859-2) ("slovenian" "[A-Za-z\301\304\311\315\323\332\324\300\305\245\335\256\251\310\317\253\322\341\344\351\355\363\372\364\340\345\265\375\276\271\350\357\273\362]" "[^A-Za-z\301\304\311\315\323\332\324\300\305\245\335\256\251\310\317\253\322\341\344\351\355\363\372\364\340\345\265\375\276\271\350\357\273\362]" "" nil ("-B" "-d" "slovenian") nil iso-8859-2) ("svenska" "[A-Za-z\345\344\366\351\340\374\350\346\370\347\305\304\326\311\300\334\310\306\330\307]" "[^A-Za-z\345\344\366\351\340\374\350\346\370\347\305\304\326\311\300\334\310\306\330\307]" "[']" nil ("-C") "~list" iso-8859-1))))
 
@@ -16355,9 +16349,9 @@ decimal key must be specified.")
 (custom-autoload (quote keypad-numlock-shifted-setup) "keypad" nil)
 
 (autoload (quote keypad-setup) "keypad" "\
-Set keypad bindings in function-key-map according to SETUP.
+Set keypad bindings in `function-key-map' according to SETUP.
 If optional second argument NUMLOCK is non-nil, the NumLock On bindings
-are changed. Otherwise, the NumLock Off bindings are changed.
+are changed.  Otherwise, the NumLock Off bindings are changed.
 If optional third argument SHIFT is non-nil, the shifted keypad
 keys are bound.
 
@@ -16499,7 +16493,7 @@ the current value of `kmacro-counter').
 
 When defining/executing macro, inserts macro counter and increments
 the counter with ARG or 1 if missing.  With \\[universal-argument],
-inserts previous kmacro-counter (but do not modify counter).
+inserts previous `kmacro-counter' (but do not modify counter).
 
 The macro counter can be modified via \\[kmacro-set-counter] and \\[kmacro-add-counter].
 The format of the counter can be modified via \\[kmacro-set-format].
@@ -20594,15 +20588,10 @@ Output stream is STREAM, or value of `standard-output' (which see).
 \(fn OBJECT &optional STREAM)" nil nil)
 
 (autoload (quote pp-eval-expression) "pp" "\
-Evaluate an expression, then pretty-print value EXPVAL into a new buffer.
-If pretty-printed EXPVAL fits on one line, display it in the echo
-area instead.  Also add EXPVAL to the front of the list
-in the variable `values'.
+Evaluate EXPRESSION and pretty-print its value.
+Also add the value to the front of the list in the variable `values'.
 
-Non-interactively, the argument is the value, EXPVAL, not the expression
-to evaluate.
-
-\(fn EXPVAL)" t nil)
+\(fn EXPRESSION)" t nil)
 
 (autoload (quote pp-eval-last-sexp) "pp" "\
 Run `pp-eval-expression' on sexp before point (which see).
@@ -28147,7 +28136,7 @@ Append thumbnails to `tumme-thumbnail-buffer'.
 \(fn)" t nil)
 
 (autoload (quote tumme-display-thumb) "tumme" "\
-Shorthard for `tumme-display-thumbs' with prefix argument.
+Shorthand for `tumme-display-thumbs' with prefix argument.
 
 \(fn)" t nil)
 
@@ -31092,19 +31081,19 @@ Zone out, completely.
 ;;;;;;  "emulation/viper-cmd.el" "emulation/viper-ex.el" "emulation/viper-init.el"
 ;;;;;;  "emulation/viper-keym.el" "emulation/viper-macs.el" "emulation/viper-mous.el"
 ;;;;;;  "emulation/viper-util.el" "env.el" "erc/erc-backend.el" "erc/erc-goodies.el"
-;;;;;;  "erc/erc-ibuffer.el" "erc/erc-lang.el" "erc/erc-menu.el"
-;;;;;;  "erc/erc-nicklist.el" "eshell/em-alias.el" "eshell/em-banner.el"
-;;;;;;  "eshell/em-basic.el" "eshell/em-cmpl.el" "eshell/em-dirs.el"
-;;;;;;  "eshell/em-glob.el" "eshell/em-hist.el" "eshell/em-ls.el"
-;;;;;;  "eshell/em-pred.el" "eshell/em-prompt.el" "eshell/em-rebind.el"
-;;;;;;  "eshell/em-script.el" "eshell/em-smart.el" "eshell/em-term.el"
-;;;;;;  "eshell/em-unix.el" "eshell/em-xtra.el" "eshell/esh-arg.el"
-;;;;;;  "eshell/esh-cmd.el" "eshell/esh-ext.el" "eshell/esh-groups.el"
-;;;;;;  "eshell/esh-io.el" "eshell/esh-maint.el" "eshell/esh-module.el"
-;;;;;;  "eshell/esh-opt.el" "eshell/esh-proc.el" "eshell/esh-util.el"
-;;;;;;  "eshell/esh-var.el" "ezimage.el" "faces.el" "files.el" "finder-inf.el"
-;;;;;;  "foldout.el" "font-core.el" "font-lock.el" "format.el" "forms-d2.el"
-;;;;;;  "forms-pass.el" "frame.el" "fringe.el" "generic-x.el" "gnus/compface.el"
+;;;;;;  "erc/erc-ibuffer.el" "erc/erc-lang.el" "erc/erc-nicklist.el"
+;;;;;;  "eshell/em-alias.el" "eshell/em-banner.el" "eshell/em-basic.el"
+;;;;;;  "eshell/em-cmpl.el" "eshell/em-dirs.el" "eshell/em-glob.el"
+;;;;;;  "eshell/em-hist.el" "eshell/em-ls.el" "eshell/em-pred.el"
+;;;;;;  "eshell/em-prompt.el" "eshell/em-rebind.el" "eshell/em-script.el"
+;;;;;;  "eshell/em-smart.el" "eshell/em-term.el" "eshell/em-unix.el"
+;;;;;;  "eshell/em-xtra.el" "eshell/esh-arg.el" "eshell/esh-cmd.el"
+;;;;;;  "eshell/esh-ext.el" "eshell/esh-groups.el" "eshell/esh-io.el"
+;;;;;;  "eshell/esh-maint.el" "eshell/esh-module.el" "eshell/esh-opt.el"
+;;;;;;  "eshell/esh-proc.el" "eshell/esh-util.el" "eshell/esh-var.el"
+;;;;;;  "ezimage.el" "faces.el" "files.el" "finder-inf.el" "foldout.el"
+;;;;;;  "font-core.el" "font-lock.el" "format.el" "forms-d2.el" "forms-pass.el"
+;;;;;;  "frame.el" "fringe.el" "generic-x.el" "gnus/compface.el"
 ;;;;;;  "gnus/dig.el" "gnus/dns.el" "gnus/format-spec.el" "gnus/gnus-async.el"
 ;;;;;;  "gnus/gnus-bcklg.el" "gnus/gnus-cite.el" "gnus/gnus-cus.el"
 ;;;;;;  "gnus/gnus-demon.el" "gnus/gnus-dup.el" "gnus/gnus-eform.el"

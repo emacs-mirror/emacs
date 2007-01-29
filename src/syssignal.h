@@ -1,6 +1,6 @@
 /* syssignal.h - System-dependent definitions for signals.
-   Copyright (C) 1993, 1999, 2002, 2003, 2004,
-                 2005, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1999, 2001, 2002, 2003, 2004,
+                 2005, 2006, 2007  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -211,7 +211,7 @@ char *strsignal ();
 #ifdef HAVE_GTK_AND_PTHREAD
 #define SIGNAL_THREAD_CHECK(signo)                                      \
   do {                                                                  \
-    if (pthread_self () != main_thread)                                 \
+    if (!pthread_equal (pthread_self (), main_thread))			\
       {                                                                 \
         /* POSIX says any thread can receive the signal.  On GNU/Linux  \
            that is not true, but for other systems (FreeBSD at least)   \

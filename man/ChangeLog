@@ -1,3 +1,25 @@
+2007-01-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (ls in Lisp): Document ls-lisp-format-time-list and
+	ls-lisp-use-localized-time-format.
+
+2007-01-20  Markus Triska  <markus.triska@gmx.at>
+
+	* flymake.texi (Flymake mode): find-file-hook instead of ...-hooks.
+
+2007-01-13  Michael Olson  <mwolson@gnu.org>
+
+	* erc.texi (Modules): Mention capab-identify module.
+
+2007-01-16  Glenn Morris  <rgm@gnu.org>
+
+	* abbrevs.texi (Editing Abbrevs): Describe how to disable a system
+	abbrev.
+
+2007-01-11  Richard Stallman  <rms@gnu.org>
+
+	* msdog.texi (Windows Keyboard): Another small cleanup.
+
 2007-01-10  Richard Stallman  <rms@gnu.org>
 
 	* msdog.texi (Windows Keyboard): Yet another try to make
@@ -7470,7 +7492,7 @@
 ;; End:
 
     Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
-      2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+      2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
 

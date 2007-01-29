@@ -5,14 +5,14 @@
 
 @c The edition number appears in several places in this file
 @set EDITION   Sixteenth
-@set EMACSVER  22.0.92
+@set EMACSVER  22.0.93
 
 @copying
 This is the @value{EDITION} edition of the @cite{GNU Emacs Manual},
 updated for Emacs version @value{EMACSVER}.
 
 Copyright @copyright{} 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997,
-1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software
+1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software
 Foundation, Inc.
 
 @quotation
