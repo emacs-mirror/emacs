@@ -1,5 +1,9 @@
 2007-01-30  Chong Yidong  <cyd@stupidchicken.com>
 
+	* type-break.el (type-break-catch-up-event): New function.
+	(type-break-demo-hanoi, type-break-demo-life)
+	(type-break-demo-boring): Use it.
+
 	* image-mode.el (image-mode): Don't automatically view as image.
 	(image-toggle-display): Add `disabled' property.
 
