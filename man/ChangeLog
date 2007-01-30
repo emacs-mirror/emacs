@@ -1,3 +1,18 @@
+2007-01-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Secondary Selection): Window clicked does not matter
+	when mouse-yank-at-point is non-nil.
+
+2007-01-28  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* gnus.texi (Batching Agents): Fix example.  Reported by Tassilo Horn
+	<tassilo@member.fsf.org>.
+
+2007-01-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (ls in Lisp): Document ls-lisp-format-time-list and
+	ls-lisp-use-localized-time-format.
+
 2007-01-20  Markus Triska  <markus.triska@gmx.at>
 
 	* flymake.texi (Flymake mode): find-file-hook instead of ...-hooks.

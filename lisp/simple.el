@@ -1079,7 +1079,7 @@ this command arranges for all errors to enter the debugger."
     (if eval-expression-insert-value
 	(with-no-warnings
 	 (let ((standard-output (current-buffer)))
-	   (eval-last-sexp-print-value (car values))))
+	   (prin1 (car values))))
       (prog1
           (prin1 (car values) t)
         (let ((str (eval-expression-print-format (car values))))

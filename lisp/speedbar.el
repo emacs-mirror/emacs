@@ -819,7 +819,7 @@ to toggle this value.")
 
 (defun speedbar-make-specialized-keymap ()
   "Create a keymap for use with a speedbar major or minor display mode.
-This basically creates a sparse keymap, and makes it's parent be
+This basically creates a sparse keymap, and makes its parent be
 `speedbar-key-map'."
   (let ((k (make-sparse-keymap)))
     (set-keymap-parent k speedbar-key-map)

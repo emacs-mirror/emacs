@@ -1120,6 +1120,13 @@ With optional non-nil ALL, force redisplay of all mode-lines."
 
 ;;; Demo wrappers
 
+(defun type-break-catch-up-event ()
+  ;; If the last input event is a down-event, read and discard the
+  ;; corresponding up-event too, to avoid triggering another prompt.
+  (and (eventp last-input-event)
+       (memq 'down (event-modifiers last-input-event))
+       (read-event)))
+
 ;; This is a wrapper around hanoi that calls it with an arg large enough to
 ;; make the largest discs possible that will fit in the window.
 ;; Also, clean up the *Hanoi* buffer after we're done.
@@ -1132,9 +1139,11 @@ With optional non-nil ALL, force redisplay of all mode-lines."
         (hanoi (/ (window-width) 8))
         ;; Wait for user to come back.
         (read-event)
+	(type-break-catch-up-event)
         (kill-buffer "*Hanoi*"))
     (quit
      (read-event)
+     (type-break-catch-up-event)
      (and (get-buffer "*Hanoi*")
           (kill-buffer "*Hanoi*")))))
 
@@ -1153,12 +1162,14 @@ With optional non-nil ALL, force redisplay of all mode-lines."
             (life 3)
             ;; wait for user to return
             (read-event)
+	    (type-break-catch-up-event)
             (kill-buffer "*Life*"))
         (life-extinct
          (message "%s" (get 'life-extinct 'error-message))
          ;; restart demo
          (setq continue t))
         (quit
+	 (type-break-catch-up-event)
          (and (get-buffer "*Life*")
               (kill-buffer "*Life*")))))))
 
@@ -1244,7 +1255,8 @@ With optional non-nil ALL, force redisplay of all mode-lines."
                      message))))
             (goto-char (point-min))
             (sit-for 60))
-          (read-event)
+	  (read-event)
+	  (type-break-catch-up-event)
           (kill-buffer buffer-name))
       (quit
        (and (get-buffer buffer-name)

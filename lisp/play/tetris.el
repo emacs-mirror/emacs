@@ -362,9 +362,9 @@ Element 0 is ignored."
   (setq tetris-pos-y 0)
   (if (tetris-test-shape)
       (tetris-end-game)
-    (tetris-draw-shape))
-  (tetris-draw-next-shape)
-  (tetris-update-score))
+    (tetris-draw-shape)
+    (tetris-draw-next-shape)
+    (tetris-update-score)))
 
 (defun tetris-draw-next-shape ()
   (loop for y from 0 to 3 do

@@ -36,7 +36,7 @@
 (defconst image-type-header-regexps
   '(("\\`/[\t\n\r ]*\\*.*XPM.\\*/" . xpm)
     ("\\`P[1-6][[:space:]]+\\(?:#.*[[:space:]]+\\)*[0-9]+[[:space:]]+[0-9]+" . pbm)
-    ("\\`GIF8" . gif)
+    ("\\`GIF8[79]a" . gif)
     ("\\`\x89PNG\r\n\x1a\n" . png)
     ("\\`[\t\n\r ]*#define \\([a-z0-9]+\\)_width [0-9]+\n\
 #define \\1_height [0-9]+\n\

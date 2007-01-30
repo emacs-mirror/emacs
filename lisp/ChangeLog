@@ -1,3 +1,180 @@
+2007-01-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (get-free-disk-space): Return nil for remote
+	directories.
+
+	* net/ange-ftp.el (ange-ftp-ls): In case of wildcards, use "ls"
+	instead of "dir".
+
+2007-01-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* type-break.el (type-break-catch-up-event): New function.
+	(type-break-demo-hanoi, type-break-demo-life)
+	(type-break-demo-boring): Use it.
+
+	* image-mode.el (image-mode): Don't automatically view as image.
+	(image-toggle-display): Add `disabled' property.
+
+2007-01-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* isearchb.el (isearchb-iswitchb):
+	* ps-print.el (ps-build-face-reference):
+	* emacs-lisp/shadow.el (list-load-path-shadows):
+	* eshell/esh-cmd.el (eshell-rewrite-for-command):
+	* international/mule.el (find-auto-coding):
+	* mail/supercite.el (sc-attrib-selection-list):
+	* progmodes/cc-defs.el (c-emacs-features):
+	* progmodes/cc-vars.el (c-offsets-alist):
+	* progmodes/flymake.el
+	(flymake-init-create-temp-source-and-master-buffer-copy):
+	Fix typos in docstrings (some suggested by Chris Moore).
+
+	* progmodes/vhdl-mode.el (vhdl-components-package-name)
+	(vhdl-get-library-unit, vhdl-corresponding-begin)
+	(vhdl-skip-case-alternative, vhdl-backward-skip-label)
+	(vhdl-align-region-2, vhdl-electric-dash, vhdl-case-word)
+	(vhdl-hooked-abbrev, vhdl-hs-forward-sexp-func)
+	(vhdl-font-lock-match-item): Fix typos in docstrings.
+	(vhdl-get-library-unit, vhdl-get-block-state, vhdl-sort-alist)
+	(vhdl-set-offset, vhdl-fix-case-region-1, vhdl-scan-directory-contents)
+	(vhdl-speedbar-insert-project-hierarchy):
+	Improve argument/docstring consistency.
+
+2007-01-29  Kenichi Handa  <handa@m17n.org>
+
+	* international/titdic-cnv.el (py-converter): Fix previous change.
+
+2007-01-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* jka-compr.el (jka-compr-partial-uncompress)
+	(jka-compr-call-process): Rebind default-directory if it is
+	invalid.  Suggested by Chris Moore.
+
+	* comint.el (comint-insert-input): Handle situation where the
+	selected buffer is not the clicked buffer.
+
+2007-01-29  Kenichi Handa  <handa@m17n.org>
+
+	* international/ja-dic-cnv.el (skkdic-convert):
+	Add byte-compile-disable-print-circle:t at the head.
+
+	* international/titdic-cnv.el (tit-process-header):
+	Add byte-compile-disable-print-circle:t at the head.
+	(miscdic-convert): Likewise.
+	(py-converter): Skip the header comments.
+
+	* emacs-lisp/bytecomp.el (byte-compile-disable-print-circle):
+	New variable.
+	(byte-compile-output-file-form): Bing print-circle to nil if
+	byte-compile-output-file-form is not nil.
+	(byte-compile-output-docform): Likewise.
+
+2007-01-28  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-global-keymap, cua--region-keymap):
+	Declare earlier to avoid byte compiler warnings.
+
+2007-01-28  Markus Triska  <markus.triska@gmx.at>
+
+	* speedbar.el (speedbar-make-specialized-keymap): Doc fix.
+
+2007-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* play/gamegrid.el (gamegrid-kill-timer): Cancel timer directly.
+	(gamegrid-add-score-with-update-game-score-1): Allow local quits
+	when calling update-game-score program.  Remove unnecessary
+	save-excursion.
+
+	* play/tetris.el (tetris-new-shape): Stop drawing if game is over.
+
+2007-01-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-breakpoint-regexp): Declare earlier to
+	avoid compiler warning.
+	(gdb-var-update-handler-1): Consider that the MI field `in_scope'
+	might have values other than "true" or "false".
+
+2007-01-28  Richard Stallman  <rms@gnu.org>
+
+	* textmodes/fill.el (fill-paragraph-function): Doc fix.
+	(fill-paragraph): Bind fill-paragraph-function to t to avoid recursion.
+
+	* emacs-lisp/pp.el (pp-eval-last-sexp): Don't eval here.
+
+	* image.el (image-type-header-regexps): Make GIF regex more specific.
+
+	* tutorial.el (tutorial--default-keys): Check M-DEL, not `M-backspace'.
+	Don't check `backspace'.
+	(tutorial--find-changed-keys): Look up bindings in a temp buffer
+	in Fundamental mode.
+
+	* startup.el (fancy-splash-text, normal-splash-screen):
+	Mention C-g.
+
+	* simple.el (eval-expression): Don't use eval-last-sexp-print-value
+	when inserting in buffer.
+
+	* vc-arch.el (vc-arch-file-id): Move with-current-buffer
+	inside the if.
+
+2007-01-27  Richard Stallman  <rms@gnu.org>
+
+	* obsolete/awk-mode.el (awk-font-lock-keywords): Add "do".
+
+2007-01-27  Guanpeng Xu  <herberteuler@hotmail.com>
+
+	* add-log.el (add-log-current-defun): Skip the semicolon ``;'' for
+        enum/union/struct/class definition.
+	Revert change to call `forward-sexp' multiple times.
+
+2007-01-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (hack-local-variables-confirm): Don't keep trying to
+	read an event from an empty kbd macro.
+
+2007-01-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* server.el (server-start): Mention LEAVE-DEAD arg in the doc string.
+
+2007-01-27  Ben North  <ben@redfrontdoor.org>
+
+	* outline.el (outline-promote, outline-demote): Doc fix.  Rename
+	the arg CHILDREN -> WHICH.
+
+2007-01-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-do-copy-or-rename-file-out-of-band): Set
+	default-directory to a sane value when calling start-process.
+
+2007-01-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* ls-lisp.el (ls-lisp-use-localized-time-format): New defcustom.
+	(ls-lisp-format-time-list): Doc fix.  Mention
+	ls-lisp-use-localized-time-format.
+	(ls-lisp-format-time): Use ls-lisp-format-time-list if
+	ls-lisp-use-localized-time-format is non-nil, even if a valid
+	locale is defined.
+
+2007-01-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* jka-compr.el (jka-compr-shell): Doc fix.
+
+	* jka-cmpr-hook.el (jka-compr-compression-info-list): Doc fix.
+
+2007-01-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.ps: Fix background height.
+	(ps-print-version): New version 6.7.2.
+
+2007-01-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (finder-data, custom-deps): Depend on
+	$(lisp)/loaddefs.el.
+
+2007-01-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (custom-deps, finder-data): Add dependency to loaddefs.el.
+
 2007-01-24  Miles Bader  <miles@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-output-file-form)
@@ -26,7 +203,7 @@
 	* viper-keym.el (viper-insert-basic-map): Delete binding for S-TAB.
 
 	* ediff-util.el (ediff-clone-buffer-for-region-comparison): Change text
-	of message. Activate mark.
+	of message.  Activate mark.
 	(ediff-activate-mark): Set transient-mark-mode to t.
 
 	* ediff.el (ediff-regions-wordwise, ediff-regions-linewise): Doc fix.
@@ -38,7 +215,7 @@
 
 2007-01-22  Kim F. Storm  <storm@cua.dk>
 
-	* ido.el (ido-active): Add xemacs test from ido-minibuffer-setup.
+	* ido.el (ido-active): Add XEmacs test from ido-minibuffer-setup.
 	(ido-initiate-auto-merge, ido-exhibit, ido-minibuffer-setup)
 	(ido-tidy): Use ido-active.
 
@@ -90,7 +267,7 @@
 
 	* ps-print.el: Handle frame parameters (background and/or foreground
 	colors) changing dynamically.  Reported by Leo <sdl.web@gmail.com>.
-	(ps-print-version): New Version 6.7.1.
+	(ps-print-version): New version 6.7.1.
 	(ps-x-frame-property, ps-e-frame-parameter): New aliases.
 	(ps-frame-parameter): New fun.
 	(ps-default-fg, ps-default-bg): New default value ('frame-parameter).
@@ -1296,7 +1473,7 @@
 	* ps-mule.el: Eliminate Emacs 20 compatibility.
 
 	* ps-print.el: Eliminate Emacs 20 & 21 compatibility.
-	(ps-print-version): New Version 6.7.
+	(ps-print-version): New version 6.7.
 	(ps-print-quote): Replace '?\ ' by '?\s'.
 
 2006-11-30  Juanma Barranquero  <lekktu@gmail.com>

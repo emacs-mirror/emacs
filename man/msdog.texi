@@ -280,6 +280,37 @@ restart Emacs, since @file{ls-lisp.el} is preloaded.
 file-name patterns are supported: if it is non-@code{nil} (the
 default), they are treated as shell-style wildcards; otherwise they
 are treated as Emacs regular expressions.
+
+@vindex ls-lisp-format-time-list
+  The variable @code{ls-lisp-format-time-list} defines how to format
+the date and time of files.  @emph{The value of this variable is
+ignored}, unless Emacs cannot determine the current locale.  (However,
+if the value of @code{ls-lisp-use-localized-time-format} is
+non-@code{nil}, Emacs obeys @code{ls-lisp-format-time-list} even if
+the current locale is available; see below.)
+
+The value of @code{ls-lisp-format-time-list} is a list of 2 strings.
+The first string is used if the file was modified within the current
+year, while the second string is used for older files.  In each of
+these two strings you can use @samp{%}-sequences to substitute parts
+of the time.  For example:
+@lisp
+("%b %e %H:%M" "%b %e  %Y")
+@end lisp
+
+@noindent
+Note that the strings substituted for these @samp{%}-sequences depend
+on the current locale.  @xref{Time Parsing,,, elisp, The Emacs Lisp
+Reference Manual}, for more about format time specs.
+
+@vindex ls-lisp-use-localized-time-format
+  Normally, Emacs formats the file time stamps in either traditional
+or ISO-style time format.  However, if the value of the variable
+@code{ls-lisp-use-localized-time-format} is non-@code{nil}, Emacs
+formats file time stamps according to what
+@code{ls-lisp-format-time-list} specifies.  The @samp{%}-sequences in
+@code{ls-lisp-format-time-list} produce locale-dependent month and day
+names, which might cause misalignment of columns in Dired display.
 @end ifnottex
 
 @node Windows HOME

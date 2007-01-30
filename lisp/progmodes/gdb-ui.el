@@ -1788,6 +1788,9 @@ static char *magick[] = {
   "Face for disabled breakpoint icon in fringe."
   :group 'gud)
 
+(defconst gdb-breakpoint-regexp
+  "\\([0-9]+\\).*?\\(?:point\\|catch\\s-+\\S-+\\)\\s-+\\S-+\\s-+\\(.\\)\\s-+")
+
 ;; Put breakpoint icons in relevant margins (even those set in the GUD buffer).
 (defun gdb-info-breakpoints-custom ()
   (let ((flag) (bptno))
@@ -1980,9 +1983,6 @@ static char *magick[] = {
   (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
       'gdb-invalidate-breakpoints
     'gdbmi-invalidate-breakpoints))
-
-(defconst gdb-breakpoint-regexp
-  "\\([0-9]+\\).*?\\(?:point\\|catch\\s-+\\S-+\\)\\s-+\\S-+\\s-+\\(.\\)\\s-+")
 
 (defun gdb-toggle-breakpoint ()
   "Enable/disable breakpoint at current line."
@@ -3436,14 +3436,26 @@ in_scope=\"\\(.*?\\)\".*?}")
     (let* ((varnum (match-string 1))
 	   (var (assoc varnum gdb-var-list)))
       (when var
-	(if (string-equal (match-string 3) "false")
-	    (setcar (nthcdr 5 var) 'out-of-scope)
-	  (setcar (nthcdr 5 var) 'changed)
-	  (setcar (nthcdr 4 var)
-		  (read (match-string 2)))))))
-  (setq gdb-pending-triggers
-   (delq 'gdb-var-update gdb-pending-triggers))
-  (gdb-speedbar-update))
+	(let ((match (match-string 3)))
+	  (cond ((string-equal match "false")
+		 (setcar (nthcdr 5 var) 'out-of-scope))
+		((string-equal match "true")
+		 (setcar (nthcdr 5 var) 'changed)
+		 (setcar (nthcdr 4 var)
+			 (read (match-string 2))))
+;;		((string-equal match "invalid")
+;;		 (gdb-enqueue-input
+;;		  (list
+;;		   (if (eq (buffer-local-value
+;;			    'gud-minor-mode gud-comint-buffer) 'gdba)
+;;		       (concat "server interpreter mi \"-var-delete "
+;;			       varnum "\"\n")
+;;		     (concat "-var-delete " varnum "\n"))
+;;		   'ignore)))
+		)))))
+      (setq gdb-pending-triggers
+	    (delq 'gdb-var-update gdb-pending-triggers))
+      (gdb-speedbar-update))
 
 ;; Registers buffer.
 ;;

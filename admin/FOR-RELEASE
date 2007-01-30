@@ -5,6 +5,8 @@ Tasks needed before the next release.
   not at the start of the file that are easy to miss, as in
   src/emacs.c.
 
+  See also the oustanding issues in admin/notes/copyright.
+
 * TO BE DONE SHORTLY BEFORE RELEASE
 
 ** Check for widow and orphan lines in manuals;
@@ -30,6 +32,10 @@ ru	Alex Ott              Done
 sk	Miroslav Vaško        No response
 
 Reminders sent out on 2006-06-08.
+
+Note: regardless of the above, the following files need to be
+regenerated to get updated copyright notices: sk-refcard.ps,
+pl-refcard.ps, cs-refcard.ps.
 
 ** Send an email to the various distributions, including the GNOME
 and KDE projects, to use the new Emacs icons in etc/images/icons.
@@ -65,11 +71,6 @@ He says that customizing such a mode simply does not work.
 RMS says that there is no code in the generated defcustom,
 or elsewhere in the generated code, to implement setting that variable
 through the custom mechanism.
-
-** b.riefenstahl@turtle-trading.net, Dec 29:
-  GTK build crashes under X
-  Seems to be a libXft or gtk theme bug, not an Emacs bug.
-  However, a workaround is possible.
 
 ** simon.marshall@misys.com, Jan 12: 
   Font-lock decides function call is function declaration in C+ +

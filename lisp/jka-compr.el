@@ -47,18 +47,9 @@
 ;; The default value of this variable allows jka-compr to work with
 ;; Unix compress and gzip.
 ;;
-;; If you are concerned about the stderr output of gzip and other
-;; compression/decompression programs showing up in your buffers, you
-;; should set the discard-error flag in the compression-info-list.
-;; This will cause the stderr of all programs to be discarded.
-;; However, it also causes emacs to call compression/uncompression
-;; programs through a shell (which is specified by jka-compr-shell).
-;; This may be a drag if, on your system, starting up a shell is
-;; slow.
-;;
 ;; If you don't want messages about compressing and decompressing
-;; to show up in the echo area, you can set the compress-name and
-;; decompress-name fields of the jka-compr-compression-info-list to
+;; to show up in the echo area, you can set the compress-msg and
+;; decompress-msg fields of the jka-compr-compression-info-list to
 ;; nil.
 
 
@@ -105,9 +96,7 @@
 
 (defcustom jka-compr-shell "sh"
   "*Shell to be used for calling compression programs.
-The value of this variable only matters if you want to discard the
-stderr of a compression/decompression program (see the documentation
-for `jka-compr-compression-info-list')."
+NOTE: Not used in MS-DOS and Windows systems."
   :type 'string
   :group 'jka-compr)
 
@@ -166,6 +155,12 @@ to keep: LEN chars starting BEG chars from the beginning."
 	;; to discard the part we don't want.
 	(let ((skip (/ beg jka-compr-dd-blocksize))
 	      (err-file (jka-compr-make-temp-name))
+	      ;; call-process barfs if default-directory is inaccessible.
+	      (default-directory
+		(if (and default-directory
+			 (file-accessible-directory-p default-directory))
+		    default-directory
+		  (file-name-directory infile)))
 	      count)
 	  ;; Update PREFIX based on the text that we won't read in.
 	  (setq prefix (- beg (* skip jka-compr-dd-blocksize))
@@ -204,45 +199,41 @@ to keep: LEN chars starting BEG chars from the beginning."
 
 
 (defun jka-compr-call-process (prog message infile output temp args)
-  (if jka-compr-use-shell
-
-      (let ((err-file (jka-compr-make-temp-name))
-	    (coding-system-for-read (or coding-system-for-read 'undecided))
-            (coding-system-for-write 'no-conversion))
-
-	(unwind-protect
-
-	    (or (memq
-		 (call-process jka-compr-shell infile
-			       (if (stringp output) nil output)
-			       nil
-			       "-c"
-			       (format "%s %s 2> %s %s"
-				       prog
-				       (mapconcat 'identity args " ")
-				       err-file
-				       (if (stringp output)
-					   (concat "> " output)
-					 "")))
-		 jka-compr-acceptable-retval-list)
-
-		(jka-compr-error prog args infile message err-file))
-
-	  (jka-compr-delete-temp-file err-file)))
-
-    (or (eq 0
-	 (apply 'call-process
-		prog
-		infile
-		(if (stringp output) temp output)
-		nil
-		args))
-	(jka-compr-error prog args infile message))
-
-    (and (stringp output)
-	 (with-current-buffer temp
-	   (write-region (point-min) (point-max) output)
-	   (erase-buffer)))))
+  ;; call-process barfs if default-directory is inaccessible.
+  (let ((default-directory
+	  (if (and default-directory
+		   (file-accessible-directory-p default-directory))
+	      default-directory
+	    (file-name-directory infile))))
+    (if jka-compr-use-shell
+	(let ((err-file (jka-compr-make-temp-name))
+	      (coding-system-for-read (or coding-system-for-read 'undecided))
+	      (coding-system-for-write 'no-conversion))
+	  (unwind-protect
+	      (or (memq
+		   (call-process jka-compr-shell infile
+				 (if (stringp output) nil output)
+				 nil
+				 "-c"
+				 (format "%s %s 2> %s %s"
+					 prog
+					 (mapconcat 'identity args " ")
+					 err-file
+					 (if (stringp output)
+					     (concat "> " output)
+					   "")))
+		   jka-compr-acceptable-retval-list)
+		  (jka-compr-error prog args infile message err-file))
+	    (jka-compr-delete-temp-file err-file)))
+      (or (eq 0
+	      (apply 'call-process
+		     prog infile (if (stringp output) temp output)
+		     nil args))
+	  (jka-compr-error prog args infile message))
+      (and (stringp output)
+	   (with-current-buffer temp
+	     (write-region (point-min) (point-max) output)
+	     (erase-buffer))))))
 
 
 ;; Support for temp files.  Much of this was inspired if not lifted

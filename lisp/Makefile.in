@@ -89,12 +89,12 @@ doit:
 
 $(lisp)/cus-load.el:
 	touch $@
-custom-deps: $(lisp)/cus-load.el doit
+custom-deps: $(lisp)/loaddefs.el $(lisp)/cus-load.el doit
 	wd=$(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
 	LC_ALL=C $(EMACS) $(EMACSOPT) -l cus-dep --eval '(setq generated-custom-dependencies-file "$(lisp)/cus-load.el")' -f custom-make-dependencies $$wins
 
-finder-data: doit
+finder-data: $(lisp)/loaddefs.el doit
 	wd=$(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
 	LC_ALL=C $(EMACS) $(EMACSOPT) -l finder --eval '(setq generated-finder-keywords-file "$(lisp)/finder-inf.el")' -f finder-compile-keywords-make-dist $$wins

@@ -422,8 +422,8 @@ Each element of this list has the following form:
              (...)))
 
 Where INFOKEY is a key for `sc-mail-field', REGEXP is a regular
-expression to match against the INFOKEY's value. ATTRIBUTION can be a
-string or a list.  If its a string, then it is the attribution that is
+expression to match against the INFOKEY's value.  ATTRIBUTION can be a
+string or a list.  If it's a string, then it is the attribution that is
 selected by `sc-select-attribution'.  If it is a list, it is `eval'd
 and the return value must be a string, which is used as the selected
 attribution.  Note that the variable `sc-preferred-attribution-list'

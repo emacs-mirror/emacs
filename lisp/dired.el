@@ -56,7 +56,7 @@ may contain even `F', `b', `i' and `s'.  See also the variable
 `dired-ls-F-marks-symlinks' concerning the `F' switch.
 On systems such as MS-DOS and MS-Windows, which use `ls' emulation in Lisp,
 some of the `ls' switches are not supported; see the doc string of
-`insert-directory' on `ls-lisp.el' for more details."
+`insert-directory' in `ls-lisp.el' for more details."
   :type 'string
   :group 'dired)
 

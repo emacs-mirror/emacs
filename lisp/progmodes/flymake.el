@@ -1626,7 +1626,7 @@ Return full-name.  Names are real, not patched."
                       buildfile-name source-file-name)))))
 
 (defun flymake-init-create-temp-source-and-master-buffer-copy (get-incl-dirs-f create-temp-f master-file-masks include-regexp)
-  "Find master file (or buffer), create it's copy along with a copy of the source file."
+  "Find master file (or buffer), create its copy along with a copy of the source file."
   (let* ((source-file-name       buffer-file-name)
 	 (temp-source-file-name  (flymake-init-create-temp-buffer-copy create-temp-f))
 	 (master-and-temp-master (flymake-create-master-file

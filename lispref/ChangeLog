@@ -1,3 +1,19 @@
+2007-01-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* elisp.texi (Top): Add "Standard Errors", "Standard Buffer-Local
+	Variables", and "Standard Keymaps" to the detailed menu.
+
+	* variables.texi (Future Local Variables): Add index entry.
+
+2007-01-28  Richard Stallman  <rms@gnu.org>
+
+	* tips.texi (Coding Conventions): Clarify the tip about macros
+	that define a function or a variable.
+
+	* files.texi (File Attributes): UID and GID can be floats.
+	(Magic File Names): Explain why deferring all operations to
+	the standard handler does not work.
+
 2007-01-23  Martin Rudalics  <rudalics@gmx.at>
 
 	* backups.texi (Reverting): Use "buffer" instead of "file"

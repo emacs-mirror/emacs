@@ -131,7 +131,7 @@ static pthread_mutex_t alloc_mutex;
   do                                                    \
     {                                                   \
       if (pthread_equal (pthread_self (), main_thread)) \
-        sigblock (sigmask (SIGIO));                     \
+        BLOCK_INPUT;					\
       pthread_mutex_lock (&alloc_mutex);                \
     }                                                   \
   while (0)
@@ -140,7 +140,7 @@ static pthread_mutex_t alloc_mutex;
     {                                                   \
       pthread_mutex_unlock (&alloc_mutex);              \
       if (pthread_equal (pthread_self (), main_thread)) \
-        sigunblock (sigmask (SIGIO));                   \
+        UNBLOCK_INPUT;					\
     }                                                   \
   while (0)
 

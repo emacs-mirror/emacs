@@ -90,7 +90,7 @@ extern int errno;
 /* Variables for blockinput.h: */
 
 /* Non-zero if interrupt input is blocked right now.  */
-int interrupt_input_blocked;
+volatile int interrupt_input_blocked;
 
 /* Nonzero means an input interrupt has arrived
    during the current critical section.  */
@@ -10296,7 +10296,9 @@ DEFUN ("this-command-keys", Fthis_command_keys, Sthis_command_keys, 0, 0, 0,
        doc: /* Return the key sequence that invoked this command.
 However, if the command has called `read-key-sequence', it returns
 the last key sequence that has been read.
-The value is a string or a vector.  */)
+The value is a string or a vector.
+
+See also `this-command-keys-vector'.  */)
      ()
 {
   return make_event_array (this_command_key_count,
@@ -10306,7 +10308,9 @@ The value is a string or a vector.  */)
 DEFUN ("this-command-keys-vector", Fthis_command_keys_vector, Sthis_command_keys_vector, 0, 0, 0,
        doc: /* Return the key sequence that invoked this command, as a vector.
 However, if the command has called `read-key-sequence', it returns
-the last key sequence that has been read.  */)
+the last key sequence that has been read.
+
+See also `this-command-keys'.  */)
      ()
 {
   return Fvector (this_command_key_count,

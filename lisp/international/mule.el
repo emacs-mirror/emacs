@@ -1665,7 +1665,7 @@ cons (CODING . SOURCE), where CODING is the specified coding
 system and SOURCE is a symbol `auto-coding-alist',
 `auto-coding-regexp-alist', `coding:', or `auto-coding-functions'
 indicating by what CODING is specified.  Note that the validity
-of CODING is not checked; it's callers responsibility to check it.
+of CODING is not checked; it's the caller's responsibility to check it.
 
 If nothing is specified, the return value is nil."
   (or (let ((coding-system (auto-coding-alist-lookup filename)))

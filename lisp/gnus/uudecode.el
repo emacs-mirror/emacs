@@ -128,6 +128,20 @@ used is specified by `uudecode-decoder-program'."
 	  (message "Can not uudecode")))
       (ignore-errors (or file-name (delete-file tempfile))))))
 
+(eval-and-compile
+  (defalias 'uudecode-string-to-multibyte
+    (cond
+     ((featurep 'xemacs)
+      'identity)
+     ((fboundp 'string-to-multibyte)
+      'string-to-multibyte)
+     (t
+      (lambda (string)
+	"Return a multibyte string with the same individual chars as string."
+	(mapconcat
+	 (lambda (ch) (string-as-multibyte (char-to-string ch)))
+	 string ""))))))
+
 ;;;###autoload
 (defun uudecode-decode-region-internal (start end &optional file-name)
   "Uudecode region between START and END without using an external program.
@@ -206,7 +220,7 @@ If FILE-NAME is non-nil, save the result to FILE-NAME."
 	  (or (markerp end) (setq end (set-marker (make-marker) end)))
 	  (goto-char start)
 	  (if enable-multibyte-characters
-	      (mapc #'(lambda (x) (insert (string-to-multibyte x)))
+	      (mapc #'(lambda (x) (insert (uudecode-string-to-multibyte x)))
 		    (nreverse result))
 	    (insert (apply 'concat (nreverse result))))
 	  (delete-region (point) end))))))

@@ -19040,7 +19040,7 @@ following incantation:
 
 @example
 #!/bin/sh
-emacs -batch -l ~/.emacs -l ~/.gnus.el gnus-agent-batch >/dev/null 2>&1
+emacs -batch -l ~/.emacs -l ~/.gnus.el -f gnus-agent-batch >/dev/null 2>&1
 @end example
 
 

@@ -296,6 +296,10 @@ When this option is true, if you load the compiled file and then move it,
 the functions you loaded will not be able to run.")
 ;;;###autoload(put 'byte-compile-dynamic 'safe-local-variable 'booleanp)
 
+(defvar byte-compile-disable-print-circle nil
+  "If non-nil, disable `print-circle' on printing a byte-compiled code.")
+;;;###autoload(put 'byte-compile-disable-print-circle 'safe-local-variable 'booleanp)
+
 (defcustom byte-compile-dynamic-docstrings t
   "*If non-nil, compile doc strings for lazy access.
 We bury the doc strings of functions and variables
@@ -2003,7 +2007,8 @@ With argument, insert value in current buffer after the form."
 	  (print-level nil)
 	  (print-quoted t)
 	  (print-gensym t)
-	  (print-circle t))	       ; handle circular data structures
+	  (print-circle		     ; handle circular data structures
+	   (not byte-compile-disable-print-circle)))
       (princ "\n" outbuffer)
       (prin1 form outbuffer)
       nil)))
@@ -2060,7 +2065,8 @@ list that represents a doc string reference.
 	       ;; print-gensym-alist not to be cleared
 	       ;; between calls to print functions.
 	       (print-gensym '(t))
-	       (print-circle t)	       ; handle circular data structures
+	       (print-circle	       ; handle circular data structures
+		(not byte-compile-disable-print-circle))
 	       print-gensym-alist    ; was used before print-circle existed.
 	       (print-continuous-numbering t)
 	       print-number-table
