@@ -1,7 +1,7 @@
 ;;; tetris.el --- implementation of Tetris for Emacs
 
 ;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005,
-;;   2006 Free Software Foundation, Inc.
+;;   2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Glynn Clements <glynn@sensei.co.uk>
 ;; Version: 2.01
@@ -362,9 +362,9 @@ Element 0 is ignored."
   (setq tetris-pos-y 0)
   (if (tetris-test-shape)
       (tetris-end-game)
-    (tetris-draw-shape))
-  (tetris-draw-next-shape)
-  (tetris-update-score))
+    (tetris-draw-shape)
+    (tetris-draw-next-shape)
+    (tetris-update-score)))
 
 (defun tetris-draw-next-shape ()
   (loop for y from 0 to 3 do

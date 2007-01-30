@@ -1,6 +1,6 @@
 /* Definitions and headers for communication on the Mac OS.
    Copyright (C) 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006 Free Software Foundation, Inc.
+                 2005, 2006, 2007 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -24,7 +24,7 @@ Boston, MA 02110-1301, USA.  */
 #ifndef EMACS_MACGUI_H
 #define EMACS_MACGUI_H
 
-typedef int Display;  /* fix later */
+typedef struct _XDisplay Display; /* opaque */
 
 typedef Lisp_Object XrmDatabase;
 
@@ -245,6 +245,14 @@ typedef struct _XGC
 
   /* QuickDraw background color.  */
   RGBColor back_color;
+
+#if USE_CG_DRAWING && MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+  /* Quartz 2D foreground color.  */
+  CGColorRef cg_fore_color;
+
+  /* Quartz 2D background color.  */
+  CGColorRef cg_back_color;
+#endif
 
 #define MAX_CLIP_RECTS 2
   /* Number of clipping rectangles.  */

@@ -1,7 +1,7 @@
 ;;; supercite.el --- minor mode for citing mail and news replies
 
 ;; Copyright (C) 1993, 1997, 2001, 2002, 2003, 2004,
-;;   2005, 2006 Free Software Foundation, Inc.
+;;   2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: 1993 Barry A. Warsaw <bwarsaw@python.org>
 ;; Maintainer:    Glenn Morris <rgm@gnu.org>
@@ -422,8 +422,8 @@ Each element of this list has the following form:
              (...)))
 
 Where INFOKEY is a key for `sc-mail-field', REGEXP is a regular
-expression to match against the INFOKEY's value. ATTRIBUTION can be a
-string or a list.  If its a string, then it is the attribution that is
+expression to match against the INFOKEY's value.  ATTRIBUTION can be a
+string or a list.  If it's a string, then it is the attribution that is
 selected by `sc-select-attribution'.  If it is a list, it is `eval'd
 and the return value must be a string, which is used as the selected
 attribution.  Note that the variable `sc-preferred-attribution-list'

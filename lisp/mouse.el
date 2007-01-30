@@ -1,7 +1,7 @@
 ;;; mouse.el --- window system-independent mouse support
 
 ;; Copyright (C) 1993, 1994, 1995, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: hardware, mouse
@@ -1041,19 +1041,19 @@ should only be used by mouse-drag-region."
 	      (if do-multi-click (goto-char start-point))
               (delete-overlay mouse-drag-overlay)
               (when (and (functionp fun)
-	      (= start-hscroll (window-hscroll start-window))
-	      ;; Don't run the up-event handler if the
-	      ;; window start changed in a redisplay after
-	      ;; the mouse-set-point for the down-mouse
-	      ;; event at the beginning of this function.
-	      ;; When the window start has changed, the
-	      ;; up-mouse event will contain a different
-	      ;; position due to the new window contents,
-	      ;; and point is set again.
-	      (or end-point
-		  (= (window-start start-window)
-		     start-window-start)))
-                (when (and on-link
+			 (= start-hscroll (window-hscroll start-window))
+			 ;; Don't run the up-event handler if the
+			 ;; window start changed in a redisplay after
+			 ;; the mouse-set-point for the down-mouse
+			 ;; event at the beginning of this function.
+			 ;; When the window start has changed, the
+			 ;; up-mouse event will contain a different
+			 ;; position due to the new window contents,
+			 ;; and point is set again.
+			 (or end-point
+			     (= (window-start start-window)
+				start-window-start)))
+		(when (and on-link
 			   (or (not end-point) (= end-point start-point))
 			   (consp event)
 			   (or remap-double-click

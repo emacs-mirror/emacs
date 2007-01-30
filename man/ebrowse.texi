@@ -10,8 +10,8 @@
 @copying
 This file documents Ebrowse, a C++ class browser for GNU Emacs.
 
-Copyright @copyright{} 2000, 2002, 2003, 2004,
-2005, 2006 Free Software Foundation, Inc.
+Copyright @copyright{} 2000, 2001, 2002, 2003, 2004,
+2005, 2006, 2007  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1275,7 +1275,7 @@ they work in a C++ source buffer, not in member and tree buffers created
 by Ebrowse.
 
 @table @kbd
-@item C-c b f
+@item C-c C-m f
 Find the definition of the member around point.  If you invoke this
 function with a prefix argument, the declaration is searched.
 
@@ -1284,37 +1284,37 @@ select the class with completion.  If there is a scope declaration in
 front of the member name, this class name is used as initial input for
 the completion.
 
-@item C-c b F
+@item C-c C-m F
 Find the declaration of the member around point.
 
-@item C-c b v
+@item C-c C-m v
 View the definition of the member around point.
 
-@item C-c b V
+@item C-c C-m V
 View the declaration of the member around point.
 
-@item C-c b 4 f
+@item C-c C-m 4 f
 Find a member's definition in another window.
 
-@item C-c b 4 F
+@item C-c C-m 4 F
 Find a member's declaration in another window.
 
-@item C-c b 4 v
+@item C-c C-m 4 v
 View a member's definition in another window.
 
-@item C-c b 4 V
+@item C-c C-m 4 V
 View a member's declaration in another window.
 
-@item C-c b 5 f
+@item C-c C-m 5 f
 Find a member's definition in another frame.
 
-@item C-c b 5 F
+@item C-c C-m 5 F
 Find a member's declaration in another frame.
 
-@item C-c b 5 v
+@item C-c C-m 5 v
 View a member's definition in another frame.
 
-@item C-c b 5 V
+@item C-c C-m 5 V
 View a member's declaration in another frame.
 @end table
 
@@ -1333,7 +1333,7 @@ move to positions in the stack:@refill
 
 @table @kbd
 @cindex return to original position
-@item C-c b -
+@item C-c C-m -
 This command sets point to the previous position in the position stack.
 Directly after you performed a jump, this will put you back to the
 position where you came from.
@@ -1344,11 +1344,11 @@ infinite size there is a maximum number of positions defined.  When this
 number is reached, older positions are discarded when new positions are
 pushed on the stack.
 
-@item C-c b +
+@item C-c C-m +
 This command moves forward in the position stack, setting point to
 the next position stored in the position stack.
 
-@item C-c b p
+@item C-c C-m p
 Displays an electric buffer showing all positions saved in the stack.
 You can select a position by pressing @kbd{SPC} in a line.  You can
 view a position with @kbd{v}.
@@ -1373,22 +1373,22 @@ mentioned in the marked classes only.  Otherwise all files in the class
 tree are used.
 
 @table @kbd
-@item C-c b s
+@item C-c C-m s
 This function performs a regular expression search in the chosen set of
 files.
 
-@item C-c b u
+@item C-c C-m u
 This command performs a search for calls of a given member which is
 selected in the usual way with completion.
 
-@item C-c b %
+@item C-c C-m %
 Perform a query replace over the set of files.
 
-@item C-c b ,
+@item C-c C-m ,
 All three operations above stop when finding a match.  You can restart
 the operation with this command.
 
-@item C-c b n
+@item C-c C-m n
 This restarts the last tags operation with the next file in the list.
 @end table
 
@@ -1403,7 +1403,7 @@ This restarts the last tags operation with the next file in the list.
 @cindex list class members in a file
 @cindex file, members
 
-The command @kbd{C-c b l}, lists all members in a given file.  The file
+The command @kbd{C-c C-m l}, lists all members in a given file.  The file
 name is read from the minibuffer with completion.
 
 
@@ -1415,14 +1415,14 @@ name is read from the minibuffer with completion.
 @cindex apropos on class members
 @cindex members, matching regexp
 
-The command @kbd{C-c b a} can be used to display all members matching a
+The command @kbd{C-c C-m a} can be used to display all members matching a
 given regular expression.  This command can be very useful if you
 remember only part of a member name, and not its beginning.
 
 A special buffer is popped up containing all identifiers matching the
 regular expression, and what kind of symbol it is (e.g.@: a member
 function, or a type).  You can then switch to this buffer, and use the
-command @kbd{C-c b f}, for example, to jump to a specific member.
+command @kbd{C-c C-m f}, for example, to jump to a specific member.
 
 
 
@@ -1433,7 +1433,7 @@ command @kbd{C-c b f}, for example, to jump to a specific member.
 @cindex completion
 @cindex symbol completion
 
-The command @kbd{C-c b @key{TAB}} completes the symbol in front of point.
+The command @kbd{C-c C-m @key{TAB}} completes the symbol in front of point.
 
 
 
@@ -1443,7 +1443,7 @@ The command @kbd{C-c b @key{TAB}} completes the symbol in front of point.
 @cindex member buffer, for member at point
 
 You can quickly display a member buffer containing the member the cursor
-in on with the command @kbd{C-c b m}.
+in on with the command @kbd{C-c C-m m}.
 
 
 @node Concept Index, , Tags-like Functions, Top

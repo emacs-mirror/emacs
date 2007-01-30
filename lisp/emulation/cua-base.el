@@ -1,7 +1,7 @@
 ;;; cua-base.el --- emulate CUA key bindings
 
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006 Free Software Foundation, Inc.
+;;   2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulation convenience cua
@@ -398,6 +398,9 @@ and after the region marked by the rectangle to search."
 		 (const :tag "Disabled" nil)
 		 (other :tag "Enabled" t))
   :group 'cua)
+
+(defvar cua-global-keymap)		; forward
+(defvar cua--region-keymap)		; forward
 
 (defcustom cua-rectangle-mark-key [(control return)]
   "Global key used to toggle the cua rectangle mark."

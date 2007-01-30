@@ -2061,7 +2061,7 @@
 	(face-spec-set): Set face-modified prop to nil
 	when we change the new-frame defaults.
 
-	* cus-edit.el (custom-face-state-set): non-nil `face-modified'
+	* cus-edit.el (custom-face-state-set): Non-nil `face-modified'
 	means face was set outside of Custom.
 
 2003-05-28  Richard M. Stallman  <rms@gnu.org>
@@ -2170,7 +2170,7 @@
 	(gdb-display-source-buffer): Display assembler during execution,
 	when requested.
 	(gud-menu-map): Add a toggle button to menubar for gdb-many-windows.
-	(gdb-many-windows): Define explicitly as a function and a variable.
+	(gdb-many-windows): Define explicitly as a function and a variable
 	(formerly as a minor mode).  These need to be global so layout can
 	be reset from any buffer.
 	(gdb-assembler-mode): Keep fringe outside margin as the overlay
@@ -3330,8 +3330,8 @@
 	(ada-set-default-project-file): New parameter KEEP-EXISTING.
 	(ada-prj-find-prj-file): New parameter FILE.
 	(ada-parse-prj-file): Take into account the ADA_INCLUDE_PATH and
-	ADA_OBJECTS_PATH environment variables.  Minor reorganization of the
-	code.
+	ADA_OBJECTS_PATH environment variables.  Minor reorganization of
+	the code.
 	(ada-get-all-references): Add support for GNAT 3.16 cross-references.
 
 	* progmodes/ada-prj.el (ada-prj-add-keymap): Move to ada-mode.el
@@ -23533,7 +23533,7 @@ See ChangeLog.9 for earlier changes.
 ;; coding: iso-2022-7bit
 ;; End:
 
-    Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006
+    Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
     Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.

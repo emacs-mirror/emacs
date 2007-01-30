@@ -1,6 +1,7 @@
 ;;; czech.el --- Quail package for inputting Czech -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 1998, 2001, 2006  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2001, 2002, 2003, 2004, 2005, 2006, 2007
+;;   Free Software Foundation, Inc.
 
 ;; Author: Milan Zamazal <pdm@zamazal.org>
 ;; Maintainer: Pavel Jan,Bm(Bk <Pavel@Janik.cz>

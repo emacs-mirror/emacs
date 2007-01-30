@@ -1,6 +1,6 @@
 ;;; tumme.el --- use dired to browse and manipulate your images
 ;;
-;; Copyright (C) 2005, 2006 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2006, 2007 Free Software Foundation, Inc.
 ;;
 ;; Version: 0.4.11
 ;; Keywords: multimedia
@@ -335,7 +335,7 @@ Used together with `tumme-cmd-rotate-original-options'."
   :group 'tumme)
 
 (defcustom tumme-cmd-rotate-original-options
-  "%p -rotate %d -copy all \"%o\" > %t"
+  "%p -rotate %d -copy all -outfile %t \"%o\""
   "Format of command used to rotate original image.
 Available options are %p which is replaced by
 `tumme-cmd-rotate-original-program', %d which is replaced by the
@@ -1646,7 +1646,7 @@ Ask user for number of images to show and the delay in between."
 
 ;;;###autoload
 (defun tumme-display-thumb ()
-  "Shorthard for `tumme-display-thumbs' with prefix argument."
+  "Shorthand for `tumme-display-thumbs' with prefix argument."
   (interactive)
   (tumme-display-thumbs t nil t))
 

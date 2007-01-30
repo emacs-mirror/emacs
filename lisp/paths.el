@@ -1,7 +1,7 @@
 ;;; paths.el --- define pathnames for use by various Emacs commands -*- no-byte-compile: t -*-
 
 ;; Copyright (C) 1986, 1988, 1994, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -68,7 +68,7 @@ comparison."
 	 (suffixes
 	  ;; Subdirectories in each directory tree that may contain info
 	  ;; directories.
-	  '("" "share/" "gnu/" "gnu/lib/" "gnu/lib/emacs/"
+	  '("share/" "" "gnu/" "gnu/lib/" "gnu/lib/emacs/"
 	    "emacs/" "lib/" "lib/emacs/"))
 	 (standard-info-dirs
 	  (apply #'nconc
@@ -81,10 +81,10 @@ comparison."
 				 dirs
 			       (prune-directory-list dirs config))))
 			 prefixes))))
-    ;; If $(prefix)/info is not one of the standard info directories,
-    ;; they are probably installing an experimental version of Emacs,
-    ;; so make sure that experimental version's Info files override
-    ;; the ones in standard directories.
+    ;; If $(prefix)/share/info is not one of the standard info
+    ;; directories, they are probably installing an experimental
+    ;; version of Emacs, so make sure that experimental version's Info
+    ;; files override the ones in standard directories.
     (if (member config-dir standard-info-dirs)
 	(nconc standard-info-dirs config)
       (cons config-dir standard-info-dirs)))

@@ -1,7 +1,7 @@
 /* Tags file maker to go with GNU Emacs           -*- coding: latin-1 -*-
    Copyright (C) 1984, 1987, 1988, 1989, 1993, 1994, 1995,
                  1998, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006 Free Software Foundation, Inc. and Ken Arnold
+                 2005, 2006, 2007 Free Software Foundation, Inc. and Ken Arnold
 
  This file is not considered part of GNU Emacs.
 
@@ -41,7 +41,7 @@
  * configuration file containing regexp definitions for etags.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 17.25";
+char pot_etags_version[] = "@(#) pot revision number is 17.26";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -456,9 +456,10 @@ static bool globals;		/* create tags for global variables */
 static bool declarations;	/* --declarations: tag them and extern in C&Co*/
 static bool members;		/* create tags for C member variables */
 static bool no_line_directive;	/* ignore #line directives (undocumented) */
+static bool no_duplicates;	/* no duplicate tags for ctags (undocumented) */
 static bool update;		/* -u: update tags */
 static bool vgrind_style;	/* -v: create vgrind style index output */
-static bool no_warnings;	/* -w: suppress warnings */
+static bool no_warnings;	/* -w: suppress warnings (undocumented) */
 static bool cxref_style;	/* -x: create cxref style output */
 static bool cplusplus;		/* .[hc] means C++, not C */
 static bool ignoreindent;	/* -I: ignore indentation in C */
@@ -477,39 +478,40 @@ static bool need_filebuf;	/* some regexes are multi-line */
 
 static struct option longopts[] =
 {
-  { "append",		  no_argument,	     NULL,	     	 'a'   },
-  { "packages-only",      no_argument,	     &packages_only, 	 TRUE  },
-  { "c++",		  no_argument,	     NULL,	     	 'C'   },
-  { "declarations",	  no_argument,	     &declarations,  	 TRUE  },
-  { "no-line-directive",  no_argument,	     &no_line_directive, TRUE  },
-  { "help",		  no_argument,	     NULL,     	     	 'h'   },
-  { "help",		  no_argument,	     NULL,     	     	 'H'   },
-  { "ignore-indentation", no_argument,	     NULL,     	     	 'I'   },
-  { "language",           required_argument, NULL,     	     	 'l'   },
-  { "members",		  no_argument,	     &members, 	     	 TRUE  },
-  { "no-members",	  no_argument,	     &members, 	     	 FALSE },
-  { "output",		  required_argument, NULL,	     	 'o'   },
-  { "regex",		  required_argument, NULL,	     	 'r'   },
-  { "no-regex",		  no_argument,	     NULL,	     	 'R'   },
-  { "ignore-case-regex",  required_argument, NULL,	     	 'c'   },
+  { "append",             no_argument,       NULL,               'a'   },
+  { "packages-only",      no_argument,       &packages_only,     TRUE  },
+  { "c++",                no_argument,       NULL,               'C'   },
+  { "declarations",       no_argument,       &declarations,      TRUE  },
+  { "no-line-directive",  no_argument,       &no_line_directive, TRUE  },
+  { "no-duplicates",      no_argument,       &no_duplicates,     TRUE  },
+  { "help",               no_argument,       NULL,               'h'   },
+  { "help",               no_argument,       NULL,               'H'   },
+  { "ignore-indentation", no_argument,       NULL,               'I'   },
+  { "language",           required_argument, NULL,               'l'   },
+  { "members",            no_argument,       &members,           TRUE  },
+  { "no-members",         no_argument,       &members,           FALSE },
+  { "output",             required_argument, NULL,               'o'   },
+  { "regex",              required_argument, NULL,               'r'   },
+  { "no-regex",           no_argument,       NULL,               'R'   },
+  { "ignore-case-regex",  required_argument, NULL,               'c'   },
   { "parse-stdin",        required_argument, NULL,               STDIN },
-  { "version",		  no_argument,	     NULL,     	     	 'V'   },
+  { "version",            no_argument,       NULL,               'V'   },
 
 #if CTAGS /* Ctags options */
-  { "backward-search",	  no_argument,	     NULL,	     	 'B'   },
-  { "cxref",		  no_argument,	     NULL,	     	 'x'   },
-  { "defines",		  no_argument,	     NULL,	     	 'd'   },
-  { "globals",		  no_argument,	     &globals, 	     	 TRUE  },
-  { "typedefs",		  no_argument,	     NULL,	     	 't'   },
-  { "typedefs-and-c++",	  no_argument,	     NULL,     	     	 'T'   },
-  { "update",		  no_argument,	     NULL,     	     	 'u'   },
-  { "vgrind",		  no_argument,	     NULL,     	     	 'v'   },
-  { "no-warn",		  no_argument,	     NULL,	     	 'w'   },
+  { "backward-search",    no_argument,       NULL,               'B'   },
+  { "cxref",              no_argument,       NULL,               'x'   },
+  { "defines",            no_argument,       NULL,               'd'   },
+  { "globals",            no_argument,       &globals,           TRUE  },
+  { "typedefs",           no_argument,       NULL,               't'   },
+  { "typedefs-and-c++",   no_argument,       NULL,               'T'   },
+  { "update",             no_argument,       NULL,               'u'   },
+  { "vgrind",             no_argument,       NULL,               'v'   },
+  { "no-warn",            no_argument,       NULL,               'w'   },
 
 #else /* Etags options */
-  { "no-defines",	  no_argument,	     NULL,	     	 'D'   },
-  { "no-globals",	  no_argument,	     &globals, 	     	 FALSE },
-  { "include",		  required_argument, NULL,     	     	 'i'   },
+  { "no-defines",         no_argument,       NULL,               'D'   },
+  { "no-globals",         no_argument,       &globals,           FALSE },
+  { "include",            required_argument, NULL,               'i'   },
 #endif
   { NULL }
 };
@@ -839,7 +841,7 @@ static void
 print_version ()
 {
   printf ("%s (%s %s)\n", (CTAGS) ? "ctags" : "etags", EMACS_NAME, VERSION);
-  puts ("Copyright (C) 2006 Free Software Foundation, Inc. and Ken Arnold");
+  puts ("Copyright (C) 2007 Free Software Foundation, Inc. and Ken Arnold");
   puts ("This program is distributed under the same terms as Emacs");
 
   exit (EXIT_SUCCESS);
@@ -976,9 +978,13 @@ Relative ones are stored relative to the output file's directory.\n");
         Print on the standard output an index of items intended for\n\
         human consumption, similar to the output of vgrind.  The index\n\
         is sorted, and gives the page number of each item.");
+# if PRINT_UNDOCUMENTED_OPTIONS_HELP
+      puts ("-w, --no-duplicates\n\
+        Do not create duplicate tag entries, for compatibility with\n\
+	traditional ctags.");
       puts ("-w, --no-warn\n\
-        Suppress warning messages about entries defined in multiple\n\
-        files.");
+        Suppress warning messages about duplicate tag entries.");
+# endif /* PRINT_UNDOCUMENTED_OPTIONS_HELP */
       puts ("-x, --cxref\n\
         Like --vgrind, but in the style of cxref, rather than vgrind.\n\
         The output uses line numbers instead of page numbers, but\n\
@@ -1454,8 +1460,11 @@ main (argc, argv)
   if (CTAGS)
     if (append_to_tagfile || update)
       {
-	char cmd[2*BUFSIZ+10];
-	sprintf (cmd, "sort -o %.*s %.*s", BUFSIZ, tagfile, BUFSIZ, tagfile);
+	char cmd[2*BUFSIZ+20];
+	/* Maybe these should be used:
+	   setenv ("LC_COLLATE", "C", 1);
+	   setenv ("LC_ALL", "C", 1); */
+	sprintf (cmd, "sort -u -o %.*s %.*s", BUFSIZ, tagfile, BUFSIZ, tagfile);
 	exit (system (cmd));
       }
   return EXIT_SUCCESS;
@@ -2168,7 +2177,7 @@ add_node (np, cur_node_p)
        * If this tag name matches an existing one, then
        * do not add the node, but maybe print a warning.
        */
-      if (!dif)
+      if (no_duplicates && !dif)
 	{
 	  if (np->fdp == cur_node->fdp)
 	    {
@@ -6885,6 +6894,7 @@ xrealloc (ptr, size)
  * tab-width: 8
  * fill-column: 79
  * c-font-lock-extra-types: ("FILE" "bool" "language" "linebuffer" "fdesc" "node" "regexp")
+ * c-file-style: gnu
  * End:
  */
 

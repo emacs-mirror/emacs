@@ -2,8 +2,8 @@ File:  edt-user.doc  ---  EDT Emulation User Instructions
 
                                 For GNU Emacs 19
 
-Copyright (C) 1986, 1992, 1994, 1995, 1999, 2000, 2002, 2003, 2004,
-   2005, 2006 Free Software Foundation, Inc.
+Copyright (C) 1986, 1992, 1994, 1995, 1999, 2000, 2001, 2002, 2003, 2004,
+   2005, 2006, 2007  Free Software Foundation, Inc.
 
 Author: Kevin Gallagher <Kevin.Gallagher@boeing.com>
 Maintainer: Kevin Gallagher <Kevin.Gallagher@boeing.com>
@@ -823,7 +823,8 @@ G-C-\: Split Window                     |  FNDNXT  |   Yank   |   CUT    |
 ;;;
 ;;;                      For GNU Emacs 19 and Above
 ;;;
-;; Copyright (C) 1986, 1992, 1993, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1992, 1993, 2000, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007  Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallagher <kgallagh@spd.dsccc.com>
 ;; Maintainer: Kevin Gallagher <kgallagh@spd.dsccc.com>

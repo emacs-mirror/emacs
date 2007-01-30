@@ -1,10 +1,11 @@
 ;;; cc-vars.el --- user customization variables for CC Mode
 
 ;; Copyright (C) 1985, 1987, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006  Free Software
-;;   Foundation, Inc.
+;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
+;;   Free Software Foundation, Inc.
 
-;; Authors:    1998- Martin Stjernholm
+;; Authors:    2002- Alan Mackenzie
+;;             1998- Martin Stjernholm
 ;;             1992-1999 Barry A. Warsaw
 ;;             1987 Dave Detlefs and Stewart Clamen
 ;;             1985 Richard M. Stallman
@@ -1167,7 +1168,7 @@ OFFSET can specify an offset in several different ways:
   If OFFSET is a symbol with a value binding then that value, which
   must be an integer, is used as relative offset.
 
-  If OFFSET is a vector then it's first element, which must be an
+  If OFFSET is a vector then its first element, which must be an
   integer, is used as an absolute indentation column.  This overrides
   the previous base indentation and the relative offsets applied to
   it, and it becomes the new base indentation.

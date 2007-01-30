@@ -9,7 +9,7 @@
 This file documents Message, the Emacs message composition mode.
 
 Copyright @copyright{} 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-2004, 2005, 2006 Free Software Foundation, Inc.
+2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -889,11 +889,21 @@ Libidn} installed in order to use this functionality.
 Using the @acronym{MML} language, Message is able to create digitally
 signed and digitally encrypted messages.  Message (or rather
 @acronym{MML}) currently support @acronym{PGP} (RFC 1991),
-@acronym{PGP/MIME} (RFC 2015/3156) and @acronym{S/MIME}.  Instructing
-@acronym{MML} to perform security operations on a @acronym{MIME} part is
-done using the @kbd{C-c C-m s} key map for signing and the @kbd{C-c C-m
-c} key map for encryption, as follows.
+@acronym{PGP/MIME} (RFC 2015/3156) and @acronym{S/MIME}.
 
+@menu
+* Signing and encryption::      Signing and encrypting commands.
+* Using S/MIME::                Using S/MIME
+* Using PGP/MIME::              Using PGP/MIME
+* PGP Compatibility::           Compatibility with older implementations
+@end menu
+
+@node Signing and encryption
+@subsection Signing and encrypting commands
+
+Instructing @acronym{MML} to perform security operations on a
+@acronym{MIME} part is done using the @kbd{C-c C-m s} key map for
+signing and the @kbd{C-c C-m c} key map for encryption, as follows.
 @table @kbd
 
 @item C-c C-m s s
@@ -976,6 +986,7 @@ least not compared with making sure all involved programs talk with each
 other properly.  Thus, we now describe what external libraries or
 programs are required to make things work, and some small general hints.
 
+@node Using S/MIME
 @subsection Using S/MIME
 
 @emph{Note!}  This section assume you have a basic familiarity with
@@ -1038,6 +1049,7 @@ you use unencrypted keys (e.g., if they are on a secure storage, or if
 you are on a secure single user machine) simply press @code{RET} at
 the passphrase prompt.
 
+@node Using PGP/MIME
 @subsection Using PGP/MIME
 
 @acronym{PGP/MIME} requires an external OpenPGP implementation, such
@@ -1045,7 +1057,48 @@ as @uref{http://www.gnupg.org/, GNU Privacy Guard}.  Pre-OpenPGP
 implementations such as PGP 2.x and PGP 5.x are also supported.  One
 Emacs interface to the PGP implementations, PGG (@pxref{Top, ,PGG,
 pgg, PGG Manual}), is included, but Mailcrypt and Florian Weimer's
-@code{gpg.el} are also supported.
+@code{gpg.el} are also supported.  @xref{PGP Compatibility}.
+
+@cindex gpg-agent
+Message internally calls GnuPG (the @command{gpg} command) to perform
+data encryption, and in certain cases (decrypting or signing for
+example), @command{gpg} requires user's passphrase.  Currently the
+recommended way to supply your passphrase to @command{gpg} is to use the
+@command{gpg-agent} program.
+
+To use @command{gpg-agent} in Emacs, you need to run the following
+command from the shell before starting Emacs.
+
+@example
+eval `gpg-agent --daemon`
+@end example
+
+This will invoke @command{gpg-agent} and set the environment variable
+@code{GPG_AGENT_INFO} to allow @command{gpg} to communicate with it.
+It might be good idea to put this command in your @file{.xsession} or
+@file{.bash_profile}.  @xref{Invoking GPG-AGENT, , , gnupg, Using the
+GNU Privacy Guard}.
+
+Once your @command{gpg-agent} is set up, it will ask you for a
+passphrase as needed for @command{gpg}.  Under the X Window System,
+you will see a new passphrase input dialog appear.  The dialog is
+provided by PIN Entry (the @command{pinentry} command), and as of
+version 0.7.2, @command{pinentry} cannot cooperate with Emacs on a
+single tty.  So, if you are using a text console, you may need to put
+a passphrase into gpg-agent's cache beforehand.  The following command
+does the trick.
+
+@example
+gpg --use-agent --sign < /dev/null > /dev/null
+@end example
+
+The Lisp variable @code{pgg-gpg-use-agent} controls whether to use
+@command{gpg-agent}.  See also @xref{Caching passphrase, , , pgg, The
+PGG Manual}.
+
+
+@node PGP Compatibility
+@subsection Compatibility with older implementations
 
 @vindex gpg-temp-directory
 Note, if you are using the @code{gpg.el} you must make sure that the

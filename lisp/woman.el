@@ -1,7 +1,7 @@
 ;;; woman.el --- browse UN*X manual pages `wo (without) man'
 
 ;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006 Free Software Foundation, Inc.
+;;   2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Francis J. Wright <F.J.Wright@qmul.ac.uk>
 ;; Maintainer: FSF
@@ -2112,7 +2112,7 @@ No external programs are used."
 		 (progn (goto-char (point-min))
 			(not (re-search-forward "^\\.\\([pnil]p\\|sh\\)[ \n]"
 						(point-max) t))))
-      (error "WoMan can only format manpages written in the an format")))
+      (error "WoMan can only format man pages written with the usual `-man' macros")))
 
   (and (boundp 'font-lock-mode) font-lock-mode (font-lock-mode -1))
   ;; (fundamental-mode)

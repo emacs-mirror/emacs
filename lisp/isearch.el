@@ -1,7 +1,7 @@
 ;;; isearch.el --- incremental search minor mode
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1999, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+;;   2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 ;; Maintainer: FSF
@@ -2231,7 +2231,18 @@ since they have special meaning in a regexp."
 	      (setq found t))
 	  (setq quote-flag nil)))
       (setq i (1+ i)))
-    (not found)))
+    (not (or found
+             ;; Even if there's no uppercase char, we want to detect the use
+             ;; of [:upper:] or [:lower:] char-class, which indicates
+             ;; clearly that the user cares about case distinction.
+             (and regexp-flag (string-match "\\[:\\(upp\\|low\\)er:]" string)
+                  (condition-case err
+                      (progn
+                        (string-match (substring string 0 (match-beginning 0))
+                                      "")
+                        nil)
+                    (invalid-regexp
+                     (equal "Unmatched [ or [^" (cadr err)))))))))
 
 ;; Portability functions to support various Emacs versions.
 

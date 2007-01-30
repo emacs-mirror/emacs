@@ -1,6 +1,6 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
    Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1998, 1999,
-                 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+                 2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -869,7 +869,7 @@ main (argc, argv
       else
 	{
 	  printf ("GNU Emacs %s\n", SDATA (tem));
-	  printf ("Copyright (C) 2006 Free Software Foundation, Inc.\n");
+	  printf ("Copyright (C) 2007 Free Software Foundation, Inc.\n");
 	  printf ("GNU Emacs comes with ABSOLUTELY NO WARRANTY.\n");
 	  printf ("You may redistribute copies of Emacs\n");
 	  printf ("under the terms of the GNU General Public License.\n");
@@ -2501,7 +2501,8 @@ before you compile Emacs, to enable the code for this feature.  */);
   emacs_priority = 0;
 
   DEFVAR_LISP ("path-separator", &Vpath_separator,
-	       doc: /* The directory separator in search paths, as a string.  */);
+	       doc: /* String containing the character that separates directories in
+search paths, such as PATH and other similar environment variables.  */);
   {
     char c = SEPCHAR;
     Vpath_separator = make_string (&c, 1);

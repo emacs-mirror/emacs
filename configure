@@ -2374,6 +2374,24 @@ _ACEOF
     machine=apollo opsys=bsd4-3
   ;;
 
+  ## Apple Darwin / Mac OS X
+  *-apple-darwin* )
+    case "${canonical}" in
+      i[3456]86-* )  machine=intel386 ;;
+      powerpc-* )    machine=powermac ;;
+      * )            unported=yes ;;
+    esac
+    opsys=darwin
+    # Define CPP as follows to make autoconf work correctly.
+    CPP="${CC-cc} -E -no-cpp-precomp"
+    # Use fink packages if available.
+    if test -d /sw/include && test -d /sw/lib; then
+      GCC_TEST_OPTIONS="-I/sw/include -L/sw/lib"
+      CPP="${CPP} ${GCC_TEST_OPTIONS}"
+      NON_GCC_TEST_OPTIONS=${GCC_TEST_OPTIONS}
+    fi
+  ;;
+
   ## AT&T 3b2, 3b5, 3b15, 3b20
   we32k-att-sysv* )
     machine=att3b opsys=usg5-2-2
@@ -2563,13 +2581,6 @@ _ACEOF
     machine=nh6000 opsys=powerunix
     NON_GNU_CPP="cc -Xo -E -P"
   ;;
-  ## SR2001/SR2201 running HI-UX/MPP
-  hppa1.1-hitachi-hiuxmpp* )
-    machine=sr2k opsys=hiuxmpp
-  ;;
-  hppa1.1-hitachi-hiuxwe2* )
-    machine=sr2k opsys=hiuxwe2
-  ;;
   ## Honeywell XPS100
   xps*-honeywell-sysv* )
     machine=xps100 opsys=usg5-2
@@ -2592,46 +2603,10 @@ _ACEOF
     esac
   ;;
 
-  ## HP 9000 series 700 and 800, running HP/UX
-  hppa*-hp-hpux7* )
-    machine=hp800 opsys=hpux
-  ;;
-  hppa*-hp-hpux8* )
-    machine=hp800 opsys=hpux8
-  ;;
-  hppa*-hp-hpux9shr* )
-    machine=hp800 opsys=hpux9shr
-  ;;
-  hppa*-hp-hpux9* )
-    machine=hp800 opsys=hpux9
-  ;;
-  hppa*-hp-hpux10.2* )
-    machine=hp800 opsys=hpux10-20
-  ;;
-  hppa*-hp-hpux10* )
-    machine=hp800 opsys=hpux10
-  ;;
-  hppa*-hp-hpux1[1-9]* )
-    machine=hp800 opsys=hpux11
-    CFLAGS="-D_INCLUDE__STDC_A1_SOURCE $CFLAGS"
-  ;;
-
   hppa*-*-linux-gnu* )
     machine=hp800 opsys=gnu-linux
   ;;
 
-  ## HP 9000 series 700 and 800, running HP/UX
-  hppa*-hp-hpux* )
-    ## Cross-compilation?  Nah!
-    case "`uname -r`" in
-      ## Someone's system reports A.B8.05 for this.
-      ## I wonder what other possibilities there are.
-      *.B8.* ) machine=hp800 opsys=hpux8 ;;
-      *.08.* ) machine=hp800 opsys=hpux8 ;;
-      *.09.* ) machine=hp800 opsys=hpux9 ;;
-      *) machine=hp800 opsys=hpux10 ;;
-    esac
-  ;;
   hppa*-*-nextstep* )
     machine=hp800 opsys=nextstep
   ;;
@@ -3148,19 +3123,6 @@ _ACEOF
   ## UXP/V
   f301-fujitsu-uxpv4.1)
     machine=f301 opsys=uxpv
-  ;;
-
-  ## Darwin / Mac OS X
-  powerpc-apple-darwin* )
-    machine=powermac opsys=darwin
-    # Define CPP as follows to make autoconf work correctly.
-    CPP="${CC-cc} -E -no-cpp-precomp"
-    # Use fink packages if available.
-    if test -d /sw/include && test -d /sw/lib; then
-	GCC_TEST_OPTIONS="-I/sw/include -L/sw/lib"
-        CPP="${CPP} ${GCC_TEST_OPTIONS}"
-	NON_GCC_TEST_OPTIONS=${GCC_TEST_OPTIONS}
-    fi
   ;;
 
   ## AMD x86-64 Linux-based GNU system

@@ -1,7 +1,7 @@
 ;;; esh-cmd.el --- command invocation
 
 ;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006 Free Software Foundation, Inc.
+;;   2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -497,7 +497,7 @@ the second is ignored."
 (defun eshell-rewrite-for-command (terms)
   "Rewrite a `for' command into its equivalent Eshell command form.
 Because the implementation of `for' relies upon conditional evaluation
-of its argumbent (i.e., use of a Lisp special form), it must be
+of its argument (i.e., use of a Lisp special form), it must be
 implemented via rewriting, rather than as a function."
   (if (and (stringp (car terms))
 	   (string= (car terms) "for")

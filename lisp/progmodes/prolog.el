@@ -1,6 +1,6 @@
 ;;; prolog.el --- major mode for editing and running Prolog under Emacs
 
-;; Copyright (C) 1986, 1987, 2001, 2002, 2003, 2004, 2005, 2006
+;; Copyright (C) 1986, 1987, 2001, 2002, 2003, 2004, 2005, 2006, 2007
 ;; Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>

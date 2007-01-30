@@ -1,3 +1,7 @@
+2007-01-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-prin1.ps (printBackground): Fix background height.
+
 2006-07-07  Kenichi Handa  <handa@m17n.org>
 
 	* HELLO: Sync with HEAD.
@@ -70,7 +74,7 @@
 ;; coding: iso-2022-7bit
 ;; End:
 
-    Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002
+    Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2007
 	Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.

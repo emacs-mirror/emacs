@@ -1,7 +1,7 @@
 ;;; bindings.el --- define standard key bindings and some variables
 
 ;; Copyright (C) 1985, 1986, 1987, 1992, 1993, 1994, 1995, 1996, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -468,7 +468,7 @@ Menu of mode operations in the mode line.")
   (x-popup-menu event mode-line-mode-menu))
 
 (defun mode-line-minor-mode-help (event)
-  "Describe minor mode for EVENT occured on minor modes area of the mode line."
+  "Describe minor mode for EVENT occurred on minor modes area of the mode line."
   (interactive "@e")
   (let ((indicator (car (nth 4 (car (cdr event))))))
     (describe-minor-mode-from-indicator indicator)))

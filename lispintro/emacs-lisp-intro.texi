@@ -115,7 +115,7 @@
 @c After creating the Info file, edit your Info `dir' file, if the
 @c `dircategory' section below does not enable your system to
 @c install the manual automatically.
-@c (The `dir' file is often in the `/usr/local/info/' directory.)
+@c (The `dir' file is often in the `/usr/local/share/info/' directory.)
 
 @c ================ How to Create an HTML file ================
 
@@ -216,7 +216,7 @@ people who are not programmers.
 Edition @value{edition-number}, @value{update-date}
 @sp 1
 Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995, 1997, 2001,
-   2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+   2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 @sp 1
 
 @iftex
@@ -4112,9 +4112,9 @@ is not greater than 5!} when you evaluate it in the usual way:
 
 @smallexample
 @group
-(if (> 4 5)                             ; @r{if-part}
-    (message "5 is greater than 4!")    ; @r{then-part}
-  (message "4 is not greater than 5!")) ; @r{else-part}
+(if (> 4 5)                               ; @r{if-part}
+    (message "4 falsely greater than 5!") ; @r{then-part}
+  (message "4 is not greater than 5!"))   ; @r{else-part}
 @end group
 @end smallexample
 

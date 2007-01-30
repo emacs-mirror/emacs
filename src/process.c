@@ -1,7 +1,7 @@
 /* Asynchronous subprocess control for GNU Emacs.
    Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995,
                  1996, 1998, 1999, 2001, 2002, 2003, 2004,
-                 2005, 2006 Free Software Foundation, Inc.
+                 2005, 2006, 2007 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -814,9 +814,12 @@ nil, indicating the current buffer's process.  */)
     {
 #ifdef SIGCHLD
       Lisp_Object symbol;
+      /* Assignment to EMACS_INT stops GCC whining about limited range
+	 of data type.  */
+      EMACS_INT pid = p->pid;;
 
       /* No problem storing the pid here, as it is still in Vprocess_alist.  */
-      deleted_pid_list = Fcons (make_fixnum_or_float (p->pid),
+      deleted_pid_list = Fcons (make_fixnum_or_float (pid),
 				/* GC treated elements set to nil.  */
 				Fdelq (Qnil, deleted_pid_list));
       /* If the process has already signaled, remove it from the list.  */
@@ -826,7 +829,7 @@ nil, indicating the current buffer's process.  */)
       if (CONSP (p->status))
 	symbol = XCAR (p->status);
       if (EQ (symbol, Qsignal) || EQ (symbol, Qexit))
-	Fdelete (make_fixnum_or_float (p->pid), deleted_pid_list);
+	Fdelete (make_fixnum_or_float (pid), deleted_pid_list);
       else
 #endif
 	{
@@ -911,10 +914,13 @@ For a network connection, this value is nil.  */)
      (process)
      register Lisp_Object process;
 {
+  /* Assignment to EMACS_INT stops GCC whining about limited range of
+     data type.  */
+  EMACS_INT pid;
+
   CHECK_PROCESS (process);
-  return (XPROCESS (process)->pid
-	  ? make_fixnum_or_float (XPROCESS (process)->pid)
-	  : Qnil);
+  pid = XPROCESS (process)->pid;
+  return (pid ? make_fixnum_or_float (pid) : Qnil);
 }
 
 DEFUN ("process-name", Fprocess_name, Sprocess_name, 1, 1, 0,
@@ -6386,7 +6392,7 @@ sigchld_handler (signo)
 
   while (1)
     {
-      register int pid;
+      register EMACS_INT pid;
       WAITTYPE w;
       Lisp_Object tail;
 

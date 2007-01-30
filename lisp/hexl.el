@@ -1,7 +1,7 @@
 ;;; hexl.el --- edit a file in a hex dump format using the hexl filter
 
 ;; Copyright (C) 1989, 1994, 1998, 2001, 2002, 2003, 2004,
-;;   2005, 2006 Free Software Foundation, Inc.
+;;   2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Keith Gabryelski <ag@wheaties.ai.mit.edu>
 ;; Maintainer: FSF
@@ -283,6 +283,7 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
     (setq font-lock-defaults '(hexl-font-lock-keywords t))
 
     ;; Add hooks to rehexlify or dehexlify on various events.
+    (add-hook 'before-revert-hook 'hexl-before-revert-hook nil t)
     (add-hook 'after-revert-hook 'hexl-after-revert-hook nil t)
 
     (add-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer nil t)
@@ -317,10 +318,11 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
     (let ((isearch-search-fun-function nil))
       (isearch-search-fun))))
 
+(defun hexl-before-revert-hook ()
+  (remove-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer t))
+
 (defun hexl-after-revert-hook ()
-  (setq hexl-max-address (1- (buffer-size)))
-  (hexlify-buffer)
-  (set-buffer-modified-p nil))
+  (hexl-mode))
 
 (defvar hexl-in-save-buffer nil)
 
@@ -386,6 +388,7 @@ With arg, don't unhexlify buffer."
 	  (or (bobp) (setq original-point (1+ original-point))))
 	(goto-char original-point)))
 
+  (remove-hook 'before-revert-hook 'hexl-before-revert-hook t)
   (remove-hook 'after-revert-hook 'hexl-after-revert-hook t)
   (remove-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer t)
   (remove-hook 'post-command-hook 'hexl-follow-ascii-find t)
@@ -400,9 +403,9 @@ With arg, don't unhexlify buffer."
       (hl-line-mode 0))
   (when (boundp 'hexl-mode-old-hl-line-range-function)
     (setq hl-line-range-function hexl-mode-old-hl-line-range-function))
-  (when (boundp hexl-mode-old-hl-line-face)
+  (when (boundp 'hexl-mode-old-hl-line-face)
     (setq hl-line-face hexl-mode-old-hl-line-face))
- 
+
   (setq require-final-newline hexl-mode-old-require-final-newline)
   (setq mode-name hexl-mode-old-mode-name)
   (setq isearch-search-fun-function hexl-mode-old-isearch-search-fun-function)
@@ -706,10 +709,10 @@ You may also type octal digits, to insert a character with that code."
   "Convert a binary buffer to hexl format.
 This discards the buffer's undo information."
   (interactive)
-  (and buffer-undo-list
+  (and (consp buffer-undo-list)
        (or (y-or-n-p "Converting to hexl format discards undo info; ok? ")
-	   (error "Aborted")))
-  (setq buffer-undo-list nil)
+	   (error "Aborted"))
+       (setq buffer-undo-list nil))
   ;; Don't decode text in the ASCII part of `hexl' program output.
   (let ((coding-system-for-read 'raw-text)
 	(coding-system-for-write buffer-file-coding-system)
@@ -731,10 +734,10 @@ This discards the buffer's undo information."
   "Convert a hexl format buffer to binary.
 This discards the buffer's undo information."
   (interactive)
-  (and buffer-undo-list
+  (and (consp buffer-undo-list)
        (or (y-or-n-p "Converting from hexl format discards undo info; ok? ")
-	   (error "Aborted")))
-  (setq buffer-undo-list nil)
+	   (error "Aborted"))
+       (setq buffer-undo-list nil))
   (let ((coding-system-for-write 'raw-text)
 	(coding-system-for-read buffer-file-coding-system)
 	(buffer-undo-list t))

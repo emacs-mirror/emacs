@@ -1,7 +1,7 @@
 ;;; gnus-art.el --- article mode commands for Gnus
 
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006 Free Software Foundation, Inc.
+;;   2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -242,7 +242,7 @@ regexp.  If it matches, the text in question is not a signature."
   :type '(choice (const nil)
 		 (integer :value 200)
 		 (number :value 4.0)
-		 (function :value fun)
+		 function
 		 (regexp :value ".*"))
   :group 'gnus-article-signature)
 
@@ -6238,7 +6238,7 @@ Strings like this can be either a message ID or a mail address.  If it is one
 of the symbols `mid' or `mail', Gnus will always assume that the string is a
 message ID or a mail address, respectively.  If this variable is set to the
 symbol `ask', always query the user what do do.  If it is a function, this
-function will be called with the string as it's only argument.  The function
+function will be called with the string as its only argument.  The function
 must return `mid', `mail', `invalid' or `ask'."
   :version "22.1"
   :group 'gnus-article-buttons

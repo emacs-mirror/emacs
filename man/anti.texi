@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2005, 2006 Free Software Foundation, Inc.
+@c Copyright (C) 2005, 2006, 2007 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 
 @node Antinews, Mac OS, X Resources, Top
@@ -171,6 +171,11 @@ Occur mode, Info mode, and Comint-derived modes now control
 fontification in their own way, and @kbd{M-x font-lock-mode} has
 nothing to do with it.  To control fontification in Info mode, use the
 variable @code{Info-fontify}.
+
+@item
+@samp{M-x shell} is now completely standard in regard to scrolling
+behavior.  It no longer has the option of scrolling the input line to
+the bottom of the window the way a text terminal running a shell does.
 
 @item
 The Grep package has been merged with Compilation mode.  Many

@@ -1,7 +1,7 @@
 ;;; uncompress.el --- auto-decompression hook for visiting .Z files
 
 ;; Copyright (C) 1992, 1994, 2001, 2002, 2003, 2004,
-;;   2005, 2006 Free Software Foundation, Inc.
+;;   2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: files

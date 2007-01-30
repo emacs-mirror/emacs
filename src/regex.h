@@ -1,8 +1,9 @@
 /* Definitions for data structures and routines for the regular
    expression library, version 0.12.
 
-   Copyright (C) 1985, 1989, 1990, 1991, 1992, 1993, 1995, 2000, 2002,
-                 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1989, 1990, 1991, 1992, 1993, 1995, 2000, 2001,
+                 2002, 2003, 2004, 2005, 2006, 2007
+                 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by

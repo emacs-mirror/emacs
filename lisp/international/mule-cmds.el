@@ -1,9 +1,9 @@
 ;;; mule-cmds.el --- commands for mulitilingual environment -*-coding: iso-2022-7bit -*-
 
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006  Free Software Foundation, Inc.
+;;   2006, 2007  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006
+;;   2005, 2006, 2007
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 ;; Copyright (C) 2003
@@ -770,10 +770,10 @@ e.g., for sending an email message.\n ")
 					  (car coding)))))
 		    (setq i (1+ i))))
 		(insert "\n"))
-	      (insert "\
+	      (insert (substitute-command-keys "\
 
-Click on a character to jump to the place it appears,\n"
-		      (substitute-command-keys "\
+Click on a character (or switch to this window by `\\[other-window]'\n\
+and select the characters by RET) to jump to the place it appears,\n\
 where `\\[universal-argument] \\[what-cursor-position]' will give information about it.\n"))))
 	  (insert (substitute-command-keys "\nSelect \
 one of the safe coding systems listed below,\n\

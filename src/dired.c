@@ -1,6 +1,6 @@
 /* Lisp functions for making directory listings.
    Copyright (C) 1985, 1986, 1993, 1994, 1999, 2000, 2001, 2002, 2003,
-                 2004, 2005, 2006 Free Software Foundation, Inc.
+                 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -931,6 +931,7 @@ Elements of the attribute list are:
   char modes[10];
   Lisp_Object handler;
   struct gcpro gcpro1;
+  EMACS_INT uid, gid, ino;
 
   filename = Fexpand_file_name (filename, Qnil);
 
@@ -965,18 +966,26 @@ Elements of the attribute list are:
 #endif
     }
   values[1] = make_number (s.st_nlink);
+  /* When make_fixnum_or_float is called below with types that are
+     shorter than an int (e.g., `short'), GCC whines about comparison
+     being always false due to limited range of data type.  Fix by
+     copying s.st_uid and s.st_gid into int variables.  */
+  uid = s.st_uid;
+  gid = s.st_gid;
   if (NILP (id_format) || EQ (id_format, Qinteger))
     {
-      values[2] = make_number (s.st_uid);
-      values[3] = make_number (s.st_gid);
+      values[2] = make_fixnum_or_float (uid);
+      values[3] = make_fixnum_or_float (gid);
     }
   else
     {
       BLOCK_INPUT;
-      pw = (struct passwd *) getpwuid (s.st_uid);
-      values[2] = (pw ? build_string (pw->pw_name) : make_number (s.st_uid));
-      gr = (struct group *) getgrgid (s.st_gid);
-      values[3] = (gr ? build_string (gr->gr_name) : make_number (s.st_gid));
+      pw = (struct passwd *) getpwuid (uid);
+      values[2] = (pw ? build_string (pw->pw_name)
+                  : make_fixnum_or_float (uid));
+      gr = (struct group *) getgrgid (gid);
+      values[3] = (gr ? build_string (gr->gr_name)
+                  : make_fixnum_or_float (gid));
       UNBLOCK_INPUT;
     }
   values[4] = make_time (s.st_atime);
@@ -998,20 +1007,22 @@ Elements of the attribute list are:
   if (! NILP (dirname))
     encoded = ENCODE_FILE (dirname);
   if (! NILP (dirname) && stat (SDATA (encoded), &sdir) == 0)
-    values[9] = (sdir.st_gid != s.st_gid) ? Qt : Qnil;
+    values[9] = (sdir.st_gid != gid) ? Qt : Qnil;
   else					/* if we can't tell, assume worst */
     values[9] = Qt;
 #else					/* file gid will be egid */
-  values[9] = (s.st_gid != getegid ()) ? Qt : Qnil;
+  values[9] = (gid != getegid ()) ? Qt : Qnil;
 #endif	/* BSD4_2 (or BSD4_3) */
-  if (FIXNUM_OVERFLOW_P (s.st_ino))
+  /* Shut up GCC warnings in FIXNUM_OVERFLOW_P below.  */
+  ino = s.st_ino;
+  if (FIXNUM_OVERFLOW_P (ino))
     /* To allow inode numbers larger than VALBITS, separate the bottom
        16 bits.  */
-    values[10] = Fcons (make_number (s.st_ino >> 16),
-			make_number (s.st_ino & 0xffff));
+    values[10] = Fcons (make_number (ino >> 16),
+			make_number (ino & 0xffff));
   else
     /* But keep the most common cases as integers.  */
-    values[10] = make_number (s.st_ino);
+    values[10] = make_number (ino);
 
   /* Likewise for device.  */
   if (FIXNUM_OVERFLOW_P (s.st_dev))

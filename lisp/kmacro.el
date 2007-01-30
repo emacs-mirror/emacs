@@ -1,6 +1,7 @@
 ;;; kmacro.el --- enhanced keyboard macros
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006,
+;;   2007 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard convenience
@@ -255,7 +256,7 @@ macro to be executed before appending to it."
 
 (defun kmacro-insert-counter (arg)
   "Insert macro counter and increment with ARG or 1 if missing.
-With \\[universal-argument], insert previous kmacro-counter (but do not modify counter)."
+With \\[universal-argument], insert previous `kmacro-counter' (but do not modify counter)."
   (interactive "P")
   (if kmacro-initial-counter-value
       (setq kmacro-counter kmacro-initial-counter-value
@@ -283,7 +284,7 @@ With \\[universal-argument], insert previous kmacro-counter (but do not modify c
 
 
 (defun kmacro-set-counter (arg)
-  "Set kmacro-counter to ARG or prompt if missing.
+  "Set `kmacro-counter' to ARG or prompt if missing.
 With \\[universal-argument] prefix, reset counter to its value prior to this iteration of the macro."
   (interactive "NMacro counter value: ")
   (if (not (or defining-kbd-macro executing-kbd-macro))
@@ -453,14 +454,14 @@ Optional arg EMPTY is message to print if no macros are defined."
 
 
 (defun kmacro-call-ring-2nd (arg)
-  "Execute second keyboard macro at in macro ring."
+  "Execute second keyboard macro in macro ring."
   (interactive "P")
   (unless (kmacro-ring-empty-p)
     (kmacro-exec-ring-item (car kmacro-ring) arg)))
 
 
 (defun kmacro-call-ring-2nd-repeat (arg)
-  "Execute second keyboard macro at in macro ring.
+  "Execute second keyboard macro in macro ring.
 This is like `kmacro-call-ring-2nd', but allows repeating macro commands
 without repeating the prefix."
   (interactive "P")
@@ -670,7 +671,7 @@ the current value of `kmacro-counter').
 
 When defining/executing macro, inserts macro counter and increments
 the counter with ARG or 1 if missing.  With \\[universal-argument],
-inserts previous kmacro-counter (but do not modify counter).
+inserts previous `kmacro-counter' (but do not modify counter).
 
 The macro counter can be modified via \\[kmacro-set-counter] and \\[kmacro-add-counter].
 The format of the counter can be modified via \\[kmacro-set-format]."
@@ -941,7 +942,7 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
 (defvar kmacro-step-edit-prefix-commands
   '(universal-argument universal-argument-more universal-argument-minus
 		       digit-argument negative-argument)
-  "Commands which builds up a prefix arg for the current command")
+  "Commands which build up a prefix arg for the current command.")
 
 (defun kmacro-step-edit-prompt (macro index)
   ;; Show step-edit prompt

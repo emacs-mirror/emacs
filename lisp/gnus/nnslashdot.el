@@ -1,7 +1,7 @@
 ;;; nnslashdot.el --- interfacing with Slashdot
 
 ;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006 Free Software Foundation, Inc.
+;;   2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -259,7 +259,7 @@
 		      (buffer-substring
 		       (search-forward "<div class=\"commentBody\">")
 		       (progn
-			 (search-forward "<div class=\"commentSub\">")
+			 (search-forward "<div class=\"commentSub\"")
 			 (match-beginning 0))))))))
       (search-failed (nnslashdot-lose why)))
 

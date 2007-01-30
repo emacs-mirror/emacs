@@ -1,6 +1,6 @@
 ;;; gmm-utils.el --- Utility functions for Gnus, Message and MML
 
-;; Copyright (C) 2006 Free Software Foundation, Inc.
+;; Copyright (C) 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Reiner Steib <reiner.steib@gmx.de>
 ;; Keywords: news
@@ -203,8 +203,8 @@ This is copy of the `lazy' widget in Emacs 22.1 provided for compatibility."
       'gnome
     'retro)
   "Prefered tool bar style."
-  :type '(choice (const :tag "GNOME style" 'gnome)
-		 (const :tag "Retro look"  'retro))
+  :type '(choice (const :tag "GNOME style" gnome)
+		 (const :tag "Retro look"  retro))
   :group 'gmm)
 
 (defvar tool-bar-map)

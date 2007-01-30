@@ -1,6 +1,6 @@
 /* Machine-dependent configuration for GNU Emacs for AT&T 3b machines.
-   Copyright (C) 1986, 2002, 2003, 2004, 2005,
-                 2006 Free Software Foundation, Inc.
+   Copyright (C) 1986, 2001, 2002, 2003, 2004, 2005,
+                 2006, 2007  Free Software Foundation, Inc.
 
    Modified by David Robinson (daver@csvax.caltech.edu) 6/6/86
 

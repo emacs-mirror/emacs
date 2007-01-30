@@ -1,7 +1,7 @@
 ;;; bytecomp.el --- compilation of Lisp code into byte code
 
 ;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1998, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+;;   2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -295,6 +295,10 @@ For example, add  -*-byte-compile-dynamic: t;-*- on the first line.
 When this option is true, if you load the compiled file and then move it,
 the functions you loaded will not be able to run.")
 ;;;###autoload(put 'byte-compile-dynamic 'safe-local-variable 'booleanp)
+
+(defvar byte-compile-disable-print-circle nil
+  "If non-nil, disable `print-circle' on printing a byte-compiled code.")
+;;;###autoload(put 'byte-compile-disable-print-circle 'safe-local-variable 'booleanp)
 
 (defcustom byte-compile-dynamic-docstrings t
   "*If non-nil, compile doc strings for lazy access.
@@ -2002,7 +2006,9 @@ With argument, insert value in current buffer after the form."
 	  (print-length nil)
 	  (print-level nil)
 	  (print-quoted t)
-	  (print-gensym t))
+	  (print-gensym t)
+	  (print-circle		     ; handle circular data structures
+	   (not byte-compile-disable-print-circle)))
       (princ "\n" outbuffer)
       (prin1 form outbuffer)
       nil)))
@@ -2059,6 +2065,8 @@ list that represents a doc string reference.
 	       ;; print-gensym-alist not to be cleared
 	       ;; between calls to print functions.
 	       (print-gensym '(t))
+	       (print-circle	       ; handle circular data structures
+		(not byte-compile-disable-print-circle))
 	       print-gensym-alist    ; was used before print-circle existed.
 	       (print-continuous-numbering t)
 	       print-number-table

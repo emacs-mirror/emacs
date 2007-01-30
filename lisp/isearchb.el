@@ -1,6 +1,6 @@
 ;;; isearchb --- a marriage between iswitchb and isearch
 
-;; Copyright (C) 2004, 2005, 2006 John Wiegley
+;; Copyright (C) 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Maintainer: FSF
@@ -115,7 +115,7 @@ If nil, don't use a timeout."
 
 (defun isearchb-iswitchb ()
   "isearchb's custom version of the `iswitchb' command.
-It's purpose is to pass different call arguments to
+Its purpose is to pass different call arguments to
 `iswitchb-read-buffer'."
   (interactive)
   (let* ((prompt "iswitch ")

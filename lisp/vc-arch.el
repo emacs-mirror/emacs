@@ -1,6 +1,6 @@
 ;;; vc-arch.el --- VC backend for the Arch version-control system
 
-;; Copyright (C) 2004, 2005, 2006 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Stefan Monnier <monnier@gnu.org>
@@ -152,7 +152,7 @@ Only the value `maybe' can be trusted :-(."
 	(with-temp-buffer
 	  (insert-file-contents idfile)
 	  (looking-at ".*[^ \n\t]")
-	  (match-string 0)))
+	  (match-string 0))
       (with-current-buffer (find-file-noselect file)
 	(save-excursion
 	  (goto-char (point-max))
@@ -161,7 +161,7 @@ Only the value `maybe' can be trusted :-(."
 		    (goto-char (point-min))
 		    (re-search-forward vc-arch-tagline-re (+ (point) 1000) t)))
 	      (match-string 1)
-	    (concat "./" (file-relative-name file (vc-arch-root file))))))))
+	    (concat "./" (file-relative-name file (vc-arch-root file)))))))))
 
 (defun vc-arch-tagging-method (file)
   (with-current-buffer

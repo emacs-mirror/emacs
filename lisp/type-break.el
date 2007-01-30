@@ -1,7 +1,7 @@
 ;;; type-break.el --- encourage rests from typing at appropriate intervals
 
 ;; Copyright (C) 1994, 1995, 1997, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman
 ;; Maintainer: Noah Friedman <friedman@splode.com>
@@ -1120,6 +1120,13 @@ With optional non-nil ALL, force redisplay of all mode-lines."
 
 ;;; Demo wrappers
 
+(defun type-break-catch-up-event ()
+  ;; If the last input event is a down-event, read and discard the
+  ;; corresponding up-event too, to avoid triggering another prompt.
+  (and (eventp last-input-event)
+       (memq 'down (event-modifiers last-input-event))
+       (read-event)))
+
 ;; This is a wrapper around hanoi that calls it with an arg large enough to
 ;; make the largest discs possible that will fit in the window.
 ;; Also, clean up the *Hanoi* buffer after we're done.
@@ -1131,11 +1138,12 @@ With optional non-nil ALL, force redisplay of all mode-lines."
       (progn
         (hanoi (/ (window-width) 8))
         ;; Wait for user to come back.
-        (read-char)
+        (read-event)
+	(type-break-catch-up-event)
         (kill-buffer "*Hanoi*"))
     (quit
-     ;; eat char
-     (read-char)
+     (read-event)
+     (type-break-catch-up-event)
      (and (get-buffer "*Hanoi*")
           (kill-buffer "*Hanoi*")))))
 
@@ -1153,14 +1161,15 @@ With optional non-nil ALL, force redisplay of all mode-lines."
           (progn
             (life 3)
             ;; wait for user to return
-            (read-char)
+            (read-event)
+	    (type-break-catch-up-event)
             (kill-buffer "*Life*"))
         (life-extinct
          (message "%s" (get 'life-extinct 'error-message))
-         (sit-for 3)
          ;; restart demo
          (setq continue t))
         (quit
+	 (type-break-catch-up-event)
          (and (get-buffer "*Life*")
               (kill-buffer "*Life*")))))))
 
@@ -1246,7 +1255,8 @@ With optional non-nil ALL, force redisplay of all mode-lines."
                      message))))
             (goto-char (point-min))
             (sit-for 60))
-          (read-char)
+	  (read-event)
+	  (type-break-catch-up-event)
           (kill-buffer buffer-name))
       (quit
        (and (get-buffer buffer-name)

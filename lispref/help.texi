@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2002, 2003,
-@c   2004, 2005, 2006 Free Software Foundation, Inc.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
+@c   2002, 2003, 2004, 2005, 2006, 2007  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/help
 @node Documentation, Files, Modes, Top
@@ -22,8 +22,9 @@ of documentation strings is not sufficient as a manual because a good
 manual is not organized in that fashion; it is organized in terms of
 topics of discussion.
 
-  For commands to access documentation strings, see @ref{Help, ,
-Help, emacs, The GNU Emacs Manual}.
+  For commands to display documentation strings, see @ref{Help, ,
+Help, emacs, The GNU Emacs Manual}.  For the conventions for writing
+documentation strings, see @ref{Documentation Tips}.
 
 @menu
 * Documentation Basics::      Good style for doc strings.

@@ -1,8 +1,8 @@
 ;;; ps-bdf.el --- BDF font file handler for ps-print
 
-;; Copyright (C) 1998, 1999, 2001, 2002, 2003, 2004, 2005, 2006
+;; Copyright (C) 1998, 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007
 ;;   Free Software Foundation, Inc.
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
@@ -38,11 +38,7 @@
 ;;; Code:
 
 (eval-and-compile
-  (require 'ps-mule)
-
-  ;; to avoid XEmacs compilation gripes
-  (defvar installation-directory nil)
-  (defvar coding-system-for-read nil))
+  (require 'ps-mule))
 
 ;;;###autoload
 (defvar bdf-directory-list

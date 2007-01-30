@@ -7,7 +7,7 @@
 @c Version of the manual and of Emacs.
 @c Please remember to update the edition number in README as well.
 @set VERSION  2.9
-@set EMACSVER 22.0.92
+@set EMACSVER 22.0.93
 
 @dircategory Emacs
 @direntry
@@ -40,8 +40,8 @@ This is edition @value{VERSION} of the GNU Emacs Lisp
 Reference Manual, corresponding to Emacs version @value{EMACSVER}.
 
 Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998,
-1999, 2000, 2002, 2003, 2004, 2005, 2006 Free Software Foundation,
-Inc.
+1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007  Free Software
+Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -365,6 +365,7 @@ Errors
 * Processing of Errors::    What Emacs does when you report an error.
 * Handling Errors::         How you can trap errors and continue execution.
 * Error Symbols::           How errors are classified for trapping them.
+* Standard Errors::         List of all error symbols.
 
 Variables
 
@@ -386,6 +387,8 @@ Variables
 * Variable Aliases::        Variables that are aliases for other variables.
 * Variables with Restricted Values::  Non-constant variables whose value can
                                         @emph{not} be an arbitrary Lisp object.
+* Standard Buffer-Local Variables::
+                            List of variables buffer-local in all buffers.
 
 Scoping Rules for Variable Bindings
 
@@ -617,8 +620,9 @@ Keymaps
 * Remapping Commands::          A keymap can translate one command to another.
 * Key Binding Commands::        Interactive interfaces for redefining keys.
 * Scanning Keymaps::            Looking through all keymaps, for printing help.
-* Menu Keymaps::		A keymap can define a menu for X
-				  or for use from the terminal.
+* Menu Keymaps::                A keymap can define a menu for X
+                                  or for use from the terminal.
+* Standard Keymaps::            List of standard keymaps.
 
 Major and Minor Modes
 

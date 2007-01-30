@@ -1,7 +1,7 @@
 /* Display generation from window structure and buffer text.
    Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995,
                  1997, 1998, 1999, 2000, 2001, 2002, 2003,
-                 2004, 2005, 2006 Free Software Foundation, Inc.
+                 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -13687,6 +13687,7 @@ try_window (window, pos, check_margins)
   struct window *w = XWINDOW (window);
   struct it it;
   struct glyph_row *last_text_row = NULL;
+  struct frame *f = XFRAME (w->frame);
 
   /* Make POS the new window start.  */
   set_marker_both (w->start, Qnil, CHARPOS (pos), BYTEPOS (pos));

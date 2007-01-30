@@ -1,7 +1,7 @@
 ;;; ediff-init.el --- Macros, variables, and defsubsts used by Ediff
 
 ;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+;;   2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
@@ -1410,9 +1410,10 @@ This property can be toggled interactively."
 
 (defcustom ediff-autostore-merges  'group-jobs-only
   "*Save the results of merge jobs automatically.
-nil means don't save automatically.  t means always save.  Anything else
-means save automatically only if the merge job is part of a group of jobs, such
-as `ediff-merge-directory' or `ediff-merge-directory-revisions'."
+With value nil, don't save automatically.  With value t, always
+save.  Anything else means save automatically only if the merge
+job is part of a group of jobs, such as `ediff-merge-directory'
+or `ediff-merge-directory-revisions'."
   :type '(choice (const nil) (const t) (const group-jobs-only))
   :group 'ediff-merge)
 (make-variable-buffer-local 'ediff-autostore-merges)

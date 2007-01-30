@@ -1,10 +1,11 @@
 ;;; cc-defs.el --- compile time definitions for CC Mode
 
 ;; Copyright (C) 1985, 1987, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006  Free Software
-;;   Foundation, Inc.
+;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
+;;   Free Software Foundation, Inc.
 
-;; Authors:    1998- Martin Stjernholm
+;; Authors:    2003- Alan Mackenzie
+;;             1998- Martin Stjernholm
 ;;             1992-1999 Barry A. Warsaw
 ;;             1987 Dave Detlefs and Stewart Clamen
 ;;             1985 Richard M. Stallman
@@ -579,6 +580,24 @@ right side of it."
 ;; Wrappers for common scan-lists cases, mainly because it's almost
 ;; impossible to get a feel for how that function works.
 
+(defmacro c-go-list-forward ()
+  "Move backward across one balanced group of parentheses.
+
+Return POINT when we succeed, NIL when we fail.  In the latter case, leave
+point unmoved."
+  `(c-safe (let ((endpos (scan-lists (point) 1 0)))
+	     (goto-char endpos)
+	     endpos)))
+
+(defmacro c-go-list-backward ()
+  "Move backward across one balanced group of parentheses.
+
+Return POINT when we succeed, NIL when we fail.  In the latter case, leave
+point unmoved."
+  `(c-safe (let ((endpos (scan-lists (point) -1 0)))
+	     (goto-char endpos)
+	     endpos)))
+
 (defmacro c-up-list-forward (&optional pos limit)
   "Return the first position after the list sexp containing POS,
 or nil if no such position exists.  The point is used if POS is left out.
@@ -721,7 +740,7 @@ be after it."
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; V i r t u a l   S e m i c o l o n s 
+;; V i r t u a l   S e m i c o l o n s
 ;;
 ;; In most CC Mode languages, statements are terminated explicitly by
 ;; semicolons or closing braces.  In some of the CC modes (currently only AWK
@@ -765,7 +784,7 @@ be after it."
 ;;
 ;; The macro `c-vsemi-status-unknown-p' will typically check the cacheing
 ;; scheme used by the `c-at-vsemi-p-fn', hence the name - the status is
-;; "unknown" if there is no cache entry current for the line. 
+;; "unknown" if there is no cache entry current for the line.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmacro c-at-vsemi-p (&optional pos)
@@ -1495,8 +1514,8 @@ might be present:
 		    (i.e. the syntax class `|').
 'pps-extended-state `parse-partial-sexp' returns a list with at least 10
 		    elements, i.e. it contains the position of the start of
-		    the last comment or string. It's always set - CC Mode no
-		    longer works in emacsen without this feature.
+		    the last comment or string.  It's always set - CC Mode
+                    no longer works in emacsen without this feature.
 'posix-char-classes The regexp engine understands POSIX character classes.
 'col-0-paren        It's possible to turn off the ad-hoc rule that a paren
 		    in column zero is the start of a defun.

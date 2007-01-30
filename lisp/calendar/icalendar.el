@@ -1,6 +1,6 @@
 ;;; icalendar.el --- iCalendar implementation -*-coding: utf-8 -*-
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007  Free Software Foundation, Inc.
 
 ;; Author:         Ulf Jasper <ulf.jasper@web.de>
 ;; Created:        August 2002
@@ -709,7 +709,7 @@ would be \"pm\"."
   "Export diary file to iCalendar format.
 All diary entries in the file DIARY-FILENAME are converted to iCalendar
 format.  The result is appended to the file ICAL-FILENAME."
-  (interactive "FExport diary data from file: 
+  (interactive "FExport diary data from file:
 Finto iCalendar file: ")
   (save-current-buffer
     (set-buffer (find-file diary-filename))
@@ -1453,8 +1453,8 @@ Argument ICAL-FILENAME output iCalendar file.
 Argument DIARY-FILENAME input `diary-file'.
 Optional argument NON-MARKING determines whether events are created as
 non-marking or not."
-  (interactive "fImport iCalendar data from file: 
-Finto diary file: 
+  (interactive "fImport iCalendar data from file:
+Finto diary file:
 p")
   ;; clean up the diary file
   (save-current-buffer
@@ -1479,7 +1479,7 @@ NON-MARKING determines whether diary events are created as
 non-marking.
 
 Return code t means that importing worked well, return code nil
-means that an error has occured.  Error messages will be in the
+means that an error has occurred.  Error messages will be in the
 buffer `*icalendar-errors*'."
   (interactive)
   (save-current-buffer
@@ -1508,7 +1508,7 @@ buffer `*icalendar-errors*'."
                   (set-buffer b)
                   (save-buffer)))))
           (message "Converting icalendar...done")
-          ;; return t if no error occured
+          ;; return t if no error occurred
           (not ical-errors))
       (message
        "Current buffer does not contain icalendar contents!")

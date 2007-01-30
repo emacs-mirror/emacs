@@ -1,7 +1,7 @@
 ;;; nnweb.el --- retrieving articles via web search engines
 
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -480,7 +480,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 		    (from (mail-header-from header))
 		    (subject (mail-header-subject header))
 		    (rfc2047-encoding-type 'mime))
-		(when (string-match " \\([^:]+\\):\\([0-9]+\\)" xref)
+		(when (string-match " \\([^:]+\\)[:/]\\([0-9]+\\)" xref)
 		  (mail-header-set-xref
 		   header
 		   (format "http://article.gmane.org/%s/%s/raw"
@@ -496,11 +496,8 @@ Valid types include `google', `dejanews', and `gmane'.")
 					 (rfc2047-encode-string subject))
 
 		(unless (nnweb-get-hashtb (mail-header-xref header))
-		  (push
-		   (list
-		    (incf (cdr active))
-		    header)
-		   map)
+		  (mail-header-set-number header (incf (cdr active)))
+		  (push (list (mail-header-number header) header) map)
 		  (nnweb-set-hashtb (cadar map) (car map))))))
 	  (forward-line 1)))
       (nnheader-message 7 "Searching Gmane...done")

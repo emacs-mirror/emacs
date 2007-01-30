@@ -1,6 +1,6 @@
 /* Unix emulation routines for GNU Emacs on the Mac OS.
    Copyright (C) 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006 Free Software Foundation, Inc.
+                 2005, 2006, 2007 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2261,7 +2261,7 @@ sys_open (const char *path, int oflag)
       int res = open (mac_pathname, oflag);
       /* if (oflag == O_WRONLY || oflag == O_RDWR) */
       if (oflag & O_CREAT)
-        fsetfileinfo (mac_pathname, 'EMAx', 'TEXT');
+        fsetfileinfo (mac_pathname, MAC_EMACS_CREATOR_CODE, 'TEXT');
       return res;
 #else /* not __MRC__ */
       return open (mac_pathname, oflag);
@@ -2287,7 +2287,7 @@ sys_creat (const char *path, mode_t mode)
     {
 #ifdef __MRC__
       int result = creat (mac_pathname);
-      fsetfileinfo (mac_pathname, 'EMAx', 'TEXT');
+      fsetfileinfo (mac_pathname, MAC_EMACS_CREATOR_CODE, 'TEXT');
       return result;
 #else /* not __MRC__ */
       return creat (mac_pathname, mode);
@@ -2415,7 +2415,7 @@ sys_fopen (const char *name, const char *mode)
     {
 #ifdef __MRC__
       if (mode[0] == 'w' || mode[0] == 'a')
-        fsetfileinfo (mac_pathname, 'EMAx', 'TEXT');
+        fsetfileinfo (mac_pathname, MAC_EMACS_CREATOR_CODE, 'TEXT');
 #endif /* not __MRC__ */
       return fopen (mac_pathname, mode);
     }
@@ -4316,7 +4316,7 @@ assumed. Return non-nil if successful.  */)
   OSType cCode;
   CHECK_STRING (filename);
 
-  cCode = mac_get_code_from_arg(code, 'EMAx');
+  cCode = mac_get_code_from_arg(code, MAC_EMACS_CREATOR_CODE);
 
   if (NILP(Ffile_exists_p(filename)) || !NILP(Ffile_directory_p(filename))) {
     return Qnil;

@@ -1,6 +1,6 @@
 ;;; cal-x.el --- calendar windows in dedicated frames in X
 
-;; Copyright (C) 1994, 1995, 2001, 2002, 2003, 2004, 2005, 2006
+;; Copyright (C) 1994, 1995, 2001, 2002, 2003, 2004, 2005, 2006, 2007
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>

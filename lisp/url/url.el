@@ -1,7 +1,7 @@
 ;;; url.el --- Uniform Resource Locator retrieval tool
 
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2001, 2004,
-;;   2005, 2006  Free Software Foundation, Inc.
+;;   2005, 2006, 2007  Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes, hypermedia
@@ -172,7 +172,6 @@ the list of events, as described in the docstring of `url-retrieve'."
   (unless (url-type url)
     (error "Bad url: %s" (url-recreate-url url)))
   (let ((loader (url-scheme-get-property (url-type url) 'loader))
-	(url-proxy-object nil)
 	(url-using-proxy (if (url-host url)
 			     (url-find-proxy-for-url url (url-host url))))
 	(buffer nil)

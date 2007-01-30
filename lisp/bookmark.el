@@ -1,7 +1,7 @@
 ;;; bookmark.el --- set bookmarks, maybe annotate them, jump to them later
 
 ;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 2001, 2002, 2003,
-;;   2004, 2005, 2006 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Maintainer: Karl Fogel <kfogel@red-bean.com>
@@ -1007,14 +1007,18 @@ In Info, return the current node."
 (defun bookmark-buffer-file-name ()
   "Return the current buffer's file in a way useful for bookmarks.
 For example, if this is a Info buffer, return the Info file's name."
-  (if (eq major-mode 'Info-mode)
-        Info-current-file
-    (or
-     buffer-file-name
-     (if (and (boundp 'dired-directory) dired-directory)
-         (if (stringp dired-directory)
-             dired-directory
-           (car dired-directory))))))
+  (cond
+   ((eq major-mode 'Info-mode)
+    Info-current-file)
+   (buffer-file-name
+    ;; Abbreviate the path, both so it's shorter and so it's more
+    ;; portable.  E.g., the user's home dir might be a different
+    ;; path on different machines, but "~/" will still reach it.
+    (abbreviate-file-name buffer-file-name))
+   ((and (boundp 'dired-directory) dired-directory)
+    (if (stringp dired-directory)
+        dired-directory
+      (car dired-directory)))))
 
 
 (defun bookmark-maybe-load-default-file ()

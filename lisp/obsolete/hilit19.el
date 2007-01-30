@@ -1,7 +1,7 @@
 ;;; hilit19.el --- customizable highlighting for Emacs 19
 
 ;; Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004,
-;;   2005, 2006 Free Software Foundation, Inc.
+;;   2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author:   Jonathan Stigelman <stig@hackvan.com>
 ;; Maintainer: FSF

@@ -18,7 +18,7 @@
 ####     files inside /usr.  This will replace the default version of
 ####     emacs included with Mac OS X.
 
-# Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+# Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -330,6 +330,8 @@ compver=powerpc-apple-darwin`uname -r`
 if test "$self_contained" = "yes"; then
     # Move shared files down to Resources directory
     mv $installprefix/share/emacs/$version/* $installprefix
+    mv $installprefix/share/info $installprefix
+    mv $installprefix/share/man $installprefix
     rm -rf $installprefix/share
     # These directories might remain in Resources
     mv $installprefix/bin $installprefix/../MacOS/bin

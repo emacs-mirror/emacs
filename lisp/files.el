@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1985, 1986, 1987, 1992, 1993, 1994, 1995, 1996,
 ;;   1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006 Free Software Foundation, Inc.
+;;   2006, 2007 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -1223,11 +1223,11 @@ killed."
   (unless (run-hook-with-args-until-failure 'kill-buffer-query-functions)
     (error "Aborted"))
   (when (and (buffer-modified-p) (buffer-file-name))
-    (if (yes-or-no-p (format "Buffer %s is modified; save it first? "
+    (if (yes-or-no-p (format "Buffer %s is modified; kill anyway? "
 			     (buffer-name)))
-	(save-buffer)
-      (unless (yes-or-no-p "Kill and replace the buffer without saving it? ")
-	(error "Aborted"))))
+	(unless (yes-or-no-p "Kill and replace the buffer without saving it? ")
+	  (error "Aborted"))
+      (save-buffer)))
   (let ((obuf (current-buffer))
 	(ofile buffer-file-name)
 	(onum buffer-file-number)
@@ -1289,8 +1289,9 @@ Choose the buffer's name using `generate-new-buffer-name'."
 
 (defun abbreviate-file-name (filename)
   "Return a version of FILENAME shortened using `directory-abbrev-alist'.
-This also substitutes \"~\" for the user's home directory and
-removes automounter prefixes (see the variable `automount-dir-prefix')."
+This also substitutes \"~\" for the user's home directory (unless the
+home directory is a root directory) and removes automounter prefixes
+\(see the variable `automount-dir-prefix')."
   ;; Get rid of the prefixes added by the automounter.
   (save-match-data
     (if (and automount-dir-prefix
@@ -1650,7 +1651,8 @@ Do you want to revisit the file normally now? ")
       (setq default-directory (file-name-directory buffer-file-name))
       ;; Turn off backup files for certain file names.  Since
       ;; this is a permanent local, the major mode won't eliminate it.
-      (and (not (funcall backup-enable-predicate buffer-file-name))
+      (and backup-enable-predicate
+	   (not (funcall backup-enable-predicate buffer-file-name))
 	   (progn
 	     (make-local-variable 'backup-inhibited)
 	     (setq backup-inhibited t)))
@@ -2503,6 +2505,7 @@ n  -- to ignore the local variables list.")
 			  ", or C-v to scroll")))
 	  (goto-char (point-min))
 	  (let ((cursor-in-echo-area t)
+		(executing-kbd-macro executing-kbd-macro)
 		(exit-chars
 		 (if offer-save '(?! ?y ?n ?\s ?\C-g) '(?y ?n ?\s ?\C-g)))
 		done)
@@ -2510,11 +2513,17 @@ n  -- to ignore the local variables list.")
 	      (message prompt)
 	      (setq char (read-event))
 	      (if (numberp char)
-		  (if (eq char ?\C-v)
-		      (condition-case nil
-			  (scroll-up)
-			(error (goto-char (point-min))))
-		    (setq done (memq (downcase char) exit-chars))))))
+		  (cond ((eq char ?\C-v)
+			 (condition-case nil
+			     (scroll-up)
+			   (error (goto-char (point-min)))))
+			;; read-event returns -1 if we are in a kbd
+			;; macro and there are no more events in the
+			;; macro.  In that case, attempt to get an
+			;; event interactively.
+			((and executing-kbd-macro (= char -1))
+			 (setq executing-kbd-macro nil))
+			(t (setq done (memq (downcase char) exit-chars)))))))
 	  (setq char (downcase char))
 	  (when (and offer-save (= char ?!) unsafe-vars)
 	    (dolist (elt unsafe-vars)
@@ -2904,6 +2913,7 @@ the old visited file has been renamed to the new name FILENAME."
   ;; Turn off backup files for certain file names.
   ;; Since this is a permanent local, the major mode won't eliminate it.
   (and buffer-file-name
+       backup-enable-predicate
        (not (funcall backup-enable-predicate buffer-file-name))
        (progn
 	 (make-local-variable 'backup-inhibited)
@@ -4739,36 +4749,37 @@ preference to the program given by this variable."
   "Return the amount of free space on directory DIR's file system.
 The result is a string that gives the number of free 1KB blocks,
 or nil if the system call or the program which retrieve the information
-fail.
+fail.  It returns also nil when DIR is a remote directory.
 
 This function calls `file-system-info' if it is available, or invokes the
 program specified by `directory-free-space-program' if that is non-nil."
-  ;; Try to find the number of free blocks.  Non-Posix systems don't
-  ;; always have df, but might have an equivalent system call.
-  (if (fboundp 'file-system-info)
-      (let ((fsinfo (file-system-info dir)))
-	(if fsinfo
-	    (format "%.0f" (/ (nth 2 fsinfo) 1024))))
-    (save-match-data
-      (with-temp-buffer
-	(when (and directory-free-space-program
-		   (eq 0 (call-process directory-free-space-program
-				       nil t nil
-				       directory-free-space-args
-				       dir)))
-	  ;; Usual format is a header line followed by a line of
-	  ;; numbers.
-	  (goto-char (point-min))
-	  (forward-line 1)
-	  (if (not (eobp))
-	      (progn
-		;; Move to the end of the "available blocks" number.
-		(skip-chars-forward "^ \t")
-		(forward-word 3)
-		;; Copy it into AVAILABLE.
-		(let ((end (point)))
-		  (forward-word -1)
-		  (buffer-substring (point) end)))))))))
+  (when (not (file-remote-p dir))
+    ;; Try to find the number of free blocks.  Non-Posix systems don't
+    ;; always have df, but might have an equivalent system call.
+    (if (fboundp 'file-system-info)
+	(let ((fsinfo (file-system-info dir)))
+	  (if fsinfo
+	      (format "%.0f" (/ (nth 2 fsinfo) 1024))))
+      (save-match-data
+	(with-temp-buffer
+	  (when (and directory-free-space-program
+		     (eq 0 (call-process directory-free-space-program
+					 nil t nil
+					 directory-free-space-args
+					 dir)))
+	    ;; Usual format is a header line followed by a line of
+	    ;; numbers.
+	    (goto-char (point-min))
+	    (forward-line 1)
+	    (if (not (eobp))
+		(progn
+		  ;; Move to the end of the "available blocks" number.
+		  (skip-chars-forward "^ \t")
+		  (forward-word 3)
+		  ;; Copy it into AVAILABLE.
+		  (let ((end (point)))
+		    (forward-word -1)
+		    (buffer-substring (point) end))))))))))
 
 ;; The following expression replaces `dired-move-to-filename-regexp'.
 (defvar directory-listing-before-filename-regexp
