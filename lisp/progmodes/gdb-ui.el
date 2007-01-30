@@ -848,6 +848,19 @@ type_changed=\".*?\".*?}")
   (setq gdb-pending-triggers
 	(delq 'gdb-var-update gdb-pending-triggers)))
 
+(defun gdb-var-delete-1 (varnum)
+  (gdb-enqueue-input
+   (list
+    (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
+	    'gdba)
+	(concat "server interpreter mi \"-var-delete " varnum "\"\n")
+      (concat "-var-delete " varnum "\n"))
+    'ignore))
+  (setq gdb-var-list (delq var gdb-var-list))
+  (dolist (varchild gdb-var-list)
+    (if (string-match (concat (car var) "\\.") (car varchild))
+	(setq gdb-var-list (delq varchild gdb-var-list)))))
+
 (defun gdb-var-delete ()
   "Delete watch expression at point from the speedbar."
   (interactive)
@@ -857,17 +870,7 @@ type_changed=\".*?\".*?}")
 	     (varnum (car var)))
 	(if (string-match "\\." (car var))
 	    (message-box "Can only delete a root expression")
-	  (gdb-enqueue-input
-	   (list
-	    (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
-		    'gdba)
-		(concat "server interpreter mi \"-var-delete " varnum "\"\n")
-	      (concat "-var-delete " varnum "\n"))
-	    'ignore))
-	  (setq gdb-var-list (delq var gdb-var-list))
-	  (dolist (varchild gdb-var-list)
-	    (if (string-match (concat (car var) "\\.") (car varchild))
-		(setq gdb-var-list (delq varchild gdb-var-list))))))))
+	  (gdb-var-delete-1 varnum)))))
 
 (defun gdb-var-delete-children (varnum)
   "Delete children of variable object at point from the speedbar."
@@ -3443,16 +3446,8 @@ in_scope=\"\\(.*?\\)\".*?}")
 		 (setcar (nthcdr 5 var) 'changed)
 		 (setcar (nthcdr 4 var)
 			 (read (match-string 2))))
-;;		((string-equal match "invalid")
-;;		 (gdb-enqueue-input
-;;		  (list
-;;		   (if (eq (buffer-local-value
-;;			    'gud-minor-mode gud-comint-buffer) 'gdba)
-;;		       (concat "server interpreter mi \"-var-delete "
-;;			       varnum "\"\n")
-;;		     (concat "-var-delete " varnum "\n"))
-;;		   'ignore)))
-		)))))
+		((string-equal match "invalid")
+		 (gdb-var-delete-1 varnum)))))))
       (setq gdb-pending-triggers
 	    (delq 'gdb-var-update gdb-pending-triggers))
       (gdb-speedbar-update))
