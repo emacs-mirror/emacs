@@ -22,5 +22,6 @@ called CCE at:
 	http://ftp.debian.org/debian/dists/potato/main
 		/source/utils/cce_0.36.orig.tar.gz
 
-As the original files don't contain copyright and license notices,
-proper notices are added at the head.
+As the original files don't contain copyright and license notices, a
+proper notice is extracted from the file Copyright and added at the
+head of each file.
