@@ -1,3 +1,13 @@
+2007-01-30  Richard Stallman  <rms@gnu.org>
+
+	* minibuf.c (read_minibuf):
+	Save and clear Vminibuffer_completing_file_name.
+	(read_minibuf_unwind): Restore it.
+	(Vminibuffer_completion_table, Qminibuffer_completion_table)
+	(Vminibuffer_completion_predicate, Qminibuffer_completion_predicate)
+	(Vminibuffer_completion_confirm, Qminibuffer_completion_confirm)
+	(Vminibuffer_completing_file_name): Definitions moved up.
+
 2007-01-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* m/hp800.h: Restore, removing HP-UX support.
