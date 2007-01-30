@@ -1,3 +1,23 @@
+# Header added for Emacs
+#
+# This file is included in the directory contrib/clients/cxterm of the
+# distribution of X11R6.  As the file itself does't contain copyright
+# and license notices, the following statements in the section 6 of
+# the file .../cxterm/README covers it.
+#
+# X11R6 CXTERM (C) 1994 BY YONGGUANG ZHANG.
+# X11R5 CXTERM (C) 1991 BY YONGGUANG ZHANG AND MAN-CHI PONG.
+# 
+# Permission to use, copy, modify, and distribute this software and
+# its documentation for any purpose is hereby granted without fee,
+# provided that this entire copyright and permission notice appear
+# in all such copies, and that the name of the authors may not be
+# used to endorse or promote products derived from this material
+# without specific prior written permission.  The authors make no
+# representations about the suitability of this software for any
+# purpose.  It is provided "as is" without express or implied warranty.
+#
+# End of header added for Emacs
 # $Id: TONEPY.tit,v 1.2 1994/06/06 01:53:09 ygz Exp $
 # HANZI input table for cxterm
 # To be used by cxterm, convert me to .cit format first
