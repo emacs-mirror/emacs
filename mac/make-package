@@ -330,6 +330,8 @@ compver=powerpc-apple-darwin`uname -r`
 if test "$self_contained" = "yes"; then
     # Move shared files down to Resources directory
     mv $installprefix/share/emacs/$version/* $installprefix
+    mv $installprefix/share/info $installprefix
+    mv $installprefix/share/man $installprefix
     rm -rf $installprefix/share
     # These directories might remain in Resources
     mv $installprefix/bin $installprefix/../MacOS/bin
