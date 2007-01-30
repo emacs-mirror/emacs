@@ -1,3 +1,10 @@
+2007-01-30  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-delete-1): New function.
+	(gdb-var-delete): Use it.
+	(gdb-var-update-handler-1): Handle value "invalid" for MI field
+	`in_scope'.
+
 2007-01-30  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.el (get-free-disk-space): Return nil for remote
