@@ -184,21 +184,19 @@ SORT-KEY should be `name' or `iso-spec' (default `name')."
 ##	CHARSET-SYMBOL-NAME,
 ##	DIMENSION (1 or 2)
 ##	CHARS (94 or 96)
-##	WIDTH (occupied column numbers: 1 or 2),
-##	DIRECTION (0:left-to-right, 1:right-to-left),
 ##	ISO-FINAL-CHAR (character code of ISO-2022's final character)
-##	ISO-GRAPHIC-PLANE (ISO-2022's graphic plane, 0:GL, 1:GR)
+##		-1 means that no final character is assigned.
 ##	DESCRIPTION (describing string of the charset)
 ")
   (let ((l charset-list)
 	charset)
     (while l
       (setq charset (car l) l (cdr l))
-      (princ (format "%s:%d:%d:%d:%d:%s\n"
+      (princ (format "%s:%d:%d:%d:%s\n"
 		     charset
 		     (charset-dimension charset)
 		     (charset-chars charset)
-		     (aref char-width-table (make-char charset))
+;;;		     (char-width (make-char charset))
 ;;; 		     (charset-direction charset)
 		     (charset-iso-final-char charset)
 ;;;		     (charset-iso-graphic-plane charset)
