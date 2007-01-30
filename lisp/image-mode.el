@@ -173,6 +173,11 @@ and showing the image as an image."
       (if (called-interactively-p)
 	  (message "Repeat this command to go back to displaying the file as text")))))
 
+(put 'image-toggle-display 'disabled "\
+WARNING: Displaying images can be a security risk.
+Please make sure you're using up-to-date image libraries
+and the images displayed come from a trusted source.")
+
 (provide 'image-mode)
 
 ;; arch-tag: b5b2b7e6-26a7-4b79-96e3-1546b5c4c6cb
