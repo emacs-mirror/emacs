@@ -135,6 +135,11 @@ static Lisp_Object last_exact_completion;
 /* Keymap for reading expressions.  */
 Lisp_Object Vread_expression_map;
 
+Lisp_Object Vminibuffer_completion_table, Qminibuffer_completion_table;
+Lisp_Object Vminibuffer_completion_predicate, Qminibuffer_completion_predicate;
+Lisp_Object Vminibuffer_completion_confirm, Qminibuffer_completion_confirm;
+Lisp_Object Vminibuffer_completing_file_name;
+
 Lisp_Object Quser_variable_p;
 
 Lisp_Object Qminibuffer_default;
@@ -571,7 +576,9 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
      specpdl slots.  */
   minibuf_save_list
     = Fcons (Voverriding_local_map,
-	     Fcons (minibuf_window, minibuf_save_list));
+	     Fcons (minibuf_window,
+		    Fcons (Vminibuffer_completing_file_name,
+			   minibuf_save_list)));
   minibuf_save_list
     = Fcons (minibuf_prompt,
 	     Fcons (make_number (minibuf_prompt_width),
@@ -597,6 +604,9 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   Vminibuffer_history_position = histpos;
   Vminibuffer_history_variable = histvar;
   Vhelp_form = Vminibuffer_help_form;
+  /* If this minibuffer is reading a file name,
+     that doesn't mean recursive ones are.  */
+  Vminibuffer_completing_file_name = Qnil;
 
   if (inherit_input_method)
     {
@@ -917,6 +927,8 @@ read_minibuf_unwind (data)
   if (FRAME_LIVE_P (XFRAME (WINDOW_FRAME (XWINDOW (temp)))))
     minibuf_window = temp;
 #endif
+  minibuf_save_list = Fcdr (minibuf_save_list);
+  Vminibuffer_completing_file_name = Fcar (minibuf_save_list);
   minibuf_save_list = Fcdr (minibuf_save_list);
 
   /* Erase the minibuffer we were using at this level.  */
@@ -1684,11 +1696,6 @@ are ignored unless STRING itself starts with a space.  */)
   return Fnreverse (allmatches);
 }
 
-Lisp_Object Vminibuffer_completion_table, Qminibuffer_completion_table;
-Lisp_Object Vminibuffer_completion_predicate, Qminibuffer_completion_predicate;
-Lisp_Object Vminibuffer_completion_confirm, Qminibuffer_completion_confirm;
-Lisp_Object Vminibuffer_completing_file_name;
-
 DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 8, 0,
        doc: /* Read a string in the minibuffer, with completion.
 PROMPT is a string to prompt with; normally it ends in a colon and a space.
