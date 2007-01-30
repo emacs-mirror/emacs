@@ -1,3 +1,7 @@
+2007-01-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-mode.el (image-mode): Don't automatically view as image.
+
 2007-01-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* isearchb.el (isearchb-iswitchb):
