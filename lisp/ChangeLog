@@ -1,3 +1,11 @@
+2007-01-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (get-free-disk-space): Return nil for remote
+	directories.
+
+	* net/ange-ftp.el (ange-ftp-ls): In case of wildcards, use "ls"
+	instead of "dir".
+
 2007-01-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* type-break.el (type-break-catch-up-event): New function.

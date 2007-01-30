@@ -4749,36 +4749,37 @@ preference to the program given by this variable."
   "Return the amount of free space on directory DIR's file system.
 The result is a string that gives the number of free 1KB blocks,
 or nil if the system call or the program which retrieve the information
-fail.
+fail.  It returns also nil when DIR is a remote directory.
 
 This function calls `file-system-info' if it is available, or invokes the
 program specified by `directory-free-space-program' if that is non-nil."
-  ;; Try to find the number of free blocks.  Non-Posix systems don't
-  ;; always have df, but might have an equivalent system call.
-  (if (fboundp 'file-system-info)
-      (let ((fsinfo (file-system-info dir)))
-	(if fsinfo
-	    (format "%.0f" (/ (nth 2 fsinfo) 1024))))
-    (save-match-data
-      (with-temp-buffer
-	(when (and directory-free-space-program
-		   (eq 0 (call-process directory-free-space-program
-				       nil t nil
-				       directory-free-space-args
-				       dir)))
-	  ;; Usual format is a header line followed by a line of
-	  ;; numbers.
-	  (goto-char (point-min))
-	  (forward-line 1)
-	  (if (not (eobp))
-	      (progn
-		;; Move to the end of the "available blocks" number.
-		(skip-chars-forward "^ \t")
-		(forward-word 3)
-		;; Copy it into AVAILABLE.
-		(let ((end (point)))
-		  (forward-word -1)
-		  (buffer-substring (point) end)))))))))
+  (when (not (file-remote-p dir))
+    ;; Try to find the number of free blocks.  Non-Posix systems don't
+    ;; always have df, but might have an equivalent system call.
+    (if (fboundp 'file-system-info)
+	(let ((fsinfo (file-system-info dir)))
+	  (if fsinfo
+	      (format "%.0f" (/ (nth 2 fsinfo) 1024))))
+      (save-match-data
+	(with-temp-buffer
+	  (when (and directory-free-space-program
+		     (eq 0 (call-process directory-free-space-program
+					 nil t nil
+					 directory-free-space-args
+					 dir)))
+	    ;; Usual format is a header line followed by a line of
+	    ;; numbers.
+	    (goto-char (point-min))
+	    (forward-line 1)
+	    (if (not (eobp))
+		(progn
+		  ;; Move to the end of the "available blocks" number.
+		  (skip-chars-forward "^ \t")
+		  (forward-word 3)
+		  ;; Copy it into AVAILABLE.
+		  (let ((end (point)))
+		    (forward-word -1)
+		    (buffer-substring (point) end))))))))))
 
 ;; The following expression replaces `dired-move-to-filename-regexp'.
 (defvar directory-listing-before-filename-regexp
