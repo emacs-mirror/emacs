@@ -1,3 +1,8 @@
+2007-01-20  Glenn Morris  <rgm@gnu.org>
+
+	* orgcard.tex: Remove for legal reasons.
+	* orgcard.ps: Remove for legal reasons.
+
 2007-01-27  Kevin Rodgers  <kevin.d.rodgers@gmail.com>
 
 	* PROBLEMS: More details about disabling features that hamper

@@ -77,13 +77,18 @@ lispintro/install-sh
 etc/edt-user.doc
   - update BOTH notices in this file
 
-leim/CXTERM-DIC/4Corner.tit, ARRAY30.tit, [CCDOSPY.tit], ECDICT.tit,
-ETZY.tit, [PY-b5.tit], Punct-b5.tit, Punct.tit, QJ-b5.tit, QJ.tit,
-[SW.tit, TONEPY.tit,] ZOZY.tit
+[etc/orgcard.tex, orgcard.ps - files removed 2007/1/29]
+  - with no assignment from Rooke, these files were removed. We are
+  asking for an assignment, and if one is received the files will be
+  replaced.
+
+leim/CXTERM-DIC/4Corner.tit, ARRAY30.tit, CCDOSPY.tit, ECDICT.tit,
+ETZY.tit, PY-b5.tit, Punct-b5.tit, Punct.tit, QJ-b5.tit, QJ.tit,
+SW.tit, TONEPY.tit, ZOZY.tit
   - leave the copyrights alone.
 
 leim/MISC-DIC/CTLau-b5.html, CTLau.html, cangjie-table.b5, cangjie-table.cns,
-[pinyin.map, ziranma.cin]
+pinyin.map, ziranma.cin
   - leave the copyright alone.
 
 leim/SKK-DIC/SKK-JISYO.L
@@ -115,10 +120,21 @@ msdos/is_exec.c, sigaction.c
   - these files are copyright DJ Delorie. Leave the copyrights alone.
 
 src/gmalloc.c
-   - contains numerous copyrights from the GNU C library. Leave them alone.
+  - contains numerous copyrights from the GNU C library. Leave them alone.
+
+[src/unexhp9k800.c - removed 2007/1/27
+[src/m/sr2k.h - removed 2007/1/27]
+  - First file removed due to legal uncertainties; second file removed
+  due to dependency on first. Note that src/m/hp800.h is still needed on
+  hp800 arch.
 
 
 *** These are copyright issues still to be addressed:
+
+
+Is it OK to just `cvs remove' a file for legal reasons, or is
+something more drastic needed? A removed file is still available from
+CVS, if suitable options are applied.
 
 
 All README (and other such files) that are non-trivial and were added
@@ -129,7 +145,13 @@ to be added.
 All images files that allow for comments should have copyright and
 license statements added. Whether or not this is possible, the
 information should be recorded in a README file in each directory with
-images.
+images. Image files to consider (is there such a thing as a "trivial"
+image?):
+ src/bitmaps/
+ etc/*.xpm, *.xbm
+ etc/images/
+ etc/tree-widget/
+ etc/*.ps, .eps
 
 
 admin/check-doc-strings
@@ -143,7 +165,7 @@ etc/e/eterm-color.ti  - no copyright
   because the entries are all forced. At least that is the case in the
   US; I am not sure whether we can rely on that in general."
 
-For the above files, mail sent froam rms to Matthew (Martin?) Norwood
+For the above files, mail sent from rms to Matthew (Martin?) Norwood
 asking what to do (via Eben Moglen), 2007/1/22 ("Copyright years").
 
 
@@ -152,21 +174,13 @@ etc/gnus-refcard.tex
   probably be removed, but it may be ok (waiting for rms)
 
 
-etc/orgcard.tex - no Rooke in copyright.list
- rms will talk with Org mode author about this.
+[etc/orgcard.tex, orgcard.ps]
+  Re-add these files if an assignment is received from Rooke.
 
 
 etc/sk-refcard.ps, pl-refcard.ps, cs-refcard.ps
 These refcards need to be regenerated (by those with suitable TeX
 setups) to get updated copyrights.
-
-
-leim/CXTERM-DIC/CCDOSPY.tit, PY-b5.tit, SW.tit, TONEPY.tit
-leim/MISC-DIC/pinyin.map, ziranma.cin
- The copyright and license is stated in the README file, but we may as
- well copy them into the files themselves (possibly at the expense of
- making them incompatible with their original formats, but they will
- still be usable by Emacs). [Kenichi Handa]
 
 
 lib-src/etags.c - no 'k.* arnold' in copyright.list'
@@ -194,6 +208,15 @@ man/back.texi, trampver.texi
 
 msdos/
   - do we need to add COPYING.LIB (because COPYING.DJ refers to it)?
+  (but see below).
+
+
+msdos/is_exec.c
+  - does copying.dj replace eliz's copyright?
+
+
+msdos/is_exec.c, sigaction.c
+  - relicense under the GPL
 
 
 oldXMenu/
