@@ -653,7 +653,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'comint-accum-marker)
   (setq comint-accum-marker (make-marker))
   (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(nil))
+  (setq font-lock-defaults '(nil t))
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
   ;; This behavior is not useful in comint buffers, and is annoying
   (set (make-local-variable 'next-line-add-newlines) nil))
@@ -1908,6 +1908,17 @@ the current line with any initial string matching the regexp
 	(field-string-no-properties bof)
       (comint-bol)
       (buffer-substring-no-properties (point) (line-end-position)))))
+
+(defun comint-copy-old-input ()
+  "Insert after prompt old input at point as new input to be edited.
+Calls `comint-get-old-input' to get old input."
+  (interactive)
+  (let ((input (funcall comint-get-old-input))
+	(process (get-buffer-process (current-buffer))))
+    (if (not process)
+	(error "Current buffer has no process")
+      (goto-char (process-mark process))
+      (insert input))))
 
 (defun comint-copy-old-input ()
   "Insert after prompt old input at point as new input to be edited.
