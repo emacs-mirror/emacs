@@ -1,3 +1,12 @@
+2007-01-31  Jason Rumney  <jasonr@gnu.org>
+
+	* files.el (magic-mode-alist): Use image-mode-maybe rather than
+	image-mode.
+
+	* image-mode.el (image-mode-maybe): Prevent magic-mode-alist from
+	interfering with attempt to set major mode from modified
+	auto-mode-alist.
+
 2007-01-31  Juanma Barranquero  <lekktu@gmail.com>
 
 	* faces.el (color-values): Doc fix.
