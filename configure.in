@@ -1484,11 +1484,11 @@ AC_DEFUN([PKG_CHECK_MODULES], [
             succeeded=yes
 
             AC_MSG_CHECKING($1_CFLAGS)
-            $1_CFLAGS=`$PKG_CONFIG --cflags "$2"`
+            $1_CFLAGS=`$PKG_CONFIG --cflags "$2"|sed -e 's,///*,/,g'`
             AC_MSG_RESULT($$1_CFLAGS)
 
             AC_MSG_CHECKING($1_LIBS)
-            $1_LIBS=`$PKG_CONFIG --libs "$2"`
+            $1_LIBS=`$PKG_CONFIG --libs "$2"|sed -e 's,///*,/,g'`
             AC_MSG_RESULT($$1_LIBS)
         else
             AC_MSG_RESULT(no)
