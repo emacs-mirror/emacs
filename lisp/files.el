@@ -2127,7 +2127,7 @@ of the regular expression.  The mode is then determined as the mode
 associated with that interpreter in `interpreter-mode-alist'.")
 
 (defvar magic-mode-alist
-  `((image-type-auto-detected-p . image-mode)
+  `((image-type-auto-detected-p . image-mode-maybe)
     ;; The < comes before the groups (but the first) to reduce backtracking.
     ;; TODO: UTF-16 <?xml may be preceded by a BOM 0xff 0xfe or 0xfe 0xff.
     ;; We use [ \t\n] instead of `\\s ' to make regex overflow less likely.
