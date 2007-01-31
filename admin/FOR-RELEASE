@@ -75,9 +75,6 @@ through the custom mechanism.
 ** simon.marshall@misys.com, Jan 12: 
   Font-lock decides function call is function declaration in C+ +
 
-** ZTHJWSQQAFHV@spammotel.com, Jan 12:
-  Color-theme problems in Emacs 22+ (Ubuntu, Windows)
-
 ** Install newsticker.el patch.
 
 * DOCUMENTATION
