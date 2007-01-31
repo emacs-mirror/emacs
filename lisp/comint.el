@@ -1920,17 +1920,6 @@ Calls `comint-get-old-input' to get old input."
       (goto-char (process-mark process))
       (insert input))))
 
-(defun comint-copy-old-input ()
-  "Insert after prompt old input at point as new input to be edited.
-Calls `comint-get-old-input' to get old input."
-  (interactive)
-  (let ((input (funcall comint-get-old-input))
-	(process (get-buffer-process (current-buffer))))
-    (if (not process)
-	(error "Current buffer has no process")
-      (goto-char (process-mark process))
-      (insert input))))
-
 (defun comint-skip-prompt ()
   "Skip past the text matching regexp `comint-prompt-regexp'.
 If this takes us past the end of the current line, don't skip at all."

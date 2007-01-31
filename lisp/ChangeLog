@@ -1,3 +1,8 @@
+2007-01-31  Romain Francoise  <romain@orebokech.com>
+
+	* comint.el: Delete extra copy of `comint-copy-old-input' added in
+	previous change to this file.
+
 2007-01-31  Jason Rumney  <jasonr@gnu.org>
 
 	* files.el (magic-mode-alist): Use image-mode-maybe rather than
