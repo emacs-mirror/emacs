@@ -1,7 +1,11 @@
+2007-01-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faces.el (color-values): Doc fix.
+	(face-differs-from-default-p): Don't check :foreground twice.
+
 2007-01-31  J.D. Smith  <jdsmith@as.arizona.edu>
 
-	* comint.el (comint-mode): Prevent non-keyword fontification by
-	default.
+	* comint.el (comint-mode): Prevent non-keyword fontification by default.
 
 2007-01-31  Kenichi Handa  <handa@m17n.org>
 
@@ -27,8 +31,7 @@
 
 2007-01-30  Michael Albinus  <michael.albinus@gmx.de>
 
-	* files.el (get-free-disk-space): Return nil for remote
-	directories.
+	* files.el (get-free-disk-space): Return nil for remote directories.
 
 	* net/ange-ftp.el (ange-ftp-ls): In case of wildcards, use "ls"
 	instead of "dir".
