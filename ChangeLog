@@ -1,3 +1,7 @@
+2007-01-31  Sascha Wilde  <wilde@sha-bang.de> (tiny change)
+
+	* configure.in (PKG_CHECK_MODULES): Change ///* to / in cflags and
+
 2007-01-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* configure.in: Restore support for hp800's not running HP-UX.
