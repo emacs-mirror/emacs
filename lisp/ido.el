@@ -2403,8 +2403,8 @@ If cursor is not at the end of the user input, move to end of input."
 (defun ido-set-common-completion  ()
   ;; Find common completion of `ido-text' in `ido-matches'
   ;; The result is stored in `ido-common-match-string'
-  (let* (val)
-    (setq  ido-common-match-string nil)
+  (let (val)
+    (setq ido-common-match-string nil)
     (if (and ido-matches
 	     (not ido-enable-regexp) ;; testing
              (stringp ido-text)
