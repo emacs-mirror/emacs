@@ -1,3 +1,8 @@
+2007-02-01  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* progmodes/idlwave.el (idlwave-xml-create-sysvar-alist): Trim
+	leading whitespace in sysvar names.
+
 2007-02-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* faces.el (internal-find-face, internal-get-face): Doc fixes.
