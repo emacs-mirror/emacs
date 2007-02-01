@@ -114,7 +114,7 @@ Set to \"main\" at start if gdb-show-main is t.")
 (defvar gdb-var-list nil
  "List of variables in watch window.
 Each element has the form (VARNUM EXPRESSION NUMCHILD TYPE VALUE STATUS FP)
-where STATUS is nil (unchanged), `changed' or `out-of-scope', FP the frame
+where STATUS is nil (`unchanged'), `changed' or `out-of-scope', FP the frame
 address for root variables.")
 (defvar gdb-main-file nil "Source file from which program execution begins.")
 (defvar gud-old-arrow nil)
@@ -739,7 +739,7 @@ With arg, enter name of variable to be watched in the minibuffer."
 		  (match-string 2)
 		  (match-string 4)
 		  (if (match-string 3) (read (match-string 3)))
-		   nil gdb-frame-address)))
+		  nil gdb-frame-address)))
 	(push var gdb-var-list)
 	(unless (string-equal
 		 speedbar-initial-expansion-list-name "GUD")
@@ -759,7 +759,8 @@ With arg, enter name of variable to be watched in the minibuffer."
       (message-box "No symbol \"%s\" in current context." expr))))
 
 (defun gdb-speedbar-update ()
-  (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
+  (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame)
+	     (not (member 'gdb-speedbar-timer gdb-pending-triggers)))
     ;; Dummy command to update speedbar even when idle.
     (gdb-enqueue-input (list "server pwd\n" 'gdb-speedbar-timer-fn))
     ;; Keep gdb-pending-triggers non-nil till end.
