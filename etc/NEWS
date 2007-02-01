@@ -3716,8 +3716,12 @@ irrespective of geometry or background setting on the Windows registry.
 ---
 ** On MS Windows, the "system caret" now follows the cursor.
 
-This enables Emacs to work better with programs that need to track
-the cursor, for example screen magnifiers and text to speech programs.
+This enables Emacs to work better with programs that need to track the
+cursor, for example screen magnifiers and text to speech programs.
+When such a program is in use, the system caret is made visible
+instead of Emacs drawing its own cursor. This seems to be required by
+some programs. The new variable w32-use-visible-system-caret allows
+the caret visibility to be manually toggled.
 
 ---
 ** Tooltips now work on MS Windows.
