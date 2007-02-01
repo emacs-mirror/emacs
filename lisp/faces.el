@@ -776,7 +776,7 @@ and DATA is a string, containing the raw bits of the bitmap."
   (set-face-attribute face frame :stipple (or stipple 'unspecified)))
 
 
-(defun set-face-underline-p (face underline-p &optional frame)
+(defun set-face-underline-p (face underline &optional frame)
   "Specify whether face FACE is underlined.
 UNDERLINE nil means FACE explicitly doesn't underline.
 UNDERLINE non-nil means FACE explicitly does underlining
@@ -787,7 +787,7 @@ Use `set-face-attribute' to ``unspecify'' underlining."
   (interactive
    (let ((list (read-face-and-attribute :underline)))
      (list (car list) (eq (car (cdr list)) t))))
-  (set-face-attribute face frame :underline underline-p))
+  (set-face-attribute face frame :underline underline))
 
 (define-obsolete-function-alias 'set-face-underline
                                 'set-face-underline-p "22.1")
@@ -1111,7 +1111,7 @@ Value is a property list of attribute names and new values."
 			       result))))))
 
 (defun modify-face (&optional face foreground background stipple
-			      bold-p italic-p underline-p inverse-p frame)
+			      bold-p italic-p underline inverse-p frame)
   "Modify attributes of faces interactively.
 If optional argument FRAME is nil or omitted, modify the face used
 for newly created frame, i.e. the global face.
@@ -1126,7 +1126,7 @@ and the face and its settings are obtained by querying the user."
 			  :stipple stipple
 			  :bold bold-p
 			  :italic italic-p
-			  :underline underline-p
+			  :underline underline
 			  :inverse-video inverse-p)
     (setq face (read-face-name "Modify face"))
     (apply #'set-face-attribute face frame
