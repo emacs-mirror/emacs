@@ -122,7 +122,7 @@ msdos/is_exec.c, sigaction.c
 src/gmalloc.c
   - contains numerous copyrights from the GNU C library. Leave them alone.
 
-[src/unexhp9k800.c - removed 2007/1/27
+[src/unexhp9k800.c - removed 2007/1/27]
 [src/m/sr2k.h - removed 2007/1/27]
   - First file removed due to legal uncertainties; second file removed
   due to dependency on first. Note that src/m/hp800.h is still needed on
@@ -135,11 +135,15 @@ src/gmalloc.c
 Is it OK to just `cvs remove' a file for legal reasons, or is
 something more drastic needed? A removed file is still available from
 CVS, if suitable options are applied.
+  rms: will ask lawyer
 
 
 All README (and other such files) that are non-trivial and were added
 by Emacs developers need copyright statements and copying permissions
 to be added.
+  lisp/term/README (author)?
+  etc/BABYL?
+  borderline "trivial" cases...?
 
 
 All images files that allow for comments should have copyright and
@@ -158,7 +162,7 @@ admin/check-doc-strings
   Author is Martin Buchholz, but no assignment from him on file, and
   rms has no way to reach him.
 admin/make-announcement - no copyright
-admin/nt/makedist.bat - no copyright
+admin/nt/makedist.bat - no copyright (author andrewi@gnu.org? mail sent)
 etc/ms-kermit - no copyright, but ms-7bkermit has one
 etc/e/eterm-color.ti  - no copyright
   rms: "I think that is not copyrightable under the merger doctrine
@@ -187,6 +191,9 @@ lib-src/etags.c - no 'k.* arnold' in copyright.list'
  rms: "That is ok, in principle. I used free code released by Ken
  Arnold as the starting point. However, it may be that we need to get
  and insert whatever his license was for his code."
+
+ - 1984 version of ctags, with no copyright, posted to net.sources:
+   http://groups.google.com/group/net.sources/msg/a21b6c21be12a98d
 
 
 lispref/back.texi, elisp-covers.texi, lay-flat.texi,
