@@ -1,3 +1,9 @@
+Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+  Free Software Foundation, Inc.
+Copying and distribution of this file, with or without modification,
+are permitted provided the copyright notice and this notice are preserved.
+
+
 This directory contains the source files for the C component of GNU Emacs.
 Nothing in this directory is needed for using Emacs once it is built
 and installed, if the dumped Emacs (on Unix systems) or the Emacs

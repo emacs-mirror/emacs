@@ -1,3 +1,9 @@
+Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+  Free Software Foundation, Inc.
+Copying and distribution of this file, with or without modification,
+are permitted provided the copyright notice and this notice are preserved.
+
+
 README for Edition 2.9 of the Emacs Lisp Reference Manual.
 
 * This directory contains the texinfo source files for the Reference

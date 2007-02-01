@@ -1,5 +1,10 @@
 ERC NEWS                                                       -*- outline -*-
 
+Copyright (C) 2006, 2007  Free Software Foundation, Inc.
+Copying and distribution of this file, with or without modification,
+are permitted provided the copyright notice and this notice are preserved.
+
+
 * Changes in ERC 5.2 (stable pre-release for Emacs 22)
 
 ** M-x erc RET now starts ERC.

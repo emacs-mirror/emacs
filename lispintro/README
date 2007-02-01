@@ -1,3 +1,9 @@
+Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+  Free Software Foundation, Inc.
+Copying and distribution of this file, with or without modification,
+are permitted provided the copyright notice and this notice are preserved.
+
+
 This directory contains the source of the "Introduction to Programming
 in Emacs Lisp" written by Robert J. Chassell, bob@gnu.org.  This
 manual is an elementary introduction to programming in Emacs Lisp for
