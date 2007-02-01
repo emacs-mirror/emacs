@@ -181,20 +181,16 @@ to NEW-FACE on frame NEW-FRAME."
 (defun internal-find-face (name &optional frame)
   "Retrieve the face named NAME.
 Return nil if there is no such face.
-If the optional argument FRAME is given, this gets the face NAME for
-that frame; otherwise, it uses the selected frame.
-If FRAME is the symbol t, then the global, non-frame face is returned.
-If NAME is already a face, it is simply returned."
+If NAME is already a face, it is simply returned.
+The optional argument FRAME is ignored."
   (facep name))
 (make-obsolete 'internal-find-face 'facep "21.1")
 
 
 (defun internal-get-face (name &optional frame)
   "Retrieve the face named NAME; error if there is none.
-If the optional argument FRAME is given, this gets the face NAME for
-that frame; otherwise, it uses the selected frame.
-If FRAME is the symbol t, then the global, non-frame face is returned.
-If NAME is already a face, it is simply returned."
+If NAME is already a face, it is simply returned.
+The optional argument FRAME is ignored."
   (or (facep name)
       (check-face name)))
 (make-obsolete 'internal-get-face "see `facep' and `check-face'." "21.1")
