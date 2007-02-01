@@ -1,3 +1,8 @@
+2007-02-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* display.texi (Attribute Functions): Fix name and description of
+	the UNDERLINE arg of `set-face-underline-p'.
+
 2007-01-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* elisp.texi (Top): Add "Standard Errors", "Standard Buffer-Local

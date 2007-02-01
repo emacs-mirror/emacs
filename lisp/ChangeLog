@@ -1,3 +1,8 @@
+2007-02-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faces.el (set-face-underline-p, modify-face): Rename arg
+	UNDERLINE-P to UNDERLINE (it is not a flag).
+
 2007-02-01  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-speedbar-update): Avoid duplication
@@ -10,8 +15,8 @@
 
 2007-02-01  J.D. Smith  <jdsmith@as.arizona.edu>
 
-	* progmodes/idlwave.el (idlwave-xml-create-sysvar-alist): Trim
-	leading whitespace in sysvar names.
+	* progmodes/idlwave.el (idlwave-xml-create-sysvar-alist):
+	Trim leading whitespace in sysvar names.
 
 2007-02-01  Juanma Barranquero  <lekktu@gmail.com>
 
