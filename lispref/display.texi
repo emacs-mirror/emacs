@@ -2201,9 +2201,10 @@ This function specifies whether @var{face} should be italic.  If
 This actually sets the @code{:slant} attribute.
 @end defun
 
-@defun set-face-underline-p face underline-p &optional frame
+@defun set-face-underline-p face underline &optional frame
 This function sets the underline attribute of face @var{face}.
 Non-@code{nil} means do underline; @code{nil} means don't.
+If @var{underline} is a string, underline with that color.
 @end defun
 
 @defun set-face-inverse-video-p face inverse-video-p &optional frame
