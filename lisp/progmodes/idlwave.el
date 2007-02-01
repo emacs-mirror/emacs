@@ -3497,8 +3497,7 @@ if `idlwave-auto-fill-split-string' is non-nil."
 	  (save-excursion
 	    (end-of-line 0)
 	    ;; Indent the split line
-	    (idlwave-indent-line)
-	    )
+	    (idlwave-indent-line))
 	  (if (save-excursion
 		(beginning-of-line)
 		(looking-at idlwave-comment-line-start-skip))
@@ -4843,7 +4842,9 @@ Gets set in cached XML rinfo, or `idlw-rinfo.el'.")
 (defun idlwave-xml-create-sysvar-alist (xml-entry)
   ;; Create a sysvar list entry from the xml parsed list.
   (let* ((nameblock (nth 1 xml-entry))
-	 (sysvar (substring (cdr (assq 'name nameblock)) 1))
+	 (name (cdr (assq 'name nameblock)))
+	 (sysvar (substring name (progn (string-match "^ *!" name) 
+					(match-end 0))))
 	 (link (cdr (assq 'link nameblock)))
 	 (params (cddr xml-entry))
 	 (case-fold-search t)
