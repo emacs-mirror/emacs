@@ -1,7 +1,7 @@
 2007-02-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* dired-x.el (dired-do-relsymlink): Add reference to
-	dired-do-symlink.
+	dired-do-symlink.  Add an autoload cookie.
 
 	* dired-aux.el (dired-do-symlink): Add reference to
 	dired-do-relsymlink.
