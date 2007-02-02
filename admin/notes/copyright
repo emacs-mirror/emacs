@@ -1,3 +1,8 @@
+Copyright (C) 2007  Free Software Foundation, Inc.
+Copying and distribution of this file, with or without modification,
+are permitted provided the copyright notice and this notice are preserved.
+
+
 NOTES ON COPYRIGHTS AND LICENSES
 
 Some terminology:
@@ -70,6 +75,17 @@ report!).
 rms, 2007/1, "Copyright years".]
 
 
+lib-src/etags.c           # print_version
+lib-src/rcs2log           # Copyright
+lisp/calc/calc-help.el    # calc-full-help
+lisp/startup.el           # fancy-splash-tail
+mac/Emacs.app/Contents/Resources/English.lproj/InfoPlist.strings
+mac/src/Emacs.r           # resource 'vers'
+src/emacs.c
+  - remember to change the latest copyright year in the --version output.
+  [Post-release, will automate this like set-version does for version.]
+
+
 <top-level>/install-sh
 lispintro/install-sh
  - this file is copyright MIT, which is OK. Leave the copyright alone.
@@ -118,6 +134,7 @@ lisp/net/tramp.el
 
 msdos/is_exec.c, sigaction.c
   - these files are copyright DJ Delorie. Leave the copyrights alone.
+  Leave the Zaretskii copyright in is_exec.c alone.
 
 src/gmalloc.c
   - contains numerous copyrights from the GNU C library. Leave them alone.
@@ -213,17 +230,9 @@ man/back.texi, trampver.texi
   - add standard notices to any decided to be non-trivial.
 
 
-msdos/
-  - do we need to add COPYING.LIB (because COPYING.DJ refers to it)?
-  (but see below).
-
-
-msdos/is_exec.c
-  - does copying.dj replace eliz's copyright?
-
-
 msdos/is_exec.c, sigaction.c
-  - relicense under the GPL
+  - do we need to add COPYING.LIB (because COPYING.DJ refers to it)?
+  relicense under the GPL?
 
 
 oldXMenu/
