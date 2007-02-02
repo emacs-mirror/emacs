@@ -36,8 +36,8 @@
 
 2006-07-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* makefile.MPW (dired.c.x, editfns.c.x, fileio.c.x): Depend on
-	blockinput.h.
+	* makefile.MPW (dired.c.x, editfns.c.x, fileio.c.x):
+	Depend on blockinput.h.
 
 2006-07-12  Kim F. Storm  <storm@cua.dk>
 
@@ -126,8 +126,8 @@
 	(Emacs, {DocTarget}DOC): Depend on buildobj.lst.
 	(EmacsSource, MacSource, LispSource, LispSourceDontCompile):
 	Remove variables.
-	(SOME_MACHINE_OBJECTS, shortlisp, SOME_MACHINE_LISP): New
-	variables.
+	(SOME_MACHINE_OBJECTS, shortlisp, SOME_MACHINE_LISP):
+	New variables.
 	({DocTarget}DOC): Use them.
 	(Make-DocFile-PPCCOptions): Add `-d MAC_OS -d MAC_OS8'.
 
@@ -142,7 +142,7 @@
 	(HAVE_ALLOCA, C_ALLOCA): Move from m-mac.h.
 	(PTR): Move to s-mac.h.
 
-	* inc/m-mac.h: (HAVE_ALLOCA, C_ALLOCA): Move to config.h.
+	* inc/m-mac.h (HAVE_ALLOCA, C_ALLOCA): Move to config.h.
 
 	* inc/s-mac.h: Sync with src/s/template.h.  Don't include fcntl.h,
 	time.h, or signal.h.
@@ -237,7 +237,7 @@
 
 	* src/Emacs.r: Update TOO_MUCH_RAM error message.
 
-2003-11-22  Lars Hansen <larsh@math.ku.dk>
+2003-11-22  Lars Hansen  <larsh@math.ku.dk>
 
 	* inc/grp.h: Added.
 
@@ -269,7 +269,7 @@
 
 2003-03-21  Kim F. Storm  <storm@cua.dk>
 
-	* makefile.MPW (xdisp.c.x):  Add dependency on blockinput.h and
+	* makefile.MPW (xdisp.c.x): Add dependency on blockinput.h and
 	files included from it.  Add dependency on keymap.h.
 
 2003-01-14  Steven Tamm  <steventamm@mac.com>
@@ -343,7 +343,7 @@
 
 	Option --symlink added to reduce disk size by making
 	/usr/bin/emacs and the Emacs binary inside the Emacs.app to become
-	symlinks to the	emacs-[version] binary.
+	symlinks to the emacs-[version] binary.
 
 	Option --self-contained added to place files shared files
 	inside the Emacs.app executable (for portability between systems)
