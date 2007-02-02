@@ -1,3 +1,54 @@
+2007-02-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* dired-x.el (dired-do-relsymlink): Add reference to
+	dired-do-symlink.
+
+	* dired-aux.el (dired-do-symlink): Add reference to
+	dired-do-relsymlink.
+
+2007-02-02  Doug Maxey  <dwm@enoyolf.org>  (tiny change)
+
+	* mouse.el <left-fringe mouse-2, right-fringe mouse-3>:
+	<left-fringe mouse-3>: New bindings.
+
+2007-02-02  Ulf Jasper  <ulf.jasper@web.de>
+
+	* newsticker.el (newsticker-version): Changed to "1.10".
+	(newsticker--set-customvar): Doc string.
+	(newsticker-new-item-face): Doc string.
+	(newsticker-mode): Initialize `invisibility-spec' with t.
+	(newsticker-mode-map): Added
+	`newsticker-mark-all-items-at-point-as-read'.
+	(newsticker-menu): Added narrow-to-item and narrow-to-feed.
+	(newsticker-w3m-show-inline-images): Do not call
+	`w3m-remove-image'.
+	(newsticker--buffer-after-w3m-insert-image): New advice for
+	w3m-insert-image to cache images.
+	(newsticker-next-item-same-feed): New.
+	(newsticker-mark-all-items-at-point-as-read-and-redraw): New.
+	(newsticker-mark-all-items-of-feed-as-read): New.
+	(newsticker-mark-all-items-at-point-as-read): Use new functions.
+	(newsticker-mark-item-at-point-as-read): Doc string.
+	(newsticker-mark-item-at-point-as-read): Use new functions.
+	(newsticker--do-mark-item-at-point-as-read): New, extracted from
+	`newsticker-mark-item-at-point-as-read'.
+	(newsticker-hide-entry): Use (t) instead of t for invisibility.
+	(newsticker--sentinel): Yet another xml-parser workaround.
+	(newsticker--decode-iso8601-date): Bugfix for datestrings without
+	days.
+	(newsticker--buffer-do-insert-text): Fix.
+	(newsticker--buffer-insert-enclosure): Fix. length might be missing.
+	(newsticker--buffer-make-item-completely-visible):
+	`switch-to-buffer' not necessary.
+
+2007-02-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/ebnf2ps.el (ebnf-eps-buffer, ebnf-eps-region)
+	(ebnf-syntax-directory, ebnf-syntax-file, ebnf-syntax-region)
+	(ebnf-style-database, ebnf-apply-style, ebnf-reset-style)
+	(ebnf-push-style, ebnf-pop-style, ebnf-eps-production-list)
+	(ebnf-directory, ebnf-file, ebnf-syntax-alist): Doc fixes.
+
 2007-02-02  Kenichi Handa  <handa@m17n.org>
 
 	* international/quail.el (quail-show-key): Fix an error message.
