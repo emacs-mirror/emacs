@@ -45,8 +45,7 @@
 	and extraclean.
 	(.PHONY): Add bootfast.
 	(bootstrap): Make bootstrap-after in lisp.
-	(bootstrap-clean-before): Clean in man, lispref, and lispintro as
-	well.
+	(bootstrap-clean-before): Clean in man, lispref, and lispintro as well.
 
 	* sed2v2.inp (HAVE_BZERO): Define for GCC v3.x and later.
 
@@ -405,7 +404,7 @@
 
 	* sed2.inp: (EMACS_CONFIGURATION): Set to i386-pc-msdosdjgpp.
 
-1997-08-10 +03  Eli Zaretskii  <eliz@is.elta.co.il>
+1997-08-10  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* sed1v2.inp (CPPFLAGS, LDFLAGS): Edit to empty.
 
