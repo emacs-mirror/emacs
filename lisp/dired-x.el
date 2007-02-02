@@ -1308,7 +1308,7 @@ not absolute ones like
 
     foo -> /ugly/file/name/that/may/change/any/day/bar/foo
 
-For absulte symlinks, use \\[dired-do-symlink]."
+For absolute symlinks, use \\[dired-do-symlink]."
   (interactive "P")
   (dired-do-create-files 'relsymlink (function dired-make-relative-symlink)
                            "RelSymLink" arg dired-keep-marker-relsymlink))
