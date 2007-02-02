@@ -8442,7 +8442,7 @@ do_ewmh_fullscreen (f)
           break;
         }
 
-      if (!wm_supports (f, what)) return 0;
+      if (what != NULL && !wm_supports (f, what)) return 0;
 
 
       Fx_send_client_event (frame, make_number (0), frame,
