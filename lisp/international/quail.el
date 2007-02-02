@@ -2773,7 +2773,7 @@ If CHAR is an ASCII character and can be input by typing itself, return t."
   (or current-input-method
       (error "No input method is activated"))
   (or (assoc current-input-method quail-package-alist)
-      (error "The current input method is not using Quail"))
+      (error "The current input method does not use Quail"))
   (let* ((char (following-char))
 	 (key-list (quail-find-key char)))
     (cond ((consp key-list)
