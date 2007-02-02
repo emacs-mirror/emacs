@@ -11,7 +11,7 @@
 
 2003-07-03  Alan Mackenzie  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-mode.el: awk-mode: Call c-awk-after-change to
+	* progmodes/cc-mode.el (awk-mode): Call c-awk-after-change to
 	ensure syntax-table props at loading.
 
 	* progmodes/cc-fonts.el: Put (cc-require-when-compile 'cc-awk)
@@ -2176,7 +2176,7 @@
 	(gdb-assembler-mode): Keep fringe outside margin as the overlay
 	arrow is not used for assembler.
 
-2003-05-25   Tim Van Holder  <tim.vanholder@anubex.com>
+2003-05-25  Tim Van Holder  <tim.vanholder@anubex.com>
 
 	* which-func.el (which-func-update-timer): New variable.
 	(which-function-mode): Use it.

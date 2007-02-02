@@ -40,7 +40,7 @@
 
 	* TODO: Proper background color handling for pngs.
 
-2007-01-18  Bruno Haible  <bruno@clisp.org> (tiny change)
+2007-01-18  Bruno Haible  <bruno@clisp.org>  (tiny change)
 
 	* emacs.1: Info files moved to share/info.
 

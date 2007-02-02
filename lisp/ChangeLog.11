@@ -12127,7 +12127,7 @@
 	(xml-parse-dtd): Change parsing so that it produces strings
 	instead of interned symbols.
 
-2003-11-01  era@iki.fi  <era@iki.fi>  (tiny change)
+2003-11-01  Era Eriksson  <era@iki.fi>  (tiny change)
 
 	* dired.el (dired-ls-sorting-switches): Doc fix.
 

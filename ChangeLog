@@ -1,6 +1,6 @@
-2007-01-31  Sascha Wilde  <wilde@sha-bang.de> (tiny change)
+2007-01-31  Sascha Wilde  <wilde@sha-bang.de>  (tiny change)
 
-	* configure.in (PKG_CHECK_MODULES): Change ///* to / in cflags and
+	* configure.in (PKG_CHECK_MODULES): Change ///* to / in cflags and libs.
 
 2007-01-29  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -18,7 +18,7 @@
 
 	* configure.in: Add check for libXft.
 
-2007-01-18  Bruno Haible  <bruno@clisp.org> (tiny change)
+2007-01-18  Bruno Haible  <bruno@clisp.org>  (tiny change)
 
 	* INSTALL: Info files moved to share/info.
 

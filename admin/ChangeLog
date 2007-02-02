@@ -1,4 +1,4 @@
-2007-01-27  Jan Dj,AC$(Brv  <jhd@winter.localdomain>
+2007-01-27  Jan Dj,Ad(Brv  <jhd@winter.localdomain>
 
 	* FOR-RELEASE: Removed Gtk/Xft issue.
 
@@ -80,9 +80,9 @@
 	* FOR-RELEASE: MH-E 8.0 has been released, so removed reminder
 	about it.
 
-2006-04-17 Ramprasad B <ramprasad_i82@yahoo.com>
+2006-04-17  Ramprasad B  <ramprasad_i82@yahoo.com>
 
-	* ./* (Copyright): Updated Copyright year(s)
+	* ./* (Copyright): Updated Copyright year(s).
 
 2006-02-24  Reiner Steib  <Reiner.Steib@gmx.de>
 
