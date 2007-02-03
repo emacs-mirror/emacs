@@ -97,6 +97,7 @@
 			      '("defun" "defun*" "defsubst" "defmacro"
 				"defadvice" "define-skeleton"
 				"define-minor-mode" "define-global-minor-mode"
+				"define-globalized-minor-mode"
 				"define-derived-mode" "define-generic-mode"
 				"define-compiler-macro" "define-modify-macro"
 				"defsetf" "define-setf-expander"
@@ -143,6 +144,7 @@
 (put 'define-minor-mode 'doc-string-elt 2)
 (put 'easy-mmode-define-global-mode 'doc-string-elt 2)
 (put 'define-global-minor-mode 'doc-string-elt 2)
+(put 'define-globalized-minor-mode 'doc-string-elt 2)
 (put 'define-generic-mode 'doc-string-elt 7)
 (put 'define-ibuffer-filter 'doc-string-elt 2)
 (put 'define-ibuffer-op 'doc-string-elt 3)
