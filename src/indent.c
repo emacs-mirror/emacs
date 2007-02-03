@@ -909,6 +909,7 @@ indented_beyond_p (pos, pos_byte, column)
 
 DEFUN ("move-to-column", Fmove_to_column, Smove_to_column, 1, 2, "p",
        doc: /* Move point to column COLUMN in the current line.
+Interactively, COLUMN is the value of prefix numeric argument.
 The column of a character is calculated by adding together the widths
 as displayed of the previous characters in the line.
 This function ignores line-continuation;
@@ -918,10 +919,10 @@ and horizontal scrolling has no effect.
 If specified column is within a character, point goes after that character.
 If it's past end of line, point goes to end of line.
 
-A non-nil second (optional) argument FORCE means,
-if COLUMN is in the middle of a tab character, change it to spaces.
-In addition, if FORCE is t, and the line is too short
-to reach column COLUMN, add spaces/tabs to get there.
+Optional second argument FORCE non-nil means if COLUMN is in the
+middle of a tab character, change it to spaces.
+In addition, if FORCE is t, and the line is too short to reach
+COLUMN, add spaces/tabs to get there.
 
 The return value is the current column.  */)
      (column, force)
