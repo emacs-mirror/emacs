@@ -170,8 +170,14 @@ Appendices
 * New Symbols::             New functions and variables in Emacs @value{EMACSVER}.
 @end ignore
 
-Detailed Node Listing
----------------------
+@c Do NOT modify the following 3 lines!  They must have this form to
+@c be correctly identified by `texinfo-multiple-files-update'.  In
+@c particular, the detailed menu header line MUST be identical to the
+@c value of `texinfo-master-menu-header'.  See texnfo-upd.el.
+
+@detailmenu
+ --- The Detailed Node Listing ---
+ ---------------------------------
 
 Here are other nodes that are inferiors of those already listed,
 mentioned here so you can get to them in one step:
@@ -1383,6 +1389,7 @@ Object Internals
 * Buffer Internals::        Components of a buffer structure.
 * Window Internals::        Components of a window structure.
 * Process Internals::       Components of a process structure.
+@end detailmenu
 @end menu
 
 @include intro.texi
