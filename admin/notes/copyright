@@ -178,8 +178,8 @@ image?):
 admin/check-doc-strings
   Author is Martin Buchholz, but no assignment from him on file, and
   rms has no way to reach him.
-admin/make-announcement - no copyright
-admin/nt/makedist.bat - no copyright (author andrewi@gnu.org? mail sent)
+[FIXED  admin/make-announcement - no copyright]
+[FIXED  admin/nt/makedist.bat - no copyright]
 etc/ms-kermit - no copyright, but ms-7bkermit has one
 etc/e/eterm-color.ti  - no copyright
   rms: "I think that is not copyrightable under the merger doctrine
@@ -195,7 +195,7 @@ etc/gnus-refcard.tex
   probably be removed, but it may be ok (waiting for rms)
 
 
-[etc/orgcard.tex, orgcard.ps]
+[REMOVED etc/orgcard.tex, orgcard.ps]
   Re-add these files if an assignment is received from Rooke.
 
 
@@ -232,7 +232,7 @@ man/back.texi, trampver.texi
 
 msdos/is_exec.c, sigaction.c
   - do we need to add COPYING.LIB (because COPYING.DJ refers to it)?
-  relicense under the GPL?
+  can we relicense under the GPL? Do these contradict?
 
 
 oldXMenu/
