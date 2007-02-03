@@ -1,3 +1,10 @@
+2007-02-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* elisp.texi (Top): Make the detailed menu headers compliant with
+	Texinfo guidelines and with what texnfo-upd.el expects.  Add
+	comments to prevent people from inadvertently modifying the key
+	parts needed by `texinfo-multiple-files-update'.
+
 2007-02-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* elisp.texi (Top): Update the top-level menus.

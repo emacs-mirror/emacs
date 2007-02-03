@@ -134,7 +134,7 @@ lisp/net/tramp.el
 
 msdos/is_exec.c, sigaction.c
   - these files are copyright DJ Delorie. Leave the copyrights alone.
-  Leave the Zaretskii copyright in is_exec.c alone.
+  Leave the Eli Zaretskii copyright in is_exec.c alone.
 
 src/gmalloc.c
   - contains numerous copyrights from the GNU C library. Leave them alone.
