@@ -1391,9 +1391,9 @@ If non-@code{nil}, this specifies that the minor mode should be global
 rather than buffer-local.  It defaults to @code{nil}.
 
 One of the effects of making a minor mode global is that the
-@var{mode} variable becomes a customization variable; toggling it
-through the Custom interface to turn the mode on and off, and its
-value can be saved for future Emacs sessions (@pxref{Saving
+@var{mode} variable becomes a customization variable.  Toggling it
+through the Custom interface turns the mode on and off, and its value
+can be saved for future Emacs sessions (@pxref{Saving
 Customizations,,, emacs, The GNU Emacs Manual}.  For the saved
 variable to work, you should ensure that the @code{define-minor-mode}
 form is evaluated each time Emacs starts; for packages that are not
