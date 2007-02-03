@@ -1,5 +1,9 @@
 2007-02-03  Chong Yidong  <cyd@stupidchicken.com>
 
+	* net/newsticker.el (newsticker--insert-image): Update docstring,
+	and insert the image directly.
+	(newsticker--buffer-redraw): Update docstring.
+
 	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode): Rename
 	from define-global-minor-mode.
 
