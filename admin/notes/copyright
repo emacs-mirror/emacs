@@ -168,7 +168,6 @@ license statements added. Whether or not this is possible, the
 information should be recorded in a README file in each directory with
 images. Image files to consider (is there such a thing as a "trivial"
 image?):
- src/bitmaps/
  etc/emacs.xbm, gnu.xpm, gnus.pbm, gnus-logo.eps, letter.pbm, letter.xpm
  etc/images/
  etc/tree-widget/

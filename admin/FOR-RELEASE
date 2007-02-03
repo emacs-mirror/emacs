@@ -1,11 +1,7 @@
 Tasks needed before the next release.
 
-* UPDATE COPYRIGHTS (Happy New Year :-)
-  Done, I think. Please keep an eye out for any errors, eg copyrights
-  not at the start of the file that are easy to miss, as in
-  src/emacs.c.
-
-  See also the oustanding issues in admin/notes/copyright.
+* COPYRIGHTS
+  See the outstanding issues at the end of admin/notes/copyright.
 
 * TO BE DONE SHORTLY BEFORE RELEASE
 
