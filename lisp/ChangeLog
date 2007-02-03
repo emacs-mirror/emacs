@@ -4,6 +4,11 @@
 	for, e.g. "void (*hdone)();" in a k&r list.  (No WS between
 	adjacent paren groups).
 
+2007-02-02  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* progmodes/ebnf2ps.el: Doc fixes.
+	(ebnf-eps-buffer, ebnf-eps-region, ebnf-syntax-alist): Doc fixes.
+
 2007-02-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* dired-x.el (dired-do-relsymlink): Add reference to

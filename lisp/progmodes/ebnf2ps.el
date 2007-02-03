@@ -100,7 +100,7 @@ Please send all bug fixes and enhancements to
 ;;             send the spooled images to the printer, use the command
 ;;             `ebnf-despool'.
 ;;
-;;    eps    - The PostScript image is immediately sent to a EPS file.
+;;    eps    - The PostScript image is immediately sent to an EPS file.
 ;;
 ;; The spooling mechanism is the same as used by ps-print and was designed for
 ;; printing lots of small files to save paper that would otherwise be wasted on
@@ -807,11 +807,10 @@ Please send all bug fixes and enhancements to
 ;; and name this group.  So when you wish to apply these settings it's only
 ;; needed to give the name.
 ;;
-;; There is also a notion of simple inheritance of style; so, if you declare
-;; that a style A inherits from a style B, all settings of B is applied first
-;; and then the settings of A is applied.  This is useful when you wish to
-;; modify some aspects of an existing style, but at same time wish to keep it
-;; unmodified.
+;; There is also a notion of simple inheritance of style: if you declare that
+;; style A inherits from style B, all settings of B are applied first and then
+;; the settings of A are applied.  This is useful when you wish to modify some
+;; aspects of an existing style, but at same time wish to keep it unmodified.
 ;;
 ;; See documentation for `ebnf-style-database'.
 ;;
@@ -1093,6 +1092,8 @@ Please send all bug fixes and enhancements to
 ;;
 ;; Acknowledgements
 ;; ----------------
+;;
+;; Thanks to Eli Zaretskii <eliz@gnu.org> for some doc fixes.
 ;;
 ;; Thanks to Drew Adams <drew.adams@oracle.com> for suggestions:
 ;;    - `ebnf-arrow-extra-width', `ebnf-arrow-scale',
@@ -2182,7 +2183,7 @@ See also `ebnf-eps-buffer'."
 
 ;;;###autoload
 (defun ebnf-eps-buffer ()
-  "Generate a PostScript syntactic chart image of the buffer in a EPS file.
+  "Generate a PostScript syntactic chart image of the buffer in an EPS file.
 
 Generate an EPS file for each production in the buffer.
 The EPS file name has the following form:
@@ -2206,7 +2207,7 @@ WARNING: This function does *NOT* ask any confirmation to override existing
 
 ;;;###autoload
 (defun ebnf-eps-region (from to)
-  "Generate a PostScript syntactic chart image of the region in a EPS file.
+  "Generate a PostScript syntactic chart image of the region in an EPS file.
 
 Generate an EPS file for each production in the region.
 The EPS file name has the following form:
@@ -4828,7 +4829,7 @@ killed after process termination."
     (ebnf      ebnf-bnf-parser  ebnf-bnf-initialize)
     (ebnfx     ebnf-ebx-parser  ebnf-ebx-initialize)
     (dtd       ebnf-dtd-parser  ebnf-dtd-initialize))
-  "Alist associating EBNF syntax with a parser and a initializer.")
+  "Alist associating EBNF syntax with a parser and an initializer.")
 
 
 (defun ebnf-begin-job ()
