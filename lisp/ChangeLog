@@ -1,3 +1,8 @@
+2007-02-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-mode.el: Use autoload to avoid overriding disabled setting
+	applied in .emacs.
+
 2007-02-03  acm  <acm@localhost.localdomain>
 
 	* progmodes/cc-engine.el (c-in-knr-argdecl): Slight correction
