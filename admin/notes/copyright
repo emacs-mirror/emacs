@@ -149,6 +149,10 @@ src/gmalloc.c
 *** These are copyright issues still to be addressed:
 
 
+Maybe some relevant comments here?
+<http://groups.google.com/group/linux.debian.legal/browse_thread/thread/123547ea95437a1f>
+
+
 Is it OK to just `cvs remove' a file for legal reasons, or is
 something more drastic needed? A removed file is still available from
 CVS, if suitable options are applied.

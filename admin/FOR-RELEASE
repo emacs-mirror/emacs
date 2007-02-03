@@ -57,6 +57,7 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 ** W3 status with latest url package.
 
 ** Fix up the notices in oldXMenu properly.
+  See admin/notes/copyright.
 
 ** disumu@x3y2z1.net, Nov 22:
   URL not following some 302 redirects after recent changes
