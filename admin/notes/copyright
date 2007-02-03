@@ -169,10 +169,9 @@ information should be recorded in a README file in each directory with
 images. Image files to consider (is there such a thing as a "trivial"
 image?):
  src/bitmaps/
- etc/*.xpm, *.xbm
+ etc/emacs.xbm, gnu.xpm, gnus.pbm, gnus-logo.eps, letter.pbm, letter.xpm
  etc/images/
  etc/tree-widget/
- etc/*.ps, .eps
 
 
 admin/check-doc-strings
