@@ -10,7 +10,7 @@
 ;; Created:     17. June 2003
 ;; Keywords:    News, RSS, Atom
 ;; Time-stamp:  "29. Januar 2007, 21:05:09 (ulf)"
-;; CVS-Version: $Id: newsticker.el,v 1.154 2007/01/29 20:05:35 u11 Exp $
+;; CVS-Version: $Id: newsticker.el,v 1.13 2007/02/02 14:29:50 eliz Exp $
 
 ;; ======================================================================
 
@@ -4355,7 +4355,7 @@ The mode-line is changed accordingly."
       (force-mode-line-update 0))))
 
 (defun newsticker--buffer-redraw ()
-  "Sometimes (CVS) Emacs forgets to update the window..."
+  "Redraw the newsticker window."
   (if (fboundp 'force-window-update)
       (force-window-update (current-buffer))
     (redraw-frame (selected-frame)))
@@ -4836,17 +4836,8 @@ The face is chosen according the values of NT-FACE and AGE."
       (put-text-property pos1 (max pos1 pos2) 'face face))))
 
 (defun newsticker--insert-image (img string)
-  "Insert IMG with STRING at point.
-This is a work-around for a strange behavior of Emacs versions before
-21.3.50.  Images inserted with `insert-image' vanished after doing
-`fill-region'."
-  ;; This should work:
-  ;;(insert-image img string)
-  ;; but it does not. Therefore we do this, which should be equivalent!
-  (let ((pos (point)))
-    ;;(insert string)
-    (insert ":-)")
-    (add-text-properties pos (point) (list 'display img))))
+  "Insert IMG with STRING at point."
+  (insert-image img string))
 
 ;; ======================================================================
 ;;; HTML rendering
