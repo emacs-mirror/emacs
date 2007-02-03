@@ -6894,7 +6894,7 @@ xrealloc (ptr, size)
  * tab-width: 8
  * fill-column: 79
  * c-font-lock-extra-types: ("FILE" "bool" "language" "linebuffer" "fdesc" "node" "regexp")
- * c-file-style: gnu
+ * c-file-style: "gnu"
  * End:
  */
 
