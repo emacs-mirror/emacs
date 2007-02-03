@@ -174,10 +174,15 @@ and showing the image as an image."
       (if (called-interactively-p)
 	  (message "Repeat this command to go back to displaying the file as text")))))
 
-(put 'image-toggle-display 'disabled "\
-WARNING: Displaying images can be a security risk.
-Please make sure you're using up-to-date image libraries
-and the images displayed come from a trusted source.")
+;; Don't override the setting from .emacs.
+;;;###autoload (put 'image-toggle-display 'disabled t)
+
+(if (get 'image-toggle-display 'disabled)
+    (put 'image-toggle-display 'disabled "\
+
+Warning: Displaying images in Emacs could be a security risk.
+Please ensure that you are using up-to-date image libraries
+and that the images being displayed come from a trusted source."))
 
 (provide 'image-mode)
 
