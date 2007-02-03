@@ -4087,10 +4087,10 @@ contain symbolic links) of the loaded file.
 
 The remaining elements of each list are symbols defined as variables
 and cons cells of the form `(provide . FEATURE)', `(require . FEATURE)',
-`(defun . FUNCTION)', `(autoload . SYMBOL)', and `(t . SYMBOL)'.
-An element `(t . SYMBOL)' precedes an entry `(defun . FUNCTION)',
-and means that SYMBOL was an autoload before this file redefined it
-as a function.
+`(defun . FUNCTION)', `(autoload . SYMBOL)', `(defface . SYMBOL)'
+and `(t . SYMBOL)'.  An element `(t . SYMBOL)' precedes an entry
+`(defun . FUNCTION)', and means that SYMBOL was an autoload before
+this file redefined it as a function.
 
 During preloading, the file name recorded is relative to the main Lisp
 directory.  These file names are converted to absolute at startup.  */);
