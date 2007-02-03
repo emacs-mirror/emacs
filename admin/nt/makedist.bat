@@ -3,7 +3,10 @@
 rem Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
 rem   Free Software Foundation, Inc.
 rem
-rem Author: Andrew Innes <andrewi@gnu.org>
+rem Cannot use brackets in andrewi's email below because
+rem older Windows shells will treat that as redirection.
+rem
+rem Author: Andrew Innes andrewi@gnu.org
 rem
 rem This file is part of GNU Emacs.
 rem
