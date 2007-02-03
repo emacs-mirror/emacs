@@ -1,3 +1,12 @@
+2007-02-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* textmodes/texnfo-upd.el (texinfo-menu-copy-old-description):
+	Don't copy @ignore lines into menu descriptions.
+	(texinfo-multi-file-update): Goto the @node line before attempting
+	to pluck the node name.
+	(texinfo-multiple-files-update): Reverse the optional arguments'
+	order, as per the doc string and the `interactive' form.
+
 2007-02-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image-mode.el: Use autoload to avoid overriding disabled setting
