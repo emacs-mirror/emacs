@@ -1,3 +1,9 @@
+2007-02-03  Alan Mackenzie  <acm@muc.de>
+
+	* loading.texi (Hooks for Loading): Make the description of
+	`eval-after-load' more detailed, and amend the description of
+	after-load-alist, in accordance with changes from 2006-05.
+
 2007-02-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* modes.texi (Defining Minor Modes): Document that a :require
