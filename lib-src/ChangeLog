@@ -1,6 +1,6 @@
 2007-02-04  Per Cederqvist  <ceder@ingate.com>
 
-	* etags.c: (gperf, in_word_set): changed attribute for Java to
+	* etags.c (gperf, in_word_set): Change attribute for Java to
 	(C_JAVA & ~C_PLPL).  The previous change introduced 2004-09-13 was
 	broken, as (C_JAVA & !C_PLPL) always evaluates to 0.  This caused
 	import, package, extends, implements and interface to be treated
@@ -8,7 +8,7 @@
 
 2007-01-02  Francesco Potort,Al(B  <pot@gnu.org>
 
-	* etags.c: (longopts): New undocumented option --no-duplicates.
+	* etags.c (longopts): New undocumented option --no-duplicates.
 	(no_duplicates): Static variables for the above option.
 	(print_help): Do not print help for --no-warn, now undocumented.
 	(add_node): Allow duplicate tags in ctags mode unless --no-duplicates.
@@ -28,7 +28,7 @@
 
 	* makefile.w32-in (make-docfile, ctags, etags, ebrowse, hexl)
 	(movemail, fakemail, sorted-doc, digest-doc, emacsclient)
-	(test-distrib, $(DOC), all): depend on stamp_BLD instead of $(BLD).
+	(test-distrib, $(DOC), all): Depend on stamp_BLD instead of $(BLD).
 	($(BLD)/make-docfile.$(O) $(BLD)/hexl.$(O) $(BLD)/fakemail.$(O))
 	($(BLD)/sorted-doc.$(O) $(BLD)/digest-doc.$(O))
 	($(BLD)/test-distrib.$(O) $(GETOPTOBJS) $(MOVEMAILOBJS))
