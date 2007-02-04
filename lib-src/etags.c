@@ -2418,12 +2418,12 @@ __attribute__,	0,			st_C_attribute
 @protocol,	0,			st_C_objprot
 @implementation,0,			st_C_objimpl
 @end,		0,			st_C_objend
-import,		(C_JAVA & !C_PLPL),	st_C_ignore
-package,	(C_JAVA & !C_PLPL),	st_C_ignore
+import,		(C_JAVA & ~C_PLPL),	st_C_ignore
+package,	(C_JAVA & ~C_PLPL),	st_C_ignore
 friend,		C_PLPL,			st_C_ignore
-extends,	(C_JAVA & !C_PLPL),	st_C_javastruct
-implements,	(C_JAVA & !C_PLPL),	st_C_javastruct
-interface,	(C_JAVA & !C_PLPL),	st_C_struct
+extends,	(C_JAVA & ~C_PLPL),	st_C_javastruct
+implements,	(C_JAVA & ~C_PLPL),	st_C_javastruct
+interface,	(C_JAVA & ~C_PLPL),	st_C_struct
 class,		0,			st_C_class
 namespace,	C_PLPL,			st_C_struct
 domain,		C_STAR,			st_C_struct
@@ -2534,19 +2534,19 @@ in_word_set (str, len)
       {"@end",		0,			st_C_objend},
       {"union",		0,			st_C_struct},
       {"define",		0,			st_C_define},
-      {"import",		(C_JAVA & !C_PLPL),	st_C_ignore},
+      {"import",		(C_JAVA & ~C_PLPL),	st_C_ignore},
       {"template",	0,			st_C_template},
       {"operator",	C_PLPL,			st_C_operator},
       {"@interface",	0,			st_C_objprot},
-      {"implements",	(C_JAVA & !C_PLPL),	st_C_javastruct},
+      {"implements",	(C_JAVA & ~C_PLPL),	st_C_javastruct},
       {"friend",		C_PLPL,			st_C_ignore},
       {"typedef",	0,			st_C_typedef},
       {"return",		0,			st_C_ignore},
       {"@implementation",0,			st_C_objimpl},
       {"@protocol",	0,			st_C_objprot},
-      {"interface",	(C_JAVA & !C_PLPL),	st_C_struct},
+      {"interface",	(C_JAVA & ~C_PLPL),	st_C_struct},
       {"extern",		0,			st_C_extern},
-      {"extends",	(C_JAVA & !C_PLPL),	st_C_javastruct},
+      {"extends",	(C_JAVA & ~C_PLPL),	st_C_javastruct},
       {"struct",		0,			st_C_struct},
       {"domain",		C_STAR,			st_C_struct},
       {"switch",		0,			st_C_ignore},
@@ -2556,7 +2556,7 @@ in_word_set (str, len)
       {"class",		0,			st_C_class},
       {"while",		0,			st_C_ignore},
       {"undef",		0,			st_C_define},
-      {"package",	(C_JAVA & !C_PLPL),	st_C_ignore},
+      {"package",	(C_JAVA & ~C_PLPL),	st_C_ignore},
       {"__attribute__",	0,			st_C_attribute},
       {"SYSCALL",	0,			st_C_gnumacro},
       {"ENTRY",		0,			st_C_gnumacro},
