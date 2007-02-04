@@ -167,11 +167,11 @@ to be added.
   borderline "trivial" cases...?
 
 
-All images files that allow for comments should have copyright and
-license statements added. Whether or not this is possible, the
-information should be recorded in a README file in each directory with
-images. Image files to consider (is there such a thing as a "trivial"
-image?):
+Clarify the legal status of many image files. It's not necessary
+to put a notice in each image (where the format allows it). It's OK to
+put the information in a README file in the associated directory.
+Files can be listed in groups. See etc/README for an example.
+Image files to consider (is there such a thing as a "trivial" image?):
  etc/emacs.xbm, gnu.xpm, gnus.pbm, gnus-logo.eps, letter.pbm, letter.xpm
  etc/images/
  etc/tree-widget/
