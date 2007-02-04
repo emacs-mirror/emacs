@@ -675,7 +675,7 @@
 
 	* NEWS, MH-E-NEWS: Update for MH-E release 7.93.
 
-2006-02-23  Herbert Euler  <herberteuler@hotmail.com>  (tiny change)
+2006-02-23  Guanpeng Xu  <herberteuler@hotmail.com>
 
 	* TUTORIAL.cn: Fix omission bug: Add dot (ASCII 0x2E) on first line.
 
