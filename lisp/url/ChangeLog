@@ -1,3 +1,10 @@
+2007-02-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* url-http.el (url-http-connection-opened): New variable.
+	(url-http): Initialize it.
+	(url-http-async-sentinel): Don't try changing sentinels.
+	Run url-http-end-of-document-sentinel if necessary.
+
 2007-01-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* url-auth.el (url-get-authentication): Fix typo in docstring.
