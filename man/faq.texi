@@ -3962,7 +3962,7 @@ source buffer.
 @email{dak@@gnu.org, David Kastrup}
 
 @item Latest version
-11.82
+11.84
 
 @item Distribution
 @uref{ftp://ftp.gnu.org/pub/gnu/auctex/}

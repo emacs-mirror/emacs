@@ -1,3 +1,8 @@
+2007-02-04  David Kastrup  <dak@gnu.org>
+
+	* faq.texi (AUCTeX): Update version number.  Should probably be done
+	for other packages as well.
+
 2007-02-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs.texi (Top): Update the top-level menus.  Make the detailed menu
