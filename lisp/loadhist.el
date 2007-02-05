@@ -215,7 +215,7 @@ such as redefining an Emacs function."
 	   ;; Remove any feature names that this file provided.
 	   (provide
 	    (setq features (delq (cdr x) features)))
-	   (defun
+	   ((defun autoload)
 	    (let ((fun (cdr x)))
 	      (when (fboundp fun)
 		(when (fboundp 'ad-unadvise)
@@ -224,7 +224,7 @@ such as redefining an Emacs function."
 		  (if aload
                       (fset fun (cons 'autoload aload))
                     (fmakunbound fun))))))
-           ((t require) nil)
+           ((t require defface) nil)
 	   (t (message "Unexpected element %s in load-history" x)))
 	;; Kill local values as much as possible.
 	(dolist (buf (buffer-list))
@@ -238,7 +238,9 @@ such as redefining an Emacs function."
 	(unless (local-variable-if-set-p x)
 	  (makunbound x))))
     ;; Delete the load-history element for this file.
-    (setq load-history (delq (assoc file load-history) load-history))))
+    (setq load-history (delq (assoc file load-history) load-history)))
+  ;; Don't return load-history, it is not useful.
+  nil)
 
 (provide 'loadhist)
 
