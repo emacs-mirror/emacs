@@ -1,3 +1,7 @@
+2007-02-05  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el: Doc fixes.
+
 2007-02-04  David Kastrup  <dak@gnu.org>
 
 	* play/mpuz.el (mpuz-random-puzzle): Fix potential lockup when
@@ -23,9 +27,9 @@
 	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode): Rename
 	from define-global-minor-mode.
 
-	* progmodes/cwarn.el (global-cwarn-mode): 
-	* emacs-lisp/autoload.el (make-autoload): 
-	* hi-lock.el (global-hi-lock-mode): 
+	* progmodes/cwarn.el (global-cwarn-mode):
+	* emacs-lisp/autoload.el (make-autoload):
+	* hi-lock.el (global-hi-lock-mode):
 	* font-core.el (global-font-lock-mode): All callers changed.
 
 2007-02-03  Eli Zaretskii  <eliz@gnu.org>
