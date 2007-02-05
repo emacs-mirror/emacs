@@ -1,8 +1,6 @@
-2007-02-04  Reiner Steib  <Reiner.Steib@gmx.de>
+2007-02-05  Francesco Potort,Al(B  <pot@gnu.org>
 
-	* gnus-refcard.tex: Fix copyright.
-
-	* gnus-booklet.ps, gnus-refcard.ps: Generate.
+	* etags.1: Now --members is the default for etags, not for ctags yet.
 
 2007-01-20  Glenn Morris  <rgm@gnu.org>
 
