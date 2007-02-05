@@ -1,3 +1,9 @@
+2007-02-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* loadhist.el (unload-feature): Silently ignore `load-history' entries
+	of the form `(defface . SYMBOL)', and treat `(autoload . SYMBOL)'
+	entries like `defun'.  Return nil.
+
 2007-02-05  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el: Doc fixes.
@@ -24,8 +30,8 @@
 	and insert the image directly.
 	(newsticker--buffer-redraw): Update docstring.
 
-	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode): Rename
-	from define-global-minor-mode.
+	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode):
+	Rename from define-global-minor-mode.
 
 	* progmodes/cwarn.el (global-cwarn-mode):
 	* emacs-lisp/autoload.el (make-autoload):
