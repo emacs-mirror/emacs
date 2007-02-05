@@ -144,6 +144,8 @@ src/gmalloc.c
   - First file removed due to legal uncertainties; second file removed
   due to dependency on first. Note that src/m/hp800.h is still needed on
   hp800 arch.
+  NB we would like to re-add this file if we can. Please let us know
+  if you can clarify its legal status.
 
 
 *** These are copyright issues still to be addressed:
@@ -165,6 +167,7 @@ to be added.
   lisp/term/README (author)?
   etc/BABYL?
   borderline "trivial" cases...?
+Apparently these should (all?) be placed under GPL. (asked for clarification)
 
 
 Clarify the legal status of many image files. It's not necessary
@@ -193,8 +196,8 @@ asking what to do (via Eben Moglen), 2007/1/22 ("Copyright years").
 
 
 etc/gnus-refcard.tex
-  I (rgm) think the "Gnus Bugfixing Girls + Boys" copyright should
-  probably be removed, but it may be ok (waiting for rms)
+etc/gnus-booklet.ps
+  - gnus logo copyright?
 
 
 [REMOVED etc/orgcard.tex, orgcard.ps]
@@ -232,7 +235,7 @@ man/back.texi, trampver.texi
   - add standard notices to any decided to be non-trivial.
 
 
-msdos/is_exec.c, sigaction.c
+[fix to be installed: msdos/is_exec.c, sigaction.c]
   - do we need to add COPYING.LIB (because COPYING.DJ refers to it)?
   can we relicense under the GPL? Do these contradict?
 
@@ -251,3 +254,9 @@ src/s/aix3-2.h, bsd386.h, hpux8.h, hpux9.h, irix4-0.h, irix5-0.h,
 isc2-2.h, netbsd.h, osf1.h, sol2-3.h, sunos4-0.h, umips.h, usg5-4-2.h
   - all these (not obviously trivial) files are missing copyrights.
   rms: "I should talk about these with Matthew Norwood."
+[fix for src/ndir.h "and similar .h" files to be installed. which are similar?]
+
+
+REMOVED src/unexhp9k800.c
+  - we would like to re-add this file if possible. Please let us know
+  if you can clarify its legal status.
