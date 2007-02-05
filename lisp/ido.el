@@ -3939,7 +3939,7 @@ in a separate window.
 (defun ido-switch-buffer-other-window ()
   "Switch to another buffer and show it in another window.
 The buffer name is selected interactively by typing a substring.
-For details of keybindings, do `\\[describe-function] ido'."
+For details of keybindings, see `ido-switch-buffer'."
   (interactive)
   (ido-buffer-internal 'other-window 'switch-to-buffer-other-window))
 
@@ -3947,7 +3947,7 @@ For details of keybindings, do `\\[describe-function] ido'."
 (defun ido-display-buffer ()
   "Display a buffer in another window but don't select it.
 The buffer name is selected interactively by typing a substring.
-For details of keybindings, do `\\[describe-function] ido'."
+For details of keybindings, see `ido-switch-buffer'."
   (interactive)
   (ido-buffer-internal 'display 'display-buffer nil nil nil 'ignore))
 
@@ -3955,7 +3955,7 @@ For details of keybindings, do `\\[describe-function] ido'."
 (defun ido-kill-buffer ()
   "Kill a buffer.
 The buffer name is selected interactively by typing a substring.
-For details of keybindings, do `\\[describe-function] ido'."
+For details of keybindings, see `ido-switch-buffer'."
   (interactive)
   (ido-buffer-internal 'kill 'kill-buffer "Kill buffer: " (buffer-name (current-buffer)) nil 'ignore))
 
@@ -3963,7 +3963,7 @@ For details of keybindings, do `\\[describe-function] ido'."
 (defun ido-insert-buffer ()
   "Insert contents of a buffer in current buffer after point.
 The buffer name is selected interactively by typing a substring.
-For details of keybindings, do `\\[describe-function] ido'."
+For details of keybindings, see `ido-switch-buffer'."
   (interactive)
   (ido-buffer-internal 'insert 'insert-buffer "Insert buffer: " nil nil 'ido-enter-insert-file))
 
@@ -3971,7 +3971,7 @@ For details of keybindings, do `\\[describe-function] ido'."
 (defun ido-switch-buffer-other-frame ()
   "Switch to another buffer and show it in another frame.
 The buffer name is selected interactively by typing a substring.
-For details of keybindings, do `\\[describe-function] ido'."
+For details of keybindings, see `ido-switch-buffer'."
   (interactive)
   (if ido-mode
       (ido-buffer-internal 'other-frame)
@@ -4034,7 +4034,7 @@ in a separate window.
 (defun ido-find-file-other-window ()
   "Switch to another file and show it in another window.
 The file name is selected interactively by typing a substring.
-For details of keybindings, do `\\[describe-function] ido-find-file'."
+For details of keybindings, see `ido-find-file'."
   (interactive)
   (ido-file-internal 'other-window 'find-file-other-window))
 
@@ -4042,7 +4042,7 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 (defun ido-find-alternate-file ()
   "Switch to another file and show it in another window.
 The file name is selected interactively by typing a substring.
-For details of keybindings, do `\\[describe-function] ido-find-file'."
+For details of keybindings, see `ido-find-file'."
   (interactive)
   (ido-file-internal 'alt-file 'find-alternate-file nil "Find alternate file: "))
 
@@ -4050,7 +4050,7 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 (defun ido-find-file-read-only ()
   "Edit file read-only with name obtained via minibuffer.
 The file name is selected interactively by typing a substring.
-For details of keybindings, do `\\[describe-function] ido-find-file'."
+For details of keybindings, see `ido-find-file'."
   (interactive)
   (ido-file-internal 'read-only 'find-file-read-only nil "Find file read-only: "))
 
@@ -4058,7 +4058,7 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 (defun ido-find-file-read-only-other-window ()
   "Edit file read-only in other window with name obtained via minibuffer.
 The file name is selected interactively by typing a substring.
-For details of keybindings, do `\\[describe-function] ido-find-file'."
+For details of keybindings, see `ido-find-file'."
   (interactive)
   (ido-file-internal 'read-only 'find-file-read-only-other-window nil "Find file read-only other window: "))
 
@@ -4066,7 +4066,7 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 (defun ido-find-file-read-only-other-frame ()
   "Edit file read-only in other frame with name obtained via minibuffer.
 The file name is selected interactively by typing a substring.
-For details of keybindings, do `\\[describe-function] ido-find-file'."
+For details of keybindings, see `ido-find-file'."
   (interactive)
   (ido-file-internal 'read-only 'find-file-read-only-other-frame nil "Find file read-only other frame: "))
 
@@ -4074,7 +4074,7 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 (defun ido-display-file ()
   "Display a file in another window but don't select it.
 The file name is selected interactively by typing a substring.
-For details of keybindings, do `\\[describe-function] ido-find-file'."
+For details of keybindings, see `ido-find-file'."
   (interactive)
   (ido-file-internal 'display nil nil nil nil nil 'ignore))
 
@@ -4082,7 +4082,7 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 (defun ido-find-file-other-frame ()
   "Switch to another file and show it in another frame.
 The file name is selected interactively by typing a substring.
-For details of keybindings, do `\\[describe-function] ido-find-file'."
+For details of keybindings, see `ido-find-file'."
   (interactive)
   (ido-file-internal 'other-frame 'find-file-other-frame))
 
@@ -4090,7 +4090,7 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 (defun ido-write-file ()
   "Write current buffer to a file.
 The file name is selected interactively by typing a substring.
-For details of keybindings, do `\\[describe-function] ido-find-file'."
+For details of keybindings, see `ido-find-file'."
   (interactive)
   (let ((ido-process-ignore-lists t)
 	(ido-work-directory-match-only nil)
@@ -4104,7 +4104,7 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 (defun ido-insert-file ()
   "Insert contents of file in current buffer.
 The file name is selected interactively by typing a substring.
-For details of keybindings, do `\\[describe-function] ido-find-file'."
+For details of keybindings, see `ido-find-file'."
   (interactive)
   (ido-file-internal 'insert 'insert-file nil "Insert file: " nil nil 'ido-enter-insert-buffer))
 
@@ -4112,7 +4112,7 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 (defun ido-dired ()
   "Call `dired' the ido way.
 The directory is selected interactively by typing a substring.
-For details of keybindings, do `\\[describe-function] ido-find-file'."
+For details of keybindings, see `ido-find-file'."
   (interactive)
   (let ((ido-report-no-match nil)
 	(ido-auto-merge-work-directories-length -1))
@@ -4121,7 +4121,7 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 (defun ido-list-directory ()
   "Call `list-directory' the ido way.
 The directory is selected interactively by typing a substring.
-For details of keybindings, do `\\[describe-function] ido-find-file'."
+For details of keybindings, see `ido-find-file'."
   (interactive)
   (let ((ido-report-no-match nil)
 	(ido-auto-merge-work-directories-length -1))
