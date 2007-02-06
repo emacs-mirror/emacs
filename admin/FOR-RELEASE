@@ -56,11 +56,13 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** W3 status with latest url package.
 
-** Fix up the notices in oldXMenu properly.
+** Fix up copyright confusions.
   See admin/notes/copyright.
 
 ** simon.marshall@misys.com, Jan 12: 
   Font-lock decides function call is function declaration in C+ +
+
+** Fix the places that use colors without calling gamma_correct.
 
 * DOCUMENTATION
 
