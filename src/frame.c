@@ -71,7 +71,6 @@ Lisp_Object Qx, Qw32, Qmac, Qpc;
 Lisp_Object Qvisible;
 Lisp_Object Qdisplay_type;
 Lisp_Object Qbackground_mode;
-Lisp_Object Qinhibit_default_face_x_resources;
 
 Lisp_Object Qx_frame_parameter;
 Lisp_Object Qx_resource_name;
@@ -2269,15 +2268,6 @@ enabled such bindings for that variable with `make-variable-frame-local'.  */)
 {
   FRAME_PTR f;
   register Lisp_Object tail, prop, val;
-  int count = SPECPDL_INDEX ();
-
-  /* Bind this to t to inhibit initialization of the default face from
-     X resources in face-set-after-frame-default.  If we don't inhibit
-     this, modifying the `font' frame parameter, for example, while
-     there is a `default.attributeFont' X resource, won't work,
-     because `default's font is reset to the value of the X resource
-     and that resets the `font' frame parameter.  */
-  specbind (Qinhibit_default_face_x_resources, Qt);
 
   if (EQ (frame, Qnil))
     frame = selected_frame;
@@ -2331,8 +2321,6 @@ enabled such bindings for that variable with `make-variable-frame-local'.  */)
 	    call1 (Qframe_set_background_mode, frame);
 	}
     }
-
-  return unbind_to (count, Qnil);
 }
 
 DEFUN ("frame-char-height", Fframe_char_height, Sframe_char_height,
@@ -4101,10 +4089,6 @@ Setting this variable does not affect existing frames, only new ones.  */);
 #else
   Vdefault_frame_scroll_bars = Qnil;
 #endif
-
-  Qinhibit_default_face_x_resources
-    = intern ("inhibit-default-face-x-resources");
-  staticpro (&Qinhibit_default_face_x_resources);
 
   DEFVAR_LISP ("terminal-frame", &Vterminal_frame,
 	       doc: /* The initial frame-object, which represents Emacs's stdout.  */);
