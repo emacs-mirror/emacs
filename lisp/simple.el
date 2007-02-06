@@ -4427,7 +4427,7 @@ of the buffer appears in the mode line."
 
 (defcustom blink-matching-paren-on-screen t
   "*Non-nil means show matching open-paren when it is on screen.
-If nil, means don't show it (but the open-paren can still be shown
+If nil, don't show it (but the open-paren can still be shown
 when it is off screen).
 
 This variable has no effect if `blink-matching-paren' is nil.
@@ -4448,7 +4448,7 @@ If nil, search stops at the beginning of the accessible portion of the buffer."
   :group 'paren-blinking)
 
 (defcustom blink-matching-paren-dont-ignore-comments nil
-  "*nil means `blink-matching-paren' ignores comments.
+  "*If nil, `blink-matching-paren' ignores comments.
 More precisely, when looking for the matching parenthesis,
 it skips the contents of comments that end before point."
   :type 'boolean
