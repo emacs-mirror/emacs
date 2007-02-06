@@ -1,7 +1,11 @@
+2007-02-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* simple.el (blink-matching-paren-dont-ignore-comments):
+	(blink-matching-paren-on-screen): Doc fixes.
+
 2007-02-06  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el (gdb-frames-mode): Truncate lines in stack
-	buffer.
+	* progmodes/gdb-ui.el (gdb-frames-mode): Truncate lines in stack buffer.
 
 2007-02-05  Juanma Barranquero  <lekktu@gmail.com>
 
