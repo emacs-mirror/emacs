@@ -2158,8 +2158,9 @@ static char *magick[] = {
   (kill-all-local-variables)
   (setq major-mode 'gdb-frames-mode)
   (setq mode-name "Frames")
-  (setq gdb-stack-position nil)
+  (setq gdb-stack-position nil) 
   (add-to-list 'overlay-arrow-variable-list 'gdb-stack-position)
+  (setq truncate-lines t)  ;; Make it easier to see overlay arrow.
   (setq buffer-read-only t)
   (use-local-map gdb-frames-mode-map)
   (run-mode-hooks 'gdb-frames-mode-hook)
