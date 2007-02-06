@@ -1754,35 +1754,48 @@ Initialize colors of certain faces from frame parameters."
 			  (face-attribute 'default :weight t))
       (set-face-attribute 'default frame :width
 			  (face-attribute 'default :width t))))
-  (dolist (face (face-list))
-    ;; Don't let frame creation fail because of an invalid face spec.
-    (condition-case ()
-	(when (not (equal face 'default))
-	  (face-spec-set face (face-user-default-spec face) frame)
-	  (internal-merge-in-global-face face frame)
-	  (when (and (memq window-system '(x w32 mac))
-		     (or (not (boundp 'inhibit-default-face-x-resources))
-			 (not (eq face 'default))))
-	    (make-face-x-resource-internal face frame)))
-      (error nil)))
-  ;; Initialize attributes from frame parameters.
-  (let ((params '((foreground-color default :foreground)
-		  (background-color default :background)
-		  (border-color border :background)
-		  (cursor-color cursor :background)
-		  (scroll-bar-foreground scroll-bar :foreground)
-		  (scroll-bar-background scroll-bar :background)
-		  (mouse-color mouse :background))))
-    (dolist (param params)
-      (let ((frame-param (frame-parameter frame (nth 0 param)))
-	    (face (nth 1 param))
-	    (attr (nth 2 param)))
-	(when (and frame-param
-		   ;; Don't override face attributes explicitly
-		   ;; specified for new frames.
-		   (eq (face-attribute face attr t) 'unspecified))
-	  (set-face-attribute face frame attr frame-param))))))
-
+  ;; Find attributes that should be initialized from frame parameters.
+  (let ((face-params '((foreground-color default :foreground)
+		       (background-color default :background)
+		       (border-color border :background)
+		       (cursor-color cursor :background)
+		       (scroll-bar-foreground scroll-bar :foreground)
+		       (scroll-bar-background scroll-bar :background)
+		       (mouse-color mouse :background)))
+	apply-params)
+    (dolist (param face-params)
+      (let* ((value (frame-parameter frame (nth 0 param)))
+	     (face (nth 1 param))
+	     (attr (nth 2 param))
+	     (default-value (face-attribute face attr t)))
+	;; Compile a list of face attributes to set, but don't set
+	;; them yet.  The call to make-face-x-resource-internal,
+	;; below, can change frame parameters, and the final set of
+	;; frame parameters should be the ones acquired at this step.
+	(if (eq default-value 'unspecified)
+	    ;; The face spec does not specify a new-frame value for
+	    ;; this attribute.  Check if the existing frame parameter
+	    ;; specifies it.
+	    (if value
+		(push (list face frame attr value) apply-params))
+	  ;; The face spec specifies a value for this attribute, to be
+	  ;; applied to the face on all new frames.
+	  (push (list face frame attr default-value) apply-params))))
+    ;; Initialize faces from face specs and X resources.  The
+    ;; condition-case prevents invalid specs from causing frame
+    ;; creation to fail.
+    (dolist (face (delq 'default (face-list)))
+      (condition-case ()
+	  (progn
+	    (face-spec-set face (face-user-default-spec face) frame)
+	    (internal-merge-in-global-face face frame)
+	    (if (memq window-system '(x w32 mac))
+		(make-face-x-resource-internal face frame)))
+	(error nil)))
+    ;; Apply the attributes specified by frame parameters.  This
+    ;; rewrites parameters changed by make-face-x-resource-internal
+    (dolist (param apply-params)
+      (apply 'set-face-attribute param))))
 
 (defun tty-handle-reverse-video (frame parameters)
   "Handle the reverse-video frame parameter for terminal frames."
