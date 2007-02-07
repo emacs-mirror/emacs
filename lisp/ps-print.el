@@ -10,11 +10,11 @@
 ;; Maintainer: Kenichi Handa <handa@m17n.org> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Version: 7.2.1
+;; Version: 7.2.2
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
-(defconst ps-print-version "7.2.1"
-  "ps-print.el, v 7.2.1 <2007/01/26 vinicius>
+(defconst ps-print-version "7.2.2"
+  "ps-print.el, v 7.2.2 <2007/02/07 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -5623,7 +5623,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 
 (defvar ps-basic-plot-string-function 'ps-basic-plot-string)
 
-(defun ps-begin-job ()
+(defun ps-begin-job (genfunc)
   ;; prologue files
   (or (equal ps-mark-code-directory ps-postscript-code-directory)
       (setq ps-print-prologue-0    (ps-prologue-file 0)
@@ -5694,6 +5694,8 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	      (t "[\t\n\f]"))
 	ps-default-background (ps-rgb-color
 			       (cond
+				((eq genfunc 'ps-generate-postscript)
+				 nil)
 				((eq ps-default-bg 'frame-parameter)
 				 (ps-frame-parameter 'background-color))
 				((eq ps-default-bg t)
@@ -5703,6 +5705,8 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 			       1.0)
 	ps-default-foreground (ps-rgb-color
 			       (cond
+				((eq genfunc 'ps-generate-postscript)
+				 nil)
 				((eq ps-default-fg 'frame-parameter)
 				 (ps-frame-parameter 'foreground-color))
 				((eq ps-default-fg t)
@@ -6069,7 +6073,7 @@ If FACE is not in `ps-print-face-extension-alist' or in
 `ps-print-face-alist', insert it on `ps-print-face-alist' and
 return the attribute vector.
 
-If FACE is not a valid face name, it is used default face."
+If FACE is not a valid face name, use default face."
   (cond
    (ps-black-white-faces-alist
     (or (and (symbolp face)
@@ -6094,23 +6098,25 @@ If FACE is not a valid face name, it is used default face."
 
 
 (defun ps-face-background (face background)
-  (and (or (eq ps-use-face-background t)
-	   (cond ((symbolp face)
-		  (memq face ps-use-face-background))
-		 ((listp face)
-		  (or (memq (car face) '(foreground-color background-color))
-		      (let (ok)
-			(while face
-			  (if (or (memq (car face) ps-use-face-background)
-				  (memq (car face)
-					'(foreground-color background-color)))
-			      (setq face nil
-				    ok   t)
-			    (setq face (cdr face))))
-			ok)))
-		 (t
-		  nil)
-		 ))
+  (and (cond ((eq ps-use-face-background t))	 ; always
+	     ((null ps-use-face-background) nil) ; never
+	     ;; ps-user-face-background is a symbol face list
+	     ((symbolp face)
+	      (memq face ps-use-face-background))
+	     ((listp face)
+	      (or (memq (car face) '(foreground-color background-color))
+		  (let (ok)
+		    (while face
+		      (if (or (memq (car face) ps-use-face-background)
+			      (memq (car face)
+				    '(foreground-color background-color)))
+			  (setq face nil
+				ok   t)
+			(setq face (cdr face))))
+		    ok)))
+	     (t
+	      nil)
+	     )
        background))
 
 
@@ -6259,7 +6265,7 @@ If FACE is not a valid face name, it is used default face."
     (ps-generate-postscript-with-faces1 from to)))
 
 (defun ps-generate-postscript (from to)
-  (ps-plot-region from to 0 nil))
+  (ps-plot-region from to 0))
 
 (defun ps-generate (buffer from to genfunc)
   (save-excursion
@@ -6295,7 +6301,7 @@ If FACE is not a valid face name, it is used default face."
 		(save-excursion
 		  (let ((ps-print-page-p t)
 			ps-even-or-odd-pages)
-		    (ps-begin-job)
+		    (ps-begin-job genfunc)
 		    (when needs-begin-file
 		      (ps-begin-file)
 		      (ps-mule-initialize))

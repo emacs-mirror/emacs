@@ -1,3 +1,13 @@
+2007-02-07  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.ps: The ps-print commands without face printing should not
+	print background color.  Reported by Leo <sdl.web@gmail.com>.
+	(ps-print-version): New version 7.2.2.
+	(ps-begin-job): New arg.  Fix ps-default-background and
+	ps-default-foreground initialization.
+	(ps-face-attributes): Fix doc string.
+	(ps-face-background, ps-generate-postscript, ps-generate): Fix code.
+
 2007-01-30  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-diag.el (list-character-sets-2): Don't print
