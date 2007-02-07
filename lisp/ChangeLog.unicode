@@ -8,6 +8,8 @@
 	(ps-face-attributes): Fix doc string.
 	(ps-face-background, ps-generate-postscript, ps-generate): Fix code.
 
+	* printing.el: Fix ps-print link.
+
 2007-01-30  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-diag.el (list-character-sets-2): Don't print
