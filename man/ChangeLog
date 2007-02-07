@@ -1,3 +1,7 @@
+2007-02-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faq.texi (Fullscreen mode on MS-Windows): New node.
+
 2007-02-05  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* maintaining.texi (Tag Syntax): Now --members is the default for
@@ -1964,7 +1968,7 @@
 
 2006-03-15  Chong Yidong  <cyd@stupidchicken.com>
 
-	* emacs-xtra.texi (Emerge, Picture Mode. Fortran): New chapters,
+	* emacs-xtra.texi (Emerge, Picture Mode, Fortran): New chapters,
 	moved here from Emacs manual.
 
 	* programs.texi (Fortran): Section moved to emacs-xtra.
@@ -4814,7 +4818,7 @@
 
 2005-03-03  Nick Roberts  <nickrob@snap.net.nz>
 
-	* trouble.texi (Contributing): Mention Savannah. Direct users to
+	* trouble.texi (Contributing): Mention Savannah.  Direct users to
 	emacs-devel.
 
 2005-03-01  Glenn Morris  <gmorris@ast.cam.ac.uk>
@@ -6239,7 +6243,7 @@
 	(Windows setup hints): Remove restriction of password entering
 	with external methods.
 	(Auto-save and Backup): Make file name example
-	(X)Emacs neutral. In case of XEmacs, `bkup-backup-directory-info'
+	(X)Emacs neutral.  In case of XEmacs, `bkup-backup-directory-info'
 	and `auto-save-directory' must be used.
 	(Frequently Asked Questions): Use "MS Windows NT/2000/XP" (not
 	only "NT").  Remove doubled entry "What kinds of systems does
@@ -6624,21 +6628,18 @@
 	* widget.texi (Basic Types): The argument to `:help-echo' can now
 	be a form that evaluates to a string.
 
-	* emacs.texi (Top): Update menu to reflect new Keyboard Macros
-	chapter.
+	* emacs.texi (Top): Update menu to reflect new Keyboard Macros chapter.
 	(Intro): Include kmacro.texi after fixit.texi instead of after
-	custom.texi. (As suggested by Kim Storm.)
+	custom.texi.  (As suggested by Kim Storm.)
 
 2003-08-18  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
 	* fixit.texi (Fixit): Update `Next' pointer.
 	* files.texi (Files): Update `Previous' pointer.
-	* kmacro.texi (Keyboard Macros): Remove redundant node and
-	section.
+	* kmacro.texi (Keyboard Macros): Remove redundant node and section.
 	* emacs.texi (Intro): Include kmacro.texi after custom.texi.
 	(Suggested by Kim Storm.)
-	* Makefile (EMACSSOURCES): Add kmacro.texi.  (Suggested by Kim
-	Storm.)
+	* Makefile (EMACSSOURCES): Add kmacro.texi.  (Suggested by Kim Storm.)
 
 2003-08-18  Kim F. Storm  <storm@cua.dk>
 
