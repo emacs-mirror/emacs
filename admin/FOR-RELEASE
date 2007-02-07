@@ -54,12 +54,17 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 * BUGS
 
+** The 2007-01-30 change to minibuf.c must be fixed!!
+So far we know that it broke:
+ - C-x C-f TAB TAB common prefix highlighting
+ - partial-completion-mode
+
 ** W3 status with latest url package.
 
 ** Fix up copyright confusions.
   See admin/notes/copyright.
 
-** simon.marshall@misys.com, Jan 12: 
+** simon.marshall@misys.com, Jan 12:
   Font-lock decides function call is function declaration in C+ +
 
 ** Fix the places that use colors without calling gamma_correct.
