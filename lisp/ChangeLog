@@ -1,7 +1,9 @@
 2007-02-07  Juanma Barranquero  <lekktu@gmail.com>
 
-	* faces.el (face-valid-attribute-values): Use `defined-colors',
-	not its semi-obsolete alias `x-defined-colors'.
+	* faces.el (frame-set-background-mode): Use `color-values' and
+	`display-color-p', not `x-color-values' and `x-display-color-p'.
+	(face-valid-attribute-values): Use `defined-colors' instead of
+	`x-defined-colors'.
 
 2007-02-07  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
