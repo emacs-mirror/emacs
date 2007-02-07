@@ -1,5 +1,10 @@
 2007-02-07  Nick Roberts  <nickrob@snap.net.nz>
 
+	* progmodes/gdb-ui.el (gdb-if-arrow): New macro.
+	(gdb-mouse-until, gdb-mouse-jump): Use it.
+
+2007-02-07  Nick Roberts  <nickrob@snap.net.nz>
+
 	* progmodes/gdb-ui.el (gdb-mouse-until, gdb-mouse-jump): Make them
 	work when there is just an assembler buffer (no source buffer).
 
