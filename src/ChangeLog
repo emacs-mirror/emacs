@@ -1,3 +1,8 @@
+2007-02-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(TRES)): Use literal "../nt/emacs.rc" instead
+	of $(ALL_DEPS).
+
 2007-02-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in ($(TRES)): Depend on stamp_BLD, since $(TRES) is
