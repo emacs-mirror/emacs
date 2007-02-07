@@ -944,7 +944,7 @@ an integer value."
                 (nconc (mapcar #'(lambda (x) (cons (symbol-name x) x))
                                (internal-lisp-face-attribute-values attribute))
                        (mapcar #'(lambda (c) (cons c c))
-                               (x-defined-colors frame)))
+                               (defined-colors frame)))
 	      (mapcar #'(lambda (x) (cons (symbol-name x) x))
 		      (internal-lisp-face-attribute-values attribute))))
            ((:foreground :background)
