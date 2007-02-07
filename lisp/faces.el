@@ -1617,17 +1617,17 @@ according to the `background-mode' and `display-type' frame parameters."
 		 (or default-frame-background-mode 'dark))
 		((equal bg-color "unspecified-fg") ; inverted colors
 		 (if (eq default-frame-background-mode 'light) 'dark 'light))
-		((>= (apply '+ (x-color-values bg-color frame))
+		((>= (apply '+ (color-values bg-color frame))
 		    ;; Just looking at the screen, colors whose
 		    ;; values add up to .6 of the white total
 		    ;; still look dark to me.
-		    (* (apply '+ (x-color-values "white" frame)) .6))
+		    (* (apply '+ (color-values "white" frame)) .6))
 		 'light)
 		(t 'dark)))
 	 (display-type
 	  (cond ((null window-system)
 		 (if (tty-display-color-p frame) 'color 'mono))
-		((x-display-color-p frame)
+		((display-color-p frame)
 		 'color)
 		((x-display-grayscale-p frame)
 		 'grayscale)
