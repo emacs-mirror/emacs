@@ -211,7 +211,7 @@ bootstrap-clean:
 # it is not necessary on later versions, it is still ok to use it.
 #
 $(TRES): ../nt/emacs.rc stamp_BLD
-	$(RC) $(RC_INCLUDE)../nt $(RC_OUT)$@ $(ALL_DEPS)
+	$(RC) $(RC_INCLUDE)../nt $(RC_OUT)$@ ../nt/emacs.rc
 
 #
 # Build the library.  Split up the build into two phases...otherwise we
