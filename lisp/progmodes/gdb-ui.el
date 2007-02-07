@@ -606,6 +606,16 @@ With arg, use separate IO iff arg is positive."
     (setq gdb-version "6.4+"))
   (gdb-init-2))
 
+(defmacro gdb-if-arrow (arrow-position &rest body)
+  `(if ,arrow-position
+      (let ((buffer (marker-buffer ,arrow-position)) (line))
+	(if (equal buffer (window-buffer (posn-window end)))
+	    (with-current-buffer buffer
+	      (when (or (equal start end)
+			(equal (posn-point start)
+			       (marker-position ,arrow-position)))
+		,@body))))))
+
 (defun gdb-mouse-until (event)
   "Continue running until a source line past the current line.
 The destination source line can be selected either by clicking with mouse-2
@@ -613,28 +623,14 @@ on the fringe/margin or dragging the arrow with mouse-1 (default bindings)."
   (interactive "e")
   (let ((start (event-start event))
 	(end (event-end event)))
-    (if gud-overlay-arrow-position
-	(let ((buffer (marker-buffer gud-overlay-arrow-position)) (line))
-	  (if (equal buffer (window-buffer (posn-window end)))
-	      (with-current-buffer buffer
-		(when (or (equal start end)
-			  (equal (posn-point start)
-				 (marker-position
-				  gud-overlay-arrow-position)))
+    (gdb-if-arrow gud-overlay-arrow-position
 		  (setq line (line-number-at-pos (posn-point end)))
-		  (gud-call (concat "until " (number-to-string line))))))))
-    (if gdb-overlay-arrow-position
-    (let ((buffer (marker-buffer gdb-overlay-arrow-position)))
-      (if (equal buffer (window-buffer (posn-window end)))
-	  (with-current-buffer buffer
-	    (when (or (equal start end)
-		      (equal (posn-point start)
-			     (marker-position
-			      gdb-overlay-arrow-position)))
-	      (save-excursion
-		(goto-line (line-number-at-pos (posn-point end)))
-		(forward-char 2)
-		(gud-call (concat "until *%a"))))))))))
+		  (gud-call (concat "until " (number-to-string line))))
+    (gdb-if-arrow gdb-overlay-arrow-position
+		  (save-excursion
+		    (goto-line (line-number-at-pos (posn-point end)))
+		    (forward-char 2)
+		    (gud-call (concat "until *%a"))))))
 
 (defun gdb-mouse-jump (event)
   "Set execution address/line.
@@ -645,32 +641,18 @@ line, and no execution takes place."
   (interactive "e")
   (let ((start (event-start event))
 	(end (event-end event)))
-    (if gud-overlay-arrow-position
-	(let ((buffer (marker-buffer gud-overlay-arrow-position)) (line))
-	  (if (equal buffer (window-buffer (posn-window end)))
-	      (with-current-buffer buffer
-		(when (or (equal start end)
-			  (equal (posn-point start)
-				 (marker-position
-				  gud-overlay-arrow-position)))
+    (gdb-if-arrow gud-overlay-arrow-position
 		  (setq line (line-number-at-pos (posn-point end)))
 		  (progn
 		    (gud-call (concat "tbreak " (number-to-string line)))
-		    (gud-call (concat "jump " (number-to-string line)))))))))
-    (if gdb-overlay-arrow-position
-	(let ((buffer (marker-buffer gdb-overlay-arrow-position)))
-	  (if (equal buffer (window-buffer (posn-window end)))
-	      (with-current-buffer buffer
-		(when (or (equal start end)
-			  (equal (posn-point start)
-				 (marker-position
-				  gdb-overlay-arrow-position)))
+		    (gud-call (concat "jump " (number-to-string line)))))
+    (gdb-if-arrow gdb-overlay-arrow-position
 		  (save-excursion
 		    (goto-line (line-number-at-pos (posn-point end)))
 		    (forward-char 2)
 		    (progn
 		      (gud-call (concat "tbreak *%a"))
-		      (gud-call (concat "jump *%a")))))))))))
+		      (gud-call (concat "jump *%a")))))))
 
 (defcustom gdb-speedbar-auto-raise nil
   "If non-nil raise speedbar every time display of watch expressions is\
