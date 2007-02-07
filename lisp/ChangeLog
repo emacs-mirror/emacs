@@ -20,6 +20,8 @@
 	(ps-face-attributes): Fix doc string.
 	(ps-face-background, ps-generate-postscript, ps-generate): Fix code.
 
+	* printing.el: Fix ps-print link.
+
 2007-02-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* faces.el (face-set-after-frame-default): Compile attributes to
