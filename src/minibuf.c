@@ -472,7 +472,6 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   Lisp_Object enable_multibyte;
   int pos = INTEGERP (backup_n) ? XINT (backup_n) : 0;
-
   /* String to add to the history.  */
   Lisp_Object histstring;
 
@@ -483,6 +482,14 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   extern Lisp_Object Qrear_nonsticky;
 
   specbind (Qminibuffer_default, defalt);
+
+  /* If Vminibuffer_completing_file_name is `lambda' on entry, it was t
+     in previous recursive minibuffer, but was not set explicitly
+     to t for this invocation, so set it to nil in this minibuffer.
+     Save the old value now, before we change it.  */
+  specbind (intern ("minibuffer-completing-file-name"), Vminibuffer_completing_file_name);
+  if (EQ (Vminibuffer_completing_file_name, Qlambda))
+    Vminibuffer_completing_file_name = Qnil;
 
   single_kboard_state ();
 #ifdef HAVE_X_WINDOWS
@@ -577,8 +584,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   minibuf_save_list
     = Fcons (Voverriding_local_map,
 	     Fcons (minibuf_window,
-		    Fcons (Vminibuffer_completing_file_name,
-			   minibuf_save_list)));
+		    minibuf_save_list));
   minibuf_save_list
     = Fcons (minibuf_prompt,
 	     Fcons (make_number (minibuf_prompt_width),
@@ -604,9 +610,13 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   Vminibuffer_history_position = histpos;
   Vminibuffer_history_variable = histvar;
   Vhelp_form = Vminibuffer_help_form;
-  /* If this minibuffer is reading a file name,
-     that doesn't mean recursive ones are.  */
-  Vminibuffer_completing_file_name = Qnil;
+  /* If this minibuffer is reading a file name, that doesn't mean
+     recursive ones are.  But we cannot set it to nil, because
+     completion code still need to know the minibuffer is completing a
+     file name.  So use `lambda' as intermediate value meaning
+     "t" in this minibuffer, but "nil" in next minibuffer.  */
+  if (!NILP (Vminibuffer_completing_file_name))
+    Vminibuffer_completing_file_name = Qlambda;
 
   if (inherit_input_method)
     {
@@ -927,8 +937,6 @@ read_minibuf_unwind (data)
   if (FRAME_LIVE_P (XFRAME (WINDOW_FRAME (XWINDOW (temp)))))
     minibuf_window = temp;
 #endif
-  minibuf_save_list = Fcdr (minibuf_save_list);
-  Vminibuffer_completing_file_name = Fcar (minibuf_save_list);
   minibuf_save_list = Fcdr (minibuf_save_list);
 
   /* Erase the minibuffer we were using at this level.  */
@@ -1793,9 +1801,11 @@ Completion ignores case if the ambient value of
 
   val = read_minibuf (NILP (require_match)
 		      ? (NILP (Vminibuffer_completing_file_name)
+			 || EQ (Vminibuffer_completing_file_name, Qlambda)
 			 ? Vminibuffer_local_completion_map
 			 : Vminibuffer_local_filename_completion_map)
 		      : (NILP (Vminibuffer_completing_file_name)
+			 || EQ (Vminibuffer_completing_file_name, Qlambda)
 			 ? Vminibuffer_local_must_match_map
 			 : Vminibuffer_local_must_match_filename_map),
 		      init, prompt, make_number (pos), 0,
@@ -2002,6 +2012,7 @@ do_completion ()
       /* Some completion happened */
 
       if (! NILP (Vminibuffer_completing_file_name)
+	  && ! EQ (Vminibuffer_completing_file_name, Qlambda)
 	  && SREF (completion, SBYTES (completion) - 1) == '/'
 	  && PT < ZV
 	  && FETCH_CHAR (PT_BYTE) == '/')
@@ -2291,7 +2302,8 @@ Return nil if there is no valid completion, else t.  */)
     GCPRO2 (completion, tem);
     /* If reading a file name,
        expand any $ENVVAR refs in the buffer and in TEM.  */
-    if (! NILP (Vminibuffer_completing_file_name))
+    if (! NILP (Vminibuffer_completing_file_name)
+	&& ! EQ (Vminibuffer_completing_file_name, Qlambda))
       {
 	Lisp_Object substituted;
 	substituted = Fsubstitute_in_file_name (tem);
@@ -2406,6 +2418,7 @@ Return nil if there is no valid completion, else t.  */)
   /* Otherwise insert in minibuffer the chars we got */
 
   if (! NILP (Vminibuffer_completing_file_name)
+      && ! EQ (Vminibuffer_completing_file_name, Qlambda)
       && SREF (completion, SBYTES (completion) - 1) == '/'
       && PT < ZV
       && FETCH_CHAR (PT_BYTE) == '/')
@@ -2910,7 +2923,7 @@ CODE can be nil, t or `lambda':
 
   DEFVAR_LISP ("minibuffer-completing-file-name",
 	       &Vminibuffer_completing_file_name,
-	       doc: /* Non-nil means completing file names.  */);
+	       doc: /* Non-nil and non-`lambda' means completing file names.  */);
   Vminibuffer_completing_file_name = Qnil;
 
   DEFVAR_LISP ("minibuffer-help-form", &Vminibuffer_help_form,
