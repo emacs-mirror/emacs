@@ -1,34 +1,6 @@
-All of the following icons are not part of Emacs, but distributed and
-used by Emacs.
-
-* The following icons are from GTK+ 2.x:
-
-    close.xpm copy.xpm cut.xpm find-replace.xpm help.xpm home.xpm
-    index.xpm jump-to.xpm left-arrow.xpm new.xpm open.xpm paste.xpm
-    preferences.xpm print.xpm refresh.xpm right-arrow.xpm save.xpm
-    saveas.xpm search.xpm sort-ascending.xpm sort-descending.xpm
-    spell.xpm undo.xpm up-arrow.xpm
-
-    back-arrow.xpm and fwd-arrow.xpm are slightly modified undo and redo.
-
-    diropen.xpm is file-manager.png from Gnome hicolor theme.
-
-* The following icons are from GNOME 2.x:
-
-    attach.xpm connect.xpm contact.xpm data-save.xpm delete.xpm
-    describe.xpm disconnect.xpm exit.xpm gnus/toggle-subscription.xpm
-    lock-broken.xpm lock-ok.xpm lock.xpm mail/compose.xpm
-    mail/copy.xpm mail/flag-for-followup.xpm mail/forward.xpm
-    mail/inbox.xpm mail/move.xpm mail/not-spam.xpm mail/outbox.xpm
-    mail/preview.xpm mail/reply-all.xpm mail/reply.xpm
-    mail/save-draft.xpm mail/save.xpm mail/send.xpm mail/spam.xpm
-    next-page.xpm refresh.xpm separator.xpm sort-ascending.xpm
-    sort-column-ascending.xpm sort-criteria.xpm sort-descending.xpm
-    sort-row-ascending.xpm zoom-in.xpm zoom-out.xpm 
-
-* Note that the default GTK icons were not overridden by the GNOME theme
-due to a bug which was fixed in GNOME 2.15.  Once GNOME 2.16 is in wide
-circulation, then the GTK icons should be replaced with the equivalent
+The default GTK icons were not overridden by the GNOME theme due to a
+bug which was fixed in GNOME 2.15.  Once GNOME 2.16 is in wide
+circulation, the GTK icons should be replaced with the equivalent
 GNOME icons.
 
 * Recipe for Creating PBM Versions
@@ -41,3 +13,41 @@ GNOME icons.
 
 Thanks to jan.h.d@swipnet.se for the help.
 
+
+COPYRIGHT AND LICENSE INFORMATION FOR IMAGE FILES
+
+The following icons are from GTK+ 2.x and GNOME 2.x.  They are not
+part of Emacs, but distributed and used by Emacs.
+
+  Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007
+  Tuomas Kuosmanen, Rodney Dawes, Jakub Steiner, Alexander Larsson,
+  Tor Lillqvist, Garrett LeSage, Dennis Cranston, Jody Goldberg, Luca
+  Ferretti, Mark Finlay, and Marco Pesenti Gritti
+  License: GNU General Public License version 2 (see COPYING)
+
+* From GTK+ 2.x:
+
+    close.xpm copy.xpm cut.xpm find-replace.xpm help.xpm home.xpm
+    index.xpm jump-to.xpm left-arrow.xpm new.xpm open.xpm paste.xpm
+    preferences.xpm print.xpm refresh.xpm right-arrow.xpm save.xpm
+    saveas.xpm search.xpm sort-ascending.xpm sort-descending.xpm
+    spell.xpm undo.xpm up-arrow.xpm
+
+    back-arrow.xpm and fwd-arrow.xpm are slightly modified undo and redo.
+    diropen.xpm is file-manager.png from Gnome hicolor theme.
+
+* From GNOME 2.x:
+
+    attach.xpm connect.xpm contact.xpm data-save.xpm delete.xpm
+    describe.xpm disconnect.xpm exit.xpm gnus/toggle-subscription.xpm
+    lock-broken.xpm lock-ok.xpm lock.xpm mail/compose.xpm
+    mail/copy.xpm mail/flag-for-followup.xpm mail/forward.xpm
+    mail/inbox.xpm mail/move.xpm mail/not-spam.xpm mail/outbox.xpm
+    mail/preview.xpm redo.xpm mail/reply-all.xpm mail/reply.xpm
+    mail/save-draft.xpm mail/save.xpm search-replace.xpm mail/send.xpm mail/spam.xpm
+    next-page.xpm refresh.xpm separator.xpm sort-ascending.xpm
+    sort-column-ascending.xpm sort-criteria.xpm sort-descending.xpm
+    sort-row-ascending.xpm zoom-in.xpm zoom-out.xpm 
+
+    cancel.xpm is a slightly modified stock_stop.
+    show.xpm is a slightly modified stock_new.    
