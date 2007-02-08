@@ -1,3 +1,11 @@
+2007-02-08  Kim F. Storm  <storm@cua.dk>
+
+	* minibuf.c (read_minibuf): Fix 2007-01-30 change.
+	Use Qlambda as interrim value of Vminibuffer_completing_file_name.
+	(Fcompleting_read, do_completion, Fminibuffer_complete_word):
+	If Vminibuffer_completing_file_name equals Qlambda, treat it as Qnil.
+	(syms_of_minibuf) <minibuffer-completing-file-name>: Document lambda.
+
 2007-02-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in ($(TRES)): Use literal "../nt/emacs.rc" instead
