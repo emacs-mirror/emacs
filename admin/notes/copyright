@@ -147,6 +147,9 @@ src/gmalloc.c
   NB we would like to re-add this file if we can. Please let us know
   if you can clarify its legal status.
 
+etc/gnus-refcard.tex
+etc/gnus-booklet.ps
+  - gnus logo (= GNU Emacs logo) is FSF assigned.
 
 *** These are copyright issues still to be addressed:
 
@@ -175,7 +178,7 @@ to put a notice in each image (where the format allows it). It's OK to
 put the information in a README file in the associated directory.
 Files can be listed in groups. See etc/README for an example.
 Image files to consider (is there such a thing as a "trivial" image?):
- etc/emacs.xbm, gnu.xpm, gnus.pbm, gnus-logo.eps, letter.pbm, letter.xpm
+ etc/emacs.xbm, gnu.xpm
  etc/images/
  etc/tree-widget/
 
@@ -193,11 +196,6 @@ etc/e/eterm-color.ti  - no copyright
 
 For the above files, mail sent from rms to Matthew Norwood
 asking what to do (via Eben Moglen), 2007/1/22 ("Copyright years").
-
-
-etc/gnus-refcard.tex
-etc/gnus-booklet.ps
-  - gnus logo copyright?
 
 
 [REMOVED etc/orgcard.tex, orgcard.ps]
