@@ -1,7 +1,7 @@
 The following icons are derived from Redhat's Insight Debugger
 (Windows style icon set in src/gdb/gdbtk/library/images2)
 
-Name in this directory	Derived from
+Name in this directory	Converted from
 
 cont.pbm
 cont.xpm		continue.gif
