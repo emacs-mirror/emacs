@@ -1,0 +1,39 @@
+The following icons are derived from Redhat's Insight Debugger
+(Windows style icon set in src/gdb/gdbtk/library/images2)
+
+Name in this directory	Derived from
+
+cont.pbm
+cont.xpm		continue.gif
+
+down.pbm
+down.xpm		down.gif
+
+finish.pbm
+finish.xpm		finish.gif
+
+next.pbm
+next.xpm		next.gif
+
+run.pbm
+run.xpm			run.gif
+
+step.pbm
+step.xpm		step.gif
+
+stop.pbm
+stop.xpm		stop.gif
+
+up.pbm
+up.xpm			up.gif
+
+watch.pbm  
+watch.xpm		watch.gif
+
+
+The following icons were created by Nick Roberts <nickrob@snap.net.nz>:
+
+break.pbm, nexti.pbm, go.pbm, pp.pbm, print.pbm, pstar.pbm, remove.pbm
+break.xpm, nexti.xpm, go.xpm, pp.xpm, print.xpm, pstar.xpm, remove.xpm
+stepi.pbm, until.pbm
+stepi.xpm, until.xpm
