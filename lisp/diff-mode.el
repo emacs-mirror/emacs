@@ -1115,7 +1115,7 @@ Only works for unified diffs."
 
        ;; A context diff.
        ((eq (char-after) ?*)
-        (if (not (looking-at "\\*\\{15\\}\n\\*\\*\\* \\([0-9]+\\),\\([0-9]+\\) \\*\\*\\*\\*"))
+        (if (not (looking-at "\\*\\{15\\}\\(?: .*\\)?\n\\*\\*\\* \\([0-9]+\\),\\([0-9]+\\) \\*\\*\\*\\*"))
             (error "Unrecognized context diff first hunk header format")
           (forward-line 2)
           (diff-sanity-check-context-hunk-half
