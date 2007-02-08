@@ -1,6 +1,6 @@
 2007-02-08  Karl Fogel  <kfogel@red-bean.com>
 
-	* emacs/lisp/simple.el (fundamental-mode-hook): Declare new hook.
+	* simple.el (fundamental-mode-hook): Declare new hook.
 	(fundamental-mode): Run the new dedicated hook, and don't run
 	after-change-major-mode-hooks manually anymore.
 
