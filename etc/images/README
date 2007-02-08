@@ -58,3 +58,7 @@ part of Emacs, but distributed and used by Emacs.
 
     cancel.xpm is a slightly modified stock_stop.
     show.xpm is a slightly modified stock_new.    
+
+    next-node.xpm and prev-node.xpm are from gthumb version 2.0 (part of
+    GNOME 2.x) where they are called next-image-24.png and prev-image-24.png.
+    up-node.xpm is just next-node.xpm rotated 90 degrees.
