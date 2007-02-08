@@ -2012,7 +2012,6 @@ do_completion ()
       /* Some completion happened */
 
       if (! NILP (Vminibuffer_completing_file_name)
-	  && ! EQ (Vminibuffer_completing_file_name, Qlambda)
 	  && SREF (completion, SBYTES (completion) - 1) == '/'
 	  && PT < ZV
 	  && FETCH_CHAR (PT_BYTE) == '/')
@@ -2302,8 +2301,7 @@ Return nil if there is no valid completion, else t.  */)
     GCPRO2 (completion, tem);
     /* If reading a file name,
        expand any $ENVVAR refs in the buffer and in TEM.  */
-    if (! NILP (Vminibuffer_completing_file_name)
-	&& ! EQ (Vminibuffer_completing_file_name, Qlambda))
+    if (! NILP (Vminibuffer_completing_file_name))
       {
 	Lisp_Object substituted;
 	substituted = Fsubstitute_in_file_name (tem);
@@ -2418,7 +2416,6 @@ Return nil if there is no valid completion, else t.  */)
   /* Otherwise insert in minibuffer the chars we got */
 
   if (! NILP (Vminibuffer_completing_file_name)
-      && ! EQ (Vminibuffer_completing_file_name, Qlambda)
       && SREF (completion, SBYTES (completion) - 1) == '/'
       && PT < ZV
       && FETCH_CHAR (PT_BYTE) == '/')
