@@ -1,3 +1,9 @@
+2007-02-08  Karl Fogel  <kfogel@red-bean.com>
+
+	* emacs/lisp/simple.el (fundamental-mode-hook): Declare new hook.
+	(fundamental-mode): Run the new dedicated hook, and don't run
+	after-change-major-mode-hooks manually anymore.
+
 2007-02-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-svn.el (vc-svn-merge-news): Understand the new format with two

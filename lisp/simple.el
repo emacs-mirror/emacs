@@ -382,13 +382,19 @@ location."
 
 ;;;
 
+(defcustom fundamental-mode-hook nil
+  "Normal hook run for buffers not specialized for anything in particular."
+  :type 'hook
+  ;; No group is a perfect fit, but this is probably the closest.
+  :group 'editing-basics)
+
 (defun fundamental-mode ()
   "Major mode not specialized for anything in particular.
-Other major modes are defined by comparison with this one."
+Other major modes are defined by comparison with this one.
+Entry to this mode runs the normal hook `fundamental-mode-hook'."
   (interactive)
   (kill-all-local-variables)
-  (unless delay-mode-hooks
-    (run-hooks 'after-change-major-mode-hook)))
+  (run-mode-hooks 'fundamental-mode-hook))
 
 ;; Making and deleting lines.
 
