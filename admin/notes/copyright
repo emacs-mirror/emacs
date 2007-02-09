@@ -180,8 +180,6 @@ Files can be listed in groups. See etc/README for an example.
 Image files to consider (is there such a thing as a "trivial" image?):
  etc/emacs.xbm, gnu.xpm
  etc/images/
- etc/tree-widget/
-
 
 admin/check-doc-strings
   Author is Martin Buchholz, but no assignment from him on file, and
