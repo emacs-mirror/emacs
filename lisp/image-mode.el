@@ -60,6 +60,12 @@ to toggle between display as an image and display as text."
   (setq major-mode 'image-mode)
   (use-local-map image-mode-map)
   (add-hook 'change-major-mode-hook 'image-toggle-display-text nil t)
+  (if (and (display-images-p)
+	   (not (get-text-property (point-min) 'display)))
+      (image-toggle-display)
+    ;; Set next vars when image is already displayed but local
+    ;; variables were cleared by kill-all-local-variables
+    (setq cursor-type nil truncate-lines t))
   (run-mode-hooks 'image-mode-hook)
   (if (display-images-p)
       (message "%s" (concat
@@ -173,16 +179,6 @@ and showing the image as an image."
       (setq truncate-lines t)
       (if (called-interactively-p)
 	  (message "Repeat this command to go back to displaying the file as text")))))
-
-;; Don't override the setting from .emacs.
-;;;###autoload (put 'image-toggle-display 'disabled t)
-
-(if (get 'image-toggle-display 'disabled)
-    (put 'image-toggle-display 'disabled "\
-
-Warning: Displaying images in Emacs could be a security risk.
-Please ensure that you are using up-to-date image libraries
-and that the images being displayed come from a trusted source."))
 
 (provide 'image-mode)
 
