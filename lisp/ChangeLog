@@ -1,5 +1,8 @@
 2007-02-09  Chong Yidong  <cyd@stupidchicken.com>
 
+	* subr.el (insert-for-yank-1): Prevent read-only properties from
+	interfering with text property operations.
+
 	* image-mode.el (image-mode): Revert 2007-01-30 changes.
 
 	* image.el (image-type-auto-detectable): Don't autodetect x[pb]m.
