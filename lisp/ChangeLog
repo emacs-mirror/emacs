@@ -1,3 +1,14 @@
+2007-02-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-mode.el (image-mode): Revert 2007-01-30 changes.
+
+	* image.el (image-type-auto-detectable): Don't autodetect x[pb]m.
+	(image-type-auto-detected-p): Fail if another match is found in
+	auto-mode-alist.
+
+	* files.el (magic-mode-alist): Call image-mode instead of
+	image-mode-maybe for autodetected images.
+
 2007-02-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* mail/smtpmail.el (smtpmail-smtp-service, smtpmail-queue-index-file):
