@@ -5268,7 +5268,7 @@ are defined in the library @file{disp-table}.
   A @dfn{glyph} is a generalization of a character; it stands for an
 image that takes up a single character position on the screen.  Glyphs
 are represented in Lisp as integers, just as characters are.  Normally
-glyph come from vectors in the display table (@pxref{Display Tables}).
+glyphs come from vectors in the display table (@pxref{Display Tables}).
 
   A glyph code can be @dfn{simple} or it can be defined by the
 @dfn{glyph table}.  A simple glyph code is just a way of specifying a
