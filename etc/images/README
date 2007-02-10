@@ -39,7 +39,8 @@ part of Emacs, but distributed and used by Emacs.
   Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007
   Tuomas Kuosmanen, Rodney Dawes, Jakub Steiner, Alexander Larsson,
   Tor Lillqvist, Garrett LeSage, Dennis Cranston, Jody Goldberg, Luca
-  Ferretti, Mark Finlay, and Marco Pesenti Gritti
+  Ferretti, Mark Finlay, Lapo Calamandrei, Andreas Nilsson and Marco
+  Pesenti Gritti
   License: GNU General Public License version 2 (see COPYING)
 
 * From GTK+ 2.x:
