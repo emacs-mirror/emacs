@@ -1,3 +1,8 @@
+/*
+ * The code here is forced by the interface, and is not subject to
+ * copyright, constituting the only possible expression of the
+ * algorithm in this format.
+ */
 #define	ACL$K_LENGTH	12
 #define	ACL$C_LENGTH	12
 #define	ACL$C_FILE	1
