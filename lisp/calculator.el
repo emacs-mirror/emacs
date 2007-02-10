@@ -735,8 +735,32 @@ See the documentation for `calculator-mode' for more information."
            ;; `raised' modeline in Emacs 21
            (select-window
             (split-window-vertically
+             ;; If the modeline might interfere with the calculator buffer,
+             ;; use 3 lines instead. 
              (if (and (fboundp 'face-attr-construct)
-                      (plist-get (face-attr-construct 'modeline) :box))
+                      ;; If the modeline is shorter than the default, 
+                      ;; stick with 2 lines.  (It may be necessary to 
+                      ;; check how much shorter.)
+                      (let ((dh (plist-get (face-attr-construct 'default) :height))
+                            (mh (plist-get (face-attr-construct 'modeline) :height)))
+                        (not
+                         (or (and (integerp dh)
+                                  (integerp mh)
+                                  (< mh dh))
+                             (and (numberp mh)
+                                  (not (integerp mh))
+                                  (< mh 1)))))
+                      (or
+                       ;; If the modeline has a box with non-negative line-width,
+                       ;; use 3 lines.
+                       (let* ((bx (plist-get (face-attr-construct 'modeline) :box))
+                              (lh (plist-get bx :line-width)))
+                         (and bx
+                              (or 
+                               (not lh)
+                               (> lh 0))))
+                       ;; If the modeline has an overline, use 3 lines.
+                       (plist-get (face-attr-construct 'modeline) :overline)))
                -3 -2)))
            (switch-to-buffer calculator-buffer)))
         ((not (eq (current-buffer) calculator-buffer))
