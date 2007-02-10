@@ -140,7 +140,7 @@ msdos/is_exec.c, sigaction.c
 src/gmalloc.c
   - contains numerous copyrights from the GNU C library. Leave them alone.
 
-src/acldef.h, chpdef.h, gnu.h, ndir.h
+src/acldef.h, chpdef.h, ndir.h
   - see comments below. These files are OK to be released with Emacs
   22, but we may want to revisit them afterwards.
 
@@ -174,7 +174,7 @@ REMOVED etc/orgcard.tex, orgcard.ps
   Re-add these files if an assignment is received from Rooke.
 
 
-src/acldef.h, chpdef.h, gnu.h, ndir.h
+src/acldef.h, chpdef.h, ndir.h
   On legal advice from Matt Norwood, the following comment was added
   to these files in Feb 2007:
 
@@ -272,7 +272,7 @@ oldXMenu/Makefile.in, Makefile, Imakefile, descrip.mms, insque.c
 rms: "I have asked for lawyer's advice about these."
 
 
-
+src/gnu.h
 src/m/mips4.h, news-r6.h, news-risc.h, pmax.h
 src/s/aix3-2.h, bsd386.h, hpux8.h, hpux9.h, irix4-0.h, irix5-0.h,
 isc2-2.h, netbsd.h, osf1.h, sol2-3.h, sunos4-0.h, umips.h, usg5-4-2.h
