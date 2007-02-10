@@ -349,10 +349,10 @@ Interface}).
   (let ((inhibit-read-only t))
     (erase-buffer))
   (remove-overlays)
-  (widget-insert "Here is some documentation.\n\nName: ")
+  (widget-insert "Here is some documentation.\n\n")
   (widget-create 'editable-field
 		 :size 13
-		 :format "%v " ; Text after the field!
+		 :format "Name: %v " ; Text after the field!
 		 "My Name")
   (widget-create 'menu-choice
 		 :tag "Choose"
@@ -364,8 +364,8 @@ Interface}).
 		 '(item :tag "This option" :value "This")
 		 '(choice-item "That option")
 		 '(editable-field :menu-tag "No option" "Thus option"))
-  (widget-insert "Address: ")
   (widget-create 'editable-field
+		 :format "Address: %v"
 		 "Some Place\nIn some City\nSome country.")
   (widget-insert "\nSee also ")
   (widget-create 'link
