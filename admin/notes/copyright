@@ -220,6 +220,7 @@ Image files to consider (is there such a thing as a "trivial" image?):
  etc/emacs.xbm, gnu.xpm
  etc/images/
 
+
 admin/check-doc-strings
   Author is Martin Buchholz, but no assignment from him on file, and
   rms has no way to reach him.
@@ -247,11 +248,6 @@ lib-src/etags.c - no 'k.* arnold' in copyright.list'
    http://groups.google.com/group/net.sources/msg/a21b6c21be12a98d
 
 
-lispref/back.texi, elisp-covers.texi, lay-flat.texi,
-two-volume-cross-refs.txt, two.el
-  - add standard notices to any decided to be non-trivial.
-
-
 lwlib/lwlib-int.h, lwlib.h - no copyright
 lwlib/Makefile.in, lwlib-utils.c, lwlib.c - copyright Lucid
 lwlib/lwlib-Xaw.c - copyright Chuck Thompson
@@ -260,8 +256,10 @@ lwlib/lwlib.c - copyright Lucid, but FSF copyright was added in 2002 -
   rms: "I asked Matthew Norwood about these, I believe."
 
 
-man/back.texi, trampver.texi
-  - add standard notices to any decided to be non-trivial.
+man/back.texi
+  - what license is appropriate for this file? Seems not to be used by
+  anthing - just remove it? Actually seems to be part of the Emacs
+  Lisp manual, not the Emacs manual.
 
 
 oldXMenu/
@@ -278,5 +276,3 @@ src/s/aix3-2.h, bsd386.h, hpux8.h, hpux9.h, irix4-0.h, irix5-0.h,
 isc2-2.h, netbsd.h, osf1.h, sol2-3.h, sunos4-0.h, umips.h, usg5-4-2.h
   - all these (not obviously trivial) files are missing copyrights.
   rms: "I should talk about these with Matthew Norwood."
-[fix for src/ndir.h "and similar .h" files to be installed. which are similar?]
-
