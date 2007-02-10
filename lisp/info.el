@@ -146,7 +146,8 @@ The Lisp code is executed when the node is selected.")
   :group 'info)
 
 (defcustom Info-fontify-maximum-menu-size 1000000
-  "*Maximum size of menu to fontify if `font-lock-mode' is non-nil."
+  "*Maximum size of menu to fontify if `font-lock-mode' is non-nil.
+Set to nil to disable node fontification."
   :type 'integer
   :group 'info)
 
@@ -3705,6 +3706,7 @@ the variable `Info-file-list-for-emacs'."
            (fontify-visited-p ; visited nodes need to be re-fontified
             (and Info-fontify-visited-nodes
                  ;; Don't take time to refontify visited nodes in huge nodes
+		 Info-fontify-maximum-menu-size
                  (< (- (point-max) (point-min)) Info-fontify-maximum-menu-size)))
            rbeg rend)
 
@@ -3940,6 +3942,7 @@ the variable `Info-file-list-for-emacs'."
       (when (and (or not-fontified-p fontify-visited-p)
                  (search-forward "\n* Menu:" nil t)
                  ;; Don't take time to annotate huge menus
+		 Info-fontify-maximum-menu-size
                  (< (- (point-max) (point)) Info-fontify-maximum-menu-size))
         (let ((n 0)
               cont)
