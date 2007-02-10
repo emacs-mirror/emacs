@@ -140,6 +140,10 @@ msdos/is_exec.c, sigaction.c
 src/gmalloc.c
   - contains numerous copyrights from the GNU C library. Leave them alone.
 
+src/acldef.h, chpdef.h, gnu.h, ndir.h
+  - see comments below. These files are OK to be released with Emacs
+  22, but we may want to revisit them afterwards.
+
 [src/unexhp9k800.c - removed 2007/1/27]
 [src/m/sr2k.h - removed 2007/1/27]
   - First file removed due to legal uncertainties; second file removed
@@ -152,17 +156,50 @@ etc/gnus-refcard.tex
 etc/gnus-booklet.ps
   - gnus logo (= GNU Emacs logo) is FSF assigned.
 
+
+
+*** These are copyright issues that need not be fixed until after
+    Emacs 22 is released (though if they can be fixed before, that is
+    obviously good):
+
+
+Is it OK to just `cvs remove' a file for legal reasons, or is
+something more drastic needed? A removed file is still available from
+CVS, if suitable options are applied. (This CVS issue obviously does
+not affect a release).
+  rms: will ask lawyer
+
+
+REMOVED etc/orgcard.tex, orgcard.ps
+  Re-add these files if an assignment is received from Rooke.
+
+
+src/acldef.h, chpdef.h, gnu.h, ndir.h
+  On legal advice from Matt Norwood, the following comment was added
+  to these files in Feb 2007:
+
+    The code here is forced by the interface, and is not subject to
+    copyright, constituting the only possible expression of the
+    algorithm in this format.
+
+  With the addition of this notice, these files are OK for the
+  upcoming Emacs-22 release. Post-release, we can revisit this issue
+  and possibly add a list of all authors who have changed these files.
+  (details in email from Matt Norwood to rms, 2007/02/03).
+
+
+REMOVED src/unexhp9k800.c
+  - we would like to re-add this file if possible. Please let us know
+  if you can clarify its legal status.
+  http://lists.gnu.org/archive/html/emacs-devel/2007-02/msg00138.html
+
+
+
 *** These are copyright issues still to be addressed:
 
 
 Maybe some relevant comments here?
 <http://groups.google.com/group/linux.debian.legal/browse_thread/thread/123547ea95437a1f>
-
-
-Is it OK to just `cvs remove' a file for legal reasons, or is
-something more drastic needed? A removed file is still available from
-CVS, if suitable options are applied.
-  rms: will ask lawyer
 
 
 All README (and other such files) that are non-trivial and were added
@@ -194,10 +231,6 @@ etc/e/eterm-color.ti  - no copyright
 
 For the above files, mail sent from rms to Matthew Norwood
 asking what to do (via Eben Moglen), 2007/1/22 ("Copyright years").
-
-
-[REMOVED etc/orgcard.tex, orgcard.ps]
-  Re-add these files if an assignment is received from Rooke.
 
 
 etc/sk-refcard.ps, pl-refcard.ps, cs-refcard.ps
@@ -239,7 +272,7 @@ oldXMenu/Makefile.in, Makefile, Imakefile, descrip.mms, insque.c
 rms: "I have asked for lawyer's advice about these."
 
 
-src/acldef.h, chpdef.h, gnu.h, ndir.h
+
 src/m/mips4.h, news-r6.h, news-risc.h, pmax.h
 src/s/aix3-2.h, bsd386.h, hpux8.h, hpux9.h, irix4-0.h, irix5-0.h,
 isc2-2.h, netbsd.h, osf1.h, sol2-3.h, sunos4-0.h, umips.h, usg5-4-2.h
@@ -247,8 +280,3 @@ isc2-2.h, netbsd.h, osf1.h, sol2-3.h, sunos4-0.h, umips.h, usg5-4-2.h
   rms: "I should talk about these with Matthew Norwood."
 [fix for src/ndir.h "and similar .h" files to be installed. which are similar?]
 
-
-REMOVED src/unexhp9k800.c
-  - we would like to re-add this file if possible. Please let us know
-  if you can clarify its legal status.
-  http://lists.gnu.org/archive/html/emacs-devel/2007-02/msg00138.html
