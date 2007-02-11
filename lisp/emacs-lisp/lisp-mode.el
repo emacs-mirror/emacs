@@ -1130,19 +1130,25 @@ ENDPOS is encountered."
 					 (make-list (- next-depth) nil))
 		     last-depth (- last-depth next-depth)
 		     next-depth 0)))
-	(or outer-loop-done endpos
-	    (setq outer-loop-done (<= next-depth 0)))
-	(if outer-loop-done
-	    (forward-line 1)
+	(forward-line 1)
+	;; Decide whether to exit.
+	(if endpos
+	    ;; If we have already reached the specified end,
+	    ;; give up and do not reindent this line.
+	    (if (<= endpos (point))
+		(setq outer-loop-done t))
+	  ;; If no specified end, we are done if we have finished one sexp.
+	  (if (<= next-depth 0)
+	      (setq outer-loop-done t)))
+	(unless outer-loop-done
 	  (while (> last-depth next-depth)
 	    (setq indent-stack (cdr indent-stack)
 		  last-depth (1- last-depth)))
 	  (while (< last-depth next-depth)
 	    (setq indent-stack (cons nil indent-stack)
 		  last-depth (1+ last-depth)))
-	  ;; Now go to the next line and indent it according
+	  ;; Now indent the next line according
 	  ;; to what we learned from parsing the previous one.
-	  (forward-line 1)
 	  (setq bol (point))
 	  (skip-chars-forward " \t")
 	  ;; But not if the line is blank, or just a comment
