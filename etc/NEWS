@@ -346,6 +346,14 @@ special treatment in `dired-do-shell-command'.
 ** Adaptive filling misfeature removed.
 It no longer treats `NNN.' or `(NNN)' as a prefix.
 
+---
+** The register compatibility key bindings (deprecated since Emacs 19)
+have been removed:
+  C-x /   point-to-register (Use: C-x r SPC)
+  C-x j   jump-to-register  (Use: C-x r j)
+  C-x x   copy-to-register  (Use: C-x r s)
+  C-x g   insert-register   (Use: C-x r i)
+
 
 * Editing Changes in Emacs 22.1
 

@@ -1,3 +1,8 @@
+2007-02-11  Kim F. Storm  <storm@cua.dk>
+
+	* bindings.el (ctl-x-map): Remove register compatibility bindings
+	C-x /, C-x j, C-x x, and C-x g (deprecated since Emacs 19).
+
 2007-02-11  Richard Stallman  <rms@gnu.org>
 
 	* loadhist.el (unload-feature): Handle (t . SYMBOL) entries
@@ -8,10 +13,10 @@
 
 2007-02-11  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el (org-agenda-get-todos) 
-	(org-agenda-get-timestamps, org-agenda-get-closed) 
-	(org-agenda-get-deadlines, org-agenda-get-scheduled) 
-	(org-agenda-get-blocks, org-format-agenda-item) 
+	* textmodes/org.el (org-agenda-get-todos)
+	(org-agenda-get-timestamps, org-agenda-get-closed)
+	(org-agenda-get-deadlines, org-agenda-get-scheduled)
+	(org-agenda-get-blocks, org-format-agenda-item)
 	(org-agenda-change-all-lines, org-scan-tags): Rename text property
 	from `category' to `org-category'.
 

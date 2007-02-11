@@ -12,6 +12,8 @@ make sure all the pages really look ok in the manual as formatted.
 
 ** Update AUTHORS.
 
+** Cleanup temporary +++/--- lines in etc/NEWS.
+
 ** Regenerate the postscript files of the reference cards in etc.
 
 ** Ask maintainers of refcard translations to update them.
