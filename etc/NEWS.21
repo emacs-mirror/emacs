@@ -1,5 +1,5 @@
 GNU Emacs NEWS -- history of user-visible changes.  2006-05-31
-Copyright (C) 2000, 2001, 2002, 2003, 2006
+Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
           Free Software Foundation, Inc.
 See the end for copying conditions.
 
@@ -4881,7 +4881,7 @@ support a vertical-bar cursor).
 ----------------------------------------------------------------------
 Copyright information:
 
-Copyright (C) 2000, 2001, 2002, 2003, 2006
+Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
 	  Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies

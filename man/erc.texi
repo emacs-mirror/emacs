@@ -14,7 +14,7 @@
 @copying
 This manual is for ERC version 5.2 stable pre-release.
 
-Copyright @copyright{} 2005, 2006 Free Software Foundation, Inc.
+Copyright @copyright{} 2005, 2006, 2007 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -274,6 +274,11 @@ itself.  An example follows.
 Once ERC is loaded, the command @kbd{M-x erc} will start ERC and
 prompt for the server to connect to.
 
+If the connection goes away at some point, ERC will try to reconnect
+automatically.  If it fails to reconnect, and you want to try to
+manually reestablish the connection at some later point, switch to an
+ERC buffer and run the /RECONNECT command.
+
 @c PRE5_2: Sample session, including:
 @c - connect to Freenode
 @c - /join #emacs
@@ -400,6 +405,10 @@ Integrate with the Big Brother Database
 @cindex modules, button
 @item button
 Buttonize URLs, nicknames, and other text
+
+@cindex modules, capab-identify
+@item capab-identify
+Mark unidentified users on freenode and other servers supporting CAPAB.
 
 @cindex modules, completion
 @item pcomplete

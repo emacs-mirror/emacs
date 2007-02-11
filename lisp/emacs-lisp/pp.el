@@ -1,7 +1,7 @@
 ;;; pp.el --- pretty printer for Emacs Lisp
 
 ;; Copyright (C) 1989, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006 Free Software Foundation, Inc.
+;;   2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Randal Schwartz <merlyn@stonehenge.com>
 ;; Keywords: lisp
@@ -97,16 +97,13 @@ Output stream is STREAM, or value of `standard-output' (which see)."
   (princ (pp-to-string object) (or stream standard-output)))
 
 ;;;###autoload
-(defun pp-eval-expression (expval)
-  "Evaluate an expression, then pretty-print value EXPVAL into a new buffer.
-If pretty-printed EXPVAL fits on one line, display it in the echo
-area instead.  Also add EXPVAL to the front of the list
-in the variable `values'.
-
-Non-interactively, the argument is the value, EXPVAL, not the expression
-to evaluate."
-  (interactive "XPp-eval: ")
-  (setq values (cons expval values))
+(defun pp-eval-expression (expression)
+  "Evaluate EXPRESSION and pretty-print its value.
+Also add the value to the front of the list in the variable `values'."
+  (interactive
+   (list (read-from-minibuffer "Eval: " nil read-expression-map t
+			       'read-expression-history)))
+  (setq values (cons (eval expression) values))
   (let* ((old-show-function temp-buffer-show-function)
 	 ;; Use this function to display the buffer.
 	 ;; This function either decides not to display it at all

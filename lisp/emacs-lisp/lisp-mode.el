@@ -1,7 +1,7 @@
 ;;; lisp-mode.el --- Lisp mode, and its idiosyncratic commands
 
 ;; Copyright (C) 1985, 1986, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006 Free Software Foundation, Inc.
+;;   2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: lisp, languages
@@ -490,6 +490,8 @@ alternative printed representations that can be displayed."
 	      (point (point)))
 	  (delete-region beg end)
 	  (insert (nth 1 value))
+	  (or (= beg point)
+	      (setq point (1- (point))))
 	  (last-sexp-setup-props beg (point)
 				 (nth 0 value)
 				 (nth 2 value)

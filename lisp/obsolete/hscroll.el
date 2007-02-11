@@ -1,7 +1,7 @@
 ;;; hscroll.el --- automatically scroll truncated lines horizontally
 
 ;; Copyright (C) 1992, 1993, 1995, 1996, 2001, 2002, 2003, 2004,
-;;   2005, 2006 Free Software Foundation, Inc.
+;;   2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Wayne Mesard <wmesard@esd.sgi.com>
 ;; Keywords: display

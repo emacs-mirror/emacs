@@ -1,7 +1,7 @@
 Emacs TODO List                                                   -*-outline-*-
 
-Copyright (c) 2003, 2004, 2005, 2006
-Free software Foundation, Inc.
+Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+Free Software Foundation, Inc.
 See the end of the file for copying permissions.
 
 If you are ready to start working on any of these TODO items, we
@@ -78,6 +78,8 @@ current buffer.
    and they should create Custom buffers.
 
 ** The toolbar should show keyboard equivalents in its tooltips.
+
+** Add function to redraw the tool bar.
 
 ** Modify allout.el to use overlays, like outline.el.
 
@@ -193,6 +195,8 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
   " [Function has advice]".  It might look like (defun foo [Function
   has advice] (x y) The overlay could also be a button that you could
   use to view the advice.
+
+** Add a function to get the insertion-type of the markers in an overlay.
 
 ** ange-ftp
 *** understand sftp
@@ -338,6 +342,15 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
 
 ** Allow unknown image types to be rendered via an external program
   converting them to, say, PBM (in the same way as PostScript?).
+
+** Display images with alpha channels, such as png, with the current
+background color of whatever frame it is displayed in.  Currently, we
+use the default background color if specified in the png file, or, if
+that is unspecified, the background color of the frame in which the
+image was first created.  Ideally, the image should display the
+background color of whichever frame it is being displayed in.  The
+main complication is that this will require the loading of a new image
+object for each different background color.
 
 ** Allow displaying an X window from an external program in a buffer,
   e.g. to render graphics from Java applets.  [gerd and/or wmperry

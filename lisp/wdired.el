@@ -1,6 +1,6 @@
 ;;; wdired.el --- Rename files editing their names in dired buffers
 
-;; Copyright (C) 2004, 2005, 2006 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Filename: wdired.el
 ;; Author: Juan León Lahoz García <juanleon1@gmail.com>
@@ -576,8 +576,11 @@ If OLD, return the old target.  If MOVE, move point before it."
             (funcall command 1)
             (setq arg (1- arg)))
         (error
-         (if (not (forward-word 1))
-             (setq arg 0)))))))
+         (if (forward-word)
+	     ;; Skip any non-word characters to avoid triggering a read-only
+	     ;; error which would cause skipping the next word characters too.
+	     (skip-syntax-forward "^w")
+	   (setq arg 0)))))))
 
 (defun wdired-downcase-word (arg)
   "WDired version of `downcase-word'.

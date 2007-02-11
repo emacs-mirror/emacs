@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+@c   2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Microsoft Windows, Manifesto, Mac OS, Top
 @appendix Emacs and Microsoft Windows/MS-DOS
@@ -334,11 +334,13 @@ directory, whereas @file{.emacs} does not.
 keyboard input in Emacs.
 
 @cindex MS-Windows keyboard shortcuts
-  Many key combinations (known as ``keyboard shortcuts'') that are in
-widespread use in MS-Windows programs are taken by various Emacs
-features.  Examples include @kbd{C-C}, @kbd{C-X}, @kbd{C-Z},
-@kbd{C-A}, and @kbd{W-SPC}.  You can get some of them back by turning
-on CUA Mode (@pxref{CUA Bindings}).
+  Many key combinations (known as ``keyboard shortcuts'') that have
+conventional uses in MS-Windows programs conflict with traditional
+Emacs key bindings.  (These Emacs key bindings were established years
+before Microsoft was founded.)  Examples of conflicts include
+@kbd{C-c}, @kbd{C-x}, @kbd{C-z}, @kbd{C-a}, and @kbd{W-@key{SPC}}.
+You can redefine some of them with meanings more like the MS-Windows
+meanings by enabling CUA Mode (@pxref{CUA Bindings}).
 
 @kindex F10 @r{(MS-Windows)}
 @cindex menu bar access using keyboard @r{(MS-Windows)}

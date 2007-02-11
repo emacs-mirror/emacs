@@ -1,15 +1,18 @@
+# $Id: SW.tit,v 1.4 2007/01/24 06:35:08 handa Exp $
 # HANZI input table for cxterm
 # To be used by cxterm, convert me to .cit format first
-# .cit version 1
+# .cit version 2
 ENCODE:	GB
-MULTICHOICE:	YES
-PROMPT:	汉字输入∷首尾∷
+AUTOSELECT:	NO
+PROMPT:	汉字输入∷首尾∷\040
 #
 COMMENT	(源于 CCDOS)
 COMMENT	书写该汉字时的「首笔」及「尾笔」。例如，【吕】首尾笔皆为「口」，故在
 COMMENT 「首尾」模式中用 ff0 三键输入。（ f 键在「首尾」模式中表示「口」）
 # define keys
 VALIDINPUTKEY:	abcdefghijklmnopqrstuvwxyz
+WILDCARDKEY:	*
+WILDCHARKEY:	?
 SELECTKEY:	1\040
 SELECTKEY:	2
 SELECTKEY:	3

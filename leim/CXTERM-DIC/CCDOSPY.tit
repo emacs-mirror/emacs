@@ -1,9 +1,10 @@
+# $Id: CCDOSPY.tit,v 1.4 2007/01/24 06:35:08 handa Exp $
 # HANZI input table for cxterm
 # To be used by cxterm, convert me to .cit format first
-# .cit version 1
+# .cit version 2
 ENCODE:	GB
-MULTICHOICE:	YES
-PROMPT:	∫∫◊÷ ‰»Î°ÀÀı–¥∆¥“Ù°À£†
+AUTOSELECT:	NO
+PROMPT:	∫∫◊÷ ‰»Î°ÀÀı–¥∆¥“Ù°À\040
 #
 COMMENT Àı–¥∆¥“Ù∑Ω∞∏ (‘¥”⁄ CCDOS)
 COMMENT
@@ -15,6 +16,8 @@ COMMENT       ∆¥“Ù°√   a    guo   zhong  wen  guang  yu   quan
 COMMENT       º¸»Î°√   a1   guo4   as1   wf4  guh1  yu..6 qvj6
 # define keys
 VALIDINPUTKEY:	abcdefghijklmnopqrstuvwxyz
+WILDCARDKEY:	*
+WILDCHARKEY:	?
 SELECTKEY:	1\040
 SELECTKEY:	2
 SELECTKEY:	3

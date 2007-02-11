@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2002, 2003,
-@c   2004, 2005, 2006 Free Software Foundation, Inc.
+@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2001, 2002, 2003,
+@c   2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Abbrevs
 @chapter Abbrevs
@@ -258,6 +258,8 @@ the end of the line is the expansion.
   Some abbrevs are marked with @samp{(sys)}.  These ``system'' abbrevs
 (@pxref{Abbrevs,,, elisp, The Emacs Lisp Reference Manual}) are
 pre-defined by various modes, and are not saved to your abbrev file.
+To disable a ``system'' abbrev, define an abbrev of the same name that
+expands to itself, and save it to your abbrev file.
 
 @findex edit-abbrevs
 @kindex C-c C-c @r{(Edit Abbrevs)}

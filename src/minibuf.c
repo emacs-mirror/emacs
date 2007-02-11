@@ -1,7 +1,7 @@
 /* Minibuffer input and completion.
    Copyright (C) 1985, 1986, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
                  2001, 2002, 2003, 2004, 2005,
-                 2006 Free Software Foundation, Inc.
+                 2006, 2007 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -983,7 +983,7 @@ POSITION in the minibuffer.  Any integer value less than or equal to
 one puts point at the beginning of the string.  *Note* that this
 behavior differs from the way such arguments are used in `completing-read'
 and some related functions, which use zero-indexing for POSITION.  */)
-(prompt, initial_contents, keymap, read, hist, default_value, inherit_input_method)
+   (prompt, initial_contents, keymap, read, hist, default_value, inherit_input_method)
      Lisp_Object prompt, initial_contents, keymap, read, hist, default_value;
      Lisp_Object inherit_input_method;
 {

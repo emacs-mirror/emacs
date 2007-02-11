@@ -1,6 +1,6 @@
 ;;; x-dnd.el --- drag and drop support for X.
 
-;; Copyright (C) 2004, 2005, 2006 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Jan Dj,Ad(Brv <jan.h.d@swipnet.se>
 ;; Maintainer: FSF
@@ -70,7 +70,7 @@ The default value for this variable is `x-dnd-default-test-function'."
   "Which function to call to handle a drop of that type.
 If the type for the drop is not present, or the function is nil,
 the drop is rejected.  The function takes three arguments, WINDOW, ACTION
-and DATA.  WINDOW is where the drop occured, ACTION is the action for
+and DATA.  WINDOW is where the drop occurred, ACTION is the action for
 this drop (copy, move, link, private or ask) as determined by a previous
 call to `x-dnd-test-function'.  DATA is the drop data.
 The function shall return the action used (copy, move, link or private) if drop

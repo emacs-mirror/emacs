@@ -1,5 +1,5 @@
 /* Selection processing for Emacs on Mac OS.
-   Copyright (C) 2005, 2006 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2006, 2007 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1390,7 +1390,7 @@ nil, which means the event is already resumed or expired.  */)
       ae = *p;
       *p = (*p)->next;
       if (INTEGERP (error_code)
-	  && ae->apple_event.descriptorType != typeNull)
+	  && ae->reply.descriptorType != typeNull)
 	{
 	  SInt32 errn = XINT (error_code);
 
@@ -1562,10 +1562,17 @@ mac_do_receive_drag (window, refcon, drag)
       GlobalToLocal (&mouse_pos);
       err = GetDragModifiers (drag, NULL, NULL, &modifiers);
     }
+  if (err == noErr)
+    {
+      UInt32 key_modifiers = modifiers;
+
+      err = AEPutParamPtr (&apple_event, kEventParamKeyModifiers,
+			   typeUInt32, &key_modifiers, sizeof (UInt32));
+    }
 
   if (err == noErr)
     {
-      mac_store_drag_event (window, mouse_pos, modifiers, &apple_event);
+      mac_store_drag_event (window, mouse_pos, 0, &apple_event);
       AEDisposeDesc (&apple_event);
       mac_wakeup_from_rne ();
       return noErr;

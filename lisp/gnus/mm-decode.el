@@ -1,7 +1,7 @@
 ;;; mm-decode.el --- Functions for decoding MIME things
 
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006 Free Software Foundation, Inc.
+;;   2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -883,13 +883,21 @@ external if displayed external."
 			  ;; a vector in Emacs but is a list in XEmacs)
 			  ;; requires that it is lexically scoped.
 			  (timer (run-at-time 2.0 nil 'ignore)))
-		       (lambda (process state)
-			 (when (eq 'exit (process-status process))
-			   (if (memq timer timer-list)
-			       (timer-set-function timer fn)
-			     (funcall fn))
-			   (ignore-errors (eval fm))
-			   (message "%s" done))))))
+		       (if (boundp 'itimer-list)
+			   (lambda (process state)
+			     (when (eq 'exit (process-status process))
+			       (if (memq timer itimer-list)
+				   (set-itimer-function timer fn)
+				 (funcall fn))
+			       (ignore-errors (eval fm))
+			       (message "%s" done)))
+			 (lambda (process state)
+			   (when (eq 'exit (process-status process))
+			     (if (memq timer timer-list)
+				 (timer-set-function timer fn)
+			       (funcall fn))
+			     (ignore-errors (eval fm))
+			     (message "%s" done)))))))
 		(mm-handle-set-external-undisplayer
 		 handle (cons file buffer)))
 	      (message "Displaying %s..." command))

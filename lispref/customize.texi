@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1997, 1998, 1999, 2000, 2002, 2003, 2004,
-@c   2005, 2006 Free Software Foundation, Inc.
+@c Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+@c   2005, 2006, 2007  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/customize
 @node Customization, Loading, Macros, Top
@@ -409,7 +409,7 @@ Keywords}.  Here is an example, from the library @file{saveplace.el}:
 
 @example
 (defcustom save-place nil
-  "*Non-nil means automatically save place in each file..."
+  "Non-nil means automatically save place in each file..."
   :type 'boolean
   :require 'saveplace
   :group 'save-place)
@@ -461,7 +461,7 @@ example:
 
 @example
 (defcustom diff-command "diff"
-  "*The command to use to run diff."
+  "The command to use to run diff."
   :type '(string)
   :group 'diff)
 @end example

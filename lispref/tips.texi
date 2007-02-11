@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1995, 1998, 1999, 2002, 2003,
-@c   2004, 2005, 2006 Free Software Foundation, Inc.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1995, 1998, 1999, 2001, 2002,
+@c   2003, 2004, 2005, 2006, 2007  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/tips
 @node Tips, GNU Emacs Internals, GPL, Top
@@ -210,7 +210,7 @@ Constructs that define a function or variable should be macros,
 not functions, and their names should start with @samp{def}.
 
 @item
-Macros that define a functions or variables should take the name to be
+Macros that define a function or variable should take the name to be
 defined as the first argument.  That will help various tools find the
 definition automatically.  Avoid constructing the names in the macro
 itself, since that would confuse these tools.

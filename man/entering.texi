@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 2002, 2003, 2004,
-@c   2005, 2006 Free Software Foundation, Inc.
+@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 2001, 2002, 2003,
+@c   2004, 2005, 2006, 2007  Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Entering Emacs, Exiting, Text Characters, Top
 @chapter Entering and Exiting Emacs
@@ -39,12 +39,15 @@ file, you exit the editor.  The next time you want to edit a file, you
 must start the editor again.  Working this way, it is convenient to
 use a command-line argument to say which file to edit.
 
-  It's not smart to start Emacs afresh for every file you edit.  Emacs
-can visit more than one file in a single editing session, and upon
-exit Emacs loses valuable accumulated context, such as the kill ring,
-registers, undo history, and mark ring.  These features are useful for
-operating on multiple files, or even one.  If you kill Emacs after
-each file, you don't take advantage of them.
+  However, killing Emacs after editing one each and starting it afresh
+for the next file is both unnecessary and harmful, since it denies you
+the full power of Emacs.  Emacs can visit more than one file in a
+single editing session, and that is the right way to use it.  Exiting
+the Emacs session loses valuable accumulated context, such as the kill
+ring, registers, undo history, and mark ring.  These features are
+useful for operating on multiple files, or even continuing to edit one
+file.  If you kill Emacs after each file, you don't take advantage of
+them.
 
   The recommended way to use GNU Emacs is to start it only once, just
 after you log in, and do all your editing in the same Emacs session.

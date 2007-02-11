@@ -1,5 +1,5 @@
 .\" Copyright (C) 1992, 2001, 2002, 2003, 2004,
-.\"   2005, 2006 Free Software Foundation, Inc.
+.\"   2005, 2006, 2007  Free Software Foundation, Inc.
 .\" See section COPYING for conditions for redistribution
 .TH etags 1 "23nov2001" "GNU Tools" "GNU Tools"
 .de BP
@@ -37,7 +37,7 @@ etags, ctags \- generate tag file for Emacs, vi
 [\|\-\-language=\fIlanguage\fP\|] [\|\-\-members\|]
 [\|\-\-output=\fItagfile\fP\|] [\|\-\-regex=\fIregexp\fP\|]
 [\|\-\-typedefs\|] [\|\-\-typedefs\-and\-c++\|]
-[\|\-\-update\|] [\|\-\-no\-warn\|]
+[\|\-\-update\|]
 [\|\-\-help\|] [\|\-\-version\|]
 \fIfile\fP .\|.\|.
 .ad b
@@ -262,11 +262,6 @@ Only \fBctags\fP accepts this option.
 Instead of generating a tag file, write index (in \fBvgrind\fP format)
 to standard output.  Only \fBctags\fP accepts this option.
 .TP
-.B \-w, \-\-no\-warn
-Suppress warning messages about duplicate entries.  The \fBetags\fP
-program does not check for duplicate entries, so this option is not
-allowed with it.
-.TP
 .B \-x, \-\-cxref
 Instead of generating a tag file, write a cross reference (in
 \fBcxref\fP format) to standard output.  Only \fBctags\fP accepts this option.
@@ -292,7 +287,7 @@ Stallman.
 Copyright
 .if t \(co
 .if n (c)
-1999, 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007  Free Software Foundation, Inc.
 .PP
 Permission is granted to make and distribute verbatim copies of this
 document provided the copyright notice and this permission notice are

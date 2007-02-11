@@ -1,3 +1,7 @@
+2007-01-10  Jason Rumney  <jasonr@gnu.org>
+
+	* README: Update URLs and advice about reporting bugs.
+
 2006-12-29  Jason Rumney  <jasonr@gnu.org>
 
 	* nmake.defs (TEMACS_EXTRA_LINK): Remove duplicated flags from
@@ -1307,7 +1311,7 @@
 ;; End:
 
     Copyright (C) 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2003, 2004,
-       2005, 2006 Free Software Foundation, Inc.
+       2005, 2006, 2007 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
 

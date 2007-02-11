@@ -1,7 +1,7 @@
 ;;; wid-edit.el --- Functions for creating and using widgets -*-byte-compile-dynamic: t;-*-
 ;;
 ;; Copyright (C) 1996, 1997, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -275,14 +275,15 @@ minibuffer."
 		     keys
 		     (char 0)
 		     (arg 1))
-		 (while (not (or (and (>= char ?0) (< char next-digit))
+		 (while (not (or (and (integerp char)
+				      (>= char ?0) (< char next-digit))
 				 (eq value 'keyboard-quit)))
 		   ;; Unread a SPC to lead to our new menu.
 		   (setq unread-command-events (cons ?\s unread-command-events))
 		   (setq keys (read-key-sequence title))
 		   (setq value
 			 (lookup-key overriding-terminal-local-map keys t)
-			 char (string-to-char (substring keys 1)))
+			 char (aref keys 1))
 		   (cond ((eq value 'scroll-other-window)
 			  (let ((minibuffer-scroll-window
 				 (get-buffer-window buf)))

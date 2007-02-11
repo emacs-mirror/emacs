@@ -1,7 +1,7 @@
 ;;; server.el --- Lisp code for GNU Emacs running as server process
 
 ;; Copyright (C) 1986, 1987, 1992, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+;;   2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: William Sommerfeld <wesommer@athena.mit.edu>
 ;; Maintainer: FSF
@@ -298,7 +298,7 @@ Creates the directory if necessary and makes sure:
       (letf (((default-file-modes) ?\700)) (make-directory dir t))
       (setq attrs (file-attributes dir)))
     ;; Check that it's safe for use.
-    (unless (and (eq t (car attrs)) (eq (nth 2 attrs) (user-uid))
+    (unless (and (eq t (car attrs)) (eql (nth 2 attrs) (user-uid))
                  (or (eq system-type 'windows-nt)
                      (zerop (logand ?\077 (file-modes dir)))))
       (error "The directory %s is unsafe" dir))))

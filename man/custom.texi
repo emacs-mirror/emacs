@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+@c   2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Customization, Quitting, Amusements, Top
 @chapter Customization
@@ -475,7 +475,7 @@ so that you will get the standard value in future Emacs sessions.
 This sets the variable to a previous value that was set in the
 customization buffer in this session.  If you customize a variable
 and then reset it, which discards the customized value,
-you can get the customized value back again with this operation.
+you can get the discarded value back again with this operation.
 @end table
 
 @cindex comments on customized settings
@@ -641,9 +641,9 @@ whose meaning has changed since Emacs version @var{version}.
 @item M-x customize-saved
 Set up a customization buffer containing all settings that you
 have saved with customization buffers.
-@item M-x customize-customized
+@item M-x customize-unsaved
 Set up a customization buffer containing all settings that you have
-customized but not saved.
+set but not saved.
 @end table
 
 @findex customize-option
@@ -687,11 +687,11 @@ whose definitions have been changed since the specified version,
 loading them if necessary.
 
 @findex customize-saved
-@findex customize-customized
+@findex customize-unsaved
   If you change settings and then decide the change was a mistake, you
 can use two special commands to revisit your previous changes.  Use
 @kbd{M-x customize-saved} to look at the settings that you have saved.
-Use @kbd{M-x customize-customized} to look at the settings that you
+Use @kbd{M-x customize-unsaved} to look at the settings that you
 have set but not saved.
 
 @node Custom Themes

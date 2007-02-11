@@ -1,6 +1,6 @@
 /* Storage allocation and gc for GNU Emacs Lisp interpreter.
    Copyright (C) 1985, 1986, 1988, 1993, 1994, 1995, 1997, 1998, 1999,
-      2000, 2001, 2002, 2003, 2004, 2005, 2006  Free Software Foundation, Inc.
+      2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -127,21 +127,21 @@ extern __malloc_size_t __malloc_extra_blocks;
 
 static pthread_mutex_t alloc_mutex;
 
-#define BLOCK_INPUT_ALLOC                       \
-  do                                            \
-    {                                           \
-      if (pthread_self () == main_thread)	\
-	BLOCK_INPUT;				\
-      pthread_mutex_lock (&alloc_mutex);	\
-    }                                           \
+#define BLOCK_INPUT_ALLOC                               \
+  do                                                    \
+    {                                                   \
+      if (pthread_equal (pthread_self (), main_thread)) \
+        sigblock (sigmask (SIGIO));                     \
+      pthread_mutex_lock (&alloc_mutex);                \
+    }                                                   \
   while (0)
-#define UNBLOCK_INPUT_ALLOC                     \
-  do                                            \
-    {                                           \
-      pthread_mutex_unlock (&alloc_mutex);	\
-      if (pthread_self () == main_thread)	\
-	UNBLOCK_INPUT;				\
-    }                                           \
+#define UNBLOCK_INPUT_ALLOC                             \
+  do                                                    \
+    {                                                   \
+      pthread_mutex_unlock (&alloc_mutex);              \
+      if (pthread_equal (pthread_self (), main_thread)) \
+        sigunblock (sigmask (SIGIO));                   \
+    }                                                   \
   while (0)
 
 #else /* SYSTEM_MALLOC || not HAVE_GTK_AND_PTHREAD */

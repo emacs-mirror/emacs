@@ -2,7 +2,9 @@
 ;;; tramp.el --- Transparent Remote Access, Multiple Protocol
 
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006 Free Software Foundation, Inc.
+;;   2005, 2006, 2007 Free Software Foundation, Inc.
+
+;; (copyright statements below in code to be updated with the above notice)
 
 ;; Author: Kai Gro,A_(Bjohann <kai.grossjohann@gmx.net>
 ;;         Michael Albinus <michael.albinus@gmx.de>
@@ -1791,7 +1793,8 @@ on the remote host.")
 (defvar tramp-perl-encode
   "%s -e '
 # This script contributed by Juanma Barranquero <lektu@terra.es>.
-# Copyright (C) 2002, 2006 Free Software Foundation, Inc.
+# Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007
+#   Free Software Foundation, Inc.
 use strict;
 
 my %%trans = do {
@@ -1833,7 +1836,8 @@ This string is passed to `format', so percent characters need to be doubled.")
 (defvar tramp-perl-decode
   "%s -e '
 # This script contributed by Juanma Barranquero <lektu@terra.es>.
-# Copyright (C) 2002, 2006 Free Software Foundation, Inc.
+# Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007
+#   Free Software Foundation, Inc.
 use strict;
 
 my %%trans = do {
@@ -3812,10 +3816,14 @@ This will break if COMMAND prints a newline, followed by the value of
 
 	       ;; Here is where loc-enc and loc-dec used to be let-bound.
 	       (if (and (symbolp loc-dec) (fboundp loc-dec))
-		   ;; If local decoding is a function, we call it.
+		   ;; If local decoding is a function, we call it.  We
+		   ;; must disable multibyte, because
+		   ;; `uudecode-decode-region' doesn't handle it
+		   ;; correctly.
 		   (let ((tmpbuf (get-buffer-create " *tramp tmp*")))
 		     (set-buffer tmpbuf)
 		     (erase-buffer)
+		     (set-buffer-multibyte nil)
 		     (insert-buffer-substring tramp-buf)
 		     (tramp-message-for-buffer
 		      multi-method method user host
@@ -5540,32 +5548,36 @@ The terminal type can be configured with `tramp-terminal-type'."
   (let (found item pattern action todo)
     (erase-buffer)
     (tramp-message 9 "Waiting 60s for prompt from remote shell")
-    (with-timeout (60 (throw 'tramp-action 'timeout))
-      (while (not found)
-	(tramp-accept-process-output p 1)
+    (while (not found)
+      (tramp-accept-process-output p 1)
+      (goto-char (point-min))
+      (setq todo actions)
+      (while todo
 	(goto-char (point-min))
-	(setq todo actions)
-	(while todo
-	  (goto-char (point-min))
-	  (setq item (pop todo))
-	  (setq pattern (symbol-value (nth 0 item)))
-	  (setq action (nth 1 item))
-	  (tramp-message 10 "Looking for regexp \"%s\" from remote shell"
-			 pattern)
-	  (when (re-search-forward (concat pattern "\\'") nil t)
-	    (setq found (funcall action p multi-method method user host)))))
-      found)))
+	(setq item (pop todo))
+	(setq pattern (symbol-value (nth 0 item)))
+	(setq action (nth 1 item))
+	(tramp-message 10 "Looking for regexp \"%s\" from remote shell"
+		       pattern)
+	(when (re-search-forward (concat pattern "\\'") nil t)
+	  (setq found (funcall action p multi-method method user host)))))
+    found))
 
-(defun tramp-process-actions (p multi-method method user host actions)
-  "Perform actions until success."
+(defun tramp-process-actions
+  (p multi-method method user host actions &optional timeout)
+  "Perform actions until success or TIMEOUT."
   (tramp-message 10 "%s" (mapconcat 'identity (process-command p) " "))
   (let (exit)
     (while (not exit)
       (tramp-message 9 "Waiting for prompts from remote shell")
       (setq exit
 	    (catch 'tramp-action
-	      (tramp-process-one-action
-	       p multi-method method user host actions)
+	      (if timeout
+		  (with-timeout (timeout)
+		    (tramp-process-one-action
+		     p multi-method method user host actions))
+		(tramp-process-one-action
+		 p multi-method method user host actions))
 	      nil)))
     (unless (eq exit 'ok)
       (tramp-clear-passwd user host)
@@ -5689,7 +5701,7 @@ Maybe the different regular expressions need to be tuned.
 	(set-buffer (tramp-get-buffer multi-method method user host))
 	(erase-buffer)
 	(tramp-process-actions p multi-method method user host
-			       tramp-actions-before-shell)
+			       tramp-actions-before-shell 60)
         (tramp-open-connection-setup-interactive-shell
          p multi-method method user host)
         (tramp-post-connection multi-method method user host)))))
@@ -5762,7 +5774,7 @@ arguments, and xx will be used as the host name to connect to.
 
 	(set-buffer buf)
 	(tramp-process-actions p multi-method method user host
-			       tramp-actions-before-shell)
+			       tramp-actions-before-shell 60)
         (tramp-message 7 "Initializing remote shell")
         (tramp-open-connection-setup-interactive-shell
          p multi-method method user host)
@@ -5823,7 +5835,7 @@ prompt than you do, so it is not at all unlikely that the variable
         (tramp-set-process-query-on-exit-flag p nil)
 	(set-buffer (tramp-get-buffer multi-method method user host))
 	(tramp-process-actions p multi-method method user host
-			       tramp-actions-before-shell)
+			       tramp-actions-before-shell 60)
         (tramp-open-connection-setup-interactive-shell
          p multi-method method user host)
         (tramp-post-connection multi-method method

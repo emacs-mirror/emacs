@@ -1,7 +1,7 @@
 ;;; cus-edit.el --- tools for customizing Emacs and Lisp packages
 ;;
 ;; Copyright (C) 1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006 Free Software Foundation, Inc.
+;;   2005, 2006, 2007 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -1320,9 +1320,11 @@ suggest to customize that face, if it's customizable."
      (format "*Customize Face: %s*"
 	     (custom-unlispify-tag-name face)))))
 
+(defalias 'customize-customized 'customize-unsaved)
+
 ;;;###autoload
-(defun customize-customized ()
-  "Customize all user options set since the last save in this session."
+(defun customize-unsaved ()
+  "Customize all user options set in this session but not saved."
   (interactive)
   (let ((found nil))
     (mapatoms (lambda (symbol)
@@ -1335,9 +1337,9 @@ suggest to customize that face, if it's customizable."
 		     (boundp symbol)
 		     (push (list symbol 'custom-variable) found))))
     (if (not found)
-	(error "No customized user options")
+	(error "No user options are set but unsaved")
       (custom-buffer-create (custom-sort-items found t nil)
-			    "*Customize Customized*"))))
+			    "*Customize Unsaved*"))))
 
 ;;;###autoload
 (defun customize-rogue ()

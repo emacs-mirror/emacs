@@ -1,5 +1,6 @@
 /* Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-                 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+                 2001, 2002, 2003, 2004, 2005, 2006, 2007
+                 Free Software Foundation, Inc.
 
    NOTE: The canonical source of this file is maintained with gnulib.
    Bugs can be reported to bug-gnulib@gnu.org.

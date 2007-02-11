@@ -16,7 +16,7 @@
  */
 
 /* Copyright (C) 2001, 2002, 2003, 2004, 2005,
-                 2006 Free Software Foundation, Inc.  */
+                 2006, 2007 Free Software Foundation, Inc.  */
 
 /*
  *	X10.h - Header definition and support file for the C subroutine
