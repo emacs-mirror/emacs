@@ -88,9 +88,9 @@ This determines the default behavior of unary operators."
 
 (defcustom calculator-prompt "Calc=%s> "
   "*The prompt used by the Emacs calculator.
-It should contain a \"%s\" somewhere that will indicate the i/o radixes,
-this string will be a two-character string as described in the
-documentation for `calculator-mode'."
+It should contain a \"%s\" somewhere that will indicate the i/o radixes;
+this will be a two-character string as described in the documentation
+for `calculator-mode'."
   :type  'string
   :group 'calculator)
 
@@ -561,7 +561,7 @@ Used for repeating operations in calculator-repR/L.")
                                      calculator-output-radix)))]
             "---"
             ,@(mapcar 'car radix-selectors)
-            ("Seperate I/O"
+            ("Separate I/O"
              ,@(mapcar (lambda (x) (nth 1 x)) radix-selectors)
              "---"
              ,@(mapcar (lambda (x) (nth 2 x)) radix-selectors)))
@@ -736,13 +736,13 @@ See the documentation for `calculator-mode' for more information."
            (select-window
             (split-window-vertically
              ;; If the modeline might interfere with the calculator buffer,
-             ;; use 3 lines instead. 
+             ;; use 3 lines instead.
              (if (and (fboundp 'face-attr-construct)
                       (let* ((dh (plist-get (face-attr-construct 'default) :height))
                              (mf (face-attr-construct 'modeline))
                              (mh (plist-get mf :height)))
-                        ;; If the modeline is shorter than the default, 
-                        ;; stick with 2 lines.  (It may be necessary to 
+                        ;; If the modeline is shorter than the default,
+                        ;; stick with 2 lines.  (It may be necessary to
                         ;; check how much shorter.)
                         (and
                          (not
@@ -766,7 +766,7 @@ See the documentation for `calculator-mode' for more information."
                           (let* ((bx (plist-get mf :box))
                                  (lh (plist-get bx :line-width)))
                             (and bx
-                                 (or 
+                                 (or
                                   (not lh)
                                   (> lh 0))))
                           ;; If the modeline has an overline, use 3 lines.
