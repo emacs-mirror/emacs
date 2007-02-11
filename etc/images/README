@@ -28,7 +28,7 @@ part of Emacs, but distributed and used by Emacs.
 
 * From GTK+ 2.x:
 
-    close.xpm copy.xpm cut.xpm find-replace.xpm help.xpm home.xpm
+    close.xpm copy.xpm cut.xpm help.xpm home.xpm
     index.xpm jump-to.xpm left-arrow.xpm new.xpm open.xpm paste.xpm
     preferences.xpm print.xpm refresh.xpm right-arrow.xpm save.xpm
     saveas.xpm search.xpm sort-ascending.xpm sort-descending.xpm
@@ -37,24 +37,14 @@ part of Emacs, but distributed and used by Emacs.
     back-arrow.xpm and fwd-arrow.xpm are slightly modified undo and redo.
     diropen.xpm is file-manager.png from Gnome hicolor theme.
 
-    low-color/[back-arrow.xpm copy.xpm cut.xpm fwd-arrow.xpm help.xpm
-    home.xpm index.xpm jump-to.xpm left-arrow.xpm new.xpm
-    next-node.xpm open.xpm paste.xpm preferences.xpm prev-node.xpm
-    print.xpm right-arrow.xpm save.xpm saveas.xpm search.xpm spell.xpm
-    undo.xpm up-arrow.xpm up-node.xpm]
-
 * From GNOME 2.x:
 
     attach.xpm connect.xpm contact.xpm data-save.xpm delete.xpm
-    describe.xpm disconnect.xpm exit.xpm gnus/toggle-subscription.xpm
-    lock-broken.xpm lock-ok.xpm lock.xpm mail/compose.xpm
-    mail/copy.xpm mail/flag-for-followup.xpm mail/forward.xpm
-    mail/inbox.xpm mail/move.xpm mail/not-spam.xpm mail/outbox.xpm
-    mail/preview.xpm redo.xpm mail/reply-all.xpm mail/reply.xpm
-    mail/save-draft.xpm mail/save.xpm search-replace.xpm mail/send.xpm mail/spam.xpm
-    next-page.xpm refresh.xpm separator.xpm sort-ascending.xpm
-    sort-column-ascending.xpm sort-criteria.xpm sort-descending.xpm
-    sort-row-ascending.xpm zoom-in.xpm zoom-out.xpm 
+    describe.xpm disconnect.xpm exit.xpm lock-broken.xpm lock-ok.xpm
+    lock.xpm redo.xpm search-replace.xpm next-page.xpm refresh.xpm
+    separator.xpm sort-ascending.xpm sort-column-ascending.xpm
+    sort-criteria.xpm sort-descending.xpm sort-row-ascending.xpm
+    zoom-in.xpm zoom-out.xpm 
 
     cancel.xpm is a slightly modified stock_stop.
     show.xpm is a slightly modified stock_new.    
@@ -62,3 +52,10 @@ part of Emacs, but distributed and used by Emacs.
     next-node.xpm and prev-node.xpm are from gthumb version 2.0 (part of
     GNOME 2.x) where they are called next-image-24.png and prev-image-24.png.
     up-node.xpm is just next-node.xpm rotated 90 degrees.
+
+    Some icons in the mail/ and gnus/ subdirectories are also taken
+    from this source (see their separate README files).
+
+The images in the low-color/ subdirectory are low-color versions of
+the files of the same name in this directory, and are subject to the
+same conditions.

@@ -25,6 +25,30 @@ a file is auto-generated (eg ldefs-boot.el) from another one in the
 CVS, then it does not really matter about adding a copyright statement
 to the generated file.
 
+However, here is a quote from Matt Norwood (Software Freedom Law
+Center) that suggests we should revise the above policy about trivial
+files:
+
+    If FSF has a strong policy reason notices off of files it
+    considers "trivial", this will take a lot more bookkeeping; it
+    also runs the risk of these "trivial" files later growing into
+    non-trivial files, and being in the tree without any record of
+    authorship. All in all, I think it's a better policy to attach the
+    notice and let future authors decide if something is trivial when
+    they want to reuse it elsewhere.
+    [...]
+    In general, copyright law will step back and look at the overall "work"
+    consisting of all the assembled components working together as a system;
+    it will apply protection and permissions to this system, not to its
+    subcomponents. If parts of it are recombined into another system, it
+    will consider the protections and permissions for each of the source
+    components only in order to assess the overall status of the work again.
+    The assessment of whether a set of components is entitled to copyright
+    protection is the degree to which they display "creativity": not as
+    atomic units, but as parts of a system working in concert. Thus, several
+    "trivial" components working together in some coherent system might be
+    protectible.
+
 The years in the copyright notice should be updated every year (see
 file "years" in this directory). The PS versions of refcards etc
 should display copyright notices (an exception to the rule about
@@ -290,6 +314,9 @@ src/s/aix3-2.h, bsd386.h, hpux8.h, hpux9.h, irix4-0.h, irix5-0.h,
 isc2-2.h, netbsd.h, osf1.h, sol2-3.h, sunos4-0.h, umips.h, usg5-4-2.h
   - all these (not obviously trivial) files are missing copyrights.
   rms: "I should talk about these with Matthew Norwood."
+The current legal advice seems to be that we should attach FSF
+copyright and GPL for the time being, then review post-release. But it
+is still under discussion.
 
 
 This file is part of GNU Emacs.
