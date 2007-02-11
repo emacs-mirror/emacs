@@ -18,7 +18,7 @@
 # purpose.  It is provided "as is" without express or implied warranty.
 #
 # End of header added for Emacs
-# $Id: PY-b5.tit,v 1.4 2007/01/30 00:55:50 handa Exp $
+#
 # HANZI input table for cxterm
 # To be used by cxterm, convert me to .cit format first
 # .cit version 2
