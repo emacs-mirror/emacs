@@ -1,18 +1,14 @@
 COPYRIGHT AND LICENSE INFORMATION FOR IMAGE FILES
 
-The files splash.xpm, splash8.xpm contain copyright and license
-information, but it is reproduced here for convenience.
-
   Files: default/[close.png empty.xpm guide.xpm leaf.xpm no-handle.xpm
-         close.xpm end-guide.png handle.png no-guide.png open.png CVS
+         close.xpm end-guide.png handle.png no-guide.png open.png
          end-guide.xpm handle.xpm no-guide.xpm open.xpm empty.png
          guide.png leaf.png no-handle.png]
 	 folder/[close.png empty.xpm guide.xpm leaf.xpm no-handle.xpm
- 	 close.xpm end-guide.png handle.png no-guide.png open.png CVS
+ 	 close.xpm end-guide.png handle.png no-guide.png open.png
  	 end-guide.xpm handle.xpm no-guide.xpm open.xpm empty.png
  	 guide.png leaf.png no-handle.png]
   Author: David PONCE <david.ponce@wanadoo.fr>
   Copyright (C) 2004, 2005, 2006, 2007
     Free Software Foundation, Inc.
   License: GNU General Public License version 2 or later (see COPYING)
-
