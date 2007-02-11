@@ -234,6 +234,7 @@ All README (and other such files) that are non-trivial and were added
 by Emacs developers need copyright statements and copying permissions.
   missed any?
   etc/BABYL?
+  lisp/term/README?
   borderline "trivial" cases (see below)...?
 These should use the standard GPL text (same as .el files), rather
 than the short notices we have been using till now.
