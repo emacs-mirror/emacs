@@ -1012,18 +1012,6 @@ language you are using."
 (define-key ctl-x-map "rw" 'window-configuration-to-register)
 (define-key ctl-x-map "rf" 'frame-configuration-to-register)
 
-;; These key bindings are deprecated; use the above C-x r map instead.
-;; We use these aliases so \[...] will show the C-x r bindings instead.
-(defalias 'point-to-register-compatibility-binding 'point-to-register)
-(defalias 'jump-to-register-compatibility-binding 'jump-to-register)
-(defalias 'copy-to-register-compatibility-binding 'copy-to-register)
-(defalias 'insert-register-compatibility-binding 'insert-register)
-(define-key ctl-x-map "/" 'point-to-register-compatibility-binding)
-(define-key ctl-x-map "j" 'jump-to-register-compatibility-binding)
-(define-key ctl-x-map "x" 'copy-to-register-compatibility-binding)
-(define-key ctl-x-map "g" 'insert-register-compatibility-binding)
-;; (define-key ctl-x-map "r" 'copy-rectangle-to-register)
-
 (define-key esc-map "q" 'fill-paragraph)
 ;; (define-key esc-map "g" 'fill-region)
 (define-key ctl-x-map "." 'set-fill-prefix)
