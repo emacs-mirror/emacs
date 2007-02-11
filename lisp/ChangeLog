@@ -1,3 +1,11 @@
+2007-02-11  Kenichi Handa  <handa@m17n.org>
+
+	* international/titdic-cnv.el (titdic-convert): Force files be
+	written with Unix-like eol format.  Read files under CXTERM-DIC by
+	raw-text.
+	(miscdic-convert): Force files be written with Unix-like eol
+	format.
+
 2007-02-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* files.el (change-major-mode-with-file-name): Fix typo in docstring.
