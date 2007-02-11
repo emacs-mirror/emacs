@@ -1,6 +1,5 @@
 Copyright (C) 2007  Free Software Foundation, Inc.
-Copying and distribution of this file, with or without modification,
-are permitted provided the copyright notice and this notice are preserved.
+See the end of the file for license conditions.
 
 
 NOTES ON COPYRIGHTS AND LICENSES
@@ -38,13 +37,17 @@ Copyright changes should be propagated to any associated repositories
 (eg Gnus, MH-E), but I think in every case this happens automatically
 (?).
 
-All README (and other such text files) that are non-trivial and were
-added by Emacs developers need copyright and copying permission
-statements (see eg INSTALL in the top-level directory).
+All README (and other such text files) that are non-trivial should
+contain copyright statements and GPL license notices, exactly as .el
+files do (see e.g. README in the top-level directory). (Before 2007,
+we used a simple, short statement permitting copying and modification
+provided legal notices were retained. In Feb 2007 we switched to the
+standard GPL text, on legal advice.)
 
-All images files that allow for comments should have copyright and
-license statements. Whether or not this is possible, the information
-should be recorded in a README file in each directory with images.
+For image files, the copyright and license details should be recorded
+in a README file in each directory with images. (Legal advice says
+that we need not add notices to each image file individually, if they
+allow for that.)
 
 When installing a file with an "unusual" license (after checking first
 it is ok), put a copy of the copyright and license in the file (if
@@ -92,11 +95,6 @@ lispintro/install-sh
 
 etc/edt-user.doc
   - update BOTH notices in this file
-
-[etc/orgcard.tex, orgcard.ps - files removed 2007/1/29]
-  - with no assignment from Rooke, these files were removed. We are
-  asking for an assignment, and if one is received the files will be
-  replaced.
 
 leim/CXTERM-DIC/4Corner.tit, ARRAY30.tit, CCDOSPY.tit, ECDICT.tit,
 ETZY.tit, PY-b5.tit, Punct-b5.tit, Punct.tit, QJ-b5.tit, QJ.tit,
@@ -203,13 +201,15 @@ Maybe some relevant comments here?
 
 
 All README (and other such files) that are non-trivial and were added
-by Emacs developers need copyright statements and copying permissions
-to be added.
-  lisp/term/README (author)?
+by Emacs developers need copyright statements and copying permissions.
+  missed any?
   etc/BABYL?
-  borderline "trivial" cases...?
-Apparently these should all be placed under GPL, rather than the short
-license we have been using till now.
+  borderline "trivial" cases (see below)...?
+These should use the standard GPL text (same as .el files), rather
+than the short notices we have been using till now.
+rms: "If a README file is under 60 lines long, using the long version
+might be ugly. Please tell me if you encounter one that is under 60
+lines."
 
 
 Clarify the legal status of many image files. It's not necessary
@@ -219,7 +219,7 @@ Files can be listed in groups. See etc/README for an example.
 Image files to consider (is there such a thing as a "trivial" image?):
  etc/emacs.xbm, gnu.xpm
  etc/images/
-
+ nt/icons
 
 admin/check-doc-strings
   Author is Martin Buchholz, but no assignment from him on file, and
@@ -258,7 +258,7 @@ lwlib/lwlib.c - copyright Lucid, but FSF copyright was added in 2002 -
 
 man/back.texi
   - what license is appropriate for this file? Seems not to be used by
-  anthing - just remove it? Actually seems to be part of the Emacs
+  anything - just remove it? Actually seems to be part of the Emacs
   Lisp manual, not the Emacs manual.
 
 
@@ -276,3 +276,21 @@ src/s/aix3-2.h, bsd386.h, hpux8.h, hpux9.h, irix4-0.h, irix5-0.h,
 isc2-2.h, netbsd.h, osf1.h, sol2-3.h, sunos4-0.h, umips.h, usg5-4-2.h
   - all these (not obviously trivial) files are missing copyrights.
   rms: "I should talk about these with Matthew Norwood."
+
+
+This file is part of GNU Emacs.
+
+GNU Emacs is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2, or (at your option)
+any later version.
+
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Emacs; see the file COPYING.  If not, write to the
+Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.
