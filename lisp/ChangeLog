@@ -1,5 +1,7 @@
 2007-02-11  Juanma Barranquero  <lekktu@gmail.com>
 
+	* files.el (change-major-mode-with-file-name): Fix typo in docstring.
+
 	* calculator.el (calculator-prompt): Doc fix.
 	(calculator-mode-map): Fix typo in menu entry.
 
