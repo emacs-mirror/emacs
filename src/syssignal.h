@@ -210,7 +210,7 @@ char *strsignal ();
 #ifdef HAVE_GTK_AND_PTHREAD
 #define SIGNAL_THREAD_CHECK(signo)                                      \
   do {                                                                  \
-    if (pthread_self () != main_thread)                                 \
+    if (!pthread_equal (pthread_self (), main_thread))			\
       {                                                                 \
         /* POSIX says any thread can receive the signal.  On GNU/Linux  \
            that is not true, but for other systems (FreeBSD at least)   \

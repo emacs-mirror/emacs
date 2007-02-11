@@ -93,7 +93,7 @@ See the documentation for `list-load-path-shadows' for further information."
       (setq dir (directory-file-name (file-truename (or (car path) "."))))
       (if (member dir true-names)
 	  ;; We have already considered this PATH redundant directory.
-	  ;; Show the redundancy if we are interactiver, unless the PATH
+	  ;; Show the redundancy if we are interactive, unless the PATH
 	  ;; dir is nil or "." (these redundant directories are just a
 	  ;; result of the current working directory, and are therefore
 	  ;; not always redundant).
@@ -170,8 +170,8 @@ See the documentation for `list-load-path-shadows' for further information."
 (defun list-load-path-shadows ()
   "Display a list of Emacs Lisp files that shadow other files.
 
-This function lists potential load-path problems.  Directories in the
-`load-path' variable are searched, in order, for Emacs Lisp
+This function lists potential load path problems.  Directories in
+the `load-path' variable are searched, in order, for Emacs Lisp
 files.  When a previously encountered file name is found again, a
 message is displayed indicating that the later file is \"hidden\" by
 the earlier.

@@ -1,3 +1,18 @@
+2007-01-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnus-art.el (gnus-button-prefer-mid-or-mail): Fix typo in docstring.
+
+2007-01-28  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* nnslashdot.el (nnslashdot-request-article): Update end-of-article
+	regexp.
+
+2007-01-24  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* uudecode.el (uudecode-string-to-multibyte): New function emulating
+	string-to-multibyte.
+	(uudecode-decode-region-internal): Use it.
+
 2007-01-23  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-score.el (gnus-home-score-file, gnus-home-adapt-file): Fix

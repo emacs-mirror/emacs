@@ -94,7 +94,7 @@ instead of the pathname inheritance method."
 	       (string-match "/" path))
  	  (while (and byserv (not retval))
 	    (setq data (car (car byserv)))
-	    (if (or (not (string-match "/" data)) ; Its a realm - take it!
+	    (if (or (not (string-match "/" data)) ; It's a realm - take it!
 		    (and
 		     (>= (length path) (length data))
 		     (string= data (substring path 0 (length data)))))
@@ -231,7 +231,7 @@ TYPE   is the type of authentication to be returned.  This is either a string
        representing the type (basic, digest, etc), or nil or the symbol 'any'
        to specify that any authentication is acceptable.  If requesting 'any'
        the strongest matching authentication will be returned.  If this is
-       wrong, its no big deal, the error from the server will specify exactly
+       wrong, it's no big deal, the error from the server will specify exactly
        what type of auth to use
 PROMPT is boolean - specifies whether to ask the user for a username/password
        if one cannot be found in the cache"

@@ -420,7 +420,7 @@ static unsigned char gamegrid_bits[] = {
   (if gamegrid-timer
       (if (featurep 'itimer)
           (delete-itimer gamegrid-timer)
-        (timer-set-time gamegrid-timer '(0 0 0) nil)))
+        (cancel-timer gamegrid-timer)))
   (setq gamegrid-timer nil))
 
 ;; ;;;;;;;;;;;;;;; high score functions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -515,41 +515,42 @@ FILE is created there."
 (defun gamegrid-add-score-with-update-game-score-1 (file target score)
   (let ((default-directory "/")
 	(errbuf (generate-new-buffer " *update-game-score loss*")))
-    (apply
-     'call-process
-     (append
-      (list
-       (expand-file-name "update-game-score" exec-directory)
-       nil errbuf nil
-       "-m" (int-to-string gamegrid-score-file-length)
-       "-d" (if gamegrid-shared-game-dir
-		(expand-file-name shared-game-score-directory)
-	      (file-name-directory target))
-       file
-       (int-to-string score)
-       (concat
-	(user-full-name)
-	" <"
-	(cond ((fboundp 'user-mail-address)
-	       (user-mail-address))
-	      ((boundp 'user-mail-address)
-	       user-mail-address)
-	      (t ""))
-	">  "
-	(current-time-string)))))
+    ;; This can be called from a timer, so enable local quits.
+    (with-local-quit
+      (apply
+       'call-process
+       (append
+	(list
+	 (expand-file-name "update-game-score" exec-directory)
+	 nil errbuf nil
+	 "-m" (int-to-string gamegrid-score-file-length)
+	 "-d" (if gamegrid-shared-game-dir
+		  (expand-file-name shared-game-score-directory)
+		(file-name-directory target))
+	 file
+	 (int-to-string score)
+	 (concat
+	  (user-full-name)
+	  " <"
+	  (cond ((fboundp 'user-mail-address)
+		 (user-mail-address))
+		((boundp 'user-mail-address)
+		 user-mail-address)
+		(t ""))
+	  ">  "
+	  (current-time-string))))))
     (if (buffer-modified-p errbuf)
 	(progn
 	  (display-buffer errbuf)
 	  (error "Failed to update game score file"))
       (kill-buffer errbuf))
-    (save-excursion
-      (let ((buf (find-buffer-visiting target)))
-	(if buf
-	    (progn
-	      (with-current-buffer buf
-		(revert-buffer nil t nil))
-	      (display-buffer buf))
-	  (find-file-read-only-other-window target))))))
+    (let ((buf (find-buffer-visiting target)))
+      (if buf
+	  (progn
+	    (with-current-buffer buf
+	      (revert-buffer nil t nil))
+	    (display-buffer buf))
+	(find-file-read-only-other-window target)))))
 
 (defun gamegrid-add-score-insecure (file score &optional directory)
   (save-excursion

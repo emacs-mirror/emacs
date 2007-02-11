@@ -250,10 +250,9 @@ LEFT and RIGHT are the elements to compare."
 
              ;; * INSERTING AND DELETING
              ;; C-u 8 * to insert ********.
-             (delete-backward-char [backspace])
              (delete-backward-char "\d")
              (delete-char [?\C-d])
-             (backward-kill-word [(meta backspace)])
+             (backward-kill-word [?\M-\d])
              (kill-word [?\M-d])
              (kill-line [?\C-k])
              (kill-sentence [?\M-k])
@@ -422,90 +421,94 @@ where
   QUIET       is t if this changed keybinding should be handled quietly.
               This is used by `tutorial--display-changes'."
   (let (changed-keys remark)
-    (dolist (kdf default-keys)
-      ;; The variables below corresponds to those with the same names
-      ;; described in the doc string.
-      (let* ((key     (nth 1 kdf))
-             (def-fun (nth 0 kdf))
-             (def-fun-txt (format "%s" def-fun))
-             (rem-fun (command-remapping def-fun))
-             (key-fun (if (eq def-fun 'ESC-prefix)
-			  (lookup-key global-map [27])
-			(key-binding key)))
-             (where (where-is-internal (if rem-fun rem-fun def-fun))))
-        (if where
-            (progn
-              (setq where (key-description (car where)))
-              (when (and (< 10 (length where))
-                         (string= (substring where 0 (length "<menu-bar>"))
-                                  "<menu-bar>"))
-                (setq where "the menus")))
-          (setq where ""))
-        (setq remark nil)
-        (unless
-            (cond ((eq key-fun def-fun)
-                   ;; No rebinding, return t
-                   t)
-                  ((and key-fun
-			(eq key-fun (command-remapping def-fun)))
-                   ;; Just a remapping, return t
-                   t)
-                  ;; cua-mode specials:
-                  ((and cua-mode
-                        (or (and
-                             (equal key [?\C-v])
-                             (eq key-fun 'cua-paste))
-                            (and
-                             (equal key [?\C-z])
-                             (eq key-fun 'undo))))
-                   (setq remark (list "cua-mode, more info" 'cua-mode))
-                   nil)
-                  ((and cua-mode
-                        (or (and (eq def-fun 'ESC-prefix)
-				 (equal key-fun
-                                     `(keymap
-                                       (118 . cua-repeat-replace-region)))
-				 (setq def-fun-txt "\"ESC prefix\""))
-			    (and (eq def-fun 'mode-specific-command-prefix)
-				 (equal key-fun
-					'(keymap
-					  (timeout . copy-region-as-kill)))
-				 (setq def-fun-txt "\"C-c prefix\""))
-			    (and (eq def-fun 'Control-X-prefix)
-				 (equal key-fun
-					'(keymap (timeout . kill-region)))
-				 (setq def-fun-txt "\"C-x prefix\""))))
-                   (setq remark (list "cua-mode replacement" 'cua-mode))
-                   (setq where "Same key")
-                   nil)
-                  ;; viper-mode specials:
-                  ((and (boundp 'viper-mode-string)
-			(boundp 'viper-current-state)
-                        (eq viper-current-state 'vi-state)
-                        (or (and (eq def-fun 'isearch-forward)
-                                 (eq key-fun 'viper-isearch-forward))
-                            (and (eq def-fun 'isearch-backward)
-                                 (eq key-fun 'viper-isearch-backward))))
-                   ;; These bindings works as the default bindings,
-                   ;; return t
-                   t)
-                  ((when normal-erase-is-backspace
-                     (or (and (equal key [C-delete])
-                              (equal key-fun 'kill-word))
-                         (and (equal key [C-backspace])
-                              (equal key-fun 'backward-kill-word))))
-                   ;; This is the strange handling of C-delete and
-                   ;; C-backspace, return t
-                   t)
-                  (t
-                   ;; This key has indeed been rebound. Put information
-                   ;; in `remark' and return nil
-                   (setq remark
-                         (list "more info" 'current-binding
-                               key-fun def-fun key where))
-                   nil))
-          (add-to-list 'changed-keys
-                       (list key def-fun def-fun-txt where remark nil)))))
+    ;; Look up the bindings in a Fundamental mode buffer
+    ;; so we do not get fooled by some other major mode.
+    (with-temp-buffer
+      (fundamental-mode)
+      (dolist (kdf default-keys)
+	;; The variables below corresponds to those with the same names
+	;; described in the doc string.
+	(let* ((key     (nth 1 kdf))
+	       (def-fun (nth 0 kdf))
+	       (def-fun-txt (format "%s" def-fun))
+	       (rem-fun (command-remapping def-fun))
+	       (key-fun (if (eq def-fun 'ESC-prefix)
+			    (lookup-key global-map [27])
+			  (key-binding key)))
+	       (where (where-is-internal (if rem-fun rem-fun def-fun))))
+	  (if where
+	      (progn
+		(setq where (key-description (car where)))
+		(when (and (< 10 (length where))
+			   (string= (substring where 0 (length "<menu-bar>"))
+				    "<menu-bar>"))
+		  (setq where "the menus")))
+	    (setq where ""))
+	  (setq remark nil)
+	  (unless
+	      (cond ((eq key-fun def-fun)
+		     ;; No rebinding, return t
+		     t)
+		    ((and key-fun
+			  (eq key-fun (command-remapping def-fun)))
+		     ;; Just a remapping, return t
+		     t)
+		    ;; cua-mode specials:
+		    ((and cua-mode
+			  (or (and
+			       (equal key [?\C-v])
+			       (eq key-fun 'cua-paste))
+			      (and
+			       (equal key [?\C-z])
+			       (eq key-fun 'undo))))
+		     (setq remark (list "cua-mode, more info" 'cua-mode))
+		     nil)
+		    ((and cua-mode
+			  (or (and (eq def-fun 'ESC-prefix)
+				   (equal key-fun
+					  `(keymap
+					    (118 . cua-repeat-replace-region)))
+				   (setq def-fun-txt "\"ESC prefix\""))
+			      (and (eq def-fun 'mode-specific-command-prefix)
+				   (equal key-fun
+					  '(keymap
+					    (timeout . copy-region-as-kill)))
+				   (setq def-fun-txt "\"C-c prefix\""))
+			      (and (eq def-fun 'Control-X-prefix)
+				   (equal key-fun
+					  '(keymap (timeout . kill-region)))
+				   (setq def-fun-txt "\"C-x prefix\""))))
+		     (setq remark (list "cua-mode replacement" 'cua-mode))
+		     (setq where "Same key")
+		     nil)
+		    ;; viper-mode specials:
+		    ((and (boundp 'viper-mode-string)
+			  (boundp 'viper-current-state)
+			  (eq viper-current-state 'vi-state)
+			  (or (and (eq def-fun 'isearch-forward)
+				   (eq key-fun 'viper-isearch-forward))
+			      (and (eq def-fun 'isearch-backward)
+				   (eq key-fun 'viper-isearch-backward))))
+		     ;; These bindings works as the default bindings,
+		     ;; return t
+		     t)
+		    ((when normal-erase-is-backspace
+		       (or (and (equal key [C-delete])
+				(equal key-fun 'kill-word))
+			   (and (equal key [C-backspace])
+				(equal key-fun 'backward-kill-word))))
+		     ;; This is the strange handling of C-delete and
+		     ;; C-backspace, return t
+		     t)
+		    (t
+		     ;; This key has indeed been rebound. Put information
+		     ;; in `remark' and return nil
+		     (setq remark
+			   (list "more info" 'current-binding
+				 key-fun def-fun key where))
+		     nil))
+	    (add-to-list 'changed-keys
+			 (list key def-fun def-fun-txt where remark nil))))))
     changed-keys))
 
 (defun tutorial--key-description (key)
@@ -621,7 +624,7 @@ with some explanatory links."
       (setq file-name (concat file-name ".tut")))
     (expand-file-name file-name (tutorial--saved-dir))))
 
-(defun tutorial--remove-remarks()
+(defun tutorial--remove-remarks ()
   "Remove the remark lines that was added to the tutorial buffer."
   (save-excursion
     (goto-char (point-min))
@@ -908,7 +911,7 @@ string ids and values that are the language specific strings.
 
 See `get-lang-string' for more information.")
 
-(defun get-lang-string(lang stringid &optional no-eng-fallback)
+(defun get-lang-string (lang stringid &optional no-eng-fallback)
   "Get a language specific string for Emacs.
 In certain places Emacs can replace a string showed to the user with a language specific string.
 This function retrieves such strings.

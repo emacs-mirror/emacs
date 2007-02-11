@@ -307,9 +307,9 @@ yanked text.
 Double or triple clicking of @kbd{M-Mouse-1} operates on words and
 lines, much like @kbd{Mouse-1}.
 
-If @code{mouse-yank-at-point} is non-@code{nil}, @kbd{M-Mouse-2}
-yanks at point.  Then it does not matter precisely where you click; all
-that matters is which window you click on.  @xref{Mouse Commands}.
+If @code{mouse-yank-at-point} is non-@code{nil}, @kbd{M-Mouse-2} yanks
+at point.  Then it does not matter precisely where you click, or even
+which of the frame's windows you click on.  @xref{Mouse Commands}.
 
 @node Clipboard
 @subsection Using the Clipboard

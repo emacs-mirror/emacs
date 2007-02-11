@@ -1,7 +1,8 @@
 % === BEGIN ps-print prologue 1
-% version: 6.0
+% version: 6.1
 
-% Copyright (C) 2000, 2001, 2002, 2003, 2004  Free Software Foundation, Inc.
+% Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
+%   Free Software Foundation, Inc.
 %
 % This file is part of GNU Emacs.
 %
@@ -429,14 +430,16 @@ StandardEncoding 46 82 getinterval aload pop
 % stack: --
 /printBackground{
   /BackgroundColor where{
+    /LHg LineHeight 0.65 mul def
+    /PHg PrintHeight LHg add def
     pop gsave BackgroundColor SetColor
     NumberOfColumns{
      gsave
-     0 LineHeight 0.65 mul rmoveto
+     0 LHg rmoveto
      PrintWidth 0 rlineto
-     0 PrintHeight neg rlineto
+     0 PHg neg rlineto
      PrintWidth neg 0 rlineto
-     0 PrintHeight rlineto
+     0 PHg rlineto
      fill
      grestore
      PrintWidth InterColumn add 0 rmoveto

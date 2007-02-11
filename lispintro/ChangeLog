@@ -1,3 +1,10 @@
+2007-01-30  Robert J. Chassell  <bob@rattlesnake.com>
+
+	* emacs-lisp-intro.texi (else): Rephrase message of first
+	if-then-else example so it is right both in itself and in the
+	"true" case of the expression, which asks whether 4 is greater
+	than 5.
+
 2006-11-27  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in (usermanualdir): Define.

@@ -2599,7 +2599,7 @@ away in the internal cache."
 	    (if wildcard
 		(progn
 		  (ange-ftp-cd host user (file-name-directory name))
-		  (setq lscmd (list 'dir file temp lsargs)))
+		  (setq lscmd (list 'ls file temp lsargs)))
 	      (setq lscmd (list 'dir name temp lsargs)))
 	    (unwind-protect
 		(if (car (setq result (ange-ftp-send-cmd

@@ -1,3 +1,11 @@
+2007-01-30  Kenichi Handa  <handa@m17n.org>
+
+	* CXTERM-DIC/CCDOSPY.tit, CXTERM-DIC/PY-b5.tit, CXTERM-DIC/SW.tit,
+	CXTERM-DIC/TONEPY.tit: Add copyright and license notices.
+
+	* MISC-DIC/pinyin.map, MISC-DIC/ziranma.cin: Add copyright and
+	license notices.
+	
 2007-01-24  Kenichi Handa  <handa@m17n.org>
 
 	* MISC-DIC/README: New file.

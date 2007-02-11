@@ -1,3 +1,7 @@
+2007-01-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* url-auth.el (url-get-authentication): Fix typo in docstring.
+
 2007-01-14  Magnus Henoch  <mange@freemail.hu>
 
 	* url-proxy.el (url-proxy-object): Remove.

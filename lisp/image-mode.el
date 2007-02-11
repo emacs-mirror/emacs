@@ -60,17 +60,11 @@ to toggle between display as an image and display as text."
   (setq major-mode 'image-mode)
   (use-local-map image-mode-map)
   (add-hook 'change-major-mode-hook 'image-toggle-display-text nil t)
-  (if (and (display-images-p)
-	   (not (get-text-property (point-min) 'display)))
-      (image-toggle-display)
-    ;; Set next vars when image is already displayed but local
-    ;; variables were cleared by kill-all-local-variables
-    (setq cursor-type nil truncate-lines t))
   (run-mode-hooks 'image-mode-hook)
   (if (display-images-p)
       (message "%s" (concat
 		     (substitute-command-keys
-		      "Type \\[image-toggle-display] to view the image as ")
+		      "Type \\[image-toggle-display] to view as ")
 		     (if (get-text-property (point-min) 'display)
 			 "text" "an image") "."))))
 
@@ -178,6 +172,11 @@ and showing the image as an image."
       (setq truncate-lines t)
       (if (called-interactively-p)
 	  (message "Repeat this command to go back to displaying the file as text")))))
+
+(put 'image-toggle-display 'disabled "\
+WARNING: Displaying images can be a security risk.
+Please make sure you're using up-to-date image libraries
+and the images displayed come from a trusted source.")
 
 (provide 'image-mode)
 

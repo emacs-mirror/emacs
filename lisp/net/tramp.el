@@ -3245,8 +3245,13 @@ be a local filename.  The method used must be an out-of-band method."
 
       ;; Use rcp-like program for file transfer.
       (unwind-protect
-          (let ((p (apply 'start-process (buffer-name trampbuf) trampbuf
-                          copy-program copy-args)))
+          (let* ((default-directory
+		   (if (and (stringp default-directory)
+			    (file-accessible-directory-p default-directory))
+		       default-directory
+		     (tramp-temporary-file-directory)))
+		 (p (apply 'start-process (buffer-name trampbuf) trampbuf
+			   copy-program copy-args)))
             (tramp-set-process-query-on-exit-flag p nil)
             (tramp-process-actions p multi-method method user host
                                    tramp-actions-copy-out-of-band))

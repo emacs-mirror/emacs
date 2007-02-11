@@ -471,19 +471,22 @@ If INVISIBLE-OK is non-nil, an invisible heading line is ok too."
                              (if up "Parent" "Demoted") head)
                      head nil nil t)))))
 
-(defun outline-promote (&optional children)
+(defun outline-promote (&optional which)
   "Promote headings higher up the tree.
-If prefix argument CHILDREN is given, promote also all the children.
-If the region is active in `transient-mark-mode', promote all headings
-in the region."
+If transient-mark-mode is on, and mark is active, promote headings in
+the region (from a Lisp program, pass `region' for WHICH).  Otherwise:
+without prefix argument, promote current heading and all headings in the
+subtree (from a Lisp program, pass `subtree' for WHICH); with prefix
+argument, promote just the current heading (from a Lisp program, pass
+nil for WHICH, or do not pass any argument)."
   (interactive
    (list (if (and transient-mark-mode mark-active) 'region
 	   (outline-back-to-heading)
 	   (if current-prefix-arg nil 'subtree))))
   (cond
-   ((eq children 'region)
+   ((eq which 'region)
     (outline-map-region 'outline-promote (region-beginning) (region-end)))
-   (children
+   (which
     (outline-map-region 'outline-promote
 			(point)
 			(save-excursion (outline-get-next-sibling) (point))))
@@ -507,19 +510,22 @@ in the region."
 
       (replace-match up-head nil t)))))
 
-(defun outline-demote (&optional children)
+(defun outline-demote (&optional which)
   "Demote headings lower down the tree.
-If prefix argument CHILDREN is given, demote also all the children.
-If the region is active in `transient-mark-mode', demote all headings
-in the region."
+If transient-mark-mode is on, and mark is active, demote headings in
+the region (from a Lisp program, pass `region' for WHICH).  Otherwise:
+without prefix argument, demote current heading and all headings in the
+subtree (from a Lisp program, pass `subtree' for WHICH); with prefix
+argument, demote just the current heading (from a Lisp program, pass
+nil for WHICH, or do not pass any argument)."
   (interactive
    (list (if (and transient-mark-mode mark-active) 'region
 	   (outline-back-to-heading)
 	   (if current-prefix-arg nil 'subtree))))
   (cond
-   ((eq children 'region)
+   ((eq which 'region)
     (outline-map-region 'outline-demote (region-beginning) (region-end)))
-   (children
+   (which
     (outline-map-region 'outline-demote
 			(point)
 			(save-excursion (outline-get-next-sibling) (point))))

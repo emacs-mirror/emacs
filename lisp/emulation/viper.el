@@ -532,7 +532,7 @@ If Viper is enabled, turn it off.  Otherwise, turn it on."
 
 ;;;###autoload
 (defun viper-mode ()
-  "Turn on Viper emulation of Vi in Emacs. See Info node `(viper)Viper'."
+  "Turn on Viper emulation of Vi in Emacs. See Info node `(viper)Top'."
   (interactive)
   (if (not noninteractive)
       (progn

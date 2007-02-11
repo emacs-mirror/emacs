@@ -52,7 +52,8 @@ A value of nil means that any change in indentation starts a new paragraph."
 
 (defvar fill-paragraph-function nil
   "Mode-specific function to fill a paragraph, or nil if there is none.
-If the function returns nil, then `fill-paragraph' does its normal work.")
+If the function returns nil, then `fill-paragraph' does its normal work.
+A value of t means explicitly \"do nothing special\".")
 
 (defvar fill-paragraph-handle-comment t
   "Non-nil means paragraph filling will try to pay attention to comments.")
@@ -761,7 +762,8 @@ If `fill-paragraph-function' is nil, return the `fill-prefix' used for filling."
 		 (barf-if-buffer-read-only)
 		 (list (if current-prefix-arg 'full))))
   ;; First try fill-paragraph-function.
-  (or (and (or fill-paragraph-function
+  (or (and (not (eq fill-paragraph-function t))
+	   (or fill-paragraph-function
 	       (and (minibufferp (current-buffer))
 		    (= 1 (point-min))))
 	   (let ((function (or fill-paragraph-function
@@ -773,7 +775,7 @@ If `fill-paragraph-function' is nil, return the `fill-prefix' used for filling."
 		 ;; fill-paragraph-handle-comment back to t explicitly or
 		 ;; return nil.
 		 (fill-paragraph-handle-comment nil)
-		 fill-paragraph-function)
+		 (fill-paragraph-function t))
 	     (funcall function arg)))
       ;; Then try our syntax-aware filling code.
       (and fill-paragraph-handle-comment

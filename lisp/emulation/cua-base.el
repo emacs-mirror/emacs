@@ -399,6 +399,9 @@ and after the region marked by the rectangle to search."
 		 (other :tag "Enabled" t))
   :group 'cua)
 
+(defvar cua-global-keymap)		; forward
+(defvar cua--region-keymap)		; forward
+
 (defcustom cua-rectangle-mark-key [(control return)]
   "Global key used to toggle the cua rectangle mark."
   :set #'(lambda (symbol value)

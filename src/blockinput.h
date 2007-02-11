@@ -49,7 +49,7 @@ Boston, MA 02110-1301, USA.  */
    interrupt_input_pending to a non-zero value.  If that flag is set
    when input becomes unblocked, UNBLOCK_INPUT will send a new SIGIO.  */
 
-extern int interrupt_input_blocked;
+extern volatile int interrupt_input_blocked;
 
 /* Nonzero means an input interrupt has arrived
    during the current critical section.  */
