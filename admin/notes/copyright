@@ -74,6 +74,10 @@ author should be removed and the year(s) transferred to the FSF); or
 else it is possible the file should not be in Emacs at all (please
 report!).
 
+Note that it seems painfully clear that one cannot rely on CVS logs,
+or even ChangeLogs, for older changes. People often installed changes
+from others, without recording the true authorship.
+
 [For reference, most of these points were established via email with
 rms, 2007/1, "Copyright years".]
 
@@ -95,6 +99,9 @@ lispintro/install-sh
 
 etc/edt-user.doc
   - update BOTH notices in this file
+
+etc/letter.pbm.letter.xpm
+  - trivial, no notice needed.
 
 leim/CXTERM-DIC/4Corner.tit, ARRAY30.tit, CCDOSPY.tit, ECDICT.tit,
 ETZY.tit, PY-b5.tit, Punct-b5.tit, Punct.tit, QJ-b5.tit, QJ.tit,
@@ -150,11 +157,6 @@ src/acldef.h, chpdef.h, ndir.h
   NB we would like to re-add this file if we can. Please let us know
   if you can clarify its legal status.
 
-etc/gnus-refcard.tex
-etc/gnus-booklet.ps
-  - gnus logo (= GNU Emacs logo) is FSF assigned.
-
-
 
 *** These are copyright issues that need not be fixed until after
     Emacs 22 is released (though if they can be fixed before, that is
@@ -170,6 +172,10 @@ not affect a release).
 
 REMOVED etc/orgcard.tex, orgcard.ps
   Re-add these files if an assignment is received from Rooke.
+
+etc/images
+  Image files from GTK, Gnome are under GPLv2 (no "or later"?). RMS will
+  contact image authors in regards to future switch to v3.
 
 
 src/acldef.h, chpdef.h, ndir.h
@@ -212,14 +218,22 @@ might be ugly. Please tell me if you encounter one that is under 60
 lines."
 
 
-Clarify the legal status of many image files. It's not necessary
-to put a notice in each image (where the format allows it). It's OK to
-put the information in a README file in the associated directory.
-Files can be listed in groups. See etc/README for an example.
-Image files to consider (is there such a thing as a "trivial" image?):
- etc/emacs.xbm, gnu.xpm
- etc/images/
- nt/icons
+Clarify the legal status of image files. It's not necessary to put a
+notice in each image (where the format allows it). It's OK to put the
+information in a README file in the associated directory. Files can be
+listed in groups. See etc/README for an example.
+Image files to consider:
+ etc/emacs.xbm, gnu.xpm  # rms: ask fx at gnu.org
+ etc/emacs.icon
+ etc/images/info, mh-logo
+ etc/images/gnus/
+ etc/images/gud/      # just add details for Red Hat icons (rms or nickrob?)
+ etc/images/mail/repack, reply-from, reply-to 
+ etc/images/smilies/
+ nt/icons/
+rms: "Can you find this by searching for items in copyright.list that
+assign images for Emacs?" [this suggests we ask Bill Wohler]
+
 
 admin/check-doc-strings
   Author is Martin Buchholz, but no assignment from him on file, and
