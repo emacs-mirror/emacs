@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.56e
+;; Version: 4.56f
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -114,7 +114,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "4.56e"
+(defvar org-version "4.56f"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -8261,7 +8261,7 @@ the documentation of `org-diary'."
 		     1)))
 	(org-add-props txt props
 	  'org-marker marker 'org-hd-marker marker
-	  'priority priority 'category category)
+	  'priority priority 'org-category category)
 	(push txt ee)
 	(if org-agenda-todo-list-sublevels
 	    (goto-char (match-end 1))
@@ -8327,13 +8327,13 @@ the documentation of `org-diary'."
 	      (org-add-props txt nil
 		'face (if donep 'org-done 'org-warning)
 		'undone-face 'org-warning 'done-face 'org-done
-		'category category 'priority (+ 100 priority))
+		'org-category category 'priority (+ 100 priority))
 	    (if scheduledp
 		(org-add-props txt nil
 		  'face 'org-scheduled-today
 		  'undone-face 'org-scheduled-today 'done-face 'org-done
-		  'category category 'priority (+ 99 priority))
-	      (org-add-props txt nil 'priority priority 'category category)))
+		  'org-category category 'priority (+ 99 priority))
+	      (org-add-props txt nil 'priority priority 'org-category category)))
 	  (push txt ee))
 	(outline-next-heading)))
     (nreverse ee)))
@@ -8384,7 +8384,7 @@ the documentation of `org-diary'."
 	  (setq priority 100000)
 	  (org-add-props txt props
 	    'org-marker marker 'org-hd-marker hdmarker 'face 'org-done
-	    'priority priority 'category category
+	    'priority priority 'org-category category
 	    'undone-face 'org-warning 'done-face 'org-done)
 	  (push txt ee))
 	(outline-next-heading)))
@@ -8440,7 +8440,7 @@ the documentation of `org-diary'."
 		  'org-marker (org-agenda-new-marker pos)
 		  'org-hd-marker (org-agenda-new-marker pos1)
 		  'priority (+ (- 10 diff) (org-get-priority txt))
-		  'category category
+		  'org-category category
 		  'face face 'undone-face face 'done-face 'org-done)
 		(push txt ee))))))
     ee))
@@ -8493,7 +8493,7 @@ the documentation of `org-diary'."
 		  'org-marker (org-agenda-new-marker pos)
 		  'org-hd-marker (org-agenda-new-marker pos1)
 		  'priority (+ (- 5 diff) (org-get-priority txt))
-		  'category category)
+		  'org-category category)
 		(push txt ee))))))
     ee))
 
@@ -8539,7 +8539,7 @@ the documentation of `org-diary'."
 		(setq txt org-agenda-no-heading-message))
 	      (org-add-props txt props
 		'org-marker marker 'org-hd-marker hdmarker
-		'priority (org-get-priority txt) 'category category)
+		'priority (org-get-priority txt) 'org-category category)
 	      (push txt ee)))
 	(goto-char pos)))
     ;; Sort the entries by expiration date.
@@ -8653,7 +8653,7 @@ only the correctly processes TXT should be returned - this is used by
 
       ;; And finally add the text properties
       (org-add-props rtn nil
-	'category (downcase category) 'tags tags
+	'org-category (downcase category) 'tags tags
 	'prefix-length (- (length rtn) (length txt))
 	'time-of-day time-of-day
 	'dotime dotime))))
@@ -9014,7 +9014,7 @@ the new TODO state."
 		   (equal m hdmarker))
 	  (setq props (text-properties-at (point))
 		dotime (get-text-property (point) 'dotime)
-		cat (get-text-property (point) 'category)
+		cat (get-text-property (point) 'org-category)
 		tags (get-text-property (point) 'tags)
 		new (org-format-agenda-item "x" newhead cat tags dotime 'noprefix)
 		pl (get-text-property (point) 'prefix-length)
@@ -9441,7 +9441,7 @@ are included in the output."
 	      (goto-char lspos)
 	      (setq marker (org-agenda-new-marker))
 	      (org-add-props txt props
-		'org-marker marker 'org-hd-marker marker 'category category)
+		'org-marker marker 'org-hd-marker marker 'org-category category)
 	      (push txt rtn))
 	    ;; if we are to skip sublevels, jump to end of subtree
 	    (or org-tags-match-list-sublevels (org-end-of-subtree t))))))
