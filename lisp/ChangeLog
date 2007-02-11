@@ -1,3 +1,12 @@
+2007-02-11  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-agenda-get-todos) 
+	(org-agenda-get-timestamps, org-agenda-get-closed) 
+	(org-agenda-get-deadlines, org-agenda-get-scheduled) 
+	(org-agenda-get-blocks, org-format-agenda-item) 
+	(org-agenda-change-all-lines, org-scan-tags): Rename text property
+	from `category' to `org-category'.
+
 2007-02-11  Kenichi Handa  <handa@m17n.org>
 
 	* international/titdic-cnv.el (titdic-convert): Force files be
