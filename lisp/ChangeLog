@@ -1,3 +1,11 @@
+2007-02-11  Richard Stallman  <rms@gnu.org>
+
+	* loadhist.el (unload-feature): Handle (t . SYMBOL) entries
+	in load history.
+
+	* emacs-lisp/lisp-mode.el (indent-sexp): Clean up termination
+	condition -- don't fail to stop at endpos.
+
 2007-02-11  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-agenda-get-todos) 
