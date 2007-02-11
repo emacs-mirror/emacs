@@ -1,3 +1,8 @@
+2007-02-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* calculator.el (calculator-prompt): Doc fix.
+	(calculator-mode-map): Fix typo in menu entry.
+
 2007-02-10  Jay Belanger  <belanger@truman.edu>
 
 	* calculator.el (calculator): Do more extensive checking for when
@@ -6,11 +11,11 @@
 2007-02-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* info-look.el (info-lookup-make-completions): Bind
-	Info-fontify-maximum-menu-size to nil to speed up lookup of index
-	nodes.
+	Info-fontify-maximum-menu-size to nil to speed up lookup of
+	index nodes.
 
-	* info.el (Info-fontify-maximum-menu-size): Document the effect of a
-	nil value.
+	* info.el (Info-fontify-maximum-menu-size): Document the effect
+	of a nil value.
 	(Info-fontify-node): Make sure Info-fontify-maximum-menu-size is
 	non-nil before using it as size.
 
@@ -163,7 +168,7 @@
 	* image-mode.el: Use autoload to avoid overriding disabled setting
 	applied in .emacs.
 
-2007-02-03  acm  <acm@localhost.localdomain>
+2007-02-03  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-engine.el (c-in-knr-argdecl): Slight correction
 	for, e.g. "void (*hdone)();" in a k&r list.  (No WS between
