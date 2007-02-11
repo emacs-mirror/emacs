@@ -1,0 +1,20 @@
+COPYRIGHT AND LICENSE INFORMATION FOR IMAGE FILES
+
+The following icons are from GNOME 2.x. They are not part of Emacs,
+but distributed and used by Emacs.
+
+  Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007
+  Tuomas Kuosmanen, Rodney Dawes, Jakub Steiner, Alexander Larsson,
+  Tor Lillqvist, Garrett LeSage, Dennis Cranston, Jody Goldberg, Luca
+  Ferretti, Mark Finlay, Lapo Calamandrei, Andreas Nilsson and Marco
+  Pesenti Gritti
+  License: GNU General Public License version 2 (see COPYING)
+
+compose.xpm copy.xpm flag-for-followup.xpm forward.xpm
+inbox.xpm move.xpm not-spam.xpm outbox.xpm preview.xpm
+redo.xpm reply-all.xpm reply.xpm save-draft.xpm save.xpm
+send.xpm spam.xpm
+
+The pbm versions (where present) were produced from the xpm versions
+via an essentially automatic procedure (see the README file in the
+parent of this directory).
