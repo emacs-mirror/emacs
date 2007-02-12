@@ -1,3 +1,9 @@
+2007-02-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-get-ls-command, tramp-get-file-exists-command)
+	(tramp-get-remote-ln): Handle error case.  Reported by Chris Moore
+	<dooglus@gmail.com>.
+
 2007-02-11  Kim F. Storm  <storm@cua.dk>
 
 	* bindings.el (ctl-x-map): Remove register compatibility bindings
