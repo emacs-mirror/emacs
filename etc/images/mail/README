@@ -15,6 +15,10 @@ inbox.xpm move.xpm not-spam.xpm outbox.xpm preview.xpm
 redo.xpm reply-all.xpm reply.xpm save-draft.xpm save.xpm
 send.xpm spam.xpm
 
+reply-to is a slightly modified version of reply-all.
+reply-from is a slightly modified version of reply.
+repack is a slightly modified version of package-x-generic.
+
 The pbm versions (where present) were produced from the xpm versions
 via an essentially automatic procedure (see the README file in the
 parent of this directory).
