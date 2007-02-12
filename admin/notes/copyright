@@ -250,7 +250,7 @@ listed in groups. See etc/README for an example.
 Image files to consider:
  etc/emacs.xbm, gnu.xpm  # rms: ask fx at gnu.org
  etc/emacs.icon
- etc/images/info, mh-logo
+ etc/images/mh-logo
  etc/images/gnus/
  etc/images/mail/repack, reply-from, reply-to 
  etc/images/smilies/
