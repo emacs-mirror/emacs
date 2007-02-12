@@ -1,36 +1,18 @@
 The following icons are derived from Redhat's Insight Debugger
 (Windows style icon set in src/gdb/gdbtk/library/images2)
+Copyright (C) 1997, 1998, 1999, 2000, 2001
+  Red Hat, Inc.
+License: GNU General Public License version 2 or later (see COPYING)
 
-Name in this directory	Converted from
-
-cont.pbm
-cont.xpm		continue.gif
-
-down.pbm
-down.xpm		down.gif
-
-finish.pbm
-finish.xpm		finish.gif
-
-next.pbm
-next.xpm		next.gif
-
-run.pbm
-run.xpm			run.gif
-
-step.pbm
-step.xpm		step.gif
-
-stop.pbm
-stop.xpm		stop.gif
-
-up.pbm
-up.xpm			up.gif
-
-watch.pbm  
-watch.xpm		watch.gif
-
-
+  cont.pbm and cont.xpm were converted from continue.gif
+  down.pbm and down.xpm were converted from down.gif
+  finish.pbm and finish.xpm were converted from finish.gif
+  next.pbm and next.xpm were converted from next.gif
+  run.pbm and run.xpm were converted from run.gif
+  step.pbm and step.xpm	were converted from step.gif
+  stop.pbm and stop.xpm were converted from stop.gif
+  up.pbm and up.xpm were converted from up.gif
+  watch.pbm and watch.xpm were converted from watch.gif
 
 The following icons were created by Nick Roberts <nickrob@snap.net.nz>.
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007
