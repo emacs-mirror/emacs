@@ -64,8 +64,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 ** simon.marshall@misys.com, Jan 12:
   Font-lock decides function call is function declaration in C+ +
 
-** Fix the places that use colors without calling gamma_correct.
-
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
