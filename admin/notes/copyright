@@ -252,7 +252,6 @@ Image files to consider:
  etc/emacs.icon
  etc/images/info, mh-logo
  etc/images/gnus/
- etc/images/gud/      # just add details for Red Hat icons (rms or nickrob?)
  etc/images/mail/repack, reply-from, reply-to 
  etc/images/smilies/
  nt/icons/
