@@ -29,6 +29,10 @@ Files: splash.pbm, splash.xpm, splash8.xpm, gnus.pbm, gnus-logo.eps
     Free Software Foundation, Inc.
   License: GNU General Public License version 2 or later (see COPYING)
 
+File: emacs.icon
+  Author: Sun Microsystems, Inc
+  Copyright (C) 1999 Free Software Foundation, Inc.
+  License: GNU General Public License version 2 or later (see COPYING)
 
 This file is part of GNU Emacs.
 
