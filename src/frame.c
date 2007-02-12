@@ -3058,8 +3058,11 @@ x_set_screen_gamma (f, new_value, old_value)
   if (NILP (new_value))
     f->gamma = 0;
   else if (NUMBERP (new_value) && XFLOATINT (new_value) > 0)
-    /* The value 0.4545 is the normal viewing gamma.  */
-    f->gamma = 1.0 / (0.4545 * XFLOATINT (new_value));
+    {
+      Fclear_face_cache (Qnil);
+      /* The value 0.4545 is the normal viewing gamma.  */
+      f->gamma = 1.0 / (0.4545 * XFLOATINT (new_value));
+    }
   else
     signal_error ("Invalid screen-gamma", new_value);
 
