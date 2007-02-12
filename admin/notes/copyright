@@ -292,12 +292,6 @@ lwlib/lwlib.c - copyright Lucid, but FSF copyright was added in 2002 -
   rms: "I asked Matthew Norwood about these, I believe."
 
 
-man/back.texi
-  - what license is appropriate for this file? Seems not to be used by
-  anything - just remove it? Actually seems to be part of the Emacs
-  Lisp manual, not the Emacs manual.
-
-
 oldXMenu/
  - should there be any FSF copyrights at all in here? Some were added
    in 2005, without licence notices. Was this right?
