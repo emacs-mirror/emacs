@@ -1,3 +1,8 @@
+2007-02-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/grep.el (grep): Mention lgrep and rgrep in the
+	docstring.
+
 2007-02-12  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-get-ls-command, tramp-get-file-exists-command)
