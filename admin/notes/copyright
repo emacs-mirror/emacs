@@ -252,7 +252,6 @@ Image files to consider:
  etc/emacs.icon
  etc/images/mh-logo
  etc/images/gnus/
- etc/images/mail/repack, reply-from, reply-to 
  etc/images/smilies/
  nt/icons/
 rms: "Can you find this by searching for items in copyright.list that
