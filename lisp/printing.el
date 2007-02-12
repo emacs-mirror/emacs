@@ -1210,7 +1210,7 @@ If SUFFIX is non-nil, add that at the end of the file name."
       (pr-menu-alist pr-ps-utility-alist
 		     'pr-ps-utility
 		     'pr-menu-set-utility-title
-		     '("Printing" "PostScript Print"   "File")
+		     '("Printing" "PostScript Print" "File")
 		     'save-var
 		     force
 		     pr-ps-utility-old
@@ -1445,7 +1445,7 @@ If SUFFIX is non-nil, add that at the end of the file name."
       (pr-menu-alist pr-ps-utility-alist
 		     'pr-ps-utility
 		     'pr-menu-set-utility-title
-		     '("PostScript Print"   "File" "PostScript Utility")
+		     '("PostScript Print" "File" "PostScript Utility")
 		     'save-var
 		     force
 		     "PostScript Utility"
@@ -2002,7 +2002,7 @@ DEFAULT		It's a way to set default values when this entry is selected.
 
 		   (VARIABLE . VALUE)
 
-		That associates VARIABLE with VALUE.  when this entry is
+		Which associates VARIABLE with VALUE.  When this entry is
 		selected, it's executed the following command:
 
 		   (set VARIABLE (eval VALUE))
@@ -2557,7 +2557,7 @@ DEFAULT		It's a way to set default values when this entry is selected.
 
 		   (VARIABLE-SYM . VALUE)
 
-		That associates VARIABLE-SYM with VALUE.  when this entry is
+		Which associates VARIABLE-SYM with VALUE.  When this entry is
 		selected, it's executed the following command:
 
 		   (set (make-local-variable VARIABLE-SYM) (eval VALUE))
@@ -2737,7 +2737,7 @@ DEFAULT		It's a way to set default values when this entry is selected.
 
 		   (VARIABLE . VALUE)
 
-		That associates VARIABLE with VALUE.  when this entry is
+		Which associates VARIABLE with VALUE.  When this entry is
 		selected, it's executed the following command:
 
 		   (set VARIABLE (eval VALUE))
@@ -2946,7 +2946,7 @@ SETTING		It's a cons like:
 
 		   (VARIABLE . VALUE)
 
-		That associates VARIABLE with VALUE.  when this entry is
+		Which associates VARIABLE with VALUE.  When this entry is
 		selected, it's executed the following command:
 
 		  * If LOCAL is non-nil:
