@@ -28,8 +28,8 @@ part of Emacs, but distributed and used by Emacs.
 
 * From GTK+ 2.x:
 
-    close.xpm copy.xpm cut.xpm help.xpm home.xpm
-    index.xpm jump-to.xpm left-arrow.xpm new.xpm open.xpm paste.xpm
+    close.xpm copy.xpm cut.xpm help.xpm home.xpm index.xpm info.pbm
+    info.xpm jump-to.xpm left-arrow.xpm new.xpm open.xpm paste.xpm
     preferences.xpm print.xpm refresh.xpm right-arrow.xpm save.xpm
     saveas.xpm search.xpm sort-ascending.xpm sort-descending.xpm
     spell.xpm undo.xpm up-arrow.xpm
