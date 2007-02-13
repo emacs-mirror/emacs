@@ -1,3 +1,17 @@
+2007-02-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (Fx_focus_frame): Move current process to foreground if
+	it is not.
+	[TARGET_API_MAC_CARBON] (Fx_file_dialog): Replace #if MAC_OSX with
+	#ifdef MAC_OSX.
+	(Fmac_set_font_panel_visible_p) [USE_MAC_FONT_PANEL]: Rename from
+	Fmac_set_font_panel_visibility.  All uses changed.  Rename argument
+	VISIBLE to FLAG.
+
+	* macterm.c (MakeMeTheFrontProcess) [MAC_OSX]: Remove function.
+	(mac_initialize) [MAC_OSX]: Call SetFrontProcess instead of
+	MakeMeTheFrontProcess.
+
 2007-02-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frame.c (x_set_screen_gamma): Clear face cache.

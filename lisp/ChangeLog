@@ -1,3 +1,12 @@
+2007-02-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Change all uses of
+	mac-set-font-panel-visibility to mac-set-font-panel-visible-p.
+	(mac-ae-number): Return integer 0 if coerced result is float 0.0.
+	(mac-ae-get-url): Call select-frame-set-input-focus.
+	(mac-dnd-handle-drag-n-drop-event): Don't call
+	select-frame-set-input-focus.
+
 2007-02-13  Kenichi Handa  <handa@m17n.org>
 
 	* international/characters.el: Fix documentation of category `a'.
