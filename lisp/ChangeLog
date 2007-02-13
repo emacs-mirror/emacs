@@ -1,3 +1,8 @@
+2007-02-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/bytecomp.el (byte-compile-dest-file)
+	(byte-compile-file): Doc fixes.
+
 2007-02-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el: Change all uses of
@@ -13,8 +18,7 @@
 
 2007-02-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* progmodes/grep.el (grep): Mention lgrep and rgrep in the
-	docstring.
+	* progmodes/grep.el (grep): Mention lgrep and rgrep in the docstring.
 
 2007-02-12  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -46,11 +50,9 @@
 
 2007-02-11  Kenichi Handa  <handa@m17n.org>
 
-	* international/titdic-cnv.el (titdic-convert): Force files be
-	written with Unix-like eol format.  Read files under CXTERM-DIC by
-	raw-text.
-	(miscdic-convert): Force files be written with Unix-like eol
-	format.
+	* international/titdic-cnv.el (titdic-convert): Force files be written
+	with Unix-like eol format.  Read files under CXTERM-DIC by raw-text.
+	(miscdic-convert): Force files be written with Unix-like eol format.
 
 2007-02-11  Juanma Barranquero  <lekktu@gmail.com>
 
