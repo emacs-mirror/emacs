@@ -248,7 +248,6 @@ notice in each image (where the format allows it). It's OK to put the
 information in a README file in the associated directory. Files can be
 listed in groups. See etc/README for an example.
 Image files to consider:
- etc/images/mh-logo
  etc/images/gnus/
  etc/images/smilies/
 rms: "Can you find this by searching for items in copyright.list that
