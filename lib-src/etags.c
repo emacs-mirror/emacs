@@ -453,8 +453,8 @@ static bool constantypedefs;	/* -d: create tags for C #define, enum */
 				/* constants and variables. */
 				/* -D: opposite of -d.  Default under ctags. */
 static bool globals;		/* create tags for global variables */
-static bool declarations;	/* --declarations: tag them and extern in C&Co*/
 static bool members;		/* create tags for C member variables */
+static bool declarations;	/* --declarations: tag them and extern in C&Co*/
 static bool no_line_directive;	/* ignore #line directives (undocumented) */
 static bool no_duplicates;	/* no duplicate tags for ctags (undocumented) */
 static bool update;		/* -u: update tags */
@@ -577,10 +577,11 @@ static char default_C_help [] =
 definitions of `struct', `union' and `enum'.  `#define' macro\n\
 definitions and `enum' constants are tags unless you specify\n\
 `--no-defines'.  Global variables are tags unless you specify\n\
-`--no-globals'.  Use of `--no-globals' and `--no-defines'\n\
-can make the tags table file much smaller.\n\
+`--no-globals' and so are struct members unless you specify\n\
+`--no-members'.  Use of `--no-globals', `--no-defines' and\n\
+`--no-members' can make the tags table file much smaller.\n\
 You can tag function declarations and external variables by\n\
-using `--declarations', and struct members by using `--members'.";
+using `--declarations'.";
 
 static char *Cplusplus_suffixes [] =
   { "C", "c++", "cc", "cpp", "cxx", "H", "h++", "hh", "hpp", "hxx",
@@ -590,8 +591,8 @@ static char *Cplusplus_suffixes [] =
 static char Cplusplus_help [] =
 "In C++ code, all the tag constructs of C code are tagged.  (Use\n\
 --help --lang=c --lang=c++ for full help.)\n\
-In addition to C tags, member functions are also recognized, and\n\
-optionally member variables if you use the `--members' option.\n\
+In addition to C tags, member functions are also recognized.  Member\n\
+variables are recognized unless you use the `--no-members' option.\n\
 Tags for variables and functions in classes are named `CLASS::VARIABLE'\n\
 and `CLASS::FUNCTION'.  `operator' definitions have tag names like\n\
 `operator+'.";
@@ -686,8 +687,8 @@ defined in the default package is `main::SUB'.";
 static char *PHP_suffixes [] =
   { "php", "php3", "php4", NULL };
 static char PHP_help [] =
-"In PHP code, tags are functions, classes and defines.  When using\n\
-the `--members' option, vars are tags too.";
+"In PHP code, tags are functions, classes and defines.  Unless you use\n\
+the `--no-members' option, vars are tags too.";
 
 static char *plain_C_suffixes [] =
   { "pc",			/* Pro*C file */
@@ -929,8 +930,9 @@ Relative ones are stored relative to the output file's directory.\n");
     puts ("--no-globals\n\
 	Do not create tag entries for global variables in some\n\
 	languages.  This makes the tags file smaller.");
-  puts ("--members\n\
-	Create tag entries for members of structures in some languages.");
+  puts ("--no-members\n\
+	Do not create tag entries for members of structures\n\
+	in some languages.");
 
   puts ("-r REGEXP, --regex=REGEXP or --regex=@regexfile\n\
         Make a tag for each line matching a regular expression pattern\n\
@@ -1168,8 +1170,8 @@ main (argc, argv)
 
   /*
    * If etags, always find typedefs and structure tags.  Why not?
-   * Also default to find macro constants, enum constants and
-   * global variables.
+   * Also default to find macro constants, enum constants, struct
+   * members and global variables.
    */
   if (!CTAGS)
     {
@@ -2418,12 +2420,12 @@ __attribute__,	0,			st_C_attribute
 @protocol,	0,			st_C_objprot
 @implementation,0,			st_C_objimpl
 @end,		0,			st_C_objend
-import,		(C_JAVA & !C_PLPL),	st_C_ignore
-package,	(C_JAVA & !C_PLPL),	st_C_ignore
+import,		(C_JAVA & ~C_PLPL),	st_C_ignore
+package,	(C_JAVA & ~C_PLPL),	st_C_ignore
 friend,		C_PLPL,			st_C_ignore
-extends,	(C_JAVA & !C_PLPL),	st_C_javastruct
-implements,	(C_JAVA & !C_PLPL),	st_C_javastruct
-interface,	(C_JAVA & !C_PLPL),	st_C_struct
+extends,	(C_JAVA & ~C_PLPL),	st_C_javastruct
+implements,	(C_JAVA & ~C_PLPL),	st_C_javastruct
+interface,	(C_JAVA & ~C_PLPL),	st_C_struct
 class,		0,			st_C_class
 namespace,	C_PLPL,			st_C_struct
 domain,		C_STAR,			st_C_struct
@@ -2534,19 +2536,19 @@ in_word_set (str, len)
       {"@end",		0,			st_C_objend},
       {"union",		0,			st_C_struct},
       {"define",		0,			st_C_define},
-      {"import",		(C_JAVA & !C_PLPL),	st_C_ignore},
+      {"import",		(C_JAVA & ~C_PLPL),	st_C_ignore},
       {"template",	0,			st_C_template},
       {"operator",	C_PLPL,			st_C_operator},
       {"@interface",	0,			st_C_objprot},
-      {"implements",	(C_JAVA & !C_PLPL),	st_C_javastruct},
+      {"implements",	(C_JAVA & ~C_PLPL),	st_C_javastruct},
       {"friend",		C_PLPL,			st_C_ignore},
       {"typedef",	0,			st_C_typedef},
       {"return",		0,			st_C_ignore},
       {"@implementation",0,			st_C_objimpl},
       {"@protocol",	0,			st_C_objprot},
-      {"interface",	(C_JAVA & !C_PLPL),	st_C_struct},
+      {"interface",	(C_JAVA & ~C_PLPL),	st_C_struct},
       {"extern",		0,			st_C_extern},
-      {"extends",	(C_JAVA & !C_PLPL),	st_C_javastruct},
+      {"extends",	(C_JAVA & ~C_PLPL),	st_C_javastruct},
       {"struct",		0,			st_C_struct},
       {"domain",		C_STAR,			st_C_struct},
       {"switch",		0,			st_C_ignore},
@@ -2556,7 +2558,7 @@ in_word_set (str, len)
       {"class",		0,			st_C_class},
       {"while",		0,			st_C_ignore},
       {"undef",		0,			st_C_define},
-      {"package",	(C_JAVA & !C_PLPL),	st_C_ignore},
+      {"package",	(C_JAVA & ~C_PLPL),	st_C_ignore},
       {"__attribute__",	0,			st_C_attribute},
       {"SYSCALL",	0,			st_C_gnumacro},
       {"ENTRY",		0,			st_C_gnumacro},
@@ -6894,7 +6896,7 @@ xrealloc (ptr, size)
  * tab-width: 8
  * fill-column: 79
  * c-font-lock-extra-types: ("FILE" "bool" "language" "linebuffer" "fdesc" "node" "regexp")
- * c-file-style: gnu
+ * c-file-style: "gnu"
  * End:
  */
 

@@ -1,3 +1,7 @@
+Copyright (C) 2007  Free Software Foundation, Inc.
+See the end of the file for license conditions.
+
+
 NOTES ON COPYRIGHTS AND LICENSES
 
 Some terminology:
@@ -21,6 +25,30 @@ a file is auto-generated (eg ldefs-boot.el) from another one in the
 CVS, then it does not really matter about adding a copyright statement
 to the generated file.
 
+However, here is a quote from Matt Norwood (Software Freedom Law
+Center) that suggests we should revise the above policy about trivial
+files:
+
+    If FSF has a strong policy reason notices off of files it
+    considers "trivial", this will take a lot more bookkeeping; it
+    also runs the risk of these "trivial" files later growing into
+    non-trivial files, and being in the tree without any record of
+    authorship. All in all, I think it's a better policy to attach the
+    notice and let future authors decide if something is trivial when
+    they want to reuse it elsewhere.
+    [...]
+    In general, copyright law will step back and look at the overall "work"
+    consisting of all the assembled components working together as a system;
+    it will apply protection and permissions to this system, not to its
+    subcomponents. If parts of it are recombined into another system, it
+    will consider the protections and permissions for each of the source
+    components only in order to assess the overall status of the work again.
+    The assessment of whether a set of components is entitled to copyright
+    protection is the degree to which they display "creativity": not as
+    atomic units, but as parts of a system working in concert. Thus, several
+    "trivial" components working together in some coherent system might be
+    protectible.
+
 The years in the copyright notice should be updated every year (see
 file "years" in this directory). The PS versions of refcards etc
 should display copyright notices (an exception to the rule about
@@ -33,13 +61,17 @@ Copyright changes should be propagated to any associated repositories
 (eg Gnus, MH-E), but I think in every case this happens automatically
 (?).
 
-All README (and other such text files) that are non-trivial and were
-added by Emacs developers need copyright and copying permission
-statements (see eg INSTALL in the top-level directory).
+All README (and other such text files) that are non-trivial should
+contain copyright statements and GPL license notices, exactly as .el
+files do (see e.g. README in the top-level directory). (Before 2007,
+we used a simple, short statement permitting copying and modification
+provided legal notices were retained. In Feb 2007 we switched to the
+standard GPL text, on legal advice.)
 
-All images files that allow for comments should have copyright and
-license statements. Whether or not this is possible, the information
-should be recorded in a README file in each directory with images.
+For image files, the copyright and license details should be recorded
+in a README file in each directory with images. (Legal advice says
+that we need not add notices to each image file individually, if they
+allow for that.)
 
 When installing a file with an "unusual" license (after checking first
 it is ok), put a copy of the copyright and license in the file (if
@@ -66,8 +98,23 @@ author should be removed and the year(s) transferred to the FSF); or
 else it is possible the file should not be in Emacs at all (please
 report!).
 
+Note that it seems painfully clear that one cannot rely on CVS logs,
+or even ChangeLogs, for older changes. People often installed changes
+from others, without recording the true authorship.
+
 [For reference, most of these points were established via email with
 rms, 2007/1, "Copyright years".]
+
+
+lib-src/etags.c           # print_version
+lib-src/rcs2log           # Copyright
+lisp/calc/calc-help.el    # calc-full-help
+lisp/startup.el           # fancy-splash-tail
+mac/Emacs.app/Contents/Resources/English.lproj/InfoPlist.strings
+mac/src/Emacs.r           # resource 'vers'
+src/emacs.c
+  - remember to change the latest copyright year in the --version output.
+  [Post-release, will automate this like set-version does for version.]
 
 
 <top-level>/install-sh
@@ -77,10 +124,8 @@ lispintro/install-sh
 etc/edt-user.doc
   - update BOTH notices in this file
 
-[etc/orgcard.tex, orgcard.ps - files removed 2007/1/29]
-  - with no assignment from Rooke, these files were removed. We are
-  asking for an assignment, and if one is received the files will be
-  replaced.
+etc/letter.pbm.letter.xpm
+  - trivial, no notice needed.
 
 leim/CXTERM-DIC/4Corner.tit, ARRAY30.tit, CCDOSPY.tit, ECDICT.tit,
 ETZY.tit, PY-b5.tit, Punct-b5.tit, Punct.tit, QJ-b5.tit, QJ.tit,
@@ -118,64 +163,110 @@ lisp/net/tramp.el
 
 msdos/is_exec.c, sigaction.c
   - these files are copyright DJ Delorie. Leave the copyrights alone.
+  Leave the Eli Zaretskii copyright in is_exec.c alone. See the
+  msdos/README file for the legal history of these files.
 
 src/gmalloc.c
   - contains numerous copyrights from the GNU C library. Leave them alone.
 
-[src/unexhp9k800.c - removed 2007/1/27
+src/acldef.h, chpdef.h, ndir.h
+  - see comments below. These files are OK to be released with Emacs
+  22, but we may want to revisit them afterwards.
+
+[src/unexhp9k800.c - removed 2007/1/27]
 [src/m/sr2k.h - removed 2007/1/27]
   - First file removed due to legal uncertainties; second file removed
   due to dependency on first. Note that src/m/hp800.h is still needed on
   hp800 arch.
+  NB we would like to re-add this file if we can. Please let us know
+  if you can clarify its legal status.
+
+
+*** These are copyright issues that need not be fixed until after
+    Emacs 22 is released (though if they can be fixed before, that is
+    obviously good):
+
+
+Is it OK to just `cvs remove' a file for legal reasons, or is
+something more drastic needed? A removed file is still available from
+CVS, if suitable options are applied. (This CVS issue obviously does
+not affect a release).
+  rms: will ask lawyer
+
+
+REMOVED etc/orgcard.tex, orgcard.ps
+  Re-add these files if an assignment is received from Rooke.
+
+etc/images
+  Image files from GTK, Gnome are under GPLv2 (no "or later"?). RMS will
+  contact image authors in regards to future switch to v3.
+
+
+src/acldef.h, chpdef.h, ndir.h
+  On legal advice from Matt Norwood, the following comment was added
+  to these files in Feb 2007:
+
+    The code here is forced by the interface, and is not subject to
+    copyright, constituting the only possible expression of the
+    algorithm in this format.
+
+  With the addition of this notice, these files are OK for the
+  upcoming Emacs-22 release. Post-release, we can revisit this issue
+  and possibly add a list of all authors who have changed these files.
+  (details in email from Matt Norwood to rms, 2007/02/03).
+
+
+REMOVED src/unexhp9k800.c
+  - we would like to re-add this file if possible. Please let us know
+  if you can clarify its legal status.
+  http://lists.gnu.org/archive/html/emacs-devel/2007-02/msg00138.html
+
 
 
 *** These are copyright issues still to be addressed:
 
 
-Is it OK to just `cvs remove' a file for legal reasons, or is
-something more drastic needed? A removed file is still available from
-CVS, if suitable options are applied.
+Maybe some relevant comments here?
+<http://groups.google.com/group/linux.debian.legal/browse_thread/thread/123547ea95437a1f>
 
 
 All README (and other such files) that are non-trivial and were added
-by Emacs developers need copyright statements and copying permissions
-to be added.
+by Emacs developers need copyright statements and copying permissions.
+  missed any?
+  etc/BABYL?
+  lisp/term/README?
+  borderline "trivial" cases (see below)...?
+These should use the standard GPL text (same as .el files), rather
+than the short notices we have been using till now.
+rms: "If a README file is under 60 lines long, using the long version
+might be ugly. Please tell me if you encounter one that is under 60
+lines."
 
 
-All images files that allow for comments should have copyright and
-license statements added. Whether or not this is possible, the
-information should be recorded in a README file in each directory with
-images. Image files to consider (is there such a thing as a "trivial"
-image?):
- src/bitmaps/
- etc/*.xpm, *.xbm
- etc/images/
- etc/tree-widget/
- etc/*.ps, .eps
+Clarify the legal status of image files. It's not necessary to put a
+notice in each image (where the format allows it). It's OK to put the
+information in a README file in the associated directory. Files can be
+listed in groups. See etc/README for an example.
+Image files to consider:
+ etc/images/mh-logo
+ etc/images/gnus/
+ etc/images/smilies/
+ nt/icons/
+rms: "Can you find this by searching for items in copyright.list that
+assign images for Emacs?" [this suggests we ask Bill Wohler]
 
 
 admin/check-doc-strings
   Author is Martin Buchholz, but no assignment from him on file, and
   rms has no way to reach him.
-admin/make-announcement - no copyright
-admin/nt/makedist.bat - no copyright
 etc/ms-kermit - no copyright, but ms-7bkermit has one
 etc/e/eterm-color.ti  - no copyright
   rms: "I think that is not copyrightable under the merger doctrine
   because the entries are all forced. At least that is the case in the
   US; I am not sure whether we can rely on that in general."
 
-For the above files, mail sent from rms to Matthew (Martin?) Norwood
+For the above files, mail sent from rms to Matthew Norwood
 asking what to do (via Eben Moglen), 2007/1/22 ("Copyright years").
-
-
-etc/gnus-refcard.tex
-  I (rgm) think the "Gnus Bugfixing Girls + Boys" copyright should
-  probably be removed, but it may be ok (waiting for rms)
-
-
-[etc/orgcard.tex, orgcard.ps]
-  Re-add these files if an assignment is received from Rooke.
 
 
 etc/sk-refcard.ps, pl-refcard.ps, cs-refcard.ps
@@ -188,10 +279,8 @@ lib-src/etags.c - no 'k.* arnold' in copyright.list'
  Arnold as the starting point. However, it may be that we need to get
  and insert whatever his license was for his code."
 
-
-lispref/back.texi, elisp-covers.texi, lay-flat.texi,
-two-volume-cross-refs.txt, two.el
-  - add standard notices to any decided to be non-trivial.
+ - 1984 version of ctags, with no copyright, posted to net.sources:
+   http://groups.google.com/group/net.sources/msg/a21b6c21be12a98d
 
 
 lwlib/lwlib-int.h, lwlib.h - no copyright
@@ -202,23 +291,6 @@ lwlib/lwlib.c - copyright Lucid, but FSF copyright was added in 2002 -
   rms: "I asked Matthew Norwood about these, I believe."
 
 
-man/back.texi, trampver.texi
-  - add standard notices to any decided to be non-trivial.
-
-
-msdos/
-  - do we need to add COPYING.LIB (because COPYING.DJ refers to it)?
-  (but see below).
-
-
-msdos/is_exec.c
-  - does copying.dj replace eliz's copyright?
-
-
-msdos/is_exec.c, sigaction.c
-  - relicense under the GPL
-
-
 oldXMenu/
  - should there be any FSF copyrights at all in here? Some were added
    in 2005, without licence notices. Was this right?
@@ -227,9 +299,30 @@ oldXMenu/Makefile.in, Makefile, Imakefile, descrip.mms, insque.c
 rms: "I have asked for lawyer's advice about these."
 
 
-src/acldef.h, chpdef.h, gnu.h, ndir.h
+src/gnu.h
 src/m/mips4.h, news-r6.h, news-risc.h, pmax.h
 src/s/aix3-2.h, bsd386.h, hpux8.h, hpux9.h, irix4-0.h, irix5-0.h,
 isc2-2.h, netbsd.h, osf1.h, sol2-3.h, sunos4-0.h, umips.h, usg5-4-2.h
   - all these (not obviously trivial) files are missing copyrights.
   rms: "I should talk about these with Matthew Norwood."
+The current legal advice seems to be that we should attach FSF
+copyright and GPL for the time being, then review post-release. But it
+is still under discussion.
+
+
+This file is part of GNU Emacs.
+
+GNU Emacs is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2, or (at your option)
+any later version.
+
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Emacs; see the file COPYING.  If not, write to the
+Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.

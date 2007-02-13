@@ -271,9 +271,11 @@ With zero or negative ARG turn mode off.
 ;;;
 
 ;;;###autoload
-(defalias 'easy-mmode-define-global-mode 'define-global-minor-mode)
+(defalias 'easy-mmode-define-global-mode 'define-globalized-minor-mode)
 ;;;###autoload
-(defmacro define-global-minor-mode (global-mode mode turn-on &rest keys)
+(defalias 'define-global-minor-mode 'define-globalized-minor-mode)
+;;;###autoload
+(defmacro define-globalized-minor-mode (global-mode mode turn-on &rest keys)
   "Make a global mode GLOBAL-MODE corresponding to buffer-local minor MODE.
 TURN-ON is a function that will be called with no args in every buffer
   and that should try to turn MODE on if applicable for that buffer.
@@ -283,7 +285,7 @@ KEYS is a list of CL-style keyword arguments.  As the minor mode
   which see.  In particular, :group specifies the custom group.
   The most useful keywords are those that are passed on to the
   `defcustom'.  It normally makes no sense to pass the :lighter
-  or :keymap keywords to `define-global-minor-mode', since these
+  or :keymap keywords to `define-globalized-minor-mode', since these
   are usually passed to the buffer-local version of the minor mode.
 
 If MODE's set-up depends on the major mode in effect when it was
@@ -348,7 +350,7 @@ in which `%s' turns it on."
 	   (with-current-buffer buf
 	     (if ,global-mode (,turn-on) (when ,mode (,mode -1))))))
 
-       ;; Autoloading define-global-minor-mode autoloads everything
+       ;; Autoloading define-globalized-minor-mode autoloads everything
        ;; up-to-here.
        :autoload-end
 

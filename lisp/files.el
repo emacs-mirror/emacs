@@ -2829,7 +2829,7 @@ It is dangerous if either of these conditions are met:
 However, the mode will not be changed if
 \(1) a local variables list or the `-*-' line specifies a major mode, or
 \(2) the current major mode is a \"special\" mode,
-\    not suitable for ordinary files, or
+\     not suitable for ordinary files, or
 \(3) the new file name does not particularly specify any mode."
   :type 'boolean
   :group 'editing-basics)

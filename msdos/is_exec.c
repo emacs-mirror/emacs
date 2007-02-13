@@ -1,5 +1,27 @@
-/* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 /* IS_EXEC.C
+ *
+ * Copyright (C) 1995 DJ Delorie
+ * Copyright (C) 1994 Eli Zaretskii <eliz@is.elta.co.il>
+ *
+ * (See the README file in this directory for the copyright and license
+ * history of this file.)
+ *
+ * This file is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2, or (at your option)
+ * any later version.
+ *
+ * This file is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this file; see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
+ *
+ * Commentary:
  *
  * Given a filename or a file handle, and the extension of the file,
  * determine if the file is executable.
@@ -7,11 +29,6 @@
  * the file as either an executable or not.  Failing this, the first
  * two bytes of the file are tested for known signatures of executable
  * files.
- *
- * Copyright (c) 1994 Eli Zaretskii <eliz@is.elta.co.il>
- *
- * This software may be used freely so long as this copyright notice is
- * left intact.  There is no warranty on this software.
  *
  */
 

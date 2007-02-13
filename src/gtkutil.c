@@ -3687,7 +3687,7 @@ update_frame_tool_bar (f)
   int i;
   GtkRequisition old_req, new_req;
   struct x_output *x = f->output_data.x;
-  int hmargin, vmargin;
+  int hmargin = 0, vmargin = 0;
   GtkToolItem *ti;
 
   if (! FRAME_GTK_WIDGET (f))

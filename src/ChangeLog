@@ -1,3 +1,95 @@
+2007-02-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (Fx_focus_frame): Move current process to foreground if
+	it is not.
+	[TARGET_API_MAC_CARBON] (Fx_file_dialog): Replace #if MAC_OSX with
+	#ifdef MAC_OSX.
+	(Fmac_set_font_panel_visible_p) [USE_MAC_FONT_PANEL]: Rename from
+	Fmac_set_font_panel_visibility.  All uses changed.  Rename argument
+	VISIBLE to FLAG.
+
+	* macterm.c (MakeMeTheFrontProcess) [MAC_OSX]: Remove function.
+	(mac_initialize) [MAC_OSX]: Call SetFrontProcess instead of
+	MakeMeTheFrontProcess.
+
+2007-02-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (x_set_screen_gamma): Clear face cache.
+
+2007-02-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* buffer.c (Fgenerate_new_buffer_name, Fbuffer_modified_tick):
+	Reflow docstrings.
+
+2007-02-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* window.c (Fwindow_height, Fwindow_hscroll)
+	(Fwindow_redisplay_end_trigger, Fwindow_point, Fwindow_start)
+	(Fwindow_end, Fwindow_display_table, Fwindow_text_height):
+	Document the effect of WINDOW arg being nil.
+
+2007-02-08  Kim F. Storm  <storm@cua.dk>
+
+	* minibuf.c (read_minibuf): Fix 2007-01-30 change.
+	Use Qlambda as interim value of Vminibuffer_completing_file_name.
+	(Fcompleting_read): Use non-filename maps if value is Qlambda (or Qnil).
+	(syms_of_minibuf) <minibuffer-completing-file-name>: Document lambda.
+
+2007-02-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(TRES)): Use literal "../nt/emacs.rc" instead
+	of $(ALL_DEPS).
+
+2007-02-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(TRES)): Depend on stamp_BLD, since $(TRES) is
+	put into $(BLD).
+
+2007-02-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (Fmodify_frame_parameters): Don't bind
+	Qinhibit_default_face_x_resources, which has no effect.
+	(Qinhibit_default_face_x_resources): Symbol deleted.
+
+2007-02-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* indent.c (Fmove_to_column): Document that the argument COLUMN is
+	taken from prefix numeric argument.
+
+2007-02-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lread.c (syms_of_lread) <load-history>: Doc fix.
+
+2007-01-29  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>  (tiny change)
+
+	* xterm.c [!USE_TOOLKIT_SCROLL_BARS] (x_scroll_bar_expose):
+	Use the foreground color of the scroll-bar face when drawing
+	the scroll-bar's border.
+
+2007-02-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (do_ewmh_fullscreen): Check that what != NULL before
+	calling wm_supports.
+
+2007-02-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lread.c (syms_of_lread) <user-init-file>: Doc fix.
+	Wording by Eli Zaretskii.
+
+2007-01-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (update_frame_tool_bar): Initialize h/vmargin to 0.
+
+2007-01-30  Richard Stallman  <rms@gnu.org>
+
+	* minibuf.c (read_minibuf):
+	Save and clear Vminibuffer_completing_file_name.
+	(read_minibuf_unwind): Restore it.
+	(Vminibuffer_completion_table, Qminibuffer_completion_table)
+	(Vminibuffer_completion_predicate, Qminibuffer_completion_predicate)
+	(Vminibuffer_completion_confirm, Qminibuffer_completion_confirm)
+	(Vminibuffer_completing_file_name): Definitions moved up.
+
 2007-01-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* m/hp800.h: Restore, removing HP-UX support.
@@ -265,7 +357,7 @@
 	CG_SET_FILL_COLOR_WITH_GC_BACKGROUND instead of CG_SET_FILL_COLOR.
 	(mac_draw_string_common) [MAC_OSX && USE_ATSUI]: Likewise.
 	(XCreateGC, XFreeGC, XSetForeground, XSetBackground) [USE_CG_DRAWING
-	&& MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]: Use gc->cg_fore_color	and/or
+	&& MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]: Use gc->cg_fore_color and/or
 	gc->cg_back_color.
 	(install_drag_handler, remove_drag_handler): Make extern.
 	(install_menu_target_item_handler): Add extern.
@@ -718,7 +810,7 @@
 
 	* strftime.c (HAVE_SYS__MBSTATE_T_H): Fix typo.
 
-2006-11-02  Alfred M. Szmidt  <ams@gnu.org>  (tiny change)
+2006-11-22  Alfred M. Szmidt  <ams@gnu.org>  (tiny change)
 
 	* s/openbsd.h (LD_SWITCH_SYSTEM): Remove /usr/pkg/lib and
 	/usr/pkg/lib from the library search path.
@@ -981,7 +1073,7 @@
 2006-10-31  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* image.c [MAC_OS] (image_load_qt_1, xpm_scan, xpm_make_color_table_v)
-	(xpm_put_color_table_v,	xpm_get_color_table_v, xpm_make_color_table_h)
+	(xpm_put_color_table_v, xpm_get_color_table_v, xpm_make_color_table_h)
 	(xpm_put_color_table_h, xpm_get_color_table_h, xpm_str_to_color_key)
 	(xpm_load_image): Add const qualifier to arguments.
 	[MAC_OS] (xpm_color_key_strings): Make static const.
@@ -1916,7 +2008,7 @@
 	* macterm.c (x_draw_stretch_glyph_string):
 	* w32term.c (x_draw_stretch_glyph_string):
 	* xterm.c (x_draw_stretch_glyph_string): It is ok to draw a
-	stretch	glyph in left marginal areas on	header and mode lines.
+	stretch glyph in left marginal areas on header and mode lines.
 
 2006-08-21  Kenichi Handa  <handa@m17n.org>
 
@@ -2149,7 +2241,7 @@
 
 2006-07-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp): New	vars.
+	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp): New vars.
 	(init_alloc_once): Initialize them.
 	(pure_alloc): Allocate non-Lisp objects from the end of pure storage
 	without alignment.
@@ -3592,7 +3684,7 @@
 	* xdisp.c (fill_stretch_glyph_string): Set s->nchars = 1 for code which
 	does last_glyph=s->first_glyph+s->nchars-1, e.g. if stretch has relief.
 	(produce_stretch_glyph): Assume that face box height and width is
-	already	included in stretch glyph size so caller doesn't have to
+	already included in stretch glyph size so caller doesn't have to
 	consider the extra space otherwise added (fixes problem in ses.el).
 
 	* frame.c (x_set_font): Clear f->n_tool_bar_rows and current frame
@@ -3673,7 +3765,7 @@
 
 	* xdisp.c (redisplay_window): Fix last change.
 
-	* xdisp.c (redisplay_window): If current window start is not at	the
+	* xdisp.c (redisplay_window): If current window start is not at the
 	beginning of a line, select a new window start if buffer is modified
 	and window start is in the modified region, but the first change is
 	before window start.
@@ -4090,7 +4182,7 @@
 
 2006-03-19  Kim F. Storm  <storm@cua.dk>
 
-	* xdisp.c (set_cursor_from_row): Fix cursor property on overlay	string,
+	* xdisp.c (set_cursor_from_row): Fix cursor property on overlay string,
 	so it doesn't associate overlay string with following glyph by default.
 	Allow integer property value to specify explicit number of buffer
 	positions associate with overlay string.
@@ -7839,7 +7931,7 @@
 
 	* search.c (Fmatch_data): Add optional RESEAT arg.  Unchain markers
 	in REUSE list if non-nil; free them if equal to evaporate.
-	(Fset_match_data): Add optional RESEAT arg.  Unchain markers in	LIST
+	(Fset_match_data): Add optional RESEAT arg.  Unchain markers in LIST
 	if non-nil; free them if equal to evaporate.  Use XCAR/XCDR.
 	(restore_search_regs): Rename from restore_match_data.  Uses changed.
 	(unwind_set_match_data): New function.
@@ -8805,7 +8897,7 @@
 
 	* macterm.c (mac_keyboard_text_encoding)
 	(current_mac_keyboard_text_encoding): Remove variables.
-	(XTread_socket): Store language-change event if keyboard script	change
+	(XTread_socket): Store language-change event if keyboard script change
 	is detected.  Don't convert input to `mac_keyboard_text_encoding'.
 	(syms_of_macterm): Delete DEFVAR_INT for mac-keyboard-text-encoding.
 
@@ -10049,7 +10141,7 @@
 	(merge_into_realized_face): Add prototype.
 
 	* xfaces.c (merge_into_realized_face): New function.  Used to
-	merge escape-glyph face or face from display table into current	face.
+	merge escape-glyph face or face from display table into current face.
 
 	* xdisp.c (Vshow_nonbreak_escape): New lisp var.
 	(syms_of_xdisp): DEFVAR_LISP it.
@@ -10271,7 +10363,7 @@
 	Lookup table instead.
 	(mac_do_font_lists): Simplify calculation of the longest
 	nonspecial string.
-	(init_mac_drag_n_drop): Remove function	and declaration.
+	(init_mac_drag_n_drop): Remove function and declaration.
 	(mac_initialize) [TARGET_API_MAC_CARBON]: Don't call
 	init_mac_drag_n_drop.
 	(mac_do_track_drag): New function and declaration.
@@ -12416,7 +12508,7 @@
 	when SIGNALS_VIA_CHARACTERS.
 
 	* process.c (process_send_signal)
-	[SIGNALS_VIA_CHARACTERS, HAVE_TERMIOS]:	Clean up.
+	[SIGNALS_VIA_CHARACTERS, HAVE_TERMIOS]: Clean up.
 	Do nothing if the character is CVDISABLE.
 
 	* xfaces.c (merge_face_ref): Specifying `unspecified' is a no-op.
@@ -12762,7 +12854,7 @@
 	* macterm.c (do_window_activate, do_window_deactivate): Remove.
 	(XTread_socket): Send mouse button events to the toolbox
 	dispatcher even when the mouse is grabbed.  Don't process window
-	activate events for non-Emacs windows.	Replace function calls to
+	activate events for non-Emacs windows.  Replace function calls to
 	do_window_activate and do_window_deactivate with their contents.
 	Reset mouse grabbing status when a window is deactivated.
 
@@ -14094,7 +14186,7 @@
 
 2004-04-06  Kim F. Storm  <storm@cua.dk>
 
-	* msdos.c (clear_mouse_face): Only clear mouse highlight if not	hidden.
+	* msdos.c (clear_mouse_face): Only clear mouse highlight if not hidden.
 	(dos_rawgetc): Set mouse_face_hidden after clearing highlight.
 
 	* w32term.c (w32_read_socket): Set mouse_face_hidden after
@@ -15875,7 +15967,7 @@
 	able to know when cursor is on an image; always substitute
 	hollow-box cursor for filled-box cursor on images, to avoid
 	negative images and flicker when blinking the cursor.
-	(display_and_set_cursor): Pass glyph to	get_window_cursor_type.
+	(display_and_set_cursor): Pass glyph to get_window_cursor_type.
 	(note_mode_line_or_margin_highlight): Use non-text cursor rather
 	than vertical scroll-bar cursor in display margins.
 	(note_mouse_highlight): Use non-text cursor rather than text
@@ -16301,7 +16393,7 @@
 	is received.
 	(handle_one_xevent): Rename x_check_expected_move from
 	x_check_fullscreen_move.
-	(x_set_offset): Only add WM decoration sizes to	modified_top/left
+	(x_set_offset): Only add WM decoration sizes to modified_top/left
 	for X_WMTYPE_A.  Set check_expected_move when WM type is unknown.
 	(x_check_expected_move): Rename from x_check_fullscreen_move.
 	Removed fullscreen specific code.  Use check_expected_move,
@@ -17524,7 +17616,7 @@
 	3) Consistently use FRAME_FONT and FRAME_FONTSET macros.
 
 	4) Use FRAME_COLUMN_WIDTH (f) consistently throughout the code
-	rather than FRAME_WIDTH	(FRAME_FONT (f)).
+	rather than FRAME_WIDTH (FRAME_FONT (f)).
 
 	5) Introduce a consistent naming of variables, members and macros
 	depending on whether their value is measured in pixels or in
@@ -17824,7 +17916,7 @@
 	fringe, and scroll-bar settings; then call Fset_window_buffer with
 	KEEP_MARGINS non-nil.  This fixes a bug which caused a split
 	window to only preserve the display margins in one of the windows.
-	When splitting horizontally, call adjust_window_margins	on both
+	When splitting horizontally, call adjust_window_margins on both
 	windows to ensure that the text area of the new windows is non too
 	narrow.  This fixes a bug which could cause Emacs to trap if the
 	width of the split window was less than the width of the display
@@ -19510,7 +19602,7 @@
 
 	* gtkutil.c (xg_tool_bar_expose_callback): New function.
 	(xg_create_tool_bar): Force style of tool bar to be horizontal with
-	icons.	Set name of tool bar to emacs-toolbar.
+	icons.  Set name of tool bar to emacs-toolbar.
 	(update_frame_tool_bar): Connect expose event to
 	xg_tool_bar_expose_callback.
 
@@ -24580,7 +24672,7 @@
 
 	* w32term.c (x_check_fullscreen, x_check_fullscreen_move)
 	(x_fullscreen_adjust): New functions.
-	(w32_read_socket) <WM_WINDOWPOSCHANGED>: Don't	resize to
+	(w32_read_socket) <WM_WINDOWPOSCHANGED>: Don't resize to
 	fullscreen.  Call x_check_fullscreen_move, and set the
 	want_fullscreen member of output_data.w32
 	<WM_ACTIVATE, WM_ACTIVATEAPP>: Call x_check_fullscreen.
@@ -24601,7 +24693,7 @@
 
 	* xterm.c (disable_mouse_highlight): Removed variable.
 	(note_mouse_highlight): Don't highlight if Vmouse_highlight is nil.
-	(show_mouse_face): Don't show highlight if mouse_face_hidden is	set.
+	(show_mouse_face): Don't show highlight if mouse_face_hidden is set.
 	(XTread_socket): Turn mouse_face_hidden off after mouse movement,
 	and on after keyboard input.
 	(x_term_init): Initialize mouse_face_hidden.
@@ -24609,7 +24701,7 @@
 	* msdos.h (struct display_info): Add mouse_face_hidden.
 
 	* msdos.c (disable_mouse_highlight): Removed variable.
-	(show_mouse_face): Don't show highlight if mouse_face_hidden is	set.
+	(show_mouse_face): Don't show highlight if mouse_face_hidden is set.
 	(IT_note_mouse_highlight): Don't highlight if Vmouse_highlight is nil.
 	(internal_terminal_init): Initialize mouse_face_hidden.
 	(dos_rawgetc): Turn mouse_face_hidden off after mouse movement,
@@ -24619,7 +24711,7 @@
 
 	* w32term.c (disable_mouse_highlight): Removed variable.
 	(note_mouse_highlight): Disable highlight if Vmouse_highlight is nil.
-	(show_mouse_face): Don't show highlight if mouse_face_hidden is	set.
+	(show_mouse_face): Don't show highlight if mouse_face_hidden is set.
 	(w32_read_socket): Turn mouse_face_hidden off after mouse movement,
 	and on after keyboard input.
 	(w32_initialize_display_info): Initialize mouse_face_hidden.
@@ -25156,7 +25248,7 @@
 2002-01-07  Jason Rumney  <jasonr@gnu.org>
 
 	* xmenu.c (set_frame_menubar, xmenu_show):
-	(xdialog_show):	Initialize wv->help to Qnil.
+	(xdialog_show): Initialize wv->help to Qnil.
 
 	* w32menu.c (single_submenu, set_frame_menubar, w32_menu_show):
 	(w32_dialog_show): Initialize wv->help to Qnil.
@@ -27231,7 +27323,22 @@ See ChangeLog.9 for earlier changes.
 
     Copyright (C) 2001, 2002, 2003, 2004, 2005,
 	2006, 2007 Free Software Foundation, Inc.
-  Copying and distribution of this file, with or without modification,
-  are permitted provided the copyright notice and this notice are preserved.
+
+  This file is part of GNU Emacs.
+
+  GNU Emacs is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2, or (at your option)
+  any later version.
+
+  GNU Emacs is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with GNU Emacs; see the file COPYING.  If not, write to the
+  Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+  Boston, MA 02110-1301, USA.
 
 ;;; arch-tag: 5dcc435f-4038-4141-b3bf-5be51cd76bd4

@@ -11637,19 +11637,6 @@ x_delete_display (dpyinfo)
 }
 
 
-#ifdef MAC_OSX
-void
-MakeMeTheFrontProcess ()
-{
-  ProcessSerialNumber psn;
-  OSErr err;
-
-  err = GetCurrentProcess (&psn);
-  if (err == noErr)
-    (void) SetFrontProcess (&psn);
-}
-#endif	/* MAC_OSX */
-
 static void
 init_menu_bar ()
 {
@@ -11800,7 +11787,11 @@ mac_initialize ()
   init_apple_event_handler ();
 
   if (!inhibit_window_system)
-    MakeMeTheFrontProcess ();
+    {
+      static const ProcessSerialNumber psn = {0, kCurrentProcess};
+
+      SetFrontProcess (&psn);
+    }
 #endif
 #endif
 
