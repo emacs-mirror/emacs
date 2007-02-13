@@ -248,8 +248,8 @@ notice in each image (where the format allows it). It's OK to put the
 information in a README file in the associated directory. Files can be
 listed in groups. See etc/README for an example.
 Image files to consider:
- etc/images/gnus/bar, dead, gnntg, gnus-pointer, gnus, important,
-                 kill-group, reverse-smile, rot13, unimportant
+ etc/images/gnus/bar, dead, gnus-pointer, gnus kill-group,
+                 reverse-smile, rot13
  etc/images/smilies/
 rms: "Can you find this by searching for items in copyright.list that
 assign images for Emacs?" [this suggests we ask Bill Wohler]
