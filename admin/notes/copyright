@@ -251,7 +251,6 @@ Image files to consider:
  etc/images/mh-logo
  etc/images/gnus/
  etc/images/smilies/
- nt/icons/
 rms: "Can you find this by searching for items in copyright.list that
 assign images for Emacs?" [this suggests we ask Bill Wohler]
 
