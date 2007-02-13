@@ -1,5 +1,8 @@
 2007-02-13  Juanma Barranquero  <lekktu@gmail.com>
 
+	* ehelp.el (with-electric-help, electric-help-exit)
+	(electric-help-retain): Doc fixes.
+
 	* emacs-lisp/bytecomp.el (byte-compile-dest-file)
 	(byte-compile-file): Doc fixes.
 
