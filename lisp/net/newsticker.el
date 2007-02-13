@@ -10,7 +10,6 @@
 ;; Created:     17. June 2003
 ;; Keywords:    News, RSS, Atom
 ;; Time-stamp:  "29. Januar 2007, 21:05:09 (ulf)"
-;; CVS-Version: $Id: newsticker.el,v 1.14 2007/02/03 17:34:57 cyd Exp $
 
 ;; ======================================================================
 
