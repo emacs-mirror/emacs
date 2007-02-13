@@ -267,11 +267,6 @@ For the above files, mail sent from rms to Matthew Norwood
 asking what to do (via Eben Moglen), 2007/1/22 ("Copyright years").
 
 
-etc/sk-refcard.ps, pl-refcard.ps, cs-refcard.ps
-These refcards need to be regenerated (by those with suitable TeX
-setups) to get updated copyrights.
-
-
 lib-src/etags.c - no 'k.* arnold' in copyright.list'
  rms: "That is ok, in principle. I used free code released by Ken
  Arnold as the starting point. However, it may be that we need to get
