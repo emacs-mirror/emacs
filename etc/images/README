@@ -1,7 +1,11 @@
-The default GTK icons were not overridden by the GNOME theme due to a
-bug which was fixed in GNOME 2.15.  Once GNOME 2.16 is in wide
-circulation, the GTK icons should be replaced with the equivalent
-GNOME icons.
+* The following icons are a part of Emacs:
+
+mh-logo.xpm: By Satyaki Das for MH-E.
+
+* The default GTK icons were not overridden by the GNOME theme due to
+  a bug which was fixed in GNOME 2.15. Once GNOME 2.16 is in wide
+  circulation, the GTK icons should be replaced with the equivalent
+  GNOME icons.
 
 * Recipe for Creating PBM Versions
 
