@@ -687,7 +687,7 @@ regular expression \"[']\" for OTHERCHARS.  Then \"they're\" and
 If you want OTHERCHARS to be empty, use the empty string.
 Hint: regexp syntax requires the hyphen to be declared first here.
 
-CASECHARS, NOT-CASECHARS, and OTHERCHARS must be a unibyte string
+CASECHARS, NOT-CASECHARS, and OTHERCHARS must be unibyte strings
 containing bytes of CHARACTER-SET.  In addition, if they contain
 a non-ASCII byte, the regular expression must be a single
 `character set' construct that doesn't specify a character range
