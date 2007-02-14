@@ -11,7 +11,7 @@ License: GNU General Public License version 2 or later (see COPYING)
   stepi.xpm, until.xpm
 
 
-The following icons are derived from Red Hat's Insight Debugger:
+Some icons are derived from Red Hat's Insight Debugger:
 
 <http://sourceware.org/insight/>
 "Insight is a graphical user interface to GDB, the GNU Debugger"
@@ -26,7 +26,7 @@ exchange with Richard Stallman <rms at gnu.org> in November 2002, Red
 Hat confirmed that their copyright assignment included the icons.
 
 
-The following icons are derived from the Insight Windows style icon
+The following icons are converted from the Insight Windows style icon
 set in src/gdb/gdbtk/library/images2.
 
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007
