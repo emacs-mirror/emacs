@@ -1,3 +1,7 @@
+2007-02-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (do_ewmh_fullscreen): Also check for _NET_WM_STATE_FULLSCREEN.
+
 2007-02-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macfns.c (Fx_focus_frame): Move current process to foreground if
