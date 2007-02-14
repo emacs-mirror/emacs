@@ -5348,13 +5348,11 @@ If FRAME is unspecified or nil, the current frame is used.  */)
   CHECK_LIVE_FRAME (frame);
   f = XFRAME (frame);
 
-  if ((CONSP (color1) && !parse_rgb_list (color1, &cdef1))
-      || !STRINGP (color1)
-      || !defined_color (f, SDATA (color1), &cdef1, 0))
+  if (!(CONSP (color1) && parse_rgb_list (color1, &cdef1))
+      && !(STRINGP (color1) && defined_color (f, SDATA (color1), &cdef1, 0)))
     signal_error ("Invalid color", color1);
-  if ((CONSP (color2) && !parse_rgb_list (color2, &cdef2))
-      || !STRINGP (color2)
-      || !defined_color (f, SDATA (color2), &cdef2, 0))
+  if (!(CONSP (color2) && parse_rgb_list (color2, &cdef2))
+      && !(STRINGP (color2) && defined_color (f, SDATA (color2), &cdef2, 0)))
     signal_error ("Invalid color", color2);
 
   return make_number (color_distance (&cdef1, &cdef2));
