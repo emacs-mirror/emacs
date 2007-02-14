@@ -1,3 +1,7 @@
+2007-02-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* smiley.el (smiley-regexp-alist): Add "dead" smiley.
+
 2007-02-01  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
 
 	* nnweb.el (nnweb-google-parse-1): Update parser.
