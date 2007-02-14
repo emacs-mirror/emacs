@@ -1,3 +1,11 @@
+2007-02-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* textmodes/ispell.el (ispell-keep-choices-win)
+	(ispell-dictionary-alist, ispell-word)
+	(ispell-begin-skip-region-regexp): Fix typos in docstrings.
+	(ispell-process-line): Doc fixes.
+	(ispell-help): Fix typos in docstring and output message.
+
 2007-02-14  Kim F. Storm  <storm@cua.dk>
 
 	* progmodes/grep.el (grep-files-aliases): Add tex and texi aliases.
