@@ -1,5 +1,9 @@
 2007-02-14  Kim F. Storm  <storm@cua.dk>
 
+	* progmodes/grep.el (grep-files-aliases): Add tex and texi aliases.
+	(lgrep): Add DIR arg to start grep in specific directory, like rgrep.
+	(grep): Fix lgrep reference.
+
 	* disp-table.el (make-glyph-code, glyph-char, glyph-face): New defuns.
 	(standard-display-underline): Use make-glyph-code.
 

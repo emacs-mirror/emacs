@@ -1,3 +1,9 @@
+2007-02-14  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Glyphs): Add make-glyph-code, glyph-char, glyph-face.
+	Rewrite glyph code description to refer to these functions.
+	Remove details of encoding face number and char into integer code.
+
 2007-02-03  Alan Mackenzie  <acm@muc.de>
 
 	* loading.texi (Hooks for Loading): Make the description of
