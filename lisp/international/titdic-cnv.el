@@ -479,7 +479,9 @@ the generated Quail package is saved."
       (let ((standard-output (current-buffer)))
 	(with-temp-buffer
 	  (set-buffer-multibyte nil)
-	  (let ((coding-system-for-read 'no-conversion))
+	  ;; Here we must use `raw-text' instead of `no-conversion' to
+	  ;; enable auto-decoding of eol format (CRLF->LF).
+	  (let ((coding-system-for-read 'raw-text))
 	    (insert-file-contents (expand-file-name filename)))
 
 	  ;; Decode the buffer contents from the encoding specified by a
@@ -501,7 +503,9 @@ the generated Quail package is saved."
 	    (message "Decoding with coding system %s..." coding-system)
 	    (goto-char (point-min))
 	    (decode-coding-region (point-min) (point-max) coding-system)
-	    (setq coding-system-for-write coding-system)
+	    ;; Explicitly set eol format to `unix'.
+	    (setq coding-system-for-write
+		  (coding-system-change-eol-conversion coding-system 'unix))
 	    (remove-text-properties (point-min) (point-max) '(charset nil)))
 
 	  (set-buffer-multibyte t)
@@ -1143,7 +1147,9 @@ the generated Quail package is saved."
 	      converter (nth 5 slot)
 	      copyright (nth 6 slot))
 	(message "Converting %s to %s..." dicfile quailfile)
-	(setq coding-system-for-write coding)
+	;; Explicitly set eol format to `unix'.
+	(setq coding-system-for-write
+	      (coding-system-change-eol-conversion coding 'unix))
 	(with-temp-file (expand-file-name quailfile dirname)
 	  (insert (format ";; Quail package `%s' -*- coding:%s; " name coding))
 	  (insert "byte-compile-disable-print-circle:t; -*-\n")
