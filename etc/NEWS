@@ -3869,6 +3869,15 @@ handle these events.
 ** A hex or octal escape in a string constant forces the string to
 be multibyte or unibyte, respectively.
 
++++
+** The explicit method of creating a display table element by
+combining a face number and a character code into a numeric
+glyph code is deprecated.
+
+Instead, the new functions `make-glyph-code', `glyph-char', and
+`glyph-face' must be used to create and decode glyph codes in
+display tables.
+
 
 * Lisp Changes in Emacs 22.1
 
