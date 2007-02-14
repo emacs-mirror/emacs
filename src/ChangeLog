@@ -1,3 +1,7 @@
+2007-02-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* s/umips.h: Unused file removed.
+
 2007-02-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* xfaces.c (Fcolor_distance): Don't continue checking a color for
