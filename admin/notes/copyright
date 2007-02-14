@@ -284,7 +284,7 @@ etc/gnus-logo.eps, gnus-booklet.ps, gnus-refcard.ps
  though it is very similar to the already-assigned "Emacs logo".
 
 
-etc/emacs.csh (+ maybe other files rgm switched to GPL?)
+etc/emacs.csh (+ maybe etc/DISTRIB?)
  does rms want the older, simple license for this put back? If so,
  what about emacs.bash?
 
