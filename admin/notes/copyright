@@ -49,6 +49,11 @@ files:
     "trivial" components working together in some coherent system might be
     protectible.
 
+RMS feels, though, that in trivial files (eg etc/FTP), having a
+license notice looks odd. Matt Norwood has confirmed it is not
+_necessary_ to have licenses in such files, so we are sticking with
+the policy of no licenses in "trivial" files.
+
 The years in the copyright notice should be updated every year (see
 file "years" in this directory). The PS versions of refcards etc
 should display copyright notices (an exception to the rule about
@@ -71,7 +76,10 @@ standard GPL text, on legal advice.)
 For image files, the copyright and license details should be recorded
 in a README file in each directory with images. (Legal advice says
 that we need not add notices to each image file individually, if they
-allow for that.)
+allow for that.). It is recommended to use the word "convert" to
+describe the automatic process of changing an image from one format to
+another (http://lists.gnu.org/archive/html/emacs-devel/2007-02/msg00618.html).
+
 
 When installing a file with an "unusual" license (after checking first
 it is ok), put a copy of the copyright and license in the file (if
@@ -116,19 +124,29 @@ src/emacs.c
   - remember to change the latest copyright year in the --version output.
   [Post-release, will automate this like set-version does for version.]
 
-admin/check-doc-strings
-  Author is Martin Buchholz, and the program output says it is in the
-  public domain.
-
 <top-level>/install-sh
 lispintro/install-sh
  - this file is copyright MIT, which is OK. Leave the copyright alone.
 
+admin/check-doc-strings
+  public domain, leave alone.
+
 etc/edt-user.doc
   - update BOTH notices in this file
 
-etc/letter.pbm.letter.xpm
+etc/letter.pbm,letter.xpm
   - trivial, no notice needed.
+<http://lists.gnu.org/archive/html/emacs-devel/2007-02/msg00324.html>
+
+etc/GNU, INTERVIEW, LINUX-GNU, MOTIVATION, SERVICE, THE-GNU-PROJECT,
+WHY-FREE
+  rms: "These are statements of opinion or testimony. Their licenses
+  should permit verbatim copying only. Please don't change the
+  licenses that they have. They are distributed with Emacs but they
+  are not part of Emacs."
+
+etc/MAILINGLISTS
+  rms: simple license is fine for this file
 
 leim/CXTERM-DIC/4Corner.tit, ARRAY30.tit, CCDOSPY.tit, ECDICT.tit,
 ETZY.tit, PY-b5.tit, Punct-b5.tit, Punct.tit, QJ-b5.tit, QJ.tit,
@@ -197,6 +215,10 @@ not affect a release).
   rms: will ask lawyer
 
 
+Make sure that all files with non-standard copyrights or licenses are
+noted in this file.
+
+
 REMOVED etc/orgcard.tex, orgcard.ps
   Re-add these files if an assignment is received from Rooke.
 
@@ -251,10 +273,20 @@ notice in each image (where the format allows it). It's OK to put the
 information in a README file in the associated directory. Files can be
 listed in groups. See etc/README for an example.
 Image files to consider:
- etc/images/gnus/bar, dead, gnus kill-group, reverse-smile, rot13
+ etc/images/gnus/bar, dead, gnus, kill-group, reverse-smile, rot13
  etc/images/smilies/
 rms: "Can you find this by searching for items in copyright.list that
 assign images for Emacs?" [this suggests we ask Bill Wohler]
+
+
+etc/gnus-logo.eps, gnus-booklet.ps, gnus-refcard.ps
+ just to be safe, papers are on the way for the "Gnus logo", even
+ though it is very similar to the already-assigned "Emacs logo".
+
+
+etc/emacs.csh (+ maybe other files rgm switched to GPL?)
+ does rms want the older, simple license for this put back? If so,
+ what about emacs.bash?
 
 
 etc/ms-kermit - no copyright, but ms-7bkermit has one
@@ -265,6 +297,10 @@ etc/e/eterm-color.ti  - no copyright
 
 For the above files, mail sent from rms to Matthew Norwood
 asking what to do (via Eben Moglen), 2007/1/22 ("Copyright years").
+
+
+etc/TUTORIAL*
+  switch to GPL, or keep older license?
 
 
 lib-src/etags.c - no 'k.* arnold' in copyright.list'
@@ -301,6 +337,9 @@ isc2-2.h, netbsd.h, osf1.h, sol2-3.h, sunos4-0.h, umips.h, usg5-4-2.h
 The current legal advice seems to be that we should attach FSF
 copyright and GPL for the time being, then review post-release. But it
 is still under discussion.
+
+Is/was there a file that we _do_ have copyright for, from which
+src/s/umips.h was originally derived?
 
 
 This file is part of GNU Emacs.

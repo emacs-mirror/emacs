@@ -1,3 +1,7 @@
+2007-02-14  Glenn Morris  <rgm@gnu.org>
+
+	* OTHER.EMACSES: Remove obsolete file.
+
 2007-02-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cs-refcard.tex (versionemacs): New macro.
