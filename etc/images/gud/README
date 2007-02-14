@@ -21,9 +21,11 @@ Some icons are derived from Red Hat's Insight Debugger:
 License (GPL)"
 
 In addition to the above, Red Hat has assigned (2002-11-09) copyright
-for its work on GDB to the Free Software Foundation. In an email
-exchange with Richard Stallman <rms at gnu.org> in November 2002, Red
-Hat confirmed that their copyright assignment included the icons.
+for its work on GDB to the Free Software Foundation (as well as a
+blanket assignment for all changes to FSF software, 1999-10-21, until
+terminated with 30 days notice). In an email exchange with Richard
+Stallman <rms at gnu.org> in November 2002, Red Hat confirmed that
+their copyright assignment included the icons.
 
 
 The following icons are converted from the Insight Windows style icon
