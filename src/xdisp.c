@@ -20853,9 +20853,15 @@ x_produce_glyphs (it)
 
 	  if (font_not_found_p || !pcm)
 	    {
+	      int char_width = CHAR_WIDTH (it->char_to_display);
+
+	      if (char_width == 0)
+		/* This is a non spacing character.  But, as we are
+		   going to display an empty box, the box must occupy
+		   at least one column.  */
+		char_width = 1;
 	      it->glyph_not_available_p = 1;
-	      it->pixel_width = (FRAME_COLUMN_WIDTH (it->f)
-				 * CHAR_WIDTH (it->char_to_display));
+	      it->pixel_width = FRAME_COLUMN_WIDTH (it->f) * char_width;
 	      it->phys_ascent = FONT_BASE (font) + boff;
 	      it->phys_descent = FONT_DESCENT (font) - boff;
 	    }
