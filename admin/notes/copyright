@@ -268,16 +268,6 @@ might be ugly. Please tell me if you encounter one that is under 60
 lines."
 
 
-Clarify the legal status of image files. It's not necessary to put a
-notice in each image (where the format allows it). It's OK to put the
-information in a README file in the associated directory. Files can be
-listed in groups. See etc/README for an example.
-Image files to consider:
- etc/images/gnus/bar, dead, gnus, kill-group, reverse-smile, rot13
-rms: "Can you find this by searching for items in copyright.list that
-assign images for Emacs?" [this suggests we ask Bill Wohler]
-
-
 etc/gnus-logo.eps, gnus-booklet.ps, gnus-refcard.ps
  just to be safe, papers are on the way for the "Gnus logo", even
  though it is very similar to the already-assigned "Emacs logo".
