@@ -32,3 +32,4 @@ but distributed and used by Emacs.
   License: GNU General Public License version 2 (see COPYING)
 
 toggle-subscription.xpm
+kill-group.pbm and kill-group.xpm are modified versions of close.xpm
