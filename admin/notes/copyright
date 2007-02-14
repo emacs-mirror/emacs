@@ -331,15 +331,12 @@ rms: "I have asked for lawyer's advice about these."
 src/gnu.h
 src/m/mips4.h, news-r6.h, news-risc.h, pmax.h
 src/s/aix3-2.h, bsd386.h, hpux8.h, hpux9.h, irix4-0.h, irix5-0.h,
-isc2-2.h, netbsd.h, osf1.h, sol2-3.h, sunos4-0.h, umips.h, usg5-4-2.h
+isc2-2.h, netbsd.h, osf1.h, sol2-3.h, sunos4-0.h, usg5-4-2.h
   - all these (not obviously trivial) files are missing copyrights.
   rms: "I should talk about these with Matthew Norwood."
 The current legal advice seems to be that we should attach FSF
 copyright and GPL for the time being, then review post-release. But it
 is still under discussion.
-
-Is/was there a file that we _do_ have copyright for, from which
-src/s/umips.h was originally derived?
 
 
 This file is part of GNU Emacs.
