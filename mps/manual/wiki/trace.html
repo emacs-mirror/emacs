@@ -66,7 +66,7 @@
 <p>When scan encounters a ref, the ref and the referent object get fixed.  Fixing can cause several kinds of change; these changes happen immediately, right in the middle of scanning.  WARNING: These changes can be <strong>on the same segment</strong> we are scanning:</p>
 
 <ul>
-  <li>.scan.change.ref: the ref encountered by scan may get updated or zapped (if the fixed object is relocated or dies);</li>
+  <li>.scan.change.ref: the ref encountered by scan may get updated or splatted (if the fixed object is relocated or dies);</li>
   <li>.scan.change.obj: the fixed object may get overwritten with a forward or pad;</li>
   <li>.scan.change.obj-colour: the fixed object may change colour (eg. get a nailboard mark);</li>
   <li>.scan.change.buffer: the mechanics of forwarding may cause arbitrary buffer changes, as follows:
@@ -79,7 +79,7 @@
   <li>.scan.change.mode: fixing may cause an immediate change in the segment's mode (mono-colour to mixed; unnailed to nailed; etc).  Mode change can cause object colour change.  The details depend on the pool class.</li>
 </ul>
 
-<p>Scanning code must behave correctly if these changes occur mid-scan.</p>
+<p>Scanning code must behave correctly when these changes affect the segment currently being scanned.  The tricky issues are: not crashing, completeness of de-greying, getting the final summary correct, doing the accounting correctly, etc.</p>
 
 
 
@@ -95,14 +95,24 @@
 
 <p>.scan.loop.buffer:  If the seg has, or could get, a Forwarding-grey (or Mutator-grey, not yet implemented) buffer, then new grey objects can arrive during the scan.  WARNING: buffers move around during scanning: a buffer could be attached, or detached, several times during scanning a single segment, especially in low memory situations.  (This condition is a case of .scan.change.buffer).</p>
 
-<p>.scan.loop.no-new-marks: The usual termination condition for .scan.loop.white is that the last iteration produced no new marks.  [Perhaps the same newMarks boolean is (or could be) touched by buffers, to provide the termination condition for .scan.loop.buffer?  RHSK 2007-01-17]</p>
+<p>.scan.loop.terminate: There needs to be communication between the thing that makes new grey objects, and the scan loop termination condition.</p>
+
+<p>.scan.loop.terminate.no-new-marks: The usual termination condition for .scan.loop.white is that the last iteration produced no new marks.  A newMarks boolean is used by AMC and AMS.  (Perhaps it is also needed for other reasons?).  [Note: It might be reasonable to make buffers touch the same newMarks boolean, to provide the termination condition for .scan.loop.buffer.  RHSK 2007-01-18].</p>
+
+<p>[.scan.loop.terminate.seggrey: An alternative would be for newly fixed or forwarded objects to do SegSetGrey to trigger another iteration.  They have to do this anyway, for the case that the preserved object is on a different seg.  To use this to control scan loop termination, scan would have to de-grey the seg at scan start, which is slightly alarming.  But I can't think of any actual problem with it, except that the mutator musn't see the seg yet, which mucks up the shield abstraction.  Hmmm.  It still might be better than lots of special-case code in pools though?  RHSK 2007-01-18]</p>
+
+<p>.scan.loop.de-grey: After a resOK scan, the seg is set non-grey by traceScanSegRes() in trace.c.</p>
+
+<p>.scan.loop.no-escape: So there is no way to 'escape from' the complete-degrey requirement, and no way to mark this seg as 'still grey' at the end of the scan, except by returning an error.</p>
+
+<p>.scan.loop.emergency: Any error returned by scan (which must be in the ResIsAllocFailure category) will put the traces into emergency mode and cause an immediate re-scan.</p>
 
 
 <h3>.scan.total:</h3>
 
 <p>Total versus non-Total scans is all about <strong>updating the segment summary</strong>; it is affected by both colour and buffers.</p>
 
-<p>The current design is that the segment summary is <strong>not updated</strong> during the scan, even though the segment is gaining new Refs from relocating fixes.  Instead, the summary of Refs seen by the scan is kept in the scan state: <code>ss-&gt;unfixedSummary</code> and <code>ss-&gt;fixedSummary</code>.</p>
+<p>The current design is that the segment summary is <strong>not updated</strong> as new refs (from relocating fixes or splats) are written into the seg during the scan.  Instead, the summary of the old and new refs seen by the scan is kept in the scan state: <code>ss-&gt;unfixedSummary</code> and <code>ss-&gt;fixedSummary</code>.</p>
 
 <p>.scan.total.not:  A scan does not necessarily see all objects: objects that were already black at scan start are usually skipped; and objects that remain white at scan end are always skipped.  This is the <code>!wasTotal</code> case, and the fixedSummary resulting from the scan must be unioned into the segment summary.</p>
 
@@ -128,6 +138,7 @@
                 dylan_scan
                   mps_fix
                   MPS_FIX12
+                    ss->unfixedSummary += ref
                     (*ss->fix)(ss, ref_io)
                       TraceFix
                         TraceSetInter(TractWhite(tract(ref)), ss->traces)?
@@ -135,6 +146,7 @@
                             PoolFix(pool, ss, seg, refIO)
                             = (*pool->fix)(pool, ss, seg, refIO)
                               ...see below...
+                    ss->fixedSummary += newRef
       ShieldCover
 </pre>
 
@@ -144,10 +156,23 @@
 PoolFix(pool, ss, seg, refIO)
 = (*pool->fix)(pool, ss, seg, refIO)
   AMCFix, AMCHeaderFix
-    ShieldExpose
-    (*pool->format->isMoved)(ref)
-    
-    ShieldCover
+    ShieldExpose(ref)
+    (*pool->format->isMoved)(ref)?
+      no:
+        /* Forward */
+        newRef = BUFFER_RESERVE(seg->gen->forward)
+        ShieldExpose(newRef)
+        union colour
+        union summary
+        AddrCopy(*newRef = *ref)
+        ShieldCover(newRef)
+        BUFFER_COMMIT
+        (*pool->format->move)(ref, newRef)
+        ref = newRef
+      yes:
+        /* Snap out */
+        ref = newRef
+    ShieldCover(ref)
 </pre>
 
 
