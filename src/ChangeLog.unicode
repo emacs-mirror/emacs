@@ -1,3 +1,8 @@
+2007-02-14  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (x_produce_glyphs): When a font is not found, make the
+	empty box occupy at least one column width.
+
 2007-01-30  Miles Bader  <miles@gnu.org>
 
 	* Makefile.in: Remove redundant HAVE_XFT clause.
