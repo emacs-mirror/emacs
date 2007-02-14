@@ -246,6 +246,8 @@ REMOVED src/unexhp9k800.c
   if you can clarify its legal status.
   http://lists.gnu.org/archive/html/emacs-devel/2007-02/msg00138.html
 
+etc/BABYL
+RMS: "The lawyer said we can keep BABYL."
 
 
 *** These are copyright issues still to be addressed:
@@ -257,8 +259,6 @@ Maybe some relevant comments here?
 
 All README (and other such files) that are non-trivial and were added
 by Emacs developers need copyright statements and copying permissions.
-  missed any?
-  etc/BABYL?
   lisp/term/README?
   borderline "trivial" cases (see below)...?
 These should use the standard GPL text (same as .el files), rather
@@ -274,7 +274,6 @@ information in a README file in the associated directory. Files can be
 listed in groups. See etc/README for an example.
 Image files to consider:
  etc/images/gnus/bar, dead, gnus, kill-group, reverse-smile, rot13
- etc/images/smilies/
 rms: "Can you find this by searching for items in copyright.list that
 assign images for Emacs?" [this suggests we ask Bill Wohler]
 
