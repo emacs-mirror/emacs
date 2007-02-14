@@ -1,5 +1,8 @@
 2007-02-14  Juanma Barranquero  <lekktu@gmail.com>
 
+	* faces.el (color-values): Revert changes to docstring from
+	2007-01-31 and 2000-09-07.
+
 	* textmodes/ispell.el (ispell-keep-choices-win, ispell-word)
 	(ispell-begin-skip-region-regexp): Fix typos in docstrings.
 	(ispell-dictionary-alist, ispell-process-line): Doc fixes.

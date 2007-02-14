@@ -1,3 +1,8 @@
+2007-02-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xfaces.c (Fcolor_distance): Don't continue checking a color for
+	errors after it has been correctly parsed as an RGB list.
+
 2007-02-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c (do_ewmh_fullscreen): Also check for _NET_WM_STATE_FULLSCREEN.
