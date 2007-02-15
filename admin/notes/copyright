@@ -299,8 +299,8 @@ etc/gnus-logo.eps, gnus-booklet.ps, gnus-refcard.ps
  though it is very similar to the already-assigned "Emacs logo".
 
 
-etc/emacs.csh, emacs.bash, DISTRIB
-  does rms want GPL or simple license for these?
+etc/emacs.csh
+  does rms want simple license restored for this?
 
 
 etc/ms-kermit - no copyright, but ms-7bkermit has one
