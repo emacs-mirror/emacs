@@ -1,3 +1,12 @@
+2007-02-15  Chris Moore  <dooglus@gmail.com>
+
+	* isearch.el (isearch-lazy-highlight-space-regexp): New variable.
+	(isearch-lazy-highlight-new-loop): Bind it.
+	(isearch-lazy-highlight-search): Use it.
+
+	* replace.el (replace-highlight): Bind search-whitespace-regexp to
+	nil.
+
 2007-02-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* font-lock.el (font-lock-extend-region-wholelines):
