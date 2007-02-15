@@ -1,3 +1,39 @@
+2007-02-15  Kenichi Handa  <handa@m17n.org>
+
+	These changes are to compile a regexp into a pattern that can be
+	used both for multibyte and unibyte targets.
+
+	* Makefile.in (search.o): Depend on charset.h.
+
+	* character.c (multibyte_char_to_unibyte_safe): New function.
+
+	* search.c: Include "charset.h".
+	(compile_pattern_1): Delete argument multibyte.  Don't set
+	cp->buf.target_multibyte here.  Set cp->buf.charset_unibyte.
+	(compile_pattern): Don't compare cp->buf.target_multibyte.
+	Compare cp->buf.charset_unibyte.
+	(compile_pattern): Set cp->buf.target_multibyte.
+
+	* lisp.h (multibyte_char_to_unibyte_safe): Extern it.
+
+	* regex.h (struct re_pattern_buffer): New member charset_unibyte.
+
+	* regex.c (RE_STRING_CHAR, RE_STRING_CHAR_AND_LENGTH): New arg
+	multibte.  Callers changed.
+	(RE_CHAR_TO_MULTIBYTE, RE_CHAR_TO_UNIBYTE): New macros.
+	(MAKE_CHAR_MULTIBYTE, MAKE_CHAR_UNIBYTE): Deleted.  Callers
+	changed to use RE_CHAR_TO_MULTIBYTE and RE_CHAR_TO_UNIBYTE
+	respectively.
+	(SETUP_ASCII_RANGE, SETUP_UNIBYTE_RANGE): New macros.
+	(SETUP_MULTIBYTE_RANGE): Generate a more compact range_table.
+	(regex_compile): Make the compiled pattern usable both for
+	multibyte and unibyte targets.
+	(analyse_first): Make the fastmap usable both for multibyte and
+	unibyte targets.
+	(TRANSLATE_VIA_MULTIBYTE): Deleted.
+	(re_match_2_internal): Pay attention to the case that the
+	multibyteness of bufp and target may be different.
+
 2007-02-14  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (x_produce_glyphs): When a font is not found, make the
