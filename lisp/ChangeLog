@@ -1,3 +1,9 @@
+2007-02-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* play/5x5.el (5x5-crack-xor-mutate): Doc fix.
+	(5x5-draw-grid-end, 5x5-make-xor-with-mutation, 5x5-mode, 5x5-crack)
+	(5x5-play-solution, 5x5-y-or-n-p): Fix typos in docstrings.
+
 2007-02-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* faces.el (color-values): Revert changes to docstring from

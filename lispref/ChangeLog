@@ -1,3 +1,8 @@
+2007-02-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* strings.texi (Modifying Strings): Clarify that `clear-string'
+	always converts the string to unibyte.
+
 2007-02-14  Kim F. Storm  <storm@cua.dk>
 
 	* display.texi (Glyphs): Add make-glyph-code, glyph-char, glyph-face.
