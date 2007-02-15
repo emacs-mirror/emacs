@@ -311,7 +311,8 @@ etc/e/eterm-color.ti  - no copyright
 
 
 etc/TUTORIAL*
-  switch to GPL
+  switch to GPL. Depending on how rms wants this done, this may
+  require the translators.
 
 
 lib-src/etags.c - no 'k.* arnold' in copyright.list'
