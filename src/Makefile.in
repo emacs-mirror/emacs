@@ -1200,8 +1200,8 @@ region-cache.o: region-cache.c buffer.h region-cache.h $(config_h)
 scroll.o: scroll.c termchar.h dispextern.h frame.h msdos.h keyboard.h \
    $(config_h)
 search.o: search.c regex.h commands.h buffer.h region-cache.h syntax.h \
-   blockinput.h atimer.h systime.h category.h character.h composite.h \
-   $(INTERVAL_SRC) \
+   blockinput.h atimer.h systime.h category.h character.h charset.h \
+   composite.h $(INTERVAL_SRC) \
    $(config_h)
 strftime.o: strftime.c $(config_h)
 syntax.o: syntax.c syntax.h buffer.h commands.h category.h character.h \
