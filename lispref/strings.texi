@@ -390,9 +390,8 @@ character currently present at that point in @var{string}.
 @code{clear-string}:
 
 @defun clear-string string
-This clears the contents of @var{string} to zeros.
-It may also change @var{string}'s length and convert it to
-a unibyte string.
+This makes @var{string} a unibyte string and clears its contents to
+zeros.  It may also change @var{string}'s length.
 @end defun
 
 @need 2000
