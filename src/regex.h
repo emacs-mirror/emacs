@@ -399,14 +399,15 @@ struct re_pattern_buffer
 
 #ifdef emacs
   /* If true, multi-byte form in the regexp pattern should be
-     recognized as a multibyte character.  When the pattern is
-     compiled, this is set to the same value as target_multibyte
-     below.  */
+     recognized as a multibyte character.  */
   unsigned multibyte : 1;
 
   /* If true, multi-byte form in the target of match should be
      recognized as a multibyte character.  */
   unsigned target_multibyte : 1;
+
+  /* Charset of unibyte characters at compiling time. */
+  int charset_unibyte;
 #endif
 
 /* [[[end pattern_buffer]]] */
