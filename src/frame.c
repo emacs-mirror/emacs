@@ -2321,6 +2321,8 @@ enabled such bindings for that variable with `make-variable-frame-local'.  */)
 	    call1 (Qframe_set_background_mode, frame);
 	}
     }
+
+  return Qnil;
 }
 
 DEFUN ("frame-char-height", Fframe_char_height, Sframe_char_height,
