@@ -1,3 +1,17 @@
+2007-02-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ps-print.el: Use (defvar <foo>) where applicable.
+	(ps-print-emacs-type): Remove.
+	(ps-x-frame-property, ps-e-frame-parameter): Remove.
+	(ps-frame-parameter): Align its call-convention with frame-parameter.
+	(ps-begin-job): Adjust calls to it appropriately.
+	(ps-setup): Don't print ps-print-emacs-type.
+	(ps-e-find-composition, ps-mark-active-p, ps-color-device):
+	Define in such a way that it's obvious that it's defined.
+	(ps-prsc, ps-c-prsc, ps-s-prsc): Remove.
+	(ps-rmail-mode-hook, ps-vm-mode-hook, ps-gnus-summary-setup)
+	(ps-jts-ps-setup): Use flavor-neutral syntax instead.
+
 2007-02-15  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-cmds.el (c-indent-new-comment-line): When splitting
@@ -9,8 +23,7 @@
 	(isearch-lazy-highlight-new-loop): Bind it.
 	(isearch-lazy-highlight-search): Use it.
 
-	* replace.el (replace-highlight): Bind search-whitespace-regexp to
-	nil.
+	* replace.el (replace-highlight): Bind search-whitespace-regexp to nil.
 
 2007-02-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 

@@ -1448,19 +1448,16 @@ Please send all bug fixes and enhancements to
 (or (featurep 'lisp-float-type)
     (error "`ps-print' requires floating point support"))
 
-
-(defvar ps-print-emacs-type
-  (let ((case-fold-search t))
-    (cond ((string-match "XEmacs" emacs-version) 'xemacs)
-	  ((string-match "Lucid" emacs-version)
-	   (error "`ps-print' doesn't support Lucid"))
-	  ((string-match "Epoch" emacs-version)
-	   (error "`ps-print' doesn't support Epoch"))
-	  (t
-	   (unless (and (boundp 'emacs-major-version)
-			(>= emacs-major-version 22))
-	     (error "`ps-print' only supports Emacs 22 and higher"))
-	   'emacs))))
+(let ((case-fold-search t))
+  (cond ((string-match "XEmacs" emacs-version))
+        ((string-match "Lucid" emacs-version)
+         (error "`ps-print' doesn't support Lucid"))
+        ((string-match "Epoch" emacs-version)
+         (error "`ps-print' doesn't support Epoch"))
+        (t
+         (unless (and (boundp 'emacs-major-version)
+                      (>= emacs-major-version 22))
+           (error "`ps-print' only supports Emacs 22 and higher")))))
 
 
 ;; GNU Emacs
@@ -1490,7 +1487,6 @@ Please send all bug fixes and enhancements to
 (defalias 'ps-x-font-instance-properties      'font-instance-properties)
 (defalias 'ps-x-make-color-instance           'make-color-instance)
 (defalias 'ps-x-map-extents                   'map-extents)
-(defalias 'ps-x-frame-property                'frame-property)
 
 ;; GNU Emacs
 (defalias 'ps-e-face-bold-p         'face-bold-p)
@@ -1501,10 +1497,9 @@ Please send all bug fixes and enhancements to
 (defalias 'ps-e-overlay-end         'overlay-end)
 (defalias 'ps-e-x-color-values      'x-color-values)
 (defalias 'ps-e-color-values        'color-values)
-(defalias 'ps-e-frame-parameter     'frame-parameter)
-(if (fboundp 'find-composition)
-    (defalias 'ps-e-find-composition 'find-composition)
-  (defalias 'ps-e-find-composition 'ignore))
+(defalias 'ps-e-find-composition (if (fboundp 'find-composition)
+                                     'find-composition
+                                   'ignore))
 
 
 (defconst ps-windows-system
@@ -1518,26 +1513,25 @@ Please send all bug fixes and enhancements to
       (ps-x-color-name color)
     color))
 
+(defalias 'ps-frame-parameter
+  (if (fboundp 'frame-parameter) 'frame-parameter 'frame-property))
+(defalias 'ps-mark-active-p
+  (if (fboundp 'region-active-p)
+      'region-active-p                  ; XEmacs
+    (defvar mark-active)                ; To shup up XEmacs's byte compiler.
+    (lambda () mark-active)))                ; Emacs
 
-(cond ((featurep 'xemacs)		; xemacs
-       (defalias 'ps-mark-active-p 'region-active-p)
+(cond ((featurep 'xemacs)		; XEmacs
        (defun ps-face-foreground-name (face)
 	 (ps-xemacs-color-name (face-foreground face)))
        (defun ps-face-background-name (face)
 	 (ps-xemacs-color-name (face-background face)))
-       (defun ps-frame-parameter (param)
-	 (ps-x-frame-property nil param))
        )
-      (t				; emacs 22 or higher
-       (defvar mark-active nil)
-       (defun ps-mark-active-p ()
-	 mark-active)
+      (t				; Emacs 22 or higher
        (defun ps-face-foreground-name (face)
 	 (face-foreground face nil t))
        (defun ps-face-background-name (face)
 	 (face-background face nil t))
-       (defun ps-frame-parameter (param)
-	 (ps-e-frame-parameter nil param))
        ))
 
 
@@ -3594,7 +3588,6 @@ The table depends on the current ps-print setup."
       (concat "\n;;; ps-print version " ps-print-version "\n")
       ";; internal vars"
       (ps-comment-string "emacs-version      " emacs-version)
-      (ps-comment-string "ps-print-emacs-type" ps-print-emacs-type)
       (ps-comment-string "ps-windows-system  " ps-windows-system)
       (ps-comment-string "ps-lp-system       " ps-lp-system)
       nil
@@ -3848,19 +3841,20 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 ;; Return t if the device (which can be changed during an emacs session)
 ;; can handle colors.
 ;; This function is not yet implemented for GNU emacs.
-(cond ((and (featurep 'xemacs)
-	    ;; XEmacs change: Need to check for emacs-major-version too.
-	    (or (> emacs-major-version 19)
-		(and (= emacs-major-version 19)
-		     (>= emacs-minor-version 12)))) ; xemacs >= 19.12
-       (defun ps-color-device ()
-	 (eq (ps-x-device-class) 'color)))
+(defalias 'ps-color-device
+  (cond ((and (featurep 'xemacs)
+              ;; XEmacs change: Need to check for emacs-major-version too.
+              (or (> emacs-major-version 19)
+                  (and (= emacs-major-version 19)
+                       (>= emacs-minor-version 12)))) ; XEmacs >= 19.12
+         (lambda ()
+           (eq (ps-x-device-class) 'color)))
 
-      (t				; emacs
-       (defun ps-color-device ()
-	 (if (fboundp 'color-values)
-	     (ps-e-color-values "Green")
-	   t))))
+        (t				; Emacs
+         (lambda ()
+           (if (fboundp 'color-values)
+               (ps-e-color-values "Green")
+             t)))))
 
 
 (defun ps-mapper (extent list)
@@ -3883,12 +3877,12 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 	 (case-fold-search t))
     (and kind-spec (string-match kind-regex kind-spec))))
 
-(cond ((featurep 'xemacs)		; xemacs
+(cond ((featurep 'xemacs)		; XEmacs
 
        ;; to avoid XEmacs compilation gripes
-       (defvar coding-system-for-write   nil)
-       (defvar coding-system-for-read    nil)
-       (defvar buffer-file-coding-system nil)
+       (defvar coding-system-for-write)
+       (defvar coding-system-for-read)
+       (defvar buffer-file-coding-system)
 
        (and (fboundp 'find-coding-system)
 	    (or (ps-x-find-coding-system 'raw-text-unix)
@@ -3918,7 +3912,7 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 	     (memq face ps-italic-faces))) ; Kludge-compatible
        )
 
-      (t				; emacs
+      (t				; Emacs
 
        (defun ps-color-values (x-color)
 	 (cond
@@ -4941,8 +4935,8 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 ;; XEmacs will have to make do with %s (princ) for floats.
 
 (defvar ps-float-format (if (featurep 'xemacs)
-			    "%s "	; xemacs
-			  "%0.3f "))	; emacs
+			    "%s "	; XEmacs
+			  "%0.3f "))	; Emacs
 
 
 (defun ps-float-format (value &optional default)
@@ -5912,7 +5906,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 				((eq genfunc 'ps-generate-postscript)
 				 nil)
 				((eq ps-default-bg 'frame-parameter)
-				 (ps-frame-parameter 'background-color))
+				 (ps-frame-parameter nil 'background-color))
 				((eq ps-default-bg t)
 				 (ps-face-background-name 'default))
 				(t
@@ -5923,7 +5917,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 				((eq genfunc 'ps-generate-postscript)
 				 nil)
 				((eq ps-default-fg 'frame-parameter)
-				 (ps-frame-parameter 'foreground-color))
+				 (ps-frame-parameter nil 'foreground-color))
 				((eq ps-default-fg t)
 				 (ps-face-foreground-name 'default))
 				(t
@@ -6517,7 +6511,7 @@ If FACE is not a valid face name, use default face."
     (let ((face 'default)
 	  (position to))
       (cond
-       ((featurep 'xemacs)		; xemacs
+       ((featurep 'xemacs)		; XEmacs
 	;; Build the list of extents...
 	(let ((a (cons 'dummy nil))
 	      record type extent extent-list)
@@ -6561,7 +6555,7 @@ If FACE is not a valid face name, use default face."
 		  from position
 		  a (cdr a)))))
 
-       (t				; emacs
+       (t				; Emacs
 	(let ((property-change from)
 	      (overlay-change from)
 	      (save-buffer-invisibility-spec buffer-invisibility-spec)
@@ -6837,17 +6831,12 @@ If FACE is not a valid face name, use default face."
 ;; WARNING!!! The following code is *sample* code only.
 ;; Don't use it unless you understand what it does!
 
-(defmacro ps-prsc ()
-  `(if (featurep 'xemacs) 'f22           [f22]))
-(defmacro ps-c-prsc ()
-  `(if (featurep 'xemacs) '(control f22) [C-f22]))
-(defmacro ps-s-prsc ()
-  `(if (featurep 'xemacs) '(shift f22)   [S-f22]))
+;; The key `f22' should probably be replaced by `print'.  --Stef
 
 ;; A hook to bind to `rmail-mode-hook' to locally bind prsc and set the
 ;; `ps-left-headers' specially for mail messages.
 (defun ps-rmail-mode-hook ()
-  (local-set-key (ps-prsc) 'ps-rmail-print-message-from-summary)
+  (local-set-key [(f22)] 'ps-rmail-print-message-from-summary)
   (setq ps-header-lines 3
 	ps-left-header
 	;; The left headers will display the message's subject, its
@@ -6921,7 +6910,7 @@ If FACE is not a valid face name, use default face."
 ;; A hook to bind to `vm-mode-hook' to locally bind prsc and set the
 ;; `ps-left-headers' specially for mail messages.
 (defun ps-vm-mode-hook ()
-  (local-set-key (ps-prsc) 'ps-vm-print-message-from-summary)
+  (local-set-key [(f22)] 'ps-vm-print-message-from-summary)
   (setq ps-header-lines 3
 	ps-left-header
 	;; The left headers will display the message's subject, its
@@ -6947,7 +6936,7 @@ If FACE is not a valid face name, use default face."
 ;; A hook to bind to bind to `gnus-summary-setup-buffer' to locally bind
 ;; prsc.
 (defun ps-gnus-summary-setup ()
-  (local-set-key (ps-prsc) 'ps-gnus-print-article-from-summary))
+  (local-set-key [(f22)] 'ps-gnus-print-article-from-summary))
 
 ;; Look in an article or mail message for the Subject: line.  To be
 ;; placed in `ps-left-headers'.
@@ -6979,9 +6968,9 @@ If FACE is not a valid face name, use default face."
 ;; modification.)
 
 (defun ps-jts-ps-setup ()
-  (global-set-key (ps-prsc) 'ps-spool-buffer-with-faces) ;f22 is prsc
-  (global-set-key (ps-s-prsc) 'ps-spool-region-with-faces)
-  (global-set-key (ps-c-prsc) 'ps-despool)
+  (global-set-key [(f22)] 'ps-spool-buffer-with-faces) ;f22 is prsc
+  (global-set-key [(shift f22)] 'ps-spool-region-with-faces)
+  (global-set-key [(control f22)] 'ps-despool)
   (add-hook 'gnus-article-prepare-hook 'ps-gnus-article-prepare-hook)
   (add-hook 'gnus-summary-mode-hook 'ps-gnus-summary-setup)
   (add-hook 'vm-mode-hook 'ps-vm-mode-hook)
