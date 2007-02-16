@@ -72,10 +72,11 @@ Copyright changes should be propagated to any associated repositories
 
 All README (and other such text files) that are non-trivial should
 contain copyright statements and GPL license notices, exactly as .el
-files do (see e.g. README in the top-level directory). (Before 2007,
+files do (see e.g. README in the top-level directory). Before 2007,
 we used a simple, short statement permitting copying and modification
 provided legal notices were retained. In Feb 2007 we switched to the
-standard GPL text, on legal advice.)
+standard GPL text, on legal advice. Some older text files in etc/
+should, however, keep their current licenses (see below for list).
 
 For image files, the copyright and license details should be recorded
 in a README file in each directory with images. (Legal advice says
@@ -221,6 +222,18 @@ src/acldef.h, chpdef.h, ndir.h
 
 ** Some notes on resolved issues, for historical information only
 
+lisp/term/README
+  - had no copyright notice till Feb 2007. ChangeLog.3 suggests it was
+  written by Eric Raymond. When asked by rms on 14 Feb 2007 he said:
+
+    I don't remember writing it, but it reads like my prose and I believe
+    I wrote the feature(s) it's describing.  So I would have been the
+    likeliest person to write it.
+
+    Odds are that I did, but I'm not certain.
+
+  Accordingly, FSF copyright was added.
+
 
 *** These are copyright issues that need not be fixed until after
     Emacs 22 is released (though if they can be fixed before, that is
@@ -280,18 +293,6 @@ here that anyone can work on without further input from rms.
 
 Maybe some relevant comments here?
 <http://groups.google.com/group/linux.debian.legal/browse_thread/thread/123547ea95437a1f>
-
-
-All non-trivial README (and other such files) need copyright and
-license statements. Use GPL in most cases, rather than the short
-notices we have been using till now. NB but see above for some
-exceptions in etc/ that should stay unchanged.
-rms: "If a README file is under 60 lines long, using the long version
-[of the GPL notice] might be ugly. Please tell me if you encounter one
-that is under 60 lines."
-
-  lisp/term/README (ChangeLog.3 suggests was written by Eric Raymond)
-  borderline "trivial" cases
 
 
 etc/gnus-logo.eps, gnus-booklet.ps, gnus-refcard.ps
