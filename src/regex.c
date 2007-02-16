@@ -162,7 +162,7 @@
    (which ends at END1) or STR2 (which ends at END2).  */
 # define GET_CHAR_BEFORE_2(c, p, str1, end1, str2, end2)		     \
   do {									     \
-    if (multibyte)							     \
+    if (target_multibyte)						     \
       {									     \
 	re_char *dtemp = (p) == (str2) ? (end1) : (p);			     \
 	re_char *dlimit = ((p) > (str2) && (p) <= (end2)) ? (str2) : (str1); \
@@ -180,7 +180,7 @@
    LEN to the byte length of that character.  */
 # define GET_CHAR_AFTER(c, p, len)		\
   do {						\
-    if (multibyte)				\
+    if (target_multibyte)			\
       (c) = STRING_CHAR_AND_LENGTH (p, 0, len);	\
     else					\
       {						\
@@ -5816,7 +5816,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 		/* Compare that many; failure if mismatch, else move
 		   past them.  */
 		if (RE_TRANSLATE_P (translate)
-		    ? bcmp_translate (d, d2, mcnt, translate, multibyte)
+		    ? bcmp_translate (d, d2, mcnt, translate, target_multibyte)
 		    : memcmp (d, d2, mcnt))
 		  {
 		    d = dfail;
@@ -6437,11 +6437,11 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
    bytes; nonzero otherwise.  */
 
 static int
-bcmp_translate (s1, s2, len, translate, multibyte)
+bcmp_translate (s1, s2, len, translate, target_multibyte)
      re_char *s1, *s2;
      register int len;
      RE_TRANSLATE_TYPE translate;
-     const int multibyte;
+     const int target_multibyte;
 {
   register re_char *p1 = s1, *p2 = s2;
   re_char *p1_end = s1 + len;
