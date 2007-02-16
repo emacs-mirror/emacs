@@ -887,9 +887,11 @@ specification characters.
 Immediately after the @samp{%} and before the optional width and
 precision, you can put certain ``flag'' characters.
 
-A space character inserts a space for positive numbers (otherwise
-nothing is inserted for positive numbers).  This flag is ignored
-except for @samp{%d}, @samp{%e}, @samp{%f}, @samp{%g}.
+A space character inserts a space for positive numbers, a plus character
+inserts a plus sign (otherwise nothing is inserted for positive
+numbers).  These flags are ignored except for @samp{%d}, @samp{%e},
+@samp{%f}, @samp{%g}, and if both flags are present the space is
+ignored.
 
 The flag @samp{#} indicates ``alternate form.''  For @samp{%o} it
 ensures that the result begins with a 0.  For @samp{%x} and @samp{%X}
