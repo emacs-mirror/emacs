@@ -1,5 +1,7 @@
 2007-02-16  Andreas Schwab  <schwab@suse.de>
 
+	* frame.c (Fmodify_frame_parameters): Return a value.
+
 	* editfns.c (Fformat): Add support for '+' flag.
 	* doprnt.c (doprnt1): Likewise.  Fix overflow checking.
 
