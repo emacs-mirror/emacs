@@ -1,3 +1,7 @@
+2007-02-16  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* TUTORIAL.pt_BR: Fix some accentuation, verbal conjugation and typos.
+
 2007-02-16  Kenichi Handa  <handa@m17n.org>
 
 	* TUTORIAL.translators: Add TUTORIAL.eo.
@@ -1352,7 +1356,7 @@
 
 2005-04-01  Marcelo Toledo  <marcelo@gnu.org>
 
-	* TUTORIAL.pt_BR, TUTORIAL.cn, TUTORIAL.cs, TUTORIAL.de,
+	* TUTORIAL.cn, TUTORIAL.cs, TUTORIAL.de,
 	* TUTORIAL.es, TUTORIAL.fr, TUTORIAL.it, TUTORIAL.ja, TUTORIAL.ko,
 	* TUTORIAL.pl, TUTORIAL.pt_BR, TUTORIAL.ro, TUTORIAL.ru,
 	* TUTORIAL.sk, TUTORIAL.sl, TUTORIAL.th, TUTORIAL.zh: Fix title line.
