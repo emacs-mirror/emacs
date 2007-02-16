@@ -1,3 +1,7 @@
+2007-02-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* regex.c (RE_STRING_CHAR_AND_LENGTH) [! emacs]: Add missing arg `len'.
+
 2007-02-16  Kenichi Handa  <handa@m17n.org>
 
 	* regex.c (GET_CHAR_BEFORE_2, GET_CHAR_AFTER): Check the variable
@@ -27,7 +31,7 @@
 	* regex.h (struct re_pattern_buffer): New member charset_unibyte.
 
 	* regex.c (RE_STRING_CHAR, RE_STRING_CHAR_AND_LENGTH): New arg
-	multibte.  Callers changed.
+	multibyte.  Callers changed.
 	(RE_CHAR_TO_MULTIBYTE, RE_CHAR_TO_UNIBYTE): New macros.
 	(MAKE_CHAR_MULTIBYTE, MAKE_CHAR_UNIBYTE): Deleted.  Callers
 	changed to use RE_CHAR_TO_MULTIBYTE and RE_CHAR_TO_UNIBYTE
