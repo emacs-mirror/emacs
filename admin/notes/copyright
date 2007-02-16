@@ -235,6 +235,83 @@ lisp/term/README
   Accordingly, FSF copyright was added.
 
 
+** Issues that are "fixed" for the release of Emacs 22, but we may
+   wish to revisit later in more detail
+
+
+src/acldef.h, chpdef.h, ndir.h
+  On legal advice from Matt Norwood, the following comment was added
+  to these files in Feb 2007:
+
+    The code here is forced by the interface, and is not subject to
+    copyright, constituting the only possible expression of the
+    algorithm in this format.
+
+  With the addition of this notice, these files are OK for the
+  upcoming Emacs-22 release. Post-release, we can revisit this issue
+  and possibly add a list of all authors who have changed these files.
+  (details in email from Matt Norwood to rms, 2007/02/03).
+
+
+src/m/mips4.h, news-risc.h, pmax.h
+src/s/aix3-2.h, bsd386.h, hpux8.h, hpux9.h, irix4-0.h, irix5-0.h,
+isc2-2.h, netbsd.h, osf1.h, sol2-3.h, sunos4-0.h, usg5-4-2.h
+  - all these (not obviously trivial) files were missing copyrights
+  till Feb 2007, when FSF copyright was added. Matt Norwood advised:
+
+    For now, I think the best policy is to assume that we do have
+    assignments from the authors (I recall many of these header files
+    as having been originally written by rms), and to attach an FSF
+    copyright with GPL notice. We can amend this if and when we
+    complete the code audit. Any additions to these files by
+    non-assigned authors are arguably "de minimis" contributions to
+    Emacs: small changes or suggestions to a work that are subsumed in
+    the main authors' copyright in the entire work.
+
+Here is my (rgm) take on the details of the above files:
+
+mips4.h
+  might be trivial? started trivial, been added to in tiny changes by
+  those with FSF assignment, often result of email suggestions by others.
+
+news-risc.h
+  started trivial. Grown by tiny additions, plus chunk
+  from mips.h, which was and is Copyright FSF
+
+pmax.h
+  started trivial. grown in tiny changes, except for maybe Jim Wilson's
+  comment.
+
+? irix4-0.h
+  I would say started non-trivial (1992, rms). only tiny changes since
+  installed.
+
+? irix5-0.h
+  I would say started non-trivial (1993, jimb, heavily based
+  on irix4-0.h). A few borderline non-tiny changes since.
+
+? isc2-2.h
+ started trivial. 2 non-tiny change, in 1993. looks to
+ be made up of several small tweaks from various sources. maybe
+ non-tiny total changes from Karl Berry (no emacs assignment).
+
+osf1.h
+  started trivial. grown in tiny changes (one borderline tiny change
+  by fx in 2000, but most code was later removed). non-tiny addition
+  in 2002 from m/alpha.h, but that was and is copyright FSF.
+
+usg5-4-2.h
+ started non-trivial, but was heavily based on usg5-4.h, which was and is
+ copyright FSF. only tiny changes since installed.
+
+sol2-3.h
+ started trivial. only non-tiny change (1994) incorporated code from
+ usg5-4.h, which was and is copyright FSF.
+
+aix3-2.h, bsd386.h, hpux8.h, hpux9.h, netbsd.h, sunos4-0.h
+  started trivial, grown in tiny changes.
+
+
 *** These are copyright issues that need not be fixed until after
     Emacs 22 is released (though if they can be fixed before, that is
     obviously good):
@@ -263,20 +340,6 @@ REMOVED etc/orgcard.tex, orgcard.ps
 etc/images
   Image files from GTK, Gnome are under GPLv2 (no "or later"?). RMS will
   contact image authors in regards to future switch to v3.
-
-
-src/acldef.h, chpdef.h, ndir.h
-  On legal advice from Matt Norwood, the following comment was added
-  to these files in Feb 2007:
-
-    The code here is forced by the interface, and is not subject to
-    copyright, constituting the only possible expression of the
-    algorithm in this format.
-
-  With the addition of this notice, these files are OK for the
-  upcoming Emacs-22 release. Post-release, we can revisit this issue
-  and possibly add a list of all authors who have changed these files.
-  (details in email from Matt Norwood to rms, 2007/02/03).
 
 
 REMOVED src/unexhp9k800.c
@@ -309,6 +372,10 @@ etc/e/eterm-color.ti  - no copyright
   rms: "I think that is not copyrightable under the merger doctrine
   because the entries are all forced. At least that is the case in the
   US; I am not sure whether we can rely on that in general."
+
+
+etc/TUTORIAL.eo
+ - remove non-FSF copyright, merge years into FSF, add 2007.
 
 
 etc/TUTORIAL* (translations)
@@ -381,66 +448,9 @@ oldXMenu/Makefile.in, Makefile, Imakefile, descrip.mms, insque.c
 rms: "I have asked for lawyer's advice about these."
 
 
-src/m/mips4.h, news-risc.h, pmax.h
-src/s/aix3-2.h, bsd386.h, hpux8.h, hpux9.h, irix4-0.h, irix5-0.h,
-isc2-2.h, netbsd.h, osf1.h, sol2-3.h, sunos4-0.h, usg5-4-2.h
-  - all these (not obviously trivial) files are missing copyrights.
-  rms: "I should talk about these with Matthew Norwood."
-The current legal advice seems to be that we should attach FSF
-copyright and GPL for the time being, then review post-release:
-
-Matt Norwood:
-    For now, I think the best policy is to assume that we do have
-    assignments from the authors (I recall many of these header files
-    as having been originally written by rms), and to attach an FSF
-    copyright with GPL notice. We can amend this if and when we
-    complete the code audit. Any additions to these files by
-    non-assigned authors are arguably "de minimis" contributions to
-    Emacs: small changes or suggestions to a work that are subsumed in
-    the main authors' copyright in the entire work.
-
-Details:
-
-mips4.h
-  might be trivial? started trivial, been added to in tiny changes by
-  those with FSF assignment, often result of email suggestions by others.
-
-news-risc.h
-  started trivial. Grown by tiny additions, plus chunk
-  from mips.h, which was and is Copyright FSF
-
-pmax.h
-  started trivial. grown in tiny changes, except for maybe Jim Wilson's
-  comment.
-
-? irix4-0.h
-  I would say started non-trivial (1992, rms). only tiny changes since
-  installed.
-
-? irix5-0.h
-  I would say started non-trivial (1993, jimb, heavily based
-  on irix4-0.h). A few borderline non-tiny changes since.
-
-? isc2-2.h
- started trivial. 2 non-tiny change, in 1993. looks to
- be made up of several small tweaks from various sources. maybe
- non-tiny total changes from Karl Berry (no emacs assignment).
-
-osf1.h
-  started trivial. grown in tiny changes (one borderline tiny change
-  by fx in 2000, but most code was later removed). non-tiny addition
-  in 2002 from m/alpha.h, but that was and is copyright FSF.
-
-usg5-4-2.h
- started non-trivial, but was heavily based on usg5-4.h, which was and is
- copyright FSF. only tiny changes since installed.
-
-sol2-3.h
- started trivial. only non-tiny change (1994) incorporated code from
- usg5-4.h, which was and is copyright FSF.
-
-aix3-2.h, bsd386.h, hpux8.h, hpux9.h, netbsd.h, sunos4-0.h
-  started trivial, grown in tiny changes.
+src/m, src/s
+  - any more non-trivial files that should have copyright added? If
+  so, note the names above.
 
 
 
