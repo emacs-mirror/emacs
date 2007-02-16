@@ -46,7 +46,7 @@ static size_t totalSize = 0;
 
 /* report - report statistics from any messages */
 
-static void report()
+static void report(void)
 {
   static int nStart = 0;
   static int nComplete = 0;
