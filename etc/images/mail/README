@@ -21,14 +21,16 @@ inbox.xpm                   stock_inbox
 move.xpm                    stock_mail-move
 not-spam.xpm                stock_not-spam
 outbox.xpm                  stock_outbox
-preview.xpm                 ?
+preview.xpm                 combines stock_mail and navigation/stock_zoom
 reply-all.xpm               stock_mail-reply-to-all
 reply.xpm                   stock_mail-reply
 save-draft.xpm              stock_mail-handling
-save.xpm                    ?
+save.xpm                    combines stock_mail, io/stock_save and
+                              stock_convert (from gnome-themes)
 send.xpm                    stock_mail-send
 spam.xpm                    stock_spam
 
+(preview and save were contributed by Adam Sjøgren <asjo@koldfront.dk>)
 
 repack is a slightly modified version of package-x-generic.
 reply-from is a slightly modified version of reply.
