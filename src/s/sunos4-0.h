@@ -1,4 +1,4 @@
-/* Definitions file for GNU Emacs running on sunus 4.0.
+/* Definitions file for GNU Emacs running on sunos 4.0.
 
    Copyright (C) 1994, 2001, 2002, 2003, 2004, 2005, 2006,
                  2007  Free Software Foundation, Inc.
