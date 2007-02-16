@@ -311,7 +311,7 @@ enum syntaxcode { Swhitespace = 0, Sword = 1, Ssymbol = 2 };
 # define RE_STRING_CHAR(p, s, multibyte) STRING_CHAR ((p), (s))
 # define CHAR_STRING(c, s) (*(s) = (c), 1)
 # define STRING_CHAR_AND_LENGTH(p, s, actual_len) ((actual_len) = 1, *(p))
-# define RE_STRING_CHAR_AND_LENGTH(p, s, multibyte) STRING_CHAR_AND_LENGTH ((p), (s))
+# define RE_STRING_CHAR_AND_LENGTH(p, s, len, multibyte) STRING_CHAR_AND_LENGTH ((p), (s), (len))
 # define RE_CHAR_TO_MULTIBYTE(c) (c)
 # define RE_CHAR_TO_UNIBYTE(c) (c)
 # define GET_CHAR_BEFORE_2(c, p, str1, end1, str2, end2) \
