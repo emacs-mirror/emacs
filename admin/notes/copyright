@@ -312,6 +312,19 @@ aix3-2.h, bsd386.h, hpux8.h, hpux9.h, netbsd.h, sunos4-0.h
   started trivial, grown in tiny changes.
 
 
+Someone might want to tweak the copyright years (for dates before
+2001) that I used in all these files.
+
+Note: erring on the side of caution, I also added notices to some
+files I thought might be considered non-trivial (if one includes
+comment) in s/:
+  aix4-1.h hiuxmpp.h hiuxwe2.h hpux10.h irix6-0.h irix6-5.h isc3-0.h
+  ptx4.h sol2.h sunos4-0.h
+
+(everything with > 30 non-blank lines, which at least is _some_ kind of
+system)
+
+
 *** These are copyright issues that need not be fixed until after
     Emacs 22 is released (though if they can be fixed before, that is
     obviously good):
@@ -446,12 +459,6 @@ as we check it check it in to CVS?
 oldXMenu/Makefile.in, Makefile, Imakefile, descrip.mms, insque.c
   - issues described in mail to rms, 2006/12/17.
 rms: "I have asked for lawyer's advice about these."
-
-
-src/m, src/s
-  - any more non-trivial files that should have copyright added? If
-  so, note the names above.
-
 
 
 This file is part of GNU Emacs.
