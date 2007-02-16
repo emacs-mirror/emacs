@@ -13,6 +13,19 @@ A "license notice" is a statement of permissions, and is usually much
 longer, eg the text "GNU Emacs is free software...".
 
 
+Summary for the impatient:
+
+1. Don't add a file to Emacs written by someone other than yourself
+without thinking about the legal aspect (make sure they have an
+assignment, adjust the copyright statements in the file).
+
+2. With images, add the legal info to a README file in the directory
+containing the image.
+
+3. If you add a lot of text to a previously trivial file that had no
+legal notices, consider if you should add a copyright statement.
+
+
 Every non-trivial file distributed through the Emacs CVS should be
 self-explanatory in terms of copyright and license. This includes
 files that are not distributed in Emacs releases (for example, the
