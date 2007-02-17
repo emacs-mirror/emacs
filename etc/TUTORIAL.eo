@@ -1,6 +1,5 @@
 Lernilo pri Emacs
 Mallonga lernilo pri Emakso (Emacs). -- La uzokondiæojn vd æe la fino.
-Copyright (C) 1985, 2001, 2002 Free Software Foundation, Inc.
 
 Emaksaj ordonoj  øenerale uzas aý la STIR-klavon (ofte markitan "Ctrl"
 aý "CTL"), aý la META-klavon (ofte markitan "EDIT" aý "Alt").  Prefere
@@ -1090,8 +1089,8 @@ la dosiero verkita de Stuart Cracraft por la originala Emakso.
 kopirajton,  kaj  venas kun  permeso  por  disdoni  kopiojn se  certaj
 kondiæoj estas observataj:
 
-Tradukita (C) 1999 de D. Dale Gulledge
-Reviziita kaj kompletigita (C) 2005 de Sergio Pokrovskij
+Copyright (C) 1985, 1999, 2001, 2002, 2005,
+   2007 Free Software Foundation, Inc.
 
    Permeso estas donita  al iu ajn fari aý  disdoni laývortajn kopiojn
    de  æi tiu  dokumento same  kiel  ricevite, en  ia ajn  komunikilo,
@@ -1115,20 +1114,3 @@ libera programaro!
 ;;; Local Variables:
 ;;;   coding: latin-3
 ;;; End:
-
-
- LocalWords:  Dale Gulledge Ctrl CTL EDIT Alt Esc Blank lines inserted by
- LocalWords:  here startup of help with tutorial lo ang
- LocalWords:  previous next backward forward point sekven MS mal
- LocalWords:  fenestrosistemo Return Retroviþu Delete Del Backspace SPC Mark re
- LocalWords:  remallongigi set for¬ETI forVIÞI yanking enhava¼on yank undo find
- LocalWords:  for¼etata¼oj memenigaj tekstenigon visit persistiøas dosiertrova
- LocalWords:  minibuffer konServu Wrote fluregulado flow control interkaptis to
- LocalWords:  Spontaneous Entry Incremental Search ekenigu bufronomo Buffer yes
- LocalWords:  List Messages eXtend fg foreground emacs exit replace string repl
- LocalWords:  TAB ordonnomon anstataýigOTan anstataýigONTan aýtokonservas hello
- LocalWords:  aýtokonservita aýtokonservitan aýtokonservitajn Fundamental NN ku
- LocalWords:  Top Bot All ekvizitas fundamental text auto fill asdf
- LocalWords:  search unuliterope STIRan other runs the command helptekston Info
- LocalWords:  propos ordonnomoj write helpfenestron info dired Tab bufronomon
- LocalWords:  Completion Stuart Cracraft COPYING obstrukcismon
