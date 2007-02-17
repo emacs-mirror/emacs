@@ -82,7 +82,7 @@
 
 	* update-subdirs: Add missing Copyright years.
 
-2006-11-27  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
+2006-11-27  Chris Moore  <christopher.ian.moore@gmail.com>
 
 	* Makefile.in: Touch only the parts of the share/emacs directory
 	specific to this version.

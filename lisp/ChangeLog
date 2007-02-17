@@ -671,7 +671,7 @@
 	(ido-initiate-auto-merge, ido-exhibit, ido-minibuffer-setup)
 	(ido-tidy): Use ido-active.
 
-2007-01-22  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
+2007-01-22  Chris Moore  <christopher.ian.moore@gmail.com>
 
 	* hexl.el (hexl-mode-exit): Add missing quote.
 
@@ -800,7 +800,7 @@
 
 	* paths.el (Info-default-directory-list): Ditto.
 
-2007-01-18  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
+2007-01-18  Chris Moore  <christopher.ian.moore@gmail.com>
 
 	* hexl.el (hexl-before-revert-hook): New function.
 	(hexl-mode): Use it.
@@ -952,7 +952,7 @@
 
 	* progmodes/vhdl-mode.el (vhdl-save-caches): Fix typo in error message.
 
-2007-01-07  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
+2007-01-07  Chris Moore  <christopher.ian.moore@gmail.com>
 
 	* replace.el (replace-regexp): Fix typo in docstring.
 
@@ -1021,7 +1021,7 @@
 	* progmode/cc-cmds.el (c-mask-paragraph): Fix yesterday's buggy
 	patch.
 
-2007-01-03  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
+2007-01-03  Chris Moore  <christopher.ian.moore@gmail.com>
 
 	* tutorial.el (tutorial--describe-nonstandard-key): Fix typo.
 
@@ -3990,7 +3990,7 @@
 
 	* international/code-pages.el (iso-8859-6): Table fixed.
 
-2006-10-01  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
+2006-10-01  Chris Moore  <christopher.ian.moore@gmail.com>
 
 	* dired.el (dired-build-subdir-alist): Fix previous change.
 
@@ -4164,7 +4164,7 @@
 	* font-lock.el (font-lock-compile-keywords): Allow value of
 	syntax-begin-function to enable paren-column-0 highlighting.
 
-2006-09-24  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
+2006-09-24  Chris Moore  <christopher.ian.moore@gmail.com>
 
 	* dired.el (dired-build-subdir-alist): When file ends in colon,
 	don't exit the loop, just disregard that file.
@@ -11517,7 +11517,7 @@
 	(tumme-create-thumbs, tumme-display-previous-thumbnail-original):
 	Fix typos in docstrings.
 
-2006-02-07  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
+2006-02-07  Chris Moore  <christopher.ian.moore@gmail.com>
 
 	* wdired.el (wdired-get-filename): Fix bug: Don't re-normalize OLD.
 
