@@ -1,3 +1,8 @@
+2007-02-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* info-look.el (info-lookup): Bind Info-fontify-maximum-menu-size
+	to nil to speed up lookup of the symbol in index nodes.
+
 2007-02-17  Alin C. Soare  <alinsoar@voila.fr>  (tiny change)
 
 	* emacs-lisp/lisp-mode.el (calculate-lisp-indent): Added
