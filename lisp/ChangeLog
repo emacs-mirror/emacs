@@ -1,3 +1,8 @@
+2007-02-17  Daiki Ueno  <ueno@unixuser.org>
+
+	* pgg-gpg.el (pgg-gpg-process-region): Make USE-AGENT nil
+	if PASSPHRASE is given.
+
 2007-02-17  Chris Moore <dooglus@gmail.com>
 
 	* jka-cmpr-hook.el (jka-compr-compression-info-list): Recognize
