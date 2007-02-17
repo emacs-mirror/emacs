@@ -1,3 +1,10 @@
+2007-02-17  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-refcard.tex: Remove obsolete comments.  Add a short note
+	creating PostScript files for Emacs without using Makefile rules.
+
+	* gnus-booklet.ps, gnus-refcard.ps: Generate with letter paper.
+
 2007-02-17  Glenn Morris  <rgm@gnu.org>
 
 	* TUTORIAL.eo: Add 2007 to copyright years.  Remove translator
