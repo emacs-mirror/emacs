@@ -2432,14 +2432,14 @@ struct header @{
 struct data @{
     unsigned char    type;
     unsigned char    opcode;
-    unsigned long    length;  /* In network byte order */
+    unsigned short   length;  /* In network byte order */
     unsigned char    id[8];   /* null-terminated string  */
     unsigned char    data[/* (length + 3) & ~3 */];
 @};
 
 struct packet @{
     struct header    header;
-    unsigned short   counters[4];  /* In little endian order */
+    unsigned long    counters[2];  /* In little endian order */
     unsigned char    items;
     unsigned char    filler[3];
     struct data      item[/* items */];
@@ -2459,14 +2459,14 @@ The corresponding data layout specification:
 (setq data-spec
       '((type      u8)
         (opcode    u8)
-        (length    u32)  ;; network byte order
+        (length    u16)  ;; network byte order
         (id        strz 8)
         (data      vec (length))
         (align     4)))
 
 (setq packet-spec
       '((header    struct header-spec)
-        (counters  vec 4 u16r)   ;; little endian order
+        (counters  vec 2 u32r)   ;; little endian order
         (items     u8)
         (fill      3)
         (item      repeat (items)
@@ -2477,9 +2477,10 @@ A binary data representation:
 
 @lisp
 (setq binary-data
-      [ 192 168 1 100 192 168 1 101 01 28 21 32 2 0 0 0
-        2 3 5 0 ?A ?B ?C ?D ?E ?F 0 0 1 2 3 4 5 0 0 0
-        1 4 7 0 ?B ?C ?D ?E ?F ?G 0 0 6 7 8 9 10 11 12 0 ])
+      [ 192 168 1 100 192 168 1 101 01 28 21 32
+        160 134 1 0 5 1 0 0 2 0 0 0
+        2 3 0 5 ?A ?B ?C ?D ?E ?F 0 0 1 2 3 4 5 0 0 0
+        1 4 0 7 ?B ?C ?D ?E ?F ?G 0 0 6 7 8 9 10 11 12 0 ])
 @end lisp
 
 The corresponding decoded structure:
@@ -2492,6 +2493,7 @@ The corresponding decoded structure:
   (src-ip    . [192 168 1 101])
   (dest-port . 284)
   (src-port  . 5408))
+ (counters . [100000 261])
  (items . 2)
  (item ((data . [1 2 3 4 5])
         (id . "ABCDEF")
