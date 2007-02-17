@@ -2146,8 +2146,11 @@ String of length @var{len}.
 @item strz @var{len}
 Zero-terminated string, in a fixed-size field with length @var{len}.
 
-@item vec @var{len}
-Vector of @var{len} bytes.
+@item vec @var{len} [@var{type}]
+Vector of @var{len} elements of type @var{type}, or bytes if not
+@var{type} is specified.
+The @var{type} is any of the simple types above, or another vector
+specified as a list @code{(vec @var{len} [@var{type}])}.
 
 @item ip
 Four-byte vector representing an Internet address.  For example:
@@ -2429,13 +2432,14 @@ struct header @{
 struct data @{
     unsigned char    type;
     unsigned char    opcode;
-    unsigned long    length;  /* In little endian order */
+    unsigned long    length;  /* In network byte order */
     unsigned char    id[8];   /* null-terminated string  */
     unsigned char    data[/* (length + 3) & ~3 */];
 @};
 
 struct packet @{
     struct header    header;
+    unsigned short   counters[4];  /* In little endian order */
     unsigned char    items;
     unsigned char    filler[3];
     struct data      item[/* items */];
@@ -2455,13 +2459,14 @@ The corresponding data layout specification:
 (setq data-spec
       '((type      u8)
         (opcode    u8)
-        (length    u16r) ;; little endian order
+        (length    u32)  ;; network byte order
         (id        strz 8)
         (data      vec (length))
         (align     4)))
 
 (setq packet-spec
       '((header    struct header-spec)
+        (counters  vec 4 u16r)   ;; little endian order
         (items     u8)
         (fill      3)
         (item      repeat (items)
