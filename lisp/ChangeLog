@@ -1,3 +1,7 @@
+2007-02-17  Sven Joachim  <svenjoac@gmx.de>  (tiny change)
+
+	* simple.el (kill-line): Doc fix.
+
 2007-02-17  Kim F. Storm  <storm@cua.dk>
 
 	* emacs-lisp/bindat.el (bindat--unpack-u*): Optimize.
