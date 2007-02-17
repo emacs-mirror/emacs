@@ -353,8 +353,11 @@ If optional argument QUERY is non-nil, query for the help mode."
 	      suffix (nth 3 (car doc-spec)))
 	(when (condition-case error-data
 		  (progn
-		    (Info-goto-node node)
-		    (setq doc-found t))
+		    ;; Don't need Index menu fontifications here, and
+		    ;; they slow down the lookup.
+		    (let (Info-fontify-maximum-menu-size)
+		      (Info-goto-node node)
+		      (setq doc-found t)))
 		(error
 		 (message "Cannot access Info node %s" node)
 		 (sit-for 1)
