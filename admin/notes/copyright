@@ -17,7 +17,9 @@ Summary for the impatient:
 
 1. Don't add a file to Emacs written by someone other than yourself
 without thinking about the legal aspect (make sure they have an
-assignment, adjust the copyright statements in the file).
+assignment, adjust the copyright statements in the file). NB the
+ChangeLog entry should be in the name of the author of the code, not
+the person who installs it.
 
 2. With images, add the legal info to a README file in the directory
 containing the image.
@@ -252,6 +254,7 @@ lisp/term/README
    wish to revisit later in more detail
 
 
+etc/e/eterm-color.ti
 src/acldef.h, chpdef.h, ndir.h
   On legal advice from Matt Norwood, the following comment was added
   to these files in Feb 2007:
@@ -394,10 +397,6 @@ etc/emacs.csh
 
 
 etc/ms-kermit - no copyright, but ms-7bkermit has one
-etc/e/eterm-color.ti  - no copyright
-  rms: "I think that is not copyrightable under the merger doctrine
-  because the entries are all forced. At least that is the case in the
-  US; I am not sure whether we can rely on that in general."
 
 
 etc/TUTORIAL* (translations)
