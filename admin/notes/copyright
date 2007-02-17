@@ -400,10 +400,6 @@ etc/e/eterm-color.ti  - no copyright
   US; I am not sure whether we can rely on that in general."
 
 
-etc/TUTORIAL.eo
- - remove non-FSF copyright, merge years into FSF, add 2007.
-
-
 etc/TUTORIAL* (translations)
   switch to GPL (see english TUTORIAL)
   rms: "We can leave the TUTORIAL translations alone until their
