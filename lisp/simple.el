@@ -2836,12 +2836,12 @@ When calling from a program, nil means \"no arg\",
 a number counts as a prefix arg.
 
 To kill a whole line, when point is not at the beginning, type \
-\\[beginning-of-line] \\[kill-line] \\[kill-line].
+\\[move-beginning-of-line] \\[kill-line] \\[kill-line].
 
 If `kill-whole-line' is non-nil, then this command kills the whole line
 including its terminating newline, when used at the beginning of a line
 with no argument.  As a consequence, you can always kill a whole line
-by typing \\[beginning-of-line] \\[kill-line].
+by typing \\[move-beginning-of-line] \\[kill-line].
 
 If you want to append the killed line to the last killed text,
 use \\[append-next-kill] before \\[kill-line].
