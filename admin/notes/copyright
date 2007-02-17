@@ -214,6 +214,10 @@ man/doclicense.texi
 lisp/net/tramp.el
   - there are also copyrights in the body of the file. Update these too.
 
+lwlib/
+rms (2007/02/17): "lwlib is not assigned to the FSF; we don't consider
+it part of Emacs. [...] Therefore non-FSF copyrights are ok in lwlib."
+
 msdos/is_exec.c, sigaction.c
   - these files are copyright DJ Delorie. Leave the copyrights alone.
   Leave the Eli Zaretskii copyright in is_exec.c alone. See the
