@@ -1,3 +1,9 @@
+2007-02-17  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* Makefile.in (${emacsapp}Contents/Resources/Emacs.rsrc)
+	[HAVE_CARBON]: Remove target.
+	(macosx-app) [HAVE_CARBON]: Don't depend on it.
+
 2007-02-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* callproc.c (syms_of_callproc) <doc-directory>:
