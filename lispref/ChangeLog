@@ -1,3 +1,9 @@
+2007-02-17  Kim F. Storm  <storm@cua.dk>
+
+	* processes.texi (Bindat Spec): Vector types can have optional
+	element type.
+	(Bindat Examples): Fix example.  Add vector with element type.
+
 2007-02-16  Andreas Schwab  <schwab@suse.de>
 
 	* strings.texi (Formatting Strings): Document '+' flag.
