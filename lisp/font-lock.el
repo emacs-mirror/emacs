@@ -1075,20 +1075,20 @@ Put first the functions more likely to cause a change and cheaper to compute.")
       (setq font-lock-beg (or (previous-single-property-change
                                font-lock-beg 'font-lock-multiline)
                               (point-min))))
-    ;; 
+    ;;
     (when (get-text-property font-lock-end 'font-lock-multiline)
       (setq changed t)
       (setq font-lock-end (or (text-property-any font-lock-end (point-max)
                                                  'font-lock-multiline nil)
                               (point-max))))
     changed))
-  
-  
+
 (defun font-lock-extend-region-wholelines ()
   "Move fontification boundaries to beginning of lines."
   (let ((changed nil))
     (goto-char font-lock-beg)
-    (unless (bolp) (setq changed t font-lock-beg (line-beginning-position)))
+    (unless (or (bolp) (eobp))
+      (setq changed t font-lock-beg (line-beginning-position)))
     (goto-char font-lock-end)
     (unless (bolp)
       (unless (eq font-lock-end
