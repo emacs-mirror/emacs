@@ -1,3 +1,8 @@
+2007-02-18  Romain Francoise  <romain@orebokech.com>
+
+	* pcl-cvs.texi (Miscellaneous commands): q runs `cvs-bury-buffer', not
+	`cvs-mode-quit'.
+
 2007-02-14  Kim F. Storm  <storm@cua.dk>
 
 	* building.texi (Grep Searching): Fix lgrep doc.
