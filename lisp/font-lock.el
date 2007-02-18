@@ -350,7 +350,7 @@ Each element in a user-level keywords list should have one of these forms:
  (MATCHER . SUBEXP)
  (MATCHER . FACENAME)
  (MATCHER . HIGHLIGHT)
- (MATCHER . HIGHLIGHTS)
+ (MATCHER HIGHLIGHT ...)
  (eval . FORM)
 
 where MATCHER can be either the regexp to search for, or the function name to
@@ -1040,13 +1040,6 @@ The region it returns may start or end in the middle of a line.")
 Useful for things like RMAIL and Info where the whole buffer is not
 a very meaningful entity to highlight.")
 
-(defvar font-lock-syntax-props-depend-on-themselves nil
-  "If non-nil, syntax-table changes may influence syntactic keywords.
-If the syntax-table properties set by syntactic-keywords themselves depend
-on syntax-table properties set on the text before it by syntactic-keywords,
-this variable should be set to non-nil, so that whenever syntaxtic-keywords
-is applied, the subsequent text is marked for syntactic re-fontification.")
-
 
 (defvar font-lock-beg) (defvar font-lock-end)
 (defvar font-lock-extend-region-functions
@@ -1131,25 +1124,11 @@ Put first the functions more likely to cause a change and cheaper to compute.")
             (setq beg font-lock-beg end font-lock-end))
 	  ;; Now do the fontification.
 	  (font-lock-unfontify-region beg end)
-          (let ((sbeg beg))
-            (cond
-             ((< font-lock-syntactically-fontified sbeg)
-              ;; Ensure the syntax-table prop is properly set on the text
-              ;; before beg.
-              (setq sbeg (max font-lock-syntactically-fontified (point-min)))
-              (setq font-lock-syntactically-fontified end))
-             ((and font-lock-syntax-props-depend-on-themselves
-                   (> font-lock-syntactically-fontified end))
-              ;; If the syntax-table properties set by
-              ;; font-lock-syntactic-keywords themselves depend on
-              ;; syntax-table props set in the text above it, then we'll
-              ;; need to update all the syntax-table props below end.
-              (setq font-lock-syntactically-fontified end)))
-            (when font-lock-syntactic-keywords
-              (font-lock-fontify-syntactic-keywords-region sbeg end)))
-          (unless font-lock-keywords-only
-            (font-lock-fontify-syntactically-region beg end loudly))
-          (font-lock-fontify-keywords-region beg end loudly))
+	  (when font-lock-syntactic-keywords
+	    (font-lock-fontify-syntactic-keywords-region beg end))
+	  (unless font-lock-keywords-only
+	    (font-lock-fontify-syntactically-region beg end loudly))
+	  (font-lock-fontify-keywords-region beg end loudly))
       ;; Clean up.
       (set-syntax-table old-syntax-table))))
 
@@ -1439,6 +1418,11 @@ LIMIT can be modified by the value of its PRE-MATCH-FORM."
 (defun font-lock-fontify-syntactic-keywords-region (start end)
   "Fontify according to `font-lock-syntactic-keywords' between START and END.
 START should be at the beginning of a line."
+  ;; Ensure the beginning of the file is properly syntactic-fontified.
+  (when (and font-lock-syntactically-fontified
+	     (< font-lock-syntactically-fontified start))
+    (setq start (max font-lock-syntactically-fontified (point-min)))
+    (setq font-lock-syntactically-fontified end))
   ;; If `font-lock-syntactic-keywords' is a symbol, get the real keywords.
   (when (symbolp font-lock-syntactic-keywords)
     (setq font-lock-syntactic-keywords (font-lock-eval-keywords
