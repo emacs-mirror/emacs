@@ -29,11 +29,6 @@
 	* emacs-lisp/lisp-mode.el (calculate-lisp-indent): Added
 	indentation for the constants of Lisp.
 
-2007-02-17  David Hansen  <david.hansen@physik.fu-berlin.de>  (tiny change)
-
-	* font-lock.el (font-lock-extend-region-wholelines): Test for EOB
-	in addition to BOL.
-
 2007-02-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* ps-print.el: Use (defvar <foo>) where applicable.
