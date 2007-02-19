@@ -1277,8 +1277,8 @@ controlled by user option utf-fragment-on-decoding.
 *** New language environments: French, Ukrainian, Tajik,
 Bulgarian, Belarusian, Ukrainian, UTF-8, Windows-1255, Welsh, Latin-6,
 Latin-7, Lithuanian, Latvian, Swedish, Slovenian, Croatian, Georgian,
-Italian, Russian, Malayalam, Tamil, Russian, Chinese-EUC-TW.  (Set up
-automatically according to the locale.)
+Italian, Russian, Malayalam, Tamil, Russian, Chinese-EUC-TW,
+Esperanto.  (Set up automatically according to the locale.)
 
 ---
 *** New input methods: latin-alt-postfix, latin-postfix, latin-prefix,
