@@ -2185,7 +2185,7 @@ specifies the character set for the major languages of Western Europe."
     ;; en_IN -- fx.
     ("en_IN" "English" utf-8) ; glibc uses utf-8 for English in India
     ("en" "English" iso-8859-1) ; English
-    ("eo" . "Latin-3") ; Esperanto
+    ("eo" . "Esperanto") ; Esperanto
     ("es" "Spanish" iso-8859-1)
     ("et" . "Latin-1") ; Estonian
     ("eu" . "Latin-1") ; Basque
