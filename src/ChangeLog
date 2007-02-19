@@ -1,5 +1,7 @@
 2007-02-19  Kim F. Storm  <storm@cua.dk>
 
+	* minibuf.c (Fassoc_string): Allow symbols as keys.
+
 	* w32term.c (w32_set_scroll_bar_thumb): Don't resize scroll-bar
 	handle while dragging, except when we get close to eob.
 	Fix position and size calculations so we don't scroll backwards
