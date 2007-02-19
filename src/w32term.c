@@ -3478,18 +3478,6 @@ w32_set_scroll_bar_thumb (bar, portion, position, whole)
   BOOL draggingp = !NILP (bar->dragging) ? TRUE : FALSE;
   SCROLLINFO si;
 
-  /* Dragging the w32 scroll-bar handle in a file like INSTALL.CVS
-     gives very odd scrolling behaviour with the code below which
-     "only updates page size if currently dragging".  The cause
-     seems to be that the W32 api may "silently" adjust the thumb
-     position when the thumb page is change.
-
-     So simply don't make any updates to the scroll-bar geometry
-     while dragging.  KFS 2007-02-19.  */
-
-  if (draggingp)
-    return;
-
   if (whole)
     {
 #if 0
