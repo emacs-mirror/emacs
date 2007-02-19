@@ -40,38 +40,14 @@ a file is auto-generated (eg ldefs-boot.el) from another one in the
 CVS, then it does not really matter about adding a copyright statement
 to the generated file.
 
-However, here is a quote from Matt Norwood (Software Freedom Law
-Center) that suggests we should revise the above policy about trivial
-files:
-
-    If FSF has a strong policy reason notices off of files it
-    considers "trivial", this will take a lot more bookkeeping; it
-    also runs the risk of these "trivial" files later growing into
-    non-trivial files, and being in the tree without any record of
-    authorship. All in all, I think it's a better policy to attach the
-    notice and let future authors decide if something is trivial when
-    they want to reuse it elsewhere.
-    [...]
-    In general, copyright law will step back and look at the overall "work"
-    consisting of all the assembled components working together as a system;
-    it will apply protection and permissions to this system, not to its
-    subcomponents. If parts of it are recombined into another system, it
-    will consider the protections and permissions for each of the source
-    components only in order to assess the overall status of the work again.
-    The assessment of whether a set of components is entitled to copyright
-    protection is the degree to which they display "creativity": not as
-    atomic units, but as parts of a system working in concert. Thus, several
-    "trivial" components working together in some coherent system might be
-    protectible.
-
-RMS feels, though, that in trivial files (eg etc/FTP), having a
-license notice looks odd. Matt Norwood has confirmed it is not
-_necessary_ to have licenses in such files, so we are sticking with
-the policy of no licenses in "trivial" files.
-
-NB consequently, if you add a lot of text to a small file, consider
-whether your changes have made the file worthy of a copyright notice,
-and if so, please add one.
+Legal advice says that we could, if we wished, put a license notice
+even in trivial files, because copyright law in general looks at the
+overall work as a whole. It is not _necessary_ to do so, and rms
+prefers that we do not. This means one needs to take care that trivial
+files do not grow and become non-trivial without having a license
+added. NB consequently, if you add a lot of text to a small file,
+consider whether your changes have made the file worthy of a copyright
+notice, and if so, please add one.
 
 The years in the copyright notice should be updated every year (see
 file "years" in this directory). The PS versions of refcards etc
@@ -154,6 +130,9 @@ src/m/news-r6.h
 
 etc/edt-user.doc
   - update BOTH notices in this file
+
+etc/emacs.csh
+  - keep simple license for this simple file
 
 etc/letter.pbm,letter.xpm
   - trivial, no notice needed.
@@ -331,6 +310,11 @@ sol2-3.h
 aix3-2.h, bsd386.h, hpux8.h, hpux9.h, netbsd.h, sunos4-0.h
   started trivial, grown in tiny changes.
 
+netbsd.h:
+Roland McGrath said to rms (2007/02/17): "I don't really remember
+anything about it. If I put it in without other comment, then probably
+I wrote it myself."
+
 
 Someone might want to tweak the copyright years (for dates before
 2001) that I used in all these files.
@@ -396,10 +380,6 @@ etc/gnus-logo.eps, gnus-booklet.ps, gnus-refcard.ps
  though it is very similar to the already-assigned "Emacs logo".
 
 
-etc/emacs.csh
-  does rms want simple license restored for this?
-
-
 etc/ms-kermit - no copyright, but ms-7bkermit has one
 
 
@@ -409,17 +389,16 @@ etc/TUTORIAL* (translations)
   maintainers update them."
 
 
-lib-src/etags.c - no 'k.* arnold' in copyright.list'
- rms: "That is ok, in principle. I used free code released by Ken
- Arnold as the starting point. However, it may be that we need to get
- and insert whatever his license was for his code."
-
- under GPL, so OK?
-
- - 1984 version of ctags, with no copyright, posted to net.sources:
-   http://groups.google.com/group/net.sources/msg/a21b6c21be12a98d
+[waiting for legal advice]
+lib-src/etags.c
+ - was it ok to use Ken Arnold's code as a basis?
+   1984 version of ctags, with no copyright, posted to net.sources:
+   http://groups.google.com/group/net.sources/msg/a21b6c21be12a98d)
+   version of etags.c in emacs-16.56 seems to be derived from this
+   (duplicate typos in comments).
 
 
+[waiting for legal advice on lwlib/*]
 lwlib/lwlib-Xaw.c
   copyright Chuck Thompson; but under GPL, so OK?
 
@@ -452,6 +431,7 @@ lwlib/*
   changes to since 1992?
 
 
+[waiting for legal advice]
 oldXMenu/
  - should there be any FSF copyrights at all in here? Some were added
    in 2005, without licence notices. Was this right?
@@ -468,6 +448,7 @@ Should we add a FSF copyright or not? Can we add such a notice as soon
 as we check it check it in to CVS?
 
 
+[waiting for legal advice]
 oldXMenu/Makefile.in, Makefile, Imakefile, descrip.mms, insque.c
   - issues described in mail to rms, 2006/12/17.
 rms: "I have asked for lawyer's advice about these."
