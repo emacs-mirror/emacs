@@ -1,7 +1,13 @@
+2007-02-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* speedbar.el (speedbar-frame-mode, speedbar-frame-width)
+	(speedbar-show-unknown-files, speedbar-item-info-file-helper)
+	(speedbar-item-info-tag-helper): Doc fixes.
+
 2007-02-19  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-cmds.el (locale-language-names): Map "eo"
-	to "Esperanto".
+	* international/mule-cmds.el (locale-language-names):
+	Map "eo" to "Esperanto".
 
 	* language/european.el ("Esperanto"): New language environment.
 
@@ -23,8 +29,8 @@
 
 2007-02-17  Chris Moore <dooglus@gmail.com>
 
-	* jka-cmpr-hook.el (jka-compr-compression-info-list): Recognize
-	backups of bz2 compressed files.
+	* jka-cmpr-hook.el (jka-compr-compression-info-list):
+	Recognize backups of bz2 compressed files.
 
 2007-02-17  Eli Zaretskii  <eliz@gnu.org>
 
@@ -33,8 +39,8 @@
 
 2007-02-17  Alin C. Soare  <alinsoar@voila.fr>  (tiny change)
 
-	* emacs-lisp/lisp-mode.el (calculate-lisp-indent): Added
-	indentation for the constants of Lisp.
+	* emacs-lisp/lisp-mode.el (calculate-lisp-indent):
+	Add indentation for the constants of Lisp.
 
 2007-02-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
