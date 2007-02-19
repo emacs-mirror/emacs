@@ -2089,7 +2089,9 @@ string rather than a cons cell whose car is a string.  */)
       register Lisp_Object elt, tem, thiscar;
       elt = Fcar (tail);
       thiscar = CONSP (elt) ? XCAR (elt) : elt;
-      if (!STRINGP (thiscar))
+      if (SYMBOLP (thiscar))
+	thiscar = Fsymbol_name (thiscar);
+      else if (!STRINGP (thiscar))
 	continue;
       tem = Fcompare_strings (thiscar, make_number (0), Qnil,
 			      key, make_number (0), Qnil,
