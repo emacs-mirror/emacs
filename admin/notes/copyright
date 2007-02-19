@@ -387,6 +387,10 @@ etc/TUTORIAL* (translations)
   switch to GPL (see english TUTORIAL)
   rms: "We can leave the TUTORIAL translations alone until their
   maintainers update them."
+  GPL translations available here:
+  http://www.gnu.org/licenses/translations.html
+  Follow the instructions on that page for marking the translation as
+  unoffical, and give the English version as the offical license.
 
 
 [waiting for legal advice]
