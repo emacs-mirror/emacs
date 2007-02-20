@@ -1,3 +1,8 @@
+2007-02-20  Kenichi Handa  <handa@m17n.org>
+
+	* xterm.c (x_draw_composite_glyph_string_foreground): Fix 
+	indexing into elements of s->cmp and s->char2b.
+
 2007-02-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* regex.c (RE_STRING_CHAR_AND_LENGTH) [! emacs]: Add missing arg `len'.
