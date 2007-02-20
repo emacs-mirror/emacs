@@ -1089,25 +1089,33 @@ la dosiero verkita de Stuart Cracraft por la originala Emakso.
 kopirajton,  kaj  venas kun  permeso  por  disdoni  kopiojn se  certaj
 kondiæoj estas observataj:
 
-Copyright (C) 1985, 1999, 2001, 2002, 2005,
+   Copyright (C) 1985, 1999, 2001, 2002, 2005,
    2007 Free Software Foundation, Inc.
 
-   Permeso estas donita  al iu ajn fari aý  disdoni laývortajn kopiojn
-   de  æi tiu  dokumento same  kiel  ricevite, en  ia ajn  komunikilo,
-   kondiæe  ke   la  kopirajta  avizo  kaj  la   permesa  avizo  estas
-   konservitaj, kaj  la disdonanto donas al la  ricevanto permeson por
-   plua redistribuado same kiel estas permesate per æi tiu avizo.
+   Æi tiu dosiero estas parto de "GNU Emacs".
+ 
+   "GNU Emacs" estas libera programverko; vi povas øin pludistribui
+   kaj/aý modifi je la kondiæoj de la GNUa Øenerala Publika Permesilo,
+   eldonita de "Free Software Foundation", laý la versio 2 de tiu
+   Permesilo aý, se vi preferas, ajna posta versio.
+ 
+   Ni distribuas æi tiun programon esperante ke øi estos utila, tamen
+   SEN IA AJN GARANTIO, i.a. sen la implica garantio pri
+   SURMERKATIGEBLO aý TAÝGECO POR IU KONKRETA CELO.  Pliajn detalojn
+   vidu en la GNUa Øenerala Publika Permesilo.
+ 
+   Ekzemplero de la GNUa Øenerala Publika Permesilo devas esti
+   liverita al vi kun æi tiu programo; se vi øin ne ricevis, turnu vin
+   al: Free Software Foundation, Inc., 51 Franklin Street, Fifth
+   Floor, Boston, MA 02110-1301, USA.
 
-   Permeso estas  donita por distribui  modifitajn versiojn de  æi tiu
-   dokumento, aý de ties partoj, sub la supraj kondiæoj, kondiæe ankaý
-   ke ili portas elstarajn avizojn deklarantajn kiu plej laste modifis
-   ilin.
-
-La  kondiæoj   por  kopii  Emakson  mem  estas   pli  malsimplaj,  sed
-samspiritaj.  Bonvole legu la  dosieron COPYING kaj sekve donu kopiojn
-de   GNU  Emakso   al   viaj  amikoj.    Helpu  ekstermi   programaran
-obstrukcismon  ("proprietigon") per  uzado, verkado  kaj  kunhavigo de
-libera programaro!
+Bonvole legu la dosieron COPYING kaj sekve donu kopiojn de GNU Emakso
+al viaj amikoj.  Helpu ekstermi programaran obstrukcismon
+("proprietigon") per uzado, verkado kaj kunhavigo de libera
+programaro!
+  
+Æi tiun lernilon esperantigis D. Dale Gulledge; la tradukon reviziis
+kaj kompletigis Sergio B. Pokrovskij.
 
 --- end of TUTORIAL.eo ---
 
