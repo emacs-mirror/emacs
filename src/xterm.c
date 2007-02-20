@@ -1501,7 +1501,7 @@ x_draw_composite_glyph_string_foreground (s)
 	}
       else
 	{
-	  for (i = 0; i < s->nchars; i++, ++s->gidx)
+	  for (i = 0; i < s->nchars; i++)
 	    if (COMPOSITION_GLYPH (s->cmp, s->gidx) != '\t')
 	      {
 		int xx = x + s->cmp->offsets[s->gidx * 2];
@@ -1510,6 +1510,7 @@ x_draw_composite_glyph_string_foreground (s)
 		font->driver->draw (s, s->gidx, s->gidx + 1, xx, yy, 0);
 		if (s->face->overstrike)
 		  font->driver->draw (s, s->gidx, s->gidx + 1, xx + 1, yy, 0);
+		s->gidx++;
 	      }
 	}
     }
