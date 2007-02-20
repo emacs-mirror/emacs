@@ -151,14 +151,6 @@ WHY-FREE
 etc/MAILINGLISTS
   rms: simple license is fine for this file
 
-etc/images/icons/*
-nt/icons/emacs21.ico
-src/gnu.h
- Note that Andrew Zhilin has a copyright assignment on file (confirmed
- by fsf-records), even though it doesn't seem to show up in
- copyright.list for some reason (at time of writing, 2007/02).
- http://lists.gnu.org/archive/html/emacs-devel/2005-11/msg00349.html
-
 leim/CXTERM-DIC/4Corner.tit, ARRAY30.tit, CCDOSPY.tit, ECDICT.tit,
 ETZY.tit, PY-b5.tit, Punct-b5.tit, Punct.tit, QJ-b5.tit, QJ.tit,
 SW.tit, TONEPY.tit, ZOZY.tit
@@ -350,6 +342,10 @@ etc/BABYL
   assignment. RMS: "The lawyer said we can keep BABYL."
 
 
+REMOVED etc/gnu.xpm, nt/icons/emacs21.ico, nt/icons/sink.ico
+  - Restore if find legal info. emacs21.ico is not due to Davenport.
+  Asked Voelker, no answer yet.
+
 REMOVED etc/orgcard.tex, orgcard.ps
   Re-add these files if an assignment is received from Rooke.
 
@@ -387,11 +383,11 @@ etc/TUTORIAL* (translations)
   switch to GPL (see english TUTORIAL)
   rms: "We can leave the TUTORIAL translations alone until their
   maintainers update them."
-  GPL translations available here:
+  Can adapt short license text from end of GPL translations at:
   http://www.gnu.org/licenses/translations.html
-  Follow the instructions on that page for marking the translation as
-  unoffical, and give the English version as the offical license.
-
+  Only a few sentences around the license notice need changing from
+  previous version.
+Done: TUTORIAL.eo
 
 [waiting for legal advice]
 lib-src/etags.c

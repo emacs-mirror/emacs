@@ -1,3 +1,8 @@
+2007-02-20  Ulrich Mueller  <ulm@kph.uni-mainz.de>  (tiny change)
+
+	* Makefile.in (EMACS, EMACSOPT): New variables.
+	(blessmail): Use `--no-site-file' when compiling.
+
 2007-02-05  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* etags.c (default_C_help, Cplusplus_help, PHP_help, print_help)
