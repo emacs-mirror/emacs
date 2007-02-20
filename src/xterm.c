@@ -1434,7 +1434,7 @@ static void
 x_draw_composite_glyph_string_foreground (s)
      struct glyph_string *s;
 {
-  int i, x;
+  int i, j, x;
 
   /* If first glyph of S has a left box line, start drawing the text
      of S to the right of that box line.  */
@@ -1501,34 +1501,33 @@ x_draw_composite_glyph_string_foreground (s)
 	}
       else
 	{
-	  for (i = 0; i < s->nchars; i++)
-	    if (COMPOSITION_GLYPH (s->cmp, s->gidx) != '\t')
+	  for (i = 0, j = s->gidx; i < s->nchars; i++, j++)
+	    if (COMPOSITION_GLYPH (s->cmp, j) != '\t')
 	      {
-		int xx = x + s->cmp->offsets[s->gidx * 2];
-		int yy = y - s->cmp->offsets[s->gidx * 2 + 1];
+		int xx = x + s->cmp->offsets[j * 2];
+		int yy = y - s->cmp->offsets[j * 2 + 1];
 
-		font->driver->draw (s, s->gidx, s->gidx + 1, xx, yy, 0);
+		font->driver->draw (s, j, j + 1, xx, yy, 0);
 		if (s->face->overstrike)
-		  font->driver->draw (s, s->gidx, s->gidx + 1, xx + 1, yy, 0);
-		s->gidx++;
+		  font->driver->draw (s, j, j + 1, xx + 1, yy, 0);
 	      }
 	}
     }
 #endif	/* USE_FONT_BACKEND */
   else
     {
-      for (i = 0; i < s->nchars; i++, ++s->gidx)
+      for (i = 0, j = s->gidx; i < s->nchars; i++, j++)
 	if (s->face)
 	  {
 	    XDrawString16 (s->display, s->window, s->gc,
-			   x + s->cmp->offsets[s->gidx * 2],
-			   s->ybase - s->cmp->offsets[s->gidx * 2 + 1],
-			   s->char2b + s->gidx, 1);
+			   x + s->cmp->offsets[j * 2],
+			   s->ybase - s->cmp->offsets[j * 2 + 1],
+			   s->char2b + j, 1);
 	    if (s->face->overstrike)
 	      XDrawString16 (s->display, s->window, s->gc,
-			     x + s->cmp->offsets[s->gidx * 2] + 1,
-			     s->ybase - s->cmp->offsets[s->gidx * 2 + 1],
-			     s->char2b + s->gidx, 1);
+			     x + s->cmp->offsets[j * 2] + 1,
+			     s->ybase - s->cmp->offsets[j * 2 + 1],
+			     s->char2b + j, 1);
 	  }
     }
 }
