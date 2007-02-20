@@ -23,6 +23,10 @@
 # inherited from the environment.
 SHELL = /bin/sh
 
+# Following ../lisp/Makefile.in.
+EMACS = ../src/emacs
+EMACSOPT = -batch --no-site-file --multibyte
+
 # ==================== Things `configure' will edit ====================
 
 CC=@CC@
@@ -279,7 +283,7 @@ vcdiff: $(srcdir)/vcdiff
 
 #ifdef MOVEMAIL_NEEDS_BLESSING
 blessmail:
-	../src/emacs -batch -l $(srcdir)/../lisp/mail/blessmail.el
+	$(EMACS) $(EMACSOPT) -l $(srcdir)/../lisp/mail/blessmail.el
 	chmod +x blessmail
 #endif
 
