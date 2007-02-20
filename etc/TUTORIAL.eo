@@ -670,9 +670,9 @@ Nomhavajn etenditajn ordonojn oni uzas eæ malpli ofte, aý uzas ilin
 nur en kelkaj reøimoj.  Ekzemplo estas la ordono "replace-string"
 (anstataýigu-æenon), kiu anstataýigas unu æenon je alia tutbufre.
 Kiam vi tajpas M-x, Emakso demandas de vi æe la fundo de la ekrano la
-nomon de la ordono; æi-okaze, "replace-string".  Simple tajpu "repl
-s<TAB>" kaj Emakso kompletigos la nomon.  Finu la ordonnomon per
-<Return>.
+nomon de la ordono; æi-okaze, "replace-string".  Simple tajpu
+"repl s<TAB>" kaj Emakso kompletigos la nomon.  Finu la ordonnomon
+per <Return>.
 
 La ordono replace-string postulas du argumentojn -- la anstataýigOTan
 kaj la anstataýigONTan æenojn.  Æiun argumenton finu per <Return>.
@@ -751,8 +751,8 @@ nun.
 por krei komentojn en programo, kaj æar æiu programlingvo havas
 malsaman ideon pri tio, kiel komento aspektu, æiu æefreøimo devas
 enigi komentojn malsame.  Æiu æefreøimo estas la nomo de etenda
-ordono, per kiu vi povas þalti tiun reøimon.  Ekzemple, "M-x
-fundamental-mode" estas ordono por þalti la Fundamentan reøimon.
+ordono, per kiu vi povas þalti tiun reøimon.  Ekzemple,
+"M-x fundamental-mode" estas ordono por þalti la Fundamentan reøimon.
 
 Se vi redaktos tekston (esperantan, anglan ktp), ekzemple æi tiun
 dosieron, al vi eble konvenos Teksta-reøimo.
@@ -787,11 +787,12 @@ Unu utilega kromreøimo, precipe por redakti homlingvan tekston
 Fill mode).  Kiam øi estas þaltita, Emakso aýtomate rompas la linion
 inter vortoj æiufoje kiam la enigata tekstolinio iøas tro larøa.
 
-Por þalti la reøimon de Aýtomata Linifaldo tajpu "M-x auto fill
-mode<Return>".  Kiam la reøimo estas þaltita, vi povas malþalti øin
-denove tajpante "M-x auto fill mode<Return>".  Se la reøimo estas
-malþaltita, tiu ordono þaltas øin, kaj se øi estas þaltita, tiu ordono
-malþaltas øin.  Ni diras ke la ordono "transþaltas la reøimon".
+Por þalti la reøimon de Aýtomata Linifaldo tajpu
+"M-x auto fill mode<Return>".  Kiam la reøimo estas þaltita, vi povas
+malþalti øin denove tajpante "M-x auto fill mode<Return>".  Se la
+reøimo estas malþaltita, tiu ordono þaltas øin, kaj se øi estas
+þaltita, tiu ordono malþaltas øin.  Ni diras ke la ordono "transþaltas
+la reøimon".
 
 >> Tajpu "M-x auto file mode<Return>".  Poste enigi linion el "asdf ",
    ripete, øis vi vidos øin dividita en du liniojn.  Vi devas enigi
@@ -1035,9 +1036,9 @@ apud la respondaj ordonnomoj, ekzemple "C-x C-f" kaj "C-x C-w" apud
    C-h i	Vidigu dialogan manlibron (t.n. "Info").  Æi tiu
 		ordono transportos vin en specialan bufron, nomatan
 		"*info*", kie vi povos legi instrukciojn pri la
-		paka¼oj instalitaj en via sistemo.  Ekzemple, tajpu "m
-		emacs <Return>" por legi la manlibron pri Emakso.  Se
-		vi neniam antaýe uzis Info, tajpu "?", kaj Emakso
+		paka¼oj instalitaj en via sistemo.  Ekzemple, tajpu
+		"m emacs <Return>" por legi la manlibron pri Emakso.
+		Se vi neniam antaýe uzis Info, tajpu "?", kaj Emakso
 		gvidos vin tra la prezento de la ebloj de la informa
 		reøimo.  Finleginte æi tiun lernilon, uzu la
 		Info-manlibron kiel vian æefan dokumenta¼on.
