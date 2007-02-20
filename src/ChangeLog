@@ -1,3 +1,8 @@
+2007-02-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (x_set_screen_gamma): Apply gamma value to the frame's
+	bgcolor.
+
 2007-02-19  Kim F. Storm  <storm@cua.dk>
 
 	* minibuf.c (Fassoc_string): Allow symbols as keys.
