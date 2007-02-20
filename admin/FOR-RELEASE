@@ -66,6 +66,12 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** Fix needed for communication with gpg-agent
 
+** alinsoar@voila.fr, Feb 18: TAB in find-file with PARTIAL-COMPLETION-MODE on
+He suggested a patch; is it correct?
+
+** dooglus@gmail.com, Feb 12: Customization: Toggle buttons vanish when clicked
+
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
