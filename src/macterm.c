@@ -8791,9 +8791,6 @@ mac_set_font_info_for_selection (f, face_id, c)
 #define M_APPLE 234
 #define I_ABOUT 1
 
-#define WINDOW_RESOURCE 128
-#define TERM_WINDOW_RESOURCE 129
-
 #define DEFAULT_NUM_COLS 80
 
 #define MIN_DOC_SIZE 64
@@ -10120,7 +10117,7 @@ mac_handle_text_input_event (next_handler, event, data)
     case kEventTextInputUnicodeForKeyEvent:
       {
 	EventRef kbd_event;
-	UInt32 actual_size, modifiers, mapped_modifiers;
+	UInt32 actual_size, modifiers;
 
 	err = GetEventParameter (event, kEventParamTextInputSendKeyboardEvent,
 				 typeEventRef, NULL, sizeof (EventRef), NULL,
@@ -11165,6 +11162,16 @@ XTread_socket (sd, expected, hold_quit)
 		/* translate the keycode back to determine the
 		   original key */
 #ifdef MAC_OSX
+		UCKeyboardLayout *uchr_ptr = NULL;
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
+		OSStatus err;
+		KeyboardLayoutRef layout;
+
+		err = KLGetCurrentKeyboardLayout (&layout);
+		if (err == noErr)
+		  KLGetKeyboardLayoutProperty (layout, kKLuchrData,
+					       (const void **) &uchr_ptr);
+#else
 		static SInt16 last_key_layout_id = 0;
 		static Handle uchr_handle = (Handle)-1;
 		SInt16 current_key_layout_id =
@@ -11176,8 +11183,11 @@ XTread_socket (sd, expected, hold_quit)
 		    uchr_handle = GetResource ('uchr', current_key_layout_id);
 		    last_key_layout_id = current_key_layout_id;
 		  }
-
 		if (uchr_handle)
+		  uchr_ptr = (UCKeyboardLayout *)*uchr_handle;
+#endif
+
+		if (uchr_ptr)
 		  {
 		    OSStatus status;
 		    UInt16 key_action = er.what - keyDown;
@@ -11188,7 +11198,7 @@ XTread_socket (sd, expected, hold_quit)
 		    UniChar code;
 		    UniCharCount actual_length;
 
-		    status = UCKeyTranslate ((UCKeyboardLayout *)*uchr_handle,
+		    status = UCKeyTranslate (uchr_ptr,
 					     keycode, key_action,
 					     modifier_key_state,
 					     keyboard_type,
