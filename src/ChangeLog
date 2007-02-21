@@ -1,3 +1,11 @@
+2007-02-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (WINDOW_RESOURCE, TERM_WINDOW_RESOURCE): Remove macros.
+	[USE_MAC_TSM] (mac_handle_text_input_event): Remove unused variable
+	`mapped_modifiers'.
+	(XTread_socket) [MAC_OS_X_VERSION_MAX_ALLOWED >= 1020]: Use Keyboard
+	Layout Services routines to get current Unicode keyboard layout.
+
 2007-02-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frame.c (x_set_screen_gamma): Apply gamma value to the frame's
