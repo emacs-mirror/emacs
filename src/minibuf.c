@@ -2073,9 +2073,10 @@ do_completion ()
 /* Like assoc but assumes KEY is a string, and ignores case if appropriate.  */
 
 DEFUN ("assoc-string", Fassoc_string, Sassoc_string, 2, 3, 0,
-       doc: /* Like `assoc' but specifically for strings.
-Unibyte strings are converted to multibyte for comparison.
-And case is ignored if CASE-FOLD is non-nil.
+       doc: /* Like `assoc' but specifically for strings (and symbols).
+Symbols are converted to strings, and unibyte strings are converted to
+multibyte for comparison.
+Case is ignored if optional arg CASE-FOLD is non-nil.
 As opposed to `assoc', it will also match an entry consisting of a single
 string rather than a cons cell whose car is a string.  */)
        (key, list, case_fold)
@@ -2083,6 +2084,9 @@ string rather than a cons cell whose car is a string.  */)
      Lisp_Object list, case_fold;
 {
   register Lisp_Object tail;
+
+  if (SYMBOLP (key))
+    key = Fsymbol_name (key);
 
   for (tail = list; !NILP (tail); tail = Fcdr (tail))
     {
