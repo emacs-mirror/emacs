@@ -299,6 +299,7 @@ static HWND w32_visible_system_caret_hwnd;
 
 /* From w32menu.c  */
 extern HMENU current_popup_menu;
+static int menubar_in_use = 0;
 
 
 /* Error if we are not connected to MS-Windows.  */
@@ -3415,12 +3416,13 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	  menu_free_timer = 0;
 	  f = x_window_to_frame (dpyinfo, hwnd);
           /* If a popup menu is active, don't wipe its strings.  */
-	  if (f->output_data.w32->menubar_active
+	  if (menubar_in_use
               && current_popup_menu == NULL)
 	    {
 	      /* Free memory used by owner-drawn and help-echo strings.  */
 	      w32_free_menu_strings (hwnd);
 	      f->output_data.w32->menubar_active = 0;
+              menubar_in_use = 0;
 	    }
 	}
       return 0;
@@ -3472,8 +3474,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	if (find_deferred_msg (hwnd, msg) != NULL)
 	  abort ();
 
-        if (f)
-          f->output_data.w32->menubar_active = 1;
+        menubar_in_use = 1;
 
 	return send_deferred_msg (&msg_buf, hwnd, msg, wParam, lParam);
       }
@@ -3487,7 +3488,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
          Don't do this if a popup menu is active, since it is only
          menubar menus that require cleaning up in this way.
       */
-      if (f && f->output_data.w32->menubar_active && current_popup_menu == NULL)
+      if (f && menubar_in_use && current_popup_menu == NULL)
 	menu_free_timer = SetTimer (hwnd, MENU_FREE_ID, MENU_FREE_DELAY, NULL);
       goto dflt;
 
@@ -3642,6 +3643,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	}
       goto command;
     case WM_COMMAND:
+      menubar_in_use = 0;
       f = x_window_to_frame (dpyinfo, hwnd);
       if (f && HIWORD (wParam) == 0)
 	{
