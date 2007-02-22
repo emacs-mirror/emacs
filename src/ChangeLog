@@ -4,10 +4,6 @@
 	redisplay_dont_pause is set or Vredisplay_preemption_period is nil...
 	(update_window, update_frame_1): ... instead of here.
 
-2007-02-22  Daniel Brockman <daniel@brockman.se>  (tiny change)
-
-	* xdisp.c (it_props): Handle invisible property before display property.
-
 2007-02-21  Kim F. Storm  <storm@cua.dk>
 
 	* minibuf.c (Fassoc_string): Doc fix.  Allow symbol for KEY too.
