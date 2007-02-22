@@ -3545,22 +3545,21 @@ specified.  If NO-SHOW is non-nil, don't do any updating."
   (idlwave-shell-module-source-query (idlwave-shell-bp-get bp 'module)
 				     (idlwave-shell-bp-get bp 'type))
   (let*
-      ((arg (idlwave-shell-bp-get bp 'count))
-       (key (cond
-              ((not (and arg (numberp arg))) "")
-              ((= arg 1)
-               ",/once")
-              ((> arg 1)
-               (format ",after=%d" arg))))
+      ((count (idlwave-shell-bp-get bp 'count))
        (condition (idlwave-shell-bp-get bp 'condition))
        (disabled (idlwave-shell-bp-get bp 'disabled))
-       (key (concat key 
-		    (if condition (concat ",CONDITION=\"" condition "\""))))
-       ;; IDL can't simultaneously set a condition and disable a
-       ;; breakpoint, but it does keep both of these when resetting
-       ;; the same BP.  We assume DISABLE and CONDITION are not set
-       ;; together for a newly created breakpoint.
-       (key (concat key (if (and disabled (not condition)) ",/DISABLE")))
+       (key (concat (if (and count (numberp count))
+			(cond
+			 ((= count 1) ",/once")
+			 ((> count 1) (format ",after=%d" count))))
+		    (if condition (concat ",CONDITION=\"" condition "\""))
+		    ;; IDL can't simultaneously set a condition/count
+		    ;; and disable a breakpoint, but it does keep both
+		    ;; of these when resetting the same BP.  We assume
+		    ;; DISABLE and CONDITION/COUNT are not set
+		    ;; together for a newly created breakpoint.
+		    (if (and disabled (not condition) (not count))
+			    ",/DISABLE")))
        (line (idlwave-shell-bp-get bp 'line)))
     (idlwave-shell-send-command
      (concat "breakpoint,'" 
