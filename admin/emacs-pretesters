@@ -17,8 +17,8 @@ nature of the purpose and the situation.
 Please save this file, and reread it when a new series of pretests
 starts.
 
-* Get the pretest from gnu/emacs/emacs-MM.NN.tar.gz and
-gnu/emacs/leim-MM.NN.tar.gz on alpha.gnu.org.
+* Get the pretest from gnu/emacs/pretest/emacs-MM.0.NN.tar.gz
+on alpha.gnu.org.
 
 * After a few days of testing, if there are no problems, please report
 that Emacs works for you and what configuration you are testing it on.
