@@ -378,9 +378,6 @@ struct w32_output
   /* Nonzero means menubar is currently active.  */
   char menubar_active;
 
-  /* Nonzero means a menu command is being processed.  */
-  char menu_command_in_progress;
-
   /* Nonzero means menubar is about to become active, but should be
      brought up to date first.  */
   volatile char pending_menu_activation;
