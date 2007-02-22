@@ -1,5 +1,8 @@
 2007-02-22  Jason Rumney  <jasonr@gnu.org>
 
+	* w32menu.c (Fx_popup_menu): Don't free menu strings here.
+	(w32_menu_show): Do it here instead.
+
 	* w32fns.c (w32_wnd_proc) [WM_INITMENU]: Set menubar_active frame
 	parameter.
 
