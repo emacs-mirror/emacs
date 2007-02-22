@@ -1937,6 +1937,7 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
 
   /* Free the owner-drawn and help-echo menu strings.  */
   w32_free_menu_strings (FRAME_W32_WINDOW (f));
+  f->output_data.w32->menubar_active = 0;
 
   /* Find the selected item, and its pane, to return
      the proper value.  */
