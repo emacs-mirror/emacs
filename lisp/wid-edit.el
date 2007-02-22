@@ -404,7 +404,7 @@ new value.")
     ;; We want to avoid the face with image buttons.
     (unless (widget-get widget :suppress-face)
       (overlay-put overlay 'face (widget-apply widget :button-face-get))
-      (overlay-put overlay 'mouse-face 
+      (overlay-put overlay 'mouse-face
 		   (widget-apply widget :mouse-face-get)))
     (overlay-put overlay 'pointer 'hand)
     (overlay-put overlay 'follow-link follow-link)
@@ -1509,7 +1509,7 @@ If that does not exists, call the value of `widget-complete-field'."
        (widget-apply widget :value-create)))
    (let ((from (point-min-marker))
 	 (to (point-max-marker)))
-     (set-marker-insertion-type from nil)
+     (set-marker-insertion-type from t)
      (set-marker-insertion-type to nil)
      (widget-put widget :from from)
      (widget-put widget :to to)))
@@ -1852,7 +1852,9 @@ If END is omitted, it defaults to the length of LIST."
 ;;; The `editable-field' Widget.
 
 (define-widget 'editable-field 'default
-  "An editable text field."
+  "An editable text field.
+Note: In an `editable-field' widget, the `%v' escape must be preceeded
+by some other text in the `:format' string (if specified)."
   :convert-widget 'widget-value-convert-widget
   :keymap widget-field-keymap
   :format "%v"
