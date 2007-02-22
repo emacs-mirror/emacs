@@ -351,10 +351,6 @@ REMOVED etc/gnu.xpm, nt/icons/emacs21.ico, nt/icons/sink.ico
   let us know if he finds anything.
 
 
-REMOVED etc/orgcard.tex, orgcard.ps
-  Re-add these files if an assignment is received from Rooke.
-
-
 etc/images
   Image files from GTK, Gnome are under GPLv2 (no "or later"?). RMS will
   contact image authors in regards to future switch to v3.

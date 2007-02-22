@@ -1,3 +1,8 @@
+2007-02-22  Glenn Morris  <rgm@gnu.org>
+
+	* orgcard.tex, orgcard.ps: Restore deleted files following
+	copyright assignment.
+
 2007-02-20  Glenn Morris  <rgm@gnu.org>
 
 	* TUTORIAL.eo: Unjustify.
