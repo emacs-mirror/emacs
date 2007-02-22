@@ -1,3 +1,19 @@
+2007-02-22  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* progmodes/idlw-shell.el (idlwave-shell-mode): Clean up pending
+	commands, for restart.
+	(idlwave-shell-current-module): Fix handling of module name by
+	type.
+	(idlwave-shell-break-in): Update type handling.
+	(idlwave-shell-bp-get): Encode type in BP structure.
+	(idlwave-shell-set-bp): Fix setting condition on disabled BPs.
+	(idlwave-shell-module-source-query): Query routine info based on
+	type.  Fix path parsing for non-compiled files.
+	(idlwave-shell-module-source-filter): Don't signal error in
+	filter if no source found.
+	(idlwave-shell-set-bp-in-module): Use fallback source to prevent
+	filter race.
+
 2007-02-22  Kim F. Storm  <storm@cua.dk>
 
 	* wid-edit.el (widget-default-create): Undo 2007-02-04 change.
