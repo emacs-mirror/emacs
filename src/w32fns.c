@@ -3472,6 +3472,9 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	if (find_deferred_msg (hwnd, msg) != NULL)
 	  abort ();
 
+        if (f)
+          f->output_data.w32->menubar_active = 1;
+
 	return send_deferred_msg (&msg_buf, hwnd, msg, wParam, lParam);
       }
 
