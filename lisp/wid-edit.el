@@ -1853,7 +1853,7 @@ If END is omitted, it defaults to the length of LIST."
 
 (define-widget 'editable-field 'default
   "An editable text field.
-Note: In an `editable-field' widget, the `%v' escape must be preceeded
+Note: In an `editable-field' widget, the `%v' escape must be preceded
 by some other text in the `:format' string (if specified)."
   :convert-widget 'widget-value-convert-widget
   :keymap widget-field-keymap
