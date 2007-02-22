@@ -1,3 +1,16 @@
+2007-02-22  Jason Rumney  <jasonr@gnu.org>
+
+	* w32menu.c (current_popup_menu): Make available globally.
+	(menubar_selection_callback): Free menu strings before pushing the
+	menu event into the keyboard buffer.  Remove
+	menu_command_in_progress.
+
+	* w32fns.c (current_popup_menu): Use from w32menu.c.
+	(w32_wnd_proc): Use menubar_active and current_popup_menu to
+	determine whether a menubar menu has been cancelled.
+
+	* w32term.h (w32_output): Remove menu_command_in_progress.
+
 2007-02-22  Kim F. Storm  <storm@cua.dk>
 
 	* dispnew.c (update_frame, update_single_window): Set force_p here if
