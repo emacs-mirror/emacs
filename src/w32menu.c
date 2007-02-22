@@ -835,7 +835,6 @@ cached information about equivalent key sequences.  */)
   UNBLOCK_INPUT;
 
   discard_menu_items ();
-  w32_free_menu_strings (FRAME_W32_WINDOW (f));
 
 #endif /* HAVE_MENUS */
 
@@ -1935,6 +1934,9 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
   free_menubar_widget_value_tree (first_wv);
 
   DestroyMenu (menu);
+
+  /* Free the owner-drawn and help-echo menu strings.  */
+  w32_free_menu_strings (FRAME_W32_WINDOW (f));
 
   /* Find the selected item, and its pane, to return
      the proper value.  */
