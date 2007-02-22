@@ -129,7 +129,7 @@ typedef struct _widget_value
 #define FALSE 0
 #endif /* no TRUE */
 
-static HMENU current_popup_menu;
+HMENU current_popup_menu;
 
 void syms_of_w32menu ();
 void globals_of_w32menu ();
@@ -1067,11 +1067,10 @@ menubar_selection_callback (FRAME_PTR f, void * client_data)
 	      buf.kind = MENU_BAR_EVENT;
 	      buf.frame_or_window = frame;
 	      buf.arg = entry;
-	      kbd_buffer_store_event (&buf);
-
 	      /* Free memory used by owner-drawn and help-echo strings.  */
 	      w32_free_menu_strings (FRAME_W32_WINDOW (f));
-	      f->output_data.w32->menu_command_in_progress = 0;
+	      kbd_buffer_store_event (&buf);
+
 	      f->output_data.w32->menubar_active = 0;
 	      return;
 	    }
@@ -1080,7 +1079,6 @@ menubar_selection_callback (FRAME_PTR f, void * client_data)
     }
   /* Free memory used by owner-drawn and help-echo strings.  */
   w32_free_menu_strings (FRAME_W32_WINDOW (f));
-  f->output_data.w32->menu_command_in_progress = 0;
   f->output_data.w32->menubar_active = 0;
 }
 
