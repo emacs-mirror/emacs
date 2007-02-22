@@ -1,3 +1,9 @@
+2007-02-22  Kim F. Storm  <storm@cua.dk>
+
+	* wid-edit.el (widget-default-create): Undo 2007-02-04 change.
+	(editable-field): Document need to put some text before the %v
+	escape in :format string.
+
 2007-02-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-svn.el: Remove the code inherited from CVSREAD and `cvs edit'.
