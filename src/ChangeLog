@@ -3,6 +3,7 @@
 	* dispnew.c (update_frame, update_single_window): Set force_p here if
 	redisplay_dont_pause is set or Vredisplay_preemption_period is nil...
 	(update_window, update_frame_1): ... instead of here.
+	(update_text_area): Clear mouse face on header lines.
 
 2007-02-21  Kim F. Storm  <storm@cua.dk>
 
