@@ -1,5 +1,9 @@
 2007-02-22  Jason Rumney  <jasonr@gnu.org>
 
+	* w32fns.c (menu_bar_in_use): New flag.
+	(w32_wnd_proc) [WM_INITMENU, WM_EXITMENULOOP, WM_TIMER, WM_COMMAND]:
+	Use it.
+
 	* w32menu.c (Fx_popup_menu): Don't free menu strings here.
 	(w32_menu_show): Do it here instead.
 
