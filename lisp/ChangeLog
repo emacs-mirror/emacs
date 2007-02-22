@@ -6,7 +6,8 @@
 	type.
 	(idlwave-shell-break-in): Update type handling.
 	(idlwave-shell-bp-get): Encode type in BP structure.
-	(idlwave-shell-set-bp): Fix setting condition on disabled BPs.
+	(idlwave-shell-set-bp): Fix setting condition/count on disabled
+	BPs.
 	(idlwave-shell-module-source-query): Query routine info based on
 	type.  Fix path parsing for non-compiled files.
 	(idlwave-shell-module-source-filter): Don't signal error in
