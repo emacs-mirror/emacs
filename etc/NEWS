@@ -140,7 +140,7 @@ much pure storage it will approximately need.
 
 ** The script etc/emacs-buffer.gdb can be used with gdb to retrieve the
 contents of buffers from a core dump and save them to files easily, should
-emacs crash.
+Emacs crash.
 
 ---
 ** The Emacs terminal emulation in term.el uses a different terminfo name.
@@ -1679,7 +1679,7 @@ on the mode line, header line and display margin, when run in an xterm.
 
 ---
 *** Improved key bindings support when running in an xterm.
-When emacs is running in an xterm more key bindings are available.
+When Emacs is running in an xterm more key bindings are available.
 The following should work:
 {C,S,C-S,A}-{right,left,up,down,prior,next,delete,insert,F1-12}.
 These key bindings work on xterm from X.org 6.8, they might not work on
@@ -1822,7 +1822,7 @@ When the global mark is active, any text which is cut or copied is
 automatically inserted at the global mark position.  See the
 commentary in cua-base.el for more global mark related commands.
 
-The features of cua also works with the standard emacs bindings for
+The features of cua also works with the standard Emacs bindings for
 kill, copy, yank, and undo.  If you want to use cua mode, but don't
 want the C-x, C-c, C-v, and C-z bindings, you can customize the
 `cua-enable-cua-keys' variable.
@@ -1855,7 +1855,7 @@ It is a modern replacement for zone-mode.el, which is now obsolete.
 ** The new global minor mode `file-name-shadow-mode' modifies the way
 filenames being entered by the user in the minibuffer are displayed, so
 that it's clear when part of the entered filename will be ignored due to
-emacs' filename parsing rules.  The ignored portion can be made dim,
+Emacs' filename parsing rules.  The ignored portion can be made dim,
 invisible, or otherwise less visually noticeable.  The display method can
 be displayed by customizing the variable `file-name-shadow-properties'.
 
@@ -1882,7 +1882,7 @@ The choices for the keypad keys in each of the above states are:
 `Numeric keypad with decimal key' where the character produced by the
 decimal key can be customized individually (for internationalization),
 `Numeric Prefix Arg' where the keypad keys produce numeric prefix args
-for emacs editing commands, `Cursor keys' and `Shifted Cursor keys'
+for Emacs editing commands, `Cursor keys' and `Shifted Cursor keys'
 where the keys work like (shifted) arrow keys, home/end, etc., and
 `Unspecified/User-defined' where the keypad keys (kp-0, kp-1, etc.)
 are left unspecified and can be bound individually through the global
@@ -4035,7 +4035,7 @@ If it is non-nil, the function lists only faces matching this regexp.
 *** New functions `string-or-null-p' and `booleanp'.
 
 `string-or-null-p' returns non-nil iff OBJECT is a string or nil.
-`booleanp' returns non-nil iff OBJECT is a t or nil.
+`booleanp' returns non-nil iff OBJECT is t or nil.
 
 +++
 *** New hook `command-error-function'.
@@ -4415,7 +4415,7 @@ non-empty sequence of either word or symbol constituent characters, as
 specified by the syntax table.
 
 ---
-*** rx.el has new corresponding `symbol-end' and `symbol-start' elements.
+*** rx.el has new corresponding `symbol-start' and `symbol-end' elements.
 
 +++
 *** `skip-chars-forward' and `skip-chars-backward' now handle
@@ -4450,7 +4450,7 @@ this function returns the regexp constructed from the variables
 ** Undo changes:
 
 +++
-*** `buffer-undo-list' can allows programmable elements.
+*** `buffer-undo-list' allows programmable elements.
 
 These elements have the form (apply FUNNAME . ARGS), where FUNNAME is
 a symbol other than t or nil.  That stands for a high-level change
@@ -4887,13 +4887,13 @@ speech synthesis.
 
 *** Adaptive read buffering of subprocess output.
 
-On some systems, when emacs reads the output from a subprocess, the
+On some systems, when Emacs reads the output from a subprocess, the
 output data is read in very small blocks, potentially resulting in
 very poor performance.  This behavior can be remedied to some extent
 by setting the new variable `process-adaptive-read-buffering' to a
 non-nil value (the default), as it will automatically delay reading
 from such processes, allowing them to produce more output before
-emacs tries to read it.
+Emacs tries to read it.
 
 *** The new function `call-process-shell-command'.
 
@@ -4927,7 +4927,7 @@ which was not compatible with the behavior of file reading.
 
 *** The new `make-network-process' function makes network connections.
 It allows opening of stream and datagram connections to a server, as well as
-create a stream or datagram server inside emacs.
+create a stream or datagram server inside Emacs.
 
 - A server is started using :server t arg.
 - Datagram connection is selected using :type 'datagram arg.
@@ -5934,7 +5934,7 @@ The hook is run with GC inhibited, so use it with care.
 
 +++
 ** The new library button.el implements simple and fast `clickable
-buttons' in emacs buffers.  Buttons are much lighter-weight than the
+buttons' in Emacs buffers.  Buttons are much lighter-weight than the
 `widgets' implemented by widget.el, and can be used by lisp code that
 doesn't require the full power of widgets.  Emacs uses buttons for
 such things as help and apropos buffers.
