@@ -229,7 +229,7 @@ separating text after the field.  If you don't include the
 line, and the terminating newline will provide separation after.
 
 @strong{Warning:} In an @code{editable-field} widget, the @samp{%v} escape
-must be preceeded by some other text in the @code{:format} string
+must be preceded by some other text in the @code{:format} string
 (if specified).
 
 The editing text fields are highlighted with the
@@ -534,7 +534,7 @@ This will be replaced with the buffer representation of the widget's
 value.  What this is depends on the widget type.
 
 @strong{Warning:} In an @code{editable-field} widget, the @samp{%v} escape
-must be preceeded by some other text in the format string (if specified).
+must be preceded by some other text in the format string (if specified).
 
 @item %d
 Insert the string specified by @code{:doc} here.
