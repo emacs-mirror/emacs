@@ -762,8 +762,8 @@ static struct props it_props[] =
   /* Handle `face' before `display' because some sub-properties of
      `display' need to know the face.  */
   {&Qface,		FACE_PROP_IDX,		handle_face_prop},
-  {&Qdisplay,		DISPLAY_PROP_IDX,	handle_display_prop},
   {&Qinvisible,		INVISIBLE_PROP_IDX,	handle_invisible_prop},
+  {&Qdisplay,		DISPLAY_PROP_IDX,	handle_display_prop},
   {&Qcomposition,	COMPOSITION_PROP_IDX,	handle_composition_prop},
   {NULL,		0,			NULL}
 };
