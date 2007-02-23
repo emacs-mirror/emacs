@@ -448,6 +448,11 @@ struct buffer_text
        successive elements in its marker `chain'
        are the other markers referring to this buffer.  */
     struct Lisp_Marker *markers;
+
+    /* Usually 0.  Temporarily set to 1 in decode_coding_gap to
+       prevent Fgarbage_collect from shrinking the gap and loosing
+       not-yet-decoded bytes.  */
+    int inhibit_shrinking;
   };
 
 /* This is the structure that the buffer Lisp object points to.  */
