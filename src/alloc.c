@@ -5043,7 +5043,8 @@ returns nil, because real GC can't be done.  */)
 	  truncate_undo_list (nextb);
 
 	/* Shrink buffer gaps, but skip indirect and dead buffers.  */
-	if (nextb->base_buffer == 0 && !NILP (nextb->name))
+	if (nextb->base_buffer == 0 && !NILP (nextb->name)
+	    && ! nextb->text->inhibit_shrinking)
 	  {
 	    /* If a buffer's gap size is more than 10% of the buffer
 	       size, or larger than 2000 bytes, then shrink it
