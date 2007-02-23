@@ -1,3 +1,29 @@
+2007-02-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macmenu.c (mac_menu_show): Call unbind_to early.  Use variable
+	`menu_item_selection' as in W32 version.
+	[TARGET_API_MAC_CARBON] (mac_handle_dialog_event): Add explicit
+	braces to avoid ambiguous `else'.
+
+	* macterm.c (mac_display_info_for_display): Remove function.
+	(mac_flush_display_optional) [USE_CG_DRAWING]: New function.
+	(x_redisplay_interface) [USE_CG_DRAWING]: Set it as handler for
+	flush_display_optional.
+	[USE_TOOLKIT_SCROLL_BARS] (x_scroll_bar_handle_press): New
+	argument MOUSE_POS.  All uses changed.  Set bar->dragging to
+	negative integer if scroll bar handle is pressed.
+	[USE_TOOLKIT_SCROLL_BARS] (x_scroll_bar_handle_release): Negative
+	bar->dragging means scroll bar handle is not dragged.
+	[USE_TOOLKIT_SCROLL_BARS] (x_scroll_bar_handle_drag): Get initial
+	offset of scroll bar handle from negative bar->dragging.
+	(XTread_socket) [USE_TOOLKIT_SCROLL_BARS]: Modifiers for scroll
+	bar click is compared against mapped one.  Set down/up_modifier
+	for scroll bar click event with control key.
+
+	* macterm.h (x_display_info_for_display): Remove extern.
+	(SCROLL_BAR_UNPACK, SET_SCROLL_BAR_CONTROL_HANDLE): Don't limit
+	value to be unpacked to 32-bit on LP64 model.
+
 2007-02-23  Kenichi Handa  <handa@m17n.org>
 
 	* process.c (send_process_object_unwind): New function.
