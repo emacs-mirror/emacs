@@ -1,3 +1,17 @@
+2007-02-23  Kenichi Handa  <handa@m17n.org>
+
+	* alloc.c (Fgarbage_collect): If nextb->text->inhibit_shrinking is
+	nonzero, don't shrink the buffer nextb.
+
+	* buffer.h (struct buffer_text): New member inhibit_shrinking.
+
+	* coding.c (coding_alloc_by_making_gap): New arg offset.
+	(alloc_destination): Call coding_alloc_by_making_gap with the arg
+	offset.
+	(decode_coding_iso_2022): Update coding->safe_charsets.
+	(decode_coding_gap): Temporarily set
+	current_buffer->text->inhibit_shrinking to 1.
+
 2007-02-20  Kenichi Handa  <handa@m17n.org>
 
 	* xterm.c (x_draw_composite_glyph_string_foreground): Fix 
