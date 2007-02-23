@@ -1916,18 +1916,16 @@ x_flush (f)
 
 #define XFlush(DISPLAY)	(void) 0
 
-
-/* Return the struct mac_display_info corresponding to DPY.  There's
-   only one.  */
-
-struct mac_display_info *
-mac_display_info_for_display (dpy)
-     Display *dpy;
+#if USE_CG_DRAWING
+static void
+mac_flush_display_optional (f)
+     struct frame *f;
 {
-  return &one_mac_display_info;
+  BLOCK_INPUT;
+  mac_prepare_for_quickdraw (f);
+  UNBLOCK_INPUT;
 }
-
-
+#endif
 
 /***********************************************************************
 		    Starting and ending an update
@@ -4649,7 +4647,7 @@ static void construct_scroll_bar_click P_ ((struct scroll_bar *, int,
 static OSStatus get_control_part_bounds P_ ((ControlHandle, ControlPartCode,
 					     Rect *));
 static void x_scroll_bar_handle_press P_ ((struct scroll_bar *,
-					   ControlPartCode,
+					   ControlPartCode, Point,
 					   struct input_event *));
 static void x_scroll_bar_handle_release P_ ((struct scroll_bar *,
 					     struct input_event *));
@@ -4762,9 +4760,10 @@ get_control_part_bounds (ch, part_code, rect)
 }
 
 static void
-x_scroll_bar_handle_press (bar, part_code, bufp)
+x_scroll_bar_handle_press (bar, part_code, mouse_pos, bufp)
      struct scroll_bar *bar;
      ControlPartCode part_code;
+     Point mouse_pos;
      struct input_event *bufp;
 {
   int part = control_part_code_to_scroll_bar_part (part_code);
@@ -4777,10 +4776,18 @@ x_scroll_bar_handle_press (bar, part_code, bufp)
       construct_scroll_bar_click (bar, part, bufp);
       HiliteControl (SCROLL_BAR_CONTROL_HANDLE (bar), part_code);
       set_scroll_bar_timer (SCROLL_BAR_FIRST_DELAY);
+      bar->dragging = Qnil;
+    }
+  else
+    {
+      Rect r;
+
+      get_control_part_bounds (SCROLL_BAR_CONTROL_HANDLE (bar),
+			       kControlIndicatorPart, &r);
+      XSETINT (bar->dragging, - (mouse_pos.v - r.top) - 1);
     }
 
   last_scroll_bar_part = part;
-  bar->dragging = Qnil;
   tracked_scroll_bar = bar;
 }
 
@@ -4790,7 +4797,7 @@ x_scroll_bar_handle_release (bar, bufp)
      struct input_event *bufp;
 {
   if (last_scroll_bar_part != scroll_bar_handle
-      || !GC_NILP (bar->dragging))
+      || (INTEGERP (bar->dragging) && XINT (bar->dragging) >= 0))
     construct_scroll_bar_click (bar, scroll_bar_end_scroll, bufp);
 
   HiliteControl (SCROLL_BAR_CONTROL_HANDLE (bar), 0);
@@ -4818,8 +4825,8 @@ x_scroll_bar_handle_drag (win, bar, mouse_pos, bufp)
       get_control_part_bounds (SCROLL_BAR_CONTROL_HANDLE (bar),
 			       kControlIndicatorPart, &r);
 
-      if (GC_NILP (bar->dragging))
-	XSETINT (bar->dragging, mouse_pos.v - r.top);
+      if (INTEGERP (bar->dragging) && XINT (bar->dragging) < 0)
+	XSETINT (bar->dragging, - (XINT (bar->dragging) + 1));
 
       top = mouse_pos.v - XINT (bar->dragging) - XINT (bar->track_top);
       top_range = (XINT (bar->track_height) - (r.bottom - r.top)) *
@@ -10754,12 +10761,12 @@ XTread_socket (sd, expected, hold_quit)
 #ifdef USE_TOOLKIT_SCROLL_BARS
 			/* Make the "Ctrl-Mouse-2 splits window" work
 			   for toolkit scroll bars.  */
-			if (er.modifiers & controlKey)
+			if (inev.modifiers & ctrl_modifier)
 			  x_scroll_bar_handle_click (bar, control_part_code,
 						     &er, &inev);
 			else if (er.what == mouseDown)
 			  x_scroll_bar_handle_press (bar, control_part_code,
-						     &inev);
+						     mouse_loc, &inev);
 			else
 			  x_scroll_bar_handle_release (bar, &inev);
 #else  /* not USE_TOOLKIT_SCROLL_BARS */
@@ -10822,7 +10829,9 @@ XTread_socket (sd, expected, hold_quit)
 		      f->mouse_moved = 0;
 
 #ifdef USE_TOOLKIT_SCROLL_BARS
-		    if (inev.kind == MOUSE_CLICK_EVENT)
+		    if (inev.kind == MOUSE_CLICK_EVENT
+			|| (inev.kind == SCROLL_BAR_CLICK_EVENT
+			    && (inev.modifiers & ctrl_modifier)))
 #endif
 		      switch (er.what)
 			{
@@ -11714,7 +11723,11 @@ static struct redisplay_interface x_redisplay_interface =
   x_update_window_end,
   x_cursor_to,
   x_flush,
+#if USE_CG_DRAWING
+  mac_flush_display_optional,
+#else
   0, /* flush_display_optional */
+#endif
   x_clear_window_mouse_face,
   x_get_glyph_overhangs,
   x_fix_overlapping_area,
