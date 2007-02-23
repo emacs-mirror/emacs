@@ -1,5 +1,7 @@
 2007-02-23  Eli Zaretskii  <eliz@gnu.org>
 
+	* mail/rmailedit.el (rmail-cease-edit): Restore the Rmail toolbar.
+
 	* textmodes/sgml-mode.el (sgml-validate): Quote the file name with
 	shell-quote-argument.
 
