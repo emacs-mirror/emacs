@@ -1,3 +1,8 @@
+2007-02-23  David Reitter <david.reitter@gmail.com>
+
+	* cus-edit.el (custom-save-all): Canonicalize custom-file before
+	storing it in recentf-exclude.
+
 2007-02-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* startup.el (fancy-splash-screens): Make cursor-type buffer-local
