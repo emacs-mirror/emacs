@@ -34,6 +34,11 @@ engine) or retrievable from general Usenet archive services.
 The Emacs Wiki has an area for storing elisp files
 <URL:http://www.emacswiki.org/cgi-bin/wiki.pl/ElispArea>.
 
+* Emacs tutorials and manuals
+
+ * Emacs slides and tutorials can be found here:
+   <URL:http://stuff.mit.edu/iap/emacs/>
+
 * Maintenance versions of some packages distributed with Emacs
 
 You might find bug-fixes or enhancements in these places.
