@@ -1388,6 +1388,7 @@ the user caused an input event that is bound in `special-event-map'"
 	(save-selected-window
 	  (select-frame frame)
 	  (switch-to-buffer " GNU Emacs")
+	  (make-local-variable 'cursor-type)
 	  (setq splash-buffer (current-buffer))
 	  (catch 'stop-splashing
 	    (unwind-protect
