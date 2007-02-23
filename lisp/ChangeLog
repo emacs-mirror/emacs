@@ -1,3 +1,8 @@
+2007-02-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (fancy-splash-screens): Make cursor-type buffer-local
+	in splash screen.
+
 2007-02-22  J.D. Smith  <jdsmith@as.arizona.edu>
 
 	* progmodes/idlw-shell.el (idlwave-shell-mode): Clean up pending
