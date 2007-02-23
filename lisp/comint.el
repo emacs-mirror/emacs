@@ -896,7 +896,7 @@ See also `comint-input-ignoredups' and `comint-write-input-ring'."
 		 ;; Watch for those date stamps in history files!
 		 (goto-char (point-max))
 		 (let (start end history)
-		   (while (and (< count comint-input-ring-size)
+		   (while (and (< count size)
 			       (re-search-backward comint-input-ring-separator nil t)
 			       (setq end (match-beginning 0)))
 		     (if (re-search-backward comint-input-ring-separator nil t)
