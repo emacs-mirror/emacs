@@ -436,6 +436,9 @@ struct scroll_bar {
   /* The position and size of the scroll bar handle track area in
      pixels, relative to the frame.  */
   Lisp_Object track_top, track_height;
+
+  /* Minimum length of the scroll bar handle, in pixels.  */
+  Lisp_Object min_handle;
 #endif
 };
 
