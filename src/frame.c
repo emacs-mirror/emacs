@@ -2341,8 +2341,6 @@ store_frame_param (f, prop, val)
       /* Install the chosen minibuffer window, with proper buffer.  */
       f->minibuffer_window = val;
     }
-
-  return Qnil;
 }
 
 DEFUN ("frame-parameters", Fframe_parameters, Sframe_parameters, 0, 1, 0,
@@ -3381,9 +3379,9 @@ x_set_screen_gamma (f, new_value, old_value)
       if (NATNUMP (index)
 	  && (XFASTINT (index)
 	      < sizeof (frame_parms)/sizeof (frame_parms[0]))
-	  && rif->frame_parm_handlers[XFASTINT (index)])
-	(*(rif->frame_parm_handlers[XFASTINT (index)]))
-	  (f, bgcolor, Qnil);
+	  && FRAME_RIF (f)->frame_parm_handlers[XFASTINT (index)])
+	  (*FRAME_RIF (f)->frame_parm_handlers[XFASTINT (index)])
+	    (f, bgcolor, Qnil);
     }
 
   Fclear_face_cache (Qnil);
