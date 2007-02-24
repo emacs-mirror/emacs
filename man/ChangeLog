@@ -1,3 +1,8 @@
+2007-02-24  Alan Mackenzie  <acm@muc.de>
+
+	* cc-mode.texi (Movement Commands): Insert two missing command names.
+	(Getting Started): Slight wording correction (use conditional).
+
 2007-02-22  Kim F. Storm  <storm@cua.dk>
 
 	* widget.texi (User Interface, Basic Types): Document need to put some
