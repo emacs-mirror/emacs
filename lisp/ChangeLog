@@ -1,5 +1,7 @@
 2007-02-24  John Paul Wallington  <jpw@pobox.com>
 
+	* net/tls.el (tls-certtool-program): Fix custom type.
+
 	* mail/feedmail.el (feedmail-message-id-generator)
 	(feedmail-date-generator): Fix custom types.
 
