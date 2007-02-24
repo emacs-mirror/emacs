@@ -1,3 +1,8 @@
+2007-02-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* .gdbinit (xprintstr): Ensure GDB (> 6.6) prints symbol name
+	as strings and not character arrays.
+
 2007-02-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c [USE_TOOLKIT_SCROLL_BARS] (x_scroll_bar_handle_drag)
