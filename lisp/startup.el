@@ -645,22 +645,26 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 
   (set-locale-environment nil)
 
-  ;; Convert preloaded file names to absolute.
-  (let ((lisp-dir
-	 (file-truename
-	  (file-name-directory
-	   (locate-file "simple" load-path
-			(get-load-suffixes))))))
-
-    (setq load-history
-	  (mapcar (lambda (elt)
-		    (if (and (stringp (car elt))
-			     (not (file-name-absolute-p (car elt))))
-			(cons (concat lisp-dir
-				      (car elt))
-			      (cdr elt))
-		      elt))
-		  load-history)))
+  ;; Convert preloaded file names in load-history to absolute.
+  (let ((simple-file-name
+	 (locate-file "simple" load-path (get-load-suffixes)))
+	lisp-dir)
+    ;; Don't abort if simple.el cannot be found, but print a warning.
+    (if (null simple-file-name)
+	(progn
+	  (princ "Warning: Could not find simple.el nor simple.elc"
+		 'external-debugging-output)
+	  (terpri 'external-debugging-output))
+      (setq lisp-dir (file-truename (file-name-directory simple-file-name)))
+      (setq load-history
+	    (mapcar (lambda (elt)
+		      (if (and (stringp (car elt))
+			       (not (file-name-absolute-p (car elt))))
+			  (cons (concat lisp-dir
+					(car elt))
+				(cdr elt))
+			elt))
+		    load-history))))
 
   ;; Convert the arguments to Emacs internal representation.
   (let ((args (cdr command-line-args)))
