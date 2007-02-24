@@ -977,7 +977,7 @@ Print $ as a lisp object of any type.
 end
 
 define xprintstr
-  set $data = $arg0->data
+  set $data = (char *) $arg0->data
   output ($arg0->size > 1000) ? 0 : ($data[0])@($arg0->size_byte < 0 ? $arg0->size & ~gdb_array_mark_flag : $arg0->size_byte)
 end
 
