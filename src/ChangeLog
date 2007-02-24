@@ -1,3 +1,14 @@
+2007-02-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c [USE_TOOLKIT_SCROLL_BARS] (x_scroll_bar_handle_drag)
+	(x_set_toolkit_scroll_bar_thumb): Add bar->min_handle as margin to
+	scroll bar handle size in order to avoid `scroll backward' problem.
+	(x_scroll_bar_create, XTset_vertical_scroll_bar)
+	[USE_TOOLKIT_SCROLL_BARS]: Initialize bar->min_handle.
+
+	* macterm.h (struct scroll_bar) [USE_TOOLKIT_SCROLL_BARS]: New
+	member `min_handle'.
+
 2007-02-23  Kim F. Storm  <storm@cua.dk>
 
 	* print.c (print): Reset print_number_index if Vprint_number_table
