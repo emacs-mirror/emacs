@@ -1008,9 +1008,11 @@ Also compose particular scripts if `utf-8-compose-scripts' is non-nil."
 This is used as a post-read-conversion of utf-8 coding system."
   (if (and utf-translate-cjk-mode
 	   (not utf-translate-cjk-lang-env)
-	   (save-excursion
-	     (goto-char beg)
-	     (re-search-forward "\\cc\\|\\cj\\|\\ch" end t)))
+	   (if (stringp beg)
+	       (string-match "\\cc\\|\\cj\\|\\ch" beg)
+	     (save-excursion
+	       (goto-char beg)
+	       (re-search-forward "\\cc\\|\\cj\\|\\ch" end t))))
       (utf-translate-cjk-load-tables))
   nil)
 
