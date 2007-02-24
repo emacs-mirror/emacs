@@ -224,7 +224,7 @@ passphrase cache or user."
 	   (list "--batch" "--armor" "--always-trust" "--encrypt")
 	   (if pgg-text-mode (list "--textmode"))
 	   (if sign (list "--sign" "--local-user" pgg-gpg-user-id))
-	   (if recipients
+	   (if (or recipients pgg-encrypt-for-me)
 	       (apply #'nconc
 		      (mapcar (lambda (rcpt)
 				(list pgg-gpg-recipient-argument rcpt))
