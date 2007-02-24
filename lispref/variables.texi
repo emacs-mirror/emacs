@@ -1644,6 +1644,7 @@ local bindings, we will provide it in a subsequent Emacs version.
 
 @node File Local Variables
 @section File Local Variables
+@cindex file local variables
 
   A file can specify local variable values; Emacs uses these to create
 buffer-local bindings for those variables in the buffer visiting that

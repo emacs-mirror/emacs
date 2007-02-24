@@ -1585,7 +1585,10 @@ in `selection-converter-alist', which see."
     (if (and type-data
 	     (setq str (mac-coerce-ae-data (car type-data)
 					   (cdr type-data) "TEXT")))
-	(string-to-number str)
+	(let ((num (string-to-number str)))
+	  ;; Mac OS Classic may return "0e+0" as the coerced value for
+	  ;; the type "magn" and the data "\000\000\000\000".
+	  (if (= num 0.0) 0 num))
       nil)))
 
 (defun mac-bytes-to-integer (bytes &optional from to)
@@ -1750,7 +1753,9 @@ Currently the `mailto' scheme is supported."
   (let* ((ae (mac-event-ae event))
 	 (parsed-url (url-generic-parse-url (mac-ae-text ae))))
     (if (string= (url-type parsed-url) "mailto")
-	(url-mailto parsed-url)
+	(progn
+	  (url-mailto parsed-url)
+	  (select-frame-set-input-focus (selected-frame)))
       (mac-resume-apple-event ae t))))
 
 (setq mac-apple-event-map (make-sparse-keymap))
@@ -1796,7 +1801,7 @@ modifiers, it changes global tool-bar visibility setting."
   'mac-handle-toolbar-switch-mode)
 
 ;;; Font panel
-(when (fboundp 'mac-set-font-panel-visibility)
+(when (fboundp 'mac-set-font-panel-visible-p)
 
 (define-minor-mode mac-font-panel-mode
   "Toggle use of the font panel.
@@ -1804,7 +1809,7 @@ With numeric ARG, display the font panel if and only if ARG is positive."
   :init-value nil
   :global t
   :group 'mac
-  (mac-set-font-panel-visibility mac-font-panel-mode))
+  (mac-set-font-panel-visible-p mac-font-panel-mode))
 
 (defun mac-handle-font-panel-closed (event)
   "Update internal status in response to font panel closed EVENT."
@@ -1839,7 +1844,7 @@ With numeric ARG, display the font panel if and only if ARG is positive."
 			   "Show the font panel as a floating dialog")
   'showhide-speedbar)
 
-) ;; (fboundp 'mac-set-font-panel-visibility)
+) ;; (fboundp 'mac-set-font-panel-visible-p)
 
 ;;; Text Services
 (defvar mac-ts-active-input-buf ""
@@ -2273,8 +2278,7 @@ See also `mac-dnd-known-types'."
     (dolist (item (mac-ae-list ae))
       (if (not (equal (car item) "null"))
 	  (mac-dnd-drop-data event (selected-frame) window
-			     (cdr item) (car item) action))))
-  (select-frame-set-input-focus (selected-frame)))
+			     (cdr item) (car item) action)))))
 
 ;;; Do the actual Windows setup here; the above code just defines
 ;;; functions and variables that we use now.

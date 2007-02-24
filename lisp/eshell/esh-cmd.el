@@ -497,7 +497,7 @@ the second is ignored."
 (defun eshell-rewrite-for-command (terms)
   "Rewrite a `for' command into its equivalent Eshell command form.
 Because the implementation of `for' relies upon conditional evaluation
-of its argumbent (i.e., use of a Lisp special form), it must be
+of its argument (i.e., use of a Lisp special form), it must be
 implemented via rewriting, rather than as a function."
   (if (and (stringp (car terms))
 	   (string= (car terms) "for")

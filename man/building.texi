@@ -396,8 +396,8 @@ the @code{find-grep-dired} command, in @ref{Dired and Find}.
   The commands @kbd{M-x lgrep} (local grep) and @kbd{M-x rgrep}
 (recursive grep) are more user-friendly versions of @code{grep} and
 @code{grep-find}, which prompt separately for the regular expression
-to match, the files to search, and the base directory for the search
-(rgrep only).  Case sensitivity of the search is controlled by the
+to match, the files to search, and the base directory for the search.
+Case sensitivity of the search is controlled by the
 current value of @code{case-fold-search}.
 
 These commands build the shell commands based on the variables

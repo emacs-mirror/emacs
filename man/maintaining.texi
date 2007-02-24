@@ -183,22 +183,22 @@ convenient.  Each name recorded is called a @dfn{tag}.
 In C code, any C function or typedef is a tag, and so are definitions of
 @code{struct}, @code{union} and @code{enum}.
 @code{#define} macro definitions, @code{#undef} and @code{enum}
-constants are also 
+constants are also
 tags, unless you specify @samp{--no-defines} when making the tags table.
 Similarly, global variables are tags, unless you specify
-@samp{--no-globals}.  Use of @samp{--no-globals} and @samp{--no-defines}
-can make the tags table file much smaller.
+@samp{--no-globals}, and so are struct members, unless you specify
+@samp{--no-members}.  Use of @samp{--no-globals}, @samp{--no-defines}
+and @samp{--no-members} can make the tags table file much smaller.
 
 You can tag function declarations and external variables in addition
 to function definitions by giving the @samp{--declarations} option to
-@code{etags}.  You can tag struct members with the @samp{--members}
-option.
+@code{etags}.
 
 @item
 In C++ code, in addition to all the tag constructs of C code, member
-functions are also recognized, and optionally member variables if you
-use the @samp{--members} option.  Tags for variables and functions in
-classes are named @samp{@var{class}::@var{variable}} and
+functions are also recognized; member variables are also recognized,
+unless you use the @samp{--no-members} option.  Tags for variables and
+functions in classes are named @samp{@var{class}::@var{variable}} and
 @samp{@var{class}::@var{function}}.  @code{operator} definitions have
 tag names like @samp{operator+}.
 
@@ -329,8 +329,8 @@ name for subroutines defined in the default package is
 @samp{main::@var{sub}}.
 
 @item
-In PHP code, tags are functions, classes and defines.  When using the
-@samp{--members} option, vars are tags too.
+In PHP code, tags are functions, classes and defines.  Vars are tags
+too, unless you use the @samp{--no-members} option.
 
 @item
 In PostScript code, the tags are the functions.

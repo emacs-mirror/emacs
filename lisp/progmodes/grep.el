@@ -150,6 +150,8 @@ The following place holders should be present in the string:
 	("asm" . "*.[sS]")
 	("m" .	"[Mm]akefile*")
 	("l" . "[Cc]hange[Ll]og*")
+	("tex" . "*.tex")
+	("texi" . "*.texi")
 	)
   "*Alist of aliases for the FILES argument to `lgrep' and `rgrep'."
   :type 'alist
@@ -531,6 +533,9 @@ or \\<grep-mode-map>\\[compile-goto-error] in the grep \
 output buffer, to go to the lines
 where grep found matches.
 
+For doing a recursive `grep', see the `rgrep' command.  For running
+`grep' in a specific directory, see `lgrep'.
+
 This command uses a special history list for its COMMAND-ARGS, so you can
 easily repeat a grep command.
 
@@ -654,8 +659,8 @@ substitution string.  Note dynamic scoping of variables.")
 	     files))))
 
 ;;;###autoload
-(defun lgrep (regexp &optional files)
-  "Run grep, searching for REGEXP in FILES in current directory.
+(defun lgrep (regexp &optional files dir)
+  "Run grep, searching for REGEXP in FILES in directory DIR.
 The search is limited to file names matching shell pattern FILES.
 FILES may use abbreviations defined in `grep-files-aliases', e.g.
 entering `ch' is equivalent to `*.[ch]'.
@@ -681,13 +686,16 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
        (list nil
 	     (read-string "grep.el: No `grep-template' available. Press RET.")))
       (t (let* ((regexp (grep-read-regexp))
-		(files (grep-read-files regexp)))
-	   (list regexp files))))))
+		(files (grep-read-files regexp))
+		(dir (read-directory-name "In directory: "
+					  nil default-directory t)))
+	   (list regexp files dir))))))
   (when (and (stringp regexp) (> (length regexp) 0))
     (let ((command regexp))
       (if (null files)
 	  (if (string= command grep-command)
 	      (setq command nil))
+	(setq dir (file-name-as-directory (expand-file-name dir)))
 	(setq command (grep-expand-template
 		       grep-template
 		       regexp
@@ -699,11 +707,15 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 					  command nil nil 'grep-history))
 	    (add-to-history 'grep-history command))))
       (when command
-	;; Setting process-setup-function makes exit-message-function work
-	;; even when async processes aren't supported.
-	(compilation-start (if (and grep-use-null-device null-device)
-			       (concat command " " null-device)
-			     command) 'grep-mode)))))
+	(let ((default-directory dir))
+	  ;; Setting process-setup-function makes exit-message-function work
+	  ;; even when async processes aren't supported.
+	  (compilation-start (if (and grep-use-null-device null-device)
+				 (concat command " " null-device)
+			       command) 'grep-mode))
+	(if (eq next-error-last-buffer (current-buffer))
+	    (setq default-directory dir))))))
+
 
 
 ;;;###autoload

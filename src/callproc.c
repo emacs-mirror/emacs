@@ -1781,12 +1781,12 @@ These are files intended for Emacs to use while it runs.  */);
 
   DEFVAR_LISP ("doc-directory", &Vdoc_directory,
 	       doc: /* Directory containing the DOC file that comes with GNU Emacs.
-This is usually the same as data-directory.  */);
+This is usually the same as `data-directory'.  */);
 
   DEFVAR_LISP ("configure-info-directory", &Vconfigure_info_directory,
 	       doc: /* For internal use by the build procedure only.
 This is the name of the directory in which the build procedure installed
-Emacs's info files; the default value for Info-default-directory-list
+Emacs's info files; the default value for `Info-default-directory-list'
 includes this.  */);
   Vconfigure_info_directory = build_string (PATH_INFO);
 

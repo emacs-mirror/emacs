@@ -1,6 +1,7 @@
 /* Implementation of GUI terminal on the Microsoft W32 API.
-   Copyright (C) 1989, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1989, 1993, 1994, 1995, 1996, 1997, 1998,
+                 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+                 2006, 2007 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -3473,25 +3474,51 @@ w32_set_scroll_bar_thumb (bar, portion, position, whole)
      int portion, position, whole;
 {
   Window w = SCROLL_BAR_W32_WINDOW (bar);
-  double range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, XINT (bar->height));
+  /* We use the whole scroll-bar height in the calculations below, to
+     avoid strange effects like scrolling backwards when just clicking
+     on the handle (without moving it).  */
+  double range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, XINT (bar->height))
+                 + VERTICAL_SCROLL_BAR_MIN_HANDLE;
   int sb_page, sb_pos;
   BOOL draggingp = !NILP (bar->dragging) ? TRUE : FALSE;
   SCROLLINFO si;
+
+  /* We used to change the nPage setting while dragging the handle,
+     but that had very strange effects (such as scrolling backwards
+     while dragging downwards).
+
+     Now, we don't change the nPage setting while dragging unless we
+     get near to the end of the buffer, in which case we often have to
+     resize the handle to "go all the way".  */
+
+  if (draggingp)
+    {
+      int near_bottom_p;
+      BLOCK_INPUT;
+      si.cbSize = sizeof (si);
+      si.fMask = SIF_POS | SIF_PAGE;
+      GetScrollInfo(w, SB_CTL, &si);
+      near_bottom_p = si.nPos + si.nPage >= range;
+      UNBLOCK_INPUT;
+      if (!near_bottom_p)
+	return;
+    }
 
   if (whole)
     {
       /* Position scroll bar at rock bottom if the bottom of the
          buffer is visible. This avoids shinking the thumb away
          to nothing if it is held at the bottom of the buffer.  */
-      if (position + portion >= whole)
-        {
-          sb_page = range * (whole - position) / whole
-            + VERTICAL_SCROLL_BAR_MIN_HANDLE;
-          sb_pos = range;
-        }
-
-      sb_page = portion * range / whole + VERTICAL_SCROLL_BAR_MIN_HANDLE;
-      sb_pos = position * range / whole;
+      if (position + portion >= whole && !draggingp)
+	{
+	  sb_page = range * (whole - position) / whole;
+	  sb_pos = range;
+	}
+      else
+	{
+	  sb_pos = position * range / whole;
+	  sb_page = (min (portion, (whole - position)) * range) / whole;
+	}
     }
   else
     {
@@ -3499,19 +3526,16 @@ w32_set_scroll_bar_thumb (bar, portion, position, whole)
       sb_pos = 0;
     }
 
+  sb_page = max (sb_page, VERTICAL_SCROLL_BAR_MIN_HANDLE);
+
   BLOCK_INPUT;
 
   si.cbSize = sizeof (si);
-  /* Only update page size if currently dragging, to reduce
-     flicker effects.  */
-  if (draggingp)
-    si.fMask = SIF_PAGE;
-  else
-    si.fMask = SIF_PAGE | SIF_POS;
+  si.fMask = SIF_PAGE | SIF_POS;
   si.nPage = sb_page;
   si.nPos = sb_pos;
 
-  SetScrollInfo (w, SB_CTL, &si, !draggingp);
+  SetScrollInfo (w, SB_CTL, &si, TRUE);
 
   UNBLOCK_INPUT;
 }

@@ -7105,10 +7105,12 @@ If both MULTI-METHOD and METHOD are nil, do a lookup in
 ;; Variables local to connection.
 
 (defun tramp-get-ls-command (multi-method method user host)
-  (save-excursion
-    (tramp-maybe-open-connection multi-method method user host)
-    (set-buffer (tramp-get-buffer multi-method method user host))
-    tramp-ls-command))
+  (or
+   (save-excursion
+     (tramp-maybe-open-connection multi-method method user host)
+     (set-buffer (tramp-get-buffer multi-method method user host))
+     tramp-ls-command)
+   (error "Couldn't find remote `ls' command")))
 
 (defun tramp-get-test-groks-nt (multi-method method user host)
   (save-excursion
@@ -7117,16 +7119,20 @@ If both MULTI-METHOD and METHOD are nil, do a lookup in
     tramp-test-groks-nt))
 
 (defun tramp-get-file-exists-command (multi-method method user host)
-  (save-excursion
-    (tramp-maybe-open-connection multi-method method user host)
-    (set-buffer (tramp-get-buffer multi-method method user host))
-    tramp-file-exists-command))
+  (or
+   (save-excursion
+     (tramp-maybe-open-connection multi-method method user host)
+     (set-buffer (tramp-get-buffer multi-method method user host))
+     tramp-file-exists-command)
+   (error "Couldn't find remote `test -e' command")))
 
 (defun tramp-get-remote-perl (multi-method method user host)
   (tramp-get-connection-property "perl" nil multi-method method user host))
 
 (defun tramp-get-remote-ln (multi-method method user host)
-  (tramp-get-connection-property "ln" nil multi-method method user host))
+  (or
+   (tramp-get-connection-property "ln" nil multi-method method user host)
+   (error "Couldn't find remote `ln' command")))
 
 (defun tramp-get-remote-uid (multi-method method user host)
   (tramp-get-connection-property "uid" nil multi-method method user host))

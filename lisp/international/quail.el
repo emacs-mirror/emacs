@@ -2634,7 +2634,11 @@ KEY BINDINGS FOR CONVERSION
 		(aset table char (cons key elt)))
 	  (or (string= key elt)
 	      (aset table char (list key elt))))
-      (aset table char key))))
+      (aset table char key))
+    (if (and translation-table-for-input
+	     (setq char (aref translation-table-for-input char)))
+	(let ((translation-table-for-input nil))
+	  (quail-store-decode-map-key table char key)))))
 
 ;; Helper function for quail-gen-decode-map.  Store key strings to
 ;; type each character under MAP in TABLE (char-table).  MAP is an
@@ -2678,6 +2682,15 @@ KEY BINDINGS FOR CONVERSION
       (quail-gen-decode-map1 (cdr elt) (string (car elt)) table))
     table))
 
+;; Check if CHAR equals to TARGET while also trying to translate CHAR
+;; by translation-table-for-input.
+
+(defsubst quail-char-equal-p (char target)
+  (or (= char target)
+      (and translation-table-for-input
+	   (setq char (aref translation-table-for-input char))
+	   (= char target))))
+
 ;; Helper function for quail-find-key.  Prepend key strings to type
 ;; for inputting CHAR by the current input method to KEY-LIST and
 ;; return the result.  MAP is an element of the current Quail map
@@ -2688,7 +2701,8 @@ KEY BINDINGS FOR CONVERSION
 	(found-here nil))
     (cond ((stringp trans)
 	   (setq found-here
-		 (and (= (length trans) 1) (= (aref trans 0) char))))
+		 (and (= (length trans) 1)
+		      (quail-char-equal-p (aref trans 0) char))))
 	  ((or (vectorp trans) (consp trans))
 	   (if (consp trans)
 	       (setq trans (cdr trans)))
@@ -2697,14 +2711,13 @@ KEY BINDINGS FOR CONVERSION
 		   (dotimes (i (length trans))
 		     (let ((target (aref trans i)))
 		       (if (integerp target)
-			   (if (= target char)
+			   (if (quail-char-equal-p target char)
 			       (throw 'tag t))
 			 (if (and (= (length target) 1)
-				  (= (aref target 0) char))
+				  (quail-char-equal-p (aref target 0) char))
 			     (throw 'tag t))))))))
 	    ((integerp trans)
-	     (if (= trans char)
-		 (setq found-here t))))
+	     (setq found-here (quail-char-equal-p trans char))))
     (if found-here
 	(setq key-list (cons key key-list)))
     (if (> (length key) 1)
@@ -2714,12 +2727,25 @@ KEY BINDINGS FOR CONVERSION
 				     char key-list))))
     key-list))
 
+;; If non-nil, the value has the form (QUAIL-MAP . CODING-SYSTEM)
+;; where QUAIL-MAP is a quail-map of which decode map was generated
+;; while buffer-file-coding-system was CODING-SYSTEM.
+
+(defvar quail-decode-map-generated nil)
+
 (defun quail-find-key (char)
   "Return a list of keys to type to input CHAR in the current input method.
 If CHAR is an ASCII character and can be input by typing itself, return t."
-  (let ((decode-map (or (quail-decode-map)
-			(setcar (nthcdr 10 quail-current-package)
-				(quail-gen-decode-map))))
+  (let ((decode-map (or (and (or (not quail-decode-map-generated)
+				 (and (eq (car quail-decode-map-generated) (quail-map))
+				      (eq (cdr quail-decode-map-generated)
+					  (or buffer-file-coding-system t))))
+			     (quail-decode-map))
+			(let ((map (quail-gen-decode-map)))
+			  (setq quail-decode-map-generated
+				(cons (quail-map) (or buffer-file-coding-system t)))
+			  (setcar (nthcdr 10 quail-current-package) map)
+			  map)))
 	(key-list nil))
     (if (consp decode-map)
 	(let ((str (string char)))
@@ -2746,6 +2772,8 @@ If CHAR is an ASCII character and can be input by typing itself, return t."
   (interactive)
   (or current-input-method
       (error "No input method is activated"))
+  (or (assoc current-input-method quail-package-alist)
+      (error "The current input method does not use Quail"))
   (let* ((char (following-char))
 	 (key-list (quail-find-key char)))
     (cond ((consp key-list)

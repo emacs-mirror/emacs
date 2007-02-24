@@ -32,6 +32,7 @@ Boston, MA 02110-1301, USA.
 #include <sys/file.h>
 #include <sys/time.h>
 #include <sys/utime.h>
+#include <mbstring.h>	/* for _mbspbrk */
 
 /* must include CRT headers *before* config.h */
 
@@ -739,7 +740,7 @@ get_long_basename (char * name, char * buf, int size)
   int len = 0;
 
   /* must be valid filename, no wild cards or other invalid characters */
-  if (strpbrk (name, "*?|<>\""))
+  if (_mbspbrk (name, "*?|<>\""))
     return 0;
 
   dir_handle = FindFirstFile (name, &find_data);
@@ -814,7 +815,7 @@ is_unc_volume (const char *filename)
   if (!IS_DIRECTORY_SEP (ptr[0]) || !IS_DIRECTORY_SEP (ptr[1]) || !ptr[2])
     return 0;
 
-  if (strpbrk (ptr + 2, "*?|<>\"\\/"))
+  if (_mbspbrk (ptr + 2, "*?|<>\"\\/"))
     return 0;
 
   return 1;
@@ -2386,8 +2387,12 @@ stat (const char * path, struct stat * buf)
     }
 
   name = (char *) map_w32_filename (path, &path);
-  /* must be valid filename, no wild cards or other invalid characters */
-  if (strpbrk (name, "*?|<>\""))
+  /* Must be valid filename, no wild cards or other invalid
+     characters.  We use _mbspbrk to support multibyte strings that
+     might look to strpbrk as if they included literal *, ?, and other
+     characters mentioned below that are disallowed by Windows
+     filesystems.  */
+  if (_mbspbrk (name, "*?|<>\""))
     {
       errno = ENOENT;
       return -1;

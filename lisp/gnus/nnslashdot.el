@@ -259,7 +259,7 @@
 		      (buffer-substring
 		       (search-forward "<div class=\"commentBody\">")
 		       (progn
-			 (search-forward "<div class=\"commentSub\">")
+			 (search-forward "<div class=\"commentSub\"")
 			 (match-beginning 0))))))))
       (search-failed (nnslashdot-lose why)))
 

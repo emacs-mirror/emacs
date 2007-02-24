@@ -30,6 +30,7 @@
 (defvar url-http-extra-headers)
 (defvar url-http-target-url)
 (defvar url-http-proxy)
+(defvar url-http-connection-opened)
 (require 'url-gw)
 (require 'url-util)
 (require 'url-parse)
@@ -1118,6 +1119,7 @@ CBARGS as the arguments."
 		       url-http-extra-headers
 		       url-http-data
 		       url-http-target-url
+		       url-http-connection-opened
 		       url-http-proxy))
 	  (set (make-local-variable var) nil))
 
@@ -1132,6 +1134,7 @@ CBARGS as the arguments."
 	      url-callback-arguments cbargs
 	      url-http-after-change-function 'url-http-wait-for-headers-change-function
 	      url-http-target-url url-current-object
+	      url-http-connection-opened nil
 	      url-http-proxy url-using-proxy)
 
 	(set-process-buffer connection buffer)
@@ -1155,8 +1158,10 @@ CBARGS as the arguments."
   ;; has occurred.
   (with-current-buffer (process-buffer proc)
     (cond
+     (url-http-connection-opened
+      (url-http-end-of-document-sentinel proc why))
      ((string= (substring why 0 4) "open")
-      (set-process-sentinel proc 'url-http-end-of-document-sentinel)
+      (setq url-http-connection-opened t)
       (process-send-string proc (url-http-create-request)))
      (t
       (setf (car url-callback-arguments)

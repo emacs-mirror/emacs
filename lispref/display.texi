@@ -2201,9 +2201,10 @@ This function specifies whether @var{face} should be italic.  If
 This actually sets the @code{:slant} attribute.
 @end defun
 
-@defun set-face-underline-p face underline-p &optional frame
+@defun set-face-underline-p face underline &optional frame
 This function sets the underline attribute of face @var{face}.
 Non-@code{nil} means do underline; @code{nil} means don't.
+If @var{underline} is a string, underline with that color.
 @end defun
 
 @defun set-face-inverse-video-p face inverse-video-p &optional frame
@@ -5265,26 +5266,32 @@ are defined in the library @file{disp-table}.
 
 @cindex glyph
   A @dfn{glyph} is a generalization of a character; it stands for an
-image that takes up a single character position on the screen.  Glyphs
-are represented in Lisp as integers, just as characters are.  Normally
-glyph come from vectors in the display table (@pxref{Display Tables}).
+image that takes up a single character position on the screen.  Normally
+glyphs come from vectors in the display table (@pxref{Display Tables}).
 
-  A glyph code can be @dfn{simple} or it can be defined by the
-@dfn{glyph table}.  A simple glyph code is just a way of specifying a
-character and a face to output it in.  When a glyph code is simple,
-the code, mod 524288, is the character to output, and the code divided
-by 524288 specifies the face number (@pxref{Face Functions}) to use
-while outputting it.  (524288 is
-@ifnottex
-2**19.)
-@end ifnottex
-@tex
-$2^{19}$.)
-@end tex
-@xref{Faces}.
+  A glyph is represented in Lisp as a @dfn{glyph code}.  A glyph code
+can be @dfn{simple} or it can be defined by the @dfn{glyph table}.  A
+simple glyph code is just a way of specifying a character and a face
+to output it in.  @xref{Faces}.
+
+  The following functions are used to manipulate simple glyph codes:
+
+@defun make-glyph-code char &optional face
+This function returns a simple glyph code representing char @var{char}
+with face @var{face}.
+@end defun
+
+@defun glyph-char glyph
+This function returns the character of simple glyph code @var{glyph}.
+@end defun
+
+@defun glyph-face glyph
+This function returns face of simple glyph code @var{glyph}, or
+@code{nil} if @var{glyph} has the default face (face-id 0).
+@end defun
 
   On character terminals, you can set up a @dfn{glyph table} to define
-the meaning of glyph codes.
+the meaning of glyph codes (represented as small integers).
 
 @defvar glyph-table
 The value of this variable is the current glyph table.  It should be
@@ -5306,10 +5313,10 @@ displays, all glyph codes are simple.
 Send the characters in @var{string} to the terminal to output
 this glyph code.
 
-@item @var{integer}
-Define this glyph code as an alias for glyph code @var{integer}.  You
-can use such an alias to define a small-numbered glyph code which
-specifies a face.
+@item @var{code}
+Define this glyph code as an alias for glyph code @var{code} created
+by @code{make-glyph-code}.  You can use such an alias to define a
+small-numbered glyph code which specifies a character with a face.
 
 @item @code{nil}
 This glyph code is simple.

@@ -600,7 +600,7 @@ conditions under which a diary entry applies.  If you use the fancy
 diary display, sexp entries can generate the text of the entry depending
 on the date itself.  For example, an anniversary diary entry can insert
 the number of years since the anniversary date into the text of the
-diary entry.  Thus the @samp{%d} in this dairy entry:
+diary entry.  Thus the @samp{%d} in this diary entry:
 
 @findex diary-anniversary
 @smallexample

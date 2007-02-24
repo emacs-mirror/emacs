@@ -120,6 +120,7 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
     (force-mode-line-update)
     (kill-all-local-variables)
     (rmail-mode-1)
+    (set (make-local-variable 'tool-bar-map) rmail-tool-bar-map)
     (rmail-variables)
     ;; As the local value of save-buffer-coding-system is changed by
     ;; rmail-variables, we restore the original value.

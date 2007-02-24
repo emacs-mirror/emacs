@@ -99,13 +99,13 @@ This only has effect if you specify it before loading the smtpmail library."
 
 (defcustom smtpmail-smtp-service 25
   "*SMTP service port number.
-The default value would be \"smtp\" or 25 ."
+The default value would be \"smtp\" or 25."
   :type '(choice (integer :tag "Port") (string :tag "Service"))
   :group 'smtpmail)
 
 (defcustom smtpmail-local-domain nil
   "*Local domain name without a host name.
-If the function (system-name) returns the full internet address,
+If the function `system-name' returns the full internet address,
 don't define this value."
   :type '(choice (const nil) string)
   :group 'smtpmail)
@@ -145,7 +145,7 @@ The commands enables verbose information from the SMTP server."
   :group 'smtpmail)
 
 (defcustom smtpmail-queue-mail nil
-  "*Specify if mail is queued (if t) or sent immediately (if nil).
+  "*If set, mail is queued; otherwise it is sent immediately.
 If queued, it is stored in the directory `smtpmail-queue-dir'
 and sent with `smtpmail-send-queued-mail'."
   :type 'boolean
@@ -198,7 +198,7 @@ new SMTP extensions that might be useful to support."
   :group 'smtpmail)
 
 (defvar smtpmail-queue-index-file "index"
-  "File name of queued mail index,
+  "File name of queued mail index.
 This is relative to `smtpmail-queue-dir'.")
 
 (defvar smtpmail-address-buffer)

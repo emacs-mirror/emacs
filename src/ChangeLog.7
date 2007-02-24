@@ -320,9 +320,8 @@
 	translation-table to 1.  Initialize and static pro Qvalid_codes.
 
 	* coding.h (CODING_CATEGORY_IDX_CCL): New macro.
-	(CODING_CATEGORY_IDX_BIG5, CODING_CATEGORY_IDX_RAW_TEXT,
-	CODING_CATEGORY_IDX_BINARY, CODING_CATEGORY_IDX_MAX): Increased by
-	one.
+	(CODING_CATEGORY_IDX_BIG5, CODING_CATEGORY_IDX_RAW_TEXT)
+	(CODING_CATEGORY_IDX_BINARY, CODING_CATEGORY_IDX_MAX): Increased by one.
 	(CODING_CATEGORY_MASK_CCL): New macro.
 	(CODING_CATEGORY_MASK_ANY): Include CODING_CATEGORY_MASK_CCL.
 
@@ -422,13 +421,13 @@
 
 1998-07-13  Eli Zaretskii  <eliz@mescaline.gnu.org>
 
-	* w16select.c (set_clipboard_data, get_clipboard_data,
-	Fw16_set_clipboard_data, Fw16_get_clipboard_data,
-	Fx_selection_exists_p): Use CF_OEMTEXT instead of CF_TEXT.
+	* w16select.c (set_clipboard_data, get_clipboard_data)
+	(Fw16_set_clipboard_data, Fw16_get_clipboard_data)
+	(Fx_selection_exists_p): Use CF_OEMTEXT instead of CF_TEXT.
 
 1998-07-12  Andrew Innes  <andrewi@delysid.gnu.org>
 
-	* w32select.c: (Fw32_set_clipboard_data): Set Vlast_coding_system_used.
+	* w32select.c (Fw32_set_clipboard_data): Set Vlast_coding_system_used.
 	(Fw32_get_clipboard_data): Likewise.
 
 1998-07-12  Richard Stallman  <rms@psilocin.ai.mit.edu>
@@ -550,8 +549,8 @@
 1998-07-03  Kenichi Handa  <handa@etl.go.jp>
 
 	* editfns.c (Finsert): Typo in doc-string fixed.
-	(Finsert_and_inherit, Finsert_before_markers,
-	Finsert_and_inherit_before_markers):  Likewize.
+	(Finsert_and_inherit, Finsert_before_markers)
+	(Finsert_and_inherit_before_markers): Likewise.
 
 1998-07-02  Ken'ichi Handa  <handa@melange.gnu.org>
 
@@ -737,8 +736,8 @@
 
 1998-06-17  Geoff Voelker  <voelker@cs.washington.edu>
 
-	* w32.c (is_unc_volume, open_unc_volume, read_unc_volume,
-	close_unc_volume, unc_volume_file_attributes): New functions.
+	* w32.c (is_unc_volume, open_unc_volume, read_unc_volume)
+	(close_unc_volume, unc_volume_file_attributes): New functions.
 	(wnet_enum_handle): New variable.
 	(opendir, readdir, closedir, sys_access, stat): Handle UNC volumes.
 
@@ -1650,7 +1649,7 @@
 
 	* unexelf.c [__alpha__ && !__NetBSD__ && !__OpenBSD__]:
 	Include definition of HDRR structure that used to be in sym.h,
-	instead of sym.h
+	instead of sym.h.
 
 1998-04-29  Andreas Schwab  <schwab@delysid.gnu.org>
 
@@ -1717,10 +1716,10 @@
 
 1998-04-28  Eli Zaretskii  <eliz@mescaline.gnu.org>
 
-	* Makefile.in (callproc.o, print.o, cmds.o, dispnew.o, fileio.o,
-	frame.o, keyboard.o, minibuf.o, process.o, scroll.o, sysdep.o,
-	term.o, w16select.o, window.o, xdisp.o, xfaces.o, lread.o): Depend
-	on msdos.h.
+	* Makefile.in (callproc.o, print.o, cmds.o, dispnew.o, fileio.o)
+	(frame.o, keyboard.o, minibuf.o, process.o, scroll.o, sysdep.o)
+	(term.o, w16select.o, window.o, xdisp.o, xfaces.o, lread.o):
+	Depend on msdos.h.
 	(print.o): Depend on dispextern.h.
 
 1998-04-28  Andreas Schwab  <schwab@delysid.gnu.org>
@@ -1749,12 +1748,12 @@
 
 	* callproc.c, fileio.c: Include msdos.h after lisp.h.
 
-	* msdos.c (IT_ring_bell, IT_write_glyphs, IT_clear_end_of_line,
-	IT_clear_screen, IT_clear_to_end, IT_clear_to_end, IT_cursor_to,
-	IT_cmgoto, IT_reassert_line_highlight, IT_change_line_highlight,
-	IT_update_begin, IT_update_end, IT_set_terminal_modes,
-	IT_reset_terminal_modes, IT_set_terminal_window,
-	pixel_to_glyph_coords, IT_menu_display):  Bring definitions in
+	* msdos.c (IT_ring_bell, IT_write_glyphs, IT_clear_end_of_line)
+	(IT_clear_screen, IT_clear_to_end, IT_clear_to_end, IT_cursor_to)
+	(IT_cmgoto, IT_reassert_line_highlight, IT_change_line_highlight)
+	(IT_update_begin, IT_update_end, IT_set_terminal_modes)
+	(IT_reset_terminal_modes, IT_set_terminal_window)
+	(pixel_to_glyph_coords, IT_menu_display): Bring definitions in
 	accordance with prototype declarations.
 
 	* msdos.h [!HAVE_X_WINDOWS]: Add a dummy typedef for XRectangle
@@ -1853,7 +1852,7 @@
 
 1998-04-23  Inge Frick  <inge@nada.kth.se>
 
-	* keyboard.c: (parse_menu_item): Support keywords :keys and
+	* keyboard.c (parse_menu_item): Support keywords :keys and
 	:key-sequence.  Some changes to provide GC-protection. Some
 	cosmetic changes.
 	(syms_of_keyboard): Define new symbols `:keys' and `:key-sequence'.
@@ -1895,7 +1894,7 @@
 
 	* w16select.c (Fwin16_set_clipboard_data): Call UNBLOCK_INPUT
 	before calling sit_for.
-	(Fwin16_get_clipboard_data, Fwin16_set_clipboard_data):	Balance
+	(Fwin16_get_clipboard_data, Fwin16_set_clipboard_data): Balance
 	the calls to BLOCK_INPUT and UNBLOCK_INPUT.
 	(alloc_xfer_buf): If want_size is more than 1MB, return
 	immediately with failure.
@@ -1979,8 +1978,8 @@
 	* process.h (struct Lisp_Process): Add inherit_coding_system_flag
 	member.
 
-	* process.c (Fset_process_inherit_coding_system_flag,
-	Fprocess_inherit_coding_system_flag): New functions.
+	* process.c (Fset_process_inherit_coding_system_flag)
+	(Fprocess_inherit_coding_system_flag): New functions.
 	(syms_of_process): Defsubr them.
 	(Fstart_process, Fopen_network_stream): Initialize
 	inherit_coding_system_flag.
@@ -2038,7 +2037,7 @@
 	(w32_fatal_reload_error): New function.
 	(read_in_bss, map_in_heap): Invoke w32_fatal_reload_error upon error.
 
-	* w32.c	(sys_read): Clear carriage return flag.
+	* w32.c (sys_read): Clear carriage return flag.
 	Report normal EOF when read fails if nothing in buffer.
 	Only read more if more remaining.
 	(check_windows_init_file): New function.
@@ -2241,8 +2240,8 @@
 	* frame.c (Fset_mouse_position, Fset_mouse_pixel_position): Fix
 	mixing of Lisp_Object and int.
 
-	* fns.c (Fsubstring, substring_both, Fchar_table_range,
-	Fset_char_table_range): Fix mixing of Lisp_Object and int.
+	* fns.c (Fsubstring, substring_both, Fchar_table_range)
+	(Fset_char_table_range): Fix mixing of Lisp_Object and int.
 
 	* fileio.c (Fwrite_region): Fix mixing of Lisp_Object and int.
 
@@ -2260,18 +2259,18 @@
 	* cm.h: Update return types of declarations.
 
 	* xterm.h, puresize.h, termhooks.h, lisp.h, keyboard.h,
-	intervals.h, dispextern.h, blockinput.h, coding.h: Add more
-	prototypes.
+	* intervals.h, dispextern.h, blockinput.h, coding.h:
+	Add more prototypes.
 
 	* xterm.c, xselect.c, xrdb.c, xmenu.c, xdisp.c, window.c,
-	widget.c, undo.c, terminfo.c, term.c, sysdep.c, syntax.c,
-	search.c, scroll.c, process.c, print.c, mocklisp.c, prefix-args.c,
-	marker.c, keymap.c, keyboard.c, intervals.c, insdel.c, indent.c,
-	frame.c, fontset.c, fns.c, floatfns.c, filelock.c, fileio.c,
-	eval.c, emacs.c, editfns.c, doprnt.c, doc.c, dispnew.c, dired.c,
-	data.c, coding.c, cmds.c, cm.c, charset.c, ccl.c, category.c,
-	casetab.c, casefiddle.c, callproc.c, callint.c, bytecode.c,
-	buffer.c, alloc.c, abbrev.c: Fix -Wimplicit warnings.
+	* widget.c, undo.c, terminfo.c, term.c, sysdep.c, syntax.c,
+	* search.c, scroll.c, process.c, print.c, mocklisp.c, prefix-args.c,
+	* marker.c, keymap.c, keyboard.c, intervals.c, insdel.c, indent.c,
+	* frame.c, fontset.c, fns.c, floatfns.c, filelock.c, fileio.c,
+	* eval.c, emacs.c, editfns.c, doprnt.c, doc.c, dispnew.c, dired.c,
+	* data.c, coding.c, cmds.c, cm.c, charset.c, ccl.c, category.c,
+	* casetab.c, casefiddle.c, callproc.c, callint.c, bytecode.c,
+	* buffer.c, alloc.c, abbrev.c: Fix -Wimplicit warnings.
 
 	* buffer.c (Fset_buffer_multibyte): Do nothing if nothing actually
 	changes.
@@ -2477,7 +2476,7 @@
 	Function moved after set_intervals_multibyte_1.
 
 	* xdisp.c (redisplay_window): If updating mode line,
-	temporarily change selected_frame
+	temporarily change selected_frame.
 
 1998-04-02  Dave Love  <fx@gnu.org>
 
@@ -2670,7 +2669,7 @@
 
 	* xselect.c (selection_data_to_lisp_data): Use make_string_from_bytes.
 
-	* insdel.c: (insert_from_string_1, replace_range):
+	* insdel.c (insert_from_string_1, replace_range):
 	Use STRING_MULTIBYTE to determine whether string is multibyte.
 
 	* editfns.c: Use STRING_BYTES and SET_STRING_BYTES.
@@ -2678,11 +2677,11 @@
 	(Ftranspose_regions): Try to handle combining bytes.
 
 	* alloc.c, xterm.c, xselect.c, xmenu.c, xfns.c, xdisp.c, search.c,
-	process.c, print.c, lread.c, keymap.c, insdel.c, keyboard.c,
-	frame.c, fns.c, filelock.c, doc.c, dispnew.c, data.c, coding.c,
-	charset.c, ccl.c, category.c, casefiddle.c, callproc.c, callint.c,
-	bytecode.c, abbrev.c, minibuf.c, buffer.c, fileio.c: Use
-	STRING_BYTES and SET_STRING_BYTES.
+	* process.c, print.c, lread.c, keymap.c, insdel.c, keyboard.c,
+	* frame.c, fns.c, filelock.c, doc.c, dispnew.c, data.c, coding.c,
+	* charset.c, ccl.c, category.c, casefiddle.c, callproc.c, callint.c,
+	* bytecode.c, abbrev.c, minibuf.c, buffer.c, fileio.c:
+	Use STRING_BYTES and SET_STRING_BYTES.
 
 	* xmenu.c: Don't include puresize.h any more as code that needs it
 	has moved to keyboard.c.
@@ -2714,7 +2713,7 @@
 1998-03-21  Richard Stallman  <rms@psilocin.gnu.org>
 
 	* dired.c (Fdirectory_files): In FULL case,
-	compute number of characters
+	compute number of characters.
 
 	* insdel.c (insert_from_string_1, replace_range):
 	Use STRING_MULTIBYTE to determine whether string is multibyte.
@@ -2796,8 +2795,8 @@
 	* keyboard.h (item_properties): New variable.
 	(ITEM_PROPERTY_...): New macros.
 
-	* keymap.c (fix_submap_inheritance, get_keyelt, store_in_keymap,
-	copy-keymap, where_is_internal_1): Support new format for menu items.
+	* keymap.c (fix_submap_inheritance, get_keyelt, store_in_keymap)
+	(copy-keymap, where_is_internal_1): Support new format for menu items.
 	(syms_of_keymap): New symbol `menu-item'.
 
 	* keyboard.c: Include puresize.h for CHECK_IMPURE.
@@ -3329,10 +3328,10 @@
 	(Fchar_direction): Likewise.
 
 	* coding.c (decode_coding_iso2022): Update coding->fake_multibyte.
-	(ENCODE_SINGLE_SHIFT_2, ENCODE_SINGLE_SHIFT_3,
-	encode_coding_iso2022, decode_coding_sjis_big5,
-	encode_coding_sjis_big5, decode_eol, encode_eol, decode_coding,
-	encode_coding): Likewise.
+	(ENCODE_SINGLE_SHIFT_2, ENCODE_SINGLE_SHIFT_3)
+	(encode_coding_iso2022, decode_coding_sjis_big5)
+	(encode_coding_sjis_big5, decode_eol, encode_eol, decode_coding)
+	(encode_coding): Likewise.
 	(shrink_decoding_region, shrink_encoding_region): Do not skip
 	non-ASCII code in any cases.  Bug fix for getting starting address
 	from BEG.
@@ -3562,7 +3561,7 @@
 	* callproc.c (Fcall_process): Allow creating a new buffer
 	for the output.
 
-1998-01-30  Kenichi Handa  Kenichi Handa  <handa@etl.go.jp>
+1998-01-30  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (ENCODE_ISO_CHARACTER): Pay attention to
 	CODING_FLAG_ISO_USE_ROMAN and CODING_FLAG_ISO_USE_OLDJIS.
@@ -3678,9 +3677,9 @@
 	heading_ascii.  Deleted members last_block, direction, selective,
 	carryover, carryover_size.
 	(CODING_MAY_REQUIRE_DECODING): New macro.
-	(CODING_CATEGORY_MASK_ISO_7BIT, CODING_CATEGORY_MASK_ISO_8BIT,
-	CODING_CATEGORY_MASK_ISO_SHIFT, CODING_CATEGORY_MASK_ISO): New
-	macros.
+	(CODING_CATEGORY_MASK_ISO_7BIT, CODING_CATEGORY_MASK_ISO_8BIT)
+	(CODING_CATEGORY_MASK_ISO_SHIFT, CODING_CATEGORY_MASK_ISO):
+	New macros.
 	(Qraw_text): Extern it.
 
 	* coding.c (DECODE_CHARACTER_ASCII): Update coding->produced_char;
@@ -3803,10 +3802,9 @@
 	(struct iso2022_spec): New member.
 	last_invalid_designation_register.
 	(struct coding_system): New member inhibit_inconsistent_eol_type.
-	(CODING_CATEGORY_IDX_ISO_7_TIGHT,
-	CODING_CATEGORY_MASK_ISO_7_TIGHT): New macros.
-	(CODING_CATEGORY_MASK_ANY): Include
-	CODING_CATEGORY_MASK_ISO_7_TIGHT.
+	(CODING_CATEGORY_IDX_ISO_7_TIGHT, CODING_CATEGORY_MASK_ISO_7_TIGHT):
+	New macros.
+	(CODING_CATEGORY_MASK_ANY): Include CODING_CATEGORY_MASK_ISO_7_TIGHT.
 	(coding_category_table, coding_category_name): Extern deleted.
 	(Vselect_safe_coding_system_function): Extern it.
 
@@ -3816,17 +3814,17 @@
 
 1998-01-21  Kenichi Handa  <handa@etl.go.jp>
 
-	* ccl.h: (struct ccl_program): New member private_state.
+	* ccl.h (struct ccl_program): New member private_state.
 
-	* ccl.c (Vccl_translation_table_vector, Qccl_program,
-	Qccl_translation_table, Qccl_translation_table_id): New variables.
-	append new symbols.  Qccl_translation_table and
+	* ccl.c (Vccl_translation_table_vector, Qccl_program)
+	(Qccl_translation_table, Qccl_translation_table_id): New variables.
+	Append new symbols.  Qccl_translation_table and
 	Qccl_translation_table_id.
 	(CCL_Call): Fix the comment.
-	(CCL_ReadMultibyteCharacter, CCL_WriteMultibyteCharacter,
-	CCL_UnifyCharacter, CCL_UnifyCharacterConstTbl,
-	CCL_IterateMultipleMap, CCL_TranslateMultipleMap): New macros for
-	CCL Commands.
+	(CCL_ReadMultibyteCharacter, CCL_WriteMultibyteCharacter)
+	(CCL_UnifyCharacter, CCL_UnifyCharacterConstTbl)
+	(CCL_IterateMultipleMap, CCL_TranslateMultipleMap):
+	New macros for CCL Commands.
 	(EXCMD): New macro.
 	(ccl_driver): New case lable `CCL_Extention'.
 	(setup_ccl_program): Initialize the member `private_state' of CCL.
@@ -3877,7 +3875,7 @@
 	Pass different args to scan_newline.
 	Properly compare oldpoint with Z.
 
-	* syntax.c (skip_chars): Use unibyte_char_to_multibyte,
+	* syntax.c (skip_chars): Use unibyte_char_to_multibyte.
 
 	* fns.c (concat): Use unibyte_char_to_multibyte.
 
@@ -4398,7 +4396,7 @@
 	* xdisp.c (redisplay_internal): Use scan_newline.
 	(display_text_line, try_window_id): Use scan_newline.
 
-	* xdisp.c (pos_tab_indent): Moved from indent,c.  Now static.
+	* xdisp.c (pos_tab_indent): Moved from indent.c.  Now static.
 	Take POS in bytes and chars.  Callers changed.
 
 	* indent.c (Fcurrent_indentation): Use scan_newline and SET_PT_BOTH.
@@ -4815,8 +4813,8 @@
 
 1997-11-27  Ken'ichi Handa  <handa@delysid.gnu.org>
 
-	* undo.c (record_change, record_first_change,
-	record_property_change): Declare them as void.
+	* undo.c (record_change, record_first_change, record_property_change):
+	Declare them as void.
 	(record_delete, record_marker_adjustment): Declare them as void.
 
 	* indent.c (invalidate_current_column): Declare it as void.
@@ -4825,25 +4823,23 @@
 
 	* filelock.c (unlock_buffer): Declare it as void.
 
-	* buffer.c (nsberror, record_buffer, validate_region,
-	fix_overlay_before): Declare them as void.
+	* buffer.c (nsberror, record_buffer, validate_region)
+	(fix_overlay_before): Declare them as void.
 
-	* sysdep.c (discard_tty_input, init_baud_rate,
-	wait_for_termination, flush_pending_output, child_setup_tty,
-	sys_suspend, sys_subshell, init_sigio, request_sigio,
-	unrequest_sigio, init_sys_modes, get_frame_size, reset_sys_modes,
-	setup_pty): Declare them as void.
+	* sysdep.c (discard_tty_input, init_baud_rate, wait_for_termination)
+	(flush_pending_output, child_setup_tty, sys_suspend, sys_subshell)
+	(init_sigio, request_sigio, unrequest_sigio, init_sys_modes)
+	(get_frame_size, reset_sys_modes, setup_pty): Declare them as void.
 
 	* keymap.c (describe_vector): Declaration fixed (delete `.' at the
 	tail of type `void'.
 	(fix_submap_inheritance): Declare it as void.
 
-	* keyboard.c (echo_now, record_auto_save, cmd_error_internal,
-	start_polling, stop_polling, bind_polling_period,
-	timer_start_idle, timer_stop_idle, gobble_input,
-	record_asynch_buffer_change, clear_input_pending,
-	stuff_buffered_input, clear_waiting_for_input,
-	quit_throw_to_read_char): Declare these as void.
+	* keyboard.c (echo_now, record_auto_save, cmd_error_internal)
+	(start_polling, stop_polling, bind_polling_period, timer_start_idle)
+	(timer_stop_idle, gobble_input, record_asynch_buffer_change)
+	(clear_input_pending, stuff_buffered_input, clear_waiting_for_input)
+	(quit_throw_to_read_char): Declare these as void.
 	(Fsuspend_emacs): Delete unnecessary extern declaration for
 	init_sys_mode.
 	(Fexecute_extended_command): Give Voverriding_local_map as the
@@ -4898,7 +4894,8 @@
 	(Fformat_time_string): Doc fix: %b, %h, %B, %a, %A, and %p depend on
 	locale; don't use actual chars to describe %n and %t.
 
-	* src/Makefile.in (strftime.o), src/makefile.nt	($(BLD)\strftime.obj):
+	* src/Makefile.in (strftime.o):
+	* src/makefile.nt ($(BLD)\strftime.obj):
 	No need to compile with -Dstrftime=emacs_strftime any more.
 
 1997-11-22  Richard Stallman  <rms@gnu.org>
@@ -5024,7 +5021,7 @@
 
 	* xdisp.c (display_text_line): Make decision about which windows
 	highlight the region in just once place.
-	When minibuffer is selected, show the region in the previous window,
+	When minibuffer is selected, show the region in the previous window.
 
 	* charset.h (ASCII_BYTE_P): New macro.
 
@@ -5041,12 +5038,12 @@
 1997-11-10  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* msdos.c: Support for Japanese display on DOS/V systems.
-	(screen_old_address, screen_virtual_segment,
-	screen_virtual_offset): New variables.
+	(screen_old_address, screen_virtual_segment, screen_virtual_offset):
+	New variables.
 	(dosv_refresh_virtual_screen): New function.
-	(dos_direct_output, dos_set_window_size, IT_write_glyphs,
-	IT_clear_end_of_line, IT_clear_screen, IT_display_cursor,
-	IT_reset_terminal_modes, XMenuActivate, abort):  Call
+	(dos_direct_output, dos_set_window_size, IT_write_glyphs)
+	(IT_clear_end_of_line, IT_clear_screen, IT_display_cursor)
+	(IT_reset_terminal_modes, XMenuActivate, abort): Call
 	dosv_refresh_virtual_screen if under DOS/V.
 	(IT_set_terminal_modes): If under DOS/V, update the address of
 	primary screen buffer.
@@ -5069,13 +5066,13 @@
 
 	* coding.h (struct coding_system): Add member common_flags, delete
 	member require_flushing.
-	(CODING_REQUIRE_FLUSHING_MASK, CODING_REQUIRE_DECODING_MASK,
-	CODING_REQUIRE_ENCODING_MASK, CODING_REQUIRE_DETECTION_MASK): New
-	macros.
+	(CODING_REQUIRE_FLUSHING_MASK, CODING_REQUIRE_DECODING_MASK)
+	(CODING_REQUIRE_ENCODING_MASK, CODING_REQUIRE_DETECTION_MASK):
+	New macros.
 	(CODING_REQUIRE_NO_CONVERSION, CODING_MAY_REQUIRE_NO_CONVERSION):
 	These macros deleted.
-	(CODING_REQUIRE_FLUSHING, CODING_REQUIRE_DECODING,
-	CODING_REQUIRE_ENCODING, CODING_REQUIRE_DETECTION): New macros.
+	(CODING_REQUIRE_FLUSHING, CODING_REQUIRE_DECODING)
+	(CODING_REQUIRE_ENCODING, CODING_REQUIRE_DETECTION): New macros.
 
 	* editfns.c (Fsref): If IDX points an 8-bit code which is not part
 	of multibyte characters, return it.  Pay attention to
@@ -5626,7 +5623,7 @@
 	(FILE_LAST_CR): New macro.
 	(w32_get_long_filename): Declare extern.
 
-	* w32console.c: (DebPrint, reset_kbd, unset_kbd, take_console):
+	* w32console.c (DebPrint, reset_kbd, unset_kbd, take_console):
 	Delete functions.
 	(keyboard_init_hook): Delete variable.
 	(prev_console_cursor) [! USE_SEPARATE_SCREEN]: New variable.
@@ -5641,9 +5638,9 @@
 	* w32fns.c: Include limits.h and errno.h.
 	Declare externs from other files.
 	(w32_in_use): New variable.
-	(check_w32, have_menus_p, x_set_title, w32_msg_worker,
-	find_deferred_msg, send_deferred_msg, complete_deferred_msg,
-	Fw32_focus_frame, W32-send-sys-command): New functions.
+	(check_w32, have_menus_p, x_set_title, w32_msg_worker)
+	(find_deferred_msg, send_deferred_msg, complete_deferred_msg)
+	(Fw32_focus_frame, W32-send-sys-command): New functions.
 	(last_mouse_movement_time): Delete variable.
 
 	(x_frame_parms): Alphabetize.  Add title parm.
@@ -5704,13 +5701,13 @@
 	(initialize_frame_menubar): Pass in new param to set_frame_menubar.
 
 	* w32proc.c: Include w32heap.h.
-	(Vw32_start_process_share_console, Vw32_generate_fake_inodes,
-	Vw32_get_true_file_attributes, Qhigh, Qlow, process_dir):
+	(Vw32_start_process_share_console, Vw32_generate_fake_inodes)
+	(Vw32_get_true_file_attributes, Qhigh, Qlow, process_dir):
 	New variables.
-	(find_child_console, set_process_dir, Fw32_short_file_name,
-	Fw32_long_file_name, Fw32_set_process_priority, Fw32_get_locale_info,
-	Fw32_get_current_locale_id, Fw32_get_default_local_id,
-	Fw32_set_current_locale): New functions.
+	(find_child_console, set_process_dir, Fw32_short_file_name)
+	(Fw32_long_file_name, Fw32_set_process_priority, Fw32_get_locale_info)
+	(Fw32_get_current_locale_id, Fw32_get_default_local_id)
+	(Fw32_set_current_locale): New functions.
 	(CORRECT_DIR_SEPS): New macro.
 	(create_child): Create a new console if subprocs don't share parent's.
 	(reap_subprocess): Don't check for dos subprocesses.
@@ -5734,19 +5731,19 @@
 
 	* w32term.c (SIF_*): Win95 macros defined for NT.
 	(struct tagSCROLLINFO): Win95 struct defined for NT.
-	(vertical_scroll_bar_min_handle, vertical_scroll_bar_top_border,
-	vertical_scroll_bar_bottom_border, last_scroll_bar_drag_pos,
-	Vw32_gab_focus_on_raise, Vw32_capslock_is_shiftlock): New
-	variables.
+	(vertical_scroll_bar_min_handle, vertical_scroll_bar_top_border)
+	(vertical_scroll_bar_bottom_border, last_scroll_bar_drag_pos)
+	(Vw32_gab_focus_on_raise, Vw32_capslock_is_shiftlock):
+	New variables.
 	(w32_frame_up_to_date): Block input.
 	(do_line_dance): Use DC while erasing, release at end.
 	(show_mouse_face): Use column and endcolumn calculated at start of
 	loop.
-	(my_create_scrollbar, my_show_window, my_set_window_pos,
-	my_set_focus) [! ATTACH_THREADS]: Send message to window instead
-	of invoking Windows procedure.
-	(x_scroll_bar_create, x_scroll_bar_move, x_scroll_bar_handle_click,
-	x_scroll_bar_report_motion): Use SCROLLINFO for proportional handle.
+	(my_create_scrollbar, my_show_window, my_set_window_pos, my_set_focus)
+	[! ATTACH_THREADS]: Send message to window instead of invoking
+	Windows procedure.
+	(x_scroll_bar_create, x_scroll_bar_move, x_scroll_bar_handle_click)
+	(x_scroll_bar_report_motion): Use SCROLLINFO for proportional handle.
 	(x_scroll_bar_set_handle): Create proportional sized scroll handle.
 	(w32_set_vertical_scroll_bar): Size handle according to how much
 	is showing in window.
@@ -5816,7 +5813,7 @@
 	by a mouse down event.
 	(x_to_win32_color): Support for X Windows RGB string specifications.
 
- 	* w32menu.c (get_frame_menubar_event): Check for the possibility
+	* w32menu.c (get_frame_menubar_event): Check for the possibility
 	of a menu-bar button.  A menu-bar button is a caption on the menu
 	bar with no submenu.
 	(set_frame_menubar): Correctly handle menu-bar buttons.
@@ -5838,15 +5835,15 @@
 
 1997-09-02  Nico Francois  <nico.francois@scala.nl>
 
- 	* w32menu.c (single_keymap_panes): Fixed problem with 'descrip'
+	* w32menu.c (single_keymap_panes): Fixed problem with 'descrip'
 	lisp object not being protected properly (GCPRO).
- 	(get_single_keymap_event): Fixed problem with 'descrip' lisp
+	(get_single_keymap_event): Fixed problem with 'descrip' lisp
 	object not being protected properly (GCPRO).
 	(name_is_separator): New function.
 	(list_of_panes): If a pane's name is empty ("") items are now
 	placed in the main popup instead of a blank-named submenu.  This
 	seems to be an undocumented feature of x-popup-menu.
- 	(list_of_items): New argument HMENU.
+	(list_of_items): New argument HMENU.
 	Use 1 and 0 instead of Qt and Qnil for enable in add_menu_item
 
 1997-09-02  Geoff Voelker  <voelker@cs.washington.edu>
@@ -5860,7 +5857,7 @@
 	override CRT routines.
 
 	* w32inevt.c (key_event): New parameter isdead. Set isdead if the
- 	key press was done using a dead key.
+	key press was done using a dead key.
 
 	* w32term.c (w32_read_socket): Pass in new parameter to key_event.
 	Let key_event determine whether key is dead.
@@ -6073,8 +6070,8 @@
 	(Fcompleting_read): New argument INHERIT_INPUT_METHOD.
 
 	* lisp.h (DEFUN_ARGS_8): New macro.
-	(Fcompleting_read, Fread_from_minibuffer, Fread_string,
-	Fread_no_blanks_input): Number of arguments fixed.
+	(Fcompleting_read, Fread_from_minibuffer, Fread_string)
+	(Fread_no_blanks_input): Number of arguments fixed.
 
 	* eval.c (Feval): Handle a subr which takes 8 arguments.
 	(Ffuncall): Likewise.
@@ -6278,7 +6275,7 @@
 
 	* emacs.c (main): Fix previous change.
 
-1997-08-11 +03  Eli Zaretskii  <eliz@is.elta.co.il>
+1997-08-11  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* dosfns.c (init_dosfns): Avoid calling DOS memory-allocation
 	service, NT DPMI server will crash Emacs in DOS box, if we do.
@@ -6612,8 +6609,8 @@
 	* fontset.c (syms_of_fontset): Set Vhighlight_wrong_size_font to
 	Qnil.
 
-	* coding.h (CODING_REQUIRE_TEXT_CONVERSION,
-	CODING_REQUIRE_EOL_CONVERSION, CODING_REQUIRE_CONVERSION): Deleted.
+	* coding.h (CODING_REQUIRE_TEXT_CONVERSION)
+	(CODING_REQUIRE_EOL_CONVERSION, CODING_REQUIRE_CONVERSION): Deleted.
 	(CODING_REQUIRE_NO_CONVERSION): New macro.
 	(CODING_MAY_REQUIRE_NO_CONVERSION): New macro.
 
@@ -7100,9 +7097,9 @@
 	* editfns.c (Fformat): Add second argument in call to Ftruncate.
 
 	* alloc.c, buffer.c, casefiddle.c, casetab.c, category.c,
-	category.h, ccl.c, coding.c, editfns.c, fileio.c, fns.c, indent.c,
-	intervals.c, intervals.h, keymap.c, lisp.h, minibuf.c, print.c,
-	syntax.c, syntax.h, sysdep.c, textprop.c, xfns.c: Fix numerous
+	* category.h, ccl.c, coding.c, editfns.c, fileio.c, fns.c, indent.c,
+	* intervals.c, intervals.h, keymap.c, lisp.h, minibuf.c, print.c,
+	* syntax.c, syntax.h, sysdep.c, textprop.c, xfns.c: Fix numerous
 	bugs with inappropriate mixing of Lisp_Object with int.
 	* config.in (RE_TRANSLATE): Define to extract integers from
 	array of Lisp_Objects.
@@ -7184,7 +7181,7 @@
 
 	* fileio.c (Finsert_file_contents): Doc-string fixed.  Call
 	Ffind_operation_coding_system.
-	(Fwrite_region):  Call Ffind_operation_coding_system.
+	(Fwrite_region): Call Ffind_operation_coding_system.
 
 	* callproc.c: Call Ffind_operation_coding_system.
 
@@ -7229,8 +7226,8 @@
 
 	* s/ms-w32.h: Duplicate undefs from config.in to check completeness.
 	(STDC_HEADERS, HAVE_TZNAME, HAVE_MKTIME): Define to have a value.
-	(HAVE_GETPAGESIZE, HAVE_SETLOCALE, HAVE_SHUTDOWN, HAVE_TZSET,
-	HAVE_LIMITS_H, HAVE_STRERROR): Define.
+	(HAVE_GETPAGESIZE, HAVE_SETLOCALE, HAVE_SHUTDOWN, HAVE_TZSET)
+	(HAVE_LIMITS_H, HAVE_STRERROR): Define.
 	[HAVE_NTGUI] (HAVE_MENUS): Define.
 	(SYSTEM_PURESIZE_EXTRA): Increase value.
 
@@ -7503,9 +7500,9 @@
 
 	* coding.c (Vcoding_system_alist): Deleted.
 	(Qcoding_system_spec): Renamed from Qcoding_system_vector.
-	(Vdefault_process_coding_system, Vfile_coding_system_alist,
-	Vprocess_coding_system_alist, Vnetwork_coding_system_alist): New
-	variables.
+	(Vdefault_process_coding_system, Vfile_coding_system_alist)
+	(Vprocess_coding_system_alist, Vnetwork_coding_system_alist):
+	New variables.
 	(Ffind_coding_system): Adjusted for the above change.
 	(syms_of_coding): Declare them as lisp variables.
 	(Fcheck_coding_system): Pass list as DATA argument to Fsignal.
@@ -7957,7 +7954,7 @@ Thu May 15 22:21:18 1997  Ken'ichi Handa  <handa@diazepam.gnu.ai.mit.edu>
 	argument C is an invalid character code.
 	(Fconcat_chars): Use alloca instead of malloc.
 
-	* charset.h (CHAR_STRING):  Comment reflect the above change.
+	* charset.h (CHAR_STRING): Comment reflect the above change.
 
 	* coding.h: Name change through the code:
 	coding-category-internal => coding-category-emacs-mule,
@@ -8042,7 +8039,7 @@ Thu May 15 22:21:18 1997  Ken'ichi Handa  <handa@diazepam.gnu.ai.mit.edu>
 	Pass index character as a Lisp_Object.
 
 	* keymap.c (Fmake_keymap): Make a char-table.
-	(access_keymap, store_in_keymap): Likewise,
+	(access_keymap, store_in_keymap): Likewise.
 	(describe_map, Fset_keymap_parent, Faccessible_keymaps): Likewise.
 	(Fwhere_is_internal, Fcopy_keymap): Handle a char-table.
 	(copy_keymap_1, accessible_keymaps_char_table): New subroutines.
@@ -8068,10 +8065,10 @@ Thu May 15 22:21:18 1997  Ken'ichi Handa  <handa@diazepam.gnu.ai.mit.edu>
 	* charset.h (unify_char): Extern it.
 
 	* coding.c (Valternate_charset_table): The variable deleted.
-	(Venable_character_unification,
-	Vstandard_character_unification_table_for_read,
-	Vstandard_character_unification_table_for_write,
-	Qcharacter_unification_table): New variables.
+	(Venable_character_unification)
+	(Vstandard_character_unification_table_for_read)
+	(Vstandard_character_unification_table_for_write)
+	(Qcharacter_unification_table): New variables.
 	(syms_of_coding): Initialize and declare them.
 	(DECODE_ISO_CHARACTER): Modified to handle a character unification
 	table instead of Valternate_charset_table.
@@ -8400,9 +8397,9 @@ Thu May 15 22:21:18 1997  Ken'ichi Handa  <handa@diazepam.gnu.ai.mit.edu>
 	New members Scomment_fence, Sstring_fence.
 	(SYNTAX_ENTRY): Depending on the value of SYNTAX_ENTRY_VIA_PROPERTY
 	may do a lookup for syntax table in gl_state.
-	(UPDATE_SYNTAX_TABLE_FORWARD, UPDATE_SYNTAX_TABLE_BACKWARD,
-	UPDATE_SYNTAX_TABLE, SETUP_SYNTAX_TABLE,
-	SETUP_SYNTAX_TABLE_FOR_OBJECT): New macros.
+	(UPDATE_SYNTAX_TABLE_FORWARD, UPDATE_SYNTAX_TABLE_BACKWARD)
+	(UPDATE_SYNTAX_TABLE, SETUP_SYNTAX_TABLE)
+	(SETUP_SYNTAX_TABLE_FOR_OBJECT): New macros.
 	(struct gl_state_s): New struct.
 
 	* textprop.c: Style of comments corrected.
@@ -8523,14 +8520,14 @@ Thu May 15 22:21:18 1997  Ken'ichi Handa  <handa@diazepam.gnu.ai.mit.edu>
 	(copy_category_table, Fmodify_category_entry): Adjusted for the
 	new structure of Lisp_Char_Table.
 
-	* ccl.c: (ccl_driver): Fix bug of the case CCL_WriteArrayReadJump.
+	* ccl.c (ccl_driver): Fix bug of the case CCL_WriteArrayReadJump.
 
 	* charset.h (CHARSET_TABLE_ENTRY): Handle ASCII charset correctly.
 	(SPLIT_NON_ASCII_CHAR, SPLIT_CHAR): Return -1 in C2 for DIMENSION1
 	characters.
 
-	* charset.c (non_ascii_char_to_string, update_charset_table,
-	Fsplit_char): Adjusted for the above change.
+	* charset.c (non_ascii_char_to_string, update_charset_table)
+	(Fsplit_char): Adjusted for the above change.
 
 	* coding.c (detect_coding_iso2022, detect_coding_mask): Ignore
 	invalid ESC sequence for ISO 2022.
@@ -8546,8 +8543,8 @@ Thu May 15 22:21:18 1997  Ken'ichi Handa  <handa@diazepam.gnu.ai.mit.edu>
 	* fns.c (copy_sub_char_table): New function.
 	(Fcopy_sequence): Call copy_sub_char_table for copying a sub char
 	table.
-	(Fchar_table_range, Fset_char_table_range, map_char_table,
-	Fmap_char_table): Handle multibyte characters correctly.
+	(Fchar_table_range, Fset_char_table_range, map_char_table)
+	(Fmap_char_table): Handle multibyte characters correctly.
 
 	* fontset.c (Vhighlight_wrong_size_font, Vclip_large_size_font):
 	New variables.
@@ -8773,7 +8770,7 @@ Sun Apr  6 10:26:53 1997  Eli Zaretskii  <eliz@wombat.gnu.ai.mit.edu>
 
 1997-03-05  NIIBE Yutaka  <gniibe@mri.co.jp>
 
-	* indent.c: (compute_motion): When POS >= TO, don't call
+	* indent.c (compute_motion): When POS >= TO, don't call
 	find_before_next_newline as it assumes POS < TO.
 
 1997-03-02  Ken'ichi Handa  <handa@etl.go.jp>
@@ -8864,9 +8861,9 @@ Sun Apr  6 10:26:53 1997  Eli Zaretskii  <eliz@wombat.gnu.ai.mit.edu>
 	* keymap.c (describe_vector): Do not describe deeper char-table if
 	enable-multibyte-characters is nil.
 
-	* process.c (proc_decode_coding_system,
-	proc_encode_coding_system): Changed to array of pointers to struct
-	coding_system to reduce the size of dumped Emacs.
+	* process.c (proc_decode_coding_system, proc_encode_coding_system):
+	Changed to array of pointers to struct coding_system to reduce the
+	size of dumped Emacs.
 	(create_process, Fopen_network_stream): Allocate them dynamically.
 	(init_process): Initialize these pointers to NULL.
 	(Fstart_process, Fopen_network_stream): Do not perform character
@@ -8915,36 +8912,36 @@ Sun Apr  6 10:26:53 1997  Eli Zaretskii  <eliz@wombat.gnu.ai.mit.edu>
 
 	* lread.c (Fload): Call Vload_source_file_function with 4 args.
 
-1997-02-22 Tsugutomo ENAMI  <enami@ba2.so-net.or.jp>
+1997-02-22  Tsugutomo ENAMI  <enami@ba2.so-net.or.jp>
 
 	* regex.c: Include charset.h and category.h
 
-	[!emacs] (BASE_LEADING_CODE_P, WORD_BOUNDARY_P,	CHAR_HEAD_P,
-	SINGLE_BYTE_CHAR_P, SAME_CHARSET_P, MULTIBYTE_FORM_LENGTH,
-	STRING_CHAR_AND_LENGTH, GET_CHAR_AFTER_2, GET_CHAR_BEFORE_2):
+	[!emacs] (BASE_LEADING_CODE_P, WORD_BOUNDARY_P, CHAR_HEAD_P)
+	(SINGLE_BYTE_CHAR_P, SAME_CHARSET_P, MULTIBYTE_FORM_LENGTH)
+	(STRING_CHAR_AND_LENGTH, GET_CHAR_AFTER_2, GET_CHAR_BEFORE_2):
 	New dummy macros.
 
 	(enum re_opcode_t): New member categoryspec and
 	notcategoryspec.
 
-	(STORE_CHARACTER_AND_INCR, EXTRACT_CHARACTER,
-	CHARSET_LOOKUP_RANGE_TABLE_WITH_COUNT,
-	CHARSET_LOOKUP_RANGE_TABLE, CHARSET_BITMAP_SIZE,
-	CHARSET_RANGE_TABLE_EXISTS_P, CHARSET_RANGE_TABLE
-	CHARSET_PAST_RANGE_TABLE): New macros.
+	(STORE_CHARACTER_AND_INCR, EXTRACT_CHARACTER)
+	(CHARSET_LOOKUP_RANGE_TABLE_WITH_COUNT)
+	(CHARSET_LOOKUP_RANGE_TABLE, CHARSET_BITMAP_SIZE)
+	(CHARSET_RANGE_TABLE_EXISTS_P, CHARSET_RANGE_TABL)
+	(CHARSET_PAST_RANGE_TABLE): New macros.
 
 	(TRANSLATE): Cast return value to unsigned char, not char.
 
 	(struct range_table_work_area): New structure.
 
-	(EXTEND_RANGE_TABLE_WORK_AREA, SET_RANGE_TABLE_WORK_AREA,
-	FREE_RANGE_TABLE_WORK_AREA, CLEAR_RANGE_TABLE_WORK_USED,
-	RANGE_TABLE_WORK_USED, RANGE_TABLE_WORK_ELT): New macros.
+	(EXTEND_RANGE_TABLE_WORK_AREA, SET_RANGE_TABLE_WORK_AREA)
+	(FREE_RANGE_TABLE_WORK_AREA, CLEAR_RANGE_TABLE_WORK_USED)
+	(RANGE_TABLE_WORK_USED, RANGE_TABLE_WORK_ELT): New macros.
 	(FREE_STACK_RETURN): Call FREE_RANGE_TABLE_WORK_AREA.
 
 	(regex_compile): Declare `c' and `c1' as int to store
 	multibyte characters.
-	Declare range_table_work and initialize	it.
+	Declare range_table_work and initialize it.
 	Initialize bufp->multibyte to 0 if not emacs.
 	For case '[' and `default', code re-written to handle
 	multibyte characters.
@@ -9033,7 +9030,7 @@ Sun Apr  6 10:26:53 1997  Eli Zaretskii  <eliz@wombat.gnu.ai.mit.edu>
 
 	* xdisp.c (try_window): Change the way of calculation of tab
 	offset.  We now use val.tab_offset to maintain tab offset.
- 	Removed local variable tab_offset.
+	Removed local variable tab_offset.
 	(try_window_id): Likewise.
 
 	* indent.c: Include "charset.h".
@@ -9085,8 +9082,8 @@ Sun Apr  6 10:26:53 1997  Eli Zaretskii  <eliz@wombat.gnu.ai.mit.edu>
 	(xterm.o): Depend on charset.h, ccl.h, and fontset.h.
 	(category.o, ccl.o, charset.o, coding.o, fontset.o): New targets.
 
-	* alloc.c (Fmake_char_table): Typo in doc-string fixed.	 Handle
-	the case that PURPOSE is nil (in a deeper char-table).
+	* alloc.c (Fmake_char_table): Typo in doc-string fixed.
+	Handle the case that PURPOSE is nil (in a deeper char-table).
 	(Fmake_bool_vector): Make correct size of Lisp_Object for
 	bool-vector.
 
@@ -9533,8 +9530,8 @@ Sun Feb  2 10:36:26 1997  Eli Zaretskii  <eliz@wombat.gnu.ai.mit.edu>
 	* term.c (term_init): Use new name initialize_w32_display.
 
 	* w32.c, w32console.c, w32faces.c, w32fns.c, w32heap.c,
-	w32inevt.c, w32menu.c, w32proc.c, w32select.c, w32term.c,
-	w32xfns.c, win32.h, w32inevt.h, w32term.h: Change all uses of win95,
+	* w32inevt.c, w32menu.c, w32proc.c, w32select.c, w32term.c,
+	* w32xfns.c, win32.h, w32inevt.h, w32term.h: Change all uses of win95,
 	winnt, and win32 into Windows 95, Windows NT, and W32, respectively.
 	Expand "win" substring in variables referring to Microsoft Windows
 	constructs into "windows".
@@ -9556,7 +9553,7 @@ Sun Feb  2 10:36:26 1997  Eli Zaretskii  <eliz@wombat.gnu.ai.mit.edu>
 1997-01-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* keyboard.c (interrupt_signal): Make emergency exit work on MSDOS
-	frames.  Block further SIGINTs while `interrupt_signal'	runs.
+	frames.  Block further SIGINTs while `interrupt_signal' runs.
 
 	* msdos.c (sigprocmask, sig_suspender): New functions, implement
 	signal blocking on MSDOS.
@@ -9733,7 +9730,7 @@ Sun Feb  2 10:36:26 1997  Eli Zaretskii  <eliz@wombat.gnu.ai.mit.edu>
 	* xmenu.c (single_keymap_panes): New arg DEPTH.
 	Cut off recursion at that depth.  Callers changed.
 
-1996-12-23 +02  Eli Zaretskii  <eliz@is.elta.co.il>
+1996-12-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* msdos.c (dos_set_keyboard): Test whether KEYB.COM is installed
 	for international keyboard support.
@@ -9835,7 +9832,7 @@ Sun Feb  2 10:36:26 1997  Eli Zaretskii  <eliz@wombat.gnu.ai.mit.edu>
 
 	* xfns.c (x_set_scroll_bar_width): Reject a width that's too small.
 
-1006-12-10  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+1996-12-10  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
 	* buffer.c (syms_of_buffer): Doc fix (transient-mark-mode).
 
@@ -9952,9 +9949,9 @@ Sun Feb  2 10:36:26 1997  Eli Zaretskii  <eliz@wombat.gnu.ai.mit.edu>
 1996-11-18  Geoff Voelker  <voelker@cs.washington.edu>
 
 	* emacs.c, frame.c, frame.h, keyboard.c, nt.c, nt.h,
-	ntheap.c, ntheap.h, ntinevt.c, ntinevt.h, ntproc.c, ntterm.c,
-	termhooks.h, unexnt.c, w32faces.c, w32fns.c, w32menu.c, w32reg.c,
-	w32select.c, w32term.c, w32term.h, w32xfns.c, s/windowsnt.h:
+	* ntheap.c, ntheap.h, ntinevt.c, ntinevt.h, ntproc.c, ntterm.c,
+	* termhooks.h, unexnt.c, w32faces.c, w32fns.c, w32menu.c, w32reg.c,
+	* w32select.c, w32term.c, w32term.h, w32xfns.c, s/windowsnt.h:
 	Change identifiers of the form win32* to w32*.
 
 	* window.c (special-display-p, same-window-p): Add missing
@@ -10099,11 +10096,11 @@ Sun Feb  2 10:36:26 1997  Eli Zaretskii  <eliz@wombat.gnu.ai.mit.edu>
 	Reorganize function definitions so etags finds them.
 	* abbrev.c (Finsert_abbrev_table_description).
 	* editfns.c (Finsert_and_inherit_before_markers).
-	* eval.c (Frun_hook_with_args, Frun_hook_with_args_until_success,
-	Frun_hook_with_args_until_failure).
+	* eval.c (Frun_hook_with_args, Frun_hook_with_args_until_success)
+	(Frun_hook_with_args_until_failure).
 	* window.c (Fcurrent_window_configuration).
-	* xselect.c (Fx_own_selection_internal, Fx_get_selection_internal,
-	Fx_disown_selection_internal).
+	* xselect.c (Fx_own_selection_internal, Fx_get_selection_internal)
+	(Fx_disown_selection_internal).
 
 1996-10-30  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
@@ -10211,7 +10208,7 @@ Sun Feb  2 10:36:26 1997  Eli Zaretskii  <eliz@wombat.gnu.ai.mit.edu>
 
 1996-10-05  Marcus G. Daniels  <marcus@coulee.tdb.com>
 
-	* xfns.c (x_set_internal_border_width):  Only change
+	* xfns.c (x_set_internal_border_width): Only change
 	an edit_widget's internal_border_width for the toolkit case.
 
 1996-10-04  Richard Stallman  <rms@ethanol.gnu.ai.mit.edu>
@@ -10496,7 +10493,7 @@ Fri Sep 20 02:37:37 1996  Marcus Daniels  <marcus@sayre.sysc.pdx.edu>
 	necessarily the same any more.
 	(change_frame_size_1): Use FRAME_WINDOW_WIDTH to check for changes.
 	Give `set_window_width' the window width value.
- 	Use new macro SET_FRAME_WIDTH.
+	Use new macro SET_FRAME_WIDTH.
 
 	* xterm.h (VERTICAL_SCROLL_BAR_INSIDE_WIDTH): Add frame as an
 	argument, and use it to decrease the width in the case of a
@@ -10695,8 +10692,8 @@ Fri Sep 20 02:37:37 1996  Marcus Daniels  <marcus@sayre.sysc.pdx.edu>
 	* print.c: Add #n=object, #n#, and #:symbol constructs to printer.
 	(PRINTDECLARE): New macro to declare required variables.
 	(PRINTPREPARE, PRINTFINISH): Set printed_genyms to nil.
-	(Fwrite_char, write_string, write_string_1, Fterpri, Fprin1,
-	Fprin1_to_string, Fprinc, Fprint): Use new macro PRINTDECLARE.
+	(Fwrite_char, write_string, write_string_1, Fterpri, Fprin1)
+	(Fprin1_to_string, Fprinc, Fprint): Use new macro PRINTDECLARE.
 	(print): Print uninterned symbols readable.
 	(syms_of_print): Defvar `print-gensym', staticpro printed_gensyms.
 
@@ -10810,10 +10807,10 @@ Fri Sep 20 02:37:37 1996  Marcus Daniels  <marcus@sayre.sysc.pdx.edu>
 
 	* config.in (mktime): Define to emacs_mktime if we are using our own
 	mktime, since Nextstep doesn't let Emacs redefine the builtin mktime.
-	* Makefile.in (MKTIME_OBJ):  Use our mktime instead of NEXTSTEP's,
+	* Makefile.in (MKTIME_OBJ): Use our mktime instead of NEXTSTEP's,
 	since NEXTSTEP's wrongly ignores TZ.
 	(mktime): #undef, to avoid messing up the file name mktime.c.
-	* editfns.c (Fencode_time):  Remove NEXTSTEP workaround;
+	* editfns.c (Fencode_time): Remove NEXTSTEP workaround;
 	we now use our mktime instead.
 
 1996-09-03  Richard Stallman  <rms@ethanol.gnu.ai.mit.edu>
@@ -11100,7 +11097,22 @@ See ChangeLog.6 for earlier changes.
 
     Copyright (C) 1997, 1998, 2001, 2002, 2003, 2004, 2005, 2006, 2007
 	Free Software Foundation, Inc.
-  Copying and distribution of this file, with or without modification,
-  are permitted provided the copyright notice and this notice are preserved.
+
+  This file is part of GNU Emacs.
+
+  GNU Emacs is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2, or (at your option)
+  any later version.
+
+  GNU Emacs is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with GNU Emacs; see the file COPYING.  If not, write to the
+  Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+  Boston, MA 02110-1301, USA.
 
 ;;; arch-tag: 3b03e091-1123-4031-b67d-41683932cc48

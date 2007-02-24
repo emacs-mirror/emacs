@@ -70,7 +70,7 @@ to toggle between display as an image and display as text."
   (if (display-images-p)
       (message "%s" (concat
 		     (substitute-command-keys
-		      "Type \\[image-toggle-display] to view the image as ")
+		      "Type \\[image-toggle-display] to view as ")
 		     (if (get-text-property (point-min) 'display)
 			 "text" "an image") "."))))
 
@@ -111,7 +111,8 @@ information on these modes."
 			 elt))
 		     auto-mode-alist))))
     (if (assoc-default buffer-file-name mode-alist 'string-match)
-	(let ((auto-mode-alist mode-alist))
+	(let ((auto-mode-alist mode-alist)
+	      (magic-mode-alist nil))
 	  (set-auto-mode)
 	  (image-minor-mode t))
       (image-mode))))

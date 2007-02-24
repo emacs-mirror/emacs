@@ -5,7 +5,7 @@ into these four groups.
 (1) QJ-b5.tit (renamed from .../cxterm/dict/big5/QJ.tit)
     QJ.tit (copied from .../cxterm/dict/gb/QJ.tit)
 
-These are verbatim copies of those included in the directory
+They are verbatim copies of those included in the directory
 contrib/clients/cxterm of the distribution of X11R6.  Each file
 contains a license notice.
 
@@ -14,45 +14,22 @@ contains a license notice.
     SW.tit (copied from .../cxterm/dict/gb/SW.tit)
     TONEPY.tit (copied from .../cxterm/dict/gb/TONEPY.tit)
 
-These are verbatim copies of those included in the directory
-contrib/clients/cxterm of the distribution of X11R6.  As those files
-themselves don't contain license notices, the section 6 of the file
-.../cxterm/README should cover them:
-
-============================================================
-6. COPYRIGHTS AND TERMS
-
-This copyright and permission notice outlines the rights and
-restrictions covering most parts of this distribution of cxterm.
-Cxterm is modified from xterm, which is copyrighted by MIT.
-Some individual files are covered by other copyrights.  Utils
-parts are redistributed software covered by their own copyrights
-and terms.  Please see individual file's copyright notices.
-
-X11R6 CXTERM (C) 1994 BY YONGGUANG ZHANG.
-X11R5 CXTERM (C) 1991 BY YONGGUANG ZHANG AND MAN-CHI PONG.
-
-Permission to use, copy, modify, and distribute this software and
-its documentation for any purpose is hereby granted without fee,
-provided that this entire copyright and permission notice appear
-in all such copies, and that the name of the authors may not be
-used to endorse or promote products derived from this material
-without specific prior written permission.  The authors make no
-representations about the suitability of this software for any
-purpose.  It is provided "as is" without express or implied warranty.
-============================================================
+They are copies of those included in the directory
+contrib/clients/cxterm of the distribution of X11R6.  As the original
+files don't contain copyright and license notices, a proper notice is
+extracted from .../cxterm/README and added at the head of each file.
 
 (3) 4Corner.tit
     ARRAY30.tit
     ETZY.tit
     ZOZY.tit
 
-These are versions modified by the original authors from those
+They are versions modified by the original authors from those
 distributed with X11R5 to include proper copyright notices.  Each file
 contains a license notice.
 
 (4) ECDICT.tit, Punct-b5.tit, Punct.tit
 
-These are verbatim copies of those distributed at
+They are verbatim copies of those distributed at
 ftp://ftp.ifcss.org/pub/software/.  Each file contains a license
 notice.

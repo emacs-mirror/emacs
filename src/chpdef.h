@@ -1,3 +1,8 @@
+/*
+ * The code here is forced by the interface, and is not subject to
+ * copyright, constituting the only possible expression of the
+ * algorithm in this format.
+ */
 #define	CHP$_END	0
 #define	CHP$_ACCESS	1
 #define	CHP$_FLAGS	2

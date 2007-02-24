@@ -920,9 +920,10 @@ and move to the line in the SGML document that caused it."
 		      (or sgml-saved-validate-command
 			  (concat sgml-validate-command
 				  " "
-				  (let ((name (buffer-file-name)))
-				    (and name
-					 (file-name-nondirectory name))))))))
+				  (shell-quote-argument
+				   (let ((name (buffer-file-name)))
+				     (and name
+					  (file-name-nondirectory name)))))))))
   (setq sgml-saved-validate-command command)
   (save-some-buffers (not compilation-ask-about-save) nil)
   (compilation-start command))

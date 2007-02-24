@@ -106,7 +106,7 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
   char tembuf[DBL_MAX_10_EXP + 100];
 
   /* Size of sprintf_buffer.  */
-  int size_allocated = sizeof (tembuf);
+  unsigned size_allocated = sizeof (tembuf);
 
   /* Buffer to use for sprintf.  Either tembuf or same as BIG_BUFFER.  */
   char *sprintf_buffer = tembuf;
@@ -136,12 +136,12 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
     {
       if (*fmt == '%')	/* Check for a '%' character */
 	{
-	  int size_bound = 0;
+	  unsigned size_bound = 0;
 	  int width;		/* Columns occupied by STRING.  */
 
 	  fmt++;
 	  /* Copy this one %-spec into fmtcpy.  */
-	  string = (unsigned char *)fmtcpy;
+	  string = (unsigned char *) fmtcpy;
 	  *string++ = '%';
 	  while (1)
 	    {
@@ -152,11 +152,11 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
 		     This might be a field width or a precision; e.g.
 		     %1.1000f and %1000.1f both might need 1000+ bytes.
 		     Parse the width or precision, checking for overflow.  */
-		  int n = *fmt - '0';
+		  unsigned n = *fmt - '0';
 		  while ('0' <= fmt[1] && fmt[1] <= '9')
 		    {
 		      if (n * 10 / 10 != n
-			  || (n = n * 10 + (fmt[1] - '0')) < 0)
+			  || (n = n * 10 + (fmt[1] - '0')) < n)
 			error ("Format width or precision too large");
 		      *string++ = *++fmt;
 		    }
@@ -164,7 +164,7 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
 		  if (size_bound < n)
 		    size_bound = n;
 		}
-	      else if (*fmt == '-' || *fmt == ' ' || *fmt == '.')
+	      else if (*fmt == '-' || *fmt == ' ' || *fmt == '.' || *fmt == '+')
 		;
 	      else
 		break;
@@ -174,10 +174,9 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
 
 	  /* Make the size bound large enough to handle floating point formats
 	     with large numbers.  */
-	  size_bound += DBL_MAX_10_EXP + 50;
-
-	  if (size_bound < 0)
+	  if (size_bound + DBL_MAX_10_EXP + 50 < size_bound)
 	    error ("Format width or precision too large");
+	  size_bound += DBL_MAX_10_EXP + 50;
 
 	  /* Make sure we have that much.  */
 	  if (size_bound > size_allocated)
@@ -213,7 +212,7 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
 		abort ();
 	      sprintf (sprintf_buffer, fmtcpy, args[cnt++]);
 	      /* Now copy into final output, truncating as nec.  */
-	      string = (unsigned char *)sprintf_buffer;
+	      string = (unsigned char *) sprintf_buffer;
 	      goto doit;
 
 	    case 'f':
@@ -227,7 +226,7 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
 		u.half[1] = args[cnt++];
 		sprintf (sprintf_buffer, fmtcpy, u.d);
 		/* Now copy into final output, truncating as nec.  */
-		string = (unsigned char *)sprintf_buffer;
+		string = (unsigned char *) sprintf_buffer;
 		goto doit;
 	      }
 
@@ -240,13 +239,13 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
 		minlen = atoi (&fmtcpy[1]);
 	      if (lispstrings)
 		{
-		  string = ((struct Lisp_String *)args[cnt])->data;
-		  tem = STRING_BYTES ((struct Lisp_String *)args[cnt]);
+		  string = ((struct Lisp_String *) args[cnt])->data;
+		  tem = STRING_BYTES ((struct Lisp_String *) args[cnt]);
 		  cnt++;
 		}
 	      else
 		{
-		  string = (unsigned char *)args[cnt++];
+		  string = (unsigned char *) args[cnt++];
 		  tem = strlen (string);
 		}
 	      width = strwidth (string, tem);

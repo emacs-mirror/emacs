@@ -4112,9 +4112,9 @@ is not greater than 5!} when you evaluate it in the usual way:
 
 @smallexample
 @group
-(if (> 4 5)                             ; @r{if-part}
-    (message "5 is greater than 4!")    ; @r{then-part}
-  (message "4 is not greater than 5!")) ; @r{else-part}
+(if (> 4 5)                               ; @r{if-part}
+    (message "4 falsely greater than 5!") ; @r{then-part}
+  (message "4 is not greater than 5!"))   ; @r{else-part}
 @end group
 @end smallexample
 

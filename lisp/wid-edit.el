@@ -404,7 +404,7 @@ new value.")
     ;; We want to avoid the face with image buttons.
     (unless (widget-get widget :suppress-face)
       (overlay-put overlay 'face (widget-apply widget :button-face-get))
-      (overlay-put overlay 'mouse-face 
+      (overlay-put overlay 'mouse-face
 		   (widget-apply widget :mouse-face-get)))
     (overlay-put overlay 'pointer 'hand)
     (overlay-put overlay 'follow-link follow-link)
@@ -1852,7 +1852,9 @@ If END is omitted, it defaults to the length of LIST."
 ;;; The `editable-field' Widget.
 
 (define-widget 'editable-field 'default
-  "An editable text field."
+  "An editable text field.
+Note: In an `editable-field' widget, the `%v' escape must be preceded
+by some other text in the `:format' string (if specified)."
   :convert-widget 'widget-value-convert-widget
   :keymap widget-field-keymap
   :format "%v"

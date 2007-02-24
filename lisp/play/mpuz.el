@@ -262,8 +262,9 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
   (fillarray mpuz-board nil)		; erase the board
   ;; A,B,C,D & E, are the five rows of our multiplication.
   ;; Choose random values, discarding cases with leading zeros in C or D.
-  (let* ((A (+ 112 (random 888)))
-	 (min (1+ (/ 1000 A)))
+  (let* ((A (if mpuz-allow-double-multiplicator (+ 112 (random 888))
+	      (+ 125 (random 875))))
+	 (min (1+ (/ 999 A)))
 	 (B1 (+ min (random (- 10 min))))
 	 B2 C D E)
     (while (if (= B1 (setq B2 (+ min (random (- 10 min)))))

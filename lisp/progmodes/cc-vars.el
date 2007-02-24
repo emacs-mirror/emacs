@@ -1168,7 +1168,7 @@ OFFSET can specify an offset in several different ways:
   If OFFSET is a symbol with a value binding then that value, which
   must be an integer, is used as relative offset.
 
-  If OFFSET is a vector then it's first element, which must be an
+  If OFFSET is a vector then its first element, which must be an
   integer, is used as an absolute indentation column.  This overrides
   the previous base indentation and the relative offsets applied to
   it, and it becomes the new base indentation.

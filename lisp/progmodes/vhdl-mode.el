@@ -1147,7 +1147,7 @@ default setting as example)."
   (concat
    "*Specifies how the name for the components package is obtained.
 The components package is a package containing all component declarations for
-the current design.  It's name can be obtained by modifying the project name
+the current design.  Its name can be obtained by modifying the project name
 \(e.g. attaching or stripping off a substring).  If no project is defined, the
 DIRECTORY entry is chosen."
    vhdl-name-doc-string)
@@ -2434,7 +2434,7 @@ conversion."
     (insert-file-contents filename t)))
 
 (defun vhdl-sort-alist (alist)
-  "Sort alist."
+  "Sort ALIST."
   (sort alist (function (lambda (a b) (string< (car a) (car b))))))
 
 (defun vhdl-get-subdirs (directory)
@@ -5239,7 +5239,7 @@ Return a valid value only."
 (defun vhdl-set-offset (symbol offset &optional add-p)
   "Change the value of a syntactic element symbol in `vhdl-offsets-alist'.
 SYMBOL is the syntactic element symbol to change and OFFSET is the new
-offset for that syntactic element.  Optional ADD says to add SYMBOL to
+offset for that syntactic element.  Optional ADD-P says to add SYMBOL to
 `vhdl-offsets-alist' if it doesn't already appear there."
   (interactive
    (let* ((langelem
@@ -5765,7 +5765,7 @@ keyword."
   "If the word at the current position corresponds to an \"end\"
 keyword, then return a vector containing enough information to find
 the corresponding \"begin\" keyword, else return nil.  The keyword to
-search backward for is aref 0.     The column in which the keyword must
+search backward for is aref 0.  The column in which the keyword must
 appear is aref 1 or nil if any column is suitable.  The supplementary
 keyword to search forward for is aref 2 or nil if this is not
 required.  If aref 3 is t, then the \"begin\" keyword may be found in
@@ -6424,8 +6424,8 @@ statement if already at the beginning of one."
 ;; Defuns for calculating the current syntactic state:
 
 (defun vhdl-get-library-unit (bod placeholder)
-  "If there is an enclosing library unit at bod, with it's \"begin\"
-keyword at placeholder, then return the library unit type."
+  "If there is an enclosing library unit at BOD, with its \"begin\"
+keyword at PLACEHOLDER, then return the library unit type."
   (let ((here (vhdl-point 'bol)))
     (if (save-excursion
 	  (goto-char placeholder)
@@ -6448,7 +6448,7 @@ keyword at placeholder, then return the library unit type."
 
 (defun vhdl-get-block-state (&optional lim)
   "Finds and records all the closest opens.
-lim is the furthest back we need to search (it should be the
+LIM is the furthest back we need to search (it should be the
 previous libunit keyword)."
   (let ((here (point))
 	(lim (or lim (point-min)))
@@ -6514,8 +6514,8 @@ previous libunit keyword)."
 
 (defun vhdl-skip-case-alternative (&optional lim)
   "Skip forward over case/when bodies, with optional maximal
-limit. If no next case alternative is found, nil is returned and point
-is not moved."
+limit.  If no next case alternative is found, nil is returned and
+point is not moved."
   (let ((lim (or lim (point-max)))
 	(here (point))
 	donep foundp)
@@ -6541,7 +6541,7 @@ is not moved."
 
 (defun vhdl-backward-skip-label (&optional lim)
   "Skip backward over a label, with optional maximal
-limit. If label is not found, nil is returned and point
+limit.  If label is not found, nil is returned and point
 is not moved."
   (let ((lim (or lim (point-min)))
 	placeholder)
@@ -7306,9 +7306,9 @@ indentation is done before aligning."
 
 (defun vhdl-align-region-2 (begin end match &optional substr spacing)
   "Align a range of lines from BEGIN to END.  The regular expression
-MATCH must match exactly one fields: the whitespace to be
+MATCH must match exactly one field: the whitespace to be
 contracted/expanded.  The alignment column will equal the
-rightmost column of the widest whitespace block. SPACING is
+rightmost column of the widest whitespace block.  SPACING is
 the amount of extra spaces to add to the calculated maximum required.
 SPACING defaults to 1 so that at least one space is inserted after
 the token in MATCH."
@@ -8101,7 +8101,7 @@ Turn on if ARG positive, turn off if ARG negative, toggle if ARG zero or nil."
 
 (defun vhdl-electric-dash (count)
   "-- starts a comment, --- draws a horizontal line,
----- starts a display comment"
+---- starts a display comment."
   (interactive "p")
   (if (and vhdl-stutter-mode (not (vhdl-in-literal)))
       (cond
@@ -10448,7 +10448,7 @@ with double-quotes is to be inserted.  DEFAULT specifies a default string."
   (if vhdl-upper-case-keywords (upcase keyword) (downcase keyword)))
 
 (defun vhdl-case-word (num)
-  "Adjust case or following NUM words."
+  "Adjust case of following NUM words."
   (if vhdl-upper-case-keywords (upcase-word num) (downcase-word num)))
 
 (defun vhdl-minibuffer-tab (&optional prefix-arg)
@@ -10586,7 +10586,7 @@ else insert tab (used for word completion in VHDL minibuffer)."
 
 (defun vhdl-hooked-abbrev (func)
   "Do function, if syntax says abbrev is a keyword, invoked by hooked abbrev,
-but not if inside a comment or quote)."
+but not if inside a comment or quote."
   (if (or (vhdl-in-literal)
 	  (save-excursion
 	    (forward-word -1)
@@ -12083,8 +12083,8 @@ expressions (e.g. for index ranges of types and signals)."
 ;;  Case fixing
 
 (defun vhdl-fix-case-region-1 (beg end upper-case word-regexp &optional count)
-  "Convert all words matching word-regexp in region to lower or upper case,
-depending on parameter upper-case."
+  "Convert all words matching WORD-REGEXP in region to lower or upper case,
+depending on parameter UPPER-CASE."
   (let ((case-replace nil)
 	(last-update 0))
     (vhdl-prepare-search-2
@@ -12463,7 +12463,7 @@ File statistics: \"%s\"\n\
   "Regexp to match start of construct to hide.")
 
 (defun vhdl-hs-forward-sexp-func (count)
-  "Find end of construct to hide (for hideshow). Only searches forward."
+  "Find end of construct to hide (for hideshow).  Only searches forward."
   (let ((pos (point)))
     (vhdl-prepare-search-2
      (beginning-of-line)
@@ -12586,7 +12586,7 @@ File statistics: \"%s\"\n\
 	  (goto-char end))))))
 
 (defun vhdl-font-lock-match-item (limit)
-  "Match, and move over, any declaration item after point. Adapted from
+  "Match, and move over, any declaration item after point.  Adapted from
 `font-lock-match-c-style-declaration-item-and-skip-to-next'."
   (condition-case nil
       (save-restriction
@@ -13130,7 +13130,7 @@ hierarchy otherwise.")
 
 (defun vhdl-scan-directory-contents (name &optional project update num-string
 					  non-final)
-  "Scan contents of VHDL files in directory or file pattern DIR-NAME."
+  "Scan contents of VHDL files in directory or file pattern NAME."
   (string-match "\\(.*[/\\]\\)\\(.*\\)" name)
 ;   (unless (file-directory-p (match-string 1 name))
 ;     (message "No such directory: \"%s\"" (match-string 1 name)))
@@ -14172,7 +14172,7 @@ if required."
   )
 
 (defun vhdl-speedbar-insert-project-hierarchy (project indent &optional rescan)
-  "Insert hierarchy of project.  Rescan directories if RESCAN is non-nil,
+  "Insert hierarchy of PROJECT.  Rescan directories if RESCAN is non-nil,
 otherwise use cached data."
   (when (or rescan (and (not (assoc project vhdl-file-alist))
 			(not (vhdl-load-cache project))))
