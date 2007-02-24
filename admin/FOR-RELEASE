@@ -62,8 +62,9 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** md5i@cs.cmu.edu, Feb 20: move-end-of-line in comint buffers
 
-** dooglus@gmail.com, Feb 14: PGG: can't encrypt only for myself
-Install his patch.
+** 2007-02-23 change to process.c is broken (2 reports so far).
+
+
 
 * DOCUMENTATION
 

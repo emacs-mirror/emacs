@@ -1,3 +1,10 @@
+2007-02-24  Chris Moore <dooglus@gmail.com>
+
+	* pgg-pgp5.el (pgg-pgp5-encrypt-region):
+	* pgg-pgp.el (pgg-pgp-encrypt-region):
+	* pgg-gpg.el (pgg-gpg-encrypt-region):
+	Check pgg-encrypt-for-me if no other recipients.
+
 2007-02-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmailedit.el (rmail-cease-edit): Restore the Rmail toolbar.

@@ -1,3 +1,8 @@
+2007-02-23  Kim F. Storm  <storm@cua.dk>
+
+	* print.c (print): Reset print_number_index if Vprint_number_table
+	is nil.
+
 2007-02-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (stat, get_long_basename, is_unc_volume): Use _mbspbrk
