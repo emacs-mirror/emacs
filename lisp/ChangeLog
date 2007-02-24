@@ -1,5 +1,8 @@
 2007-02-24  John Paul Wallington  <jpw@pobox.com>
 
+	* mail/feedmail.el (feedmail-message-id-generator)
+	(feedmail-date-generator): Fix custom types.
+
 	* mail/rmail.el (rmail-message-filter): Fix custom type.
 
 2007-02-24  Eli Zaretskii  <eliz@gnu.org>
