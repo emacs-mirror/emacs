@@ -10566,13 +10566,8 @@ x_term_init (display_name, xrm_option, resource_name)
            than zero, we are probably on GTK 2.0, which can only handle
            one display.  GTK 2.2 or later can handle more than one.  */
         if (xg_display_open (SDATA (display_name), &dpy) < 0)
-          error ("Sorry, this version of GTK can only handle one display");
-#else
-        /* XXX Unfortunately, multiple display support is severely broken
-           in recent GTK versions, so HAVE_GTK_MULTIDISPLAY is
-           unconditionally disabled in configure.in.  */
-        error ("Sorry, multiple display support is broken in current GTK versions");
 #endif
+          error ("Sorry, this version of GTK can only handle one display");
       }
     else
       {

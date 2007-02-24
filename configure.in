@@ -2069,14 +2069,11 @@ if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "gtk"; then
 
   dnl  Check if we can use multiple displays with this GTK version.
   dnl  If gdk_display_open exists, assume all others are there also.
-  dnl  XXX The multidisplay feature is severely broken in current GTK
-  dnl  versions. --lorentey
-  HAVE_GTK_MULTIDISPLAY=no
-  dnl AC_CHECK_FUNCS(gdk_display_open, HAVE_GTK_MULTIDISPLAY=yes)
-  dnl if test "${HAVE_GTK_MULTIDISPLAY}" = "yes"; then
-  dnl   AC_DEFINE(HAVE_GTK_MULTIDISPLAY, 1,
-  dnl             [Define to 1 if GTK can handle more than one display.])
-  dnl fi
+  AC_CHECK_FUNCS(gdk_display_open, HAVE_GTK_MULTIDISPLAY=yes)
+  if test "${HAVE_GTK_MULTIDISPLAY}" = "yes"; then
+    AC_DEFINE(HAVE_GTK_MULTIDISPLAY, 1,
+              [Define to 1 if GTK can handle more than one display.])
+  fi
 
   dnl  Check if we have the old file selection dialog.
   dnl  If gdk_display_open exists, assume all others are there also.
