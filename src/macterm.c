@@ -4829,9 +4829,7 @@ x_scroll_bar_handle_drag (win, bar, mouse_pos, bufp)
 	XSETINT (bar->dragging, - (XINT (bar->dragging) + 1));
 
       top = mouse_pos.v - XINT (bar->dragging) - XINT (bar->track_top);
-      top_range = (XINT (bar->track_height) - (r.bottom - r.top)) *
-	(1.0 + (float) GetControlViewSize (ch) / GetControl32BitMaximum (ch))
-	+ .5;
+      top_range = XINT (bar->track_height) - XINT (bar->min_handle);
 
       if (top < 0)
 	top = 0;
@@ -4898,13 +4896,16 @@ x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
   if (XINT (bar->track_height) == 0)
     return;
 
-  if (whole == 0)
+  if (whole <= portion)
     value = 0, viewsize = 1, maximum = 0;
   else
     {
-      value = position;
-      viewsize = portion;
-      maximum = max (0, whole - portion);
+      float scale;
+
+      maximum = XINT (bar->track_height) - XINT (bar->min_handle);
+      scale = (float) maximum / (whole - portion);
+      value = position * scale + 0.5f;
+      viewsize = (int) (portion * scale + 0.5f) + XINT (bar->min_handle);
     }
 
   BLOCK_INPUT;
@@ -4985,6 +4986,7 @@ x_scroll_bar_create (w, top, left, width, height, disp_top, disp_height)
 #ifdef USE_TOOLKIT_SCROLL_BARS
   bar->track_top = Qnil;
   bar->track_height = Qnil;
+  bar->min_handle = Qnil;
 #endif
 
   /* Add bar to its frame's list of scroll bars.  */
@@ -5205,6 +5207,7 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 #ifdef USE_TOOLKIT_SCROLL_BARS
 	  bar->track_top = Qnil;
 	  bar->track_height = Qnil;
+	  bar->min_handle = Qnil;
 #endif
         }
 
@@ -5218,6 +5221,7 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 	{
 	  XSETINT (bar->track_top, 0);
 	  XSETINT (bar->track_height, 0);
+	  XSETINT (bar->min_handle, 0);
 	}
       else
 	{
@@ -5227,7 +5231,7 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 	  BLOCK_INPUT;
 
 	  SetControl32BitMinimum (ch, 0);
-	  SetControl32BitMaximum (ch, 1);
+	  SetControl32BitMaximum (ch, 1 << 30);
 	  SetControlViewSize (ch, 1);
 
 	  /* Move the scroll bar thumb to the top.  */
@@ -5235,12 +5239,13 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 	  get_control_part_bounds (ch, kControlIndicatorPart, &r0);
 
 	  /* Move the scroll bar thumb to the bottom.  */
-	  SetControl32BitValue (ch, 1);
+	  SetControl32BitValue (ch, 1 << 30);
 	  get_control_part_bounds (ch, kControlIndicatorPart, &r1);
 
 	  UnionRect (&r0, &r1, &r0);
 	  XSETINT (bar->track_top, r0.top);
 	  XSETINT (bar->track_height, r0.bottom - r0.top);
+	  XSETINT (bar->min_handle, r1.bottom - r1.top);
 
 	  /* Don't show the scroll bar if its height is not enough to
 	     display the scroll bar thumb.  */
