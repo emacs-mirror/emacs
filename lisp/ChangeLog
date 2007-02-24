@@ -1,3 +1,8 @@
+2007-02-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* startup.el (command-line): If simple.el cannot be found, proceed
+	with a warning message.
+
 2007-02-24  Kenichi Handa  <handa@m17n.org>
 
 	* international/utf-8.el (utf-8-pre-write-conversion): Handle the
