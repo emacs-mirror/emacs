@@ -1,5 +1,10 @@
 2007-02-25  Kim F. Storm  <storm@cua.dk>
 
+	* ido.el (ido-buffer-internal): Set this-command to fallback command.
+	Add selected buffer to buffer-name-history.
+	(ido-file-internal): Set this-command to fallback command.
+	Add file names to to file-name-history.
+
 	* emacs-lisp/map-ynp.el (map-y-or-n-p): Apply minibuffer-prompt-properties.
 
 2007-02-25  Andreas Schwab  <schwab@suse.de>
