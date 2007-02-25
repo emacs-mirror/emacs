@@ -15,9 +15,9 @@
 	(Structure editing): Document sorting.
 	(Remember): Section rewritten.
 	(Time stamps): Better description of time stamp types.
-	(Tag searches): DOcument regular expression search for tags.
+	(Tag searches): Document regular expression search for tags.
 	(Stuck projects): New section.
-	(In-buffer settings): New keywods.
+	(In-buffer settings): New keywords.
 	(History and Acknowledgments): Updated description.
 
 2007-02-24  Alan Mackenzie  <acm@muc.de>

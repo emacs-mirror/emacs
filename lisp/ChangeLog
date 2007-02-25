@@ -1,3 +1,134 @@
+2007-02-25  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-table-overlay-coordinates)
+	(org-table-toggle-coordinate-overlays): New functions.
+	(org-table-overlay-coordinates, org-table-coordinate-overlays):
+	New variables.
+	(org-startup-with-deadline-check): Option removed.
+	(org-mode): Remove deadline check on startup.
+	(org-table-limit-column-width): Option removed.
+	(org-table-formula-numbers-only): Option removed.
+	(org-link-style, org-link-format): Options removed.
+	(org-select-agenda-window, org-fit-agenda-window): Options
+	removed.
+	(org-export-ascii-show-new-buffer)
+	(org-export-html-show-new-buffer): Options removed.
+	(org-activate-links): Camel option removed.
+	(org-file-link-context-use-camel-case): Option removed.
+	(org-camel-regexp): Veriable removed.
+	(org-activate-camels): Function removed.
+	(org-store-link): Removed Camel stuff.
+	(org-make-org-heading-camel): Function removed.
+	(org-open-at-point): Removed camel stuff.
+	(org-link-search): Removed camel stuff.
+	(org-camel-to-words): Function removed.
+	(org-get-agenda-file-buffer): Make sure we prepare the base
+	buffers, not any indirect buffers.
+	(org-sort-entries): Sort top-level when not on a headline, and no
+	active region.
+	(org-in-regexp): New function.
+	(org-search-not-self): Renamed from `org-search-not-link'.
+	(org-open-link-marker): New variable.
+	(org-open-at-point): Set `org-open-link-marker'.
+	(org-print-icalendar-entries): Fixed bug with excluding DONE
+	entries from the exported list.
+	(org-edit-formula-lisp-indent): New command.
+	(orgtbl-to-texinfo, orgtbl-to-html): New functions.
+	(orgtbl-to-latex, orgtbl-insert-radio-table)
+	(orgtbl-toggle-comment, orgtbl-send-table): New functions.
+	(orgtbl-radio-table-templates): New option.
+	(org-store-link-props):
+	(org-remember-templates): More possibilities to insert info into
+	templates.
+	(org-remember-apply-template): Make use of the extended template
+	capabilities.
+	(org-remember-redo-template): New command.
+	(org-upgrade-old-links)
+	(org-table-modify-formulas, org-table-replace-in-formulas)
+	(org-table-find-dataline)
+	(org-table-get-vertical-vector): Functions removed.
+	(org-table-remove-rectangle-highlight)
+	(org-time-stamp-format, org-toggle-log-option)
+	(org-table-highlight-rectangle)
+	(org-table-iterate, org-table-make-reference):
+	(org-translate-time, org-tree-to-indirect-buffer)
+	(org-table-field-info, org-table-fix-formulas)
+	(org-table-force-dataline, org-table-get-descriptor-line)
+	(org-table-get-range)
+	(org-skip-comments, org-sort)
+	(org-sort-entries, org-sublist, org-table-add-rectangle-overlay)
+	(org-table-current-dline, org-table-current-field-formula)
+	(org-table-edit-backward-field)
+	(org-table-edit-formulas-post-command)
+	(org-table-edit-line-down, org-table-edit-line-up)
+	(org-agenda-archive)
+	(org-agenda-clock-cancel)
+	(org-agenda-clock-out, org-agenda-list-stuck-projects)
+	(org-agenda-open-link, org-agenda-show-new-time)
+	(org-agenda-skip-subtree-when-regexp-matches)
+	(org-agenda-tree-to-indirect-buffer, org-agenda-undo)
+	(org-at-regexp-p, org-auto-repeat-maybe, org-check-log-option)
+	(org-do-sort, org-file-image-p, org-find-overlays)
+	(org-find-row-type, org-get-indirect-buffer, org-get-repeat)
+	(org-highlight-until-next-command, org-isearch-end)
+	(org-match-any-p, org-next-link, org-previous-link):
+	(org-remove-subtree-entries-from-agenda, org-replace-escapes)
+	(org-rewrite-old-row-references)
+	(org-isearch-post-command)
+	(org-table-edit-move, org-table-edit-next-field)
+	(org-table-edit-scroll, org-table-edit-scroll-down)
+	(org-set-frame-title, org-show-reference)
+	(org-unhighlight-once, org-verify-change-for-undo): New functions.
+	(org-show-variable): Command removed.
+	(org-add-log-maybe): New arguments STATE, FINDPOS
+	(org-table-sort-lines): Rewritten from scratch.
+	(org-link-search): New argument AVOID-POS.
+	(org-print-icalendar-entries): Argument CATEGORY removed.
+	(org-run-agenda-series): Argument WONDOW removed.
+	(org-next-link, org-previous-link): New commands.
+	(org-agenda-date-format): New option.
+	(org-table-iterate): New command.
+	(org-table-modify-formulas)
+	(org-table-replace-in-formulas): Functions removed.
+	(org-table-fix-formulas): New function.
+	(org-table-insert-column, org-table-delete-column)
+	(org-table-move-column): Use `org-table-fix-formulas'.
+	(org-follow-gnus-link): Patch from Bastien/Leo.
+	(org-table-current-field-formula): New function.
+	(org-file-image-p): New function.
+	(org-agenda-show-new-time): New function.
+	(org-agenda-date-later): Call `org-agenda-show-new-time'.
+	(org-with-remote-undo): New macro.
+	(org-agenda-undo): New command.
+	(org-verify-change-for-undo): New function.
+	(org-time-stamp-format): New function.
+	(org-agenda-get-timestamps): Skip scheduled if DONE and requested
+	by user.
+	(org-match-any-p): New function.
+	(org-make-tags-matcher): Handle regular expressions for tag and
+	todo matches.
+	(org-read-date): Accept "+N" as input for a date relative to the
+	current date.
+	(org-remove-subtree-entries-from-agenda): New function.
+	(org-agenda-archive, org-agenda-kill): Use
+	`org-remove-subtree-entries-from-agenda'.
+	(org-do-sort, org-sort-entries): New functions.
+	(org-sort): New command.
+	(org-table-sort-lines): Use `org-do-sort'.
+	(org-fix-decoded-time): New function.
+	(org-table-number-regexp): Require 0x... to identify as number in
+	tables.
+	(org-startup-options): New keywords for note taking.
+	(org-upgrade-old-links): Function removed.
+	(org-get-repeat): New function.
+	(org-show-context): Also show siblings on current level.
+	(org-show-siblings): New function.
+	(org-isearch-end, org-isearch-post-command): New functions.
+	(org-show-siblings): New option.
+	(org-show-context): Use `org-show-siblings'.
+	(org-table-maybe-recalculate-line): No longer require `calc-eval'
+	to be bound, because user may just use elisp.
+
 2007-02-24  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el (cua-paste): Handle x-clipboard-yank.
