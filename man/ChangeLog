@@ -1,3 +1,25 @@
+2007-02-25  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: (The spreadsheet): Renamed from "Table calculations".
+	Completely reorganized and rewritten.
+	(CamelCase links): Section removed. 
+	(Repeating items): New section.
+	(Tracking TODO state changes): New section.
+	(Agenda views): Chapter reorganized and rewritten.
+	(HTML export): Section rewritten.
+	(Tables in arbitrary syntax): New section.
+	(Summary): Better feature summary.
+	(Activation): Document problem with cut-and-paste of Lisp code
+	from PDF files.
+	(Visibility cycling): Document indirect buffer use.
+	(Structure editing): Document sorting.
+	(Remember): Section rewritten.
+	(Time stamps): Better description of time stamp types.
+	(Tag searches): DOcument regular expression search for tags.
+	(Stuck projects): New section.
+	(In-buffer settings): New keywods.
+	(History and Acknowledgments): Updated description.
+
 2007-02-24  Alan Mackenzie  <acm@muc.de>
 
 	* cc-mode.texi (Movement Commands): Insert two missing command names.
