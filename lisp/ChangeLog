@@ -5,8 +5,7 @@
 
 2007-02-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* startup.el (command-line): Also check if the abbrev file is
-	readable.
+	* startup.el (command-line): Also check if the abbrev file is readable.
 
 2007-02-24  John Paul Wallington  <jpw@pobox.com>
 
@@ -27,7 +26,7 @@
 	* international/utf-8.el (utf-8-pre-write-conversion): Handle the
 	case that BEG is a string.
 
-2007-02-24  Chris Moore <dooglus@gmail.com>
+2007-02-24  Chris Moore  <dooglus@gmail.com>
 
 	* pgg-pgp5.el (pgg-pgp5-encrypt-region):
 	* pgg-pgp.el (pgg-pgp-encrypt-region):
@@ -46,7 +45,7 @@
 	* comint.el (comint-read-input-ring): Use comint-input-ring-size
 	from the comint buffer instead of the temporary one.
 
-2007-02-23  David Reitter <david.reitter@gmail.com>
+2007-02-23  David Reitter  <david.reitter@gmail.com>
 
 	* cus-edit.el (custom-save-all): Canonicalize custom-file before
 	storing it in recentf-exclude.
@@ -60,16 +59,14 @@
 
 	* progmodes/idlw-shell.el (idlwave-shell-mode): Clean up pending
 	commands, for restart.
-	(idlwave-shell-current-module): Fix handling of module name by
-	type.
+	(idlwave-shell-current-module): Fix handling of module name by type.
 	(idlwave-shell-break-in): Update type handling.
 	(idlwave-shell-bp-get): Encode type in BP structure.
-	(idlwave-shell-set-bp): Fix setting condition/count on disabled
-	BPs.
-	(idlwave-shell-module-source-query): Query routine info based on
-	type.  Fix path parsing for non-compiled files.
-	(idlwave-shell-module-source-filter): Don't signal error in
-	filter if no source found.
+	(idlwave-shell-set-bp): Fix setting condition/count on disabled BPs.
+	(idlwave-shell-module-source-query): Query routine info based on type.
+	Fix path parsing for non-compiled files.
+	(idlwave-shell-module-source-filter): Don't signal error in filter
+	if no source found.
 	(idlwave-shell-set-bp-in-module): Use fallback source to prevent
 	filter race.
 
