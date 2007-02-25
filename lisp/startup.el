@@ -647,6 +647,8 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 
   ;; Convert preloaded file names in load-history to absolute.
   (let ((simple-file-name
+	 ;; Look for simple.el or simple.elc and use their directory
+	 ;; as the place where all Lisp files live.
 	 (locate-file "simple" load-path (get-load-suffixes)))
 	lisp-dir)
     ;; Don't abort if simple.el cannot be found, but print a warning.
