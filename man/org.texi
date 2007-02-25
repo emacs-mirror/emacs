@@ -3,12 +3,12 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 4.56
-@set DATE November 2006
+@set VERSION 4.67
+@set DATE February 2007
 
 @dircategory Emacs
 @direntry
-* Org Mode: (org).      outline-based notes management and organizer
+* Org Mode: (org).      Outline-based notes management and organizer
 @end direntry
 
 @c Version and Contact Info
@@ -35,7 +35,7 @@
 @copying
 This manual is for Org-mode (version @value{VERSION}).
 
-Copyright @copyright{} 2004, 2005, 2006, 2007  Free Software Foundation, Inc.
+Copyright @copyright{} 2004, 2005, 2006, 2007 Free Software Foundation
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -122,19 +122,19 @@ Tables
 
 * Built-in table editor::       Simple tables
 * Narrow columns::              Stop wasting space in tables   
-* Table calculations::          Compute a field from other fields
 * orgtbl-mode::                 The table editor as minor mode
-* table.el::                    Complex tables
+* The spreadsheet::             The table editor has spreadsheet capabilities.
 
-Calculations in tables
+The spreadsheet
 
-* Formula syntax::              How to write a formula
-* Lisp formulas::               An alternative way to write formulas
-* Column formulas::             Formulas valid for all fields in a column
+* References::                  How to refer to another field or range
+* Formula syntax for Calc::     Using Calc to compute stuff
+* Formula syntax for Lisp::     Writing formulas in Emacs Lisp
+* Field formulas::              Formulas valid for a single field
+* Column formulas::             Formulas valid for an entire column
+* Editing and debugging formulas::  Fixing formulas
+* Updating the table::          Recomputing all dependent fields
 * Advanced features::           Field names, parameters and automatic recalc
-* Named-field formulas::        Formulas valid in single fields
-* Editing/debugging formulas::  Changing a stored formula
-* Appetizer::                   Taste the power of calc
 
 Hyperlinks
 
@@ -150,7 +150,12 @@ Hyperlinks
 Internal links
 
 * Radio targets::               Make targets trigger links in plain text.
-* CamelCase links::             Activating CamelCase words as links
+
+Remember
+
+* Setting up remember::         Some code for .emacs to get things going
+* Remember templates::          Define the outline of different note types
+* Storing notes::               Directly get the note to where it belongs
 
 TODO items
 
@@ -171,6 +176,7 @@ Timestamps
 * Time stamps::                 Assigning a time to a tree entry
 * Creating timestamps::         Commands which insert timestamps
 * Custom time format::          If you cannot work with the ISO format
+* Repeating items::             Deadlines that come back again and again
 * Progress logging::            Documenting when what work was done.
 
 Creating timestamps
@@ -180,6 +186,7 @@ Creating timestamps
 Progress Logging
 
 * Closing items::               When was this entry marked DONE?
+* Tracking TODO state changes::  When did the status change?
 * Clocking work time::          When exactly did you work on this item?
 
 Tags
@@ -192,17 +199,18 @@ Agenda Views
 
 * Agenda files::                Files being searched for agenda information
 * Agenda dispatcher::           Keyboard access to agenda views
-* Weekly/Daily agenda::         The calendar page with current tasks
-* Global TODO list::            All unfinished action items
-* Matching headline tags::      Structured information with fine-tuned search
-* Timeline::                    Time-sorted view for single file
+* Built-in agenda views::       What is available out of the box?
 * Presentation and sorting::    How agenda items are prepared for display
 * Agenda commands::             Remote editing of org trees
 * Custom agenda views::         Defining special searches and views
 
-The weekly/daily agenda
+The built-in agenda views
 
-* Calendar/Diary integration::  Integrating Anniversaries and more
+* Weekly/Daily agenda::         The calendar page with current tasks
+* Global TODO list::            All unfinished action items
+* Matching headline tags::      Structured information with fine-tuned search
+* Timeline::                    Time-sorted view for single file
+* Stuck projects::              Find projects you need to review
 
 Presentation and sorting
 
@@ -232,6 +240,14 @@ Exporting
 * XOXO export::                 Exporting to XOXO
 * iCalendar export::            Exporting in iCalendar format
 * Text interpretation::         How the exporter looks at the file
+
+HTML export
+
+* Export commands::             How to invode HTML export
+* Quoting HTML tags::           Using direct HTML in Org-mode
+* Links::                       How hyperlinks get transferred to HTML
+* Images::                      To inline or not to inline?
+* CSS support::                 Style specifications
 
 Text interpretation by the exporter
 
@@ -279,7 +295,15 @@ Interaction with other packages
 Extensions, Hooks and Hacking
 
 * Extensions::                  Existing 3rd-part extensions
+* Tables in arbitrary syntax::  Orgtbl for LaTeX and other programs
 * Dynamic blocks::              Automatically filled blocks
+* Special agenda views::        Customized views
+
+Tables in arbitrary syntax
+
+* Radio tables::                Sending and receiving
+* A LaTeX example::             Step by step, almost a tutorial
+* Translator functions::        Copy and modify
 
 @end detailmenu
 @end menu
@@ -318,7 +342,7 @@ iCalendar file.  It can also serve as a publishing tool for a set of
 linked webpages.
 
 An important design aspect that distinguishes Org-mode from for example
-Planner/Muse is that it encougages to store every piece of information
+Planner/Muse is that it encourages to store every piece of information
 only once.  In Planner, you have project pages, day pages and possibly
 other files, duplicating some information such as tasks.  In Org-mode,
 you only have notes files.  In your notes you mark entries as tasks,
@@ -330,21 +354,23 @@ Org-mode keeps simple things simple.  When first fired up, it should
 feel like a straightforward, easy to use outliner.  Complexity is not
 imposed, but a large amount of functionality is available when you need
 it.  Org-mode can be used on different levels and in different ways, for
-example:
+example as:
 
 @example
-@r{@bullet{} as an outline extension with visibility cycling and structure editing}
-@r{@bullet{} as an ASCII system and table editor for taking structured notes}
-@r{@bullet{} as an ASCII table editor with spreadsheet-like capabilities}
-@r{@bullet{} as a TODO list editor}
-@r{@bullet{} as a full agenda and planner with deadlines and work scheduling}
-@r{@bullet{} as an environment to implement David Allen's GTD system}
-@r{@bullet{} as a simple hypertext system, with HTML export}
-@r{@bullet{} as a publishing tool to create a set of interlinked webpages}
+@r{@bullet{} outline extension with visibility cycling and structure editing}
+@r{@bullet{} ASCII system and table editor for taking structured notes}
+@r{@bullet{} ASCII table editor with spreadsheet-like capabilities}
+@r{@bullet{} TODO list editor}
+@r{@bullet{} full agenda and planner with deadlines and work scheduling}
+@r{@bullet{} environment to implement David Allen's GTD system}
+@r{@bullet{} simple hypertext system, with HTML export}
+@r{@bullet{} publishing tool to create a set of interlinked webpages}
 @end example
 
-Org-mode's automatic, context sensitive table editor can be integrated
-into any major mode by activating the minor Orgtbl-mode.
+Org-mode's automatic, context sensitive table editor with spreadsheet
+capabilities can be integrated into any major mode by activating the
+minor Orgtbl-mode.  Using a translation step, it can be used to maintain
+tables in arbitray file types, for example in LaTeX.
 
 @cindex FAQ
 There is a website for Org-mode which provides links to the newest
@@ -354,14 +380,15 @@ questions (FAQ), links to tutorials etc.  This page is located at
 
 @page
 
+
 @node Installation, Activation, Summary, Introduction
 @section Installation
 @cindex installation
 @cindex XEmacs
 
-@b{Important:} If Org-mode is part of the Emacs distribution or an
+@b{Important:} @i{If Org-mode is part of the Emacs distribution or an
 XEmacs package, please skip this section and go directly to
-@ref{Activation}.
+@ref{Activation}.}
 
 If you have downloaded Org-mode from the Web, you must take the
 following steps to install it: Go into the Org-mode distribution
@@ -412,6 +439,13 @@ make install-info
 @cindex autoload
 @cindex global keybindings
 @cindex keybindings, global
+
+@iftex
+@b{Important:} @i{If you use copy-and-paste to copy lisp code from the
+PDF documentation to your .emacs file, the single quote character comes
+out incorrectly and the code will not work.  You need to fix the single
+quotes by hand, or copy from Info documentation.}
+@end iftex
 
 Add the following lines to your @file{.emacs} file.  The last two lines
 define @emph{global} keys for the commands @command{org-store-link} and
@@ -609,6 +643,8 @@ argument (@kbd{C-u @key{TAB}}), global cycling is invoked.
 '--------------------------------------'
 @end example
 
+When @kbd{S-@key{TAB}} is called with a numerical prefix N, the CONTENTS
+view up to headlines of level N will be shown.
 Note that inside tables, @kbd{S-@key{TAB}} jumps to the previous field.
 
 @cindex show all, command
@@ -620,7 +656,18 @@ Show all.
 Reveal context around point, showing the current entry, the following
 heading and the hierarchy above.  Useful for working near a location
 exposed by a sparse tree command (@pxref{Sparse trees}) or an agenda
-command (@pxref{Agenda commands}).
+command (@pxref{Agenda commands}).  With prefix arg show, on each
+level, all sibling headings.
+@kindex C-c C-x b
+@item C-c C-x b
+Show the current subtree in an indirect buffer@footnote{The indirect
+buffer (@pxref{Indirect Buffers,Indirect Buffers,Indirect
+Buffers,emacs,GNU Emacs Manual}) will contain the entire buffer, but
+will be narrowed to the current tree.  Editing the indirect buffer will
+also change the original buffer, but without affecting visibility in
+that buffer.}.  With numerical prefix ARG, go up to this level and then
+take that tree.  If ARG is negative, go up that many levels.  With
+@kbd{C-u} prefix, do not remove the previously used indirect buffer.
 @end table
 
 When Emacs first visits an Org-mode file, the global state is set to
@@ -730,6 +777,15 @@ Yank subtree from kill ring.  This does modify the level of the subtree to
 make sure the tree fits in nicely at the yank position.  The yank
 level can also be specified with a prefix arg, or by yanking after a
 headline marker like @samp{****}.
+@kindex C-c ^
+@item C-c ^
+Sort same-level entries.  When there is an active region, all entries in
+the region will be sorted.  Otherwise the children of the current
+headline are sorted.  The command prompts for the sorting method, which
+can be alphabetically, numerically, by time (using the first time stamp
+in each entry), and each of these in reverse order.  With a @kbd{C-u}
+prefix, sorting will be case-sensitive.  With two @kbd{C-u C-u}
+prefixes, duplicate entries will also be removed.
 @end table
 
 @cindex region, active
@@ -814,12 +870,12 @@ different location, either in the current file, or even in a different
 file, the archive file.
 
 @table @kbd
-@kindex C-c $
-@item C-c $
+@kindex C-c C-x C-s
+@item C-c C-x C-s
 Archive the subtree starting at the cursor position to the location
 given by @code{org-archive-location}.
-@kindex C-u C-c $
-@item C-u C-c $
+@kindex C-u C-c C-x C-s
+@item C-u C-c C-x C-s
 Check if any direct children of the current headline could be moved to
 the archive.  To do this, each subtree is checked for open TODO entries.
 If none are found, the command offers to move it to the archive
@@ -832,7 +888,17 @@ The default archive location is a file in the same directory as the
 current file, with the name derived by appending @file{_archive} to the
 current file name.  For information and examples on how to change this,
 see the documentation string of the variable
-@code{org-archive-location}.
+@code{org-archive-location}.  There is also an in-buffer option for
+setting this variable, for example
+
+@example
+#+ARCHIVE: %s_done::
+@end example
+
+@noindent
+You may have several such lines in the buffer, they will then be valid
+for the entries following the line (the first will also apply to any
+text before it).
 
 @node Sparse trees, Plain lists, Archiving, Document structure
 @section Sparse trees
@@ -846,9 +912,10 @@ An important feature of Org-mode is the ability to construct
 sparse tree means that the entire document is folded as much as
 possible, but the selected information is made visible along with the
 headline structure above it@footnote{See also the variables
-@code{org-show-hierarchy-above} and
-@code{org-show-following-heading}.}.  Just try it out and you will see
-immediately how it works.
+@code{org-show-hierarchy-above}, @code{org-show-following-heading}, and
+@code{org-show-siblings} for detailed control on how much context is
+shown around each match.}.  Just try it out and you will see immediately
+how it works.
 
 Org-mode contains several commands creating such trees.  The most
 basic one is @command{org-occur}:
@@ -862,7 +929,7 @@ match is in the body of an entry, headline and body are made visible.
 In order to provide minimal context, also the full hierarchy of
 headlines above the match is shown, as well as the headline following
 the match.  Each match is also highlighted; the highlights disappear
-when the bufer is changes an editing command, or by pressing @kbd{C-c
+when the buffer is changes an editing command, or by pressing @kbd{C-c
 C-c}.  When called with a @kbd{C-u} prefix argument, previous highlights
 are kept, so several calls to this command can be stacked.
 @end table
@@ -1010,14 +1077,13 @@ Emacs @file{calc} package.
 @menu
 * Built-in table editor::       Simple tables
 * Narrow columns::              Stop wasting space in tables   
-* Table calculations::          Compute a field from other fields
 * orgtbl-mode::                 The table editor as minor mode
-* table.el::                    Complex tables
+* The spreadsheet::             The table editor has spreadsheet capabilities.
 @end menu
 
 @node Built-in table editor, Narrow columns, Tables, Tables
 @section The built-in table editor
-@cindex table editor, builtin
+@cindex table editor, built-in
 
 Org-mode makes it easy to format tables in plain ASCII.  Any line with
 @samp{|} as the first non-white character is considered part of a
@@ -1126,10 +1192,15 @@ is created above the current line.
 
 @kindex C-c ^
 @item C-c ^
-Sort the table lines in the region.  Point and mark must be in the first
-and last line to be included, and must be in the column that should be
-used for sorting.  The command prompts for numerical versus
-alphanumerical sorting.
+Sort the table lines in the region.  The position of point indicates the
+column to be used for sorting, and the range of lines is the range
+between the nearest horizontal separator lines, or the entire table.  If
+point is before the first column, you will be prompted for the sorting
+column.  If there is an active region, the mark specifies the first line
+and the sorting column, while point should be in the last line to be
+included into the sorting.  The command prompts for the sorting type
+(alphabetically, numerically, or by time).  When called with a prefix
+argument, alphabetic sorting will be case-sensitive.
 
 @tsubheading{Regions}
 @kindex C-c C-x M-w
@@ -1163,40 +1234,6 @@ above.
 @tsubheading{Calculations}
 @cindex formula, in tables
 @cindex calculations, in tables
-@kindex C-c =
-@item C-c =
-Install a new formula for the current column and replace current field
-with the result of the formula.
-
-@kindex C-u C-c =
-@item C-u C-c =
-Install a new formula for the current field, which must be a named
-field.  Evaluate the formula and replace the field content with the
-result.
-
-@kindex C-c '
-@item C-c '
-Edit all formulas associated with the current table in a separate
-buffer.
-
-@kindex C-c *
-@item C-c *
-Recalculate the current row by applying the stored formulas from left
-to right.  When called with a @kbd{C-u} prefix, recalculate the
-entire table, starting with the first non-header line (i.e. below the
-first horizontal separator line).  For details, see @ref{Table calculations}.
-
-@kindex C-#
-@item C-#
-Rotate the calculation mark in first column through the states
-@samp{}, @samp{#}, @samp{*}, @samp{!}, @samp{$}.  For the meaning of
-these marks see @ref{Advanced features}.  When there is an active
-region, change all marks in the region.
-
-@kindex C-c ?
-@item C-c ?
-Which table column is the cursor in?  Displays number >0 in echo
-area.
 
 @cindex region, active
 @cindex active region
@@ -1254,7 +1291,7 @@ it off with
 @noindent Then the only table command that still works is
 @kbd{C-c C-c} to do a manual re-align.
 
-@node Narrow columns, Table calculations, Built-in table editor, Tables
+@node Narrow columns, orgtbl-mode, Built-in table editor, Tables
 @section Narrow columns
 @cindex narrow columns in tables
 
@@ -1268,6 +1305,7 @@ re-align will then set the width of this column to no more than this
 value.
 
 @example
+@group
 |---+------------------------------|               |---+--------|
 |   |                              |               |   | <6>    |
 | 1 | one                          |               | 1 | one    |
@@ -1275,6 +1313,7 @@ value.
 | 3 | This is a long chunk of text |     ----/     | 3 | This=> |
 | 4 | four                         |               | 4 | four   |
 |---+------------------------------|               |---+--------|
+@end group
 @end example
 
 @noindent
@@ -1298,64 +1337,132 @@ on a per-file basis with:
 #+STARTUP: noalign
 @end example
 
-@node Table calculations, orgtbl-mode, Narrow columns, Tables
-@section Calculations in tables
+@node orgtbl-mode, The spreadsheet, Narrow columns, Tables
+@section The Orgtbl minor mode
+@cindex orgtbl-mode
+@cindex minor mode for tables
+
+If you like the intuitive way the Org-mode table editor works, you
+might also want to use it in other modes like text-mode or mail-mode.
+The minor mode Orgtbl-mode makes this possible.  You can always toggle
+the mode with @kbd{M-x orgtbl-mode}.  To turn it on by default, for
+example in mail mode, use
+
+@lisp
+(add-hook 'mail-mode-hook 'turn-on-orgtbl)
+@end lisp
+
+Furthermore, with some special setup, it is possible to maintain tables
+in arbitrary syntax with Orgtbl-mode.  For example, it is possible to
+construct LaTeX tables with the underlying ease and power of
+Orgtbl-mode, including spreadsheet capabulities.  For details, see
+@ref{Tables in arbitrary syntax}.
+
+@node The spreadsheet,  , orgtbl-mode, Tables
+@section The spreadsheet
 @cindex calculations, in tables
 @cindex spreadsheet capabilities
 @cindex @file{calc} package
 
 The table editor makes use of the Emacs @file{calc} package to implement
 spreadsheet-like capabilities.  It can also evaluate Emacs Lisp forms to
-derive fields from other fields.  Org-mode has two levels of complexity
-for table calculations.  On the basic level, tables do only horizontal
-computations, so a field can be computed from other fields @emph{in the
-same row}, and Org-mode assumes that there is only one formula for each
-column.  This is very efficient to work with and enough for many tasks.
-On the complex level, columns and individual fields can be named for
-easier referencing in formulas, individual named fields can have their
-own formula associated with them, and recalculation can be automated.
-
+derive fields from other fields.
 @menu
-* Formula syntax::              How to write a formula
-* Lisp formulas::               An alternative way to write formulas
-* Column formulas::             Formulas valid for all fields in a column
+* References::                  How to refer to another field or range
+* Formula syntax for Calc::     Using Calc to compute stuff
+* Formula syntax for Lisp::     Writing formulas in Emacs Lisp
+* Field formulas::              Formulas valid for a single field
+* Column formulas::             Formulas valid for an entire column
+* Editing and debugging formulas::  Fixing formulas
+* Updating the table::          Recomputing all dependent fields
 * Advanced features::           Field names, parameters and automatic recalc
-* Named-field formulas::        Formulas valid in single fields
-* Editing/debugging formulas::  Changing a stored formula
-* Appetizer::                   Taste the power of calc
 @end menu
 
-@node Formula syntax, Lisp formulas, Table calculations, Table calculations
-@subsection Formula syntax
-@cindex formula syntax
-@cindex syntax, of formulas
+@node References, Formula syntax for Calc, The spreadsheet, The spreadsheet
+@subsection References
+@cindex references
 
-A formula can be any algebraic expression understood by the Emacs
-@file{calc} package.  Note that @file{calc} has the slightly
-non-standard convention that @samp{/} has lower precedence than
-@samp{*}, so that @samp{a/b*c} is interpreted as @samp{a/(b*c)}.  Before
-evaluation by @code{calc-eval} (@pxref{Calling Calc from Your
-Programs,calc-eval,Calling calc from Your Lisp Programs,calc,GNU Emacs
-Calc Manual}), variable substitution takes place:
+To compute fields in the table from other fields, formulas must
+reference other fields or ranges.  In Org-mode, fields can be referenced
+by name, by absolute coordinates, and by relative coordinates.  To find
+out what the coordinates of a field are, press @kbd{C-c ?} in that
+field.
 
+@subsubheading Field references
+@cindex field references
+@cindex references, to fields
+
+Formulas can reference the value of another field with the operator
 @example
-  $        @r{refers to the current field}
-  $3       @r{refers to the field in column 3 of the current row}
-  $3..$7   @r{a vector of the fields in columns 3-7 of current row}
-  $P1..$P3 @r{vector of column range, using column names}
-  &2       @r{second data field above the current, in same column}
-  &5-2     @r{vector from fifth to second field above current}
-  &III-II  @r{vector of fields between 2nd and 3rd hline above}
-  &III     @r{vector of fields between third hline above and current field}
-  $name    @r{a named field, parameter or constant}
+@@row$column
 @end example
 
-@cindex vectors, in table calculations
-The range vectors can be directly fed into the calc vector functions
-like @samp{vmean} and @samp{vsum}.
+Column references can be absolute like @samp{1}, @samp{2},...@samp{N},
+or relative to the current column like @samp{+1} or @samp{-2}.
 
+The row specification only counts data lines and ignores horizontal
+separator lines (hlines).  You can use absolute row numbers
+@samp{1}...@samp{N}, and row numbers relative to the current row like
+@samp{+3} or @samp{-1}.  Or specify the row relative to one of the
+hlines: @samp{I} refers to the first hline, @samp{II} to the second etc.
+@samp{-I} refers to the first such line above the current line,
+@samp{+I} to the first such line below the current line.  You can also
+write @samp{III+2} which is the second data line after the third hline
+in the table.  Relative row numbers like @samp{-3} will not cross hlines
+if the current line is too close to the hline.  Instead, the value
+directly at the hline is used.
+
+@samp{0} refers to the current row and column.  Also, if you omit
+either the column or the row part of the reference, the current
+row/column is implied. 
+
+Org-mode's references with @emph{positive} numbers correspond to fixed
+references in other spreadsheet programs.  For example, @code{@@3$28}
+corresponds to @code{$AB$3}.  Org-mode's references with @emph{negative}
+numbers behave similar to non-fixed references in other spreadsheet
+programs, because when the same formula is used in several fields,
+different fields are referenced each time.
+
+Here are a few examples:
+
+@example
+@@2$3      @r{2nd row, 3rd column}
+$5        @r{column 5 in the current row}
+@@2        @r{current column, row 2}
+@@-1$-3    @r{the field one row up, three columns to the left}
+@@-I$2     @r{field just under hline above current row, column 2}
+@end example
+
+@subsubheading Range references
+@cindex range references
+@cindex references, to ranges
+
+You may reference a rectangular range of fields by specifying two field
+references connected by two dots @samp{..}.  If both fields are in the
+current row, you may simply use @samp{$2..$7}, but if at least one field
+is in a different row, you need to use the general @code{@@row$column}
+format at least for the first field (i.e the reference must start with
+@samp{@@} in order to be interpreted correctly).  Examples:
+
+@example
+$1..$3        @r{First three fields in the current row.}
+$P..$Q        @r{Range, using column names (see under Advanced)}
+@@2$1..@@4$3    @r{6 fields between these two fields.}
+@@-1$-2..@@-1   @r{3 numbers from the column to the left, 2 up to current row}
+@end example
+
+@noindent Range references return a vector of values that can be fed
+into Calc vector functions.  Empty fields in ranges are normally
+suppressed, so that the vector contains only the non-empty fields (but
+see the @samp{E} mode switch below).  If there are no non-empty fields,
+@samp{[0]} is returned to avoid syntax errors in formulas.
+
+@subsubheading Named references
+@cindex named references
+@cindex references, named
 @cindex name, of column or field
 @cindex constants, in calculations
+
 @samp{$name} is interpreted as the name of a column, parameter or
 constant.  Constants are defined globally through the variable
 @code{org-table-formula-constants}.  If you have the
@@ -1365,21 +1472,46 @@ constant, and units like @samp{$km} for kilometers.  Column names and
 parameters can be specified in special table lines.  These are
 described below, see @ref{Advanced features}.
 
+@node Formula syntax for Calc, Formula syntax for Lisp, References, The spreadsheet
+@subsection Formula syntax for Calc
+@cindex formula syntax, Calc
+@cindex syntax, of formulas
+
+A formula can be any algebraic expression understood by the Emacs
+@file{Calc} package.  Note that @file{calc} has the slightly
+non-standard convention that @samp{/} has lower precedence than
+@samp{*}, so that @samp{a/b*c} is interpreted as @samp{a/(b*c)}.  Before
+evaluation by @code{calc-eval} (@pxref{Calling Calc from
+Your Programs,calc-eval,Calling calc from Your Lisp Programs,calc,GNU
+Emacs Calc Manual}),
+variable substitution takes place according to the rules described above.
+@cindex vectors, in table calculations
+The range vectors can be directly fed into the calc vector functions
+like @samp{vmean} and @samp{vsum}.
+
 @cindex format specifier
 @cindex mode, for @file{calc}
 A formula can contain an optional mode string after a semicolon.  This
-string consists of flags to influence calc's modes@footnote{By
-default, Org-mode uses the standard calc modes (precision 12, angular
-units degrees, fraction and symbolic modes off).  The display format,
-however, has been changed to @code{(float 5)} to keep tables compact.
-The default settings can be configured using the variable
-@code{org-calc-default-modes}.} during execution, e.g.  @samp{p20} to
-switch the internal precision to 20 digits, @samp{n3}, @samp{s3},
-@samp{e2} or @samp{f4} to switch to normal, scientific, engineering,
-or fixed display format, respectively, and @samp{D}, @samp{R}, @samp{F},
-and @samp{S} to turn on degrees, radians, fraction and symbolic modes,
-respectively.  In addition, you may provide a @code{printf} format
-specifier to reformat the final result.  A few examples:
+string consists of flags to influence Calc and other modes during
+execution.  By default, Org-mode uses the standard calc modes (precision
+12, angular units degrees, fraction and symbolic modes off.  The display
+format, however, has been changed to @code{(float 5)} to keep tables
+compact.  The default settings can be configured using the variable
+@code{org-calc-default-modes}.
+
+@example
+p20           @r{switch the internal precision to 20 digits}
+n3 s3 e2 f4   @r{normal, scientific, engineering, or fixed display format}
+D R           @r{angle modes: degrees, radians}
+F S           @r{fraction and symbolic modes}
+N             @r{interpret all fields as numbers, use 0 for non-numbers}
+T             @r{force text interpretation}
+E             @r{keep empty fields in ranges}
+@end example
+
+@noindent
+In addition, you may provide a @code{printf} format specifier to
+reformat the final result.  A few examples:
 
 @example
 $1+$2                @r{Sum of first and second field}
@@ -1391,74 +1523,243 @@ $c/$1/$cm            @r{Hz -> cm conversion, using @file{constants.el}}
 tan($1);Dp3s1        @r{Compute in degrees, precision 3, display SCI 1}
 sin($1);Dp3%.1e      @r{Same, but use printf specifier for display}
 vmean($2..$7)        @r{Compute column range mean, using vector function}
-vsum(&III)           @r{Sum numbers from 3rd hline above, up to here}
+vmean($2..$7);EN     @r{Same, but treat empty fields as 0}
 taylor($3,x=7,2)     @r{taylor series of $3, at x=7, second degree}
 @end example
 
-@node Lisp formulas, Column formulas, Formula syntax, Table calculations
+@node Formula syntax for Lisp, Field formulas, Formula syntax for Calc, The spreadsheet
 @subsection Emacs Lisp forms as formulas
 @cindex Lisp forms, as table formulas
 
-It is also possible to write a formula in Emacs lisp; this can be useful
+It is also possible to write a formula in Emacs Lisp; this can be useful
 for string manipulation and control structures.  If a formula starts
 with a single quote followed by an opening parenthesis, then it is
 evaluated as a lisp form.  The evaluation should return either a string
-or a number.  Just as with @file{calc} formulas, you can provide a
-format specifier after a semicolon.  A few examples:
+or a number.  Just as with @file{calc} formulas, you can specify modes
+and a printf format after a semicolon.  A reference will be replaced
+with a string (in double quotes) containing the field.  If you provide
+the @samp{N} mode switch, all referenced elements will be numbers.
+Ranges are inserted as space-separated fields, so you can embed them in
+list or vector syntax.  A few examples, note how the @samp{N} mode is
+used when we do computations in lisp.
 
 @example
-@r{swap the first two characters of the content of column 1}
-'(concat (substring "$1" 1 2) (substring "$1" 0 1) (substring "$1" 2))
-@r{Add columns 1 and 2, equivalent to the calc's @code{$1+$2}}
-'(+ $1 $2)
+@r{Swap the first two characters of the content of column 1}
+  '(concat (substring $1 1 2) (substring $1 0 1) (substring $1 2))
+@r{Add columns 1 and 2, equivalent to the Calc's @code{$1+$2}}
+  '(+ $1 $2);N
+@r{Compute the sum of columns 1-4, like Calc's @code{vsum($1..$4)}}
+  '(apply '+ '($1..$4));N
 @end example
 
-@node Column formulas, Advanced features, Lisp formulas, Table calculations
+@node Field formulas, Column formulas, Formula syntax for Lisp, The spreadsheet
+@subsection Field formulas
+@cindex field formula
+@cindex formula, for individual table field
+
+To assign a formula to a particular field, type it directly into the
+field, preceded by @samp{:=}, for example @samp{:=$1+$2}.  When you
+press @key{TAB} or @key{RET} or @kbd{C-c C-c} with the cursor still in
+the field, the formula will be stored as the formula for this field,
+evaluated, and the current field replaced with the result.
+
+Formulas are stored in a special line starting with @samp{#+TBLFM:}
+directly below the table.  If you typed the equation in the 4th field of
+the 3rd data line in the table, the formula will look like
+@samp{@@3$2=$1+$2}.  When inserting/deleting/swapping column and rows
+with the appropriate commands, @i{absolute references} (but not relative
+ones) in stored formulas are modified in order to
+still reference the same field.  Of cause this is not true if you edit
+the table structure with normal editing commands - then you must go and
+fix equations yourself.
+
+Instead of typing an equation into the field, you may also use the
+following command
+
+@table @kbd
+@kindex C-u C-c =
+@item C-u C-c =
+Install a new formula for the current field.  The command prompts for a
+formula, with default taken from the @samp{#+TBLFM:} line, applies
+it to the current field and stores it.
+@end table
+
+@node Column formulas, Editing and debugging formulas, Field formulas, The spreadsheet
 @subsection Column formulas
 @cindex column formula
 @cindex formula, for table column
 
-To apply a formula to a field, type it directly into the field,
-preceded by an equal sign, like @samp{=$1+$2}.  When you press
-@key{TAB} or @key{RET} or @kbd{C-c C-c} with the cursor still in the
-field, the formula will be stored as the formula for the current
-column, evaluated and the current field replaced with the result.  If
-the field contains only @samp{=}, the previously stored formula for
-this column is used.
+Often in a table, the same formula should be used for all fields in a
+particular column.  Instead of having to copy the formula to all fields
+in that column, org-mode allows to assign a single formula to an entire
+column.
 
-For each column, Org-mode will remember the most recently used
-formula.  The information is stored in a special line starting with
-@samp{#+TBLFM} directly below the table.  When adding/deleting/moving
-columns with the appropriate commands, the stored equations will be
-modified accordingly.  When a column used in a calculation is removed,
-references to this column become invalid and will cause an error upon
-applying the equation.
+To assign a formula to a column, type it directly into any field in the
+column, preceded by an equal sign, like @samp{=$1+$2}.  When you press
+@key{TAB} or @key{RET} or @kbd{C-c C-c} with the cursor still in the
+field, the formula will be stored as the formula for the current column,
+evaluated and the current field replaced with the result.  If the field
+contains only @samp{=}, the previously stored formula for this column is
+used.  For each column, Org-mode will only remember the most recently
+used formula.  In the @samp{TBLFM:} line, column formulas will look like
+@samp{$4=$1+$2}.
 
 Instead of typing an equation into the field, you may also use the
-command @kbd{C-c =}.  It prompts for a formula (with default taken
-from the @samp{#+TBLFM:} line) and applies it to the current field.  A
-numerical prefix (e.g. @kbd{C-5 C-c =}) will apply it to that many
-consecutive fields in the current column.
+following command:
 
+@table @kbd
+@kindex C-c =
+@item C-c =
+Install a new formula for the current column and replace current field
+with the result of the formula.  The command prompts for a formula, with
+default taken from the @samp{#+TBLFM} line, applies it to the current
+field and stores it.  With a numerical prefix (e.g. @kbd{C-5 C-c =})
+will apply it to that many consecutive fields in the current column.
+@end table
+
+
+@node Editing and debugging formulas, Updating the table, Column formulas, The spreadsheet
+@subsection Editing and Debugging formulas
+@cindex formula editing
+@cindex editing, of table formulas
+
+You can edit individual formulas in the minibuffer or directly in the
+field.  Org-mode can also prepare a special buffer with all active
+formulas of a table.
+
+@table @kbd
+@kindex C-c =
+@kindex C-u C-c =
+@item C-c =
+@itemx C-u C-c =
+Edit the formula associated with the current column/field in the
+minibuffer.  See @ref{Column formulas} and @ref{Field formulas}.
+@kindex C-u C-u C-c =
+@item C-u C-u C-c =
+Re-insert the active formula (either a
+field formula, or a column formula) into the current field, so that you
+can edit it directly in the field.  The advantage over editing in the
+minibuffer is that you can use the command @kbd{C-c ?}.
+@kindex C-c ?
+@item C-c ?
+While editing a formula in a table field, highlight the field(s)
+referenced by the reference at the cursor position in the formula.
+@kindex C-c '
+@item C-c '
+Edit all formulas for the current table in a special buffer, where the
+formulas will be displayed one per line. 
+While inside the special buffer, Org-mode will automatically highlight
+any field or range reference at the cursor position.  You may edit,
+remove and add formulas, and use the following commands:
+@table @kbd
+@kindex C-c C-c
+@item C-c C-c
+Exit the buffer and store the modified formulas.  With @kbd{C-u} prefix,
+also apply the new formulas to the entire table.
+@kindex C-c C-q
+@item C-c C-q
+Exit the buffer without installing changes.
+@kindex @key{TAB}
+@item @key{TAB}
+Pretty-print or indent lisp formula at point.  When in a line containing
+a lisp formula, format the formula according to Emacs Lisp rules.
+Another @key{TAB} collapses the formula back again.  In the open
+formula, @key{TAB} re-indents just like in Emacs-lisp-mode.
+@kindex M-@key{TAB}
+@item M-@key{TAB}
+Complete Lisp symbols, just like in Emacs-lisp-mode.
+@kindex S-@key{up}
+@kindex S-@key{down}
+@item S-@key{up}/@key{down}
+Move the reference line in the Org-mode buffer up and down.  This is
+important for highlighting the references of column formulas for
+different rows.
+@kindex M-@key{up}
+@kindex M-@key{down}
+@item M-@key{up}/@key{down}
+Scroll the window displaying the table.
+@end table
+@kindex C-c @}
+@item C-c @}
+Toggle the display of row and column numbers for a table, using
+overlays.  These are uptated each time the table is aligned, you can
+force it with @kbd{C-c C-c}.
+@kindex C-c @{
+@item C-c @{
+Toggle the formula debugger on and off.  See below.
+@end table
+
+Making a table field blank does not remove the formula associated with
+the field, because that is stored in a different line (the @samp{TBLFM}
+line) - during the next recalculation the field will be filled again.
+To remove a formula from a field, you have to give an empty reply when
+prompted for the formula, or to edit the @samp{#+TBLFM} line.
+
+@kindex C-c C-c
+You may edit the @samp{#+TBLFM} directly and re-apply the changed
+equations with @kbd{C-c C-c} in that line, or with the normal
+recalculation commands in the table.
+
+@subsubheading Debugging formulas
+@cindex formula debugging
+@cindex debugging, of table formulas
+When the evaluation of a formula leads to an error, the field content
+becomes the string @samp{#ERROR}.  If you would like see what is going
+on during variable substitution and calculation in order to find a bug,
+turn on formula debugging in the @code{Tbl} menu and repeat the
+calculation, for example by pressing @kbd{C-c = @key{RET}} in a field.
+Detailed information will be displayed.
+
+@node Updating the table, Advanced features, Editing and debugging formulas, The spreadsheet
+@subsection Updating the Table
 @cindex recomputing table fields
-To recompute all the fields in a line, use the command @kbd{C-c *}.
-It re-applies all stored equations to the current row, from left to
-right.  With a @kbd{C-u} prefix, this will be done to every line in
-the table, so use this command it you want to make sure the entire
-table is up-to-date. @kbd{C-u C-c C-c} is another way to update the
-entire table.  Global updating does not touch the line(s) above the
-first horizontal separator line, assuming that this is the table
-header.
+@cindex updating, table
 
-@node Advanced features, Named-field formulas, Column formulas, Table calculations
+Recalculation of a table is normally not automatic, but needs to be
+triggered by a command.  See @ref{Advanced features} for a way to make
+recalculation at least semi-automatically.
+
+In order to recalculate a line of a table or the entire table, use the
+following commands:
+
+@table @kbd
+@kindex C-c *
+@item C-c *
+Recalculate the current row by first applying the stored column formulas
+from left to right, and all field formulas in the current row.
+
+@kindex C-u C-c *
+@item C-u C-c *
+@kindex C-u C-c C-c
+@itemx C-u C-c C-c
+Recompute the entire table, line by line.  Any lines before the first
+hline are left alone, assuming that these are part of the table header.
+
+@kindex C-u C-u C-c *
+@item C-u C-u C-c *
+Iterate the table by recomputing it until no further changes occur.
+This may be necessary if some computed fields use the value of other
+fields that are computed @i{later} in the calculation sequence.
+@end table
+
+
+@node Advanced features,  , Updating the table, The spreadsheet
 @subsection Advanced features
 
-If you want the recalculation of fields to happen automatically,
-or if you want to be able to assign a formula to an individual field
-(instead of an entire column) you need to reserve the first column of
-the table for special marking characters.  Here is an example of a
-table that collects exam results of students and makes use of these
-features:
+If you want the recalculation of fields to happen automatically, or if
+you want to be able to assign @i{names} to fields and columns, you need
+to reserve the first column of the table for special marking characters.
+@table @kbd
+@kindex C-#
+@item C-#
+Rotate the calculation mark in first column through the states @samp{},
+@samp{#}, @samp{*}, @samp{!}, @samp{$}.  The meaning of these characters
+is discussed below.  When there is an active region, change all marks in
+the region.
+@end table
+
+Here is an example of a table that collects exam results of students and
+makes use of these features:
 
 @example
 @group
@@ -1477,14 +1778,15 @@ features:
 | ^ |         |        |        |        |    at |      |
 | $ | max=50  |        |        |        |       |      |
 |---+---------+--------+--------+--------+-------+------|
-#+TBLFM: $6=vsum($P1..$P3)::$7=10*$Tot/$max;%.1f::$at=vmean(&II);%.1f
+#+TBLFM: $6=vsum($P1..$P3)::$7=10*$Tot/$max;%.1f::$at=vmean(@@-II..@@-I);%.1f
 @end group
 @end example
 
 @noindent @b{Important}: Please note that for these special tables,
-recalculating the table with @kbd{C-u C-c *} will only affect rows
-that are marked @samp{#} or @samp{*}, and named fields.  The column
-formulas are not applied in rows with empty first field.
+recalculating the table with @kbd{C-u C-c *} will only affect rows that
+are marked @samp{#} or @samp{*}, and fields that have a formula assigned
+to the field itself.  The column formulas are not applied in rows with
+empty first field.
 
 @cindex marking characters, tables
 The marking characters have the following meaning:
@@ -1495,8 +1797,8 @@ refer to a column as @samp{$Tot} instead of @samp{$6}.
 @item ^
 This row defines names for the fields @emph{above} the row.  With such
 a definition, any formula in the table may use @samp{$m1} to refer to
-the value @samp{10}.  Also, named fields can have their own formula
-associated with them.
+the value @samp{10}.  Also, if you assign a formula to a names field, it
+will be stored as @samp{$name=...}.
 @item _
 Similar to @samp{^}, but defines names for the fields in the row
 @emph{below}.
@@ -1505,8 +1807,7 @@ Fields in this row can define @emph{parameters} for formulas.  For
 example, if a field in a @samp{$} row contains @samp{max=50}, then
 formulas in this table can refer to the value 50 using @samp{$max}.
 Parameters work exactly like constants, only that they can be defined on
-a per-table basis.  Changing a parameter and then recalculating the
-table can be useful.
+a per-table basis.
 @item #
 Fields in this row are automatically recalculated when pressing
 @key{TAB} or @key{RET} or @kbd{S-@key{TAB}} in this row.  Also, this row
@@ -1520,69 +1821,15 @@ recalculation slows down editing too much.
 Unmarked lines are exempt from recalculation with @kbd{C-u C-c *}.
 All lines that should be recalculated should be marked with @samp{#}
 or @samp{*}.
+@item /
+Do not export this line.  Useful for lines that contain the narrowing
+@samp{<N>} markers.
 @end table
 
-@node Named-field formulas, Editing/debugging formulas, Advanced features, Table calculations
-@subsection Named-field formulas
-@cindex named field formula
-@cindex formula, for named table field
-
-A named field can have its own formula associated with it.  In the
-example above, this is used for the @samp{at} field that contains
-the average result of the students.  To enter a formula for a named
-field, just type it into the buffer, preceded by @samp{:=}.  Or use
-@kbd{C-u C-c =}.  This equation will be stored below the table like
-@samp{$name=...}.  Any recalculation in the table (even if only
-requested for the current line) will also update all named field
-formulas.
-
-@node Editing/debugging formulas, Appetizer, Named-field formulas, Table calculations
-@subsection Editing and debugging formulas
-@cindex formula editing
-@cindex editing, of table formulas
-
-To edit a column or field formula, use the commands @kbd{C-c
-=} and @kbd{C-u C-c =}, respectively.  The currently active expression
-is then presented as default in the minibuffer, where it may be edited.
-
-Note that making a table field blank does not remove the formula
-associated with the field - during the next recalculation the field
-will be filled again.  To remove a formula from a field, you have to
-give an empty reply when prompted for the formula, or to edit the
-@samp{#+TBLFM} line.
-
-@kindex C-c C-c
-You may edit the @samp{#+TBLFM} directly and re-apply
-the changed equations with @kbd{C-c C-c} in that line, or with the
-normal recalculation commands in the table.
-
-@kindex C-c '
-@kindex C-c C-c
-@kindex C-c C-q
-@kindex C-c ?
-In particular for large tables with many formulas, it is convenient to
-use the command @kbd{C-c '} to edit the formulas of the current table
-in a separate buffer.  That buffer will show the formulas one per
-line, and you are free to edit, add and remove formulas.  Press
-@kbd{C-c ?} on a @samp{$...}  expression to get information about its
-interpretation.  Exiting the buffer with @kbd{C-c C-c} only stores the
-modified formulas below the table.  Exiting with @kbd{C-u C-c C-c}
-also applies them to the entire table.  @kbd{C-c C-q} exits without
-installing the changes.
-
-When the evaluation of a formula leads to an error, the field content
-becomes the string @samp{#ERROR}.  If you would like see what is going
-on during variable substitution and calculation in order to find a
-bug, turn on formula debugging in the menu and repeat the calculation,
-for example by pressing @kbd{C-c = @key{RET}} in a field.
-Detailed information will be displayed.
-
-@node Appetizer,  , Editing/debugging formulas, Table calculations
-@subsection Appetizer
-
-Finally, just to whet your appetite on what can be done with the fantastic
-@file{calc} package, here is a table that computes the Taylor series
-for a couple of functions (homework: try that with Excel :-)
+Finally, just to whet your appetite on what can be done with the
+fantastic @file{calc} package, here is a table that computes the Taylor
+series of degree @code{n} at location @code{x} for a couple of functions
+(homework: try that with Excel :-)
 
 @example
 @group
@@ -1599,51 +1846,6 @@ for a couple of functions (homework: try that with Excel :-)
 #+TBLFM: $5=taylor($2,$4,$3);n3
 @end group
 @end example
-
-@node orgtbl-mode, table.el, Table calculations, Tables
-@section The Orgtbl minor mode
-@cindex orgtbl-mode
-@cindex minor mode for tables
-
-If you like the intuitive way the Org-mode table editor works, you
-might also want to use it in other modes like text-mode or mail-mode.
-The minor mode Orgtbl-mode makes this possible.  You can always toggle
-the mode with @kbd{M-x orgtbl-mode}.  To turn it on by default, for
-example in mail mode, use
-
-@lisp
-(add-hook 'mail-mode-hook 'turn-on-orgtbl)
-@end lisp
-
-@node table.el,  , orgtbl-mode, Tables
-@section The @file{table.el} package
-@kindex C-c C-c
-@cindex table editor, @file{table.el}
-@cindex @file{table.el}
-
-Complex ASCII tables with automatic line wrapping, column- and
-row-spanning, and alignment can be created using the Emacs table
-package by Takaaki Ota (@uref{http://sourceforge.net/projects/table},
-and also part of Emacs 22).
-When @key{TAB} or @kbd{C-c C-c} is pressed in such a table, Org-mode
-will call @command{table-recognize-table} and move the cursor into the
-table.  Inside a table, the keymap of Org-mode is inactive.  In order
-to execute Org-mode-related commands, leave the table.
-
-@table @kbd
-@kindex C-c C-c
-@item C-c C-c
-Recognize @file{table.el} table.  Works when the cursor is in a
-table.el table.
-
-@kindex C-c ~
-@item C-c ~
-Insert a table.el table.  If there is already a table at point, this
-command converts it between the table.el format and the Org-mode
-format.  See the documentation string of the command
-@code{org-convert-table} for the restrictions under which this is
-possible.
-@end table
 
 @node Hyperlinks, TODO items, Tables, Top
 @chapter Hyperlinks
@@ -1697,7 +1899,6 @@ internal structure of all links, use the menu entry
 @section Internal links
 @cindex internal links
 @cindex links, internal
-@cindex CamelCase links
 @cindex targets, for links
 
 If the link does not look like a URL, it is considered to be internal in
@@ -1706,7 +1907,7 @@ Target][Find my target]]} lead to a text search in the current file.
 The link can be followed with @kbd{C-c C-o} when the cursor is on the
 link, or with a mouse click (@pxref{Handling links}).  The preferred
 match for such a link is a dedicated target: the same string in double
-angular brackets.  Targets may be located anywhere; often it is
+angular brackets.  Targets may be located anywhere; sometimes it is
 convenient to put them into a comment line. For example
 
 @example
@@ -1744,10 +1945,9 @@ earlier.
 
 @menu
 * Radio targets::               Make targets trigger links in plain text.
-* CamelCase links::             Activating CamelCase words as links
 @end menu
 
-@node Radio targets, CamelCase links, Internal links, Internal links
+@node Radio targets,  , Internal links, Internal links
 @subsection Radio targets
 @cindex radio targets
 @cindex targets, radio
@@ -1762,19 +1962,6 @@ normal text to become activated as a link.  The Org-mode file is
 scanned automatically for radio targets only when the file is first
 loaded into Emacs.  To update the target list during editing, press
 @kbd{C-c C-c} with the cursor on or at a target.
-
-@node CamelCase links,  , Radio targets, Internal links
-@subsection CamelCase words as links
-@cindex completion, of CamelCase links
-@cindex CamelCase links, completion of
-
-Org-mode also supports CamelCase words as links.  This feature is not
-turned on by default because of the inconsistencies this system suffers
-from.  It is also possible that this feature will disappear entirely in
-a future version of Org-mode.  To activate CamelCase words as links, you
-need to customize the option @code{org-activate-links}.  A CamelCase
-word then leads to a text search such that @samp{CamelCaseLink} is
-equivalent to @samp{[[camel case link]]}.
 
 @node External links, Handling links, Internal links, Hyperlinks
 @section External links
@@ -1830,12 +2017,19 @@ format}), for example:
 [[http://www.gnu.org/software/emacs/][GNU Emacs]]
 @end example
 
+@noindent
+If the description is a file name or URL that points to an image, HTML
+export (@pxref{HTML export}) will inline the image as a clickable
+button.  If there is no description at all and the link points to an
+image,
+that image will be inlined into the exported HTML file.
+
 @cindex angular brackets, around links
 @cindex plain text external links
 Org-mode also finds external links in the normal text and activates them
 as links.  If spaces must be part of the link (for example in
-@samp{bbdb:Richard Stallman}), or you need to remove ambiguities about the end of
-the link, enclose them in angular brackets.
+@samp{bbdb:Richard Stallman}), or if you need to remove ambiguities
+about the end of the link, enclose them in angular brackets.
 
 @node Handling links, Link abbreviations, External links, Hyperlinks
 @section Handling links
@@ -1871,20 +2065,25 @@ The key binding @kbd{C-c l} is only a suggestion - see @ref{Installation}.
 @item C-c C-l
 Insert a link.  This prompts for a link to be inserted into the buffer.
 You can just type a link, using text for an internal link, or one of the
-link type prefixes mentioned in the examples above.  Through completion,
-all links stored during the current session can be
-accessed@footnote{After insertion of a stored link, the link will be
+link type prefixes mentioned in the examples above.  All links stored
+during the current session are part of the history for this prompt, so
+you can access them with @key{up} and @key{down}, or with
+completion@footnote{After insertion of a stored link, the link will be
 removed from the list of stored links.  To keep it in the list later
 use, use a triple @kbd{C-u} prefix to @kbd{C-c C-l}, or configure the
-option @code{org-keep-stored-link-after-insertion}.}.  The link
-will be inserted into the buffer, along with a descriptive text.  Note
-that you don't have to use this command to insert a link.  Links in
-Org-mode are plain text, and you can type or paste them straight into
-the buffer.  By using this command, the links are automatically enclosed
-in double brackets, and you will be asked for the optional descriptive
-text.  If the link is a @samp{file:} link and the linked file is located
-in the same directory as the current file or a subdirectory of it, the
-path of the file will be inserted relative to the current directory.
+option @code{org-keep-stored-link-after-insertion}.}.  The link will be
+inserted into the buffer, along with a descriptive text.  If some text
+was selected when this command is called, the selected text becomes the
+default description.@* Note that you don't have to use this command to
+insert a link.  Links in Org-mode are plain text, and you can type or
+paste them straight into the buffer.  By using this command, the links
+are automatically enclosed in double brackets, and you will be asked for
+the optional descriptive text.
+
+@c  If the link is a @samp{file:} link and
+@c the linked file is located in the same directory as the current file or
+@c a subdirectory of it, the path of the file will be inserted relative to
+@c the current directory.
 
 @kindex C-u C-c C-l
 @cindex file name completion
@@ -1945,10 +2144,26 @@ Jump back to a recorded position.  A position is recorded by the
 commands following internal links, and by @kbd{C-c %}.  Using this
 command several times in direct succession moves through a ring of
 previously recorded positions.
+
+@kindex C-c C-x C-n
+@kindex C-c C-x C-p
+@cindex links, finding next/previous
+@item C-c C-x C-n
+@itemx C-c C-x C-p
+Move forward/backward to the next link in the buffer.  At the limit of
+the buffer, the search fails once, and then wraps around.  The key
+bindings for this are really too long, you might want to bind this also
+to @kbd{C-n} and @kbd{C-p}
+@lisp
+(add-hook 'org-load-hook
+  (lambda ()
+    (define-key 'org-mode-map "\C-n" 'org-next-link)
+    (define-key 'org-mode-map "\C-p" 'org-previous-link)))
+@end lisp
 @end table
 
 @node Link abbreviations, Search options, Handling links, Hyperlinks
-@section Link abbreviatons
+@section Link abbreviations
 @cindex link abbreviations
 @cindex abbreviation, links
 
@@ -1957,7 +2172,7 @@ needed in a document.  For this you can use link abbreviations.  An
 abbreviated link looks like this
 
 @example
-[[linkword::tag][description]]
+[[linkword:tag][description]]
 @end example
 
 @noindent
@@ -1981,9 +2196,9 @@ in order to create the link.  You may also specify a function that will
 be called with the tag as the only argument to create the link.
 
 With the above setting, you could link to a specific bug with
-@code{[[bugzilla::129]]}, search the web for OrgMode with
-@code{[[google::OrgMode]]} and find out what the Org-mode author is
-doing besides Emacs hacking with @code{[[ads::Dominik,C]]}.
+@code{[[bugzilla:129]]}, search the web for @samp{OrgMode} with
+@code{[[google:OrgMode]]} and find out what the Org-mode author is
+doing besides Emacs hacking with @code{[[ads:Dominik,C]]}.
 
 If you need special abbreviations just for a single Org-mode buffer, you
 can define them in the file with
@@ -2042,7 +2257,7 @@ sparse tree with the matches.
 @end table
 
 As a degenerate case, a file link with an empty file name can be used
-to search the current file.  For example, @code{<file:::find me>} does
+to search the current file.  For example, @code{[[file:::find me]]} does
 a search for @samp{find me} in the current file, just as
 @samp{[[find me]]} would.
 
@@ -2075,15 +2290,27 @@ file.
 @cindex @file{remember.el}
 
 Another way to create org entries with links to other files is through
-the @emph{Remember} package by John Wiegley.  @emph{Remember} lets you
-store quick notes with little interruption of your work flow.  See
+the @i{remember} package by John Wiegley.  @i{Remember} lets you store
+quick notes with little interruption of your work flow.  See
 @uref{http://www.emacswiki.org/cgi-bin/wiki/RememberMode} for more
-information.  The notes produced by @emph{Remember} can be stored in
-different ways, and Org-mode files are a good target.  Org-mode allows
-you to file away notes either to a default file, or directly to the correct
-location in your Org-mode outline tree.  The following customization
-will tell @emph{Remember} to use org files as target, and to create
-annotations compatible with Org-mode links.
+information.  The notes produced by @i{Remember} can be stored in
+different ways, and Org-mode files are a good target.  Org-mode
+significantly expands the possibilities of @i{remember}: You may define
+templates for different note types, and to associate target files and
+headlines with specific templates.  It also allows you to select the
+location where a note should be stored interactively, on the fly.
+
+@menu
+* Setting up remember::         Some code for .emacs to get things going
+* Remember templates::          Define the outline of different note types
+* Storing notes::               Directly get the note to where it belongs
+@end menu
+
+@node Setting up remember, Remember templates, Remember, Remember
+@subsection Setting up remember
+
+The following customization will tell @i{remember} to use org files as
+target, and to create annotations compatible with Org-mode links.
 
 @example
 (setq org-directory "~/path/to/my/orgfiles/")
@@ -2093,28 +2320,38 @@ annotations compatible with Org-mode links.
 (add-hook 'remember-mode-hook 'org-remember-apply-template)
 @end example
 
+@node Remember templates, Storing notes, Setting up remember, Remember
+@subsection Remember templates
 @cindex templates, for remember
+
 In combination with Org-mode, you can use templates to generate
-different types of remember notes.  For example, if you would like to
-use one template to create general TODO entries, and another one for
-journal entries, you could use:
+different types of @i{remember} notes.  For example, if you would like
+to use one template to create general TODO entries, another one for
+journal entries, and a third one for collecting random ideas, you could
+use:
 
 @example
 (setq org-remember-templates
-      '((?t "* TODO %?\n  %i\n  %a" "~/org/TODO.org")
-        (?j "* %U %?\n\n  %i\n  %a" "~/org/JOURNAL.org")))
+ '((?t "* TODO %?\n  %i\n  %a" "~/org/TODO.org")
+   (?j "* %U %?\n\n  %i\n  %a" "~/org/JOURNAL.org")
+   (?i "* %^@{Title@}\n  %i\n  %a" "~/org/JOURNAL.org" "New Ideas")))
 @end example
 
 @noindent In these entries, the character specifies how to select the
-template, the first string specifies the template, and the (optional)
-second string specifies a default file (overruling
-@code{org-default-notes-file}) as a target for this note.
+template.  The first string specifies the template.  Two more (optional)
+strings give the file in which, and the headline under which the new
+note should be stored.  The file defaults to
+@code{org-default-notes-file}, the heading to
+@code{org-remember-default-headline}.  Both defaults help to get to the
+storing location quickly, but you can change the location interactively
+while storing the note.
 
-When you call @kbd{M-x remember} to remember something, org will prompt
-for a key to select the template and then prepare the buffer like
+When you call @kbd{M-x remember} (or @kbd{M-x org-remember}) to remember
+something, org will prompt for a key to select the template (if you have
+more than one template) and then prepare the buffer like
 @example
 * TODO
-  <file:link to where you called remember>
+  [[file:link to where you called remember]]
 @end example
 
 @noindent or
@@ -2122,20 +2359,69 @@ for a key to select the template and then prepare the buffer like
 @example
 * [2006-03-21 Tue 15:37]
 
-  <file:link to where you called remember>
+  [[file:link to where you called remember]]
 @end example
 
-@noindent See the variable @code{org-remember-templates} for more details.
+@noindent
+During expansion of the template, special @kbd{%}-escapes allow dynamic
+insertion of content:
+@example
+%^@{prompt@}  @r{prompt the user for a string and replace this sequence with it.}
+%t          @r{time stamp, date only}
+%T          @r{time stamp with date and time}
+%u, %U      @r{like the above, but inactive time stamps}
+%^t         @r{like @code{%t}, but prompt for date.  Similarly @code{%^T}, @code{%^u}, @code{%^U}}
+            @r{You may define a prompt like @code{%^@{Birthday@}t}}
+%n          @r{user name (taken from @code{user-full-name})}
+%a          @r{annotation, normally the link created with @code{org-store-link}}
+%i          @r{initial content, the region when remember is called with C-u.}
+            @r{The entire text will be indented like @code{%i} itself.}
+%:keyword   @r{specific information for certain link types, see below}
+@end example
 
-When you are finished composing a note with remember, you have to press
+@noindent
+For specific link types, the following keywords will be defined:
+
+@example
+Link type          |  Available keywords
+-------------------+----------------------------------------------
+bbdb               |  %:name %:company
+vm, wl, mh, rmail  |  %:type %:subject %:message-id
+                   |  %:from %:fromname %:fromaddress
+                   |  %:to   %:toname   %:toaddress
+                   |  %:fromto @r{(either "to NAME" or "from NAME")@footnote{This will always be the other, not the user.  See the variable @code{org-from-is-user-regexp}.}}       
+gnus               |  %:group, @r{for messages also all email fields}
+w3, w3m            |  %:url
+info               |  %:file %:node
+calendar           |  %:date"
+@end example
+
+@noindent
+If you would like to have the cursor in a specific position after the
+template has been expanded:
+
+@example
+%?          @r{After completing the template, position cursor here.}
+@end example
+
+@noindent
+If you change you mind about which template to use, call
+@code{org-remember} in the remember buffer.  You may then select a new
+template that will be filled with the previoous context information.
+
+@node Storing notes,  , Remember templates, Remember
+@subsection Storing notes
+
+When you are finished preparing a note with @i{remember}, you have to press
 @kbd{C-c C-c} to file the note away.  The handler first prompts for a
-target file - if you press @key{RET}, the value of
-@code{org-default-notes-file} is used.  Then the command offers the
-headings tree of the selected file.  You can either immediately press
-@key{RET} to get the note appended to the file.  Or you can use vertical
-cursor motion (@key{up} and @key{down}) and visibility cycling
-(@key{TAB}) to find a better place.  Pressing @key{RET} or @key{left} or
-@key{right} leads to the following result.
+target file - if you press @key{RET}, the value specified for the
+template is used.  Then the command offers the headings tree of the
+selected file, with the cursor position at the default headline (if you
+had specified one in the template).  You can either immediately press
+@key{RET} to get the note placed there.  Or you can use vertical cursor
+motion (@key{up} and @key{down}) and visibility cycling (@key{TAB}) to
+find a better place.  Pressing @key{RET} or @key{left} or @key{right}
+then leads to the following result.
 
 @multitable @columnfractions 0.2 0.1 0.7
 @item @b{Cursor position} @tab @b{Key} @tab @b{Note gets inserted}
@@ -2148,11 +2434,10 @@ cursor motion (@key{up} and @key{down}) and visibility cycling
            Or use prefix arg to specify level manually.
 @end multitable
 
-So a fast way to store the note is to press @kbd{C-c C-c @key{RET}
-@key{RET}} to append it to the default file.  Even shorter would be
-@kbd{C-u C-c C-c}, which does the same without even showing the tree.
-But with little extra effort, you can push it directly to the correct
-location.
+So a fast way to store the note to its default location is to press
+@kbd{C-c C-c @key{RET} @key{RET}}.  Even shorter would be @kbd{C-u C-c
+C-c}, which does the same without even asking for a file or showing the
+tree.
 
 Before inserting the text into a tree, the function ensures that the
 text has a headline, i.e. a first line that starts with a @samp{*}.
@@ -2277,7 +2562,9 @@ TODO to FEEDBACK, then to VERIFY, and finally to DONE.  You may also
 use a prefix argument to quickly select a specific state.  For example
 @kbd{C-3 C-c C-t} will change the state immediately to VERIFY.
 If you define many keywords, you can use in-buffer completion (see
-@ref{Completion}) to insert these words into the buffer.
+@ref{Completion}) to insert these words into the buffer.  Changing a todo
+state can be logged with a timestamp, see @ref{Tracking TODO state
+changes} for more information.
 
 @node TODO types, Per file keywords, Workflow states, TODO extensions
 @subsection TODO keywords as types
@@ -2333,7 +2620,7 @@ anywhere in the file:
 #+TYP_TODO: Fred Sara Lucy Mike DONE
 @end example
 
-@cindex Completion, of option keywords
+@cindex completion, of option keywords
 @kindex M-@key{TAB}
 @noindent To make sure you are using the correct keyword, type
 @samp{#+} into the buffer and then use @kbd{M-@key{TAB}} completion.
@@ -2493,6 +2780,7 @@ planning.
 * Time stamps::                 Assigning a time to a tree entry
 * Creating timestamps::         Commands which insert timestamps
 * Custom time format::          If you cannot work with the ISO format
+* Repeating items::             Deadlines that come back again and again
 * Progress logging::            Documenting when what work was done.
 @end menu
 
@@ -2554,10 +2842,12 @@ example:
 If a time stamp is preceded by the word @samp{SCHEDULED:}, it means you
 are planning to start working on that task on the given date. So this is
 not about recording an event, but about planning your work.  The
-headline will be listed under the given date.  In addition, a reminder
-that the scheduled date has passed will be present in the compilation
-for @emph{today}, until the entry is marked DONE.  I.e., the task will
-automatically be forwarded until completed.
+headline will be listed under the given date@footnote{It will still be
+listed on that date after it has been marked DONE.  If you don't like
+this, set the variable @code{org-agenda-skip-scheduled-if-done}.}.  In
+addition, a reminder that the scheduled date has passed will be present
+in the compilation for @emph{today}, until the entry is marked DONE.
+I.e., the task will automatically be forwarded until completed.
 
 @example
 *** TODO Call Trillian for a date on New Years Eve.
@@ -2575,7 +2865,7 @@ continuing until the entry is marked DONE.  An example:
 
 @example
 *** TODO write article about the Earth for the Guide
-    The editor in charge is <bbdb:Ford Prefect>
+    The editor in charge is [[bbdb:Ford Prefect]]
     DEADLINE: <2004-02-29 Sun>
 @end example
 @item Time stamp with CLOSED keyword
@@ -2707,6 +2997,7 @@ specified with the current date and time.  For example:
   22 sept 0:34  --> currentyear-09-22 0:34
   12            --> currentyear-currentmonth-12
   Fri           --> nearest Friday (today or later)
+  +4            --> 4 days from now (if +N is the only thing given)
 @end example
 
 The function understands English month and weekday abbreviations.  If
@@ -2716,8 +3007,11 @@ the variables @code{parse-time-months} and @code{parse-time-weekdays}.
 @cindex calendar, for selecting date
 Parallel to the minibuffer prompt, a calendar is popped up@footnote{If
 you don't need/want the calendar, configure the variable
-@code{org-popup-calendar-for-date-prompt}.}.  You can control the
-calendar fully from the minibuffer:
+@code{org-popup-calendar-for-date-prompt}.}.  When you exit the date
+prompt, either by clicking on a date in the calendar, or by pressing
+@key{RET}, the date selected in the calendar will be combined with the
+information entered at the prompt.  You can control the calendar fully
+from the minibuffer:
 
 @table @kbd
 @kindex <
@@ -2752,7 +3046,7 @@ One month back.
 Choose date in calendar (only if nothing was typed into minibuffer).
 @end table
 
-@node Custom time format, Progress logging, Creating timestamps, Timestamps
+@node Custom time format, Repeating items, Creating timestamps, Timestamps
 @section Custom time format
 @cindex custom date/time format
 @cindex time format, custom
@@ -2795,26 +3089,70 @@ using dates in tables, table alignment will be messed up.  If the custom
 format is shorter, things do work as expected.
 @end itemize
 
-@node Progress logging,  , Custom time format, Timestamps
+@node Repeating items, Progress logging, Custom time format, Timestamps
+@section Repeating items
+@cindex TODO items, repeating
+@cindex deadlines, repeating
+@cindex scheduling, repeating
+
+Org-mode integrates with the Emacs calendar and diary to display cyclic
+appointments, anniversaries and other special entries in the agenda
+(@pxref{Weekly/Daily agenda}).  However, it can be useful to have
+certain deadlines and scheduling items to auto-repeat.  The advantage of
+a deadline or scheduled item is that the they produce warnings ahead of
+time and automatically forward themselves in the agenda until they are
+done.  The abstract difference is therefore between cyclic
+@i{appointments} and cyclic @i{action items}.  For appointments you
+should use the diary, for actions you can uses an org-mode deadline or
+scheduling time stamp together with a REPEAT cookie.  For example:
+
+@example
+* TODO Replace batteries in smoke detector REPEAT(+18m)
+  SCHEDULED: <2007-01-01 Mon>
+
+* TODO Get dentist appointment REPEAT(+6m)
+  SCHEDULED: <2006-12-19 Tue>
+
+* TODO Tax report to IRS REPEAT(+1y)
+  DEADLINE: <2007-04-01 Sun>
+@end example
+
+Each time you try to mark one of these entries DONE using @kbd{C-c C-t},
+they will automatically switch back to the state TODO, and the
+deadline/scheduling will be shifted accordingly.  The time units
+recognized by org-mode are year (y), month (m), week (w), and day (d).
+Org-mode will also prompt you for a note and record the fact that you
+have closed this item in a note under the headline.
+
+One unusual property of these repeating items is that only one instance
+of each exist at any given time.  So if you look back or ahead in the
+agenda, you will not find past and future instances, only the current
+one will show up.  Use a cyclic diary entry if you need all past and
+future instances to be visible in the agenda.
+
+@node Progress logging,  , Repeating items, Timestamps
 @section Progress Logging
 @cindex progress logging
 @cindex logging, of progress
 
 Org-mode can automatically record a time stamp when you mark a TODO item
-as DONE.  You can also measure precisely the time you spent on specific
-items in a project by starting and stopping a clock when you start and
-stop working on an aspect of a project.
+as DONE, or even each time when you change the state of a TODO item.
+You can also measure precisely the time you spent on specific items in a
+project by starting and stopping a clock when you start and stop working
+on an aspect of a project.
 
 @menu
 * Closing items::               When was this entry marked DONE?
+* Tracking TODO state changes::  When did the status change?
 * Clocking work time::          When exactly did you work on this item?
 @end menu
 
-@node Closing items, Clocking work time, Progress logging, Progress logging
+@node Closing items, Tracking TODO state changes, Progress logging, Progress logging
 @subsection Closing items
 
 If you want to keep track of @emph{when} a certain TODO item was
-finished, turn on logging with
+finished, turn on logging with@footnote{The corresponding in-buffer
+setting is: @code{#+STARTUP: logdone}}
 
 @lisp
 (setq org-log-done t)
@@ -2823,16 +3161,44 @@ finished, turn on logging with
 @noindent
 Then each time you turn a TODO entry into DONE using either @kbd{C-c
 C-t} in the Org-mode buffer or @kbd{t} in the agenda buffer, a line
-@samp{CLOSED: [timestamp]} will be inserted just after the headline.
-If you turn the entry back into a TODO item again through further
-state cycling, that line will be removed again.  In the timeline
-(@pxref{Timeline}) and in the agenda (@pxref{Weekly/Daily agenda}),
-you can then use the @kbd{l} key to display the TODO items closed on
-each day, giving you an overview of what has been done on a day.
-See the variable @code{org-log-done} for the possibility to record an
-additional note together with a timestamp.
+@samp{CLOSED: [timestamp]} will be inserted just after the headline.  If
+you turn the entry back into a TODO item through further state cycling,
+that line will be removed again.  In the timeline (@pxref{Timeline}) and
+in the agenda (@pxref{Weekly/Daily agenda}), you can then use the
+@kbd{l} key to display the TODO items closed on each day, giving you an
+overview of what has been done on a day.  If you want to record a note
+along with the timestamp, use@footnote{The corresponding in-buffer
+setting is: @code{#+STARTUP: lognotedone}}
 
-@node Clocking work time,  , Closing items, Progress logging
+@lisp
+(setq org-log-done '(done))
+@end lisp
+
+@node Tracking TODO state changes, Clocking work time, Closing items, Progress logging
+@subsection Tracking TODO state changes
+
+When TODO keywords are used as workflow states (@pxref{Workflow
+states}), you might want to keep track of when a state change occurred,
+and you may even want to attach notes to that state change.  With the
+setting
+
+@lisp
+(setq org-log-done '(state))
+@end lisp
+
+@noindent
+each state change will prompt you for a note that will be attached to
+the current headline.  Very likely you do not want this verbose tracking
+all the time, so it is probably better to configure this behavior with
+in-buffer options.  For example, if you are tracking purchases, put
+these into a separate file that starts with:
+
+@example
+#+SEQ_TODO: TODO ORDERED INVOICE PAYED RECEIVED SENT
+#+STARTUP: lognotestate
+@end example
+
+@node Clocking work time,  , Tracking TODO state changes, Progress logging
 @subsection Clocking work time
 
 Org-mode allows you to clock the time you spent on specific tasks in a
@@ -2852,7 +3218,9 @@ Stop the clock (clock-out).  The inserts another timestamp at the same
 location where the clock was last started.  It also directly computes
 the resulting time in inserts it after the time range as @samp{=>
 HH:MM}.  See the variable @code{org-log-done} for the possibility to
-record an additional note together with the clock-out time stamp.
+record an additional note together with the clock-out time
+stamp@footnote{The corresponding in-buffer setting is: @code{#+STARTUP:
+lognoteclock-out}}.
 @kindex C-c C-y
 @item C-c C-y
 Recompute the time interval after changing one of the time stamps.  This
@@ -3073,6 +3441,8 @@ Turn off groups of mutually exclusive tags.  Use this to (as an
 exception) assign several tags from such a group.
 @item C-c
 Toggle auto-exit after the next change (see below).
+If you are using expert mode, the first @kbd{C-c} will display the
+selection window.
 @end table
 
 @noindent
@@ -3090,7 +3460,11 @@ modify your list of tags, set the variable
 @code{org-fast-tag-selection-single-key}.  Then you no longer have to
 press @key{RET} to exit fast tag selection - it will immediately exit
 after the first change.  If you then occasionally need more keys, press
-@kbd{C-c} to turn off auto-exit for the current tag selection process.
+@kbd{C-c} to turn off auto-exit for the current tag selection process
+(in effect: start selection with @kbd{C-c C-c C-c} instead of @kbd{C-c
+C-c}).  If you set the variable to the value @code{expert}, the special
+window is not even shown for single-key tag selection, it comes up only
+when you press an extra @kbd{C-c}.
 
 @node Tag searches,  , Setting tags, Tags
 @section Tag searches
@@ -3103,7 +3477,8 @@ information into special lists.
 @table @kbd
 @kindex C-c \
 @item C-c \
-Create a sparse tree with all headlines matching a tags search.
+Create a sparse tree with all headlines matching a tags search.  With a
+@kbd{C-u} prefix argument, ignore headlines that are not a TODO line.
 @kindex C-c a m
 @item C-c a m
 Create a global list of tag matches from all agenda files.
@@ -3125,13 +3500,13 @@ or @samp{-} is present.  Examples:
 
 @table @samp
 @item +WORK-BOSS
-Select all headlines that are tagged @samp{:WORK:}, but discard those also tagged
+Select headlines tagged @samp{:WORK:}, but discard those also tagged
 @samp{:BOSS:}.
 @item WORK|LAPTOP
 Selects lines tagged @samp{:WORK:} or @samp{:LAPTOP:}.
 @item WORK|LAPTOP&NIGHT
-Like the previous example, but require  the @samp{:LAPTOP:} lines to be
-tagged also @samp{NIGHT}.
+Like before, but require the @samp{:LAPTOP:} lines to be tagged also
+@samp{NIGHT}.
 @end table
 
 @cindex TODO keyword matching, with tags search
@@ -3141,19 +3516,34 @@ adding a condition after a slash to a tags match.  The syntax is similar
 to the tag matches, but should be applied with consideration: For
 example, a positive selection on several TODO keywords can not
 meaningfully be combined with boolean AND.  However, @emph{negative
-selection} combined with AND can be meaningful.  Examples:
+selection} combined with AND can be meaningful.  To make sure that only
+lines are checked that actually have any TODO keyword, use @kbd{C-c a
+M}, or equivalently start the todo part after the slash with @samp{!}.
+Examples:
 
 @table @samp
 @item WORK/WAITING
 Select @samp{:WORK:}-tagged TODO lines with the specific TODO
 keyword @samp{WAITING}.
-@item WORK/-WAITING-NEXT
+@item WORK/!-WAITING-NEXT
 Select @samp{:WORK:}-tagged TODO lines that are neither @samp{WAITING}
 nor @samp{NEXT}
 @item WORK/+WAITING|+NEXT
 Select @samp{:WORK:}-tagged TODO lines that are either @samp{WAITING} or
 @samp{NEXT}.
 @end table
+
+@cindex regular expressions, with tags search
+Any element of the tag/todo match can be a regular expression - in this
+case it must be enclosed in curly braces.  For example,
+@samp{WORK+@{^BOSS.*@}} matches headlines that contain the tag
+@samp{WORK} and any tag @i{starting} with @samp{BOSS}.
+
+@cindex level, require for tags match
+You can also require a headline to be of a certain level, by writing
+instead of any TAG an expression like @samp{LEVEL=3}.  For example, a
+search @samp{+LEVEL=3+BOSS/-DONE} lists all level three headlines that
+have the tag BOSS and are @emph{not} marked with the todo keyword DONE.
 
 @node Agenda views, Embedded LaTeX, Tags, Top
 @chapter Agenda Views
@@ -3166,23 +3556,26 @@ are important for a particular date, this information must be collected,
 sorted and displayed in an organized way.
 
 Org-mode can select items based on various criteria, and display them
-in a separate buffer.  Five different view types are provided:
+in a separate buffer.  Six different view types are provided:
 
 @itemize @bullet
 @item
 an @emph{agenda} that is like a calendar and shows information
-for specific dates
+for specific dates,
 @item
 a @emph{TODO list} that covers all unfinished
 action items,
 @item
-a @emph{tags view} that shows information based on
-the tags associated with headlines in the outline tree,
+a @emph{tags view}, showings headlines based on
+the tags associated with them,
 @item
 a @emph{timeline view} that shows all events in a single Org-mode file,
-in time-sorted view
+in time-sorted view,
 @item
-@emph{custom views} that are special tag and keyword searches and
+a @emph{stuck projects view} showing projects that currently don't move
+along, and
+@item
+@emph{custom views} that are special tag/keyword searches and
 combinations of different views.
 @end itemize
 
@@ -3200,10 +3593,7 @@ window configuration is restored when the agenda exits:
 @menu
 * Agenda files::                Files being searched for agenda information
 * Agenda dispatcher::           Keyboard access to agenda views
-* Weekly/Daily agenda::         The calendar page with current tasks
-* Global TODO list::            All unfinished action items
-* Matching headline tags::      Structured information with fine-tuned search
-* Timeline::                    Time-sorted view for single file
+* Built-in agenda views::       What is available out of the box?
 * Presentation and sorting::    How agenda items are prepared for display
 * Agenda commands::             Remote editing of org trees
 * Custom agenda views::         Defining special searches and views
@@ -3236,7 +3626,9 @@ the front.  With prefix arg, file is added/moved to the end.
 @item C-c ]
 Remove current file from the list of agenda files.
 @kindex C-,
+@kindex C-'
 @item C-,
+@itemx C-'
 Cycle through agenda file list, visiting one file after the other.
 @end table
 
@@ -3244,7 +3636,7 @@ Cycle through agenda file list, visiting one file after the other.
 The Org menu contains the current list of files and can be used
 to visit any of them.
 
-@node Agenda dispatcher, Weekly/Daily agenda, Agenda files, Agenda views
+@node Agenda dispatcher, Built-in agenda views, Agenda files, Agenda views
 @section The agenda dispatcher
 @cindex agenda dispatcher
 @cindex dispatching agenda commands
@@ -3257,13 +3649,15 @@ command.  The dispatcher offers the following default commands:
 @table @kbd
 @item a
 Create the calendar-like agenda (@pxref{Weekly/Daily agenda}).
-@item t / T
+@item t @r{/} T
 Create a list of all TODO items (@pxref{Global TODO list}).
-@item m / M
+@item m @r{/} M
 Create a list of headlines matching a TAGS expression (@pxref{Matching
 headline tags}).
 @item L
 Create the timeline view for the current buffer (@pxref{Timeline}).
+@item # @r{/} !
+Create a list of stuck projects (@pxref{Stuck projects}).
 @item 1
 Restrict an agenda command to the current buffer.  After pressing
 @kbd{1}, you still need to press the character selecting the command.
@@ -3280,8 +3674,21 @@ possibility to create extended agenda buffers that contain several
 blocks together, for example the weekly agenda, the global TODO list and
 a number of special tags matches.  @xref{Custom agenda views}.
 
-@node Weekly/Daily agenda, Global TODO list, Agenda dispatcher, Agenda views
-@section The weekly/daily agenda
+@node Built-in agenda views, Presentation and sorting, Agenda dispatcher, Agenda views
+@section The built-in agenda views
+
+In this section we describe the built-in views.
+
+@menu
+* Weekly/Daily agenda::         The calendar page with current tasks
+* Global TODO list::            All unfinished action items
+* Matching headline tags::      Structured information with fine-tuned search
+* Timeline::                    Time-sorted view for single file
+* Stuck projects::              Find projects you need to review
+@end menu
+
+@node Weekly/Daily agenda, Global TODO list, Built-in agenda views, Built-in agenda views
+@subsection The weekly/daily agenda
 @cindex agenda
 @cindex weekly agenda
 @cindex daily agenda
@@ -3305,13 +3712,7 @@ change the dates of deadlines and appointments from the agenda buffer.
 The commands available in the Agenda buffer are listed in @ref{Agenda
 commands}.
 
-@menu
-* Calendar/Diary integration::  Integrating Anniversaries and more
-@end menu
-
-
-@node Calendar/Diary integration,  , Weekly/Daily agenda, Weekly/Daily agenda
-@subsection Calendar/Diary integration
+@subsubheading Calendar/Diary integration
 @cindex calendar integration
 @cindex diary integration
 
@@ -3342,8 +3743,8 @@ calendars, respectively.  @kbd{c} can be used to switch back and forth
 between calendar and agenda.
 
 
-@node Global TODO list, Matching headline tags, Weekly/Daily agenda, Agenda views
-@section The global TODO list
+@node Global TODO list, Matching headline tags, Weekly/Daily agenda, Built-in agenda views
+@subsection The global TODO list
 @cindex global TODO list
 @cindex TODO list, global
 
@@ -3394,8 +3795,8 @@ and omit the sublevels from the global list.  Configure the variable
 @code{org-agenda-todo-list-sublevels} to get this behavior.
 @end itemize
 
-@node Matching headline tags, Timeline, Global TODO list, Agenda views
-@section Matching headline tags
+@node Matching headline tags, Timeline, Global TODO list, Built-in agenda views
+@subsection Matching headline tags
 @cindex matching, of tags
 @cindex tags view
 
@@ -3422,8 +3823,8 @@ together with a tags match is also possible, see @ref{Tag searches}.
 The commands available in the tags list are described in @ref{Agenda
 commands}.
 
-@node Timeline, Presentation and sorting, Matching headline tags, Agenda views
-@section Timeline for a single file
+@node Timeline, Stuck projects, Matching headline tags, Built-in agenda views
+@subsection Timeline for a single file
 @cindex timeline, single file
 @cindex time-sorted view
 
@@ -3444,7 +3845,49 @@ The commands available in the timeline buffer are listed in
 @ref{Agenda commands}.
 
 
-@node Presentation and sorting, Agenda commands, Timeline, Agenda views
+@node Stuck projects,  , Timeline, Built-in agenda views
+@subsection Stuck projects
+
+If you are following a system like David Allen's GTD to organize your
+work, one of the ``duties'' you have is a regular review to make sure
+that all projects move along.  A @emph{stuck} project is a project that
+has no defined next actions, so it will never show up in the TODO lists
+Org-mode produces.  During the review, you need to identify such
+projects and define next actions for them.
+
+@table @kbd
+@kindex C-c a #
+@item C-c a #
+List projects that are stuck.
+@kindex C-c a !
+@item C-c a !
+Customize the variable @code{org-stuck-projects} to define what a stuck
+project is and how to find it.
+@end table
+
+You almost certainly will have to configure this view before it will
+work for you.  The built-in default assumes that all your projects are
+level-2 headlines, and that a project is not stuck if it has at least
+one entry marked with a todo keyword TODO or NEXT or NEXTACTION.
+
+Lets assume that you, in your own way of using Org-mode, identify
+projects with a tag PROJECT, and that you use a todo keyword MAYBE to
+indicate a project that should not be considered yet.  Lets further
+assume that the todo keyword DONE marks finished projects, and that NEXT
+and TODO indicate next actions.  Finally, the tag @@SHOP indicates
+shopping and is a next action even without the NEXT tag.  In this case
+you would start by identifying eligible projects with a tags/todo match
+@samp{+PROJECT/-MAYBE-DONE}, and then check for TODO, NEXT and @@SHOP in
+the subtree to identify projects that are not stuck.  The correct
+customization for this is
+
+@lisp
+(setq org-stuck-projects
+      ("+PROJECT/-MAYBE-DONE" ("NEXT" "TODO") ("@@SHOP")))
+@end lisp
+
+
+@node Presentation and sorting, Agenda commands, Built-in agenda views, Agenda views
 @section Presentation and sorting
 @cindex presentation, of agenda items
 
@@ -3492,7 +3935,7 @@ ranges can be specified with two time stamps, like
 
 In the headline of the entry itself, a time(range) may also appear as
 plain text (like @samp{12:45} or a @samp{8:30-1pm}.  If the agenda
-integrates the Emacs diary (@pxref{Calendar/Diary integration}), time
+integrates the Emacs diary (@pxref{Weekly/Daily agenda}), time
 specifications in diary entries are recognized as well.
 
 For agenda display, Org-mode extracts the time and displays it in a
@@ -3613,6 +4056,13 @@ location in the org file.  The initial setting for this mode in new
 agenda buffers can be set with the variable
 @code{org-agenda-start-with-follow-mode}.
 
+@kindex b
+@item b
+Display the entire subtree of the current item in an indirect buffer.
+With numerical prefix ARG, go up to this level and then take that tree.
+If ARG is negative, go up that many levels.  With @kbd{C-u} prefix, do
+not remove the previously used indirect buffer.
+
 @kindex l
 @item l
 Toggle Logbook mode.  In Logbook mode, entries that where marked DONE while
@@ -3635,7 +4085,7 @@ Switch to daily view (just one day displayed).
 
 @kindex D
 @item D
-Toggle the inclusion of diary entries.  See @ref{Calendar/Diary integration}.
+Toggle the inclusion of diary entries.  See @ref{Weekly/Daily agenda}.
 
 @kindex g
 @item g
@@ -3674,6 +4124,13 @@ Goto today.
 @item 0-9
 Digit argument.
 
+@cindex undoing remote-editing events
+@cindex remote editing, undo
+@kindex C-_
+@item C-_
+Undo a change due to a remote editing command.  The change is undone
+both in the agenda buffer and in the remote buffer.
+
 @kindex t
 @item t
 Change the TODO state of the item, both in the agenda and in the
@@ -3685,6 +4142,10 @@ Delete the current agenda item along with the entire subtree belonging
 to it in the original Org-mode file.  If the text to be deleted remotely
 is longer than one line, the kill needs to be confirmed by the user.  See
 variable @code{org-agenda-confirm-kill}.
+
+@kindex $
+@item $
+Archive the subtree corresponding to the current headline.
 
 @kindex T
 @item T
@@ -3706,7 +4167,7 @@ priority character. If you reply with @key{SPC}, the priority cookie
 is removed from the entry.
 
 @kindex P
-@item p
+@item P
 Display weighted priority of current item.
 
 @kindex +
@@ -4310,6 +4771,17 @@ Org-mode contains an HTML (XHTML 1.0 strict) exporter with extensive
 HTML formatting, in ways similar to John Grubers @emph{markdown}
 language, but with additional support for tables.
 
+@menu
+* Export commands::             How to invode HTML export
+* Quoting HTML tags::           Using direct HTML in Org-mode
+* Links::                       How hyperlinks get transferred to HTML
+* Images::                      To inline or not to inline?
+* CSS support::                 Style specifications
+@end menu
+
+@node Export commands, Quoting HTML tags, HTML export, HTML export
+@subsection HTML export commands
+
 @cindex region, active
 @cindex active region
 @cindex transient-mark-mode
@@ -4340,10 +4812,31 @@ at a different level, specify it with a prefix argument.  For example,
 @noindent
 creates two levels of headings and does the rest as items.
 
-If you want to include HTML tags which should be interpreted as such,
-mark them with @samp{@@} as in @samp{@@<b>bold text@@</b>}.
+@node Quoting HTML tags, Links, Export commands, HTML export
+@subsection Quoting HTML tags
+
 Plain @samp{<} and @samp{>} are always transformed to @samp{&lt;} and
-@samp{&gt;} in HTML export.
+@samp{&gt;} in HTML export.  If you want to include simple HTML tags
+which should be interpreted as such, mark them with @samp{@@} as in
+@samp{@@<b>bold text@@</b>}.  Note that this really works only for
+simple tags.  For more extensive HTML that should be copied verbatim to
+the exported file use either
+
+@example
+#+HTML: Literal HTML code for export
+@end example
+
+@noindent or
+
+@example
+#+BEGIN_HTML
+All lines between these markers are exported literally
+#+END_HTML
+@end example
+
+
+@node Links, Images, Quoting HTML tags, HTML export
+@subsection Links
 
 @cindex links, in HTML export
 @cindex internal links, in HTML export
@@ -4357,6 +4850,33 @@ files will be translated into HTML links under the assumption that an
 HTML version also exists of the linked file.  For information related to
 linking files while publishing them to a publishing directory see
 @ref{Publishing links}.
+
+@node Images, CSS support, Links, HTML export
+@subsection Images
+
+@cindex images, inline in HTML
+@cindex inlining images in HTML
+HTML export can inline images given as links in the Org-mode file, and
+it can make an image the clickable part of a link.  By
+default@footnote{but see the variable
+@code{org-export-html-inline-images}}, images are inlined if a link does
+not have a description.  So @samp{[[file:myimg.jpg]]} will be inlined,
+while @samp{[[file:myimg.jpg][the image]]} will just produce a link
+@samp{the image} that points to the image.  If the description part
+itself is a @code{file:} link or a @code{http:} URL pointing to an
+image, this image will be inlined and activated so that clicking on the
+image will activate the link.  For example, to include a thumbnail that
+will link to a high resolution version of the image, you could use:
+
+@example
+[[file:highres.jpg][file:thumb.jpg]]
+@end example
+
+@noindent
+and you could use @code{http} addresses just as well.
+
+@node CSS support,  , Images, HTML export
+@subsection CSS support
 
 You can also give style information for the exported file.  The HTML
 exporter assigns the following CSS classes to appropriate parts of the
@@ -4373,10 +4893,12 @@ document - your style specifications may change these:
 The default style specification can be configured through the option
 @code{org-export-html-style}.  If you want to use a file-local style,
 you may use file variables, best wrapped into a COMMENT section at the
-end of the outline tree.  For example:
+end of the outline tree.  For example@footnote{Under Emacs 21, the
+continuation lines for a variable value should have no @samp{#} at the
+start of the line.}:
 
 @example
-* COMMENT HTML style specifications
+* COMMENT html style specifications
 
 # Local Variables:
 # org-export-html-style: "   <style type=\"text/css\">
@@ -4420,7 +4942,8 @@ still prefer a standard calendar application for anniversaries and
 appointments.  In this case it can be useful to have deadlines and
 other time-stamped items in Org-mode files show up in the calendar
 application.  Org-mode can export calendar information in the standard
-iCalendar format.
+iCalendar format.  If you also want to have TODO entries included in the
+export, configure the variable @code{org-icalendar-include-todo}.
 
 @table @kbd
 @kindex C-c C-e i
@@ -4440,25 +4963,8 @@ Create a single large iCalendar file from all files in
 @end table
 
 How this calendar is best read and updated, depends on the application
-you are using.  For example, when using iCal under Apple MacOS X, you
-could create a new calendar @samp{OrgMode} (the default name for the
-calendar created by @kbd{C-c C-e c}, see the variables
-@code{org-icalendar-combined-name} and
-@code{org-combined-agenda-icalendar-file}).  Then set Org-mode to
-overwrite the corresponding file
-@file{~/Library/Calendars/OrgMode.ics}.  You may even use AppleScript
-to make iCal re-read the calendar files each time a new version of
-@file{OrgMode.ics} is produced.  Here is the setup needed for this:
+you are using.  The FAQ covers this issue.
 
-@cindex applescript, for calendar update
-@lisp
-(setq org-combined-agenda-icalendar-file
-    "~/Library/Calendars/OrgMode.ics")
-(add-hook 'org-after-save-iCalendar-file-hook
- (lambda ()
-  (shell-command
-   "osascript -e 'tell application \"iCal\" to reload calendars'")))
-@end lisp
 
 @node Text interpretation,  , iCalendar export, Exporting
 @section Text interpretation by the exporter
@@ -4513,6 +5019,11 @@ backend supports lists.  See @xref{Plain lists}.
 @item
 You can make words @b{*bold*}, @i{/italic/}, _underlined_,
 @code{=code=}, and @samp{+strikethrough+}.
+
+@cindex horizontal rules, in exported files
+@item
+A line consisting of only dashes, and at least 5 of them, will be
+exported as a horizontal line (@samp{<hr/>} in HTML).
 
 @cindex LaTeX fragments, export
 @cindex TeX macros, export
@@ -4596,7 +5107,7 @@ you can:
 @example
 H:      @r{set the number of headline levels for export}
 num:    @r{turn on/off section-numbers}
-toc:    @r{turn on/off table of contents}
+toc:    @r{turn on/off table of contents, or set level limit (integer)}
 \n:     @r{turn on/off linebreak-preservation}
 @@:      @r{turn on/off quoted HTML tags}
 ::      @r{turn on/off fixed-width sections}
@@ -4966,14 +5477,14 @@ force publishing of all files by giving a prefix argument.
 @cindex completion, of TODO keywords
 @cindex completion, of dictionary words
 @cindex completion, of option keywords
-@cindex completion, of CamelCase links
 @cindex completion, of tags
+@cindex completion, of link abbreviations
 @cindex @TeX{} symbol completion
 @cindex TODO keywords completion
 @cindex dictionary word completion
 @cindex option keyword completion
-@cindex CamelCase link completion
 @cindex tag completion
+@cindex link abbreviations, completion of
 
 Org-mode supports in-buffer completion.  This type of completion does
 not make use of the minibuffer.  You simply type a few letters into
@@ -5017,8 +5528,8 @@ Elsewhere, complete dictionary words using ispell.
 @cindex options, for customization
 @cindex variables, for customization
 
-There are more than 100 variables that can be used to customize
-Org-mode.  For the sake of compactness of the manual, we are not
+There are more than 180 variables that can be used to customize
+Org-mode.  For the sake of compactness of the manual, I am not
 describing the variables here.  A structured overview of customization
 variables is available with @kbd{M-x org-customize}.  Or select
 @code{Browse Org Group} from the @code{Org->Customization} menu.  Many
@@ -5047,6 +5558,9 @@ Org-mode file is being visited.  The first set of options deals with the
 initial visibility of the outline tree.  The corresponding variable for
 global default settings is @code{org-startup-folded}, with a default
 value @code{t}, which means @code{overview}.
+@cindex @code{overview}, STARTUP keyword
+@cindex @code{content}, STARTUP keyword
+@cindex @code{showall}, STARTUP keyword
 @example
 overview   @r{top-level headlines only}
 content    @r{all headlines}
@@ -5056,20 +5570,34 @@ Then there are options for aligning tables upon visiting a file.  This
 is useful in files containing narrowed table columns.  The corresponding
 variable is @code{org-startup-align-all-tables}, with a default value
 @code{nil}. 
+@cindex @code{align}, STARTUP keyword
+@cindex @code{noalign}, STARTUP keyword
 @example
 align      @r{align all tables}
 noalign    @r{don't align tables on startup}
 @end example
-Logging when a TODO item is marked DONE (variable @code{org-log-done})
-can be configured using these options.
+Logging TODO state changes and clock intervals (variable
+@code{org-log-done}) can be configured using these options.
+@cindex @code{logdone}, STARTUP keyword
+@cindex @code{nologging}, STARTUP keyword
+@cindex @code{lognotedone}, STARTUP keyword
+@cindex @code{lognoteclock-out}, STARTUP keyword
+@cindex @code{lognotestate}, STARTUP keyword
 @example
-logging    @r{record a timestamp when an item is marked DONE}
-nologging  @r{don't record when items are marked DONE}
+logging          @r{record a timestamp when an item is marked DONE}
+nologging        @r{don't record when items are marked DONE}
+lognotedone      @r{record timestamp and a note when DONE}
+lognotestate     @r{record timestamp, note when TODO state changes}
+lognoteclock-out @r{record timestamp and a note when clocking out}
 @end example
 Here are the options for hiding leading stars in outline headings.  The
 corresponding variables are @code{org-hide-leading-stars} and
 @code{org-odd-levels-only}, both with a default setting @code{nil}
 (meaning @code{showstars} and @code{oddeven}).
+@cindex @code{hidestars}, STARTUP keyword
+@cindex @code{showstars}, STARTUP keyword
+@cindex @code{odd}, STARTUP keyword
+@cindex @code{even}, STARTUP keyword
 @example
 hidestars  @r{make all but one of the stars starting a headline invisible.}
 showstars  @r{show all stars starting a headline}
@@ -5079,6 +5607,7 @@ oddeven    @r{allow all outline levels}
 To turn on custom format overlays over time stamps (variables
 @code{org-put-time-stamp-overlays} and
 @code{org-time-stamp-overlay-formats}), use
+@cindex @code{customtime}, STARTUP keyword
 @example
 customtime @r{overlay custom time format}
 @end example
@@ -5097,7 +5626,12 @@ These lines (several are allowed) specify link abbreviations.
 @item #+CATEGORY:
 This line sets the category for the agenda file.  The category applies
 for all subsequent lines until the next @samp{#+CATEGORY} line, or the
-end of the file.
+end of the file.  The first such line also applies to any entries before it.
+@item #+ARCHIVE: %s_done::
+This line sets the archive location for the agenda file.  It applies for
+all subsequent lines until the next @samp{#+CATEGORY} line, or the end
+of the file.  The first such line also applies to any entries before it.
+The corresponding variable is @code{org-archive-location}.
 @item #+TBLFM:
 This line contains the formulas for the table directly above the line.
 @item #+TITLE:, #+AUTHOR:, #+EMAIL:, #+LANGUAGE:, #+TEXT:, #+OPTIONS:
@@ -5305,7 +5839,7 @@ with other code out there.
 @cindex @file{calc.el}
 @item @file{calc.el} by Dave Gillespie
 Org-mode uses the calc package for implementing spreadsheet
-functionality in its tables (@pxref{Table calculations}).  Org-modes
+functionality in its tables (@pxref{The spreadsheet}).  Org-mode
 checks for the availability of calc by looking for the function
 @code{calc-eval} which should be autoloaded in your setup if calc has
 been installed properly.  As of Emacs 22, calc is part of the Emacs
@@ -5314,7 +5848,7 @@ packages is using calc for embedded calculations. @xref{Embedded Mode,
 , Embedded Mode, calc, GNU Emacs Calc Manual}.
 @cindex @file{constants.el}
 @item @file{constants.el} by Carsten Dominik
-In a table formula (@pxref{Table calculations}), it is possible to use
+In a table formula (@pxref{The spreadsheet}), it is possible to use
 names for natural constants or units.  Instead of defining your own
 constants in the variable @code{org-table-formula-constants}, install
 the @file{constants} package which defines a large number of constants
@@ -5334,8 +5868,34 @@ Org mode cooperates with remember, see @ref{Remember}.
 @file{Remember.el} is not part of Emacs, find it on the web.
 @cindex @file{table.el}
 @item @file{table.el} by Takaaki Ota
-Org mode cooperates with table.el, see @ref{table.el}.  @file{table.el}
-is part of Emacs 22.
+@kindex C-c C-c
+@cindex table editor, @file{table.el}
+@cindex @file{table.el}
+
+Complex ASCII tables with automatic line wrapping, column- and
+row-spanning, and alignment can be created using the Emacs table
+package by Takaaki Ota (@uref{http://sourceforge.net/projects/table},
+and also part of Emacs 22).
+When @key{TAB} or @kbd{C-c C-c} is pressed in such a table, Org-mode
+will call @command{table-recognize-table} and move the cursor into the
+table.  Inside a table, the keymap of Org-mode is inactive.  In order
+to execute Org-mode-related commands, leave the table.
+
+@table @kbd
+@kindex C-c C-c
+@item C-c C-c
+Recognize @file{table.el} table.  Works when the cursor is in a
+table.el table.
+
+@kindex C-c ~
+@item C-c ~
+Insert a table.el table.  If there is already a table at point, this
+command converts it between the table.el format and the Org-mode
+format.  See the documentation string of the command
+@code{org-convert-table} for the restrictions under which this is
+possible.
+@end table
+@file{table.el} is part of Emacs 22.
 @end table
 
 @node Conflicts,  , Cooperation, Interaction
@@ -5405,14 +5965,11 @@ When the application called by @kbd{C-c C-o} to open a file link fails
 (for example because the application does not exist or refuses to open
 the file), it does so silently.  No error message is displayed.
 @item
-The remote-editing commands in the agenda buffer cannot be undone with
-@code{undo} called from within the agenda buffer.  But you can go to
-the corresponding buffer (using @key{TAB} or @key{RET} and execute
-@code{undo} there.
-@item
 Recalculating a table line applies the formulas from left to right.
 If a formula uses @emph{calculated} fields further down the row,
-multiple recalculation may be needed to get all fields consistent.
+multiple recalculation may be needed to get all fields consistent.  You
+may use the command @code{org-table-iterate} (@kbd{C-u C-c *}) to
+recalculate until convergence.
 @item
 A single letter cannot be made bold, for example @samp{*a*}.
 @item
@@ -5424,16 +5981,19 @@ The exporters work well, but could be made more efficient.
 @appendix Extensions, Hooks and Hacking
 
 This appendix lists extensions for Org-mode written by other authors.
-It also covers some aspects where users can easily extend the
-functionality of Org-mode.
+It also covers some aspects where users can extend the functionality of
+Org-mode.
 
 @menu
 * Extensions::                  Existing 3rd-part extensions
+* Tables in arbitrary syntax::  Orgtbl for LaTeX and other programs
 * Dynamic blocks::              Automatically filled blocks
+* Special agenda views::        Customized views
 @end menu
 
-@node Extensions, Dynamic blocks, Extensions and Hacking, Extensions and Hacking
+@node Extensions, Tables in arbitrary syntax, Extensions and Hacking, Extensions and Hacking
 @section Third-party extensions for Org-mode
+@cindex extension, third-party
 
 The following extensions for Org-mode have been written by other people:
 
@@ -5441,7 +6001,7 @@ The following extensions for Org-mode have been written by other people:
 @cindex @file{org-publish.el}
 @item @file{org-publish.el} by David O'Toole
 This package provides facilities for publishing related sets of Org-mode
-files together with linked files like images as a webpages.  It is
+files together with linked files like images as webpages.  It is
 highly configurable and can be used for other publishing purposes as
 well.  As of Org-mode version 4.30, @file{org-publish.el} is part of the
 Org-mode distribution.  It is not yet part of Emacs, however, a delay
@@ -5463,19 +6023,293 @@ caused by the preparations for the 22.1 release.  In the mean time,
 @item @file{org-blog.el} by David O'Toole
 A blogging plug-in for @file{org-publish.el}.@*
 @url{http://dto.freeshell.org/notebook/OrgMode.html}.
-@cindex @file{org-blogging.el}
-@item @file{org-blogging.el} by  Bastien Guerry
+@cindex @file{blorg.el}
+@item @file{blorg.el} by Bastien Guerry
 Publish Org-mode files as
-blogs. @url{http://www.cognition.ens.fr/~guerry/org-blogging.html}.
+blogs. @url{http://www.cognition.ens.fr/~guerry/blorg.html}.
+@cindex @file{org2rem.el}
+@item @file{org2rem.el} by Bastien Guerry
+Translates Org-mode files into something readable by
+Remind. @url{http://www.cognition.ens.fr/~guerry/u/org2rem.el}.
 @end table
 
-@node Dynamic blocks,  , Extensions, Extensions and Hacking
+@page
+
+@node Tables in arbitrary syntax, Dynamic blocks, Extensions, Extensions and Hacking
+@section Tables in arbitrary syntax
+@cindex tables, in other modes
+@cindex orgtbl-mode
+
+Since Orgtbl-mode can be used as a minor mode in arbitrary buffers, a
+frequent feature request has been to make it work with native tables in
+specific languages, for example LaTeX.  However, this is extremely hard
+to do in a general way, would lead to a customization nightmare, and
+would take away much of the simplicity of the Orgtbl-mode table editor.
+
+This appendix describes a different approach.  We keep the Orgtbl-mode
+table in its native format (the @i{source table}), and use a custom
+function to @i{translate} the table to the correct syntax, and to
+@i{install} it in the right location (the @i{target table}).  This puts
+the burden of writing conversion functions on the user, but it allows
+for a very flexible system.
+
+@menu
+* Radio tables::                Sending and receiving
+* A LaTeX example::             Step by step, almost a tutorial
+* Translator functions::        Copy and modify
+@end menu
+
+@node Radio tables, A LaTeX example, Tables in arbitrary syntax, Tables in arbitrary syntax
+@subsection Radio tables
+@cindex radio tables
+
+To define the location of the target table, you first need to create two
+lines that are comments in the current mode, but contain magic words for
+Orgtbl-mode to find.  Orgtbl-mode will insert the translated table
+between these lines, replacing whatever was there before.  For example:
+
+@example
+/* BEGIN RECEIVE ORGTBL table_name */
+/* END RECEIVE ORGTBL table_name */
+@end example
+
+@noindent
+Just above the source table, we put a special line that tells
+Orgtbl-mode how to translate this table and where to install it.  For
+example:
+@example
+#+ORGTBL: SEND table_name translation_function arguments....
+@end example
+
+@noindent
+@code{table_name} is the reference name for the table that is also used
+in the receiver lines. @code{translation_function} is the Lisp function
+that does the translation.  Furthermore, the line can contain a list of
+arguments (alternating key and value) at the end.  The arguments will be
+passed as a property list to the translation function for
+interpretation.  A few standard parameters are already recognized and
+acted upon before the translation function is called:
+
+@table @code
+@item :skip N
+Skip the first N lines of the table. Hlines do count!
+@item :skipcols (n1 n2 ...)
+List of columns that should be skipped.  If the table has a column with
+calculation marks, that column is automatically discarded as well.
+Please note that the translator function sees the table @emph{after} the
+removal of these columns, the function never knows that there have been
+additional columns.
+@end table
+
+@noindent
+The one problem remaining is how to keep the source table in the buffer
+without disturbing the normal workings of the file, for example during
+compilation of a C file or processing of a LaTeX file.  There are a
+number of different solutions:
+
+@itemize @bullet
+@item
+The table could be placed in a block comment if that is supported by the
+language.  For example, in C-mode you could wrap the table between
+@samp{/*} and @samp{*/} lines.
+@item 
+Sometimes it is possible to put the table after some kind of @i{END}
+statement, for example @samp{\bye} in TeX and @samp{\end@{document@}}
+in LaTeX.
+@item
+You can just comment the table line by line whenever you want to process
+the file, and uncomment it whenever you need to edit the table.  This
+only sounds tedious - the command @kbd{M-x orgtbl-toggle-comment} does
+make this comment-toggling very easy, in particular if you bind it to a
+key.
+@end itemize
+
+@node A LaTeX example, Translator functions, Radio tables, Tables in arbitrary syntax
+@subsection A LaTeX example
+@cindex LaTeX, and orgtbl-mode
+
+The best way to wrap the source table in LaTeX is to use the
+@code{comment} environment provided by @file{comment.sty}.  It has to be
+activated by placing @code{\usepackage@{comment@}} into the document
+header.  Orgtbl-mode can insert a radio table skeleton@footnote{By
+default this works only for LaTeX, HTML, and TeXInfo.  Configure the
+variable @code{orgtbl-radio-tables} to install templates for other
+modes.}  with the command @kbd{M-x orgtbl-insert-radio-table}.  You will
+be prompted for a table name, lets say we use @samp{salesfigures}.  You
+will then get the following template:
+
+@example
+% BEGIN RECEIVE ORGTBL salesfigures
+% END RECEIVE ORGTBL salesfigures
+\begin@{comment@}
+#+ORGTBL: SEND salesfigures orgtbl-to-latex
+| | |
+\end@{comment@}
+@end example
+
+@noindent
+The @code{#+ORGTBL: SEND} line tells orgtbl-mode to use the function
+@code{orgtbl-to-latex} to convert the table into LaTeX and to put it
+into the receiver location with name @code{salesfigures}.  You may now
+fill in the table, feel free to use the spreadsheet features@footnote{If
+the @samp{#+TBLFM} line contains an odd number of dollar characters,
+this may cause problems with font-lock in latex-mode.  As shown in the
+example you can fix this by adding an extra line inside the
+@code{comment} environment that is used to balance the dollar
+expressions.  If you are using AUCTeX with the font-latex library, a
+much better solution is to add the @code{comment} environment to the
+variable @code{LaTeX-verbatim-environments}.}:
+
+@example
+% BEGIN RECEIVE ORGTBL salesfigures
+% END RECEIVE ORGTBL salesfigures
+\begin@{comment@}
+#+ORGTBL: SEND salesfigures orgtbl-to-latex
+| Month | Days | Nr sold | per day |
+|-------+------+---------+---------|
+| Jan   |   23 |      55 |     2.4 |
+| Feb   |   21 |      16 |     0.8 |
+| March |   22 |     278 |    12.6 |
+#+TBLFM: $4=$3/$2;%.1f
+% $ (optional extra dollar to keep font-lock happy, see footnote)
+\end@{comment@}
+@end example
+
+@noindent
+When you are done, press @kbd{C-c C-c} in the table to get the converted
+table inserted between the two marker lines.
+
+Now lets assume you want to make the table header by hand, because you
+want to control how columns are aligned etc.  In this case we make sure
+that the table translator does skip the first 2 lines of the source
+table, and tell the command to work as a @i{splice}, i.e. to not produce
+header and footer commands of the target table:
+
+@example
+\begin@{tabular@}@{lrrr@}
+Month & \multicolumn@{1@}@{c@}@{Days@} & Nr.\ sold & per day\\
+% BEGIN RECEIVE ORGTBL salesfigures
+% END RECEIVE ORGTBL salesfigures
+\end@{tabular@}
+%
+\begin@{comment@}
+#+ORGTBL: SEND salesfigures orgtbl-to-latex :splice t :skip 2
+| Month | Days | Nr sold | per day |
+|-------+------+---------+---------|
+| Jan   |   23 |      55 |     2.4 |
+| Feb   |   21 |      16 |     0.8 |
+| March |   22 |     278 |    12.6 |
+#+TBLFM: $4=$3/$2;%.1f
+\end@{comment@}
+@end example
+
+The LaTeX translator function @code{orgtbl-to-latex} is already part of
+Orgtbl-mode.  It uses a @code{tabular} environment to typeset the table
+and marks horizontal lines with @code{\hline}.  Furthermore, it
+interprets the following parameters:
+
+@table @code
+@item :splice nil/t
+When set to t, return only table body lines, don't wrap them into a
+tabular environment.  Default is nil.
+
+@item :fmt fmt
+A format to be used to wrap each field, should contain @code{%s} for the
+original field value.  For example, to wrap each field value in dollars,
+you could use @code{:fmt "$%s$"}.  This may also be a property list with
+column numbers and formats. for example @code{:fmt (2 "$%s$" 4 "%s\\%%")}.
+
+@item :efmt efmt
+Use this format to print numbers with exponentials.  The format should
+have @code{%s} twice for inserting mantissa and exponent, for example
+@code{"%s\\times10^@{%s@}"}.  The default is @code{"%s\\,(%s)"}.  This
+may also be a property list with column numbers and formats, for example
+@code{:efmt (2 "$%s\\times10^@{%s@}$" 4 "$%s\\cdot10^@{%s@}$")}.  After
+@code{efmt} has been applied to a value, @code{fmt} will also be
+applied.
+@end table
+
+@node Translator functions,  , A LaTeX example, Tables in arbitrary syntax
+@subsection Translator functions
+@cindex HTML, and orgtbl-mode
+@cindex translator function
+
+Orgtbl-mode has several translator functions built-in:
+@code{orgtbl-to-latex}, @code{orgtbl-to-html}, and
+@code{orgtbl-to-texinfo}.  Except for @code{orgtbl-to-html}@footnote{The
+HTML translator uses the same code that produces tables during HTML
+export.}, these all use a generic translator, @code{orgtbl-to-generic}.
+For example, @code{orgtbl-to-latex} itself is a very short function that
+computes the column definitions for the @code{tabular} environment,
+defines a few field and line separators and then hands over to the
+generic translator.  Here is the entire code:
+
+@lisp
+@group
+(defun orgtbl-to-latex (table params)
+  "Convert the orgtbl-mode TABLE to LaTeX."
+  (let* ((alignment (mapconcat (lambda (x) (if x "r" "l"))
+                               org-table-last-alignment ""))
+         (params2
+          (list
+           :tstart (concat "\\begin@{tabular@}@{" alignment "@}")
+           :tend "\\end@{tabular@}"
+           :lstart "" :lend " \\\\" :sep " & "
+           :efmt "%s\\,(%s)" :hline "\\hline")))
+    (orgtbl-to-generic table (org-combine-plists params2 params))))
+@end group
+@end lisp
+
+As you can see, the properties passed into the function (variable
+@var{PARAMS}) are combined with the ones newly defined in the function
+(variable @var{PARAMS2}).  The ones passed into the function (i.e. the
+ones set by the @samp{ORGTBL SEND} line) take precedence.  So if you
+would like to use the LaTeX translator, but wanted the line endings to
+be @samp{\\[2mm]} instead of the default @samp{\\}, you could just
+overrule the default with
+
+@example
+#+ORGTBL: SEND test orgtbl-to-latex :lend " \\\\[2mm]"
+@end example
+
+For a new language, you can either write your own converter function in
+analogy with the LaTeX translator, or you can use the generic function
+directly.  For example, if you have a language where a table is started
+with @samp{!BTBL!}, ended with @samp{!ETBL!}, and where table lines are
+started with @samp{!BL!}, ended with @samp{!EL!} and where the field
+separator is a TAB, you could call the generic translator like this (on
+a single line!):
+
+@example
+#+ORGTBL: SEND test orgtbl-to-generic :tstart "!BTBL!" :tend "!ETBL!"
+                              :lstart "!BL! " :lend " !EL!" :sep "\t"
+@end example
+
+@noindent
+Please check the documentation string of the function
+@code{orgtbl-to-generic} for a full list of parameters understood by
+that function and remember that you can pass each of them into
+@code{orgtbl-to-latex}, @code{orgtbl-to-texinfo}, and any other function
+using the generic function.
+
+Of course you can also write a completely new function doing complicated
+things the generic translator cannot do.  A translator function takes
+two arguments.  The first argument is the table, a list of lines, each
+line either the symbol @code{hline} or a list of fields.  The second
+argument is the property list containing all parameters specified in the
+@samp{#+ORGTBL: SEND} line.  The function must return a single string
+containing the formatted table.  If you write a generally useful
+translator, please post it on @code{emacs-orgmode@@gnu.org} so that
+others can benefit from your work.
+
+@node Dynamic blocks, Special agenda views, Tables in arbitrary syntax, Extensions and Hacking
 @section Dynamic blocks
+@cindex dynamic blocks
 
 Org-mode documents can contain @emph{dynamic blocks}.  These are
-specially marked regions that are updated by some user-written
-function.  A good example for such a block is the clock table inserted
-by the command @kbd{C-c C-x C-r} (@pxref{Clocking work time}).
+specially marked regions that are updated by some user-written function.
+A good example for such a block is the clock table inserted by the
+command @kbd{C-c C-x C-r} (@pxref{Clocking work time}).
 
 Dynamic block are enclosed by a BEGIN-END structure that assigns a name
 to the block and can also specify parameters for the function producing
@@ -5528,6 +6362,60 @@ you could add the function @code{org-update-all-dblocks} to a hook, for
 example @code{before-save-hook}.  @code{org-update-all-dblocks} is
 written in a way that is does nothing in buffers that are not in Org-mode.
 
+@node Special agenda views,  , Dynamic blocks, Extensions and Hacking
+@section Special Agenda Views
+@cindex agenda views, user-defined
+
+Org-mode provides a special hook that can be used to narrow down the
+selection made by any of the agenda views.  You may specify a function
+that is used at each match to verify if the match should indeed be part
+of the agenda view, and if not, how much should be skipped.
+
+Let's say you want to produce a list of projects that contain a WAITING
+tag anywhere in the project tree.  Let's further assume that you have
+marked all tree headings that define a project with the todo keyword
+PROJECT.  In this case you would run a todo search for the keyword
+PROJECT, but skip the match unless there is a WAITING tag anywhere in
+the subtree belonging to the project line.
+
+To achieve this, you must write a function that searches the subtree for
+the tag.  If the tag is found, the function must return @code{nil} to
+indicate that this match should not be skipped.  If there is no such
+tag, return the location of the end of the subtree, to indicate that
+search should continue from there.
+
+@lisp
+(defun my-skip-unless-waiting ()
+  "Skip trees that are not waiting"
+  (let ((subtree-end (save-excursion (org-end-of-subtree t))))
+    (if (re-search-forward ":WAITING:" subtree-end t)
+        nil          ; tag found, do not skip
+      subtree-end))) ; tag not found, continue after end of subtree
+@end lisp
+
+Furthermore you must write a command that uses @code{let} to temporarily
+put this function into the variable @code{org-agenda-skip-function},
+sets the header string for the agenda buffer, and calls the todo-list
+generator while asking for the specific TODO keyword PROJECT.  The
+function must also accept one argument MATCH, but it can choose to
+ignore it@footnote{MATCH must be present in case you want to define a
+custom command for producing this special list.  Custom commands always
+supply the MATCH argument, but it can be empty if you do not specify it
+while defining the command(@pxref{Custom agenda
+views}).} (as we do in the example below).  Here is the example:
+
+@lisp
+(defun my-org-waiting-projects (&optional match)
+  "Produce a list of projects that contain a WAITING tag.
+MATCH is being ignored."
+  (interactive)
+  (let ((org-agenda-skip-function 'my-skip-unless-waiting)
+        (org-agenda-overriding-header "Projects waiting for something: "))
+    ;; make the list
+    (org-todo-list "PROJECT")))
+@end lisp
+
+
 @node History and Acknowledgments, Index, Extensions and Hacking, Top
 @appendix History and Acknowledgments
 @cindex acknowledgments
@@ -5535,25 +6423,29 @@ written in a way that is does nothing in buffers that are not in Org-mode.
 @cindex thanks
 
 Org-mode was borne in 2003, out of frustration over the user interface
-of the Emacs outline-mode.  All I wanted was to make working with an
-outline tree possible without having to remember more than 10 commands
-just for hiding and unhiding parts of the outline tree, and to allow to
-restructure a tree easily.  Visibility cycling and structure editing
-were originally implemented in the package @file{outline-magic.el}, but
-quickly moved to the more general @file{org.el}.  TODO entries, basic
-time stamps, and table support were added next, and highlight the two
-main goals that Org-mode still has today: To create a new,
-outline-based, plain text mode with innovative and intuitive editing
-features, and to incorporate project planning functionality directly
-into a notes file.
+of the Emacs outline-mode.  I was trying to organize my notes and
+projects, and using Emacs seemed to be the natural way to go.  However,
+having to remember eleven different commands with two or three keys per
+command, only to hide and unhide parts of the outline tree, that seemed
+entirely unacceptable to me.  Also, when using outlines to take notes, I
+constantly want to restructure the tree, organizing it parallel to my
+thoughts and plans.  @emph{Visibility cycling} and @emph{structure
+editing} were originally implemented in the package
+@file{outline-magic.el}, but quickly moved to the more general
+@file{org.el}.  As this environment became comfortable for project
+planning, the next step was adding @emph{TODO entries}, basic @emph{time
+stamps}, and @emph{table support}.  These areas highlight the two main
+goals that Org-mode still has today: To create a new, outline-based,
+plain text mode with innovative and intuitive editing features, and to
+incorporate project planning functionality directly into a notes file.
 
 Since the first release, hundreds of emails to me or on
 @code{emacs-orgmode@@gnu.org} have provided a constant stream of bug
-reports, feedback, new ideas, and sometimes even patches and add-on
-code.  Many thanks to everyone who has helped to improve this package.
-I am trying to keep here a list of the people who had significant
-influence in shaping one or more aspects of Org-mode.  The list may not
-be complete, if I have forgotten someone, please accept my apologies and
+reports, feedback, new ideas, and sometimes patches and add-on code.
+Many thanks to everyone who has helped to improve this package.  I am
+trying to keep here a list of the people who had significant influence
+in shaping one or more aspects of Org-mode.  The list may not be
+complete, if I have forgotten someone, please accept my apologies and
 let me know.
 
 @itemize @bullet
@@ -5578,18 +6470,26 @@ calculations and improved XEmacs compatibility, in particular by porting
 @item
 @i{Eddward DeVilla} proposed and tested checkbox statistics.
 @item
-@i{Kees Dullemond} inspired the use of narrowed tabled columns.
+@i{Kees Dullemond} used to edit projects lists directly in HTML and so
+inspired some of the early development, including HTML export.  He also
+asked for a way to narrow wide table columns.
 @item
 @i{Christian Egli} converted the documentation into TeXInfo format,
 patched CSS formatting into the HTML exporter, and inspired the agenda.
 @item
 @i{Nic Ferrier} contributed mailcap and XOXO support.
 @item
+@i{John Foerch} figured out how to make incremental search show context
+around a match in a hidden outline tree.
+@item
 @i{Niels Giessen} had the idea to automatically archive DONE trees.
 @item
-@i{Bastien Guerry} provided extensive feedback.
+@i{Bastien Guerry} provided extensive feedback and some patches, and
+translated David O'Toole's tutorial into French.
 @item
 @i{Kai Grossjohann} pointed out key-binding conflicts with other packages.
+@item
+@i{Shidai Liu} (``Leo'') provided extensive feedback and some patches.
 @item
 @i{Leon Liu} asked for embedded LaTeX and tested it.
 @item
@@ -5600,6 +6500,9 @@ happy.
 @item
 @i{Tim O'Callaghan} suggested in-file links, search options for general
 file links, and TAGS.
+@item
+@i{Takeshi Okano} translated the manual and David O'Toole's tutorial
+into Japanese.
 @item
 @i{Oliver Oppitz} suggested multi-state TODO items.
 @item
