@@ -117,16 +117,16 @@
 	* completion.el: Pervasive changes to use Emacs 19 features
 	and conform to Emacs conventions.
 
-1993-05-27  Jim Blandy	(jimb@geech.gnu.ai.mit.edu)
+1993-05-27  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
 	* Version 19.9 released.
 
-1993-05-27  Jim Blandy	(jimb@geech.gnu.ai.mit.edu)
+1993-05-27  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
 	* term/x-win.el: Check for a geometry resource, and apply it to the
 	initial frame.
 
-1993-05-26  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1993-05-26  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* isearch.el (isearch-forward): Remove the claim that
 	isearch-whitespace-chars matches any string of whitespace.
@@ -178,7 +178,7 @@
 	* paths.el (gnus-local-organization): Renamed from ...-your-...
 	(gnus-local-domain): Likewise.
 
-1993-05-26  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1993-05-26  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* faces.el (x-resolve-font-name): If PATTERN is nil, return the
 	frame's face.
@@ -245,12 +245,12 @@
 	(x-handle-rn-switch): New function.
 	(command-switch-alist): Add -rn.
 
-1993-05-25  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1993-05-25  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* term/x-win.el (command-switch-alist, x-switch-definitions): Treat
 	`-i' like `-itype', as in Emacs 18.
 
-1993-05-25  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1993-05-25  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* Version 19.8 released.
 
@@ -297,7 +297,7 @@
 	* simple.el (kill-new): Pass t as 2nd arg to interprogram-cut-function.
 	* select.el (x-set-cut-buffer): New arg PUSH.
 
-1993-05-24  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1993-05-24  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* disp-table.el (standard-display-default): New function.
 	(standard-display-european): New command.
@@ -308,7 +308,7 @@
 
 	* simple.el (shell-command): Don't activate mark even momentarily.
 
-1993-05-24  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1993-05-24  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* case-table.el, disp-table.el, finder.el, iso-ascii.el,
 	iso-insert.el, iso-swed.el, iso-syntax.el, iso8859-1.el,
@@ -319,7 +319,7 @@
 
 	* menu-bar.el (menu-bar-mode): Doc fix.
 
-1993-05-23  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1993-05-23  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* lucid.el (switch-to-other-buffer): Build the list of acceptable
 	buffers properly.
@@ -346,7 +346,7 @@
 	calendar-daylight-savings-ends): Default to nil if the locale
 	never has DST.
 
-1993-05-22  Jim Blandy	(jimb@geech.gnu.ai.mit.edu)
+1993-05-22  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
 	* Version 19.7 released.
 
@@ -358,7 +358,7 @@
 	file-relative-name.
 	(vc-update-change-log): Use find-change-log instead of hardcoding.
 
-1993-05-22  Jim Blandy	(jimb@geech.gnu.ai.mit.edu)
+1993-05-22  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
 	* cl.el (cl-floor, cl-ceiling, cl-truncate, cl-round): Renamed
 	from floor, ceiling, truncate, and round; the old names conflict
@@ -393,7 +393,7 @@
 
 	* apropos.el (apropos-print-matches): Bind tem.
 
-1993-05-21  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1993-05-21  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* holidays.el: Update reference to the papers in S-P&E.
 	(filter-visible-calendar-holidays): Test for nil date.
@@ -422,7 +422,7 @@
 	(minibuffer-keyboard-quit): If Delete Selection mode is off,
 	do abort even if mark is active.
 
-1993-05-19  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1993-05-19  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	Some time-handling patches from Paul Eggert:
 	* calendar.el (calendar-current-time-zone): New function.
@@ -447,13 +447,13 @@
 	(outline-minor-mode): Work with above change.
 	Do not set outline-regexp or outline-header-end-regexp.
 
-1993-05-19  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1993-05-19  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el (hebrew-calendar-yahrzeit): Correct error from S-P&E
 	paper in test for Adar I 30 date of death for yahrzeit in a
 	non-leap year when Shevat 29 must be used.
 
-1993-05-19  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1993-05-19  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* files.el (set-auto-mode): If the buffer's file name is nil,
 	don't try to compare it against the entries in auto-mode-alist.
@@ -465,7 +465,7 @@
 	* isearch.el (isearch-mode-map): Use vector, not string, to bind
 	printing characters.
 
-1993-05-18  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1993-05-18  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* select.el (xselect-convert-to-class): Just return "Emacs" here.
 	That's what the class will always be.
@@ -474,7 +474,7 @@
 
 	* loaddefs.el: Add bindings for C-SPC and C-/, like C-@ and C-_.
 
-1993-05-18  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1993-05-18  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* startup.el (normal-top-level, command-line, command-line-1):
 	Don't call the frame and face initialization functions unless
@@ -579,7 +579,7 @@
 	(x-create-frame-with-faces): Simplify; do nothing special
 	with `default' or `modeline' face.
 
-1993-05-15  Jim Blandy	(jimb@geech.gnu.ai.mit.edu)
+1993-05-15  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
 	* version.el (emacs-version): Alpha release 19.6.
 
@@ -628,7 +628,7 @@
 	* isearch.el (isearch-mode-map): Handle any length vector in keymap.
 	(isearch-char-to-string): Handle non-character events properly.
 
-1993-05-14  Jim Blandy	(jimb@geech.gnu.ai.mit.edu)
+1993-05-14  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
 	* subr.el (overlay-start, overlay-end, overlay-buffer): Removed.
 
@@ -731,7 +731,7 @@
 	(function ...) for Emacs 18.
 	(compilation-old-error-list): Set if undefined, for Emacs 18.
 
-1993-05-11  Jim Blandy	(jimb@geech.gnu.ai.mit.edu)
+1993-05-11  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
 	* faces.el: Re-arranged to put accessors at the top.
 
@@ -800,7 +800,7 @@
 	* comint.el (comint-filter): Increment opoint only if after
 	insertion point.
 
-1993-05-08  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-05-08  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* faces.el: Call internal-set-face-1, not internat-set-face-1.
 
@@ -812,7 +812,7 @@
 
 	* faces.el: Provide 'faces.
 
-1993-05-08  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-05-08  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* term/x-win.el: Since we require faces.el, there's no point in setting
 	frame-creation-function to x-create-frame - just set it directly
@@ -851,12 +851,12 @@
 	* rmail.el (rmail-resend): Add `resent' attribute.
 	(rmail-forward): With prefix arg, run rmail-resend.
 
-1993-05-07  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-05-07  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* term/x-win.el: (require 'faces), too.	 Move (require 'select) to top,
 	with the other requires.
 
-1993-05-06  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-05-06  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* finder.el: Bind finder-exit to 'q', not 'x'; the former is the
 	conventional way to get out of such a package.
@@ -901,7 +901,7 @@
 	(vc-backend-diff): Use diff-switches, not vc-diff-options.
 	(vc-diff-options): Variable deleted.
 
-1993-05-03  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1993-05-03  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el: Update reference to the papers in S-P&E.
 	(calendar-print-astro-day-number): Correct spelling error in
@@ -933,7 +933,7 @@
 	* files.el (find-file-noselect): Do set buffer-file-name
 	to the truename, when find-file-visit-truename.
 
-1993-04-29  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-04-29  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* yow.el (yow): Fix interactive spec.
 
@@ -1023,7 +1023,7 @@
 	* gud.el (gud-format-command): Fix %f expansion to send ondly the
 	basename of files to gdb.
 
-1993-04-27  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-04-27  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* disp-table.el (describe-display-table): Don't use the term
 	"rope"; we're using vectors of characters now.
@@ -1126,7 +1126,7 @@
 	patched it to fix that I found its algorithm was broken).
 	(ring-ref): Added doc string.
 
-1993-04-25  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-04-25  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* bytecomp.el (meta-flag): Declare this an obsolete variable.
 
@@ -1242,7 +1242,7 @@
 	* electric.el (shrink-window-if-larger-than-buffer):
 	Moved to window.el.
 
-1993-04-16  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-04-16  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* comint.el (comint-match-partial-pathname): Move "---" range in
 	character class in regular expressions to the end of the character
@@ -1319,12 +1319,12 @@
 	* lisp-mnt.el (lm-commentary-region): Gone.
 	(lm-commentary): New function, replacing lm-commentary-region.
 
-1993-04-12  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-04-12  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* bytecomp.el: The `suspend-hooks' variable is obsolete now, and
 	`suspend-hook' is the right name.
 
-1993-04-12  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-04-12  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* term/sun-mouse.el (suspend-emacstool): Run suspend-hook, not
 	suspend-hooks.
@@ -1358,12 +1358,12 @@
 
 	* comint.el: Clean up cmu* uses in header comments.
 
-1993-04-10  Jim Blandy	(jimb@mole.gnu.ai.mit.edu)
+1993-04-10  Jim Blandy  (jimb@mole.gnu.ai.mit.edu)
 
 	* subr.el (overlay-start, overlay-end, overlay-buffer): New
 	defsubsts.
 
-1993-04-10  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-04-10  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* paragraphs.el (sentence-end, forward-sentence): Doc fixes.
 
@@ -1374,7 +1374,7 @@
 	empty string in response to the keyword prompt, restore the old
 	window configuration properly.
 
-1993-04-10  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-04-10  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* paragraphs.el (sentence-end, forward-sentence): Doc fixes.
 
@@ -1387,7 +1387,7 @@
 	preceed the file 2 info for that same diff. So we save and restore
 	point to overcome this."
 
-1993-04-09  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-04-09  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* subr.el (overlay-start, overlay-end, overlay-buffer): New
 	defsubsts.
@@ -1551,7 +1551,7 @@
 	* etags.el (etags-tags-completion-table): Rewritten with a mondo
 	regexp.
 
-1993-03-31  Jim Blandy	(jimb@geech.gnu.ai.mit.edu)
+1993-03-31  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
 	* timer.el (timer-program): New defconst.
 	(run-at-time): Use timer-program as the name of the program the
@@ -1589,7 +1589,7 @@
 	* files.el (find-backup-file-name): Delete nothing if overflow
 	in number of versions to keep.
 
-1993-03-30  Jim Blandy	(jimb@geech.gnu.ai.mit.edu)
+1993-03-30  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
 	* subr.el (int-to-string): Make this an alias for the subr
 	number-to-string.
@@ -1780,13 +1780,13 @@
 
 	* emacsbug.el: Added a (provide 'emacsbug); lisp-mnt.el needs this.
 
-1993-03-24  Jim Blandy	(jimb@geech.gnu.ai.mit.edu)
+1993-03-24  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
 	* term/x-win.el (x-defined-colors): Use x-color-defined-p instead of
 	x-defined-color.
 	(x-handle-geometry): Use x-parse-geometry instead of x-geometry.
 
-1993-03-24  Jim Blandy	(jimb@geech.gnu.ai.mit.edu)
+1993-03-24  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
 	* calendar.el (calendar-standard-time-zone-name,
 	calendar-daylight-time-zone-name): Initialize these at load-time,
@@ -1804,7 +1804,7 @@
 
 	* compile.el: Fix library headers.
 
-1993-03-23  Jim Blandy	(jimb@geech.gnu.ai.mit.edu)
+1993-03-23  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
 	* files.el (insert-directory): Do chase symlinks before passing
 	the directory name to ls.
@@ -1846,7 +1846,7 @@
 	spook.el, studly.el, tabify.el, text-mode.el: Added or corrected
 	Commentary headers.
 
-1993-03-22  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1993-03-22  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* diary-insert.el: Change the name to diary-ins.el.
 	* calendar.el: Change all autoload references to diary-ins.
@@ -1889,7 +1889,7 @@
 
 	* loaddefs.el (default-mode-line-format-default): Use %l.
 
-1993-03-21  Jim Blandy	(jimb@geech.gnu.ai.mit.edu)
+1993-03-21  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
 	* time.el (display-time): Doc fix.
 
@@ -1904,7 +1904,7 @@
 	comment-indent-function.
 	* bytecomp.el: Declare comment-indent-hook an obsolete variable.
 
-1993-03-20  Jim Blandy	(jimb@geech.gnu.ai.mit.edu)
+1993-03-20  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
 	* time.el (display-time): Doc fix.
 
@@ -1918,7 +1918,7 @@
 	* finder.el: Make sure that when new keywords are compiled, we see them
 	immediately.
 
-1993-03-19  Jim Blandy	(jimb@geech.gnu.ai.mit.edu)
+1993-03-19  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
 	* tex-mode.el (tex-send-command): Fix the command sent so that no
 	blank is inserted when replacing the asterisk with the file name.
@@ -1939,7 +1939,7 @@
 	* ftp.el: Nuked (actually, moved to =ftp.el).
 	ange-ftp.el replaces this.
 
-1993-03-18  Jim Blandy	(jimb@geech.gnu.ai.mit.edu)
+1993-03-18  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
 	* solar.el (solar-time-string): Round the time properly.
 
@@ -1965,7 +1965,7 @@
 	* frame.el (make-frame): Renamed from new-frame.
 	(new-frame): Alias for make-frame.
 
-1993-03-18  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1993-03-18  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* tex-mode.el (tex-send-command): Fix the command sent so that no
 	blank is inserted when replacing the asterisk with the file name.
@@ -2035,7 +2035,7 @@
 	* vc-hooks.el: Merge today's change by eric with everybody else's
 	change (from 1992/08/04 through 1993/02/24).
 
-1993-03-16  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1993-03-16  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* bytecomp.el (byte-compile-from-buffer): Put buffer containing
 	compiled code in binary overwrite mode.
@@ -2055,12 +2055,12 @@
 	* vc.el, vc-hooks.el: the macro vc-error-occurred has to move from
 	vc.el to vc-hooks.el for C-x C-f of a nonexistent file to work.
 
-1993-03-16  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1993-03-16  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* calendar.el (calendar-time-zone): Initialize this when
 	calendar.el loads, not in the defvar.
 
-1993-03-15  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1993-03-15  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* register.el (view-register): Neglect not to avoid failing to
 	properly display all the possible sorts of things one might find
@@ -2079,7 +2079,7 @@
 
 	* indent.el (indent-line-function): Doc fix.
 
-1993-03-14  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1993-03-14  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* sort.el (sort-float-fields, sort-numeric-fields): Use
 	string-to-number, not string-to-float or string-to-int.
@@ -2147,7 +2147,7 @@
 
 	* term/keyswap.el: Initial revision
 
-1993-03-11  Jim Blandy	(jimb@mole.gnu.ai.mit.edu)
+1993-03-11  Jim Blandy  (jimb@mole.gnu.ai.mit.edu)
 
 	* term/x-win.el: Disable suspending under X windows by setting
 	suspend-hooks, not suspend-hook.  The latter is an obsolete name.
@@ -2222,12 +2222,12 @@
 
 	* startup.el (command-line-1): Fix copyright year.
 
-1993-03-10  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1993-03-10  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* diary-insert.el (insert-anniversary-diary-entry,
 	insert-block-diary-entry): Fix calendar-date-display-form used.
 
-1993-03-10  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-03-10  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* files.el (basic-save-buffer): If file-precious-flag is set, and
 	we write the buffer to a temp file and then rename it, don't
@@ -2411,7 +2411,7 @@
 
 	* compare-w.el (compare-windows): Use compare-buffer-substrings.
 
-1993-03-05  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-03-05  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* term/x-win.el: Disable suspending under X windows by setting
 	suspend-hooks, not suspend-hook.  The latter is an obsolete name.
@@ -2419,7 +2419,7 @@
 
 	* bytecomp.el: Declare suspend-hook to be an obsolete variable.
 
-1993-03-05  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1993-03-05  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el (hebrew-calendar-yahrzeit): Change reference to
 	nonexistent function last-month-of-hebrew-year to the correct
@@ -2431,7 +2431,7 @@
 	* cal-mayan.el (calendar-next-tzolkin-date): Delete bogus second
 	defun.
 
-1993-03-04  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-03-04  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* simple.el (kill-ring-save): Doc fix.
 
@@ -2482,7 +2482,7 @@
 
 	* add-log.el (add-change-log-entry): Never move past second hdr line.
 
-1993-03-02  Jim Blandy	(jimb@mole.gnu.ai.mit.edu)
+1993-03-02  Jim Blandy  (jimb@mole.gnu.ai.mit.edu)
 
 	* term/x-win.el (x-switch-definitions): Use the proper names for
 	the scroll bar parameters.
@@ -2493,7 +2493,7 @@
 
 	* term/x-win.el: Require `scroll-bar', not `scrollbar'.
 
-1993-03-02  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-03-02  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* frame.el (new-frame): Doc fix.
 
@@ -2525,7 +2525,7 @@
 
 	* rmail.el (rmail-get-new-mail): Reset read-only after find-file.
 
-1993-03-01  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-03-01  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* simple.el (kill-region): If the buffer is read-only, call
 	`barf-if-buffer-read-only' instead of just `ding', to get the
@@ -2540,7 +2540,7 @@
 	too small to be split anywhere.
 	(mouse-split-window-horizontally): Similar changes.
 
-1993-02-28  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-02-28  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* simple.el (insert-buffer): Make sure this returns nil.
 
@@ -2560,7 +2560,7 @@
 	* frame.el (auto-raise-mode): Renamed from toggle-auto-raise.
 	(auto-lower-mode): Renamed from toggle-auto-lower.
 
-1993-02-26  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-02-26  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* timer.el (run-at-time): Doc fix.
 
@@ -2579,7 +2579,7 @@
 	(window-configuration-to-register): Likewise.
 	(frame-configuration-to-register): Likewise.
 
-1993-02-24  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1993-02-24  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* term/x-win.el (scroll-bar-mode, scroll-bar-mode): Move these
 	functions to scrolbar.el.
@@ -2593,7 +2593,7 @@
 	* vc-hooks.el (vc-find-file-hook): Discard vc status of file
 	if we will actually have to create the buffer.
 
-1993-02-22  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-02-22  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* gud.el (gud-break): With a prefix argument, set a temporary
 	breakpoint.
@@ -2611,7 +2611,7 @@
 	* subr.el (string-to-int): Make this an alias for
 	string-to-number.
 
-1993-02-21  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-02-21  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* two-column.el: Add autoloads for the functions defined in
 	tc-mode-map.
@@ -2635,7 +2635,7 @@
 	* help.el (describe-function):
 	Print the arglist if the function is bytecode or a list.
 
-1993-02-17  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-02-17  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* files.el (revert-buffer): Reverse the sense of the first
 	argument, but leave interactive usage the same.
@@ -2667,7 +2667,7 @@
 	(set-foreground-color, set-background-color):
 	Renamed from set-frame-{fore,back}ground.
 
-1993-02-15  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1993-02-15  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* informat.el (Info-tagify): Change the regular expression which
 	recognizes node names to work properly with Emacs 19's regexp
@@ -2681,7 +2681,7 @@
 	* bytecomp.el (byte-compile-lambda):
 	Test of byte-compile-compatibility was backwards.
 
-1993-02-12  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-02-12  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* gosmacs.el: Bind M-h to delete-previous-word, not
 	backward-kill-word; the latter has different prefix semantics.
@@ -2728,7 +2728,7 @@
 
 	* gosmacs.el (set-gosmacs-bindings): Fix binding of \eh.
 
-1993-02-10  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-02-10  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* gosmacs.el: Require 'mlsupport, to get definition of
 	backward-kill-word.
@@ -2757,7 +2757,7 @@
 	sure to examine buffer local value of compilation-old-error-list
 	before switching to source file buffer.
 
-1993-02-08  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-02-08  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* rmailout.el (rmail-output, rmail-output-to-mail-file): Reverse
 	the order of the arguments and make COUNT optional, for backward
@@ -2765,7 +2765,7 @@
 
 	* cl.el (cl-version): Mark as no longer in beta test.
 
-1993-02-07  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-02-07  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* subr.el (mod): Add back this alias for %.
 
@@ -2802,7 +2802,7 @@
 
 	* sendmail.el (mail-do-fcc): Allow dash in timezone name.
 
-1993-02-01  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1993-02-01  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* texinfo.el (texinfo-mode): Make page-delimiter buffer-local, and
 	set it according to texinfo-chapter-level-regexp.
@@ -2830,7 +2830,7 @@
 	* simple.el: Don't use the completion-oriented history commands.
 	* paths.el (sendmail-program): Try /usr/ucblib/sendmail.
 
-1993-01-26  Jim Blandy	(jimb@mole.gnu.ai.mit.edu)
+1993-01-26  Jim Blandy  (jimb@mole.gnu.ai.mit.edu)
 
 	* term/x-win.el: x-selection-value has been renamed to x-selection.
 	x-own-selection has been renamed to x-set-selection, and the order
@@ -2842,7 +2842,7 @@
 
 	* term/x-win.el: Doc fix.
 
-1993-01-25  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-01-25  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* frame.el (frame-notice-user-settings): Use new name
 	frame-live-p, instead of live-frame-p.
@@ -2882,7 +2882,7 @@
 	* simple.el ({next,previous}-complete-history-element): New functions.
 	Bind them to M-n/M-p and next/prior in minibuffer completion maps.
 
-1993-01-24  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-01-24  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	unread-command-event has been replaced by unread-command-events.
 	* simple.el (prefix-arg-internal): Use this to push back all
@@ -2916,7 +2916,7 @@
 
 	* simple.el (quoted-insert): Doc fix.
 
-1993-01-23  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-01-23  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* mouse.el (mouse-save-then-kill): Instead of deleting the text
 	whenever the text of the region happens to be the same as the
@@ -2933,7 +2933,7 @@
 	screws up the undo record we create, corrupting the undo list
 	pretty nastily.
 
-1993-01-22  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-01-22  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* term/x-win.el: Doc fix.
 
@@ -2946,7 +2946,7 @@
 	out of the commented-out scrollbar section, so it is on S-mouse-2
 	on the mode line.
 
-1993-01-21  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-01-21  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* c-mode.el (c-fill-paragraph): Fix the regular expressions used
 	for finding paragraph beginnings and endings so that they think
@@ -2965,7 +2965,7 @@
 	name after file-find-noselect, refer to tags-file-name, not the
 	undefined var FILE.
 
-1993-01-20  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-01-20  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* c-mode.el (c-fill-paragraph): When modifying the
 	paragraph-separate regexp, don't let it match paragraph starts.
@@ -2975,7 +2975,7 @@
 	* etags.el (visit-tags-table-buffer):
 	Error if called with 'same and no current table.
 
-1993-01-19  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-01-19  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* mouse.el (event-end): Work on click events, too.
 	(mouse-split-window-vertically): Use event-end and
@@ -2998,12 +2998,12 @@
 	(scrollbar-set-window-start, scrollbar-scroll-down,
 	scrollbar-scroll-up): Use event-end, from mouse.el.
 
-1993-01-19  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1993-01-19  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* x-mouse.el: Deleted; it was the interface to the Emacs 18-style
 	mouse interface, which doesn't exist anymore.
 
-1993-01-15  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-01-15  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* c-mode.el (c-switch-label-regexp): New constant.
 	(electric-c-terminator, c-indent-line, indent-c-exp): Use it to
@@ -3017,12 +3017,12 @@
 
 	* files.el (switch-to-buffer-other-frame): Pass t to pop-to-buffer.
 
-1993-01-14  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-01-14  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* scrollbar.el: New file.
 	* term/x-win.el: Require 'scrollbar.
 
-1993-01-13  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1993-01-13  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* solar.el (solar-time-string): Round the time properly.
 
@@ -3032,7 +3032,7 @@
 	and don't set the mark.	 Replace obsolete fn event-point.
 	(mouse-kill): Replace obsolete fn event-point.
 
-1993-01-11  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-01-11  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* page-ext.el (next-page): Correctly handle negative page count.
 
@@ -3040,7 +3040,7 @@
 
 	* simple.el (kill-append): Doc fix.
 
-1993-01-09  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-01-09  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* frame.el (frame-notice-user-settings): Don't try to delete the
 	initial frame if the user took care of that.
@@ -3066,7 +3066,7 @@
 
 	* timer.el (run-at-time): Use a pipe to talk to the timer process.
 
-1993-01-07  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1993-01-07  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* simple.el (set-goal-column): Make this disabled by default.
 
@@ -3141,14 +3141,14 @@
 	Use defun instead of fset to define; the byte compiler is smart
 	enough now not to compile this trivial function into slow byte code.
 
-1992-12-21  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1992-12-21  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* c-mode.el (c-fill-paragraph): Calculating the proper fill-prefix
 	shouldn't change the buffer text.  Make it not.	 If we're in the
 	blank space before another comment, fill that one as a comment,
 	not as normal text.
 
-1992-12-20  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1992-12-20  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* simple.el (kill-region): Change interactive spec to signal an
 	error if the buffer is read-only, and remove the code to do a
@@ -3158,7 +3158,7 @@
 
 	* loadup.el: Display load-path at start.
 
-1992-12-19  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1992-12-19  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* sendmail.el (mail-position-on-field): `end' is guaranteed to be
 	at the beginning of the header separator; don't skip back to the
@@ -3170,7 +3170,7 @@
 	BSD/GNU regexp to insist that line number end with a colon or
 	close-paren.
 
-1992-12-17  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1992-12-17  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* rmail.el (rmail-unix-mail-delimiter): Not all time zone names
 	end with "T".  Accept any sequence of three or four alphabetic
@@ -3181,23 +3181,23 @@
 	* simple.el (prefix-arg-internal): Don't apply string-to-char to
 	get the first element of the key sequence - it might be a vector.
 
-1992-12-15  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1992-12-15  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* c-mode.el (c-fill-paragraph): When guessing the fill prefix,
 	don't ever grab any actual text.
 
-1992-12-14  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1992-12-14  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* compile.el (compilation-error-regexp-alist): Add regexp for the
 	MIPS CC distributed with Ultrix.
 
-1992-12-12  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1992-12-12  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* paths.el (Info-default-directory-list): The info files are
 	supposed to be in /usr/local/info these days.  Add it to the list
 	of directories to search.
 
-1992-12-11  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1992-12-11  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* vc.el (vc-do-command): Set the default directory of the *vc*
 	buffer to the directory containing FILE.
@@ -3207,7 +3207,7 @@
 	* info.el (Info-{first,second,third,fourth,fifth}-menu-item): Removed.
 	(Info-nth-menu-item): New function; bound to 1..9.
 
-1992-12-08  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1992-12-08  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	The find-file-name-handler function in ../src/fileio.c is now
 	callable from lisp; use it instead of writing out its code.
@@ -3222,25 +3222,25 @@
 	function.  Set ange-ftp's `unhandled-file-name-property' to its
 	name.
 
-1992-12-07  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1992-12-07  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* lpr.el (lpr-switches, lpr-command): Make these defvars, not
 	defconsts.
 
-1992-12-04  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1992-12-04  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* c-mode.el (c-fill-paragraph): When trying to make sure that the
 	comment ender isn't on its own line, don't signal an error if
 	there is no comment ender.
 
-1992-12-03  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1992-12-03  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* sendmail.el (mail-self-blind, mail-interactive,
 	mail-yank-ignored-headers): Make these defvars, not defconsts.
 	Otherwise, they wipe out the user's customizations when we
 	autoload sendmail.el.
 
-1992-12-01  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1992-12-01  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* hanoi.el (hanoi): If pole-spacing is odd, round down, not up.
 	To see if the window is wide enough, just check if one half of a
@@ -3255,7 +3255,7 @@
 
 	* vc.el (vc-next-action): Undo previous change.
 
-1992-11-19  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1992-11-19  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* vc.el (vc-next-action): Pass t as NOQUERY argument to
 	vc-resynch-window here too.  This means that all uses of
@@ -3268,23 +3268,23 @@
 	(vc-position-context, vc-find-position-by-context): New functions
 	to help with that, made out of the old innards of vc-revert-buffer1.
 
-1992-11-18  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1992-11-18  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* fortran.el: New version of version 1.30 (!) from Stephen A. Wood
 	<saw@hallc1.cebaf.gov>
 
-1992-11-17  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1992-11-17  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* fortran.el: New version (1.30) from "Stephen A. Wood"
 	<saw@hallc1.cebaf.gov>
 
 	* subr.el (lambda): Doc fix.
 
-1992-11-15  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1992-11-15  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* simple.el (comment-column): Doc fix.
 
-1992-11-13  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1992-11-13  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* paths.el (rmail-spool-directory): Add dgux-unix to the list of
 	systems which put their mail in "/usr/mail".
@@ -3296,7 +3296,7 @@
 	* lpr.el (lpr-command): Add dgux-unix to the list of systems which
 	want "lp".
 
-1992-11-12  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1992-11-12  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* bytecomp.el: Declare unread-command-char an obsolete variable.
 	* vip.el (vip-escape-to-emacs, vip-prefix-arg-value,
@@ -3344,7 +3344,7 @@
 	* disass.el (byte-compile): Specify that the 'byte-compile feature
 	is provided in the file "bytecomp".
 
-1992-11-11  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1992-11-11  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* ange-ftp.el (ange-ftp-repaint-buffer): Give this a non-hacky
 	definition using (message nil).
@@ -3355,7 +3355,7 @@
 
 	* c-mode.el (c-style-alist): Add quotes around C++ style name.
 
-1992-11-10  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1992-11-10  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* rect.el (operate-on-rectangle): Use move-to-column's FORCE
 	argument instead of implementing it ourselves.
@@ -3376,7 +3376,7 @@
 
 	* startup.el (after-init-hook): Doc fix.
 
-1992-11-05  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1992-11-05  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* isearch.el (isearch-frames-exist): This isn't what we want -
 	replaced by...
@@ -3446,7 +3446,7 @@
 	* term/x-win.el (command-switch-alist, x-switch-definitions):
 	-ib was used for two things.  Use -itype for icon type.
 
-1992-11-04  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1992-11-04  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* term/x-win.el: Moved functions to support selections and cut
 	buffers out from amidst the X initialization code.
@@ -3458,7 +3458,7 @@
 	default-directory to PWD if PWD is shorter.  And, if PWD isn't
 	accurate, delete it.
 
-1992-11-03  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1992-11-03  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* compile.el (compile-internal): Use NAME-OF-MODE in the prompt
 	when offering to kill an existing process.
@@ -3497,7 +3497,7 @@
 	* bytecomp.el (byte-compile-lambda):
 	Don't compile the interactive spec if it is a call to `list'.
 
-1992-10-30  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1992-10-30  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* ange-ftp.el: Tighten the regular expression used in
 	file-name-handler-alist to recognized ange-ftp filenames; the
@@ -3632,7 +3632,7 @@
 
 	* replace.el (occur): Always search entire buffer.
 
-1992-10-17  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1992-10-17  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* mouse.el (mouse-tear-off-window): New function.
 
@@ -3644,7 +3644,7 @@
 
 	* telnet.el (telnet): Wait for telnet output before sending `open'.
 
-1992-10-14  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1992-10-14  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* files.el (file-truename): The variable ~ should be considered an
 	absolute pathname; handle it correctly.	 Concatenate the directory
@@ -3666,7 +3666,7 @@
 
 	* picture.el (edit-picture): Run picture-mode-hook.
 
-1992-10-10  Jim Blandy	(jimb@totoro.cs.oberlin.edu)
+1992-10-10  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* dired-aux.el (dired-compress-file): Change references to
 	`from-file' to use `file'; the former only works because
@@ -3801,7 +3801,7 @@
 
 	* simple.el (insert-buffer): Before reading arg, barf if read-only.
 
-1992-10-03  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1992-10-03  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* mouse.el: Begin adapting this to the new event format.
 	(event-window, event-point, mouse-coords, mouse-timestamp):
@@ -3838,7 +3838,7 @@
 	* simple.el (kill-word): Don't change point before calling kill-region.
 	(delete-indentation): Don't go beyond eob, comparing with fill-prefix.
 
-1992-09-30  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1992-09-30  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* gud.el (gud-last-frame): Added defvar for this.
 
@@ -3865,7 +3865,7 @@
 
 	* rmail.el (mail-unsent-separator): Add another alternative.
 
-1992-09-29  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1992-09-29  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* term/x-win.el (x-select-text, x-cut-buffer-or-selection-value):
 	Use x-get-cut-buffer and x-set-cut-buffer, instead of expecting
@@ -4011,7 +4011,7 @@
 	* files.el (after-find-file): New arg NOAUTO.
 	(revert-buffer, recover-file): Pass t for that arg.
 
-1992-09-23  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1992-09-23  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* cal-mayan.el (calendar-print-mayan-date): Fix conversion in
 	output message.
@@ -4111,7 +4111,7 @@
 
 	* ange-ftp.el (ange-ftp-file-name-as-directory): Fix typo.
 
-1992-09-17  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-09-17  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* gud.el (gud-mode-map): Bind gud-refresh to C-c C-l, not C-c l;
 	the latter is reserved for the user's purposes.
@@ -4181,7 +4181,7 @@
 	(tags-table-parent-pointer-list): Doc fix.
 	(tags-table-including): New function, subr of visit-tags-table-buffer.
 
-1992-09-14  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-09-14  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* gud.el (gdb, sdb, dbx): Use C-c C-r ("resume") for continuing,
 	instead of C-c C-c.  C-c C-c should be comint-interrupt-subjob;
@@ -4272,7 +4272,7 @@
 	(dired-revert, dired-insert-old-subdirs): Use it.
 	(dired-view-file): Undo previous change.
 
-1992-09-13  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-09-13  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* mouse.el: Change uses of 'K' interactive spec to 'e'.
 
@@ -4335,7 +4335,7 @@
 	* add-log.el (add-log-current-defun): Use eq instead of = when one
 	side might be nil.
 
-1992-09-09  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-09-09  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* frame.el (frame-notice-user-settings): In situations where we
 	have to delete the existing frame and create a new one, redirect
@@ -4364,7 +4364,7 @@
 	* c-mode.el (c-fill-paragraph): Fix the cases where point is before
 	or after the comment.  This uses new var comment-start-place.
 
-1992-09-04  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-09-04  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* rmail.el (rmail-unix-mail-delimiter): Expand this to recognize
 	time zones after the date too.	Re-arranged some of the whitespace
@@ -4390,7 +4390,7 @@
 
 	* sendmail.el (mail-do-fcc): Copy code from Emacs 18 to add time zone.
 
-1992-09-03  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-09-03  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* rmail.el (rmail-unix-mail-delimiter): Split this up and comment
 	its various components so it looks a bit less like three lines of
@@ -4401,7 +4401,7 @@
 	* compile.el (compile-goto-error): Move to bol before looking for
 	the error.
 
-1992-09-02  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-09-02  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* c-mode.el (c-auto-newline): Added backslashed before quotes in
 	docstring.
@@ -4456,7 +4456,7 @@
 
 	* add-log.el (add-log-current-defun): Recognize Emacs DEFUN properly.
 
-1992-08-24  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-08-24  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* rnewspost.el (news-setup): Don't use kill-line; that puts
 	trash in the kill ring; instead, use delete-region.
@@ -4476,7 +4476,7 @@
 
 	* simple.el: Doc fixes.
 
-1992-08-19  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1992-08-19  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* sendmail.el (mail-signature-file): Undo the previous change -
 	replace this with mail-signature.  The manual has already gone to
@@ -4498,7 +4498,7 @@
 	* rmail.el (rmail-next-undeleted-message): No error at eob,
 	just message.  (This reverses the previous change.)
 
-1992-08-17  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-08-17  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* sendmail.el (mail-signature): Variable replaced with...
 	(mail-signature-file): This, since this is the way all the
@@ -4511,12 +4511,12 @@
 
 	* sort.el (sort-subr): No progress messages if sorting less than 50k.
 
-1992-08-17  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1992-08-17  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* solar.el (sunrise-sunset): Get various values set properly when
 	there is (or isn't) a double prefix arg.
 
-1992-08-14  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-08-14  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* timer.el (run-at-time, timer-process-filter): The character
 	used to separate the time from the token in input to the timer
@@ -4532,7 +4532,7 @@
 
 	* unrmail.el: New file.
 
-1992-08-13  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-08-13  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* hideif.el (hide-ifdef-mode): Made this function autoload.
 	(hide-ifdef-initially, hide-ifdef-read-only,
@@ -4552,7 +4552,7 @@
 
 	* add-log.el (change-log-mode): Make it autoload.
 
-1992-08-12  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-08-12  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* frame.el (initial-frame-alist): Change the initial frame
 	alist from ((minibuffer . nil)), which asks for no minibuffer,
@@ -4562,7 +4562,7 @@
 	already taken care of in x_term_init, which is called from
 	Fx_open_connection.  Rah.
 
-1992-08-11  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-08-11  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* calendar.el, diary.el, diary-insert.el, holidays.el,
 	cal-french.el cal-mayan.el, solar.el, lunar.el: Installed the
@@ -4584,14 +4584,14 @@
 	* add-log.el (add-log-current-defun): Protect against "Unbalanced
 	parens" error from down-list.
 
-1992-08-10  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-08-10  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* frame.el (set-screen-width, set-screen-height): Make the
 	docstring say that these are obsolete.
 	(screen-width, screen-height, set-screen-width,
 	set-screen-height): Apply make-obsolete to these.
 
-1992-08-10  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1992-08-10  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el (calendar-mode): Update mode line.
 
@@ -4619,7 +4619,7 @@
 	* Reinstalled a loaddefs.el backup dated Aug 4.
 	The installed copy seems to be a very old version.
 
-1992-08-08  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-08-08  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* frame.el (set-screen-width, set-screen-height): Changed these
 	from fset aliases to actual functions, since they aren't supposed
@@ -4634,7 +4634,7 @@
 	instead of many looking-at calls.  Use memq instead of (or (eq x a)
 	(eq x b)).  Stupidity reigns.
 
-1992-08-07  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-08-07  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* frame.el (set-frame-width, set-frame-height): Functions deleted
 	*again*.  Where did these come from?
@@ -4672,7 +4672,7 @@
 	* compile.el (compilation-mode-map): Change
 	compilation-previous/next-file bindings to M-{ and M-}.
 
-1992-08-05  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1992-08-05  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* cl.el (*cl-valid-named-list-accessors*, *cl-valid-nth-offsets*,
 	byte-compile-named-accessors): Deleted.
@@ -4747,7 +4747,7 @@
 	is visible.  RET now goes to the next preorder node.  These
 	changes make sequential reading of info subtrees easier.
 
-1992-08-04  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1992-08-04  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* appt.el (appt-make-list): Add ;;;###autoload cookie for this
 	function.
@@ -4794,7 +4794,7 @@
 
 	* gud.el (gud-def): If KEY is nil, don't make a binding.
 
-1992-08-03  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1992-08-03  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* diary.el (print-diary-entries): Rewrote to work for either
 	simple or fancy diary display.
@@ -4807,7 +4807,7 @@
 
 	* map-ynp.el (map-y-or-n-p): Use key-description for USER-KEYS.
 
-1992-08-03  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-08-03  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* simple.el (current-kill): Reinstate interprogram-paste feature.
 	It doesn't seem to be wedged for me, and I can't find out how it is
@@ -4895,7 +4895,7 @@
 	* add-log.el (add-log-current-defun): In C and Lisp, verify the defun
 	really starts at or before the original point.
 
-1992-08-01  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-08-01  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* mailalias.el: Provide 'mailalias.
 	* mailpost.el: Require 'mailalias and 'sendmail, since we use
@@ -4978,11 +4978,11 @@
 	Change these to work correctly with the Zawinski-Furuseth byte
 	compiler.
 
-1992-07-31  Robert J. Chassell	(bob@churchy.gnu.ai.mit.edu)
+1992-07-31  Robert J. Chassell  (bob@churchy.gnu.ai.mit.edu)
 
 	* loaddefs.el: New keybinding, `C-x r y', for `yank-rectangle'.
 
-1992-07-31  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1992-07-31  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el (calendar-string-spread): New function.
 	(calendar-mode-line-format): Redefine it.
@@ -5006,7 +5006,7 @@
 	(next-error): Use the ARGP-1th, not ARGPth cdr of
 	compilation-error-list.
 
-1992-07-30  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-07-30  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* bytecomp.el (byte-compile-warnings): By default, do not display
 	warnings about references free variables.
@@ -5015,7 +5015,7 @@
 
 	* sendmail.el (mail): Get rid of the multiple mail buffer feature.
 
-1992-07-29  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1992-07-29  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el (general-holidays, hebrew-holidays, local-holidays,
 	christian-holidays, islamic-holidays, solar-holidays, other-holidays):
@@ -5086,7 +5086,7 @@
 	point is in or after; the error need not start at bol.
 	Restore current buffer after calling other-window.
 
-1992-07-28  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1992-07-28  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* holidays.el (calendar-holiday-function-sexp):
 	New function.
@@ -5171,7 +5171,7 @@
 	* etags.el (tags-exact-match-p): Rewritten.
 	(tags-with-syntax): New macro.
 
-1992-07-26  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1992-07-26  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el (calendar-cursor-to-date): Change `current-day' to
 	`starred-day'.
@@ -5267,7 +5267,7 @@
 	* flow-ctrl.el: fixed set-input-mode call broken by new third
 	  arg for meta control.
 
-1992-07-23  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1992-07-23  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el (cursor-to-islamic-calendar-date,
 	cursor-to-hebrew-calendar-date): Add phrase "until sunset" to message.
@@ -5305,7 +5305,7 @@
 	* etags.el (last-tag): New defvar.
 	(find-tag-noselect): Set and use it.
 
-1992-07-22  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1992-07-22  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* edebug.el, gnus.el, gnusmail.el, gnusmisc.el, gnuspost.el,
 	hideif.el, isearch-mode.el, mh-e.el, mhspool.el, netunam.el,
@@ -5318,7 +5318,7 @@
 	* etags.el (find-tag-noselect): Properly return
 	find-tag-in-order's value.
 
-1992-07-22  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1992-07-22  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* bytecomp.el: Removed relative jump instructions.
 	(byte-rel-goto-ops): Variable deleted.
@@ -5354,7 +5354,7 @@
 	(fill-c++-comment): Renamed from fill-C-comment.
 	(c++-insert-header): Deleted.
 
-1992-07-21  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1992-07-21  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* inf-lisp.el: When creating inferior-lisp-mode-map, use
 	shared-lisp-mode-map, instead of calling the function
@@ -5365,7 +5365,7 @@
 	argument; there's no longer any need to adapt to different
 	versions of Emacs.
 
-1992-07-21  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1992-07-21  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el (calendar-set-mode-line): New function.
 	(list-yahrzeit-dates): Use it for mode line.
@@ -5403,7 +5403,7 @@
 
 	* Installed co-isearch.el, new gud.el (1.19)
 
-1992-07-21  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1992-07-21  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* frame.el (get-frame): Renamed to get-other-frame; get-frame
 	sounds like a parallel to get-buffer or get-process.
@@ -5421,7 +5421,7 @@
 	keys to which the movement commands are bound to blackbox's
 	movement functions.  Define the insert and kp-enter keys.
 
-1992-07-20  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1992-07-20  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* blackbox.el (blackbox): Doc fix.
 	(bb-outside-box): For some reason, this function was replaced by
@@ -5448,7 +5448,7 @@
 
 	* startup.el (command-line): Fixed typo in comment.
 
-1992-07-20  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1992-07-20  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* bytecomp.el (byte-compile-warnings): Include the full
 	documentation given in the comments at the top of the file in this
@@ -5470,7 +5470,7 @@
 	* window.el (window-config-to-register, register-to-window-config):
 	Deleted, along with keybindings C-x 6 and C-x 7.
 
-1992-07-19  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1992-07-19  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* cal-mayan.el: New file.  The only functions visible to the
 	outside world are calendar-goto-mayan-date,
@@ -5534,7 +5534,7 @@
 	* rmail.el (rmail-delete-forward): Removed the feature
 	of moving back if there's nowhere to go forward.
 
-1992-07-17  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1992-07-17  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* etags.el (visit-tags-table-buffer): Call abbreviate-file-name on
 	the argument before setting tags-file-name.
@@ -5549,7 +5549,7 @@
 
 	* Keywords added for [n-z]*.el.	 Finder now under construction.
 
-1992-07-17  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1992-07-17  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* rmail.el (rmail-insert-inbox-text): Generate an alternate name
 	to use for tofile by appending a `+' to file, not a `~'; files
@@ -5573,7 +5573,7 @@
 
 	* Finished decorating the library files with new standard headers.
 
-1992-07-16  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1992-07-16  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* disass.el: Require `byte-compile', not 'bytecomp'.
 
@@ -5593,7 +5593,7 @@
 	* etags.el: Major rewrite with many new features.
 	* ctags.el: New file; goes with new etags.el.
 
-1992-07-16  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1992-07-16  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* byte-run.el (defsubst): Removed extra closing paren at the end
 	of this function.
@@ -5609,7 +5609,7 @@
 
 	* New library headers for [opqrst]*.el.	 Ghod, this is boring.
 
-1992-07-15  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1992-07-15  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* lunar.el: New file.  The only functions known to outside world
 	are calendar-phases-of-moon, diary-phases-of-moon, and
@@ -5637,7 +5637,7 @@
 	* loaddefs.el: Key bindings moved here.
 	* simple.el: From here.
 
-1992-07-14  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1992-07-14  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* byte-opt.el (byte-boolean-vars): Rebuilt for Emacs 19.
 
@@ -5661,7 +5661,7 @@
 	* [uvwxy]*.el: Added headers for new Emacs Lisp documentation
 	conventions.
 
-1992-07-14  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1992-07-14  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el (calendar-mode): Change key bindings for all
 	functions to make them consistent with Version 19 requirements.
@@ -5721,12 +5721,12 @@
 	* loaddefs.el (completion-ignored-extensions): nconc together
 	list of common extensions and list of unix or vms-specific ones.
 
-1992-07-13  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1992-07-13  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* simple.el (kill-region): The variable `undo-high-threshold' has
 	been renamed to `undo-strong-limit'.  Change its use here.
 
-1992-07-13  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1992-07-13  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el (exit-calendar): Bury buffers instead of killing them.
 
@@ -5749,7 +5749,7 @@
 	* c-mode.el (calculate-c-indent): Don't indent as argdecl
 	after apparent function decl inside a comment.
 
-1992-07-10  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1992-07-10  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* bytecomp.el: Replaced with Jamie Zawinksi's byte compiler.
 	* byte-optimize.el, bytecomp-runtime.el: New files, supporting
@@ -5764,7 +5764,7 @@
 	* mouse.el (mouse-kill): Don't set the mark; pass point and the
 	click's position to kill-region directly.
 
-1992-07-09  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1992-07-09  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* abbrev.el (write-abbrev-file): Removed extraneous interactive spec.
 
@@ -5808,7 +5808,7 @@
 
 	* sendmail.el (mail-do-fcc): Call rmail-set-message-counters.
 
-1992-07-06  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1992-07-06  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* etags.el (visit-tags-table): Remove automounter prefixes before
 	setting tags-file-name.
@@ -5822,11 +5822,11 @@
 
 	* Installed tq.el.
 
-1992-07-06  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1992-07-06  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* tex-mode.el (tex-file): Fix reference to tex-offer-save.
 
-1992-07-05  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1992-07-05  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* tex-mode.el: Require comint instead of oshell.
 	(tex-start-shell): Use comint, not oshell.
@@ -5899,12 +5899,12 @@
 
 	* cmutex.el: Deleted, following recommendation of reingold.
 
-1992-06-30  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-06-30  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* startup.el (command-line-1): Signal an error if the argument to
 	the `-insert' option isn't a string.
 
-1992-06-28  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-06-28  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* completion.el (completion-separator-self-insert-autofilling):
 	Changed references to `auto-fill-hook' to `auto-fill-function'.
@@ -5912,7 +5912,7 @@
 	* texinfo-upd.el (texinfo-update-node,
 	texinfo-sequential-node-update): Same thing.
 
-1992-06-28  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1992-06-28  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* solar.el: New file.
 	The only functions known to outside world are calendar-sunrise-sunset,
@@ -5934,7 +5934,7 @@
 	* holidays.el: Autoload
 	calendar-holiday-function-solar-equinoxes-solstices.
 
-1992-06-27  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-06-27  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* info.el: Bindings for Info-goto-emacs-command-node and
 	Info-goto-emacs-key-command-node in help-map moved from here...
@@ -5962,7 +5962,7 @@
 	* loaddefs.el: Bind [M-right], [M-left], [M-up], and [M-down] to
 	backward-sexp, forward-sexp, backward-list, and forward-list.
 
-1992-06-26  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1992-06-26  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* holidays.el (calendar-holiday-list): Protect holiday evaluation from
 	 bogus holidays on list.
@@ -5971,7 +5971,7 @@
 
 	* outline.el (outline-flag-region): Bind buffer-read-only to nil.
 
-1992-06-25  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-06-25  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* calendar.el, diary.el, holidays.el: Merged new versions from Ed
 	Reingold.
@@ -5985,11 +5985,11 @@
 	customize.
 	* holiday.el (holidays): Added autoload cookie for this.
 
-1992-06-25  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1992-06-25  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* diary.el (diary-rosh-hodesh): Change mod to % in two places.
 
-1992-06-24  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1992-06-24  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* holidays.el (calendar-holiday-function-fixed,
 	calendar-holiday-function-float. calendar-holiday-function-julian,
@@ -6006,7 +6006,7 @@
 	calendar-load-hook: New variable; use it with run-hooks.
 	calendar: Describe use of calendar-load-hook.
 
-1992-06-23  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-06-23  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* autoload.el: The docstring is the third element of a `defun'
 	form, not the second.
@@ -6023,7 +6023,7 @@
 	now has values like `enable-local-variables'.
 	(hack-local-variables): Test `enable-local-eval' properly.
 
-1992-06-22  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-06-22  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* autoload.el (generate-file-autoloads): Do attach a
 	`doc-string-elt' property to `defun', `defvar', `defconst', and
@@ -6038,7 +6038,7 @@
 	Ensure we keep at least one word on each line.
 	Also don't break after a period followed by just one space.
 
-1992-06-21  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-06-21  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* screen.el (ctl-x-5-map): Removed declaration and initialization
 	of this here; it's done in subr.el, alongside ctl-x-4-map.
@@ -6054,7 +6054,7 @@
 
 	* upd-copyr.el (update-copyright): Grok abbreviated years.
 
-1992-06-19  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-06-19  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* lisp-mode.el (indent-sexp): The local variable `last-point' was
 	being asked to do double-duty - `calculate-lisp-indent' needs to
@@ -6067,14 +6067,14 @@
 	* lisp-mode.el (indent-sexp): Change the `while' loop to an `if',
 	using `make-list' and `-' instead of `(list nil)' and `1+'.
 
-1992-06-18  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-06-18  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* edebug.el (edebug-debug): Added autoload cookie for this.
 
 	* etags.el (find-tag-other-frame): New function.  Bind it to
 	`C-x 5 .'.
 
-1992-06-17  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-06-17  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* compile.el (compilation-error-regexp-alist): Tightened up the
 	regular expressions designed to match lint pass 2 and lint pass 3
@@ -6092,7 +6092,7 @@
 
 	* mailabbrev.el: New version from jwz.
 
-1992-06-15  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-06-15  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* compile.el (compilation-enter-directory-regexp,
 	compilation-leave-directory-regexp): In strings, replace uses of
@@ -6101,7 +6101,7 @@
 	all the complemented character sets; none of these should match
 	across a newline.
 
-1992-06-14  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-06-14  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* isearch-mode.el (isearch-forward): Remove sentence from doc
 	string claiming that the key bindings are controlled by variables
@@ -6129,7 +6129,7 @@
 	* gnus.el (gnus-nntp-server): Eval gnus-default-nntp-server only
 	if bound.
 
-1992-06-12  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-06-12  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* isearch-mode.el: New package, which will probably supercede
 	isearch.el.
@@ -6163,13 +6163,13 @@
 	* compile.el (compile-internal): Do buffer-disable-undo here.
 	(compilation-mode): Not here.
 
-1992-06-10  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1992-06-10  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* simple.el (rotate-yank-pointer): Move the guts of this to
 	current-kill, and get rid of the optional DO-NOT-MOVE argument.
 	(current-kill): Rotate the yank pointer here.
 
-1992-06-09  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1992-06-09  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* subr.el (one-window-p): Rename argument ARG to NOMINI, so
 	that the docstring will agree with the argument list generated
@@ -6255,7 +6255,7 @@
 	the file name.	Also removed setq of random variable
 	`formatted-revision'.
 
-1992-06-02  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1992-06-02  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* yow.el: Somehow, the semicolons introducing the comment on the
 	first line disappeared.	 Put them back.
@@ -6286,7 +6286,7 @@
 	* ispell.el: Add some autoloads.
 	(ispell-word): Accept prefix arg, meaning do ispell-next.
 
-1992-06-01  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-06-01  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* simple.el (current-kill): Name the variable which holds the
 	value from other programs to be pasted interprogram-paste, not
@@ -6346,7 +6346,7 @@
 
 	* cus-print.el:	installed
 
-1992-05-30  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-05-30  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* startup.el (normal-top-level): Call abbreviate-file-name instead
 	of writing out its code.
@@ -6381,13 +6381,13 @@
 	non-nil, use comint-last-input-start and comint-last-input-end to
 	delete the input we just sent.
 
-1992-05-29  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-05-29  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* simple.el (append-to-buffer): When called interactively, default
 	to (other-buffer nil t).  This way, it will offer to insert into
 	the buffer in the other window.
 
-1992-05-27  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-05-27  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* term/x-win.el (x-cut-buffer-or-selection-value): New function.
 	Set interprogram-paste-function to use it.
@@ -6403,7 +6403,7 @@
 
 	* simple.el (set-selective-display): Keep vpos of point constant.
 
-1992-05-24  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1992-05-24  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el (list-yahrzeit-dates): New function.
 	(hebrew-calendar-yahrzeit): Moved from diary.el.
@@ -6412,7 +6412,7 @@
 	diary-ordinal-suffix: Give correct suffix for 111, 112, 113, 211,
 	212, 213, etc.
 
-1992-05-21  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-05-21  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* mouse.el: Emulate the Emacs 18 mouse button bindings for now.
 	(mouse-yank-at-click): New function.
@@ -6463,7 +6463,7 @@
 	* window.el: Binding of split-window-horizontally moved from C-x 5
 	to C-x 3.
 
-1992-05-20  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-05-20  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* simple.el (kill-region): This used to forgo actually deleting
 	the region if the buffer was read-only, meaning that the command
@@ -6475,15 +6475,15 @@
 
 	* subr.el (one-window-p): If arg is t, completely avoid minibuffer.
 
-1992-05-19  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-05-19  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* version.el (version): New alias for emacs-version.
 
-1992-05-19  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1992-05-19  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* startup.el (normal-top-level): Typo: s/getev/getenv/.
 
-1992-05-13  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-05-13  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* subr.el (lambda): Define this as a macro which wraps the lambda
 	expression in a (function ...) quoter.	This means that you don't
@@ -6494,7 +6494,7 @@
 	* loadup.el: Disable undo recording in scratch while we load all
 	the files; re-enable them before we dump.
 
-1992-05-12  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-05-12  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* startup.el (normal-top-level): If (getenv "PWD") or (getenv
 	"HOME") refer to the same directory as default-directory, change
@@ -6533,17 +6533,17 @@
 	* mailabbrev.el (mail-abbrevs-v18-munge-map): Use define-key
 	instead of making up an extra alist and nconcing it onto the keymap.
 
-1992-05-02  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1992-05-02  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el (generate-calendar-month): Center heading over each
 	month.
 
-1992-04-30  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-04-30  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* loaddefs.el: Moved (put 'narrow-to-page 'disabled t)...
 	* page.el: To here.
 
-1992-04-28  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-04-28  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* mh-e.el (mh-signature-file-name): New variable.
 	(mh-insert-signature): Use it.
@@ -6557,17 +6557,17 @@
 	* loaddefs.el: Removed (put 'narrow-to-region 'disabled t).
 	It is done in simple.el.
 
-1992-04-25  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-04-25  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* dired.el (dired-mode): Make the modeline display the entire path
 	of the directory, not just the buffer name.
 
-1992-04-24  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-04-24  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* flame.el: Add "flame-" prefix to internal functions, to conform
 	with the naming conventions of the rest of Emacs.
 
-1992-04-21  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-04-21  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* doctor.el (doctor-svo): Deleted second expression from top let
 	binding; it used to read "(let ((foo <exp> sent)) ...)"; let
@@ -6575,14 +6575,14 @@
 
 	* flame.el: We might as well (provide 'flame).
 
-1992-04-18  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-04-18  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* startup.el (normal-top-level): Don't change default-directory to
 	(getenv "PWD") unless they actually refer to the same directory.
 
 	* rmail.el (rmail-unix-mail-delimiter): Doc fix.
 
-1992-04-17  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-04-17  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* rmail.el (rmail-unix-mail-delimiter): Don't bother giving this a
 	docstring; move it to a comment.
@@ -6591,7 +6591,7 @@
 
 	* cmacexp.el: Doc fix.
 
-1992-04-15  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-04-15  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* simple.el (reindent-then-newline-and-indent,
 	newline-and-indent): Call the newline function instead of saying
@@ -6613,12 +6613,12 @@
 	* compile.el (compilation-find-buffer): Optional non-nil arg says
 	to try to find some buffer other than the current one.
 
-1992-04-10  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1992-04-10  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* holidays.el (calendar-cursor-holidays): Signal error when cursor
 	is not on a date.
 
-1992-04-08  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-04-08  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* doctex.el, gdb.el, mh-e.el, vip.el: Use
 	point{,-min,-max,-marker} functions instead of
@@ -6636,11 +6636,11 @@
 	(sendmail-pre-abbrev-expand-hook): Take optional arg; if non-nil,
 	call self-insert-command with it, and don't do expand-abbrev; just
 
-1992-04-06  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-04-06  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* lpr.el (lpr-command): Make this variable settable.
 
-1992-04-03  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-04-03  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* files.el (revert-buffer): Reverse the sense of the prefix
 	argument; by default, do not offer to revert from the auto-save
@@ -6651,7 +6651,7 @@
 	* files.el (write-contents-hooks): New variable.
 	(basic-save-buffer): Use write-contents-hooks like write-file-hooks.
 
-1992-03-31  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-03-31  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* bytecomp.el (byte-compile-let, byte-compile-let*): Signal an
 	error message if a binding has more than one value form.
@@ -6676,7 +6676,7 @@
 
 	* simple.el (copy-region-as-kill): Doc fix.
 
-1992-03-16  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-03-16  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* Moved provide clauses to bottom of every elisp file that
 	contains one.
@@ -6689,7 +6689,7 @@
 	* upd-copyr.el (update-copyright): Don't update the GPL version or
 	replace the notice if the user said not to update the copyright.
 
-1992-03-11  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-03-11  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* sendmail.el (mail-fcc): New function.
 	(mail-mode-map): Bind C-c C-f C-f to mail-fcc.
@@ -6718,7 +6718,7 @@
 	(compilation-search-path): Made user variable, added autoload cookie.
 	(compilaton-window-height): Added autoload cookie.
 
-1992-02-27  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-02-27  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* files.el (hack-local-variables): Don't take a FORCE argument;
 	it's as easy to bind enable-local-variables to t for a while as it
@@ -6732,16 +6732,16 @@
 	definition and initialization to be here; moved it to...
 	* files.el: Here.
 
-1992-02-21  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-02-21  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* telnet.el (read-password): Let the quit character terminate
 	password entry.
 
-1992-02-07  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-02-07  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* info.el: Doc fix.
 
-1992-01-27  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-01-27  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* simple.el (universal-argument): Read key sequences, not single
 	keys.  Renamed `c-u' to `factor'.  Describe the argument in the
@@ -6755,23 +6755,23 @@
 	* simple.el (digit-argument): Strip off high bit of
 	last-command-char.
 
-1992-01-17  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-01-17  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* term/tvi970.el: New file.
 
-1992-01-16  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-01-16  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* screen.el: Don't automatically bind C-z to iconify; this is
 	inappropriate on terminals.
 	* term/x-win.el: Bind C-z to iconify here.
 
-1992-01-15  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-01-15  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* term/wyse50.el: Rewritten to use function-key-map.
 
 	* simple.el: Include bindings for [up], [down], [left], and [right].
 
-1992-01-13  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
+1992-01-13  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* setenv.el: New file.
 
@@ -6785,7 +6785,7 @@
 
 	* flow-ctrl.el: installed.
 
-1992-01-08  Jim Blandy	(jimb@occs.cs.oberlin.edu)
+1992-01-08  Jim Blandy  (jimb@occs.cs.oberlin.edu)
 
 	* simple.el (temporary-goal-column): Added missing closing paren.
 
@@ -6797,12 +6797,12 @@
 
 	* debug.el (cancel-debug-on-entry): Complete over debugged functions.
 
-1991-12-21  Jim Blandy	(jimb@occs.cs.oberlin.edu)
+1991-12-21  Jim Blandy  (jimb@occs.cs.oberlin.edu)
 
 	* at386.el: Moved to term/at386.el, changed to use
 	function-key-map.
 
-1991-12-20  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-12-20  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* term/news.el, term/vt100.el: Converted to use function-key-map
 	instead of old keypad.el.
@@ -6853,7 +6853,7 @@
 
 	* sccs.el: installed 3.5
 
-1991-12-08  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-12-08  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* simple.el (universal-argument): If there is already an argument
 	specified, don't toss it and read a new one; instead, end argument
@@ -6873,7 +6873,7 @@
 	(diff-sccs, diff-rcs): New commands using diff-internal-diff.
 	(diff-rcs-extension): New variable.
 
-1991-12-05  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-12-05  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* apropos.el, doctex.el, help.el, paths.el, spook.el, yow.el:
 	These files expected to find their data in exec-directory, but
@@ -6898,7 +6898,7 @@
 
 	* simple.el: Doc fix.
 
-1991-11-15  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-11-15  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* startup.el (command-line): Don't bother catching errors that
 	occur while the window system file is loading; cmd_error can now
@@ -6908,7 +6908,7 @@
 	* startup.el (command-line): baud-rate is a variable, not a
 	function.
 
-1991-11-14  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-11-14  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* info.el (Info-mode): Mention Info-directory in the list of
 	commands in the docstring.
@@ -6918,12 +6918,12 @@
 
 	* find-dired.el: New version munged by sk for tree dired.
 
-1991-11-06  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-11-06  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* screen.el (screen-initialize, screen-notice-user-settings):
 	Renamed global-minibuffer-screen to default-minibuffer-screen.
 
-1991-11-05  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1991-11-05  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* diary.el (diary-rosh-hodesh): Add Erev Rosh Hodesh to the diary,
 	as needed.
@@ -6933,7 +6933,7 @@
 	* ebuff-menu.el (eletric-buffer-menu-mode-map):	 Define
 	< and > to scroll-left and scroll-right per user suggestion.
 
-1991-10-31  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-10-31  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* files.el (cd): Don't bother calling pwd after changing the
 	directory.
@@ -6949,7 +6949,7 @@
 	prefix from names.
 	(shell): Marked this to be autoloaded.
 
-1991-10-29  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-10-29  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* files.el (find-file-noselect): Extract filename abbreviation
 	code into separate function.
@@ -6959,13 +6959,13 @@
 	doesn't exist, offer to create it.
 	(make-directory-path): New function to support this offer.
 
-1991-10-28  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-10-28  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* macros.el (apply-macro-to-region-lines): Use a marker to keep
 	track of the next line to operate on, so the macro can delete or
 	add lines.
 
-1991-10-26  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-10-26  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* disass.el (disassemble): Correctly distinguish functions with no
 	interactive spec and functions that are (interactive).	Correctly
@@ -6975,7 +6975,7 @@
 	(disassemble-1): Use nth to extract components of explicit call to
 	byte-code, not car and cdr.
 
-1991-10-25  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-10-25  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* lisp-mode.el (eval-print-last-sexp): Saying (terpri
 	(current-buffer)) after evaluating the expression does bad things
@@ -6987,7 +6987,7 @@
 	* compile.el (compilation-buffer-name-function,
 	compilation-finish-function): Add autoload cookie for these.
 
-1991-10-15  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-10-15  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* info.el (Info-follow-nearest-node): Adjusted for new return
 	value format from coordinates-in-window-p.
@@ -7016,7 +7016,7 @@
 	to see if this is a compilation buffer, because the latter might
 	not be local.
 
-1991-10-04  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-10-04  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* files.el (revert-buffer): Call verify-visited-file-modtime with
 	one arg (the current buffer), instead of none.
@@ -7031,7 +7031,7 @@
 	* version.el (emacs-version): (From Bob:) Take optional arg
 	(prefix arg) to insert version text at point.
 
-1991-09-26  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-09-26  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* info.el (Info-default-directory-list): defvar this instead of
 	defconsting it, so paths.el can set it.
@@ -7083,7 +7083,7 @@
 	* map-ynp.el: No need for provide.
 	* loadup.el: Load map-ynp.
 
-1991-08-23  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1991-08-23  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el (calendar-last-day-of-month, calendar-leap-year-p,
 	calendar-day-number, calendar-absolute-from-gregorian): Change
@@ -7095,7 +7095,7 @@
 	(apply fun (cons first rest)) => (apply fun first rest).
 	Come on, guys.
 
-1991-08-20  Michael I Bushnell	(mib@geech.gnu.ai.mit.edu)
+1991-08-20  Michael I Bushnell  (mib@geech.gnu.ai.mit.edu)
 
 	* rmail.el (rmail-convert-to-babyl-format): Roland added the
 	missing paren in the wrong place; fixed.
@@ -7110,7 +7110,7 @@
 
 	* rmail.el (rmail-convert-to-babyl-format): Add missing paren.
 
-1991-08-19  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1991-08-19  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el (redraw-calendar): Preserve cursor location in
 	redrawing.
@@ -7134,11 +7134,11 @@
 	(doctor-doc): Use member instead of doctor-member.
 	(doctor-rms): Restored.
 
-1991-08-16  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-08-16  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* term/x-win.el: Removed obsolete definitions for function keys.
 
-1991-08-15  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-08-15  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* screen.el (screen-create-initial-screen): Renamed to
 	screen-initialize.  Arrange to cause errors if people try to
@@ -7165,7 +7165,7 @@
 	find-file-read-only-other-screen): Here...
 	* sendmail.el (mail-other-screen): And here.
 
-1991-08-14  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-08-14  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* files.el (generate-new-buffer): Function moved here from
 	src/buffer.c.
@@ -7194,7 +7194,7 @@
 	display time in 24-hour format, rather than using AM/PM suffix.
 	Also, don't blow up in substring if load average is unavailable.
 
-1991-08-13  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-08-13  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* screen.el: Incorporated other-screen functions and key bindings.
 
@@ -7216,7 +7216,7 @@
 	* files.el (save-some-buffers): Add missing `(and' and matching
 	`)' so that buffer-offer-save is actually tested.
 
-1991-08-12  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-08-12  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* window.el (split-window-keep-point): New user option.
 	(split-window-vertically): Modified to support it.
@@ -7224,7 +7224,7 @@
 	split-window-keep-point according to the baud rate.
 	* term/x-win.el: Set split-window-keep-point.
 
-1991-08-10  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-08-10  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* term/x-win.el (x-daemon-mode, x-establish-daemon-mode): Removed
 	these functions; we do this differently now.
@@ -7234,7 +7234,7 @@
 	* autoload.el (batch-update-autoloads): Do (save-some-buffers t)
 	before killing emacs, so loaddefs.el will be saved.
 
-1991-08-05  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-08-05  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* screen.el (screen-creation-func): Renamed to
 	screen-creation-function, as per the convention.
@@ -7246,14 +7246,14 @@
 
 	* screen.el: All of the screen startup code reworked.
 
-1991-08-01  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-08-01  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* startup.el (pre-init-hook): New variable.
 	(window-setup-hook): Doc fix.
 	(command-line): Call pre-init-hook.
 	(command-line-1): Updated copyright date.
 
-1991-07-31  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-07-31  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* rmailedit.el: When initializing rmail-edit-map, take the cdr of
 	text-mode-map before nconcing it, to omit the keymap header.
@@ -7268,7 +7268,7 @@
 
 	* apropos.el (apropos, super-apropos): Don't make window for no syms.
 
-1991-07-29  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-07-29  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* loaddefs.el: Don't make backup versions of this file.
 
@@ -7276,7 +7276,7 @@
 
 	* autoload.el (generate-autoload-cookie): Doc fix.
 
-1991-07-28  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-07-28  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* etags.el: Renamed new-etags.el, copied Emacs 18's tags package
 	into its place - the new version seemed to have half-completed
@@ -7302,7 +7302,7 @@
 
 	* edebug.el: Version 2.5 from LaLiberte.
 
-1991-07-25  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-07-25  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* view.el: (define-key "C-xv" 'view-file).
 	(view-file-other-window, view-buffer-other-window): New functions.
@@ -7313,12 +7313,12 @@
 	* subr.el (search-forward-regexp, search-backward-regexp): Added
 	alternate names.
 
-1991-07-24  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-07-24  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* diff.el (diff): Turn off read-only flag to insert "no
 	differences" message.
 
-1991-07-23  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-07-23  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* isearch.el (isearch): If the user switches to a different
 	screen, exit the isearch.
@@ -7333,7 +7333,7 @@
 
 	* rmail.el (rmail-widen-to-current-msgbeg): Added missing close paren.
 
-1991-07-21  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-07-21  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* isearch.el (isearch): Don't assume that we're repeating a search
 	that found an empty string; check history to make sure we're
@@ -7366,7 +7366,7 @@
 
 	* sendmail.el (mail-do-fcc): Added missing close paren.
 
-1991-07-15  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-07-15  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* term/x-win.el: Enable interrupt-driven input after opening the X
 	connection, so that the fcntls on file descriptor 0 apply to the
@@ -7390,7 +7390,7 @@
 	`fortran-minimum-statement-indent' to (max tab-width 6) instead of 8.
 	The minimum 6 insures legal indenting for lines with line numbers.
 
-1991-07-13  Jim Blandy	(jimb@churchy.gnu.ai.mit.edu)
+1991-07-13  Jim Blandy  (jimb@churchy.gnu.ai.mit.edu)
 
 	* info.el (Info-find-node): Call buffer-flush-undo with one arg,
 	instead of none.  Change call to get-buffer-c>reate to
@@ -7406,7 +7406,7 @@
 	occur-pos-list of nulls.  And allocate the final-context-start
 	marker once, so we don't allocate jillions of markers in the
 
-1991-07-11  Jim Blandy	(jimb@geech.gnu.ai.mit.edu)
+1991-07-11  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
 	* term/x-win.el (x-handle-args): Re-written to take the command
 	line switch as an argument, instead of just assuming it's in ARGS,
@@ -7482,7 +7482,7 @@
 	Don't fail to advance args past -debug-init.
 	(command-line-1): Ignore here options processed at earlier stages.
 
-1991-06-26  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-06-26  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* term/x-win.el (x-read-resources): When a resource is not
 	available, use (nth 2 key-resname-default) to get the default, not
@@ -7490,7 +7490,7 @@
 	Open the connection to the server *before* trying to read the
 	resources, silly.
 
-1991-06-20  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1991-06-20  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* subr.el (ignore): Added docstring for this; it appears as a key
 	binding, so it ought to be described.
@@ -7516,12 +7516,12 @@
 
 	* disass.el (disassemble-internal): Fixed typo string? -> stringp.
 
-1991-05-26  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1991-05-26  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* holiday.el (calendar-holiday-function-passover-etc): Correct
 	date and spelling of Yom HaAtzma'ut.
 
-1991-05-23  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-05-23  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* mail-utils.el: Require lisp-mode, because we use
 	lisp-mode-syntax-table.	 Lisp-mode is usually in the dumped emacs,
@@ -7540,7 +7540,7 @@
 	don't clobber the definition in text-mode-map, but DO share the
 	rest of text-mode-map.
 
-1991-05-23  Michael I Bushnell	(mib@geech.gnu.ai.mit.edu)
+1991-05-23  Michael I Bushnell  (mib@geech.gnu.ai.mit.edu)
 
 	* startup.el (command-line): don't do anything if $VERSION_CONTROL
 	is not set; move code to import environment var ahead of .emacs
@@ -7550,13 +7550,13 @@
 
 	* forms.el (scroll-up, scroll-down): Made argument &optional.
 
-1991-05-22  Michael I Bushnell	(mib@churchy.gnu.ai.mit.edu)
+1991-05-22  Michael I Bushnell  (mib@churchy.gnu.ai.mit.edu)
 
 	* rmail.el (rmail-variables): Rmail should not be a
 	save-buffer-skip buffer.  If the user wants this confusing
 	behavior, it can be personally customized.
 
-1991-05-22  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1991-05-22  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* term/x-win.el (x-switches-specified): Variable deleted; the
 	options given on the command line are placed in screen-default
@@ -7574,7 +7574,7 @@
 	(pop-initial-screen): Don't do a condition-case to call
 	death-function.
 
-1991-05-18  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-05-18  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* macros.el (apply-macro-to-region-lines): Added a save-excursion
 	around the macro invocation, so that the macro doesn't need to
@@ -7589,12 +7589,12 @@
 	the window system, catch it and write the error message to
 	external-debugging-output.
 
-1991-05-17  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1991-05-17  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* holiday.el: Add Erev Shavuot to the full list of Jewish
 	holidays.
 
-1991-05-16  Jim Blandy	(jimb@geech.gnu.ai.mit.edu)
+1991-05-16  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
 	* macros.el (apply-macro-to-region-lines): New function.
 
@@ -7655,7 +7655,7 @@
 	able to grok the originals, but not the copies, so there will be
 	only one copy of each docstring in the DOC file.
 
-1991-05-13  Jim Blandy	(jimb@pogo.gnu.ai.mit.edu)
+1991-05-13  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* isearch.el (search-exit-char): As per the opinion poll results,
 	change this to RET.
@@ -7672,7 +7672,7 @@
 
 	* loaddefs.el (auto-mode-alist): Recognize .emacs only at end.
 
-1991-05-13  Jim Blandy	(jimb@wookumz.gnu.ai.mit.edu)
+1991-05-13  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* simple.el (blink-matching-open): Make this function interactive.
 
@@ -7705,7 +7705,7 @@
 
 	* lisp-mode.el (eval-print-last-sexp): Use terpri instead of newline.
 
-1991-05-09  Jim Blandy	(jimb@geech.gnu.ai.mit.edu)
+1991-05-09  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
 	* disass.el (disassemble-internal): Rearranged to conveniently
 	handle compiled-function objects.
@@ -7729,7 +7729,7 @@
 	* rmail.el: Doc fix.
 	(rmail-first-message): New function; bound to "<".
 
-1991-05-08  Jim Blandy	(jimb@churchy.gnu.ai.mit.edu)
+1991-05-08  Jim Blandy  (jimb@churchy.gnu.ai.mit.edu)
 
 	* screen.el: Removed temporary hack to set up auto-new-screen and
 	auto-new-screen-function.
@@ -7783,7 +7783,7 @@
 	(fortran-tab-mode, fortran-setup-tab-mode-style):
 	(fortran-setup-fixed-format-style): New commands.
 
-1991-05-05  Jim Blandy	(jimb@geech.gnu.ai.mit.edu)
+1991-05-05  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
 	* calc.el: When setting up calc-digit-map, don't try to apply aref
 	to the keymaps; extract the vectors from the keymaps before
@@ -7870,12 +7870,12 @@
 	* add-log.el (prompt-for-change-log-name): Made a defun rather
 	than a defmacro (braino fix).
 
-1991-04-18  Jim Blandy	(jimb@gnu.ai.mit.edu)
+1991-04-18  Jim Blandy  (jimb@gnu.ai.mit.edu)
 
 	* simple.el (count-lines-region): Display the number of characters
 	in the region as well.
 
-1991-04-14  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1991-04-14  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* diary.el (diary-omer, diary-parasha): Fix punctuation in diary
 	entries.
@@ -7885,7 +7885,7 @@
 	* prolog.el, r2bibtex.el, rect.el, refbib.el, register.el: Doc fix.
 	* remote.el, replace.el: Doc fix.
 
-1991-04-11  Jim Blandy	(jimb@gnu.ai.mit.edu)
+1991-04-11  Jim Blandy  (jimb@gnu.ai.mit.edu)
 
 	* simple.el (kill-region): Don't print out a message saying how
 	many characters are being killed.
@@ -8041,7 +8041,7 @@
 	rather than goto-char, since the final character position is
 	rendered obsolete by the intervening fill-region-as-paragraph.
 
-1991-02-24  Edward M. Reingold	(reingold@emr.cs.uiuc.edu)
+1991-02-24  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* diary.el (include-other-diary-files): Fix documentation string.
 
@@ -8066,13 +8066,13 @@
 	* compile.el (next-error): Do rms's optimization (Feb 8 change)
 	when moving backward, too.
 
-1991-02-20  Jim Blandy	(jimb@geech.ai.mit.edu)
+1991-02-20  Jim Blandy  (jimb@geech.ai.mit.edu)
 
 	* startup.el (command-line): Re-arranged nested ifs that handle
 	the different command-line arguments into a cond, to make it
 	easier for me to read.
 
-1991-02-15  Jim Blandy	(jimb@pogo.ai.mit.edu)
+1991-02-15  Jim Blandy  (jimb@pogo.ai.mit.edu)
 
 	* loaddefs.el: Bind \M-C-r to isearch-backward-regexp, since
 	it really ought to be there.  I want it often.
@@ -8107,12 +8107,12 @@
 
 	* bg-mouse.el, bib-mode.el: Doc fix.
 
-1991-02-04  Jim Blandy	(jimb@gnu.ai.mit.edu)
+1991-02-04  Jim Blandy  (jimb@gnu.ai.mit.edu)
 
 	* simple.el (eval-current-buffer): Removed, since it has been
 	reintroduced to the C code.
 
-1991-02-02  Jim Blandy	(jimb@gnu.ai.mit.edu)
+1991-02-02  Jim Blandy  (jimb@gnu.ai.mit.edu)
 
 	* comint.el (comint-mode): Move the creation of input-ring down
 	with the other variables, and (golly!) initialize it to a ring.
@@ -8124,7 +8124,7 @@
 	* replace.el (perform-replace): Prevent spurious match
 	of ^foo in second part of foofoo after first part is deleted.
 
-1991-01-31  Jim Blandy	(jimb@pogo.ai.mit.edu)
+1991-01-31  Jim Blandy  (jimb@pogo.ai.mit.edu)
 
 	* files.el (find-file-noselect): Strip auto-mount prefix only if safe.
 
@@ -8155,7 +8155,7 @@
 
 	* appt.el: Doc fix.
 
-1991-01-30  Jim Blandy	(jimb@pogo.ai.mit.edu)
+1991-01-30  Jim Blandy  (jimb@pogo.ai.mit.edu)
 
 	* paths.el (Info-directory-list): Look for info files in
 	/usr/local/lib/info first, since this is the standard place for
@@ -8165,7 +8165,7 @@
 
 	* info.el (info): With prefix arg, read file name and visit it.
 
-1991-01-26  Jim Blandy	(jimb@gnu.ai.mit.edu)
+1991-01-26  Jim Blandy  (jimb@gnu.ai.mit.edu)
 
 	* term/x-win.el: Do not define the f1 function key to run rmail.
 
@@ -8199,7 +8199,7 @@
 
 	* info.el (Info): Init Info-directory-list from INFOPATH.
 
-1991-01-12  Jim Blandy	(jimb@gnu.ai.mit.edu)
+1991-01-12  Jim Blandy  (jimb@gnu.ai.mit.edu)
 
 	* etags.el (visit-tags-file-buffer): use progn instead of
 	save-excursion, so the buffer actually gets visited.
@@ -8220,14 +8220,14 @@
 	* compile.el (compilation-parse-errors): Fixed maintenance of
 	last-linenum, so dups are really found.
 
-1991-01-08  Jim Blandy	(jimb@pogo.ai.mit.edu)
+1991-01-08  Jim Blandy  (jimb@pogo.ai.mit.edu)
 
 	* bytecomp.el (byte-compile-byte-code-maker):  Since
 	byte-compile-lambda is free to return the original lambda
 	expression, we'd better be prepared to handle things that aren't
 	bytecode objects.
 
-1991-01-07  Jim Blandy	(jimb@gnu.ai.mit.edu)
+1991-01-07  Jim Blandy  (jimb@gnu.ai.mit.edu)
 
 	* loaddefs.el: Don't forget to specify the filenames when
 	autoload-ing byte-compile-buffer and byte-compile-defun.
@@ -8544,7 +8544,7 @@
 	* diary.el (diary-float): Allow month to be a list of months, a
 	single month, or t (for all months).
 
-1990-11-26  Jim Blandy	(jimb@geech.ai.mit.edu)
+1990-11-26  Jim Blandy  (jimb@geech.ai.mit.edu)
 
 	* simple.el (copy-region-as-kill): No longer prints "Region
 	copied" error message.
@@ -8553,7 +8553,7 @@
 
 	* bg-mouse.el (bg-insert-moused-sexp): If before ')', just skip that.
 
-1990-11-26  Neil Mager	(neilm@juliet.ll.mit.edu)
+1990-11-26  Neil Mager  (neilm@juliet.ll.mit.edu)
 
 	* appt.el: Fixed if construct for midnight update.
 
@@ -8562,7 +8562,7 @@
 	* diary.el (insert-block-diary-entry): Change reference to
 	mark-ring to calendar-mark-ring.
 
-1990-11-21  Neil Mager	(neilm@juliet.ll.mit.edu)
+1990-11-21  Neil Mager  (neilm@juliet.ll.mit.edu)
 
 	* appt.el: Updated header of file to reflect changes.
 
@@ -8646,7 +8646,7 @@
 	* calendar.el (describe-calendar-mode): Rewrote to give just a
 	brief description of the mode instead of calling describe-mode.
 
-1990-10-19  Neil Mager	(neilm@juliet.ll.mit.edu)
+1990-10-19  Neil Mager  (neilm@juliet.ll.mit.edu)
 
 	* appt.el: Changed issue-appointments-message to
 	appt.issue.message in header.
@@ -8666,7 +8666,7 @@
 
 	* files.el (basic-save-buffer): Run after-save-hooks.
 
-1990-11-21  Robert J. Chassell	(bob@gnu.ai.mit.edu)
+1990-11-21  Robert J. Chassell  (bob@gnu.ai.mit.edu)
 
 	* texinfmt.el (texinfo-parse-line-arg): Ignore spaces@end of
 	line.
@@ -8853,7 +8853,7 @@
 	code which attempted to fake out mode-name in mode-line-list.
 	Also, use slow \\<...> technology.
 
-1990-11-13  David J. MacKenzie	(djm@apple-gunkies)
+1990-11-13  David J. MacKenzie  (djm@apple-gunkies)
 
 	* fortran.el: Use domain format instead of uucp format for bug
 	list address.
@@ -8930,7 +8930,7 @@
 	* info.el (Info-find-node): Simplify file search.
 	Try appending `.info' to specified name.
 
-1990-10-31  Jim Blandy	(jimb@gnu.ai.mit.edu)
+1990-10-31  Jim Blandy  (jimb@gnu.ai.mit.edu)
 
 	* bytecomp.el: Put properties on * so that the byte-compiler knows
 	how to inline multiplication.
@@ -8940,7 +8940,7 @@
 	* files.el (delete-auto-save-file-if-necessary):
 	Don't delete if auto-saveing in visited file.
 
-1990-10-29  Jim Blandy	(jimb@pogo.ai.mit.edu)
+1990-10-29  Jim Blandy  (jimb@pogo.ai.mit.edu)
 
 	* subr.el: `buffer-flush-undo' is now officially named
 	`buffer-enable-undo'; added an alias for backward compatibility.
@@ -8954,7 +8954,7 @@
 
 	* subr.el (keyboard-translate): New function.
 
-1990-10-25  Robert J. Chassell	(bob@gnu.ai.mit.edu)
+1990-10-25  Robert J. Chassell  (bob@gnu.ai.mit.edu)
 
 	* texinfmt.el (texinfo-format-defun-1): Replace with new version
 	that handles @deftypefn and related typed definition commands.
@@ -9010,7 +9010,7 @@
 	* etags.el (visit-tags-table-buffer):
 	Handle local bindings of tags-file-name.
 
-1990-10-19  Robert J. Chassell	(bob@gnu.ai.mit.edu)
+1990-10-19  Robert J. Chassell  (bob@gnu.ai.mit.edu)
 
 	* texinfmt.el (texinfo-format-include,
 	texinfo-format-setfilename): Redefined to handle new include
@@ -9206,7 +9206,7 @@
 
 	* mouse.el (mouse-set-point): Compensate properly for hscroll.
 
-1990-09-13  Robert J. Chassell	(bob@gnu.ai.mit.edu)
+1990-09-13  Robert J. Chassell  (bob@gnu.ai.mit.edu)
 
 	* texinfmt.el (texinfo-format-inforef): Item name now optional.
 
@@ -9450,7 +9450,7 @@
 
 	* term/x-win.el: Don't define C-z here; it's now in screen.el.
 
-1990-08-14  David J. MacKenzie	(djm@apple-gunkies)
+1990-08-14  David J. MacKenzie  (djm@apple-gunkies)
 
 	* time.el: New version that uses wakeup instead of loadst.
 
@@ -9574,7 +9574,7 @@
 
 	* c-mode.el (c-comment-indent): Special case comment after }.
 
-1990-07-05  Robert J. Chassell	(bob@gnu.ai.mit.edu)
+1990-07-05  Robert J. Chassell  (bob@gnu.ai.mit.edu)
 
 	* texinfmt.el: Renamed Lisp definitions section to `Description
 	  formatting' and revised `texinfo-format-defun-1' and format
@@ -9588,7 +9588,7 @@
 
 	* sort.el: Doc fix.
 
-1990-06-28  Robert J. Chassell	(bob@gnu.ai.mit.edu)
+1990-06-28  Robert J. Chassell  (bob@gnu.ai.mit.edu)
 
 	* texinfmt.el (texinfo-format-paragraph-break): @br{} no longer a
 	  noop.
@@ -9661,7 +9661,7 @@
 	calling c-backward-to-start-of-continued-exp.
 	(c-backward-to-start-of-continued-exp): Back up over strings.
 
-1990-06-21  Robert J. Chassell	(bob@pogo.ai.mit.edu)
+1990-06-21  Robert J. Chassell  (bob@pogo.ai.mit.edu)
 
 	* texinfmt.el (texinfo-format-include): Include files ending with
 	  ".texi" as well as ".texinfo" and ".tex".
@@ -9693,7 +9693,7 @@
 	* simple.el: Search-ring advance and recline characters are now
 	M-n and M-p.
 
-1990-06-15  Robert J. Chassell	(bob@pogo.ai.mit.edu)
+1990-06-15  Robert J. Chassell  (bob@pogo.ai.mit.edu)
 
 	* tex-mode.el (tex-start-shell): Don't put `require' in defun, put
 	  it@top level.
@@ -9702,7 +9702,7 @@
 	  accidently find a string in the description that is confused for
 	  a menu item.
 
-1990-06-01  Robert J. Chassell	(bob@wheat-chex)
+1990-06-01  Robert J. Chassell  (bob@wheat-chex)
 
 	* texinfo.el: Added `texinfo-tex-region' (C-c C-r) to run TeX on
 	  the current region, `texinfo-tex-buffer' (C-c C-t) to run TeX on
@@ -9718,7 +9718,7 @@
 	* startup.el (command-line):  Check environment variable
 	VERSION_CONTROL and set version-control appropriately.
 
-1990-05-31  Robert J. Chassell	(bob@wheat-chex)
+1990-05-31  Robert J. Chassell  (bob@wheat-chex)
 
 	* texnfo-upd.el (texinfo-top-pointer-case): rewrote to handle
 	  @chapter (or other sectioning) command following Top node.
@@ -9770,7 +9770,7 @@
 
 	* scheme.el (run-scheme): Autoload deleted.  Already done in loaddefs.
 
-1990-05-24  Robert J. Chassell	(bob@rice-chex)
+1990-05-24  Robert J. Chassell  (bob@rice-chex)
 
 	* page-ext.el (pages-directory-goto): Go to end of file if called
 	from the last line (which is empty) of the pages-directory
@@ -9785,7 +9785,7 @@
 	* c++-mode.el:	Installed latest version from David Detlefs with
 	all additions made since Sep 1989.
 
-1990-05-24  Robert J. Chassell	(bob@apple-gunkies)
+1990-05-24  Robert J. Chassell  (bob@apple-gunkies)
 
 	* texinfmt.el:	Added	texinfo-format-defindex	  which provides
 	@defindex and @defcodeindex.
@@ -9809,12 +9809,12 @@
 	* buff-menu.el (Buffer-menu-buffer): Simplified.
 	Set Buffer-menu-buffer-column initially.
 
-1990-05-18  Robert J. Chassell	(bob@apple-gunkies)
+1990-05-18  Robert J. Chassell  (bob@apple-gunkies)
 
 	* page-ext.el: (pages-addresses-file-name):
 	Renamed from addresses-file-name.
 
-1990-05-17  Robert J. Chassell	(bob@apple-gunkies)
+1990-05-17  Robert J. Chassell  (bob@apple-gunkies)
 
 	* texinfo.el (texinfo-mode-map): Replace `C-c LETTER ...' key
 	  bindings for functions updating nodes and menus with `C-c C-...'
@@ -9840,7 +9840,7 @@
 	was found the previous time.
 	* replace.el (keep-lines): Likewise.
 
-1990-05-10  Robert J. Chassell	(bob@wheat-chex)
+1990-05-10  Robert J. Chassell  (bob@wheat-chex)
 
 	* texinfmt.el: updated to correspond, more or less, to version 2.8
 	of texinfo.tex.	  Does not do refilling.
@@ -10430,7 +10430,7 @@
 	* yow.el (yow): Don't be confused by percent in message.
 	Use raw prefix arg as first argument; process it later.
 
-1990-01-08  Robert J. Chassell	(bob@apple-gunkies.ai.mit.edu)
+1990-01-08  Robert J. Chassell  (bob@apple-gunkies.ai.mit.edu)
 
 	* texnfo-upd.el (texinfo-update-node,
 	  texinfo-sequential-node-update): fixed auto-fill-hook bug.
@@ -10823,7 +10823,7 @@
 
 	* rmailout.el (rmail-output): Check for an RMAIL file, and get error.
 
-1989-09-30  Robert J. Chassell	(bob@rice-chex)
+1989-09-30  Robert J. Chassell  (bob@rice-chex)
 
 	* texnfo-upd.el (texinfo-copy-menu): Don't enter infinite loop
 	  when copying a multi-line description@the end of a menu.
@@ -10840,13 +10840,13 @@
 
 	* sendmail.el (mail-do-fcc): No blank line before iff file is new.
 
-1989-09-25  Robert J. Chassell	(bob@apple-gunkies.ai.mit.edu)
+1989-09-25  Robert J. Chassell  (bob@apple-gunkies.ai.mit.edu)
 
 	* renamed texinfo-update.el to texnfo-upd.el and updated `provide'
 
 	* texinfo.el: updated `require' to reflect new name for texnfo-upd
 
-1989-09-23  Robert J. Chassell	(bob@rice-chex)
+1989-09-23  Robert J. Chassell  (bob@rice-chex)
 
 	* texinfo.el: Moved functions to update nodes and menus to
 	  texinfo-update.el.
@@ -10949,7 +10949,7 @@
 	* startup.el (command-line): Rename local var for name of user
 	to `init-file-user'.  Advertise that for use in the init file.
 
-1989-09-11  Robert J. Chassell	(bob@apple-gunkies.ai.mit.edu)
+1989-09-11  Robert J. Chassell  (bob@apple-gunkies.ai.mit.edu)
 
 	* texinfo.el (texinfo-update-node, texinfo-make-menu,
 	texinfo-master-menu, texinfo-sequential-node-update): Added
@@ -11359,7 +11359,7 @@
 
 	* isearch.el (isearch): Bug in previous change: was assuming regexp.
 
-1989-05-17  Kyle Jones	(kjones@talos.uucp)
+1989-05-17  Kyle Jones  (kjones@talos.uucp)
 
 	* saveconf.el: Changed copying permissions and warranty
 	disclaimer to those of the GNU General Public License
@@ -11750,13 +11750,13 @@
 
 	* startup.el: doc fix.
 
-1989-03-29  Edward M. Reingold	(reingold@cs.uiuc.edu)
+1989-03-29  Edward M. Reingold  (reingold@cs.uiuc.edu)
 
-	* calendar.el:	Change shift-three-month functions so the name
-			includes the word ``calendar''.
+	* calendar.el: Change shift-three-month functions so the name
+	includes the word ``calendar''.
 
 	* calendar.el (list-diary-entries): Delete extraneous command
-			to indicate buffer is not modified.
+	to indicate buffer is not modified.
 
 1989-03-15  Jeff Peck  (rms@mole.ai.mit.edu)
 
@@ -12615,9 +12615,24 @@
 
 See ChangeLog.2 for earlier changes.
 
-    Copyright (C) 1989, 1993, 2001, 2002, 2003, 2004, 2005, 2006, 2007
-    Free Software Foundation, Inc.
-  Copying and distribution of this file, with or without modification,
-  are permitted provided the copyright notice and this notice are preserved.
+    Copyright (C) 1989, 1993, 2001, 2002, 2003, 2004, 2005, 2006,
+    2007  Free Software Foundation, Inc.
+
+  This file is part of GNU Emacs.
+
+  GNU Emacs is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2, or (at your option)
+  any later version.
+
+  GNU Emacs is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with GNU Emacs; see the file COPYING.  If not, write to the
+  Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+  Boston, MA 02110-1301, USA.
 
 ;;; arch-tag: f07a3446-5672-464a-8fdc-2ca92e8e7b2a

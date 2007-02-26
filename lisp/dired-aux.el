@@ -1583,7 +1583,9 @@ When operating on multiple or marked files, you specify a directory
 and new symbolic links are made in that directory
 with the same names that the files currently have.  The default
 suggested for the target directory depends on the value of
-`dired-dwim-target', which see."
+`dired-dwim-target', which see.
+
+For relative symlinks, use \\[dired-do-relsymlink]."
   (interactive "P")
   (dired-do-create-files 'symlink (function make-symbolic-link)
 			   "Symlink" arg dired-keep-marker-symlink))

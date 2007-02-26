@@ -1,12 +1,12 @@
 ;;; ebnf2ps.el --- translate an EBNF to a syntactic chart on PostScript
 
 ;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
-;; Free Software Foundation, Inc.
+;;   Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, ebnf, PostScript
-;; Version: 4.3
+;; Version: 4.4
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 ;; This file is part of GNU Emacs.
@@ -26,8 +26,8 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-(defconst ebnf-version "4.3"
-  "ebnf2ps.el, v 4.3 <2006/09/26 vinicius>
+(defconst ebnf-version "4.4"
+  "ebnf2ps.el, v 4.4 <2007/02/12 vinicius>
 
 Vinicius's last change version.  When reporting bugs, please also
 report the version of Emacs, if any, that ebnf2ps was running with.
@@ -100,7 +100,7 @@ Please send all bug fixes and enhancements to
 ;;             send the spooled images to the printer, use the command
 ;;             `ebnf-despool'.
 ;;
-;;    eps    - The PostScript image is immediately sent to a EPS file.
+;;    eps    - The PostScript image is immediately sent to an EPS file.
 ;;
 ;; The spooling mechanism is the same as used by ps-print and was designed for
 ;; printing lots of small files to save paper that would otherwise be wasted on
@@ -448,6 +448,24 @@ Please send all bug fixes and enhancements to
 ;;		`ebnf-eps-region' execution.
 ;;		It's an error to try to close a not opened EPS file.
 ;;
+;;    ;Hheader	generate a header in current EPS file.  The header string can
+;;		have the following formats:
+;;
+;;		%%	prints a % character.
+;;
+;;		%H	prints the `ebnf-eps-header' (which see) value.
+;;
+;;		%F	prints the `ebnf-eps-footer' (which see) value.
+;;
+;;		Any  other format is ignored, that is, if, for example, it's
+;;		used %s then %s characters are stripped out from the header.
+;;		If header is an empty string, no header is generated until a
+;;		non-empty header is specified or `ebnf-eps-header' has a
+;;		non-empty string value.
+;;
+;;    ;Ffooter	generate a footer in current EPS file.  Similar to ;H action
+;;		comment.
+;;
 ;; So if you have:
 ;;
 ;;    (setq ebnf-horizontal-orientation nil)
@@ -544,6 +562,16 @@ Please send all bug fixes and enhancements to
 ;;    A = B2.
 ;;
 ;; The production A is generated in both files ebnf--AA.eps and ebnf--BB.eps.
+;;
+;;
+;; Log Messages
+;; ------------
+;;
+;; The buffer *Ebnf2ps Log* is where the ebnf2ps log messages are inserted.
+;; These messages are intended to help debugging ebnf2ps.
+;;
+;; The log messages are enabled by `ebnf-log' option (which see).  The default
+;; value is nil, that is, no log messages are generated.
 ;;
 ;;
 ;; Utilities
@@ -723,6 +751,14 @@ Please send all bug fixes and enhancements to
 ;;
 ;; `ebnf-eps-prefix'			Specify EPS prefix file name.
 ;;
+;; `ebnf-eps-header-font'		Specify EPS header font.
+;;
+;; `ebnf-eps-header'			Specify EPS header.
+;;
+;; `ebnf-eps-footer-font'		Specify EPS footer font.
+;;
+;; `ebnf-eps-footer'			Specify EPS footer.
+;;
 ;; `ebnf-use-float-format'		Non-nil means use `%f' float format.
 ;;
 ;; `ebnf-stop-on-error'			Non-nil means signal error and stop.
@@ -734,6 +770,8 @@ Please send all bug fixes and enhancements to
 ;;
 ;; `ebnf-optimize'			Non-nil means optimize syntactic chart
 ;;					of rules.
+;;
+;; `ebnf-log'				Non-nil means generate log messages.
 ;;
 ;; To set the above options you may:
 ;;
@@ -787,6 +825,9 @@ Please send all bug fixes and enhancements to
 ;; To help to handle this situation, ebnf2ps has the following commands to
 ;; handle styles:
 ;;
+;; `ebnf-find-style'	Return style definition if NAME is already defined;
+;;			otherwise, return nil.
+;;
 ;; `ebnf-insert-style'	Insert a new style NAME with inheritance INHERITS and
 ;;			values VALUES.
 ;;
@@ -807,11 +848,10 @@ Please send all bug fixes and enhancements to
 ;; and name this group.  So when you wish to apply these settings it's only
 ;; needed to give the name.
 ;;
-;; There is also a notion of simple inheritance of style; so, if you declare
-;; that a style A inherits from a style B, all settings of B is applied first
-;; and then the settings of A is applied.  This is useful when you wish to
-;; modify some aspects of an existing style, but at same time wish to keep it
-;; unmodified.
+;; There is also a notion of simple inheritance of style: if you declare that
+;; style A inherits from style B, all settings of B are applied first and then
+;; the settings of A are applied.  This is useful when you wish to modify some
+;; aspects of an existing style, but at same time wish to keep it unmodified.
 ;;
 ;; See documentation for `ebnf-style-database'.
 ;;
@@ -1093,6 +1133,8 @@ Please send all bug fixes and enhancements to
 ;;
 ;; Acknowledgements
 ;; ----------------
+;;
+;; Thanks to Eli Zaretskii <eliz@gnu.org> for some doc fixes.
 ;;
 ;; Thanks to Drew Adams <drew.adams@oracle.com> for suggestions:
 ;;    - `ebnf-arrow-extra-width', `ebnf-arrow-scale',
@@ -1878,6 +1920,126 @@ See `ebnf-eps-buffer' and `ebnf-eps-region' commands."
   :group 'ebnf2ps)
 
 
+(defcustom ebnf-eps-header-font '(11 Helvetica "Black" "White" bold)
+  "*Specify EPS header font.
+
+See documentation for `ebnf-production-font'.
+
+See `ebnf-eps-buffer' and `ebnf-eps-region' commands."
+  :type '(list :tag "EPS Header Font"
+	       (number :tag "Font Size")
+	       (symbol :tag "Font Name")
+	       (choice :tag "Foreground Color"
+		       (string :tag "Name")
+		       (other :tag "Default" nil))
+	       (choice :tag "Background Color"
+		       (string :tag "Name")
+		       (other :tag "Default" nil))
+	       (repeat :tag "Font Attributes" :inline t
+		       (choice (const bold)      (const italic)
+			       (const underline) (const strikeout)
+			       (const overline)  (const shadow)
+			       (const box)       (const outline))))
+  :version "22"
+  :group 'ebnf2ps)
+
+
+(defcustom ebnf-eps-header nil
+  "*Specify EPS header.
+
+The value should be a string, a symbol or nil.
+
+String is inserted unchanged.
+
+For symbol bounded to a function, the function is called and should return a
+string.  For symbol bounded to a value, the value should be a string.
+
+If symbol is unbounded, it is silently ignored.
+
+Empty string or nil mean that no header will be generated.
+
+Note that when the header action comment (;H in EBNF syntax) is specified, the
+string in the header action comment is processed and, if it returns a non-empty
+string, it's used to generate the header.  The header action comment accepts
+the following formats:
+
+   %%	prints a % character.
+
+   %H	prints the `ebnf-eps-header' value.
+
+   %F	prints the `ebnf-eps-footer' (which see) value.
+
+Any other format is ignored, that is, if, for example, it's used %s then %s
+characters are stripped out from the header.  If header action comment is an
+empty string, no header is generated until a non-empty header is specified or
+`ebnf-eps-header' has a non-empty string value."
+  :type '(repeat (choice :menu-tag "EPS Header"
+			 :tag "EPS Header"
+			 string symbol (const :tag "No Header" nil )))
+  :version "22"
+  :group 'ebnf2ps)
+
+
+(defcustom ebnf-eps-footer-font '(7 Helvetica "Black" "White" bold)
+  "*Specify EPS footer font.
+
+See documentation for `ebnf-production-font'.
+
+See `ebnf-eps-buffer' and `ebnf-eps-region' commands."
+  :type '(list :tag "EPS Footer Font"
+	       (number :tag "Font Size")
+	       (symbol :tag "Font Name")
+	       (choice :tag "Foreground Color"
+		       (string :tag "Name")
+		       (other :tag "Default" nil))
+	       (choice :tag "Background Color"
+		       (string :tag "Name")
+		       (other :tag "Default" nil))
+	       (repeat :tag "Font Attributes" :inline t
+		       (choice (const bold)      (const italic)
+			       (const underline) (const strikeout)
+			       (const overline)  (const shadow)
+			       (const box)       (const outline))))
+  :version "22"
+  :group 'ebnf2ps)
+
+
+(defcustom ebnf-eps-footer nil
+  "*Specify EPS footer.
+
+The value should be a string, a symbol or nil.
+
+String is inserted unchanged.
+
+For symbol bounded to a function, the function is called and should return a
+string.  For symbol bounded to a value, the value should be a string.
+
+If symbol is unbounded, it is silently ignored.
+
+Empty string or nil mean that no footer will be generated.
+
+Note that when the footer action comment (;F in EBNF syntax) is specified, the
+string in the footer action comment is processed and, if it returns a non-empty
+string, it's used to generate the footer.  The footer action comment accepts
+the following formats:
+
+   %%	prints a % character.
+
+   %H	prints the `ebnf-eps-header' (which see) value.
+
+   %F	prints the `ebnf-eps-footer' value.
+
+Any other format is ignored, that is, if, for example, it's used %s then %s
+characters are stripped out from the footer.  If footer action comment is an
+empty string, no footer is generated until a non-empty footer is specified or
+`ebnf-eps-footer' has a non-empty string value."
+  :type '(repeat (choice :menu-tag "EPS Footer"
+			 :tag "EPS Footer"
+			 string symbol (const :tag "No Footer" nil )))
+  :version "22"
+  :group 'ebnf2ps)
+
+
 (defcustom ebnf-entry-percentage 0.5	; middle
   "*Specify entry height on alternatives.
 
@@ -2018,6 +2180,16 @@ The above optimizations are specially useful when `ebnf-syntax' is `yacc'."
   :version "20"
   :group 'ebnf-optimization)
 
+
+(defcustom ebnf-log nil
+  "*Non-nil means generate log messages.
+
+The log messages are generated into the buffer *Ebnf2ps Log*.
+These messages are intended to help debugging ebnf2ps."
+  :type 'boolean
+  :version "22"
+  :group 'ebnf2ps)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; To make this file smaller, some commands go in a separate file.
@@ -2062,6 +2234,7 @@ See also `ebnf-print-buffer'."
   (interactive
    (list (read-file-name "Directory containing EBNF files (print): "
 			 nil default-directory)))
+  (ebnf-log-header "(ebnf-print-directory %S)" directory)
   (ebnf-directory 'ebnf-print-buffer directory))
 
 
@@ -2074,6 +2247,7 @@ killed after process termination.
 
 See also `ebnf-print-buffer'."
   (interactive "fEBNF file to generate PostScript and print from: ")
+  (ebnf-log-header "(ebnf-print-file %S %S)" file do-not-kill-buffer-when-done)
   (ebnf-file 'ebnf-print-buffer file do-not-kill-buffer-when-done))
 
 
@@ -2090,6 +2264,7 @@ is nil, send the image to the printer.  If FILENAME is a string, save
 the PostScript image in a file with that name.  If FILENAME is a
 number, prompt the user for the name of the file to save in."
   (interactive (list (ps-print-preprint current-prefix-arg)))
+  (ebnf-log-header "(ebnf-print-buffer %S)" filename)
   (ebnf-print-region (point-min) (point-max) filename))
 
 
@@ -2098,6 +2273,7 @@ number, prompt the user for the name of the file to save in."
   "Generate and print a PostScript syntactic chart image of the region.
 Like `ebnf-print-buffer', but prints just the current region."
   (interactive (list (point) (mark) (ps-print-preprint current-prefix-arg)))
+  (ebnf-log-header "(ebnf-print-region %S %S %S)" from to filename)
   (run-hooks 'ebnf-hook)
   (or (ebnf-spool-region from to)
       (ps-do-despool filename)))
@@ -2116,6 +2292,7 @@ See also `ebnf-spool-buffer'."
   (interactive
    (list (read-file-name "Directory containing EBNF files (spool): "
 			 nil default-directory)))
+  (ebnf-log-header "(ebnf-spool-directory %S)" directory)
   (ebnf-directory 'ebnf-spool-buffer directory))
 
 
@@ -2128,6 +2305,7 @@ killed after process termination.
 
 See also `ebnf-spool-buffer'."
   (interactive "fEBNF file to generate PostScript and spool from: ")
+  (ebnf-log-header "(ebnf-spool-file %S %S)" file do-not-kill-buffer-when-done)
   (ebnf-file 'ebnf-spool-buffer file do-not-kill-buffer-when-done))
 
 
@@ -2139,6 +2317,7 @@ local buffer to be sent to the printer later.
 
 Use the command `ebnf-despool' to send the spooled images to the printer."
   (interactive)
+  (ebnf-log-header "(ebnf-spool-buffer)")
   (ebnf-spool-region (point-min) (point-max)))
 
 
@@ -2149,6 +2328,7 @@ Like `ebnf-spool-buffer', but spools just the current region.
 
 Use the command `ebnf-despool' to send the spooled images to the printer."
   (interactive "r")
+  (ebnf-log-header "(ebnf-spool-region %S)" from to)
   (ebnf-generate-region from to 'ebnf-generate))
 
 
@@ -2165,6 +2345,7 @@ See also `ebnf-eps-buffer'."
   (interactive
    (list (read-file-name "Directory containing EBNF files (EPS): "
 			 nil default-directory)))
+  (ebnf-log-header "(ebnf-eps-directory %S)" directory)
   (ebnf-directory 'ebnf-eps-buffer directory))
 
 
@@ -2177,14 +2358,15 @@ killed after EPS generation.
 
 See also `ebnf-eps-buffer'."
   (interactive "fEBNF file to generate EPS file from: ")
+  (ebnf-log-header "(ebnf-eps-file %S %S)" file do-not-kill-buffer-when-done)
   (ebnf-file 'ebnf-eps-buffer file do-not-kill-buffer-when-done))
 
 
 ;;;###autoload
 (defun ebnf-eps-buffer ()
-  "Generate a PostScript syntactic chart image of the buffer in a EPS file.
+  "Generate a PostScript syntactic chart image of the buffer in an EPS file.
 
-Indeed, for each production is generated a EPS file.
+Generate an EPS file for each production in the buffer.
 The EPS file name has the following form:
 
    <PREFIX><PRODUCTION>.eps
@@ -2193,20 +2375,23 @@ The EPS file name has the following form:
 	     The default value is \"ebnf--\".
 
 <PRODUCTION> is the production name.
-	     The production name is mapped to form a valid file name.
-	     For example, the production name \"A/B + C\" is mapped to
-	     \"A_B_+_C\" and the EPS file name used is \"ebnf--A_B_+_C.eps\".
+	     Some characters in the production file name are replaced to
+	     produce a valid file name.  For example, the production name
+	     \"A/B + C\" is modified to produce \"A_B_+_C\", and the EPS
+	     file name used in this case will be \"ebnf--A_B_+_C.eps\".
 
-WARNING: It's *NOT* asked any confirmation to override an existing file."
+WARNING: This function does *NOT* ask any confirmation to override existing
+	 files."
   (interactive)
+  (ebnf-log-header "(ebnf-eps-buffer)")
   (ebnf-eps-region (point-min) (point-max)))
 
 
 ;;;###autoload
 (defun ebnf-eps-region (from to)
-  "Generate a PostScript syntactic chart image of the region in a EPS file.
+  "Generate a PostScript syntactic chart image of the region in an EPS file.
 
-Indeed, for each production is generated a EPS file.
+Generate an EPS file for each production in the region.
 The EPS file name has the following form:
 
    <PREFIX><PRODUCTION>.eps
@@ -2215,12 +2400,15 @@ The EPS file name has the following form:
 	     The default value is \"ebnf--\".
 
 <PRODUCTION> is the production name.
-	     The production name is mapped to form a valid file name.
-	     For example, the production name \"A/B + C\" is mapped to
-	     \"A_B_+_C\" and the EPS file name used is \"ebnf--A_B_+_C.eps\".
+	     Some characters in the production file name are replaced to
+	     produce a valid file name.  For example, the production name
+	     \"A/B + C\" is modified to produce \"A_B_+_C\", and the EPS
+	     file name used in this case will be \"ebnf--A_B_+_C.eps\".
 
-WARNING: It's *NOT* asked any confirmation to override an existing file."
+WARNING: This function does *NOT* ask any confirmation to override existing
+	 files."
   (interactive "r")
+  (ebnf-log-header "(ebnf-eps-region %S %S)" from to)
   (let ((ebnf-eps-executing t))
     (ebnf-generate-region from to 'ebnf-generate-eps)))
 
@@ -2231,43 +2419,47 @@ WARNING: It's *NOT* asked any confirmation to override an existing file."
 
 ;;;###autoload
 (defun ebnf-syntax-directory (&optional directory)
-  "Does a syntactic analysis of the files in DIRECTORY.
+  "Do a syntactic analysis of the files in DIRECTORY.
 
-If DIRECTORY is nil, it's used `default-directory'.
+If DIRECTORY is nil, use `default-directory'.
 
-The files in DIRECTORY that matches `ebnf-file-suffix-regexp' (which see) are
-processed.
+Only the files in DIRECTORY that match `ebnf-file-suffix-regexp' (which see)
+are processed.
 
 See also `ebnf-syntax-buffer'."
   (interactive
    (list (read-file-name "Directory containing EBNF files (syntax): "
 			 nil default-directory)))
+  (ebnf-log-header "(ebnf-syntax-directory %S)" directory)
   (ebnf-directory 'ebnf-syntax-buffer directory))
 
 
 ;;;###autoload
 (defun ebnf-syntax-file (file &optional do-not-kill-buffer-when-done)
-  "Does a syntactic analysis of the FILE.
+  "Do a syntactic analysis of the named FILE.
 
 If optional arg DO-NOT-KILL-BUFFER-WHEN-DONE is non-nil, the buffer isn't
 killed after syntax checking.
 
 See also `ebnf-syntax-buffer'."
   (interactive "fEBNF file to check syntax: ")
+  (ebnf-log-header "(ebnf-syntax-file %S %S)" file do-not-kill-buffer-when-done)
   (ebnf-file 'ebnf-syntax-buffer file do-not-kill-buffer-when-done))
 
 
 ;;;###autoload
 (defun ebnf-syntax-buffer ()
-  "Does a syntactic analysis of the current buffer."
+  "Do a syntactic analysis of the current buffer."
   (interactive)
+  (ebnf-log-header "(ebnf-syntax-buffer)")
   (ebnf-syntax-region (point-min) (point-max)))
 
 
 ;;;###autoload
 (defun ebnf-syntax-region (from to)
-  "Does a syntactic analysis of a region."
+  "Do a syntactic analysis of a region."
   (interactive "r")
+  (ebnf-log-header "(ebnf-syntax-region %S %S)" from to)
   (ebnf-generate-region from to nil))
 
 
@@ -2281,6 +2473,8 @@ See also `ebnf-syntax-buffer'."
   (format
    "
 ;;; ebnf2ps.el version %s
+
+;;; Emacs version %S
 
 \(setq ebnf-special-show-delimiter      %S
       ebnf-special-font                %s
@@ -2328,20 +2522,28 @@ See also `ebnf-syntax-buffer'."
       ebnf-iso-normalize-p             %S
       ebnf-file-suffix-regexp          %S
       ebnf-eps-prefix                  %S
+      ebnf-eps-header-font             %s
+      ebnf-eps-header                  %s
+      ebnf-eps-footer-font             %s
+      ebnf-eps-footer                  %s
       ebnf-entry-percentage            %S
       ebnf-color-p                     %S
       ebnf-line-width                  %S
       ebnf-line-color                  %S
+      ebnf-arrow-extra-width           %S
+      ebnf-arrow-scale                 %S
       ebnf-debug-ps                    %S
       ebnf-use-float-format            %S
       ebnf-stop-on-error               %S
       ebnf-yac-ignore-error-recovery   %S
       ebnf-ignore-empty-rule           %S
-      ebnf-optimize                    %S)
+      ebnf-optimize                    %S
+      ebnf-log                         %S)
 
 ;;; ebnf2ps.el - end of settings
 "
    ebnf-version
+   emacs-version
    ebnf-special-show-delimiter
    (ps-print-quote ebnf-special-font)
    (ps-print-quote ebnf-special-shape)
@@ -2388,16 +2590,23 @@ See also `ebnf-syntax-buffer'."
    ebnf-iso-normalize-p
    ebnf-file-suffix-regexp
    ebnf-eps-prefix
+   (ps-print-quote ebnf-eps-header-font)
+   (ps-print-quote ebnf-eps-header)
+   (ps-print-quote ebnf-eps-footer-font)
+   (ps-print-quote ebnf-eps-footer)
    ebnf-entry-percentage
    ebnf-color-p
    ebnf-line-width
    ebnf-line-color
+   ebnf-arrow-extra-width
+   ebnf-arrow-scale
    ebnf-debug-ps
    ebnf-use-float-format
    ebnf-stop-on-error
    ebnf-yac-ignore-error-recovery
    ebnf-ignore-empty-rule
-   ebnf-optimize))
+   ebnf-optimize
+   ebnf-log))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2460,6 +2669,10 @@ See also `ebnf-syntax-buffer'."
     ebnf-iso-normalize-p
     ebnf-file-suffix-regexp
     ebnf-eps-prefix
+    ebnf-eps-header-font
+    ebnf-eps-header
+    ebnf-eps-footer-font
+    ebnf-eps-footer
     ebnf-entry-percentage
     ebnf-color-p
     ebnf-line-width
@@ -2523,6 +2736,10 @@ See also `ebnf-syntax-buffer'."
       (ebnf-iso-normalize-p             . nil)
       (ebnf-file-suffix-regexp          . "\.[Bb][Nn][Ff]$")
       (ebnf-eps-prefix                  . "ebnf--")
+      (ebnf-eps-header-font             . '(11 Helvetica "Black" "White" bold))
+      (ebnf-eps-header                  . nil)
+      (ebnf-eps-footer-font             . '(7 Helvetica "Black" "White" bold))
+      (ebnf-eps-footer                  . nil)
       (ebnf-entry-percentage            . 0.5)
       (ebnf-color-p   . (or (fboundp 'x-color-values) ; Emacs
 			    (fboundp 'color-instance-rgb-components))) ; XEmacs
@@ -2572,28 +2789,36 @@ Where:
 NAME		is a symbol name style.
 
 INHERITS	is a symbol name style from which the current style inherits
-		the context.  If INHERITS is nil, means that there is no
-		inheritance.
+		the context.  If INHERITS is nil, then there is no inheritance.
 
-		This is a simple inheritance of style; so if you declare that a
-		style A inherits from a style B, all settings of B is applied
-		first and then the settings of A is applied.  This is useful
+		This is a simple inheritance of style: if you declare that
+		style A inherits from style B, all settings of B are applied
+		first, and then the settings of A are applied.  This is useful
 		when you wish to modify some aspects of an existing style, but
-		at same time wish to keep it unmodified.
+		at the same time wish to keep it unmodified.
 
 VAR		is a valid ebnf2ps symbol custom variable.
-		See `ebnf-style-custom-list' for valid symbol variable.
+		See `ebnf-style-custom-list' for valid symbol variables.
 
-VALUE		is a sexp which it'll be evaluated to set the value to VAR.
-		So, don't forget to quote symbols and constant lists.
+VALUE		is a sexp which will be evaluated to set the value of VAR.
+		Don't forget to quote symbols and constant lists.
 		See `default' style for an example.
 
-Don't handle this variable directly.  Use functions `ebnf-insert-style',
+Don't use this variable directly.  Use functions `ebnf-insert-style',
 `ebnf-delete-style' and `ebnf-merge-style'.")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Style commands
+
+
+;;;###autoload
+(defun ebnf-find-style (name)
+  "Return style definition if NAME is already defined; otherwise, return nil.
+
+See `ebnf-style-database' documentation."
+  (interactive "SStyle name: ")
+  (assoc name ebnf-style-database))
 
 
 ;;;###autoload
@@ -2655,7 +2880,7 @@ See `ebnf-style-database' documentation."
 (defun ebnf-apply-style (style)
   "Set STYLE as the current style.
 
-It returns the old style symbol.
+Returns the old style symbol.
 
 See `ebnf-style-database' documentation."
   (interactive "SApply style: ")
@@ -2669,7 +2894,7 @@ See `ebnf-style-database' documentation."
 (defun ebnf-reset-style (&optional style)
   "Reset current style.
 
-It returns the old style symbol.
+Returns the old style symbol.
 
 See `ebnf-style-database' documentation."
   (interactive "SReset style: ")
@@ -2679,9 +2904,11 @@ See `ebnf-style-database' documentation."
 
 ;;;###autoload
 (defun ebnf-push-style (&optional style)
-  "Push the current style and set STYLE as the current style.
+  "Push the current style onto a stack and set STYLE as the current style.
 
-It returns the old style symbol.
+Returns the old style symbol.
+
+See also `ebnf-pop-style'.
 
 See `ebnf-style-database' documentation."
   (interactive "SPush style: ")
@@ -2694,9 +2921,11 @@ See `ebnf-style-database' documentation."
 
 ;;;###autoload
 (defun ebnf-pop-style ()
-  "Pop a style and set it as the current style.
+  "Pop a style from the stack of pushed styles and set it as the current style.
 
-It returns the old style symbol.
+Returns the old style symbol.
+
+See also `ebnf-push-style'.
 
 See `ebnf-style-database' documentation."
   (interactive)
@@ -2727,18 +2956,20 @@ See `ebnf-style-database' documentation."
 ;; Internal variables
 
 
-(defvar ebnf-eps-buffer-name " *EPS*")
-(defvar ebnf-parser-func     nil)
-(defvar ebnf-eps-executing   nil)
-(defvar ebnf-eps-upper-x     0.0)
+(defvar ebnf-eps-buffer-name    " *EPS*")
+(defvar ebnf-parser-func        nil)
+(defvar ebnf-eps-executing      nil)
+(defvar ebnf-eps-header-comment nil)
+(defvar ebnf-eps-footer-comment nil)
+(defvar ebnf-eps-upper-x        0.0)
 (make-variable-buffer-local 'ebnf-eps-upper-x)
-(defvar ebnf-eps-upper-y     0.0)
+(defvar ebnf-eps-upper-y        0.0)
 (make-variable-buffer-local 'ebnf-eps-upper-y)
-(defvar ebnf-eps-prod-width  0.0)
+(defvar ebnf-eps-prod-width     0.0)
 (make-variable-buffer-local 'ebnf-eps-prod-width)
-(defvar ebnf-eps-max-height 0.0)
+(defvar ebnf-eps-max-height     0.0)
 (make-variable-buffer-local 'ebnf-eps-max-height)
-(defvar ebnf-eps-max-width  0.0)
+(defvar ebnf-eps-max-width      0.0)
 (make-variable-buffer-local 'ebnf-eps-max-width)
 
 
@@ -2746,6 +2977,23 @@ See `ebnf-style-database' documentation."
   "List of EPS file name during parsing.
 
 See section \"Actions in Comments\" in ebnf2ps documentation.")
+
+
+(defvar ebnf-eps-file-alist nil
+"Alist associating file name with EPS header and footer.
+
+Each element has the following form:
+
+   (EPS-FILENAME HEADER FOOTER)
+
+EPS-FILENAME is the EPS file name.
+HEADER is the header string or nil.
+FOOTER is the footer string or nil.
+
+It's generated during parsing and used during EPS generation.
+
+See `ebnf-eps-context' and section \"Actions in Comments\" in ebnf2ps
+documentation.")
 
 
 (defvar ebnf-eps-production-list nil
@@ -2758,7 +3006,7 @@ Each element has the following form:
 PRODUCTION is the production name.
 EPS-FILENAME is the EPS file name.
 
-It's generated during parsing and used during EPS generation.
+This is generated during parsing and used during EPS generation.
 
 See `ebnf-eps-context' and section \"Actions in Comments\" in ebnf2ps
 documentation.")
@@ -2792,41 +3040,43 @@ See documentation for `ebnf-terminal-shape', `ebnf-non-terminal-shape' and
 `ebnf-chart-shape'.")
 
 
-(defvar ebnf-limit            nil)
-(defvar ebnf-action           nil)
-(defvar ebnf-action-list      nil)
+(defvar ebnf-limit          nil)
+(defvar ebnf-action         nil)
+(defvar ebnf-action-list    nil)
 
 
-(defvar ebnf-default-p        nil)
+(defvar ebnf-default-p      nil)
 
 
-(defvar ebnf-font-height-P    0)
-(defvar ebnf-font-height-T    0)
-(defvar ebnf-font-height-NT   0)
-(defvar ebnf-font-height-S    0)
-(defvar ebnf-font-height-E    0)
-(defvar ebnf-font-height-R    0)
-(defvar ebnf-font-width-P     0)
-(defvar ebnf-font-width-T     0)
-(defvar ebnf-font-width-NT    0)
-(defvar ebnf-font-width-S     0)
-(defvar ebnf-font-width-E     0)
-(defvar ebnf-font-width-R     0)
-(defvar ebnf-space-T          0)
-(defvar ebnf-space-NT         0)
-(defvar ebnf-space-S          0)
-(defvar ebnf-space-E          0)
-(defvar ebnf-space-R          0)
+(defvar ebnf-font-height-P  0)
+(defvar ebnf-font-height-T  0)
+(defvar ebnf-font-height-NT 0)
+(defvar ebnf-font-height-S  0)
+(defvar ebnf-font-height-E  0)
+(defvar ebnf-font-height-R  0)
+(defvar ebnf-font-width-P   0)
+(defvar ebnf-font-width-T   0)
+(defvar ebnf-font-width-NT  0)
+(defvar ebnf-font-width-S   0)
+(defvar ebnf-font-width-E   0)
+(defvar ebnf-font-width-R   0)
+(defvar ebnf-space-T        0)
+(defvar ebnf-space-NT       0)
+(defvar ebnf-space-S        0)
+(defvar ebnf-space-E        0)
+(defvar ebnf-space-R        0)
 
 
-(defvar ebnf-basic-width      0)
-(defvar ebnf-basic-height     0)
-(defvar ebnf-vertical-space   0)
-(defvar ebnf-horizontal-space 0)
+(defvar ebnf-basic-width-extra  0)
+(defvar ebnf-basic-width        0)
+(defvar ebnf-basic-height       0)
+(defvar ebnf-basic-empty-height 0)
+(defvar ebnf-vertical-space     0)
+(defvar ebnf-horizontal-space   0)
 
 
-(defvar ebnf-settings         nil)
-(defvar ebnf-fonts-required   nil)
+(defvar ebnf-settings       nil)
+(defvar ebnf-fonts-required nil)
 
 
 (defconst ebnf-debug
@@ -3171,8 +3421,8 @@ See documentation for `ebnf-terminal-shape', `ebnf-non-terminal-shape' and
 
 % --- Flow Stuff
 
-% height prepare_height |- line_height corner_height corner_height
-/prepare_height
+% height prepare-height |- line_height corner_height corner_height
+/prepare-height
 {dup 0 gt
  {T sub hT}
  {T add hT neg}ifelse
@@ -3198,7 +3448,7 @@ See documentation for `ebnf-terminal-shape', `ebnf-non-terminal-shape' and
   {0.5 mul dup
    1 corner_RA
    0 corner_RD}
-  {prepare_height
+  {prepare-height
    1 corner_RA
    exch 0 exch rlineto
    0 corner_RD
@@ -3219,7 +3469,7 @@ See documentation for `ebnf-terminal-shape', `ebnf-non-terminal-shape' and
 %  \\
 %   -
 /LLoop
-{prepare_height
+{prepare-height
  3 corner_LA
  exch 0 exch rlineto
  0 corner_RD
@@ -3244,7 +3494,7 @@ See documentation for `ebnf-terminal-shape', `ebnf-non-terminal-shape' and
   {0.5 mul dup
    1 corner_LA
    0 corner_LD}
-  {prepare_height
+  {prepare-height
    1 corner_LA
    exch 0 exch rlineto
    0 corner_LD
@@ -3265,7 +3515,7 @@ See documentation for `ebnf-terminal-shape', `ebnf-non-terminal-shape' and
 %   /
 %  -
 /RLoop
-{prepare_height
+{prepare-height
  1 corner_RA
  exch 0 exch rlineto
  0 corner_LD
@@ -4056,6 +4306,113 @@ end
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Header & Footer
+
+
+(defun ebnf-eps-header-footer (value)
+  ;; evaluate header/footer value
+  ;; return a string or nil
+  (let ((tmp (if (symbolp value)
+		 (cond ((fboundp value) (funcall value))
+		       ((boundp value)  (symbol-value value))
+		       (t               nil))
+	       value)))
+    (and (stringp tmp) tmp)))
+
+
+(defun ebnf-eps-header ()
+  ;; evaluate header value
+  (ebnf-eps-header-footer ebnf-eps-header))
+
+
+(defun ebnf-eps-footer ()
+  ;; evaluate footer value
+  (ebnf-eps-header-footer ebnf-eps-footer))
+
+
+;; hacked fom `ps-output-string-prim' (ps-print.el)
+(defun ebnf-eps-string (string)
+  (let* ((str   (string-as-unibyte string))
+	 (len   (length str))
+	 (index 0)
+	 (new   "(")			; insert start-string delimiter
+	 start special)
+    ;; Find and quote special characters as necessary for PS
+    ;; This skips everything except control chars, non-ASCII chars, (, ) and \.
+    (while (setq start (string-match "[^]-~ -'*-[]" str index))
+      (setq special (aref str start)
+	    new     (concat new
+			    (substring str index start)
+			    (if (and (<= 0 special) (<= special 255))
+				(aref ps-string-escape-codes special)
+			      ;; insert hexadecimal representation if character
+			      ;; code is out of range
+			      (format "\\%04X" special)))
+	    index   (1+ start)))
+    (concat new
+	    (and (< index len)
+		 (substring str index len))
+	    ")")))			; insert end-string delimiter
+
+
+(defun ebnf-eps-header-footer-comment (str)
+  ;; parse header/footer comment string
+  (let ((len   (1- (length str)))
+	(index 0)
+	new start fmt)
+    (while (setq start (string-match "%" str index))
+      (setq fmt   (if (< start len) (aref str (1+ start)) ?\?)
+	    new   (concat new
+			  (substring str index start)
+			  (cond ((= fmt ?%) "%")
+				((= fmt ?H) (ebnf-eps-header))
+				((= fmt ?F) (ebnf-eps-footer))
+				(t nil)
+				))
+	    index (+ start 2)))
+    (ebnf-eps-string (concat new
+			     (and (<= index len)
+				  (substring str index (1+ len)))))))
+
+
+(defun ebnf-eps-header-footer-p (value)
+  ;; return t if value is non-nil and is not an empty string
+  (not (or (null value)
+	   (and (stringp value) (string= value "")))))
+
+
+(defun ebnf-eps-header-comment (str)
+  ;; set header comment if header is on
+  (when (ebnf-eps-header-footer-p ebnf-eps-header)
+    (setq ebnf-eps-header-comment (ebnf-eps-header-footer-comment str))))
+
+
+(defun ebnf-eps-footer-comment (str)
+  ;; set footer comment if footer is on
+  (when (ebnf-eps-header-footer-p ebnf-eps-footer)
+    (setq ebnf-eps-footer-comment (ebnf-eps-header-footer-comment str))))
+
+
+(defun ebnf-eps-header-footer-file (filename)
+  ;; associate header and footer with a filename
+  (let ((filehf (assoc filename ebnf-eps-file-alist))
+	(header (or ebnf-eps-header-comment (ebnf-eps-header)))
+	(footer (or ebnf-eps-footer-comment (ebnf-eps-footer))))
+    (if (null filehf)
+	(setq ebnf-eps-file-alist (cons (list filename header footer)
+					ebnf-eps-file-alist))
+      (setcar (nthcdr 1 filehf) header)
+      (setcar (nthcdr 2 filehf) footer))))
+
+
+(defun ebnf-eps-header-footer-set (filename)
+  ;; set header and footer from a filename
+  (let ((header-footer (assoc filename ebnf-eps-file-alist)))
+    (setq ebnf-eps-header-comment (nth 1 header-footer)
+	  ebnf-eps-footer-comment (nth 2 header-footer))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Formatting
 
 
@@ -4505,7 +4862,9 @@ end
     (if sep
 	(let ((ebnf-direction "L"))
 	  (ebnf-node-generation sep))
-      (ebnf-empty-alternative (- width ebnf-horizontal-space))))
+      (ebnf-empty-alternative (- width
+				 ebnf-horizontal-space
+				 ebnf-basic-width-extra))))
   (ps-output "EOS\n"))
 
 
@@ -4520,7 +4879,7 @@ end
 			(if node-sep
 			    (- (ebnf-node-height node-sep)
 			       (ebnf-node-entry node-sep))
-			  0))))
+			  ebnf-basic-empty-height))))
     (ps-output (ebnf-format-float entry
 				  (+ (- (ebnf-node-height node-list)
 					list-entry)
@@ -4532,7 +4891,9 @@ end
     (if (ebnf-node-separator zero-or-more)
 	(let ((ebnf-direction "L"))
 	  (ebnf-node-generation (ebnf-node-separator zero-or-more)))
-      (ebnf-empty-alternative (- width ebnf-horizontal-space))))
+      (ebnf-empty-alternative (- width
+				 ebnf-horizontal-space
+				 ebnf-basic-width-extra))))
   (ps-output "EOS\n"))
 
 
@@ -4603,9 +4964,9 @@ end
 (defun ebnf-directory (fun &optional directory)
   "Process files in DIRECTORY applying function FUN on each file.
 
-If DIRECTORY is nil, it's used `default-directory'.
+If DIRECTORY is nil, use `default-directory'.
 
-The files in DIRECTORY that matches `ebnf-file-suffix-regexp' (which see) are
+Only files in DIRECTORY that match `ebnf-file-suffix-regexp' (which see) are
 processed."
   (let ((files (directory-files (or directory default-directory)
 				t ebnf-file-suffix-regexp)))
@@ -4619,7 +4980,7 @@ processed."
 
 
 (defun ebnf-file (fun file &optional do-not-kill-buffer-when-done)
-  "Process file FILE applying function FUN.
+  "Process the named FILE applying function FUN.
 
 If optional arg DO-NOT-KILL-BUFFER-WHEN-DONE is non-nil, the buffer isn't
 killed after process termination."
@@ -4654,7 +5015,9 @@ killed after process termination."
 (defun ebnf-eps-filename (str)
   (let* ((len  (length str))
 	 (stri 0)
-	 (new  (make-string len ?\s)))
+	 ;; to keep compatibility with Emacs 20 & 21:
+	 ;; DO NOT REPLACE `?\ ' BY `?\s'
+	 (new  (make-string len ?\ )))
     (while (< stri len)
       (aset new stri (aref ebnf-map-name (aref str stri)))
       (setq stri (1+ stri)))
@@ -4715,6 +5078,7 @@ killed after process termination."
 
 
 (defun ebnf-parse-and-sort (start)
+  (ebnf-log "(ebnf-parse-and-sort %S)" start)
   (ebnf-begin-job)
   (let ((tree (funcall ebnf-parser-func start)))
     (if ebnf-sort-production
@@ -4821,7 +5185,7 @@ killed after process termination."
     (ebnf      ebnf-bnf-parser  ebnf-bnf-initialize)
     (ebnfx     ebnf-ebx-parser  ebnf-ebx-initialize)
     (dtd       ebnf-dtd-parser  ebnf-dtd-initialize))
-  "Alist associating ebnf syntax with a parser and a initializer.")
+  "Alist associating EBNF syntax with a parser and an initializer.")
 
 
 (defun ebnf-begin-job ()
@@ -4853,7 +5217,10 @@ killed after process termination."
 	ebnf-action              nil
 	ebnf-default-p           nil
 	ebnf-eps-context         nil
+	ebnf-eps-file-alist      nil
 	ebnf-eps-production-list nil
+	ebnf-eps-header-comment  nil
+	ebnf-eps-footer-comment  nil
 	ebnf-eps-upper-x         0.0
 	ebnf-eps-upper-y         0.0
 	ebnf-font-height-P       (ebnf-font-height ebnf-production-font)
@@ -4874,10 +5241,14 @@ killed after process termination."
 	ebnf-space-E             (* ebnf-font-height-E 0.5)
 	ebnf-space-R             (* ebnf-font-height-R 0.5))
   (let ((basic (+ ebnf-font-height-T ebnf-font-height-NT)))
-    (setq ebnf-basic-width      (* basic 0.5)
-	  ebnf-horizontal-space (+ basic basic)
-	  ebnf-basic-height     ebnf-basic-width
-	  ebnf-vertical-space   ebnf-basic-width)
+    (setq ebnf-basic-width        (* basic 0.5)
+	  ebnf-horizontal-space   (+ basic basic)
+	  ebnf-basic-empty-height (* ebnf-basic-width 0.5)
+	  ebnf-basic-height       ebnf-basic-width
+	  ebnf-vertical-space     ebnf-basic-width
+	  ebnf-basic-width-extra  (- ebnf-basic-width
+				     ebnf-arrow-extra-width
+				     0.1)) ; error factor
     ;; ensures value is greater than zero
     (or (and (numberp ebnf-production-horizontal-space)
 	     (> ebnf-production-horizontal-space 0.0))
@@ -4885,7 +5256,18 @@ killed after process termination."
     ;; ensures value is greater than zero
     (or (and (numberp ebnf-production-vertical-space)
 	     (> ebnf-production-vertical-space 0.0))
-	(setq ebnf-production-vertical-space basic))))
+	(setq ebnf-production-vertical-space basic)))
+  (ebnf-log "(ebnf-begin-job)")
+  (ebnf-log "   ebnf-arrow-extra-width ............ : %7.3f"      ebnf-arrow-extra-width)
+  (ebnf-log "   ebnf-arrow-scale .................. : %7.3f"      ebnf-arrow-scale)
+  (ebnf-log "   ebnf-basic-width-extra ............ : %7.3f"      ebnf-basic-width-extra)
+  (ebnf-log "   ebnf-basic-width .................. : %7.3f (T)"  ebnf-basic-width)
+  (ebnf-log "   ebnf-horizontal-space ............. : %7.3f (4T)" ebnf-horizontal-space)
+  (ebnf-log "   ebnf-basic-empty-height ........... : %7.3f (hT)" ebnf-basic-empty-height)
+  (ebnf-log "   ebnf-basic-height ................. : %7.3f (T)"  ebnf-basic-height)
+  (ebnf-log "   ebnf-vertical-space ............... : %7.3f (T)"  ebnf-vertical-space)
+  (ebnf-log "   ebnf-production-horizontal-space .. : %7.3f (2T)" ebnf-production-horizontal-space)
+  (ebnf-log "   ebnf-production-vertical-space .... : %7.3f (2T)" ebnf-production-vertical-space))
 
 
 (defsubst ebnf-shape-value (sym alist)
@@ -4908,6 +5290,7 @@ killed after process termination."
 	 (progn
 	   ;; adjust creator comment
 	   (end-of-line)
+	   ;; (backward-char)
 	   (insert " & ebnf2ps v" ebnf-version)
 	   ;; insert ebnf settings & engine
 	   (goto-char (point-max))
@@ -4920,6 +5303,7 @@ killed after process termination."
   (when (buffer-modified-p buffer)
     (save-excursion
       (set-buffer buffer)
+      (ebnf-eps-header-footer-set filename)
       (setq ebnf-eps-upper-x (max ebnf-eps-upper-x ebnf-eps-max-width)
 	    ebnf-eps-upper-y (if (zerop ebnf-eps-upper-y)
 				 ebnf-eps-max-height
@@ -4946,7 +5330,9 @@ killed after process termination."
 					   ebnf-non-terminal-font
 					   ebnf-special-font
 					   ebnf-except-font
-					   ebnf-repeat-font)))
+					   ebnf-repeat-font
+					   ebnf-eps-header-font
+					   ebnf-eps-footer-font)))
 			    "\n%%+ font ")))
        "\n%%Pages: 0\n%%EndComments\n\n%%BeginProlog\n"
        ebnf-eps-prologue)
@@ -4972,6 +5358,42 @@ killed after process termination."
        (setq ebnf-settings
 	     (concat
 	      "\n\n% === begin EBNF settings\n\n"
+	      (format "/Header        %s def\n"
+		      (or ebnf-eps-header-comment "()"))
+	      (format "/Footer        %s def\n"
+		      (or ebnf-eps-footer-comment "()"))
+	      ;; header
+	      (format "/ShowHeader    %s def\n"
+		      (ebnf-boolean
+		       (ebnf-eps-header-footer-p ebnf-eps-header)))
+	      (format "/fH            %s /%s DefFont\n"
+		      (ebnf-format-float
+		       (ebnf-font-size ebnf-eps-header-font))
+		      (ebnf-font-name-select ebnf-eps-header-font))
+	      (ebnf-format-color "/ForegroundH   %s def %% %s\n"
+				 (ebnf-font-foreground ebnf-eps-header-font)
+				 "Black")
+	      (ebnf-format-color "/BackgroundH   %s def %% %s\n"
+				 (ebnf-font-background ebnf-eps-header-font)
+				 "White")
+	      (format "/EffectH       %d def\n"
+		      (ebnf-font-attributes ebnf-eps-header-font))
+	      ;; footer
+	      (format "/ShowFooter    %s def\n"
+		      (ebnf-boolean
+		       (ebnf-eps-header-footer-p ebnf-eps-footer)))
+	      (format "/fF            %s /%s DefFont\n"
+		      (ebnf-format-float
+		       (ebnf-font-size ebnf-eps-footer-font))
+		      (ebnf-font-name-select ebnf-eps-footer-font))
+	      (ebnf-format-color "/ForegroundF   %s def %% %s\n"
+				 (ebnf-font-foreground ebnf-eps-footer-font)
+				 "Black")
+	      (ebnf-format-color "/BackgroundF   %s def %% %s\n"
+				 (ebnf-font-background ebnf-eps-footer-font)
+				 "White")
+	      (format "/EffectF       %d def\n"
+		      (ebnf-font-attributes ebnf-eps-footer-font))
 	      ;; production
 	      (format "/fP            %s /%s DefFont\n"
 		      (ebnf-format-float (ebnf-font-size ebnf-production-font))
@@ -5128,6 +5550,7 @@ killed after process termination."
 
 
 (defun ebnf-dimensions (tree)
+  (ebnf-log "(ebnf-dimensions tree)")
   (let ((ebnf-total (length tree))
 	(ebnf-nprod 0))
     (mapcar 'ebnf-production-dimension tree))
@@ -5141,6 +5564,7 @@ killed after process termination."
 
 ;; [production width-fun dim-fun entry height width name production action]
 (defun ebnf-production-dimension (production)
+  (ebnf-log "(ebnf-production-dimension production)")
   (ebnf-message-info "Calculating dimensions")
   (ebnf-node-dimension-func (ebnf-node-production production))
   (let* ((prod   (ebnf-node-production production))
@@ -5154,11 +5578,17 @@ killed after process termination."
     (ebnf-node-height production height)
     (ebnf-node-width  production (+ (ebnf-node-width prod)
 				    ebnf-line-width
-				    ebnf-horizontal-space))))
+				    ebnf-horizontal-space
+				    ebnf-basic-width-extra)))
+  (ebnf-log "   production name   : %S"    (ebnf-node-name   production))
+  (ebnf-log "   production entry  : %7.3f" (ebnf-node-entry  production))
+  (ebnf-log "   production height : %7.3f" (ebnf-node-height production))
+  (ebnf-log "   production width  : %7.3f" (ebnf-node-width  production)))
 
 
 ;; [terminal width-fun dim-fun entry height width name]
 (defun ebnf-terminal-dimension (terminal)
+  (ebnf-log "(ebnf-terminal-dimension terminal)")
   (ebnf-terminal-dimension1 terminal
 			    ebnf-font-height-T
 			    ebnf-font-width-T
@@ -5167,6 +5597,7 @@ killed after process termination."
 
 ;; [non-terminal width-fun dim-fun entry height width name]
 (defun ebnf-non-terminal-dimension (non-terminal)
+  (ebnf-log "(ebnf-non-terminal-dimension non-terminal)")
   (ebnf-terminal-dimension1 non-terminal
 			    ebnf-font-height-NT
 			    ebnf-font-width-NT
@@ -5175,6 +5606,7 @@ killed after process termination."
 
 ;; [special width-fun dim-fun entry height width name]
 (defun ebnf-special-dimension (special)
+  (ebnf-log "(ebnf-special-dimension special)")
   (ebnf-terminal-dimension1 special
 			    ebnf-font-height-S
 			    ebnf-font-width-S
@@ -5186,9 +5618,16 @@ killed after process termination."
 	(len    (length (ebnf-node-name node))))
     (ebnf-node-entry  node (* height 0.5))
     (ebnf-node-height node height)
-    (ebnf-node-width  node (+ ebnf-basic-width ebnf-arrow-extra-width space
+    (ebnf-node-width  node (+ ebnf-basic-width
+			      ebnf-arrow-extra-width
+			      space
 			      (* len font-width)
-			      space ebnf-basic-width))))
+			      space
+			      ebnf-basic-width)))
+  (ebnf-log "   name   : %S"    (ebnf-node-name   node))
+  (ebnf-log "   entry  : %7.3f" (ebnf-node-entry  node))
+  (ebnf-log "   height : %7.3f" (ebnf-node-height node))
+  (ebnf-log "   width  : %7.3f" (ebnf-node-width  node)))
 
 
 (defconst ebnf-null-vector (vector t t t 0.0 0.0 0.0))
@@ -5196,6 +5635,7 @@ killed after process termination."
 
 ;; [repeat width-fun dim-fun entry height width times element]
 (defun ebnf-repeat-dimension (repeat)
+  (ebnf-log "(ebnf-repeat-dimension repeat)")
   (let ((times   (ebnf-node-name repeat))
 	(element (ebnf-node-separator repeat)))
     (if element
@@ -5210,11 +5650,15 @@ killed after process termination."
 				ebnf-arrow-extra-width
 				ebnf-space-R ebnf-space-R ebnf-space-R
 				ebnf-horizontal-space
-				(* (length times) ebnf-font-width-R)))))
+				(* (length times) ebnf-font-width-R))))
+  (ebnf-log "   repeat entry  : %7.3f" (ebnf-node-entry  repeat))
+  (ebnf-log "   repeat height : %7.3f" (ebnf-node-height repeat))
+  (ebnf-log "   repeat width  : %7.3f" (ebnf-node-width  repeat)))
 
 
 ;; [except width-fun dim-fun entry height width element element]
 (defun ebnf-except-dimension (except)
+  (ebnf-log "(ebnf-except-dimension except)")
   (let ((factor  (ebnf-node-list except))
 	(element (ebnf-node-separator except)))
     (ebnf-node-dimension-func factor)
@@ -5233,11 +5677,15 @@ killed after process termination."
 				ebnf-space-E ebnf-space-E
 				ebnf-space-E ebnf-space-E
 				ebnf-font-width-E
-				ebnf-horizontal-space))))
+				ebnf-horizontal-space)))
+  (ebnf-log "   except entry  : %7.3f" (ebnf-node-entry  except))
+  (ebnf-log "   except height : %7.3f" (ebnf-node-height except))
+  (ebnf-log "   except width  : %7.3f" (ebnf-node-width  except)))
 
 
 ;; [alternative width-fun dim-fun entry height width list]
 (defun ebnf-alternative-dimension (alternative)
+  (ebnf-log "(ebnf-alternative-dimension alternative)")
   (let ((body (ebnf-node-list alternative))
 	(lis  (ebnf-node-list alternative)))
     (while lis
@@ -5262,23 +5710,33 @@ killed after process termination."
 					   (- (ebnf-node-height tail)
 					      (ebnf-node-entry tail))))))
       (ebnf-node-height alternative height)
-      (ebnf-node-width  alternative (+ width ebnf-horizontal-space))
-      (ebnf-node-list   alternative body))))
+      (ebnf-node-width  alternative (+ width
+				       ebnf-horizontal-space
+				       ebnf-basic-width-extra))
+      (ebnf-node-list   alternative body)))
+  (ebnf-log "   alternative entry  : %7.3f" (ebnf-node-entry  alternative))
+  (ebnf-log "   alternative height : %7.3f" (ebnf-node-height alternative))
+  (ebnf-log "   alternative width  : %7.3f" (ebnf-node-width  alternative)))
 
 
 ;; [optional width-fun dim-fun entry height width element]
 (defun ebnf-optional-dimension (optional)
+  (ebnf-log "(ebnf-optional-dimension optional)")
   (let ((body (ebnf-node-list optional)))
     (ebnf-node-dimension-func body)
     (ebnf-node-entry  optional (ebnf-node-entry body))
     (ebnf-node-height optional (+ (ebnf-node-height body)
 				  ebnf-vertical-space))
     (ebnf-node-width  optional (+ (ebnf-node-width body)
-				  ebnf-horizontal-space))))
+				  ebnf-horizontal-space)))
+  (ebnf-log "   optional entry  : %7.3f" (ebnf-node-entry  optional))
+  (ebnf-log "   optional height : %7.3f" (ebnf-node-height optional))
+  (ebnf-log "   optional width  : %7.3f" (ebnf-node-width  optional)))
 
 
 ;; [one-or-more width-fun dim-fun entry height width element separator]
 (defun ebnf-one-or-more-dimension (or-more)
+  (ebnf-log "(ebnf-one-or-more-dimension or-more)")
   (let ((list-part (ebnf-node-list or-more))
 	(sep-part  (ebnf-node-separator or-more)))
     (ebnf-node-dimension-func list-part)
@@ -5286,7 +5744,7 @@ killed after process termination."
 	 (ebnf-node-dimension-func sep-part))
     (let ((height (+ (if sep-part
 			 (ebnf-node-height sep-part)
-		       0.0)
+		       ebnf-basic-empty-height)
 		     ebnf-vertical-space
 		     (ebnf-node-height list-part)))
 	  (width  (max (if sep-part
@@ -5296,14 +5754,21 @@ killed after process termination."
       (when sep-part
 	(ebnf-adjust-width list-part width)
 	(ebnf-adjust-width sep-part width))
-      (ebnf-node-entry  or-more (+ (- height (ebnf-node-height list-part))
+      (ebnf-node-entry  or-more (+ (- height
+				      (ebnf-node-height list-part))
 				   (ebnf-node-entry list-part)))
       (ebnf-node-height or-more height)
-      (ebnf-node-width  or-more (+ width ebnf-horizontal-space)))))
+      (ebnf-node-width  or-more (+ width
+				   ebnf-horizontal-space
+				   ebnf-basic-width-extra))))
+  (ebnf-log "   one-or-more entry  : %7.3f" (ebnf-node-entry  or-more))
+  (ebnf-log "   one-or-more height : %7.3f" (ebnf-node-height or-more))
+  (ebnf-log "   one-or-more width  : %7.3f" (ebnf-node-width  or-more)))
 
 
 ;; [zero-or-more width-fun dim-fun entry height width element separator]
 (defun ebnf-zero-or-more-dimension (or-more)
+  (ebnf-log "(ebnf-zero-or-more-dimension or-more)")
   (let ((list-part (ebnf-node-list or-more))
 	(sep-part  (ebnf-node-separator or-more)))
     (ebnf-node-dimension-func list-part)
@@ -5311,7 +5776,7 @@ killed after process termination."
 	 (ebnf-node-dimension-func sep-part))
     (let ((height (+ (if sep-part
 			 (ebnf-node-height sep-part)
-		       0.0)
+		       ebnf-basic-empty-height)
 		     ebnf-vertical-space
 		     (ebnf-node-height list-part)
 		     ebnf-vertical-space))
@@ -5324,11 +5789,17 @@ killed after process termination."
 	(ebnf-adjust-width sep-part width))
       (ebnf-node-entry  or-more height)
       (ebnf-node-height or-more height)
-      (ebnf-node-width  or-more (+ width ebnf-horizontal-space)))))
+      (ebnf-node-width  or-more (+ width
+				   ebnf-horizontal-space
+				   ebnf-basic-width-extra))))
+  (ebnf-log "   zero-or-more entry  : %7.3f" (ebnf-node-entry  or-more))
+  (ebnf-log "   zero-or-more height : %7.3f" (ebnf-node-height or-more))
+  (ebnf-log "   zero-or-more width  : %7.3f" (ebnf-node-width  or-more)))
 
 
 ;; [sequence width-fun dim-fun entry height width list]
 (defun ebnf-sequence-dimension (sequence)
+  (ebnf-log "(ebnf-sequence-dimension sequence)")
   (let ((above 0.0)
 	(below 0.0)
 	(width 0.0)
@@ -5344,7 +5815,10 @@ killed after process termination."
 	    width (+ width (ebnf-node-width node))))
     (ebnf-node-entry  sequence above)
     (ebnf-node-height sequence (+ above below))
-    (ebnf-node-width  sequence width)))
+    (ebnf-node-width  sequence width))
+  (ebnf-log "   sequence entry  : %7.3f" (ebnf-node-entry  sequence))
+  (ebnf-log "   sequence height : %7.3f" (ebnf-node-height sequence))
+  (ebnf-log "   sequence width  : %7.3f" (ebnf-node-width  sequence)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -5486,7 +5960,8 @@ killed after process termination."
   (let ((filename (ebnf-eps-filename name)))
     (if (member filename ebnf-eps-context)
 	(error "Try to open an already opened EPS file: %s" filename)
-      (setq ebnf-eps-context (cons filename ebnf-eps-context)))))
+      (setq ebnf-eps-context (cons filename ebnf-eps-context)))
+    (ebnf-eps-header-footer-file filename)))
 
 
 (defun ebnf-eps-remove-context (name)
@@ -5497,14 +5972,16 @@ killed after process termination."
 
 
 (defun ebnf-eps-add-production (header)
-  (and ebnf-eps-executing
-       ebnf-eps-context
-       (let ((prod (assoc header ebnf-eps-production-list)))
-	 (if prod
-	     (setcdr prod (append ebnf-eps-context (cdr prod)))
-	   (setq ebnf-eps-production-list
-		 (cons (cons header (ebnf-dup-list ebnf-eps-context))
-		       ebnf-eps-production-list))))))
+  (when ebnf-eps-executing
+    (if ebnf-eps-context
+	(let ((prod (assoc header ebnf-eps-production-list)))
+	  (if prod
+	      (setcdr prod (ebnf-dup-list
+			    (append ebnf-eps-context (cdr prod))))
+	    (setq ebnf-eps-production-list
+		  (cons (cons header (ebnf-dup-list ebnf-eps-context))
+			ebnf-eps-production-list))))
+      (ebnf-eps-header-footer-file (ebnf-eps-filename header)))))
 
 
 (defun ebnf-dup-list (old)
@@ -5559,7 +6036,9 @@ killed after process termination."
 (defun ebnf-trim-right (str)
   (let* ((len   (1- (length str)))
 	 (index len))
-    (while (and (> index 0) (= (aref str index) ?\s))
+    ;; to keep compatibility with Emacs 20 & 21:
+    ;; DO NOT REPLACE `?\ ' BY `?\s'
+    (while (and (> index 0) (= (aref str index) ?\ ))
       (setq index (1- index)))
     (if (= index len)
 	str
@@ -5571,12 +6050,12 @@ killed after process termination."
 
 
 (defun ebnf-make-empty (&optional width)
-  (vector 'ebnf-generate-empty
-	  'ignore
-	  'ignore
-	  0.0
-	  0.0
-	  (or width ebnf-horizontal-space)))
+  (vector 'ebnf-generate-empty		; 0 generator
+	  'ignore			; 1 width fun
+	  'ignore			; 2 dimension fun
+	  0.0				; 3 entry
+	  0.0				; 4 height
+	  (or width ebnf-horizontal-space))) ; 5 width
 
 
 (defun ebnf-make-terminal (name)
@@ -5598,19 +6077,19 @@ killed after process termination."
 
 
 (defun ebnf-make-terminal1 (name gen-func dim-func)
-  (vector gen-func
-	  'ignore
-	  dim-func
-	  0.0
-	  0.0
-	  0.0
-	  (let ((len (length name)))
+  (vector gen-func			; 0 generatore
+	  'ignore			; 1 width fun
+	  dim-func			; 2 dimension fun
+	  0.0				; 3 entry
+	  0.0				; 4 height
+	  0.0				; 5 width
+	  (let ((len (length name)))	; 6 name
 	    (cond ((> len 3) name)
 		  ((= len 3) (concat name " "))
 		  ((= len 2) (concat " " name " "))
 		  ((= len 1) (concat " " name "  "))
 		  (t         "    ")))
-	  ebnf-default-p))
+	  ebnf-default-p))		; 7 is default?
 
 
 (defun ebnf-make-one-or-more (list-part &optional sep-part)
@@ -5628,70 +6107,71 @@ killed after process termination."
 
 
 (defun ebnf-make-or-more1 (gen-func dim-func list-part sep-part)
-  (vector gen-func
-	  'ebnf-element-width
-	  dim-func
-	  0.0
-	  0.0
-	  0.0
-	  (if (listp list-part)
+  (vector gen-func			; 0 generator
+	  'ebnf-element-width		; 1 width fun
+	  dim-func			; 2 dimension fun
+	  0.0				; 3 entry
+	  0.0				; 4 height
+	  0.0				; 5 width
+	  (if (listp list-part)		; 6 element
 	      (ebnf-make-sequence list-part)
 	    list-part)
-	  (if (and sep-part (listp sep-part))
+	  (if (and sep-part (listp sep-part)) ; 7 separator
 	      (ebnf-make-sequence sep-part)
 	    sep-part)))
 
 
 (defun ebnf-make-production (name prod action)
-  (vector 'ebnf-generate-production
-	  'ignore
-	  'ebnf-production-dimension
-	  0.0
-	  0.0
-	  0.0
-	  name
-	  prod
-	  action))
+  (vector 'ebnf-generate-production	; 0 generator
+	  'ignore			; 1 width fun
+	  'ebnf-production-dimension	; 2 dimension fun
+	  0.0				; 3 entry
+	  0.0				; 4 height
+	  0.0				; 5 width
+	  name				; 6 production name
+	  prod				; 7 production body
+	  action))			; 8 production action
 
 
 (defun ebnf-make-alternative (body)
-  (vector 'ebnf-generate-alternative
-	  'ebnf-alternative-width
-	  'ebnf-alternative-dimension
-	  0.0
-	  0.0
-	  0.0
-	  body))
+  (vector 'ebnf-generate-alternative	; 0 generator
+	  'ebnf-alternative-width	; 1 width fun
+	  'ebnf-alternative-dimension	; 2 dimension fun
+	  0.0				; 3 entry
+	  0.0				; 4 height
+	  0.0				; 5 width
+	  body))			; 6 alternative list
 
 
 (defun ebnf-make-optional (body)
-  (vector 'ebnf-generate-optional
-	  'ebnf-alternative-width
-	  'ebnf-optional-dimension
-	  0.0
-	  0.0
-	  0.0
-	  body))
+  (vector 'ebnf-generate-optional	; 0 generator
+	  'ebnf-alternative-width	; 1 width fun
+	  'ebnf-optional-dimension	; 2 dimension fun
+	  0.0				; 3 entry
+	  0.0				; 4 height
+	  0.0				; 5 width
+	  body))			; 6 optional element
 
 
 (defun ebnf-make-except (factor exception)
-  (vector 'ebnf-generate-except
-	  'ignore
-	  'ebnf-except-dimension
-	  0.0
-	  0.0
-	  0.0
-	  factor
-	  exception))
+  (vector 'ebnf-generate-except		; 0 generator
+	  'ignore			; 1 width fun
+	  'ebnf-except-dimension	; 2 dimension fun
+	  0.0				; 3 entry
+	  0.0				; 4 height
+	  0.0				; 5 width
+	  factor			; 6 base element
+	  exception))			; 7 exception element
 
 
 (defun ebnf-make-repeat (times primary &optional upper)
-  (vector 'ebnf-generate-repeat
-	  'ignore
-	  'ebnf-repeat-dimension
-	  0.0
-	  0.0
-	  0.0
+  (vector 'ebnf-generate-repeat		; 0 generator
+	  'ignore			; 1 width fun
+	  'ebnf-repeat-dimension	; 2 dimension fun
+	  0.0				; 3 entry
+	  0.0				; 4 height
+	  0.0				; 5 width
+					; 6 times
 	  (cond ((and times upper)	; L * U, L * L
 		 (if (string= times upper)
 		     (if (string= times "")
@@ -5704,27 +6184,27 @@ killed after process termination."
 		 (concat "* " upper))
 		(t			; *
 		 " * "))
-	  primary))
+	  primary))			; 7 element
 
 
 (defun ebnf-make-sequence (seq)
-  (vector 'ebnf-generate-sequence
-	  'ebnf-sequence-width
-	  'ebnf-sequence-dimension
-	  0.0
-	  0.0
-	  0.0
-	  seq))
+  (vector 'ebnf-generate-sequence	; 0 generator
+	  'ebnf-sequence-width		; 1 width fun
+	  'ebnf-sequence-dimension	; 2 dimension fun
+	  0.0				; 3 entry
+	  0.0				; 4 height
+	  0.0				; 5 width
+	  seq))				; 6 sequence
 
 
 (defun ebnf-make-dup-sequence (node seq)
-  (vector 'ebnf-generate-sequence
-	  'ebnf-sequence-width
-	  'ebnf-sequence-dimension
-	   (ebnf-node-entry node)
-	   (ebnf-node-height node)
-	   (ebnf-node-width node)
-	   seq))
+  (vector 'ebnf-generate-sequence	; 0 generator
+	  'ebnf-sequence-width		; 1 width fun
+	  'ebnf-sequence-dimension	; 2 dimension fun
+	  (ebnf-node-entry node)	; 3 entry
+	  (ebnf-node-height node)	; 4 height
+	  (ebnf-node-width node)	; 5 width
+	  seq))				; 6 sequence
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -5811,13 +6291,17 @@ killed after process termination."
 (defun ebnf-token-alternative (body sequence)
   (if (null body)
       (if (cdr sequence)
+	  ;; no alternative
 	  sequence
-	(cons (car sequence)
+	;; empty element
+	(cons (car sequence)		; token
 	      (ebnf-make-empty)))
-    (cons (car sequence)
+    (cons (car sequence)		; token
 	  (let ((seq (cdr sequence)))
 	    (if (and (= (length body) 1) (null seq))
+		;; alternative with one element
 		(car body)
+	      ;; a real alternative
 	      (ebnf-make-alternative (nreverse (if seq
 						   (cons seq body)
 						 body))))))))
@@ -5849,6 +6333,28 @@ killed after process termination."
     (aset table ?^ 'form-feed)
     table)
   "Vector used to map characters to a special comment token.")
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Log message
+
+
+(defun ebnf-log-header (format-str &rest args)
+  (when ebnf-log
+    (apply
+     'ebnf-log
+     (concat
+      "\n\n===============================================================\n\n"
+      format-str)
+     args)))
+
+
+(defun ebnf-log (format-str &rest args)
+  (when ebnf-log
+    (save-excursion
+      (set-buffer (get-buffer-create "*Ebnf2ps Log*"))
+      (goto-char (point-max))
+      (insert (apply 'format format-str args) "\n"))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

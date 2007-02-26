@@ -441,6 +441,7 @@ If optional argument QUERY is non-nil, query for the help mode."
   (let ((doc-spec (info-lookup->doc-spec topic mode))
 	(regexp (concat "^\\(" (info-lookup->regexp topic mode)
 			"\\)\\([ \t].*\\)?$"))
+	Info-fontify-maximum-menu-size
 	node trans entry item prefix result doc-found
 	(buffer (get-buffer-create " temp-info-look")))
     (with-current-buffer buffer

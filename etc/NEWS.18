@@ -1,6 +1,8 @@
 GNU Emacs NEWS -- history of user-visible changes.  17-Aug-1988
+
 Copyright (C) 1988, 2006, 2007  Free Software Foundation, Inc.
-See the end for copying conditions.
+See the end of the file for license conditions.
+
 
 This file is about changes in emacs version 18.
 
@@ -1599,19 +1601,23 @@ C_SWITCH_MACHINE can be defined by the m- file to specify extra `cc' switches.
 
 
 ----------------------------------------------------------------------
-Copyright information:
+This file is part of GNU Emacs.
 
-Copyright (C) 1988, 2006, 2007  Free Software Foundation, Inc.
+GNU Emacs is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2, or (at your option)
+any later version.
 
-   Permission is granted to anyone to make or distribute verbatim copies
-   of this document as received, in any medium, provided that the
-   copyright notice and this permission notice are preserved,
-   thus giving the recipient permission to redistribute in turn.
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-   Permission is granted to distribute modified versions
-   of this document, or of portions of it,
-   under the above conditions, provided also that they
-   carry prominent notices stating who last changed them.
+You should have received a copy of the GNU General Public License
+along with GNU Emacs; see the file COPYING.  If not, write to the
+Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.
+
 
 Local variables:
 mode: text

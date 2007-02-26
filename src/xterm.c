@@ -1434,7 +1434,7 @@ static void
 x_draw_composite_glyph_string_foreground (s)
      struct glyph_string *s;
 {
-  int i, x;
+  int i, j, x;
 
   /* If first glyph of S has a left box line, start drawing the text
      of S to the right of that box line.  */
@@ -1501,33 +1501,33 @@ x_draw_composite_glyph_string_foreground (s)
 	}
       else
 	{
-	  for (i = 0; i < s->nchars; i++, ++s->gidx)
-	    if (COMPOSITION_GLYPH (s->cmp, s->gidx) != '\t')
+	  for (i = 0, j = s->gidx; i < s->nchars; i++, j++)
+	    if (COMPOSITION_GLYPH (s->cmp, j) != '\t')
 	      {
-		int xx = x + s->cmp->offsets[s->gidx * 2];
-		int yy = y - s->cmp->offsets[s->gidx * 2 + 1];
+		int xx = x + s->cmp->offsets[j * 2];
+		int yy = y - s->cmp->offsets[j * 2 + 1];
 
-		font->driver->draw (s, s->gidx, s->gidx + 1, xx, yy, 0);
+		font->driver->draw (s, j, j + 1, xx, yy, 0);
 		if (s->face->overstrike)
-		  font->driver->draw (s, s->gidx, s->gidx + 1, xx + 1, yy, 0);
+		  font->driver->draw (s, j, j + 1, xx + 1, yy, 0);
 	      }
 	}
     }
 #endif	/* USE_FONT_BACKEND */
   else
     {
-      for (i = 0; i < s->nchars; i++, ++s->gidx)
+      for (i = 0, j = s->gidx; i < s->nchars; i++, j++)
 	if (s->face)
 	  {
 	    XDrawString16 (s->display, s->window, s->gc,
-			   x + s->cmp->offsets[s->gidx * 2],
-			   s->ybase - s->cmp->offsets[s->gidx * 2 + 1],
-			   s->char2b + s->gidx, 1);
+			   x + s->cmp->offsets[j * 2],
+			   s->ybase - s->cmp->offsets[j * 2 + 1],
+			   s->char2b + j, 1);
 	    if (s->face->overstrike)
 	      XDrawString16 (s->display, s->window, s->gc,
-			     x + s->cmp->offsets[s->gidx * 2] + 1,
-			     s->ybase - s->cmp->offsets[s->gidx * 2 + 1],
-			     s->char2b + s->gidx, 1);
+			     x + s->cmp->offsets[j * 2] + 1,
+			     s->ybase - s->cmp->offsets[j * 2 + 1],
+			     s->char2b + j, 1);
 	  }
     }
 }
@@ -5525,6 +5525,11 @@ x_scroll_bar_expose (bar, event)
 
   x_scroll_bar_set_handle (bar, XINT (bar->start), XINT (bar->end), 1);
 
+   /* Switch to scroll bar foreground color. */
+  if (f->output_data.x->scroll_bar_foreground_pixel != -1)
+    XSetForeground (FRAME_X_DISPLAY (f), gc,
+ 		    f->output_data.x->scroll_bar_foreground_pixel);
+
   /* Draw a one-pixel border just inside the edges of the scroll bar.  */
   XDrawRectangle (FRAME_X_DISPLAY (f), w, gc,
 
@@ -5533,7 +5538,12 @@ x_scroll_bar_expose (bar, event)
 		  XINT (bar->width) - 1 - width_trim - width_trim,
 		  XINT (bar->height) - 1);
 
-  UNBLOCK_INPUT;
+   /* Restore the foreground color of the GC if we changed it above.  */
+   if (f->output_data.x->scroll_bar_foreground_pixel != -1)
+     XSetForeground (FRAME_X_DISPLAY (f), gc,
+ 		    f->output_data.x->foreground_pixel);
+
+   UNBLOCK_INPUT;
 
 }
 #endif /* not USE_TOOLKIT_SCROLL_BARS */
@@ -8741,7 +8751,7 @@ do_ewmh_fullscreen (f)
           break;
         }
 
-      if (!wm_supports (f, what)) return 0;
+      if (what != NULL && !wm_supports (f, what)) return 0;
 
 
       Fx_send_client_event (frame, make_number (0), frame,

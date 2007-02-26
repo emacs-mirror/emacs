@@ -275,6 +275,22 @@ multibyte_char_to_unibyte (c, rev_tbl)
   return ((c1 != CHARSET_INVALID_CODE (charset)) ? c1 : c & 0xFF);
 }
 
+/* Like multibyte_char_to_unibyte, but return -1 if C is not supported
+   by charset_unibyte.  */
+
+int
+multibyte_char_to_unibyte_safe (c)
+     int c;
+{
+  struct charset *charset;
+  unsigned c1;
+
+  if (CHAR_BYTE8_P (c))
+    return CHAR_TO_BYTE8 (c);
+  charset = CHARSET_FROM_ID (charset_unibyte);
+  c1 = ENCODE_CHAR (charset, c);
+  return ((c1 != CHARSET_INVALID_CODE (charset)) ? c1 : -1);
+}
 
 DEFUN ("characterp", Fcharacterp, Scharacterp, 1, 2, 0,
        doc: /* Return non-nil if OBJECT is a character.  */)

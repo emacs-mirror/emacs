@@ -2201,9 +2201,10 @@ This function specifies whether @var{face} should be italic.  If
 This actually sets the @code{:slant} attribute.
 @end defun
 
-@defun set-face-underline-p face underline-p &optional frame
+@defun set-face-underline-p face underline &optional frame
 This function sets the underline attribute of face @var{face}.
 Non-@code{nil} means do underline; @code{nil} means don't.
+If @var{underline} is a string, underline with that color.
 @end defun
 
 @defun set-face-inverse-video-p face inverse-video-p &optional frame
@@ -5267,7 +5268,7 @@ are defined in the library @file{disp-table}.
   A @dfn{glyph} is a generalization of a character; it stands for an
 image that takes up a single character position on the screen.  Glyphs
 are represented in Lisp as integers, just as characters are.  Normally
-glyph come from vectors in the display table (@pxref{Display Tables}).
+glyphs come from vectors in the display table (@pxref{Display Tables}).
 
   A glyph code can be @dfn{simple} or it can be defined by the
 @dfn{glyph table}.  A simple glyph code is just a way of specifying a

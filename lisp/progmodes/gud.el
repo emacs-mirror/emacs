@@ -3177,20 +3177,25 @@ class of the file (using s to separate nested class ids)."
     ("\\$\\(\\w+\\)" (1 font-lock-variable-name-face))
     ("^\\s-*\\(\\w\\(\\w\\|\\s_\\)*\\)" (1 font-lock-keyword-face))))
 
-;; FIXME: The keyword "end" associated with "document"
-;; should have font-lock-keyword-face (currently font-lock-doc-face).
 (defvar gdb-script-font-lock-syntactic-keywords
   '(("^document\\s-.*\\(\n\\)" (1 "< b"))
-    ;; It would be best to change the \n in front, but it's more difficult.
     ("^end\\>"
-     (0 (progn
-          (unless (eq (match-beginning 0) (point-min))
-            (put-text-property (1- (match-beginning 0)) (match-beginning 0)
-                               'syntax-table (eval-when-compile
-                                               (string-to-syntax "> b")))
-            (put-text-property (1- (match-beginning 0)) (match-end 0)
-                               'font-lock-multiline t)
-            nil))))))
+     (0 (unless (eq (match-beginning 0) (point-min))
+          ;; We change the \n in front, which is more difficult, but results
+          ;; in better highlighting.  If the doc is empty, the single \n is
+          ;; both the beginning and the end of the docstring, which can't be
+          ;; expressed in syntax-tables.  Instead, we place the "> b" after
+          ;; placing the "< b", so the start marker is overwritten by the
+          ;; termination marker and in the end Emacs simply considers that
+          ;; there's no docstring at all, which is fine.
+          (put-text-property (1- (match-beginning 0)) (match-beginning 0)
+                             'syntax-table (eval-when-compile
+                                             (string-to-syntax "> b")))
+          ;; Make sure that rehighlighting the previous line won't erase our
+          ;; syntax-table property.  
+          (put-text-property (1- (match-beginning 0)) (match-end 0)
+                             'font-lock-multiline t)
+          nil)))))
 
 (defun gdb-script-font-lock-syntactic-face (state)
   (cond

@@ -26,6 +26,7 @@ Boston, MA 02110-1301, USA.  */
 #include "category.h"
 #include "buffer.h"
 #include "character.h"
+#include "charset.h"
 #include "region-cache.h"
 #include "commands.h"
 #include "blockinput.h"
@@ -115,19 +116,16 @@ matcher_overflow ()
    subexpression bounds.
    POSIX is nonzero if we want full backtracking (POSIX style)
    for this pattern.  0 means backtrack only enough to get a valid match.
-   MULTIBYTE is nonzero iff a target of match is a multibyte buffer or
-   string.
 
    The behavior also depends on Vsearch_spaces_regexp.  */
 
 static void
-compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
+compile_pattern_1 (cp, pattern, translate, regp, posix)
      struct regexp_cache *cp;
      Lisp_Object pattern;
      Lisp_Object translate;
      struct re_registers *regp;
      int posix;
-     int multibyte;
 {
   char *val;
   reg_syntax_t old;
@@ -136,7 +134,7 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
   cp->buf.translate = (! NILP (translate) ? translate : make_number (0));
   cp->posix = posix;
   cp->buf.multibyte = STRING_MULTIBYTE (pattern);
-  cp->buf.target_multibyte = multibyte;
+  cp->buf.charset_unibyte = charset_unibyte;
   cp->whitespace_regexp = Vsearch_spaces_regexp;
   /* rms: I think BLOCK_INPUT is not needed here any more,
      because regex.c defines malloc to call xmalloc.
@@ -235,10 +233,10 @@ compile_pattern (pattern, regp, translate, posix, multibyte)
 	  && !NILP (Fstring_equal (cp->regexp, pattern))
 	  && EQ (cp->buf.translate, (! NILP (translate) ? translate : make_number (0)))
 	  && cp->posix == posix
-	  && cp->buf.target_multibyte == multibyte
 	  && (EQ (cp->syntax_table, Qt)
 	      || EQ (cp->syntax_table, current_buffer->syntax_table))
-	  && !NILP (Fequal (cp->whitespace_regexp, Vsearch_spaces_regexp)))
+	  && !NILP (Fequal (cp->whitespace_regexp, Vsearch_spaces_regexp))
+	  && cp->buf.charset_unibyte == charset_unibyte)
 	break;
 
       /* If we're at the end of the cache, compile into the nil cell
@@ -247,7 +245,7 @@ compile_pattern (pattern, regp, translate, posix, multibyte)
       if (cp->next == 0)
 	{
 	compile_it:
-	  compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte);
+	  compile_pattern_1 (cp, pattern, translate, regp, posix);
 	  break;
 	}
     }
@@ -263,6 +261,10 @@ compile_pattern (pattern, regp, translate, posix, multibyte)
      for register data.  */
   if (regp)
     re_set_registers (&cp->buf, regp, regp->num_regs, regp->start, regp->end);
+
+  /* The compiled pattern can be used both for mulitbyte and unibyte
+     target.  But, we have to tell which the pattern is used for. */
+  cp->buf.target_multibyte = multibyte;
 
   return &cp->buf;
 }

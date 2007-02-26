@@ -531,6 +531,9 @@ or \\<grep-mode-map>\\[compile-goto-error] in the grep \
 output buffer, to go to the lines
 where grep found matches.
 
+For doing a recursive `grep', see the `rgrep' command.  For running
+`grep' in the current directory see `lgrep'.
+
 This command uses a special history list for its COMMAND-ARGS, so you can
 easily repeat a grep command.
 

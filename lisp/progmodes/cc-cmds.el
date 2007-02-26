@@ -78,8 +78,10 @@ indentation change \(in columns)."
 	       (save-excursion
 		 (beginning-of-line)
 		 (looking-at (if line-cont-backslash
-				 "\\(\\s *\\)\\\\$"
-			       "\\(\\s *\\)$")))
+				 ;; Don't use "\\s " - ^L doesn't count as WS
+				 ;; here
+				 "\\([ \t]*\\)\\\\$"
+			       "\\([ \t]*\\)$")))
 	       (<= (point) (match-end 1)))
       ;; Delete all whitespace after point if there's only whitespace
       ;; on the line, so that any code that does back-to-indentation

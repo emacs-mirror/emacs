@@ -345,18 +345,23 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
         (if (looking-at "At revision")
             0 ;; there were no news; indicate success
           (if (re-search-forward
-               (concat "^\\([CGDU]  \\)?"
+               ;; Newer SVN clients have 3 columns of chars (one for the
+               ;; file's contents, then second for its properties, and the
+               ;; third for lock-grabbing info), before the 2 spaces.
+               ;; We also used to match the filename in column 0 without any
+               ;; meta-info before it, but I believe this can never happen.
+               (concat "^\\(\\([ACGDU]\\)\\(.[B ]\\)?  \\)"
                        (regexp-quote (file-name-nondirectory file)))
                nil t)
               (cond
                ;; Merge successful, we are in sync with repository now
-               ((string= (match-string 1) "U  ")
+               ((string= (match-string 2) "U")
                 (vc-file-setprop file 'vc-state 'up-to-date)
                 (vc-file-setprop file 'vc-checkout-time
                                  (nth 5 (file-attributes file)))
                 0);; indicate success to the caller
                ;; Merge successful, but our own changes are still in the file
-               ((string= (match-string 1) "G  ")
+               ((string= (match-string 2) "G")
                 (vc-file-setprop file 'vc-state 'edited)
                 0);; indicate success to the caller
                ;; Conflicts detected!

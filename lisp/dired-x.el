@@ -1297,6 +1297,7 @@ results in
                                         ; (trailing slash!)
      name2 ok-if-already-exists)))
 
+;;;###autoload
 (defun dired-do-relsymlink (&optional arg)
    "Relative symlink all marked (or next ARG) files into a directory.
 Otherwise make a relative symbolic link to the current file.
@@ -1306,7 +1307,9 @@ This creates relative symbolic links like
 
 not absolute ones like
 
-    foo -> /ugly/file/name/that/may/change/any/day/bar/foo"
+    foo -> /ugly/file/name/that/may/change/any/day/bar/foo
+
+For absolute symlinks, use \\[dired-do-symlink]."
   (interactive "P")
   (dired-do-create-files 'relsymlink (function dired-make-relative-symlink)
                            "RelSymLink" arg dired-keep-marker-relsymlink))

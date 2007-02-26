@@ -1,3 +1,79 @@
+2007-02-23  Kenichi Handa  <handa@m17n.org>
+
+	* alloc.c (Fgarbage_collect): If nextb->text->inhibit_shrinking is
+	nonzero, don't shrink the buffer nextb.
+
+	* buffer.h (struct buffer_text): New member inhibit_shrinking.
+
+	* coding.c (coding_alloc_by_making_gap): New arg offset.
+	(alloc_destination): Call coding_alloc_by_making_gap with the arg
+	offset.
+	(decode_coding_iso_2022): Update coding->safe_charsets.
+	(decode_coding_gap): Temporarily set
+	current_buffer->text->inhibit_shrinking to 1.
+
+2007-02-20  Kenichi Handa  <handa@m17n.org>
+
+	* xterm.c (x_draw_composite_glyph_string_foreground): Fix 
+	indexing into elements of s->cmp and s->char2b.
+
+2007-02-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* regex.c (RE_STRING_CHAR_AND_LENGTH) [! emacs]: Add missing arg `len'.
+
+2007-02-16  Kenichi Handa  <handa@m17n.org>
+
+	* regex.c (GET_CHAR_BEFORE_2, GET_CHAR_AFTER): Check the variable
+	target_multibyte instead of multibyte.
+	(re_match_2_internal): Call bcmp_translate with target_multibyte.
+	(bcmp_translate): Change the argument name from multibyte to
+	target_multibyte.
+
+2007-02-15  Kenichi Handa  <handa@m17n.org>
+
+	These changes are to compile a regexp into a pattern that can be
+	used both for multibyte and unibyte targets.
+
+	* Makefile.in (search.o): Depend on charset.h.
+
+	* character.c (multibyte_char_to_unibyte_safe): New function.
+
+	* search.c: Include "charset.h".
+	(compile_pattern_1): Delete argument multibyte.  Don't set
+	cp->buf.target_multibyte here.  Set cp->buf.charset_unibyte.
+	(compile_pattern): Don't compare cp->buf.target_multibyte.
+	Compare cp->buf.charset_unibyte.
+	(compile_pattern): Set cp->buf.target_multibyte.
+
+	* lisp.h (multibyte_char_to_unibyte_safe): Extern it.
+
+	* regex.h (struct re_pattern_buffer): New member charset_unibyte.
+
+	* regex.c (RE_STRING_CHAR, RE_STRING_CHAR_AND_LENGTH): New arg
+	multibyte.  Callers changed.
+	(RE_CHAR_TO_MULTIBYTE, RE_CHAR_TO_UNIBYTE): New macros.
+	(MAKE_CHAR_MULTIBYTE, MAKE_CHAR_UNIBYTE): Deleted.  Callers
+	changed to use RE_CHAR_TO_MULTIBYTE and RE_CHAR_TO_UNIBYTE
+	respectively.
+	(SETUP_ASCII_RANGE, SETUP_UNIBYTE_RANGE): New macros.
+	(SETUP_MULTIBYTE_RANGE): Generate a more compact range_table.
+	(regex_compile): Make the compiled pattern usable both for
+	multibyte and unibyte targets.
+	(analyse_first): Make the fastmap usable both for multibyte and
+	unibyte targets.
+	(TRANSLATE_VIA_MULTIBYTE): Deleted.
+	(re_match_2_internal): Pay attention to the case that the
+	multibyteness of bufp and target may be different.
+
+2007-02-14  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (x_produce_glyphs): When a font is not found, make the
+	empty box occupy at least one column width.
+
+2007-01-30  Miles Bader  <miles@gnu.org>
+
+	* Makefile.in: Remove redundant HAVE_XFT clause.
+
 2006-12-20  Kenichi Handa  <handa@m17n.org>
 
 	* xrdb.c (x_load_resources): Setup the default fontSet X reource.

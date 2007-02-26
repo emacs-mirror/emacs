@@ -1,3 +1,98 @@
+2007-02-16  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* progmodes/ebnf-abn.el (ebnf-abn-skip-comment):
+	* progmodes/ebnf-bnf.el (ebnf-bnf-skip-comment):
+	* progmodes/ebnf-dtd.el (ebnf-dtd-skip-comment):
+	* progmodes/ebnf-ebx.el (ebnf-ebx-skip-comment):
+	* progmodes/ebnf-iso.el (ebnf-iso-skip-comment):
+	* progmodes/ebnf-yac.el (ebnf-yac-skip-comment): New version.
+	New command actions for EPS header and EPS footer.
+
+	* progmodes/ebnf2ps.el: New command actions for EPS header and EPS
+	footer.  Fix some problems with one-or-more, zero-or-more and
+	alternative constructions generation.  Some log messages
+	implementation.  Doc fix.
+	(ebnf-version): New version 4.4.
+	(ebnf-eps-header-font, ebnf-eps-header, ebnf-eps-footer-font)
+	(ebnf-eps-footer, ebnf-log): New options.
+	(ebnf-find-style, ebnf-eps-header-footer, ebnf-eps-header)
+	(ebnf-eps-footer, ebnf-eps-string, ebnf-eps-header-footer-comment)
+	(ebnf-eps-header-footer-p, ebnf-eps-header-comment)
+	(ebnf-eps-footer-comment, ebnf-eps-header-footer-file)
+	(ebnf-eps-header-footer-set, ebnf-log-header, ebnf-log): New funs.
+	(ebnf-style-custom-list, ebnf-style-database): Put new values.
+	(ebnf-print-directory, ebnf-print-file, ebnf-print-buffer)
+	(ebnf-print-region, ebnf-spool-directory, ebnf-spool-file)
+	(ebnf-spool-buffer, ebnf-spool-region, ebnf-eps-directory)
+	(ebnf-eps-file, ebnf-eps-buffer, ebnf-eps-region)
+	(ebnf-syntax-directory, ebnf-syntax-file, ebnf-syntax-buffer)
+	(ebnf-syntax-region, ebnf-parse-and-sort, ebnf-begin-job)
+	(ebnf-dimensions, ebnf-production-dimension, ebnf-terminal-dimension)
+	(ebnf-non-terminal-dimension, ebnf-special-dimension)
+	(ebnf-terminal-dimension1, ebnf-repeat-dimension)
+	(ebnf-except-dimension, ebnf-alternative-dimension)
+	(ebnf-optional-dimension, ebnf-one-or-more-dimension)
+	(ebnf-zero-or-more-dimension, ebnf-sequence-dimension): Insert log
+	message fun.
+	(ebnf-setup, ebnf-generate-one-or-more, ebnf-generate-zero-or-more)
+	(ebnf-begin-job, ebnf-begin-file, ebnf-eps-finish-and-write)
+	(ebnf-insert-ebnf-prologue, ebnf-production-dimension)
+	(ebnf-terminal-dimension1, ebnf-alternative-dimension)
+	(ebnf-one-or-more-dimension, ebnf-zero-or-more-dimension)
+	(ebnf-eps-add-context, ebnf-eps-add-production): Fix code.
+	(ebnf-eps-filename, ebnf-trim-right): Replace `?\s' by `?\ ' to keep
+	compatibility with Emacs 20 & 21.
+	(ebnf-eps-header-comment, ebnf-eps-footer-comment)
+	(ebnf-eps-file-alist, ebnf-basic-width-extra)
+	(ebnf-basic-empty-height): New vars.
+	(ebnf-prologue): Fix PostScript code.
+	(ebnf-make-empty, ebnf-make-terminal1, ebnf-make-or-more1)
+	(ebnf-make-production, ebnf-make-alternative, ebnf-make-optional)
+	(ebnf-make-except, ebnf-make-repeat, ebnf-make-sequence)
+	(ebnf-make-dup-sequence, ebnf-token-alternative): Add comments.
+
+2007-02-14  Kenichi Handa  <handa@m17n.org>
+
+	* international/titdic-cnv.el: Synch with HEAD.
+
+2007-02-11  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Group together all XEmacs/Emacs definitions.
+	(pr-version): New version 6.9.
+	(pr-global-menubar, pr-menu-char-height, pr-menu-char-width): New funs.
+	(pr-menu-char-height, pr-menu-char-width): Fix initialization code.
+	(pr-menu-bind): Fix code.
+	(pr-e-frame-char-height, pr-e-frame-char-width)
+	(pr-e-mouse-pixel-position, pr-x-add-submenu, pr-x-event-function)
+	(pr-x-event-object, pr-x-find-menu-item, pr-x-font-height)
+	(pr-x-font-width, pr-x-get-popup-menu-response, pr-x-make-event)
+	(pr-x-misc-user-event-p, pr-x-relabel-menu-item, pr-x-event-x-pixel)
+	(pr-x-event-y-pixel): Aliases eliminated.
+	(pr-xemacs-global-menubar): Macro moved.
+	(current-menubar, current-mouse-event, zmacs-region-stays)
+	(deactivate-mark, pr-menu-position, pr-menu-state, pr-ps-name-old)
+	(pr-txt-name-old, pr-ps-utility-old, pr-even-or-odd-old, pr-temp-menu):
+	Vars moved.
+	(pr-region-active-p, pr-menu-position, pr-menu-lookup, pr-menu-lock)
+	(pr-update-mode-line, pr-do-update-menus, pr-menu-alist)
+	(pr-relabel-menu-item, pr-menu-set-ps-title, pr-menu-set-txt-title)
+	(pr-menu-set-utility-title, pr-even-or-odd-pages)
+	(pr-f-set-keymap-parents, pr-f-set-keymap-name, pr-f-read-string)
+	(pr-keep-region-active, pr-menu-get-item, pr-menu-set-item-name): Funs
+	moved.
+
+2007-02-07  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.ps: The ps-print commands without face printing should not
+	print background color.  Reported by Leo <sdl.web@gmail.com>.
+	(ps-print-version): New version 7.2.2.
+	(ps-begin-job): New arg.  Fix ps-default-background and
+	ps-default-foreground initialization.
+	(ps-face-attributes): Fix doc string.
+	(ps-face-background, ps-generate-postscript, ps-generate): Fix code.
+
+	* printing.el: Fix ps-print link.
+
 2007-01-30  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-diag.el (list-character-sets-2): Don't print

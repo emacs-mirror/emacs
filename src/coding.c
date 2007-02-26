@@ -878,7 +878,7 @@ static void coding_set_source P_ ((struct coding_system *));
 static void coding_set_destination P_ ((struct coding_system *));
 static void coding_alloc_by_realloc P_ ((struct coding_system *, EMACS_INT));
 static void coding_alloc_by_making_gap P_ ((struct coding_system *,
-					    EMACS_INT));
+					    EMACS_INT, EMACS_INT));
 static unsigned char *alloc_destination P_ ((struct coding_system *,
 					     EMACS_INT, unsigned char *));
 static void setup_iso_safe_charsets P_ ((Lisp_Object));
@@ -1034,18 +1034,20 @@ coding_alloc_by_realloc (coding, bytes)
 }
 
 static void
-coding_alloc_by_making_gap (coding, bytes)
+coding_alloc_by_making_gap (coding, offset, bytes)
      struct coding_system *coding;
-     EMACS_INT bytes;
+     EMACS_INT offset, bytes;
 {
   if (BUFFERP (coding->dst_object)
       && EQ (coding->src_object, coding->dst_object))
     {
-      EMACS_INT add = coding->src_bytes - coding->consumed;
+      EMACS_INT add = offset + (coding->src_bytes - coding->consumed);
 
+      GPT += offset, GPT_BYTE += offset;
       GAP_SIZE -= add; ZV += add; Z += add; ZV_BYTE += add; Z_BYTE += add;
       make_gap (bytes);
       GAP_SIZE += add; ZV -= add; Z -= add; ZV_BYTE -= add; Z_BYTE -= add;
+      GPT -= offset, GPT_BYTE -= offset;
     }
   else
     {
@@ -1068,7 +1070,7 @@ alloc_destination (coding, nbytes, dst)
   EMACS_INT offset = dst - coding->destination;
 
   if (BUFFERP (coding->dst_object))
-    coding_alloc_by_making_gap (coding, nbytes);
+    coding_alloc_by_making_gap (coding, offset, nbytes);
   else
     coding_alloc_by_realloc (coding, nbytes);
   record_conversion_result (coding, CODING_RESULT_SUCCESS);
@@ -2949,6 +2951,9 @@ decode_coding_iso_2022 (coding)
 
   CODING_GET_INFO (coding, attrs, charset_list);
   setup_iso_safe_charsets (attrs);
+  /* Charset list may have been changed.  */
+  charset_list = CODING_ATTR_CHARSET_LIST (attrs);
+  coding->safe_charsets = (char *) SDATA (CODING_ATTR_SAFE_CHARSETS(attrs));
 
   while (1)
     {
@@ -3807,7 +3812,7 @@ encode_coding_iso_2022 (coding)
 
   setup_iso_safe_charsets (attrs);
   /* Charset list may have been changed.  */
-  charset_list = CODING_ATTR_CHARSET_LIST (attrs);		\
+  charset_list = CODING_ATTR_CHARSET_LIST (attrs);
   coding->safe_charsets = (char *) SDATA (CODING_ATTR_SAFE_CHARSETS(attrs));
 
   ascii_compatible = ! NILP (CODING_ATTR_ASCII_COMPAT (attrs));
@@ -6756,7 +6761,9 @@ decode_coding_gap (coding, chars, bytes)
     detect_coding (coding);
 
   coding->mode |= CODING_MODE_LAST_BLOCK;
+  current_buffer->text->inhibit_shrinking = 1;
   decode_coding (coding);
+  current_buffer->text->inhibit_shrinking = 0;
 
   attrs = CODING_ID_ATTRS (coding->id);
   if (! NILP (CODING_ATTR_POST_READ (attrs)))

@@ -1,4 +1,4 @@
-;;; cap-words.el --- minor mode for motion in CapsitalizedWordIdentifiers
+;;; cap-words.el --- minor mode for motion in CapitalizedWordIdentifiers
 
 ;; Copyright (C) 2002  Free Software Foundation, Inc.
 

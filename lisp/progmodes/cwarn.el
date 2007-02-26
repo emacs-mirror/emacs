@@ -372,7 +372,7 @@ The mode is turned if some feature is enabled for the current
   (if (cwarn-is-enabled major-mode) (turn-on-cwarn-mode)))
 
 ;;;###autoload
-(define-global-minor-mode global-cwarn-mode
+(define-globalized-minor-mode global-cwarn-mode
   cwarn-mode turn-on-cwarn-mode-if-enabled)
 
 (provide 'cwarn)

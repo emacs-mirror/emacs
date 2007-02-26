@@ -291,7 +291,7 @@ means that Font Lock mode is turned on for buffers in C and C++ modes only."
     (let (inhibit-quit)
       (turn-on-font-lock))))
 
-(define-global-minor-mode global-font-lock-mode
+(define-globalized-minor-mode global-font-lock-mode
   font-lock-mode turn-on-font-lock-if-enabled
   :extra-args (dummy)
   :initialize 'custom-initialize-safe-default

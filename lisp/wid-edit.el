@@ -1509,7 +1509,7 @@ If that does not exists, call the value of `widget-complete-field'."
        (widget-apply widget :value-create)))
    (let ((from (point-min-marker))
 	 (to (point-max-marker)))
-     (set-marker-insertion-type from t)
+     (set-marker-insertion-type from nil)
      (set-marker-insertion-type to nil)
      (widget-put widget :from from)
      (widget-put widget :to to)))

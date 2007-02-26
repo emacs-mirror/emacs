@@ -1,3 +1,361 @@
+2007-02-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Change all uses of
+	mac-set-font-panel-visibility to mac-set-font-panel-visible-p.
+	(mac-ae-number): Return integer 0 if coerced result is float 0.0.
+	(mac-ae-get-url): Call select-frame-set-input-focus.
+	(mac-dnd-handle-drag-n-drop-event): Don't call
+	select-frame-set-input-focus.
+
+2007-02-13  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Fix documentation of category `a'.
+
+2007-02-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/grep.el (grep): Mention lgrep and rgrep in the
+	docstring.
+
+2007-02-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-get-ls-command, tramp-get-file-exists-command)
+	(tramp-get-remote-ln): Handle error case.  Reported by Chris Moore
+	<dooglus@gmail.com>.
+
+2007-02-11  Kim F. Storm  <storm@cua.dk>
+
+	* bindings.el (ctl-x-map): Remove register compatibility bindings
+	C-x /, C-x j, C-x x, and C-x g (deprecated since Emacs 19).
+
+2007-02-11  Richard Stallman  <rms@gnu.org>
+
+	* loadhist.el (unload-feature): Handle (t . SYMBOL) entries
+	in load history.
+
+	* emacs-lisp/lisp-mode.el (indent-sexp): Clean up termination
+	condition -- don't fail to stop at endpos.
+
+2007-02-11  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-agenda-get-todos)
+	(org-agenda-get-timestamps, org-agenda-get-closed)
+	(org-agenda-get-deadlines, org-agenda-get-scheduled)
+	(org-agenda-get-blocks, org-format-agenda-item)
+	(org-agenda-change-all-lines, org-scan-tags): Rename text property
+	from `category' to `org-category'.
+
+2007-02-11  Kenichi Handa  <handa@m17n.org>
+
+	* international/titdic-cnv.el (titdic-convert): Force files be
+	written with Unix-like eol format.  Read files under CXTERM-DIC by
+	raw-text.
+	(miscdic-convert): Force files be written with Unix-like eol
+	format.
+
+2007-02-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* files.el (change-major-mode-with-file-name): Fix typo in docstring.
+
+	* calculator.el (calculator-prompt): Doc fix.
+	(calculator-mode-map): Fix typo in menu entry.
+
+2007-02-10  Jay Belanger  <belanger@truman.edu>
+
+	* calculator.el (calculator): Do more extensive checking for when
+	3 lines should be used for the calculator.
+
+2007-02-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* info-look.el (info-lookup-make-completions): Bind
+	Info-fontify-maximum-menu-size to nil to speed up lookup of
+	index nodes.
+
+	* info.el (Info-fontify-maximum-menu-size): Document the effect
+	of a nil value.
+	(Info-fontify-node): Make sure Info-fontify-maximum-menu-size is
+	non-nil before using it as size.
+
+2007-02-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (insert-for-yank-1): Prevent read-only properties from
+	interfering with text property operations.
+
+	* image-mode.el (image-mode): Revert 2007-01-30 changes.
+
+	* image.el (image-type-auto-detectable): Don't autodetect x[pb]m.
+	(image-type-auto-detected-p): Fail if another match is found in
+	auto-mode-alist.
+
+	* files.el (magic-mode-alist): Call image-mode instead of
+	image-mode-maybe for autodetected images.
+
+2007-02-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* mail/smtpmail.el (smtpmail-smtp-service, smtpmail-queue-index-file):
+	Fix typos in docstrings.
+	(smtpmail-local-domain, smtpmail-queue-mail): Doc fixes.
+
+2007-02-09  Kim F. Storm  <storm@cua.dk>
+
+	* emacs-lisp/float-sup.el: Remove obsolete comment.
+
+2007-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-sanity-check-hunk): Fix last fix.
+
+2007-02-08  Karl Fogel  <kfogel@red-bean.com>
+
+	* simple.el: Revert previous change, at request of RMS:
+	(fundamental-mode-hook): Remove.
+	(fundamental-mode): Run after-change-major-mode-hooks manually,
+	and don't run the now-nonexistent fundamental-mode-hook.
+
+2007-02-08  Karl Fogel  <kfogel@red-bean.com>
+
+	* simple.el (fundamental-mode-hook): Declare new hook.
+	(fundamental-mode): Run the new dedicated hook, and don't run
+	after-change-major-mode-hooks manually anymore.
+
+2007-02-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-svn.el (vc-svn-merge-news): Understand the new format with two
+	added columns of chars.  Remove support for the "no-meta-info" format.
+	Prompted by Romain Francoise <romain@orebokech.com>.
+
+2007-02-07  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-if-arrow): New macro.
+	(gdb-mouse-until, gdb-mouse-jump): Use it.
+
+2007-02-07  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-mouse-until, gdb-mouse-jump): Make them
+	work when there is just an assembler buffer (no source buffer).
+
+2007-02-07  Per Cederqvist  <ceder@lysator.liu.se>  (tiny change)
+
+	* diff-mode.el (diff-sanity-check-hunk): Don't reject the hunk
+	just because the diff was produced using "-p" (--show-c-function).
+
+2007-02-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faces.el (frame-set-background-mode): Use `color-values' and
+	`display-color-p', not `x-color-values' and `x-display-color-p'.
+	(face-valid-attribute-values): Use `defined-colors' instead of
+	`x-defined-colors'.
+
+2007-02-07  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.ps: The ps-print commands without face printing should not
+	print background color.  Reported by Leo <sdl.web@gmail.com>.
+	(ps-print-version): New version 6.7.3.
+	(ps-begin-job): New arg.  Fix ps-default-background and
+	ps-default-foreground initialization.
+	(ps-face-attributes): Fix doc string.
+	(ps-face-background, ps-generate-postscript, ps-generate): Fix code.
+
+	* printing.el: Fix ps-print link.
+
+2007-02-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faces.el (face-set-after-frame-default): Compile attributes to
+	be set by frame parameters before merging in X resources.
+
+2007-02-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* simple.el (blink-matching-paren-dont-ignore-comments):
+	(blink-matching-paren-on-screen): Doc fixes.
+
+2007-02-06  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-frames-mode): Truncate lines in stack buffer.
+
+2007-02-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* loadhist.el (unload-feature): Silently ignore `load-history' entries
+	of the form `(defface . SYMBOL)', and treat `(autoload . SYMBOL)'
+	entries like `defun'.  Return nil.
+
+2007-02-05  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el: Doc fixes.
+
+2007-02-04  David Kastrup  <dak@gnu.org>
+
+	* play/mpuz.el (mpuz-random-puzzle): Fix potential lockup when
+	`mpuz-allow-double-multiplicator' is non-zero, and correct
+	calculation of `min'.
+
+2007-02-04  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* wid-edit.el (widget-default-create): Insert new text at the
+	:from marker _after_ the marker, not before it.
+
+2007-02-04  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-indent-line): Don't erase ^L when a line
+	containing it is re-indented.
+
+2007-02-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* net/newsticker.el (newsticker--insert-image): Update docstring,
+	and insert the image directly.
+	(newsticker--buffer-redraw): Update docstring.
+
+	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode):
+	Rename from define-global-minor-mode.
+
+	* progmodes/cwarn.el (global-cwarn-mode):
+	* emacs-lisp/autoload.el (make-autoload):
+	* hi-lock.el (global-hi-lock-mode):
+	* font-core.el (global-font-lock-mode): All callers changed.
+
+2007-02-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* textmodes/texnfo-upd.el (texinfo-menu-copy-old-description):
+	Don't copy @ignore lines into menu descriptions.
+	(texinfo-multi-file-update): Goto the @node line before attempting
+	to pluck the node name.
+	(texinfo-multiple-files-update): Reverse the optional arguments'
+	order, as per the doc string and the `interactive' form.
+
+2007-02-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-mode.el: Use autoload to avoid overriding disabled setting
+	applied in .emacs.
+
+2007-02-03  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-in-knr-argdecl): Slight correction
+	for, e.g. "void (*hdone)();" in a k&r list.  (No WS between
+	adjacent paren groups).
+
+2007-02-02  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* progmodes/ebnf2ps.el: Doc fixes.
+	(ebnf-eps-buffer, ebnf-eps-region, ebnf-syntax-alist): Doc fixes.
+
+2007-02-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* dired-x.el (dired-do-relsymlink): Add reference to
+	dired-do-symlink.  Add an autoload cookie.
+
+	* dired-aux.el (dired-do-symlink): Add reference to
+	dired-do-relsymlink.
+
+2007-02-02  Doug Maxey  <dwm@enoyolf.org>  (tiny change)
+
+	* mouse.el <left-fringe mouse-2, right-fringe mouse-3>:
+	<left-fringe mouse-3>: New bindings.
+
+2007-02-02  Ulf Jasper  <ulf.jasper@web.de>
+
+	* newsticker.el (newsticker-version): Changed to "1.10".
+	(newsticker--set-customvar): Doc string.
+	(newsticker-new-item-face): Doc string.
+	(newsticker-mode): Initialize `invisibility-spec' with t.
+	(newsticker-mode-map): Added
+	`newsticker-mark-all-items-at-point-as-read'.
+	(newsticker-menu): Added narrow-to-item and narrow-to-feed.
+	(newsticker-w3m-show-inline-images): Do not call
+	`w3m-remove-image'.
+	(newsticker--buffer-after-w3m-insert-image): New advice for
+	w3m-insert-image to cache images.
+	(newsticker-next-item-same-feed): New.
+	(newsticker-mark-all-items-at-point-as-read-and-redraw): New.
+	(newsticker-mark-all-items-of-feed-as-read): New.
+	(newsticker-mark-all-items-at-point-as-read): Use new functions.
+	(newsticker-mark-item-at-point-as-read): Doc string.
+	(newsticker-mark-item-at-point-as-read): Use new functions.
+	(newsticker--do-mark-item-at-point-as-read): New, extracted from
+	`newsticker-mark-item-at-point-as-read'.
+	(newsticker-hide-entry): Use (t) instead of t for invisibility.
+	(newsticker--sentinel): Yet another xml-parser workaround.
+	(newsticker--decode-iso8601-date): Bugfix for datestrings without
+	days.
+	(newsticker--buffer-do-insert-text): Fix.
+	(newsticker--buffer-insert-enclosure): Fix. length might be missing.
+	(newsticker--buffer-make-item-completely-visible):
+	`switch-to-buffer' not necessary.
+
+2007-02-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/ebnf2ps.el (ebnf-eps-buffer, ebnf-eps-region)
+	(ebnf-syntax-directory, ebnf-syntax-file, ebnf-syntax-region)
+	(ebnf-style-database, ebnf-apply-style, ebnf-reset-style)
+	(ebnf-push-style, ebnf-pop-style, ebnf-eps-production-list)
+	(ebnf-directory, ebnf-file, ebnf-syntax-alist): Doc fixes.
+
+2007-02-02  Kenichi Handa  <handa@m17n.org>
+
+	* international/quail.el (quail-show-key): Fix an error message.
+
+2007-02-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faces.el (set-face-underline-p, modify-face): Rename arg
+	UNDERLINE-P to UNDERLINE (it is not a flag).
+
+2007-02-01  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-speedbar-update): Avoid duplication
+	when adding gdb-speedbar-update to gdb-input-queue.
+
+2007-02-01  Kenichi Handa  <handa@m17n.org>
+
+	* international/quail.el (quail-show-key): Signal an error if the
+	current input method is not using Quail.
+
+2007-02-01  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* progmodes/idlwave.el (idlwave-xml-create-sysvar-alist):
+	Trim leading whitespace in sysvar names.
+
+2007-02-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faces.el (internal-find-face, internal-get-face): Doc fixes.
+
+2007-01-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ido.el (ido-set-common-completion): Use `let', not `let*'.
+
+2007-01-31  Romain Francoise  <romain@orebokech.com>
+
+	* comint.el: Delete extra copy of `comint-copy-old-input' added in
+	previous change to this file.
+
+2007-01-31  Jason Rumney  <jasonr@gnu.org>
+
+	* files.el (magic-mode-alist): Use image-mode-maybe rather than
+	image-mode.
+
+	* image-mode.el (image-mode-maybe): Prevent magic-mode-alist from
+	interfering with attempt to set major mode from modified
+	auto-mode-alist.
+
+2007-01-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faces.el (color-values): Doc fix.
+	(face-differs-from-default-p): Don't check :foreground twice.
+
+2007-01-31  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* comint.el (comint-mode): Prevent non-keyword fontification by default.
+
+2007-01-31  Kenichi Handa  <handa@m17n.org>
+
+	* international/quail.el (quail-store-decode-map-key): Store a
+	translated character too.
+	(quail-char-equal-p): New function.
+	(quail-find-key1): Check character equality by quail-char-equal-p.
+	(quail-decode-map-generated): New variable.
+	(quail-find-key): Check quail-decode-map-generated and re-generate
+	a decode map if necessary.
+
+2007-01-30  Richard Stallman  <rms@gnu.org>
+
+	* tutorial.el (tutorial--detailed-help): Make the list of
+	changed keys look nicer.
+
 2007-01-30  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-var-delete-1): New function.
@@ -7,8 +365,7 @@
 
 2007-01-30  Michael Albinus  <michael.albinus@gmx.de>
 
-	* files.el (get-free-disk-space): Return nil for remote
-	directories.
+	* files.el (get-free-disk-space): Return nil for remote directories.
 
 	* net/ange-ftp.el (ange-ftp-ls): In case of wildcards, use "ls"
 	instead of "dir".
@@ -1097,7 +1454,7 @@
 
 	* shell.el (shell): Doc fix.
 
-2006-12-15  Kevin Gallagher <Kevin.Gallagher@boeing.com>
+2006-12-15  Kevin Gallagher  <Kevin.Gallagher@boeing.com>
 
 	* emulation/edt.el (edt-xserver):
 	* emulation/edt-mapper.el (edt-xserver): Replace `/' with a `-',
@@ -1111,8 +1468,7 @@
 
 2006-12-15  Simon Marshall  <simon@gnu.org>
 
-	* progmodes/cc-fonts.el (c-font-lock-declarations): Fix previous
-	change.
+	* progmodes/cc-fonts.el (c-font-lock-declarations): Fix previous change.
 
 2006-12-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -31145,7 +31501,22 @@ See ChangeLog.11 for earlier changes.
 ;; End:
 
     Copyright (C) 2005, 2006, 2007 Free Software Foundation, Inc.
-  Copying and distribution of this file, with or without modification,
-  are permitted provided the copyright notice and this notice are preserved.
+
+  This file is part of GNU Emacs.
+
+  GNU Emacs is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2, or (at your option)
+  any later version.
+
+  GNU Emacs is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with GNU Emacs; see the file COPYING.  If not, write to the
+  Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+  Boston, MA 02110-1301, USA.
 
 ;;; arch-tag: e39939be-dab3-400e-86f5-0e2701a883c1

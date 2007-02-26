@@ -14,7 +14,7 @@
 	Undef them before defining.
 
 	* s/ptx4.h: Fix include file name.
- 	(NO_FILIO_H): Move definition.
+	(NO_FILIO_H): Move definition.
 
 1996-08-09  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
@@ -24,21 +24,21 @@
 
 	* unexelf1.c: New file, copied from unexelf.c.
 	[__alpha__]: Include <sym.h> to get COFF debugging
- 	info declarations for .mdebug section.
+	info declarations for .mdebug section.
 	[__GNU_LIBRARY__ - 0 >= 6]: Include <link.h>.
 	[notdef ElfW]: Define backwards compatible ElfW macro.
 	(unexec) [__alpha__]: Add code to update Alpha COFF symbol table
- 	(.mdebug section).
+	(.mdebug section).
 	(unexec) [__alpha__]: Work around binutils-2.7 bug: for Alpha ELF
- 	sometimes unneeded data relocs do not get elided properly which
- 	results in reloc entries that contain all zeroes.
+	sometimes unneeded data relocs do not get elided properly which
+	results in reloc entries that contain all zeroes.
 
 	* m/alpha.h [__ELF__ && __GNUC__] (C_SWITCH_MACHINE): Add -fno-common.
 	(TEXT_START, DATA_START, DATA_SEG_BITS, UNEXEC): Define only if
- 	__ELF__ is not defined.
+	__ELF__ is not defined.
 	(LINUX_SBRK_BUG): Define only if LINUX and __GNU_LIBRARY__ < 6.
 	(NO_TERMIO): Always define this.  No Alpha system should need
- 	termio.
+	termio.
 	(COFF, DATA_END): Define only if __ELF__ is not defined.
 
 1996-08-08  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
@@ -53,7 +53,7 @@
 1996-08-07  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
 	* xmenu.c (xmenu_show): Set dummy.state.
-  	Set dummy.button appropriately.
+	Set dummy.button appropriately.
 	(popup_get_selection) [USE_MOTIF]: Set event.xbutton.button.
 
 	* s/osf1.h (LD_SWITCH_SYSTEM): New definition.
@@ -190,7 +190,7 @@
 1996-07-16  Andrew Innes  <andrewi@harlequin.co.uk>
 
 	* w32term.c (w32_read_socket): Need to erase background
- 	immediately before repainting exposed region.
+	immediately before repainting exposed region.
 
 	* makefile.nt (DOC, clean): Use OBJDIR macro.
 
@@ -707,10 +707,10 @@
 	immediately if new parameter load_now is false.  Check that
 	WSAStartup supports the winsock version we requested.
 
-	(set_errno, check_errno, sys_socket, sys_bind, sys_connect,
-	sys_htons, sys_ntohs, sys_inet_addr, sys_gethostname,
-	sys_gethostbyname, sys_getservbyname, sys_close, sys_read,
-	sys_write) [HAVE_SOCKETS]: Check winsock_lib instead of
+	(set_errno, check_errno, sys_socket, sys_bind, sys_connect)
+	(sys_htons, sys_ntohs, sys_inet_addr, sys_gethostname)
+	(sys_gethostbyname, sys_getservbyname, sys_close, sys_read)
+	(sys_write) [HAVE_SOCKETS]: Check winsock_lib instead of
 	have_winsock to determine if winsock support is available.
 
 	(sys_socket, sys_close) [HAVE_SOCKETS]: Count sockets in use.
@@ -718,8 +718,8 @@
 	(init_ntproc) [HAVE_SOCKETS]: Only load winsock library on startup
 	if PRELOAD_WINSOCK is set in environment (or registry).
 
-	* ntproc.c (Fwin32_has_winsock,
-	Fwin32_unload_winsock) [HAVE_SOCKETS]: New functions.
+	* ntproc.c (Fwin32_has_winsock,	Fwin32_unload_winsock)
+	[HAVE_SOCKETS]: New functions.
 	(syms_of_ntproc) [HAVE_SOCKETS]: defsubr them.
 
 	* process.c (Fopen_network_stream) [WINDOWSNT]: Ensure Windows
@@ -775,7 +775,7 @@
 
 1996-06-05  Paul Eggert  <eggert@twinsun.com>
 
-	* editfns.c: (set_time_zone_rule):
+	* editfns.c (set_time_zone_rule):
 	Work around localtime cache bug in SunOS 4.1.3_U1 and SunOS 4.1.4.
 
 1996-06-04  Geoff Voelker  <voelker@joker.cs.washington.edu>
@@ -839,14 +839,14 @@
 
 1996-05-24  Andrew Innes  <andrewi@harlequin.co.uk>
 
-	* w32fns.c: (Vwin32_mouse_move_interval): New lisp variable.
+	* w32fns.c (Vwin32_mouse_move_interval): New lisp variable.
 	(syms_of_win32fns): Add Vwin32_mouse_move_interval to syms.
 	(saved_mouse_msg): Renamed to saved_mouse_button_msg.
 	(timer_id): Renamed to mouse_button_timer.
 	(saved_mouse_move_msg, mouse_move_timer): New variables.
 	(win_msg_worker): Delete WM_TIMER code.
 	(win32_wnd_proc): Handle WM_TIMER events here. Use separate timers
- 	for mouse down and mouse move (including scroll bar drag) events.
+	for mouse down and mouse move (including scroll bar drag) events.
 	Add new handling code for WM_VSCROLL and WM_MOUSEMOVE events.
 	Only filter WM_MOUSEMOVE events when a button is held down.
 	Always pass on message to DefWindowProc after calling
@@ -938,14 +938,14 @@
 1996-05-13  Andrew Innes  <andrewi@harlequin.co.uk>
 
 	* eval.c (Fsignal) [HAVE_WINDOW_SYSTEM]: Changed from
- 	HAVE_X_WINDOWS, so that TOTALLY_UNBLOCK_INPUT is called on Windows.
+	HAVE_X_WINDOWS, so that TOTALLY_UNBLOCK_INPUT is called on Windows.
 
 	* w32fns.c (win32_wnd_proc): Reenable quit_char detection.
 
 1996-05-13  Richard Stallman  <rms@delasyd.gnu.ai.mit.edu>
 
 	* w32menu.c: Include buffer.h.
- 	(set_frame_menubar): Make sure input is unblocked
+	(set_frame_menubar): Make sure input is unblocked
 	when we call create_menu_items.
 	Switch temporarily to proper buffer, bind inhibit-quit to t,
 	and run the same hooks as in smenu.c.
@@ -1088,11 +1088,11 @@
 	* nt.c (nt_ctime): Function renamed to sys_ctime.
 
 	Undefine macros for shadowed CRT functions.
-	(nt_stat, get_unassigned_drive_letter, is_toplevel_share_name,
- 	stat_toplevel_share): Functions deleted.
+	(nt_stat, get_unassigned_drive_letter, is_toplevel_share_name)
+	(stat_toplevel_share): Functions deleted.
 
 	Include sys/socket.h and
- 	undefine macros for shadowed socket functions.
+	undefine macros for shadowed socket functions.
 
 	(getwd): Return NULL if GetCurrentDirectory fails.
 
@@ -1101,17 +1101,17 @@
 	(nt_sleep): Renamed to sys_sleep.
 
 	(rename): Renamed to sys_rename. Always rename to a temporary name
- 	first on Windows 95.  Unlink new name first if necessary.
+	first on Windows 95.  Unlink new name first if necessary.
 
 	(dir_finding): Variable deleted.
 	(dir_is_fat, dir_pathname): New variables.
 
 	(openddir): Fail if dir_find_handle is in use. Save directory name
- 	in dir_pathname, and set dir_is_fat appropriately.
+	in dir_pathname, and set dir_is_fat appropriately.
 	(closedir, readdir): Use dir_find_handle in place of dir_finding.
 	(readdir): Copy directory name from dir_pathname on first
- 	call. Use IS_DIRECTORY_SEP instead of IS_ANY_SEP.  Force filename
- 	to be lower case on FAT volumes.
+	call. Use IS_DIRECTORY_SEP instead of IS_ANY_SEP.  Force filename
+	to be lower case on FAT volumes.
 
 	(getpwuid): Move struct passwd initialization to init_user_info,
 	return information for current user if uid matches.
@@ -1131,8 +1131,8 @@
 
 	(init_environment): Call init_user_info.
 
-	(get_inode_and_device_vals, pipe_with_inherited_out,
- 	pipe_with_inherited_in): Functions deleted.
+	(get_inode_and_device_vals, pipe_with_inherited_out)
+	(pipe_with_inherited_in): Functions deleted.
 
 	(prepare_standard_handles, reset_standard_handles): Moved to
 	ntproc.c and simplified to match other changes (all handles are
@@ -1147,30 +1147,30 @@
 	(utc_base_ft, utc_base, init): New internal variables used for
 	implementing stat.
 
-	(get_volume_info, is_fat_volume, map_win32_filename, convert_time,
-	convert_from_time_t, hashval, generate_inode_val): New
+	(get_volume_info, is_fat_volume, map_win32_filename, convert_time)
+	(convert_from_time_t, hashval, generate_inode_val): New
 	internal support functions for shadowed C library functions.
 
-	(sys_access, sys_chdir, sys_chmod, sys_link, sys_mkdir,
-	sys_mktemp, sys_rmdir, sys_unlink): Call map_win32_filename
+	(sys_access, sys_chdir, sys_chmod, sys_link, sys_mkdir)
+	(sys_mktemp, sys_rmdir, sys_unlink): Call map_win32_filename
 	before calling shadowed C library function.
 
 	(sys_fopen, sys_open): Map file names, and ensure file handle is
- 	non-inheritable.
+	non-inheritable.
 
 	(stat): Replace buggy library function.  Fake reaonsable i-node
 	values by hashing the canonical file name, and use uid/gid values
 	determined by init_user_info.
 
 	(term_winsock, init_winsock, set_errno, check_errno)
- 	[HAVE_SOCKETS]: New internal socket support functions (plus
- 	associated variables) required to support dynamic linking to
- 	Windows socket library.
+	[HAVE_SOCKETS]: New internal socket support functions (plus
+	associated variables) required to support dynamic linking to
+	Windows socket library.
 
-	(sys_socket, sys_bind, sys_connect, sys_htons, sys_ntohs,
- 	sys_inet_addr, sys_gethostname, sys_gethostbyname,
- 	sys_getservbyname) [HAVE_SOCKETS]: New functions to provide
- 	dynamically loaded interface to Windows socket library.
+	(sys_socket, sys_bind, sys_connect, sys_htons, sys_ntohs)
+	(sys_inet_addr, sys_gethostname, sys_gethostbyname)
+	(sys_getservbyname) [HAVE_SOCKETS]: New functions to provide
+	dynamically loaded interface to Windows socket library.
 
 	(sys_close, sys_dup, sys_dup2, sys_read, sys_write): New wrappers
 	for C library functions to handle sockets and pipes.
@@ -1179,7 +1179,7 @@
 	as required.
 
 	(_sys_read_ahead): New internal support function for pipe/socket
- 	support in sys_select.
+	support in sys_select.
 
 	(term_ntproc): New function.
 	(init_ntproc): New function to initialise socket support and make
@@ -1246,8 +1246,8 @@
 	(syms_of_win32fns): Set up new lisp variables.
 
 	(Fwin32_rgb): Dead procedure removed.
-	(Fwin32_define_rgb_color, Fwin32_load_color_file, win32_map_color,
-	win32_regenerate_palette, win32_unmap_color): New functions.
+	(Fwin32_define_rgb_color, Fwin32_load_color_file, win32_map_color)
+	(win32_regenerate_palette, win32_unmap_color): New functions.
 	(syms_of_w32fns): Set up new lisp functions.
 	(define_color): Use palettes.  Simulate use of PALETTE_RGB to
 	use closest color instead of dithering.
@@ -1272,8 +1272,8 @@
 	(x_to_win32_font): Use x_to_win32_charset.  Support Win32 font names
 	in addition to X font names.
 
-	(win32_load_font, Fx_list_fonts, Fx_display_color_cells,
-	Fx_display_mm_height, Fx_display_mm_width: Use GetDC directly.
+	(win32_load_font, Fx_list_fonts, Fx_display_color_cells)
+	(Fx_display_mm_height, Fx_display_mm_width): Use GetDC directly.
 
 	(Fx_open_connection): Support external color mapping files.
 
@@ -1336,18 +1336,18 @@
 	(HAVE_SOCKETS, MAIL_USE_POP, MAIL_USE_SYSTEM_LOCK): Macros defined.
 	(DIRECTORY_SEP): Use Vdirectory_sep_char.
 	(EXEC_SUFFIXES): Add .cmd to list of suffixes.
-	(HAVE_SYS_TIMEB_H, HAVE_SYS_TIME_H, HAVE_UNISTD_H, STDC_HEADERS,
-	TIME_WITH_SYS_TIME, HAVE_GETTIMEOFDAY, HAVE_CLOSEDIR,
-	HAVE_LONG_FILE_NAMES, HAVE_BCOPY, HAVE_BCMP, HAVE_LOGB, HAVE_FREXP,
-	HAVE_FMOD, HAVE_FTIME, HAVE_MKTIME, HAVE_H_ERRNO): New macros.
-	(access, chdir, chmod, close, creat, ctime, dup, dup2, fopen,
-	link, mkdir, mktemp, open, pipe, read, rename, rmdir, select,
-	sleep, unlink, write, spawnve, wait, kill, signal):
+	(HAVE_SYS_TIMEB_H, HAVE_SYS_TIME_H, HAVE_UNISTD_H, STDC_HEADERS)
+	(TIME_WITH_SYS_TIME, HAVE_GETTIMEOFDAY, HAVE_CLOSEDIR)
+	(HAVE_LONG_FILE_NAMES, HAVE_BCOPY, HAVE_BCMP, HAVE_LOGB, HAVE_FREXP)
+	(HAVE_FMOD, HAVE_FTIME, HAVE_MKTIME, HAVE_H_ERRNO): New macros.
+	(access, chdir, chmod, close, creat, ctime, dup, dup2, fopen)
+	(link, mkdir, mktemp, open, pipe, read, rename, rmdir, select)
+	(sleep, unlink, write, spawnve, wait, kill, signal):
 	Macros redefined from win32_* to sys_*.
 	[__STDC__]: Define when including direct.h, io.h, stdio.h.
 	(struct nt_stat): Definition removed.
-	(stat, st_dev, st_ino, st_mode, st_nlink, st_uid, st_gid,
-	st_rdev, st_size, st_atime, st_mtime, st_ctime): Macros undefined.
+	(stat, st_dev, st_ino, st_mode, st_nlink, st_uid, st_gid)
+	(st_rdev, st_size, st_atime, st_mtime, st_ctime): Macros undefined.
 
 	* s/windows95.h: File removed.
 
@@ -1389,7 +1389,7 @@
 1996-04-30  Richard Stallman  <rms@delasyd.gnu.ai.mit.edu>
 
 	* xterm.c [USE_X_TOOLKIT]: Include X11/Shell.h.
- 	(x_wm_set_icon_pixmap) [USE_X_TOOLKIT]: Tell widget the new pixmap.
+	(x_wm_set_icon_pixmap) [USE_X_TOOLKIT]: Tell widget the new pixmap.
 
 1996-04-29  Andrew Innes  <andrewi@harlequin.co.uk>
 
@@ -1428,7 +1428,7 @@
 	* fileio.c (CORRECT_DIR_SEPS) [DOS_NT]: New macro.
 	(IS_DRIVE) [DOS_NT]: Added separate definitions for DOS and NT.
 	(Ffile_name_directory) [DOS_NT]: Simplify code to match change in
- 	getdefdir in msdos.c.  Ignore embedded colons.  Correct dir seps.
+	getdefdir in msdos.c.  Ignore embedded colons.  Correct dir seps.
 	(Ffile_name_nondirectory) [DOS_NT]: Ignore embedded colons.
 	Correct IS_ANY_SEP to IS_DIRECTORY_SEP.
 	(file_name_as_directory) [DOS_NT]: Correct dir seps.
@@ -1436,23 +1436,23 @@
 	(directory_file_name) [DOS_NT]: Correct dir seps.
 	(Fmake_temp_name) [DOS_NT]: Correct dir seps.
 	(Fexpand_file_name) [DOS_NT]: Remove relpath, tmp and
- 	defdir variables; init drive to 0.
-  	Correctly detect when default_directory is absolute.
-  	Be strict when looking for MSDOS drive specifier; defer calling
+	defdir variables; init drive to 0.
+	Correctly detect when default_directory is absolute.
+	Be strict when looking for MSDOS drive specifier; defer calling
 	getdefdir.  Ignore drive specifier if name now has UNC prefix.
-  	Correctly recognise if name is not absolute when trying simple
- 	method to expand; return original string if possible.
-  	Skip dir sep after ~ or ~user.
-  	Use getpwnam instead of HOME for ~user on NT.
-  	Handle error return from getdefdir.
-  	Correctly detect if newdir is absolute before using default_directory.
-  	Handle case where newdir is not absolute - expand relative to
- 	current working dir if necessary (instead of calling getdisk
- 	later).  Only keep UNC prefix if nm starts with dir sep.
-  	Replace kludgy handling of drive spec in newdir.  Correct dir seps.
+	Correctly recognise if name is not absolute when trying simple
+	method to expand; return original string if possible.
+	Skip dir sep after ~ or ~user.
+	Use getpwnam instead of HOME for ~user on NT.
+	Handle error return from getdefdir.
+	Correctly detect if newdir is absolute before using default_directory.
+	Handle case where newdir is not absolute - expand relative to
+	current working dir if necessary (instead of calling getdisk
+	later).  Only keep UNC prefix if nm starts with dir sep.
+	Replace kludgy handling of drive spec in newdir.  Correct dir seps.
 	(Fsubstitute_in_file_name) [DOS_NT]: Correct dir seps for NT as
- 	well.  Merge equivalent #ifdef APOLLO and WINDOWSNT cases.  Ignore
- 	embedded colons and be strict about drive specs.
+	well.  Merge equivalent #ifdef APOLLO and WINDOWSNT cases.  Ignore
+	embedded colons and be strict about drive specs.
 	(Fcopy_file) [DOS_NT]: Do dev/inode check on NT.
 	(Ffile_name_absolute_p) [DOS_NT]: Be strict about drive specs.
 	(check_executable) [DOS_NT]: Test st_mode on NT.
@@ -1462,7 +1462,7 @@
 	(syms_of_fileio): Add Vdirectory_sep_char.
 
 	* msdos.c (getdefdir): Include drive letter and colon when
- 	constructing default directory for drive.
+	constructing default directory for drive.
 
 1996-04-26  Richard Stallman  <rms@delasyd.gnu.ai.mit.edu>
 
@@ -1661,7 +1661,7 @@
 
 	* s/msdos.h (DATA_START, TEXT_START, TEXT_END, _NAIVE_DOS_REGS)
 	(POSIX_SIGNALS): Define if DJGPP v2.
- 	(LIBS_SYSTEM, chdir, NO_MODE_T, TEXT_START, NO_MATHERR)
+	(LIBS_SYSTEM, chdir, NO_MODE_T, TEXT_START, NO_MATHERR)
 	(LOCALTIME_CACHE, tzset): Don't define if DJGPP v2.
 
 	* msdos.c [MSDOS]: If DJGPP version 2, include fcntl.h.
@@ -1676,7 +1676,7 @@
 	Call setmode at the end and exit.
 	(dos_ttcooked) [DJGPP v2]: Call setmode at the end and exit.
 	(gethostname, gettimeofday): Don't define if DJGPP v2.
- 	(alarm, fork, kill, nicr, pause, sigsetask): Don't define if DJGPP v2.
+	(alarm, fork, kill, nicr, pause, sigsetask): Don't define if DJGPP v2.
 
 1996-04-11  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -1694,7 +1694,7 @@
 	* w32fns.c (win32_color_map): Use PALETTERGB instead of RGB.
 
 	* w32term.h (BLACK_PIX_DEFAULT, WHITE_PIX_DEFAULT): Use PALETTERGB
- 	instead of RGB.
+	instead of RGB.
 
 1996-04-10  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -1808,7 +1808,7 @@
 	Call record_asynch_buffer_change only if >1 frames.
 
 	* s/lignux.h: Renamed from s/linux.h.
- 	(SYSTEM_TYPE): Changed to "lignux".
+	(SYSTEM_TYPE): Changed to "lignux".
 
 	* process.c (wait_reading_process_input_1): New (empty) function.
 	(wait_reading_process_input): Call wait_reading_process_input_1.
@@ -1856,8 +1856,8 @@
 	* unexnt.c (WinMain): Allocate a console for stdout
 	and stderr if necessary.
 
-	* w32fns.c (Vwin32_pass_alt_to_system,
- 	Vwin32_pass_optional_keys_to_system): New variables.
+	* w32fns.c (Vwin32_pass_alt_to_system)
+	(Vwin32_pass_optional_keys_to_system): New variables.
 	(reset_modifiers, map_keypad_keys): New functions.
 	(win32_wnd_proc): Fixup keypad function keys.
 	Handle the three new keys on Windows keyboards.
@@ -1906,7 +1906,7 @@
 	* m/ibmrs6000.h (LD_SWITCH_MACHINE): Undo previous change--
 	define this unconditionally.
 	(LD_SWITCH_SITE): New conditional definition.
-	For gcc 2.7.x, use /bin/ld instead of collect2,
+	For gcc 2.7.x, use /bin/ld instead of collect2.
 
 1996-03-07  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -1914,7 +1914,7 @@
 
 1996-03-07  Bill Mann  <dvmann@dvaix19.praxisint.com>
 
-	* unexaix.c (write_segment,copy_sym): Increase blocking from
+	* unexaix.c (write_segment, copy_sym): Increase blocking from
 	128 to 4k bytes.
 	(adjust_lnnoptrs): Handle include file names, mostly for dbx.
 	(unrelocate_symbols): Remove some unnecessary tests.
@@ -1930,9 +1930,9 @@
 
 	* unexaix.c: Handle both AIX 3.2 and 4.1 bind output.
 	(make_hdr): Handle data_start being non-zero for 4.1.  Padding
- 	sections are omitted in 4.1, but padding bytes can still be
- 	present.  Calculate bias directly from first real section
- 	following bss.
+	sections are omitted in 4.1, but padding bytes can still be
+	present.  Calculate bias directly from first real section
+	following bss.
 	(copy_text_and_data): Correct data section starting point for 4.1.
 	(adjust_lnnoptrs): Adjust line number pointers correctly for both
 	3.2 and 4.1, based on published IBM documentation.
@@ -1994,7 +1994,7 @@
 	* keyboard.c (init_keyboard): Initialize timer_idleness_start_time.
 
 	* Makefile.in (obj): Add xmenu.o.
- 	(XOBJ): Delete xmenu.o.
+	(XOBJ): Delete xmenu.o.
 	* emacs.c (main): Always call syms_of_xmenu.
 	* xmenu.c: Put most of file into HAVE_MENUS conditional.
 	(Fx_popup_menu): Put parts into HAVE_MENUS conditionals.
@@ -2045,7 +2045,7 @@
 1996-02-26  enami tsugutomo  <enami@ba2.so-net.or.jp>
 
 	* xdisp.c (redisplay_window): Pass preserve_echo_area as a missing
- 	second argument of redisplay_windows.
+	second argument of redisplay_windows.
 
 1996-02-25  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -2248,7 +2248,7 @@
 	* Makefile.in (emacs.o): Depend on blockinput.h.
 	* emacs.c: Include blockinput.h.
 
-1996-02-06  Kevin Gallo   <kgallo@microsoft.com>
+1996-02-06  Kevin Gallo  <kgallo@microsoft.com>
 
 	* w32term.h (FONT_WIDTH): Use average character width, not maximum.
 
@@ -2303,12 +2303,11 @@
 
 	* w32xfns.c (prepend_msg): New function.
 
-	* w32fns.c (modifiers, modifier_key_support_tested,
-	modifiers_recorded): New variables.
-	(EMACS_LCONTROL, EMACS_RCONTROL, EMACS_LMENU,
-	EMACS_RMENU): New macros.
-	(test_modifier_support, record_keydown, record_keyup,
-	modifier_set, construct_modifiers): New functions.
+	* w32fns.c (modifiers, modifier_key_support_tested, modifiers_recorded):
+	New variables.
+	(EMACS_LCONTROL, EMACS_RCONTROL, EMACS_LMENU, EMACS_RMENU): New macros.
+	(test_modifier_support, record_keydown, record_keyup, modifier_set)
+	(construct_modifiers): New functions.
 	(win32_wnd_proc): Monitor modifier keyup and keydown messages.
 	Map window modifiers into console modifiers to unify input.
 
@@ -2320,8 +2319,8 @@
 	Use console input routines to unify keyboard support.
 	(x_make_frame_visible): Make frame foreground window.
 
-	* ntinevt.c (win32_kbd_mods_to_emacs, win32_kbd_patch_key,
-	key_event): Convert from static to global functions.
+	* ntinevt.c (win32_kbd_mods_to_emacs, win32_kbd_patch_key, key_event):
+	Convert from static to global functions.
 	(win32_kbd_patch_key): Set modifiers when AltGr is pressed.
 	(key_event): Don't modify key code on window input.
 
@@ -2381,7 +2380,7 @@
 1996-01-29  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
 	* fns.c (Qcursor_in_echo_area): New variable.
- 	(syms_of_fns): Set up Lisp var.
+	(syms_of_fns): Set up Lisp var.
 	(Fy_or_n_p): Bind Qcursor_in_echo_area in case of nonlocal exit.
 
 	* keyboard.c (make_lispy_event): Timer event is a list, not just cons.
@@ -2445,7 +2444,7 @@
 1996-01-27  enami tsugutomo  <enami@ba2.so-net.or.jp>
 
 	* sysdep.c (child_setup_tty): Turn off ISTRIP to pass 8bit.  Turn
- 	off TAB3 do don't expand tabs.
+	off TAB3 do don't expand tabs.
 
 1996-01-26  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -2491,7 +2490,7 @@
 	* msdos.c (dos_set_window_size): New function; switches the screen
 	to the size as close as possible to requested frame dimensions.
 
-	* msdos.h: (dos_set_window_size): Prototype for a new function.
+	* msdos.h (dos_set_window_size): Prototype for a new function.
 
 	* dispnew.c (change_frame_size_1) [MSDOS]: Support frame size
 	changing as best as possible.
@@ -2524,7 +2523,7 @@
 1996-01-23  Felix Lee  <flee@teleport.com>
 
 	* data.c (kill-local-variable): Didn't update the value of
- 	forwarded objects.
+	forwarded objects.
 
 	* xdisp.c (mark_window_display_accurate): buffer->clip_changed was
 	being inappropriately cleared.
@@ -2563,8 +2562,8 @@
 	Use CRIT_MSG critical section.
 
 	* w32term.h (win32_palette_entry): New structure.
-	(has_palette, p_colors_in_use, n_colors_in_use, h_palette,
-	regen_palette): Declare variables.
+	(has_palette, p_colors_in_use, n_colors_in_use, h_palette)
+	(regen_palette): Declare variables.
 	(struct win32_output): New field.
 	(my_get_dc): Macro removed.
 	(GetFrameDC, ReleaseFrameDC): Declare functions.
@@ -2593,11 +2592,11 @@
 	New variables.
 	(syms_of_win32fns): Set up new lisp variables.
 
-	(x_set_frame_parameters, x_real_positions, win32_load_font,
-	win32_abort): Conform to coding style.
+	(x_set_frame_parameters, x_real_positions, win32_load_font)
+	(win32_abort): Conform to coding style.
 
-	(Fwin32_define_rgb_color, Fwin32_load_color_file, Fwin32_map_color,
-	Fwin32_unmap_color, Fwin32_regenerate_palette): New functions.
+	(Fwin32_define_rgb_color, Fwin32_load_color_file, Fwin32_map_color)
+	(Fwin32_unmap_color, Fwin32_regenerate_palette): New functions.
 	(syms_of_win32fns): Set up new lisp subroutines.
 	(defined_color): Use palettes.
 	(map_mode): Function removed.
@@ -2628,12 +2627,12 @@
 	(win32_number_shift_map): Array undefined.
 	(win32_kbd_patch_key): Properly handle virtual keys for
 	arbitrary keyboards.
-	(map_virt_key, key_event, win32_mouse_position, do_mouse_event,
-	win32_read_socket): Support for MULE.
+	(map_virt_key, key_event, win32_mouse_position, do_mouse_event)
+	(win32_read_socket): Support for MULE.
 
 	* nt.c (nt_stat): Use alloca instead of xmalloc.
-	(get_unassigned_drive_letter, is_toplevel_share_name,
-	stat_toplevel_share): New functions for stat on remote shares.
+	(get_unassigned_drive_letter, is_toplevel_share_name)
+	(stat_toplevel_share): New functions for stat on remote shares.
 	(readdir): Use IS_ANY_SEP.
 
 	* makefile.nt (keyboard.obj, dispnew.obj): Depend upon w32term.h.
@@ -2784,14 +2783,14 @@
 
 1996-01-08  Erik Naggum  <erik@naggum.no>
 
-	* abbrev.c (Fdefine_global_abbrev, Fdefine_mode_abbrev,
-	Fabbrev_symbol, Finsert_abbrev_table_description,
-	Fdefine_abbrev_table): Harmonize arguments with documentation.
+	* abbrev.c (Fdefine_global_abbrev, Fdefine_mode_abbrev)
+	(Fabbrev_symbol, Finsert_abbrev_table_description)
+	(Fdefine_abbrev_table): Harmonize arguments with documentation.
 
 	* alloc.c (Fmake_symbol): Harmonize arguments with documentation.
 
-	* buffer.c (Fmake_indirect_buffer, Fset_buffer_major_mode,
-	Fpop_to_buffer, Fbury_buffer, Foverlay_get): Harmonize arguments
+	* buffer.c (Fmake_indirect_buffer, Fset_buffer_major_mode)
+	(Fpop_to_buffer, Fbury_buffer, Foverlay_get): Harmonize arguments
 	with documentation.
 
 	* bytecode.c (Fbyte_code): Harmonize arguments with documentation.
@@ -2799,46 +2798,42 @@
 	* callint.c (Fcall_interactively, Fprefix_numeric_value): Harmonize
 	arguments with documentation.
 
-	* casefiddle.c (Fupcase_region, Fdowncase_region,
-	Fcapitalize_region, Fupcase_initials_region): Harmonize arguments
-	with documentation.
+	* casefiddle.c (Fupcase_region, Fdowncase_region, Fcapitalize_region)
+	(Fupcase_initials_region): Harmonize arguments with documentation.
 
-	* casetab.c (Fcase_table_p): Harmonize arguments with
+	* casetab.c (Fcase_table_p): Harmonize arguments with documentation.
+
+	* cmds.c (Fforward_line, Fbeginning_of_line, Fend_of_line)
+	(Fdelete_char, Fdelete_backward_char): Harmonize arguments with
 	documentation.
 
-	* cmds.c (Fforward_line, Fbeginning_of_line, Fend_of_line,
- 	Fdelete_char, Fdelete_backward_char): Harmonize arguments with
- 	documentation.
+	* data.c (Fboundp, Ffboundp, Fmakunbound, Ffmakunbound)
+	(Fsymbol_plist, Fsymbol_name, Ffset, Fdefalias, Fdefine_function)
+	(Fsetplist, store_symval_forwarding, swap_in_symval_forwarding)
+	(find_symbol_value, Fsymbol_value, Fset, default_value)
+	(Fdefault_boundp, Fdefault_value, Fset_default, Fsetq_default)
+	(Fmake_variable_buffer_local, Fmake_local_variable)
+	(Fkill_local_variable, Flocal_variable_p, Flocal_variable_if_set_p)
+	(Faref, Faset, Fzerop, Fnumber_to_string, Fstring_to_number, Frem)
+	(Fmod, Fadd1, Fsub1, Flognot): Harmonize arguments with documentation.
 
-	* data.c (Fboundp, Ffboundp, Fmakunbound, Ffmakunbound,
- 	Fsymbol_plist, Fsymbol_name, Ffset, Fdefalias, Fdefine_function,
- 	Fsetplist, store_symval_forwarding, swap_in_symval_forwarding,
- 	find_symbol_value, Fsymbol_value, Fset, default_value,
- 	Fdefault_boundp, Fdefault_value, Fset_default, Fsetq_default,
- 	Fmake_variable_buffer_local, Fmake_local_variable,
- 	Fkill_local_variable, Flocal_variable_p, Flocal_variable_if_set_p,
- 	Faref, Faset, Fzerop, Fnumber_to_string, Fstring_to_number, Frem,
- 	Fmod, Fadd1, Fsub1, Flognot): Harmonize arguments with
- 	documentation.
-
-	* dired.c (Fdirectory_files, Ffile_name_completion,
-	Ffile_name_all_completions, Ffile_name_all_versions): Harmonize
+	* dired.c (Fdirectory_files, Ffile_name_completion)
+	(Ffile_name_all_completions, Ffile_name_all_versions): Harmonize
 	arguments with documentation.
 
 	* dispnew.c (Fsend_string_to_terminal, Fsit_for): Harmonize
 	arguments with documentation.
 
-	* doc.c (Fdocumentation, Fdocumentation_property,
- 	Fsubstitute_command_keys): Harmonize arguments with documentation.
+	* doc.c (Fdocumentation, Fdocumentation_property)
+	(Fsubstitute_command_keys): Harmonize arguments with documentation.
 
 	* dosfns.c (Fint86, Fdos_memget, Fdos_memput, Fmsdos_set_keyboard):
- 	Harmonize arguments with documentation.
+	Harmonize arguments with documentation.
 
-	* editfns.c (Fchar_to_string, Fstring_to_char, Fgoto_char,
- 	Fencode_time, Finsert_char, Fbuffer_substring,
- 	Fbuffer_substring_no_properties, Finsert_buffer_substring,
- 	Fdelete_region, Fnarrow_to_region): Harmonize arguments with
- 	documentation.
+	* editfns.c (Fchar_to_string, Fstring_to_char, Fgoto_char, Fencode_time,
+	(Finsert_char, Fbuffer_substring, Fbuffer_substring_no_properties)
+	(Finsert_buffer_substring, Fdelete_region, Fnarrow_to_region):
+	Harmonize arguments with documentation.
 	(Fformat_time_string): Allow TIME to default to current time.
 
 	* emacs.c (Fdump_emacs_data, Fdump_emacs): Harmonize arguments with
@@ -2847,13 +2842,13 @@
 	* eval.c (Fmacroexpand, Fthrow, Fbacktrace_frame): Harmonize
 	arguments with documentation.
 
-	* fileio.c (Ffile_name_directory, Ffile_name_nondirectory,
- 	Ffile_name_as_directory, Fdirectory_file_name, Fexpand_file_name,
- 	Fsubstitute_in_file_name, Fcopy_file, Fmake_directory_internal,
- 	Fdelete_directory, Fdelete_file, Frename_file, Fadd_name_to_file,
- 	Fdefine_logical_name, Ffile_modes, Fset_file_modes,
- 	Fset_default_file_modes, Fdo_auto_save, Fread_file_name): Harmonize
- 	arguments with documentation.
+	* fileio.c (Ffile_name_directory, Ffile_name_nondirectory)
+	(Ffile_name_as_directory, Fdirectory_file_name, Fexpand_file_name)
+	(Fsubstitute_in_file_name, Fcopy_file, Fmake_directory_internal)
+	(Fdelete_directory, Fdelete_file, Frename_file, Fadd_name_to_file)
+	(Fdefine_logical_name, Ffile_modes, Fset_file_modes)
+	(Fset_default_file_modes, Fdo_auto_save, Fread_file_name):
+	Harmonize arguments with documentation.
 
 	* filelock.c (Flock_buffer, Ffile_locked_p): Harmonize arguments
 	with documentation.
@@ -2861,11 +2856,11 @@
 	* floatfns.c (Fbessel_jn, Fbessel_yn): Harmonize arguments with
 	documentation.
 
-	* fns.c (Frandom, Flength, Felt, Fsort, Fchar_table_subtype,
- 	Fchar_table_parent, Fset_char_table_parent, Fchar_table_extra_slot,
- 	Fset_char_table_extra_slot, Fchar_table_range,
- 	Fset_char_table_range, Fmap_char_table, Fmapconcat, Fmapcar):
- 	Harmonize arguments with documentation.
+	* fns.c (Frandom, Flength, Felt, Fsort, Fchar_table_subtype)
+	(Fchar_table_parent, Fset_char_table_parent, Fchar_table_extra_slot)
+	(Fset_char_table_extra_slot, Fchar_table_range)
+	(Fset_char_table_range, Fmap_char_table, Fmapconcat, Fmapcar):
+	Harmonize arguments with documentation.
 
 	* frame.c (Fhandle_switch_frame, Fset_frame_height): Harmonize
 	arguments with documentation.
@@ -2875,9 +2870,9 @@
 	* keyboard.c (Fevent_convert_list, Fcommand_execute): Harmonize
 	arguments with documentation.
 
-	* keymap.c (Fkeymapp, Fdefine_prefix_command, Faccessible_keymaps,
- 	Ftext_char_description, Fapropos_internal): Harmonize arguments
- 	with documentation.
+	* keymap.c (Fkeymapp, Fdefine_prefix_command, Faccessible_keymaps)
+	(Ftext_char_description, Fapropos_internal): Harmonize arguments
+	with documentation.
 
 	* lread.c (Feval_buffer, Feval_region, Fintern, Fintern_soft):
 	Harmonize arguments with documentation.
@@ -2893,32 +2888,32 @@
 	* print.c (Fwrite_char, Fprin1, Fprin1_to_string, Fprinc, Fprint):
 	Harmonize arguments with documentation.
 
-	* process.c (Fprocessp, Fget_buffer_process, Fdelete_process,
- 	Fprocess_status, Fprocess_exit_status, Fprocess_id, Fprocess_name,
- 	Fprocess_command, Fprocess_tty_name, Fset_process_buffer,
- 	Fprocess_buffer, Fprocess_mark, Fset_process_filter,
- 	Fprocess_filter, Fset_process_sentinel, Fprocess_sentinel,
- 	Fset_process_window_size, Fprocess_kill_without_query,
- 	Faccept_process_output): Harmonize arguments with documentation.
+	* process.c (Fprocessp, Fget_buffer_process, Fdelete_process)
+	(Fprocess_status, Fprocess_exit_status, Fprocess_id, Fprocess_name)
+	(Fprocess_command, Fprocess_tty_name, Fset_process_buffer)
+	(Fprocess_buffer, Fprocess_mark, Fset_process_filter)
+	(Fprocess_filter, Fset_process_sentinel, Fprocess_sentinel)
+	(Fset_process_window_size, Fprocess_kill_without_query)
+	(Faccept_process_output): Harmonize arguments with documentation.
 
 	* search.c (Fmatch_end, Fregexp_quote): Harmonize arguments with
 	documentation.
 
-	* syntax.c (Fsyntax_table_p, Fchar_syntax, Fmatching_paren,
- 	Fmodify_syntax_entry): Harmonize arguments with documentation.
+	* syntax.c (Fsyntax_table_p, Fchar_syntax, Fmatching_paren)
+	(Fmodify_syntax_entry): Harmonize arguments with documentation.
 
-	* textprop.c (Ftext_properties_at, Fget_text_property,
- 	Fget_char_property, Fnext_property_change,
- 	Fnext_single_property_change, Fprevious_property_change,
- 	Fprevious_single_property_change, Fadd_text_properties,
- 	Fput_text_property, Fset_text_properties, Fremove_text_properties,
- 	Ftext_property_any, Ftext_property_not_all): Harmonize arguments
- 	with documentation.
+	* textprop.c (Ftext_properties_at, Fget_text_property)
+	(Fget_char_property, Fnext_property_change)
+	(Fnext_single_property_change, Fprevious_property_change)
+	(Fprevious_single_property_change, Fadd_text_properties)
+	(Fput_text_property, Fset_text_properties, Fremove_text_properties)
+	(Ftext_property_any, Ftext_property_not_all): Harmonize arguments
+	with documentation.
 
-	* window.c (Fwindowp, Fwindow_live_p, Fother_window,
- 	Fenlarge_window, Fshrink_window, Fscroll_up, Fscroll_down,
- 	Fscroll_other_window, Fscroll_left, Fscroll_right, Frecenter,
- 	Fwindow_configuration_p): Harmonize arguments with documentation.
+	* window.c (Fwindowp, Fwindow_live_p, Fother_window, Fenlarge_window)
+	(Fshrink_window, Fscroll_up, Fscroll_down, Fscroll_other_window)
+	(Fscroll_left, Fscroll_right, Frecenter, Fwindow_configuration_p):
+	Harmonize arguments with documentation.
 
 	* xfaces.c (Fpixmap_spec_p): Harmonize arguments with
 	documentation.
@@ -2935,7 +2930,7 @@
 	* unexelf.c (unexec) [SOLARIS2]: Undo relocations performed by the
 	runtime linker.
 
-	* config.in: (LOCALTIME_CACHE): Add #undef.
+	* config.in (LOCALTIME_CACHE): Add #undef.
 
 1996-01-08  Richard Stallman  <rms@whiz-bang.gnu.ai.mit.edu>
 
@@ -2962,7 +2957,7 @@
 	after vfork whether it succeeds or not.
 
 	* m/hp800.h: Conditionalize many macro definitions on __hpux.
- 	(NEED_BSDTTY): Delete duplicate definition.
+	(NEED_BSDTTY): Delete duplicate definition.
 
 	* lread.c (dump_path): New static var.
 	(init_lread): Use that to record dump-time initial path.
@@ -3017,7 +3012,7 @@
 
 1996-01-03  Ulrich Leodolter  <ulrich@lab1.psy.univie.ac.at>
 
-	* ntproc.c (win32_wait): fixed bad synch_process_retcode
+	* ntproc.c (win32_wait): Fixed bad synch_process_retcode
 	and initialized synch_process_death if signaled.
 
 1996-01-02  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
@@ -3241,12 +3236,12 @@
 
 1995-12-12  Paul Eggert  <eggert@twinsun.com>
 
-	* process.c (create_process):  Use Posix signal handling to
+	* process.c (create_process): Use Posix signal handling to
 	block signals, if available.  If HAVE_VFORK, save and restore
 	signal handlers that the child might change, since in many
 	systems (e.g. Solaris 2.4) if the child changes the signal
 	handlers this munges the parent's handler.
-	* s/sol2-3.h (HAVE_VFORK):  Remove #undef, since we now
+	* s/sol2-3.h (HAVE_VFORK): Remove #undef, since we now
 	know how to use Solaris vfork.
 	(VFORK_RETURN_TYPE): Remove definition.
 
@@ -3587,7 +3582,7 @@
 1995-11-09  Erik Naggum  <erik@naggum.no>
 
 	* eval.c (run-hook-with-args, run-hook-list-with-args): Safeguard
- 	against a t in the global value of hook variables.
+	against a t in the global value of hook variables.
 
 1995-11-08  Richard Stallman  <rms@whiz-bang.gnu.ai.mit.edu>
 
@@ -3682,15 +3677,15 @@
 
 	* dispnew.c [HAVE_NTGUI]: Include w32term.h.
 	Include dispextern.h before cm.h since dispextern.h includes windows.h.
-	[HAVE_NTGUI] (make_frame_glyphs, free_frame_glyphs, scroll_frame_lines,
-	update_frame, update_line): Test for WIN32 frame.
+	[HAVE_NTGUI] (make_frame_glyphs, free_frame_glyphs, scroll_frame_lines)
+	(update_frame, update_line): Test for WIN32 frame.
 	[HAVE_NTGUI] (init_display): Initialize WIN32 window system.
 
 	* dispextern.h [HAVE_NTGUI]: Include win32.h.
 	[HAVE_NTGUI] (struct frame_glyphs): Include pixel fields.
 
 	* w32term.c, w32xfns.c, w32fns.c, w32faces.c, w32select.c,
-	w32menu.c, w32reg.c, win32.h: New files.
+	* w32menu.c, w32reg.c, win32.h: New files.
 
 	* s/windowsnt.h [HAVE_NTGUI] (abort): New macro.
 	[HAVE_NTGUI] (HAVE_FACES): Defined.
@@ -3714,8 +3709,8 @@
 	Don't duplicate or restore standard handles.
 
 	* makefile.nt (SUBSYSTEM, TLIBW32, TLASTLIB, WIN32OBJ): Defined.
-	(w32term.obj, w32xfns.obj, w32fns.obj w32faces.obj, w32select.obj,
-	w32menu.obj, w32reg.obj): Defined.
+	(w32term.obj, w32xfns.obj, w32fns.obj w32faces.obj, w32select.obj)
+	(w32menu.obj, w32reg.obj): Defined.
 	(LINK_FLAGS): Use SUBSYSTEM.
 	(OBJ1): Remove lastfile.obj.
 	(LIBS, TEMACS): Use TLASTLIB.
@@ -3755,7 +3750,7 @@
 
 	* msdos.h (struct x_output): Rename from struct x_display.
 	* msdos.c (the_only_x_display): Type is now struct x_output.
-	(internal_terminal_init): frame member is now named output_data.
+	(internal_terminal_init): Frame member is now named output_data.
 	(init_environment): Fix timezone rules.
 	* emacs.c (main): [MSDOS] Call init_gettimeofday.
 	* frame.c [!MULTI_FRAME] (Fmodify_frame_parameters): Add missing
@@ -3772,7 +3767,7 @@
 1995-10-31  Richard Stallman  <rms@whiz-bang.gnu.ai.mit.edu>
 
 	* doprnt.c: Include lisp.h.
- 	(doprnt1): Renamed from doprnt.  New arg LISPSTRINGS.
+	(doprnt1): Renamed from doprnt.  New arg LISPSTRINGS.
 	This is now a static subroutine.
 	(doprnt): New definition calls doprnt1.
 	(doprnt_lisp): New function.
@@ -3945,7 +3940,7 @@
 	(read_char): Copy and compare with echo_area_glyphs.
 
 	* buffer.c (reset_buffer_local_variables): Call
- 	Fset_standard_case_table if std case table seems to have been changed.
+	Fset_standard_case_table if std case table seems to have been changed.
 
 1995-10-21  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -3995,7 +3990,7 @@
 	* editfns.c (Fchar_equal): Handle char-table as case table.
 
 	* fns.c (Fchar_table_subtype): New function.
-	(syms_of_fns): defsube it.
+	(syms_of_fns): defsubr it.
 
 	* fns.c (map_char_table): When possible, use a number
 	to describe the range.
@@ -4015,7 +4010,7 @@
 	(Vascii_upcase_table, Vascii_canon_table, Vascii_eqv_table):
 	Declarations deleted.
 
-	* keyboard.c (read_char): Let Vkeyboard_translate_table	be char-table.
+	* keyboard.c (read_char): Let Vkeyboard_translate_table be char-table.
 	(syms_of_keyboard): Doc fix.
 
 1995-10-15  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
@@ -4062,21 +4057,21 @@
 1995-10-11  Kim Storm  <kfstorm@wombat.gnu.ai.mit.edu>
 
 	* keyboard.c (make_lispy_event) [!USE_X_TOOLKIT]: Dragging
- 	the mouse into the menu-bar and releasing it there did
- 	not create a drag-mouse event.
+	the mouse into the menu-bar and releasing it there did
+	not create a drag-mouse event.
 	(set-input-mode) [MSDOS]: Do not call reset_sys_modes and
 	init_sys_modes.
 
 	* dosfns.c (insert-startup-screen): New function.
 	(msdos-memget, msdos-memput): New functions.
 	(msdos-set-keyboard, insert-startup-screen): New functions.
-	(dos-timezone-offset, dos-display-scancodes, dos-menubar-clock,
-	dos-hyper-key, dos-super-key, dos-keypad-mode, dos-keyboard-layout,
-	dos-decimal-point): New variables.
+	(dos-timezone-offset, dos-display-scancodes, dos-menubar-clock)
+	(dos-hyper-key, dos-super-key, dos-keypad-mode, dos-keyboard-layout)
+	(dos-decimal-point): New variables.
 
-	* dosfns.h (dos_timezone_offset, dos_display_scancodes,
-	dos_menubar_clock, dos_hyper_key, dos_super_key, dos_keypad_mode,
-	dos_keyboard_layout, dos_decimal_point): New variables.
+	* dosfns.h (dos_timezone_offset, dos_display_scancodes)
+	(dos_menubar_clock, dos_hyper_key, dos_super_key, dos_keypad_mode)
+	(dos_keyboard_layout, dos_decimal_point): New variables.
 
 	* msdos.c: [!HAVE_X_WINDOWS]:
 	Reworked display code to perform immediate screen output.
@@ -4087,13 +4082,14 @@
 	Corrected M-return & M-kp-enter.
 	Added support for hyper and super keys.
 	Reworked mouse code to avoid mouse flicker.
-	Saves and restores DOS-screen prior to emacs startup.
+	Saves and restores DOS-screen prior to Emacs startup.
 	(sys_select): Would abort if rfds = NULL.
 	(dos_direct_output): New function.
 	(dos_dump_scancodes): New variable.
 
-	* msdos.h (internal_flush): Removed
-	(mouse_init1, mouse_check_moved, mouse_pressed, mouse_released): Removed.
+	* msdos.h (internal_flush): Removed.
+	(mouse_init1, mouse_check_moved, mouse_pressed, mouse_released):
+	Removed.
 	(dos_get_saved_screen, dos_set_keyboard): New functions.
 
 	* s/msdos.h: Check that DJGPP v. 1 is used.
@@ -4101,10 +4097,9 @@
 	Simplified INTERNAL_TERMINAL termcap definition.
 	Removed #define fflush internal_flush.
 
-	* sysdep.c: (init_sys_modes) [!HAVE_X_WINDOWS (MSDOS)]:
+	* sysdep.c (init_sys_modes) [!HAVE_X_WINDOWS (MSDOS)]:
 	Always call set_terminal_modes.
 	(reset_sys_modes) [MSDOS]: Do not look at EMACSCOLORS.
-
 
 1995-10-11  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -4216,7 +4211,7 @@
 	(SYNTAX_PREFIX, SYNTAX_COMMENT_STYLE): Use SYNTAX_WITH_FLAGS.
 
 	* callint.c (callint_message, callint_message_size): New vars.
- 	(syms_of_callint): Set up new vars.
+	(syms_of_callint): Set up new vars.
 	(Fcall_interactively): Keep the prompt in the heap.
 
 1995-10-05  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
@@ -4252,7 +4247,7 @@
 	* lisp.h (CHECK_CHAR_TABLE): New macro.
 
 	* frame.c (Qmouse_leave_buffer_hook): New variable.
- 	(syms_of_frame_1): Initialize it.
+	(syms_of_frame_1): Initialize it.
 	(Fhandle_switch_frame): Run the hooks.
 
 	* keyboard.c (Vsuggest_key_bindings): New variable.
@@ -4430,10 +4425,10 @@
 	* configure.in (LOCALTIME_CACHE): Define if tzset exists and
 	if localtime caches TZ.  Check for tzset.
 
-	* emacs.c (main): Call tzset only if LOCALTIME_CACHE is	defined;
+	* emacs.c (main): Call tzset only if LOCALTIME_CACHE isdefined;
 	not all Suns have this bug.
 	* m/pmax.h, s/386bsd.h, s/bsd386.h, s/freebsd.h, s/gnu.h,
-	s/netbsd.h (LOCALTIME_CACHE): Remove; now configured automatically.
+	* s/netbsd.h (LOCALTIME_CACHE): Remove; now configured automatically.
 
 1995-09-06  Erik Naggum  <erik@naggum.no>
 
@@ -4523,7 +4518,6 @@
 	(sleep_or_kbd_hit): Handle 60 seconds time wrap.
 	(mouse_get_pos): Return event_timestamp.
 
-
 1995-08-29  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
 	* msdos.c (struct IT_menu_state): Refer to it as struct, not typedef.
@@ -4606,7 +4600,7 @@
 1995-08-14  Erik Naggum  <erik@naggum.no>
 
 	* emacs.c (standard_args): Add option --eval to evalute an
- 	expression on the command line and print the result.
+	expression on the command line and print the result.
 
 1995-08-14  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -4679,7 +4673,7 @@
 	* emacs.c (main) [USG5]: Call setpgrp without testing INTERRUPT_INPUT.
 
 	* xdisp.c (redisplay): Compute mini_frame the same way
- 	echo_area_display does.
+	echo_area_display does.
 
 	* keyboard.c (kbd_buffer_store_event):
 	Don't insert two buffer_switch_event's in a row.
@@ -4690,8 +4684,8 @@
 	* eval.c (run_hook_with_args): Move the GCPRO2; add UNGCPRO.
 
 	* process.c (read_process_output, exec_sentinel): Call
- 	record_asynch_buffer_change after any eval.  Don't call
- 	prepare_menu_bars.
+	record_asynch_buffer_change after any eval.  Don't call
+	prepare_menu_bars.
 	(wait_reading_process_input): Don't call prepare_menu_bars.
 
 1995-08-05  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
@@ -4750,7 +4744,7 @@
 	(follow_key): Don't alter contents of NEXT until the end.
 
 	* xmenu.c [USE_X_TOOLKIT] (xmenu_show): Compute root-based
- 	coordinates.  Make a dummy event to pass them to lw_popup_menu.
+	coordinates.  Make a dummy event to pass them to lw_popup_menu.
 
 	* lread.c (Funintern): Fix deleting the last symbol in a chain.
 
@@ -4773,14 +4767,12 @@
 	* eval.c (run_hook_with_args): Renamed from Frun_hook_with_args.
 	Take extra arg CONDITION, and return appropriately based on hook
 	function value if CONDITION is until_success or until_failure.
-	(Frun_hooks, Frun_hook_with_args,
-	Frun_hook_with_args_until_success,
-	Frun_hook_with_args_until_failure): New functions, use it.
+	(Frun_hooks, Frun_hook_with_args, Frun_hook_with_args_until_success)
+	(Frun_hook_with_args_until_failure): New functions, use it.
 	(syms_of_eval): defsubr them.
 
-	* lisp.h (Frun_hook_with_args,
-	Frun_hook_with_args_until_success,
-	Frun_hook_with_args_until_failure): Declare them.
+	* lisp.h (Frun_hook_with_args, Frun_hook_with_args_until_success)
+	(Frun_hook_with_args_until_failure): Declare them.
 
 1995-07-31  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -4829,7 +4821,7 @@
 
 	* eval.c (syms_of_eval): Add missing defsubr.
 
-	* buffer.c: (struct sortstrlist): New type.
+	* buffer.c (struct sortstrlist): New type.
 	(overlay_heads, overlay_tails): Change to struct sortstrlist.
 	(overlay_heads_len, overlay_tails_len): Deleted; now part of struct.
 	(record_overlay_string): New function.
@@ -5030,8 +5022,8 @@
 1995-07-18  Mikael Djurfeldt  <mdj@kidjo.nada.kth.se>
 
 	* xdisp.c (decode_mode_spec): New arg spec_width.
-  	Use pint2str for %l and %c.  New code to output ??.
- 	(display_mode_element): New var minendcol.
+	Use pint2str for %l and %c.  New code to output ??.
+	(display_mode_element): New var minendcol.
 	Pass new arg to decode_mode_spec.
 	(pint2str): New function.
 
@@ -5206,10 +5198,10 @@
 	* s/riscos5.h: New file.
 
 	* xfns.c (x_set_icon_type, x_set_icon_name): Don't ever remap the
- 	frame window; changing the icon doesn't make it disappear.
+	frame window; changing the icon doesn't make it disappear.
 
 	* process.c (Fstart_process): Expand PROGRAM.
-  	Error if it is a directory.
+	Error if it is a directory.
 
 	* s/sunos4shr.h (LIBXMU): New definitions (two alternative ones).
 
@@ -5218,8 +5210,8 @@
 1995-06-30  Geoff Voelker  (voelker@cs.washington.edu)
 
 	* nt.c (PASSWD_FIELD_SIZE): Defined.
-	(the_passwd_name, the_passwd_passwd, the_passwd_gecos,
-	the_passwd_dir, the_passwd_shell, getpwuid): Use PASSWD_FIELD_SIZE.
+	(the_passwd_name, the_passwd_passwd, the_passwd_gecos)
+	(the_passwd_dir, the_passwd_shell, getpwuid): Use PASSWD_FIELD_SIZE.
 	(get_emacs_configuration): Check if processor macros are defined.
 
 	* ntheap.c: Include config.h.
@@ -5364,7 +5356,22 @@ See ChangeLog.5 for earlier changes.
 
     Copyright (C) 1995, 1996, 2001, 2002, 2003, 2004, 2005, 2006, 2007
 	Free Software Foundation, Inc.
-  Copying and distribution of this file, with or without modification,
-  are permitted provided the copyright notice and this notice are preserved.
+
+  This file is part of GNU Emacs.
+
+  GNU Emacs is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2, or (at your option)
+  any later version.
+
+  GNU Emacs is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with GNU Emacs; see the file COPYING.  If not, write to the
+  Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+  Boston, MA 02110-1301, USA.
 
 ;;; arch-tag: 66a98e1c-2268-45e8-8a57-286b9c85a4e9
