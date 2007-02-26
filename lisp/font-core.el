@@ -124,10 +124,6 @@ generally prefer.  When you turn Font Lock mode on/off the buffer is
 fontified/defontified, though fontification occurs only if the buffer is
 less than `font-lock-maximum-size'.
 
-For example, to use maximum levels of fontification, put in your ~/.emacs:
-
- (setq font-lock-maximum-decoration t)
-
 To add your own highlighting for some major mode, and modify the highlighting
 selected automatically via the variable `font-lock-maximum-decoration', you can
 use `font-lock-add-keywords'.
