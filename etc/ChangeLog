@@ -1,3 +1,99 @@
+2007-02-26  Carsten Dominik  <dominik@science.uva.nl>
+
+	* orgcard.tex (section{Visibility Cycling}): Document key for
+	indirect buffer access.
+	(section{Archiving}): New keys for archiving.
+	(section{Tables}): Combine two lines for hline creation.
+	Named-field formula changed to Field formula.
+	(section{Links}): Document keys for finding links.
+	(section{Agenda Views}): New key for agenda file cycling.
+	Document keys for stuck projects.  Typos fixed.
+	(section{Exporting and Publishing}): Export options no longer in
+	reference card.
+
+2007-02-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* PROBLEMS: Gtk+ and cygwin doesn't work.
+
+2007-02-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* MORE.STUFF: Add a pointer to Phil Sung's Emacs slides on MIT.
+
+2007-02-22  Per Starb,Ad(Bck  <starback@stp.lingfil.uu.se>  (tiny change)
+
+	* NEWS: Grammar and capitalization fixes.
+
+2007-02-22  Glenn Morris  <rgm@gnu.org>
+
+	* orgcard.tex, orgcard.ps: Restore deleted files following
+	copyright assignment.
+
+2007-02-20  Glenn Morris  <rgm@gnu.org>
+
+	* TUTORIAL.eo: Unjustify.
+
+2007-02-20  Sergio Pokrovskij  <sergio.pokrovskij@gmail.com>
+
+	* TUTORIAL.eo: Change license to GPL.  Add translator credits.
+
+2007-02-19  Kenichi Handa  <handa@m17n.org>
+
+	* NEWS (New language environmets): Add "Esperanto".
+
+2007-02-16  Dale Gulledge  <dsplat@rochester.rr.com>
+
+	* TUTORIAL.eo: Add "See end ..." at the first line.
+
+2007-02-19  Kenichi Handa  <handa@m17n.org>
+
+	* TUTORIAL.eo: Add "." at the end of the first line.
+
+2007-02-17  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-refcard.tex: Remove obsolete comments.  Add a short note
+	creating PostScript files for Emacs without using Makefile rules.
+
+	* gnus-booklet.ps, gnus-refcard.ps: Generate with letter paper.
+
+2007-02-17  Glenn Morris  <rgm@gnu.org>
+
+	* TUTORIAL.eo: Add 2007 to copyright years.  Remove translator
+	copyrights (disclaimers on file), merge years into FSF copyrights.
+	Move copyright to end.  Remove "LocalWords" at end of file.
+
+2007-02-16  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* TUTORIAL.pt_BR: Fix some accentuation, verbal conjugation and typos.
+
+2007-02-16  Kenichi Handa  <handa@m17n.org>
+
+	* TUTORIAL.translators: Add TUTORIAL.eo.
+
+2007-02-16  Dale Gulledge  <dsplat@rochester.rr.com>
+
+	* TUTORIAL.eo: New file.
+
+2007-02-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* images/smilies/dead.xpm: Moved from images/gnus/dead.xpm.
+
+	* images/gnus/reverse-smile.xpm:
+	* images/gnus/bar.xbm:
+	* images/gnus/bar.xpm: Unused images removed.
+
+2007-02-14  Glenn Morris  <rgm@gnu.org>
+
+	* OTHER.EMACSES: Remove obsolete file.
+
+2007-02-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cs-refcard.tex (versionemacs): New macro.
+	* cs-refcard.ps: Regenerate.
+
+	* sk-refcard.ps: Regenerate.
+
+	* pl-refcard.ps: Regenerate.
+
 2007-02-13  Bill Wohler  <wohler@newt.com>
 
 	* images/README: Add section for icons that are a part of Emacs.
@@ -1323,7 +1419,7 @@
 
 2005-04-01  Marcelo Toledo  <marcelo@gnu.org>
 
-	* TUTORIAL.pt_BR, TUTORIAL.cn, TUTORIAL.cs, TUTORIAL.de,
+	* TUTORIAL.cn, TUTORIAL.cs, TUTORIAL.de,
 	* TUTORIAL.es, TUTORIAL.fr, TUTORIAL.it, TUTORIAL.ja, TUTORIAL.ko,
 	* TUTORIAL.pl, TUTORIAL.pt_BR, TUTORIAL.ro, TUTORIAL.ru,
 	* TUTORIAL.sk, TUTORIAL.sl, TUTORIAL.th, TUTORIAL.zh: Fix title line.

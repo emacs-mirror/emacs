@@ -396,8 +396,8 @@ the @code{find-grep-dired} command, in @ref{Dired and Find}.
   The commands @kbd{M-x lgrep} (local grep) and @kbd{M-x rgrep}
 (recursive grep) are more user-friendly versions of @code{grep} and
 @code{grep-find}, which prompt separately for the regular expression
-to match, the files to search, and the base directory for the search
-(rgrep only).  Case sensitivity of the search is controlled by the
+to match, the files to search, and the base directory for the search.
+Case sensitivity of the search is controlled by the
 current value of @code{case-fold-search}.
 
 These commands build the shell commands based on the variables
@@ -446,7 +446,6 @@ Flymake, flymake, The Flymake Manual}.
 @cindex SDB
 @cindex XDB
 @cindex Perldb
-@cindex bashdb
 @cindex JDB
 @cindex PDB
 
@@ -455,7 +454,7 @@ The GUD (Grand Unified Debugger) library provides an interface to
 various symbolic debuggers from within Emacs.  We recommend the
 debugger GDB, which is free software, but GUD can also run DBX, SDB or
 XDB.  GUD can also serve as an interface to Perl's debugging mode, the
-Python debugger PDB, the Bash debugger, and to JDB, the Java Debugger.
+Python debugger PDB, and to JDB, the Java Debugger.
 @xref{Debugging,, The Lisp Debugger, elisp, the Emacs Lisp Reference
 Manual}, for information on debugging Emacs Lisp programs.
 
@@ -507,10 +506,6 @@ If you have not visited a tags table or the tags table doesn't list one
 of the functions, you get a message saying @samp{The sdb support
 requires a valid tags table to work}.  If this happens, generate a valid
 tags table in the working directory and try again.
-
-@item M-x bashdb @key{RET} @var{file} @key{RET}
-@findex bashdb
-Run the bash debugger to debug @var{file}, a shell script.
 
 @item M-x perldb @key{RET} @var{file} @key{RET}
 @findex perldb
@@ -746,13 +741,11 @@ Instead, type @kbd{C-q @key{TAB}} to enter a tab.
 @vindex perldb-mode-hook
 @vindex pdb-mode-hook
 @vindex jdb-mode-hook
-@vindex bashdb-mode-hook
   On startup, GUD runs one of the following hooks: @code{gdb-mode-hook},
 if you are using GDB; @code{dbx-mode-hook}, if you are using DBX;
 @code{sdb-mode-hook}, if you are using SDB; @code{xdb-mode-hook}, if you
 are using XDB; @code{perldb-mode-hook}, for Perl debugging mode;
-@code{pdb-mode-hook}, for PDB; @code{jdb-mode-hook}, for JDB;
-@code{bashdb-mode-hook}, for the Bash debugger.  You can
+@code{pdb-mode-hook}, for PDB; @code{jdb-mode-hook}, for JDB.  You can
 use these hooks to define custom key bindings for the debugger
 interaction buffer.  @xref{Hooks}.
 

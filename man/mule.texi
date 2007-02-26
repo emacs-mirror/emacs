@@ -249,18 +249,17 @@ the Emacs session.  The supported language environments include:
 @cindex Euro sign
 @cindex UTF-8
 @quotation
-Belarusian, Brazilian Portuguese, Bulgarian, Chinese-BIG5,
+ASCII, Belarusian, Brazilian Portuguese, Bulgarian, Chinese-BIG5,
 Chinese-CNS, Chinese-EUC-TW, Chinese-GB, Croatian, Cyrillic-ALT,
 Cyrillic-ISO, Cyrillic-KOI8, Czech, Devanagari, Dutch, English,
-Ethiopic, French, Georgian, German, Greek, Hebrew, IPA, Italian,
-Japanese, Kannada, Korean, Lao, Latin-1, Latin-2, Latin-3,
-Latin-4, Latin-5, Latin-6, Latin-7, Latin-8 (Celtic),
-Latin-9 (updated Latin-1 with the Euro sign), Latvian,
-Lithuanian, Malayalam, Polish, Romanian, Russian, Slovak,
-Slovenian, Spanish, Swedish, Tajik, Tamil, Thai, Tibetan,
-Turkish, UTF-8 (for a setup which prefers Unicode characters and
-files encoded in UTF-8), Ukrainian, Vietnamese, Welsh, and
-Windows-1255 (for a setup which prefers Cyrillic characters and
+Esperanto, Ethiopic, French, Georgian, German, Greek, Hebrew, IPA,
+Italian, Japanese, Kannada, Korean, Lao, Latin-1, Latin-2, Latin-3,
+Latin-4, Latin-5, Latin-6, Latin-7, Latin-8 (Celtic), Latin-9 (updated
+Latin-1 with the Euro sign), Latvian, Lithuanian, Malayalam, Polish,
+Romanian, Russian, Slovak, Slovenian, Spanish, Swedish, Tajik, Tamil,
+Thai, Tibetan, Turkish, UTF-8 (for a setup which prefers Unicode
+characters and files encoded in UTF-8), Ukrainian, Vietnamese, Welsh,
+and Windows-1255 (for a setup which prefers Cyrillic characters and
 files encoded in Windows-1255).
 @end quotation
 

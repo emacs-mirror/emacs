@@ -1,3 +1,160 @@
+2007-02-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* m/xtensa.h: New file.
+
+2007-02-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* .gdbinit (xprintstr): Ensure GDB (> 6.6) prints symbol name
+	as strings and not character arrays.
+
+2007-02-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c [USE_TOOLKIT_SCROLL_BARS] (x_scroll_bar_handle_drag)
+	(x_set_toolkit_scroll_bar_thumb): Add bar->min_handle as margin to
+	scroll bar handle size in order to avoid `scroll backward' problem.
+	(x_scroll_bar_create, XTset_vertical_scroll_bar)
+	[USE_TOOLKIT_SCROLL_BARS]: Initialize bar->min_handle.
+
+	* macterm.h (struct scroll_bar) [USE_TOOLKIT_SCROLL_BARS]: New
+	member `min_handle'.
+
+2007-02-23  Kim F. Storm  <storm@cua.dk>
+
+	* print.c (print): Reset print_number_index if Vprint_number_table
+	is nil.
+
+2007-02-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (stat, get_long_basename, is_unc_volume): Use _mbspbrk
+	instead of strpbrk.
+
+2007-02-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macmenu.c (mac_menu_show): Call unbind_to early.  Use variable
+	`menu_item_selection' as in W32 version.
+	[TARGET_API_MAC_CARBON] (mac_handle_dialog_event): Add explicit
+	braces to avoid ambiguous `else'.
+
+	* macterm.c (mac_display_info_for_display): Remove function.
+	(mac_flush_display_optional) [USE_CG_DRAWING]: New function.
+	(x_redisplay_interface) [USE_CG_DRAWING]: Set it as handler for
+	flush_display_optional.
+	[USE_TOOLKIT_SCROLL_BARS] (x_scroll_bar_handle_press): New
+	argument MOUSE_POS.  All uses changed.  Set bar->dragging to
+	negative integer if scroll bar handle is pressed.
+	[USE_TOOLKIT_SCROLL_BARS] (x_scroll_bar_handle_release): Negative
+	bar->dragging means scroll bar handle is not dragged.
+	[USE_TOOLKIT_SCROLL_BARS] (x_scroll_bar_handle_drag): Get initial
+	offset of scroll bar handle from negative bar->dragging.
+	(XTread_socket) [USE_TOOLKIT_SCROLL_BARS]: Modifiers for scroll
+	bar click is compared against mapped one.  Set down/up_modifier
+	for scroll bar click event with control key.
+
+	* macterm.h (x_display_info_for_display): Remove extern.
+	(SCROLL_BAR_UNPACK, SET_SCROLL_BAR_CONTROL_HANDLE): Don't limit
+	value to be unpacked to 32-bit on LP64 model.
+
+2007-02-23  Kenichi Handa  <handa@m17n.org>
+
+	* process.c (send_process_object_unwind): New function.
+	(send_process_object): New function.
+	(Fprocess_send_region): Call send_process_object.
+	(Fprocess_send_string): Likewise.
+
+2007-02-22  Jason Rumney  <jasonr@gnu.org>
+
+	* w32menu.c (w32_menu_show): Mark the frame's menu as inactive
+	when popup menu finishes.
+
+	* w32fns.c (menubar_in_use): New flag.
+	(w32_wnd_proc) [WM_INITMENU, WM_EXITMENULOOP, WM_TIMER, WM_COMMAND]:
+	Use it.
+
+	* w32menu.c (Fx_popup_menu): Don't free menu strings here.
+	(w32_menu_show): Do it here instead.
+
+	* w32fns.c (w32_wnd_proc) [WM_INITMENU]: Set menubar_active frame
+	parameter.
+
+	* w32menu.c (current_popup_menu): Make available globally.
+	(menubar_selection_callback): Free menu strings before pushing the
+	menu event into the keyboard buffer.  Remove
+	menu_command_in_progress.
+
+	* w32fns.c (current_popup_menu): Use from w32menu.c.
+	(w32_wnd_proc) [WM_EXITMENULOOP, WM_TIMER]: Use menubar_active
+	and current_popup_menu to determine whether a menubar menu has
+	been cancelled.
+
+	* w32term.h (w32_output): Remove menu_command_in_progress.
+
+2007-02-22  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c (update_frame, update_single_window): Set force_p here if
+	redisplay_dont_pause is set or Vredisplay_preemption_period is nil...
+	(update_window, update_frame_1): ... instead of here.
+	(update_text_area): Clear mouse face on header lines.
+
+2007-02-21  Kim F. Storm  <storm@cua.dk>
+
+	* minibuf.c (Fassoc_string): Doc fix.  Allow symbol for KEY too.
+
+2007-02-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (WINDOW_RESOURCE, TERM_WINDOW_RESOURCE): Remove macros.
+	[USE_MAC_TSM] (mac_handle_text_input_event): Remove unused variable
+	`mapped_modifiers'.
+	(XTread_socket) [MAC_OS_X_VERSION_MAX_ALLOWED >= 1020]: Use Keyboard
+	Layout Services routines to get current Unicode keyboard layout.
+
+2007-02-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (x_set_screen_gamma): Apply gamma value to the frame's
+	bgcolor.
+
+2007-02-19  Kim F. Storm  <storm@cua.dk>
+
+	* minibuf.c (Fassoc_string): Allow symbols as keys.
+
+	* w32term.c (w32_set_scroll_bar_thumb): Don't resize scroll-bar
+	handle while dragging, except when we get close to eob.
+	Fix position and size calculations so we don't scroll backwards
+	just by clicking on the handle.
+
+2007-02-17  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* Makefile.in (${emacsapp}Contents/Resources/Emacs.rsrc)
+	[HAVE_CARBON]: Remove target.
+	(macosx-app) [HAVE_CARBON]: Don't depend on it.
+
+2007-02-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* callproc.c (syms_of_callproc) <doc-directory>:
+	<configure-info-directory>:
+	(Fgetenv_internal): Fix typos in docstrings.
+
+	* doc.c (Fsubstitute_command_keys): Fix typo in docstring.
+
+2007-02-16  Andreas Schwab  <schwab@suse.de>
+
+	* frame.c (Fmodify_frame_parameters): Return a value.
+
+	* editfns.c (Fformat): Add support for '+' flag.
+	* doprnt.c (doprnt1): Likewise.  Fix overflow checking.
+
+2007-02-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* s/umips.h: Unused file removed.
+
+2007-02-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xfaces.c (Fcolor_distance): Don't continue checking a color for
+	errors after it has been correctly parsed as an RGB list.
+
+2007-02-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (do_ewmh_fullscreen): Also check for _NET_WM_STATE_FULLSCREEN.
+
 2007-02-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macfns.c (Fx_focus_frame): Move current process to foreground if
@@ -510,7 +667,7 @@
 
 2006-12-19  Juanma Barranquero  <lekktu@gmail.com>
 
-	* buffer.c (syms_of_buffer) <buffer-display-table>
+	* buffer.c (syms_of_buffer) <buffer-display-table>:
 	<scroll-up-aggressively, scroll-down-aggressively>: Doc fixes.
 
 2006-12-17  Richard Stallman  <rms@gnu.org>

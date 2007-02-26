@@ -856,19 +856,25 @@ Show the heading too, if it is currently invisible."
 		 (t 1))))
   (if (< levels 1)
       (error "Must keep at least one level of headers"))
-  (let (outline-view-change-hook)
-    (save-excursion
-      (goto-char (point-min))
-      ;; Skip the prelude, if any.
-      (unless (outline-on-heading-p t) (outline-next-heading))
+  (save-excursion
+    (let* (outline-view-change-hook
+           (beg (progn
+                  (goto-char (point-min))
+                  ;; Skip the prelude, if any.
+                  (unless (outline-on-heading-p t) (outline-next-heading))
+                  (point)))
+           (end (progn
+                  (goto-char (point-max))
+                  ;; Keep empty last line, if available.
+                  (if (bolp) (1- (point)) (point)))))
       ;; First hide everything.
-      (outline-flag-region (point) (point-max) t)
+      (outline-flag-region beg end t)
       ;; Then unhide the top level headers.
       (outline-map-region
        (lambda ()
 	 (if (<= (funcall outline-level) levels)
 	     (outline-show-heading)))
-       (point) (point-max))))
+       beg end)))
   (run-hooks 'outline-view-change-hook))
 
 (defun hide-other ()

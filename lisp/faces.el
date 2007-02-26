@@ -1594,8 +1594,9 @@ If COLOR is the symbol `unspecified' or one of the strings
 
 (defun color-values (color &optional frame)
   "Return a description of the color named COLOR on frame FRAME.
-The value is a list of integer RGB values--\(RED GREEN BLUE\).
-These values range from 0 to 65535; white is \(65535 65535 65535\).
+The value is a list of integer RGB values--(RED GREEN BLUE).
+These values appear to range from 0 to 65280 or 65535, depending
+on the system; white is \(65280 65280 65280\) or \(65535 65535 65535\).
 If FRAME is omitted or nil, use the selected frame.
 If FRAME cannot display COLOR, the value is nil.
 If COLOR is the symbol `unspecified' or one of the strings

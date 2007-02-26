@@ -177,14 +177,10 @@ asis."
       (if (eq 'default latin1-display-face)
 	  (standard-display-ascii char (format latin1-display-format display))
 	(aset standard-display-table char
-	      (vconcat (mapcar (lambda (c)
-				 (logior c (lsh (face-id latin1-display-face)
-						19)))
+	      (vconcat (mapcar (lambda (c) (make-glyph-code c latin1-display-face))
 			       display))))
     (aset standard-display-table char
-	  (if (eq 'default latin1-display-face)
-	      display
-	    (logior display (lsh (face-id latin1-display-face) 19))))))
+	  (make-glyph-code display latin1-display-face))))
 
 (defun latin1-display-identities (charset)
   "Display each character in CHARSET as the corresponding Latin-1 character.

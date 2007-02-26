@@ -2317,6 +2317,7 @@ since they have special meaning in a regexp."
 (defvar isearch-lazy-highlight-window-end nil)
 (defvar isearch-lazy-highlight-case-fold-search nil)
 (defvar isearch-lazy-highlight-regexp nil)
+(defvar isearch-lazy-highlight-space-regexp nil)
 
 (defun lazy-highlight-cleanup (&optional force)
   "Stop lazy highlighting and remove extra highlighting from current buffer.
@@ -2370,7 +2371,8 @@ by other Emacs features."
             isearch-lazy-highlight-last-string  isearch-string
 	    isearch-lazy-highlight-case-fold-search isearch-case-fold-search
 	    isearch-lazy-highlight-regexp	isearch-regexp
-            isearch-lazy-highlight-wrapped      nil)
+            isearch-lazy-highlight-wrapped      nil
+	    isearch-lazy-highlight-space-regexp search-whitespace-regexp)
       (unless (equal isearch-string "")
 	(setq isearch-lazy-highlight-timer
 	      (run-with-idle-timer lazy-highlight-initial-delay nil
@@ -2381,7 +2383,7 @@ by other Emacs features."
 Attempt to do the search exactly the way the pending isearch would."
   (let ((case-fold-search isearch-lazy-highlight-case-fold-search)
 	(isearch-regexp isearch-lazy-highlight-regexp)
-	(search-spaces-regexp search-whitespace-regexp))
+	(search-spaces-regexp isearch-lazy-highlight-space-regexp))
     (condition-case nil
 	(isearch-search-string
 		 isearch-lazy-highlight-last-string

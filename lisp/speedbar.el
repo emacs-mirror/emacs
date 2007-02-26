@@ -316,7 +316,7 @@ The default buffer is the buffer in the selected window in the attached frame."
 
 (defcustom speedbar-show-unknown-files nil
   "*Non-nil show files we can't expand with a ? in the expand button.
-nil means don't show the file in the list."
+A nil value means don't show the file in the list."
   :group 'speedbar
   :type 'boolean)
 
@@ -975,7 +975,7 @@ directories.")
 ;;;###autoload
 (defun speedbar-frame-mode (&optional arg)
   "Enable or disable speedbar.  Positive ARG means turn on, negative turn off.
-nil means toggle.  Once the speedbar frame is activated, a buffer in
+A nil ARG means toggle.  Once the speedbar frame is activated, a buffer in
 `speedbar-mode' will be displayed.  Currently, only one speedbar is
 supported at a time.
 `speedbar-before-popup-hook' is called before popping up the speedbar frame.
@@ -1071,7 +1071,7 @@ selected.  If the speedbar frame is active, then select the attached frame."
 
 (defsubst speedbar-frame-width ()
   "Return the width of the speedbar frame in characters.
-nil if it doesn't exist."
+Return nil if it doesn't exist."
   (frame-width speedbar-frame))
 
 (defun speedbar-mode ()
@@ -1482,8 +1482,8 @@ This function can be replaced in `speedbar-mode-functions-list' as
 
 (defun speedbar-item-info-file-helper (&optional filename)
   "Display info about a file that is on the current line.
-nil if not applicable.  If FILENAME, then use that instead of reading
-it from the speedbar buffer."
+Return nil if not applicable.  If FILENAME, then use that
+instead of reading it from the speedbar buffer."
   (let* ((item (or filename (speedbar-line-file)))
 	 (attr (if item (file-attributes item) nil)))
     (if (and item attr) (speedbar-message "%s %-6d %s" (nth 8 attr)
@@ -1492,7 +1492,7 @@ it from the speedbar buffer."
 
 (defun speedbar-item-info-tag-helper ()
   "Display info about a tag that is on the current line.
-nil if not applicable."
+Return nil if not applicable."
   (save-excursion
     (beginning-of-line)
     (if (re-search-forward " [-+=]?> \\([^\n]+\\)"

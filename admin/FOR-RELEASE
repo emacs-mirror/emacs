@@ -31,10 +31,6 @@ sk	Miroslav Vaško        No response
 
 Reminders sent out on 2006-06-08.
 
-Note: regardless of the above, the following files need to be
-regenerated to get updated copyright notices: sk-refcard.ps,
-pl-refcard.ps, cs-refcard.ps.
-
 ** Send an email to the various distributions, including the GNOME
 and KDE projects, to use the new Emacs icons in etc/images/icons.
 
@@ -56,13 +52,19 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 * BUGS
 
-** W3 status with latest url package.
-
 ** Fix up copyright confusions.
   See admin/notes/copyright.
 
 ** simon.marshall@misys.com, Jan 12:
   Font-lock decides function call is function declaration in C+ +
+
+** Fix needed for communication with gpg-agent
+
+** md5i@cs.cmu.edu, Feb 20: move-end-of-line in comint buffers
+
+** dale@codefu.org, Feb 25: tramp and diff-mode results in Emacs crash
+
+** daniel@bigwalter.net, Feb 25: Echoing of keys and process I/O
 
 * DOCUMENTATION
 
@@ -83,6 +85,7 @@ etc/TUTORIAL.bg          Ognyan Kulev <ogi@fmi.uni-sofia.bg>
 etc/TUTORIAL.cn
 etc/TUTORIAL.cs          Pavel Janík <Pavel@Janik.cz>
 etc/TUTORIAL.de          Werner LEMBERG <wl@gnu.org>
+etc/TUTORIAL.eo
 etc/TUTORIAL.es          Marcelo Toledo
 etc/TUTORIAL.fr          ttn
 etc/TUTORIAL.it          ttn

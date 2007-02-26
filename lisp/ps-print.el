@@ -3527,7 +3527,6 @@ The table depends on the current ps-print setup."
       (concat "\n;;; ps-print version " ps-print-version "\n")
       ";; internal vars"
       (ps-comment-string "emacs-version      " emacs-version)
-      (ps-comment-string "ps-print-emacs-type" ps-print-emacs-type)
       (ps-comment-string "ps-windows-system  " ps-windows-system)
       (ps-comment-string "ps-lp-system       " ps-lp-system)
       nil
@@ -5697,7 +5696,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 				((eq genfunc 'ps-generate-postscript)
 				 nil)
 				((eq ps-default-bg 'frame-parameter)
-				 (ps-frame-parameter 'background-color))
+				 (ps-frame-parameter nil 'background-color))
 				((eq ps-default-bg t)
 				 (ps-face-background-name 'default))
 				(t
@@ -5708,7 +5707,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 				((eq genfunc 'ps-generate-postscript)
 				 nil)
 				((eq ps-default-fg 'frame-parameter)
-				 (ps-frame-parameter 'foreground-color))
+				 (ps-frame-parameter nil 'foreground-color))
 				((eq ps-default-fg t)
 				 (ps-face-foreground-name 'default))
 				(t

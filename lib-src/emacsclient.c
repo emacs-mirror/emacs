@@ -484,13 +484,45 @@ file_name_absolute_p (filename)
   if (filename[0] == '\0') return FALSE;
 
 #ifdef WINDOWSNT
-  /* X:\xxx is always absolute; X:xxx is an error and will fail.  */
+  /* X:\xxx is always absolute.  */
   if (isalpha (filename[0])
       && filename[1] == ':' && (filename[2] == '\\' || filename[2] == '/'))
     return TRUE;
 
   /* Both \xxx and \\xxx\yyy are absolute.  */
   if (filename[0] == '\\') return TRUE;
+
+  /*
+    FIXME:  There's a corner case not dealt with, "x:y", where:
+
+    1) x is a valid drive designation (usually a letter in the A-Z range)
+       and y is a path, relative to the current directory on drive x.  This
+       is absolute, *after* fixing the y part to include the current
+       directory in x.
+
+    2) x is a relative file name, and y is an NTFS stream name.  This is a
+       correct relative path, but it is very unusual.
+
+    The trouble is that first case items are also valid examples of the
+    second case, i.e., "c:test" can be understood as drive:path or as
+    file:stream.
+
+    The "right" fix would involve checking whether
+    - the current drive/partition is NTFS,
+    - x is a valid (and accesible) drive designator,
+    - x:y already exists as a file:stream in the current directory,
+    - y already exists on the current directory of drive x,
+    - the auspices are favorable,
+    and then taking an "informed decision" based on the above.
+
+    Whatever the result, Emacs currently does a very bad job of dealing
+    with NTFS file:streams: it cannot visit them, and the only way to
+    create one is by setting `buffer-file-name' to point to it (either
+    manually or with emacsclient). So perhaps resorting to 1) and ignoring
+    2) for now is the right thing to do.
+
+    Anyway, something to decide After the Release.
+  */
 #endif
 
   return FALSE;
@@ -884,7 +916,7 @@ w32_give_focus ()
 {
   HMODULE hUser32;
 
-  /* It should'nt happen when dealing with TCP sockets.  */
+  /* It shouldn't happen when dealing with TCP sockets.  */
   if (!emacs_pid) return;
 
   if (!(hUser32 = LoadLibrary ("user32.dll"))) return;

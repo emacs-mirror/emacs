@@ -2787,7 +2787,8 @@ It is dangerous if either of these conditions are met:
 		    ;; During bootstrapping, edebug-basic-spec might not be
 		    ;; defined yet.
                     (and (fboundp 'edebug-basic-spec)
-                         (edebug-basic-spec val))))))
+			 (hack-one-local-variable-quotep val)
+                         (edebug-basic-spec (nth 1 val)))))))
       ;; Allow expressions that the user requested.
       (member exp safe-local-eval-forms)
       ;; Certain functions can be allowed with safe arguments
