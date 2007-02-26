@@ -1,3 +1,16 @@
+2007-02-26  Carsten Dominik  <dominik@science.uva.nl>
+
+	* orgcard.tex (section{Visibility Cycling}): Document key for
+	indirect buffer access.
+	(section{Archiving}): New keys for archiving.
+	(section{Tables}): Combine two lines for hline creation.
+	Named-field formula changed to Field formula.
+	(section{Links}): Document keys for finding links.
+	(section{Agenda Views}): New key for agenda file cycling.
+	Document keys for stuck projects.  Typos fixed.
+	(section{Exporting and Publishing}): Export options no longer in
+	reference card.
+
 2007-02-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* PROBLEMS: Gtk+ and cygwin doesn't work.
