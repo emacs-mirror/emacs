@@ -1276,7 +1276,17 @@ If MODE is 2 then do the same for lines."
     (unless ignore
       ;; For certain special keys, delete the region.
       (if (member key mouse-region-delete-keys)
-	  (delete-region (mark t) (point))
+	  (progn
+	    ;; Since notionally this is a separate command,
+	    ;; run all the hooks that would be run if it were
+	    ;; executed separately.
+	    (run-hooks 'post-command-hook)
+	    (setq last-command this-command)
+	    (setq this-original-command 'delete-region)
+	    (setq this-command (or (command-remapping this-original-command)
+				   this-original-command))
+	    (run-hooks 'pre-command-hook)
+	    (call-interactively this-command))
 	;; Otherwise, unread the key so it gets executed normally.
 	(setq unread-command-events
 	      (nconc events unread-command-events))))
