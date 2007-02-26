@@ -26,3 +26,6 @@ Boston, MA 02110-1301, USA.  */
 #else
 #define WORDS_BIG_ENDIAN
 #endif
+
+/* arch-tag: fe5872de-d565-4d81-8fe0-ea19865b3e6a
+   (do not change this comment) */
