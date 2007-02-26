@@ -674,6 +674,7 @@ queries of the form USER@HOST, and wants a query containing USER only."
 (defcustom whois-server-list
   '(("whois.arin.net")     ; Networks, ASN's, and related POC's (numbers)
     ("rs.internic.net")  ; domain related info
+    ("whois.publicinterestregistry.net")
     ("whois.abuse.net")
     ("whois.apnic.net")
     ("nic.ddn.mil")
@@ -684,9 +685,12 @@ queries of the form USER@HOST, and wants a query containing USER only."
   :group 'net-utils
   :type '(repeat (list string)))
 
+;; FIXME: modern whois clients include a much better tld <-> whois server
+;; list, Emacs should probably avoid specifying the server as the client
+;; will DTRT anyway... -rfr
 (defcustom whois-server-tld
   '(("rs.internic.net" . "com")
-    ("rs.internic.net" . "org")
+    ("whois.publicinterestregistry.net" . "org")
     ("whois.ripe.net" . "be")
     ("whois.ripe.net" . "de")
     ("whois.ripe.net" . "dk")
@@ -707,7 +711,7 @@ queries of the form USER@HOST, and wants a query containing USER only."
 (defcustom whois-guess-server t
   "If non-nil then whois will try to deduce the appropriate whois
 server from the query.  If the query doesn't look like a domain or hostname
-then the server named by whois-server-name is used."
+then the server named by `whois-server-name' is used."
   :group 'net-utils
   :type 'boolean)
 

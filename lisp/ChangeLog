@@ -1,3 +1,9 @@
+2007-02-26  Romain Francoise  <romain@orebokech.com>
+
+	* net/net-utils.el (whois-server-tld): Update server for .org.
+	(whois-server-list): Add whois.publicinterestregistry.net.
+	(whois-guess-server): Fix formatting in docstring.
+
 2007-02-26  Kim F. Storm  <storm@cua.dk>
 
 	* mouse.el (mouse-show-mark): Run hooks and perform command
