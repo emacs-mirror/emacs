@@ -1,11 +1,16 @@
+2007-02-26  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+
+	* font-core.el (font-lock-mode): Doc fix.
+
 2007-02-25  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-buffer-internal): Set this-command to fallback command.
 	Add selected buffer to buffer-name-history.
 	(ido-file-internal): Set this-command to fallback command.
-	Add file names to to file-name-history.
+	Add file names to file-name-history.
 
-	* emacs-lisp/map-ynp.el (map-y-or-n-p): Apply minibuffer-prompt-properties.
+	* emacs-lisp/map-ynp.el (map-y-or-n-p):
+	Apply minibuffer-prompt-properties.
 
 2007-02-25  Andreas Schwab  <schwab@suse.de>
 
@@ -24,8 +29,7 @@
 	(org-table-limit-column-width): Option removed.
 	(org-table-formula-numbers-only): Option removed.
 	(org-link-style, org-link-format): Options removed.
-	(org-select-agenda-window, org-fit-agenda-window): Options
-	removed.
+	(org-select-agenda-window, org-fit-agenda-window): Options removed.
 	(org-export-ascii-show-new-buffer)
 	(org-export-html-show-new-buffer): Options removed.
 	(org-activate-links): Camel option removed.
@@ -53,10 +57,10 @@
 	(orgtbl-toggle-comment, orgtbl-send-table): New functions.
 	(orgtbl-radio-table-templates): New option.
 	(org-store-link-props):
-	(org-remember-templates): More possibilities to insert info into
-	templates.
-	(org-remember-apply-template): Make use of the extended template
-	capabilities.
+	(org-remember-templates): More possibilities to insert info
+	into templates.
+	(org-remember-apply-template): Make use of the extended
+	template capabilities.
 	(org-remember-redo-template): New command.
 	(org-upgrade-old-links)
 	(org-table-modify-formulas, org-table-replace-in-formulas)
@@ -131,8 +135,8 @@
 	(org-sort): New command.
 	(org-table-sort-lines): Use `org-do-sort'.
 	(org-fix-decoded-time): New function.
-	(org-table-number-regexp): Require 0x... to identify as number in
-	tables.
+	(org-table-number-regexp): Require 0x... to identify as number
+	in tables.
 	(org-startup-options): New keywords for note taking.
 	(org-upgrade-old-links): Function removed.
 	(org-get-repeat): New function.
