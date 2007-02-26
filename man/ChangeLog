@@ -1,3 +1,7 @@
+2007-02-26  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi: Remove references to bashdb.
+
 2007-02-25  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: (The spreadsheet): Renamed from "Table calculations".
