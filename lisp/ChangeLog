@@ -1,3 +1,8 @@
+2007-02-26  Kim F. Storm  <storm@cua.dk>
+
+	* mouse.el (mouse-show-mark): Run hooks and perform command
+	remapping for mouse-region-delete-keys.
+
 2007-02-26  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
 	* font-core.el (font-lock-mode): Doc fix.
@@ -15,8 +20,7 @@
 2007-02-25  Andreas Schwab  <schwab@suse.de>
 
 	* files.el (hack-one-local-variable-eval-safep): Correct handling
-	of edebug-form-spec property value.  Reported by Johan Bockg,Ae(Brd
-	<bojohan+mail@dd.chalmers.se>.
+	of edebug-form-spec property value.  Reported by Johan Bockg,Ae(Brd.
 
 2007-02-25  Carsten Dominik  <dominik@science.uva.nl>
 
