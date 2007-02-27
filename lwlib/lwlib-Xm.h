@@ -1,7 +1,5 @@
 /* The lwlib interface to Motif widgets.
-   Copyright (C) 1994, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007  Free Software Foundation, Inc.
-   Copyright (C) 1992 Lucid, Inc.
+Copyright (C) 1992 Lucid, Inc.
 
 This file is part of the Lucid Widget Library.
 
