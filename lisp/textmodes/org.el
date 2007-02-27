@@ -14466,6 +14466,7 @@ the documentation of `org-diary'."
 	    (goto-char beg)
 	    (or org-agenda-todo-list-sublevels (org-end-of-subtree 'invisible))
 	    (throw :skip nil)))
+	(goto-char beg)
 	(org-agenda-skip)
 	(goto-char (match-beginning 1))
 	(setq marker (org-agenda-new-marker (1+ (match-beginning 0)))
