@@ -1,6 +1,8 @@
 2007-02-27  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-archive-subtree): Quote variable name.
+	(org-agenda-get-todos): Make sure skip properties are checked
+	correctly.
 
 2007-02-26  Nick Roberts  <nickrob@snap.net.nz>
 
