@@ -1,8 +1,5 @@
 Tasks needed before the next release.
 
-* COPYRIGHTS
-  See the outstanding issues at the end of admin/notes/copyright.
-
 * TO BE DONE SHORTLY BEFORE RELEASE
 
 ** Check for widow and orphan lines in manuals;
@@ -63,7 +60,7 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 * BUGS
 
 ** Fix up copyright confusions.
-  See admin/notes/copyright.
+  See end of admin/notes/copyright.
 
 ** simon.marshall@misys.com, Jan 12:
   Font-lock decides function call is function declaration in C++
