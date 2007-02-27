@@ -1,5 +1,12 @@
 2007-02-27  Glenn Morris  <rgm@gnu.org>
 
+	* cs-dired-ref.tex: Increase in 2 column case to make room
+	for copyright notice.
+	(nopagenumbers): Call to turn off numbers in 1 page document.
+	(N,Aa(Bpov,Al(Bda, Modifikace Dired bufferu): Swap sections to
+	balance column length in presence of copyright notice.
+	(copyrightnotice): Uncomment so that notice is displayed.
+
 	* dired-ref.tex (vsize): Increase in 2 column case to make room
 	for copyright notice.
 	(nopagenumbers): Call to turn off numbers in 1 page document.
