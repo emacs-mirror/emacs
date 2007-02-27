@@ -1,5 +1,12 @@
 2007-02-27  Glenn Morris  <rgm@gnu.org>
 
+	* dired-ref.tex (vsize): Increase in 2 column case to make room
+	for copyright notice.
+	(nopagenumbers): Call to turn off numbers in 1 page document.
+	(Getting Help, Modifying the Dired Buffer): Swap sections to
+	balance column length in presence of copyright notice.
+	(copyrightnotice): Uncomment so that notice is displayed.
+
 	* fr-drdref.tex (vsize): Increase in 2 column case.
 	(\key): Tweak space for description.
 	(\overfullrule): Set to 0pt to hide small overflows.
@@ -11,10 +18,10 @@
 	(find-names-dired): Use \key rather than \metax as a hack fix for
 	overflow.
 
-	* dired-ref.tex (vsize): Increase in 2 column case to make room
+	* sk-dired-ref.tex (vsize): Increase in 2 column case to make room
 	for copyright notice.
 	(nopagenumbers): Call to turn off numbers in 1 page document.
-	(Getting Help, Modifying the Dired Buffer): Swap sections to
+	(N,Aa(Bpoveda, Modifik,Aa(Bcia Dired bufferu): Swap sections to
 	balance column length in presence of copyright notice.
 	(copyrightnotice): Uncomment so that notice is displayed.
 
