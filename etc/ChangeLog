@@ -1,5 +1,16 @@
 2007-02-27  Glenn Morris  <rgm@gnu.org>
 
+	* fr-drdref.tex (vsize): Increase in 2 column case.
+	(\key): Tweak space for description.
+	(\overfullrule): Set to 0pt to hide small overflows.
+	(nopagenumbers): Call to turn off numbers in 1 page document.
+	(Obtenir de l'aide, Modifier le tampon Dired): Swap sections to
+	balance column length.
+	(Mettre un flag sur les fichiers \`a d\'etruire): Hack in a line
+	break to prevent overfull line.
+	(find-names-dired): Use \key rather than \metax as a hack fix for
+	overflow.
+
 	* dired-ref.tex (vsize): Increase in 2 column case to make room
 	for copyright notice.
 	(nopagenumbers): Call to turn off numbers in 1 page document.
