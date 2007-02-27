@@ -65,8 +65,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 ** simon.marshall@misys.com, Jan 12:
   Font-lock decides function call is function declaration in C++
 
-** Fix needed for communication with gpg-agent
-
 ** md5i@cs.cmu.edu, Feb 20: move-end-of-line in comint buffers
 
 ** dale@codefu.org, Feb 25: tramp and diff-mode results in Emacs crash
