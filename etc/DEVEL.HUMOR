@@ -2,6 +2,9 @@
 --                                                                  --
 -- Humor (sometimes unintended) on the Emacs developer's list       --
 --                                                                  --
+-- The Free Software Foundation claims no copyright on this file,   --
+-- compiled from the public emacs-devel mailing list.               --
+--                                                                  --
 ----------------------------------------------------------------------
 
   "Is it legal for a `struct interval' to have a total_length field of
