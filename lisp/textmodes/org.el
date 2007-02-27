@@ -5528,9 +5528,10 @@ this heading. "
 	      (org-done-string tr-org-done-string)
 	      (org-todo-regexp tr-org-todo-regexp)
 	      (org-todo-line-regexp tr-org-todo-line-regexp)
-	      (org-odd-levels-only (if (local-variable-p org-odd-levels-only)
-				       org-odd-levels-only
-				     tr-org-odd-levels-only)))
+	      (org-odd-levels-only
+	       (if (local-variable-p 'org-odd-levels-only)
+		   org-odd-levels-only
+		 tr-org-odd-levels-only)))
 	  (goto-char (point-min))
 	  (if heading
 	      (progn
