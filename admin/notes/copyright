@@ -222,11 +222,6 @@ lwlib/
 rms (2007/02/17): "lwlib is not assigned to the FSF; we don't consider
 it part of Emacs. [...] Therefore non-FSF copyrights are ok in lwlib."
 
-Leave these files under GPLv1 or later.
-[Note that lwlib.c and xlwmenu.c were installed in 1994 under GPLv2 or
-later, but I reverted them to GPLv1 or later which I think is right
-for the original lwlib/.] FIXME was this right?
-
 FSF copyrights should only appear in files which have undergone
 non-trivial cumulative changes from the original versions in the Lucid
 Widget Library. NB this means that if you make non-trivial changes to
@@ -526,7 +521,7 @@ Done: TUTORIAL.eo
 
 
 lwlib/*
-  should it be under GPLv1 or later, or v2 or later?
+  should it be under GPLv1 or later, or v2 or later, or some mixture?
 
 
 
