@@ -1,3 +1,12 @@
+2007-02-27  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-encrypt-string): Remove inhibition
+	of gpg-agent, now that pgg-gpg-process-region correctly honors
+	passed-in passphrase.
+	(allout-distinctive-bullets-string): Add info about bullet
+	conventions.
+	(allout-mode): Add info about distinctive vs plain bullets.
+
 2007-02-27  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-archive-subtree): Quote variable name.
