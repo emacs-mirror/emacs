@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.67a
+;; Version: 4.67b
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -83,7 +83,7 @@
 
 ;;; Version
 
-(defvar org-version "4.67"
+(defvar org-version "4.67b"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -6324,7 +6324,7 @@ is always the old value."
       (let* ((pos (match-beginning 0))
 	     (val (buffer-substring (1+ pos) (match-end 0))))
 	(if replace
-	    (replace-match (concat "|" replace)))
+	    (replace-match (concat "|" replace) t t))
 	(goto-char (min (point-at-eol) (+ 2 pos)))
 	val)
     (forward-char 1) ""))
@@ -11651,7 +11651,7 @@ With prefix ARG, realign all tags in headings in the current buffer."
 					org-tags-column
 				      (- (- org-tags-column) (length tags))))
 		    rpl (concat (make-string (max 0 (- c1 c0)) ?\ ) tags)))
-	    (replace-match rpl)
+	    (replace-match rpl t t)
 	    (and (not (featurep 'xemacs)) c0 (tabify p0 (point)))
 	    tags)
 	(error "Tags alignment failed")))))
@@ -12982,6 +12982,7 @@ The following commands are available:
 (define-key org-agenda-mode-map "\C-m"     'org-agenda-switch-to)
 (define-key org-agenda-mode-map "\C-k"     'org-agenda-kill)
 (define-key org-agenda-mode-map "\C-c$"    'org-agenda-archive)
+(define-key org-agenda-mode-map "\C-c\C-x\C-s" 'org-agenda-archive)
 (define-key org-agenda-mode-map "$"        'org-agenda-archive)
 (define-key org-agenda-mode-map "\C-c\C-o" 'org-agenda-open-link)
 (define-key org-agenda-mode-map " "        'org-agenda-show)
