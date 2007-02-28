@@ -1240,7 +1240,7 @@ where square brackets denote optional elements.
 @item proto
 Specifies the @dfn{mailbox protocol}, or @dfn{format} to
 use.  The exact semantics of the rest of @acronym{URL} elements depends
-on the actual value of @var{proto}.
+on the actual value of @var{proto} (see below).
 
 @item user
 User name to access the remote mailbox.
@@ -1253,9 +1253,10 @@ Hostname of the remote server for remote mailboxes or file name of a
 local mailbox.
 @end table
 
+@noindent
 @var{Proto} can be one of:
 
-@table @asis
+@table @code
 @item mbox
 Usual UNIX mailbox format.  In this case, neither @var{user} nor
 @var{pass} are used, and @var{host-or-file-name} denotes the file name of
