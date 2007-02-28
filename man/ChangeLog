@@ -15,9 +15,9 @@
 
 2007-02-25  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi: (The spreadsheet): Renamed from "Table calculations".
+	* org.texi (The spreadsheet): Renamed from "Table calculations".
 	Completely reorganized and rewritten.
-	(CamelCase links): Section removed. 
+	(CamelCase links): Section removed.
 	(Repeating items): New section.
 	(Tracking TODO state changes): New section.
 	(Agenda views): Chapter reorganized and rewritten.

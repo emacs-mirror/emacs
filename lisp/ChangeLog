@@ -1,3 +1,8 @@
+2007-02-28  Stuart Herring  <herring@lanl.gov>  (tiny change)
+
+	* find-lisp.el (find-lisp-default-directory-predicate):
+	Fix bug: Do symlink check on expanded filename.
+
 2007-02-28  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-set-tags, org-table-get-field): Avoid case
