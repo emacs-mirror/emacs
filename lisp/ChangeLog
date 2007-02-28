@@ -1,3 +1,8 @@
+2007-02-28  Glenn Morris  <rgm@gnu.org>
+
+	* tutorial.el (tutorial--describe-nonstandard-key): Tweak text in
+	the menus case.
+
 2007-02-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* net/tramp.el (tramp-file-name-handler): Inhibit modification

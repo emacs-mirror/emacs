@@ -139,6 +139,12 @@ etc/edt-user.doc
 etc/emacs.csh
   - keep simple license for this simple file
 
+etc/future-bug
+ - doesn't need a humourless disclaimer, because Karl Fogel says we
+ can consider it part of Emacs, and he has a blanker disclaimer for
+ Emacs changes. (email to rgm "[Emacs-commit] emacs/etc future-bug",
+ 2007028)
+
 etc/letter.pbm,letter.xpm
   - trivial, no notice needed.
 <http://lists.gnu.org/archive/html/emacs-devel/2007-02/msg00324.html>
@@ -164,6 +170,8 @@ SW.tit, TONEPY.tit, ZOZY.tit
 leim/MISC-DIC/CTLau-b5.html, CTLau.html, cangjie-table.b5, cangjie-table.cns,
 pinyin.map, ziranma.cin
   - leave the copyright alone.
+Note that pinyin.map, ziranma.cin (and hence the generated
+leim/quail/PY.el, ZIRANMA.el) are under GPLv1 or later.
 
 leim/SKK-DIC/SKK-JISYO.L
 ja-dic/ja-dic.el
@@ -213,6 +221,11 @@ lisp/net/tramp.el
 lwlib/
 rms (2007/02/17): "lwlib is not assigned to the FSF; we don't consider
 it part of Emacs. [...] Therefore non-FSF copyrights are ok in lwlib."
+
+Leave these files under GPLv1 or later.
+[Note that lwlib.c and xlwmenu.c were installed in 1994 under GPLv2 or
+later, but I reverted them to GPLv1 or later which I think is right
+for the original lwlib/.] FIXME was this right?
 
 FSF copyrights should only appear in files which have undergone
 non-trivial cumulative changes from the original versions in the Lucid
@@ -510,6 +523,10 @@ etc/TUTORIAL* (translations)
   Only a few sentences around the license notice need changing from
   previous version.
 Done: TUTORIAL.eo
+
+
+lwlib/*
+  should it be under GPLv1 or later, or v2 or later?
 
 
 
