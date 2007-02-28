@@ -52,6 +52,9 @@ added. NB consequently, if you add a lot of text to a small file,
 consider whether your changes have made the file worthy of a copyright
 notice, and if so, please add one.
 
+It can be helpful to put a reminder comment at the start of a trivial
+file, eg: "add a license notice if this grows to > 10 lines of code".
+
 The years in the copyright notice should be updated every year (see
 file "years" in this directory). The PS versions of refcards etc
 should display copyright notices (an exception to the rule about
