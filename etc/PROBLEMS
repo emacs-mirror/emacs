@@ -329,14 +329,6 @@ SYSTEM, YOU CAN LOSE MAIL!
 If your system uses the lock file protocol, and fascist restrictions
 prevent ordinary users from writing the lock files in /usr/spool/mail,
 you may need to make `movemail' setgid to a suitable group such as
-`mail'.  You can use these commands (as root):
-
-	chgrp mail movemail
-	chmod 2755 movemail
-
-If your system uses the lock file protocol, and fascist restrictions
-prevent ordinary users from writing the lock files in /usr/spool/mail,
-you may need to make `movemail' setgid to a suitable group such as
 `mail'.  To do this,  use the following commands (as root) after doing the
 make install.
 
