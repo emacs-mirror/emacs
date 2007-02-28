@@ -4348,12 +4348,7 @@ Falls back to normal file name handler if no tramp file name handler exists."
   (save-match-data
     (let* ((filename (apply 'tramp-file-name-for-operation operation args))
 	   (completion (tramp-completion-mode filename))
-	   (foreign (tramp-find-foreign-file-name-handler filename))
-	   ;; If combine-after-change-calls is t, it is possible to
-	   ;; get Emacs into a confused state since the backend
-	   ;; handlers can scribble to temp buffers, e.g. through
-	   ;; format-spec.  So we ignore all modification hooks.
-	   (inhibit-modification-hooks t))
+	   (foreign (tramp-find-foreign-file-name-handler filename)))
       (with-parsed-tramp-file-name filename nil
 	(cond
 	 ;; When we are in completion mode, some operations shouldn' be
