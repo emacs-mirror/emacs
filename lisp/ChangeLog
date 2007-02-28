@@ -1,3 +1,9 @@
+2007-02-28  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-set-tags, org-table-get-field): Avoid case
+	changes during replacement.
+	(org-agenda-mode-map): Add default binding for `org-agenda-archive'.
+
 2007-02-28  Lars Hansen  <larsh@soem.dk>
 
 	* desktop.el: Delete header line listing me as maintainer.
