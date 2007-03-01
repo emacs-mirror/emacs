@@ -9,8 +9,6 @@ make sure all the pages really look ok in the manual as formatted.
 eshell.texi 'Known Problems' (does section need updating?)
 cc-mode.texi 'Performance Issues': "21.3 as of this writing"
 
-** Update AUTHORS.
-
 ** Cleanup temporary +++/--- lines in etc/NEWS.
 
 ** Regenerate the postscript files of the reference cards in etc.
