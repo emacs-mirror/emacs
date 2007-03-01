@@ -224,6 +224,9 @@ lwlib/
 rms (2007/02/17): "lwlib is not assigned to the FSF; we don't consider
 it part of Emacs. [...] Therefore non-FSF copyrights are ok in lwlib."
 
+NB don't change the GPL version used for lwlib .c and .h files (see
+below).
+
 FSF copyrights should only appear in files which have undergone
 non-trivial cumulative changes from the original versions in the Lucid
 Widget Library. NB this means that if you make non-trivial changes to
@@ -270,11 +273,26 @@ Makefile auto-generated from Lucid's Imakefile.
 As of Feb 2007, the following files are considered too trivial for
 notices: lwlib-Xaw.h, lwlib-Xlw.h, lwlib-utils.h.
 
+The version of lwlib/ first installed in Emacs seems to be the same as
+that used in Lucid Emacs 19.8 (released 6-sep-93); except the two Xaw
+files, which did not appear till Athena support was added in Lucid
+Emacs 19.9. In Lucid Emacs 19.1, all files were under GPLv1 or later,
+but by Lucid Emacs 19.8, lwlib.c and xlwmenu.c had been switched to v2
+or later. These are the versions that were first installed in Emacs.
+So in GNU Emacs, these two files have been under v2 or later since
+1994.
 
-msdos/is_exec.c, sigaction.c
-  - these files are copyright DJ Delorie. Leave the copyrights alone.
-  Leave the Eli Zaretskii copyright in is_exec.c alone. See the
-  msdos/README file for the legal history of these files.
+It seems that it was the intention of Lucid to use v1 or later
+(excepting the two files mentioned previously); so this is the license
+we have used when adding notices to code that did not have notices
+originally. Although we have the legal right to switch to v2 or later,
+rms prefers that we do not do so.
+
+
+msdos/is_exec.c, sigaction.c - these files are copyright DJ Delorie.
+Leave the copyrights alone. Leave the Eli Zaretskii copyright in
+is_exec.c alone. See the msdos/README file for the legal history of
+these files.
 
 
 oldXMenu/
@@ -520,10 +538,6 @@ etc/TUTORIAL* (translations)
   Only a few sentences around the license notice need changing from
   previous version.
 Done: TUTORIAL.eo
-
-
-lwlib/*
-  should it be under GPLv1 or later, or v2 or later, or some mixture?
 
 
 
