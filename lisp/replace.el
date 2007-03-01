@@ -1423,8 +1423,10 @@ make, or the user didn't cancel the call."
 
 	(message
 	 (if query-flag
-	     (substitute-command-keys
-	      "Query replacing %s with %s: (\\<query-replace-map>\\[help] for help) "))))
+	     (apply 'propertize
+		    (substitute-command-keys
+		     "Query replacing %s with %s: (\\<query-replace-map>\\[help] for help) ")
+		    minibuffer-prompt-properties))))
 
     ;; If region is active, in Transient Mark mode, operate on region.
     (when start
