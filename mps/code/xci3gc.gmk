@@ -17,7 +17,7 @@ RANLIB=ranlib
 
 include gc.gmk
 
-CC = cc
+CC = cc -arch i386
 
 include comm.gmk
 
