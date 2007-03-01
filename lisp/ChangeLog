@@ -1,3 +1,8 @@
+2007-03-01  Lennart Borgman  <lennart.borgman.073@student.lu.se>
+
+	* isearch.el (isearch-message-prefix):
+	Use minibuffer-prompt-properties.
+
 2007-03-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el (ps-setup): Print which Emacsen is running ps-print

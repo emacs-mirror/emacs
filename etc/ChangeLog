@@ -1,5 +1,7 @@
 2007-03-01  Kim F. Storm  <storm@cua.dk>
 
+	* ORDERS: Reformat text.
+
 	* NEWS (About external Lisp packages): New section.
 
 2007-02-28  Thien-Thi Nguyen  <ttn@gnu.org>
