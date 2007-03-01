@@ -12942,6 +12942,24 @@ Six pre-made functions are supplied.  These functions can be grouped in
 two categories: direct connection functions (four pre-made), and
 indirect ones (two pre-made).
 
+@item nntp-never-echoes-commands
+@vindex nntp-never-echoes-commands
+Non-@code{nil} means the nntp server never echoes commands.  It is
+reported that some nntps server doesn't echo commands.  So, you may want
+to set this to non-@code{nil} in the method for such a server setting
+@code{nntp-open-connection-function} to @code{nntp-open-ssl-stream} for
+example.  The default value is @code{nil}.  Note that the
+@code{nntp-open-connection-functions-never-echo-commands} variable
+overrides the @code{nil} value of this variable.
+
+@item nntp-open-connection-functions-never-echo-commands
+@vindex nntp-open-connection-functions-never-echo-commands
+List of functions that never echo commands.  Add or set a function which
+you set to @code{nntp-open-connection-function} to this list if it does
+not echo commands.  Note that a non-@code{nil} value of the
+@code{nntp-never-echoes-commands} variable overrides this variable.  The
+default value is @code{(nntp-open-network-stream)}.
+
 @item nntp-prepare-post-hook
 @vindex nntp-prepare-post-hook
 A hook run just before posting an article.  If there is no
