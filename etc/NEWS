@@ -37,8 +37,8 @@ older packages.
 
 Some specific packages which are known to cause problems are:
 
-** CEDET (upgrade to lastest version)
-** cua.el, cua-mode.el (remove old versions)
+** Semantic (used by CEDET, ECB, JDEE): upgrade to lastest version.
+** cua.el, cua-mode.el: remove old versions.
 
 
 * Installation Changes in Emacs 22.1
@@ -3857,7 +3857,7 @@ OPERATION is `insert-file-contents', and thus a function registered in
 
 ---
 ** The variables post-command-idle-hook and post-command-idle-delay have
-    been removed.  Use run-with-idle-timer instead.
+been removed.  Use run-with-idle-timer instead.
 
 +++
 ** `suppress-keymap' now works by remapping `self-insert-command' to
