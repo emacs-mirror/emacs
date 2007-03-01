@@ -1450,14 +1450,14 @@ Please send all bug fixes and enhancements to
 
 (let ((case-fold-search t))
   (cond ((string-match "XEmacs" emacs-version))
-        ((string-match "Lucid" emacs-version)
-         (error "`ps-print' doesn't support Lucid"))
-        ((string-match "Epoch" emacs-version)
-         (error "`ps-print' doesn't support Epoch"))
-        (t
-         (unless (and (boundp 'emacs-major-version)
-                      (>= emacs-major-version 22))
-           (error "`ps-print' only supports Emacs 22 and higher")))))
+	((string-match "Lucid" emacs-version)
+	 (error "`ps-print' doesn't support Lucid"))
+	((string-match "Epoch" emacs-version)
+	 (error "`ps-print' doesn't support Epoch"))
+	(t
+	 (unless (and (boundp 'emacs-major-version)
+		      (>= emacs-major-version 22))
+	   (error "`ps-print' only supports Emacs 22 and higher")))))
 
 
 ;; GNU Emacs
@@ -1498,8 +1498,8 @@ Please send all bug fixes and enhancements to
 (defalias 'ps-e-x-color-values      'x-color-values)
 (defalias 'ps-e-color-values        'color-values)
 (defalias 'ps-e-find-composition (if (fboundp 'find-composition)
-                                     'find-composition
-                                   'ignore))
+				     'find-composition
+				   'ignore))
 
 
 (defconst ps-windows-system
@@ -1515,11 +1515,12 @@ Please send all bug fixes and enhancements to
 
 (defalias 'ps-frame-parameter
   (if (fboundp 'frame-parameter) 'frame-parameter 'frame-property))
+
 (defalias 'ps-mark-active-p
   (if (fboundp 'region-active-p)
-      'region-active-p                  ; XEmacs
-    (defvar mark-active)                ; To shup up XEmacs's byte compiler.
-    (lambda () mark-active)))                ; Emacs
+      'region-active-p			; XEmacs
+    (defvar mark-active)		; To shup up XEmacs's byte compiler.
+    (lambda () mark-active)))		; Emacs
 
 (cond ((featurep 'xemacs)		; XEmacs
        (defun ps-face-foreground-name (face)
@@ -3585,11 +3586,12 @@ The table depends on the current ps-print setup."
     (mapconcat
      #'ps-print-quote
      (list
-      (concat "\n;;; ps-print version " ps-print-version "\n")
+      (concat "\n;;; (" (if (featurep 'xemacs) "XEmacs" "Emacs")
+	      ") ps-print version " ps-print-version "\n")
       ";; internal vars"
-      (ps-comment-string "emacs-version      " emacs-version)
-      (ps-comment-string "ps-windows-system  " ps-windows-system)
-      (ps-comment-string "ps-lp-system       " ps-lp-system)
+      (ps-comment-string "emacs-version     " emacs-version)
+      (ps-comment-string "ps-windows-system " ps-windows-system)
+      (ps-comment-string "ps-lp-system      " ps-lp-system)
       nil
       '(25 . ps-print-color-p)
       '(25 . ps-lpr-command)
@@ -3843,18 +3845,18 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 ;; This function is not yet implemented for GNU emacs.
 (defalias 'ps-color-device
   (cond ((and (featurep 'xemacs)
-              ;; XEmacs change: Need to check for emacs-major-version too.
-              (or (> emacs-major-version 19)
-                  (and (= emacs-major-version 19)
-                       (>= emacs-minor-version 12)))) ; XEmacs >= 19.12
-         (lambda ()
-           (eq (ps-x-device-class) 'color)))
+	      ;; XEmacs change: Need to check for emacs-major-version too.
+	      (or (> emacs-major-version 19)
+		  (and (= emacs-major-version 19)
+		       (>= emacs-minor-version 12)))) ; XEmacs >= 19.12
+	 (lambda ()
+	   (eq (ps-x-device-class) 'color)))
 
-        (t				; Emacs
-         (lambda ()
-           (if (fboundp 'color-values)
-               (ps-e-color-values "Green")
-             t)))))
+	(t				; Emacs
+	 (lambda ()
+	   (if (fboundp 'color-values)
+	       (ps-e-color-values "Green")
+	     t)))))
 
 
 (defun ps-mapper (extent list)
