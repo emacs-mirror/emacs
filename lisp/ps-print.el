@@ -3338,13 +3338,13 @@ It's like the very first character of buffer (or region) is ^L (\\014)."
 
 (defcustom ps-postscript-code-directory
   (or (if (featurep 'xemacs)
-	  (cond ((fboundp 'locate-data-directory) ; xemacs
+	  (cond ((fboundp 'locate-data-directory) ; XEmacs
 		 (locate-data-directory "ps-print"))
-		((boundp 'data-directory) ; xemacs
+		((boundp 'data-directory) ; XEmacs
 		 data-directory)
 		(t			; don't know what to do
 		 nil))
-	data-directory)			; emacs
+	data-directory)			; Emacs
       (error "`ps-postscript-code-directory' isn't set properly"))
   "*Directory where it's located the PostScript prologue file used by ps-print.
 By default, this directory is the same as in the variable `data-directory'."
