@@ -1,4 +1,4 @@
-/* sslii3.c: UNIX/INTEL STACK SCANNING
+/* ssixi3.c: UNIX/INTEL STACK SCANNING
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -40,7 +40,7 @@
 
 #include "mpm.h"
 
-SRCID(sslii3, "$Id$");
+SRCID(ssixi3, "$Id$");
 
 
 /* .assume.asm.order */
