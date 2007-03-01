@@ -37,7 +37,7 @@ older packages.
 
 Some specific packages which are known to cause problems are:
 
-** Semantic (used by CEDET, ECB, JDEE): upgrade to lastest version.
+** Semantic (used by CEDET, ECB, JDEE): upgrade to latest version.
 ** cua.el, cua-mode.el: remove old versions.
 
 
