@@ -13633,7 +13633,7 @@ Optional argument FILE means, use this file instead of the current."
 	    (when org-agenda-skip-archived-trees
 	      (goto-char (point-min))
 	      (while (re-search-forward rea nil t)
-		(if (org-on-heading-p)
+		(if (org-on-heading-p t)
 		    (add-text-properties (point-at-bol) (org-end-of-subtree t) pa))))
 	    (goto-char (point-min))
 	    (setq re (concat "^\\*+ +" org-comment-string "\\>"))
