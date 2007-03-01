@@ -45,7 +45,6 @@
 
 	* desktop.el: Delete header line listing me as maintainer.
 
->>>>>>> 1.10749
 2007-02-28  Glenn Morris  <rgm@gnu.org>
 
 	* tutorial.el (tutorial--describe-nonstandard-key): Tweak text in
