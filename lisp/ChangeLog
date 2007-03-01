@@ -1,3 +1,10 @@
+2007-03-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-quote-syntax): Don't bother with
+	syntax-ppss-context.
+	(python-fill-paragraph): Make sure that fenced-string delimiters that
+	stand on their own line stay there
+
 2007-03-01  Lennart Borgman  <lennart.borgman.073@student.lu.se>
 
 	* replace.el (perform-replace): Propertize message.
