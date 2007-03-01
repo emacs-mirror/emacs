@@ -198,7 +198,9 @@ lib-src/etags.c
   Accordingly, in Feb 2007 we added a 1984 copyright for the
   University of California and a revised BSD license. The terms of
   this require that the full license details be available in binary
-  distributions - hence the file etc/ETAGS.README.
+  distributions - hence the file etc/ETAGS.README. The fact that the
+  --version output just says "Copyright <year> FSF" is apparently OK
+  from a legal point of view.
 
 lib-src/getopt1.c, getopt_int.h
   - these are from the GNU C library. Leave the copyrights alone.
