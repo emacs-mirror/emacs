@@ -1,3 +1,8 @@
+2007-03-01  Kenichi Handa  <handa@m17n.org>
+
+	* process.c (send_process_object): Check the process status and
+	signal an error if something is wrong.
+
 2007-02-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* insdel.c (Fcombine_after_change_execute): Return nil if
