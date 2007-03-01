@@ -12,11 +12,9 @@
 #include "fmtdy.h"
 #include "fmtdytst.h"
 #include "mps.h"
-#if !defined(CONFIG_PROD_EPCORE)
-#  include "mpstd.h"
-#  ifdef MPS_OS_W3
-#    include "mpsw3.h"
-#  endif
+#include "mpstd.h"
+#ifdef MPS_OS_W3
+#  include "mpsw3.h"
 #endif
 #include <stdlib.h>
 #include <stdarg.h>
@@ -450,24 +448,12 @@ static void *test(void *arg, size_t s)
 
 #define TEST_ARENA_SIZE              ((size_t)16<<20)
 
-/* Hacky.  Sorry.
- * REG_ROOT is defined to 1 when we can use a register root.
- * Otherwise it is defined to 0.
- */
-#if !defined(CONFIG_PROD_EPCORE) && !defined(MPS_PF_XCI3GC)
-#define REG_ROOT 1
-#else
-#define REG_ROOT 0
-#endif
-
 
 int main(int argc, char **argv)
 {
   mps_arena_t arena;
   mps_thr_t thread;
-#if REG_ROOT
   mps_root_t reg_root;
-#endif
   void *r;
   void *marker = &marker;
 
@@ -477,19 +463,15 @@ int main(int argc, char **argv)
       "arena_create");
   die(mps_thread_reg(&thread, arena), "thread_reg");
 
-#if REG_ROOT
   die(mps_root_create_reg(&reg_root, arena,
                           MPS_RANK_AMBIG, (mps_rm_t)0,
                           thread, &mps_stack_scan_ambig,
                           marker, (size_t)0),
       "root_create_reg");
-#endif
 
   (mps_tramp)(&r, test, arena, 0);  /* non-inlined trampoline */
   mps_tramp(&r, test, arena, 0);
-#if REG_ROOT
   mps_root_destroy(reg_root);
-#endif 
   mps_thread_dereg(thread);
   mps_arena_destroy(arena);
 
