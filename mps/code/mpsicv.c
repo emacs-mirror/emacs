@@ -12,11 +12,9 @@
 #include "fmtdy.h"
 #include "fmtdytst.h"
 #include "mps.h"
-#if !defined(CONFIG_PROD_EPCORE)
-#  include "mpstd.h"
-#  ifdef MPS_OS_W3
-#    include "mpsw3.h"
-#  endif
+#include "mpstd.h"
+#ifdef MPS_OS_W3
+#  include "mpsw3.h"
 #endif
 #include <stdlib.h>
 #include <stdarg.h>
@@ -225,20 +223,34 @@ static void arena_commit_test(mps_arena_t arena)
   size_t limit;
   void *p;
   mps_res_t res;
+  unsigned int iAlloc;
 
-  committed = mps_arena_committed(arena);
-  reserved = mps_arena_reserved(arena);
+  printf("\narena_commit_test:\n");
+  
+  committed = mps_arena_committed(arena); printf(" committed: %lu, ", committed);
+  reserved = mps_arena_reserved(arena); printf("reserved: %lu, ", reserved);
   cdie(reserved >= committed, "reserved < committed");
   die(mps_pool_create(&pool, arena, mps_class_mv(), 0x1000, 1024, 16384),
       "commit pool create");
-  limit = mps_arena_commit_limit(arena);
+  limit = mps_arena_commit_limit(arena); printf("limit: %lu.\n", limit);
+
   die(mps_arena_commit_limit_set(arena, committed), "commit_limit_set before");
+  printf(" mps_arena_commit_limit_set(committed: %lu)\n", committed);
+  
+  iAlloc = 0 - 1;
   do {
+    iAlloc += 1;
     res = mps_alloc(&p, pool, FILLER_OBJECT_SIZE);
   } while (res == MPS_RES_OK);
+  printf(" exit alloc loop, iAlloc: %u, res: %u.\n", iAlloc, res);
+
   die_expect(res, MPS_RES_COMMIT_LIMIT, "Commit limit allocation");
   die(mps_arena_commit_limit_set(arena, limit), "commit_limit_set after");
+  printf(" mps_arena_commit_limit_set(limit: %lu)\n", limit);
+
   res = mps_alloc(&p, pool, FILLER_OBJECT_SIZE);
+  printf(" new alloc, res: %u.\n", res);
+
   die_expect(res, MPS_RES_OK, "Allocation failed after raising commit_limit");
   mps_pool_destroy(pool);
 }
@@ -351,16 +363,21 @@ static void *test(void *arg, size_t s)
   }
 
   collections = mps_collections(arena);
+  printf("collections: %lu\n", collections);
 
   for(i = 0; i < OBJECTS; ++i) {
     unsigned c;
     size_t r;
 
     c = mps_collections(arena);
+    if (i == 0) {
+      printf("i == 0\n");
+      printf("c: %u\n", c);
+    }
 
     if(collections != c) {
       collections = c;
-      printf("\nCollection %u, %lu objects.\n", c, i);
+      printf("Collection %u, %lu objects.\n", c, i);
       for(r = 0; r < exactRootsCOUNT; ++r) {
         cdie(exactRoots[r] == objNULL || dylan_check(exactRoots[r]),
              "all roots check");
@@ -425,15 +442,19 @@ static void *test(void *arg, size_t s)
       cdie(dylan_check(exactRoots[r]), "random root check");
     }
   }
+  printf("Objects %lu.\n", i);
 
-  arena_commit_test(arena);
-  reservoir_test(arena);
-  alignmentTest(arena);
+  arena_commit_test(arena); printf("arena_commit_test OK, ");
+  reservoir_test(arena); printf("reservoir_test OK, ");
+  alignmentTest(arena); printf("alignmentTest OK.\n");
 
   die(mps_arena_collect(arena), "collect");
+  printf("mps_arena_collect OK.\n");
 
   mps_free(mv, alloced_obj, 32);
   alloc_v_test(mv);
+  printf("alloc_v_test OK.\n");
+
   mps_pool_destroy(mv);
   mps_ap_destroy(ap);
   mps_root_destroy(fmtRoot);
@@ -455,9 +476,7 @@ int main(int argc, char **argv)
 {
   mps_arena_t arena;
   mps_thr_t thread;
-#if !defined(CONFIG_PROD_EPCORE) && !defined(CONFIG_PF_XCPPGC)
   mps_root_t reg_root;
-#endif
   void *r;
   void *marker = &marker;
 
@@ -467,19 +486,15 @@ int main(int argc, char **argv)
       "arena_create");
   die(mps_thread_reg(&thread, arena), "thread_reg");
 
-#if !defined(CONFIG_PROD_EPCORE) && !defined(CONFIG_PF_XCPPGC)
   die(mps_root_create_reg(&reg_root, arena,
                           MPS_RANK_AMBIG, (mps_rm_t)0,
                           thread, &mps_stack_scan_ambig,
                           marker, (size_t)0),
       "root_create_reg");
-#endif
 
   (mps_tramp)(&r, test, arena, 0);  /* non-inlined trampoline */
   mps_tramp(&r, test, arena, 0);
-#if !defined(CONFIG_PROD_EPCORE) && !defined(CONFIG_PF_XCPPGC)
   mps_root_destroy(reg_root);
-#endif 
   mps_thread_dereg(thread);
   mps_arena_destroy(arena);
 

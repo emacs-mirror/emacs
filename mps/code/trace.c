@@ -1111,7 +1111,7 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
       if (!fOnce && !RefSetSub(ss.unfixedSummary, SegSummary(seg))) {
         fOnce = 1;
         
-        SegDescribe(seg, mps_lib_get_stderr());
+        SegDescribe(seg, mps_lib_get_stdout());
       }
     }
 
