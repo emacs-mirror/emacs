@@ -11,7 +11,7 @@
 
 #include "mpm.h"
 
-#include <signal.h>
+#include <ucontext.h>
 
 typedef struct MutatorFaultContextStruct { /* Protection fault context data */
   ucontext_t *ucontext;
