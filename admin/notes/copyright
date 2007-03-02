@@ -509,26 +509,6 @@ etc/images
   contact image authors in regards to future switch to v3.
 
 
-REMOVED src/unexhp9k800.c
-  - we would like to re-add this file if possible. Please let us know
-  if you can clarify its legal status.
-  http://lists.gnu.org/archive/html/emacs-devel/2007-02/msg00138.html
-
-
-*** These are copyright issues still to be addressed:
-
-NB apart from switching the TUTORIALs to GPL, I think there is nothing
-here that anyone can work on without further input from rms.
-
-
-etc/gnus-logo.eps, gnus-booklet.ps, gnus-refcard.ps
- just to be safe, papers are on the way for the "Gnus logo", even
- though it is very similar to the already-assigned "Emacs logo".
-
-
-etc/ms-kermit - no copyright, but ms-7bkermit has one
-
-
 etc/TUTORIAL* (translations)
   switch to GPL (see english TUTORIAL)
   rms: "We can leave the TUTORIAL translations alone until their
@@ -538,6 +518,18 @@ etc/TUTORIAL* (translations)
   Only a few sentences around the license notice need changing from
   previous version.
 Done: TUTORIAL.eo
+
+
+REMOVED src/unexhp9k800.c
+  - we would like to re-add this file if possible. Please let us know
+  if you can clarify its legal status.
+  http://lists.gnu.org/archive/html/emacs-devel/2007-02/msg00138.html
+
+
+*** These are copyright issues still to be addressed:
+
+
+etc/ms-kermit - no copyright, but ms-7bkermit has one
 
 
 
