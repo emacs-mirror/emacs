@@ -3966,7 +3966,7 @@ Note: No major/minor-mode is activated and no local variables are evaluated for
 	     filename))))
 
 
-(defvar ps-mark-code-directory nil)
+(defvar ps-mark-code-directory)
 
 (defvar ps-print-prologue-0 ""
   "ps-print PostScript error handler.")
@@ -3995,7 +3995,7 @@ Note: No major/minor-mode is activated and no local variables are evaluated for
 (defvar ps-last-page)
 (defvar ps-print-page-p t)
 
-(defvar ps-control-or-escape-regexp nil)
+(defvar ps-control-or-escape-regexp)
 (defvar ps-n-up-on)
 
 (defvar ps-background-pages)
