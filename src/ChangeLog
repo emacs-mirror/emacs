@@ -1,3 +1,8 @@
+2007-03-02  Stuart D. Herring <herring@lanl.gov>
+
+	* keymap.c (Fkey_binding): Don't consider two-element lists as
+	events.
+
 2007-03-01  Kenichi Handa  <handa@m17n.org>
 
 	* process.c (send_process_object): Check the process status and
