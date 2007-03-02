@@ -106,52 +106,6 @@ collection (mps_message_type_gc_start). </p>
 
 </ul>
 
-<h3>Unimplemented mps_message_type_gc_generation</h3>
-
-<p><em>This section for historical interest only.</em></p>
-
-<p> A proposal to meet the full requirement by implementing a message
-that is generated per generation per collection
-(mps_message_type_gc_generation) 
-<strong>has not been implemented</strong>, 
-but the requirements have been retained here: </p>
-
-<p>We would have the
-following requirements on per generation messages: </p>
-
-<ul>
-
-  <li><p> Must be able to tell for any generation whether it is
-  condemned for each collection that occurs.  In practise, due to the
-  flexible nature of the MPS, a generation might not be either
-  all-condemned or all-foundation for any particular collection.  In
-  particular the commonest sort of collection (collections driven by
-  allocation in the nursery generations) will condemn a particular set
-  of zones. There may be generations which have some object in one zone
-  and some objects in another; they may have only some of their objects
-  condemned by a per zone condemnation strategy. </p></li>
-
-  <li>
-  <p> For each generation for each collection we would like
-    to know the following:  </p>
-
-  <ul>
-
-    <li><p> Number of bytes condemned in this generation. </p></li>
-
-    <li><p> Number of bytes occupied by objects and not condemned.  </p></li>
-
-    <li><p> Where survivors are going (that is, what generation are
-    survivors are being promoted to. </p></li>
-
-    <li><p> (Not essential) Other byte counts for this generation: How
-    much free space there is, how much overhead there is. </p></li>
-
-  </ul>
-  </li>
-
-</ul>
-
 
 <h2><a id="section-4" name="section-4">4. Implementation</a></h2>
 
@@ -205,6 +159,54 @@ mps_message_type_gc_generation.  </p>
 all the available reasons will appear.  Perhaps a more dedicated test
 should be written. </p>
 
+
+<h2><a id="section-7" name="section-7">7. Unimplemented mps_message_type_gc_generation</a></h2>
+
+<p><em>This section for historical interest only.</em></p>
+
+<p> A proposal to more fully meet the primary requirement by implementing a message
+that is generated per generation per collection
+(mps_message_type_gc_generation) 
+<strong>has not been implemented</strong>, 
+but the requirements have been retained here: </p>
+
+<p>We would have the
+following requirements on per generation messages: </p>
+
+<ul>
+
+  <li><p> Must be able to tell for any generation whether it is
+  condemned for each collection that occurs.  In practise, due to the
+  flexible nature of the MPS, a generation might not be either
+  all-condemned or all-foundation for any particular collection.  In
+  particular the commonest sort of collection (collections driven by
+  allocation in the nursery generations) will condemn a particular set
+  of zones. There may be generations which have some object in one zone
+  and some objects in another; they may have only some of their objects
+  condemned by a per zone condemnation strategy. </p></li>
+
+  <li>
+  <p> For each generation for each collection we would like
+    to know the following:  </p>
+
+  <ul>
+
+    <li><p> Number of bytes condemned in this generation. </p></li>
+
+    <li><p> Number of bytes occupied by objects and not condemned.  </p></li>
+
+    <li><p> Where survivors are going (that is, what generation are
+    survivors are being promoted to. </p></li>
+
+    <li><p> (Not essential) Other byte counts for this generation: How
+    much free space there is, how much overhead there is. </p></li>
+
+  </ul>
+  </li>
+
+</ul>
+
+
 <h2><a id="section-A" name="section-A">A. References</a></h2>
 
 <!-- Template Entry
@@ -243,13 +245,15 @@ should be written. </p>
 </tr>
 
 <tr valign="top">
-
 <td>2006-12-07</td>
-
 <td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
-
 <td>Remove mps_message_type_gc_generation (not implemented).</td>
+</tr>
 
+<tr valign="top">
+<td>2007-02-08</td>
+<td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
+<td>Move historically interesting requirements for mps_message_type_gc_generation (not implemented) to the end of the doc.</td>
 </tr>
 
 </table>
@@ -257,7 +261,7 @@ should be written. </p>
 
 <h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
 
-<p> This document is copyright &copy; 1995-2002, 2006 <a
+<p> This document is copyright &copy; 1995-2002, 2006-2007 <a
 href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights
 reserved.  This is an open source license.  Contact Ravenbrook for
 commercial licensing options. </p>

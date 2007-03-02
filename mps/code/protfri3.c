@@ -26,6 +26,8 @@
 #include <signal.h>
 #include <machine/trap.h>
 
+#include <stdlib.h>     /* for abort */
+
 SRCID(protfri3, "$Id$");
 
 

@@ -16,7 +16,7 @@ RANLIB=ranlib
 
 include gc.gmk
 
-CC = cc
+CC = cc -arch ppc
 
 # Suppress some warnings (last checked in DP3).
 #   .cabs: -Wstrict-prototypes cannot be used because the math.h header has a

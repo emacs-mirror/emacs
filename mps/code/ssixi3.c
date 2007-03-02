@@ -1,10 +1,18 @@
-/* ssfri3.c: FREEBSD/INTEL STACK SCANNING
+/* ssixi3.c: UNIX/INTEL STACK SCANNING
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  *  This scans the stack and fixes the registers which may contain
- *  roots.  See <design/thread-manager/>.
+ *  roots.  See <design/thread-manager/>
+ *
+ *  This code was originally developed and tested on Linux, and then
+ *  copied to the FreeBSD and Darwin (OS X) operating systems where it
+ *  also seems to work.  Note that on FreeBSD and Darwin it has not
+ *  been indepently verified with respect to any ABI documentation.
+ *
+ *  This code appears is common to more than one Unix implementation on
+ *  Intel hardware (but is not portable Unix code).
  *
  *  The registers edi, esi, ebx are the registers defined to be preserved
  *  across function calls and therefore may contain roots.
@@ -32,7 +40,8 @@
 
 #include "mpm.h"
 
-SRCID(ssfri3, "$Id$");
+SRCID(ssixi3, "$Id$");
+
 
 /* .assume.asm.order */
 #define ASMV(x) __asm__ volatile (x)

@@ -124,7 +124,7 @@ static void sigHandle(int sig, siginfo_t *info, void *contextArg)
  */
 
 /* This function itself probably isn't architecture specific, but it
- * references the sigHandle which is currently statis and which is
+ * references the sigHandle which is currently static and which is
  * architecture specific. */
 void ProtSetup(void)
 {
