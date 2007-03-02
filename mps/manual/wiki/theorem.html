@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
 <head>
-  <title>MPS Wiki: ARTICLE-TITLE</title>
+  <title>MPS Wiki: Theorems</title>
   <style type = "text/css">
     <!--
     div.banner {text-align:center}
@@ -30,28 +30,33 @@
 
 <hr />
 
-<h1>MPS Wiki: ARTICLE-TITLE</h1>
+<h1>MPS Wiki: Theorems</h1>
 
 <address>
 <a href="mailto:rhsk@ravenbrook.com">Richard Kistruck</a>,
 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>,
-2007-01-01
+2007-03-01
 </address>
 
 </div>
 
 <p> This wiki article contains incomplete and informal notes about the MPS, the precursor to more formal documentation.  Not confidential.  Readership: MPS users and developers.  </p>
 
-<pre>
-replace ARTICLE-TITLE throughout
-correct Document Author (above) and Document History (below)
-add YOUR ARTICLE HERE.
-</pre>
+<p> This article is a place in which to collect statements about the MPS that are, or perhaps should be, true, and then chew on to decide whether they are on not.  RHSK 2007-03-01. </p>
+
+
+<h2>Theorems about the MPS</h2>
+
+
+<h3> isFwd only on client objects </h3>
+
+<p> A format isFwd() method is only called on objects allocated by the client, or copies of them created by the MPS.  So in particular: never on pad objects, and never on random junk.  DRJ 2007-03-01. </p>
+
 
 <h2><a id="section-B" name="section-B">B. Document History</a></h2>
 
 <pre>
-  2007-01-01  RHSK  Created.
+  2007-03-01  RHSK  Created.
 </pre>
 
 
