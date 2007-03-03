@@ -99,15 +99,16 @@
 
 * Supported development environments
 
-  To compile Emacs, you will need either Microsoft Visual C++ 2.0 or
-  later and nmake, or a Windows port of GCC 2.95 or later with MinGW
-  and W32 API support and a port of GNU Make.  You can use the Cygwin
-  ports of GCC, but Emacs requires the MinGW headers and libraries to
-  build (latest versions of the Cygwin toolkit, at least since v1.3.3,
-  include the MinGW headers and libraries as an integral part).
+  To compile Emacs, you will need either Microsoft Visual C++ 2.0, or
+  later up to 7.0, and nmake, or a Windows port of GCC 2.95 or later
+  with MinGW and W32 API support and a port of GNU Make.  You can use
+  the Cygwin ports of GCC, but Emacs requires the MinGW headers and
+  libraries to build (latest versions of the Cygwin toolkit, at least
+  since v1.3.3, include the MinGW headers and libraries as an integral
+  part).
 
-  Note that building Emacs with Visual Studio 2005 is not supported at
-  this time.
+  Note that building Emacs with Visual Studio 2005 (VC++ 8.0) is not
+  supported at this time.
 
   The rest of this file assumes you have a working development
   environment.  If you just installed  such an environment, try
