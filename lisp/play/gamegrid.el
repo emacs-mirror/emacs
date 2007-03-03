@@ -514,7 +514,17 @@ FILE is created there."
 
 (defun gamegrid-add-score-with-update-game-score-1 (file target score)
   (let ((default-directory "/")
-	(errbuf (generate-new-buffer " *update-game-score loss*")))
+	(errbuf (generate-new-buffer " *update-game-score loss*"))
+        (marker-string (concat
+			(user-full-name)
+			" <"
+			(cond ((fboundp 'user-mail-address)
+			       (user-mail-address))
+			      ((boundp 'user-mail-address)
+			       user-mail-address)
+			      (t ""))
+			">  "
+			(current-time-string))))
     ;; This can be called from a timer, so enable local quits.
     (with-local-quit
       (apply
@@ -529,28 +539,25 @@ FILE is created there."
 		(file-name-directory target))
 	 file
 	 (int-to-string score)
-	 (concat
-	  (user-full-name)
-	  " <"
-	  (cond ((fboundp 'user-mail-address)
-		 (user-mail-address))
-		((boundp 'user-mail-address)
-		 user-mail-address)
-		(t ""))
-	  ">  "
-	  (current-time-string))))))
+	 marker-string))))
     (if (buffer-modified-p errbuf)
 	(progn
 	  (display-buffer errbuf)
 	  (error "Failed to update game score file"))
       (kill-buffer errbuf))
     (let ((buf (find-buffer-visiting target)))
-      (if buf
-	  (progn
-	    (with-current-buffer buf
-	      (revert-buffer nil t nil))
-	    (display-buffer buf))
-	(find-file-read-only-other-window target)))))
+      (save-excursion
+        (if buf
+	    (progn
+	      (switch-to-buffer buf)
+	      (revert-buffer nil t nil)
+	      (display-buffer buf))
+	  (find-file-read-only target))
+        (goto-char (point-min))
+        (search-forward (concat (int-to-string score)
+				" " (user-login-name) " "
+				marker-string))
+        (beginning-of-line)))))
 
 (defun gamegrid-add-score-insecure (file score &optional directory)
   (save-excursion
