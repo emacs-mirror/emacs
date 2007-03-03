@@ -1,3 +1,8 @@
+2007-03-03  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-set-tags): Prevent slipping of point during
+	completion.
+
 2007-03-01  Lennart Borgman  <lennart.borgman.073@student.lu.se>
 
 	* isearch.el (isearch-message-prefix):
