@@ -1,3 +1,8 @@
+2007-03-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* international/mule.el (find-auto-coding): Don't search for
+	line-ending characters past the end of the tail.
+
 2007-03-03  Christopher Allan Webber  <cwebber@dustycloud.org>  (tiny change)
 
 	* play/gamegrid.el (gamegrid-add-score-with-update-game-score-1):
