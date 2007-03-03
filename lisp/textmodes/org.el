@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.67b
+;; Version: 4.67c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -83,7 +83,7 @@
 
 ;;; Version
 
-(defvar org-version "4.67b"
+(defvar org-version "4.67c"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -11627,8 +11627,9 @@ With prefix ARG, realign all tags in headings in the current buffer."
 		  (org-fast-tag-selection current-tags inherited-tags table)
 		(let ((org-add-colon-after-tag-completion t))
 		  (org-trim
-		   (completing-read "Tags: " 'org-tags-completion-function
-				    nil nil current 'org-tags-history)))))
+		   (save-excursion
+		     (completing-read "Tags: " 'org-tags-completion-function
+				      nil nil current 'org-tags-history))))))
 	(while (string-match "[-+&]+" tags)
 	  ;; No boolean logic, just a list
 	  (setq tags (replace-match ":" t t tags))))
@@ -11636,7 +11637,7 @@ With prefix ARG, realign all tags in headings in the current buffer."
           (setq tags "")
 	(unless (string-match ":$" tags) (setq tags (concat tags ":")))
 	(unless (string-match "^:" tags) (setq tags (concat ":" tags))))
-
+      
       ;; Insert new tags at the correct column
       (beginning-of-line 1)
       (if (re-search-forward
