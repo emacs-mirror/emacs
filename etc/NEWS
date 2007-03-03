@@ -134,6 +134,9 @@ setting the variable `image-library-alist'.
 ** Support for GNU/Linux systems on S390 machines was added.
 
 ---
+** Support for GNU/Linux systems on Tensilica Xtensa machines was added.
+
+---
 ** Support for MacOS X was added.
 See the files mac/README and mac/INSTALL for build instructions.
 
