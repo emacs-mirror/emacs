@@ -1,16 +1,16 @@
 2007-03-03  Christopher Allan Webber  <cwebber@dustycloud.org>  (tiny change)
 
 	* play/gamegrid.el (gamegrid-add-score-with-update-game-score-1):
-	jump to the line where new score has been uploaded.
+	Jump to the line where new score has been uploaded.
 
 	* play/tetris.el (tetris-move-bottom, tetris-move-left)
-	(tetris-move-right, tetris-rotate-prev, tetris-rotate-next): Do
-	nothing when the game is paused.
+	(tetris-move-right, tetris-rotate-prev, tetris-rotate-next):
+	Do nothing when the game is paused.
 
 2007-03-03  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el (org-set-tags): Prevent slipping of point during
-	completion.
+	* textmodes/org.el (org-set-tags): Prevent slipping of point
+	during completion.
 
 2007-03-01  Lennart Borgman  <lennart.borgman.073@student.lu.se>
 
