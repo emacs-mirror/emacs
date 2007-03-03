@@ -11614,20 +11614,20 @@ With prefix ARG, realign all tags in headings in the current buffer."
       (if just-align
 	  (setq tags current)
 	;; Get a new set of tags from the user
-	(setq table (or org-tag-alist (org-get-buffer-tags))
-	      org-last-tags-completion-table table
-	      current-tags (org-split-string current ":")
-	      inherited-tags (nreverse
-			      (nthcdr (length current-tags)
-				      (nreverse (org-get-tags-at))))
-	      tags
-	      (if (or (eq t org-use-fast-tag-selection)
-		      (and org-use-fast-tag-selection
-			   (delq nil (mapcar 'cdr table))))
-		  (org-fast-tag-selection current-tags inherited-tags table)
-		(let ((org-add-colon-after-tag-completion t))
-		  (org-trim
-		   (save-excursion
+	(save-excursion
+	  (setq table (or org-tag-alist (org-get-buffer-tags))
+		org-last-tags-completion-table table
+		current-tags (org-split-string current ":")
+		inherited-tags (nreverse
+				(nthcdr (length current-tags)
+					(nreverse (org-get-tags-at))))
+		tags
+		(if (or (eq t org-use-fast-tag-selection)
+			(and org-use-fast-tag-selection
+			     (delq nil (mapcar 'cdr table))))
+		    (org-fast-tag-selection current-tags inherited-tags table)
+		  (let ((org-add-colon-after-tag-completion t))
+		    (org-trim
 		     (completing-read "Tags: " 'org-tags-completion-function
 				      nil nil current 'org-tags-history))))))
 	(while (string-match "[-+&]+" tags)
