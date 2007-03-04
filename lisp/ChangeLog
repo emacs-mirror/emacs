@@ -15721,7 +15721,7 @@
 
 	* progmodes/cc-defs.el (c-emacs-features): Don't assume point-min==1.
 
-2005-12-06  Nozomu Ando  <nand@mac.com>  (tiny patch)
+2005-12-06  Nozomu Ando  <nand@mac.com>
 
 	* mail/smtpmail.el (smtpmail-try-auth-methods): Make password
 	prompts work for AUTH PLAIN.  Also reported by Steve Allan
@@ -29284,7 +29284,7 @@
 	* progmodes/python.el (python-close-block-statement-p)
 	(python-outdent-p, python-current-defun): Use symbol-end.
 
-2005-03-25  Karl Chen  <quarl@cs.berkeley.edu>  (tiny change)
+2005-03-25  Karl Chen  <quarl@cs.berkeley.edu>
 
 	* files.el (save-some-buffers): Doc fix.
 
@@ -31969,7 +31969,7 @@
 	* electric.el (Electric-pop-up-window): Use fit-window-to-buffer
 	instead of calculating the right size.
 
-2005-01-02  Karl Chen  <quarl@cs.berkeley.edu>  (tiny change)
+2005-01-02  Karl Chen  <quarl@cs.berkeley.edu>
 
 	* vc-svn.el (vc-svn-diff): Stay local if possible.
 

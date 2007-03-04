@@ -4993,7 +4993,7 @@
 
 	* international/latin1-disp.el (latin1-char-displayable-p): Likewise.
 
-2004-08-21  Peter Seibel  <peter@javamonkey.com>  (tiny patch)
+2004-08-21  Peter Seibel  <peter@javamonkey.com>  (tiny change)
 
 	* emacs-lisp/cl-indent.el (lisp-indent-defmethod):
 	Correct indentation of DEFMETHODS with non-standard method
@@ -6043,12 +6043,12 @@
 	* international/utf-8.el (ccl-decode-mule-utf-8): Fix previous change.
 	(ccl-untranslated-to-ucs): Fix typo.
 
-2004-06-12  Karl Chen  <quarl@hkn.eecs.berkeley.edu>  (tiny change)
+2004-06-12  Karl Chen  <quarl@hkn.eecs.berkeley.edu>
 
 	* progmodes/python.el (python-open-block-statement-p):
 	Fix indentation after a block opening that contains a comment.
 
-2004-06-12  J,Ai(Br,At(Bme Marant  <jerome@marant.org>  (tiny change)
+2004-06-12  J,Ai(Br,At(Bme Marant  <jerome@marant.org>
 
 	* bindings.el (completion-ignored-extensions): Add file extensions
 	of Python byte-compiled files.
@@ -6982,7 +6982,7 @@
 	(byte-goto-log-buffer): Delete.
 	(byte-compile-log-file): Call compilation-forget-errors.
 
-2004-05-19  Takaaki Ota  <Takaaki.Ota@am.sony.com>  (tiny change)
+2004-05-19  Takaaki Ota  <Takaaki.Ota@am.sony.com>
 
 	* net/ldap.el (ldap-search-internal): Avoid mixing standard error
 	output messages into the search result.
@@ -6996,7 +6996,7 @@
 
 	* international/characters.el: Fix syntax (open/close) of CJK chars.
 
-2004-05-18  Karl Chen  <quarl@hkn.eecs.berkeley.edu>  (tiny change)
+2004-05-18  Karl Chen  <quarl@hkn.eecs.berkeley.edu>
 
 	* help-mode.el (help-go-back): Don't depend on position of back button.
 
@@ -7121,7 +7121,7 @@
 	* calendar/appt.el (appt-disp-window):
 	Use `calendar-set-mode-line' for a centered mode-line.
 
-2004-05-13  Takaaki Ota  <Takaaki.Ota@am.sony.com>  (tiny change)
+2004-05-13  Takaaki Ota  <Takaaki.Ota@am.sony.com>
 
 	* calendar/appt.el (appt-disp-window): Do not split window
 	excessively when `split-height-threshold' is low.
@@ -10484,12 +10484,12 @@
 	* loadhist.el (unload-feature): Doc fix.  Rename flist to
 	unload-hook-features-list.
 
-2004-02-16  Jay Belanger  <belanger@truman.edu>  (tiny change)
+2004-02-16  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-embed.el (calc-do-embedded-activate): Add autoload
 	cookie.  Don't check if we are looking-at open-formula.
 
-2004-02-16  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+2004-02-16  Jesper Harder  <harder@ifa.au.dk>
 
 	* subr.el (match-string-no-properties): Use substring-no-properties.
 
@@ -10564,7 +10564,7 @@
 	* international/ccl.el (ccl-compile-write): Pass `left' to
 	ccl-embed-code to generate correct code of write-expr-register.
 
-2004-02-15  Dan Nicolaescu  <dann@ics.uci.edu>  (tiny change)
+2004-02-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/grep.el (grep-compute-defaults): Fix typos.
 
@@ -10766,7 +10766,7 @@
 	* vc.el (with-vc-file): Fix unsafe uses of error.
 	(vc-cancel-version): Likewise.
 
-2004-02-08  Jan Nieuwenhuizen  <jan.nieuwenhuizen@aspiratie.nl>  (tiny change)
+2004-02-08  Jan Nieuwenhuizen  <jan.nieuwenhuizen@aspiratie.nl>
 
 	* progmodes/gud.el (gud-jdb-marker-filter): Add period as optional
 	thousands separator; fixes <class>:<line-number> regexp for
@@ -11113,7 +11113,7 @@
 
 	* mail/smtpmail.el (smtpmail-send-data): Don't append spurious newline.
 
-2004-01-18  David Ponce  <david@dponce.com>  (tiny change)
+2004-01-18  David Ponce  <david@dponce.com>
 
 	* progmodes/which-func.el (which-function-mode): Don't cancel
 	which-func-update-timer if not set.
@@ -11322,7 +11322,7 @@
 
 	* subr.el (functionp): Doc fix.
 
-2004-01-03  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+2004-01-03  Jesper Harder  <harder@ifa.au.dk>
 
 	* progmodes/idlwave.el (idlwave-make-tags):
 	* textmodes/flyspell.el (flyspell-large-region):.
@@ -11525,7 +11525,7 @@
 	(table--put-cell-indicator-property): Put yank-handler property
 	that indicates the yank handler for the table cell.
 
-2003-12-29  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+2003-12-29  Jesper Harder  <harder@ifa.au.dk>
 
 	* generic-x.el (etc-modules-conf-generic-mode): A more complete
 	set of keywords.
@@ -11583,7 +11583,7 @@
 	(ido-file-name-all-completions1): Return empty list for
 	non-readable directory.
 	(ido-exhibit): Print [Not readable] if directory is not readable.
-	(ido-expand-directory): New defun (based on tiny fix from Karl Chen).
+	(ido-expand-directory): New defun (based on fix from Karl Chen).
 	(ido-read-file-name, ido-file-internal, ido-read-directory-name):
 	Use it.
 
@@ -11921,7 +11921,7 @@
 	(breakpoint-enabled-icon, breakpoint-disabled-icon): Set :ascent
 	to 100 for icons to avoid increasing line height when shown.
 
-2003-11-17  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+2003-11-17  Jesper Harder  <harder@ifa.au.dk>
 
 	* newcomment.el (comment-normalize-vars): Initialize properly if
 	comment-start was nil.
@@ -11935,7 +11935,7 @@
 	* international/latin1-disp.el (latin1-display-ucs-per-lynx):
 	Fix docstring.
 
-2003-11-17  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+2003-11-17  Jesper Harder  <harder@ifa.au.dk>
 
 	* international/latin1-disp.el (latin1-display): Fix docstring.
 
@@ -12665,12 +12665,12 @@
 	* language/chinese.el ("Chinese-GB", "Chinese-BIG5"): Set up for
 	using a Chinese tutorial.
 
-2003-09-28  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+2003-09-28  Jesper Harder  <harder@ifa.au.dk>
 
 	* mail/smtpmail.el (smtpmail-via-smtp): Don't insert a space
 	between "MAIL FROM:" and "RCPT TO:" and the following address.
 
-2003-09-28  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+2003-09-28  Jesper Harder  <harder@ifa.au.dk>
 
 	* textmodes/text-mode.el (paragraph-indent-minor-mode): Doc fix.
 
@@ -13685,7 +13685,7 @@
 	* international/fontset.el (setup-default-fontset):
 	Change registry names of Akurti fonts.
 
-2003-07-29  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+2003-07-29  Jesper Harder  <harder@ifa.au.dk>
 
 	* comint.el (comint-read-noecho): Use `clear-string' instead of
 	`fillarray'.
@@ -13701,7 +13701,7 @@
 	(menu): Add gdb-restore-windows to menu.  Make gdba
 	specific menus only visible from gdba.
 
-2003-07-28  Tak Ota  <Takaaki.Ota@am.sony.com>  (tiny change)
+2003-07-28  Tak Ota  <Takaaki.Ota@am.sony.com>
 
 	* progmodes/compile.el (compilation-environment): New user variable.
 	(compile-internal): Respect it.
@@ -13930,7 +13930,7 @@
 	* desktop.el (desktop-buffer-dired-misc-data, desktop-buffer-dired):
 	Handle `dired-directory' being a list.
 
-2003-07-13  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+2003-07-13  Jesper Harder  <harder@ifa.au.dk>
 
 	* mail/smtpmail.el (smtpmail-send-it): Create smtpmail-queue-dir if
 	it doesn't exist.

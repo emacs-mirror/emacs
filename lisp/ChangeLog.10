@@ -2972,7 +2972,7 @@
 	(rename-buffer): Use the `newname' arg as base.
 	(create-file-buffer): Split the file name into base and dirname.
 
-2003-05-09  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+2003-05-09  Jesper Harder  <harder@ifa.au.dk>
 
 	* mail/smtpmail.el (smtpmail-send-queued-mail): Don't use kill-line.
 
@@ -3275,7 +3275,7 @@
 	* filesets.el (filesets-data): Add another defvar.
 	(filesets-verbosity): Doc fix.
 
-2003-05-02  Tak Ota  <Takaaki.Ota@am.sony.com>  (tiny change)
+2003-05-02  Tak Ota  <Takaaki.Ota@am.sony.com>
 
 	* recentf.el (recentf-cleanup): Swap tests for exclusion and
 	accessibility.
@@ -3492,10 +3492,10 @@
 	(Info-display-images-node): New functions for displaying images.
 	(Info-select-node): Call Info-display-images-node.
 
-2003-04-25  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+2003-04-25  David Ponce <david.ponce@wanadoo.fr>
 
 	* files.el (file-relative-name): Recognize "c:/foo" as absolute
-	file name.  Tiny change from David PONCE <david.ponce@wanadoo.fr>.
+	file name.
 
 2003-04-24  Sam Steingold  <sds@gnu.org>
 
@@ -5595,7 +5595,7 @@
 	beginning-of-defun to the non-existing command
 	sh-beginning-of-compound-command.
 
-2003-02-12  Karl Chen  <quarl@hkn.eecs.berkeley.edu>  (tiny change)
+2003-02-12  Karl Chen  <quarl@hkn.eecs.berkeley.edu>
 
 	* files.el (find-alternate-file): Check whether `dired-directory'
 	is bound.
@@ -11971,7 +11971,7 @@
 	* calendar/appt.el (appt-delete): Use substring-no-properties.
 	(appt-make-list): Don't use prin1-to-string; use the string unchanged.
 
-2002-08-15  Jan Nieuwenhuizen  <janneke@gnu.org>  (tiny change)
+2002-08-15  Jan Nieuwenhuizen  <janneke@gnu.org>
 
 	* server.el (server-process-filter): Simplify code.
 	(server-goto-line-column): New function.
@@ -12378,7 +12378,7 @@
 	* dired.el: Hide disabling of dired-find-alternate-file behind
 	autoload-cookie.
 
-2002-07-31  Tak Ota  <Takaaki.Ota@am.sony.com>  (tiny change)
+2002-07-31  Tak Ota  <Takaaki.Ota@am.sony.com>
 
 	* makefile.w32-in: Revert some changes from 2002-07-23 because they
 	don't work on MSVC/nmake builds.
@@ -22919,13 +22919,14 @@
 	* startup.el: Document command line option --no-window-system
 	instead of --no-windows.
 
-2001-10-30  Stefan Monnier  <monnier@cs.yale.edu>
-
-	* progmodes/autoconf.el (autoconf-mode): Fix comment-start-skip.
+2001-10-30  David Ponce <david.ponce@wanadoo.fr>
 
 	* font-lock.el (java-font-lock-syntactic-face-function): New fun.
 	(font-lock-defaults-alist): Use it.
-	From David Ponce <david.ponce@wanadoo.fr>
+
+2001-10-30  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/autoconf.el (autoconf-mode): Fix comment-start-skip.
 
 	* progmodes/perl-mode.el (perl-indent-line): Use `eq' to compare
 	output of `char-after'.
