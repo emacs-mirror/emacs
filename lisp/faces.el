@@ -2139,7 +2139,7 @@ created."
     ;; Don't use blue because many users of the MS-DOS port customize
     ;; their foreground color to be blue.
     (((type pc)) :foreground "magenta")
-    (t :foreground "dark blue"))
+    (t :foreground "medium blue"))
   "Face for minibuffer prompts.
 By default, Emacs automatically adds this face to the value of
 `minibuffer-prompt-properties', which is a list of text properties
