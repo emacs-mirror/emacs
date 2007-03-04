@@ -50,10 +50,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 ** henman@it.to-be.co.jp 09 Aug 2006: ispell.el problem on Cygwin.
   (Did we decide that is unreproducible?)
 
-** make-network-process :nowait t doesn't work for non-local targets
-   on Windows.  This has been "fixed" for Emacs 22 by defining
-   BROKEN_NON_BLOCKING_CONNECT in ms-w32.h.
-
 
 * BUGS
 
@@ -66,6 +62,13 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 ** md5i@cs.cmu.edu, Feb 20: move-end-of-line in comint buffers
 
 ** daniel@bigwalter.net, Feb 25: Echoing of keys and process I/O
+
+** rudalics@gmx.at, Feb 27: undo-information kept for *occur*
+
+** Failure to build on Solaris.
+
+** Failure to detect strerror on Red Hat GNU/Linux
+jjd@vegas.jjd.com, Mar 2.
 
 * DOCUMENTATION
 

@@ -1,3 +1,7 @@
+2007-03-04  Richard Stallman  <rms@gnu.org>
+
+	* window.c (Fdisplay_buffer): Doc fix.
+
 2007-03-03  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in: Don't clear out LIB_X11_LIB, since XFT_LIBS does

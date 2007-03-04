@@ -1,3 +1,7 @@
+2007-03-04  Richard Stallman  <rms@gnu.org>
+
+	* custom.texi (Safe File Variables): Minor correction.
+
 2007-02-27  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (NNTP): Mention nntp-never-echoes-commands and

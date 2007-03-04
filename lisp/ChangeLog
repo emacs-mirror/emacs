@@ -1,3 +1,31 @@
+2007-03-04  Richard Stallman  <rms@gnu.org>
+
+	* progmodes/cperl-mode.el (cperl-mode):
+	Modify cperl-compilation-error-regexp-alist by appending.
+
+	* emacs-lisp/edebug.el (edebug-kill-buffer): New function.
+	(edebug-mode): Add the hook.
+	(edebug-recursive-edit): Remove the hook on exiting.
+
+	* type-break.el (type-break-get-previous-time):
+	Handle end-of-file errors specially
+	so they don't get reported wrong in .emacs.
+
+	* startup.el (fancy-splash-text): Clarify text.
+
+	* simple.el (beginning-of-buffer, end-of-buffer): 
+	Avoid treating plain C-u like numeric arg.
+
+	* simple.el (completion-setup-function): Don't set
+	default-directory to nil.
+
+	* shell.el (shell-dirstack-query): Doc fix.
+
+	* mouse.el (mouse-drag-mode-line-1, mouse-drag-vertical-line): 
+	Don't select the window -- pass it to primitives instead.
+
+	* faces.el (minibuffer-prompt): Use medium blue by default.
+
 2007-03-04  David Kastrup  <dak@gnu.org>
 
 	* jit-lock.el (jit-lock-stealth-time): Change default to nil.
