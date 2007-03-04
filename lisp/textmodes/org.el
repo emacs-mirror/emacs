@@ -18767,6 +18767,13 @@ because, in this case the deletion might narrow the column."
 (put 'org-delete-char 'delete-selection 'supersede)
 (put 'org-delete-backward-char 'delete-selection 'supersede)
 
+;; Make `flyspell-mode' delay after some commands
+(put 'org-self-insert-command 'flyspell-delayed t)
+(put 'orgtbl-self-insert-command 'flyspell-delayed t)
+(put 'org-delete-char 'flyspell-delayed t)
+(put 'org-delete-backward-char 'flyspell-delayed t)
+
+
 ;; How to do this: Measure non-white length of current string
 ;; If equal to column width, we should realign.
 
