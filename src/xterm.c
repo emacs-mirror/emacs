@@ -5279,7 +5279,7 @@ x_scroll_bar_expose (bar, event)
 
   x_scroll_bar_set_handle (bar, XINT (bar->start), XINT (bar->end), 1);
 
-   /* Switch to scroll bar foreground color. */
+  /* Switch to scroll bar foreground color.  */
   if (f->output_data.x->scroll_bar_foreground_pixel != -1)
     XSetForeground (FRAME_X_DISPLAY (f), gc,
  		    f->output_data.x->scroll_bar_foreground_pixel);
