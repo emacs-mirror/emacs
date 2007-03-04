@@ -629,12 +629,11 @@ match.
 If @var{collection} is an alist (@pxref{Association Lists}), the
 permissible completions are the elements of the alist that are either
 strings, symbols, or conses whose @sc{car} is a string or symbol.
-Symbols are converted to strings using @code{symbol-name}.
-Other elements of the alist are ignored. (Remember that in Emacs Lisp,
-the elements of alists do not @emph{have} to be conses.)  As all
-elements of the alist can be strings, this case actually includes
-lists of strings or symbols, even though we usually do not think of
-such lists as alists.
+Symbols are converted to strings using @code{symbol-name}.  Other
+elements of the alist are ignored. (Remember that in Emacs Lisp, the
+elements of alists do not @emph{have} to be conses.)  In particular, a
+list of strings or symbols is allowed, even though we usually do not
+think of such lists as alists.
 
 @cindex obarray in completion
 If @var{collection} is an obarray (@pxref{Creating Symbols}), the names
