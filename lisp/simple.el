@@ -758,7 +758,7 @@ Don't use this command in Lisp programs!
 			     (/ size 10))
 			(/ (+ 10 (* size (prefix-numeric-value arg))) 10)))
 		 (point-min))))
-  (if arg (forward-line 1)))
+  (if (and arg (not (consp arg))) (forward-line 1)))
 
 (defun end-of-buffer (&optional arg)
   "Move point to the end of the buffer; leave mark at previous position.
@@ -785,7 +785,7 @@ Don't use this command in Lisp programs!
 		 (point-max))))
   ;; If we went to a place in the middle of the buffer,
   ;; adjust it to the beginning of a line.
-  (cond (arg (forward-line 1))
+  (cond ((and arg (not (consp arg))) (forward-line 1))
 	((> (point) (window-end nil t))
 	 ;; If the end of the buffer is not already on the screen,
 	 ;; then scroll specially to put it near, but not at, the bottom.
@@ -5088,7 +5088,8 @@ of the minibuffer before point is always the common substring.)")
     ;; so it will get copied into the completion list buffer.
     (if minibuffer-completing-file-name
 	(with-current-buffer mainbuf
-	  (setq default-directory (file-name-directory mbuf-contents))))
+	  (setq default-directory (or (file-name-directory mbuf-contents)
+				      default-directory))))
     (with-current-buffer standard-output
       (completion-list-mode)
       (set (make-local-variable 'completion-reference-buffer) mainbuf)
