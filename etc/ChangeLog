@@ -1,3 +1,8 @@
+2007-03-04  David Kastrup  <dak@gnu.org>
+
+	* NEWS (fontification): Mention that the new default for
+	jit-lock-stealth-time is now nil.
+
 2007-03-01  Kim F. Storm  <storm@cua.dk>
 
 	* ORDERS: Reformat text.
