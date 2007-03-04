@@ -1247,7 +1247,7 @@ processes @code{eval} variables.  The three possibilities for the
 variable's value are @code{t}, @code{nil}, and anything else, just as
 for @code{enable-local-variables}.  The default is @code{maybe}, which
 is neither @code{t} nor @code{nil}, so normally Emacs does ask for
-confirmation about processes @code{eval} variables.
+confirmation about processing @code{eval} variables.
 
 @vindex safe-local-eval-forms
   But there is an exception.  The @code{safe-local-eval-forms} is a
