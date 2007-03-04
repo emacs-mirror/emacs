@@ -1,3 +1,34 @@
+2007-02-25  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* loading.texi (How Programs Do Loading): Fix anchor position at
+	load-read-function definition doc. (tiny change)
+	
+2007-02-21  Kim F. Storm  <storm@cua.dk>
+
+	* strings.texi (Text Comparison): Mention that assoc-string
+	converts symbols to strings before testing.
+
+2007-02-17  Kim F. Storm  <storm@cua.dk>
+
+	* processes.texi (Bindat Spec): Vector types can have optional
+	element type.
+	(Bindat Examples): Fix example.  Add vector with element type.
+
+2007-02-16  Andreas Schwab  <schwab@suse.de>
+
+	* strings.texi (Formatting Strings): Document '+' flag.
+
+2007-02-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* strings.texi (Modifying Strings): Clarify that `clear-string'
+	always converts the string to unibyte.
+
+2007-02-14  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Glyphs): Add make-glyph-code, glyph-char, glyph-face.
+	Rewrite glyph code description to refer to these functions.
+	Remove details of encoding face number and char into integer code.
+
 2007-02-03  Alan Mackenzie  <acm@muc.de>
 
 	* loading.texi (Hooks for Loading): Make the description of

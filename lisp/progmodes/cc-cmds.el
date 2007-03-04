@@ -4238,6 +4238,7 @@ If a fill prefix is specified, it overrides all the above."
 				    (c-collect-line-comments c-lit-limits))
 			      c-lit-type)))
 		     (pos (point))
+		     (start-col (current-column))
 		     (comment-text-end
 		      (or (and (eq c-lit-type 'c)
 			       (save-excursion
@@ -4254,6 +4255,11 @@ If a fill prefix is specified, it overrides all the above."
 		 ;;
 		 ;; If point is on the 'B' then the line will be
 		 ;; broken after "Bla b".
+		 ;;
+		 ;; If we have an empty comment, /*   */, the next
+		 ;; lot of code pushes point to the */.  We fix
+		 ;; this by never allowing point to end up to the
+		 ;; right of where it started.
 		 (while (and (< (current-column) (cdr fill))
 			     (not (eolp)))
 		   (forward-char 1))
@@ -4276,7 +4282,10 @@ If a fill prefix is specified, it overrides all the above."
 			 ((< (point) (+ (car c-lit-limits) 2))
 			  (goto-char (+ (car c-lit-limits) 2))))
 		   (funcall do-line-break)
-		   (insert-and-inherit (car fill))))
+		   (insert-and-inherit (car fill))
+		   (if (> (current-column) start-col)
+		       (move-to-column start-col)))) ; can this hit the
+					             ; middle of a TAB?
 	     ;; Inside a comment that should be broken.
 	     (let ((comment-start comment-start)
 		   (comment-end comment-end)

@@ -113,7 +113,6 @@
 ;;;###autoload
 (defun with-electric-help (thunk &optional buffer noerase minheight)
   "Pop up an \"electric\" help buffer.
-The arguments are THUNK &optional BUFFER NOERASE MINHEIGHT.
 THUNK is a function of no arguments which is called to initialize the
 contents of BUFFER.  BUFFER defaults to `*Help*'.  BUFFER will be
 erased before THUNK is called unless NOERASE is non-nil.  THUNK will
@@ -125,7 +124,7 @@ shrink the window to fit.  If THUNK returns non-nil, we don't do those things.
 
 After THUNK has been called, this function \"electrically\" pops up a window
 in which BUFFER is displayed and allows the user to scroll through that buffer
-in electric-help-mode. The window's height will be at least MINHEIGHT if
+in `electric-help-mode'. The window's height will be at least MINHEIGHT if
 this value is non-nil.
 
 If THUNK returns nil, we display BUFFER starting at the top, and
@@ -134,7 +133,7 @@ If THUNK returns non-nil, we don't do those things.
 
 When the user exits (with `electric-help-exit', or otherwise), the help
 buffer's window disappears (i.e., we use `save-window-excursion'), and
-BUFFER is put into `default-major-mode' (or `fundamental-mode') when we exit."
+BUFFER is put into `default-major-mode' (or `fundamental-mode')."
   (setq buffer (get-buffer-create (or buffer "*Help*")))
   (let ((one (one-window-p t))
 	(config (current-window-configuration))
@@ -246,7 +245,7 @@ BUFFER is put into `default-major-mode' (or `fundamental-mode') when we exit."
 ;    (scroll-up arg)))
 
 (defun electric-help-exit ()
-  "Exit `electric-help', restoring the previous window/buffer configuration.
+  "Exit `with-electric-help', restoring the previous window/buffer configuration.
 \(The *Help* buffer will be buried.)"
   (interactive)
   ;; Make sure that we don't throw twice, even if two events cause
@@ -257,7 +256,7 @@ BUFFER is put into `default-major-mode' (or `fundamental-mode') when we exit."
 	(throw 'exit t))))
 
 (defun electric-help-retain ()
-  "Exit `electric-help', retaining the current window/buffer configuration.
+  "Exit `with-electric-help', retaining the current window/buffer configuration.
 \(The *Help* buffer will not be selected, but \\[switch-to-buffer-other-window] RET
 will select it.)"
   (interactive)

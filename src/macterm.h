@@ -204,7 +204,6 @@ extern struct mac_display_info one_mac_display_info;
    FONT-LIST-CACHE records previous values returned by x-list-fonts.  */
 extern Lisp_Object x_display_name_list;
 
-extern struct x_display_info *x_display_info_for_display P_ ((Display *));
 extern struct x_display_info *x_display_info_for_name P_ ((Lisp_Object));
 
 extern struct mac_display_info *mac_term_init P_ ((Lisp_Object, char *, char *));
@@ -404,8 +403,8 @@ struct scroll_bar {
   /* The next and previous in the chain of scroll bars in this frame.  */
   Lisp_Object next, prev;
 
-  /* The Mac control handle of this scroll bar.  Since this is a full
-     32-bit quantity, we store it split into two 32-bit values.  */
+  /* The Mac control handle of this scroll bar.  Since this is a
+     pointer value, we store it split into two Lisp integers.  */
   Lisp_Object control_handle_low, control_handle_high;
 
   /* The position and size of the scroll bar in pixels, relative to the
@@ -427,7 +426,9 @@ struct scroll_bar {
 
   /* If the scroll bar handle is currently being dragged by the user,
      this is the number of pixels from the top of the handle to the
-     place where the user grabbed it.  If the handle isn't currently
+     place where the user grabbed it.  If the handle is pressed but
+     not dragged yet, this is a negative integer whose absolute value
+     is the number of pixels plus 1.  If the handle isn't currently
      being dragged, this is Qnil.  */
   Lisp_Object dragging;
 
@@ -435,6 +436,9 @@ struct scroll_bar {
   /* The position and size of the scroll bar handle track area in
      pixels, relative to the frame.  */
   Lisp_Object track_top, track_height;
+
+  /* Minimum length of the scroll bar handle, in pixels.  */
+  Lisp_Object min_handle;
 #endif
 };
 
@@ -448,13 +452,13 @@ struct scroll_bar {
 #define XSCROLL_BAR(vec) ((struct scroll_bar *) XVECTOR (vec))
 
 
-/* Building a 32-bit C integer from two 16-bit lisp integers.  */
+/* Building a C long integer from two lisp integers.  */
 #define SCROLL_BAR_PACK(low, high) (XINT (high) << 16 | XINT (low))
 
-/* Setting two lisp integers to the low and high words of a 32-bit C int.  */
-#define SCROLL_BAR_UNPACK(low, high, int32) \
-  (XSETINT ((low),   (int32)        & 0xffff), \
-   XSETINT ((high), ((int32) >> 16) & 0xffff))
+/* Setting two lisp integers to two parts of a C unsigned long.  */
+#define SCROLL_BAR_UNPACK(low, high, ulong) \
+  (XSETINT ((low),  (ulong) & 0xffff), \
+   XSETINT ((high), (ulong) >> 16))
 
 
 /* Extract the Mac control handle of the scroll bar from a struct
@@ -464,9 +468,9 @@ struct scroll_bar {
                                     (ptr)->control_handle_high))
 
 /* Store a Mac control handle in a struct scroll_bar.  */
-#define SET_SCROLL_BAR_CONTROL_HANDLE(ptr, id) \
+#define SET_SCROLL_BAR_CONTROL_HANDLE(ptr, handle) \
   (SCROLL_BAR_UNPACK ((ptr)->control_handle_low, \
-                      (ptr)->control_handle_high, (int) id))
+                      (ptr)->control_handle_high, (unsigned long) (handle)))
 
 /* Return the inside width of a vertical scroll bar, given the outside
    width.  */

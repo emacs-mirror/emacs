@@ -1,3 +1,24 @@
+2007-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* icons/gnu2a32.ico, icons/gnu2a32t.ico, icons/gnu2b48.ico:
+	* icons/gnu2b48t.ico, icons/gnu3b32.ico, icons/gnu3b32t.ico:
+	* icons/gnu4g48.ico, icons/gnu4g48t.ico, icons/gnu5w32.ico:
+	* icons/gnu5w32t.ico, icons/gnu6w48.ico, icons/gnu6w48t.ico:
+	* icons/gnu7.ico, icons/gnu8.ico, icons/gnu9.ico: Restore all but
+	two of icons deleted in previous change.
+
+2007-02-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* icons/README: New file.
+
+	* icons/gnu2a32t.ico, icons/gnu3b32t.ico, icons/gnu5w32t.ico:
+	* icons/gnu8.ico, icons/emacs21.ico, icons/gnu2b48.ico:
+	* icons/gnu4g48.ico, icons/gnu6w48.ico, icons/gnu9.ico:
+	* icons/gnu2b48t.ico, icons/gnu4g48t.ico:
+	* icons/gnu6w48t.ico, icons/gnu2a32.ico, icons/gnu3b32.ico:
+	* icons/gnu5w32.ico, icons/gnu7.ico, icons/sink.ico: Unused icons
+	deleted.
+
 2007-01-31  Juanma Barranquero  <lekktu@gmail.com>
 
 	* configure.bat: Update ../site-lisp/subdirs.el when needed.

@@ -909,6 +909,24 @@ is the buffer position of the start of the containing expression."
         (cond ((elt state 3)
                ;; Inside a string, don't change indentation.
 	       nil)
+              ((save-excursion
+                 ;; test whether current line begins with a constant
+                 (goto-char indent-point)
+                 (skip-chars-forward " \t")
+                 (looking-at ":"))
+               (let ((desired-indent
+                      (save-excursion
+                        (goto-char (1+ containing-sexp))
+                        (parse-partial-sexp (point) calculate-lisp-indent-last-sexp 0 t)
+                        (point)))
+                     (parse-sexp-ignore-comments t))
+                 ;; Align a constant symbol under the last constant symbol
+                 (goto-char calculate-lisp-indent-last-sexp)
+                 (while (> (point) desired-indent)
+                   (if (looking-at ":")
+                       (setq desired-indent (point))
+                     (backward-sexp 1))))
+                 (current-column))
               ((and (integerp lisp-indent-offset) containing-sexp)
                ;; Indent by constant offset
                (goto-char containing-sexp)

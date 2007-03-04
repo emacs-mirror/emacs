@@ -7,7 +7,7 @@
 ;; Maintainer: Kenichi Handa <handa@m17n.org> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Version: 7.2
+;; Version: 7.2.2
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 ;; This file is part of GNU Emacs.
@@ -40,14 +40,14 @@
 
 
 (cond
- ((featurep 'xemacs)			; xemacs
+ ((featurep 'xemacs)			; XEmacs
 
 
   ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; ps-bdf
 
-  (defvar installation-directory nil)
-  (defvar coding-system-for-read nil)
+  (defvar installation-directory)
+  (defvar coding-system-for-read)
 
 
   ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -165,8 +165,7 @@
     (ps-xemacs-color-name (face-background face)))
 
 
-  (defun ps-frame-parameter (param)
-    (frame-property nil param))
+  (defalias 'ps-frame-parameter 'frame-property)
 
 
   ;; Return t if the device (which can be changed during an emacs session)
@@ -207,9 +206,9 @@
 
 
   ;; to avoid XEmacs compilation gripes
-  (defvar coding-system-for-write   nil)
-  (defvar coding-system-for-read    nil)
-  (defvar buffer-file-coding-system nil)
+  (defvar coding-system-for-write)
+  (defvar coding-system-for-read)
+  (defvar buffer-file-coding-system)
 
 
   (and (fboundp 'find-coding-system)
@@ -299,7 +298,7 @@
       (ps-plot-with-face from to face)))
 
   )
- (t					; emacs
+ (t					; Emacs
   ;; Do nothing
   ))					; end cond featurep
 
@@ -311,16 +310,14 @@
 
 
 (cond
- ((featurep 'xemacs)			; xemacs
+ ((featurep 'xemacs)			; XEmacs
   ;; Do nothing
   )
- (t					; emacs
+ (t					; Emacs
 
 
   ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; ps-print
-
-  (defvar mark-active nil)
 
 
   (defun ps-mark-active-p ()
@@ -335,8 +332,7 @@
     (face-background face nil t))
 
 
-  (defun ps-frame-parameter (param)
-    (frame-parameter nil param))
+  (defalias 'ps-frame-parameter 'frame-parameter)
 
 
   ;; Return t if the device (which can be changed during an emacs session) can

@@ -1,6 +1,9 @@
 : #-*- Perl -*-
 eval 'exec perl -w -S $0 ${1+"$@"}' # Portability kludge
-    if 0; # Author: Martin Buchholz
+    if 0;
+
+# Author: Martin Buchholz
+# This program is in the public domain.
 
 use strict;
 use POSIX;

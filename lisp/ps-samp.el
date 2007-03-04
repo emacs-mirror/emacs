@@ -9,7 +9,7 @@
 ;; Maintainer: Kenichi Handa <handa@m17n.org> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Version: 7.2
+;; Version: 7.2.2
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 ;; This file is part of GNU Emacs.
@@ -49,17 +49,12 @@
 ;; WARNING!!! The following code is *sample* code only.
 ;; Don't use it unless you understand what it does!
 
-(defmacro ps-prsc ()
-  `(if (featurep 'xemacs) 'f22           [f22]))
-(defmacro ps-c-prsc ()
-  `(if (featurep 'xemacs) '(control f22) [C-f22]))
-(defmacro ps-s-prsc ()
-  `(if (featurep 'xemacs) '(shift f22)   [S-f22]))
+;; The key `f22' should probably be replaced by `print'.  --Stef
 
 ;; A hook to bind to `rmail-mode-hook' to locally bind prsc and set the
 ;; `ps-left-headers' specially for mail messages.
 (defun ps-rmail-mode-hook ()
-  (local-set-key (ps-prsc) 'ps-rmail-print-message-from-summary)
+  (local-set-key [(f22)] 'ps-rmail-print-message-from-summary)
   (setq ps-header-lines 3
 	ps-left-header
 	;; The left headers will display the message's subject, its
@@ -133,7 +128,7 @@
 ;; A hook to bind to `vm-mode-hook' to locally bind prsc and set the
 ;; `ps-left-headers' specially for mail messages.
 (defun ps-vm-mode-hook ()
-  (local-set-key (ps-prsc) 'ps-vm-print-message-from-summary)
+  (local-set-key [(f22)] 'ps-vm-print-message-from-summary)
   (setq ps-header-lines 3
 	ps-left-header
 	;; The left headers will display the message's subject, its
@@ -159,7 +154,7 @@
 ;; A hook to bind to bind to `gnus-summary-setup-buffer' to locally bind
 ;; prsc.
 (defun ps-gnus-summary-setup ()
-  (local-set-key (ps-prsc) 'ps-gnus-print-article-from-summary))
+  (local-set-key [(f22)] 'ps-gnus-print-article-from-summary))
 
 ;; Look in an article or mail message for the Subject: line.  To be
 ;; placed in `ps-left-headers'.
@@ -191,9 +186,9 @@
 ;; modification.)
 
 (defun ps-jts-ps-setup ()
-  (global-set-key (ps-prsc) 'ps-spool-buffer-with-faces) ;f22 is prsc
-  (global-set-key (ps-s-prsc) 'ps-spool-region-with-faces)
-  (global-set-key (ps-c-prsc) 'ps-despool)
+  (global-set-key [(f22)] 'ps-spool-buffer-with-faces) ;f22 is prsc
+  (global-set-key [(shift f22)] 'ps-spool-region-with-faces)
+  (global-set-key [(control f22)] 'ps-despool)
   (add-hook 'gnus-article-prepare-hook 'ps-gnus-article-prepare-hook)
   (add-hook 'gnus-summary-mode-hook 'ps-gnus-summary-setup)
   (add-hook 'vm-mode-hook 'ps-vm-mode-hook)

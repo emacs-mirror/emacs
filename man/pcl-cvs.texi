@@ -1122,7 +1122,8 @@ to change this behavior.
 @findex cvs-mode-delete-lock
 @cindex Getting rid of lock files
 @cindex Lock files
-@kindex q@r{--quit PCL-CVS}
+@kindex q@r{--bury the PCL-CVS buffer}
+@findex cvs-bury-buffer
 @findex cvs-mode-quit
 @cindex Quitting
 @kindex h@r{--help}
@@ -1152,7 +1153,10 @@ Show a summary of common command key bindings in the echo
 area (@code{cvs-help}).
 
 @item q
-Quit PCL-CVS, killing the @samp{*cvs*} buffer (@code{cvs-mode-quit}).
+Bury the PCL-CVS buffer (@code{cvs-bury-buffer}).
+
+@item M-x cvs-mode-quit
+Quit PCL-CVS, killing the @samp{*cvs*} buffer.
 @end table
 
 @node Log Edit Mode, Log View Mode, Commands, Top

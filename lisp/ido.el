@@ -2163,9 +2163,9 @@ If cursor is not at the end of the user input, move to end of input."
 
        ((eq ido-exit 'fallback)
 	(let ((read-buffer-function nil))
-	  (run-hook-with-args 'ido-before-fallback-functions
-			      (or fallback 'switch-to-buffer))
-	  (call-interactively (or fallback 'switch-to-buffer))))
+	  (setq this-command (or fallback 'switch-to-buffer))
+	  (run-hook-with-args 'ido-before-fallback-functions this-command)
+	  (call-interactively this-command)))
 
        ;; Check buf is non-nil.
        ((not buf) nil)
@@ -2173,6 +2173,7 @@ If cursor is not at the end of the user input, move to end of input."
 
        ;; View buffer if it exists
        ((get-buffer buf)
+	(add-to-history 'buffer-name-history buf)
 	(if (eq method 'insert)
 	    (progn
 	      (ido-record-command 'insert-buffer buf)
@@ -2192,6 +2193,7 @@ If cursor is not at the end of the user input, move to end of input."
 
        ;; create a new buffer
        (t
+	(add-to-history 'buffer-name-history buf)
 	(setq buf (get-buffer-create buf))
 	(if (fboundp 'set-buffer-major-mode)
 	    (set-buffer-major-mode buf))
@@ -2304,9 +2306,9 @@ If cursor is not at the end of the user input, move to end of input."
 	;; we don't want to change directory of current buffer.
 	(let ((default-directory ido-current-directory)
 	      (read-file-name-function nil))
-	  (run-hook-with-args 'ido-before-fallback-functions
-			      (or fallback 'find-file))
-	  (call-interactively (or fallback 'find-file))))
+	  (setq this-command (or fallback 'find-file))
+	  (run-hook-with-args 'ido-before-fallback-functions this-command)
+	  (call-interactively this-command)))
 
        ((eq ido-exit 'switch-to-buffer)
 	(ido-buffer-internal ido-default-buffer-method nil nil nil ido-text))
@@ -2363,9 +2365,11 @@ If cursor is not at the end of the user input, move to end of input."
        ((eq method 'write)
 	(ido-record-work-file filename)
 	(setq default-directory ido-current-directory)
-	(ido-record-command 'write-file (concat ido-current-directory filename))
+	(setq filename (concat ido-current-directory filename))
+	(ido-record-command 'write-file filename)
+	(add-to-history 'file-name-history filename)
 	(ido-record-work-directory)
-	(write-file (concat ido-current-directory filename)))
+	(write-file filename))
 
        ((eq method 'read-only)
 	(ido-record-work-file filename)
@@ -2381,6 +2385,7 @@ If cursor is not at the end of the user input, move to end of input."
 	(ido-record-command
 	 (if ido-find-literal 'insert-file-literally 'insert-file)
 	 filename)
+	(add-to-history 'file-name-history filename)
 	(ido-record-work-directory)
 	(insert-file-1 filename
 		       (if ido-find-literal
@@ -2391,6 +2396,7 @@ If cursor is not at the end of the user input, move to end of input."
 	(ido-record-work-file filename)
 	(setq filename (concat ido-current-directory filename))
 	(ido-record-command 'find-file filename)
+	(add-to-history 'file-name-history filename)
 	(ido-record-work-directory)
 	(ido-visit-buffer (find-file-noselect filename nil ido-find-literal) method))))))
 

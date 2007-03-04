@@ -721,7 +721,7 @@ For more information, see the function `buffer-menu'."
       (put-text-property 0 3 'face 'fixed-pitch header)
       ;; Add a "dummy" leading space to align the beginning of the header
       ;; line with the beginning of the text (rather than with the left
-      ;; scrollbar or the left fringe).  –-Stef
+      ;; scrollbar or the left fringe).  --Stef
       (setq header (concat (propertize " " 'display '(space :align-to 0))
 			   header)))
     (with-current-buffer (get-buffer-create "*Buffer List*")
@@ -729,8 +729,9 @@ For more information, see the function `buffer-menu'."
       (erase-buffer)
       (setq standard-output (current-buffer))
       (unless Buffer-menu-use-header-line
-        ;; Use U+2014 (EM DASH) to underline if possible, else U+002D (HYPHEN-MINUS)
-	(let ((underline (if (char-displayable-p ?—) ?— ?-)))
+        ;; Use U+2014 (EM DASH) to underline if possible, else use ASCII
+        ;; (i.e. U+002D, HYPHEN-MINUS).
+	(let ((underline (if (char-displayable-p ?\u2014) ?\u2014 ?-)))
 	  (insert header
 		  (apply 'string
 			 (mapcar (lambda (c)

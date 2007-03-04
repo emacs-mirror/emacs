@@ -8725,6 +8725,11 @@ do_ewmh_fullscreen (f)
 {
   int have_net_atom = wm_supports (f, "_NET_WM_STATE");
 
+  /* Some window managers don't say they support _NET_WM_STATE, but they do say
+     they support _NET_WM_STATE_FULLSCREEN.  Try that also.  */
+  if (!have_net_atom)
+      have_net_atom = wm_supports (f, "_NET_WM_STATE_FULLSCREEN");
+
   if (have_net_atom)
     {
       Lisp_Object frame;

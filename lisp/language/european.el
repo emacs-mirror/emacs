@@ -281,6 +281,19 @@ character set which supports the same languages as Latin-1 with the
 addition of the Euro sign and some additional French and Finnish letters.
 Latin-9 is sometimes nicknamed `Latin-0'."))
  '("European"))
+
+(set-language-info-alist
+ "Esperanto" '((tutorial . "TUTORIAL.eo")
+	       (charset ascii latin-iso8859-3)
+	       (coding-system iso-latin-3)
+	       (coding-priority iso-latin-3)
+	       (nonascii-translation . latin-iso8859-3)
+	       (unibyte-syntax . "latin-3")
+	       (unibyte-display . iso-latin-3)
+	       (input-method . "latin-3-prefix")
+	       (documentation . "Support for Esperanto with ISO-8859-3 character set."))
+ '("European"))
+
 
 (define-coding-system 'windows-1250
   "windows-1250 (Central European) encoding (MIME: WINDOWS-1250)"

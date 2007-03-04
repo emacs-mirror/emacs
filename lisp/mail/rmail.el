@@ -422,7 +422,7 @@ still the current message in the Rmail buffer.")
 Called with region narrowed to the message, including headers,
 before obeying `rmail-ignored-headers'."
   :group 'rmail-headers
-  :type 'function)
+  :type '(choice (const nil) function))
 
 (defcustom rmail-automatic-folder-directives nil
   "List of directives specifying where to put a message.

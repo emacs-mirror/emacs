@@ -149,7 +149,8 @@ Returns the number of actions taken."
 		     ;; Prompt in the echo area.
 		     (let ((cursor-in-echo-area (not no-cursor-in-echo-area))
 			   (message-log-max nil))
-		       (message "%s(y, n, !, ., q, %sor %s) "
+		       (message (apply 'propertize "%s(y, n, !, ., q, %sor %s) "
+				       minibuffer-prompt-properties)
 				prompt user-keys
 				(key-description (vector help-char)))
 		       (if minibuffer-auto-raise

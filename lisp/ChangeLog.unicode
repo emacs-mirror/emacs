@@ -1,3 +1,18 @@
+2007-03-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Replace (defvar VAR nil) by (defvar VAR).
+	(ps-print-emacs-type): Var eliminated.
+	(ps-setup): Remove ps-print-emacs-type. Print which Emacsen is
+	running ps-print package.
+
+	* ps-def.el: Replace (defvar VAR nil) by (defvar VAR).
+	(ps-frame-parameter): Replace defun by defalias.
+	(mark-active): defvar eliminated.
+
+	* ps-samp.el (ps-prsc, ps-c-prsc, ps-s-prsc): Macros eliminated.
+	(ps-rmail-mode-hook, ps-vm-mode-hook, ps-gnus-summary-setup)
+	(ps-jts-ps-setup): Replace macros by vector key definition.
+
 2007-02-16  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* progmodes/ebnf-abn.el (ebnf-abn-skip-comment):

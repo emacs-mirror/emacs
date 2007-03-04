@@ -3130,6 +3130,11 @@ _ACEOF
     machine=amdx86-64 opsys=gnu-linux
   ;;
 
+  ## Tensilica Xtensa Linux-based GNU system
+  xtensa-*-linux-gnu* )
+    machine=xtensa opsys=gnu-linux
+    ;;
+
   * )
     unported=yes
   ;;

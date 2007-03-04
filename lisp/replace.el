@@ -1728,6 +1728,7 @@ make, or the user didn't cancel the call."
   (if query-replace-lazy-highlight
       (let ((isearch-string string)
 	    (isearch-regexp regexp)
+	    (search-whitespace-regexp nil)
 	    (isearch-case-fold-search case-fold))
 	(isearch-lazy-highlight-new-loop range-beg range-end))))
 
