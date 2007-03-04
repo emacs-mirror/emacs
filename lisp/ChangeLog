@@ -1,3 +1,12 @@
+2007-03-04  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/hideshow.el (hs-minor-mode): Turn mode off and show
+	all when switching major mode.
+	(hs-minor-mode, hs-c-start-regexp, hs-block-start-regexp)
+	(hs-block-start-mdata-select, hs-block-end-regexp)
+	(hs-forward-sexp-func, hs-adjust-block-beginning): Do not make
+	these variables permanent-local.
+
 2007-03-04  Richard Stallman  <rms@gnu.org>
 
 	* progmodes/cperl-mode.el (cperl-mode):
@@ -13,7 +22,7 @@
 
 	* startup.el (fancy-splash-text): Clarify text.
 
-	* simple.el (beginning-of-buffer, end-of-buffer): 
+	* simple.el (beginning-of-buffer, end-of-buffer):
 	Avoid treating plain C-u like numeric arg.
 
 	* simple.el (completion-setup-function): Don't set
@@ -21,7 +30,7 @@
 
 	* shell.el (shell-dirstack-query): Doc fix.
 
-	* mouse.el (mouse-drag-mode-line-1, mouse-drag-vertical-line): 
+	* mouse.el (mouse-drag-mode-line-1, mouse-drag-vertical-line):
 	Don't select the window -- pass it to primitives instead.
 
 	* faces.el (minibuffer-prompt): Use medium blue by default.
