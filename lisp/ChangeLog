@@ -1,3 +1,9 @@
+2007-03-04  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-self-insert-command)
+	(orgtbl-self-insert-command, org-delete-char)
+	(org-delete-backward-char): Set the `flyspell-delayed' property.
+
 2007-03-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* international/mule.el (find-auto-coding): Don't search for
