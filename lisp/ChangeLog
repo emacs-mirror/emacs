@@ -1,3 +1,7 @@
+2007-03-04  Kim F. Storm  <storm@cua.dk>
+
+	* emacs-lisp/authors.el (authors-aliases): Add alias.
+
 2007-03-04  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/hideshow.el (hs-minor-mode): Turn mode off and show
