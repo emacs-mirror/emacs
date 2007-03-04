@@ -229,8 +229,61 @@ The default scheme of PGP implementation.  The value should be one of
 @node Caching passphrase
 @section Caching passphrase
 
-PGG provides a simple passphrase caching mechanism.  If you want to
-arrange the interaction, set the variable @code{pgg-read-passphrase}.
+When using GnuPG (gpg) as the PGP scheme, we recommend using a program
+called @code{gpg-agent} for entering and caching
+passphrases@footnote{Actually, @code{gpg-agent} does not cache
+passphrases but private keys.  On the other hand, from a user's point
+of view, this technical difference isn't visible.}.
+
+@defvar pgg-gpg-use-agent
+If non-@code{nil}, attempt to use @code{gpg-agent} whenever possible.
+The default is @code{t}.  If @code{gpg-agent} is not running, or GnuPG
+is not the current PGP scheme, PGG's own passphrase-caching mechanism
+is used (see below).
+@end defvar
+
+To use @code{gpg-agent} with PGG, you must first ensure that
+@code{gpg-agent} is running.  For example, if you are running in the X
+Window System, you can do this by putting the following line in your
+@file{.xsession} file:
+
+@smallexample
+eval "$(gpg-agent --daemon)"
+@end smallexample
+
+For more details on invoking @code{gpg-agent}, @xref{Invoking
+GPG-AGENT,,,gnupg,Using the GNU Privacy Guard}.
+
+Whenever you perform a PGG operation that requires a GnuPG passphrase,
+GnuPG will contact @code{gpg-agent}, which prompts you for the
+passphrase.  Furthermore, @code{gpg-agent} ``caches'' the result, so
+that subsequent uses will not require you to enter the passphrase
+again.  (This cache usually expires after a certain time has passed;
+you can change this using the @code{--default-cache-ttl} option when
+invoking @code{gpg-agent}.)
+
+If you are running in a X Window System environment, @code{gpg-agent}
+prompts for a passphrase by opening a graphical window.  However, if
+you are running Emacs on a text terminal, @code{gpg-agent} has trouble
+receiving input from the terminal, since it is being sent to Emacs.
+One workaround for this problem is to run @code{gpg-agent} on a
+different terminal from Emacs, with the @code{--keep-tty} option; this
+tells @code{gpg-agent} use its own terminal to prompt for passphrases.
+
+When @code{gpg-agent} is not being used, PGG prompts for a passphrase
+through Emacs.  It also has its own passphrase caching mechanism,
+which is controlled by the variable @code{pgg-cache-passphrase} (see
+below).
+
+There is a security risk in handling passphrases through PGG rather
+than @code{gpg-agent}.  When you enter your passphrase into an Emacs
+prompt, it is temporarily stored as a cleartext string in the memory
+of the Emacs executable.  If the executable memory is swapped to disk,
+the root user can, in theory, extract the passphrase from the
+swapfile.  Furthermore, the swapfile containing the cleartext
+passphrase might remain on the disk after the system is discarded or
+stolen.  @code{gpg-agent} avoids this problem by using certain tricks,
+such as memory locking, which have not been implemented in Emacs.
 
 @defvar pgg-cache-passphrase
 If non-@code{nil}, store passphrases.  The default value of this
@@ -241,14 +294,6 @@ variable to @code{nil}.
 
 @defvar pgg-passphrase-cache-expiry
 Elapsed time for expiration in seconds.
-@end defvar
-
-@defvar pgg-gpg-use-agent
-When using GnuPG (gpg) as PGP scheme you can use @code{gpg-agent} for
-caching@footnote{Actually @code{gpg-agent} does not cache passphrases
-but private keys.  On the other hand, from a users point of view this
-technical difference isn't visible.}.  It defaults to @code{t}.
-Setting this to @code{nil} is not recommended.
 @end defvar
 
 @node Default user identity

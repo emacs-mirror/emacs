@@ -491,6 +491,7 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
 		  "Where is command: ")
 		obarray 'commandp t))
      (list (if (equal val "") fn (intern val)) current-prefix-arg)))
+  (unless definition (error "No command"))
   (let ((func (indirect-function definition))
         (defs nil)
         (standard-output (if insert (current-buffer) t)))

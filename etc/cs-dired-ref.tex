@@ -103,7 +103,7 @@ MA 02110-1301, USA.
   \def\makefootline{\baselineskip10pt\hsize6.5in\line{\the\footline}}
 \else                           %2 or 3 columns uses prereduced size
   \hsize 3.4in
-  \vsize 7.95in
+  \vsize 9.2in
   \hoffset -.75in
   \voffset -.745in
   \font\titlefont=csbx10 \scaledmag2
@@ -334,10 +334,17 @@ MA 02110-1301, USA.
 \key{zmìò znaèku na jiné písmeno}{* c}
 \key{oznaè soubory, pro které elispový výraz vrací t}{* ( \dx}
 
-\section{Nápovìda}
+\section{Modifikace Dired bufferu}
 
-\key{zobraz nápovìdu}{h}
-\key{pøehled pøíkazù dired}{?}
+\key{vlo¾ do tohoto bufferu podadresáø}{i}
+\key{odstraò oznaèené soubory z bufferu}{k}
+\key{odstraò z bufferu výpis podadresáøe}{C-u k}
+\key{znovu naèti adresáøe (znaèky se zachovají)}{g}
+\key{pøepni tøídìní adresáøe podle jména/data}{s}
+\key{uprav volby pøíkazu ls}{C-u s}
+\key{obnov znaèky, skryté øádky apod.}{C-_}
+\key{skryj v¹echny podadresáøe}{M-\$}
+\key{skryj nebo odkryj v¹echny podadresáøe}{\$}
 
 \section{Pøíkazy nad oznaèenými soubory}
 
@@ -373,18 +380,6 @@ MA 02110-1301, USA.
 \key{proveï výmaz souborù oznaèených ke smazání}{x}
 \key{oznaè soubory vyhovující regulárnímu výrazu}{\% d}
 
-\section{Modifikace Dired bufferu}
-
-\key{vlo¾ do tohoto bufferu podadresáø}{i}
-\key{odstraò oznaèené soubory z bufferu}{k}
-\key{odstraò z bufferu výpis podadresáøe}{C-u k}
-\key{znovu naèti adresáøe (znaèky se zachovají)}{g}
-\key{pøepni tøídìní adresáøe podle jména/data}{s}
-\key{uprav volby pøíkazu ls}{C-u s}
-\key{obnov znaèky, skryté øádky apod.}{C-_}
-\key{skryj v¹echny podadresáøe}{M-\$}
-\key{skryj nebo odkryj v¹echny podadresáøe}{\$}
-
 \section{Pøíkazy s regulárními výrazy}
 
 \key{oznaè soubory vyhovující regulárnímu výrazu}{\% m}
@@ -400,7 +395,12 @@ MA 02110-1301, USA.
 \metax{otevøi v dired soubory obsahující vzorek}{M-x find-grep-dired}
 \metax{otevøi v dired soubory podle výstupu \kbd{find}}{M-x find-dired}
 
-%\copyrightnotice
+\section{Nápovìda}
+
+\key{zobraz nápovìdu}{h}
+\key{pøehled pøíkazù dired}{?}
+
+\copyrightnotice
 
 \bye
 

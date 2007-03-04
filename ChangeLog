@@ -1,7 +1,18 @@
+2007-02-27  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist (oldXMenu): Remove Imakefile.
+	(etc/images): Add README.
+
+2007-02-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (xtensa-*-linux-gnu*): New configuration.
+
+	* configure: Regenerate.
+
 2007-02-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* config.guess, config.sub: Updated from master source.
-	
+
 2007-01-31  Sascha Wilde  <wilde@sha-bang.de>  (tiny change)
 
 	* configure.in (PKG_CHECK_MODULES): Change ///* to / in cflags and libs.

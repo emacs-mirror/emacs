@@ -1,3 +1,16 @@
+2007-02-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-make-in-reply-to): Quote name containing
+	non-ASCII characters.  It will make the RFC2047 encoder cause an error
+	if there are special characters.  Reported by NAKAJI Hiroyuki
+	<nakaji@kankyo-u.ac.jp>.
+
+2007-02-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nntp.el (nntp-never-echoes-commands)
+	(nntp-open-connection-functions-never-echo-commands): New variables.
+	(nntp-send-command): Use them.
+
 2007-02-15  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
 
 	* nnweb.el (nnweb-google-parse-1): Fix date parsing to also match on

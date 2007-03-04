@@ -1,3 +1,23 @@
+2007-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Don't clear out LIB_X11_LIB, since XFT_LIBS does
+	not include -lX11 on Solaris.
+
+2007-03-02  Stuart D. Herring <herring@lanl.gov>
+
+	* keymap.c (Fkey_binding): Don't consider two-element lists as
+	events.
+
+2007-03-01  Kenichi Handa  <handa@m17n.org>
+
+	* process.c (send_process_object): Check the process status and
+	signal an error if something is wrong.
+
+2007-02-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* insdel.c (Fcombine_after_change_execute): Return nil if
+	combine_after_change_buffer has been invalidated.
+
 2007-02-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* m/xtensa.h: New file.

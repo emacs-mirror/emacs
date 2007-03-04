@@ -324,29 +324,42 @@ of this var to take effect."
 (defcustom allout-distinctive-bullets-string "*+-=>()[{}&!?#%\"X@$~_\\:;^"
   "*Persistent outline header bullets used to distinguish special topics.
 
-These bullets are used to distinguish topics from the run-of-the-mill
-ones.  They are not used in the standard topic headers created by
-the topic-opening, shifting, and rebulleting (eg, on topic shift,
-topic paste, blanket rebulleting) routines, but are offered among the
-choices for rebulleting.  They are not altered by the above automatic
-rebulleting, so they can be used to characterize topics, eg:
+These bullets are distinguish topics with particular character.
+They are not used by default in the topic creation routines, but
+are offered as options when you modify topic creation with a
+universal argument \(\\[universal-argument]), or during rebulleting \(\\[allout-rebullet-current-heading]).
 
- `?' question topics
- `(' parenthetic comment (with a matching close paren inside)
- `[' meta-note (with a matching close ] inside)
- `\"' a quotation
- `=' value settings
- `~' \"more or less\"
- `^' see above
+Distinctive bullets are not cycled when topics are shifted or
+otherwise automatically rebulleted, so their marking is
+persistent until deliberately changed.  Their significance is
+purely by convention, however.  Some conventions suggest
+themselves:
 
- ... for example.  (`#' typically has a special meaning to the software,
-according to the value of `allout-numbered-bullet'.)
+ `(' - open paren - an aside or incidental point
+ `?' - question mark - uncertain or outright question
+ `!' - exclamation point/bang - emphatic
+ `[' - open square bracket - meta-note, about item instead of item's subject
+ `\"' - double quote - a quotation or other citation
+ `=' - equal sign - an assignement, equating a name with some connotation
+ `^' - carat - relates to something above
 
-See `allout-plain-bullets-string' for the selection of
-alternating bullets.
+Some are more elusive, but their rationale may be recognizable:
+
+ `+' - plus - pending consideration, completion
+ `_' - underscore - done, completed
+ `&' - ampersand - addendum, furthermore
+
+\(Some other non-plain bullets have special meaning to the
+software.  By default:
+
+ `~' marks encryptable topics - see `allout-topic-encryption-bullet'
+ `#' marks auto-numbered bullets - see `allout-numbered-bullet'.)
+
+See `allout-plain-bullets-string' for the standard, alternating
+bullets.
 
 You must run `set-allout-regexp' in order for outline mode to
-reconcile to changes of this value.
+adopt changes of this value.
 
 DO NOT include the close-square-bracket, `]', on either of the bullet
 strings."
@@ -1878,11 +1891,14 @@ PREFIX-PADDING:
         bullet, determining the ITEM's DEPTH.
 BULLET: A character at the end of the ITEM PREFIX, it must be one of
         the characters listed on `allout-plain-bullets-string' or
-        `allout-distinctive-bullets-string'.  (See the documentation
-        for these variables for more details.)  The default choice of
-        BULLET when generating ITEMs varies in a cycle with the DEPTH of
-        the ITEM.
-
+        `allout-distinctive-bullets-string'.  When creating a TOPIC,
+        plain BULLETs are by default used, according to the DEPTH of the
+        TOPIC.  Choice among the distinctive BULLETs is offered when you
+        provide a universal argugment \(\\[universal-argument]) to the
+        TOPIC creation command, or when explictly rebulleting a TOPIC.  The
+        significance of the various distinctive bullets is purely by
+        convention.  See the documentation for the above bullet strings for
+        more details.
 EXPOSURE:
         The state of a TOPIC which determines the on-screen visibility
         of its OFFSPRING and contained ENTRY text.
@@ -1994,6 +2010,7 @@ OPEN:	A TOPIC that is not CLOSED, though its OFFSPRING or BODY may be."
                       minor-mode-map-alist)))
 
       (add-to-invisibility-spec '(allout . t))
+
       (allout-add-resumptions '(line-move-ignore-invisible t))
       (add-hook 'pre-command-hook 'allout-pre-command-business nil t)
       (add-hook 'post-command-hook 'allout-post-command-business nil t)
@@ -5998,10 +6015,7 @@ Returns the resulting string, or nil if the transformation fails."
          (rejections-left (- allout-encryption-ciphertext-rejection-ceiling
                              rejected))
          result-text status
-         ;; Inhibit gpg-agent use for symmetric keys in the scope of this let:
-         (pgg-gpg-use-agent (if (equal key-type 'keypair)
-                                pgg-gpg-use-agent
-                              nil)))
+         )
 
     (if (and fetch-pass (not passphrase))
         ;; Force later fetch by evicting passphrase from the cache.

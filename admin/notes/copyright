@@ -27,6 +27,9 @@ containing the image.
 3. If you add a lot of text to a previously trivial file that had no
 legal notices, consider if you should add a copyright statement.
 
+4. Please don't just add an FSF copyright without checking that is the
+right thing to do.
+
 
 Every non-trivial file distributed through the Emacs CVS should be
 self-explanatory in terms of copyright and license. This includes
@@ -48,6 +51,9 @@ files do not grow and become non-trivial without having a license
 added. NB consequently, if you add a lot of text to a small file,
 consider whether your changes have made the file worthy of a copyright
 notice, and if so, please add one.
+
+It can be helpful to put a reminder comment at the start of a trivial
+file, eg: "add a license notice if this grows to > 10 lines of code".
 
 The years in the copyright notice should be updated every year (see
 file "years" in this directory). The PS versions of refcards etc
@@ -133,6 +139,12 @@ etc/edt-user.doc
 etc/emacs.csh
   - keep simple license for this simple file
 
+etc/future-bug
+ - doesn't need a humourless disclaimer, because Karl Fogel says we
+ can consider it part of Emacs, and he has a blanker disclaimer for
+ Emacs changes. (email to rgm "[Emacs-commit] emacs/etc future-bug",
+ 2007028)
+
 etc/letter.pbm,letter.xpm
   - trivial, no notice needed.
 <http://lists.gnu.org/archive/html/emacs-devel/2007-02/msg00324.html>
@@ -158,14 +170,37 @@ SW.tit, TONEPY.tit, ZOZY.tit
 leim/MISC-DIC/CTLau-b5.html, CTLau.html, cangjie-table.b5, cangjie-table.cns,
 pinyin.map, ziranma.cin
   - leave the copyright alone.
+Note that pinyin.map, ziranma.cin (and hence the generated
+leim/quail/PY.el, ZIRANMA.el) are under GPLv1 or later.
 
 leim/SKK-DIC/SKK-JISYO.L
 ja-dic/ja-dic.el
   (the latter is auto-generated from the former). Leave the copyright alone.
 
 lib-src/etags.c
-  - this has a copyright Ken Arnold. We are still deciding what should
-  be done here (see below).
+  Copyright information is duplicated in etc/ETAGS.README. Update that
+  file too.
+
+  Until 2007 etags.c was described as being copyright FSF and Ken Arnold.
+  After some investigation in Feb 2007, then to the best of our
+  knowledge we believe that the original 1984 Emacs version was based
+  on the version in BSD4.2. See for example this 1985 post from Ken Arnold:
+  <http://groups.google.com/group/mod.sources/browse_thread/thread/ffe5c55845a640a9>
+    I have received enough requests for the current source to ctags
+    to post it. Here is the latest version (what will go out with
+    4.3, modulo any bugs fixed during the beta period). It is the
+    4.2 ctags with recognition of yacc and lex tags added.
+
+  See also a 1984 version of ctags (no copyright) posted to net.sources:
+  <http://groups.google.com/group/net.sources/msg/a21b6c21be12a98d>
+  Version of etags.c in emacs-16.56 duplicates comment typos.
+
+  Accordingly, in Feb 2007 we added a 1984 copyright for the
+  University of California and a revised BSD license. The terms of
+  this require that the full license details be available in binary
+  distributions - hence the file etc/ETAGS.README. The fact that the
+  --version output just says "Copyright <year> FSF" is apparently OK
+  from a legal point of view.
 
 lib-src/getopt1.c, getopt_int.h
   - these are from the GNU C library. Leave the copyrights alone.
@@ -184,14 +219,129 @@ man/doclicense.texi
 lisp/net/tramp.el
   - there are also copyrights in the body of the file. Update these too.
 
+
 lwlib/
 rms (2007/02/17): "lwlib is not assigned to the FSF; we don't consider
 it part of Emacs. [...] Therefore non-FSF copyrights are ok in lwlib."
 
-msdos/is_exec.c, sigaction.c
-  - these files are copyright DJ Delorie. Leave the copyrights alone.
-  Leave the Eli Zaretskii copyright in is_exec.c alone. See the
-  msdos/README file for the legal history of these files.
+NB don't change the GPL version used for lwlib .c and .h files (see
+below).
+
+FSF copyrights should only appear in files which have undergone
+non-trivial cumulative changes from the original versions in the Lucid
+Widget Library. NB this means that if you make non-trivial changes to
+a file with no FSF copyright, you should add one. Also, if changes are
+reverted to the extent that a file becomes basically the same as the
+original version, the FSF copyright should be removed.
+
+In my (rgm) opinion, as of Feb 2007, all the non-trivial files differ
+significantly from the original versions, with the exception of
+lwlib-Xm.h. Most of the changes that were made to this file have
+subsequently been reverted. Therefore I removed the FSF copyright from
+this file (which is arguably too trivial to merit a notice anyway). I
+added FSF copyright to the following files which did not have them
+already: Makefile.in, lwlib-Xaw.c, lwlib-int.h (borderline),
+lwlib-utils.c (borderline), lwlib.c, lwlib.h.
+
+Copyright years before the advent of public CVS in 2001 were those
+when I judged (from the CVS logs) that non-trivial amounts of change
+had taken place. I also adjusted the existing FSF years in xlwmenu.c,
+xlwmenu.h, and xlwmenuP.h on the same basis.
+
+Note that until Feb 2007, the following files in lwlib were lacking
+notices: lwlib-int.h, lwlib.h, lwlib-Xaw.h, lwlib-Xlw.h, lwlib-utils.h
+
+The following files did not list a Lucid copyright: xlwmenu.h,
+xlwmenuP.h.
+
+To the best of our knowledge, all the code files in lwlib were
+originally part of the Lucid Widget Library, even if they did not say
+so explicitly. For example, they were all present in Lucid Emacs 19.1
+in 1992. The exceptions are the two Xaw files, which did not appear
+till Lucid Emacs 19.9 in 1994. The file lwlib-Xaw.h is too trivial to
+merit a copyright notice, but would presumably have the same one as
+lwlib-Xaw.c. We have been unable to find a true standalone version of
+LWL, if there was such a thing, to check definitively.
+
+To clarify the situation, in Feb 2007 we added Lucid copyrights and
+GPL notices to those files lacking either that were non-trivial,
+namely: lwlib-int.h, lwlib.h, xlwmenu.h, xlwmenuP.h. This represents
+our best understanding of the legal status of these files. We also
+clarified the notices in Makefile.in, which was originally the
+Makefile auto-generated from Lucid's Imakefile.
+
+As of Feb 2007, the following files are considered too trivial for
+notices: lwlib-Xaw.h, lwlib-Xlw.h, lwlib-utils.h.
+
+The version of lwlib/ first installed in Emacs seems to be the same as
+that used in Lucid Emacs 19.8 (released 6-sep-93); except the two Xaw
+files, which did not appear till Athena support was added in Lucid
+Emacs 19.9. In Lucid Emacs 19.1, all files were under GPLv1 or later,
+but by Lucid Emacs 19.8, lwlib.c and xlwmenu.c had been switched to v2
+or later. These are the versions that were first installed in Emacs.
+So in GNU Emacs, these two files have been under v2 or later since
+1994.
+
+It seems that it was the intention of Lucid to use v1 or later
+(excepting the two files mentioned previously); so this is the license
+we have used when adding notices to code that did not have notices
+originally. Although we have the legal right to switch to v2 or later,
+rms prefers that we do not do so.
+
+
+msdos/is_exec.c, sigaction.c - these files are copyright DJ Delorie.
+Leave the copyrights alone. Leave the Eli Zaretskii copyright in
+is_exec.c alone. See the msdos/README file for the legal history of
+these files.
+
+
+oldXMenu/
+  Keep the "copyright.h" method used by X11, rather than moving the
+  licenses into the files. Note that the original X10.h did not use
+  copyright.h, but had an explicit notice, which we retain.
+
+If you make non-trivial changes to a file which does not have an FSF
+notice, add one and a GPL notice (as per Activate.c). If changes to a
+file are reverted such that it becomes essentially the same as the
+original X11 version, remove the FSF notice and GPL.
+
+Only the files which differ significantly from the original X11
+versions should have FSF copyright and GPL notices. At time of writing
+(Feb 2007), this is: Activate.c, Create.c, Internal.c. I (rgm)
+established this by diff'ing the current files against those in X11R1,
+and when I found significant differences looking in the ChangeLog for
+the years they originated (the CVS logs are truncated before 1999). I
+therefore removed the FSF notices (added in 200x) from the other
+files. There are some borderline cases IMO: AddSel.c, InsSel.c,
+XMakeAssoc.c, XMenu.h. For these I erred on the side of NOT adding FSF
+notices.
+
+With regards to whether the files we have changed should have GPL
+added or not, rms says (2007-02-25, "oldXmenu issues"):
+
+    It does not make much difference, because oldXmenu is obsolete
+    except for use in Emacs (and it is not normally used in Emacs any
+    more either).
+
+    So, to make things simple, please put our changes under the GPL.
+
+insque.c had no copyright notice until 2005. The version of insque.c
+added to Emacs 1992-01-27 is essentially the same as insremque.c added
+to glic three days later by Roland McGrath, with an FSF copyright and
+GPL, but no ChangeLog entry:
+<http://sources.redhat.com/cgi-bin/cvsweb.cgi/~checkout~/libc/misc/insremque.c?\
+rev=1.1&cvsroot=glibc>
+To the best of his recollection, McGrath (who has a copyright
+assignment) was the author of this file (email from roland at frob.com
+to rms, 2007-02-23, "Where did insque.c come from?"). The FSF
+copyright and GPL in this file are therefore correct as far as we
+understand it.
+
+Imakefile had no legal info in Feb 2007, but was obviously based on
+the X11 version (which also had no explicit legal info). As it was
+unused, I removed it. It would have the same MIT copyright as
+Makefile.in does now.
+
 
 src/gmalloc.c
   - contains numerous copyrights from the GNU C library. Leave them alone.
@@ -328,6 +478,9 @@ system)
     Emacs 22 is released (though if they can be fixed before, that is
     obviously good):
 
+Maybe some relevant comments here?
+<http://groups.google.com/group/linux.debian.legal/browse_thread/thread/123547ea95437a1f>
+
 
 Is it OK to just `cvs remove' a file for legal reasons, or is
 something more drastic needed? A removed file is still available from
@@ -356,30 +509,6 @@ etc/images
   contact image authors in regards to future switch to v3.
 
 
-REMOVED src/unexhp9k800.c
-  - we would like to re-add this file if possible. Please let us know
-  if you can clarify its legal status.
-  http://lists.gnu.org/archive/html/emacs-devel/2007-02/msg00138.html
-
-
-*** These are copyright issues still to be addressed:
-
-NB apart from switching the TUTORIALs to GPL, I think there is nothing
-here that anyone can work on without further input from rms.
-
-
-Maybe some relevant comments here?
-<http://groups.google.com/group/linux.debian.legal/browse_thread/thread/123547ea95437a1f>
-
-
-etc/gnus-logo.eps, gnus-booklet.ps, gnus-refcard.ps
- just to be safe, papers are on the way for the "Gnus logo", even
- though it is very similar to the already-assigned "Emacs logo".
-
-
-etc/ms-kermit - no copyright, but ms-7bkermit has one
-
-
 etc/TUTORIAL* (translations)
   switch to GPL (see english TUTORIAL)
   rms: "We can leave the TUTORIAL translations alone until their
@@ -390,69 +519,18 @@ etc/TUTORIAL* (translations)
   previous version.
 Done: TUTORIAL.eo
 
-[waiting for legal advice]
-lib-src/etags.c
- - was it ok to use Ken Arnold's code as a basis?
-   1984 version of ctags, with no copyright, posted to net.sources:
-   http://groups.google.com/group/net.sources/msg/a21b6c21be12a98d)
-   version of etags.c in emacs-16.56 seems to be derived from this
-   (duplicate typos in comments).
+
+REMOVED src/unexhp9k800.c
+  - we would like to re-add this file if possible. Please let us know
+  if you can clarify its legal status.
+  http://lists.gnu.org/archive/html/emacs-devel/2007-02/msg00138.html
 
 
-[waiting for legal advice on lwlib/*]
-lwlib/lwlib-Xaw.c
-  copyright Chuck Thompson; but under GPL, so OK?
-
-lwlib/lwlib-Xlw.c, lwlib-Xm.c, lwlib-Xm.h, xlwmenu.c
-  copyright lucid and FSF, but under GPL, so OK?
-  FSF copyrights were added in 200x, was that right?
-
-lwlib/lwlib-int.h, lwlib.h, lwlib-Xaw.h, lwlib-Xlw.h, lwlib-utils.h
-  no copyright. last three trivial?
-  suspect these must have been part of the "Lucid Widget Library",
-  which is under GPL. Can't find an original version of this to check.
-
-lwlib/Makefile.in
- "some parts" copyright Lucid, no license
-
-lwlib/lwlib-utils.c, lwlib.c
-  copyright Lucid, Inc; but under GPL, so OK?
-
-lwlib/xlwmenu.h, xlwmenuP.h
-  part of 'Lucid Widget Library', but only FSF copyright (when files
-  were first checked into RCS, there were no copyrights). Was it right
-  to add FSF copyright?
-  should we add a 1992 Lucid copyright?
-
-lwlib/*
-  should we:
-  1) ensure all files that were originally in the "Lucid Widget
-  Library" have 1992 Lucid copyright?
-  2) add or remove FSF copyrights to any files we have made non-trivial
-  changes to since 1992?
+*** These are copyright issues still to be addressed:
 
 
-[waiting for legal advice]
-oldXMenu/
- - should there be any FSF copyrights at all in here? Some were added
-   in 2005, without licence notices. Was this right?
-   Eg don't think copyright.h should have FSF copyright!
-   Should add copyright details for X11R1 to the README file. (see
-   copyright.h). I suggest we remove copyright.h and add the notices
-   directly into the files.
+etc/ms-kermit - no copyright, but ms-7bkermit has one
 
-
-The general issue is, as with some of the Lucid code in lwlib, suppose
-file foo.c is Copyright (C) 2000 John Smith, and released under the
-GPL. We check it into Emacs CVS and make non-trivial changes to it.
-Should we add a FSF copyright or not? Can we add such a notice as soon
-as we check it check it in to CVS?
-
-
-[waiting for legal advice]
-oldXMenu/Makefile.in, Makefile, Imakefile, descrip.mms, insque.c
-  - issues described in mail to rms, 2006/12/17.
-rms: "I have asked for lawyer's advice about these."
 
 
 This file is part of GNU Emacs.

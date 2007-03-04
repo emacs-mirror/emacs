@@ -333,14 +333,6 @@ SYSTEM, YOU CAN LOSE MAIL!
 If your system uses the lock file protocol, and fascist restrictions
 prevent ordinary users from writing the lock files in /usr/spool/mail,
 you may need to make `movemail' setgid to a suitable group such as
-`mail'.  You can use these commands (as root):
-
-	chgrp mail movemail
-	chmod 2755 movemail
-
-If your system uses the lock file protocol, and fascist restrictions
-prevent ordinary users from writing the lock files in /usr/spool/mail,
-you may need to make `movemail' setgid to a suitable group such as
 `mail'.  To do this,  use the following commands (as root) after doing the
 make install.
 
@@ -2451,25 +2443,38 @@ This might happen due to a bug in the MinGW header assert.h, which
 defines the `assert' macro with a trailing semi-colon.  The following
 patch to assert.h should solve this:
 
-*** include/assert.h.orig	Sun Nov  7 02:41:36 1999
---- include/assert.h	Mon Jan 29 11:49:10 2001
-***************
-*** 41,47 ****
-  /*
-   * If not debugging, assert does nothing.
-   */
-! #define assert(x)	((void)0);
+ *** include/assert.h.orig	Sun Nov  7 02:41:36 1999
+ --- include/assert.h	Mon Jan 29 11:49:10 2001
+ ***************
+ *** 41,47 ****
+   /*
+    * If not debugging, assert does nothing.
+    */
+ ! #define assert(x)	((void)0);
 
-  #else /* debugging enabled */
+   #else /* debugging enabled */
 
---- 41,47 ----
-  /*
-   * If not debugging, assert does nothing.
-   */
-! #define assert(x)	((void)0)
+ --- 41,47 ----
+   /*
+    * If not debugging, assert does nothing.
+    */
+ ! #define assert(x)	((void)0)
 
-  #else /* debugging enabled */
+   #else /* debugging enabled */
 
+
+*** Building the MS-Windows port with Visual Studio 2005 fails.
+
+Microsoft no longer ships the single threaded version of the C library
+with their compiler, and the multithreaded static library is missing
+some functions that Microsoft have deemed non-threadsafe.  The
+dynamically linked C library has all the functions, but there is a
+conflict between the versions of malloc in the DLL and in Emacs, which
+is not resolvable due to the way Windows does dynamic linking.
+
+We recommend the use of the MingW port of GCC for compiling Emacs, as
+not only does it not suffer these problems, but it is also Free
+software like Emacs.
 
 ** Linking
 

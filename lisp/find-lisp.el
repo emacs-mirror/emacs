@@ -95,7 +95,7 @@ PARENT is the parent directory of DIR."
 	   (string= dir "..")
 	   ;; Skip directories which are symlinks
 	   ;; Easy way to circumvent recursive loops
-	   (file-symlink-p dir))))
+	   (file-symlink-p (expand-file-name dir parent)))))
 
 (defun find-lisp-default-file-predicate  (file dir)
   "True if FILE matches `find-lisp-regexp'.

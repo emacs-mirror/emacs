@@ -1,10 +1,120 @@
+2007-03-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* international/mule.el (find-auto-coding): Don't search for
+	line-ending characters past the end of the tail.
+
+2007-03-03  Christopher Allan Webber  <cwebber@dustycloud.org>  (tiny change)
+
+	* play/gamegrid.el (gamegrid-add-score-with-update-game-score-1):
+	Jump to the line where new score has been uploaded.
+
+	* play/tetris.el (tetris-move-bottom, tetris-move-left)
+	(tetris-move-right, tetris-rotate-prev, tetris-rotate-next):
+	Do nothing when the game is paused.
+
+2007-03-03  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-set-tags): Prevent slipping of point
+	during completion.
+
+2007-03-01  Lennart Borgman  <lennart.borgman.073@student.lu.se>
+
+	* isearch.el (isearch-message-prefix):
+	Use minibuffer-prompt-properties.
+
+2007-03-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Replace (defvar VAR nil) by (defvar VAR).
+	(ps-setup): Print which Emacsen is running ps-print package.
+
+2007-03-01  Stuart Herring  <herring@lanl.gov>  (tiny change)
+
+	* files.el (set-auto-mode-0): Use `indirect-function'.
+	(hack-one-local-variable): Don't reapply current major mode.
+
+2007-03-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-quote-syntax): Don't bother with
+	syntax-ppss-context.
+	(python-fill-paragraph): Make sure that fenced-string delimiters that
+	stand on their own line stay there
+
+2007-03-01  Lennart Borgman  <lennart.borgman.073@student.lu.se>
+
+	* replace.el (perform-replace): Propertize message.
+
+2007-03-01  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-prepare-agenda-buffers): Also check for
+	invisible heading.
+
+2007-02-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* net/tramp.el (tramp-file-name-handler): Revert last change.
+
+2007-02-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-mouse-until, gdb-mouse-jump):
+	Correct doc strings.
+
+2007-02-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* replace.el (perform-replace): Undo forward-char immediately if
+	non-adjacent search fails.
+
+2007-02-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* version.el (emacs-major-version, emacs-minor-version):
+	string-to-int -> string-to-number.
+
+2007-02-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help.el (where-is): Fail gracefully when not passed a command.
+
+2007-02-28  Stuart Herring  <herring@lanl.gov>  (tiny change)
+
+	* find-lisp.el (find-lisp-default-directory-predicate):
+	Fix bug: Do symlink check on expanded filename.
+
+2007-02-28  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-set-tags, org-table-get-field): Avoid case
+	changes during replacement.
+	(org-agenda-mode-map): Add default binding for `org-agenda-archive'.
+
+2007-02-28  Lars Hansen  <larsh@soem.dk>
+
+	* desktop.el: Delete header line listing me as maintainer.
+
+2007-02-28  Glenn Morris  <rgm@gnu.org>
+
+	* tutorial.el (tutorial--describe-nonstandard-key): Tweak text in
+	the menus case.
+
+2007-02-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* net/tramp.el (tramp-file-name-handler): Inhibit modification
+	hooks to avoid confusion when combining after-change calls.
+
+2007-02-27  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-encrypt-string): Remove inhibition of gpg-agent,
+	now that pgg-gpg-process-region correctly honors passed-in passphrase.
+	(allout-distinctive-bullets-string): Add info about bullet conventions.
+	(allout-mode): Add info about distinctive vs plain bullets.
+
+2007-02-27  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-archive-subtree): Quote variable name.
+	(org-agenda-get-todos): Make sure skip properties are checked correctly.
+
 2007-02-26  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gud.el (gud, gud-menu-map): Remove references to bash/bashdb.
-	(gud-bashdb-history, gud-bashdb-marker-filter)
+	* progmodes/gud.el (gud-bashdb-history, gud-bashdb-marker-filter)
 	(gud-bashdb-command-name, bashdb): Remove.
+	(gud, gud-menu-map): Remove references to bash/bashdb.
 
-2007-02-26  Andrey Zhdanov  <susuman@hotmail.com> (tiny change)
+2007-02-26  Andrey Zhdanov  <susuman@hotmail.com>  (tiny change)
 
 	(gud-pdb-marker-regexp): Add optional <module> keyword for Python 2.5.
 

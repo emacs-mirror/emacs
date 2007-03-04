@@ -88,6 +88,21 @@ Indirect connections:
 - `nntp-open-via-rlogin-and-telnet',
 - `nntp-open-via-telnet-and-telnet'.")
 
+(defvoo nntp-never-echoes-commands nil
+  "*Non-nil means the nntp server never echoes commands.
+It is reported that some nntps server doesn't echo commands.  So, you
+may want to set this to non-nil in the method for such a server setting
+`nntp-open-connection-function' to `nntp-open-ssl-stream' for example.
+Note that the `nntp-open-connection-functions-never-echo-commands'
+variable overrides the nil value of this variable.")
+
+(defvoo nntp-open-connection-functions-never-echo-commands
+    '(nntp-open-network-stream)
+  "*List of functions that never echo commands.
+Add or set a function which you set to `nntp-open-connection-function'
+to this list if it does not echo commands.  Note that a non-nil value
+of the `nntp-never-echoes-commands' variable overrides this variable.")
+
 (defvoo nntp-pre-command nil
   "*Pre-command to use with the various nntp-open-via-* methods.
 This is where you would put \"runsocks\" or stuff like that.")
@@ -450,11 +465,15 @@ be restored and the command retried."
 				nntp-server-buffer
 				wait-for nnheader-callback-function)
 	  ;; If nothing to wait for, still remove possibly echo'ed commands.
-	  ;; We don't have echos if nntp-open-connection-function
-	  ;; is `nntp-open-network-stream', so we skip this in that case.
+	  ;; We don't have echoes if `nntp-never-echoes-commands' is non-nil
+	  ;; or the value of `nntp-open-connection-function' is in
+	  ;; `nntp-open-connection-functions-never-echo-commands', so we
+	  ;; skip this in that cases.
 	  (unless (or wait-for
-		      (equal nntp-open-connection-function
-			     'nntp-open-network-stream))
+		      nntp-never-echoes-commands
+		      (memq
+		       nntp-open-connection-function
+		       nntp-open-connection-functions-never-echo-commands))
 	    (nntp-accept-response)
 	    (save-excursion
 	      (set-buffer buffer)

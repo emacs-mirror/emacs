@@ -95,7 +95,7 @@ MA 02110-1301, USA.
   \def\makefootline{\baselineskip10pt\hsize6.5in\line{\the\footline}}
 \else                           %2 or 3 columns uses prereduced size
   \hsize 3.4in
-  \vsize 7.95in
+  \vsize 9.2in
   \hoffset -.75in
   \voffset -.745in
   \font\titlefont=cmbx10 \scaledmag2
@@ -243,6 +243,8 @@ MA 02110-1301, USA.
 % commands fit on a page in two-column format
 \def\dx{{\bf (DX)}}
 
+\nopagenumbers
+
 %**end of header
 
 
@@ -326,10 +328,17 @@ MA 02110-1301, USA.
 \key{change the marks to a different character}{* c}
 \key{mark files for which Elisp expression returns t}{* ( \dx}
 
-\section{Getting Help}
+\section{Modifying the Dired Buffer}
 
-\key{dired help}{h}
-\key{dired summary (short help) and error log}{?}
+\key{insert a subdirectory into this buffer}{i}
+\key{remove marked files from the listing}{k}
+\key{remove a subdir listing}{C-u k}
+\key{re-read all directories (retains all marks)}{g}
+\key{toggle sorting of current subdir by name/date}{s}
+\key{edit ls switches}{C-u s}
+\key{recover marks, hidden lines, and such}{C-_}
+\key{hide all subdirectories}{M-\$}
+\key{hide or unhide subdirectory}{\$}
 
 \section{Commands on Files Marked or Specified by the Prefix}
 
@@ -365,18 +374,6 @@ MA 02110-1301, USA.
 \key{execute the deletions requested (flagged files)}{x}
 \key{flag files matching a regular expression}{\% d}
 
-\section{Modifying the Dired Buffer}
-
-\key{insert a subdirectory into this buffer}{i}
-\key{remove marked files from the listing}{k}
-\key{remove a subdir listing}{C-u k}
-\key{re-read all directories (retains all marks)}{g}
-\key{toggle sorting of current subdir by name/date}{s}
-\key{edit ls switches}{C-u s}
-\key{recover marks, hidden lines, and such}{C-_}
-\key{hide all subdirectories}{M-\$}
-\key{hide or unhide subdirectory}{\$}
-
 \section{Regular Expression Commands}
 
 \key{mark filenames matching a regular expression}{\% m}
@@ -392,7 +389,12 @@ MA 02110-1301, USA.
 \metax{dired file(s) that contain pattern}{M-x find-grep-dired}
 \metax{dired file(s) based on \kbd{find} output}{M-x find-dired}
 
-%\copyrightnotice
+\section{Getting Help}
+
+\key{dired help}{h}
+\key{dired summary (short help) and error log}{?}
+
+\copyrightnotice
 
 \bye
 

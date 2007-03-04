@@ -163,7 +163,7 @@ Used for syntactic keywords.  N is the match number (1, 2 or 3)."
 	       (= (match-beginning 1) (match-end 1))) ; prefix is null
 	  (and (= n 1)			; prefix
 	       (/= (match-beginning 1) (match-end 1)))) ; non-empty
-      (unless (eq 'string (syntax-ppss-context (syntax-ppss)))
+      (unless (nth 3 (syntax-ppss))
         (eval-when-compile (string-to-syntax "|"))))
      ;; Otherwise (we're in a non-matching string) the property is
      ;; nil, which is OK.
@@ -1743,12 +1743,11 @@ Otherwise, do nothing."
 	       (orig (point))
 	       (start (nth 8 syntax))
 	       end)
-	  (cond ((eq t (nth 3 syntax))	    ; in fenced string
-		 (goto-char (nth 8 syntax)) ; string start
-		 (condition-case ()	    ; for unbalanced quotes
-		     (progn (forward-sexp)
-			    (setq end (point)))
-		   (error (setq end (point-max)))))
+	  (cond ((eq t (nth 3 syntax))	      ; in fenced string
+		 (goto-char (nth 8 syntax))   ; string start
+		 (setq end (condition-case () ; for unbalanced quotes
+                               (progn (forward-sexp) (point))
+                             (error (point-max)))))
 		((re-search-backward "\\s|\\s-*\\=" nil t) ; end of fenced
 							   ; string
 		 (forward-char)
@@ -1756,13 +1755,17 @@ Otherwise, do nothing."
 		 (condition-case ()
 		     (progn (backward-sexp)
 			    (setq start (point)))
-		   (error nil))))
+		   (error (setq end nil)))))
 	  (when end
 	    (save-restriction
 	      (narrow-to-region start end)
 	      (goto-char orig)
-	      (fill-paragraph justify))))))
-      t)
+              (let ((paragraph-separate
+                     ;; Make sure that fenced-string delimiters that stand
+                     ;; on their own line stay there.
+                     (concat "[ \t]*['\"]+[ \t]*$\\|" paragraph-separate)))
+                (fill-paragraph justify))))))
+      t))
 
 (defun python-shift-left (start end &optional count)
   "Shift lines in region COUNT (the prefix arg) columns to the left.
