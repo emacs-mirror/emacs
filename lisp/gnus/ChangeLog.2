@@ -76,10 +76,10 @@
 
 	* smime.el (smime-crl-check): Doc fix.
 
-2004-01-02  Edwin Steiner  <edwin.steiner@gmx.net>
+2004-01-02  Edwin Steiner  <edwin.steiner@gmx.net>  (tiny change)
 
 	* gnus-nocem.el (gnus-nocem-enter-article): Use the real group
-	hashtb (tiny patch).
+	hashtb.
 
 2004-01-02  Michael Albinus  <Michael.Albinus@alcatel.de>
 
@@ -463,12 +463,15 @@
 	* mml-smime.el (mml-smime-sign): Replace CRLF with LF in OpenSSL
 	output.  Reported by Arne J,Ax(Brgensen <arne@arnested.dk>.
 
-2003-12-07  Simon Josefsson  <jas@extundo.com>
+2003-12-07  Lloyd Zusman <ljz@asfast.com>  (tiny change)
 
 	* pgg-gpg.el (pgg-gpg-recipient-arg): Add.
-	(pgg-gpg-encrypt-region): Use it.  Tiny patch from Lloyd Zusman
-	<ljz@asfast.com>.
-	(pgg-gpg-recipient-argument): Doc fix.  Renamed fro p-g-r-a.
+	(pgg-gpg-encrypt-region): Use it.
+
+2003-12-07  Simon Josefsson  <jas@extundo.com>
+
+	* pgg-gpg.el (pgg-gpg-recipient-argument): Doc fix.
+	Renamed from p-g-r-a.
 	(pgg-gpg-encrypt-region): Update.
 
 2003-12-07  Jesper Harder  <harder@ifa.au.dk>
@@ -907,10 +910,10 @@
 	* spam.el (spam-spamoracle): doc change, suggested by Jean-Marc
 	Lasgouttes <Jean-Marc.Lasgouttes@inria.fr>
 
-2003-11-04  Katsumi Yamaoka  <yamaoka@jpl.org>
+2003-11-04  Norbert Koch <viteno@xemacs.org>  (tiny change)
 
 	* gnus-score.el (gnus-decay-score): Protect against arithmetic
-	errors.  Tiny patch from Norbert Koch <viteno@xemacs.org>.
+	errors.
 
 2003-10-31  Teodor Zlatanov  <tzz@lifelogs.com>
 
@@ -927,12 +930,14 @@
 	(spam-spamoracle-learn-ham, spam-spamoracle-learn-spam): change
 	spam-log-processing-to-registry invocations appropriately
 
-2003-10-31  Simon Josefsson  <jas@extundo.com>
+2003-10-31  Derek Atkins <warlord@MIT.EDU>  (tiny change)
 
 	* imap.el (imap-kerberos4-open): Ignore output from ATHENA imtest.
-	Tiny patch from Derek Atkins <warlord@MIT.EDU>.
-	(imap-process-connection-type): Improve docstring.  Suggested by
-	Derek Atkins <warlord@MIT.EDU>.
+
+2003-10-31  Simon Josefsson  <jas@extundo.com>
+
+	* imap.el (imap-process-connection-type): Improve docstring.
+	Suggested by Derek Atkins <warlord@MIT.EDU>.
 
 2003-10-31  Teodor Zlatanov  <tzz@lifelogs.com>
 
@@ -964,11 +969,14 @@
 	* message.el (message-forward-make-body-plain): Fix ARG=1 mode
 	after separating m-f-m-b.
 
-2003-10-29  Simon Josefsson  <jas@extundo.com>
+2003-10-29  Andre Srinivasan <andre@e2open.com>  (tiny change)
 
 	* message.el (message-forward-make-body-plain): Remove ignored
-	headers.  Tiny patch from Andre Srinivasan <andre@e2open.com>.
-	(message-forward-make-body-plain): Fix ARG=1.
+	headers.
+
+2003-10-29  Simon Josefsson  <jas@extundo.com>
+
+	* message.el (message-forward-make-body-plain): Fix ARG=1.
 
 2003-10-28  Jesper Harder  <harder@ifa.au.dk>
 
@@ -1582,7 +1590,7 @@
 	(mml-insert-mime-headers): Use it.  Based on (tiny) patch from
 	Lars Balker Rasmussen <lars@balker.org>.
 
-2003-08-30  Gaute Strokkenes  <gs234@srcf.ucam.org>  (tiny change)
+2003-08-30  Gaute B Strokkenes  <gs234@srcf.ucam.org>  (tiny change)
 
 	* mail-source.el (mail-source-fetch-imap): Pass correct buffer to
 	imap-open, reverts 2003-03-17 change.  Reverse remove before
@@ -1656,13 +1664,12 @@
 	* gnus-art.el (gnus-article-edit-done, gnus-article-edit-exit):
 	Redisplay article after editing.
 
-2003-08-20  Simon Josefsson  <jas@extundo.com>
+2003-08-20  Jari Aalto  <jari.aalto@poboxes.com>
 
 	* gnus.el (gnus-read-group): Added check to ask confirmation if
 	Group name contains invalid character. You can use '/' in IMAP,
 	but not in filenames. G m cannot know what the user is creating,
 	so let user decide. See thread m2oeysiev3.fsf@naima.lensflare.org.
-	Tiny patch from letters@hotpop.com (Jari Aalto+mail.linux).
 
 2003-08-13  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -1715,7 +1722,7 @@
 	* gnus.el (gnus-refer-article-method): Ditto.
 	* message.el (message-courtesy-message): Ditto.
 
-2003-08-06  Chunyu Wang  <spr@db.cs.hit.edu.cn>  (tiny patch)
+2003-08-06  Chunyu Wang  <spr@db.cs.hit.edu.cn>  (tiny change)
 
 	* gnus-art.el (gnus-header-face-alist): Fix "Newsgroups" entry.
 
@@ -1754,11 +1761,10 @@
 	* gnus-registry.el (gnus-registry-install): add an initial
 	registry read to the loading when gnus-registry-install is set
 
-2003-07-26  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+2003-07-26  Mark Thomas <swoon@bellatlantic.net>  (tiny change)
 
 	* flow-fill.el (fill-flowed): Empty lines separate paragraphs
-	even if the preceding line ends with a soft break.  Tiny patch
-	from Mark Thomas <swoon@bellatlantic.net>.
+	even if the preceding line ends with a soft break.
 
 2003-07-25  Teodor Zlatanov  <tzz@lifelogs.com>
 
@@ -1843,7 +1849,7 @@
 	* imap.el (imap-arrival-filter): Fix test for missing process
 	buffer.
 
-2003-07-09  Gaute B Strokkenes  <gs234@cam.ac.uk>  (tiny patch).
+2003-07-09  Gaute B Strokkenes  <gs234@cam.ac.uk>  (tiny change)
 
 	* imap.el (imap-wait-for-tag): Clarify comment.  Use timeout zero
 	for second, after-process-has-died, accept-process-output.
@@ -1899,7 +1905,7 @@
 	(message-canlock-generate)
 	(message-generate-new-buffer-clone-locals): Docstring fixes.
 
-2003-07-07  Gaute B Strokkenes	<gs234@cam.ac.uk>  (tiny patch)
+2003-07-07  Gaute B Strokkenes	<gs234@cam.ac.uk>  (tiny change)
 
 	* imap.el (imap-wait-for-tag): After the process has died, look
 	for more output still pending.
@@ -2421,11 +2427,10 @@
 	(rfc2047-syntax-table): Fix building table to work in Emacs 22.
 	(rfc2047-unfold-region): Delete unused var `leading'.
 
-2003-05-12  Simon Josefsson  <jas@extundo.com>
+2003-05-12  Ville Skytt,Ad(B <scop@xemacs.org>  (tiny change)
 
 	* pgg.el (pgg-temp-buffer-show-function): Reuse existing visible
-	output window if one is available.  Tiny patch from Ville Skytt,Ad(B
-	<scop@xemacs.org>.
+	output window if one is available.
 
 2003-05-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -4750,7 +4755,7 @@
 	* gnus-start.el (gnus-get-unread-articles-in-group): Make sure
 	the entry for the group exists before we alter it.
 
-2003-02-22  David S Goldberg  <david.goldberg6@verizon.net>  (tiny change)
+2003-02-22  David S. Goldberg  <david.goldberg6@verizon.net>  (tiny change)
 
 	* message.el (message-mode): MML tags separate paragraphs.
 
@@ -5037,7 +5042,7 @@
 	code that only worked under Emacs.
 
 2003-02-08  Satyaki Das  <satyaki@chicory.stanford.edu>
-	
+
 	* pgg-gpg.el (pgg-gpg-process-region): Don't blink.
 
 2003-02-08  Jesper Harder  <harder@ifa.au.dk>
@@ -5372,11 +5377,10 @@
 
 	* gnus.el: Oort Gnus v0.14 is released.
 
-2003-01-24  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+2003-01-24  Mark Thomas <swoon@bellatlantic.net>  (tiny change)
 
 	* gnus-sum.el (gnus-summary-prepare-threads): Reset state for %B
-	before beginning.  Tiny patch from Mark Thomas
-	<swoon@bellatlantic.net>.
+	before beginning.
 
 2003-01-24  Teodor Zlatanov  <tzz@lifelogs.com>
 
@@ -13122,7 +13126,7 @@
 
 	* nnfolder.el (nnfolder-marks-changed-p): Ditto.
 
-2001-10-20  David Z Maze  <dmaze@MIT.EDU>
+2001-10-20  David Z. Maze  <dmaze@MIT.EDU>
 
 	* nnml.el (nnml-marks-changed-p): Use `equal' when comparing
 	conses.
