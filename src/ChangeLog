@@ -1,3 +1,12 @@
+2007-03-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (x_scroll_bar_create, XTread_socket): Replace #if
+	USE_TOOLKIT_SCROLL_BARS with #ifdef USE_TOOLKIT_SCROLL_BARS.
+	(x_set_window_size): Call SET_FRAME_GARBAGED.  Clear window if
+	internal border width has changed.
+
+	* macterm.h (struct mac_output): New member `internal_border_width'.
+
 2007-03-04  Richard Stallman  <rms@gnu.org>
 
 	* window.c (Fdisplay_buffer): Doc fix.
