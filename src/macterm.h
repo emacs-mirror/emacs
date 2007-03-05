@@ -327,6 +327,9 @@ struct mac_output
      They are changed only when a different background is involved.  */
   unsigned long relief_background;
 
+  /* Width of the internal border.  */
+  int internal_border_width;
+
   /* Hints for the size and the position of a window.  */
   XSizeHints *size_hints;
 
