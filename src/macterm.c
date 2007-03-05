@@ -4963,7 +4963,7 @@ x_scroll_bar_create (w, top, left, width, height, disp_top, disp_height)
 #endif
 #if TARGET_API_MAC_CARBON
   ch = NewControl (FRAME_MAC_WINDOW (f), &r, "\p",
-#if USE_TOOLKIT_SCROLL_BARS
+#ifdef USE_TOOLKIT_SCROLL_BARS
 		   false,
 #else
 		   width < disp_height,
@@ -6222,6 +6222,16 @@ x_set_window_size (f, change_gravity, cols, rows)
   if (!NILP (tip_frame) && f == XFRAME (tip_frame))
 #endif
     mac_handle_size_change (f, pixelwidth, pixelheight);
+
+  if (f->output_data.mac->internal_border_width
+      != FRAME_INTERNAL_BORDER_WIDTH (f))
+    {
+      mac_clear_window (f);
+      f->output_data.mac->internal_border_width
+	= FRAME_INTERNAL_BORDER_WIDTH (f);
+    }
+
+  SET_FRAME_GARBAGED (f);
 
   UNBLOCK_INPUT;
 }
@@ -11045,7 +11055,7 @@ XTread_socket (sd, expected, hold_quit)
 	    else
 	      {
 		/* A window has been deactivated */
-#if USE_TOOLKIT_SCROLL_BARS
+#ifdef USE_TOOLKIT_SCROLL_BARS
 		if (dpyinfo->grabbed && tracked_scroll_bar)
 		  {
 		    struct input_event event;
