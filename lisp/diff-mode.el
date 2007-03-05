@@ -985,7 +985,9 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
 (define-derived-mode diff-mode fundamental-mode "Diff"
   "Major mode for viewing/editing context diffs.
 Supports unified and context diffs as well as (to a lesser extent)
-normal diffs.
+normal diffs.  If you edit the buffer manually, diff-mode will try
+to update the hunk headers for you on-the-fly.
+
 When the buffer is read-only, the ESC prefix is not necessary.
 If you edit the buffer manually, diff-mode will try to update the hunk
 headers for you on-the-fly.
@@ -993,7 +995,12 @@ headers for you on-the-fly.
 You can also switch between context diff and unified diff with \\[diff-context->unified],
 or vice versa with \\[diff-unified->context] and you can also reverse the direction of
 a diff with \\[diff-reverse-direction].
-\\{diff-mode-map}"
+
+When the buffer is read-only, the Meta- modifier is not necessary
+to run the Diff mode commands:
+
+   \\{diff-mode-map}"
+
   (set (make-local-variable 'font-lock-defaults) diff-font-lock-defaults)
   (set (make-local-variable 'outline-regexp) diff-outline-regexp)
   (set (make-local-variable 'imenu-generic-expression)
