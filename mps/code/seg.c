@@ -773,6 +773,15 @@ static Buffer segNoBuffer(Seg seg)
 }
 
 
+/* segTrivBuffer -- return the buffer of a segment */
+
+static Buffer segTrivBuffer(Seg seg)
+{
+  AVERT(Seg, seg);
+  return NULL;
+}
+
+
 /* segNoSetBuffer -- non-method to set the buffer of a segment */
 
 static void segNoSetBuffer(Seg seg, Buffer buffer)
@@ -1602,7 +1611,7 @@ DEFINE_CLASS(SegClass, class)
   class->init = segTrivInit;
   class->finish = segTrivFinish;
   class->setSummary = segNoSetSummary; 
-  class->buffer = segNoBuffer; 
+  class->buffer = segTrivBuffer; /* previously: segNoBuffer */
   class->setBuffer = segNoSetBuffer; 
   class->setGrey = segNoSetGrey;
   class->setWhite = segNoSetWhite;

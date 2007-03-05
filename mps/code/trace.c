@@ -10,6 +10,10 @@
 #include "mpm.h"
 #include <limits.h> /* for LONG_MAX */
 
+
+#include <stdio.h>  /* RHSK hacks-in debug printfs.  2007-03-05 */
+
+
 SRCID(trace, "$Id$");
 
 /* Forward declarations */
@@ -1247,6 +1251,29 @@ Res TraceFix(ScanState ss, Ref *refIO)
         STATISTIC(++ss->whiteSegRefCount);
         EVENT_P(TraceFixSeg, seg);
         EVENT_0(TraceFixWhite);
+        
+        /* exact ref into buffer? (ie. to neo)
+         *   - that is currently illegal.
+         */
+        {
+          static unsigned int iTF = 0;
+          Buffer buffer = SegBuffer(seg);
+          
+          iTF += 1;
+          if ( (ss->rank >= RankEXACT)
+            && buffer
+             ) {
+            Addr limit;
+            
+            AVERT(Buffer, buffer);
+            limit = BufferScanLimit(buffer);
+            if (ref >= limit) {
+              printf("ref(%d) >= limit for %d-th TraceFix in a seg.\n", ss->rank, iTF);
+            }
+            /* AVER(ref < limit); */
+          }
+        }
+        
         pool = TractPool(tract);
         /* Could move the rank switch here from the class-specific */
         /* fix methods. */
@@ -1549,8 +1576,6 @@ static Res rootGrey(Root root, void *p)
 
   return ResOK;
 }
-
-#include <stdio.h>
 
 void TraceStart(Trace trace, double mortality, double finishingTime)
 {
