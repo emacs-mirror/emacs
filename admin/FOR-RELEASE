@@ -78,6 +78,8 @@ bring back the old bug?
 
 ** alinsoar@voila.fr, Mar 5: EVAL and partial-completion-mode
 
+** alinsoar@voila.fr, Mar 5: EVAL and mouse selection in *Completions*
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
