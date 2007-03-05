@@ -1,4 +1,4 @@
-2007-03-05  David Hansen  <david.hansen@gmx.net>
+2007-03-05  David Hansen  <david.hansen@gmx.net> (tiny change)
 
 	* pcomplete.el (pcomplete-show-completions): Search all frames for
 	completions buffer.
