@@ -1,3 +1,11 @@
+2007-03-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcomplete.el (pcomplete-show-completions): Improve last change, so
+	as not to use an invisible window and to create a window if none exist.
+
+	* progmodes/python.el (python-send-command): Restart proc if necessary.
+	(python-proc): Simplify.
+
 2007-03-05  David Hansen  <david.hansen@gmx.net> (tiny change)
 
 	* pcomplete.el (pcomplete-show-completions): Search all frames for
@@ -16,8 +24,7 @@
 
 	* net/tramp.el (tramp-make-temp-file): New parameter FILENAME.
 	Append its extension to the resulting temporary file name.
-	(tramp-handle-file-local-copy, tramp-handle-write-region): Apply
-	it.
+	(tramp-handle-file-local-copy, tramp-handle-write-region): Apply it.
 
 	* net/tramp-smb.el (tramp-smb-handle-file-local-copy)
 	(tramp-smb-handle-write-region): Apply it.
@@ -244,32 +251,32 @@
 	(org-table-toggle-coordinate-overlays): New functions.
 	(org-table-overlay-coordinates, org-table-coordinate-overlays):
 	New variables.
-	(org-startup-with-deadline-check): Option removed.
+	(org-startup-with-deadline-check): Remove option.
 	(org-mode): Remove deadline check on startup.
-	(org-table-limit-column-width): Option removed.
-	(org-table-formula-numbers-only): Option removed.
-	(org-link-style, org-link-format): Options removed.
-	(org-select-agenda-window, org-fit-agenda-window): Options removed.
+	(org-table-limit-column-width): Remove option.
+	(org-table-formula-numbers-only): Remove option.
+	(org-link-style, org-link-format): Remove options.
+	(org-select-agenda-window, org-fit-agenda-window): Remove options.
 	(org-export-ascii-show-new-buffer)
-	(org-export-html-show-new-buffer): Options removed.
-	(org-activate-links): Camel option removed.
-	(org-file-link-context-use-camel-case): Option removed.
-	(org-camel-regexp): Veriable removed.
-	(org-activate-camels): Function removed.
-	(org-store-link): Removed Camel stuff.
-	(org-make-org-heading-camel): Function removed.
-	(org-open-at-point): Removed camel stuff.
-	(org-link-search): Removed camel stuff.
+	(org-export-html-show-new-buffer): Remove options.
+	(org-activate-links): Remove camel option.
+	(org-file-link-context-use-camel-case): Remove option.
+	(org-camel-regexp): Remove variable.
+	(org-activate-camels): Remove function.
+	(org-store-link): Remove Camel stuff.
+	(org-make-org-heading-camel): Remove function.
+	(org-open-at-point): Remove camel stuff.
+	(org-link-search): Remove camel stuff.
 	(org-camel-to-words): Function removed.
 	(org-get-agenda-file-buffer): Make sure we prepare the base
 	buffers, not any indirect buffers.
 	(org-sort-entries): Sort top-level when not on a headline, and no
 	active region.
 	(org-in-regexp): New function.
-	(org-search-not-self): Renamed from `org-search-not-link'.
+	(org-search-not-self): Rename from `org-search-not-link'.
 	(org-open-link-marker): New variable.
 	(org-open-at-point): Set `org-open-link-marker'.
-	(org-print-icalendar-entries): Fixed bug with excluding DONE
+	(org-print-icalendar-entries): Fixe bug with excluding DONE
 	entries from the exported list.
 	(org-edit-formula-lisp-indent): New command.
 	(orgtbl-to-texinfo, orgtbl-to-html): New functions.
@@ -285,7 +292,7 @@
 	(org-upgrade-old-links)
 	(org-table-modify-formulas, org-table-replace-in-formulas)
 	(org-table-find-dataline)
-	(org-table-get-vertical-vector): Functions removed.
+	(org-table-get-vertical-vector): Remove functions.
 	(org-table-remove-rectangle-highlight)
 	(org-time-stamp-format, org-toggle-log-option)
 	(org-table-highlight-rectangle)
@@ -318,17 +325,17 @@
 	(org-table-edit-scroll, org-table-edit-scroll-down)
 	(org-set-frame-title, org-show-reference)
 	(org-unhighlight-once, org-verify-change-for-undo): New functions.
-	(org-show-variable): Command removed.
+	(org-show-variable): Remove command.
 	(org-add-log-maybe): New arguments STATE, FINDPOS
-	(org-table-sort-lines): Rewritten from scratch.
+	(org-table-sort-lines): Rewrite from scratch.
 	(org-link-search): New argument AVOID-POS.
-	(org-print-icalendar-entries): Argument CATEGORY removed.
-	(org-run-agenda-series): Argument WONDOW removed.
+	(org-print-icalendar-entries): Remove argument CATEGORY.
+	(org-run-agenda-series): Remove argument WONDOW.
 	(org-next-link, org-previous-link): New commands.
 	(org-agenda-date-format): New option.
 	(org-table-iterate): New command.
 	(org-table-modify-formulas)
-	(org-table-replace-in-formulas): Functions removed.
+	(org-table-replace-in-formulas): Remove functions.
 	(org-table-fix-formulas): New function.
 	(org-table-insert-column, org-table-delete-column)
 	(org-table-move-column): Use `org-table-fix-formulas'.
@@ -349,8 +356,8 @@
 	(org-read-date): Accept "+N" as input for a date relative to the
 	current date.
 	(org-remove-subtree-entries-from-agenda): New function.
-	(org-agenda-archive, org-agenda-kill): Use
-	`org-remove-subtree-entries-from-agenda'.
+	(org-agenda-archive, org-agenda-kill):
+	Use `org-remove-subtree-entries-from-agenda'.
 	(org-do-sort, org-sort-entries): New functions.
 	(org-sort): New command.
 	(org-table-sort-lines): Use `org-do-sort'.
@@ -358,7 +365,7 @@
 	(org-table-number-regexp): Require 0x... to identify as number
 	in tables.
 	(org-startup-options): New keywords for note taking.
-	(org-upgrade-old-links): Function removed.
+	(org-upgrade-old-links): Remove function.
 	(org-get-repeat): New function.
 	(org-show-context): Also show siblings on current level.
 	(org-show-siblings): New function.
