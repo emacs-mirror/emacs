@@ -76,6 +76,8 @@ bring back the old bug?
 
 ** david.hansen@physik.fu-berlin.de, Mar 5: isearch and Input Methods
 
+** alinsoar@voila.fr, Mar 5: EVAL and partial-completion-mode
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
