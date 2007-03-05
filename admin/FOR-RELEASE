@@ -64,8 +64,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** rudalics@gmx.at, Feb 27: undo-information kept for *occur*
 
-** yamaoka@jpl.org, Feb 21: custom bug
-
 ** bojohan+news@dd.chalmers.se, Feb 22: change to try-completion behavior
 
 ** andreas.roehler@easy-emacs.de, Feb 19: auto-insert help-buffer
