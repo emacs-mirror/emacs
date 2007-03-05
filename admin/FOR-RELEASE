@@ -63,8 +63,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** rudalics@gmx.at, Feb 27: undo-information kept for *occur*
 
-** lennart.borgman@gmail.com, Feb 27: How to set and save a defcustom
-
 ** yamaoka@jpl.org, Feb 21: custom bug
 
 ** bojohan+news@dd.chalmers.se, Feb 22: change to try-completion behavior
