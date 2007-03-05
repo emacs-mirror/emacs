@@ -1,3 +1,10 @@
+2007-03-05  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/re-builder.el (reb-re-syntax): Fix custom type.
+
+	* files.el (find-file-noselect): No error if file no longer exists.
+	Display a message and avoid other questions.
+
 2007-03-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcomplete.el (pcomplete-show-completions): Improve last change, so
