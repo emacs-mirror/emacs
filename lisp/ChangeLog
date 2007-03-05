@@ -1,6 +1,16 @@
+2007-03-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-make-temp-file): New parameter FILENAME.
+	Append its extension to the resulting temporary file name.
+	(tramp-handle-file-local-copy, tramp-handle-write-region): Apply
+	it.
+
+	* net/tramp-smb.el (tramp-smb-handle-file-local-copy)
+	(tramp-smb-handle-write-region): Apply it.
+
 2007-03-05  Alin C. Soare  <alinsoar@voila.fr>  (tiny change)
 
-	* emacs-lisp/lisp-mode.el (calculate-lisp-indent): 
+	* emacs-lisp/lisp-mode.el (calculate-lisp-indent):
 	Redo previous change.
 
 2007-03-04  Kevin Rodgers <kevin.d.rodgers@gmail.com>

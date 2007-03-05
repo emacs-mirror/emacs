@@ -384,7 +384,7 @@ KEEP-DATE is not handled in case NEWNAME resides on an SMB server."
     (save-excursion
       (let ((share (tramp-smb-get-share localname))
 	    (file (tramp-smb-get-localname localname t))
-	    (tmpfil (tramp-make-temp-file)))
+	    (tmpfil (tramp-make-temp-file filename)))
 	(unless (file-exists-p filename)
 	  (error "Cannot make local copy of non-existing file `%s'" filename))
 	(tramp-message-for-buffer
@@ -595,7 +595,7 @@ Catches errors for shares like \"C$/\", which are common in Microsoft Windows."
 	    (curbuf (current-buffer))
 	    tmpfil)
 	;; Write region into a tmp file.
-	(setq tmpfil (tramp-make-temp-file))
+	(setq tmpfil (tramp-make-temp-file filename))
 	;; We say `no-message' here because we don't want the visited file
 	;; modtime data to be clobbered from the temp file.  We call
 	;; `set-visited-file-modtime' ourselves later on.
