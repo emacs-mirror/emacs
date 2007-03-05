@@ -220,7 +220,8 @@
 
 2007-02-26  Andrey Zhdanov  <susuman@hotmail.com>  (tiny change)
 
-	(gud-pdb-marker-regexp): Add optional <module> keyword for Python 2.5.
+	* progmodes/gud.el (gud-pdb-marker-regexp): Add optional <module>
+	keyword for Python 2.5.
 
 2007-02-26  Romain Francoise  <romain@orebokech.com>
 
