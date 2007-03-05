@@ -982,7 +982,7 @@ Typing SPC flushes the help buffer."
                     ;; Needed on a terminal
                     (event-matches-key-specifier-p event 9))
 		(save-selected-window
-		  (select-window (get-buffer-window "*Completions*"))
+		  (select-window (get-buffer-window "*Completions*" t))
 		  (if (pos-visible-in-window-p (point-max))
 		      (goto-char (point-min))
 		    (scroll-up)))
