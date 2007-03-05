@@ -74,6 +74,8 @@ bring back the old bug?
 
 ** andreas.roehler@easy-emacs.de, Feb 19: auto-insert help-buffer
 
+** david.hansen@physik.fu-berlin.de, Mar 5: isearch and Input Methods
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
