@@ -917,7 +917,7 @@
   (setq c #x0100)
   (while (<= c #x02AF)
     (modify-category-entry (decode-char 'ucs c) ?l)
-    (setq c (1+ 1)))
+    (setq c (1+ c)))
 
   (setq c #x0100)
   (while (<= c #x0177)
