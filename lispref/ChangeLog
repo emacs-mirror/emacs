@@ -1,3 +1,8 @@
+2007-03-05  Richard Stallman  <rms@gnu.org>
+
+	* variables.texi (File Local Variables): Update
+	enable-local-variables values.
+
 2007-03-04  Richard Stallman  <rms@gnu.org>
 
 	* syntax.texi (Control Parsing): Minor clarification.

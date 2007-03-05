@@ -1,3 +1,12 @@
+2007-03-05  Alin C. Soare  <alinsoar@voila.fr>  (tiny change)
+
+	* emacs-lisp/lisp-mode.el (calculate-lisp-indent): 
+	Redo previous change.
+
+2007-03-04  Kevin Rodgers <kevin.d.rodgers@gmail.com>
+
+	* diff-mode.el (diff-mode): Doc fix.
+
 2007-03-05  Kenichi Handa  <handa@m17n.org>
 
 	* international/characters.el: Set category `l' (latin) for more
