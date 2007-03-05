@@ -61,15 +61,7 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** md5i@cs.cmu.edu, Feb 20: move-end-of-line in comint buffers
 
-** daniel@bigwalter.net, Feb 25: Echoing of keys and process I/O
-
 ** rudalics@gmx.at, Feb 27: undo-information kept for *occur*
-
-** Failure to build on Solaris.  Did reverting Jan's change
-bring back the old bug?
-
-** Failure to detect strerror on Red Hat GNU/Linux
-jjd@vegas.jjd.com, Mar 2.
 
 ** lennart.borgman@gmail.com, Feb 27: How to set and save a defcustom
 
