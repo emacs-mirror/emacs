@@ -1,3 +1,8 @@
+2007-03-05  David Hansen  <david.hansen@gmx.net>
+
+	* pcomplete.el (pcomplete-show-completions): Search all frames for
+	completions buffer.
+
 2007-03-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-edit.el (customize-save-variable): Clear customized-value
