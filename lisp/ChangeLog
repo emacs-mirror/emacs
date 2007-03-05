@@ -1,3 +1,8 @@
+2007-03-05  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Set category `l' (latin) for more
+	characters.
+
 2007-03-04  Kim F. Storm  <storm@cua.dk>
 
 	* emacs-lisp/authors.el (authors-aliases): Add alias.

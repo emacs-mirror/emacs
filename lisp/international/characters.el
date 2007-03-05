@@ -916,7 +916,7 @@
   ;; Latin Extended-A, Latin Extended-B, IPA
   (setq c #x0100)
   (while (<= c #x02AF)
-    (modify-category-entry (decode-char 'ucs c) ?l)
+    (modify-category-entry (decode-char 'ucs c) ?l))
 
   (setq c #x0100)
   (while (<= c #x0177)
