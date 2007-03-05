@@ -16,15 +16,17 @@ longer, eg the text "GNU Emacs is free software...".
 Summary for the impatient:
 
 1. Don't add code to Emacs written by someone other than yourself
-without thinking about the legal aspect (make sure they have an
-assignment, if adding a file adjust the copyright statements in the
-file). NB the ChangeLog entry should be in the name of the author of
-the code, not the person who installs it.
+without thinking about the legal aspect. Even if the changes are
+trivial, consider if they combine with previous changes by the same
+author to make a non-trivial total. If so, make sure they have an
+assignment. If adding a whole file adjust the copyright statements in
+the file.
 
-2. When installing code written by someone else, I think it is helpful
-to: i) put the name of the author in the cvs log (as well as the
-ChangeLog); and ii) not check-in any of your own changes to the same
-file in the same commit.
+2. When installing code written by someone else, the ChangeLog entry
+should be in the name of the author of the code, not the person who
+installs it. I think it is helpful to put the author (if not yourself)
+in the CVS log as well; and to not install any of your own changes in
+the same commit.
 
 3. With images, add the legal info to a README file in the directory
 containing the image.
