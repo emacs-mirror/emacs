@@ -404,8 +404,15 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 
     ;; Check if buffer contents can already be considered complete
     (if (and (eq mode 'exit)
-	     (test-completion-ignore-case str table pred))
-	'complete
+	     (test-completion str table pred))
+	(progn
+	  ;; If completion-ignore-case is non-nil, insert the
+	  ;; completion string since that may have a different case.
+	  (when completion-ignore-case
+	    (setq str (try-completion str table pred))
+	    (delete-region beg end)
+	    (insert str))
+	  'complete)
 
       ;; Do substitutions in directory names
       (and filename
