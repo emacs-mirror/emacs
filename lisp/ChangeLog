@@ -1,5 +1,9 @@
 2007-03-05  Chong Yidong  <cyd@stupidchicken.com>
 
+	* cus-edit.el (customize-save-variable): Clear customized-value
+	property (saved values are now put in theme-value property).
+	(customize-set-variable): Doc fix.
+
 	* complete.el (PC-do-completion): If completion-ignore-case is
 	non-nil, replace field with completion string before exiting.
 
