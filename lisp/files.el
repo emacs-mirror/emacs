@@ -1474,11 +1474,12 @@ the various files."
 	  (error "Aborted"))
 	(if buf
 	    ;; We are using an existing buffer.
-	    (progn
+	    (let (nonexistent)
 	      (or nowarn
 		  (verify-visited-file-modtime buf)
 		  (cond ((not (file-exists-p filename))
-			 (error "File %s no longer exists!" filename))
+			 (setq nonexistent t)
+			 (message "File %s no longer exists!" filename))
 			;; Certain files should be reverted automatically
 			;; if they have changed on disk and not in the buffer.
 			((and (not (buffer-modified-p buf))
@@ -1515,7 +1516,8 @@ the various files."
 		;; writable and vice versa, but if the buffer agrees
 		;; with the new state of the file, that is ok too.
 		(let ((read-only (not (file-writable-p buffer-file-name))))
-		  (unless (or (eq read-only buffer-file-read-only)
+		  (unless (or nonexistent
+			      (eq read-only buffer-file-read-only)
 			      (eq read-only buffer-read-only))
 		    (when (or nowarn
 			      (let ((question
@@ -1528,6 +1530,7 @@ the various files."
 
 		(when (and (not (eq (not (null rawfile))
 				    (not (null find-file-literally))))
+			   (not nonexistent)
 			   ;; It is confusing to ask whether to visit
 			   ;; non-literally if they have the file in
 			   ;; hexl-mode.
