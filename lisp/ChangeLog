@@ -1,3 +1,7 @@
+2007-03-06  Kenichi Handa  <handa@m17n.org>
+
+	* term/x-win.el (x-select-utf8-or-ctext): Improve the strategy.
+
 2007-03-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (completion-setup-function): Improve last fix so it doesn't
