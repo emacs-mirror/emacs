@@ -1,3 +1,10 @@
+2007-03-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* sound.c (wav_play): Check header->data_length to see how much we
+	shall read.
+	(alsa_period_size): Convert ALSA period size in frames to bytes.
+	(alsa_write): Return if frames is zero.
+
 2007-03-06  Kenichi Handa  <handa@m17n.org>
 
 	* xselect.c (Vselection_coding_system): Documentation improved.
