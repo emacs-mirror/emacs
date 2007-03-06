@@ -66,6 +66,8 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** bojohan+news@dd.chalmers.se, Feb 22: change to try-completion behavior
 
+** bojohan+news@dd.chalmers.se, Feb 23: partial-completion
+
 ** andreas.roehler@easy-emacs.de, Feb 19: auto-insert help-buffer
 
 ** david.hansen@physik.fu-berlin.de, Mar 5: isearch and Input Methods

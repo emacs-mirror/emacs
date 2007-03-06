@@ -140,6 +140,9 @@ lispintro/install-sh
 src/m/news-r6.h
   public domain, leave alone.
 
+etc/BABYL, ms-kermit
+  no notices (see below).
+
 etc/edt-user.doc
   - update BOTH notices in this file
 
@@ -388,6 +391,10 @@ lisp/term/README
 admin/check-doc-strings
   File says it's in the public domain, but that might not make it so.
 
+etc/BABYL, ms-kermit
+  Files written long ago by authors with no assignments. Keep them
+  without notices for now, try and contact authors if possible. Be
+  ready to remove these files if the authors ever object.
 
 etc/e/eterm-color.ti
 src/acldef.h, chpdef.h, ndir.h
@@ -500,11 +507,6 @@ Make sure that all files with non-standard copyrights or licenses are
 noted in this file.
 
 
-etc/BABYL
-  File says it was written in 1983 by Eugene Ciccarelli, who has no
-  assignment. RMS: "The lawyer said we can keep BABYL."
-
-
 REMOVED etc/gnu.xpm, nt/icons/emacs21.ico, nt/icons/sink.ico
   - Restore if find legal info. emacs21.ico is not due to Davenport.
   Voelker could not immediately recall anything, but will check and
@@ -535,8 +537,7 @@ REMOVED src/unexhp9k800.c
 
 *** These are copyright issues still to be addressed:
 
-
-etc/ms-kermit - no copyright, but ms-7bkermit has one
+Do we need an assignment from Kevin Rodgers? (rms)
 
 
 
