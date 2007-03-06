@@ -29,7 +29,7 @@
 
 2007-03-02  Stuart D. Herring <herring@lanl.gov>
 
-	* keymap.c (Fkey_binding): Don't consider two-element lists as
+	* keymap.c (Fkey_binding): Don't consider one-element lists as
 	events.
 
 2007-03-01  Kenichi Handa  <handa@m17n.org>
