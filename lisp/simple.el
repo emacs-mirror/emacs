@@ -5088,8 +5088,8 @@ of the minibuffer before point is always the common substring.)")
     ;; so it will get copied into the completion list buffer.
     (if minibuffer-completing-file-name
 	(with-current-buffer mainbuf
-	  (setq default-directory (or (file-name-directory mbuf-contents)
-				      default-directory))))
+	  (setq default-directory
+                (file-name-directory (expand-file-name mbuf-contents)))))
     (with-current-buffer standard-output
       (completion-list-mode)
       (set (make-local-variable 'completion-reference-buffer) mainbuf)
