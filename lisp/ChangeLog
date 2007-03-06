@@ -1,3 +1,7 @@
+2007-03-06  Kim F. Storm  <storm@cua.dk>
+
+	* isearch.el (isearch-message-prefix): Undo 2007-03-01 change.
+
 2007-03-06  Kenichi Handa  <handa@m17n.org>
 
 	* term/x-win.el (x-select-utf8-or-ctext): Improve the strategy.
