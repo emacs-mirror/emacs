@@ -1,3 +1,7 @@
+2007-03-07  Glenn Morris  <rgm@gnu.org>
+
+	* ses.el (ses-mode): Doc fix.
+
 2007-03-06  Kim F. Storm  <storm@cua.dk>
 
 	* isearch.el (isearch-message-prefix): Undo 2007-03-01 change.
