@@ -157,7 +157,7 @@ If nil, means use the colon-separated path in the variable $INCPATH instead."
 	   (define-key must-match-map "\n"	'minibuffer-complete-and-exit)
 	   (define-key must-match-map "?"	'minibuffer-completion-help)
 
-	   (define-key global-map "\e\t"	'complete-symbol))
+	   (define-key global-map [remap lisp-complete-symbol]	nil))
 	  (PC-default-bindings
 	   (define-key completion-map "\t"	'PC-complete)
 	   (define-key completion-map " "	'PC-complete-word)
@@ -181,7 +181,7 @@ If nil, means use the colon-separated path in the variable $INCPATH instead."
 	   (define-key must-match-map "\e\n"	'PC-complete-and-exit)
 	   (define-key must-match-map "\e?"	'PC-completion-help)
 
-	   (define-key global-map "\e\t"	'PC-lisp-complete-symbol)))))
+	   (define-key global-map [remap lisp-complete-symbol]	'PC-lisp-complete-symbol)))))
 
 ;;;###autoload
 (define-minor-mode partial-completion-mode
