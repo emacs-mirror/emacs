@@ -560,6 +560,9 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 		   (setq poss (cons (car p) poss))))
 	    (setq p (cdr p)))))
 
+      ;; If table had duplicates, they can be here.
+      (delete-dups poss)
+
       ;; Handle completion-ignored-extensions
       (and filename
            (not (eq mode 'help))
