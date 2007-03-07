@@ -1,3 +1,9 @@
+2007-03-07  Miles Bader  <miles@gnu.org>
+
+	* international/isearch-x.el
+	(isearch-process-search-multibyte-characters): Strip
+	text-properties from PROMPT to avoid an error from read-string.
+
 2007-03-07  Kim F. Storm  <storm@cua.dk>
 
 	* complete.el (PC-bindings): Remap lisp-complete-symbol to
