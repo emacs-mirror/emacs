@@ -1,3 +1,8 @@
+2007-03-07  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+
+	* complete.el (PC-do-completion): Delete duplicates in the list of
+	possible completions.
+
 2007-03-07  Glenn Morris  <rgm@gnu.org>
 
 	* ses.el (ses-mode): Doc fix.
