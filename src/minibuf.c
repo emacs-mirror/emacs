@@ -700,26 +700,26 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
     specbind (Qinhibit_read_only, Qt);
     specbind (Qinhibit_modification_hooks, Qt);
     Ferase_buffer ();
+
+    if (!NILP (current_buffer->enable_multibyte_characters)
+	&& ! STRING_MULTIBYTE (minibuf_prompt))
+      minibuf_prompt = Fstring_make_multibyte (minibuf_prompt);
+    
+    /* Insert the prompt, record where it ends.  */
+    Finsert (1, &minibuf_prompt);
+    if (PT > BEG)
+      {
+	Fput_text_property (make_number (BEG), make_number (PT),
+			    Qfront_sticky, Qt, Qnil);
+	Fput_text_property (make_number (BEG), make_number (PT),
+			    Qrear_nonsticky, Qt, Qnil);
+	Fput_text_property (make_number (BEG), make_number (PT),
+			    Qfield, Qt, Qnil);
+	Fadd_text_properties (make_number (BEG), make_number (PT),
+			      Vminibuffer_prompt_properties, Qnil);
+      }
     unbind_to (count1, Qnil);
   }
-
-  if (!NILP (current_buffer->enable_multibyte_characters)
-      && ! STRING_MULTIBYTE (minibuf_prompt))
-    minibuf_prompt = Fstring_make_multibyte (minibuf_prompt);
-
-  /* Insert the prompt, record where it ends.  */
-  Finsert (1, &minibuf_prompt);
-  if (PT > BEG)
-    {
-      Fput_text_property (make_number (BEG), make_number (PT),
-			  Qfront_sticky, Qt, Qnil);
-      Fput_text_property (make_number (BEG), make_number (PT),
-			  Qrear_nonsticky, Qt, Qnil);
-      Fput_text_property (make_number (BEG), make_number (PT),
-			  Qfield, Qt, Qnil);
-      Fadd_text_properties (make_number (BEG), make_number (PT),
-			    Vminibuffer_prompt_properties, Qnil);
-    }
 
   minibuf_prompt_width = (int) current_column (); /* iftc */
 
