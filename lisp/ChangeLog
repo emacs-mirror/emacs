@@ -1,3 +1,8 @@
+2007-03-07  Kim F. Storm  <storm@cua.dk>
+
+	* complete.el (PC-bindings): Remap lisp-complete-symbol to
+	PC-lisp-complete-symbol instead of binding M-TAB in global-map.
+
 2007-03-07  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* complete.el (PC-do-completion): Delete duplicates in the list of
