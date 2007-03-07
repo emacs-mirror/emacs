@@ -1,3 +1,11 @@
+2007-03-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (mac_set_scroll_bar_width, mac_frame_parm_handlers):
+	Undo 2006-03-06 changes.
+
+	* macterm.c (XTset_vertical_scroll_bar) [MAC_OSX]: Don't show scroll
+	bar if its width is smaller than that of Aqua small scroll bar.
+
 2007-03-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuf.c (read_minibuf): Bind inhibit-read-only a bit longer so as
