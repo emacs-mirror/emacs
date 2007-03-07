@@ -5217,7 +5217,11 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 #ifdef USE_TOOLKIT_SCROLL_BARS
   if (NILP (bar->track_top))
     {
-      if (sb_width >= disp_height)
+      if (sb_width >= disp_height
+#ifdef MAC_OSX
+	  || sb_width < MAC_AQUA_SMALL_VERTICAL_SCROLL_BAR_WIDTH
+#endif
+	  )
 	{
 	  XSETINT (bar->track_top, 0);
 	  XSETINT (bar->track_height, 0);
