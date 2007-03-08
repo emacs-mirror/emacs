@@ -1,3 +1,8 @@
+2007-03-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* smerge-mode.el (smerge-remove-props): Don't mark the buffer modified.
+	(debug-ignored-errors): Add entry from smerge-match-conflict.
+
 2007-03-08  J.D. Smith  <jdsmith@as.arizona.edu>
 
 	* progmodes/idlw-help.el (idlwave-do-context-help1): Don't visit
@@ -7,9 +12,9 @@
 
 2007-03-08  Chong Yidong  <cyd@stupidchicken.com>
 
-	* replace.el (occur-engine): buffer-undo-list binding moved...
+	* replace.el (occur-engine): Move buffer-undo-list binding...
 	(occur-1): ...to here.
-	
+
 	* complete.el (PC-bindings): Rebind M-TAB in read-expression-map.
 
 	* simple.el (minibuffer-completing-symbol): New var.
@@ -25,8 +30,8 @@
 2007-03-07  Miles Bader  <miles@gnu.org>
 
 	* international/isearch-x.el
-	(isearch-process-search-multibyte-characters): Strip
-	text-properties from PROMPT to avoid an error from read-string.
+	(isearch-process-search-multibyte-characters):
+	Strip text-properties from PROMPT to avoid an error from read-string.
 
 2007-03-07  Kim F. Storm  <storm@cua.dk>
 
