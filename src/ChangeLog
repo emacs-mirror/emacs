@@ -1,3 +1,8 @@
+2007-03-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuf.c (Ftry_completion): Don't short circuit if
+	completion-ignore-case is non-nil.
+
 2007-03-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macfns.c (mac_set_scroll_bar_width, mac_frame_parm_handlers):
