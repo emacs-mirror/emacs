@@ -1,3 +1,10 @@
+2007-03-08  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* progmodes/idlw-help.el (idlwave-do-context-help1): Don't visit
+	special help topics for keywords.
+	(idlwave-help-assistant-command): Include ".exe" for ms-dos
+	etc. Assistant command.
+
 2007-03-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* replace.el (occur-engine): buffer-undo-list binding moved...
