@@ -386,8 +386,7 @@ It collects and prints the diagnostics messages."
 			   (< beg (- end 4))))
 	   module keyword cw mod1 mod2 mod3)
       (if (or arg 
-	      (and (not st-ass)
-		   (not classtag)
+	      (and (not classtag)
 		   (not structtag)
 		   (not (member (string-to-char this-word) '(?! ?.)))))
 	  ;; Need the module information
@@ -408,7 +407,8 @@ It collects and prints the diagnostics messages."
        (arg (setq mod1 module))
        
        ;; A special topic -- only system help
-       (st-ass (setq mod1 (list (cdr st-ass))))
+       ((and st-ass (not (memq cw '(function-keyword procedure-keyword))))
+	(setq mod1 (list (cdr st-ass))))
        
        ;; A system variable -- only system help
        ((string-match 
@@ -1226,7 +1226,7 @@ Useful when source code is displayed as help.  See the option
 ;; we must pass the -profile argument as well.
 (defvar idlwave-help-assistant-command 
   (if (memq system-type '(ms-dos windows-nt))
-      "bin/bin.x86/idl_assistant"
+      "bin/bin.x86/idl_assistant.exe"
     "bin/idl_assistant")
   "The command, rooted at idlwave-system-directory, which invokes the
 IDL assistant.")
