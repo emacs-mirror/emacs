@@ -11397,7 +11397,7 @@ An element of the form (t . EVENT) forces EVENT to be added to that list.  */);
   DEFVAR_LISP ("unread-post-input-method-events", &Vunread_post_input_method_events,
 	       doc: /* List of events to be processed as input by input methods.
 These events are processed before `unread-command-events'
-and actual keyboard input without given to `input-method-function'.  */);
+and actual keyboard input, but are not given to `input-method-function'.  */);
   Vunread_post_input_method_events = Qnil;
 
   DEFVAR_LISP ("unread-input-method-events", &Vunread_input_method_events,
