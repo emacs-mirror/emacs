@@ -68,8 +68,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** andreas.roehler@easy-emacs.de, Feb 19: auto-insert help-buffer
 
-** alinsoar@voila.fr, Mar 5: EVAL and partial-completion-mode
-
 ** david.hansen@physik.fu-berlin.de, Mar 6: WoMan Error with the CVS Manual Page
 
 * DOCUMENTATION
