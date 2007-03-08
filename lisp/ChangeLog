@@ -1,3 +1,8 @@
+2007-03-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gdb): Pop up current GUD buffer if user
+	tries to start a second session in graphical mode.
+
 2007-03-07  Miles Bader  <miles@gnu.org>
 
 	* international/isearch-x.el
