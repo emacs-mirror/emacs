@@ -1,3 +1,14 @@
+2007-03-08  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-mode.el (c-unfind-enclosing-token,
+	c-unfind-coalesced-tokens, c-before-change): new functions;
+	(c-maybe-stale-found-type): new variable.
+
+	* progmodes/cc-engine.el (c-partial-ws-p, c-unfind-type,
+	c-trim-found-types): new functions.
+
+	These remove stale tokens from the cache `c-found-types'.
+
 2007-03-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* smerge-mode.el (smerge-remove-props): Don't mark the buffer modified.
