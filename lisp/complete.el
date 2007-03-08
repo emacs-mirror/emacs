@@ -147,6 +147,8 @@ If nil, means use the colon-separated path in the variable $INCPATH instead."
     (cond ((not bind)
 	   ;; These bindings are the default bindings.  It would be better to
 	   ;; restore the previous bindings.
+	   (define-key read-expression-map "\e\t" 'lisp-complete-symbol)
+
 	   (define-key completion-map "\t"	'minibuffer-complete)
 	   (define-key completion-map " "	'minibuffer-complete-word)
 	   (define-key completion-map "?"	'minibuffer-completion-help)
@@ -159,6 +161,8 @@ If nil, means use the colon-separated path in the variable $INCPATH instead."
 
 	   (define-key global-map [remap lisp-complete-symbol]	nil))
 	  (PC-default-bindings
+	   (define-key read-expression-map "\e\t" 'PC-lisp-complete-symbol)
+
 	   (define-key completion-map "\t"	'PC-complete)
 	   (define-key completion-map " "	'PC-complete-word)
 	   (define-key completion-map "?"	'PC-completion-help)
