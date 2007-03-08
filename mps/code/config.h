@@ -226,6 +226,26 @@
 #define VMANPageALIGNMENT ((Align)4096)
 #define VMJunkBYTE ((unsigned char)0xA9)
 
+/* Protection Configuration see <code/prot*.c>
+
+   For each architecture/OS that uses protix.c or protsgix.c, we need to
+   define what signal number to use, and what si_code value to check.
+*/
+
+#if defined(MPS_OS_O1) || defined(MPS_OS_SO)
+#define PROT_SIGNAL (SIGSEGV)
+#elif defined(MPS_OS_FR) || defined(MPS_OS_XC)
+#define PROT_SIGNAL (SIGBUS)
+#endif
+
+#if defined(MPS_OS_XC)
+#define PROT_SIGINFO_GOOD(info) (1)
+#elif defined(MPS_OS_O1)
+#define PROT_SIGINFO_GOOD(info) ((info)->si_code == SEGV_ACCERR)
+#elif define(MPS_OS_FR)
+#define PROT_SIGINFO_GOOD(info) ((info)->si_code == BUS_PAGE_FAULT)
+#endif
+
 
 /* Tracer Configuration -- see <code/trace.c> */
 
