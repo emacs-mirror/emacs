@@ -1,5 +1,8 @@
 2007-03-08  Chong Yidong  <cyd@stupidchicken.com>
 
+	* replace.el (occur-engine): buffer-undo-list binding moved...
+	(occur-1): ...to here.
+	
 	* complete.el (PC-bindings): Rebind M-TAB in read-expression-map.
 
 	* simple.el (minibuffer-completing-symbol): New var.
