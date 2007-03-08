@@ -8,7 +8,7 @@
 * For the impatient
 
   Here are the concise instructions for configuring and building the
-  native Win32 binary of Emacs on Windows, for those who want to skip
+  native Windows32 binary of Emacs on Windows, for those who want to skip
   the complex explanations and ``just do it'':
 
   1. Change to the `nt' directory (the directory of this file):
