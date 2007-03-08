@@ -1,5 +1,7 @@
 2007-03-08  Chong Yidong  <cyd@stupidchicken.com>
 
+	* complete.el (PC-bindings): Rebind M-TAB in read-expression-map.
+
 	* simple.el (minibuffer-completing-symbol): New var.
 	(eval-expression): Use it.
 	(completion-setup-function): Don't bind completion-base-size when
