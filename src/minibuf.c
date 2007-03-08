@@ -1483,6 +1483,10 @@ is used to further constrain the set of candidates.  */)
 		matchcount++;
 	      bestmatchsize = matchsize;
 	      if (matchsize <= SCHARS (string)
+		  /* If completion-ignore-case is non-nil, don't
+		     short-circuit because we want to find the best
+		     possible match *including* case differences.  */
+		  && !completion_ignore_case
 		  && matchcount > 1)
 		/* No need to look any further.  */
 		break;
