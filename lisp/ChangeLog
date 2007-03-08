@@ -1,3 +1,10 @@
+2007-03-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (minibuffer-completing-symbol): New var.
+	(eval-expression): Use it.
+	(completion-setup-function): Don't bind completion-base-size when
+	completing a symbol in the minibuffer.
+
 2007-03-08  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gdb): Pop up current GUD buffer if user
