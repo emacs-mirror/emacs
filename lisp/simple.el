@@ -1005,6 +1005,9 @@ in *Help* buffer.  See also the command `describe-char'."
 
 (defvar read-expression-history nil)
 
+(defvar minibuffer-completing-symbol nil
+  "Non-nil means completing a Lisp symbol in the minibuffer.")
+
 (defcustom eval-expression-print-level 4
   "Value for `print-level' while printing value in `eval-expression'.
 A value of nil means no limit."
@@ -1056,9 +1059,10 @@ the echo area.
 If `eval-expression-debug-on-error' is non-nil, which is the default,
 this command arranges for all errors to enter the debugger."
   (interactive
-   (list (read-from-minibuffer "Eval: "
-			       nil read-expression-map t
-			       'read-expression-history)
+   (list (let ((minibuffer-completing-symbol t))
+	   (read-from-minibuffer "Eval: "
+				 nil read-expression-map t
+				 'read-expression-history))
 	 current-prefix-arg))
 
   (if (null eval-expression-debug-on-error)
@@ -5109,6 +5113,7 @@ of the minibuffer before point is always the common substring.)")
 		(save-excursion
 		  (skip-chars-backward completion-root-regexp)
 		  (- (point) (minibuffer-prompt-end)))))
+	     (minibuffer-completing-symbol nil)
 	     ;; Otherwise, in minibuffer, the base size is 0.
 	     ((minibufferp mainbuf) 0)))
       (setq common-string-length
