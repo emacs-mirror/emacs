@@ -4,13 +4,23 @@
  *  Copyright (c) 2001,2007 Ravenbrook Limited.  See end of file for license.
  *
  *  Somewhat generic across different Unix systems.  Shared between
- *  Darwin (OS X), OSF/1 (DIGITAL UNIX), and FreeBSD.
+ *  Darwin (OS X), OSF/1 (DIGITAL UNIX), FreeBSD, and Linux.
  *
  *  May not actually work on OSF/1 due to lack of available machines.
  *
  *  This file does not contain a signal handler.  That's in protsgix.c
  *  (for FreeBSD and Darwin on Intel); in protxcpp.c (for Darwin on
  *  PowerPC).
+ *
+ *  ASSUMPTIONS
+ *
+ *  .assume.mprotect.base: We assume that the first argument to mprotect can
+ *    be safely passed as a void *.  Single UNIX Specification Version 2
+ *    (aka X/OPEN XSH5) says that the parameter is a void *.  Some
+ *    Unix-likes may declare this parameter as a caddr_t.  FreeBSD used to
+ *    do this (on the now very obsolete FreeBSD 2.2.x series).  The
+ *    Darwin man page documents it as caddr_t but it appears to be
+ *    implemented correctly as void *.  caddr_t is usually char *.
  */
 
 
@@ -20,8 +30,8 @@
 
 #include "mpm.h"
 
-#if !defined(MPS_OS_O1) && !defined(MPS_OS_FR) && !defined(MPS_OS_XC)
-#error "protix.c is Unix-specific, currently for MPS_OS_O1 FR or XC"
+#if !defined(MPS_OS_LI) && !defined(MPS_OS_FR) && !defined(MPS_OS_XC) && !defined(MPS_OS_O1)
+#error "protix.c is Unix-specific, currently for MPS_OS_LI FR XC O1"
 #endif
 #ifndef PROTECTION
 #error "protix.c implements protection, but PROTECTION is not set"
@@ -69,7 +79,8 @@ void ProtSet(Addr base, Addr limit, AccessSet mode)
     flags = PROT_NONE;
   }
 
-  if(mprotect((caddr_t)base, (size_t)AddrOffset(base, limit), flags) != 0)
+  /* .assume.mprotect.base */
+  if(mprotect((void *)base, (size_t)AddrOffset(base, limit), flags) != 0)
     NOTREACHED;
 }
 
