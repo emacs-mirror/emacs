@@ -11,6 +11,9 @@
   native Windows binary of Emacs, for those who want to skip the
   complex explanations and ``just do it'':
 
+  Do not use this recipe with Cygwin.  For building on Cygwin,
+  use the normal installation instructions, ../INSTALL.
+
   1. Change to the `nt' directory (the directory of this file):
 
        cd nt
