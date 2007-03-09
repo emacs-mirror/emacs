@@ -6759,15 +6759,16 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
                 int y = event.xbutton.y;
 
                 window = window_from_coordinates (f, x, y, 0, 0, 0, 1);
-                if (EQ (window, f->tool_bar_window))
+                tool_bar_p = EQ (window, f->tool_bar_window);
+
+                if (tool_bar_p && event.xbutton.button < 4)
                   {
-		    if (event.xbutton.type == ButtonPress)
-		      handle_tool_bar_click (f, x, y, 1, 0);
-		    else
-		      handle_tool_bar_click (f, x, y, 0,
-					     x_x_to_emacs_modifiers (dpyinfo,
+                    if (event.xbutton.type == ButtonPress)
+                      handle_tool_bar_click (f, x, y, 1, 0);
+                    else
+                      handle_tool_bar_click (f, x, y, 0,
+                                             x_x_to_emacs_modifiers (dpyinfo,
 								     event.xbutton.state));
-		    tool_bar_p = 1;
                   }
               }
 
