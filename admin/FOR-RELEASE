@@ -57,9 +57,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 ** Fix up copyright confusions.
   See end of admin/notes/copyright.
 
-** simon.marshall@misys.com, Jan 12:
-  Font-lock decides function call is function declaration in C++
-
 ** md5i@cs.cmu.edu, Feb 20: move-end-of-line in comint buffers
 
 ** bojohan+news@dd.chalmers.se, Feb 23: partial-completion
