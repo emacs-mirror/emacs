@@ -57,8 +57,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 ** Fix up copyright confusions.
   See end of admin/notes/copyright.
 
-** md5i@cs.cmu.edu, Feb 20: move-end-of-line in comint buffers
-
 ** andreas.roehler@easy-emacs.de, Feb 19: auto-insert help-buffer
 
 ** david.hansen@physik.fu-berlin.de, Mar 6: WoMan Error with the CVS Manual Page
