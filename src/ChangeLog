@@ -1,3 +1,7 @@
+2007-03-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* keymap.c (Fdescribe_buffer_bindings): Check that BUFFER is valid.
+
 2007-03-08  Richard Stallman  <rms@gnu.org>
 
 	* keyboard.c (syms_of_keyboard): Doc fix.
@@ -49,7 +53,7 @@
 	* Makefile.in: Don't clear out LIB_X11_LIB, since XFT_LIBS does
 	not include -lX11 on Solaris.
 
-2007-03-02  Stuart D. Herring <herring@lanl.gov>
+2007-03-02  Stuart D. Herring  <herring@lanl.gov>
 
 	* keymap.c (Fkey_binding): Don't consider one-element lists as events.
 
