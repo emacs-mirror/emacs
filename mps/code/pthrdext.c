@@ -18,7 +18,7 @@
 #if defined(MPS_OS_LI)
 /* open sesame magic */
 #define _BSD_SOURCE 1
-#define _POSIX_C_SOURCE 1
+#define _XOPEN_SOURCE 500
 #endif
 
 #include <pthread.h>
