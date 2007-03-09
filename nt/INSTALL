@@ -76,7 +76,7 @@
 * Preliminaries
 
   If you want to build a Cygwin port of Emacs, use the instructions in
-  the INSTALL file in the main Emacs directory (the poarent of this
+  the INSTALL file in the main Emacs directory (the parent of this
   directory).  These instructions are for building a native Windows
   binary of Emacs.
 
