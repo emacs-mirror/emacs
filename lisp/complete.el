@@ -436,7 +436,7 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 	  ;; If completion-ignore-case is non-nil, insert the
 	  ;; completion string since that may have a different case.
 	  (when completion-ignore-case
-	    (setq str (try-completion str table pred))
+	    (setq str (PC-try-completion str table pred))
 	    (delete-region beg end)
 	    (insert str))
 	  'complete)
