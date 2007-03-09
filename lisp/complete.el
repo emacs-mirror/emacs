@@ -387,6 +387,29 @@ of `minibuffer-completion-table' and the minibuffer contents.")
     (let ((completion-ignore-case nil))
       (test-completion str table pred))))
 
+;; The following function is an attempt to work around two problems:
+
+;; (1) When complete.el was written, (try-completion "" '(("") (""))) used to
+;; return the value "".  With a change from 2002-07-07 it returns t which caused
+;; `PC-lisp-complete-symbol' to fail with a "Wrong type argument: sequencep, t"
+;; error.  `PC-try-completion' returns STRING in this case.
+
+;; (2) (try-completion "" '((""))) returned t before the above-mentioned change.
+;; Since `PC-chop-word' operates on the return value of `try-completion' this
+;; case might have provoked a similar error as in (1).  `PC-try-completion'
+;; returns "" instead.  I don't know whether this is a real problem though.
+
+;; Since `PC-try-completion' is not a guaranteed to fix these bugs reliably, you
+;; should try to look at the following discussions when you encounter problems:
+;; - emacs-pretest-bug ("Partial Completion" starting 2007-02-23),
+;; - emacs-devel ("[address-of-OP: Partial completion]" starting 2007-02-24),
+;; - emacs-devel ("[address-of-OP: EVAL and mouse selection in *Completions*]"
+;;   starting 2007-03-05).
+(defun PC-try-completion (string alist &optional predicate)
+  "Like `try-completion' but return STRING instead of t."
+  (let ((result (try-completion string alist predicate)))
+    (if (eq result t) string result)))
+
 (defun PC-do-completion (&optional mode beg end)
   (or beg (setq beg (minibuffer-prompt-end)))
   (or end (setq end (point-max)))
@@ -637,8 +660,8 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 
 	    ;; Check if next few letters are the same in all cases
 	    (if (and (not (eq mode 'help))
-		     (setq prefix (try-completion (PC-chunk-after basestr skip)
-                                                  poss)))
+		     (setq prefix (PC-try-completion
+				   (PC-chunk-after basestr skip) poss)))
 		(let ((first t) i)
 		  ;; Retain capitalization of user input even if
 		  ;; completion-ignore-case is set.
@@ -676,7 +699,7 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 			      (setq skip (concat skip
 						 (regexp-quote prefix)
 						 PC-ndelims-regex)
-				    prefix (try-completion
+				    prefix (PC-try-completion
 					    (PC-chunk-after
 					     ;; not basestr, because that does
 					     ;; not reflect insertions
@@ -1010,7 +1033,7 @@ absolute rather than relative to some directory on the SEARCH-PATH."
               (cond
                ((not completion-table) nil)
                ((eq action 'lambda) (test-completion str2 completion-table nil))
-               ((eq action nil) (try-completion str2 completion-table nil))
+               ((eq action nil) (PC-try-completion str2 completion-table nil))
                ((eq action t) (all-completions str2 completion-table nil)))))
     ad-do-it))
 
