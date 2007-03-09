@@ -46,7 +46,7 @@
   ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; ps-bdf
 
-  (defvar installation-directory)
+  (defvar installation-directory nil)
   (defvar coding-system-for-read)
 
 
@@ -207,7 +207,6 @@
 
   ;; to avoid XEmacs compilation gripes
   (defvar coding-system-for-write)
-  (defvar coding-system-for-read)
   (defvar buffer-file-coding-system)
 
 
