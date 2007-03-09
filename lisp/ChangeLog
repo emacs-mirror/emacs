@@ -1,3 +1,9 @@
+2007-03-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* complete.el (PC-try-completion): New function.
+	(PC-do-completion, read-file-name-internal): Use it instead of
+	try-completion.
+
 2007-03-08  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-mode.el (c-unfind-enclosing-token,
