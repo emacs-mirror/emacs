@@ -1,3 +1,7 @@
+2007-03-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (handle_one_xevent): Ignore buttons > 3 for the tool bar.
+
 2007-03-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* keymap.c (Fdescribe_buffer_bindings): Check that BUFFER is valid.
