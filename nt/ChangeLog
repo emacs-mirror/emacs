@@ -1,3 +1,7 @@
+2007-03-09  Richard Stallman  <rms@gnu.org>
+
+	* INSTALL: Say explicitly this is not for Cygwin.
+
 2007-03-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* INSTALL: Add URL of another site with detailed build instructions.
