@@ -8,7 +8,7 @@ PFM = fri4gc
 PFMDEFS = -D_REENTRANT
 
 MPMPF = lockfr.c thfri4.c pthrdext.c vmfr.c \
-        protfr.c protfri3.c prmcan.c ssixi3.c span.c
+        protix.c protsgix.c prmcan.c ssixi3.c span.c
 SWPF = than.c vmfr.c protsw.c prmcan.c ssan.c
 
 LIBS = -lm -pthread
