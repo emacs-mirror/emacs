@@ -490,62 +490,63 @@ preferably use the `c-mode-menu' language constant directly."
   ;; isn't critical.
   (setq c-maybe-stale-found-type nil)
   (save-restriction
-    (widen)
-    (save-excursion
-      ;; Are we inserting/deleting stuff in the middle of an identifier?
-      (c-unfind-enclosing-token beg)
-      (c-unfind-enclosing-token end)
-      ;; Are we coalescing two tokens together, e.g. "fo o" -> "foo"?
-      (when (< beg end)
-	(c-unfind-coalesced-tokens beg end))
-       ;; Are we (potentially) disrupting the syntactic context which
-       ;; makes a type a type?  E.g. by inserting stuff after "foo" in
-       ;; "foo bar;", or before "foo" in "typedef foo *bar;"?
-       ;;
-       ;; We search for appropriate c-type properties "near" the change.
-       ;; First, find an appropriate boundary for this property search.
-      (let (lim
-	    type type-pos
-	    marked-id term-pos
-	    (end1
-	     (if (eq (get-text-property end 'face) 'font-lock-comment-face)
-		 (previous-single-property-change end 'face)
-	       end)))
-	(when (>= end1 beg) ; Don't hassle about changes entirely in comments.
-	  ;; Find a limit for the search for a `c-type' property
-	  (while
-	      (and (/= (skip-chars-backward "^;{}") 0)
-		   (> (point) (point-min))
-		   (memq (c-get-char-property (1- (point)) 'face)
-			 '(font-lock-comment-face font-lock-string-face))))
-	  (setq lim (max (point-min) (1- (point))))
+    (save-match-data
+      (widen)
+      (save-excursion
+	;; Are we inserting/deleting stuff in the middle of an identifier?
+	(c-unfind-enclosing-token beg)
+	(c-unfind-enclosing-token end)
+	;; Are we coalescing two tokens together, e.g. "fo o" -> "foo"?
+	(when (< beg end)
+	  (c-unfind-coalesced-tokens beg end))
+	;; Are we (potentially) disrupting the syntactic context which
+	;; makes a type a type?  E.g. by inserting stuff after "foo" in
+	;; "foo bar;", or before "foo" in "typedef foo *bar;"?
+	;;
+	;; We search for appropriate c-type properties "near" the change.
+	;; First, find an appropriate boundary for this property search.
+	(let (lim
+	      type type-pos
+	      marked-id term-pos
+	      (end1
+	       (if (eq (get-text-property end 'face) 'font-lock-comment-face)
+		   (previous-single-property-change end 'face)
+		 end)))
+	  (when (>= end1 beg) ; Don't hassle about changes entirely in comments.
+	    ;; Find a limit for the search for a `c-type' property
+	    (while
+		(and (/= (skip-chars-backward "^;{}") 0)
+		     (> (point) (point-min))
+		     (memq (c-get-char-property (1- (point)) 'face)
+			   '(font-lock-comment-face font-lock-string-face))))
+	    (setq lim (max (point-min) (1- (point))))
 
-	  ;; Look for the latest `c-type' property before end1
-	  (when (and (> end1 1)
-		     (setq type-pos
-			   (if (get-text-property (1- end1) 'c-type)
-			       end1
-			     (previous-single-property-change end1 'c-type nil lim))))
-	    (setq type (get-text-property (max (1- type-pos) lim) 'c-type))
+	    ;; Look for the latest `c-type' property before end1
+	    (when (and (> end1 1)
+		       (setq type-pos
+			     (if (get-text-property (1- end1) 'c-type)
+				 end1
+			       (previous-single-property-change end1 'c-type nil lim))))
+	      (setq type (get-text-property (max (1- type-pos) lim) 'c-type))
 
-	    (when (memq type '(c-decl-id-start c-decl-type-start))
-	      ;; Get the identifier, if any, that the property is on.
-	      (goto-char (1- type-pos))
-	      (setq marked-id
-		    (when (looking-at "\\(\\sw\\|\\s_\\)")
-		      (c-beginning-of-current-token)
-		      (buffer-substring-no-properties (point) type-pos)))
+	      (when (memq type '(c-decl-id-start c-decl-type-start))
+		;; Get the identifier, if any, that the property is on.
+		(goto-char (1- type-pos))
+		(setq marked-id
+		      (when (looking-at "\\(\\sw\\|\\s_\\)")
+			(c-beginning-of-current-token)
+			(buffer-substring-no-properties (point) type-pos)))
 
-	      (goto-char end1)
-	      (skip-chars-forward "^;{}") ; FIXME!!!  loop for comment, maybe
-	      (setq lim (point))
-	      (setq term-pos
-		    (or (next-single-property-change end 'c-type nil lim) lim))
-	      (setq c-maybe-stale-found-type
-		    (list type marked-id
-			  type-pos term-pos
-			  (buffer-substring-no-properties type-pos term-pos)
-			  (buffer-substring-no-properties beg end))))))))))
+		(goto-char end1)
+		(skip-chars-forward "^;{}") ; FIXME!!!  loop for comment, maybe
+		(setq lim (point))
+		(setq term-pos
+		      (or (next-single-property-change end 'c-type nil lim) lim))
+		(setq c-maybe-stale-found-type
+		      (list type marked-id
+			    type-pos term-pos
+			    (buffer-substring-no-properties type-pos term-pos)
+			    (buffer-substring-no-properties beg end)))))))))))
 
 (defun c-after-change (beg end old-len)
   ;; Function put on `after-change-functions' to adjust various caches
