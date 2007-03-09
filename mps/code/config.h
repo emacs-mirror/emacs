@@ -242,7 +242,7 @@
 #define PROT_SIGINFO_GOOD(info) (1)
 #elif defined(MPS_OS_O1)
 #define PROT_SIGINFO_GOOD(info) ((info)->si_code == SEGV_ACCERR)
-#elif define(MPS_OS_FR)
+#elif defined(MPS_OS_FR)
 #define PROT_SIGINFO_GOOD(info) ((info)->si_code == BUS_PAGE_FAULT)
 #endif
 
