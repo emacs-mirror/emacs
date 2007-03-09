@@ -1,3 +1,8 @@
+2007-03-10  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-mode.el (c-before-change): insert call of
+	`save-match-data'.
+
 2007-03-09  Richard Stallman  <rms@gnu.org>
 
 	* abbrev.el (abbrev): Add `provide'.
