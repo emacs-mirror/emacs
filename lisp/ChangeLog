@@ -1,3 +1,8 @@
+2007-03-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faces.el (face-set-after-frame-default): Recalculate face
+	customizations after applying X resources.
+
 2007-03-10  Ryan Yeske  <rcyeske@gmail.com>
 
 	* net/rcirc.el (rcirc-timeout-seconds): New variable.
