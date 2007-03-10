@@ -417,7 +417,10 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 	 (pred minibuffer-completion-predicate)
 	 (filename (funcall PC-completion-as-file-name-predicate))
 	 (dirname nil)		; non-nil only if a filename is being completed
-	 (dirlength 0)
+	 ;; The following used to be "(dirlength 0)" which caused the erasure of
+	 ;; the entire buffer text before `point' when inserting a completion
+	 ;; into a buffer.
+	 dirlength
 	 (str (buffer-substring beg end))
 	 (incname (and filename (string-match "<\\([^\"<>]*\\)>?$" str)))
 	 (ambig nil)
