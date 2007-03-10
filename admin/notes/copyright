@@ -391,15 +391,16 @@ lisp/term/README
 admin/check-doc-strings
   File says it's in the public domain, but that might not make it so.
 
-etc/BABYL, ms-kermit
-  Files written long ago by authors with no assignments. Keep them
+etc/BABYL
+  File written long ago by authors with no assignment. Keep them
   without notices for now, try and contact authors if possible. Be
   ready to remove these files if the authors ever object.
 
+etc/ms-kermit
 etc/e/eterm-color.ti
 src/acldef.h, chpdef.h, ndir.h
   On legal advice from Matt Norwood, the following comment was added
-  to these files in Feb 2007:
+  to these files in Feb/Mar 2007:
 
     The code here is forced by the interface, and is not subject to
     copyright, constituting the only possible expression of the
