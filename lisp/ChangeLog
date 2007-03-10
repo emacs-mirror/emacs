@@ -1,7 +1,6 @@
 2007-03-10  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-mode.el (c-before-change): insert call of
-	`save-match-data'.
+	* progmodes/cc-mode.el (c-before-change): Wrap in save-match-data.
 
 2007-03-09  Richard Stallman  <rms@gnu.org>
 
@@ -19,14 +18,14 @@
 
 2007-03-08  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-mode.el (c-unfind-enclosing-token,
-	c-unfind-coalesced-tokens, c-before-change): new functions;
-	(c-maybe-stale-found-type): new variable.
+	Remove stale tokens from `c-found-types' cache.
 
-	* progmodes/cc-engine.el (c-partial-ws-p, c-unfind-type,
-	c-trim-found-types): new functions.
+	* progmodes/cc-mode.el (c-unfind-enclosing-token)
+	(c-unfind-coalesced-tokens, c-before-change): New functions.
+	(c-maybe-stale-found-type): New variable.
 
-	These remove stale tokens from the cache `c-found-types'.
+	* progmodes/cc-engine.el (c-partial-ws-p, c-unfind-type)
+	(c-trim-found-types): New functions.
 
 2007-03-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 

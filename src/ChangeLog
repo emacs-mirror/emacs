@@ -1,3 +1,8 @@
+2007-03-10  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (redisplay_window): Don't automatically select a new window
+	start for a contination line during mouse-click.
+
 2007-03-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c (handle_one_xevent): Ignore buttons > 3 for the tool bar.
