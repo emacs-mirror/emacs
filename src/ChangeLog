@@ -1,3 +1,8 @@
+2007-03-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c [USE_CARBON_EVENTS] (mac_handle_mouse_event): Ignore
+	mouse wheel movement on title bar or tool bar.
+
 2007-03-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keyboard.c (help_form_saved_window_configs): New var.
