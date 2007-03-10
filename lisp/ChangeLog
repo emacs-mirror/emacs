@@ -1,3 +1,8 @@
+2007-03-10  Johan Bockg,be(Brd  <bojohan@dd.chalmers.se>
+
+	* icomplete.el (icomplete-tidy, icomplete-exhibit): Bind
+	deactivate-mark to nil.
+
 2007-03-10  Martin Rudalics  <rudalics@gmx.at>
 
 	* complete.el (PC-do-completion): Bind dirlength to nil to avoid
