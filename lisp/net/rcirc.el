@@ -312,9 +312,8 @@ and the cdr part is used for encoding."
   "List of urls seen in the current buffer.")
 (put 'rcirc-urls 'permanent-local t)
 
-(defvar rcirc-keepalive-seconds 60
-  "Number of seconds between keepalive pings.
-If nil, do not send keepalive pings.")
+(defvar rcirc-timeout-seconds 60
+  "Kill connection after this many seconds if there is no activity.")
 
 (defconst rcirc-id-string (concat "rcirc on GNU Emacs " emacs-version))
 
@@ -357,7 +356,12 @@ If ARG is non-nil, prompt for a server to connect to."
 (defvar rcirc-topic nil)
 (defvar rcirc-keepalive-timer nil)
 (defvar rcirc-last-server-message-time nil)
-(defvar rcirc-server nil)
+(defvar rcirc-server nil)		; server provided by server
+(defvar rcirc-server-name nil)		; server name given by 001 response
+(defvar rcirc-timeout-timer nil)
+(defvar rcirc-user-disconnect nil)
+(defvar rcirc-connecting nil)
+(defvar rcirc-process nil)
 
 ;;;###autoload
 (defun rcirc-connect (&optional server port nick user-name full-name startup-channels)
@@ -374,7 +378,7 @@ If ARG is non-nil, prompt for a server to connect to."
 	   (user-name (or user-name rcirc-default-user-name))
 	   (full-name (or full-name rcirc-default-user-full-name))
 	   (startup-channels startup-channels)
-           (process (open-network-stream server nil server port-number)))
+           (process (make-network-process :name server :host server :service port-number)))
       ;; set up process
       (set-process-coding-system process 'raw-text 'raw-text)
       (switch-to-buffer (rcirc-generate-new-buffer-name process nil))
@@ -382,8 +386,12 @@ If ARG is non-nil, prompt for a server to connect to."
       (rcirc-mode process nil)
       (set-process-sentinel process 'rcirc-sentinel)
       (set-process-filter process 'rcirc-filter)
+      (make-local-variable 'rcirc-process)
+      (setq rcirc-process process)
       (make-local-variable 'rcirc-server)
       (setq rcirc-server server)
+      (make-local-variable 'rcirc-server-name)
+      (setq rcirc-server-name server)	; update when we get 001 response
       (make-local-variable 'rcirc-buffer-alist)
       (setq rcirc-buffer-alist nil)
       (make-local-variable 'rcirc-nick-table)
@@ -396,6 +404,12 @@ If ARG is non-nil, prompt for a server to connect to."
       (setq rcirc-startup-channels startup-channels)
       (make-local-variable 'rcirc-last-server-message-time)
       (setq rcirc-last-server-message-time (current-time))
+      (make-local-variable 'rcirc-timeout-timer)
+      (setq rcirc-timeout-timer nil)
+      (make-local-variable 'rcirc-user-disconnect)
+      (setq rcirc-user-disconnect nil)
+      (make-local-variable 'rcirc-connecting)
+      (setq rcirc-connecting t)
 
       ;; identify
       (rcirc-send-string process (concat "NICK " nick))
@@ -404,10 +418,9 @@ If ARG is non-nil, prompt for a server to connect to."
                                       full-name))
 
       ;; setup ping timer if necessary
-      (when rcirc-keepalive-seconds
-	(unless rcirc-keepalive-timer
-	  (setq rcirc-keepalive-timer
-		(run-at-time 0 rcirc-keepalive-seconds 'rcirc-keepalive))))
+      (unless rcirc-keepalive-timer
+	(setq rcirc-keepalive-timer
+	      (run-at-time 0 (/ rcirc-timeout-seconds 2) 'rcirc-keepalive)))
 
       (message "Connecting to %s...done" server)
 
@@ -430,12 +443,11 @@ Kill processes that have not received a server message since the
 last ping."
   (if (rcirc-process-list)
       (mapc (lambda (process)
-              (with-rcirc-process-buffer process
-		(if (> (cadr (time-since rcirc-last-server-message-time))
-		       rcirc-keepalive-seconds)
-		    (kill-process process)
-		  (rcirc-send-string process (concat "PING " rcirc-server)))))
+	      (with-rcirc-process-buffer process
+		(when (not rcirc-connecting)
+		  (rcirc-send-string process (concat "PING " (rcirc-server-name process))))))
             (rcirc-process-list))
+    ;; no processes, clean up timer
     (cancel-timer rcirc-keepalive-timer)
     (setq rcirc-keepalive-timer nil)))
 
@@ -472,12 +484,12 @@ Functions are called with PROCESS and SENTINEL arguments.")
 		       (format "%s: %s (%S)"
 			       (process-name process)
 			       sentinel
-			       (process-status process)) t)
+			       (process-status process)) (not rcirc-target))
 	  ;; remove the prompt from buffers
 	  (let ((inhibit-read-only t))
 	    (delete-region rcirc-prompt-start-marker
-			   rcirc-prompt-end-marker)))))
-    (run-hook-with-args 'rcirc-sentinel-hooks process sentinel)))
+			   rcirc-prompt-end-marker))))
+      (run-hook-with-args 'rcirc-sentinel-hooks process sentinel))))
 
 (defun rcirc-process-list ()
   "Return a list of rcirc processes."
@@ -496,6 +508,7 @@ Function is called with PROCESS, COMMAND, SENDER, ARGS and LINE.")
 (defun rcirc-filter (process output)
   "Called when PROCESS receives OUTPUT."
   (rcirc-debug process output)
+  (rcirc-reschedule-timeout process)
   (with-rcirc-process-buffer process
     (setq rcirc-last-server-message-time (current-time))
     (setq rcirc-process-output (concat rcirc-process-output output))
@@ -505,6 +518,19 @@ Function is called with PROCESS, COMMAND, SENDER, ARGS and LINE.")
               (rcirc-process-server-response process line))
             (split-string rcirc-process-output "[\n\r]" t))
       (setq rcirc-process-output nil))))
+
+(defun rcirc-reschedule-timeout (process)
+  (with-rcirc-process-buffer process
+    (when (not rcirc-connecting)
+      (with-rcirc-process-buffer process
+	(when rcirc-timeout-timer (cancel-timer rcirc-timeout-timer))
+	(setq rcirc-timeout-timer (run-at-time rcirc-timeout-seconds nil
+					       'rcirc-delete-process
+					       process))))))
+
+(defun rcirc-delete-process (process)
+  (message "delete process %S" process)
+  (delete-process process))
 
 (defvar rcirc-trap-errors-flag t)
 (defun rcirc-process-server-response (process text)
@@ -557,15 +583,16 @@ Function is called with PROCESS, COMMAND, SENDER, ARGS and LINE.")
 (defun rcirc-buffer-process (&optional buffer)
   "Return the process associated with channel BUFFER.
 With no argument or nil as argument, use the current buffer."
-  (get-buffer-process (if buffer
-			  (with-current-buffer buffer
-			    rcirc-server-buffer)
-			rcirc-server-buffer)))
+  (or (get-buffer-process (if buffer
+			      (with-current-buffer buffer
+				rcirc-server-buffer)
+			    rcirc-server-buffer))
+      rcirc-process))
 
 (defun rcirc-server-name (process)
   "Return PROCESS server name, given by the 001 response."
   (with-rcirc-process-buffer process
-    (or rcirc-server rcirc-default-server)))
+    (or rcirc-server-name rcirc-default-server)))
 
 (defun rcirc-nick (process)
   "Return PROCESS nick."
@@ -790,7 +817,7 @@ If ALL is non-nil, update prompts in all IRC buffers."
 	      (setq prompt
 		    (replace-regexp-in-string (car rep) (cdr rep) prompt)))
 	    (list (cons "%n" (rcirc-buffer-nick))
-		  (cons "%s" (with-rcirc-server-buffer (or rcirc-server "")))
+		  (cons "%s" (with-rcirc-server-buffer rcirc-server-name))
 		  (cons "%t" (or rcirc-target ""))))
       (save-excursion
 	(delete-region rcirc-prompt-start-marker rcirc-prompt-end-marker)
@@ -1079,9 +1106,7 @@ is found by looking up RESPONSE in `rcirc-response-formats'."
 		   "%")
 		  ((or (eq key ?n) (eq key ?N))
 		   ;; %n/%N -- nick
-		   (let ((nick (concat (if (string= (with-rcirc-process-buffer
-							process
-						      rcirc-server)
+		   (let ((nick (concat (if (string= (rcirc-server-name process)
 						    sender)
 					   ""
 					 sender)
@@ -1302,18 +1327,14 @@ record activity."
 	(rcirc-cmd-join channel process)))))
 
 ;;; nick management
+(defvar rcirc-nick-prefix-chars "~&@%+")
 (defun rcirc-user-nick (user)
   "Return the nick from USER.  Remove any non-nick junk."
   (save-match-data
-    (if (string-match "^[@%+]?\\([^! ]+\\)!?" (or user ""))
+    (if (string-match (concat "^[" rcirc-nick-prefix-chars
+			      "]?\\([^! ]+\\)!?") (or user ""))
 	(match-string 1 user)
       user)))
-
-(defun rcirc-user-non-nick (user)
-  "Return the non-nick portion of USER."
-  (if (string-match "^[@+]?[^! ]+!?\\(.*\\)" (or user ""))
-      (match-string 1 user)
-    user))
 
 (defun rcirc-nick-channels (process nick)
   "Return list of channels for NICK."
@@ -2009,7 +2030,9 @@ in this buffer.")
   (rcirc-handler-generic process "001" sender args text)
   ;; set the real server name
   (with-rcirc-process-buffer process
-    (setq rcirc-server sender)
+    (setq rcirc-connecting nil)
+    (rcirc-reschedule-timeout process)
+    (setq rcirc-server-name sender)
     (setq rcirc-nick (car args))
     (rcirc-update-prompt)
     (when rcirc-auto-authenticate-flag (rcirc-authenticate))
@@ -2419,7 +2442,8 @@ Passwords are stored in `rcirc-authinfo' (which see)."
   :group 'rcirc-faces)
 
 (defface rcirc-track-nick
-  '((t (:inverse-video t)))
+  '((((type tty)) (:inherit default))
+    (t (:inverse-video t)))
   "The face used in the mode-line when your nick is mentioned."
   :group 'rcirc-faces)
 
