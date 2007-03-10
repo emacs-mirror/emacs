@@ -1,3 +1,10 @@
+2007-03-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (help_form_saved_window_configs): New var.
+	(read_char_help_form_unwind): New function.
+	(read_char): Don't restore window configuration if a mouse click
+	arrives while the help form is being displayed.
+
 2007-03-10  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (redisplay_window): Don't automatically select a new window
