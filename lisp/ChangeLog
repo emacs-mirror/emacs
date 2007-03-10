@@ -1,3 +1,10 @@
+2007-03-10  Glenn Morris  <rgm@gnu.org>
+
+	* woman.el (woman-change-fonts): Add a hack to deal with
+	font-escape followed by "." at start of a line.
+	(woman2-IP): Add a hack to deal with consecutive requests.
+	(woman2-tagged-paragraph): Extend existing hack to handle "sp".
+
 2007-03-10  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-mode.el (c-before-change): Wrap in save-match-data.
