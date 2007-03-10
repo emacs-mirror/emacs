@@ -1,3 +1,27 @@
+2007-03-10  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el (rcirc-timeout-seconds): New variable.
+	(rcirc-keepalive-seconds): Remove variable.
+	(rcirc-server-name, rcirc-timeout-timer, rcirc-connecting)
+	(rcirc-process, rcirc-user-disconnect): New variables.
+	(rcirc-connect): Initalize new variables.
+	(rcirc-keepalive): Don't send keepalive pings before connection is
+	completed.
+	(rcirc-sentinel): Do mark all channels with activity when
+	connection is dropped.  Run hook with process buffer local.
+	(rcirc-reschedule-timeout, rcirc-delete-process): New functions.
+	(rcirc-buffer-process): Return value of rcirc-process if
+	rcirc-server-buffer is nil.
+	(rcirc-server-name): Return the reported server name.
+	(rcirc-update-prompt): Simplify computation of the server name.
+	(rcirc-format-response-string): Likewise.
+	(rcirc-handler-001): Mark server as connected, record the reported
+	server name, and schedule a timeout.
+	(rcirc-track-nick): Add a spec for the tty class.
+	(rcirc-user-non-nick): Remove function.
+	(rcirc-nick-prefix-chars): Add variable.
+	(rcirc-user-nick): Use above variable.
+
 2007-03-10  Johan Bockg,be(Brd  <bojohan@dd.chalmers.se>
 
 	* icomplete.el (icomplete-tidy, icomplete-exhibit): Bind
