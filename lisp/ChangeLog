@@ -1,3 +1,8 @@
+2007-03-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* complete.el (PC-do-completion): Bind dirlength to nil to avoid
+	that buffer contents get erased during completion.
+
 2007-03-10  Glenn Morris  <rgm@gnu.org>
 
 	* woman.el (woman-change-fonts): Add a hack to deal with
