@@ -9988,23 +9988,30 @@ mac_handle_mouse_event (next_handler, event, data)
 	if (err != noErr || axis != kEventMouseWheelAxisY)
 	  break;
 
-	err = GetEventParameter (event, kEventParamMouseWheelDelta,
-				 typeSInt32, NULL, sizeof (SInt32),
-				 NULL, &delta);
-	if (err != noErr)
-	  break;
 	err = GetEventParameter (event, kEventParamMouseLocation,
 				 typeQDPoint, NULL, sizeof (Point),
 				 NULL, &point);
 	if (err != noErr)
 	  break;
+
+	SetPortWindowPort (wp);
+	GlobalToLocal (&point);
+	if (point.h < 0 || point.v < 0
+	    || EQ (window_from_coordinates (f, point.h, point.v, 0, 0, 0, 1),
+		   f->tool_bar_window))
+	  break;
+
+	err = GetEventParameter (event, kEventParamMouseWheelDelta,
+				 typeSInt32, NULL, sizeof (SInt32),
+				 NULL, &delta);
+	if (err != noErr)
+	  break;
+
 	read_socket_inev->kind = WHEEL_EVENT;
 	read_socket_inev->code = 0;
 	read_socket_inev->modifiers =
 	  (mac_event_to_emacs_modifiers (event)
 	   | ((delta < 0) ? down_modifier : up_modifier));
-	SetPortWindowPort (wp);
-	GlobalToLocal (&point);
 	XSETINT (read_socket_inev->x, point.h);
 	XSETINT (read_socket_inev->y, point.v);
 	XSETFRAME (read_socket_inev->frame_or_window, f);
