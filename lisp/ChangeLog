@@ -1,3 +1,7 @@
+2007-03-11  Juri Linkov <juri@jurta.org>
+
+	* replace.el (match): Use yellow background on light-bg terminals.
+
 2007-03-11  Richard Stallman  <rms@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-warning-prefix): 
