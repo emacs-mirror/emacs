@@ -6497,6 +6497,7 @@ sigchld_handler (signo)
       /* Keep trying to get a status until we get a definitive result.  */
       do
 	{
+          sleep (1);
 	  errno = 0;
 	  pid = wait3 (&w, WNOHANG | WUNTRACED, 0);
 	}
