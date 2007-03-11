@@ -1,3 +1,13 @@
+2007-03-11  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-warning-prefix): 
+	Correctly compute line number.
+	
+2007-03-11  Guanpeng Xu  <herberteuler@hotmail.com>
+
+	* type-break.el (type-break-get-previous-count): 
+	Repeat previous change here.
+
 2007-03-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/grep.el (grep-find-ignored-directories): Add .git and
