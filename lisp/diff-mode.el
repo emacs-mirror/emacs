@@ -1375,7 +1375,8 @@ With a prefix argument, REVERSE the hunk."
                        (yes-or-no-p (format "Really apply this hunk to %s? "
                                             (file-name-nondirectory
                                              buffer-file-name)))))))
-      (error (substitute-command-keys
+      (error "%s"
+	     (substitute-command-keys
               (format "Use %s\\[diff-apply-hunk] to apply it to the other file"
                       (if (not reverse) "\\[universal-argument] ")))))
      ((and switched
