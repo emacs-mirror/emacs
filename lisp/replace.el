@@ -849,10 +849,12 @@ Compatibility function for \\[next-error] invocations."
 
 (defface match
   '((((class color) (min-colors 88) (background light))
-     :background "Tan")
+     :background "yellow")
     (((class color) (min-colors 88) (background dark))
      :background "RoyalBlue3")
-    (((class color) (min-colors 8))
+    (((class color) (min-colors 8) (background light))
+     :background "yellow" :foreground "black")
+    (((class color) (min-colors 8) (background dark))
      :background "blue" :foreground "white")
     (((type tty) (class mono))
      :inverse-video t)
