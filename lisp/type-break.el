@@ -579,10 +579,13 @@ integer."
               (setq file
                     (with-current-buffer
                         (find-file-noselect file 'nowarn)
-                      (save-excursion
-                        (goto-char (point-min))
-                        (forward-line 1)
-                        (read (current-buffer)))))))
+                    (condition-case nil
+                        (save-excursion
+                          (goto-char (point-min))
+                          (forward-line 1)
+                          (read (current-buffer)))
+                      (end-of-file
+                       (error "End of file in `%s'" file)))))))
         file
       0)))
 
