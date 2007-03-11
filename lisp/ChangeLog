@@ -1,3 +1,7 @@
+2007-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mail/emacsbug.el (report-emacs-bug): Don't hard code the "X" name.
+
 2007-03-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* faces.el (face-set-after-frame-default): Recalculate face
