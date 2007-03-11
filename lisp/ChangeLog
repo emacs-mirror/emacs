@@ -1,3 +1,8 @@
+2007-03-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/grep.el (grep-find-ignored-directories): Add .git and
+	.bzr to list.
+
 2007-03-11  Andreas Schwab  <schwab@suse.de>
 
 	* diff-mode.el (diff-apply-hunk): Use proper format string for
