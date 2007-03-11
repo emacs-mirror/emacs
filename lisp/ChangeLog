@@ -1,3 +1,8 @@
+2007-03-11  Andreas Schwab  <schwab@suse.de>
+
+	* diff-mode.el (diff-apply-hunk): Use proper format string for
+	error.
+
 2007-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mail/emacsbug.el (report-emacs-bug): Don't hard code the "X" name.
