@@ -1,3 +1,9 @@
+2007-03-11  Glenn Morris  <rgm@gnu.org>
+
+	* ms-7bkermit, ulimit.hack, Xkeymap.txt: Remove files.
+
+	* Makefile (SOURCES): ulimit.hack is removed.
+
 2007-03-04  David Kastrup  <dak@gnu.org>
 
 	* NEWS (fontification): Mention that the new default for
