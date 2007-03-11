@@ -3034,7 +3034,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
      (display)
      Lisp_Object display;
 {
-  return build_string ("Apple Computers");
+  return build_string ("Apple Inc.");
 }
 
 DEFUN ("x-server-version", Fx_server_version, Sx_server_version, 0, 1, 0,
