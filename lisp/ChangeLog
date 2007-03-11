@@ -10,8 +10,8 @@
 	(rcirc-server-name, rcirc-timeout-timer, rcirc-connecting)
 	(rcirc-process, rcirc-user-disconnect): New variables.
 	(rcirc-connect): Initalize new variables.
-	(rcirc-keepalive): Don't send keepalive pings before connection is
-	completed.
+	(rcirc-keepalive): Don't send keepalive pings before connection
+	is completed.
 	(rcirc-sentinel): Do mark all channels with activity when
 	connection is dropped.  Run hook with process buffer local.
 	(rcirc-reschedule-timeout, rcirc-delete-process): New functions.
@@ -29,8 +29,8 @@
 
 2007-03-10  Johan Bockg,be(Brd  <bojohan@dd.chalmers.se>
 
-	* icomplete.el (icomplete-tidy, icomplete-exhibit): Bind
-	deactivate-mark to nil.
+	* icomplete.el (icomplete-tidy, icomplete-exhibit):
+	Bind deactivate-mark to nil.
 
 2007-03-10  Martin Rudalics  <rudalics@gmx.at>
 
@@ -154,7 +154,7 @@
 	* progmodes/python.el (python-send-command): Restart proc if necessary.
 	(python-proc): Simplify.
 
-2007-03-05  David Hansen  <david.hansen@gmx.net> (tiny change)
+2007-03-05  David Hansen  <david.hansen@gmx.net>  (tiny change)
 
 	* pcomplete.el (pcomplete-show-completions): Search all frames for
 	completions buffer.
@@ -182,14 +182,14 @@
 	* emacs-lisp/lisp-mode.el (calculate-lisp-indent):
 	Redo previous change.
 
-2007-03-04  Kevin Rodgers <kevin.d.rodgers@gmail.com>
+2007-03-04  Kevin Rodgers  <kevin.d.rodgers@gmail.com>
 
 	* diff-mode.el (diff-mode): Doc fix.
 
 2007-03-05  Kenichi Handa  <handa@m17n.org>
 
-	* international/characters.el: Set category `l' (latin) for more
-	characters.
+	* international/characters.el: Set category `l' (latin)
+	for more characters.
 
 2007-03-04  Kim F. Storm  <storm@cua.dk>
 
@@ -201,8 +201,8 @@
 	all when switching major mode.
 	(hs-minor-mode, hs-c-start-regexp, hs-block-start-regexp)
 	(hs-block-start-mdata-select, hs-block-end-regexp)
-	(hs-forward-sexp-func, hs-adjust-block-beginning): Do not make
-	these variables permanent-local.
+	(hs-forward-sexp-func, hs-adjust-block-beginning):
+	Do not make these variables permanent-local.
 
 2007-03-04  Richard Stallman  <rms@gnu.org>
 
@@ -643,7 +643,7 @@
 	* pgg-gpg.el (pgg-gpg-process-region): Make USE-AGENT nil
 	if PASSPHRASE is given.
 
-2007-02-17  Chris Moore <dooglus@gmail.com>
+2007-02-17  Chris Moore  <dooglus@gmail.com>
 
 	* jka-cmpr-hook.el (jka-compr-compression-info-list):
 	Recognize backups of bz2 compressed files.
@@ -1658,8 +1658,7 @@
 
 2007-01-03  Alan Mackenzie  <acm@muc.de>
 
-	* progmode/cc-cmds.el (c-mask-paragraph): Fix yesterday's buggy
-	patch.
+	* progmode/cc-cmds.el (c-mask-paragraph): Fix yesterday's buggy patch.
 
 2007-01-03  Chris Moore  <christopher.ian.moore@gmail.com>
 
