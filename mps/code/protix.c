@@ -10,7 +10,14 @@
  *
  *  This file does not contain a signal handler.  That's in protsgix.c
  *  (for FreeBSD and Darwin on Intel); in protxcpp.c (for Darwin on
- *  PowerPC).
+ *  PowerPC); in protlii3.c (for Intel Linux).
+ *
+ *
+ *  SOURCES
+ *
+ *  [SUSV2MPROTECT] Single UNIX Specification, Version 2, mprotect man
+ *  page:
+ *  http://opengroup.org/onlinepubs/007908799/xsh/mprotect.html
  *
  *  ASSUMPTIONS
  *
@@ -21,6 +28,17 @@
  *    do this (on the now very obsolete FreeBSD 2.2.x series).  The
  *    Darwin man page documents it as caddr_t but it appears to be
  *    implemented correctly as void *.  caddr_t is usually char *.
+ *
+ *  .assume.write-only:  More of an anti-assumption really.  We
+ *    assume that asking the OS for a write-only page (that is, flags =
+ *    PROT_WRITE) does not work.  What actually happens on all the
+ *    Unix-like OSes that we've seen is that asking for write-permission
+ *    (flags = PROT_WRITE) grants read-permission as well.  That is why
+ *    when the MPS requires that a page be read-protected (mode ==
+ *    AccessREAD) we must ensure that writes are also not allowed.
+ *    The portable guarantees of mprotect (see [SUSV2MPROTECT]) are that
+ *    writes are not permitted where PROT_WRITE is not used and no access
+ *    is permitted when PROT_NONE alone is used.
  */
 
 
@@ -61,11 +79,17 @@ void ProtSet(Addr base, Addr limit, AccessSet mode)
 
   /* Convert between MPS AccessSet and UNIX PROT thingies.
      In this function, AccessREAD means protect against read accesses
-     (disallow them).  PROT_READ means allow read accesses.
+     (disallow them).  PROT_READ means allow read accesses.  Notice that
+     this follows a difference in contract as well as style.  AccessREAD
+     means that no reads should be permitted (all reads should go via
+     the signal handler), possibly other operations (write) also go via
+     the signal handler; PROT_WRITE means that all writes should be
+     allowed, possibly that means other operations (read) are also
+     allowed.
    */
   switch(mode) {
   case AccessWRITE | AccessREAD:
-  case AccessREAD:      /* forbids writes as well */
+  case AccessREAD:      /* forbids writes as well, see .assume.write-only */
     flags = PROT_NONE;
     break;
   case AccessWRITE:
