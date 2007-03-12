@@ -7,7 +7,7 @@
 
 PFM = xci3gc
 
-MPMPF = lockan.c than.c vmxc.c \
+MPMPF = lockix.c than.c vmxc.c \
         protix.c protsgix.c prmcan.c span.c ssixi3.c
 SWPF = than.c vmxc.c protsw.c prmcan.c ssan.c
 
