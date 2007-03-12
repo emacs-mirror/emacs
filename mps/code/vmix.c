@@ -1,44 +1,59 @@
-/* vmxc.c: VIRTUAL MEMORY MAPPING FOR MacOS X
+/* vmix.c: VIRTUAL MEMORY MAPPING FOR FreeBSD
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001,2007 Ravenbrook Limited.  See end of file for license.
  *
- * .design: <design/vm/>
+ * .purpose: This is the implementation of the virtual memory mapping
+ * interface (vm.h) for Unix-like operating systems.  It was created
+ * by copying vmfr.c (the FreeBSD) implementation (as that seemed to
+ * use the most standards conforming interfaces).  vmfr.c was itself
+ * copied from vli.c (Linux) which was itself copied from vmo1.c (OSF/1
+ * / DIGITAL UNIX / Tru64).
  *
- * .details: mmap(2) is used to reserve address space by creating a
- * mapping to the swap with page access none.  mmap(2) is used to map
- * pages onto store by creating a copy-on-write mapping to swap.
+ * .deployed: Currently used on Darwin (OS X) and FreeBSD.
  *
- * .assume.not-last: The implementation of VMCreate assumes that mmap()
- * will not choose a region which contains the last page in the address
- * space, so that the limit of the mapped area is representable.
+ * .design: See <design/vm/>.  .design.mmap: mmap(2) is used to
+ * reserve address space by creating a mapping with page access none.
+ * mmap(2) is used to map pages onto store by creating a copy-on-write
+ * (MAP_PRIVATE) mapping with the flag MAP_ANON.
  *
- * .assume.mmap.err: ENOMEM is the only error we really expect to get
- * from mmap.  The others are either caused by invalid params or
- * features we don't use.  See mmap(2) for details.
+ * .non-standard: Note that the MAP_ANON flag is non-standard; it is
+ * available on Darwin and FreeBSD.  Linux seems to use MAP_ANONYMOUS
+ * instead (some Linux systems make MAP_ANON available and deprecate
+ * it).  Perhaps in the future Linux could use this implementation too.
  *
- * .overcommit: Apparently, MacOS X will overcommit, instead of
- * returning ENOMEM from mmap.  There appears to be no way to tell
- * whether the process is running out of swap and no way to reserve the
- * swap, apart from actually touching every page.
+ * .assume.not-last: The implementation of VMCreate assumes that
+ * mmap() will not choose a region which contains the last page
+ * in the address space, so that the limit of the mapped area
+ * is representable.
+ *
+ * .assume.mmap.err: ENOMEM is the only error we really expect to
+ * get from mmap.  The others are either caused by invalid params
+ * or features we don't use.  See mmap(2) for details.
+ *
+ * .remap: Possibly this should use mremap to reduce the number of
+ * distinct mappings.  According to our current testing, it doesn't
+ * seem to be a problem.
  */
+
+/* for mmap(2), munmap(2) */
+#include <sys/types.h>
+#include <sys/mman.h>
+
+/* for errno(2) */
+#include <errno.h>
+
+/* for getpagesize(3) */
+#include <unistd.h>
 
 #include "mpm.h"
 
-#ifndef MPS_OS_XC
-#error "vmxc.c is MacOS X specific, but MPS_OS_XC is not set"
+
+#if !defined(MPS_OS_FR) && !defined(MPS_OS_XC)
+#error "vmix.c is Unix-like specific, currently MPS_OS_FR XC"
 #endif
-#ifdef VM_RM
-#error "vmxc.c compiled with VM_RM set"
-#endif /* VM_RM */
 
-#include <sys/types.h>
-#include <sys/mman.h>
-#include <errno.h>
-#include <unistd.h>
-#include <limits.h> /* for INT_MAX */
-
-SRCID(vmxc, "$Id$");
+SRCID(vmix, "$Id$");
 
 
 /* VMStruct -- virtual memory structure */
@@ -54,16 +69,15 @@ typedef struct VMStruct {
 } VMStruct;
 
 
-/* VMAlign -- return the page size */
+/* VMAlign -- return page size */
 
 Align VMAlign(VM vm)
 {
-  AVERT(VM, vm);
   return vm->align;
 }
 
 
-/* VMCheck -- check a VM structure */
+/* VMCheck -- check a VM */
 
 Bool VMCheck(VM vm)
 {
@@ -83,46 +97,57 @@ Bool VMCheck(VM vm)
 
 Res VMCreate(VM *vmReturn, Size size)
 {
-  caddr_t addr;
   Align align;
   VM vm;
+  int pagesize;
+  void *addr;
+  Res res;
 
   AVER(vmReturn != NULL);
 
-  align = (Align)getpagesize();
+  /* Find out the page size from the OS */
+  pagesize = getpagesize();
+  /* check the actual returned pagesize will fit in an object of */
+  /* type Align. */
+  AVER(pagesize > 0);
+  AVER((unsigned long)pagesize <= (unsigned long)(Align)-1);
+  /* Note implicit conversion from "int" to "Align". */
+  align = pagesize;
   AVER(SizeIsP2(align));
   size = SizeAlignUp(size, align);
-  if(size == 0)
+  if((size == 0) || (size > (Size)(size_t)-1))
     return ResRESOURCE;
 
   /* Map in a page to store the descriptor on. */
-  AVER(sizeof(caddr_t) == sizeof(Addr)); /* verify address spaces match */
-  addr = mmap((caddr_t)0, SizeAlignUp(sizeof(VMStruct), align),
-              PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, (off_t)0);
-  if(addr == (caddr_t)-1) {
+  addr = mmap(0, (size_t)SizeAlignUp(sizeof(VMStruct), align),
+              PROT_READ | PROT_WRITE,
+              MAP_ANON | MAP_PRIVATE,
+              -1, 0);
+  /* On Darwin the MAP_FAILED return value is not documented, but does
+   * work.  MAP_FAILED _is_ documented by POSIX.
+   */
+  if(addr == MAP_FAILED) {
     int e = errno;
     AVER(e == ENOMEM); /* .assume.mmap.err */
-    if(e == ENOMEM)
-      return ResMEMORY;
-    else
-      return ResFAIL;
+    return ResMEMORY;
   }
   vm = (VM)addr;
 
   vm->align = align;
 
-  addr = mmap((caddr_t)0, size, PROT_NONE, MAP_SHARED | MAP_ANON, -1, (off_t)0);
-  if(addr == (caddr_t)-1) {
+  /* See .assume.not-last. */
+  addr = mmap(0, (size_t)size,
+              PROT_NONE, MAP_ANON | MAP_PRIVATE,
+              -1, 0);
+  if(addr == MAP_FAILED) {
     int e = errno;
     AVER(e == ENOMEM); /* .assume.mmap.err */
-    if(e == ENOMEM)
-      return ResRESOURCE;
-    else
-      return ResFAIL;
+    res = ResRESOURCE;
+    goto failReserve;
   }
 
   vm->base = (Addr)addr;
-  vm->limit = AddrAdd(vm->base, size); /* .assume.not-last. */
+  vm->limit = AddrAdd(vm->base, size);
   vm->reserved = size;
   vm->mapped = (Size)0;
 
@@ -134,10 +159,14 @@ Res VMCreate(VM *vmReturn, Size size)
 
   *vmReturn = vm;
   return ResOK;
+
+failReserve:
+  (void)munmap((void *)vm, (size_t)SizeAlignUp(sizeof(VMStruct), align));
+  return res;
 }
 
 
-/* VMDestroy -- destroy the VM structure and release the address space */
+/* VMDestroy -- release all address space and destroy VM structure */
 
 void VMDestroy(VM vm)
 {
@@ -146,74 +175,83 @@ void VMDestroy(VM vm)
   AVERT(VM, vm);
   AVER(vm->mapped == (Size)0);
 
-  /* This appears to be pretty pointless, since the space descriptor */
-  /* page is  about to vanish completely.  However, munmap might fail */
+  /* This appears to be pretty pointless, since the descriptor */
+  /* page is about to vanish completely.  However, munmap might fail */
   /* for some reason, and this would ensure that it was still */
   /* discovered if sigs were being checked. */
   vm->sig = SigInvalid;
 
-  r = munmap((caddr_t)vm->base, (int)AddrOffset(vm->base, vm->limit));
+  r = munmap((void *)vm->base, (size_t)AddrOffset(vm->base, vm->limit));
   AVER(r == 0);
-  r = munmap((caddr_t)vm,
-             (int)SizeAlignUp(sizeof(VMStruct), vm->align));
+  r = munmap((void *)vm,
+             (size_t)SizeAlignUp(sizeof(VMStruct), vm->align));
   AVER(r == 0);
+
+  EVENT_P(VMDestroy, vm);
 }
 
 
-/* VMBase, VMLimit -- return the base & limit of the memory reserved */
+/* VMBase -- return the base address of the memory reserved */
 
 Addr VMBase(VM vm)
 {
   AVERT(VM, vm);
+
   return vm->base;
 }
+
+
+/* VMLimit -- return the limit address of the memory reserved */
 
 Addr VMLimit(VM vm)
 {
   AVERT(VM, vm);
+
   return vm->limit;
 }
 
 
-/* VMReserved -- return the amount of the memory reserved */
+/* VMReserved -- return the amount of memory reserved */
 
 Size VMReserved(VM vm)
 {
   AVERT(VM, vm);
+
   return vm->reserved;
 }
 
 
-/* VMMapped -- return the amount of the memory committed */
+/* VMMapped -- return the amount of memory actually mapped */
 
 Size VMMapped(VM vm)
 {
   AVERT(VM, vm);
+
   return vm->mapped;
 }
 
 
-/* VMMap -- commit memory between base & limit */
+/* VMMap -- map the given range of memory */
 
 Res VMMap(VM vm, Addr base, Addr limit)
 {
   Size size;
 
   AVERT(VM, vm);
+  AVER(sizeof(void *) == sizeof(Addr));
   AVER(base < limit);
   AVER(base >= vm->base);
   AVER(limit <= vm->limit);
-  AVER(AddrOffset(base, limit) <= INT_MAX);
   AVER(AddrIsAligned(base, vm->align));
   AVER(AddrIsAligned(limit, vm->align));
 
   size = AddrOffset(base, limit);
 
-  if(mmap((caddr_t)base, (int)size,
-	  PROT_READ | PROT_WRITE | PROT_EXEC,
-	  MAP_PRIVATE | MAP_FIXED | MAP_ANON,
-	  -1, (off_t)0)
-     == (caddr_t)-1) {
+  if(mmap((void *)base, (size_t)size,
+          PROT_READ | PROT_WRITE | PROT_EXEC,
+          MAP_ANON | MAP_PRIVATE | MAP_FIXED,
+          -1, 0)
+     == MAP_FAILED) {
     AVER(errno == ENOMEM); /* .assume.mmap.err */
     return ResMEMORY;
   }
@@ -225,32 +263,27 @@ Res VMMap(VM vm, Addr base, Addr limit)
 }
 
 
-/* VMUnmap -- decommit memory between base & limit */
+/* VMUnmap -- unmap the given range of memory */
 
 void VMUnmap(VM vm, Addr base, Addr limit)
 {
   Size size;
-  caddr_t addr;
+  void *addr;
 
   AVERT(VM, vm);
-  AVER(sizeof(int) == sizeof(Addr));
   AVER(base < limit);
   AVER(base >= vm->base);
   AVER(limit <= vm->limit);
   AVER(AddrIsAligned(base, vm->align));
   AVER(AddrIsAligned(limit, vm->align));
 
-  /* .unmap: Map with MAP_ANON, allowing no access.  This */
-  /* effectively depopulates the area from memory, but keeps */
-  /* it "busy" as far as the OS is concerned, so that it will not */
-  /* be re-used by other calls to mmap which do not specify */
-  /* MAP_FIXED.  The offset is specified to mmap so that */
-  /* the OS can merge this mapping with .map.reserve. */
   size = AddrOffset(base, limit);
-  addr = mmap((caddr_t)base, (int)size,
-              PROT_NONE, MAP_SHARED | MAP_FIXED | MAP_ANON,
-              -1, (off_t)AddrOffset(vm->base, base));
-  AVER(addr == (caddr_t)base);
+
+  /* see <design/vmo1/#fun.unmap.offset> */
+  addr = mmap((void *)base, (size_t)size,
+              PROT_NONE, MAP_ANON | MAP_PRIVATE | MAP_FIXED,
+              -1, 0);
+  AVER(addr == (void *)base);
 
   vm->mapped -= size;
 
@@ -260,7 +293,7 @@ void VMUnmap(VM vm, Addr base, Addr limit)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2007 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
