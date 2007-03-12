@@ -1,3 +1,14 @@
+2007-03-11  Glenn Morris  <rgm@gnu.org>
+
+	* ms-7bkermit, ulimit.hack, Xkeymap.txt: Remove files.
+
+	* Makefile (SOURCES): ulimit.hack is removed.
+
+2007-03-04  David Kastrup  <dak@gnu.org>
+
+	* NEWS (fontification): Mention that the new default for
+	jit-lock-stealth-time is now nil.
+
 2007-03-01  Kim F. Storm  <storm@cua.dk>
 
 	* ORDERS: Reformat text.
@@ -574,7 +585,7 @@
 	* NEWS.21, NEWS.20: ... new files for Emacs 21 and Emacs 20 news.
 	* ONEWS, ONEWS.1, ONEWS.2, ONEWS.3, ONEWS.4: Remove (rename) files ...
 	* NEWS.19, NEWS.18, NEWS.1-17: ... and organize news about older Emacs
-	versions in separte files.  Update copyright notices.
+	versions in separate files.  Update copyright notices.
 
 2006-06-03  Eli Zaretskii  <eliz@gnu.org>
 
