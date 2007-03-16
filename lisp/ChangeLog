@@ -1,3 +1,8 @@
+2007-03-16  Mark A. Hershberger  <mah@everybody.org>
+
+	* eshell/esh-mode.el (eshell-handle-ansi-color): New function.
+	Add new option for eshell-output-filter-functions.
+
 2007-03-11  Juri Linkov <juri@jurta.org>
 
 	* replace.el (match): Use yellow background on light-bg terminals.
