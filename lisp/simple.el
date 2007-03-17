@@ -3594,7 +3594,7 @@ Outline mode sets this."
 			      'end-of-buffer)
 			    nil)))
 	    ;; Move by arg lines, but ignore invisible ones.
-	    (let (done line-end)
+	    (let (done)
 	      (while (and (> arg 0) (not done))
 		;; If the following character is currently invisible,
 		;; skip all characters with that same `invisible' property value.
@@ -3603,9 +3603,11 @@ Outline mode sets this."
 		;; Move a line.
 		;; We don't use `end-of-line', since we want to escape
 		;; from field boundaries ocurring exactly at point.
-		(let ((inhibit-field-text-motion t))
-		  (setq line-end (line-end-position)))
-		(goto-char (constrain-to-field line-end (point) t t))
+		(goto-char (constrain-to-field
+			    (let ((inhibit-field-text-motion t))
+			      (line-end-position))
+			    (point) t t
+			    'inhibit-line-move-field-capture))
 		;; If there's no invisibility here, move over the newline.
 		(cond
 		 ((eobp)
