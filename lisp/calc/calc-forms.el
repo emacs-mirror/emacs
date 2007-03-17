@@ -1312,20 +1312,20 @@
     (calcFunc-unixtime (calcFunc-unixtime date z1) z2)))
 
 (defun math-std-daylight-savings (date dt zone bump)
-  "Standard North American daylight savings algorithm.
-This implements the rules for the U.S. and Canada as of 1987.
-Daylight savings begins on the first Sunday of April at 2 a.m.,
-and ends on the last Sunday of October at 2 a.m."
-  (cond ((< (nth 1 dt) 4) 0)
-	((= (nth 1 dt) 4)
-	 (let ((sunday (math-prev-weekday-in-month date dt 7 0)))
+  "Standard North American daylight saving algorithm.
+This implements the rules for the U.S. and Canada as of 2007.
+Daylight saving begins on the second Sunday of March at 2 a.m.,
+and ends on the first Sunday of November at 2 a.m."
+  (cond ((< (nth 1 dt) 3) 0)
+	((= (nth 1 dt) 3)
+	 (let ((sunday (math-prev-weekday-in-month date dt 14 0)))
 	   (cond ((< (nth 2 dt) sunday) 0)
 		 ((= (nth 2 dt) sunday)
 		  (if (>= (nth 3 dt) (+ 3 bump)) -1 0))
 		 (t -1))))
-	((< (nth 1 dt) 10) -1)
-	((= (nth 1 dt) 10)
-	 (let ((sunday (math-prev-weekday-in-month date dt 31 0)))
+	((< (nth 1 dt) 11) -1)
+	((= (nth 1 dt) 11)
+	 (let ((sunday (math-prev-weekday-in-month date dt 7 0)))
 	   (cond ((< (nth 2 dt) sunday) -1)
 		 ((= (nth 2 dt) sunday)
 		  (if (>= (nth 3 dt) (+ 2 bump)) 0 -1))
