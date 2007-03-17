@@ -1729,7 +1729,7 @@ support.  MINUTE is an integer between 0 and 59.  HOUR is an integer
 between 0 and 23.  DAY is an integer between 1 and 31.  MONTH is an
 integer between 1 and 12.  YEAR is an integer indicating the
 four-digit year.  DOW is the day of week, an integer between 0 and 6,
-where 0 is Sunday.  DST is t if daylight saving time is effect,
+where 0 is Sunday.  DST is t if daylight saving time is in effect,
 otherwise nil.  ZONE is an integer indicating the number of seconds
 east of Greenwich.  (Note that Common Lisp has different meanings for
 DOW and ZONE.)  */)
