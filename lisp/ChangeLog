@@ -22,6 +22,15 @@
 	* textmodes/org.el (org-set-font-lock-defaults): Handle narrow
 	table columns correctly.
 
+2007-03-12  Mark A. Hershberger  <mah@everybody.org>
+
+	* xml.el (xml-parse-tag, xml-parse-string, xml-parse-attlist)
+	(xml-parse-dtd, xml-parse-elem-type, xml-substitute-special):
+	Return to use of the -no-properties variants.  There was
+	consensus on emacs-devel that the speed of these variants was
+	prefered since we are usually parsing files (from the internet
+	or on disk) instead of XML created in Emacs.
+
 2007-03-12  Glenn Morris  <rgm@gnu.org>
 
 	* calc/calc-forms.el (math-std-daylight-savings): Switch to new
