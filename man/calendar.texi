@@ -43,7 +43,7 @@ about more specialized features.
 * Diary::               Displaying events from your diary.
 * Appointments::	Reminders when it's time to do something.
 * Importing Diary::     Converting diary events to/from other formats.
-* Daylight Savings::    How to specify when daylight savings time is active.
+* Daylight Saving::     How to specify when daylight saving time is active.
 * Time Intervals::      Keeping track of time intervals.
 @ifnottex
 * Advanced Calendar/Diary Usage:: Advanced Calendar/Diary customization.
@@ -604,8 +604,8 @@ Time (Greenwich time).  The values of
 @code{calendar-standard-time-zone-name} and
 @code{calendar-daylight-time-zone-name} are the abbreviations used in
 your time zone.  Emacs displays the times of sunrise and sunset
-@emph{corrected for daylight savings time}.  @xref{Daylight Savings},
-for how daylight savings time is determined.
+@emph{corrected for daylight saving time}.  @xref{Daylight Saving},
+for how daylight saving time is determined.
 
   As a user, you might find it convenient to set the calendar location
 variables for your usual physical location in your @file{.emacs} file.
@@ -646,9 +646,9 @@ month, use @kbd{C-u M-x phases-of-moon}, which prompts for the month and
 year.
 
   The dates and times given for the phases of the moon are given in
-local time (corrected for daylight savings, when appropriate); but if
+local time (corrected for daylight saving, when appropriate); but if
 the variable @code{calendar-time-zone} is void, Coordinated Universal
-Time (the Greenwich time zone) is used.  @xref{Daylight Savings}.
+Time (the Greenwich time zone) is used.  @xref{Daylight Saving}.
 
 @node Other Calendars
 @section Conversion To and From Other Calendars
@@ -1553,14 +1553,14 @@ Emacs diary file to iCalendar format.  To export only a part of a diary
 file, mark the relevant area, and call @code{icalendar-export-region}.
 In both cases the result is appended to the target file.
 
-@node Daylight Savings
-@section Daylight Savings Time
-@cindex daylight savings time
+@node Daylight Saving
+@section Daylight Saving Time
+@cindex daylight saving time
 
   Emacs understands the difference between standard time and daylight
-savings time---the times given for sunrise, sunset, solstices,
+saving time---the times given for sunrise, sunset, solstices,
 equinoxes, and the phases of the moon take that into account.  The rules
-for daylight savings time vary from place to place and have also varied
+for daylight saving time vary from place to place and have also varied
 historically from year to year.  To do the job properly, Emacs needs to
 know which rules to use.
 
@@ -1577,12 +1577,12 @@ you can tell Emacs the rules to use by setting certain variables:
 
   These values should be Lisp expressions that refer to the variable
 @code{year}, and evaluate to the Gregorian date on which daylight
-savings time starts or (respectively) ends, in the form of a list
+saving time starts or (respectively) ends, in the form of a list
 @code{(@var{month} @var{day} @var{year})}.  The values should be
-@code{nil} if your area does not use daylight savings time.
+@code{nil} if your area does not use daylight saving time.
 
   Emacs uses these expressions to determine the starting date of
-daylight savings time for the holiday list and for correcting times of
+daylight saving time for the holiday list and for correcting times of
 day in the solar and lunar calculations.
 
   The values for Cambridge, Massachusetts are as follows:
@@ -1595,7 +1595,7 @@ day in the solar and lunar calculations.
 @noindent
 That is, the second 0th day (Sunday) of the third month (March) in
 the year specified by @code{year}, and the first Sunday of the eleventh month
-(November) of that year.  If daylight savings time were
+(November) of that year.  If daylight saving time were
 changed to start on October 1, you would set
 @code{calendar-daylight-savings-starts} to this:
 
@@ -1603,13 +1603,13 @@ changed to start on October 1, you would set
 (list 10 1 year)
 @end example
 
-  If there is no daylight savings time at your location, or if you want
+  If there is no daylight saving time at your location, or if you want
 all times in standard time, set @code{calendar-daylight-savings-starts}
 and @code{calendar-daylight-savings-ends} to @code{nil}.
 
 @vindex calendar-daylight-time-offset
   The variable @code{calendar-daylight-time-offset} specifies the
-difference between daylight savings time and standard time, measured in
+difference between daylight saving time and standard time, measured in
 minutes.  The value for Cambridge, Massachusetts is 60.
 
 @c @vindex calendar-daylight-savings-starts-time  too long!
@@ -1617,7 +1617,7 @@ minutes.  The value for Cambridge, Massachusetts is 60.
   The two variables @code{calendar-daylight-savings-starts-time} and
 @code{calendar-daylight-savings-ends-time} specify the number of minutes
 after midnight local time when the transition to and from daylight
-savings time should occur.  For Cambridge, Massachusetts both variables'
+saving time should occur.  For Cambridge, Massachusetts both variables'
 values are 120.
 
 @node Time Intervals
