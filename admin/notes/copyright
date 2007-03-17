@@ -381,7 +381,8 @@ src/acldef.h, chpdef.h, ndir.h
 etc/TERMS
 rms: "surely written either by me or by ESR. (If you can figure out
 which year, I can probably tell you which.) Either way, we have papers
-for it." Present in Emacs-16.56 (15-jul-85).
+for it." It was present in Emacs-16.56 (15-jul-85). rms: "Then I
+conclude it was written by me."
 
 etc/ulimit.hack
   Very obsolete file removed March 2007. Doesn't say who the author
@@ -443,7 +444,8 @@ etc/Xkeymap.txt
   No info on author. File removed March 2007. rms: "It says it is
 RLK's way of remapping his keyboard, so it is not constrained. I think
 it was written by RLK. Let's delete it; if we contact RLK again, we
-can put it back."
+can put it back." Actually, RLK == Robert Krawitz has an Emacs
+assignment. So this could be restored if it is still useful.
 
 
 src/m/mips4.h, news-risc.h, pmax.h
