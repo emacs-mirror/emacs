@@ -9403,6 +9403,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		      if (!NILP (map) || !NILP (map2))
 			{
 			  from_string = string;
+			  keybuf[t++] = key;
+			  mock_input = t;
 			  goto replay_sequence;
 			}
 		    }
