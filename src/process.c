@@ -817,7 +817,7 @@ nil, indicating the current buffer's process.  */)
       Lisp_Object symbol;
       /* Assignment to EMACS_INT stops GCC whining about limited range
 	 of data type.  */
-      EMACS_INT pid = p->pid;;
+      EMACS_INT pid = p->pid;
 
       /* No problem storing the pid here, as it is still in Vprocess_alist.  */
       deleted_pid_list = Fcons (make_fixnum_or_float (pid),
@@ -830,7 +830,8 @@ nil, indicating the current buffer's process.  */)
       if (CONSP (p->status))
 	symbol = XCAR (p->status);
       if (EQ (symbol, Qsignal) || EQ (symbol, Qexit))
-	Fdelete (make_fixnum_or_float (pid), deleted_pid_list);
+	deleted_pid_list
+	  = Fdelete (make_fixnum_or_float (pid), deleted_pid_list);
       else
 #endif
 	{
@@ -1818,7 +1819,8 @@ create_process (process, new_argv, current_dir)
      char **new_argv;
      Lisp_Object current_dir;
 {
-  int pid, inchannel, outchannel;
+  int inchannel, outchannel;
+  pid_t pid;
   int sv[2];
 #ifdef POSIX_SIGNALS
   sigset_t procmask;
@@ -6495,16 +6497,17 @@ sigchld_handler (signo)
 #define WUNTRACED 0
 #endif /* no WUNTRACED */
       /* Keep trying to get a status until we get a definitive result.  */
-      while (1) {
-        errno = 0;
-        pid = wait3 (&w, WNOHANG | WUNTRACED, 0);
-	if (! (pid < 0 && errno == EINTR))
-          break;
-        /* avoid a busyloop: wait3 is a system call, so we do not want
-           to prevent the kernel from actually sending SIGCHLD to emacs
-           by asking for it all the time */
-        sleep (1);
-      }
+      while (1)
+	{
+	  errno = 0;
+	  pid = wait3 (&w, WNOHANG | WUNTRACED, 0);
+	  if (! (pid < 0 && errno == EINTR))
+	    break;
+	  /* Avoid a busyloop: wait3 is a system call, so we do not want
+	     to prevent the kernel from actually sending SIGCHLD to emacs
+	     by asking for it all the time.  */
+	  sleep (1);
+	}
 
       if (pid <= 0)
 	{
