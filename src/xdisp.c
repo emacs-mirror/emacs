@@ -14898,7 +14898,7 @@ try_window_id (w)
     sync_frame_with_window_matrix_rows (w);
 
   /* Adjust buffer positions in reused rows.  */
-  if (delta)
+  if (delta || delta_bytes)
     increment_matrix_positions (current_matrix,
 				first_unchanged_at_end_vpos + dvpos,
 				bottom_vpos, delta, delta_bytes);
