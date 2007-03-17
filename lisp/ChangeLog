@@ -3,6 +3,11 @@
 	* eshell/esh-mode.el (eshell-handle-ansi-color): New function.
 	Add new option for eshell-output-filter-functions.
 
+2007-03-12  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-set-font-lock-defaults): Handle narrow
+	table columns correctly.
+
 2007-03-12  Glenn Morris  <rgm@gnu.org>
 
 	* calc/calc-forms.el (math-std-daylight-savings): Switch to new
