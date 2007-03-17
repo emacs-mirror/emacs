@@ -812,7 +812,7 @@ The Calendar and the Diary
 * Diary::               Displaying events from your diary.
 * Appointments::	Reminders when it's time to do something.
 * Importing Diary::     Converting diary events to/from other formats.
-* Daylight Saving::    How to specify when daylight savings time is active.
+* Daylight Saving::    How to specify when daylight saving time is active.
 * Time Intervals::      Keeping track of time intervals.
 * Advanced Calendar/Diary Usage:: Advanced Calendar/Diary customization.
 
