@@ -1,3 +1,13 @@
+2007-03-12  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (sigchld_handler): Change type of pid to pid_t.
+	Scan deleted_pid_list explicitly to avoid using Fmember which don't
+	know about mark bits and make_fixnum_or_float which may malloc.
+	Reported by Andreas Schwab.
+
+	* keyboard.c (read_key_sequence): Store original event into keybuf
+	when replaying sequence with local keymap(s) from string.
+
 2007-03-11  Sam Steingold  <sds@gnu.org>
 
 	* process.c (sigchld_handler): Sleep before wait3 to avoid a busyloop.
