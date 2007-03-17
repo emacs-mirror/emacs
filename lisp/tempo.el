@@ -266,6 +266,8 @@ The elements in ELEMENTS can be of several types:
    that you often should place this item after the text you want on
    the line.
  - `r>': Like `r', but it also indents the region.
+ - (r> PROMPT <NAME> <NOINSERT>): Like (r ...), but is also indents
+   the region.
  - `n>': Inserts a newline and indents line.
  - `o': Like `%' but leaves the point before the newline.
  - nil: It is ignored.
@@ -352,6 +354,13 @@ possible."
 					 (goto-char tempo-region-stop)
 				       (tempo-insert-prompt-compat
 					(cdr element))))
+        ((and (consp element)
+              (eq (car element) 'r>)) (if on-region
+                                          (progn
+                                            (goto-char tempo-region-stop)
+                                            (indent-region (mark) (point) nil))
+                                        (tempo-insert-prompt-compat
+                                         (cdr element))))
 	((and (consp element)
 	      (eq (car element) 's)) (tempo-insert-named (car (cdr element))))
 	((and (consp element)
