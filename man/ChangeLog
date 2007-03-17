@@ -1,3 +1,9 @@
+2007-03-11  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* gnus.texi (Mail and Post): Update documentation for gnus-user-agent.
+	The variable now uses a list of symbols instead of just a symbol.
+	Reported by Christoph Conrad <christoph.conrad@gmx.de>.
+
 2007-03-06  Romain Francoise  <romain@orebokech.com>
 
 	* faq.texi (New in Emacs 22): Don't say "now" too much.  Add MH-E to
