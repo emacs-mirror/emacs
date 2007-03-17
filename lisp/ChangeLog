@@ -3,6 +3,11 @@
 	* eshell/esh-mode.el (eshell-handle-ansi-color): New function.
 	Add new option for eshell-output-filter-functions.
 
+2007-03-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* comint.el (comint-arguments): Mark backslash-escaped chars.
+	(comint-delim-arg): Don't treat them as delimiters.
+
 2007-03-12  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-init-completion-maps): Remap delete-backward-char.
