@@ -42,18 +42,18 @@
 	* startup.el (command-line-1): Make insertion of
 	initial-scratch-message not depend on scratch being selected.
 
-2007-03-11  Juri Linkov <juri@jurta.org>
+2007-03-11  Juri Linkov  <juri@jurta.org>
 
 	* replace.el (match): Use yellow background on light-bg terminals.
 
 2007-03-11  Richard Stallman  <rms@gnu.org>
 
-	* emacs-lisp/bytecomp.el (byte-compile-warning-prefix): 
+	* emacs-lisp/bytecomp.el (byte-compile-warning-prefix):
 	Correctly compute line number.
 	
 2007-03-11  Guanpeng Xu  <herberteuler@hotmail.com>
 
-	* type-break.el (type-break-get-previous-count): 
+	* type-break.el (type-break-get-previous-count):
 	Repeat previous change here.
 
 2007-03-11  Dan Nicolaescu  <dann@ics.uci.edu>
