@@ -56,8 +56,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 ** Fix up copyright confusions.
   See end of admin/notes/copyright.
 
-** md5i@cs.cmu.edu, Feb 20: move-end-of-line in comint buffers
-
 ** flyspell and check-comments
 
 ** handa@m17n.org, Mar 7: Display bug [Re: My Emacs unicode 2 crash again ...]
