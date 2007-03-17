@@ -1995,13 +1995,13 @@ With a prefix argument, any user input hides the splash screen."
     (with-no-warnings
      (setq menubar-bindings-done t))
 
-    ;; If *scratch* is selected and it is empty, insert an
-    ;; initial message saying not to create a file there.
-    (when (and initial-scratch-message
-	       (equal (buffer-name) "*scratch*")
-	       (= 0 (buffer-size)))
-      (insert initial-scratch-message)
-      (set-buffer-modified-p nil))
+    ;; If *scratch* exists and is empty, insert initial-scratch-message.
+    (and initial-scratch-message
+         (get-buffer "*scratch*")
+         (with-current-buffer "*scratch*"
+           (when (zerop (buffer-size))
+             (insert initial-scratch-message)
+             (set-buffer-modified-p nil))))
 
     ;; If user typed input during all that work,
     ;; abort the startup screen.  Otherwise, display it now.
