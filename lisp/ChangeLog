@@ -1,3 +1,7 @@
+2007-03-17  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* net/tls.el (tls-program): Doc fix.
+
 2007-03-17  Denis Bueno  <dbueno@gmail.com> (tiny change)
 	
 	* autorevert.el (auto-revert-tail-handler): Call
