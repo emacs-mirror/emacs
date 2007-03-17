@@ -3,6 +3,17 @@
 	* eshell/esh-mode.el (eshell-handle-ansi-color): New function.
 	Add new option for eshell-output-filter-functions.
 
+2007-03-12  Glenn Morris  <rgm@gnu.org>
+
+	* calc/calc-forms.el (math-std-daylight-savings): Switch to new
+	North American rule.
+
+	* woman.el (woman-change-fonts): Tweak previous change by using
+	woman-request-regexp rather than "^\\.".
+
+	* startup.el (command-line-1): Make insertion of
+	initial-scratch-message not depend on scratch being selected.
+
 2007-03-11  Juri Linkov <juri@jurta.org>
 
 	* replace.el (match): Use yellow background on light-bg terminals.
