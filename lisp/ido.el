@@ -1575,6 +1575,7 @@ With ARG, turn ido speed-up on if arg is positive, off otherwise."
     (define-key map [(meta down)] 'ido-next-work-directory)
     (define-key map [backspace] 'ido-delete-backward-updir)
     (define-key map "\d"        'ido-delete-backward-updir)
+    (define-key map [remap delete-backward-char] 'ido-delete-backward-updir) ; BS
     (define-key map [remap backward-kill-word] 'ido-delete-backward-word-updir)  ; M-DEL
 
     (define-key map [(control backspace)] 'ido-up-directory)
