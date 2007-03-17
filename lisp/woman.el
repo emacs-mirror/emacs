@@ -3327,7 +3327,7 @@ If optional arg CONCAT is non-nil then join arguments."
           ;; otherwise match woman-request-regexp. The "\\&" which is
           ;; inserted to prevent this is removed by woman2-process-escapes.
           (and fescape
-               (looking-at "^\\.")
+               (looking-at woman-request-regexp)
                (insert "\\&"))
 	  (woman-set-face previous-pos (point) current-font)
 	  (if beg
