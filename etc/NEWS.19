@@ -4557,7 +4557,7 @@ C-c C-d is now another way to send an end-of-file to the subshell.
 ** Changes to calendar/diary.
 
 Time zone data is now determined automatically, including the
-start/stop days and times of daylight savings time.  The code now
+start/stop days and times of daylight saving time.  The code now
 works correctly almost anywhere in the world.
 
 The format of the holiday specifications has changed and IS NO LONGER
