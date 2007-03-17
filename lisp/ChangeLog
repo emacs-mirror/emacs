@@ -3,6 +3,11 @@
 	* eshell/esh-mode.el (eshell-handle-ansi-color): New function.
 	Add new option for eshell-output-filter-functions.
 
+2007-03-12  Lawrence Mitchell  <wence@gmx.li>  (tiny change)
+
+	* tempo.el (tempo-insert): Deal with 'r> if it appears
+	specified with a prompt argument.
+
 2007-03-12  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-set-font-lock-defaults): Handle narrow
