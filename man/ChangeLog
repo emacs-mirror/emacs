@@ -1,3 +1,9 @@
+2007-03-12  Glenn Morris  <rgm@gnu.org>
+
+	* calc.texi (Time Zones): Switch to new North America DST rule.
+
+	* calendar.texi (Daylight Saving): Rename node from "Daylight Savings".
+
 2007-03-11  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
 
 	* gnus.texi (Mail and Post): Update documentation for gnus-user-agent.
