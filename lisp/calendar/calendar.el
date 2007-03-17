@@ -57,7 +57,7 @@
 ;;       appt.el                       Appointment notification
 ;;       cal-china.el                  Chinese calendar
 ;;       cal-coptic.el                 Coptic/Ethiopic calendars
-;;       cal-dst.el                    Daylight savings time rules
+;;       cal-dst.el                    Daylight saving time rules
 ;;       cal-hebrew.el                 Hebrew calendar
 ;;       cal-islam.el                  Islamic calendar
 ;;       cal-bahai.el                  Baha'i calendar
@@ -1160,7 +1160,7 @@ See the documentation for `calendar-holidays' for details."
       (funcall
        'holiday-sexp
         calendar-daylight-savings-starts
-        '(format "Daylight Savings Time Begins %s"
+        '(format "Daylight Saving Time Begins %s"
                   (if (fboundp 'atan)
                       (solar-time-string
                        (/ calendar-daylight-savings-starts-time (float 60))
@@ -1169,7 +1169,7 @@ See the documentation for `calendar-holidays' for details."
     (funcall
      'holiday-sexp
      calendar-daylight-savings-ends
-     '(format "Daylight Savings Time Ends %s"
+     '(format "Daylight Saving Time Ends %s"
               (if (fboundp 'atan)
                   (solar-time-string
                    (/ calendar-daylight-savings-ends-time (float 60))
