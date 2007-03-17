@@ -6486,7 +6486,7 @@ sigchld_handler (signo)
 
   while (1)
     {
-      register EMACS_INT pid;
+      pid_t pid;
       WAITTYPE w;
       Lisp_Object tail;
 
@@ -6530,11 +6530,15 @@ sigchld_handler (signo)
       /* Find the process that signaled us, and record its status.  */
 
       /* The process can have been deleted by Fdelete_process.  */
-      tail = Fmember (make_fixnum_or_float (pid), deleted_pid_list);
-      if (!NILP (tail))
+      for (tail = deleted_pid_list; GC_CONSP (tail); tail = XCDR (tail))
 	{
-	  Fsetcar (tail, Qnil);
-	  goto sigchld_end_of_loop;
+	  Lisp_Object xpid = XCAR (tail);
+	  if ((GC_INTEGERP (xpid) && pid == (pid_t) XINT (xpid))
+	      || (GC_FLOATP (xpid) && pid == (pid_t) XFLOAT_DATA (xpid)))
+	    {
+	      XSETCAR (tail, Qnil);
+	      goto sigchld_end_of_loop;
+	    }
 	}
 
       /* Otherwise, if it is asynchronous, it is in Vprocess_alist.  */
