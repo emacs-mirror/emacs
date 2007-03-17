@@ -300,10 +300,10 @@ entries will be displayed.  If the value 2 is used, then both the current
 day's and the next day's entries will be displayed.
 
 The value can also be a vector such as [0 2 2 2 2 4 1]; this value
-says to display no diary entries on Sunday, the display the entries
-for the current date and the day after on Monday through Thursday,
-display Friday through Monday's entries on Friday, and display only
-Saturday's entries on Saturday.
+says to display no diary entries on Sunday, the entries for
+the current date and the day after on Monday through Thursday,
+Friday through Monday's entries on Friday, and only Saturday's
+entries on Saturday.
 
 This variable does not affect the diary display with the `d' command
 from the calendar; in that case, the prefix argument controls the
