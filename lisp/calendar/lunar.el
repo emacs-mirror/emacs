@@ -377,7 +377,7 @@ use when highlighting the day in the calendar."
   "Astronomical (Julian) day number of first new moon on or after astronomical
 \(Julian) day number d.  The fractional part is the time of day.
 
-The date and time are local time, including any daylight savings rules,
+The date and time are local time, including any daylight saving rules,
 as governed by the values of calendar-daylight-savings-starts,
 calendar-daylight-savings-starts-time, calendar-daylight-savings-ends,
 calendar-daylight-savings-ends-time, calendar-daylight-time-offset, and
