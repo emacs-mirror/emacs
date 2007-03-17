@@ -1,3 +1,11 @@
+2007-03-12  Andreas Schwab  <schwab@suse.de>
+
+	* lisp.h: Declare check_obarray.
+
+	* process.c (Fdelete_process): Properly handle deletion of first
+	element of deleted_pid_list.
+	(create_process): Declare pid as pid_t.
+
 2007-03-12  Kim F. Storm  <storm@cua.dk>
 
 	* process.c (sigchld_handler): Change type of pid to pid_t.
