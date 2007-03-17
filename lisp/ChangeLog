@@ -2,10 +2,10 @@
 
 	* net/tls.el (tls-program): Doc fix.
 
-2007-03-17  Denis Bueno  <dbueno@gmail.com> (tiny change)
-	
-	* autorevert.el (auto-revert-tail-handler): Call
-	after-revert-hook.
+2007-03-17  Denis Bueno  <dbueno@gmail.com>  (tiny change)
+
+	* autorevert.el (auto-revert-tail-handler):
+	Call after-revert-hook.
 
 2007-03-17  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -33,8 +33,8 @@
 
 2007-03-12  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el (org-set-font-lock-defaults): Handle narrow
-	table columns correctly.
+	* textmodes/org.el (org-set-font-lock-defaults):
+	Handle narrow table columns correctly.
 
 2007-03-12  Mark A. Hershberger  <mah@everybody.org>
 
@@ -64,7 +64,7 @@
 
 	* emacs-lisp/bytecomp.el (byte-compile-warning-prefix):
 	Correctly compute line number.
-	
+
 2007-03-11  Guanpeng Xu  <herberteuler@hotmail.com>
 
 	* type-break.el (type-break-get-previous-count):
@@ -72,13 +72,12 @@
 
 2007-03-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* progmodes/grep.el (grep-find-ignored-directories): Add .git and
-	.bzr to list.
+	* progmodes/grep.el (grep-find-ignored-directories):
+	Add .git and .bzr to list.
 
 2007-03-11  Andreas Schwab  <schwab@suse.de>
 
-	* diff-mode.el (diff-apply-hunk): Use proper format string for
-	error.
+	* diff-mode.el (diff-apply-hunk): Use proper format string for error.
 
 2007-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
