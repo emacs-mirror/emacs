@@ -3,6 +3,10 @@
 	* eshell/esh-mode.el (eshell-handle-ansi-color): New function.
 	Add new option for eshell-output-filter-functions.
 
+2007-03-12  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-init-completion-maps): Remap delete-backward-char.
+
 2007-03-12  Lawrence Mitchell  <wence@gmx.li>  (tiny change)
 
 	* tempo.el (tempo-insert): Deal with 'r> if it appears
