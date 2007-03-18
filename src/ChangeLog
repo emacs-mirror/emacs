@@ -3,6 +3,15 @@
 	* buffer.c (syms_of_buffer) <buffer-display-table>: Doc fix.
 	Reported by Nikolaj Schumacher <n_schumacher@web.de>.
 
+2007-03-17  Richard Stallman  <rms@gnu.org>
+
+	* dired.c (file_name_completion): Gcpro NAME.
+
+2007-03-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (try_window_id): Increment matrix positions if the
+	buffer's byte count has increased, but not the character count.
+
 2007-03-12  Andreas Schwab  <schwab@suse.de>
 
 	* lisp.h: Declare check_obarray.
