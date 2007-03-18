@@ -1,3 +1,15 @@
+2007-03-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (note_mouse_movement): Don't return immediately for
+	LeaveNotify case.
+
+	* macmenu.c (popup_activated_flag): New variable.
+	(x_activate_menubar, mac_menu_show): Set it during menu tracking.
+	(popup_activated): New function.
+
+	* xdisp.c (redisplay_internal, note_mouse_highlight): Check
+	popup_activated for MAC_OS.
+
 2007-03-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* buffer.c (syms_of_buffer) <buffer-display-table>: Doc fix.
