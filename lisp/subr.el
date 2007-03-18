@@ -99,12 +99,20 @@ change the list."
 	      (list 'setq listname (list 'cdr listname)))))
 
 (defmacro when (cond &rest body)
-  "If COND yields non-nil, do BODY, else return nil."
+  "If COND yields non-nil, do BODY, else return nil.
+When COND yields non-nil, eval BODY forms sequentially and return
+value of last one, or nil if there are none.
+
+\(fn COND BODY ...)"
   (declare (indent 1) (debug t))
   (list 'if cond (cons 'progn body)))
 
 (defmacro unless (cond &rest body)
-  "If COND yields nil, do BODY, else return nil."
+  "If COND yields nil, do BODY, else return nil.
+When COND yields nil, eval BODY forms sequentially and return
+value of last one, or nil if there are none.
+
+\(fn COND BODY ...)"
   (declare (indent 1) (debug t))
   (cons 'if (cons cond (cons nil body))))
 
