@@ -1,3 +1,7 @@
+2007-03-18  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (when, unless): Doc fix.
+
 2007-03-17  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* net/tls.el (tls-program): Doc fix.
