@@ -259,6 +259,9 @@ static int menu_items_n_panes;
 /* Current depth within submenus.  */
 static int menu_items_submenu_depth;
 
+/* Nonzero means a menu is currently active.  */
+static int popup_activated_flag;
+
 /* This is set nonzero after the user activates the menu bar, and set
    to zero again after the menu bars are redisplayed by prepare_menu_bar.
    While it is nonzero, all calls to set_frame_menubar go deep.
@@ -1141,7 +1144,9 @@ x_activate_menubar (f)
   set_frame_menubar (f, 0, 1);
   BLOCK_INPUT;
 
+  popup_activated_flag = 1;
   menu_choice = MenuSelect (saved_menu_event_location);
+  popup_activated_flag = 0;
   menu_id = HiWord (menu_choice);
   menu_item = LoWord (menu_choice);
 
@@ -2237,7 +2242,9 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
   install_menu_quit_handler (MAC_MENU_POPUP_SUB, menu);
 
   /* Display the menu.  */
+  popup_activated_flag = 1;
   menu_item_choice = PopUpMenuSelect (menu, pos.v, pos.h, 0);
+  popup_activated_flag = 0;
 
   /* Get the refcon to find the correct item */
   if (menu_item_choice)
@@ -3217,6 +3224,14 @@ dispose_menus (kind, id)
 }
 
 #endif /* HAVE_MENUS */
+
+/* Detect if a menu is currently active.  */
+
+int
+popup_activated ()
+{
+  return popup_activated_flag;
+}
 
 /* The following is used by delayed window autoselection.  */
 
