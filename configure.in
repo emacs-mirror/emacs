@@ -2123,7 +2123,7 @@ if test "${HAVE_GTK}" = "yes"; then
   PKG_CHECK_MODULES(XFT, xft >= 0.13.0, , HAVE_XFT=no)
   if test "$HAVE_XFT" != no; then
     OLD_CFLAGS="$CPPFLAGS"
-    OLD_CFLAGS="$CFLAGS"
+    OLD_CPPFLAGS="$CFLAGS"
     OLD_LIBS="$LIBS"
     CPPFLAGS="$CPPFLAGS $XFT_CFLAGS"
     CFLAGS="$CFLAGS $XFT_CFLAGS"
