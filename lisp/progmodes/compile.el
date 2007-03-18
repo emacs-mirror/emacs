@@ -1862,17 +1862,7 @@ Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
           (let* ((name (read-file-name
                         (format "Find this %s in (default %s): "
                                 compilation-error filename)
-                        spec-dir filename t nil
-                        ;; Try to make sure the user can only select
-                        ;; a valid answer.  This predicate may be ignored,
-                        ;; tho, so we still have to double-check afterwards.
-                        ;; TODO: We should probably fix read-file-name so
-                        ;; that it never ignores this predicate, even when
-                        ;; using popup dialog boxes.
-                        (lambda (name)
-                          (if (file-directory-p name)
-                              (setq name (expand-file-name filename name)))
-                          (file-exists-p name))))
+                        spec-dir filename t nil))
                  (origname name))
             (cond
              ((not (file-exists-p name))
