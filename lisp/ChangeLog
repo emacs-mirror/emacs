@@ -17,6 +17,16 @@
 	* autorevert.el (auto-revert-tail-handler):
 	Call after-revert-hook.
 
+2007-03-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (line-move-1): Respect
+	`inhibit-line-move-field-capture' property.
+
+2007-03-16  Mark A. Hershberger  <mah@everybody.org>
+
+	* eshell/esh-mode.el (eshell-handle-ansi-color): New function.
+	Add new option for eshell-output-filter-functions.
+
 2007-03-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* comint.el (comint-arguments): Mark backslash-escaped chars.
