@@ -1,11 +1,7 @@
-2007-03-17  Richard Stallman  <rms@gnu.org>
+2007-03-17  Juanma Barranquero  <lekktu@gmail.com>
 
-	* dired.c (file_name_completion): Gcpro NAME.
-
-2007-03-17  Chong Yidong  <cyd@stupidchicken.com>
-
-	* xdisp.c (try_window_id): Increment matrix positions if the
-	buffer's byte count has increased, but not the character count.
+	* buffer.c (syms_of_buffer) <buffer-display-table>: Doc fix.
+	Reported by Nikolaj Schumacher <n_schumacher@web.de>.
 
 2007-03-12  Andreas Schwab  <schwab@suse.de>
 
@@ -35,8 +31,8 @@
 
 2007-03-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* macterm.c [USE_CARBON_EVENTS] (mac_handle_mouse_event): Ignore
-	mouse wheel movement on title bar or tool bar.
+	* macterm.c [USE_CARBON_EVENTS] (mac_handle_mouse_event):
+	Ignore mouse wheel movement on title bar or tool bar.
 
 2007-03-10  Chong Yidong  <cyd@stupidchicken.com>
 
