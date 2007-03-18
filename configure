@@ -23049,6 +23049,16 @@ if test $USE_XASSERTS = yes; then
    echo
 fi
 
+if test "$USE_X_TOOLKIT" = GTK; then
+  case "$canonical" in
+  *cygwin*)
+    echo "There are known problems with Emacs and Gtk+ on cygwin, so you
+  will probably get a crash on startup.  If this happens, please use another
+  toolkit for Emacs.  See etc/PROBLEMS for more information."
+  ;;
+  esac
+fi
+
 
 
 # Remove any trailing slashes in these variables.
