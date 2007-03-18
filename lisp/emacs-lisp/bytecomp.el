@@ -972,10 +972,8 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 	 (pos (if (and byte-compile-current-file
 		       (integerp byte-compile-read-position))
 		  (with-current-buffer byte-compile-current-buffer
-		    (format "%d:%d:" 
-			    (save-excursion
-			      (goto-char byte-compile-last-position)
-			      (1+ (count-lines (point-min) (point-at-bol))))
+		    (format "%d:%d:" (count-lines (point-min)
+						  byte-compile-last-position)
 			    (save-excursion
 			      (goto-char byte-compile-last-position)
 			      (1+ (current-column)))))
