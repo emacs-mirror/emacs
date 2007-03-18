@@ -40,7 +40,8 @@ Reminders sent out on 2006-06-08.
 and KDE projects, to use the new Emacs icons in etc/images/icons.
 
 * WINDOWS SUPPORT BUGS.
-These don't need to be fixed to start pretest, but we call the
+
+These don't need to be fixed before a release, but we call the
 attention of Windows users to fixing them.
 
 ** Drew Adams 12 Aug bug rpt: overlay  display artifact: trace left behind
@@ -50,9 +51,7 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 ** henman@it.to-be.co.jp 09 Aug 2006: ispell.el problem on Cygwin.
   (Did we decide that is unreproducible?)
 
-** make-network-process :nowait t doesn't work for non-local targets
-   on Windows.  This has been "fixed" for Emacs 22 by defining
-   BROKEN_NON_BLOCKING_CONNECT in ms-w32.h.
+** lennart.borgman@gmail.com, Feb 22: C-h k does not catch text properies keymaps
 
 
 * BUGS
@@ -60,12 +59,7 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 ** Fix up copyright confusions.
   See end of admin/notes/copyright.
 
-** simon.marshall@misys.com, Jan 12:
-  Font-lock decides function call is function declaration in C++
-
-** md5i@cs.cmu.edu, Feb 20: move-end-of-line in comint buffers
-
-** daniel@bigwalter.net, Feb 25: Echoing of keys and process I/O
+** david.hansen@gmx.net, Mar 7: shell.el patch to install
 
 * DOCUMENTATION
 

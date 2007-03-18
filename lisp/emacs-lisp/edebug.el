@@ -2939,6 +2939,7 @@ MSG is printed after `::::} '."
 		      (edebug-overlay-arrow))
 		  (setq buffer-read-only edebug-buffer-read-only)
 		  (use-local-map edebug-outside-map)
+		  (remove-hook 'kill-buffer-hook 'edebug-kill-buffer t)
 		  )
 	      ;; gotta have a buffer to let its buffer local variables be set
 	      (get-buffer-create " bogus edebug buffer"))
@@ -3942,7 +3943,17 @@ edebug-on-signal
 edebug-unwrap-results
 edebug-global-break-condition
 "
+  ;; If the user kills the buffer in which edebug is currently active,
+  ;; exit to top level, because the edebug command loop can't usefully
+  ;; continue running in such a case.
+  (add-hook 'kill-buffer-hook 'edebug-kill-buffer nil t)
   (use-local-map edebug-mode-map))
+
+(defun edebug-kill-buffer ()
+  "Used on `kill-buffer-hook' when Edebug is operating in a buffer of Lisp code."
+  (let (kill-buffer-hook)
+    (kill-buffer (current-buffer)))
+  (top-level))
 
 ;;; edebug eval list mode
 

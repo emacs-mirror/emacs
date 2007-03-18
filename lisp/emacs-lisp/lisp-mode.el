@@ -909,34 +909,47 @@ is the buffer position of the start of the containing expression."
         (cond ((elt state 3)
                ;; Inside a string, don't change indentation.
 	       nil)
-              ((save-excursion
-                 ;; test whether current line begins with a constant
-                 (goto-char indent-point)
-                 (skip-chars-forward " \t")
-                 (looking-at ":"))
-               (let ((desired-indent
-                      (save-excursion
-                        (goto-char (1+ containing-sexp))
-                        (parse-partial-sexp (point) calculate-lisp-indent-last-sexp 0 t)
-                        (point)))
-                     (parse-sexp-ignore-comments t))
-                 ;; Align a constant symbol under the last constant symbol
-                 (goto-char calculate-lisp-indent-last-sexp)
-                 (while (> (point) desired-indent)
-                   (if (looking-at ":")
-                       (setq desired-indent (point))
-                     (backward-sexp 1))))
-                 (current-column))
               ((and (integerp lisp-indent-offset) containing-sexp)
                ;; Indent by constant offset
                (goto-char containing-sexp)
                (+ (current-column) lisp-indent-offset))
+              ;; in this case calculate-lisp-indent-last-sexp is not nil
+              (calculate-lisp-indent-last-sexp
+               (or
+                ;; try to align the parameters of a known function
+                (and lisp-indent-function
+                     (not retry)
+                     (funcall lisp-indent-function indent-point state))
+                ;; If the function has no special alignment
+		;; or it does not apply to this argument,
+		;; try to align a constant-symbol under the last
+                ;; preceding constant symbol, if there is such one of
+                ;; the last 2 preceding symbols, in the previous
+                ;; uncommented line.
+                (and (save-excursion
+                       (goto-char indent-point)
+                       (skip-chars-forward " \t")
+                       (looking-at ":"))
+                     (> calculate-lisp-indent-last-sexp
+                        (save-excursion
+                          (goto-char (1+ containing-sexp))
+                          (parse-partial-sexp (point) calculate-lisp-indent-last-sexp 0 t)
+                          (point)))
+                     (let ((parse-sexp-ignore-comments t)
+                           indent)
+                       (goto-char calculate-lisp-indent-last-sexp)
+                       (or (and (looking-at ":")
+                                (setq indent (current-column)))
+                           (and (< (save-excursion (beginning-of-line) (point))
+                                   (prog2 (backward-sexp) (point)))
+                                (looking-at ":")
+                                (setq indent (current-column))))
+                       indent))
+                ;; another symbols or constants not preceded by a constant
+                ;; as defined above.
+                normal-indent))
+              ;; in this case calculate-lisp-indent-last-sexp is nil
               (desired-indent)
-              ((and (boundp 'lisp-indent-function)
-                    lisp-indent-function
-                    (not retry))
-               (or (funcall lisp-indent-function indent-point state)
-                   normal-indent))
               (t
                normal-indent))))))
 

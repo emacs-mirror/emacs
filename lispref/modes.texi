@@ -256,7 +256,9 @@ Fundamental mode.  Rmail mode is a complicated and specialized mode.
   The code for existing major modes follows various coding conventions,
 including conventions for local keymap and syntax table initialization,
 global names, and hooks.  Please follow these conventions when you
-define a new major mode.
+define a new major mode.  (Fundamental mode is an exception to many
+of these conventions, because its definition is to present the global
+state of Emacs.)
 
   This list of conventions is only partial, because each major mode
 should aim for consistency in general with other Emacs major modes.

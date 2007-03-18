@@ -130,14 +130,13 @@
 
 (defcustom reb-re-syntax 'read
   "*Syntax for the REs in the RE Builder.
-Can either be `read', `string', `sregex' or `lisp-re'."
+Can either be `read', `string', `sregex', `lisp-re', `rx'."
   :group 're-builder
   :type '(choice (const :tag "Read syntax" read)
 		 (const :tag "String syntax" string)
 		 (const :tag "`sregex' syntax" sregex)
 		 (const :tag "`lisp-re' syntax" lisp-re)
-		 (const :tag "`rx' syntax" rx)
-		 (value: string)))
+		 (const :tag "`rx' syntax" rx)))
 
 (defcustom reb-auto-match-limit 200
   "*Positive integer limiting the matches for RE Builder auto updates.

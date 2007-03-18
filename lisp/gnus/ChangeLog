@@ -906,7 +906,7 @@
 	(spam-mark-junk-as-spam-routine): Use it.  Allow to disable
 	assigning the spam-mark to new messages.
 
-2006-03-20  Adam Sj,Ax(Bgren  <asjo@koldfront.dk>  (tiny change)
+2006-03-20  Adam Sj,Ax(Bgren  <asjo@koldfront.dk>
 
 	(spam-ham-copy-or-move-routine): Don't declare `todo' twice.
 
@@ -1590,7 +1590,7 @@
 	* nnmail.el (nnmail-fancy-expiry-target): Protect against invalid
 	date header.
 
-2005-11-16  Boris Samorodov  <bsam@ipt.ru>  (tiny patch)
+2005-11-16  Boris Samorodov  <bsam@ipt.ru>  (tiny change)
 
 	* imap.el (imap-kerberos4-open): Ignore SSL stuff.
 
@@ -2192,7 +2192,7 @@
 	(gnus-decode-header-function, gnus-newsgroup-name):
 	* spam-stat.el (gnus-original-article-buffer): Add defvars.
 
-2005-08-22  Karl Chen  <quarl@cs.berkeley.edu>  (tiny change)
+2005-08-22  Karl Chen  <quarl@cs.berkeley.edu>
 
 	* gnus-art.el (gnus-treatment-function-alist): Move date-lapsed to
 	the end of the date treatments.

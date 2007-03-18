@@ -139,7 +139,9 @@ usually do not have translators to read other languages for them.\n\n")
     (insert "\n\nIn " (emacs-version) "\n")
     (if (fboundp 'x-server-vendor)
 	(condition-case nil
-	    (insert "X server distributor `" (x-server-vendor) "', version "
+            ;; This is used not only for X11 but also W32 and others.
+	    (insert "Windowing system distributor `" (x-server-vendor)
+                    "', version "
 		    (mapconcat 'number-to-string (x-server-version) ".") "\n")
 	  (error t)))
     (if (and system-configuration-options
@@ -281,5 +283,5 @@ and send the mail again using \\[mail-send-and-exit].")))
 
 (provide 'emacsbug)
 
-;;; arch-tag: 248b6523-c3b5-4fec-9a3f-0411fafa7d49
+;; arch-tag: 248b6523-c3b5-4fec-9a3f-0411fafa7d49
 ;;; emacsbug.el ends here

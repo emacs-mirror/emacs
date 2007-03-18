@@ -410,10 +410,10 @@ values of point and the mark as arguments to the command in an
 interactive call, but permits other Lisp programs to specify arguments
 explicitly.  @xref{Interactive Codes}.
 
-  Each buffer has its own value of the mark that is independent of the
-value of the mark in other buffers.  When a buffer is created, the mark
-exists but does not point anywhere.  We consider this state as ``the
-absence of a mark in that buffer.''
+  Each buffer has a marker which represents the value of the mark in
+that buffer, independent of any other buffer.  When a buffer is newly
+created, this marker exists but does not point anywhere.  That means
+the mark ``doesn't exist'' in that buffer as yet.
 
   Once the mark ``exists'' in a buffer, it normally never ceases to
 exist.  However, it may become @dfn{inactive}, if Transient Mark mode is
@@ -452,10 +452,10 @@ inactivity of the mark, and returns the mark position anyway (or
 @end defun
 
 @defun mark-marker
-This function returns the current buffer's mark.  This is the very marker
-that records the mark location inside Emacs, not a copy.  Therefore,
-changing this marker's position will directly affect the position of the mark.
-Don't do it unless that is the effect you want.
+This function returns the marker that represents the current buffer's
+mark.  It is not a copy, it is the marker used internally.  Therefore,
+changing this marker's position will directly affect the buffer's
+mark.  Don't do that unless that is the effect you want.
 
 @example
 @group
@@ -472,10 +472,10 @@ Don't do it unless that is the effect you want.
 @end group
 @end example
 
-Like any marker, this marker can be set to point at any buffer you like.
-We don't recommend that you make it point at any buffer other than the
-one of which it is the mark.  If you do, it will yield perfectly
-consistent, but rather odd, results.
+Like any marker, this marker can be set to point at any buffer you
+like.  If you make it point at any buffer other than the one of which
+it is the mark, it will yield perfectly consistent, but rather odd,
+results.  We recommend that you not do it!
 @end defun
 
 @ignore

@@ -5525,7 +5525,7 @@ x_scroll_bar_expose (bar, event)
 
   x_scroll_bar_set_handle (bar, XINT (bar->start), XINT (bar->end), 1);
 
-   /* Switch to scroll bar foreground color. */
+  /* Switch to scroll bar foreground color.  */
   if (f->output_data.x->scroll_bar_foreground_pixel != -1)
     XSetForeground (FRAME_X_DISPLAY (f), gc,
  		    f->output_data.x->scroll_bar_foreground_pixel);
@@ -6979,15 +6979,16 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
                 int y = event.xbutton.y;
 
                 window = window_from_coordinates (f, x, y, 0, 0, 0, 1);
-                if (EQ (window, f->tool_bar_window))
+                tool_bar_p = EQ (window, f->tool_bar_window);
+
+                if (tool_bar_p && event.xbutton.button < 4)
                   {
-		    if (event.xbutton.type == ButtonPress)
-		      handle_tool_bar_click (f, x, y, 1, 0);
-		    else
-		      handle_tool_bar_click (f, x, y, 0,
-					     x_x_to_emacs_modifiers (dpyinfo,
+                    if (event.xbutton.type == ButtonPress)
+                      handle_tool_bar_click (f, x, y, 1, 0);
+                    else
+                      handle_tool_bar_click (f, x, y, 0,
+                                             x_x_to_emacs_modifiers (dpyinfo,
 								     event.xbutton.state));
-		    tool_bar_p = 1;
                   }
               }
 

@@ -6401,12 +6401,16 @@ sigchld_handler (signo)
 #define WUNTRACED 0
 #endif /* no WUNTRACED */
       /* Keep trying to get a status until we get a definitive result.  */
-      do
-	{
-	  errno = 0;
-	  pid = wait3 (&w, WNOHANG | WUNTRACED, 0);
-	}
-      while (pid < 0 && errno == EINTR);
+      while (1) {
+        errno = 0;
+        pid = wait3 (&w, WNOHANG | WUNTRACED, 0);
+	if (! (pid < 0 && errno == EINTR))
+          break;
+        /* avoid a busyloop: wait3 is a system call, so we do not want
+           to prevent the kernel from actually sending SIGCHLD to emacs
+           by asking for it all the time */
+        sleep (1);
+      }
 
       if (pid <= 0)
 	{

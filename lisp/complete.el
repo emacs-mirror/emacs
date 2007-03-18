@@ -147,6 +147,8 @@ If nil, means use the colon-separated path in the variable $INCPATH instead."
     (cond ((not bind)
 	   ;; These bindings are the default bindings.  It would be better to
 	   ;; restore the previous bindings.
+	   (define-key read-expression-map "\e\t" 'lisp-complete-symbol)
+
 	   (define-key completion-map "\t"	'minibuffer-complete)
 	   (define-key completion-map " "	'minibuffer-complete-word)
 	   (define-key completion-map "?"	'minibuffer-completion-help)
@@ -157,8 +159,10 @@ If nil, means use the colon-separated path in the variable $INCPATH instead."
 	   (define-key must-match-map "\n"	'minibuffer-complete-and-exit)
 	   (define-key must-match-map "?"	'minibuffer-completion-help)
 
-	   (define-key global-map "\e\t"	'complete-symbol))
+	   (define-key global-map [remap lisp-complete-symbol]	nil))
 	  (PC-default-bindings
+	   (define-key read-expression-map "\e\t" 'PC-lisp-complete-symbol)
+
 	   (define-key completion-map "\t"	'PC-complete)
 	   (define-key completion-map " "	'PC-complete-word)
 	   (define-key completion-map "?"	'PC-completion-help)
@@ -181,7 +185,7 @@ If nil, means use the colon-separated path in the variable $INCPATH instead."
 	   (define-key must-match-map "\e\n"	'PC-complete-and-exit)
 	   (define-key must-match-map "\e?"	'PC-completion-help)
 
-	   (define-key global-map "\e\t"	'PC-lisp-complete-symbol)))))
+	   (define-key global-map [remap lisp-complete-symbol]	'PC-lisp-complete-symbol)))))
 
 ;;;###autoload
 (define-minor-mode partial-completion-mode
@@ -383,6 +387,29 @@ of `minibuffer-completion-table' and the minibuffer contents.")
     (let ((completion-ignore-case nil))
       (test-completion str table pred))))
 
+;; The following function is an attempt to work around two problems:
+
+;; (1) When complete.el was written, (try-completion "" '(("") (""))) used to
+;; return the value "".  With a change from 2002-07-07 it returns t which caused
+;; `PC-lisp-complete-symbol' to fail with a "Wrong type argument: sequencep, t"
+;; error.  `PC-try-completion' returns STRING in this case.
+
+;; (2) (try-completion "" '((""))) returned t before the above-mentioned change.
+;; Since `PC-chop-word' operates on the return value of `try-completion' this
+;; case might have provoked a similar error as in (1).  `PC-try-completion'
+;; returns "" instead.  I don't know whether this is a real problem though.
+
+;; Since `PC-try-completion' is not a guaranteed to fix these bugs reliably, you
+;; should try to look at the following discussions when you encounter problems:
+;; - emacs-pretest-bug ("Partial Completion" starting 2007-02-23),
+;; - emacs-devel ("[address-of-OP: Partial completion]" starting 2007-02-24),
+;; - emacs-devel ("[address-of-OP: EVAL and mouse selection in *Completions*]"
+;;   starting 2007-03-05).
+(defun PC-try-completion (string alist &optional predicate)
+  "Like `try-completion' but return STRING instead of t."
+  (let ((result (try-completion string alist predicate)))
+    (if (eq result t) string result)))
+
 (defun PC-do-completion (&optional mode beg end)
   (or beg (setq beg (minibuffer-prompt-end)))
   (or end (setq end (point-max)))
@@ -390,7 +417,10 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 	 (pred minibuffer-completion-predicate)
 	 (filename (funcall PC-completion-as-file-name-predicate))
 	 (dirname nil)		; non-nil only if a filename is being completed
-	 (dirlength 0)
+	 ;; The following used to be "(dirlength 0)" which caused the erasure of
+	 ;; the entire buffer text before `point' when inserting a completion
+	 ;; into a buffer.
+	 dirlength
 	 (str (buffer-substring beg end))
 	 (incname (and filename (string-match "<\\([^\"<>]*\\)>?$" str)))
 	 (ambig nil)
@@ -404,8 +434,15 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 
     ;; Check if buffer contents can already be considered complete
     (if (and (eq mode 'exit)
-	     (test-completion-ignore-case str table pred))
-	'complete
+	     (test-completion str table pred))
+	(progn
+	  ;; If completion-ignore-case is non-nil, insert the
+	  ;; completion string since that may have a different case.
+	  (when completion-ignore-case
+	    (setq str (PC-try-completion str table pred))
+	    (delete-region beg end)
+	    (insert str))
+	  'complete)
 
       ;; Do substitutions in directory names
       (and filename
@@ -553,6 +590,9 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 		   (setq poss (cons (car p) poss))))
 	    (setq p (cdr p)))))
 
+      ;; If table had duplicates, they can be here.
+      (delete-dups poss)
+
       ;; Handle completion-ignored-extensions
       (and filename
            (not (eq mode 'help))
@@ -623,8 +663,8 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 
 	    ;; Check if next few letters are the same in all cases
 	    (if (and (not (eq mode 'help))
-		     (setq prefix (try-completion (PC-chunk-after basestr skip)
-                                                  poss)))
+		     (setq prefix (PC-try-completion
+				   (PC-chunk-after basestr skip) poss)))
 		(let ((first t) i)
 		  ;; Retain capitalization of user input even if
 		  ;; completion-ignore-case is set.
@@ -662,7 +702,7 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 			      (setq skip (concat skip
 						 (regexp-quote prefix)
 						 PC-ndelims-regex)
-				    prefix (try-completion
+				    prefix (PC-try-completion
 					    (PC-chunk-after
 					     ;; not basestr, because that does
 					     ;; not reflect insertions
@@ -996,7 +1036,7 @@ absolute rather than relative to some directory on the SEARCH-PATH."
               (cond
                ((not completion-table) nil)
                ((eq action 'lambda) (test-completion str2 completion-table nil))
-               ((eq action nil) (try-completion str2 completion-table nil))
+               ((eq action nil) (PC-try-completion str2 completion-table nil))
                ((eq action t) (all-completions str2 completion-table nil)))))
     ad-do-it))
 

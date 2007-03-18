@@ -690,7 +690,10 @@ session."
 	   (buffer-name gud-comint-buffer)
 	   (get-buffer-process gud-comint-buffer)
 	   (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba)))
-      (error "Multiple debugging requires restarting in text command mode"))
+      (let ((same-window-regexps))
+	(display-buffer gud-comint-buffer)
+	(error
+	 "Multiple debugging requires restarting in text command mode")))
 
   (gud-common-init command-line nil 'gud-gdb-marker-filter)
   (set (make-local-variable 'gud-minor-mode) 'gdb)

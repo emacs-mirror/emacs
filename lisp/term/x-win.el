@@ -2199,11 +2199,12 @@ order until succeed.")
 ;;   (1) If their lengthes are different, select the longer one.  This
 ;;   is because an X client may just cut off unsupported characters.
 ;;
-;;   (2) Otherwise, if the Nth character of CTEXT is an ASCII
-;;   character that is different from the Nth character of UTF8,
-;;   select UTF8.  This is because an X client may replace unsupported
-;;   characters with some ASCII character (typically ` ' or `?') in
-;;   CTEXT.
+;;   (2) Otherwise, if they are different at Nth character, and that
+;;   of UTF8 is a Latin character and that of CTEXT belongs to a CJK
+;;   character set, select UTF8.  Also select UTF8 if the Nth
+;;   character of UTF8 is non-ASCII where as that of CTEXT is ASCII.
+;;   This is because an X client may replace unsupported characters
+;;   with some ASCII character (typically ` ' or `?') in CTEXT.
 ;;
 ;;   (3) Otherwise, select CTEXT.  This is because legacy charsets are
 ;;   better for the current Emacs, especially when the selection owner
@@ -2218,10 +2219,16 @@ order until succeed.")
     (if (/= len-utf8 len-ctext)
 	(if (> len-utf8 len-ctext) utf8 ctext)
       (let ((result (compare-strings utf8 0 len-utf8 ctext 0 len-ctext)))
-	(if (or (eq result t)
-		(>= (aref ctext (1- (abs result))) 128))
+	(if (eq result t)
 	    ctext
-	  utf8)))))
+	  (let ((utf8-char (aref utf8 (1- (abs result))))
+		(ctext-char (aref ctext (1- (abs result)))))
+	    (if (or (and (aref (char-category-set utf8-char) ?l)
+			 (aref (char-category-set ctext-char) ?C))
+		    (and (>= utf8-char 128)
+			 (< ctext-char  128)))
+		utf8
+	      ctext)))))))
 
 ;; Get a selection value of type TYPE by calling x-get-selection with
 ;; an appropiate DATA-TYPE argument decidd by `x-select-request-type'.

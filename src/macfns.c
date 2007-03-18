@@ -1909,24 +1909,6 @@ x_set_scroll_bar_default_width (f)
 #endif /* not MAC_OSX */
 }
 
-void
-mac_set_scroll_bar_width (f, arg, oldval)
-     struct frame *f;
-     Lisp_Object arg, oldval;
-{
-#ifdef MAC_OSX
-  if (INTEGERP (arg) && XINT (arg) > 0)
-    {
-      if (XINT (arg) < (MAC_AQUA_SMALL_VERTICAL_SCROLL_BAR_WIDTH
-			+ MAC_AQUA_VERTICAL_SCROLL_BAR_WIDTH) / 2)
-	XSETINT (arg, MAC_AQUA_SMALL_VERTICAL_SCROLL_BAR_WIDTH);
-      else
-	XSETINT (arg, MAC_AQUA_VERTICAL_SCROLL_BAR_WIDTH);
-    }
-#endif
-  x_set_scroll_bar_width (f, arg, oldval);
-}
-
 static void
 mac_set_font (f, arg, oldval)
      struct frame *f;
@@ -3052,7 +3034,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
      (display)
      Lisp_Object display;
 {
-  return build_string ("Apple Computers");
+  return build_string ("Apple Inc.");
 }
 
 DEFUN ("x-server-version", Fx_server_version, Sx_server_version, 0, 1, 0,
@@ -4677,7 +4659,7 @@ frame_parm_handler mac_frame_parm_handlers[] =
   x_set_menu_bar_lines,
   x_set_mouse_color,
   x_explicitly_set_name,
-  mac_set_scroll_bar_width,
+  x_set_scroll_bar_width,
   x_set_title,
   x_set_unsplittable,
   x_set_vertical_scroll_bars,

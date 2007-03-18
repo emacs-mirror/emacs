@@ -974,18 +974,20 @@ Typing SPC flushes the help buffer."
 	    (while (with-current-buffer (get-buffer "*Completions*")
 		     (setq event (pcomplete-read-event)))
 	      (cond
-	       ((event-matches-key-specifier-p event ? )
+	       ((event-matches-key-specifier-p event ?\s)
 		(set-window-configuration pcomplete-last-window-config)
 		(setq pcomplete-last-window-config nil)
 		(throw 'done nil))
 	       ((or (event-matches-key-specifier-p event 'tab)
                     ;; Needed on a terminal
                     (event-matches-key-specifier-p event 9))
-		(save-selected-window
-		  (select-window (get-buffer-window "*Completions*"))
-		  (if (pos-visible-in-window-p (point-max))
-		      (goto-char (point-min))
-		    (scroll-up)))
+                (let ((win (or (get-buffer-window "*Completions*" 0)
+                               (display-buffer "*Completions*"
+                                               'not-this-window))))
+                  (with-selected-window win
+                    (if (pos-visible-in-window-p (point-max))
+                        (goto-char (point-min))
+                      (scroll-up))))
 		(message ""))
 	       (t
 		(setq unread-command-events (list event))

@@ -336,7 +336,7 @@ Thus, this does not include the shell's current directory.")
   "Keep track of last directory for ksh `cd -' command.")
 
 (defvar shell-dirstack-query nil
-  "Command used by `shell-resync-dir' to query the shell.")
+  "Command used by `shell-resync-dirs' to query the shell.")
 
 (defvar shell-mode-map nil)
 (cond ((not shell-mode-map)

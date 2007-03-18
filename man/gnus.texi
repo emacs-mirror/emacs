@@ -11799,12 +11799,12 @@ still a pain, though.
 @cindex User-Agent
 
 This variable controls which information should be exposed in the
-User-Agent header.  It can be one of the symbols @code{gnus} (show only
-Gnus version), @code{emacs-gnus} (show only Emacs and Gnus versions),
-@code{emacs-gnus-config} (same as @code{emacs-gnus} plus system
-configuration), @code{emacs-gnus-type} (same as @code{emacs-gnus} plus
-system type) or a custom string.  If you set it to a string, be sure to
-use a valid format, see RFC 2616.
+User-Agent header.  It can be a list of symbols or a string.  Valid
+symbols are @code{gnus} (show Gnus version) and @code{emacs} (show Emacs
+version).  In addition to the Emacs version, you can add @code{codename}
+(show (S)XEmacs codename) or either @code{config} (show system
+configuration) or @code{type} (show system type).  If you set it to a
+string, be sure to use a valid format, see RFC 2616.
 
 @end table
 

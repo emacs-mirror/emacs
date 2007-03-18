@@ -345,7 +345,9 @@ according to `smerge-match-conflict'.")
   ;; during font-locking so inhibit-modification-hooks is non-nil, so we
   ;; can't just modify the buffer and expect font-lock to be triggered as in:
   ;; (put-text-property beg end 'smerge-force-highlighting nil)
-  (remove-text-properties beg end '(fontified nil)))
+  (let ((modified (buffer-modified-p)))
+    (remove-text-properties beg end '(fontified nil))
+    (restore-buffer-modified-p modified)))
 
 (defun smerge-popup-context-menu (event)
   "Pop up the Smerge mode context menu under mouse."
@@ -557,6 +559,8 @@ An error is raised if not inside a conflict."
 				  (1- other-start) other-start))
 	  t)
       (search-failed (error "Point not in conflict region")))))
+
+(add-to-list 'debug-ignored-errors "Point not in conflict region")
 
 (defun smerge-conflict-overlay (pos)
   "Return the conflict overlay at POS if any."

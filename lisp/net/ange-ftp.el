@@ -1005,7 +1005,7 @@ Don't use any other value."
 		 (const :tag "Allow" 1)))
 
 (defcustom ange-ftp-try-passive-mode nil
-  "It t, try to use passive mode in ftp, if the client program supports it."
+  "If t, try to use passive mode in ftp, if the client program supports it."
   :group 'ange-ftp
   :type 'boolean
   :version "21.1")

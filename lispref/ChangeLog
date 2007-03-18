@@ -1,3 +1,31 @@
+2007-03-05  Richard Stallman  <rms@gnu.org>
+
+	* variables.texi (File Local Variables): Update
+	enable-local-variables values.
+
+2007-03-04  Richard Stallman  <rms@gnu.org>
+
+	* syntax.texi (Control Parsing): Minor clarification.
+
+	* strings.texi (Formatting Strings): Clarify width, precision, flags.
+
+	* sequences.texi (Sequence Functions): Move string-bytes away,
+	add xref.
+
+	* nonascii.texi (Text Representations): Move string-bytes here.
+
+	* modes.texi (Major Mode Conventions): Fundamental mode is exception.
+
+	* minibuf.texi (Basic Completion): Minor clarification.
+
+	* markers.texi (The Mark): Clarify existence vs activation of mark.
+	Other cleanup.
+
+	* display.texi (Finding Overlays): Write better example.
+
+	* compile.texi (Eval During Compile): Clarify putting macros
+	in eval-when-compile.
+
 2007-02-25  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* loading.texi (How Programs Do Loading): Fix anchor position at
