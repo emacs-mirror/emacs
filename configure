@@ -11739,7 +11739,7 @@ echo "${ECHO_T}no" >&6; }
 
   if test "$HAVE_XFT" != no; then
     OLD_CFLAGS="$CPPFLAGS"
-    OLD_CFLAGS="$CFLAGS"
+    OLD_CPPFLAGS="$CFLAGS"
     OLD_LIBS="$LIBS"
     CPPFLAGS="$CPPFLAGS $XFT_CFLAGS"
     CFLAGS="$CFLAGS $XFT_CFLAGS"
