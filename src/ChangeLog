@@ -1,3 +1,7 @@
+2007-03-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (pbm_load): Signal error for invalid image size.
+
 2007-03-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (note_mouse_movement): Don't return immediately for
