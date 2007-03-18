@@ -146,8 +146,8 @@ Fourth arg PORT is an integer specifying a port to connect to."
 		      (set-buffer buffer) ;; XXX "blue moon" nntp.el bug
 		      (goto-char (point-min))
 		      (not (setq done (re-search-forward tls-success nil t)))))
-	  (accept-process-output process 1)
-	  (sit-for 1))
+	  (unless (accept-process-output process 1)
+            (sit-for 1)))
 	(message "Opening TLS connection with `%s'...%s" cmd
 		 (if done "done" "failed"))
 	(if done
