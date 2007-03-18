@@ -10872,7 +10872,7 @@ redisplay_internal (preserve_echo_area)
 	return;
     }
 
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (MAC_OS)
   if (popup_activated ())
     return;
 #endif
@@ -22672,7 +22672,7 @@ note_mouse_highlight (f, x, y)
   struct buffer *b;
 
   /* When a menu is active, don't highlight because this looks odd.  */
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (MAC_OS)
   if (popup_activated ())
     return;
 #endif
