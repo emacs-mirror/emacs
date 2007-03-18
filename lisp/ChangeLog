@@ -1,3 +1,8 @@
+2007-03-18  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* net/tls.el (open-tls-stream): In handshake-waiting loop,
+	don't wait more if there is output available to process.
+
 2007-03-18  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/compile.el (compilation-find-file): Revert change
