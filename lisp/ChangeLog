@@ -1,3 +1,9 @@
+2007-03-18  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/compile.el (compilation-find-file): Revert change
+	from 2006-07-18 to allow completion of directory names.
+	Reported by John Carter <john.carter@tait.co.nz>.
+
 2007-03-18  Kim F. Storm  <storm@cua.dk>
 
 	* subr.el (when, unless): Doc fix.
@@ -11,29 +17,18 @@
 	* autorevert.el (auto-revert-tail-handler):
 	Call after-revert-hook.
 
-2007-03-17  Chong Yidong  <cyd@stupidchicken.com>
-
-	* simple.el (line-move-1): Respect
-	`inhibit-line-move-field-capture' property.
-
-2007-03-16  Mark A. Hershberger  <mah@everybody.org>
-
-	* eshell/esh-mode.el (eshell-handle-ansi-color): New function.
-	Add new option for eshell-output-filter-functions.
-
 2007-03-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* comint.el (comint-arguments): Mark backslash-escaped chars.
 	(comint-delim-arg): Don't treat them as delimiters.
 
 2007-03-12  Kim F. Storm  <storm@cua.dk>
-
 	* ido.el (ido-init-completion-maps): Remap delete-backward-char.
 
 2007-03-12  Lawrence Mitchell  <wence@gmx.li>  (tiny change)
 
 	* tempo.el (tempo-insert): Deal with 'r> if it appears
-	specified with a prompt argument.
+ 	specified with a prompt argument.
 
 2007-03-12  Carsten Dominik  <dominik@science.uva.nl>
 
@@ -48,6 +43,9 @@
 	consensus on emacs-devel that the speed of these variants was
 	prefered since we are usually parsing files (from the internet
 	or on disk) instead of XML created in Emacs.
+
+	* eshell/esh-mode.el (eshell-handle-ansi-color): New function.
+	Add customize option.
 
 2007-03-12  Glenn Morris  <rgm@gnu.org>
 
