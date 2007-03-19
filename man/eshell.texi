@@ -475,7 +475,7 @@ find this package useful!
 @cindex bugs, known
 
 Below is complete list of known problems with Eshell version 2.4.1,
-which is the version included with Emacs 21.1.
+which is the version included with Emacs 22.
 
 @table @asis
 @item Documentation incomplete
