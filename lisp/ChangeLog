@@ -12349,14 +12349,6 @@
 	* files.el (magic-mode-regexp-match-limit): New defvar.
 	(set-auto-mode): Use it to limit magic-mode-alist matching.
 
-2006-02-04  Kevin Rodgers  <ihs_4664@yahoo.com>
-
-	* simple.el (display-message-or-buffer): Compare the number of
-	characters to the frame width when determining whether a 1-line
-	message string will fit in the echo area.  Count screen lines
-	instead of buffer lines when determining whether a multi-line
-	message will fit in the echo area/minibuffer window.
-
 2006-02-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* info.el (Info-index, Info-mode): Improve the description of the
