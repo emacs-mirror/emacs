@@ -1052,7 +1052,6 @@ should only be used by mouse-drag-region."
 				(not (eq mouse-1-click-follows-link 'double))
 				(= click-count 0)
 				(= (event-click-count event) 1)
-				(not (input-pending-p))
 				(or (not (integerp mouse-1-click-follows-link))
 				    (let ((t0 (posn-timestamp (event-start start-event)))
 					  (t1 (posn-timestamp (event-end event))))
