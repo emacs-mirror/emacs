@@ -1,3 +1,8 @@
+2007-03-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* isearchb.el (isearchb-follow-char):
+	* subr.el (def-edebug-spec): Fix typo in docstring.
+
 2007-03-19  Richard Stallman  <rms@gnu.org>
 
 	* files.el (default-directory): Mark safe.
