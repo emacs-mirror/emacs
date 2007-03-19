@@ -48,8 +48,9 @@
 
 2007-03-18  Detlev Zundel  <dzu@gnu.org>
 
-	* emacs-lisp/re-builder.el (reb-update-overlays): Do not mark zero-width
-	regexps as invalid but rather at least count them correctly.
+	* emacs-lisp/re-builder.el (reb-update-overlays): Do not mark
+	zero-width regexps as invalid but rather at least count them
+	correctly.
 
 2007-03-18  Thien-Thi Nguyen  <ttn@gnu.org>
 
