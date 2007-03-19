@@ -12591,7 +12591,7 @@
 	English aspell dictionary is installed, use the first entry of
 	ispell-dictionary-alist-1.
 
-2006-01-27  Kevin Rodgers  <ihs_4664@yahoo.com>
+2006-01-27  Kevin Rodgers  <ihs_4664@yahoo.com> (tiny change)
 
 	* textmodes/flyspell.el (flyspell-incorrect, flyspell-duplicate):
 	Doc fix.
