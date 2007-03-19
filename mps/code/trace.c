@@ -488,6 +488,8 @@ static void traceSetSignalEmergency(TraceSet ts, Arena arena)
 {
   TraceId ti;
   Trace trace;
+  
+  printf(" traceSetSignalEmergency eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\n");
 
   TRACE_SET_ITER(ti, trace, ts, arena)
     trace->emergency = TRUE;
@@ -1110,17 +1112,22 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
            TRACE_SET_ITER_END(ti, trace, ts, arena);
       });
 
-    {
-      static int fOnce = 0;
-      if (!fOnce && !RefSetSub(ss.unfixedSummary, SegSummary(seg))) {
-        fOnce = 1;
-        
-        SegDescribe(seg, mps_lib_get_stdout());
-      }
-    }
 
     /* following is true whether or not scan was total */
     /* See <design/scan/#summary.subset>. */
+    if (!RefSetSub(ss.unfixedSummary, SegSummary(seg))) {
+      SegDescribe(seg, mps_lib_get_stdout());
+      {
+        TraceId ti;
+        Trace trace;
+
+        printf(" Traces:\n");
+        TRACE_SET_ITER(ti, trace, ts, arena)
+          /* no TraceDescribe */
+          printf(" %u: %s\n", ti, (trace->emergency ? "EMERGENCY" : "non-emerg"));
+        TRACE_SET_ITER_END(ti, trace, ts, arena);
+      }
+    }
     AVER(RefSetSub(ss.unfixedSummary, SegSummary(seg)));
 
     if (res != ResOK || !wasTotal) {
