@@ -727,8 +727,8 @@
 	      (a nil) (b nil) (c nil) (bigyear nil) temp)
 
 	  ;; Extract the time, if any.
-	  (if (or (string-match "\\([0-9][0-9]?\\):\\([0-9][0-9]?\\)\\(:\\([0-9][0-9]?\\(\\.[0-9]+\\)?\\)\\)? *\\([ap]m?\\|[ap]\\. *m\\.\\|noon\\|n\\>\\|midnight\\|mid\\>\\|m\\>\\)?" math-pd-str)
-		  (string-match "\\([0-9][0-9]?\\)\\(\\)\\(\\(\\(\\)\\)\\) *\\([ap]m?\\|[ap]\\. *m\\.\\|noon\\|n\\>\\|midnight\\|mid\\>\\|m\\>\\)" math-pd-str))
+	  (if (or (string-match "\\([0-9][0-9]?\\):\\([0-9][0-9]?\\)\\(:\\([0-9][0-9]?\\(\\.[0-9]+\\)?\\)\\)? *\\([ap]\\>\\|[ap]m\\|[ap]\\. *m\\.\\|noon\\|n\\>\\|midnight\\|mid\\>\\|m\\>\\)?" math-pd-str)
+		  (string-match "\\([0-9][0-9]?\\)\\(\\)\\(\\(\\(\\)\\)\\) *\\([ap]\\>\\|[ap]m\\|[ap]\\. *m\\.\\|noon\\|n\\>\\|midnight\\|mid\\>\\|m\\>\\)" math-pd-str))
 	      (let ((ampm (math-match-substring math-pd-str 6)))
 		(setq hour (string-to-number (math-match-substring math-pd-str 1))
 		      minute (math-match-substring math-pd-str 2)
@@ -1313,7 +1313,19 @@
 
 (defun math-std-daylight-savings (date dt zone bump)
   "Standard North American daylight saving algorithm.
-This implements the rules for the U.S. and Canada as of 2007.
+Before 2007, this uses `math-std-daylight-savings-old', where
+daylight savings began on the first Sunday of April at 2 a.m.,
+and ended on the last Sunday of October at 2 a.m.
+As of 2007, this uses `math-std-daylight-savings-new', where
+daylight saving begins on the second Sunday of March at 2 a.m.,
+and ends on the first Sunday of November at 2 a.m."
+  (if (< (car dt) 2007)
+      (math-std-daylight-savings-old date dt zone bump)
+    (math-std-daylight-savings-new date dt zone bump)))
+
+(defun math-std-daylight-savings-new (date dt zone bump)
+  "Standard North American daylight saving algorithm as of 2007.
+This implements the rules for the U.S. and Canada.
 Daylight saving begins on the second Sunday of March at 2 a.m.,
 and ends on the first Sunday of November at 2 a.m."
   (cond ((< (nth 1 dt) 3) 0)
@@ -1326,6 +1338,27 @@ and ends on the first Sunday of November at 2 a.m."
 	((< (nth 1 dt) 11) -1)
 	((= (nth 1 dt) 11)
 	 (let ((sunday (math-prev-weekday-in-month date dt 7 0)))
+	   (cond ((< (nth 2 dt) sunday) -1)
+		 ((= (nth 2 dt) sunday)
+		  (if (>= (nth 3 dt) (+ 2 bump)) 0 -1))
+		 (t 0))))
+	(t 0)))
+
+(defun math-std-daylight-savings-old (date dt zone bump)
+  "Standard North American daylight savings algorithm before 2007.
+This implements the rules for the U.S. and Canada.
+Daylight savings begins on the first Sunday of April at 2 a.m.,
+and ends on the last Sunday of October at 2 a.m."
+  (cond ((< (nth 1 dt) 4) 0)
+	((= (nth 1 dt) 4)
+	 (let ((sunday (math-prev-weekday-in-month date dt 7 0)))
+	   (cond ((< (nth 2 dt) sunday) 0)
+		 ((= (nth 2 dt) sunday)
+		  (if (>= (nth 3 dt) (+ 3 bump)) -1 0))
+		 (t -1))))
+	((< (nth 1 dt) 10) -1)
+	((= (nth 1 dt) 10)
+	 (let ((sunday (math-prev-weekday-in-month date dt 31 0)))
 	   (cond ((< (nth 2 dt) sunday) -1)
 		 ((= (nth 2 dt) sunday)
 		  (if (>= (nth 3 dt) (+ 2 bump)) 0 -1))
