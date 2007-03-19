@@ -1839,10 +1839,12 @@ fi
 
 # Check whether --with-kerberos was given.
 if test "${with_kerberos+set}" = set; then
-  withval=$with_kerberos; cat >>confdefs.h <<\_ACEOF
+  withval=$with_kerberos; if test "$withval" = yes; then
+   cat >>confdefs.h <<\_ACEOF
 #define KERBEROS 1
 _ACEOF
 
+fi
 fi
 
 
@@ -1857,22 +1859,24 @@ if test "${with_kerberos5+set}" = set; then
 _ACEOF
 
   fi
-fi
 
 cat >>confdefs.h <<\_ACEOF
 #define KERBEROS5 1
 _ACEOF
 
 fi
+fi
 
 
 # Check whether --with-hesiod was given.
 if test "${with_hesiod+set}" = set; then
-  withval=$with_hesiod;
+  withval=$with_hesiod; if test "$withval" = yes; then
+
 cat >>confdefs.h <<\_ACEOF
 #define HESIOD 1
 _ACEOF
 
+fi
 fi
 
 
