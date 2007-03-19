@@ -1,3 +1,7 @@
+2007-03-19  Richard Stallman  <rms@gnu.org>
+
+	* os.texi (Recording Input): recent-keys now gives 300 keys.
+
 2007-03-05  Richard Stallman  <rms@gnu.org>
 
 	* variables.texi (File Local Variables): Update

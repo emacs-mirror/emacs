@@ -1,3 +1,10 @@
+2007-03-19  Richard Stallman  <rms@gnu.org>
+
+	* files.el (default-directory): Mark safe.
+	(basic-save-buffer-2): Put proper dir name in error message.
+
+	* startup.el (inhibit-splash-screen, initial-major-mode): Doc fixes.
+
 2007-03-18  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-forms.el (math-parse-date): Fix a regular expression.
@@ -36,11 +43,6 @@
 
 	* autorevert.el (auto-revert-tail-handler):
 	Call after-revert-hook.
-
-2007-03-17  Chong Yidong  <cyd@stupidchicken.com>
-
-	* simple.el (line-move-1): Respect
-	`inhibit-line-move-field-capture' property.
 
 2007-03-13  Chong Yidong  <cyd@stupidchicken.com>
 

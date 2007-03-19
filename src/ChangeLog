@@ -1,3 +1,9 @@
+2007-03-19  Richard Stallman  <rms@gnu.org>
+
+	* keyboard.c (NUM_RECENT_KEYS): Bump up to 300.
+
+	* buffer.c (syms_of_buffer): Doc fix.
+
 2007-03-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image.c (pbm_load): Signal error for invalid image size.
@@ -21,12 +27,7 @@
 
 2007-03-17  Richard Stallman  <rms@gnu.org>
 
-	* dired.c (file_name_completion): Gcpro NAME.
-
-2007-03-17  Chong Yidong  <cyd@stupidchicken.com>
-
-	* xdisp.c (try_window_id): Increment matrix positions if the
-	buffer's byte count has increased, but not the character count.
+	* dired.c (file_name_completion): gcpro NAME.
 
 2007-03-12  Andreas Schwab  <schwab@suse.de>
 

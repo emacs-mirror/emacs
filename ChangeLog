@@ -1,3 +1,9 @@
+2007-03-19  Deanna Phillips  <deanna@sixbit.org>  (tiny change)
+
+	* configure.in (arm-*-openbsd*, hppa-*-openbsd*)
+	(m88k-*-openbsd*, mips64-*-openbsd*, sh-*-openbsd*): Added.
+	(ns32k-*-openbsd*, ns32k-*-openbsd*): Deleted.
+
 2007-03-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* configure.in: Don't define KERBEROS, KERBEROS5, or HESIOD if the
