@@ -1,8 +1,14 @@
 2007-03-19  Chong Yidong  <cyd@stupidchicken.com>
 
-	* dired-ref.tex: Emacs 21 -> 22.
+	* dired-ref.tex:
+	* fr-drdref.tex: 
+	* cs-dired-ref.tex:
+	* sk-dired-ref.tex: Emacs 21 -> 22.
 
-	* dired-ref.ps: Regenerate
+	* dired-ref.ps:
+	* fr-drdref.ps: 
+	* cs-dired-ref.ps:
+	* sk-dired-ref.ps: Regenerate.
 
 2007-03-11  Glenn Morris  <rgm@gnu.org>
 
