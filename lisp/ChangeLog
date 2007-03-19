@@ -5,6 +5,9 @@
 
 2007-03-19  Juanma Barranquero  <lekktu@gmail.com>
 
+	* progmodes/python.el (python-default-template): Doc fix.
+	(python-buffer): Fix typo in docstring.
+
 	* isearchb.el (isearchb-follow-char):
 	* subr.el (def-edebug-spec): Fix typo in docstring.
 
