@@ -1,5 +1,8 @@
 2007-03-19  Chong Yidong  <cyd@stupidchicken.com>
 
+	* faces.el (momentary): Face removed; unused due to reversion of
+	2007-01-04 changes by Kevin Rodgers.
+
 	* mouse.el (mouse-drag-track): Remove spurious input-pending-p
 	test.  Suggested by Johan Bockg,Ae(Brd.
 
