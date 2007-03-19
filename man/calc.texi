@@ -17379,9 +17379,10 @@ commands.  In particular, @samp{<may 1 1991> - <apr 1 1991>} evaluates
 to exactly 30 days even though there is a daylight-saving
 transition in between.  This is also true for Julian pure dates:
 @samp{julian(<may 1 1991>) - julian(<apr 1 1991>)}.  But Julian
-and Unix date/times will adjust for daylight saving time:
+and Unix date/times will adjust for daylight saving time:  using Calc's
+default daylight saving time rule (see the explanation below),
 @samp{julian(<12am may 1 1991>) - julian(<12am apr 1 1991>)}
-evaluates to @samp{29.95834} (that's 29 days and 23 hours)
+evaluates to @samp{29.95833} (that's 29 days and 23 hours)
 because one hour was lost when daylight saving commenced on
 April 7, 1991.
 
@@ -17501,12 +17502,15 @@ non-daylight-saving time.
 @vindex math-daylight-savings-hook
 @findex math-std-daylight-savings
 By default Calc always considers daylight saving time to begin at
-2 a.m.@: on the second Sunday of March, and to end at 2 a.m.@: on the
-first Sunday of November.  This is the rule that has been in effect
-in North America since 2007.  If you are in a country that uses
-different rules for computing daylight saving time, you have two
-choices:  Write your own daylight saving hook, or control time
-zones explicitly by setting the @code{TimeZone} variable and/or
+2 a.m.@: on the second Sunday of March (for years from 2007 on) or on
+the last Sunday in April (for years before 2007), and to end at 2 a.m.@:
+on the first Sunday of November. (for years from 2007 on) or the last
+Sunday in October (for years before 2007).  These are the rules that have
+been in effect in much of North America since 1966 and takes into
+account the rule change that began in 2007.  If you are in a
+country that uses different rules for computing daylight saving time,
+you have two choices:  Write your own daylight saving hook, or control
+time zones explicitly by setting the @code{TimeZone} variable and/or
 always giving a time-zone argument for the conversion functions.
 
 The Lisp variable @code{math-daylight-savings-hook} holds the
