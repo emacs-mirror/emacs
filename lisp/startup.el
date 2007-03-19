@@ -42,7 +42,7 @@
 
 (defcustom inhibit-splash-screen nil
   "Non-nil inhibits the startup screen.
-It also inhibits display of the initial message in the *scratch* buffer.
+It also inhibits display of the initial message in the `*scratch*' buffer.
 
 This is for use in your personal init file, once you are familiar
 with the contents of the startup screen."
@@ -195,7 +195,7 @@ Emacs runs this hook after processing the command line arguments and loading
 the user's init file.")
 
 (defcustom initial-major-mode 'lisp-interaction-mode
-  "Major mode command symbol to use for the initial *scratch* buffer."
+  "Major mode command symbol to use for the initial `*scratch*' buffer."
   :type 'function
   :group 'initialization)
 
