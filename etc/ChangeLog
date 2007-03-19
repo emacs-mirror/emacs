@@ -1,5 +1,7 @@
 2007-03-19  Chong Yidong  <cyd@stupidchicken.com>
 
+	* dired-ref.tex: Emacs 21 -> 22.
+
 	* dired-ref.ps: Regenerate
 
 2007-03-11  Glenn Morris  <rgm@gnu.org>
