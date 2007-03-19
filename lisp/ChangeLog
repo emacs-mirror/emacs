@@ -1971,7 +1971,7 @@
 	* international/mule-cmds.el (select-safe-coding-system-interactively):
 	Fix message.
 
-2006-12-30  Kevin Rodgers  <kevin.d.rodgers@gmail.com>
+2006-12-30  Kevin Rodgers  <kevin.d.rodgers@gmail.com> (tiny change)
 
 	* files.el (backup-buffer): Show entire backup file name in msg.
 
