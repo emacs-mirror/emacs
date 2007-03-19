@@ -6,7 +6,11 @@
 
 	* calc.texi (Time Zones): Switch to new North America DST rule.
 
-	* calendar.texi (Daylight Saving): Rename node from "Daylight Savings".
+	* calendar.texi, emacs.texi (Daylight Saving): Rename node from
+	"Daylight Savings".
+
+	* calc.texi, calendar.texi: Replace "daylight savings" with "daylight
+	saving" in text throughout.
 
 2007-03-11  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
 

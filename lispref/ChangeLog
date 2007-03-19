@@ -2,6 +2,11 @@
 
 	* os.texi (Recording Input): recent-keys now gives 300 keys.
 
+2007-03-12  Glenn Morris  <rgm@gnu.org>
+
+	* os.texi: Replace "daylight savings" with "daylight saving"
+	throughout.
+
 2007-03-05  Richard Stallman  <rms@gnu.org>
 
 	* variables.texi (File Local Variables): Update

@@ -52,6 +52,11 @@
 	* keyboard.c (read_key_sequence): Store original event into keybuf
 	when replaying sequence with local keymap(s) from string.
 
+2007-03-12  Glenn Morris  <rgm@gnu.org>
+
+	* editfns.c (Fdecode_time, Fencode_time): Doc fix ("daylight
+	savings" to "daylight saving").
+
 2007-03-11  Sam Steingold  <sds@gnu.org>
 
 	* process.c (sigchld_handler): Sleep before wait3 to avoid a busyloop.

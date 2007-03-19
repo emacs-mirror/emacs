@@ -574,7 +574,8 @@ REMOVED src/unexhp9k800.c
 
 *** These are copyright issues still to be addressed:
 
-Do we need an assignment from Kevin Rodgers? (rms)
+Need an assignment from Kevin Rodgers (rms), else several changes to
+deal with.
 
 
 

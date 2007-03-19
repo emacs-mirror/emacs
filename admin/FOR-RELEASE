@@ -6,20 +6,12 @@ Tasks needed before the next release.
 make sure all the pages really look ok in the manual as formatted.
 
 ** Check for text in manuals that assumes current version is 21.
-eshell.texi 'Known Problems' (does section need updating?)
-cc-mode.texi 'Performance Issues': "21.3 as of this writing"
 
 ** Cleanup temporary +++/--- lines in etc/NEWS.
 
 ** Regenerate the postscript files of the reference cards in etc.
 As of 2007/2/26, only ps files older than the associated tex files are:
   cs-dired-ref.ps sk-dired-ref.ps
-
-May need update for Emacs-22:
-dired-ref.tex cs-dired-ref.tex fr-drdref.tex sk-dired-ref.tex
-
-Fix overfull lines p3 fr-refcard.ps.
-
 
 ** Ask maintainers of refcard translations to update them.
 
@@ -53,8 +45,7 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 * BUGS
 
-** Fix up copyright confusions.
-  See end of admin/notes/copyright.
+** Kevin Rodgers missing assignment
 
 ** flyspell and check-comments
 
@@ -62,6 +53,15 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
    Update: Problem is only seen when viper-mode is enabled.
 
 * DOCUMENTATION
+
+** Fix overfull lines p3 fr-refcard.ps
+
+** Some manual sections may need updating for Emacs-22: 
+eshell.texi 'Known Problems'
+cc-mode.texi 'Performance Issues': "21.3 as of this writing"
+
+** May need update for Emacs-22:
+dired-ref.tex cs-dired-ref.tex fr-drdref.tex sk-dired-ref.tex
 
 ** Check the Emacs Tutorial.
 

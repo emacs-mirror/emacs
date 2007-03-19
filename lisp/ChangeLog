@@ -113,7 +113,12 @@
 2007-03-12  Glenn Morris  <rgm@gnu.org>
 
 	* calc/calc-forms.el (math-std-daylight-savings): Switch to new
-	North American rule.
+	North American rule.  Replace "daylight savings" with "daylight
+	saving" in doc.
+
+	* calendar/cal-china.el,cal-dst.el,calendar.el,diary-lib.el:
+	* calendar/lunar.el,solar.el: Replace "daylight savings" with
+	"daylight saving" in text.
 
 	* woman.el (woman-change-fonts): Tweak previous change by using
 	woman-request-regexp rather than "^\\.".
