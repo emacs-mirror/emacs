@@ -1270,7 +1270,7 @@ Res TraceFix(ScanState ss, Ref *refIO)
             if (ref >= limit) {
               printf("ref(%d) >= limit for %d-th TraceFix in a seg.\n", ss->rank, iTF);
             }
-            /* AVER(ref < limit); */
+            AVER(ref < limit);
           }
         }
         
