@@ -14613,7 +14613,7 @@
 	(hi-lock-find-patterns, hi-lock-font-lock-hook):
 	Replace hi-lock-buffer-mode with hi-lock-mode.
 
-2005-12-10  Kevin Rodgers  <ihs_4664@yahoo.com>
+2005-12-10  Kevin Rodgers  <ihs_4664@yahoo.com> (tiny change)
 
 	* emacs-lisp/lisp.el (lisp-complete-symbol): Regenerate the
 	completion list, even after a partial completion has been
