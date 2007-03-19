@@ -508,7 +508,7 @@
 
 (defvar math-format-date-cache nil)
 
-;; The variables math-fd-date, math-fd-dt, math-fd-year, 
+;; The variables math-fd-date, math-fd-dt, math-fd-year,
 ;; math-fd-month, math-fd-day, math-fd-weekday, math-fd-hour,
 ;; math-fd-minute, math-fd-second, math-fd-bc-flag are local
 ;; to math-format-date, but are used by math-format-date-part,
@@ -533,7 +533,7 @@
 	       (calc-group-digits nil)
 	       (calc-leading-zeros nil)
 	       (calc-number-radix 10)
-	       math-fd-year math-fd-month math-fd-day math-fd-weekday 
+	       math-fd-year math-fd-month math-fd-day math-fd-weekday
                math-fd-hour math-fd-minute math-fd-second
 	       (math-fd-bc-flag nil)
 	       (fmt (apply 'concat (mapcar 'math-format-date-part
@@ -570,7 +570,7 @@
 		       math-fd-year (car math-fd-dt)
 		       math-fd-month (nth 1 math-fd-dt)
 		       math-fd-day (nth 2 math-fd-dt)
-		       math-fd-weekday (math-mod 
+		       math-fd-weekday (math-mod
                                         (math-add (math-floor math-fd-date) 6) 7)
 		       math-fd-hour (nth 3 math-fd-dt)
 		       math-fd-minute (nth 4 math-fd-dt)
@@ -784,7 +784,7 @@
 	  (while (and (string-match "[-+]?0*[1-9][0-9][0-9][0-9][0-9]+" math-pd-str)
 		      (setq temp (concat (substring math-pd-str 0 (match-beginning 0))
 					 (substring math-pd-str (match-end 0))))
-		      (string-match 
+		      (string-match
                        "[4-9][0-9]\\|[0-9][0-9][0-9]\\|[-+][0-9]+[^-]*\\'" temp))
 	    (setq math-pd-str temp))
 
@@ -1173,7 +1173,7 @@
 ;;; Note: Longer names must appear before shorter names which are
 ;;;       substrings of them.
 (defvar math-tzone-names
-  '(( "UTC" 0 0) 
+  '(( "UTC" 0 0)
     ( "MEGT" -1 "MET" "METDST" )                          ; Middle Europe
     ( "METDST" -1 -1 ) ( "MET" -1 0 )
     ( "MEGZ" -1 "MEZ" "MESZ" ) ( "MEZ" -1 0 ) ( "MESZ" -1 -1 )
@@ -1314,7 +1314,7 @@
 (defun math-std-daylight-savings (date dt zone bump)
   "Standard North American daylight saving algorithm.
 Before 2007, this uses `math-std-daylight-savings-old', where
-daylight savings began on the first Sunday of April at 2 a.m.,
+daylight saving began on the first Sunday of April at 2 a.m.,
 and ended on the last Sunday of October at 2 a.m.
 As of 2007, this uses `math-std-daylight-savings-new', where
 daylight saving begins on the second Sunday of March at 2 a.m.,
@@ -1345,9 +1345,9 @@ and ends on the first Sunday of November at 2 a.m."
 	(t 0)))
 
 (defun math-std-daylight-savings-old (date dt zone bump)
-  "Standard North American daylight savings algorithm before 2007.
+  "Standard North American daylight saving algorithm before 2007.
 This implements the rules for the U.S. and Canada.
-Daylight savings begins on the first Sunday of April at 2 a.m.,
+Daylight saving begins on the first Sunday of April at 2 a.m.,
 and ends on the last Sunday of October at 2 a.m."
   (cond ((< (nth 1 dt) 4) 0)
 	((= (nth 1 dt) 4)
@@ -1850,7 +1850,7 @@ and ends on the last Sunday of October at 2 a.m."
 	   (math-make-intv 2 0 b)))))
 
 ;; The variables math-exp-str and math-exp-pos are local to
-;; math-read-exprs in math-aent.el, but are used by 
+;; math-read-exprs in math-aent.el, but are used by
 ;; math-read-angle-brackets, which is called (indirectly) by
 ;; math-read-exprs.
 (defvar math-exp-str)
