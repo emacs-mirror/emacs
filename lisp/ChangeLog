@@ -1,3 +1,13 @@
+2007-03-18  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-forms.el (math-parse-date): Fix a regular expression.
+	(math-std-daylight-savings-new): Rename from
+	`math-std-daylight-savings'.
+	(math-std-daylight-savings-old): Rename from old value of
+	`math-std-daylight-savings'.
+	(math-std-daylight-savings): Use `math-std-daylight-savings-new' or
+	`math-std-daylight-savings-old' depending on the year.
+
 2007-03-18  Detlev Zundel  <dzu@gnu.org>
 
 	* emacs-lisp/re-builder.el (reb-update-overlays): Do not mark zero-width

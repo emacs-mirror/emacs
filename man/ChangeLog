@@ -1,3 +1,7 @@
+2007-03-18  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Time Zones): Mention that the DST rules changed in 2007.
+
 2007-03-12  Glenn Morris  <rgm@gnu.org>
 
 	* calc.texi (Time Zones): Switch to new North America DST rule.
