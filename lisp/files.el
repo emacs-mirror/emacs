@@ -2445,6 +2445,7 @@ asking you for confirmation."
 (mapc (lambda (pair)
 	(put (car pair) 'safe-local-variable (cdr pair)))
       '((buffer-read-only                . booleanp) ;; C source code
+	(default-directory               . stringp)  ;; C source code
 	(fill-column                     . integerp) ;; C source code
 	(indent-tabs-mode                . booleanp) ;; C source code
 	(left-margin                     . integerp) ;; C source code
@@ -3681,7 +3682,7 @@ Before and after saving the buffer, this function runs
 	  (if (not (file-directory-p dir))
 	      (if (file-exists-p dir)
 		  (error "%s is not a directory" dir)
-		(error "%s: no such directory" buffer-file-name))
+		(error "%s: no such directory" dir))
 	    (if (not (file-exists-p buffer-file-name))
 		(error "Directory %s write-protected" dir)
 	      (if (yes-or-no-p
