@@ -1,3 +1,8 @@
+2007-03-19  Nick Roberts  <nickrob@snap.net.nz>
+
+	* t-mouse.el (t-mouse-make-event-element): Use timestamp output
+	from client program, mev, to compute mouse event.
+
 2007-03-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* faces.el (momentary): Face removed; unused due to reversion of
