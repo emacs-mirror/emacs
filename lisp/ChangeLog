@@ -324,7 +324,7 @@
 	* emacs-lisp/lisp-mode.el (calculate-lisp-indent):
 	Redo previous change.
 
-2007-03-04  Kevin Rodgers  <kevin.d.rodgers@gmail.com>
+2007-03-04  Kevin Rodgers  <kevin.d.rodgers@gmail.com> (tiny change)
 
 	* diff-mode.el (diff-mode): Doc fix.
 
