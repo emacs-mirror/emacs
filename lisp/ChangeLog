@@ -2471,12 +2471,6 @@
 
 	* comint.el (comint-insert-input): Delete obsolete comment.
 
-2006-12-08  Kevin Rodgers  <ihs_4664@yahoo.com>
-
-	* files.el (insert-file-1): Compare file size to
-	large-file-warning-threshold and request confirmation when
-	warranted.
-
 2006-12-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* net/browse-url.el (browse-url): Set DISPLAY to the one of the

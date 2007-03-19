@@ -1700,16 +1700,6 @@ This function ensures that none of these modifications will take place."
   (if (file-directory-p filename)
       (signal 'file-error (list "Opening input file" "file is a directory"
                                 filename)))
-  ;; Check whether the file is uncommonly large (see find-file-noselect):
-  (let (size)
-    (when (and large-file-warning-threshold
-	       (setq size (nth 7 (file-attributes filename)))
-	       (> size large-file-warning-threshold)
-	       (not (y-or-n-p
-		     (format "File %s is large (%dMB), really insert? "
-			     (file-name-nondirectory filename)
-			     (/ size 1048576)))))
-      (error "Aborted")))
   (let* ((buffer (find-buffer-visiting (abbreviate-file-name (file-truename filename))
                                        #'buffer-modified-p))
          (tem (funcall insert-func filename)))
