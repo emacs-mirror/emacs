@@ -4079,6 +4079,10 @@ If it is non-nil, the function lists only faces matching this regexp.
 By setting this variable to a function, you can control
 how the editor command loop shows the user an error message.
 
++++
+*** `debug-on-entry' accepts primitive functions that are not special forms
+now.
+
 ** Lisp code indentation features:
 
 +++
