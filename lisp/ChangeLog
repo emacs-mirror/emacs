@@ -1,3 +1,8 @@
+2007-03-19  Kim F. Storm  <storm@cua.dk>
+
+	* calc/calc-forms.el (math-std-daylight-savings)
+	(math-std-daylight-savings-old): Doc fix.
+
 2007-03-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* isearchb.el (isearchb-follow-char):
