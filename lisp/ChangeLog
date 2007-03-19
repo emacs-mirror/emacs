@@ -1,3 +1,8 @@
+2007-03-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* font-lock.el (lisp-font-lock-keywords-1): Highlight
+	define-globalized-minor-mode as a keyword.
+
 2007-03-19  Kim F. Storm  <storm@cua.dk>
 
 	* calc/calc-forms.el (math-std-daylight-savings)
