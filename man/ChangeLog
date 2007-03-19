@@ -1,5 +1,7 @@
 2007-03-19  Chong Yidong  <cyd@stupidchicken.com>
 
+	* eshell.texi (Known problems): Emacs 21 -> 22.
+
 	* cc-mode.texi (Performance Issues): Update note about 21.3 to 22.1.
 
 2007-03-18  Jay Belanger  <belanger@truman.edu>
