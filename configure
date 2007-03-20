@@ -2249,6 +2249,17 @@ _ACEOF
     opsys=openbsd
     case "${canonical}" in
       alpha*-*-openbsd*)	machine=alpha ;;
+      arm-*-openbsd*)          machine=arm ;;
+      hppa-*-openbsd*)         machine=hp9000s300 ;;
+      i386-*-openbsd*)         machine=intel386 ;;
+      m68k-*-openbsd*)         machine=hp9000s300 ;;
+      m88k-*-openbsd*)         machine=aviion ;;
+      mips64-*-openbsd*)       machine=mips64 ;;
+      powerpc-*-openbsd*)      machine=macppc ;;
+      sh-*-openbsd*)           machine=sh3el ;;
+      sparc*-*-openbsd*)       machine=sparc ;;
+      vax-*-openbsd*)          machine=vax ;;
+      x86_64-*-openbsd*)       machine=amdx86-64 ;;
       i386-*-openbsd*)	machine=intel386 ;;
       x86_64-*-openbsd*)    machine=amdx86-64 ;;
       m68k-*-openbsd*)  machine=hp9000s300 ;;
