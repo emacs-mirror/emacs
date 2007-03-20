@@ -1,3 +1,37 @@
+2007-03-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* Makefile.in (alloca.o, gtkutil.o): Depend on systime.h.
+	(dired.o, editfns.o, fileio.o, msdos.o): Depend on atimer.h.
+	(dosfns.o, window.o, fns.o, macselect.o): Depend on atimer.h and
+	systime.h.
+	(term.o, print.o, lread.o): Depend on blockinput.h, atimer.h, and
+	systime.h.
+	(macfns.o): Remove duplicate dependency on systime.h.
+
+	* dispnew.c (Fopen_termscript): Add BLOCK_INPUT around fclose.
+	(Fsend_string_to_terminal): Add BLOCK_INPUT around fwrite.
+
+	* fileio.c (do_auto_save_unwind): Add BLOCK_INPUT around fclose.
+	(Fdo_auto_save): Add BLOCK_INPUT around fwrite.
+
+	* keyboard.c (record_char): Add BLOCK_INPUT around fwrite.
+	(Fopen_dribble_file): Add BLOCK_INPUT around fclose.
+
+	* lread.c: Include blockinput.h.
+	(readchar, Fget_file_char): Add BLOCK_INPUT around getc.
+	(unreadchar): Add BLOCK_INPUT around ungetc.
+	(load_unwind): Add BLOCK_INPUT around fclose.
+
+	* print.c: Include blockinput.h.
+	(Fredirect_debugging_output): Add BLOCK_INPUT around fclose.
+
+	* process.c (Fmake_network_process) [HAVE_GETADDRINFO]: Clear
+	immediate_quit before calling freeaddrinfo.  Add BLOCK_INPUT
+	around freeaddrinfo.
+
+	* term.c: Include blockinput.h.
+	(write_glyphs, insert_glyphs): Add BLOCK_INPUT around fwrite.
+
 2007-03-19  Richard Stallman  <rms@gnu.org>
 
 	* keyboard.c (NUM_RECENT_KEYS): Bump up to 300.
