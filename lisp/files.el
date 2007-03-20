@@ -2137,7 +2137,7 @@ associated with that interpreter in `interpreter-mode-alist'.")
 	     (comment-re (concat "\\(?:!--" incomment-re "*-->[ \t\n]*<\\)")))
 	(concat "[ \t\n]*<" comment-re "*!DOCTYPE "))
      . sgml-mode)
-    ("%![^V]" . ps-mode)
+    ("%!PS" . ps-mode)
     ("# xmcd " . conf-unix-mode))
   "Alist of buffer beginnings vs. corresponding major mode functions.
 Each element looks like (REGEXP . FUNCTION) or (MATCH-FUNCTION . FUNCTION).
