@@ -5804,7 +5804,11 @@ do_auto_save_unwind (arg)  /* used as unwind-protect function */
   FILE *stream = (FILE *) XSAVE_VALUE (arg)->pointer;
   auto_saving = 0;
   if (stream != NULL)
-    fclose (stream);
+    {
+      BLOCK_INPUT;
+      fclose (stream);
+      UNBLOCK_INPUT;
+    }
   return Qnil;
 }
 
@@ -5934,6 +5938,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	if (STRINGP (b->auto_save_file_name)
 	    && stream != NULL && do_handled_files == 0)
 	  {
+	    BLOCK_INPUT;
 	    if (!NILP (b->filename))
 	      {
 		fwrite (SDATA (b->filename), 1,
@@ -5943,6 +5948,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	    fwrite (SDATA (b->auto_save_file_name), 1,
 		    SBYTES (b->auto_save_file_name), stream);
 	    putc ('\n', stream);
+	    UNBLOCK_INPUT;
 	  }
 
 	if (!NILP (current_only)
