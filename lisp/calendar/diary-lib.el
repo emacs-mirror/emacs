@@ -290,6 +290,16 @@ Only used if `diary-header-line-flag' is non-nil."
 
 (defvar diary-saved-point)		; internal
 
+(defun diary-live-p ()
+  "Return non-nil if the diary is being displayed.
+This is not the same as just visiting the `diary-file'."
+  (or (get-buffer fancy-diary-buffer)
+      (when diary-file
+        (let ((dbuff (find-buffer-visiting
+                      (substitute-in-file-name diary-file))))
+          (when dbuff
+            (with-current-buffer dbuff
+              diary-selective-display))))))
 
 (defcustom number-of-diary-entries 1
   "Specifies how many days of diary entries are to be displayed initially.
@@ -317,6 +327,15 @@ number of days of diary entries displayed."
 			 (integer :tag "Thursday")
 			 (integer :tag "Friday")
 			 (integer :tag "Saturday")))
+  :initialize 'custom-initialize-default
+  ;; Redraw a live diary buffer if necessary. Note this assumes diary
+  ;; was not called with a prefix arg.
+  :set (lambda (symbol value)
+         (let ((oldvalue number-of-diary-entries))
+           (custom-set-default symbol value)
+           (and (not (equal value oldvalue))
+                (diary-live-p)
+                (diary))))
   :group 'diary)
 
 
