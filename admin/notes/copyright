@@ -445,8 +445,9 @@ etc/Xkeymap.txt
 RLK's way of remapping his keyboard, so it is not constrained. I think
 it was written by RLK. Let's delete it; if we contact RLK again, we
 can put it back." Actually, RLK == Robert Krawitz has an Emacs
-assignment. So this could be restored if it is still useful.
-
+assignment. So this could be restored if it is still useful, but Jan Djärv
+says it is obsolete:
+<http://lists.gnu.org/archive/html/emacs-devel/2007-03/msg00673.html>
 
 src/m/mips4.h, news-risc.h, pmax.h
 src/s/aix3-2.h, bsd386.h, hpux8.h, hpux9.h, irix4-0.h, irix5-0.h,

@@ -1,3 +1,9 @@
+2007-03-20  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-live-p): New function.
+	(number-of-diary-entries): Add a :set function to redisplay diary
+	when necessary.
+
 2007-03-19  Nick Roberts  <nickrob@snap.net.nz>
 
 	* t-mouse.el (t-mouse-make-event-element): Use timestamp output
