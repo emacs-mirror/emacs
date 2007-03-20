@@ -4726,9 +4726,16 @@ SEND-ACTIONS is a list of actions to call when the message is sent.
 Each action has the form (FUNCTION . ARGS)."
   (interactive
    (list nil nil nil current-prefix-arg))
-  (let ((function (get mail-user-agent 'composefunc)))
-    (funcall function to subject other-headers continue
-	     switch-function yank-action send-actions)))
+  (let ((function (get mail-user-agent 'composefunc))
+	result-buffer)
+    (if switch-function
+	(save-window-excursion
+	  (prog1
+	      (funcall function to subject other-headers continue
+		       nil yank-action send-actions)
+	    (funcall switch-function (current-buffer))))
+      (funcall function to subject other-headers continue
+	       nil yank-action send-actions))))
 
 (defun compose-mail-other-window (&optional to subject other-headers continue
 					    yank-action send-actions)
@@ -5165,7 +5172,7 @@ select the completion near point.\n\n"))))))
     (when window
       (select-window window)
       (goto-char (point-min))
-      (search-forward "\n\n")
+      (search-forward "\n\n" nil t)
       (forward-line 1))))
 
 ;;; Support keyboard commands to turn on various modifiers.
