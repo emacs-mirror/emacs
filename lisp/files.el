@@ -3595,10 +3595,21 @@ Before and after saving the buffer, this function runs
 	      (let ((filename
 		     (expand-file-name
 		      (read-file-name "File to save in: ") nil)))
-		(and (file-exists-p filename)
-		     (or (y-or-n-p (format "File `%s' exists; overwrite? "
-					   filename))
-			 (error "Canceled")))
+		(if (file-exists-p filename)
+		    (if (file-directory-p filename)
+			;; Signal an error if the user specified the name of an
+			;; existing directory.
+			(error "%s is a directory" filename)
+		      (unless (y-or-n-p (format "File `%s' exists; overwrite? "
+						filename))
+			(error "Canceled")))
+		  ;; Signal an error if the specified name refers to a
+		  ;; non-existing directory.
+		  (let ((dir (file-name-directory filename)))
+		    (unless (file-directory-p dir)
+		      (if (file-exists-p dir)
+			  (error "%s is not a directory" dir)
+			(error "%s: no such directory" dir)))))
 		(set-visited-file-name filename)))
 	  (or (verify-visited-file-modtime (current-buffer))
 	      (not (file-exists-p buffer-file-name))
