@@ -3525,6 +3525,7 @@ record_char (c)
      If you, dear reader, have a better idea, you've got the source.  :-) */
   if (dribble)
     {
+      BLOCK_INPUT;
       if (INTEGERP (c))
 	{
 	  if (XUINT (c) < 0x100)
@@ -3550,6 +3551,7 @@ record_char (c)
 	}
 
       fflush (dribble);
+      UNBLOCK_INPUT;
     }
 }
 
@@ -10436,7 +10438,9 @@ If FILE is nil, close any open dribble file.  */)
 {
   if (dribble)
     {
+      BLOCK_INPUT;
       fclose (dribble);
+      UNBLOCK_INPUT;
       dribble = 0;
     }
   if (!NILP (file))
