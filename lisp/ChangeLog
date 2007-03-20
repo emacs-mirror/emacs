@@ -1,3 +1,9 @@
+2007-03-20  Martin Rudalics  <rudalics@gmx.at>
+
+	* files.el (basic-save-buffer): Do not set visited filename when
+	the corresponding directory does not exist or the specified
+	filename is that of an existing directory.
+
 2007-03-20  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/diary-lib.el (diary-live-p): New function.
@@ -189,7 +195,7 @@
 	(rcirc-nick-prefix-chars): Add variable.
 	(rcirc-user-nick): Use above variable.
 
-2007-03-10  Johan Bockg,be(Brd  <bojohan@dd.chalmers.se>
+2007-03-10  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
 	* icomplete.el (icomplete-tidy, icomplete-exhibit):
 	Bind deactivate-mark to nil.
