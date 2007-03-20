@@ -1,3 +1,12 @@
+2007-03-20  Richard Stallman  <rms@gnu.org>
+
+	* textmodes/ispell.el (ispell-call-process): New function.
+	Defends against bad `default-directory.'
+	(ispell-check-version, ispell-find-aspell-dictionaries)
+	(ispell-get-aspell-config-value, lookup-words): Call it.
+	(ispell-call-process-region): New function.
+	(ispell-send-string): Call it.
+
 2007-03-20  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in (custom-deps): Depend on $(lisp)/subdirs.el.
@@ -52,6 +61,9 @@
 	* files.el (default-directory): Mark safe.
 	(basic-save-buffer-2): Put proper dir name in error message.
 
+	* simple.el (compose-mail): Run switch-function after
+	setting up the mail buffer.
+
 	* startup.el (inhibit-splash-screen, initial-major-mode): Doc fixes.
 
 2007-03-18  Jay Belanger  <belanger@truman.edu>
@@ -93,6 +105,10 @@
 
 	* autorevert.el (auto-revert-tail-handler):
 	Call after-revert-hook.
+
+2007-03-17  Ryan Yeske  <rcyeske@gmail.com>
+
+	* simple.el (switch-to-completions): No error if search for \n\n fails.
 
 2007-03-17  Chong Yidong  <cyd@stupidchicken.com>
 
