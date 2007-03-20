@@ -3336,12 +3336,16 @@ usage: (make-network-process &rest ARGS)  */)
 #endif
     }
 
+  immediate_quit = 0;
+
 #ifdef HAVE_GETADDRINFO
   if (res != &ai)
-    freeaddrinfo (res);
+    {
+      BLOCK_INPUT;
+      freeaddrinfo (res);
+      UNBLOCK_INPUT;
+    }
 #endif
-
-  immediate_quit = 0;
 
   /* Discard the unwind protect for closing S, if any.  */
   specpdl_ptr = specpdl + count1;
