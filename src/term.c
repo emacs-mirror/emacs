@@ -38,6 +38,7 @@ Boston, MA 02110-1301, USA.  */
 #include "dispextern.h"
 #include "window.h"
 #include "keymap.h"
+#include "blockinput.h"
 
 /* For now, don't try to include termcap.h.  On some systems,
    configure finds a non-standard termcap.h that the main build
@@ -990,11 +991,13 @@ write_glyphs (string, len)
       conversion_buffer = encode_terminal_code (string, n, coding);
       if (coding->produced > 0)
 	{
+	  BLOCK_INPUT;
 	  fwrite (conversion_buffer, 1, coding->produced, stdout);
 	  if (ferror (stdout))
 	    clearerr (stdout);
 	  if (termscript)
 	    fwrite (conversion_buffer, 1, coding->produced, termscript);
+	  UNBLOCK_INPUT;
 	}
       len -= n;
       string += n;
@@ -1089,11 +1092,13 @@ insert_glyphs (start, len)
 
       if (coding->produced > 0)
 	{
+	  BLOCK_INPUT;
 	  fwrite (conversion_buffer, 1, coding->produced, stdout);
 	  if (ferror (stdout))
 	    clearerr (stdout);
 	  if (termscript)
 	    fwrite (conversion_buffer, 1, coding->produced, termscript);
+	  UNBLOCK_INPUT;
 	}
 
       OUTPUT1_IF (TS_pad_inserted_char);
