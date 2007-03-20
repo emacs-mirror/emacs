@@ -1,3 +1,9 @@
+2007-03-20  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (custom-deps): Depend on $(lisp)/subdirs.el.
+	(finder-data): Likewise.
+	(autoloads): Likewise.
+
 2007-03-20  Martin Rudalics  <rudalics@gmx.at>
 
 	* files.el (basic-save-buffer): Do not set visited filename when
