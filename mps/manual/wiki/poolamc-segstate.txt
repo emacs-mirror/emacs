@@ -1,0 +1,58 @@
+Richard's AMC Seg state diagram.
+2007-03-20
+
+Seg states:
+  m : mobile
+  b : boarded (a nailboard has been allocated)
+  s : stuck (SegNailed, but we can't allocate a nailboard)
+
+Colours:
+  B : black
+  G : grey
+  W : white
+  F : forwarding pointer
+
+Buffers:
+  n : neo (mutator buffer, still alive)
+  s : stalo (mutator buffer, has been tripped, stale object, dead)
+  f : forwarding buffer
+
+Other:
+ // : post-flip
+
+Transitions:
+ ==[]==>  : scan
+ --()-->  : preserve object in this seg, because of ref...
+   --(A)--> : Ambiguous
+   --(et)-->: during emergency tracing 
+ *        : preserve object in this seg, because of exact ref 
+            during non-emergency, by forwarding it out
+
+
+m  >traceStart>   mB
+
+                                     //  m0n  ..alloc..>  mBn
+
+
+   >traceStart>   mG   ==[1]==>   mB
+                    \          <fwd-to<                  \
+                                     //  m0f   >fwd-to>   mGf  ==[2+]==>  mBf
+                                                               <fwd-to<
+
+
+   >traceStart>   mW*F
+
+                       --(A)-->   bGW*F ==[3]==>    bBW*F
+                                        ==[3et+]=>
+                                         <-(et)--
+                                           ^we never encounter A here
+
+                       --(et)-->   sG    ==[4]==>   sB
+
+Scanning:
+  [1] scan a mobile grey seg.
+  [2+] scan a mobile grey seg with a fwding buffer on it; must loop, until Cheney catchup.
+  [3] ordinary scan of boarded segment.  All grey objects scanned in one pass.
+  [3et+] scan during emergency tracing.  Grey objects may appear during a single pass => needs to loop until no more grey objects (no new marks).
+  [4] scan a stuck segment.
+--end--
