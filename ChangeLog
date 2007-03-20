@@ -1,3 +1,7 @@
+2007-03-20  Richard Stallman  <rms@gnu.org>
+
+	* configure.in: Fix previous change.
+
 2007-03-19  Deanna Phillips  <deanna@sixbit.org>  (tiny change)
 
 	* configure.in (arm-*-openbsd*, hppa-*-openbsd*)
