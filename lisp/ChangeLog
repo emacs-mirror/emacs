@@ -1,3 +1,15 @@
+2007-03-21  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (diary-set-maybe-redraw): Autoload it.
+	(diary-display-hook): Add custom :set function.
+
+	* calendar/diary-lib.el (diary-header-line-flag): Doc fix.  Add
+	custom :set function.
+	(diary-header-line-format): Doc fix.
+	(diary-set-maybe-redraw): New function.
+	(number-of-diary-entries): Change :set to use diary-set-maybe-redraw.
+	(diary-list-entries): Always run diary-mode.
+
 2007-03-20  David Kastrup  <dak@gnu.org>
 
 	* files.el (magic-mode-alist): Require literal "%!PS" string for
