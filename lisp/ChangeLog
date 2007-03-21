@@ -1,4 +1,12 @@
-2007-03-21  Glenn Morris  <rgm@gnu.org>
+2007-03-21  Ulf Jasper <ulf.jasper@web.de>
+
+	* calendar/icalendar.el (icalendar-version): Increase to 0.15.
+	(icalendar--get-unfolded-buffer): Define actual arguments rather
+	than just using &rest.  Check replace-in-string is fbound.
+	(icalendar-import-buffer): Doc fix.
+	(icalendar--convert-ical-to-diary): Set diary-file.  Check
+	diary-file before inserting final newline.
+	(icalendar--add-diary-entry): Return diary-file.
 
 	* calendar/calendar.el (diary-set-maybe-redraw): Autoload it.
 	(diary-display-hook): Add custom :set function.
