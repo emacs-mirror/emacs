@@ -127,6 +127,8 @@
 	 (x (- (xterm-mouse-event-read) #o40 1))
 	 (y (- (xterm-mouse-event-read) #o40 1))
 	 (time (current-time))
+	 ;; Emulate timestamp information.  This is accurate enough
+	 ;; for default value of mouse-1-click-follows-link (450msec).
 	 (timestamp (truncate
 		     (* 1000
 			(- (float-time)

@@ -1,3 +1,8 @@
+2007-03-21  Kim F. Storm  <storm@cua.dk>
+
+	* xt-mouse.el (xt-mouse-epoch): New variable.
+	(xterm-mouse-event): Use float-time.
+
 2007-03-21  Nick Roberts  <nickrob@snap.net.nz>
 
 	* xt-mouse.el (xterm-mouse-event): Compute a timestamp using
