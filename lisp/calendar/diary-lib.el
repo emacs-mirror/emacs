@@ -267,10 +267,12 @@ search."
 ;; This can be removed once the kill/yank treatment of invisible text
 ;; (see etc/TODO) is fixed. -- gm
 (defcustom diary-header-line-flag t
-  "If non-nil, `diary-simple-display' will show a header line.
+  "If non-nil, `simple-diary-display' will show a header line.
 The format of the header is specified by `diary-header-line-format'."
   :group   'diary
   :type    'boolean
+  :initialize 'custom-initialize-default
+  :set 'diary-set-maybe-redraw
   :version "22.1")
 
 (defvar diary-selective-display nil)
@@ -282,7 +284,7 @@ The format of the header is specified by `diary-header-line-format'."
 before edit/copy"
                    "Diary"))
            ?\s (frame-width)))
-  "Format of the header line displayed by `diary-simple-display'.
+  "Format of the header line displayed by `simple-diary-display'.
 Only used if `diary-header-line-flag' is non-nil."
   :group   'diary
   :type    'sexp
@@ -300,6 +302,17 @@ This is not the same as just visiting the `diary-file'."
           (when dbuff
             (with-current-buffer dbuff
               diary-selective-display))))))
+
+(defun diary-set-maybe-redraw (symbol value)
+  "Set SYMBOL's value to VALUE, and redraw the diary if necessary.
+Redraws the diary if it is being displayed (note this is not the same as
+just visiting the `diary-file'), and SYMBOL's value is to be changed."
+  (let ((oldvalue (eval symbol)))
+    (custom-set-default symbol value)
+    (and (not (equal value oldvalue))
+         (diary-live-p)
+         ;; Note this assumes diary was called without prefix arg.
+         (diary))))
 
 (defcustom number-of-diary-entries 1
   "Specifies how many days of diary entries are to be displayed initially.
@@ -328,14 +341,7 @@ number of days of diary entries displayed."
 			 (integer :tag "Friday")
 			 (integer :tag "Saturday")))
   :initialize 'custom-initialize-default
-  ;; Redraw a live diary buffer if necessary. Note this assumes diary
-  ;; was not called with a prefix arg.
-  :set (lambda (symbol value)
-         (let ((oldvalue number-of-diary-entries))
-           (custom-set-default symbol value)
-           (and (not (equal value oldvalue))
-                (diary-live-p)
-                (diary))))
+  :set 'diary-set-maybe-redraw
   :group 'diary)
 
 
@@ -429,7 +435,10 @@ If LIST-ONLY is non-nil don't modify or display the buffer, only return a list."
             (or (verify-visited-file-modtime diary-buffer)
                 (revert-buffer t t))))
         ;; Setup things like the header-line-format and invisibility-spec.
-        (when (eq major-mode default-major-mode) (diary-mode))
+        ;; This used to only run if the major-mode was default-major-mode,
+        ;; but that meant eg changes to header-line-format did not
+        ;; take effect from one diary invocation to the next.
+        (diary-mode)
         ;; d-s-p is passed to the diary display function.
         (let ((diary-saved-point (point)))
           (save-excursion
