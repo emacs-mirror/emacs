@@ -1,22 +1,219 @@
+2007-03-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-process-filter): Cancel any pending isearch.
+
+2007-03-21  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el (icalendar-version): Increase to 0.15.
+	(icalendar--get-unfolded-buffer): Define actual arguments rather
+	than just using &rest.  Check replace-in-string is fbound.
+	(icalendar-import-buffer): Doc fix.
+	(icalendar--convert-ical-to-diary): Set diary-file.
+	Check diary-file before inserting final newline.
+	(icalendar--add-diary-entry): Return diary-file.
+
+2007-03-21  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (diary-set-maybe-redraw): Autoload it.
+	(diary-display-hook): Add custom :set function.
+
+	* calendar/diary-lib.el (diary-header-line-flag): Doc fix.
+	Add custom :set function.
+	(diary-header-line-format): Doc fix.
+	(diary-set-maybe-redraw): New function.
+	(number-of-diary-entries): Change :set to use diary-set-maybe-redraw.
+	(diary-list-entries): Always run diary-mode.
+
+2007-03-20  David Kastrup  <dak@gnu.org>
+
+	* files.el (magic-mode-alist): Require literal "%!PS" string for
+	magic postscript file detection.
+
+2007-03-20  Richard Stallman  <rms@gnu.org>
+
+	* textmodes/ispell.el (ispell-call-process): New function.
+	Defends against bad `default-directory.'
+	(ispell-check-version, ispell-find-aspell-dictionaries)
+	(ispell-get-aspell-config-value, lookup-words): Call it.
+	(ispell-call-process-region): New function.
+	(ispell-send-string): Call it.
+
+2007-03-20  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (custom-deps): Depend on $(lisp)/subdirs.el.
+	(finder-data): Likewise.
+	(autoloads): Likewise.
+
+2007-03-20  Martin Rudalics  <rudalics@gmx.at>
+
+	* files.el (basic-save-buffer): Do not set visited filename when
+	the corresponding directory does not exist or the specified
+	filename is that of an existing directory.
+
+2007-03-20  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-live-p): New function.
+	(number-of-diary-entries): Add a :set function to redisplay diary
+	when necessary.
+
+2007-03-19  Nick Roberts  <nickrob@snap.net.nz>
+
+	* t-mouse.el (t-mouse-make-event-element): Use timestamp output
+	from client program, mev, to compute mouse event.
+
+2007-03-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faces.el (momentary): Face removed; unused due to reversion of
+	2007-01-04 changes by Kevin Rodgers.
+
+	* mouse.el (mouse-drag-track): Remove spurious input-pending-p test.
+	Suggested by Johan Bockg,Ae(Brd.
+
+2007-03-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* font-lock.el (lisp-font-lock-keywords-1): Highlight
+	define-globalized-minor-mode as a keyword.
+
+2007-03-19  Kim F. Storm  <storm@cua.dk>
+
+	* calc/calc-forms.el (math-std-daylight-savings)
+	(math-std-daylight-savings-old): Doc fix.
+
+2007-03-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/python.el (python-default-template): Doc fix.
+	(python-buffer): Fix typo in docstring.
+
+	* isearchb.el (isearchb-follow-char):
+	* subr.el (def-edebug-spec): Fix typo in docstring.
+
+2007-03-19  Richard Stallman  <rms@gnu.org>
+
+	* files.el (default-directory): Mark safe.
+	(basic-save-buffer-2): Put proper dir name in error message.
+
+	* simple.el (compose-mail): Run switch-function after
+	setting up the mail buffer.
+
+	* startup.el (inhibit-splash-screen, initial-major-mode): Doc fixes.
+
+2007-03-18  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-forms.el (math-parse-date): Fix a regular expression.
+	(math-std-daylight-savings-new): Rename from
+	`math-std-daylight-savings'.
+	(math-std-daylight-savings-old): Rename from old value of
+	`math-std-daylight-savings'.
+	(math-std-daylight-savings): Use `math-std-daylight-savings-new' or
+	`math-std-daylight-savings-old' depending on the year.
+
+2007-03-18  Detlev Zundel  <dzu@gnu.org>
+
+	* emacs-lisp/re-builder.el (reb-update-overlays): Do not mark
+	zero-width regexps as invalid but rather at least count them
+	correctly.
+
+2007-03-18  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* net/tls.el (open-tls-stream): In handshake-waiting loop,
+	don't wait more if there is output available to process.
+
+2007-03-18  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/compile.el (compilation-find-file): Revert change
+	from 2006-07-18 to allow completion of directory names.
+	Reported by John Carter <john.carter@tait.co.nz>.
+
+2007-03-18  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (when, unless): Doc fix.
+
+2007-03-17  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* net/tls.el (tls-program): Doc fix.
+
+2007-03-17  Denis Bueno  <dbueno@gmail.com>  (tiny change)
+
+	* autorevert.el (auto-revert-tail-handler):
+	Call after-revert-hook.
+
+2007-03-17  Ryan Yeske  <rcyeske@gmail.com>
+
+	* simple.el (switch-to-completions): No error if search for \n\n fails.
+
+2007-03-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (line-move-1): Respect
+	`inhibit-line-move-field-capture' property.
+
+2007-03-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* comint.el (comint-arguments): Mark backslash-escaped chars.
+	(comint-delim-arg): Don't treat them as delimiters.
+
+2007-03-12  Kim F. Storm  <storm@cua.dk>
+	* ido.el (ido-init-completion-maps): Remap delete-backward-char.
+
+2007-03-12  Lawrence Mitchell  <wence@gmx.li>  (tiny change)
+
+	* tempo.el (tempo-insert): Deal with 'r> if it appears
+ 	specified with a prompt argument.
+
+2007-03-12  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-set-font-lock-defaults):
+	Handle narrow table columns correctly.
+
+2007-03-12  Mark A. Hershberger  <mah@everybody.org>
+
+	* xml.el (xml-parse-tag, xml-parse-string, xml-parse-attlist)
+	(xml-parse-dtd, xml-parse-elem-type, xml-substitute-special):
+	Return to use of the -no-properties variants.  There was
+	consensus on emacs-devel that the speed of these variants was
+	prefered since we are usually parsing files (from the internet
+	or on disk) instead of XML created in Emacs.
+
+	* eshell/esh-mode.el (eshell-handle-ansi-color): New function.
+	Add customize option.
+
+2007-03-12  Glenn Morris  <rgm@gnu.org>
+
+	* calc/calc-forms.el (math-std-daylight-savings): Switch to new
+	North American rule.  Replace "daylight savings" with "daylight
+	saving" in doc.
+
+	* calendar/cal-china.el,cal-dst.el,calendar.el,diary-lib.el:
+	* calendar/lunar.el,solar.el: Replace "daylight savings" with
+	"daylight saving" in text.
+
+	* woman.el (woman-change-fonts): Tweak previous change by using
+	woman-request-regexp rather than "^\\.".
+
+	* startup.el (command-line-1): Make insertion of
+	initial-scratch-message not depend on scratch being selected.
+
+2007-03-11  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (match): Use yellow background on light-bg terminals.
+
 2007-03-11  Richard Stallman  <rms@gnu.org>
 
-	* emacs-lisp/bytecomp.el (byte-compile-warning-prefix): 
+	* emacs-lisp/bytecomp.el (byte-compile-warning-prefix):
 	Correctly compute line number.
-	
+
 2007-03-11  Guanpeng Xu  <herberteuler@hotmail.com>
 
-	* type-break.el (type-break-get-previous-count): 
+	* type-break.el (type-break-get-previous-count):
 	Repeat previous change here.
 
 2007-03-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* progmodes/grep.el (grep-find-ignored-directories): Add .git and
-	.bzr to list.
+	* progmodes/grep.el (grep-find-ignored-directories):
+	Add .git and .bzr to list.
 
 2007-03-11  Andreas Schwab  <schwab@suse.de>
 
-	* diff-mode.el (diff-apply-hunk): Use proper format string for
-	error.
+	* diff-mode.el (diff-apply-hunk): Use proper format string for error.
 
 2007-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -51,7 +248,7 @@
 	(rcirc-nick-prefix-chars): Add variable.
 	(rcirc-user-nick): Use above variable.
 
-2007-03-10  Johan Bockg,be(Brd  <bojohan@dd.chalmers.se>
+2007-03-10  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
 	* icomplete.el (icomplete-tidy, icomplete-exhibit):
 	Bind deactivate-mark to nil.
@@ -206,7 +403,7 @@
 	* emacs-lisp/lisp-mode.el (calculate-lisp-indent):
 	Redo previous change.
 
-2007-03-04  Kevin Rodgers  <kevin.d.rodgers@gmail.com>
+2007-03-04  Kevin Rodgers  <kevin.d.rodgers@gmail.com> (tiny change)
 
 	* diff-mode.el (diff-mode): Doc fix.
 
@@ -1665,12 +1862,6 @@
 	* files.el (find-file-noselect-1, set-visited-file-name):
 	Allow backup-enable-predicate to be nil.
 
-2007-01-04  Kevin Rodgers  <kevin.d.rodgers@gmail.com>
-
-	* subr.el (momentary): New face.
-	(momentary-string-display): Display the string via a temporary
-	overlay using the new face, instead of inserting it in the buffer.
-
 2007-01-04  Andreas Schwab  <schwab@suse.de>
 
 	* progmodes/ebrowse.el (ebrowse-global-prefix-key): Fix typo in
@@ -1853,7 +2044,7 @@
 	* international/mule-cmds.el (select-safe-coding-system-interactively):
 	Fix message.
 
-2006-12-30  Kevin Rodgers  <kevin.d.rodgers@gmail.com>
+2006-12-30  Kevin Rodgers  <kevin.d.rodgers@gmail.com> (tiny change)
 
 	* files.el (backup-buffer): Show entire backup file name in msg.
 
@@ -2352,12 +2543,6 @@
 2006-12-09  Romain Francoise  <romain@orebokech.com>
 
 	* comint.el (comint-insert-input): Delete obsolete comment.
-
-2006-12-08  Kevin Rodgers  <ihs_4664@yahoo.com>
-
-	* files.el (insert-file-1): Compare file size to
-	large-file-warning-threshold and request confirmation when
-	warranted.
 
 2006-12-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -12231,14 +12416,6 @@
 	* files.el (magic-mode-regexp-match-limit): New defvar.
 	(set-auto-mode): Use it to limit magic-mode-alist matching.
 
-2006-02-04  Kevin Rodgers  <ihs_4664@yahoo.com>
-
-	* simple.el (display-message-or-buffer): Compare the number of
-	characters to the frame width when determining whether a 1-line
-	message string will fit in the echo area.  Count screen lines
-	instead of buffer lines when determining whether a multi-line
-	message will fit in the echo area/minibuffer window.
-
 2006-02-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* info.el (Info-index, Info-mode): Improve the description of the
@@ -12473,7 +12650,7 @@
 	English aspell dictionary is installed, use the first entry of
 	ispell-dictionary-alist-1.
 
-2006-01-27  Kevin Rodgers  <ihs_4664@yahoo.com>
+2006-01-27  Kevin Rodgers  <ihs_4664@yahoo.com> (tiny change)
 
 	* textmodes/flyspell.el (flyspell-incorrect, flyspell-duplicate):
 	Doc fix.
@@ -14495,7 +14672,7 @@
 	(hi-lock-find-patterns, hi-lock-font-lock-hook):
 	Replace hi-lock-buffer-mode with hi-lock-mode.
 
-2005-12-10  Kevin Rodgers  <ihs_4664@yahoo.com>
+2005-12-10  Kevin Rodgers  <ihs_4664@yahoo.com> (tiny change)
 
 	* emacs-lisp/lisp.el (lisp-complete-symbol): Regenerate the
 	completion list, even after a partial completion has been

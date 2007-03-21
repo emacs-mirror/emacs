@@ -60,7 +60,7 @@
 			 "openssl s_client -connect %h:%p -no_ssl2")
   "List of strings containing commands to start TLS stream to a host.
 Each entry in the list is tried until a connection is successful.
-%s is replaced with server hostname, %p with port to connect to.
+%h is replaced with server hostname, %p with port to connect to.
 The program should read input on stdin and write output to
 stdout.  Also see `tls-success' for what the program should output
 after successful negotiation."
@@ -146,8 +146,8 @@ Fourth arg PORT is an integer specifying a port to connect to."
 		      (set-buffer buffer) ;; XXX "blue moon" nntp.el bug
 		      (goto-char (point-min))
 		      (not (setq done (re-search-forward tls-success nil t)))))
-	  (accept-process-output process 1)
-	  (sit-for 1))
+	  (unless (accept-process-output process 1)
+            (sit-for 1)))
 	(message "Opening TLS connection with `%s'...%s" cmd
 		 (if done "done" "failed"))
 	(if done

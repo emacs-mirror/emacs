@@ -6,20 +6,10 @@ Tasks needed before the next release.
 make sure all the pages really look ok in the manual as formatted.
 
 ** Check for text in manuals that assumes current version is 21.
-eshell.texi 'Known Problems' (does section need updating?)
-cc-mode.texi 'Performance Issues': "21.3 as of this writing"
 
 ** Cleanup temporary +++/--- lines in etc/NEWS.
 
 ** Regenerate the postscript files of the reference cards in etc.
-As of 2007/2/26, only ps files older than the associated tex files are:
-  cs-dired-ref.ps sk-dired-ref.ps
-
-May need update for Emacs-22:
-dired-ref.tex cs-dired-ref.tex fr-drdref.tex sk-dired-ref.tex
-
-Fix overfull lines p3 fr-refcard.ps.
-
 
 ** Ask maintainers of refcard translations to update them.
 
@@ -28,7 +18,7 @@ Requests to have been sent out on 2006-05-23 (Reiner Steib).
 LANG	Translator            Status
 cs	Pavel Janík           Can't work on it now.
 de	Sven Joachim          Done
-fr	Eric Jacoboni         Done        (layout might be improved)
+fr	Eric Jacoboni         Done
 pl	Włodek Bzyl           Done
 pt-br	Rodrigo Real          Done
 ru	Alex Ott              Done
@@ -51,15 +41,14 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 ** henman@it.to-be.co.jp 09 Aug 2006: ispell.el problem on Cygwin.
   (Did we decide that is unreproducible?)
 
-** lennart.borgman@gmail.com, Feb 22: C-h k does not catch text properies keymaps
-
-
 * BUGS
 
-** Fix up copyright confusions.
-  See end of admin/notes/copyright.
+** Kevin Rodgers missing assignment
 
-** david.hansen@gmx.net, Mar 7: shell.el patch to install
+** flyspell and check-comments
+
+** lennart.borgman@gmail.com, Feb 22: C-h k does not catch text properties keymaps
+   Update: Problem is only seen when viper-mode is enabled.
 
 * DOCUMENTATION
 

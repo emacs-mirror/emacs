@@ -1150,7 +1150,7 @@ modified by the user.  Additional arguments are added when the command
 is used by `run-python' et al.")
 
 (defvar python-buffer nil
-  "*The current python process buffer.
+  "*The current Python process buffer.
 
 Commands that send text from source buffers to Python processes have
 to choose a process to send to.  This is determined by buffer-local
@@ -2088,7 +2088,7 @@ The default contents correspond to the elements of `python-skeletons'.")
   > _ \n)
 
 (defvar python-default-template "if"
-  "Default template to expand by `python-insert-template'.
+  "Default template to expand by `python-expand-template'.
 Updated on each expansion.")
 
 (defun python-expand-template (name)

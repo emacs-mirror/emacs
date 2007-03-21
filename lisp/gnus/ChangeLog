@@ -1,3 +1,27 @@
+2007-03-20  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* message.el (message-required-news-headers):
+	* gnus-util.el (gnus-intern-safe): Fix typo in docstring.
+
+2007-03-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-generate-new-buffers): Change the meaning of the
+	nil value; add `standard' to the choices; treat t as `unique'; improve
+	doc string.
+	(gnus-select-frame-set-input-focus): Autoload.
+	(message-buffer-name): Search for the existing message buffer if
+	message-generate-new-buffers is nil or `standard'; treat the value t of
+	message-generate-new-buffers as `unique'.
+	(message-pop-to-buffer): Raise the frame already displaying the message
+	buffer; clear the echo area after querying.
+	(message-setup): Pass the `continue' argument to compose-mail.
+	(message-mail): Prefer `switch-function' if it is given; search for the
+	existing message buffer if the `continue' argument is non-nil; pass
+	continue and switch-function arguments to compose-mail by way of
+	message-setup.
+	(message-mail-other-window): Adjust argument of message-setup.
+	(message-mail-other-frame): Ditto.
+
 2007-02-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* message.el (message-make-in-reply-to): Quote name containing

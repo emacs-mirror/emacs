@@ -766,9 +766,7 @@ Otherwise returns the library directory name, if that is defined."
 	(if buf (kill-buffer buf)))
       (set-buffer (get-buffer-create " *ispell-tmp*"))
       (erase-buffer)
-      (unless (file-exists-p default-directory)
-	(setq default-directory (expand-file-name "~/")))
-      (setq status (call-process
+      (setq status (ispell-call-process
 		    ispell-program-name nil t nil
 		    ;; aspell doesn't accept the -vv switch.
 		    (let ((case-fold-search
@@ -826,6 +824,22 @@ Otherwise returns the library directory name, if that is defined."
 		       t)))))
       (kill-buffer (current-buffer)))
     result))
+
+(defun ispell-call-process (&rest args)
+  "Like `call-process' but defend against bad `default-directory'."
+  (let ((default-directory default-directory))
+    (unless (and (file-directory-p default-directory)
+		 (file-readable-p default-directory))
+      (setq default-directory (expand-file-name "~/")))
+    (apply 'call-process args)))
+
+(defun ispell-call-process-region (&rest args)
+  "Like `call-process-region' but defend against bad `default-directory'."
+  (let ((default-directory default-directory))
+    (unless (and (file-directory-p default-directory)
+		 (file-readable-p default-directory))
+      (setq default-directory (expand-file-name "~/")))
+    (apply 'call-process-region args)))
 
 
 
@@ -895,7 +909,7 @@ and added as a submenu of the \"Edit\" menu.")
   (let* ((dictionaries
 	  (split-string
 	   (with-temp-buffer
-	     (call-process ispell-program-name nil t nil "dicts")
+	     (ispell-call-process ispell-program-name nil t nil "dicts")
 	     (buffer-string))))
 	 ;; Search for the named dictionaries.
 	 (found
@@ -928,7 +942,7 @@ and added as a submenu of the \"Edit\" menu.")
   "Return value of Aspell configuration option KEY.
 Assumes that value contains no whitespace."
   (with-temp-buffer
-    (call-process ispell-program-name nil t nil "config" key)
+    (ispell-call-process ispell-program-name nil t nil "config" key)
     (car (split-string (buffer-string)))))
 
 (defun ispell-aspell-find-dictionary (dict-name)
@@ -1470,7 +1484,8 @@ This allows it to improve the suggestion list based on actual mispellings."
 	      (erase-buffer)
 	      (set-buffer session-buf)
 	      (setq status
-		    (apply 'call-process-region (point-min) (point-max)
+		    (apply 'ispell-call-process-region
+			   (point-min) (point-max)
 			   ispell-program-name nil
 			   output-buf nil
 			   "-a" "-m" ispell-args))
@@ -2167,7 +2182,7 @@ Optional second argument contains the dictionary to use; the default is
 	    (while (search-backward "*" nil t) (insert "."))
 	    (setq word (buffer-string))
 	    (erase-buffer))
-	  (setq status (apply 'call-process prog nil t nil
+	  (setq status (apply 'ispell-call-process prog nil t nil
 			      (nconc (if (and args (> (length args) 0))
 					 (list args)
 				       (if look-p nil

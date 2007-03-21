@@ -507,7 +507,7 @@ Result is in julian centuries of ephemeris time."
 (defun solar-date-next-longitude (d l)
   "First moment on or after Julian day number D when sun's longitude is a
 multiple of L degrees at calendar-location-name with that location's
-local time (including any daylight savings rules).
+local time (including any daylight saving rules).
 
 L must be an integer divisor of 360.
 

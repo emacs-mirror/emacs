@@ -2191,7 +2191,7 @@ other modes in which C preprocessor directives are used. e.g. `asm-mode' and
 		"\\(advice\\|alias\\|generic\\|macro\\*?\\|method\\|"
 		"setf\\|subst\\*?\\|un\\*?\\|"
 		"ine-\\(condition\\|"
-		"\\(?:derived\\|\\(?:global-\\)?minor\\|generic\\)-mode\\|"
+		"\\(?:derived\\|\\(?:global\\(?:ized\\)?-\\)?minor\\|generic\\)-mode\\|"
 		"method-combination\\|setf-expander\\|skeleton\\|widget\\|"
 		"function\\|\\(compiler\\|modify\\|symbol\\)-macro\\)\\)\\|"
 		;; Variable declarations.

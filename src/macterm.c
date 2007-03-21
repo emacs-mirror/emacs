@@ -4486,25 +4486,24 @@ note_mouse_movement (frame, pos)
   last_mouse_motion_position = *pos;
   XSETFRAME (last_mouse_motion_frame, frame);
 
+  if (frame == dpyinfo->mouse_face_mouse_frame
 #if TARGET_API_MAC_CARBON
-  if (!PtInRect (*pos, GetWindowPortBounds (FRAME_MAC_WINDOW (frame), &r)))
+      && !PtInRect (*pos, GetWindowPortBounds (FRAME_MAC_WINDOW (frame), &r))
 #else
-  if (!PtInRect (*pos, &FRAME_MAC_WINDOW (frame)->portRect))
+      && !PtInRect (*pos, &FRAME_MAC_WINDOW (frame)->portRect)
 #endif
+      )
     {
-      if (frame == dpyinfo->mouse_face_mouse_frame)
-	/* This case corresponds to LeaveNotify in X11.  */
-	{
-	  /* If we move outside the frame, then we're certainly no
-	     longer on any text in the frame.  */
-	  clear_mouse_face (dpyinfo);
-	  dpyinfo->mouse_face_mouse_frame = 0;
-	  if (!dpyinfo->grabbed)
-	    rif->define_frame_cursor (frame,
-				      frame->output_data.mac->nontext_cursor);
-	}
-      return 1;
+      /* This case corresponds to LeaveNotify in X11.  If we move
+	 outside the frame, then we're certainly no longer on any text
+	 in the frame.  */
+      clear_mouse_face (dpyinfo);
+      dpyinfo->mouse_face_mouse_frame = 0;
+      if (!dpyinfo->grabbed)
+	rif->define_frame_cursor (frame,
+				  frame->output_data.mac->nontext_cursor);
     }
+
   /* Has the mouse moved off the glyph it was on at the last sighting?  */
   if (frame != last_mouse_glyph_frame
       || !PtInRect (*pos, &last_mouse_glyph))

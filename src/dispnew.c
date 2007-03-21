@@ -6360,7 +6360,12 @@ FILE = nil means just close any termscript file currently open.  */)
      (file)
      Lisp_Object file;
 {
-  if (termscript != 0) fclose (termscript);
+  if (termscript != 0)
+    {
+      BLOCK_INPUT;
+      fclose (termscript);
+      UNBLOCK_INPUT;
+    }
   termscript = 0;
 
   if (! NILP (file))
@@ -6383,6 +6388,7 @@ Control characters in STRING will have terminal-dependent effects.  */)
 {
   /* ??? Perhaps we should do something special for multibyte strings here.  */
   CHECK_STRING (string);
+  BLOCK_INPUT;
   fwrite (SDATA (string), 1, SBYTES (string), stdout);
   fflush (stdout);
   if (termscript)
@@ -6391,6 +6397,7 @@ Control characters in STRING will have terminal-dependent effects.  */)
 	      termscript);
       fflush (termscript);
     }
+  UNBLOCK_INPUT;
   return Qnil;
 }
 

@@ -371,7 +371,7 @@ buildobj.lst Ä
 	"{Src}coding.h" ¶
 		"{Src}ccl.h" ¶
 	"{Src}regex.h" ¶
-	"{Src}blockinput.h"
+	{BLOCKINPUT_H_GROUP}
 
 {Src}dispnew.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶
@@ -424,7 +424,7 @@ buildobj.lst Ä
 	{WINDOW_H_GROUP} ¶
 	"{Src}systime.h" ¶
 		"{Includes}sys:time.h" ¶
-	"{Src}blockinput.h"
+	{BLOCKINPUT_H_GROUP}
 
 {Src}emacs.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶
@@ -468,7 +468,7 @@ buildobj.lst Ä
 	"{Src}systime.h" ¶
 		"{Includes}sys:time.h" ¶
 	"{Src}commands.h" ¶
-	"{Src}blockinput.h"
+	{BLOCKINPUT_H_GROUP}
 
 {Src}filemode.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶
@@ -637,7 +637,8 @@ buildobj.lst Ä
 	"{Includes}epaths.h" ¶
 	"{Src}commands.h" ¶
 	"{Src}keyboard.h" ¶
-	"{Src}termhooks.h"
+	"{Src}termhooks.h" ¶
+	{BLOCKINPUT_H_GROUP}
 
 {Src}macros.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶
@@ -681,7 +682,8 @@ buildobj.lst Ä
 	{DISPEXTERN_H_GROUP} ¶
 	"{Src}termchar.h" ¶
 	"{Src}keyboard.h" ¶
-	{INTERVALS_H_GROUP}
+	{INTERVALS_H_GROUP} ¶
+	{BLOCKINPUT_H_GROUP}
 
 {Src}process.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶
@@ -788,7 +790,8 @@ buildobj.lst Ä
 	"{Src}cm.h" ¶
 	"{Src}macterm.h" ¶
 		"{Src}macgui.h" ¶
-		"{Src}frame.h"
+		"{Src}frame.h" ¶
+	{BLOCKINPUT_H_GROUP}
 
 {Src}termcap.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶

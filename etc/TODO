@@ -509,6 +509,9 @@ but which can also be used as a modifier).
 
 * Internal changes
 
+** Cleanup all the GC_ mark bit stuff -- there is no longer any distiction
+   since the mark bit is no longer stored in the Lisp_Object itself.
+
 ** Merge ibuffer.el and buff-menu.el.
    More specifically do what's needed to make ibuffer.el the default,
    or just an extension of buff-menu.el.

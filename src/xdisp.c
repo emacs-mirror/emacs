@@ -11032,7 +11032,7 @@ redisplay_internal (preserve_echo_area)
 	return;
     }
 
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (MAC_OS)
   if (popup_activated ())
     return;
 #endif
@@ -15047,7 +15047,7 @@ try_window_id (w)
     sync_frame_with_window_matrix_rows (w);
 
   /* Adjust buffer positions in reused rows.  */
-  if (delta)
+  if (delta || delta_bytes)
     increment_matrix_positions (current_matrix,
 				first_unchanged_at_end_vpos + dvpos,
 				bottom_vpos, delta, delta_bytes);
@@ -22977,7 +22977,7 @@ note_mouse_highlight (f, x, y)
   struct buffer *b;
 
   /* When a menu is active, don't highlight because this looks odd.  */
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (MAC_OS)
   if (popup_activated ())
     return;
 #endif

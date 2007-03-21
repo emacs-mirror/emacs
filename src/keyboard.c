@@ -142,10 +142,10 @@ KBOARD the_only_kboard;
    do not execute it; call disabled-command-function's value instead.  */
 Lisp_Object Qdisabled, Qdisabled_command_function;
 
-#define NUM_RECENT_KEYS (100)
+#define NUM_RECENT_KEYS (300)
 int recent_keys_index;	/* Index for storing next element into recent_keys */
 int total_keys;		/* Total number of elements stored into recent_keys */
-Lisp_Object recent_keys; /* A vector, holding the last 100 keystrokes */
+Lisp_Object recent_keys; /* Vector holds the last NUM_RECENT_KEYS keystrokes */
 
 /* Vector holding the key sequence that invoked the current command.
    It is reused for each command, and it may be longer than the current
@@ -3525,6 +3525,7 @@ record_char (c)
      If you, dear reader, have a better idea, you've got the source.  :-) */
   if (dribble)
     {
+      BLOCK_INPUT;
       if (INTEGERP (c))
 	{
 	  if (XUINT (c) < 0x100)
@@ -3550,6 +3551,7 @@ record_char (c)
 	}
 
       fflush (dribble);
+      UNBLOCK_INPUT;
     }
 }
 
@@ -9403,6 +9405,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		      if (!NILP (map) || !NILP (map2))
 			{
 			  from_string = string;
+			  keybuf[t++] = key;
+			  mock_input = t;
 			  goto replay_sequence;
 			}
 		    }
@@ -10289,7 +10293,7 @@ if there is a doubt, the value is t.  */)
 }
 
 DEFUN ("recent-keys", Frecent_keys, Srecent_keys, 0, 0, 0,
-       doc: /* Return vector of last 100 events, not counting those from keyboard macros.  */)
+       doc: /* Return vector of last 300 events, not counting those from keyboard macros.  */)
      ()
 {
   Lisp_Object *keys = XVECTOR (recent_keys)->contents;
@@ -10433,7 +10437,9 @@ If FILE is nil, close any open dribble file.  */)
 {
   if (dribble)
     {
+      BLOCK_INPUT;
       fclose (dribble);
+      UNBLOCK_INPUT;
       dribble = 0;
     }
   if (!NILP (file))

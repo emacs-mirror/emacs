@@ -5698,8 +5698,8 @@ characters or nil.  The value nil means display the character in the
 default fashion; otherwise, the characters from the vector are delivered
 to the screen instead of the original character.
 
-For example, (aset buffer-display-table ?X ?Y) will cause Emacs to display
-a capital Y instead of each X character.
+For example, (aset buffer-display-table ?X [?Y]) tells Emacs
+to display a capital Y instead of each X character.
 
 In addition, a char-table has six extra slots to control the display of:
 

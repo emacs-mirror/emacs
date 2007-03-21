@@ -1,3 +1,8 @@
+2007-03-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* makefile.MPW (dired.c.x, editfns.c.x, fileio.c.x, lread.c.x)
+	(print.c.x, term.c.x): Depend on BLOCKINPUT_H_GROUP.
+
 2007-02-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* inc/config.h: Sync with src/config.in.

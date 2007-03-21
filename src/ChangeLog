@@ -1,3 +1,96 @@
+2007-03-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* Makefile.in (alloca.o, gtkutil.o): Depend on systime.h.
+	(dired.o, editfns.o, fileio.o, msdos.o): Depend on atimer.h.
+	(dosfns.o, window.o, fns.o, macselect.o): Depend on atimer.h and
+	systime.h.
+	(term.o, print.o, lread.o): Depend on blockinput.h, atimer.h, and
+	systime.h.
+	(macfns.o): Remove duplicate dependency on systime.h.
+
+	* dispnew.c (Fopen_termscript): Add BLOCK_INPUT around fclose.
+	(Fsend_string_to_terminal): Add BLOCK_INPUT around fwrite.
+
+	* fileio.c (do_auto_save_unwind): Add BLOCK_INPUT around fclose.
+	(Fdo_auto_save): Add BLOCK_INPUT around fwrite.
+
+	* keyboard.c (record_char): Add BLOCK_INPUT around fwrite.
+	(Fopen_dribble_file): Add BLOCK_INPUT around fclose.
+
+	* lread.c: Include blockinput.h.
+	(readchar, Fget_file_char): Add BLOCK_INPUT around getc.
+	(unreadchar): Add BLOCK_INPUT around ungetc.
+	(load_unwind): Add BLOCK_INPUT around fclose.
+
+	* print.c: Include blockinput.h.
+	(Fredirect_debugging_output): Add BLOCK_INPUT around fclose.
+
+	* process.c (Fmake_network_process) [HAVE_GETADDRINFO]: Clear
+	immediate_quit before calling freeaddrinfo.  Add BLOCK_INPUT
+	around freeaddrinfo.
+
+	* term.c: Include blockinput.h.
+	(write_glyphs, insert_glyphs): Add BLOCK_INPUT around fwrite.
+
+2007-03-19  Richard Stallman  <rms@gnu.org>
+
+	* keyboard.c (NUM_RECENT_KEYS): Bump up to 300.
+
+	* buffer.c (syms_of_buffer): Doc fix.
+
+2007-03-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (pbm_load): Signal error for invalid image size.
+
+2007-03-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (note_mouse_movement): Don't return immediately for
+	LeaveNotify case.
+
+	* macmenu.c (popup_activated_flag): New variable.
+	(x_activate_menubar, mac_menu_show): Set it during menu tracking.
+	(popup_activated): New function.
+
+	* xdisp.c (redisplay_internal, note_mouse_highlight): Check
+	popup_activated for MAC_OS.
+
+2007-03-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* buffer.c (syms_of_buffer) <buffer-display-table>: Doc fix.
+	Reported by Nikolaj Schumacher <n_schumacher@web.de>.
+
+2007-03-17  Richard Stallman  <rms@gnu.org>
+
+	* dired.c (file_name_completion): gcpro NAME.
+
+2007-03-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (try_window_id): Increment matrix positions if the
+	buffer's byte count has increased, but not the character count.
+
+2007-03-12  Andreas Schwab  <schwab@suse.de>
+
+	* lisp.h: Declare check_obarray.
+
+	* process.c (Fdelete_process): Properly handle deletion of first
+	element of deleted_pid_list.
+	(create_process): Declare pid as pid_t.
+
+2007-03-12  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (sigchld_handler): Change type of pid to pid_t.
+	Scan deleted_pid_list explicitly to avoid using Fmember which don't
+	know about mark bits and make_fixnum_or_float which may malloc.
+	Reported by Andreas Schwab.
+
+	* keyboard.c (read_key_sequence): Store original event into keybuf
+	when replaying sequence with local keymap(s) from string.
+
+2007-03-12  Glenn Morris  <rgm@gnu.org>
+
+	* editfns.c (Fdecode_time, Fencode_time): Doc fix ("daylight
+	savings" to "daylight saving").
+
 2007-03-11  Sam Steingold  <sds@gnu.org>
 
 	* process.c (sigchld_handler): Sleep before wait3 to avoid a busyloop.
@@ -8,8 +101,8 @@
 
 2007-03-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* macterm.c [USE_CARBON_EVENTS] (mac_handle_mouse_event): Ignore
-	mouse wheel movement on title bar or tool bar.
+	* macterm.c [USE_CARBON_EVENTS] (mac_handle_mouse_event):
+	Ignore mouse wheel movement on title bar or tool bar.
 
 2007-03-10  Chong Yidong  <cyd@stupidchicken.com>
 
