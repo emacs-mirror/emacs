@@ -642,7 +642,7 @@ temporarily enables it to allow getting help on disabled items and buttons."
 	   (list
 	    key
 	    (prefix-numeric-value current-prefix-arg)
-	    ;; If KEY is a down-event, read and discard the
+	    ;; If KEY is a down-event, read and include the
 	    ;; corresponding up-event.  Note that there are also
 	    ;; down-events on scroll bars and mode lines: the actual
 	    ;; event then is in the second element of the vector.
