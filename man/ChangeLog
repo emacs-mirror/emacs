@@ -1,3 +1,12 @@
+2007-03-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.texi (Message Buffers): Update documentation for
+	message-generate-new-buffers.
+
+2007-03-15  Daiki Ueno  <ueno@unixuser.org>
+
+	* pgg.texi (Caching passphrase): Describe pgg-passphrase-coding-system.
+
 2007-03-21  Glenn Morris  <rgm@gnu.org>
 
 	* eshell.texi (Known problems): Emacs 22 comes with eshell 2.4.2.
