@@ -126,7 +126,6 @@
   (let* ((type (- (xterm-mouse-event-read) #o40))
 	 (x (- (xterm-mouse-event-read) #o40 1))
 	 (y (- (xterm-mouse-event-read) #o40 1))
-	 (time (current-time))
 	 ;; Emulate timestamp information.  This is accurate enough
 	 ;; for default value of mouse-1-click-follows-link (450msec).
 	 (timestamp (truncate
@@ -155,7 +154,7 @@
 	  xterm-mouse-y y)
     (setq
      last-input-event
-     (list mouse 
+     (list mouse
 	   (let ((event (if w
 			    (posn-at-x-y (- x left) (- y top) w t)
 			  (append (list nil 'menu-bar)
