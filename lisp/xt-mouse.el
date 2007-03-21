@@ -124,6 +124,8 @@
   (let* ((type (- (xterm-mouse-event-read) #o40))
 	 (x (- (xterm-mouse-event-read) #o40 1))
 	 (y (- (xterm-mouse-event-read) #o40 1))
+	 (time (current-time))
+	 (timestamp (+ ( * (nth 1 time) 1000 ) (/ (nth 2 time) 1000)))
 	 (mouse (intern
 		 ;; For buttons > 3, the release-event looks
 		 ;; differently (see xc/programs/xterm/button.c,
@@ -145,10 +147,13 @@
 	  xterm-mouse-y y)
     (setq
      last-input-event
-     (if w
-	 (list mouse (posn-at-x-y (- x left) (- y top) w t))
-       (list mouse
-	     (append (list nil 'menu-bar) (nthcdr 2 (posn-at-x-y x y w t))))))))
+     (list mouse 
+	   (let ((event (if w
+			    (posn-at-x-y (- x left) (- y top) w t)
+			  (append (list nil 'menu-bar)
+				  (nthcdr 2 (posn-at-x-y x y w t))))))
+	     (setcar (nthcdr 3 event) timestamp)
+	     event)))))
 
 ;;;###autoload
 (define-minor-mode xterm-mouse-mode
