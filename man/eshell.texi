@@ -474,7 +474,7 @@ find this package useful!
 @cindex known bugs
 @cindex bugs, known
 
-Below is complete list of known problems with Eshell version 2.4.1,
+Below is complete list of known problems with Eshell version 2.4.2,
 which is the version included with Emacs 22.
 
 @table @asis
