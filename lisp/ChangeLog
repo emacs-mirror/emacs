@@ -1,11 +1,15 @@
+2007-03-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-process-filter): Cancel any pending isearch.
+
 2007-03-21  Ulf Jasper  <ulf.jasper@web.de>
 
 	* calendar/icalendar.el (icalendar-version): Increase to 0.15.
 	(icalendar--get-unfolded-buffer): Define actual arguments rather
 	than just using &rest.  Check replace-in-string is fbound.
 	(icalendar-import-buffer): Doc fix.
-	(icalendar--convert-ical-to-diary): Set diary-file.  Check
-	diary-file before inserting final newline.
+	(icalendar--convert-ical-to-diary): Set diary-file.
+	Check diary-file before inserting final newline.
 	(icalendar--add-diary-entry): Return diary-file.
 
 2007-03-21  Glenn Morris  <rgm@gnu.org>
@@ -13,8 +17,8 @@
 	* calendar/calendar.el (diary-set-maybe-redraw): Autoload it.
 	(diary-display-hook): Add custom :set function.
 
-	* calendar/diary-lib.el (diary-header-line-flag): Doc fix.  Add
-	custom :set function.
+	* calendar/diary-lib.el (diary-header-line-flag): Doc fix.
+	Add custom :set function.
 	(diary-header-line-format): Doc fix.
 	(diary-set-maybe-redraw): New function.
 	(number-of-diary-entries): Change :set to use diary-set-maybe-redraw.
@@ -62,8 +66,8 @@
 	* faces.el (momentary): Face removed; unused due to reversion of
 	2007-01-04 changes by Kevin Rodgers.
 
-	* mouse.el (mouse-drag-track): Remove spurious input-pending-p
-	test.  Suggested by Johan Bockg,Ae(Brd.
+	* mouse.el (mouse-drag-track): Remove spurious input-pending-p test.
+	Suggested by Johan Bockg,Ae(Brd.
 
 2007-03-19  Martin Rudalics  <rudalics@gmx.at>
 
