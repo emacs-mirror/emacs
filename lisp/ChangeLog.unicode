@@ -1,3 +1,13 @@
+2007-03-09  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-def.el (installation-directory): Must be initialized when defining
+	it in XEmacs.
+	(coding-system-for-read): Eliminate duplicated definition.
+
+2007-03-05  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Replace some (defvar VAR) by (defvar VAR nil).
+
 2007-03-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el: Replace (defvar VAR nil) by (defvar VAR).

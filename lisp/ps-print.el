@@ -3800,7 +3800,7 @@ Note: No major/minor-mode is activated and no local variables are evaluated for
 	     filename))))
 
 
-(defvar ps-mark-code-directory)
+(defvar ps-mark-code-directory nil)
 
 (defvar ps-print-prologue-0 ""
   "ps-print PostScript error handler.")
@@ -3810,12 +3810,12 @@ Note: No major/minor-mode is activated and no local variables are evaluated for
 
 ;; Start Editing Here:
 
-(defvar ps-source-buffer)
+(defvar ps-source-buffer nil)
 (defvar ps-spool-buffer-name "*PostScript*")
-(defvar ps-spool-buffer)
+(defvar ps-spool-buffer nil)
 
-(defvar ps-output-head)
-(defvar ps-output-tail)
+(defvar ps-output-head nil)
+(defvar ps-output-tail nil)
 
 (defvar ps-page-postscript 0)		; page number
 (defvar ps-page-order 0)		; PostScript page counter
@@ -3825,29 +3825,29 @@ Note: No major/minor-mode is activated and no local variables are evaluated for
 (defvar ps-page-n-up 0)			; n-up counter
 (defvar ps-lines-printed 0)		; total lines printed
 (defvar ps-showline-count 1)		; line number counter
-(defvar ps-first-page)
-(defvar ps-last-page)
+(defvar ps-first-page nil)
+(defvar ps-last-page nil)
 (defvar ps-print-page-p t)
 
-(defvar ps-control-or-escape-regexp)
-(defvar ps-n-up-on)
+(defvar ps-control-or-escape-regexp nil)
+(defvar ps-n-up-on nil)
 
-(defvar ps-background-pages)
-(defvar ps-background-all-pages)
+(defvar ps-background-pages nil)
+(defvar ps-background-all-pages nil)
 (defvar ps-background-text-count 0)
 (defvar ps-background-image-count 0)
 
 (defvar ps-current-font 0)
-(defvar ps-default-foreground)
-(defvar ps-default-background)
-(defvar ps-default-color)
-(defvar ps-current-color)
-(defvar ps-current-bg)
+(defvar ps-default-foreground nil)
+(defvar ps-default-background nil)
+(defvar ps-default-color nil)
+(defvar ps-current-color nil)
+(defvar ps-current-bg nil)
 
-(defvar ps-zebra-stripe-full-p)
+(defvar ps-zebra-stripe-full-p nil)
 (defvar ps-razchunk 0)
 
-(defvar ps-color-p)
+(defvar ps-color-p nil)
 
 ;; These values determine how much print-height to deduct when headers/footers
 ;; are turned on.  This is a pretty clumsy way of handling it, but it'll do for
@@ -3867,20 +3867,20 @@ This is in units of points (1/72 inch).")
 (defmacro ps-page-dimensions-get-height (dims) `(nth 1 ,dims))
 (defmacro ps-page-dimensions-get-media  (dims) `(nth 2 ,dims))
 
-(defvar ps-landscape-page-height)
+(defvar ps-landscape-page-height nil)
 
-(defvar ps-print-width)
-(defvar ps-print-height)
+(defvar ps-print-width nil)
+(defvar ps-print-height nil)
 
-(defvar ps-height-remaining)
-(defvar ps-width-remaining)
+(defvar ps-height-remaining nil)
+(defvar ps-width-remaining nil)
 
-(defvar ps-font-size-internal)
-(defvar ps-header-font-size-internal)
-(defvar ps-header-title-font-size-internal)
-(defvar ps-footer-font-size-internal)
-(defvar ps-line-spacing-internal)
-(defvar ps-paragraph-spacing-internal)
+(defvar ps-font-size-internal nil)
+(defvar ps-header-font-size-internal nil)
+(defvar ps-header-title-font-size-internal nil)
+(defvar ps-footer-font-size-internal nil)
+(defvar ps-line-spacing-internal nil)
+(defvar ps-paragraph-spacing-internal nil)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -4077,10 +4077,10 @@ If EXTENSION is any other symbol, it is ignored."
        message-log-max))
 
 
-(defvar ps-print-hook)
-(defvar ps-print-begin-sheet-hook)
-(defvar ps-print-begin-page-hook)
-(defvar ps-print-begin-column-hook)
+(defvar ps-print-hook nil)
+(defvar ps-print-begin-sheet-hook nil)
+(defvar ps-print-begin-page-hook nil)
+(defvar ps-print-begin-column-hook nil)
 
 
 (defun ps-print-without-faces (from to &optional filename region-p)
@@ -4635,7 +4635,7 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 
 ;; These functions insert the arrays that define the contents of the headers.
 
-(defvar ps-encode-header-string-function)
+(defvar ps-encode-header-string-function nil)
 
 (defun ps-generate-header-line (fonttag &optional content)
   (ps-output " [" fonttag " ")
@@ -5908,7 +5908,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 			 (/ q-done (/ q-todo 100)))
 		       ))))))
 
-(defvar ps-last-font)
+(defvar ps-last-font nil)
 
 (defun ps-set-font (font)
   (setq ps-last-font (format "f%d" (setq ps-current-font font)))

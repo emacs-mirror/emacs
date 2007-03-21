@@ -20,7 +20,7 @@ C-c.  (Due caratteri.)  I caratteri ">>" posti al margine sinistro
 indicano le direttive per provare a usare un comando.  Per esempio:
 <<Blank lines inserted here by startup of help-with-tutorial>>
 >> Adesso premi C-v (Vedi schermata successiva) per spostarti
-   alla prossima schermata. (Vai avanti, tieni premuto il tasto
+   alla prossima schermata.  (Vai avanti, tieni premuto il tasto
    CONTROL mentre premi v).  D'ora in poi dovrai fare così ogni volta
    che finisci di leggere lo schermo.
 
@@ -44,7 +44,7 @@ I comandi seguenti sono utili per visualizzare le varie parti del testo:
     M-v    Vai indietro di una schermata
     C-l    Cancella lo schermo e riscrivi tutto il testo, muovendo
            il testo che si trova vicino al cursore al centro dello
-           schermo. (Il tasto è CONTROL-L, non CONTROL-1.)
+           schermo.  (Il tasto è CONTROL-L, non CONTROL-1.)
 
 >> Trova il cursore, osserva quale parte di testo gli è vicina.  Premi
    C-l.  Trova di nuovo il cursore e osserva che si trova sullo stesso
@@ -75,7 +75,7 @@ mostra le direzioni in cui operano questi quattro comandi:
    schermo.
 
 Le quattro lettere dei comandi sono mnemoniche in inglese: P per
-precedente (previuos), N per successivo (next), B per indietro (backward)
+precedente (previous), N per successivo (next), B per indietro (backward)
 e F per avanti (forward).  Questi sono tutti i comandi elementari per
 posizionare il cursore, li userai IN CONTINUAZIONE e conviene perciò
 impararli subito.
@@ -85,7 +85,7 @@ impararli subito.
    l'effetto di un C-p quando il cursore si trova a metà della riga.
 
 Ogni riga di testo termina con un carattere Newline, che serve a separarla
-dalla successiva. È bene che l'ultima riga del tuo file termini con un
+dalla successiva.  È bene che l'ultima riga del tuo file termini con un
 carattere Newline, benché Emacs non lo richieda.
 
 >> Prova a usare C-b all'inizio di una riga.  Sposterà il cursore
@@ -96,7 +96,7 @@ C-f sposta il cursore avanti attravero il carattere Newline proprio come
 C-b.
 
 >> Premi alcune volte C-b per vedere dove si trova il cursore.  Poi usa
-   C-f per tornare alla fine della riga. Usa quindi C-f per andare alla
+   C-f per tornare alla fine della riga.  Usa quindi C-f per andare alla
    riga successiva.
 
 Quando ci si sposta oltre l'inizio o la fine della schermata, il testo che
@@ -289,7 +289,7 @@ finestre.
    scompare.
 
 Questo comando è diverso da tutti quelli imparati finora perché contiene
-due caratteri.  Inizia con il carattere CONTROL-x. C'è un'ampia serie di
+due caratteri.  Inizia con il carattere CONTROL-x.  C'è un'ampia serie di
 comandi che iniziano con CONTROL-x; molti di essi riguardano finestre,
 file, buffer, e cose simili.  Questi comandi possono essere lunghi due,
 tre o quattro caratteri.
@@ -320,12 +320,12 @@ della posizione attuale del cursore.
 Quando una riga di testo diventa troppo lunga per essere visualizzata su
 una riga di schermo essa viene "continuata" su una seconda riga dello
 schermo.  Un carattere barra retroversa ("\") posto accanto al margine
-sinistro indica la prosecuzione della riga precedente. Quando si usa un
+sinistro indica la prosecuzione della riga precedente.  Quando si usa un
 sistema a finestre grafico, invece della barra retroversa comparirà una
 piccola freccia ricurva.
 
 >> Inserisci del testo fino a raggiungere il margine destro e poi
-   continua. Vedrai apparire la prosecuzione della riga.
+   continua.  Vedrai apparire la prosecuzione della riga.
 >> Usa <Delete> per cancellare il testo fino a quando la riga di testo è
    di nuovo tutta contenuta in una sola riga dello schermo.  La
    prosecuzione alla riga successiva scompare.
@@ -391,7 +391,7 @@ carattere o solo righe vuote e spazi effettuano una cancellazione (quindi
 non è possibile recuperare quel testo).
 
 >> Muovi il cursore all'inizio di una riga non vuota.  Usa C-k per
-   eliminare il testo di quella riga.  Premi C-k una seconda volta. Ti
+   eliminare il testo di quella riga.  Premi C-k una seconda volta.  Ti
    accorgerai di come viene cancellato il carattere Newline posto dopo la
    riga stessa.
 
@@ -423,7 +423,7 @@ quelle righe tutte assieme.
 Adesso, per recuperare il testo eliminato:
 
 >> Premi C-y.  Sposta il cursore alcune righe più in basso e premi di
-   nuovo C-y. Hai appena visto come copiare una parte di testo.
+   nuovo C-y.  Hai appena visto come copiare una parte di testo.
 
 Cosa succede se c'è del testo da recuperare tra quello eliminato ma è
 stato eliminato altro testo dopo di esso?  C-y restituirebbe il testo
@@ -439,11 +439,11 @@ trova.
 Quando si usa M-y un certo numero di volte si arriva di nuovo al testo di
 partenza (quello eliminato per ultimo).
 
->> Elimina una riga, sposta il cursore, elimina un'altra riga. Usa C-y per
+>> Elimina una riga, sposta il cursore, elimina un'altra riga.  Usa C-y per
    recuperare la seconda riga eliminata.  Premi M-y e verrà sostituita
    dalla riga eliminata prima.  Usa di nuovo M-y e osserva cosa succede.
    Continua fino a quando non ritrovi la riga che avevi eliminato per
-   seconda. Se vuoi puoi usare un argomento numerico sia positivo che
+   seconda.  Se vuoi puoi usare un argomento numerico sia positivo che
    negativo per M-y.
 
 
@@ -544,7 +544,7 @@ Quando il salvataggio è terminato Emacs mostra il nome del file appena
 scritto.  Si dovrebbero salvare le modifiche piuttosto spesso in modo da
 non perdere troppo lavoro se per caso il sistema dovesse bloccarsi.
 
->> Usa C-x C-f per salvare la tua copia di questa esercitazione. Questo
+>> Usa C-x C-f per salvare la tua copia di questa esercitazione.  Questo
    dovrebbe mostrare il messaggio "Wrote ...TUTORIAL.it" nella parte bassa
    dello schermo.
 
@@ -574,7 +574,7 @@ comando C-x C-f.  In questo modo si possono aprire quanti file si vogliono
 all'interno di Emacs.
 
 >> Crea un file chiamato "pippo" usando C-x C-f pippo <Invio>.  Inserisci
-   del testo e poi salva "pippo" con C-x C-s. Poi usa C-x C-f TUTORIAL.it
+   del testo e poi salva "pippo" con C-x C-s.  Poi usa C-x C-f TUTORIAL.it
    <Invio> per tornare all'esercitazione.
 
 Emacs conserva il testo di ogni file all'interno di un oggetto chiamato
@@ -600,7 +600,7 @@ file questo non comporta un salvataggio del primo.  Le modifiche rimangono
 solo all'interno di Emacs, nel buffer relativo a quel file.  La creazione
 o la modifica del buffer del secondo file non ha alcun effetto sul buffer
 del primo.  Sarebbe fastidioso dover tornare al primo file con C-x C-f per
-salvarlo con C-x C-s. Così c'è il comando
+salvarlo con C-x C-s.  Così c'è il comando
 
     C-x s    Salva alcuni buffer
 
@@ -608,8 +608,8 @@ C-x s chiede conferma del salvataggio per ogni buffer che contiene testo
 modificato e non ancora salvato.  Chiede, per ognuno di quei buffer, se si
 voglia salvarne il contenuto nel file corrispondente.
 
->> Inserisci una riga di testo e poi premi C-x s. Dovrebbe chiederti se
-   vuoi salvare il buffer chiamato TUTORIAL.it. Rispondi di sì battendo
+>> Inserisci una riga di testo e poi premi C-x s.  Dovrebbe chiederti se
+   vuoi salvare il buffer chiamato TUTORIAL.it.  Rispondi di sì battendo
    "y".
 
 
@@ -620,8 +620,8 @@ Emacs ha molti comandi in più rispetto a quelli che potrebbero trovare
 posto su tutti i caratteri CONTROL e META.  Emacs risolve questo problema
 usando il comando "estendi" (eXtend).  Ce ne sono di due tipi:
 
-    C-x    Comando esteso carattere. Seguito da un carattere.
-    M-x    Comando esteso con nome. Seguito da un nome di comando.
+    C-x    Comando esteso carattere.  Seguito da un carattere.
+    M-x    Comando esteso con nome.  Seguito da un nome di comando.
 
 Si tratta di comandi utili ma meno utilizzati di quelli che già osservati.
 Se ne sono visti due: il comando C-x C-f per visitare un file e quello C-x
@@ -652,7 +652,7 @@ sospensione di Emacs.  In circostanze normali, invece, se non si è sul
 punto di fare un log-out è meglio sospendere l'esecuzione di Emacs
 piuttosto che interromperla.
 
-Ci sono molti comandi che usano C-x. Ecco una lista di quelli già
+Ci sono molti comandi che usano C-x.  Ecco una lista di quelli già
 conosciuti:
 
     C-x C-f    Apri un file.
@@ -716,7 +716,7 @@ dello schermo.
 -----------
 
 La riga immediatamente sopra all'area di eco è chiamata "mode line" (riga
-di modo). La "mode line" si presenta più o meno così:
+di modo).  La "mode line" si presenta più o meno così:
 
 --:** TUTORIAL.it (Fundamental)--L720--64%---------------
 
@@ -736,7 +736,7 @@ La lettera L e le cifre indicano il numero di riga (Line) del punto
 indicato dal cursore in quel momento.
 
 I due asterischi vicino all'inizio indicano che sono state fatte delle
-modifiche al testo. Se il file è stato appena aperto o appena salvato
+modifiche al testo.  Se il file è stato appena aperto o appena salvato
 quella parte della "mode line" non mostra alcun asterisco, solo trattini.
 
 La parte di "mode line" racchiusa tra parentesi serve ad indicare in quale
@@ -999,13 +999,13 @@ La forma base di aiuto è data da C-h c.  Si inserisce C-h, il carattere c
 e poi un carattere o una sequenza di caratteri; Emacs mostrerà una breve
 descrizione del comando stesso.
 
->> Prova C-h c C-p. Dovresti leggere un messaggio del tipo
+>> Prova C-h c C-p.  Dovresti leggere un messaggio del tipo
 
     C-p runs the command previous-line (purtroppo in inglese!)
 
 Questo messaggio indica il "nome della funzione".  I nomi di funzione sono
 usati principalmente per personalizzare ed estendere Emacs e sono scelti
-anche in modo da indicare che cosa il comando fa. Servono quindi anche da
+anche in modo da indicare che cosa il comando fa.  Servono quindi anche da
 breve descrizione, sufficiente per ricordarsi di comandi già imparati.
 
 I comandi con più caratteri come ad esempio C-x C-s e (se non c'è il tasto
@@ -1036,7 +1036,7 @@ inserire il nome della variabile quando Emacs lo richiede.
 
     C-h a    "Apropos" comando.  Inserisci una parola ed Emacs ti
              elencherà tutti i comandi il cui nome contiene quella
-             parola. Questi comandi possono tutti essere eseguiti con
+             parola.  Questi comandi possono tutti essere eseguiti con
              META-x.  Per alcuni comandi ti sarà mostrata anche una
              sequenza di uno o due caratteri che serve a far partire il
              comando senza doverlo inserire per esteso.
@@ -1089,7 +1089,7 @@ distribuito con il permesso di farne copie a determinate condizioni:
    NOTA BENE: la licenza che definisce a tutti gli effetti i termini
    secondo i quali è possibile la copia e la distribuzione di questo
    documento è quella originale in lingua inglese contenuta nel file
-   "TUTORIAL". Qui di seguito se ne riporta una traduzione a scopo
+   "TUTORIAL".  Qui di seguito se ne riporta una traduzione a scopo
    indicativo, restando comunque inteso il fatto che è quella originale a
    fare fede.
 

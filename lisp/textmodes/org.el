@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.67
+;; Version: 4.67c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -83,7 +83,7 @@
 
 ;;; Version
 
-(defvar org-version "4.67"
+(defvar org-version "4.67c"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -5528,9 +5528,10 @@ this heading. "
 	      (org-done-string tr-org-done-string)
 	      (org-todo-regexp tr-org-todo-regexp)
 	      (org-todo-line-regexp tr-org-todo-line-regexp)
-	      (org-odd-levels-only (if (local-variable-p org-odd-levels-only)
-				       org-odd-levels-only
-				     tr-org-odd-levels-only)))
+	      (org-odd-levels-only
+	       (if (local-variable-p 'org-odd-levels-only)
+		   org-odd-levels-only
+		 tr-org-odd-levels-only)))
 	  (goto-char (point-min))
 	  (if heading
 	      (progn
@@ -6323,7 +6324,7 @@ is always the old value."
       (let* ((pos (match-beginning 0))
 	     (val (buffer-substring (1+ pos) (match-end 0))))
 	(if replace
-	    (replace-match (concat "|" replace)))
+	    (replace-match (concat "|" replace) t t))
 	(goto-char (min (point-at-eol) (+ 2 pos)))
 	val)
     (forward-char 1) ""))
@@ -11613,21 +11614,22 @@ With prefix ARG, realign all tags in headings in the current buffer."
       (if just-align
 	  (setq tags current)
 	;; Get a new set of tags from the user
-	(setq table (or org-tag-alist (org-get-buffer-tags))
-	      org-last-tags-completion-table table
-	      current-tags (org-split-string current ":")
-	      inherited-tags (nreverse
-			      (nthcdr (length current-tags)
-				      (nreverse (org-get-tags-at))))
-	      tags
-	      (if (or (eq t org-use-fast-tag-selection)
-		      (and org-use-fast-tag-selection
-			   (delq nil (mapcar 'cdr table))))
-		  (org-fast-tag-selection current-tags inherited-tags table)
-		(let ((org-add-colon-after-tag-completion t))
-		  (org-trim
-		   (completing-read "Tags: " 'org-tags-completion-function
-				    nil nil current 'org-tags-history)))))
+	(save-excursion
+	  (setq table (or org-tag-alist (org-get-buffer-tags))
+		org-last-tags-completion-table table
+		current-tags (org-split-string current ":")
+		inherited-tags (nreverse
+				(nthcdr (length current-tags)
+					(nreverse (org-get-tags-at))))
+		tags
+		(if (or (eq t org-use-fast-tag-selection)
+			(and org-use-fast-tag-selection
+			     (delq nil (mapcar 'cdr table))))
+		    (org-fast-tag-selection current-tags inherited-tags table)
+		  (let ((org-add-colon-after-tag-completion t))
+		    (org-trim
+		     (completing-read "Tags: " 'org-tags-completion-function
+				      nil nil current 'org-tags-history))))))
 	(while (string-match "[-+&]+" tags)
 	  ;; No boolean logic, just a list
 	  (setq tags (replace-match ":" t t tags))))
@@ -11635,7 +11637,7 @@ With prefix ARG, realign all tags in headings in the current buffer."
           (setq tags "")
 	(unless (string-match ":$" tags) (setq tags (concat tags ":")))
 	(unless (string-match "^:" tags) (setq tags (concat ":" tags))))
-
+      
       ;; Insert new tags at the correct column
       (beginning-of-line 1)
       (if (re-search-forward
@@ -11650,7 +11652,7 @@ With prefix ARG, realign all tags in headings in the current buffer."
 					org-tags-column
 				      (- (- org-tags-column) (length tags))))
 		    rpl (concat (make-string (max 0 (- c1 c0)) ?\ ) tags)))
-	    (replace-match rpl)
+	    (replace-match rpl t t)
 	    (and (not (featurep 'xemacs)) c0 (tabify p0 (point)))
 	    tags)
 	(error "Tags alignment failed")))))
@@ -12981,6 +12983,7 @@ The following commands are available:
 (define-key org-agenda-mode-map "\C-m"     'org-agenda-switch-to)
 (define-key org-agenda-mode-map "\C-k"     'org-agenda-kill)
 (define-key org-agenda-mode-map "\C-c$"    'org-agenda-archive)
+(define-key org-agenda-mode-map "\C-c\C-x\C-s" 'org-agenda-archive)
 (define-key org-agenda-mode-map "$"        'org-agenda-archive)
 (define-key org-agenda-mode-map "\C-c\C-o" 'org-agenda-open-link)
 (define-key org-agenda-mode-map " "        'org-agenda-show)
@@ -13631,7 +13634,7 @@ Optional argument FILE means, use this file instead of the current."
 	    (when org-agenda-skip-archived-trees
 	      (goto-char (point-min))
 	      (while (re-search-forward rea nil t)
-		(if (org-on-heading-p)
+		(if (org-on-heading-p t)
 		    (add-text-properties (point-at-bol) (org-end-of-subtree t) pa))))
 	    (goto-char (point-min))
 	    (setq re (concat "^\\*+ +" org-comment-string "\\>"))
@@ -14465,6 +14468,7 @@ the documentation of `org-diary'."
 	    (goto-char beg)
 	    (or org-agenda-todo-list-sublevels (org-end-of-subtree 'invisible))
 	    (throw :skip nil)))
+	(goto-char beg)
 	(org-agenda-skip)
 	(goto-char (match-beginning 1))
 	(setq marker (org-agenda-new-marker (1+ (match-beginning 0)))

@@ -404,8 +404,6 @@ LIBXT=$(LIBW)
 #endif /* not USE_X_TOOLKIT */
 
 #if HAVE_XFT
-#undef LIB_X11_LIB /* XFT_LIBS includes -lX11 */
-#define LIB_X11_LIB
 XFT_LIBS=@XFT_LIBS@
 #endif /* HAVE_XFT */
 
@@ -938,8 +936,9 @@ SOME_MACHINE_LISP = ${dotdot}/lisp/mouse.elc \
    with GCC, we might need gnulib again after them.  */
 LIBES = $(LOADLIBES) $(LIBS) $(LIBX) $(LIBSOUND) \
    LIBS_SYSTEM LIBS_MACHINE LIBS_TERMCAP \
-   LIBS_DEBUG $(GETLOADAVG_LIBS) $(GNULIB_VAR) LIB_MATH LIB_STANDARD \
-   $(GNULIB_VAR) @FREETYPE_LIBS@ @FONTCONFIG_LIBS@ @LIBOTF_LIBS@
+   LIBS_DEBUG $(GETLOADAVG_LIBS) \
+   @FREETYPE_LIBS@ @FONTCONFIG_LIBS@ @LIBOTF_LIBS@ \
+   $(GNULIB_VAR) LIB_MATH LIB_STANDARD $(GNULIB_VAR)
 
 /* Enable recompilation of certain other files depending on system type.  */
 

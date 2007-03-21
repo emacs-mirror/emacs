@@ -1,5 +1,5 @@
 Most of the files in this directory are originally from the X11R2
-XMenu library, distributed under the terms in the file copyright.h.
+XMenu library, distributed by MIT under the terms in the file copyright.h.
 
 As of Release 2 of the X Window System, Version 11 from MIT, the XMenu
 library is no longer supported.  It is not used in any software
@@ -14,7 +14,6 @@ The following files are from the X11 oldXMenu/ directory:
  DelSel.c Destroy.c Error.c EvHand.c FindPane.c FindSel.c InsPane.c
  InsSel.c Internal.c Locate.c Post.c Recomp.c SetAEQ.c SetFrz.c
  SetPane.c SetSel.c XMenu.h XMenuInt.h (renamed from "XMenuInternal.h")
- Imakefile
 
 The following files are from the X11 oldX/ directory:
 

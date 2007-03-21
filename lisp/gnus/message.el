@@ -4864,13 +4864,32 @@ If NOW, use that time instead."
 	  (msg-id (mail-header-message-id message-reply-headers)))
       (when from
 	(let ((name (mail-extract-address-components from)))
-	  (concat msg-id (if msg-id " (")
-		  (or (car name)
-		      (nth 1 name))
-		  "'s message of \""
-		  (if (or (not date) (string= date ""))
-		      "(unknown date)" date)
-		  "\"" (if msg-id ")")))))))
+	  (concat
+	   msg-id (if msg-id " (")
+	   (if (car name)
+	       (if (string-match "[^\000-\177]" (car name))
+		   ;; Quote a string containing non-ASCII characters.
+		   ;; It will make the RFC2047 encoder cause an error
+		   ;; if there are special characters.
+		   (let ((default-enable-multibyte-characters t))
+		     (with-temp-buffer
+		       (insert (car name))
+		       (goto-char (point-min))
+		       (while (search-forward "\"" nil t)
+			 (when (prog2
+				   (backward-char)
+				   (zerop (% (skip-chars-backward "\\\\") 2))
+				 (goto-char (match-beginning 0)))
+			   (insert "\\"))
+			 (forward-char))
+		       ;; Those quotes will be removed by the RFC2047 encoder.
+		       (concat "\"" (buffer-string) "\"")))
+		 (car name))
+	     (nth 1 name))
+	   "'s message of \""
+	   (if (or (not date) (string= date ""))
+	       "(unknown date)" date)
+	   "\"" (if msg-id ")")))))))
 
 (defun message-make-distribution ()
   "Make a Distribution header."

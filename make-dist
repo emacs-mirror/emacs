@@ -558,7 +558,7 @@ echo "Making links to \`msdos'"
 echo "Making links to \`oldXMenu'"
 (cd oldXMenu
  ln *.c *.h *.in ../${tempdir}/oldXMenu
- ln README Imakefile ChangeLog ../${tempdir}/oldXMenu
+ ln README ChangeLog ../${tempdir}/oldXMenu
  ln compile.com descrip.mms ../${tempdir}/oldXMenu)
 
 echo "Making links to \`lwlib'"
@@ -609,7 +609,7 @@ echo "Making links to \`etc/e'"
 
 echo "Making links to \`etc/images'"
 (cd etc/images
- for img in [a-zA-Z]*.xpm [a-zA-Z]*.xbm [a-zA-Z]*.pbm; do
+ for img in README [a-zA-Z]*.xpm [a-zA-Z]*.xbm [a-zA-Z]*.pbm; do
    if [ -f $img ]; then
      ln $img ../../${tempdir}/etc/images
    fi

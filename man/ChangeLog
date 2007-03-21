@@ -1,12 +1,28 @@
+2007-02-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (NNTP): Mention nntp-never-echoes-commands and
+	nntp-open-connection-functions-never-echo-commands.
+
+2007-02-28  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* rmail.texi (Movemail): Add internal ref.
+	Don't indent the intro for the PROTO table.
+	Format PROTO table items with @code.
+
+2007-02-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pgg.texi (Caching passphrase): Document gpg-agent usage, gpg-agent
+	problems on the console, and security risk in not using gpg-agent.
+
 2007-02-26  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi: Remove references to bashdb.
 
 2007-02-25  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi: (The spreadsheet): Renamed from "Table calculations".
+	* org.texi (The spreadsheet): Renamed from "Table calculations".
 	Completely reorganized and rewritten.
-	(CamelCase links): Section removed. 
+	(CamelCase links): Section removed.
 	(Repeating items): New section.
 	(Tracking TODO state changes): New section.
 	(Agenda views): Chapter reorganized and rewritten.
