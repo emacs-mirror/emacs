@@ -1,3 +1,9 @@
+2007-03-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* complete.el (read-file-name-internal): Don't add the final > if the
+	completion is not finished (re-application of this patch, which was
+	accidentally undone by Eli).
+
 2007-03-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emulation/viper.el (viper-non-hook-settings): Handle mouse
