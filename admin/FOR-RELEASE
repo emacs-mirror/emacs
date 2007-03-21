@@ -47,9 +47,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** flyspell and check-comments
 
-** lennart.borgman@gmail.com, Feb 22: C-h k does not catch text properties keymaps
-   Update: Problem is only seen when viper-mode is enabled.
-
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
