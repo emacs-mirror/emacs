@@ -1242,8 +1242,17 @@ Res TraceFix(ScanState ss, Ref *refIO)
         /* Could move the rank switch here from the class-specific */
         /* fix methods. */
         res = PoolFix(pool, ss, seg, refIO);
-        if (res != ResOK)
+        if (res != ResOK) {
+          /* Fix protocol (de facto): if Fix fails, ref must be unchanged */
+          /* Justification for this restriction:
+           * A: it simplifies;
+           * B: it's reasonable (given what may cause Fix to fail);
+           * C: the code (here) already assumes this: it returns without 
+           *    updating ss->fixedSummary.  RHSK 2007-03-21.
+           */
+          AVER(*refIO == ref);
           return res;
+        }
       }
     } else {
       /* Tract isn't white. Don't compute seg for non-statistical */
