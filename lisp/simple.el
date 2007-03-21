@@ -758,7 +758,7 @@ Don't use this command in Lisp programs!
 			     (/ size 10))
 			(/ (+ 10 (* size (prefix-numeric-value arg))) 10)))
 		 (point-min))))
-  (if arg (forward-line 1)))
+  (if (and arg (not (consp arg))) (forward-line 1)))
 
 (defun end-of-buffer (&optional arg)
   "Move point to the end of the buffer; leave mark at previous position.
@@ -785,7 +785,7 @@ Don't use this command in Lisp programs!
 		 (point-max))))
   ;; If we went to a place in the middle of the buffer,
   ;; adjust it to the beginning of a line.
-  (cond (arg (forward-line 1))
+  (cond ((and arg (not (consp arg))) (forward-line 1))
 	((> (point) (window-end nil t))
 	 ;; If the end of the buffer is not already on the screen,
 	 ;; then scroll specially to put it near, but not at, the bottom.
@@ -1005,6 +1005,9 @@ in *Help* buffer.  See also the command `describe-char'."
 
 (defvar read-expression-history nil)
 
+(defvar minibuffer-completing-symbol nil
+  "Non-nil means completing a Lisp symbol in the minibuffer.")
+
 (defcustom eval-expression-print-level 4
   "Value for `print-level' while printing value in `eval-expression'.
 A value of nil means no limit."
@@ -1056,9 +1059,10 @@ the echo area.
 If `eval-expression-debug-on-error' is non-nil, which is the default,
 this command arranges for all errors to enter the debugger."
   (interactive
-   (list (read-from-minibuffer "Eval: "
-			       nil read-expression-map t
-			       'read-expression-history)
+   (list (let ((minibuffer-completing-symbol t))
+	   (read-from-minibuffer "Eval: "
+				 nil read-expression-map t
+				 'read-expression-history))
 	 current-prefix-arg))
 
   (if (null eval-expression-debug-on-error)
@@ -5088,7 +5092,8 @@ of the minibuffer before point is always the common substring.)")
     ;; so it will get copied into the completion list buffer.
     (if minibuffer-completing-file-name
 	(with-current-buffer mainbuf
-	  (setq default-directory (file-name-directory mbuf-contents))))
+	  (setq default-directory
+                (file-name-directory (expand-file-name mbuf-contents)))))
     (with-current-buffer standard-output
       (completion-list-mode)
       (set (make-local-variable 'completion-reference-buffer) mainbuf)
@@ -5108,6 +5113,7 @@ of the minibuffer before point is always the common substring.)")
 		(save-excursion
 		  (skip-chars-backward completion-root-regexp)
 		  (- (point) (minibuffer-prompt-end)))))
+	     (minibuffer-completing-symbol nil)
 	     ;; Otherwise, in minibuffer, the base size is 0.
 	     ((minibufferp mainbuf) 0)))
       (setq common-string-length

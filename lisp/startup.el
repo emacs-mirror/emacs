@@ -1143,13 +1143,13 @@ regardless of the value of this variable."
                ;; If there is a specific tutorial for the current language
                ;; environment and it is not English, append its title.
                (concat
-                "Emacs Tutorial\tLearn how to use Emacs efficiently"
+                "Emacs Tutorial\t\tLearn how to use Emacs efficiently"
                 (if (string= en tut)
                     ""
                   (concat " (" title ")"))
                 "\n")))
            :face variable-pitch "\
-Emacs FAQ\tFrequently asked questions and answers
+Emacs FAQ\t\tFrequently asked questions and answers
 View Emacs Manual\tView the Emacs manual using Info
 Absence of Warranty\tGNU Emacs comes with "
 	   :face (variable-pitch :slant oblique)
@@ -1159,12 +1159,13 @@ Absence of Warranty\tGNU Emacs comes with "
 Copying Conditions\tConditions for redistributing and changing Emacs
 Getting New Versions\tHow to obtain the latest version of Emacs
 More Manuals / Ordering Manuals       Buying printed manuals from the FSF\n")
-  (:face (variable-pitch :weight bold)
+  (:face variable-pitch
 	 "To quit a partially entered command, type "
 	 :face default
 	 "Control-g"
 	 :face variable-pitch
-	 "."
+	 ".\n"
+	 :face (variable-pitch :weight bold)
 	 "Useful File menu items:\n"
 	 :face variable-pitch
 	 "Exit Emacs\t\t(Or type "
@@ -1299,8 +1300,7 @@ using the mouse.\n\n")
      :face 'variable-pitch
      "Type "
      :face 'default
-     (substitute-command-keys
-      "\\[recenter]")
+     "Control-l"
      :face 'variable-pitch
      " to begin editing"
      (if (equal (buffer-name fancy-splash-outer-buffer)

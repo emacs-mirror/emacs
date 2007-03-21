@@ -1795,8 +1795,8 @@ or as help on variables `cperl-tips', `cperl-problems',
 	((boundp 'compilation-error-regexp-alist);; xmeacs 19.x
 	 (make-local-variable 'compilation-error-regexp-alist)
 	 (set 'compilation-error-regexp-alist
-	       (cons cperl-compilation-error-regexp-alist
-		     (symbol-value 'compilation-error-regexp-alist)))))
+	       (append cperl-compilation-error-regexp-alist
+		       (symbol-value 'compilation-error-regexp-alist)))))
   (make-local-variable 'font-lock-defaults)
   (setq	font-lock-defaults
 	(cond

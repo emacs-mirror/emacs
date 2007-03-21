@@ -2450,6 +2450,17 @@ Lisp_Object print_help ();
 static Lisp_Object kbd_buffer_get_event ();
 static void record_char ();
 
+static Lisp_Object help_form_saved_window_configs;
+static Lisp_Object
+read_char_help_form_unwind (arg)
+{
+  Lisp_Object window_config = XCAR (help_form_saved_window_configs);
+  help_form_saved_window_configs = XCDR (help_form_saved_window_configs);
+  if (!NILP (window_config))
+    Fset_window_configuration (window_config);
+  return Qnil;
+}
+
 #ifdef MULTI_KBOARD
 static jmp_buf wrong_kboard_jmpbuf;
 #endif
@@ -3319,8 +3330,10 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       Lisp_Object tem0;
       count = SPECPDL_INDEX ();
 
-      record_unwind_protect (Fset_window_configuration,
-			     Fcurrent_window_configuration (Qnil));
+      help_form_saved_window_configs
+	= Fcons (Fcurrent_window_configuration (Qnil),
+		 help_form_saved_window_configs);
+      record_unwind_protect (read_char_help_form_unwind, Qnil);
 
       tem0 = Feval (Vhelp_form);
       if (STRINGP (tem0))
@@ -3328,7 +3341,12 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
 
       cancel_echoing ();
       do
-	c = read_char (0, 0, 0, Qnil, 0, NULL);
+	{
+	  c = read_char (0, 0, 0, Qnil, 0, NULL);
+	  if (EVENT_HAS_PARAMETERS (c)
+	      && EQ (EVENT_HEAD_KIND (EVENT_HEAD (c)), Qmouse_click))
+	    XSETCAR (help_form_saved_window_configs, Qnil);
+	}
       while (BUFFERP (c));
       /* Remove the help from the frame */
       unbind_to (count, Qnil);
@@ -11334,6 +11352,9 @@ syms_of_keyboard ()
   menu_bar_items_vector = Qnil;
   staticpro (&menu_bar_items_vector);
 
+  help_form_saved_window_configs = Qnil;
+  staticpro (&help_form_saved_window_configs);
+
   defsubr (&Scurrent_idle_time);
   defsubr (&Sevent_convert_list);
   defsubr (&Sread_key_sequence);
@@ -11396,7 +11417,7 @@ An element of the form (t . EVENT) forces EVENT to be added to that list.  */);
   DEFVAR_LISP ("unread-post-input-method-events", &Vunread_post_input_method_events,
 	       doc: /* List of events to be processed as input by input methods.
 These events are processed before `unread-command-events'
-and actual keyboard input without given to `input-method-function'.  */);
+and actual keyboard input, but are not given to `input-method-function'.  */);
   Vunread_post_input_method_events = Qnil;
 
   DEFVAR_LISP ("unread-input-method-events", &Vunread_input_method_events,

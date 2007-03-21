@@ -1130,10 +1130,16 @@ cperl-mode and make-mode support this.
 
 ---
 *** The default settings for JIT stealth lock parameters are changed.
-The default value for the user option jit-lock-stealth-time is now 16
-instead of 3, and the default value of jit-lock-stealth-nice is now
-0.5 instead of 0.125.  The new defaults should lower the CPU usage
-when Emacs is fontifying in the background.
+The default value for the user option jit-lock-stealth-time is now nil
+instead of 3.  This setting of jit-lock-stealth-time disables stealth
+fontification: on today's machines, it may be a bug in font lock
+patterns if fontification otherwise noticeably degrades interactivity.
+If you find movement in infrequently visited buffers sluggish (and the
+major mode maintainer has no better idea), customizing
+jit-lock-stealth-time to a non-nil value will let Emacs fontify
+buffers in the background when it considers the system to be idle.
+jit-lock-stealth-nice is now 0.5 instead of 0.125 which is supposed to
+cause less load than the old defaults.
 
 ---
 *** jit-lock can now be delayed with `jit-lock-defer-time'.

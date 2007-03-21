@@ -13283,8 +13283,15 @@ redisplay_window (window, just_this_one_p)
 
       /* If first window line is a continuation line, and window start
 	 is inside the modified region, but the first change is before
-	 current window start, we must select a new window start.*/
+	 current window start, we must select a new window start.
+
+	 However, if this is the result of a down-mouse event (e.g. by
+	 extending the mouse-drag-overlay), we don't want to select a
+	 new window start, since that would change the position under
+	 the mouse, resulting in an unwanted mouse-movement rather
+	 than a simple mouse-click.  */
       if (NILP (w->start_at_line_beg)
+	  && NILP (do_mouse_tracking)
 	  && CHARPOS (startp) > BEGV)
 	{
 	  /* Make sure beg_unchanged and end_unchanged are up to date.

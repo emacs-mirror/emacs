@@ -1,3 +1,7 @@
+;;; The code here is forced by the interface, and is not subject to
+;;; copyright, constituting the only possible expression of the algorithm
+;;; in this format.
+
 ;;; This file is designed for an 8-bit connection.
 ;;; Use the file ms-7bkermit if you have a 7-bit connection.
 

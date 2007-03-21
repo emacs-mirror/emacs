@@ -8,8 +8,11 @@
 * For the impatient
 
   Here are the concise instructions for configuring and building the
-  native Win32 binary of Emacs on Windows, for those who want to skip
-  the complex explanations and ``just do it'':
+  native Windows binary of Emacs, for those who want to skip the
+  complex explanations and ``just do it'':
+
+  Do not use this recipe with Cygwin.  For building on Cygwin,
+  use the normal installation instructions, ../INSTALL.
 
   1. Change to the `nt' directory (the directory of this file):
 
@@ -74,6 +77,11 @@
   file.
 
 * Preliminaries
+
+  If you want to build a Cygwin port of Emacs, use the instructions in
+  the INSTALL file in the main Emacs directory (the parent of this
+  directory).  These instructions are for building a native Windows
+  binary of Emacs.
 
   If you used WinZip to unpack the distribution, we suggest to
   remove the files and unpack again with a different program!

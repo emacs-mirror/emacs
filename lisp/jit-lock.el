@@ -74,14 +74,14 @@ This variable controls both display-time and stealth fontification."
   :group 'jit-lock)
 
 
-(defcustom jit-lock-stealth-time 16
+(defcustom jit-lock-stealth-time nil
   "*Time in seconds to wait before beginning stealth fontification.
 Stealth fontification occurs if there is no input within this time.
 If nil, stealth fontification is never performed.
 
 The value of this variable is used when JIT Lock mode is turned on."
   :type '(choice (const :tag "never" nil)
-		 (number :tag "seconds"))
+		 (number :tag "seconds" :value 16))
   :group 'jit-lock)
 
 

@@ -1,7 +1,10 @@
+2007-03-09  Richard Stallman  <rms@gnu.org>
+
+	* INSTALL: Say explicitly this is not for Cygwin.
+
 2007-03-03  Eli Zaretskii  <eliz@gnu.org>
 
-	* INSTALL: Add URL of another site with detailed build
-	instructions.
+	* INSTALL: Add URL of another site with detailed build instructions.
 
 2007-02-16  Glenn Morris  <rgm@gnu.org>
 
@@ -9,8 +12,8 @@
 	* icons/gnu2b48t.ico, icons/gnu3b32.ico, icons/gnu3b32t.ico:
 	* icons/gnu4g48.ico, icons/gnu4g48t.ico, icons/gnu5w32.ico:
 	* icons/gnu5w32t.ico, icons/gnu6w48.ico, icons/gnu6w48t.ico:
-	* icons/gnu7.ico, icons/gnu8.ico, icons/gnu9.ico: Restore all but
-	two of icons deleted in previous change.
+	* icons/gnu7.ico, icons/gnu8.ico, icons/gnu9.ico:
+	Restore all but two of icons deleted in previous change.
 
 2007-02-13  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -21,8 +24,8 @@
 	* icons/gnu4g48.ico, icons/gnu6w48.ico, icons/gnu9.ico:
 	* icons/gnu2b48t.ico, icons/gnu4g48t.ico:
 	* icons/gnu6w48t.ico, icons/gnu2a32.ico, icons/gnu3b32.ico:
-	* icons/gnu5w32.ico, icons/gnu7.ico, icons/sink.ico: Unused icons
-	deleted.
+	* icons/gnu5w32.ico, icons/gnu7.ico, icons/sink.ico:
+	Unused icons deleted.
 
 2007-01-31  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -40,7 +43,7 @@
 
 	* nmake.defs (TEMACS_EXTRA_LINK): Remove duplicated flags from
 	DEBUG_LINK.
-	(DEBUG_LINK): Remove -debugtype:both
+	(DEBUG_LINK): Remove -debugtype:both.
 
 2006-12-27  Eli Zaretskii  <eliz@gnu.org>
 
@@ -812,8 +815,7 @@
 
 	* install.bat: Pass on command line arguments to make.
 
-	* makefile.nt (fast_install): Bring commands up-to-date, and fix
-	typo.
+	* makefile.nt (fast_install): Bring commands up-to-date, and fix typo.
 
 1999-11-21  Andrew Innes  <andrewi@gnu.org>
 

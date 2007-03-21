@@ -219,7 +219,8 @@ and `minibuffer-setup-hook'."
   (when (and icomplete-mode icomplete-eoinput)
 
     (unless (>= icomplete-eoinput (point-max))
-      (let ((buffer-undo-list t)) ; prevent entry
+      (let ((buffer-undo-list t) ; prevent entry
+	    deactivate-mark)
 	(delete-region icomplete-eoinput (point-max))))
 
     ;; Reestablish the safe value.
@@ -256,7 +257,8 @@ and `minibuffer-setup-hook'."
 			  minibuffer-completion-table
 			  minibuffer-completion-predicate
 			  (not minibuffer-completion-confirm)))))
-		(buffer-undo-list t))
+		(buffer-undo-list t)
+		deactivate-mark)
 	    ;; Do nothing if while-no-input was aborted.
 	    (if (consp text) (insert (car text))))))))
 
