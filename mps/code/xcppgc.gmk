@@ -6,7 +6,7 @@
 PFM = xcppgc
 
 MPMPF = lockix.c than.c vmix.c \
-        protxc.c protxcpp.c prmcan.c span.c
+        protix.c protxcpp.c prmcan.c span.c
 MPMS = ssxcpp.s
 SWPF = than.c vmxc.c protsw.c prmcan.c ssan.c
 
