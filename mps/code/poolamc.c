@@ -26,6 +26,7 @@ typedef struct amcGenStruct *amcGen;
 
 /* forward declarations */
 
+static Bool amcSegHasNailboard(Seg seg);
 static Bool AMCCheck(AMC amc);
 static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
 static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
@@ -160,7 +161,7 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream)
   if (!CHECKT(amcSeg, amcseg)) return ResFAIL;
 
   /* Describe the superclass fields first via next-method call */
-  super = SEG_SUPERCLASS(GCSegClass);
+  super = SEG_SUPERCLASS(amcSegClass);
   res = super->describe(seg, stream);
   if (res != ResOK) return res;
 
@@ -179,8 +180,18 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream)
   res = WriteF(stream,
                "AMC seg $P [$A,$A){\n",
                (WriteFP)seg, (WriteFA)base, (WriteFA)limit,
-               "  Map\n",
                NULL);
+  if (res != ResOK) return res;
+
+  if (amcSegHasNailboard(seg)) {
+    res = WriteF(stream, "  Boarded\n", NULL);
+    /* @@@@ should have AMCNailboardDescribe() */
+  } else {
+    res = WriteF(stream, "  Mobile or Stuck\n", NULL);
+  }
+  if (res != ResOK) return res;
+
+  res = WriteF(stream, "  Map\n", NULL);
   if (res != ResOK) return res;
 
   for(i = base; i < limit; i = AddrAdd(i, row)) {
