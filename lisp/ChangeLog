@@ -1,3 +1,8 @@
+2007-03-21  Nick Roberts  <nickrob@snap.net.nz>
+
+	* xt-mouse.el (xterm-mouse-event): Compute a timestamp using
+	current-time.
+
 2007-03-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* complete.el (read-file-name-internal): Don't add the final > if the
