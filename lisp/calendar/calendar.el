@@ -770,6 +770,8 @@ Can be used for appointment notification."
   :type 'hook
   :group 'diary)
 
+(autoload 'diary-set-maybe-redraw "diary-lib")
+
 ;;;###autoload
 (defcustom diary-display-hook nil
   "List of functions that handle the display of the diary.
@@ -794,6 +796,8 @@ if that day is a holiday; if you want such days to be shown in the fancy
 diary buffer, set the variable `diary-list-include-blanks' to t."
   :type 'hook
   :options '(fancy-diary-display)
+  :initialize 'custom-initialize-default
+  :set 'diary-set-maybe-redraw
   :group 'diary)
 
 ;;;###autoload
