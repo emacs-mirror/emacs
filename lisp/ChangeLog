@@ -1,3 +1,9 @@
+2007-03-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emulation/viper.el (viper-non-hook-settings): Handle mouse
+	clicks in describe-key and describe-key-briefly advice a little
+	better.
+
 2007-03-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* server.el (server-process-filter): Cancel any pending isearch.
