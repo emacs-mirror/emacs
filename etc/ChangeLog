@@ -1,12 +1,20 @@
+2007-03-21  Glenn Morris  <rgm@gnu.org>
+
+	* fr-refcard.tex (\metax): Tweak \hsize to avoid overfull columns.
+	(\shortcopyrightnotice): Do not display in middle of file.
+	Numerous \cr and \hskip hacks to avoid overfull columns.
+
+	* fr-refcard.ps: Regenerate.
+
 2007-03-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dired-ref.tex:
-	* fr-drdref.tex: 
+	* fr-drdref.tex:
 	* cs-dired-ref.tex:
 	* sk-dired-ref.tex: Emacs 21 -> 22.
 
 	* dired-ref.ps:
-	* fr-drdref.ps: 
+	* fr-drdref.ps:
 	* cs-dired-ref.ps:
 	* sk-dired-ref.ps: Regenerate.
 
