@@ -26,6 +26,7 @@ typedef struct amcGenStruct *amcGen;
 
 /* forward declarations */
 
+static Bool amcSegHasNailboard(Seg seg);
 static Bool AMCCheck(AMC amc);
 static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
 static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
@@ -105,6 +106,9 @@ static Bool amcSegCheck(amcSeg amcseg)
   CHECKD(GCSeg, &amcseg->gcSegStruct);
   CHECKL(*amcseg->segTypeP == AMCPTypeNailboard
          || *amcseg->segTypeP == AMCPTypeGen);
+  if (*amcseg->segTypeP == AMCPTypeNailboard) {
+    CHECKL(SegNailed(amcSeg2Seg(amcseg)) != TraceSetEMPTY);
+  }
   CHECKL(BoolCheck(amcseg->new));
   return TRUE;
 }
@@ -160,7 +164,7 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream)
   if (!CHECKT(amcSeg, amcseg)) return ResFAIL;
 
   /* Describe the superclass fields first via next-method call */
-  super = SEG_SUPERCLASS(GCSegClass);
+  super = SEG_SUPERCLASS(amcSegClass);
   res = super->describe(seg, stream);
   if (res != ResOK) return res;
 
@@ -171,18 +175,33 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream)
   base = SegBase(seg);
   p = AddrAdd(base, pool->format->headerSize);
   limit = SegLimit(seg);
-  if (SegBuffer(seg) != NULL)
-    init = BufferGetInit(SegBuffer(seg));
-  else
-    init = limit;
 
   res = WriteF(stream,
                "AMC seg $P [$A,$A){\n",
                (WriteFP)seg, (WriteFA)base, (WriteFA)limit,
-               "  Map\n",
                NULL);
   if (res != ResOK) return res;
 
+  if (amcSegHasNailboard(seg)) {
+    res = WriteF(stream, "  Boarded\n", NULL);
+    /* @@@@ should have AMCNailboardDescribe() */
+  } else {
+    if (SegNailed(seg) == TraceSetEMPTY) {
+      res = WriteF(stream, "  Mobile\n", NULL);
+    } else {
+      res = WriteF(stream, "  Stuck\n", NULL);
+    }
+  }
+  if (res != ResOK) return res;
+
+  res = WriteF(stream, "  Map:  *===:object  bbbb:buffer\n", NULL);
+  if (res != ResOK) return res;
+
+  if (SegBuffer(seg) != NULL)
+    init = BufferGetInit(SegBuffer(seg));
+  else
+    init = limit;
+  
   for(i = base; i < limit; i = AddrAdd(i, row)) {
     Addr j;
     char c;
@@ -194,9 +213,9 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream)
     /* @@@@ This misses a header-sized pad at the end. */
     for(j = i; j < AddrAdd(i, row); j = AddrAdd(j, step)) {
       if (j >= limit)
-        c = ' ';
+        c = ' ';  /* if seg is not a whole number of print rows */
       else if (j >= init)
-        c = '.';
+        c = 'b';
       else if (j == p) {
         c = '*';
         p = (pool->format->skip)(p);
