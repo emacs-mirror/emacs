@@ -213,7 +213,7 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream)
     /* @@@@ This misses a header-sized pad at the end. */
     for(j = i; j < AddrAdd(i, row); j = AddrAdd(j, step)) {
       if (j >= limit)
-        c = ' ';
+        c = ' ';  /* if seg is not a whole number of print rows */
       else if (j >= init)
         c = 'b';
       else if (j == p) {
