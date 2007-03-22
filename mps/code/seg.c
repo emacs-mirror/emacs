@@ -1560,14 +1560,20 @@ static Res gcSegDescribe(Seg seg, mps_lib_FILE *stream)
   res = super->describe(seg, stream);
   if (res != ResOK) return res;
 
-  if (gcseg->buffer != NULL) {
-    res = BufferDescribe(gcseg->buffer, stream);
-    if (res != ResOK) return res;
-  }
   res = WriteF(stream,
                "  summary $W\n", (WriteFW)gcseg->summary,
                NULL);
-  return res;
+  if (res != ResOK) return res;
+
+  if (gcseg->buffer == NULL) {
+    res = WriteF(stream, "  buffer: NULL\n", NULL);
+  }
+  else {
+    res = BufferDescribe(gcseg->buffer, stream);
+  }
+  if (res != ResOK) return res;
+
+  return ResOK;
 }
 
 
