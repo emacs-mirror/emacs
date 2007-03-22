@@ -147,16 +147,16 @@ Bool BufferCheck(Buffer buffer)
 Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream)
 {
   Res res;
-  char aczMode[5];
+  char abzMode[5];
 
   if (!CHECKT(Buffer, buffer)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  aczMode[0] = (buffer->mode & BufferModeTRANSITION)  ? 't' : '_';
-  aczMode[1] = (buffer->mode & BufferModeLOGGED)      ? 'l' : '_';
-  aczMode[2] = (buffer->mode & BufferModeFLIPPED)     ? 'f' : '_';
-  aczMode[3] = (buffer->mode & BufferModeATTACHED)    ? 'a' : '_';
-  aczMode[4] = '\0';
+  abzMode[0] = (buffer->mode & BufferModeTRANSITION)  ? 't' : '_';
+  abzMode[1] = (buffer->mode & BufferModeLOGGED)      ? 'l' : '_';
+  abzMode[2] = (buffer->mode & BufferModeFLIPPED)     ? 'f' : '_';
+  abzMode[3] = (buffer->mode & BufferModeATTACHED)    ? 'a' : '_';
+  abzMode[4] = '\0';
 
   res = WriteF(stream,
                "Buffer $P ($U) {\n",
@@ -168,7 +168,7 @@ Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream)
                buffer->isMutator ?
                  "  Mutator Buffer\n" : "  Internal Buffer\n",
                "  mode $S (TRANSITION, LOGGED, FLIPPED, ATTACHED)\n",
-                       (WriteFS)aczMode,
+                       (WriteFS)abzMode,
                "  fillSize $UKb\n",  (WriteFU)(buffer->fillSize / 1024),
                "  emptySize $UKb\n", (WriteFU)(buffer->emptySize / 1024),
                "  alignment $W\n",   (WriteFW)buffer->alignment,
