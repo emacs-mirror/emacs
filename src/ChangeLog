@@ -1,3 +1,7 @@
+2007-03-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* widget.c (EmacsFrameSetCharSize): Catch X errors.
+
 2007-03-22  Kenichi Handa  <handa@m17n.org>
 
 	* fileio.c (Fcopy_file): Call barf_or_query_if_file_exists with
