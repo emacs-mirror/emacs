@@ -1,4 +1,4 @@
-/* vmix.c: VIRTUAL MEMORY MAPPING FOR FreeBSD
+/* vmix.c: VIRTUAL MEMORY MAPPING FOR UNIX (ISH)
  *
  * $Id$
  * Copyright (c) 2001,2007 Ravenbrook Limited.  See end of file for license.
