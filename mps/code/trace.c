@@ -1093,6 +1093,13 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
     /* Expose the segment to make sure we can scan it. */
     ShieldExpose(arena, seg);
     res = PoolScan(&wasTotal, &ss, SegPool(seg), seg);
+    if (res != ResOK) {
+        WriteF(mps_lib_get_stdout(),
+               "PoolScan failed on this seg:\n",
+               NULL
+              );
+        SegDescribe(seg, mps_lib_get_stdout());
+    }
     /* Cover, regardless of result */
     ShieldCover(arena, seg);
 
