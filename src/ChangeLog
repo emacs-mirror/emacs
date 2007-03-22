@@ -1,3 +1,11 @@
+2007-03-22  Kenichi Handa  <handa@m17n.org>
+
+	* fileio.c (Fcopy_file): Call barf_or_query_if_file_exists with
+	non-encoded file name.
+	(Frename_file): Likewise.
+	(Fadd_name_to_file): Likewise.
+	(Fmake_symbolic_link): Likewise.
+
 2007-03-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* Makefile.in (alloca.o, gtkutil.o): Depend on systime.h.
