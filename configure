@@ -2260,13 +2260,6 @@ _ACEOF
       sparc*-*-openbsd*)       machine=sparc ;;
       vax-*-openbsd*)          machine=vax ;;
       x86_64-*-openbsd*)       machine=amdx86-64 ;;
-      i386-*-openbsd*)	machine=intel386 ;;
-      x86_64-*-openbsd*)    machine=amdx86-64 ;;
-      m68k-*-openbsd*)  machine=hp9000s300 ;;
-      mipsel-*-openbsd*) machine=pmax ;;
-      ns32k-*-openbsd*)	machine=ns32000 ;;
-      sparc-*-openbsd*)	machine=sparc ;;
-      vax-*-openbsd*)	machine=vax ;;
     esac
   ;;
 
@@ -2630,6 +2623,9 @@ _ACEOF
     machine=ibmrs6000 opsys=aix4-1
   ;;
   rs6000-ibm-aix4.2* | powerpc-ibm-aix4.2*  )
+    machine=ibmrs6000 opsys=aix4-2
+  ;;
+  rs6000-ibm-aix4.3* | powerpc-ibm-aix4.3*  )
     machine=ibmrs6000 opsys=aix4-2
   ;;
   rs6000-ibm-aix5* | powerpc-ibm-aix5*  )
