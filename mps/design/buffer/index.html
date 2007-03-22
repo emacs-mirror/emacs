@@ -26,7 +26,31 @@
 
 <hr />
 
+<h1>Allocation buffers and allocation points</h1>
+
 </div>
+
+<p>This document contains a <a href="#guide">guide</a> to allocation buffers and allocation points, followed by the historical <a href="#initial-design">initial design</a>.  References, History, Copyright and License are <a href="#section-A">at the end</a>.</p>
+
+<hr />
+
+<h1> <a id="guide">Guide</a> </h1>
+
+<p> Readership: any MPS developer.  Not confidential. </p>
+
+<h2> Introduction </h2>
+
+<p>Glossary:</p>
+<dl>
+  <dt>Trapped</dt>
+  <dd>means the buffer is in a state such that the MPS gets to know about the next use of that buffer</dd>
+</dl>
+
+
+
+<hr />
+
+<h1> <a id="initial-design">Initial Design</a> </h1>
 
 <pre>
                 ALLOCATION BUFFERS AND ALLOCATION POINTS
@@ -780,13 +804,15 @@ Buffer States (richardized)
 <table>
 
 <tr valign="top">
-
   <td>2002-06-07</td>
-
   <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
-
   <td>Converted from MMInfo database design document.</td>
+</tr>
 
+<tr valign="top">
+  <td>2007-03-22</td>
+  <td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
+  <td>Created Guide.</td>
 </tr>
 
 </table>
@@ -794,7 +820,7 @@ Buffer States (richardized)
 
 <h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
 
-<p> This document is copyright &copy; 1995-2002 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+<p> This document is copyright &copy; 1995-2002, 2007 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
 
 <p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
 
