@@ -1282,6 +1282,15 @@ static Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 
   format = pool->format;
   arena = pool->arena;
+  
+  /* what is a typical buffer state? */
+  if (SegBuffer(seg) != NULL) {
+    static int lots = 5;
+    if (lots > 0) {
+      lots -= 1;
+      SegDescribe(seg, mps_lib_get_stdout());
+    }
+  }
 
   if (amcSegHasNailboard(seg)) {
     return amcScanNailed(totalReturn, ss, pool, seg, amc);
@@ -1507,8 +1516,16 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     ss->forwardedSize += length;
     do {
       res = BUFFER_RESERVE(&newRef, buffer, length, FALSE);
-      if (res != ResOK)
+      if (res != ResOK) {
+        WriteF(mps_lib_get_stdout(),
+               "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n"
+               "AMCFix forwarding buffer: BUFFER_RESERVE failed,\n"
+               "Referent object is in this seg:\n",
+               NULL
+              );
+        SegDescribe(seg, mps_lib_get_stdout());
         goto returnRes;
+      }
 
       toSeg = BufferSeg(buffer);
       ShieldExpose(arena, toSeg);
