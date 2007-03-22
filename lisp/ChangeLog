@@ -1,3 +1,9 @@
+2007-03-22  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-agenda-mode, org-table-edit-formulas):
+	Make sure that `global-font-lock-mode' does not turn on font-lock
+	in these buffers.
+
 2007-03-21  Kim F. Storm  <storm@cua.dk>
 
 	* xt-mouse.el (xt-mouse-epoch): New variable.
