@@ -144,6 +144,70 @@ static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size,
 }
 
 
+/* AMCSegSketch -- write (into pbSketch) seg-state, as short human-readable text */
+
+static void AMCSegSketch(Seg seg, char *pbSketch, size_t cbSketch)
+{
+  amcSeg amcseg;
+  Buffer buffer;
+
+  AVER(pbSketch);
+  AVER(cbSketch >= 5);
+  AVERT(Seg, seg);
+  amcseg = Seg2amcSeg(seg);
+  AVERT(amcSeg, amcseg);
+
+  if (SegNailed(seg) == TraceSetEMPTY) {
+    pbSketch[0] = 'm';  /* mobile */
+  } else if (amcSegHasNailboard(seg)) {
+    pbSketch[0] = 'b';  /* boarded */
+  } else {
+    pbSketch[0] = 's';  /* stuck */
+  }
+
+  if (SegGrey(seg) == TraceSetEMPTY) {
+    pbSketch[1] = '_';
+  } else {
+    pbSketch[1] = 'G';  /* Grey */
+  }
+
+  if (SegWhite(seg) == TraceSetEMPTY) {
+    pbSketch[2] = '_';
+  } else {
+    pbSketch[2] = 'W';  /* White */
+  }
+
+  buffer = SegBuffer(seg);
+  if (buffer == NULL) {
+    pbSketch[3] = '_';
+  } else {
+    Bool mut = BufferIsMutator(buffer);
+    Bool flipped = buffer->mode & BufferModeFLIPPED;
+    Bool trapped = BufferIsTrapped(buffer);
+    Bool limitzeroed = buffer->apStruct.limit == 0;
+
+    pbSketch[3] = 'X';  /* I don't know what's going on! */
+
+    if ( (flipped == trapped) && (trapped == limitzeroed) ) {
+      if (mut) {
+        if (flipped) {
+          pbSketch[3] = 'n';  /* neo */
+        } else {
+          pbSketch[3] = 's';  /* stalo */
+        }
+      } else {
+        if (!flipped) {
+          pbSketch[3] = 'f';  /* forwarding */
+        }
+      }
+    }
+  }
+  
+  pbSketch[4] = '\0';
+  AVER(4 < cbSketch);
+}
+
+
 /* AMCSegDescribe -- describe the contents of a segment
  *
  * See <design/poolamc/#seg-describe>.
@@ -157,6 +221,7 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream)
   Addr i, p, base, limit, init;
   Align step;
   Size row;
+  char abzSketch[5];
 
   if (!CHECKT(Seg, seg)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
@@ -228,6 +293,10 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream)
     res = WriteF(stream, "\n", NULL);
     if (res != ResOK) return res;
   }
+
+  AMCSegSketch(seg, abzSketch, NELEMS(abzSketch));
+  res = WriteF(stream, "  Sketch: $S\n", (WriteFS)abzSketch, NULL);
+  if (res != ResOK) return res;
 
   res = WriteF(stream, "} AMC Seg $P\n", (WriteFP)seg, NULL);
   if (res != ResOK) return res;
