@@ -1,4 +1,4 @@
-2007-03-22  Chong Yidong  <cyd@stupidchicken.com>
+2007-03-22  Joe Buehler  <jbuehler@spirentcom.com> (tiny change)
 
 	* configure.in: Add support for AIX4.3 on IBM RS6000.
 
