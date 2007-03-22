@@ -106,6 +106,9 @@ static Bool amcSegCheck(amcSeg amcseg)
   CHECKD(GCSeg, &amcseg->gcSegStruct);
   CHECKL(*amcseg->segTypeP == AMCPTypeNailboard
          || *amcseg->segTypeP == AMCPTypeGen);
+  if (*amcseg->segTypeP == AMCPTypeNailboard) {
+    CHECKL(SegNailed(amcSeg2Seg(amcseg)) != TraceSetEMPTY);
+  }
   CHECKL(BoolCheck(amcseg->new));
   return TRUE;
 }
@@ -172,10 +175,6 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream)
   base = SegBase(seg);
   p = AddrAdd(base, pool->format->headerSize);
   limit = SegLimit(seg);
-  if (SegBuffer(seg) != NULL)
-    init = BufferGetInit(SegBuffer(seg));
-  else
-    init = limit;
 
   res = WriteF(stream,
                "AMC seg $P [$A,$A){\n",
@@ -187,13 +186,22 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream)
     res = WriteF(stream, "  Boarded\n", NULL);
     /* @@@@ should have AMCNailboardDescribe() */
   } else {
-    res = WriteF(stream, "  Mobile or Stuck\n", NULL);
+    if (SegNailed(seg) == TraceSetEMPTY) {
+      res = WriteF(stream, "  Mobile\n", NULL);
+    } else {
+      res = WriteF(stream, "  Stuck\n", NULL);
+    }
   }
   if (res != ResOK) return res;
 
-  res = WriteF(stream, "  Map\n", NULL);
+  res = WriteF(stream, "  Map:  *===:object  bbbb:buffer\n", NULL);
   if (res != ResOK) return res;
 
+  if (SegBuffer(seg) != NULL)
+    init = BufferGetInit(SegBuffer(seg));
+  else
+    init = limit;
+  
   for(i = base; i < limit; i = AddrAdd(i, row)) {
     Addr j;
     char c;
@@ -207,7 +215,7 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream)
       if (j >= limit)
         c = ' ';
       else if (j >= init)
-        c = '.';
+        c = 'b';
       else if (j == p) {
         c = '*';
         p = (pool->format->skip)(p);
