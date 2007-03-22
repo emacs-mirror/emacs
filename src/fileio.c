@@ -2471,7 +2471,7 @@ uid and gid of FILE to NEWNAME.  */)
 
   if (NILP (ok_if_already_exists)
       || INTEGERP (ok_if_already_exists))
-    barf_or_query_if_file_exists (encoded_newname, "copy to it",
+    barf_or_query_if_file_exists (newname, "copy to it",
 				  INTEGERP (ok_if_already_exists), &out_st, 0);
   else if (stat (SDATA (encoded_newname), &out_st) < 0)
     out_st.st_mode = 0;
@@ -2780,7 +2780,7 @@ This is what happens in interactive use with M-x.  */)
 #endif
   if (NILP (ok_if_already_exists)
       || INTEGERP (ok_if_already_exists))
-    barf_or_query_if_file_exists (encoded_newname, "rename to it",
+    barf_or_query_if_file_exists (newname, "rename to it",
 				  INTEGERP (ok_if_already_exists), 0, 0);
 #ifndef BSD4_1
   if (0 > rename (SDATA (encoded_file), SDATA (encoded_newname)))
@@ -2857,7 +2857,7 @@ This is what happens in interactive use with M-x.  */)
 
   if (NILP (ok_if_already_exists)
       || INTEGERP (ok_if_already_exists))
-    barf_or_query_if_file_exists (encoded_newname, "make it a new name",
+    barf_or_query_if_file_exists (newname, "make it a new name",
 				  INTEGERP (ok_if_already_exists), 0, 0);
 
   unlink (SDATA (newname));
@@ -2918,7 +2918,7 @@ This happens for interactive use with M-x.  */)
 
   if (NILP (ok_if_already_exists)
       || INTEGERP (ok_if_already_exists))
-    barf_or_query_if_file_exists (encoded_linkname, "make it a link",
+    barf_or_query_if_file_exists (linkname, "make it a link",
 				  INTEGERP (ok_if_already_exists), 0, 0);
   if (0 > symlink (SDATA (encoded_filename),
 		   SDATA (encoded_linkname)))
