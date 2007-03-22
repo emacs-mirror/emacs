@@ -1,3 +1,7 @@
+2007-03-22  Ralf Angeli  <angeli@caeruleus.net>
+
+	* reftex.texi (Imprint): Update maintainer information.
+
 2007-03-15  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* message.texi (Message Buffers): Update documentation for

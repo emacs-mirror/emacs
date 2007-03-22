@@ -1,3 +1,27 @@
+2007-03-22  Ralf Angeli  <angeli@caeruleus.net>
+
+	* textmodes/reftex.el: Add maintainer address.
+
+	* textmodes/reftex-vars.el: Add maintainer address.
+
+	* textmodes/reftex-toc.el: Add maintainer address.
+
+	* textmodes/reftex-sel.el: Add maintainer address.
+
+	* textmodes/reftex-ref.el: Add maintainer address.
+
+	* textmodes/reftex-parse.el: Add maintainer address.
+
+	* textmodes/reftex-index.el: Add maintainer address.
+
+	* textmodes/reftex-global.el: Add maintainer address.
+
+	* textmodes/reftex-dcr.el: Add maintainer address.
+
+	* textmodes/reftex-cite.el: Add maintainer address.
+
+	* textmodes/reftex-auc.el: Add maintainer address.
+
 2007-03-22  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-agenda-mode, org-table-edit-formulas):

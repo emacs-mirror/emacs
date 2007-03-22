@@ -10,12 +10,14 @@
 @set VERSION 4.31
 @set EDITION 4.31
 @set DATE February 2006
-@set AUCTEXSITE @uref{http://www.nongnu.org/auctex/,AUCTeX distribution site}
-@set MAINTAINERSITE @uref{http://www.astro.uva.nl/~dominik/Tools/,maintainers webpage}
-@set MAINTAINER Carsten Dominik
-@set MAINTAINEREMAIL @email{dominik@@science.uva.nl}
-@set MAINTAINERCONTACT @uref{mailto:dominik@@science.uva.nl,contact the maintainer}
-@set XEMACSFTP @uref{ftp://ftp.xemacs.org/pub/xemacs/packages/,XEmacs ftp site}.
+@set AUCTEXSITE @uref{http://www.gnu.org/software/auctex/,AUCTeX distribution site}
+@set MAINTAINERSITE @uref{http://www.gnu.org/software/auctex/reftex.html,Ref@TeX{} web page}
+@set MAINTAINERCONTACT @uref{mailto:auctex-devel@@gnu.org,contact the maintainers}
+@set MAINTAINER the @AUCTeX{} project
+@set SUPPORTADDRESS @AUCTeX{} user mailing list (@email{auctex@@gnu.org})
+@set DEVELADDRESS @AUCTeX{} developer mailing list (@email{auctex-devel@@gnu.org})
+@set BUGADDRESS @AUCTeX{} bug mailing list (@email{bug-auctex@@gnu.org})
+@set XEMACSFTP @uref{ftp://ftp.xemacs.org/pub/xemacs/packages/,XEmacs ftp site}
 @c %**end of header
 
 @copying
@@ -3491,25 +3493,23 @@ With @i{Viper} mode prior to Vipers version 3.01, you need to protect
 @cindex @code{http}, @b{Ref@TeX{}} home page
 @cindex @code{ftp}, @b{Ref@TeX{}} site
 
-@b{Ref@TeX{}} was written by @i{Carsten Dominik}
+Ref@TeX{} was written by @i{Carsten Dominik}
 @email{dominik@@science.uva.nl}, with contributions by @i{Stephen
-Eglen}.  @b{Ref@TeX{}} is currently maintained by 
+Eglen}.  Ref@TeX{} is currently maintained by @value{MAINTAINER}, see
+the @value{MAINTAINERSITE} for detailed information.
 
-@noindent
-Carsten Dominik <dominik@@science.uva.nl>
+If you have questions about @RefTeX{}, you can send email to the
+@value{SUPPORTADDRESS}.  If you want to contribute code or ideas, write
+to the @value{DEVELADDRESS}.  And in the rare case of finding a bug,
+please use @kbd{M-x reftex-report-bug @key{RET}} which will prepare a
+bug report with useful information about your setup.  Remember to add
+essential information like a recipe for reproducing the bug, what you
+expected to happen, and what actually happened.  Send the bug report to
+the @value{BUGADDRESS}.
 
-If you have questions about @b{Ref@TeX{}}, there are several Usenet
-groups which have competent readers: @code{comp.emacs},
-@code{gnu.emacs.help}, @code{comp.emacs.xemacs}, @code{comp.text.tex},
-@code{de.comp.text.tex}.  You can also write directly to the
-maintainer.
-
-If you find a bug in @b{Ref@TeX{}} or its documentation, or if you want
-to contribute code or ideas, please @value{MAINTAINERCONTACT}.  Remember
-to provide all necessary information such as version numbers of Emacs
-and @b{Ref@TeX{}}, and the relevant part of your configuration in
-@file{.emacs}.  When reporting a bug which throws an exception, please
-include a backtrace if you know how to produce one.
+There are also several Usenet groups which have competent readers who
+might be able to help: @code{comp.emacs}, @code{gnu.emacs.help},
+@code{comp.emacs.xemacs}, and @code{comp.text.tex}.
 
 @b{Ref@TeX{}} is bundled and pre-installed with Emacs since version 20.2.
 It was also bundled and pre-installed with XEmacs 19.16--20.x.  XEmacs
