@@ -1,6 +1,34 @@
 RHSK's AMC Seg state diagram.
 2007-03-20
 
+STATES
+------
+
+ms  >traceStart>   mBs
+
+       //  m0n  ..alloc..>  mBn  ..alloc..>  mB
+
+
+    >traceStart>   mGs   ==[1a]==>   mBs
+                   mG    ==[1b]==>   mB
+                      \                \
+                     <detach**<       <detach<
+                          \                \
+       //  m0f   >fwd-to>   mGf  ==[1c+]==>  mBf
+                                 <fwd-to<
+
+    >traceStart>   mW*Fs
+
+                        --(A)-->   bGW*Fs ==[2]==>    bBW*Fs
+                                          ==[2et+]=>
+                                          <-(et)--
+                                            ^we never encounter A here
+
+                        --(et)-->  sGFs   ==[3]==>   sBFs
+
+KEY AND DISCUSSION
+------------------
+
 Seg states:
   m : mobile
   b : boarded (a nailboard has been allocated)
@@ -48,7 +76,7 @@ Reencounter fix:  (referent object FGB has already been preserved)
             (we should AVER this is not via Ambiguous ref!)
  GB       : do nothing
 
-Fix is trivial if seg has neither W nor F.  Fix never changes the referent object's segment's summary.  (It does change the sumamry of the segment the forwarding buffer is on).
+Fix is trivial if seg has neither W nor F.  Discovering or reencountering never changes the referent object's segment's summary (but if it forwards, this changes the summary of the segment the forwarding buffer is on).
 
 Can these fixes happen in the seg we are scanning?  Yes:
 
@@ -66,30 +94,6 @@ Can these fixes happen in the seg we are scanning?  Yes:
 
   - can a fix cause a transition?  No: see .no-transition.
 
-
-State Map:
-
-ms  >traceStart>   mBs
-
-       //  m0n  ..alloc..>  mBn  ..alloc..>  mB
-
-
-    >traceStart>   mGs   ==[1a]==>   mBs
-                   mG    ==[1b]==>   mB
-                      \                \
-                     <detach**<       <detach<
-                          \                \
-       //  m0f   >fwd-to>   mGf  ==[1c+]==>  mBf
-                                 <fwd-to<
-
-    >traceStart>   mW*Fs
-
-                        --(A)-->   bGW*Fs ==[2]==>    bBW*Fs
-                                          ==[2et+]=>
-                                          <-(et)--
-                                            ^we never encounter A here
-
-                        --(et)-->  sGFs   ==[3]==>   sBFs
 
 HISTORY
   2007-03-20  RHSK  Created, and checked with DRJ.
