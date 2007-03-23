@@ -13,10 +13,10 @@
 @set AUCTEXSITE @uref{http://www.gnu.org/software/auctex/,AUCTeX distribution site}
 @set MAINTAINERSITE @uref{http://www.gnu.org/software/auctex/reftex.html,Ref@TeX{} web page}
 @set MAINTAINERCONTACT @uref{mailto:auctex-devel@@gnu.org,contact the maintainers}
-@set MAINTAINER the @AUCTeX{} project
-@set SUPPORTADDRESS @AUCTeX{} user mailing list (@email{auctex@@gnu.org})
-@set DEVELADDRESS @AUCTeX{} developer mailing list (@email{auctex-devel@@gnu.org})
-@set BUGADDRESS @AUCTeX{} bug mailing list (@email{bug-auctex@@gnu.org})
+@set MAINTAINER the AUC@TeX{} project
+@set SUPPORTADDRESS AUC@TeX{} user mailing list (@email{auctex@@gnu.org})
+@set DEVELADDRESS AUC@TeX{} developer mailing list (@email{auctex-devel@@gnu.org})
+@set BUGADDRESS AUC@TeX{} bug mailing list (@email{bug-auctex@@gnu.org})
 @set XEMACSFTP @uref{ftp://ftp.xemacs.org/pub/xemacs/packages/,XEmacs ftp site}
 @c %**end of header
 
@@ -3498,7 +3498,7 @@ Ref@TeX{} was written by @i{Carsten Dominik}
 Eglen}.  Ref@TeX{} is currently maintained by @value{MAINTAINER}, see
 the @value{MAINTAINERSITE} for detailed information.
 
-If you have questions about @RefTeX{}, you can send email to the
+If you have questions about Ref@TeX{}, you can send email to the
 @value{SUPPORTADDRESS}.  If you want to contribute code or ideas, write
 to the @value{DEVELADDRESS}.  And in the rare case of finding a bug,
 please use @kbd{M-x reftex-report-bug @key{RET}} which will prepare a
