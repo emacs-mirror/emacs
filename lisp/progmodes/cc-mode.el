@@ -158,8 +158,8 @@
 ;; These are typically standard emacs variables such as `comment-start'.
 (defmacro c-make-emacs-variables-local ()
   `(progn
-     ,@(mapcan (lambda (init)
-		 `((make-local-variable ',(car init))))
+     ,@(mapcar (lambda (init)
+		 `(make-local-variable ',(car init)))
 	       (cdr c-emacs-variable-inits))))
 
 (defun c-init-language-vars-for (mode)

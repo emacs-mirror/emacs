@@ -1,3 +1,8 @@
+2007-03-23  David Kastrup  <dak@gnu.org>
+
+	* progmodes/cc-mode.el (c-make-emacs-variables-local): Use
+	`mapcar' rather than `mapcan' to silence compiler warning.
+
 2007-03-22  Ralf Angeli  <angeli@caeruleus.net>
 
 	* textmodes/reftex.el: Add maintainer address.
