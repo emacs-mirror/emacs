@@ -1,3 +1,8 @@
+2007-03-23  Kim F. Storm  <storm@cua.dk>
+
+	* intervals.c (merge_properties, intervals_equal):
+	Use Fplist_member instead of Fmemq to find properties.
+
 2007-03-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* widget.c (EmacsFrameSetCharSize): Catch X errors.
