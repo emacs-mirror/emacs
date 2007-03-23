@@ -1,3 +1,8 @@
+2007-03-23  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Add more cases/syntaxes from Latin
+	characters.
+
 2007-03-09  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-def.el (installation-directory): Must be initialized when defining
