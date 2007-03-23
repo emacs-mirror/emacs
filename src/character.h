@@ -52,6 +52,11 @@ Boston, MA 02111-1307, USA.  */
 #define MAX_4_BYTE_CHAR 0x1FFFFF
 #define MAX_5_BYTE_CHAR 0x3FFF7F
 
+/* Minimum leading code of multibyte characters.  */
+#define MIN_MULTIBYTE_LEADING_CODE 0xC0
+/* Maximum leading code of multibyte characters.  */
+#define MAX_MULTIBYTE_LEADING_CODE 0xF8
+
 /* Nonzero iff C is a character that corresponds to a raw 8-bit
    byte.  */
 #define CHAR_BYTE8_P(c) ((c) > MAX_5_BYTE_CHAR)
