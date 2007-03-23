@@ -1,4 +1,4 @@
-Richard's AMC Seg state diagram.
+RHSK's AMC Seg state diagram.
 2007-03-20
 
 Seg states:
@@ -10,49 +10,89 @@ Colours:
   B : black
   G : grey
   W : white
-  F : forwarding pointer
+  F : forwarding pointer (these are also white)
 
 Buffers:
-  n : neo (mutator buffer, still alive)
-  s : stalo (mutator buffer, has been tripped, stale object, dead)
   f : forwarding buffer
+  n : neo (mutator buffer, still alive)
+  s : possible stalo (mutator buffer, has been tripped, stale object, dead)
 
-Other:
- // : post-flip
+  If the mutator is between reserve and commit, the collector cannot detach the stalo buffer.  Thi
 
-Transitions:
- ==[]==>  : scan
- --()-->  : preserve object in this seg, because of ref...
-   --(A)--> : Ambiguous
-   --(et)-->: during emergency tracing 
- *        : preserve object in this seg, because of exact ref 
-            during non-emergency, by forwarding it out
+General transitions:
+ >traceStart>  : state change on TraceStart()
+ //            : segment created post-flip
+ ..alloc..>    : mutator allocates
+ >fwd-to>      : objects forwarded to forwarding buffer
+ <detach<      : forwarding buffer detaches
+ <detach**<    : forwarding buffer may detach while scanning this seg
+
+Scans:
+ ==[]==>  : scan (G->B transition happens after scan is complete)
+ .no-transition: no transition can happen *during* the scan (except for buffer-detach, see [1c+])
+
+  [1a] scan old mobile grey seg with a stale mutator buffer on it.
+  [1b] scan old or new mobile grey seg, no buffer.
+  [1c+] scan new mobile grey seg with a fwding buffer on it; must loop, until Cheney catchup; buffer may detach during the scan (see <detach**<).
+  [2] ordinary scan of boarded segment.  All grey objects scanned in one pass.
+  [2et+] scan during emergency tracing; must loop, as grey objects may appear during a single pass => needs to loop until no more grey objects (no new marks).
+  [3] scan a stuck segment.
+
+Discovery fix:  (referent object W in this seg must be preserved)
+ --(et)-->: during emergency tracing: W->G
+ --(A)--> : via Ambiguous ref during non-emergency: W->G
+ *        : via Exact ref during non-emergency: forward + W->F
+
+Reencounter fix:  (referent object FGB has already been preserved)
+ F        : snap out (always: normal or emergency tracing)
+            (we should AVER this is not via Ambiguous ref!)
+ GB       : do nothing
+
+(Fix is trivial if seg has neither W nor F).
+
+Can these fixes happen in the seg we are scanning?  Yes:
+
+  - discovery fix:  (referent object W in this seg must be preserved)
+    So only in [2] and [2et+]:
+     -- (et), during emergency tracing, W->G: Make new nailboard mark and loop.
+     -- (A), via Ambiguous ref during non-emergency, W->G: Never encountered.
+     -- *, via Exact ref during non-emergency, forward + W->F: Does not affect scan progress, but changes segment summary.
+
+  - reencounter fix:  (referent object FGB has already been preserved)
+    In [2], [2et+], and [3]:
+     -- F, snap out: Does not affect scan progress, but changes segment summary.
+    In any scan:
+     -- GB, the fix is trivial, and does not affect scan or summary.
+
+  - can a fix cause a transition?  No: see .no-transition.
+  
+
+State Map:
+
+ms  >traceStart>   mBs
+
+       //  m0n  ..alloc..>  mBn  ..alloc..>  mB
 
 
-m  >traceStart>   mB
+    >traceStart>   mGs   ==[1a]==>   mBs
+                   mG    ==[1b]==>   mB
+                      \                \
+                     <detach**<       <detach<
+                          \                \
+       //  m0f   >fwd-to>   mGf  ==[1c+]==>  mBf
+                                 <fwd-to<
 
-                                     //  m0n  ..alloc..>  mBn
+    >traceStart>   mW*Fs
 
+                        --(A)-->   bGW*Fs ==[2]==>    bBW*Fs
+                                          ==[2et+]=>
+                                          <-(et)--
+                                            ^we never encounter A here
 
-   >traceStart>   mG   ==[1]==>   mB
-                    \          <fwd-to<                  \
-                                     //  m0f   >fwd-to>   mGf  ==[2+]==>  mBf
-                                                               <fwd-to<
+                        --(et)-->   sGFs   ==[3]==>   sBFs
 
-
-   >traceStart>   mW*F
-
-                       --(A)-->   bGW*F ==[3]==>    bBW*F
-                                        ==[3et+]=>
-                                         <-(et)--
-                                           ^we never encounter A here
-
-                       --(et)-->   sG    ==[4]==>   sB
-
-Scanning:
-  [1] scan a mobile grey seg.
-  [2+] scan a mobile grey seg with a fwding buffer on it; must loop, until Cheney catchup.
-  [3] ordinary scan of boarded segment.  All grey objects scanned in one pass.
-  [3et+] scan during emergency tracing.  Grey objects may appear during a single pass => needs to loop until no more grey objects (no new marks).
-  [4] scan a stuck segment.
+HISTORY
+  2007-03-20  RHSK  Created, and checked with DRJ.
+  2007-03-23  RHSK  sG is sGF; explicitly show the s(stalo) everywhere;
+                    analyse discovery and reencounter fixes.
 --end--
