@@ -1125,11 +1125,18 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
     /* following is true whether or not scan was total */
     /* See <design/scan/#summary.subset>. */
     if (!RefSetSub(ss.unfixedSummary, SegSummary(seg))) {
+      mps_lib_FILE *stream = mps_lib_get_stdout();
+      
       printf("RongRongRongRongRongRongRongRongRongRongRong:\n");
-      printf(" Total? %s:\n",
-             (res == ResOK) && wasTotal
-             ? "YES"
-             : "no");
+      
+      (void) WriteF(stream,
+        "Just done PoolScan....\n",
+        " oldSummary: $B\n", (WriteFB)SegSummary(seg),
+        " unfSummary: $B\n", (WriteFB)ss.unfixedSummary,
+        " (wasTotal && ResOK): $U\n", wasTotal && (res == ResOK),
+        " (Total: $U, Res: $U)\n", wasTotal, res,
+        NULL
+      );
       SegDescribe(seg, mps_lib_get_stdout());
       {
         TraceId ti;
