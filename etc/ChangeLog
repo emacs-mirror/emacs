@@ -1,5 +1,16 @@
 2007-03-23  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile (DESTDIR, LIBDIR, BINDIR, MANDIR, MANEXT): Delete
+	unused variables.
+	(dired-refcards, misc-refcards, survival-card, viper-cards): New
+	targets.
+	(all): Also build dired-refcards and misc-refcards.
+	(clean, distclean, maintainer-clean): Depend on mostlyclean.
+	(SOURCES): Remove non-existent files.
+	(mostlyclean, clean, distclean, maintainer-clean, unlock, relock):
+	Mark as phony.
+	(.ps files): Specify default papersize in the dvips command.
+
 	* fr-refcard.tex (\letterpaper): Switch to A4.
 	(\section): Reduce \vskips to fit on A4 paper.
 	(\shortcopyrightnotice): Display at end of first column.

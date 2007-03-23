@@ -144,10 +144,6 @@ See the files mac/README and mac/INSTALL for build instructions.
 ** Support for GNU/Linux systems on X86-64 machines was added.
 
 ---
-** Support for HP 9000 series 800 and Hitachi SR2001/SR2201 machines
-was removed.
-
----
 ** Mac OS 9 port now uses the Carbon API by default.  You can also
 create non-Carbon build by specifying `NonCarbon' as a target.  See
 the files mac/README and mac/INSTALL for build instructions.

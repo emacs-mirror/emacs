@@ -1,3 +1,8 @@
+2007-03-23  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Restore support for hp800 (removed 2007-01-27)
+	following clarification of legal status.
+
 2007-03-22  Joe Buehler  <jbuehler@spirentcom.com> (tiny change)
 
 	* configure.in: Add support for AIX4.3 on IBM RS6000.
