@@ -17,7 +17,7 @@ Buffers:
   n : neo (mutator buffer, still alive)
   s : possible stalo (mutator buffer, has been tripped, stale object, dead)
 
-  If the mutator is between reserve and commit, the collector cannot detach the stalo buffer.  Thi
+  When a buffer detaches, it is replaced by a pad object (I think).  If the mutator is between reserve and commit, the collector cannot detach the stalo buffer.  Therefore any old (pre-flip) segment may have stale mutator buffer, which will never advance (init may, but the scanner must respect initAtFlip).  However, with threads, it could (I think) detach during scan of a segment.  This should be easy for scanners to cope with, because it is replaced by a pad, which may be scanned or not with no effect.
 
 General transitions:
  >traceStart>  : state change on TraceStart()
@@ -33,7 +33,7 @@ Scans:
 
   [1a] scan old mobile grey seg with a stale mutator buffer on it.
   [1b] scan old or new mobile grey seg, no buffer.
-  [1c+] scan new mobile grey seg with a fwding buffer on it; must loop, until Cheney catchup; buffer may detach during the scan (see <detach**<).
+  [1c+] scan new mobile grey seg with a fwding buffer on it; must loop, until Cheney catchup; buffer may detach during the scan (see <detach**<); segment summary is changing during the scan.
   [2] ordinary scan of boarded segment.  All grey objects scanned in one pass.
   [2et+] scan during emergency tracing; must loop, as grey objects may appear during a single pass => needs to loop until no more grey objects (no new marks).
   [3] scan a stuck segment.
@@ -48,7 +48,7 @@ Reencounter fix:  (referent object FGB has already been preserved)
             (we should AVER this is not via Ambiguous ref!)
  GB       : do nothing
 
-(Fix is trivial if seg has neither W nor F).
+Fix is trivial if seg has neither W nor F.  Fix never changes the referent object's segment's summary.  (It does change the sumamry of the segment the forwarding buffer is on).
 
 Can these fixes happen in the seg we are scanning?  Yes:
 
@@ -56,7 +56,7 @@ Can these fixes happen in the seg we are scanning?  Yes:
     So only in [2] and [2et+]:
      -- (et), during emergency tracing, W->G: Make new nailboard mark and loop.
      -- (A), via Ambiguous ref during non-emergency, W->G: Never encountered.
-     -- *, via Exact ref during non-emergency, forward + W->F: Does not affect scan progress, but changes segment summary.
+     -- *, via Exact ref during non-emergency, forward + W->F: Does not affect scan progress.
 
   - reencounter fix:  (referent object FGB has already been preserved)
     In [2], [2et+], and [3]:
@@ -65,7 +65,7 @@ Can these fixes happen in the seg we are scanning?  Yes:
      -- GB, the fix is trivial, and does not affect scan or summary.
 
   - can a fix cause a transition?  No: see .no-transition.
-  
+
 
 State Map:
 
@@ -89,10 +89,12 @@ ms  >traceStart>   mBs
                                           <-(et)--
                                             ^we never encounter A here
 
-                        --(et)-->   sGFs   ==[3]==>   sBFs
+                        --(et)-->  sGFs   ==[3]==>   sBFs
 
 HISTORY
   2007-03-20  RHSK  Created, and checked with DRJ.
   2007-03-23  RHSK  sG is sGF; explicitly show the s(stalo) everywhere;
                     analyse discovery and reencounter fixes.
+  2007-03-23  RHSK  Complete note on stale mutator buffers.  Fixes don't 
+                    change summary, but forwarding does in [1c+].
 --end--
