@@ -125,7 +125,7 @@ merge_properties (source, target)
   while (CONSP (o))
     {
       sym = XCAR (o);
-      val = Fmemq (sym, target->plist);
+      val = Fplist_member (sym, target->plist);
 
       if (NILP (val))
 	{
@@ -168,7 +168,7 @@ intervals_equal (i0, i1)
 	return 0;
 
       i0_sym = XCAR (i0_cdr);
-      i1_val = Fmemq (i0_sym, i1->plist);
+      i1_val = Fplist_member (i0_sym, i1->plist);
 
       /* i0 has something i1 doesn't.  */
       if (EQ (i1_val, Qnil))
@@ -2538,7 +2538,7 @@ set_intervals_multibyte_1 (i, multi_flag, start, start_byte, end, end_byte)
 	  temp = CHAR_TO_BYTE (left_end);
 
 	  /* If LEFT_END_BYTE is in the middle of a character,
-	     adjust it and LEFT_END to a char boundary.  */ 
+	     adjust it and LEFT_END to a char boundary.  */
 	  if (left_end_byte > temp)
 	    {
 	      left_end_byte = temp;
@@ -2570,7 +2570,7 @@ set_intervals_multibyte_1 (i, multi_flag, start, start_byte, end, end_byte)
 	  right_start = BYTE_TO_CHAR (right_start_byte);
 
 	  /* If RIGHT_START_BYTE is in the middle of a character,
-	     adjust it and RIGHT_START to a char boundary.  */ 
+	     adjust it and RIGHT_START to a char boundary.  */
 	  temp = CHAR_TO_BYTE (right_start);
 
 	  if (right_start_byte < temp)
