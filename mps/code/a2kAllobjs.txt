@@ -1,0 +1,1573 @@
+.
+=== Tests: {[mpsicv, mpsicv, mpsicv, mpsicv, mpsicv, mpsicv, mpsicv, mpsicv, mpsicv, mpsicv]} {[hi]} ===
+--- mpsicv {hi} ---
+xcppgc: xcppgc/hi/version.o
+xcppgc: xcppgc/hi/mpsicv
+Randomizing 12825 times.
+collections: 0
+i == 0
+c: 0
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 29091
+Collection 1, 4155 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.359360, trace->rate: 58880
+Collection 2, 16947 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.109238, trace->rate: 120108
+Collection 3, 21162 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 61009
+Collection 4, 25285 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 549676
+Collection 5, 29600 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.827957, trace->rate: 213793
+Collection 6, 33864 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.078125, trace->rate: 278733
+Collection 7, 38129 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.406219, trace->rate: 146738
+Collection 8, 42393 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.656067, trace->rate: 163727
+Collection 9, 46537 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.984207, trace->rate: 189123
+Collection 10, 50599 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.252960, trace->rate: 244070
+Collection 11, 54652 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.515625, trace->rate: 150460
+Collection 12, 58855 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.790146, trace->rate: 268617
+Collection 13, 62920 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.613083, trace->rate: 138964
+Collection 14, 69917 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.577881, trace->rate: 152876
+Collection 15, 74036 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.796722, trace->rate: 160251
+Collection 16, 77967 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.093704, trace->rate: 199392
+Collection 17, 81854 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.359177, trace->rate: 144789
+Collection 18, 85707 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.656204, trace->rate: 215612
+Collection 19, 89583 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.483047, trace->rate: 124029
+Collection 20, 102215 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.796875, trace->rate: 156365
+Collection 21, 105909 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.062439, trace->rate: 139731
+Collection 22, 109535 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.265533, trace->rate: 187859
+Collection 23, 113155 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.515564, trace->rate: 148040
+Collection 24, 116907 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.812485, trace->rate: 199124
+Collection 25, 120607 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.613754, trace->rate: 121135
+Collection 26, 138901 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.343613, trace->rate: 145588
+Collection 27, 142441 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.540100, trace->rate: 148512
+Collection 28, 145745 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.792252, trace->rate: 187344
+Collection 29, 149128 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.031158, trace->rate: 140390
+Collection 30, 152557 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.270752, trace->rate: 175695
+Collection 31, 155892 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 14.921875, trace->rate: 117892
+Collection 32, 184254 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 12.687378, trace->rate: 147284
+Collection 33, 188823 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 12.984360, trace->rate: 151126
+Collection 34, 193253 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.265488, trace->rate: 166564
+Collection 35, 197668 objects.
+Objects 200000.
+
+arena_commit_test:
+ committed: 8904704, reserved: 16777216, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 8904704)
+ TracePoll: dynamicDeferral: -115517.000000, ArenaAvail: 3883008
+ traceStartCollectAll: finishingTime: 2023164.000000
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ nPolls: 30.871033, trace->rate: 61995
+ traceSetSignalEmergency eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+ TracePoll: dynamicDeferral: -6847574.000000, ArenaAvail: 135168
+ traceStartCollectAll: finishingTime: -2778372.000000
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ nPolls: 1.000000, trace->rate: 2913541
+ traceSetSignalEmergency eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+ exit alloc loop, iAlloc: 2520, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 7552391.040000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 115.240342, trace->rate: 25651
+mps_arena_collect OK.
+alloc_v_test OK.
+collections: 38
+i == 0
+c: 38
+Objects 200000.
+
+arena_commit_test:
+ committed: 10334208, reserved: 33558528, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 10334208)
+ exit alloc loop, iAlloc: 740, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 19469972.200000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 297.088199, trace->rate: 15248
+mps_arena_collect OK.
+alloc_v_test OK.
+--- mpsicv {hi} ---
+xcppgc: xcppgc/hi/version.o
+xcppgc: xcppgc/hi/mpsicv
+Randomizing 12843 times.
+collections: 0
+i == 0
+c: 0
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 29039
+Collection 1, 4153 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.124969, trace->rate: 56012
+Collection 2, 15575 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.968750, trace->rate: 216269
+Collection 3, 19757 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 66355
+Collection 4, 24019 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 521003
+Collection 5, 28256 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.796677, trace->rate: 199658
+Collection 6, 32536 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 676660
+Collection 7, 36798 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 66349
+Collection 8, 41070 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.796799, trace->rate: 201515
+Collection 9, 45323 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 53442
+Collection 10, 49472 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 992052
+Collection 11, 53717 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.771454, trace->rate: 206412
+Collection 12, 57904 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 1131304
+Collection 13, 62215 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 77797
+Collection 14, 66397 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.765594, trace->rate: 192918
+Collection 15, 70696 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.046860, trace->rate: 116633
+Collection 16, 74939 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.312454, trace->rate: 632522
+Collection 17, 79120 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.640579, trace->rate: 158615
+Collection 18, 83344 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.984131, trace->rate: 684631
+Collection 19, 87437 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.249969, trace->rate: 135031
+Collection 20, 91673 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.461029, trace->rate: 145701
+Collection 21, 95642 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.764633, trace->rate: 161409
+Collection 22, 99654 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.062408, trace->rate: 381079
+Collection 23, 103653 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.361984, trace->rate: 141814
+Collection 24, 107665 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.658844, trace->rate: 403079
+Collection 25, 111670 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.734192, trace->rate: 137294
+Collection 26, 120315 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.466064, trace->rate: 146238
+Collection 27, 124206 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.718750, trace->rate: 154542
+Collection 28, 127907 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.968628, trace->rate: 360445
+Collection 29, 131595 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.296814, trace->rate: 142130
+Collection 30, 135531 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.577927, trace->rate: 315047
+Collection 31, 139317 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 8.437378, trace->rate: 124466
+Collection 32, 152044 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.672180, trace->rate: 150346
+Collection 33, 155575 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.921646, trace->rate: 156229
+Collection 34, 159224 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 8.156143, trace->rate: 265317
+Collection 35, 162657 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 8.437439, trace->rate: 145561
+Collection 36, 166255 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 8.692566, trace->rate: 274788
+Collection 37, 169738 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 11.562271, trace->rate: 122115
+Collection 38, 188222 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.171875, trace->rate: 142132
+Collection 39, 191575 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.640991, trace->rate: 146428
+Collection 40, 196077 objects.
+Objects 200000.
+
+arena_commit_test:
+ committed: 7512064, reserved: 16777216, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 7512064)
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.823242, trace->rate: 249891
+ exit alloc loop, iAlloc: 768, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 10988451.160000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 167.670458, trace->rate: 10922
+mps_arena_collect OK.
+alloc_v_test OK.
+collections: 42
+i == 0
+c: 42
+Objects 200000.
+
+arena_commit_test:
+ committed: 17248256, reserved: 33558528, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 17248256)
+ exit alloc loop, iAlloc: 7356, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 19449404.000000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 296.774353, trace->rate: 15300
+mps_arena_collect OK.
+alloc_v_test OK.
+--- mpsicv {hi} ---
+xcppgc: xcppgc/hi/version.o
+xcppgc: xcppgc/hi/mpsicv
+Randomizing 12858 times.
+collections: 0
+i == 0
+c: 0
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 29039
+Collection 1, 4153 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.374985, trace->rate: 60928
+Collection 2, 16945 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.109238, trace->rate: 120108
+Collection 3, 21160 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 61009
+Collection 4, 25283 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 549676
+Collection 5, 29598 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.827957, trace->rate: 217889
+Collection 6, 33862 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.078125, trace->rate: 278733
+Collection 7, 38127 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.406219, trace->rate: 148786
+Collection 8, 42391 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.656067, trace->rate: 165775
+Collection 9, 46535 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.984207, trace->rate: 191171
+Collection 10, 50597 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.252960, trace->rate: 244070
+Collection 11, 54650 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.515625, trace->rate: 151825
+Collection 12, 58853 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.790146, trace->rate: 268617
+Collection 13, 62918 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.613083, trace->rate: 139988
+Collection 14, 69915 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.577881, trace->rate: 153900
+Collection 15, 74034 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.796722, trace->rate: 161275
+Collection 16, 77965 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.093704, trace->rate: 199392
+Collection 17, 81852 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.359177, trace->rate: 145608
+Collection 18, 85705 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.656204, trace->rate: 215612
+Collection 19, 89581 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.483047, trace->rate: 124614
+Collection 20, 102213 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.796875, trace->rate: 157048
+Collection 21, 105907 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.062439, trace->rate: 140316
+Collection 22, 109533 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.265533, trace->rate: 187859
+Collection 23, 113153 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.515564, trace->rate: 148625
+Collection 24, 116905 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.812485, trace->rate: 199124
+Collection 25, 120605 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.613754, trace->rate: 121545
+Collection 26, 138899 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.327988, trace->rate: 145793
+Collection 27, 142439 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.540100, trace->rate: 148968
+Collection 28, 145743 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.792252, trace->rate: 187344
+Collection 29, 149126 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.031158, trace->rate: 140799
+Collection 30, 152555 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.286377, trace->rate: 175920
+Collection 31, 155890 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 14.921875, trace->rate: 118185
+Collection 32, 184252 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 12.687378, trace->rate: 147626
+Collection 33, 188821 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 12.984360, trace->rate: 151467
+Collection 34, 193251 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.265488, trace->rate: 166564
+Collection 35, 197666 objects.
+Objects 200000.
+
+arena_commit_test:
+ committed: 8904704, reserved: 16777216, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 8904704)
+ TracePoll: dynamicDeferral: -115517.000000, ArenaAvail: 3883008
+ traceStartCollectAll: finishingTime: 2023109.120000
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ nPolls: 30.870195, trace->rate: 61997
+ traceSetSignalEmergency eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+ TracePoll: dynamicDeferral: -6840216.000000, ArenaAvail: 139264
+ traceStartCollectAll: finishingTime: -2772323.840000
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ nPolls: 1.000000, trace->rate: 2911588
+ traceSetSignalEmergency eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+ exit alloc loop, iAlloc: 2520, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 7552357.720000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 115.239833, trace->rate: 25651
+mps_arena_collect OK.
+alloc_v_test OK.
+collections: 38
+i == 0
+c: 38
+Objects 200000.
+
+arena_commit_test:
+ committed: 10334208, reserved: 33558528, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 10334208)
+ exit alloc loop, iAlloc: 740, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 19469884.000000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 297.086853, trace->rate: 15248
+mps_arena_collect OK.
+alloc_v_test OK.
+--- mpsicv {hi} ---
+xcppgc: xcppgc/hi/version.o
+xcppgc: xcppgc/hi/mpsicv
+Randomizing 12886 times.
+collections: 0
+i == 0
+c: 0
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 29039
+Collection 1, 4150 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.374985, trace->rate: 60928
+Collection 2, 16942 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.109238, trace->rate: 120108
+Collection 3, 21157 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 61009
+Collection 4, 25280 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 549676
+Collection 5, 29595 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.827957, trace->rate: 217889
+Collection 6, 33859 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.078125, trace->rate: 278733
+Collection 7, 38124 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.406219, trace->rate: 148786
+Collection 8, 42388 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.656067, trace->rate: 165775
+Collection 9, 46532 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.984207, trace->rate: 191171
+Collection 10, 50594 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.252960, trace->rate: 244070
+Collection 11, 54647 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.515625, trace->rate: 151825
+Collection 12, 58850 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.790146, trace->rate: 268617
+Collection 13, 62915 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.613083, trace->rate: 139988
+Collection 14, 69912 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.577881, trace->rate: 153900
+Collection 15, 74031 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.796722, trace->rate: 161275
+Collection 16, 77962 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.093704, trace->rate: 199392
+Collection 17, 81849 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.359177, trace->rate: 145608
+Collection 18, 85702 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.656204, trace->rate: 215612
+Collection 19, 89578 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.483047, trace->rate: 124614
+Collection 20, 102210 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.796875, trace->rate: 157048
+Collection 21, 105904 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.062439, trace->rate: 140316
+Collection 22, 109530 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.265533, trace->rate: 187859
+Collection 23, 113150 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.515564, trace->rate: 148625
+Collection 24, 116902 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.812485, trace->rate: 199124
+Collection 25, 120602 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.613754, trace->rate: 121545
+Collection 26, 138896 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.327988, trace->rate: 145793
+Collection 27, 142436 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.540100, trace->rate: 148968
+Collection 28, 145740 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.792252, trace->rate: 187344
+Collection 29, 149123 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.031158, trace->rate: 140799
+Collection 30, 152552 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.286377, trace->rate: 175920
+Collection 31, 155887 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 14.921875, trace->rate: 118185
+Collection 32, 184249 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 12.687378, trace->rate: 147626
+Collection 33, 188818 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 12.984360, trace->rate: 151467
+Collection 34, 193248 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.265488, trace->rate: 166564
+Collection 35, 197663 objects.
+Objects 200000.
+
+arena_commit_test:
+ committed: 8904704, reserved: 16777216, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 8904704)
+ TracePoll: dynamicDeferral: -115517.000000, ArenaAvail: 3883008
+ traceStartCollectAll: finishingTime: 2023046.400000
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ nPolls: 30.869238, trace->rate: 61999
+ exit alloc loop, iAlloc: 2428, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 10978115.320000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 167.512746, trace->rate: 10910
+mps_arena_collect OK.
+alloc_v_test OK.
+collections: 37
+i == 0
+c: 37
+Objects 200000.
+
+arena_commit_test:
+ committed: 17641472, reserved: 33558528, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 17641472)
+ exit alloc loop, iAlloc: 7728, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 19445357.000000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 296.712601, trace->rate: 15300
+mps_arena_collect OK.
+alloc_v_test OK.
+--- mpsicv {hi} ---
+xcppgc: xcppgc/hi/version.o
+xcppgc: xcppgc/hi/mpsicv
+Randomizing 12905 times.
+collections: 0
+i == 0
+c: 0
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 29039
+Collection 1, 4149 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.374985, trace->rate: 60928
+Collection 2, 16941 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.109238, trace->rate: 120108
+Collection 3, 21156 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 61009
+Collection 4, 25279 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 549676
+Collection 5, 29594 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.827957, trace->rate: 213793
+Collection 6, 33858 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.078125, trace->rate: 278733
+Collection 7, 38123 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.406219, trace->rate: 146738
+Collection 8, 42387 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.640442, trace->rate: 162600
+Collection 9, 46531 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.984207, trace->rate: 189123
+Collection 10, 50593 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.252960, trace->rate: 244070
+Collection 11, 54646 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.515625, trace->rate: 150460
+Collection 12, 58849 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.790146, trace->rate: 268617
+Collection 13, 62914 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.613083, trace->rate: 138964
+Collection 14, 69911 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.577881, trace->rate: 152876
+Collection 15, 74030 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.796722, trace->rate: 160251
+Collection 16, 77961 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.093704, trace->rate: 199392
+Collection 17, 81848 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.359177, trace->rate: 144789
+Collection 18, 85701 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.656204, trace->rate: 215612
+Collection 19, 89577 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.483047, trace->rate: 124029
+Collection 20, 102209 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.796875, trace->rate: 156365
+Collection 21, 105903 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.062439, trace->rate: 139731
+Collection 22, 109529 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.265533, trace->rate: 187859
+Collection 23, 113149 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.515564, trace->rate: 148040
+Collection 24, 116901 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.812485, trace->rate: 199124
+Collection 25, 120601 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.613754, trace->rate: 121135
+Collection 26, 138895 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.343613, trace->rate: 145588
+Collection 27, 142435 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.540100, trace->rate: 148512
+Collection 28, 145739 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.792252, trace->rate: 187344
+Collection 29, 149122 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.031158, trace->rate: 140390
+Collection 30, 152551 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.270752, trace->rate: 175695
+Collection 31, 155886 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 14.921875, trace->rate: 117892
+Collection 32, 184248 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 12.687378, trace->rate: 147284
+Collection 33, 188817 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 12.984360, trace->rate: 151126
+Collection 34, 193247 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.265488, trace->rate: 166564
+Collection 35, 197662 objects.
+Objects 200000.
+
+arena_commit_test:
+ committed: 8904704, reserved: 16777216, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 8904704)
+ TracePoll: dynamicDeferral: -115517.000000, ArenaAvail: 3883008
+ traceStartCollectAll: finishingTime: 2023020.920000
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ nPolls: 30.868849, trace->rate: 62000
+ exit alloc loop, iAlloc: 2428, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 10978117.280000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 167.512776, trace->rate: 10910
+mps_arena_collect OK.
+alloc_v_test OK.
+collections: 37
+i == 0
+c: 37
+Objects 200000.
+
+arena_commit_test:
+ committed: 17641472, reserved: 33558528, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 17641472)
+ exit alloc loop, iAlloc: 7728, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 19445308.000000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 296.711853, trace->rate: 15300
+mps_arena_collect OK.
+alloc_v_test OK.
+--- mpsicv {hi} ---
+xcppgc: xcppgc/hi/version.o
+xcppgc: xcppgc/hi/mpsicv
+Randomizing 12923 times.
+collections: 0
+i == 0
+c: 0
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 29039
+Collection 1, 4147 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.374985, trace->rate: 60928
+Collection 2, 16939 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.109238, trace->rate: 120108
+Collection 3, 21154 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 61009
+Collection 4, 25277 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 549676
+Collection 5, 29592 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.827957, trace->rate: 213793
+Collection 6, 33856 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.078125, trace->rate: 278733
+Collection 7, 38121 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.406219, trace->rate: 146738
+Collection 8, 42385 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.640442, trace->rate: 162600
+Collection 9, 46529 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.984207, trace->rate: 189123
+Collection 10, 50591 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.252960, trace->rate: 244070
+Collection 11, 54644 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.515625, trace->rate: 150460
+Collection 12, 58847 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.790146, trace->rate: 268617
+Collection 13, 62912 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.613083, trace->rate: 138964
+Collection 14, 69909 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.577881, trace->rate: 152876
+Collection 15, 74028 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.796722, trace->rate: 160251
+Collection 16, 77959 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.093704, trace->rate: 199392
+Collection 17, 81846 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.359177, trace->rate: 144789
+Collection 18, 85699 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.656204, trace->rate: 215612
+Collection 19, 89575 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.483047, trace->rate: 124029
+Collection 20, 102207 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.796875, trace->rate: 156365
+Collection 21, 105901 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.062439, trace->rate: 139731
+Collection 22, 109527 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.265533, trace->rate: 187859
+Collection 23, 113147 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.515564, trace->rate: 148040
+Collection 24, 116899 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.812485, trace->rate: 199124
+Collection 25, 120599 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.613754, trace->rate: 121135
+Collection 26, 138893 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.343613, trace->rate: 145588
+Collection 27, 142433 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.540100, trace->rate: 148512
+Collection 28, 145737 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.792252, trace->rate: 187344
+Collection 29, 149120 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.031158, trace->rate: 140390
+Collection 30, 152549 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.270752, trace->rate: 175695
+Collection 31, 155884 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 14.921875, trace->rate: 117892
+Collection 32, 184246 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 12.687378, trace->rate: 147284
+Collection 33, 188815 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 12.984360, trace->rate: 151126
+Collection 34, 193245 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.265488, trace->rate: 166564
+Collection 35, 197660 objects.
+Objects 200000.
+
+arena_commit_test:
+ committed: 8904704, reserved: 16777216, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 8904704)
+ TracePoll: dynamicDeferral: -115517.000000, ArenaAvail: 3883008
+ traceStartCollectAll: finishingTime: 2022952.320000
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ nPolls: 30.867803, trace->rate: 62002
+ traceSetSignalEmergency eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+ TracePoll: dynamicDeferral: -6921149.000000, ArenaAvail: 94208
+ traceStartCollectAll: finishingTime: -2839614.080000
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ nPolls: 1.000000, trace->rate: 2933823
+ traceSetSignalEmergency eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+RongRongRongRongRongRongRongRongRongRongRong:
+ Total? no:
+Segment 03FCFD20 [03877000,03878000) {
+  class 0005D298 ("AMCSEG")
+  pool 03FFE278 (7)
+  shield depth 1
+  protection mode:
+  shield mode: read write
+  ranks: exact
+  white  00000000000000000000000000000001
+  grey   00000000000000000000000000000001
+  nailed 00000000000000000000000000000001
+  summary 00010400
+  buffer: NULL
+AMC seg 03FCFD20 [03877000,03878000){
+  Boarded
+  Map:  *===:object  bbbb:buffer
+    03877000  *====================*==============*====*==================*===
+    03877100  ==========*=======*=========*===========*========*===*=========*
+    03877200  ====================*===================*==============*========
+    03877300  =======*==========*==================*======*=*==========*======
+    03877400  =====*===============*=====*================*==============*====
+    03877500  ==============*===========*=========*==============*==*======*==
+    03877600  ===========*===================*========*=================*=====
+    03877700  =======*===================*===================*=======*========
+    03877800  =======*===============*==*==================*==*===============
+    03877900  *=================*=================*=*===============*====*====
+    03877A00  ==========*===============*======*===================*==========
+    03877B00  ======*==========*=========*==============*====================*
+    03877C00  ==*================*==*==============*=====*===*=========*======
+    03877D00  ==*===================*===================*==============*======
+    03877E00  =========*==*=*================*===========*=*=======*==========
+    03877F00  ================================================================
+  Sketch: bGW_
+  Sketch at previous Total scan: mG_f
+  Sketch at last Total scan: bGW_
+} AMC Seg 03FCFD20
+
+} Segment 03FCFD20
+ Traces:
+ 0: EMERGENCY
+
+MPS ASSERTION FAILURE: RefSetSub(ss.unfixedSummary, SegSummary(seg))
+trace.c
+1145
+--- mpsicv {hi} ---
+xcppgc: xcppgc/hi/version.o
+xcppgc: xcppgc/hi/mpsicv
+Randomizing 12937 times.
+collections: 0
+i == 0
+c: 0
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 29039
+Collection 1, 4147 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.374985, trace->rate: 60928
+Collection 2, 16939 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.109238, trace->rate: 120108
+Collection 3, 21154 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 61009
+Collection 4, 25277 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 549676
+Collection 5, 29592 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.827957, trace->rate: 217889
+Collection 6, 33856 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.078125, trace->rate: 278733
+Collection 7, 38121 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.406219, trace->rate: 148786
+Collection 8, 42385 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.656067, trace->rate: 165775
+Collection 9, 46529 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.984207, trace->rate: 191171
+Collection 10, 50591 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.252960, trace->rate: 244070
+Collection 11, 54644 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.515625, trace->rate: 151825
+Collection 12, 58847 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.790146, trace->rate: 268617
+Collection 13, 62912 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.613083, trace->rate: 139988
+Collection 14, 69909 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.577881, trace->rate: 153900
+Collection 15, 74028 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.796722, trace->rate: 161275
+Collection 16, 77959 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.093704, trace->rate: 199392
+Collection 17, 81846 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.359177, trace->rate: 145608
+Collection 18, 85699 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.656204, trace->rate: 215612
+Collection 19, 89575 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.483047, trace->rate: 124614
+Collection 20, 102207 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.796875, trace->rate: 157048
+Collection 21, 105901 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.062439, trace->rate: 140316
+Collection 22, 109527 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.265533, trace->rate: 187859
+Collection 23, 113147 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.515564, trace->rate: 148625
+Collection 24, 116899 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.812485, trace->rate: 199124
+Collection 25, 120599 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.613754, trace->rate: 121545
+Collection 26, 138893 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.327988, trace->rate: 145793
+Collection 27, 142433 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.540100, trace->rate: 148968
+Collection 28, 145737 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.792252, trace->rate: 187344
+Collection 29, 149120 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.031158, trace->rate: 140799
+Collection 30, 152549 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.286377, trace->rate: 175920
+Collection 31, 155884 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 14.921875, trace->rate: 118185
+Collection 32, 184246 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 12.687378, trace->rate: 147626
+Collection 33, 188815 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 12.984360, trace->rate: 151467
+Collection 34, 193245 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.265488, trace->rate: 166564
+Collection 35, 197660 objects.
+Objects 200000.
+
+arena_commit_test:
+ committed: 8904704, reserved: 16777216, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 8904704)
+ TracePoll: dynamicDeferral: -115517.000000, ArenaAvail: 3883008
+ traceStartCollectAll: finishingTime: 2022952.320000
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ nPolls: 30.867803, trace->rate: 62002
+ traceSetSignalEmergency eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+ TracePoll: dynamicDeferral: -6913792.000000, ArenaAvail: 98304
+ traceStartCollectAll: finishingTime: -2833511.040000
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ nPolls: 1.000000, trace->rate: 2931816
+ traceSetSignalEmergency eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+RongRongRongRongRongRongRongRongRongRongRong:
+ Total? no:
+Segment 03FCFCD8 [03877000,03878000) {
+  class 0005D298 ("AMCSEG")
+  pool 03FFE278 (7)
+  shield depth 1
+  protection mode:
+  shield mode: read write
+  ranks: exact
+  white  00000000000000000000000000000001
+  grey   00000000000000000000000000000001
+  nailed 00000000000000000000000000000001
+  summary 00010400
+  buffer: NULL
+AMC seg 03FCFCD8 [03877000,03878000){
+  Boarded
+  Map:  *===:object  bbbb:buffer
+    03877000  *====================*==============*====*==================*===
+    03877100  ==========*=======*=========*===========*========*===*=========*
+    03877200  ====================*===================*==============*========
+    03877300  =======*==========*==================*======*=*==========*======
+    03877400  =====*===============*=====*================*==============*====
+    03877500  ==============*===========*=========*==============*==*======*==
+    03877600  ===========*===================*========*=================*=====
+    03877700  =======*===================*===================*=======*========
+    03877800  =======*===============*==*==================*==*===============
+    03877900  *=================*=================*=*===============*====*====
+    03877A00  ==========*===============*======*===================*==========
+    03877B00  ======*==========*=========*==============*====================*
+    03877C00  ==*================*==*==============*=====*===*=========*======
+    03877D00  ==*===================*===================*==============*======
+    03877E00  =========*==*=*================*===========*=*=======*==========
+    03877F00  ================================================================
+  Sketch: bGW_
+  Sketch at previous Total scan: mG_f
+  Sketch at last Total scan: bGW_
+} AMC Seg 03FCFCD8
+
+} Segment 03FCFCD8
+ Traces:
+ 0: EMERGENCY
+
+MPS ASSERTION FAILURE: RefSetSub(ss.unfixedSummary, SegSummary(seg))
+trace.c
+1145
+--- mpsicv {hi} ---
+xcppgc: xcppgc/hi/version.o
+xcppgc: xcppgc/hi/mpsicv
+Randomizing 12952 times.
+collections: 0
+i == 0
+c: 0
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 29039
+Collection 1, 4148 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.124969, trace->rate: 56012
+Collection 2, 15570 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.968750, trace->rate: 216269
+Collection 3, 19752 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 66355
+Collection 4, 24014 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 516907
+Collection 5, 28251 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.796677, trace->rate: 195562
+Collection 6, 32531 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 676660
+Collection 7, 36793 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 66349
+Collection 8, 41065 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.796799, trace->rate: 201515
+Collection 9, 45318 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 53442
+Collection 10, 49467 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 987956
+Collection 11, 53712 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.771454, trace->rate: 214604
+Collection 12, 57899 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 1131304
+Collection 13, 62210 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 77797
+Collection 14, 66392 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.765594, trace->rate: 192918
+Collection 15, 70691 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.046860, trace->rate: 116633
+Collection 16, 74934 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.312454, trace->rate: 632522
+Collection 17, 79115 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.640579, trace->rate: 158615
+Collection 18, 83339 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.984131, trace->rate: 684631
+Collection 19, 87432 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.249969, trace->rate: 135031
+Collection 20, 91668 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.461029, trace->rate: 145701
+Collection 21, 95637 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.764633, trace->rate: 161409
+Collection 22, 99649 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.062408, trace->rate: 381079
+Collection 23, 103648 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.361984, trace->rate: 141814
+Collection 24, 107660 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.658844, trace->rate: 403079
+Collection 25, 111665 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.734192, trace->rate: 137294
+Collection 26, 120310 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.466064, trace->rate: 146238
+Collection 27, 124201 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.718750, trace->rate: 154542
+Collection 28, 127902 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.968628, trace->rate: 360445
+Collection 29, 131590 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.296814, trace->rate: 142130
+Collection 30, 135526 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.577927, trace->rate: 315047
+Collection 31, 139312 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 8.437378, trace->rate: 124466
+Collection 32, 152039 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.672180, trace->rate: 150346
+Collection 33, 155570 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.921646, trace->rate: 156229
+Collection 34, 159219 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 8.156143, trace->rate: 265317
+Collection 35, 162652 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 8.437439, trace->rate: 145561
+Collection 36, 166250 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 8.692566, trace->rate: 274788
+Collection 37, 169733 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 11.562271, trace->rate: 122115
+Collection 38, 188217 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.171875, trace->rate: 142132
+Collection 39, 191570 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.640991, trace->rate: 146428
+Collection 40, 196072 objects.
+Objects 200000.
+
+arena_commit_test:
+ committed: 7512064, reserved: 16777216, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 7512064)
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.824173, trace->rate: 249904
+ exit alloc loop, iAlloc: 760, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 10988331.600000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 167.668634, trace->rate: 10922
+mps_arena_collect OK.
+alloc_v_test OK.
+collections: 42
+i == 0
+c: 42
+Objects 200000.
+
+arena_commit_test:
+ committed: 17244160, reserved: 33558528, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 17244160)
+ exit alloc loop, iAlloc: 7352, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 19449376.560000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 296.773934, trace->rate: 15300
+mps_arena_collect OK.
+alloc_v_test OK.
+--- mpsicv {hi} ---
+xcppgc: xcppgc/hi/version.o
+xcppgc: xcppgc/hi/mpsicv
+Randomizing 12968 times.
+collections: 0
+i == 0
+c: 0
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 29000
+Collection 1, 4148 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.124771, trace->rate: 56007
+Collection 2, 15582 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.968704, trace->rate: 216263
+Collection 3, 19769 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 58164
+Collection 4, 24034 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 520846
+Collection 5, 28254 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.796875, trace->rate: 207872
+Collection 6, 32547 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 676647
+Collection 7, 36814 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 70418
+Collection 8, 41087 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.780975, trace->rate: 197398
+Collection 9, 45338 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 57541
+Collection 10, 49480 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 987949
+Collection 11, 53733 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.721466, trace->rate: 191577
+Collection 12, 57899 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 1131310
+Collection 13, 62228 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 54066
+Collection 14, 66493 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.781250, trace->rate: 195175
+Collection 15, 70717 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.031219, trace->rate: 114584
+Collection 16, 74958 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.308945, trace->rate: 632320
+Collection 17, 79125 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.656113, trace->rate: 159736
+Collection 18, 83370 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.953033, trace->rate: 680545
+Collection 19, 87466 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.234268, trace->rate: 133662
+Collection 20, 91704 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.470657, trace->rate: 146813
+Collection 21, 95637 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.774536, trace->rate: 162530
+Collection 22, 99649 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.062469, trace->rate: 380620
+Collection 23, 103689 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.374954, trace->rate: 142232
+Collection 24, 107762 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.671814, trace->rate: 403045
+Collection 25, 111761 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.687363, trace->rate: 135206
+Collection 26, 120339 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.476776, trace->rate: 146558
+Collection 27, 124201 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.734177, trace->rate: 154988
+Collection 28, 127937 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.999786, trace->rate: 362081
+Collection 29, 131612 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.281097, trace->rate: 141445
+Collection 30, 135545 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.574783, trace->rate: 314976
+Collection 31, 139312 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 8.687469, trace->rate: 125696
+Collection 32, 153444 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.812393, trace->rate: 153745
+Collection 33, 157095 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 8.046829, trace->rate: 138726
+Collection 34, 160646 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 8.265579, trace->rate: 267289
+Collection 35, 164036 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 8.535751, trace->rate: 147342
+Collection 36, 167602 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 8.765533, trace->rate: 276095
+Collection 37, 171185 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 11.640411, trace->rate: 122971
+Collection 38, 189625 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.222549, trace->rate: 142684
+Collection 39, 192909 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.718689, trace->rate: 147722
+Collection 40, 197564 objects.
+Objects 200000.
+
+arena_commit_test:
+ committed: 7532544, reserved: 16777216, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 7532544)
+ TracePoll: dynamicDeferral: -111835.000000, ArenaAvail: 3276800
+ traceStartCollectAll: finishingTime: 1418788.600000
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ nPolls: 21.648996, trace->rate: 88477
+ exit alloc loop, iAlloc: 1244, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 10978050.640000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 167.511759, trace->rate: 10910
+mps_arena_collect OK.
+alloc_v_test OK.
+collections: 42
+i == 0
+c: 42
+Objects 200000.
+
+arena_commit_test:
+ committed: 17719296, reserved: 33558528, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 17719296)
+ exit alloc loop, iAlloc: 7804, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 19445280.560000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 296.711434, trace->rate: 15300
+mps_arena_collect OK.
+alloc_v_test OK.
+--- mpsicv {hi} ---
+xcppgc: xcppgc/hi/version.o
+xcppgc: xcppgc/hi/mpsicv
+Randomizing 12985 times.
+collections: 0
+i == 0
+c: 0
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 29000
+Collection 1, 4144 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.374893, trace->rate: 60926
+Collection 2, 16951 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.109161, trace->rate: 120103
+Collection 3, 21167 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 60780
+Collection 4, 25274 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 545495
+Collection 5, 29597 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.827896, trace->rate: 238362
+Collection 6, 33871 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.062439, trace->rate: 275760
+Collection 7, 38135 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.390472, trace->rate: 156971
+Collection 8, 42411 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.656158, trace->rate: 176942
+Collection 9, 46542 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.983353, trace->rate: 201358
+Collection 10, 50594 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.250793, trace->rate: 243367
+Collection 11, 54641 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.531036, trace->rate: 160008
+Collection 12, 58860 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.771164, trace->rate: 267111
+Collection 13, 62909 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.624817, trace->rate: 145915
+Collection 14, 69997 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.562408, trace->rate: 158462
+Collection 15, 74046 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.812363, trace->rate: 166959
+Collection 16, 77983 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.093567, trace->rate: 199389
+Collection 17, 81874 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.359222, trace->rate: 149705
+Collection 18, 85728 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.656113, trace->rate: 215610
+Collection 19, 89610 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.461090, trace->rate: 126852
+Collection 20, 102204 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.812439, trace->rate: 161142
+Collection 21, 105930 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.029404, trace->rate: 142300
+Collection 22, 109542 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.296768, trace->rate: 188765
+Collection 23, 113170 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.515366, trace->rate: 151547
+Collection 24, 116914 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.828110, trace->rate: 199709
+Collection 25, 120618 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.579483, trace->rate: 122924
+Collection 26, 138890 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.359375, trace->rate: 148981
+Collection 27, 142446 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.537994, trace->rate: 151211
+Collection 28, 145734 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.790451, trace->rate: 187520
+Collection 29, 149117 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.046844, trace->rate: 143258
+Collection 30, 152557 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.296707, trace->rate: 175901
+Collection 31, 156034 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 14.640915, trace->rate: 118663
+Collection 32, 182866 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 12.577988, trace->rate: 148018
+Collection 33, 187509 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 12.890518, trace->rate: 152046
+Collection 34, 191908 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.171722, trace->rate: 165666
+Collection 35, 196338 objects.
+Objects 200000.
+
+arena_commit_test:
+ committed: 8839168, reserved: 16777216, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 8839168)
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.340668, trace->rate: 146210
+ exit alloc loop, iAlloc: 1504, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 10965752.440000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 167.324103, trace->rate: 10935
+mps_arena_collect OK.
+alloc_v_test OK.
+collections: 37
+i == 0
+c: 37
+Objects 200000.
+
+arena_commit_test:
+ committed: 17842176, reserved: 33558528, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 17842176)
+ exit alloc loop, iAlloc: 7924, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 19449241.320000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 296.771871, trace->rate: 15300
+mps_arena_collect OK.
+alloc_v_test OK.
