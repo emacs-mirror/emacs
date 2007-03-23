@@ -2992,6 +2992,8 @@ Keyboard translations:\n\n\
 You type        Translation\n\
 --------        -----------\n";
 
+  CHECK_BUFFER (buffer);
+
   shadow = Qnil;
   GCPRO1 (shadow);
 

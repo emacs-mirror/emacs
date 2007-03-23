@@ -1,3 +1,18 @@
+2007-03-11  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* gnus.texi (Mail and Post): Update documentation for gnus-user-agent.
+	The variable now uses a list of symbols instead of just a symbol.
+	Reported by Christoph Conrad <christoph.conrad@gmx.de>.
+
+2007-03-06  Romain Francoise  <romain@orebokech.com>
+
+	* faq.texi (New in Emacs 22): Don't say "now" too much.  Add MH-E to
+	new packages, and mention Gnus update.
+
+2007-03-04  Richard Stallman  <rms@gnu.org>
+
+	* custom.texi (Safe File Variables): Minor correction.
+
 2007-02-27  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (NNTP): Mention nntp-never-echoes-commands and

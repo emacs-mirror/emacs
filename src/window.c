@@ -3612,11 +3612,12 @@ The variables `special-display-buffer-names',
 `same-window-regexps' customize how certain buffer names are handled.
 The latter two take effect only if NOT-THIS-WINDOW is nil.
 
-If optional argument FRAME is `visible', search all visible frames.
-If FRAME is 0, search all visible and iconified frames.
-If FRAME is t, search all frames.
-If FRAME is a frame, search only that frame.
-If FRAME is nil, search only the selected frame
+If optional argument FRAME is `visible', check all visible frames
+for a window to use.
+If FRAME is 0, check all visible and iconified frames.
+If FRAME is t, check all frames.
+If FRAME is a frame, check only that frame.
+If FRAME is nil, check only the selected frame
  (actually the last nonminibuffer frame),
  unless `pop-up-frames' or `display-buffer-reuse-frames' is non-nil,
  which means search visible and iconified frames.

@@ -1,21 +1,6 @@
 ### emacs.csh
 
-## Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007
-##   Free Software Foundation, Inc.
-
 ## Author: Michael DeCorte
-
-## COPYING PERMISSIONS:
-
-## Permission is hereby granted, free of charge, to any person
-## obtaining a copy of this file, to deal in the file without
-## restriction, including without limitation the rights to use, copy,
-## modify, merge, publish, distribute, sublicense, and/or sell copies
-## of the file, and to permit persons to whom the file is furnished to
-## do so, subject to the following condition:
-##
-## The above copyright notice and this permission notice shall be
-## included in all copies or substantial portions of the file.
 
 ### Commentary:
 

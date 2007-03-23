@@ -1791,7 +1791,11 @@ Initialize colors of certain faces from frame parameters."
 	    (face-spec-set face (face-user-default-spec face) frame)
 	    (internal-merge-in-global-face face frame)
 	    (if (memq window-system '(x w32 mac))
-		(make-face-x-resource-internal face frame)))
+		(make-face-x-resource-internal face frame))
+	    ;; If the user has customized the face, don't let X
+	    ;; resources override the customizations.
+	    (if (get face 'theme-face)
+		(custom-theme-recalc-face face)))
 	(error nil)))
     ;; Apply the attributes specified by frame parameters.  This
     ;; rewrites parameters changed by make-face-x-resource-internal
@@ -2139,7 +2143,7 @@ created."
     ;; Don't use blue because many users of the MS-DOS port customize
     ;; their foreground color to be blue.
     (((type pc)) :foreground "magenta")
-    (t :foreground "dark blue"))
+    (t :foreground "medium blue"))
   "Face for minibuffer prompts.
 By default, Emacs automatically adds this face to the value of
 `minibuffer-prompt-properties', which is a list of text properties

@@ -412,8 +412,143 @@ preferably use the `c-mode-menu' language constant directly."
 ;; temporary changes in some font lock support modes, causing extra
 ;; unnecessary work and font lock glitches due to interactions between
 ;; various text properties.
+;; 
+;; (2007-02-12): The macro `combine-after-change-calls' ISN'T used any
+;; more.
 
-(defun c-after-change (beg end len)
+(defun c-unfind-enclosing-token (pos)
+  ;; If POS is wholly inside a token, remove that id from
+  ;; `c-found-types', should it be present.  Return t if we were in an
+  ;; id, else nil.
+  (save-excursion
+    (let ((tok-beg (progn (goto-char pos)
+			  (and (c-beginning-of-current-token) (point))))
+	  (tok-end (progn (goto-char pos)
+			  (and (c-end-of-current-token) (point)))))
+      (when (and tok-beg tok-end)
+	(c-unfind-type (buffer-substring-no-properties tok-beg tok-end))
+	t))))
+
+(defun c-unfind-coalesced-tokens (beg end)
+  ;; unless the non-empty region (beg end) is entirely WS and there's at
+  ;; least one character of WS just before or after this region, remove
+  ;; the tokens which touch the region from `c-found-types' should they
+  ;; be present.
+  (or (c-partial-ws-p beg end)
+      (save-excursion
+	(progn
+	  (goto-char beg)
+	  (or (eq beg (point-min))
+	      (c-skip-ws-backward (1- beg))
+	      (/= (point) beg)
+	      (= (c-backward-token-2) 1)
+	      (c-unfind-type (buffer-substring-no-properties
+			      (point) beg)))
+	  (goto-char end)
+	  (or (eq end (point-max))
+	      (c-skip-ws-forward (1+ end))
+	      (/= (point) end)
+	      (progn (forward-char) (c-end-of-current-token) nil)
+	      (c-unfind-type (buffer-substring-no-properties
+			      end (point))))))))
+
+;; c-maybe-stale-found-type records a place near the region being
+;; changed where an element of `found-types' might become stale.  It 
+;; is set in c-before-change and is either nil, or has the form:
+;;
+;;   (c-decl-id-start "foo" 97 107  " (* ooka) " "o"), where
+;;   
+;; o - `c-decl-id-start' is the c-type text property value at buffer
+;;   pos 96.
+;; 
+;; o - 97 107 is the region potentially containing the stale type -
+;;   this is delimited by a non-nil c-type text property at 96 and
+;;   either another one or a ";", "{", or "}" at 107.
+;; 
+;; o - " (* ooka) " is the (before change) buffer portion containing
+;;   the suspect type (here "ooka").
+;;
+;; o - "o" is the buffer contents which is about to be deleted.  This
+;;   would be the empty string for an insertion.
+(defvar c-maybe-stale-found-type nil)
+(make-variable-buffer-local 'c-maybe-stale-found-type)
+
+(defun c-before-change (beg end)
+  ;; Function to be put on `before-change-function'.  Currently
+  ;; (2007-02) it is used only to remove stale entries from the
+  ;; `c-found-types' cache, and to record entries which a
+  ;; `c-after-change' function might confirm as stale.
+  ;; 
+  ;; Note that this function must be FAST rather than accurate.  Note
+  ;; also that it only has any effect when font locking is enabled.
+  ;; We exploit this by checking for font-lock-*-face instead of doing
+  ;; rigourous syntactic analysis.
+
+  ;; If either change boundary is wholly inside an identifier, delete
+  ;; it/them from the cache.  Don't worry about being inside a string
+  ;; or a comment - "wrongly" removing a symbol from `c-found-types'
+  ;; isn't critical.
+  (setq c-maybe-stale-found-type nil)
+  (save-restriction
+    (save-match-data
+      (widen)
+      (save-excursion
+	;; Are we inserting/deleting stuff in the middle of an identifier?
+	(c-unfind-enclosing-token beg)
+	(c-unfind-enclosing-token end)
+	;; Are we coalescing two tokens together, e.g. "fo o" -> "foo"?
+	(when (< beg end)
+	  (c-unfind-coalesced-tokens beg end))
+	;; Are we (potentially) disrupting the syntactic context which
+	;; makes a type a type?  E.g. by inserting stuff after "foo" in
+	;; "foo bar;", or before "foo" in "typedef foo *bar;"?
+	;;
+	;; We search for appropriate c-type properties "near" the change.
+	;; First, find an appropriate boundary for this property search.
+	(let (lim
+	      type type-pos
+	      marked-id term-pos
+	      (end1
+	       (if (eq (get-text-property end 'face) 'font-lock-comment-face)
+		   (previous-single-property-change end 'face)
+		 end)))
+	  (when (>= end1 beg) ; Don't hassle about changes entirely in comments.
+	    ;; Find a limit for the search for a `c-type' property
+	    (while
+		(and (/= (skip-chars-backward "^;{}") 0)
+		     (> (point) (point-min))
+		     (memq (c-get-char-property (1- (point)) 'face)
+			   '(font-lock-comment-face font-lock-string-face))))
+	    (setq lim (max (point-min) (1- (point))))
+
+	    ;; Look for the latest `c-type' property before end1
+	    (when (and (> end1 1)
+		       (setq type-pos
+			     (if (get-text-property (1- end1) 'c-type)
+				 end1
+			       (previous-single-property-change end1 'c-type nil lim))))
+	      (setq type (get-text-property (max (1- type-pos) lim) 'c-type))
+
+	      (when (memq type '(c-decl-id-start c-decl-type-start))
+		;; Get the identifier, if any, that the property is on.
+		(goto-char (1- type-pos))
+		(setq marked-id
+		      (when (looking-at "\\(\\sw\\|\\s_\\)")
+			(c-beginning-of-current-token)
+			(buffer-substring-no-properties (point) type-pos)))
+
+		(goto-char end1)
+		(skip-chars-forward "^;{}") ; FIXME!!!  loop for comment, maybe
+		(setq lim (point))
+		(setq term-pos
+		      (or (next-single-property-change end 'c-type nil lim) lim))
+		(setq c-maybe-stale-found-type
+		      (list type marked-id
+			    type-pos term-pos
+			    (buffer-substring-no-properties type-pos term-pos)
+			    (buffer-substring-no-properties beg end)))))))))))
+
+(defun c-after-change (beg end old-len)
   ;; Function put on `after-change-functions' to adjust various caches
   ;; etc.  Prefer speed to finesse here, since there will be an order
   ;; of magnitude more calls to this function than any of the
@@ -441,6 +576,7 @@ preferably use the `c-mode-menu' language constant directly."
 	  (when (> beg end)
 	    (setq beg end)))
 
+	(c-trim-found-types beg end old-len) ; maybe we don't need all of these.
 	(c-invalidate-sws-region-after beg end)
 	(c-invalidate-state-cache beg)
 	(c-invalidate-find-decl-cache beg)
@@ -577,6 +713,8 @@ that requires a literal mode spec at compile time."
 
   ;; Install the functions that ensure that various internal caches
   ;; don't become invalid due to buffer changes.
+  (make-local-hook 'before-change-functions)
+  (add-hook 'before-change-functions 'c-before-change nil t)
   (make-local-hook 'after-change-functions)
   (add-hook 'after-change-functions 'c-after-change nil t))
 

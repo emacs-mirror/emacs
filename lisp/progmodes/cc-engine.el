@@ -1912,6 +1912,26 @@ comment at the start of cc-engine.el for more info."
       )))
 
 
+;; Other whitespace tools
+(defun c-partial-ws-p (beg end)
+  ;; Is the region (beg end) WS, and is there WS (or BOB/EOB) next to the
+  ;; region?  This is a "heuristic" function.  .....
+  ;; 
+  ;; The motivation for the second bit is to check whether the removal of this
+  ;; space is to check whether removing this region would coalesce two
+  ;; symbols.
+  ;;
+  ;; FIXME!!!  This function doesn't check virtual semicolons in any way.  Be
+  ;; careful about using this function for, e.g. AWK.  (2007/3/7)
+  (save-excursion
+    (let ((end+1 (min (1+ end) (point-max))))
+      (or (progn (goto-char (max (point-min) (1- beg)))
+		 (c-skip-ws-forward end)
+		 (eq (point) end))
+	  (progn (goto-char beg)
+		 (c-skip-ws-forward end+1)
+		 (eq (point) end+1))))))
+
 ;; A system for finding noteworthy parens before the point.
 
 (defvar c-state-cache nil)
@@ -2491,24 +2511,25 @@ comment at the start of cc-engine.el for more info."
   ;; Move to the beginning of the current token.  Do not move if not
   ;; in the middle of one.  BACK-LIMIT may be used to bound the
   ;; backward search; if given it's assumed to be at the boundary
-  ;; between two tokens.
+  ;; between two tokens.  Return non-nil if the point is move, nil
+  ;; otherwise.
   ;;
   ;; This function might do hidden buffer changes.
-  (if (looking-at "\\w\\|\\s_")
-      (skip-syntax-backward "w_" back-limit)
     (let ((start (point)))
-      (when (< (skip-syntax-backward ".()" back-limit) 0)
-	(while (let ((pos (or (and (looking-at c-nonsymbol-token-regexp)
-				   (match-end 0))
-			      ;; `c-nonsymbol-token-regexp' should always match
-			      ;; since we've skipped backward over punctuator
-			      ;; or paren syntax, but consume one char in case
-			      ;; it doesn't so that we don't leave point before
-			      ;; some earlier incorrect token.
-			      (1+ (point)))))
-		 (if (<= pos start)
-		     (goto-char pos))
-		 (< pos start)))))))
+      (if (looking-at "\\w\\|\\s_")
+	  (skip-syntax-backward "w_" back-limit)
+	(when (< (skip-syntax-backward ".()" back-limit) 0)
+	  (while (let ((pos (or (and (looking-at c-nonsymbol-token-regexp)
+				     (match-end 0))
+				;; `c-nonsymbol-token-regexp' should always match
+				;; since we've skipped backward over punctuator
+				;; or paren syntax, but consume one char in case
+				;; it doesn't so that we don't leave point before
+				;; some earlier incorrect token.
+				(1+ (point)))))
+		   (if (<= pos start)
+		       (goto-char pos))))))
+      (< (point) start)))
 
 (defun c-end-of-current-token (&optional back-limit)
   ;; Move to the end of the current token.  Do not move if not in the
@@ -3957,6 +3978,9 @@ comment at the start of cc-engine.el for more info."
 ;; file, and we only use this as a last resort in ambiguous cases (see
 ;; `c-forward-decl-or-cast-1').
 ;;
+;; Not every type need be in this cache.  However, things which have
+;; ceased to be types must be removed from it.
+;;
 ;; Template types in C++ are added here too but with the template
 ;; arglist replaced with "<>" in references or "<" for the one in the
 ;; primary type.  E.g. the type "Foo<A,B>::Bar<C>" is stored as
@@ -3990,6 +4014,10 @@ comment at the start of cc-engine.el for more info."
       (unintern (substring type 0 -1) c-found-types)
       (intern type c-found-types))))
 
+(defun c-unfind-type (name)
+  ;; Remove the "NAME" from c-found-types, if present.
+  (unintern name c-found-types))
+
 (defsubst c-check-type (from to)
   ;; Return non-nil if the given region contains a type in
   ;; `c-found-types'.
@@ -4007,6 +4035,48 @@ comment at the start of cc-engine.el for more info."
 				      type-list)))
 	      c-found-types)
     (sort type-list 'string-lessp)))
+
+(defun c-trim-found-types (beg end old-len)
+  ;; An after change function which, in conjunction with the info in
+  ;; c-maybe-stale-found-type (set in c-before-change), removes a type
+  ;; from `c-found-types', should this type have become stale.  For
+  ;; example, this happens to "foo" when "foo \n bar();" becomes
+  ;; "foo(); \n bar();".  Such stale types, if not removed, foul up
+  ;; the fontification.
+  ;; 
+  ;; Have we, perhaps, added non-ws characters to the front/back of a found
+  ;; type?
+  (when (> end beg)
+    (save-excursion
+      (when (< end (point-max))
+	(goto-char end)
+	(if (and (c-beginning-of-current-token) ; only moves when we started in the middle
+		 (progn (goto-char end)
+			(c-end-of-current-token)))
+	    (c-unfind-type (buffer-substring-no-properties
+			    end (point)))))
+      (when (> beg (point-min))
+	(goto-char beg)
+	(if (and (c-end-of-current-token) ; only moves when we started in the middle
+		 (progn (goto-char beg)
+			(c-beginning-of-current-token)))
+	    (c-unfind-type (buffer-substring-no-properties
+			    (point) beg))))))
+	    
+  (if c-maybe-stale-found-type ; e.g. (c-decl-id-start "foo" 97 107 " (* ooka) " "o")
+      (cond
+       ;; Changing the amount of (already existing) whitespace - don't do anything.
+       ((and (c-partial-ws-p beg end)
+	     (or (= beg end)		; removal of WS
+		 ; (string-match "\\s *\\'" (nth 5 c-maybe-stale-found-type))
+		 (string-match "^[ \t\n\r\f\v]*$" (nth 5 c-maybe-stale-found-type)))))
+
+       ;; The syntactic relationship which defined a "found type" has been
+       ;; destroyed.
+       ((eq (car c-maybe-stale-found-type) 'c-decl-id-start)
+	(c-unfind-type (cadr c-maybe-stale-found-type)))
+;;        ((eq (car c-maybe-stale-found-type) 'c-decl-type-start)  FIXME!!!
+	)))
 
 
 ;; Handling of small scale constructs like types and names.

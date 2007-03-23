@@ -938,9 +938,6 @@ VALUE is a Lisp object.
 If VARIABLE has a `custom-set' property, that is used for setting
 VARIABLE, otherwise `set-default' is used.
 
-The `customized-value' property of the VARIABLE will be set to a list
-with a quoted VALUE as its sole list member.
-
 If VARIABLE has a `variable-interactive' property, that is used as if
 it were the arg to `interactive' (which see) to interactively read the value.
 
@@ -971,9 +968,6 @@ Return VALUE.
 If VARIABLE has a `custom-set' property, that is used for setting
 VARIABLE, otherwise `set-default' is used.
 
-The `customized-value' property of the VARIABLE will be set to a list
-with a quoted VALUE as its sole list member.
-
 If VARIABLE has a `variable-interactive' property, that is used as if
 it were the arg to `interactive' (which see) to interactively read the value.
 
@@ -993,6 +987,8 @@ If given a prefix (or a COMMENT argument), also prompt for a comment."
  	(comment
  	 (put variable 'variable-comment comment)
  	 (put variable 'saved-variable-comment comment)))
+  (put variable 'customized-value nil)
+  (put variable 'customized-variable-comment nil)
   (custom-save-all)
   value)
 

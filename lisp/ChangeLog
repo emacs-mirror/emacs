@@ -1,3 +1,276 @@
+2007-03-11  Juri Linkov <juri@jurta.org>
+
+	* replace.el (match): Use yellow background on light-bg terminals.
+
+2007-03-11  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-warning-prefix): 
+	Correctly compute line number.
+	
+2007-03-11  Guanpeng Xu  <herberteuler@hotmail.com>
+
+	* type-break.el (type-break-get-previous-count): 
+	Repeat previous change here.
+
+2007-03-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/grep.el (grep-find-ignored-directories): Add .git and
+	.bzr to list.
+
+2007-03-11  Andreas Schwab  <schwab@suse.de>
+
+	* diff-mode.el (diff-apply-hunk): Use proper format string for
+	error.
+
+2007-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mail/emacsbug.el (report-emacs-bug): Don't hard code the "X" name.
+
+2007-03-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faces.el (face-set-after-frame-default): Recalculate face
+	customizations after applying X resources.
+
+2007-03-10  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el (rcirc-timeout-seconds): New variable.
+	(rcirc-keepalive-seconds): Remove variable.
+	(rcirc-server-name, rcirc-timeout-timer, rcirc-connecting)
+	(rcirc-process, rcirc-user-disconnect): New variables.
+	(rcirc-connect): Initalize new variables.
+	(rcirc-keepalive): Don't send keepalive pings before connection
+	is completed.
+	(rcirc-sentinel): Do mark all channels with activity when
+	connection is dropped.  Run hook with process buffer local.
+	(rcirc-reschedule-timeout, rcirc-delete-process): New functions.
+	(rcirc-buffer-process): Return value of rcirc-process if
+	rcirc-server-buffer is nil.
+	(rcirc-server-name): Return the reported server name.
+	(rcirc-update-prompt): Simplify computation of the server name.
+	(rcirc-format-response-string): Likewise.
+	(rcirc-handler-001): Mark server as connected, record the reported
+	server name, and schedule a timeout.
+	(rcirc-track-nick): Add a spec for the tty class.
+	(rcirc-user-non-nick): Remove function.
+	(rcirc-nick-prefix-chars): Add variable.
+	(rcirc-user-nick): Use above variable.
+
+2007-03-10  Johan Bockg,be(Brd  <bojohan@dd.chalmers.se>
+
+	* icomplete.el (icomplete-tidy, icomplete-exhibit):
+	Bind deactivate-mark to nil.
+
+2007-03-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* complete.el (PC-do-completion): Bind dirlength to nil to avoid
+	that buffer contents get erased during completion.
+
+2007-03-10  Glenn Morris  <rgm@gnu.org>
+
+	* woman.el (woman-change-fonts): Add a hack to deal with
+	font-escape followed by "." at start of a line.
+	(woman2-IP): Add a hack to deal with consecutive requests.
+	(woman2-tagged-paragraph): Extend existing hack to handle "sp".
+
+2007-03-10  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-mode.el (c-before-change): Wrap in save-match-data.
+
+2007-03-09  Richard Stallman  <rms@gnu.org>
+
+	* abbrev.el (abbrev): Add `provide'.
+
+2007-03-09  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* net/ange-ftp.el (ange-ftp-try-passive-mode): Doc fix.
+
+2007-03-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* complete.el (PC-try-completion): New function.
+	(PC-do-completion, read-file-name-internal): Use it instead of
+	try-completion.
+
+2007-03-08  Alan Mackenzie  <acm@muc.de>
+
+	Remove stale tokens from `c-found-types' cache.
+
+	* progmodes/cc-mode.el (c-unfind-enclosing-token)
+	(c-unfind-coalesced-tokens, c-before-change): New functions.
+	(c-maybe-stale-found-type): New variable.
+
+	* progmodes/cc-engine.el (c-partial-ws-p, c-unfind-type)
+	(c-trim-found-types): New functions.
+
+2007-03-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* smerge-mode.el (smerge-remove-props): Don't mark the buffer modified.
+	(debug-ignored-errors): Add entry from smerge-match-conflict.
+
+2007-03-08  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* progmodes/idlw-help.el (idlwave-do-context-help1): Don't visit
+	special help topics for keywords.
+	(idlwave-help-assistant-command): Include ".exe" for ms-dos
+	etc. Assistant command.
+
+2007-03-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* replace.el (occur-engine): Move buffer-undo-list binding...
+	(occur-1): ...to here.
+
+	* complete.el (PC-bindings): Rebind M-TAB in read-expression-map.
+
+	* simple.el (minibuffer-completing-symbol): New var.
+	(eval-expression): Use it.
+	(completion-setup-function): Don't bind completion-base-size when
+	completing a symbol in the minibuffer.
+
+2007-03-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gdb): Pop up current GUD buffer if user
+	tries to start a second session in graphical mode.
+
+2007-03-07  Miles Bader  <miles@gnu.org>
+
+	* international/isearch-x.el
+	(isearch-process-search-multibyte-characters):
+	Strip text-properties from PROMPT to avoid an error from read-string.
+
+2007-03-07  Kim F. Storm  <storm@cua.dk>
+
+	* complete.el (PC-bindings): Remap lisp-complete-symbol to
+	PC-lisp-complete-symbol instead of binding M-TAB in global-map.
+
+2007-03-07  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+
+	* complete.el (PC-do-completion): Delete duplicates in the list of
+	possible completions.
+
+2007-03-07  Glenn Morris  <rgm@gnu.org>
+
+	* ses.el (ses-mode): Doc fix.
+
+2007-03-06  Kim F. Storm  <storm@cua.dk>
+
+	* isearch.el (isearch-message-prefix): Undo 2007-03-01 change.
+
+2007-03-06  Kenichi Handa  <handa@m17n.org>
+
+	* term/x-win.el (x-select-utf8-or-ctext): Improve the strategy.
+
+2007-03-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (completion-setup-function): Improve last fix so it doesn't
+	set it to a relative directory name either.
+
+2007-03-05  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Replace some (defvar VAR) by (defvar VAR nil).
+
+2007-03-05  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/re-builder.el (reb-re-syntax): Fix custom type.
+
+	* files.el (find-file-noselect): No error if file no longer exists.
+	Display a message and avoid other questions.
+
+2007-03-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcomplete.el (pcomplete-show-completions): Improve last change, so
+	as not to use an invisible window and to create a window if none exist.
+
+	* progmodes/python.el (python-send-command): Restart proc if necessary.
+	(python-proc): Simplify.
+
+2007-03-05  David Hansen  <david.hansen@gmx.net>  (tiny change)
+
+	* pcomplete.el (pcomplete-show-completions): Search all frames for
+	completions buffer.
+
+2007-03-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (customize-save-variable): Clear customized-value
+	property (saved values are now put in theme-value property).
+	(customize-set-variable): Doc fix.
+
+	* complete.el (PC-do-completion): If completion-ignore-case is
+	non-nil, replace field with completion string before exiting.
+
+2007-03-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-make-temp-file): New parameter FILENAME.
+	Append its extension to the resulting temporary file name.
+	(tramp-handle-file-local-copy, tramp-handle-write-region): Apply it.
+
+	* net/tramp-smb.el (tramp-smb-handle-file-local-copy)
+	(tramp-smb-handle-write-region): Apply it.
+
+2007-03-05  Alin C. Soare  <alinsoar@voila.fr>  (tiny change)
+
+	* emacs-lisp/lisp-mode.el (calculate-lisp-indent):
+	Redo previous change.
+
+2007-03-04  Kevin Rodgers  <kevin.d.rodgers@gmail.com>
+
+	* diff-mode.el (diff-mode): Doc fix.
+
+2007-03-05  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Set category `l' (latin)
+	for more characters.
+
+2007-03-04  Kim F. Storm  <storm@cua.dk>
+
+	* emacs-lisp/authors.el (authors-aliases): Add alias.
+
+2007-03-04  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/hideshow.el (hs-minor-mode): Turn mode off and show
+	all when switching major mode.
+	(hs-minor-mode, hs-c-start-regexp, hs-block-start-regexp)
+	(hs-block-start-mdata-select, hs-block-end-regexp)
+	(hs-forward-sexp-func, hs-adjust-block-beginning):
+	Do not make these variables permanent-local.
+
+2007-03-04  Richard Stallman  <rms@gnu.org>
+
+	* progmodes/cperl-mode.el (cperl-mode):
+	Modify cperl-compilation-error-regexp-alist by appending.
+
+	* emacs-lisp/edebug.el (edebug-kill-buffer): New function.
+	(edebug-mode): Add the hook.
+	(edebug-recursive-edit): Remove the hook on exiting.
+
+	* type-break.el (type-break-get-previous-time):
+	Handle end-of-file errors specially
+	so they don't get reported wrong in .emacs.
+
+	* startup.el (fancy-splash-text): Clarify text.
+
+	* simple.el (beginning-of-buffer, end-of-buffer):
+	Avoid treating plain C-u like numeric arg.
+
+	* simple.el (completion-setup-function): Don't set
+	default-directory to nil.
+
+	* shell.el (shell-dirstack-query): Doc fix.
+
+	* mouse.el (mouse-drag-mode-line-1, mouse-drag-vertical-line):
+	Don't select the window -- pass it to primitives instead.
+
+	* faces.el (minibuffer-prompt): Use medium blue by default.
+
+2007-03-04  David Kastrup  <dak@gnu.org>
+
+	* jit-lock.el (jit-lock-stealth-time): Change default to nil.
+	Preserve 16 as default value for "seconds" when customizing.
+
+2007-03-04  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-self-insert-command)
+	(orgtbl-self-insert-command, org-delete-char)
+	(org-delete-backward-char): Set the `flyspell-delayed' property.
+
 2007-03-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* international/mule.el (find-auto-coding): Don't search for
@@ -116,7 +389,8 @@
 
 2007-02-26  Andrey Zhdanov  <susuman@hotmail.com>  (tiny change)
 
-	(gud-pdb-marker-regexp): Add optional <module> keyword for Python 2.5.
+	* progmodes/gud.el (gud-pdb-marker-regexp): Add optional <module>
+	keyword for Python 2.5.
 
 2007-02-26  Romain Francoise  <romain@orebokech.com>
 
@@ -154,32 +428,32 @@
 	(org-table-toggle-coordinate-overlays): New functions.
 	(org-table-overlay-coordinates, org-table-coordinate-overlays):
 	New variables.
-	(org-startup-with-deadline-check): Option removed.
+	(org-startup-with-deadline-check): Remove option.
 	(org-mode): Remove deadline check on startup.
-	(org-table-limit-column-width): Option removed.
-	(org-table-formula-numbers-only): Option removed.
-	(org-link-style, org-link-format): Options removed.
-	(org-select-agenda-window, org-fit-agenda-window): Options removed.
+	(org-table-limit-column-width): Remove option.
+	(org-table-formula-numbers-only): Remove option.
+	(org-link-style, org-link-format): Remove options.
+	(org-select-agenda-window, org-fit-agenda-window): Remove options.
 	(org-export-ascii-show-new-buffer)
-	(org-export-html-show-new-buffer): Options removed.
-	(org-activate-links): Camel option removed.
-	(org-file-link-context-use-camel-case): Option removed.
-	(org-camel-regexp): Veriable removed.
-	(org-activate-camels): Function removed.
-	(org-store-link): Removed Camel stuff.
-	(org-make-org-heading-camel): Function removed.
-	(org-open-at-point): Removed camel stuff.
-	(org-link-search): Removed camel stuff.
+	(org-export-html-show-new-buffer): Remove options.
+	(org-activate-links): Remove camel option.
+	(org-file-link-context-use-camel-case): Remove option.
+	(org-camel-regexp): Remove variable.
+	(org-activate-camels): Remove function.
+	(org-store-link): Remove Camel stuff.
+	(org-make-org-heading-camel): Remove function.
+	(org-open-at-point): Remove camel stuff.
+	(org-link-search): Remove camel stuff.
 	(org-camel-to-words): Function removed.
 	(org-get-agenda-file-buffer): Make sure we prepare the base
 	buffers, not any indirect buffers.
 	(org-sort-entries): Sort top-level when not on a headline, and no
 	active region.
 	(org-in-regexp): New function.
-	(org-search-not-self): Renamed from `org-search-not-link'.
+	(org-search-not-self): Rename from `org-search-not-link'.
 	(org-open-link-marker): New variable.
 	(org-open-at-point): Set `org-open-link-marker'.
-	(org-print-icalendar-entries): Fixed bug with excluding DONE
+	(org-print-icalendar-entries): Fixe bug with excluding DONE
 	entries from the exported list.
 	(org-edit-formula-lisp-indent): New command.
 	(orgtbl-to-texinfo, orgtbl-to-html): New functions.
@@ -195,7 +469,7 @@
 	(org-upgrade-old-links)
 	(org-table-modify-formulas, org-table-replace-in-formulas)
 	(org-table-find-dataline)
-	(org-table-get-vertical-vector): Functions removed.
+	(org-table-get-vertical-vector): Remove functions.
 	(org-table-remove-rectangle-highlight)
 	(org-time-stamp-format, org-toggle-log-option)
 	(org-table-highlight-rectangle)
@@ -228,17 +502,17 @@
 	(org-table-edit-scroll, org-table-edit-scroll-down)
 	(org-set-frame-title, org-show-reference)
 	(org-unhighlight-once, org-verify-change-for-undo): New functions.
-	(org-show-variable): Command removed.
+	(org-show-variable): Remove command.
 	(org-add-log-maybe): New arguments STATE, FINDPOS
-	(org-table-sort-lines): Rewritten from scratch.
+	(org-table-sort-lines): Rewrite from scratch.
 	(org-link-search): New argument AVOID-POS.
-	(org-print-icalendar-entries): Argument CATEGORY removed.
-	(org-run-agenda-series): Argument WONDOW removed.
+	(org-print-icalendar-entries): Remove argument CATEGORY.
+	(org-run-agenda-series): Remove argument WONDOW.
 	(org-next-link, org-previous-link): New commands.
 	(org-agenda-date-format): New option.
 	(org-table-iterate): New command.
 	(org-table-modify-formulas)
-	(org-table-replace-in-formulas): Functions removed.
+	(org-table-replace-in-formulas): Remove functions.
 	(org-table-fix-formulas): New function.
 	(org-table-insert-column, org-table-delete-column)
 	(org-table-move-column): Use `org-table-fix-formulas'.
@@ -259,8 +533,8 @@
 	(org-read-date): Accept "+N" as input for a date relative to the
 	current date.
 	(org-remove-subtree-entries-from-agenda): New function.
-	(org-agenda-archive, org-agenda-kill): Use
-	`org-remove-subtree-entries-from-agenda'.
+	(org-agenda-archive, org-agenda-kill):
+	Use `org-remove-subtree-entries-from-agenda'.
 	(org-do-sort, org-sort-entries): New functions.
 	(org-sort): New command.
 	(org-table-sort-lines): Use `org-do-sort'.
@@ -268,7 +542,7 @@
 	(org-table-number-regexp): Require 0x... to identify as number
 	in tables.
 	(org-startup-options): New keywords for note taking.
-	(org-upgrade-old-links): Function removed.
+	(org-upgrade-old-links): Remove function.
 	(org-get-repeat): New function.
 	(org-show-context): Also show siblings on current level.
 	(org-show-siblings): New function.
@@ -397,7 +671,7 @@
 	* pgg-gpg.el (pgg-gpg-process-region): Make USE-AGENT nil
 	if PASSPHRASE is given.
 
-2007-02-17  Chris Moore <dooglus@gmail.com>
+2007-02-17  Chris Moore  <dooglus@gmail.com>
 
 	* jka-cmpr-hook.el (jka-compr-compression-info-list):
 	Recognize backups of bz2 compressed files.
@@ -1412,8 +1686,7 @@
 
 2007-01-03  Alan Mackenzie  <acm@muc.de>
 
-	* progmode/cc-cmds.el (c-mask-paragraph): Fix yesterday's buggy
-	patch.
+	* progmode/cc-cmds.el (c-mask-paragraph): Fix yesterday's buggy patch.
 
 2007-01-03  Chris Moore  <christopher.ian.moore@gmail.com>
 
@@ -15669,7 +15942,7 @@
 
 	* progmodes/cc-defs.el (c-emacs-features): Don't assume point-min==1.
 
-2005-12-06  Nozomu Ando  <nand@mac.com>  (tiny patch)
+2005-12-06  Nozomu Ando  <nand@mac.com>
 
 	* mail/smtpmail.el (smtpmail-try-auth-methods): Make password
 	prompts work for AUTH PLAIN.  Also reported by Steve Allan
@@ -29232,7 +29505,7 @@
 	* progmodes/python.el (python-close-block-statement-p)
 	(python-outdent-p, python-current-defun): Use symbol-end.
 
-2005-03-25  Karl Chen  <quarl@cs.berkeley.edu>  (tiny change)
+2005-03-25  Karl Chen  <quarl@cs.berkeley.edu>
 
 	* files.el (save-some-buffers): Doc fix.
 
@@ -31917,7 +32190,7 @@
 	* electric.el (Electric-pop-up-window): Use fit-window-to-buffer
 	instead of calculating the right size.
 
-2005-01-02  Karl Chen  <quarl@cs.berkeley.edu>  (tiny change)
+2005-01-02  Karl Chen  <quarl@cs.berkeley.edu>
 
 	* vc-svn.el (vc-svn-diff): Stay local if possible.
 

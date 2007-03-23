@@ -913,10 +913,14 @@
 
 (let ((tbl (standard-case-table)) c)
 
-  ;; Latin Extended-A, Latin Extended-B
+  ;; Latin Extended-A, Latin Extended-B, IPA
   (setq c #x0100)
-  (while (<= c #x0233)
+  (while (<= c #x02AF)
     (modify-category-entry (decode-char 'ucs c) ?l)
+    (setq c (1+ c)))
+
+  (setq c #x0100)
+  (while (<= c #x0177)
     (and (or (<= c #x012e)
 	     (and (>= c #x014a) (<= c #x0177)))
 	 (zerop (% c 2))

@@ -906,11 +906,18 @@ Key bindings:
   (if hs-minor-mode
       (progn
         (hs-grok-mode-type)
+        ;; Turn off this mode if we change major modes.
+	(add-hook 'change-major-mode-hook
+		  (lambda () (hs-minor-mode -1))
+		  nil t)
         (easy-menu-add hs-minor-mode-menu)
         (set (make-local-variable 'line-move-ignore-invisible) t)
         (add-to-invisibility-spec '(hs . t)))
     (easy-menu-remove hs-minor-mode-menu)
-    (remove-from-invisibility-spec '(hs . t)))
+    (remove-from-invisibility-spec '(hs . t))
+    ;; hs-show-all does nothing unless h-m-m is non-nil.
+    (let ((hs-minor-mode t))
+      (hs-show-all)))
   (run-hooks 'hs-minor-mode-hook))
 
 ;;---------------------------------------------------------------------------
@@ -945,7 +952,7 @@ Key bindings:
 (add-to-list 'minor-mode-map-alist (cons 'hs-minor-mode hs-minor-mode-map))
 (add-to-list 'minor-mode-alist '(hs-minor-mode " hs") t)
 
-;; make some variables permanently buffer-local
+;; make some variables buffer-local
 (dolist (var '(hs-minor-mode
                hs-c-start-regexp
                hs-block-start-regexp
@@ -953,8 +960,7 @@ Key bindings:
                hs-block-end-regexp
                hs-forward-sexp-func
                hs-adjust-block-beginning))
-  (make-variable-buffer-local var)
-  (put var 'permanent-local t))
+  (make-variable-buffer-local var))
 
 ;;---------------------------------------------------------------------------
 ;; that's it

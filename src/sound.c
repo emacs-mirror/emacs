@@ -621,12 +621,18 @@ wav_play (s, sd)
       char *buffer;
       int nbytes;
       int blksize = sd->period_size ? sd->period_size (sd) : 2048;
+      int data_left = header->data_length;
 
       buffer = (char *) alloca (blksize);
       lseek (s->fd, sizeof *header, SEEK_SET);
-
-      while ((nbytes = emacs_read (s->fd, buffer, blksize)) > 0)
-	sd->write (sd, buffer, nbytes);
+      while (data_left > 0
+             && (nbytes = emacs_read (s->fd, buffer, blksize)) > 0)
+        {
+          /* Don't play possible garbage at the end of file */
+          if (data_left < nbytes) nbytes = data_left;
+          data_left -= nbytes;
+          sd->write (sd, buffer, nbytes);
+        }
 
       if (nbytes < 0)
 	sound_perror ("Error reading sound file");
@@ -986,7 +992,8 @@ alsa_period_size (sd)
        struct sound_device *sd;
 {
   struct alsa_params *p = (struct alsa_params *) sd->data;
-  return p->period_size;
+  int fact = snd_pcm_format_size (sd->format, 1) * sd->channels;
+  return p->period_size * (fact > 0 ? fact : 1);
 }
 
 static void
@@ -1209,9 +1216,10 @@ alsa_write (sd, buffer, nbytes)
 
   while (nwritten < nbytes)
     {
-      err = snd_pcm_writei (p->handle,
-                            buffer + nwritten,
-                            (nbytes - nwritten)/fact);
+      snd_pcm_uframes_t frames = (nbytes - nwritten)/fact;
+      if (frames == 0) break;
+      
+      err = snd_pcm_writei (p->handle, buffer + nwritten, frames);
       if (err < 0)
         {
           if (err == -EPIPE)
