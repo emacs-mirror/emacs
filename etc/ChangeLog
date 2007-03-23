@@ -1,3 +1,9 @@
+2007-03-23  Glenn Morris  <rgm@gnu.org>
+
+	* fr-refcard.tex (\letterpaper): Switch to A4.
+	(\section): Reduce \vskips to fit on A4 paper.
+	(\shortcopyrightnotice): Display at end of first column.
+
 2007-03-21  Glenn Morris  <rgm@gnu.org>
 
 	* fr-refcard.tex (\metax): Tweak \hsize to avoid overfull columns.
