@@ -1346,15 +1346,18 @@ static Res amcScanNailed(Bool *totalReturn, ScanState ss, Pool pool,
  * See <design/poolamc/#seg-scan>.
  */
 static Res AMCScanInner(Bool *totalReturn, ScanState ss, Pool pool, Seg seg);
+static void AMCSegAllobjSummary(Seg seg, char *pbzAction);
 
 static Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 {
   Res res;
-  amcSeg amcseg;
+  
+  AMCSegAllobjSummary(seg, "Before AMCScanInner");
   
   res = AMCScanInner(totalReturn, ss, pool, seg);
-  amcseg = Seg2amcSeg(seg);
+  
   if ( (res == ResOK) && totalReturn ) {
+    amcSeg amcseg = Seg2amcSeg(seg);
     int i;
     for (i = 0; i < NELEMS(amcseg->abzSketchTotalPrev); i += 1) {
       amcseg->abzSketchTotalPrev[i] = amcseg->abzSketchTotal[i];
@@ -1420,11 +1423,86 @@ static Res AMCScanInner(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
     }
   }
 
+  /* AMCSegAllobjSummary(seg, "Scan [1b]"); */
+  
   ss->scannedSize += AddrOffset(base, limit);
   EVENT_PPP(AMCScanEnd, amc, seg, ss);
 
   *totalReturn = TRUE;
   return ResOK;
+}
+
+
+static Res AMCNoFix(ScanState ss, Ref *refIO)
+{
+  NOTREACHED;
+  return ResUNIMPL;
+}
+
+
+static void AMCSegAllobjSummary(Seg seg, char *pbzAction)
+{
+  amcSeg amcseg;
+  Pool pool;
+  Arena arena;
+  Format format;
+  ScanStateStruct ss;
+  Buffer buffer;
+  Addr base, limit;
+  Ref baseRef, limitRef;
+  Res res = ResOK;
+  
+  AVERT(Seg, seg);
+  amcseg = Seg2amcSeg(seg);
+  AVERT(amcSeg, amcseg);
+  
+  pool = SegPool(seg);
+  AVERT(Pool, pool);
+  arena = pool->arena;
+  format = pool->format;
+
+  /* ScanStateInit(&ss, ts, arena, rank, white); */
+  /* If I want to call ScanStateInit, I would have to first make a 
+   * valid Trace, and make sure it is in ss->arena->busyTraces.
+   * No time for all that.  RHSK 2007-03-23.
+   */
+  ss.zoneShift = arena->zoneShift;
+  ss.unfixedSummary = RefSetEMPTY;
+  ss.fixedSummary = RefSetEMPTY;
+  ss.white = ZoneSetEMPTY;
+  ss.fix = AMCNoFix;
+  
+  base = SegBase(seg);
+  baseRef = (Ref)AddrAdd(base, format->headerSize);
+  buffer = SegBuffer(seg);
+  limit = buffer
+          ? BufferScanLimit(buffer)
+          : SegLimit(seg);
+  limitRef = (Ref)AddrAdd(limit, format->headerSize);
+  
+  /* ShieldExpose */
+  
+  AVER(base < limit);
+  if (base < limit) {
+    res = (*format->scan)(&ss, baseRef, limitRef);
+  }
+  
+  /* ShieldCover */
+  
+  if ( ! RefSetSub(ss.unfixedSummary, SegSummary(seg)) ) {
+    Res res2;
+    mps_lib_FILE *stream = mps_lib_get_stdout();
+    
+    SegDescribe(seg, stream);
+    
+    res2 = WriteF(stream,
+      "Action: $S\n", (WriteFS)pbzAction,
+      "SegSummary:    $W\n", (WriteFW)SegSummary(seg),
+      "AllobjSummary: $W\n", (WriteFW)ss.unfixedSummary,
+      "AllobjSummary res: $W\n", res, NULL
+    );
+  }
+  AVER(RefSetSub(ss.unfixedSummary, SegSummary(seg)));
 }
 
 
