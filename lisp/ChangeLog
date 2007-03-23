@@ -1,3 +1,8 @@
+2007-03-23  David Vazquez  <xeos00@gmail.com>  (tiny change)
+
+	* progmodes/m4-mode.el (m4-m4-buffer, m4-m4-region): Fix
+	omission bug: Use m4-program-options to construct shell command.
+
 2007-03-23  David Kastrup  <dak@gnu.org>
 
 	* progmodes/cc-mode.el (c-make-emacs-variables-local): Use
