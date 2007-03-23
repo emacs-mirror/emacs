@@ -9,7 +9,7 @@
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Created:     17. June 2003
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "1. November 2005, 21:16:53 (ulf)"
+;; Time-stamp:  "29. Januar 2007, 21:05:09 (ulf)"
 
 ;; ======================================================================
 
@@ -27,7 +27,7 @@
 ;; along with this program; if not, write to the Free Software Foundation,
 ;; Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-(defconst newsticker-version "1.9" "Version number of newsticker.el.")
+(defconst newsticker-version "1.10" "Version number of newsticker.el.")
 
 ;; ======================================================================
 ;;; Commentary:
@@ -168,6 +168,17 @@
 
 ;; ======================================================================
 ;;; History:
+
+;; 1.10 (2007-01-29)
+;;     * Bugfixes mostly: `newsticker--decode-iso8601-date',
+;;       `newsticker--sentinel', and others. 
+;;     * Renamed `newsticker--retrieval-timer-list' to
+;;       `newsticker-retrieval-timer-list'.  Removed
+;;       `newsticker-running-p' -- check newsticker-retrieval-timer-list
+;;       to find out whether newsticker is running.  Removed
+;;       `newsticker-ticker-running-p'.
+;;     * Try to cache images in w3m-rendered HTML text.
+;;     * Other minor changes.
 
 ;; 1.9 (2005-11-01)
 ;;     * Rewrote feed parsing part.  Newsticker now supports RSS 0.91,
@@ -485,8 +496,8 @@ This list is fed into defcustom via `newsticker--splicer'.")
 (defun newsticker--set-customvar (symbol value)
   "Set newsticker-variable SYMBOL value to VALUE.
 
-Calls all actions which are necessary in order to make the new
-value effective.  Changing `newsticker-url-list', for example,
+Calls all necessary actions which are necessary in order to make
+the new value effective.  Changing `newsticker-url-list', for example,
 will re-start the retrieval-timers."
   (unless (condition-case nil
               (eq (symbol-value symbol) value)
@@ -940,7 +951,7 @@ or, if you use htmlr
      (:family "helvetica" :bold t))
     (((class color) (background light))
      (:family "helvetica" :bold t)))
-  "Face for news items."
+  "Face for new news items."
   :group 'newsticker-faces)
 
 (defface newsticker-old-item-face
@@ -2233,6 +2244,7 @@ static char * visit_xpm[] = {
               ": "
               '(:eval (newsticker--buffer-get-item-title-at-point))
               " %-"))
+  (add-to-invisibility-spec 't)
   (unless newsticker-show-all-news-elements
     (add-to-invisibility-spec 'extra))
   (newsticker--buffer-set-uptodate nil))
@@ -2264,9 +2276,11 @@ static char * visit_xpm[] = {
 (define-key newsticker-mode-map "f"  'newsticker-next-feed)
 (define-key newsticker-mode-map "M"  'newsticker-mark-all-items-as-read)
 (define-key newsticker-mode-map "m"
-  'newsticker-mark-all-items-at-point-as-read)
+  'newsticker-mark-all-items-at-point-as-read-and-redraw)
 (define-key newsticker-mode-map "o"
   'newsticker-mark-item-at-point-as-read)
+(define-key newsticker-mode-map "O"
+  'newsticker-mark-all-items-at-point-as-read)
 (define-key newsticker-mode-map "G"  'newsticker-get-all-news)
 (define-key newsticker-mode-map "g"  'newsticker-get-news-at-point)
 (define-key newsticker-mode-map "u"  'newsticker-buffer-update)
@@ -2323,6 +2337,10 @@ static char * visit_xpm[] = {
     newsticker-mark-item-at-point-as-immortal))
 (define-key newsticker-menu [newsticker-separator-4]
   '("--"))
+(define-key newsticker-menu [newsticker-toggle-auto-narrow-to-item]
+  '("Narrow to single item" . newsticker-toggle-auto-narrow-to-item))
+(define-key newsticker-menu [newsticker-toggle-auto-narrow-to-feed]
+  '("Narrow to single news feed" . newsticker-toggle-auto-narrow-to-feed))
 (define-key newsticker-menu [newsticker-hide-old-items]
   '("Hide old items" . newsticker-hide-old-items))
 (define-key newsticker-menu [newsticker-show-old-items]
@@ -2602,11 +2620,41 @@ calls `w3m-toggle-inline-image'.  It works only if
                                   (get-text-property (1- (point))
                                                      'invisible)
                                   buffer-invisibility-spec)))
-                      (if invis
-                          (w3m-remove-image
-                           pos (next-single-property-change pos
-                                                            'w3m-image))
-                        (w3m-toggle-inline-image t))))))))))))
+                      (unless  (car (get-text-property (1- (point))
+                                                       'display))
+                        (unless invis
+                          (w3m-toggle-inline-image t)))))))))))))
+
+(defadvice w3m-insert-image (after newsticker activate)
+  (newsticker--buffer-after-w3m-insert-image (ad-get-arg 0) (ad-get-arg 1)))
+
+(defun newsticker--buffer-after-w3m-insert-image (beg end)
+  "Save preformatted contents after an image has been inserted
+between BEG and END."
+  (when (string= (buffer-name) "*newsticker*")
+    (save-excursion
+      (newsticker--buffer-beginning-of-item)
+      (let* ((pos     (point))
+             (feed    (get-text-property pos 'feed))
+             (age     (get-text-property pos 'nt-age))
+             (title   (get-text-property pos 'nt-title))
+             (guid    (get-text-property pos 'nt-guid))
+             (nt-desc (get-text-property pos 'nt-desc))
+             (item    (newsticker--cache-contains newsticker--cache
+                                                  feed title nt-desc
+                                                  nil nil guid))
+             (desc-beg (newsticker--buffer-goto '(desc)))
+             (desc-end (newsticker--buffer-end-of-item)))
+        ;;(add-text-properties beg end (list nt-type desc))
+        (add-text-properties beg end (list 'invisible
+                                           (get-text-property end 'invisible)))
+        ;;(message "newsticker--buffer-after-w3m-insert-image at %s, %s: `%s'" 
+        ;;         beg feed title)
+        (if item
+            (newsticker--cache-set-preformatted-contents
+             item (buffer-substring desc-beg desc-end))
+          (message "ooops in newsticker--buffer-after-w3m-insert-image at %s, %s: `%s'" 
+                   beg feed title))))))
 
 ;; ======================================================================
 ;;; keymap stuff
@@ -2686,6 +2734,29 @@ non-nil."
   (force-mode-line-update)
   (point))
 
+(defun newsticker-next-item-same-feed ()
+  "Go to next news item in the same feed.
+Return new buffer position.  If no item is found below point or if
+auto-narrow-to-item is enabled, nil is returned."
+  (interactive)
+  (if newsticker--auto-narrow-to-item
+      nil
+    (let ((go-ahead t)
+          (current-pos (point))
+          (end-of-feed (save-excursion (newsticker--buffer-end-of-feed))))
+      (while go-ahead
+        (unless (newsticker--buffer-goto '(item))
+          (setq go-ahead nil))
+        (unless (newsticker--lists-intersect-p
+                 (get-text-property (point) 'invisible)
+                 buffer-invisibility-spec)
+          (setq go-ahead nil)))
+      (if (and (> (point) current-pos)
+               (< (point) end-of-feed))
+          (point)
+        (goto-char current-pos)
+        nil))))
+
 (defun newsticker-previous-item (&optional do-not-wrap-at-bob)
   "Go to previous news item.
 Return new buffer position.
@@ -2733,76 +2804,97 @@ Return new buffer position."
   (force-mode-line-update)
   (point))
 
+(defun newsticker-mark-all-items-at-point-as-read-and-redraw ()
+  "Mark all items as read and clear ticker contents."
+  (interactive)
+  (when (or newsticker--buffer-uptodate-p
+            (y-or-n-p
+             "Buffer is not up to date -- really mark items as read? "))
+    (newsticker-mark-all-items-of-feed-as-read
+     (get-text-property (point) 'feed))))
+
+(defun newsticker-mark-all-items-of-feed-as-read (feed)
+  "Mark all items as read, clear ticker, and redraw *newsticker* buffer."
+  (when feed
+    (let ((pos (point)))
+      (message "Marking all items as read for %s" (symbol-name feed))
+      (newsticker--cache-replace-age newsticker--cache feed 'new 'old)
+      (newsticker--cache-replace-age newsticker--cache feed 'obsolete
+                                     'old)
+      (newsticker--cache-update)
+      (newsticker--buffer-set-uptodate nil)
+      (newsticker--ticker-text-setup)
+      (newsticker-buffer-update)
+      ;; go back to where we came frome
+      (goto-char pos)
+      (end-of-line)
+      (newsticker--buffer-goto '(feed) nil t))))
+  
 (defun newsticker-mark-all-items-at-point-as-read ()
   "Mark all items as read and clear ticker contents."
   (interactive)
   (when (or newsticker--buffer-uptodate-p
             (y-or-n-p
              "Buffer is not up to date -- really mark items as read? "))
-    (let ((feed (get-text-property (point) 'feed))
-          (pos (point)))
-      (when feed
-        (message "Marking all items as read for %s" (symbol-name feed))
-        (newsticker--cache-replace-age newsticker--cache feed 'new 'old)
-        (newsticker--cache-replace-age newsticker--cache feed 'obsolete
-                                       'old)
-        (newsticker--cache-update)
-        (newsticker--buffer-set-uptodate nil)
-        (newsticker--ticker-text-setup)
-        (newsticker-buffer-update)
-        ;; go back to where we came frome
-        (goto-char pos)
-        (end-of-line)
-        (newsticker--buffer-goto '(feed) nil t)))))
+    (newsticker--do-mark-item-at-point-as-read t)
+    (while (newsticker-next-item-same-feed)
+      (newsticker--do-mark-item-at-point-as-read t))
+    (newsticker-next-item t)))
 
 (defun newsticker-mark-item-at-point-as-read (&optional respect-immortality)
-  "Mark item at point as read.
+  "Mark item at point as read and move to next item.
 If optional argument RESPECT-IMMORTALITY is not nil immortal items do
 not get changed."
   (interactive)
   (when (or newsticker--buffer-uptodate-p
             (y-or-n-p
              "Buffer is not up to date -- really mark this item as read? "))
-    (let ((feed (get-text-property (point) 'feed))
-          (item nil))
-      (when feed
-        (save-excursion
-          (newsticker--buffer-beginning-of-item)
-          (let ((inhibit-read-only t)
-                (age (get-text-property (point) 'nt-age))
-                (title (get-text-property (point) 'nt-title))
-                (guid (get-text-property (point) 'nt-guid))
-                (nt-desc (get-text-property (point) 'nt-desc))
-                (pos (save-excursion (newsticker--buffer-end-of-item))))
-            (when (or (eq age 'new)
-                      (eq age 'obsolete)
-                      (and (eq age 'immortal)
-                           (not respect-immortality)))
-              ;; find item
-              (setq item (newsticker--cache-contains newsticker--cache
-                                                     feed title nt-desc
-                                                     nil nil guid))
-              ;; mark as old
-              (when item
-                (setcar (nthcdr 4 item) 'old)
-                (newsticker--do-forget-preformatted item))
-              ;; clean up ticker
-              (if (or (and (eq age 'new)
-                           newsticker-hide-immortal-items-in-echo-area)
-                      (and (memq age '(old immortal))
-                           (not
-                            (eq newsticker-hide-old-items-in-newsticker-buffer
-                                newsticker-hide-immortal-items-in-echo-area))))
-                  (newsticker--ticker-text-remove feed title))
-              ;; set faces etc.
-              (save-excursion
-                (save-restriction
-                  (widen)
-                  (put-text-property (point) pos 'nt-age 'old)
-                  (newsticker--buffer-set-faces (point) pos)))
-              (set-buffer-modified-p nil))))
-        ;; move forward
-        (newsticker-next-item t)))))
+    (newsticker--do-mark-item-at-point-as-read respect-immortality)
+    ;; move forward
+    (newsticker-next-item t)))
+
+(defun newsticker--do-mark-item-at-point-as-read (&optional respect-immortality)
+  "Mark item at point as read.
+If optional argument RESPECT-IMMORTALITY is not nil immortal items do
+not get changed."
+  (let ((feed (get-text-property (point) 'feed)))
+    (when feed
+      (save-excursion
+        (newsticker--buffer-beginning-of-item)
+        (let ((inhibit-read-only t)
+              (age (get-text-property (point) 'nt-age))
+              (title (get-text-property (point) 'nt-title))
+              (guid (get-text-property (point) 'nt-guid))
+              (nt-desc (get-text-property (point) 'nt-desc))
+              (pos (save-excursion (newsticker--buffer-end-of-item)))
+              item)
+          (when (or (eq age 'new)
+                    (eq age 'obsolete)
+                    (and (eq age 'immortal)
+                         (not respect-immortality)))
+            ;; find item
+            (setq item (newsticker--cache-contains newsticker--cache
+                                                   feed title nt-desc
+                                                   nil nil guid))
+            ;; mark as old
+            (when item
+              (setcar (nthcdr 4 item) 'old)
+              (newsticker--do-forget-preformatted item))
+            ;; clean up ticker
+            (if (or (and (eq age 'new)
+                         newsticker-hide-immortal-items-in-echo-area)
+                    (and (memq age '(old immortal))
+                         (not
+                          (eq newsticker-hide-old-items-in-newsticker-buffer
+                              newsticker-hide-immortal-items-in-echo-area))))
+                (newsticker--ticker-text-remove feed title))
+            ;; set faces etc.
+            (save-excursion
+              (save-restriction
+                (widen)
+                (put-text-property (point) pos 'nt-age 'old)
+                (newsticker--buffer-set-faces (point) pos)))
+            (set-buffer-modified-p nil)))))))
 
 (defun newsticker-mark-item-at-point-as-immortal ()
   "Mark item at point as read."
@@ -2969,7 +3061,7 @@ not get changed."
              )
             ((eq org-inv-prop nil)
              (add-text-properties pos1 pos2
-                                  (list 'invisible t
+                                  (list 'invisible (list t)
                                         'org-invisible inv-prop)))
             (t
              ;; toggle
@@ -3246,11 +3338,19 @@ Argument EVENT tells what has happened to the process."
                 ;; encoded and starts with a `<', wrap the whole
                 ;; description in a CDATA expression.  This happened for
                 ;; http://www.thefreedictionary.com/_/WoD/rss.aspx?type=quote
-                 (goto-char (point-min))
-                 (while (re-search-forward
-                         "<description>\\(<img.*?\\)</description>" nil t)
-                   (replace-match
-                    "<description><![CDATA[ \\1 ]]></description>"))
+                (goto-char (point-min))
+                (while (re-search-forward
+                        "<description>\\(<img.*?\\)</description>" nil t)
+                  (replace-match
+                   "<description><![CDATA[ \\1 ]]></description>"))
+                ;; And another one (20051123)! XML parser does not like this:
+                ;; <yweather:location city="Frankfurt/Main" region="" country="GM" />
+                ;; try to "fix" empty attributes
+                ;; This happened for
+                ;; http://xml.weather.yahoo.com/forecastrss?p=GMXX0040&u=f
+                (goto-char (point-min))
+                (while (re-search-forward "\\(<[^>]*\\)=\"\"" nil t)
+                  (replace-match "\\1=\" \""))
                 ;;
                 (set-buffer-modified-p nil)
                 ;; check coding system
@@ -3976,18 +4076,20 @@ Examples:
   (if iso8601-string
       (when (string-match
              (concat
-              "\\([0-9]\\{4\\}\\)"
+              "^ *\\([0-9]\\{4\\}\\)"
               "\\(-\\([0-9]\\{2\\}\\)"
               "\\(-\\([0-9]\\{2\\}\\)"
               "\\(T"
               "\\([0-9]\\{2\\}\\):\\([0-9]\\{2\\}\\)"
               "\\(:\\([0-9]\\{2\\}\\)\\)?"
               "\\(\\([-+Z]\\)\\(\\([0-9]\\{2\\}\\):\\([0-9]\\{2\\}\\)\\)?\\)?"
-              "\\)?\\)?\\)?")
+              "\\)?\\)?\\)? *$")
              iso8601-string)
         (let ((year (read (match-string 1 iso8601-string)))
-              (month (read (match-string 3 iso8601-string)))
-              (day (read (match-string 5 iso8601-string)))
+              (month (read (or (match-string 3 iso8601-string)
+                               "1")))
+              (day (read (or (match-string 5 iso8601-string)
+                             "1")))
               (hour (read (or (match-string 7 iso8601-string)
                               "0")))
               (minute (read (or (match-string 8 iso8601-string)
@@ -4252,7 +4354,7 @@ The mode-line is changed accordingly."
       (force-mode-line-update 0))))
 
 (defun newsticker--buffer-redraw ()
-  "Sometimes (CVS) Emacs forgets to update the window..."
+  "Redraw the newsticker window."
   (if (fboundp 'force-window-update)
       (force-window-update (current-buffer))
     (redraw-frame (selected-frame)))
@@ -4466,7 +4568,7 @@ FEED-NAME-SYMBOL tells to which feed this item belongs."
                  (replace-match " " nil nil))
                (goto-char (point-max)))
              (when (and newsticker-justification
-                        (eq type 'desc)
+                        (memq type '(item desc))
                         (not is-rendered-HTML))
                (condition-case nil
                    (let ((use-hard-newlines t))
@@ -4598,7 +4700,8 @@ FEED-NAME-SYMBOL tells to which feed this item belongs."
         (beg (point)))
     (when enclosure
       (let ((url (cdr (assoc 'url enclosure)))
-            (length (string-to-number (cdr (assoc 'length enclosure))))
+            (length (string-to-number (or (cdr (assoc 'length enclosure))
+                                          "0")))
             (type (cdr (assoc 'type enclosure))))
         (cond ((> length 1048576)
                (insert (format "Enclosed file (%s, %1.2f MBytes)" type
@@ -4732,17 +4835,8 @@ The face is chosen according the values of NT-FACE and AGE."
       (put-text-property pos1 (max pos1 pos2) 'face face))))
 
 (defun newsticker--insert-image (img string)
-  "Insert IMG with STRING at point.
-This is a work-around for a strange behavior of Emacs versions before
-21.3.50.  Images inserted with `insert-image' vanished after doing
-`fill-region'."
-  ;; This should work:
-  ;;(insert-image img string)
-  ;; but it does not. Therefore we do this, which should be equivalent!
-  (let ((pos (point)))
-    ;;(insert string)
-    (insert ":-)")
-    (add-text-properties pos (point) (list 'display img))))
+  "Insert IMG with STRING at point."
+  (insert-image img string))
 
 ;; ======================================================================
 ;;; HTML rendering
@@ -4769,7 +4863,6 @@ Renders the HTML code in the region POS1 to POS2 using htmlr."
 ;; ======================================================================
 (defun newsticker--buffer-make-item-completely-visible ()
   "Scroll buffer until current item is completely visible."
-  (switch-to-buffer (get-buffer-create "*newsticker*"))
   (when newsticker--auto-narrow-to-feed
     (let* ((min (or (save-excursion (newsticker--buffer-beginning-of-feed))
                     (point-min)))

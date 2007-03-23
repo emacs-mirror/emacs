@@ -1482,7 +1482,7 @@ getenv_internal (var, varlen, value, valuelen)
 DEFUN ("getenv-internal", Fgetenv_internal, Sgetenv_internal, 1, 1, 0,
        doc: /* Return the value of environment variable VAR, as a string.
 VAR should be a string.  Value is nil if VAR is undefined in the environment.
-This function consults the variable ``process-environment'' for its value.  */)
+This function consults the variable `process-environment' for its value.  */)
      (var)
      Lisp_Object var;
 {
@@ -1692,12 +1692,12 @@ These are files intended for Emacs to use while it runs.  */);
 
   DEFVAR_LISP ("doc-directory", &Vdoc_directory,
 	       doc: /* Directory containing the DOC file that comes with GNU Emacs.
-This is usually the same as data-directory.  */);
+This is usually the same as `data-directory'.  */);
 
   DEFVAR_LISP ("configure-info-directory", &Vconfigure_info_directory,
 	       doc: /* For internal use by the build procedure only.
 This is the name of the directory in which the build procedure installed
-Emacs's info files; the default value for Info-default-directory-list
+Emacs's info files; the default value for `Info-default-directory-list'
 includes this.  */);
   Vconfigure_info_directory = build_string (PATH_INFO);
 

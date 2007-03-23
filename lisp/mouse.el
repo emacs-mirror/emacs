@@ -1276,7 +1276,17 @@ If MODE is 2 then do the same for lines."
     (unless ignore
       ;; For certain special keys, delete the region.
       (if (member key mouse-region-delete-keys)
-	  (delete-region (mark t) (point))
+	  (progn
+	    ;; Since notionally this is a separate command,
+	    ;; run all the hooks that would be run if it were
+	    ;; executed separately.
+	    (run-hooks 'post-command-hook)
+	    (setq last-command this-command)
+	    (setq this-original-command 'delete-region)
+	    (setq this-command (or (command-remapping this-original-command)
+				   this-original-command))
+	    (run-hooks 'pre-command-hook)
+	    (call-interactively this-command))
 	;; Otherwise, unread the key so it gets executed normally.
 	(setq unread-command-events
 	      (nconc events unread-command-events))))
@@ -2426,7 +2436,10 @@ and selects that window."
 (global-set-key [mouse-2]	'mouse-yank-at-click)
 ;; Allow yanking also when the corresponding cursor is "in the fringe".
 (global-set-key [right-fringe mouse-2] 'mouse-yank-at-click)
+(global-set-key [left-fringe mouse-2] 'mouse-yank-at-click)
 (global-set-key [mouse-3]	'mouse-save-then-kill)
+(global-set-key [right-fringe mouse-3]	'mouse-save-then-kill)
+(global-set-key [left-fringe mouse-3]	'mouse-save-then-kill)
 
 ;; By binding these to down-going events, we let the user use the up-going
 ;; event to make the selection, saving a click.

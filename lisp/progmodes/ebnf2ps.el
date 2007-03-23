@@ -100,7 +100,7 @@ Please send all bug fixes and enhancements to
 ;;             send the spooled images to the printer, use the command
 ;;             `ebnf-despool'.
 ;;
-;;    eps    - The PostScript image is immediately sent to a EPS file.
+;;    eps    - The PostScript image is immediately sent to an EPS file.
 ;;
 ;; The spooling mechanism is the same as used by ps-print and was designed for
 ;; printing lots of small files to save paper that would otherwise be wasted on
@@ -807,11 +807,10 @@ Please send all bug fixes and enhancements to
 ;; and name this group.  So when you wish to apply these settings it's only
 ;; needed to give the name.
 ;;
-;; There is also a notion of simple inheritance of style; so, if you declare
-;; that a style A inherits from a style B, all settings of B is applied first
-;; and then the settings of A is applied.  This is useful when you wish to
-;; modify some aspects of an existing style, but at same time wish to keep it
-;; unmodified.
+;; There is also a notion of simple inheritance of style: if you declare that
+;; style A inherits from style B, all settings of B are applied first and then
+;; the settings of A are applied.  This is useful when you wish to modify some
+;; aspects of an existing style, but at same time wish to keep it unmodified.
 ;;
 ;; See documentation for `ebnf-style-database'.
 ;;
@@ -1093,6 +1092,8 @@ Please send all bug fixes and enhancements to
 ;;
 ;; Acknowledgements
 ;; ----------------
+;;
+;; Thanks to Eli Zaretskii <eliz@gnu.org> for some doc fixes.
 ;;
 ;; Thanks to Drew Adams <drew.adams@oracle.com> for suggestions:
 ;;    - `ebnf-arrow-extra-width', `ebnf-arrow-scale',
@@ -2182,9 +2183,9 @@ See also `ebnf-eps-buffer'."
 
 ;;;###autoload
 (defun ebnf-eps-buffer ()
-  "Generate a PostScript syntactic chart image of the buffer in a EPS file.
+  "Generate a PostScript syntactic chart image of the buffer in an EPS file.
 
-Indeed, for each production is generated a EPS file.
+Generate an EPS file for each production in the buffer.
 The EPS file name has the following form:
 
    <PREFIX><PRODUCTION>.eps
@@ -2193,20 +2194,22 @@ The EPS file name has the following form:
 	     The default value is \"ebnf--\".
 
 <PRODUCTION> is the production name.
-	     The production name is mapped to form a valid file name.
-	     For example, the production name \"A/B + C\" is mapped to
-	     \"A_B_+_C\" and the EPS file name used is \"ebnf--A_B_+_C.eps\".
+	     Some characters in the production file name are replaced to
+	     produce a valid file name.  For example, the production name
+	     \"A/B + C\" is modified to produce \"A_B_+_C\", and the EPS
+	     file name used in this case will be \"ebnf--A_B_+_C.eps\".
 
-WARNING: It's *NOT* asked any confirmation to override an existing file."
+WARNING: This function does *NOT* ask any confirmation to override existing
+         files."
   (interactive)
   (ebnf-eps-region (point-min) (point-max)))
 
 
 ;;;###autoload
 (defun ebnf-eps-region (from to)
-  "Generate a PostScript syntactic chart image of the region in a EPS file.
+  "Generate a PostScript syntactic chart image of the region in an EPS file.
 
-Indeed, for each production is generated a EPS file.
+Generate an EPS file for each production in the region.
 The EPS file name has the following form:
 
    <PREFIX><PRODUCTION>.eps
@@ -2215,11 +2218,13 @@ The EPS file name has the following form:
 	     The default value is \"ebnf--\".
 
 <PRODUCTION> is the production name.
-	     The production name is mapped to form a valid file name.
-	     For example, the production name \"A/B + C\" is mapped to
-	     \"A_B_+_C\" and the EPS file name used is \"ebnf--A_B_+_C.eps\".
+	     Some characters in the production file name are replaced to
+	     produce a valid file name.  For example, the production name
+	     \"A/B + C\" is modified to produce \"A_B_+_C\", and the EPS
+	     file name used in this case will be \"ebnf--A_B_+_C.eps\".
 
-WARNING: It's *NOT* asked any confirmation to override an existing file."
+WARNING: This function does *NOT* ask any confirmation to override existing
+         files."
   (interactive "r")
   (let ((ebnf-eps-executing t))
     (ebnf-generate-region from to 'ebnf-generate-eps)))
@@ -2231,12 +2236,12 @@ WARNING: It's *NOT* asked any confirmation to override an existing file."
 
 ;;;###autoload
 (defun ebnf-syntax-directory (&optional directory)
-  "Does a syntactic analysis of the files in DIRECTORY.
+  "Do a syntactic analysis of the files in DIRECTORY.
 
-If DIRECTORY is nil, it's used `default-directory'.
+If DIRECTORY is nil, use `default-directory'.
 
-The files in DIRECTORY that matches `ebnf-file-suffix-regexp' (which see) are
-processed.
+Only the files in DIRECTORY that match `ebnf-file-suffix-regexp' (which see)
+are processed.
 
 See also `ebnf-syntax-buffer'."
   (interactive
@@ -2247,7 +2252,7 @@ See also `ebnf-syntax-buffer'."
 
 ;;;###autoload
 (defun ebnf-syntax-file (file &optional do-not-kill-buffer-when-done)
-  "Does a syntactic analysis of the FILE.
+  "Do a syntactic analysis of the named FILE.
 
 If optional arg DO-NOT-KILL-BUFFER-WHEN-DONE is non-nil, the buffer isn't
 killed after syntax checking.
@@ -2259,14 +2264,14 @@ See also `ebnf-syntax-buffer'."
 
 ;;;###autoload
 (defun ebnf-syntax-buffer ()
-  "Does a syntactic analysis of the current buffer."
+  "Do a syntactic analysis of the current buffer."
   (interactive)
   (ebnf-syntax-region (point-min) (point-max)))
 
 
 ;;;###autoload
 (defun ebnf-syntax-region (from to)
-  "Does a syntactic analysis of a region."
+  "Do a syntactic analysis of region."
   (interactive "r")
   (ebnf-generate-region from to nil))
 
@@ -2572,23 +2577,22 @@ Where:
 NAME		is a symbol name style.
 
 INHERITS	is a symbol name style from which the current style inherits
-		the context.  If INHERITS is nil, means that there is no
-		inheritance.
+		the context.  If INHERITS is nil, then there is no inheritance.
 
-		This is a simple inheritance of style; so if you declare that a
-		style A inherits from a style B, all settings of B is applied
-		first and then the settings of A is applied.  This is useful
+		This is a simple inheritance of style: if you declare that
+		style A inherits from style B, all settings of B are applied
+		first, and then the settings of A are applied.  This is useful
 		when you wish to modify some aspects of an existing style, but
-		at same time wish to keep it unmodified.
+		at the same time wish to keep it unmodified.
 
 VAR		is a valid ebnf2ps symbol custom variable.
-		See `ebnf-style-custom-list' for valid symbol variable.
+		See `ebnf-style-custom-list' for valid symbol variables.
 
-VALUE		is a sexp which it'll be evaluated to set the value to VAR.
-		So, don't forget to quote symbols and constant lists.
+VALUE		is a sexp which will be evaluated to set the value of VAR.
+		Don't forget to quote symbols and constant lists.
 		See `default' style for an example.
 
-Don't handle this variable directly.  Use functions `ebnf-insert-style',
+Don't use this variable directly.  Use functions `ebnf-insert-style',
 `ebnf-delete-style' and `ebnf-merge-style'.")
 
 
@@ -2655,7 +2659,7 @@ See `ebnf-style-database' documentation."
 (defun ebnf-apply-style (style)
   "Set STYLE as the current style.
 
-It returns the old style symbol.
+Returns the old style symbol.
 
 See `ebnf-style-database' documentation."
   (interactive "SApply style: ")
@@ -2669,7 +2673,7 @@ See `ebnf-style-database' documentation."
 (defun ebnf-reset-style (&optional style)
   "Reset current style.
 
-It returns the old style symbol.
+Returns the old style symbol.
 
 See `ebnf-style-database' documentation."
   (interactive "SReset style: ")
@@ -2679,9 +2683,11 @@ See `ebnf-style-database' documentation."
 
 ;;;###autoload
 (defun ebnf-push-style (&optional style)
-  "Push the current style and set STYLE as the current style.
+  "Push the current style onto a stack and set STYLE as the current style.
 
-It returns the old style symbol.
+Returns the old style symbol.
+
+See also `ebnf-pop-style'.
 
 See `ebnf-style-database' documentation."
   (interactive "SPush style: ")
@@ -2694,9 +2700,11 @@ See `ebnf-style-database' documentation."
 
 ;;;###autoload
 (defun ebnf-pop-style ()
-  "Pop a style and set it as the current style.
+  "Pop a style from the stack of pushed styles and set it as the current style.
 
-It returns the old style symbol.
+Returns the old style symbol.
+
+See also `ebnf-push-style'.
 
 See `ebnf-style-database' documentation."
   (interactive)
@@ -2758,7 +2766,7 @@ Each element has the following form:
 PRODUCTION is the production name.
 EPS-FILENAME is the EPS file name.
 
-It's generated during parsing and used during EPS generation.
+This is generated during parsing and used during EPS generation.
 
 See `ebnf-eps-context' and section \"Actions in Comments\" in ebnf2ps
 documentation.")
@@ -4603,9 +4611,9 @@ end
 (defun ebnf-directory (fun &optional directory)
   "Process files in DIRECTORY applying function FUN on each file.
 
-If DIRECTORY is nil, it's used `default-directory'.
+If DIRECTORY is nil, use `default-directory'.
 
-The files in DIRECTORY that matches `ebnf-file-suffix-regexp' (which see) are
+Only files in DIRECTORY that match `ebnf-file-suffix-regexp' (which see) are
 processed."
   (let ((files (directory-files (or directory default-directory)
 				t ebnf-file-suffix-regexp)))
@@ -4619,7 +4627,7 @@ processed."
 
 
 (defun ebnf-file (fun file &optional do-not-kill-buffer-when-done)
-  "Process file FILE applying function FUN.
+  "Process the named FILE applying function FUN.
 
 If optional arg DO-NOT-KILL-BUFFER-WHEN-DONE is non-nil, the buffer isn't
 killed after process termination."
@@ -4821,7 +4829,7 @@ killed after process termination."
     (ebnf      ebnf-bnf-parser  ebnf-bnf-initialize)
     (ebnfx     ebnf-ebx-parser  ebnf-ebx-initialize)
     (dtd       ebnf-dtd-parser  ebnf-dtd-initialize))
-  "Alist associating ebnf syntax with a parser and a initializer.")
+  "Alist associating EBNF syntax with a parser and an initializer.")
 
 
 (defun ebnf-begin-job ()

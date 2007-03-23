@@ -653,7 +653,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'comint-accum-marker)
   (setq comint-accum-marker (make-marker))
   (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(nil))
+  (setq font-lock-defaults '(nil t))
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
   ;; This behavior is not useful in comint buffers, and is annoying
   (set (make-local-variable 'next-line-add-newlines) nil))
@@ -896,7 +896,7 @@ See also `comint-input-ignoredups' and `comint-write-input-ring'."
 		 ;; Watch for those date stamps in history files!
 		 (goto-char (point-max))
 		 (let (start end history)
-		   (while (and (< count comint-input-ring-size)
+		   (while (and (< count size)
 			       (re-search-backward comint-input-ring-separator nil t)
 			       (setq end (match-beginning 0)))
 		     (if (re-search-backward comint-input-ring-separator nil t)

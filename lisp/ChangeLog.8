@@ -136,13 +136,13 @@
 
 	(hs-hide-comment-region): New func.
 
-	(hs-discard-overlays, hs-flag-region, hs-hide-block-at-point,
-	hs-safety-is-job-n, hs-hide-initial-comment-block,
-	hs-inside-comment-p, hs-grok-mode-type, hs-find-block-beginning,
-	hs-hide-level-recursive, hs-life-goes-on, hs-already-hidden-p,
-	hs-c-like-adjust-block-beginning, hs-hide-all, hs-show-all,
-	hs-hide-block, hs-show-block, hs-show-region, hs-hide-level,
-	hs-mouse-toggle-hiding, hs-minor-mode): Rewrite.
+	(hs-discard-overlays, hs-flag-region, hs-hide-block-at-point)
+	(hs-safety-is-job-n, hs-hide-initial-comment-block)
+	(hs-inside-comment-p, hs-grok-mode-type, hs-find-block-beginning)
+	(hs-hide-level-recursive, hs-life-goes-on, hs-already-hidden-p)
+	(hs-c-like-adjust-block-beginning, hs-hide-all, hs-show-all)
+	(hs-hide-block, hs-show-block, hs-show-region, hs-hide-level)
+	(hs-mouse-toggle-hiding, hs-minor-mode): Rewrite.
 
 	(hs-isearch-show): Renamed from `hs-isearch-open-invisible'.
 	(hs-isearch-show-temporary): New funcs.
@@ -337,94 +337,90 @@
 
 1999-12-15  Carsten Dominik  <dominik@astro.uva.nl>
 
-	* textmodes/reftex.el: (reftex-compile-variables): respect new
+	* textmodes/reftex.el (reftex-compile-variables): Respect new
 	structure of `reftex-index-macro'
 	(reftex-compile-variables): Use the changed structure of
 	`reftex-label-alist'.
 
-	* textmodes/reftex-vars.el (reftex-index-math-format,
+	* textmodes/reftex-vars.el (reftex-index-math-format)
 	(reftex-toc-max-level): New option.
-	reftex-index-phrases-search-whole-words,
-	reftex-index-phrases-case-fold-search,
-	reftex-index-phrases-skip-indexed-matches,
-	reftex-index-phrases-wrap-long-lines,
-	reftex-index-phrases-sort-prefers-entry,
-	reftex-index-phrases-sort-in-blocks): New options.
+	(reftex-index-phrases-search-whole-words)
+	(reftex-index-phrases-case-fold-search)
+	(reftex-index-phrases-skip-indexed-matches)
+	(reftex-index-phrases-wrap-long-lines)
+	(reftex-index-phrases-sort-prefers-entry)
+	(reftex-index-phrases-sort-in-blocks): New options.
 	(reftex-index-macros): Option structure changed.
 	(reftex-index-macros-builtin): Added `repeat' item to each entry.
 	(reftex-label-alist): Additional item in each entry to specify if
 	the environment should be listed in the TOC.
 	(eval-when-compile (require 'cl)) added.
 
-	* textmodes/reftex-index.el (reftex-index-selection-or-word): No
-	longer deals with "repeat".
-	(reftex-index): "repeat property in `reftex-index-macro-alist' is
-	now used.
-	(reftex-index-phrases-comment-regexp,
-	reftex-index-phrases-macrodef-regexp,
-	reftex-index-phrases-phrase-regexp1,
-	reftex-index-phrases-phrase-regexp2,
-	reftex-index-phrases-phrase-regexp12, reftex-index-phrases-help):
+	* textmodes/reftex-index.el (reftex-index-selection-or-word):
+	No longer deals with "repeat".
+	(reftex-index): "repeat property in `reftex-index-macro-alist'
+	is now used.
+	(reftex-index-phrases-comment-regexp)
+	(reftex-index-phrases-macrodef-regexp)
+	(reftex-index-phrases-phrase-regexp1)
+	(reftex-index-phrases-phrase-regexp2)
+	(reftex-index-phrases-phrase-regexp12, reftex-index-phrases-help):
 	New constants.
-	(reftex-index-phrases-macro-data, reftex-index-phrases-files,
-	reftex-index-phrases-font-lock-keywords,
-	reftex-index-phrases-font-lock-defaults, reftex-index-phrases-map,
-	reftex-index-phrases-restrict-file): New variables.
-	(reftex-index-phrase-selection-or-word,
-	reftex-index-visit-phrases-buffer,
-	reftex-index-initialize-phrases-buffer,
-	reftex-index-phrases-save-and-return, reftex-index-phrases-mode,
-	reftex-index-next-phrase, reftex-index-this-phrase,
-	reftex-index-all-phrases, reftex-index-region-phrases,
-	reftex-index-phrases-parse-header,
-	reftex-index-phrases-toggle-restricted, reftex-index-new-phrase,
-	reftex-index-find-next-conflict-phrase, reftex-index-phrases-info,
-	reftex-index-phrases-set-macro-key, reftex-index-sort-phrases,
-	reftex-compare-phrase-lines, reftex-index-make-phrase-regexp,
-	reftex-index-simplify-phrase, reftex-index-phrases-find-dup-re,
-	reftex-index-make-replace-string,
-	reftex-query-index-phrase-globally, reftex-query-index-phrase,
-	reftex-index-phrase-match-is-indexed,
-	reftex-index-phrases-fixup-line,
-	reftex-index-phrases-replace-space,
-	reftex-index-select-phrases-macro): New functions.
-	(reftex-index-globalize, reftex-index-globally): functions removed
+	(reftex-index-phrases-macro-data, reftex-index-phrases-files)
+	(reftex-index-phrases-font-lock-keywords)
+	(reftex-index-phrases-font-lock-defaults, reftex-index-phrases-map)
+	(reftex-index-phrases-restrict-file): New variables.
+	(reftex-index-phrase-selection-or-word)
+	(reftex-index-visit-phrases-buffer)
+	(reftex-index-initialize-phrases-buffer)
+	(reftex-index-phrases-save-and-return, reftex-index-phrases-mode)
+	(reftex-index-next-phrase, reftex-index-this-phrase)
+	(reftex-index-all-phrases, reftex-index-region-phrases)
+	(reftex-index-phrases-parse-header)
+	(reftex-index-phrases-toggle-restricted, reftex-index-new-phrase)
+	(reftex-index-find-next-conflict-phrase, reftex-index-phrases-info)
+	(reftex-index-phrases-set-macro-key, reftex-index-sort-phrases)
+	(reftex-compare-phrase-lines, reftex-index-make-phrase-regexp)
+	(reftex-index-simplify-phrase, reftex-index-phrases-find-dup-re)
+	(reftex-index-make-replace-string)
+	(reftex-query-index-phrase-globally, reftex-query-index-phrase)
+	(reftex-index-phrase-match-is-indexed)
+	(reftex-index-phrases-fixup-line)
+	(reftex-index-phrases-replace-space)
+	(reftex-index-select-phrases-macro): New functions.
+	(reftex-index-globalize, reftex-index-globally): Functions removed;
 	(eval-when-compile (require 'cl)) added.
 
-	 * textmodes/reftex-toc.el (reftex-toc-mode): Create new indicator
-	 for max level.
-	 (reftex-toc-max-level-indicator): New variable.
-	 (reftex-toc-max-level): New command.
-	 (reftex-toc-map): New keybinding `t'.
-	 (reftex-toc-help): Constant updated.
-	 (eval-when-compile (require 'cl)) added.
+	* textmodes/reftex-toc.el (reftex-toc-mode): Create new indicator
+	for max level.
+	(reftex-toc-max-level-indicator): New variable.
+	(reftex-toc-max-level): New command.
+	(reftex-toc-map): New keybinding `t'.
+	(reftex-toc-help): Constant updated.
+	(eval-when-compile (require 'cl)) added.
 
-	 * textmodes/reftex-ref.el (reftex-offer-label-menu): Prefix to
-	 `t' command key can change `reftex-toc-max-level'
-	 (eval-when-compile (require 'cl)) added.
+	* textmodes/reftex-ref.el (reftex-offer-label-menu): Prefix to
+	`t' command key can change `reftex-toc-max-level';
+	(eval-when-compile (require 'cl)) added.
 
-	 * textmode/reftex-sel.el (reftex-insert-docstruct): Respect
-	 `reftex-toc-max-level'.  (eval-when-compile (require 'cl)) added.
+	* textmode/reftex-sel.el (reftex-insert-docstruct): Respect
+	`reftex-toc-max-level'.  (eval-when-compile (require 'cl)) added.
 
-	 * textmodes/reftex-auc.el (eval-when-compile (require 'cl))
-	 added.
+	* textmodes/reftex-auc.el: (eval-when-compile (require 'cl)) added.
 
-	 * textmodes/reftex-vcr.el (eval-when-compile (require 'cl))
-	 added.
+	* textmodes/reftex-vcr.el: (eval-when-compile (require 'cl)) added.
 
-	 * textmodes/reftex-cite.el (reftex-citep, reftex-citet): New
-	 commands.
-	 (reftex-citation, reftex-do-citation,
-	 reftex-figure-out-cite-format): Additional argument FORMAT-KEY to
-	 preselect a citation format.
-	 (eval-when-compile (require 'cl)) added.
+	* textmodes/reftex-cite.el (reftex-citep, reftex-citet): New commands.
+	(reftex-citation, reftex-do-citation, reftex-figure-out-cite-format):
+	Additional argument FORMAT-KEY to preselect a citation format;
+	(eval-when-compile (require 'cl)) added.
 
-	 * textmodes/reftex-parse.el (reftex-context-substring): Optional
-	 parameter to-end
-	 (reftex-section-info): Deal with environment matches.
-	 (eval-when-compile (require 'cl)) added.
+	* textmodes/reftex-parse.el (reftex-context-substring): Optional
+	parameter to-end.
+	(reftex-section-info): Deal with environment matches;
+	(eval-when-compile (require 'cl)) added.
 
-	 * reftex-global.el (eval-when-compile (require 'cl)) added.
+	* reftex-global.el: (eval-when-compile (require 'cl)) added.
 
 1999-12-15  Kenichi Handa  <handa@etl.go.jp>
 
@@ -464,8 +460,8 @@
 
 	* international/characters.el: Fix cateogries of Lao symbols.
 
-	* international/fontset.el (vertical-centering-font-regexp): New
-	variable.
+	* international/fontset.el (vertical-centering-font-regexp):
+	New variable.
 
 	* international/mule.el (mule-version): Updated to 5.0 (AOI).
 	(mule-version-date): Updated to 1999.12.7.
@@ -474,19 +470,18 @@
 	* international/mule-cmds.el (encode-coding-char): Don't check
 	composite character.
 
-	* international/mule-conf.el (iso-2022-7bit, iso-2022-7bit-ss2
-	iso-2022-7bit-lock, iso-2022-7bit-lock-ss2, iso-2022-8bit-ss2,
-	x-ctext): Give `composition' property t.
+	* international/mule-conf.el (iso-2022-7bit, iso-2022-7bit-ss2)
+	(iso-2022-7bit-lock, iso-2022-7bit-lock-ss2, iso-2022-8bit-ss2)
+	(x-ctext): Give `composition' property t.
 
 	* international/mule-util.el (set-nested-alist): Set BRANCHES (if
 	non-nil) at the tail of ALIST.
-	(compose-region, decompose-region, decompse-string,
-	reference-point-alist, compose-chars): Moved to composite.el.
-	(compose-chars-component, compose-chars-rule,
-	decompose-composite-char): Deleted.
+	(compose-region, decompose-region, decompose-string)
+	(reference-point-alist, compose-chars): Moved to composite.el.
+	(compose-chars-component, compose-chars-rule, decompose-composite-char):
+	Deleted.
 
-	* international/quail.el (quail-install-map): New optional arg
-	NAME.
+	* international/quail.el (quail-install-map): New optional arg NAME.
 	(quail-get-translation): If DEF is a symbol but not a function,
 	ignore it.
 	(quail-start-translation): Put a key sequence undefined in the
@@ -498,11 +493,11 @@
 	(quail-show-translations): Don't show list of translations if the
 	quail package is deterministic.
 	(quail-completion-max-depth): New variable.
-	(quail-completion-1): Pay attention to the above variable.  Fix
-	for the case that a translation is a function.
-	(quail-map-from-table, quail-map-from-table-1,
-	quail-map-from-table-2): New functions.
-	(quail-lookup-map-and-concat): New function
+	(quail-completion-1): Pay attention to the above variable.
+	Fix for the case that a translation is a function.
+	(quail-map-from-table, quail-map-from-table-1)
+	(quail-map-from-table-2): New functions.
+	(quail-lookup-map-and-concat): New function.
 
 	* language/devan-util.el: Mostly rewritten.
 
@@ -515,7 +510,7 @@
 	composition-function-table.
 	(thai-tis620): Delete `pre-write-conversion' property.
 
-	* language/thai-util.el: (thai-category-table): Make it by
+	* language/thai-util.el (thai-category-table): Make it by
 	make-category-table.
 	(thai-composition-pattern): New variable.
 	(thai-compose-region, thai-compose-string): Use
@@ -526,8 +521,8 @@
 
 	* language/tibet-util.el: Most functions rewritten.
 	(tibetan-char-p): Renamed from tibetan-char-examin.
-	(tibetan-composable-examin) (tibetan-complete-char-examin)
-	(tibetan-vertical-stacking) (tibetan-composition): Deleted.
+	(tibetan-composable-examin, tibetan-complete-char-examin)
+	(tibetan-vertical-stacking, tibetan-composition): Deleted.
 	(tibetan-add-components): New function.
 	(tibetan-composition-function): New function.
 
@@ -553,8 +548,7 @@
 
 	* custom.el (custom-handle-keyword): Add :set-after.
 	(custom-add-dependencies): New function.
-	(custom-set-variables): Take dependencies between args into
-	account.
+	(custom-set-variables): Take dependencies between args into account.
 
 	* battery.el (battery): Doc fix.
 
@@ -1163,8 +1157,7 @@
 
 	* textmodes/bibtex.el (bibtex-mode-map): Reserved the key `C-c &'
 	for reftex.el.
-	(bibtex-edit-menu): Added `reftex-view-crossref-from-bibtex'
-	to menu.
+	(bibtex-edit-menu): Added `reftex-view-crossref-from-bibtex' to menu.
 
 1999-12-04  Dave Love  <fx@gnu.org>
 
@@ -1422,8 +1415,8 @@
 	(fortran-break-line): Simplified.
 	(fortran-analyze-file-format): Use char-after, not looking-at.
 
-	* emacs-lisp/find-func.el (find-function-regexp): Use
-	`define-minor-mode' after easy-menu change.
+	* emacs-lisp/find-func.el (find-function-regexp):
+	Use `define-minor-mode' after easy-menu change.
 
 1999-11-23  Gerd Moellmann  <gerd@gnu.org>
 
@@ -1762,7 +1755,7 @@
 
 1999-11-01  John Tobey  <jtobey@epsilondev.com>
 
-	* gud.el: (gud-perldb-massage-args): Massage correctly in the
+	* gud.el (gud-perldb-massage-args): Massage correctly in the
 	presence of perl switches other than "-e".
 
 1999-11-01  Markus Rost  <rost@ias.edu>
@@ -1804,14 +1797,13 @@
 	windows.
 	(ediff-file-checked-in-p): Don't consider CVS
 	files checked in.
-	(ediff-make-temp-file,ediff-make-empty-tmp-file):  Make sure you
+	(ediff-make-temp-file,ediff-make-empty-tmp-file): Make sure you
 	are writing to a newly created empty file.
 
 	* ediff-mult.el (ediff-show-session-group-hook): New default.
 
-	* ediff-vers.el (ediff-pcl-cvs-view-revision):
-	First cd to the file directory. reportedly works
-	better with remote files.
+	* ediff-vers.el (ediff-pcl-cvs-view-revision): First cd to the file
+	directory; reportedly works better with remote files.
 
 	* ediff-vers.el (ediff-pcl-cvs-internal, ediff-pcl-cvs-merge-internal):
 	Use file-name-nondirectory when passing files to CVS.
@@ -1819,19 +1811,17 @@
 	* ediff-diff.el (ediff-cmp-options): New variable.
 	(ediff-same-file-contents): Use ediff-cmp-options.
 
-	* ediff-ptch.el (ediff-prompt-for-patch-buffer,
-	ediff-get-patch-buffer): Use current buffer if it appears to be a
-	patch.
+	* ediff-ptch.el (ediff-prompt-for-patch-buffer, ediff-get-patch-buffer):
+	Use current buffer if it appears to be a patch.
 
-	* viper-keym.el: Fixed calls to viper-ex, change key C-c g to C-c
-	C-g
+	* viper-keym.el: Fixed calls to viper-ex, change key C-c g to C-c C-g.
 
 	* viper-util.el (viper-nontrivial-find-file-function): Deleted.
 	(viper-glob-unix-files, viper-glob-mswindows-files): New functions.
 	(viper-save-cursor-color,viper-restore-cursor-color):
 	Improved cursor color handling.
-	(viper-get-saved-cursor-color-in-replace-mode,
-	viper-get-saved-cursor-color-in-insert-mode): New functions for
+	(viper-get-saved-cursor-color-in-replace-mode)
+	(viper-get-saved-cursor-color-in-insert-mode): New functions for
 	better cursor color handling.
 
 	* viper-ex.el (ex-read,ex-edit):
@@ -1842,10 +1832,10 @@
 
 	* viper-mous.el (viper-counting-clicks-p): Bug fixes.
 
-	* viper-cmd.el (viper-post-command-sentinel,
-	viper-insert-state-post-command-sentinel,
-	viper-insert-state-pre-command-sentinel): Takes better care of
-	 cursor colors.
+	* viper-cmd.el (viper-post-command-sentinel)
+	(viper-insert-state-post-command-sentinel)
+	(viper-insert-state-pre-command-sentinel): Takes better care of
+	cursor colors.
 
 	* viper.el: Version change.
 
@@ -1902,7 +1892,7 @@
 	* paths.el (rmail-file-name): Make it an option.
 
 	* progmodes/ada-mode.el, progmodes/ada-prj.el,
-	progmodes/ada-stmt.el, progmodes/ada-xref.el: Doc-string and
+	* progmodes/ada-stmt.el, progmodes/ada-xref.el: Doc-string and
 	comment fixes.
 
 	* progmodes/compile.el (compilation-error-regexp-alist): Recognize
@@ -2061,8 +2051,7 @@
 	(ps-zebra-gray, ps-banner-page-when-duplexing): New vars.
 	(ps-print-prologue-1): Adjust PostScript programming.
 	(ps-print): Adjust group hierarchy.
-	(ps-print-n-up, ps-print-zebra, ps-print-background,
-	ps-print-printer)
+	(ps-print-n-up, ps-print-zebra, ps-print-background, ps-print-printer)
 	(ps-print-page): New subgroups.
 	(ps-print-prologue-header, ps-printer-name, ps-lpr-command)
 	(ps-lpr-switches, ps-page-dimensions-database, ps-paper-type)
@@ -2084,15 +2073,15 @@
 	(ps-page-dimensions-database): Added document media.
 	(ps-n-up-printing, ps-n-up-margin, ps-n-up-border-p, ps-n-up-filling)
 	(ps-page-order, ps-printing-region-p): New vars.
-	(ps-n-up-printing, ps-n-up-filling, ps-header-sheet, ps-end-job): New
-	funs.
+	(ps-n-up-printing, ps-n-up-filling, ps-header-sheet, ps-end-job):
+	New funs.
 	(ps-page-dimensions-get-media, ps-n-up-landscape, ps-n-up-lines)
 	(ps-n-up-columns, ps-n-up-missing, ps-n-up-xcolumn, ps-n-up-ycolumn)
 	(ps-n-up-xline, ps-n-up-yline, ps-n-up-repeat, ps-n-up-end)
 	(ps-n-up-xstart, ps-n-up-ystart): New macros.
 	(ps-print-begin-sheet-hook): New hook.
-	(ps-boundingbox-re, ps-n-up-database, ps-n-up-filling-database): New
-	const.
+	(ps-boundingbox-re, ps-n-up-database, ps-n-up-filling-database):
+	New const.
 	(ps-setup, ps-begin-file, ps-get-buffer-name, ps-begin-job)
 	(ps-end-file, ps-dummy-page, ps-generate): Fix funs.
 	(ps-print-prologue-1): Adjust PostScript programming for n-up printing.
@@ -2100,8 +2089,8 @@
 	(ps-header-page): Changed to defsubst, fix fun.
 	(ps-printing-region): Doc fix, adjust programming code.
 	(ps-output-boolean, ps-background-pages, ps-background-text)
-	(ps-background-image, ps-background, ps-get-boundingbox): Adjust
-	programming code.
+	(ps-background-image, ps-background, ps-get-boundingbox):
+	Adjust programming code.
 
 1999-10-20  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
@@ -2152,7 +2141,7 @@
 	(ps-mode-show-version): New function, added key in ps-mode-map
 	(ps-run-messages): Removed
 	(ps-run-font-lock-keywords-2): New defcustom variable replacing
-	ps-run-messages. These keywords now include the value of
+	ps-run-messages.  These keywords now include the value of
 	ps-run-prompt, making its fontification customizable.
 	(ps-run-init): Removed \\n from docstring, it is now added when
 	the value is used
@@ -2160,9 +2149,9 @@
 	ps-run-prompt
 	(ps-mode): Added ps-run-font-lock-keywords-2 to list of
 	customizable variables in doc-string (its equivalent
-	ps-run-messages was missing in previous version of the doc-string)
+	ps-run-messages was missing in previous version of the doc-string).
 	(ps-run-mode): Simplified assignment to font-lock-defaults, using
-	symbols only
+	symbols only.
 
 1999-10-19  Alex Schroeder  <alex@gnu.org>
 
@@ -2176,12 +2165,12 @@
 	* international/mule-cmds.el (global-map):
 	Do not use backquote, because that makes a bootstrapping
 	problem if you need to recompile all Lisp files using interpreted code.
-	* international/mule.el (charset-id, charset-bytes,
-	charset-dimension, charset-chars, charset-width,
-	charset-direction, charset-iso-final-char,
-	charset-iso-graphic-plane, charset-reverse-charset,
-	charset-short-name, charset-long-name, charset-description,
-	charset-plist): Likewise.
+	* international/mule.el (charset-id, charset-bytes)
+	(charset-dimension, charset-chars, charset-width)
+	(charset-direction, charset-iso-final-char)
+	(charset-iso-graphic-plane, charset-reverse-charset)
+	(charset-short-name, charset-long-name, charset-description)
+	(charset-plist): Likewise.
 	* subr.el (save-match-data): Likewise.
 
 	* international/mule-cmds.el
@@ -2315,8 +2304,7 @@
 	* international/fontset.el:
 	* international/mule-conf.el: Add latin-iso8859-1[45].
 
-	* language/european.el: Add Latin-8, Latin-9.  Modify some doc
-	strings.
+	* language/european.el: Add Latin-8, Latin-9.  Modify some doc strings.
 
 	* startup.el (iso-8859-n-locale-regexp): Modify for Latin-[89].
 	(command-line): Detect Latin-[89] locales.
@@ -2384,9 +2372,9 @@
 	(sh-mode-map): Added new bindings.
 	(sh-mode): Updated mode doc-string for new commands, added
 	make-local-variable calls, initialize mode-specific variables.
-	(sh-indent-line):  Renamed to sh-basic-indent-line;  sh-indent-line
+	(sh-indent-line): Renamed to sh-basic-indent-line;  sh-indent-line
 	is now a different function.
-	(sh-header-marker):  Changed docstring.
+	(sh-header-marker): Changed docstring.
 	(sh-set-shell): Initialize mode-specific variables.
 	(sh-case, sh-for, sh-if, sh-indexed-loop, sh-repeat, sh-select)
 	(sh-tmp-file, sh-until, sh-until, sh-while, sh-while-getopts):
@@ -2416,8 +2404,8 @@
 	(sh-safe-forward-sexp, sh-save-styles-to-buffer, sh-scan-buffer)
 	(sh-scan-case, sh-search-word, sh-set-char-syntax)
 	(sh-set-here-doc-region, sh-set-indent, sh-set-var-value)
-	(sh-show-indent, sh-this-is-a-continuation, sh-var-value): New
-	functions.
+	(sh-show-indent, sh-this-is-a-continuation, sh-var-value):
+	New functions.
 	(sh-debug, sh-electric-rparen-needed, sh-here-doc-syntax)
 	(sh-indent-supported, sh-kw, sh-kw-alist, sh-kws-for-done)
 	(sh-learned-buffer-hook, sh-make-vars-local, sh-regexp-for-done)
@@ -2514,8 +2502,7 @@
 
 1999-10-07  Gerd Moellmann  <gerd@gnu.org>
 
-	* custom.el (defface): Extend documentation for new values of
-	`type'.
+	* custom.el (defface): Extend documentation for new values of `type'.
 
 	* faces.el (face-spec-set-match-display): Recognize `type' of
 	`motif', `lucid', `x-toolkit'.
@@ -2669,16 +2656,16 @@
 
 	* textmodes/reftex-cite.el (reftex-pop-to-bibtex-entry): Fixed bug
 	with recentering window.
-	(reftex-extract-bib-entries-from-thebibliography,
-	reftex-offer-bib-menu,reftex-bibtex-selection-callback):  Deal
-	with multiple thebibliography environments.
+	(reftex-extract-bib-entries-from-thebibliography)
+	(reftex-offer-bib-menu,reftex-bibtex-selection-callback):
+	Deal with multiple thebibliography environments.
 
-	* textmodes/reftex-vars.el
-	(reftex-section-levels): Function allowed as cdr.
+	* textmodes/reftex-vars.el (reftex-section-levels):
+	Function allowed as cdr.
 	(reftex-max-section-depth) New option.
 
-	* textmodes/reftex-vcr.el (reftex-view-cr-cite): Deal
-	with multiple thebibliography environments.
+	* textmodes/reftex-vcr.el (reftex-view-cr-cite):
+	Deal with multiple thebibliography environments.
 
 1999-09-23  Gerd Moellmann  <gerd@gnu.org>
 
@@ -2863,11 +2850,10 @@
 	(custom-comment): New widget.
 	(custom-comment-create, custom-comment-delete)
 	(custom-comment-value-set, custom-comment-show)
-	()custom-comment-invisible-p): New functions.
+	(custom-comment-invisible-p): New functions.
 	(custom-variable-value-create, custom-face-value-create): Create a
 	comment field widget.
-	(custom-variable-menu, custom-face-menu): New entry for custom
-	comment.
+	(custom-variable-menu, custom-face-menu): New entry for custom comment.
 	(custom-face-value-create): Remove compatibility code.
 	(custom-save-variables, custom-save-faces): Possibly save custom
 	comments.
@@ -3075,7 +3061,7 @@
 
 1999-09-07  Dave Pearson  <davep@hagbard.demon.co.uk>
 
-	* quickurl.el: (quickurl-list-focused-line): Removed.
+	* quickurl.el (quickurl-list-focused-line): Removed.
 	(quickurl-list-insert): Now works out the focused line using
 	`count-lines' instead of using `quickurl-list-focused-line'.
 
@@ -3128,8 +3114,7 @@
 
 1999-09-06  Dave Love  <fx@gnu.org>
 
-	* emacs-lisp/byte-opt.el (byte-boolean-vars): Removed.  (Now
-	primitive.)
+	* emacs-lisp/byte-opt.el (byte-boolean-vars): Removed.  (Now primitive.)
 
 1999-09-05  Richard Stallman  <rms@gnu.org>
 
@@ -3329,7 +3314,7 @@
 1999-08-26  Stephen Gildea  <gildea@stop.mail-abuse.org>
 
 	* time-stamp.el: Put quote-backquote around all symbol names
-	in doc strings,	for mousing.
+	in doc strings, for mousing.
 	(time-stamp): Support multi-line patterns.
 	(time-stamp-inserts-lines): New variable.
 	(time-stamp-count): New variable.
@@ -3465,40 +3450,37 @@
 1999-08-16  Carsten Dominik  <cd@gnu.org>
 
 	* textmodes/reftex.el: Most of the code moved to other files.
-	* textmodes/reftex-auc.el: New file, split out from reftex.el
-	* textmodes/reftex-cite.el: New file, split out from reftex.el
-	* textmodes/reftex-global.el: New file, split out from reftex.el
-	* textmodes/reftex-index.el: New file, split out from reftex.el
-	* textmodes/reftex-parse.el: New file, split out from reftex.el
-	* textmodes/reftex-ref.el: New file, split out from reftex.el
-	* textmodes/reftex-sel.el: New file, split out from reftex.el
-	* textmodes/reftex-toc.el: New file, split out from reftex.el
-	* textmodes/reftex-vars.el: New file, split out from reftex.el
-	* textmodes/reftex-vcr.el: New file, split out from reftex.el
+	* textmodes/reftex-auc.el: New file, split out from reftex.el.
+	* textmodes/reftex-cite.el: New file, split out from reftex.el.
+	* textmodes/reftex-global.el: New file, split out from reftex.el.
+	* textmodes/reftex-index.el: New file, split out from reftex.el.
+	* textmodes/reftex-parse.el: New file, split out from reftex.el.
+	* textmodes/reftex-ref.el: New file, split out from reftex.el.
+	* textmodes/reftex-sel.el: New file, split out from reftex.el.
+	* textmodes/reftex-toc.el: New file, split out from reftex.el.
+	* textmodes/reftex-vars.el: New file, split out from reftex.el.
+	* textmodes/reftex-vcr.el: New file, split out from reftex.el.
 
 1999-08-16  Carsten Dominik  <cd@gnu.org>
 
-	* textmodes/reftex.el: (reftex-pop-to-bibtex-entry): Fixed
+	* textmodes/reftex.el (reftex-pop-to-bibtex-entry): Fixed
 	conflict with pop-up-frames.
 	(reftex-special-environment-parsers): New constant.
 	(reftex-label-alist): car of an entry can also be a function.
 	(reftex-what-special-env): Cew function.
 	(reftex-label-location): Call `reftex-what-special-env'.
-	(reftex-compile-variables): Check for symbol in
-	`reftex-label-alist'.
+	(reftex-compile-variables): Check for symbol in `reftex-label-alist'.
 	(reftex-what-environment): Fixed bug with stacked environments of
 	same kind (e.g. enumerate).
 	(reftex-process-string): Preserve default directory.
-	(reftex-label-alist-builtin): Changed prefixes of endnote and
-	footnote.  Also the magic words.
-	(reftex-reference): Interprete new option
-	`reftex-fref-is-default'.
+	(reftex-label-alist-builtin): Changed prefixes of endnote and footnote.
+	Also the magic words.
+	(reftex-reference): Interprete new option `reftex-fref-is-default'.
 	(reftex-replace-prefix-escapes): Interprete new `%S' format.
 	(reftex-toc-mouse-view-line): Command removed (had no binding).
 	(reftex-everything-regexp): New function.
 	(reftex-nearest-match): Made better.
-	(reftex-toc-find-section): Use new version of
-	`reftex-nearest-match'.
+	(reftex-toc-find-section): Use new version of `reftex-nearest-match'.
 	(reftex-insert-docstruct): Adapted to work with the index stuff.
 	(reftex-parse-from-file): Find index entries as well.
 	(reftex-toc-toggle-index): New function
@@ -3511,58 +3493,57 @@
 	buffers.
 	(reftex-viewing-cross-references): Customization group renamed
 	from reftex-viewing-cross-references-and-citations.
-	(reftex-index-macro-regexp,
-	reftex-find-index-entry-regexp-format): New variables
-	(reftex-macros-with-index): New variable
-	(reftex-add-index-macros): New function
+	(reftex-index-macro-regexp, reftex-find-index-entry-regexp-format):
+	New variables.
+	(reftex-macros-with-index): New variable.
+	(reftex-add-index-macros): New function.
 	(reftex-renumber-simple-labels, reftex-translate): Allow for
 	multiple labels in a single ref command.
-	(reftex-index-support): New customization group
-	(reftex-support-index, reftex-index-special-chars,
-	reftex-index-macros, reftex-index-default-macro,
-	reftex-index-default-tag, reftex-index-math-format,
-	reftex-index-section-letters, reftex-index-include-context,
-	reftex-index-follow-mode, reftex-index-header-face,
-	reftex-index-section-face, reftex-index-tag-face,
-	reftex-index-face): New options
-	(reftex-index-map, reftex-index-menu, reftex-last-index-file,
-	reftex-index-tag, reftex-index-return-marker,
-	reftex-index-restriction-indicator, reftex-index-restriction-data,
-	reftex-index-macro-regexp, reftex-index-level-re,
-	reftex-index-key-end-re, reftex-find-index-entry-regexp-format,
-	reftex-everything-regexp-no-index, reftex-index-re,
-	reftex-macros-with-index, reftex-index-macro-alist): New variables
+	(reftex-index-support): New customization group.
+	(reftex-support-index, reftex-index-special-chars)
+	(reftex-index-macros, reftex-index-default-macro)
+	(reftex-index-default-tag, reftex-index-math-format)
+	(reftex-index-section-letters, reftex-index-include-context)
+	(reftex-index-follow-mode, reftex-index-header-face)
+	(reftex-index-section-face, reftex-index-tag-face)
+	(reftex-index-face): New options
+	(reftex-index-map, reftex-index-menu, reftex-last-index-file)
+	(reftex-index-tag, reftex-index-return-marker)
+	(reftex-index-restriction-indicator, reftex-index-restriction-data)
+	(reftex-index-macro-regexp, reftex-index-level-re)
+	(reftex-index-key-end-re, reftex-find-index-entry-regexp-format)
+	(reftex-everything-regexp-no-index, reftex-index-re)
+	(reftex-macros-with-index, reftex-index-macro-alist): New variables.
 	(reftex-index-help, reftex-index-macros-builtin,
-	reftex-key-to-index-macro-alist, reftex-query-index-macro-prompt,
-	reftex-query-index-macro-help): New constants
-	(reftex-index-selection-or-word, reftex-index,
-	reftex-default-index, reftex-update-default-index,
-	reftex-index-complete-tag, reftex-index-select-tag,
-	reftex-index-complete-key, reftex-index-update-taglist,
-	reftex-index-globally, reftex-index-mode, reftex-index-show-entry,
-	reftex-display-index, reftex-insert-index,
-	reftex-index-insert-new-letter, reftex-get-restriction,
-	reftex-index-pre-command-hook, reftex-index-post-command-hook,
-	reftex-index-show-help, reftex-index-next, reftex-index-previous,
-	reftex-index-toggle-follow, reftex-index-toggle-context,
-	reftex-index-view-entry, reftex-index-goto-entry-and-hide,
-	reftex-index-goto-entry, reftex-index-mouse-goto-line-and-hide,
-	reftex-index-quit, reftex-index-quit-and-kill,
-	reftex-index-goto-toc, reftex-index-rescan, reftex-index-Rescan,
-	reftex-index-revert, reftex-index-switch-index-tag,
-	reftex-index-restrict-to-section, reftex-index-widen,
-	reftex-index-restriction-forward,
-	reftex-index-restriction-backward, reftex-index-visit-location,
-	reftex-index-analyze-entry, reftex-index-globalize,
-	reftex-index-edit, reftex-index-toggle-range-beginning,
-	reftex-index-toggle-range-end, reftex-index-edit-key,
-	reftex-index-edit-attribute, reftex-index-edit-visual,
-	reftex-index-edit-part, reftex-index-level-down,
-	reftex-index-level-up, reftex-index-kill, reftex-index-undo,
-	reftex-index-change-entry, reftex-index-goto-letter,
-	reftex-add-index-macros, reftex-ensure-index-support,
-	reftex-index-info-safe, reftex-index-info): New functions.
-
+	(reftex-key-to-index-macro-alist, reftex-query-index-macro-prompt)
+	(reftex-query-index-macro-help): New constants
+	(reftex-index-selection-or-word, reftex-index)
+	(reftex-default-index, reftex-update-default-index)
+	(reftex-index-complete-tag, reftex-index-select-tag)
+	(reftex-index-complete-key, reftex-index-update-taglist)
+	(reftex-index-globally, reftex-index-mode, reftex-index-show-entry)
+	(reftex-display-index, reftex-insert-index)
+	(reftex-index-insert-new-letter, reftex-get-restriction)
+	(reftex-index-pre-command-hook, reftex-index-post-command-hook)
+	(reftex-index-show-help, reftex-index-next, reftex-index-previous)
+	(reftex-index-toggle-follow, reftex-index-toggle-context)
+	(reftex-index-view-entry, reftex-index-goto-entry-and-hide)
+	(reftex-index-goto-entry, reftex-index-mouse-goto-line-and-hide)
+	(reftex-index-quit, reftex-index-quit-and-kill)
+	(reftex-index-goto-toc, reftex-index-rescan, reftex-index-Rescan)
+	(reftex-index-revert, reftex-index-switch-index-tag)
+	(reftex-index-restrict-to-section, reftex-index-widen)
+	(reftex-index-restriction-forward)
+	(reftex-index-restriction-backward, reftex-index-visit-location)
+	(reftex-index-analyze-entry, reftex-index-globalize)
+	(reftex-index-edit, reftex-index-toggle-range-beginning)
+	(reftex-index-toggle-range-end, reftex-index-edit-key)
+	(reftex-index-edit-attribute, reftex-index-edit-visual)
+	(reftex-index-edit-part, reftex-index-level-down)
+	(reftex-index-level-up, reftex-index-kill, reftex-index-undo)
+	(reftex-index-change-entry, reftex-index-goto-letter)
+	(reftex-add-index-macros, reftex-ensure-index-support)
+	(reftex-index-info-safe, reftex-index-info): New functions.
 
 1999-08-15  Richard M. Stallman  <rms@gnu.org>
 
@@ -4015,8 +3996,8 @@
 
 1999-07-25  Markus Rost  <rost@gnu.org>
 
-	* cus-edit.el (custom-save-variables, custom-save-faces):  Sort
-	the entries to make custom-file more readable.
+	* cus-edit.el (custom-save-variables, custom-save-faces):
+	Sort the entries to make custom-file more readable.
 
 1999-07-25  Richard M. Stallman  <rms@gnu.org>
 
@@ -4033,7 +4014,7 @@
 
 	* info-look.el (info-lookup-interactive-arguments): Add optional
 	argument query for new choice of help mode.
-	(info-lookup-symbol):  Use it.
+	(info-lookup-symbol): Use it.
 	(info-lookup-file): Ditto.
 	(info-lookup): Don't switch to other window, if already in Info
 	buffer.
@@ -4670,9 +4651,8 @@
 	(fill-nonuniform-paragraphs, fill-individual-paragraphs): Check
 	readonly buffer in interactive spec.
 
-	* paragraphs.el: (kill-paragraph, backward-kill-paragraph)
-	(backward-kill-sentence, kill-sentence): Add * to interactive
-	spec.
+	* paragraphs.el (kill-paragraph, backward-kill-paragraph)
+	(backward-kill-sentence, kill-sentence): Add * to interactive spec.
 
 1999-07-19  Richard M. Stallman  <rms@gnu.org>
 
@@ -5093,7 +5073,7 @@
 
 1999-05-31  Dave Love  <fx@gnu.org>
 
-	* ispell.el: (ispell-alternate-dictionary): Fix custom type.
+	* ispell.el (ispell-alternate-dictionary): Fix custom type.
 	(ispell-complete-word-dict): Likewise.
 
 1999-05-31  Eli Zaretskii  <eliz@gnu.org>
@@ -5124,7 +5104,7 @@
 
 1999-05-27  Dave Love  <fx@gnu.org>
 
-	* startup.el: (iso-8859-n-locale-regexp): Don't match 8859-15 &c.
+	* startup.el (iso-8859-n-locale-regexp): Don't match 8859-15 &c.
 
 1999-05-27  Andreas Schwab  <schwab@gnu.org>
 
@@ -5276,8 +5256,8 @@
 
 1999-05-10  Andreas Schwab  <schwab@gnu.org>
 
-	* emacs-lisp/byte-opt.el (byte-boolean-vars): Add
-	unibyte-display-via-language-environment.
+	* emacs-lisp/byte-opt.el (byte-boolean-vars):
+	Add unibyte-display-via-language-environment.
 
 	* help.el (help-make-xrefs): Handle more cases when looking for
 	commands in a keymap description.
@@ -5540,8 +5520,7 @@
 
 1999-04-08  Dave Love  <fx@gnu.org>
 
-	* mail/supercite.el: (sc-attrib-selection-list): Fix custom type
-	more.
+	* mail/supercite.el (sc-attrib-selection-list): Fix custom type more.
 	(sc-emacs-features): Recognize Emacs 20.
 	(sc-read-string): Use history arg.
 	(sc-scan-info-alist): Check for rtnvalue a cons.
@@ -6419,7 +6398,7 @@
 1999-02-06  Markus Rost  <markus.rost@mathematik.uni-regensburg.de>
 
 	* imenu.el (imenu--last-menubar-index-alist): Add doc.
-	(imenu-add-to-menubar):  Reset imenu--last-menubar-index-alist.
+	(imenu-add-to-menubar): Reset imenu--last-menubar-index-alist.
 
 1999-02-06  Richard Stallman  <rms@gnu.org>
 
@@ -6569,8 +6548,8 @@
 
 1999-01-29  Dave Love  <fx@gnu.org>
 
-	* finder.el: (finder-commentary): Fix interactive spec.  Try
-	appending .el to file name.
+	* finder.el (finder-commentary): Fix interactive spec.
+	Try appending .el to file name.
 	(finder-find-library, finder-commentary): Doc fixes.
 
 1999-01-29  Andrew Innes  <andrewi@gnu.org>
@@ -6841,7 +6820,7 @@
 
 1999-01-18  Markus Rost  <markus.rost@mathematik.uni-regensburg.de>
 
-	* emacs-lisp/edebug.el (with-temp-message):  Add def-edebug-spec call.
+	* emacs-lisp/edebug.el (with-temp-message): Add def-edebug-spec call.
 
 1999-01-18  Espen Skoglund  <espensk@stud.cs.uit.no>
 
@@ -6916,7 +6895,7 @@
 
 1999-01-17  Andrew Innes  <andrewi@gnu.org>
 
-	* dos-w32.el: (find-buffer-file-type-coding-system): Use
+	* dos-w32.el (find-buffer-file-type-coding-system): Use
 	default-buffer-file-coding-system when file doesn't exist (and
 	isn't covered by a special case) instead of forcing undecided-dos
 	against the user's wishes.
@@ -6936,13 +6915,13 @@
 	(ps-lpr-command): Comment out setq; leave as example usage.
 	(ps-lpr-switches): Ditto.
 
-	* lpr.el: (printer-name): Update docstring about usage on MS-DOS
+	* lpr.el (printer-name): Update docstring about usage on MS-DOS
 	and MS-Windows.
 	(lpr-command) [ms-dos, windows-nt]: Initialize to empty string on
 	DOS and Windows platforms, to indicate direct printing.  Update
 	the docstring accordingly.
 
-	* ps-print.el: (ps-printer-name): Update docstring about usage on
+	* ps-print.el (ps-printer-name): Update docstring about usage on
 	MS-DOS and MS-Windows.
 	(ps-lpr-command): Update docstring as for lpr-command.
 	(ps-print-region-function): New variable.
@@ -6992,7 +6971,7 @@
 
 1999-01-15  Johan Vromans  <jvromans@squirrel.nl>
 
-	* forms.el: (forms--show-record): Convert integers to string
+	* forms.el (forms--show-record): Convert integers to string
 	expicitly since concat will no longer accept integers.
 	(forms-print): Use local `total-nb-records' since
 	`forms--total-records' will be inaccessible after buffer switching.
@@ -7146,7 +7125,7 @@
 	change to callers.
 	(browse-url-w3): Require w3 for w3-fetch-other-window.
 
-1999-01-06 Markus Rost  <markus.rost@mathematik.uni-regensburg.de>
+1999-01-06  Markus Rost  <markus.rost@mathematik.uni-regensburg.de>
 
 	* browse-url.el (browse-url-w3): Give w3-fetch-other-window the
 	argument.
@@ -7215,7 +7194,7 @@
 	* progmodes/f90.el (f90-mode): Make imenu-case-fold-search
 	buffer-local.
 
-1998-01-05  Torbjorn Einarsson	<T.Einarsson@clab.ericsson.se>
+1998-01-05  Torbjorn Einarsson  <T.Einarsson@clab.ericsson.se>
 
 	* progmodes/f90.el: Change of regular expressions for type to
 	correct highlighting and identation. Some small fixes for
@@ -7232,13 +7211,13 @@
 	(reftex-section-info): Handle negative section levels.
 	(reftex-view-crossref-extra): New option.
 	(reftex-view-crossref): Generalized to work in more places.
-	(reftex-find-citation-regexp-format, reftex-find-reference-format,
-	reftex-macros-with-labels, reftex-global-search-marker): New variables.
+	(reftex-find-citation-regexp-format, reftex-find-reference-format)
+	(reftex-macros-with-labels, reftex-global-search-marker): New variables.
 	(reftex-view-cite-locations-from-bibtex): New command.
-	(reftex-view-regexp-match, reftex-global-search,
-	reftex-global-search-continue): New functions.
-	(reftex-extract-bib-entries): No error for non-existing BibTeX
-	file, just a message.
+	(reftex-view-regexp-match, reftex-global-search)
+	(reftex-global-search-continue): New functions.
+	(reftex-extract-bib-entries): No error for non-existing BibTeX file,
+	just a message.
 	(reftex-extract-bib-entries): Better error handling.
 	(reftex-select-with-char): Use `*RefTeX Select*' for selection
 	help and force it on current frame.
@@ -7416,24 +7395,24 @@
 
 	* cperl-mode.el:
 	Can use linear algorithm for indentation if Emacs supports it.
-	(cperl-after-expr-p):	It is BLOCK if we reach lim when backup sexp.
-	(cperl-after-block-p):	Likewise.
+	(cperl-after-expr-p): It is BLOCK if we reach lim when backup sexp.
+	(cperl-after-block-p): Likewise.
 	(cperl-after-block-and-statement-beg): Likewise.
-	(cperl-after-block-p):	After END/BEGIN we are a block.
-	(cperl-after-expr-p):	Skip labels when checking
-	(cperl-indent-region):	Make a marker for END - text added/removed.
+	(cperl-after-block-p): After END/BEGIN we are a block.
+	(cperl-after-expr-p): Skip labels when checking
+	(cperl-indent-region): Make a marker for END - text added/removed.
 	Disable hooks during the call (how to call them later?).
 	Now indents 820-line-long function in 6.5 sec (including
-	syntaxification) the first time	(when buffer has few
+	syntaxification) the first time (when buffer has few
 	properties), 7.1 sec the second time.
-	(cperl-indent-region):	Do not indent whitespace lines
-	(cperl-style-alist)
-		Include `cperl-merge-trailing-else' where the value is clear.
+	(cperl-indent-region): Do not indent whitespace lines.
+	(cperl-style-alist): Include `cperl-merge-trailing-else' where the
+	value is clear.
 	(cperl-styles-entries): Likewise.
-	(cperl-problems):	Improvements to docs.
-	(cperl-tips):		Likewise.
-	(cperl-non-problems):	Likewise.
-	(cperl-mode):		Make lazy syntaxification possible.
+	(cperl-problems): Improvements to docs.
+	(cperl-tips): Likewise.
+	(cperl-non-problems): Likewise.
+	(cperl-mode): Make lazy syntaxification possible.
 	Loads pseudo-faces for the sake of `cperl-find-pods-heres' (for 19.30).
 	`font-lock-unfontify-region-function' was set to a wrong function.
 
@@ -7465,92 +7444,93 @@
 	`defface'd.
 	(cperl-hash-face): Renamed from `font-lock-other-emphasized-face'.
 	`defface'd.
-	(cperl-emacs-can-parse):	New state variable.
-	(cperl-indent-line):	Corrected to use global state.
-	(cperl-calculate-indent):	Likewise.
-	(cperl-fix-line-spacing):	Likewise (not used yet).
-	(cperl-calculate-indent):	Did not consider `,' as
-	continuation mark for statements.
+	(cperl-emacs-can-parse): New state variable.
+	(cperl-indent-line): Corrected to use global state.
+	(cperl-calculate-indent): Likewise.
+	(cperl-fix-line-spacing): Likewise (not used yet).
+	(cperl-calculate-indent): Did not consider `,' as continuation mark
+	for statements.
 	(cperl-calculate-indent): Avoid parse-data optimization at toplevel.
 	Remove another parse-data optimization at toplevel: would
 	indent correctly.
 	Correct for labels when calculating indentation of continuations.
 	Docstring updated.
-	(cperl-choose-color):	Converted to a function (to be
+	(cperl-choose-color): Converted to a function (to be
 	compilable in text-mode).
-	(cperl-dark-background):	Disable without window-system.
+	(cperl-dark-background): Disable without window-system.
 	Do `defface' only if window-system.
-	(cperl-fix-line-spacing):	Sped up to bail out early.
+	(cperl-fix-line-spacing): Sped up to bail out early.
 	(x-color-defined-p): Was not compiling on XEmacs
 	Was defmacro'ed with a tick.  Remove another def.
 	(cperl-clobber-lisp-bindings): If set, C-c variants are the old ones
-	(cperl-unwind-to-safe):	New function.
-	(cperl-fontify-syntaxically): Use `cperl-unwind-to-safe' to start at reasonable position.
-	(cperl-fontify-syntaxically): Unwinds start and end to go out of
-				     long strings (not very successful).
-	(cperl-forward-re):	Highlight the trailing / in s/foo// as string.
+	(cperl-unwind-to-safe): New function.
+	(cperl-fontify-syntaxically): Use `cperl-unwind-to-safe' to start at
+	reasonable position.
+	(cperl-fontify-syntaxically): Unwinds start and end to go out of long
+	strings (not very successful).
+	(cperl-forward-re): Highlight the trailing / in s/foo// as string.
 	Highlight the starting // in s//foo/ as function-name.
 	Emit a meaningful error instead of a cryptic one for an
 	uncomplete REx near end-of-buffer.
 
-	(cperl-electric-keyword):	`qr' recognized.
-	(cperl-electric-else):		Likewise
-	(cperl-to-comment-or-eol):	Likewise
-	(cperl-make-regexp-x):	Likewise
-	(cperl-init-faces):	Likewise, and `lock' (as overridable?).
+	(cperl-electric-keyword): `qr' recognized.
+	(cperl-electric-else): Likewise.
+	(cperl-to-comment-or-eol): Likewise.
+	(cperl-make-regexp-x): Likewise.
+	(cperl-init-faces): Likewise, and `lock' (as overridable?).
 	Corrected to use new macros;
 	`if' for copying `reference-face' to `constant-face' was backward.
-	remove init `font-lock-other-emphasized-face',
+	Remove init `font-lock-other-emphasized-face',
 	`font-lock-emphasized-face', `font-lock-keyword-face'.
 	Interpolate `cperl-invalid-face'.
-	(cperl-make-regexp-x):	Misprint in a message.
-	(cperl-syntaxify-unwind): New configuration variable
-	(cperl-fontify-m-as-s):	New configuration variable
-	(cperl-electric-pod):	Check for after-expr was performed
+	(cperl-make-regexp-x): Misprint in a message.
+	(cperl-syntaxify-unwind): New configuration variable.
+	(cperl-fontify-m-as-s): New configuration variable.
+	(cperl-electric-pod): Check for after-expr was performed
 	inside of POD too.
-	(cperl-backward-to-noncomment):	Cetter treatment of PODs and HEREs.
+	(cperl-backward-to-noncomment): Cetter treatment of PODs and HEREs.
 	(cperl-clobber-mode-lists): New configuration variable.
-	(cperl-not-bad-style-regexp):	Updated.
-	Init:			`cperl-is-face' was busted.
-	(cperl-make-face):	New macros.
-	(cperl-force-face):	New macros.
+	(cperl-not-bad-style-regexp): Updated.
+	Init: `cperl-is-face' was busted.
+	(cperl-make-face): New macros.
+	(cperl-force-face): New macros.
 	(font-lock-other-type-face): Done via `defface' too.
-	(cperl-nonoverridable-face):	New face.  Renamed from
+	(cperl-nonoverridable-face): New face.  Renamed from
 	`font-lock-other-type-face'.
-	(cperl-init-faces-weak):	Use `cperl-force-face'.
-	(cperl-comment-indent):	Commenting __END__ was not working.
-	(cperl-indent-for-comment):	Likewise.
-	(cperl-write-tags):	Correct for XEmacs's `visit-tags-table-buffer'.
+	(cperl-init-faces-weak): Use `cperl-force-face'.
+	(cperl-comment-indent): Commenting __END__ was not working.
+	(cperl-indent-for-comment): Likewise.
+	(cperl-write-tags): Correct for XEmacs's `visit-tags-table-buffer'.
 	When removing old TAGS info was not relativizing filename.
-	(cperl-tags-hier-init):	Gross hack to pretend we work (are we?).
+	(cperl-tags-hier-init): Gross hack to pretend we work (are we?).
 	Another try to work around XEmacs problems.  Better progress messages.
-	(toplevel):		Require custom unprotected => failure on 19.28.
-	(cperl-xemacs-p):	Defined when compile too
-	(cperl-find-tags):	Was writing line/pos in a wrong order,
+	(toplevel): Require custom unprotected => failure on 19.28.
+	(cperl-xemacs-p): Defined when compile too.
+	(cperl-find-tags): Was writing line/pos in a wrong order,
 	pos off by 1 and not at beg-of-line.
-	(cperl-etags-snarf-tag): New macro
-	(cperl-etags-goto-tag-location): New macro
-	(cperl-version):	New variable.  New menu entry
-	random docstrings:	References to "future" 20.3 removed.
+	(cperl-etags-snarf-tag): New macro.
+	(cperl-etags-goto-tag-location): New macro.
+	(cperl-version): New variable.  New menu entry
+	random docstrings: References to "future" 20.3 removed.
 	Menu was described as `CPerl' instead of `Perl'
 	(perl-font-lock-keywords): Would not highlight `sub foo($$);'.
 	(cperl-toggle-construct-fix): Was toggling to t instead of 1.
-	(cperl-ps-print-init):	Associate `cperl-array-face', `cperl-hash-face'
+	(cperl-ps-print-init): Associate `cperl-array-face', `cperl-hash-face'
 	Remove `font-lock-emphasized-face', `font-lock-other-emphasized-face',
 	`font-lock-reference-face', `font-lock-keyword-face'.
 	Use `eval-after-load'.
 	Remove not-CPerl-related faces.
-	(cperl-tips-faces):	New variable and an entry into Mini-docs.
-	(cperl-indent-exp):	Was not processing else-blocks.
-	(cperl-get-state):	NOP line removed.
-	(cperl-ps-print):	New function and menu entry.
-	(cperl-ps-print-face-properties):	New configuration variable.
-	(cperl-invalid-face):	New configuration variable.
-	(perl-font-lock-keywords):	Highlight trailing whitespace
-	(cperl-contract-levels):	Documentation corrected.
-	(cperl-contract-level):		Likewise.
-	(cperl-ps-extend-face-list):	New macro.
-	(cperl-invalid-face):	Change to ''underline.
+	(cperl-tips-faces): New variable and an entry into Mini-docs.
+	(cperl-indent-exp): Was not processing else-blocks.
+	(cperl-get-state): NOP line removed.
+	(cperl-ps-print): New function and menu entry.
+	(cperl-ps-print-face-properties): New configuration variable.
+	(cperl-invalid-face): New configuration variable.
+	(perl-font-lock-keywords): Highlight trailing whitespace.
+	(cperl-contract-levels): Documentation corrected.
+	(cperl-contract-level): Likewise.
+	(cperl-ps-extend-face-list): New macro.
+	(cperl-invalid-face): Change to ''underline.
 
 1998-12-25  Markus Rost  <rost@delysid.gnu.org>
 
@@ -7607,13 +7587,12 @@
 	(dos-codepage-setup): New function, sets up the MULE environment
 	for the current value of dos-codepage.
 	(top-level if): In the multibyte mode, turn on
-	unibyte-display-via-language-environment.  In the unibyte mode,
-	set up the special syntax tables to map lower- to upper case and
-	back.
+	unibyte-display-via-language-environment.  In the unibyte mode, set up
+	the special syntax tables to map lower- to upper case and back.
 
 1998-12-19  Eric Ludlam  <zappo@delysid.gnu.org>
 
-	* speedbar.el: (speedbar-frame-parameters) Add : to custom prompt.
+	* speedbar.el (speedbar-frame-parameters): Add : to custom prompt.
 	(speedbar-frame-plist) Remove useless comments.
 	(speedbar-frame-mode) Do not specify height if it is in the param list.
 	Use default y position w/out changing it.
@@ -7659,8 +7638,8 @@
 
 1998-12-16  Edward M. Reingold  <reingold@emr.cs.uiuc.edu>
 
-	* diary-lib.el (diary-float): Fix end-of-year error and typos in
-	comments.
+	* diary-lib.el (diary-float): Fix end-of-year error and typos
+	in comments.
 
 1998-12-16  Oleg S. Tihonov  <tihonov@ffke-campus.mipt.ru>
 
@@ -7722,12 +7701,12 @@
 	(bdf-info-code-range, bdf-info-maxlen, bdf-info-offset-vector)
 	(bdf-read-bitmap, bdf-get-bitmaps): Programming uniformization.
 	(bdf-expand-file-name, bdf-file-newer-than-time, bdf-find-file)
-	(bdf-read-cache, bdf-read-font-info, bdf-generate-glyphs): Little code
-	improvement.
+	(bdf-read-cache, bdf-read-font-info, bdf-generate-glyphs):
+	Little code improvement.
 
 1998-12-15  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
-	* ps-print.el: (ps-print-version): New version number (4.1.2), doc fix
+	* ps-print.el (ps-print-version): New version number (4.1.2), doc fix
 	and mule related code extraction. Autoload ps-mule funs.
 
 	* ps-mule.el: Doc fix. Require ps-print only when compiled.
@@ -7788,8 +7767,7 @@
 	* international/mule-cmds.el (find-coding-systems-for-charsets):
 	Handle the case of unknown charset.
 	(find-multibyte-characters): If invalid multibyte characters are
-	found, return the corresponding strings instead of character
-	codes.
+	found, return the corresponding strings instead of character codes.
 	(find-multibyte-characters): Adjusted for the above change.
 	(select-safe-coding-system): For a unibyte buffer, always returns
 	DEFAULT-CODING-SYSTEM.
@@ -7799,8 +7777,8 @@
 	* international/mule.el (make-coding-system): Set mime-charset
 	property of *-with-esc coding system to nil.
 
-	* international/quail.el (quail-point-in-conversion-region): New
-	function.
+	* international/quail.el (quail-point-in-conversion-region):
+	New function.
 	(quail-conversion-backward-delete-char): When a key sequence is
 	being translated, call quail-delete-last-char.
 
@@ -7821,16 +7799,16 @@
 
 1998-12-13  Richard Stallman  <rms@gnu.org>
 
-	* progmodes/compile.el (compilation-error-regexp-alist): Insist
-	on a non-digit in the file name.
+	* progmodes/compile.el (compilation-error-regexp-alist):
+	Insist on a non-digit in the file name.
 
 	* simple.el (comment-region): Handle comment-padding
 	separately for insertion and for deletion, in the right way for each.
 
 1998-12-13  Felix Lee  <flee@cygnus.com>
 
-	* progmodes/compile.el (compilation-error-regexp-alist): Fix
-	regexp to match "ChangeLog:1:1998-12-09 ..."
+	* progmodes/compile.el (compilation-error-regexp-alist):
+	Fix regexp to match "ChangeLog:1:1998-12-09 ..."
 
 1998-12-13  Eli Zaretskii  <eliz@delysid.gnu.org>
 
@@ -7838,8 +7816,8 @@
 
 1998-12-11  Dave Love  <fx@gnu.org>
 
-	* progmodes/fortran.el (fortran-font-lock-keywords-3): Wrap
-	forward-sexp in condition-case.
+	* progmodes/fortran.el (fortran-font-lock-keywords-3):
+	Wrap forward-sexp in condition-case.
 
 	* emacs-lisp/find-func.el (find-function-search-for-symbol):
 	Remove unnecessary test on `library' for explicit file name.
@@ -7907,8 +7885,8 @@
 	with correct number of args.
 	(browse-url-maybe-new-window): New arg.  Callers changed.
 
-	* progmodes/fortran.el (fortran-check-end-prog-re): Allow trailing
-	comment.
+	* progmodes/fortran.el (fortran-check-end-prog-re):
+	Allow trailing comment.
 
 1998-12-08  Geoff Voelker  <voelker@cs.washington.edu>
 
@@ -8006,7 +7984,7 @@
 	ispell-begin-tex-skip-regexp, ispell-begin-skip-region,
 	ispell-comments-and-strings, ispell-continue, ispell-complete-word,
 	ispell-message-text-end, ispell-add-per-file-word-list.
-	(ispell-dictionary-alist-1): (ispell-dictionary-alist2): A coding
+	(ispell-dictionary-alist-1, ispell-dictionary-alist2): A coding
 	system is now required for all languages.  Casechars improved for
 	castellano, castellano8, and norsk dictionaries.  Dictionary
 	norsk7-tex added.  Dictionary polish added.
@@ -8297,7 +8275,7 @@
 
 1998-11-13  Carsten Dominik  <cd@delysid.gnu.org>
 
-	* textmodes/reftex.el: (reftex-finding-files): Group documentation fixed.
+	* textmodes/reftex.el (reftex-finding-files): Group documentation fixed.
 	(reftex-toc-toggle-file-boundary, reftex-toc-toggle-labels)
 	(reftex-toc-toggle-context,reftex-find-start-point): New functions.
 	(reftex-toc-include-labels, reftex-toc-include-context)
@@ -8309,7 +8287,8 @@
 	(reftex-latin1-to-ascii): Works now with and without Mule.
 	(reftex-truncate): Removed special stuff for Emacs 20.2.
 	(reftex-get-offset): Made more general.
-	(reftex-show-label-location): Renamed from `reftex-select-label-callback'.
+	(reftex-show-label-location): Renamed from
+	`reftex-select-label-callback'.
 	(reftex-pop-to-label): Function removed (using
 	`reftex-show-label-location' instead.
 	(reftex-insert-docstruct): Renamed from
@@ -8350,9 +8329,8 @@
 
 1998-11-11  Per Starback  <starback@update.uu.se>
 
-	* ispell.el: (ispell-dictionary-alist-2): Removed svenska,
-	renamed svenska8 to svenska, and fixed and extended CASECHARS
-	for it.
+	* ispell.el (ispell-dictionary-alist-2): Removed svenska, renamed
+	svenska8 to svenska, and fixed and extended CASECHARS for it.
 
 1998-11-11  Andrew Innes  <andrewi@delysid.gnu.org>
 
@@ -8639,8 +8617,8 @@
 
 1998-10-26  Edward M. Reingold  <reingold@emr.cs.uiuc.edu>
 
-	* cal-x.el (diary-frame-parameters, calendar-frame-parameters,
-	calendar-and-diary-frame-parameters):  Add title parameter.
+	* cal-x.el (diary-frame-parameters, calendar-frame-parameters)
+	(calendar-and-diary-frame-parameters): Add title parameter.
 
 1998-10-26  Richard Stallman  <rms@psilocin.ai.mit.edu>
 
@@ -8962,10 +8940,10 @@
 
 1998-10-13  Andreas Schwab  <schwab@mescaline.gnu.org>
 
-	* progmodes/hideif.el: (hide-ifdef-env, hif-outside-read-only):
+	* progmodes/hideif.el (hide-ifdef-env, hif-outside-read-only):
 	Move declaration before first use.
-	(hif-parse-if-exp, hif-nexttoken, hif-expr, hif-term, hif-eq-expr,
-	hif-math, hif-factor): Rename token to hif-token and token-list to
+	(hif-parse-if-exp, hif-nexttoken, hif-expr, hif-term, hif-eq-expr)
+	(hif-math, hif-factor): Rename token to hif-token and token-list to
 	hif-token-list.
 	(hif-token, hif-token-list): Declare them.
 	(hif-find-ifdef-block): Return cons of top and bottom point
@@ -9196,7 +9174,7 @@
 
 1998-09-30  Markus Rost  <markus.rost@mathematik.uni-regensburg.de>
 
-	* gnus.el: (gnus-valid-select-methods): Fix type.
+	* gnus.el (gnus-valid-select-methods): Fix type.
 	* gnus-sum.el (gnus-summary-respool-default-method): Fix type.
 	* gnus-score.el (gnus-orphan-score): Fix type.
 	(gnus-score-default-header, gnus-score-default-type): Fix type.
@@ -9228,11 +9206,10 @@
 1998-09-28  Carsten Dominik  <cd@delysid.gnu.org>
 
 	* textmodes/reftex.el (reftex-finding-files): New customize group.
-	(reftex-texpath-environment-variables,
-	reftex-use-external-file-finders, reftex-external-file-finders,
-	reftex-search-unrecursed-path-first): New options.
-	(reftex-process-string, reftex-find-file-externally): New
-	functions.
+	(reftex-texpath-environment-variables)
+	(reftex-use-external-file-finders, reftex-external-file-finders)
+	(reftex-search-unrecursed-path-first): New options.
+	(reftex-process-string, reftex-find-file-externally): New functions.
 	(reftex-access-search-path): Execute shell commands to find the
 	search path.
 	(reftex-toggle-auto-view-crossref): When turning on, make sure
@@ -9247,9 +9224,8 @@
 
 1998-09-27  Kurt Hornik  <Kurt.Hornik@ci.tuwien.ac.at>
 
-	* octave-inf.el (inferior-octave-prompt):  Also match prompts of
-	the form `octave.bin:1>' which come from using precopiled binary
-	versions.
+	* octave-inf.el (inferior-octave-prompt): Also match prompts of the
+	form `octave.bin:1>' which come from using precopiled binary versions.
 
 1998-09-27  Richard Stallman  <rms@psilocin.ai.mit.edu>
 
@@ -9656,7 +9632,7 @@
 
 1998-09-05  Eric Ludlam  <zappo@gnu.org>
 
-	* emacs-lisp/checkdoc.el: (checkdoc-buffer-label): New function.
+	* emacs-lisp/checkdoc.el (checkdoc-buffer-label): New function.
 	(checkdoc-start-section, checkdoc-error): Use `checkdoc-buffer-label'.
 	(checkdoc-this-string-valid-engine): Permit ? as terminating
 	punctuation for first line sentence breaking.
@@ -10000,9 +9976,9 @@
 
 1998-08-23  Eric Ludlam  <zappo@gnu.org>
 
-	* speedbar.el: (speedbar-with-writable): Remove `toggle-read-only'.
+	* speedbar.el (speedbar-with-writable): Remove `toggle-read-only'.
 	(speedbar-mode): Set buffer to read only.
-	(speedbar-temp-buffer-show-function): For emacs don't call hook
+	(speedbar-temp-buffer-show-function): For Emacs don't call hook
 	with arguments.
 	(speedbar-stealthy-updates): Do all updates w/ the buffer writable.
 
@@ -10012,9 +9988,24 @@
 
 See ChangeLog.7 for earlier changes.
 
-    Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007
-    Free Software Foundation, Inc.
-  Copying and distribution of this file, with or without modification,
-  are permitted provided the copyright notice and this notice are preserved.
+    Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006,
+      2007  Free Software Foundation, Inc.
+
+  This file is part of GNU Emacs.
+
+  GNU Emacs is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2, or (at your option)
+  any later version.
+
+  GNU Emacs is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with GNU Emacs; see the file COPYING.  If not, write to the
+  Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+  Boston, MA 02110-1301, USA.
 
 ;;; arch-tag: efdc1531-ed46-4e14-be59-bee4b23088f3

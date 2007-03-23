@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007
 #   Free Software Foundation, Inc.
-# See the end of the file for copying conditions.
+# See the end of the file for license conditions.
 #
 # This file contains the default keyboard mapping.  The first column contains a X keyboard code; the other
 # 16 columns contain the mapping of the keycode to a character string, with various combinations
@@ -102,15 +102,19 @@
 # tab-width: 4
 # End:
 #
-#  COPYING CONDITIONS
-#    Permission is hereby granted, free of charge, to any person obtaining
-#    a copy of this file, to deal in the file without restriction, including
-#    without limitation the rights to use, copy, modify, merge, publish,
-#    distribute, sublicense, and/or sell copies of the file, and to
-#    permit persons to whom the file is furnished to do so, subject to
-#    the following condition:
+# This document is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+# 
+# This document is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this document; see the file COPYING.  If not, write to the
+# Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+# Boston, MA 02110-1301, USA.
 #
-#    The above copyright notice and this permission notice shall be
-#    included in all copies or substantial portions of the file.
-
 # arch-tag: cbaa71af-719b-4647-a2c1-cd4d36a4fc64

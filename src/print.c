@@ -1292,7 +1292,8 @@ print (obj, printcharfun, escapeflag)
      the variable Vprint_continuous_numbering is nil.  Otherwise,
      the values of these variables will be kept between several
      print functions.  */
-  if (NILP (Vprint_continuous_numbering))
+  if (NILP (Vprint_continuous_numbering)
+      || NILP (Vprint_number_table))
     {
       print_number_index = 0;
       Vprint_number_table = Qnil;

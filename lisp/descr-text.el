@@ -528,11 +528,11 @@ as well as widgets, buttons, overlays, and text properties."
 		  (setq char (aref disp-vector i))
 		  (aset disp-vector i
 			(cons char (describe-char-display
-				    pos (logand char #x7ffff)))))
+				    pos (glyph-char char)))))
 		(format "by display table entry [%s] (see below)"
 			(mapconcat
 			 #'(lambda (x)
-			     (format "?%c" (logand (car x) #x7ffff)))
+			     (format "?%c" (glyph-char (car x))))
 			 disp-vector " ")))
 	       (composition
 		(let ((from (car composition))
@@ -627,25 +627,19 @@ as well as widgets, buttons, overlays, and text properties."
 	      (progn
 		(insert "these fonts (glyph codes):\n")
 		(dotimes (i (length disp-vector))
-		  (insert (logand (car (aref disp-vector i)) #x7ffff) ?:
+		  (insert (glyph-char (car (aref disp-vector i))) ?:
 			  (propertize " " 'display '(space :align-to 5))
 			  (if (cdr (aref disp-vector i))
 			      (format "%s (#x%02X)" (cadr (aref disp-vector i))
 				      (cddr (aref disp-vector i)))
 			    "-- no font --")
 			  "\n")
-		  (when (> (car (aref disp-vector i)) #x7ffff)
-		    (let* ((face-id (lsh (car (aref disp-vector i)) -19))
-			   (face (car (delq nil (mapcar
-						 (lambda (face)
-						   (and (eq (face-id face)
-							    face-id) face))
-						 (face-list))))))
-		      (when face
-			(insert (propertize " " 'display '(space :align-to 5))
-				"face: ")
-			(insert (concat "`" (symbol-name face) "'"))
-			(insert "\n"))))))
+		  (let ((face (glyph-face (car (aref disp-vector i)))))
+		    (when face
+		      (insert (propertize " " 'display '(space :align-to 5))
+			      "face: ")
+		      (insert (concat "`" (symbol-name face) "'"))
+		      (insert "\n")))))
 	    (insert "these terminal codes:\n")
 	    (dotimes (i (length disp-vector))
 	      (insert (car (aref disp-vector i))

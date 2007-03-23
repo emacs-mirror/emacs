@@ -3827,8 +3827,12 @@ update_frame (f, force_p, inhibit_hairy_id_p)
   int paused_p;
   struct window *root_window = XWINDOW (f->root_window);
 
+  if (redisplay_dont_pause)
+    force_p = 1;
 #if PERIODIC_PREEMPTION_CHECKING
-  if (!force_p && NUMBERP (Vredisplay_preemption_period))
+  else if (NILP (Vredisplay_preemption_period))
+    force_p = 1;
+  else if (!force_p && NUMBERP (Vredisplay_preemption_period))
     {
       EMACS_TIME tm;
       double p = XFLOATINT (Vredisplay_preemption_period);
@@ -3982,8 +3986,12 @@ update_single_window (w, force_p)
       /* Record that this is not a frame-based redisplay.  */
       set_frame_matrix_frame (NULL);
 
+      if (redisplay_dont_pause)
+	force_p = 1;
 #if PERIODIC_PREEMPTION_CHECKING
-      if (!force_p && NUMBERP (Vredisplay_preemption_period))
+      else if (NILP (Vredisplay_preemption_period))
+	force_p = 1;
+      else if (!force_p && NUMBERP (Vredisplay_preemption_period))
 	{
 	  EMACS_TIME tm;
 	  double p = XFLOATINT (Vredisplay_preemption_period);
@@ -4165,13 +4173,8 @@ update_window (w, force_p)
 #endif
 
   /* Check pending input the first time so that we can quickly return.  */
-  if (redisplay_dont_pause)
-    force_p = 1;
-#if PERIODIC_PREEMPTION_CHECKING
-  else if (NILP (Vredisplay_preemption_period))
-    force_p = 1;
-#else
-  else if (!force_p)
+#if !PERIODIC_PREEMPTION_CHECKING
+  if (!force_p)
     detect_input_pending_ignore_squeezables ();
 #endif
 
@@ -4395,8 +4398,10 @@ update_text_area (w, vpos)
 	 mouse-face areas after scrolling and other operations.
 	 However, it causes excessive flickering when mouse is moved
 	 across the mode line.  Luckily, turning it off for the mode
-	 line doesn't seem to hurt anything. -- cyd.  */
-      || (current_row->mouse_face_p && !current_row->mode_line_p)
+	 line doesn't seem to hurt anything. -- cyd.
+         But it is still needed for the header line. -- kfs.  */
+      || (current_row->mouse_face_p
+	  && !(current_row->mode_line_p && vpos > 0))
       || current_row->x != desired_row->x)
     {
       rif->cursor_to (vpos, 0, desired_row->y, desired_row->x);
@@ -5215,13 +5220,8 @@ update_frame_1 (f, force_p, inhibit_id_p)
   if (preempt_count <= 0)
     preempt_count = 1;
 
-  if (redisplay_dont_pause)
-    force_p = 1;
-#if PERIODIC_PREEMPTION_CHECKING
-  else if (NILP (Vredisplay_preemption_period))
-    force_p = 1;
-#else
-  else if (!force_p && detect_input_pending_ignore_squeezables ())
+#if !PERIODIC_PREEMPTION_CHECKING
+  if (!force_p && detect_input_pending_ignore_squeezables ())
     {
       pause = 1;
       goto do_pause;

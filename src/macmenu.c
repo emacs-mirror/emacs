@@ -2012,9 +2012,8 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
      char **error;
 {
   int i;
-  UInt32 refcon;
   int menu_item_choice;
-  int menu_item_selection;
+  UInt32 menu_item_selection;
   MenuHandle menu;
   Point pos;
   widget_value *wv, *save_wv = 0, *first_wv = 0, *prev_wv = 0;
@@ -2229,7 +2228,6 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
   LocalToGlobal (&pos);
 
   /* No selection has been chosen yet.  */
-  menu_item_choice = 0;
   menu_item_selection = 0;
 
   record_unwind_protect (pop_down_menu, make_save_value (f, 0));
@@ -2240,20 +2238,18 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 
   /* Display the menu.  */
   menu_item_choice = PopUpMenuSelect (menu, pos.v, pos.h, 0);
-  menu_item_selection = LoWord (menu_item_choice);
 
   /* Get the refcon to find the correct item */
-  if (menu_item_selection)
+  if (menu_item_choice)
     {
       MenuHandle sel_menu = GetMenuHandle (HiWord (menu_item_choice));
-      if (sel_menu) {
-	GetMenuItemRefCon (sel_menu, menu_item_selection, &refcon);
-      }
+
+      if (sel_menu)
+	GetMenuItemRefCon (sel_menu, LoWord (menu_item_choice),
+			   &menu_item_selection);
     }
-  else if (! for_click)
-    /* Make "Cancel" equivalent to C-g unless this menu was popped up by
-       a mouse press.  */
-    Fsignal (Qquit, Qnil);
+
+  unbind_to (specpdl_count, Qnil);
 
   /* Find the selected item, and its pane, to return
      the proper value.  */
@@ -2290,7 +2286,7 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 	    {
 	      entry
 		= XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_VALUE];
-	      if ((int) (EMACS_INT) refcon == i)
+	      if (menu_item_selection == i)
 		{
 		  if (keymaps != 0)
 		    {
@@ -2312,8 +2308,6 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
   else if (!for_click)
     /* Make "Cancel" equivalent to C-g.  */
     Fsignal (Qquit, Qnil);
-
-  unbind_to (specpdl_count, Qnil);
 
   return Qnil;
 }
@@ -2386,10 +2380,12 @@ mac_handle_dialog_event (next_handler, event, data)
 					   typeUInt32, NULL, sizeof (UInt32),
 					   NULL, &key_code);
 		if (err == noErr)
-		  if (mac_quit_char_key_p (modifiers, key_code))
-		    err = QuitAppModalLoopForWindow (window);
-		  else
-		    err = eventNotHandledErr;
+		  {
+		    if (mac_quit_char_key_p (modifiers, key_code))
+		      err = QuitAppModalLoopForWindow (window);
+		    else
+		      err = eventNotHandledErr;
+		  }
 	      }
 	      break;
 	    }

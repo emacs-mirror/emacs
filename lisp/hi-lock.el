@@ -347,7 +347,7 @@ versions before 22 use the following in your .emacs file:
     (remove-hook 'font-lock-mode-hook 'hi-lock-font-lock-hook t)))
 
 ;;;###autoload
-(define-global-minor-mode global-hi-lock-mode
+(define-globalized-minor-mode global-hi-lock-mode
   hi-lock-mode turn-on-hi-lock-if-enabled
   :group 'hi-lock)
 

@@ -297,6 +297,10 @@ extern int w32_use_visible_system_caret;
 
 static HWND w32_visible_system_caret_hwnd;
 
+/* From w32menu.c  */
+extern HMENU current_popup_menu;
+static int menubar_in_use = 0;
+
 
 /* Error if we are not connected to MS-Windows.  */
 void
@@ -3411,11 +3415,14 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	  KillTimer (hwnd, menu_free_timer);
 	  menu_free_timer = 0;
 	  f = x_window_to_frame (dpyinfo, hwnd);
-	  if (!f->output_data.w32->menu_command_in_progress)
+          /* If a popup menu is active, don't wipe its strings.  */
+	  if (menubar_in_use
+              && current_popup_menu == NULL)
 	    {
 	      /* Free memory used by owner-drawn and help-echo strings.  */
 	      w32_free_menu_strings (hwnd);
 	      f->output_data.w32->menubar_active = 0;
+              menubar_in_use = 0;
 	    }
 	}
       return 0;
@@ -3467,16 +3474,21 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	if (find_deferred_msg (hwnd, msg) != NULL)
 	  abort ();
 
+        menubar_in_use = 1;
+
 	return send_deferred_msg (&msg_buf, hwnd, msg, wParam, lParam);
       }
 
     case WM_EXITMENULOOP:
       f = x_window_to_frame (dpyinfo, hwnd);
 
-      /* If a menu command is not already in progress, check again
-	 after a short delay, since Windows often (always?) sends the
-	 WM_EXITMENULOOP before the corresponding WM_COMMAND message.  */
-      if (f && !f->output_data.w32->menu_command_in_progress)
+      /* If a menu is still active, check again after a short delay,
+	 since Windows often (always?) sends the WM_EXITMENULOOP
+	 before the corresponding WM_COMMAND message.
+         Don't do this if a popup menu is active, since it is only
+         menubar menus that require cleaning up in this way.
+      */
+      if (f && menubar_in_use && current_popup_menu == NULL)
 	menu_free_timer = SetTimer (hwnd, MENU_FREE_ID, MENU_FREE_DELAY, NULL);
       goto dflt;
 
@@ -3631,10 +3643,10 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	}
       goto command;
     case WM_COMMAND:
+      menubar_in_use = 0;
       f = x_window_to_frame (dpyinfo, hwnd);
       if (f && HIWORD (wParam) == 0)
 	{
-	  f->output_data.w32->menu_command_in_progress = 1;
 	  if (menu_free_timer)
 	    {
 	      KillTimer (hwnd, menu_free_timer);

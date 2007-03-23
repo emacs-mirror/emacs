@@ -132,6 +132,10 @@ Boston, MA 02110-1301, USA.  */
    don't. */
 /* #undef HAVE_DECL_SYS_SIGLIST */
 
+/* Define to 1 if you have the declaration of `tzname', and to 0 if you don't.
+   */
+/* #undef HAVE_DECL_TZNAME */
+
 /* Define to 1 if you have the declaration of `__sys_siglist', and to 0 if you
    don't. */
 /* #undef HAVE_DECL___SYS_SIGLIST */
@@ -255,6 +259,9 @@ Boston, MA 02110-1301, USA.  */
 
 /* Define to 1 if you have the `gtk_file_selection_new' function. */
 /* #undef HAVE_GTK_FILE_SELECTION_NEW */
+
+/* Define to 1 if you have the `gtk_main' function. */
+/* #undef HAVE_GTK_MAIN */
 
 /* Define to 1 if GTK can handle more than one display. */
 /* #undef HAVE_GTK_MULTIDISPLAY */
@@ -727,6 +734,9 @@ Boston, MA 02110-1301, USA.  */
 /* Define to 1 if you're using XFree386. */
 /* #undef HAVE_XFREE386 */
 
+/* Define to 1 if you have the Xft library. */
+/* #undef HAVE_XFT */
+
 /* Define to 1 if XIM is available */
 /* #undef HAVE_XIM */
 
@@ -820,7 +830,7 @@ Boston, MA 02110-1301, USA.  */
 
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
-   automatically deduced at run-time.
+   automatically deduced at runtime.
 	STACK_DIRECTION > 0 => grows toward higher addresses
 	STACK_DIRECTION < 0 => grows toward lower addresses
 	STACK_DIRECTION = 0 => direction of growth unknown */

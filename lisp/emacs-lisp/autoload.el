@@ -73,6 +73,7 @@ or macro definition or a defcustom)."
     (cond
      ;; For complex cases, try again on the macro-expansion.
      ((and (memq car '(easy-mmode-define-global-mode define-global-minor-mode
+		       define-globalized-minor-mode
 		       easy-mmode-define-minor-mode define-minor-mode))
 	   (setq expand (let ((load-file-name file)) (macroexpand form)))
 	   (eq (car expand) 'progn)
@@ -88,6 +89,7 @@ or macro definition or a defcustom)."
      ((memq car '(defun define-skeleton defmacro define-derived-mode
                    define-compilation-mode define-generic-mode
 		   easy-mmode-define-global-mode define-global-minor-mode
+		   define-globalized-minor-mode
 		   easy-mmode-define-minor-mode define-minor-mode
 		   defun* defmacro*))
       (let* ((macrop (memq car '(defmacro defmacro*)))
@@ -110,6 +112,7 @@ or macro definition or a defcustom)."
 				    define-generic-mode
 				    easy-mmode-define-global-mode
 				    define-global-minor-mode
+				    define-globalized-minor-mode
 				    easy-mmode-define-minor-mode
 				    define-minor-mode)) t)
 		  (eq (car-safe (car body)) 'interactive))

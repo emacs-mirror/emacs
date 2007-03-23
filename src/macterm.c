@@ -1916,18 +1916,16 @@ x_flush (f)
 
 #define XFlush(DISPLAY)	(void) 0
 
-
-/* Return the struct mac_display_info corresponding to DPY.  There's
-   only one.  */
-
-struct mac_display_info *
-mac_display_info_for_display (dpy)
-     Display *dpy;
+#if USE_CG_DRAWING
+static void
+mac_flush_display_optional (f)
+     struct frame *f;
 {
-  return &one_mac_display_info;
+  BLOCK_INPUT;
+  mac_prepare_for_quickdraw (f);
+  UNBLOCK_INPUT;
 }
-
-
+#endif
 
 /***********************************************************************
 		    Starting and ending an update
@@ -4649,7 +4647,7 @@ static void construct_scroll_bar_click P_ ((struct scroll_bar *, int,
 static OSStatus get_control_part_bounds P_ ((ControlHandle, ControlPartCode,
 					     Rect *));
 static void x_scroll_bar_handle_press P_ ((struct scroll_bar *,
-					   ControlPartCode,
+					   ControlPartCode, Point,
 					   struct input_event *));
 static void x_scroll_bar_handle_release P_ ((struct scroll_bar *,
 					     struct input_event *));
@@ -4762,9 +4760,10 @@ get_control_part_bounds (ch, part_code, rect)
 }
 
 static void
-x_scroll_bar_handle_press (bar, part_code, bufp)
+x_scroll_bar_handle_press (bar, part_code, mouse_pos, bufp)
      struct scroll_bar *bar;
      ControlPartCode part_code;
+     Point mouse_pos;
      struct input_event *bufp;
 {
   int part = control_part_code_to_scroll_bar_part (part_code);
@@ -4777,10 +4776,18 @@ x_scroll_bar_handle_press (bar, part_code, bufp)
       construct_scroll_bar_click (bar, part, bufp);
       HiliteControl (SCROLL_BAR_CONTROL_HANDLE (bar), part_code);
       set_scroll_bar_timer (SCROLL_BAR_FIRST_DELAY);
+      bar->dragging = Qnil;
+    }
+  else
+    {
+      Rect r;
+
+      get_control_part_bounds (SCROLL_BAR_CONTROL_HANDLE (bar),
+			       kControlIndicatorPart, &r);
+      XSETINT (bar->dragging, - (mouse_pos.v - r.top) - 1);
     }
 
   last_scroll_bar_part = part;
-  bar->dragging = Qnil;
   tracked_scroll_bar = bar;
 }
 
@@ -4790,7 +4797,7 @@ x_scroll_bar_handle_release (bar, bufp)
      struct input_event *bufp;
 {
   if (last_scroll_bar_part != scroll_bar_handle
-      || !GC_NILP (bar->dragging))
+      || (INTEGERP (bar->dragging) && XINT (bar->dragging) >= 0))
     construct_scroll_bar_click (bar, scroll_bar_end_scroll, bufp);
 
   HiliteControl (SCROLL_BAR_CONTROL_HANDLE (bar), 0);
@@ -4818,13 +4825,11 @@ x_scroll_bar_handle_drag (win, bar, mouse_pos, bufp)
       get_control_part_bounds (SCROLL_BAR_CONTROL_HANDLE (bar),
 			       kControlIndicatorPart, &r);
 
-      if (GC_NILP (bar->dragging))
-	XSETINT (bar->dragging, mouse_pos.v - r.top);
+      if (INTEGERP (bar->dragging) && XINT (bar->dragging) < 0)
+	XSETINT (bar->dragging, - (XINT (bar->dragging) + 1));
 
       top = mouse_pos.v - XINT (bar->dragging) - XINT (bar->track_top);
-      top_range = (XINT (bar->track_height) - (r.bottom - r.top)) *
-	(1.0 + (float) GetControlViewSize (ch) / GetControl32BitMaximum (ch))
-	+ .5;
+      top_range = XINT (bar->track_height) - XINT (bar->min_handle);
 
       if (top < 0)
 	top = 0;
@@ -4891,13 +4896,16 @@ x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
   if (XINT (bar->track_height) == 0)
     return;
 
-  if (whole == 0)
+  if (whole <= portion)
     value = 0, viewsize = 1, maximum = 0;
   else
     {
-      value = position;
-      viewsize = portion;
-      maximum = max (0, whole - portion);
+      float scale;
+
+      maximum = XINT (bar->track_height) - XINT (bar->min_handle);
+      scale = (float) maximum / (whole - portion);
+      value = position * scale + 0.5f;
+      viewsize = (int) (portion * scale + 0.5f) + XINT (bar->min_handle);
     }
 
   BLOCK_INPUT;
@@ -4978,6 +4986,7 @@ x_scroll_bar_create (w, top, left, width, height, disp_top, disp_height)
 #ifdef USE_TOOLKIT_SCROLL_BARS
   bar->track_top = Qnil;
   bar->track_height = Qnil;
+  bar->min_handle = Qnil;
 #endif
 
   /* Add bar to its frame's list of scroll bars.  */
@@ -5198,6 +5207,7 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 #ifdef USE_TOOLKIT_SCROLL_BARS
 	  bar->track_top = Qnil;
 	  bar->track_height = Qnil;
+	  bar->min_handle = Qnil;
 #endif
         }
 
@@ -5211,6 +5221,7 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 	{
 	  XSETINT (bar->track_top, 0);
 	  XSETINT (bar->track_height, 0);
+	  XSETINT (bar->min_handle, 0);
 	}
       else
 	{
@@ -5220,7 +5231,7 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 	  BLOCK_INPUT;
 
 	  SetControl32BitMinimum (ch, 0);
-	  SetControl32BitMaximum (ch, 1);
+	  SetControl32BitMaximum (ch, 1 << 30);
 	  SetControlViewSize (ch, 1);
 
 	  /* Move the scroll bar thumb to the top.  */
@@ -5228,12 +5239,13 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 	  get_control_part_bounds (ch, kControlIndicatorPart, &r0);
 
 	  /* Move the scroll bar thumb to the bottom.  */
-	  SetControl32BitValue (ch, 1);
+	  SetControl32BitValue (ch, 1 << 30);
 	  get_control_part_bounds (ch, kControlIndicatorPart, &r1);
 
 	  UnionRect (&r0, &r1, &r0);
 	  XSETINT (bar->track_top, r0.top);
 	  XSETINT (bar->track_height, r0.bottom - r0.top);
+	  XSETINT (bar->min_handle, r1.bottom - r1.top);
 
 	  /* Don't show the scroll bar if its height is not enough to
 	     display the scroll bar thumb.  */
@@ -8791,9 +8803,6 @@ mac_set_font_info_for_selection (f, face_id, c)
 #define M_APPLE 234
 #define I_ABOUT 1
 
-#define WINDOW_RESOURCE 128
-#define TERM_WINDOW_RESOURCE 129
-
 #define DEFAULT_NUM_COLS 80
 
 #define MIN_DOC_SIZE 64
@@ -10120,7 +10129,7 @@ mac_handle_text_input_event (next_handler, event, data)
     case kEventTextInputUnicodeForKeyEvent:
       {
 	EventRef kbd_event;
-	UInt32 actual_size, modifiers, mapped_modifiers;
+	UInt32 actual_size, modifiers;
 
 	err = GetEventParameter (event, kEventParamTextInputSendKeyboardEvent,
 				 typeEventRef, NULL, sizeof (EventRef), NULL,
@@ -10757,12 +10766,12 @@ XTread_socket (sd, expected, hold_quit)
 #ifdef USE_TOOLKIT_SCROLL_BARS
 			/* Make the "Ctrl-Mouse-2 splits window" work
 			   for toolkit scroll bars.  */
-			if (er.modifiers & controlKey)
+			if (inev.modifiers & ctrl_modifier)
 			  x_scroll_bar_handle_click (bar, control_part_code,
 						     &er, &inev);
 			else if (er.what == mouseDown)
 			  x_scroll_bar_handle_press (bar, control_part_code,
-						     &inev);
+						     mouse_loc, &inev);
 			else
 			  x_scroll_bar_handle_release (bar, &inev);
 #else  /* not USE_TOOLKIT_SCROLL_BARS */
@@ -10825,7 +10834,9 @@ XTread_socket (sd, expected, hold_quit)
 		      f->mouse_moved = 0;
 
 #ifdef USE_TOOLKIT_SCROLL_BARS
-		    if (inev.kind == MOUSE_CLICK_EVENT)
+		    if (inev.kind == MOUSE_CLICK_EVENT
+			|| (inev.kind == SCROLL_BAR_CLICK_EVENT
+			    && (inev.modifiers & ctrl_modifier)))
 #endif
 		      switch (er.what)
 			{
@@ -11165,6 +11176,16 @@ XTread_socket (sd, expected, hold_quit)
 		/* translate the keycode back to determine the
 		   original key */
 #ifdef MAC_OSX
+		UCKeyboardLayout *uchr_ptr = NULL;
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
+		OSStatus err;
+		KeyboardLayoutRef layout;
+
+		err = KLGetCurrentKeyboardLayout (&layout);
+		if (err == noErr)
+		  KLGetKeyboardLayoutProperty (layout, kKLuchrData,
+					       (const void **) &uchr_ptr);
+#else
 		static SInt16 last_key_layout_id = 0;
 		static Handle uchr_handle = (Handle)-1;
 		SInt16 current_key_layout_id =
@@ -11176,8 +11197,11 @@ XTread_socket (sd, expected, hold_quit)
 		    uchr_handle = GetResource ('uchr', current_key_layout_id);
 		    last_key_layout_id = current_key_layout_id;
 		  }
-
 		if (uchr_handle)
+		  uchr_ptr = (UCKeyboardLayout *)*uchr_handle;
+#endif
+
+		if (uchr_ptr)
 		  {
 		    OSStatus status;
 		    UInt16 key_action = er.what - keyDown;
@@ -11188,7 +11212,7 @@ XTread_socket (sd, expected, hold_quit)
 		    UniChar code;
 		    UniCharCount actual_length;
 
-		    status = UCKeyTranslate ((UCKeyboardLayout *)*uchr_handle,
+		    status = UCKeyTranslate (uchr_ptr,
 					     keycode, key_action,
 					     modifier_key_state,
 					     keyboard_type,
@@ -11640,19 +11664,6 @@ x_delete_display (dpyinfo)
 }
 
 
-#ifdef MAC_OSX
-void
-MakeMeTheFrontProcess ()
-{
-  ProcessSerialNumber psn;
-  OSErr err;
-
-  err = GetCurrentProcess (&psn);
-  if (err == noErr)
-    (void) SetFrontProcess (&psn);
-}
-#endif	/* MAC_OSX */
-
 static void
 init_menu_bar ()
 {
@@ -11717,7 +11728,11 @@ static struct redisplay_interface x_redisplay_interface =
   x_update_window_end,
   x_cursor_to,
   x_flush,
+#if USE_CG_DRAWING
+  mac_flush_display_optional,
+#else
   0, /* flush_display_optional */
+#endif
   x_clear_window_mouse_face,
   x_get_glyph_overhangs,
   x_fix_overlapping_area,
@@ -11803,7 +11818,11 @@ mac_initialize ()
   init_apple_event_handler ();
 
   if (!inhibit_window_system)
-    MakeMeTheFrontProcess ();
+    {
+      static const ProcessSerialNumber psn = {0, kCurrentProcess};
+
+      SetFrontProcess (&psn);
+    }
 #endif
 #endif
 

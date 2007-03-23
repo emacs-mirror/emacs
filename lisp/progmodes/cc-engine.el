@@ -6256,13 +6256,13 @@ comment at the start of cc-engine.el for more info."
 
 	(catch 'knr
 	  (while t ; go round one paren/bracket construct each time round.
-	    (or (c-syntactic-skip-backward "^)]}")
-		(throw 'knr nil))	; no more bpb pairs left.
+	    (c-syntactic-skip-backward "^)]}")
 	    (cond ((eq (char-before) ?\))
 		   (setq after-rparen (point)))
-		  ((eq (char-before) ?\})
-		   (throw 'knr nil))
-		  (t (setq after-rparen nil))) ; "]"
+		  ((eq (char-before) ?\])
+		   (setq after-rparen nil))
+		  (t ; either } (hit previous defun) or no more parens/brackets
+		   (throw 'knr nil)))
 
 	    (if after-rparen
 	    ;; We're inside a paren.  Could it be our argument list....?

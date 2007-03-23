@@ -1,3 +1,29 @@
+2007-02-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-make-in-reply-to): Quote name containing
+	non-ASCII characters.  It will make the RFC2047 encoder cause an error
+	if there are special characters.  Reported by NAKAJI Hiroyuki
+	<nakaji@kankyo-u.ac.jp>.
+
+2007-02-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nntp.el (nntp-never-echoes-commands)
+	(nntp-open-connection-functions-never-echo-commands): New variables.
+	(nntp-send-command): Use them.
+
+2007-02-15  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* nnweb.el (nnweb-google-parse-1): Fix date parsing to also match on
+	articles posted in the last 24 hours.
+
+2007-02-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* smiley.el (smiley-regexp-alist): Add "dead" smiley.
+
+2007-02-01  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* nnweb.el (nnweb-google-parse-1): Update parser.
+
 2007-01-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* gnus-art.el (gnus-button-prefer-mid-or-mail): Fix typo in docstring.
@@ -146,7 +172,7 @@
 	(gnus-sort-threads-recursive): Renamed from gnus-sort-thread-1.
 	(gnus-sort-threads-loop): New function.
 
-2006-12-06  Chris Moore  <dooglus@gmail.com>  (tiny change)
+2006-12-06  Chris Moore  <dooglus@gmail.com>
 
 	* gnus-sum.el (gnus-sort-threads, gnus-summary-limit-children):
 	Use `max' to avoid the value of `max-lisp-eval-depth' decreasing.
@@ -4730,8 +4756,23 @@
 See ChangeLog.2 for earlier changes.
 
     Copyright (C) 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
-  Copying and distribution of this file, with or without modification,
-  are permitted provided the copyright notice and this notice are preserved.
+
+  This file is part of GNU Emacs.
+
+  GNU Emacs is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2, or (at your option)
+  any later version.
+
+  GNU Emacs is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with GNU Emacs; see the file COPYING.  If not, write to the
+  Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+  Boston, MA 02110-1301, USA.
 
 ;; Local Variables:
 ;; coding: iso-2022-7bit

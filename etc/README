@@ -1,3 +1,8 @@
+Copyright (C) 1992, 1995, 2001, 2002, 2003, 2004, 2005, 2006, 2007
+  Free Software Foundation, Inc.
+See the end of the file for license conditions.
+
+
 This directory contains the architecture-independent files used by or
 with Emacs.  This includes some text files of documentation for GNU
 Emacs or of interest to Emacs users, and the file of dumped docstrings
@@ -12,18 +17,38 @@ without installing the modified TeX versions.
 `termcap.src' is included mainly for VMS.  It is a copy of the
 `/etc/termcap' file used on Unix.
 
-Copyright (C) 1992, 1995, 2001, 2002, 2003, 2004, 2005, 2006, 2007
-Free Software Foundation, Inc.
+
+COPYRIGHT AND LICENSE INFORMATION FOR IMAGE FILES
+
+The files splash.xpm, splash8.xpm contain copyright and license
+information, but it is reproduced here for convenience.
+
+Files: splash.pbm, splash.xpm, splash8.xpm, gnus.pbm, gnus-logo.eps
+  Author: Luis Fernandes <elf@ee.ryerson.ca>
+  Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+    Free Software Foundation, Inc.
+  License: GNU General Public License version 2 or later (see COPYING)
+
+File: emacs.icon
+  Author: Sun Microsystems, Inc
+  Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007
+    Free Software Foundation, Inc.
+  License: GNU General Public License version 2 or later (see COPYING)
+
 
+This file is part of GNU Emacs.
 
-COPYING PERMISSIONS:
+GNU Emacs is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2, or (at your option)
+any later version.
 
-    Permission is hereby granted, free of charge, to any person obtaining
-    a copy of this file, to deal in the file without restriction, including
-    without limitation the rights to use, copy, modify, merge, publish,
-    distribute, sublicense, and/or sell copies of the file, and to
-    permit persons to whom the file is furnished to do so, subject to
-    the following condition:
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    The above copyright notice and this permission notice shall be
-    included in all copies or substantial portions of the file.
+You should have received a copy of the GNU General Public License
+along with GNU Emacs; see the file COPYING.  If not, write to the
+Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.

@@ -2,6 +2,9 @@
 --                                                                  --
 -- Humor (sometimes unintended) on the Emacs developer's list       --
 --                                                                  --
+-- The Free Software Foundation claims no copyright on this file,   --
+-- compiled from the public emacs-devel mailing list.               --
+--                                                                  --
 ----------------------------------------------------------------------
 
   "Is it legal for a `struct interval' to have a total_length field of
@@ -168,3 +171,10 @@ Re: New Emacs Icon and Tango
   "It's the object of ridicule until the end of _tape_.  The jury is
 still out about that end of time thing."
                  -- Kim F. Storm, Miles Bader, RMS and David Kastrup
+
+----------------------------------------------------------------------
+
+  "Despite being a maths graduate, I can't think of any other such
+constants with anything like the universality of e and pi."
+  "42"
+                                -- Alan Mackenzie and David Hansen

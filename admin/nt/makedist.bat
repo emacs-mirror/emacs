@@ -1,5 +1,31 @@
 @echo off
 
+rem Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+rem   Free Software Foundation, Inc.
+rem
+rem Cannot use brackets in andrewi's email below because
+rem older Windows shells will treat that as redirection.
+rem
+rem Author: Andrew Innes andrewi@gnu.org
+rem
+rem This file is part of GNU Emacs.
+rem
+rem GNU Emacs is free software; you can redistribute it and/or modify
+rem it under the terms of the GNU General Public License as published by
+rem the Free Software Foundation; either version 2, or (at your option)
+rem any later version.
+rem
+rem GNU Emacs is distributed in the hope that it will be useful,
+rem but WITHOUT ANY WARRANTY; without even the implied warranty of
+rem MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+rem GNU General Public License for more details.
+rem
+rem You should have received a copy of the GNU General Public License
+rem along with GNU Emacs; see the file COPYING.  If not, write to the
+rem Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+rem Boston, MA 02110-1301, USA.
+
+
 rem Beware broken ports of tar. Recent cygwin versions work well, older
 rem cygwin versions and the current MSys port have problems with DOS
 rem line ends when reading file names from a file. Other ports have their

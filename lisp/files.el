@@ -2285,14 +2285,12 @@ only set the major mode, if that would change it."
 If optional arg KEEP-MODE-IF-SAME is non-nil, MODE is chased of
 any aliases and compared to current major mode.  If they are the
 same, do nothing and return nil."
-  (when keep-mode-if-same
-    (while (symbolp (symbol-function mode))
-      (setq mode (symbol-function mode)))
-    (if (eq mode major-mode)
-	(setq mode nil)))
-  (when mode
-    (funcall mode)
-    mode))
+  (unless (and keep-mode-if-same
+	       (eq (indirect-function mode)
+		   (indirect-function major-mode)))
+    (when mode
+      (funcall mode)
+      mode)))
 
 (defun set-auto-mode-1 ()
   "Find the -*- spec in the buffer.
@@ -2787,7 +2785,8 @@ It is dangerous if either of these conditions are met:
 		    ;; During bootstrapping, edebug-basic-spec might not be
 		    ;; defined yet.
                     (and (fboundp 'edebug-basic-spec)
-                         (edebug-basic-spec val))))))
+			 (hack-one-local-variable-quotep val)
+                         (edebug-basic-spec (nth 1 val)))))))
       ;; Allow expressions that the user requested.
       (member exp safe-local-eval-forms)
       ;; Certain functions can be allowed with safe arguments
@@ -2810,9 +2809,15 @@ It is dangerous if either of these conditions are met:
 		      ok)))))))
 
 (defun hack-one-local-variable (var val)
-  "Set local variable VAR with value VAL."
+  "Set local variable VAR with value VAL.
+If VAR is `mode', call `VAL-mode' as a function unless it's
+already the major mode."
   (cond ((eq var 'mode)
-	 (funcall (intern (concat (downcase (symbol-name val)) "-mode"))))
+	 (let ((mode (intern (concat (downcase (symbol-name val))
+				     "-mode"))))
+	   (unless (eq (indirect-function mode)
+		       (indirect-function major-mode))
+	     (funcall mode))))
 	((eq var 'eval)
 	 (save-excursion (eval val)))
 	(t
@@ -2829,7 +2834,7 @@ It is dangerous if either of these conditions are met:
 However, the mode will not be changed if
 \(1) a local variables list or the `-*-' line specifies a major mode, or
 \(2) the current major mode is a \"special\" mode,
-\    not suitable for ordinary files, or
+\     not suitable for ordinary files, or
 \(3) the new file name does not particularly specify any mode."
   :type 'boolean
   :group 'editing-basics)

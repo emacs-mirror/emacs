@@ -154,7 +154,10 @@ options:
                           (format "%s" db)
                           " RET instead."))
               (insert "\n\nWith your current key bindings"
-                      " you can use the key "
+                      " you can use "
+                      (if (string-equal "the menus" where)
+                          ""
+                        "the key ")
                       where
                       " to get the function `"
                       (format "%s" db)
@@ -334,10 +337,11 @@ LEFT and RIGHT are the elements to compare."
 				tutorial--default-keys)))))
         (when changed-keys
           (insert
-           "The following key bindings used in the tutorial had been changed
-from the Emacs default in the " (buffer-name tutorial-buffer) " buffer:\n\n" )
-          (let ((frm "   %-9s %-27s %-11s %s\n"))
-            (insert (format frm "Key" "Standard Binding" "Is Now On" "Remark")))
+           "The following key bindings used in the tutorial have been changed
+from the Emacs default:\n\n" )
+          (let ((frm "   %-14s %-27s %-16s\n"))
+            (insert (format frm
+			    "Standard Key" "Command" "In Your Emacs")))
           (dolist (tk changed-keys)
             (let* ((def-fun     (nth 1 tk))
                    (key         (nth 0 tk))
@@ -354,25 +358,20 @@ from the Emacs default in the " (buffer-name tutorial-buffer) " buffer:\n\n" )
                   (put-text-property 0 (length key-txt)
 				     'face 'tutorial-warning-face key-txt))
                 (insert "   " key-txt " ")
-                (setq tot-len (length key-txt))
-                (when (> 9 tot-len)
-                  (insert (make-string (- 9 tot-len) ?\s))
-                  (setq tot-len 9))
+		(indent-to 18)
                 ;; Insert a link describing the old binding:
                 (insert-button def-fun-txt
                                'value def-fun
                                'action
-                               (lambda(button) (interactive)
+                               (lambda (button) (interactive)
                                  (describe-function
                                   (button-get button 'value)))
                                'follow-link t)
-                (setq tot-len (+ tot-len (length def-fun-txt)))
-                (when (> 36 tot-len)
-                  (insert (make-string (- 36 tot-len) ?\s)))
+		(indent-to 45)
                 (when (listp where)
                   (setq where "list"))
                 ;; Tell where the old binding is now:
-                (insert (format " %-11s "
+                (insert (format " %-16s "
                                 (if (string= "" where)
                                     (format "M-x %s" def-fun-txt)
                                   where)))
@@ -381,7 +380,7 @@ from the Emacs default in the " (buffer-name tutorial-buffer) " buffer:\n\n" )
                 ;; cua-mode replacements:
                 (insert-button (car remark)
                                'action
-                               (lambda(b) (interactive)
+                               (lambda (b) (interactive)
                                  (let ((value (button-get b 'value)))
                                    (tutorial--describe-nonstandard-key value)))
                                'value (cdr remark)

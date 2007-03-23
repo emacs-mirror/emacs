@@ -3396,7 +3396,7 @@ Use %% to put a single % into the output.
 
 The basic structure of a %-sequence is
   % <flags> <width> <precision> character
-where flags is [- #0]+, width is [0-9]+, and precision is .[0-9]+
+where flags is [-+ #0]+, width is [0-9]+, and precision is .[0-9]+
 
 usage: (format STRING &rest OBJECTS)  */)
      (nargs, args)
@@ -3509,7 +3509,7 @@ usage: (format STRING &rest OBJECTS)  */)
 
 	   where
 
-	   flags	::= [- #0]+
+	   flags	::= [-+ #0]+
 	   field-width	::= [0-9]+
 	   precision	::= '.' [0-9]*
 
@@ -3523,7 +3523,7 @@ usage: (format STRING &rest OBJECTS)  */)
 
 	while (format != end
 	       && (*format == '-' || *format == '0' || *format == '#'
-		   || * format == ' '))
+		   || * format == ' ' || *format == '+'))
 	  ++format;
 
 	if (*format >= '0' && *format <= '9')
@@ -3700,7 +3700,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	  discarded[format - format_start] = 1;
 	  format++;
 
-	  while (index("-0# ", *format))
+	  while (index("-+0# ", *format))
 	    {
 	      if (*format == '-')
 		{

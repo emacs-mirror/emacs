@@ -21,7 +21,7 @@ etags, ctags \- generate tag file for Emacs, vi
 [\|\-\-append\|] [\|\-\-no\-defines\|]
 [\|\-\-no\-globals\|] [\|\-\-include=\fIfile\fP\|]
 [\|\-\-ignore\-indentation\|] [\|\-\-language=\fIlanguage\fP\|]
-[\|\-\-members\|] [\|\-\-output=\fItagfile\fP\|]
+[\|\-\-no\-members\|] [\|\-\-output=\fItagfile\fP\|]
 [\|\-\-regex=\fIregexp\fP\|] [\|\-\-no\-regex\|]
 [\|\-\-help\|] [\|\-\-version\|]
 \fIfile\fP .\|.\|.
@@ -135,10 +135,10 @@ regexp matching is done in this case (see the \fB\-\-regex\fP option).
 .TP
 .B \-\-members
 Create tag entries for variables that are members of structure-like
-constructs in C++, Objective C, Java.
+constructs in C++, Objective C, Java.  This is the default for etags.
 .TP
 .B \-\-no\-members
-Do not tag member variables.  This is the default behavior.
+Do not tag member variables.  This is the default for ctags.
 .TP
 .B \-\-packages\-only
 Only tag packages in Ada files.

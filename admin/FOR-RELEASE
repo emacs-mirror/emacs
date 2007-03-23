@@ -1,22 +1,25 @@
 Tasks needed before the next release.
 
-* UPDATE COPYRIGHTS (Happy New Year :-)
-  Done, I think. Please keep an eye out for any errors, eg copyrights
-  not at the start of the file that are easy to miss, as in
-  src/emacs.c.
-
-  See also the oustanding issues in admin/notes/copyright.
-
 * TO BE DONE SHORTLY BEFORE RELEASE
 
 ** Check for widow and orphan lines in manuals;
 make sure all the pages really look ok in the manual as formatted.
 
 ** Check for text in manuals that assumes current version is 21.
+eshell.texi 'Known Problems' (does section need updating?)
+cc-mode.texi 'Performance Issues': "21.3 as of this writing"
 
-** Update AUTHORS.
+** Cleanup temporary +++/--- lines in etc/NEWS.
 
 ** Regenerate the postscript files of the reference cards in etc.
+As of 2007/2/26, only ps files older than the associated tex files are:
+  cs-dired-ref.ps sk-dired-ref.ps
+
+May need update for Emacs-22:
+dired-ref.tex cs-dired-ref.tex fr-drdref.tex sk-dired-ref.tex
+
+Fix overfull lines p3 fr-refcard.ps.
+
 
 ** Ask maintainers of refcard translations to update them.
 
@@ -32,10 +35,6 @@ ru	Alex Ott              Done
 sk	Miroslav Vaško        No response
 
 Reminders sent out on 2006-06-08.
-
-Note: regardless of the above, the following files need to be
-regenerated to get updated copyright notices: sk-refcard.ps,
-pl-refcard.ps, cs-refcard.ps.
 
 ** Send an email to the various distributions, including the GNOME
 and KDE projects, to use the new Emacs icons in etc/images/icons.
@@ -58,25 +57,15 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 * BUGS
 
-** W3 status with latest url package.
+** Fix up copyright confusions.
+  See end of admin/notes/copyright.
 
-** Fix up the notices in oldXMenu properly.
+** simon.marshall@misys.com, Jan 12:
+  Font-lock decides function call is function declaration in C++
 
-** disumu@x3y2z1.net, Nov 22:
-  URL not following some 302 redirects after recent changes
+** md5i@cs.cmu.edu, Feb 20: move-end-of-line in comint buffers
 
-** lennart.borgman.073@student.lu.se, Dec 29:
-  How global is a define-global-minor-mode mode
-He says that customizing such a mode simply does not work.
-RMS says that there is no code in the generated defcustom,
-or elsewhere in the generated code, to implement setting that variable
-through the custom mechanism.
-
-** simon.marshall@misys.com, Jan 12: 
-  Font-lock decides function call is function declaration in C+ +
-
-** ZTHJWSQQAFHV@spammotel.com, Jan 12:
-  Color-theme problems in Emacs 22+ (Ubuntu, Windows)
+** daniel@bigwalter.net, Feb 25: Echoing of keys and process I/O
 
 * DOCUMENTATION
 
@@ -97,6 +86,7 @@ etc/TUTORIAL.bg          Ognyan Kulev <ogi@fmi.uni-sofia.bg>
 etc/TUTORIAL.cn
 etc/TUTORIAL.cs          Pavel Janík <Pavel@Janik.cz>
 etc/TUTORIAL.de          Werner LEMBERG <wl@gnu.org>
+etc/TUTORIAL.eo
 etc/TUTORIAL.es          Marcelo Toledo
 etc/TUTORIAL.fr          ttn
 etc/TUTORIAL.it          ttn

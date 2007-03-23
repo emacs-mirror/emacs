@@ -67,7 +67,7 @@ Please send all bug fixes and enhancements to
 ;; interface to ps-print package and it also provides some extra stuff.
 ;;
 ;; To download the latest ps-print package see
-;; `http://www.emacswiki.org/cgi-bin/emacs/download/ps-print.tar.gz'.
+;; `http://www.emacswiki.org/cgi-bin/wiki/PsPrintPackage'.
 ;; Please, see README file for ps-print installation instructions.
 ;;
 ;; `printing' was inspired on:
@@ -958,7 +958,7 @@ Please send all bug fixes and enhancements to
 ;; * For `printing' package:
 ;;
 ;;    printing	`http://www.emacswiki.org/cgi-bin/emacs/download/printing.el'
-;;    ps-print	`http://www.emacswiki.org/cgi-bin/emacs/download/ps-print.tar.gz'
+;;    ps-print	`http://www.emacswiki.org/cgi-bin/wiki/PsPrintPackage'
 ;;
 ;; * For GNU or Unix system:
 ;;

@@ -228,6 +228,10 @@ separating text after the field.  If you don't include the
 @code{:size} keyword, the field will extend to the end of the
 line, and the terminating newline will provide separation after.
 
+@strong{Warning:} In an @code{editable-field} widget, the @samp{%v} escape
+must be preceded by some other text in the @code{:format} string
+(if specified).
+
 The editing text fields are highlighted with the
 @code{widget-field-face} face, making them easy to find.
 
@@ -349,10 +353,10 @@ Interface}).
   (let ((inhibit-read-only t))
     (erase-buffer))
   (remove-overlays)
-  (widget-insert "Here is some documentation.\n\nName: ")
+  (widget-insert "Here is some documentation.\n\n")
   (widget-create 'editable-field
 		 :size 13
-		 :format "%v " ; Text after the field!
+		 :format "Name: %v " ; Text after the field!
 		 "My Name")
   (widget-create 'menu-choice
 		 :tag "Choose"
@@ -364,8 +368,8 @@ Interface}).
 		 '(item :tag "This option" :value "This")
 		 '(choice-item "That option")
 		 '(editable-field :menu-tag "No option" "Thus option"))
-  (widget-insert "Address: ")
   (widget-create 'editable-field
+		 :format "Address: %v"
 		 "Some Place\nIn some City\nSome country.")
   (widget-insert "\nSee also ")
   (widget-create 'link
@@ -528,6 +532,9 @@ The text inside will be displayed with the face specified by
 @item %v
 This will be replaced with the buffer representation of the widget's
 value.  What this is depends on the widget type.
+
+@strong{Warning:} In an @code{editable-field} widget, the @samp{%v} escape
+must be preceded by some other text in the format string (if specified).
 
 @item %d
 Insert the string specified by @code{:doc} here.
@@ -1342,7 +1349,7 @@ where each @var{component} must be a widget type.  Each component widget
 will be displayed in the buffer, and will be editable by the user.
 
 @deffn Widget cons
-The value of a @code{cons} widget must be a cons-cell whose @sc{car} 
+The value of a @code{cons} widget must be a cons-cell whose @sc{car}
 and @sc{cdr} have two specified types.  It uses this syntax:
 
 @example

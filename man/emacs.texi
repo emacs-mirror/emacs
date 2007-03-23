@@ -5,7 +5,7 @@
 
 @c The edition number appears in several places in this file
 @set EDITION   Sixteenth
-@set EMACSVER  22.0.93
+@set EMACSVER  22.0.95
 
 @copying
 This is the @value{EDITION} edition of the @cite{GNU Emacs Manual},
@@ -230,8 +230,14 @@ Recovery from Problems
 * Contributing::        How to contribute improvements to Emacs.
 * Service::	        How to get help for your own Emacs needs.
 
-Detailed Node Listing
----------------------
+@c Do NOT modify the following 3 lines!  They must have this form to
+@c be correctly identified by `texinfo-multiple-files-update'.  In
+@c particular, the detailed menu header line MUST be identical to the
+@c value of `texinfo-master-menu-header'.  See texnfo-upd.el.
+
+@detailmenu
+ --- The Detailed Node Listing ---
+ ---------------------------------
 
 Here are some other nodes which are really inferiors of the ones
 already listed, mentioned here so you can get to them in one step:
@@ -265,6 +271,13 @@ The Minibuffer
 * Completion::		An abbreviation facility for minibuffer input.
 * Minibuffer History::	Reusing recent minibuffer arguments.
 * Repetition::		Re-executing commands that used the minibuffer.
+
+Completion
+
+* Example: Completion Example.    Examples of using completion.
+* Commands: Completion Commands.  A list of completion commands.
+* Strict Completion::             Different types of completion.
+* Options: Completion Options.    Options for completion.
 
 Help
 
@@ -344,9 +357,24 @@ Searching and Replacement
 * Word Search::		   Search for sequence of words.
 * Regexp Search::	   Search for match for a regexp.
 * Regexps::		   Syntax of regular expressions.
+* Regexp Backslash::       Regular expression constructs starting with `\'.
+* Regexp Example::         A complex regular expression explained.
 * Search Case::		   To ignore case while searching, or not.
 * Replace::		   Search, and replace some or all matches.
 * Other Repeating Search:: Operating on all matches for some regexp.
+
+Incremental Search
+
+* Basic Isearch::       Basic incremental search commands.
+* Repeat Isearch::      Searching for the same string again.
+* Error in Isearch::    When your string is not found.
+* Special Isearch::     Special input in incremental search.
+* Non-ASCII Isearch::   How to search for non-ASCII characters.
+* Isearch Yank::        Commands that grab text into the search string
+                          or else edit the search string.
+* Highlight Isearch::   Isearch highlights the other possible matches.
+* Isearch Scroll::      Scrolling during an incremental search.
+* Slow Isearch::        Incremental search features for slow terminals.
 
 Replacement Commands
 
@@ -380,6 +408,7 @@ File Handling
 * Visiting::            Visiting a file prepares Emacs to edit the file.
 * Saving::              Saving makes your changes permanent.
 * Reverting::           Reverting cancels all the changes not saved.
+* Autorevert::          Auto Reverting non-file buffers.
 * Auto Save::           Auto Save periodically protects against loss of data.
 * File Aliases::        Handling multiple names for one file.
 * Version Control::     Version control systems (RCS, CVS and SCCS).
@@ -405,6 +434,20 @@ Saving Files
 * File Shadowing::      Copying files to "shadows" automatically.
 * Time Stamps::         Emacs can update time stamps on saved files.
 
+Backup Files
+
+* One or Many: Numbered Backups. Whether to make one backup file or many.
+* Names: Backup Names.		How backup files are named.
+* Deletion: Backup Deletion.	Emacs deletes excess numbered backups.
+* Copying: Backup Copying.	Backups can be made by copying or renaming.
+
+Auto-Saving: Protection Against Disasters
+
+* Files: Auto Save Files.       The file where auto-saved changes are
+                                  actually made until you save the file.
+* Control: Auto Save Control.   Controlling when and how often to auto-save.
+* Recover::		        Recovering text from auto-save files.
+
 Version Control
 
 * Introduction to VC::  How version control works in general.
@@ -413,6 +456,10 @@ Version Control
 * Old Versions::        Examining and comparing old versions.
 * Secondary VC Commands:: The commands used a little less frequently.
 * Branches::            Multiple lines of development.
+* Remote Repositories:: Efficient access to remote CVS servers.
+* Snapshots::           Sets of file versions treated as a unit.
+* Miscellaneous VC::    Various other commands and features of VC.
+* Customizing VC::      Variables that change VC's behavior.
 
 Using Multiple Buffers
 
@@ -437,7 +484,7 @@ Multiple Windows
 * Change Window::       Deleting windows and changing their sizes.
 * Window Convenience::  Convenience functions for window handling.
 
-Frames and X Windows
+Frames and Graphical Displays
 
 * Cut and Paste::       Mouse commands for cut and paste.
 * Mouse References::    Using the mouse to select an item from a list.
@@ -523,6 +570,50 @@ Filling Text
 * Adaptive Fill::       How Emacs can determine the fill prefix automatically.
 * Longlines::           Editing text with very long lines.
 
+Outline Mode
+
+* Format: Outline Format.	   What the text of an outline looks like.
+* Motion: Outline Motion.	   Special commands for moving through
+                                     outlines.
+* Visibility: Outline Visibility.  Commands to control what is visible.
+* Views: Outline Views.            Outlines and multiple views.
+* Foldout::                        Folding means zooming in on outlines.
+
+@TeX{} Mode
+
+* Editing: TeX Editing.   Special commands for editing in TeX mode.
+* LaTeX: LaTeX Editing.   Additional commands for LaTeX input files.
+* Printing: TeX Print.    Commands for printing part of a file with TeX.
+* Misc: TeX Misc.         Customization of TeX mode, and related features.
+
+Editing Formatted Text
+
+* Requesting Formatted Text::   Entering and exiting Enriched mode.
+* Hard and Soft Newlines::      There are two different kinds of newlines.
+* Editing Format Info::         How to edit text properties.
+* Faces: Format Faces.          Bold, italic, underline, etc.
+* Color: Format Colors.         Changing the color of text.
+* Indent: Format Indentation.   Changing the left and right margins.
+* Justification: Format Justification.
+                                Centering, setting text flush with the
+                                  left or right margin, etc.
+* Other: Format Properties.     The "special" text properties submenu.
+* Forcing Enriched Mode::       How to force use of Enriched mode.
+
+Editing Text-based Tables
+
+* Table Definition::    What is a text based table.
+* Table Creation::      How to create a table.
+* Table Recognition::   How to activate and deactivate tables.
+* Cell Commands::       Cell-oriented commands in a table.
+* Cell Justification::  Justifying cell contents.
+* Row Commands::        Manipulating rows of table cell.
+* Column Commands::     Manipulating columns of table cell.
+* Fixed Width Mode::    Fixing cell width.
+* Table Conversion::    Converting between plain text and tables.
+* Measuring Tables::    Analyzing table dimension.
+* Table Misc::          Table miscellany.
+
 Editing Programs
 
 * Program Modes::       Major modes for editing programs.
@@ -539,6 +630,7 @@ Editing Programs
 * C Modes::             Special commands of C, C++, Objective-C,
                           Java, and Pike modes.
 * Asm Mode::            Asm mode and its special features.
+* Fortran::             Fortran mode and its special features.
 
 Top-Level Definitions, or Defuns
 
@@ -565,7 +657,7 @@ Commands for Editing with Parentheses
 
 Manipulating Comments
 
-* Comment Commands::    Inserting, killing, and indenting comments.
+* Comment Commands::    Inserting, killing, and aligning comments.
 * Multi-Line Comments:: Commands for adding and editing multi-line comments.
 * Options for Comments::Customizing the comment features.
 
@@ -618,6 +710,7 @@ Maintaining Large Programs
 * Format of ChangeLog:: What the change log file looks like.
 * Tags::	        Go direct to any function in your program in one
 			  command.  Tags remembers which file it is in.
+* Emerge::              A convenient way of merging two versions of a program.
 
 Tags Tables
 
@@ -697,6 +790,7 @@ Dired, the Directory Editor
 * Transforming File Names::  Using patterns to rename multiple files.
 * Comparison in Dired::	     Running `diff' by way of Dired.
 * Subdirectories in Dired::  Adding subdirectories to the Dired buffer.
+* Subdir Switches::          Subdirectory switches in Dired.
 * Subdirectory Motion::	     Moving across subdirectories, and up and down.
 * Hiding Subdirectories::    Making subdirectories visible or invisible.
 * Dired Updating::           Discarding lines for files of no interest.
@@ -720,6 +814,7 @@ The Calendar and the Diary
 * Importing Diary::     Converting diary events to/from other formats.
 * Daylight Savings::    How to specify when daylight savings time is active.
 * Time Intervals::      Keeping track of time intervals.
+* Advanced Calendar/Diary Usage:: Advanced Calendar/Diary customization.
 
 Movement in the Calendar
 
@@ -767,6 +862,12 @@ Running Shell Commands from Emacs
 Using Emacs as a Server
 
 * Invoking emacsclient:: Emacs client startup options.
+
+Printing Hard Copies
+
+* PostScript::	         Printing buffers or regions as PostScript.
+* PostScript Variables:: Customizing the PostScript printing commands.
+* Printing Package::     An optional advanced printing interface.
 
 Hyperlinking and Navigation Features
 
@@ -880,7 +981,7 @@ Emacs and Mac OS
 * Mac Font Specs::      Specifying fonts on Mac.
 * Mac Functions::       Mac-specific Lisp functions.
 
-Emacs and Microsoft Windows
+Emacs and Microsoft Windows/MS-DOS
 
 * Text and Binary::     Text files use CRLF to terminate lines.
 * Windows Files::       File-name conventions on Windows.
@@ -891,6 +992,8 @@ Emacs and Microsoft Windows
 * Windows Processes::   Running subprocesses on Windows.
 * Windows Printing::    How to specify the printer on MS-Windows.
 * Windows Misc::        Miscellaneous Windows features.
+* MS-DOS::              Using Emacs on MS-DOS (otherwise known as @dfn{MS-DOG}).
+@end detailmenu
 @end menu
 
 @iftex

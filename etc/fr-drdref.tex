@@ -1,4 +1,3 @@
-
 % Reference Card for Dired
 % Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005,
 %   2006, 2007  Free Software Foundation, Inc.
@@ -96,7 +95,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
   \def\makefootline{\baselineskip10pt\hsize6.5in\line{\the\footline}}
 \else                           %2 or 3 columns uses prereduced size
   \hsize 3.4in
-  \vsize 7.95in
+  \vsize 10in
   \hoffset -.75in
   \voffset -.745in
   \font\titlefont=cmbx10 \scaledmag2
@@ -217,8 +216,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 % \key{description of key}{key-name}
 % prints the description left-justified, and the key-name in a \kbd
 % form near the right margin.
+% First hfill tweaked from 0.75 to 0.8 to allow for longer descriptions.
 \def\key#1#2{\leavevmode\hbox to \hsize{\vtop
-  {\hsize=.75\hsize\rightskip=1em
+  {\hsize=.8\hsize\rightskip=1em
   \hskip\keyindent\relax#1}\kbd{#2}\hfil}}
 
 \newbox\metaxbox
@@ -243,6 +243,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 % I cannot figure out how to make all dired-x
 % commands fit on a page in two-column format
 \def\dx{\bf (DX)}
+
+% Set to non-zero to check for layout problems.
+\overfullrule 0pt
+\nopagenumbers
 
 %**end of header
 
@@ -334,10 +338,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 \key{modifier les marques par un caract\`ere diff\'erent}{* c}
 \key{marquer les fichiers pour lesquels une expression Elisp renvoie t}{* (\dx}
 
-\section{Obtenir de l'aide}
+\section{Modifier le tampon Dired}
 
-\key{aide sur dired}{h}
-\key{r\'esum\'e de dired (aide succinte) et trace d'erreur}{?}
+\key{ins\'erer un sous-r\'epertoire dans ce tampon}{i}
+\key{supprimer les fichiers marqu\'es de la liste}{k}
+\key{supprimer le listing d'un sous-r\'epertoire}{C-u k}
+\key{relire tous les r\'epertoires (conserve toutes les marques)}{g}
+\key{bascule le tri sur le nom/date du r\'epertoire courant}{s}
+\key{\'edite les options de ls }{C-u s}
+\key{r\'ecup\`ere les marques, les lignes cach\'ees, etc.}{C-_}
+\key{cache tous les sous-r\'epertoires}{M-\$}
+\key{cache ou fait appara\^\i{}tre le sous-r\'epertoire}{\$}
 
 \section{Commandes sur les fichiers marqu\'es ou sp\'ecifi\'es par le pr\'efixe}
 
@@ -363,8 +374,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 \key{lancer une commande shell sur le(s) fichier(s)}{!}
 
 \section{Mettre un flag sur les fichiers \`a d\'etruire}
-\leftline{\bf Les commandes qui \^otent les marquent suppriment les
-  flags de suppression}
+%% Hack for overfull line. Proper fix?
+\leftline{\bf Les commandes qui \^otent les marquent suppriment les}
+\leftline{\bf flags de suppression}
 \key{placer un flag de suppression sur le fichier}{d}
 \key{sauvegarder et supprimer le flag de suppression}{delete}
 \key{placer un flag sur tous les fichiers de sauvegarde (dont les noms
@@ -376,18 +388,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 \key{ex\'ecuter les suppressions demand\'ees (fichiers ayant un flag)}{x}
 \key{placer un flag sur les fichiers correspondant \`a une expression
   rationnelle }{\% d}
-
-\section{Modifier le tampon Dired}
-
-\key{ins\'erer un sous-r\'epertoire dans ce tampon}{i}
-\key{supprimer les fichiers marqu\'es de la liste}{k}
-\key{supprimer le listing d'un sous-r\'epertoire}{C-u k}
-\key{relire tous les r\'epertoires (conserve toutes les marques)}{g}
-\key{bascule le tri sur le nom/date du r\'epertoire courant}{s}
-\key{\'edite les options de ls }{C-u s}
-\key{r\'ecup\`ere les marques, les lignes cach\'ees, etc.}{C-_}
-\key{cache tous les sous-r\'epertoires}{M-\$}
-\key{cache ou fait appara\^\i{}tre le sous-r\'epertoire}{\$}
 
 \section{Commandes sur les expressions rationnelles}
 
@@ -401,10 +401,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 \key{marquer pour une suppression}{\% d}
 
 \section{Dired et Find}
-\metax{fichier(s) dired dont le nom correspond \`a un motif}{M-x
+%% Hack for overfull line (should be \metax). Proper fix?
+\key{fichier(s) dired dont le nom correspond \`a un motif}{M-x
   find-names-dired}
 \metax{fichier(s) dired contenant un motif}{M-x find-grep-dired}
 \metax{fichier(s) dired bas\'es sur ce que produit \kbd{find}}{M-x find-dired}
+
+\section{Obtenir de l'aide}
+
+\key{aide sur dired}{h}
+\key{r\'esum\'e de dired (aide succinte) et trace d'erreur}{?}
 
 \copyrightnotice
 

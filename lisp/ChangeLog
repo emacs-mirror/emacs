@@ -1,3 +1,843 @@
+2007-03-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* international/mule.el (find-auto-coding): Don't search for
+	line-ending characters past the end of the tail.
+
+2007-03-03  Christopher Allan Webber  <cwebber@dustycloud.org>  (tiny change)
+
+	* play/gamegrid.el (gamegrid-add-score-with-update-game-score-1):
+	Jump to the line where new score has been uploaded.
+
+	* play/tetris.el (tetris-move-bottom, tetris-move-left)
+	(tetris-move-right, tetris-rotate-prev, tetris-rotate-next):
+	Do nothing when the game is paused.
+
+2007-03-03  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-set-tags): Prevent slipping of point
+	during completion.
+
+2007-03-01  Lennart Borgman  <lennart.borgman.073@student.lu.se>
+
+	* isearch.el (isearch-message-prefix):
+	Use minibuffer-prompt-properties.
+
+2007-03-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Replace (defvar VAR nil) by (defvar VAR).
+	(ps-setup): Print which Emacsen is running ps-print package.
+
+2007-03-01  Stuart Herring  <herring@lanl.gov>  (tiny change)
+
+	* files.el (set-auto-mode-0): Use `indirect-function'.
+	(hack-one-local-variable): Don't reapply current major mode.
+
+2007-03-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-quote-syntax): Don't bother with
+	syntax-ppss-context.
+	(python-fill-paragraph): Make sure that fenced-string delimiters that
+	stand on their own line stay there
+
+2007-03-01  Lennart Borgman  <lennart.borgman.073@student.lu.se>
+
+	* replace.el (perform-replace): Propertize message.
+
+2007-03-01  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-prepare-agenda-buffers): Also check for
+	invisible heading.
+
+2007-02-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* net/tramp.el (tramp-file-name-handler): Revert last change.
+
+2007-02-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-mouse-until, gdb-mouse-jump):
+	Correct doc strings.
+
+2007-02-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* replace.el (perform-replace): Undo forward-char immediately if
+	non-adjacent search fails.
+
+2007-02-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* version.el (emacs-major-version, emacs-minor-version):
+	string-to-int -> string-to-number.
+
+2007-02-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help.el (where-is): Fail gracefully when not passed a command.
+
+2007-02-28  Stuart Herring  <herring@lanl.gov>  (tiny change)
+
+	* find-lisp.el (find-lisp-default-directory-predicate):
+	Fix bug: Do symlink check on expanded filename.
+
+2007-02-28  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-set-tags, org-table-get-field): Avoid case
+	changes during replacement.
+	(org-agenda-mode-map): Add default binding for `org-agenda-archive'.
+
+2007-02-28  Lars Hansen  <larsh@soem.dk>
+
+	* desktop.el: Delete header line listing me as maintainer.
+
+2007-02-28  Glenn Morris  <rgm@gnu.org>
+
+	* tutorial.el (tutorial--describe-nonstandard-key): Tweak text in
+	the menus case.
+
+2007-02-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* net/tramp.el (tramp-file-name-handler): Inhibit modification
+	hooks to avoid confusion when combining after-change calls.
+
+2007-02-27  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-encrypt-string): Remove inhibition of gpg-agent,
+	now that pgg-gpg-process-region correctly honors passed-in passphrase.
+	(allout-distinctive-bullets-string): Add info about bullet conventions.
+	(allout-mode): Add info about distinctive vs plain bullets.
+
+2007-02-27  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-archive-subtree): Quote variable name.
+	(org-agenda-get-todos): Make sure skip properties are checked correctly.
+
+2007-02-26  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-bashdb-history, gud-bashdb-marker-filter)
+	(gud-bashdb-command-name, bashdb): Remove.
+	(gud, gud-menu-map): Remove references to bash/bashdb.
+
+2007-02-26  Andrey Zhdanov  <susuman@hotmail.com>  (tiny change)
+
+	(gud-pdb-marker-regexp): Add optional <module> keyword for Python 2.5.
+
+2007-02-26  Romain Francoise  <romain@orebokech.com>
+
+	* net/net-utils.el (whois-server-tld): Update server for .org.
+	(whois-server-list): Add whois.publicinterestregistry.net.
+	(whois-guess-server): Fix formatting in docstring.
+
+2007-02-26  Kim F. Storm  <storm@cua.dk>
+
+	* mouse.el (mouse-show-mark): Run hooks and perform command
+	remapping for mouse-region-delete-keys.
+
+2007-02-26  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+
+	* font-core.el (font-lock-mode): Doc fix.
+
+2007-02-25  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-buffer-internal): Set this-command to fallback command.
+	Add selected buffer to buffer-name-history.
+	(ido-file-internal): Set this-command to fallback command.
+	Add file names to file-name-history.
+
+	* emacs-lisp/map-ynp.el (map-y-or-n-p):
+	Apply minibuffer-prompt-properties.
+
+2007-02-25  Andreas Schwab  <schwab@suse.de>
+
+	* files.el (hack-one-local-variable-eval-safep): Correct handling
+	of edebug-form-spec property value.  Reported by Johan Bockg,Ae(Brd.
+
+2007-02-25  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-table-overlay-coordinates)
+	(org-table-toggle-coordinate-overlays): New functions.
+	(org-table-overlay-coordinates, org-table-coordinate-overlays):
+	New variables.
+	(org-startup-with-deadline-check): Option removed.
+	(org-mode): Remove deadline check on startup.
+	(org-table-limit-column-width): Option removed.
+	(org-table-formula-numbers-only): Option removed.
+	(org-link-style, org-link-format): Options removed.
+	(org-select-agenda-window, org-fit-agenda-window): Options removed.
+	(org-export-ascii-show-new-buffer)
+	(org-export-html-show-new-buffer): Options removed.
+	(org-activate-links): Camel option removed.
+	(org-file-link-context-use-camel-case): Option removed.
+	(org-camel-regexp): Veriable removed.
+	(org-activate-camels): Function removed.
+	(org-store-link): Removed Camel stuff.
+	(org-make-org-heading-camel): Function removed.
+	(org-open-at-point): Removed camel stuff.
+	(org-link-search): Removed camel stuff.
+	(org-camel-to-words): Function removed.
+	(org-get-agenda-file-buffer): Make sure we prepare the base
+	buffers, not any indirect buffers.
+	(org-sort-entries): Sort top-level when not on a headline, and no
+	active region.
+	(org-in-regexp): New function.
+	(org-search-not-self): Renamed from `org-search-not-link'.
+	(org-open-link-marker): New variable.
+	(org-open-at-point): Set `org-open-link-marker'.
+	(org-print-icalendar-entries): Fixed bug with excluding DONE
+	entries from the exported list.
+	(org-edit-formula-lisp-indent): New command.
+	(orgtbl-to-texinfo, orgtbl-to-html): New functions.
+	(orgtbl-to-latex, orgtbl-insert-radio-table)
+	(orgtbl-toggle-comment, orgtbl-send-table): New functions.
+	(orgtbl-radio-table-templates): New option.
+	(org-store-link-props):
+	(org-remember-templates): More possibilities to insert info
+	into templates.
+	(org-remember-apply-template): Make use of the extended
+	template capabilities.
+	(org-remember-redo-template): New command.
+	(org-upgrade-old-links)
+	(org-table-modify-formulas, org-table-replace-in-formulas)
+	(org-table-find-dataline)
+	(org-table-get-vertical-vector): Functions removed.
+	(org-table-remove-rectangle-highlight)
+	(org-time-stamp-format, org-toggle-log-option)
+	(org-table-highlight-rectangle)
+	(org-table-iterate, org-table-make-reference):
+	(org-translate-time, org-tree-to-indirect-buffer)
+	(org-table-field-info, org-table-fix-formulas)
+	(org-table-force-dataline, org-table-get-descriptor-line)
+	(org-table-get-range)
+	(org-skip-comments, org-sort)
+	(org-sort-entries, org-sublist, org-table-add-rectangle-overlay)
+	(org-table-current-dline, org-table-current-field-formula)
+	(org-table-edit-backward-field)
+	(org-table-edit-formulas-post-command)
+	(org-table-edit-line-down, org-table-edit-line-up)
+	(org-agenda-archive)
+	(org-agenda-clock-cancel)
+	(org-agenda-clock-out, org-agenda-list-stuck-projects)
+	(org-agenda-open-link, org-agenda-show-new-time)
+	(org-agenda-skip-subtree-when-regexp-matches)
+	(org-agenda-tree-to-indirect-buffer, org-agenda-undo)
+	(org-at-regexp-p, org-auto-repeat-maybe, org-check-log-option)
+	(org-do-sort, org-file-image-p, org-find-overlays)
+	(org-find-row-type, org-get-indirect-buffer, org-get-repeat)
+	(org-highlight-until-next-command, org-isearch-end)
+	(org-match-any-p, org-next-link, org-previous-link):
+	(org-remove-subtree-entries-from-agenda, org-replace-escapes)
+	(org-rewrite-old-row-references)
+	(org-isearch-post-command)
+	(org-table-edit-move, org-table-edit-next-field)
+	(org-table-edit-scroll, org-table-edit-scroll-down)
+	(org-set-frame-title, org-show-reference)
+	(org-unhighlight-once, org-verify-change-for-undo): New functions.
+	(org-show-variable): Command removed.
+	(org-add-log-maybe): New arguments STATE, FINDPOS
+	(org-table-sort-lines): Rewritten from scratch.
+	(org-link-search): New argument AVOID-POS.
+	(org-print-icalendar-entries): Argument CATEGORY removed.
+	(org-run-agenda-series): Argument WONDOW removed.
+	(org-next-link, org-previous-link): New commands.
+	(org-agenda-date-format): New option.
+	(org-table-iterate): New command.
+	(org-table-modify-formulas)
+	(org-table-replace-in-formulas): Functions removed.
+	(org-table-fix-formulas): New function.
+	(org-table-insert-column, org-table-delete-column)
+	(org-table-move-column): Use `org-table-fix-formulas'.
+	(org-follow-gnus-link): Patch from Bastien/Leo.
+	(org-table-current-field-formula): New function.
+	(org-file-image-p): New function.
+	(org-agenda-show-new-time): New function.
+	(org-agenda-date-later): Call `org-agenda-show-new-time'.
+	(org-with-remote-undo): New macro.
+	(org-agenda-undo): New command.
+	(org-verify-change-for-undo): New function.
+	(org-time-stamp-format): New function.
+	(org-agenda-get-timestamps): Skip scheduled if DONE and requested
+	by user.
+	(org-match-any-p): New function.
+	(org-make-tags-matcher): Handle regular expressions for tag and
+	todo matches.
+	(org-read-date): Accept "+N" as input for a date relative to the
+	current date.
+	(org-remove-subtree-entries-from-agenda): New function.
+	(org-agenda-archive, org-agenda-kill): Use
+	`org-remove-subtree-entries-from-agenda'.
+	(org-do-sort, org-sort-entries): New functions.
+	(org-sort): New command.
+	(org-table-sort-lines): Use `org-do-sort'.
+	(org-fix-decoded-time): New function.
+	(org-table-number-regexp): Require 0x... to identify as number
+	in tables.
+	(org-startup-options): New keywords for note taking.
+	(org-upgrade-old-links): Function removed.
+	(org-get-repeat): New function.
+	(org-show-context): Also show siblings on current level.
+	(org-show-siblings): New function.
+	(org-isearch-end, org-isearch-post-command): New functions.
+	(org-show-siblings): New option.
+	(org-show-context): Use `org-show-siblings'.
+	(org-table-maybe-recalculate-line): No longer require `calc-eval'
+	to be bound, because user may just use elisp.
+
+2007-02-24  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-paste): Handle x-clipboard-yank.
+	(cua--init-keymaps): Remap x-clipboard-yank to cua-paste.
+
+2007-02-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* startup.el (command-line): Also check if the abbrev file is readable.
+
+2007-02-24  John Paul Wallington  <jpw@pobox.com>
+
+	* net/tls.el (tls-certtool-program): Fix custom type.
+
+	* mail/feedmail.el (feedmail-message-id-generator)
+	(feedmail-date-generator): Fix custom types.
+
+	* mail/rmail.el (rmail-message-filter): Fix custom type.
+
+2007-02-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* startup.el (command-line): If simple.el cannot be found, proceed
+	with a warning message.
+
+2007-02-24  Kenichi Handa  <handa@m17n.org>
+
+	* international/utf-8.el (utf-8-pre-write-conversion): Handle the
+	case that BEG is a string.
+
+2007-02-24  Chris Moore  <dooglus@gmail.com>
+
+	* pgg-pgp5.el (pgg-pgp5-encrypt-region):
+	* pgg-pgp.el (pgg-pgp-encrypt-region):
+	* pgg-gpg.el (pgg-gpg-encrypt-region):
+	Check pgg-encrypt-for-me if no other recipients.
+
+2007-02-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmailedit.el (rmail-cease-edit): Restore the Rmail toolbar.
+
+	* textmodes/sgml-mode.el (sgml-validate): Quote the file name with
+	shell-quote-argument.
+
+2007-02-23  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* comint.el (comint-read-input-ring): Use comint-input-ring-size
+	from the comint buffer instead of the temporary one.
+
+2007-02-23  David Reitter  <david.reitter@gmail.com>
+
+	* cus-edit.el (custom-save-all): Canonicalize custom-file before
+	storing it in recentf-exclude.
+
+2007-02-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (fancy-splash-screens): Make cursor-type buffer-local
+	in splash screen.
+
+2007-02-22  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* progmodes/idlw-shell.el (idlwave-shell-mode): Clean up pending
+	commands, for restart.
+	(idlwave-shell-current-module): Fix handling of module name by type.
+	(idlwave-shell-break-in): Update type handling.
+	(idlwave-shell-bp-get): Encode type in BP structure.
+	(idlwave-shell-set-bp): Fix setting condition/count on disabled BPs.
+	(idlwave-shell-module-source-query): Query routine info based on type.
+	Fix path parsing for non-compiled files.
+	(idlwave-shell-module-source-filter): Don't signal error in filter
+	if no source found.
+	(idlwave-shell-set-bp-in-module): Use fallback source to prevent
+	filter race.
+
+2007-02-22  Kim F. Storm  <storm@cua.dk>
+
+	* wid-edit.el (widget-default-create): Undo 2007-02-04 change.
+	(editable-field): Document need to put some text before the %v
+	escape in :format string.
+
+2007-02-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-svn.el: Remove the code inherited from CVSREAD and `cvs edit'.
+	(vc-svn-use-edit): Remove unused config var.
+	(vc-svn-update, vc-svn-revert): Checkout is always implicit.
+
+	* outline.el (hide-sublevels): Keep empty last line, if available.
+
+	* buff-menu.el (list-buffers-noselect): Use explicit unicode code
+	rather than the corresponding unicode char, to make the code
+	more readable.
+
+2007-02-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* speedbar.el (speedbar-frame-mode, speedbar-frame-width)
+	(speedbar-show-unknown-files, speedbar-item-info-file-helper)
+	(speedbar-item-info-tag-helper): Doc fixes.
+
+2007-02-19  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (locale-language-names):
+	Map "eo" to "Esperanto".
+
+	* language/european.el ("Esperanto"): New language environment.
+
+2007-02-17  Sven Joachim  <svenjoac@gmx.de>  (tiny change)
+
+	* simple.el (kill-line): Doc fix.
+
+2007-02-17  Kim F. Storm  <storm@cua.dk>
+
+	* emacs-lisp/bindat.el (bindat--unpack-u*): Optimize.
+	(bindat--unpack-item, bindat--length-group, bindat--pack-item)
+	(bindat--unpack-group, bindat--pack-group):
+	Handle vectors with optional element type.
+
+2007-02-17  Daiki Ueno  <ueno@unixuser.org>
+
+	* pgg-gpg.el (pgg-gpg-process-region): Make USE-AGENT nil
+	if PASSPHRASE is given.
+
+2007-02-17  Chris Moore <dooglus@gmail.com>
+
+	* jka-cmpr-hook.el (jka-compr-compression-info-list):
+	Recognize backups of bz2 compressed files.
+
+2007-02-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* info-look.el (info-lookup): Bind Info-fontify-maximum-menu-size
+	to nil to speed up lookup of the symbol in index nodes.
+
+2007-02-17  Alin C. Soare  <alinsoar@voila.fr>  (tiny change)
+
+	* emacs-lisp/lisp-mode.el (calculate-lisp-indent):
+	Add indentation for the constants of Lisp.
+
+2007-02-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ps-print.el: Use (defvar <foo>) where applicable.
+	(ps-print-emacs-type): Remove.
+	(ps-x-frame-property, ps-e-frame-parameter): Remove.
+	(ps-frame-parameter): Align its call-convention with frame-parameter.
+	(ps-begin-job): Adjust calls to it appropriately.
+	(ps-setup): Don't print ps-print-emacs-type.
+	(ps-e-find-composition, ps-mark-active-p, ps-color-device):
+	Define in such a way that it's obvious that it's defined.
+	(ps-prsc, ps-c-prsc, ps-s-prsc): Remove.
+	(ps-rmail-mode-hook, ps-vm-mode-hook, ps-gnus-summary-setup)
+	(ps-jts-ps-setup): Use flavor-neutral syntax instead.
+
+2007-02-15  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-indent-new-comment-line): When splitting
+	an empty one-line C-style comment, post-position point properly.
+
+2007-02-15  Chris Moore  <dooglus@gmail.com>
+
+	* isearch.el (isearch-lazy-highlight-space-regexp): New variable.
+	(isearch-lazy-highlight-new-loop): Bind it.
+	(isearch-lazy-highlight-search): Use it.
+
+	* replace.el (replace-highlight): Bind search-whitespace-regexp to nil.
+
+2007-02-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-extend-region-wholelines):
+	Only return non-nil if the region has really been changed.
+	Reported by David Hansen <david.hansen@physik.fu-berlin.de>
+
+2007-02-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* play/5x5.el (5x5-crack-xor-mutate): Doc fix.
+	(5x5-draw-grid-end, 5x5-make-xor-with-mutation, 5x5-mode, 5x5-crack)
+	(5x5-play-solution, 5x5-y-or-n-p): Fix typos in docstrings.
+
+2007-02-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faces.el (color-values): Revert changes to docstring from
+	2007-01-31 and 2000-09-07.
+
+	* textmodes/ispell.el (ispell-keep-choices-win, ispell-word)
+	(ispell-begin-skip-region-regexp): Fix typos in docstrings.
+	(ispell-dictionary-alist, ispell-process-line): Doc fixes.
+	(ispell-help): Fix typos in docstring and output message.
+
+2007-02-14  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/grep.el (grep-files-aliases): Add tex and texi aliases.
+	(lgrep): Add DIR arg to start grep in specific directory, like rgrep.
+	(grep): Fix lgrep reference.
+
+	* disp-table.el (make-glyph-code, glyph-char, glyph-face): New defuns.
+	(standard-display-underline): Use make-glyph-code.
+
+	* descr-text.el (describe-char): Use glyph-char and glyph-face.
+
+	* international/latin1-disp.el (latin1-display-char):
+	Use make-glyph-code.
+
+2007-02-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ehelp.el (with-electric-help, electric-help-exit)
+	(electric-help-retain): Doc fixes.
+
+	* emacs-lisp/bytecomp.el (byte-compile-dest-file)
+	(byte-compile-file): Doc fixes.
+
+2007-02-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Change all uses of
+	mac-set-font-panel-visibility to mac-set-font-panel-visible-p.
+	(mac-ae-number): Return integer 0 if coerced result is float 0.0.
+	(mac-ae-get-url): Call select-frame-set-input-focus.
+	(mac-dnd-handle-drag-n-drop-event): Don't call
+	select-frame-set-input-focus.
+
+2007-02-13  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Fix documentation of category `a'.
+
+2007-02-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/grep.el (grep): Mention lgrep and rgrep in the docstring.
+
+2007-02-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-get-ls-command, tramp-get-file-exists-command)
+	(tramp-get-remote-ln): Handle error case.
+	Reported by Chris Moore <dooglus@gmail.com>.
+
+2007-02-11  Kim F. Storm  <storm@cua.dk>
+
+	* bindings.el (ctl-x-map): Remove register compatibility bindings
+	C-x /, C-x j, C-x x, and C-x g (deprecated since Emacs 19).
+
+2007-02-11  Richard Stallman  <rms@gnu.org>
+
+	* loadhist.el (unload-feature): Handle (t . SYMBOL) entries
+	in load history.
+
+	* emacs-lisp/lisp-mode.el (indent-sexp): Clean up termination
+	condition -- don't fail to stop at endpos.
+
+2007-02-11  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-agenda-get-todos)
+	(org-agenda-get-timestamps, org-agenda-get-closed)
+	(org-agenda-get-deadlines, org-agenda-get-scheduled)
+	(org-agenda-get-blocks, org-format-agenda-item)
+	(org-agenda-change-all-lines, org-scan-tags): Rename text property
+	from `category' to `org-category'.
+
+2007-02-11  Kenichi Handa  <handa@m17n.org>
+
+	* international/titdic-cnv.el (titdic-convert): Force files be written
+	with Unix-like eol format.  Read files under CXTERM-DIC by raw-text.
+	(miscdic-convert): Force files be written with Unix-like eol format.
+
+2007-02-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* files.el (change-major-mode-with-file-name): Fix typo in docstring.
+
+	* calculator.el (calculator-prompt): Doc fix.
+	(calculator-mode-map): Fix typo in menu entry.
+
+2007-02-10  Jay Belanger  <belanger@truman.edu>
+
+	* calculator.el (calculator): Do more extensive checking for when
+	3 lines should be used for the calculator.
+
+2007-02-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* info-look.el (info-lookup-make-completions):
+	Bind Info-fontify-maximum-menu-size to nil to speed up lookup of
+	index nodes.
+
+	* info.el (Info-fontify-maximum-menu-size): Document the effect
+	of a nil value.
+	(Info-fontify-node): Make sure Info-fontify-maximum-menu-size is
+	non-nil before using it as size.
+
+2007-02-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (insert-for-yank-1): Prevent read-only properties from
+	interfering with text property operations.
+
+	* image-mode.el (image-mode): Revert 2007-01-30 changes.
+
+	* image.el (image-type-auto-detectable): Don't autodetect x[pb]m.
+	(image-type-auto-detected-p): Fail if another match is found in
+	auto-mode-alist.
+
+	* files.el (magic-mode-alist): Call image-mode instead of
+	image-mode-maybe for autodetected images.
+
+2007-02-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* mail/smtpmail.el (smtpmail-smtp-service, smtpmail-queue-index-file):
+	Fix typos in docstrings.
+	(smtpmail-local-domain, smtpmail-queue-mail): Doc fixes.
+
+2007-02-09  Kim F. Storm  <storm@cua.dk>
+
+	* emacs-lisp/float-sup.el: Remove obsolete comment.
+
+2007-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-sanity-check-hunk): Fix last fix.
+
+2007-02-08  Karl Fogel  <kfogel@red-bean.com>
+
+	* simple.el: Revert previous change, at request of RMS:
+	(fundamental-mode-hook): Remove.
+	(fundamental-mode): Run after-change-major-mode-hooks manually,
+	and don't run the now-nonexistent fundamental-mode-hook.
+
+2007-02-08  Karl Fogel  <kfogel@red-bean.com>
+
+	* simple.el (fundamental-mode-hook): Declare new hook.
+	(fundamental-mode): Run the new dedicated hook, and don't run
+	after-change-major-mode-hooks manually anymore.
+
+2007-02-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-svn.el (vc-svn-merge-news): Understand the new format with two
+	added columns of chars.  Remove support for the "no-meta-info" format.
+	Prompted by Romain Francoise <romain@orebokech.com>.
+
+2007-02-07  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-if-arrow): New macro.
+	(gdb-mouse-until, gdb-mouse-jump): Use it.
+
+2007-02-07  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-mouse-until, gdb-mouse-jump): Make them
+	work when there is just an assembler buffer (no source buffer).
+
+2007-02-07  Per Cederqvist  <ceder@lysator.liu.se>  (tiny change)
+
+	* diff-mode.el (diff-sanity-check-hunk): Don't reject the hunk
+	just because the diff was produced using "-p" (--show-c-function).
+
+2007-02-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faces.el (frame-set-background-mode): Use `color-values' and
+	`display-color-p', not `x-color-values' and `x-display-color-p'.
+	(face-valid-attribute-values): Use `defined-colors' instead of
+	`x-defined-colors'.
+
+2007-02-07  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.ps: The ps-print commands without face printing should not
+	print background color.  Reported by Leo <sdl.web@gmail.com>.
+	(ps-print-version): New version 6.7.3.
+	(ps-begin-job): New arg.  Fix ps-default-background and
+	ps-default-foreground initialization.
+	(ps-face-attributes): Fix doc string.
+	(ps-face-background, ps-generate-postscript, ps-generate): Fix code.
+
+	* printing.el: Fix ps-print link.
+
+2007-02-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faces.el (face-set-after-frame-default): Compile attributes to
+	be set by frame parameters before merging in X resources.
+
+2007-02-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* simple.el (blink-matching-paren-dont-ignore-comments):
+	(blink-matching-paren-on-screen): Doc fixes.
+
+2007-02-06  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-frames-mode): Truncate lines in stack buffer.
+
+2007-02-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* loadhist.el (unload-feature): Silently ignore `load-history' entries
+	of the form `(defface . SYMBOL)', and treat `(autoload . SYMBOL)'
+	entries like `defun'.  Return nil.
+
+2007-02-05  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el: Doc fixes.
+
+2007-02-04  David Kastrup  <dak@gnu.org>
+
+	* play/mpuz.el (mpuz-random-puzzle): Fix potential lockup when
+	`mpuz-allow-double-multiplicator' is non-zero, and correct
+	calculation of `min'.
+
+2007-02-04  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* wid-edit.el (widget-default-create): Insert new text at the
+	:from marker _after_ the marker, not before it.
+
+2007-02-04  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-indent-line): Don't erase ^L when a line
+	containing it is re-indented.
+
+2007-02-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* net/newsticker.el (newsticker--insert-image): Update docstring,
+	and insert the image directly.
+	(newsticker--buffer-redraw): Update docstring.
+
+	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode):
+	Rename from define-global-minor-mode.
+
+	* progmodes/cwarn.el (global-cwarn-mode):
+	* emacs-lisp/autoload.el (make-autoload):
+	* hi-lock.el (global-hi-lock-mode):
+	* font-core.el (global-font-lock-mode): All callers changed.
+
+2007-02-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* textmodes/texnfo-upd.el (texinfo-menu-copy-old-description):
+	Don't copy @ignore lines into menu descriptions.
+	(texinfo-multi-file-update): Goto the @node line before attempting
+	to pluck the node name.
+	(texinfo-multiple-files-update): Reverse the optional arguments'
+	order, as per the doc string and the `interactive' form.
+
+2007-02-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-mode.el: Use autoload to avoid overriding disabled setting
+	applied in .emacs.
+
+2007-02-03  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-in-knr-argdecl): Slight correction
+	for, e.g. "void (*hdone)();" in a k&r list.  (No WS between
+	adjacent paren groups).
+
+2007-02-02  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* progmodes/ebnf2ps.el: Doc fixes.
+	(ebnf-eps-buffer, ebnf-eps-region, ebnf-syntax-alist): Doc fixes.
+
+2007-02-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* dired-x.el (dired-do-relsymlink): Add reference to
+	dired-do-symlink.  Add an autoload cookie.
+
+	* dired-aux.el (dired-do-symlink): Add reference to
+	dired-do-relsymlink.
+
+2007-02-02  Doug Maxey  <dwm@enoyolf.org>  (tiny change)
+
+	* mouse.el <left-fringe mouse-2, right-fringe mouse-3>:
+	<left-fringe mouse-3>: New bindings.
+
+2007-02-02  Ulf Jasper  <ulf.jasper@web.de>
+
+	* newsticker.el (newsticker-version): Changed to "1.10".
+	(newsticker--set-customvar): Doc string.
+	(newsticker-new-item-face): Doc string.
+	(newsticker-mode): Initialize `invisibility-spec' with t.
+	(newsticker-mode-map): Added
+	`newsticker-mark-all-items-at-point-as-read'.
+	(newsticker-menu): Added narrow-to-item and narrow-to-feed.
+	(newsticker-w3m-show-inline-images): Do not call
+	`w3m-remove-image'.
+	(newsticker--buffer-after-w3m-insert-image): New advice for
+	w3m-insert-image to cache images.
+	(newsticker-next-item-same-feed): New.
+	(newsticker-mark-all-items-at-point-as-read-and-redraw): New.
+	(newsticker-mark-all-items-of-feed-as-read): New.
+	(newsticker-mark-all-items-at-point-as-read): Use new functions.
+	(newsticker-mark-item-at-point-as-read): Doc string.
+	(newsticker-mark-item-at-point-as-read): Use new functions.
+	(newsticker--do-mark-item-at-point-as-read): New, extracted from
+	`newsticker-mark-item-at-point-as-read'.
+	(newsticker-hide-entry): Use (t) instead of t for invisibility.
+	(newsticker--sentinel): Yet another xml-parser workaround.
+	(newsticker--decode-iso8601-date): Bugfix for datestrings without
+	days.
+	(newsticker--buffer-do-insert-text): Fix.
+	(newsticker--buffer-insert-enclosure): Fix. length might be missing.
+	(newsticker--buffer-make-item-completely-visible):
+	`switch-to-buffer' not necessary.
+
+2007-02-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/ebnf2ps.el (ebnf-eps-buffer, ebnf-eps-region)
+	(ebnf-syntax-directory, ebnf-syntax-file, ebnf-syntax-region)
+	(ebnf-style-database, ebnf-apply-style, ebnf-reset-style)
+	(ebnf-push-style, ebnf-pop-style, ebnf-eps-production-list)
+	(ebnf-directory, ebnf-file, ebnf-syntax-alist): Doc fixes.
+
+2007-02-02  Kenichi Handa  <handa@m17n.org>
+
+	* international/quail.el (quail-show-key): Fix an error message.
+
+2007-02-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faces.el (set-face-underline-p, modify-face): Rename arg
+	UNDERLINE-P to UNDERLINE (it is not a flag).
+
+2007-02-01  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-speedbar-update): Avoid duplication
+	when adding gdb-speedbar-update to gdb-input-queue.
+
+2007-02-01  Kenichi Handa  <handa@m17n.org>
+
+	* international/quail.el (quail-show-key): Signal an error if the
+	current input method is not using Quail.
+
+2007-02-01  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* progmodes/idlwave.el (idlwave-xml-create-sysvar-alist):
+	Trim leading whitespace in sysvar names.
+
+2007-02-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faces.el (internal-find-face, internal-get-face): Doc fixes.
+
+2007-01-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ido.el (ido-set-common-completion): Use `let', not `let*'.
+
+2007-01-31  Romain Francoise  <romain@orebokech.com>
+
+	* comint.el: Delete extra copy of `comint-copy-old-input' added in
+	previous change to this file.
+
+2007-01-31  Jason Rumney  <jasonr@gnu.org>
+
+	* files.el (magic-mode-alist): Use image-mode-maybe rather than
+	image-mode.
+
+	* image-mode.el (image-mode-maybe): Prevent magic-mode-alist from
+	interfering with attempt to set major mode from modified
+	auto-mode-alist.
+
+2007-01-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faces.el (color-values): Doc fix.
+	(face-differs-from-default-p): Don't check :foreground twice.
+
+2007-01-31  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* comint.el (comint-mode): Prevent non-keyword fontification by default.
+
+2007-01-31  Kenichi Handa  <handa@m17n.org>
+
+	* international/quail.el (quail-store-decode-map-key): Store a
+	translated character too.
+	(quail-char-equal-p): New function.
+	(quail-find-key1): Check character equality by quail-char-equal-p.
+	(quail-decode-map-generated): New variable.
+	(quail-find-key): Check quail-decode-map-generated and re-generate
+	a decode map if necessary.
+
+2007-01-30  Richard Stallman  <rms@gnu.org>
+
+	* tutorial.el (tutorial--detailed-help): Make the list of
+	changed keys look nicer.
+
 2007-01-30  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-var-delete-1): New function.
@@ -7,8 +847,7 @@
 
 2007-01-30  Michael Albinus  <michael.albinus@gmx.de>
 
-	* files.el (get-free-disk-space): Return nil for remote
-	directories.
+	* files.el (get-free-disk-space): Return nil for remote directories.
 
 	* net/ange-ftp.el (ange-ftp-ls): In case of wildcards, use "ls"
 	instead of "dir".
@@ -226,7 +1065,7 @@
 	(ido-initiate-auto-merge, ido-exhibit, ido-minibuffer-setup)
 	(ido-tidy): Use ido-active.
 
-2007-01-22  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
+2007-01-22  Chris Moore  <christopher.ian.moore@gmail.com>
 
 	* hexl.el (hexl-mode-exit): Add missing quote.
 
@@ -355,7 +1194,7 @@
 
 	* paths.el (Info-default-directory-list): Ditto.
 
-2007-01-18  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
+2007-01-18  Chris Moore  <christopher.ian.moore@gmail.com>
 
 	* hexl.el (hexl-before-revert-hook): New function.
 	(hexl-mode): Use it.
@@ -507,7 +1346,7 @@
 
 	* progmodes/vhdl-mode.el (vhdl-save-caches): Fix typo in error message.
 
-2007-01-07  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
+2007-01-07  Chris Moore  <christopher.ian.moore@gmail.com>
 
 	* replace.el (replace-regexp): Fix typo in docstring.
 
@@ -576,7 +1415,7 @@
 	* progmode/cc-cmds.el (c-mask-paragraph): Fix yesterday's buggy
 	patch.
 
-2007-01-03  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
+2007-01-03  Chris Moore  <christopher.ian.moore@gmail.com>
 
 	* tutorial.el (tutorial--describe-nonstandard-key): Fix typo.
 
@@ -1097,7 +1936,7 @@
 
 	* shell.el (shell): Doc fix.
 
-2006-12-15  Kevin Gallagher <Kevin.Gallagher@boeing.com>
+2006-12-15  Kevin Gallagher  <Kevin.Gallagher@boeing.com>
 
 	* emulation/edt.el (edt-xserver):
 	* emulation/edt-mapper.el (edt-xserver): Replace `/' with a `-',
@@ -1111,8 +1950,7 @@
 
 2006-12-15  Simon Marshall  <simon@gnu.org>
 
-	* progmodes/cc-fonts.el (c-font-lock-declarations): Fix previous
-	change.
+	* progmodes/cc-fonts.el (c-font-lock-declarations): Fix previous change.
 
 2006-12-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -3546,7 +4384,7 @@
 
 	* international/code-pages.el (iso-8859-6): Table fixed.
 
-2006-10-01  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
+2006-10-01  Chris Moore  <christopher.ian.moore@gmail.com>
 
 	* dired.el (dired-build-subdir-alist): Fix previous change.
 
@@ -3720,7 +4558,7 @@
 	* font-lock.el (font-lock-compile-keywords): Allow value of
 	syntax-begin-function to enable paren-column-0 highlighting.
 
-2006-09-24  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
+2006-09-24  Chris Moore  <christopher.ian.moore@gmail.com>
 
 	* dired.el (dired-build-subdir-alist): When file ends in colon,
 	don't exit the loop, just disregard that file.
@@ -11073,7 +11911,7 @@
 	(tumme-create-thumbs, tumme-display-previous-thumbnail-original):
 	Fix typos in docstrings.
 
-2006-02-07  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
+2006-02-07  Chris Moore  <christopher.ian.moore@gmail.com>
 
 	* wdired.el (wdired-get-filename): Fix bug: Don't re-normalize OLD.
 
@@ -31160,7 +31998,22 @@ See ChangeLog.11 for earlier changes.
 ;; End:
 
     Copyright (C) 2005, 2006, 2007 Free Software Foundation, Inc.
-  Copying and distribution of this file, with or without modification,
-  are permitted provided the copyright notice and this notice are preserved.
+
+  This file is part of GNU Emacs.
+
+  GNU Emacs is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2, or (at your option)
+  any later version.
+
+  GNU Emacs is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with GNU Emacs; see the file COPYING.  If not, write to the
+  Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+  Boston, MA 02110-1301, USA.
 
 ;;; arch-tag: e39939be-dab3-400e-86f5-0e2701a883c1

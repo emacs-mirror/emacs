@@ -360,23 +360,24 @@ Valid types include `google', `dejanews', and `gmane'.")
       (goto-char (point-max))
       (widen)
       (narrow-to-region (point)
-			(search-forward "</td" nil t))
+			(search-forward "</table" nil t))
 
       (mm-url-remove-markup)
       (mm-url-decode-entities)
-      (search-backward " - ")
-      (when (looking-at
-	     "\\W+\\(\\w+\\) \\([0-9]+\\)\\(?: \\([0-9]\\{4\\}\\)\\)?")
-	(setq Date (format "%s %s 00:00:00 %s"
-			   (match-string 1)
-			   (match-string 2)
-			   (or (match-string 3)
-			       (substring (current-time-string) -4))))
-	(goto-char (match-end 0)))
-      (when (looking-at "[^b]+by\\W+\\([^<\n]+\\)")
-	(setq From (match-string 1)))
+      (goto-char (point-max))
+      (when
+	  (re-search-backward
+	   "^\\(?:\\(\\w+\\) \\([0-9]+\\)\\|\\S-+\\)\\(?: \\([0-9]\\{4\\}\\)\\)? by \\(.*\\)"
+	   nil t)
+	(setq Date (if (match-string 1)
+		       (format "%s %s 00:00:00 %s"
+			       (match-string 1)
+			       (match-string 2)
+			       (or (match-string 3)
+				   (substring (current-time-string) -4)))
+		     (current-time-string)))
+	(setq From (match-string 4)))
       (widen)
-      (forward-line 1)
       (incf i)
       (unless (nnweb-get-hashtb url)
 	(push

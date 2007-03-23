@@ -1,7 +1,8 @@
 More Neat Stuff for your Emacs
+
 Copyright (C) 1993, 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007
-Free Software Foundation, Inc.
-See the end of the file for copying permissions.
+  Free Software Foundation, Inc.
+See the end of the file for license conditions.
 
 This file describes GNU Emacs programs and resources that are
 maintained by other people.  Some of these may become part of the
@@ -32,6 +33,11 @@ engine) or retrievable from general Usenet archive services.
 
 The Emacs Wiki has an area for storing elisp files
 <URL:http://www.emacswiki.org/cgi-bin/wiki.pl/ElispArea>.
+
+* Emacs tutorials and manuals
+
+ * Emacs slides and tutorials can be found here:
+   <URL:http://stuff.mit.edu/iap/emacs/>
 
 * Maintenance versions of some packages distributed with Emacs
 
@@ -279,12 +285,21 @@ mode: view
 eval: (goto-address)
 End:
 
-COPYING PERMISSIONS
-    Permission to use, copy, modify, and distribute this
-    software and its documentation for any purpose and without
-    fee is hereby granted, provided that the above copyright
-    notice appear in all copies and that both that copyright
-    notice and this permission notice appear in supporting
-    documentation.
+This file is part of GNU Emacs.
+
+GNU Emacs is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2, or (at your option)
+any later version.
+
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Emacs; see the file COPYING.  If not, write to the
+Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.
 
 arch-tag: c1d4e7c8-db85-44e6-909e-659e2b20fefa

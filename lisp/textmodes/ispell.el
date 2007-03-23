@@ -293,7 +293,7 @@ a [.5mm] type of number...."
   "Regexp matching the end of a Tib reference.")
 
 (defcustom ispell-keep-choices-win t
-  "*When not nil, the `*Choices*' window remains for spelling session.
+  "*When non-nil, the `*Choices*' window remains for spelling session.
 This minimizes redisplay thrashing."
   :type 'boolean
   :group 'ispell)
@@ -673,8 +673,7 @@ Each element of this list is also a list:
 DICTIONARY-NAME is a possible string value of variable `ispell-dictionary',
 nil means the default dictionary.
 
-CASECHARS is a regular expression of valid characters that comprise a
-word.
+CASECHARS is a regular expression of valid characters that comprise a word.
 
 NOT-CASECHARS is the opposite regexp of CASECHARS.
 
@@ -688,7 +687,7 @@ regular expression \"[']\" for OTHERCHARS.  Then \"they're\" and
 If you want OTHERCHARS to be empty, use the empty string.
 Hint: regexp syntax requires the hyphen to be declared first here.
 
-CASECHAS, NOT-CASECHARS, and OTHERCHARS must be a unibyte string
+CASECHARS, NOT-CASECHARS, and OTHERCHARS must be unibyte strings
 containing bytes of CHARACTER-SET.  In addition, if they contain
 a non-ASCII byte, the regular expression must be a single
 `character set' construct that doesn't specify a character range
@@ -1572,7 +1571,7 @@ which is in `ispell-local-dictionary-alist' or `ispell-dictionary-alist'.
 This will check or reload the dictionary.  Use \\[ispell-change-dictionary]
 or \\[ispell-region] to update the Ispell process.
 
-return values:
+Return values:
 nil           word is correct or spelling is accepted.
 0             word is inserted into buffer-local definitions.
 \"word\"        word corrected from word list.
@@ -2102,9 +2101,9 @@ SPC:   Accept word this time.
 `l':   Look up typed-in replacement in alternate dictionary.  Wildcards okay.
 `u':   Like `i', but the word is lower-cased first.
 `m':   Place typed-in value in personal dictionary, then recheck current word.
-`C-l':  redraws screen
-`C-r':  recursive edit
-`C-z':  suspend Emacs or iconify frame"
+`C-l':  Redraw screen.
+`C-r':  Recursive edit.
+`C-z':  Suspend Emacs or iconify frame."
 
   (if (equal ispell-help-in-bufferp 'electric)
       (progn
@@ -2134,11 +2133,10 @@ SPC:   Accept word this time.
 `l':   Look up typed-in replacement in alternate dictionary.  Wildcards okay.
 `u':   Like `i', but the word is lower-cased first.
 `m':   Place typed-in value in personal dictionary, then recheck current word.
-`C-l':  redraws screen
-`C-r':  recursive edit
-`C-z':  suspend Emacs or iconify frame")
-		     nil	;undocumented requirement of with-electric-help
-		     ))))
+`C-l':  Redraw screen.
+`C-r':  Recursive edit.
+`C-z':  Suspend Emacs or iconify frame.")
+		     nil))))
 
 
     (let ((help-1 (concat "[r/R]eplace word; [a/A]ccept for this session; "
@@ -2772,7 +2770,7 @@ Return nil if spell session is quit,
 (defun ispell-begin-skip-region-regexp ()
   "Returns a regexp of the search keys for region skipping.
 Includes `ispell-skip-region-alist' plus tex, tib, html, and comment keys.
-Must call after ispell-buffer-local-parsing due to dependence on mode."
+Must call after `ispell-buffer-local-parsing' due to dependence on mode."
   ;; start with regions generic to all buffers
   (let ((skip-regexp (ispell-begin-skip-region ispell-skip-region-alist)))
     ;; Comments
@@ -2985,10 +2983,10 @@ Point is placed at end of skipped region."
 (defvar end)
 
 (defun ispell-process-line (string shift)
-  "Sends a LINE of text to ispell and processes the result.
+  "Sends STRING, a line of text, to ispell and processes the result.
 This will modify the buffer for spelling errors.
 Requires variables START and END to be defined in its lexical scope.
-Returns the sum shift due to changes in word replacements."
+Returns the sum SHIFT due to changes in word replacements."
   ;;(declare special start end)
   (let (poss accept-list)
     (if (not (numberp shift))

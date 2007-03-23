@@ -1423,8 +1423,10 @@ make, or the user didn't cancel the call."
 
 	(message
 	 (if query-flag
-	     (substitute-command-keys
-	      "Query replacing %s with %s: (\\<query-replace-map>\\[help] for help) "))))
+	     (apply 'propertize
+		    (substitute-command-keys
+		     "Query replacing %s with %s: (\\<query-replace-map>\\[help] for help) ")
+		    minibuffer-prompt-properties))))
 
     ;; If region is active, in Transient Mark mode, operate on region.
     (when start
@@ -1466,27 +1468,35 @@ make, or the user didn't cancel the call."
 		    ;; otherwise, search for a match after moving forward
 		    ;; one char if progress is required.
 		    (setq real-match-data
-			  (if (consp match-again)
-			      (progn (goto-char (nth 1 match-again))
-				     (replace-match-data t
-				      real-match-data
-				      match-again))
-			    (and (or match-again
-				     ;; MATCH-AGAIN non-nil means we
-				     ;; accept an adjacent match.  If
-				     ;; we don't, move one char to the
-				     ;; right.  This takes us a
-				     ;; character too far at the end,
-				     ;; but this is undone after the
-				     ;; while-loop.
-				     (progn
-				       (forward-char 1)
-				       (not (or (eobp)
-						(and limit (>= (point) limit))))))
-				 (funcall search-function search-string limit t)
-				 ;; For speed, use only integers and
-				 ;; reuse the list used last time.
-				 (replace-match-data t real-match-data)))))
+			  (cond ((consp match-again)
+				 (goto-char (nth 1 match-again))
+				 (replace-match-data
+				  t real-match-data match-again))
+				;; MATCH-AGAIN non-nil means accept an
+				;; adjacent match.
+				(match-again
+				 (and
+				  (funcall search-function search-string
+					   limit t)
+				  ;; For speed, use only integers and
+				  ;; reuse the list used last time.
+				  (replace-match-data t real-match-data)))
+				((and (< (1+ (point)) (point-max))
+				      (or (null limit)
+					  (< (1+ (point)) limit)))
+				 ;; If not accepting adjacent matches,
+				 ;; move one char to the right before
+				 ;; searching again.  Undo the motion
+				 ;; if the search fails.
+				 (let ((opoint (point)))
+				   (forward-char 1)
+				   (if (funcall
+					search-function search-string
+					limit t)
+				       (replace-match-data
+					t real-match-data)
+				     (goto-char opoint)
+				     nil))))))
 
 	  ;; Record whether the match is nonempty, to avoid an infinite loop
 	  ;; repeatedly matching the same empty string.
@@ -1702,12 +1712,6 @@ make, or the user didn't cancel the call."
 			      (match-data t)))
 		      stack)))))
 
-      ;; The code preventing adjacent regexp matches in the condition
-      ;; of the while-loop above will haven taken us one character
-      ;; beyond the last replacement.  Undo that.
-      (when (and regexp-flag (not match-again) (> replace-count 0))
-	(backward-char 1))
-
       (replace-dehighlight))
     (or unread-command-events
 	(message "Replaced %d occurrence%s"
@@ -1728,6 +1732,7 @@ make, or the user didn't cancel the call."
   (if query-replace-lazy-highlight
       (let ((isearch-string string)
 	    (isearch-regexp regexp)
+	    (search-whitespace-regexp nil)
 	    (isearch-case-fold-search case-fold))
 	(isearch-lazy-highlight-new-loop range-beg range-end))))
 

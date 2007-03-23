@@ -629,7 +629,7 @@ configurations of sendmail).  Even if the latter case is true, it
 probably won't hurt you to generate your own, and it will then show up
 in the saved message if you use Fcc:."
   :group 'feedmail-headers
-  :type '(choice (const nil) function)
+  :type '(choice (const t) (const nil) function)
   )
 
 
@@ -678,7 +678,7 @@ configurations of sendmail).  Even if the latter case is true, it
 probably won't hurt you to generate your own, and it will then show up
 in the saved message if you use Fcc:."
   :group 'feedmail-headers
-  :type '(choice (const nil) function)
+  :type '(choice (const t) (const nil) function)
   )
 
 

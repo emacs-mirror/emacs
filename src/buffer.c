@@ -419,7 +419,7 @@ The value is never nil.  */)
   XSETBUFFER (buf, b);
   Vbuffer_alist = nconc2 (Vbuffer_alist, Fcons (Fcons (name, buf), Qnil));
 
-  /* An error in calling the function here (should someone redfine it)
+  /* An error in calling the function here (should someone redefine it)
      can lead to infinite regress until you run out of stack.  rms
      says that's not worth protecting against.  */
   if (!NILP (Ffboundp (Qucs_set_table_for_input)))
@@ -791,9 +791,8 @@ DEFUN ("generate-new-buffer-name", Fgenerate_new_buffer_name, Sgenerate_new_buff
 If there is no live buffer named NAME, then return NAME.
 Otherwise modify name by appending `<NUMBER>', incrementing NUMBER
 \(starting at 2) until an unused name is found, and then return that name.
-Optional second argument IGNORE specifies a name that is okay to use
-\(if it is in the sequence to be tried)
-even if a buffer with that name exists.  */)
+Optional second argument IGNORE specifies a name that is okay to use (if
+it is in the sequence to be tried) even if a buffer with that name exists.  */)
      (name, ignore)
      register Lisp_Object name, ignore;
 {
@@ -1132,8 +1131,8 @@ state of the current buffer.  Use with care.  */)
 DEFUN ("buffer-modified-tick", Fbuffer_modified_tick, Sbuffer_modified_tick,
        0, 1, 0,
        doc: /* Return BUFFER's tick counter, incremented for each change in text.
-Each buffer has a tick counter which is incremented each time the text in
-that buffer is changed.  It wraps around occasionally.
+Each buffer has a tick counter which is incremented each time the
+text in that buffer is changed.  It wraps around occasionally.
 No argument or nil as argument means use current buffer as BUFFER.  */)
      (buffer)
      register Lisp_Object buffer;

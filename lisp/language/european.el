@@ -485,6 +485,19 @@ and it selects the Spanish tutorial."))
 	    (sample-text . "Oi")
 	    (documentation . "Support for Brazilian Portuguese."))
  '("European"))
+
+(set-language-info-alist
+ "Esperanto" '((tutorial . "TUTORIAL.eo")
+	       (charset ascii latin-iso8859-3)
+	       (coding-system iso-latin-3)
+	       (coding-priority iso-latin-3)
+	       (nonascii-translation . latin-iso8859-3)
+	       (unibyte-syntax . "latin-3")
+	       (unibyte-display . iso-latin-3)
+	       (input-method . "latin-3-prefix")
+	       (documentation . "Support for Esperanto with ISO-8859-3 character set."))
+ '("European"))
+
 
 ;; Definitions for the Mac Roman character sets and coding system.
 ;; The Mac Roman encoding uses all 128 code points in the range 128 to

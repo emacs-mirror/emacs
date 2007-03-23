@@ -172,7 +172,7 @@ X frame."
   (aset standard-display-table c
 	(vector
 	 (if window-system
-	     (logior uc (lsh (face-id 'underline) 19))
+	     (make-glyph-code uc 'underline)
 	   (create-glyph (concat "\e[4m" (char-to-string uc) "\e[m"))))))
 
 ;;;###autoload
@@ -185,6 +185,30 @@ X frame."
       (setq glyph-table (vconcat glyph-table (make-vector 224 nil))))
   (setq glyph-table (vconcat glyph-table (list string)))
   (1- (length glyph-table)))
+
+;;;###autoload
+(defun make-glyph-code (char &optional face)
+  "Return a glyph code representing char CHAR with face FACE."
+  ;; Due to limitations on Emacs integer values, faces with
+  ;; face id greater that 4091 are silently ignored.
+  (if (and face (<= (face-id face) #xfff))
+      (logior char (lsh (face-id face) 19))
+    char))
+
+;;;###autoload
+(defun glyph-char (glyph)
+  "Return the character of glyph code GLYPH."
+  (logand glyph #x7ffff))
+
+;;;###autoload
+(defun glyph-face (glyph)
+  "Return the face of glyph code GLYPH, or nil if glyph has default face."
+  (let ((face-id (lsh glyph -19)))
+    (and (> face-id 0)
+	 (car (delq nil (mapcar (lambda (face)
+				  (and (eq (get face 'face) face-id)
+				       face))
+				(face-list)))))))
 
 ;;;###autoload
 (defun standard-display-european (arg)

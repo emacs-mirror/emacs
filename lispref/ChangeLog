@@ -1,3 +1,64 @@
+2007-02-25  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* loading.texi (How Programs Do Loading): Fix anchor position at
+	load-read-function definition doc. (tiny change)
+	
+2007-02-21  Kim F. Storm  <storm@cua.dk>
+
+	* strings.texi (Text Comparison): Mention that assoc-string
+	converts symbols to strings before testing.
+
+2007-02-17  Kim F. Storm  <storm@cua.dk>
+
+	* processes.texi (Bindat Spec): Vector types can have optional
+	element type.
+	(Bindat Examples): Fix example.  Add vector with element type.
+
+2007-02-16  Andreas Schwab  <schwab@suse.de>
+
+	* strings.texi (Formatting Strings): Document '+' flag.
+
+2007-02-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* strings.texi (Modifying Strings): Clarify that `clear-string'
+	always converts the string to unibyte.
+
+2007-02-14  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Glyphs): Add make-glyph-code, glyph-char, glyph-face.
+	Rewrite glyph code description to refer to these functions.
+	Remove details of encoding face number and char into integer code.
+
+2007-02-03  Alan Mackenzie  <acm@muc.de>
+
+	* loading.texi (Hooks for Loading): Make the description of
+	`eval-after-load' more detailed, and amend the description of
+	after-load-alist, in accordance with changes from 2006-05.
+
+2007-02-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* modes.texi (Defining Minor Modes): Document that a :require
+	keyword or similar may be required to make saved customization
+	variables work.
+
+2007-02-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* elisp.texi (Top): Make the detailed menu headers compliant with
+	Texinfo guidelines and with what texnfo-upd.el expects.  Add
+	comments to prevent people from inadvertently modifying the key
+	parts needed by `texinfo-multiple-files-update'.
+
+2007-02-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* elisp.texi (Top): Update the top-level menus.
+
+	* syntax.texi (Categories): Add index entries.
+
+2007-02-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* display.texi (Attribute Functions): Fix name and description of
+	the UNDERLINE arg of `set-face-underline-p'.
+
 2007-01-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* elisp.texi (Top): Add "Standard Errors", "Standard Buffer-Local
@@ -5616,7 +5677,22 @@ Tue Apr 11 12:23:28 1989  Robert J. Chassell  (bob@rice-chex.ai.mit.edu)
 
     Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
       2005, 2006, 2007 Free Software Foundation, Inc.
-  Copying and distribution of this file, with or without modification,
-  are permitted provided the copyright notice and this notice are preserved.
+
+  This file is part of GNU Emacs.
+
+  GNU Emacs is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2, or (at your option)
+  any later version.
+
+  GNU Emacs is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with GNU Emacs; see the file COPYING.  If not, write to the
+  Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+  Boston, MA 02110-1301, USA.
 
 ;;; arch-tag: 985ae0ce-df29-475b-b3f8-4bbcbf6f7fda

@@ -168,7 +168,7 @@
 
 1993-05-26  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
-	* s/sol2.h: (SOLARIS_BROKEN_ACCESS): Don't define this.
+	* s/sol2.h (SOLARIS_BROKEN_ACCESS): Don't define this.
 
 	* s/aix3-2.h (C_SWITCH_SYSTEM): Don't define this to be "-ma" if
 	we're using GCC - that's an XLC switch.
@@ -181,8 +181,8 @@
 	screws up AIX.
 	(struct emacs_tty): Test those symbols, instead of the ioctl
 	commands.
-	* sysdep.c (emacs_get_tty, emacs_set_tty, new_ltchars, new_tchars,
-	init_sys_modes): Same.
+	* sysdep.c (emacs_get_tty, emacs_set_tty, new_ltchars, new_tchars)
+	(init_sys_modes): Same.
 
 	* config.h.in (HAVE_RENAME): Include an #undef for this, so
 	configure will have something to edit.
@@ -202,8 +202,8 @@
 
 1993-05-26  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
-	* s/hpux8.h (LIB_X11_LIB, C_SWITCH_SYSTEM, LD_SWITCH_SYSTEM,
-	LD_SWITCH_SYSTEM, OLDXMENU_OPTIONS): Add X11R5 directories to the
+	* s/hpux8.h (LIB_X11_LIB, C_SWITCH_SYSTEM, LD_SWITCH_SYSTEM)
+	(LD_SWITCH_SYSTEM, OLDXMENU_OPTIONS): Add X11R5 directories to the
 	search paths in these lists; they shouldn't do any harm if they
 	don't have X11R5.
 
@@ -293,8 +293,8 @@
 1993-05-25  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* xfns.c: Clear out the old face stuff.
-	(x_face_table, n_faces, x_set_face, x_set_glyph, Fx_set_face_font,
-	Fx_set_face, Fx_get_face): Removed.
+	(x_face_table, n_faces, x_set_face, x_set_glyph, Fx_set_face_font)
+	(Fx_set_face, Fx_get_face): Removed.
 	(syms_of_xfns): Remove defsubr for Fx_set_face.
 
 	Arrange for font names to get fully resolved - no wildcards.
@@ -312,9 +312,9 @@
 	* xterm.c (x_new_font): Don't call init_frame_faces.
 
 	* xterm.h: New section for declarations for xfaces.c.
-	(init_frame_faces, free_frame_faces, intern_face,
-	face_name_id_number, same_size_fonts, recompute_basic_faces,
-	compute_char_face, compute_glyph_face): Declare these here.
+	(init_frame_faces, free_frame_faces, intern_face)
+	(face_name_id_number, same_size_fonts, recompute_basic_faces)
+	(compute_char_face, compute_glyph_face): Declare these here.
 	* xfaces.c (same_size_fonts): We can now remove this extern
 	declaration.
 	* xfns.c (face_name_id_number): Likewise.
@@ -511,7 +511,7 @@
 	already declares this elsewhere.
 	(PTY_TTY_NAME_SPRINTF): #undef this before re-#defining it.
 	* m/ibmps2-aix.h, m/pfa50.h, s/hpux.h, s/isc2-2.h, s/linux.h,
-	s/sco4.h, s/usg5-4.h: Remove HAVE_RENAME; configure guesses that now.
+	* s/sco4.h, s/usg5-4.h: Remove HAVE_RENAME; configure guesses that now.
 
 	* config.h.in (LD_SWITCH_X_SITE, C_SWITCH_X_SITE): Change the
 	#defines to #undef's, so ../configure knows it should tweak them.
@@ -522,7 +522,7 @@
 	* xfaces.c (Fset_face_attribute_internal): Don't free the frame's
 	normal_gc or reverse_gc.
 
-        * keyboard.c (make_lispy_movement): Deal properly with mouse
+	* keyboard.c (make_lispy_movement): Deal properly with mouse
 	motion outside of all windows.
 
 	* lisp.h (GLYPH_FACE): Remember that the face portion of a glyph
@@ -536,7 +536,7 @@
 
 1993-05-22  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
-        * Version 19.7 released.
+	* Version 19.7 released.
 
 	* Makefile.in (SUBMAKEFLAGS): Add CFLAGS to the list.
 
@@ -588,7 +588,7 @@
 	* ymakefile (alloca.o): #define malloc and free to be xmalloc and
 	xfree on the command line of this compilation.
 
-	* s/sco4.h: (TIME_WITH_SYS_TIME): This is no longer needed.
+	* s/sco4.h (TIME_WITH_SYS_TIME): This is no longer needed.
 
 	* s/linux.h: Remove copyright notices by Michael K. Johnson and
 	Rik Faith.  They have both sent in papers now which make their
@@ -690,7 +690,7 @@
 	clear_waiting_for_input when we exit the loop because process
 	input has arrived.
 
-        Changes for Silicon Graphics Iris 5D.
+	Changes for Silicon Graphics Iris 5D.
 	* unexelfsgi.c: New file; like unexelf.c, but tolerates program
 	segments above BSS.
 	* m/iris5d.h: New file.
@@ -793,7 +793,7 @@
 	then load it; we can just take advantage of the PATH_DUMPLOADSEARCH.
 	(crt0.o): Remember that crt0.c is in ${srcdir}.
 
-        Install David Mackenzie's patches to make ${srcdir} work.
+	Install David Mackenzie's patches to make ${srcdir} work.
 	* Makefile.in (srcdir, VPATH): Get this value from the top-level
 	Makefile.
 	(xmakefile): Use ${srcdir} to find the files from which we produce
@@ -860,8 +860,8 @@
 
 1993-05-14  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
-	* buffer.c (Foverlay_start, Foverlay_end, Foverlay_buffer,
-	Foverlay_properties): Functions moved here from subr.el.
+	* buffer.c (Foverlay_start, Foverlay_end, Foverlay_buffer)
+	(Foverlay_properties): Functions moved here from subr.el.
 
 1993-05-13  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
@@ -915,7 +915,7 @@
 	* buffer.c (Foverlay_get): Return Qnil if the requested property
 	is missing from the property list.
 
-        The text property routines can now modify buffers other
+	The text property routines can now modify buffers other
 	than the current one.
 	* insdel.c (modify_region): New argument BUFFER.  Select that
 	buffer while we prepare for the modification, and switch back when
@@ -946,7 +946,7 @@
 
 1993-05-12  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
-        * ymakefile (xfaces.o): Add window.h to the dependencies.
+	* ymakefile (xfaces.o): Add window.h to the dependencies.
 
 	* xfaces.c (intern_frame_face): Exchange order of arguments, to
 	make callers correct.
@@ -998,9 +998,9 @@
 
 1993-05-10  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
-        * fileio.c (ro_fsys) [SOLARIS_BROKEN_ACCESS]: Check for the
-        filesystem being ro, since Solaris 2.1 doesn't.
-        (file-writable-p): Call ro_fsys.
+	* fileio.c (ro_fsys) [SOLARIS_BROKEN_ACCESS]: Check for the
+	filesystem being ro, since Solaris 2.1 doesn't.
+	(file-writable-p): Call ro_fsys.
 	* s/sol2.h (SOLARIS_BROKEN_ACCESS): Define this.
 
 	* systime.h: Use the strategy from getdate.y to include the proper
@@ -1125,8 +1125,8 @@
 	* window.c (Vmouse_event): Var deleted.
 	(syms_of_window): Don't make it a Lisp var.
 
-        * keyboard.c (read_avail_input, Fset_input_mode): Make
-        meta_key a three-value variable to support 8-bit input.
+	* keyboard.c (read_avail_input, Fset_input_mode): Make
+	meta_key a three-value variable to support 8-bit input.
 
 1993-05-07  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
@@ -1191,8 +1191,8 @@
 	* keyboard.c (syms_of_keyboard): Doc fix for
 	extra-keyboard-modifiers.
 
-	* lisp.h (CHAR_ALT, CHAR_SUPER, CHAR_HYPER, CHAR_SHIFT, CHAR_CTL,
-	CHAR_META): Shift these all up one bit, back to where they were.
+	* lisp.h (CHAR_ALT, CHAR_SUPER, CHAR_HYPER, CHAR_SHIFT, CHAR_CTL)
+	(CHAR_META): Shift these all up one bit, back to where they were.
 
 1993-05-02  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
@@ -1210,7 +1210,7 @@
 
 1993-04-29  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
-        Implement extra_keyboard_modifiers properly.
+	Implement extra_keyboard_modifiers properly.
 	* keyboard.c (syms_of_keyboard): Doc fix for
 	extra-keyboard-modifiers; use the same modifier bits as we do for
 	characters.
@@ -1229,8 +1229,8 @@
 
 	* lisp.h (CHAR_ALT, CHAR_SUPER, CHAR_HYPER): New constants, in
 	case we need them.
-	* termhooks.h (alt_modifier, super_modifier, hyper_modifier,
-	shift_modifier, ctrl_modifier, meta_modifier): Define these in
+	* termhooks.h (alt_modifier, super_modifier, hyper_modifier)
+	(shift_modifier, ctrl_modifier, meta_modifier): Define these in
 	terms of the CHAR_mumble macros, to avoid having the same thing
 	defined in two places.
 
@@ -1284,7 +1284,7 @@
 1993-04-26  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* m/ibmps2-aix.h, m/ibmrs6000.h, m/ibmrt-aix.h, m/mips.h,
-	m/sps7.h, s/hpux.h, s/usg5-4.h (HAVE_DUP2): Removed; derived by
+	* m/sps7.h, s/hpux.h, s/usg5-4.h (HAVE_DUP2): Removed; derived by
 	configure script.
 	* s/hpux.h, s/irix3-3.h, s/aix3-1.h (HAVE_GETHOSTNAME): Removed;
 	derived by configure script.
@@ -1342,8 +1342,8 @@
 
 	Make the modifier manipulation functions more robust.  The old way
 	caused a bug once, and probably would again.
-	* termhooks.h (alt_modifier, super_modifier, hyper_modifier,
-	shift_modifier, ctrl_modifier, meta_modifier): Shift these all
+	* termhooks.h (alt_modifier, super_modifier, hyper_modifier)
+	(shift_modifier, ctrl_modifier, meta_modifier): Shift these all
 	down one bit in value, to avoid sign extension problems.
 	* lisp.h (CHAR_META, CHAR_CTL, CHAR_SHIFT): Fix these definitions too.
 	* keyboard.c (lispy_modifier_list): Ignore modifier bits beyond
@@ -1370,7 +1370,7 @@
 	* lisp.h (LOADHIST_ATTACH): New macro.
 	(Vcurrent_load_list, Vload_history): Vars declared.
 
-	* eval.c: (defun, defmacro, defvar, defconst):
+	* eval.c (defun, defmacro, defvar, defconst):
 	Attach symbol argument to the list of globals for the input source.
 	(do_autoload): Save the old autoloads, in case we ever unload.
 
@@ -1429,7 +1429,7 @@
 	that out now.
 
 	Changes for Emacs 19 from Thorsten Ohl <ohl@chico.harvard.edu>:
-	* s/mach2.h: copied from the Emacs 18.59 distribution.
+	* s/mach2.h: Copied from the Emacs 18.59 distribution.
 	Don't define NO_REMAP, define START_FILES as
 	`pre-crt0.o' instead.  Define LIB_MATH as `-lm', to override the
 	default `-lm -lc' (there is no libc on the NeXT).
@@ -1452,8 +1452,8 @@
 	* ymakefile ($(OLDXMENU)): Remove $(OLDXMENU) before trying to
 	link in a new version.
 
-	* lisp.h (Qrange_error, Qdomain_error, Qsingularity_error,
-	Qoverflow_error, Qunderflow_error): Add extern to these declarations.
+	* lisp.h (Qrange_error, Qdomain_error, Qsingularity_error)
+	(Qoverflow_error, Qunderflow_error): Add extern to these declarations.
 
 1993-04-12  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -1472,11 +1472,11 @@
 	* keyboard.c (command_loop_1): Rebuild menu bar if
 	update_mode_lines is set.
 
-        long_to_cons and cons_to_long are generally useful things; they're
+	long_to_cons and cons_to_long are generally useful things; they're
 	needed whether or not X is defined.
 	* xselect.c (long_to_cons, cons_to_long): Moved from here...
-	* data.c    (long_to_cons, cons_to_long): ... to here.
-	* lisp.h    (long_to_cons, cons_to_long): Add extern declaration.
+	* data.c (long_to_cons, cons_to_long): ... to here.
+	* lisp.h (long_to_cons, cons_to_long): Add extern declaration.
 
 	* xmenu.c (Qmenu_enable): Definition moved...
 	(syms_of_xmenu): ... along with initialization ...
@@ -1500,11 +1500,11 @@
 	* alloc.c (__malloc_hook, __realloc_hook, __free_hook): Declare
 	these extern, not static.  (!)
 
-	* alloc.c (__malloc_hook, old_malloc_hook, __realloc_hook,
-	old_realloc_hook): Declare that the functions these point to return
+	* alloc.c (__malloc_hook, old_malloc_hook, __realloc_hook)
+	(old_realloc_hook): Declare that the functions these point to return
 	void *, not void.
 
-        Adjust for autoconf merger.
+	Adjust for autoconf merger.
 	* config.h.in: Add extra line to top, in case autoconf gets fixed
 	and decides not to add Makefile-style comments to the top of the
 	files it generates which we are forced to lop off.
@@ -1594,8 +1594,8 @@
 	This isn't specific to X, and it allows us to avoid #including
 	xterm.h in files that don't really have anything to do with X.
 	* blockinput.h: New file.
-	* xterm.h (BLOCK_INPUT, UNBLOCK_INPUT, TOTALLY_UNBLOCK_INPUT,
-	UNBLOCK_INPUT_RESIGNAL): These are now in blockinput.h.
+	* xterm.h (BLOCK_INPUT, UNBLOCK_INPUT, TOTALLY_UNBLOCK_INPUT)
+	(UNBLOCK_INPUT_RESIGNAL): These are now in blockinput.h.
 	(x_input_blocked, x_pending_input): Deleted; there are analogs
 	in blockinput.h called interrupt_input_blocked and
 	interrupt_input_pending.
@@ -1615,8 +1615,7 @@
 
 	Block the processing of interrupt input while we're manipulating the
 	malloc heap.
-	* alloc.c: (xfree): New function, to make it easy to free things
-	safely.
+	* alloc.c (xfree): New function, to make it easy to free things safely.
 	(xmalloc, xrealloc): Block X input while doing the deed.
 	(VALIDATE_LISP_STORAGE, gc_sweep, compact_strings): Use xfree
 	instead of free.
@@ -1624,8 +1623,8 @@
 	hooks into the GNU malloc routines.
 	* emacs.c [not SYSTEM_MALLOC] (main): Call uninterrupt_malloc
 	on startup.
-	* alloc.c: (make_interval, make_float, Fcons, Fmake_vector,
-	Fmake_symbol, Fmake_marker, make_uninit_string, Fgarbage_collect):
+	* alloc.c (make_interval, make_float, Fcons, Fmake_vector)
+	(Fmake_symbol, Fmake_marker, make_uninit_string, Fgarbage_collect):
 	Use xmalloc instead of malloc; don't bother to check if out of
 	memory here.
 	(Fgarbage_collect): Call xrealloc instead of realloc.
@@ -1638,7 +1637,7 @@
 	* xfaces.c (xfree): Don't #define this to be free; use the
 	definition in alloc.c.
 	* dispnew.c, doc.c, doprnt.c, fileio.c, lread.c, term.c, xfns.c,
-	xmenu.c, xterm.c: Use xfree instead of free.
+	* xmenu.c, xterm.c: Use xfree instead of free.
 	* hftctl.c: Use xfree and xmalloc instead of free and malloc.
 	* keymap.c (current_minor_maps): BLOCK_INPUT while calling realloc
 	and malloc.
@@ -1648,8 +1647,8 @@
 	of free and malloc.  BLOCK_INPUT around routines which we know
 	will call malloc.
 
-	ymakefile (keyboard.o, keymap.o, search.o, sysdep.o, xfaces.o,
-	xfns.o, xmenu.o, xterm.o, xselect.o, alloc.o, eval.o): Note that
+	* ymakefile (keyboard.o, keymap.o, search.o, sysdep.o, xfaces.o)
+	(xfns.o, xmenu.o, xterm.o, xselect.o, alloc.o, eval.o): Note that
 	these depend on blockinput.h.
 
 	* keyboard.c (parse_modifiers, apply_modifiers): Make sure we're
@@ -1761,8 +1760,8 @@
 	* xterm.c [VMS]: Don't #include <sys/termio.h> and <string.h>.
 	* xfns.c [VMS]: Get the gray_bits from [.bitmaps]gray.xbm.
 	* process.c [VMS] (DCL_PROMPT): Remove hack.
-	(WIFSTOPPED, WIFSIGNALED, WIFEXITED, XRETCODE, WSTOPSIG,
-	WCOREDUMP, WTERMSIG): New dummy definitions.
+	(WIFSTOPPED, WIFSIGNALED, WIFEXITED, XRETCODE, WSTOPSIG)
+	(WCOREDUMP, WTERMSIG): New dummy definitions.
 	(deactivate_process): Add missing semicolon.
 	* dispnew.c (init_display): Get display name from environment
 	properly on VMS as well as Unix.
@@ -2004,7 +2003,7 @@
 
 1993-03-16  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
-        * cmds.c (overwrite_binary_mode): Deleted; this implements the
+	* cmds.c (overwrite_binary_mode): Deleted; this implements the
 	wrong feature.
 	(Qoverwrite_mode_binary): New variable.
 	(internal_self_insert): If current_buffer->overwrite_mode is
@@ -2185,7 +2184,7 @@
 
 1993-03-12  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
 
-	* term.c (CONDITIONAL_REASSIGN): fixed reference to tigetstr.
+	* term.c (CONDITIONAL_REASSIGN): Fixed reference to tigetstr.
 	This should have been tgetstr, but I typoed and tigetstr happens
 	to link and even do the right thing if you're on a System V box.
 
@@ -2304,8 +2303,8 @@
 	* m/intel386.h (LIB_STANDARD): If USG5_4 is #defined, there's no
 	need to include `-lPW'; that has been merged with `-lc'.
 
-	* emacs.c (__do_global_ctors, __do_global_ctors_aux,
-	__do_global_dtors, __CTOR_LIST__, __DTOR_LIST__, __main): Don't
+	* emacs.c (__do_global_ctors, __do_global_ctors_aux)
+	(__do_global_dtors, __CTOR_LIST__, __DTOR_LIST__, __main): Don't
 	define these if ORDINARY_LINK is #defined; in that case, the
 	standard linking procedure will find definitions for these.
 
@@ -2549,7 +2548,7 @@
 	* indent.c (current_column, Fmove_to_column, compute_motion):
 	Expect display table elts to be vectors.
 
-	* alloc.c: (Fmake_rope, Frope_elt): Fns deleted.
+	* alloc.c (Fmake_rope, Frope_elt): Fns deleted.
 
 	* lisp.h (CHAR_META, CHAR_SHIFT, CHAR_CTL): New macros.
 
@@ -2616,10 +2615,10 @@
 
 1993-03-02  Karl Berry  (karl@cs.umb.edu)
 
-        * s/isc2-2.h (USG_SHARED_LIBRARIES, CLASH_DETECTION, NO_FCHMOD):
-        Define.
-        (HAVE_TIMEVAL): Do not define.
-        (NO_ASM): Only define once.
+	* s/isc2-2.h (USG_SHARED_LIBRARIES, CLASH_DETECTION, NO_FCHMOD):
+	Define.
+	(HAVE_TIMEVAL): Do not define.
+	(NO_ASM): Only define once.
 
 1993-03-02  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
@@ -2701,10 +2700,10 @@
 
 	Use the term `scroll bar', instead of `scrollbar'.
 	* alloc.c, frame.c, frame.h, indent.c, keyboard.c, keyboard.h,
-	lisp.h, term.c, termhooks.h, window.c, window.h, xdisp.c, xfns.c,
-	xterm.c, xterm.h: Terminology changed.
+	* lisp.h, term.c, termhooks.h, window.c, window.h, xdisp.c, xfns.c,
+	* xterm.c, xterm.h: Terminology changed.
 
-        Don't generate switch-frame events by checking Vlast_event_frame;
+	Don't generate switch-frame events by checking Vlast_event_frame;
 	use a separate variable for that bookkeeping.  In order to
 	generate them properly, we may need to fiddle with it.
 	* keyboard.c (internal_last_event_frame): New variable.
@@ -3103,12 +3102,12 @@
 
 1993-02-08  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
-	* keymap.c (Flookup_key, Fkey_binding, Flocal_key_binding,
-	Fglobal_key_binding, Fminor_mode_key_binding): Add a new optional
+	* keymap.c (Flookup_key, Fkey_binding, Flocal_key_binding)
+	(Fglobal_key_binding, Fminor_mode_key_binding): Add a new optional
 	argument ACCEPT_DEFAULT, to control whether this function sees
 	bindings for t.
-	(Fwhere_is_internal, describe_map_tree, describe_map_2,
-	describe_vector): Pass the proper arguments to Flookup_key.
+	(Fwhere_is_internal, describe_map_tree, describe_map_2)
+	(describe_vector): Pass the proper arguments to Flookup_key.
 
 	* fileio.c (Fexpand_file_name): Pass DEFALT through
 	Fexpand_file_name before using it.
@@ -3161,7 +3160,7 @@
 
 1993-01-25  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
-        `live-frame-p' has become `frame-live-p'.
+	`live-frame-p' has become `frame-live-p'.
 	* frame.c (Qlive_frame_p): Renamed to Qframe_live_p.
 	(Flive_frame_p): Renamed to Fframe_live_p.
 	(syms_of_frame): Defsubrs and initializations adjusted.
@@ -3300,8 +3299,8 @@
 	* commands.h (unread_command_event): Change extern declaration.
 	* keyboard.c (unread_command_event): Change the definition.
 	(syms_of_keyboard): Change DEFVAR, and adjust the docstring.
-	(command_loop_1, read_char, Finput_pending, Fdiscard_input,
-	quit_throw_to_read_char, init_keyboard): Change to use
+	(command_loop_1, read_char, Finput_pending, Fdiscard_input)
+	(quit_throw_to_read_char, init_keyboard): Change to use
 	unread_command_events, with the new semantics.
 	* lread.c (read_char): Same.
 	* minibuf.c (temp_echo_area_glyphs): Same.
@@ -3325,7 +3324,7 @@
 
 	* xterm.c (x_set_window_size): Always mark the frame garbaged.
 
-        * window.c (Vmouse_window): Variable removed; it can't be handled
+	* window.c (Vmouse_window): Variable removed; it can't be handled
 	properly without race conditions, and the events give you all the
 	information you need anyway.
 	(syms_of_window): Remove DEFVAR.
@@ -3422,10 +3421,10 @@
 	* xterm.h (struct x_display): vertical_scrollbars and
 	judge_timestamp members deleted.
 	(struct scrollbar): Redesigned to be a template for a Lisp_Vector.
-	(SCROLLBAR_VEC_SIZE, XSCROLLBAR, SCROLLBAR_PACK, SCROLLBAR_UNPACK,
-	SCROLLBAR_X_WINDOW, SET_SCROLLBAR_X_WINDOW,
-	VERTICAL_SCROLLBAR_INSIDE_WIDTH, VERTICAL_SCROLLBAR_TOP_RANGE,
-	VERTICAL_SCROLLBAR_INSIDE_HEIGHT, VERTICAL_SCROLLBAR_MIN_HANDLE):
+	(SCROLLBAR_VEC_SIZE, XSCROLLBAR, SCROLLBAR_PACK, SCROLLBAR_UNPACK)
+	(SCROLLBAR_X_WINDOW, SET_SCROLLBAR_X_WINDOW)
+	(VERTICAL_SCROLLBAR_INSIDE_WIDTH, VERTICAL_SCROLLBAR_TOP_RANGE)
+	(VERTICAL_SCROLLBAR_INSIDE_HEIGHT, VERTICAL_SCROLLBAR_MIN_HANDLE):
 	New macros, to help deal with the lispy structures, and deal with
 	the graphics.
 	* frame.h (WINDOW_VERTICAL_SCROLLBAR): Macro deleted.
@@ -3441,11 +3440,11 @@
 	* xterm.c (x_window_to_scrollbar): Scrollbars are chained on
 	frames' scrollbar field, not their x.display->vertical_scrollbars
 	field.
-	(x_scrollbar_create, x_scrollbar_set_handle, x_scrollbar_move,
-	x_scrollbar_remove, XTset_vertical_scrollbar,
-	XTcondemn_scrollbars, XTredeem_scrollbar, XTjudge_scrollbars,
-	x_scrollbar_expose, x_scrollbar_handle_click,
-	x_scrollbar_handle_motion): Substantially rewritten to correct
+	(x_scrollbar_create, x_scrollbar_set_handle, x_scrollbar_move)
+	(x_scrollbar_remove, XTset_vertical_scrollbar)
+	(XTcondemn_scrollbars, XTredeem_scrollbar, XTjudge_scrollbars)
+	(x_scrollbar_expose, x_scrollbar_handle_click)
+	(x_scrollbar_handle_motion): Substantially rewritten to correct
 	typos and brainos, and to accomodate the lispy structures.
 
 	* xterm.c (x_scrollbar_background_expose): Function deleted; we
@@ -3479,10 +3478,10 @@
 	window_internal_width.
 	(pos_tab_offset, Fvertical_motion): Use window_internal_width
 	instead of writing it out.
-	* window.c (Fpos_visible_in_window_p, Fwindow_width, Fscroll_left,
-	Fscroll_right): Same.
-	* xdisp.c (redisplay, try_window, try_window_id,
-	display_text_line): Same.
+	* window.c (Fpos_visible_in_window_p, Fwindow_width, Fscroll_left)
+	(Fscroll_right): Same.
+	* xdisp.c (redisplay, try_window, try_window_id)
+	(display_text_line): Same.
 
 	* xdisp.c (display_string): Add new variable `f', to be W's
 	frame.  Use it to set desired_glyphs, and to get the frame's width
@@ -3502,17 +3501,17 @@
 	(x_set_vertical_scrollbar): Renamed to x_set_vertical_scrollbars.
 	(x_frame_parms): Adjusted accordingly.
 
-	* xterm.h (CHAR_TO_PIXEL_WIDTH, CHAR_TO_PIXEL_HEIGHT,
-	PIXEL_TO_CHAR_WIDTH, PIXEL_TO_CHAR_HEIGHT): Rewritten, using:
-	(CHAR_TO_PIXEL_ROW, CHAR_TO_PIXEL_COL, PIXEL_TO_CHAR_ROW,
-	PIXEL_TO_CHAR_COL): New macros.
+	* xterm.h (CHAR_TO_PIXEL_WIDTH, CHAR_TO_PIXEL_HEIGHT)
+	(PIXEL_TO_CHAR_WIDTH, PIXEL_TO_CHAR_HEIGHT): Rewritten, using:
+	(CHAR_TO_PIXEL_ROW, CHAR_TO_PIXEL_COL, PIXEL_TO_CHAR_ROW)
+	(PIXEL_TO_CHAR_COL): New macros.
 	* xfns.c [not HAVE_X11] (Fx_create_frame): Use the
 	PIXEL_TO_CHAR_{HEIGHT,WIDTH} macros to figure the frame's
 	character size, and the CHAR_TO_PIXEL* macros for vice versa.
-	* xterm.c (XTwrite_glyphs, XTclear_end_of_line, stufflines,
-	scraplines, dumprectangle, pixel_to_glyph_coords, x_draw_box,
-	clear_cursor, x_display_bar_cursor, x_draw_single_glyph,
-	x_set_mouse_position): Use the CHAR_TO_PIXEL_* macros.
+	* xterm.c (XTwrite_glyphs, XTclear_end_of_line, stufflines)
+	(scraplines, dumprectangle, pixel_to_glyph_coords, x_draw_box)
+	(clear_cursor, x_display_bar_cursor, x_draw_single_glyph)
+	(x_set_mouse_position): Use the CHAR_TO_PIXEL_* macros.
 
 	* xterm.c (x_wm_set_size_hint): The max_width and max_height
 	members of the size_hints are expressed in pixels, not columns.
@@ -3606,8 +3605,8 @@
 	input_event to use frame_or_window now.
 	* xterm.c (construct_mouse_click, XTread_socket): Same.
 
-	* xterm.c (last_mouse_bar, last_mouse_bar_frame, last_mouse_part,
-	last_mouse_scroll_range_start, last_mouse_scroll_range_end):
+	* xterm.c (last_mouse_bar, last_mouse_bar_frame, last_mouse_part)
+	(last_mouse_scroll_range_start, last_mouse_scroll_range_end):
 	Replaced with...
 	(last_mouse_scrollbar): New variable.
 	(note_mouse_movement): Clear last_mouse_scrollbar when we have
@@ -3719,7 +3718,7 @@
 
 1993-01-07  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
-        * config.h.in: protect against multiple #inclusions.
+	* config.h.in: Protect against multiple #inclusions.
 
 	* config.h.in: Add a declaration for getenv.
 
@@ -3757,7 +3756,7 @@
 
 1992-12-21  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
-        * keyboard.c: Protect all references to kbd_buffer_frames with
+	* keyboard.c: Protect all references to kbd_buffer_frames with
 	#ifdef MULTI_FRAME.
 
 	* frame.h (struct frame): New fields `can_have_scrollbars' and
@@ -3771,11 +3770,11 @@
 	* xterm.h (struct x_display): vertical_scrollbars,
 	judge_timestamp, vertical_scrollbar_extra: New fields.
 	(struct scrollbar): New struct.
-	(VERTICAL_SCROLLBAR_PIXEL_WIDTH, VERTICAL_SCROLLBAR_PIXEL_HEIGHT,
-	VERTICAL_SCROLLBAR_LEFT_BORDER, VERTICAL_SCROLLBAR_RIGHT_BORDER,
-	VERTICAL_SCROLLBAR_TOP_BORDER, VERTICAL_SCROLLBAR_BOTTOM_BORDER,
-	CHAR_TO_PIXEL_WIDTH, CHAR_TO_PIXEL_HEIGHT, PIXEL_TO_CHAR_WIDTH,
-	PIXEL_TO_CHAR_HEIGHT): New accessors and macros.
+	(VERTICAL_SCROLLBAR_PIXEL_WIDTH, VERTICAL_SCROLLBAR_PIXEL_HEIGHT)
+	(VERTICAL_SCROLLBAR_LEFT_BORDER, VERTICAL_SCROLLBAR_RIGHT_BORDER)
+	(VERTICAL_SCROLLBAR_TOP_BORDER, VERTICAL_SCROLLBAR_BOTTOM_BORDER)
+	(CHAR_TO_PIXEL_WIDTH, CHAR_TO_PIXEL_HEIGHT, PIXEL_TO_CHAR_WIDTH)
+	(PIXEL_TO_CHAR_HEIGHT): New accessors and macros.
 	* frame.c (make_frame): Initialize the `can_have_scrollbars' and
 	`has_vertical_scrollbars' fields of the frame.
 	* term.c (term_init): Note that TERMCAP terminals don't support
@@ -3797,17 +3796,17 @@
 	* xterm.c: #include <X11/cursorfont.h> and "window.h".
 	(x_vertical_scrollbar_cursor): New variable.
 	(x_term_init): Initialize it.
-	(last_mouse_bar, last_mouse_bar_frame, last_mouse_part,
-	last_mouse_scroll_range_start, last_mouse_scroll_range_end): New
+	(last_mouse_bar, last_mouse_bar_frame, last_mouse_part)
+	(last_mouse_scroll_range_start, last_mouse_scroll_range_end): New
 	variables.
 	(XTmouse_position): Use them to return scrollbar movement events.
 	Take new arguments, for that purpose.
-	(x_window_to_scrollbar, x_scrollbar_create,
-	x_scrollbar_set_handle, x_scrollbar_remove, x_scrollbar_move,
-	XTset_scrollbar, XTcondemn_scrollbars, XTredeem_scrollbar,
-	XTjudge_scrollbars, x_scrollbar_expose,
-	x_scrollbar_background_expose, x_scrollbar_handle_click,
-	x_scrollbar_handle_motion): New functions to implement scrollbars.
+	(x_window_to_scrollbar, x_scrollbar_create)
+	(x_scrollbar_set_handle, x_scrollbar_remove, x_scrollbar_move)
+	(XTset_scrollbar, XTcondemn_scrollbars, XTredeem_scrollbar)
+	(XTjudge_scrollbars, x_scrollbar_expose)
+	(x_scrollbar_background_expose, x_scrollbar_handle_click)
+	(x_scrollbar_handle_motion): New functions to implement scrollbars.
 	(x_term_init): Set the termhooks.h hooks to point to them.
 	(x_set_window_size): Use new macros to calculate frame size.  Set
 	vertical_scrollbar_extra field.
@@ -3842,9 +3841,9 @@
 	v_thumbdown, v_slider, h_scrollbar, h_thumbup,
 	h_thumbdown, h_slider, v_scrollbar_width, h_scrollbar_height
 	fields.
-	* keyboard.c (Qvscrollbar_part, Qvslider_part, Qvthumbup_part,
-	Qvthumbdown_part, Qhscrollbar_part, Qhslider_part, Qhthumbup_part,
-	Qhthumbdown_part, Qscrollbar_click): Deleted; part of an obsolete
+	* keyboard.c (Qvscrollbar_part, Qvslider_part, Qvthumbup_part)
+	(Qvthumbdown_part, Qhscrollbar_part, Qhslider_part, Qhthumbup_part)
+	(Qhthumbdown_part, Qscrollbar_click): Deleted; part of an obsolete
 	interface.
 	(head_table): Removed from here as well.
 	(syms_of_keyboard): And here.
@@ -4108,8 +4107,8 @@
 	* xterm.c (XTread_socket): When we get MapNotify, UnmapNotify,
 	Expose, ExposeWindow, or UnmapWindow, set f->async_visible, not
 	f->visible.
-	(x_do_pending_expose, x_raise_frame, x_lower_frame,
-	x_make_frame_invisible, x_make_frame_visible, x_iconify_frame):
+	(x_do_pending_expose, x_raise_frame, x_lower_frame)
+	(x_make_frame_invisible, x_make_frame_visible, x_iconify_frame):
 	Test and set f->async_visible and f->async_iconified, not
 	f->visible or f->async_iconified.
 
@@ -4287,8 +4286,8 @@
 	`make-obsolete-variable' to warn people.
 	* command.h (unread_command_char): Change name in extern declaration.
 	* keyboard.c (unread_command_char): Rename.
-	(command_loop_1, read_char, Finput_pending, Fdiscard_input,
-	quit_throw_to_read_char, init_keyboard, syms_of_keyboard): Change
+	(command_loop_1, read_char, Finput_pending, Fdiscard_input)
+	(quit_throw_to_read_char, init_keyboard, syms_of_keyboard): Change
 	references.
 	* lread.c (Fread_char): Change reference.
 	* minibuf.c (temp_echo_area_glyphs): Change reference to
@@ -4373,7 +4372,7 @@
 	calling getwd.
 	#include <sys/types.h> and <sys/stat.h>, for the call to stat.
 
-        Indicate whether an autoload form stands for a keymap or not.
+	Indicate whether an autoload form stands for a keymap or not.
 	* eval.c (Fautoload): Renamed fifth argument TYPE.  Document the
 	fact that (eq TYPE 'keymap) means FUNCTION will become a keymap
 	when loaded.
@@ -4441,15 +4440,15 @@
 	(read_key_sequence): Declare PROMPT to be char *, not a
 	Lisp_Object.  Use the appropriate accessors on keybuf when looking
 	for ASCII function key sequences.
-	* keyboard.h (get_keymap_1, Fkeymapp, reorder_modifiers,
-	Fmouse_click_p, read_char): Add external declarations for these.
+	* keyboard.h (get_keymap_1, Fkeymapp, reorder_modifiers)
+	(Fmouse_click_p, read_char): Add external declarations for these.
 	* keymap.c (Fdefine_key, Flookup_key, describe_map): Don't assume
 	that Flength returns an integer.
-	* lisp.h (Fdefault_boundp, make_float, Ffloat, Fnth, Fcopy_alist,
-	Fmake_byte_code, Fverify_visited_file_modtime, Ffile_exists_p,
-	Fdirectory_file_name, Ffile_name_directory,
-	expand_and_dir_to_file, Ffile_accessible_directory_p, Fbyte_code,
-	Fundo_boundary, truncate_undo_list): Add extern declarations for
+	* lisp.h (Fdefault_boundp, make_float, Ffloat, Fnth, Fcopy_alist)
+	(Fmake_byte_code, Fverify_visited_file_modtime, Ffile_exists_p)
+	(Fdirectory_file_name, Ffile_name_directory)
+	(expand_and_dir_to_file, Ffile_accessible_directory_p, Fbyte_code)
+	(Fundo_boundary, truncate_undo_list): Add extern declarations for
 	these.
 	* lread.c (read_char): Add an extern declaration for this,
 	indicating that it returns a Lisp_Object.
@@ -4458,7 +4457,7 @@
 	unread_command_char.
 	* print.c (print): Cast the frame's address to an integer before
 	passing it to sprintf to form the frame's printed form.
-	* process.c: (status_convert): Declare this to return a
+	* process.c (status_convert): Declare this to return a
 	Lisp_Object at the top of the file.
 	(decode_status): Don't untag XCONS (tem)->cdr before storing it in
 	tem; tem is a Lisp_Object, too.
@@ -4508,9 +4507,9 @@
 	PART as Qnil, not zero.
 	(x_calc_absolute_position): Remember that x_screen_width and
 	x_screen_height are ints, not Lisp_Objects.
-	* xterm.h (x_screen_count, x_release, x_screen_height,
-	x_screen_height_mm, x_screen_width, x_screen_width_mm,
-	x_save_under, x_screen_planes): Declare this as ints, to match
+	* xterm.h (x_screen_count, x_release, x_screen_height)
+	(x_screen_height_mm, x_screen_width, x_screen_width_mm)
+	(x_save_under, x_screen_planes): Declare this as ints, to match
 	their definitions in xterm.c.
 	* ymakefile: Note the new dependencies caused by the new
 	#inclusions above.
@@ -4566,7 +4565,7 @@
 	that nobody outside of this file uses it.
 
 	* keymap.c: Deal with autoloaded keymaps properly.
-        (get_keymap_1): Renamed to inner_get_keymap; made
+	(get_keymap_1): Renamed to inner_get_keymap; made
 	static.  New argument AUTOLOAD says to pursue autoloads if
 	non-zero.
 	(Fkeymapp, get_keymap, get_keyelt, Flookup_key): Ask get_keymap_1
@@ -4595,9 +4594,9 @@
 
 1992-10-27  Noah Friedman  (friedman@nutrimat.gnu.ai.mit.edu)
 
-        * sysdep.c (get_system_name): Use gethostname for USG systems if
-        HAVE_GETHOSTNAME is defined.
-        * s/hpux7.h, s/irix3-3.h (HAVE_GETHOSTNAME): Define it.
+	* sysdep.c (get_system_name): Use gethostname for USG systems if
+	HAVE_GETHOSTNAME is defined.
+	* s/hpux7.h, s/irix3-3.h (HAVE_GETHOSTNAME): Define it.
 
 1992-10-27  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
@@ -4678,7 +4677,7 @@
 
 	* xdisp.c (message): If M is zero, clear echo_area_glyphs and
 	previous_echo_glyphs, so that the minibuffer shows through.
-*       * editfns.c (Fmessage): With no arguments, clear any active
+	* editfns.c (Fmessage): With no arguments, clear any active
 	message; let the minibuffer contents show through.
 	* minibuf.c (temp_echo_area_glyphs): Don't clear echo_area_glyphs
 	and previous_echo_glyphs; let message do that work.
@@ -4691,7 +4690,7 @@
 	(init_keyboard): Don't allocate it here.
 	(syms_of_keyboard): Allocate it here, and staticpro it.
 	* keyboard.h (this_command_keys): Extern declaration changed.  Doc fix.
-        * callint.c (Fcall_interactively): Change handling of 'e' spec;
+	* callint.c (Fcall_interactively): Change handling of 'e' spec;
 	this_command_keys is now a vector.
 
 	* keyboard.c (read_char): Call ourselves with the appropriate
@@ -4700,7 +4699,7 @@
 	store things in it.
 
 	* window.c: Try to deal coherently with deleted windows:
-*	(Flive_window_p): New function.
+	(Flive_window_p): New function.
 	(Qlive_window_p): New variable, to name it in type errors.
 	(syms_of_window): Defsubr Slive_window_p, init and staticpro
 	Qlive_window_p.
@@ -4709,9 +4708,9 @@
 	* window.c (decode_window): Use CHECK_LIVE_WINDOW instead of
 	CHECK_WINDOW; the only thing a user should be able to do to a dead
 	window is check its type.
-	(Fcoordinates_in_window_p, Fnext_window, Fprevious_window,
-	Fdelete_other_windows, Fselect_window, Fsplit_window,
-	Fscroll_other_window): Use CHECK_LIVE_WINDOW instead of
+	(Fcoordinates_in_window_p, Fnext_window, Fprevious_window)
+	(Fdelete_other_windows, Fselect_window, Fsplit_window)
+	(Fscroll_other_window): Use CHECK_LIVE_WINDOW instead of
 	CHECK_WINDOW.
 	* frame.c (make_frame_without_minibuffer, Fwindow_frame): Same.
 	* sunfns.c (Fsun_menu_internal): Same.
@@ -4891,7 +4890,7 @@
 	(syms_of_keyboard): DEFVAR Vlast_event_frame whether or not
 	MULTI_FRAME is defined.
 
-        * keyboard.c: Add switch-frame events.
+	* keyboard.c: Add switch-frame events.
 	(Qswitch_frame): New event header symbol.
 	(head_table): Include Qswitch_frame in the table of event heads.
 	(kbd_buffer_get_event): Detect when a frame switch has occurred,
@@ -5102,15 +5101,15 @@
 	are not 5 elements long.
 	(EVENT_HEAD): Work correctly on all sorts of events, not just
 	events with parameters.
-	(EVENT_WINDOW, EVENT_BUFFER_POSN, EVENT_SCROLLBAR_BUTTON,
-	EVENT_WINDOW_POSN, EVENT_TIMESTAMP): These aren't useful
+	(EVENT_WINDOW, EVENT_BUFFER_POSN, EVENT_SCROLLBAR_BUTTON)
+	(EVENT_WINDOW_POSN, EVENT_TIMESTAMP): These aren't useful
 	anymore; this information may appear twice in an event.  These
 	are replaced by the POSN_ accessors, which are meant to be
 	composed with the EVENT_START and EVENT_END accessors.
 	(EVENT_START, EVENT_END): Two new accessors, to get at the
 	starting and ending position of an event.
-	(POSN_WINDOW, POSN_BUFFER_POSN, PONS_SCROLLBAR_BUTTON,
-	POSN_WINDOW_POSN, POSN_TIMESTAMP): New macros, to futher
+	(POSN_WINDOW, POSN_BUFFER_POSN, PONS_SCROLLBAR_BUTTON)
+	(POSN_WINDOW_POSN, POSN_TIMESTAMP): New macros, to futher
 	diasassemble the values returned by EVENT_START and EVENT_END.
 	* keyboard.c (echo_char, read_char): Apply EVENT_HEAD without first
 	testing for EVENT_HAS_PARAMETERS; EVENT_HEAD works properly on
@@ -5124,7 +5123,7 @@
 
 	* keyboard.c (Qevent_unmodified): Replaced by...
 	(Qevent_symbol_elements): New property.
-	(syms_of_keyboard): initialize and staticpro the latter, not the
+	(syms_of_keyboard): Initialize and staticpro the latter, not the
 	former.
 	* keyboard.h (Qevent_unmodified): Extern declaration replaced by...
 	(Qevent_symbol_elements): This.
@@ -5248,7 +5247,7 @@
 	got removed with no comment or ChangeLog entry, and
 	append-to-buffer uses it.
 
-        * window.c (struct save_window_data): Add a member called
+	* window.c (struct save_window_data): Add a member called
 	focus_frame, to save and restore the screen's focus frame.
 	(Fset_window_configuration): Redirect the frame's focus as
 	indicated in the window configuration.
@@ -5284,12 +5283,12 @@
 
 	* xselect.c (Qcut_buffer0): Symbol removed; we're using a new
 	interface to the cut buffer now.
-	(NUM_CUT_BUFFERS, cut_buffer_atom, cut_buffer_value,
-	cut_buffer_cached, cut_buffer_just_set): New variables.
+	(NUM_CUT_BUFFERS, cut_buffer_atom, cut_buffer_value)
+	(cut_buffer_cached, cut_buffer_just_set): New variables.
 	(Fx_own_selection, Fx_selection_value): Dike out the code to
 	handle CUT_BUFFER0 requests.
-	(Fx_get_cut_buffer, Fx_set_cut_buffer, x_watch_cut_buffer_cache,
-	x_invalidate_cut_buffer_cache): New functions.
+	(Fx_get_cut_buffer, Fx_set_cut_buffer, x_watch_cut_buffer_cache)
+	(x_invalidate_cut_buffer_cache): New functions.
 	(syms_of_xselect): Don't bother to initialize Qcut_buffer0.
 	Initialize and staticpro cut_buffer_value, and defsubr
 	Sx_get_cut_buffer and Sx_set_cut_buffer.
@@ -5327,9 +5326,9 @@
 
 1992-09-28  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
-	* frame.c (Fselect_frame, Fframe_root_window,
-	Fframe_selected_window, Fnext_frame, Fmake_frame_visible,
-	Fmake_frame_invisible, Ficonify_frame): Doc fixes.
+	* frame.c (Fselect_frame, Fframe_root_window)
+	(Fframe_selected_window, Fnext_frame, Fmake_frame_visible)
+	(Fmake_frame_invisible, Ficonify_frame): Doc fixes.
 
 	* ralloc.c: Since the users of the relocating allocation code
 	handle memory exhaustion, it's better to return an error code to
@@ -5378,8 +5377,8 @@
 	(syms_of_keyboard): Doc fix for Vlast_event_frame.
 	(Vlast_event_frame): Doc fix.
 
-	* termhooks.h (alt_modifier, hyper_modifier, super_modifier,
-	down_modifier, drag_modifier): New modifiers, to support the new
+	* termhooks.h (alt_modifier, hyper_modifier, super_modifier)
+	(down_modifier, drag_modifier): New modifiers, to support the new
 	input system.  Re-arranged modifiers so that their bits are in
 	canonical order; this makes reorder_modifiers slightly simpler.
 	* keyboard.c (format_modifiers, reorder_modifiers): Handle the new
@@ -5421,16 +5420,16 @@
 	between text with different properties.  Use the old and new
 	positions as arguments to these calls.
 
-	* intervals.c, intervals.h: (map_intervals, make_buffer_interval,
-	 make_string_interval,run_hooks): Deleted.
+	* intervals.c, intervals.h (map_intervals, make_buffer_interval)
+	(make_string_interval, run_hooks): Deleted.
 
 1992-09-23  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* keymap.c (DENSE_TABLE_SIZE): Doc fix.
 	(keymap_table): Function removed; this function exists only to
 	support an incorrect understanding of the format of keymaps.
-	(access_keymap, store_in_keymap, Fcopy_keymap,
-	Faccessible_keymaps): Correctly handle vectors at any point in the
+	(access_keymap, store_in_keymap, Fcopy_keymap)
+	(Faccessible_keymaps): Correctly handle vectors at any point in the
 	keymap; don't assume it must be at the front.
 	(describe_map): Instead of calling describe_vector on the vector
 	in the cadr of the keymap (if present) and then calling
@@ -5656,12 +5655,12 @@
 
 1992-09-11  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
-        * s/esix5r4.h: New file.
+	* s/esix5r4.h: New file.
 
-        * sysdep.c (init_sys_modes): Handle VDSUSP like V_DSUSP.
-        Use CDISABLE, not CDEL.
-        Turn off IEXTEN if it exists.
-        * systty.h (CDISABLE): New macro; may be defined from CDEL.
+	* sysdep.c (init_sys_modes): Handle VDSUSP like V_DSUSP.
+	Use CDISABLE, not CDEL.
+	Turn off IEXTEN if it exists.
+	* systty.h (CDISABLE): New macro; may be defined from CDEL.
 
 	* keyboard.c (command_loop_1): Bind inhibit-quit to t when in Fsit_for.
 
@@ -5676,7 +5675,7 @@
 
 1992-09-09  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
-	* frame.c (choose_minibuf_frame): abort if the selected frame has
+	* frame.c (choose_minibuf_frame): Abort if the selected frame has
 	nil in its minibuffer_window slot; this shouldn't happen any more.
 	* window.c (minibuffer_window): Accept an optional FRAME argument;
 	if specified, return the minibuffer used by that frame.
@@ -5758,9 +5757,9 @@
 
 1992-09-03  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
-        * editfns.c (Fcurrent_time_string): Change docstring to
-        indicate that we will probably add the timezone to the end,
-        now that we have it available on many systems.
+	* editfns.c (Fcurrent_time_string): Change docstring to
+	indicate that we will probably add the timezone to the end,
+	now that we have it available on many systems.
 
 	* xrdb.c: Don't include <X11/Xos.h>.  Under R4, it stupidly
 	insists on defining SIGCHLD, even if it already has a definition.
@@ -5774,7 +5773,7 @@
 	otherwise, approximate the right thing, by using min_width and
 	min_height as the base size.
 
-1992-09-02  Barry A. Warsaw   (warsaw@anthem.nlm.nih.gov)
+1992-09-02  Barry A. Warsaw  (warsaw@anthem.nlm.nih.gov)
 
 	Extended syntax.c in the following ways to support up to 2
 	orthogonal comment styles per mode.  This is needed for C++.
@@ -5817,7 +5816,7 @@
 	* doc.c (Fsnarf_documentation): Signal an error if this is
 	called in a dumped Emacs.
 
-	* alloc.c (mark_object): mark a symbol's name after marking its
+	* alloc.c (mark_object): Mark a symbol's name after marking its
 	value, function, and property list rather than before; this way,
 	symbols' names are readable, giving us a chance to detect some
 	kinds of heap corruption.
@@ -5899,7 +5898,7 @@
 	versions of HP/UX before 6.5.
 	Don't define BIG_ENDIAN if it seems that <endian.h> has already
 	done so.
-        [BSD4_3] Define m68000, instead of hp9000s300; crt0.c uses these
+	[BSD4_3] Define m68000, instead of hp9000s300; crt0.c uses these
 	to decide what sort of startup code to use.
 	[not BSD4_3] Under HP/UX, always define the BSD memory functions
 	(bcopy, bzero, and bcmp) in terms of the SYSV string functions
@@ -5988,7 +5987,7 @@
 	hasn't specified the icon position.  Let the window manager put
 	the icon where it likes.
 
-        * xterm.c (x_make_frame_invisible): Don't forget to check the
+	* xterm.c (x_make_frame_invisible): Don't forget to check the
 	return value of XWithdrawWindow; it could indicate that the window
 	wasn't successfully redrawn.
 
@@ -6005,7 +6004,7 @@
 	one-line windows are the minibuffer, or that all minibuffers are
 	one line high.  Use MINI_WINDOW_P.
 
-        * systerm.h: Renamed to systty.h, to be more consistent with
+	* systerm.h: Renamed to systty.h, to be more consistent with
 	everything else in Unix.
 	* dispnew.c, emacs.c, keyboard.c, process.c, sysdep.c: #include
 	directive changed.
@@ -6022,7 +6021,7 @@
 
 1992-08-20  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
-        * fileio.c (Fdo_auto_save): Call Fsleep_for with the appropriate
+	* fileio.c (Fdo_auto_save): Call Fsleep_for with the appropriate
 	number of arguments.
 	* fns.c (Fyes_or_no_p): Same.
 
@@ -6041,7 +6040,7 @@
 
 1992-08-19  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
-        * xterm.c (x_make_frame_invisible): Use XWithdrawWindow when
+	* xterm.c (x_make_frame_invisible): Use XWithdrawWindow when
 	available [HAVE_X11R4]; send the UnmapNotify event when
 	appropriate [HAVE_X11]; just unmap the window if that's all that's
 	needed [not HAVE_X11].
@@ -6101,7 +6100,7 @@
 
 1992-08-18  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
-        * frame.h (struct frame): New member - explicit_name.
+	* frame.h (struct frame): New member - explicit_name.
 	* frame.c (make_frame): Clear it.
 	* xfns.c (x_set_name): Take new argument EXPLICIT, instead of
 	OLDVAL.
@@ -6188,7 +6187,7 @@
 
 	* xterm.c: Doc fixes.
 
-        More SYSV portability changes from Eric Raymond:
+	More SYSV portability changes from Eric Raymond:
 
 	* xterm.c [USG5]: Don't include <sys/types.h>.
 
@@ -6223,60 +6222,60 @@
 
 1992-08-14  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
-        Applied SYSV portability changes from Eric Raymond:
+	Applied SYSV portability changes from Eric Raymond:
 
 	* xrdb.c [USG5]: Define SYSV, and then include <unistd.h>.
 	Apparently, Xlib.h include string.h if SYSV is defined, and
 	strings.h if not.
 	Don't include <sys/types.h>; just declare getuid to return an
-    	int.  Big deal.
+	int.  Big deal.
 	(MAXPATHLEN): If this is not defined by the system's include
-    	files, give it a value of 256.
+	files, give it a value of 256.
 	(get_user_db): Fetch the defaults directly from the display
-    	structure, rather than using XResourceManagerString; that
-    	function doesn't exist in the older versions of X.
+	structure, rather than using XResourceManagerString; that
+	function doesn't exist in the older versions of X.
 
 	* xterm.c (x_set_text_property): New function.
 	* xfns.c (x_set_name): Use it instead of XSetWMName and
-    	XSetWMIconName.
+	XSetWMIconName.
 
 	* xfns.c (select_visual): Fetch the visual id directly from v;
-    	don't call XVisualIDFromVisual, since that function is not
-    	available in earlier versions of X.
+	don't call XVisualIDFromVisual, since that function is not
+	available in earlier versions of X.
 
 	* term.c (term_get_fkeys): Some systems define `static' to be the
-    	empty string, which means that you can't have constant
-    	initialized arrays inside a function.  So move the `keys' array
-    	outside of the function.
+	empty string, which means that you can't have constant
+	initialized arrays inside a function.  So move the `keys' array
+	outside of the function.
 	* xdisp.c (decode_mode_spec): Same deal, with lots_of_dashes.
 	* xfns.c (x_make_gc): Same deal, regarding cursor_bits.
 
 	* term.c (keys): Include definitions for "K2" (the center key on
-    	an IBM keypad), "F1" (F11), and "F2" (F12).  Handle "k0" and "k;"
-    	specially; see the code for details.
+	an IBM keypad), "F1" (F11), and "F2" (F12).  Handle "k0" and "k;"
+	specially; see the code for details.
 
 	* term.c (clear_end_of_line): Remember that on some systems,
-    	"static" gets defined to be the null string, so we can't declare
-    	an array to be static and then initialize it.  Since the array in
-    	question (buf) is only one element long, just make it a scalar
-    	rather than an array; it can then be initialized, even if it's
-    	not static.
+	"static" gets defined to be the null string, so we can't declare
+	an array to be static and then initialize it.  Since the array in
+	question (buf) is only one element long, just make it a scalar
+	rather than an array; it can then be initialized, even if it's
+	not static.
 
 	* systime.h [not HAVE_TIMEVAL] (EMACS_USECS, EMACS_SET_USECS):
-    	Don't forget to define dummy versions of these.
+	Don't forget to define dummy versions of these.
 
 	* systime.h [USE_UTIME]: time_t is a typedef, not a struct.
-    	Don't prefix it with `struct'.
+	Don't prefix it with `struct'.
 
 	* systerm.h (EMACS_SET_TTY_PGRP): When there doesn't seem to be
-    	any way to do this, don't forget to give it a dummy definition.
+	any way to do this, don't forget to give it a dummy definition.
 
 	* sysdep.c (select): There's no need to cast the return value of
-    	signal anymore, since we have the SIGTYPE macro defined.
+	signal anymore, since we have the SIGTYPE macro defined.
 
 	* sysdep.c (read_input_waiting): When scanning for quit
-    	characters, use the value of quit_char, rather than assuming that
-    	C-g is the quit character.  And don't forget to declare i.
+	characters, use the value of quit_char, rather than assuming that
+	C-g is the quit character.  And don't forget to declare i.
 
 	* sysdep.c [USG5]: Don't include fcntl.h.
 
@@ -6291,7 +6290,7 @@
 	utimes(2)) emulation lurking in the X shared libraries.)
 
 	* s/usg5-4.h (USE_UTIME): Remove this definition; the C library
-    	still doesn't have utimes.
+	still doesn't have utimes.
 
 	* ralloc.c (get_bloc): When initializing new_bloc->variable, cast
 	NIL to (POINTER *).
@@ -6334,11 +6333,11 @@
 	wasn't written portably, and it should probably go somewhere else
 	anyway - say, funcall or eval.
 
-        End of changes from Eric Raymond.
+	End of changes from Eric Raymond.
 
 	* xfns.c (Fx_create_frame): Make the default for the icon-type
-    	parameter nil, not t.  It seems to cause problems with some X
-    	servers.
+	parameter nil, not t.  It seems to cause problems with some X
+	servers.
 
 	* lisp.h (DEFVAR_PER_BUFFER): Add new argument, TYPE, to help
 	check the types of buffer-local variable slots.
@@ -6382,11 +6381,11 @@
 	* window.c (init_window_once): Initialize minibuf_window before
 	FRAME_ROOT_WINDOW, so the latter actually points to something.
 
-	* keyboard.c (Fexecute_mouse_event): dyked-out function deleted.
+	* keyboard.c (Fexecute_mouse_event): Dyked-out function deleted.
 	We're not going to use this mouse interface.
-	(Vmouse_window, Vmouse_event, Vmouse_event_function,
-	Vmouse_left_hook, Vmap_frame_hook, Vunmap_frame_hook,
-	Vmouse_motion_handler): Variables deleted; they were to be used by
+	(Vmouse_window, Vmouse_event, Vmouse_event_function)
+	(Vmouse_left_hook, Vmap_frame_hook, Vunmap_frame_hook)
+	(Vmouse_motion_handler): Variables deleted; they were to be used by
 	Fexecute_mouse_event.
 	(syms_of_keyboard): Same.
 	(command_loop_1): Remove dyked-out code to support
@@ -6414,7 +6413,7 @@
 
 1992-08-11  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
-        * fileio.c (Fread_filename): Don't add one here.
+	* fileio.c (Fread_filename): Don't add one here.
 	* minibuf.c (Fcompleting_read): Instead, stop subtracting one
 	here, so this function lives up to its doc string, which I think
 	specifies an okay way to work.
@@ -6435,7 +6434,7 @@
 	* xfns.c [not HAVE_X11] (Fx_create_frame): Delete section that's
 	only included if we *do* have X11.  Blind patching.
 
-        * xfns.c (x_icon): Rewritten to call x_wm_set_icon_position and
+	* xfns.c (x_icon): Rewritten to call x_wm_set_icon_position and
 	x_wm_set_window_state instead of calling XSetWMHints directly.
 	* xterm.c (x_wm_hints): New variable.
 	(x_wm_set_window_state, x_wm_set_icon_pixmap,
@@ -6474,16 +6473,16 @@
 
 1992-08-10  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
-	* xfns.c (Qbackground_color, Qborder_color,  Qborder_width,
-	Qcursor_color,  Qfont,  Qforeground_color,  Qgeometry,
-	Qhorizontal_scroll_bar,  Qicon_left,  Qicon_top,  Qiconic_startup,
-	Qinternal_border_width,  Qleft,  Qmouse_color,  Qparent_id,
-	Qsuppress_icon,  Qsuppress_initial_map,  Qtop,  Qundefined_color,
-	Qvertical_scroll_bar,  Qwindow_id,  Qx_frame_parameter): New
+	* xfns.c (Qbackground_color, Qborder_color, Qborder_width)
+	(Qcursor_color, Qfont, Qforeground_color, Qgeometry)
+	(Qhorizontal_scroll_bar, Qicon_left, Qicon_top, Qiconic_startup)
+	(Qinternal_border_width, Qleft, Qmouse_color, Qparent_id)
+	(Qsuppress_icon, Qsuppress_initial_map, Qtop, Qundefined_color)
+	(Qvertical_scroll_bar, Qwindow_id, Qx_frame_parameter): New
 	symbols, with lisp code to rebuild syms_of_xfns.
 	(syms_of_xfns): Initialize and staticpro them.
-	(Qheight, Qminibuffer, Qname, Qnone, Qonly, Qwidth,
-	Qunsplittable): Add extern declaration for these.
+	(Qheight, Qminibuffer, Qname, Qnone, Qonly, Qwidth)
+	(Qunsplittable): Add extern declaration for these.
 	(x_init_parm_symbols): Don't initialize Qx_frame_parameter here;
 	it's done in syms_of_xfns.
 	(x_default_parameter): Change the argument char *PROPNAME into a
@@ -6491,12 +6490,12 @@
 	(Fx_geometry, x_figure_window_size, x_icon, Fx_create_frame): Use
 	the new Q... variables, instead of interning things.
 
-	* frame.c (Qheight, Qicon, Qmodeline, Qname, Qnone, Qonly,
-	Qunsplittable, Qwidth, Qx): New symbol, with lisp code to rebuild
+	* frame.c (Qheight, Qicon, Qmodeline, Qname, Qnone, Qonly)
+	(Qunsplittable, Qwidth, Qx): New symbol, with lisp code to rebuild
 	syms_of_frame.
 	(syms_of_xfns): Initialize and staticpro them.
-	(Fframep, Fframe_visible_p, Fframe_parameters):  Use
-	the new Q... variables, instead of interning things.
+	(Fframep, Fframe_visible_p, Fframe_parameters): Use the new Q...
+	variables, instead of interning things.
 	(store_in_alist): Change the argument char *PROPNAME into a
 	Lisp_Object PROP; let the caller take care of interning the atom.
 
@@ -6513,16 +6512,16 @@
 	x_set_frame_parameters, not x_set_frame_parameter.
 	* xfns.c (x_set_frame_param): Replaced by x_set_frame_parameters.
 	(x_set_frame_parameters): Process the alist of parameters here.
-        Notice `width', `height', `top', and `left' parameters.
-        Hold off changing the frame size and position until the end, so we
+	Notice `width', `height', `top', and `left' parameters.
+	Hold off changing the frame size and position until the end, so we
 	can do both parameters at once when they are both specified.
 	(x_default_parameter): Call x_set_frame_parameters, not
 	x_set_frame_param.
 
-	* frame.c (Fmake_frame_visible, Fmake_frame_invisible,
-	Ficonify_frame, Fframe_parameters, Fmodify_frame_parameters,
-	Fset_frame_height, Fset_frame_width, Fset_frame_size,
-	Fset_frame_position): Place clauses controlled by FRAME_X_P inside
+	* frame.c (Fmake_frame_visible, Fmake_frame_invisible)
+	(Ficonify_frame, Fframe_parameters, Fmodify_frame_parameters)
+	(Fset_frame_height, Fset_frame_width, Fset_frame_size)
+	(Fset_frame_position): Place clauses controlled by FRAME_X_P inside
 	`#ifdef HAVE_X_WINDOWS ... #endif' clauses.
 
 	* frame.c (Fset_frame_position): Doc fix.
@@ -6579,8 +6578,8 @@
 	* xterm.c (in_display): Deleted this; it's never used in xterm.c,
 	and there is another variable by the same name in dispnew.c.
 
-	* frame.c [not MULTI_SCREEN] (Fset_frame_height, Fset_frame_width,
-	Fset_frame_size, Fframe_height, Fframe_width): New functions, for
+	* frame.c [not MULTI_SCREEN] (Fset_frame_height, Fset_frame_width)
+	(Fset_frame_size, Fframe_height, Fframe_width): New functions, for
 	use when Emacs is not compiled with multiple screens.
 	[not MULTI_SCREEN] (Fset_screen_height, Fset_screen_width):
 	Functions added for backward compatibility with Emacs 18.  These
@@ -6602,8 +6601,8 @@
 1992-08-07  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* dispnew.c, frame.c, frame.h, keyboard.c, scroll.c, term.c,
-	window.c, xdisp.c, xfns.c xterm.c (FRAME_IS_TERMCAP, FRAME_IS_X,
-	FRAME_HAS_MINIBUF): Renamed these to FRAME_TERMCAP_P, FRAME_X_P,
+	* window.c, xdisp.c, xfns.c xterm.c (FRAME_IS_TERMCAP, FRAME_IS_X)
+	(FRAME_HAS_MINIBUF): Renamed these to FRAME_TERMCAP_P, FRAME_X_P,
 	and FRAME_HAS_MINIBUF_P, for consistency with the rest of the
 	frame macros.
 
@@ -6627,7 +6626,7 @@
 
 1992-08-06  Joseph Arceneaux  (jla@gnu.ai.mit.edu)
 
-        * doc.c (Vdata_directory): Declared.
+	* doc.c (Vdata_directory): Declared.
 	(syms_of_doc): Initialized.
 
 	* fileio.c (Fread_filename): Add 1 to the offset position for the
@@ -6831,8 +6830,8 @@
 	* lread.c: Include <ctype.h> at the top of the file, instead of
 	just before isfloat_string; read0 wants to use it too.
 
-	* process.c (Fdelete_process, Fprocess_status, Fprocess_send_region,
-	Fprocess_send_string, Fprocess_send_eof, Finterrupt_process): Doc
+	* process.c (Fdelete_process, Fprocess_status, Fprocess_send_region)
+	(Fprocess_send_string, Fprocess_send_eof, Finterrupt_process): Doc
 	fixes.
 
 	* process.c (Fprocess_status): Use get_process to find the process
@@ -6858,10 +6857,10 @@
 	functions describing the size of the characters of a font.
 
 	* xterm.h, xterm.c, xselect.c, xmenu.c, xfns.c, xdisp.c, window.h,
-	window.c, termopts.h, termhooks.h, termchar.h, term.c sysdep.c,
-	scroll.c, screen.c, screen.h, process.c, print.c, minibuf.c,
-	lisp.h keyboard.c, indent.c, fns.c, emacs.c, dispnew.c,
-	dispextern.h, cm.h, alloc.c, config.h.in: Screens are now called
+	* window.c, termopts.h, termhooks.h, termchar.h, term.c sysdep.c,
+	* scroll.c, screen.c, screen.h, process.c, print.c, minibuf.c,
+	* lisp.h keyboard.c, indent.c, fns.c, emacs.c, dispnew.c,
+	* dispextern.h, cm.h, alloc.c, config.h.in: Screens are now called
 	frames, to avoid even more confusion with X terminology than
 	Emacs's "windows" already cause.  All macros, functions, and
 	variables renamed; all uses changed.
@@ -6968,7 +6967,7 @@
 
 	* emacs.c (Vkill_emacs_hook): Declare this here; it should have a
 	docstring, so we might as well DEFVAR it.
-	(syms_of_emacs): initialize it, and DEFVAR_LISP it with an
+	(syms_of_emacs): Initialize it, and DEFVAR_LISP it with an
 	appropriate docstring.
 
 1992-06-28  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
@@ -6997,8 +6996,8 @@
 	`horizontal split.'
 	(make_lispy_event, make_lispy_movement, syms_of_keyboard): Uses
 	renamed here.
-	keyboard.h (Qvertical_split): Extern declaration changed here.
-	window.c (Fcoordinates_in_window_p): Changed this to return
+	* keyboard.h (Qvertical_split): Extern declaration changed here.
+	* window.c (Fcoordinates_in_window_p): Changed this to return
 	`vertical-line' at the appropriate times, rather than
 	`vertical-split'.
 
@@ -7064,28 +7063,28 @@
 	the `#ifdef MULTI_SCREEN' conditional.
 	* screen.h [not MULTI_SCREEN] (the_only_screen): extern
 	declaration for it here.
-	[not MULTI_SCREEN] (SCREEN_CURRENT_GLYPHS, SCREEN_DESIRED_GLYPHS,
-	SCREEN_TEMP_GLYPHS, SCREEN_HEIGHT, SCREEN_WIDTH,
-	SCREEN_NEW_HEIGHT, SCREEN_NEW_WIDTH, SCREEN_CURSOR_X,
-	SCREEN_CURSOR_Y, SCREEN_ROOT_WINDOW, SCREEN_INSERT_COST,
-	SCREEN_DELETE_COST, SCREEN_INSERTN_COST, SCREEN_DELETEN_COST,
-	SCREEN_MESSAGE_BUF, SCREEN_SCROLL_BOTTOM_VPOS): Macros changed to
+	[not MULTI_SCREEN] (SCREEN_CURRENT_GLYPHS, SCREEN_DESIRED_GLYPHS)
+	(SCREEN_TEMP_GLYPHS, SCREEN_HEIGHT, SCREEN_WIDTH)
+	(SCREEN_NEW_HEIGHT, SCREEN_NEW_WIDTH, SCREEN_CURSOR_X)
+	(SCREEN_CURSOR_Y, SCREEN_ROOT_WINDOW, SCREEN_INSERT_COST)
+	(SCREEN_DELETE_COST, SCREEN_INSERTN_COST, SCREEN_DELETEN_COST)
+	(SCREEN_MESSAGE_BUF, SCREEN_SCROLL_BOTTOM_VPOS): Macros changed to
 	refer to the_only_screen.
-	* dispnew.c [not MULTI_SCREEN] (one_screen_cursX,
-	one_screen_cursY, one_screen_current_glyphs,
-	one_screen_desired_glyphs, one_screen_temp_glyphs,
-	delayed_screen_width, delayed_screen_height): Variables
+	* dispnew.c [not MULTI_SCREEN] (one_screen_cursX)
+	(one_screen_cursY, one_screen_current_glyphs)
+	(one_screen_desired_glyphs, one_screen_temp_glyphs)
+	(delayed_screen_width, delayed_screen_height): Variables
 	deleted; they're all now kept in the_only_screen.
 	* xdisp.c [not MULTI_SCREEN] (message_buf): Variable deleted; same
 	fate.
 	* term.c [not MULTI_SCREEN] (one_screen_width, one_screen_height):
 	Variables deleted; same fate.
-	* screen.h [not MULTI_SCREEN]: extern declarations for the above
+	* screen.h [not MULTI_SCREEN]: Extern declarations for the above
 	variables removed.
 	* window.c [not MULTI_SCREEN] (root_window): Variable deleted.
 	[not MULTI_SCREEN] (init_window_once): Use SCREEN_ROOT_WINDOW to
 	refer to the root window, instead of referring to it directly.
-	* window.h [not MULTI_SCREEN] (root_window): extern declaration
+	* window.h [not MULTI_SCREEN] (root_window): Extern declaration
 	removed.
 	* scroll.c [not MULTI_SCREEN] (insert_line_cost, delete_line_cost,
 	insert_n_lines_cost, delete_n_lines_cost): Variables deleted; same
@@ -7093,8 +7092,8 @@
 
 	* dispnew.c [not MULTI_SCREEN] (cursX, cursY): Renamed to
 	`one_screen_cursX' and `one_screen_cursY'.
-	* screen.h [not MULTI_SCREEN] (cursX, cursY, SCREEN_CURSOR_X,
-	SCREEN_CURSOR_Y): extern declarations and macros changed
+	* screen.h [not MULTI_SCREEN] (cursX, cursY, SCREEN_CURSOR_X)
+	(SCREEN_CURSOR_Y): Extern declarations and macros changed
 	accordingly.
 
 	* term.c [not MULTI_SCREEN] (screen_width, screen_height): Renamed
@@ -7102,8 +7101,8 @@
 	conflict with local variables when referenced by the `SCREEN_foo'
 	macros.
 	* screen.h [not MULTI_SCREEN] (screen_width, screen_height):
-	extern declarations changed accordingly.
-	* termchar.h (screen_width, screen_height): extern declarations
+	Extern declarations changed accordingly.
+	* termchar.h (screen_width, screen_height): Extern declarations
 	deleted.  Everyone should go through the `SCREEN_foo' macros.
 	(SCREEN_WIDTH, SCREEN_HEIGHT): Changed accordingly.
 
@@ -7148,7 +7147,7 @@
 	* eval.c (Fsignal): Put call to TOTALLY_UNBLOCK_INPUT under the
 	protection of a `#ifdef HAVE_X_WINDOWS' conditional.
 
-        * keyboard.c (kbd_buffer_get_event): Expect *mouse_position_hook
+	* keyboard.c (kbd_buffer_get_event): Expect *mouse_position_hook
 	to return the timestamp as an unsigned long, not a lisp_Object.
 	This matches the change made to `struct input_event'.
 	(make_lispy_movement): Change argument TIME to an unsigned long.
@@ -7216,7 +7215,7 @@
 
 1992-06-22  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
-	* syntax.h (SYNTAX, SYNTAX_MATCH, SYNTAX_COMSTART_FIRST, etc.)
+	* syntax.h (SYNTAX, SYNTAX_MATCH, SYNTAX_COMSTART_FIRST, etc.):
 	Cast character to unsigned char before indexing.
 
 1992-06-19  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
@@ -7317,7 +7316,7 @@
 
 	* screen.c (Fdelete_screen): Typo in loop looking for new
 	last_nonminibuf_screen - change	`screen = XCONS (screens)->cdr`
-                                     to	`screens = XCONS (screens)->cdr`
+	                             to	`screens = XCONS (screens)->cdr`
 
 	* xdisp.c (echo_area_display): Don't neglect to draw all the lines
 	of the minibuffer window (or echo area) when a message is being
@@ -7572,7 +7571,7 @@
 	will inhibit spurious redisplays when process input arrives during
 	a sit-for.
 
-        * process.c (Faccept_process_output): Pass zero as read_kbd
+	* process.c (Faccept_process_output): Pass zero as read_kbd
 	argument to wait_reading_process_input when PROC is nil, not when
 	PROC is non-nil.
 
@@ -7606,7 +7605,7 @@
 
 1992-05-15  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
-	* ymakefile [defined (__GNUC__) and __GNUC__ > 1]: define
+	* ymakefile [defined (__GNUC__) and __GNUC__ > 1]: Define
 	YMF_PASS_LDFLAGS so that it can deal with an empty flags argument.
 
 	* callproc.c (Fcall_process): Under VMS, a nil INFILE argument
@@ -7618,9 +7617,9 @@
 1992-05-14  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* termhooks.h: Change timestamp from a Lisp_Object to an unsigned
-        long.
+	long.
 	* keyboard.c (kbd_buffer_store_event): We don't have to apply the
-        XINT macro to the timestamp member of the event anymore.
+	XINT macro to the timestamp member of the event anymore.
 
 	* process.c (wait_reading_process_output): Don't turn off polling.
 
@@ -7638,7 +7637,7 @@
 
 1992-05-13  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
-        * callint.c (Fprefix_numeric_value): Value 1 for symbol other than `-'.
+	* callint.c (Fprefix_numeric_value): Value 1 for symbol other than `-'.
 
 1992-05-13  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
@@ -7659,7 +7658,7 @@
 	* process.c (wait_reading_process_input): Make C-g really quit in
 	sit-for case.
 
-        * ymakefile (LD_SWITCH_SYSTEM): Don't use -X with GCC.
+	* ymakefile (LD_SWITCH_SYSTEM): Don't use -X with GCC.
 
 1992-05-12  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
@@ -7725,8 +7724,8 @@
 	* callint.c (Fcall_interactively): Get symbol's function by
 	calling indirect_function, instead of just looping.
 	* doc.c (Fdocumentation): Same.
-	* eval.c (Finteractive_p, Fcommandp, do_autoload, Feval,
-	Ffuncall): Same.
+	* eval.c (Finteractive_p, Fcommandp, do_autoload, Feval)
+	(Ffuncall): Same.
 	* keyboard.c (Fcommand_execute): Same.
 
 	* data.c (Fsymbol_function): Name the argument `symbol' instead of
@@ -7827,9 +7826,9 @@
 
 	* syssignal.h (sigpause, sigblock, sigunblock, sigsetmask): Macros
 	removed; they require GCC, and Emacs 19 should compile without GCC.
-	(EMACS_SIGPAUSE, EMACS_SIGBLOCK, EMACS_SIGUNBLOCK,
-	EMACS_SIGSETMASK, EMACS_SIGFREE, EMACS_SIGHOLDX, EMACS_SIGBLOCKX,
-	EMACS_SIGUNBLOCKX, EMACS_SIGPAUSEX): These are new macros that
+	(EMACS_SIGPAUSE, EMACS_SIGBLOCK, EMACS_SIGUNBLOCK)
+	(EMACS_SIGSETMASK, EMACS_SIGFREE, EMACS_SIGHOLDX, EMACS_SIGBLOCKX)
+	(EMACS_SIGUNBLOCKX, EMACS_SIGPAUSEX): These are new macros that
 	don't require GCC, but expand to statements.
 	* callproc.c (Fcall_process): Use new EMACS_SIG* macros from
 	syssignal.h.
@@ -7904,7 +7903,7 @@
 	* ymakefile (CC, MAKE): Set these variables from optional macros.
 	Change all uses of `make' to ${MAKE}.
 
-	* ymakefile: use HAVE_X11 as alias for X11.
+	* ymakefile: Use HAVE_X11 as alias for X11.
 
 	* ymakefile (LIB_GCC, GNULIB_VAR): Handle GCC 2.
 
@@ -8214,8 +8213,8 @@
 	* m/pfa50.h: New file.
 	* process.c (create_process, process_send_signal): Added changes
 	for m/pfa50.h.
-	* sysdep.c: same.
-	* unexec.c: same.
+	* sysdep.c: Same.
+	* unexec.c: Same.
 
 1992-03-14  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
@@ -8365,8 +8364,8 @@
 	(hfqry, hfskbd): Declare these functions as static before all uses.
 	* unexaix.c (make_hdr, mark_x, copy_text_and_data, copy_sym):
 	Declare as static before all uses.
-	Remove extraneous semicolons from #ifdefs of COFF and XCOFF
-	(unrelocate_symbols): cast the initializers of t_start and d_start
+	Remove extraneous semicolons from #ifdefs of COFF and XCOFF.
+	(unrelocate_symbols): Cast the initializers of t_start and d_start
 	to ulong.
 
 	* s/template.h: Include a clause for the HAVE_TERMIO flag.
@@ -8418,8 +8417,8 @@
 
 	* sysdep.c (reset_sys_modes): Doc fix.
 
-	* keyboard.c (sigfree, sigholdx, sigblockx, sigunblockx,
-	sigpausex): Definitions moved to syssignal.h.
+	* keyboard.c (sigfree, sigholdx, sigblockx, sigunblockx)
+	(sigpausex): Definitions moved to syssignal.h.
 
 	* dispnew.c: Doc fix.
 
@@ -8502,14 +8501,14 @@
 	(store_screen_param): If the value of the minibuffer parameter is
 	a window, try to make it the surrogate minibuffer window.
 	(Qminibuffer): New variable, to support above change.
-	(syms_of_screen): initialize and staticpro it.
+	(syms_of_screen): Initialize and staticpro it.
 
 	* m/tad68k.h: New file.
 
 	* fileio.c (Ffile_accessible_directory_p): New function.
 	(syms_of_fileio): defsubr it.
 	* callproc.c: #include <errno.h>.
-	(child_setup):  Accept yet another argument, current_dir.
+	(child_setup): Accept yet another argument, current_dir.
 	Don't try to report an error here if current_dir is inaccessible;
 	this function is called in a vforking process.  Just have the
 	process exit with an error code.
@@ -8563,7 +8562,7 @@
 
 1992-01-30  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
-        * m-orion105.h (C_DEBUG_SWITCH, LIBS_DEBUG): Defs deleted.
+	* m-orion105.h (C_DEBUG_SWITCH, LIBS_DEBUG): Defs deleted.
 
 1992-01-29  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -8576,12 +8575,12 @@
 
 	* keyboard.h: New file, for external declarations used in
 	processing keyboard input and events.
-	* lisp.h (Qmode_line, Qvertical_split, num_input_chars,
-	poll_suppress_count): Extern declarations moved to keyboard.h.
+	* lisp.h (Qmode_line, Qvertical_split, num_input_chars)
+	(poll_suppress_count): Extern declarations moved to keyboard.h.
 	* keyboard.c: #include "keyboard.h".
-	(Qvscrollbar_par, Qvslider_part, Qvthumbup_part,
-	Qvthumbdown_part, Qhscrollbar_part, Qhslider_part,
-	Qhthumbleft_part, Qhthumbright_part): Moved declarations here from
+	(Qvscrollbar_par, Qvslider_part, Qvthumbup_part)
+	(Qvthumbdown_part, Qhscrollbar_part, Qhslider_part)
+	(Qhthumbleft_part, Qhthumbright_part): Moved declarations here from
 	xfns.c, so they're with the other event heading symbols.
 	* eval.c: #include "keyboard.h".
 	* ymakefile (callint.o, keyboard.o, keymap.o, xfns.o, eval.o):
@@ -8605,13 +8604,13 @@
 	Vmouse_screen_part.
 	(syms_of_xterm): Changed accordingly.
 
-	* keyboard.h (EVENT_HAS_PARAMETERS, EVENT_HEAD, EVENT_WINDOW,
-	EVENT_BUFFER_POSN, EVENT_SCROLLBAR_BUTTON, EVENT_WINDOW_POSN,
-	EVENT_TIMESTAMP, EVENT_HEAD_UNMODIFIED, EVENT_HEAD_KIND): New
+	* keyboard.h (EVENT_HAS_PARAMETERS, EVENT_HEAD, EVENT_WINDOW)
+	(EVENT_BUFFER_POSN, EVENT_SCROLLBAR_BUTTON, EVENT_WINDOW_POSN)
+	(EVENT_TIMESTAMP, EVENT_HEAD_UNMODIFIED, EVENT_HEAD_KIND): New
 	macros to recognize and access events that have parameters, like
 	mouse events.
-	* keyboard.c (read_char, echo_char, Fmouse_click_p,
-	read_key_sequence): Use them.
+	* keyboard.c (read_char, echo_char, Fmouse_click_p)
+	(read_key_sequence): Use them.
 	* keymap.c: #include "keyboard.h".
 	(access_keymap, store_in_keymap, Fsingle_key_description): Use the
 	macros from keyboard.h.
@@ -8674,11 +8673,11 @@
 	causes the window to pop to the front every time a message
 	appears, which isn't desirable.
 
-	* screen.c (Fselect_screen, Fdelete_screen, Fset_mouse_position,
-	Fmake_screen_visible, Fmake_screen_invisible, Ficonify_screen,
-	Fdeiconify_screen, Fscreen_parameters, Fmodify_screen_parameters,
-	Fset_screen_height, Fset_screen_width, Fset_screen_size,
-	Fset_screen_position): Use SCREEN_IS_X macro instead of testing
+	* screen.c (Fselect_screen, Fdelete_screen, Fset_mouse_position)
+	(Fmake_screen_visible, Fmake_screen_invisible, Ficonify_screen)
+	(Fdeiconify_screen, Fscreen_parameters, Fmodify_screen_parameters)
+	(Fset_screen_height, Fset_screen_width, Fset_screen_size)
+	(Fset_screen_position): Use SCREEN_IS_X macro instead of testing
 	for output_x_window.
 	* xfns.c (adjust_scrollbars, Fx_store_cut_buffer): Same.
 
@@ -8988,7 +8987,7 @@
 
 1991-11-26  Michael I Bushnell  (mib@geech.gnu.ai.mit.edu)
 
-	* search.c: need to include sys/types.h because of recent mod to
+	* search.c: Need to include sys/types.h because of recent mod to
 	regex.h.
 
 1991-11-25  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -9038,13 +9037,13 @@
 	(Flive_screen_p): New lisp predicate.
 	(syms_of_screen): Initialize, staticpro, and defsubr the lot.
 	* dispnew.c (Fredraw_screen): Use CHECK_LIVE_SCREEN.
-	* screen.c (Fscreen_root_window, Fscreen_selected_window,
-	Fnext_screen, Fset_mouse_position, Frestore_screen_configuration,
-	Fmake_screen_visible, Fmake_screen_invisible, Ficonify_screen,
-	Fdeiconify_screen, Fscreen_visible_p, Fredirect_screen_focus,
-	Fscreen_focus, Fmodify_screen_parameters, Fset_screen_height,
-	Fset_screen_width, Fset_screen_size, Fset_screen_position,
-	Fselect_screen): Use CHECK_LIVE_SCREEN.
+	* screen.c (Fscreen_root_window, Fscreen_selected_window)
+	(Fnext_screen, Fset_mouse_position, Frestore_screen_configuration)
+	(Fmake_screen_visible, Fmake_screen_invisible, Ficonify_screen)
+	(Fdeiconify_screen, Fscreen_visible_p, Fredirect_screen_focus)
+	(Fscreen_focus, Fmodify_screen_parameters, Fset_screen_height)
+	(Fset_screen_width, Fset_screen_size, Fset_screen_position)
+	(Fselect_screen): Use CHECK_LIVE_SCREEN.
 	* window.c (Fwindow_at, Fcurrent_window_configuration): Use
 	CHECK_LIVE_SCREEN.
 	* xfns.c (Ffocus_screen, Fx_pixel_width, Fx_pixel_height): Use
@@ -9131,8 +9130,8 @@
 	screen's only window is a minibuffer, aka a "minibuffer screen" or
 	a "minibuffer-only" screen.
 	* dispnew.c (change_screen_size): Use it.
-	* screen.c (Fselect_screen, next_screen, prev_screen,
-	Fdelete_screen): Use it.
+	* screen.c (Fselect_screen, next_screen, prev_screen)
+	(Fdelete_screen): Use it.
 	* window.c (Fdisplay_buffer): Use it.
 
 	* screen.c (next_screen, prev_screen): Make MINIBUF a lisp
@@ -9229,7 +9228,7 @@
 	(pixel_to_glyph_coords, construct_mouse_click,
 	note_mouse_position, XTmouse_position): Put these all on the same
 	page.
-	(XTread_socket): case MotionNotify, call note_mouse_position with
+	(XTread_socket): Case MotionNotify, call note_mouse_position with
 	the right args; don't call pixel_to_glyph_translation.
 	(x_term_init): Set mouse_position_hook instead of
 	mouse_tracking_enable_hook.
@@ -9313,7 +9312,7 @@
 	* keyboard.c (kbd_buffer_read_char): Renamed to
 	kbd_buffer_get_event, for consistency with kbd_buffer_store_event.
 
-	* window.c (Fwindow_at): modified to take the coordinates as a
+	* window.c (Fwindow_at): Modified to take the coordinates as a
 	pair, not a two-element list, for ease of use and compatibility
 	with events.  Make SCREEN argument second and optional.
 	(Fcoordinates_in_window_p): Modified to take and return the
@@ -9329,7 +9328,7 @@
 	* window.c (coordinates_in_window): Make it static.
 
 	* window.c (Flocate_window_from_coordinates): Renamed to
-        Fwindow_at.
+	Fwindow_at.
 	(syms_of_window): Adjusted.
 	* lisp.h: Adjusted to say so.
 
@@ -9396,8 +9395,8 @@
 	last_event_timestamp.
 	* xselect.c (mouse_timestamp): Don't use this anymore.
 	(last_event_timestamp): Use this instead.
-	(Fx_own_selection, Fx_own_clipboard, Fx_get_selection,
-	Fx_get_clipboard): Use last_event_timestamp instead of
+	(Fx_own_selection, Fx_own_clipboard, Fx_get_selection)
+	(Fx_get_clipboard): Use last_event_timestamp instead of
 	mouse_timestamp.
 
 	* xdisp.c (redisplay): Don't pass extra arguments to
@@ -9498,9 +9497,9 @@
 1991-08-15  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* bytecode.c (Qbyte_code_meter): New.
-	(Bend_of_line, Bset_marker, Bmatch_beginning, Bmatch_end, Bupcase,
-	Bdowncase, BRgoto, BRgotoifnil, BRgotoifnonnil,
-	BRgotoifnilelsepop, BRgotoifnonnilelsepop, BlistN, BconcatN): New
+	(Bend_of_line, Bset_marker, Bmatch_beginning, Bmatch_end, Bupcase)
+	(Bdowncase, BRgoto, BRgotoifnil, BRgotoifnonnil)
+	(BRgotoifnilelsepop, BRgotoifnonnilelsepop, BlistN, BconcatN): New
 	byte codes.
 	(Fbyte_code): Implemented new codes listed above.  Added code to
 	count how many times a function is called.
@@ -9574,7 +9573,7 @@
 	* eval.c (Qinhibit_quit): New variable, to support Aug 5 changes
 	to process.c.
 	(syms_of_eval): Initialize and staticpro above.
-	* lisp.h: added extern declaration for above.
+	* lisp.h: Added extern declaration for above.
 
 1991-08-10  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
@@ -9616,7 +9615,7 @@
 	(this_filter, filter_process, filter_string): Variables now
 	unnecessary.
 
-    	* xfns.c (Fx_get_resource): Take the screen name as an optional
+	* xfns.c (Fx_get_resource): Take the screen name as an optional
 	argument and look up resources using the name of the screen as
 	part of the key.
 	[not HAVE_X11] (Fx_get_default): Take optional 2nd arg NAME and
@@ -9634,8 +9633,8 @@
 	(Fx_create_screen): Don't use it here.
 
 	* keyboard.c (classify_object): #if 0'd function finally removed.
-	* xterm.c (Qmapped_screen, Qunmapped_screen, Qexited_scrollbar,
-	Qexited_window, Qredraw_screen): Unused, so removed.
+	* xterm.c (Qmapped_screen, Qunmapped_screen, Qexited_scrollbar)
+	(Qexited_window, Qredraw_screen): Unused, so removed.
 	(syms_of_xterm): Don't bother to initialize above.
 
 	* xterm.c (init_input_symbols): Renamed to syms_of_xterm, for
@@ -9731,13 +9730,13 @@
 
 1991-07-26  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
-	* keyboard.c (command_loop_1): pass both arguments to
+	* keyboard.c (command_loop_1): Pass both arguments to
 	Fselect_screen.
 
 	* screen.c (make_screen): Divide the size by sizeof (Lisp_Object)
 	before passing it to Fmake_vector.
 
-	* screen.h [not MULTI_SCREEN] (SCREEN_SCROLL_BOTTOM_VPOS): fixed
+	* screen.h [not MULTI_SCREEN] (SCREEN_SCROLL_BOTTOM_VPOS): Fixed
 	definition.
 
 	* screen.c: #include termhooks.h and therefore stdio.h.
@@ -9751,7 +9750,7 @@
 	(Fselect_window): Removed grunge to support minibuffer hack.
 	* screen.h (struct screen): Added focus_screen member, and
 	accessor for it.
-	* alloc.c (mark_object): mark focus_screen member of Lisp_Screens.
+	* alloc.c (mark_object): Mark focus_screen member of Lisp_Screens.
 	* xterm.c (XTscreen_rehighlight): Use the focus_screen member to
 	decide which screen to highlight.
 	(XTread_socket): Use focus_screen when enqueuing keystrokes.
@@ -9940,7 +9939,7 @@
 	[HAVE_SHM] (init_alloc_once): Initialize pure_size here.
 	* lisp.h [HAVE_SHM] (XPNTR): Defined in terms of pure_size,
 	instead of PURESIZE.
-	(pure_size): extern declaration added here.
+	(pure_size): Extern declaration added here.
 	* ymakefile: Added puresize.h to dependencies for alloc.c and
 	data.c's .o files.
 
@@ -10020,16 +10019,16 @@
 	* minibuf.c (assoc_for_completion): New function.
 	(do_completion): Use that to check for exact match.
 
-	* minibuf.c (Ftry_completion):  Fix handling of matches aside from
+	* minibuf.c (Ftry_completion): Fix handling of matches aside from
 	case.  If ignoring case, and all else equal, try to preserve the
 	case of the characters in the input.
 
 	* process.c (status_notify): GCPRO tail.
 
-	* sysdep.c (creat_copy_attrs, rename_sans_version):  Always set
+	* sysdep.c (creat_copy_attrs, rename_sans_version): Always set
 	protection to O:REWD when creating file.  Added new function
 	rename_sans_version, which strips the version number from the target
-	filename, renames the temporary file to this filename,  and then
+	filename, renames the temporary file to this filename, and then
 	sets the file protection of this new file to be the same as the file
 	being edited.
 
@@ -10060,8 +10059,8 @@
 	* sysdep.c: If HAVE_TERMIOS is not defined, define tcgetattr in
 	terms of the TIOCGETP ioctl.
 	(init_sys_modes): Handle VSUSP, V_DSUSP if HAVE_TCATTR.
-	(discard_tty_input, init_baud_rate, child_setup_tty,
-	init_sys_modes, tabs_safe_p, reset_sys_modes):
+	(discard_tty_input, init_baud_rate, child_setup_tty)
+	(init_sys_modes, tabs_safe_p, reset_sys_modes):
 	Use tcgetattr, and if HAVE_TCATTR, use tcsetattr.
 
 1991-07-13  Jim Blandy  (jimb@churchy.gnu.ai.mit.edu)
@@ -10291,7 +10290,7 @@
 
 1991-06-20  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
-	* buffer.h (struct buffer_text, struct buffer): small change to
+	* buffer.h (struct buffer_text, struct buffer): Small change to
 	comments.
 
 	* search.c (Fmatch_beginning, Fmatch_end): Fixed doc strings to
@@ -10318,7 +10317,7 @@
 	* keyboard.c (kbd_buffer_read_char): Fix wait-for-input loop so
 	that we always process/toss events we don't want to return.
 
-        * screen.c (Fselect_screen): Call Ffocus_screen instead of
+	* screen.c (Fselect_screen): Call Ffocus_screen instead of
 	x_new_selected_screen, which doesn't exist anymore.
 
 	* xfns.c (Ffocus_screen): Declare the type of the SCREEN argument.
@@ -10466,8 +10465,8 @@
 	that; otherwise, the while loop lied.
 	(make_lispy_event): Added code to produce mouse movement events.
 	(init_keyboard): Clear the mouse movement buffer.
-	(Qmouse_moved, Qredraw_screen, Qmapped_screen, Qunmapped_screen,
-	Qexited_window, Qexited_scrollbar): Removed extern declarations
+	(Qmouse_moved, Qredraw_screen, Qmapped_screen, Qunmapped_screen)
+	(Qexited_window, Qexited_scrollbar): Removed extern declarations
 	for these, since they're no longer generated.
 	(syms_of_keyboard): Initialize and staticpro Qmouse_movement,
 	remove DEFVAR_LISP for Vignore_mouse_events.
@@ -10531,9 +10530,9 @@
 	* keyboard.c (do_mouse_tracking): Define this variable, which
 	controls whether kbd_buffer_read_char will ignore button up and
 	mouse movement events.
-        * termhooks.h: Declare do_mouse_tracking here.
+	* termhooks.h: Declare do_mouse_tracking here.
 
-        * xterm.h (STANDARD_EVENT_SET): New constant, giving the event
+	* xterm.h (STANDARD_EVENT_SET): New constant, giving the event
 	mask all the windows use.
 
 	* xfns.c (Vx_send_mouse_movement_events): Removed this variable;
@@ -10644,10 +10643,10 @@
 
 1991-04-16  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
-	* bytecode.c (PUSH):  Alliant can't be bothered to implement the
+	* bytecode.c (PUSH): Alliant can't be bothered to implement the
 	preincrement operator right, so use a comma.
 
- 	* print.c (syms_of_print): staticpro Qexternal_debugging_output.
+	* print.c (syms_of_print): staticpro Qexternal_debugging_output.
 
 	* editfns.c (clip_to_bounds): No longer static - used in window.c.
 	* window.c (unshow_buffer): Use clip_to_bounds to make sure we
@@ -10677,7 +10676,7 @@
 	* eval.c (Fcondition_case): Initialize the `handler_list' member
 	of the catchtag.
 
-	* keyboard.c (read_char): reset recent_keys_index when it is
+	* keyboard.c (read_char): Reset recent_keys_index when it is
 	greater than OR EQUAL to the number of elements in recent_keys,
 	stupid.
 
@@ -10814,9 +10813,9 @@
 
 1991-03-19  Jim Blandy  (jimb@churchy.ai.mit.edu)
 
-	* keyboard.c (kbd_buffer_store_event, kbd_buffer_read_char,
-	read_key_sequence, Fexecute_extended_command, Fset_input_mode,
-	init_keyboard, syms_of_keyboard): Use XSET (var, Lisp_Int, exp)
+	* keyboard.c (kbd_buffer_store_event, kbd_buffer_read_char)
+	(read_key_sequence, Fexecute_extended_command, Fset_input_mode)
+	(init_keyboard, syms_of_keyboard): Use XSET (var, Lisp_Int, exp)
 	instead of XSETINT (var, exp) in those cases where var is not
 	known to already be a Lisp_Int.
 	* search.c (skip_chars): Same.
@@ -10833,8 +10832,8 @@
 
 1991-03-17  Jim Blandy  (jimb@geech.ai.mit.edu)
 
-	* keymap.c (Fcopy_keymap, Faccessible_keymaps, describe_map,
-	append_key): Minor typos and brainos corrected.
+	* keymap.c (Fcopy_keymap, Faccessible_keymaps, describe_map)
+	(append_key): Minor typos and brainos corrected.
 
 	* keyboard.c (read_char): Removed code to find the vector in a
 	(kbd-macro . VECTOR) - style macro, since the macro is represented
@@ -10895,9 +10894,9 @@
 	* commands.h, lisp.h: Changed global_map and current_global_map	to
 	be Lisp_Objects, not Lisp_Vectors.
 	keyboard.c (read_key_sequence): Same.
-	keymap.c (Fkey_binding, Fglobal_key_binding, Fglobal_set_key,
-	Fuse_global_map, Fwhere_is_internal, describe_buffer_bindings,
-	syms_of_keymap): Same.
+	keymap.c (Fkey_binding, Fglobal_key_binding, Fglobal_set_key)
+	(Fuse_global_map, Fwhere_is_internal, describe_buffer_bindings)
+	(syms_of_keymap): Same.
 
 	* keymap.c (Fdefine_key): Braino: increment idx and clear metized
 	flag even when the element of the key sequence isn't a character.
@@ -11041,9 +11040,9 @@
 
 1991-02-23  Jim Blandy  (jimb@pogo.ai.mit.edu)
 
-	* keyboard.c: (recent_keys, this_command_keys,
-	menu_prompt_more_char, help_char, last_command_char, quit_char,
-	last_input_char): Changed to Lisp_Objects, so we can use function
+	* keyboard.c (recent_keys, this_command_keys)
+	(menu_prompt_more_char, help_char, last_command_char, quit_char)
+	(last_input_char): Changed to Lisp_Objects, so we can use function
 	keys for them.
 	(Vglobal_function_map): Variable deleted.
 	(echo_char): Echo function keys too.  The argument C is now a
@@ -11175,7 +11174,7 @@
 	longer convert X keycodes to symbols in this section of code.
 	(x_convert_modifiers): New function to turn the X modifier bits
 	into struct input_event modifier bits.
-	(encode_mouse_button): removed, since this work isn't done here
+	(encode_mouse_button): Removed, since this work isn't done here
 	anymore.
 	(Vx_send_mouse_movement_events): Add an extern declaration for
 	this.
@@ -11193,7 +11192,7 @@
 	* xterm.c (construct_mouse_event): Construct a struct input_event
 	instead of a lispy event.
 
-	* screen.c (coordinates_in_window):  Added explanatory comment.
+	* screen.c (coordinates_in_window): Added explanatory comment.
 	(window_from_coordinates): Change PART, whose returned values are
 	dependent on X-windows, to be called MODELINE_P, with appropriate
 	new return values.
@@ -11204,7 +11203,7 @@
 
 1991-02-18  Jim Blandy  (jimb@pogo.ai.mit.edu)
 
-        * termhooks.h: Added up_modifier to the enum for modifier bits;
+	* termhooks.h: Added up_modifier to the enum for modifier bits;
 	this bit will be applied to mouse events.
 	(struct input_event): Changed specification of non_ascii_keystroke
 	events to send the function key number instead of a symbol.
@@ -11231,7 +11230,7 @@
 	routines which enqueue them can be called from signal handlers,
 	and therefore should not cons.
 
-	* keyboard.c: (kbd_buffer, kbd_fetch_ptr, kbd_store_ptr): Change
+	* keyboard.c (kbd_buffer, kbd_fetch_ptr, kbd_store_ptr): Change
 	these to be of type `struct input_event *'.
 	(kbd_buffer_store_event): Manipulate struct input_events instead
 	of lisp objects.
@@ -11268,7 +11267,7 @@
 
 1991-02-13  Jim Blandy  (jimb@pogo.ai.mit.edu)
 
-	* xterm.c (init_input_symbols): remove the `xk-' prefix from all
+	* xterm.c (init_input_symbols): Remove the `xk-' prefix from all
 	the function key symbols, since they're going to be used for
 	function keys from all sorts of terminals, not just when running
 	under X.
@@ -11322,27 +11321,27 @@
 1991-02-05  Jim Blandy  (jimb@geech.ai.mit.edu)
 
 	* sysdep.c, s-aix3-1.h, s-hpux.h, s-iris3-5.h, s-iris3-6.h,
-	s-irix3-3.h, s-rtu.h, s-sunos4-1.h, s-unipl5-0.h, s-unipl5-2.h,
-	s-usg5-0.h, s-usg5-2-2.h, s-usg5-2.h, s-usg5-3.h, s-xenix.h:
+	* s-irix3-3.h, s-rtu.h, s-sunos4-1.h, s-unipl5-0.h, s-unipl5-2.h,
+	* s-usg5-0.h, s-usg5-2-2.h, s-usg5-2.h, s-usg5-3.h, s-xenix.h:
 	Globally replaced INTERRUPTABLE with INTERRUPTIBLE.
 
 	* xterm.c (construct_mouse_event): Renamed to
 	construct_mouse_click, since there are kinds of mouse events
 	besides clicks (movement, for example).
-	(XTread_socket): rename calls here.
+	(XTread_socket): Rename calls here.
 
-	* xterm.c (mapped_screen_symbol, unmapped_screen_symbol,
-	exited_scrollbar_symbol, exited_window_symbol,
-	redraw_screen_symbol, mouse_moved_symbol): Renamed to
+	* xterm.c (mapped_screen_symbol, unmapped_screen_symbol)
+	(exited_scrollbar_symbol, exited_window_symbol)
+	(redraw_screen_symbol, mouse_moved_symbol): Renamed to
 	Qmapped_screen, Qunmapped_screen, Qexited_scrollbar,
 	Qexited_window, Qredraw_screen, Qmouse_moved, to agree with naming
 	conventions elsewhere in Emacs.
 
-	* xfns.c (text_part_sym, modeline_part_sym,
-	vertical_scrollbar_sym, vertical_slider_sym, vertical_thumbup_sym,
-	vertical_thumbdown_sym, horizontal_scrollbar_sym,
-	horizontal_slider_sym, horizontal_thumbleft_sym,
-	horizontal_thumbright_sym): Renamed to Qtext_part, Qmodeline_part,
+	* xfns.c (text_part_sym, modeline_part_sym)
+	(vertical_scrollbar_sym, vertical_slider_sym, vertical_thumbup_sym)
+	(vertical_thumbdown_sym, horizontal_scrollbar_sym)
+	(horizontal_slider_sym, horizontal_thumbleft_sym)
+	(horizontal_thumbright_sym): Renamed to Qtext_part, Qmodeline_part,
 	Qvscrollbar_part, Qvslider_part, Qvthumbup_part, Qvthumbdown_part,
 	Qhscrollbar_part, Qhslider_part, Qhthumbleft_part,
 	Qhthumbright_part, to agree with the naming conventions elsewhere
@@ -11394,7 +11393,7 @@
 	variables renamed to Vmouse_screen_part,
 	Vx_send_mouse_movement_events.
 
-	* lread.c (Feval_buffer): function deleted.
+	* lread.c (Feval_buffer): Function deleted.
 	(Feval_current_buffer): Removed "#if 0 ... #endif" around this
 	function.
 
@@ -11419,7 +11418,7 @@
 	* xterm.h: Added external declaration for x_focus_screen.
 
 	* search.h: File deleted.
-	* buffer.h: declare searchbuf here instead.
+	* buffer.h: Declare searchbuf here instead.
 
 	* screen.c (Ffocus_screen, Funfocus_screen): Moved these functions
 	to xfns.c, since they're x-specific.
@@ -11471,7 +11470,7 @@
 	cursor in its filled and hollow forms.
 	* xterm.h (enum text_cursor_kinds): Added enum for the different
 	kinds of cursors which might be displayed in a window.
-	(struct x_display): added member `text_cursor_kind' which says
+	(struct x_display): Added member `text_cursor_kind' which says
 	which kind of cursor is currently being displayed in the window, so
 	we can arrange to redraw it effectively.
 
@@ -11522,7 +11521,7 @@
 
 1991-01-28  Jim Blandy  (jimb@geech.ai.mit.edu)
 
-	* ymakefile: noted that callint.o depends on mocklisp.h,
+	* ymakefile: Noted that callint.o depends on mocklisp.h,
 	and dired.o on search.h.
 
 	* environ.h: Deleted - its creation in the first place was misguided.
@@ -11540,7 +11539,7 @@
 
 1991-01-27  Jim Blandy  (jimb@geech.ai.mit.edu)
 
-	* lisp.h (struct handler): add poll_suppress_count member, so
+	* lisp.h (struct handler): Add poll_suppress_count member, so
 	we can restore poll_suppress_count when we handle an error.
 	* eval.c (struct catchtag): Add it here too, for throws.
 	(internal_catch, Fcondition_case, internal_condition_case): Record
@@ -11569,13 +11568,13 @@
 
 1991-01-15  Jim Blandy  (jimb@geech.ai.mit.edu)
 
-	* doc.c (Fsnarf_documentation): handle attaching docstrings to
+	* doc.c (Fsnarf_documentation): Handle attaching docstrings to
 	bytecode objects too.
 
-	* syntax.h (syntax_spec_code): make external declaration for this
+	* syntax.h (syntax_spec_code): Make external declaration for this
 	unsigned char to match the definition in syntax.c.
 
-	* indent.c (compute_motion): added comments describing how it
+	* indent.c (compute_motion): Added comments describing how it
 	can be used.
 
 1991-01-15  Richard Stallman  (rms@mole.ai.mit.edu)
@@ -11630,12 +11629,12 @@
 
 1991-01-12  Jim Blandy  (jimb@pogo.ai.mit.edu)
 
-	* dispnew.c (buffer_posn_from_coords): compute_motion starting
+	* dispnew.c (buffer_posn_from_coords): Compute_motion starting
 	from bufp[y] instead of counting from the top of the window.
 
 1991-01-11  Richard Mlynarik  (mly@pizza.ai.mit.edu)
 
-        * window.c (window-configuration-p):  Needed.  Added.
+	* window.c (window-configuration-p): Needed.  Added.
 
 1991-01-11  Jim Blandy  (jimb@churchy.ai.mit.edu)
 
@@ -11666,7 +11665,7 @@
 
 	* alloc.c (Fmake_byte_code): Flesh out docstring.
 
-	* window.c (window_loop): pick the first window correctly, even
+	* window.c (window_loop): Pick the first window correctly, even
 	when screen == 0.
 
 	* dispnew.c (scroll_screen_lines): Don't forget to call
@@ -11701,15 +11700,15 @@
 	highlight_face, since they're part of the interval code, and
 	shouldn't be installed yet.
 
-	* dispnew.c (init_display): calculate_costs expects a screen
+	* dispnew.c (init_display): Calculate_costs expects a screen
 	parameter; pass selected_screen, instead of nothing.
 
 	* search.c (Freplace_match): Protect STRING.
 	* process.c (run_filter): New function.
 	(read_process_output, exec_sentinel): Use run_filter to call the
 	process's filter function.
- 	(status_notify): GCPro MSG.
- 	* process.c (Fopen_network_stream): Protect various args.
+	(status_notify): GCPro MSG.
+	* process.c (Fopen_network_stream): Protect various args.
 	* print.c (Fprin1_to_string, Fprint): Protect OBJ.
 	* lread.c (Feval_region): Check type of B.
 	* keymap.c (describe_alist): Protect ELT_PREFIX and TEM2.
@@ -11745,12 +11744,12 @@
 	point directly.
 	* window.c (Fselect_window): Here too.
 
-	* xdisp.c (redisplay_all_windows): removed static declaration for
+	* xdisp.c (redisplay_all_windows): Removed static declaration for
 	this nonexistent function.
 
 1991-01-04  Jim Blandy  (jimb@pogo.ai.mit.edu)
 
-	* window.c (window_loop): neatened up.  MINI being non-zero now
+	* window.c (window_loop): Neatened up.  MINI being non-zero now
 	makes it recognize active minibuffer windows.  Iterates properly
 	over multiple screens when asked nicely.
 	(Fget_lru_window, Fget_largest_window): SCREENS arguments are now
@@ -11785,35 +11784,35 @@
 	lines just inserted--old version lost a line.
 
 	* screen.c: #ifdef HAVE_X_WINDOWS, #include xterm.h
-	(Ffocus_screen, Funfocus_screen): use Joe's new definitions, and
+	(Ffocus_screen, Funfocus_screen): Use Joe's new definitions, and
 	only define these functions ifdef HAVE_X_WINDOWS.
-	(window_from_coordinates): use next_screen_window instead of
+	(window_from_coordinates): Use next_screen_window instead of
 	Fnext_window, so that global minibuffers work.
 
 	* lread.c (syms_of_read): Don't forget to defsubr
 	read-char-exclusive.
 
-	* lisp.h (Fscreenp, Fselect_screen, Ffocus_screen,
-	Funfocus_screen, Fselected_screen, Fwindow_screen,
-	Fscreen_root_window, Fscreen_selected_window, Fscreen_list,
-	Fnext_screen, Fdelete_screen, Fread_mouse_position,
-	Fset_mouse_position, Fmake_screen_visible, Fmake_screen_invisible,
-	Ficonify_screen, Fdeiconify_screen, Fscreen_visible_p,
-	Fvisible_screen_list, Fscreen_parameters,
-	Fmodify_screen_parameters, Fscreen_pixel_size, Fscreen_height,
-	Fscreen_width, Fset_screen_height, Fset_screen_width,
-	Fset_screen_size, Fset_screen_position, Fcoordinates_in_window_p,
-	Flocate_window_from_coordinates, Frubber_band_rectangle): added
+	* lisp.h (Fscreenp, Fselect_screen, Ffocus_screen)
+	(Funfocus_screen, Fselected_screen, Fwindow_screen)
+	(Fscreen_root_window, Fscreen_selected_window, Fscreen_list)
+	(Fnext_screen, Fdelete_screen, Fread_mouse_position)
+	(Fset_mouse_position, Fmake_screen_visible, Fmake_screen_invisible)
+	(Ficonify_screen, Fdeiconify_screen, Fscreen_visible_p)
+	(Fvisible_screen_list, Fscreen_parameters)
+	(Fmodify_screen_parameters, Fscreen_pixel_size, Fscreen_height)
+	(Fscreen_width, Fset_screen_height, Fset_screen_width)
+	(Fset_screen_size, Fset_screen_position, Fcoordinates_in_window_p)
+	(Flocate_window_from_coordinates, Frubber_band_rectangle): Added
 	extern declarations for all these.
 
-	* lisp.h (Qscreenp): added an extern declaration for this.
+	* lisp.h (Qscreenp): Added an extern declaration for this.
 
 	* lisp.h (DBL_DIG): Added constant for the maximum number of
 	decimal digits a float could print to.  Used in print.c.
 
 	* keymap.c (Fkey_description): Produce pretty descriptions of
 	mouse and window system events too.
-	(Fsingle_key_description): signal an error if obj is not a key.
+	(Fsingle_key_description): Signal an error if obj is not a key.
 
 	* data.c (Fkeyp, Qkeyp): Added predicate to recognize things which
 	can be bound - this includes keys, symbols (for function keys and
@@ -11827,7 +11826,7 @@
 
 	(classify_object): Place the object in read_key_sequence_cmd.
 
-	(Fread_key_sequence): recognize that when read_key_sequence
+	(Fread_key_sequence): Recognize that when read_key_sequence
 	returns -1 or -2, it's a mouse event or window system event.
 
 1991-01-01  Jim Blandy  (jimb@pogo.ai.mit.edu)
@@ -11837,7 +11836,7 @@
 	(Fdo_auto_save): Don't call run-hooks before it's defined.  This
 	only happens before emacs is dumped, when loading inc-vers.el.
 
- 	* eval.c (Fsignal): TOTALLY_UNBLOCK_INPUT here.
+	* eval.c (Fsignal): TOTALLY_UNBLOCK_INPUT here.
 	(error): Not here.
 
 	(Feval): We use argvals[0..5], so declare it to have six elements
@@ -11855,10 +11854,10 @@
 
 1990-12-28  Jim Blandy  (jimb@geech.ai.mit.edu)
 
-	* print.c (print): put obj in a non-register variable so
+	* print.c (print): Put obj in a non-register variable so
 	we could gcpro it.  Also fixed some syntax errors.
 
-	* editfns.c (Fformat): declare nstrings, and declare nstrings and
+	* editfns.c (Fformat): Declare nstrings, and declare nstrings and
 	strings in a local block.
 	(Fformat): XFLOAT(args[n]) isn't a float; ->data is.
 
@@ -11950,7 +11949,7 @@
 
 1990-12-05  Jim Blandy  (jimb@pogo.ai.mit.edu)
 
-     	* keyboard.c (Fsuspend_emacs): Protect STUFFSTRING.
+	* keyboard.c (Fsuspend_emacs): Protect STUFFSTRING.
 	(cmd_error): Protect TAIL while printing.
 	(input_poll_signal, start_polling): Use polling_period.
 	(syms_of_keyboard): Initialize it and make it a Lisp var.
@@ -11966,7 +11965,7 @@
 
 	* eval.c (Fbacktrace): gcpro TAIL.
 	* emacs.c (Fkill_emacs): gcpro ARG.
-	* editfns.c (Fformat): remove remains of gcpro'd args.
+	* editfns.c (Fformat): Remove remains of gcpro'd args.
 
 	* dispnew.c (syms_of_dispnew): Don't clobber Vwindow_system_version
 	if CANNOT_DUMP.
@@ -11986,11 +11985,11 @@
 
 1990-12-03  Jim Blandy  (jimb@geech.ai.mit.edu)
 
-	* callproc.c (Fcall_process): change synch_process_pid to
+	* callproc.c (Fcall_process): Change synch_process_pid to
 	synch_process_alive, as a general flag that we are waiting for
 	a synchronous process to die.  This obviates the need to block
 	SIGCHLDs until we know the pid.
-	* sysdep.c (wait_for_termination): wait for synch_process_alive	to
+	* sysdep.c (wait_for_termination): Wait for synch_process_alive	to
 	be false.
 
 	* process.c (sigchld_handler): If pid not recognized, look for a
@@ -12037,13 +12036,13 @@
 
 1990-11-20  Jim Blandy  (jimb@churchy.ai.mit.edu)
 
-	* print.c (Fexternal_debugging_output): added new function which
+	* print.c (Fexternal_debugging_output): Added new function which
 	writes a character to stderr, for use when debugging emacs with
 	gdb.
 
 1990-11-14  Jim Blandy  (jimb@churchy.ai.mit.edu)
 
-	* dispnew.c (window_change_signal): used to assume that SIGWINCHes
+	* dispnew.c (window_change_signal): Used to assume that SIGWINCHes
 	always applied to the currently selected screen.  Now it scans the
 	list of screens for a screen controlled by termcap, and changes that
 	screen's size.
@@ -12061,18 +12060,18 @@
 
 	* regex.c: Disabled definition of NULL from lisp.h
 
-	* crt0.c (_start): added static declaration of start1.
+	* crt0.c (_start): Added static declaration of start1.
 
-	* xfns.c: added definition for Vbar_cursor.
+	* xfns.c: Added definition for Vbar_cursor.
 	(syms_of_xfns): Added DEFVAR_LISP clause for Vbar_cursor.
 
-	* xterm.c (XTread_socket): passed &event.xkey instead of &event to
+	* xterm.c (XTread_socket): Passed &event.xkey instead of &event to
 	XLookupString, so things will typecheck nicely.
 
 	* Globally rewrote all references to Vmouse_buffer to use the
 	buffer viewed by Vmouse_window instead.
 
-	* alloc.c (xmalloc, xrealloc): removed calls to
+	* alloc.c (xmalloc, xrealloc): Removed calls to
 	{un,}hold_window_change.  The new SIGWINCH-handling code and
 	do_pending_window_change make them unnecessary.
 
@@ -12128,14 +12127,14 @@
 
 1990-10-29  Jim Blandy  (jimb@pogo.ai.mit.edu)
 
-	* indent.c (position_indentation): renamed stray `bf_cur' to
+	* indent.c (position_indentation): Renamed stray `bf_cur' to
 	`current_buffer', and old `CharAt' usages to `FETCH_CHAR'.
-	* buffer.c (Fbuffer_disable_undo): the symbol object for this
+	* buffer.c (Fbuffer_disable_undo): The symbol object for this
 	subroutine was still named Sbuffer_flush_undo, and the symbol's
 	lisp name was similarly out of date.  Renamed both, and added an
 	alias in lisp/subr.el .
 
-	* keyboard.c (Fset_input_mode): a `meta_flag' had escaped being
+	* keyboard.c (Fset_input_mode): A `meta_flag' had escaped being
 	renamed to `meta_key'.
 
 1990-10-29  Richard Stallman  (rms@mole.ai.mit.edu)
@@ -12147,29 +12146,29 @@
 
 1990-10-29  Jim Blandy  (jimb@pogo.ai.mit.edu)
 
-	* window.c (Fset_window_start, window_scroll): renamed stray
+	* window.c (Fset_window_start, window_scroll): Renamed stray
 	references to `redo_mode_line' to `update_mode_line'.
 
-	* xdisp.c (decode_mode_spec): renamed stray references to `bf_cur'
+	* xdisp.c (decode_mode_spec): Renamed stray references to `bf_cur'
 	and `bf_modified' to `current_buffer' and `MODIFF'.
 
 1990-10-25  Jim Blandy  (jimb@pogo.ai.mit.edu)
 
-	* environ.h: file created - contains declarations for users of the
+	* environ.h: File created - contains declarations for users of the
 	environment variable list.
-	* callproc.c (environ): removed extern declaration of environ, and
+	* callproc.c (environ): Removed extern declaration of environ, and
 	included environ.h.
 
 1990-10-24  Jim Blandy  (jimb@pogo.ai.mit.edu)
 
-	* callproc.c (init_callproc): removed extern declaration of
+	* callproc.c (init_callproc): Removed extern declaration of
 	environ - it's already taken care of at the top of the file.
 
-	* mocklisp.h: file created - externally declares certain
+	* mocklisp.h: File created - externally declares certain
 	functions defined in mocklisp.c.
-	* lisp.h (Fread_buffer, Fread_key_sequence): added extern
+	* lisp.h (Fread_buffer, Fread_key_sequence): Added extern
 	declarations for these functions.
-	* callint.c (ml_apply, Fread_buffer, Fread_key_sequence): removed
+	* callint.c (ml_apply, Fread_buffer, Fread_key_sequence): Removed
 	extern declarations for these functions, included mocklisp.h.
 	Moved external declaration of index to top of file.
 
@@ -12181,23 +12180,23 @@
 
 1990-10-23  Jim Blandy  (jimb@geech.ai.mit.edu)
 
-	* indent.h (last_known_column_point): added extern declaration for
+	* indent.h (last_known_column_point): Added extern declaration for
 	this variable.
-	buffer.c (last_known_column_point): removed extern declaration for
+	* buffer.c (last_known_column_point): Removed extern declaration for
 	this variable, included indent.h.
-	(Vprin1_to_string_buffer): removed extern declaration - it's
+	(Vprin1_to_string_buffer): Removed extern declaration - it's
 	already in lisp.h.
 
-	* lisp.h (catchlist, backtrace_list, stack_bottom,
-	current_global_map): added extern declarations for these
+	* lisp.h (catchlist, backtrace_list, stack_bottom)
+	(current_global_map): Added extern declarations for these
 	variables.
-	* alloc.c: removed external declarations for catchlist,
+	* alloc.c: Removed external declarations for catchlist,
 	backtrace_list, and stack_bottom, since this file includes
 	lisp.h.
-	* callint.c: (current_global_map): removed extern declaration.
+	* callint.c (current_global_map): Removed extern declaration.
 
-	* search.h: new file - declares searchbuf.
-	* dired.c (Fdirectory_files): removed extern declaration of
+	* search.h: New file - declares searchbuf.
+	* dired.c (Fdirectory_files): Removed extern declaration of
 	searchbuf, included search.h.
 
 	* Globally renamed `CHAR_AT_POSITION' to `FETCH_CHAR'.
@@ -12214,10 +12213,10 @@
 
 1990-10-22  Jim Blandy  (jimb@pogo.ai.mit.edu)
 
-	* xdisp.c: added `extern' declaration for command_loop_level.
+	* xdisp.c: Added `extern' declaration for command_loop_level.
 
 	* term.c (term_init): Internal cleanups.
-	(write_glyphs): renamed argument `start' to `string'.
+	(write_glyphs): Renamed argument `start' to `string'.
 
 1990-10-21  Richard Stallman  (rms@mole.ai.mit.edu)
 
@@ -12244,7 +12243,7 @@
 
 1990-10-19  Jim Blandy  (jimb@pogo.ai.mit.edu)
 
-	* scroll.c (do_scrolling): allocate queue using alloca instead
+	* scroll.c (do_scrolling): Allocate queue using alloca instead
 	of variable-sized arrays.
 
 1990-10-19  Richard Stallman  (rms@mole.ai.mit.edu)
@@ -12253,10 +12252,10 @@
 
 1990-10-18  Jim Blandy  (jimb@pogo.ai.mit.edu)
 
-	* print.c (internal_with_output_to_temp_buffer): install an
+	* print.c (internal_with_output_to_temp_buffer): Install an
 	unwind_protect to make sure the current buffer is restored.
 
-	* minibuf.c (read_minibuf): call recursive_edit_1 instead of
+	* minibuf.c (read_minibuf): Call recursive_edit_1 instead of
 	Frecursive_edit, to support the new command_loop_level
 	arrangement.
 
@@ -12266,7 +12265,7 @@
 	* lread.c (openp): Since access returns 0 on success, change that
 	into a 1 before returning it.
 
-	* lisp.h: deleted DEFSIMPLE and DEFPRED, since they're no
+	* lisp.h: Deleted DEFSIMPLE and DEFPRED, since they're no
 	longer used.
 
 1990-10-18  Richard Stallman  (rms@mole.ai.mit.edu)
@@ -12281,7 +12280,7 @@
 
 1990-10-18  Jim Blandy  (jimb@pogo.ai.mit.edu)
 
-	* keymap.c (Flookup_key): rearranged to use an index into the key
+	* keymap.c (Flookup_key): Rearranged to use an index into the key
 	sequence instead of a pointer and a level counter.
 
 1990-10-18  Richard Stallman  (rms@mole.ai.mit.edu)
@@ -12297,7 +12296,7 @@
 
 1990-10-17  Jim Blandy  (jimb@pogo.ai.mit.edu)
 
-	* keyboard.c (command_loop): made call to command_loop_2
+	* keyboard.c (command_loop): Made call to command_loop_2
 	conditional on minibuf_level too (it used to be only conditional
 	on command_loop_level), since this is what 18.56 and all the other
 	functions in Emacs 19 keyboard.c do.
@@ -12321,7 +12320,7 @@
 
 1990-10-16  Jim Blandy  (jimb@pogo.ai.mit.edu)
 
-	* indent.c (position_indentation): instead of using CharAt, use a
+	* indent.c (position_indentation): Instead of using CharAt, use a
 	pointer to scan the buffer - this is faster.
 
 	* emacs.c (Fdump_emacs): The conditional expression which passes
@@ -12351,10 +12350,10 @@
 	* buffer.c (list_buffers_1): Select the buffer given in
 	Vstandard_output using Fset_buffer instead of set_buffer_internal.
 
-	* buffer.c (set_buffer_internal): deleted variable swb - it's
+	* buffer.c (set_buffer_internal): Deleted variable swb - it's
 	never used.
 
-	* buffer.c (count_modified_buffers): function deleted - it's
+	* buffer.c (count_modified_buffers): Function deleted - it's
 	not used anymore.
 
 1990-10-11  Jim Blandy  (jimb@pogo.ai.mit.edu)
@@ -12364,7 +12363,7 @@
 	do not have a DEFVAR_PER_BUFFER, as described in the comments
 	above buffer_local_flags.
 
-	* buffer.c (Fget_buffer_create): move initialization of
+	* buffer.c (Fget_buffer_create): Move initialization of
 	b->save_length and b->last_window_start to reset_buffer.
 
 1990-10-11  Richard Stallman  (rms@mole.ai.mit.edu)
@@ -12385,7 +12384,7 @@
 
 1990-10-10  Jim Blandy  (jimb@pogo.ai.mit.edu)
 
-        * alloc.c (gc_sweep): only unchain markers that are in a buffer.
+	* alloc.c (gc_sweep): Only unchain markers that are in a buffer.
 
 1990-10-10  Mike Rowan  (mtr@apple-gunkies)
 
@@ -12394,11 +12393,11 @@
 
 1990-10-09  Jim Blandy  (jimb@churchy.ai.mit.edu)
 
-	* xdist.c: (decode_mode_spec): reworked code to handle %* - it now
+	* xdist.c (decode_mode_spec): Reworked code to handle %* - it now
 	goes like `if return else if return else ... return' instead of
 	using a conditional operator.
 
-	* xdist.c: (fmodetrunc): function deleted - no longer used.
+	* xdist.c (fmodetrunc): Function deleted - no longer used.
 
 1990-10-09  Richard Stallman  (rms@mole.ai.mit.edu)
 
@@ -12427,32 +12426,32 @@
 
 1990-10-06  Jim Blandy  (jimb@pogo.ai.mit.edu)
 
-	* sysdep.c (tabs_safe_p, get_screen_size): renamed `sg' to `tty'.
+	* sysdep.c (tabs_safe_p, get_screen_size): Renamed `sg' to `tty'.
 
-	* sysdep.c (init_baud_rate): rearranged code for calculating
+	* sysdep.c (init_baud_rate): Rearranged code for calculating
 	baud_rate.
 
 1990-10-05  Jim Blandy  (jimb@pogo.ai.mit.edu)
 
-	* search.c (Freplace_match): used Finsert_buffer_substring instead
+	* search.c (Freplace_match): Used Finsert_buffer_substring instead
 	of place and deleted place.
 
-	* search.c (place): function removed
+	* search.c (place): Function removed.
 
 	* process.c (count_active_processes): Deleted; not used.
 
-	* minibuf.c (read_minibuf): renamed `prefix' argument to `initial'.
+	* minibuf.c (read_minibuf): Renamed `prefix' argument to `initial'.
 
 1990-10-01  Jim Blandy  (jimb@pogo.ai.mit.edu)
 
-	* lread.c (Fload): renamed `MISSING-OK' to `NOERROR'.
+	* lread.c (Fload): Renamed `MISSING-OK' to `NOERROR'.
 
-	* keyboard.c (describe_map): renamed `keys' to `string'.
+	* keyboard.c (describe_map): Renamed `keys' to `string'.
 
 	* keyboard.c `Vauto_save_interval' unrenamed back to
 	`auto-save-interval'.
 
-	* keymap.c (Fdefine_key, Flookup_key): renamed arguments called
+	* keymap.c (Fdefine_key, Flookup_key): Renamed arguments called
 	`keys' to `key'.
 
 1990-10-01  Richard Stallman  (rms@mole.ai.mit.edu)
@@ -12479,20 +12478,20 @@
 	* keyboard.c: `auto_save_interval' renamed to
 	`Vauto_save_interval', since it *is* a lisp-accessible variable.
 
-	* fileio.c (Fdo_auto_save): call record_auto_save so that
+	* fileio.c (Fdo_auto_save): Call record_auto_save so that
 	read_char knows when we've auto-saved.
 
-	* keyboard.c (record_auto_save): added function to support the new
+	* keyboard.c (record_auto_save): Added function to support the new
 	auto-save conditions.
 
-	* keyboard.c (read_char): use num_input_chars and last_auto_save
+	* keyboard.c (read_char): Use num_input_chars and last_auto_save
 	instead of keystrokes to decide when to autosave.
 
-	* keyboard.c (keystrokes): variable deleted.
+	* keyboard.c (keystrokes): Variable deleted.
 
 1990-09-30  Mike Rowan  (mtr@spike.ai.mit.edu)
 
-	* keyboard.c, alloc.c:  added malloc warning code from
+	* keyboard.c, alloc.c: Added malloc warning code from
 	18.56.
 
 	* dispnew.c, xdisp.c: (un)hold_window_change no longer exists;
@@ -12509,7 +12508,7 @@
 
 	* lread.c (Fload): Warn if elc file older than source file.
 
-	* ymakefile (LIB_X11_LIB): New parameter,default -lX11.
+	* ymakefile (LIB_X11_LIB): New parameter, default -lX11.
 	(LIBX): Use that.
 
 	* Makefile (xmakefile): Delete junk.c at the beginning.
@@ -12529,49 +12528,49 @@
 
 1990-09-28  Jim Blandy  (jimb@pogo.ai.mit.edu)
 
-	* fileio.c (Fwrite_region): renamed variable `fd' to `desc' and
+	* fileio.c (Fwrite_region): Renamed variable `fd' to `desc' and
 	changed argument to open from `1' to `O_WRONLY'.
 
-	* fileio.c (O_WRONLY): added clause to define this if not already
+	* fileio.c (O_WRONLY): Added clause to define this if not already
 	defined.
 
-	* emacs.c (Fdump_emacs): removed a_name variable.
+	* emacs.c (Fdump_emacs): Removed a_name variable.
 
-	* emacs.c (Fkill_emacs): removed code which asked about modified
+	* emacs.c (Fkill_emacs): Removed code which asked about modified
 	buffers and running subprocesses.
 
-	* editfns.c (Fcurrent_time_string): renamed variable `now' to
+	* editfns.c (Fcurrent_time_string): Renamed variable `now' to
 	`current_time'.
 
-	* dispnew.c (update_line): renamed variables `m1' and `m2' to
+	* dispnew.c (update_line): Renamed variables `m1' and `m2' to
 	`begmatch' and `endmatch'.
 
-	* dispnew.c (update_screen): use preempt_count as a limit instead
+	* dispnew.c (update_screen): Use preempt_count as a limit instead
 	of a counter; count with i instead.
 
-	* dispnew.c (visible_bell, inverse_video, baud_rate,
-	Vwindow_system): rearranged comments.
+	* dispnew.c (visible_bell, inverse_video, baud_rate)
+	(Vwindow_system): Rearranged comments.
 
 1990-09-27  Richard Stallman  (rms@mole.ai.mit.edu)
 
 	* emacs.c (main) : Set the DISPLAY environment value when both of
 	MAINTAIN_ENVIRONMENT and HAVE_X_WINDOW are defined.
 
-	* m-convex.h (LIB_STANDARD, LIBS_MACHINE): remove these, they
+	* m-convex.h (LIB_STANDARD, LIBS_MACHINE): Remove these, they
 	cause an unnecessary C1/C2 dependency.
 
-	* m-convex.h (LD_SWITCH_MACHINE): use -e__start to specify
+	* m-convex.h (LD_SWITCH_MACHINE): Use -e__start to specify
 	where crt0.c begins.
 
-	* m-convex.h (HAVE_SETSID): define; must call setsid
+	* m-convex.h (HAVE_SETSID): Define; must call setsid
 	when creating an inferior with a different controlling tty.
-	* process.c (create_process): rearrange so that HAVE_SETSID
+	* process.c (create_process): Rearrange so that HAVE_SETSID
 	will be seen when not under USG.
 
-	* m-convex.h (S_IFMT etc): define in case of posix compilation.
+	* m-convex.h (S_IFMT etc): Define in case of posix compilation.
 
-	* m-convex.h (FIRST_PTY_LETTER): do it at runtime.
-	* unexconvex.c (first_pty_letter): routine to locate lowest pty.
+	* m-convex.h (FIRST_PTY_LETTER): Do it at runtime.
+	* unexconvex.c (first_pty_letter): Routine to locate lowest pty.
 
 	* unexconvex.c: Rewrite so it can cope with thread-local sections.
 
@@ -12635,9 +12634,9 @@
 
 1990-09-03  Mike Rowan  (mtr@apple-gunkies)
 
-	* sysdep.c: added setup_pty from 18.56
+	* sysdep.c: Added setup_pty from 18.56
 
-	* process.c:  merged in 18.55->6 changes.  Same for process.h
+	* process.c: Merged in 18.55->6 changes.  Same for process.h
 
 	globally replaced:
 		   redisplay_preserving_echo_area -> redisplay_preserve_echo_area
@@ -12712,7 +12711,7 @@
 	free_screen_glyphs now takes screen argument.
 
 	* window.c (Fnext_window, Fprevious_window): Fixed typo.  New
-	behaviour:  mini non-nil implies all_screens if global mini screen
+	behaviour: mini non-nil implies all_screens if global mini screen
 	exists, implies current screen only if not.
 	(Fdisplay_buffer): Simplification of multi-screen code.
 
@@ -12741,7 +12740,7 @@
 	* xfns.c (x_y_pos): Nuked.  Replaced by pixel_to_char_translation
 	and notice_mouse_movment (dispnew.c, xterm.c).
 	(Fx_point_coordinates): Also nuked.
-	mouse_buffer_offset:  New lisp variable.
+	(mouse_buffer_offset): New lisp variable.
 
 	* xterm.c (notice_mouse_movement): Use it in call to
 	pixel_to_char_translation.
@@ -12760,7 +12759,7 @@
 
 1990-08-12  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* dispnew.c (pixel_to_char_translation):  New algorithm for
+	* dispnew.c (pixel_to_char_translation): New algorithm for
 	finding y.
 
 	* xfns.c (install_*_scrollbar): No more height, width parameters.
@@ -12781,7 +12780,7 @@
 	* xfns.c (Fx_grab_pointer): Call XCreateFontCursor on shape,
 	setting new variable grabbed_cursor.  Return Qt if successful,
 	Qnil otherwise.
-	(Fx_ungrab_pointer): free grabbed_cursor if non zero.  Return Qnil.
+	(Fx_ungrab_pointer): Free grabbed_cursor if non zero.  Return Qnil.
 
 1990-08-10  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
@@ -12802,7 +12801,7 @@
 
 1990-08-07  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* dispextern.h: element bufp of screen_glyphs no longer dependent
+	* dispextern.h: Element bufp of screen_glyphs no longer dependent
 	on X windows.
 	* xdisp.c (display_text_line): Likewise.
 
@@ -12845,7 +12844,7 @@
 	leaving screen, as well as setting x_mouse_x = x_mouse_y = -1.
 
 	* keyboard.c: Vmouse_window, Vmouse_event declared extern and no
-	longer DEFVARed:  they are already delclared in window.c
+	longer DEFVARed: they are already delclared in window.c.
 
 	* screen.c (window_from_coordinates): Use Fnext_window, even if
 	MULTI_SCREEN, to obtain the next window.  This is an test.
@@ -12858,18 +12857,18 @@
 1990-08-04  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
 	* screen.c (Fcoordinates_in_window_p): Doc fix.  Simplified.
-	(window_from_coordinates):  New function.
-	(Flocate_window_from_coordinates):  Use it.
+	(window_from_coordinates): New function.
+	(Flocate_window_from_coordinates): Use it.
 
-	* keyboard.c (classify_object):  New function for dealing with the
+	* keyboard.c (classify_object): New function for dealing with the
 	input object.  New symbol, mouse-motion, called here.
 	Call to mouse-motion-handler now takes no parameters.
-	(read_key_sequence):  Use the new function.  Don't set keybuf[0]
+	(read_key_sequence): Use the new function.  Don't set keybuf[0]
 	to 0.
 
-	* xterm.c (init_input_symbols):  Create all the Lisp symbols
+	* xterm.c (init_input_symbols): Create all the Lisp symbols
 	returned in the input stream.
-	func_key_syms:  New array to hold all symbols for function keys.
+	(func_key_syms): New array to hold all symbols for function keys.
 	(x_func_key_to_sym): Use this array.
 	(notice_mouse_movement): New function for dealing with motion
 	events.
@@ -12910,7 +12909,7 @@
 
 1990-07-26  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* xdisp.c (display_text_line):  String to rope copy for inserting
+	* xdisp.c (display_text_line): String to rope copy for inserting
 	arrow text.
 
 1990-07-25  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
@@ -12918,7 +12917,7 @@
 	* xdisp.c (display_mode_line): Check that the name has actually
 	changed before calling x_set_name.
 
-	* ralloc.c (check_memory_limits):  New function.
+	* ralloc.c (check_memory_limits): New function.
 	Also check if new memory will be larger than elisp pointer.
 	(r_alloc_sbrk): Call this function.
 	(relocate_blocs_upward, relocate_blocs_downward): Eliminated.
@@ -12939,10 +12938,10 @@
 
 	* dispnew.c (safe_bcopy): No longer static.
 
-	* ralloc.c (relocate_blocs_upward, relocate_blocs_downward):  Use
-	safe_bcopy.
+	* ralloc.c (relocate_blocs_upward, relocate_blocs_downward):
+	Use safe_bcopy.
 
-	* mem_limits.c:  typedef SIZE.
+	* mem_limits.c: typedef SIZE.
 
 1990-07-19  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
@@ -12953,7 +12952,7 @@
 
 1990-07-18  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* indent.c (Fmove_to_column):  Set end to ZV.
+	* indent.c (Fmove_to_column): Set end to ZV.
 
 1990-07-17  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
@@ -12963,11 +12962,11 @@
 
 1990-07-17  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* buffer.c (list_buffers_1):  Don't check list-buffers-directory.
+	* buffer.c (list_buffers_1): Don't check list-buffers-directory.
 
 1990-07-16  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* xdisp.c (display_text_line):  Don't print ellipsis if they're
+	* xdisp.c (display_text_line): Don't print ellipsis if they're
 	off the left edge.
 
 1990-07-10  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
@@ -13026,7 +13025,7 @@
 
 1990-06-15  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* term.c: (cursor_to): Only add chars_wasted if not calling hook.
+	* term.c (cursor_to): Only add chars_wasted if not calling hook.
 	(clear_end_of_line_raw): Likewise.
 	(clear_end_of_line): Check that screen is termcap before using
 	chars_wasted.
@@ -13046,7 +13045,7 @@
 	SCREEN_WIDTH (selected_screen).
 	* dispnew.c (init_display): Don't set SCREEN_WIDTH, etc. from
 	screen_width.
-	(change_window_size):  No longer check output_type and set
+	(change_window_size): No longer check output_type and set
 	ScreenRows.
 
 1990-06-11  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
@@ -13056,8 +13055,8 @@
 
 1990-06-06  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* keyboard.c (echo_prompt):  Now uses glyphs.
-	echobuf, echobuf_ptr:  These variables now glyphs.
+	* keyboard.c (echo_prompt): Now uses glyphs.
+	echobuf, echobuf_ptr: These variables now glyphs.
 
 1990-06-05  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
@@ -13065,17 +13064,17 @@
 	omessage.
 	* alloc.c (Fgarbage_collect): Ditto.
 
-	* xdisp.c (message):  message_buf set here, realloced if smaller
+	* xdisp.c (message): message_buf set here, realloced if smaller
 	than screen width.
 	message_buf now type GLYF *.  New variable message_buf_size holds
 	its size.
 	Use temp_buf for call to doprnt, then use str_to_glyph_cpy to set
 	echo_area_glyphs.
 
-	* print.c (printchar, strout):  Use message_buf_size.  Convert to
+	* print.c (printchar, strout): Use message_buf_size.  Convert to
 	glyfs before assigning chars.
-	(str_to_glyph_cpy, str_to_glyph_ncpy,
-	glyph_to_str_cpy, glyph_to_str_ncpy):  New functions.
+	(str_to_glyph_cpy, str_to_glyph_ncpy)
+	(glyph_to_str_cpy, glyph_to_str_ncpy): New functions.
 
 1990-06-03  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
@@ -13109,7 +13108,7 @@
 	(ILcost, DLcost, ILncost, DLncost): Now pointers.
 	(do_scrolling): Use alloca for queue.
 
-	* term.c (term_init):  selected_screen as arg to calculate_costs.
+	* term.c (term_init): selected_screen as arg to calculate_costs.
 	(calculate_costs):
 	Dynamically allocate chars_wasted, copybuf, DC_ICcost.
 	Set RPov based on actual width.
@@ -13119,17 +13118,17 @@
 
 1990-06-02  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-        * term.c (calculate_ins_del_char_costs, string_cost_one_line):
+	* term.c (calculate_ins_del_char_costs, string_cost_one_line):
 	Made static.
 
 	* dispnew.c: Declare scrolling_1;
 
-	* scroll.c (CalcIDCosts, CalcIDCosts1, CalcLID):  Renamed
+	* scroll.c (CalcIDCosts, CalcIDCosts1, CalcLID): Renamed
 	calculate_ins_del_char_costs, ins_del_costs, and line_ins_del.
 	CalcIDCosts1 and CalcLID also renamed.
-	(calculate_scrolling):  Now void.
+	(calculate_scrolling): Now void.
 
-	* Global renaming:  bf_modified -> MODIFF.  CharAt -> CHAR_AT_POSITION.
+	* Global renaming: bf_modified -> MODIFF.  CharAt -> CHAR_AT_POSITION.
 	BufferSafe{Floor,Ceiling} -> BUFFER_{FLOOR,CEILING}_OF.
 	SetPoint -> SET_PT.
 
@@ -13140,10 +13139,10 @@
 	* print.c: Include dispextern.h.
 	(printchar, strout): Use message_buf.
 
-        * sysdep.c (get_screen_size): Don't use MscreenWidth, MscreenLenght.
-	* term.c:  Likewise.
+	* sysdep.c (get_screen_size): Don't use MscreenWidth, MscreenLenght.
+	* term.c: Likewise.
 
-        * scroll.c (CalcIDCosts, CalcIDCosts1, CalcLID):  These now take a
+	* scroll.c (CalcIDCosts, CalcIDCosts1, CalcLID): These now take a
 	screen argument.
 	(CalcIDCosts): Dynamically allocate ILcost, etc.
 	(ILcost, DLcost, ILncost, DLncost): Now pointers.
@@ -13165,7 +13164,7 @@
 	Macro SetBfx removed.
 	Macro SetPoint renamed SET_PT.
 
-	* fileio.c (Fexpand_file_name):  Simplified.
+	* fileio.c (Fexpand_file_name): Simplified.
 
 1990-06-01  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
@@ -13181,9 +13180,9 @@
 
 1990-05-31  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* process.c (Fprocess_connection):  Return the type of a process
+	* process.c (Fprocess_connection): Return the type of a process
 	object.
-	(syms_of_process):  Initialize pty_process and stream_process.
+	(syms_of_process): Initialize pty_process and stream_process.
 	Declare Fprocess_type.
 	* process.h  New element type to struct Lisp_Process.
 
@@ -13191,23 +13190,23 @@
 
 1990-05-28  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* fileio.c (Finsert_file_contents):  Use new variable how_much to
+	* fileio.c (Finsert_file_contents): Use new variable how_much to
 	hold read result.
 
 1990-05-24  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* lread.c (read_char_exclusive):  New subr.
+	* lread.c (read_char_exclusive): New subr.
 
 1990-05-24  David Lawrence  (tale@pogo.ai.mit.edu)
 
-	* fileio.c (file_executable_p):  New function.
+	* fileio.c (file_executable_p): New function.
 
 1990-05-23  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
 	* insdel.c (make_gap): Only set BEG_ADDR if BUFFER_REALLOC was
 	successful.
 
-	* editfns.c (syms_of_editfns):  DEFVAR the new variables.
+	* editfns.c (syms_of_editfns): DEFVAR the new variables.
 
 	* eval.c (Finteractive_p): Don't skip the first frame if the
 	function was compiled.
@@ -13219,12 +13218,12 @@
 
 	* Renamed meta_flag meta_key.
 
-	* termopts.h:  Comment changes.
+	* termopts.h: Comment changes.
 
 1990-05-20  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
 	* buffer.h: upcase_table and downcase_table are now Lisp_Objects.
-	* alloc.c (mark_object, gc_sweep):  Related changes.
+	* alloc.c (mark_object, gc_sweep): Related changes.
 	* casetab.c: Ditto.
 
 1990-05-17  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
@@ -13310,7 +13309,7 @@
 
 1990-05-16  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* xdisp.c (try_window):  No return value.
+	* xdisp.c (try_window): No return value.
 	Fix calls to try_window.
 	* Global variable RedoModes is now redraw_mode_line.
 
@@ -13344,12 +13343,12 @@
 
 1990-05-10  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* dispextern.h: new struct screen_glyfs replaces struct
+	* dispextern.h: New struct screen_glyfs replaces struct
 	display_line.
-	* screen.c: new screen elements current_glyfs, desired_glyfs, and
+	* screen.c: New screen elements current_glyfs, desired_glyfs, and
 	temp_glyfs.
-	* dispnew.c: (make_screen_glyfs, free_screen_glyfs,
-	remake_screen_glyfs):  New functions.
+	* dispnew.c (make_screen_glyfs, free_screen_glyfs):
+	(remake_screen_glyfs): New functions.
 	(make_display_lines, new_display_line, return_display_line):
 	Functions deleted.
 	(change_screen_size, init_display): Use the new functions.
@@ -13364,7 +13363,7 @@
 	(line_hash_code, line_draw_cost): Cleaned up.
 	Args are different, and hash computation too.
 	(update_screen): Rearrange buffer-emptying code.
-	* xdisp.c: (display_minibuf_message, redisplay): Rewritten for new
+	* xdisp.c (display_minibuf_message, redisplay): Rewritten for new
 	structures.
 	(display_text_line, display_mode_line): Likewise.
 	(display_mode_element, display_string): Likewise.
@@ -13403,8 +13402,7 @@
 
 1990-05-08  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* process.c (Fopen_network_stream):  Also handle numeric inet
-	addresses.
+	* process.c (Fopen_network_stream): Also handle numeric inet addresses.
 
 1990-05-06  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
@@ -13436,8 +13434,8 @@
 	* xterm.c (x_display_cursor): Don't check s->phys_x when drawing
 	cursor.
 
-	* undo.c:  New version.
-	* undo.h:  No longer exists.
+	* undo.c: New version.
+	* undo.h: No longer exists.
 	* alloc.c (Fgarbage_collect): Call truncate_undo_list.
 	(syms_of_alloc): Define vars undo-threshold and undo-high-threshold.
 	* buffer.c (Fget_buffer_create): Set undo_list to t or nil.
@@ -13448,9 +13446,9 @@
 	* buffer.h: New element undo_list in struct buffer.
 	* fileio.c (Finsert_file_contents): Store nil in undo_list.
 
-	* buffer.c:  Variable bf_text deleted.
+	* buffer.c: Variable bf_text deleted.
 	(Fkill_buffer, SetBfp): Delete code that worked with it.
-	(SetBfx):  Now a macro in buffer.h
+	(SetBfx): Now a macro in buffer.h
 	* editfns.c (Fwiden, Fnarrow_to_region): Related changes.
 	(save_restriction_save, save_restriction_restore): Likewise.
 	(Finsert_buffer_substring): Likewise.
@@ -13463,12 +13461,12 @@
 
 1990-04-30  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-        * buffer.h:  New macro R_ALLOC_SET_BUFFER for declaring all the
+	* buffer.h: New macro R_ALLOC_SET_BUFFER for declaring all the
 	text pointers of a buffer to the relocating allocator.
 	* buffer.c (Fbury_buffer, SetBfx, SetBfp): Use the macro.
-	* editfns.c (Finsert_buffer_substring):  ditto.
-	* fileio.c (Fdo_auto_save): ditto.
-	* insdel.c (make_gap): ditto.
+	* editfns.c (Finsert_buffer_substring): Ditto.
+	* fileio.c (Fdo_auto_save): Ditto.
+	* insdel.c (make_gap): Ditto.
 	* xfns.c (adjust_scrollbars): Don't set bf_cur->text.
 
 1990-04-26  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
@@ -13488,12 +13486,12 @@
 
 1990-04-19  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* xfns.c (Fx_open_connection):  Attach xrdb to x_current_display.
+	* xfns.c (Fx_open_connection): Attach xrdb to x_current_display.
 
 1990-04-17  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* xterm.c (dumpborder):  Now only used for X10.
-	(highlight, unhighlight):  New functions for X11.
+	* xterm.c (dumpborder): Now only used for X10.
+	(highlight, unhighlight): New functions for X11.
 
 1990-04-17  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
@@ -13506,26 +13504,26 @@
 
 1990-04-15  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* xfns.c (Fx_get_resource):  Concatenate invocation_name before
+	* xfns.c (Fx_get_resource): Concatenate invocation_name before
 	the resource tag.
-	(Fx_create_screen):  Use the latest resource id's.
+	(Fx_create_screen): Use the latest resource id's.
 
 1990-04-13  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* xfns.c (Fx_get_resource):  New subr.
-	(Fx_open_connection):  Call x_load_resources.  New parameter
+	* xfns.c (Fx_get_resource): New subr.
+	(Fx_open_connection): Call x_load_resources.  New parameter
 	xrm_string.
-	* xrdb.c:  New file for doing resource manager stuff.
+	* xrdb.c: New file for doing resource manager stuff.
 
-	* xscrollbar.h:  New file for scrollbar bitmaps.
+	* xscrollbar.h: New file for scrollbar bitmaps.
 
-	* xselect.h:  New file for the X selection stuff.
+	* xselect.h: New file for the X selection stuff.
 
 	* ymakefile: Take note of these new files.
 
 1990-04-10  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* xterm.c (x_term_init):  Use MAXPATHLEN.
+	* xterm.c (x_term_init): Use MAXPATHLEN.
 
 1990-04-09  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
@@ -13533,15 +13531,14 @@
 
 1990-04-06  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* screen.c (coordinates_in_window):  Return -1 if in modeline of
-	window.
-	(Fcoordinates_in_window_p):  Return Qt if in modeline of window.
-	(Flocate_window_from_coordinates):  Use next_screen_window if
+	* screen.c (coordinates_in_window): Return -1 if in modeline of window.
+	(Fcoordinates_in_window_p): Return Qt if in modeline of window.
+	(Flocate_window_from_coordinates): Use next_screen_window if
 	MULTI_WINDOW is defined.
 
 1990-04-05  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* xterm.c (construct_mouse_event):  Deal with the motion events
+	* xterm.c (construct_mouse_event): Deal with the motion events
 	first.  Only grab the mouse when in the scrollbar.
 
 1990-04-04  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
@@ -13549,138 +13546,138 @@
 	* screen.c (coordinates_in_window): Include mode line as part of
 	window.
 
-	* xterm.c (XTread_socket):  Initialize nbytes to 0.
-	(x_display_cursor):  Don't draw if screen not selected.
+	* xterm.c (XTread_socket): Initialize nbytes to 0.
+	(x_display_cursor): Don't draw if screen not selected.
 
-	* xdisp.c (DoDsp):  Additional checks for screen being visible.
+	* xdisp.c (DoDsp): Additional checks for screen being visible.
 
 1990-04-03  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* editfns.c (Fmessage):  If there is a global minibuffer screen,
+	* editfns.c (Fmessage): If there is a global minibuffer screen,
 	raise it before displaying the message.
 
-	* window.c (window_loop):  Parameter SCREENS now affects which
+	* window.c (window_loop): Parameter SCREENS now affects which
 	screen is scanned for windows.  All subrs calling window_loop must
 	pass a Lisp_Object here now.
 
 1990-04-01  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* window.c (window_loop):  Additional parameter mini to control
+	* window.c (window_loop): Additional parameter mini to control
 	minibuffer selection or not.
 	(Fget_lru_window):
 	(Fget_largest_window):
 	(Fget_buffer_window):
 	(Fdelete_other_windows):
 	(Fdelete_windows_on):
-	(Freplace_buffer_in_windows):  Use that parameter.
+	(Freplace_buffer_in_windows): Use that parameter.
 
 1990-03-29  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-        * screen.c (Fselect_screen):  Raise the selected screen.
+	* screen.c (Fselect_screen): Raise the selected screen.
 
 	* window.c (Fget_buffer_window):
 	(Fget_largest_window):
-	(Fget_lru_window):  New parameter all_screens.
-	(Fdisplay_buffer):  Use the new param in Fget_lru_window,
+	(Fget_lru_window): New parameter all_screens.
+	(Fdisplay_buffer): Use the new param in Fget_lru_window,
 	Fget_buffer_window, and	Fget_largest_window.
-	(Fscroll_other_window):  Use new param in Fget_buffer_window.
-	* buffer.c (Fother_buffer): ditto.
+	(Fscroll_other_window): Use new param in Fget_buffer_window.
+	* buffer.c (Fother_buffer): Ditto.
 
-	* xterm.c (x_display_cursor):  Always draw the cursor if ON is
+	* xterm.c (x_display_cursor): Always draw the cursor if ON is
 	true.  Don't check if the screen S is selected or equal to
 	mouse-screen.
 
-	* xfns.c (Fx_track_pointer):  Don't turn off cursor, just call
+	* xfns.c (Fx_track_pointer): Don't turn off cursor, just call
 	x_display_cursor.
 
 1990-03-28  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-        * data.c (Fmake_local_variable):  Give the variable value nil if
+	* data.c (Fmake_local_variable): Give the variable value nil if
 	unbound.
 
-	* window.c (Fnext_window, Fprevious_window):  For MULTI_SCREEN,
+	* window.c (Fnext_window, Fprevious_window): For MULTI_SCREEN,
 	check if Vglobal_minibuffer_screen is non-nil and maybe call
 	next_screen.
 
 	* screen.c (Fscreen_selected_window):
-	(Fscreen_root_window):  If screen is nil, use selected-screen.
+	(Fscreen_root_window): If screen is nil, use selected-screen.
 
 1990-03-27  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* xterm.c (XTread_socket):  SET_SCREEN_GARBAGED which returning
+	* xterm.c (XTread_socket): SET_SCREEN_GARBAGED which returning
 	symbol which causes DoDsp to be invoked.
-	* keyboard.c (read_key_sequence):  Don't SET_SCREEN_GARBAGED here.
+	* keyboard.c (read_key_sequence): Don't SET_SCREEN_GARBAGED here.
 
-	* screen.h:  New macro SET_SCREEN_GARBAGED.
+	* screen.h: New macro SET_SCREEN_GARBAGED.
 
 	* xfns.c:
 	* window.c:
 	* sysdep.c:
 	* keyboard.c:
-	* dispnew.c:  Use the new macro.
+	* dispnew.c: Use the new macro.
 
 1990-03-25  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* xfns.c (Fx_own_selection):  Only take one argument, string.
+	* xfns.c (Fx_own_selection): Only take one argument, string.
 
 1990-03-24  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* xfns.c (select_visual):  Catch bullshit machines whose hardware
+	* xfns.c (select_visual): Catch bullshit machines whose hardware
 	doesn't support the X server pixel depth by looking at colormap_size.
-	(x_decode_color):  Use x_screen_planes to check for color.
+	(x_decode_color): Use x_screen_planes to check for color.
 
 1990-03-23  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* xterm.c (x_display_cursor):  Try using vertical bar cursor.
-	(clear_cursor):  Call x_display_cursor for X11.
+	* xterm.c (x_display_cursor): Try using vertical bar cursor.
+	(clear_cursor): Call x_display_cursor for X11.
 
 	* xfns.c: Zotzed Vx_pointer_mask.
-	(Fx_track_pointer):  Call x_display_cursor if we just
+	(Fx_track_pointer): Call x_display_cursor if we just
 	wasted the cursor.  Break out of loop if no display line.
 	Use mode line cursor if we're there.
-	(x_y_pos):  New function.
-	(x_set_font):  Dont' set x_font_{width,height}, they are gone.
+	(x_y_pos): New function.
+	(x_set_font): Dont' set x_font_{width,height}, they are gone.
 
 1990-03-22  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* xfns.c (Fx_track_pointer):  Check that s == selected_screen each
+	* xfns.c (Fx_track_pointer): Check that s == selected_screen each
 	time through loop.  If event is nil, read mouse position.
 
-	* keyboard.c (get_char):  DoDsp only if selected_screen visible.
+	* keyboard.c (get_char): DoDsp only if selected_screen visible.
 
-	* xterm.c (XTread_socket):  Mark screen as visible only on expose
+	* xterm.c (XTread_socket): Mark screen as visible only on expose
 	event.
 
-	* emacs.c (main):  Check here for "-d" option and set display_arg.
-	* dispnew.c (init_display):  Set Vwindow_system, etc. if display_arg.
+	* emacs.c (main): Check here for "-d" option and set display_arg.
+	* dispnew.c (init_display): Set Vwindow_system, etc. if display_arg.
 
 1990-03-21  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* keyboard.c (read_key_sequence):  Don't DoDsp if the screen was
+	* keyboard.c (read_key_sequence): Don't DoDsp if the screen was
 	just unmapped.
-	(command_loop_1):  Call the mouse motion handler before calling
+	(command_loop_1): Call the mouse motion handler before calling
 	read_key_sequence.
-	(interrupt_signal):  Fixed typo checking screen type.
+	(interrupt_signal): Fixed typo checking screen type.
 
-	* xfns.c (Fx_track_mouse):  Don't crash because of null display
+	* xfns.c (Fx_track_mouse): Don't crash because of null display
 	line.  Don't set obj til call to get_char.
 
-	* xterm.c (x_term_init):  Disable SIGWINCH here.
+	* xterm.c (x_term_init): Disable SIGWINCH here.
 
-	* fns.c (Fmember):  New subr.
+	* fns.c (Fmember): New subr.
 
-	* dispnew.c (init_display):  Don't check env variable DISPLAY to
+	* dispnew.c (init_display): Don't check env variable DISPLAY to
 	set Vwindow_system.  Now done in startup.el.
 
-	* emacs.c:  Removed variables xargc, xargv.
+	* emacs.c: Removed variables xargc, xargv.
 
 1990-03-20  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* xfns.c (Fx_track_pointer):  Go faster.
+	* xfns.c (Fx_track_pointer): Go faster.
 
-	* screen.h:  New macro SCREENP.
+	* screen.h: New macro SCREENP.
 
-	* window.c: (Fminibuffer_window):  Rewritten.
+	* window.c (Fminibuffer_window): Rewritten.
 
 1990-03-19  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
@@ -13689,139 +13686,138 @@
 
 1990-03-19  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* keyboard.c (command_loop_1):  Restructured handling of X event
+	* keyboard.c (command_loop_1): Restructured handling of X event
 	things.
-	(read_key_sequence):  Handle new `unmapped-screen' symbol with new
+	(read_key_sequence): Handle new `unmapped-screen' symbol with new
 	Vunmap_screen_hook.
 
-	* xterm.c (XTread_socket):  Return unmapped-screen symbol if the
+	* xterm.c (XTread_socket): Return unmapped-screen symbol if the
 	window for UnmapNotify events.
 
-	* lread.c  (Feval_region):  GCPRO opoint.
+	* lread.c (Feval_region): GCPRO opoint.
 
 1990-03-16  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* keyboard.c (command_loop_1):  Call mouse-motion handler with
+	* keyboard.c (command_loop_1): Call mouse-motion handler with
 	argument.  Also, don't call undo-boundary.
 
-	* process.c (create_process):  Set the process group for BSD at
+	* process.c (create_process): Set the process group for BSD at
 	the same time as for USG.
 
 1990-03-14  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* xterm.c (x_new_selected_screen):  Set x_input_screen here.
+	* xterm.c (x_new_selected_screen): Set x_input_screen here.
 
 1990-03-11  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* xterm.c:  Vx_mouse_grabbed now Vmouse_grabbed.
-	(XTread_socket):  Generate exited-window symbols on LeaveNotify
+	* xterm.c: Vx_mouse_grabbed now Vmouse_grabbed.
+	(XTread_socket): Generate exited-window symbols on LeaveNotify
 	even if screen is focused.
 
-	* xfns.c:  Vx_mouse_grabbed now Vmouse_grabbed.
-	(outline_region):  Now static.
-	(Fx_track_pointer):  Check x_mouse_screen == s in loop.
+	* xfns.c: Vx_mouse_grabbed now Vmouse_grabbed.
+	(outline_region): Now static.
+	(Fx_track_pointer): Check x_mouse_screen == s in loop.
 
 1990-03-10  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
 	* xterm.c (encode_mouse_button): Correctly get the button from
 	Motion events.
 
-	* xfns.c (x11_encode_mouse_button):  Nuked.
+	* xfns.c (x11_encode_mouse_button): Nuked.
 	(encode_mouse_button, Fx_mouse_events, Fx_get_mouse_event): #if 0'd.
 
-	* keyboard.c (get_char):  Re-set obj if we've keyboard-translated
-	c.
+	* keyboard.c (get_char): Re-set obj if we've keyboard-translated c.
 
 1990-03-08  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* xterm.c (x_focus_screen): no longer static.
-	(x_error_handler):  Use XDefaultIOError.
+	* xterm.c (x_focus_screen): No longer static.
+	(x_error_handler): Use XDefaultIOError.
 
-	* screen.c (Ffocus_screen):  New subr, removed Fscreen_has_focus.
-	(Fselect_screen):  New, optional parameter no_enter.
+	* screen.c (Ffocus_screen): New subr, removed Fscreen_has_focus.
+	(Fselect_screen): New, optional parameter no_enter.
 	(Frestore_screen_configuration):
-	(Fdelete_screen):  Pass second parm Qnil to Fselect_screen.
+	(Fdelete_screen): Pass second parm Qnil to Fselect_screen.
 
-	* window.c (Fdisplay_buffer, Fset_window_configuration):  Pass
+	* window.c (Fdisplay_buffer, Fset_window_configuration): Pass
 	second parm Qnil to Fselect_screen.
 
 1990-03-07  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* screen.c (Fscreen_has_focus):  New subr.
-	(Fselect_screen):  Use x_focus_on_screen to physically select the
+	* screen.c (Fscreen_has_focus): New subr.
+	(Fselect_screen): Use x_focus_on_screen to physically select the
 	screen.
 
 1990-03-06  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* xfns.c (x_set_mouse_position):  Moved to xterm.c.
+	* xfns.c (x_set_mouse_position): Moved to xterm.c.
 
-	* fileio.c (Fremove_directory):  New subr.
+	* fileio.c (Fremove_directory): New subr.
 
-	* screen.c (Frelease_focused_screen):  Just call x_unfocus_screen.
+	* screen.c (Frelease_focused_screen): Just call x_unfocus_screen.
 
-	* xterm.c (XTread_socket):  On FocusOut, if s isn't mouse screen,
+	* xterm.c (XTread_socket): On FocusOut, if s isn't mouse screen,
 	return exited-window.  On LeaveNotify, simplify if expression for
 	dumpborder.  Reworked FocusIn/FocusOut events.
-	(x_unfocus_screen):  Check that screen is x_focus_screen.
-	(x_set_mouse_position):  Moved from xfns.c.  Use new macro
+	(x_unfocus_screen): Check that screen is x_focus_screen.
+	(x_set_mouse_position): Moved from xfns.c.  Use new macro
 	XWarpPointer.
-	* xterm.h:  New macro XWarpPointer.
+	* xterm.h: New macro XWarpPointer.
 
-	* buffer.c:  Replaced Fbuffer_flush_undo with
+	* buffer.c: Replaced Fbuffer_flush_undo with
 	Fbuffer_disable_undo.
-	* process.c:  Ditto.
+	* process.c: Ditto.
 
 1990-03-05  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* xterm.c (XTupdate_end):  Use parameter s rather than
+	* xterm.c (XTupdate_end): Use parameter s rather than
 	updating_screen.
-	(XTread_socket):  On EnterNotify, don't check s != focus_screen
+	(XTread_socket): On EnterNotify, don't check s != focus_screen
 	before selecting.  On Focus In/Out don't set/reset mouse_screen.
 
 1990-03-04  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
 	* eval.c: If using X windows, include xterm.h.
-	(error):  TOTALLY_UNBLOCK_INPUT if using X.
+	(error): TOTALLY_UNBLOCK_INPUT if using X.
 
-	* xterm.h: BLOCK_INPUT, UNBLOCK_INPUT:  No signal stuff, just inc
+	* xterm.h (BLOCK_INPUT, UNBLOCK_INPUT): No signal stuff, just inc
 	and decrement x_input_blocked.
 
-	* xfns.c (adjust_scrollbars):  Don't BLOCK_INPUT.
-	(x_set_font):  Check result of x_new_font.  Call error if nonzero.
+	* xfns.c (adjust_scrollbars): Don't BLOCK_INPUT.
+	(x_set_font): Check result of x_new_font.  Call error if nonzero.
 	(x_set_icon_type): Check result of x_*_icon, maybe call error.
 
 	* screen.c (Fdeiconify_screen): Use x_make_screen_visible rather
 	than x_deiconify_screen.  Return screen.
-	(Fmake_screen_visible):  Don't raise it here.  Return screen.
+	(Fmake_screen_visible): Don't raise it here.  Return screen.
 
-	* xterm.c (XTwrite_glyfs):  Don't show cursor if screen is
+	* xterm.c (XTwrite_glyfs): Don't show cursor if screen is
 	global-minibuffer-screen.
 	(x_new_selected_screen): Do dumpborder and check auto-raise here,
 	rather than XEvent switch.
 	(x_deiconify_screen): No longer exists.
 	(x_do_pending_expose, x_clear_cursor):
 	(x_invert_screen, scraplines, stufflines, x_bitmap_icon):
-	(x_text_icon,  x_new_font): Don't BLOCK_INPUT.
-	(XTins_del_lines):  BLOCK_INPUT here.
-	(XTupdate_end):  Don't turn on cursor if minibuffer-screen.
+	(x_text_icon, x_new_font): Don't BLOCK_INPUT.
+	(XTins_del_lines): BLOCK_INPUT here.
+	(XTupdate_end): Don't turn on cursor if minibuffer-screen.
 	(XTread_socket): On MotionNotify, just that screen is selected before
 	processing.
-	(XTtopos):  If updating_screen, just set x and y, don't flush.
+	(XTtopos): If updating_screen, just set x and y, don't flush.
 	(x_bitmap_icon):
 	(x_text_icon):
-	(x_new_font):  Return 1 if failed, don't call error.
-	(x_make_screen_visible):  Raise the screen as well.
+	(x_new_font): Return 1 if failed, don't call error.
+	(x_make_screen_visible): Raise the screen as well.
 
 1990-03-02  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* screen.c (Frelease_focused_screen):  Just check that screen is
+	* screen.c (Frelease_focused_screen): Just check that screen is
 	selected.
 
 1990-02-28  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* screen.c (Fselect_screen_focused, Frelease_focused_screen):  New
+	* screen.c (Fselect_screen_focused, Frelease_focused_screen): New
 	subrs.
-	* xterm.c (x_focus_on_screen, x_unfocus_screen):  New procedures
+	* xterm.c (x_focus_on_screen, x_unfocus_screen): New procedures
 	to implement focusing.
 
 1990-02-28  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
@@ -13830,9 +13826,9 @@
 
 1990-02-28  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* xterm.h:  Redefined BLOCK_INPUT and UNBLOCK_INPUT to use sigblock
+	* xterm.h: Redefined BLOCK_INPUT and UNBLOCK_INPUT to use sigblock
 	and sigsetmask if available.
-	* xterm.c:  Declare BLOCK_INPUT_mask if have SIGIO and FIONREAD.
+	* xterm.c: Declare BLOCK_INPUT_mask if have SIGIO and FIONREAD.
 
 1990-02-27  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
@@ -13843,19 +13839,19 @@
 	* keyboard.c (read_key_sequence): Handle mapped-screen event
 	symbol by calling new hook Vmap_screen_hook.
 
-	* xterm.c (x_make_screen_invisible):  Use the new Xlib function
+	* xterm.c (x_make_screen_invisible): Use the new Xlib function
 	XWidthdrawWindow.
-	(x_iconify_screen):  Use the new Xlib function XIconifyWindow.
+	(x_iconify_screen): Use the new Xlib function XIconifyWindow.
 	(XTread_socket): Return mapped-screen symbol to signal
 	mapped-screen events.
 
 1990-02-23  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* keyboard.c (command_loop_1):  Check the character for width 1
+	* keyboard.c (command_loop_1): Check the character for width 1
 	before doing direct_output_forward, as well as the cursor position
 	on the screen.
 
-	* xdisp.c (DoDsp):  Use redisplay_windows rather than
+	* xdisp.c (DoDsp): Use redisplay_windows rather than
 	redisplay_all_windows, which was removed.
 
 1990-02-22  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
@@ -13870,8 +13866,8 @@
 	converting selection (note new variable x_converting_selection),
 	just set new variable x_selection_alloc_error.
 
-	* xfns.c:  Massive changes for crufty selection processing details.
-	New X atoms:  Xatom_clipboard, Xatom_delete, Xatom_insert_selection,
+	* xfns.c: Massive changes for crufty selection processing details.
+	New X atoms: Xatom_clipboard, Xatom_delete, Xatom_insert_selection,
 	Xatom_insert_property, Xatom_pair.
 
 1990-02-21  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
@@ -13883,7 +13879,7 @@
 
 1990-02-20  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* keyboard.c (kbd_buffer_get_char):  Use KBD_BUFFER_SIZE rather
+	* keyboard.c (kbd_buffer_get_char): Use KBD_BUFFER_SIZE rather
 	than sizeof kbd_buffer.
 	(read_key_sequence): Upon redraw-display symbol, set
 	screen_garbaged.
@@ -13919,7 +13915,7 @@
 
 1990-02-14  Joseph Arceneaux  (jla@albert.ai.mit.edu)
 
-	* keyboard.c (read_avail_input): pass read_socket_hook
+	* keyboard.c (read_avail_input): Pass read_socket_hook
 	KBD_BUFFER_SIZE rather than doing sizeof (buf).
 
 	* xterm.c (XTread_socket): Set event.type = MotionNotify when
@@ -13927,10 +13923,10 @@
 
 1990-02-13  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* window.c (next_screen, prev_screen): moved to screen.c
+	* window.c (next_screen, prev_screen): Moved to screen.c.
 	(Fnext_window): If mini non-nil, count the separate minibuffer
 	screen.
-	* screen.c (Fnext_screen): new subr.
+	* screen.c (Fnext_screen): New subr.
 
 1990-02-12  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
@@ -13964,7 +13960,7 @@
 	Also, just use nil and t for x-mouse-grabbed.  Record buttons
 	pressed in new variable x_mouse_grabbed.  XGrabPointer on button
 	depression.
-	* xfns.c (Fx_horizontal_line): use x_mouse_grabbed.
+	* xfns.c (Fx_horizontal_line): Use x_mouse_grabbed.
 
 1990-02-07  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
@@ -14014,7 +14010,7 @@
 
 1990-01-28  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* xfns.c (Fx_track_pointer): rewrote this to loop while there are
+	* xfns.c (Fx_track_pointer): Rewrote this to loop while there are
 	mouse events.
 
 	* xterm.c (XTread_socket): Return left-window-event symbol upon
@@ -14121,7 +14117,7 @@
 	* keyboard.c (read_key_sequence): Function keys are now lisp symbols.
 	(kbd_buffer_store_char): Abort if store pointer past
 	buffer.  Temproarry; This shouldn't be able to happen.
-	(read_key_sequence):  #ifdef HAVE_X_WINDOWS code
+	(read_key_sequence): #ifdef HAVE_X_WINDOWS code
 	which handles complex objects.
 	(command_loop_1): Check not termcap screen before
 	processing non-char input.
@@ -14140,7 +14136,7 @@
 	(XTflash): Just dumpglyfs instead of redrawing the
 	screen after flashing the rectangle.
 
-	* lread.c: (syms_of_lread): defsubr Fread_event.
+	* lread.c (syms_of_lread): defsubr Fread_event.
 
 1990-01-04  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
@@ -14208,9 +14204,9 @@
 1989-12-14  Joseph Arceneaux  (jla@spiff)
 
 	* xfns.c: New variable Vx_no_window_manager.
-	 (Fx_track_pointer):  If bufp < 0, abort.
+	 (Fx_track_pointer): If bufp < 0, abort.
 
-	* xterm.c (XTread_socket):  When leaving window, set x_mouse_x and
+	* xterm.c (XTread_socket): When leaving window, set x_mouse_x and
 	x_mouse_y to -1.
 
 1989-12-13  Joseph Arceneaux  (jla@spiff)
@@ -14228,12 +14224,12 @@
 
 1989-12-08  Joseph Arceneaux  (jla@spiff)
 
-	* process.c (create_process):  For not USG, properly set the
+	* process.c (create_process): For not USG, properly set the
 	process group.
 
 1989-12-07  Joseph Arceneaux  (jla@spiff)
 
-	* term.c (topos):  Under X Windows, abort if topos_hook not
+	* term.c (topos): Under X Windows, abort if topos_hook not
 	correct.  Temporary.
 
 	* xfns.c (Fx_horizontal_line): New subr.
@@ -14250,7 +14246,7 @@
 1989-12-04  Joseph Arceneaux  (jla@spiff)
 
 	* screen.c (coordinates_in_window): New function.
-	(Fcoordinates_in_window_p):  Rewritten to use above.
+	(Fcoordinates_in_window_p): Rewritten to use above.
 
 	* dispextern.h: New element bufp for display_line structure when
 	using X windows.
@@ -14262,13 +14258,13 @@
 
 	* alloc.c: Upped NSTATICS from 200 to 256.
 
-	* xterm.c (XTread_socket):  Report MotionNotify events only if
+	* xterm.c (XTread_socket): Report MotionNotify events only if
 	mouse has changed character position.  Call x_read_mouse_position.
 	Set Vmouse_event here.
 	* xfns.c (x_read_mouse_position): Set new global variables
 	x_mouse_x and x_mouse_y.
 
-	* keyboard.c: Vignore_mouse_events:  New variable.
+	* keyboard.c: Vignore_mouse_events: New variable.
 
 	* syntax.c (Fscan_sexps): Doc change.
 
@@ -14281,7 +14277,7 @@
 	* xfns.c (Fx_track_pointer): Draw half-sized rectangles for '\n'.
 	(x_rectangle): Draw half-size if negative argument.
 
-	* xterm.c (XTread_socket): abort if garbage collecting when doing
+	* xterm.c (XTread_socket): Abort if garbage collecting when doing
 	mouse events.
 
 	* ymakefile: #define FLOATSUP if LISP_FLOAT_TYPE defined.
@@ -14306,7 +14302,7 @@
 
 1989-11-29  Joseph Arceneaux  (jla@spiff)
 
-	* lread.c (Fread_char):  Return a Lisp_Object (directly from
+	* lread.c (Fread_char): Return a Lisp_Object (directly from
 	get_char).
 
 	* keyboard.c:
@@ -14380,7 +14376,7 @@
 
 1989-11-14  Joseph Arceneaux  (jla@spiff)
 
-	* xfns.c (Fx_get_selection, x_selection_arrival): use &event
+	* xfns.c (Fx_get_selection, x_selection_arrival): Use &event
 	instead of event.
 	(x_selection_arrival): For incremental selections, loop on
 	XGetWindowProperty if one is not enough.
@@ -14399,7 +14395,7 @@
 
 1989-11-08  Joseph Arceneaux  (jla@spiff)
 
-	* search.c (Fmatch_data): fixed typo.
+	* search.c (Fmatch_data): Fixed typo.
 
 	* insdel.c (make_gap): Use BUFFER_REALLOC instead of realloc.
 	* buffer.c (Fget_buffer_create): Use new define BUFFER_ALLOC in
@@ -14472,19 +14468,19 @@
 	* lread.c: Moved function read_escape.
 	* unexec.c: Declarations for make_hdr, copy_text_and_data,
 	copy_sym.  Declare mark_x as static void.
-	* dispextern.h: removed declaration of new_display_line.
+	* dispextern.h: Removed declaration of new_display_line.
 
 	* emacs.c: Do malloc_init if GNU_MALLOC.
-	* gmalloc.c: (malloc_init): New function.
+	* gmalloc.c (malloc_init): New function.
 
-	* xfns.c (x_rectangle, Fx_draw_rectangle, Fx_erase_rectangle,
-	outline_region, Fx_countour_region, Fx_uncontour_region): New
+	* xfns.c (x_rectangle, Fx_draw_rectangle, Fx_erase_rectangle)
+	(outline_region, Fx_countour_region, Fx_uncontour_region): New
 	subroutines for drawing rectangles and things.
 	(Fx_point_coordinates): New subr.
 
 1989-10-31  Joseph Arceneaux  (jla@spiff)
 
-        * All .c and .h files: New copyright header.
+	* All .c and .h files: New copyright header.
 
 1989-10-30  Joseph Arceneaux  (jla@spiff)
 
@@ -14547,7 +14543,7 @@
 
 	* xfns.c (Fx_own_selection): Use second parameter SCREEN.
 
-	* xdisp.c: (message, message1): No longer displays messages
+	* xdisp.c (message, message1): No longer displays messages
 	when using X but not yet mapped.
 
 1989-10-18  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
@@ -14599,12 +14595,12 @@
 
 1989-10-11  Joseph Arceneaux  (jla@apple-gunkies.ai.mit.edu)
 
-	* xfns.c: (Fx_open_connection) New X atoms Xatom_incremental and
+	* xfns.c (Fx_open_connection) New X atoms Xatom_incremental and
 	Xatom_multiple.
 
 	* xterm.h: New macros MAX_SELECTION and SELECTION_LENGTH.
 
-	* process.c (child_sig):  Check pid <= 0 in case WNOHANG not defined.
+	* process.c (child_sig): Check pid <= 0 in case WNOHANG not defined.
 
 1989-10-11  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
@@ -14617,8 +14613,7 @@
 
 	* xfns.c (Fx_open_connection): Make all X Atoms here.
 
-	* xterm.c: (x_iconify_screen):
-	(x_iconify_screen): Cleaned up this code.
+	* xterm.c (x_iconify_screen): Cleaned up this code.
 	(x_term_init): Removed warpmouseondeiconify stuff.
 
 1989-10-09  Joseph Arceneaux  (jla@apple-gunkies.ai.mit.edu)
@@ -14664,9 +14659,9 @@
 	MapNotify event.
 
 	* xterm.c: No longer sets the variable mouse_down_timestamp.
-	* xfns.c: (Fx_get_mouse_event) mouse_timestamp
-	 (formerly mouse_down_timestamp) set here.  Also, mask out upper 9
-	 bits before doing XSET.
+	* xfns.c (Fx_get_mouse_event): mouse_timestamp (formerly
+	mouse_down_timestamp) set here.  Also, mask out upper 9
+	bits before doing XSET.
 
 1989-09-28  Joseph Arceneaux  (jla@apple-gunkies.ai.mit.edu)
 
@@ -14681,17 +14676,15 @@
 
 1989-09-27  Joseph Arceneaux  (jla@apple-gunkies.ai.mit.edu)
 
-	* xfns.c (Fx_own_selection):
-	 (Fx_get_selection):
-	 (x_disown_selection): new funcs, which use new variables
-	 Vx_selection_value, x_begin_selection_own, mouse_down_timestamp,
-	 requestor_time, requestor_window, property_name, and
-	 x_begin_selection_own.
+	* xfns.c (Fx_own_selection, Fx_get_selection, x_disown_selection):
+	New funcs, which use new variables Vx_selection_value,
+	x_begin_selection_own, mouse_down_timestamp, requestor_time,
+	requestor_window, property_name, and x_begin_selection_own.
 
 	* xterm.c (XTread_socket): Only do stuff if s for FocusOut under X11.
 	SelectionClear:
 	SelectionRequest:
-	SelectionNotify:  New events to handle the selection inter-client
+	SelectionNotify: New events to handle the selection inter-client
 	communication mechanism.
 	ButtonPress: Set mouse_down_timestamp.
 
@@ -14734,11 +14727,11 @@
 
 1989-09-11  Joseph Arceneaux  (jla@spiff)
 
-	* fileio.c (Fwrite_region): fixed typo.
+	* fileio.c (Fwrite_region): Fixed typo.
 
-	* keyboard.c (Fdiscard_input): fixed typo.
+	* keyboard.c (Fdiscard_input): Fixed typo.
 
-	* window.c (Fnext_window): fixed typos.
+	* window.c (Fnext_window): Fixed typos.
 
 	* alloc.c (xmalloc, xrealloc): hold_window_changes whilst doing
 	the associated operations.
@@ -14986,7 +14979,7 @@
 	before looping through alist.
 
 	(Fx_create_screen): Call x_default_parameter for font.
-	Don't add the scrollbar widths when making the main window:  this
+	Don't add the scrollbar widths when making the main window: this
 	is done when the scrollbar is actually made.
 
 	(x_set_vertical_scrollbar): Set v_scrollbar_width here instead of
@@ -14995,7 +14988,7 @@
 
 	(x_set_horizontal_scrollbar): Likewise.
 
-	* xterm.c: (x_set_window_size): Don't call the things called
+	* xterm.c (x_set_window_size): Don't call the things called
 	anyway upon the ConfigureNotify event.
 	(x_set_offset): Use the screen-size lisp variables for these
 	calculations.
@@ -15007,7 +15000,7 @@
 
 	* sysdep.c: Don't include sioctl.h on mips.
 
-	* buffer.c  (Flist_buffers): Pass prefix as arg.
+	* buffer.c (Flist_buffers): Pass prefix as arg.
 
 	* editfns.c (Finsert_char): Insert at most 256 chars at a whack.
 
@@ -15060,7 +15053,7 @@
 
 1989-07-11  Joseph Arceneaux  (jla@gluteus)
 
-	* xterm.c (x_term_init, XTread_socket):  Use ConnectionNumber for
+	* xterm.c (x_term_init, XTread_socket): Use ConnectionNumber for
 	both X10 and X11.  This is #defined for X10.
 
 	* screen.c (Fset_screen_width, Fset_screen_height): These now take
@@ -15082,15 +15075,15 @@
 	* eval.c (Ffuncall): Handle 6 arguments.  Also, print a nice error
 	message if there are more than 6 args.
 
-	* fns.c: (Fyes-or-no-p):
-	* minibuf.c: (read_minibuf_unwind):
+	* fns.c (Fyes-or-no-p):
+	* minibuf.c (read_minibuf_unwind):
 	(Fread_minibuffer):
 	(Fread_no_blanks_input):
 	(Fcompleting_read): Extra arg to read_minibuf.
 
 	* callint.c (Fcall_interactively):
 	* keyboard.c (Fexecute_extended_command):
-	* minibuf.c: (Fread_command):
+	* minibuf.c (Fread_command):
 	(Fread_function):
 	(Fread_variable):
 	(Fread_buffer): Extra arg to Fcompleting_read.
@@ -15100,14 +15093,14 @@
 	* minibuf.c (read_minibuf): New argument back_n is number of
 	characters to back-up point by.
 	(Fcompleting_read): Same.
-	* fileio.c: (Fnew_read_file_name): New version of Fread_file_name
+	* fileio.c (Fnew_read_file_name): New version of Fread_file_name
 	using the above features.
 	(Finsert_file_contents): Check for negative file length.
 
 1989-07-03  Joseph Arceneaux  (jla@spiff)
 
-	* xfns.c: (x_pixel_width, x_pixel_height) New functions.
-	* screen.c: (Fscreen_pixel_size): New subr.
+	* xfns.c (x_pixel_width, x_pixel_height) New functions.
+	* screen.c (Fscreen_pixel_size): New subr.
 
 1989-06-30  Joseph Arceneaux  (jla@spiff)
 
@@ -15123,15 +15116,15 @@
 
 1989-06-27  Joseph Arceneaux  (jla@sugar-bombs.ai.mit.edu)
 
-	* screen.c: (Fselect_screen)
-	* window.c: (Fselect_window) The previous strategy was bugging the
+	* screen.c (Fselect_screen):
+	* window.c (Fselect_window): The previous strategy was bugging the
 	lisp stuff, so these are now rewritten.
 
 1989-06-26  Joseph Arceneaux  (jla@galapas.ai.mit.edu)
 
 	* cm.c (Wcm_init): Don't check for Wcm.cm_ds, since this has been
 	removed.
-	(losecursor):  This function now a #define in cm.h.
+	(losecursor): This function now a #define in cm.h.
 
 	* xterm.c (x_iconify_screen): Send message to root window to do
 	this, as per latest Inter-Client Communications Conventions.  This
@@ -15168,7 +15161,7 @@
 
 	* xfns.c, lisp/term/x-win.el: C routine Fscreen_color_p now lisp
 	function x-color-screen-p in x-win.el.
-	(x_set_cursor_color): New method:  first disallow same cursor as
+	(x_set_cursor_color): New method: first disallow same cursor as
 	background, then if cursor not foreground, use it as cursor
 	foreground.
 
@@ -15241,11 +15234,11 @@
 
 1989-06-09  Joseph Arceneaux  (jla@apple-gunkies.ai.mit.edu)
 
-	* window.c: initialize auto_new_screen to 0 (nil).
+	* window.c: Initialize auto_new_screen to 0 (nil).
 
-	* screen.c (make_screen): added auto_lower to the list of screen
+	* screen.c (make_screen): Added auto_lower to the list of screen
 	elements initialized.
-	(make_minibuffer_screen): likewise.
+	(make_minibuffer_screen): Likewise.
 
 1989-06-08  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
@@ -15263,7 +15256,7 @@
 
 1989-06-08  Joseph Arceneaux  (jla@apple-gunkies.ai.mit.edu)
 
-	* xfns.c: removed superfluous definition of gray_bits.
+	* xfns.c: Removed superfluous definition of gray_bits.
 
 1989-06-07  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
@@ -15294,13 +15287,13 @@
 
 1989-06-05  Joseph Arceneaux  (jla@cream-of-wheat.ai.mit.edu)
 
-	* xterm.c (x_set_window_size):  If not already in DoDsp (checked
+	* xterm.c (x_set_window_size): If not already in DoDsp (checked
 	with variable in_display) then DoDsp here.  Handles redisplay
 	after screen configuration.
 	(x_error_handler): Print out stuff about the error if we're in
 	debug mode.
 
-	* dispnew.c (change_screen_size):  No longer call DoDsp here.
+	* dispnew.c (change_screen_size): No longer call DoDsp here.
 
 1989-06-05  Chris Hanson  (cph@kleph)
 
@@ -15318,7 +15311,7 @@
 
 1989-05-29  Joseph Arceneaux  (jla@gracilis.ai.mit.edu)
 
-	* xfns.c: (Fx_create_screen): If parms is nil and
+	* xfns.c (Fx_create_screen): If parms is nil and
 	Vx_screen_defaults isn't, then use them.
 	(Fdisplay_buffer): Call Fx_create_screen with Qnil.
 
@@ -15341,7 +15334,7 @@
 	the right thing.
 	(Frestore_screen_configuration): Don't set the mouse position.
 
-	* window.c (Fselect_window):  If window's screen is not selected,
+	* window.c (Fselect_window): If window's screen is not selected,
 	call Fselecte_screen.
 	(Fdisplay_buffer): Call Fx_create_screen with x-screen-parameters
 	as argument instead of nil.
@@ -15366,17 +15359,17 @@
 
 1989-05-19  Joseph Arceneaux  (jla@apple-gunkies.ai.mit.edu)
 
-	* xterm.c (x_new_selected_screen):  This now takes a struct screen
-	pointer as paramter.
-	* (XTread_socket): call x_new_selected_screen *before* dumpborder.
+	* xterm.c (x_new_selected_screen): This now takes a struct screen
+	pointer as parameter.
+	(XTread_socket): Call x_new_selected_screen *before* dumpborder.
 
 1989-05-16  Joseph Arceneaux  (jla@apple-gunkies.ai.mit.edu)
 
-	* xfns.c: (x_window_to_scrollbar): If the caller's not interested
+	* xfns.c (x_window_to_scrollbar): If the caller's not interested
 	in the names--passing 0 for last two parameters--just return the
 	screen pointer.
 
-	* xterm.c (x_enter_screen):  Added this function for warping the
+	* xterm.c (x_enter_screen): Added this function for warping the
 	pointer into a screen.
 
 1989-05-16  Chris Hanson  (cph@kleph)
@@ -15388,7 +15381,7 @@
 
 1989-05-16  Joseph Arceneaux  (jla@apple-gunkies.ai.mit.edu)
 
-	* xterm.c: (x_new_selected_screen): Don't call Fselect_screen.
+	* xterm.c (x_new_selected_screen): Don't call Fselect_screen.
 	Just do everything here.
 
 	* window.c (Fselect_window): If the screen associated with the
@@ -15396,7 +15389,7 @@
 	which then causes the proper screen to become selected.  This does
 	*not* call Fselect_screen.
 
-	* screen.c (Fselect_screen):  Now this is *only* a lisp subr.  It
+	* screen.c (Fselect_screen): Now this is *only* a lisp subr.  It
 	just calls Fselect_window on the selected window of the screen.
 
 1989-05-15  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
@@ -15410,7 +15403,7 @@
 	macro in:
 	* xterm.h: New macro XChangeWindowSize for both X10 and X11.
 
-	* xfns.c (Fx_create_screen):  Use XCreateWindow instead of
+	* xfns.c (Fx_create_screen): Use XCreateWindow instead of
 	XCreateSimpleWindow to directly set some extra attributes.
 
 1989-05-14  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
@@ -15439,12 +15432,12 @@
 
 1989-05-12  Joseph Arceneaux  (jla@apple-gunkies.ai.mit.edu)
 
-	* xfns.c (Fx_create_screen):  If user has specified
+	* xfns.c (Fx_create_screen): If user has specified
 	`x-iconic-startup' then start emacs in iconic form.
 	Look for icon position in `icon-left' and `icon-top', or use
 	window postion.
 
-	* xterm.c (x_term_init):  If server doesn't respond, use fatal
+	* xterm.c (x_term_init): If server doesn't respond, use fatal
 	instead of error.  Also tell user about -d option.
 
 1989-05-10  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
@@ -15459,7 +15452,7 @@
 
 1989-05-10  Joseph Arceneaux  (jla@corn-chex.ai.mit.edu)
 
-	* xfns.c (adjust_scrollbars):  Don't subtract 2 from
+	* xfns.c (adjust_scrollbars): Don't subtract 2 from
 	h_scrollbar_height when calculating `length'.
 
 1989-05-08  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
@@ -15475,7 +15468,7 @@
 	* xterm.c (XTread_socket_hook): For X11, on map and unmap events
 	check the window manager hints for iconification status.
 
-	* xterm.c (x_make_widow_icon):  For X11, just request
+	* xterm.c (x_make_widow_icon): For X11, just request
 	iconification of the window manager.
 
 1989-05-08  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
@@ -15484,10 +15477,10 @@
 
 1989-05-07  Joseph Arceneaux  (jla@corn-chex.ai.mit.edu)
 
-	* xfns.c (adjust_scrollbars):  Don't subtract 2 from
+	* xfns.c (adjust_scrollbars): Don't subtract 2 from
 	v_scrollbar_width when calculating `height'.
 
-	* xfns.c (x_set_foreground, x_set_border_pixel):  Finished color
+	* xfns.c (x_set_foreground, x_set_border_pixel): Finished color
 	coordination.  Scrollbar border, thump-arrows, and slider pixmap
 	linked with foreground color;  slider border with window border.
 
@@ -15504,7 +15497,7 @@
 
 1989-05-05  Joseph Arceneaux  (jla@gracilis.ai.mit.edu)
 
-	* xfns.c (Fx_set_face):  Rewrote the doc-string and renamed the
+	* xfns.c (Fx_set_face): Rewrote the doc-string and renamed the
 	parameters.
 
 1989-05-05  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
@@ -15567,8 +15560,8 @@
 
 1989-05-03  Joe Arceneaux  (jla@gracilis.ai.mit.edu)
 
-	* xterm.c (x_draw_box):  Use the cursor_gc.
-	* xfns.c: (x_set_cursor_color, x_create_screen): Do a better job
+	* xterm.c (x_draw_box): Use the cursor_gc.
+	* xfns.c (x_set_cursor_color, x_create_screen): Do a better job
 	with cursor colors, and use 0 line width for the cursor_gc.
 
 1989-05-02  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
@@ -15581,8 +15574,8 @@
 	Handle fcns of type Lisp_Compiled.
 	(Fcommandp, Fapply): Avoid directly nested ifs.
 	* print.c (print): Handle Lisp_Compiled objects.
-	* callint.c (Fcall_interactively): likewise.
-	* doc.c (Fdocumentation): likewise.
+	* callint.c (Fcall_interactively): Likewise.
+	* doc.c (Fdocumentation): Likewise.
 
 	* keyboard.c (Fopen_dribble_file): nil as arg means close it.
 
@@ -15727,10 +15720,10 @@
 
 1989-04-20  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
-	* window.c: rename Vauto_new_screen_hook, Vdisplay_buffer_hook, and
+	* window.c: Rename Vauto_new_screen_hook, Vdisplay_buffer_hook, and
 	Vtemp_buffer_show_hook to ..._function.
 
-	* keyboard.c: rename mouse_hook to mouse_event_function.
+	* keyboard.c: Rename mouse_hook to mouse_event_function.
 
 	* buffer.c, buffer.h, cmds.c: blink-paren-hook and auto-fill-hook
 	renamed to -function.
@@ -15761,7 +15754,7 @@
 
 1989-04-12  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
-	* window.c (Fdelete_other_windows): recenter window to avoid scrolling.
+	* window.c (Fdelete_other_windows): Recenter window to avoid scrolling.
 
 1989-04-11  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
@@ -15785,14 +15778,14 @@
 
 	* fns.c (Fload_average): nlist data structure is funny on convex.
 
-	* window.c (scroll_command): scroll at least 1 line in specd direction.
+	* window.c (scroll_command): Scroll at least 1 line in specd direction.
 
 	* cm.c (calccost): NTABS was off by 1 sometimes; take account of
 	the starting position modulo 8.
 
 	* fileio.c (Fexpand_file_name): Don't simplify /../ at start of name.
 
-	* callint.c: doc fixes.
+	* callint.c: Doc fixes.
 
 	* process.c (create_process):
 	On all USG systems, not just IRIS and AIX, don't pre-open pty's tty.
@@ -15818,7 +15811,7 @@
 
 1989-04-01  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
-	* process.c (Fopen_network_stream): close desc. if connect fails.
+	* process.c (Fopen_network_stream): Close desc. if connect fails.
 
 1989-03-31  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
@@ -15919,7 +15912,7 @@
 	(dumpglyfs) [X11]: Changed args to XDrawImageString.
 	If debugging, do XFlushQueue.
 	Use screen's face_gc rather than old global one.
-	(XTflash) [not BSD]: avoid `struct itimerval'; use `alarm'.
+	(XTflash) [not BSD]: Avoid `struct itimerval'; use `alarm'.
 	(events): New table of event type names.
 	(XTread_socket): EVENT is now an XEvent even on x10.
 	Translate modifier key 1 into meta-bit.
@@ -15932,7 +15925,7 @@
 	(x_display_cursor): dumpglyfs args changed.
 	(x_draw_box): Add GC arg to XDrawRectangle; change other args.
 	(clear_cursor): Change args to XClearArea.
-	(dumpborder): check x_input_screen, not selected_screen.
+	(dumpborder): Check x_input_screen, not selected_screen.
 	(x_text_icon): For X11, new arg to XGetDefault.
 	Cast values stored in icon_label.
 	(x_term_init): Hair to calculate name for icon.
@@ -16003,10 +15996,10 @@
 	This may avoid the X loop-on-logout bug.
 
 	* process.c (wait_reading_process_input): Flush fix_screen_hook.
-	* termhooks.h, term.c: likewise.
+	* termhooks.h, term.c: Likewise.
 
 	* xdisp.c (Fredraw_display): Don't do set_terminal_modes.
-	* dispnew.c (Fredraw_screen): likewise.
+	* dispnew.c (Fredraw_screen): Likewise.
 
 	* eval.c (Fcond): If no args, return nil.
 
@@ -16032,7 +16025,7 @@
 	Arg EXPECTED is passed to read_socket_hook.
 	(input_available_signal): Use read_avail_input.
 	(gobble_input): Use read_avail_input; arg EXPECTED passed along.
-	(get_input_pending): let gobble_input do the work.
+	(get_input_pending): Let gobble_input do the work.
 
 	VMS keyboard input should have interrupt_input nonzero.
 	* keyboard.c (Fset_input_mode, init_keyboard): [VMS] Always set
@@ -16062,7 +16055,7 @@
 	(num_input_keys): New Lisp variable.
 
 	* m/m-gould.h, m/m-ibmrt-aix.h, m/m-sequent.h, m/m-sparc.h,
-	m/m-sun3.h, m/m-symmetry.h: Define A_TEXT_SEEK.
+	* m/m-sun3.h, m/m-symmetry.h: Define A_TEXT_SEEK.
 	* unexec.c (copy_text_and_data): Don't check A_TEXT_OFFSET,
 	just A_TEXT_SEEK.
 	* unexconvex.c: Likewise.
@@ -16084,7 +16077,7 @@
 
 1989-01-11  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
-	* dispnew.c (init_display): don't handle SIGWINCH if using X.
+	* dispnew.c (init_display): Don't handle SIGWINCH if using X.
 
 	* fileio.c (Fdo_auto_save): If file has shrunk, turn off auto-save.
 	This avoids duplicate messages and allows M-x auto-save to turn it on.
@@ -16193,7 +16186,7 @@
 	* indent.c (Fmove_to_column): 2nd arg t means indent till spec'd column
 	or change tab to spaces if necessary.
 
-	* m/m-iris4d.h: (conditionally) delete DEFAULT_ENTRY_ADDRESS
+	* m/m-iris4d.h: (Conditionally) delete DEFAULT_ENTRY_ADDRESS
 	and change START_FILES and LIB_STANDARD.
 
 	* s/s-iris3-6.h: Define sigblock as no-op.
@@ -16259,7 +16252,7 @@
 
 	* lread.c (read_escape): Support ANSI C `\x...' hex escapes.
 
-	* bytecode.c (Fbyte_code): fix jump operators for change in `pc'.
+	* bytecode.c (Fbyte_code): Fix jump operators for change in `pc'.
 
 1988-12-21  Joe Arceneaux  (jla@gracilis.ai.mit.edu)
 
@@ -16284,8 +16277,8 @@
 
 1988-12-16  Joe Arceneaux  (jla@apple-gunkies.ai.mit.edu)
 
-	* sink.h,sinkmask.h: Same file now works for both X10 and X11.
-	* xterm.c,xfns.c (x_text_icon) Can now take new name as parameter.
+	* sink.h, sinkmask.h: Same file now works for both X10 and X11.
+	* xterm.c, xfns.c (x_text_icon) Can now take new name as parameter.
 
 1988-12-16  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
@@ -16301,7 +16294,7 @@
 1988-12-14  Joe Arceneaux  (jla@apple-gunkies.ai.mit.edu)
 
 	* xfns.c: Made the first cut for X11 version.
-	* xterm.c: (x_reset_cursor) Did the X11 version.
+	* xterm.c (x_reset_cursor): Did the X11 version.
 
 1988-12-14  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
@@ -16363,7 +16356,7 @@
 	* ymakefile (THIS_IS_YMAKEFILE): Define macro to tell m- files
 	to do special things.
 
-	* m/m-ns16000.h: (LOAD_AVE_TYPE, etc.): Don't define them if USG.
+	* m/m-ns16000.h (LOAD_AVE_TYPE, etc.): Don't define them if USG.
 	* m/m-ns16000.h [USG]: Define various macros differently.
 	(munnari!sibyl.eleceng.ua.oz.au!ian@uunet.uu.net).
 
@@ -16436,7 +16429,7 @@
 1988-09-30  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
 	* editfns.c (Fformat): Allow nulls in the format.
-	* doprnt.c (doprnt): likewise.  End of format string is new arg.
+	* doprnt.c (doprnt): Likewise.  End of format string is new arg.
 
 1988-09-28  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
@@ -16474,7 +16467,7 @@
 
 	* process.c (child_sig): If synch process terminates, clear
 	synch_process_pid and record synch_process_death.
-	* callproc.c (Fcall_process): return synch_process_death.
+	* callproc.c (Fcall_process): Return synch_process_death.
 	Always set synch_process_pid and do it with SIGCHLD masked off.
 	* sysdep.c (wait_for_termination) [subprocesses and not VMS]:
 	Use alarms to check every second whether synch_process_pid is 0.
@@ -16533,7 +16526,22 @@ See ChangeLog.2 for earlier changes.
 
     Copyright (C) 1993, 2001, 2002, 2003, 2004, 2005, 2006, 2007
 	Free Software Foundation, Inc.
-  Copying and distribution of this file, with or without modification,
-  are permitted provided the copyright notice and this notice are preserved.
+
+  This file is part of GNU Emacs.
+
+  GNU Emacs is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2, or (at your option)
+  any later version.
+
+  GNU Emacs is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with GNU Emacs; see the file COPYING.  If not, write to the
+  Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+  Boston, MA 02110-1301, USA.
 
 ;;; arch-tag: 136a8e5c-4f83-403b-9132-874f1c47f8a9

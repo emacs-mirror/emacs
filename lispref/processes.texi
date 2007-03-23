@@ -2146,8 +2146,11 @@ String of length @var{len}.
 @item strz @var{len}
 Zero-terminated string, in a fixed-size field with length @var{len}.
 
-@item vec @var{len}
-Vector of @var{len} bytes.
+@item vec @var{len} [@var{type}]
+Vector of @var{len} elements of type @var{type}, or bytes if not
+@var{type} is specified.
+The @var{type} is any of the simple types above, or another vector
+specified as a list @code{(vec @var{len} [@var{type}])}.
 
 @item ip
 Four-byte vector representing an Internet address.  For example:
@@ -2429,13 +2432,14 @@ struct header @{
 struct data @{
     unsigned char    type;
     unsigned char    opcode;
-    unsigned long    length;  /* In little endian order */
+    unsigned short   length;  /* In network byte order */
     unsigned char    id[8];   /* null-terminated string  */
     unsigned char    data[/* (length + 3) & ~3 */];
 @};
 
 struct packet @{
     struct header    header;
+    unsigned long    counters[2];  /* In little endian order */
     unsigned char    items;
     unsigned char    filler[3];
     struct data      item[/* items */];
@@ -2455,13 +2459,14 @@ The corresponding data layout specification:
 (setq data-spec
       '((type      u8)
         (opcode    u8)
-        (length    u16r) ;; little endian order
+        (length    u16)  ;; network byte order
         (id        strz 8)
         (data      vec (length))
         (align     4)))
 
 (setq packet-spec
       '((header    struct header-spec)
+        (counters  vec 2 u32r)   ;; little endian order
         (items     u8)
         (fill      3)
         (item      repeat (items)
@@ -2472,9 +2477,10 @@ A binary data representation:
 
 @lisp
 (setq binary-data
-      [ 192 168 1 100 192 168 1 101 01 28 21 32 2 0 0 0
-        2 3 5 0 ?A ?B ?C ?D ?E ?F 0 0 1 2 3 4 5 0 0 0
-        1 4 7 0 ?B ?C ?D ?E ?F ?G 0 0 6 7 8 9 10 11 12 0 ])
+      [ 192 168 1 100 192 168 1 101 01 28 21 32
+        160 134 1 0 5 1 0 0 2 0 0 0
+        2 3 0 5 ?A ?B ?C ?D ?E ?F 0 0 1 2 3 4 5 0 0 0
+        1 4 0 7 ?B ?C ?D ?E ?F ?G 0 0 6 7 8 9 10 11 12 0 ])
 @end lisp
 
 The corresponding decoded structure:
@@ -2487,6 +2493,7 @@ The corresponding decoded structure:
   (src-ip    . [192 168 1 101])
   (dest-port . 284)
   (src-port  . 5408))
+ (counters . [100000 261])
  (items . 2)
  (item ((data . [1 2 3 4 5])
         (id . "ABCDEF")

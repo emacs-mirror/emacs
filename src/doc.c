@@ -754,7 +754,7 @@ as the keymap for future \\=\\[COMMAND] substrings.
 \\=\\= quotes the following character and is discarded;
 thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ into the output.
 
-Returns original STRING if no substitutions were made.  Othwerwise,
+Returns original STRING if no substitutions were made.  Otherwise,
 a new string, without any text properties, is returned.  */)
      (string)
      Lisp_Object string;

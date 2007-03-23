@@ -143,7 +143,7 @@ Bourne shell or its equivalent \(not tcsh) is needed for \"2>\"."
 	 (args
 	  (concat
 	   "+encrypttoself=off +verbose=1 +batchmode +language=us -fate "
-           (if recipients
+           (if (or recipients pgg-encrypt-for-me)
                (mapconcat 'shell-quote-argument
                           (append recipients
                                   (if pgg-encrypt-for-me

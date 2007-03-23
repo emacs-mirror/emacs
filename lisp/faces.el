@@ -181,20 +181,16 @@ to NEW-FACE on frame NEW-FRAME."
 (defun internal-find-face (name &optional frame)
   "Retrieve the face named NAME.
 Return nil if there is no such face.
-If the optional argument FRAME is given, this gets the face NAME for
-that frame; otherwise, it uses the selected frame.
-If FRAME is the symbol t, then the global, non-frame face is returned.
-If NAME is already a face, it is simply returned."
+If NAME is already a face, it is simply returned.
+The optional argument FRAME is ignored."
   (facep name))
 (make-obsolete 'internal-find-face 'facep "21.1")
 
 
 (defun internal-get-face (name &optional frame)
   "Retrieve the face named NAME; error if there is none.
-If the optional argument FRAME is given, this gets the face NAME for
-that frame; otherwise, it uses the selected frame.
-If FRAME is the symbol t, then the global, non-frame face is returned.
-If NAME is already a face, it is simply returned."
+If NAME is already a face, it is simply returned.
+The optional argument FRAME is ignored."
   (or (facep name)
       (check-face name)))
 (make-obsolete 'internal-get-face "see `facep' and `check-face'." "21.1")
@@ -248,8 +244,8 @@ If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame."
   (let ((attrs
 	 '(:family :width :height :weight :slant :foreground
-	   :foreground :background :underline :overline
-	   :strike-through :box :inverse-video))
+	   :background :underline :overline :strike-through
+	   :box :inverse-video))
 	(differs nil))
     (while (and attrs (not differs))
       (let* ((attr (pop attrs))
@@ -780,7 +776,7 @@ and DATA is a string, containing the raw bits of the bitmap."
   (set-face-attribute face frame :stipple (or stipple 'unspecified)))
 
 
-(defun set-face-underline-p (face underline-p &optional frame)
+(defun set-face-underline-p (face underline &optional frame)
   "Specify whether face FACE is underlined.
 UNDERLINE nil means FACE explicitly doesn't underline.
 UNDERLINE non-nil means FACE explicitly does underlining
@@ -791,7 +787,7 @@ Use `set-face-attribute' to ``unspecify'' underlining."
   (interactive
    (let ((list (read-face-and-attribute :underline)))
      (list (car list) (eq (car (cdr list)) t))))
-  (set-face-attribute face frame :underline underline-p))
+  (set-face-attribute face frame :underline underline))
 
 (define-obsolete-function-alias 'set-face-underline
                                 'set-face-underline-p "22.1")
@@ -948,7 +944,7 @@ an integer value."
                 (nconc (mapcar #'(lambda (x) (cons (symbol-name x) x))
                                (internal-lisp-face-attribute-values attribute))
                        (mapcar #'(lambda (c) (cons c c))
-                               (x-defined-colors frame)))
+                               (defined-colors frame)))
 	      (mapcar #'(lambda (x) (cons (symbol-name x) x))
 		      (internal-lisp-face-attribute-values attribute))))
            ((:foreground :background)
@@ -1115,7 +1111,7 @@ Value is a property list of attribute names and new values."
 			       result))))))
 
 (defun modify-face (&optional face foreground background stipple
-			      bold-p italic-p underline-p inverse-p frame)
+			      bold-p italic-p underline inverse-p frame)
   "Modify attributes of faces interactively.
 If optional argument FRAME is nil or omitted, modify the face used
 for newly created frame, i.e. the global face.
@@ -1130,7 +1126,7 @@ and the face and its settings are obtained by querying the user."
 			  :stipple stipple
 			  :bold bold-p
 			  :italic italic-p
-			  :underline underline-p
+			  :underline underline
 			  :inverse-video inverse-p)
     (setq face (read-face-name "Modify face"))
     (apply #'set-face-attribute face frame
@@ -1540,8 +1536,9 @@ If COLOR is the symbol `unspecified' or one of the strings
 
 (defun color-values (color &optional frame)
   "Return a description of the color named COLOR on frame FRAME.
-The value is a list of integer RGB values--\(RED GREEN BLUE\).
-These values appear to range from 0 65535; white is \(65535 65535 65535\).
+The value is a list of integer RGB values--(RED GREEN BLUE).
+These values appear to range from 0 to 65280 or 65535, depending
+on the system; white is \(65280 65280 65280\) or \(65535 65535 65535\).
 If FRAME is omitted or nil, use the selected frame.
 If FRAME cannot display COLOR, the value is nil.
 If COLOR is the symbol `unspecified' or one of the strings
@@ -1621,17 +1618,17 @@ according to the `background-mode' and `display-type' frame parameters."
 		 (or default-frame-background-mode 'dark))
 		((equal bg-color "unspecified-fg") ; inverted colors
 		 (if (eq default-frame-background-mode 'light) 'dark 'light))
-		((>= (apply '+ (x-color-values bg-color frame))
+		((>= (apply '+ (color-values bg-color frame))
 		    ;; Just looking at the screen, colors whose
 		    ;; values add up to .6 of the white total
 		    ;; still look dark to me.
-		    (* (apply '+ (x-color-values "white" frame)) .6))
+		    (* (apply '+ (color-values "white" frame)) .6))
 		 'light)
 		(t 'dark)))
 	 (display-type
 	  (cond ((null window-system)
 		 (if (tty-display-color-p frame) 'color 'mono))
-		((x-display-color-p frame)
+		((display-color-p frame)
 		 'color)
 		((x-display-grayscale-p frame)
 		 'grayscale)
@@ -1758,35 +1755,48 @@ Initialize colors of certain faces from frame parameters."
 			  (face-attribute 'default :weight t))
       (set-face-attribute 'default frame :width
 			  (face-attribute 'default :width t))))
-  (dolist (face (face-list))
-    ;; Don't let frame creation fail because of an invalid face spec.
-    (condition-case ()
-	(when (not (equal face 'default))
-	  (face-spec-set face (face-user-default-spec face) frame)
-	  (internal-merge-in-global-face face frame)
-	  (when (and (memq window-system '(x w32 mac))
-		     (or (not (boundp 'inhibit-default-face-x-resources))
-			 (not (eq face 'default))))
-	    (make-face-x-resource-internal face frame)))
-      (error nil)))
-  ;; Initialize attributes from frame parameters.
-  (let ((params '((foreground-color default :foreground)
-		  (background-color default :background)
-		  (border-color border :background)
-		  (cursor-color cursor :background)
-		  (scroll-bar-foreground scroll-bar :foreground)
-		  (scroll-bar-background scroll-bar :background)
-		  (mouse-color mouse :background))))
-    (dolist (param params)
-      (let ((frame-param (frame-parameter frame (nth 0 param)))
-	    (face (nth 1 param))
-	    (attr (nth 2 param)))
-	(when (and frame-param
-		   ;; Don't override face attributes explicitly
-		   ;; specified for new frames.
-		   (eq (face-attribute face attr t) 'unspecified))
-	  (set-face-attribute face frame attr frame-param))))))
-
+  ;; Find attributes that should be initialized from frame parameters.
+  (let ((face-params '((foreground-color default :foreground)
+		       (background-color default :background)
+		       (border-color border :background)
+		       (cursor-color cursor :background)
+		       (scroll-bar-foreground scroll-bar :foreground)
+		       (scroll-bar-background scroll-bar :background)
+		       (mouse-color mouse :background)))
+	apply-params)
+    (dolist (param face-params)
+      (let* ((value (frame-parameter frame (nth 0 param)))
+	     (face (nth 1 param))
+	     (attr (nth 2 param))
+	     (default-value (face-attribute face attr t)))
+	;; Compile a list of face attributes to set, but don't set
+	;; them yet.  The call to make-face-x-resource-internal,
+	;; below, can change frame parameters, and the final set of
+	;; frame parameters should be the ones acquired at this step.
+	(if (eq default-value 'unspecified)
+	    ;; The face spec does not specify a new-frame value for
+	    ;; this attribute.  Check if the existing frame parameter
+	    ;; specifies it.
+	    (if value
+		(push (list face frame attr value) apply-params))
+	  ;; The face spec specifies a value for this attribute, to be
+	  ;; applied to the face on all new frames.
+	  (push (list face frame attr default-value) apply-params))))
+    ;; Initialize faces from face specs and X resources.  The
+    ;; condition-case prevents invalid specs from causing frame
+    ;; creation to fail.
+    (dolist (face (delq 'default (face-list)))
+      (condition-case ()
+	  (progn
+	    (face-spec-set face (face-user-default-spec face) frame)
+	    (internal-merge-in-global-face face frame)
+	    (if (memq window-system '(x w32 mac))
+		(make-face-x-resource-internal face frame)))
+	(error nil)))
+    ;; Apply the attributes specified by frame parameters.  This
+    ;; rewrites parameters changed by make-face-x-resource-internal
+    (dolist (param apply-params)
+      (apply 'set-face-attribute param))))
 
 (defun tty-handle-reverse-video (frame parameters)
   "Handle the reverse-video frame parameter for terminal frames."

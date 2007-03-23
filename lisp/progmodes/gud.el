@@ -58,7 +58,7 @@
 
 (defgroup gud nil
   "Grand Unified Debugger mode for gdb and other debuggers under Emacs.
-Supported debuggers include gdb, sdb, dbx, xdb, perldb, pdb (Python), jdb, and bash."
+Supported debuggers include gdb, sdb, dbx, xdb, perldb, pdb (Python), jdb."
   :group 'unix
   :group 'tools)
 
@@ -166,18 +166,18 @@ Used to grey out relevant toolbar icons.")
     ([tbreak]	menu-item "Temporary Breakpoint" gud-tbreak
                   :enable (not gud-running)
 		  :visible (memq gud-minor-mode
-				'(gdbmi gdba gdb sdb xdb bashdb)))
+				'(gdbmi gdba gdb sdb xdb)))
     ([break]	menu-item "Set Breakpoint" gud-break
                   :enable (not gud-running)
 		  :visible (gud-tool-bar-item-visible-no-fringe))
     ([up]	menu-item "Up Stack" gud-up
 		  :enable (not gud-running)
 		  :visible (memq gud-minor-mode
-				 '(gdbmi gdba gdb dbx xdb jdb pdb bashdb)))
+				 '(gdbmi gdba gdb dbx xdb jdb pdb)))
     ([down]	menu-item "Down Stack" gud-down
 		  :enable (not gud-running)
 		  :visible (memq gud-minor-mode
-				 '(gdbmi gdba gdb dbx xdb jdb pdb bashdb)))
+				 '(gdbmi gdba gdb dbx xdb jdb pdb)))
     ([pp]	menu-item "Print S-expression" gud-pp
                   :enable (and (not gud-running)
 				  gdb-active-process)
@@ -196,7 +196,7 @@ Used to grey out relevant toolbar icons.")
     ([finish]	menu-item "Finish Function" gud-finish
                   :enable (not gud-running)
 		  :visible (memq gud-minor-mode
-				 '(gdbmi gdba gdb xdb jdb pdb bashdb)))
+				 '(gdbmi gdba gdb xdb jdb pdb)))
     ([stepi]	menu-item "Step Instruction" gud-stepi
                   :enable (not gud-running)
 		  :visible (memq gud-minor-mode '(gdbmi gdba gdb dbx)))
@@ -1520,7 +1520,7 @@ and source-file directory for your debugger."
 ;; Last group is for return value, e.g. "> test.py(2)foo()->None"
 ;; Either file or function name may be omitted: "> <string>(0)?()"
 (defvar gud-pdb-marker-regexp
-  "^> \\([-a-zA-Z0-9_/.:\\]*\\|<string>\\)(\\([0-9]+\\))\\([a-zA-Z0-9_]*\\|\\?\\)()\\(->[^\n]*\\)?\n")
+  "^> \\([-a-zA-Z0-9_/.:\\]*\\|<string>\\)(\\([0-9]+\\))\\([a-zA-Z0-9_]*\\|\\?\\|<module>\\)()\\(->[^\n]*\\)?\n")
 (defvar gud-pdb-marker-regexp-file-group 1)
 (defvar gud-pdb-marker-regexp-line-group 2)
 (defvar gud-pdb-marker-regexp-fnname-group 3)
@@ -2286,127 +2286,6 @@ gud, see `gud-mode'."
 		 (gud-jdb-build-source-files-list gud-jdb-directories
 						  "\\.java$"))))
     (fset 'gud-jdb-find-source 'gud-jdb-find-source-file)))
-
-
-;; ======================================================================
-;;
-;; BASHDB support. See http://bashdb.sourceforge.net
-;;
-;; AUTHOR:	Rocky Bernstein <rocky@panix.com>
-;;
-;; CREATED:	Sun Nov 10 10:46:38 2002 Rocky Bernstein.
-;;
-;; INVOCATION NOTES:
-;;
-;; You invoke bashdb-mode with:
-;;
-;;    M-x bashdb <enter>
-;;
-;; It responds with:
-;;
-;;    Run bashdb (like this): bash
-;;
-
-;; History of argument lists passed to bashdb.
-(defvar gud-bashdb-history nil)
-
-;; Convert a command line as would be typed normally to run a script
-;; into one that invokes an Emacs-enabled debugging session.
-;; "--debugger" in inserted as the first switch.
-
-;; There's no guarantee that Emacs will hand the filter the entire
-;; marker at once; it could be broken up across several strings.  We
-;; might even receive a big chunk with several markers in it.  If we
-;; receive a chunk of text which looks like it might contain the
-;; beginning of a marker, we save it here between calls to the
-;; filter.
-(defun gud-bashdb-marker-filter (string)
-  (setq gud-marker-acc (concat gud-marker-acc string))
-  (let ((output ""))
-
-    ;; Process all the complete markers in this chunk.
-    ;; Format of line looks like this:
-    ;;   (/etc/init.d/ntp.init:16):
-    ;; but we also allow DOS drive letters
-    ;;   (d:/etc/init.d/ntp.init:16):
-    (while (string-match "\\(^\\|\n\\)(\\(\\([a-zA-Z]:\\)?[^:\n]*\\):\\([0-9]*\\)):.*\n"
-			 gud-marker-acc)
-      (setq
-
-       ;; Extract the frame position from the marker.
-       gud-last-frame
-       (cons (match-string 2 gud-marker-acc)
-	     (string-to-number (match-string 4 gud-marker-acc)))
-
-       ;; Append any text before the marker to the output we're going
-       ;; to return - we don't include the marker in this text.
-       output (concat output
-		      (substring gud-marker-acc 0 (match-beginning 0)))
-
-       ;; Set the accumulator to the remaining text.
-       gud-marker-acc (substring gud-marker-acc (match-end 0))))
-
-    ;; Does the remaining text look like it might end with the
-    ;; beginning of another marker?  If it does, then keep it in
-    ;; gud-marker-acc until we receive the rest of it.  Since we
-    ;; know the full marker regexp above failed, it's pretty simple to
-    ;; test for marker starts.
-    (if (string-match "\032.*\\'" gud-marker-acc)
-	(progn
-	  ;; Everything before the potential marker start can be output.
-	  (setq output (concat output (substring gud-marker-acc
-						 0 (match-beginning 0))))
-
-	  ;; Everything after, we save, to combine with later input.
-	  (setq gud-marker-acc
-		(substring gud-marker-acc (match-beginning 0))))
-
-      (setq output (concat output gud-marker-acc)
-	    gud-marker-acc ""))
-
-    output))
-
-(defcustom gud-bashdb-command-name "bash --debugger"
-  "File name for executing bash debugger."
-  :type 'string
-  :group 'gud)
-
-;;;###autoload
-(defun bashdb (command-line)
-  "Run bashdb on program FILE in buffer *gud-FILE*.
-The directory containing FILE becomes the initial working directory
-and source-file directory for your debugger."
-  (interactive
-   (list (read-from-minibuffer "Run bashdb (like this): "
-			       (if (consp gud-bashdb-history)
-				   (car gud-bashdb-history)
-				 (concat gud-bashdb-command-name
-					 " "))
-			       gud-minibuffer-local-map nil
-			       '(gud-bashdb-history . 1))))
-
-  (gud-common-init command-line nil 'gud-bashdb-marker-filter)
-
-  (set (make-local-variable 'gud-minor-mode) 'bashdb)
-
-  (gud-def gud-break  "break %l"   "\C-b" "Set breakpoint at current line.")
-  (gud-def gud-tbreak "tbreak %l"  "\C-t" "Set temporary breakpoint at current line.")
-  (gud-def gud-remove "clear %l"   "\C-d" "Remove breakpoint at current line")
-  (gud-def gud-step   "step"       "\C-s" "Step one source line with display.")
-  (gud-def gud-next   "next"       "\C-n" "Step one line (skip functions).")
-  (gud-def gud-cont   "continue"   "\C-r" "Continue with display.")
-  (gud-def gud-finish "finish"     "\C-f" "Finish executing current function.")
-  (gud-def gud-up     "up %p"      "<" "Up N stack frames (numeric arg).")
-  (gud-def gud-down   "down %p"    ">" "Down N stack frames (numeric arg).")
-  (gud-def gud-print  "x %e"      "\C-p" "Evaluate BASH expression at point.")
-
-  ;; Is this right?
-  (gud-def gud-statement "eval %e" "\C-e" "Execute BASH statement at point.")
-
-  (setq comint-prompt-regexp "^bashdb<+(*[0-9]+)*>+ ")
-  (setq paragraph-start comint-prompt-regexp)
-  (run-hooks 'bashdb-mode-hook)
-  )
 
 ;;
 ;; End of debugger-specific information
@@ -3177,20 +3056,25 @@ class of the file (using s to separate nested class ids)."
     ("\\$\\(\\w+\\)" (1 font-lock-variable-name-face))
     ("^\\s-*\\(\\w\\(\\w\\|\\s_\\)*\\)" (1 font-lock-keyword-face))))
 
-;; FIXME: The keyword "end" associated with "document"
-;; should have font-lock-keyword-face (currently font-lock-doc-face).
 (defvar gdb-script-font-lock-syntactic-keywords
   '(("^document\\s-.*\\(\n\\)" (1 "< b"))
-    ;; It would be best to change the \n in front, but it's more difficult.
     ("^end\\>"
-     (0 (progn
-          (unless (eq (match-beginning 0) (point-min))
-            (put-text-property (1- (match-beginning 0)) (match-beginning 0)
-                               'syntax-table (eval-when-compile
-                                               (string-to-syntax "> b")))
-            (put-text-property (1- (match-beginning 0)) (match-end 0)
-                               'font-lock-multiline t)
-            nil))))))
+     (0 (unless (eq (match-beginning 0) (point-min))
+          ;; We change the \n in front, which is more difficult, but results
+          ;; in better highlighting.  If the doc is empty, the single \n is
+          ;; both the beginning and the end of the docstring, which can't be
+          ;; expressed in syntax-tables.  Instead, we place the "> b" after
+          ;; placing the "< b", so the start marker is overwritten by the
+          ;; termination marker and in the end Emacs simply considers that
+          ;; there's no docstring at all, which is fine.
+          (put-text-property (1- (match-beginning 0)) (match-beginning 0)
+                             'syntax-table (eval-when-compile
+                                             (string-to-syntax "> b")))
+          ;; Make sure that rehighlighting the previous line won't erase our
+          ;; syntax-table property.  
+          (put-text-property (1- (match-beginning 0)) (match-end 0)
+                             'font-lock-multiline t)
+          nil)))))
 
 (defun gdb-script-font-lock-syntactic-face (state)
   (cond

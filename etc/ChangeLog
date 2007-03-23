@@ -1,3 +1,167 @@
+2007-03-01  Kim F. Storm  <storm@cua.dk>
+
+	* ORDERS: Reformat text.
+
+	* NEWS (About external Lisp packages): New section.
+
+2007-02-28  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* TUTORIAL.it: Fix typo.
+
+2007-02-27  Glenn Morris  <rgm@gnu.org>
+
+	* cs-dired-ref.tex: Increase in 2 column case to make room
+	for copyright notice.
+	(nopagenumbers): Call to turn off numbers in 1 page document.
+	(N,Aa(Bpov,Al(Bda, Modifikace Dired bufferu): Swap sections to
+	balance column length in presence of copyright notice.
+	(copyrightnotice): Uncomment so that notice is displayed.
+
+	* dired-ref.tex (vsize): Increase in 2 column case to make room
+	for copyright notice.
+	(nopagenumbers): Call to turn off numbers in 1 page document.
+	(Getting Help, Modifying the Dired Buffer): Swap sections to
+	balance column length in presence of copyright notice.
+	(copyrightnotice): Uncomment so that notice is displayed.
+
+	* fr-drdref.tex (vsize): Increase in 2 column case.
+	(\key): Tweak space for description.
+	(\overfullrule): Set to 0pt to hide small overflows.
+	(nopagenumbers): Call to turn off numbers in 1 page document.
+	(Obtenir de l'aide, Modifier le tampon Dired): Swap sections to
+	balance column length.
+	(Mettre un flag sur les fichiers \`a d\'etruire): Hack in a line
+	break to prevent overfull line.
+	(find-names-dired): Use \key rather than \metax as a hack fix for
+	overflow.
+
+	* sk-dired-ref.tex (vsize): Increase in 2 column case to make room
+	for copyright notice.
+	(nopagenumbers): Call to turn off numbers in 1 page document.
+	(N,Aa(Bpoveda, Modifik,Aa(Bcia Dired bufferu): Swap sections to
+	balance column length in presence of copyright notice.
+	(copyrightnotice): Uncomment so that notice is displayed.
+
+2007-02-26  Carsten Dominik  <dominik@science.uva.nl>
+
+	* orgcard.tex (section{Visibility Cycling}): Document key for
+	indirect buffer access.
+	(section{Archiving}): New keys for archiving.
+	(section{Tables}): Combine two lines for hline creation.
+	Named-field formula changed to Field formula.
+	(section{Links}): Document keys for finding links.
+	(section{Agenda Views}): New key for agenda file cycling.
+	Document keys for stuck projects.  Typos fixed.
+	(section{Exporting and Publishing}): Export options no longer in
+	reference card.
+
+2007-02-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* PROBLEMS: Gtk+ and cygwin doesn't work.
+
+2007-02-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* MORE.STUFF: Add a pointer to Phil Sung's Emacs slides on MIT.
+
+2007-02-22  Per Starb,Ad(Bck  <starback@stp.lingfil.uu.se>  (tiny change)
+
+	* NEWS: Grammar and capitalization fixes.
+
+2007-02-22  Glenn Morris  <rgm@gnu.org>
+
+	* orgcard.tex, orgcard.ps: Restore deleted files following
+	copyright assignment.
+
+2007-02-20  Glenn Morris  <rgm@gnu.org>
+
+	* TUTORIAL.eo: Unjustify.
+
+2007-02-20  Sergio Pokrovskij  <sergio.pokrovskij@gmail.com>
+
+	* TUTORIAL.eo: Change license to GPL.  Add translator credits.
+
+2007-02-19  Kenichi Handa  <handa@m17n.org>
+
+	* NEWS (New language environmets): Add "Esperanto".
+
+2007-02-16  Dale Gulledge  <dsplat@rochester.rr.com>
+
+	* TUTORIAL.eo: Add "See end ..." at the first line.
+
+2007-02-19  Kenichi Handa  <handa@m17n.org>
+
+	* TUTORIAL.eo: Add "." at the end of the first line.
+
+2007-02-17  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-refcard.tex: Remove obsolete comments.  Add a short note
+	creating PostScript files for Emacs without using Makefile rules.
+
+	* gnus-booklet.ps, gnus-refcard.ps: Generate with letter paper.
+
+2007-02-17  Glenn Morris  <rgm@gnu.org>
+
+	* TUTORIAL.eo: Add 2007 to copyright years.  Remove translator
+	copyrights (disclaimers on file), merge years into FSF copyrights.
+	Move copyright to end.  Remove "LocalWords" at end of file.
+
+2007-02-16  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* TUTORIAL.pt_BR: Fix some accentuation, verbal conjugation and typos.
+
+2007-02-16  Kenichi Handa  <handa@m17n.org>
+
+	* TUTORIAL.translators: Add TUTORIAL.eo.
+
+2007-02-16  Dale Gulledge  <dsplat@rochester.rr.com>
+
+	* TUTORIAL.eo: New file.
+
+2007-02-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* images/smilies/dead.xpm: Moved from images/gnus/dead.xpm.
+
+	* images/gnus/reverse-smile.xpm:
+	* images/gnus/bar.xbm:
+	* images/gnus/bar.xpm: Unused images removed.
+
+2007-02-14  Glenn Morris  <rgm@gnu.org>
+
+	* OTHER.EMACSES: Remove obsolete file.
+
+2007-02-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cs-refcard.tex (versionemacs): New macro.
+	* cs-refcard.ps: Regenerate.
+
+	* sk-refcard.ps: Regenerate.
+
+	* pl-refcard.ps: Regenerate.
+
+2007-02-13  Bill Wohler  <wohler@newt.com>
+
+	* images/README: Add section for icons that are a part of Emacs.
+
+2007-02-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* gnu.xpm: Unused file removed.
+
+	* emacs.xbm: Unused file removed.
+
+2007-02-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* DEVEL.HUMOR: New entry.
+
+2007-02-05  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* etags.1: Now --members is the default for etags, not for ctags yet.
+	* NEWS (etags): Document it.
+
+2007-02-04  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-refcard.tex: Fix copyright.
+	* gnus-booklet.ps, gnus-refcard.ps: Generate.
+
 2007-01-20  Glenn Morris  <rgm@gnu.org>
 
 	* orgcard.tex: Remove for legal reasons.
@@ -40,7 +204,7 @@
 
 	* TODO: Proper background color handling for pngs.
 
-2007-01-18  Bruno Haible  <bruno@clisp.org> (tiny change)
+2007-01-18  Bruno Haible  <bruno@clisp.org>  (tiny change)
 
 	* emacs.1: Info files moved to share/info.
 
@@ -675,7 +839,7 @@
 
 	* NEWS, MH-E-NEWS: Update for MH-E release 7.93.
 
-2006-02-23  Herbert Euler  <herberteuler@hotmail.com>  (tiny change)
+2006-02-23  Guanpeng Xu  <herberteuler@hotmail.com>
 
 	* TUTORIAL.cn: Fix omission bug: Add dot (ASCII 0x2E) on first line.
 
@@ -1299,7 +1463,7 @@
 
 2005-04-01  Marcelo Toledo  <marcelo@gnu.org>
 
-	* TUTORIAL.pt_BR, TUTORIAL.cn, TUTORIAL.cs, TUTORIAL.de,
+	* TUTORIAL.cn, TUTORIAL.cs, TUTORIAL.de,
 	* TUTORIAL.es, TUTORIAL.fr, TUTORIAL.it, TUTORIAL.ja, TUTORIAL.ko,
 	* TUTORIAL.pl, TUTORIAL.pt_BR, TUTORIAL.ro, TUTORIAL.ru,
 	* TUTORIAL.sk, TUTORIAL.sl, TUTORIAL.th, TUTORIAL.zh: Fix title line.
@@ -3258,7 +3422,22 @@
 
     Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001
 	2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
-  Copying and distribution of this file, with or without modification,
-  are permitted provided the copyright notice and this notice are preserved.
+
+  This file is part of GNU Emacs.
+
+  GNU Emacs is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2, or (at your option)
+  any later version.
+
+  GNU Emacs is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with GNU Emacs; see the file COPYING.  If not, write to the
+  Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+  Boston, MA 02110-1301, USA.
 
 ;;; arch-tag: 094f3a51-bd72-44d0-8fac-2ac242c6c5b1

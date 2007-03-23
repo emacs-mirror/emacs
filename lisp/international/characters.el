@@ -45,7 +45,7 @@
 
 ;; For each character set.
 
-(define-category ?a "ASCII")
+(define-category ?a "ASCII graphic characters 32-126 (ISO646 IRV:1983[4/0])")
 (define-category ?l "Latin")
 (define-category ?t "Thai")
 (define-category ?g "Greek")

@@ -135,6 +135,11 @@ static Lisp_Object last_exact_completion;
 /* Keymap for reading expressions.  */
 Lisp_Object Vread_expression_map;
 
+Lisp_Object Vminibuffer_completion_table, Qminibuffer_completion_table;
+Lisp_Object Vminibuffer_completion_predicate, Qminibuffer_completion_predicate;
+Lisp_Object Vminibuffer_completion_confirm, Qminibuffer_completion_confirm;
+Lisp_Object Vminibuffer_completing_file_name;
+
 Lisp_Object Quser_variable_p;
 
 Lisp_Object Qminibuffer_default;
@@ -467,7 +472,6 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   Lisp_Object enable_multibyte;
   int pos = INTEGERP (backup_n) ? XINT (backup_n) : 0;
-
   /* String to add to the history.  */
   Lisp_Object histstring;
 
@@ -478,6 +482,14 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   extern Lisp_Object Qrear_nonsticky;
 
   specbind (Qminibuffer_default, defalt);
+
+  /* If Vminibuffer_completing_file_name is `lambda' on entry, it was t
+     in previous recursive minibuffer, but was not set explicitly
+     to t for this invocation, so set it to nil in this minibuffer.
+     Save the old value now, before we change it.  */
+  specbind (intern ("minibuffer-completing-file-name"), Vminibuffer_completing_file_name);
+  if (EQ (Vminibuffer_completing_file_name, Qlambda))
+    Vminibuffer_completing_file_name = Qnil;
 
   single_kboard_state ();
 #ifdef HAVE_X_WINDOWS
@@ -571,7 +583,8 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
      specpdl slots.  */
   minibuf_save_list
     = Fcons (Voverriding_local_map,
-	     Fcons (minibuf_window, minibuf_save_list));
+	     Fcons (minibuf_window,
+		    minibuf_save_list));
   minibuf_save_list
     = Fcons (minibuf_prompt,
 	     Fcons (make_number (minibuf_prompt_width),
@@ -597,6 +610,13 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   Vminibuffer_history_position = histpos;
   Vminibuffer_history_variable = histvar;
   Vhelp_form = Vminibuffer_help_form;
+  /* If this minibuffer is reading a file name, that doesn't mean
+     recursive ones are.  But we cannot set it to nil, because
+     completion code still need to know the minibuffer is completing a
+     file name.  So use `lambda' as intermediate value meaning
+     "t" in this minibuffer, but "nil" in next minibuffer.  */
+  if (!NILP (Vminibuffer_completing_file_name))
+    Vminibuffer_completing_file_name = Qlambda;
 
   if (inherit_input_method)
     {
@@ -1684,11 +1704,6 @@ are ignored unless STRING itself starts with a space.  */)
   return Fnreverse (allmatches);
 }
 
-Lisp_Object Vminibuffer_completion_table, Qminibuffer_completion_table;
-Lisp_Object Vminibuffer_completion_predicate, Qminibuffer_completion_predicate;
-Lisp_Object Vminibuffer_completion_confirm, Qminibuffer_completion_confirm;
-Lisp_Object Vminibuffer_completing_file_name;
-
 DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 8, 0,
        doc: /* Read a string in the minibuffer, with completion.
 PROMPT is a string to prompt with; normally it ends in a colon and a space.
@@ -1786,9 +1801,11 @@ Completion ignores case if the ambient value of
 
   val = read_minibuf (NILP (require_match)
 		      ? (NILP (Vminibuffer_completing_file_name)
+			 || EQ (Vminibuffer_completing_file_name, Qlambda)
 			 ? Vminibuffer_local_completion_map
 			 : Vminibuffer_local_filename_completion_map)
 		      : (NILP (Vminibuffer_completing_file_name)
+			 || EQ (Vminibuffer_completing_file_name, Qlambda)
 			 ? Vminibuffer_local_must_match_map
 			 : Vminibuffer_local_must_match_filename_map),
 		      init, prompt, make_number (pos), 0,
@@ -2056,9 +2073,10 @@ do_completion ()
 /* Like assoc but assumes KEY is a string, and ignores case if appropriate.  */
 
 DEFUN ("assoc-string", Fassoc_string, Sassoc_string, 2, 3, 0,
-       doc: /* Like `assoc' but specifically for strings.
-Unibyte strings are converted to multibyte for comparison.
-And case is ignored if CASE-FOLD is non-nil.
+       doc: /* Like `assoc' but specifically for strings (and symbols).
+Symbols are converted to strings, and unibyte strings are converted to
+multibyte for comparison.
+Case is ignored if optional arg CASE-FOLD is non-nil.
 As opposed to `assoc', it will also match an entry consisting of a single
 string rather than a cons cell whose car is a string.  */)
        (key, list, case_fold)
@@ -2067,12 +2085,17 @@ string rather than a cons cell whose car is a string.  */)
 {
   register Lisp_Object tail;
 
+  if (SYMBOLP (key))
+    key = Fsymbol_name (key);
+
   for (tail = list; !NILP (tail); tail = Fcdr (tail))
     {
       register Lisp_Object elt, tem, thiscar;
       elt = Fcar (tail);
       thiscar = CONSP (elt) ? XCAR (elt) : elt;
-      if (!STRINGP (thiscar))
+      if (SYMBOLP (thiscar))
+	thiscar = Fsymbol_name (thiscar);
+      else if (!STRINGP (thiscar))
 	continue;
       tem = Fcompare_strings (thiscar, make_number (0), Qnil,
 			      key, make_number (0), Qnil,
@@ -2903,7 +2926,7 @@ CODE can be nil, t or `lambda':
 
   DEFVAR_LISP ("minibuffer-completing-file-name",
 	       &Vminibuffer_completing_file_name,
-	       doc: /* Non-nil means completing file names.  */);
+	       doc: /* Non-nil and non-`lambda' means completing file names.  */);
   Vminibuffer_completing_file_name = Qnil;
 
   DEFVAR_LISP ("minibuffer-help-form", &Vminibuffer_help_form,

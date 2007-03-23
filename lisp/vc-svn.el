@@ -85,18 +85,12 @@ If you want to force an empty list of arguments, use t."
   :type '(repeat string)
   :group 'vc)
 
-(defconst vc-svn-use-edit nil
-  ;; Subversion does not provide this feature (yet).
-  "*Non-nil means to use `svn edit' to \"check out\" a file.
-This is only meaningful if you don't use the implicit checkout model
-\(i.e. if you have $SVNREAD set)."
-  ;; :type 'boolean
-  ;; :version "22.1"
-  ;; :group 'vc
-  )
-
-(defvar vc-svn-admin-directory
-  (cond ((and (eq system-type 'windows-nt)
+;; We want to autoload it for use by the autoloaded version of
+;; vc-svn-registered, but we want the value to be compiled at startup, not
+;; at dump time.
+;; ;;;###autoload
+(defconst vc-svn-admin-directory
+  (cond ((and (memq system-type '(cygwin windows-nt ms-dos))
 	      (getenv "SVN_ASP_DOT_NET_HACK"))
 	 "_svn")
 	(t ".svn"))
@@ -111,12 +105,12 @@ This is only meaningful if you don't use the implicit checkout model
 
 ;;;###autoload (defun vc-svn-registered (f)
 ;;;###autoload   (let ((admin-dir (cond ((and (eq system-type 'windows-nt)
-;;;###autoload 			       (getenv "SVN_ASP_DOT_NET_HACK"))
-;;;###autoload 			  "_svn")
-;;;###autoload 			 (t ".svn"))))
+;;;###autoload                                (getenv "SVN_ASP_DOT_NET_HACK"))
+;;;###autoload                           "_svn")
+;;;###autoload                          (t ".svn"))))
 ;;;###autoload     (when (file-readable-p (expand-file-name
-;;;###autoload 			    (concat admin-dir "/entries")
-;;;###autoload 			    (file-name-directory f)))
+;;;###autoload                             (concat admin-dir "/entries")
+;;;###autoload                             (file-name-directory f)))
 ;;;###autoload       (load "vc-svn")
 ;;;###autoload       (vc-svn-registered f))))
 
@@ -274,13 +268,8 @@ This is only possible if SVN is responsible for FILE's directory.")
 
 (defun vc-svn-update (file editable rev switches)
   (if (and (file-exists-p file) (not rev))
-      ;; If no revision was specified, just make the file writable
-      ;; if necessary (using `svn-edit' if requested).
-      (and editable (not (eq (vc-svn-checkout-model file) 'implicit))
-	   (if vc-svn-use-edit
-	       (vc-svn-command nil 0 file "edit")
-	     (set-file-modes file (logior (file-modes file) 128))
-	     (if (equal file buffer-file-name) (toggle-read-only -1))))
+      ;; If no revision was specified, there's nothing to do.
+      nil
     ;; Check out a particular version (or recreate the file).
     (vc-file-setprop file 'vc-workfile-version nil)
     (apply 'vc-svn-command nil 0 file
@@ -302,12 +291,7 @@ This is only possible if SVN is responsible for FILE's directory.")
 (defun vc-svn-revert (file &optional contents-done)
   "Revert FILE to the version it was based on."
   (unless contents-done
-    (vc-svn-command nil 0 file "revert"))
-  (unless (eq (vc-checkout-model file) 'implicit)
-    (if vc-svn-use-edit
-        (vc-svn-command nil 0 file "unedit")
-      ;; Make the file read-only by switching off all w-bits
-      (set-file-modes file (logand (file-modes file) 3950)))))
+    (vc-svn-command nil 0 file "revert")))
 
 (defun vc-svn-merge (file first-version &optional second-version)
   "Merge changes into current working copy of FILE.
@@ -345,18 +329,23 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
         (if (looking-at "At revision")
             0 ;; there were no news; indicate success
           (if (re-search-forward
-               (concat "^\\([CGDU]  \\)?"
+               ;; Newer SVN clients have 3 columns of chars (one for the
+               ;; file's contents, then second for its properties, and the
+               ;; third for lock-grabbing info), before the 2 spaces.
+               ;; We also used to match the filename in column 0 without any
+               ;; meta-info before it, but I believe this can never happen.
+               (concat "^\\(\\([ACGDU]\\)\\(.[B ]\\)?  \\)"
                        (regexp-quote (file-name-nondirectory file)))
                nil t)
               (cond
                ;; Merge successful, we are in sync with repository now
-               ((string= (match-string 1) "U  ")
+               ((string= (match-string 2) "U")
                 (vc-file-setprop file 'vc-state 'up-to-date)
                 (vc-file-setprop file 'vc-checkout-time
                                  (nth 5 (file-attributes file)))
                 0);; indicate success to the caller
                ;; Merge successful, but our own changes are still in the file
-               ((string= (match-string 1) "G  ")
+               ((string= (match-string 2) "G")
                 (vc-file-setprop file 'vc-state 'edited)
                 0);; indicate success to the caller
                ;; Conflicts detected!

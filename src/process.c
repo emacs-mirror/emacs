@@ -5660,6 +5660,91 @@ send_process (proc, buf, len, object)
   UNGCPRO;
 }
 
+static Lisp_Object
+send_process_object_unwind (buf)
+     Lisp_Object buf;
+{
+  Lisp_Object tembuf;
+
+  if (XBUFFER (buf) == current_buffer)
+    return Qnil;
+  tembuf = Fcurrent_buffer ();
+  Fset_buffer (buf);
+  Fkill_buffer (tembuf);
+  return Qnil;
+}
+
+/* Send current contents of region between START and END to PROC.
+   If START is a string, send it instead.
+   This function can evaluate Lisp code and can garbage collect.  */
+
+static void
+send_process_object (proc, start, end)
+     Lisp_Object proc, start, end;
+{
+  int count = SPECPDL_INDEX ();
+  Lisp_Object object = STRINGP (start) ? start : Fcurrent_buffer ();
+  struct buffer *given_buffer = current_buffer;
+  unsigned char *buf;
+  int len;
+
+  record_unwind_protect (send_process_object_unwind, Fcurrent_buffer ());
+
+  if (STRINGP (object) ? STRING_MULTIBYTE (object)
+      : ! NILP (XBUFFER (object)->enable_multibyte_characters))
+    {
+      struct Lisp_Process *p = XPROCESS (proc);
+      struct coding_system *coding;
+
+      if (p->raw_status_new)
+	update_status (p);
+      if (! EQ (p->status, Qrun))
+	error ("Process %s not running", SDATA (p->name));
+      if (XINT (p->outfd) < 0)
+	error ("Output file descriptor of %s is closed", SDATA (p->name));
+
+      coding = proc_encode_coding_system[XINT (p->outfd)];
+      if (! EQ (coding->symbol, p->encode_coding_system))
+	/* The coding system for encoding was changed to raw-text
+	   because we sent a unibyte text previously.  Now we are
+	   sending a multibyte text, thus we must encode it by the
+	   original coding system specified for the current process.  */
+	setup_coding_system (p->encode_coding_system, coding);
+      if (! NILP (coding->pre_write_conversion))
+	{
+	  struct gcpro gcpro1, gcpro2;
+
+	  GCPRO2 (proc, object);
+	  call2 (coding->pre_write_conversion, start, end);
+	  UNGCPRO;
+	  if (given_buffer != current_buffer)
+	    {
+	      start = make_number (BEGV), end = make_number (ZV);
+	      object = Fcurrent_buffer ();
+	    }
+	}
+    }
+
+  if (BUFFERP (object))
+    {
+      EMACS_INT start_byte;
+
+      if (XINT (start) < GPT && XINT (end) > GPT)
+	move_gap (XINT (end));
+      start_byte = CHAR_TO_BYTE (XINT (start));
+      buf = BYTE_POS_ADDR (start_byte);
+      len = CHAR_TO_BYTE (XINT (end)) - start_byte;
+    }
+  else
+    {
+      buf = SDATA (object);
+      len = SBYTES (object);
+    }
+  send_process (proc, buf, len, object);
+
+  unbind_to (count, Qnil);
+}
+
 DEFUN ("process-send-region", Fprocess_send_region, Sprocess_send_region,
        3, 3, 0,
        doc: /* Send current contents of region as input to PROCESS.
@@ -5673,19 +5758,10 @@ Output from processes can arrive in between bunches.  */)
      Lisp_Object process, start, end;
 {
   Lisp_Object proc;
-  int start1, end1;
 
   proc = get_process (process);
   validate_region (&start, &end);
-
-  if (XINT (start) < GPT && XINT (end) > GPT)
-    move_gap (XINT (start));
-
-  start1 = CHAR_TO_BYTE (XINT (start));
-  end1 = CHAR_TO_BYTE (XINT (end));
-  send_process (proc, BYTE_POS_ADDR (start1), end1 - start1,
-		Fcurrent_buffer ());
-
+  send_process_object (proc, start, end);
   return Qnil;
 }
 
@@ -5703,8 +5779,7 @@ Output from processes can arrive in between bunches.  */)
   Lisp_Object proc;
   CHECK_STRING (string);
   proc = get_process (process);
-  send_process (proc, SDATA (string),
-		SBYTES (string), string);
+  send_process_object (proc, string, Qnil);
   return Qnil;
 }
 

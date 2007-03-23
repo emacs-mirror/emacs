@@ -619,15 +619,16 @@ Point must be located just after the node name.  Point left before description.
 Single argument, END-OF-MENU, is position limiting search."
   (skip-chars-forward "[:.,\t\n ]+")
   ;; don't copy a carriage return at line beginning with asterisk!
-  ;; don't copy @detailmenu or @end menu as descriptions!
+  ;; don't copy @detailmenu or @end menu or @ignore as descriptions!
   ;; do copy a description that begins with an `@'!
   ;; !! Known bug: does not copy descriptions starting with ^|\{?* etc.
   (if (and (looking-at "\\(\\w+\\|@\\)")
-	   (not (looking-at "\\(^\\* \\|^@detailmenu\\|^@end menu\\)")))
+	   (not (looking-at
+		 "\\(^\\* \\|^@detailmenu\\|^@end menu\\|^@ignore\\)")))
       (buffer-substring
        (point)
        (save-excursion
-	 (re-search-forward "\\(^\\* \\|^@end menu\\)" end-of-menu t)
+	 (re-search-forward "\\(^\\* \\|^@ignore\\|^@end menu\\)" end-of-menu t)
 	 (forward-line -1)
 	 (end-of-line)                  ; go to end of last description line
 	 (point)))
@@ -1820,6 +1821,9 @@ chapters."
     (set-buffer (find-file-noselect (car (cdr files-with-node-lines))))
     (widen)
     (goto-char (point-min))
+    ;; The following search _must_ succeed, since we verified above
+    ;; that this file does have a @node line.
+    (re-search-forward "^@node" nil t)
     (beginning-of-line)
     (texinfo-check-for-node-name)
     (setq next-node-name (texinfo-copy-node-name))
@@ -1851,6 +1855,10 @@ chapters."
 	(set-buffer (find-file-noselect (car (cdr files-with-node-lines))))
 	(widen)
 	(goto-char (point-min))
+	;; The following search _must_ succeed, since we verified
+	;; above that files in files-with-node-lines do have a @node
+	;; line.
+	(re-search-forward "^@node" nil t)
 	(beginning-of-line)
 	(texinfo-check-for-node-name)
 	(setq next-node-name (texinfo-copy-node-name))
@@ -1926,7 +1934,7 @@ be the files included within it.  A main menu must already exist."
 ;;; The multiple-file update function
 
 (defun texinfo-multiple-files-update
-  (outer-file &optional update-everything make-master-menu)
+  (outer-file &optional make-master-menu update-everything)
   "Update first node pointers in each file included in OUTER-FILE;
 create or update the `Top' level node pointers and the main menu in
 the outer file that refers to such nodes.  This does not create or

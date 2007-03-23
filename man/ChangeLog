@@ -1,3 +1,98 @@
+2007-02-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (NNTP): Mention nntp-never-echoes-commands and
+	nntp-open-connection-functions-never-echo-commands.
+
+2007-02-28  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* rmail.texi (Movemail): Add internal ref.
+	Don't indent the intro for the PROTO table.
+	Format PROTO table items with @code.
+
+2007-02-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pgg.texi (Caching passphrase): Document gpg-agent usage, gpg-agent
+	problems on the console, and security risk in not using gpg-agent.
+
+2007-02-26  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi: Remove references to bashdb.
+
+2007-02-25  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (The spreadsheet): Renamed from "Table calculations".
+	Completely reorganized and rewritten.
+	(CamelCase links): Section removed.
+	(Repeating items): New section.
+	(Tracking TODO state changes): New section.
+	(Agenda views): Chapter reorganized and rewritten.
+	(HTML export): Section rewritten.
+	(Tables in arbitrary syntax): New section.
+	(Summary): Better feature summary.
+	(Activation): Document problem with cut-and-paste of Lisp code
+	from PDF files.
+	(Visibility cycling): Document indirect buffer use.
+	(Structure editing): Document sorting.
+	(Remember): Section rewritten.
+	(Time stamps): Better description of time stamp types.
+	(Tag searches): Document regular expression search for tags.
+	(Stuck projects): New section.
+	(In-buffer settings): New keywords.
+	(History and Acknowledgments): Updated description.
+
+2007-02-24  Alan Mackenzie  <acm@muc.de>
+
+	* cc-mode.texi (Movement Commands): Insert two missing command names.
+	(Getting Started): Slight wording correction (use conditional).
+
+2007-02-22  Kim F. Storm  <storm@cua.dk>
+
+	* widget.texi (User Interface, Basic Types): Document need to put some
+	text before the %v escape in :format string in editable-field widget.
+
+2007-02-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* mule.texi (Language Environments): Update list of supported language
+	environments.
+
+2007-02-18  Romain Francoise  <romain@orebokech.com>
+
+	* pcl-cvs.texi (Miscellaneous commands): q runs `cvs-bury-buffer', not
+	`cvs-mode-quit'.
+
+2007-02-14  Kim F. Storm  <storm@cua.dk>
+
+	* building.texi (Grep Searching): Fix lgrep doc.
+
+2007-02-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* back.texi: Remove unused file.
+
+2007-02-10  Markus Triska  <markus.triska@gmx.at>
+
+	* widget.texi (Programming Example): Put constant strings in :format.
+
+2007-02-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faq.texi (Fullscreen mode on MS-Windows): New node.
+
+2007-02-05  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* maintaining.texi (Tag Syntax): Now --members is the default for
+	etags, not for ctags yet.
+
+2007-02-04  David Kastrup  <dak@gnu.org>
+
+	* faq.texi (AUCTeX): Update version number.  Should probably be done
+	for other packages as well.
+
+2007-02-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.texi (Top): Update the top-level menus.  Make the detailed menu
+	headers compliant with Texinfo guidelines and with what texnfo-upd.el
+	expects.  Add comments to prevent people from inadvertently modifying
+	the key parts needed by `texinfo-multiple-files-update'.
+
 2007-01-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frames.texi (Secondary Selection): Window clicked does not matter
@@ -23,8 +118,8 @@
 
 2007-01-16  Glenn Morris  <rgm@gnu.org>
 
-	* abbrevs.texi (Editing Abbrevs): Describe how to disable a system
-	abbrev.
+	* abbrevs.texi (Editing Abbrevs): Describe how to disable a
+	system abbrev.
 
 2007-01-11  Richard Stallman  <rms@gnu.org>
 
@@ -64,7 +159,7 @@
 	* custom.texi (Changing a Variable): Minor clarification.
 	(Specific Customization): customize-customized => customize-unsaved.
 
-	* entering.texi (Entering Emacs): Clean up text about restarting 
+	* entering.texi (Entering Emacs): Clean up text about restarting
 	Emacs for each file.
 
 	* misc.texi (Shell Options): Minor cleanup.
@@ -72,8 +167,8 @@
 	* msdog.texi (Windows Keyboard): Explain that Windows was incompatible
 	with Emacs, not vice versa.
 
-	* programs.texi (Symbol Completion): Recommend customizing window
-	manager.
+	* programs.texi (Symbol Completion): Recommend customizing
+	window manager.
 
 	* xresources.texi (Resources): Minor fix.
 
@@ -290,14 +385,14 @@
 
 2006-12-12  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* gnus.texi (X-Face): Clarify.  Say which programs are required on
-	Windows.
+	* gnus.texi (X-Face): Clarify.  Say which programs are required
+	on Windows.
 
 2006-12-09  Richard Stallman  <rms@gnu.org>
 
 	* misc.texi (Invoking emacsclient): Simplify TCP file text.
 
-2006-12-08  Kevin Rodgers <ihs_4664@yahoo.com>
+2006-12-08  Kevin Rodgers  <ihs_4664@yahoo.com>
 
 	* files.texi (Misc File Ops): Document insert-file-literally.
 
@@ -340,8 +435,7 @@
 	* mule.texi (Enabling Multibyte): Rephrase the confusing reference to a
 	colon in the mode line.
 
-	* msdog.texi (Windows Processes) [@ifnottex]: Mention
-	w32-shell-execute.
+	* msdog.texi (Windows Processes) [@ifnottex]: Mention w32-shell-execute.
 
 2006-11-26  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -847,8 +941,7 @@
 
 2006-07-20  Jay Belanger  <belanger@truman.edu>
 
-	* calc.texi (Error forms):  Mention M-+ keybinding for
-	`calc-plus-minus'.
+	* calc.texi (Error forms): Mention M-+ keybinding for `calc-plus-minus'.
 
 2006-07-18  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -1078,7 +1171,7 @@
 
 2006-06-10  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi: (Progress logging): New section.
+	* org.texi (Progress logging): New section.
 
 2006-06-10  Richard Stallman  <rms@gnu.org>
 
@@ -1119,7 +1212,7 @@
 
 2006-06-06  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi: (ASCII export): Document indentation adaptation.
+	* org.texi (ASCII export): Document indentation adaptation.
 	(Setting tags): Document mutually-exclusive tags.
 
 2006-06-05  Romain Francoise  <romain@orebokech.com>
@@ -1221,7 +1314,7 @@
 
 2006-05-24  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi: (Plain lists): Add new item navigation commands.
+	* org.texi (Plain lists): Add new item navigation commands.
 	(External links): Document elisp and info links.
 	(Custom searches): New section.
 	(Publishing): New chapter.
@@ -1625,7 +1718,7 @@
 	* gnus.texi (Spam Statistics Package): Fix typo in @pxref.
 	(Splitting mail using spam-stat): Fix @xref.
 
-2006-04-20  Chong Yidong <cyd@stupidchicken.com>
+2006-04-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* gnus.texi (Spam Package): Major revision of the text.
 	Previouly this node was "Filtering Spam Using The Spam ELisp Package".
@@ -1898,13 +1991,13 @@
 2006-03-25  Karl Berry  <karl@gnu.org>
 
 	* ada-mode.texi, autotype.texi, calc.texi, cc-mode.texi, cl.texi,
-	dired-x.texi, ebrowse.texi, ediff.texi, emacs-mime.texi,
-	emacs-xtra.texi, emacs.texi, erc.texi, eshell.texi, eudc.texi,
-	faq.texi, forms.texi, gnu.texi, gnus.texi, idlwave.texi,
-	info.texi, message.texi, mh-e.texi, pcl-cvs.texi, pgg.texi,
-	rcirc.texi, reftex.texi, sc.texi, ses.texi, sieve.texi,
-	speedbar.texi, url.texi, vip.texi, viper.texi, widget.texi,
-	woman.texi: (1) use @copyright{} instead of (C) in typeset text;
+	* dired-x.texi, ebrowse.texi, ediff.texi, emacs-mime.texi,
+	* emacs-xtra.texi, emacs.texi, erc.texi, eshell.texi, eudc.texi,
+	* faq.texi, forms.texi, gnu.texi, gnus.texi, idlwave.texi,
+	* info.texi, message.texi, mh-e.texi, pcl-cvs.texi, pgg.texi,
+	* rcirc.texi, reftex.texi, sc.texi, ses.texi, sieve.texi,
+	* speedbar.texi, url.texi, vip.texi, viper.texi, widget.texi,
+	* woman.texi: (1) use @copyright{} instead of (C) in typeset text;
 	(2) do not indent copyright year list (or anything else).
 
 2006-03-21  Bill Wohler  <wohler@newt.com>
@@ -1949,7 +2042,7 @@
 
 2006-03-15  Chong Yidong  <cyd@stupidchicken.com>
 
-	* emacs-xtra.texi (Emerge, Picture Mode. Fortran): New chapters,
+	* emacs-xtra.texi (Emerge, Picture Mode, Fortran): New chapters,
 	moved here from Emacs manual.
 
 	* programs.texi (Fortran): Section moved to emacs-xtra.
@@ -3032,7 +3125,7 @@
 	mac-command-key-is-meta.  Add descriptions of
 	mac-control-modifier, mac-command-modifier, and
 	mac-option-modifier.
-	(Mac International): Fix description of conversion of clipboard	data.
+	(Mac International): Fix description of conversion of clipboard data.
 	(Mac Font Specs): Add example of font customization by face attributes.
 
 2005-11-22  Nick Roberts  <nickrob@snap.net.nz>
@@ -4799,7 +4892,7 @@
 
 2005-03-03  Nick Roberts  <nickrob@snap.net.nz>
 
-	* trouble.texi (Contributing): Mention Savannah. Direct users to
+	* trouble.texi (Contributing): Mention Savannah.  Direct users to
 	emacs-devel.
 
 2005-03-01  Glenn Morris  <gmorris@ast.cam.ac.uk>
@@ -6224,7 +6317,7 @@
 	(Windows setup hints): Remove restriction of password entering
 	with external methods.
 	(Auto-save and Backup): Make file name example
-	(X)Emacs neutral. In case of XEmacs, `bkup-backup-directory-info'
+	(X)Emacs neutral.  In case of XEmacs, `bkup-backup-directory-info'
 	and `auto-save-directory' must be used.
 	(Frequently Asked Questions): Use "MS Windows NT/2000/XP" (not
 	only "NT").  Remove doubled entry "What kinds of systems does
@@ -6609,21 +6702,18 @@
 	* widget.texi (Basic Types): The argument to `:help-echo' can now
 	be a form that evaluates to a string.
 
-	* emacs.texi (Top): Update menu to reflect new Keyboard Macros
-	chapter.
+	* emacs.texi (Top): Update menu to reflect new Keyboard Macros chapter.
 	(Intro): Include kmacro.texi after fixit.texi instead of after
-	custom.texi. (As suggested by Kim Storm.)
+	custom.texi.  (As suggested by Kim Storm.)
 
 2003-08-18  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
 	* fixit.texi (Fixit): Update `Next' pointer.
 	* files.texi (Files): Update `Previous' pointer.
-	* kmacro.texi (Keyboard Macros): Remove redundant node and
-	section.
+	* kmacro.texi (Keyboard Macros): Remove redundant node and section.
 	* emacs.texi (Intro): Include kmacro.texi after custom.texi.
 	(Suggested by Kim Storm.)
-	* Makefile (EMACSSOURCES): Add kmacro.texi.  (Suggested by Kim
-	Storm.)
+	* Makefile (EMACSSOURCES): Add kmacro.texi.  (Suggested by Kim Storm.)
 
 2003-08-18  Kim F. Storm  <storm@cua.dk>
 
@@ -7503,7 +7593,22 @@
 
     Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
       2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
-  Copying and distribution of this file, with or without modification,
-  are permitted provided the copyright notice and this notice are preserved.
+
+  This file is part of GNU Emacs.
+
+  GNU Emacs is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2, or (at your option)
+  any later version.
+
+  GNU Emacs is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with GNU Emacs; see the file COPYING.  If not, write to the
+  Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+  Boston, MA 02110-1301, USA.
 
 ;;; arch-tag: f1d62776-3ed5-4811-9d96-267252577dbd

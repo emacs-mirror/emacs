@@ -5279,6 +5279,11 @@ x_scroll_bar_expose (bar, event)
 
   x_scroll_bar_set_handle (bar, XINT (bar->start), XINT (bar->end), 1);
 
+   /* Switch to scroll bar foreground color. */
+  if (f->output_data.x->scroll_bar_foreground_pixel != -1)
+    XSetForeground (FRAME_X_DISPLAY (f), gc,
+ 		    f->output_data.x->scroll_bar_foreground_pixel);
+
   /* Draw a one-pixel border just inside the edges of the scroll bar.  */
   XDrawRectangle (FRAME_X_DISPLAY (f), w, gc,
 
@@ -5287,7 +5292,12 @@ x_scroll_bar_expose (bar, event)
 		  XINT (bar->width) - 1 - width_trim - width_trim,
 		  XINT (bar->height) - 1);
 
-  UNBLOCK_INPUT;
+   /* Restore the foreground color of the GC if we changed it above.  */
+   if (f->output_data.x->scroll_bar_foreground_pixel != -1)
+     XSetForeground (FRAME_X_DISPLAY (f), gc,
+ 		    f->output_data.x->foreground_pixel);
+
+   UNBLOCK_INPUT;
 
 }
 #endif /* not USE_TOOLKIT_SCROLL_BARS */
@@ -8416,6 +8426,11 @@ do_ewmh_fullscreen (f)
 {
   int have_net_atom = wm_supports (f, "_NET_WM_STATE");
 
+  /* Some window managers don't say they support _NET_WM_STATE, but they do say
+     they support _NET_WM_STATE_FULLSCREEN.  Try that also.  */
+  if (!have_net_atom)
+      have_net_atom = wm_supports (f, "_NET_WM_STATE_FULLSCREEN");
+
   if (have_net_atom)
     {
       Lisp_Object frame;
@@ -8442,7 +8457,7 @@ do_ewmh_fullscreen (f)
           break;
         }
 
-      if (!wm_supports (f, what)) return 0;
+      if (what != NULL && !wm_supports (f, what)) return 0;
 
 
       Fx_send_client_event (frame, make_number (0), frame,

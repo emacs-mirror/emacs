@@ -4248,10 +4248,10 @@ contain symbolic links) of the loaded file.
 
 The remaining elements of each list are symbols defined as variables
 and cons cells of the form `(provide . FEATURE)', `(require . FEATURE)',
-`(defun . FUNCTION)', `(autoload . SYMBOL)', and `(t . SYMBOL)'.
-An element `(t . SYMBOL)' precedes an entry `(defun . FUNCTION)',
-and means that SYMBOL was an autoload before this file redefined it
-as a function.
+`(defun . FUNCTION)', `(autoload . SYMBOL)', `(defface . SYMBOL)'
+and `(t . SYMBOL)'.  An element `(t . SYMBOL)' precedes an entry
+`(defun . FUNCTION)', and means that SYMBOL was an autoload before
+this file redefined it as a function.
 
 During preloading, the file name recorded is relative to the main Lisp
 directory.  These file names are converted to absolute at startup.  */);
@@ -4265,7 +4265,9 @@ directory.  These file names are converted to absolute at startup.  */);
 	       doc: /* File name, including directory, of user's initialization file.
 If the file loaded had extension `.elc', and the corresponding source file
 exists, this variable contains the name of source file, suitable for use
-by functions like `custom-save-all' which edit the init file.  */);
+by functions like `custom-save-all' which edit the init file.
+While Emacs loads and evaluates the init file, value is the real name
+of the file, regardless of whether or not it has the `.elc' extension.  */);
   Vuser_init_file = Qnil;
 
   DEFVAR_LISP ("current-load-list", &Vcurrent_load_list,

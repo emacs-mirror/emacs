@@ -1387,9 +1387,18 @@ written a @code{defgroup} to define that group properly.  @xref{Group
 Definitions}.
 
 @item :global @var{global}
-If non-@code{nil} specifies that the minor mode should be global.  By
-default, minor modes defined with @code{define-minor-mode} are
-buffer-local.
+If non-@code{nil}, this specifies that the minor mode should be global
+rather than buffer-local.  It defaults to @code{nil}.
+
+One of the effects of making a minor mode global is that the
+@var{mode} variable becomes a customization variable.  Toggling it
+through the Custom interface turns the mode on and off, and its value
+can be saved for future Emacs sessions (@pxref{Saving
+Customizations,,, emacs, The GNU Emacs Manual}.  For the saved
+variable to work, you should ensure that the @code{define-minor-mode}
+form is evaluated each time Emacs starts; for packages that are not
+part of Emacs, the easiest way to do this is to specify a
+@code{:require} keyword.
 
 @item :init-value @var{init-value}
 This is equivalent to specifying @var{init-value} positionally.
@@ -1479,7 +1488,7 @@ See the command \\[hungry-electric-delete]."
  :group 'hunger)
 @end smallexample
 
-@defmac define-global-minor-mode global-mode mode turn-on keyword-args@dots{}
+@defmac define-globalized-minor-mode global-mode mode turn-on keyword-args@dots{}
 This defines a global toggle named @var{global-mode} whose meaning is
 to enable or disable the buffer-local minor mode @var{mode} in all
 buffers.  To turn on the minor mode in a buffer, it uses the function
@@ -1490,6 +1499,12 @@ Globally enabling the mode also affects buffers subsequently created
 by visiting files, and buffers that use a major mode other than
 Fundamental mode; but it does not detect the creation of a new buffer
 in Fundamental mode.
+
+This defines the customization option @var{global-mode} (@pxref{Customization}),
+which can be toggled in the Custom interface to turn the minor mode on
+and off.  As with @code{define-minor-mode}, you should ensure that the
+@code{define-globalized-minor-mode} form is evaluated each time Emacs
+starts, for example by providing a @code{:require} keyword.
 
 Use @code{:group @var{group}} in @var{keyword-args} to specify the
 custom group for the mode variable of the global minor mode.

@@ -5,10 +5,18 @@
 % gnuslogo-booklet.eps).
 %
 % From this LaTeX file (gnus-refcard.tex) plus a single logo (gnus-logo.eps),
-% we can generate the refcard and the booklet version.  Appropriate Makefile
-% rules were added.  This simplifies to distribute the refcard with Emacs.
+% we can generate the refcard and the booklet version.  This simplifies to
+% distribute the refcard with Emacs.  Appropriate Makefile rules were added in
+% gnus/texi/Makefile.
+
+% For Emacs, we may use the following commands (w/o) using Gnus' Makefile:
 %
-% (Reiner Steib, March 2005)
+%   latex gnus-refcard.tex &&
+%   dvips -t letter -f gnus-refcard.dvi > gnus-refcard.ps
+%   
+%   latex '\def\booklettrue{}\def\letterpapertrue{}\input{gnus-refcard}' &&
+%   mv gnus-refcard.dvi gnus-booklet.dvi &&
+%   dvips -t letter -f gnus-booklet.dvi > gnus-booklet.ps
 
 \usepackage{ifthen}
 \ifthenelse{\isundefined{\booklettrue}}{
@@ -51,17 +59,9 @@
   \def\Guide{Booklet}\def\guide{booklet}
   \def\logoscale{0.5}% FIXME: too large for 2up printing?  --rsteib
   
-  % FIXME: Use geometry package.  --rsteib
-%   \ifthenelse{\isundefined{\letterpapertrue}}{
-%     \textwidth 4.9in \textheight 7.35in \topmargin -1.0in
-%   }{
-%     \textwidth 4.5in \textheight 7.5in \topmargin -1.0in
-%   }
-%   \oddsidemargin -0.5in \evensidemargin -0.5in
   \ifthenelse{\isundefined{\letterpapertrue}}{
     \geometry{a5paper,hmargin=10mm,tmargin=10mm,bmargin=4mm}
   }{
-    % FIXME: Use geometry package.  --rsteib
     \geometry{a5paper,hmargin=20mm,tmargin=10mm,bmargin=4mm}
   }
   
@@ -114,15 +114,14 @@
 %%  Contributions by:
 %% 1995 Vladimir Alexiev <vladimir@cs.ualberta.ca>
 %% 2000 Felix Natter <fnatter@gmx.net>
+%% 2001, 2002, 2003, 2005 \author.
+%% Original Gnus manual 1994 Lars Magne Ingebrigtsen
+%% Some material from Emacs Help Bindings feature (C-h b).
+%% Gnus logo by Luis Fernandes.
 \newcommand{\Copyright}{%
   \begin{center}
     Copyright \copyright\ 1995, 2000, 2002, 2003, 2004,
-       2005, 2006, 2007  Free Software Foundation, Inc.\\*
-    Copyright \copyright\ 2001, 2002, 2003, 2005 \author.\\*
-    Created from the Gnus manual Copyright \copyright\ 1994 Lars Magne
-    Ingebrigtsen.\\*
-    and the Emacs Help Bindings feature (C-h b).\\*
-    Gnus logo copyright \copyright\ 1995 Luis Fernandes.\\*
+       2005, 2006, 2007  Free Software Foundation, Inc.
   \end{center}
 
   Permission is granted to make and distribute copies of this reference

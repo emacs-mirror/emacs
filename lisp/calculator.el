@@ -88,9 +88,9 @@ This determines the default behavior of unary operators."
 
 (defcustom calculator-prompt "Calc=%s> "
   "*The prompt used by the Emacs calculator.
-It should contain a \"%s\" somewhere that will indicate the i/o radixes,
-this string will be a two-character string as described in the
-documentation for `calculator-mode'."
+It should contain a \"%s\" somewhere that will indicate the i/o radixes;
+this will be a two-character string as described in the documentation
+for `calculator-mode'."
   :type  'string
   :group 'calculator)
 
@@ -561,7 +561,7 @@ Used for repeating operations in calculator-repR/L.")
                                      calculator-output-radix)))]
             "---"
             ,@(mapcar 'car radix-selectors)
-            ("Seperate I/O"
+            ("Separate I/O"
              ,@(mapcar (lambda (x) (nth 1 x)) radix-selectors)
              "---"
              ,@(mapcar (lambda (x) (nth 2 x)) radix-selectors)))
@@ -735,8 +735,42 @@ See the documentation for `calculator-mode' for more information."
            ;; `raised' modeline in Emacs 21
            (select-window
             (split-window-vertically
+             ;; If the modeline might interfere with the calculator buffer,
+             ;; use 3 lines instead.
              (if (and (fboundp 'face-attr-construct)
-                      (plist-get (face-attr-construct 'modeline) :box))
+                      (let* ((dh (plist-get (face-attr-construct 'default) :height))
+                             (mf (face-attr-construct 'modeline))
+                             (mh (plist-get mf :height)))
+                        ;; If the modeline is shorter than the default,
+                        ;; stick with 2 lines.  (It may be necessary to
+                        ;; check how much shorter.)
+                        (and
+                         (not
+                          (or (and (integerp dh)
+                                   (integerp mh)
+                                   (< mh dh))
+                              (and (numberp mh)
+                                   (not (integerp mh))
+                                   (< mh 1))))
+                         (or
+                          ;; If the modeline is taller than the default,
+                          ;; use 3 lines.
+                          (and (integerp dh)
+                               (integerp mh)
+                               (> mh dh))
+                          (and (numberp mh)
+                               (not (integerp mh))
+                               (> mh 1))
+                          ;; If the modeline has a box with non-negative line-width,
+                          ;; use 3 lines.
+                          (let* ((bx (plist-get mf :box))
+                                 (lh (plist-get bx :line-width)))
+                            (and bx
+                                 (or
+                                  (not lh)
+                                  (> lh 0))))
+                          ;; If the modeline has an overline, use 3 lines.
+                          (plist-get (face-attr-construct 'modeline) :overline)))))
                -3 -2)))
            (switch-to-buffer calculator-buffer)))
         ((not (eq (current-buffer) calculator-buffer))

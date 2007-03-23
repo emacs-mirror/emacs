@@ -3100,6 +3100,11 @@ _ACEOF
     machine=amdx86-64 opsys=gnu-linux
   ;;
 
+  ## Tensilica Xtensa Linux-based GNU system
+  xtensa-*-linux-gnu* )
+    machine=xtensa opsys=gnu-linux
+    ;;
+
   * )
     unported=yes
   ;;
@@ -6287,13 +6292,13 @@ echo "${ECHO_T}yes" >&6; }
 
             { echo "$as_me:$LINENO: checking ALSA_CFLAGS" >&5
 echo $ECHO_N "checking ALSA_CFLAGS... $ECHO_C" >&6; }
-            ALSA_CFLAGS=`$PKG_CONFIG --cflags "$ALSA_MODULES"`
+            ALSA_CFLAGS=`$PKG_CONFIG --cflags "$ALSA_MODULES"|sed -e 's,///*,/,g'`
             { echo "$as_me:$LINENO: result: $ALSA_CFLAGS" >&5
 echo "${ECHO_T}$ALSA_CFLAGS" >&6; }
 
             { echo "$as_me:$LINENO: checking ALSA_LIBS" >&5
 echo $ECHO_N "checking ALSA_LIBS... $ECHO_C" >&6; }
-            ALSA_LIBS=`$PKG_CONFIG --libs "$ALSA_MODULES"`
+            ALSA_LIBS=`$PKG_CONFIG --libs "$ALSA_MODULES"|sed -e 's,///*,/,g'`
             { echo "$as_me:$LINENO: result: $ALSA_LIBS" >&5
 echo "${ECHO_T}$ALSA_LIBS" >&6; }
         else
@@ -10952,13 +10957,13 @@ echo "${ECHO_T}yes" >&6; }
 
             { echo "$as_me:$LINENO: checking GTK_CFLAGS" >&5
 echo $ECHO_N "checking GTK_CFLAGS... $ECHO_C" >&6; }
-            GTK_CFLAGS=`$PKG_CONFIG --cflags "$GTK_MODULES"`
+            GTK_CFLAGS=`$PKG_CONFIG --cflags "$GTK_MODULES"|sed -e 's,///*,/,g'`
             { echo "$as_me:$LINENO: result: $GTK_CFLAGS" >&5
 echo "${ECHO_T}$GTK_CFLAGS" >&6; }
 
             { echo "$as_me:$LINENO: checking GTK_LIBS" >&5
 echo $ECHO_N "checking GTK_LIBS... $ECHO_C" >&6; }
-            GTK_LIBS=`$PKG_CONFIG --libs "$GTK_MODULES"`
+            GTK_LIBS=`$PKG_CONFIG --libs "$GTK_MODULES"|sed -e 's,///*,/,g'`
             { echo "$as_me:$LINENO: result: $GTK_LIBS" >&5
 echo "${ECHO_T}$GTK_LIBS" >&6; }
         else
@@ -11698,13 +11703,13 @@ echo "${ECHO_T}yes" >&6; }
 
             { echo "$as_me:$LINENO: checking XFT_CFLAGS" >&5
 echo $ECHO_N "checking XFT_CFLAGS... $ECHO_C" >&6; }
-            XFT_CFLAGS=`$PKG_CONFIG --cflags "xft >= 0.13.0"`
+            XFT_CFLAGS=`$PKG_CONFIG --cflags "xft >= 0.13.0"|sed -e 's,///*,/,g'`
             { echo "$as_me:$LINENO: result: $XFT_CFLAGS" >&5
 echo "${ECHO_T}$XFT_CFLAGS" >&6; }
 
             { echo "$as_me:$LINENO: checking XFT_LIBS" >&5
 echo $ECHO_N "checking XFT_LIBS... $ECHO_C" >&6; }
-            XFT_LIBS=`$PKG_CONFIG --libs "xft >= 0.13.0"`
+            XFT_LIBS=`$PKG_CONFIG --libs "xft >= 0.13.0"|sed -e 's,///*,/,g'`
             { echo "$as_me:$LINENO: result: $XFT_LIBS" >&5
 echo "${ECHO_T}$XFT_LIBS" >&6; }
         else

@@ -114,7 +114,7 @@ Set to \"main\" at start if gdb-show-main is t.")
 (defvar gdb-var-list nil
  "List of variables in watch window.
 Each element has the form (VARNUM EXPRESSION NUMCHILD TYPE VALUE STATUS FP)
-where STATUS is nil (unchanged), `changed' or `out-of-scope', FP the frame
+where STATUS is nil (`unchanged'), `changed' or `out-of-scope', FP the frame
 address for root variables.")
 (defvar gdb-main-file nil "Source file from which program execution begins.")
 (defvar gud-old-arrow nil)
@@ -606,68 +606,54 @@ With arg, use separate IO iff arg is positive."
     (setq gdb-version "6.4+"))
   (gdb-init-2))
 
-(defun gdb-mouse-until (event)
-  "Continue running until a source line past the current line.
-The destination source line can be selected either by clicking with mouse-2
-on the fringe/margin or dragging the arrow with mouse-1 (default bindings)."
-  (interactive "e")
-  (if gud-overlay-arrow-position
-      (let ((start (event-start event))
-	    (end  (event-end event))
-	    (buffer (marker-buffer gud-overlay-arrow-position)) (line))
-	(if (not (string-match "Machine" mode-name))
-	    (if (equal buffer (window-buffer (posn-window end)))
-		(with-current-buffer buffer
-		  (when (or (equal start end)
-			    (equal (posn-point start)
-				   (marker-position
-				    gud-overlay-arrow-position)))
-		    (setq line (line-number-at-pos (posn-point end)))
-		    (gud-call (concat "until " (number-to-string line))))))
-	  (if (equal (marker-buffer gdb-overlay-arrow-position)
-		     (window-buffer (posn-window end)))
+(defmacro gdb-if-arrow (arrow-position &rest body)
+  `(if ,arrow-position
+      (let ((buffer (marker-buffer ,arrow-position)) (line))
+	(if (equal buffer (window-buffer (posn-window end)))
+	    (with-current-buffer buffer
 	      (when (or (equal start end)
 			(equal (posn-point start)
-			       (marker-position
-				gdb-overlay-arrow-position)))
-		(save-excursion
-		  (goto-line (line-number-at-pos (posn-point end)))
-		  (forward-char 2)
-		  (gud-call (concat "until *%a")))))))))
+			       (marker-position ,arrow-position)))
+		,@body))))))
+
+(defun gdb-mouse-until (event)
+  "Continue running until a source line past the current line.
+The destination source line can be selected either by clicking
+with mouse-3 on the fringe/margin or dragging the arrow
+with mouse-1 (default bindings)."
+  (interactive "e")
+  (let ((start (event-start event))
+	(end (event-end event)))
+    (gdb-if-arrow gud-overlay-arrow-position
+		  (setq line (line-number-at-pos (posn-point end)))
+		  (gud-call (concat "until " (number-to-string line))))
+    (gdb-if-arrow gdb-overlay-arrow-position
+		  (save-excursion
+		    (goto-line (line-number-at-pos (posn-point end)))
+		    (forward-char 2)
+		    (gud-call (concat "until *%a"))))))
 
 (defun gdb-mouse-jump (event)
   "Set execution address/line.
-The destination source line can be selected either by clicking with mouse-2
-on the fringe/margin or dragging the arrow with mouse-1 (default bindings).
+The destination source line can be selected either by clicking with C-mouse-3
+on the fringe/margin or dragging the arrow with C-mouse-1 (default bindings).
 Unlike gdb-mouse-until the destination address can be before the current
 line, and no execution takes place."
   (interactive "e")
-  (if gud-overlay-arrow-position
-      (let ((start (event-start event))
-	    (end  (event-end event))
-	    (buffer (marker-buffer gud-overlay-arrow-position)) (line))
-	(if (not (string-match "Machine" mode-name))
-	    (if (equal buffer (window-buffer (posn-window end)))
-		(with-current-buffer buffer
-		  (when (or (equal start end)
-			    (equal (posn-point start)
-				   (marker-position
-				    gud-overlay-arrow-position)))
-		    (setq line (line-number-at-pos (posn-point end)))
-	   (progn (gud-call (concat "tbreak " (number-to-string line)))
-		  (gud-call (concat "jump " (number-to-string line)))))))
-	  (if (equal (marker-buffer gdb-overlay-arrow-position)
-		     (window-buffer (posn-window end)))
-	      (when (or (equal start end)
-			(equal (posn-point start)
-			       (marker-position
-				gdb-overlay-arrow-position)))
-		(save-excursion
-		  (goto-line (line-number-at-pos (posn-point end)))
-		  (forward-char 2)
+  (let ((start (event-start event))
+	(end (event-end event)))
+    (gdb-if-arrow gud-overlay-arrow-position
+		  (setq line (line-number-at-pos (posn-point end)))
 		  (progn
-		    (gud-call (concat "tbreak *%a"))
-		    (gud-call (concat "jump *%a"))))))))))
+		    (gud-call (concat "tbreak " (number-to-string line)))
+		    (gud-call (concat "jump " (number-to-string line)))))
+    (gdb-if-arrow gdb-overlay-arrow-position
+		  (save-excursion
+		    (goto-line (line-number-at-pos (posn-point end)))
+		    (forward-char 2)
+		    (progn
+		      (gud-call (concat "tbreak *%a"))
+		      (gud-call (concat "jump *%a")))))))
 
 (defcustom gdb-speedbar-auto-raise nil
   "If non-nil raise speedbar every time display of watch expressions is\
@@ -739,7 +725,7 @@ With arg, enter name of variable to be watched in the minibuffer."
 		  (match-string 2)
 		  (match-string 4)
 		  (if (match-string 3) (read (match-string 3)))
-		   nil gdb-frame-address)))
+		  nil gdb-frame-address)))
 	(push var gdb-var-list)
 	(unless (string-equal
 		 speedbar-initial-expansion-list-name "GUD")
@@ -759,7 +745,8 @@ With arg, enter name of variable to be watched in the minibuffer."
       (message-box "No symbol \"%s\" in current context." expr))))
 
 (defun gdb-speedbar-update ()
-  (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
+  (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame)
+	     (not (member 'gdb-speedbar-timer gdb-pending-triggers)))
     ;; Dummy command to update speedbar even when idle.
     (gdb-enqueue-input (list "server pwd\n" 'gdb-speedbar-timer-fn))
     ;; Keep gdb-pending-triggers non-nil till end.
@@ -2157,8 +2144,9 @@ static char *magick[] = {
   (kill-all-local-variables)
   (setq major-mode 'gdb-frames-mode)
   (setq mode-name "Frames")
-  (setq gdb-stack-position nil)
+  (setq gdb-stack-position nil) 
   (add-to-list 'overlay-arrow-variable-list 'gdb-stack-position)
+  (setq truncate-lines t)  ;; Make it easier to see overlay arrow.
   (setq buffer-read-only t)
   (use-local-map gdb-frames-mode-map)
   (run-mode-hooks 'gdb-frames-mode-hook)

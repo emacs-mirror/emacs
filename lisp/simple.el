@@ -2836,12 +2836,12 @@ When calling from a program, nil means \"no arg\",
 a number counts as a prefix arg.
 
 To kill a whole line, when point is not at the beginning, type \
-\\[beginning-of-line] \\[kill-line] \\[kill-line].
+\\[move-beginning-of-line] \\[kill-line] \\[kill-line].
 
 If `kill-whole-line' is non-nil, then this command kills the whole line
 including its terminating newline, when used at the beginning of a line
 with no argument.  As a consequence, you can always kill a whole line
-by typing \\[beginning-of-line] \\[kill-line].
+by typing \\[move-beginning-of-line] \\[kill-line].
 
 If you want to append the killed line to the last killed text,
 use \\[append-next-kill] before \\[kill-line].
@@ -4427,7 +4427,7 @@ of the buffer appears in the mode line."
 
 (defcustom blink-matching-paren-on-screen t
   "*Non-nil means show matching open-paren when it is on screen.
-If nil, means don't show it (but the open-paren can still be shown
+If nil, don't show it (but the open-paren can still be shown
 when it is off screen).
 
 This variable has no effect if `blink-matching-paren' is nil.
@@ -4448,7 +4448,7 @@ If nil, search stops at the beginning of the accessible portion of the buffer."
   :group 'paren-blinking)
 
 (defcustom blink-matching-paren-dont-ignore-comments nil
-  "*nil means `blink-matching-paren' ignores comments.
+  "*If nil, `blink-matching-paren' ignores comments.
 More precisely, when looking for the matching parenthesis,
 it skips the contents of comments that end before point."
   :type 'boolean

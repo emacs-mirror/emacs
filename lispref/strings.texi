@@ -390,9 +390,8 @@ character currently present at that point in @var{string}.
 @code{clear-string}:
 
 @defun clear-string string
-This clears the contents of @var{string} to zeros.
-It may also change @var{string}'s length and convert it to
-a unibyte string.
+This makes @var{string} a unibyte string and clears its contents to
+zeros.  It may also change @var{string}'s length.
 @end defun
 
 @need 2000
@@ -536,11 +535,12 @@ portion) is less.
 
 @defun assoc-string key alist &optional case-fold
 This function works like @code{assoc}, except that @var{key} must be a
-string, and comparison is done using @code{compare-strings}.  If
-@var{case-fold} is non-@code{nil}, it ignores case differences.
+string or symbol, and comparison is done using @code{compare-strings}.
+Symbols are converted to strings before testing.
+If @var{case-fold} is non-@code{nil}, it ignores case differences.
 Unlike @code{assoc}, this function can also match elements of the alist
-that are strings rather than conses.  In particular, @var{alist} can
-be a list of strings rather than an actual alist.
+that are strings or symbols rather than conses.  In particular, @var{alist} can
+be a list of strings or symbols rather than an actual alist.
 @xref{Association Lists}.
 @end defun
 
@@ -888,9 +888,11 @@ specification characters.
 Immediately after the @samp{%} and before the optional width and
 precision, you can put certain ``flag'' characters.
 
-A space character inserts a space for positive numbers (otherwise
-nothing is inserted for positive numbers).  This flag is ignored
-except for @samp{%d}, @samp{%e}, @samp{%f}, @samp{%g}.
+A space character inserts a space for positive numbers, a plus character
+inserts a plus sign (otherwise nothing is inserted for positive
+numbers).  These flags are ignored except for @samp{%d}, @samp{%e},
+@samp{%f}, @samp{%g}, and if both flags are present the space is
+ignored.
 
 The flag @samp{#} indicates ``alternate form.''  For @samp{%o} it
 ensures that the result begins with a 0.  For @samp{%x} and @samp{%X}

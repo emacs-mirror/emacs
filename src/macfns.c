@@ -2863,9 +2863,31 @@ FRAME nil means use the selected frame.  */)
      (frame)
      Lisp_Object frame;
 {
+  OSErr err;
+  ProcessSerialNumber front_psn;
+  static const ProcessSerialNumber current_psn = {0, kCurrentProcess};
+  Boolean front_p;
   struct frame *f = check_x_frame (frame);
 
   BLOCK_INPUT;
+  /* Move the current process to the foreground if it is not.  Don't
+     call SetFrontProcess if the current process is already running in
+     the foreground so as not to change the z-order of windows.  */
+  err = GetFrontProcess (&front_psn);
+  if (err == noErr)
+    err = SameProcess (&front_psn, &current_psn, &front_p);
+  if (err == noErr)
+    if (!front_p)
+      {
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
+	if (FrontNonFloatingWindow () == FRAME_MAC_WINDOW (f))
+	  SetFrontProcessWithOptions (&current_psn,
+				      kSetFrontProcessFrontWindowOnly);
+	else
+#endif
+	  SetFrontProcess (&current_psn);
+      }
+
 #ifdef MAC_OSX
   ActivateWindow (ActiveNonFloatingWindow (), false);
   ActivateWindow (FRAME_MAC_WINDOW (f), true);
@@ -4513,7 +4535,7 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
 		      filename[len++] = '/';
 		    CFStringGetCString(reply.saveFileName, filename+len,
 				       sizeof (filename) - len,
-#if MAC_OSX
+#ifdef MAC_OSX
 				       kCFStringEncodingUTF8
 #else
 				       CFStringGetSystemEncoding ()
@@ -4575,22 +4597,22 @@ DEFUN ("mac-clear-font-name-table", Fmac_clear_font_name_table,
 }
 
 #if USE_MAC_FONT_PANEL
-DEFUN ("mac-set-font-panel-visibility", Fmac_set_font_panel_visibility,
-       Smac_set_font_panel_visibility, 1, 1, 0,
-  doc: /* Make the font panel visible if and only if VISIBLE is non-nil.
+DEFUN ("mac-set-font-panel-visible-p", Fmac_set_font_panel_visible_p,
+       Smac_set_font_panel_visible_p, 1, 1, 0,
+  doc: /* Make the font panel visible if and only if FLAG is non-nil.
 This is for internal use only.  Use `mac-font-panel-mode' instead.  */)
-     (visible)
-     Lisp_Object visible;
+     (flag)
+     Lisp_Object flag;
 {
   OSStatus err = noErr;
 
   check_mac ();
 
   BLOCK_INPUT;
-  if (NILP (visible) != !mac_font_panel_visible_p ())
+  if (NILP (flag) != !mac_font_panel_visible_p ())
     {
       err = mac_show_hide_font_panel ();
-      if (err == noErr && !NILP (visible))
+      if (err == noErr && !NILP (flag))
 	{
 	  Lisp_Object focus_frame = x_get_focus_frame (SELECTED_FRAME ());
 	  struct frame *f = (NILP (focus_frame) ? SELECTED_FRAME ()
@@ -4860,7 +4882,7 @@ Chinese, Japanese, and Korean.  */);
 #endif
   defsubr (&Smac_clear_font_name_table);
 #if USE_MAC_FONT_PANEL
-  defsubr (&Smac_set_font_panel_visibility);
+  defsubr (&Smac_set_font_panel_visible_p);
 #endif
 #if USE_ATSUI
   defsubr (&Smac_atsu_font_face_attributes);

@@ -74,6 +74,7 @@
     ("\\(:-|\\)\\W" 1 "indifferent")
     ("\\(:-[/\\]\\)\\W" 1 "wry")
     ("\\(:-(\\)\\W" 1 "sad")
+    ("\\(X-)\\)\\W" 1 "dead")
     ("\\(:-{\\)\\W" 1 "frown"))
   "*A list of regexps to map smilies to images.
 The elements are (REGEXP MATCH IMAGE), where MATCH is the submatch in

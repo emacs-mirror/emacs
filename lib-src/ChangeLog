@@ -1,6 +1,28 @@
+2007-02-26  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* Makefile.in (etags, ctags): Define EMACS_NAME as "GNU Emacs".
+
+2007-02-20  Ulrich Mueller  <ulm@kph.uni-mainz.de>  (tiny change)
+
+	* Makefile.in (EMACS, EMACSOPT): New variables.
+	(blessmail): Use `--no-site-file' when compiling.
+
+2007-02-05  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* etags.c (default_C_help, Cplusplus_help, PHP_help, print_help)
+	(main): Now --members is the default for etags, not for ctags yet.
+
+2007-02-04  Per Cederqvist  <ceder@ingate.com>  (tiny change)
+
+	* etags.c (gperf, in_word_set): Change attribute for Java to
+	(C_JAVA & ~C_PLPL).  The previous change introduced 2004-09-13 was
+	broken, as (C_JAVA & !C_PLPL) always evaluates to 0.  This caused
+	import, package, extends, implements and interface to be treated
+	specially for all kinds of C-style files, not just Java files.
+
 2007-01-02  Francesco Potort,Al(B  <pot@gnu.org>
 
-	* etags.c: (longopts): New undocumented option --no-duplicates.
+	* etags.c (longopts): New undocumented option --no-duplicates.
 	(no_duplicates): Static variables for the above option.
 	(print_help): Do not print help for --no-warn, now undocumented.
 	(add_node): Allow duplicate tags in ctags mode unless --no-duplicates.
@@ -20,7 +42,7 @@
 
 	* makefile.w32-in (make-docfile, ctags, etags, ebrowse, hexl)
 	(movemail, fakemail, sorted-doc, digest-doc, emacsclient)
-	(test-distrib, $(DOC), all): depend on stamp_BLD instead of $(BLD).
+	(test-distrib, $(DOC), all): Depend on stamp_BLD instead of $(BLD).
 	($(BLD)/make-docfile.$(O) $(BLD)/hexl.$(O) $(BLD)/fakemail.$(O))
 	($(BLD)/sorted-doc.$(O) $(BLD)/digest-doc.$(O))
 	($(BLD)/test-distrib.$(O) $(GETOPTOBJS) $(MOVEMAILOBJS))
@@ -89,8 +111,7 @@
 
 2006-11-27  Eli Zaretskii  <eliz@gnu.org>
 
-	* makefile.w32-in ($(BLD)/emacsclient.$(O)): Depend on
-	makefile.w32-in.
+	* makefile.w32-in ($(BLD)/emacsclient.$(O)): Depend on makefile.w32-in.
 
 2006-11-25  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -6199,7 +6220,22 @@
     Copyright (C) 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995,
 	1996, 1997, 1998, 1999, 2001, 2002, 2003, 2004, 2005,
 	2006, 2007 Free Software Foundation, Inc.
-  Copying and distribution of this file, with or without modification,
-  are permitted provided the copyright notice and this notice are preserved.
+
+  This file is part of GNU Emacs.
+
+  GNU Emacs is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2, or (at your option)
+  any later version.
+
+  GNU Emacs is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with GNU Emacs; see the file COPYING.  If not, write to the
+  Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+  Boston, MA 02110-1301, USA.
 
 ;;; arch-tag: 2d979296-954c-448e-95c1-b46d134513dc

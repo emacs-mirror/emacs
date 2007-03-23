@@ -124,10 +124,6 @@ generally prefer.  When you turn Font Lock mode on/off the buffer is
 fontified/defontified, though fontification occurs only if the buffer is
 less than `font-lock-maximum-size'.
 
-For example, to use maximum levels of fontification, put in your ~/.emacs:
-
- (setq font-lock-maximum-decoration t)
-
 To add your own highlighting for some major mode, and modify the highlighting
 selected automatically via the variable `font-lock-maximum-decoration', you can
 use `font-lock-add-keywords'.
@@ -291,7 +287,7 @@ means that Font Lock mode is turned on for buffers in C and C++ modes only."
     (let (inhibit-quit)
       (turn-on-font-lock))))
 
-(define-global-minor-mode global-font-lock-mode
+(define-globalized-minor-mode global-font-lock-mode
   font-lock-mode turn-on-font-lock-if-enabled
   :extra-args (dummy)
   :initialize 'custom-initialize-safe-default

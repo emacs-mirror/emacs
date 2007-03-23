@@ -10,11 +10,11 @@
 ;; Maintainer: Kenichi Handa <handa@m17n.org> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Version: 6.7.2
+;; Version: 6.7.3
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
-(defconst ps-print-version "6.7.2"
-  "ps-print.el, v 6.7.2 <2007/01/26 vinicius>
+(defconst ps-print-version "6.7.3"
+  "ps-print.el, v 6.7.3 <2007/02/06 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -1448,19 +1448,16 @@ Please send all bug fixes and enhancements to
 (or (featurep 'lisp-float-type)
     (error "`ps-print' requires floating point support"))
 
-
-(defvar ps-print-emacs-type
-  (let ((case-fold-search t))
-    (cond ((string-match "XEmacs" emacs-version) 'xemacs)
-	  ((string-match "Lucid" emacs-version)
-	   (error "`ps-print' doesn't support Lucid"))
-	  ((string-match "Epoch" emacs-version)
-	   (error "`ps-print' doesn't support Epoch"))
-	  (t
-	   (unless (and (boundp 'emacs-major-version)
-			(>= emacs-major-version 22))
-	     (error "`ps-print' only supports Emacs 22 and higher"))
-	   'emacs))))
+(let ((case-fold-search t))
+  (cond ((string-match "XEmacs" emacs-version))
+	((string-match "Lucid" emacs-version)
+	 (error "`ps-print' doesn't support Lucid"))
+	((string-match "Epoch" emacs-version)
+	 (error "`ps-print' doesn't support Epoch"))
+	(t
+	 (unless (and (boundp 'emacs-major-version)
+		      (>= emacs-major-version 22))
+	   (error "`ps-print' only supports Emacs 22 and higher")))))
 
 
 ;; GNU Emacs
@@ -1490,7 +1487,6 @@ Please send all bug fixes and enhancements to
 (defalias 'ps-x-font-instance-properties      'font-instance-properties)
 (defalias 'ps-x-make-color-instance           'make-color-instance)
 (defalias 'ps-x-map-extents                   'map-extents)
-(defalias 'ps-x-frame-property                'frame-property)
 
 ;; GNU Emacs
 (defalias 'ps-e-face-bold-p         'face-bold-p)
@@ -1501,10 +1497,9 @@ Please send all bug fixes and enhancements to
 (defalias 'ps-e-overlay-end         'overlay-end)
 (defalias 'ps-e-x-color-values      'x-color-values)
 (defalias 'ps-e-color-values        'color-values)
-(defalias 'ps-e-frame-parameter     'frame-parameter)
-(if (fboundp 'find-composition)
-    (defalias 'ps-e-find-composition 'find-composition)
-  (defalias 'ps-e-find-composition 'ignore))
+(defalias 'ps-e-find-composition (if (fboundp 'find-composition)
+				     'find-composition
+				   'ignore))
 
 
 (defconst ps-windows-system
@@ -1518,26 +1513,26 @@ Please send all bug fixes and enhancements to
       (ps-x-color-name color)
     color))
 
+(defalias 'ps-frame-parameter
+  (if (fboundp 'frame-parameter) 'frame-parameter 'frame-property))
 
-(cond ((featurep 'xemacs)		; xemacs
-       (defalias 'ps-mark-active-p 'region-active-p)
+(defalias 'ps-mark-active-p
+  (if (fboundp 'region-active-p)
+      'region-active-p			; XEmacs
+    (defvar mark-active)		; To shup up XEmacs's byte compiler.
+    (lambda () mark-active)))		; Emacs
+
+(cond ((featurep 'xemacs)		; XEmacs
        (defun ps-face-foreground-name (face)
 	 (ps-xemacs-color-name (face-foreground face)))
        (defun ps-face-background-name (face)
 	 (ps-xemacs-color-name (face-background face)))
-       (defun ps-frame-parameter (param)
-	 (ps-x-frame-property nil param))
        )
-      (t				; emacs 22 or higher
-       (defvar mark-active nil)
-       (defun ps-mark-active-p ()
-	 mark-active)
+      (t				; Emacs 22 or higher
        (defun ps-face-foreground-name (face)
 	 (face-foreground face nil t))
        (defun ps-face-background-name (face)
 	 (face-background face nil t))
-       (defun ps-frame-parameter (param)
-	 (ps-e-frame-parameter nil param))
        ))
 
 
@@ -3343,13 +3338,13 @@ It's like the very first character of buffer (or region) is ^L (\\014)."
 
 (defcustom ps-postscript-code-directory
   (or (if (featurep 'xemacs)
-	  (cond ((fboundp 'locate-data-directory) ; xemacs
+	  (cond ((fboundp 'locate-data-directory) ; XEmacs
 		 (locate-data-directory "ps-print"))
-		((boundp 'data-directory) ; xemacs
+		((boundp 'data-directory) ; XEmacs
 		 data-directory)
 		(t			; don't know what to do
 		 nil))
-	data-directory)			; emacs
+	data-directory)			; Emacs
       (error "`ps-postscript-code-directory' isn't set properly"))
   "*Directory where it's located the PostScript prologue file used by ps-print.
 By default, this directory is the same as in the variable `data-directory'."
@@ -3591,12 +3586,12 @@ The table depends on the current ps-print setup."
     (mapconcat
      #'ps-print-quote
      (list
-      (concat "\n;;; ps-print version " ps-print-version "\n")
+      (concat "\n;;; (" (if (featurep 'xemacs) "XEmacs" "Emacs")
+	      ") ps-print version " ps-print-version "\n")
       ";; internal vars"
-      (ps-comment-string "emacs-version      " emacs-version)
-      (ps-comment-string "ps-print-emacs-type" ps-print-emacs-type)
-      (ps-comment-string "ps-windows-system  " ps-windows-system)
-      (ps-comment-string "ps-lp-system       " ps-lp-system)
+      (ps-comment-string "emacs-version     " emacs-version)
+      (ps-comment-string "ps-windows-system " ps-windows-system)
+      (ps-comment-string "ps-lp-system      " ps-lp-system)
       nil
       '(25 . ps-print-color-p)
       '(25 . ps-lpr-command)
@@ -3848,19 +3843,20 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 ;; Return t if the device (which can be changed during an emacs session)
 ;; can handle colors.
 ;; This function is not yet implemented for GNU emacs.
-(cond ((and (featurep 'xemacs)
-	    ;; XEmacs change: Need to check for emacs-major-version too.
-	    (or (> emacs-major-version 19)
-		(and (= emacs-major-version 19)
-		     (>= emacs-minor-version 12)))) ; xemacs >= 19.12
-       (defun ps-color-device ()
-	 (eq (ps-x-device-class) 'color)))
+(defalias 'ps-color-device
+  (cond ((and (featurep 'xemacs)
+	      ;; XEmacs change: Need to check for emacs-major-version too.
+	      (or (> emacs-major-version 19)
+		  (and (= emacs-major-version 19)
+		       (>= emacs-minor-version 12)))) ; XEmacs >= 19.12
+	 (lambda ()
+	   (eq (ps-x-device-class) 'color)))
 
-      (t				; emacs
-       (defun ps-color-device ()
-	 (if (fboundp 'color-values)
-	     (ps-e-color-values "Green")
-	   t))))
+	(t				; Emacs
+	 (lambda ()
+	   (if (fboundp 'color-values)
+	       (ps-e-color-values "Green")
+	     t)))))
 
 
 (defun ps-mapper (extent list)
@@ -3883,12 +3879,12 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 	 (case-fold-search t))
     (and kind-spec (string-match kind-regex kind-spec))))
 
-(cond ((featurep 'xemacs)		; xemacs
+(cond ((featurep 'xemacs)		; XEmacs
 
        ;; to avoid XEmacs compilation gripes
-       (defvar coding-system-for-write   nil)
-       (defvar coding-system-for-read    nil)
-       (defvar buffer-file-coding-system nil)
+       (defvar coding-system-for-write)
+       (defvar coding-system-for-read)
+       (defvar buffer-file-coding-system)
 
        (and (fboundp 'find-coding-system)
 	    (or (ps-x-find-coding-system 'raw-text-unix)
@@ -3918,7 +3914,7 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 	     (memq face ps-italic-faces))) ; Kludge-compatible
        )
 
-      (t				; emacs
+      (t				; Emacs
 
        (defun ps-color-values (x-color)
 	 (cond
@@ -3970,7 +3966,7 @@ Note: No major/minor-mode is activated and no local variables are evaluated for
 	     filename))))
 
 
-(defvar ps-mark-code-directory nil)
+(defvar ps-mark-code-directory)
 
 (defvar ps-print-prologue-0 ""
   "ps-print PostScript error handler.")
@@ -3980,12 +3976,12 @@ Note: No major/minor-mode is activated and no local variables are evaluated for
 
 ;; Start Editing Here:
 
-(defvar ps-source-buffer nil)
+(defvar ps-source-buffer)
 (defvar ps-spool-buffer-name "*PostScript*")
-(defvar ps-spool-buffer nil)
+(defvar ps-spool-buffer)
 
-(defvar ps-output-head nil)
-(defvar ps-output-tail nil)
+(defvar ps-output-head)
+(defvar ps-output-tail)
 
 (defvar ps-page-postscript 0)		; page number
 (defvar ps-page-order 0)		; PostScript page counter
@@ -3995,29 +3991,29 @@ Note: No major/minor-mode is activated and no local variables are evaluated for
 (defvar ps-page-n-up 0)			; n-up counter
 (defvar ps-lines-printed 0)		; total lines printed
 (defvar ps-showline-count 1)		; line number counter
-(defvar ps-first-page nil)
-(defvar ps-last-page nil)
+(defvar ps-first-page)
+(defvar ps-last-page)
 (defvar ps-print-page-p t)
 
-(defvar ps-control-or-escape-regexp nil)
-(defvar ps-n-up-on nil)
+(defvar ps-control-or-escape-regexp)
+(defvar ps-n-up-on)
 
-(defvar ps-background-pages nil)
-(defvar ps-background-all-pages nil)
+(defvar ps-background-pages)
+(defvar ps-background-all-pages)
 (defvar ps-background-text-count 0)
 (defvar ps-background-image-count 0)
 
 (defvar ps-current-font 0)
-(defvar ps-default-foreground nil)
-(defvar ps-default-background nil)
-(defvar ps-default-color nil)
-(defvar ps-current-color nil)
-(defvar ps-current-bg nil)
+(defvar ps-default-foreground)
+(defvar ps-default-background)
+(defvar ps-default-color)
+(defvar ps-current-color)
+(defvar ps-current-bg)
 
-(defvar ps-zebra-stripe-full-p nil)
+(defvar ps-zebra-stripe-full-p)
 (defvar ps-razchunk 0)
 
-(defvar ps-color-p nil)
+(defvar ps-color-p)
 (defvar ps-color-format
   (if (featurep 'xemacs)
       ;; XEmacs will have to make do with %s (princ) for floats.
@@ -4046,20 +4042,20 @@ This is in units of points (1/72 inch).")
 (defmacro ps-page-dimensions-get-height (dims) `(nth 1 ,dims))
 (defmacro ps-page-dimensions-get-media  (dims) `(nth 2 ,dims))
 
-(defvar ps-landscape-page-height nil)
+(defvar ps-landscape-page-height)
 
-(defvar ps-print-width nil)
-(defvar ps-print-height nil)
+(defvar ps-print-width)
+(defvar ps-print-height)
 
-(defvar ps-height-remaining nil)
-(defvar ps-width-remaining nil)
+(defvar ps-height-remaining)
+(defvar ps-width-remaining)
 
-(defvar ps-font-size-internal nil)
-(defvar ps-header-font-size-internal nil)
-(defvar ps-header-title-font-size-internal nil)
-(defvar ps-footer-font-size-internal nil)
-(defvar ps-line-spacing-internal nil)
-(defvar ps-paragraph-spacing-internal nil)
+(defvar ps-font-size-internal)
+(defvar ps-header-font-size-internal)
+(defvar ps-header-title-font-size-internal)
+(defvar ps-footer-font-size-internal)
+(defvar ps-line-spacing-internal)
+(defvar ps-paragraph-spacing-internal)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -4256,10 +4252,10 @@ If EXTENSION is any other symbol, it is ignored."
        message-log-max))
 
 
-(defvar ps-print-hook nil)
-(defvar ps-print-begin-sheet-hook nil)
-(defvar ps-print-begin-page-hook nil)
-(defvar ps-print-begin-column-hook nil)
+(defvar ps-print-hook)
+(defvar ps-print-begin-sheet-hook)
+(defvar ps-print-begin-page-hook)
+(defvar ps-print-begin-column-hook)
 
 
 (defun ps-print-without-faces (from to &optional filename region-p)
@@ -4836,10 +4832,10 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 	    content (cdr content)))
     (nreverse str)))
 
-(defvar ps-lh-cache nil)
-(defvar ps-rh-cache nil)
-(defvar ps-lf-cache nil)
-(defvar ps-rf-cache nil)
+(defvar ps-lh-cache)
+(defvar ps-rh-cache)
+(defvar ps-lf-cache)
+(defvar ps-rf-cache)
 
 (defun ps-header-footer-string ()
   (and ps-print-header
@@ -4941,8 +4937,8 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 ;; XEmacs will have to make do with %s (princ) for floats.
 
 (defvar ps-float-format (if (featurep 'xemacs)
-			    "%s "	; xemacs
-			  "%0.3f "))	; emacs
+			    "%s "	; XEmacs
+			  "%0.3f "))	; Emacs
 
 
 (defun ps-float-format (value &optional default)
@@ -5838,7 +5834,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	))
 
 
-(defun ps-begin-job ()
+(defun ps-begin-job (genfunc)
   ;; prologue files
   (or (equal ps-mark-code-directory ps-postscript-code-directory)
       (setq ps-print-prologue-0    (ps-prologue-file 0)
@@ -5909,8 +5905,10 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	      (t "[\t\n\f]"))
 	ps-default-background (ps-rgb-color
 			       (cond
+				((eq genfunc 'ps-generate-postscript)
+				 nil)
 				((eq ps-default-bg 'frame-parameter)
-				 (ps-frame-parameter 'background-color))
+				 (ps-frame-parameter nil 'background-color))
 				((eq ps-default-bg t)
 				 (ps-face-background-name 'default))
 				(t
@@ -5918,8 +5916,10 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 			       1.0)
 	ps-default-foreground (ps-rgb-color
 			       (cond
+				((eq genfunc 'ps-generate-postscript)
+				 nil)
 				((eq ps-default-fg 'frame-parameter)
-				 (ps-frame-parameter 'foreground-color))
+				 (ps-frame-parameter nil 'foreground-color))
 				((eq ps-default-fg t)
 				 (ps-face-foreground-name 'default))
 				(t
@@ -6128,7 +6128,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 			 (/ q-done (/ q-todo 100)))
 		       ))))))
 
-(defvar ps-last-font nil)
+(defvar ps-last-font)
 
 (defun ps-set-font (font)
   (setq ps-last-font (format "f%d" (setq ps-current-font font)))
@@ -6321,7 +6321,7 @@ If FACE is not in `ps-print-face-extension-alist' or in
 `ps-print-face-alist', insert it on `ps-print-face-alist' and
 return the attribute vector.
 
-If FACE is not a valid face name, it is used default face."
+If FACE is not a valid face name, use default face."
   (cond
    (ps-black-white-faces-alist
     (or (and (symbolp face)
@@ -6346,23 +6346,25 @@ If FACE is not a valid face name, it is used default face."
 
 
 (defun ps-face-background (face background)
-  (and (or (eq ps-use-face-background t)
-	   (cond ((symbolp face)
-		  (memq face ps-use-face-background))
-		 ((listp face)
-		  (or (memq (car face) '(foreground-color background-color))
-		      (let (ok)
-			(while face
-			  (if (or (memq (car face) ps-use-face-background)
-				  (memq (car face)
-					'(foreground-color background-color)))
-			      (setq face nil
-				    ok   t)
-			    (setq face (cdr face))))
-			ok)))
-		 (t
-		  nil)
-		 ))
+  (and (cond ((eq ps-use-face-background t))	; always
+	     ((null ps-use-face-background) nil) ; never
+	     ;; ps-user-face-background is a symbol face list
+	     ((symbolp face)
+	      (memq face ps-use-face-background))
+	     ((listp face)
+	      (or (memq (car face) '(foreground-color background-color))
+		  (let (ok)
+		    (while face
+		      (if (or (memq (car face) ps-use-face-background)
+			      (memq (car face)
+				    '(foreground-color background-color)))
+			  (setq face nil
+				ok   t)
+			(setq face (cdr face))))
+		    ok)))
+	     (t
+	      nil)
+	     )
        background))
 
 
@@ -6511,7 +6513,7 @@ If FACE is not a valid face name, it is used default face."
     (let ((face 'default)
 	  (position to))
       (cond
-       ((featurep 'xemacs)		; xemacs
+       ((featurep 'xemacs)		; XEmacs
 	;; Build the list of extents...
 	(let ((a (cons 'dummy nil))
 	      record type extent extent-list)
@@ -6555,7 +6557,7 @@ If FACE is not a valid face name, it is used default face."
 		  from position
 		  a (cdr a)))))
 
-       (t				; emacs
+       (t				; Emacs
 	(let ((property-change from)
 	      (overlay-change from)
 	      (save-buffer-invisibility-spec buffer-invisibility-spec)
@@ -6629,7 +6631,7 @@ If FACE is not a valid face name, it is used default face."
       (ps-plot-with-face from to face))))
 
 (defun ps-generate-postscript (from to)
-  (ps-plot-region from to 0 nil))
+  (ps-plot-region from to 0))
 
 (defun ps-generate (buffer from to genfunc)
   (save-excursion
@@ -6665,7 +6667,7 @@ If FACE is not a valid face name, it is used default face."
 		(save-excursion
 		  (let ((ps-print-page-p t)
 			ps-even-or-odd-pages)
-		    (ps-begin-job)
+		    (ps-begin-job genfunc)
 		    (when needs-begin-file
 		      (ps-begin-file)
 		      (ps-mule-initialize))
@@ -6831,17 +6833,12 @@ If FACE is not a valid face name, it is used default face."
 ;; WARNING!!! The following code is *sample* code only.
 ;; Don't use it unless you understand what it does!
 
-(defmacro ps-prsc ()
-  `(if (featurep 'xemacs) 'f22           [f22]))
-(defmacro ps-c-prsc ()
-  `(if (featurep 'xemacs) '(control f22) [C-f22]))
-(defmacro ps-s-prsc ()
-  `(if (featurep 'xemacs) '(shift f22)   [S-f22]))
+;; The key `f22' should probably be replaced by `print'.  --Stef
 
 ;; A hook to bind to `rmail-mode-hook' to locally bind prsc and set the
 ;; `ps-left-headers' specially for mail messages.
 (defun ps-rmail-mode-hook ()
-  (local-set-key (ps-prsc) 'ps-rmail-print-message-from-summary)
+  (local-set-key [(f22)] 'ps-rmail-print-message-from-summary)
   (setq ps-header-lines 3
 	ps-left-header
 	;; The left headers will display the message's subject, its
@@ -6915,7 +6912,7 @@ If FACE is not a valid face name, it is used default face."
 ;; A hook to bind to `vm-mode-hook' to locally bind prsc and set the
 ;; `ps-left-headers' specially for mail messages.
 (defun ps-vm-mode-hook ()
-  (local-set-key (ps-prsc) 'ps-vm-print-message-from-summary)
+  (local-set-key [(f22)] 'ps-vm-print-message-from-summary)
   (setq ps-header-lines 3
 	ps-left-header
 	;; The left headers will display the message's subject, its
@@ -6941,7 +6938,7 @@ If FACE is not a valid face name, it is used default face."
 ;; A hook to bind to bind to `gnus-summary-setup-buffer' to locally bind
 ;; prsc.
 (defun ps-gnus-summary-setup ()
-  (local-set-key (ps-prsc) 'ps-gnus-print-article-from-summary))
+  (local-set-key [(f22)] 'ps-gnus-print-article-from-summary))
 
 ;; Look in an article or mail message for the Subject: line.  To be
 ;; placed in `ps-left-headers'.
@@ -6973,9 +6970,9 @@ If FACE is not a valid face name, it is used default face."
 ;; modification.)
 
 (defun ps-jts-ps-setup ()
-  (global-set-key (ps-prsc) 'ps-spool-buffer-with-faces) ;f22 is prsc
-  (global-set-key (ps-s-prsc) 'ps-spool-region-with-faces)
-  (global-set-key (ps-c-prsc) 'ps-despool)
+  (global-set-key [(f22)] 'ps-spool-buffer-with-faces) ;f22 is prsc
+  (global-set-key [(shift f22)] 'ps-spool-region-with-faces)
+  (global-set-key [(control f22)] 'ps-despool)
   (add-hook 'gnus-article-prepare-hook 'ps-gnus-article-prepare-hook)
   (add-hook 'gnus-summary-mode-hook 'ps-gnus-summary-setup)
   (add-hook 'vm-mode-hook 'ps-vm-mode-hook)

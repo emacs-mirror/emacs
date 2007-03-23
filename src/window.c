@@ -537,7 +537,8 @@ WINDOW defaults to the selected window.  */)
 }
 
 DEFUN ("window-height", Fwindow_height, Swindow_height, 0, 1, 0,
-       doc: /* Return the number of lines in WINDOW (including its mode line).  */)
+       doc: /* Return the number of lines in WINDOW (including its mode line).
+WINDOW defaults to the selected window.  */)
      (window)
      Lisp_Object window;
 {
@@ -556,7 +557,8 @@ use  (let ((edges (window-edges))) (- (nth 2 edges) (nth 0 edges))).  */)
 }
 
 DEFUN ("window-hscroll", Fwindow_hscroll, Swindow_hscroll, 0, 1, 0,
-       doc: /* Return the number of columns by which WINDOW is scrolled from left margin.  */)
+       doc: /* Return the number of columns by which WINDOW is scrolled from left margin.
+WINDOW defaults to the selected window.  */)
      (window)
      Lisp_Object window;
 {
@@ -589,6 +591,7 @@ window so that the location of point moves off-window.  */)
 DEFUN ("window-redisplay-end-trigger", Fwindow_redisplay_end_trigger,
        Swindow_redisplay_end_trigger, 0, 1, 0,
        doc: /* Return WINDOW's redisplay end trigger value.
+WINDOW defaults to the selected window.
 See `set-window-redisplay-end-trigger' for more information.  */)
      (window)
      Lisp_Object window;
@@ -1111,6 +1114,8 @@ column 0.  */)
 
 DEFUN ("window-point", Fwindow_point, Swindow_point, 0, 1, 0,
        doc: /* Return current value of point in WINDOW.
+WINDOW defaults to the selected window.
+
 For a nonselected window, this is the value point would have
 if that window were selected.
 
@@ -1132,6 +1137,7 @@ But that is hard to define.  */)
 
 DEFUN ("window-start", Fwindow_start, Swindow_start, 0, 1, 0,
        doc: /* Return position at which display currently starts in WINDOW.
+WINDOW defaults to the selected window.
 This is updated by redisplay or by calling `set-window-start'.  */)
      (window)
      Lisp_Object window;
@@ -1152,6 +1158,7 @@ have been if redisplay had finished, do this:
 
 DEFUN ("window-end", Fwindow_end, Swindow_end, 0, 2, 0,
        doc: /* Return position at which display currently ends in WINDOW.
+WINDOW defaults to the selected window.
 This is updated by redisplay, when it runs to completion.
 Simply changing the buffer text or setting `window-start'
 does not update this value.
@@ -1302,7 +1309,8 @@ non-nil means yes. */)
 
 DEFUN ("window-display-table", Fwindow_display_table, Swindow_display_table,
        0, 1, 0,
-       doc: /* Return the display-table that WINDOW is using.  */)
+       doc: /* Return the display-table that WINDOW is using.
+WINDOW defaults to the selected window.  */)
      (window)
      Lisp_Object window;
 {
@@ -5896,6 +5904,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
 DEFUN ("window-text-height", Fwindow_text_height, Swindow_text_height,
        0, 1, 0,
        doc: /* Return the height in lines of the text display area of WINDOW.
+WINDOW defaults to the selected window.
 This doesn't include the mode-line (or header-line if any) or any
 partial-height lines in the text display area.  */)
      (window)

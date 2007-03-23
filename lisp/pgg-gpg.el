@@ -61,7 +61,7 @@
   "GnuPG ID of your default identity.")
 
 (defun pgg-gpg-process-region (start end passphrase program args)
-  (let* ((use-agent (pgg-gpg-use-agent-p)) 
+  (let* ((use-agent (and (null passphrase) (pgg-gpg-use-agent-p)))
 	 (output-file-name (pgg-make-temp-file "pgg-output"))
 	 (args
 	  `("--status-fd" "2"
@@ -224,7 +224,7 @@ passphrase cache or user."
 	   (list "--batch" "--armor" "--always-trust" "--encrypt")
 	   (if pgg-text-mode (list "--textmode"))
 	   (if sign (list "--sign" "--local-user" pgg-gpg-user-id))
-	   (if recipients
+	   (if (or recipients pgg-encrypt-for-me)
 	       (apply #'nconc
 		      (mapcar (lambda (rcpt)
 				(list pgg-gpg-recipient-argument rcpt))

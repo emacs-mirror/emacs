@@ -2177,6 +2177,7 @@ If UNDO is present and non-nil, it is a function that will be called
 		       (get-text-property 0 'yank-handler string)))
 	 (param (or (nth 1 handler) string))
 	 (opoint (point))
+	 (inhibit-read-only inhibit-read-only)
 	 end)
 
     (setq yank-undo-function t)
@@ -2184,6 +2185,10 @@ If UNDO is present and non-nil, it is a function that will be called
 	(funcall (car handler) param)
       (insert param))
     (setq end (point))
+
+    ;; Prevent read-only properties from interfering with the
+    ;; following text property changes.
+    (setq inhibit-read-only t)
 
     ;; What should we do with `font-lock-face' properties?
     (if font-lock-defaults

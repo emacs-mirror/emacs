@@ -173,6 +173,9 @@ such as redefining an Emacs function."
 	       (prin1-to-string dependents) file))))
   (let* ((unload-hook-features-list (feature-symbols feature))
          (file (pop unload-hook-features-list))
+	 ;; If non-nil, this is a symbol for which we should
+	 ;; restore a previous autoload if possible.
+	 restore-autoload
          (unload-hook (intern-soft (concat (symbol-name feature)
                                            "-unload-hook"))))
     ;; Try to avoid losing badly when hooks installed in critical
@@ -209,22 +212,27 @@ such as redefining an Emacs function."
       (dolist (elt unload-hook-features-list)
 	(when (symbolp elt)
 	  (elp-restore-function elt))))
+
     (dolist (x unload-hook-features-list)
       (if (consp x)
 	  (case (car x)
 	   ;; Remove any feature names that this file provided.
 	   (provide
 	    (setq features (delq (cdr x) features)))
-	   (defun
+	   ((defun autoload)
 	    (let ((fun (cdr x)))
 	      (when (fboundp fun)
 		(when (fboundp 'ad-unadvise)
 		  (ad-unadvise fun))
 		(let ((aload (get fun 'autoload)))
-		  (if aload
+		  (if (and aload (eq fun restore-autoload))
                       (fset fun (cons 'autoload aload))
                     (fmakunbound fun))))))
-           ((t require) nil)
+	   ;; (t . SYMBOL) comes before (defun . SYMBOL)
+	   ;; and says we should restore SYMBOL's autoload
+	   ;; when we undefine it.
+	   ((t) (setq restore-autoload (cdr x)))
+           ((require defface) nil)
 	   (t (message "Unexpected element %s in load-history" x)))
 	;; Kill local values as much as possible.
 	(dolist (buf (buffer-list))
@@ -238,7 +246,9 @@ such as redefining an Emacs function."
 	(unless (local-variable-if-set-p x)
 	  (makunbound x))))
     ;; Delete the load-history element for this file.
-    (setq load-history (delq (assoc file load-history) load-history))))
+    (setq load-history (delq (assoc file load-history) load-history)))
+  ;; Don't return load-history, it is not useful.
+  nil)
 
 (provide 'loadhist)
 

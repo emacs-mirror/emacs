@@ -403,8 +403,6 @@ LIBXT=$(LIBW)
 #endif /* not USE_X_TOOLKIT */
 
 #if HAVE_XFT
-#undef LIB_X11_LIB /* XFT_LIBS includes -lX11 */
-#define LIB_X11_LIB
 XFT_LIBS=@XFT_LIBS@
 #endif /* HAVE_XFT */
 
@@ -1302,15 +1300,10 @@ macosx-bundle: ${emacsapp}Contents/Resources/English.lproj \
 	${emacsapp}Contents/Info.plist ${emacsapp}Contents/PkgInfo \
 	${emacsapp}Contents/Resources/Emacs.icns \
 	${emacsapp}Contents/Resources/English.lproj/InfoPlist.strings
-macosx-app: macosx-bundle ${emacsapp}Contents/MacOS/Emacs \
-  ${emacsapp}Contents/Resources/Emacs.rsrc
+macosx-app: macosx-bundle ${emacsapp}Contents/MacOS/Emacs
 ${emacsapp}Contents/MacOS/Emacs: emacs${EXEEXT}
 	mkdir -p ${emacsapp}Contents/MacOS/;
 	cd ${emacsapp}Contents/MacOS/; cp ../../../../src/emacs${EXEEXT} Emacs${EXEEXT}
-${emacsapp}Contents/Resources/Emacs.rsrc: ../mac/src/Emacs.r
-	/Developer/Tools/Rez -useDF \
-	-o ${emacsapp}Contents/Resources/Emacs.rsrc \
-	/System/Library/Frameworks/Carbon.framework/Headers/Carbon.r $<
 #endif
 
 ${libsrc}emacstool${EXEEXT}: ${libsrc}emacstool.c

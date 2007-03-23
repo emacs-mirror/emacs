@@ -4192,11 +4192,13 @@ if only the first line of the docstring is shown."))
   (when (and (null custom-file) init-file-had-error)
     (error "Cannot save customizations; init file was not fully loaded"))
   (let* ((filename (custom-file))
-	 (recentf-exclude (if recentf-mode
-			      (cons (concat "\\`"
-					    (regexp-quote (custom-file))
-					    "\\'")
-				    recentf-exclude)))
+	 (recentf-exclude
+	  (if recentf-mode
+	      (cons (concat "\\`"
+			    (regexp-quote
+			     (recentf-expand-file-name (custom-file)))
+			    "\\'")
+		    recentf-exclude)))
 	 (old-buffer (find-buffer-visiting filename)))
     (with-current-buffer (let ((find-file-visit-truename t))
 			   (or old-buffer (find-file-noselect filename)))

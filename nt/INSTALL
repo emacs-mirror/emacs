@@ -3,7 +3,7 @@
 
   Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
     Free Software Foundation, Inc.
-  See the end of the file for copying permissions.
+  See the end of the file for license conditions.
 
 * For the impatient
 
@@ -26,7 +26,8 @@
        command.com /c configure.bat
 
   3. Run the Make utility suitable for your environment.  If you build
-     with the Microsoft's Visual C compiler:
+     with the Microsoft's Visual C compiler (but see notes about using
+     VC++ 8.0 and later below):
 
        nmake
 
@@ -99,15 +100,17 @@
 
 * Supported development environments
 
-  To compile Emacs, you will need either Microsoft Visual C++ 2.0 or
-  later and nmake, or a Windows port of GCC 2.95 or later with MinGW
-  and W32 API support and a port of GNU Make.  You can use the Cygwin
-  ports of GCC, but Emacs requires the MinGW headers and libraries to
-  build (latest versions of the Cygwin toolkit, at least since v1.3.3,
-  include the MinGW headers and libraries as an integral part).
+  To compile Emacs, you will need either Microsoft Visual C++ 2.0, or
+  later up to 7.0, and nmake, or a Windows port of GCC 2.95 or later
+  with MinGW and W32 API support and a port of GNU Make.  You can use
+  the Cygwin ports of GCC, but Emacs requires the MinGW headers and
+  libraries to build (latest versions of the Cygwin toolkit, at least
+  since v1.3.3, include the MinGW headers and libraries as an integral
+  part).
 
-  Note that building Emacs with Visual Studio 2005 is not supported at
-  this time.
+  Note that building Emacs with Visual Studio 2005 (VC++ 8.0) is not
+  supported at this time, due to changes introduced by Microsoft into
+  the libraries shipped with the compiler.
 
   The rest of this file assumes you have a working development
   environment.  If you just installed  such an environment, try
@@ -191,9 +194,14 @@
 
     http://www.emacswiki.org/cgi-bin/wiki/WThirtyTwoInstallationKit
 
-  and at this URL:
+  and on these URLs:
 
     http://ourcomments.org/Emacs/w32-build-emacs.html
+    http://derekslager.com/blog/posts/2007/01/emacs-hack-3-compile-emacs-from-cvs-on-windows.ashx
+
+  The second URL above includes instructions for building with MSVC,
+  as well as with MinGW, while the first URL covers only MinGW, but
+  has more details about it.
 
 * Configuring
 
@@ -419,17 +427,20 @@
   thread, so this should only be a problem if you've explicitly switched
   threads.
 
-COPYING PERMISSIONS
+
+This file is part of GNU Emacs.
 
-  Permission is granted to anyone to make or distribute verbatim copies
-  of this document as received, in any medium, provided that the
-  copyright notice and permission notice are preserved,
-  and that the distributor grants the recipient permission
-  for further redistribution as permitted by this notice.
+GNU Emacs is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2, or (at your option)
+any later version.
 
-  Permission is granted to distribute modified versions
-  of this document, or of portions of it,
-  under the above conditions, provided also that they
-  carry prominent notices stating who last changed them,
-  and that any new or changed statements about the activities
-  of the Free Software Foundation are approved by the Foundation.
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Emacs; see the file COPYING.  If not, write to the
+Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.

@@ -155,7 +155,7 @@ Bourne shell or its equivalent \(not tcsh) is needed for \"2>\"."
 	 (args
 	  (append
 	   `("+NoBatchInvalidKeys=off" "-fat" "+batchmode=1"
-	     ,@(if recipients
+	     ,@(if (or recipients pgg-encrypt-for-me)
 		   (apply #'append
 			  (mapcar (lambda (rcpt)
 				    (list "-r"

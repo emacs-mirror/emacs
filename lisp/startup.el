@@ -645,22 +645,28 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 
   (set-locale-environment nil)
 
-  ;; Convert preloaded file names to absolute.
-  (let ((lisp-dir
-	 (file-truename
-	  (file-name-directory
-	   (locate-file "simple" load-path
-			(get-load-suffixes))))))
-
-    (setq load-history
-	  (mapcar (lambda (elt)
-		    (if (and (stringp (car elt))
-			     (not (file-name-absolute-p (car elt))))
-			(cons (concat lisp-dir
-				      (car elt))
-			      (cdr elt))
-		      elt))
-		  load-history)))
+  ;; Convert preloaded file names in load-history to absolute.
+  (let ((simple-file-name
+	 ;; Look for simple.el or simple.elc and use their directory
+	 ;; as the place where all Lisp files live.
+	 (locate-file "simple" load-path (get-load-suffixes)))
+	lisp-dir)
+    ;; Don't abort if simple.el cannot be found, but print a warning.
+    (if (null simple-file-name)
+	(progn
+	  (princ "Warning: Could not find simple.el nor simple.elc"
+		 'external-debugging-output)
+	  (terpri 'external-debugging-output))
+      (setq lisp-dir (file-truename (file-name-directory simple-file-name)))
+      (setq load-history
+	    (mapcar (lambda (elt)
+		      (if (and (stringp (car elt))
+			       (not (file-name-absolute-p (car elt))))
+			  (cons (concat lisp-dir
+					(car elt))
+				(cdr elt))
+			elt))
+		    load-history))))
 
   ;; Convert the arguments to Emacs internal representation.
   (let ((args (cdr command-line-args)))
@@ -948,8 +954,12 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	    (with-current-buffer (window-buffer)
 	      (deactivate-mark)))
 
-	;; If the user has a file of abbrevs, read it.
-	(if (file-exists-p abbrev-file-name)
+	;; If the user has a file of abbrevs, read it.  
+        ;; FIXME: after the 22.0 release this should be changed so
+	;; that it does not read the abbrev file when -batch is used
+	;; on the command line.
+	(when (and (file-exists-p abbrev-file-name) 
+		   (file-readable-p abbrev-file-name))
 	    (quietly-read-abbrev-file abbrev-file-name))
 
 	;; If the abbrevs came entirely from the init file or the
@@ -1388,6 +1398,7 @@ the user caused an input event that is bound in `special-event-map'"
 	(save-selected-window
 	  (select-frame frame)
 	  (switch-to-buffer " GNU Emacs")
+	  (make-local-variable 'cursor-type)
 	  (setq splash-buffer (current-buffer))
 	  (catch 'stop-splashing
 	    (unwind-protect

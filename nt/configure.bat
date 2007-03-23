@@ -519,8 +519,17 @@ del config.settings
 
 Rem Some people use WinZip which doesn't create empty directories!
 if not exist ..\site-lisp\nul mkdir ..\site-lisp\
-if not exist ..\site-lisp\subdirs.el copy subdirs.el ..\site-lisp\subdirs.el
+Rem Update subdirs.el only if it is different or fc.exe doesn't work.
+if exist foo.bar del foo.bar
+fc /b foo.bar foo.bar >nul 2>&1
+if not errorlevel 2 goto doUpdateSubdirs
+fc /b subdirs.el ..\site-lisp\subdirs.el >nul 2>&1
+if not errorlevel 1 goto dontUpdateSubdirs
+:doUpdateSubdirs
+if exist ..\site-lisp\subdirs.el del ..\site-lisp\subdirs.el
+copy subdirs.el ..\site-lisp\subdirs.el
 
+:dontUpdateSubdirs
 echo.
 echo Emacs successfully configured.
 echo Emacs successfully configured. >>config.log

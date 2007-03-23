@@ -65,13 +65,16 @@ a non-nil value, TYPE is the image's type.")
 When the name of an image file match REGEXP, it is assumed to
 be of image type IMAGE-TYPE.")
 
+;; We rely on `auto-mode-alist' to detect xbm and xpm files, instead
+;; of content autodetection.  Their contents are just C code, so it is
+;; easy to generate false matches.
 (defvar image-type-auto-detectable
   '((pbm . t)
-    (xbm . t)
+    (xbm . nil)
     (bmp . maybe)
     (gif . maybe)
     (png . maybe)
-    (xpm . maybe)
+    (xpm . nil)
     (jpeg . maybe)
     (tiff . maybe)
     (postscript . nil))
@@ -340,15 +343,30 @@ Image types are symbols like `xbm' or `jpeg'."
 ;;;###autoload
 (defun image-type-auto-detected-p ()
   "Return t iff the current buffer contains an auto-detectable image.
-Whether image types are auto-detectable or not depends on the setting
-of the variable `image-type-auto-detectable'.
+This function is intended to be used from `magic-mode-alist' (which see).
 
-This function is intended to be used from `magic-mode-alist' (which see)."
+First, compare the beginning of the buffer with `image-type-header-regexps'.
+If an appropriate image type is found, check if that image type can be
+autodetected using the variable `image-type-auto-detectable'.  Finally,
+if `buffer-file-name' is non-nil, check if it matches another major mode
+in `auto-mode-alist' apart from `image-mode'; if there is another match,
+the autodetection is considered to have failed.  Return t if all the above
+steps succeed."
   (let* ((type (image-type-from-buffer))
 	 (auto (and type (cdr (assq type image-type-auto-detectable)))))
     (and auto
-	 (or (eq auto t)
-	     (image-type-available-p type)))))
+	 (or (eq auto t) (image-type-available-p type))
+	 (or (null buffer-file-name)
+	     (not (assoc-default
+		   buffer-file-name
+		   (delq nil (mapcar 
+			      (lambda (elt)
+				(unless (memq (or (car-safe (cdr elt))
+						  (cdr elt))
+					      '(image-mode image-mode-maybe))
+				  elt))
+			      auto-mode-alist))
+		   'string-match))))))
 
 
 ;;;###autoload

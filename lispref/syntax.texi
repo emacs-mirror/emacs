@@ -1041,6 +1041,7 @@ class codes.
 @node Categories
 @section Categories
 @cindex categories of characters
+@cindex character categories
 
   @dfn{Categories} provide an alternate way of classifying characters
 syntactically.  You can define several categories as needed, then
@@ -1048,6 +1049,7 @@ independently assign each character to one or more categories.  Unlike
 syntax classes, categories are not mutually exclusive; it is normal for
 one character to belong to several categories.
 
+@cindex category table
   Each buffer has a @dfn{category table} which records which categories
 are defined and also which characters belong to each category.  Each
 category table defines its own categories, but normally these are

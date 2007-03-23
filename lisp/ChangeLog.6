@@ -2668,7 +2668,7 @@
 	* timer.el (run-at-time): Handle numbers as relative times in
 	seconds, as the original code did.
 
-1996-02-06  Barry Warsaw  <bwarsaw@anthem (Barry Warsaw)>
+1996-02-06  Barry Warsaw  <bwarsaw@anthem>
 
 	* cc-mode.el (c-common-init): Fix typo.
 
@@ -2866,7 +2866,7 @@
 
 	* winnt.el (mode-line-format): Include column-number-mode.
 
-1996-01-30  David Kegedal  <davidk@lysator.liu.se>
+1996-01-30  David Kågedal  <davidk@lysator.liu.se>
 
 	* sendmail.el (mail-setup): For mail-self-blind, use user-mail-address.
 
@@ -4054,7 +4054,7 @@
 
 	* files.el (wildcard-to-regexp): New function.
 
-1995-12-28  1995  Marc Fleischeuers  <marc@mpi.nl>
+1995-12-28  Marc Fleischeuers  <marc@mpi.nl>
 
 	* files.el (make-auto-save-file-name): Make name always end in #,
 	i.e. overwrite third char in extension if required.
@@ -4597,7 +4597,7 @@
 	If BOLD-P, ITALIC-P or UNDERLINE-P not nil or t, don't change the
 	display attribute corresponding to that arg.  Doc fix.
 
-1995-12-12  David K}gedal  <davidk@lysator.liu.se>
+1995-12-12  David Kågedal  <davidk@lysator.liu.se>
 
 	* sendmail.el (sendmail-send-it): Added support for Resent-CC and
 	Resent-BCC headers.
@@ -4795,7 +4795,7 @@
 	(completion-c-mode-hook): Encapsulate C-mode changes in new function.
 	Either call it now or put it on c-mode-hook.
 
-1995-11-22  Barry Warsaw  <bwarsaw@anthem (Barry Warsaw)>
+1995-11-22  Barry Warsaw  <bwarsaw@anthem>
 
 	* cc-mode.el (c-beginning-of-statement-1): CASE 3, can't just
 	return t at end of let clause since this will break
@@ -5700,13 +5700,13 @@
 
 	* hippie-exp.el (he-transfer-case): Fix typo in prev change.
 
-1995-10-13  Michael Kifer  <Michael Kifer  <kifer@cs.sunysb.edu>>
+1995-10-13  Michael Kifer  <kifer@cs.sunysb.edu>
 
 	* ediff.el (ediff-version): is now autoloaded.
 	* ediff-init.el: Moved defsubsts up.
 	* ediff-hook.el: Now defines [window] in menu-bar-ediff-menu.
 
-1995-10-13  Michael Kifer  <Michael Kifer  <kifer@cs.sunysb.edu>>
+1995-10-13  Michael Kifer  <kifer@cs.sunysb.edu>
 
 	* viper.el (vip-set-hooks): Use view-mode-hook in emacs and view
 	hook in xemacs.
@@ -5732,7 +5732,7 @@
 	* goto-addr.el: New file.
 	* browse-url.el: New file.
 
-1995-10-13  Anders Holst (aho@nada.kth.se)
+1995-10-13  Anders Holst  (aho@nada.kth.se)
 
 	* hippie-exp.el:
 	(hippie-expand): Removed bug - don't undo from another buffer.
@@ -6357,7 +6357,7 @@
 
 	* sendmail.el (sendmail-send-it): Use user-mail-address.
 
-1995-08-31  Barry Warsaw  <bwarsaw@anthem (Barry Warsaw)>
+1995-08-31  Barry Warsaw  <bwarsaw@anthem>
 
 	* cc-mode.el (c-backslashify-current-line): Obsolete.
 	(c-append-backslash, c-delete-backslash): Taken from c-mode.el.
@@ -7250,25 +7250,26 @@
 	* lisp-mode.el (shared-lisp-mode-map):
 	Don't bind TAB, just set indent-line-function.
 
-Wed Jul 26 15:40:00 Michael Kifer  (kifer@cs.sunysb.edu)
+1995-07-26  Michael Kifer  (kifer@cs.sunysb.edu)
 
-	* viper-ex.el (vip-submit-report): fnc modified.
+	* viper-ex.el (vip-submit-report): Function modified.
 
-	* viper-keym.el (vip-overriding-map): new variable.
+	* viper-keym.el (vip-overriding-map): New variable.
 
-	* viper-macs.el (vip-repeat-from-history-key): new default.
+	* viper-macs.el (vip-repeat-from-history-key): New default.
 	(vip-read-fast-keysequence, ex-unmap-read-args, ex-map-read-args):
-	changed to use vip-read-key.
+	Changed to use vip-read-key.
 
-	* viper-mous.el (vip-multiclick-timeout): new default.
-	(vip-surrounding-word, vip-mouse-click-get-word): fnc modified.
+	* viper-mous.el (vip-multiclick-timeout): New default.
+	(vip-surrounding-word, vip-mouse-click-get-word): Function modified.
 
-	* viper-util.el (vip-add-hook, vip-remove-hook): new fncs.
+	* viper-util.el (vip-add-hook, vip-remove-hook): New functions.
 
-	* viper.el (vip-info-file-name): variable removed.
-	(vip-envelop-ESC-key, vip-start-replace, vip-finish-R-mode,
-	vip-start-R-mode, vip-insert-state-pre-command-sentinel,
-	vip-R-state-post-command-sentinel, vip-replace-char) fncs modified.
+	* viper.el (vip-info-file-name): Variable removed.
+	(vip-envelop-ESC-key, vip-start-replace, vip-finish-R-mode)
+	(vip-start-R-mode, vip-insert-state-pre-command-sentinel)
+	(vip-R-state-post-command-sentinel, vip-replace-char):
+	Functions modified.
 
 1995-07-25  Karl Heuer  <kwzh@nutrimat.gnu.ai.mit.edu>
 
@@ -8021,9 +8022,25 @@ Wed Jul 26 15:40:00 Michael Kifer  (kifer@cs.sunysb.edu)
 
 See ChangeLog.5 for earlier changes.
 
-    Copyright (C) 1995, 1996, 2001, 2002, 2003, 2004, 2005, 2006, 2007
-    Free Software Foundation, Inc.
-  Copying and distribution of this file, with or without modification,
-  are permitted provided the copyright notice and this notice are preserved.
+    Copyright (C) 1995, 1996, 2001, 2002, 2003, 2004, 2005, 2006,
+      2007  Free Software Foundation, Inc.
+
+  This file is part of GNU Emacs.
+
+  GNU Emacs is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2, or (at your option)
+  any later version.
+
+  GNU Emacs is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with GNU Emacs; see the file COPYING.  If not, write to the
+  Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+  Boston, MA 02110-1301, USA.
+
 
 ;;; arch-tag: f90e8ffe-6bd0-4423-97d9-637ac4382520

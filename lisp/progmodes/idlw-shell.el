@@ -1026,7 +1026,8 @@ IDL has currently stepped.")
   (setq idlwave-shell-ready nil)
   (setq idlwave-shell-bp-alist nil)
   (idlwave-shell-update-bp-overlays) ; Throw away old overlays
-  (setq idlwave-shell-sources-alist nil)
+  (setq idlwave-shell-post-command-hook nil ;clean up any old stuff
+	idlwave-shell-sources-alist nil)
   (setq idlwave-shell-default-directory default-directory)
   (setq idlwave-shell-hide-output nil)
 
@@ -1303,7 +1304,7 @@ output to complete and the next prompt to arrive before returning
 \(useful if you need an answer now\). IDL is considered ready if the
 prompt is present and if `idlwave-shell-ready' is non-nil.  
 
-If SHOW-IF-ERROR is non-nil, show the output it it contains an error
+If SHOW-IF-ERROR is non-nil, show the output if it contains an error
 message, independent of what HIDE is set to."
 
 ;  (setq hide nil)  ;  FIXME: turn this on for debugging only
@@ -2621,7 +2622,10 @@ Returns nil if unable to obtain a module name."
       (widen)
       (save-excursion
         (if (idlwave-prev-index-position)
-            (upcase (idlwave-unit-name)))))))
+	    (let* ((module (idlwave-what-module))
+		   (name (idlwave-make-full-name (nth 2 module) (car module)))
+		   (type (nth 1 module)))
+	      (list (upcase name) type)))))))
 
 (defun idlwave-shell-clear-current-bp ()
   "Remove breakpoint at current line.
@@ -2634,7 +2638,10 @@ at a breakpoint."
 
 (defun idlwave-shell-toggle-enable-current-bp (&optional bp force
 							 no-update)
-  "Disable or enable current bp."
+  "Disable or enable current breakpoint or a breakpoint passed in BP.
+If FORCE is 'disable or 'enable, for that condition instead of
+toggling.  If NO-UPDATE is non-nil, don't update the breakpoint
+list after toggling."
   (interactive)
   (let* ((bp (or bp (idlwave-shell-find-current-bp)))
 	 (disabled (idlwave-shell-bp-get bp 'disabled)))
@@ -2685,22 +2692,28 @@ The command looks for an identifier near point and sets a breakpoint
 for the first line of the corresponding module.  If MODULE is `t', set
 in the current routine."
   (interactive)
-  (let ((module (idlwave-fix-module-if-obj_new (idlwave-what-module))))
+  (let* ((module (idlwave-fix-module-if-obj_new (idlwave-what-module)))
+	 (type (nth 1 module))
+	 (name (car module))
+	 (class (nth 2 module)))
     (if module
 	(progn 
 	  (setq module (idlwave-make-full-name (nth 2 module) (car module)))
-	  (idlwave-shell-module-source-query module)
-	  (idlwave-shell-set-bp-in-module module))
+	  (idlwave-shell-module-source-query module type)
+	  (idlwave-shell-set-bp-in-module name type class))
       (error "No identifier at point"))))
 
 
-(defun idlwave-shell-set-bp-in-module (module)
+(defun idlwave-shell-set-bp-in-module (name type class)
   "Set breakpoint in module.  Assumes that `idlwave-shell-sources-alist'
 contains an entry for that module."
-  (let ((source-file (car-safe 
-		      (cdr-safe
-		       (assoc (upcase module)
-			      idlwave-shell-sources-alist))))
+  (let ((source-file 
+	 (car-safe (cdr-safe
+		    (or
+		     (assoc (upcase (idlwave-make-full-name class name))
+			    idlwave-shell-sources-alist)
+		     (nth 3 (idlwave-best-rinfo-assoc name type class 
+						      (idlwave-routines)))))))
 	buf)
     (if (or (not source-file)
 	    (not (file-regular-p source-file))
@@ -3376,12 +3389,12 @@ Queries IDL using the string in `idlwave-shell-bp-query'."
 			      'hide))
 
 (defun idlwave-shell-bp-get (bp &optional item)
-  "Get a value for a breakpoint.  
-BP has the form of elements in idlwave-shell-bp-alist.  Optional
-second arg ITEM is the particular value to retrieve.  ITEM can be
-'file, 'line, 'index, 'module, 'count, 'cmd, 'condition, 'disabled or
-'data.  'data returns a list of 'count, 'cmd and 'condition.  Defaults
-to 'index."
+  "Get a value for a breakpoint.  BP has the form of elements in
+idlwave-shell-bp-alist.  Optional second arg ITEM is the
+particular value to retrieve.  ITEM can be 'file, 'line, 'index,
+'module, 'count, 'cmd, 'condition, 'disabled, 'type, or
+'data.  'data returns a list of 'count, 'cmd and 'condition.
+Defaults to 'index."
   (cond
    ;; Frame
    ((eq item 'line) (nth 1 (car bp)))
@@ -3393,7 +3406,12 @@ to 'index."
    ((eq item 'condition) (nth 2 (cdr (cdr bp))))
    ((eq item 'disabled) (nth 3 (cdr (cdr bp))))
    ;; IDL breakpoint info
-   ((eq item 'module) (nth 1 (car (cdr bp))))
+   ((eq item 'module) 
+    (let ((module (nth 1 (car (cdr bp)))))
+      (if (listp module) (car module) module)))
+   ((eq item 'type)
+    (let ((module (nth 1 (car (cdr bp)))))
+      (if (listp module) (nth 1 module))))
    ;;    index - default
    (t (nth 0 (car (cdr bp))))))
 
@@ -3486,7 +3504,9 @@ If BP frame is in `idlwave-shell-bp-alist' updates the breakpoint data."
 and third args, DATA and MODULE, are optional.  Returns a breakpoint
 of the format used in `idlwave-shell-bp-alist'.  Can be used in commands
 attempting match a breakpoint in `idlwave-shell-bp-alist'."
-  (cons frame (cons (list nil module) data)))
+  (cons frame ;; (file line)
+	(cons (list nil module) ;; (index_id (module type) | module)
+	      data)))           ;; (count command condition disabled)
 
 (defvar idlwave-shell-old-bp nil
   "List of breakpoints previous to setting a new breakpoint.")
@@ -3522,20 +3542,24 @@ specified.  If NO-SHOW is non-nil, don't do any updating."
    'hide)
 
   ;; Get sources for this routine in the sources list
-  (idlwave-shell-module-source-query (idlwave-shell-bp-get bp 'module))
+  (idlwave-shell-module-source-query (idlwave-shell-bp-get bp 'module)
+				     (idlwave-shell-bp-get bp 'type))
   (let*
-      ((arg (idlwave-shell-bp-get bp 'count))
-       (key (cond
-              ((not (and arg (numberp arg))) "")
-              ((= arg 1)
-               ",/once")
-              ((> arg 1)
-               (format ",after=%d" arg))))
+      ((count (idlwave-shell-bp-get bp 'count))
        (condition (idlwave-shell-bp-get bp 'condition))
        (disabled (idlwave-shell-bp-get bp 'disabled))
-       (key (concat key 
-		    (if condition (concat ",CONDITION=\"" condition "\""))))
-       (key (concat key (if disabled ",/DISABLE")))
+       (key (concat (if (and count (numberp count))
+			(cond
+			 ((= count 1) ",/once")
+			 ((> count 1) (format ",after=%d" count))))
+		    (if condition (concat ",CONDITION=\"" condition "\""))
+		    ;; IDL can't simultaneously set a condition/count
+		    ;; and disable a breakpoint, but it does keep both
+		    ;; of these when resetting the same BP.  We assume
+		    ;; DISABLE and CONDITION/COUNT are not set
+		    ;; together for a newly created breakpoint.
+		    (if (and disabled (not condition) (not count))
+			    ",/DISABLE")))
        (line (idlwave-shell-bp-get bp 'line)))
     (idlwave-shell-send-command
      (concat "breakpoint,'" 
@@ -3936,30 +3960,31 @@ Elements of the alist have the form:
 
   (module name . (source-file-truename idlwave-internal-filename)).")
 
-(defun idlwave-shell-module-source-query (module)
-  "Determine the source file for a given module."
+(defun idlwave-shell-module-source-query (module &optional type)
+  "Determine the source file for a given module.
+Query as a function if TYPE set to something beside 'pro."
   (if module
       (idlwave-shell-send-command 
-       (format "print,(routine_info('%s',/SOURCE)).PATH" module)
+       (format "print,(routine_info('%s',/SOURCE%s)).PATH" module
+	       (if (eq type 'pro) "" ",/FUNCTIONS"))
        `(idlwave-shell-module-source-filter ,module)
-       'hide)))
+       'hide 'wait)))
 
 (defun idlwave-shell-module-source-filter (module)
   "Get module source, and update idlwave-shell-sources-alist."
   (let ((old (assoc (upcase module) idlwave-shell-sources-alist))
 	filename)
-    (if (string-match "\.PATH *[\n\r]\\([^\r\n]+\\)[\n\r]"
-		      idlwave-shell-command-output)
-	(setq filename (substring idlwave-shell-command-output 
-				  (match-beginning 1) (match-end 1)))
-      (error "No file matching module found."))
-    (if old
-	(setcdr old (list (idlwave-shell-file-name filename) filename))
-      (setq idlwave-shell-sources-alist
-	    (append idlwave-shell-sources-alist 
-		    (list (cons (upcase module)
-				(list (idlwave-shell-file-name filename) 
-				      filename))))))))
+    (when (string-match "\.PATH *[\n\r]\\([^%][^\r\n]+\\)[\n\r]"
+			idlwave-shell-command-output)
+      (setq filename (substring idlwave-shell-command-output 
+				(match-beginning 1) (match-end 1)))
+      (if old
+	  (setcdr old (list (idlwave-shell-file-name filename) filename))
+	(setq idlwave-shell-sources-alist
+	      (append idlwave-shell-sources-alist 
+		      (list (cons (upcase module)
+				  (list (idlwave-shell-file-name filename) 
+					filename)))))))))
   
 (defun idlwave-shell-sources-query ()
   "Determine source files for all IDL compiled procedures.
@@ -4101,6 +4126,7 @@ Otherwise, just expand the file name."
 
 ;(define-key idlwave-shell-mode-map "\M-?" 'comint-dynamic-list-completions)
 ;(define-key idlwave-shell-mode-map "\t" 'comint-dynamic-complete)
+
 (define-key idlwave-shell-mode-map "\C-w"     'comint-kill-region)
 (define-key idlwave-shell-mode-map "\t"       'idlwave-shell-complete)
 (define-key idlwave-shell-mode-map "\M-\t"    'idlwave-shell-complete)
