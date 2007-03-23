@@ -86,10 +86,14 @@ typedef struct amcSegStruct *amcSeg;
 
 #define amcSegSig      ((Sig)0x519A3C59) /* SIGnature AMC SeG */
 
+#define CB_SKETCH 5
+
 typedef struct amcSegStruct {
   GCSegStruct gcSegStruct;  /* superclass fields must come first */
   int *segTypeP;            /* .segtype */
   Bool new;                 /* allocated since last GC */
+  char abzSketchTotalPrev[CB_SKETCH];
+  char abzSketchTotal[CB_SKETCH];
   Sig sig;                  /* <code/misc.h#sig> */
 } amcSegStruct;
 
@@ -137,6 +141,8 @@ static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size,
 
   amcseg->segTypeP = segtype; /* .segtype */
   amcseg->new = TRUE;
+  amcseg->abzSketchTotalPrev[0] = '\0';
+  amcseg->abzSketchTotal[0] = '\0';
   amcseg->sig = amcSegSig;
   AVERT(amcSeg, amcseg);
 
@@ -221,7 +227,7 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream)
   Addr i, p, base, limit, init;
   Align step;
   Size row;
-  char abzSketch[5];
+  char abzSketch[CB_SKETCH];
 
   if (!CHECKT(Seg, seg)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
@@ -296,6 +302,12 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream)
 
   AMCSegSketch(seg, abzSketch, NELEMS(abzSketch));
   res = WriteF(stream, "  Sketch: $S\n", (WriteFS)abzSketch, NULL);
+  if (res != ResOK) return res;
+
+  res = WriteF(stream, "  Sketch at previous Total scan: $S\n", (WriteFS)amcseg->abzSketchTotalPrev, NULL);
+  if (res != ResOK) return res;
+
+  res = WriteF(stream, "  Sketch at last Total scan: $S\n", (WriteFS)amcseg->abzSketchTotal, NULL);
   if (res != ResOK) return res;
 
   res = WriteF(stream, "} AMC Seg $P\n", (WriteFP)seg, NULL);
@@ -1333,7 +1345,27 @@ static Res amcScanNailed(Bool *totalReturn, ScanState ss, Pool pool,
  *
  * See <design/poolamc/#seg-scan>.
  */
+static Res AMCScanInner(Bool *totalReturn, ScanState ss, Pool pool, Seg seg);
+
 static Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
+{
+  Res res;
+  amcSeg amcseg;
+  
+  res = AMCScanInner(totalReturn, ss, pool, seg);
+  amcseg = Seg2amcSeg(seg);
+  if ( (res == ResOK) && totalReturn ) {
+    int i;
+    for (i = 0; i < NELEMS(amcseg->abzSketchTotalPrev); i += 1) {
+      amcseg->abzSketchTotalPrev[i] = amcseg->abzSketchTotal[i];
+    }
+    AMCSegSketch(seg, amcseg->abzSketchTotal, NELEMS(amcseg->abzSketchTotal));
+  }
+  
+  return res;
+}
+
+static Res AMCScanInner(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 {
   Addr base, limit;
   Arena arena;
@@ -1577,6 +1609,7 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     do {
       res = BUFFER_RESERVE(&newRef, buffer, length, FALSE);
       if (res != ResOK) {
+        /*
         WriteF(mps_lib_get_stdout(),
                "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n"
                "AMCFix forwarding buffer: BUFFER_RESERVE failed,\n"
@@ -1584,6 +1617,7 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
                NULL
               );
         SegDescribe(seg, mps_lib_get_stdout());
+        */
         goto returnRes;
       }
 

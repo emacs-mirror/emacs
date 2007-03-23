@@ -1094,11 +1094,13 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
     ShieldExpose(arena, seg);
     res = PoolScan(&wasTotal, &ss, SegPool(seg), seg);
     if (res != ResOK) {
-        WriteF(mps_lib_get_stdout(),
-               "PoolScan failed on this seg:\n",
-               NULL
-              );
-        SegDescribe(seg, mps_lib_get_stdout());
+      /*
+      WriteF(mps_lib_get_stdout(),
+             "PoolScan failed on this seg:\n",
+             NULL
+            );
+      SegDescribe(seg, mps_lib_get_stdout());
+      */
     }
     /* Cover, regardless of result */
     ShieldCover(arena, seg);
@@ -1123,6 +1125,11 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
     /* following is true whether or not scan was total */
     /* See <design/scan/#summary.subset>. */
     if (!RefSetSub(ss.unfixedSummary, SegSummary(seg))) {
+      printf("RongRongRongRongRongRongRongRongRongRongRong:\n");
+      printf(" Total? %s:\n",
+             (res == ResOK) && wasTotal
+             ? "YES"
+             : "no");
       SegDescribe(seg, mps_lib_get_stdout());
       {
         TraceId ti;
