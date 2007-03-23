@@ -125,7 +125,7 @@ merge_properties (source, target)
   while (CONSP (o))
     {
       sym = XCAR (o);
-      val = Fplist_member (sym, target->plist);
+      val = Fplist_member (target->plist, sym);
 
       if (NILP (val))
 	{
@@ -168,7 +168,7 @@ intervals_equal (i0, i1)
 	return 0;
 
       i0_sym = XCAR (i0_cdr);
-      i1_val = Fplist_member (i0_sym, i1->plist);
+      i1_val = Fplist_member (i1->plist, i0_sym);
 
       /* i0 has something i1 doesn't.  */
       if (EQ (i1_val, Qnil))
