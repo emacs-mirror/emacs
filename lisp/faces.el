@@ -2132,12 +2132,6 @@ created."
   :version "22.1"
   :group 'basic-faces)
 
-(defface momentary
-  '((t (:inherit mode-line)))
-  "Face for momentarily displaying text in the current buffer."
-  :version "22.1"
-  :group 'basic-faces)
-
 (defface minibuffer-prompt
   '((((background dark)) :foreground "cyan")
     ;; Don't use blue because many users of the MS-DOS port customize

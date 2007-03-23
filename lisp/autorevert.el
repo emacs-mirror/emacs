@@ -457,6 +457,7 @@ This is an internal function used by Auto-Revert Mode."
 	(save-excursion
 	  (goto-char (point-max))
 	  (insert-file-contents file nil auto-revert-tail-pos size)))
+      (run-mode-hooks 'after-revert-hook)
       (undo-boundary)
       (setq auto-revert-tail-pos size)
       (set-buffer-modified-p modified)))

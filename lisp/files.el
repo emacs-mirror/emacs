@@ -1700,16 +1700,6 @@ This function ensures that none of these modifications will take place."
   (if (file-directory-p filename)
       (signal 'file-error (list "Opening input file" "file is a directory"
                                 filename)))
-  ;; Check whether the file is uncommonly large (see find-file-noselect):
-  (let (size)
-    (when (and large-file-warning-threshold
-	       (setq size (nth 7 (file-attributes filename)))
-	       (> size large-file-warning-threshold)
-	       (not (y-or-n-p
-		     (format "File %s is large (%dMB), really insert? "
-			     (file-name-nondirectory filename)
-			     (/ size 1048576)))))
-      (error "Aborted")))
   (let* ((buffer (find-buffer-visiting (abbreviate-file-name (file-truename filename))
                                        #'buffer-modified-p))
          (tem (funcall insert-func filename)))
@@ -2147,7 +2137,7 @@ associated with that interpreter in `interpreter-mode-alist'.")
 	     (comment-re (concat "\\(?:!--" incomment-re "*-->[ \t\n]*<\\)")))
 	(concat "[ \t\n]*<" comment-re "*!DOCTYPE "))
      . sgml-mode)
-    ("%![^V]" . ps-mode)
+    ("%!PS" . ps-mode)
     ("# xmcd " . conf-unix-mode))
   "Alist of buffer beginnings vs. corresponding major mode functions.
 Each element looks like (REGEXP . FUNCTION) or (MATCH-FUNCTION . FUNCTION).
@@ -2445,6 +2435,7 @@ asking you for confirmation."
 (mapc (lambda (pair)
 	(put (car pair) 'safe-local-variable (cdr pair)))
       '((buffer-read-only                . booleanp) ;; C source code
+	(default-directory               . stringp)  ;; C source code
 	(fill-column                     . integerp) ;; C source code
 	(indent-tabs-mode                . booleanp) ;; C source code
 	(left-margin                     . integerp) ;; C source code
@@ -3604,10 +3595,21 @@ Before and after saving the buffer, this function runs
 	      (let ((filename
 		     (expand-file-name
 		      (read-file-name "File to save in: ") nil)))
-		(and (file-exists-p filename)
-		     (or (y-or-n-p (format "File `%s' exists; overwrite? "
-					   filename))
-			 (error "Canceled")))
+		(if (file-exists-p filename)
+		    (if (file-directory-p filename)
+			;; Signal an error if the user specified the name of an
+			;; existing directory.
+			(error "%s is a directory" filename)
+		      (unless (y-or-n-p (format "File `%s' exists; overwrite? "
+						filename))
+			(error "Canceled")))
+		  ;; Signal an error if the specified name refers to a
+		  ;; non-existing directory.
+		  (let ((dir (file-name-directory filename)))
+		    (unless (file-directory-p dir)
+		      (if (file-exists-p dir)
+			  (error "%s is not a directory" dir)
+			(error "%s: no such directory" dir)))))
 		(set-visited-file-name filename)))
 	  (or (verify-visited-file-modtime (current-buffer))
 	      (not (file-exists-p buffer-file-name))
@@ -3681,7 +3683,7 @@ Before and after saving the buffer, this function runs
 	  (if (not (file-directory-p dir))
 	      (if (file-exists-p dir)
 		  (error "%s is not a directory" dir)
-		(error "%s: no such directory" buffer-file-name))
+		(error "%s: no such directory" dir))
 	    (if (not (file-exists-p buffer-file-name))
 		(error "Directory %s write-protected" dir)
 	      (if (yes-or-no-p

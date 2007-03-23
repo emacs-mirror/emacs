@@ -414,6 +414,16 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
     (run-with-timer 0 nil (lexical-let ((proc proc))
                             (lambda () (server-process-filter proc ""))))
     (top-level))
+  (condition-case nil
+      ;; If we're running isearch, we must abort it to allow Emacs to
+      ;; display the buffer and switch to it.
+      (mapc #'(lambda (buffer)
+		(with-current-buffer buffer
+		  (when (bound-and-true-p isearch-mode)
+		    (isearch-cancel))))
+	    (buffer-list))
+    ;; Signaled by isearch-cancel
+    (quit (message nil)))
   ;; If the input is multiple lines,
   ;; process each line individually.
   (while (string-match "\n" string)

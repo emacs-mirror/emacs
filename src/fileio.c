@@ -2471,7 +2471,7 @@ uid and gid of FILE to NEWNAME.  */)
 
   if (NILP (ok_if_already_exists)
       || INTEGERP (ok_if_already_exists))
-    barf_or_query_if_file_exists (encoded_newname, "copy to it",
+    barf_or_query_if_file_exists (newname, "copy to it",
 				  INTEGERP (ok_if_already_exists), &out_st, 0);
   else if (stat (SDATA (encoded_newname), &out_st) < 0)
     out_st.st_mode = 0;
@@ -2780,7 +2780,7 @@ This is what happens in interactive use with M-x.  */)
 #endif
   if (NILP (ok_if_already_exists)
       || INTEGERP (ok_if_already_exists))
-    barf_or_query_if_file_exists (encoded_newname, "rename to it",
+    barf_or_query_if_file_exists (newname, "rename to it",
 				  INTEGERP (ok_if_already_exists), 0, 0);
 #ifndef BSD4_1
   if (0 > rename (SDATA (encoded_file), SDATA (encoded_newname)))
@@ -2857,7 +2857,7 @@ This is what happens in interactive use with M-x.  */)
 
   if (NILP (ok_if_already_exists)
       || INTEGERP (ok_if_already_exists))
-    barf_or_query_if_file_exists (encoded_newname, "make it a new name",
+    barf_or_query_if_file_exists (newname, "make it a new name",
 				  INTEGERP (ok_if_already_exists), 0, 0);
 
   unlink (SDATA (newname));
@@ -2918,7 +2918,7 @@ This happens for interactive use with M-x.  */)
 
   if (NILP (ok_if_already_exists)
       || INTEGERP (ok_if_already_exists))
-    barf_or_query_if_file_exists (encoded_linkname, "make it a link",
+    barf_or_query_if_file_exists (linkname, "make it a link",
 				  INTEGERP (ok_if_already_exists), 0, 0);
   if (0 > symlink (SDATA (encoded_filename),
 		   SDATA (encoded_linkname)))
@@ -5804,7 +5804,11 @@ do_auto_save_unwind (arg)  /* used as unwind-protect function */
   FILE *stream = (FILE *) XSAVE_VALUE (arg)->pointer;
   auto_saving = 0;
   if (stream != NULL)
-    fclose (stream);
+    {
+      BLOCK_INPUT;
+      fclose (stream);
+      UNBLOCK_INPUT;
+    }
   return Qnil;
 }
 
@@ -5934,6 +5938,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	if (STRINGP (b->auto_save_file_name)
 	    && stream != NULL && do_handled_files == 0)
 	  {
+	    BLOCK_INPUT;
 	    if (!NILP (b->filename))
 	      {
 		fwrite (SDATA (b->filename), 1,
@@ -5943,6 +5948,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	    fwrite (SDATA (b->auto_save_file_name), 1,
 		    SBYTES (b->auto_save_file_name), stream);
 	    putc ('\n', stream);
+	    UNBLOCK_INPUT;
 	  }
 
 	if (!NILP (current_only)

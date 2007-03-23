@@ -83,8 +83,8 @@ UT+7:45:40 to UT+8."
 ; The correct value is as follows, but the Chinese calendrical
 ; authorities do NOT use DST in determining astronomical events:
 ;  60
-  "*Number of minutes difference between daylight savings and standard time
-for Chinese calendar.  Default is for no daylight savings time."
+  "*Number of minutes difference between daylight saving and standard time
+for Chinese calendar.  Default is for no daylight saving time."
   :type 'integer
   :group 'chinese-calendar)
 
@@ -99,7 +99,7 @@ at 1928-01-01 00:00:00 from `PMT' to `CST'."
   :group 'chinese-calendar)
 
 (defcustom chinese-calendar-daylight-time-zone-name "CDT"
-  "*Abbreviated name of daylight-savings time zone used for Chinese calendar."
+  "*Abbreviated name of daylight saving time zone used for Chinese calendar."
   :type 'string
   :group 'chinese-calendar)
 
@@ -109,8 +109,8 @@ at 1928-01-01 00:00:00 from `PMT' to `CST'."
 ;  '(cond ((< 1986 year) (calendar-nth-named-day 1 0 4 year 10))
 ;         ((= 1986 year) '(5 4 1986))
 ;         (t nil))
-  "*Sexp giving the date on which daylight savings time starts for Chinese
-calendar.  Default is for no daylight savings time.  See documentation of
+  "*Sexp giving the date on which daylight saving time starts for Chinese
+calendar.  Default is for no daylight saving time.  See documentation of
 `calendar-daylight-savings-starts'."
   :type 'sexp
   :group 'chinese-calendar)
@@ -119,21 +119,21 @@ calendar.  Default is for no daylight savings time.  See documentation of
 ; The correct value is as follows, but the Chinese calendrical
 ; authorities do NOT use DST in determining astronomical events:
 ;  '(if (<= 1986 year) (calendar-nth-named-day 1 0 9 year 11))
-  "*Sexp giving the date on which daylight savings time ends for Chinese
-calendar.  Default is for no daylight savings time.  See documentation of
+  "*Sexp giving the date on which daylight saving time ends for Chinese
+calendar.  Default is for no daylight saving time.  See documentation of
 `calendar-daylight-savings-ends'."
   :type 'sexp
   :group 'chinese-calendar)
 
 (defcustom chinese-calendar-daylight-savings-starts-time 0
-  "*Number of minutes after midnight that daylight savings time starts for
-Chinese calendar.  Default is for no daylight savings time."
+  "*Number of minutes after midnight that daylight saving time starts for
+Chinese calendar.  Default is for no daylight saving time."
   :type 'integer
   :group 'chinese-calendar)
 
 (defcustom chinese-calendar-daylight-savings-ends-time 0
-  "*Number of minutes after midnight that daylight savings time ends for
-Chinese calendar.  Default is for no daylight savings time."
+  "*Number of minutes after midnight that daylight saving time ends for
+Chinese calendar.  Default is for no daylight saving time."
   :type 'integer
   :group 'chinese-calendar)
 

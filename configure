@@ -1839,10 +1839,12 @@ fi
 
 # Check whether --with-kerberos was given.
 if test "${with_kerberos+set}" = set; then
-  withval=$with_kerberos; cat >>confdefs.h <<\_ACEOF
+  withval=$with_kerberos; if test "$withval" = yes; then
+   cat >>confdefs.h <<\_ACEOF
 #define KERBEROS 1
 _ACEOF
 
+fi
 fi
 
 
@@ -1857,22 +1859,24 @@ if test "${with_kerberos5+set}" = set; then
 _ACEOF
 
   fi
-fi
 
 cat >>confdefs.h <<\_ACEOF
 #define KERBEROS5 1
 _ACEOF
 
 fi
+fi
 
 
 # Check whether --with-hesiod was given.
 if test "${with_hesiod+set}" = set; then
-  withval=$with_hesiod;
+  withval=$with_hesiod; if test "$withval" = yes; then
+
 cat >>confdefs.h <<\_ACEOF
 #define HESIOD 1
 _ACEOF
 
+fi
 fi
 
 
@@ -2245,13 +2249,17 @@ _ACEOF
     opsys=openbsd
     case "${canonical}" in
       alpha*-*-openbsd*)	machine=alpha ;;
-      i386-*-openbsd*)	machine=intel386 ;;
-      x86_64-*-openbsd*)    machine=amdx86-64 ;;
-      m68k-*-openbsd*)  machine=hp9000s300 ;;
-      mipsel-*-openbsd*) machine=pmax ;;
-      ns32k-*-openbsd*)	machine=ns32000 ;;
-      sparc-*-openbsd*)	machine=sparc ;;
-      vax-*-openbsd*)	machine=vax ;;
+      arm-*-openbsd*)          machine=arm ;;
+      hppa-*-openbsd*)         machine=hp9000s300 ;;
+      i386-*-openbsd*)         machine=intel386 ;;
+      m68k-*-openbsd*)         machine=hp9000s300 ;;
+      m88k-*-openbsd*)         machine=aviion ;;
+      mips64-*-openbsd*)       machine=mips64 ;;
+      powerpc-*-openbsd*)      machine=macppc ;;
+      sh-*-openbsd*)           machine=sh3el ;;
+      sparc*-*-openbsd*)       machine=sparc ;;
+      vax-*-openbsd*)          machine=vax ;;
+      x86_64-*-openbsd*)       machine=amdx86-64 ;;
     esac
   ;;
 
@@ -2615,6 +2623,9 @@ _ACEOF
     machine=ibmrs6000 opsys=aix4-1
   ;;
   rs6000-ibm-aix4.2* | powerpc-ibm-aix4.2*  )
+    machine=ibmrs6000 opsys=aix4-2
+  ;;
+  rs6000-ibm-aix4.3* | powerpc-ibm-aix4.3*  )
     machine=ibmrs6000 opsys=aix4-2
   ;;
   rs6000-ibm-aix5* | powerpc-ibm-aix5*  )
@@ -11739,7 +11750,7 @@ echo "${ECHO_T}no" >&6; }
 
   if test "$HAVE_XFT" != no; then
     OLD_CFLAGS="$CPPFLAGS"
-    OLD_CFLAGS="$CFLAGS"
+    OLD_CPPFLAGS="$CFLAGS"
     OLD_LIBS="$LIBS"
     CPPFLAGS="$CPPFLAGS $XFT_CFLAGS"
     CFLAGS="$CFLAGS $XFT_CFLAGS"
@@ -23047,6 +23058,16 @@ if test $USE_XASSERTS = yes; then
    echo "  Compiling with asserts turned on."
    CPPFLAGS="$CPPFLAGS -DXASSERTS=1"
    echo
+fi
+
+if test "$USE_X_TOOLKIT" = GTK; then
+  case "$canonical" in
+  *cygwin*)
+    echo "There are known problems with Emacs and Gtk+ on cygwin, so you
+  will probably get a crash on startup.  If this happens, please use another
+  toolkit for Emacs.  See etc/PROBLEMS for more information."
+  ;;
+  esac
 fi
 
 

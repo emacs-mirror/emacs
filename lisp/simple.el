@@ -1910,14 +1910,11 @@ the contents are inserted into the buffer anyway.
 
 Optional arguments NOT-THIS-WINDOW and FRAME are as for `display-buffer',
 and only used if a buffer is displayed."
-  (cond ((and (stringp message)
-	      (not (string-match "\n" message))
-	      (<= (length message) (frame-width)))
+  (cond ((and (stringp message) (not (string-match "\n" message)))
 	 ;; Trivial case where we can use the echo area
 	 (message "%s" message))
 	((and (stringp message)
-	      (= (string-match "\n" message) (1- (length message)))
-	      (<= (1- (length message)) (frame-width)))
+	      (= (string-match "\n" message) (1- (length message))))
 	 ;; Trivial case where we can just remove single trailing newline
 	 (message "%s" (substring message 0 (1- (length message)))))
 	(t
@@ -3594,7 +3591,7 @@ Outline mode sets this."
 			      'end-of-buffer)
 			    nil)))
 	    ;; Move by arg lines, but ignore invisible ones.
-	    (let (done line-end)
+	    (let (done)
 	      (while (and (> arg 0) (not done))
 		;; If the following character is currently invisible,
 		;; skip all characters with that same `invisible' property value.
@@ -3603,9 +3600,11 @@ Outline mode sets this."
 		;; Move a line.
 		;; We don't use `end-of-line', since we want to escape
 		;; from field boundaries ocurring exactly at point.
-		(let ((inhibit-field-text-motion t))
-		  (setq line-end (line-end-position)))
-		(goto-char (constrain-to-field line-end (point) t t))
+		(goto-char (constrain-to-field
+			    (let ((inhibit-field-text-motion t))
+			      (line-end-position))
+			    (point) t t
+			    'inhibit-line-move-field-capture))
 		;; If there's no invisibility here, move over the newline.
 		(cond
 		 ((eobp)
@@ -4727,9 +4726,16 @@ SEND-ACTIONS is a list of actions to call when the message is sent.
 Each action has the form (FUNCTION . ARGS)."
   (interactive
    (list nil nil nil current-prefix-arg))
-  (let ((function (get mail-user-agent 'composefunc)))
-    (funcall function to subject other-headers continue
-	     switch-function yank-action send-actions)))
+  (let ((function (get mail-user-agent 'composefunc))
+	result-buffer)
+    (if switch-function
+	(save-window-excursion
+	  (prog1
+	      (funcall function to subject other-headers continue
+		       nil yank-action send-actions)
+	    (funcall switch-function (current-buffer))))
+      (funcall function to subject other-headers continue
+	       nil yank-action send-actions))))
 
 (defun compose-mail-other-window (&optional to subject other-headers continue
 					    yank-action send-actions)
@@ -5166,7 +5172,7 @@ select the completion near point.\n\n"))))))
     (when window
       (select-window window)
       (goto-char (point-min))
-      (search-forward "\n\n")
+      (search-forward "\n\n" nil t)
       (forward-line 1))))
 
 ;;; Support keyboard commands to turn on various modifiers.

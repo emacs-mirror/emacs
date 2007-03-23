@@ -1,3 +1,31 @@
+2007-03-22  Joe Buehler  <jbuehler@spirentcom.com> (tiny change)
+
+	* configure.in: Add support for AIX4.3 on IBM RS6000.
+
+	* configure: Regenerate.
+
+2007-03-20  Richard Stallman  <rms@gnu.org>
+
+	* configure.in: Fix previous change.
+
+2007-03-19  Deanna Phillips  <deanna@sixbit.org>  (tiny change)
+
+	* configure.in (arm-*-openbsd*, hppa-*-openbsd*)
+	(m88k-*-openbsd*, mips64-*-openbsd*, sh-*-openbsd*): Added.
+	(ns32k-*-openbsd*, ns32k-*-openbsd*): Deleted.
+
+2007-03-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in: Don't define KERBEROS, KERBEROS5, or HESIOD if the
+	user specifies "without".
+
+	* configure: Regenerate.
+
+2007-03-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* configure.in: Warning for Gtk+ and Cygwin added.
+	(HAVE_XFT): OLD_CFLAGS changed to OLD_CPPFLAGS.
+
 2007-02-27  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist (oldXMenu): Remove Imakefile.

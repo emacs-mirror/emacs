@@ -1026,10 +1026,11 @@ absolute rather than relative to some directory on the SEARCH-PATH."
   (if (string-match "<\\([^\"<>]*\\)>?\\'" (ad-get-arg 0))
       (let* ((string (ad-get-arg 0))
              (action (ad-get-arg 2))
-             (name (substring string (match-beginning 1) (match-end 1)))
+             (name (match-string 1 string))
 	     (str2 (substring string (match-beginning 0)))
 	     (completion-table
-	      (mapcar (lambda (x) (format "<%s>" x))
+	      (mapcar (lambda (x)
+                        (format (if (string-match "/\\'" x) "<%s" "<%s>") x))
 		      (PC-include-file-all-completions
 		       name (PC-include-file-path)))))
         (setq ad-return-value

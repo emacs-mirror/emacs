@@ -36,6 +36,7 @@ Boston, MA 02110-1301, USA.  */
 #include "keyboard.h"
 #include "termhooks.h"
 #include "coding.h"
+#include "blockinput.h"
 
 #ifdef lint
 #include <sys/inode.h>
@@ -329,14 +330,18 @@ readchar (readcharfun)
 
   if (EQ (readcharfun, Qget_file_char))
     {
+      BLOCK_INPUT;
       c = getc (instream);
+      UNBLOCK_INPUT;
 #ifdef EINTR
       /* Interrupted reads have been observed while reading over the network */
       while (c == EOF && ferror (instream) && errno == EINTR)
 	{
 	  QUIT;
 	  clearerr (instream);
+	  BLOCK_INPUT;
 	  c = getc (instream);
+	  UNBLOCK_INPUT;
 	}
 #endif
       return c;
@@ -419,7 +424,11 @@ unreadchar (readcharfun, c)
   else if (EQ (readcharfun, Qlambda))
     read_bytecode_char (1);
   else if (EQ (readcharfun, Qget_file_char))
-    ungetc (c, instream);
+    {
+      BLOCK_INPUT;
+      ungetc (c, instream);
+      UNBLOCK_INPUT;
+    }
   else
     call1 (readcharfun, make_number (c));
 }
@@ -630,7 +639,9 @@ DEFUN ("get-file-char", Fget_file_char, Sget_file_char, 0, 0, 0,
      ()
 {
   register Lisp_Object val;
+  BLOCK_INPUT;
   XSETINT (val, getc (instream));
+  UNBLOCK_INPUT;
   return val;
 }
 
@@ -1172,7 +1183,11 @@ load_unwind (arg)  /* used as unwind-protect function in load */
 {
   FILE *stream = (FILE *) XSAVE_VALUE (arg)->pointer;
   if (stream != NULL)
-    fclose (stream);
+    {
+      BLOCK_INPUT;
+      fclose (stream);
+      UNBLOCK_INPUT;
+    }
   if (--load_in_progress < 0) load_in_progress = 0;
   return Qnil;
 }

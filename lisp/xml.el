@@ -76,8 +76,12 @@
 
 ;;; Code:
 
-;; Note that {buffer-substring,match-string}-no-properties were
-;; formerly used in several places, but that removes composition info.
+;; Note that buffer-substring and match-string were formerly used in
+;; several places, because the -no-properties variants remove
+;; composition info.  However, after some discussion on emacs-devel,
+;; the consensus was that the speed of the -no-properties variants was
+;; a worthwhile tradeoff especially since we're usually parsing files
+;; instead of hand-crafted XML.
 
 ;;*******************************************************************
 ;;**
@@ -406,7 +410,7 @@ Returns one of:
 	(unless (search-forward "]]>" nil t)
 	  (error "XML: (Not Well Formed) CDATA section does not end anywhere in the document"))
 	(concat
-	 (buffer-substring pos (match-beginning 0))
+	 (buffer-substring-no-properties pos (match-beginning 0))
 	 (xml-parse-string))))
      ;;  DTD for the document
      ((looking-at "<!DOCTYPE")
@@ -427,7 +431,7 @@ Returns one of:
       (goto-char (match-end 1))
 
       ;; Parse this node
-      (let* ((node-name (match-string 1))
+      (let* ((node-name (match-string-no-properties 1))
 	     ;; Parse the attribute list.
 	     (attrs (xml-parse-attlist xml-ns))
 	     children pos)
@@ -480,7 +484,7 @@ Returns one of:
 		  (nreverse children)))
 	    ;;  This was an invalid start tag (Expected ">", but didn't see it.)
 	    (error "XML: (Well-Formed) Couldn't parse tag: %s"
-		   (buffer-substring (- (point) 10) (+ (point) 1)))))))
+		   (buffer-substring-no-properties (- (point) 10) (+ (point) 1)))))))
      (t	;; (Not one of PI, CDATA, Comment, End tag, or Start tag)
       (unless xml-sub-parser		; Usually, we error out.
 	(error "XML: (Well-Formed) Invalid character"))
@@ -495,7 +499,7 @@ Returns one of:
 	 (string (progn (if (search-forward "<" nil t)
 			    (forward-char -1)
 			  (goto-char (point-max)))
-			(buffer-substring pos (point)))))
+			(buffer-substring-no-properties pos (point)))))
     ;; Clean up the string.  As per XML specifications, the XML
     ;; processor should always pass the whole string to the
     ;; application.  But \r's should be replaced:
@@ -516,7 +520,7 @@ Leave point at the first non-blank character after the tag."
     (while (looking-at (eval-when-compile
 			 (concat "\\(" xml-name-regexp "\\)\\s-*=\\s-*")))
       (setq end-pos (match-end 0))
-      (setq name (xml-maybe-do-ns (match-string 1) nil xml-ns))
+      (setq name (xml-maybe-do-ns (match-string-no-properties 1) nil xml-ns))
       (goto-char end-pos)
 
       ;; See also: http://www.w3.org/TR/2000/REC-xml-20001006#AVNormalize
@@ -535,7 +539,7 @@ Leave point at the first non-blank character after the tag."
 
       ;; Multiple whitespace characters should be replaced with a single one
       ;; in the attributes
-      (let ((string (match-string 1))
+      (let ((string (match-string-no-properties 1))
 	    (pos 0))
 	(replace-regexp-in-string "\\s-\\{2,\\}" " " string)
 	(let ((expansion (xml-substitute-special string)))
@@ -575,7 +579,7 @@ This follows the rule [28] in the XML specifications."
 
   ;;  Get the name of the document
   (looking-at xml-name-regexp)
-  (let ((dtd (list (match-string 0) 'dtd))
+  (let ((dtd (list (match-string-no-properties 0) 'dtd))
 	type element end-pos)
     (goto-char (match-end 0))
 
@@ -590,18 +594,18 @@ This follows the rule [28] in the XML specifications."
 			"\\='\\([[:space:][:alnum:]-()+,./:=?;!*#@$_%]*\\)'"
 			nil t))
 	     (error "XML: Missing Public ID"))
-	   (let ((pubid (match-string 1)))
+	   (let ((pubid (match-string-no-properties 1)))
 	     (skip-syntax-forward " ")
 	     (unless (or (re-search-forward "\\='\\([^']*\\)'" nil t)
 			 (re-search-forward "\\=\"\\([^\"]*\\)\"" nil t))
 	       (error "XML: Missing System ID"))
-	     (push (list pubid (match-string 1) 'public) dtd)))
+	     (push (list pubid (match-string-no-properties 1) 'public) dtd)))
 	  ((looking-at "SYSTEM\\s-+")
 	   (goto-char (match-end 0))
 	   (unless (or (re-search-forward "\\='\\([^']*\\)'" nil t)
 		       (re-search-forward "\\=\"\\([^\"]*\\)\"" nil t))
 	     (error "XML: Missing System ID"))
-	   (push (list (match-string 1) 'system) dtd)))
+	   (push (list (match-string-no-properties 1) 'system) dtd)))
     (skip-syntax-forward " ")
     (if (eq ?> (char-after))
 	(forward-char)
@@ -618,7 +622,7 @@ This follows the rule [28] in the XML specifications."
 	   ((looking-at
 	     "<!ELEMENT\\s-+\\([[:alnum:].%;]+\\)\\s-+\\([^>]+\\)>")
 
-	    (setq element (match-string 1)
+	    (setq element (match-string-no-properties 1)
 		  type    (match-string-no-properties 2))
 	    (setq end-pos (match-end 0))
 
@@ -629,7 +633,7 @@ This follows the rule [28] in the XML specifications."
 	     ((string-match "^ANY[ \t\n\r]*$" type) ;; any type of contents
 	      (setq type 'any))
 	     ((string-match "^(\\(.*\\))[ \t\n\r]*$" type) ;; children ([47])
-	      (setq type (xml-parse-elem-type (match-string 1 type))))
+	      (setq type (xml-parse-elem-type (match-string-no-properties 1 type))))
 	     ((string-match "^%[^;]+;[ \t\n\r]*$" type)	;; substitution
 	      nil)
 	     (t
@@ -659,9 +663,9 @@ This follows the rule [28] in the XML specifications."
 	   ((looking-at (concat "<!ENTITY[ \t\n\r]*\\(" xml-name-re
 				"\\)[ \t\n\r]*\\(" xml-entity-value-re
 				"\\)[ \t\n\r]*>"))
-	    (let ((name  (match-string 1))
-		  (value (substring (match-string 2) 1
-				    (- (length (match-string 2)) 1))))
+	    (let ((name  (match-string-no-properties 1))
+		  (value (substring (match-string-no-properties 2) 1
+				    (- (length (match-string-no-properties 2)) 1))))
 	      (goto-char (match-end 0))
 	      (setq xml-entity-alist
 		    (append xml-entity-alist
@@ -681,9 +685,9 @@ This follows the rule [28] in the XML specifications."
 				    "\\|'[- \r\na-zA-Z0-9()+,./:=?;!*#@$_%]*'"
 				    "[ \t\n\r]+\\(\"[^\"]*\"\\|'[^']*'\\)"
 				    "[ \t\n\r]*>")))
-	    (let ((name  (match-string 1))
-		  (file  (substring (match-string 2) 1
-				    (- (length (match-string 2)) 1))))
+	    (let ((name  (match-string-no-properties 1))
+		  (file  (substring (match-string-no-properties 2) 1
+				    (- (length (match-string-no-properties 2)) 1))))
 	      (goto-char (match-end 0))
 	      (setq xml-entity-alist
 		    (append xml-entity-alist
@@ -722,8 +726,8 @@ This follows the rule [28] in the XML specifications."
   (let (elem modifier)
     (if (string-match "(\\([^)]+\\))\\([+*?]?\\)" string)
 	(progn
-	  (setq elem     (match-string 1 string)
-		modifier (match-string 2 string))
+	  (setq elem     (match-string-no-properties 1 string)
+		modifier (match-string-no-properties 2 string))
 	  (if (string-match "|" elem)
 	      (setq elem (cons 'choice
 			       (mapcar 'xml-parse-elem-type
@@ -733,8 +737,8 @@ This follows the rule [28] in the XML specifications."
 				 (mapcar 'xml-parse-elem-type
 					 (split-string elem ",")))))))
       (if (string-match "[ \t\n\r]*\\([^+*?]+\\)\\([+*?]?\\)" string)
-	  (setq elem	 (match-string 1 string)
-		modifier (match-string 2 string))))
+	  (setq elem	 (match-string-no-properties 1 string)
+		modifier (match-string-no-properties 2 string))))
 
     (if (and (stringp elem) (string= elem "#PCDATA"))
 	(setq elem 'pcdata))
@@ -765,19 +769,19 @@ This follows the rule [28] in the XML specifications."
 	children end-point)
     (while (string-match "&\\([^;]*\\);" string point)
       (setq end-point (match-end 0))
-      (let* ((this-part (match-string 1 string))
+      (let* ((this-part (match-string-no-properties 1 string))
 	     (prev-part (substring string point (match-beginning 0)))
 	     (entity (assoc this-part xml-entity-alist))
 	     (expansion 
 	      (cond ((string-match "#\\([0-9]+\\)" this-part)
 		     (let ((c (decode-char
 			       'ucs
-			       (string-to-number (match-string 1 this-part)))))
+			       (string-to-number (match-string-no-properties 1 this-part)))))
 		       (if c (string c))))
 		    ((string-match "#x\\([[:xdigit:]]+\\)" this-part)
 		     (let ((c (decode-char
 			       'ucs
-			       (string-to-number (match-string 1 this-part) 16))))
+			       (string-to-number (match-string-no-properties 1 this-part) 16))))
 		       (if c (string c))))
 		    (entity
 		     (cdr entity))

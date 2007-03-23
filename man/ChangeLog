@@ -1,3 +1,40 @@
+2007-03-22  Ralf Angeli  <angeli@caeruleus.net>
+
+	* reftex.texi (Imprint): Update maintainer information.
+
+2007-03-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.texi (Message Buffers): Update documentation for
+	message-generate-new-buffers.
+
+2007-03-15  Daiki Ueno  <ueno@unixuser.org>
+
+	* pgg.texi (Caching passphrase): Describe pgg-passphrase-coding-system.
+
+2007-03-21  Glenn Morris  <rgm@gnu.org>
+
+	* eshell.texi (Known problems): Emacs 22 comes with eshell 2.4.2.
+
+2007-03-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* eshell.texi (Known problems): Emacs 21 -> 22.
+
+	* cc-mode.texi (Performance Issues): Update note about 21.3 to 22.1.
+
+2007-03-18  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Time Zones): Mention that the DST rules changed in 2007.
+
+2007-03-12  Glenn Morris  <rgm@gnu.org>
+
+	* calc.texi (Time Zones): Switch to new North America DST rule.
+
+	* calendar.texi, emacs.texi (Daylight Saving): Rename node from
+	"Daylight Savings".
+
+	* calc.texi, calendar.texi: Replace "daylight savings" with "daylight
+	saving" in text throughout.
+
 2007-03-11  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
 
 	* gnus.texi (Mail and Post): Update documentation for gnus-user-agent.
@@ -321,9 +358,9 @@
 
 2006-12-24  Kevin Ryde  <user42@zip.com.au>
 
-	* calendar.texi (Holidays): US daylight savings begins second Sunday
+	* calendar.texi (Holidays): US daylight saving begins second Sunday
 	in March for 2007 onwards.
-	(Daylight Savings): Show new US default daylight savings rules, 2nd
+	(Daylight Savings): Show new US default daylight saving rules, 2nd
 	Sun in Mar to 1st Sun in Nov, now in cal-dst.el.
 
 2006-12-23  Chong Yidong  <cyd@stupidchicken.com>

@@ -122,7 +122,7 @@ This is a compatibility function for different Emacsen."
 (put 'gnus-eval-in-buffer-window 'edebug-form-spec '(form body))
 
 (defmacro gnus-intern-safe (string hashtable)
-  "Set hash value.  Arguments are STRING, VALUE, and HASHTABLE."
+  "Get hash value.  Arguments are STRING and HASHTABLE."
   `(let ((symbol (intern ,string ,hashtable)))
      (or (boundp symbol)
 	 (set symbol nil))

@@ -1,5 +1,7 @@
 ### emacs.csh
 
+## Add legal notice if non-trivial amounts of code are added.
+
 ## Author: Michael DeCorte
 
 ### Commentary:

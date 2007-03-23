@@ -670,8 +670,15 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
 	  if (!NILP (predicate))
 	    {
 	      Lisp_Object decoded;
+	      Lisp_Object val;
+	      struct gcpro gcpro1;
+
+	      GCPRO1 (name);
 	      decoded = Fexpand_file_name (DECODE_FILE (name), dirname);
-	      if (NILP (call1 (predicate, decoded)))
+	      val = call1 (predicate, decoded);
+	      UNGCPRO;
+
+	      if (NILP (val))
 		continue;
 	    }
 
@@ -694,7 +701,7 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
 	      compare = min (bestmatchsize, len);
 	      p1 = SDATA (bestmatch);
 	      p2 = (unsigned char *) dp->d_name;
-	      matchsize = scmp(p1, p2, compare);
+	      matchsize = scmp (p1, p2, compare);
 	      if (matchsize < 0)
 		matchsize = compare;
 	      if (completion_ignore_case)

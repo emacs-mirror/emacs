@@ -33,6 +33,7 @@ Boston, MA 02110-1301, USA.  */
 #include "dispextern.h"
 #include "termchar.h"
 #include "intervals.h"
+#include "blockinput.h"
 
 Lisp_Object Vstandard_output, Qstandard_output;
 
@@ -976,7 +977,11 @@ append to existing target file.  */)
      Lisp_Object file, append;
 {
   if (initial_stderr_stream != NULL)
-    fclose (stderr);
+    {
+      BLOCK_INPUT;
+      fclose (stderr);
+      UNBLOCK_INPUT;
+    }
   stderr = initial_stderr_stream;
   initial_stderr_stream = NULL;
 

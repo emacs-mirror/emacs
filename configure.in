@@ -54,7 +54,9 @@ AC_DEFINE(MAIL_USE_POP))
 AH_TEMPLATE(MAIL_USE_POP, [Define to support POP mail retrieval.])dnl
 AC_ARG_WITH(kerberos,
 [  --with-kerberos         support Kerberos-authenticated POP],
-[AC_DEFINE(KERBEROS)])
+[if test "$withval" = yes; then
+   AC_DEFINE(KERBEROS)
+fi])
 AH_TEMPLATE(KERBEROS,
 	    [Define to support Kerberos-authenticated POP mail retrieval.])dnl
 AC_ARG_WITH(kerberos5,
@@ -64,11 +66,13 @@ AC_ARG_WITH(kerberos5,
     with_kerberos=yes
     AC_DEFINE(KERBEROS)
   fi
-fi
-AC_DEFINE(KERBEROS5, 1, [Define to use Kerberos 5 instead of Kerberos 4.])])
+  AC_DEFINE(KERBEROS5, 1, [Define to use Kerberos 5 instead of Kerberos 4.])
+fi])
 AC_ARG_WITH(hesiod,
 [  --with-hesiod           support Hesiod to get the POP server host],
-[AC_DEFINE(HESIOD, 1, [Define to support using a Hesiod database to find the POP server.])])
+[if test "$withval" = yes; then
+  AC_DEFINE(HESIOD, 1, [Define to support using a Hesiod database to find the POP server.])
+fi])
 
 AC_ARG_WITH(sound,
 [  --without-sound         don't compile with sound support])
@@ -279,13 +283,17 @@ dnl see the `changequote' comment above.
     opsys=openbsd
     case "${canonical}" in
       alpha*-*-openbsd*)	machine=alpha ;;
-      i386-*-openbsd*)	machine=intel386 ;;
-      x86_64-*-openbsd*)    machine=amdx86-64 ;;
-      m68k-*-openbsd*)  machine=hp9000s300 ;;
-      mipsel-*-openbsd*) machine=pmax ;;
-      ns32k-*-openbsd*)	machine=ns32000 ;;
-      sparc-*-openbsd*)	machine=sparc ;;
-      vax-*-openbsd*)	machine=vax ;;
+      arm-*-openbsd*)          machine=arm ;;
+      hppa-*-openbsd*)         machine=hp9000s300 ;;
+      i386-*-openbsd*)         machine=intel386 ;;
+      m68k-*-openbsd*)         machine=hp9000s300 ;;
+      m88k-*-openbsd*)         machine=aviion ;;
+      mips64-*-openbsd*)       machine=mips64 ;;
+      powerpc-*-openbsd*)      machine=macppc ;;
+      sh-*-openbsd*)           machine=sh3el ;;
+      sparc*-*-openbsd*)       machine=sparc ;;
+      vax-*-openbsd*)          machine=vax ;;
+      x86_64-*-openbsd*)       machine=amdx86-64 ;;
     esac
   ;;
 
@@ -649,6 +657,9 @@ dnl see the `changequote' comment above.
     machine=ibmrs6000 opsys=aix4-1
   ;;
   rs6000-ibm-aix4.2* | powerpc-ibm-aix4.2*  )
+    machine=ibmrs6000 opsys=aix4-2
+  ;;
+  rs6000-ibm-aix4.3* | powerpc-ibm-aix4.3*  )
     machine=ibmrs6000 opsys=aix4-2
   ;;
   rs6000-ibm-aix5* | powerpc-ibm-aix5*  )
@@ -2123,7 +2134,7 @@ if test "${HAVE_GTK}" = "yes"; then
   PKG_CHECK_MODULES(XFT, xft >= 0.13.0, , HAVE_XFT=no)
   if test "$HAVE_XFT" != no; then
     OLD_CFLAGS="$CPPFLAGS"
-    OLD_CFLAGS="$CFLAGS"
+    OLD_CPPFLAGS="$CFLAGS"
     OLD_LIBS="$LIBS"
     CPPFLAGS="$CPPFLAGS $XFT_CFLAGS"
     CFLAGS="$CFLAGS $XFT_CFLAGS"
@@ -3209,6 +3220,16 @@ if test $USE_XASSERTS = yes; then
    echo "  Compiling with asserts turned on."
    CPPFLAGS="$CPPFLAGS -DXASSERTS=1"
    echo
+fi
+
+if test "$USE_X_TOOLKIT" = GTK; then
+  case "$canonical" in
+  *cygwin*)
+    echo "There are known problems with Emacs and Gtk+ on cygwin, so you
+  will probably get a crash on startup.  If this happens, please use another
+  toolkit for Emacs.  See etc/PROBLEMS for more information."
+  ;;
+  esac
 fi
 
 

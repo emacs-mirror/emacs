@@ -6701,7 +6701,7 @@ this hack can degrade performance by about as much.  Thus this variable
 is set to @code{nil} by default, since the Emacs-friendly styles should
 be more common (and encouraged!).  Note that this variable has no effect
 in Emacs since the necessary built-in functions don't exist (in Emacs
-21.3 as of this writing in May 2003).
+22.1 as of this writing in February 2007).
 
 Text properties are used to speed up skipping over syntactic whitespace,
 i.e. comments and preprocessor directives.  Indenting a line after a

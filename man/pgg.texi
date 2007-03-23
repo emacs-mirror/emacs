@@ -296,6 +296,14 @@ variable to @code{nil}.
 Elapsed time for expiration in seconds.
 @end defvar
 
+If your passphrase contains non-ASCII characters, you might need to
+specify the coding-system to be used to encode your passphrases since
+GnuPG treats them as a byte sequence not a character sequence.
+
+@defvar pgg-passphrase-coding-system
+Coding-system used to encode passphrase.
+@end defvar
+
 @node Default user identity
 @section Default user identity
 
