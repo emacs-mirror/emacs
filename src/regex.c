@@ -4103,17 +4103,21 @@ analyse_first (p, pend, fastmap, multibyte)
 	    if (!!(p[j / BYTEWIDTH] & (1 << (j % BYTEWIDTH))) ^ not)
 	      fastmap[j] = 1;
 
-	  if ((not && multibyte)
-	      /* Any leading code can possibly start a character
+#ifdef emacs
+	  if (/* Any leading code can possibly start a character
 		 which doesn't match the specified set of characters.  */
-	      || (CHARSET_RANGE_TABLE_EXISTS_P (&p[-2])
-		  && CHARSET_RANGE_TABLE_BITS (&p[-2]) != 0))
-	    /* If we can match a character class, we can match
-	       any multibyte characters.  */
+	      not
+	      || 
+	      /* If we can match a character class, we can match any
+		 multibyte characters.  */
+	      (CHARSET_RANGE_TABLE_EXISTS_P (&p[-2])
+	       && CHARSET_RANGE_TABLE_BITS (&p[-2]) != 0))
+
 	    {
 	      if (match_any_multibyte_characters == false)
 		{
-		  for (j = 0x80; j < (1 << BYTEWIDTH); j++)
+		  for (j = MIN_MULTIBYTE_LEADING_CODE;
+		       j <= MAX_MULTIBYTE_LEADING_CODE; j++)
 		    fastmap[j] = 1;
 		  match_any_multibyte_characters = true;
 		}
@@ -4145,6 +4149,7 @@ analyse_first (p, pend, fastmap, multibyte)
 		    fastmap[j] = 1;
 		}
 	    }
+#endif
 	  break;
 
 	case syntaxspec:
@@ -4167,20 +4172,18 @@ analyse_first (p, pend, fastmap, multibyte)
 	  if (!fastmap) break;
 	  not = (re_opcode_t)p[-1] == notcategoryspec;
 	  k = *p++;
-	  for (j = (multibyte ? 127 : (1 << BYTEWIDTH)); j >= 0; j--)
+	  for (j = (1 << BYTEWIDTH); j >= 0; j--)
 	    if ((CHAR_HAS_CATEGORY (j, k)) ^ not)
 	      fastmap[j] = 1;
 
-	  if (multibyte)
+	  /* Any leading code can possibly start a character which
+	     has or doesn't has the specified category.  */
+	  if (match_any_multibyte_characters == false)
 	    {
-	      /* Any character set can possibly contain a character
-		 whose category is K (or not).  */
-	      if (match_any_multibyte_characters == false)
-		{
-		  for (j = 0x80; j < (1 << BYTEWIDTH); j++)
-		    fastmap[j] = 1;
-		  match_any_multibyte_characters = true;
-		}
+	      for (j = MIN_MULTIBYTE_LEADING_CODE;
+		   j <= MAX_MULTIBYTE_LEADING_CODE; j++)
+		fastmap[j] = 1;
+	      match_any_multibyte_characters = true;
 	    }
 	  break;
 
