@@ -735,7 +735,9 @@ string_display_width (string, beg, end)
 DEFUN ("indent-to", Findent_to, Sindent_to, 1, 2, "NIndent to column: ",
        doc: /* Indent from point with tabs and spaces until COLUMN is reached.
 Optional second argument MINIMUM says always do at least MINIMUM spaces
-even if that goes past COLUMN; by default, MINIMUM is zero.  */)
+even if that goes past COLUMN; by default, MINIMUM is zero.
+
+The return value is COLUMN.  */)
      (column, minimum)
      Lisp_Object column, minimum;
 {
