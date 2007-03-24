@@ -5030,6 +5030,8 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
        doc: /* Show STRING in a "tooltip" window on frame FRAME.
 A tooltip window is a small X window displaying a string.
 
+This is an internal function; Lisp code should call `tooltip-show'.
+
 FRAME nil or omitted means use the selected frame.
 
 PARMS is an optional list of frame parameters which can be used to
