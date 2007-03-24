@@ -1,3 +1,11 @@
+2007-03-24  Martin Rudalics  <rudalics@gmx.at>
+
+	* whitespace.el (top level): Remove calls putting
+	permanent-local nil property since these are no-ops. 
+
+	* man.el (Man-support-local-filenames): Assure that
+	default-directory exists when doing call-process.
+
 2007-03-23  David Vazquez  <xeos00@gmail.com>  (tiny change)
 
 	* progmodes/m4-mode.el (m4-m4-buffer, m4-m4-region): Fix
