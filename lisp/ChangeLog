@@ -1,3 +1,9 @@
+2007-03-24  Ryan Yeske  <rcyeske@gmail.com>
+
+	* emacs-lisp/testcover.el (testcover-start, testcover-end)
+	(testcover-mark-all, testcover-unmark-all): Add prompts to
+	interactive specs.
+
 2007-03-24  Jason Rumney  <jasonr@gnu.org>
 
 	* autorevert.el (find-file-hook, auto-revert-tail-mode):
