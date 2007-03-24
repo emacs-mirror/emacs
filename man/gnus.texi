@@ -13607,7 +13607,8 @@ TMP=$HOME/Mail/tmp
 rm -f $TMP; $MOVEMAIL $MAIL $TMP >/dev/null && cat $TMP
 @end example
 
-Alter this script to fit find the @samp{movemail} you want to use.
+Alter this script to fit the @samp{movemail} and temporary
+file you want to use.
 
 
 @item directory
