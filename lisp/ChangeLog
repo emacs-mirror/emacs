@@ -1,3 +1,8 @@
+2007-03-24  Jason Rumney  <jasonr@gnu.org>
+
+	* autorevert.el (find-file-hook, auto-revert-tail-mode):
+	Use file size in bytes for auto-revert-tail-pos not characters.
+
 2007-03-24  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* vc-rcs.el (vc-rcs-annotate-command):
