@@ -1,3 +1,7 @@
+2007-03-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* errors.texi (Standard Errors): Add an index entry.
+
 2007-03-19  Richard Stallman  <rms@gnu.org>
 
 	* os.texi (Recording Input): recent-keys now gives 300 keys.
