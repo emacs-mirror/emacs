@@ -1401,8 +1401,10 @@ silly_event_symbol_error (c)
 static Lisp_Object *cmm_modes = NULL, *cmm_maps = NULL;
 static int cmm_size = 0;
 
-/* Store a pointer to an array of the keymaps of the currently active
-   minor modes in *buf, and return the number of maps it contains.
+/* Store a pointer to an array of the currently active minor modes in
+   *modeptr, a pointer to an array of the keymaps of the currently
+   active minor modes in *mapptr, and return the number of maps
+   *mapptr contains.
 
    This function always returns a pointer to the same buffer, and may
    free or reallocate it, so if you want to keep it for a long time or
