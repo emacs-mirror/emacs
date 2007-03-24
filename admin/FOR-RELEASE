@@ -48,8 +48,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 ** flyspell and check-comments
 <http://lists.gnu.org/archive/html/emacs-devel/2007-03/msg00400.html>
 
-** sigchld issue.
-
 ** michael@cadilhac.name, Mar 7: input-method completion is annoying.
 
 ** Add default-directory spec to *Compilation* buffer only when about
