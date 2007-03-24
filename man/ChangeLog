@@ -1,5 +1,7 @@
 2007-03-24  Thien-Thi Nguyen  <ttn@gnu.org>
 
+	* gnus.texi (Splitting Mail): Reword "splitting"-as-adj to be -as-noun.
+
 	* gnus.texi (Mail Source Specifiers): Fix typo.
 
 2007-03-22  Ralf Angeli  <angeli@caeruleus.net>
