@@ -4118,6 +4118,9 @@ Transposing beyond buffer boundaries is an error.  */)
   unsigned char *start1_addr, *start2_addr, *temp;
 
   INTERVAL cur_intv, tmp_interval1, tmp_interval_mid, tmp_interval2;
+  Lisp_Object buf;
+
+  XSETBUFFER (buf, current_buffer);
   cur_intv = BUF_INTERVALS (current_buffer);
 
   validate_region (&startr1, &endr1);
@@ -4224,8 +4227,10 @@ Transposing beyond buffer boundaries is an error.  */)
 
       tmp_interval1 = copy_intervals (cur_intv, start1, len1);
       tmp_interval2 = copy_intervals (cur_intv, start2, len2);
-      Fset_text_properties (make_number (start1), make_number (end2),
-			    Qnil, Qnil);
+      /* Don't use Fset_text_properties: that can cause GC, which can
+	 clobber objects stored in the tmp_intervals.  */
+      set_text_properties_1 (make_number (start1), make_number (end2),
+			     Qnil, buf, NULL);
 
       /* First region smaller than second.  */
       if (len1_byte < len2_byte)
@@ -4281,10 +4286,10 @@ Transposing beyond buffer boundaries is an error.  */)
           record_change (start2, len2);
           tmp_interval1 = copy_intervals (cur_intv, start1, len1);
           tmp_interval2 = copy_intervals (cur_intv, start2, len2);
-          Fset_text_properties (make_number (start1), make_number (end1),
-				Qnil, Qnil);
-          Fset_text_properties (make_number (start2), make_number (end2),
-				Qnil, Qnil);
+	  set_text_properties_1 (make_number (start1), make_number (end1),
+				 Qnil, buf, NULL);
+          set_text_properties_1 (make_number (start2), make_number (end2),
+				 Qnil, buf, NULL);
 
 	  SAFE_ALLOCA (temp, unsigned char *, len1_byte);
 	  start1_addr = BYTE_POS_ADDR (start1_byte);
@@ -4310,8 +4315,8 @@ Transposing beyond buffer boundaries is an error.  */)
           tmp_interval1 = copy_intervals (cur_intv, start1, len1);
           tmp_interval_mid = copy_intervals (cur_intv, end1, len_mid);
           tmp_interval2 = copy_intervals (cur_intv, start2, len2);
-          Fset_text_properties (make_number (start1), make_number (end2),
-				Qnil, Qnil);
+          set_text_properties_1 (make_number (start1), make_number (end2),
+				 Qnil, buf, NULL);
 
 	  /* holds region 2 */
 	  SAFE_ALLOCA (temp, unsigned char *, len2_byte);
@@ -4341,8 +4346,8 @@ Transposing beyond buffer boundaries is an error.  */)
           tmp_interval1 = copy_intervals (cur_intv, start1, len1);
           tmp_interval_mid = copy_intervals (cur_intv, end1, len_mid);
           tmp_interval2 = copy_intervals (cur_intv, start2, len2);
-          Fset_text_properties (make_number (start1), make_number (end2),
-				Qnil, Qnil);
+          set_text_properties_1 (make_number (start1), make_number (end2),
+				 Qnil, buf, NULL);
 
 	  /* holds region 1 */
 	  SAFE_ALLOCA (temp, unsigned char *, len1_byte);
@@ -4377,6 +4382,8 @@ Transposing beyond buffer boundaries is an error.  */)
       fix_start_end_in_overlays (start1, end2);
     }
 
+  signal_after_change (XINT (start1), XINT (end2 - start1),
+		       XINT (end2 - start1));
   return Qnil;
 }
 
