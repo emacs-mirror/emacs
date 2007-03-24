@@ -1,3 +1,7 @@
+2007-03-24  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* gnus.texi (Mail Source Specifiers): Fix typo.
+
 2007-03-22  Ralf Angeli  <angeli@caeruleus.net>
 
 	* reftex.texi (Imprint): Update maintainer information.
