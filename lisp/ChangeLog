@@ -1,7 +1,14 @@
+2007-03-24  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* vc-rcs.el (vc-rcs-annotate-command):
+	Set text property :vc-annotate-prefix on the annotation text.
+	(vc-rcs-annotate-time): Instead of searching for ": ",
+	search for end of text propertized with :vc-annotate-prefix.
+
 2007-03-24  Martin Rudalics  <rudalics@gmx.at>
 
 	* whitespace.el (top level): Remove calls putting
-	permanent-local nil property since these are no-ops. 
+	permanent-local nil property since these are no-ops.
 
 	* man.el (Man-support-local-filenames): Assure that
 	default-directory exists when doing call-process.
