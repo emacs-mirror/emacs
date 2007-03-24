@@ -55,8 +55,6 @@ to save in a different directory.
 
 ** christensenthomas@gmail.com, Mar 18: C indentation (problem)
 
-** john.carter@tait.co.nz, 12 Mar: Find this error in... Changes in complete.el?
-
 ** rob@tenfoot.org.uk, Mar 12: set-face-attribute doesn't set default for new frames
 
 * DOCUMENTATION
