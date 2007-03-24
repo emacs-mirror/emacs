@@ -13489,7 +13489,7 @@ function.
 
 @vindex nnmail-mail-splitting-charset
 @vindex nnmail-mail-splitting-decodes
-By default the splitting codes @acronym{MIME} decodes headers so you
+By default, splitting @acronym{MIME}-decodes headers so you
 can match on non-@acronym{ASCII} strings.  The
 @code{nnmail-mail-splitting-charset} variable specifies the default
 charset for decoding.  The behavior can be turned off completely by
