@@ -125,18 +125,24 @@ merge_properties (source, target)
   while (CONSP (o))
     {
       sym = XCAR (o);
-      val = Fplist_member (target->plist, sym);
+      o = XCDR (o);
+      CHECK_CONS (o);
+
+      val = target->plist;
+      while (CONSP (val) && !EQ (XCAR (val), sym))
+	{
+	  val = XCDR (val);
+	  if (!CONSP (val))
+	    break;
+	  val = XCDR (val);
+	}
 
       if (NILP (val))
 	{
-	  o = XCDR (o);
-	  CHECK_CONS (o);
 	  val = XCAR (o);
 	  target->plist = Fcons (sym, Fcons (val, target->plist));
-	  o = XCDR (o);
 	}
-      else
-	o = Fcdr (XCDR (o));
+      o = XCDR (o);
     }
 }
 
@@ -147,8 +153,8 @@ int
 intervals_equal (i0, i1)
      INTERVAL i0, i1;
 {
-  register Lisp_Object i0_cdr, i0_sym, i1_val;
-  register int i1_len;
+  register Lisp_Object i0_cdr, i0_sym;
+  register Lisp_Object i1_cdr, i1_val;
 
   if (DEFAULT_INTERVAL_P (i0) && DEFAULT_INTERVAL_P (i1))
     return 1;
@@ -156,39 +162,43 @@ intervals_equal (i0, i1)
   if (DEFAULT_INTERVAL_P (i0) || DEFAULT_INTERVAL_P (i1))
     return 0;
 
-  i1_len = XFASTINT (Flength (i1->plist));
-  if (i1_len & 0x1)		/* Paranoia -- plists are always even */
-    abort ();
-  i1_len /= 2;
   i0_cdr = i0->plist;
-  while (CONSP (i0_cdr))
+  i1_cdr = i1->plist;
+  while (CONSP (i0_cdr) && CONSP (i1_cdr))
     {
-      /* Lengths of the two plists were unequal.  */
-      if (i1_len == 0)
-	return 0;
-
       i0_sym = XCAR (i0_cdr);
-      i1_val = Fplist_member (i1->plist, i0_sym);
+      i0_cdr = XCDR (i0_cdr);
+      if (!CONSP (i0_cdr))
+	return 0;		/* abort (); */
+      i1_val = i1->plist;
+      while (CONSP (i1_val) && !EQ (XCAR (i1_val), i0_sym))
+	{
+	  i1_val = XCDR (i1_val);
+	  if (!CONSP (i1_val))
+	    return 0;		/* abort (); */
+	  i1_val = XCDR (i1_val);
+	}
 
       /* i0 has something i1 doesn't.  */
       if (EQ (i1_val, Qnil))
 	return 0;
 
       /* i0 and i1 both have sym, but it has different values in each.  */
-      i0_cdr = XCDR (i0_cdr);
-      CHECK_CONS (i0_cdr);
-      if (!EQ (Fcar (Fcdr (i1_val)), XCAR (i0_cdr)))
+      if (!CONSP (i1_val)
+	  || (i1_val = XCDR (i1_val), !CONSP (i1_val))
+	  || !EQ (XCAR (i1_val), XCAR (i0_cdr)))
 	return 0;
 
       i0_cdr = XCDR (i0_cdr);
-      i1_len--;
+
+      i1_cdr = XCDR (i1_cdr);
+      if (!CONSP (i1_cdr))
+	return 0;		/* abort (); */
+      i1_cdr = XCDR (i1_cdr);
     }
 
-  /* Lengths of the two plists were unequal.  */
-  if (i1_len > 0)
-    return 0;
-
-  return 1;
+  /* Lengths of the two plists were equal.  */
+  return (NILP (i0_cdr) && NILP (i1_cdr));
 }
 
 
