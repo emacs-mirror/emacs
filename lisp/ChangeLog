@@ -1,5 +1,8 @@
 2007-03-25  Chong Yidong  <cyd@stupidchicken.com>
 
+	* faces.el (face-set-after-frame-default): Revert 2007-03-10
+	change.  Merge in X resources before global face.
+
 	* progmodes/compile.el (compilation-start): Save
 	compilation-directory rather than default-directory as local var.
 	(compilation-directory): Mark as safe local var.
