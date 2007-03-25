@@ -1,3 +1,9 @@
+2007-03-25  Romain Francoise  <romain@orebokech.com>
+
+	* faq.texi (New in Emacs 22): Reorganize using an itemized list for
+	readability, and include various fixes by Daniel Brockman, Nick Roberts
+	and Dieter Wilhelm.
+
 2007-03-24  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* gnus.texi (Splitting Mail): Reword "splitting"-as-adj to be -as-noun.
