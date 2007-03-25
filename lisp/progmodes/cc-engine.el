@@ -1917,9 +1917,8 @@ comment at the start of cc-engine.el for more info."
   ;; Is the region (beg end) WS, and is there WS (or BOB/EOB) next to the
   ;; region?  This is a "heuristic" function.  .....
   ;; 
-  ;; The motivation for the second bit is to check whether the removal of this
-  ;; space is to check whether removing this region would coalesce two
-  ;; symbols.
+  ;; The motivation for the second bit is to check whether removing this
+  ;; region would coalesce two symbols.
   ;;
   ;; FIXME!!!  This function doesn't check virtual semicolons in any way.  Be
   ;; careful about using this function for, e.g. AWK.  (2007/3/7)
