@@ -6174,7 +6174,7 @@ Process marks are displayed as @code{#} in the summary buffer, and are
 used for marking articles in such a way that other commands will
 process these articles.  For instance, if you process mark four
 articles and then use the @kbd{*} command, Gnus will enter these four
-commands into the cache.  For more information,
+articles into the cache.  For more information,
 @pxref{Process/Prefix}.
 
 @table @kbd
