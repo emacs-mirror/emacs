@@ -1,3 +1,14 @@
+2007-03-25  Juri Linkov  <juri@jurta.org>
+
+	* compare-w.el (compare-windows): Rename customization group
+	`compare-w' to `compare-windows'.
+	(compare-windows-whitespace, compare-ignore-whitespace)
+	(compare-ignore-case, compare-windows-sync)
+	(compare-windows-sync-string-size, compare-windows-recenter)
+	(compare-windows-highlight, compare-windows): Change group name in
+	the `group' tag from `compare-w' to `compare-windows'.
+	(compare-windows-sync): Add option `nil' for no sync.  Doc fix.
+
 2007-03-24  Markus Triska  <markus.triska@gmx.at>
 
 	* expand.el: Change example to always enable abbrev-mode, and
