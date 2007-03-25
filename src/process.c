@@ -6501,17 +6501,17 @@ sigchld_handler (signo)
 #define WUNTRACED 0
 #endif /* no WUNTRACED */
       /* Keep trying to get a status until we get a definitive result.  */
-      while (1)
-	{
+      do
+        {
+	  /* For some reason, this sleep() prevents Emacs from sending
+             loadavg to 5-8(!) for ~10 seconds.
+             See http://thread.gmane.org/gmane.emacs.devel/67722 or
+             http://www.google.com/search?q=busyloop+in+sigchld_handler */
+          sleep (1);
 	  errno = 0;
 	  pid = wait3 (&w, WNOHANG | WUNTRACED, 0);
-	  if (! (pid < 0 && errno == EINTR))
-	    break;
-	  /* Avoid a busyloop: wait3 is a system call, so we do not want
-	     to prevent the kernel from actually sending SIGCHLD to emacs
-	     by asking for it all the time.  */
-	  sleep (1);
 	}
+      while (pid < 0 && errno == EINTR);
 
       if (pid <= 0)
 	{
