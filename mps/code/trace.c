@@ -1149,6 +1149,9 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
         TRACE_SET_ITER_END(ti, trace, ts, arena);
       }
     }
+    /* .verify.segsummary: were the seg contents, as found by this 
+     * scan, consistent with the recorded SegSummary?
+     */
     AVER(RefSetSub(ss.unfixedSummary, SegSummary(seg)));
 
     if (res != ResOK || !wasTotal) {

@@ -1325,7 +1325,7 @@ returnGood:
 static Res amcScanNailed(Bool *totalReturn, ScanState ss, Pool pool,
                          Seg seg, AMC amc)
 {
-  Bool total, moreScanning;
+  Bool total, moreScanning, looped = FALSE;
 
   do {
     Res res;
@@ -1334,8 +1334,59 @@ static Res amcScanNailed(Bool *totalReturn, ScanState ss, Pool pool,
       *totalReturn = FALSE;
       return res;
     }
+    if (moreScanning) {
+      TraceId ti;
+      Trace trace;
+      Bool emerg = FALSE;
+      TraceSet ts = ss->traces;
+      Arena arena = pool->arena;
+      
+      TRACE_SET_ITER(ti, trace, ts, arena)
+        if (trace->emergency) {
+          emerg = TRUE;
+        }
+      TRACE_SET_ITER_END(ti, trace, ts, arena);
+      AVER(emerg);
+      
+      looped = TRUE;
+    }
   } while(moreScanning);
 
+  if (looped) {
+      /* looped: fixed refs (from 1st pass) were seen by MPS_FIX1
+       * (in later passes), so the "ss.unfixedSummary" is _not_ 
+       * purely unfixed.  In this one case, unfixedSummary is not 
+       * accurate, and cannot be used to verify the SegSummary (see 
+       * impl/trace/#verify.segsummary).  Use ScanStateSetSummary to 
+       * store ScanStateSummary in ss.fixedSummary and reset 
+       * ss.unfixedSummary.
+       */
+      RefSet refset;
+      mps_lib_FILE *stream = mps_lib_get_stdout();
+    
+      refset = ScanStateSummary(ss);
+      
+      SegDescribe(seg, stream);
+      (void) WriteF(stream,
+        "amcScanNailed completed, but had to loop:\n",
+        " SegSummary:        $W\n", (WriteFW)SegSummary(seg),
+        " ss.unfixedSummary: $W\n", (WriteFW)ss->unfixedSummary,
+        " ss.fixedSummary:   $W\n", (WriteFW)ss->fixedSummary,
+        "ScanStateSummary:   $W\n", (WriteFW)refset,
+        "MOVING ScanStateSummary TO fixedSummary, "
+        "RESETTING unfixedSummary.\n", NULL
+      );
+    
+      ScanStateSetSummary(ss, refset);
+      
+      (void) WriteF(stream,
+        "now:\n",
+        " ss.unfixedSummary: $W\n", (WriteFW)ss->unfixedSummary,
+        " ss.fixedSummary:   $W\n", (WriteFW)ss->fixedSummary,
+        NULL
+      );
+  }
+  
   *totalReturn = total;
   return ResOK;
 }
