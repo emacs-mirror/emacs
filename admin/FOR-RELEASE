@@ -51,8 +51,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 ** Add default-directory spec to *Compilation* buffer only when about
 to save in a different directory.
 
-** christensenthomas@gmail.com, Mar 18: C indentation (problem)
-
 ** rob@tenfoot.org.uk, Mar 12: set-face-attribute doesn't set default for new frames
 
 * DOCUMENTATION
