@@ -1,3 +1,10 @@
+2007-03-25  Kim F. Storm  <storm@cua.dk>
+
+	* intervals.c (merge_properties): Use explicit loop instead of
+	Fplist_member to avoid QUIT.  Don't use Fcdr.
+	(intervals_equal): Likewise.  Rewrite loop to perform length check
+	on the fly rather than calling Flength.  Don't use Fcar.
+
 2007-03-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* editfns.c (Fgoto_char): Doc fix.
