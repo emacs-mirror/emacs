@@ -1,0 +1,2829 @@
+.
+=== Tests: {[mpsicv, mpsicv, mpsicv, mpsicv, mpsicv, mpsicv, mpsicv, mpsicv, mpsicv, mpsicv]} {[hi]} ===
+--- mpsicv {hi} ---
+xcppgc: xcppgc/hi/version.o
+xcppgc: xcppgc/hi/mpsicv
+Randomizing 21873 times.
+collections: 0
+i == 0
+c: 0
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 29185
+Collection 1, 4172 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.109299, trace->rate: 52223
+Collection 2, 15660 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.968719, trace->rate: 214422
+Collection 3, 19839 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.327927, trace->rate: 135873
+Collection 4, 24104 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.593567, trace->rate: 154920
+Collection 5, 28262 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.890610, trace->rate: 174489
+Collection 6, 32446 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.187225, trace->rate: 130583
+Collection 7, 36632 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.501450, trace->rate: 119279
+Collection 8, 46447 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.156021, trace->rate: 134137
+Collection 9, 50534 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.421707, trace->rate: 143253
+Collection 10, 54551 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.640594, trace->rate: 151551
+Collection 11, 58428 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.976349, trace->rate: 163730
+Collection 12, 62384 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.281219, trace->rate: 140451
+Collection 13, 66291 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.577911, trace->rate: 116470
+Collection 14, 81951 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.562408, trace->rate: 147796
+Collection 15, 85685 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.812454, trace->rate: 154077
+Collection 16, 89412 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.078018, trace->rate: 138034
+Collection 17, 92960 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.343735, trace->rate: 143009
+Collection 18, 96672 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.578079, trace->rate: 147836
+Collection 19, 100378 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.953125, trace->rate: 119706
+Collection 20, 121654 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.249954, trace->rate: 142108
+Collection 21, 125107 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.515366, trace->rate: 146952
+Collection 22, 128455 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.765564, trace->rate: 151165
+Collection 23, 131768 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.031174, trace->rate: 139530
+Collection 24, 135266 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.265427, trace->rate: 142907
+Collection 25, 138705 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 15.406250, trace->rate: 110374
+Collection 26, 169803 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 12.890625, trace->rate: 148839
+Collection 27, 174323 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.158951, trace->rate: 140497
+Collection 28, 178706 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.437378, trace->rate: 143564
+Collection 29, 183121 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.796646, trace->rate: 147296
+Collection 30, 187610 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 14.136520, trace->rate: 140789
+Collection 31, 191989 objects.
+Objects 200000.
+
+arena_commit_test:
+ committed: 8814592, reserved: 16777216, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 8814592)
+ exit alloc loop, iAlloc: 1120, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 10630355.720000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 162.206356, trace->rate: 11952
+mps_arena_collect OK.
+alloc_v_test OK.
+collections: 32
+i == 0
+c: 32
+Objects 200000.
+
+arena_commit_test:
+ committed: 17190912, reserved: 33558528, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 17190912)
+ exit alloc loop, iAlloc: 7300, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 19449872.440000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 296.781501, trace->rate: 15298
+mps_arena_collect OK.
+alloc_v_test OK.
+--- mpsicv {hi} ---
+xcppgc: xcppgc/hi/version.o
+xcppgc: xcppgc/hi/mpsicv
+Randomizing 21896 times.
+collections: 0
+i == 0
+c: 0
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 29185
+Collection 1, 4171 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.109299, trace->rate: 52223
+Collection 2, 15659 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.953094, trace->rate: 212169
+Collection 3, 19838 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.327927, trace->rate: 135873
+Collection 4, 24103 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.593567, trace->rate: 154920
+Collection 5, 28261 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.890610, trace->rate: 174489
+Collection 6, 32445 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.187225, trace->rate: 130583
+Collection 7, 36631 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.501450, trace->rate: 119279
+Collection 8, 46446 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.156021, trace->rate: 134137
+Collection 9, 50533 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.421707, trace->rate: 143253
+Collection 10, 54550 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.640594, trace->rate: 151551
+Collection 11, 58427 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.976349, trace->rate: 163730
+Collection 12, 62383 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.281219, trace->rate: 140451
+Collection 13, 66290 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.577911, trace->rate: 116470
+Collection 14, 81950 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.578033, trace->rate: 148171
+Collection 15, 85684 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.812454, trace->rate: 154077
+Collection 16, 89411 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.078018, trace->rate: 138034
+Collection 17, 92959 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.343735, trace->rate: 143009
+Collection 18, 96671 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.578079, trace->rate: 147836
+Collection 19, 100377 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.953125, trace->rate: 119706
+Collection 20, 121653 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.249954, trace->rate: 142108
+Collection 21, 125106 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.515366, trace->rate: 146952
+Collection 22, 128454 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.765564, trace->rate: 151165
+Collection 23, 131767 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.031174, trace->rate: 139530
+Collection 24, 135265 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.265427, trace->rate: 142907
+Collection 25, 138704 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 15.155945, trace->rate: 109716
+Collection 26, 168385 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 12.796875, trace->rate: 147422
+Collection 27, 172958 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.118622, trace->rate: 140331
+Collection 28, 177420 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.359177, trace->rate: 142697
+Collection 29, 181808 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.687408, trace->rate: 146085
+Collection 30, 186299 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 14.031082, trace->rate: 139321
+Collection 31, 190788 objects.
+Objects 200000.
+
+arena_commit_test:
+ committed: 8642560, reserved: 16777216, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 8642560)
+ exit alloc loop, iAlloc: 1028, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 10604012.560000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 161.804391, trace->rate: 12114
+mps_arena_collect OK.
+alloc_v_test OK.
+collections: 32
+i == 0
+c: 32
+Objects 200000.
+
+arena_commit_test:
+ committed: 17190912, reserved: 33558528, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 17190912)
+ exit alloc loop, iAlloc: 7300, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 19449964.560000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 296.782906, trace->rate: 15298
+mps_arena_collect OK.
+alloc_v_test OK.
+--- mpsicv {hi} ---
+xcppgc: xcppgc/hi/version.o
+xcppgc: xcppgc/hi/mpsicv
+Randomizing 21940 times.
+collections: 0
+i == 0
+c: 0
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 29121
+Collection 1, 4167 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.081299, trace->rate: 49572
+Collection 2, 15513 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.984207, trace->rate: 220346
+Collection 3, 19764 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.312424, trace->rate: 132911
+Collection 4, 24028 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.585632, trace->rate: 154446
+Collection 5, 28139 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.870102, trace->rate: 173988
+Collection 6, 32339 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.218567, trace->rate: 133317
+Collection 7, 36559 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.529541, trace->rate: 120633
+Collection 8, 46442 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.140411, trace->rate: 133114
+Collection 9, 50455 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.437302, trace->rate: 144276
+Collection 10, 54470 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.656250, trace->rate: 152116
+Collection 11, 58351 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.974289, trace->rate: 164122
+Collection 12, 62301 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.249741, trace->rate: 139175
+Collection 13, 66225 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.546875, trace->rate: 115566
+Collection 14, 81889 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.524750, trace->rate: 146866
+Collection 15, 85512 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.827942, trace->rate: 154757
+Collection 16, 89265 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.045929, trace->rate: 136847
+Collection 17, 92807 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.321777, trace->rate: 142564
+Collection 18, 96499 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.578110, trace->rate: 148070
+Collection 19, 100129 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.923050, trace->rate: 119323
+Collection 20, 121319 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.229446, trace->rate: 141783
+Collection 21, 124830 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.545990, trace->rate: 147648
+Collection 22, 128197 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.715286, trace->rate: 149952
+Collection 23, 131504 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.999908, trace->rate: 154532
+Collection 24, 135019 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.234314, trace->rate: 142274
+Collection 25, 138446 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 15.377899, trace->rate: 110133
+Collection 26, 169454 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 12.906174, trace->rate: 149486
+Collection 27, 174035 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.156082, trace->rate: 140460
+Collection 28, 178516 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.434616, trace->rate: 143534
+Collection 29, 182837 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.799072, trace->rate: 147754
+Collection 30, 187268 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 14.109650, trace->rate: 140516
+Collection 31, 191638 objects.
+Objects 200000.
+
+arena_commit_test:
+ committed: 8814592, reserved: 16777216, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 8814592)
+ exit alloc loop, iAlloc: 1120, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 10634410.160000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 162.268221, trace->rate: 11978
+mps_arena_collect OK.
+alloc_v_test OK.
+collections: 32
+i == 0
+c: 32
+Objects 200000.
+
+arena_commit_test:
+ committed: 17190912, reserved: 33558528, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 17190912)
+ exit alloc loop, iAlloc: 7300, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 19449703.880000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 296.778929, trace->rate: 15299
+mps_arena_collect OK.
+alloc_v_test OK.
+--- mpsicv {hi} ---
+xcppgc: xcppgc/hi/version.o
+xcppgc: xcppgc/hi/mpsicv
+Randomizing 21976 times.
+collections: 0
+i == 0
+c: 0
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 29121
+Collection 1, 4162 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.081299, trace->rate: 49572
+Collection 2, 15508 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.984207, trace->rate: 220346
+Collection 3, 19759 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.312424, trace->rate: 132911
+Collection 4, 24023 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.585632, trace->rate: 154446
+Collection 5, 28134 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.870102, trace->rate: 173988
+Collection 6, 32334 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.218567, trace->rate: 133317
+Collection 7, 36554 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.529541, trace->rate: 120633
+Collection 8, 46437 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.140411, trace->rate: 133114
+Collection 9, 50450 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.437302, trace->rate: 144276
+Collection 10, 54465 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.656250, trace->rate: 152116
+Collection 11, 58346 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.974289, trace->rate: 164122
+Collection 12, 62296 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.265366, trace->rate: 139626
+Collection 13, 66220 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.546875, trace->rate: 115566
+Collection 14, 81884 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.524750, trace->rate: 146866
+Collection 15, 85507 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.827942, trace->rate: 154757
+Collection 16, 89260 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.061554, trace->rate: 137169
+Collection 17, 92802 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.337402, trace->rate: 142886
+Collection 18, 96494 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.578110, trace->rate: 148070
+Collection 19, 100124 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.923050, trace->rate: 119323
+Collection 20, 121314 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.229446, trace->rate: 141783
+Collection 21, 124825 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.545990, trace->rate: 147648
+Collection 22, 128192 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.715286, trace->rate: 149952
+Collection 23, 131499 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.999908, trace->rate: 154532
+Collection 24, 135014 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.234314, trace->rate: 142274
+Collection 25, 138441 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 15.377899, trace->rate: 110133
+Collection 26, 169449 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 12.906174, trace->rate: 149486
+Collection 27, 174030 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.156082, trace->rate: 140460
+Collection 28, 178511 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.434616, trace->rate: 143534
+Collection 29, 182832 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.799072, trace->rate: 147754
+Collection 30, 187263 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 14.109650, trace->rate: 140516
+Collection 31, 191633 objects.
+Objects 200000.
+
+arena_commit_test:
+ committed: 8777728, reserved: 16777216, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 8777728)
+ exit alloc loop, iAlloc: 1112, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 10640413.240000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 162.359821, trace->rate: 11966
+mps_arena_collect OK.
+alloc_v_test OK.
+collections: 32
+i == 0
+c: 32
+Objects 200000.
+
+arena_commit_test:
+ committed: 17190912, reserved: 33558528, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 17190912)
+ exit alloc loop, iAlloc: 7300, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 19449607.840000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 296.777463, trace->rate: 15299
+mps_arena_collect OK.
+alloc_v_test OK.
+--- mpsicv {hi} ---
+xcppgc: xcppgc/hi/version.o
+xcppgc: xcppgc/hi/mpsicv
+Randomizing 22008 times.
+collections: 0
+i == 0
+c: 0
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 29081
+Collection 1, 4162 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.081299, trace->rate: 49572
+Collection 2, 15508 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.984207, trace->rate: 220346
+Collection 3, 19759 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.312424, trace->rate: 132911
+Collection 4, 24023 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.585632, trace->rate: 154446
+Collection 5, 28134 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.870102, trace->rate: 173988
+Collection 6, 32334 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.218567, trace->rate: 133317
+Collection 7, 36554 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.529541, trace->rate: 120633
+Collection 8, 46437 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.140411, trace->rate: 133114
+Collection 9, 50450 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.437302, trace->rate: 144276
+Collection 10, 54465 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.656250, trace->rate: 152116
+Collection 11, 58346 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.974289, trace->rate: 164122
+Collection 12, 62296 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.249741, trace->rate: 139175
+Collection 13, 66220 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.546875, trace->rate: 115566
+Collection 14, 81884 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.524750, trace->rate: 146866
+Collection 15, 85507 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.827942, trace->rate: 154757
+Collection 16, 89260 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.045929, trace->rate: 136847
+Collection 17, 92802 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.321777, trace->rate: 142564
+Collection 18, 96494 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.562485, trace->rate: 147749
+Collection 19, 100124 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.923050, trace->rate: 119323
+Collection 20, 121314 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.229446, trace->rate: 141783
+Collection 21, 124825 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.545990, trace->rate: 147648
+Collection 22, 128192 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.715286, trace->rate: 149952
+Collection 23, 131499 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.999908, trace->rate: 154532
+Collection 24, 135014 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.234314, trace->rate: 142274
+Collection 25, 138441 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 15.377899, trace->rate: 110133
+Collection 26, 169449 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 12.906174, trace->rate: 149486
+Collection 27, 174030 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.156082, trace->rate: 140460
+Collection 28, 178511 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.434616, trace->rate: 143534
+Collection 29, 182832 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.799072, trace->rate: 147754
+Collection 30, 187263 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 14.109650, trace->rate: 140516
+Collection 31, 191633 objects.
+Objects 200000.
+
+arena_commit_test:
+ committed: 8814592, reserved: 16777216, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 8814592)
+ exit alloc loop, iAlloc: 1120, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 10638406.200000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 162.329196, trace->rate: 11978
+mps_arena_collect OK.
+alloc_v_test OK.
+collections: 32
+i == 0
+c: 32
+Objects 200000.
+
+arena_commit_test:
+ committed: 17190912, reserved: 33558528, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 17190912)
+ exit alloc loop, iAlloc: 7300, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 19449607.840000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 296.777463, trace->rate: 15299
+mps_arena_collect OK.
+alloc_v_test OK.
+--- mpsicv {hi} ---
+xcppgc: xcppgc/hi/version.o
+xcppgc: xcppgc/hi/mpsicv
+Randomizing 22042 times.
+collections: 0
+i == 0
+c: 0
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 29081
+Collection 1, 4160 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.081299, trace->rate: 49572
+Collection 2, 15506 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.984207, trace->rate: 220346
+Collection 3, 19757 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.312424, trace->rate: 132911
+Collection 4, 24021 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.585632, trace->rate: 154446
+Collection 5, 28132 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.870102, trace->rate: 173988
+Collection 6, 32332 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.218567, trace->rate: 133317
+Collection 7, 36552 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.529541, trace->rate: 120633
+Collection 8, 46435 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.140411, trace->rate: 133114
+Collection 9, 50448 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.437302, trace->rate: 144276
+Collection 10, 54463 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.656250, trace->rate: 152116
+Collection 11, 58344 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.974289, trace->rate: 164122
+Collection 12, 62294 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.249741, trace->rate: 139175
+Collection 13, 66218 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.546875, trace->rate: 115566
+Collection 14, 81882 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.524750, trace->rate: 146866
+Collection 15, 85505 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.827942, trace->rate: 154757
+Collection 16, 89258 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.045929, trace->rate: 136847
+Collection 17, 92800 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.321777, trace->rate: 142564
+Collection 18, 96492 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.562485, trace->rate: 147749
+Collection 19, 100122 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.923050, trace->rate: 119323
+Collection 20, 121312 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.229446, trace->rate: 141783
+Collection 21, 124823 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.545990, trace->rate: 147648
+Collection 22, 128190 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.715286, trace->rate: 149952
+Collection 23, 131497 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.999908, trace->rate: 154532
+Collection 24, 135012 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.234314, trace->rate: 142274
+Collection 25, 138439 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 15.377899, trace->rate: 110133
+Collection 26, 169447 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 12.906174, trace->rate: 149486
+Collection 27, 174028 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.156082, trace->rate: 140460
+Collection 28, 178509 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.434616, trace->rate: 143534
+Collection 29, 182830 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.799072, trace->rate: 147754
+Collection 30, 187261 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 14.109650, trace->rate: 140516
+Collection 31, 191631 objects.
+Objects 200000.
+
+arena_commit_test:
+ committed: 8814592, reserved: 16777216, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 8814592)
+ exit alloc loop, iAlloc: 1120, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 10638368.960000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 162.328628, trace->rate: 11979
+mps_arena_collect OK.
+alloc_v_test OK.
+collections: 32
+i == 0
+c: 32
+Objects 200000.
+
+arena_commit_test:
+ committed: 17190912, reserved: 33558528, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 17190912)
+ exit alloc loop, iAlloc: 7300, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 19449652.920000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 296.778151, trace->rate: 15299
+mps_arena_collect OK.
+alloc_v_test OK.
+--- mpsicv {hi} ---
+xcppgc: xcppgc/hi/version.o
+xcppgc: xcppgc/hi/mpsicv
+Randomizing 22070 times.
+collections: 0
+i == 0
+c: 0
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 29064
+Collection 1, 4158 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.079880, trace->rate: 53635
+Collection 2, 15504 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.984299, trace->rate: 220356
+Collection 3, 19760 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.312378, trace->rate: 132908
+Collection 4, 24022 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.584610, trace->rate: 154385
+Collection 5, 28130 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.869720, trace->rate: 173964
+Collection 6, 32330 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.218567, trace->rate: 133317
+Collection 7, 36550 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.529541, trace->rate: 120633
+Collection 8, 46433 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.140411, trace->rate: 133114
+Collection 9, 50446 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.437302, trace->rate: 144276
+Collection 10, 54461 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.656250, trace->rate: 152116
+Collection 11, 58342 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.974289, trace->rate: 164122
+Collection 12, 62292 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.249741, trace->rate: 139175
+Collection 13, 66216 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.546875, trace->rate: 115566
+Collection 14, 81880 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.524750, trace->rate: 146866
+Collection 15, 85503 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.827942, trace->rate: 154757
+Collection 16, 89256 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.045929, trace->rate: 136847
+Collection 17, 92798 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.321777, trace->rate: 142564
+Collection 18, 96490 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.562485, trace->rate: 147749
+Collection 19, 100120 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.923050, trace->rate: 119323
+Collection 20, 121310 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.229446, trace->rate: 141783
+Collection 21, 124821 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.545990, trace->rate: 147648
+Collection 22, 128188 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.715286, trace->rate: 149952
+Collection 23, 131495 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.999908, trace->rate: 154532
+Collection 24, 135010 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.234314, trace->rate: 142274
+Collection 25, 138437 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 15.377899, trace->rate: 110133
+Collection 26, 169445 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 12.906174, trace->rate: 149486
+Collection 27, 174026 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.156082, trace->rate: 140460
+Collection 28, 178507 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.434616, trace->rate: 143534
+Collection 29, 182828 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.799072, trace->rate: 147754
+Collection 30, 187259 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 14.109650, trace->rate: 140516
+Collection 31, 191629 objects.
+Objects 200000.
+
+arena_commit_test:
+ committed: 8814592, reserved: 16777216, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 8814592)
+ exit alloc loop, iAlloc: 1120, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 10638349.360000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 162.328329, trace->rate: 11979
+mps_arena_collect OK.
+alloc_v_test OK.
+collections: 32
+i == 0
+c: 32
+Objects 200000.
+
+arena_commit_test:
+ committed: 17190912, reserved: 33558528, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 17190912)
+ exit alloc loop, iAlloc: 7300, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 19449556.880000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 296.776686, trace->rate: 15299
+mps_arena_collect OK.
+alloc_v_test OK.
+--- mpsicv {hi} ---
+xcppgc: xcppgc/hi/version.o
+xcppgc: xcppgc/hi/mpsicv
+Randomizing 22102 times.
+collections: 0
+i == 0
+c: 0
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 29064
+Collection 1, 4155 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.079880, trace->rate: 53635
+Collection 2, 15501 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.984299, trace->rate: 220356
+Collection 3, 19757 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.312378, trace->rate: 132908
+Collection 4, 24019 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.584610, trace->rate: 154385
+Collection 5, 28127 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.869720, trace->rate: 173964
+Collection 6, 32327 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.218567, trace->rate: 133317
+Collection 7, 36547 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.513916, trace->rate: 120070
+Collection 8, 46430 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.140411, trace->rate: 133114
+Collection 9, 50443 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.437302, trace->rate: 144276
+Collection 10, 54458 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.656250, trace->rate: 152116
+Collection 11, 58339 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.974289, trace->rate: 164122
+Collection 12, 62289 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.249741, trace->rate: 139175
+Collection 13, 66213 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.546875, trace->rate: 115566
+Collection 14, 81877 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.524750, trace->rate: 146866
+Collection 15, 85500 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.827942, trace->rate: 154757
+Collection 16, 89253 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.045929, trace->rate: 136847
+Collection 17, 92795 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.321777, trace->rate: 142564
+Collection 18, 96487 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.562485, trace->rate: 147749
+Collection 19, 100117 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.923050, trace->rate: 119323
+Collection 20, 121307 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.229446, trace->rate: 141783
+Collection 21, 124818 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.545990, trace->rate: 147648
+Collection 22, 128185 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.715286, trace->rate: 149952
+Collection 23, 131492 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.999908, trace->rate: 154532
+Collection 24, 135007 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.234314, trace->rate: 142274
+Collection 25, 138434 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 15.377899, trace->rate: 110133
+Collection 26, 169442 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 12.906174, trace->rate: 149486
+Collection 27, 174023 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.156082, trace->rate: 140460
+Collection 28, 178504 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.434616, trace->rate: 143534
+Collection 29, 182825 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.799072, trace->rate: 147754
+Collection 30, 187256 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 14.109650, trace->rate: 140516
+Collection 31, 191626 objects.
+Objects 200000.
+
+arena_commit_test:
+ committed: 8814592, reserved: 16777216, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 8814592)
+ exit alloc loop, iAlloc: 1120, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 10638247.440000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 162.326774, trace->rate: 11979
+mps_arena_collect OK.
+alloc_v_test OK.
+collections: 32
+i == 0
+c: 32
+Objects 200000.
+
+arena_commit_test:
+ committed: 17190912, reserved: 33558528, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 17190912)
+ exit alloc loop, iAlloc: 7300, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 19449370.680000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 296.773845, trace->rate: 15300
+mps_arena_collect OK.
+alloc_v_test OK.
+--- mpsicv {hi} ---
+xcppgc: xcppgc/hi/version.o
+xcppgc: xcppgc/hi/mpsicv
+Randomizing 22132 times.
+collections: 0
+i == 0
+c: 0
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 29034
+Collection 1, 4154 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.079880, trace->rate: 51587
+Collection 2, 15500 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.984299, trace->rate: 220356
+Collection 3, 19756 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.312378, trace->rate: 132908
+Collection 4, 24018 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.600235, trace->rate: 155511
+Collection 5, 28126 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.869720, trace->rate: 173964
+Collection 6, 32326 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.218567, trace->rate: 133317
+Collection 7, 36546 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.265533, trace->rate: 117655
+Collection 8, 45058 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.046661, trace->rate: 130195
+Collection 9, 49037 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.327881, trace->rate: 140332
+Collection 10, 53007 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.559784, trace->rate: 149108
+Collection 11, 56902 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.859222, trace->rate: 159023
+Collection 12, 60881 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.140564, trace->rate: 136027
+Collection 13, 64797 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.468536, trace->rate: 114217
+Collection 14, 80457 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.449753, trace->rate: 145366
+Collection 15, 84144 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.715591, trace->rate: 151754
+Collection 16, 87793 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.943298, trace->rate: 157508
+Collection 17, 91375 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.220657, trace->rate: 140490
+Collection 18, 95012 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.512924, trace->rate: 147023
+Collection 19, 98787 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.843735, trace->rate: 118129
+Collection 20, 120086 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.140381, trace->rate: 140353
+Collection 21, 123532 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.375412, trace->rate: 144514
+Collection 22, 126800 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.613647, trace->rate: 148533
+Collection 23, 130158 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.921799, trace->rate: 153485
+Collection 24, 133663 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.124954, trace->rate: 140697
+Collection 25, 137107 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 15.062363, trace->rate: 108939
+Collection 26, 166765 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 12.734253, trace->rate: 146977
+Collection 27, 171343 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 12.953079, trace->rate: 149572
+Collection 28, 175822 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.308243, trace->rate: 142291
+Collection 29, 180269 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.609299, trace->rate: 145360
+Collection 30, 184765 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.948166, trace->rate: 149404
+Collection 31, 189226 objects.
+Objects 200000.
+
+arena_commit_test:
+ committed: 8642560, reserved: 16777216, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 8642560)
+ traceSetSignalEmergency eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+Segment 03FCDF78 [03AD3000,03AD4000) {
+  class 0005E29C ("AMCSEG")
+  pool 03FFE278 (7)
+  shield depth 2
+  protection mode:
+  shield mode: read
+  ranks: exact
+  white  00000000000000000000000000000001
+  grey   00000000000000000000000000000001
+  nailed 00000000000000000000000000000001
+  summary FFFFFFFF
+  buffer: NULL
+AMC seg 03FCDF78 [03AD3000,03AD4000){
+  Boarded
+  Map:  *===:object  bbbb:buffer
+    03AD3000  *===============*==============*==================*=============
+    03AD3100  ====*==*==*=========*================*===========*==============
+    03AD3200  =*==================*==========*====*==*===============*=====*==
+    03AD3300  =================*===========*=====*=======*========*=*=========
+    03AD3400  =*=======*===========*==============*======*=====*============*=
+    03AD3500  ============*===========*====================*==*===============
+    03AD3600  ==*=====*==================*==================*=================
+    03AD3700  =*==*====*=============*===*==*=============*===*=======*=======
+    03AD3800  *================*============*=====*=*==========*=*===*========
+    03AD3900  ==========*================*===================*=====*==========
+    03AD3A00  ==========*====================*===========*====================
+    03AD3B00  *=========*=========*===============*===*=============*=========
+    03AD3C00  ===*======*=================*================*=========*========
+    03AD3D00  ===*====================*========*==============*=======*=======
+    03AD3E00  ========*===========*==========*==========*======*=====*========
+    03AD3F00  ===========*=============*====*==============*======*=======*===
+  Sketch: bGW_
+  Sketch at previous Total scan: 
+  Sketch at last Total scan: 
+} AMC Seg 03FCDF78
+
+} Segment 03FCDF78
+amcScanNailed first loop:
+ ss.unfixedSummary: 00000000001000000000010000000000
+ ss.fixedSummary:   00000000001100000000000000000000
+amcScanNailed completed, but had to loop 2 times:
+ SegSummary:        11111111111111111111111111111111
+ ss.white:          01101111111111111000000000000000
+ ss.unfixedSummary: 00000000001100000000010000000000
+ ss.fixedSummary:   00000000001100000000000000000000
+ScanStateSummary:   00000000001100000000010000000000
+MOVING ScanStateSummary TO fixedSummary, RESETTING unfixedSummary.
+now:
+ ss.unfixedSummary: 00000000000000000000000000000000
+ ss.fixedSummary:   00000000001100000000010000000000
+ Total && ResOK?:   no
+Segment 03FCDF30 [03AD4000,03AD5000) {
+  class 0005E29C ("AMCSEG")
+  pool 03FFE278 (7)
+  shield depth 2
+  protection mode:
+  shield mode: read
+  ranks: exact
+  white  00000000000000000000000000000001
+  grey   00000000000000000000000000000001
+  nailed 00000000000000000000000000000001
+  summary FFFFFFFF
+  buffer: NULL
+AMC seg 03FCDF30 [03AD4000,03AD5000){
+  Boarded
+  Map:  *===:object  bbbb:buffer
+    03AD4000  *====================*====================*======*=======*====*=
+    03AD4100  =========*===*=====*=========*==*==*====*=======*===============
+    03AD4200  *============*============*=============*==================*=*=*
+    03AD4300  =====*==*==================*============*=============*=========
+    03AD4400  *==================*========*=======*==================*========
+    03AD4500  ============*=*=========*====*====*===*===================*=====
+    03AD4600  =============*============*====*=================*============*=
+    03AD4700  ===========*==========*=======*======*=*==============*====*====
+    03AD4800  ========*=*===*==*=====*==============*=====*=======*==*=*======
+    03AD4900  =====*===*=====*============*===========*========*========*=====
+    03AD4A00  ========*===*=============*=*=======*==============*==*======*==
+    03AD4B00  ================*===*====================*================*=====
+    03AD4C00  =============*=======*===========*==============*===============
+    03AD4D00  *======*============*================*====================*=====
+    03AD4E00  ===*===========*============*========*===*==============*=======
+    03AD4F00  =*==*===*==============*==========*================*===*=====*==
+  Sketch: bGW_
+  Sketch at previous Total scan: 
+  Sketch at last Total scan: 
+} AMC Seg 03FCDF30
+
+} Segment 03FCDF30
+amcScanNailed first loop:
+ ss.unfixedSummary: 00000000001000000000010000000000
+ ss.fixedSummary:   00000000001100000000000000000000
+amcScanNailed completed, but had to loop 2 times:
+ SegSummary:        11111111111111111111111111111111
+ ss.white:          01101111111111111000000000000000
+ ss.unfixedSummary: 00000000001100000000010000000000
+ ss.fixedSummary:   00000000001100000000000000000000
+ScanStateSummary:   00000000001100000000010000000000
+MOVING ScanStateSummary TO fixedSummary, RESETTING unfixedSummary.
+now:
+ ss.unfixedSummary: 00000000000000000000000000000000
+ ss.fixedSummary:   00000000001100000000010000000000
+ Total && ResOK?:   no
+Segment 03FCE090 [03AC9000,03ACA000) {
+  class 0005E29C ("AMCSEG")
+  pool 03FFE278 (7)
+  shield depth 2
+  protection mode:
+  shield mode: read
+  ranks: exact
+  white  00000000000000000000000000000001
+  grey   00000000000000000000000000000001
+  nailed 00000000000000000000000000000001
+  summary FFFFFFFF
+  buffer: NULL
+AMC seg 03FCE090 [03AC9000,03ACA000){
+  Boarded
+  Map:  *===:object  bbbb:buffer
+    03AC9000  *==================*==================*=================*=======
+    03AC9100  ============*===========*================*=================*====
+    03AC9200  ===========*=================*=================*================
+    03AC9300  ====*=========*================*===================*===*===*====
+    03AC9400  ==========*====================*================*=====*=========
+    03AC9500  ===========*==========*======*========*===*===*=============*===
+    03AC9600  =================*=======*=====*===*===========*=========*=====*
+    03AC9700  =================*=*====================*=======*===============
+    03AC9800  =*===*==*========*===========*===========*====================*=
+    03AC9900  =*=*=================*=======*============*====================*
+    03AC9A00  ========*================*========*================*============
+    03AC9B00  ====*========*================*==========*===*=========*=*======
+    03AC9C00  ==============*==================*===============*==============
+    03AC9D00  =*==================*======*====*=============*=============*===
+    03AC9E00  ==*====================*=*======*=====*=======*===============*=
+    03AC9F00  ===========*================*================*===*==============
+  Sketch: bGW_
+  Sketch at previous Total scan: 
+  Sketch at last Total scan: 
+} AMC Seg 03FCE090
+
+} Segment 03FCE090
+amcScanNailed first loop:
+ ss.unfixedSummary: 00000000001000000000010000000000
+ ss.fixedSummary:   00000000001100000000000000000000
+amcScanNailed completed, but had to loop 2 times:
+ SegSummary:        11111111111111111111111111111111
+ ss.white:          01101111111111111000000000000000
+ ss.unfixedSummary: 00000000001100000000010000000000
+ ss.fixedSummary:   00000000001100000000000000000000
+ScanStateSummary:   00000000001100000000010000000000
+MOVING ScanStateSummary TO fixedSummary, RESETTING unfixedSummary.
+now:
+ ss.unfixedSummary: 00000000000000000000000000000000
+ ss.fixedSummary:   00000000001100000000010000000000
+ Total && ResOK?:   no
+Segment 03FCE0D8 [03AC8000,03AC9000) {
+  class 0005E29C ("AMCSEG")
+  pool 03FFE278 (7)
+  shield depth 2
+  protection mode:
+  shield mode: read
+  ranks: exact
+  white  00000000000000000000000000000001
+  grey   00000000000000000000000000000001
+  nailed 00000000000000000000000000000001
+  summary FFFFFFFF
+  buffer: NULL
+AMC seg 03FCE0D8 [03AC8000,03AC9000){
+  Boarded
+  Map:  *===:object  bbbb:buffer
+    03AC8000  *================*===================*===========*==*===*=======
+    03AC8100  ============*===*====*==========*==================*===*========
+    03AC8200  ==*=============*==================*========*=============*=====
+    03AC8300  ===========*=================*====================*====*========
+    03AC8400  =*================*====================*==================*=====
+    03AC8500  ====*====================*===*===================*=============*
+    03AC8600  ================*==============*============*======*============
+    03AC8700  *=*=============*====================*===================*=*====
+    03AC8800  ===============*==========*===================*====*============
+    03AC8900  ===*===================*=================*===========*=====*=*==
+    03AC8A00  ===========*===========*====================*=================*=
+    03AC8B00  ==*==*=============*===================*==============*=========
+    03AC8C00  ========*===================*========*======*=========*=========
+    03AC8D00  =*===============*==============*========*==*==============*====
+    03AC8E00  =======*===================*=========*=======*=======*==========
+    03AC8F00  ==*===============*======*=*==================*=========*=======
+  Sketch: bGW_
+  Sketch at previous Total scan: 
+  Sketch at last Total scan: 
+} AMC Seg 03FCE0D8
+
+} Segment 03FCE0D8
+amcScanNailed first loop:
+ ss.unfixedSummary: 00000000001000000000010000000000
+ ss.fixedSummary:   00000000001100000000000000000000
+amcScanNailed completed, but had to loop 2 times:
+ SegSummary:        11111111111111111111111111111111
+ ss.white:          01101111111111111000000000000000
+ ss.unfixedSummary: 00000000001100000000010000000000
+ ss.fixedSummary:   00000000001100000000000000000000
+ScanStateSummary:   00000000001100000000010000000000
+MOVING ScanStateSummary TO fixedSummary, RESETTING unfixedSummary.
+now:
+ ss.unfixedSummary: 00000000000000000000000000000000
+ ss.fixedSummary:   00000000001100000000010000000000
+ Total && ResOK?:   no
+Segment 03FD2B40 [03AC7000,03AC8000) {
+  class 0005E29C ("AMCSEG")
+  pool 03FFE278 (7)
+  shield depth 1
+  protection mode:
+  shield mode: read
+  ranks: exact
+  white  00000000000000000000000000000001
+  grey   00000000000000000000000000000001
+  nailed 00000000000000000000000000000001
+  summary FFFFFFFF
+  buffer: NULL
+AMC seg 03FD2B40 [03AC7000,03AC8000){
+  Boarded
+  Map:  *===:object  bbbb:buffer
+    03AC7000  *===============*====*========*==========*===*=================*
+    03AC7100  ================*========*================*=*==*====*====*======
+    03AC7200  ==============*==============*=========*==========*==========*==
+    03AC7300  ===============*===========*==*================*================
+    03AC7400  ====*==========*========*============*=================*====*===
+    03AC7500  =====*================*====*============*===============*=======
+    03AC7600  *=====*===============*==============*=============*===*========
+    03AC7700  ==*=====*======*====*==================*===*====*========*======
+    03AC7800  ===*======*========*===============*======*========*========*===
+    03AC7900  ===============*====================*===================*==*====
+    03AC7A00  ==============*==============*=================*===============*
+    03AC7B00  ==================*=*=======*=*======*==============*====*======
+    03AC7C00  =====*=============*=====*=======*=======*==========*===========
+    03AC7D00  =*===================*=======*================*========*========
+    03AC7E00  =========*=*====================*=========*===================*=
+    03AC7F00  ====*====================*====*================*==============*=
+  Sketch: bGW_
+  Sketch at previous Total scan: 
+  Sketch at last Total scan: 
+} AMC Seg 03FD2B40
+
+} Segment 03FD2B40
+amcScanNailed first loop:
+ ss.unfixedSummary: 00000000001100000000010000000000
+ ss.fixedSummary:   00000000001100000000000000000000
+amcScanNailed completed, but had to loop 2 times:
+ SegSummary:        11111111111111111111111111111111
+ ss.white:          01101111111111111000000000000000
+ ss.unfixedSummary: 00000000001100000000010000000000
+ ss.fixedSummary:   00000000001100000000000000000000
+ScanStateSummary:   00000000001100000000010000000000
+MOVING ScanStateSummary TO fixedSummary, RESETTING unfixedSummary.
+now:
+ ss.unfixedSummary: 00000000000000000000000000000000
+ ss.fixedSummary:   00000000001100000000010000000000
+ Total && ResOK?:   no
+Segment 03FCD240 [03E94000,03E95000) {
+  class 0005E29C ("AMCSEG")
+  pool 03FFE278 (7)
+  shield depth 2
+  protection mode:
+  shield mode: read
+  ranks: exact
+  white  00000000000000000000000000000001
+  grey   00000000000000000000000000000001
+  nailed 00000000000000000000000000000001
+  summary FFFFFFFF
+  buffer: NULL
+AMC seg 03FCD240 [03E94000,03E95000){
+  Boarded
+  Map:  *===:object  bbbb:buffer
+    03E94000  *==========*==============*=======*==============*==========*===
+    03E94100  ===============*=========*================*===*=======*==*======
+    03E94200  =*==================*===============*================*==========
+    03E94300  ========*================*======*=================*======*======
+    03E94400  =============*==========*==*================*=*================*
+    03E94500  ============*=============*=*====*=*======*================*====
+    03E94600  ==============*======*========*===================*========*====
+    03E94700  ===*=================*=================*======*=======*=======*=
+    03E94800  =============*======*===============*================*==========
+    03E94900  ================================================================
+    03E94A00  ================================================================
+    03E94B00  ================================================================
+    03E94C00  ================================================================
+    03E94D00  ================================================================
+    03E94E00  ================================================================
+    03E94F00  ================================================================
+  Sketch: bGW_
+  Sketch at previous Total scan: mG_f
+  Sketch at last Total scan: mG_f
+} AMC Seg 03FCD240
+
+} Segment 03FCD240
+amcScanNailed first loop:
+ ss.unfixedSummary: 00100000000100000000010000000000
+ ss.fixedSummary:   00100000000100000000000000000000
+amcScanNailed completed, but had to loop 2 times:
+ SegSummary:        11111111111111111111111111111111
+ ss.white:          01101111111111111000000000000000
+ ss.unfixedSummary: 00100000000100000000010000000000
+ ss.fixedSummary:   00100000000100000000000000000000
+ScanStateSummary:   00100000000100000000010000000000
+MOVING ScanStateSummary TO fixedSummary, RESETTING unfixedSummary.
+now:
+ ss.unfixedSummary: 00000000000000000000000000000000
+ ss.fixedSummary:   00100000000100000000010000000000
+ Total && ResOK?:   no
+ TracePoll: dynamicDeferral: -2555462.000000, ArenaAvail: 2408448
+ traceStartCollectAll: finishingTime: -13765.080000
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ nPolls: 1.000000, trace->rate: 2422214
+ traceSetSignalEmergency eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+Segment 03FE0E10 [03E4E000,03E4F000) {
+  class 0005E29C ("AMCSEG")
+  pool 03FFE278 (7)
+  shield depth 2
+  protection mode:
+  shield mode: read
+  ranks: exact
+  white  00000000000000000000000000000001
+  grey   00000000000000000000000000000001
+  nailed 00000000000000000000000000000001
+  summary FFFFFFFF
+  buffer: NULL
+AMC seg 03FE0E10 [03E4E000,03E4F000){
+  Boarded
+  Map:  *===:object  bbbb:buffer
+    03E4E000  *=============*===============*=================*=*=============
+    03E4E100  =======*=========*=================*=============*==*====*======
+    03E4E200  ===*===================*===========*================*===========
+    03E4E300  ===*======*====================*=============*=================*
+    03E4E400  ================*================*=*========*==*============*==*
+    03E4E500  =*=============*=*===*==*======*==================*========*==*=
+    03E4E600  =======*===============*===============*====================*===
+    03E4E700  ============*==*====================*=============*==========*==
+    03E4E800  ==============*============*=*===*====================*=========
+    03E4E900  ==*=*==============*===========*=*=====*===============*========
+    03E4EA00  ============*=========*===========*=====*=========*=============
+    03E4EB00  ===*==========*=*=============*==================*============*=
+    03E4EC00  ========*=====*===*=============*===============*=========*====*
+    03E4ED00  ====================*================*===*==================*===
+    03E4EE00  =====*=====*==================*====*==================*=========
+    03E4EF00  =====*=================*==================*==========*========*=
+  Sketch: bGW_
+  Sketch at previous Total scan: 
+  Sketch at last Total scan: 
+} AMC Seg 03FE0E10
+
+} Segment 03FE0E10
+amcScanNailed first loop:
+ ss.unfixedSummary: 00010000000000000000010000000000
+ ss.fixedSummary:   00010000000100000000000000000000
+amcScanNailed completed, but had to loop 2 times:
+ SegSummary:        11111111111111111111111111111111
+ ss.white:          01111111111111111000000000000000
+ ss.unfixedSummary: 00010000000100000000010000000000
+ ss.fixedSummary:   00010000000100000000000000000000
+ScanStateSummary:   00010000000100000000010000000000
+MOVING ScanStateSummary TO fixedSummary, RESETTING unfixedSummary.
+now:
+ ss.unfixedSummary: 00000000000000000000000000000000
+ ss.fixedSummary:   00010000000100000000010000000000
+ Total && ResOK?:   no
+Segment 03FE0DC8 [03E4F000,03E50000) {
+  class 0005E29C ("AMCSEG")
+  pool 03FFE278 (7)
+  shield depth 2
+  protection mode:
+  shield mode: read
+  ranks: exact
+  white  00000000000000000000000000000001
+  grey   00000000000000000000000000000001
+  nailed 00000000000000000000000000000001
+  summary FFFFFFFF
+  buffer: NULL
+AMC seg 03FE0DC8 [03E4F000,03E50000){
+  Boarded
+  Map:  *===:object  bbbb:buffer
+    03E4F000  *==========*====*=====*========*==================*=====*=======
+    03E4F100  =*=====*=*=============*===============*=================*======
+    03E4F200  ====*=================*=*========*===================*=======*==
+    03E4F300  ==============*=======*===*=================*===========*=*==*==
+    03E4F400  ======*==========*==================*=======*========*==========
+    03E4F500  =======*======*=====*=========*=================*===============
+    03E4F600  ====*============*===========*==========*=================*=====
+    03E4F700  ===========*=*===*===============*=========*====================
+    03E4F800  *=================*===========*================*==*=============
+    03E4F900  =======*==================*=========*=============*==*=======*==
+    03E4FA00  =======*===========*==============*====*==*======*========*=====
+    03E4FB00  ============*==================*===============*=============*==
+    03E4FC00  *==========*=========*===========*==================*=========*=
+    03E4FD00  ==========*========*=*=*===============*====*===============*===
+    03E4FE00  ============*=============*=*===*=====*==============*==========
+    03E4FF00  =======*======*======*===========*============*=======*=========
+  Sketch: bGW_
+  Sketch at previous Total scan: 
+  Sketch at last Total scan: 
+} AMC Seg 03FE0DC8
+
+} Segment 03FE0DC8
+amcScanNailed first loop:
+ ss.unfixedSummary: 00010000000000000000010000000000
+ ss.fixedSummary:   00010000000100000000000000000000
+amcScanNailed completed, but had to loop 2 times:
+ SegSummary:        11111111111111111111111111111111
+ ss.white:          01111111111111111000000000000000
+ ss.unfixedSummary: 00010000000100000000010000000000
+ ss.fixedSummary:   00010000000100000000000000000000
+ScanStateSummary:   00010000000100000000010000000000
+MOVING ScanStateSummary TO fixedSummary, RESETTING unfixedSummary.
+now:
+ ss.unfixedSummary: 00000000000000000000000000000000
+ ss.fixedSummary:   00010000000100000000010000000000
+ Total && ResOK?:   no
+Segment 03FE0EA0 [03E4C000,03E4D000) {
+  class 0005E29C ("AMCSEG")
+  pool 03FFE278 (7)
+  shield depth 2
+  protection mode:
+  shield mode: read
+  ranks: exact
+  white  00000000000000000000000000000001
+  grey   00000000000000000000000000000001
+  nailed 00000000000000000000000000000001
+  summary FFFFFFFF
+Buffer 03FFE528 (4) {
+  class 0005E2E8 ("AMCBUF")
+  Arena 000FF000
+  Pool 03FFE278
+  Mutator Buffer
+  mode __fa (TRANSITION, LOGGED, FLIPPED, ATTACHED)
+  fillSize 9052Kb
+  emptySize 59Kb
+  alignment 00000004
+  base 03E4C000
+  initAtFlip 03E4CDBC
+  init 03E4CDBC
+  alloc 03E4CDBC
+  limit 00000000
+  poolLimit 03E4D000
+  Seg 03FE0EA0
+  rankSet 2
+} Buffer 03FFE528 (4)
+AMC seg 03FE0EA0 [03E4C000,03E4D000){
+  Boarded
+  Map:  *===:object  bbbb:buffer
+    03E4C000  *==*=====*=======*====================*========*================
+    03E4C100  *=======*==========*=====*==*============*=========*============
+    03E4C200  =======*===============*====*============*=============*========
+    03E4C300  =*==*================*==============*==========*=*=====*========
+    03E4C400  ============*==========*==================*=======*=============
+    03E4C500  ==*=============*========*================*==============*======
+    03E4C600  ==========*=====*===================*====*==================*===
+    03E4C700  ========*==================*====================*===============
+    03E4C800  ==*==========*=====*===*===================*======*======*======
+    03E4C900  ======*==========*===================*===================*======
+    03E4CA00  =============*====*=======*============*====================*==*
+    03E4CB00  ==========*================*=================*============*====*
+    03E4CC00  ==*===============*=*================*=*===============*========
+    03E4CD00  ============*==*==================*============bbbbbbbbbbbbbbbbb
+    03E4CE00  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+    03E4CF00  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+  Sketch: bGWs
+  Sketch at previous Total scan: 
+  Sketch at last Total scan: 
+} AMC Seg 03FE0EA0
+
+} Segment 03FE0EA0
+amcScanNailed first loop:
+ ss.unfixedSummary: 00010000000000000000010000000000
+ ss.fixedSummary:   00010000000100000000000000000000
+amcScanNailed completed, but had to loop 2 times:
+ SegSummary:        11111111111111111111111111111111
+ ss.white:          01111111111111111000000000000000
+ ss.unfixedSummary: 00010000000100000000010000000000
+ ss.fixedSummary:   00010000000100000000000000000000
+ScanStateSummary:   00010000000100000000010000000000
+MOVING ScanStateSummary TO fixedSummary, RESETTING unfixedSummary.
+now:
+ ss.unfixedSummary: 00000000000000000000000000000000
+ ss.fixedSummary:   00010000000100000000010000000000
+ Total && ResOK?:   no
+Segment 03FE0E58 [03E4D000,03E4E000) {
+  class 0005E29C ("AMCSEG")
+  pool 03FFE278 (7)
+  shield depth 2
+  protection mode:
+  shield mode: read
+  ranks: exact
+  white  00000000000000000000000000000001
+  grey   00000000000000000000000000000001
+  nailed 00000000000000000000000000000001
+  summary FFFFFFFF
+  buffer: NULL
+AMC seg 03FE0E58 [03E4D000,03E4E000){
+  Boarded
+  Map:  *===:object  bbbb:buffer
+    03E4D000  *================*=========*====*===================*====*======
+    03E4D100  ===*==============*==========*=====*========*===========*=======
+    03E4D200  ======*=================*========*========*============*======*=
+    03E4D300  ================*===========*==*=====*==========*========*======
+    03E4D400  ===========*===================*========*=*======*==============
+    03E4D500  ==*=============*=*=======*======*==*====================*==*===
+    03E4D600  ==============*==================*====================*==*======
+    03E4D700  =======*===========*======*=====*===================*===*=======
+    03E4D800  =======*===========*=============*=====*============*===========
+    03E4D900  =====*=========*========*=*============*==================*=====
+    03E4DA00  ============*=========*===========*============*======*=======*=
+    03E4DB00  ===*==================*============*===========*====*=====*=====
+    03E4DC00  ============*====*==================*==============*=====*======
+    03E4DD00  =*=======*=============*========*========*===*=========*==*==*==
+    03E4DE00  ======*=============*========*=====*=======*=================*==
+    03E4DF00  ============*===============*=============*===================*=
+  Sketch: bGW_
+  Sketch at previous Total scan: 
+  Sketch at last Total scan: 
+} AMC Seg 03FE0E58
+
+} Segment 03FE0E58
+amcScanNailed first loop:
+ ss.unfixedSummary: 00010000000000000000010000000000
+ ss.fixedSummary:   00010000000100000000000000000000
+amcScanNailed completed, but had to loop 2 times:
+ SegSummary:        11111111111111111111111111111111
+ ss.white:          01111111111111111000000000000000
+ ss.unfixedSummary: 00010000000100000000010000000000
+ ss.fixedSummary:   00010000000100000000000000000000
+ScanStateSummary:   00010000000100000000010000000000
+MOVING ScanStateSummary TO fixedSummary, RESETTING unfixedSummary.
+now:
+ ss.unfixedSummary: 00000000000000000000000000000000
+ ss.fixedSummary:   00010000000100000000010000000000
+ Total && ResOK?:   no
+Segment 03F00438 [03B07000,03B08000) {
+  class 0005E29C ("AMCSEG")
+  pool 03FFE278 (7)
+  shield depth 1
+  protection mode:
+  shield mode: read write
+  ranks: exact
+  white  00000000000000000000000000000001
+  grey   00000000000000000000000000000001
+  nailed 00000000000000000000000000000001
+  summary 00410400
+  buffer: NULL
+AMC seg 03F00438 [03B07000,03B08000){
+  Boarded
+  Map:  *===:object  bbbb:buffer
+    03B07000  *================*=========*=====*===============*==============
+    03B07100  =====*====================*=======*===========*======*========*=
+    03B07200  =*======*===*=======*=============*====*=*==========*=========*=
+    03B07300  ===================*===*===========*====*==================*====
+    03B07400  ============*======*==============*=====*============*==========
+    03B07500  ==*=================*=====*====*=============*==================
+    03B07600  =*=*=*===================*=======*=================*======*=====
+    03B07700  =======*====*================*=======*===============*=====*====
+    03B07800  *==================*========*================*===*===*=*========
+    03B07900  =====*====*==========*===============*========*=================
+    03B07A00  ==*===============*============*==================*=*=======*===
+    03B07B00  ================*==========*=====*=*============*=============*=
+    03B07C00  ====*=======*================*===================*==============
+    03B07D00  =====*============*=========*=============*=======*=============
+    03B07E00  =======*===============*=======*=*================*======*======
+    03B07F00  ==*==*===================*====*====================*============
+  Sketch: bGW_
+  Sketch at previous Total scan: mG_f
+  Sketch at last Total scan: mG__
+} AMC Seg 03F00438
+
+} Segment 03F00438
+amcScanNailed first loop:
+ ss.unfixedSummary: 00000000010000010000010000000000
+ ss.fixedSummary:   00001000010000010000000000000000
+amcScanNailed completed, but had to loop 2 times:
+ SegSummary:        00000000010000010000010000000000
+ ss.white:          01111111111111111000000000000000
+ ss.unfixedSummary: 00001000010000010000010000000000 <=== This would have failed .verify.segsummary!
+ ss.fixedSummary:   00001000010000010000000000000000
+ScanStateSummary:   00001000010000010000010000000000
+MOVING ScanStateSummary TO fixedSummary, RESETTING unfixedSummary.
+now:
+ ss.unfixedSummary: 00000000000000000000000000000000
+ ss.fixedSummary:   00001000010000010000010000000000
+ Total && ResOK?:   no
+Segment 03FD1990 [03EB2000,03EB3000) {
+  class 0005E29C ("AMCSEG")
+  pool 03FFE278 (7)
+  shield depth 1
+  protection mode:
+  shield mode: read write
+  ranks: exact
+  white  00000000000000000000000000000001
+  grey   00000000000000000000000000000001
+  nailed 00000000000000000000000000000001
+  summary 200B0400
+  buffer: NULL
+AMC seg 03FD1990 [03EB2000,03EB3000){
+  Boarded
+  Map:  *===:object  bbbb:buffer
+    03EB2000  *===========*========*================*=======*=======*===*=====
+    03EB2100  *=*====*===========*================*===============*==*=======*
+    03EB2200  =========*=============*========*===========*===========*=====*=
+    03EB2300  ==========*==*===========*===================*======*===========
+    03EB2400  ======*========*===================*================*===========
+    03EB2500  *=============*=====*====*===================*=======*==========
+    03EB2600  ========*===========*===================*==========*============
+    03EB2700  =====*=======*=======*===========*==================*=======*===
+    03EB2800  ================*==============*===============*================
+    03EB2900  ====*===================*===*==================*================
+    03EB2A00  ====*==*======*==*====================*========*=========*======
+    03EB2B00  ============*==*==================*=====*========*=====*=======*
+    03EB2C00  =========*===*==============*=========*====================*====
+    03EB2D00  ============*=============*=======*==============*=========*=*==
+    03EB2E00  *=====*====*==================*=============*===================
+    03EB2F00  =*===*===========*=======*===========*================*=========
+  Sketch: bGW_
+  Sketch at previous Total scan: mG__
+  Sketch at last Total scan: sGW_
+} AMC Seg 03FD1990
+
+} Segment 03FD1990
+amcScanNailed first loop:
+ ss.unfixedSummary: 00100000000010110000010000000000
+ ss.fixedSummary:   00100000000000101000000000000000
+amcScanNailed completed, but had to loop 2 times:
+ SegSummary:        00100000000010110000010000000000
+ ss.white:          01111111111111111000000000000000
+ ss.unfixedSummary: 00100000000010111000010000000000 <=== This would have failed .verify.segsummary!
+ ss.fixedSummary:   00100000000000101000000000000000
+ScanStateSummary:   00100000000000101000010000000000
+MOVING ScanStateSummary TO fixedSummary, RESETTING unfixedSummary.
+now:
+ ss.unfixedSummary: 00000000000000000000000000000000
+ ss.fixedSummary:   00100000000000101000010000000000
+ Total && ResOK?:   no
+ TracePoll: dynamicDeferral: -6594696.000000, ArenaAvail: 159744
+ traceStartCollectAll: finishingTime: -3332221.400000
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ nPolls: 1.000000, trace->rate: 3491966
+ traceSetSignalEmergency eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+Segment 03FE0E10 [03E4E000,03E4F000) {
+  class 0005E29C ("AMCSEG")
+  pool 03FFE278 (7)
+  shield depth 1
+  protection mode:
+  shield mode: read
+  ranks: exact
+  white  00000000000000000000000000000001
+  grey   00000000000000000000000000000001
+  nailed 00000000000000000000000000000001
+  summary FFFFFFFF
+  buffer: NULL
+AMC seg 03FE0E10 [03E4E000,03E4F000){
+  Boarded
+  Map:  *===:object  bbbb:buffer
+    03E4E000  *=============*===============*=================*=*=============
+    03E4E100  =======*=========*=================*=============*==*====*======
+    03E4E200  ===*===================*===========*================*===========
+    03E4E300  ===*======*====================*=============*=================*
+    03E4E400  ================*================*=*========*==*============*==*
+    03E4E500  =*=============*=*===*==*======*==================*========*==*=
+    03E4E600  =======*===============*===============*====================*===
+    03E4E700  ============*==*====================*=============*==========*==
+    03E4E800  ==============*============*=*===*====================*=========
+    03E4E900  ==*=*==============*===========*=*=====*===============*========
+    03E4EA00  ============*=========*===========*=====*=========*=============
+    03E4EB00  ===*==========*=*=============*==================*============*=
+    03E4EC00  ========*=====*===*=============*===============*=========*====*
+    03E4ED00  ====================*================*===*==================*===
+    03E4EE00  =====*=====*==================*====*==================*=========
+    03E4EF00  =====*=================*==================*==========*========*=
+  Sketch: bGW_
+  Sketch at previous Total scan: 
+  Sketch at last Total scan: bGW_
+} AMC Seg 03FE0E10
+
+} Segment 03FE0E10
+amcScanNailed first loop:
+ ss.unfixedSummary: 00010000000100000000010000000000
+ ss.fixedSummary:   00010000000100000000000000000000
+amcScanNailed completed, but had to loop 2 times:
+ SegSummary:        11111111111111111111111111111111
+ ss.white:          01111111111111111100000000000000
+ ss.unfixedSummary: 00010000000100000000010000000000
+ ss.fixedSummary:   00010000000100000000000000000000
+ScanStateSummary:   00010000000100000000010000000000
+MOVING ScanStateSummary TO fixedSummary, RESETTING unfixedSummary.
+now:
+ ss.unfixedSummary: 00000000000000000000000000000000
+ ss.fixedSummary:   00010000000100000000010000000000
+ Total && ResOK?:   no
+Segment 03FE0DC8 [03E4F000,03E50000) {
+  class 0005E29C ("AMCSEG")
+  pool 03FFE278 (7)
+  shield depth 1
+  protection mode:
+  shield mode: read
+  ranks: exact
+  white  00000000000000000000000000000001
+  grey   00000000000000000000000000000001
+  nailed 00000000000000000000000000000001
+  summary FFFFFFFF
+  buffer: NULL
+AMC seg 03FE0DC8 [03E4F000,03E50000){
+  Boarded
+  Map:  *===:object  bbbb:buffer
+    03E4F000  *==========*====*=====*========*==================*=====*=======
+    03E4F100  =*=====*=*=============*===============*=================*======
+    03E4F200  ====*=================*=*========*===================*=======*==
+    03E4F300  ==============*=======*===*=================*===========*=*==*==
+    03E4F400  ======*==========*==================*=======*========*==========
+    03E4F500  =======*======*=====*=========*=================*===============
+    03E4F600  ====*============*===========*==========*=================*=====
+    03E4F700  ===========*=*===*===============*=========*====================
+    03E4F800  *=================*===========*================*==*=============
+    03E4F900  =======*==================*=========*=============*==*=======*==
+    03E4FA00  =======*===========*==============*====*==*======*========*=====
+    03E4FB00  ============*==================*===============*=============*==
+    03E4FC00  *==========*=========*===========*==================*=========*=
+    03E4FD00  ==========*========*=*=*===============*====*===============*===
+    03E4FE00  ============*=============*=*===*=====*==============*==========
+    03E4FF00  =======*======*======*===========*============*=======*=========
+  Sketch: bGW_
+  Sketch at previous Total scan: 
+  Sketch at last Total scan: bGW_
+} AMC Seg 03FE0DC8
+
+} Segment 03FE0DC8
+amcScanNailed first loop:
+ ss.unfixedSummary: 00010000000100000000010000000000
+ ss.fixedSummary:   00010000000100000000000000000000
+amcScanNailed completed, but had to loop 2 times:
+ SegSummary:        11111111111111111111111111111111
+ ss.white:          01111111111111111100000000000000
+ ss.unfixedSummary: 00010000000100000000010000000000
+ ss.fixedSummary:   00010000000100000000000000000000
+ScanStateSummary:   00010000000100000000010000000000
+MOVING ScanStateSummary TO fixedSummary, RESETTING unfixedSummary.
+now:
+ ss.unfixedSummary: 00000000000000000000000000000000
+ ss.fixedSummary:   00010000000100000000010000000000
+ Total && ResOK?:   no
+Segment 03FE0EA0 [03E4C000,03E4D000) {
+  class 0005E29C ("AMCSEG")
+  pool 03FFE278 (7)
+  shield depth 1
+  protection mode:
+  shield mode: read
+  ranks: exact
+  white  00000000000000000000000000000001
+  grey   00000000000000000000000000000001
+  nailed 00000000000000000000000000000001
+  summary FFFFFFFF
+Buffer 03FFE528 (4) {
+  class 0005E2E8 ("AMCBUF")
+  Arena 000FF000
+  Pool 03FFE278
+  Mutator Buffer
+  mode __fa (TRANSITION, LOGGED, FLIPPED, ATTACHED)
+  fillSize 9052Kb
+  emptySize 59Kb
+  alignment 00000004
+  base 03E4C000
+  initAtFlip 03E4CDBC
+  init 03E4CDBC
+  alloc 03E4CDBC
+  limit 00000000
+  poolLimit 03E4D000
+  Seg 03FE0EA0
+  rankSet 2
+} Buffer 03FFE528 (4)
+AMC seg 03FE0EA0 [03E4C000,03E4D000){
+  Boarded
+  Map:  *===:object  bbbb:buffer
+    03E4C000  *==*=====*=======*====================*========*================
+    03E4C100  *=======*==========*=====*==*============*=========*============
+    03E4C200  =======*===============*====*============*=============*========
+    03E4C300  =*==*================*==============*==========*=*=====*========
+    03E4C400  ============*==========*==================*=======*=============
+    03E4C500  ==*=============*========*================*==============*======
+    03E4C600  ==========*=====*===================*====*==================*===
+    03E4C700  ========*==================*====================*===============
+    03E4C800  ==*==========*=====*===*===================*======*======*======
+    03E4C900  ======*==========*===================*===================*======
+    03E4CA00  =============*====*=======*============*====================*==*
+    03E4CB00  ==========*================*=================*============*====*
+    03E4CC00  ==*===============*=*================*=*===============*========
+    03E4CD00  ============*==*==================*============bbbbbbbbbbbbbbbbb
+    03E4CE00  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+    03E4CF00  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+  Sketch: bGWs
+  Sketch at previous Total scan: 
+  Sketch at last Total scan: bGWs
+} AMC Seg 03FE0EA0
+
+} Segment 03FE0EA0
+amcScanNailed first loop:
+ ss.unfixedSummary: 00010000000100000000010000000000
+ ss.fixedSummary:   00010000000100000000000000000000
+amcScanNailed completed, but had to loop 2 times:
+ SegSummary:        11111111111111111111111111111111
+ ss.white:          01111111111111111100000000000000
+ ss.unfixedSummary: 00010000000100000000010000000000
+ ss.fixedSummary:   00010000000100000000000000000000
+ScanStateSummary:   00010000000100000000010000000000
+MOVING ScanStateSummary TO fixedSummary, RESETTING unfixedSummary.
+now:
+ ss.unfixedSummary: 00000000000000000000000000000000
+ ss.fixedSummary:   00010000000100000000010000000000
+ Total && ResOK?:   no
+Segment 03FE0E58 [03E4D000,03E4E000) {
+  class 0005E29C ("AMCSEG")
+  pool 03FFE278 (7)
+  shield depth 2
+  protection mode:
+  shield mode: read
+  ranks: exact
+  white  00000000000000000000000000000001
+  grey   00000000000000000000000000000001
+  nailed 00000000000000000000000000000001
+  summary FFFFFFFF
+  buffer: NULL
+AMC seg 03FE0E58 [03E4D000,03E4E000){
+  Boarded
+  Map:  *===:object  bbbb:buffer
+    03E4D000  *================*=========*====*===================*====*======
+    03E4D100  ===*==============*==========*=====*========*===========*=======
+    03E4D200  ======*=================*========*========*============*======*=
+    03E4D300  ================*===========*==*=====*==========*========*======
+    03E4D400  ===========*===================*========*=*======*==============
+    03E4D500  ==*=============*=*=======*======*==*====================*==*===
+    03E4D600  ==============*==================*====================*==*======
+    03E4D700  =======*===========*======*=====*===================*===*=======
+    03E4D800  =======*===========*=============*=====*============*===========
+    03E4D900  =====*=========*========*=*============*==================*=====
+    03E4DA00  ============*=========*===========*============*======*=======*=
+    03E4DB00  ===*==================*============*===========*====*=====*=====
+    03E4DC00  ============*====*==================*==============*=====*======
+    03E4DD00  =*=======*=============*========*========*===*=========*==*==*==
+    03E4DE00  ======*=============*========*=====*=======*=================*==
+    03E4DF00  ============*===============*=============*===================*=
+  Sketch: bGW_
+  Sketch at previous Total scan: 
+  Sketch at last Total scan: bGW_
+} AMC Seg 03FE0E58
+
+} Segment 03FE0E58
+amcScanNailed first loop:
+ ss.unfixedSummary: 00010000000100000000010000000000
+ ss.fixedSummary:   00010000000100000000000000000000
+amcScanNailed completed, but had to loop 2 times:
+ SegSummary:        11111111111111111111111111111111
+ ss.white:          01111111111111111100000000000000
+ ss.unfixedSummary: 00010000000100000000010000000000
+ ss.fixedSummary:   00010000000100000000000000000000
+ScanStateSummary:   00010000000100000000010000000000
+MOVING ScanStateSummary TO fixedSummary, RESETTING unfixedSummary.
+now:
+ ss.unfixedSummary: 00000000000000000000000000000000
+ ss.fixedSummary:   00010000000100000000010000000000
+ Total && ResOK?:   no
+Segment 03FE8558 [0377B000,0377C000) {
+  class 0005E29C ("AMCSEG")
+  pool 03FFE278 (7)
+  shield depth 1
+  protection mode:
+  shield mode: read write
+  ranks: exact
+  white  00000000000000000000000000000001
+  grey   00000000000000000000000000000001
+  nailed 00000000000000000000000000000001
+  summary 01804400
+  buffer: NULL
+AMC seg 03FE8558 [0377B000,0377C000){
+  Boarded
+  Map:  *===:object  bbbb:buffer
+    0377B000  *=============*=========*==========*====*==*==================*=
+    0377B100  *==*======*=========*=*================*====================*===
+    0377B200  ===============*================*================*=============*
+    0377B300  ======*============*=========*====*=========*========*=====*====
+    0377B400  =======*====================*==========*==========*=============
+    0377B500  =====*======*========*====================*=======*=============
+    0377B600  ==*=========*=*================*======*=====*=================*=
+    0377B700  ====*========*========*=======*===*=================*=========*=
+    0377B800  ====*======*========*=============*=================*====*====*=
+    0377B900  =================*==*==============*============*===*===========
+    0377BA00  =======*==================*============*===================*====
+    0377BB00  ========*=========*===========*=================*============*=*
+    0377BC00  =========*===================*======*=*==============*==========
+    0377BD00  =======*===============*============*===================*=======
+    0377BE00  ===*=================*=========*======*====================*====
+    0377BF00  ==*====*===================*=======*=================*=======*==
+  Sketch: bGW_
+  Sketch at previous Total scan: 
+  Sketch at last Total scan: mG__
+} AMC Seg 03FE8558
+
+} Segment 03FE8558
+amcScanNailed first loop:
+ ss.unfixedSummary: 00000001100000000100010000000000
+ ss.fixedSummary:   00000001100000000100000000000000
+amcScanNailed completed, but had to loop 2 times:
+ SegSummary:        00000001100000000100010000000000
+ ss.white:          01111111111111111100000000000000
+ ss.unfixedSummary: 00000001100000000100010000000000
+ ss.fixedSummary:   00000001100000000100000000000000
+ScanStateSummary:   00000001100000000100010000000000
+MOVING ScanStateSummary TO fixedSummary, RESETTING unfixedSummary.
+now:
+ ss.unfixedSummary: 00000000000000000000000000000000
+ ss.fixedSummary:   00000001100000000100010000000000
+ Total && ResOK?:   no
+Segment 03FD1870 [03EB6000,03EB7000) {
+  class 0005E29C ("AMCSEG")
+  pool 03FFE278 (7)
+  shield depth 1
+  protection mode:
+  shield mode: read write
+  ranks: exact
+  white  00000000000000000000000000000001
+  grey   00000000000000000000000000000001
+  nailed 00000000000000000000000000000001
+  summary 20058400
+  buffer: NULL
+AMC seg 03FD1870 [03EB6000,03EB7000){
+  Boarded
+  Map:  *===:object  bbbb:buffer
+    03EB6000  *======*=*================*=======*===========*=======*=========
+    03EB6100  ===========*=======*=====*========*================*=====*===*==
+    03EB6200  =*===========*============*==========*==*==*========*===*====*==
+    03EB6300  ==============*==============*====================*=============
+    03EB6400  =======*=================*==============*===============*=======
+    03EB6500  ==========*=======*==========*==============*=====*==========*==
+    03EB6600  ===*==========*================*==========*===*===*===========*=
+    03EB6700  ===========*=======*===*=============*=================*========
+    03EB6800  *==========*=================*======*=============*=====*=*=====
+    03EB6900  =*===========*===================*=================*============
+    03EB6A00  ========*===*===============*=====*===========*============*====
+    03EB6B00  =============*==================*=====*========*=*====*=========
+    03EB6C00  ==*======*==========*=========*================*=============*==
+    03EB6D00  =============*==============*===========*=================*=====
+    03EB6E00  =============*====*================*========*===========*===*===
+    03EB6F00  =====*=========*==*===============*=======*====================*
+  Sketch: bGW_
+  Sketch at previous Total scan: sGW_
+  Sketch at last Total scan: sGW_
+} AMC Seg 03FD1870
+
+} Segment 03FD1870
+amcScanNailed first loop:
+ ss.unfixedSummary: 00100000000001011000010000000000
+ ss.fixedSummary:   00100000000001011000000000000000
+amcScanNailed completed, but had to loop 2 times:
+ SegSummary:        00100000000001011000010000000000
+ ss.white:          01111111111111111100000000000000
+ ss.unfixedSummary: 00100000000001011000010000000000
+ ss.fixedSummary:   00100000000001011000000000000000
+ScanStateSummary:   00100000000001011000010000000000
+MOVING ScanStateSummary TO fixedSummary, RESETTING unfixedSummary.
+now:
+ ss.unfixedSummary: 00000000000000000000000000000000
+ ss.fixedSummary:   00100000000001011000010000000000
+ Total && ResOK?:   no
+Segment 03FCE480 [03918000,03919000) {
+  class 0005E29C ("AMCSEG")
+  pool 03FFE278 (7)
+  shield depth 1
+  protection mode:
+  shield mode: read write
+  ranks: exact
+  white  00000000000000000000000000000001
+  grey   00000000000000000000000000000001
+  nailed 00000000000000000000000000000001
+  summary 00140400
+  buffer: NULL
+AMC seg 03FCE480 [03918000,03919000){
+  Boarded
+  Map:  *===:object  bbbb:buffer
+    03918000  *================*==================*=======*=============*====*
+    03918100  =================*===============*==============*=============*=
+    03918200  *=========*======*=======*==*=========*===========*=============
+    03918300  ======*=======*===*=================*===============*===========
+    03918400  ====*=========*==============*=======*================*=========
+    03918500  ========*===================*====================*=======*======
+    03918600  ============*===========*===============*============*==========
+    03918700  =*====*=======*=================*========*=*===============*====
+    03918800  ================================================================
+    03918900  ================================================================
+    03918A00  ================================================================
+    03918B00  ================================================================
+    03918C00  ================================================================
+    03918D00  ================================================================
+    03918E00  ================================================================
+    03918F00  ================================================================
+  Sketch: bGW_
+  Sketch at previous Total scan: mG_f
+  Sketch at last Total scan: mG_f
+} AMC Seg 03FCE480
+
+} Segment 03FCE480
+amcScanNailed first loop:
+ ss.unfixedSummary: 00000000000101000000010000000000
+ ss.fixedSummary:   00000000000101000000000000000000
+amcScanNailed completed, but had to loop 2 times:
+ SegSummary:        00000000000101000000010000000000
+ ss.white:          01111111111111111100000000000000
+ ss.unfixedSummary: 00000000000101000000010000000000
+ ss.fixedSummary:   00000000000101000000000000000000
+ScanStateSummary:   00000000000101000000010000000000
+MOVING ScanStateSummary TO fixedSummary, RESETTING unfixedSummary.
+now:
+ ss.unfixedSummary: 00000000000000000000000000000000
+ ss.fixedSummary:   00000000000101000000010000000000
+ Total && ResOK?:   YES
+ TracePoll: dynamicDeferral: -6719773.000000, ArenaAvail: 90112
+ traceStartCollectAll: finishingTime: -3403860.440000
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ nPolls: 1.000000, trace->rate: 3493973
+ traceSetSignalEmergency eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+Segment 03FE0E10 [03E4E000,03E4F000) {
+  class 0005E29C ("AMCSEG")
+  pool 03FFE278 (7)
+  shield depth 1
+  protection mode:
+  shield mode: read
+  ranks: exact
+  white  00000000000000000000000000000001
+  grey   00000000000000000000000000000001
+  nailed 00000000000000000000000000000001
+  summary FFFFFFFF
+  buffer: NULL
+AMC seg 03FE0E10 [03E4E000,03E4F000){
+  Boarded
+  Map:  *===:object  bbbb:buffer
+    03E4E000  *=============*===============*=================*=*=============
+    03E4E100  =======*=========*=================*=============*==*====*======
+    03E4E200  ===*===================*===========*================*===========
+    03E4E300  ===*======*====================*=============*=================*
+    03E4E400  ================*================*=*========*==*============*==*
+    03E4E500  =*=============*=*===*==*======*==================*========*==*=
+    03E4E600  =======*===============*===============*====================*===
+    03E4E700  ============*==*====================*=============*==========*==
+    03E4E800  ==============*============*=*===*====================*=========
+    03E4E900  ==*=*==============*===========*=*=====*===============*========
+    03E4EA00  ============*=========*===========*=====*=========*=============
+    03E4EB00  ===*==========*=*=============*==================*============*=
+    03E4EC00  ========*=====*===*=============*===============*=========*====*
+    03E4ED00  ====================*================*===*==================*===
+    03E4EE00  =====*=====*==================*====*==================*=========
+    03E4EF00  =====*=================*==================*==========*========*=
+  Sketch: bGW_
+  Sketch at previous Total scan: bGW_
+  Sketch at last Total scan: bGW_
+} AMC Seg 03FE0E10
+
+} Segment 03FE0E10
+amcScanNailed first loop:
+ ss.unfixedSummary: 00010000000100000000010000000000
+ ss.fixedSummary:   00010000000100000000000000000000
+amcScanNailed completed, but had to loop 2 times:
+ SegSummary:        11111111111111111111111111111111
+ ss.white:          01111111111111111100000000000000
+ ss.unfixedSummary: 00010000000100000000010000000000
+ ss.fixedSummary:   00010000000100000000000000000000
+ScanStateSummary:   00010000000100000000010000000000
+MOVING ScanStateSummary TO fixedSummary, RESETTING unfixedSummary.
+now:
+ ss.unfixedSummary: 00000000000000000000000000000000
+ ss.fixedSummary:   00010000000100000000010000000000
+ Total && ResOK?:   no
+Segment 03FE0DC8 [03E4F000,03E50000) {
+  class 0005E29C ("AMCSEG")
+  pool 03FFE278 (7)
+  shield depth 1
+  protection mode:
+  shield mode: read
+  ranks: exact
+  white  00000000000000000000000000000001
+  grey   00000000000000000000000000000001
+  nailed 00000000000000000000000000000001
+  summary FFFFFFFF
+  buffer: NULL
+AMC seg 03FE0DC8 [03E4F000,03E50000){
+  Boarded
+  Map:  *===:object  bbbb:buffer
+    03E4F000  *==========*====*=====*========*==================*=====*=======
+    03E4F100  =*=====*=*=============*===============*=================*======
+    03E4F200  ====*=================*=*========*===================*=======*==
+    03E4F300  ==============*=======*===*=================*===========*=*==*==
+    03E4F400  ======*==========*==================*=======*========*==========
+    03E4F500  =======*======*=====*=========*=================*===============
+    03E4F600  ====*============*===========*==========*=================*=====
+    03E4F700  ===========*=*===*===============*=========*====================
+    03E4F800  *=================*===========*================*==*=============
+    03E4F900  =======*==================*=========*=============*==*=======*==
+    03E4FA00  =======*===========*==============*====*==*======*========*=====
+    03E4FB00  ============*==================*===============*=============*==
+    03E4FC00  *==========*=========*===========*==================*=========*=
+    03E4FD00  ==========*========*=*=*===============*====*===============*===
+    03E4FE00  ============*=============*=*===*=====*==============*==========
+    03E4FF00  =======*======*======*===========*============*=======*=========
+  Sketch: bGW_
+  Sketch at previous Total scan: bGW_
+  Sketch at last Total scan: bGW_
+} AMC Seg 03FE0DC8
+
+} Segment 03FE0DC8
+amcScanNailed first loop:
+ ss.unfixedSummary: 00010000000100000000010000000000
+ ss.fixedSummary:   00010000000100000000000000000000
+amcScanNailed completed, but had to loop 2 times:
+ SegSummary:        11111111111111111111111111111111
+ ss.white:          01111111111111111100000000000000
+ ss.unfixedSummary: 00010000000100000000010000000000
+ ss.fixedSummary:   00010000000100000000000000000000
+ScanStateSummary:   00010000000100000000010000000000
+MOVING ScanStateSummary TO fixedSummary, RESETTING unfixedSummary.
+now:
+ ss.unfixedSummary: 00000000000000000000000000000000
+ ss.fixedSummary:   00010000000100000000010000000000
+ Total && ResOK?:   no
+Segment 03FE0EA0 [03E4C000,03E4D000) {
+  class 0005E29C ("AMCSEG")
+  pool 03FFE278 (7)
+  shield depth 1
+  protection mode:
+  shield mode: read
+  ranks: exact
+  white  00000000000000000000000000000001
+  grey   00000000000000000000000000000001
+  nailed 00000000000000000000000000000001
+  summary FFFFFFFF
+Buffer 03FFE528 (4) {
+  class 0005E2E8 ("AMCBUF")
+  Arena 000FF000
+  Pool 03FFE278
+  Mutator Buffer
+  mode __fa (TRANSITION, LOGGED, FLIPPED, ATTACHED)
+  fillSize 9052Kb
+  emptySize 59Kb
+  alignment 00000004
+  base 03E4C000
+  initAtFlip 03E4CDBC
+  init 03E4CDBC
+  alloc 03E4CDBC
+  limit 00000000
+  poolLimit 03E4D000
+  Seg 03FE0EA0
+  rankSet 2
+} Buffer 03FFE528 (4)
+AMC seg 03FE0EA0 [03E4C000,03E4D000){
+  Boarded
+  Map:  *===:object  bbbb:buffer
+    03E4C000  *==*=====*=======*====================*========*================
+    03E4C100  *=======*==========*=====*==*============*=========*============
+    03E4C200  =======*===============*====*============*=============*========
+    03E4C300  =*==*================*==============*==========*=*=====*========
+    03E4C400  ============*==========*==================*=======*=============
+    03E4C500  ==*=============*========*================*==============*======
+    03E4C600  ==========*=====*===================*====*==================*===
+    03E4C700  ========*==================*====================*===============
+    03E4C800  ==*==========*=====*===*===================*======*======*======
+    03E4C900  ======*==========*===================*===================*======
+    03E4CA00  =============*====*=======*============*====================*==*
+    03E4CB00  ==========*================*=================*============*====*
+    03E4CC00  ==*===============*=*================*=*===============*========
+    03E4CD00  ============*==*==================*============bbbbbbbbbbbbbbbbb
+    03E4CE00  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+    03E4CF00  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+  Sketch: bGWs
+  Sketch at previous Total scan: bGWs
+  Sketch at last Total scan: bGWs
+} AMC Seg 03FE0EA0
+
+} Segment 03FE0EA0
+amcScanNailed first loop:
+ ss.unfixedSummary: 00010000000100000000010000000000
+ ss.fixedSummary:   00010000000100000000000000000000
+amcScanNailed completed, but had to loop 2 times:
+ SegSummary:        11111111111111111111111111111111
+ ss.white:          01111111111111111100000000000000
+ ss.unfixedSummary: 00010000000100000000010000000000
+ ss.fixedSummary:   00010000000100000000000000000000
+ScanStateSummary:   00010000000100000000010000000000
+MOVING ScanStateSummary TO fixedSummary, RESETTING unfixedSummary.
+now:
+ ss.unfixedSummary: 00000000000000000000000000000000
+ ss.fixedSummary:   00010000000100000000010000000000
+ Total && ResOK?:   no
+Segment 03FE0E58 [03E4D000,03E4E000) {
+  class 0005E29C ("AMCSEG")
+  pool 03FFE278 (7)
+  shield depth 2
+  protection mode:
+  shield mode: read
+  ranks: exact
+  white  00000000000000000000000000000001
+  grey   00000000000000000000000000000001
+  nailed 00000000000000000000000000000001
+  summary FFFFFFFF
+  buffer: NULL
+AMC seg 03FE0E58 [03E4D000,03E4E000){
+  Boarded
+  Map:  *===:object  bbbb:buffer
+    03E4D000  *================*=========*====*===================*====*======
+    03E4D100  ===*==============*==========*=====*========*===========*=======
+    03E4D200  ======*=================*========*========*============*======*=
+    03E4D300  ================*===========*==*=====*==========*========*======
+    03E4D400  ===========*===================*========*=*======*==============
+    03E4D500  ==*=============*=*=======*======*==*====================*==*===
+    03E4D600  ==============*==================*====================*==*======
+    03E4D700  =======*===========*======*=====*===================*===*=======
+    03E4D800  =======*===========*=============*=====*============*===========
+    03E4D900  =====*=========*========*=*============*==================*=====
+    03E4DA00  ============*=========*===========*============*======*=======*=
+    03E4DB00  ===*==================*============*===========*====*=====*=====
+    03E4DC00  ============*====*==================*==============*=====*======
+    03E4DD00  =*=======*=============*========*========*===*=========*==*==*==
+    03E4DE00  ======*=============*========*=====*=======*=================*==
+    03E4DF00  ============*===============*=============*===================*=
+  Sketch: bGW_
+  Sketch at previous Total scan: bGW_
+  Sketch at last Total scan: bGW_
+} AMC Seg 03FE0E58
+
+} Segment 03FE0E58
+amcScanNailed first loop:
+ ss.unfixedSummary: 00010000000100000000010000000000
+ ss.fixedSummary:   00010000000100000000000000000000
+amcScanNailed completed, but had to loop 2 times:
+ SegSummary:        11111111111111111111111111111111
+ ss.white:          01111111111111111100000000000000
+ ss.unfixedSummary: 00010000000100000000010000000000
+ ss.fixedSummary:   00010000000100000000000000000000
+ScanStateSummary:   00010000000100000000010000000000
+MOVING ScanStateSummary TO fixedSummary, RESETTING unfixedSummary.
+now:
+ ss.unfixedSummary: 00000000000000000000000000000000
+ ss.fixedSummary:   00010000000100000000010000000000
+ Total && ResOK?:   no
+ TracePoll: dynamicDeferral: -6844850.000000, ArenaAvail: 20480
+ traceStartCollectAll: finishingTime: -3473492.440000
+ TraceStart: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ nPolls: 1.000000, trace->rate: 3493973
+ traceSetSignalEmergency eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+Segment 03FE0E10 [03E4E000,03E4F000) {
+  class 0005E29C ("AMCSEG")
+  pool 03FFE278 (7)
+  shield depth 1
+  protection mode:
+  shield mode: read
+  ranks: exact
+  white  00000000000000000000000000000001
+  grey   00000000000000000000000000000001
+  nailed 00000000000000000000000000000001
+  summary FFFFFFFF
+  buffer: NULL
+AMC seg 03FE0E10 [03E4E000,03E4F000){
+  Boarded
+  Map:  *===:object  bbbb:buffer
+    03E4E000  *=============*===============*=================*=*=============
+    03E4E100  =======*=========*=================*=============*==*====*======
+    03E4E200  ===*===================*===========*================*===========
+    03E4E300  ===*======*====================*=============*=================*
+    03E4E400  ================*================*=*========*==*============*==*
+    03E4E500  =*=============*=*===*==*======*==================*========*==*=
+    03E4E600  =======*===============*===============*====================*===
+    03E4E700  ============*==*====================*=============*==========*==
+    03E4E800  ==============*============*=*===*====================*=========
+    03E4E900  ==*=*==============*===========*=*=====*===============*========
+    03E4EA00  ============*=========*===========*=====*=========*=============
+    03E4EB00  ===*==========*=*=============*==================*============*=
+    03E4EC00  ========*=====*===*=============*===============*=========*====*
+    03E4ED00  ====================*================*===*==================*===
+    03E4EE00  =====*=====*==================*====*==================*=========
+    03E4EF00  =====*=================*==================*==========*========*=
+  Sketch: bGW_
+  Sketch at previous Total scan: bGW_
+  Sketch at last Total scan: bGW_
+} AMC Seg 03FE0E10
+
+} Segment 03FE0E10
+amcScanNailed first loop:
+ ss.unfixedSummary: 00010000000100000000010000000000
+ ss.fixedSummary:   00010000000100000000000000000000
+amcScanNailed completed, but had to loop 2 times:
+ SegSummary:        11111111111111111111111111111111
+ ss.white:          01111111111111111100000000000000
+ ss.unfixedSummary: 00010000000100000000010000000000
+ ss.fixedSummary:   00010000000100000000000000000000
+ScanStateSummary:   00010000000100000000010000000000
+MOVING ScanStateSummary TO fixedSummary, RESETTING unfixedSummary.
+now:
+ ss.unfixedSummary: 00000000000000000000000000000000
+ ss.fixedSummary:   00010000000100000000010000000000
+ Total && ResOK?:   no
+Segment 03FE0DC8 [03E4F000,03E50000) {
+  class 0005E29C ("AMCSEG")
+  pool 03FFE278 (7)
+  shield depth 2
+  protection mode:
+  shield mode: read
+  ranks: exact
+  white  00000000000000000000000000000001
+  grey   00000000000000000000000000000001
+  nailed 00000000000000000000000000000001
+  summary FFFFFFFF
+  buffer: NULL
+AMC seg 03FE0DC8 [03E4F000,03E50000){
+  Boarded
+  Map:  *===:object  bbbb:buffer
+    03E4F000  *==========*====*=====*========*==================*=====*=======
+    03E4F100  =*=====*=*=============*===============*=================*======
+    03E4F200  ====*=================*=*========*===================*=======*==
+    03E4F300  ==============*=======*===*=================*===========*=*==*==
+    03E4F400  ======*==========*==================*=======*========*==========
+    03E4F500  =======*======*=====*=========*=================*===============
+    03E4F600  ====*============*===========*==========*=================*=====
+    03E4F700  ===========*=*===*===============*=========*====================
+    03E4F800  *=================*===========*================*==*=============
+    03E4F900  =======*==================*=========*=============*==*=======*==
+    03E4FA00  =======*===========*==============*====*==*======*========*=====
+    03E4FB00  ============*==================*===============*=============*==
+    03E4FC00  *==========*=========*===========*==================*=========*=
+    03E4FD00  ==========*========*=*=*===============*====*===============*===
+    03E4FE00  ============*=============*=*===*=====*==============*==========
+    03E4FF00  =======*======*======*===========*============*=======*=========
+  Sketch: bGW_
+  Sketch at previous Total scan: bGW_
+  Sketch at last Total scan: bGW_
+} AMC Seg 03FE0DC8
+
+} Segment 03FE0DC8
+amcScanNailed first loop:
+ ss.unfixedSummary: 00010000000100000000010000000000
+ ss.fixedSummary:   00010000000100000000000000000000
+amcScanNailed completed, but had to loop 2 times:
+ SegSummary:        11111111111111111111111111111111
+ ss.white:          01111111111111111100000000000000
+ ss.unfixedSummary: 00010000000100000000010000000000
+ ss.fixedSummary:   00010000000100000000000000000000
+ScanStateSummary:   00010000000100000000010000000000
+MOVING ScanStateSummary TO fixedSummary, RESETTING unfixedSummary.
+now:
+ ss.unfixedSummary: 00000000000000000000000000000000
+ ss.fixedSummary:   00010000000100000000010000000000
+ Total && ResOK?:   no
+Segment 03FE0EA0 [03E4C000,03E4D000) {
+  class 0005E29C ("AMCSEG")
+  pool 03FFE278 (7)
+  shield depth 2
+  protection mode:
+  shield mode: read
+  ranks: exact
+  white  00000000000000000000000000000001
+  grey   00000000000000000000000000000001
+  nailed 00000000000000000000000000000001
+  summary FFFFFFFF
+Buffer 03FFE528 (4) {
+  class 0005E2E8 ("AMCBUF")
+  Arena 000FF000
+  Pool 03FFE278
+  Mutator Buffer
+  mode __fa (TRANSITION, LOGGED, FLIPPED, ATTACHED)
+  fillSize 9052Kb
+  emptySize 59Kb
+  alignment 00000004
+  base 03E4C000
+  initAtFlip 03E4CDBC
+  init 03E4CDBC
+  alloc 03E4CDBC
+  limit 00000000
+  poolLimit 03E4D000
+  Seg 03FE0EA0
+  rankSet 2
+} Buffer 03FFE528 (4)
+AMC seg 03FE0EA0 [03E4C000,03E4D000){
+  Boarded
+  Map:  *===:object  bbbb:buffer
+    03E4C000  *==*=====*=======*====================*========*================
+    03E4C100  *=======*==========*=====*==*============*=========*============
+    03E4C200  =======*===============*====*============*=============*========
+    03E4C300  =*==*================*==============*==========*=*=====*========
+    03E4C400  ============*==========*==================*=======*=============
+    03E4C500  ==*=============*========*================*==============*======
+    03E4C600  ==========*=====*===================*====*==================*===
+    03E4C700  ========*==================*====================*===============
+    03E4C800  ==*==========*=====*===*===================*======*======*======
+    03E4C900  ======*==========*===================*===================*======
+    03E4CA00  =============*====*=======*============*====================*==*
+    03E4CB00  ==========*================*=================*============*====*
+    03E4CC00  ==*===============*=*================*=*===============*========
+    03E4CD00  ============*==*==================*============bbbbbbbbbbbbbbbbb
+    03E4CE00  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+    03E4CF00  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+  Sketch: bGWs
+  Sketch at previous Total scan: bGWs
+  Sketch at last Total scan: bGWs
+} AMC Seg 03FE0EA0
+
+} Segment 03FE0EA0
+amcScanNailed first loop:
+ ss.unfixedSummary: 00010000000100000000010000000000
+ ss.fixedSummary:   00010000000100000000000000000000
+amcScanNailed completed, but had to loop 2 times:
+ SegSummary:        11111111111111111111111111111111
+ ss.white:          01111111111111111100000000000000
+ ss.unfixedSummary: 00010000000100000000010000000000
+ ss.fixedSummary:   00010000000100000000000000000000
+ScanStateSummary:   00010000000100000000010000000000
+MOVING ScanStateSummary TO fixedSummary, RESETTING unfixedSummary.
+now:
+ ss.unfixedSummary: 00000000000000000000000000000000
+ ss.fixedSummary:   00010000000100000000010000000000
+ Total && ResOK?:   no
+Segment 03FE0E58 [03E4D000,03E4E000) {
+  class 0005E29C ("AMCSEG")
+  pool 03FFE278 (7)
+  shield depth 2
+  protection mode:
+  shield mode: read
+  ranks: exact
+  white  00000000000000000000000000000001
+  grey   00000000000000000000000000000001
+  nailed 00000000000000000000000000000001
+  summary FFFFFFFF
+  buffer: NULL
+AMC seg 03FE0E58 [03E4D000,03E4E000){
+  Boarded
+  Map:  *===:object  bbbb:buffer
+    03E4D000  *================*=========*====*===================*====*======
+    03E4D100  ===*==============*==========*=====*========*===========*=======
+    03E4D200  ======*=================*========*========*============*======*=
+    03E4D300  ================*===========*==*=====*==========*========*======
+    03E4D400  ===========*===================*========*=*======*==============
+    03E4D500  ==*=============*=*=======*======*==*====================*==*===
+    03E4D600  ==============*==================*====================*==*======
+    03E4D700  =======*===========*======*=====*===================*===*=======
+    03E4D800  =======*===========*=============*=====*============*===========
+    03E4D900  =====*=========*========*=*============*==================*=====
+    03E4DA00  ============*=========*===========*============*======*=======*=
+    03E4DB00  ===*==================*============*===========*====*=====*=====
+    03E4DC00  ============*====*==================*==============*=====*======
+    03E4DD00  =*=======*=============*========*========*===*=========*==*==*==
+    03E4DE00  ======*=============*========*=====*=======*=================*==
+    03E4DF00  ============*===============*=============*===================*=
+  Sketch: bGW_
+  Sketch at previous Total scan: bGW_
+  Sketch at last Total scan: bGW_
+} AMC Seg 03FE0E58
+
+} Segment 03FE0E58
+amcScanNailed first loop:
+ ss.unfixedSummary: 00010000000100000000010000000000
+ ss.fixedSummary:   00010000000100000000000000000000
+amcScanNailed completed, but had to loop 2 times:
+ SegSummary:        11111111111111111111111111111111
+ ss.white:          01111111111111111100000000000000
+ ss.unfixedSummary: 00010000000100000000010000000000
+ ss.fixedSummary:   00010000000100000000000000000000
+ScanStateSummary:   00010000000100000000010000000000
+MOVING ScanStateSummary TO fixedSummary, RESETTING unfixedSummary.
+now:
+ ss.unfixedSummary: 00000000000000000000000000000000
+ ss.fixedSummary:   00010000000100000000010000000000
+ Total && ResOK?:   no
+Segment 03F00FB0 [0393A000,0393B000) {
+  class 0005E29C ("AMCSEG")
+  pool 03FFE278 (7)
+  shield depth 1
+  protection mode:
+  shield mode: read write
+  ranks: exact
+  white  00000000000000000000000000000001
+  grey   00000000000000000000000000000001
+  nailed 00000000000000000000000000000001
+  summary 000C0400
+  buffer: NULL
+AMC seg 03F00FB0 [0393A000,0393B000){
+  Boarded
+  Map:  *===:object  bbbb:buffer
+    0393A000  *=============*=================*============*============*=====
+    0393A100  ==========*==================*=========*==*===============*==*==
+    0393A200  =============*=========*===============*=======*================
+    0393A300  ====*==========*==*=================*============*====*=========
+    0393A400  =====*=============*=======*==============*======*====*==*======
+    0393A500  ========*=============*============*======*=*====*==============
+    0393A600  ==*=============*============*===*=====*==================*=====
+    0393A700  ==========*======*====================*==================*======
+    0393A800  ===*================*=======*================*=====*===*=====*==
+    0393A900  ==================*======*==============*================*=*====
+    0393AA00  ======*==================*=*========*===*=================*====*
+    0393AB00  ====*=================*====*=====*=============*=============*==
+    0393AC00  ===========*=================*=============*========*===========
+    0393AD00  =*==========*=================*====*====*=================*=====
+    0393AE00  ==============*========*====*========*=======*================*=
+    0393AF00  =============*=================*================*===============
+  Sketch: bGW_
+  Sketch at previous Total scan: 
+  Sketch at last Total scan: mG__
+} AMC Seg 03F00FB0
+
+} Segment 03F00FB0
+amcScanNailed first loop:
+ ss.unfixedSummary: 00000000000011000000010000000000
+ ss.fixedSummary:   00000000000011000000000000000000
+amcScanNailed completed, but had to loop 2 times:
+ SegSummary:        00000000000011000000010000000000
+ ss.white:          01111111111111111100000000000000
+ ss.unfixedSummary: 00000000000011000000010000000000
+ ss.fixedSummary:   00000000000011000000000000000000
+ScanStateSummary:   00000000000011000000010000000000
+MOVING ScanStateSummary TO fixedSummary, RESETTING unfixedSummary.
+now:
+ ss.unfixedSummary: 00000000000000000000000000000000
+ ss.fixedSummary:   00000000000011000000010000000000
+ Total && ResOK?:   no
+ exit alloc loop, iAlloc: 1196, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 5889904.760000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 89.872814, trace->rate: 39259
+mps_arena_collect OK.
+alloc_v_test OK.
+collections: 36
+i == 0
+c: 36
+Objects 200000.
+
+arena_commit_test:
+ committed: 11141120, reserved: 33558528, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 11141120)
+ exit alloc loop, iAlloc: 1516, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 19469915.360000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 297.087332, trace->rate: 15248
+mps_arena_collect OK.
+alloc_v_test OK.
+--- mpsicv {hi} ---
+xcppgc: xcppgc/hi/version.o
+xcppgc: xcppgc/hi/mpsicv
+Randomizing 22166 times.
+collections: 0
+i == 0
+c: 0
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.000000, trace->rate: 29034
+Collection 1, 4150 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.079880, trace->rate: 51587
+Collection 2, 15496 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 1.984299, trace->rate: 220356
+Collection 3, 19752 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.312378, trace->rate: 132908
+Collection 4, 24014 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.600235, trace->rate: 155511
+Collection 5, 28122 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 2.869720, trace->rate: 173964
+Collection 6, 32322 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 3.218567, trace->rate: 133317
+Collection 7, 36542 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.513916, trace->rate: 120070
+Collection 8, 46425 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.124786, trace->rate: 132550
+Collection 9, 50438 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.437302, trace->rate: 144276
+Collection 10, 54453 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.656250, trace->rate: 152116
+Collection 11, 58334 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 4.974289, trace->rate: 164122
+Collection 12, 62284 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 5.249741, trace->rate: 139175
+Collection 13, 66208 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.546875, trace->rate: 115566
+Collection 14, 81872 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.524750, trace->rate: 146866
+Collection 15, 85495 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 6.827942, trace->rate: 154757
+Collection 16, 89248 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.045929, trace->rate: 136847
+Collection 17, 92790 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.321777, trace->rate: 142564
+Collection 18, 96482 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 7.578079, trace->rate: 147836
+Collection 19, 100207 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.937469, trace->rate: 119480
+Collection 20, 121472 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.249954, trace->rate: 142108
+Collection 21, 124936 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.475555, trace->rate: 146114
+Collection 22, 128228 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.718704, trace->rate: 150004
+Collection 23, 131588 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 9.991028, trace->rate: 154190
+Collection 24, 135037 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 10.265625, trace->rate: 142910
+Collection 25, 138521 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 15.156097, trace->rate: 109840
+Collection 26, 168186 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 12.812439, trace->rate: 147763
+Collection 27, 172769 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.064987, trace->rate: 139455
+Collection 28, 177182 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.377335, trace->rate: 143328
+Collection 29, 181533 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 13.716934, trace->rate: 146697
+Collection 30, 186091 objects.
+ TraceStart: Generation 0 of a chain has reached capacity: start a minor collection.
+ nPolls: 14.015579, trace->rate: 139410
+Collection 31, 190512 objects.
+Objects 200000.
+
+arena_commit_test:
+ committed: 8642560, reserved: 16777216, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 8642560)
+ exit alloc loop, iAlloc: 1020, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 10589217.720000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 161.578640, trace->rate: 12129
+mps_arena_collect OK.
+alloc_v_test OK.
+collections: 32
+i == 0
+c: 32
+Objects 200000.
+
+arena_commit_test:
+ committed: 17190912, reserved: 33558528, limit: 4294967295.
+ mps_arena_commit_limit_set(committed: 17190912)
+ exit alloc loop, iAlloc: 7300, res: 7.
+ mps_arena_commit_limit_set(limit: 4294967295)
+ new alloc, res: 0.
+arena_commit_test OK, reservoir_test OK, alignmentTest OK.
+ traceStartCollectAll: finishingTime: 19449343.240000
+ TraceStart: Client requests: immediate full collection.
+ nPolls: 296.773426, trace->rate: 15300
+mps_arena_collect OK.
+alloc_v_test OK.

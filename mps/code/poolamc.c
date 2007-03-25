@@ -188,24 +188,34 @@ static void AMCSegSketch(Seg seg, char *pbSketch, size_t cbSketch)
     pbSketch[3] = '_';
   } else {
     Bool mut = BufferIsMutator(buffer);
-    Bool flipped = buffer->mode & BufferModeFLIPPED;
+    Bool flipped = ((buffer->mode & BufferModeFLIPPED) != 0);
     Bool trapped = BufferIsTrapped(buffer);
-    Bool limitzeroed = buffer->apStruct.limit == 0;
+    Bool limitzeroed = (buffer->apStruct.limit == 0);
 
     pbSketch[3] = 'X';  /* I don't know what's going on! */
 
     if ( (flipped == trapped) && (trapped == limitzeroed) ) {
       if (mut) {
         if (flipped) {
-          pbSketch[3] = 'n';  /* neo */
-        } else {
           pbSketch[3] = 's';  /* stalo */
+        } else {
+          pbSketch[3] = 'n';  /* neo */
         }
       } else {
         if (!flipped) {
           pbSketch[3] = 'f';  /* forwarding */
         }
       }
+    } else {
+      /* I don't know what's going on! */
+      static Bool already = FALSE;
+      already = already || WriteF
+        (
+         mps_lib_get_stdout(),
+         ".......Flipped $U, Trapped $U, LimitZeroed $U.....\n",
+         (WriteFU)flipped, (WriteFU)trapped, (WriteFU)limitzeroed,
+         NULL
+        );
     }
   }
   
@@ -1325,7 +1335,8 @@ returnGood:
 static Res amcScanNailed(Bool *totalReturn, ScanState ss, Pool pool,
                          Seg seg, AMC amc)
 {
-  Bool total, moreScanning, looped = FALSE;
+  Bool total, moreScanning;
+  size_t loops = 0;
 
   do {
     Res res;
@@ -1334,7 +1345,22 @@ static Res amcScanNailed(Bool *totalReturn, ScanState ss, Pool pool,
       *totalReturn = FALSE;
       return res;
     }
-    if (moreScanning) {
+    loops += 1;
+    if (moreScanning && (loops == 1)) {
+      SegDescribe(seg, mps_lib_get_stdout());
+      (void) WriteF(mps_lib_get_stdout(),
+        "amcScanNailed first loop:\n",
+        " ss.unfixedSummary: $B\n", (WriteFB)ss->unfixedSummary,
+        " ss.fixedSummary:   $B\n", (WriteFB)ss->fixedSummary,
+        NULL
+      );
+    }
+  } while(moreScanning);
+
+  if (loops > 1)
+  {
+    {
+      /* looped: should only happen under emergency tracing */
       TraceId ti;
       Trace trace;
       Bool emerg = FALSE;
@@ -1347,12 +1373,8 @@ static Res amcScanNailed(Bool *totalReturn, ScanState ss, Pool pool,
         }
       TRACE_SET_ITER_END(ti, trace, ts, arena);
       AVER(emerg);
-      
-      looped = TRUE;
     }
-  } while(moreScanning);
-
-  if (looped) {
+    {      
       /* looped: fixed refs (from 1st pass) were seen by MPS_FIX1
        * (in later passes), so the "ss.unfixedSummary" is _not_ 
        * purely unfixed.  In this one case, unfixedSummary is not 
@@ -1362,29 +1384,35 @@ static Res amcScanNailed(Bool *totalReturn, ScanState ss, Pool pool,
        * ss.unfixedSummary.
        */
       RefSet refset;
-      mps_lib_FILE *stream = mps_lib_get_stdout();
     
       refset = ScanStateSummary(ss);
       
-      SegDescribe(seg, stream);
-      (void) WriteF(stream,
-        "amcScanNailed completed, but had to loop:\n",
-        " SegSummary:        $W\n", (WriteFW)SegSummary(seg),
-        " ss.unfixedSummary: $W\n", (WriteFW)ss->unfixedSummary,
-        " ss.fixedSummary:   $W\n", (WriteFW)ss->fixedSummary,
-        "ScanStateSummary:   $W\n", (WriteFW)refset,
+      (void) WriteF(mps_lib_get_stdout(),
+        "amcScanNailed completed, but had to loop $U times:\n", (WriteFU)loops,
+        " SegSummary:        $B\n", (WriteFB)SegSummary(seg),
+        " ss.white:          $B\n", (WriteFB)ss->white,
+        " ss.unfixedSummary: $B", (WriteFB)ss->unfixedSummary,
+          "$S\n", (WriteFS)( 
+            (RefSetSub(ss->unfixedSummary, SegSummary(seg)))
+            ? ""
+            : " <=== This would have failed .verify.segsummary!"
+            ),
+        " ss.fixedSummary:   $B\n", (WriteFB)ss->fixedSummary,
+        "ScanStateSummary:   $B\n", (WriteFB)refset,
         "MOVING ScanStateSummary TO fixedSummary, "
         "RESETTING unfixedSummary.\n", NULL
       );
     
       ScanStateSetSummary(ss, refset);
       
-      (void) WriteF(stream,
+      (void) WriteF(mps_lib_get_stdout(),
         "now:\n",
-        " ss.unfixedSummary: $W\n", (WriteFW)ss->unfixedSummary,
-        " ss.fixedSummary:   $W\n", (WriteFW)ss->fixedSummary,
+        " ss.unfixedSummary: $B\n", (WriteFB)ss->unfixedSummary,
+        " ss.fixedSummary:   $B\n", (WriteFB)ss->fixedSummary,
+        " Total && ResOK?:   $S\n", (WriteFS)(total ? "YES" : "no"),
         NULL
       );
+    }
   }
   
   *totalReturn = total;
