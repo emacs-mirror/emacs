@@ -844,7 +844,8 @@ Compatibility function for \\[next-error] invocations."
        #'next-single-property-change)
      "No more matches")
     ;; In case the *Occur* buffer is visible in a nonselected window.
-    (set-window-point (get-buffer-window (current-buffer)) (point))
+    (let ((win (get-buffer-window (current-buffer) t)))
+      (if win (set-window-point win (point))))
     (occur-mode-goto-occurrence)))
 
 (defface match

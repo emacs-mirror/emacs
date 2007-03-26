@@ -1,3 +1,8 @@
+2007-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* replace.el (occur-next-error): *Occur* might not be displayed in the
+	selected frame.  Reported by David Hansen <david.hansen@gmx.net>.
+
 2007-03-26  Richard Stallman  <rms@gnu.org>
 
 	* textmodes/flyspell.el (flyspell-large-region):
@@ -6,15 +11,15 @@
 2007-03-26  Johan Bockg,Ae(Brd  <bojohan+sf@dd.chalmers.se>
 
 	* emacs-lisp/bytecomp.el (byte-compile-file-form-defmumble):
-        Use prin1 instead of princ.
+	Use prin1 instead of princ.
 
 2007-03-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* faces.el (face-set-after-frame-default): Revert 2007-03-10
 	change.  Merge in X resources before global face.
 
-	* progmodes/compile.el (compilation-start): Save
-	compilation-directory rather than default-directory as local var.
+	* progmodes/compile.el (compilation-start):
+	Save compilation-directory rather than default-directory as local var.
 	(compilation-directory): Mark as safe local var.
 
 	* files.el: Don't mark default-directory as a safe local var.
@@ -69,13 +74,13 @@
 
 2007-03-23  David Vazquez  <xeos00@gmail.com>  (tiny change)
 
-	* progmodes/m4-mode.el (m4-m4-buffer, m4-m4-region): Fix
-	omission bug: Use m4-program-options to construct shell command.
+	* progmodes/m4-mode.el (m4-m4-buffer, m4-m4-region):
+	Fix omission bug: Use m4-program-options to construct shell command.
 
 2007-03-23  David Kastrup  <dak@gnu.org>
 
-	* progmodes/cc-mode.el (c-make-emacs-variables-local): Use
-	`mapcar' rather than `mapcan' to silence compiler warning.
+	* progmodes/cc-mode.el (c-make-emacs-variables-local):
+	Use `mapcar' rather than `mapcan' to silence compiler warning.
 
 2007-03-22  Ralf Angeli  <angeli@caeruleus.net>
 
@@ -111,8 +116,7 @@
 2007-03-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emulation/viper.el (viper-non-hook-settings): Handle mouse
-	clicks in describe-key and describe-key-briefly advice a little
-	better.
+	clicks in describe-key and describe-key-briefly advice a little better.
 
 2007-03-21  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -187,8 +191,8 @@
 
 2007-03-19  Martin Rudalics  <rudalics@gmx.at>
 
-	* font-lock.el (lisp-font-lock-keywords-1): Highlight
-	define-globalized-minor-mode as a keyword.
+	* font-lock.el (lisp-font-lock-keywords-1):
+	Highlight define-globalized-minor-mode as a keyword.
 
 2007-03-19  Kim F. Storm  <storm@cua.dk>
 
@@ -226,8 +230,7 @@
 2007-03-18  Detlev Zundel  <dzu@gnu.org>
 
 	* emacs-lisp/re-builder.el (reb-update-overlays): Do not mark
-	zero-width regexps as invalid but rather at least count them
-	correctly.
+	zero-width regexps as invalid but rather at least count them correctly.
 
 2007-03-18  Thien-Thi Nguyen  <ttn@gnu.org>
 
@@ -259,8 +262,8 @@
 
 2007-03-17  Chong Yidong  <cyd@stupidchicken.com>
 
-	* simple.el (line-move-1): Respect
-	`inhibit-line-move-field-capture' property.
+	* simple.el (line-move-1):
+	Respect `inhibit-line-move-field-capture' property.
 
 2007-03-13  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -273,7 +276,7 @@
 2007-03-12  Lawrence Mitchell  <wence@gmx.li>  (tiny change)
 
 	* tempo.el (tempo-insert): Deal with 'r> if it appears
- 	specified with a prompt argument.
+	specified with a prompt argument.
 
 2007-03-12  Carsten Dominik  <dominik@science.uva.nl>
 
