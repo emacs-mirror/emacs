@@ -2341,7 +2341,7 @@ list that represents a doc string reference.
 		    (eq (car (car (cdr tail))) 'declare))
 	  (let ((declaration (car (cdr tail))))
 	    (setcdr tail (cdr (cdr tail)))
-	    (princ `(if macro-declaration-function
+	    (prin1 `(if macro-declaration-function
 			(funcall macro-declaration-function
 				 ',name ',declaration))
 		   outbuffer)))))
