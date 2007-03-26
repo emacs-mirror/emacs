@@ -3105,8 +3105,8 @@ If omitted or nil, that stands for the selected frame's display.  */)
      Lisp_Object display;
 {
   struct mac_display_info *dpyinfo = check_x_display_info (display);
+  float mm_per_pixel;
 
-  /* Only of the main display.  */
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
 #if MAC_OS_X_VERSION_MIN_REQUIRED == 1020
   if (CGDisplayScreenSize != NULL)
@@ -3116,9 +3116,8 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
       BLOCK_INPUT;
       size = CGDisplayScreenSize (kCGDirectMainDisplay);
+      mm_per_pixel = size.height / CGDisplayPixelsHigh (kCGDirectMainDisplay);
       UNBLOCK_INPUT;
-
-      return make_number ((int) (size.height + .5f));
     }
 #if MAC_OS_X_VERSION_MIN_REQUIRED == 1020
   else
@@ -3127,9 +3126,11 @@ If omitted or nil, that stands for the selected frame's display.  */)
 #if MAC_OS_X_VERSION_MAX_ALLOWED < 1030 || MAC_OS_X_VERSION_MIN_REQUIRED == 1020
     {
       /* This is an approximation.  */
-      return make_number ((int) (dpyinfo->height * 25.4 / dpyinfo->resy));
+      mm_per_pixel = 25.4f / dpyinfo->resy;
     }
 #endif
+
+  return make_number ((int) (dpyinfo->height * mm_per_pixel + 0.5f));
 }
 
 DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width, 0, 1, 0,
@@ -3141,8 +3142,8 @@ If omitted or nil, that stands for the selected frame's display.  */)
      Lisp_Object display;
 {
   struct mac_display_info *dpyinfo = check_x_display_info (display);
+  float mm_per_pixel;
 
-  /* Only of the main display.  */
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
 #if MAC_OS_X_VERSION_MIN_REQUIRED == 1020
   if (CGDisplayScreenSize != NULL)
@@ -3152,9 +3153,8 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
       BLOCK_INPUT;
       size = CGDisplayScreenSize (kCGDirectMainDisplay);
+      mm_per_pixel = size.width / CGDisplayPixelsWide (kCGDirectMainDisplay);
       UNBLOCK_INPUT;
-
-      return make_number ((int) (size.width + .5f));
     }
 #if MAC_OS_X_VERSION_MIN_REQUIRED == 1020
   else
@@ -3163,9 +3163,11 @@ If omitted or nil, that stands for the selected frame's display.  */)
 #if MAC_OS_X_VERSION_MAX_ALLOWED < 1030 || MAC_OS_X_VERSION_MIN_REQUIRED == 1020
     {
       /* This is an approximation.  */
-      return make_number ((int) (dpyinfo->width * 25.4 / dpyinfo->resx));
+      mm_per_pixel = 25.4f / dpyinfo->resx;
     }
 #endif
+
+  return make_number ((int) (dpyinfo->width * mm_per_pixel + 0.5f));
 }
 
 DEFUN ("x-display-backing-store", Fx_display_backing_store,
