@@ -6507,7 +6507,7 @@ sigchld_handler (signo)
              loadavg to 5-8(!) for ~10 seconds.
              See http://thread.gmane.org/gmane.emacs.devel/67722 or
              http://www.google.com/search?q=busyloop+in+sigchld_handler */
-          sleep (1);
+          usleep (1000);
 	  errno = 0;
 	  pid = wait3 (&w, WNOHANG | WUNTRACED, 0);
 	}
