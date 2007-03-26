@@ -1,3 +1,17 @@
+2007-03-26  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (Fx_display_mm_height, Fx_display_mm_width): Scale
+	whole screen size in pixels by millimeters per pixel of main display.
+
+	* macselect.c (get_scrap_target_type_list, x_own_selection): Move
+	assignments outside predicate macros.
+	(Vselection_converter_alist): Doc fix.
+
+	* macterm.c (create_text_encoding_info_alist): Move assignments
+	outside predicate macros.
+	(mac_initialize_display_info) [MAC_OSX]: dpyinfo->height and
+	dpyinfo->width are those of whole screen.
+
 2007-03-26  Sam Steingold  <sds@gnu.org>
 
 	* process.c (sigchld_handler): Delay by 1ms instead of 1s to
