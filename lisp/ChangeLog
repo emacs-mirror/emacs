@@ -1,3 +1,13 @@
+2007-03-26  Richard Stallman  <rms@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-large-region):
+	Use ispell-call-process-region.
+
+2007-03-26  Johan Bockg,Ae(Brd  <bojohan+sf@dd.chalmers.se>
+
+	* emacs-lisp/bytecomp.el (byte-compile-file-form-defmumble):
+        Use prin1 instead of princ.
+
 2007-03-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* faces.el (face-set-after-frame-default): Revert 2007-03-10

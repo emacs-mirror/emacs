@@ -1,3 +1,7 @@
+2007-03-26  Richard Stallman  <rms@gnu.org>
+
+	* pgg.texi (Caching passphrase): Clean up previous change.
+
 2007-03-25  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* gnus.texi (Setting Process Marks): Fix typo.
