@@ -69,26 +69,11 @@
 
 2007-03-22  Ralf Angeli  <angeli@caeruleus.net>
 
-	* textmodes/reftex.el: Add maintainer address.
-
-	* textmodes/reftex-vars.el: Add maintainer address.
-
-	* textmodes/reftex-toc.el: Add maintainer address.
-
-	* textmodes/reftex-sel.el: Add maintainer address.
-
-	* textmodes/reftex-ref.el: Add maintainer address.
-
-	* textmodes/reftex-parse.el: Add maintainer address.
-
-	* textmodes/reftex-index.el: Add maintainer address.
-
-	* textmodes/reftex-global.el: Add maintainer address.
-
-	* textmodes/reftex-dcr.el: Add maintainer address.
-
-	* textmodes/reftex-cite.el: Add maintainer address.
-
+	* textmodes/reftex.el, textmodes/reftex-vars.el,
+	* textmodes/reftex-toc.el, textmodes/reftex-sel.el,
+	* textmodes/reftex-ref.el, textmodes/reftex-parse.el,
+	* textmodes/reftex-index.el, textmodes/reftex-global.el,
+	* textmodes/reftex-dcr.el, textmodes/reftex-cite.el,
 	* textmodes/reftex-auc.el: Add maintainer address.
 
 2007-03-22  Carsten Dominik  <dominik@science.uva.nl>
