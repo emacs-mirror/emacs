@@ -1,3 +1,7 @@
+2007-03-27  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (calendar-mode-hook): Declare it.
+
 2007-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* replace.el (occur-next-error): *Occur* might not be displayed in the
