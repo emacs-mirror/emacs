@@ -1268,7 +1268,7 @@ Returns nil if format of ADDRESS is invalid.  */)
   if (VECTORP (address))  /* AF_INET or AF_INET6 */
     {
       register struct Lisp_Vector *p = XVECTOR (address);
-      Lisp_Object args[6];
+      Lisp_Object args[10];
       int nargs, i;
 
       if (p->size == 4 || (p->size == 5 && !NILP (omit_port)))
@@ -1305,7 +1305,6 @@ Returns nil if format of ADDRESS is invalid.  */)
       args[0] = build_string ("<Family %d>");
       args[1] = Fcar (address);
       return Fformat (2, args);
-
     }
 
   return Qnil;
