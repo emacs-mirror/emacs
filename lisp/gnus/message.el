@@ -3349,7 +3349,8 @@ prefix, and don't delete any headers."
 		   (point)))
       (unless arg
 	(funcall message-cite-function))
-      (message-exchange-point-and-mark)
+      (unless (< (point) (mark-marker))
+        (message-exchange-point-and-mark))
       (unless (bolp)
 	(insert ?\n))
       (unless modified
