@@ -1,14 +1,19 @@
+2007-03-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* process.c (Fformat_network_address): Make args array big enough
+	to format IPv6 addresses.
+
 2007-03-27  Glenn Morris  <rgm@gnu.org>
 
 	* m/hp800.h: Restore HP-UX support (removed 2007-01-29).
 
 2007-03-26  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* macfns.c (Fx_display_mm_height, Fx_display_mm_width): Scale
-	whole screen size in pixels by millimeters per pixel of main display.
+	* macfns.c (Fx_display_mm_height, Fx_display_mm_width): Scale whole
+	screen size in pixels by millimeters per pixel of main display.
 
-	* macselect.c (get_scrap_target_type_list, x_own_selection): Move
-	assignments outside predicate macros.
+	* macselect.c (get_scrap_target_type_list, x_own_selection):
+	Move assignments outside predicate macros.
 	(Vselection_converter_alist): Doc fix.
 
 	* macterm.c (create_text_encoding_info_alist): Move assignments
@@ -73,6 +78,7 @@
 
 	* Makefile.in (alloca.o, gtkutil.o): Depend on systime.h.
 	(dired.o, editfns.o, fileio.o, msdos.o): Depend on atimer.h.
+
 	(dosfns.o, window.o, fns.o, macselect.o): Depend on atimer.h and
 	systime.h.
 	(term.o, print.o, lread.o): Depend on blockinput.h, atimer.h, and
@@ -122,8 +128,8 @@
 	(x_activate_menubar, mac_menu_show): Set it during menu tracking.
 	(popup_activated): New function.
 
-	* xdisp.c (redisplay_internal, note_mouse_highlight): Check
-	popup_activated for MAC_OS.
+	* xdisp.c (redisplay_internal, note_mouse_highlight):
+	Check popup_activated for MAC_OS.
 
 2007-03-17  Juanma Barranquero  <lekktu@gmail.com>
 
