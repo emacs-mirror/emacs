@@ -2,6 +2,9 @@
 
 	* calendar/calendar.el (calendar-mode-hook): Declare it.
 
+	* calendar/diary-lib.el (diary-live-p): Do not check for
+	diary-selective-display.
+
 2007-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* replace.el (occur-next-error): *Occur* might not be displayed in the
