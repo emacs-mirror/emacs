@@ -1,3 +1,8 @@
+2007-03-27   Kevin Ryde  <user42@zip.com.au>
+
+	* info.el (Info-display-images-node):  On a text-only terminal, show
+	the "text" or "alt" parts of the image blobs.
+
 2007-03-27  Glenn Morris  <rgm@gnu.org>
 
 	* complete.el (PC-do-completion): Compute completion-base-size in
