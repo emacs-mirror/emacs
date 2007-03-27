@@ -78,7 +78,6 @@
 
 	* Makefile.in (alloca.o, gtkutil.o): Depend on systime.h.
 	(dired.o, editfns.o, fileio.o, msdos.o): Depend on atimer.h.
-
 	(dosfns.o, window.o, fns.o, macselect.o): Depend on atimer.h and
 	systime.h.
 	(term.o, print.o, lread.o): Depend on blockinput.h, atimer.h, and
@@ -102,9 +101,9 @@
 	* print.c: Include blockinput.h.
 	(Fredirect_debugging_output): Add BLOCK_INPUT around fclose.
 
-	* process.c (Fmake_network_process) [HAVE_GETADDRINFO]: Clear
-	immediate_quit before calling freeaddrinfo.  Add BLOCK_INPUT
-	around freeaddrinfo.
+	* process.c (Fmake_network_process) [HAVE_GETADDRINFO]:
+	Clear immediate_quit before calling freeaddrinfo.
+	Add BLOCK_INPUT around freeaddrinfo.
 
 	* term.c: Include blockinput.h.
 	(write_glyphs, insert_glyphs): Add BLOCK_INPUT around fwrite.
@@ -568,9 +567,9 @@
 
 2007-01-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* macselect.c [TARGET_API_MAC_CARBON] (mac_do_receive_drag): Don't
-	pass keyboard modifiers to mac_store_drag_event, but put them as
-	kEventParamKeyModifiers Apple event parameter.
+	* macselect.c [TARGET_API_MAC_CARBON] (mac_do_receive_drag):
+	Don't pass keyboard modifiers to mac_store_drag_event, but put
+	them as kEventParamKeyModifiers Apple event parameter.
 
 2007-01-21  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -654,8 +653,8 @@
 	(mac_dialog) [TARGET_API_MAC_CARBON]: Remove function.
 	(mac_dialog_show) [TARGET_API_MAC_CARBON]: Use create_and_show_dialog.
 
-	* macterm.c (x_free_frame_resources) [USE_CG_DRAWING]: Call
-	mac_prepare_for_quickdraw.
+	* macterm.c (x_free_frame_resources) [USE_CG_DRAWING]:
+	Call mac_prepare_for_quickdraw.
 	(quit_char, make_ctrl_char) [TARGET_API_MAC_CARBON]: Move externs
 	outside #ifdef MAC_OSX.
 	(mac_quit_char_key_p) [TARGET_API_MAC_CARBON]: Move function
@@ -2307,8 +2306,8 @@
 
 2006-08-28  Kenichi Handa  <handa@m17n.org>
 
-	* coding.c (Fdetect_coding_region, Fdetect_coding_string): Fix
-	docstring about ISO-2022 control characters.
+	* coding.c (Fdetect_coding_region, Fdetect_coding_string):
+	Fix docstring about ISO-2022 control characters.
 
 2006-08-28  Kim F. Storm  <storm@cua.dk>
 
@@ -3479,8 +3478,8 @@
 	* macterm.c (font_panel_shown_p) [USE_MAC_FONT_PANEL]: New variable.
 	(mac_font_panel_visible_p, mac_show_hide_font_panel)
 	[USE_MAC_FONT_PANEL]: New functions.
-	[USE_MAC_FONT_PANEL] (mac_set_font_info_for_selection): Return
-	immediately if font panel is not visible.
+	[USE_MAC_FONT_PANEL] (mac_set_font_info_for_selection):
+	Return immediately if font panel is not visible.
 
 	* macterm.h (mac_font_panel_visible_p, mac_show_hide_font_panel):
 	Add externs.
@@ -3499,8 +3498,8 @@
 
 2006-05-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* sound.c (alsa_open, alsa_configure, alsa_write): Move
-	assignment to err out of if-statement.
+	* sound.c (alsa_open, alsa_configure, alsa_write):
+	Move assignment to err out of if-statement.
 
 	* gtkutil.c (menu_nav_ended): New function.
 	(create_menus): Connect menu_nav_ended to "selection-done" to fix
@@ -3915,8 +3914,8 @@
 	(Qpanel_closed, Qselection) [USE_MAC_FONT_PANEL]: Likewise.
 	(syms_of_macterm): Intern and staticpro them.
 	(init_font_name_table) [USE_ATSUI]: Add data to Vmac_atsu_font_table.
-	[TARGET_API_MAC_CARBON] (mac_store_event_ref_as_apple_event): New
-	function.
+	[TARGET_API_MAC_CARBON] (mac_store_event_ref_as_apple_event):
+	New function.
 	[USE_CARBON_EVENTS] (mac_handle_command_event): Use it.
 	[MAC_OSX] (mac_store_services_event): Likewise.
 	[USE_CARBON_EVENTS] (mac_handle_window_event) [MAC_OSX]: Handle
@@ -3968,8 +3967,8 @@
 	[TARGET_API_MAC_CARBON] (create_apple_event): New function.
 	[TARGET_API_MAC_CARBON] (create_apple_event_from_event_ref): Use it.
 	Use xrealloc instead of repeated xmalloc/xfree.
-	[TARGET_API_MAC_CARBON] (create_apple_event_from_drag_ref): New
-	function.
+	[TARGET_API_MAC_CARBON] (create_apple_event_from_drag_ref):
+	New function.
 
 	* macmenu.c (restore_menu_items, cleanup_popup_menu): Return a value.
 
@@ -5829,8 +5828,8 @@
 	objects until we are done with the parsing.
 	(parse_single_submenu, digest_single_submenu): New functions.
 	(single_submenu): Function deleted, replaced by those two.
-	(install_menu_quit_handler) [HAVE_CANCELMENUTRACKING]: Don't
-	create or dispose of EventHandlerUPP.  Install hander to all submenus.
+	(install_menu_quit_handler) [HAVE_CANCELMENUTRACKING]: Don't create
+	or dispose of EventHandlerUPP.  Install hander to all submenus.
 	(mac_menu_show) [!HAVE_MULTILINGUAL_MENU]: Use ENCODE_MENU_STRING
 	instead of ENCODE_SYSTEM.
 	(free_frame_menubar, fill_submenu, fill_menu): Don't use NULL for
