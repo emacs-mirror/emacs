@@ -292,16 +292,22 @@ Only used if `diary-header-line-flag' is non-nil."
 
 (defvar diary-saved-point)		; internal
 
+;; The first version of this also checked for diary-selective-display
+;; in the non-fancy case. This was an attempt to distinguish between
+;; displaying the diary and just visiting the diary file. However,
+;; when using fancy diary, calling diary when there are no entries to
+;; display does not create the fancy buffer, nor does it switch on
+;; selective-display in the diary buffer. This means some
+;; customizations will not take effect, eg:
+;; http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-03/msg00466.html
+;; So the check for selective-display was dropped. This means the
+;; diary will be displayed if one customizes a diary variable while
+;; just visiting the diary-file. This is i) unlikely, and ii) no great loss.
 (defun diary-live-p ()
-  "Return non-nil if the diary is being displayed.
-This is not the same as just visiting the `diary-file'."
+  "Return non-nil if the diary is being displayed."
   (or (get-buffer fancy-diary-buffer)
-      (when diary-file
-        (let ((dbuff (find-buffer-visiting
-                      (substitute-in-file-name diary-file))))
-          (when dbuff
-            (with-current-buffer dbuff
-              diary-selective-display))))))
+      (and diary-file
+           (find-buffer-visiting (substitute-in-file-name diary-file)))))
 
 (defun diary-set-maybe-redraw (symbol value)
   "Set SYMBOL's value to VALUE, and redraw the diary if necessary.
