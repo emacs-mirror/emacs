@@ -1,30 +1,36 @@
 RHSK's AMC Seg state diagram.
 2007-03-20
 
+This diagram is slightly over-simplified; see .simplify.* below.
+
 STATES
 ------
 
-ms  >traceStart>   mBs
+mBn
+mBs  >|traceStart|>     mBs
+mBf              |>   [goto mBf]
 
-       //  m0n  ..alloc..>  mBn  ..alloc..>  mB
+         //  m0n  ..alloc..>  mBn  ..alloc..>  mB
 
 
-    >traceStart>   mGs   ==[1a]==>   mBs
-                   mG    ==[1b]==>   mB
-                      \                \
-                     <detach**<       <detach<
-                          \                \
-       //  m0f   >fwd-to>   mGf  ==[1c+]==>  mBf
-                                 <fwd-to<
+     >|traceStart|>     mGs   ==[1a]==>   mBs
+       greyen    |>     mG    ==[1b]==>   mB
+                 |   ^detach**^        ^detach**^
+                 |>     mGf   ==[1c+]==>  mBf
+                      /        <fwd-to<
+                  fwd-to
+                  /
+           //  m0f
 
-    >traceStart>   mW*Fs
 
-                        --(A)-->   bGW*Fs ==[2]==>    bBW*Fs
-                                          ==[2et+]=>
-                                          <-(et)--
-                                            ^we never encounter A here
-
-                        --(et)-->  sGFs   ==[3]==>   sBFs
+     >|traceStart|>      mW*Fs
+       whiten
+                           --(A)-->   bGW*Fs ==[2]==>    bBW*Fs
+                                             ==[2et+]=>
+                                             <-(et)--
+                                               ^we never encounter A here
+   
+                           --(et)-->  sGFs   ==[3]==>   sBFs
 
 KEY AND DISCUSSION
 ------------------
@@ -34,11 +40,12 @@ Seg states:
   b : boarded (a nailboard has been allocated)
   s : stuck (SegNailed, but we can't allocate a nailboard)
 
-Colours:
+Object colours:
   B : black
   G : grey
   W : white
   F : forwarding pointer (these are also white)
+  0 : no objects in seg
 
 Buffers:
   f : forwarding buffer
@@ -52,8 +59,7 @@ General transitions:
  //            : segment created post-flip
  ..alloc..>    : mutator allocates
  >fwd-to>      : objects forwarded to forwarding buffer
- <detach<      : forwarding buffer detaches
- <detach**<    : forwarding buffer may detach while scanning this seg
+ ^detach**^    : forwarding causes buffer to detach, perhaps while scanning this seg
 
 Scans:
  ==[]==>  : scan (G->B transition happens after scan is complete)
@@ -93,6 +99,30 @@ Can these fixes happen in the seg we are scanning?  Yes:
      -- GB, the fix is trivial, and does not affect scan or summary.
 
   - can a fix cause a transition?  No: see .no-transition.
+
+
+TRUE STATEMENTS
+---------------
+
+.stat.fwdbuf-nand-white: Can never get a white object and a forwarding buffer on the same seg.
+
+.stat.fwdbuf-nand-white.why: The only thing that makes white objects is AMCWhiten(), which detaches any forwarding buffer before whitening.  The only thing that makes forwarding buffers is AMCBufferFill, which always calls SegAlloc() to get a new seg, which is always non-white (see SegInit and TractInit).
+
+
+CONJECTURES
+-----------
+
+.stat.fwdbuf-survives: A forwarding buffer can survive traceStart and flip while remaining attached to the same segment : "mBf >traceStart> m(something)f".  It may get greyened (by traceStart, or when objects are subsequently forwarded into it), or not.
+
+
+SIMPLIFICATIONS
+---------------
+
+Some of these simplifications may happen to be true, but they are unverified.
+
+.simplify.trip-all-neo: Assume all mutator buffers get tripped (n -> s) at traceStart.
+
+.simplify.reclaim-not-shown: Reclaim is not shown.
 
 
 HISTORY
