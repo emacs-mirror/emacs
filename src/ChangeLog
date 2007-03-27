@@ -1,3 +1,7 @@
+2007-03-27  Glenn Morris  <rgm@gnu.org>
+
+	* m/hp800.h: Restore HP-UX support (removed 2007-01-29).
+
 2007-03-26  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macfns.c (Fx_display_mm_height, Fx_display_mm_width): Scale
@@ -47,6 +51,11 @@
 
 	* intervals.c (merge_properties, intervals_equal):
 	Use Fplist_member instead of Fmemq to find properties.
+
+2007-03-23  Glenn Morris  <rgm@gnu.org>
+
+	* unexhp9k800.c: Restore file with clarified legal status.
+	* m/sr2k.h: Restore since dependency unexhp9k800.c is restored.
 
 2007-03-22  Chong Yidong  <cyd@stupidchicken.com>
 

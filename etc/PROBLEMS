@@ -2718,6 +2718,13 @@ should now succeed.
 You need to install a recent version of Texinfo; that package
 supplies the `install-info' command.
 
+*** Installing to a directory with spaces in the name fails.
+
+For example, if you call configure with a directory-related option
+with spaces in the value, eg --enable-locallisppath='/path/with\ spaces'.
+Using directory paths with spaces is not supported at this time: you
+must re-configure without using spaces.
+
 ** First execution
 
 *** Emacs binary is not in executable format, and cannot be run.

@@ -1,5 +1,11 @@
 2007-03-27  Glenn Morris  <rgm@gnu.org>
 
+	* complete.el (PC-do-completion): Compute completion-base-size in
+	the non-filename case, rather than setting to nil.
+	(PC-lisp-complete-end): New variable.
+	(PC-lisp-complete-symbol): Use PC-lisp-complete-end to store the
+	original end in a series of consecutive invocations.
+
 	* calendar/calendar.el (calendar-mode-hook): Declare it.
 
 	* calendar/diary-lib.el (diary-live-p): Do not check for
