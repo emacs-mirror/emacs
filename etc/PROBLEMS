@@ -144,6 +144,17 @@ Reportedly this patch in X fixes the problem.
 	 }
 	 return ret;
 
+** Emacs cannot load remote files using Tramp during init.
+
+Currently, Tramp-style names for remote files are not recognized if
+they occur in site-start and init files, because Tramp filename
+handlers are registered during after-init-hook.
+
+If you want to access remote files inside an init file, first add the
+following line:
+
+  (tramp-register-file-name-handlers)
+
 * Crash bugs
 
 ** Emacs crashes in x-popup-dialog.
