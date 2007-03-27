@@ -1315,16 +1315,25 @@ any double quotes or backslashes must be escaped (\\\",\\\\)."
 	      nil t)
 	(let* ((start (match-beginning 1))
 	       (parameter-alist (Info-split-parameter-string (match-string 2)))
-	       (src (cdr (assoc-string "src" parameter-alist)))
-	       (image-file (if src (if (file-name-absolute-p src) src
-				     (concat default-directory src))
-			     ""))
-	       (image (if (file-exists-p image-file)
-			  (create-image image-file)
-			"[broken image]")))
-	  (if (not (get-text-property start 'display))
-	      (add-text-properties
-	       start (point) `(display ,image rear-nonsticky (display)))))))
+               (src (cdr (assoc-string "src" parameter-alist))))
+          (if (display-images-p)
+              (let* ((image-file (if src (if (file-name-absolute-p src) src
+                                           (concat default-directory src))
+                                   ""))
+                     (image (if (file-exists-p image-file)
+                                (create-image image-file)
+                              "[broken image]")))
+                (if (not (get-text-property start 'display))
+                    (add-text-properties
+                     start (point) `(display ,image rear-nonsticky (display)))))
+            ;; text-only display, show alternative text if provided, or
+            ;; otherwise a clue that there's meant to be a picture
+            (delete-region start (point))
+            (insert (or (cdr (assoc-string "text" parameter-alist))
+                        (cdr (assoc-string "alt" parameter-alist))
+                        (and src
+                             (concat "[image:" src "]"))
+                        "[image]"))))))
     (set-buffer-modified-p nil)))
 
 ;; Texinfo 4.7 adds cookies of the form ^@^H[NAME CONTENTS ^@^H].
