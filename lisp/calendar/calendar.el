@@ -301,6 +301,11 @@ calendar."
   :type 'boolean
   :group 'holidays)
 
+(defcustom calendar-mode-hook nil
+  "Hook run when entering `calendar-mode'."
+  :type 'hook
+  :group 'calendar-hooks)
+
 ;;;###autoload
 (defcustom calendar-load-hook nil
   "List of functions to be called after the calendar is first loaded.
