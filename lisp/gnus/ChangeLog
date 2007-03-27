@@ -1,3 +1,8 @@
+2007-03-27  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* message.el (message-yank-original): Fix bug:
+	Don't switch point and mark unnecessarily.
+
 2007-03-20  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
 
 	* message.el (message-required-news-headers):
