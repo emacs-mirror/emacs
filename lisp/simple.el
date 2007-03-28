@@ -130,8 +130,10 @@ If no other buffer exists, the buffer `*scratch*' is returned."
 
 (defcustom next-error-highlight 0.5
   "*Highlighting of locations in selected source buffers.
-If number, highlight the locus in `next-error' face for given time in seconds.
-If t, highlight the locus indefinitely until some other locus replaces it.
+If a number, highlight the locus in `next-error' face for the given time
+in seconds, or until the next command is executed.
+If t, highlight the locus until the next command is executed, or until
+some other locus replaces it.
 If nil, don't highlight the locus in the source buffer.
 If `fringe-arrow', indicate the locus by the fringe arrow."
   :type '(choice (number :tag "Highlight for specified time")
@@ -4726,16 +4728,9 @@ SEND-ACTIONS is a list of actions to call when the message is sent.
 Each action has the form (FUNCTION . ARGS)."
   (interactive
    (list nil nil nil current-prefix-arg))
-  (let ((function (get mail-user-agent 'composefunc))
-	result-buffer)
-    (if switch-function
-	(save-window-excursion
-	  (prog1
-	      (funcall function to subject other-headers continue
-		       nil yank-action send-actions)
-	    (funcall switch-function (current-buffer))))
-      (funcall function to subject other-headers continue
-	       nil yank-action send-actions))))
+  (let ((function (get mail-user-agent 'composefunc)))
+    (funcall function to subject other-headers continue
+	     switch-function yank-action send-actions)))
 
 (defun compose-mail-other-window (&optional to subject other-headers continue
 					    yank-action send-actions)
