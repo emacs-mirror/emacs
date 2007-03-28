@@ -1,3 +1,17 @@
+2007-03-28  Stephen Berman  <Stephen.Berman@gmx.net>
+
+	* recentf.el (recentf-save-file): Add a custom :set function.
+
+2007-03-28  Glenn Morris  <rgm@gnu.org>
+
+	* complete.el (PC-do-completion-end): New variable.
+	(partial-completion-mode) <choose-completion-string-functions>:
+	Use PC-do-completion-end in the non-minibuffer case to replace the
+	correct amount of text.
+	(PC-do-completion): Set PC-do-completion-end for c-c-s-f.
+	(PC-lisp-complete-symbol): Give marker the after-insertion type,
+	to deal with improvements inserted after point.
+
 2007-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* button.el (make-text-button): Add explicit `button' property.
