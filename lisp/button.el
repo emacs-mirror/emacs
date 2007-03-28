@@ -89,9 +89,6 @@ Mode-specific keymaps may want to use this as their parent keymap.")
 ;; Prevent insertions adjacent to the text-property buttons from
 ;; inheriting its properties.
 (put 'default-button 'rear-nonsticky t)
-;; Text property buttons don't have a `button' property of their own, so
-;; they inherit this.
-(put 'default-button 'button t)
 
 ;; A `category-symbol' property for the default button type
 (put 'button 'button-category-symbol 'default-button)
@@ -316,7 +313,11 @@ Also see `insert-text-button'."
       (setcar (cdr type-entry)
 	      (button-category-symbol (car (cdr type-entry))))))
   ;; Now add all the text properties at once
-  (add-text-properties beg end properties)
+  (add-text-properties beg end
+                       ;; Each button should have a non-eq `button'
+                       ;; property so that next-single-property-change can
+                       ;; detect boundaries reliably.
+                       (cons 'button (cons (list t) properties)))
   ;; Return something that can be used to get at the button.
   beg)
 

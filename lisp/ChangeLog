@@ -1,5 +1,8 @@
 2007-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* button.el (make-text-button): Add explicit `button' property.
+	(default-button): Don't put a `button' property on it.
+
 	* progmodes/python.el (python-mode): Skip comments when parsing.
 
 	* vc-arch.el (vc-with-current-file-buffer): New macro.
