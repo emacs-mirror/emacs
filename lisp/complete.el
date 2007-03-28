@@ -187,6 +187,9 @@ If nil, means use the colon-separated path in the variable $INCPATH instead."
 
 	   (define-key global-map [remap lisp-complete-symbol]	'PC-lisp-complete-symbol)))))
 
+(defvar PC-do-completion-end nil
+  "Internal variable used by `PC-do-completion'.")
+
 ;;;###autoload
 (define-minor-mode partial-completion-mode
   "Toggle Partial Completion mode.
@@ -239,7 +242,9 @@ second TAB brings up the `*Completions*' buffer."
    (if partial-completion-mode 'add-hook 'remove-hook)
    'choose-completion-string-functions
    (lambda (choice buffer mini-p base-size)
-     (if mini-p (goto-char (point-max)))
+     (if mini-p (goto-char (point-max))
+       ;; Need a similar hack for the non-minibuffer-case -- gm.
+       (if PC-do-completion-end (goto-char PC-do-completion-end)))
      nil))
   ;; Build the env-completion and mapping table.
   (when (and partial-completion-mode (null PC-env-vars-alist))
@@ -759,9 +764,13 @@ of `minibuffer-completion-table' and the minibuffer contents.")
                           ;; completion gets confused trying to figure out
                           ;; how much to replace, so we tell it explicitly
                           ;; (ie, the number of chars in the buffer before beg).
+                          ;;
+                          ;; Note that choose-completion-string-functions
+                          ;; plays around with point.
                           (setq completion-base-size (if dirname
                                                          dirlength
-                                                       (- beg prompt-end))))))
+                                                       (- beg prompt-end))
+                                PC-do-completion-end end))))
 		  (PC-temp-minibuffer-message " [Next char not unique]"))
 		nil)))))
 
@@ -869,6 +878,7 @@ or properties are considered."
     (if (equal last-command 'PC-lisp-complete-symbol)
         (PC-do-completion nil beg PC-lisp-complete-end)
       (setq PC-lisp-complete-end (point-marker))
+      (set-marker-insertion-type PC-lisp-complete-end t)
       (PC-do-completion nil beg end))))
 
 (defun PC-complete-as-file-name ()
