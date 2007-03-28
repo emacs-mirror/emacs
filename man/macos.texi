@@ -381,6 +381,17 @@ such versions.  It can be changed by setting
 (QuickDraw).  Both @acronym{ATSUI} and QuickDraw Text drawings are
 affected by the value of this variable.
 
+  Appearance of text in small sizes will also be affected by the ``Turn
+off text smoothing for font sizes @var{n} and smaller'' setting in the
+General pane (Mac OS X 10.1 or 10.2) or in the Appearance pane (10.3 or
+later) of the System Preferences.  This threshold can alternatively be
+set just for Emacs (i.e., not as the system-wide setting) using the
+@command{defaults} command:
+
+@example
+defaults write org.gnu.Emacs AppleAntiAliasingThreshold @var{n}
+@end example
+
 
 @node Mac Functions
 @section Mac-Specific Lisp Functions
