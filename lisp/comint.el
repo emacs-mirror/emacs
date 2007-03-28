@@ -2593,7 +2593,7 @@ its response can be seen."
 	 (proc-mark (process-mark proc)))
     (display-buffer proc-buf)
     (set-buffer proc-buf) ; but it's not the selected *window*
-    (let ((proc-win (get-buffer-window proc-buf))
+    (let ((proc-win (get-buffer-window proc-buf 0))
 	  (proc-pt (marker-position proc-mark)))
       (comint-send-string proc str) ; send the query
       (accept-process-output proc)  ; wait for some output
@@ -2959,7 +2959,7 @@ See also `comint-dynamic-complete-filename'."
 (defun comint-dynamic-list-completions (completions)
   "List in help buffer sorted COMPLETIONS.
 Typing SPC flushes the help buffer."
-  (let ((window (get-buffer-window "*Completions*")))
+  (let ((window (get-buffer-window "*Completions*" 0)))
     (setq completions (sort completions 'string-lessp))
     (if (and (eq last-command this-command)
 	     window (window-live-p window) (window-buffer window)
