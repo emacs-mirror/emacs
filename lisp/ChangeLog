@@ -1,3 +1,14 @@
+2007-03-28  David Hansen  <david.hansen@gmx.net>  (tiny change)
+
+	* emacs-lisp/lisp.el (lisp-complete-symbol):
+	Fix call to get-buffer-window to find windows in other frames.
+
+2007-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* comint.el (comint-proc-query, comint-dynamic-list-completions):
+	Fix calls to get-buffer-window to find windows in other frames.
+	Reported by David Hansen <david.hansen@gmx.net>.
+
 2007-03-27   Kevin Ryde  <user42@zip.com.au>
 
 	* info.el (Info-display-images-node):  On a text-only terminal, show
