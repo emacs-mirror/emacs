@@ -35,8 +35,8 @@
 
 2007-03-27   Kevin Ryde  <user42@zip.com.au>
 
-	* info.el (Info-display-images-node):  On a text-only terminal, show
-	the "text" or "alt" parts of the image blobs.
+	* info.el (Info-display-images-node): On a text-only terminal,
+	show the "text" or "alt" parts of the image blobs.
 
 2007-03-27  Glenn Morris  <rgm@gnu.org>
 
@@ -95,8 +95,8 @@
 
 2007-03-24  Markus Triska  <markus.triska@gmx.at>
 
-	* expand.el: Change example to always enable abbrev-mode, and
-	remove redundant `function'.
+	* expand.el: Change example to always enable abbrev-mode,
+	and remove redundant `function'.
 	(expand-abbrev-hook): Add autoload cookie.
 
 2007-03-24  Ryan Yeske  <rcyeske@gmail.com>
@@ -575,7 +575,7 @@
 	* emacs-lisp/lisp-mode.el (calculate-lisp-indent):
 	Redo previous change.
 
-2007-03-04  Kevin Rodgers  <kevin.d.rodgers@gmail.com> (tiny change)
+2007-03-04  Kevin Rodgers  <kevin.d.rodgers@gmail.com>  (tiny change)
 
 	* diff-mode.el (diff-mode): Doc fix.
 
@@ -1609,7 +1609,7 @@
 2007-01-27  Guanpeng Xu  <herberteuler@hotmail.com>
 
 	* add-log.el (add-log-current-defun): Skip the semicolon ``;'' for
-        enum/union/struct/class definition.
+	enum/union/struct/class definition.
 	Revert change to call `forward-sexp' multiple times.
 
 2007-01-27  Chong Yidong  <cyd@stupidchicken.com>
@@ -2216,7 +2216,7 @@
 	* international/mule-cmds.el (select-safe-coding-system-interactively):
 	Fix message.
 
-2006-12-30  Kevin Rodgers  <kevin.d.rodgers@gmail.com> (tiny change)
+2006-12-30  Kevin Rodgers  <kevin.d.rodgers@gmail.com>  (tiny change)
 
 	* files.el (backup-buffer): Show entire backup file name in msg.
 
@@ -2673,20 +2673,20 @@
 2006-12-09  Martin Rudalics  <rudalics@gmx.at>
 
 	* wdired.el (wdired-change-to-wdired-mode, wdired-finish-edit)
-        (wdired-search-and-rename): Simplify code.
+	(wdired-search-and-rename): Simplify code.
 	(wdired-preprocess-files, wdired-preprocess-perms): Make
-        read-only property of preceding character rear-nonsticky to
-        avoid that it can be modified.  Put old-name and old-link
-        properties on character preceding name and replace
-        put-text-property by add-text-properties.
-        (wdired-get-filename, wdired-get-previous-link): Get old-name
-        and old-link properties from character preceding name and
-        simplify code.
+	read-only property of preceding character rear-nonsticky to
+	avoid that it can be modified.	Put old-name and old-link
+	properties on character preceding name and replace
+	put-text-property by add-text-properties.
+	(wdired-get-filename, wdired-get-previous-link): Get old-name
+	and old-link properties from character preceding name and
+	simplify code.
 	(wdired-preprocess-perms, wdired-set-bit, wdired-toggle-bit)
-        (wdired-perms-to-number): Make local-map property
-        rear-nonsticky to avoid that text following permissions may be
-        modified.  Use add-text-properties instead of put-text-property
-        when changing a permission bit.
+	(wdired-perms-to-number): Make local-map property
+	rear-nonsticky to avoid that text following permissions may be
+	modified.  Use add-text-properties instead of put-text-property
+	when changing a permission bit.
 	(wdired-change-to-dired-mode): Remove stickiness properties.
 
 2006-12-09  Juanma Barranquero  <lekktu@gmail.com>
@@ -12822,7 +12822,7 @@
 	English aspell dictionary is installed, use the first entry of
 	ispell-dictionary-alist-1.
 
-2006-01-27  Kevin Rodgers  <ihs_4664@yahoo.com> (tiny change)
+2006-01-27  Kevin Rodgers  <ihs_4664@yahoo.com>  (tiny change)
 
 	* textmodes/flyspell.el (flyspell-incorrect, flyspell-duplicate):
 	Doc fix.
@@ -14844,7 +14844,7 @@
 	(hi-lock-find-patterns, hi-lock-font-lock-hook):
 	Replace hi-lock-buffer-mode with hi-lock-mode.
 
-2005-12-10  Kevin Rodgers  <ihs_4664@yahoo.com> (tiny change)
+2005-12-10  Kevin Rodgers  <ihs_4664@yahoo.com>  (tiny change)
 
 	* emacs-lisp/lisp.el (lisp-complete-symbol): Regenerate the
 	completion list, even after a partial completion has been
