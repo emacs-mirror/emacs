@@ -1,3 +1,7 @@
+2007-03-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (next-error-highlight): Doc fix.
+
 2007-03-28  Richard Stallman  <rms@gnu.org>
 
 	* emacs-lisp/edebug.el (edebug-display): Don't go to
