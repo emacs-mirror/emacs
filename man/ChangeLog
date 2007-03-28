@@ -1,3 +1,7 @@
+2007-03-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macos.texi (Mac Font Specs): Mention AppleAntiAliasingThreshold.
+
 2007-03-26  Richard Stallman  <rms@gnu.org>
 
 	* pgg.texi (Caching passphrase): Clean up previous change.

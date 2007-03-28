@@ -1,3 +1,15 @@
+2007-03-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* gmalloc.c [HAVE_GTK_AND_PTHREAD]: Define USE_PTHREAD.
+	[USE_PTHREAD]: Include pthread.h.
+	(malloc_init_once_control, _malloc_mutex) [USE_PTHREAD]: New variables.
+	(malloc_initialize_1): New function created from __malloc_initialize.
+	(__malloc_initialize): Use it.
+	(LOCK, UNLOCK): New macros to make malloc etc. thread safe.
+	(_malloc_internal, _free_internal, _realloc_internal): Use them.
+
+	* lread.c (readchar): Extend BLOCK_INPUT block to ferror/clearerr.
+
 2007-03-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* process.c (Fformat_network_address): Make args array big enough
