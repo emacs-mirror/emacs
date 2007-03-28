@@ -1,3 +1,7 @@
+2007-03-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* view.el (view-mode): Fix typos in docstring.
+
 2007-03-28  Stephen Berman  <Stephen.Berman@gmx.net>
 
 	* recentf.el (recentf-save-file): Add a custom :set function.
