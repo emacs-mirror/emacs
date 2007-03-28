@@ -1,3 +1,8 @@
+2007-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-arch.el (vc-with-current-file-buffer): New macro.
+	(vc-arch-file-source-p): Use it to avoid infloop.
+
 2007-03-28  David Hansen  <david.hansen@gmx.net>  (tiny change)
 
 	* emacs-lisp/lisp.el (lisp-complete-symbol):
