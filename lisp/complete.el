@@ -244,7 +244,9 @@ second TAB brings up the `*Completions*' buffer."
    (lambda (choice buffer mini-p base-size)
      (if mini-p (goto-char (point-max))
        ;; Need a similar hack for the non-minibuffer-case -- gm.
-       (if PC-do-completion-end (goto-char PC-do-completion-end)))
+       (when PC-do-completion-end
+         (goto-char PC-do-completion-end)
+         (setq PC-do-completion-end nil)))
      nil))
   ;; Build the env-completion and mapping table.
   (when (and partial-completion-mode (null PC-env-vars-alist))
@@ -820,6 +822,8 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 	       (setq quit-flag nil
 		     unread-command-events '(7))))))))
 
+;; Does not need to be buffer-local (?) because only used when one
+;; PC-l-c-s immediately follows another.
 (defvar PC-lisp-complete-end nil
   "Internal variable used by `PC-lisp-complete-symbol'.")
 
@@ -834,6 +838,12 @@ Otherwise, all symbols with function definitions, values
 or properties are considered."
   (interactive)
   (let* ((end (point))
+         ;; To complete the word under point, rather than just the portion
+         ;; before point, use this:
+;;;           (save-excursion
+;;;             (with-syntax-table lisp-mode-syntax-table
+;;;               (forward-sexp 1)
+;;;               (point))))
 	 (beg (save-excursion
                 (with-syntax-table lisp-mode-syntax-table
                   (backward-sexp 1)
@@ -877,8 +887,9 @@ or properties are considered."
     ;; the same way as beg. That would change the behaviour though.
     (if (equal last-command 'PC-lisp-complete-symbol)
         (PC-do-completion nil beg PC-lisp-complete-end)
-      (setq PC-lisp-complete-end (point-marker))
-      (set-marker-insertion-type PC-lisp-complete-end t)
+      (if PC-lisp-complete-end
+          (move-marker PC-lisp-complete-end end)
+        (setq PC-lisp-complete-end (copy-marker end t)))
       (PC-do-completion nil beg end))))
 
 (defun PC-complete-as-file-name ()
