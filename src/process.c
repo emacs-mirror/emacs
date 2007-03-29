@@ -4817,8 +4817,8 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 		 subprocess termination and SIGCHLD.  */
 	      else if (nread == 0 && !NETCONN_P (proc))
 		;
-#endif				/* O_NDELAY */
-#endif				/* O_NONBLOCK */
+#endif /* O_NDELAY */
+#endif /* O_NONBLOCK */
 #ifdef HAVE_PTYS
 	      /* On some OSs with ptys, when the process on one end of
 		 a pty exits, the other end gets an error reading with
@@ -4829,11 +4829,17 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 		 get a SIGCHLD).
 
 		 However, it has been known to happen that the SIGCHLD
-		 got lost.  So raise the signl again just in case.
+		 got lost.  So raise the signal again just in case.
 		 It can't hurt.  */
 	      else if (nread == -1 && errno == EIO)
-		kill (getpid (), SIGCHLD);
-#endif				/* HAVE_PTYS */
+		{
+		  /* Clear the descriptor now, so we only raise the signal once.  */
+		  FD_CLR (channel, &input_wait_mask);
+		  FD_CLR (channel, &non_keyboard_wait_mask);
+
+		  kill (getpid (), SIGCHLD);
+		}
+#endif /* HAVE_PTYS */
 	      /* If we can detect process termination, don't consider the process
 		 gone just because its pipe is closed.  */
 #ifdef SIGCHLD
@@ -6514,11 +6520,6 @@ sigchld_handler (signo)
       /* Keep trying to get a status until we get a definitive result.  */
       do
         {
-	  /* For some reason, this sleep() prevents Emacs from sending
-             loadavg to 5-8(!) for ~10 seconds.
-             See http://thread.gmane.org/gmane.emacs.devel/67722 or
-             http://www.google.com/search?q=busyloop+in+sigchld_handler */
-          usleep (1000);
 	  errno = 0;
 	  pid = wait3 (&w, WNOHANG | WUNTRACED, 0);
 	}
