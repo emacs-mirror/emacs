@@ -1295,7 +1295,20 @@ Returns nil if format of ADDRESS is invalid.  */)
 	return Qnil;
 
       for (i = 0; i < nargs; i++)
-	args[i+1] = p->contents[i];
+	{
+	  EMACS_INT element = XINT (p->contents[i]);
+
+	  if (element < 0 || element > 65535)
+	    return Qnil;
+
+	  if (nargs <= 5         /* IPv4 */
+	      && i < 4           /* host, not port */
+	      && element > 255)
+	    return Qnil;
+
+	  args[i+1] = p->contents[i];
+	}
+
       return Fformat (nargs+1, args);
     }
 
@@ -1409,7 +1422,6 @@ list_processes_1 (query_only)
       symbol = p->status;
       if (CONSP (p->status))
 	symbol = XCAR (p->status);
-
 
       if (EQ (symbol, Qsignal))
 	{
