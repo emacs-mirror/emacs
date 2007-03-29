@@ -1,5 +1,7 @@
 2007-03-29  Juanma Barranquero  <lekktu@gmail.com>
 
+	* buffer.c (Fset_buffer_major_mode): Check that BUFFER is valid.
+
 	* process.c (Fformat_network_address): Return nil when the
 	argument vector contains invalid values.
 
