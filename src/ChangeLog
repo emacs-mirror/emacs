@@ -1,3 +1,10 @@
+2007-03-29  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (wait_reading_process_output) [HAVE_PTYS]:
+	When EIO happens, clear channel from descriptor masks before raising
+	SIGCHLD signal to avoid busy loop between read and sigchld_handler.
+	(sigchld_handler): Remove sleep (2007-03-11 & 2007-03-26 changes).
+
 2007-03-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* buffer.c (Fset_buffer_major_mode): Check that BUFFER is valid.
