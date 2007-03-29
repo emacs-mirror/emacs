@@ -1,3 +1,7 @@
+2007-03-28  Riccardo Murri  <riccardo.murri@gmail.com>
+
+	* vc-bzr.el: New file.
+
 2007-03-23  Kenichi Handa  <handa@m17n.org>
 
 	* international/characters.el: Add more cases/syntaxes from Latin
