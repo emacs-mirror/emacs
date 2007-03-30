@@ -191,8 +191,9 @@ BUT if it is the header or the footer in EWOC return nil instead."
                     (not (eq dll node))))
         (setq node (ewoc--node-right node))))))
 
-(defun ewoc--insert-new-node (node data pretty-printer)
+(defun ewoc--insert-new-node (node data pretty-printer dll)
   "Insert before NODE a new node for DATA, displayed by PRETTY-PRINTER.
+Fourth arg DLL -- from `(ewoc--dll EWOC)' -- is for internal purposes.
 Call PRETTY-PRINTER with point at NODE's start, thus pushing back
 NODE and leaving the new node's start there.  Return the new node."
   (save-excursion
@@ -262,8 +263,8 @@ fourth arg NOSEP non-nil inhibits this."
       (unless header (setq header ""))
       (unless footer (setq footer ""))
       (setf (ewoc--node-start-marker dll) (copy-marker pos)
-            foot (ewoc--insert-new-node  dll footer hf-pp)
-            head (ewoc--insert-new-node foot header hf-pp)
+            foot (ewoc--insert-new-node  dll footer hf-pp dll)
+            head (ewoc--insert-new-node foot header hf-pp dll)
             (ewoc--hf-pp new-ewoc) hf-pp
             (ewoc--footer new-ewoc) foot
             (ewoc--header new-ewoc) head))
@@ -301,7 +302,7 @@ Return the new node."
   "Enter a new element DATA before NODE in EWOC.
 Return the new node."
   (ewoc--set-buffer-bind-dll ewoc
-    (ewoc--insert-new-node node data (ewoc--pretty-printer ewoc))))
+    (ewoc--insert-new-node node data (ewoc--pretty-printer ewoc) dll)))
 
 (defun ewoc-next (ewoc node)
   "Return the node in EWOC that follows NODE.
