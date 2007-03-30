@@ -3244,7 +3244,6 @@ If FORK is non-nil, it i spassed to `Info-goto-node'."
 (defvar info-tool-bar-map
   (if (display-graphic-p)
       (let ((map (make-sparse-keymap)))
-	(tool-bar-local-item-from-menu 'Info-exit "close" map Info-mode-map)
 	(tool-bar-local-item-from-menu 'Info-history-back "left-arrow" map Info-mode-map)
 	(tool-bar-local-item-from-menu 'Info-history-forward "right-arrow" map Info-mode-map)
 	(tool-bar-local-item-from-menu 'Info-prev "prev-node" map Info-mode-map)
@@ -3254,6 +3253,7 @@ If FORK is non-nil, it i spassed to `Info-goto-node'."
 	(tool-bar-local-item-from-menu 'Info-goto-node "jump-to" map Info-mode-map)
 	(tool-bar-local-item-from-menu 'Info-index "index" map Info-mode-map)
 	(tool-bar-local-item-from-menu 'Info-search "search" map Info-mode-map)
+	(tool-bar-local-item-from-menu 'Info-exit "exit" map Info-mode-map)
 	map)))
 
 (defvar Info-menu-last-node nil)

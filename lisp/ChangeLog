@@ -1,3 +1,8 @@
+2007-03-30  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* info.el (info-tool-bar-map): Use "exit" for Info-exit.  Move to
+	the right.
+
 2007-03-30  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-cmds.el (c-forward-to-nth-EOF-}): Fix EOB bug.
