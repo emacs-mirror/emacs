@@ -586,6 +586,7 @@ first character of @var{string} is the null character, @acronym{ASCII} code
 @example
 (string-to-char "ABC")
      @result{} 65
+
 (string-to-char "xyz")
      @result{} 120
 (string-to-char "")

@@ -159,7 +159,6 @@ considered a list and @code{not} when it is considered a truth value
 @end example
 @end defun
 
-@need 2000
 
 @node List Elements
 @section Accessing Elements of Lists
@@ -991,10 +990,9 @@ x1
 @end group
 @end example
 
-@need 4000
   Here is the result in box notation:
 
-@example
+@smallexample
 @group
                    --------------------
                   |                    |
@@ -1004,7 +1002,7 @@ x1
 |       |      |     |       |      |      |       |      |
  --------------       --------------        --------------
 @end group
-@end example
+@end smallexample
 
 @noindent
 The second cons cell, which previously held the element @code{b}, still
@@ -1589,7 +1587,7 @@ of property lists and association lists.
 
 @defun assoc key alist
 This function returns the first association for @var{key} in
-@var{alist}.  It compares @var{key} against the alist elements using
+@var{alist}, comparing @var{key} against the alist elements using
 @code{equal} (@pxref{Equality Predicates}).  It returns @code{nil} if no
 association in @var{alist} has a @sc{car} @code{equal} to @var{key}.
 For example:

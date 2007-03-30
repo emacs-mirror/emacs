@@ -1066,7 +1066,7 @@ pi/2
 @math{\pi/2}
 @end tex
 (inclusive) whose sine is @var{arg}; if, however, @var{arg} is out of
-range (outside [-1, 1]), it signals a @code{domain-error} error.
+range (outside [@minus{}1, 1]), it signals a @code{domain-error} error.
 @end defun
 
 @defun acos arg
@@ -1078,7 +1078,7 @@ pi
 @math{\pi}
 @end tex
 (inclusive) whose cosine is @var{arg}; if, however, @var{arg} is out
-of range (outside [-1, 1]), it signals a @code{domain-error} error.
+of range (outside [@minus{}1, 1]), it signals a @code{domain-error} error.
 @end defun
 
 @defun atan y &optional x
@@ -1183,7 +1183,7 @@ generates the same sequence of numbers.  Emacs always starts with the
 same seed value, so the sequence of values of @code{random} is actually
 the same in each Emacs run!  For example, in one operating system, the
 first call to @code{(random)} after you start Emacs always returns
--1457731, and the second one always returns -7692030.  This
+@minus{}1457731, and the second one always returns @minus{}7692030.  This
 repeatability is helpful for debugging.
 
 If you want random numbers that don't always come out the same, execute

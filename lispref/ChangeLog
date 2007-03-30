@@ -1,3 +1,18 @@
+2007-03-30  Karl Berry  <karl@gnu.org>
+
+	* lists.texi (List-related Predicates): Remove spurious @need.
+	(Setcdr): Use @smallexample to improve page break.
+	(Association Lists) <assoc>: Reword to improve page break.
+
+	* strings.texi (String Conversion): Insert blank line to improve
+	page break.
+
+	* numbers.texi (Random Numbers): Use @minus{}.
+	(Math Functions): Use @minus{}.
+
+	* intro.texi (Acknowledgements): Avoid line breaks before middle
+	initials.
+
 2007-03-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* errors.texi (Standard Errors): Add an index entry.

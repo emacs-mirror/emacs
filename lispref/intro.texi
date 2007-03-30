@@ -535,11 +535,12 @@ The minor version number of Emacs, as an integer.  For Emacs version
 @section Acknowledgements
 
   This manual was written by Robert Krawitz, Bil Lewis, Dan LaLiberte,
-Richard M. Stallman and Chris Welty, the volunteers of the GNU manual
-group, in an effort extending over several years.  Robert J. Chassell
-helped to review and edit the manual, with the support of the Defense
-Advanced Research Projects Agency, ARPA Order 6082, arranged by Warren
-A. Hunt, Jr.@: of Computational Logic, Inc.
+Richard@tie{}M. Stallman and Chris Welty, the volunteers of the GNU
+manual group, in an effort extending over several years.
+Robert@tie{}J. Chassell helped to review and edit the manual, with the
+support of the Defense Advanced Research Projects Agency, ARPA Order
+6082, arranged by Warren@tie{}A. Hunt, Jr.@: of Computational Logic,
+Inc.
 
   Corrections were supplied by Karl Berry, Jim Blandy, Bard Bloom,
 Stephane Boucher, David Boyes, Alan Carroll, Richard Davis, Lawrence
