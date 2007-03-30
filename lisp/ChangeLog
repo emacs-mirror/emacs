@@ -1,3 +1,8 @@
+2007-03-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* eshell/esh-proc.el (eshell/kill): Tweak regexp to recognize
+	SIGUSR1 and SIGUSR2.
+
 2007-03-29  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-read-internal): When reading file or dir, only override
