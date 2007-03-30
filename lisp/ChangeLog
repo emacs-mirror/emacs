@@ -1,3 +1,7 @@
+2007-03-30  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-forward-to-nth-EOF-}): Fix EOB bug.
+
 2007-03-30  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* emacs-lisp/ewoc.el (ewoc--insert-new-node): Take additional arg DLL.
