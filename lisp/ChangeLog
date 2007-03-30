@@ -1,3 +1,9 @@
+2007-03-30  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/ewoc.el (ewoc--insert-new-node): Take additional arg DLL.
+	Use it, passed in explicitly, instead of from the dynamic binding.
+	(ewoc-create, ewoc-enter-before): Update to use new call sequence.
+
 2007-03-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* simple.el (blink-matching-open): When in minibuffer, don't
