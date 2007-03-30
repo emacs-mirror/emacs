@@ -1,3 +1,8 @@
+2007-03-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* undo.c (Fprimitive_undo): Give clearer error message when trying
+	to change text properties outside accessible part of buffer.
+
 2007-03-29  Kim F. Storm  <storm@cua.dk>
 
 	* process.c (wait_reading_process_output) [HAVE_PTYS]:
