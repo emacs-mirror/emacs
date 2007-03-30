@@ -36,6 +36,7 @@
 2007-03-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (next-error-highlight): Doc fix.
+	(compose-mail): Revert 2007-03-19 change.
 
 2007-03-28  Richard Stallman  <rms@gnu.org>
 
