@@ -1477,9 +1477,7 @@ No indentation or other \"electric\" behavior is performed."
     (c-syntactic-re-search-forward "{")
     (backward-char)
     (setq n (1- n)))
-   (;; (or (eq where 'at-header) (eq where 'outwith-function)
-;; 	(eq where 'at-function-end) (eq where 'in-trailer))
-    (memq where '(at-header outwith-function at-function-end in-trailer))
+   ((memq where '(at-header outwith-function at-function-end in-trailer))
     (c-syntactic-skip-backward "^}")
     (when (eq (char-before) ?\})
       (backward-sexp)
@@ -1526,8 +1524,7 @@ defun."
     (if (< arg 0)
 	;; Move forward to the closing brace of a function.
 	(progn
-	  (if ;; (or (eq where 'at-function-end) (eq where 'outwith-function))
-	      (memq where '(at-function-end outwith-function))
+	  (if (memq where '(at-function-end outwith-function))
 	      (setq arg (1+ arg)))
 	  (if (< arg 0)
 	      (setq arg (c-forward-to-nth-EOF-} (- arg) where)))
@@ -1587,13 +1584,11 @@ defun."
    ((eq where 'in-trailer)
     (c-syntactic-skip-backward "^}")
     (setq n (1- n)))
-   (;; (or (eq where 'at-function-end) (eq where 'outwith-function)
-;; 	(eq where 'at-header) (eq where 'in-header))
-    (memq where '(at-function-end outwith-function at-header in-header))
-    (c-syntactic-re-search-forward "{")
-    (backward-char)
-    (forward-sexp)
-    (setq n (1- n)))
+   ((memq where '(at-function-end outwith-function at-header in-header))
+    (when (c-syntactic-re-search-forward "{" nil 'eob)
+      (backward-char)
+      (forward-sexp)
+      (setq n (1- n))))
    (t (error "c-forward-to-nth-EOF-}: `where' is %s" where)))
 
   ;; Each time round the loop, go forward to a "}" at the outermost level.
@@ -1631,8 +1626,7 @@ the open-parenthesis that starts a defun; see `beginning-of-defun'."
     (if (< arg 0)
 	;; Move backwards to the } of a function
 	(progn
-	  (if ;; (or (eq where 'at-header) (eq where 'outwith-function))
-	      (memq where '(at-header outwith-function))
+	  (if (memq where '(at-header outwith-function))
 	      (setq arg (1+ arg)))
 	  (if (< arg 0)
 	      (setq arg (c-backward-to-nth-BOF-{ (- arg) where)))
