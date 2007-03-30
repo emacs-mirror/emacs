@@ -4478,7 +4478,7 @@ it skips the contents of comments that end before point."
       (save-excursion
 	(save-restriction
 	  (if blink-matching-paren-distance
-	      (narrow-to-region (max (point-min)
+	      (narrow-to-region (max (minibuffer-prompt-end)
 				     (- (point) blink-matching-paren-distance))
 				oldpos))
 	  (condition-case ()
