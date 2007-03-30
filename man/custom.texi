@@ -1276,7 +1276,6 @@ name, which usually consists of lower-case letters and hyphens.
 * Init Rebinding::      Rebinding keys with your init file, @file{.emacs}.
 * Function Keys::       Rebinding terminal function keys.
 * Named ASCII Chars::   Distinguishing @key{TAB} from @kbd{C-i}, and so on.
-* Non-ASCII Rebinding:: Rebinding non-@acronym{ASCII} characters such as Latin-1.
 * Mouse Buttons::       Rebinding mouse buttons in Emacs.
 * Disabling::           Disabling a command means confirmation is required
                           before it can be executed.  This is done to protect
@@ -1676,7 +1675,7 @@ by listing all of the characters, in order, within the square brackets
 that delimit the vector.
 
   Language and coding systems can cause problems with key bindings
-for non-@acronym{ASCII} characters.  @xref{Non-ASCII Rebinding}.
+for non-@acronym{ASCII} characters.  @xref{Init Non-ASCII}.
 
 @node Function Keys
 @subsection Rebinding Function Keys
@@ -1816,36 +1815,6 @@ this @acronym{ASCII} character, and another for the ``function key'' @code{tab}.
   With an ordinary @acronym{ASCII} terminal, there is no way to distinguish
 between @key{TAB} and @kbd{C-i} (and likewise for other such pairs),
 because the terminal sends the same character in both cases.
-
-@node Non-ASCII Rebinding
-@subsection Non-@acronym{ASCII} Characters on the Keyboard
-@cindex rebinding non-@acronym{ASCII} keys
-@cindex non-@acronym{ASCII} keys, binding
-
-  If your keyboard has keys that send non-@acronym{ASCII}
-characters, such as accented letters, rebinding these keys
-must be done by using a vector like this@footnote{You must
-avoid the string syntax for binding
-non-@acronym{ASCII} characters, since they will be
-interpreted as meta keys.  @xref{Strings of Events,,,elisp,
-The Emacs Lisp Reference Manual}.}:
-
-@example
-(global-set-key [?@var{char}] 'some-function)
-@end example
-
-@noindent
-Type @kbd{C-q} followed by the key you want to bind, to insert @var{char}.
-
-  Since this puts a non-@acronym{ASCII} character in the @file{.emacs},
-you should specify a coding system for that file that supports the
-character in question.  @xref{Init Non-ASCII}.
-
-  @strong{Warning:} if you change the keyboard encoding, or change
-between multibyte and unibyte mode, or anything that would alter which
-code @kbd{C-q} would insert for that character, you'll need to edit
-the Lisp expression accordingly, to use the character code generated
-by @kbd{C-q} in the new mode.
 
 @node Mouse Buttons
 @subsection Rebinding Mouse Buttons
@@ -2126,6 +2095,7 @@ Manual}.
 * Init Examples::       How to do some things with an init file.
 * Terminal Init::       Each terminal type can have an init file.
 * Find Init::	        How Emacs finds the init file.
+* Init Non-ASCII::      Using non-ASCII characters in an init file.
 @end menu
 
 @node Init Syntax
@@ -2176,17 +2146,8 @@ sequences are mandatory.
 a Meta character, as in @samp{\M-a} for @kbd{Meta-A} or @samp{\M-\C-a} for
 @kbd{Control-Meta-A}.@refill
 
-@cindex international characters in @file{.emacs}
-@cindex non-@acronym{ASCII} characters in @file{.emacs}
-@anchor{Init Non-ASCII}If you want to include non-@acronym{ASCII}
-characters in strings in your init
-file, you should consider putting a @w{@samp{-*-coding:
-@var{coding-system}-*-}} tag on the first line which states the coding
-system used to save your @file{.emacs}, as explained in @ref{Recognize
-Coding}.  This is because the defaults for decoding non-@acronym{ASCII} text might
-not yet be set up by the time Emacs reads those parts of your init file
-which use such strings, possibly leading Emacs to decode those strings
-incorrectly.
+@xref{Init Non-ASCII}, for information about including
+non-@acronym{ASCII} in your init file.
 
 @item Characters:
 Lisp character constant syntax consists of a @samp{?} followed by
@@ -2195,7 +2156,7 @@ Examples: @code{?x}, @code{?\n}, @code{?\"}, @code{?\)}.  Note that
 strings and characters are not interchangeable in Lisp; some contexts
 require one and some contexts require the other.
 
-@xref{Non-ASCII Rebinding}, for information about binding commands to
+@xref{Init Non-ASCII}, for information about binding commands to
 keys which send non-@acronym{ASCII} characters.
 
 @item True:
@@ -2503,6 +2464,48 @@ If that user name matches the real user-ID, then Emacs uses @env{HOME};
 otherwise, it looks up the home directory corresponding to that user
 name in the system's data base of users.
 @c  LocalWords:  backtab
+
+@node Init Non-ASCII
+@subsection Non-ASCII Characters in Init Files
+@cindex international characters in @file{.emacs}
+@cindex non-@acronym{ASCII} characters in @file{.emacs}
+@cindex non-@acronym{ASCII} keys, binding
+@cindex rebinding non-@acronym{ASCII} keys
+
+  Language and coding systems may cause problems if your init file
+contains non-@acronym{ASCII} characters, such as accented letters, in
+strings or key bindings.
+
+  If you want to use non-@acronym{ASCII} characters in your init file,
+you should put a @w{@samp{-*-coding: @var{coding-system}-*-}} tag on
+the first line of the init file, and specify a coding system that
+supports the character(s) in question.  @xref{Recognize Coding}.  This
+is because the defaults for decoding non-@acronym{ASCII} text might
+not yet be set up by the time Emacs reads those parts of your init
+file which use such strings, possibly leading Emacs to decode those
+strings incorrectly.  You should then avoid adding Emacs Lisp code
+that modifies the coding system in other ways, such as calls to
+@code{set-language-environment}.
+
+  To bind non-@acronym{ASCII} keys, you must use a vector (@pxref{Init
+Rebinding}).  The string syntax cannot be used, since the
+non-@acronym{ASCII} characters will be interpreted as meta keys.  For
+instance:
+
+@example
+(global-set-key [?@var{char}] 'some-function)
+@end example
+
+@noindent
+Type @kbd{C-q}, followed by the key you want to bind, to insert @var{char}.
+
+  @strong{Warning:} if you change the keyboard encoding, or change
+between multibyte and unibyte mode, or anything that would alter which
+code @kbd{C-q} would insert for that character, this keybinding may
+stop working.  It is therefore advisable to use one and only one
+coding system, for your init file as well as the files you edit.  For
+example, don't mix the @samp{latin-1} and @samp{latin-9} coding
+systems.
 
 @ignore
    arch-tag: c68abddb-4410-4fb5-925f-63394e971d93
