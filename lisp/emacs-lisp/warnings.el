@@ -218,8 +218,9 @@ Default is :warning.
 	      but raise suspicion of a possible problem.
 :debug     -- info for debugging only.
 
-BUFFER-NAME, if specified, is the name of the buffer for logging the
-warning.  By default, it is `*Warnings*'.
+BUFFER-NAME, if specified, is the name of the buffer for logging
+the warning.  By default, it is `*Warnings*'.  If this function
+has to create the buffer, it disables undo in the buffer.
 
 See the `warnings' custom group for user customization features.
 
@@ -227,16 +228,22 @@ See also `warning-series', `warning-prefix-function' and
 `warning-fill-prefix' for additional programming features."
   (unless level
     (setq level :warning))
+  (unless buffer-name
+    (setq buffer-name "*Warnings*"))
   (if (assq level warning-level-aliases)
       (setq level (cdr (assq level warning-level-aliases))))
   (or (< (warning-numeric-level level)
          (warning-numeric-level warning-minimum-log-level))
       (warning-suppress-p type warning-suppress-log-types)
       (let* ((typename (if (consp type) (car type) type))
-	     (buffer (get-buffer-create (or buffer-name "*Warnings*")))
+             (old (get-buffer buffer-name))
+	     (buffer (get-buffer-create buffer-name))
 	     (level-info (assq level warning-levels))
 	     start end)
 	(with-current-buffer buffer
+          ;; If we created the buffer, disable undo.
+          (unless old
+            (setq buffer-undo-list t))
 	  (goto-char (point-max))
 	  (when (and warning-series (symbolp warning-series))
 	    (setq warning-series
