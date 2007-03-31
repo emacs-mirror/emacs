@@ -1,3 +1,10 @@
+2007-03-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* custom.texi (Init File, Init Non-ASCII): Fix last change.
+
+	* emacs.texi (Top): Fix the menu due to the change in custom.texi
+	below.
+
 2007-03-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* custom.texi (Non-ASCII Rebinding): Node deleted.  Material moved to

@@ -1,3 +1,9 @@
+2007-03-31  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* url-http.el (url-http-mark-connection-as-busy)
+	(url-http-mark-connection-as-free): Clear query-on-exit flag on
+	idle connections.
+
 2007-03-31  Markus Triska  <markus.triska@gmx.at>
 
 	* flymake.el (flymake-err-line-patterns): Doc fix.
