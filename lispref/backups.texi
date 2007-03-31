@@ -6,6 +6,8 @@
 @setfilename ../info/backups
 @node Backups and Auto-Saving, Buffers, Files, Top
 @chapter Backups and Auto-Saving
+@cindex backups and auto-saving
+@cindex back up and auto save
 
   Backup files and auto-save files are two methods by which Emacs tries
 to protect the user from the consequences of crashes or of the user's

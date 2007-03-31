@@ -7,6 +7,7 @@
 @node Non-ASCII Characters, Searching and Matching, Text, Top
 @chapter Non-@acronym{ASCII} Characters
 @cindex multibyte characters
+@cindex characters, multi-byte
 @cindex non-@acronym{ASCII} characters
 
   This chapter covers the special issues relating to non-@acronym{ASCII}

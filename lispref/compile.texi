@@ -6,6 +6,7 @@
 @setfilename ../info/compile
 @node Byte Compilation, Advising Functions, Loading, Top
 @chapter Byte Compilation
+@cindex byte compilation
 @cindex byte-code
 @cindex compilation
 

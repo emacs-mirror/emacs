@@ -6,6 +6,7 @@
 @setfilename ../info/customize
 @node Customization, Loading, Macros, Top
 @chapter Writing Customization Definitions
+@cindex customize
 
 @cindex customization definitions
   This chapter describes how to declare user options for customization,
