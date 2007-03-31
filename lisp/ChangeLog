@@ -1,3 +1,14 @@
+2007-03-31  David Kastrup  <dak@gnu.org>
+
+	* woman.el (woman-Cyg-to-Win): Don't convert cons cells
+	corresponding to MANPATH_MAP entries.
+	(woman-man.conf-path, woman-parse-man.conf): Doc fix.
+	(woman-parse-man.conf): Use more discriminating man.conf name.
+	(woman-parse-man.conf): Parse MANPATH_MAP entries.
+	(woman-manpath): Doc fix and type fix.
+	(woman-cached-data): Check for MANPATH_MAP entries.
+	(woman-expand-directory-path): Treat MANPATH_MAP entries.
+
 2007-03-31  Stuart Herring  <herring@lanl.gov>
 
 	* emacs-lisp/sregex.el (sregexq): Doc fix.

@@ -386,9 +386,9 @@ WoMan tries to pick up the information that would be used by the
 UNIX, then WoMan parses that.  Otherwise, if WoMan can find a
 configuration file named (by default) @file{man.conf} (or something very
 similar), which seems to be the standard mechanism under GNU/Linux, then
-it parses that.  To be precise, ``something very similar'' means having
-two name components separated by a dot and respectively containing
-@samp{man} and beginning with @samp{conf}, e.g.@: @file{manual.configuration}.
+it parses that.  To be precise, ``something very similar'' means
+starting with @samp{man} and ending with @samp{.conf} and possibly more
+lowercase letters, e.g.@: @file{manual.configuration}.
 The search path and/or precise full path name for this file are set by
 the value of the customizable user option @code{woman-man.conf-path}.
 If all else fails, WoMan uses a plausible default man search path.
@@ -407,7 +407,10 @@ elements of @code{woman-path} must be directories that contain man files
 @emph{directly}.  Secondly, the last directory component of each element
 of @code{woman-path} is treated as a regular (Emacs) match expression
 rather than a fixed name, which allows collections of related
-directories to be specified succinctly.
+directories to be specified succinctly.  Also, elements of
+@code{woman-manpath} can be conses, indicating a mapping from
+@samp{PATH} environment variable components to man directory
+hierarchies.
 
 For topic completion to work, WoMan must build a list of all the manual
 files that it can access, which can be very slow, especially if a
@@ -943,7 +946,9 @@ A list of strings representing @emph{directory trees} to search for Unix
 manual files.  Each element should be the name of a directory that
 contains subdirectories of the form @file{man?}, or more precisely
 subdirectories selected by the value of @code{woman-manpath-man-regexp}.
-Non-directory and unreadable files are ignored.
+Non-directory and unreadable files are ignored.  This can also contain
+conses, with the car indicating a @code{PATH} variable component mapped
+to the directory tree given in the cdr.
 
 @cindex @code{MANPATH}, environment variable
 If not set then the environment variable @code{MANPATH} is used.  If no

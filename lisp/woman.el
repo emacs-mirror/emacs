@@ -486,24 +486,28 @@ As a special case, if PATHS is nil then replace it by calling
 
 (defun woman-Cyg-to-Win (file)
   "Convert an absolute filename FILE from Cygwin to Windows form."
-  ;; Code taken from w32-symlinks.el
-  (if (eq (aref file 0) ?/)
-      ;; Try to use Cygwin mount table via `cygpath.exe'.
-      (condition-case nil
-	  (with-temp-buffer
-	    ;; cygpath -m file
-	    (call-process "cygpath" nil t nil "-m" file)
-	    (buffer-substring 1 (buffer-size)))
-	(error
-	 ;; Assume no `cygpath' program available.
-	 ;; Hack /cygdrive/x/ or /x/ or (obsolete) //x/ to x:/
-	 (when (string-match "\\`\\(/cygdrive\\|/\\)?/./" file)
-	   (if (match-string 1)		; /cygdrive/x/ or //x/ -> /x/
-	       (setq file (substring file (match-end 1))))
-	   (aset file 0 (aref file 1))	; /x/ -> xx/
-	   (aset file 1 ?:))		; xx/ -> x:/
-	 file))
-    file))
+  ;; MANPATH_MAP conses are not converted since they presumably map
+  ;; Cygwin to Cygwin form.
+  (if (consp file)
+      file
+    ;; Code taken from w32-symlinks.el
+    (if (eq (aref file 0) ?/)
+	;; Try to use Cygwin mount table via `cygpath.exe'.
+	(condition-case nil
+	    (with-temp-buffer
+	      ;; cygpath -m file
+	      (call-process "cygpath" nil t nil "-m" file)
+	      (buffer-substring 1 (buffer-size)))
+	  (error
+	   ;; Assume no `cygpath' program available.
+	   ;; Hack /cygdrive/x/ or /x/ or (obsolete) //x/ to x:/
+	   (when (string-match "\\`\\(/cygdrive\\|/\\)?/./" file)
+	     (if (match-string 1)		; /cygdrive/x/ or //x/ -> /x/
+		 (setq file (substring file (match-end 1))))
+	     (aset file 0 (aref file 1))	; /x/ -> xx/
+	     (aset file 1 ?:))		; xx/ -> x:/
+	   file))
+      file)))
 
 
 ;;; User options:
@@ -547,11 +551,12 @@ Change only via `Customization' or the function `add-hook'."
 	(mapcar 'woman-Cyg-to-Win path)
       path))
   "*List of dirs to search and/or files to try for man config file.
-A trailing separator (`/' for UNIX etc.) on directories is optional,
-and the filename is used if a directory specified is the first to
-contain the strings \"man\" and \".conf\" (in that order).
-If MANPATH is not set but a config file is found then it is parsed
-instead to provide a default value for `woman-manpath'."
+A trailing separator (`/' for UNIX etc.) on directories is
+optional, and the filename is used if a directory specified is
+the first to start with \"man\" and has an extension starting
+with \".conf\".  If MANPATH is not set but a config file is found
+then it is parsed instead to provide a default value for
+`woman-manpath'."
   :type '(repeat string)
   :group 'woman-interface)
 
@@ -564,7 +569,9 @@ Concatenate data from all lines in the config file of the form
 or
   MANDATORY_MANPATH  /usr/man
 or
-  OPTIONAL_MANPATH  /usr/man"
+  OPTIONAL_MANPATH  /usr/man
+or
+  MANPATH_MAP /opt/bin /opt/man"
   ;; Functionality suggested by Charles Curley.
   (let ((path woman-man.conf-path)
 	file manpath)
@@ -576,7 +583,7 @@ or
 		  (or (not (file-directory-p file))
 		      (and
 		       (setq file
-			     (directory-files file t "man.*\\.conf" t))
+			     (directory-files file t "\\`man.*\\.conf[a-z]*\\'" t))
 		       (file-readable-p (setq file (car file)))))
 		  ;; Parse the file -- if no MANPATH data ignore it:
 		  (with-temp-buffer
@@ -584,8 +591,13 @@ or
 		    (while (re-search-forward
 			    ;; `\(?: ... \)' is a "shy group"
 			    "\
-^[ \t]*\\(?:MANDATORY_\\|OPTIONAL_\\)?MANPATH[ \t]+\\(\\S-+\\)" nil t)
-		      (setq manpath (cons (match-string 1) manpath)))
+^[ \t]*\\(?:\\(?:MANDATORY_\\|OPTIONAL_\\)?MANPATH[ \t]+\\(\\S-+\\)\\|\
+MANPATH_MAP[ \t]+\\(\\S-+\\)[ \t]+\\(\\S-+\\)\\)" nil t)
+		      (add-to-list 'manpath
+				   (if (match-beginning 1)
+				       (match-string 1) 
+				     (cons (match-string 2)
+					   (match-string 3)))))
 		    manpath))
 		 ))
       (setq path (cdr path)))
@@ -599,6 +611,11 @@ Each element should be the name of a directory that contains
 subdirectories of the form `man?', or more precisely subdirectories
 selected by the value of `woman-manpath-man-regexp'.  Non-directory
 and unreadable files are ignored.
+
+Elements can also be a cons cell indicating a mapping from PATH
+to manual trees: if such an element's car is equal to a path
+element of the environment variable PATH, the cdr of the cons
+cell is included in the directory tree search.
 
 If not set then the environment variable MANPATH is used.  If no such
 environment variable is found, the default list is determined by
@@ -618,7 +635,7 @@ I recommend including drive letters explicitly, e.g.
 
 The MANPATH environment variable may be set using DOS semi-colon-
 separated or UN*X/Cygwin colon-separated syntax (but not mixed)."
-  :type '(repeat string)
+  :type '(repeat (choice string (cons string string)))
   :group 'woman-interface)
 
 (defcustom woman-manpath-man-regexp "[Mm][Aa][Nn]"
@@ -1159,7 +1176,14 @@ Set from the cache by `woman-read-directory-cache'.")
 Called both to generate and to check the cache!"
   ;; Must use substituted paths because values of env vars may change!
   (list woman-cache-level
-	(mapcar 'substitute-in-file-name woman-manpath)
+	(let (lst path)
+	  (dolist (dir woman-manpath (nreverse lst))
+	    (when (consp dir)
+	      (unless path
+		(setq path
+		      (split-string (getenv "PATH") path-separator t)))
+	      (setq dir (and (member (car dir) path) (cdr dir))))
+	    (when dir (add-to-list 'lst (substitute-in-file-name dir)))))
 	(mapcar 'substitute-in-file-name woman-path)))
 
 (defun woman-read-directory-cache ()
@@ -1320,10 +1344,15 @@ Ignore any paths that are unreadable or not directories."
   ;; Allow each path to be a single string or a list of strings:
   (if (not (listp woman-manpath)) (setq woman-manpath (list woman-manpath)))
   (if (not (listp woman-path)) (setq woman-path (list woman-path)))
-  (let (dir head dirs)
+  (let (dir head dirs path)
     (while woman-manpath
       (setq dir (car woman-manpath)
 	    woman-manpath (cdr woman-manpath))
+      (when (consp dir)
+	(unless path
+	  (setq path (split-string (getenv "PATH") path-separator t)))
+	(setq dir (and (member (car dir) path)
+		       (cdr dir))))
       (if (and dir (woman-file-readable-p dir))
 	  ;; NB: `parse-colon-path' creates null elements for
 	  ;; redundant (semi-)colons and trailing `/'s!

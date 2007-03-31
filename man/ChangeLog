@@ -1,3 +1,8 @@
+2007-03-31  David Kastrup  <dak@gnu.org>
+
+	* woman.texi (Topic, Interface Options): Explain changes semantics of
+	woman-manpath in order to consider MANPATH_MAP entries.
+
 2007-03-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* misc.texi (Printing): Postscript -> PostScript.
