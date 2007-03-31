@@ -9,6 +9,7 @@
 @c The title "Standard Buffer-Local Variables" is too long for
 @c smallbook. --rjc 30mar92
 @cindex buffer-local variables, general-purpose
+@cindex standard buffer-local variables
 
   The table below lists the general-purpose Emacs variables that
 automatically become buffer-local in each buffer.  Most become

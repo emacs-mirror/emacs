@@ -4621,6 +4621,7 @@ buffer.  If @var{count-current} is non-@code{nil}, count any button at
 @node Abstract Display
 @section Abstract Display
 @cindex ewoc
+@cindex abstract display
 @cindex display, abstract
 @cindex display, arbitrary objects
 @cindex model/view/controller

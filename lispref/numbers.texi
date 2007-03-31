@@ -480,6 +480,7 @@ depending on your machine.
 
 @node Arithmetic Operations
 @section Arithmetic Operations
+@cindex arithmetic operations
 
   Emacs Lisp provides the traditional four arithmetic operations:
 addition, subtraction, multiplication, and division.  Remainder and modulus
@@ -1039,6 +1040,7 @@ bit is one in the result if, and only if, the @var{n}th bit is zero in
 @section Standard Mathematical Functions
 @cindex transcendental functions
 @cindex mathematical functions
+@cindex floating-point functions
 
   These mathematical functions allow integers as well as floating point
 numbers as arguments.

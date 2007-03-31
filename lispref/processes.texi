@@ -2072,6 +2072,7 @@ If the vector does not include the port number, @var{p}, or if
 
 @node Byte Packing
 @section Packing and Unpacking Byte Arrays
+@cindex byte packing and unpacking
 
   This section describes how to pack and unpack arrays of bytes,
 usually for binary network protocols.  These functions convert byte arrays

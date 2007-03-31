@@ -642,6 +642,7 @@ beginning of the first screen line.  @xref{Minibuffer Contents}.
 @cindex sexp motion
 @cindex Lisp expression motion
 @cindex list motion
+@cindex balanced-parenthesis expressions
 
   Here are several functions concerned with balanced-parenthesis
 expressions (also called @dfn{sexps} in connection with moving across

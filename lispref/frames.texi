@@ -555,6 +555,7 @@ If non-@code{nil}, this frame's window is never split automatically.
 
 @node Management Parameters
 @subsubsection Window Management Parameters
+@cindex window manager, and frame parameters
 
   These frame parameters, meaningful only on window system displays,
 interact with the window manager.

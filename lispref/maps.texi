@@ -6,6 +6,7 @@
 @setfilename ../info/maps
 @node Standard Keymaps, Standard Hooks, Standard Buffer-Local Variables, Top
 @appendix Standard Keymaps
+@cindex standard keymaps
 
 The following symbols are used as the names for various keymaps.
 Some of these exist when Emacs is first started, others are

@@ -7,10 +7,11 @@
 @node Hash Tables, Symbols, Sequences Arrays Vectors, Top
 @chapter Hash Tables
 @cindex hash tables
+@cindex lookup tables
 
-  A hash table is a very fast kind of lookup table, somewhat like
-an alist in that it maps keys to corresponding values.  It differs
-from an alist in these ways:
+  A hash table is a very fast kind of lookup table, somewhat like an
+alist (@pxref{Association Lists}) in that it maps keys to
+corresponding values.  It differs from an alist in these ways:
 
 @itemize @bullet
 @item
