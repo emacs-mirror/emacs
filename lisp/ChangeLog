@@ -1,3 +1,7 @@
+2007-03-31  Stuart Herring  <herring@lanl.gov>
+
+	* emacs-lisp/sregex.el (sregexq): Doc fix.
+
 2007-03-31  Markus Triska  <markus.triska@gmx.at>
 
 	* flymake.el (flymake-err-line-patterns): Doc fix.
@@ -727,7 +731,7 @@
 	* ps-print.el: Replace (defvar VAR nil) by (defvar VAR).
 	(ps-setup): Print which Emacsen is running ps-print package.
 
-2007-03-01  Stuart Herring  <herring@lanl.gov>  (tiny change)
+2007-03-01  Stuart Herring  <herring@lanl.gov>
 
 	* files.el (set-auto-mode-0): Use `indirect-function'.
 	(hack-one-local-variable): Don't reapply current major mode.
@@ -771,7 +775,7 @@
 
 	* help.el (where-is): Fail gracefully when not passed a command.
 
-2007-02-28  Stuart Herring  <herring@lanl.gov>  (tiny change)
+2007-02-28  Stuart Herring  <herring@lanl.gov>
 
 	* find-lisp.el (find-lisp-default-directory-predicate):
 	Fix bug: Do symlink check on expanded filename.

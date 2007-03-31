@@ -1,5 +1,11 @@
 2007-03-31  Eli Zaretskii  <eliz@gnu.org>
 
+	* misc.texi (Printing): Postscript -> PostScript.
+
+	* emacs-mime.texi (Non-MIME): Postscript -> PostScript.
+
+	* ack.texi (Acknowledgments): Postscript -> PostScript.
+
 	* custom.texi (Init File, Init Non-ASCII): Fix last change.
 
 	* emacs.texi (Top): Fix the menu due to the change in custom.texi

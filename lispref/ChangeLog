@@ -1,3 +1,9 @@
+2007-03-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* elisp.texi (Top): Postscript -> PostScript.
+
+	* display.texi (Images, Postscript Images): Postscript -> PostScript.
+
 2007-03-31  Markus Triska  <markus.triska@gmx.at>
 
 	* internals.texi (Writing Emacs Primitives): Untabify `For'.
