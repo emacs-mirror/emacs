@@ -154,6 +154,8 @@ way."
       (gnus-load file)
       (gnus-message 5 "Reading %s...done" file))))
 
+;; FIXME: Get rid of duplicated code, cf. `gnus-save-newsrc-file' in
+;; `gnus-start.el'.  --rsteib
 (defun gnus-registry-cache-save ()
   "Save the registry cache file."
   (interactive)

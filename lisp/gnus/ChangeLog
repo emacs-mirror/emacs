@@ -1,3 +1,13 @@
+2007-03-31  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* nnmail.el (nnmail-spool-file): Mark as obsolete.
+	(nnmail-get-new-mail): Reformat.
+
+	* gnus-registry.el (gnus-registry-cache-save): Add FIXME comment.
+
+	* gmm-utils.el: Fix Commentary.
+	(gmm-tool-bar-from-list): Fix typo in doc string.
+
 2007-03-27  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* message.el (message-yank-original): Fix bug:

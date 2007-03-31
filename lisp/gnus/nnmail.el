@@ -247,6 +247,10 @@ This variable is a list of mail source specifiers.
 This variable is obsolete; `mail-sources' should be used instead."
   :group 'nnmail-files
   :type 'sexp)
+(make-obsolete-variable 'nnmail-spool-file
+			"This option is obsolete in Gnus 5.9.  \
+Use `mail-sources' instead.")
+;; revision 5.29 / p0-85 / Gnus 5.9
 
 (defcustom nnmail-resplit-incoming nil
   "*If non-nil, re-split incoming procmail sorted mail."
@@ -1749,7 +1753,8 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 				   &optional group spool-func)
   "Read new incoming mail."
   (let* ((sources (or mail-sources
-		      (if (listp nnmail-spool-file) nnmail-spool-file
+		      (if (listp nnmail-spool-file)
+			  nnmail-spool-file
 			(list nnmail-spool-file))))
 	 fetching-sources
 	 (group-in group)
