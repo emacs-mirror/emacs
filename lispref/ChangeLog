@@ -1,3 +1,8 @@
+2007-03-31  Richard Stallman  <rms@gnu.org>
+
+	* display.texi (Invisible Text): Correct buffer-invisibility-spec
+	regarding ellipsis.
+
 2007-03-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* intro.texi (nil and t): 
