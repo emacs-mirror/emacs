@@ -144,17 +144,6 @@ Reportedly this patch in X fixes the problem.
 	 }
 	 return ret;
 
-** Emacs cannot load remote files using Tramp during init.
-
-Currently, Tramp-style names for remote files are not recognized if
-they occur in site-start and init files, because Tramp filename
-handlers are registered during after-init-hook.
-
-If you want to access remote files inside an init file, first add the
-following line:
-
-  (tramp-register-file-name-handlers)
-
 * Crash bugs
 
 ** Emacs crashes in x-popup-dialog.
@@ -227,7 +216,7 @@ http://bugzilla.gnome.org/show_bug.cgi?id=85715.
 ** Emacs compiled with Gtk+ crashes on startup on cygwin.
 
 A typical error message is
-  ***MEMORY-ERROR***: emacs[5172]: GSlice: failed to allocate 504 bytes 
+  ***MEMORY-ERROR***: emacs[5172]: GSlice: failed to allocate 504 bytes
   (alignment: 512): Function not implemented
 
 Emacs supplies its own malloc, but glib (part of Gtk+) calls memalign and on

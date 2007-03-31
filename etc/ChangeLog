@@ -1,3 +1,7 @@
+2007-03-31  Michael Albinus  <michael.albinus@gmx.de>
+
+	* PROBLEMS: Remove Tramp problem; it has been fixed.
+
 2007-03-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* PROBLEMS (MS-Windows problems): How to bind non-ASCII keys with
