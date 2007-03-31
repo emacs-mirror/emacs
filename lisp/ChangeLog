@@ -1,3 +1,8 @@
+2007-03-31  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/warnings.el (display-warning): If we create the
+	buffer displaying the warning, disable undo there.
+
 2007-03-31  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-register-file-name-handler)
