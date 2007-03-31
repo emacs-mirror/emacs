@@ -1,5 +1,7 @@
 2007-03-31  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/timer.el (run-at-time): Doc fix.
+
 	* emacs-lisp/warnings.el (display-warning): If we create the
 	buffer displaying the warning, disable undo there.
 

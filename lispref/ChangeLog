@@ -1,3 +1,7 @@
+2007-03-31  Glenn Morris  <rgm@gnu.org>
+
+	* os.texi (Timers): Fix description of run-at-time TIME formats.
+
 2007-03-31  Richard Stallman  <rms@gnu.org>
 
 	* display.texi (Invisible Text): Correct buffer-invisibility-spec
@@ -5,58 +9,58 @@
 
 2007-03-31  Eli Zaretskii  <eliz@gnu.org>
 
-	* intro.texi (nil and t): 
-	* symbols.texi (Plists and Alists): 
-	* variables.texi (Variable Aliases, Constant Variables): 
-	* functions.texi (Defining Functions): 
-	* advice.texi (Advising Primitives): 
-	* debugging.texi (Syntax Errors, Compilation Errors): 
-	* minibuf.texi (Minibuffer Windows): 
-	* commands.texi (Adjusting Point): 
+	* intro.texi (nil and t):
+	* symbols.texi (Plists and Alists):
+	* variables.texi (Variable Aliases, Constant Variables):
+	* functions.texi (Defining Functions):
+	* advice.texi (Advising Primitives):
+	* debugging.texi (Syntax Errors, Compilation Errors):
+	* minibuf.texi (Minibuffer Windows):
+	* commands.texi (Adjusting Point):
 	* modes.texi (Syntactic Font Lock, Faces for Font Lock)
-	(Auto Major Mode, Major Mode Conventions): 
-	* help.texi (Describing Characters): 
+	(Auto Major Mode, Major Mode Conventions):
+	* help.texi (Describing Characters):
 	* files.texi (Create/Delete Dirs, Information about Files)
 	(File Locks, Writing to Files, Reading from Files)
-	(Saving Buffers): 
-	* windows.texi (Resizing Windows, Cyclic Window Ordering): 
-	* frames.texi (Finding All Frames): 
-	* positions.texi (Buffer End, Motion): 
-	* markers.texi (The Region): 
-	* text.texi (Deletion, Near Point): 
-	* display.texi (Displaying Messages, Truncation): 
-	* os.texi (Processor Run Time): 
+	(Saving Buffers):
+	* windows.texi (Resizing Windows, Cyclic Window Ordering):
+	* frames.texi (Finding All Frames):
+	* positions.texi (Buffer End, Motion):
+	* markers.texi (The Region):
+	* text.texi (Deletion, Near Point):
+	* display.texi (Displaying Messages, Truncation):
+	* os.texi (Processor Run Time):
 	* tips.texi (Key Binding Conventions, Programming Tips)
-	(Warning Tips, Documentation Tips, Comment Tips): 
+	(Warning Tips, Documentation Tips, Comment Tips):
 	* internals.texi (Memory Usage): Improve indexing.
 
-	* variables.texi (Frame-Local Variables): 
-	* functions.texi (Argument List): 
-	* loading.texi (Library Search): 
-	* streams.texi (Output Variables): 
-	* keymaps.texi (Translation Keymaps, Searching Keymaps): 
-	* searching.texi (Replacing Match, Search and Replace): 
+	* variables.texi (Frame-Local Variables):
+	* functions.texi (Argument List):
+	* loading.texi (Library Search):
+	* streams.texi (Output Variables):
+	* keymaps.texi (Translation Keymaps, Searching Keymaps):
+	* searching.texi (Replacing Match, Search and Replace):
 	* processes.texi (Byte Packing, Decoding Output)
-	(Accepting Output, Network Servers, Shell Arguments): 
-	* display.texi (Abstract Display, Image Cache, Scroll Bars): 
-	* windows.texi (Window Point, Window Start): 
-	* frames.texi (Management Parameters, Frame Parameters, Frame Titles): 
-	* commands.texi (Reading Input, Keyboard Events): 
+	(Accepting Output, Network Servers, Shell Arguments):
+	* display.texi (Abstract Display, Image Cache, Scroll Bars):
+	* windows.texi (Window Point, Window Start):
+	* frames.texi (Management Parameters, Frame Parameters, Frame Titles):
+	* commands.texi (Reading Input, Keyboard Events):
 	* minibuf.texi (Reading File Names, Minibuffer Completion)
-	(Recursive Mini): 
-	* positions.texi (List Motion): 
-	* hash.texi (Hash Tables, Creating Hash, Defining Hash): 
+	(Recursive Mini):
+	* positions.texi (List Motion):
+	* hash.texi (Hash Tables, Creating Hash, Defining Hash):
 	* numbers.texi (Arithmetic Operations, Math Functions)
-	(Predicates on Numbers, Comparison of Numbers): 
-	(Numeric Conversions): 
-	* locals.texi (Standard Buffer-Local Variables): 
-	* maps.texi (Standard Keymaps): 
+	(Predicates on Numbers, Comparison of Numbers):
+	(Numeric Conversions):
+	* locals.texi (Standard Buffer-Local Variables):
+	* maps.texi (Standard Keymaps):
 	* os.texi (User Identification, System Environment, Recording Input)
-	(X11 Keysyms): 
-	* nonascii.texi (Non-ASCII Characters, Splitting Characters): 
-	* backups.texi (Backups and Auto-Saving): 
+	(X11 Keysyms):
+	* nonascii.texi (Non-ASCII Characters, Splitting Characters):
+	* backups.texi (Backups and Auto-Saving):
 	* customize.texi (Customization, Group Definitions)
-	(Variable Definitions): 
+	(Variable Definitions):
 	* compile.texi (Byte Compilation): Improve index entries.
 
 2007-03-31  Karl Berry  <karl@gnu.org>
