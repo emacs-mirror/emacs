@@ -220,6 +220,8 @@ it skips the latter group.
 
 @node Library Search
 @section Library Search
+@cindex library search
+@cindex find library
 
   When Emacs loads a Lisp library, it searches for the library
 in a list of directories specified by the variable @code{load-path}.

@@ -1186,6 +1186,7 @@ match data around it, to prevent it from being overwritten.
 
 @node Replacing Match
 @subsection Replacing the Text that Matched
+@cindex replace match
 
   This function replaces all or part of the text matched by the last
 search.  It works by means of the match data.
@@ -1544,6 +1545,7 @@ associated with it still exists.
 @node Search and Replace
 @section Search and Replace
 @cindex replacement
+@cindex search and replace
 
   If you want to find all matches for a regexp in part of the buffer,
 and replace them, the best way is to write an explicit loop using

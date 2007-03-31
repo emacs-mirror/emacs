@@ -812,6 +812,8 @@ Here is an example of use:
 
 @node Minibuffer Completion
 @subsection Completion and the Minibuffer
+@cindex minibuffer completion
+@cindex reading from minibuffer with completion
 
   This section describes the basic interface for reading from the
 minibuffer with completion.
@@ -1874,6 +1876,7 @@ it erases the entire current buffer.
 
 @node Recursive Mini
 @section Recursive Minibuffers
+@cindex recursive minibuffers
 
   These functions and variables deal with recursive minibuffers
 (@pxref{Recursive Editing}):

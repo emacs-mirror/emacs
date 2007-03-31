@@ -188,6 +188,7 @@ choice is the official name of the package, such as MH-E or Gnus.
 
 @node Group Definitions
 @section Defining Custom Groups
+@cindex define custom group
 
 @cindex custom groups, how to define
   Each Emacs Lisp package should have one main customization group which
@@ -260,6 +261,7 @@ turn this feature back on, if someone would like to do the work.
 
 @node Variable Definitions
 @section Defining Customization Variables
+@cindex define customization options
 
 @cindex customization variables, how to define
 @cindex declare user-editable variables

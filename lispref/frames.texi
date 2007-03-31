@@ -887,6 +887,7 @@ Here is an example:
 
 @node Frame Titles
 @section Frame Titles
+@cindex frame title
 
   Every frame has a @code{name} parameter; this serves as the default
 for the frame title which window systems typically display at the top of

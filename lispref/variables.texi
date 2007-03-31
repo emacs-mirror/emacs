@@ -1520,6 +1520,7 @@ an ordinary evaluated argument.
 
 @node Frame-Local Variables
 @section Frame-Local Variables
+@cindex frame-local variables
 
   Just as variables can have buffer-local bindings, they can also have
 frame-local bindings.  These bindings belong to one frame, and are in

@@ -1224,6 +1224,7 @@ this simply does @code{goto-char}.
 
 @node Window Start
 @section The Window Start Position
+@cindex window start position
 
   Each window contains a marker used to keep track of a buffer position
 that specifies where in the buffer display should start.  This position
@@ -2356,6 +2357,7 @@ configurations.
 
 @node Window Hooks
 @section Hooks for Window Scrolling and Changes
+@cindex hooks for window operations
 
 This section describes how a Lisp program can take action whenever a
 window displays a different part of its buffer or a different buffer.

@@ -146,6 +146,7 @@ file name.
 
 @node Shell Arguments
 @section Shell Arguments
+@cindex pass arguments to shell commands
 
   Lisp programs sometimes need to run a shell and give it a command
 that contains file names that were specified by the user.  These

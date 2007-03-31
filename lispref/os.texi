@@ -1871,6 +1871,7 @@ is called with one argument, a property list that describes the sound.
 
 @node X11 Keysyms
 @section Operating on X11 Keysyms
+@cindex x11 keysyms
 
 To define system-specific X11 keysyms, set the variable
 @code{system-key-alist}.

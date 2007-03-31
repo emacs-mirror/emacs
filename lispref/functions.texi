@@ -293,6 +293,7 @@ variables.
 @kindex wrong-number-of-arguments
 @cindex argument binding
 @cindex binding arguments
+@cindex argument lists, features
 
   Our simple sample function, @code{(lambda (a b c) (+ a b c))},
 specifies three argument variables, so it must be called with three

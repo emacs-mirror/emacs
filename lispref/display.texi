@@ -3131,6 +3131,7 @@ is used.
 
 @node Scroll Bars
 @section Scroll Bars
+@cindex scroll bars
 
 Normally the frame parameter @code{vertical-scroll-bars} controls
 whether the windows in the frame have vertical scroll bars, and

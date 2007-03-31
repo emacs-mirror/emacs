@@ -222,6 +222,7 @@ down to an integer.
 
 @node Predicates on Numbers
 @section Type Predicates for Numbers
+@cindex predicates for numbers
 
   The functions in this section test for numbers, or for a specific
 type of number.  The functions @code{integerp} and @code{floatp} can
@@ -268,6 +269,8 @@ if so, @code{nil} otherwise.  The argument must be a number.
 @node Comparison of Numbers
 @section Comparison of Numbers
 @cindex number equality
+@cindex number comparison
+@cindex compare numbers
 
   To test numbers for numerical equality, you should normally use
 @code{=}, not @code{eq}.  There can be many distinct floating point
@@ -388,6 +391,8 @@ This function returns the absolute value of @var{number}.
 @node Numeric Conversions
 @section Numeric Conversions
 @cindex rounding in conversions
+@cindex numeric conversions
+@cindex convert number
 
 To convert an integer to floating point, use the function @code{float}.
 
