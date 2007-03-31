@@ -1,5 +1,30 @@
 2007-03-31  Eli Zaretskii  <eliz@gnu.org>
 
+	* intro.texi (nil and t): 
+	* symbols.texi (Plists and Alists): 
+	* variables.texi (Variable Aliases, Constant Variables): 
+	* functions.texi (Defining Functions): 
+	* advice.texi (Advising Primitives): 
+	* debugging.texi (Syntax Errors, Compilation Errors): 
+	* minibuf.texi (Minibuffer Windows): 
+	* commands.texi (Adjusting Point): 
+	* modes.texi (Syntactic Font Lock, Faces for Font Lock)
+	(Auto Major Mode, Major Mode Conventions): 
+	* help.texi (Describing Characters): 
+	* files.texi (Create/Delete Dirs, Information about Files)
+	(File Locks, Writing to Files, Reading from Files)
+	(Saving Buffers): 
+	* windows.texi (Resizing Windows, Cyclic Window Ordering): 
+	* frames.texi (Finding All Frames): 
+	* positions.texi (Buffer End, Motion): 
+	* markers.texi (The Region): 
+	* text.texi (Deletion, Near Point): 
+	* display.texi (Displaying Messages, Truncation): 
+	* os.texi (Processor Run Time): 
+	* tips.texi (Key Binding Conventions, Programming Tips)
+	(Warning Tips, Documentation Tips, Comment Tips): 
+	* internals.texi (Memory Usage): Improve indexing.
+
 	* variables.texi (Frame-Local Variables): 
 	* functions.texi (Argument List): 
 	* loading.texi (Library Search): 
