@@ -1,3 +1,7 @@
+2007-03-31  Markus Triska  <markus.triska@gmx.at>
+
+	* internals.texi (Writing Emacs Primitives): Untabify `For'.
+
 2007-03-30  Karl Berry  <karl@gnu.org>
 
 	* lists.texi (List-related Predicates): Remove spurious @need.

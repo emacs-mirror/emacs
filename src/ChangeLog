@@ -1,3 +1,7 @@
+2007-03-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* window.c (Fget_lru_window): Doc fix.
+
 2007-03-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* undo.c (Fprimitive_undo): Give clearer error message when trying
