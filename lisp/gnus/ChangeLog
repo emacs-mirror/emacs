@@ -3,6 +3,16 @@
 	* message.el (message-yank-original): Fix bug:
 	Don't switch point and mark unnecessarily.
 
+2007-03-25  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* gnus-msg.el (gnus-setup-message, gnus-inews-add-send-actions): Move
+	evaluation of gnus-extended-version to ensure correct generation of the
+	User-Agent header when message-generate-headers-first is used.
+
+2007-03-24  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-art.el (gnus-button-alist): Also catch `<f1> k ...'.
+
 2007-03-20  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
 
 	* message.el (message-required-news-headers):
