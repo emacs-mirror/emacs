@@ -762,10 +762,9 @@ A character is invisible if its @code{invisible} property value
 is @var{atom} or if it is a list with @var{atom} as a member.
 
 @item (@var{atom} . t)
-A character is invisible if its @code{invisible} property value
-is @var{atom} or if it is a list with @var{atom} as a member.
-Moreover, if this character is at the end of a line and is followed
-by a visible newline, it displays an ellipsis.
+A character is invisible if its @code{invisible} property value is
+@var{atom} or if it is a list with @var{atom} as a member.  Moreover,
+a sequence of such characters displays as an ellipsis.
 @end table
 @end table
 @end defvar
