@@ -1,3 +1,7 @@
+2007-03-31  Markus Triska  <markus.triska@gmx.at>
+
+	* flymake.el (flymake-err-line-patterns): Doc fix.
+
 2007-03-30  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* info.el (info-tool-bar-map): Use "exit" for Info-exit.  Move to
