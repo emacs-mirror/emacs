@@ -2135,6 +2135,16 @@ ought to recognize the Windows language-change event and set up the
 appropriate keyboard encoding automatically, but it doesn't do that
 yet.)
 
+To bind keys that produce non-ASCII characters with modifiers, you
+must specify raw byte codes. For instance, if you want to bind
+META-a-grave to a command, you need to specify this in your `~/.emacs':
+
+  (global-set-key [?\M-\340] ...)
+
+The above example is for the Latin-1 environment where the byte code
+of the encoded a-grave is 340 octal.  For other environments, use the
+encoding appropriate to that environment.
+
 The %b specifier for format-time-string does not produce abbreviated
 month names with consistent widths for some locales on some versions
 of Windows. This is caused by a deficiency in the underlying system
