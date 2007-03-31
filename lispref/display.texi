@@ -3603,7 +3603,7 @@ libraries (though it is not possible to add new image formats).
 
   The supported image formats include XBM, XPM (this requires the
 libraries @code{libXpm} version 3.4k and @code{libz}), GIF (requiring
-@code{libungif} 4.1.0), Postscript, PBM, JPEG (requiring the
+@code{libungif} 4.1.0), PostScript, PBM, JPEG (requiring the
 @code{libjpeg} library version v6a), TIFF (requiring @code{libtiff}
 v3.4), and PNG (requiring @code{libpng} 1.0.2).
 
@@ -3658,7 +3658,7 @@ function always returns @code{t}; for other image types, it returns
 * XBM Images::          Special features for XBM format.
 * XPM Images::          Special features for XPM format.
 * GIF Images::          Special features for GIF format.
-* Postscript Images::   Special features for Postscript format.
+* PostScript Images::   Special features for PostScript format.
 * Other Image Types::   Various other formats are supported.
 * Defining Images::     Convenient ways to define an image for later use.
 * Showing Images::      Convenient ways to display an image once it is defined.
@@ -3980,11 +3980,11 @@ every 0.1 seconds.
     (run-with-timer 0.1 nil 'display-anim buffer file (1+ idx) max nil)))
 @end ignore
 
-@node Postscript Images
-@subsection Postscript Images
-@cindex Postscript images
+@node PostScript Images
+@subsection PostScript Images
+@cindex postscript images
 
-  To use Postscript for an image, specify image type @code{postscript}.
+  To use PostScript for an image, specify image type @code{postscript}.
 This works only if you have Ghostscript installed.  You must always use
 these three properties:
 
@@ -3999,15 +3999,15 @@ The value, @var{height}, specifies the height of the image in points
 
 @item :bounding-box @var{box}
 The value, @var{box}, must be a list or vector of four integers, which
-specifying the bounding box of the Postscript image, analogous to the
-@samp{BoundingBox} comment found in Postscript files.
+specifying the bounding box of the PostScript image, analogous to the
+@samp{BoundingBox} comment found in PostScript files.
 
 @example
 %%BoundingBox: 22 171 567 738
 @end example
 @end table
 
-  Displaying Postscript images from Lisp data is not currently
+  Displaying PostScript images from Lisp data is not currently
 implemented, but it may be implemented by the time you read this.
 See the @file{etc/NEWS} file to make sure.
 

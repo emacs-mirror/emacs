@@ -125,7 +125,7 @@ diff.  Each of these features can be disabled by add an item into
 @table @code
 @item postscript
 @findex postscript
-Postscript file.
+PostScript file.
 
 @item uu
 @findex uu
