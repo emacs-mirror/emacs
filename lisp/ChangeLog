@@ -1,3 +1,11 @@
+2007-03-31  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-register-file-name-handler)
+	(tramp-register-completion-file-name-handler): New defsubst,
+	derived from `tramp-register-file-name-handlers'.  The split is
+	necessary because Tramp's file name handlers must be registered at
+	different startup places.
+
 2007-03-31  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/hideshow.el (turn-off-hideshow): New function.
