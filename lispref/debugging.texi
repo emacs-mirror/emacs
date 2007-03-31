@@ -675,6 +675,7 @@ If @var{frame-number} is out of range, @code{backtrace-frame} returns
 
 @node Syntax Errors
 @section Debugging Invalid Lisp Syntax
+@cindex debugging invalid Lisp syntax
 
   The Lisp reader reports invalid syntax, but cannot say where the real
 problem is.  For example, the error ``End of file during parsing'' in
@@ -690,6 +691,8 @@ technique is to try @kbd{C-M-e} at the beginning of each defun, and see
 if it goes to the place where that defun appears to end.  If it does
 not, there is a problem in that defun.
 
+@cindex unbalanced parentheses
+@cindex parentheses mismatch
   However, unmatched parentheses are the most common syntax errors in
 Lisp, and we can give further advice for those cases.  (In addition,
 just moving point through the code with Show Paren mode enabled might
@@ -798,6 +801,7 @@ never return.  If it ever does return, you get a run-time error.
 
 @node Compilation Errors
 @section Debugging Problems in Compilation
+@cindex debugging byte compilation problems
 
   When an error happens during byte compilation, it is normally due to
 invalid syntax in the program you are compiling.  The compiler prints a

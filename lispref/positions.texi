@@ -123,6 +123,7 @@ size of @var{buffer}.
 
 @node Motion
 @section Motion
+@cindex motion by characters, words, lines, lists
 
   Motion functions change the value of point, either relative to the
 current value of point, relative to the beginning or end of the buffer,
@@ -235,6 +236,7 @@ If this variable is non-@code{nil}, certain motion functions including
 
 @node Buffer End Motion
 @subsection Motion to an End of the Buffer
+@cindex move to beginning or end of buffer
 
   To move point to the beginning of the buffer, write:
 

@@ -64,6 +64,7 @@ the character after point.
 
 @node Near Point
 @section Examining Text Near Point
+@cindex text near point
 
   Many functions are provided to look at the characters around point.
 Several simple functions are described here.  See also @code{looking-at}
@@ -537,6 +538,7 @@ newlines and tabs like any other characters).
 
 @node Deletion
 @section Deleting Text
+@cindex text deletion
 
 @cindex deletion vs killing
   Deletion means removing part of the text in a buffer, without saving

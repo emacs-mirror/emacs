@@ -441,6 +441,7 @@ point number.
 
 @node Memory Usage
 @section Memory Usage
+@cindex memory usage
 
   These functions and variables give information about the total amount
 of memory allocation that Emacs has done, broken down by data type.

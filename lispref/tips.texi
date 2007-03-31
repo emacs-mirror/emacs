@@ -295,6 +295,7 @@ Otherwise, use your name.  See also @xref{Library Headers}.
 
 @node Key Binding Conventions
 @section Key Binding Conventions
+@cindex key binding, conventions for
 
 @itemize @bullet
 @item
@@ -374,6 +375,7 @@ after @key{ESC}.  In these states, you should define @kbd{@key{ESC}
 
 @node Programming Tips
 @section Emacs Programming Tips
+@cindex programming conventions
 
   Following these conventions will make your program fit better
 into Emacs when it runs.
@@ -559,6 +561,7 @@ the speed.  @xref{Inline Functions}.
 
 @node Warning Tips
 @section Tips for Avoiding Compiler Warnings
+@cindex byte compiler warnings, how to avoid
 
 @itemize @bullet
 @item
@@ -599,6 +602,7 @@ is to put a call to @code{with-no-warnings} around it.
 
 @node Documentation Tips
 @section Tips for Documentation Strings
+@cindex documentation strings, conventions and tips
 
 @findex checkdoc-minor-mode
   Here are some tips and conventions for the writing of documentation
@@ -863,6 +867,7 @@ describe the most important commands in your major mode, and then use
 
 @node Comment Tips
 @section Tips on Writing Comments
+@cindex comments, convention for
 
   We recommend these conventions for where to put comments and how to
 indent them:

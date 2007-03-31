@@ -170,11 +170,11 @@ being described, are formatted like this: @var{first-number}.
 
 @node nil and t
 @subsection @code{nil} and @code{t}
-@cindex @code{nil}, uses of
 @cindex truth value
 @cindex boolean
-@cindex false
 
+@cindex @code{nil}
+@cindex false
   In Lisp, the symbol @code{nil} has three separate meanings: it
 is a symbol with the name @samp{nil}; it is the logical truth value
 @var{false}; and it is the empty list---the list of zero elements.
@@ -197,7 +197,7 @@ in Lisp programs also.
 (setq foo-flag nil)           ; @r{Emphasize the truth value @var{false}}
 @end example
 
-@cindex @code{t}, uses of
+@cindex @code{t}
 @cindex true
   In contexts where a truth value is expected, any non-@code{nil} value
 is considered to be @var{true}.  However, @code{t} is the preferred way

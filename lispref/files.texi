@@ -296,6 +296,7 @@ in the list @code{find-file-hook}.
 
 @node Saving Buffers
 @section Saving Buffers
+@cindex saving buffers
 
   When you edit a file in Emacs, you are actually working on a buffer
 that is visiting that file---that is, the contents of the file are
@@ -481,6 +482,7 @@ Name}).
 @node Reading from Files
 @comment  node-name,  next,  previous,  up
 @section Reading from Files
+@cindex reading from files
 
   You can copy a file from the disk and insert it into a buffer
 using the @code{insert-file-contents} function.  Don't use the user-level
@@ -544,6 +546,7 @@ program can read the file, use the function @code{file-local-copy}; see
 @node Writing to Files
 @comment  node-name,  next,  previous,  up
 @section Writing to Files
+@cindex writing to files
 
   You can write the contents of a buffer, or part of a buffer, directly
 to a file on disk using the @code{append-to-file} and
@@ -647,6 +650,7 @@ with-temp-buffer,, The Current Buffer}.
 @node File Locks
 @section File Locks
 @cindex file locks
+@cindex lock file
 
   When two users edit the same file at the same time, they are likely
 to interfere with each other.  Emacs tries to prevent this situation
@@ -736,6 +740,8 @@ for its usual definition is in @file{userlock.el}.
 
 @node Information about Files
 @section Information about Files
+@cindex information about files
+@cindex file, information about
 
   The functions described in this section all operate on strings that
 designate file names.  With a few exceptions, all the functions have
@@ -2459,6 +2465,7 @@ which generate the listing with Lisp code.
 
 @node Create/Delete Dirs
 @section Creating and Deleting Directories
+@cindex creating and deleting directories
 @c Emacs 19 features
 
   Most Emacs Lisp file-manipulation functions get errors when used on

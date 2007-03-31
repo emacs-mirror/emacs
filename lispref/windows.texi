@@ -572,7 +572,7 @@ In general, within each set of siblings at any level in the window tree,
 the order is left to right, or top to bottom.
 
 @defun next-window &optional window minibuf all-frames
-@cindex minibuffer window
+@cindex minibuffer window, and @code{next-window}
 This function returns the window following @var{window} in the cyclic
 ordering of windows.  This is the window that @kbd{C-x o} would select
 if typed when @var{window} is selected.  If @var{window} is the only
@@ -1987,6 +1987,7 @@ in character lines and columns.
 @node Resizing Windows
 @section Changing the Size of a Window
 @cindex window resizing
+@cindex resize window
 @cindex changing window size
 @cindex window size, changing
 

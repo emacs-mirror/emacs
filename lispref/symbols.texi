@@ -436,6 +436,8 @@ names, and the other two elements are the corresponding values.
 
 @node Plists and Alists
 @subsection Property Lists and Association Lists
+@cindex plist vs alist
+@cindex alist vs plist
 
 @cindex property lists vs association lists
   Association lists (@pxref{Association Lists}) are very similar to

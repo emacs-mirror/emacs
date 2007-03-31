@@ -388,6 +388,7 @@ C-g             abort-recursive-edit
 
 @node Describing Characters
 @section Describing Characters for Help Messages
+@cindex describe characters and events
 
   These functions convert events, key sequences, or characters to
 textual descriptions.  These descriptions are useful for including

@@ -1310,6 +1310,7 @@ the inverse conversion, use @code{float-time}.
 
 @node Processor Run Time
 @section Processor Run time
+@cindex processor run time
 
 @defun get-internal-run-time
 This function returns the processor run time used by Emacs as a list

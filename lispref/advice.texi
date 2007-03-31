@@ -673,6 +673,7 @@ Instead they are implemented specially by the advice mechanism.
 
 @node Advising Primitives
 @section Advising Primitives
+@cindex advising primitives
 
   Advising a primitive function (also called a ``subr'') is risky.
 Some primitive functions are used by the advice mechanism; advising

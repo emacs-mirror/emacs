@@ -629,7 +629,7 @@ more marks than this are pushed onto the @code{mark-ring},
 
 @node The Region
 @section The Region
-@cindex region, the
+@cindex region between mark and point
 
   The text between point and the mark is known as @dfn{the region}.
 Various functions operate on text delimited by point and the mark, but

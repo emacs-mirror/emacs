@@ -1786,6 +1786,7 @@ regular expression).
 
 @node Minibuffer Windows
 @section Minibuffer Windows
+@cindex minibuffer windows
 
   These functions access and select minibuffer windows
 and test whether they are active.

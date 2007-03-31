@@ -100,10 +100,11 @@ x
 
 @node Constant Variables
 @section Variables that Never Change
-@vindex nil
-@vindex t
 @kindex setting-constant
 @cindex keyword symbol
+@cindex constant variables
+@cindex symbols that evaluate to themselves
+@cindex symbols with constant values
 
   In Emacs Lisp, certain symbols normally evaluate to themselves.  These
 include @code{nil} and @code{t}, as well as any symbol whose name starts
@@ -1779,6 +1780,7 @@ properties from string values specified for file local variables.
 
 @node Variable Aliases
 @section Variable Aliases
+@cindex variable aliases
 
   It is sometimes useful to make two variables synonyms, so that both
 variables always have the same value, and changing either one also

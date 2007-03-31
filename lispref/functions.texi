@@ -584,6 +584,7 @@ defined is often done deliberately, and there is no way to distinguish
 deliberate redefinition from unintentional redefinition.
 @end defspec
 
+@cindex function aliases
 @defun defalias name definition &optional docstring
 @anchor{Definition of defalias}
 This special form defines the symbol @var{name} as a function, with

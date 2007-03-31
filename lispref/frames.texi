@@ -959,6 +959,7 @@ calls the function @code{delete-frame}.  @xref{Misc Events}.
 
 @node Finding All Frames
 @section Finding All Frames
+@cindex finding all frames
 
 @defun frame-list
 The function @code{frame-list} returns a list of all the frames that

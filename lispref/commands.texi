@@ -865,6 +865,10 @@ If the last event came from a keyboard macro, the value is @code{macro}.
 
 @node Adjusting Point
 @section Adjusting Point After Commands
+@cindex adjust point
+@cindex invisible or intangible text, and point display
+@cindex @code{display} property, and point display
+@cindex @code{composition} property, and point display
 
   It is not easy to display a value of point in the middle of a
 sequence of text that has the @code{display}, @code{composition} or

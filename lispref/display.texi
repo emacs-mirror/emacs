@@ -126,6 +126,7 @@ Returns @code{t} if redisplay was performed, or @code{nil} otherwise.
 @node Truncation
 @section Truncation
 @cindex line wrapping
+@cindex line truncation
 @cindex continuation lines
 @cindex @samp{$} in display
 @cindex @samp{\} in display
@@ -216,6 +217,7 @@ explicitly.
 
 @node Displaying Messages
 @subsection Displaying Messages in the Echo Area
+@cindex display message in echo area
 
   This section describes the functions for explicitly producing echo
 area messages.  Many other Emacs features display messages there, too.
