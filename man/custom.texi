@@ -2095,7 +2095,7 @@ Manual}.
 * Init Examples::       How to do some things with an init file.
 * Terminal Init::       Each terminal type can have an init file.
 * Find Init::	        How Emacs finds the init file.
-* Init Non-ASCII::      Using non-ASCII characters in an init file.
+* Init Non-ASCII::      Using non-@acronym{ASCII} characters in an init file.
 @end menu
 
 @node Init Syntax
@@ -2466,7 +2466,7 @@ name in the system's data base of users.
 @c  LocalWords:  backtab
 
 @node Init Non-ASCII
-@subsection Non-ASCII Characters in Init Files
+@subsection Non-@acronym{ASCII} Characters in Init Files
 @cindex international characters in @file{.emacs}
 @cindex non-@acronym{ASCII} characters in @file{.emacs}
 @cindex non-@acronym{ASCII} keys, binding
