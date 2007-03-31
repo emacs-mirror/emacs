@@ -530,7 +530,7 @@ usage: (or CONDITIONS ...)  */)
     @{
       val = Feval (XCAR (args));
       if (!NILP (val))
-	break;
+        break;
       args = XCDR (args);
     @}
 @end group
