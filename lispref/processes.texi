@@ -1236,6 +1236,7 @@ there is no filter function:
 
 @node Decoding Output
 @subsection Decoding Process Output
+@cindex decode process output
 
   When Emacs writes process output directly into a multibyte buffer,
 it decodes the output according to the process output coding system.
@@ -1285,6 +1286,7 @@ This function returns the filter multibyte flag of @var{process}.
 
 @node Accepting Output
 @subsection Accepting Output from Processes
+@cindex accept input from processes
 
   Output from asynchronous subprocesses normally arrives only while
 Emacs is waiting for some sort of external event, such as elapsed time
@@ -1643,6 +1645,7 @@ For an ordinary child process, this function always returns @code{t}.
 
 @node Network Servers
 @section Network Servers
+@cindex network servers
 
   You create a server by calling @code{make-network-process} with
 @code{:server t}.  The server will listen for connection requests from

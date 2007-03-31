@@ -1697,6 +1697,7 @@ is the character Emacs currently uses for quitting, usually @kbd{C-g}.
 
 @node Recording Input
 @subsection Recording Input
+@cindex recording input
 
 @defun recent-keys
 This function returns a vector containing the last 300 input events from

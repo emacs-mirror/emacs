@@ -1222,6 +1222,8 @@ and @code{read-input-method-name}, in @ref{Input Methods}.
 
 @node Reading File Names
 @subsection Reading File Names
+@cindex read file names
+@cindex prompt for file name
 
   Here is another high-level completion function, designed for reading a
 file name.  It provides special features including automatic insertion

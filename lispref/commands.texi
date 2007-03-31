@@ -933,6 +933,7 @@ the current Emacs session.  If a symbol has not yet been so used,
 
 @node Keyboard Events
 @subsection Keyboard Events
+@cindex keyboard events
 
 There are two kinds of input you can get from the keyboard: ordinary
 keys, and function keys.  Ordinary keys correspond to characters; the
@@ -2077,6 +2078,8 @@ following the recommendations at the beginning of this section.
 
 @node Reading Input
 @section Reading Input
+@cindex read input
+@cindex keyboard input
 
   The editor command loop reads key sequences using the function
 @code{read-key-sequence}, which uses @code{read-event}.  These and other

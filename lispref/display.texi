@@ -4270,6 +4270,7 @@ cache, it can always be displayed, even if the value of
 
 @node Image Cache
 @subsection Image Cache
+@cindex image cache
 
   Emacs stores images in an image cache when it displays them, so it can
 display them again more efficiently.  It removes an image from the cache

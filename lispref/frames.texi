@@ -193,6 +193,7 @@ that display (@pxref{Deleting Frames}).
 
 @node Frame Parameters
 @section Frame Parameters
+@cindex frame parameters
 
   A frame has many parameters that control its appearance and behavior.
 Just what parameters a frame has depends on what display mechanism it

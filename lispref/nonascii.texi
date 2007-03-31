@@ -408,6 +408,7 @@ set's introduction sequence:
 
 @node Splitting Characters
 @section Splitting Characters
+@cindex split character
 
   The functions in this section convert between characters and the byte
 values used to represent them.  For most purposes, there is no need to
@@ -433,6 +434,7 @@ returns a list consisting of the symbol @code{unknown} and @var{character}.
 @end example
 @end defun
 
+@cindex generate characters in charsets
 @defun make-char charset &optional code1 code2
 This function returns the character in character set @var{charset} whose
 position codes are @var{code1} and @var{code2}.  This is roughly the

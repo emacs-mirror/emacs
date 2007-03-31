@@ -1195,6 +1195,7 @@ point and the buffer's point always move together; they remain equal.
 @noindent
 @xref{Positions}, for more details on buffer positions.
 
+@cindex cursor
   As far as the user is concerned, point is where the cursor is, and
 when the user switches to another buffer, the cursor jumps to the
 position of point in that buffer.
