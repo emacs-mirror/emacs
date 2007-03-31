@@ -921,7 +921,7 @@ Key bindings:
 
 ;;;###autoload
 (defun turn-off-hideshow ()
-  "Unconditionally turn off hideshow minor mode."
+  "Unconditionally turn off `hs-minor-mode'."
   (hs-minor-mode -1))
 
 ;;---------------------------------------------------------------------------
