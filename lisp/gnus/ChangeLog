@@ -12,6 +12,7 @@
 2007-03-24  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-art.el (gnus-button-alist): Also catch `<f1> k ...'.
+	(gnus-treat-display-x-face): Fix doc string.
 
 2007-03-20  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
 
