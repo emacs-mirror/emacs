@@ -425,7 +425,7 @@ Here are the clauses allowed in an `sregex' or `sregexq' expression:
   Stands for \"\\\\'\", matching the empty string at the end of text.
 
 - the symbol `point'
-  Stands for \"\\\\=\", matching the empty string at point.
+  Stands for \"\\\\=\\=\", matching the empty string at point.
 
 - the symbol `word-boundary'
   Stands for \"\\\\b\", matching the empty string at the beginning or
