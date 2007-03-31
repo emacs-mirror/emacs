@@ -1,3 +1,34 @@
+2007-03-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* variables.texi (Frame-Local Variables): 
+	* functions.texi (Argument List): 
+	* loading.texi (Library Search): 
+	* streams.texi (Output Variables): 
+	* keymaps.texi (Translation Keymaps, Searching Keymaps): 
+	* searching.texi (Replacing Match, Search and Replace): 
+	* processes.texi (Byte Packing, Decoding Output)
+	(Accepting Output, Network Servers, Shell Arguments): 
+	* display.texi (Abstract Display, Image Cache, Scroll Bars): 
+	* windows.texi (Window Point, Window Start): 
+	* frames.texi (Management Parameters, Frame Parameters, Frame Titles): 
+	* commands.texi (Reading Input, Keyboard Events): 
+	* minibuf.texi (Reading File Names, Minibuffer Completion)
+	(Recursive Mini): 
+	* positions.texi (List Motion): 
+	* hash.texi (Hash Tables, Creating Hash, Defining Hash): 
+	* numbers.texi (Arithmetic Operations, Math Functions)
+	(Predicates on Numbers, Comparison of Numbers): 
+	(Numeric Conversions): 
+	* locals.texi (Standard Buffer-Local Variables): 
+	* maps.texi (Standard Keymaps): 
+	* os.texi (User Identification, System Environment, Recording Input)
+	(X11 Keysyms): 
+	* nonascii.texi (Non-ASCII Characters, Splitting Characters): 
+	* backups.texi (Backups and Auto-Saving): 
+	* customize.texi (Customization, Group Definitions)
+	(Variable Definitions): 
+	* compile.texi (Byte Compilation): Improve index entries.
+
 2007-03-31  Karl Berry  <karl@gnu.org>
 
 	* macros.texi (Defining Macros): Avoid widow syllable.
