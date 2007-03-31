@@ -184,7 +184,6 @@
 ;; (5) Hideshow interacts badly with Ediff and `vc-diff'.  At the moment, the
 ;;     suggested workaround is to turn off hideshow entirely, for example:
 ;;
-;;     (defun turn-off-hideshow () (hs-minor-mode -1))
 ;;     (add-hook 'ediff-prepare-buffer-hook 'turn-off-hideshow)
 ;;     (add-hook 'vc-before-checkin-hook 'turn-off-hideshow)
 ;;
@@ -908,7 +907,7 @@ Key bindings:
         (hs-grok-mode-type)
         ;; Turn off this mode if we change major modes.
 	(add-hook 'change-major-mode-hook
-		  (lambda () (hs-minor-mode -1))
+		  'turn-off-hideshow
 		  nil t)
         (easy-menu-add hs-minor-mode-menu)
         (set (make-local-variable 'line-move-ignore-invisible) t)
@@ -919,6 +918,11 @@ Key bindings:
     (let ((hs-minor-mode t))
       (hs-show-all)))
   (run-hooks 'hs-minor-mode-hook))
+
+;;;###autoload
+(defun turn-off-hideshow ()
+  "Unconditionally turn off hideshow minor mode."
+  (hs-minor-mode -1))
 
 ;;---------------------------------------------------------------------------
 ;; load-time actions
