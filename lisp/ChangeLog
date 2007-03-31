@@ -1,3 +1,9 @@
+2007-03-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/hideshow.el (turn-off-hideshow): New function.
+	(hs-minor-mode): Use it instead of a lambda expression in
+	change-major-mode-hook.
+
 2007-03-31  David Kastrup  <dak@gnu.org>
 
 	* woman.el (woman-Cyg-to-Win): Don't convert cons cells
