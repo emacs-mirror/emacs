@@ -1,3 +1,7 @@
+2007-03-31  Karl Berry  <karl@gnu.org>
+
+	* macros.texi (Defining Macros): Avoid widow syllable.
+
 2007-03-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* elisp.texi (Top): Postscript -> PostScript.

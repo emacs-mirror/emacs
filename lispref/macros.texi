@@ -239,7 +239,7 @@ currently supported:
 @table @code
 @item (debug @var{edebug-form-spec})
 Specify how to step through macro calls for Edebug.
-@xref{Instrumenting Macro Calls}, for more details.
+@xref{Instrumenting Macro Calls}.
 
 @item (indent @var{indent-spec})
 Specify how to indent calls to this macro.  @xref{Indenting Macros},
