@@ -1,3 +1,9 @@
+2007-04-01  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* progmodes/idlw-shell.el (idlwave-shell-break-in): Simplify
+	module calc.
+	(idlwave-shell-set-bp-in-module): Compute module.
+
 2007-03-31  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/timer.el (run-at-time): Doc fix.
