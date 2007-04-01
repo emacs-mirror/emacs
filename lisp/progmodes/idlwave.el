@@ -3487,6 +3487,7 @@ if `idlwave-auto-fill-split-string' is non-nil."
 	  (idlwave-indent-line)
 	  ;; Prevent actions do-auto-fill which calls indent-line-function.
 	  (let (idlwave-do-actions
+		(paragraph-separate ".")
 		(fill-nobreak-predicate
 		 (if (and (idlwave-in-quote)
 			  idlwave-auto-fill-split-string)
