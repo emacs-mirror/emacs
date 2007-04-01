@@ -1,3 +1,8 @@
+2007-04-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keymaps.texi (Remapping Commands): Document new arg to
+	command-remapping.
+
 2007-04-01  Karl Berry  <karl@gnu.org>
 
 	* processes.texi (Low-Level Network): typo.
