@@ -45,8 +45,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** Kevin Rodgers missing assignment
 
-** where-is-internal bug
-
 ** yazicivo@ttnet.net.tr, Mar 28: Locale Dependent Downcasing in smtpmail
 
 ** dooglus@gmail.com, Mar 31: narrowing *shell* buffer causes odd error
