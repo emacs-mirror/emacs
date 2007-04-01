@@ -47,6 +47,14 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** dooglus@gmail.com, Mar 31: narrowing *shell* buffer causes odd error
 
+** Stephen.Berman@gmx.net, Mar 27: Menu bar display bug
+
+** Slow fontification of large Info menus.
+
+** warrend@mdhost.cse.tek.com, Mar 27: C-a acts different in 22.0.90 then past versions
+
+** dooglus@gmail.com, Apr 1: display problem after renaming open image files
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
