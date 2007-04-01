@@ -68,8 +68,8 @@
 
 2007-03-30  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* info.el (info-tool-bar-map): Use "exit" for Info-exit.  Move to
-	the right.
+	* info.el (info-tool-bar-map): Use "exit" for Info-exit.
+	Move to the right.
 
 2007-03-30  Alan Mackenzie  <acm@muc.de>
 
@@ -194,11 +194,11 @@
 
 2007-03-25  Chong Yidong  <cyd@stupidchicken.com>
 
-	* faces.el (face-set-after-frame-default): Revert 2007-03-10
-	change.  Merge in X resources before global face.
+	* faces.el (face-set-after-frame-default): Revert 2007-03-10 change.
+	Merge in X resources before global face.
 
-	* progmodes/compile.el (compilation-start):
-	Save compilation-directory rather than default-directory as local var.
+	* progmodes/compile.el (compilation-start): Save compilation-directory
+	rather than default-directory as local var.
 	(compilation-directory): Mark as safe local var.
 
 	* files.el: Don't mark default-directory as a safe local var.
