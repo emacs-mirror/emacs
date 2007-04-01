@@ -1,3 +1,7 @@
+2007-04-01  Guanpeng Xu  <herberteuler@hotmail.com>
+
+	* mouse.el (mouse-set-secondary): Update mouse-secondary-overlay.
+
 2007-04-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mail/smtpmail.el (smtpmail-via-smtp): Use standard case table
