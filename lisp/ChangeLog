@@ -1,5 +1,8 @@
 2007-04-01  Chong Yidong  <cyd@stupidchicken.com>
 
+	* mail/smtpmail.el (smtpmail-via-smtp): Use standard case table
+	when downcasing.
+
 	* button.el (previous-button): Rewrite to account for adjacent
 	buttons.
 
