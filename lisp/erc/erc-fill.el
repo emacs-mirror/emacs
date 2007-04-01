@@ -1,6 +1,7 @@
 ;;; erc-fill.el --- Filling IRC messages in various ways
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2006, 2007 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2004, 2006,
+;;   2007 Free Software Foundation, Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
 ;;         Mario Lang <mlang@delysid.org>
@@ -186,14 +187,6 @@ You can put this on `erc-insert-modify-hook' and/or `erc-send-modify-hook'."
            (not erc-hide-timestamps))
       (length (format-time-string erc-timestamp-format))
     0))
-
-(defun erc-restore-text-properties ()
-  "Restore the property 'erc-parsed for the region."
-  (let* ((parsed-posn (text-property-not-all (point-min) (point-max)
-                                             'erc-parsed nil))
-         (parsed-prop (when parsed-posn
-                        (get-text-property parsed-posn 'erc-parsed))))
-    (put-text-property (point-min) (point-max) 'erc-parsed parsed-prop)))
 
 (provide 'erc-fill)
 

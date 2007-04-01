@@ -1,3 +1,7 @@
+2007-04-01  Michael Olson  <mwolson@gnu.org>
+
+	* erc.texi: Update for the ERC 5.2 release.
+
 2007-03-31  David Kastrup  <dak@gnu.org>
 
 	* woman.texi (Topic, Interface Options): Explain changes semantics of

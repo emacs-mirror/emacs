@@ -317,6 +317,7 @@
   ("Novernet: Random server" Novernet "irc.novernet.com" ((6665 6669) 7000 ))
   ("Nullrouted: Random server" Nullrouted "irc.nullrouted.org" ((6666 6669) 7000 ))
   ("NullusNet: Random server" NullusNet "irc.nullus.net" 6667)
+  ("OFTC: Random server" OFTC "irc.oftc.net" ((6667 6670) 7000))
   ("OpChat: Random server" OpChat "irc.opchat.org" ((6667 6669)))
   ("Othernet: Random server" Othernet "irc.othernet.org" 6667)
   ("Othernet: US, FL, Miami" Othernet "miami.fl.us.othernet.org" 6667)
@@ -611,6 +612,7 @@ PORTS is either a number, a list of numbers, or a list of port ranges."
     (Novernet "novernet.com")
     (Nullrouted "nullrouted.org")
     (NullusNet "nullus.net")
+    (OFTC "oftc.net")
     (OpChat "opchat.org")
     (Openprojects "openprojects.net")
     (Othernet "othernet.org")
@@ -737,12 +739,12 @@ search for a match in `erc-networks-alist'."
 
 (defun erc-network ()
   "Return the value of `erc-network' for the current server."
-  (with-current-buffer (erc-server-buffer) erc-network))
+  (erc-with-server-buffer erc-network))
 
 (defun erc-current-network ()
   "Deprecated.  Use `erc-network' instead.  Return the name of this server's
 network as a symbol."
-  (with-current-buffer (erc-server-buffer)
+  (erc-with-server-buffer
     (intern (downcase (symbol-name erc-network)))))
 
 (erc-make-obsolete 'erc-current-network 'erc-network
@@ -750,7 +752,7 @@ network as a symbol."
 
 (defun erc-network-name ()
   "Returns the name of the current network as a string."
-  (with-current-buffer (erc-server-buffer) (symbol-name erc-network)))
+  (erc-with-server-buffer (symbol-name erc-network)))
 
 (defun erc-set-network-name (proc parsed)
   "Set `erc-network' to the value returned by `erc-determine-network'."

@@ -1,3 +1,8 @@
+2007-04-01  Michael Olson  <mwolson@gnu.org>
+
+	* ERC-NEWS: Update for the ERC 5.2 release.  Most of these entries
+	were for previously-committed changes.
+
 2007-03-31  Michael Albinus  <michael.albinus@gmx.de>
 
 	* PROBLEMS: Remove Tramp problem; it has been fixed.
