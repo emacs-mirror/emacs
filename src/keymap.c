@@ -2579,15 +2579,6 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
   /* 1 means ignore all menu bindings entirely.  */
   int nomenus = !NILP (firstonly) && !EQ (firstonly, Qnon_ascii);
 
-  /* If this command is remapped, then it has no key bindings
-     of its own.  */
-  if (NILP (no_remap) && SYMBOLP (definition))
-    {
-      Lisp_Object tem;
-      if (tem = Fcommand_remapping (definition, Qnil), !NILP (tem))
-	return Qnil;
-    }
-
   found = keymaps;
   while (CONSP (found))
     {
@@ -2600,6 +2591,22 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
   GCPRO5 (definition, keymaps, maps, found, sequences);
   found = Qnil;
   sequences = Qnil;
+
+  /* If this command is remapped, then it has no key bindings
+     of its own.  */
+  if (NILP (no_remap) && SYMBOLP (definition))
+    {
+      Lisp_Object kmaps, map, remap;
+
+      for (kmaps = maps; !NILP (kmaps); kmaps = Fcdr (kmaps))
+	if (map = Fcdr (Fcar (kmaps)), KEYMAPP (map))
+	  {
+	    ASET (command_remapping_vector, 1, definition);
+	    remap = Flookup_key (map, command_remapping_vector, Qnil);
+	    if (!NILP (remap) && !INTEGERP (remap))
+	      RETURN_UNGCPRO (Qnil);
+	  }
+    }
 
   for (; !NILP (maps); maps = Fcdr (maps))
     {
