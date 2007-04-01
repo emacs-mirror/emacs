@@ -1489,13 +1489,17 @@ does not have the effect of remapping @code{kill-line} into
 if an ordinary binding specifies @code{my-kill-line}, this keymap will
 remap it to @code{my-other-kill-line}.
 
-@defun command-remapping command &optional position
+@defun command-remapping command &optional position keymaps
 This function returns the remapping for @var{command} (a symbol),
 given the current active keymaps.  If @var{command} is not remapped
 (which is the usual situation), or not a symbol, the function returns
 @code{nil}.  @code{position} can optionally specify a buffer position
 or an event position to determine the keymaps to use, as in
 @code{key-binding}.
+
+If the optional argument @code{keymaps} is non-@code{nil}, it
+specifies a list of keymaps to search in.  This argument is ignored if
+@code{position} is non-@code{nil}.
 @end defun
 
 @node Translation Keymaps
