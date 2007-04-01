@@ -366,16 +366,29 @@ instead of starting at the next button."
 	     (next-button pos))))
 
 (defun previous-button (pos &optional count-current)
-  "Return the Nth button before position POS in the current buffer.
+  "Return the previous button before position POS in the current buffer.
 If COUNT-CURRENT is non-nil, count any button at POS in the search,
 instead of starting at the next button."
-  (unless count-current
-    (setq pos (previous-single-char-property-change pos 'button)))
-  (and (> pos (point-min))
-       (or (button-at (1- pos))
-	   ;; We must have originally been on a button, and are now in
-	   ;; the inter-button space.  Recurse to find a button.
-	   (previous-button pos))))
+  (let ((button (button-at pos)))
+    (if button
+	(if count-current
+	    button
+	  ;; We started out on a button, so move to its start and look
+	  ;; for the previous button boundary.
+	  (setq pos (previous-single-char-property-change
+		     (button-start button) 'button))
+	  (let ((new-button (button-at pos)))
+	    (if new-button
+		;; We are in a button again; this can happen if there
+		;; are adjacent buttons (or at bob).
+		(unless (eq new-button button) new-button)
+	      ;; We are now in the space between buttons.
+	      (previous-button pos))))
+      ;; We started out in the space between buttons.
+      (setq pos (previous-single-char-property-change pos 'button))
+      (or (button-at pos)
+	  (and (> pos (point-min))
+	       (button-at (1- pos)))))))
 
 
 ;; User commands
