@@ -1,7 +1,10 @@
 2007-04-01  Chong Yidong  <cyd@stupidchicken.com>
 
-	* keymap.c (where_is_internal): Scan provided keymaps for command
-	remappings rather than calling Fcommand_remapping.
+	* keymap.c (Fcommand_remapping): New optional argument.
+	(where_is_internal): Use new keymaps argument.
+	(Fkey_binding): Caller changed.
+
+	* keyboard.c (command_loop_1): Caller changed.
 
 2007-03-31  Eli Zaretskii  <eliz@gnu.org>
 
