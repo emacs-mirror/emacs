@@ -1,5 +1,8 @@
 2007-04-01  J.D. Smith  <jdsmith@as.arizona.edu>
 
+	* progmodes/idlwave.el (idlwave-auto-fill): Revert
+	paragraph-separate change.
+
 	* progmodes/idlw-shell.el (idlwave-shell-break-in): Simplify
 	module calc.
 	(idlwave-shell-set-bp-in-module): Compute module.
