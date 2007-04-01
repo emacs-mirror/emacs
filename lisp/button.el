@@ -381,7 +381,7 @@ instead of starting at the next button."
 	    (if new-button
 		;; We are in a button again; this can happen if there
 		;; are adjacent buttons (or at bob).
-		(unless (eq new-button button) new-button)
+		(unless (= pos (button-start button)) new-button)
 	      ;; We are now in the space between buttons.
 	      (previous-button pos))))
       ;; We started out in the space between buttons.
