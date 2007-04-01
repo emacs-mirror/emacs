@@ -1691,7 +1691,7 @@ command_loop_1 ()
       if (SYMBOLP (cmd))
 	{
 	  Lisp_Object cmd1;
-	  if (cmd1 = Fcommand_remapping (cmd, Qnil), !NILP (cmd1))
+	  if (cmd1 = Fcommand_remapping (cmd, Qnil, Qnil), !NILP (cmd1))
 	    cmd = cmd1;
 	}
 
