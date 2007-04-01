@@ -1,3 +1,11 @@
+2007-04-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp-mode.el (lisp-fill-paragraph): Only obey
+	emacs-lisp-docstring-fill-column in emacs-lisp-mode.
+
+	* newcomment.el (comment-search-forward): Discard comment starters
+	before point.
+
 2007-04-01  Guanpeng Xu  <herberteuler@hotmail.com>
 
 	* mouse.el (mouse-set-secondary): Update mouse-secondary-overlay.
@@ -7,16 +15,15 @@
 	* mail/smtpmail.el (smtpmail-via-smtp): Use standard case table
 	when downcasing.
 
-	* button.el (previous-button): Rewrite to account for adjacent
-	buttons.
+	* button.el (previous-button): Rewrite to account for adjacent buttons.
 
 2007-04-01  J.D. Smith  <jdsmith@as.arizona.edu>
 
-	* progmodes/idlwave.el (idlwave-auto-fill): Revert
-	paragraph-separate change.
+	* progmodes/idlwave.el (idlwave-auto-fill):
+	Revert paragraph-separate change.
 
-	* progmodes/idlw-shell.el (idlwave-shell-break-in): Simplify
-	module calc.
+	* progmodes/idlw-shell.el (idlwave-shell-break-in):
+	Simplify module calc.
 	(idlwave-shell-set-bp-in-module): Compute module.
 
 2007-03-31  Glenn Morris  <rgm@gnu.org>
