@@ -1,3 +1,8 @@
+2007-04-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keymap.c (where_is_internal): Scan provided keymaps for command
+	remappings rather than calling Fcommand_remapping.
+
 2007-03-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* window.c (Fget_lru_window): Doc fix.
