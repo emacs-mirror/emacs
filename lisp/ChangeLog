@@ -1,3 +1,8 @@
+2007-04-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* button.el (previous-button): Rewrite to account for adjacent
+	buttons.
+
 2007-04-01  J.D. Smith  <jdsmith@as.arizona.edu>
 
 	* progmodes/idlwave.el (idlwave-auto-fill): Revert
