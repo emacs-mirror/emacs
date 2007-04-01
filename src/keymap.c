@@ -1224,23 +1224,42 @@ binding KEY to DEF is added at the front of KEYMAP.  */)
 
 /* This function may GC (it calls Fkey_binding).  */
 
-DEFUN ("command-remapping", Fcommand_remapping, Scommand_remapping, 1, 2, 0,
-       doc: /* Return the remapping for command COMMAND in current keymaps.
+DEFUN ("command-remapping", Fcommand_remapping, Scommand_remapping, 1, 3, 0,
+       doc: /* Return the remapping for command COMMAND.
 Returns nil if COMMAND is not remapped (or not a symbol).
 
 If the optional argument POSITION is non-nil, it specifies a mouse
 position as returned by `event-start' and `event-end', and the
 remapping occurs in the keymaps associated with it.  It can also be a
 number or marker, in which case the keymap properties at the specified
-buffer position instead of point are used. */)
-     (command, position)
-     Lisp_Object command, position;
+buffer position instead of point are used.  The KEYMAPS argument is
+ignored if POSITION is non-nil.
+
+If the optional argument KEYMAPS is non-nil, it should be a list of
+keymaps to search for command remapping.  Otherwise, search for the
+remapping in all currently active keymaps.  */)
+     (command, position, keymaps)
+     Lisp_Object command, position, keymaps;
 {
   if (!SYMBOLP (command))
     return Qnil;
 
   ASET (command_remapping_vector, 1, command);
-  return Fkey_binding (command_remapping_vector, Qnil, Qt, position);
+
+  if (NILP (keymaps))
+    return Fkey_binding (command_remapping_vector, Qnil, Qt, position);
+  else
+    {
+      Lisp_Object maps, binding;
+
+      for (maps = keymaps; !NILP (maps); maps = Fcdr (maps))
+	{
+	  binding = Flookup_key (Fcar (maps), command_remapping_vector, Qnil);
+	  if (!NILP (binding) && !INTEGERP (binding))
+	    return binding;
+	}
+      return Qnil;
+    }
 }
 
 /* Value is number if KEY is too long; nil if valid but has no definition. */
@@ -1770,7 +1789,7 @@ specified buffer position instead of point are used.
   if (NILP (no_remap) && SYMBOLP (value))
     {
       Lisp_Object value1;
-      if (value1 = Fcommand_remapping (value, position), !NILP (value1))
+      if (value1 = Fcommand_remapping (value, position, Qnil), !NILP (value1))
 	value = value1;
     }
 
@@ -2594,19 +2613,10 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
 
   /* If this command is remapped, then it has no key bindings
      of its own.  */
-  if (NILP (no_remap) && SYMBOLP (definition))
-    {
-      Lisp_Object kmaps, map, remap;
-
-      for (kmaps = maps; !NILP (kmaps); kmaps = Fcdr (kmaps))
-	if (map = Fcdr (Fcar (kmaps)), KEYMAPP (map))
-	  {
-	    ASET (command_remapping_vector, 1, definition);
-	    remap = Flookup_key (map, command_remapping_vector, Qnil);
-	    if (!NILP (remap) && !INTEGERP (remap))
-	      RETURN_UNGCPRO (Qnil);
-	  }
-    }
+  if (NILP (no_remap)
+      && SYMBOLP (definition)
+      && !NILP (Fcommand_remapping (definition, Qnil, keymaps)))
+    RETURN_UNGCPRO (Qnil);
 
   for (; !NILP (maps); maps = Fcdr (maps))
     {
