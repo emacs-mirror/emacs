@@ -53,7 +53,7 @@ vector.  Unless otherwise stated, any Emacs Lisp function that accepts
 a key sequence as an argument can handle both representations.
 
   In the string representation, alphanumeric characters ordinarily
-stand for themselves; for example, @code{"a"} represents @kbd{a} and
+stand for themselves; for example, @code{"a"} represents @kbd{a}
 and @code{"2"} represents @kbd{2}.  Control character events are
 prefixed by the substring @code{"\C-"}, and meta characters by
 @code{"\M-"}; for example, @code{"\C-x"} represents the key @kbd{C-x}.
@@ -1278,7 +1278,7 @@ bindings in a keymap makes no difference for keyboard input, but it
 does matter for menu keymaps (@pxref{Menu Keymaps}).
 @end defun
 
-  Here is an example that creates a sparse keymap and makes a number of
+  This example creates a sparse keymap and makes a number of
 bindings in it:
 
 @smallexample

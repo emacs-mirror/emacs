@@ -1726,7 +1726,7 @@ sets its remote peer address to @var{address}.
 @section Low-Level Network Access
 
   You can also create network connections by operating at a lower
-level that that of @code{open-network-stream}, using
+level than that of @code{open-network-stream}, using
 @code{make-network-process}.
 
 @menu

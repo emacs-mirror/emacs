@@ -1,3 +1,10 @@
+2007-04-01  Karl Berry  <karl@gnu.org>
+
+	* processes.texi (Low-Level Network): typo.
+	* loading.texi (Hooks for Loading): avoid double "the".
+	* keymaps.texi (Key Sequences): no double "and".
+	(Changing Key Bindings): shorten to improve line break.
+
 2007-03-31  Glenn Morris  <rgm@gnu.org>
 
 	* os.texi (Timers): Fix description of run-at-time TIME formats.

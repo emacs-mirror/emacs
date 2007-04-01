@@ -1605,19 +1605,19 @@ command in the @code{special-event-map} (@pxref{Active Keymaps}).
 The command is called with no arguments, and the specific signal event is
 available in @code{last-input-event}.  For example:
 
-@example
+@smallexample
 (defun sigusr-handler ()
   (interactive)
   (message "Caught signal %S" last-input-event))
 
 (define-key special-event-map [sigusr1] 'sigusr-handler)
-@end example
+@end smallexample
 
 To test the signal handler, you can make Emacs send a signal to itself:
 
-@example
+@smallexample
 (signal-process (emacs-pid) 'sigusr1)
-@end example
+@end smallexample
 @end table
 
   If one of these events arrives in the middle of a key sequence---that
