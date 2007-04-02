@@ -45,8 +45,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** Kevin Rodgers missing assignment
 
-** dooglus@gmail.com, Mar 31: narrowing *shell* buffer causes odd error
-
 ** Stephen.Berman@gmx.net, Mar 27: Menu bar display bug
 
 ** warrend@mdhost.cse.tek.com, Mar 27: C-a acts different in 22.0.90 then past versions
