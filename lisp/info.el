@@ -145,7 +145,7 @@ The Lisp code is executed when the node is selected.")
   :type 'boolean
   :group 'info)
 
-(defcustom Info-fontify-maximum-menu-size 1000000
+(defcustom Info-fontify-maximum-menu-size 100000
   "*Maximum size of menu to fontify if `font-lock-mode' is non-nil.
 Set to nil to disable node fontification."
   :type 'integer
