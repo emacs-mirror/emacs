@@ -691,18 +691,8 @@ This is relative to `smtpmail-queue-dir'.")
 			  (>= (car response-code) 400))
 		      (throw 'done nil)))
 	      (dolist (line (cdr (cdr response-code)))
-		(let ((old-case-table (current-case-table))
-		      name)
-		  ;; Make sure we're using the standard case table
-		  ;; when downcasing; for instance, a downcased I is a
-		  ;; dotless i in Turkish.
-		  (unwind-protect
-		      (progn (set-case-table (standard-case-table))
-			     (setq name
-				   (mapcar (lambda (s) (intern (downcase s)))
-					   (split-string
-					    (substring line 4) "[ ]"))))
-		    (set-case-table old-case-table))
+		(let ((name (mapcar (lambda (s) (intern (downcase s)))
+				    (split-string (substring line 4) "[ ]"))))
 		  (and (eq (length name) 1)
 		       (setq name (car name)))
 		    (and name
