@@ -1,5 +1,7 @@
 2007-04-02  Chong Yidong  <cyd@stupidchicken.com>
 
+	* mail/smtpmail.el (smtpmail-via-smtp): Revert last change.
+
 	* comint.el (comint-send-input): Widen the buffer first.
 
 	* info.el (Info-fontify-maximum-menu-size): Revert to 100000.
