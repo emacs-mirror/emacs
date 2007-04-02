@@ -796,7 +796,7 @@ A printed representation of an object is text which describes that object.  */)
   Lisp_Object printcharfun;
   /* struct gcpro gcpro1, gcpro2; */
   Lisp_Object save_deactivate_mark;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   struct buffer *previous;
 
   specbind (Qinhibit_modification_hooks, Qt);
