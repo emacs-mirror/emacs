@@ -1,5 +1,7 @@
 2007-04-02  Chong Yidong  <cyd@stupidchicken.com>
 
+	* comint.el (comint-send-input): Widen the buffer first.
+
 	* info.el (Info-fontify-maximum-menu-size): Revert to 100000.
 
 2007-04-01  Stefan Monnier  <monnier@iro.umontreal.ca>
