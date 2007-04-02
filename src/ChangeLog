@@ -1,3 +1,7 @@
+2007-04-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* print.c (Fprin1_to_string): Use macro SPECPDL_INDEX.
+
 2007-04-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keymap.c (Fcommand_remapping): New optional argument.
@@ -383,8 +387,8 @@
 	* w32menu.c (Fx_popup_menu): Don't free menu strings here.
 	(w32_menu_show): Do it here instead.
 
-	* w32fns.c (w32_wnd_proc) [WM_INITMENU]: Set menubar_active frame
-	parameter.
+	* w32fns.c (w32_wnd_proc) [WM_INITMENU]: Set menubar_active
+	frame parameter.
 
 	* w32menu.c (current_popup_menu): Make available globally.
 	(menubar_selection_callback): Free menu strings before pushing the
@@ -418,8 +422,8 @@
 
 2007-02-20  Chong Yidong  <cyd@stupidchicken.com>
 
-	* frame.c (x_set_screen_gamma): Apply gamma value to the frame's
-	bgcolor.
+	* frame.c (x_set_screen_gamma): Apply gamma value to the
+	frame's bgcolor.
 
 2007-02-19  Kim F. Storm  <storm@cua.dk>
 
@@ -590,8 +594,8 @@
 
 2007-01-26  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* alloc.c (BLOCK_INPUT_ALLOC, UNBLOCK_INPUT_ALLOC): Use
-	BLOCK_INPUT/UNBLOCK_INPUT.
+	* alloc.c (BLOCK_INPUT_ALLOC, UNBLOCK_INPUT_ALLOC):
+	Use BLOCK_INPUT/UNBLOCK_INPUT.
 
 	* blockinput.h (interrupt_input_blocked): Declare volatile.
 
@@ -921,8 +925,8 @@
 
 2006-12-22  Eli Zaretskii  <eliz@gnu.org>
 
-	* makefile.w32-in (emacs, temacs): Depend on stamp_BLD instead of
-	$(BLD).
+	* makefile.w32-in (emacs, temacs): Depend on stamp_BLD instead
+	of $(BLD).
 	($(OBJ0) $(OBJ1) $(WIN32OBJ)): New dependency on stamp_BLD.
 	(bootstrap-temacs): Pass $(XMFLAGS) to sub-make.
 	($(OBJ0) $(OBJ1) $(WIN32OBJ)): Add lastfile.$(O) and firstfile.$(O).
@@ -941,8 +945,8 @@
 
 2006-12-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* sound.c: Include <alsa/asoundlib.h> if ALSA_SUBDIR_INCLUDE is
-	defined.
+	* sound.c: Include <alsa/asoundlib.h> if ALSA_SUBDIR_INCLUDE
+	is defined.
 
 2006-12-20  Kim F. Storm  <storm@cua.dk>
 
@@ -1502,8 +1506,8 @@
 
 2006-11-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* xterm.c (x_raise_frame): Send _NET_ACTIVE_WINDOW when raising the
-	window.
+	* xterm.c (x_raise_frame): Send _NET_ACTIVE_WINDOW when raising
+	the window.
 
 2006-11-02  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -1559,8 +1563,8 @@
 	static const.
 	(name_is_separator): Add const qualifier to arguments.
 
-	* macselect.c (init_service_handler): Make variable `specs' static
-	const.
+	* macselect.c (init_service_handler): Make variable `specs'
+	static const.
 
 	* macterm.c (mac_create_bitmap_from_bitmap_data): Make variable
 	`swap_nibbles' static const.
@@ -1623,8 +1627,8 @@
 
 2006-10-23  Kim F. Storm  <storm@cua.dk>
 
-	* xdisp.c (remember_mouse_glyph): Do nothing if glyphs are not
-	initialized.
+	* xdisp.c (remember_mouse_glyph): Do nothing if glyphs are
+	not initialized.
 
 	* keyboard.c (read_char): Make an element (t . EVENT) in
 	unread-command-events add EVENT to the current command's key sequence.
@@ -1693,8 +1697,8 @@
 
 2006-10-13  Chong Yidong  <cyd@stupidchicken.com>
 
-	* xdisp.c (decode_mode_spec): Ignore %c and %l constructs in frame
-	title.
+	* xdisp.c (decode_mode_spec): Ignore %c and %l constructs in
+	frame title.
 
 2006-10-12  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -1921,8 +1925,8 @@
 
 2006-09-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* emacs.c (shut_down_emacs) [!subprocesses]: Don't set
-	inhibit_sentinels.
+	* emacs.c (shut_down_emacs) [!subprocesses]:
+	Don't set inhibit_sentinels.
 
 	* mac.c [!MAC_OSX] (select): Fix argument name.
 
@@ -2023,8 +2027,8 @@
 
 	* keyboard.c (command_loop_1): Adjust call of `Fcommand_remapping'
 	for additional argument.
-	(parse_menu_item): Adjust call of `Fkey_binding' for additional
-	argument.
+	(parse_menu_item): Adjust call of `Fkey_binding' for
+	additional argument.
 	(read_key_sequence): If there are both `local-map' and `keymap'
 	text properties at some buffer position, heed both.
 
@@ -2093,8 +2097,8 @@
 
 2006-09-10  Chong Yidong  <cyd@stupidchicken.com>
 
-	* keymap.c (Fkey_binding): Check for local keymap for mouse click
-	events.
+	* keymap.c (Fkey_binding): Check for local keymap for
+	mouse click events.
 
 2006-09-10  Kim F. Storm  <storm@cua.dk>
 
@@ -2217,8 +2221,8 @@
 	(install_window_handler, mac_handle_window_event)
 	[USE_CARBON_EVENTS]: Handle kEventWindowGetIdealSize and
 	kEventWindowBoundsChanged.
-	(XTread_socket) [MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]: Don't call
-	DragWindow.
+	(XTread_socket) [MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]:
+	Don't call DragWindow.
 
 2006-09-07  Andreas Schwab  <schwab@suse.de>
 
@@ -2298,8 +2302,7 @@
 
 2006-09-02  Jindrich Makovicka  <makovick@gmail.com>  (tiny change)
 
-	* fns.c (concat) [__GNUC__]: Declare with
-	`__attribute__((noinline))'.
+	* fns.c (concat) [__GNUC__]: Declare with `__attribute__((noinline))'.
 
 	* eval.c (apply1, call2) [__GNUC__]: Declare with
 	`__attribute__((noinline))'.
@@ -2398,13 +2401,13 @@
 	(x_iconify_frame, XLoadQueryFont, install_window_handler)
 	(mac_handle_command_event, init_command_handler, init_menu_bar):
 	Use OSStatus instead of OSErr.
-	(x_free_frame_resources) [TARGET_API_MAC_CARBON]: Don't use
-	FRAME_FILE_NAME.
+	(x_free_frame_resources) [TARGET_API_MAC_CARBON]:
+	Don't use FRAME_FILE_NAME.
 	(x_query_font): Apply 2006-08-04 change for xterm.c.
 	(Qhi_command): Rename from Qhicommand.  All uses changed.
 
-	* macterm.h (struct mac_output) [TARGET_API_MAC_CARBON]: Remove member
-	file_name.
+	* macterm.h (struct mac_output) [TARGET_API_MAC_CARBON]:
+	Remove member file_name.
 	(FRAME_FILE_NAME): Remove macro.
 	(install_window_handler, create_apple_event_from_event_ref):
 	Return OSStatus instead of OSErr.
@@ -2479,8 +2482,7 @@
 2006-08-21  Kenichi Handa  <handa@m17n.org>
 
 	* keyboard.c (syms_of_keyboard): Docstring of
-	Vunread_post_input_method_events and Vunread_input_method_events
-	fixed.
+	Vunread_post_input_method_events and Vunread_input_method_events fixed.
 
 2006-08-20  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -2523,8 +2525,8 @@
 	is exhausted, return with RET.
 	(detect_coding_emacs_mule, detect_coding_iso2022)
 	(detect_coding_sjis, detect_coding_big5, detect_coding_utf_8)
-	(detect_coding_utf_16, detect_coding_ccl): Adjusted for the above
-	change.
+	(detect_coding_utf_16, detect_coding_ccl):
+	Adjusted for the above change.
 
 2006-08-14  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -2573,7 +2575,7 @@
 2006-08-09  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (syms_of_coding): Improve the docstring
-	file-coding-system-alist.
+	of file-coding-system-alist.
 
 2006-08-07  Andreas Schwab  <schwab@suse.de>
 
@@ -2696,9 +2698,8 @@
 
 2006-07-22  Ralf Angeli  <angeli@caeruleus.net>
 
-	* w32fns.c (w32_createwindow): If `left' and/or `top' frame
-	parameters are bound to some values, use that instead of
-	CW_USEDEFAULT.
+	* w32fns.c (w32_createwindow): If `left' and/or `top' frame parameters
+	are bound to some values, use that instead of CW_USEDEFAULT.
 
 2006-07-21  Eli Zaretskii  <eliz@gnu.org>
 
@@ -3382,8 +3383,7 @@
 
 2006-06-04  David Kastrup  <dak@gnu.org>
 
-	* dispnew.c: Mention `redisplay-dont-pause' in doc string of
-	`sit-for'.
+	* dispnew.c: Mention `redisplay-dont-pause' in doc string of `sit-for'.
 
 2006-06-03  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -3396,11 +3396,11 @@
 	[USE_MAC_TSM]: Likewise.
 	(syms_of_macterm) [USE_MAC_TSM]: Intern and staticpro them.
 	(Qbefore_string) [USE_MAC_TSM]: Add extern.
-	(do_app_resume, do_app_suspend) [USE_MAC_TSM]: Call
-	ActivateTSMDocument/DeactivateTSMDocument.
+	(do_app_resume, do_app_suspend) [USE_MAC_TSM]:
+	Call ActivateTSMDocument/DeactivateTSMDocument.
 	(mac_store_event_ref_as_apple_event): Call mac_post_mouse_moved_event.
-	(mac_handle_window_event) [USE_MAC_TSM]: Handle
-	kEventWindowFocusAcquired/kEventWindowFocusRelinquish.
+	(mac_handle_window_event) [USE_MAC_TSM]:
+	Handle kEventWindowFocusAcquired/kEventWindowFocusRelinquish.
 	(mac_handle_text_input_event) [USE_MAC_TSM]: New function.
 	(install_window_handler) [USE_MAC_TSM]: Install it.  Register
 	kEventWindowFocusAcquired/kEventWindowFocusRelinquish.
@@ -3426,8 +3426,7 @@
 
 2006-06-02  Chong Yidong  <cyd@stupidchicken.com>
 
-	* xfns.c (x_set_icon_name): No-op if arg is non-nil and not a
-	string.
+	* xfns.c (x_set_icon_name): No-op if arg is non-nil and not a string.
 
 2006-06-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -3545,8 +3544,8 @@
 	Move assignment to err out of if-statement.
 
 	* gtkutil.c (menu_nav_ended): New function.
-	(create_menus): Connect menu_nav_ended to "selection-done" to fix
-	grabs.
+	(create_menus): Connect menu_nav_ended to "selection-done"
+	to fix grabs.
 
 	* xmenu.c (Fmenu_bar_start): New function for USE_GTK and USE_X_TOOLKIT.
 
@@ -3875,14 +3874,14 @@
 	(mac_store_service_event): Rename from mac_store_services_event in
 	extern and calls.
 
-	* macterm.c (Qservice) [MAC_OSX]: Rename from Qservices.  All uses
-	changed.
+	* macterm.c (Qservice) [MAC_OSX]: Rename from Qservices.
+	All uses changed.
 	[MAC_OSX] (mac_store_service_event): Rename from
 	mac_store_services_event.  All callers changed.
 	[USE_MAC_FONT_PANEL] (mac_set_font_info_for_selection): Add args
 	FACE_ID and C.  All callers changed.
-	(x_free_frame_resources) [USE_MAC_FONT_PANEL]: Call
-	mac_set_font_info_for_selection when focus frame is destroyed.
+	(x_free_frame_resources) [USE_MAC_FONT_PANEL]:
+	Call mac_set_font_info_for_selection when focus frame is destroyed.
 	(XTread_socket): Revert to FrontNonFloatingWindow/FrontWindow.
 
 	* macterm.h (mac_set_font_info_for_selection): Add 2nd and 3rd
@@ -4319,8 +4318,8 @@
 
 2006-04-13  Nick Roberts  <nickrob@snap.net.nz>
 
-	* xdisp.c (note_mouse_highlight): Add help echo for dragging vertical
-	line.
+	* xdisp.c (note_mouse_highlight): Add help echo for dragging
+	vertical line.
 
 2006-04-12  Richard Stallman  <rms@gnu.org>
 
@@ -5039,9 +5038,8 @@
 
 2006-02-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* gtkutil.c (xg_get_image_for_pixmap): If x_find_image_file returns
-	nil the image file has been removed, in that case use the (cached)
-	pixmap.
+	* gtkutil.c (xg_get_image_for_pixmap): If x_find_image_file returns nil
+	the image file has been removed, in that case use the (cached) pixmap.
 
 2006-02-24  Kenichi Handa  <handa@m17n.org>
 
@@ -5375,8 +5373,8 @@
 	* lisp.h (XPNTR) [!NO_UNION_TYPE && !HAVE_SHM && !DATA_SEG_BITS]:
 	Cast bitfield value to EMACS_INT, to suppress gcc warning.
 
-	* xrdb.c (malloc, realloc, free) [emacs]: Undefine macros before
-	defining.
+	* xrdb.c (malloc, realloc, free) [emacs]: Undefine macros
+	before defining.
 
 2006-02-03  Kim F. Storm  <storm@cua.dk>
 
@@ -5442,14 +5440,13 @@
 	(Fline_beginning_position, Fline_end_position):
 	Clarify confusing doc string.
 
-	* cmds.c (Fbeginning_of_line, Fend_of_line): Clarify confusing doc
-	string.
+	* cmds.c (Fbeginning_of_line, Fend_of_line): Clarify confusing
+	doc string.
 
 2006-01-26  Kenichi Handa  <handa@m17n.org>
 
 	* callproc.c (Fcall_process): GCPRO error_file.  Encode infile,
-	current_dir, and error_file.  On reporting an error, decode them
-	back.
+	current_dir, and error_file.  On reporting an error, decode them back.
 
 2006-01-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -5850,8 +5847,8 @@
 
 2005-12-21  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
 
-	* print.c (print_preprocess): Don't lose print_depth levels while
-	iterating.
+	* print.c (print_preprocess): Don't lose print_depth levels
+	while iterating.
 
 2005-12-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
