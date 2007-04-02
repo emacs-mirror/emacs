@@ -1160,7 +1160,7 @@ if that value is non-nil."
 @group
   (setq imenu-case-fold-search t)
   (set-syntax-table lisp-mode-syntax-table)
-  (run-mode-hooks 'lisp-mode-hook))           ; @r{This permits the user to use a}
+  (run-mode-hooks 'lisp-mode-hook))      ; @r{This permits the user to use a}
                                          ;   @r{hook to customize the mode.}
 @end group
 @end smallexample

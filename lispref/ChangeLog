@@ -1,3 +1,8 @@
+2007-04-02  Karl Berry  <karl@gnu.org>
+
+	* backups.texi (Backup Names): Avoid widow words.
+	* modes.texi (Example Major Modes): Align last comment.
+
 2007-04-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keymaps.texi (Remapping Commands): Document new arg to
