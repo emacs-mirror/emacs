@@ -1,3 +1,14 @@
+2007-04-03  Nick Roberts  <nickrob@snap.net.nz>
+
+	* tmm.el (tmm-c-prompt): Initialize.
+	(tmm-menubar): Deal with extended menu-items at top level.
+	(tmm-get-keybind): Handle bindings that are redefined/undefined
+	locally.
+
+	* progmodes/gud.el (gud-menu-map): Simplify.
+	(gud-minor-mode-map): Add tool-bar like bindings to the text mode
+	menubar.
+
 2007-04-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mail/smtpmail.el (smtpmail-via-smtp): Revert last change.
