@@ -1,3 +1,7 @@
+2007-04-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* simple.el (activate-mark-hook): Fix typo in docstring.
+
 2007-04-03  Nick Roberts  <nickrob@snap.net.nz>
 
 	* tmm.el (tmm-c-prompt): Initialize.
