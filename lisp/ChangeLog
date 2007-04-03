@@ -4,6 +4,7 @@
 	(tmm-menubar): Deal with extended menu-items at top level.
 	(tmm-get-keybind): Handle bindings that are redefined/undefined
 	locally.
+	(tmm-prompt): Handle visibility of top level menu-items.
 
 	* progmodes/gud.el (gud-menu-map): Simplify.
 	(gud-minor-mode-map): Add tool-bar like bindings to the text mode
