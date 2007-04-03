@@ -1,3 +1,11 @@
+2007-04-03  Nick Roberts  <nickrob@snap.net.nz>
+
+	* t-mouse.el (t-mouse-make-event-element): Don't use the left edge
+	of the window if we're outside it e.g menu-bar.
+
+	* xt-mouse.el (xterm-mouse-event): Don't use the left edge of the
+	window if we're outside it e.g menu-bar.
+
 2007-04-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmail.el (rmail-convert-to-babyl-format): Don't try to
