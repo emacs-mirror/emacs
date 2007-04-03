@@ -72,16 +72,20 @@ we make that menu bar item (the one at that position) the default choice."
 	(setq list (cdr list))))
     (if x-position
 	(let ((tail menu-bar) (column 0)
-	      this-one name)
+	      this-one name visible)
 	  (while (and tail (<= column x-position))
 	    (setq this-one (car tail))
 	    (if (and (consp this-one)
 		     (consp (cdr this-one))
-		     (setq name   ; nil if menu-item
+		     (setq name  ;simple menu
 			   (cond ((stringp (nth 1  this-one))
 				  (nth 1  this-one))
-				 ((stringp (nth 2  this-one))
-				  (nth 2  this-one)))))
+				 ;extended menu
+				 ((stringp (nth 2 this-one))
+				  (setq visible (plist-get
+						 (nthcdr 4 this-one) :visible))
+				  (unless (and visible (not (eval visible)))
+				    (nth 2 this-one))))))
 		(setq column (+ column (length name) 1)))
 	    (setq tail (cdr tail)))
 	  (setq menu-bar-item (car this-one))))
@@ -189,14 +193,20 @@ Its value should be an event that has a binding in MENU."
 	     ;; We use this to decide the initial minibuffer contents
 	     ;; and initial history position.
 	     (if default-item
-		 (let ((tail menu))
+		 (let ((tail menu) visible)
 		   (while (and tail
 			       (not (eq (car-safe (car tail)) default-item)))
 		     ;; Be careful to count only the elements of MENU
 		     ;; that actually constitute menu bar items.
 		     (if (and (consp (car tail))
 			      (or (stringp (car-safe (cdr (car tail))))
-				  (eq (car-safe (cdr (car tail))) 'menu-item)))
+				  (and
+				   (eq (car-safe (cdr (car tail))) 'menu-item)
+				   (progn
+				     (setq visible
+					   (plist-get
+					    (nthcdr 4 (car tail)) :visible))
+				     (or (not visible) (eval visible))))))
 			 (setq index-of-default (1+ index-of-default)))
 		     (setq tail (cdr tail)))))
              (let ((prompt (concat "^." (regexp-quote tmm-mid-prompt))))
