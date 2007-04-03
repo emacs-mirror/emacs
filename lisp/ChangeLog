@@ -1,3 +1,9 @@
+2007-04-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmail.el (rmail-convert-to-babyl-format): Don't try to
+	decode base-64 encoded body if its content-type is something other
+	than text/* or message/*.
+
 2007-04-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* simple.el (activate-mark-hook): Fix typo in docstring.
