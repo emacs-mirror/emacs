@@ -1,3 +1,8 @@
+2007-04-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* functions.texi (Inline Functions): Describe more disadvantages
+	of defsubst, and make advice against it stronger.
+
 2007-04-02  Karl Berry  <karl@gnu.org>
 
 	* backups.texi (Backup Names): Avoid widow words.

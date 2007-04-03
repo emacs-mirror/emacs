@@ -1,3 +1,9 @@
+2007-04-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* TODO: Add entry for switching MS-Windows keyboard input to
+	Unicode.  Add specific pointer to msdos.c functions that support
+	menus on text terminals.
+
 2007-04-01  Michael Olson  <mwolson@gnu.org>
 
 	* ERC-NEWS: Update for the ERC 5.2 release.  Most of these entries
