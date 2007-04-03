@@ -1,5 +1,7 @@
 2007-04-03  Nick Roberts  <nickrob@snap.net.nz>
 
+	* progmodes/gud.el (gud-minor-mode-map): Simplify.
+
 	* t-mouse.el (t-mouse-make-event-element): Don't use the left edge
 	of the window if we're outside it e.g menu-bar.
 
