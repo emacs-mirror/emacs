@@ -232,6 +232,20 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
   user-selected input method, with the default being the union of
   latin-1-prefix and latin-1-postfix.
 
+** Switch the Windows port to using Unicode keyboard input.
+  Based on http://msdn2.microsoft.com/en-us/library/ms633586.aspx,
+  this boils down to (1) calling RegisterClassW function to register
+  Emacs windows, and (2) modifying ALL system messages to use Unicode.
+  In particular, WM_CHAR messages, which result from keyboard input,
+  will then come in encoded in UTF-16.  Problem: using this on Windows
+  9x/ME requires to install the Microsoft Layer for Unicode (MSLU),
+  which might not implement all the required functionality that is
+  available built-in on Windows XP and later.
+
+  One advantage of switching to Unicode is to toss encoded-kbd usage,
+  which will solve the problem with binding non-ASCII keys with
+  modifiers.
+
 ** Implement a clean way to use different major modes for
   different parts of a buffer.  This could be useful in editing
   Bison input files, for instance, or other kinds of text
@@ -287,7 +301,7 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
   what else ?
 
 ** Provide real menus on ttys.  The MS-DOS implementation can serve as
-  an example how to do part of this.
+  an example how to do part of this; see the XMenu* functions on msdos.c.
 
 ** Implement popular parts of the rest of the CL functions as compiler
   macros in cl-macs.
