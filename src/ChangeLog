@@ -1,3 +1,8 @@
+2007-04-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_update_menubar): Call g_list_next after moving
+	menu bar item.
+
 2007-04-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* print.c (Fprin1_to_string): Use macro SPECPDL_INDEX.
