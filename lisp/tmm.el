@@ -41,7 +41,7 @@
 (defvar tmm-short-cuts)
 (defvar tmm-old-mb-map nil)
 (defvar tmm-old-comp-map)
-(defvar tmm-c-prompt)
+(defvar tmm-c-prompt nil)
 (defvar tmm-km-list)
 (defvar tmm-next-shortcut-digit)
 (defvar tmm-table-undef)
@@ -71,17 +71,18 @@ we make that menu bar item (the one at that position) the default choice."
 				   (list this-one)))))
 	(setq list (cdr list))))
     (if x-position
-	(let ((tail menu-bar)
-	      this-one
-	      (column 0))
+	(let ((tail menu-bar) (column 0)
+	      this-one name)
 	  (while (and tail (<= column x-position))
 	    (setq this-one (car tail))
 	    (if (and (consp this-one)
 		     (consp (cdr this-one))
-		     (stringp (nth 1  this-one)))
-		(setq column (+ column
-				(length (nth 1 this-one))
-				1)))
+		     (setq name   ; nil if menu-item
+			   (cond ((stringp (nth 1  this-one))
+				  (nth 1  this-one))
+				 ((stringp (nth 2  this-one))
+				  (nth 2  this-one)))))
+		(setq column (+ column (length name) 1)))
 	    (setq tail (cdr tail)))
 	  (setq menu-bar-item (car this-one))))
     (tmm-prompt menu-bar nil menu-bar-item)))
@@ -517,7 +518,7 @@ If KEYSEQ is a prefix key that has local and global bindings,
 we merge them into a single keymap which shows the proper order of the menu.
 However, for the menu bar itself, the value does not take account
 of `menu-bar-final-items'."
-  (let (allbind bind)
+  (let (allbind bind minorbind localbind globalbind)
     (setq bind (key-binding keyseq))
     ;; If KEYSEQ is a prefix key, then BIND is either nil
     ;; or a symbol defined as a keymap (which satisfies keymapp).
@@ -528,9 +529,21 @@ of `menu-bar-final-items'."
 	(progn
 	  ;; Otherwise, it is a prefix, so make a list of the subcommands.
 	  ;; Make a list of all the bindings in all the keymaps.
-	  (setq allbind (mapcar 'cdr (minor-mode-key-binding keyseq)))
-	  (setq allbind (cons (local-key-binding keyseq) allbind))
-	  (setq allbind (cons (global-key-binding keyseq) allbind))
+	  (setq minorbind (mapcar 'cdr (minor-mode-key-binding keyseq)))
+	  (setq localbind (local-key-binding keyseq))
+	  (setq globalbind (cdr (global-key-binding keyseq)))
+
+	  ;; If items have been redefined/undefined locally, remove them from
+	  ;; the global list.
+	  (dolist (minor minorbind)
+	    (dolist (item (cdr minor))
+	      (setq globalbind (assq-delete-all (car item) globalbind))))
+	  (dolist (item (cdr localbind))
+	    (setq globalbind (assq-delete-all (car item) globalbind)))
+
+	  (setq globalbind (cons 'keymap globalbind))
+	  (setq allbind (cons globalbind (cons localbind minorbind)))
+
 	  ;; Merge all the elements of ALLBIND into one keymap.
 	  (mapc (lambda (in)
 		  (if (and (symbolp in) (keymapp in))
