@@ -695,16 +695,16 @@ This is relative to `smtpmail-queue-dir'.")
 				    (split-string (substring line 4) "[ ]"))))
 		  (and (eq (length name) 1)
 		       (setq name (car name)))
-		    (and name
+		  (and name
 		       (cond ((memq (if (consp name) (car name) name)
 				    '(verb xvrb 8bitmime onex xone
-						  expn size dsn etrn
-				      enhancedstatuscodes
-				      help xusr
-				      auth=login auth starttls))
-				(setq supported-extensions
-				      (cons name supported-extensions)))
-			       (smtpmail-warn-about-unknown-extensions
+					   expn size dsn etrn
+					   enhancedstatuscodes
+					   help xusr
+					   auth=login auth starttls))
+			      (setq supported-extensions
+				    (cons name supported-extensions)))
+			     (smtpmail-warn-about-unknown-extensions
 			      (message "Unknown extension %s" name)))))))
 
 	    (if (and do-starttls
