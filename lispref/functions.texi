@@ -1193,16 +1193,21 @@ function except for one thing: when you compile a call to the function,
 the function's definition is open-coded into the caller.
 
 Making a function inline makes explicit calls run faster.  But it also
-has disadvantages.  For one thing, it reduces flexibility; if you change
-the definition of the function, calls already inlined still use the old
-definition until you recompile them.  Since the flexibility of
-redefining functions is an important feature of Emacs, you should not
-make a function inline unless its speed is really crucial.
+has disadvantages.  For one thing, it reduces flexibility; if you
+change the definition of the function, calls already inlined still use
+the old definition until you recompile them.
 
 Another disadvantage is that making a large function inline can increase
 the size of compiled code both in files and in memory.  Since the speed
 advantage of inline functions is greatest for small functions, you
 generally should not make large functions inline.
+
+Also, inline functions do not behave well with respect to debugging,
+tracing, and advising (@pxref{Advising Functions}).  Since ease of
+debugging and the flexibility of redefining functions are important
+features of Emacs, you should not make a function inline, even if it's
+small, unless its speed is really crucial, and you've timed the code
+to verify that using @code{defun} actually has performance problems.
 
 It's possible to define a macro to expand into the same code that an
 inline function would execute.  (@xref{Macros}.)  But the macro would be
