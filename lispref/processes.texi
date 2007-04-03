@@ -1627,7 +1627,7 @@ The associated value is the process filter function.
 @item :sentinel
 The associated value is the process sentinel function.
 @item :remote
-In a connection, this is the address in internal format of the remote peer.
+In a connection, the address in internal format of the remote peer.
 @item :local
 The local address, in internal format.
 @item :service
