@@ -771,6 +771,7 @@ active, the entire article will be yanked."
 		 (nnheader-narrow-to-headers)
 		 (nnheader-parse-naked-head)))))
 	(message-yank-original)
+	(exchange-point-and-mark)       ; so that (< mark TEXT point)
 	(setq beg (or beg (mark t))))
       (when articles
 	(insert "\n")))
