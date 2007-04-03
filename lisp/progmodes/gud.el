@@ -231,7 +231,7 @@ Used to grey out relevant toolbar icons.")
        ([menu-bar until] menu-item
 	,(propertize "until" 'face 'font-lock-doc-face) gud-until
 		  :visible (memq gud-minor-mode '(gdbmi gdba gdb perldb)))
-       ([menu-bar cont]	menu-item
+       ([menu-bar cont] menu-item
 	,(propertize "cont" 'face 'font-lock-doc-face) gud-cont
 	:visible (not (eq gud-minor-mode 'gdba)))
        ([menu-bar run] menu-item
@@ -243,9 +243,8 @@ Used to grey out relevant toolbar icons.")
 		      (eq gud-minor-mode 'gdba)))
        ([menu-bar stop] menu-item
 	,(propertize "stop" 'face 'font-lock-doc-face) gud-stop-subjob
-	:visible (or (not (eq gud-minor-mode 'gdba))
-		     (and gud-running
-			  (eq gud-minor-mode 'gdba))))
+	:visible (or gud-running
+		     (not (eq gud-minor-mode 'gdba))))
        ([menu-bar print]
 	. (,(propertize "print" 'face 'font-lock-doc-face) . gud-print))
        ([menu-bar tools] . undefined)
