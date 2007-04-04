@@ -1030,7 +1030,12 @@ dnl see the `changequote' comment above.
 		;;
       *-sunos5* | *-solaris* )
 		opsys=sol2-6
-		NON_GNU_CPP=/usr/ccs/lib/cpp
+		if [ "x$CC" = x/opt/SUNWspro/bin/cc ]; then
+		  ## -Xs prevents spurious whitespace.
+		  NON_GNU_CPP="/opt/SUNWspro/bin/cc -E -Xs"
+		else
+		  NON_GNU_CPP=/usr/ccs/lib/cpp
+		fi
 		;;
       *			  ) opsys=bsd4-2   ;;
     esac
