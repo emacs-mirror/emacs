@@ -1149,7 +1149,9 @@ Sun 3, Sun 4 (sparc), Sun 386 (m68k-sun-sunos, sparc-sun-sunos, i386-sun-sunos,
   On Solaris, do not use /usr/ucb/cc.  Use /opt/SUNWspro/bin/cc.  Make
   sure that /usr/ccs/bin and /opt/SUNWspro/bin are in your PATH before
   /usr/ucb.  (Most free software packages have the same requirement on
-  Solaris.)
+  Solaris.)  With this compiler, use `/opt/SUNWspro/bin/cc -E' as the
+  preprocessor.  If this inserts extra whitespace into its output (see
+  the PROBLEMS file) then add the option `-Xs'.
 
   If you have trouble using open-network-stream, get the distribution
   of `bind' (the BSD name-server), build libresolv.a, and link Emacs
