@@ -45,6 +45,12 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** Kevin Rodgers missing assignment
 
+** Byte compiler gives wrong locations for warning.
+
+** andreas.roehler@easy-emacs.de, Apr 3: slow with html-file
+
+** dashteacup@gmail.com, Apr 2: c-subword-mode - inconsistent behavior
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
