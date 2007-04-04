@@ -4046,6 +4046,12 @@ inside timer functions and `post-command-hook' functions.
 This combines `defalias' and `make-obsolete'.
 
 +++
+*** New macro `with-case-table'
+
+This executes the body with the case table temporarily set to a given
+case table.
+
++++
 *** New function `unsafep' determines whether a Lisp form is safe.
 
 It returns nil if the given Lisp form can't possibly do anything
@@ -5843,6 +5849,12 @@ NOMODIFY.  If it is non-nil, it means don't mark the buffer modified.
 to examine a file being visited and deduce the proper coding system
 for it.  (If the coding system is detected incorrectly for a specific
 file, you can put a `coding:' tags to override it.)
+
++++
+*** The new variable `ascii-case-table' stores the case table for the
+ascii character set.  Language environments (such as Turkish) may
+alter the case correspondences of ASCII characters.  This variable
+saves the original ASCII case table before any such changes.
 
 ---
 *** The new function `merge-coding-systems' fills in unspecified aspects
