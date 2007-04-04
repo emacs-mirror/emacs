@@ -1,3 +1,8 @@
+2007-04-04  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (NON_GNU_CPP): Use associated preprocessor when
+	compiling with Sun Studio on Solaris.
+
 2007-03-23  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in: Restore support for hp800 (removed 2007-01-27)

@@ -1,3 +1,11 @@
+2007-04-04  Glenn Morris  <rgm@gnu.org>
+
+	* MACHINES: Mention preprocessor to use with /opt/SUNWspro/bin/cc
+	on Solaris.
+
+	* PROBLEMS (Configuration): Add entries on compiler/preprocessor
+	mismatch, and on preprocessor inserting whitespace.
+
 2007-04-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* TODO: Add entry for switching MS-Windows keyboard input to
