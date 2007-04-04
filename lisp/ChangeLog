@@ -4,6 +4,9 @@
 
 	* international/mule.el (ascii-case-table): New var.
 
+	* mail/smtpmail.el (smtpmail-via-smtp): Use ascii-case-table when
+	downcasing.
+
 2007-04-03  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-minor-mode-map): Simplify.
