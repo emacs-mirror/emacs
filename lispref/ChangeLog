@@ -1,3 +1,8 @@
+2007-04-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* strings.texi (Case Tables): Document with-case-table and
+	ascii-case-table.
+
 2007-04-03  Karl Berry  <karl@gnu.org>
 
 	* processes.texi (Network): Reword to improve page break.
