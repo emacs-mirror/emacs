@@ -25,20 +25,56 @@ from sets import Set
 
 __all__ = ["eexecfile", "eargs", "complete", "ehelp", "eimport", "modpath"]
 
+def format_exception (filename, should_remove_self):
+    type, value, tb = sys.exc_info ()
+    sys.last_type = type
+    sys.last_value = value
+    sys.last_traceback = tb
+    if type is SyntaxError:
+        try: # parse the error message
+            msg, (dummy_filename, lineno, offset, line) = value
+        except:
+            pass # Not the format we expect; leave it alone
+        else:
+            # Stuff in the right filename
+            value = SyntaxError(msg, (filename, lineno, offset, line))
+            sys.last_value = value
+    res = traceback.format_exception_only (type, value)
+    # There are some compilation errors which do not provide traceback so we
+    # should not massage it.
+    if should_remove_self:
+        tblist = traceback.extract_tb (tb)
+        del tblist[:1]
+        res = traceback.format_list (tblist)
+        if res:
+            res.insert(0, "Traceback (most recent call last):\n")
+        res[len(res):] = traceback.format_exception_only (type, value)
+    # traceback.print_exception(type, value, tb)
+    for line in res: print line,
+
 def eexecfile (file):
     """Execute FILE and then remove it.
     Execute the file within the __main__ namespace.
     If we get an exception, print a traceback with the top frame
     (ourselves) excluded."""
+    # We cannot use real execfile since it has a bug where the file stays
+    # locked forever (under w32) if SyntaxError occurs.
+    # --- code based on code.py and PyShell.py.
     try:
-       try: execfile (file, __main__.__dict__)
-       except:
-	    (type, value, tb) = sys.exc_info ()
-	    # Lose the stack frame for this location.
-	    tb = tb.tb_next
-	    if tb is None:	# print_exception won't do it
-		print "Traceback (most recent call last):"
-	    traceback.print_exception (type, value, tb)
+        try:
+            source = open (file, "r").read()
+            code = compile (source, file, "exec")
+        # Other exceptions (shouldn't be any...) will (correctly) fall
+        # through to "final".
+        except (OverflowError, SyntaxError, ValueError):
+            # FIXME: When can compile() raise anything else than
+            # SyntaxError ????
+            format_exception (file, False)
+            return
+        try:
+            exec code in __main__.__dict__
+        except:
+            format_exception (file, True)
     finally:
 	os.remove (file)
 

@@ -1,3 +1,9 @@
+2007-04-04  Slawomir Nowaczyk  <slawomir.nowaczyk.847@student.lu.se>
+
+	* emacs.py (format_exception): New function.
+	(eexecfile): Use it instead of traceback.print_exception.
+	Don't use execfile to avoid a bug in w32.
+
 2007-04-04  Glenn Morris  <rgm@gnu.org>
 
 	* MACHINES: Mention preprocessor to use with /opt/SUNWspro/bin/cc
@@ -367,7 +373,7 @@
 	(section{TODO Items and Checkboxes}): Checkbox keys moved to this
 	section, added documentation for the key `C-c #'.
 
-2006-11-05  Slawomir Nowaczyk  <slawek@cs.lth.se>  (tiny change)
+2006-11-05  Slawomir Nowaczyk  <slawek@cs.lth.se>
 
 	* emacs.py (eargs): Provide eldoc message for builtin types.
 	  Make sure eargs always outputs sentinel, to avoid Emacs freeze.
@@ -462,7 +468,7 @@
 	(eimport): Use __main__ rather than `emacs' namespace.
 	(modpath): New fun.
 
-2006-08-20  Slawomir Nowaczyk  <slawomir.nowaczyk.847@student.lu.se>  (tiny change)
+2006-08-20  Slawomir Nowaczyk  <slawomir.nowaczyk.847@student.lu.se>
 
 	* emacs.py (eexecfile): Use the __main__ rather than `emacs' namespace.
 
@@ -725,8 +731,8 @@
 	* pl-refcard.tex (section{Info}): Ditto.  Translation suggested by
 	Slawomir Nowaczyk <slawomir.nowaczyk.847@student.lu.se>.
 
-	* cs-refcard.tex (section{Info}): Use `s' instead of `M-s'.  Entry
-	for `i' is not translated yet.
+	* cs-refcard.tex (section{Info}): Use `s' instead of `M-s'.
+	Entry for `i' is not translated yet.
 
 	* pt-br-refcard.tex (section{Info}): Ditto.
 
@@ -1455,7 +1461,7 @@
 
 	* NEWS: Lots of clarifications and cleanups.
 
-2005-05-05  Slawomir Nowaczyk  <slawek@cs.lth.se>  (tiny change)
+2005-05-05  Slawomir Nowaczyk  <slawek@cs.lth.se>
 
 	* TUTORIAL.pl: Updated header.
 
