@@ -1,3 +1,8 @@
+2007-04-04  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-vars.el (c-special-indent-hook): Amend doc-string
+	to mention c-syntactic-indentation.
+
 2007-04-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* subr.el (with-case-table): New macro.
