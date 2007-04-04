@@ -2305,6 +2305,30 @@ the Emacs configure script, which should now find the jpeg library.
 Alternatively, modify the generated src/Makefile to link the .a file
 explicitly, and edit src/config.h to define HAVE_JPEG.
 
+*** `configure' warns ``accepted by the compiler, rejected by the preprocessor''.
+
+This indicates a mismatch between the C compiler and preprocessor that
+configure is using.  For example, on Solaris 10 trying to use
+CC=/opt/SUNWspro/bin/cc (the Sun Studio compiler) together with
+CPP=/usr/ccs/lib/cpp can result in errors of this form (you may also
+see the error ``"/usr/include/sys/isa_defs.h", line 500: undefined control'').
+
+The solution is to tell configure to use the correct C preprocessor
+for your C compiler (CPP="/opt/SUNWspro/bin/cc -E" in the above
+example).
+
+*** `configure' fails with ``"junk.c", line 660: invalid input token: 8.elc''
+
+The final stage of the Emacs configure process uses the C preprocessor
+to generate the Makefiles.  Errors of this form can occur if the C
+preprocessor inserts extra whitespace into its output.  The solution
+is to find the switches that stop your preprocessor from inserting extra
+whitespace, add them to CPPFLAGS, and re-run configure.  For example,
+this error can occur on Solaris 10 when using the Sun Studio compiler
+``Sun C 5.8'' with its preprocessor CPP="/opt/SUNWspro/bin/cc -E".
+The relevant switch in this case is "-Xs" (``compile assuming
+(pre-ANSI) K & R C style code'').
+
 ** Compilation
 
 *** Building Emacs over NFS fails with ``Text file busy''.
