@@ -691,8 +691,10 @@ This is relative to `smtpmail-queue-dir'.")
 			  (>= (car response-code) 400))
 		      (throw 'done nil)))
 	      (dolist (line (cdr (cdr response-code)))
-		(let ((name (mapcar (lambda (s) (intern (downcase s)))
-				    (split-string (substring line 4) "[ ]"))))
+		(let ((name
+		       (with-case-table ascii-case-table
+			 (mapcar (lambda (s) (intern (downcase s)))
+				 (split-string (substring line 4) "[ ]")))))
 		  (and (eq (length name) 1)
 		       (setq name (car name)))
 		  (and name
