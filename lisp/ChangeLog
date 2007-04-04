@@ -1,3 +1,9 @@
+2007-04-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (with-case-table): New macro.
+
+	* international/mule.el (ascii-case-table): New var.
+
 2007-04-03  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-minor-mode-map): Simplify.
