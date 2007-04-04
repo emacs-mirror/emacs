@@ -2480,6 +2480,16 @@ in BODY."
        (let ((combine-after-change-calls t))
 	 . ,body)
      (combine-after-change-execute)))
+
+(defmacro with-case-table (table &rest body)
+  "Execute the forms in BODY with TABLE as the current case table.
+The value returned is the value of the last form in BODY."
+  (declare (indent 1) (debug t))
+  `(let ((old-case-table (current-case-table)))
+     (unwind-protect
+	 (progn (set-case-table ,table)
+		,@body)
+       (set-case-table old-case-table))))
 
 ;;;; Constructing completion tables.
 
