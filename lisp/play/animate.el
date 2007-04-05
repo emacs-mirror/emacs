@@ -189,6 +189,8 @@ You can specify the one's name by NAME; the default value is \"Sarah\"."
   (animate-string "my sunshine" 18 34)
   (animate-string "to stay!" 19 34))
 
+(random t)
+
 (provide 'animate)
 
 ;;; arch-tag: 275289a3-6ac4-41da-b527-a1147045392f
