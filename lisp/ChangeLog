@@ -1,5 +1,14 @@
 2007-04-05  Glenn Morris  <rgm@gnu.org>
 
+	* play/5x5.el:
+	* play/animate.el:
+	* play/dissociate.el:
+	* play/doctor.el:
+	* play/gomoku.el:
+	* play/landmark.el:
+	* play/tetris.el:
+	* play/zone.el: Seed RNG on loading.
+
 	* emacs-lisp/authors.el (top-level): Provide self.
 	* play/animate.el (top-level): Provide self.
 
