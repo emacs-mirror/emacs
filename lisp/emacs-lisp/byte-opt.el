@@ -534,6 +534,7 @@
 		    (eq tmp 'error-free)
 		    ;; Detect the expansion of (pop foo).
 		    ;; There is no need to compile the call to `car' there.
+		    (progn (setq foo (list form fn)) nil)
 		    (and (eq fn 'car)
 			 (eq (car-safe (cadr form)) 'prog1)
 			 (let ((var (cadr (cadr form)))
@@ -545,8 +546,8 @@
 				(eq (car-safe (nth 2 last)) 'cdr)
 				(eq (cadr (nth 2 last)) var))))
 		    (progn
-		      (byte-compile-warn "value returned by `%s' is not used"
-					 (prin1-to-string (car form)))
+		      (byte-compile-warn "value returned from %s is unused"
+					 (prin1-to-string form))
 		      nil)))
 	   (byte-compile-log "  %s called for effect; deleted" fn)
 	   ;; appending a nil here might not be necessary, but it can't hurt.
