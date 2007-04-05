@@ -1771,10 +1771,15 @@ static char *magick[] = {
   :group 'gud)
 
 (defface breakpoint-disabled
-  ;; We use different values of grey for different background types,
-  ;; so that on low-color displays it will end up as something visible
-  ;; if it has to be approximated.
-  '((t :foreground  "grey70"))
+  '((((class color) (min-colors 88)) :foreground "grey70")
+    ;; Ensure that on low-color displays that we end up something visible.
+    (((class color) (min-colors 8) (background light))
+     :foreground "black")
+    (((class color) (min-colors 8) (background dark))
+     :foreground "white")
+    (((type tty) (class mono))
+     :inverse-video t)
+    (t :background "gray"))
   "Face for disabled breakpoint icon in fringe."
   :group 'gud)
 
