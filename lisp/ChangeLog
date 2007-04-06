@@ -1,5 +1,7 @@
 2007-04-06  Chong Yidong  <cyd@stupidchicken.com>
 
+	* menu-bar.el (menu-bar-tools-menu): Revert 2003-07-25 change.
+
 	* desktop.el (desktop-create-buffer, desktop-save): Revert
 	2004-11-12 change.
 
