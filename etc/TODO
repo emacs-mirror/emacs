@@ -178,6 +178,8 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
 
 ** Make byte-compile warn when a doc string is too wide.
 
+** Make byte-optimization warnings issue accurate line numbers.
+
 ** A function to check for customizable options that have been
   set but not saved, and ask the user whether to save them.
   This could go in kill-emacs-query-functions, to remind people
