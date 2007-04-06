@@ -1,5 +1,9 @@
 2007-04-06  Chong Yidong  <cyd@stupidchicken.com>
 
+	* emacs-lisp/byte-opt.el (byte-optimize-pure-func): Remove
+	function (originally checked in as byte-optimize-concat on
+	1997-11-02).
+
 	* mail/sendmail.el (mail-text, mail-mode): Revert extant pieces of
 	1995-05-19 doc changes.
 
