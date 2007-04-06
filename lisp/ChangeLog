@@ -1,5 +1,8 @@
 2007-04-06  Chong Yidong  <cyd@stupidchicken.com>
 
+	* textmodes/flyspell.el (flyspell-duplicate, flyspell-incorrect):
+	Revert 2006-01-27 change.
+
 	* diff-mode.el (diff-mode): Revert 2007-03-04 change.
 
 	* menu-bar.el (menu-bar-tools-menu): Revert 2003-07-25 change.
