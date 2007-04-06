@@ -1,3 +1,8 @@
+2007-04-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/sendmail.el (mail-text, mail-mode): Revert extant pieces of
+	1995-05-19 doc changes.
+
 2007-04-06  Kim F. Storm  <storm@cua.dk>
 
 	* loadhist.el (read-feature): Reimplement.  New optional arg LOADED-P.
