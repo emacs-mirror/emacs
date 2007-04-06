@@ -111,17 +111,18 @@ A library name is equivalent to the file name that `load-library' would load."
 	  (setq dependents (cons (car x) dependents))))
     dependents))
 
-(defun read-feature (prompt)
-  "Read a feature name \(string\) from the minibuffer.
-Prompt with PROMPT and completing from `features', and
-return the feature \(symbol\)."
-  (intern (completing-read prompt
-			   (mapcar (lambda (feature)
-				     (list (symbol-name feature)))
-				   features)
-			   ;; Complete only features loaded from a file
-			   #'(lambda (f) (feature-file (intern (car f))))
-			   t)))
+(defun read-feature (prompt &optional loaded-p)
+  "Read feature name from the minibuffer, prompting with string PROMPT.
+If optional second arg LOADED-P is non-nil, the feature must be loaded
+from a file."
+  (intern
+   (completing-read prompt
+		    (cons nil features)
+		    (and loaded-p
+			 #'(lambda (f)
+			     (and f	; ignore nil
+				  (feature-file f))))
+		    loaded-p)))
 
 (defvaralias 'loadhist-hook-functions 'unload-feature-special-hooks)
 (defvar unload-feature-special-hooks
@@ -162,7 +163,9 @@ the package's feature list (before anything is unbound) in the
 variable `unload-hook-features-list' and could remove features from it
 in the event that the package has done something normally-ill-advised,
 such as redefining an Emacs function."
-  (interactive (list (read-feature "Feature: ") current-prefix-arg))
+  (interactive
+   (list
+    (read-feature "Unload feature: " t) current-prefix-arg))
   (unless (featurep feature)
     (error "%s is not a currently loaded feature" (symbol-name feature)))
   (unless force
