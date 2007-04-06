@@ -1,5 +1,8 @@
 2007-04-06  Chong Yidong  <cyd@stupidchicken.com>
 
+	* dired-x.el (dired-guess-shell-case-fold-search): Delete var.
+	(dired-guess-default): Respect case.
+
 	* isearch.el (isearch-forward): Revert 1998-08-26 doc change.
 
 	* emacs-lisp/byte-opt.el (byte-optimize-pure-func): Remove
