@@ -315,17 +315,7 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
 This gets tacked on the end of the generated expressions.")
 
 ;;;###autoload
-(defvar grep-program
-  ;; Currently zgrep has trouble.  It runs egrep instead of grep,
-  ;; and it doesn't pass along long options right.
-  "grep"
-  ;; (if (equal (condition-case nil	; in case "zgrep" isn't in exec-path
-  ;; 		 (call-process "zgrep" nil nil nil
-  ;; 			       "foo" null-device)
-  ;; 	       (error nil))
-  ;; 	     1)
-  ;;     "zgrep"
-  ;;   "grep")
+(defvar grep-program "grep"
   "The default grep program for `grep-command' and `grep-find-command'.
 This variable's value takes effect when `grep-compute-defaults' is called.")
 
