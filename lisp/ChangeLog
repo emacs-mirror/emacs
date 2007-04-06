@@ -1,3 +1,7 @@
+2007-04-06  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/grep.el (grep-program): Remove commentary about zgrep.
+
 2007-04-06  John Paul Wallington  <jpw@pobox.com>
 
 	* subr.el (with-case-table): Use `make-symbol' to avoid variable
