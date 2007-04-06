@@ -1,5 +1,8 @@
 2007-04-06  Kim F. Storm  <storm@cua.dk>
 
+	* loadhist.el (read-feature): Reimplement.  New optional arg LOADED-P.
+	(unload-feature): Update interactive spec accordingly.
+
 	* progmodes/grep.el (grep-program): Remove commentary about zgrep.
 
 2007-04-06  John Paul Wallington  <jpw@pobox.com>
