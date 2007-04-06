@@ -2485,11 +2485,15 @@ in BODY."
   "Execute the forms in BODY with TABLE as the current case table.
 The value returned is the value of the last form in BODY."
   (declare (indent 1) (debug t))
-  `(let ((old-case-table (current-case-table)))
-     (unwind-protect
-	 (progn (set-case-table ,table)
-		,@body)
-       (set-case-table old-case-table))))
+  (let ((old-case-table (make-symbol "table"))
+	(old-buffer (make-symbol "buffer")))
+    `(let ((,old-case-table (current-case-table))
+	   (,old-buffer (current-buffer)))
+       (unwind-protect
+	   (progn (set-case-table ,table)
+		  ,@body)
+	 (with-current-buffer ,old-buffer
+	   (set-case-table ,old-case-table))))))
 
 ;;;; Constructing completion tables.
 
