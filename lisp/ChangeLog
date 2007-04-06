@@ -1,3 +1,14 @@
+2007-04-06  Alan Mackenzie  <acm@muc.de>
+
+	Fix fontification of labels, and other things with ":".
+	* progmodes/cc-engine.el (c-forward-label): The function now
+	returns 'goto-target, 'qt-2kwds-colon, 'qt-1kwd-colon, as well as
+	the former t.
+
+	* progmodes/cc-fonts.el (c-font-lock-declarations): Interpret the
+	new return code from c-forward-label, fontifying tokens properly.
+	Add some general comments throughout the file.
+
 2007-04-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* textmodes/flyspell.el (flyspell-duplicate, flyspell-incorrect):
