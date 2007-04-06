@@ -704,8 +704,13 @@ casts and declarations are fontified.  Used on level 2 and higher."
       ))
 
 (defun c-font-lock-complex-decl-prepare (limit)
+  ;; This function will be called from font-lock for a region bounded by POINT
+  ;; and LIMIT, as though it were to identify a keyword for
+  ;; font-lock-keyword-face.  It always returns NIL to inhibit this and
+  ;; prevent a repeat invocation.  See elisp/lispref page "Search-based
+  ;; Fontification".
+  ;;
   ;; Called before any of the matchers in `c-complex-decl-matchers'.
-  ;; Nil is always returned.
   ;;
   ;; This function does hidden buffer changes.
 
@@ -742,10 +747,15 @@ casts and declarations are fontified.  Used on level 2 and higher."
   nil)
 
 (defun c-font-lock-<>-arglists (limit)
+  ;; This function will be called from font-lock for a region bounded by POINT
+  ;; and LIMIT, as though it were to identify a keyword for
+  ;; font-lock-keyword-face.  It always returns NIL to inhibit this and
+  ;; prevent a repeat invocation.  See elisp/lispref page "Search-based
+  ;; Fontification".
+  ;;
   ;; Fontify types and references in names containing angle bracket
   ;; arglists from the point to LIMIT.  Note that
-  ;; `c-font-lock-declarations' already has handled many of them.  Nil
-  ;; is always returned.
+  ;; `c-font-lock-declarations' already has handled many of them.
   ;;
   ;; This function might do hidden buffer changes.
 
@@ -971,9 +981,14 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	font-lock-keyword-face))
 
 (defun c-font-lock-declarations (limit)
+  ;; This function will be called from font-lock for a region bounded by POINT
+  ;; and LIMIT, as though it were to identify a keyword for
+  ;; font-lock-keyword-face.  It always returns NIL to inhibit this and
+  ;; prevent a repeat invocation.  See elisp/lispref page "Search-based
+  ;; Fontification".
+  ;;
   ;; Fontify all the declarations, casts and labels from the point to LIMIT.
-  ;; Assumes that strings and comments have been fontified already.  Nil is
-  ;; always returned.
+  ;; Assumes that strings and comments have been fontified already.
   ;;
   ;; This function might do hidden buffer changes.
 
@@ -1009,6 +1024,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	  ;; `c-forward-decl-or-cast-1' and `c-forward-label' for
 	  ;; later fontification.
 	  (c-record-type-identifiers t)
+	  label-type
 	  c-record-ref-identifiers
 	  ;; Make `c-forward-type' calls mark up template arglists if
 	  ;; it finds any.  That's necessary so that we later will
@@ -1174,39 +1190,31 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	      (c-fontify-recorded-types-and-refs)
 	      nil))
 
-	  ;; It was a false alarm.
+	  ;; It was a false alarm.  Check if we're in a label (or other
+	  ;; construct with `:' except bitfield) instead.
 	  (goto-char start-pos)
-	  ;; The below code attempts to fontify the case constants in
-	  ;; c-label-face-name, but it cannot catch every case [sic].
-	  ;; And do we want to fontify case constants anyway?
-	  (c-forward-label t match-pos nil)
-;;;	  (when (c-forward-label t match-pos nil)
-;;;	    ;; Can't use `c-fontify-types-and-refs' here since we
-;;;	    ;; should use the label face.
-;;;	    (save-excursion
-;;;	      (while c-record-ref-identifiers
-;;;		(let ((elem (car c-record-ref-identifiers))
-;;;		      c-record-type-identifiers)
-;;;		  (goto-char (cdr elem))
-;;;		  ;; Find the end of any label.
-;;;		  (while (and (re-search-forward "\\sw\\|:" nil t)
-;;;			      (progn (backward-char 1) t)
-;;;			      (or (re-search-forward
-;;;				   "\\=0[Xx][0-9A-Fa-f]+\\|\\([0-9]+\\)" nil t)
-;;;				  (c-forward-name)))
-;;;		    (c-backward-syntactic-ws)
-;;;		    (let ((end (point)))
-;;;		      ;; Now find the start of the bit we regard as the label.
-;;;		      (when (and (c-simple-skip-symbol-backward)
-;;;				 (not (c-get-char-property (point) 'face)))
-;;;			(c-put-font-lock-face (point) end c-label-face-name))
-;;;		      (goto-char end))))
-;;;		(setq c-record-ref-identifiers (cdr c-record-ref-identifiers))))
-;;;	    ;; `c-forward-label' probably has added a `c-decl-end'
-;;;	    ;; marker, so return t to `c-find-decl-spots' to signal
-;;;	    ;; that.
-;;;	    t)
-	  )))
+	  (when (setq label-type (c-forward-label t match-pos nil))
+	    ;; Can't use `c-fontify-types-and-refs' here since we
+	    ;; use the label face at times.
+	    (cond ((eq label-type 'goto-target)
+		   (c-put-font-lock-face (caar c-record-ref-identifiers)
+					 (cdar c-record-ref-identifiers)
+					 c-label-face-name))
+		  ((eq label-type 'qt-1kwd-colon)
+		   (c-put-font-lock-face (caar c-record-ref-identifiers)
+					 (cdar c-record-ref-identifiers)
+					 'font-lock-keyword-face))
+		  ((eq label-type 'qt-2kwds-colon)
+		   (mapc
+		    (lambda (kwd)
+		      (c-put-font-lock-face (car kwd) (cdr kwd)
+					    'font-lock-keyword-face))
+		    c-record-ref-identifiers)))
+	    (setq c-record-ref-identifiers nil)
+	    ;; `c-forward-label' has probably added a `c-decl-end'
+	    ;; marker, so return t to `c-find-decl-spots' to signal
+	    ;; that.
+	    t))))
 
       nil)))
 
@@ -1284,6 +1292,14 @@ on level 2 only and so aren't combined with `c-complex-decl-matchers'."
 (c-lang-defconst c-complex-decl-matchers
   "Complex font lock matchers for types and declarations.  Used on level
 3 and higher."
+
+  ;; Note: This code in this form dumps a number of funtions into the
+  ;; resulting constant, `c-matchers-3'.  At run time, font lock will call
+  ;; each of them as a "FUNCTION" (see Elisp page "Search-based
+  ;; Fontification").  The font lock region is delimited by POINT and the
+  ;; single parameter, LIMIT.  Each of these functions returns NIL (thus
+  ;; inhibiting spurious font-lock-keyword-face highlighting and another
+  ;; call).
 
   t `(;; Initialize some things before the search functions below.
       c-font-lock-complex-decl-prepare
@@ -1397,6 +1413,8 @@ on level 2 only and so aren't combined with `c-complex-decl-matchers'."
 
       ;; Fontify the type in C++ "new" expressions.
       ,@(when (c-major-mode-is 'c++-mode)
+	  ;; This pattern is a probably a "(MATCHER . ANCHORED-HIGHLIGHTER)"
+	  ;; (see Elisp page "Search-based Fontification").
 	  `(("\\<new\\>"
 	     (c-font-lock-c++-new))))
       ))
