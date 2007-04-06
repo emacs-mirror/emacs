@@ -165,7 +165,8 @@ in the event that the package has done something normally-ill-advised,
 such as redefining an Emacs function."
   (interactive
    (list
-    (read-feature "Unload feature: " t) current-prefix-arg))
+    (read-feature "Unload feature: " t)
+    current-prefix-arg))
   (unless (featurep feature)
     (error "%s is not a currently loaded feature" (symbol-name feature)))
   (unless force
