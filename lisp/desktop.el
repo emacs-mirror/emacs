@@ -782,7 +782,7 @@ See also `desktop-base-file-name'."
          ";; Desktop file format version " desktop-file-version "\n"
          ";; Emacs version " emacs-version "\n\n"
          ";; Global section:\n")
-        (mapc (function desktop-outvar) desktop-globals-to-save)
+        (mapcar (function desktop-outvar) desktop-globals-to-save)
         (if (memq 'kill-ring desktop-globals-to-save)
             (insert
              "(setq kill-ring-yank-pointer (nthcdr "
@@ -790,7 +790,7 @@ See also `desktop-base-file-name'."
              " kill-ring))\n"))
 
         (insert "\n;; Buffer section -- buffers listed in same order as in buffer list:\n")
-        (mapc #'(lambda (l)
+        (mapcar #'(lambda (l)
                   (when (apply 'desktop-save-buffer-p l)
                     (insert "("
                             (if (or (not (integerp eager))
@@ -801,7 +801,7 @@ See also `desktop-base-file-name'."
                               "desktop-append-buffer-args")
                             " "
                             desktop-file-version)
-                    (mapc #'(lambda (e)
+                    (mapcar #'(lambda (e)
                               (insert "\n  " (desktop-value-to-string e)))
                           l)
                     (insert ")\n\n")))
@@ -1045,7 +1045,7 @@ directory DIRNAME."
               ((equal '(nil) desktop-buffer-minor-modes) ; backwards compatible
                (auto-fill-mode 0))
               (t
-               (mapc #'(lambda (minor-mode)
+               (mapcar #'(lambda (minor-mode)
                          ;; Give minor mode module a chance to add a handler.
                          (desktop-load-file minor-mode)
                          (let ((handler (cdr (assq minor-mode desktop-minor-mode-handlers))))
