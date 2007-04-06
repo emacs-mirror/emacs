@@ -1,5 +1,7 @@
 2007-04-06  Chong Yidong  <cyd@stupidchicken.com>
 
+	* isearch.el (isearch-forward): Revert 1998-08-26 doc change.
+
 	* emacs-lisp/byte-opt.el (byte-optimize-pure-func): Remove
 	function (originally checked in as byte-optimize-concat on
 	1997-11-02).
