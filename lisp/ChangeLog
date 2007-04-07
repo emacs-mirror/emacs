@@ -1,3 +1,9 @@
+2007-04-07  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-electric-paren): clean-up
+	space-before-funcall: only insert space when on identifier, etc.
+	Patch by David Hansen.
+
 2007-04-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/grep.el (grep-find-use-xargs): Rewrite docstring.
