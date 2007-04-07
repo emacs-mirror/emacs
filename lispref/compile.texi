@@ -8,7 +8,7 @@
 @chapter Byte Compilation
 @cindex byte compilation
 @cindex byte-code
-@cindex compilation
+@cindex compilation (Emacs Lisp)
 
   Emacs Lisp has a @dfn{compiler} that translates functions written
 in Lisp into a special representation called @dfn{byte-code} that can be
