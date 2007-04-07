@@ -106,7 +106,7 @@ leaves point at the beginning of the match.
 @end deffn
 
 @deffn Command word-search-forward string &optional limit noerror repeat
-@cindex word search
+@c  @cindex word search   Redundant
 This function searches forward from point for a ``word'' match for
 @var{string}.  If it finds a match, it sets point to the end of the
 match found, and returns the new value of point.
@@ -220,7 +220,7 @@ a regexp is a very powerful operation.  This section explains how to write
 regexps; the following section says how to search for them.
 
 @findex re-builder
-@cindex authoring regular expressions
+@cindex regular expressions, developing
   For convenient interactive development of regular expressions, you
 can use the @kbd{M-x re-builder} command.  It provides a convenient
 interface for creating regular expressions, by giving immediate visual
@@ -1186,7 +1186,7 @@ match data around it, to prevent it from being overwritten.
 
 @node Replacing Match
 @subsection Replacing the Text that Matched
-@cindex replace match
+@cindex replace matched text
 
   This function replaces all or part of the text matched by the last
 search.  It works by means of the match data.
@@ -1544,8 +1544,8 @@ associated with it still exists.
 
 @node Search and Replace
 @section Search and Replace
-@cindex replacement
-@cindex search and replace
+@cindex replacement after search
+@cindex searching and replacing
 
   If you want to find all matches for a regexp in part of the buffer,
 and replace them, the best way is to write an explicit loop using

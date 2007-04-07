@@ -102,9 +102,10 @@ x
 @section Variables that Never Change
 @kindex setting-constant
 @cindex keyword symbol
+@cindex variable with constant value
 @cindex constant variables
-@cindex symbols that evaluate to themselves
-@cindex symbols with constant values
+@cindex symbol that evaluates to itself
+@cindex symbol with constant value
 
   In Emacs Lisp, certain symbols normally evaluate to themselves.  These
 include @code{nil} and @code{t}, as well as any symbol whose name starts
@@ -1080,7 +1081,7 @@ use short names like @code{x}.
 
 @node Buffer-Local Variables
 @section Buffer-Local Variables
-@cindex variables, buffer-local
+@cindex variable, buffer-local
 @cindex buffer-local variables
 
   Global and local variable bindings are found in most programming
@@ -1721,7 +1722,7 @@ This function returns non-@code{nil} if it is safe to give @var{sym}
 the value @var{val}, based on the above criteria.
 @end defun
 
-@cindex risky local variable
+@c @cindex risky local variable   Duplicates risky-local-variable
   Some variables are considered @dfn{risky}.  A variable whose name
 ends in any of @samp{-command}, @samp{-frame-alist}, @samp{-function},
 @samp{-functions}, @samp{-hook}, @samp{-hooks}, @samp{-form},
