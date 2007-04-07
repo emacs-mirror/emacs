@@ -44,7 +44,7 @@ Afterward, you can examine the file to find out what input was used.
 
 @node Debugger
 @section The Lisp Debugger
-@cindex debugger
+@cindex debugger for Emacs Lisp
 @cindex Lisp debugger
 @cindex break
 
@@ -692,7 +692,7 @@ if it goes to the place where that defun appears to end.  If it does
 not, there is a problem in that defun.
 
 @cindex unbalanced parentheses
-@cindex parentheses mismatch
+@cindex parenthesis mismatch, debugging
   However, unmatched parentheses are the most common syntax errors in
 Lisp, and we can give further advice for those cases.  (In addition,
 just moving point through the code with Show Paren mode enabled might
@@ -798,6 +798,10 @@ that @var{form}'s value should always be the same.
 Evaluate @var{form}, informing coverage testing that @var{form} should
 never return.  If it ever does return, you get a run-time error.
 @end defmac
+
+  Edebug also has a coverage testing feature (@pxref{Coverage
+Testing}).  These features partly duplicate each other, and it would
+be cleaner to combine them.
 
 @node Compilation Errors
 @section Debugging Problems in Compilation
