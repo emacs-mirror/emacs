@@ -146,7 +146,8 @@ file name.
 
 @node Shell Arguments
 @section Shell Arguments
-@cindex pass arguments to shell commands
+@cindex arguments for shell commands
+@cindex shell command arguments
 
   Lisp programs sometimes need to run a shell and give it a command
 that contains file names that were specified by the user.  These
@@ -1331,7 +1332,7 @@ arrived.
 @node Sentinels
 @section Sentinels: Detecting Process Status Changes
 @cindex process sentinel
-@cindex sentinel
+@cindex sentinel (of process)
 
   A @dfn{process sentinel} is a function that is called whenever the
 associated process changes status for any reason, including signals

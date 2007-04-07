@@ -6,7 +6,7 @@
 @setfilename ../info/tips
 @node Tips, GNU Emacs Internals, GPL, Top
 @appendix Tips and Conventions
-@cindex tips
+@cindex tips for writing Lisp
 @cindex standards of coding style
 @cindex coding standards
 
@@ -148,7 +148,7 @@ to store a list of functions (i.e., the variable is a hook), please
 follow the naming conventions for hooks.  @xref{Hooks}.
 
 @item
-@cindex unloading packages
+@cindex unloading packages, preparing for
 If loading the file adds functions to hooks, define a function
 @code{@var{feature}-unload-hook}, where @var{feature} is the name of
 the feature the package provides, and make it undo any such changes.
@@ -867,7 +867,7 @@ describe the most important commands in your major mode, and then use
 
 @node Comment Tips
 @section Tips on Writing Comments
-@cindex comments, convention for
+@cindex comments, Lisp convention for
 
   We recommend these conventions for where to put comments and how to
 indent them:

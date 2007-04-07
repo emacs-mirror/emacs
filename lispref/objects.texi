@@ -288,7 +288,7 @@ you @emph{must} use a second @samp{\} to quote it: @samp{?\\}.
 @cindex @samp{\a}
 @cindex backspace
 @cindex @samp{\b}
-@cindex tab
+@cindex tab (ASCII character)
 @cindex @samp{\t}
 @cindex vertical tab
 @cindex @samp{\v}
@@ -296,11 +296,11 @@ you @emph{must} use a second @samp{\} to quote it: @samp{?\\}.
 @cindex @samp{\f}
 @cindex newline
 @cindex @samp{\n}
-@cindex return
+@cindex return (ASCII character)
 @cindex @samp{\r}
-@cindex escape
+@cindex escape (ASCII character)
 @cindex @samp{\e}
-@cindex space
+@cindex space (ASCII character)
 @cindex @samp{\s}
   You can express the characters control-g, backspace, tab, newline,
 vertical tab, formfeed, space, return, del, and escape as @samp{?\a},
@@ -661,7 +661,7 @@ empty list.  The empty list is actually the symbol @code{nil}.
 cells are used as part of lists, the phrase @dfn{list structure} has
 come to refer to any structure made out of cons cells.
 
-@cindex atom
+@cindex atoms
   Because cons cells are so central to Lisp, we also have a word for
 ``an object which is not a cons cell.''  These objects are called
 @dfn{atoms}.
@@ -753,7 +753,7 @@ buttercup)}, sketched in a different manner:
 @end group
 @end smallexample
 
-@cindex @code{nil} in lists
+@cindex @code{nil} as a list
 @cindex empty list
   A list with no elements in it is the @dfn{empty list}; it is identical
 to the symbol @code{nil}.  In other words, @code{nil} is both a symbol
@@ -1493,7 +1493,7 @@ uniquely).
 
 @node Window Configuration Type
 @subsection Window Configuration Type
-@cindex screen layout
+@cindex window layout in a frame
 
   A @dfn{window configuration} stores information about the positions,
 sizes, and contents of the windows in a frame, so you can recreate the
@@ -1507,6 +1507,7 @@ window configurations.
 @node Frame Configuration Type
 @subsection Frame Configuration Type
 @cindex screen layout
+@cindex window layout, all frames
 
   A @dfn{frame configuration} stores information about the positions,
 sizes, and contents of the windows in all frames.  It is actually
@@ -1998,7 +1999,6 @@ always true.
 @end group
 @end example
 
-@cindex equality of strings
 Comparison of strings is case-sensitive, but does not take account of
 text properties---it compares only the characters in the strings.  For
 technical reasons, a unibyte string and a multibyte string are
