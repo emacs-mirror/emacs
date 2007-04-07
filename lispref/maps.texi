@@ -77,7 +77,6 @@ A full keymap used by Electric Command History mode.
 A sparse keymap used by Emacs Lisp mode.
 
 @item esc-map
-@vindex esc-map
 A full keymap for @kbd{ESC} (or @kbd{Meta}) commands.
 
 @item facemenu-menu
