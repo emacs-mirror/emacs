@@ -116,13 +116,13 @@ controls the reading of arguments for an interactive call.
 
 @node Using Interactive
 @subsection Using @code{interactive}
+@cindex arguments, interactive entry
 
   This section describes how to write the @code{interactive} form that
 makes a Lisp function an interactively-callable command, and how to
 examine a command's @code{interactive} form.
 
 @defspec interactive arg-descriptor
-@cindex argument descriptors
 This special form declares that the function in which it appears is a
 command, and that it may therefore be called interactively (via
 @kbd{M-x} or by entering a key sequence bound to it).  The argument
@@ -151,7 +151,6 @@ arguments.  This leads quickly to an error if the command requires one
 or more arguments.
 
 @item
-@cindex argument prompt
 It may be a string; then its contents should consist of a code character
 followed by a prompt (which some code characters use and some ignore).
 The prompt ends either with the end of the string or with a newline.
@@ -207,7 +206,6 @@ form that is evaluated to get a list of arguments to pass to the
 command.  Usually this form will call various functions to read input
 from the user, most often through the minibuffer (@pxref{Minibuffers})
 or directly from the keyboard (@pxref{Reading Input}).
-@cindex argument evaluation form
 
 Providing point or the mark as an argument value is also common, but
 if you do this @emph{and} read input (whether using the minibuffer or
@@ -865,8 +863,8 @@ If the last event came from a keyboard macro, the value is @code{macro}.
 
 @node Adjusting Point
 @section Adjusting Point After Commands
-@cindex adjust point
-@cindex invisible or intangible text, and point display
+@cindex adjusting point
+@cindex invisible/intangible text, and point
 @cindex @code{display} property, and point display
 @cindex @code{composition} property, and point display
 
@@ -1781,8 +1779,7 @@ must be the last element of the list.  For example,
 
 @node Accessing Events
 @subsection Accessing Events
-@cindex mouse events, accessing the data
-@cindex accessing data of mouse events
+@cindex mouse events, data in
 
   This section describes convenient functions for accessing the data in
 a mouse button or motion event.
@@ -1897,7 +1894,6 @@ cons cell @code{(@var{width} . @var{height})}.  If the @var{position}
 is a buffer position, return the size of the character at that position.
 @end defun
 
-@cindex mouse event, timestamp
 @cindex timestamp of a mouse event
 @defun posn-timestamp position
 Return the timestamp in @var{position}.  This is the time at which the
@@ -2113,7 +2109,6 @@ debugging terminal input.
 for example, @code{describe-key} uses it to read the key to describe.
 
 @defun read-key-sequence prompt &optional continue-echo dont-downcase-last switch-frame-ok command-loop
-@cindex key sequence
 This function reads a key sequence and returns it as a string or
 vector.  It keeps reading events until it has accumulated a complete key
 sequence; that is, enough to specify a non-prefix command using the
@@ -2546,7 +2541,6 @@ command's key sequence (as returned by e.g. @code{this-command-keys}),
 as the events will already have been added once as they were read for
 the first time.  An element of the form @code{(@code{t} . @var{event})}
 forces @var{event} to be added to the current command's key sequence.
-
 @end defvar
 
 @defun listify-key-sequence key
@@ -2620,9 +2614,9 @@ like this:
 @end defmac
 
 @defun discard-input
-@cindex flush input
-@cindex discard input
-@cindex terminate keyboard macro
+@cindex flushing input
+@cindex discarding input
+@cindex keyboard macro, terminating
 This function discards the contents of the terminal input buffer and
 cancels any keyboard macro that might be in the process of definition.
 It returns @code{nil}.
@@ -2668,7 +2662,6 @@ in the variable @code{special-event-map} (@pxref{Active Keymaps}).
 
 @node Waiting
 @section Waiting for Elapsed Time or Input
-@cindex pausing
 @cindex waiting
 
   The wait functions are designed to wait for a certain amount of time
@@ -2775,7 +2768,7 @@ about the special behavior of @kbd{C-g} in the command loop.  In the
 case of @code{read-quoted-char}, this is so that @kbd{C-q} can be used
 to quote a @kbd{C-g}.
 
-@cindex prevent quitting
+@cindex preventing quitting
   You can prevent quitting for a portion of a Lisp function by binding
 the variable @code{inhibit-quit} to a non-@code{nil} value.  Then,
 although @kbd{C-g} still sets @code{quit-flag} to @code{t} as usual, the

@@ -6,7 +6,7 @@
 @setfilename ../info/lists
 @node Lists, Sequences Arrays Vectors, Strings and Characters, Top
 @chapter Lists
-@cindex list
+@cindex lists
 @cindex element (of list)
 
   A @dfn{list} represents a sequence of zero or more elements (which may
@@ -30,7 +30,6 @@ the whole list.
 @node Cons Cells
 @section Lists and Cons Cells
 @cindex lists and cons cells
-@cindex @code{nil} and lists
 
   Lists in Lisp are not a primitive data type; they are built up from
 @dfn{cons cells}.  A cons cell is a data object that represents an
@@ -104,7 +103,6 @@ otherwise.  @code{nil} is not a cons cell, although it @emph{is} a list.
 @end defun
 
 @defun atom object
-@cindex atoms
 This function returns @code{t} if @var{object} is an atom, @code{nil}
 otherwise.  All objects except cons cells are atoms.  The symbol
 @code{nil} is an atom and is also a list; it is the only Lisp object
@@ -1305,7 +1303,7 @@ compare @var{object} against the elements of the list.  For example:
 @end defun
 
 @defun delq object list
-@cindex deletion of elements
+@cindex deleting list elements
 This function destructively removes all elements @code{eq} to
 @var{object} from @var{list}.  The letter @samp{q} in @code{delq} says
 that it uses @code{eq} to compare @var{object} against the elements of
