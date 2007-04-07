@@ -160,7 +160,7 @@ Fourth arg PORT is an integer specifying a port to connect to."
     (message "Opening TLS connection to `%s'...%s"
 	     host (if done "done" "failed"))
     (when use-temp-buffer
-      (or done (set-process-buffer process nil))
+      (if done (set-process-buffer process nil))
       (kill-buffer buffer))
     done))
 
