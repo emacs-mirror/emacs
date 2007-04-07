@@ -1,3 +1,8 @@
+2007-04-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* editfns.c (Ftranspose_regions): Validate interval before setting
+	text properties.
+
 2007-04-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs.c (main): Fix instructions for building Emacs for profiling.
