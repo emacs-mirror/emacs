@@ -1700,7 +1700,6 @@ the information in another fashion.  This way, customizations made by
 the user or by Lisp programs (such as @code{display-time} and major
 modes) via changes to those variables remain effective.
 
-@cindex Shell mode @code{mode-line-format}
   Here is an example of a @code{mode-line-format} that might be
 useful for @code{shell-mode}, since it contains the host name and default
 directory.
@@ -2339,7 +2338,7 @@ Setting this variable makes it buffer-local in the current buffer.
 
 @node Font Lock Mode
 @section Font Lock Mode
-@cindex Font Lock Mode
+@cindex Font Lock mode
 
   @dfn{Font Lock mode} is a feature that automatically attaches
 @code{face} properties to certain parts of the buffer based on their
