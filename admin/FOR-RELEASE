@@ -5,8 +5,6 @@ Tasks needed before the next release.
 ** Check for widow and orphan lines in manuals;
 make sure all the pages really look ok in the manual as formatted.
 
-** Check for text in manuals that assumes current version is 21.
-
 ** Cleanup temporary +++/--- lines in etc/NEWS.
 
 ** Regenerate the postscript files of the reference cards in etc.
