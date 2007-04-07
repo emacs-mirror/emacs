@@ -1,3 +1,8 @@
+2007-04-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.texi (Misc File Ops): Rewrite description of
+	insert-file-literally.
+
 2007-04-01  Michael Olson  <mwolson@gnu.org>
 
 	* erc.texi: Update for the ERC 5.2 release.
