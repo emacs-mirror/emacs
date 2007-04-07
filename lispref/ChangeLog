@@ -1,3 +1,9 @@
+2007-04-07  Karl Berry  <karl@gnu.org>
+
+	* text.texi (Adaptive Fill) [@iftex]: Omit binary characters in
+	adaptive-fill-regexp's value, since they are not in the standard
+	TeX fonts.
+
 2007-04-07  Herbert Euler  <herberteuler@hotmail.com>
 
 	* display.texi (Defining Faces): Fix example.

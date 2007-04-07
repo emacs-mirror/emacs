@@ -1741,11 +1741,21 @@ Adaptive Fill mode matches this regular expression against the text
 starting after the left margin whitespace (if any) on a line; the
 characters it matches are that line's candidate for the fill prefix.
 
-@w{@code{"[ \t]*\\([-!|#%;>*·•‣⁃◦]+[ \t]*\\|(?[0-9]+[.)][ \t]*\\)*"}} is the
-default value.  This matches a number enclosed in parentheses or
-followed by a period, or certain punctuation characters, or any
-sequence of these intermingled with whitespace.  In particular, it
-matches a sequence of whitespace, possibly empty.
+@c omit binary characters not in the standard TeX fonts, to avoid warnings.
+@iftex
+@w{@code{"[ \t]*\\([-!|#%;>*]+[ \t]*\\|(?[0-9]+[.)][ \t]*\\)*"}}
+@end iftex
+@ifnottex
+@w{@code{"[ \t]*\\([-!|#%;>*·•‣⁃◦]+[ \t]*\\|(?[0-9]+[.)][ \t]*\\)*"}}
+@end ifnottex
+is the default value.
+@iftex
+(A few control characters are in the default value that are not visible here.)
+@end iftex
+This matches a number enclosed in parentheses or followed by a period,
+or certain punctuation characters, or any sequence of these
+intermingled with whitespace.  In particular, it matches a sequence of
+whitespace, possibly empty.
 @end defopt
 
 @defopt adaptive-fill-first-line-regexp
