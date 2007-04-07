@@ -847,7 +847,7 @@ rather than replacing that element.  @xref{Eval}.
 
 @node Unloading
 @section Unloading
-@cindex unloading
+@cindex unloading packages
 
 @c Emacs 19 feature
   You can discard the functions and variables loaded by a library to
