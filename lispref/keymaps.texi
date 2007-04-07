@@ -697,7 +697,7 @@ An error is signaled if @var{key} is not a string or a vector.
 
 @node Searching Keymaps
 @section Searching the Active Keymaps
-@cindex search active keymaps for keys
+@cindex searching active keymaps for keys
 
   After translation of event subsequences (@pxref{Translation
 Keymaps}) Emacs looks for them in the active keymaps.  Here is a
