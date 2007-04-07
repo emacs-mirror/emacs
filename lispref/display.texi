@@ -4607,15 +4607,11 @@ is skipped over.  Returns the button found.
 @end deffn
 
 @defun next-button pos &optional count-current
-Return the next button after position @var{pos} in the current buffer.
-If @var{count-current} is non-@code{nil}, count any button at
-@var{pos} in the search, instead of starting at the next button.
-@end defun
-
-@defun previous-button pos &optional count-current
-Return the @var{n}th button before position @var{pos} in the current
-buffer.  If @var{count-current} is non-@code{nil}, count any button at
-@var{pos} in the search, instead of starting at the next button.
+@defunx previous-button pos &optional count-current
+Return the next button after (for @code{next-button} or before (for
+@code{previous-button}) position @var{pos} in the current buffer.  If
+@var{count-current} is non-@code{nil}, count any button at @var{pos}
+in the search, instead of starting at the next button.
 @end defun
 
 @node Abstract Display

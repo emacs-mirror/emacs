@@ -1,3 +1,7 @@
+2007-04-07  Karl Berry  <karl@gnu.org>
+
+	* display.texi (Button Buffer Commands): Improve page break.
+
 2007-04-07  Richard Stallman  <rms@gnu.org>
 
 	* advice.texi (Activation of Advice): Remove redundant index entry.
