@@ -1262,11 +1262,11 @@ newline cleanups are done if appropriate; see the variable `c-cleanup-list'."
 		     (backward-char)
 		     (skip-chars-backward " \t")
 		     (setq beg (point))
-		     (c-save-buffer-state () (c-on-identifier))
-		     ;; Don't add a space into #define FOO()....
-		     (not (and (c-beginning-of-macro)
-			       (c-forward-over-cpp-define-id)
-			       (eq (point) beg)))))
+		     (and (c-save-buffer-state () (c-on-identifier))
+                          ;; Don't add a space into #define FOO()....
+                          (not (and (c-beginning-of-macro)
+                                    (c-forward-over-cpp-define-id)
+                                    (eq (point) beg))))))
 	      (save-excursion
 		(delete-region beg end)
 		(goto-char beg)
