@@ -759,7 +759,8 @@ corresponding cache file.  The two supplied possibilities are
 Creates a cache file name from @var{url} using MD5 hashing.
 @findex md5
 This is creates entries with very few cache collisions and is fast if
-you have the @code{md5} function as a primitive (Emacs 21 and XEmacs).
+you have the @code{md5} function as a primitive (Emacs 21 and later,
+or XEmacs).
 @smallexample
 (url-cache-create-filename-using-md5 "http://www.example.com/foo/bar")
   @result{} "/home/fx/.url/cache/fx/http/com/example/www/b8a35774ad20db71c7c3409a5410e74f"
