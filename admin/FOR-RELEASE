@@ -47,6 +47,8 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** dashteacup@gmail.com, Apr 2: c-subword-mode - inconsistent behavior
 
+** jch@honig.net, Apr 6: Hanoi causes SEGV
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
