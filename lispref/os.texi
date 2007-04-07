@@ -54,7 +54,7 @@ can customize these actions.
 
 @node Startup Summary
 @subsection Summary: Sequence of Actions at Startup
-@cindex initialization
+@cindex initialization of Emacs
 @cindex startup of Emacs
 @cindex @file{startup.el}
 
@@ -1421,12 +1421,15 @@ the timer runs only once.
 
 @var{time} may specify an absolute or a relative time.
 
-Absolute times may be specified using a string with a limited variety of
-formats, and are taken to be times @emph{today}, even if already in the
-past.  The recognized forms are XXXX, X:XX, or XX:XX (military time),
-and XXam, XXAM, XXpm, XXPM, XX:XXam, XX:XXAM XX:XXpm, or XX:XXPM.  A
-period can be used instead of a colon to separate the hour and minute
-parts.
+Absolute times may be specified using a string with a limited variety
+of formats, and are taken to be times @emph{today}, even if already in
+the past.  The recognized forms are @samp{@var{xxxx}},
+@samp{@var{x}:@var{xx}}, or @samp{@var{xx}:@var{xx}} (military time),
+and @samp{@var{xx}am}, @samp{@var{xx}AM}, @samp{@var{xx}pm},
+@samp{@var{xx}PM}, @samp{@var{xx}:@var{xx}am},
+@samp{@var{xx}:@var{xx}AM}, @samp{@var{xx}:@var{xx}pm}, or
+@samp{@var{xx}:@var{xx}PM}.  A period can be used instead of a colon
+to separate the hour and minute parts.
 
 To specify a relative time as a string, use numbers followed by units.
 For example:
@@ -1865,7 +1868,7 @@ is called with one argument, a property list that describes the sound.
 
 @node X11 Keysyms
 @section Operating on X11 Keysyms
-@cindex x11 keysyms
+@cindex X11 keysyms
 
 To define system-specific X11 keysyms, set the variable
 @code{system-key-alist}.
@@ -1919,7 +1922,6 @@ how to swap the Meta and Alt modifiers within Emacs:
 @node Batch Mode
 @section Batch Mode
 @cindex batch mode
-@cindex noninteractive use
 
   The command-line option @samp{-batch} causes Emacs to run
 noninteractively.  In this mode, Emacs does not read commands from the
