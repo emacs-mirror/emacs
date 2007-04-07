@@ -840,7 +840,7 @@ make it invisible again.
 
 @node Selective Display
 @section Selective Display
-@cindex selective display
+@c @cindex selective display   Duplicates selective-display
 
   @dfn{Selective display} refers to a pair of related features for
 hiding certain lines on the screen.
@@ -2502,7 +2502,6 @@ makes @code{modeline} an alias for the @code{mode-line} face.
 @cindex automatic face assignment
 @cindex faces, automatic choice
 
-@cindex Font-Lock mode
   This hook is used for automatically assigning faces to text in the
 buffer.  It is part of the implementation of Font-Lock mode.
 
@@ -2744,7 +2743,7 @@ does that, this function's value may not be accurate.
 
 @node Fringes
 @section Fringes
-@cindex Fringes
+@cindex fringes
 
   The @dfn{fringes} of a window are thin vertical strips down the
 sides that are used for displaying bitmaps that indicate truncation,
@@ -3074,7 +3073,7 @@ bitmap's face controls the color to draw it in.
 
 @node Overlay Arrow
 @subsection The Overlay Arrow
-@cindex overlay arrow
+@c @cindex overlay arrow  Duplicates variable names
 
   The @dfn{overlay arrow} is useful for directing the user's attention
 to a particular line in a buffer.  For example, in the modes used for
@@ -3292,7 +3291,6 @@ display specifications and what they mean.
 @node Specified Space
 @subsection Specified Spaces
 @cindex spaces, specified height or width
-@cindex specified spaces
 @cindex variable-width spaces
 
   To display a space of specified width and/or height, use a display
@@ -4300,7 +4298,6 @@ are cleared.
 
 @node Buttons
 @section Buttons
-@cindex buttons
 @cindex buttons in buffers
 @cindex clickable buttons in buffers
 
@@ -4624,7 +4621,6 @@ buffer.  If @var{count-current} is non-@code{nil}, count any button at
 @node Abstract Display
 @section Abstract Display
 @cindex ewoc
-@cindex abstract display
 @cindex display, abstract
 @cindex display, arbitrary objects
 @cindex model/view/controller
@@ -4958,9 +4954,8 @@ ewoc is created to be either @code{nil} or an index into the vector
 @node Blinking
 @section Blinking Parentheses
 @cindex parenthesis matching
-@cindex blinking
+@cindex blinking parentheses
 @cindex balancing parentheses
-@cindex close parenthesis
 
   This section describes the mechanism by which Emacs shows a matching
 open parenthesis when the user inserts a close parenthesis.
@@ -5332,7 +5327,7 @@ display by sending @var{string} to the terminal.
 
 @node Beeping
 @section Beeping
-@cindex beeping
+@c  @cindex beeping   "beep" is adjacent
 @cindex bell
 
   This section describes how to make Emacs ring the bell (or blink the

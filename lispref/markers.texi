@@ -176,7 +176,6 @@ buffer unless narrowing is in effect.  @xref{Narrowing}.
 @end defun
 
 @defun point-max-marker
-@cindex end of buffer marker
 This function returns a new marker that points to the end of the
 accessible portion of the buffer.  This will be the end of the buffer
 unless narrowing is in effect.  @xref{Narrowing}.
@@ -550,7 +549,7 @@ The return value is not meaningful.
 @end defun
 
 @defopt transient-mark-mode
-@cindex Transient Mark mode
+@c  @cindex Transient Mark mode  Redundant
 This variable if non-@code{nil} enables Transient Mark mode, in which
 every buffer-modifying primitive sets @code{deactivate-mark}.  The
 consequence of this is that commands that modify the buffer normally
@@ -629,7 +628,7 @@ more marks than this are pushed onto the @code{mark-ring},
 
 @node The Region
 @section The Region
-@cindex region between mark and point
+@cindex region (between point and mark)
 
   The text between point and the mark is known as @dfn{the region}.
 Various functions operate on text delimited by point and the mark, but

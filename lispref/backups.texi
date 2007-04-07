@@ -7,7 +7,6 @@
 @node Backups and Auto-Saving, Buffers, Files, Top
 @chapter Backups and Auto-Saving
 @cindex backups and auto-saving
-@cindex back up and auto save
 
   Backup files and auto-save files are two methods by which Emacs tries
 to protect the user from the consequences of crashes or of the user's
@@ -164,7 +163,7 @@ files.  If you define it, you may need to change
 
 @node Rename or Copy
 @subsection Backup by Renaming or by Copying?
-@cindex backup files, how to make them
+@cindex backup files, rename or copy
 
   There are two ways that Emacs can make a backup file:
 
@@ -419,7 +418,7 @@ automatically compare a file with its most recent backup.
 
 @node Auto-Saving
 @section Auto-Saving
-@cindex auto-saving
+@c @cindex auto-saving   Lots of symbols starting with auto-save here.
 
   Emacs periodically saves all files that you are visiting; this is
 called @dfn{auto-saving}.  Auto-saving prevents you from losing more
