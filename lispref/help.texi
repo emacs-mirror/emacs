@@ -91,9 +91,7 @@ list under the property name @code{variable-documentation}.  The
 function @code{documentation-property} knows how to retrieve it.
 @end itemize
 
-@cindex @file{DOC} (documentation) file
-@cindex @file{emacs/etc/DOC-@var{version}}
-@cindex @file{etc/DOC-@var{version}}
+@cindex @file{DOC-@var{version}} (documentation) file
 To save space, the documentation for preloaded functions and variables
 (including primitive functions and autoloaded functions) is stored in
 the file @file{emacs/etc/DOC-@var{version}}---not inside Emacs.  The
