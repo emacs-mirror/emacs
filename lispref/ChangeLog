@@ -1,3 +1,7 @@
+2007-04-07  Herbert Euler  <herberteuler@hotmail.com>
+
+	* display.texi (Defining Faces): Fix example.
+
 2007-04-07  Karl Berry  <karl@gnu.org>
 
 	* display.texi (Button Buffer Commands): Improve page break.
