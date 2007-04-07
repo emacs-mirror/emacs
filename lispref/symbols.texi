@@ -139,7 +139,7 @@ symbol naming a function written in Lisp would have a lambda expression
 
 @node Definitions, Creating Symbols, Symbol Components, Symbols
 @section Defining Symbols
-@cindex definition of a symbol
+@cindex definitions of symbols
 
   A @dfn{definition} in Lisp is a special form that announces your
 intention to use a certain symbol in a particular way.  In Emacs Lisp,
