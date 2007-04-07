@@ -1880,11 +1880,7 @@ This level is designed for fairly modern hardware and a font lock
 support mode like Lazy Lock or Just-in-time Lock mode that only
 fontifies the parts that are actually shown.  Fontifying the whole
 buffer at once can easily get bothersomely slow even on contemporary
-hardware.
-@c ACM, 2005/8/28:  There should be a page in the (X)Emacs manual
-@c describing these support modes.  There wasn't in the
-@c fourteenth edition of the Emacs manual (released with Emacs 21.3).
-@c There might be one in the Emacs CVS for 22.1.
+hardware. @xref{Font Lock,,,@emacsman{}, @emacsmantitle{}}.
 @end enumerate
 
 @cindex user defined types
