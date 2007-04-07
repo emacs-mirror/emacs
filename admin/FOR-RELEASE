@@ -43,8 +43,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 * BUGS
 
-** Kevin Rodgers missing assignment
-
 ** dashteacup@gmail.com, Apr 2: c-subword-mode - inconsistent behavior
 
 * DOCUMENTATION
