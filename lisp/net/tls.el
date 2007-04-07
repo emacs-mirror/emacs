@@ -142,6 +142,7 @@ Fourth arg PORT is an integer specifying a port to connect to."
 	     response)
 	(while (and process
 		    (memq (process-status process) '(open run))
+		    buffer
 		    (save-excursion
 		      (set-buffer buffer) ;; XXX "blue moon" nntp.el bug
 		      (goto-char (point-min))
