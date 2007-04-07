@@ -1,5 +1,7 @@
 2007-04-07  Chong Yidong  <cyd@stupidchicken.com>
 
+	* url.texi (Disk Caching): Say Emacs 21 "and later".
+
 	* cc-mode.texi (Font Locking Preliminaries): Link to Emacs manual node
 	on Font locking which now mentions JIT lock.
 
