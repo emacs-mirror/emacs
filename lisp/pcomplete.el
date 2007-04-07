@@ -33,7 +33,6 @@
 ;; To use pcomplete with shell-mode, for example, you will need the
 ;; following in your .emacs file:
 ;;
-;;   (load "pcmpl-auto")
 ;;   (add-hook 'shell-mode-hook 'pcomplete-shell-setup)
 ;;
 ;; Most of the code below simply provides support mechanisms for
