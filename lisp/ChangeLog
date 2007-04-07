@@ -1,5 +1,7 @@
 2007-04-07  Chong Yidong  <cyd@stupidchicken.com>
 
+	* progmodes/grep.el (grep-find-use-xargs): Rewrite docstring.
+
 	* net/tls.el (open-tls-stream): Properly handle case where there
 	is no associated buffer.
 
