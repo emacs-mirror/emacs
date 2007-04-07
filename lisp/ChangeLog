@@ -1,3 +1,8 @@
+2007-04-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* net/tls.el (open-tls-stream): Properly handle case where there
+	is no associated buffer.
+
 2007-04-07  Glenn Morris  <rgm@gnu.org>
 
 	* ffap.el (ffap-file-at-point): Lower the priority of the
