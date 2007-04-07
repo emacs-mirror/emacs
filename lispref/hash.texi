@@ -56,7 +56,7 @@ of object and are used only for recording interned symbols
 
 @node Creating Hash
 @section Creating Hash Tables
-@cindex create hash table
+@cindex creating hash tables
 
   The principal function for creating a hash table is
 @code{make-hash-table}.
