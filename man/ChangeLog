@@ -1,5 +1,7 @@
 2007-04-07  Chong Yidong  <cyd@stupidchicken.com>
 
+	* killing.texi (Deletion): Rewrite description of M-\ prefix argument.
+
 	* files.texi (Misc File Ops): Rewrite description of
 	insert-file-literally.
 
