@@ -1,3 +1,14 @@
+2007-04-07  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (diary-font-lock-keywords, diary-live-p):
+	Autoload these functions.
+	(diary-date-forms): Add a custom :set form.
+
+	* calendar/diary-lib.el (diary-set-maybe-redraw): Move definition
+	before first use.
+	(diary-font-lock-keywords): New function with old code for
+	initialization of variable of same name.
+
 2007-04-07  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-cmds.el (c-electric-paren): clean-up
