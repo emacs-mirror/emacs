@@ -384,7 +384,7 @@ activated advice for @var{function}, it activates the new advice.
 @deffn Command ad-deactivate function
 This command deactivates the advice for @var{function}.
 @cindex deactivating advice
-@cindex advice, deactivating
+@c @cindex advice, deactivating   "advice, activating" is just above
 @end deffn
 
 @deffn Command ad-update function &optional compile
