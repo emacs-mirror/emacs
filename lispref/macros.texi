@@ -140,7 +140,6 @@ uses this feature.
 
 
 @defun macroexpand-all form &optional environment
-@cindex macro expansion in entire form
 @code{macroexpand-all} expands macros like @code{macroexpand}, but
 will look for and expand all macros in @var{form}, not just at the
 top-level.  If no macros are expanded, the return value is @code{eq}
