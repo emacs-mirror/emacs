@@ -540,7 +540,7 @@ newlines and tabs like any other characters).
 @section Deleting Text
 @cindex text deletion
 
-@cindex deletion vs killing
+@cindex deleting text vs killing
   Deletion means removing part of the text in a buffer, without saving
 it in the kill ring (@pxref{The Kill Ring}).  Deleted text can't be
 yanked, but can be reinserted using the undo mechanism (@pxref{Undo}).
@@ -596,7 +596,7 @@ The value returned is always @code{nil}.
 @end deffn
 
 @deffn Command delete-backward-char count &optional killp
-@cindex delete previous char
+@cindex deleting previous char
 This command deletes @var{count} characters directly before point, or
 after point if @var{count} is negative.  If @var{killp} is
 non-@code{nil}, then it saves the deleted characters in the kill ring.
@@ -1350,7 +1350,7 @@ You cannot specify any other buffer.
 @end deffn
 
 @deffn Command buffer-disable-undo &optional buffer-or-name
-@cindex disable undo
+@cindex disabling undo
 This function discards the undo list of @var{buffer-or-name}, and disables
 further recording of undo information.  As a result, it is no longer
 possible to undo either previous changes or any subsequent changes.  If
@@ -1402,7 +1402,7 @@ leak memory if the user waits too long before answering the question.
 @node Filling
 @comment  node-name,  next,  previous,  up
 @section Filling
-@cindex filling, explicit
+@cindex filling text
 
   @dfn{Filling} means adjusting the lengths of lines (by moving the line
 breaks) so that they are nearly (but no greater than) a specified
@@ -1433,7 +1433,6 @@ as @code{full}.
 argument implies the value @code{full} for @var{justify}.
 
 @deffn Command fill-paragraph justify
-@cindex filling a paragraph
 This command fills the paragraph at or after point.  If
 @var{justify} is non-@code{nil}, each line is justified as well.
 It uses the ordinary paragraph motion commands to find paragraph
@@ -1680,7 +1679,7 @@ non-@code{nil}, then the line won't be broken there.
 
 @node Adaptive Fill
 @section Adaptive Fill Mode
-@cindex Adaptive Fill mode
+@c @cindex Adaptive Fill mode  "adaptive-fill-mode" is adjacent.
 
   When @dfn{Adaptive Fill Mode} is enabled, Emacs determines the fill
 prefix automatically from the text in each paragraph being filled
@@ -2565,8 +2564,9 @@ property @code{face} specifies the faces for displaying the character
 list is to specify a name and ask what value corresponds to it.
 
   If a character has a @code{category} property, we call it the
-@dfn{category} of the character.  It should be a symbol.  The properties
-of the symbol serve as defaults for the properties of the character.
+@dfn{property category} of the character.  It should be a symbol.  The
+properties of the symbol serve as defaults for the properties of the
+character.
 
   Copying text between strings and buffers preserves the properties
 along with the characters; this includes such diverse functions as
@@ -2613,7 +2613,7 @@ string).  The argument @var{object} is optional and defaults to the
 current buffer.
 
 If there is no @var{prop} property strictly speaking, but the character
-has a category that is a symbol, then @code{get-text-property} returns
+has a property category that is a symbol, then @code{get-text-property} returns
 the @var{prop} property of that symbol.
 @end defun
 
@@ -2960,12 +2960,13 @@ names that control filling and property inheritance.  All other names
 have no standard meaning, and you can use them as you like.
 
 @table @code
-@cindex category of text character
+@cindex property category of text character
 @kindex category @r{(text property)}
 @item category
 If a character has a @code{category} property, we call it the
-@dfn{category} of the character.  It should be a symbol.  The properties
-of the symbol serve as defaults for the properties of the character.
+@dfn{property category} of the character.  It should be a symbol.  The
+properties of this symbol serve as defaults for the properties of the
+character.
 
 @item face
 @cindex face codes of text
@@ -3046,7 +3047,6 @@ The character's @code{face} property, or absence of one, is valid.
 @end table
 
 @item display
-@kindex display @r{(text property)}
 This property activates various features that change the
 way text is displayed.  For example, it can make text appear taller
 or shorter, higher or lower, wider or narrow, or replaced with an image.
