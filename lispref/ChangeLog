@@ -1,3 +1,92 @@
+2007-04-07  Richard Stallman  <rms@gnu.org>
+
+	* advice.texi (Activation of Advice): Remove redundant index entry.
+
+	* backups.texi: Improve index entries.  Remove redundant ones.
+
+	* compile.texi (Byte Compilation): Improve index entry.
+
+	* hash.texi (Creating Hash): Improve index entry.
+
+	* symbols.texi (Definitions): Improve index entry.
+
+	* edebug.texi: Improve index entries.  Remove redundant/useless ones.
+
+	* maps.texi (Standard Keymaps): Remove useless index entry.
+
+	* help.texi (Documentation Basics): Remove redundant index entries.
+
+	* customize.texi: Improve index entries.
+	Remove redundant/useless ones.
+
+	* locals.texi (Standard Buffer-Local Variables): Clarify intro text.
+
+	* streams.texi (Output Variables): Improve index entry.
+
+	* abbrevs.texi (Abbrevs): Remove useless index entry.
+
+	* macros.texi (Expansion): Remove useless index entry.
+
+	* text.texi: Improve index entries.  Remove redundant/useless ones.
+	(Text Properties, Examining Properties)
+	(Special Properties): Use "property category" instead of "category"
+	to refer to the `category' property.
+
+	* positions.texi: Improve index entries.  Remove useless one.
+
+	* lists.texi: Improve index entries.  Remove redundant/useless ones.
+
+	* os.texi: Improve index entries.
+	(Timers): Fix previous change.
+
+	* buffers.texi: Improve index entries.
+	(Modification Time): Get rid of term "obsolete buffer".
+
+	* debugging.texi: Improve index entries.
+	(Test Coverage): Add xref to other test coverage ftr.
+
+	* eval.texi: Improve index entry.  Remove redundant ones.
+
+	* numbers.texi: Improve index entries.  Remove redundant/useless ones.
+
+	* files.texi: Improve index entries.  Remove redundant/useless ones.
+
+	* objects.texi: Improve index entries.
+
+	* processes.texi: Improve index entries.
+
+	* modes.texi: Improve index entry.  Remove redundant one.
+
+	* nonascii.texi: Improve index entries.
+
+	* internals.texi: Improve index entries.
+
+	* syntax.texi: Improve index entries.
+
+	* keymaps.texi (Active Keymaps): Improve index entries.
+
+	* commands.texi: Improve index entries.  Remove redundant/useless ones.
+
+	* frames.texi: Improve index entries.  Remove redundant/useless ones.
+
+	* markers.texi: Improve index entries.  Remove redundant ones.
+
+	* tips.texi: Improve index entries.
+
+	* loading.texi (Unloading): Improve index entry.
+
+	* variables.texi: Improve index entries.  Remove redundant one.
+
+	* sequences.texi: Improve index entry.
+
+	* display.texi: Improve index entries.  Remove redundant ones.
+
+	* windows.texi: Improve index entries.
+
+	* searching.texi: Improve index entries.  Remove redundant one.
+
+	* strings.texi (Case Tables): Improve last change.
+
 2007-04-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* strings.texi (Case Tables): Document with-case-table and
