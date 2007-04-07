@@ -1833,6 +1833,7 @@ frame must match one of the @var{value}s specified for it in
 
 @example
 @group
+(defface region
   '((((class color) (min-colors 88) (background dark))
      :background "blue3")
 @end group
