@@ -326,10 +326,10 @@ This variable's value takes effect when `grep-compute-defaults' is called.")
 
 ;;;###autoload
 (defvar grep-find-use-xargs nil
-  "Whether \\[grep-find] uses the `xargs' utility by default.
-
-If `exec', it uses `find -exec'; if `gnu', it uses `find -print0' and `xargs -0';
-if not nil and not `gnu', it uses `find -print' and `xargs'.
+  "Non-nil means that `grep-find' uses the `xargs' utility by default.
+If `exec', use `find -exec'.
+If `gnu', use `find -print0' and `xargs -0'.
+Any other non-nil value means to use `find -print' and `xargs'.
 
 This variable's value takes effect when `grep-compute-defaults' is called.")
 
