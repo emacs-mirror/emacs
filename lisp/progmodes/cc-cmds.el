@@ -1630,10 +1630,8 @@ the open-parenthesis that starts a defun; see `beginning-of-defun'."
 	      (setq arg (1+ arg)))
 	  (if (< arg 0)
 	      (setq arg (c-backward-to-nth-BOF-{ (- arg) where)))
-	  (when (and (= arg 0)
-		     (c-syntactic-skip-backward "^}")
-		     (eq (char-before) ?\}))
-	    t))
+	  (if (= arg 0)
+	      (c-syntactic-skip-backward "^}")))
 
       ;; Move forward to the } of a function
       (if (> arg 0)
