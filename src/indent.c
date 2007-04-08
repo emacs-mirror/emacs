@@ -951,7 +951,6 @@ The return value is the current column.  */)
   pos = PT;
   pos_byte = PT_BYTE;
   end = ZV;
-  next_boundary = pos;
 
   /* If we're starting past the desired column,
      back up to beginning of line and scan from there.  */
@@ -962,6 +961,8 @@ The return value is the current column.  */)
       pos_byte = CHAR_TO_BYTE (pos);
       col = 0;
     }
+
+  next_boundary = pos;
 
   while (pos < end)
     {
