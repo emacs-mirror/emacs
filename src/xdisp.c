@@ -24065,7 +24065,7 @@ and is used only on frames for which no explicit name has been set
     doc: /* Maximum number of lines to keep in the message log buffer.
 If nil, disable message logging.  If t, log messages but don't truncate
 the buffer when it becomes large.  */);
-  Vmessage_log_max = make_number (50);
+  Vmessage_log_max = make_number (100);
 
   DEFVAR_LISP ("window-size-change-functions", &Vwindow_size_change_functions,
     doc: /* Functions called before redisplay, if window sizes have changed.
