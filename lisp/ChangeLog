@@ -1,3 +1,8 @@
+2007-04-08  Johan Bockg,Ae(Brd <bojohan+news@dd.chalmers.se>
+
+	* term/xterm.el (terminal-init-xterm): Fix key definitions.  Add
+	binding for C-M-SPC.
+
 2007-04-08  Richard Stallman  <rms@gnu.org>
 
 	* pcomplete.el (pcomplete-read-event): One single definition,
