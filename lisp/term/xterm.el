@@ -231,7 +231,23 @@
 
       (define-key map "\e[4~" [select])
       (define-key map "\e[29~" [print])
-      
+
+      (define-key map "\eOj" [kp-multiply])
+      (define-key map "\eOk" [kp-add])
+      (define-key map "\eOl" [kp-separator])
+      (define-key map "\eOm" [kp-subtract])
+      (define-key map "\eOo" [kp-divide])
+      (define-key map "\eOp" [kp-0])
+      (define-key map "\eOq" [kp-1])
+      (define-key map "\eOr" [kp-2])
+      (define-key map "\eOs" [kp-3])
+      (define-key map "\eOt" [kp-4])
+      (define-key map "\eOu" [kp-5])
+      (define-key map "\eOv" [kp-6])
+      (define-key map "\eOw" [kp-7])
+      (define-key map "\eOx" [kp-8])
+      (define-key map "\eOy" [kp-9])
+
       ;; These keys are available in xterm starting from version 216
       ;; if the modifyOtherKeys resource is set to 1.
 
