@@ -1,5 +1,7 @@
 2007-04-08  Chong Yidong  <cyd@stupidchicken.com>
 
+	* rmail.texi (Rmail Scrolling): Document rmail-end-of-message.
+
 	* woman.texi (Word at point, Interface Options): woman-topic-at-point
 	renamed to woman-use-topic-at-point.  Document new behavior.
 
