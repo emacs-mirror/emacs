@@ -1,3 +1,8 @@
+2007-04-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/cc-cmds.el (c-end-of-defun): Tidy up, to eliminate
+	byte-compiler warning "value unused".
+
 2007-04-08  Andreas Schwab  <schwab@suse.de>
 
 	* term/xterm.el (terminal-init-xterm): Add bindings for keypad
