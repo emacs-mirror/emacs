@@ -1,3 +1,8 @@
+2007-04-08  Andreas Schwab  <schwab@suse.de>
+
+	* term/xterm.el (terminal-init-xterm): Add bindings for keypad
+	keys.
+
 2007-04-07  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el (diary-font-lock-keywords, diary-live-p):
