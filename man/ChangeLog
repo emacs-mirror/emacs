@@ -1,3 +1,8 @@
+2007-04-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* woman.texi (Word at point, Interface Options): woman-topic-at-point
+	renamed to woman-use-topic-at-point.  Document new behavior.
+
 2007-04-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* url.texi (Disk Caching): Say Emacs 21 "and later".
