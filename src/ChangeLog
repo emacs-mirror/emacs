@@ -1,3 +1,7 @@
+2007-04-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* indent.c (Fmove_to_column): Set next_boundary with correct start pt.
+
 2007-04-08  Richard Stallman  <rms@gnu.org>
 
 	* xdisp.c (syms_of_xdisp) <message-log-max>: Default 100.
