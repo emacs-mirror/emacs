@@ -1,3 +1,7 @@
+2007-04-08  Richard Stallman  <rms@gnu.org>
+
+	* xdisp.c (syms_of_xdisp) <message-log-max>: Default 100.
+
 2007-04-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* editfns.c (Ftranspose_regions): Validate interval before setting

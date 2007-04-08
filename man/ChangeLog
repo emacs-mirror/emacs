@@ -1,3 +1,8 @@
+2007-04-08  Richard Stallman  <rms@gnu.org>
+
+	* url.texi: Fix some indexing.
+	(Disk Caching): Drop discussion of old/other Emacs versions.
+
 2007-04-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* display.texi (Standard Faces): Document prefix arg for

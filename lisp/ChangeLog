@@ -1,3 +1,8 @@
+2007-04-08  Richard Stallman  <rms@gnu.org>
+
+	* pcomplete.el (pcomplete-read-event): One single definition,
+	and not a defsubst.
+
 2007-04-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/cc-cmds.el (c-end-of-defun): Tidy up, to eliminate
@@ -5,8 +10,7 @@
 
 2007-04-08  Andreas Schwab  <schwab@suse.de>
 
-	* term/xterm.el (terminal-init-xterm): Add bindings for keypad
-	keys.
+	* term/xterm.el (terminal-init-xterm): Add bindings for keypad keys.
 
 2007-04-07  Glenn Morris  <rgm@gnu.org>
 
