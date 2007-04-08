@@ -262,7 +262,7 @@
       (define-key map "\e[27;5;49~"  [?\C-1])
       ;; Not all C-DIGIT keys have a distinct binding.
       (define-key map "\e[27;5;57~"  [?\C-9])
-      (define-key map "\e[27;5;59~"  [(C-\;)])
+      (define-key map "\e[27;5;59~"  [?\C-\;])
       (define-key map "\e[27;5;61~"  [?\C-=])
       (define-key map "\e[27;5;92~"  [?\C-\\])
 
@@ -271,7 +271,7 @@
       (define-key map "\e[27;6;35~"  [?\C-#])
       (define-key map "\e[27;6;36~"  [?\C-$])
       (define-key map "\e[27;6;37~"  [?\C-%])
-      (define-key map "\e[27;6;38~"  [(C-&)])
+      (define-key map "\e[27;6;38~"  [?\C-&])
       (define-key map "\e[27;6;40~"  [?\C-(])
       (define-key map "\e[27;6;41~"  [?\C-)])
       (define-key map "\e[27;6;42~"  [?\C-*])
@@ -279,13 +279,13 @@
       (define-key map "\e[27;6;58~"  [?\C-:])
       (define-key map "\e[27;6;60~"  [?\C-<])
       (define-key map "\e[27;6;62~"  [?\C->])
-      (define-key map "\e[27;6;63~"  [(C-\?)])
+      (define-key map "\e[27;6;63~"  [(control ??)])
 
       ;; These are the strings emitted for various C-M- combinations
       ;; for keyboards that the Meta and Alt modifiers are on the same
       ;; key (usually labeled "Alt").
-      (define-key map "\e[27;13;9~"  [(C-M-tab)])
-      (define-key map "\e[27;13;13~" [(C-M-return)])
+      (define-key map "\e[27;13;9~"  [C-M-tab])
+      (define-key map "\e[27;13;13~" [C-M-return])
 
       (define-key map "\e[27;13;39~" [?\C-\M-\'])
       (define-key map "\e[27;13;44~" [?\C-\M-,])
@@ -311,7 +311,7 @@
       (define-key map "\e[27;14;35~"  [?\C-\M-#])
       (define-key map "\e[27;14;36~"  [?\C-\M-$])
       (define-key map "\e[27;14;37~"  [?\C-\M-%])
-      (define-key map "\e[27;14;38~"  [(C-M-&)])
+      (define-key map "\e[27;14;38~"  [?\C-\M-&])
       (define-key map "\e[27;14;40~"  [?\C-\M-(])
       (define-key map "\e[27;14;41~"  [?\C-\M-)])
       (define-key map "\e[27;14;42~"  [?\C-\M-*])
@@ -319,11 +319,12 @@
       (define-key map "\e[27;14;58~"  [?\C-\M-:])
       (define-key map "\e[27;14;60~"  [?\C-\M-<])
       (define-key map "\e[27;14;62~"  [?\C-\M->])
-      (define-key map "\e[27;14;63~"  [(C-M-\?)])
+      (define-key map "\e[27;14;63~"  [(control meta ??)])
 
-      (define-key map "\e[27;7;9~"  [(C-M-tab)])
-      (define-key map "\e[27;7;13~" [(C-M-return)])
+      (define-key map "\e[27;7;9~"  [C-M-tab])
+      (define-key map "\e[27;7;13~" [C-M-return])
 
+      (define-key map "\e[27;7;32~" [?\C-\M-\s])
       (define-key map "\e[27;7;39~" [?\C-\M-\'])
       (define-key map "\e[27;7;44~" [?\C-\M-,])
       (define-key map "\e[27;7;45~" [?\C-\M--])
@@ -348,7 +349,7 @@
       (define-key map "\e[27;8;35~"  [?\C-\M-#])
       (define-key map "\e[27;8;36~"  [?\C-\M-$])
       (define-key map "\e[27;8;37~"  [?\C-\M-%])
-      (define-key map "\e[27;8;38~"  [(C-M-&)])
+      (define-key map "\e[27;8;38~"  [?\C-\M-&])
       (define-key map "\e[27;8;40~"  [?\C-\M-(])
       (define-key map "\e[27;8;41~"  [?\C-\M-)])
       (define-key map "\e[27;8;42~"  [?\C-\M-*])
@@ -356,13 +357,13 @@
       (define-key map "\e[27;8;58~"  [?\C-\M-:])
       (define-key map "\e[27;8;60~"  [?\C-\M-<])
       (define-key map "\e[27;8;62~"  [?\C-\M->])
-      (define-key map "\e[27;8;63~"  [(C-M-\?)])
+      (define-key map "\e[27;8;63~"  [(control meta ??)])
 
       (define-key map "\e[27;2;9~"   [S-tab])
       (define-key map "\e[27;2;13~"  [S-return])
 
-      (define-key map "\e[27;6;9~"   [(C-S-tab)])
-      (define-key map "\e[27;6;13~"  [(C-S-return)])
+      (define-key map "\e[27;6;9~"   [C-S-tab])
+      (define-key map "\e[27;6;13~"  [C-S-return])
 
       ;; Other versions of xterm might emit these.
       (define-key map "\e[A" [up])
