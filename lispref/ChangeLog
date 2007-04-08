@@ -1,3 +1,9 @@
+2007-04-08  Karl Berry  <karl@gnu.org>
+
+	* symbols.texi (Plists and Alists): Period after "vs" in index entries.
+	* macros.texi (Backquote): Downcase Backquote in index entries for
+	consistency.
+
 2007-04-08  Richard Stallman  <rms@gnu.org>
 
 	* text.texi (Adaptive Fill): Just describe default,

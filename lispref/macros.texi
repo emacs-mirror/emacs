@@ -286,7 +286,7 @@ two forms yield identical results:
 @end group
 @end example
 
-@findex , @r{(with Backquote)}
+@findex , @r{(with backquote)}
 The special marker @samp{,} inside of the argument to backquote
 indicates a value that isn't constant.  Backquote evaluates the
 argument of @samp{,} and puts the value in the list structure:
@@ -318,7 +318,7 @@ structure also.  For example:
 @end group
 @end example
 
-@findex ,@@ @r{(with Backquote)}
+@findex ,@@ @r{(with backquote)}
 @cindex splicing (with backquote)
   You can also @dfn{splice} an evaluated value into the resulting list,
 using the special marker @samp{,@@}.  The elements of the spliced list
