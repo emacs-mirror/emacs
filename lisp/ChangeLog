@@ -9,11 +9,10 @@
 	(diary-font-lock-keywords): New function with old code for
 	initialization of variable of same name.
 
-2007-04-07  Alan Mackenzie  <acm@muc.de>
+2007-04-07  David Hansen <david.hansen@gmx.net>  (tiny change)
 
-	* progmodes/cc-cmds.el (c-electric-paren): clean-up
-	space-before-funcall: only insert space when on identifier, etc.
-	Patch by David Hansen.
+	* progmodes/cc-cmds.el (c-electric-paren): Fix space-before-funcall
+	clean-up: only insert space when on identifier, etc.
 
 2007-04-07  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -30,6 +29,7 @@
 2007-04-06  Alan Mackenzie  <acm@muc.de>
 
 	Fix fontification of labels, and other things with ":".
+
 	* progmodes/cc-engine.el (c-forward-label): The function now
 	returns 'goto-target, 'qt-2kwds-colon, 'qt-1kwd-colon, as well as
 	the former t.
@@ -55,9 +55,8 @@
 
 	* isearch.el (isearch-forward): Revert 1998-08-26 doc change.
 
-	* emacs-lisp/byte-opt.el (byte-optimize-pure-func): Remove
-	function (originally checked in as byte-optimize-concat on
-	1997-11-02).
+	* emacs-lisp/byte-opt.el (byte-optimize-pure-func): Remove function;
+	was originally checked in as byte-optimize-concat on 1997-11-02.
 
 	* mail/sendmail.el (mail-text, mail-mode): Revert extant pieces of
 	1995-05-19 doc changes.
@@ -78,8 +77,8 @@
 
 2007-04-05  Chong Yidong  <cyd@stupidchicken.com>
 
-	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker): Print
-	entire form.
+	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker):
+	Print entire form.
 
 2007-04-05  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -90,9 +89,10 @@
 
 	* play/5x5.el, play/animate.el, play/dissociate.el, play/doctor.el,
 	* play/gomoku.el, play/landmark.el, play/tetris.el, play/zone.el:
-	Seed RNG on loading.
+	Seed random number generator on loading.
 
 	* emacs-lisp/authors.el (top-level): Provide self.
+
 	* play/animate.el (top-level): Provide self.
 
 2007-04-04  Alan Mackenzie  <acm@muc.de>
@@ -133,8 +133,7 @@
 
 	* tmm.el (tmm-c-prompt): Initialize.
 	(tmm-menubar): Deal with extended menu-items at top level.
-	(tmm-get-keybind): Handle bindings that are redefined/undefined
-	locally.
+	(tmm-get-keybind): Handle bindings redefined/undefined locally.
 	(tmm-prompt): Handle visibility of top level menu-items.
 
 	* progmodes/gud.el (gud-menu-map): Simplify.
