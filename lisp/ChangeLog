@@ -1,3 +1,7 @@
+2007-04-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* cus-start.el <scroll-preserve-screen-position>: Add choices.
+
 2007-04-08  Johan Bockg,Ae(Brd <bojohan+news@dd.chalmers.se>
 
 	* term/xterm.el (terminal-init-xterm): Fix key definitions.  Add
