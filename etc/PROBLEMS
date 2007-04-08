@@ -2113,16 +2113,22 @@ not as severely as in 21.1.
 An inactive cursor remains in an active window after the Windows
 Manager driven switch of the focus, until a key is pressed.
 
-Windows input methods are not recognized by Emacs.  Some
+Windows input methods are not recognized by Emacs.  However, some
 of these input methods cause the keyboard to send characters encoded
 in the appropriate coding system (e.g., ISO 8859-1 for Latin-1
-characters, ISO 8859-8 for Hebrew characters, etc.).  To make this
-work, set the keyboard coding system to the appropriate value after
-you activate the Windows input method.  For example, if you activate
-the Hebrew input method, type "C-x RET k iso-8859-8 RET".  (Emacs
-ought to recognize the Windows language-change event and set up the
-appropriate keyboard encoding automatically, but it doesn't do that
-yet.)
+characters, ISO 8859-8 for Hebrew characters, etc.).  To make these
+input methods work with Emacs, set the keyboard coding system to the
+appropriate value after you activate the Windows input method.  For
+example, if you activate the Hebrew input method, type this:
+
+   C-x RET k hebrew-iso-8bit RET
+
+(Emacs ought to recognize the Windows language-change event and set up
+the appropriate keyboard encoding automatically, but it doesn't do
+that yet.)  In addition, to use these Windows input methods, you
+should set your "Language for non-Unicode programs" (on Windows XP,
+this is on the Advanced tab of Regional Settings) to the language of
+the input method.
 
 To bind keys that produce non-ASCII characters with modifiers, you
 must specify raw byte codes. For instance, if you want to bind
