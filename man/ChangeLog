@@ -1,5 +1,8 @@
 2007-04-08  Chong Yidong  <cyd@stupidchicken.com>
 
+	* display.texi (Standard Faces): Document prefix arg for
+	list-faces-display.
+
 	* rmail.texi (Rmail Scrolling): Document rmail-end-of-message.
 
 	* woman.texi (Word at point, Interface Options): woman-topic-at-point
