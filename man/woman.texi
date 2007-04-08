@@ -480,24 +480,22 @@ time it is run in a new Emacs session.
 @cindex point, word at
 
 By default, the @code{woman} command uses the word nearest to point in
-the current buffer as a suggestion for the topic to look up.  The topic
-must be confirmed or edited in the minibuffer.  This suggestion can be
-turned off, or @code{woman} can use the suggested topic without
-confirmation if possible, which is controlled by customizing the user
-option @code{woman-topic-at-point} to @code{nil} or @code{t}
-respectively.  (Its default value is neither @code{nil} nor @code{t},
-meaning ask for confirmation.)
+the current buffer as a suggestion for the topic to look up, if it
+exists as a valid topic.  The topic can be confirmed or edited in the
+minibuffer.
 
-The variable @code{woman-topic-at-point} can also be rebound locally
-(using @code{let}), which may be useful to provide special private key
-bindings, e.g.@: this key binding for @kbd{C-c w} runs WoMan on the topic
-at point without seeking confirmation:
+You can also bind the variable @code{woman-use-topic-at-point} locally
+to a non-@code{nil} value (using @code{let}), in which case
+@code{woman} will can use the suggested topic without confirmation if
+possible.  This may be useful to provide special private key bindings,
+e.g.@: this key binding for @kbd{C-c w} runs WoMan on the topic at
+point without seeking confirmation:
 
 @lisp
 (global-set-key "\C-cw"
                 (lambda ()
                   (interactive)
-                  (let ((woman-topic-at-point t))
+                  (let ((woman-use-topic-at-point t))
                     (woman))))
 @end lisp
 
@@ -1091,24 +1089,18 @@ a Contents menu to the menubar by calling @code{imenu-add-to-menubar}.
 A string representing the title to use if WoMan adds a Contents menu to
 the menubar.  Default is @code{"CONTENTS"}.
 
-@item woman-topic-at-point
-A symbol, which may be either @code{t}, @code{nil} or @code{confirm},
-that controls the use by @code{woman} of the ``word at point'' as a
-topic suggestion.  If it is non-@code{nil} then the @code{woman} command uses
-the word at point as an initial topic suggestion when it reads a topic
-from the minibuffer; if it is @code{t} then @code{woman} uses the word
-at point @emph{without interactive confirmation} if it exists as a
-topic.  The value @code{confirm} means suggest a topic and ask for
-confirmation.  The default value is that of
-@code{woman-topic-at-point-default}.
+@item woman-use-topic-at-point
+A boolean value that defaults to @code{nil}.  If non-@code{nil} then
+the @code{woman} command uses the word at point as the topic,
+@emph{without interactive confirmation}, if it exists as a topic.
 
-@item woman-topic-at-point-default
-A symbol, which may be either @code{t}, @code{nil} or @code{confirm},
-representing the default value for @code{woman-topic-at-point}.  The
-default value is @code{confirm}.  [The variable
-@code{woman-topic-at-point} may be @code{let}-bound when @code{woman} is
-loaded, in which case its global value does not get defined.  The
-function @code{woman-file-name} sets it to this value if it is unbound.]
+@item woman-use-topic-at-point-default
+A boolean value representing the default value for
+@code{woman-use-topic-at-point}.  The default value is @code{nil}.
+[The variable @code{woman-use-topic-at-point} may be @code{let}-bound
+when @code{woman} is loaded, in which case its global value does not
+get defined.  The function @code{woman-file-name} sets it to this
+value if it is unbound.]
 
 @item woman-uncompressed-file-regexp
 A regular match expression used to select man source files (ignoring any
