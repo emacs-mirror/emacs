@@ -1,3 +1,8 @@
+2007-04-09  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gdb): Restore existing session if user
+	tries to start a second one in graphical mode.
+
 2007-04-08  Martin Rudalics  <rudalics@gmx.at>
 
 	* cus-start.el <scroll-preserve-screen-position>: Add choices.
