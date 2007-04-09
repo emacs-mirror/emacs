@@ -534,7 +534,6 @@
 		    (eq tmp 'error-free)
 		    ;; Detect the expansion of (pop foo).
 		    ;; There is no need to compile the call to `car' there.
-		    (progn (setq foo (list form fn)) nil)
 		    (and (eq fn 'car)
 			 (eq (car-safe (cadr form)) 'prog1)
 			 (let ((var (cadr (cadr form)))
