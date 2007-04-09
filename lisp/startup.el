@@ -44,8 +44,8 @@
   "Non-nil inhibits the startup screen.
 It also inhibits display of the initial message in the `*scratch*' buffer.
 
-This is for use in your personal init file, once you are familiar
-with the contents of the startup screen."
+This is for use in your personal init file (but NOT site-start.el), once
+you are familiar with the contents of the startup screen."
   :type 'boolean
   :group 'initialization)
 
