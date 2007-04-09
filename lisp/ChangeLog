@@ -1,3 +1,8 @@
+2007-04-08  Alan Mackenzie  <acm@muc.de>
+
+	* startup.el (inhibit-splash-screen): Emphatically state that it
+	can't be set in site-start.el.
+
 2007-04-09  Masatake YAMATO  <jet@gyve.org>
 
 	* progmodes/cc-subword.el (c-capitalize-subword): Implement
