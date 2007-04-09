@@ -1,3 +1,19 @@
+2007-04-09  Alan Mackenzie  <acm@muc.de>
+
+	Changes to make `narrow-to-defun' and `mark-defun' work properly
+	in CC Mode:
+	
+	* progmodes/cc-defs.el (c-beginning-of-defun-1):
+	* progmodes/cc-cmds.el (c-beginning-of-defun, c-end-of-defun):
+	bind beginning/end-of-defun-function to nil around calls to
+	beginning/end-of-defun.
+
+	* progmodes/cc-langs.el (beginning-of-defun-function,
+	end-of-defun-function): new c-lang-setvar's.
+
+	* progmodes/cc-awk.el (c-awk-beginning-of-defun): Add "(or arg
+	(setq arg 1))" to enable non-interactive call.
+	
 2007-04-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* simple.el (set-mark-command): Doc fix.
