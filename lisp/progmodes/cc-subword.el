@@ -246,18 +246,23 @@ See the command `c-subword-mode' for a description of subwords.
 Optional argument ARG is the same as for `capitalize-word'."
   (interactive "p")
   (let ((count (abs arg))
-	(direction (if (< 0 arg) 1 -1)))
+	(start (point))
+	(advance (if (< arg 0) nil t)))
     (dotimes (i count)
-      (when (re-search-forward
-	     (concat "[" c-alpha "]")
-	     nil t)
-	(goto-char (match-beginning 0)))
+      (if advance
+	  (progn (re-search-forward
+		  (concat "[" c-alpha "]")
+		  nil t)
+		 (goto-char (match-beginning 0)))
+	(c-backward-subword))
       (let* ((p (point))
 	     (pp (1+ p))
-	     (np (c-forward-subword direction)))
+	     (np (c-forward-subword)))
 	(upcase-region p pp)
 	(downcase-region pp np)
-	(goto-char np)))))
+	(goto-char (if advance np p))))
+    (unless advance
+      (goto-char start))))
 
 
 

@@ -1,3 +1,10 @@
+2007-04-09  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/cc-subword.el (c-capitalize-subword): Implement
+	better mimic the behavior of `capitalize-word'. They no longer 
+	move point with a  negative argument. 
+	Based on code by Paul Curry.
+
 2007-04-09  Paul Curry <dashteacup@gmail.com>  (tiny change)
 
 	* progmodes/cc-subword.el (c-downcase-subword, c-upcase-subword): 
