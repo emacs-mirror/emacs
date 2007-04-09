@@ -218,6 +218,28 @@ Optional argument ARG is the same as for `transpose-words'."
   (interactive "*p")
   (transpose-subr 'c-forward-subword arg))
 
+
+
+(defun c-downcase-subword (arg)
+  "Do the same as `downcase-word' but on subwords.
+See the command `c-subword-mode' for a description of subwords.
+Optional argument ARG is the same as for `downcase-word'."
+  (interactive "p")
+  (let ((start (point)))
+    (downcase-region (point) (c-forward-subword arg))
+    (when (< arg 0) 
+      (goto-char start))))
+
+(defun c-upcase-subword (arg)
+  "Do the same as `upcase-word' but on subwords.
+See the command `c-subword-mode' for a description of subwords.
+Optional argument ARG is the same as for `upcase-word'."
+  (interactive "p")
+  (let ((start (point)))
+    (upcase-region (point) (c-forward-subword arg))
+    (when (< arg 0) 
+      (goto-char start))))
+
 (defun c-capitalize-subword (arg)
   "Do the same as `capitalize-word' but on subwords.
 See the command `c-subword-mode' for a description of subwords.
@@ -237,19 +259,6 @@ Optional argument ARG is the same as for `capitalize-word'."
 	(downcase-region pp np)
 	(goto-char np)))))
 
-(defun c-downcase-subword (arg)
-  "Do the same as `downcase-word' but on subwords.
-See the command `c-subword-mode' for a description of subwords.
-Optional argument ARG is the same as for `downcase-word'."
-  (interactive "p")
-  (downcase-region (point) (c-forward-subword arg)))
-
-(defun c-upcase-subword (arg)
-  "Do the same as `upcase-word' but on subwords.
-See the command `c-subword-mode' for a description of subwords.
-Optional argument ARG is the same as for `upcase-word'."
-  (interactive "p")
-  (upcase-region (point) (c-forward-subword arg)))
 
 
 ;;
