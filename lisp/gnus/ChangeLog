@@ -1569,15 +1569,6 @@
 	* gnus-start.el (gnus-no-server-1): Mention
 	`gnus-level-default-subscribed' in doc string.
 
-2005-11-26  Dave Love  <fx@gnu.org>
-
-	* tls.el (open-tls-stream): Rename arg SERVICE to PORT.
-	(tls-program, tls-success): Provide openssl alternative.
-
-	* starttls.el: Doc fixes.
-	(starttls-open-stream-gnutls, starttls-open-stream): Rename arg
-	SERVICE to PORT.
-
 2005-12-09  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-start.el (gnus-start-draft-setup): Enforce
@@ -2632,14 +2623,6 @@
 
 	* gnus-art.el (gnus-emphasis-alist): Disable the strikethru thingy.
 
-2005-06-02  Katsumi Yamaoka  <yamaoka@jpl.org>
-
-	* pop3.el (pop3-md5): Run md5 in the binary mode.
-	(pop3-md5-program-args): New variable.
-
-	* starttls.el (starttls-set-process-query-on-exit-flag):
-	Use eval-and-compile.
-
 2005-05-31  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (article-display-x-face): Replace
@@ -2674,16 +2657,6 @@
 	process-kill-without-query by gnus-set-process-query-on-exit-flag.
 	(nntp-open-ssl-stream): Ditto.
 	(nntp-open-tls-stream): Ditto.
-
-	* pgg.el: Don't bind itimer vars; don't autoload itimer functions.
-	(pgg-run-at-time-1): New macro.
-	(pgg-run-at-time): Use it.
-
-	* starttls.el (starttls-set-process-query-on-exit-flag): Alias to
-	set-process-query-on-exit-flag or process-kill-without-query.
-	(starttls-open-stream-gnutls): Use it instead of
-	process-kill-without-query.
-	(starttls-open-stream): Ditto.
 
 2005-05-31  Simon Josefsson  <jas@extundo.com>
 
@@ -3602,13 +3575,6 @@
 
 	* gnus-msg.el (gnus-summary-resend-default-address): Add :version.
 
-	* tls.el (tls-process-connection-type, tls-success)
-	(tls-certtool-program): Add :version.
-
-	* starttls.el (starttls-gnutls-program, starttls-use-gnutls)
-	(starttls-extra-arguments, starttls-process-connection-type)
-	(starttls-connect, starttls-failure, starttls-success):
-
 	* spam-stat.el (spam-stat): Add :version.
 
 	* sieve.el (sieve): Add :version.
@@ -4096,12 +4062,6 @@
 	* message.el (message-tokenize-header): Fix 2004-09-06 change
 	which used point-min in the wrong place.
 
-2004-10-12  Simon Josefsson  <jas@extundo.com>
-
-	* net/tls.el (tls-certtool-program): New variable.
-	(tls-certificate-information): New function, based on
-	ssl-certificate-information.
-
 2004-10-11  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* message.el (message-bury): Use `window-dedicated-p'.
@@ -4540,19 +4500,6 @@
 2004-02-03  Jesper Harder  <harder@ifa.au.dk>
 
 	* sieve.el (sieve-deactivate-all): Fix format string mismatch.
-
-2004-05-26  Simon Josefsson  <jas@extundo.com>
-
-	* starttls.el: Merge with my GNUTLS based starttls.el.
-	(starttls-gnutls-program, starttls-use-gnutls)
-	(starttls-extra-arguments, starttls-process-connection-type)
-	(starttls-connect, starttls-failure, starttls-success): New variables.
-	(starttls-program, starttls-extra-args): Doc fix.
-	(starttls-negotiate-gnutls, starttls-open-stream-gnutls):
-	New functions.
-	(starttls-negotiate, starttls-open-stream):
-	Check `starttls-use-gnutls' and pass on to corresponding *-gnutls
-	function if it is set.
 
 2004-08-30  Andreas Schwab  <schwab@suse.de>
 
