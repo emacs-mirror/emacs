@@ -1,3 +1,7 @@
+2007-04-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (set-mark-command): Doc fix.
+
 2007-04-09  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gdb): Restore existing session if user
