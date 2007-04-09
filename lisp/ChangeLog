@@ -6,31 +6,31 @@
 2007-04-09  Masatake YAMATO  <jet@gyve.org>
 
 	* progmodes/cc-subword.el (c-capitalize-subword): Implement
-	better mimic the behavior of `capitalize-word'. They no longer 
-	move point with a  negative argument. 
+	better mimic the behavior of `capitalize-word'.  They no longer
+	move point with a  negative argument.
 	Based on code by Paul Curry.
 
-2007-04-09  Paul Curry <dashteacup@gmail.com>  (tiny change)
+2007-04-09  Paul Curry  <dashteacup@gmail.com>  (tiny change)
 
-	* progmodes/cc-subword.el (c-downcase-subword, c-upcase-subword): 
-	Don't move point if ARG is netagive.
+	* progmodes/cc-subword.el (c-downcase-subword, c-upcase-subword):
+	Don't move point if ARG is negative.
 
 2007-04-09  Alan Mackenzie  <acm@muc.de>
 
 	Changes to make `narrow-to-defun' and `mark-defun' work properly
 	in CC Mode:
-	
+
 	* progmodes/cc-defs.el (c-beginning-of-defun-1):
 	* progmodes/cc-cmds.el (c-beginning-of-defun, c-end-of-defun):
-	bind beginning/end-of-defun-function to nil around calls to
+	Bind beginning/end-of-defun-function to nil around calls to
 	beginning/end-of-defun.
 
-	* progmodes/cc-langs.el (beginning-of-defun-function,
-	end-of-defun-function): new c-lang-setvar's.
+	* progmodes/cc-langs.el (beginning-of-defun-function)
+	(end-of-defun-function): New c-lang-setvar's.
 
 	* progmodes/cc-awk.el (c-awk-beginning-of-defun): Add "(or arg
 	(setq arg 1))" to enable non-interactive call.
-	
+
 2007-04-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* simple.el (set-mark-command): Doc fix.
@@ -44,7 +44,7 @@
 
 	* cus-start.el <scroll-preserve-screen-position>: Add choices.
 
-2007-04-08  Johan Bockg,Ae(Brd <bojohan+news@dd.chalmers.se>
+2007-04-08  Johan Bockg,Ae(Brd  <bojohan+news@dd.chalmers.se>
 
 	* term/xterm.el (terminal-init-xterm): Fix key definitions.  Add
 	binding for C-M-SPC.
@@ -74,7 +74,7 @@
 	(diary-font-lock-keywords): New function with old code for
 	initialization of variable of same name.
 
-2007-04-07  David Hansen <david.hansen@gmx.net>  (tiny change)
+2007-04-07  David Hansen  <david.hansen@gmx.net>  (tiny change)
 
 	* progmodes/cc-cmds.el (c-electric-paren): Fix space-before-funcall
 	clean-up: only insert space when on identifier, etc.
