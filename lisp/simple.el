@@ -3203,28 +3203,28 @@ will pop twice."
   :group 'editing)
 
 (defun set-mark-command (arg)
-  "Set mark at where point is, or jump to mark.
-With no prefix argument, set mark, and push old mark position on local
-mark ring; also push mark on global mark ring if last mark was set in
+  "Set mark where point is, or jump to mark.
+Setting the mark also sets the \"region\", which is the closest
+equivalent in Emacs to what some editors call the \"selection\".
+
+With no prefix argument, set mark and push old mark position on local
+mark ring.  Also, push mark on global mark ring, if last mark was set in
 another buffer.  Immediately repeating the command activates
 `transient-mark-mode' temporarily.
 
-With argument, e.g. \\[universal-argument] \\[set-mark-command], \
-jump to mark, and pop a new position
-for mark off the local mark ring \(this does not affect the global
-mark ring\).  Use \\[pop-global-mark] to jump to a mark off the global
+With prefix argument \(e.g., \\[universal-argument] \\[set-mark-command]\), \
+jump to mark, and set mark from
+position popped off the local mark ring \(this does not affect the global
+mark ring\).  Use \\[pop-global-mark] to jump to a mark popped off the global
 mark ring \(see `pop-global-mark'\).
 
 If `set-mark-command-repeat-pop' is non-nil, repeating
-the \\[set-mark-command] command with no prefix pops the next position
+the \\[set-mark-command] command with no prefix argument pops the next position
 off the local (or global) mark ring and jumps there.
 
-With a double \\[universal-argument] prefix argument, e.g. \\[universal-argument] \
-\\[universal-argument] \\[set-mark-command], unconditionally
-set mark where point is.
-
-Setting the mark also sets the \"region\", which is the closest
-equivalent in Emacs to what some editors call the \"selection\".
+With a double \\[universal-argument] prefix argument \(e.g., \\[universal-argument] \
+\\[universal-argument] \\[set-mark-command]\), unconditionally
+set mark where point is, even if `set-mark-command-repeat-pop' is non-nil.
 
 Novice Emacs Lisp programmers often try to use the mark for the wrong
 purposes.  See the documentation of `set-mark' for more information."
