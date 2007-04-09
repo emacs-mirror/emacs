@@ -579,7 +579,7 @@ KEY is a string or vector representing a sequence of keystrokes."
 ;;;; substitute-key-definition and its subroutines.
 
 (defvar key-substitution-in-progress nil
- "Used internally by `substitute-key-definition'.")
+  "Used internally by `substitute-key-definition'.")
 
 (defun substitute-key-definition (olddef newdef keymap &optional oldmap prefix)
   "Replace OLDDEF with NEWDEF for any keys in KEYMAP now defined as OLDDEF.
@@ -821,11 +821,11 @@ and `event-end' functions."
 (defun posn-set-point (position)
   "Move point to POSITION.
 Select the corresponding window as well."
-    (if (not (windowp (posn-window position)))
-	(error "Position not in text area of window"))
-    (select-window (posn-window position))
-    (if (numberp (posn-point position))
-	(goto-char (posn-point position))))
+  (if (not (windowp (posn-window position)))
+      (error "Position not in text area of window"))
+  (select-window (posn-window position))
+  (if (numberp (posn-point position))
+      (goto-char (posn-point position))))
 
 (defsubst posn-x-y (position)
   "Return the x and y coordinates in POSITION.
@@ -949,20 +949,26 @@ is converted into a string by expressing it in decimal."
 ;;;; Obsolescence declarations for variables, and aliases.
 
 (make-obsolete-variable 'directory-sep-char "do not use it." "21.1")
-(make-obsolete-variable 'mode-line-inverse-video "use the appropriate faces instead." "21.1")
-(make-obsolete-variable 'unread-command-char
-  "use `unread-command-events' instead.  That variable is a list of events
+(make-obsolete-variable
+ 'mode-line-inverse-video
+ "use the appropriate faces instead."
+ "21.1")
+(make-obsolete-variable
+ 'unread-command-char
+ "use `unread-command-events' instead.  That variable is a list of events
 to reread, so it now uses nil to mean `no event', instead of -1."
-  "before 19.15")
+ "before 19.15")
 
 ;; Lisp manual only updated in 22.1.
 (define-obsolete-variable-alias 'executing-macro 'executing-kbd-macro
-			      "before 19.34")
+  "before 19.34")
 
 (defvaralias 'x-lost-selection-hooks 'x-lost-selection-functions)
-(make-obsolete-variable 'x-lost-selection-hooks 'x-lost-selection-functions "22.1")
+(make-obsolete-variable 'x-lost-selection-hooks
+			'x-lost-selection-functions "22.1")
 (defvaralias 'x-sent-selection-hooks 'x-sent-selection-functions)
-(make-obsolete-variable 'x-sent-selection-hooks 'x-sent-selection-functions "22.1")
+(make-obsolete-variable 'x-sent-selection-hooks
+			'x-sent-selection-functions "22.1")
 
 (defvaralias 'messages-buffer-max-lines 'message-log-max)
 
@@ -1534,7 +1540,7 @@ FILE should be the name of a library, with no directory name."
 
 (when (featurep 'make-network-process)
   (defun open-network-stream (name buffer host service)
-  "Open a TCP connection for a service to a host.
+    "Open a TCP connection for a service to a host.
 Returns a subprocess-object to represent the connection.
 Input and output work as for subprocesses; `delete-process' closes it.
 
@@ -1548,14 +1554,15 @@ BUFFER is the buffer (or buffer name) to associate with the process.
 HOST is name of the host to connect to, or its IP address.
 SERVICE is name of the service desired, or an integer specifying
  a port number to connect to."
-  (make-network-process :name name :buffer buffer
-			:host host :service service)))
+    (make-network-process :name name :buffer buffer
+				     :host host :service service)))
 
 ;; compatibility
 
-(make-obsolete 'process-kill-without-query
-               "use `process-query-on-exit-flag' or `set-process-query-on-exit-flag'."
-               "22.1")
+(make-obsolete
+ 'process-kill-without-query
+ "use `process-query-on-exit-flag' or `set-process-query-on-exit-flag'."
+ "22.1")
 (defun process-kill-without-query (process &optional flag)
   "Say no query needed if PROCESS is running when Emacs is exited.
 Optional second argument if non-nil says to require a query.
@@ -1588,8 +1595,8 @@ Legitimate radix values are 8, 10 and 16.")
  'read-quoted-char-radix 8
  "*Radix for \\[quoted-insert] and other uses of `read-quoted-char'.
 Legitimate radix values are 8, 10 and 16."
-  :type '(choice (const 8) (const 10) (const 16))
-  :group 'editing-basics)
+ :type '(choice (const 8) (const 10) (const 16))
+ :group 'editing-basics)
 
 (defun read-quoted-char (&optional prompt)
   "Like `read-char', but do not allow quitting.
@@ -2232,9 +2239,9 @@ If UNDO is present and non-nil, it is a function that will be called
 	     (text-properties-at (1- end)))
 	(put-text-property (1- end) end 'rear-nonsticky t))
 
-    (if (eq yank-undo-function t)  ;; not set by FUNCTION
+    (if (eq yank-undo-function t)		   ;; not set by FUNCTION
 	(setq yank-undo-function (nth 3 handler))) ;; UNDO
-    (if (nth 4 handler) ;; COMMAND
+    (if (nth 4 handler)				   ;; COMMAND
 	(setq this-command (nth 4 handler)))))
 
 (defun insert-buffer-substring-no-properties (buffer &optional start end)
@@ -2762,7 +2769,7 @@ Unless optional argument INPLACE is non-nil, return a new string."
     newstr))
 
 (defun replace-regexp-in-string (regexp rep string &optional
-                                 fixedcase literal subexp start)
+					fixedcase literal subexp start)
   "Replace all matches for REGEXP with REP in STRING.
 
 Return a new string containing the replacements.
@@ -2812,7 +2819,7 @@ and replace a sub-expression, e.g.
 				       rep
 				     (funcall rep (match-string 0 str)))
 				   fixedcase literal str subexp)
-		    (cons (substring string start mb)       ; unmatched prefix
+		    (cons (substring string start mb) ; unmatched prefix
 			  matches)))
 	(setq start me))
       ;; Reconstruct a string from the pieces.
@@ -2833,7 +2840,8 @@ that can be added."
 (defun remove-from-invisibility-spec (element)
   "Remove ELEMENT from `buffer-invisibility-spec'."
   (if (consp buffer-invisibility-spec)
-    (setq buffer-invisibility-spec (delete element buffer-invisibility-spec))))
+      (setq buffer-invisibility-spec
+	    (delete element buffer-invisibility-spec))))
 
 ;;;; Syntax tables.
 
@@ -3179,7 +3187,7 @@ Usually the separator is \".\", but it can be any other string.")
 
 (defvar version-regexp-alist
   '(("^[-_+ ]?a\\(lpha\\)?$"   . -3)
-    ("^[-_+]$"                 . -3)	; treat "1.2.3-20050920" and "1.2-3" as alpha releases
+    ("^[-_+]$"                 . -3) ; treat "1.2.3-20050920" and "1.2-3" as alpha releases
     ("^[-_+ ]cvs$"             . -3)	; treat "1.2.3-CVS" as alpha release
     ("^[-_+ ]?b\\(eta\\)?$"    . -2)
     ("^[-_+ ]?\\(pre\\|rc\\)$" . -1))
@@ -3253,7 +3261,7 @@ See documentation for `version-separator' and `version-regexp-alist'."
   ;; Change .x.y to 0.x.y
   (if (and (>= (length ver) (length version-separator))
 	   (string-equal (substring ver 0 (length version-separator))
-		    version-separator))
+			 version-separator))
       (setq ver (concat "0" ver)))
   (save-match-data
     (let ((i 0)
