@@ -2895,6 +2895,7 @@ and super/sub-scripts are made into super/sub-scripts.
 +++
 *** New major mode Doctex mode, for *.dtx files.
 
+---
 ** BibTeX mode:
 
 *** The new command `bibtex-url' browses a URL for the BibTeX entry at
@@ -5428,7 +5429,7 @@ override incorrect graphical display dimensions returned by functions
 ** Mouse pointer features:
 
 +++ (lispref)
-??? (man)
+--- (man)
 *** The mouse pointer shape in void text areas (i.e. after the end of a
 line or below the last line in the buffer) of the text window is now
 controlled by the new variable `void-text-area-pointer'.  The default
