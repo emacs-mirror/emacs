@@ -121,7 +121,7 @@ Boston, MA 02110-1301, USA.  */
  * default for process-connection-type dependent on the kernel
  * version.
  */
-#define MIN_PTY_KERNEL_VERSION '7' 
+#define MIN_PTY_KERNEL_VERSION '7'
 
 /*
  *	Define NONSYSTEM_DIR_LIBRARY to make Emacs emulate
@@ -216,9 +216,6 @@ Boston, MA 02110-1301, USA.  */
    also the name of a Mach system call.  */
 #define init_process emacs_init_process
 
-/* Fix compilation problem for regex.c.  */
-#define __restrict
-
 /* Used in dispnew.c.  Copied from freebsd.h. */
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)
 
@@ -262,9 +259,8 @@ Boston, MA 02110-1301, USA.  */
 
 /* Definitions for how to compile & link.  */
 
-/* Indicate that we are compiling for Mac OS X and where to find Mac
-   specific headers.  */
-#define C_SWITCH_SYSTEM -fpascal-strings -DMAC_OSX -I../mac/src
+/* Indicate that we are compiling for Mac OS X.  */
+#define C_SWITCH_SYSTEM -fpascal-strings -DMAC_OSX
 
 /* Link in the Carbon lib. */
 #ifdef HAVE_CARBON
@@ -316,13 +312,6 @@ Boston, MA 02110-1301, USA.  */
 /* Do not define matherr in floatfns.c.  */
 #define NO_MATHERR
 
-
-/* This prevents a compilation error in xfaces.c: struct kboard * is
-   used in a function protocol the first time this type appears in the
-   file, since MULTI_KBOARD is undefined for the Mac OS X build.  */
-#ifndef NOT_C_CODE
-struct kboard;
-#endif
 
 /* The following solves the problem that Emacs hangs when evaluating
    (make-comint "test0" "/nodir/nofile" nil "") when /nodir/nofile
