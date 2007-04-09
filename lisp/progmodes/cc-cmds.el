@@ -1511,7 +1511,8 @@ defun."
   (or arg (setq arg 1))
 
   (c-save-buffer-state
-      ((start (point))
+      (beginning-of-defun-function end-of-defun-function
+       (start (point))
        where paren-state pos)
 
     ;; Move back out of any macro/comment/string we happen to be in.
@@ -1613,7 +1614,8 @@ the open-parenthesis that starts a defun; see `beginning-of-defun'."
   (or arg (setq arg 1))
 
   (c-save-buffer-state
-      ((start (point))
+      (beginning-of-defun-function end-of-defun-function
+       (start (point))
        where paren-state pos)
 
     ;; Move back out of any macro/comment/string we happen to be in.
