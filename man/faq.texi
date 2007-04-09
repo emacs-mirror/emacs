@@ -1154,6 +1154,16 @@ and on @code{xterm} with @kbd{emacs -nw}.
 Emacs can be built with GTK+ widgets, and supports drag-and-drop
 operation on X.
 
+@cindex Supported systems
+@item
+Emacs 22 features support for GNU/Linux systems on S390 and x86-64
+machines, as well as support for the Mac OS X and Cygwin operating
+systems.
+
+@item
+The native MS-Windows, Mac OS 9 and Mac OS X builds include full support
+for images, toolbar, and tooltips.
+
 @item
 Font Lock mode, Auto Compression mode, and File Name Shadow Mode are
 enabled by default.
@@ -1163,7 +1173,7 @@ The maximum size of buffers has been doubled and is 256M on 32-bit
 machines.
 
 @item
-Links can be followed with @kbd{mouse-1}.
+Links can be followed with @kbd{mouse-1}, in addition to @kbd{mouse-2}.
 
 @cindex Mouse wheel
 @item
@@ -1219,12 +1229,6 @@ The following language environments have also been added: Belarusian,
 Bulgarian, Chinese-EUC-TW, Croatian, French, Georgian, Italian, Latin-6,
 Latin-7, Latvian, Lithuanian, Malayalam, Russian, Slovenian, Swedish,
 Tajik, Tamil, UTF-8, Ukrainian, Welsh, and Windows-1255.
-
-@cindex Supported systems
-@item
-Emacs 22 features support for GNU/Linux systems on S390 and x86-64
-machines, as well as support for the Mac OS X and Cygwin operating
-systems.
 
 @cindex Documentation
 @cindex Emacs Lisp Manual

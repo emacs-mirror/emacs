@@ -1,3 +1,9 @@
+2007-04-09  Romain Francoise  <romain@orebokech.com>
+
+	* faq.texi (New in Emacs 22): Mention improvements to the Windows and
+	Mac OS ports.  Make it clear that mouse-1 complements and doesn't
+	replace mouse-2.
+
 2007-04-09  Alan Mackenzie  <acm@muc.de>
 
 	* cmdargs.texi (Initial Options): Call "inhibit-splash-screen" by its
