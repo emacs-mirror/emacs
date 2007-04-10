@@ -3,6 +3,9 @@
 	* dframe.el (dframe-frame-mode): Do not set auto-show-mode, since
 	it is obsolete and has no effect.
 
+	* progmodes/dcl-mode.el (top-level): Move (require 'tempo) to
+	start to quieten byte-compiler.
+
 2007-04-10  Markus Triska  <markus.triska@gmx.at>
 
 	* emacs-lisp/byte-opt.el (byte-optimize-char-before): Remove (move
