@@ -3,6 +3,9 @@
 	* dframe.el (dframe-frame-mode): Do not set auto-show-mode, since
 	it is obsolete and has no effect.
 
+	* dos-w32.el (default-buffer-file-type): Add defvar to quieten
+	byte-compiler.
+
 	* progmodes/cperl-mode.el (cperl-mode): Remove unnecessary call to
 	obsolete function make-local-hook.
 
