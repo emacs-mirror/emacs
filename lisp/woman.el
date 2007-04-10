@@ -2131,18 +2131,6 @@ No external programs are used."
   (interactive)				; mainly for testing
   (WoMan-log-begin)
   (run-hooks 'woman-pre-format-hook)
-
-  ;; look for macro sets that woman cannot handle:
-  (goto-char (point-min))
-  (let ((case-fold-search nil))
-    (unless (and (re-search-forward "^\\.SH[ \n]" (point-max) t)
-		 (progn (goto-char (point-min))
-			(re-search-forward "^\\.TH[ \n]" (point-max) t))
-		 (progn (goto-char (point-min))
-			(not (re-search-forward "^\\.\\([pnil]p\\|sh\\)[ \n]"
-						(point-max) t))))
-      (error "WoMan can only format man pages written with the usual `-man' macros")))
-
   (and (boundp 'font-lock-mode) font-lock-mode (font-lock-mode -1))
   ;; (fundamental-mode)
   (let ((start-time (current-time))	; (HIGH LOW MICROSEC)
@@ -2297,6 +2285,17 @@ Currently set only from '\" t in the first line of the source file.")
     ;; Process ignore requests, macro definitions,
     ;; conditionals and switch source requests:
     (woman0-roff-buffer from)
+
+    ;; Check for macro sets that woman cannot handle:
+    (goto-char (point-min))
+    (let ((case-fold-search nil))
+      (unless (and (re-search-forward "^\\.SH[ \n]" (point-max) t)
+		   (progn (goto-char (point-min))
+			  (re-search-forward "^\\.TH[ \n]" (point-max) t))
+		   (progn (goto-char (point-min))
+			  (not (re-search-forward "^\\.\\([pnil]p\\|sh\\)[ \n]"
+						  (point-max) t))))
+	(error "WoMan can only format man pages written with the usual `-man' macros")))
 
     ;; Process \k escapes BEFORE changing tab width (?):
     (goto-char from)
