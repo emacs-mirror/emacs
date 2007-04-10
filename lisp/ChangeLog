@@ -3,6 +3,9 @@
 	* dframe.el (dframe-frame-mode): Do not set auto-show-mode, since
 	it is obsolete and has no effect.
 
+	* progmodes/cperl-mode.el (cperl-mode): Remove unnecessary call to
+	obsolete function make-local-hook.
+
 	* progmodes/dcl-mode.el (top-level): Move (require 'tempo) to
 	start to quieten byte-compiler.
 
