@@ -1137,14 +1137,6 @@
 	 '(forward-word -1))
 	(t form)))
 
-(put 'char-before 'byte-optimizer 'byte-optimize-char-before)
-(defun byte-optimize-char-before (form)
-  (cond ((= 2 (safe-length form))
-	 `(char-after (1- ,(nth 1 form))))
-	((= 1 (safe-length form))
-	 '(char-after (1- (point))))
-	(t form)))
-
 ;; Fixme: delete-char -> delete-region (byte-coded)
 ;; optimize string-as-unibyte, string-as-multibyte, string-make-unibyte,
 ;; string-make-multibyte for constant args.
