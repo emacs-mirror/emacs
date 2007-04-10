@@ -2286,7 +2286,8 @@ Currently set only from '\" t in the first line of the source file.")
     ;; conditionals and switch source requests:
     (woman0-roff-buffer from)
 
-    ;; Check for macro sets that woman cannot handle:
+    ;; Check for macro sets that woman cannot handle.  We can only
+    ;; because do this after processing source-switch directives.
     (goto-char (point-min))
     (let ((case-fold-search nil))
       (unless (and (re-search-forward "^\\.SH[ \n]" (point-max) t)
