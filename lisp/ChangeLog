@@ -1,3 +1,7 @@
+2007-04-10  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* startup.el (tty-handle-args): Use %S to log ARGS.
+
 2007-04-10  Glenn Morris  <rgm@gnu.org>
 
 	* dframe.el (dframe-frame-mode): Do not set auto-show-mode, since
