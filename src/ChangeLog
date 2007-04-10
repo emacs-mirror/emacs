@@ -1,3 +1,8 @@
+2007-04-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (note_mode_line_or_margin_highlight): Don't decrement
+	glyph pointer before start of glyph row.
+
 2007-04-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* s/darwin.h (__restrict, struct kboard): Remove outdated workarounds.
