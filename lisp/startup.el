@@ -954,11 +954,11 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	    (with-current-buffer (window-buffer)
 	      (deactivate-mark)))
 
-	;; If the user has a file of abbrevs, read it.  
+	;; If the user has a file of abbrevs, read it.
         ;; FIXME: after the 22.0 release this should be changed so
 	;; that it does not read the abbrev file when -batch is used
 	;; on the command line.
-	(when (and (file-exists-p abbrev-file-name) 
+	(when (and (file-exists-p abbrev-file-name)
 		   (file-readable-p abbrev-file-name))
 	    (quietly-read-abbrev-file abbrev-file-name))
 
