@@ -22437,7 +22437,7 @@ note_mode_line_or_margin_highlight (window, x, y, area)
 
   Lisp_Object mouse_face;
   int original_x_pixel = x;
-  struct glyph * glyph = NULL;
+  struct glyph * glyph = NULL, * row_start_glyph = NULL;
   struct glyph_row *row;
 
   if (area == ON_MODE_LINE || area == ON_HEADER_LINE)
@@ -22455,7 +22455,7 @@ note_mode_line_or_margin_highlight (window, x, y, area)
       /* Find glyph */
       if (row->mode_line_p && row->enabled_p)
 	{
-	  glyph = row->glyphs[TEXT_AREA];
+	  glyph = row_start_glyph = row->glyphs[TEXT_AREA];
 	  end = glyph + row->used[TEXT_AREA];
 
 	  for (x0 = original_x_pixel;
@@ -22579,12 +22579,17 @@ note_mode_line_or_margin_highlight (window, x, y, area)
 	     is converted to a flatten by emacs lisp interpreter.
 	     The internal string is an element of the structures.
 	     The displayed string is the flatten string. */
-	  for (tmp_glyph = glyph - 1, gpos = 0;
-	       tmp_glyph->charpos >= XINT (b);
-	       tmp_glyph--, gpos++)
+	  gpos = 0;
+	  if (glyph > row_start_glyph)
 	    {
-	      if (!EQ (tmp_glyph->object, glyph->object))
-		break;
+	      tmp_glyph = glyph - 1;
+	      while (tmp_glyph >= row_start_glyph
+		     && tmp_glyph->charpos >= XINT (b)
+		     && EQ (tmp_glyph->object, glyph->object))
+		{
+		  tmp_glyph--;
+		  gpos++;
+		}
 	    }
 
 	  /* Calculate the lenght(glyph sequence length: GSEQ_LENGTH) of
