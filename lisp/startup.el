@@ -510,7 +510,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 ;; Handle the X-like command-line arguments "-fg", "-bg", "-name", etc.
 (defun tty-handle-args (args)
   (let (rest)
-    (message "%s" args)
+    (message "%S" args)
     (while (and args
 		(not (equal (car args) "--")))
       (let* ((argi (pop args))
