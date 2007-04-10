@@ -354,9 +354,7 @@ CREATE-HOOK are hooks to run after creating a frame."
 			  t))))
 	;; Enable mouse tracking in emacs
 	(if dframe-track-mouse-function
-	    (set (make-local-variable 'track-mouse) t))	;this could be messy.
-	;; disable auto-show-mode for Emacs
-	(setq auto-show-mode nil))
+	    (set (make-local-variable 'track-mouse) t))) ;this could be messy.
 ;;;; DISABLED: This causes problems for users with multiple frames.
 ;;;;       ;; Set this up special just for the passed in buffer
 ;;;;       ;; Terminal minibuffer stuff does not require this.
