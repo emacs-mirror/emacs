@@ -1,3 +1,11 @@
+2007-04-10  Markus Triska  <markus.triska@gmx.at>
+
+	* emacs-lisp/byte-opt.el (byte-optimize-char-before): Remove (move
+	to bytecomp.el as byte-compile-char-before).
+	* emacs-lisp/bytecomp.el (byte-compile-char-before): New
+	function (modified replacement for byte-optimize-char-before in
+	byte-opt.el).
+
 2007-04-09  Alan Mackenzie  <acm@muc.de>
 
 	* startup.el (inhibit-splash-screen): Emphatically state that it
