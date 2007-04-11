@@ -14,6 +14,8 @@ to the FSF.
 
 * Small but important fixes needed in existing features:
 
+** Avoid using "iff" in doc strings.
+
 ** mouse-autoselect-window should wait to select the window until
 the mouse is put to rest or after a delay or both, so that moving over
 a window doesn't select it.
