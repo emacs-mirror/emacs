@@ -557,8 +557,20 @@
 	   ;; Otherwise, no args can be considered to be for-effect,
 	   ;; even if the called function is for-effect, because we
 	   ;; don't know anything about that function.
-	   (cons fn (mapcar 'byte-optimize-form (cdr form)))))))
+	   (let ((args (mapcar #'byte-optimize-form (cdr form))))
+	     (if (and (get fn 'pure)
+		      (byte-optimize-all-constp args))
+		   (list 'quote (apply fn (mapcar #'eval args)))
+	       (cons fn args)))))))
 
+(defun byte-optimize-all-constp (list)
+  "Non-nil iff all elements of LIST satisfy `byte-compile-constp'."
+  (let ((constant t))
+    (while (and list constant)
+      (unless (byte-compile-constp (car list))
+	(setq constant nil))
+      (setq list (cdr list)))
+    constant))
 
 (defun byte-optimize-form (form &optional for-effect)
   "The source-level pass of the optimizer."
@@ -1241,6 +1253,18 @@
     (setq side-effect-and-error-free-fns (cdr side-effect-and-error-free-fns)))
   nil)
 
+
+;; pure functions are side-effect free functions whose values depend
+;; only on their arguments. For these functions, calls with constant
+;; arguments can be evaluated at compile time. This may shift run time
+;; errors to compile time.
+
+(let ((pure-fns
+       '(concat symbol-name regexp-opt regexp-quote string-to-syntax)))
+  (while pure-fns
+    (put (car pure-fns) 'pure t)
+    (setq pure-fns (cdr pure-fns)))
+  nil)
 
 (defun byte-compile-splice-in-already-compiled-code (form)
   ;; form is (byte-code "..." [...] n)
