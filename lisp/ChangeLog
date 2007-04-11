@@ -1,3 +1,14 @@
+2007-04-11  Markus Triska  <markus.triska@gmx.at>
+
+        * emacs-lisp/byte-opt.el (byte-optimize-backward-char)
+        (byte-optimize-backward-word): Remove (move to bytecomp.el)
+
+        * emacs-lisp/bytecomp.el (byte-compile-char-before): Improve
+        numeric argument case.
+        (byte-compile-backward-char, byte-compile-backward-word): New
+        functions, performing rewriting previously done in byte-opt.el.
+        Fix their "Fixme" item (restriction to numeric arguments).
+
 2007-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* desktop.el (desktop-save, desktop-create-buffer): Replace mapcar with
