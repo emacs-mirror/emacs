@@ -1,3 +1,8 @@
+2007-04-11  Richard Stallman  <rms@gnu.org>
+
+	* files.texi (File Conveniences): Add xref to Tumme.
+	Delete text about Thumbnail mode.
+
 2007-04-09  Romain Francoise  <romain@orebokech.com>
 
 	* faq.texi (New in Emacs 22): Mention improvements to the Windows and
