@@ -4422,10 +4422,20 @@ Falls back to normal file name handler if no tramp file name handler exists."
       (tramp-completion-run-real-handler operation args)))))
 
 ;;;###autoload
-(defsubst tramp-register-file-name-handlers ()
-  "Add tramp file name handlers to `file-name-handler-alist'."
+(defsubst tramp-register-file-name-handler ()
+  "Add tramp file name handler to `file-name-handler-alist'."
   (add-to-list 'file-name-handler-alist
 	       (cons tramp-file-name-regexp 'tramp-file-name-handler))
+  ;; If jka-compr is already loaded, move it to the front of
+  ;; `file-name-handler-alist'.
+  (let ((jka (rassoc 'jka-compr-handler file-name-handler-alist)))
+    (when jka
+      (setq file-name-handler-alist
+	    (cons jka (delete jka file-name-handler-alist))))))
+
+;;;###autoload
+(defsubst tramp-register-completion-file-name-handler ()
+  "Add tramp completion file name handler to `file-name-handler-alist'."
   ;; `partial-completion-mode' is unknown in XEmacs.  So we should
   ;; load it unconditionally there.  In the GNU Emacs case, method/
   ;; user/host name completion shall be bound to `partial-completion-mode'.
@@ -4443,13 +4453,18 @@ Falls back to normal file name handler if no tramp file name handler exists."
       (setq file-name-handler-alist
 	    (cons jka (delete jka file-name-handler-alist))))))
 
+;; `tramp-file-name-handler' must be registered before evaluation of
+;; site-start and init files, because there might exist remote files
+;; already, f.e. files kept via recentf-mode.
+;;;###autoload(tramp-register-file-name-handler)
 ;; During autoload, it shall be checked whether
-;; `partial-completion-mode' is active.  Therefore registering will be
-;; delayed.
+;; `partial-completion-mode' is active.  Therefore registering of
+;; `tramp-completion-file-name-handler' will be delayed.
 ;;;###autoload(add-hook
 ;;;###autoload 'after-init-hook
-;;;###autoload '(lambda () (tramp-register-file-name-handlers)))
-(tramp-register-file-name-handlers)
+;;;###autoload '(lambda () (tramp-register-completion-file-name-handler)))
+(tramp-register-file-name-handler)
+(tramp-register-completion-file-name-handler)
 
 ;;;###autoload
 (defun tramp-unload-file-name-handlers ()

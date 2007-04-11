@@ -220,7 +220,7 @@ http://bugzilla.gnome.org/show_bug.cgi?id=85715.
 ** Emacs compiled with Gtk+ crashes on startup on cygwin.
 
 A typical error message is
-  ***MEMORY-ERROR***: emacs[5172]: GSlice: failed to allocate 504 bytes 
+  ***MEMORY-ERROR***: emacs[5172]: GSlice: failed to allocate 504 bytes
   (alignment: 512): Function not implemented
 
 Emacs supplies its own malloc, but glib (part of Gtk+) calls memalign and on
@@ -2106,6 +2106,18 @@ pop-up menu interaction.
 Windows 95 and Windows NT up to version 4.0 do not support help text
 for menus.  Help text is only available in later versions of Windows.
 
+When "ClearType" method is selected as the "method to smooth edges of
+screen fonts" (in Display Properties, Appearance tab, under
+"Effects"), there are various problems related to display of
+characters: 2-pixel trace is left behind when moving overlays, bold
+fonts can be hard to read, small portions of some characters could
+appear chopped, etc.  This happens because, under ClearType,
+characters are drawn outside their advertised bounding box.  Emacs 21
+disabled the use of ClearType, whereas Emacs 22 allows it and has some
+code to enlarge the width of the bounding box.  Apparently, this
+display feature needs more changes to get it 100% right.  A workaround
+is to disable ClearType.
+
 There are problems with display if mouse-tracking is enabled and the
 mouse is moved off a frame, over another frame then back over the first
 frame.  A workaround is to click the left mouse button inside the frame
@@ -2117,16 +2129,32 @@ not as severely as in 21.1.
 An inactive cursor remains in an active window after the Windows
 Manager driven switch of the focus, until a key is pressed.
 
-Windows input methods are not recognized by Emacs.  Some
+Windows input methods are not recognized by Emacs.  However, some
 of these input methods cause the keyboard to send characters encoded
 in the appropriate coding system (e.g., ISO 8859-1 for Latin-1
-characters, ISO 8859-8 for Hebrew characters, etc.).  To make this
-work, set the keyboard coding system to the appropriate value after
-you activate the Windows input method.  For example, if you activate
-the Hebrew input method, type "C-x RET k iso-8859-8 RET".  (Emacs
-ought to recognize the Windows language-change event and set up the
-appropriate keyboard encoding automatically, but it doesn't do that
-yet.)
+characters, ISO 8859-8 for Hebrew characters, etc.).  To make these
+input methods work with Emacs, set the keyboard coding system to the
+appropriate value after you activate the Windows input method.  For
+example, if you activate the Hebrew input method, type this:
+
+   C-x RET k hebrew-iso-8bit RET
+
+(Emacs ought to recognize the Windows language-change event and set up
+the appropriate keyboard encoding automatically, but it doesn't do
+that yet.)  In addition, to use these Windows input methods, you
+should set your "Language for non-Unicode programs" (on Windows XP,
+this is on the Advanced tab of Regional Settings) to the language of
+the input method.
+
+To bind keys that produce non-ASCII characters with modifiers, you
+must specify raw byte codes. For instance, if you want to bind
+META-a-grave to a command, you need to specify this in your `~/.emacs':
+
+  (global-set-key [?\M-\340] ...)
+
+The above example is for the Latin-1 environment where the byte code
+of the encoded a-grave is 340 octal.  For other environments, use the
+encoding appropriate to that environment.
 
 The %b specifier for format-time-string does not produce abbreviated
 month names with consistent widths for some locales on some versions
@@ -2298,6 +2326,30 @@ shared version of libjpeg, which you need to install.  Finally, rerun
 the Emacs configure script, which should now find the jpeg library.
 Alternatively, modify the generated src/Makefile to link the .a file
 explicitly, and edit src/config.h to define HAVE_JPEG.
+
+*** `configure' warns ``accepted by the compiler, rejected by the preprocessor''.
+
+This indicates a mismatch between the C compiler and preprocessor that
+configure is using.  For example, on Solaris 10 trying to use
+CC=/opt/SUNWspro/bin/cc (the Sun Studio compiler) together with
+CPP=/usr/ccs/lib/cpp can result in errors of this form (you may also
+see the error ``"/usr/include/sys/isa_defs.h", line 500: undefined control'').
+
+The solution is to tell configure to use the correct C preprocessor
+for your C compiler (CPP="/opt/SUNWspro/bin/cc -E" in the above
+example).
+
+*** `configure' fails with ``"junk.c", line 660: invalid input token: 8.elc''
+
+The final stage of the Emacs configure process uses the C preprocessor
+to generate the Makefiles.  Errors of this form can occur if the C
+preprocessor inserts extra whitespace into its output.  The solution
+is to find the switches that stop your preprocessor from inserting extra
+whitespace, add them to CPPFLAGS, and re-run configure.  For example,
+this error can occur on Solaris 10 when using the Sun Studio compiler
+``Sun C 5.8'' with its preprocessor CPP="/opt/SUNWspro/bin/cc -E".
+The relevant switch in this case is "-Xs" (``compile assuming
+(pre-ANSI) K & R C style code'').
 
 ** Compilation
 
@@ -2721,6 +2773,13 @@ should now succeed.
 
 You need to install a recent version of Texinfo; that package
 supplies the `install-info' command.
+
+*** Installing to a directory with spaces in the name fails.
+
+For example, if you call configure with a directory-related option
+with spaces in the value, eg --enable-locallisppath='/path/with\ spaces'.
+Using directory paths with spaces is not supported at this time: you
+must re-configure without using spaces.
 
 ** First execution
 

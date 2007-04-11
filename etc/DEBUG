@@ -306,10 +306,15 @@ debugger, type "gdb temacs", then start it with `r -batch -l loadup'.
 
 ** If you encounter X protocol errors
 
-Try evaluating (x-synchronize t).  That puts Emacs into synchronous
-mode, where each Xlib call checks for errors before it returns.  This
-mode is much slower, but when you get an error, you will see exactly
-which call really caused the error.
+The X server normally reports protocol errors asynchronously,
+so you find out about them long after the primitive which caused
+the error has returned.
+
+To get clear information about the cause of an error, try evaluating
+(x-synchronize t).  That puts Emacs into synchronous mode, where each
+Xlib call checks for errors before it returns.  This mode is much
+slower, but when you get an error, you will see exactly which call
+really caused the error.
 
 You can start Emacs in a synchronous mode by invoking it with the -xrm
 option, like this:

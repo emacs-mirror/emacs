@@ -1,5 +1,5 @@
-/* machine description file for hp9000 series 800 machines.
-   Copyright (C) 1987, 2001, 2002, 2003, 2004, 2005,
+/* machine description file for Hitachi SR2001/SR2201 machines.
+   Copyright (C) 1996, 2001, 2002, 2003, 2004, 2005,
                  2006, 2007  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -69,49 +69,31 @@ Boston, MA 02110-1301, USA.  */
 #define XSET(var, type, ptr) \
    ((var) = ((int)(type) << VALBITS) + (((unsigned) (ptr) << BITS_PER_INT-VALBITS) >> BITS_PER_INT-VALBITS))
 
-/* Common definitions for HPUX and GNU/Linux.  */
-
-#if defined (__hpux) || defined (GNU_LINUX)
+/* #ifdef __hpux */
 /* Now define a symbol for the cpu type, if your compiler
    does not define it automatically:
    Ones defined so far include vax, m68000, ns16000, pyramid,
    orion, tahoe, APOLLO and many others */
+
 #ifndef hp9000s800
 #     define hp9000s800
 #endif
+
+
+/* Data type of load average, as read out of kmem.  */
+
+#define LOAD_AVE_TYPE double
+
+/* Convert that into an integer that is 100 for a load average of 1.0  */
+
+#define LOAD_AVE_CVT(x) ((int) (x * 100.0))
+
 
 /* Define CANNOT_DUMP on machines where unexec does not work.
    Then the function dump-emacs will not be defined
    and temacs will do (load "loadup") automatically unless told otherwise.  */
 
 #undef CANNOT_DUMP
-
-/* Define NO_REMAP if memory segmentation makes it not work well
-   to change the boundary between the text section and data section
-   when Emacs is dumped.  If you define this, the preloaded Lisp
-   code will not be sharable; but that's better than failing completely.  */
-
-#define NO_REMAP
-
-#endif /* __hpux or GNU_LINUX */
-
-/* Stuff for just GNU/Linux.  */
-
-#ifdef GNU_LINUX
-
-/* Data type of load average, as read out of kmem.  */
-
-#define LOAD_AVE_TYPE long
-
-/* Convert that into an integer that is 100 for a load average of 1.0  */
-
-#define LOAD_AVE_CVT(x) (int) (((double) (x)) * 100.0 / FSCALE)
-
-#endif /* GNU_LINUX */
-
-/* Stuff for just HPUX.  */
-
-#ifdef __hpux
 
 /* Define VIRT_ADDR_VARIES if the virtual addresses of
    pure and impure space as loaded can vary, and even their
@@ -129,6 +111,13 @@ Boston, MA 02110-1301, USA.  */
 #define DATA_START    0x40000000
 #define TEXT_START    0x00000000
 
+/* Define NO_REMAP if memory segmentation makes it not work well
+   to change the boundary between the text section and data section
+   when Emacs is dumped.  If you define this, the preloaded Lisp
+   code will not be sharable; but that's better than failing completely.  */
+
+#define NO_REMAP
+
 /* This machine requires completely different unexec code
    which lives in a separate file.  Specify the file name.  */
 
@@ -138,16 +127,8 @@ Boston, MA 02110-1301, USA.  */
 #define LIBS_DEBUG
 
 /* Include the file bsdtty.h, since this machine has job control.  */
-#define NEED_BSDTTY
-
-/* Data type of load average, as read out of kmem.  */
-
-#define LOAD_AVE_TYPE double
-
-/* Convert that into an integer that is 100 for a load average of 1.0  */
-
-#define LOAD_AVE_CVT(x) ((int) (x * 100.0))
-
+/* #define NEED_BSDTTY */
+
 /* The symbol in the kernel where the load average is found
    is named _avenrun.  At this time there are two major flavors
    of hp-ux (there is the s800 and s300 (s200) flavors).  The
@@ -173,15 +154,7 @@ Boston, MA 02110-1301, USA.  */
 #define index strchr
 #define rindex strrchr
 
-#endif /* __hpux */
-
-/* Systems with GCC don't need to lose. */
-#ifdef __NetBSD__
-# ifdef __GNUC__
-#  define alloca __builtin_alloca
-#  define HAVE_ALLOCA
-# endif /* __GNUC__ */
-#endif /* __NetBSD__ */
+/* #endif */
 
-/* arch-tag: 809436e6-1645-4b92-b40d-2de5d6e7227c
+/* arch-tag: 4ced5b51-ffe6-4be1-9954-eb40657023a5
    (do not change this comment) */

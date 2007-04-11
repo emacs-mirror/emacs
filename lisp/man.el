@@ -628,7 +628,14 @@ a new value."
     (setq Man-support-local-filenames
           (with-temp-buffer
             (and (equal (condition-case nil
-                            (call-process manual-program nil t nil "--help")
+			    (let ((default-directory
+				    ;; Assure that `default-directory' exists
+				    ;; and is readable.
+ 				    (if (and (file-directory-p default-directory)
+ 					     (file-readable-p default-directory))
+ 					default-directory
+ 				      (expand-file-name "~/"))))
+ 			      (call-process manual-program nil t nil "--help"))
                           (error nil))
                         0)
                  (progn

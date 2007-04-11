@@ -190,7 +190,7 @@ call to one of the `testcover-1value-functions'."
 changes the instrumentation from edebug to testcover--much faster, no
 problems with type-ahead or post-command-hook, etc.  If BYTE-COMPILE is
 non-nil, byte-compiles each function after instrumenting."
-  (interactive "f")
+  (interactive "fStart covering file: ")
   (let ((buf                (find-file filename))
 	(load-read-function 'testcover-read)
 	(edebug-all-defs t))
@@ -428,10 +428,10 @@ FUN should be `testcover-reinstrument' for compositional functions,
 	  list)
     result))
 
-(defun testcover-end (buffer)
+(defun testcover-end (filename)
   "Turn off instrumentation of all macros and functions in FILENAME."
-  (interactive "b")
-  (let ((buf (find-file-noselect buffer)))
+  (interactive "fStop covering file: ")
+  (let ((buf (find-file-noselect filename)))
     (eval-buffer buf t)))
 
 
@@ -513,7 +513,7 @@ eliminated by adding more test cases."
 (defun testcover-mark-all (&optional buffer)
   "Mark all forms in BUFFER that did not get completley tested during
 coverage tests.  This function creates many overlays."
-  (interactive "b")
+  (interactive "bMark forms in buffer: ")
   (if buffer
       (switch-to-buffer buffer))
   (goto-char 1)
@@ -523,7 +523,7 @@ coverage tests.  This function creates many overlays."
 
 (defun testcover-unmark-all (buffer)
   "Remove all overlays from FILENAME."
-  (interactive "b")
+  (interactive "bUnmark forms in buffer: ")
   (condition-case nil
       (progn
 	(set-buffer buffer)

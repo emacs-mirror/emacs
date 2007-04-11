@@ -74,12 +74,12 @@
 ; (eval-after-load "font-lock"  ; 2006-07-09.  font-lock is now preloaded
 ;   '
 (if (and (not (featurep 'cc-fix)) ; only load the file once.
-	    (featurep 'xemacs) ; There is now (2005/12) code in GNU Emacs CVS
-			       ; to make the call to f-l-c-k throw an error.
-            (let (font-lock-keywords)
-              (font-lock-compile-keywords '("\\<\\>"))
-	      font-lock-keywords))     ; did the previous call foul this up?
-       (load "cc-fix")) ;)
+	 (featurep 'xemacs)	; There is now (2005/12) code in GNU Emacs CVS
+				; to make the call to f-l-c-k throw an error.
+	 (let (font-lock-keywords)
+	   (font-lock-compile-keywords '("\\<\\>"))
+	   font-lock-keywords))     ; did the previous call foul this up?
+    (load "cc-fix")) ;)
 
 ;; The above takes care of the delayed loading, but this is necessary
 ;; to ensure correct byte compilation.
@@ -708,7 +708,8 @@ be after it."
 	    ;; c-parse-state to between 3 and 60 times faster when
 	    ;; braces are hung.  It can also degrade performance by
 	    ;; about as much when braces are not hung.
-	    '(let (pos)
+	    '(let (beginning-of-defun-function end-of-defun-function
+					       pos)
 	       (while (not pos)
 		 (save-restriction
 		   (widen)
@@ -731,7 +732,8 @@ be after it."
 		  ))
 	       (goto-char pos)))
        ;; Emacs, which doesn't have buffer-syntactic-context-depth
-       (beginning-of-defun))
+       (let (beginning-of-defun-function end-of-defun-function)
+	 (beginning-of-defun)))
      ;; if defun-prompt-regexp is non-nil, b-o-d won't leave us at the
      ;; open brace.
      (and defun-prompt-regexp

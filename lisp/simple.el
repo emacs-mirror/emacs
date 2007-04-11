@@ -130,8 +130,10 @@ If no other buffer exists, the buffer `*scratch*' is returned."
 
 (defcustom next-error-highlight 0.5
   "*Highlighting of locations in selected source buffers.
-If number, highlight the locus in `next-error' face for given time in seconds.
-If t, highlight the locus indefinitely until some other locus replaces it.
+If a number, highlight the locus in `next-error' face for the given time
+in seconds, or until the next command is executed.
+If t, highlight the locus until the next command is executed, or until
+some other locus replaces it.
 If nil, don't highlight the locus in the source buffer.
 If `fringe-arrow', indicate the locus by the fringe arrow."
   :type '(choice (number :tag "Highlight for specified time")
@@ -3091,7 +3093,7 @@ START and END specify the portion of the current buffer to be copied."
 (defvar activate-mark-hook nil
   "Hook run when the mark becomes active.
 It is also run at the end of a command, if the mark is active and
-it is possible that the region may have changed")
+it is possible that the region may have changed.")
 
 (defvar deactivate-mark-hook nil
   "Hook run when the mark becomes inactive.")
@@ -3201,28 +3203,28 @@ will pop twice."
   :group 'editing)
 
 (defun set-mark-command (arg)
-  "Set mark at where point is, or jump to mark.
-With no prefix argument, set mark, and push old mark position on local
-mark ring; also push mark on global mark ring if last mark was set in
+  "Set mark where point is, or jump to mark.
+Setting the mark also sets the \"region\", which is the closest
+equivalent in Emacs to what some editors call the \"selection\".
+
+With no prefix argument, set mark and push old mark position on local
+mark ring.  Also, push mark on global mark ring, if last mark was set in
 another buffer.  Immediately repeating the command activates
 `transient-mark-mode' temporarily.
 
-With argument, e.g. \\[universal-argument] \\[set-mark-command], \
-jump to mark, and pop a new position
-for mark off the local mark ring \(this does not affect the global
-mark ring\).  Use \\[pop-global-mark] to jump to a mark off the global
+With prefix argument \(e.g., \\[universal-argument] \\[set-mark-command]\), \
+jump to mark, and set mark from
+position popped off the local mark ring \(this does not affect the global
+mark ring\).  Use \\[pop-global-mark] to jump to a mark popped off the global
 mark ring \(see `pop-global-mark'\).
 
 If `set-mark-command-repeat-pop' is non-nil, repeating
-the \\[set-mark-command] command with no prefix pops the next position
+the \\[set-mark-command] command with no prefix argument pops the next position
 off the local (or global) mark ring and jumps there.
 
-With a double \\[universal-argument] prefix argument, e.g. \\[universal-argument] \
-\\[universal-argument] \\[set-mark-command], unconditionally
-set mark where point is.
-
-Setting the mark also sets the \"region\", which is the closest
-equivalent in Emacs to what some editors call the \"selection\".
+With a double \\[universal-argument] prefix argument \(e.g., \\[universal-argument] \
+\\[universal-argument] \\[set-mark-command]\), unconditionally
+set mark where point is, even if `set-mark-command-repeat-pop' is non-nil.
 
 Novice Emacs Lisp programmers often try to use the mark for the wrong
 purposes.  See the documentation of `set-mark' for more information."
@@ -4476,7 +4478,7 @@ it skips the contents of comments that end before point."
       (save-excursion
 	(save-restriction
 	  (if blink-matching-paren-distance
-	      (narrow-to-region (max (point-min)
+	      (narrow-to-region (max (minibuffer-prompt-end)
 				     (- (point) blink-matching-paren-distance))
 				oldpos))
 	  (condition-case ()
@@ -4726,16 +4728,9 @@ SEND-ACTIONS is a list of actions to call when the message is sent.
 Each action has the form (FUNCTION . ARGS)."
   (interactive
    (list nil nil nil current-prefix-arg))
-  (let ((function (get mail-user-agent 'composefunc))
-	result-buffer)
-    (if switch-function
-	(save-window-excursion
-	  (prog1
-	      (funcall function to subject other-headers continue
-		       nil yank-action send-actions)
-	    (funcall switch-function (current-buffer))))
-      (funcall function to subject other-headers continue
-	       nil yank-action send-actions))))
+  (let ((function (get mail-user-agent 'composefunc)))
+    (funcall function to subject other-headers continue
+	     switch-function yank-action send-actions)))
 
 (defun compose-mail-other-window (&optional to subject other-headers continue
 					    yank-action send-actions)

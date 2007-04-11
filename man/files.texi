@@ -2434,11 +2434,11 @@ contents of the specified file into the current buffer at point,
 leaving point unchanged before the contents and the mark after them.
 
 @findex insert-file-literally
-  @kbd{M-x insert-file-literally} is like @kbd{C-x i}, except it
-inserts the specified file with no conversion of the contents: no
-format conversion (@pxref{Formatted Text}), no character code
-conversion (@pxref{Coding Systems}), and no automatic uncompression
-(@pxref{Compressed Files}).
+  @kbd{M-x insert-file-literally} is like @kbd{M-x insert-file},
+except the file is inserted ``literally'': it is treated as a sequence
+of @acronym{ASCII} characters with no special encoding or conversion,
+similar to the @kbd{M-x find-file-literally} command
+(@pxref{Visiting}).
 
 @findex write-region
   @kbd{M-x write-region} is the inverse of @kbd{M-x insert-file}; it

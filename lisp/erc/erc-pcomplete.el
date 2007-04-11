@@ -180,7 +180,7 @@ the most recent speakers are listed first."
   (while (pcomplete-here (pcomplete-erc-nicks))))
 
 (defun pcomplete/erc-mode/UNIGNORE ()
-  (pcomplete-here (with-current-buffer (erc-server-buffer) erc-ignore-list)))
+  (pcomplete-here (erc-with-server-buffer erc-ignore-list)))
 
 ;;; Functions that provide possible completions.
 
@@ -233,7 +233,7 @@ If optional argument IGNORE-SELF is non-nil, don't return the current nick."
 (defun pcomplete-erc-all-nicks (&optional postfix)
   "Returns a list of all nicks on the current server."
   (let (nicks)
-    (with-current-buffer (process-buffer erc-server-process)
+    (erc-with-server-buffer
       (maphash (lambda (nick user)
                  (setq nicks (cons (concat nick postfix) nicks)))
                erc-server-users))

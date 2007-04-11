@@ -391,6 +391,7 @@ be added."
 		    ,(expand-file-name "compilation.txt" data-directory))
   :group 'compilation)
 
+;;;###autoload(put 'compilation-directory 'safe-local-variable 'stringp)
 (defvar compilation-directory nil
   "Directory to restore to when doing `recompile'.")
 
@@ -625,7 +626,7 @@ Faces `compilation-error-face', `compilation-warning-face',
 		   (cons (match-string-no-properties idx) dir))
       mouse-face highlight
       keymap compilation-button-map
-      help-echo "mouse-2: visit this directory")))
+      help-echo "mouse-2: visit destination directory")))
 
 ;; Data type `reverse-ordered-alist' retriever.  This function retrieves the
 ;; KEY element from the ALIST, creating it in the right position if not already
@@ -1041,7 +1042,7 @@ Returns the compilation buffer created."
 		 highlight-regexp))
 	;; Output a mode setter, for saving and later reloading this buffer.
 	(insert "-*- mode: " name-of-mode
-		"; default-directory: " (prin1-to-string default-directory)
+		"; compilation-directory: " (prin1-to-string compilation-directory)
 		" -*-\n"
 		(format "%s started at %s\n\n"
 			mode-name

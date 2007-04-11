@@ -360,11 +360,16 @@ This function is called, by name, directly by the C code."
 (defun run-at-time (time repeat function &rest args)
   "Perform an action at time TIME.
 Repeat the action every REPEAT seconds, if REPEAT is non-nil.
-TIME should be a string like \"11:23pm\", nil meaning now, a number of seconds
-from now, a value from `current-time', or t (with non-nil REPEAT)
-meaning the next integral multiple of REPEAT.
-REPEAT may be an integer or floating point number.
-The action is to call FUNCTION with arguments ARGS.
+TIME should be one of: a string giving an absolute time like
+\"11:23pm\" (the acceptable formats are those recognized by
+`diary-entry-time'; note that such times are interpreted as times
+today, even if in the past); a string giving a relative time like
+\"2 hours 35 minutes\" (the acceptable formats are those
+recognized by `timer-duration'); nil meaning now; a number of
+seconds from now; a value from `encode-time'; or t (with non-nil
+REPEAT) meaning the next integral multiple of REPEAT.  REPEAT may
+be an integer or floating point number.  The action is to call
+FUNCTION with arguments ARGS.
 
 This function returns a timer object which you can use in `cancel-timer'."
   (interactive "sRun at time: \nNRepeat interval: \naFunction: ")
@@ -385,7 +390,7 @@ This function returns a timer object which you can use in `cancel-timer'."
   (if (numberp time)
       (setq time (timer-relative-time (current-time) time)))
 
-  ;; Handle relative times like "2 hours and 35 minutes"
+  ;; Handle relative times like "2 hours 35 minutes"
   (if (stringp time)
       (let ((secs (timer-duration time)))
 	(if secs

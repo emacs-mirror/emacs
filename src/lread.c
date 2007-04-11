@@ -498,19 +498,20 @@ readbyte_from_file (c, readcharfun)
 
   BLOCK_INPUT;
   c = getc (instream);
-  UNBLOCK_INPUT;
 
 #ifdef EINTR
   /* Interrupted reads have been observed while reading over the network */
   while (c == EOF && ferror (instream) && errno == EINTR)
     {
-      QUIT;
-      clearerr (instream);
-      BLOCK_INPUT;
-      c = getc (instream);
       UNBLOCK_INPUT;
+      QUIT;
+      BLOCK_INPUT;
+      clearerr (instream);
+      c = getc (instream);
     }
 #endif
+
+  UNBLOCK_INPUT;
 
   return (c == EOF ? -1 : c);
 }

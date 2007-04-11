@@ -11,7 +11,7 @@
 % Set letterpaper to 0 for A4 paper, 1 for letter (US) paper.  Useful
 % only when columnsperpage is 2 or 3.
 
-\letterpaper=1
+\letterpaper=0
 
 % Nothing else needs to be changed below this line.
 % Copyright (C) 1987, 1993, 1996, 1997, 2001, 2002, 2003, 2004,
@@ -216,8 +216,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA.
 
 % section - new major section.  Argument is section name.
 \outer\def\section#1{\par\filbreak
-  \vskip 3ex plus 2ex minus 2ex {\headingfont #1}\mark{#1}%
-  \vskip 2ex plus 1ex minus 1.5ex}
+  \vskip 2ex plus 2ex minus 2ex {\headingfont #1}\mark{#1}%
+  \vskip 1ex plus 1ex minus 1.5ex}
 
 \newdimen\keyindent
 
@@ -327,6 +327,8 @@ les instructions. Si vous d\'ebutez, faites \kbd{C-h t} pour suivre un
 \metax{restaurer un tampon avec son contenu initial}{M-x revert-buffer}
 \key{r\'eafficher un \'ecran perturb\'e}{C-l}
 
+\shortcopyrightnotice
+
 \section{Recherche incr\'ementale}
 
 \key{rechercher vers l'avant}{C-s}
@@ -344,9 +346,6 @@ Refaites \kbd{C-s} ou \kbd{C-r} pour r\'ep\'eter la recherche dans une
 direction quelconque.
 Si Emacs est encore en train de chercher, \kbd{C-g} n'annule que ce
 qui n'a pas \'et\'e fait.
-
-%% Why was this here?
-%\shortcopyrightnotice
 
 \section{D\'eplacements}
 

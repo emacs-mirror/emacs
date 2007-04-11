@@ -2225,6 +2225,7 @@ with skeleton expansions for compound statement templates.
 				   ;;  . python-font-lock-syntactic-face-function)
 				   ))
   (set (make-local-variable 'parse-sexp-lookup-properties) t)
+  (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'comment-start) "# ")
   (set (make-local-variable 'indent-line-function) #'python-indent-line)
   (set (make-local-variable 'indent-region-function) #'python-indent-region)

@@ -147,8 +147,7 @@ Used to grey out relevant toolbar icons.")
     ([refresh]	"Refresh" . gud-refresh)
     ([run]	menu-item "Run" gud-run
                   :enable (not gud-running)
-		  :visible (and (memq gud-minor-mode '(gdbmi gdb dbx jdb))
-				(not (eq gud-minor-mode 'gdba))))
+		  :visible (memq gud-minor-mode '(gdbmi gdb dbx jdb)))
     ([go]	menu-item (if gdb-active-process "Continue" "Run") gud-go
 		  :visible (and (not gud-running)
 				(eq gud-minor-mode 'gdba)))
@@ -214,7 +213,45 @@ Used to grey out relevant toolbar icons.")
   :name "Gud")
 
 (easy-mmode-defmap gud-minor-mode-map
-  `(([menu-bar debug] . ("Gud" . ,gud-menu-map)))
+  (append
+     `(([menu-bar debug] . ("Gud" . ,gud-menu-map)))
+     ;; Get tool bar like functionality from the menu bar on a text only
+     ;; terminal.
+   (unless window-system
+     `(([menu-bar down]
+	. (,(propertize "down" 'face 'font-lock-doc-face) . gud-down))
+       ([menu-bar up]
+	. (,(propertize "up" 'face 'font-lock-doc-face) . gud-up))
+       ([menu-bar finish]
+	. (,(propertize "finish" 'face 'font-lock-doc-face) . gud-finish))
+       ([menu-bar step]
+	. (,(propertize "step" 'face 'font-lock-doc-face) . gud-step))
+       ([menu-bar next]
+	. (,(propertize "next" 'face 'font-lock-doc-face) . gud-next))
+       ([menu-bar until] menu-item
+	,(propertize "until" 'face 'font-lock-doc-face) gud-until
+		  :visible (memq gud-minor-mode '(gdbmi gdba gdb perldb)))
+       ([menu-bar cont] menu-item
+	,(propertize "cont" 'face 'font-lock-doc-face) gud-cont
+	:visible (not (eq gud-minor-mode 'gdba)))
+       ([menu-bar run] menu-item
+	,(propertize "run" 'face 'font-lock-doc-face) gud-run
+	:visible (memq gud-minor-mode '(gdbmi gdb dbx jdb)))
+       ([menu-bar go] menu-item 
+	,(propertize "go" 'face 'font-lock-doc-face) gud-go
+	:visible (and (not gud-running)
+		      (eq gud-minor-mode 'gdba)))
+       ([menu-bar stop] menu-item
+	,(propertize "stop" 'face 'font-lock-doc-face) gud-stop-subjob
+	:visible (or gud-running
+		     (not (eq gud-minor-mode 'gdba))))
+       ([menu-bar print]
+	. (,(propertize "print" 'face 'font-lock-doc-face) . gud-print))
+       ([menu-bar tools] . undefined)
+       ([menu-bar buffer] . undefined)
+       ([menu-bar options] . undefined)
+       ([menu-bar edit] . undefined)
+       ([menu-bar file] . undefined))))
   "Map used in visited files.")
 
 (let ((m (assq 'gud-minor-mode minor-mode-map-alist)))
@@ -686,14 +723,13 @@ text command mode to debug multiple programs within one Emacs
 session."
   (interactive (list (gud-query-cmdline 'gdb)))
 
-  (if (and gud-comint-buffer
+  (when (and gud-comint-buffer
 	   (buffer-name gud-comint-buffer)
 	   (get-buffer-process gud-comint-buffer)
 	   (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba)))
-      (let ((same-window-regexps))
-	(display-buffer gud-comint-buffer)
+	(gdb-restore-windows)
 	(error
-	 "Multiple debugging requires restarting in text command mode")))
+	 "Multiple debugging requires restarting in text command mode"))
 
   (gud-common-init command-line nil 'gud-gdb-marker-filter)
   (set (make-local-variable 'gud-minor-mode) 'gdb)

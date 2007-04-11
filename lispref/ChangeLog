@@ -1,3 +1,246 @@
+2007-04-08  Karl Berry  <karl@gnu.org>
+
+	* symbols.texi (Plists and Alists): Period after "vs" in index entries.
+	* macros.texi (Backquote): Downcase Backquote in index entries for
+	consistency.
+
+2007-04-08  Richard Stallman  <rms@gnu.org>
+
+	* text.texi (Adaptive Fill): Just describe default,
+	don't show it (since it contains non-ASCII chars).
+
+2007-04-07  Karl Berry  <karl@gnu.org>
+
+	* text.texi (Adaptive Fill) [@iftex]: Omit binary characters in
+	adaptive-fill-regexp's value, since they are not in the standard
+	TeX fonts.
+
+2007-04-07  Herbert Euler  <herberteuler@hotmail.com>
+
+	* display.texi (Defining Faces): Fix example.
+
+2007-04-07  Karl Berry  <karl@gnu.org>
+
+	* display.texi (Button Buffer Commands): Improve page break.
+
+2007-04-07  Richard Stallman  <rms@gnu.org>
+
+	* advice.texi (Activation of Advice): Remove redundant index entry.
+
+	* backups.texi: Improve index entries.  Remove redundant ones.
+
+	* compile.texi (Byte Compilation): Improve index entry.
+
+	* hash.texi (Creating Hash): Improve index entry.
+
+	* symbols.texi (Definitions): Improve index entry.
+
+	* edebug.texi: Improve index entries.  Remove redundant/useless ones.
+
+	* maps.texi (Standard Keymaps): Remove useless index entry.
+
+	* help.texi (Documentation Basics): Remove redundant index entries.
+
+	* customize.texi: Improve index entries.
+	Remove redundant/useless ones.
+
+	* locals.texi (Standard Buffer-Local Variables): Clarify intro text.
+
+	* streams.texi (Output Variables): Improve index entry.
+
+	* abbrevs.texi (Abbrevs): Remove useless index entry.
+
+	* macros.texi (Expansion): Remove useless index entry.
+
+	* text.texi: Improve index entries.  Remove redundant/useless ones.
+	(Text Properties, Examining Properties)
+	(Special Properties): Use "property category" instead of "category"
+	to refer to the `category' property.
+
+	* positions.texi: Improve index entries.  Remove useless one.
+
+	* lists.texi: Improve index entries.  Remove redundant/useless ones.
+
+	* os.texi: Improve index entries.
+	(Timers): Fix previous change.
+
+	* buffers.texi: Improve index entries.
+	(Modification Time): Get rid of term "obsolete buffer".
+
+	* debugging.texi: Improve index entries.
+	(Test Coverage): Add xref to other test coverage ftr.
+
+	* eval.texi: Improve index entry.  Remove redundant ones.
+
+	* numbers.texi: Improve index entries.  Remove redundant/useless ones.
+
+	* files.texi: Improve index entries.  Remove redundant/useless ones.
+
+	* objects.texi: Improve index entries.
+
+	* processes.texi: Improve index entries.
+
+	* modes.texi: Improve index entry.  Remove redundant one.
+
+	* nonascii.texi: Improve index entries.
+
+	* internals.texi: Improve index entries.
+
+	* syntax.texi: Improve index entries.
+
+	* keymaps.texi (Active Keymaps): Improve index entries.
+
+	* commands.texi: Improve index entries.  Remove redundant/useless ones.
+
+	* frames.texi: Improve index entries.  Remove redundant/useless ones.
+
+	* markers.texi: Improve index entries.  Remove redundant ones.
+
+	* tips.texi: Improve index entries.
+
+	* loading.texi (Unloading): Improve index entry.
+
+	* variables.texi: Improve index entries.  Remove redundant one.
+
+	* sequences.texi: Improve index entry.
+
+	* display.texi: Improve index entries.  Remove redundant ones.
+
+	* windows.texi: Improve index entries.
+
+	* searching.texi: Improve index entries.  Remove redundant one.
+
+	* strings.texi (Case Tables): Improve last change.
+
+2007-04-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* strings.texi (Case Tables): Document with-case-table and
+	ascii-case-table.
+
+2007-04-03  Karl Berry  <karl@gnu.org>
+
+	* processes.texi (Network): Reword to improve page break.
+
+2007-04-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* functions.texi (Inline Functions): Describe more disadvantages
+	of defsubst, and make advice against it stronger.
+
+2007-04-02  Karl Berry  <karl@gnu.org>
+
+	* backups.texi (Backup Names): Avoid widow words.
+	* modes.texi (Example Major Modes): Align last comment.
+
+2007-04-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keymaps.texi (Remapping Commands): Document new arg to
+	command-remapping.
+
+2007-04-01  Karl Berry  <karl@gnu.org>
+
+	* processes.texi (Low-Level Network): typo.
+	* loading.texi (Hooks for Loading): avoid double "the".
+	* keymaps.texi (Key Sequences): no double "and".
+	(Changing Key Bindings): shorten to improve line break.
+
+2007-03-31  Glenn Morris  <rgm@gnu.org>
+
+	* os.texi (Timers): Fix description of run-at-time TIME formats.
+
+2007-03-31  Richard Stallman  <rms@gnu.org>
+
+	* display.texi (Invisible Text): Correct buffer-invisibility-spec
+	regarding ellipsis.
+
+2007-03-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* intro.texi (nil and t):
+	* symbols.texi (Plists and Alists):
+	* variables.texi (Variable Aliases, Constant Variables):
+	* functions.texi (Defining Functions):
+	* advice.texi (Advising Primitives):
+	* debugging.texi (Syntax Errors, Compilation Errors):
+	* minibuf.texi (Minibuffer Windows):
+	* commands.texi (Adjusting Point):
+	* modes.texi (Syntactic Font Lock, Faces for Font Lock)
+	(Auto Major Mode, Major Mode Conventions):
+	* help.texi (Describing Characters):
+	* files.texi (Create/Delete Dirs, Information about Files)
+	(File Locks, Writing to Files, Reading from Files)
+	(Saving Buffers):
+	* windows.texi (Resizing Windows, Cyclic Window Ordering):
+	* frames.texi (Finding All Frames):
+	* positions.texi (Buffer End, Motion):
+	* markers.texi (The Region):
+	* text.texi (Deletion, Near Point):
+	* display.texi (Displaying Messages, Truncation):
+	* os.texi (Processor Run Time):
+	* tips.texi (Key Binding Conventions, Programming Tips)
+	(Warning Tips, Documentation Tips, Comment Tips):
+	* internals.texi (Memory Usage): Improve indexing.
+
+	* variables.texi (Frame-Local Variables):
+	* functions.texi (Argument List):
+	* loading.texi (Library Search):
+	* streams.texi (Output Variables):
+	* keymaps.texi (Translation Keymaps, Searching Keymaps):
+	* searching.texi (Replacing Match, Search and Replace):
+	* processes.texi (Byte Packing, Decoding Output)
+	(Accepting Output, Network Servers, Shell Arguments):
+	* display.texi (Abstract Display, Image Cache, Scroll Bars):
+	* windows.texi (Window Point, Window Start):
+	* frames.texi (Management Parameters, Frame Parameters, Frame Titles):
+	* commands.texi (Reading Input, Keyboard Events):
+	* minibuf.texi (Reading File Names, Minibuffer Completion)
+	(Recursive Mini):
+	* positions.texi (List Motion):
+	* hash.texi (Hash Tables, Creating Hash, Defining Hash):
+	* numbers.texi (Arithmetic Operations, Math Functions)
+	(Predicates on Numbers, Comparison of Numbers):
+	(Numeric Conversions):
+	* locals.texi (Standard Buffer-Local Variables):
+	* maps.texi (Standard Keymaps):
+	* os.texi (User Identification, System Environment, Recording Input)
+	(X11 Keysyms):
+	* nonascii.texi (Non-ASCII Characters, Splitting Characters):
+	* backups.texi (Backups and Auto-Saving):
+	* customize.texi (Customization, Group Definitions)
+	(Variable Definitions):
+	* compile.texi (Byte Compilation): Improve index entries.
+
+2007-03-31  Karl Berry  <karl@gnu.org>
+
+	* macros.texi (Defining Macros): Avoid widow syllable.
+
+2007-03-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* elisp.texi (Top): Postscript -> PostScript.
+
+	* display.texi (Images, Postscript Images): Postscript -> PostScript.
+
+2007-03-31  Markus Triska  <markus.triska@gmx.at>
+
+	* internals.texi (Writing Emacs Primitives): Untabify `For'.
+
+2007-03-30  Karl Berry  <karl@gnu.org>
+
+	* lists.texi (List-related Predicates): Remove spurious @need.
+	(Setcdr): Use @smallexample to improve page break.
+	(Association Lists) <assoc>: Reword to improve page break.
+
+	* strings.texi (String Conversion): Insert blank line to improve
+	page break.
+
+	* numbers.texi (Random Numbers): Use @minus{}.
+	(Math Functions): Use @minus{}.
+
+	* intro.texi (Acknowledgements): Avoid line breaks before middle
+	initials.
+
+2007-03-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* errors.texi (Standard Errors): Add an index entry.
+
 2007-03-19  Richard Stallman  <rms@gnu.org>
 
 	* os.texi (Recording Input): recent-keys now gives 300 keys.

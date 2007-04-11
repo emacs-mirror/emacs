@@ -438,7 +438,7 @@ p	searches backward for last regular expression.
 \\[View-leave]	quit View mode and maybe switch buffers, but don't kill this buffer.
 \\[View-kill-and-leave]	quit View mode, kill current buffer and go back to other buffer.
 
-The effect of \\[View-leave] , \\[View-quit] and \\[View-kill-and-leave] depends on how view-mode was entered.  If it was
+The effect of \\[View-leave], \\[View-quit] and \\[View-kill-and-leave] depends on how view-mode was entered.  If it was
 entered by view-file, view-file-other-window, view-file-other-frame, or
 \\[dired-view-file] \(\\[view-file], \\[view-file-other-window],
 \\[view-file-other-frame], or the Dired mode v command),
@@ -446,7 +446,7 @@ then \\[View-quit] will try to kill the current buffer.
 If view-mode was entered from another buffer, by \\[view-buffer],
 \\[view-buffer-other-window], \\[view-buffer-other frame], \\[view-file],
 \\[view-file-other-window], or \\[view-file-other-frame],
-then \\[View-leave] , \\[View-quit] and \\[View-kill-and-leave] will return to that buffer.
+then \\[View-leave], \\[View-quit] and \\[View-kill-and-leave] will return to that buffer.
 
 Entry to view-mode runs the normal hook `view-mode-hook'."
   (interactive "P")

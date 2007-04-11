@@ -102,42 +102,34 @@ visited by the buffers.")
 (defvar whitespace-mode nil
   "Non-nil when Whitespace mode (a minor mode) is enabled.")
 (make-variable-buffer-local 'whitespace-mode)
-(put 'whitespace-mode 'permanent-local nil)
 
 (defvar whitespace-mode-line nil
   "String to display in the mode line for Whitespace mode.")
 (make-variable-buffer-local 'whitespace-mode-line)
-(put 'whitespace-mode-line 'permanent-local nil)
 
 (defvar whitespace-check-buffer-leading nil
   "Test leading whitespace for file in current buffer if t.")
 (make-variable-buffer-local 'whitespace-check-buffer-leading)
-(put 'whitespace-check-buffer-leading 'permanent-local nil)
 
 (defvar whitespace-check-buffer-trailing nil
   "Test trailing whitespace for file in current buffer if t.")
 (make-variable-buffer-local 'whitespace-check-buffer-trailing)
-(put 'whitespace-check-buffer-trailing 'permanent-local nil)
 
 (defvar whitespace-check-buffer-indent nil
   "Test indentation whitespace for file in current buffer if t.")
 (make-variable-buffer-local 'whitespace-check-buffer-indent)
-(put 'whitespace-check-buffer-indent 'permanent-local nil)
 
 (defvar whitespace-check-buffer-spacetab nil
   "Test Space-followed-by-TABS whitespace for file in current buffer if t.")
 (make-variable-buffer-local 'whitespace-check-buffer-spacetab)
-(put 'whitespace-check-buffer-spacetab 'permanent-local nil)
 
 (defvar whitespace-check-buffer-ateol nil
   "Test end-of-line whitespace for file in current buffer if t.")
 (make-variable-buffer-local 'whitespace-check-buffer-ateol)
-(put 'whitespace-check-buffer-ateol 'permanent-local nil)
 
 (defvar whitespace-highlighted-space nil
   "The variable to store the extent to highlight.")
 (make-variable-buffer-local 'whitespace-highlighted-space)
-(put 'whitespace-highlighted-space 'permanent-local nil)
 
 ;; For flavors of Emacs which don't define `defgroup' and `defcustom'.
 (eval-when-compile

@@ -74,6 +74,9 @@ against the file name, and TYPE is nil for text, t for binary.")
 	(setq alist (cdr alist)))
       found)))
 
+;; Silence compiler. Defined in src/buffer.c on DOS_NT.
+(defvar default-buffer-file-type)
+
 ;; Don't check for untranslated file systems here.
 (defun find-buffer-file-type (filename)
   (let ((match (find-buffer-file-type-match filename))

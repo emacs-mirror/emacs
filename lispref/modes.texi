@@ -252,6 +252,8 @@ Fundamental mode.  Rmail mode is a complicated and specialized mode.
 
 @node Major Mode Conventions
 @subsection Major Mode Conventions
+@cindex major mode conventions
+@cindex conventions for writing major modes
 
   The code for existing major modes follows various coding conventions,
 including conventions for local keymap and syntax table initialization,
@@ -495,6 +497,7 @@ Even if you never load the file more than once, someone else will.
 
 @node Auto Major Mode
 @subsection How Emacs Chooses a Major Mode
+@cindex major mode, automatic selection
 
   Based on information in the file name or in the file itself, Emacs
 automatically selects a major mode for the new buffer when a file is
@@ -1157,7 +1160,7 @@ if that value is non-nil."
 @group
   (setq imenu-case-fold-search t)
   (set-syntax-table lisp-mode-syntax-table)
-  (run-mode-hooks 'lisp-mode-hook))           ; @r{This permits the user to use a}
+  (run-mode-hooks 'lisp-mode-hook))      ; @r{This permits the user to use a}
                                          ;   @r{hook to customize the mode.}
 @end group
 @end smallexample
@@ -1697,7 +1700,6 @@ the information in another fashion.  This way, customizations made by
 the user or by Lisp programs (such as @code{display-time} and major
 modes) via changes to those variables remain effective.
 
-@cindex Shell mode @code{mode-line-format}
   Here is an example of a @code{mode-line-format} that might be
 useful for @code{shell-mode}, since it contains the host name and default
 directory.
@@ -2336,7 +2338,7 @@ Setting this variable makes it buffer-local in the current buffer.
 
 @node Font Lock Mode
 @section Font Lock Mode
-@cindex Font Lock Mode
+@cindex Font Lock mode
 
   @dfn{Font Lock mode} is a feature that automatically attaches
 @code{face} properties to certain parts of the buffer based on their
@@ -2855,6 +2857,8 @@ set the variable @code{font-lock-defaults}.
 
 @node Faces for Font Lock
 @subsection Faces for Font Lock
+@cindex faces for font lock
+@cindex font lock faces
 
   You can make Font Lock mode use any face, but several faces are
 defined specifically for Font Lock mode.  Each of these symbols is both
@@ -2927,6 +2931,7 @@ directives in C.
 
 @node Syntactic Font Lock
 @subsection Syntactic Font Lock
+@cindex syntactic font lock
 
 Syntactic fontification uses the syntax table to find comments and
 string constants (@pxref{Syntax Tables}).  It highlights them using

@@ -1,3 +1,158 @@
+2007-04-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (note_mode_line_or_margin_highlight): Don't decrement
+	glyph pointer before start of glyph row.
+
+2007-04-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* s/darwin.h (__restrict, struct kboard): Remove outdated workarounds.
+	(C_SWITCH_SYSTEM): Remove `-I../mac/src'.
+
+2007-04-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* indent.c (Fmove_to_column): Set next_boundary with correct start pt.
+
+2007-04-08  Richard Stallman  <rms@gnu.org>
+
+	* xdisp.c (syms_of_xdisp) <message-log-max>: Default 100.
+
+2007-04-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* editfns.c (Ftranspose_regions): Validate interval before setting
+	text properties.
+
+2007-04-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.c (main): Fix instructions for building Emacs for profiling.
+
+2007-04-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_update_menubar): Call g_list_next after moving
+	menu bar item.
+
+2007-04-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* print.c (Fprin1_to_string): Use macro SPECPDL_INDEX.
+
+2007-04-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keymap.c (Fcommand_remapping): New optional argument.
+	(where_is_internal): Use new keymaps argument.
+	(Fkey_binding): Caller changed.
+
+	* keyboard.c (command_loop_1): Caller changed.
+
+2007-03-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* window.c (Fget_lru_window): Doc fix.
+
+2007-03-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* undo.c (Fprimitive_undo): Give clearer error message when trying
+	to change text properties outside accessible part of buffer.
+
+2007-03-29  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (wait_reading_process_output) [HAVE_PTYS]:
+	When EIO happens, clear channel from descriptor masks before raising
+	SIGCHLD signal to avoid busy loop between read and sigchld_handler.
+	(sigchld_handler): Remove sleep (2007-03-11 & 2007-03-26 changes).
+
+2007-03-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* buffer.c (Fset_buffer_major_mode): Check that BUFFER is valid.
+
+	* process.c (Fformat_network_address): Return nil when the
+	argument vector contains invalid values.
+
+2007-03-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* gmalloc.c [HAVE_GTK_AND_PTHREAD]: Define USE_PTHREAD.
+	[USE_PTHREAD]: Include pthread.h.
+	(malloc_init_once_control, _malloc_mutex) [USE_PTHREAD]: New variables.
+	(malloc_initialize_1): New function created from __malloc_initialize.
+	(__malloc_initialize): Use it.
+	(LOCK, UNLOCK): New macros to make malloc etc. thread safe.
+	(_malloc_internal, _free_internal, _realloc_internal): Use them.
+
+	* lread.c (readchar): Extend BLOCK_INPUT block to ferror/clearerr.
+
+2007-03-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* process.c (Fformat_network_address): Make args array big enough
+	to format IPv6 addresses.
+
+2007-03-27  Glenn Morris  <rgm@gnu.org>
+
+	* m/hp800.h: Restore HP-UX support (removed 2007-01-29).
+
+2007-03-26  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (Fx_display_mm_height, Fx_display_mm_width): Scale whole
+	screen size in pixels by millimeters per pixel of main display.
+
+	* macselect.c (get_scrap_target_type_list, x_own_selection):
+	Move assignments outside predicate macros.
+	(Vselection_converter_alist): Doc fix.
+
+	* macterm.c (create_text_encoding_info_alist): Move assignments
+	outside predicate macros.
+	(mac_initialize_display_info) [MAC_OSX]: dpyinfo->height and
+	dpyinfo->width are those of whole screen.
+
+2007-03-26  Sam Steingold  <sds@gnu.org>
+
+	* process.c (sigchld_handler): Delay by 1ms instead of 1s to
+	alleviate sluggishness (the original problem is still fixed).
+
+2007-03-25  Kim F. Storm  <storm@cua.dk>
+
+	* intervals.c (merge_properties): Use explicit loop instead of
+	Fplist_member to avoid QUIT.  Don't use Fcdr.
+	(intervals_equal): Likewise.  Rewrite loop to perform length check
+	on the fly rather than calling Flength.  Don't use Fcar.
+
+2007-03-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* editfns.c (Fgoto_char): Doc fix.
+
+	* indent.c (Findent_to): Doc fix.
+
+2007-03-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* editfns.c (Ftranspose_regions): Use set_text_properties_1
+	instead of Fset_text_properties to avoid GC.  Signal after change.
+
+2007-03-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* xfns.c (Fx_show_tip): Doc fix.
+
+	* macfns.c (Fx_show_tip): Doc fix.
+
+	* w32fns.c (Fx_show_tip): Doc fix.
+
+2007-03-23  Kim F. Storm  <storm@cua.dk>
+
+	* intervals.c (merge_properties, intervals_equal):
+	Use Fplist_member instead of Fmemq to find properties.
+
+2007-03-23  Glenn Morris  <rgm@gnu.org>
+
+	* unexhp9k800.c: Restore file with clarified legal status.
+	* m/sr2k.h: Restore since dependency unexhp9k800.c is restored.
+
+2007-03-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* widget.c (EmacsFrameSetCharSize): Catch X errors.
+
+2007-03-22  Kenichi Handa  <handa@m17n.org>
+
+	* fileio.c (Fcopy_file): Call barf_or_query_if_file_exists with
+	non-encoded file name.
+	(Frename_file): Likewise.
+	(Fadd_name_to_file): Likewise.
+	(Fmake_symbolic_link): Likewise.
+
 2007-03-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* Makefile.in (alloca.o, gtkutil.o): Depend on systime.h.
@@ -25,9 +180,9 @@
 	* print.c: Include blockinput.h.
 	(Fredirect_debugging_output): Add BLOCK_INPUT around fclose.
 
-	* process.c (Fmake_network_process) [HAVE_GETADDRINFO]: Clear
-	immediate_quit before calling freeaddrinfo.  Add BLOCK_INPUT
-	around freeaddrinfo.
+	* process.c (Fmake_network_process) [HAVE_GETADDRINFO]:
+	Clear immediate_quit before calling freeaddrinfo.
+	Add BLOCK_INPUT around freeaddrinfo.
 
 	* term.c: Include blockinput.h.
 	(write_glyphs, insert_glyphs): Add BLOCK_INPUT around fwrite.
@@ -51,8 +206,8 @@
 	(x_activate_menubar, mac_menu_show): Set it during menu tracking.
 	(popup_activated): New function.
 
-	* xdisp.c (redisplay_internal, note_mouse_highlight): Check
-	popup_activated for MAC_OS.
+	* xdisp.c (redisplay_internal, note_mouse_highlight):
+	Check popup_activated for MAC_OS.
 
 2007-03-17  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -491,9 +646,9 @@
 
 2007-01-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* macselect.c [TARGET_API_MAC_CARBON] (mac_do_receive_drag): Don't
-	pass keyboard modifiers to mac_store_drag_event, but put them as
-	kEventParamKeyModifiers Apple event parameter.
+	* macselect.c [TARGET_API_MAC_CARBON] (mac_do_receive_drag):
+	Don't pass keyboard modifiers to mac_store_drag_event, but put
+	them as kEventParamKeyModifiers Apple event parameter.
 
 2007-01-21  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -577,8 +732,8 @@
 	(mac_dialog) [TARGET_API_MAC_CARBON]: Remove function.
 	(mac_dialog_show) [TARGET_API_MAC_CARBON]: Use create_and_show_dialog.
 
-	* macterm.c (x_free_frame_resources) [USE_CG_DRAWING]: Call
-	mac_prepare_for_quickdraw.
+	* macterm.c (x_free_frame_resources) [USE_CG_DRAWING]:
+	Call mac_prepare_for_quickdraw.
 	(quit_char, make_ctrl_char) [TARGET_API_MAC_CARBON]: Move externs
 	outside #ifdef MAC_OSX.
 	(mac_quit_char_key_p) [TARGET_API_MAC_CARBON]: Move function
@@ -2230,8 +2385,8 @@
 
 2006-08-28  Kenichi Handa  <handa@m17n.org>
 
-	* coding.c (Fdetect_coding_region, Fdetect_coding_string): Fix
-	docstring about ISO-2022 control characters.
+	* coding.c (Fdetect_coding_region, Fdetect_coding_string):
+	Fix docstring about ISO-2022 control characters.
 
 2006-08-28  Kim F. Storm  <storm@cua.dk>
 
@@ -2454,7 +2609,7 @@
 2006-08-09  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (syms_of_coding): Improve the docstring
-	file-coding-system-alist.
+	of file-coding-system-alist.
 
 2006-08-07  Andreas Schwab  <schwab@suse.de>
 
@@ -3402,8 +3557,8 @@
 	* macterm.c (font_panel_shown_p) [USE_MAC_FONT_PANEL]: New variable.
 	(mac_font_panel_visible_p, mac_show_hide_font_panel)
 	[USE_MAC_FONT_PANEL]: New functions.
-	[USE_MAC_FONT_PANEL] (mac_set_font_info_for_selection): Return
-	immediately if font panel is not visible.
+	[USE_MAC_FONT_PANEL] (mac_set_font_info_for_selection):
+	Return immediately if font panel is not visible.
 
 	* macterm.h (mac_font_panel_visible_p, mac_show_hide_font_panel):
 	Add externs.
@@ -3422,8 +3577,8 @@
 
 2006-05-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* sound.c (alsa_open, alsa_configure, alsa_write): Move
-	assignment to err out of if-statement.
+	* sound.c (alsa_open, alsa_configure, alsa_write):
+	Move assignment to err out of if-statement.
 
 	* gtkutil.c (menu_nav_ended): New function.
 	(create_menus): Connect menu_nav_ended to "selection-done" to fix
@@ -3838,8 +3993,8 @@
 	(Qpanel_closed, Qselection) [USE_MAC_FONT_PANEL]: Likewise.
 	(syms_of_macterm): Intern and staticpro them.
 	(init_font_name_table) [USE_ATSUI]: Add data to Vmac_atsu_font_table.
-	[TARGET_API_MAC_CARBON] (mac_store_event_ref_as_apple_event): New
-	function.
+	[TARGET_API_MAC_CARBON] (mac_store_event_ref_as_apple_event):
+	New function.
 	[USE_CARBON_EVENTS] (mac_handle_command_event): Use it.
 	[MAC_OSX] (mac_store_services_event): Likewise.
 	[USE_CARBON_EVENTS] (mac_handle_window_event) [MAC_OSX]: Handle
@@ -3891,8 +4046,8 @@
 	[TARGET_API_MAC_CARBON] (create_apple_event): New function.
 	[TARGET_API_MAC_CARBON] (create_apple_event_from_event_ref): Use it.
 	Use xrealloc instead of repeated xmalloc/xfree.
-	[TARGET_API_MAC_CARBON] (create_apple_event_from_drag_ref): New
-	function.
+	[TARGET_API_MAC_CARBON] (create_apple_event_from_drag_ref):
+	New function.
 
 	* macmenu.c (restore_menu_items, cleanup_popup_menu): Return a value.
 
@@ -5752,8 +5907,8 @@
 	objects until we are done with the parsing.
 	(parse_single_submenu, digest_single_submenu): New functions.
 	(single_submenu): Function deleted, replaced by those two.
-	(install_menu_quit_handler) [HAVE_CANCELMENUTRACKING]: Don't
-	create or dispose of EventHandlerUPP.  Install hander to all submenus.
+	(install_menu_quit_handler) [HAVE_CANCELMENUTRACKING]: Don't create
+	or dispose of EventHandlerUPP.  Install hander to all submenus.
 	(mac_menu_show) [!HAVE_MULTILINGUAL_MENU]: Use ENCODE_MENU_STRING
 	instead of ENCODE_SYSTEM.
 	(free_frame_menubar, fill_submenu, fill_menu): Don't use NULL for

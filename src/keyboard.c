@@ -1691,7 +1691,7 @@ command_loop_1 ()
       if (SYMBOLP (cmd))
 	{
 	  Lisp_Object cmd1;
-	  if (cmd1 = Fcommand_remapping (cmd, Qnil), !NILP (cmd1))
+	  if (cmd1 = Fcommand_remapping (cmd, Qnil, Qnil), !NILP (cmd1))
 	    cmd = cmd1;
 	}
 
@@ -8822,9 +8822,9 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
      of the place where a mouse click occurred.  */
   volatile int localized_local_map = 0;
 
-  /* The index in defs[] of the first keymap that has a binding for
+  /* The index in submaps[] of the first keymap that has a binding for
      this key sequence.  In other words, the lowest i such that
-     defs[i] is non-nil.  */
+     submaps[i] is non-nil.  */
   volatile int first_binding;
   /* Index of the first key that has no binding.
      It is useless to try fkey.start larger than that.  */

@@ -5,8 +5,6 @@ Tasks needed before the next release.
 ** Check for widow and orphan lines in manuals;
 make sure all the pages really look ok in the manual as formatted.
 
-** Check for text in manuals that assumes current version is 21.
-
 ** Cleanup temporary +++/--- lines in etc/NEWS.
 
 ** Regenerate the postscript files of the reference cards in etc.
@@ -43,12 +41,9 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 * BUGS
 
-** Kevin Rodgers missing assignment
+** spurious scrolling bug
 
-** flyspell and check-comments
-
-** lennart.borgman@gmail.com, Feb 22: C-h k does not catch text properties keymaps
-   Update: Problem is only seen when viper-mode is enabled.
+** crash in gc_sweep
 
 * DOCUMENTATION
 

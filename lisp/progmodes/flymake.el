@@ -931,8 +931,8 @@ Convert it to flymake internal format."
       2 4 nil 5))
    ;; compilation-error-regexp-alist)
    (flymake-reformat-err-line-patterns-from-compile-el compilation-error-regexp-alist-alist))
-  "Patterns for matching error/warning lines.
-\(REGEXP FILE-IDX LINE-IDX ERR-TEXT-IDX).
+  "Patterns for matching error/warning lines.  Each pattern has the form
+\(REGEXP FILE-IDX LINE-IDX COL-IDX ERR-TEXT-IDX).
 Use `flymake-reformat-err-line-patterns-from-compile-el' to add patterns
 from compile.el")
 

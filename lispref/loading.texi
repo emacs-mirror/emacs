@@ -64,22 +64,23 @@ forms in it, and closes the file.
 
 To find the file, @code{load} first looks for a file named
 @file{@var{filename}.elc}, that is, for a file whose name is
-@var{filename} with @samp{.elc} appended.  If such a file exists, it is
-loaded.  If there is no file by that name, then @code{load} looks for a
-file named @file{@var{filename}.el}.  If that file exists, it is loaded.
-Finally, if neither of those names is found, @code{load} looks for a
-file named @var{filename} with nothing appended, and loads it if it
-exists.  (The @code{load} function is not clever about looking at
-@var{filename}.  In the perverse case of a file named @file{foo.el.el},
-evaluation of @code{(load "foo.el")} will indeed find it.)
+@var{filename} with the extension @samp{.elc} appended.  If such a
+file exists, it is loaded.  If there is no file by that name, then
+@code{load} looks for a file named @file{@var{filename}.el}.  If that
+file exists, it is loaded.  Finally, if neither of those names is
+found, @code{load} looks for a file named @var{filename} with nothing
+appended, and loads it if it exists.  (The @code{load} function is not
+clever about looking at @var{filename}.  In the perverse case of a
+file named @file{foo.el.el}, evaluation of @code{(load "foo.el")} will
+indeed find it.)
 
-If Auto Compression mode is enabled, as it is by default, then
-if @code{load} can not find a file, it searches for a compressed
-version of the file before trying other file names.  It decompresses
-and loads it if it exists.  It looks for compressed versions by
-appending the suffixes in @code{jka-compr-load-suffixes} to the file
-name.  The value of this variable must be a list of strings. Its
-standard value is @code{(".gz")}.
+If Auto Compression mode is enabled, as it is by default, then if
+@code{load} can not find a file, it searches for a compressed version
+of the file before trying other file names.  It decompresses and loads
+it if it exists.  It looks for compressed versions by appending each
+of the suffixes in @code{jka-compr-load-suffixes} to the file name.
+The value of this variable must be a list of strings. Its standard
+value is @code{(".gz")}.
 
 If the optional argument @var{nosuffix} is non-@code{nil}, then
 @code{load} does not try the suffixes @samp{.elc} and @samp{.el}.  In
@@ -220,6 +221,8 @@ it skips the latter group.
 
 @node Library Search
 @section Library Search
+@cindex library search
+@cindex find library
 
   When Emacs loads a Lisp library, it searches for the library
 in a list of directories specified by the variable @code{load-path}.
@@ -844,7 +847,7 @@ rather than replacing that element.  @xref{Eval}.
 
 @node Unloading
 @section Unloading
-@cindex unloading
+@cindex unloading packages
 
 @c Emacs 19 feature
   You can discard the functions and variables loaded by a library to
@@ -956,7 +959,7 @@ element looks like this:
 
 The key @var{regexp-or-feature} is either a regular expression or a
 symbol, and the value is a list of forms.  The forms are evaluated when
-the key matches the the absolute true name of the file being
+the key matches the absolute true name of the file being
 @code{load}ed or the symbol being @code{provide}d.
 @end defvar
 

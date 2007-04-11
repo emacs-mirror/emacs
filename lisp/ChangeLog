@@ -1,3 +1,547 @@
+2007-04-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* woman.el (woman-decode-buffer): Postphone macro-set check...
+	(woman-decode-region): ...to here.
+
+2007-04-10  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* startup.el (tty-handle-args): Use %S to log ARGS.
+
+2007-04-10  Glenn Morris  <rgm@gnu.org>
+
+	* dframe.el (dframe-frame-mode): Do not set auto-show-mode, since
+	it is obsolete and has no effect.
+
+	* dos-w32.el (default-buffer-file-type): Add defvar to quieten
+	byte-compiler.
+
+	* progmodes/cperl-mode.el (cperl-mode): Remove unnecessary call to
+	obsolete function make-local-hook.
+
+	* progmodes/dcl-mode.el (top-level): Move (require 'tempo) to
+	start to quieten byte-compiler.
+
+2007-04-10  Markus Triska  <markus.triska@gmx.at>
+
+	* emacs-lisp/byte-opt.el (byte-optimize-char-before): Remove (move
+	to bytecomp.el as byte-compile-char-before).
+	* emacs-lisp/bytecomp.el (byte-compile-char-before): New
+	function (modified replacement for byte-optimize-char-before in
+	byte-opt.el).
+
+2007-04-09  Alan Mackenzie  <acm@muc.de>
+
+	* startup.el (inhibit-splash-screen): Emphatically state that it
+	can't be set in site-start.el.
+
+2007-04-09  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/cc-subword.el (c-capitalize-subword): More closely
+	mimic the behavior of `capitalize-word'.  Do not move point with a
+	negative argument.  Based on tiny change by Paul Curry.
+
+2007-04-09  Paul Curry  <dashteacup@gmail.com>  (tiny change)
+
+	* progmodes/cc-subword.el (c-downcase-subword, c-upcase-subword):
+	Don't move point if ARG is negative.
+
+2007-04-09  Alan Mackenzie  <acm@muc.de>
+
+	Changes to make `narrow-to-defun' and `mark-defun' work properly
+	in CC Mode:
+
+	* progmodes/cc-defs.el (c-beginning-of-defun-1):
+	* progmodes/cc-cmds.el (c-beginning-of-defun, c-end-of-defun):
+	Bind beginning/end-of-defun-function to nil around calls to
+	beginning/end-of-defun.
+
+	* progmodes/cc-langs.el (beginning-of-defun-function)
+	(end-of-defun-function): New c-lang-setvar's.
+
+	* progmodes/cc-awk.el (c-awk-beginning-of-defun): Add "(or arg
+	(setq arg 1))" to enable non-interactive call.
+
+2007-04-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (set-mark-command): Doc fix.
+
+2007-04-09  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gdb): Restore existing session if user
+	tries to start a second one in graphical mode.
+
+2007-04-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* cus-start.el <scroll-preserve-screen-position>: Add choices.
+
+2007-04-08  Johan Bockg,Ae(Brd  <bojohan+news@dd.chalmers.se>
+
+	* term/xterm.el (terminal-init-xterm): Fix key definitions.  Add
+	binding for C-M-SPC.
+
+2007-04-08  Richard Stallman  <rms@gnu.org>
+
+	* pcomplete.el (pcomplete-read-event): One single definition,
+	and not a defsubst.
+
+2007-04-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/cc-cmds.el (c-end-of-defun): Tidy up, to eliminate
+	byte-compiler warning "value unused".
+
+2007-04-08  Andreas Schwab  <schwab@suse.de>
+
+	* term/xterm.el (terminal-init-xterm): Add bindings for keypad keys.
+
+2007-04-07  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (diary-font-lock-keywords, diary-live-p):
+	Autoload these functions.
+	(diary-date-forms): Add a custom :set form.
+
+	* calendar/diary-lib.el (diary-set-maybe-redraw): Move definition
+	before first use.
+	(diary-font-lock-keywords): New function with old code for
+	initialization of variable of same name.
+
+2007-04-07  David Hansen  <david.hansen@gmx.net>  (tiny change)
+
+	* progmodes/cc-cmds.el (c-electric-paren): Fix space-before-funcall
+	clean-up: only insert space when on identifier, etc.
+
+2007-04-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/grep.el (grep-find-use-xargs): Rewrite docstring.
+
+	* net/tls.el (open-tls-stream): Properly handle case where there
+	is no associated buffer.
+
+2007-04-07  Glenn Morris  <rgm@gnu.org>
+
+	* ffap.el (ffap-file-at-point): Lower the priority of the
+	ffap-ftp-sans-slash-regexp check.
+
+2007-04-06  Alan Mackenzie  <acm@muc.de>
+
+	Fix fontification of labels, and other things with ":".
+
+	* progmodes/cc-engine.el (c-forward-label): The function now
+	returns 'goto-target, 'qt-2kwds-colon, 'qt-1kwd-colon, as well as
+	the former t.
+
+	* progmodes/cc-fonts.el (c-font-lock-declarations): Interpret the
+	new return code from c-forward-label, fontifying tokens properly.
+	Add some general comments throughout the file.
+
+2007-04-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/flyspell.el (flyspell-duplicate, flyspell-incorrect):
+	Revert 2006-01-27 change.
+
+	* diff-mode.el (diff-mode): Revert 2007-03-04 change.
+
+	* menu-bar.el (menu-bar-tools-menu): Revert 2003-07-25 change.
+
+	* desktop.el (desktop-create-buffer, desktop-save): Revert
+	2004-11-12 change.
+
+	* dired-x.el (dired-guess-shell-case-fold-search): Delete var.
+	(dired-guess-default): Respect case.
+
+	* isearch.el (isearch-forward): Revert 1998-08-26 doc change.
+
+	* emacs-lisp/byte-opt.el (byte-optimize-pure-func): Remove function;
+	was originally checked in as byte-optimize-concat on 1997-11-02.
+
+	* mail/sendmail.el (mail-text, mail-mode): Revert extant pieces of
+	1995-05-19 doc changes.
+
+2007-04-06  Kim F. Storm  <storm@cua.dk>
+
+	* loadhist.el (read-feature): Reimplement.  New optional arg LOADED-P.
+	(unload-feature): Update interactive spec accordingly.
+
+	* progmodes/grep.el (grep-program): Remove commentary about zgrep.
+
+2007-04-06  John Paul Wallington  <jpw@pobox.com>
+
+	* subr.el (with-case-table): Use `make-symbol' to avoid variable
+	capture.  Restore the table in the same buffer.
+
+	* font-lock.el (lisp-font-lock-keywords-2): Add `with-case-table'.
+
+2007-04-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker):
+	Print entire form.
+
+2007-04-05  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (breakpoint-disabled): Tweak face (again)
+	for low-color displays.
+
+2007-04-05  Glenn Morris  <rgm@gnu.org>
+
+	* play/5x5.el, play/animate.el, play/dissociate.el, play/doctor.el,
+	* play/gomoku.el, play/landmark.el, play/tetris.el, play/zone.el:
+	Seed random number generator on loading.
+
+	* emacs-lisp/authors.el (top-level): Provide self.
+
+	* play/animate.el (top-level): Provide self.
+
+2007-04-04  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-vars.el (c-special-indent-hook): Amend doc-string
+	to mention c-syntactic-indentation.
+
+2007-04-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (with-case-table): New macro.
+
+	* international/mule.el (ascii-case-table): New var.
+
+	* mail/smtpmail.el (smtpmail-via-smtp): Use ascii-case-table when
+	downcasing.
+
+2007-04-03  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-minor-mode-map): Simplify.
+
+	* t-mouse.el (t-mouse-make-event-element): Don't use the left edge
+	of the window if we're outside it e.g menu-bar.
+
+	* xt-mouse.el (xterm-mouse-event): Don't use the left edge of the
+	window if we're outside it e.g menu-bar.
+
+2007-04-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmail.el (rmail-convert-to-babyl-format): Don't try to
+	decode base-64 encoded body if its content-type is something other
+	than text/* or message/*.
+
+2007-04-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* simple.el (activate-mark-hook): Fix typo in docstring.
+
+2007-04-03  Nick Roberts  <nickrob@snap.net.nz>
+
+	* tmm.el (tmm-c-prompt): Initialize.
+	(tmm-menubar): Deal with extended menu-items at top level.
+	(tmm-get-keybind): Handle bindings redefined/undefined locally.
+	(tmm-prompt): Handle visibility of top level menu-items.
+
+	* progmodes/gud.el (gud-menu-map): Simplify.
+	(gud-minor-mode-map): Add tool-bar like bindings to the text mode
+	menubar.
+
+2007-04-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/smtpmail.el (smtpmail-via-smtp): Revert last change.
+
+	* comint.el (comint-send-input): Widen the buffer first.
+
+	* info.el (Info-fontify-maximum-menu-size): Revert to 100000.
+
+2007-04-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp-mode.el (lisp-fill-paragraph): Only obey
+	emacs-lisp-docstring-fill-column in emacs-lisp-mode.
+
+	* newcomment.el (comment-search-forward): Discard comment starters
+	before point.
+
+2007-04-01  Guanpeng Xu  <herberteuler@hotmail.com>
+
+	* mouse.el (mouse-set-secondary): Update mouse-secondary-overlay.
+
+2007-04-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/smtpmail.el (smtpmail-via-smtp): Use standard case table
+	when downcasing.
+
+	* button.el (previous-button): Rewrite to account for adjacent buttons.
+
+2007-04-01  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* progmodes/idlwave.el (idlwave-auto-fill):
+	Revert paragraph-separate change.
+
+	* progmodes/idlw-shell.el (idlwave-shell-break-in):
+	Simplify module calc.
+	(idlwave-shell-set-bp-in-module): Compute module.
+
+2007-03-31  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/timer.el (run-at-time): Doc fix.
+
+	* emacs-lisp/warnings.el (display-warning): If we create the
+	buffer displaying the warning, disable undo there.
+
+2007-03-31  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-register-file-name-handler)
+	(tramp-register-completion-file-name-handler): New defsubst,
+	derived from `tramp-register-file-name-handlers'.  The split is
+	necessary because Tramp's file name handlers must be registered at
+	different startup places.
+
+2007-03-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/hideshow.el (turn-off-hideshow): New function.
+	(hs-minor-mode): Use it instead of a lambda expression in
+	change-major-mode-hook.
+
+2007-03-31  David Kastrup  <dak@gnu.org>
+
+	* woman.el (woman-Cyg-to-Win): Don't convert cons cells
+	corresponding to MANPATH_MAP entries.
+	(woman-man.conf-path, woman-parse-man.conf): Doc fix.
+	(woman-parse-man.conf): Use more discriminating man.conf name.
+	(woman-parse-man.conf): Parse MANPATH_MAP entries.
+	(woman-manpath): Doc fix and type fix.
+	(woman-cached-data): Check for MANPATH_MAP entries.
+	(woman-expand-directory-path): Treat MANPATH_MAP entries.
+
+2007-03-31  Stuart Herring  <herring@lanl.gov>
+
+	* emacs-lisp/sregex.el (sregexq): Doc fix.
+
+2007-03-31  Markus Triska  <markus.triska@gmx.at>
+
+	* flymake.el (flymake-err-line-patterns): Doc fix.
+
+2007-03-30  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* info.el (info-tool-bar-map): Use "exit" for Info-exit.
+	Move to the right.
+
+2007-03-30  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-forward-to-nth-EOF-}): Fix EOB bug.
+
+2007-03-30  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/ewoc.el (ewoc--insert-new-node): Take additional arg DLL.
+	Use it, passed in explicitly, instead of from the dynamic binding.
+	(ewoc-create, ewoc-enter-before): Update to use new call sequence.
+
+2007-03-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* simple.el (blink-matching-open): When in minibuffer, don't
+	search for a match inside the prompt.
+
+2007-03-30  Nick Roberts  <nickrob@snap.net.nz>
+
+	* tmm.el (tmm-menubar): Select the right menu item with the mouse.
+	(tmm-prompt): Don't make the mouse user select the first menu
+	item twice.
+
+2007-03-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* eshell/esh-proc.el (eshell/kill): Tweak regexp to recognize
+	SIGUSR1 and SIGUSR2.
+
+2007-03-29  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-read-internal): When reading file or dir, only override
+	minibuffer-local-filename-completion-map, otherwise only override
+	minibuffer-local-completion-map.
+
+2007-03-29  Glenn Morris  <rgm@gnu.org>
+
+	* complete.el (partial-completion-mode): Set PC-do-completion-end
+	to nil after use.
+	(PC-lisp-complete-symbol): Create and use a marker at `end',
+	rather than using point-marker.
+
+2007-03-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (next-error-highlight): Doc fix.
+	(compose-mail): Revert 2007-03-19 change.
+
+2007-03-28  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/edebug.el (edebug-display): Don't go to
+	edebug-outside-buffer if it is dead.
+
+2007-03-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* view.el (view-mode): Fix typos in docstring.
+
+2007-03-28  Stephen Berman  <Stephen.Berman@gmx.net>
+
+	* recentf.el (recentf-save-file): Add a custom :set function.
+
+2007-03-28  Glenn Morris  <rgm@gnu.org>
+
+	* complete.el (PC-do-completion-end): New variable.
+	(partial-completion-mode) <choose-completion-string-functions>:
+	Use PC-do-completion-end in the non-minibuffer case to replace the
+	correct amount of text.
+	(PC-do-completion): Set PC-do-completion-end for c-c-s-f.
+	(PC-lisp-complete-symbol): Give marker the after-insertion type,
+	to deal with improvements inserted after point.
+
+2007-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* button.el (make-text-button): Add explicit `button' property.
+	(default-button): Don't put a `button' property on it.
+
+	* progmodes/python.el (python-mode): Skip comments when parsing.
+
+	* vc-arch.el (vc-with-current-file-buffer): New macro.
+	(vc-arch-file-source-p): Use it to avoid infloop.
+
+2007-03-28  David Hansen  <david.hansen@gmx.net>  (tiny change)
+
+	* emacs-lisp/lisp.el (lisp-complete-symbol):
+	Fix call to get-buffer-window to find windows in other frames.
+
+2007-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* comint.el (comint-proc-query, comint-dynamic-list-completions):
+	Fix calls to get-buffer-window to find windows in other frames.
+	Reported by David Hansen <david.hansen@gmx.net>.
+
+2007-03-27   Kevin Ryde  <user42@zip.com.au>
+
+	* info.el (Info-display-images-node): On a text-only terminal,
+	show the "text" or "alt" parts of the image blobs.
+
+2007-03-27  Glenn Morris  <rgm@gnu.org>
+
+	* complete.el (PC-do-completion): Compute completion-base-size in
+	the non-filename case, rather than setting to nil.
+	(PC-lisp-complete-end): New variable.
+	(PC-lisp-complete-symbol): Use PC-lisp-complete-end to store the
+	original end in a series of consecutive invocations.
+
+	* calendar/calendar.el (calendar-mode-hook): Declare it.
+
+	* calendar/diary-lib.el (diary-live-p): Do not check for
+	diary-selective-display.
+
+2007-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* replace.el (occur-next-error): *Occur* might not be displayed in the
+	selected frame.  Reported by David Hansen <david.hansen@gmx.net>.
+
+2007-03-26  Richard Stallman  <rms@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-large-region):
+	Use ispell-call-process-region.
+
+2007-03-26  Johan Bockg,Ae(Brd  <bojohan+sf@dd.chalmers.se>
+
+	* emacs-lisp/bytecomp.el (byte-compile-file-form-defmumble):
+	Use prin1 instead of princ.
+
+2007-03-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faces.el (face-set-after-frame-default): Revert 2007-03-10 change.
+	Merge in X resources before global face.
+
+	* progmodes/compile.el (compilation-start): Save compilation-directory
+	rather than default-directory as local var.
+	(compilation-directory): Mark as safe local var.
+
+	* files.el: Don't mark default-directory as a safe local var.
+
+2007-03-25  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-mode.el (c-before-change): Fix BOB bug.
+	* progmodes/cc-engine.el: Fix typo.
+
+2007-03-25  Juri Linkov  <juri@jurta.org>
+
+	* compare-w.el (compare-windows): Rename customization group
+	`compare-w' to `compare-windows'.
+	(compare-windows-whitespace, compare-ignore-whitespace)
+	(compare-ignore-case, compare-windows-sync)
+	(compare-windows-sync-string-size, compare-windows-recenter)
+	(compare-windows-highlight, compare-windows): Change group name in
+	the `group' tag from `compare-w' to `compare-windows'.
+	(compare-windows-sync): Add option `nil' for no sync.  Doc fix.
+
+2007-03-24  Markus Triska  <markus.triska@gmx.at>
+
+	* expand.el: Change example to always enable abbrev-mode,
+	and remove redundant `function'.
+	(expand-abbrev-hook): Add autoload cookie.
+
+2007-03-24  Ryan Yeske  <rcyeske@gmail.com>
+
+	* emacs-lisp/testcover.el (testcover-start, testcover-end)
+	(testcover-mark-all, testcover-unmark-all): Add prompts to
+	interactive specs.
+
+2007-03-24  Jason Rumney  <jasonr@gnu.org>
+
+	* autorevert.el (find-file-hook, auto-revert-tail-mode):
+	Use file size in bytes for auto-revert-tail-pos not characters.
+
+2007-03-24  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* vc-rcs.el (vc-rcs-annotate-command):
+	Set text property :vc-annotate-prefix on the annotation text.
+	(vc-rcs-annotate-time): Instead of searching for ": ",
+	search for end of text propertized with :vc-annotate-prefix.
+
+2007-03-24  Martin Rudalics  <rudalics@gmx.at>
+
+	* whitespace.el (top level): Remove calls putting
+	permanent-local nil property since these are no-ops.
+
+	* man.el (Man-support-local-filenames): Assure that
+	default-directory exists when doing call-process.
+
+2007-03-23  David Vazquez  <xeos00@gmail.com>  (tiny change)
+
+	* progmodes/m4-mode.el (m4-m4-buffer, m4-m4-region):
+	Fix omission bug: Use m4-program-options to construct shell command.
+
+2007-03-23  David Kastrup  <dak@gnu.org>
+
+	* progmodes/cc-mode.el (c-make-emacs-variables-local):
+	Use `mapcar' rather than `mapcan' to silence compiler warning.
+
+2007-03-22  Ralf Angeli  <angeli@caeruleus.net>
+
+	* textmodes/reftex.el, textmodes/reftex-vars.el,
+	* textmodes/reftex-toc.el, textmodes/reftex-sel.el,
+	* textmodes/reftex-ref.el, textmodes/reftex-parse.el,
+	* textmodes/reftex-index.el, textmodes/reftex-global.el,
+	* textmodes/reftex-dcr.el, textmodes/reftex-cite.el,
+	* textmodes/reftex-auc.el: Add maintainer address.
+
+2007-03-22  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-agenda-mode, org-table-edit-formulas):
+	Make sure that `global-font-lock-mode' does not turn on font-lock
+	in these buffers.
+
+2007-03-21  Kim F. Storm  <storm@cua.dk>
+
+	* xt-mouse.el (xt-mouse-epoch): New variable.
+	(xterm-mouse-event): Use float-time.
+
+2007-03-21  Nick Roberts  <nickrob@snap.net.nz>
+
+	* xt-mouse.el (xterm-mouse-event): Compute a timestamp using
+	current-time.
+
+2007-03-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* complete.el (read-file-name-internal): Don't add the final > if the
+	completion is not finished (re-application of this patch, which was
+	accidentally undone by Eli).
+
+2007-03-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emulation/viper.el (viper-non-hook-settings): Handle mouse
+	clicks in describe-key and describe-key-briefly advice a little better.
+
 2007-03-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* server.el (server-process-filter): Cancel any pending isearch.
@@ -71,8 +615,8 @@
 
 2007-03-19  Martin Rudalics  <rudalics@gmx.at>
 
-	* font-lock.el (lisp-font-lock-keywords-1): Highlight
-	define-globalized-minor-mode as a keyword.
+	* font-lock.el (lisp-font-lock-keywords-1):
+	Highlight define-globalized-minor-mode as a keyword.
 
 2007-03-19  Kim F. Storm  <storm@cua.dk>
 
@@ -110,8 +654,7 @@
 2007-03-18  Detlev Zundel  <dzu@gnu.org>
 
 	* emacs-lisp/re-builder.el (reb-update-overlays): Do not mark
-	zero-width regexps as invalid but rather at least count them
-	correctly.
+	zero-width regexps as invalid but rather at least count them correctly.
 
 2007-03-18  Thien-Thi Nguyen  <ttn@gnu.org>
 
@@ -143,8 +686,8 @@
 
 2007-03-17  Chong Yidong  <cyd@stupidchicken.com>
 
-	* simple.el (line-move-1): Respect
-	`inhibit-line-move-field-capture' property.
+	* simple.el (line-move-1):
+	Respect `inhibit-line-move-field-capture' property.
 
 2007-03-13  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -157,7 +700,7 @@
 2007-03-12  Lawrence Mitchell  <wence@gmx.li>  (tiny change)
 
 	* tempo.el (tempo-insert): Deal with 'r> if it appears
- 	specified with a prompt argument.
+	specified with a prompt argument.
 
 2007-03-12  Carsten Dominik  <dominik@science.uva.nl>
 
@@ -403,7 +946,7 @@
 	* emacs-lisp/lisp-mode.el (calculate-lisp-indent):
 	Redo previous change.
 
-2007-03-04  Kevin Rodgers  <kevin.d.rodgers@gmail.com> (tiny change)
+2007-03-04  Kevin Rodgers  <kevin.d.rodgers@gmail.com>  (tiny change)
 
 	* diff-mode.el (diff-mode): Doc fix.
 
@@ -493,7 +1036,7 @@
 	* ps-print.el: Replace (defvar VAR nil) by (defvar VAR).
 	(ps-setup): Print which Emacsen is running ps-print package.
 
-2007-03-01  Stuart Herring  <herring@lanl.gov>  (tiny change)
+2007-03-01  Stuart Herring  <herring@lanl.gov>
 
 	* files.el (set-auto-mode-0): Use `indirect-function'.
 	(hack-one-local-variable): Don't reapply current major mode.
@@ -537,7 +1080,7 @@
 
 	* help.el (where-is): Fail gracefully when not passed a command.
 
-2007-02-28  Stuart Herring  <herring@lanl.gov>  (tiny change)
+2007-02-28  Stuart Herring  <herring@lanl.gov>
 
 	* find-lisp.el (find-lisp-default-directory-predicate):
 	Fix bug: Do symlink check on expanded filename.
@@ -1437,7 +1980,7 @@
 2007-01-27  Guanpeng Xu  <herberteuler@hotmail.com>
 
 	* add-log.el (add-log-current-defun): Skip the semicolon ``;'' for
-        enum/union/struct/class definition.
+	enum/union/struct/class definition.
 	Revert change to call `forward-sexp' multiple times.
 
 2007-01-27  Chong Yidong  <cyd@stupidchicken.com>
@@ -2044,7 +2587,7 @@
 	* international/mule-cmds.el (select-safe-coding-system-interactively):
 	Fix message.
 
-2006-12-30  Kevin Rodgers  <kevin.d.rodgers@gmail.com> (tiny change)
+2006-12-30  Kevin Rodgers  <kevin.d.rodgers@gmail.com>  (tiny change)
 
 	* files.el (backup-buffer): Show entire backup file name in msg.
 
@@ -2501,20 +3044,20 @@
 2006-12-09  Martin Rudalics  <rudalics@gmx.at>
 
 	* wdired.el (wdired-change-to-wdired-mode, wdired-finish-edit)
-        (wdired-search-and-rename): Simplify code.
+	(wdired-search-and-rename): Simplify code.
 	(wdired-preprocess-files, wdired-preprocess-perms): Make
-        read-only property of preceding character rear-nonsticky to
-        avoid that it can be modified.  Put old-name and old-link
-        properties on character preceding name and replace
-        put-text-property by add-text-properties.
-        (wdired-get-filename, wdired-get-previous-link): Get old-name
-        and old-link properties from character preceding name and
-        simplify code.
+	read-only property of preceding character rear-nonsticky to
+	avoid that it can be modified.	Put old-name and old-link
+	properties on character preceding name and replace
+	put-text-property by add-text-properties.
+	(wdired-get-filename, wdired-get-previous-link): Get old-name
+	and old-link properties from character preceding name and
+	simplify code.
 	(wdired-preprocess-perms, wdired-set-bit, wdired-toggle-bit)
-        (wdired-perms-to-number): Make local-map property
-        rear-nonsticky to avoid that text following permissions may be
-        modified.  Use add-text-properties instead of put-text-property
-        when changing a permission bit.
+	(wdired-perms-to-number): Make local-map property
+	rear-nonsticky to avoid that text following permissions may be
+	modified.  Use add-text-properties instead of put-text-property
+	when changing a permission bit.
 	(wdired-change-to-dired-mode): Remove stickiness properties.
 
 2006-12-09  Juanma Barranquero  <lekktu@gmail.com>
@@ -12650,7 +13193,7 @@
 	English aspell dictionary is installed, use the first entry of
 	ispell-dictionary-alist-1.
 
-2006-01-27  Kevin Rodgers  <ihs_4664@yahoo.com> (tiny change)
+2006-01-27  Kevin Rodgers  <ihs_4664@yahoo.com>  (tiny change)
 
 	* textmodes/flyspell.el (flyspell-incorrect, flyspell-duplicate):
 	Doc fix.
@@ -14672,7 +15215,7 @@
 	(hi-lock-find-patterns, hi-lock-font-lock-hook):
 	Replace hi-lock-buffer-mode with hi-lock-mode.
 
-2005-12-10  Kevin Rodgers  <ihs_4664@yahoo.com> (tiny change)
+2005-12-10  Kevin Rodgers  <ihs_4664@yahoo.com>  (tiny change)
 
 	* emacs-lisp/lisp.el (lisp-complete-symbol): Regenerate the
 	completion list, even after a partial completion has been

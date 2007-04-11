@@ -71,6 +71,9 @@
 
 ;;; Code:
 
+(require 'tempo)
+
+
 ;;; *** Customization *****************************************************
 
 
@@ -1935,8 +1938,6 @@ section at the end of the current buffer."
 ;; standard Emacs.  I would have liked something closer to the functionality
 ;; of LSE templates...
 
-
-(require 'tempo)
 (defvar dcl-tempo-tags nil
   "Tempo tags for DCL mode.")
 

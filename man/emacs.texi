@@ -5,7 +5,7 @@
 
 @c The edition number appears in several places in this file
 @set EDITION   Sixteenth
-@set EMACSVER  22.0.96
+@set EMACSVER  22.0.97
 
 @copying
 This is the @value{EDITION} edition of the @cite{GNU Emacs Manual},
@@ -908,7 +908,6 @@ Customizing Key Bindings
 * Init Rebinding::      Rebinding keys with your init file, @file{.emacs}.
 * Function Keys::       Rebinding terminal function keys.
 * Named ASCII Chars::   Distinguishing @key{TAB} from @kbd{C-i}, and so on.
-* Non-ASCII Rebinding:: Rebinding non-@acronym{ASCII} characters such as Latin-1.
 * Mouse Buttons::       Rebinding mouse buttons in Emacs.
 * Disabling::           Disabling a command means confirmation is required
                           before it can be executed.  This is done to protect
@@ -920,6 +919,7 @@ The Init File, @file{~/.emacs}
 * Init Examples::       How to do some things with an init file.
 * Terminal Init::       Each terminal type can have an init file.
 * Find Init::	        How Emacs finds the init file.
+* Init Non-ASCII::      Using non-@acronym{ASCII} characters in an init file.
 
 Dealing with Emacs Trouble
 

@@ -9,6 +9,7 @@
 @c The title "Standard Buffer-Local Variables" is too long for
 @c smallbook. --rjc 30mar92
 @cindex buffer-local variables, general-purpose
+@cindex standard buffer-local variables
 
   The table below lists the general-purpose Emacs variables that
 automatically become buffer-local in each buffer.  Most become
@@ -16,9 +17,9 @@ buffer-local only when set; a few of them are always local in every
 buffer.  Many Lisp packages define such variables for their internal
 use, but we don't try to list them all here.
 
-Each minor modes defines a buffer-local variable named
-@samp{@var{modename}-mode}.  @xref{Minor Mode Conventions}.  Minor
-mode variables will not be listed here.
+  Every buffer-specific minor mode defines a buffer-local variable
+named @samp{@var{modename}-mode}.  @xref{Minor Mode Conventions}.
+Minor mode variables will not be listed here.
 
 @table @code
 @item auto-fill-function

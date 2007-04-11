@@ -2314,6 +2314,8 @@ check_all_windows ()
 
 DEFUN ("get-lru-window", Fget_lru_window, Sget_lru_window, 0, 2, 0,
        doc: /* Return the window least recently selected or used for display.
+\(LRU means Least Recently Used.)
+
 Return a full-width window if possible.
 A minibuffer window is never a candidate.
 A dedicated window is never a candidate, unless DEDICATED is non-nil,

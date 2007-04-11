@@ -1940,8 +1940,14 @@ If INITIAL is non-nil, it specifies the initial input string."
       (if (and ido-matches (eq ido-try-merged-list 'auto))
 	  (setq ido-try-merged-list t))
       (let
-	  ((minibuffer-local-completion-map ido-completion-map)
-	   (minibuffer-local-filename-completion-map ido-completion-map)
+	  ((minibuffer-local-completion-map
+	    (if (memq ido-cur-item '(file dir))
+		minibuffer-local-completion-map
+	      ido-completion-map))
+	   (minibuffer-local-filename-completion-map
+	    (if (memq ido-cur-item '(file dir))
+		ido-completion-map
+	      minibuffer-local-filename-completion-map))
 	   (max-mini-window-height (or ido-max-window-height
 				       (and (boundp 'max-mini-window-height) max-mini-window-height)))
 	   (ido-completing-read t)

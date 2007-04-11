@@ -548,6 +548,8 @@ Return what remains of the list.  */)
 		  beg = Fcar (cdr);
 		  end = Fcdr (cdr);
 
+		  if (XINT (beg) < BEGV || XINT (end) > ZV)
+		    error ("Changes to be undone are outside visible portion of buffer");
 		  Fput_text_property (beg, end, prop, val, Qnil);
 		}
 	      else if (INTEGERP (car) && INTEGERP (cdr))

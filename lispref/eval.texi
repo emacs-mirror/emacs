@@ -233,7 +233,7 @@ Scheme.
 @node Function Indirection
 @subsection Symbol Function Indirection
 @cindex symbol function indirection
-@cindex indirection
+@cindex indirection for functions
 @cindex void function
 
   If the first element of the list is a symbol then evaluation examines
@@ -252,7 +252,6 @@ neither of these things happens, we eventually obtain a non-symbol,
 which ought to be a function or other suitable object.
 
 @kindex invalid-function
-@cindex invalid function
   More precisely, we should now have a Lisp function (a lambda
 expression), a byte-code function, a primitive function, a Lisp macro, a
 special form, or an autoload object.  Each of these types is a case
@@ -530,7 +529,6 @@ definition loaded from that file.  @xref{Autoload}.
 
 @node Quoting
 @section Quoting
-@cindex quoting
 
   The special form @code{quote} returns its single argument, as written,
 without evaluating it.  This provides a way to include constant symbols

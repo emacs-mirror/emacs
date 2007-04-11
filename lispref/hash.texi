@@ -7,10 +7,11 @@
 @node Hash Tables, Symbols, Sequences Arrays Vectors, Top
 @chapter Hash Tables
 @cindex hash tables
+@cindex lookup tables
 
-  A hash table is a very fast kind of lookup table, somewhat like
-an alist in that it maps keys to corresponding values.  It differs
-from an alist in these ways:
+  A hash table is a very fast kind of lookup table, somewhat like an
+alist (@pxref{Association Lists}) in that it maps keys to
+corresponding values.  It differs from an alist in these ways:
 
 @itemize @bullet
 @item
@@ -55,6 +56,7 @@ of object and are used only for recording interned symbols
 
 @node Creating Hash
 @section Creating Hash Tables
+@cindex creating hash tables
 
   The principal function for creating a hash table is
 @code{make-hash-table}.
@@ -212,6 +214,7 @@ arguments---a @var{key} listed in @var{table}, and its associated
 @node Defining Hash
 @section Defining Hash Comparisons
 @cindex hash code
+@cindex define hash comparisons
 
   You can define new methods of key lookup by means of
 @code{define-hash-table-test}.  In order to use this feature, you need

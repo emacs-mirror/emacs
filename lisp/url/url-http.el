@@ -87,6 +87,7 @@ request.")
 
 (defun url-http-mark-connection-as-busy (host port proc)
   (url-http-debug "Marking connection as busy: %s:%d %S" host port proc)
+  (set-process-query-on-exit-flag proc t)
   (puthash (cons host port)
 	      (delq proc (gethash (cons host port) url-http-open-connections))
 	      url-http-open-connections)
@@ -97,6 +98,7 @@ request.")
   (when (memq (process-status proc) '(open run connect))
     (set-process-buffer proc nil)
     (set-process-sentinel proc 'url-http-idle-sentinel)
+    (set-process-query-on-exit-flag proc nil)
     (puthash (cons host port)
 	     (cons proc (gethash (cons host port) url-http-open-connections))
 	     url-http-open-connections))
@@ -379,8 +381,8 @@ This allows us to use `mail-fetch-field', etc."
   "Handle all set-cookie / set-cookie2 headers in an HTTP response.
 The buffer must already be narrowed to the headers, so `mail-fetch-field' will
 work correctly."
-  (let ((cookies (mail-fetch-field "Set-Cookie" nil nil t))
-	(cookies2 (mail-fetch-field "Set-Cookie2" nil nil t)))
+  (let ((cookies (nreverse (mail-fetch-field "Set-Cookie" nil nil t)))
+	(cookies2 (nreverse (mail-fetch-field "Set-Cookie2" nil nil t))))
     (and cookies (url-http-debug "Found %d Set-Cookie headers" (length cookies)))
     (and cookies2 (url-http-debug "Found %d Set-Cookie2 headers" (length cookies2)))
     (while cookies

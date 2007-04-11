@@ -393,6 +393,13 @@ Thank you for your help in stamping out bugs.
        (setq mml-buffer-list nil)
        (add-hook 'message-header-setup-hook 'gnus-inews-insert-gcc)
        (add-hook 'message-header-setup-hook 'gnus-inews-insert-archive-gcc)
+       ;; message-newsreader and message-mailer were formerly set in
+       ;; gnus-inews-add-send-actions, but this is too late when
+       ;; message-generate-headers-first is used. --ansel
+       (add-hook 'message-mode-hook
+		 (lambda nil
+		   (setq message-newsreader
+			 (setq message-mailer (gnus-extended-version)))))
        ;; #### FIXME: for a reason that I did not manage to identify yet,
        ;; the variable `gnus-newsgroup-name' does not honor a dynamically
        ;; scoped or setq'ed value from a caller like `C-u gnus-summary-mail'.
@@ -514,7 +521,6 @@ Gcc: header for archiving purposes."
   (setq message-post-method
 	`(lambda (arg)
 	   (gnus-post-method arg ,gnus-newsgroup-name)))
-  (setq message-newsreader (setq message-mailer (gnus-extended-version)))
   (message-add-action
    `(when (gnus-buffer-exists-p ,buffer)
       (set-window-configuration ,winconf))
@@ -765,6 +771,7 @@ active, the entire article will be yanked."
 		 (nnheader-narrow-to-headers)
 		 (nnheader-parse-naked-head)))))
 	(message-yank-original)
+	(message-exchange-point-and-mark)
 	(setq beg (or beg (mark t))))
       (when articles
 	(insert "\n")))

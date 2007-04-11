@@ -652,6 +652,8 @@ tetris-mode keybindings:
   (tetris-mode)
   (tetris-start-game))
 
+(random t)
+
 (provide 'tetris)
 
 ;;; arch-tag: fb780d53-3ff0-49f0-8e19-f7f13cf2d49e

@@ -519,6 +519,8 @@ in progress because it is an animated attempt."
       (y-or-n-p prompt)
     t))
 
+(random t)
+
 (provide '5x5)
 
 ;;; arch-tag: ec4dabd5-572d-41ea-b48c-ec5ce0d68fa9

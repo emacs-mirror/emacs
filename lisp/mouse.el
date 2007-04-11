@@ -1521,7 +1521,11 @@ This must be bound to a mouse drag event."
     (with-current-buffer (window-buffer (posn-window posn))
       (if (numberp (posn-point posn))
 	  (setq beg (posn-point posn)))
-      (move-overlay mouse-secondary-overlay beg (posn-point end)))))
+      (move-overlay mouse-secondary-overlay beg (posn-point end))
+      (x-set-selection
+       'SECONDARY
+       (buffer-substring (overlay-start mouse-secondary-overlay)
+			 (overlay-end mouse-secondary-overlay))))))
 
 (defun mouse-drag-secondary (start-event)
   "Set the secondary selection to the text that the mouse is dragged over.

@@ -301,6 +301,11 @@ calendar."
   :type 'boolean
   :group 'holidays)
 
+(defcustom calendar-mode-hook nil
+  "Hook run when entering `calendar-mode'."
+  :type 'hook
+  :group 'calendar-hooks)
+
 ;;;###autoload
 (defcustom calendar-load-hook nil
   "List of functions to be called after the calendar is first loaded.
@@ -624,6 +629,10 @@ See the documentation of `diary-date-forms' for an explanation."
 				       (choice symbol regexp)))))
   :group 'diary)
 
+(autoload 'diary-font-lock-keywords "diary-lib")
+(autoload 'diary-live-p "diary-lib")
+(defvar diary-font-lock-keywords)
+
 (defcustom diary-date-forms
   (if european-calendar-style
       european-date-diary-pattern
@@ -661,6 +670,15 @@ a portion of the first word of the diary entry."
 			 (repeat (list :inline t :format "%v"
 				       (symbol :tag "Keyword")
 				       (choice symbol regexp)))))
+  :initialize 'custom-initialize-default
+  :set (lambda (symbol value)
+         (unless (equal value (eval symbol))
+           (custom-set-default symbol value)
+           (setq diary-font-lock-keywords (diary-font-lock-keywords))
+           ;; Need to redraw not just to get new font-locking, but also
+           ;; to pick up any newly recognized entries.
+           (and (diary-live-p)
+                (diary))))
   :group 'diary)
 
 ;;;###autoload

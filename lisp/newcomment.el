@@ -391,7 +391,9 @@ and raises an error or returns nil if NOERROR is non-nil."
 		 pt (or limit (point-max)) nil nil
 		 (list nil nil nil (nth 3 s) nil nil nil nil)
 		 t)))
-      (if (not (and (nth 8 s) (not (nth 3 s))))
+      (if (or (not (and (nth 8 s) (not (nth 3 s))))
+	      ;; Make sure the comment starts after PT.
+	      (< (nth 8 s) pt))
 	  (unless noerror (error "No comment"))
 	;; We found the comment.
 	(let ((pos (point))

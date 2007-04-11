@@ -1,3 +1,17 @@
+2007-04-01  Diane Murray  <disumu@x3y2z1.net>
+
+	* url-http.el (url-http-handle-cookies): Reverse list returned by
+	`mail-fetch-field', so that cookies are set in the correct order.
+
+	* url-cookie.el (url-cookie-retrieve, url-cookie-host-can-set-p):
+	Deal with wildcard dots in domain values.
+
+2007-03-31  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* url-http.el (url-http-mark-connection-as-busy)
+	(url-http-mark-connection-as-free): Clear query-on-exit flag on
+	idle connections.
+
 2007-02-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* url-http.el (url-http-connection-opened): New variable.

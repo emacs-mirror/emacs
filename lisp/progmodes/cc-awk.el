@@ -988,6 +988,7 @@ nor helpful.
 Note that this function might do hidden buffer changes.  See the
 comment at the start of cc-engine.el for more info."
   (interactive "p")
+  (or arg (setq arg 1))
   (save-match-data
     (c-save-buffer-state                ; ensures the buffer is writable.
      nil
