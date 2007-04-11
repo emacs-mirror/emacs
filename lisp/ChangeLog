@@ -1,3 +1,8 @@
+2007-04-11  Jason Rumney  <jasonr@gnu.org>
+
+	* dnd.el (dnd-get-local-file-name): Decode both upper and lower
+	case hex. Do not try to decode non-hex letters.
+
 2007-04-11  Markus Triska  <markus.triska@gmx.at>
 
         * emacs-lisp/byte-opt.el (byte-optimize-backward-char)
