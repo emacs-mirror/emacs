@@ -3470,7 +3470,7 @@ once for the same part of the buffer, you can use the variable
 @code{buffer-access-fontified-property}.
 
 @defvar buffer-access-fontified-property
-If this value's variable is non-@code{nil}, it is a symbol which is used
+If this variable's value is non-@code{nil}, it is a symbol which is used
 as a text property name.  A non-@code{nil} value for that text property
 means, ``the other text properties for this character have already been
 computed.''
