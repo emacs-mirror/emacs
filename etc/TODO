@@ -511,9 +511,6 @@ when the body only calls primitives.
 ** Let LEIM handle the Mode_switch key like XIM does (i.e. a toggle like C-\
 but which can also be used as a modifier).
 
-** Provide the toolbar on ttys. This could map a bit like tmm-menubar
-   for the menubar and buttons could look a bit like those used by customize.
-
 ** Improve Help buffers: Change the face of previously visited links (like
    Info, but also with regard to namespace), add a forward button to make the
    Help buffer more browser like and gives the value of lisp expressions
