@@ -1,3 +1,7 @@
+2007-04-11  Richard Stallman  <rms@gnu.org>
+
+	* text.texi (Lazy Properties): Minor fix.
+
 2007-04-08  Karl Berry  <karl@gnu.org>
 
 	* symbols.texi (Plists and Alists): Period after "vs" in index entries.
