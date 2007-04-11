@@ -1,3 +1,17 @@
+2007-04-11  Karl Berry  <karl@gnu.org>
+
+	* anti.texi (Antinews),
+	* display.texi (Overlay Properties) and (Defining Images),
+	* processes.texi (Synchronous Processes) and (Sentinels),
+	* syntax.texi (Syntax Table Internals),
+	* searching.texi (Regexp Special),
+	* nonascii.texi (Default Coding Systems),
+	* text.texi (Special Properties),
+	* minibuf.texi (Basic Completion): Wording to improve breaks in
+	8.5x11 format.
+	* elisp.texi (smallbook): new @set to more easily switch between
+	smallbook and 8.5x11.
+
 2007-04-11  Richard Stallman  <rms@gnu.org>
 
 	* text.texi (Lazy Properties): Minor fix.

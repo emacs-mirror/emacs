@@ -2987,13 +2987,13 @@ time you want to specify a particular attribute for certain text.
 @xref{Face Attributes}.
 
 @item
-A cons cell of the form @code{(foreground-color . @var{color-name})} or
+A cons cell with the form @code{(foreground-color . @var{color-name})} or
 @code{(background-color . @var{color-name})}.  These elements specify
 just the foreground color or just the background color.  @xref{Color
 Names}, for the supported forms of @var{color-name}.
 
-@code{(foreground-color . @var{color-name})} is equivalent to
-specifying @code{(:foreground @var{color-name})}, and likewise for the
+A cons cell of @code{(foreground-color . @var{color-name})} is equivalent to
+specifying @code{(:foreground @var{color-name})}; likewise for the
 background.
 @end itemize
 

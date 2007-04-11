@@ -14,17 +14,22 @@
 * Elisp: (elisp).       The Emacs Lisp Reference Manual.
 @end direntry
 
-@c So that anyone making the printed manual gets the version we have
-@c tuned to avoid bad line breaks, etc.
+@c for full 8.5x11, comment this out.
+@set smallbook
+
+@ifset smallbook
 @smallbook
+@end ifset
 
 @c per rms and peterb, use 10pt fonts for the main text, mostly to
 @c save on paper cost.  Also, do not declare @setchapternewpage odd,
 @c for the same reason. Do this inside @tex for now, so the
 @c last-released makeinfo does not complain.
 @tex
+@ifset smallbook
 @fonttextsize 10
-\global\hbadness=6000 % don't worry about not-too-underfull boxes
+@end ifset
+\global\hbadness=6666 % don't worry about not-too-underfull boxes
 @end tex
 
 @c Combine indices.
@@ -61,7 +66,7 @@ Software Foundation raise funds for GNU development.''
 @titlepage
 @title GNU Emacs Lisp Reference Manual
 @subtitle For Emacs Version @value{EMACSVER}
-@subtitle Revision @value{VERSION}, January 2002
+@subtitle Revision @value{VERSION}, April 2007
 
 @author by Bil Lewis, Dan LaLiberte, Richard Stallman
 @author and the GNU Manual Group
