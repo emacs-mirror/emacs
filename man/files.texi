@@ -2815,13 +2815,8 @@ works only when Emacs can display the specific image type.
 
 @findex thumbs-mode
 @findex mode, thumbs
-  Thumbs mode is a major mode for viewing directories containing many
-image files.  To use it, type @kbd{M-x thumbs} and specify the
-directory to view.  The images in that directory will be displayed in
-a @samp{Thumbs} buffer as @dfn{thumbnails}; type @kbd{RET} on a
-thumbnail to view the full-size image.  Thumbs mode requires the
-@file{convert} program, which is part of the ImageMagick software
-package.
+  See also the Tumme package (@pxref{Thumbnails}) for viewing images
+as thumbnails.
 
 @node Filesets
 @section Filesets
