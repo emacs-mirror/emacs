@@ -45,6 +45,11 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** crash in gc_sweep
 
+** ryanmcgeary@hotmail.com, Apr 9: x-display-pixel-width
+ change -- is it a bug?
+
+** disumu@x3y2z1.net, Apr 10: url-http endless loop
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
