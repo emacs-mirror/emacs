@@ -7,6 +7,7 @@
 	Signal an error if C is an invalid character code.
 
 	* editfns.c (general_insert_function): Use CHARACTERP, not INTEGERP.
+	(Fchar_to_string): Likewise.
 
 2007-03-23  Kenichi Handa  <handa@m17n.org>
 
