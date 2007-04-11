@@ -1117,26 +1117,6 @@
 	(byte-optimize-predicate form))
     form))
 
-;; Avoid having to write forward-... with a negative arg for speed.
-;; Fixme: don't be limited to constant args.
-(put 'backward-char 'byte-optimizer 'byte-optimize-backward-char)
-(defun byte-optimize-backward-char (form)
-  (cond ((and (= 2 (safe-length form))
-	      (numberp (nth 1 form)))
-	 (list 'forward-char (eval (- (nth 1 form)))))
-	((= 1 (safe-length form))
-	 '(forward-char -1))
-	(t form)))
-
-(put 'backward-word 'byte-optimizer 'byte-optimize-backward-word)
-(defun byte-optimize-backward-word (form)
-  (cond ((and (= 2 (safe-length form))
-	      (numberp (nth 1 form)))
-	 (list 'forward-word (eval (- (nth 1 form)))))
-	((= 1 (safe-length form))
-	 '(forward-word -1))
-	(t form)))
-
 ;; Fixme: delete-char -> delete-region (byte-coded)
 ;; optimize string-as-unibyte, string-as-multibyte, string-make-unibyte,
 ;; string-make-multibyte for constant args.
