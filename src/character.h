@@ -182,7 +182,7 @@ extern char unibyte_has_multibyte_table[256];
       (p)[1] = (0x80 | (((c) >> 6) & 0x3F)),	\
       (p)[2] = (0x80 | ((c) & 0x3F)),		\
       3)					\
-   : char_string (c, p))
+   : char_string ((unsigned) c, p))
 
 /* Store multibyte form of byte B in P.  The caller should allocate at
    least MAX_MULTIBYTE_LENGTH bytes area at P in advance.  Returns the
@@ -610,7 +610,7 @@ extern char unibyte_has_multibyte_table[256];
    : XINT (CHAR_TABLE_REF (Vchar_width_table, c)))
 
 extern int char_resolve_modifier_mask P_ ((int));
-extern int char_string P_ ((int, unsigned char *));
+extern int char_string P_ ((unsigned, unsigned char *));
 extern int string_char P_ ((const unsigned char *,
 			    const unsigned char **, int *));
 
