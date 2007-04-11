@@ -58,14 +58,15 @@ collection of related options, for one program or for several programs
 (optionally even for all programs).
 
 @cindex Registry (MS-Windows)
-  MS-Windows systems don't support @file{~/.Xdefaults} files, but
-Emacs compiled for Windows looks for X resources in the Windows
-Registry, under the key @samp{HKEY_CURRENT_USER\SOFTWARE\GNU\Emacs}
-and then under the key @samp{HKEY_LOCAL_MACHINE\SOFTWARE\GNU\Emacs}.
-The menu and scroll bars are native widgets on MS-Windows, so they are
-only customizable via the system-wide settings in the Display Control
-Panel.  You can also set resources using the @samp{-xrm} command line
-option (see below.)
+  MS-Windows systems do not support @file{~/.Xdefaults} files, so
+instead Emacs compiled for Windows looks for X resources in the
+Windows Registry, first under the key
+@samp{HKEY_CURRENT_USER\SOFTWARE\GNU\Emacs} and then under the key
+@samp{HKEY_LOCAL_MACHINE\SOFTWARE\GNU\Emacs}.  The menu and scroll
+bars are native widgets on MS-Windows, so they are only customizable
+via the system-wide settings in the Display Control Panel.  You can
+also set resources using the @samp{-xrm} command line option (see
+below.)
 
 @iftex
   Applications such as Emacs look for resources with specific names

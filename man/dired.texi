@@ -1132,9 +1132,9 @@ may need to change the value of this variable.
 @findex locate-with-filter
 @cindex file database (locate)
 @vindex locate-command
-  @kbd{M-x locate} provides a similar interface to the @code{locate}
-program.  @kbd{M-x locate-with-filter} is similar, but keeps only files
-whose names match a given regular expression.
+  The command @kbd{M-x locate} provides a similar interface to the
+@code{locate} program.  @kbd{M-x locate-with-filter} is similar, but
+keeps only files whose names match a given regular expression.
 
   These buffers don't work entirely like ordinary Dired buffers: file
 operations work, but do not always automatically update the buffer.

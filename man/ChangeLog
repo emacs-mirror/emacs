@@ -1,3 +1,25 @@
+2007-04-11  Karl Berry  <karl@gnu.org>
+
+	* gnu.texi (Top),
+	* macos.texi (Mac Font Specs),
+	* anti.texi (Antinews),
+	* xresources.texi (Resources),
+	* misc.texi (Emulation),
+	* calendar.texi (Daylight Saving),
+	* dired.texi (Dired and Find),
+	* rmail.texi (Remote Mailboxes),
+	* sending.texi (Mail Headers),
+	* programs.texi (Which Function),
+	* files.texi (Recover),
+	* buffers.texi (Uniquify),
+	* frames.texi (Wheeled Mice),
+	* killing.texi (Rectangles): Wording to improve breaks in
+	8.5x11 format.
+	* mule.texi (Language Environments): \hbadness=10000 since there's
+	no way to reword.
+	* emacs.texi (smallbook): new @set to more easily switch between
+	smallbook and 8.5x11.
+
 2007-04-11  Richard Stallman  <rms@gnu.org>
 
 	* files.texi (File Conveniences): Add xref to Tumme.

@@ -240,11 +240,11 @@ yourself, Emacs puts in one for you.  The variable
 @item nil
 Use just the email address, as in @samp{king@@grassland.com}.
 @item parens
-Use both email address and full name, as in @samp{king@@grassland.com (Elvis
-Parsley)}.
+Use both email address and full name, as in:@*
+@samp{king@@grassland.com (Elvis Parsley)}.
 @item angles
-Use both email address and full name, as in @samp{Elvis Parsley
-<king@@grassland.com>}.
+Use both email address and full name, as in:@*
+@samp{Elvis Parsley <king@@grassland.com>}.
 @item system-default
 Allow the system to insert the @samp{From} field.
 @end table

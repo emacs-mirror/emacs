@@ -874,7 +874,7 @@ feature, use @kbd{M-x mouse-wheel-mode}.
 @vindex mouse-wheel-follow-mouse
 @vindex mouse-wheel-scroll-amount
 @vindex mouse-wheel-progressive-speed
-  The variables @code{mouse-wheel-follow-mouse} and
+  The two variables @code{mouse-wheel-follow-mouse} and
 @code{mouse-wheel-scroll-amount} determine where and by how much
 buffers are scrolled.  The variable
 @code{mouse-wheel-progressive-speed} determines whether the scroll
