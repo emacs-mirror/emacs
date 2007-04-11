@@ -1657,6 +1657,8 @@ Hack on previous word, setting global variable OWNER to correct result."
 
 (defun doctor-chat () (doctor-type (doc$ chatlst)))
 
+(random t)
+
 (provide 'doctor)
 
 ;; arch-tag: 579380f6-4902-4ea5-bccb-6339e30e1257

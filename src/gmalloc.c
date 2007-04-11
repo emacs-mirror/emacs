@@ -1,6 +1,9 @@
 /* This file is no longer automatically generated from libc.  */
 
 #define _MALLOC_INTERNAL
+#ifdef HAVE_GTK_AND_PTHREAD
+#define USE_PTHREAD
+#endif
 
 /* The malloc headers and source files from the C library follow here.  */
 
@@ -71,6 +74,10 @@ Fifth Floor, Boston, MA 02110-1301, USA.
 
 #ifdef	HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+
+#ifdef USE_PTHREAD
+#include <pthread.h>
 #endif
 
 #endif	/* _MALLOC_INTERNAL.  */
@@ -228,6 +235,15 @@ extern __malloc_size_t _bytes_free;
 extern __ptr_t _malloc_internal PP ((__malloc_size_t __size));
 extern __ptr_t _realloc_internal PP ((__ptr_t __ptr, __malloc_size_t __size));
 extern void _free_internal PP ((__ptr_t __ptr));
+
+#ifdef USE_PTHREAD
+extern pthread_mutex_t _malloc_mutex;
+#define LOCK()     pthread_mutex_lock (&_malloc_mutex)
+#define UNLOCK()   pthread_mutex_unlock (&_malloc_mutex)
+#else
+#define LOCK()
+#define UNLOCK()
+#endif
 
 #endif /* _MALLOC_INTERNAL.  */
 
@@ -536,13 +552,14 @@ register_heapinfo ()
     _heapinfo[block + blocks].busy.info.size = -blocks;
 }
 
-/* Set everything up and remember that we have.  */
-int
-__malloc_initialize ()
-{
-  if (__malloc_initialized)
-    return 0;
+#ifdef USE_PTHREAD
+static pthread_once_t malloc_init_once_control = PTHREAD_ONCE_INIT;
+pthread_mutex_t _malloc_mutex;
+#endif
 
+static void
+malloc_initialize_1 ()
+{
 #ifdef GC_MCHECK
   mcheck (NULL);
 #endif
@@ -550,10 +567,21 @@ __malloc_initialize ()
   if (__malloc_initialize_hook)
     (*__malloc_initialize_hook) ();
 
+#ifdef USE_PTHREAD
+  {
+    pthread_mutexattr_t attr;
+
+    pthread_mutexattr_init (&attr);
+    pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE);
+    pthread_mutex_init (&_malloc_mutex, &attr);
+    pthread_mutexattr_destroy (&attr);
+  }
+#endif
+
   heapsize = HEAP / BLOCKSIZE;
   _heapinfo = (malloc_info *) align (heapsize * sizeof (malloc_info));
   if (_heapinfo == NULL)
-    return 0;
+    return;
   memset (_heapinfo, 0, heapsize * sizeof (malloc_info));
   _heapinfo[0].free.size = 0;
   _heapinfo[0].free.next = _heapinfo[0].free.prev = 0;
@@ -565,7 +593,23 @@ __malloc_initialize ()
 
   __malloc_initialized = 1;
   PROTECT_MALLOC_STATE (1);
-  return 1;
+  return;
+}
+
+/* Set everything up and remember that we have.  */
+int
+__malloc_initialize ()
+{
+#ifdef USE_PTHREAD
+  pthread_once (&malloc_init_once_control, malloc_initialize_1);
+#else
+  if (__malloc_initialized)
+    return 0;
+
+  malloc_initialize_1 ();
+#endif
+
+  return __malloc_initialized;
 }
 
 static int morecore_recursing;
@@ -708,6 +752,7 @@ _malloc_internal (size)
     return NULL;
 #endif
 
+  LOCK ();
   PROTECT_MALLOC_STATE (0);
 
   if (size < sizeof (struct list))
@@ -765,7 +810,7 @@ _malloc_internal (size)
 	  if (result == NULL)
 	    {
 	      PROTECT_MALLOC_STATE (1);
-	      return NULL;
+	      goto out;
 	    }
 
 	  /* Link all fragments but the first into the free list.  */
@@ -831,7 +876,7 @@ _malloc_internal (size)
 		}
 	      result = morecore (wantblocks * BLOCKSIZE);
 	      if (result == NULL)
-		return NULL;
+		goto out;
 	      block = BLOCK (result);
 	      /* Put the new block at the end of the free list.  */
 	      _heapinfo[block].free.size = wantblocks;
@@ -886,6 +931,8 @@ _malloc_internal (size)
     }
 
   PROTECT_MALLOC_STATE (1);
+ out:
+  UNLOCK ();
   return result;
 }
 
@@ -996,6 +1043,7 @@ _free_internal (ptr)
   if (ptr == NULL)
     return;
 
+  LOCK ();
   PROTECT_MALLOC_STATE (0);
 
   for (l = _aligned_blocks; l != NULL; l = l->next)
@@ -1221,6 +1269,7 @@ _free_internal (ptr)
     }
 
   PROTECT_MALLOC_STATE (1);
+  UNLOCK ();
 }
 
 /* Return memory to the heap.  */
@@ -1384,6 +1433,7 @@ _realloc_internal (ptr, size)
 
   block = BLOCK (ptr);
 
+  LOCK ();
   PROTECT_MALLOC_STATE (0);
 
   type = _heapinfo[block].busy.type;
@@ -1398,7 +1448,7 @@ _realloc_internal (ptr, size)
 	    {
 	      memcpy (result, ptr, size);
 	      _free_internal (ptr);
-	      return result;
+	      goto out;
 	    }
 	}
 
@@ -1451,7 +1501,7 @@ _realloc_internal (ptr, size)
 		  (void) _malloc_internal (blocks * BLOCKSIZE);
 		  _free_internal (previous);
 		}
-	      return NULL;
+	      goto out;
 	    }
 	  if (ptr != result)
 	    memmove (result, ptr, blocks * BLOCKSIZE);
@@ -1471,7 +1521,7 @@ _realloc_internal (ptr, size)
 	     and copy the lesser of the new size and the old. */
 	  result = _malloc_internal (size);
 	  if (result == NULL)
-	    return NULL;
+	    goto out;
 	  memcpy (result, ptr, min (size, (__malloc_size_t) 1 << type));
 	  _free_internal (ptr);
 	}
@@ -1479,6 +1529,8 @@ _realloc_internal (ptr, size)
     }
 
   PROTECT_MALLOC_STATE (1);
+ out:
+  UNLOCK ();
   return result;
 }
 

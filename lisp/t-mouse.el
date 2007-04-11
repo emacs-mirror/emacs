@@ -134,14 +134,19 @@ For example, \"2\" for /dev/tty2."
 
 (defun t-mouse-make-event-element (x-dot-y-avec-time)
   (let* ((x-dot-y (nth 0 x-dot-y-avec-time))
+	 (time (nth 1 x-dot-y-avec-time))
          (x (car x-dot-y))
          (y (cdr x-dot-y))
          (w (window-at x y))
          (ltrb (window-edges w))
          (left (nth 0 ltrb))
-         (top (nth 1 ltrb)))
-    (if w (posn-at-x-y (- x left) (- y top) w t)
-      (append (list nil 'menu-bar) (nthcdr 2 (posn-at-x-y x y w t))))))
+         (top (nth 1 ltrb))
+	 (event (if w
+		    (posn-at-x-y (- x left) (- y top) w t)
+		  (append (list nil 'menu-bar)
+			  (nthcdr 2 (posn-at-x-y x y))))))
+    (setcar (nthcdr 3 event) time)
+    event))
 
 ;;; This fun is partly Copyright (C) 1994 Per Abrahamsen <abraham@iesd.auc.dk>
 (defun t-mouse-make-event ()

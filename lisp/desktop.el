@@ -779,32 +779,32 @@ See also `desktop-base-file-name'."
 	  ";; -*- mode: emacs-lisp; coding: utf-8-emacs; -*-\n"
 	  desktop-header
 	  ";; Created " (current-time-string) "\n"
-	  ";; Desktop file format version " desktop-file-version "\n"
-	  ";; Emacs version " emacs-version "\n\n"
-	  ";; Global section:\n")
-	(mapc (function desktop-outvar) desktop-globals-to-save)
-	(if (memq 'kill-ring desktop-globals-to-save)
-	  (insert
-	    "(setq kill-ring-yank-pointer (nthcdr "
+         ";; Desktop file format version " desktop-file-version "\n"
+         ";; Emacs version " emacs-version "\n\n"
+         ";; Global section:\n")
+        (mapcar (function desktop-outvar) desktop-globals-to-save)
+        (if (memq 'kill-ring desktop-globals-to-save)
+            (insert
+             "(setq kill-ring-yank-pointer (nthcdr "
 	    (int-to-string (- (length kill-ring) (length kill-ring-yank-pointer)))
-	    " kill-ring))\n"))
+             " kill-ring))\n"))
 
-	(insert "\n;; Buffer section -- buffers listed in same order as in buffer list:\n")
-	(mapc #'(lambda (l)
-		  (when (apply 'desktop-save-buffer-p l)
-		    (insert "("
-			    (if (or (not (integerp eager))
+        (insert "\n;; Buffer section -- buffers listed in same order as in buffer list:\n")
+        (mapcar #'(lambda (l)
+                  (when (apply 'desktop-save-buffer-p l)
+                    (insert "("
+                            (if (or (not (integerp eager))
 				    (unless (zerop eager)
 				      (setq eager (1- eager))
 				      t))
 				"desktop-create-buffer"
-			      "desktop-append-buffer-args")
-			    " "
-			    desktop-file-version)
-		    (mapc #'(lambda (e)
-			      (insert "\n  " (desktop-value-to-string e)))
-			  l)
-		    (insert ")\n\n")))
+                              "desktop-append-buffer-args")
+                            " "
+                            desktop-file-version)
+                    (mapcar #'(lambda (e)
+                              (insert "\n  " (desktop-value-to-string e)))
+                          l)
+                    (insert ")\n\n")))
 	      info)
 	(setq default-directory dirname)
 	(let ((coding-system-for-write 'utf-8-emacs))
@@ -1045,7 +1045,7 @@ directory DIRNAME."
               ((equal '(nil) desktop-buffer-minor-modes) ; backwards compatible
                (auto-fill-mode 0))
               (t
-               (mapc #'(lambda (minor-mode)
+               (mapcar #'(lambda (minor-mode)
                          ;; Give minor mode module a chance to add a handler.
                          (desktop-load-file minor-mode)
                          (let ((handler (cdr (assq minor-mode desktop-minor-mode-handlers))))

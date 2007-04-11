@@ -491,6 +491,20 @@ Now we have the variable `charset-list'."
 	(error "Invalid Emacs-mule charset ID: %d" charset-id))
     (make-char charset code1 code2)))
 
+;; Save the ASCII case table in case we need it later.  Some locales
+;; (such as Turkish) modify the case behavior of ASCII characters,
+;; which can interfere with networking code that uses ASCII strings.
+
+(defvar ascii-case-table
+  ;; Code copied from copy-case-table to avoid requiring case-table.el
+  (let ((tbl (copy-sequence (standard-case-table)))
+	(up  (char-table-extra-slot (standard-case-table) 0)))
+    (if up (set-char-table-extra-slot tbl 0 (copy-sequence up)))
+    (set-char-table-extra-slot tbl 1 nil)
+    (set-char-table-extra-slot tbl 2 nil)
+    tbl)
+  "Case table for the ASCII character set.")
+
 ;; Coding system stuff
 
 ;; Coding system is a symbol that has been defined by the function

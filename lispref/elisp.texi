@@ -7,7 +7,7 @@
 @c Version of the manual and of Emacs.
 @c Please remember to update the edition number in README as well.
 @set VERSION  2.9
-@set EMACSVER 22.0.95
+@set EMACSVER 22.0.97
 
 @dircategory Emacs
 @direntry
@@ -1297,7 +1297,7 @@ Images
 * XBM Images::              Special features for XBM format.
 * XPM Images::              Special features for XPM format.
 * GIF Images::              Special features for GIF format.
-* Postscript Images::       Special features for Postscript format.
+* PostScript Images::       Special features for PostScript format.
 * Other Image Types::       Various other formats are supported.
 * Defining Images::         Convenient ways to define an image for later use.
 * Showing Images::          Convenient ways to display an image once

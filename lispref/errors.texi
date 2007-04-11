@@ -6,6 +6,7 @@
 @setfilename ../info/errors
 @node Standard Errors, Standard Buffer-Local Variables, GNU Emacs Internals, Top
 @appendix Standard Errors
+@cindex standard errors
 
   Here is the complete list of the error symbols in standard Emacs,
 grouped by concept.  The list includes each symbol's message (on the

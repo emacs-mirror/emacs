@@ -221,11 +221,6 @@ the evaluated constant value at compile time."
     ;; with the group symbol for each group and should return non-nil
     ;; if that group is to be included.
     ;;
-    ;; OP-FILTER filters the individual operators in each group.  It
-    ;; can be t to choose all operators, a regexp to test against each
-    ;; operator, or a function which will be called for each operator
-    ;; and should return non-nil for those to include.
-    ;;
     ;; If XLATE is given, it's a function which is called for each
     ;; matching operator and its return value is collected instead.
     ;; If it returns a list, the elements are spliced directly into
@@ -1375,6 +1370,26 @@ EOL terminated statements."
 (c-lang-defvar c-vsemi-status-unknown-p-fn
   (c-lang-const c-vsemi-status-unknown-p-fn))
 
+
+;;; Defun functions
+
+;; The Emacs variables beginning-of-defun-function and
+;; end-of-defun-function will be set so that commands like
+;; `mark-defun' and `narrow-to-defun' work right.  The key sequences
+;; C-M-a and C-M-e are, however, bound directly to the CC Mode
+;; functions, allowing optimisation for large n.
+(c-lang-defconst beginning-of-defun-function
+  "Function to which beginning-of-defun-function will be set."
+  t 'c-beginning-of-defun
+  awk 'c-awk-beginning-of-defun)
+(c-lang-setvar beginning-of-defun-function
+	       (c-lang-const beginning-of-defun-function))
+
+(c-lang-defconst end-of-defun-function
+  "Function to which end-of-defun-function will be set."
+  t 'c-end-of-defun
+  awk 'c-awk-end-of-defun)
+(c-lang-setvar end-of-defun-function (c-lang-const end-of-defun-function))
 
 ;;; In-comment text handling.
 

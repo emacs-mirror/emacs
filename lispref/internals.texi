@@ -204,7 +204,7 @@ You should not change this flag in a running Emacs.
 
 @node Garbage Collection
 @appendixsec Garbage Collection
-@cindex garbage collector
+@cindex garbage collection
 
 @cindex memory allocation
   When a program creates a list or the user defines a new function (such
@@ -441,6 +441,7 @@ point number.
 
 @node Memory Usage
 @section Memory Usage
+@cindex memory usage
 
   These functions and variables give information about the total amount
 of memory allocation that Emacs has done, broken down by data type.
@@ -530,7 +531,7 @@ usage: (or CONDITIONS ...)  */)
     @{
       val = Feval (XCAR (args));
       if (!NILP (val))
-	break;
+        break;
       args = XCDR (args);
     @}
 @end group
@@ -715,7 +716,7 @@ with a value that is either @code{t} or @code{nil}.  Note that variables
 defined with @code{DEFVAR_BOOL} are automatically added to the list
 @code{byte-boolean-vars} used by the byte compiler.
 
-@cindex @code{staticpro}, protect file-scope variables from GC
+@cindex @code{staticpro}, protection from GC
   If you define a file-scope C variable of type @code{Lisp_Object},
 you must protect it from garbage-collection by calling @code{staticpro}
 in @code{syms_of_@var{filename}}, like this:

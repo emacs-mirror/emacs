@@ -1847,13 +1847,9 @@ Initialize colors of certain faces from frame parameters."
       (condition-case ()
 	  (progn
 	    (face-spec-set face (face-user-default-spec face) frame)
-	    (internal-merge-in-global-face face frame)
 	    (if (memq window-system '(x w32 mac))
 		(make-face-x-resource-internal face frame))
-	    ;; If the user has customized the face, don't let X
-	    ;; resources override the customizations.
-	    (if (get face 'theme-face)
-		(custom-theme-recalc-face face)))
+	    (internal-merge-in-global-face face frame))
 	(error nil)))
     ;; Apply the attributes specified by frame parameters.  This
     ;; rewrites parameters changed by make-face-x-resource-internal
@@ -2187,12 +2183,6 @@ created."
 (defface vertical-border
   '((((type tty)) :inherit mode-line-inactive))
   "Face used for vertical window dividers on ttys."
-  :version "22.1"
-  :group 'basic-faces)
-
-(defface momentary
-  '((t (:inherit mode-line)))
-  "Face for momentarily displaying text in the current buffer."
   :version "22.1"
   :group 'basic-faces)
 

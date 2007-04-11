@@ -57,7 +57,7 @@
 ;;       appt.el                       Appointment notification
 ;;       cal-china.el                  Chinese calendar
 ;;       cal-coptic.el                 Coptic/Ethiopic calendars
-;;       cal-dst.el                    Daylight savings time rules
+;;       cal-dst.el                    Daylight saving time rules
 ;;       cal-hebrew.el                 Hebrew calendar
 ;;       cal-islam.el                  Islamic calendar
 ;;       cal-bahai.el                  Baha'i calendar
@@ -300,6 +300,11 @@ If t, show all the holidays that would appear in a complete Baha'i
 calendar."
   :type 'boolean
   :group 'holidays)
+
+(defcustom calendar-mode-hook nil
+  "Hook run when entering `calendar-mode'."
+  :type 'hook
+  :group 'calendar-hooks)
 
 ;;;###autoload
 (defcustom calendar-load-hook nil
@@ -624,6 +629,10 @@ See the documentation of `diary-date-forms' for an explanation."
 				       (choice symbol regexp)))))
   :group 'diary)
 
+(autoload 'diary-font-lock-keywords "diary-lib")
+(autoload 'diary-live-p "diary-lib")
+(defvar diary-font-lock-keywords)
+
 (defcustom diary-date-forms
   (if european-calendar-style
       european-date-diary-pattern
@@ -661,6 +670,15 @@ a portion of the first word of the diary entry."
 			 (repeat (list :inline t :format "%v"
 				       (symbol :tag "Keyword")
 				       (choice symbol regexp)))))
+  :initialize 'custom-initialize-default
+  :set (lambda (symbol value)
+         (unless (equal value (eval symbol))
+           (custom-set-default symbol value)
+           (setq diary-font-lock-keywords (diary-font-lock-keywords))
+           ;; Need to redraw not just to get new font-locking, but also
+           ;; to pick up any newly recognized entries.
+           (and (diary-live-p)
+                (diary))))
   :group 'diary)
 
 ;;;###autoload
@@ -770,6 +788,8 @@ Can be used for appointment notification."
   :type 'hook
   :group 'diary)
 
+(autoload 'diary-set-maybe-redraw "diary-lib")
+
 ;;;###autoload
 (defcustom diary-display-hook nil
   "List of functions that handle the display of the diary.
@@ -794,6 +814,8 @@ if that day is a holiday; if you want such days to be shown in the fancy
 diary buffer, set the variable `diary-list-include-blanks' to t."
   :type 'hook
   :options '(fancy-diary-display)
+  :initialize 'custom-initialize-default
+  :set 'diary-set-maybe-redraw
   :group 'diary)
 
 ;;;###autoload
@@ -1160,7 +1182,7 @@ See the documentation for `calendar-holidays' for details."
       (funcall
        'holiday-sexp
         calendar-daylight-savings-starts
-        '(format "Daylight Savings Time Begins %s"
+        '(format "Daylight Saving Time Begins %s"
                   (if (fboundp 'atan)
                       (solar-time-string
                        (/ calendar-daylight-savings-starts-time (float 60))
@@ -1169,7 +1191,7 @@ See the documentation for `calendar-holidays' for details."
     (funcall
      'holiday-sexp
      calendar-daylight-savings-ends
-     '(format "Daylight Savings Time Ends %s"
+     '(format "Daylight Saving Time Ends %s"
               (if (fboundp 'atan)
                   (solar-time-string
                    (/ calendar-daylight-savings-ends-time (float 60))

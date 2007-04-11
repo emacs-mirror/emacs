@@ -1575,6 +1575,7 @@ With ARG, turn ido speed-up on if arg is positive, off otherwise."
     (define-key map [(meta down)] 'ido-next-work-directory)
     (define-key map [backspace] 'ido-delete-backward-updir)
     (define-key map "\d"        'ido-delete-backward-updir)
+    (define-key map [remap delete-backward-char] 'ido-delete-backward-updir) ; BS
     (define-key map [remap backward-kill-word] 'ido-delete-backward-word-updir)  ; M-DEL
 
     (define-key map [(control backspace)] 'ido-up-directory)
@@ -1939,8 +1940,14 @@ If INITIAL is non-nil, it specifies the initial input string."
       (if (and ido-matches (eq ido-try-merged-list 'auto))
 	  (setq ido-try-merged-list t))
       (let
-	  ((minibuffer-local-completion-map ido-completion-map)
-	   (minibuffer-local-filename-completion-map ido-completion-map)
+	  ((minibuffer-local-completion-map
+	    (if (memq ido-cur-item '(file dir))
+		minibuffer-local-completion-map
+	      ido-completion-map))
+	   (minibuffer-local-filename-completion-map
+	    (if (memq ido-cur-item '(file dir))
+		ido-completion-map
+	      minibuffer-local-filename-completion-map))
 	   (max-mini-window-height (or ido-max-window-height
 				       (and (boundp 'max-mini-window-height) max-mini-window-height)))
 	   (ido-completing-read t)

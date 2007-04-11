@@ -4,6 +4,7 @@
 ;;   2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
+;; Maintainer: auctex-devel@gnu.org
 ;; Version: 4.31
 
 ;; This file is part of GNU Emacs.

@@ -692,6 +692,7 @@ If nil, `zone-pgm-random-life' chooses a value from 0-3 (inclusive).")
       (life (or zone-pgm-random-life-wait (random 4)))
       (kill-buffer nil))))
 
+(random t)
 
 ;;;;;;;;;;;;;;;
 (provide 'zone)

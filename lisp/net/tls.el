@@ -60,7 +60,7 @@
 			 "openssl s_client -connect %h:%p -no_ssl2")
   "List of strings containing commands to start TLS stream to a host.
 Each entry in the list is tried until a connection is successful.
-%s is replaced with server hostname, %p with port to connect to.
+%h is replaced with server hostname, %p with port to connect to.
 The program should read input on stdin and write output to
 stdout.  Also see `tls-success' for what the program should output
 after successful negotiation."
@@ -125,12 +125,17 @@ BUFFER is the buffer (or buffer-name) to associate with the process.
  with any buffer
 Third arg is name of the host to connect to, or its IP address.
 Fourth arg PORT is an integer specifying a port to connect to."
-  (let ((cmds tls-program) cmd done)
+  (let ((cmds tls-program)
+	(use-temp-buffer (null buffer))
+	process	cmd done)
+    (if use-temp-buffer
+	(setq buffer (generate-new-buffer " TLS")))
     (message "Opening TLS connection to `%s'..." host)
     (while (and (not done) (setq cmd (pop cmds)))
       (message "Opening TLS connection with `%s'..." cmd)
-      (let* ((process-connection-type tls-process-connection-type)
-	     (process (start-process
+      (let ((process-connection-type tls-process-connection-type)
+	    response)
+	(setq process (start-process
 		       name buffer shell-file-name shell-command-switch
 		       (format-spec
 			cmd
@@ -139,15 +144,14 @@ Fourth arg PORT is an integer specifying a port to connect to."
 			 ?p (if (integerp port)
 				(int-to-string port)
 			      port)))))
-	     response)
 	(while (and process
 		    (memq (process-status process) '(open run))
 		    (save-excursion
 		      (set-buffer buffer) ;; XXX "blue moon" nntp.el bug
 		      (goto-char (point-min))
 		      (not (setq done (re-search-forward tls-success nil t)))))
-	  (accept-process-output process 1)
-	  (sit-for 1))
+	  (unless (accept-process-output process 1)
+            (sit-for 1)))
 	(message "Opening TLS connection with `%s'...%s" cmd
 		 (if done "done" "failed"))
 	(if done
@@ -155,6 +159,9 @@ Fourth arg PORT is an integer specifying a port to connect to."
 	  (delete-process process))))
     (message "Opening TLS connection to `%s'...%s"
 	     host (if done "done" "failed"))
+    (when use-temp-buffer
+      (if done (set-process-buffer process nil))
+      (kill-buffer buffer))
     done))
 
 (provide 'tls)

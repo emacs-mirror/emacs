@@ -413,7 +413,7 @@ specifications in HTML @samp{<meta>} elements.
 @cindex FTP
 @cindex File Transfer Protocol
 @cindex compressed files
-@findex dired
+@cindex dired
 
 @example
 ftp://@var{user}:@var{password}@@@var{host}:@var{port}/@var{file}
@@ -757,9 +757,8 @@ corresponding cache file.  The two supplied possibilities are
 
 @defun url-cache-create-filename-using-md5 url
 Creates a cache file name from @var{url} using MD5 hashing.
-@findex md5
-This is creates entries with very few cache collisions and is fast if
-you have the @code{md5} function as a primitive (Emacs 21 and XEmacs).
+This is creates entries with very few cache collisions and is fast.
+@cindex MD5
 @smallexample
 (url-cache-create-filename-using-md5 "http://www.example.com/foo/bar")
   @result{} "/home/fx/.url/cache/fx/http/com/example/www/b8a35774ad20db71c7c3409a5410e74f"
@@ -1055,9 +1054,9 @@ opened by the URL library.
 @node History
 @section History
 
+@findex url-do-setup
 The library can maintain a global history list tracking URLs accessed.
 URL completion can be done from it.  The history mechanism is set up
-@findex url-do-setup
 automatically via @code{url-do-setup} when it is configured to be on.
 Note that the size of the history list is currently not limited.
 

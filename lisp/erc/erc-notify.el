@@ -121,8 +121,7 @@ changes."
 	     (ison-list (delete "" (split-string
 				    (erc-response.contents parsed))))
 	     (new-list ison-list)
-	     (old-list (with-current-buffer (erc-server-buffer)
-			 erc-last-ison)))
+	     (old-list (erc-with-server-buffer erc-last-ison)))
 	(while new-list
 	  (when (not (erc-member-ignore-case (car new-list) old-list))
 	    (run-hook-with-args 'erc-notify-signon-hook server (car new-list))
@@ -204,7 +203,7 @@ with args, toggle notify status of people."
   (cond
    ((null args)
     ;; Print current notificated people (online)
-    (let ((ison (with-current-buffer (erc-server-buffer) erc-last-ison)))
+    (let ((ison (erc-with-server-buffer erc-last-ison)))
       (if (not ison)
 	  (erc-display-message
 	   nil 'notice 'active "No ison-list yet!")

@@ -100,10 +100,12 @@ x
 
 @node Constant Variables
 @section Variables that Never Change
-@vindex nil
-@vindex t
 @kindex setting-constant
 @cindex keyword symbol
+@cindex variable with constant value
+@cindex constant variables
+@cindex symbol that evaluates to itself
+@cindex symbol with constant value
 
   In Emacs Lisp, certain symbols normally evaluate to themselves.  These
 include @code{nil} and @code{t}, as well as any symbol whose name starts
@@ -1079,7 +1081,7 @@ use short names like @code{x}.
 
 @node Buffer-Local Variables
 @section Buffer-Local Variables
-@cindex variables, buffer-local
+@cindex variable, buffer-local
 @cindex buffer-local variables
 
   Global and local variable bindings are found in most programming
@@ -1520,6 +1522,7 @@ an ordinary evaluated argument.
 
 @node Frame-Local Variables
 @section Frame-Local Variables
+@cindex frame-local variables
 
   Just as variables can have buffer-local bindings, they can also have
 frame-local bindings.  These bindings belong to one frame, and are in
@@ -1719,7 +1722,7 @@ This function returns non-@code{nil} if it is safe to give @var{sym}
 the value @var{val}, based on the above criteria.
 @end defun
 
-@cindex risky local variable
+@c @cindex risky local variable   Duplicates risky-local-variable
   Some variables are considered @dfn{risky}.  A variable whose name
 ends in any of @samp{-command}, @samp{-frame-alist}, @samp{-function},
 @samp{-functions}, @samp{-hook}, @samp{-hooks}, @samp{-form},
@@ -1778,6 +1781,7 @@ properties from string values specified for file local variables.
 
 @node Variable Aliases
 @section Variable Aliases
+@cindex variable aliases
 
   It is sometimes useful to make two variables synonyms, so that both
 variables always have the same value, and changing either one also

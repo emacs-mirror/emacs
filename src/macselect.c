@@ -386,7 +386,9 @@ get_scrap_target_type_list (scrap)
     {
       ScrapFlavorType flavor_type = 0;
 
-      if (CONSP (XCAR (rest)) && SYMBOLP (target_type = XCAR (XCAR (rest)))
+      if (CONSP (XCAR (rest))
+	  && (target_type = XCAR (XCAR (rest)),
+	      SYMBOLP (target_type))
 	  && (flavor_type = scrap_has_target_type (scrap, target_type)))
 	{
 	  result = Fcons (target_type, result);
@@ -449,9 +451,11 @@ x_own_selection (selection_name, selection_value)
       for (rest = Vselection_converter_alist; CONSP (rest); rest = XCDR (rest))
 	{
 	  if (!(CONSP (XCAR (rest))
-		&& SYMBOLP (type = XCAR (XCAR (rest)))
+		&& (type = XCAR (XCAR (rest)),
+		    SYMBOLP (type))
 		&& valid_scrap_target_type_p (type)
-		&& SYMBOLP (handler_fn = XCDR (XCAR (rest)))))
+		&& (handler_fn = XCDR (XCAR (rest)),
+		    SYMBOLP (handler_fn))))
 	    continue;
 
 	  if (!NILP (handler_fn))
@@ -1852,10 +1856,7 @@ and the local selection value (whatever was given to `x-own-selection').
 
 The function should return the value to send to the Scrap Manager
 \(must be a string).  A return value of nil
-means that the conversion could not be done.
-A return value which is the symbol `NULL'
-means that a side-effect was executed,
-and there is no meaningful selection value.  */);
+means that the conversion could not be done.  */);
   Vselection_converter_alist = Qnil;
 
   DEFVAR_LISP ("x-lost-selection-functions", &Vx_lost_selection_functions,

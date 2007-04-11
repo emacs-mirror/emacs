@@ -272,7 +272,9 @@ clip_to_bounds (lower, num, upper)
 
 DEFUN ("goto-char", Fgoto_char, Sgoto_char, 1, 1, "NGoto char: ",
        doc: /* Set point to POSITION, a number or marker.
-Beginning of buffer is position (point-min), end is (point-max).  */)
+Beginning of buffer is position (point-min), end is (point-max).
+
+The return value is POSITION.  */)
      (position)
      register Lisp_Object position;
 {
@@ -1727,7 +1729,7 @@ support.  MINUTE is an integer between 0 and 59.  HOUR is an integer
 between 0 and 23.  DAY is an integer between 1 and 31.  MONTH is an
 integer between 1 and 12.  YEAR is an integer indicating the
 four-digit year.  DOW is the day of week, an integer between 0 and 6,
-where 0 is Sunday.  DST is t if daylight savings time is effect,
+where 0 is Sunday.  DST is t if daylight saving time is in effect,
 otherwise nil.  ZONE is an integer indicating the number of seconds
 east of Greenwich.  (Note that Common Lisp has different meanings for
 DOW and ZONE.)  */)
@@ -1776,7 +1778,7 @@ This is the reverse operation of `decode-time', which see.
 ZONE defaults to the current time zone rule.  This can
 be a string or t (as from `set-time-zone-rule'), or it can be a list
 \(as from `current-time-zone') or an integer (as from `decode-time')
-applied without consideration for daylight savings time.
+applied without consideration for daylight saving time.
 
 You can pass more than 7 arguments; then the first six arguments
 are used as SECOND through YEAR, and the *last* argument is used as ZONE.
@@ -4261,7 +4263,10 @@ Transposing beyond buffer boundaries is an error.  */)
   int gap, len1, len_mid, len2;
   unsigned char *start1_addr, *start2_addr, *temp;
 
-  INTERVAL cur_intv, tmp_interval1, tmp_interval_mid, tmp_interval2;
+  INTERVAL cur_intv, tmp_interval1, tmp_interval_mid, tmp_interval2, tmp_interval3;
+  Lisp_Object buf;
+
+  XSETBUFFER (buf, current_buffer);
   cur_intv = BUF_INTERVALS (current_buffer);
 
   validate_region (&startr1, &endr1);
@@ -4368,8 +4373,11 @@ Transposing beyond buffer boundaries is an error.  */)
 
       tmp_interval1 = copy_intervals (cur_intv, start1, len1);
       tmp_interval2 = copy_intervals (cur_intv, start2, len2);
-      Fset_text_properties (make_number (start1), make_number (end2),
-			    Qnil, Qnil);
+      /* Don't use Fset_text_properties: that can cause GC, which can
+	 clobber objects stored in the tmp_intervals.  */
+      tmp_interval3 = validate_interval_range (buf, &startr1, &endr2, 0);
+      if (!NULL_INTERVAL_P (tmp_interval3))
+	set_text_properties_1 (startr1, endr2, Qnil, buf, tmp_interval3);
 
       /* First region smaller than second.  */
       if (len1_byte < len2_byte)
@@ -4425,10 +4433,14 @@ Transposing beyond buffer boundaries is an error.  */)
           record_change (start2, len2);
           tmp_interval1 = copy_intervals (cur_intv, start1, len1);
           tmp_interval2 = copy_intervals (cur_intv, start2, len2);
-          Fset_text_properties (make_number (start1), make_number (end1),
-				Qnil, Qnil);
-          Fset_text_properties (make_number (start2), make_number (end2),
-				Qnil, Qnil);
+
+	  tmp_interval3 = validate_interval_range (buf, &startr1, &endr1, 0);
+	  if (!NULL_INTERVAL_P (tmp_interval3))
+	    set_text_properties_1 (startr1, endr1, Qnil, buf, tmp_interval3);
+
+	  tmp_interval3 = validate_interval_range (buf, &startr2, &endr2, 0);
+	  if (!NULL_INTERVAL_P (tmp_interval3))
+	    set_text_properties_1 (startr2, endr2, Qnil, buf, tmp_interval3);
 
 	  SAFE_ALLOCA (temp, unsigned char *, len1_byte);
 	  start1_addr = BYTE_POS_ADDR (start1_byte);
@@ -4454,8 +4466,10 @@ Transposing beyond buffer boundaries is an error.  */)
           tmp_interval1 = copy_intervals (cur_intv, start1, len1);
           tmp_interval_mid = copy_intervals (cur_intv, end1, len_mid);
           tmp_interval2 = copy_intervals (cur_intv, start2, len2);
-          Fset_text_properties (make_number (start1), make_number (end2),
-				Qnil, Qnil);
+
+	  tmp_interval3 = validate_interval_range (buf, &startr1, &endr2, 0);
+	  if (!NULL_INTERVAL_P (tmp_interval3))
+	    set_text_properties_1 (startr1, endr2, Qnil, buf, tmp_interval3);
 
 	  /* holds region 2 */
 	  SAFE_ALLOCA (temp, unsigned char *, len2_byte);
@@ -4485,8 +4499,10 @@ Transposing beyond buffer boundaries is an error.  */)
           tmp_interval1 = copy_intervals (cur_intv, start1, len1);
           tmp_interval_mid = copy_intervals (cur_intv, end1, len_mid);
           tmp_interval2 = copy_intervals (cur_intv, start2, len2);
-          Fset_text_properties (make_number (start1), make_number (end2),
-				Qnil, Qnil);
+
+	  tmp_interval3 = validate_interval_range (buf, &startr1, &endr2, 0);
+	  if (!NULL_INTERVAL_P (tmp_interval3))
+	    set_text_properties_1 (startr1, endr2, Qnil, buf, tmp_interval3);
 
 	  /* holds region 1 */
 	  SAFE_ALLOCA (temp, unsigned char *, len1_byte);
@@ -4521,6 +4537,8 @@ Transposing beyond buffer boundaries is an error.  */)
       fix_start_end_in_overlays (start1, end2);
     }
 
+  signal_after_change (XINT (start1), XINT (end2 - start1),
+		       XINT (end2 - start1));
   return Qnil;
 }
 

@@ -11,7 +11,7 @@
 % Set letterpaper to 0 for A4 paper, 1 for letter (US) paper.  Useful
 % only when columnsperpage is 2 or 3.
 
-\letterpaper=1
+\letterpaper=0
 
 % Nothing else needs to be changed below this line.
 % Copyright (C) 1987, 1993, 1996, 1997, 2001, 2002, 2003, 2004,
@@ -216,8 +216,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA.
 
 % section - new major section.  Argument is section name.
 \outer\def\section#1{\par\filbreak
-  \vskip 3ex plus 2ex minus 2ex {\headingfont #1}\mark{#1}%
-  \vskip 2ex plus 1ex minus 1.5ex}
+  \vskip 2ex plus 2ex minus 2ex {\headingfont #1}\mark{#1}%
+  \vskip 1ex plus 1ex minus 1.5ex}
 
 \newdimen\keyindent
 
@@ -264,8 +264,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA.
 % \metax{description of command}{M-x command-name}
 % Tries to justify the beginning of the command name at the same place
 % as \key starts the key name.  (The "M-x " sticks out to the left.)
+% Note: was \hsize=.74, but changed to avoid overflow in some places.
 \def\metax#1#2{\leavevmode\hbox to \hsize{\vbox
-  {\hsize=.74\hsize\rightskip=1em
+  {\hsize=.66\hsize\rightskip=1em
    \raggedright \tolerance=20000
    \hskip\keyindent\hangindent=1em\strut#1\strut\par}%
    %\hskip-\metaxwidth minus 1fil
@@ -326,6 +327,8 @@ les instructions. Si vous d\'ebutez, faites \kbd{C-h t} pour suivre un
 \metax{restaurer un tampon avec son contenu initial}{M-x revert-buffer}
 \key{r\'eafficher un \'ecran perturb\'e}{C-l}
 
+\shortcopyrightnotice
+
 \section{Recherche incr\'ementale}
 
 \key{rechercher vers l'avant}{C-s}
@@ -343,8 +346,6 @@ Refaites \kbd{C-s} ou \kbd{C-r} pour r\'ep\'eter la recherche dans une
 direction quelconque.
 Si Emacs est encore en train de chercher, \kbd{C-g} n'annule que ce
 qui n'a pas \'et\'e fait.
-
-\shortcopyrightnotice
 
 \section{D\'eplacements}
 
@@ -403,7 +404,9 @@ qui n'a pas \'et\'e fait.
 \key{remplacer interactivement une cha\^\i{}ne de texte}{M-\%}
 % query-replace-regexp est liee a C-M-% mais on ne peut pas le
 % taper dans une console.
-\metax{en utilisant les expressions rationnelles}{M-x query-replace-regexp}
+% Hack to prevent overflow. Please someone fix this properly.
+\metax{en utilisant les expressions \hskip 20pt rationnelles}
+{\hskip -30pt M-x query-replace-regexp}
 
 Les r\'eponses admises dans le mode de remplacement interactif sont :
 
@@ -430,14 +433,19 @@ la premi\`ere pour un cadre au lieu d'une fen\^etre.
 
 \key{faire d\'efiler l'autre fen\^etre}{C-M-v}
 
+%% tabskip reduced from 10 to 3pt to fit on letterpaper.
 {\setbox0=\hbox{\kbd{0}}\advance\hsize by 2\wd0
-\paralign to \hsize{#\tabskip=10pt plus 1 fil&#\tabskip=0pt&#\cr
+\paralign to \hsize{#\tabskip=3pt plus 1 fil&#\tabskip=0pt&#\cr
 \threecol{placer le curseur dans une autre fen\^etre}{C-x o}{C-x 5 o}
 
-\threecol{s\'electionner le tampon dans l'autre fen\^etre}{C-x 4 b}{C-x 5 b}
+%% Hack in a line break to avoid overflow.
+\threecol{\raggedright s\'electionner le tampon dans\cr
+\hskip 10pt l'autre fen\^etre}{C-x 4 b}{C-x 5 b}
 \threecol{afficher le tampon dans l'autre fen\^etre}{C-x 4 C-o}{C-x 5 C-o}
 \threecol{charger un fichier dans l'autre fen\^etre}{C-x 4 f}{C-x 5 f}
-\threecol{charger un fichier en lecture seule dans l'autre fen\^etre}{C-x 4 r}{C-x 5 r}
+%% Hack in a line break to avoid overflow.
+\threecol{\raggedright charger un fichier en lecture seule\cr
+\hskip 10pt dans l'autre fen\^etre}{C-x 4 r}{C-x 5 r}
 \threecol{lancer Dired  dans l'autre fen\^etre}{C-x 4 d}{C-x 5 d}
 \threecol{trouver un tag dans l'autre fen\^etre}{C-x 4 .}{C-x 5 .}
 }}
@@ -523,7 +531,9 @@ menu utilisant le minitampon.
 
 \metax{rechercher par expr. rationnelles dans tous les fichiers du
   tableau de tags}{M-x tags-search}
-\metax{lancer un remplacement interactif sur tous les fichiers}{M-x tags-query-replace}
+%% Overflow hack.
+\metax{lancer un remplacement interactif sur tous les fichiers}%
+{\hskip -9pt M-x tags-query-replace}
 \key{continuer la derni\`ere recherche de tags ou le remplacement interactif}{M-,}
 
 \section{Shells}
@@ -565,27 +575,36 @@ menu utilisant le minitampon.
 \key{limite de mot}{\\b}
 \key{non limite de mot}{\\B}
 
-\paralign to \hsize{#\tabskip=10pt plus 1 fil&#\tabskip=0pt&#\cr
+%% tabskip reduced from 10 to 5pt for letterpaper.
+\paralign to \hsize{#\tabskip=5pt plus 1 fil&#\tabskip=0pt&#\cr
 \threecol{{\bf entit\'e}}{{\bf d\'ebut}}{{\bf fin}}
 \threecol{ligne}{^}{\$}
 \threecol{mot}{\\<}{\\>}
 \threecol{tampon}{\\`}{\\'}
 
-\threecol{{\bf classe de caract\`ere}}{{\bf correspond}}{{\bf correspond
-    \`a d'autres}}
+\threecol{{\bf classe de caract\`ere}}{{\bf correspond}}
+{{\bf correspond \`a d'autres}}
 \threecol{ensemble explicite}{[ {\rm$\ldots$} ]}{[^ {\rm$\ldots$} ]}
 \threecol{caract\`ere de mot}{\\w}{\\W}
-\threecol{caract\`ere avec la syntaxe {\it c}}{\\s{\it c}}{\\S{\it c}}
+%% Overflow hack.
+\threecol{\raggedright caract\`ere avec la\cr \hskip 5pt syntaxe {\it c}}%
+{\\s{\it c}}{\\S{\it c}}
 }
 
 \section{Jeux de caract\`eres internationaux}
 
 \key{indiquer la langue principale}{C-x RET l}
-\metax{montrer toutes les m\'ethodes de saisie}{M-x list-input-methods}
+%% Overflow hack.
+\metax{montrer toutes les m\'ethodes de saisie}
+{\hskip -10pt M-x list-input-methods}
 \key{activer ou d\'esactiver la m\'ethode de saisie}{C-\\}
 \key{choisir le syst\`eme de codage pour la commande suivante}{C-x RET c}
-\metax{montrer tous les syst\`emes de codage}{M-x list-coding-systems}
-\metax{choisir le syst\`eme de codage pr\'ef\'er\'e}{M-x prefer-coding-system}
+%% Overflow hack.
+\metax{montrer tous les syst\`emes de codage}%
+{\hskip -10pt M-x list-coding-systems}
+%% Overflow hack.
+\metax{choisir le syst\`eme de codage pr\'ef\'er\'e}%
+{\hskip -10pt M-x prefer-coding-system}
 
 \section{Info}
 
@@ -672,7 +691,8 @@ Exemple :
 
 \beginexample%
 (defun cette-ligne-en-haut-de-la-fenetre (line)
-  "Repositionne la ligne du point en haut de la fenetre.
+%% Leading space omitted to avoid linebreak and underfull hbox.
+"Repositionne la ligne du point en haut de la fenetre.
 Avec ARG, place le point sur la ligne ARG."
   (interactive "P")
   (recenter (if (null line)

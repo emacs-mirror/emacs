@@ -367,21 +367,14 @@ src/acldef.h, chpdef.h, ndir.h
   - see comments below. These files are OK to be released with Emacs
   22, but we may want to revisit them afterwards.
 
-[src/unexhp9k800.c - removed 2007/1/27]
-[src/m/sr2k.h - removed 2007/1/27]
-  - First file removed due to legal uncertainties; second file removed
-  due to dependency on first. Note that src/m/hp800.h is still needed on
-  hp800 arch.
-  NB we would like to re-add this file if we can. Please let us know
-  if you can clarify its legal status.
-
 
 ** Some notes on resolved issues, for historical information only
 
 etc/TERMS
 rms: "surely written either by me or by ESR. (If you can figure out
 which year, I can probably tell you which.) Either way, we have papers
-for it." Present in Emacs-16.56 (15-jul-85).
+for it." It was present in Emacs-16.56 (15-jul-85). rms: "Then I
+conclude it was written by me."
 
 etc/ulimit.hack
   Very obsolete file removed March 2007. Doesn't say who the author
@@ -403,6 +396,12 @@ lisp/term/README
     Odds are that I did, but I'm not certain.
 
   Accordingly, FSF copyright was added.
+
+src/unexhp9k800.c  (and dependent src/m/sr2k.h)
+  - briefly removed due to legal uncertainly Jan-Mar 2007. The
+  relevant assignment is under "hp9k800" in copyright.list. File was
+  written by John V. Morris at HP, and disclaimed by the author and
+  HP. So this file is public domain.
 
 
 ** Issues that are "fixed" for the release of Emacs 22, but we may
@@ -443,8 +442,10 @@ etc/Xkeymap.txt
   No info on author. File removed March 2007. rms: "It says it is
 RLK's way of remapping his keyboard, so it is not constrained. I think
 it was written by RLK. Let's delete it; if we contact RLK again, we
-can put it back."
-
+can put it back." Actually, RLK == Robert Krawitz has an Emacs
+assignment. So this could be restored if it is still useful, but Jan Djärv
+says it is obsolete:
+<http://lists.gnu.org/archive/html/emacs-devel/2007-03/msg00673.html>
 
 src/m/mips4.h, news-risc.h, pmax.h
 src/s/aix3-2.h, bsd386.h, hpux8.h, hpux9.h, irix4-0.h, irix5-0.h,
@@ -572,7 +573,8 @@ REMOVED src/unexhp9k800.c
 
 *** These are copyright issues still to be addressed:
 
-Do we need an assignment from Kevin Rodgers? (rms)
+Need an assignment from Kevin Rodgers (rms), else several changes to
+deal with.
 
 
 

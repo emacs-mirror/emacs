@@ -42,10 +42,10 @@
 
 (defcustom inhibit-splash-screen nil
   "Non-nil inhibits the startup screen.
-It also inhibits display of the initial message in the *scratch* buffer.
+It also inhibits display of the initial message in the `*scratch*' buffer.
 
-This is for use in your personal init file, once you are familiar
-with the contents of the startup screen."
+This is for use in your personal init file (but NOT site-start.el), once
+you are familiar with the contents of the startup screen."
   :type 'boolean
   :group 'initialization)
 
@@ -195,7 +195,7 @@ Emacs runs this hook after processing the command line arguments and loading
 the user's init file.")
 
 (defcustom initial-major-mode 'lisp-interaction-mode
-  "Major mode command symbol to use for the initial *scratch* buffer."
+  "Major mode command symbol to use for the initial `*scratch*' buffer."
   :type 'function
   :group 'initialization)
 
@@ -510,7 +510,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 ;; Handle the X-like command-line arguments "-fg", "-bg", "-name", etc.
 (defun tty-handle-args (args)
   (let (rest)
-    (message "%s" args)
+    (message "%S" args)
     (while (and args
 		(not (equal (car args) "--")))
       (let* ((argi (pop args))
@@ -955,11 +955,11 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	    (with-current-buffer (window-buffer)
 	      (deactivate-mark)))
 
-	;; If the user has a file of abbrevs, read it.  
+	;; If the user has a file of abbrevs, read it.
         ;; FIXME: after the 22.0 release this should be changed so
 	;; that it does not read the abbrev file when -batch is used
 	;; on the command line.
-	(when (and (file-exists-p abbrev-file-name) 
+	(when (and (file-exists-p abbrev-file-name)
 		   (file-readable-p abbrev-file-name))
 	    (quietly-read-abbrev-file abbrev-file-name))
 
@@ -1999,13 +1999,13 @@ With a prefix argument, any user input hides the splash screen."
     (with-no-warnings
      (setq menubar-bindings-done t))
 
-    ;; If *scratch* is selected and it is empty, insert an
-    ;; initial message saying not to create a file there.
-    (when (and initial-scratch-message
-	       (equal (buffer-name) "*scratch*")
-	       (= 0 (buffer-size)))
-      (insert initial-scratch-message)
-      (set-buffer-modified-p nil))
+    ;; If *scratch* exists and is empty, insert initial-scratch-message.
+    (and initial-scratch-message
+         (get-buffer "*scratch*")
+         (with-current-buffer "*scratch*"
+           (when (zerop (buffer-size))
+             (insert initial-scratch-message)
+             (set-buffer-modified-p nil))))
 
     ;; If user typed input during all that work,
     ;; abort the startup screen.  Otherwise, display it now.

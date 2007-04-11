@@ -325,7 +325,7 @@ if test "$with_app" == "yes"; then
   fi
 fi
 
-compver=powerpc-apple-darwin`uname -r`
+compver=`uname -p`-apple-darwin`uname -r`
  
 if test "$self_contained" = "yes"; then
     # Move shared files down to Resources directory

@@ -2755,7 +2755,8 @@ MSG is printed after `::::} '."
 	      )				; if edebug-save-windows
 
 	    ;; Restore current buffer always, in case application needs it.
-	    (set-buffer edebug-outside-buffer)
+	    (if (buffer-name edebug-outside-buffer)
+		(set-buffer edebug-outside-buffer))
 	    ;; Restore point, and mark.
 	    ;; Needed even if restoring windows because
 	    ;; that doesn't restore point and mark in the current buffer.

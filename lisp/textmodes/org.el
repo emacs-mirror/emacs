@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.67c
+;; Version: 4.67d
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -3912,6 +3912,7 @@ between words."
 	   (if (memq 'radio lk) '(org-activate-target-links (0 'org-link t)))
 	   (if (memq 'date lk) '(org-activate-dates (0 'org-date t)))
 	   (if (memq 'tag lk) '(org-activate-tags (1 'org-tag prepend)))
+	   '(org-hide-wide-columns (0 nil append))
 	   ;; TODO lines
 	   (list (concat "^\\*+[ \t]*" org-not-done-regexp)
 		 '(1 'org-todo t))
@@ -7951,7 +7952,10 @@ Parameters get priority."
 	entry s)
     (switch-to-buffer-other-window "*Edit Formulas*")
     (erase-buffer)
-    (fundamental-mode)
+    ;; Keep global-font-lock-mode from turning on font-lock-mode
+    (let ((font-lock-global-modes '(not fundamental-mode)))
+      (fundamental-mode))
+    (org-set-local 'font-lock-global-modes (list 'not major-mode))
     (org-set-local 'org-pos pos)
     (org-set-local 'org-window-configuration wc)
     (use-local-map org-edit-formulas-map)
@@ -12944,6 +12948,8 @@ The following commands are available:
   (setq org-agenda-undo-list nil
 	org-agenda-pending-undo-list nil)
   (setq major-mode 'org-agenda-mode)
+  ;; Keep global-font-lock-mode from turning on font-lock-mode
+  (org-set-local 'font-lock-global-modes (list 'not major-mode))
   (setq mode-name "Org-Agenda")
   (use-local-map org-agenda-mode-map)
   (easy-menu-add org-agenda-menu)

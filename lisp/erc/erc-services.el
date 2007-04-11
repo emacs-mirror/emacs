@@ -168,15 +168,18 @@ Example of use:
   :type '(repeat
 	  (list :tag "Network"
 		(choice :tag "Network name"
-			(const freenode)
-			(const OFTC)
-			(const DALnet)
-			(const GalaxyNet)
-			(const SlashNET)
-			(const BRASnet)
-			(const iip)
+			(const Ars)
 			(const Austnet)
 			(const Azzurra)
+			(const BitlBee)
+			(const BRASnet)
+			(const DALnet)
+			(const freenode)
+			(const GalaxyNet)
+			(const iip)
+			(const OFTC)
+			(const QuakeNet)
+			(const SlashNET)
 			(symbol :tag "Network name"))
 		(repeat :tag "Nickname and password"
 			(cons :tag "Identity"
@@ -186,68 +189,63 @@ Example of use:
 ;; Variables:
 
 (defcustom erc-nickserv-alist
-  '((BitlBee
-     nil
-     nil
-     "&bitlbee"
-     "identify"
-     nil)
-    (DALnet
-     "NickServ!service@dal.net"
-     "/msg\\s-NickServ@services.dal.net\\s-IDENTIFY\\s-<password>"
-     "NickServ@services.dal.net"
-     "IDENTIFY"
-     nil)
-    (freenode
-     "NickServ!NickServ@services."
-     "/msg\\s-NickServ\\s-IDENTIFY\\s-<password>"
-     "NickServ"
-     "IDENTIFY"
-     nil)
-    (GalaxyNet
-     "NS!nickserv@galaxynet.org"
-     "Please\\s-change\\s-nicks\\s-or\\s-authenticate."
-     "NS@services.galaxynet.org"
-     "AUTH"
-     t)
-    (SlashNET
-     "NickServ!services@services.slashnet.org"
-     "/msg\\s-NickServ\\s-IDENTIFY\\s-password"
-     "NickServ@services.slashnet.org"
-     "IDENTIFY"
-     nil)
-    (iip
-     "Trent@anon.iip"
-     "type\\s-/squery\\s-Trent\\s-identify\\s-<password>"
-     "Trent@anon.iip"
-     "IDENTIFY"
-     nil
-     "SQUERY")
-    (BRASnet
-     "NickServ!services@brasnet.org"
-     "/NickServ\\s-IDENTIFY\\s-senha"
-     "NickServ"
-     "IDENTIFY"
-     nil
-     "")
+  '((Ars
+     nil nil
+     "Census"
+     "IDENTIFY" nil nil)
     (Austnet
      "NickOP!service@austnet.org"
      "/msg\\s-NickOP@austnet.org\\s-identify\\s-<password>"
      "nickop@austnet.org"
-     "identify"
-     nil)
+     "identify" nil nil)
     (Azzurra
      "NickServ!service@azzurra.org"
      "/ns\\s-IDENTIFY\\s-password"
      "NickServ"
-     "IDENTIFY"
-     nil)
+     "IDENTIFY" nil nil)
+    (BitlBee
+     nil nil
+     "&bitlbee"
+     "identify" nil nil)
+    (BRASnet
+     "NickServ!services@brasnet.org"
+     "/NickServ\\s-IDENTIFY\\s-senha"
+     "NickServ"
+     "IDENTIFY" nil "")
+    (DALnet
+     "NickServ!service@dal.net"
+     "/msg\\s-NickServ@services.dal.net\\s-IDENTIFY\\s-<password>"
+     "NickServ@services.dal.net"
+     "IDENTIFY" nil nil)
+    (freenode
+     "NickServ!NickServ@services."
+     "/msg\\s-NickServ\\s-IDENTIFY\\s-<password>"
+     "NickServ"
+     "IDENTIFY" nil nil)
+    (GalaxyNet
+     "NS!nickserv@galaxynet.org"
+     "Please\\s-change\\s-nicks\\s-or\\s-authenticate."
+     "NS@services.galaxynet.org"
+     "AUTH" t nil)
+    (iip
+     "Trent@anon.iip"
+     "type\\s-/squery\\s-Trent\\s-identify\\s-<password>"
+     "Trent@anon.iip"
+     "IDENTIFY" nil "SQUERY")
     (OFTC
      "NickServ!services@services.oftc.net"
-     "/msg\\s-NickServ\\s-IDENTIFY\\s-\^_password"
+     "type\\s-/msg\\s-NickServ\\s-IDENTIFY\\s-password."
      "NickServ"
-     "IDENTIFY"
-     nil))
+     "IDENTIFY" nil nil)
+    (QuakeNet
+     nil nil
+     "Q@CServe.quakenet.org"
+     "auth" t nil)
+    (SlashNET
+     "NickServ!services@services.slashnet.org"
+     "/msg\\s-NickServ\\s-IDENTIFY\\s-password"
+     "NickServ@services.slashnet.org"
+     "IDENTIFY" nil nil))
    "Alist of NickServer details, sorted by network.
 Every element in the list has the form
   \(SYMBOL NICKSERV REGEXP NICK KEYWORD USE-CURRENT ANSWER)
@@ -265,8 +263,10 @@ ANSWER is the command to use for the answer.  The default is 'privmsg.
    :type '(repeat
 	   (list :tag "Nickserv data"
 		 (symbol :tag "Network name")
-		 (string :tag "Nickserv's nick!user@host")
-		 (regexp :tag "Identify request sent by Nickserv")
+		 (choice (string :tag "Nickserv's nick!user@host")
+			 (const :tag "No message sent by Nickserv" nil))
+		 (choice (regexp :tag "Identify request sent by Nickserv")
+			 (const :tag "No message sent by Nickserv" nil))
 		 (string :tag "Identify to")
 		 (string :tag "Identify keyword")
 		 (boolean :tag "Use current nick in identify message?")

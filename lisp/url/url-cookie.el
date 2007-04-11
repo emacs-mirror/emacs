@@ -272,7 +272,15 @@ telling Microsoft that."
 	    storage (cdr storage)
 	    cookies (cdr cur))
       (if (and (car cur)
-	       (string-match (concat "^.*" (regexp-quote (car cur)) "$") host))
+	       (string-match
+                (concat "^.*"
+                        (regexp-quote
+                         ;; Remove the dot from wildcard domains
+                         ;; before matching.
+			 (if (eq ?. (aref (car cur) 0))
+                             (substring (car cur) 1)
+                           (car cur)))
+                        "$") host))
 	  ;; The domains match - a possible hit!
 	  (while cookies
 	    (setq cur (car cookies)
@@ -344,7 +352,13 @@ telling Microsoft that."
      ((>= numdots mindots)		; We have enough dots in domain name
       ;; Need to check and make sure the host is actually _in_ the
       ;; domain it wants to set a cookie for though.
-      (string-match (concat (regexp-quote domain) "$") host))
+      (string-match (concat (regexp-quote
+                             ;; Remove the dot from wildcard domains
+                             ;; before matching.
+                             (if (eq ?. (aref domain 0))
+                                 (substring domain 1)
+                               domain))
+                            "$") host))
      (t
       nil))))
 

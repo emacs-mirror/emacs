@@ -681,6 +681,7 @@ returns @code{"The buffer is foo"}.
 
 @node Output Variables
 @section Variables Affecting Output
+@cindex output-controlling variables
 
 @defvar standard-output
 The value of this variable is the default output stream---the stream

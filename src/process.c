@@ -816,7 +816,7 @@ nil, indicating the current buffer's process.  */)
       Lisp_Object symbol;
       /* Assignment to EMACS_INT stops GCC whining about limited range
 	 of data type.  */
-      EMACS_INT pid = p->pid;;
+      EMACS_INT pid = p->pid;
 
       /* No problem storing the pid here, as it is still in Vprocess_alist.  */
       deleted_pid_list = Fcons (make_fixnum_or_float (pid),
@@ -829,7 +829,8 @@ nil, indicating the current buffer's process.  */)
       if (CONSP (p->status))
 	symbol = XCAR (p->status);
       if (EQ (symbol, Qsignal) || EQ (symbol, Qexit))
-	Fdelete (make_fixnum_or_float (pid), deleted_pid_list);
+	deleted_pid_list
+	  = Fdelete (make_fixnum_or_float (pid), deleted_pid_list);
       else
 #endif
 	{
@@ -1266,7 +1267,7 @@ Returns nil if format of ADDRESS is invalid.  */)
   if (VECTORP (address))  /* AF_INET or AF_INET6 */
     {
       register struct Lisp_Vector *p = XVECTOR (address);
-      Lisp_Object args[6];
+      Lisp_Object args[10];
       int nargs, i;
 
       if (p->size == 4 || (p->size == 5 && !NILP (omit_port)))
@@ -1293,7 +1294,20 @@ Returns nil if format of ADDRESS is invalid.  */)
 	return Qnil;
 
       for (i = 0; i < nargs; i++)
-	args[i+1] = p->contents[i];
+	{
+	  EMACS_INT element = XINT (p->contents[i]);
+
+	  if (element < 0 || element > 65535)
+	    return Qnil;
+
+	  if (nargs <= 5         /* IPv4 */
+	      && i < 4           /* host, not port */
+	      && element > 255)
+	    return Qnil;
+
+	  args[i+1] = p->contents[i];
+	}
+
       return Fformat (nargs+1, args);
     }
 
@@ -1303,7 +1317,6 @@ Returns nil if format of ADDRESS is invalid.  */)
       args[0] = build_string ("<Family %d>");
       args[1] = Fcar (address);
       return Fformat (2, args);
-
     }
 
   return Qnil;
@@ -1408,7 +1421,6 @@ list_processes_1 (query_only)
       symbol = p->status;
       if (CONSP (p->status))
 	symbol = XCAR (p->status);
-
 
       if (EQ (symbol, Qsignal))
 	{
@@ -1817,7 +1829,8 @@ create_process (process, new_argv, current_dir)
      char **new_argv;
      Lisp_Object current_dir;
 {
-  int pid, inchannel, outchannel;
+  int inchannel, outchannel;
+  pid_t pid;
   int sv[2];
 #ifdef POSIX_SIGNALS
   sigset_t procmask;
@@ -3333,12 +3346,16 @@ usage: (make-network-process &rest ARGS)  */)
 #endif
     }
 
+  immediate_quit = 0;
+
 #ifdef HAVE_GETADDRINFO
   if (res != &ai)
-    freeaddrinfo (res);
+    {
+      BLOCK_INPUT;
+      freeaddrinfo (res);
+      UNBLOCK_INPUT;
+    }
 #endif
-
-  immediate_quit = 0;
 
   /* Discard the unwind protect for closing S, if any.  */
   specpdl_ptr = specpdl + count1;
@@ -4799,8 +4816,8 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 		 subprocess termination and SIGCHLD.  */
 	      else if (nread == 0 && !NETCONN_P (proc))
 		;
-#endif				/* O_NDELAY */
-#endif				/* O_NONBLOCK */
+#endif /* O_NDELAY */
+#endif /* O_NONBLOCK */
 #ifdef HAVE_PTYS
 	      /* On some OSs with ptys, when the process on one end of
 		 a pty exits, the other end gets an error reading with
@@ -4811,11 +4828,17 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 		 get a SIGCHLD).
 
 		 However, it has been known to happen that the SIGCHLD
-		 got lost.  So raise the signl again just in case.
+		 got lost.  So raise the signal again just in case.
 		 It can't hurt.  */
 	      else if (nread == -1 && errno == EIO)
-		kill (getpid (), SIGCHLD);
-#endif				/* HAVE_PTYS */
+		{
+		  /* Clear the descriptor now, so we only raise the signal once.  */
+		  FD_CLR (channel, &input_wait_mask);
+		  FD_CLR (channel, &non_keyboard_wait_mask);
+
+		  kill (getpid (), SIGCHLD);
+		}
+#endif /* HAVE_PTYS */
 	      /* If we can detect process termination, don't consider the process
 		 gone just because its pipe is closed.  */
 #ifdef SIGCHLD
@@ -6392,7 +6415,7 @@ sigchld_handler (signo)
 
   while (1)
     {
-      register EMACS_INT pid;
+      pid_t pid;
       WAITTYPE w;
       Lisp_Object tail;
 
@@ -6401,16 +6424,12 @@ sigchld_handler (signo)
 #define WUNTRACED 0
 #endif /* no WUNTRACED */
       /* Keep trying to get a status until we get a definitive result.  */
-      while (1) {
-        errno = 0;
-        pid = wait3 (&w, WNOHANG | WUNTRACED, 0);
-	if (! (pid < 0 && errno == EINTR))
-          break;
-        /* avoid a busyloop: wait3 is a system call, so we do not want
-           to prevent the kernel from actually sending SIGCHLD to emacs
-           by asking for it all the time */
-        sleep (1);
-      }
+      do
+        {
+	  errno = 0;
+	  pid = wait3 (&w, WNOHANG | WUNTRACED, 0);
+	}
+      while (pid < 0 && errno == EINTR);
 
       if (pid <= 0)
 	{
@@ -6436,11 +6455,15 @@ sigchld_handler (signo)
       /* Find the process that signaled us, and record its status.  */
 
       /* The process can have been deleted by Fdelete_process.  */
-      tail = Fmember (make_fixnum_or_float (pid), deleted_pid_list);
-      if (!NILP (tail))
+      for (tail = deleted_pid_list; GC_CONSP (tail); tail = XCDR (tail))
 	{
-	  Fsetcar (tail, Qnil);
-	  goto sigchld_end_of_loop;
+	  Lisp_Object xpid = XCAR (tail);
+	  if ((GC_INTEGERP (xpid) && pid == (pid_t) XINT (xpid))
+	      || (GC_FLOATP (xpid) && pid == (pid_t) XFLOAT_DATA (xpid)))
+	    {
+	      XSETCAR (tail, Qnil);
+	      goto sigchld_end_of_loop;
+	    }
 	}
 
       /* Otherwise, if it is asynchronous, it is in Vprocess_alist.  */

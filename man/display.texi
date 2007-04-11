@@ -349,7 +349,9 @@ future Emacs versions.
   To see what faces are currently defined, and what they look like,
 type @kbd{M-x list-faces-display}.  It's possible for a given face to
 look different in different frames; this command shows the appearance
-in the frame in which you type it.
+in the frame in which you type it.  With a prefix argument, this
+prompts for a regular expression, and displays only faces with names
+matching that regular expression.
 
   Here are the standard faces for specifying text appearance.  You can
 apply them to specific text when you want the effects they produce.

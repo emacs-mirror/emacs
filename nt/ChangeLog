@@ -1,3 +1,7 @@
+2007-03-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Mention the VCVARS32.BAT batch file for VS.NET users.
+
 2007-03-09  Richard Stallman  <rms@gnu.org>
 
 	* INSTALL: Say explicitly this is not for Cygwin.

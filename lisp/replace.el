@@ -844,15 +844,18 @@ Compatibility function for \\[next-error] invocations."
        #'next-single-property-change)
      "No more matches")
     ;; In case the *Occur* buffer is visible in a nonselected window.
-    (set-window-point (get-buffer-window (current-buffer)) (point))
+    (let ((win (get-buffer-window (current-buffer) t)))
+      (if win (set-window-point win (point))))
     (occur-mode-goto-occurrence)))
 
 (defface match
   '((((class color) (min-colors 88) (background light))
-     :background "Tan")
+     :background "yellow")
     (((class color) (min-colors 88) (background dark))
      :background "RoyalBlue3")
-    (((class color) (min-colors 8))
+    (((class color) (min-colors 8) (background light))
+     :background "yellow" :foreground "black")
+    (((class color) (min-colors 8) (background dark))
      :background "blue" :foreground "white")
     (((type tty) (class mono))
      :inverse-video t)

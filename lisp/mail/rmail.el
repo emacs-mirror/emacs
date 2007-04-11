@@ -1959,9 +1959,13 @@ is non-nil if the user has supplied the password interactively.
 			(base64-header-field-end
 			 (save-excursion
 			   (goto-char start)
-			   (re-search-forward
-			    "^content-transfer-encoding:\\(\n?[\t ]\\)*base64\\(\n?[\t ]\\)*"
-			    header-end t))))
+			   (and (re-search-forward
+				 "^content-transfer-encoding:\\(\n?[\t ]\\)*base64\\(\n?[\t ]\\)*"
+				 header-end t)
+				;; Don't try to decode non-text data.
+				(re-search-forward
+				 "^content-type:\\(\n?[\t ]\\)\\(text\\|message\\)/"
+				 header-end t)))))
 		   (if quoted-printable-header-field-end
 		       (save-excursion
 			 (unless
@@ -2061,10 +2065,16 @@ is non-nil if the user has supplied the password interactively.
 			  "^content-transfer-encoding:\\(\n?[\t ]\\)*quoted-printable\\(\n?[\t ]\\)*"
 			  header-end t)))
 		      (base64-header-field-end
-		       (save-excursion
-			 (re-search-forward
-			  "^content-transfer-encoding:\\(\n?[\t ]\\)*base64\\(\n?[\t ]\\)*"
-			  header-end t)))
+		       (and
+			(save-excursion
+			  (re-search-forward
+			   "^content-transfer-encoding:\\(\n?[\t ]\\)*base64\\(\n?[\t ]\\)*"
+			   header-end t))
+			;; Don't decode non-text data.
+			(save-excursion
+			  (re-search-forward
+			   "^content-type:\\(\n?[\t ]\\)\\(text\\|message\\)/"
+			   header-end t))))
 		      (size
 		       ;; Get the numeric value from the Content-Length field.
 		       (save-excursion

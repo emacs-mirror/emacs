@@ -1930,6 +1930,7 @@ Remaining args are for FUNC."
     (let ((default-enable-multibyte-characters enable-multibyte-characters))
       (setq quail-completion-buf (get-buffer-create "*Quail Completions*")))
     (with-current-buffer quail-completion-buf
+      (setq buffer-read-only t)
       (setq quail-overlay (make-overlay 1 1))
       (overlay-put quail-overlay 'face 'highlight))))
 
@@ -2157,9 +2158,11 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
 		  (minibuffer-scroll-window nil))
 	      (scroll-other-window)))
 	(setq quail-current-key key)
-	(erase-buffer)
-	(insert "Possible completion and corresponding characters are:\n")
-	(quail-completion-1 key map 1)
+	(let ((inhibit-read-only t))
+	  (erase-buffer)
+	  (insert "Possible completion and corresponding characters are:\n")
+	  (quail-completion-1 key map 1)
+	  (set-buffer-modified-p nil))
 	(goto-char (point-min))
 	(display-buffer (current-buffer))
 	(setq require-update t)))

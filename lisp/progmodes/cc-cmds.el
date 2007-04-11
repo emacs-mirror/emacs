@@ -1262,11 +1262,11 @@ newline cleanups are done if appropriate; see the variable `c-cleanup-list'."
 		     (backward-char)
 		     (skip-chars-backward " \t")
 		     (setq beg (point))
-		     (c-save-buffer-state () (c-on-identifier))
-		     ;; Don't add a space into #define FOO()....
-		     (not (and (c-beginning-of-macro)
-			       (c-forward-over-cpp-define-id)
-			       (eq (point) beg)))))
+		     (and (c-save-buffer-state () (c-on-identifier))
+                          ;; Don't add a space into #define FOO()....
+                          (not (and (c-beginning-of-macro)
+                                    (c-forward-over-cpp-define-id)
+                                    (eq (point) beg))))))
 	      (save-excursion
 		(delete-region beg end)
 		(goto-char beg)
@@ -1477,9 +1477,7 @@ No indentation or other \"electric\" behavior is performed."
     (c-syntactic-re-search-forward "{")
     (backward-char)
     (setq n (1- n)))
-   (;; (or (eq where 'at-header) (eq where 'outwith-function)
-;; 	(eq where 'at-function-end) (eq where 'in-trailer))
-    (memq where '(at-header outwith-function at-function-end in-trailer))
+   ((memq where '(at-header outwith-function at-function-end in-trailer))
     (c-syntactic-skip-backward "^}")
     (when (eq (char-before) ?\})
       (backward-sexp)
@@ -1513,7 +1511,8 @@ defun."
   (or arg (setq arg 1))
 
   (c-save-buffer-state
-      ((start (point))
+      (beginning-of-defun-function end-of-defun-function
+       (start (point))
        where paren-state pos)
 
     ;; Move back out of any macro/comment/string we happen to be in.
@@ -1526,8 +1525,7 @@ defun."
     (if (< arg 0)
 	;; Move forward to the closing brace of a function.
 	(progn
-	  (if ;; (or (eq where 'at-function-end) (eq where 'outwith-function))
-	      (memq where '(at-function-end outwith-function))
+	  (if (memq where '(at-function-end outwith-function))
 	      (setq arg (1+ arg)))
 	  (if (< arg 0)
 	      (setq arg (c-forward-to-nth-EOF-} (- arg) where)))
@@ -1587,13 +1585,11 @@ defun."
    ((eq where 'in-trailer)
     (c-syntactic-skip-backward "^}")
     (setq n (1- n)))
-   (;; (or (eq where 'at-function-end) (eq where 'outwith-function)
-;; 	(eq where 'at-header) (eq where 'in-header))
-    (memq where '(at-function-end outwith-function at-header in-header))
-    (c-syntactic-re-search-forward "{")
-    (backward-char)
-    (forward-sexp)
-    (setq n (1- n)))
+   ((memq where '(at-function-end outwith-function at-header in-header))
+    (when (c-syntactic-re-search-forward "{" nil 'eob)
+      (backward-char)
+      (forward-sexp)
+      (setq n (1- n))))
    (t (error "c-forward-to-nth-EOF-}: `where' is %s" where)))
 
   ;; Each time round the loop, go forward to a "}" at the outermost level.
@@ -1618,7 +1614,8 @@ the open-parenthesis that starts a defun; see `beginning-of-defun'."
   (or arg (setq arg 1))
 
   (c-save-buffer-state
-      ((start (point))
+      (beginning-of-defun-function end-of-defun-function
+       (start (point))
        where paren-state pos)
 
     ;; Move back out of any macro/comment/string we happen to be in.
@@ -1631,15 +1628,12 @@ the open-parenthesis that starts a defun; see `beginning-of-defun'."
     (if (< arg 0)
 	;; Move backwards to the } of a function
 	(progn
-	  (if ;; (or (eq where 'at-header) (eq where 'outwith-function))
-	      (memq where '(at-header outwith-function))
+	  (if (memq where '(at-header outwith-function))
 	      (setq arg (1+ arg)))
 	  (if (< arg 0)
 	      (setq arg (c-backward-to-nth-BOF-{ (- arg) where)))
-	  (when (and (= arg 0)
-		     (c-syntactic-skip-backward "^}")
-		     (eq (char-before) ?\}))
-	    t))
+	  (if (= arg 0)
+	      (c-syntactic-skip-backward "^}")))
 
       ;; Move forward to the } of a function
       (if (> arg 0)

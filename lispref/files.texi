@@ -296,6 +296,7 @@ in the list @code{find-file-hook}.
 
 @node Saving Buffers
 @section Saving Buffers
+@cindex saving buffers
 
   When you edit a file in Emacs, you are actually working on a buffer
 that is visiting that file---that is, the contents of the file are
@@ -481,6 +482,7 @@ Name}).
 @node Reading from Files
 @comment  node-name,  next,  previous,  up
 @section Reading from Files
+@cindex reading from files
 
   You can copy a file from the disk and insert it into a buffer
 using the @code{insert-file-contents} function.  Don't use the user-level
@@ -544,6 +546,7 @@ program can read the file, use the function @code{file-local-copy}; see
 @node Writing to Files
 @comment  node-name,  next,  previous,  up
 @section Writing to Files
+@cindex writing to files
 
   You can write the contents of a buffer, or part of a buffer, directly
 to a file on disk using the @code{append-to-file} and
@@ -647,6 +650,7 @@ with-temp-buffer,, The Current Buffer}.
 @node File Locks
 @section File Locks
 @cindex file locks
+@cindex lock file
 
   When two users edit the same file at the same time, they are likely
 to interfere with each other.  Emacs tries to prevent this situation
@@ -736,6 +740,7 @@ for its usual definition is in @file{userlock.el}.
 
 @node Information about Files
 @section Information about Files
+@cindex file, information about
 
   The functions described in this section all operate on strings that
 designate file names.  With a few exceptions, all the functions have
@@ -1172,6 +1177,7 @@ value of @code{current-time}; see @ref{Time of Day}.)
 
 @item
 The time of last modification as a list of two integers (as above).
+@cindex modification time of file
 
 @item
 The time of last status change as a list of two integers (as above).
@@ -1262,13 +1268,13 @@ is on file system number -32252.
 
 @node Locating Files
 @subsection How to Locate Files in Standard Places
-@cindex locate files
-@cindex find files
+@cindex locate file in path
+@cindex find file in path
 
   This section explains how to search for a file in a list of
-directories.  One example is when you need to look for a program's
-executable file, e.g., to find out whether a given program is
-installed on the user's system.  Another example is the search for
+directories (a @dfn{path}).  One example is when you need to look for
+a program's executable file, e.g., to find out whether a given program
+is installed on the user's system.  Another example is the search for
 Lisp libraries (@pxref{Library Search}).  Such searches generally need
 to try various possible file name extensions, in addition to various
 possible directories.  Emacs provides a function for such a
@@ -1311,7 +1317,6 @@ For compatibility, @var{predicate} can also be one of the symbols
 a list of one or more of these symbols.
 @end defun
 
-@cindex find executable program
 @defun executable-find program
 This function searches for the executable file of the named
 @var{program} and returns the full absolute name of the executable,
@@ -1323,7 +1328,7 @@ in @code{exec-path} and tries all the file-name extensions in
 
 @node Changing Files
 @section Changing File Names and Attributes
-@cindex renaming files
+@c @cindex renaming files  Duplicates rename-file
 @cindex copying files
 @cindex deleting files
 @cindex linking files
@@ -2459,6 +2464,7 @@ which generate the listing with Lisp code.
 
 @node Create/Delete Dirs
 @section Creating and Deleting Directories
+@cindex creating and deleting directories
 @c Emacs 19 features
 
   Most Emacs Lisp file-manipulation functions get errors when used on

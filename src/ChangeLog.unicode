@@ -1,3 +1,11 @@
+2007-03-23  Kenichi Handa  <handa@m17n.org>
+
+	* character.h (MIN_MULTIBYTE_LEADING_CODE)
+	(MAX_MULTIBYTE_LEADING_CODE): New macros.
+
+	* regex.c (analyse_first): Fix for multibyte characters in "case
+	charset:" and "case categoryspec:".
+
 2007-03-04  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in (LIBES): Move standard libraries to the end.

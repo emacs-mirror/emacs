@@ -127,8 +127,7 @@
 (define-ibuffer-column erc-away (:name "A")
   (if (and erc-server-process
 	   (processp erc-server-process)
-	   (with-current-buffer (process-buffer erc-server-process)
-	     erc-away))
+	   (erc-away-time))
       "A"
     " "))
 

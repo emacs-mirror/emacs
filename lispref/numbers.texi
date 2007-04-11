@@ -222,6 +222,7 @@ down to an integer.
 
 @node Predicates on Numbers
 @section Type Predicates for Numbers
+@cindex predicates for numbers
 
   The functions in this section test for numbers, or for a specific
 type of number.  The functions @code{integerp} and @code{floatp} can
@@ -267,7 +268,8 @@ if so, @code{nil} otherwise.  The argument must be a number.
 
 @node Comparison of Numbers
 @section Comparison of Numbers
-@cindex number equality
+@cindex number comparison
+@cindex comparing numbers
 
   To test numbers for numerical equality, you should normally use
 @code{=}, not @code{eq}.  There can be many distinct floating point
@@ -388,6 +390,8 @@ This function returns the absolute value of @var{number}.
 @node Numeric Conversions
 @section Numeric Conversions
 @cindex rounding in conversions
+@cindex number conversions
+@cindex converting numbers
 
 To convert an integer to floating point, use the function @code{float}.
 
@@ -480,6 +484,7 @@ depending on your machine.
 
 @node Arithmetic Operations
 @section Arithmetic Operations
+@cindex arithmetic operations
 
   Emacs Lisp provides the traditional four arithmetic operations:
 addition, subtraction, multiplication, and division.  Remainder and modulus
@@ -732,6 +737,8 @@ and returns that value as a floating point number.
 
 @node Bitwise Operations
 @section Bitwise Operations on Integers
+@cindex bitwise arithmetic
+@cindex logical arithmetic
 
   In a computer, an integer is represented as a binary number, a
 sequence of @dfn{bits} (digits which are either zero or one).  A bitwise
@@ -913,8 +920,6 @@ Here are other examples:
 @end defun
 
 @defun logand &rest ints-or-markers
-@cindex logical and
-@cindex bitwise and
 This function returns the ``logical and'' of the arguments: the
 @var{n}th bit is set in the result if, and only if, the @var{n}th bit is
 set in all the arguments.  (``Set'' means that the value of the bit is 1
@@ -966,8 +971,6 @@ because its binary representation consists entirely of ones.  If
 @end defun
 
 @defun logior &rest ints-or-markers
-@cindex logical inclusive or
-@cindex bitwise or
 This function returns the ``inclusive or'' of its arguments: the @var{n}th bit
 is set in the result if, and only if, the @var{n}th bit is set in at least
 one of the arguments.  If there are no arguments, the result is zero,
@@ -993,8 +996,6 @@ passed just one argument, it returns that argument.
 @end defun
 
 @defun logxor &rest ints-or-markers
-@cindex bitwise exclusive or
-@cindex logical exclusive or
 This function returns the ``exclusive or'' of its arguments: the
 @var{n}th bit is set in the result if, and only if, the @var{n}th bit is
 set in an odd number of the arguments.  If there are no arguments, the
@@ -1020,8 +1021,6 @@ result is 0, which is an identity element for this operation.  If
 @end defun
 
 @defun lognot integer
-@cindex logical not
-@cindex bitwise not
 This function returns the logical complement of its argument: the @var{n}th
 bit is one in the result if, and only if, the @var{n}th bit is zero in
 @var{integer}, and vice-versa.
@@ -1039,6 +1038,7 @@ bit is one in the result if, and only if, the @var{n}th bit is zero in
 @section Standard Mathematical Functions
 @cindex transcendental functions
 @cindex mathematical functions
+@cindex floating-point functions
 
   These mathematical functions allow integers as well as floating point
 numbers as arguments.
@@ -1066,7 +1066,7 @@ pi/2
 @math{\pi/2}
 @end tex
 (inclusive) whose sine is @var{arg}; if, however, @var{arg} is out of
-range (outside [-1, 1]), it signals a @code{domain-error} error.
+range (outside [@minus{}1, 1]), it signals a @code{domain-error} error.
 @end defun
 
 @defun acos arg
@@ -1078,7 +1078,7 @@ pi
 @math{\pi}
 @end tex
 (inclusive) whose cosine is @var{arg}; if, however, @var{arg} is out
-of range (outside [-1, 1]), it signals a @code{domain-error} error.
+of range (outside [@minus{}1, 1]), it signals a @code{domain-error} error.
 @end defun
 
 @defun atan y &optional x
@@ -1183,7 +1183,7 @@ generates the same sequence of numbers.  Emacs always starts with the
 same seed value, so the sequence of values of @code{random} is actually
 the same in each Emacs run!  For example, in one operating system, the
 first call to @code{(random)} after you start Emacs always returns
--1457731, and the second one always returns -7692030.  This
+@minus{}1457731, and the second one always returns @minus{}7692030.  This
 repeatability is helpful for debugging.
 
 If you want random numbers that don't always come out the same, execute

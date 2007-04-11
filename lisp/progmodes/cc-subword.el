@@ -218,38 +218,52 @@ Optional argument ARG is the same as for `transpose-words'."
   (interactive "*p")
   (transpose-subr 'c-forward-subword arg))
 
-(defun c-capitalize-subword (arg)
-  "Do the same as `capitalize-word' but on subwords.
-See the command `c-subword-mode' for a description of subwords.
-Optional argument ARG is the same as for `capitalize-word'."
-  (interactive "p")
-  (let ((count (abs arg))
-	(direction (if (< 0 arg) 1 -1)))
-    (dotimes (i count)
-      (when (re-search-forward
-	     (concat "[" c-alpha "]")
-	     nil t)
-	(goto-char (match-beginning 0)))
-      (let* ((p (point))
-	     (pp (1+ p))
-	     (np (c-forward-subword direction)))
-	(upcase-region p pp)
-	(downcase-region pp np)
-	(goto-char np)))))
+
 
 (defun c-downcase-subword (arg)
   "Do the same as `downcase-word' but on subwords.
 See the command `c-subword-mode' for a description of subwords.
 Optional argument ARG is the same as for `downcase-word'."
   (interactive "p")
-  (downcase-region (point) (c-forward-subword arg)))
+  (let ((start (point)))
+    (downcase-region (point) (c-forward-subword arg))
+    (when (< arg 0) 
+      (goto-char start))))
 
 (defun c-upcase-subword (arg)
   "Do the same as `upcase-word' but on subwords.
 See the command `c-subword-mode' for a description of subwords.
 Optional argument ARG is the same as for `upcase-word'."
   (interactive "p")
-  (upcase-region (point) (c-forward-subword arg)))
+  (let ((start (point)))
+    (upcase-region (point) (c-forward-subword arg))
+    (when (< arg 0) 
+      (goto-char start))))
+
+(defun c-capitalize-subword (arg)
+  "Do the same as `capitalize-word' but on subwords.
+See the command `c-subword-mode' for a description of subwords.
+Optional argument ARG is the same as for `capitalize-word'."
+  (interactive "p")
+  (let ((count (abs arg))
+	(start (point))
+	(advance (if (< arg 0) nil t)))
+    (dotimes (i count)
+      (if advance
+	  (progn (re-search-forward
+		  (concat "[" c-alpha "]")
+		  nil t)
+		 (goto-char (match-beginning 0)))
+	(c-backward-subword))
+      (let* ((p (point))
+	     (pp (1+ p))
+	     (np (c-forward-subword)))
+	(upcase-region p pp)
+	(downcase-region pp np)
+	(goto-char (if advance np p))))
+    (unless advance
+      (goto-char start))))
+
 
 
 ;;

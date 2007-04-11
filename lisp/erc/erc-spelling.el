@@ -41,12 +41,10 @@
   ;; called AFTER the server buffer is initialized.
   ((add-hook 'erc-connect-pre-hook 'erc-spelling-init)
    (dolist (buffer (erc-buffer-list))
-     (when (buffer-live-p buffer)
-       (with-current-buffer buffer (erc-spelling-init)))))
+     (erc-spelling-init buffer)))
   ((remove-hook 'erc-connect-pre-hook 'erc-spelling-init)
    (dolist (buffer (erc-buffer-list))
-     (when (buffer-live-p buffer)
-       (with-current-buffer buffer (flyspell-mode 0))))))
+     (with-current-buffer buffer (flyspell-mode 0)))))
 
 (defcustom erc-spelling-dictionaries nil
   "An alist mapping buffer names to dictionaries.
@@ -60,24 +58,22 @@ name here."
                                (string :tag "Dictionary"))))
   :group 'erc-spelling)
 
-(defun erc-spelling-init ()
-  "Enable flyspell mode in an ERC buffer."
-  (let ((name (downcase (buffer-name)))
-        (dicts erc-spelling-dictionaries))
-    (when dicts
-      (while (and dicts
-                  (not (string= name (downcase (caar dicts)))))
-        (setq dicts (cdr dicts)))
-      (setq ispell-local-dictionary
-            (if dicts
-                (cadr (car dicts))
-              (let ((server (erc-server-buffer)))
-                (if server
-                    (with-current-buffer server
-                      ispell-local-dictionary)
-                  nil))))))
-  (setq flyspell-generic-check-word-p 'erc-spelling-flyspell-verify)
-  (flyspell-mode 1))
+(defun erc-spelling-init (buffer)
+  "Enable flyspell mode in an ERC buffer.
+The current buffer is given by BUFFER."
+  (with-current-buffer buffer
+    (let ((name (downcase (buffer-name)))
+          (dicts erc-spelling-dictionaries))
+      (when dicts
+        (while (and dicts
+                    (not (string= name (downcase (caar dicts)))))
+          (setq dicts (cdr dicts)))
+        (setq ispell-local-dictionary
+              (if dicts
+                  (cadr (car dicts))
+                (erc-with-server-buffer ispell-local-dictionary)))))
+    (setq flyspell-generic-check-word-p 'erc-spelling-flyspell-verify)
+    (flyspell-mode 1)))
 
 (defun erc-spelling-unhighlight-word (word)
   "Unhighlight the given WORD.

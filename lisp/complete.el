@@ -187,6 +187,9 @@ If nil, means use the colon-separated path in the variable $INCPATH instead."
 
 	   (define-key global-map [remap lisp-complete-symbol]	'PC-lisp-complete-symbol)))))
 
+(defvar PC-do-completion-end nil
+  "Internal variable used by `PC-do-completion'.")
+
 ;;;###autoload
 (define-minor-mode partial-completion-mode
   "Toggle Partial Completion mode.
@@ -239,7 +242,11 @@ second TAB brings up the `*Completions*' buffer."
    (if partial-completion-mode 'add-hook 'remove-hook)
    'choose-completion-string-functions
    (lambda (choice buffer mini-p base-size)
-     (if mini-p (goto-char (point-max)))
+     (if mini-p (goto-char (point-max))
+       ;; Need a similar hack for the non-minibuffer-case -- gm.
+       (when PC-do-completion-end
+         (goto-char PC-do-completion-end)
+         (setq PC-do-completion-end nil)))
      nil))
   ;; Build the env-completion and mapping table.
   (when (and partial-completion-mode (null PC-env-vars-alist))
@@ -416,7 +423,7 @@ of `minibuffer-completion-table' and the minibuffer contents.")
   (let* ((table minibuffer-completion-table)
 	 (pred minibuffer-completion-predicate)
 	 (filename (funcall PC-completion-as-file-name-predicate))
-	 (dirname nil)		; non-nil only if a filename is being completed
+	 (dirname nil) ; non-nil only if a filename is being completed
 	 ;; The following used to be "(dirlength 0)" which caused the erasure of
 	 ;; the entire buffer text before `point' when inserting a completion
 	 ;; into a buffer.
@@ -681,7 +688,7 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 				      (forward-char 1)
 				    (if (and (< (point) end)
 					     (and (looking-at " ")
-						      (memq (aref prefix i)
+                                                  (memq (aref prefix i)
 							PC-delims-list)))
 					;; replace " " by the actual delimiter
 					(progn
@@ -689,12 +696,12 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 					  (insert (substring prefix i (1+ i))))
 				      ;; insert a new character
 				      (progn
-				      (and filename (looking-at "\\*")
-					   (progn
-					     (delete-char 1)
-					     (setq end (1- end))))
+                                        (and filename (looking-at "\\*")
+                                             (progn
+                                               (delete-char 1)
+                                               (setq end (1- end))))
 					(setq improved t)
-				    (insert (substring prefix i (1+ i)))
+                                        (insert (substring prefix i (1+ i)))
 					(setq end (1+ end)))))
 				  (setq i (1+ i)))
 				(or pt (setq pt (point)))
@@ -729,7 +736,7 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 
 		    ;; We changed it... would it be complete without the space?
 		    (if (test-completion (buffer-substring 1 (1- end))
-					  table pred)
+                                         table pred)
 			(delete-region (1- end) end)))
 
 	      (if improved
@@ -743,13 +750,29 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 			(and completion-auto-help
 			     (eq last-command this-command))
 			(eq mode 'help))
-		    (with-output-to-temp-buffer "*Completions*"
-		      (display-completion-list (sort helpposs 'string-lessp))
-		      (with-current-buffer standard-output
-			;; Record which part of the buffer we are completing
-			;; so that choosing a completion from the list
-			;; knows how much old text to replace.
-			(setq completion-base-size dirlength)))
+                    (let ((prompt-end (minibuffer-prompt-end)))
+                      (with-output-to-temp-buffer "*Completions*"
+                        (display-completion-list (sort helpposs 'string-lessp))
+                        (with-current-buffer standard-output
+                          ;; Record which part of the buffer we are completing
+                          ;; so that choosing a completion from the list
+                          ;; knows how much old text to replace.
+                          ;; This was briefly nil in the non-dirname case.
+                          ;; However, if one calls PC-lisp-complete-symbol
+                          ;; on "(ne-f" with point on the hyphen, PC offers
+                          ;; all completions starting with "(ne", some of
+                          ;; which do not match the "-f" part (maybe it
+                          ;; should not, but it does). In such cases,
+                          ;; completion gets confused trying to figure out
+                          ;; how much to replace, so we tell it explicitly
+                          ;; (ie, the number of chars in the buffer before beg).
+                          ;;
+                          ;; Note that choose-completion-string-functions
+                          ;; plays around with point.
+                          (setq completion-base-size (if dirname
+                                                         dirlength
+                                                       (- beg prompt-end))
+                                PC-do-completion-end end))))
 		  (PC-temp-minibuffer-message " [Next char not unique]"))
 		nil)))))
 
@@ -799,6 +822,10 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 	       (setq quit-flag nil
 		     unread-command-events '(7))))))))
 
+;; Does not need to be buffer-local (?) because only used when one
+;; PC-l-c-s immediately follows another.
+(defvar PC-lisp-complete-end nil
+  "Internal variable used by `PC-lisp-complete-symbol'.")
 
 (defun PC-lisp-complete-symbol ()
   "Perform completion on Lisp symbol preceding point.
@@ -811,6 +838,12 @@ Otherwise, all symbols with function definitions, values
 or properties are considered."
   (interactive)
   (let* ((end (point))
+         ;; To complete the word under point, rather than just the portion
+         ;; before point, use this:
+;;;           (save-excursion
+;;;             (with-syntax-table lisp-mode-syntax-table
+;;;               (forward-sexp 1)
+;;;               (point))))
 	 (beg (save-excursion
                 (with-syntax-table lisp-mode-syntax-table
                   (backward-sexp 1)
@@ -825,7 +858,39 @@ or properties are considered."
 			(or (boundp sym) (fboundp sym)
 			    (symbol-plist sym))))))
 	 (PC-not-minibuffer t))
-    (PC-do-completion nil beg end)))
+    ;; http://lists.gnu.org/archive/html/emacs-devel/2007-03/msg01211.html
+    ;;
+    ;; This deals with cases like running PC-l-c-s on "M-: (n-f".
+    ;; The first call to PC-l-c-s expands this to "(ne-f", and moves
+    ;; point to the hyphen [1]. If one calls PC-l-c-s immediately after,
+    ;; then without the last-command check, one is offered all
+    ;; completions of "(ne", which is presumably not what one wants.
+    ;;
+    ;; This is arguably (at least, it seems to be the existing intended
+    ;; behaviour) what one _does_ want if point has been explicitly
+    ;; positioned on the hyphen. Note that if PC-do-completion (qv) binds
+    ;; completion-base-size to nil, then completion does not replace the
+    ;; correct amount of text in such cases.
+    ;;
+    ;; Neither of these problems occur when using PC for filenames in the
+    ;; minibuffer, because in that case PC-do-completion is called without
+    ;; an explicit value for END, and so uses (point-max). This is fine for
+    ;; a filename, because the end of the filename must be at the end of
+    ;; the minibuffer. The same is not true for lisp symbols.
+    ;;
+    ;; [1] An alternate fix would be to not move point to the hyphen
+    ;; in such cases, but that would make the behaviour different from
+    ;; that for filenames. It seems PC moves point to the site of the
+    ;; first difference between the possible completions.
+    ;;
+    ;; Alternatively alternatively, maybe end should be computed in
+    ;; the same way as beg. That would change the behaviour though.
+    (if (equal last-command 'PC-lisp-complete-symbol)
+        (PC-do-completion nil beg PC-lisp-complete-end)
+      (if PC-lisp-complete-end
+          (move-marker PC-lisp-complete-end end)
+        (setq PC-lisp-complete-end (copy-marker end t)))
+      (PC-do-completion nil beg end))))
 
 (defun PC-complete-as-file-name ()
    "Perform completion on file names preceding point.
@@ -1026,10 +1091,11 @@ absolute rather than relative to some directory on the SEARCH-PATH."
   (if (string-match "<\\([^\"<>]*\\)>?\\'" (ad-get-arg 0))
       (let* ((string (ad-get-arg 0))
              (action (ad-get-arg 2))
-             (name (substring string (match-beginning 1) (match-end 1)))
+             (name (match-string 1 string))
 	     (str2 (substring string (match-beginning 0)))
 	     (completion-table
-	      (mapcar (lambda (x) (format "<%s>" x))
+	      (mapcar (lambda (x)
+                        (format (if (string-match "/\\'" x) "<%s" "<%s>") x))
 		      (PC-include-file-all-completions
 		       name (PC-include-file-path)))))
         (setq ad-return-value

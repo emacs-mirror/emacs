@@ -34,6 +34,7 @@ Boston, MA 02110-1301, USA.  */
 #include "dispextern.h"
 #include "termchar.h"
 #include "intervals.h"
+#include "blockinput.h"
 
 Lisp_Object Vstandard_output, Qstandard_output;
 
@@ -795,7 +796,7 @@ A printed representation of an object is text which describes that object.  */)
   Lisp_Object printcharfun;
   /* struct gcpro gcpro1, gcpro2; */
   Lisp_Object save_deactivate_mark;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   struct buffer *previous;
 
   specbind (Qinhibit_modification_hooks, Qt);
@@ -976,7 +977,11 @@ append to existing target file.  */)
      Lisp_Object file, append;
 {
   if (initial_stderr_stream != NULL)
-    fclose (stderr);
+    {
+      BLOCK_INPUT;
+      fclose (stderr);
+      UNBLOCK_INPUT;
+    }
   stderr = initial_stderr_stream;
   initial_stderr_stream = NULL;
 

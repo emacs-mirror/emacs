@@ -161,14 +161,6 @@ avoid corrupting the original SEQ."
 	(setq newseq (cons el newseq))))
     (nreverse newseq)))
 
-;; Provide a simpler replacement for `gensym'.
-(defvar *erc-sym-counter* 0)
-(defun erc-gensym ()
-  "Generate a new uninterned symbol."
-  (let ((num (prog1 *erc-sym-counter*
-	       (setq *erc-sym-counter* (1+ *erc-sym-counter*)))))
-    (make-symbol (format "*erc-sym-%d*" num))))
-
 ;; Copied from cl-extra.el
 (defun erc-subseq (seq start &optional end)
   "Return the subsequence of SEQ from START to END.

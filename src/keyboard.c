@@ -142,10 +142,10 @@ KBOARD the_only_kboard;
    do not execute it; call disabled-command-function's value instead.  */
 Lisp_Object Qdisabled, Qdisabled_command_function;
 
-#define NUM_RECENT_KEYS (100)
+#define NUM_RECENT_KEYS (300)
 int recent_keys_index;	/* Index for storing next element into recent_keys */
 int total_keys;		/* Total number of elements stored into recent_keys */
-Lisp_Object recent_keys; /* A vector, holding the last 100 keystrokes */
+Lisp_Object recent_keys; /* Vector holds the last NUM_RECENT_KEYS keystrokes */
 
 /* Vector holding the key sequence that invoked the current command.
    It is reused for each command, and it may be longer than the current
@@ -1691,7 +1691,7 @@ command_loop_1 ()
       if (SYMBOLP (cmd))
 	{
 	  Lisp_Object cmd1;
-	  if (cmd1 = Fcommand_remapping (cmd, Qnil), !NILP (cmd1))
+	  if (cmd1 = Fcommand_remapping (cmd, Qnil, Qnil), !NILP (cmd1))
 	    cmd = cmd1;
 	}
 
@@ -3525,6 +3525,7 @@ record_char (c)
      If you, dear reader, have a better idea, you've got the source.  :-) */
   if (dribble)
     {
+      BLOCK_INPUT;
       if (INTEGERP (c))
 	{
 	  if (XUINT (c) < 0x100)
@@ -3550,6 +3551,7 @@ record_char (c)
 	}
 
       fflush (dribble);
+      UNBLOCK_INPUT;
     }
 }
 
@@ -8820,9 +8822,9 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
      of the place where a mouse click occurred.  */
   volatile int localized_local_map = 0;
 
-  /* The index in defs[] of the first keymap that has a binding for
+  /* The index in submaps[] of the first keymap that has a binding for
      this key sequence.  In other words, the lowest i such that
-     defs[i] is non-nil.  */
+     submaps[i] is non-nil.  */
   volatile int first_binding;
   /* Index of the first key that has no binding.
      It is useless to try fkey.start larger than that.  */
@@ -9403,6 +9405,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		      if (!NILP (map) || !NILP (map2))
 			{
 			  from_string = string;
+			  keybuf[t++] = key;
+			  mock_input = t;
 			  goto replay_sequence;
 			}
 		    }
@@ -10289,7 +10293,7 @@ if there is a doubt, the value is t.  */)
 }
 
 DEFUN ("recent-keys", Frecent_keys, Srecent_keys, 0, 0, 0,
-       doc: /* Return vector of last 100 events, not counting those from keyboard macros.  */)
+       doc: /* Return vector of last 300 events, not counting those from keyboard macros.  */)
      ()
 {
   Lisp_Object *keys = XVECTOR (recent_keys)->contents;
@@ -10433,7 +10437,9 @@ If FILE is nil, close any open dribble file.  */)
 {
   if (dribble)
     {
+      BLOCK_INPUT;
       fclose (dribble);
+      UNBLOCK_INPUT;
       dribble = 0;
     }
   if (!NILP (file))

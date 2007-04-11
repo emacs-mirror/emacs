@@ -2686,6 +2686,7 @@ EXFUN (Fread_char, 3);
 EXFUN (Fread_event, 3);
 extern Lisp_Object read_filtered_event P_ ((int, int, int, int, Lisp_Object));
 EXFUN (Feval_region, 4);
+extern Lisp_Object check_obarray P_ ((Lisp_Object));
 extern Lisp_Object intern P_ ((const char *));
 extern Lisp_Object make_symbol P_ ((char *));
 extern Lisp_Object oblookup P_ ((Lisp_Object, const char *, int, int));

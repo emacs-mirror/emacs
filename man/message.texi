@@ -2157,10 +2157,36 @@ message buffers are kept alive.
 @table @code
 @item message-generate-new-buffers
 @vindex message-generate-new-buffers
-If non-@code{nil}, generate new buffers.  The default is @code{t}.  If
-this is a function, call that function with three parameters: The type,
-the to address and the group name.  (Any of these may be @code{nil}.)
-The function should return the new buffer name.
+Controls whether to create a new message buffer to compose a message.
+Valid values include:
+
+@table @code
+@item nil
+Generate the buffer name in the Message way (e.g., *mail*, *news*, *mail
+to whom*, *news on group*, etc.) and continue editing in the existing
+buffer of that name.  If there is no such buffer, it will be newly
+created.
+
+@item unique
+@item t
+Create the new buffer with the name generated in the Message way.  This
+is the default.
+
+@item unsent
+Similar to @code{unique} but the buffer name begins with "*unsent ".
+
+@item standard
+Similar to @code{nil} but the buffer name is simpler like *mail
+message*.
+@end table
+@table @var
+@item function
+If this is a function, call that function with three parameters: The
+type, the To address and the group name (any of these may be
+@code{nil}).  The function should return the new buffer name.
+@end table
+
+The default value is @code{unique}.
 
 @item message-max-buffers
 @vindex message-max-buffers

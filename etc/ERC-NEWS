@@ -3,8 +3,7 @@ ERC NEWS                                                       -*- outline -*-
 Copyright (C) 2006, 2007  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
-
-* Changes in ERC 5.2 (stable pre-release for Emacs 22)
+* Changes in ERC 5.2
 
 ** M-x erc RET now starts ERC.
 `erc-select' has been changed to `erc'.  `erc-select' still remains as
@@ -12,26 +11,163 @@ an alias of `erc'. Likewise, `erc-select-ssl' has been renamed to
 `erc-ssl' with `erc-select-ssl' as its alias.  The function that was
 known as `erc' is now `erc-open'.
 
+** Open query buffers by default when private messages are received.
+The default value of `erc-auto-query' has been changed to 'bury.
+
 ** New command: /RECONNECT
 This command tries to reconnect to the current IRC server exactly
 once.  It does not work in server buffers (throws an error before the
 command is run), but works in query and channel buffers.
+
+** In MS-DOS environments, look for _ercrc.el rather than .ercrc.el.
+
+** Fix buggy interaction with multi-tty Emacs.
+
+** After running /QUIT, make sure that the IRC process is killed within
+4 seconds.  Freenode, in particular, needs this at times.
+
+** If the IRC process has not responded to our PINGs within a certain
+time, kill it and restart the connection.  See
+`erc-server-auto-reconnect', `erc-server-reconnect-attempts',
+`erc-server-reconnect-timeout', `erc-server-send-ping-interval', and
+`erc-server-send-ping-timeout' to fine-tune ERC's behavior.
+
+** Avoid getting into an infinite connection loop.
+Previously, this could happen if your nick was banned, you were using
+Tor, incorrect information was entered, or the connection was bad.
+
+** Make ban messages less confusing.
+
+** Restore the point correctly when reconnecting to an IRC server.
+
+** Make /IGNORE and /UNIGNORE prompt to determine whether their
+argument is a user or a regexp.  This results in less-confusing
+behavior when trying to ignore someone who has a bracket in their
+nick.
+
+** Make the default port "6667" rather than "ircd", because some
+operating systems don't know what port "ircd" maps to.
+
+** Fix several bugs in erc-iswitchb (C-c C-b).
+
+** Clean up internal documentation.
+Special thanks go to Juanma Barranquero for the thorough vetting of
+ERC's internal documentation.
+
+** Display a more informative message when a module is not found.
+
+** Fix a bug where paths were being colored like IRC commands.
+
+** In the customize interface for `erc-modules', add the name of the module.
+This makes it easier to find modules by name.
+
+** erc-server-send-ping-interval: Change to use a default of 30 seconds.
+
+** Some files which are included with the release of ERC 5.2 will not
+appear in the version of ERC that is bundled with Emacs 22.  These
+extras files may be found at:
+
+ o http://ftp.gnu.org/gnu/erc/erc-5.2-extras.tar.gz, or
+ o http://ftp.gnu.org/gnu/erc/erc-5.2-extras.zip.
+
+** Renamed files
+
+Several files were renamed so as to make them distinct to users of the
+MS-DOS operating system.
+
+ o erc-autojoin.el -> erc-join.el
+ o erc-complete.el -> erc-hecomplete.el
+ o erc-nickserv.el -> erc-services.el
+ o ChangeLog.NNNN -> ChangeLog.NN
+
+** Header line changes
+
+*** Remove "[IRC]" from the header line.
+
+*** Add the %l format character to `erc-header-line-format',
+
+*** Document how to remove the header line.
+Namely: (setq erc-header-line-format nil).
 
 ** New options
 
 *** erc-server-reconnect-attempts: Determines the number of
 reconnection attempts that ERC will make per server.
 
-*** erc-server-reconnect-timeout: New option that determines the
-amount of time, in seconds, that ERC will wait between successive
-reconnect attempts.
+*** erc-server-reconnect-timeout: Determines the amount of time,
+in seconds, that ERC will wait between successive reconnect attempts.
+
+*** erc-server-send-ping-timeout: Determines when to consider a connection
+stalled and restart it.  The default is	after 120 seconds.
+
+*** erc-system-name: Determines the system name to use when logging in.
+The default is to figure this out by calling `system-name'.
 
 ** New face: `erc-my-nick-face'
 This helps make it easier to distinguish messages sent by yourself
 from messages sent by other users when the value of the variable
 `erc-show-my-nick' is non-nil.
 
+** Namespace changes
+
+*** New macro: `erc-with-server-buffer'
+Switches to the current ERC server buffer and runs some code.  If no
+server buffer is available, return nil.  This is a useful way to
+access variables in the server buffer.
+
+*** New function: `erc-open-server-buffer-p'
+Returns non-nil if the given buffer is an ERC server buffer that has
+an open IRC process.
+
+*** New function: `erc-format-lag-time'
+Returns the estimated lag time to server, `erc-server-lag'.
+
+*** Renamed items
+
+ o `erc-server-setup-periodical-server-ping' is now
+   `erc-server-setup-periodical-ping'
+
+ o `erc-away-p' is now `erc-away-time'
+
+** Changes to the ERC manual
+
+*** New section: Sample Session.
+Describes a sample ERC session for connecting to the #emacs channel on
+Freenode.  Also mention the #erc channel.
+
+*** New section: Special Features.
+Describes some of the special features of ERC.
+
+*** Getting Started: Mention ~/.emacs.d/.ercrc.el and the Customize
+interface.
+
+*** Development: Mention ErcDevelopment page on emacswiki.org.
+
+*** Tips and Tricks: Remove empty section for now.
+
+*** Options: Mention how to see available ERC options.
+
+*** Sample Configuration: Add an example of how to configure ERC.
+
 ** New modules
+
+*** Autoaway (erc-autoaway.el)
+
+**** Make this much more reliable.
+
+**** Avoid duplicate messages when coming back from being away.
+
+**** Fix bug where autoaway was enabled just by loading the file.
+
+*** BBDB (erc-bbdb.el)
+
+**** Display information on how to cancel merging of info or how to
+create a new John Doe record.
+
+**** Make it so that information from /whois continues to come in, even
+while prompting for a record to merge.
+
+**** Make hitting C-g correctly abort merging the record.
 
 *** Capab identify (erc-capab.el)
 Mark users who haven't identified to NickServ on servers supporting
@@ -39,16 +175,112 @@ CAPAB IDENTIFY-MSG.
 
 ** Changes and additions to modules
 
-*** Channel lists (erc-list.el)
+*** Button (erc-button.el)
 
-**** This has been removed from Emacs 22, since a major contributor
-to it has not yet assigned changes.
+**** Make <backtab> go to the previous button.
 
 *** Channel tracking (erc-track.el)
 
 **** Use mouse-face and help-echo for channel names in the mode-line.
 This helps people using a mouse know that they are buttons and can be
 clicked on.
+
+**** Fix issue where C-c C-SPC could conflict with user-defined keybindings.
+This is accomplished by moving these bindings to their own global
+minor mode.  Now the default is to check whether the user has bound
+something to C-c C-SPC or C-c C-@.  If they have, prompt them about
+whether to really override that binding.  This also has the effect of
+preventing ERC from clobbering rcirc's keybinding, unless this is
+desired.  See `erc-track-enable-keybindings' for more details.
+
+**** New option: erc-track-enable-keybindings.
+Determine whether or not to enable the C-c C-SPC and C-c C-@
+keybindings.  The default is to ask whether to do this if a binding to
+these keys already exists.  It can also be set to t or nil to always
+bind or never bind, respectively.
+
+**** Remove `track-when-inactive' module.
+See `erc-track-when-inactive' for further details.
+
+**** New option: erc-track-when-inactive.
+This option replaces the track-when-inactive module.  Set it to
+non-nil to track activity even in visible buffers when inactive.  The
+default is nil.
+
+**** Remove the `track-modified-channels' alias for the `track' module.
+
+*** DCC support (erc-dcc.el)
+
+**** Add Usage section to Commentary.
+
+**** Fix a bug in the server message output.
+
+*** Filling (erc-fill.el)
+
+**** Fix bug involving messages that start with one or more blank lines.
+
+*** Identd (erc-identd.el)
+
+**** New option `erc-identd-port'
+Specifies the port to use if none is given as an argument to
+`erc-identd-start'.  This is placed in the new customization group
+`erc-identd'.
+
+**** New function: `erc-identd-quickstart'
+Ignores any arguments and calls `erc-identd-start'.
+
+*** Channel lists (erc-list.el)
+
+**** Enable by default, except in the version of ERC bundled with Emacs 22.
+
+*** Logging (erc-log.el)
+
+**** Make sure filenames are safe to use before writing to them.
+
+**** Save all log buffers when exiting Emacs.
+
+**** erc-generate-log-file-name-function: Add option for
+`erc-generate-log-file-name-network', which is a new function that
+uses the network name rather than the server name when possible.
+
+*** Menu (erc-menu.el)
+
+**** Name the menu "ERC" instead of "IRC" to avoid confusion with rcirc
+and other clients.
+
+**** Make this into a proper module and load it by default.
+
+**** Add "Current channel" submenu.
+
+*** Networks (erc-networks.el)
+
+**** Add support for Ars OpenIRC, LinuxChix, and OFTC networks.
+
+**** Escape periods in Konfido.Net and Kewl.Org.
+
+*** Internet services / Nickserv (erc-nickserv.el)
+
+**** Add new 'both method for the `erc-nickserv-identify-mode' option
+and make it the default.  This tries to do the right thing both when a
+known nickserv message exists for an IRC network, and when it does
+not.
+
+**** Support nickserv authentication on OFTC, Azzurra, Ars, and QuakeNet.
+
+**** Support authentication on BitlBee.
+
+**** Make source code easier to understand by using accessor functions.
+
+*** Sound support (erc-sound.el)
+
+**** Make this work with both Emacs 21 and Emacs 22.
+
+*** Timestamps (erc-stamp.el)
+
+**** Exclude the newline from the erc-timestamp field.
+
+**** New function: `erc-toggle-timestamps'.
+Toggles display of timestamps.
 
 * Changes in ERC 5.1.4
 
@@ -155,6 +387,10 @@ to make the BBDB buffer electric.  This defaults to not electric.
 **** Provide a real ERC module named `identd'.
 
 **** Don't create an extra buffer for the identd process.
+
+*** Channel lists (erc-list.el)
+
+**** Enable by default, except in the version of ERC bundled with Emacs 22.
 
 *** Logging (erc-log.el)
 

@@ -147,7 +147,7 @@ or `erc-send-modify-hook'."
 	(error "Timestamp function unbound"))
       (when (and (fboundp erc-insert-away-timestamp-function)
 		 erc-away-timestamp-format
-		 (with-current-buffer (erc-server-buffer) erc-away)
+		 (erc-away-time)
 		 (not erc-timestamp-format))
 	(funcall erc-insert-away-timestamp-function
 		 (erc-format-timestamp ct erc-away-timestamp-format)))
@@ -203,6 +203,7 @@ space before a right timestamp in any saved logs."
 	 (s (if ignore-p (make-string len ? ) string)))
     (unless ignore-p (setq erc-timestamp-last-inserted string))
     (erc-put-text-property 0 len 'field 'erc-timestamp s)
+    (erc-put-text-property 0 len 'invisible 'timestamp s)
     (insert s)))
 
 (defun erc-insert-aligned (string pos)
@@ -318,6 +319,21 @@ set, and timestamping is already active."
   (interactive)
   (setq erc-hide-timestamps nil)
   (erc-munge-invisibility-spec))
+
+(defun erc-toggle-timestamps ()
+  "Hide or show timestamps in ERC buffers.
+
+Note that timestamps can only be shown for a message using this
+function if `erc-timestamp-format' was set and timestamping was
+enabled when the message was inserted."
+  (interactive)
+  (if erc-hide-timestamps
+      (setq erc-hide-timestamps nil)
+    (setq erc-hide-timestamps t))
+  (mapc (lambda (buffer)
+	  (with-current-buffer buffer
+	    (erc-munge-invisibility-spec)))
+	(erc-buffer-list)))
 
 (defun erc-echo-timestamp (before now)
   "Print timestamp text-property of an IRC message.

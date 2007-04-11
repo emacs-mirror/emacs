@@ -12,9 +12,8 @@
 
 @node Edebug, Syntax Errors, Debugger, Debugging
 @section Edebug
-@cindex Edebug mode
+@cindex Edebug debugging facility
 
-@cindex Edebug
   Edebug is a source-level debugger for Emacs Lisp programs with which
 you can:
 
@@ -195,12 +194,6 @@ evaluates, even if not instrumenting it.  See also the @kbd{i} command
 (@pxref{Jumping}), which steps into the call after instrumenting the
 function.
 
-@cindex special forms (Edebug)
-@cindex interactive commands (Edebug)
-@cindex anonymous lambda expressions (Edebug)
-@cindex Common Lisp (Edebug)
-@pindex cl.el @r{(Edebug)}
-@pindex cl-specs.el
   Edebug knows how to instrument all the standard special forms,
 @code{interactive} forms with an expression argument, anonymous lambda
 expressions, and other defining forms.  However, Edebug cannot determine
@@ -441,9 +434,9 @@ breakpoints, the global break condition, and source breakpoints.
 @end menu
 
 @node Breakpoints
-@subsubsection Breakpoints
+@subsubsection Edebug Breakpoints
 
-@cindex breakpoints
+@cindex breakpoints (Edebug)
 While using Edebug, you can specify @dfn{breakpoints} in the program you
 are testing: these are places where execution should stop.  You can set a
 breakpoint at any stop point, as defined in @ref{Using Edebug}.  For
@@ -867,10 +860,10 @@ lines inserted.
 @node Coverage Testing
 @subsection Coverage Testing
 
-@cindex coverage testing
+@cindex coverage testing (Edebug)
 @cindex frequency counts
 @cindex performance analysis
-Edebug provides rudimentary coverage testing and display of execution
+  Edebug provides rudimentary coverage testing and display of execution
 frequency.
 
   Coverage testing works by comparing the result of each expression with

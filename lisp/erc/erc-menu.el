@@ -1,6 +1,7 @@
 ;; erc-menu.el -- Menu-bar definitions for ERC
 
-;; Copyright (C) 2001, 2002, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2004, 2005, 2006,
+;;   2007 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Keywords: comm, processes, menu
@@ -75,8 +76,8 @@
 		(erc-channel-user-op-p (erc-current-nick))]
 	       ["Set a key..." erc-set-channel-key
 		(erc-channel-user-op-p (erc-current-nick))])
-	 ["Leave this channel..." erc-part-from-channel erc-channel-users]
-	 "-")
+	 ["Leave this channel..." erc-part-from-channel erc-channel-users])
+	"-"
 	(list "Pals, fools and other keywords"
 	      ["Add pal..." erc-add-pal]
 	      ["Delete pal..." erc-delete-pal]

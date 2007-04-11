@@ -1052,7 +1052,6 @@ should only be used by mouse-drag-region."
 				(not (eq mouse-1-click-follows-link 'double))
 				(= click-count 0)
 				(= (event-click-count event) 1)
-				(not (input-pending-p))
 				(or (not (integerp mouse-1-click-follows-link))
 				    (let ((t0 (posn-timestamp (event-start start-event)))
 					  (t1 (posn-timestamp (event-end event))))
@@ -1522,7 +1521,11 @@ This must be bound to a mouse drag event."
     (with-current-buffer (window-buffer (posn-window posn))
       (if (numberp (posn-point posn))
 	  (setq beg (posn-point posn)))
-      (move-overlay mouse-secondary-overlay beg (posn-point end)))))
+      (move-overlay mouse-secondary-overlay beg (posn-point end))
+      (x-set-selection
+       'SECONDARY
+       (buffer-substring (overlay-start mouse-secondary-overlay)
+			 (overlay-end mouse-secondary-overlay))))))
 
 (defun mouse-drag-secondary (start-event)
   "Set the secondary selection to the text that the mouse is dragged over.

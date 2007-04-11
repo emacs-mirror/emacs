@@ -109,6 +109,19 @@
 
 (defconst vc-arch-tagline-re "^\\W*arch-tag:[ \t]*\\(.*[^ \t\n]\\)")
 
+(defmacro vc-with-current-file-buffer (file &rest body)
+  (declare (indent 2) (debug t))
+  `(let ((-kill-buf- nil)
+         (-file- ,file))
+     (with-current-buffer (or (find-buffer-visiting -file-)
+                              (setq -kill-buf- (generate-new-buffer " temp")))
+       ;; Avoid find-file-literally since it can do many undesirable extra
+       ;; things (among which, call us back into an infinite loop).
+       (if -kill-buf- (insert-file-contents -file-))
+       (unwind-protect
+           (progn ,@body)
+         (if (buffer-live-p -kill-buf-) (kill-buffer -kill-buf-))))))
+
 (defun vc-arch-file-source-p (file)
   "Can return nil, `maybe' or a non-nil value.
 Only the value `maybe' can be trusted :-(."
@@ -122,7 +135,7 @@ Only the value `maybe' can be trusted :-(."
 	  (concat ".arch-ids/" (file-name-nondirectory file) ".id")
 	  (file-name-directory file)))
 	;; Check the presence of a tagline.
-	(with-current-buffer (find-file-noselect file)
+	(vc-with-current-file-buffer file
 	  (save-excursion
 	    (goto-char (point-max))
 	    (or (re-search-backward vc-arch-tagline-re (- (point) 1000) t)

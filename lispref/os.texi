@@ -54,7 +54,7 @@ can customize these actions.
 
 @node Startup Summary
 @subsection Summary: Sequence of Actions at Startup
-@cindex initialization
+@cindex initialization of Emacs
 @cindex startup of Emacs
 @cindex @file{startup.el}
 
@@ -622,6 +622,7 @@ convenient way to test parts of this string is with
 @code{string-match}.
 @end defvar
 
+@cindex system type and name
 @defvar system-type
 The value of this variable is a symbol indicating the type of operating
 system Emacs is operating on.  Here is a table of the possible values:
@@ -885,6 +886,7 @@ indicating whether the privilege is currently enabled.
 
 @node User Identification
 @section User Identification
+@cindex user identification
 
 @defvar init-file-user
 This variable says which user's init files should be used by
@@ -1042,7 +1044,7 @@ The value has the form @code{(@var{offset} @var{name})}.  Here
 @var{offset} is an integer giving the number of seconds ahead of UTC
 (east of Greenwich).  A negative value means west of Greenwich.  The
 second element, @var{name}, is a string giving the name of the time
-zone.  Both elements change when daylight savings time begins or ends;
+zone.  Both elements change when daylight saving time begins or ends;
 if the user has specified a time zone that does not use a seasonal time
 adjustment, then the value is constant through time.
 
@@ -1125,7 +1127,7 @@ The year, an integer typically greater than 1900.
 The day of week, as an integer between 0 and 6, where 0 stands for
 Sunday.
 @item dst
-@code{t} if daylight savings time is effect, otherwise @code{nil}.
+@code{t} if daylight saving time is effect, otherwise @code{nil}.
 @item zone
 An integer indicating the time zone, as the number of seconds east of
 Greenwich.
@@ -1145,11 +1147,11 @@ to stand for years above 1900, or years above 2000, you must alter them
 yourself before you call @code{encode-time}.
 
 The optional argument @var{zone} defaults to the current time zone and
-its daylight savings time rules.  If specified, it can be either a list
+its daylight saving time rules.  If specified, it can be either a list
 (as you would get from @code{current-time-zone}), a string as in the
 @code{TZ} environment variable, @code{t} for Universal Time, or an
 integer (as you would get from @code{decode-time}).  The specified
-zone is used without any further alteration for daylight savings time.
+zone is used without any further alteration for daylight saving time.
 
 If you pass more than seven arguments to @code{encode-time}, the first
 six are used as @var{seconds} through @var{year}, the last argument is
@@ -1308,6 +1310,7 @@ the inverse conversion, use @code{float-time}.
 
 @node Processor Run Time
 @section Processor Run time
+@cindex processor run time
 
 @defun get-internal-run-time
 This function returns the processor run time used by Emacs as a list
@@ -1418,20 +1421,15 @@ the timer runs only once.
 
 @var{time} may specify an absolute or a relative time.
 
-Absolute times may be specified in a wide variety of formats; this
-function tries to accept all the commonly used date formats.  The most
-convenient formats are strings.  Valid such formats include these two,
-
-@example
-@var{year}-@var{month}-@var{day} @var{hour}:@var{min}:@var{sec} @var{timezone}
-
-@var{hour}:@var{min}:@var{sec} @var{timezone} @var{month}/@var{day}/@var{year}
-@end example
-
-@noindent
-where in both examples all fields are numbers; the format that
-@code{current-time-string} returns is also allowed, and many others
-as well.
+Absolute times may be specified using a string with a limited variety
+of formats, and are taken to be times @emph{today}, even if already in
+the past.  The recognized forms are @samp{@var{xxxx}},
+@samp{@var{x}:@var{xx}}, or @samp{@var{xx}:@var{xx}} (military time),
+and @samp{@var{xx}am}, @samp{@var{xx}AM}, @samp{@var{xx}pm},
+@samp{@var{xx}PM}, @samp{@var{xx}:@var{xx}am},
+@samp{@var{xx}:@var{xx}AM}, @samp{@var{xx}:@var{xx}pm}, or
+@samp{@var{xx}:@var{xx}PM}.  A period can be used instead of a colon
+to separate the hour and minute parts.
 
 To specify a relative time as a string, use numbers followed by units.
 For example:
@@ -1449,8 +1447,9 @@ For relative time values, Emacs considers a month to be exactly thirty
 days, and a year to be exactly 365.25 days.
 
 Not all convenient formats are strings.  If @var{time} is a number
-(integer or floating point), that specifies a relative time measured
-in seconds.
+(integer or floating point), that specifies a relative time measured in
+seconds.  The result of @code{encode-time} can also be used to specify
+an absolute value for @var{time}.
 
 In most cases, @var{repeat} has no effect on when @emph{first} call
 takes place---@var{time} alone specifies that.  There is one exception:
@@ -1695,9 +1694,10 @@ is the character Emacs currently uses for quitting, usually @kbd{C-g}.
 
 @node Recording Input
 @subsection Recording Input
+@cindex recording input
 
 @defun recent-keys
-This function returns a vector containing the last 100 input events from
+This function returns a vector containing the last 300 input events from
 the keyboard or mouse.  All input events are included, whether or not
 they were used as parts of key sequences.  Thus, you always get the last
 100 input events, not counting events generated by keyboard macros.
@@ -1868,6 +1868,7 @@ is called with one argument, a property list that describes the sound.
 
 @node X11 Keysyms
 @section Operating on X11 Keysyms
+@cindex X11 keysyms
 
 To define system-specific X11 keysyms, set the variable
 @code{system-key-alist}.
@@ -1921,7 +1922,6 @@ how to swap the Meta and Alt modifiers within Emacs:
 @node Batch Mode
 @section Batch Mode
 @cindex batch mode
-@cindex noninteractive use
 
   The command-line option @samp{-batch} causes Emacs to run
 noninteractively.  In this mode, Emacs does not read commands from the

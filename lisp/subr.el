@@ -55,7 +55,7 @@ that complains if FORM ever does return differing values."
 
 (defmacro def-edebug-spec (symbol spec)
   "Set the `edebug-form-spec' property of SYMBOL according to SPEC.
-Both SYMBOL and SPEC are unevaluated. The SPEC can be 0, t, a symbol
+Both SYMBOL and SPEC are unevaluated.  The SPEC can be 0, t, a symbol
 \(naming a function), or a list."
   `(put (quote ,symbol) 'edebug-form-spec (quote ,spec)))
 
@@ -99,12 +99,20 @@ change the list."
 	      (list 'setq listname (list 'cdr listname)))))
 
 (defmacro when (cond &rest body)
-  "If COND yields non-nil, do BODY, else return nil."
+  "If COND yields non-nil, do BODY, else return nil.
+When COND yields non-nil, eval BODY forms sequentially and return
+value of last one, or nil if there are none.
+
+\(fn COND BODY ...)"
   (declare (indent 1) (debug t))
   (list 'if cond (cons 'progn body)))
 
 (defmacro unless (cond &rest body)
-  "If COND yields nil, do BODY, else return nil."
+  "If COND yields nil, do BODY, else return nil.
+When COND yields nil, eval BODY forms sequentially and return
+value of last one, or nil if there are none.
+
+\(fn COND BODY ...)"
   (declare (indent 1) (debug t))
   (cons 'if (cons cond (cons nil body))))
 
@@ -571,7 +579,7 @@ KEY is a string or vector representing a sequence of keystrokes."
 ;;;; substitute-key-definition and its subroutines.
 
 (defvar key-substitution-in-progress nil
- "Used internally by `substitute-key-definition'.")
+  "Used internally by `substitute-key-definition'.")
 
 (defun substitute-key-definition (olddef newdef keymap &optional oldmap prefix)
   "Replace OLDDEF with NEWDEF for any keys in KEYMAP now defined as OLDDEF.
@@ -813,11 +821,11 @@ and `event-end' functions."
 (defun posn-set-point (position)
   "Move point to POSITION.
 Select the corresponding window as well."
-    (if (not (windowp (posn-window position)))
-	(error "Position not in text area of window"))
-    (select-window (posn-window position))
-    (if (numberp (posn-point position))
-	(goto-char (posn-point position))))
+  (if (not (windowp (posn-window position)))
+      (error "Position not in text area of window"))
+  (select-window (posn-window position))
+  (if (numberp (posn-point position))
+      (goto-char (posn-point position))))
 
 (defsubst posn-x-y (position)
   "Return the x and y coordinates in POSITION.
@@ -941,20 +949,26 @@ is converted into a string by expressing it in decimal."
 ;;;; Obsolescence declarations for variables, and aliases.
 
 (make-obsolete-variable 'directory-sep-char "do not use it." "21.1")
-(make-obsolete-variable 'mode-line-inverse-video "use the appropriate faces instead." "21.1")
-(make-obsolete-variable 'unread-command-char
-  "use `unread-command-events' instead.  That variable is a list of events
+(make-obsolete-variable
+ 'mode-line-inverse-video
+ "use the appropriate faces instead."
+ "21.1")
+(make-obsolete-variable
+ 'unread-command-char
+ "use `unread-command-events' instead.  That variable is a list of events
 to reread, so it now uses nil to mean `no event', instead of -1."
-  "before 19.15")
+ "before 19.15")
 
 ;; Lisp manual only updated in 22.1.
 (define-obsolete-variable-alias 'executing-macro 'executing-kbd-macro
-			      "before 19.34")
+  "before 19.34")
 
 (defvaralias 'x-lost-selection-hooks 'x-lost-selection-functions)
-(make-obsolete-variable 'x-lost-selection-hooks 'x-lost-selection-functions "22.1")
+(make-obsolete-variable 'x-lost-selection-hooks
+			'x-lost-selection-functions "22.1")
 (defvaralias 'x-sent-selection-hooks 'x-sent-selection-functions)
-(make-obsolete-variable 'x-sent-selection-hooks 'x-sent-selection-functions "22.1")
+(make-obsolete-variable 'x-sent-selection-hooks
+			'x-sent-selection-functions "22.1")
 
 (defvaralias 'messages-buffer-max-lines 'message-log-max)
 
@@ -1526,7 +1540,7 @@ FILE should be the name of a library, with no directory name."
 
 (when (featurep 'make-network-process)
   (defun open-network-stream (name buffer host service)
-  "Open a TCP connection for a service to a host.
+    "Open a TCP connection for a service to a host.
 Returns a subprocess-object to represent the connection.
 Input and output work as for subprocesses; `delete-process' closes it.
 
@@ -1540,14 +1554,15 @@ BUFFER is the buffer (or buffer name) to associate with the process.
 HOST is name of the host to connect to, or its IP address.
 SERVICE is name of the service desired, or an integer specifying
  a port number to connect to."
-  (make-network-process :name name :buffer buffer
-			:host host :service service)))
+    (make-network-process :name name :buffer buffer
+				     :host host :service service)))
 
 ;; compatibility
 
-(make-obsolete 'process-kill-without-query
-               "use `process-query-on-exit-flag' or `set-process-query-on-exit-flag'."
-               "22.1")
+(make-obsolete
+ 'process-kill-without-query
+ "use `process-query-on-exit-flag' or `set-process-query-on-exit-flag'."
+ "22.1")
 (defun process-kill-without-query (process &optional flag)
   "Say no query needed if PROCESS is running when Emacs is exited.
 Optional second argument if non-nil says to require a query.
@@ -1580,8 +1595,8 @@ Legitimate radix values are 8, 10 and 16.")
  'read-quoted-char-radix 8
  "*Radix for \\[quoted-insert] and other uses of `read-quoted-char'.
 Legitimate radix values are 8, 10 and 16."
-  :type '(choice (const 8) (const 10) (const 16))
-  :group 'editing-basics)
+ :type '(choice (const 8) (const 10) (const 16))
+ :group 'editing-basics)
 
 (defun read-quoted-char (&optional prompt)
   "Like `read-char', but do not allow quitting.
@@ -1895,21 +1910,32 @@ input (as a command if nothing else).
 Display MESSAGE (optional fourth arg) in the echo area.
 If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
   (or exit-char (setq exit-char ?\s))
-  (let ((momentary-overlay (make-overlay pos pos nil t)))
-    (overlay-put momentary-overlay 'before-string
-		 (propertize string 'face 'momentary))
+  (let ((inhibit-read-only t)
+	;; Don't modify the undo list at all.
+	(buffer-undo-list t)
+	(modified (buffer-modified-p))
+	(name buffer-file-name)
+	insert-end)
     (unwind-protect
 	(progn
-	  ;; If the message end is off screen, recenter now.
-	  (if (< (window-end nil t) (+ pos (length string)))
-	      (recenter (/ (window-height) 2)))
-	  ;; If that pushed message start off the screen,
-	  ;; scroll to start it at the top of the screen.
 	  (save-excursion
+	    (goto-char pos)
+	    ;; To avoid trouble with out-of-bounds position
+	    (setq pos (point))
+	    ;; defeat file locking... don't try this at home, kids!
+	    (setq buffer-file-name nil)
+	    (insert-before-markers string)
+	    (setq insert-end (point))
+	    ;; If the message end is off screen, recenter now.
+	    (if (< (window-end nil t) insert-end)
+		(recenter (/ (window-height) 2)))
+	    ;; If that pushed message start off the screen,
+	    ;; scroll to start it at the top of the screen.
 	    (move-to-window-line 0)
 	    (if (> (point) pos)
-		(goto-char pos)
-	      (recenter 0)))
+		(progn
+		  (goto-char pos)
+		  (recenter 0))))
 	  (message (or message "Type %s to continue editing.")
 		   (single-key-description exit-char))
 	  (let (char)
@@ -1929,7 +1955,11 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
 	      (or (eq char exit-char)
 		  (eq char (event-convert-list exit-char))
 		  (setq unread-command-events (list char))))))
-      (delete-overlay momentary-overlay))))
+      (if insert-end
+	  (save-excursion
+	    (delete-region pos insert-end)))
+      (setq buffer-file-name name)
+      (set-buffer-modified-p modified))))
 
 
 ;;;; Overlay operations
@@ -2209,9 +2239,9 @@ If UNDO is present and non-nil, it is a function that will be called
 	     (text-properties-at (1- end)))
 	(put-text-property (1- end) end 'rear-nonsticky t))
 
-    (if (eq yank-undo-function t)  ;; not set by FUNCTION
+    (if (eq yank-undo-function t)		   ;; not set by FUNCTION
 	(setq yank-undo-function (nth 3 handler))) ;; UNDO
-    (if (nth 4 handler) ;; COMMAND
+    (if (nth 4 handler)				   ;; COMMAND
 	(setq this-command (nth 4 handler)))))
 
 (defun insert-buffer-substring-no-properties (buffer &optional start end)
@@ -2457,6 +2487,20 @@ in BODY."
        (let ((combine-after-change-calls t))
 	 . ,body)
      (combine-after-change-execute)))
+
+(defmacro with-case-table (table &rest body)
+  "Execute the forms in BODY with TABLE as the current case table.
+The value returned is the value of the last form in BODY."
+  (declare (indent 1) (debug t))
+  (let ((old-case-table (make-symbol "table"))
+	(old-buffer (make-symbol "buffer")))
+    `(let ((,old-case-table (current-case-table))
+	   (,old-buffer (current-buffer)))
+       (unwind-protect
+	   (progn (set-case-table ,table)
+		  ,@body)
+	 (with-current-buffer ,old-buffer
+	   (set-case-table ,old-case-table))))))
 
 ;;;; Constructing completion tables.
 
@@ -2725,7 +2769,7 @@ Unless optional argument INPLACE is non-nil, return a new string."
     newstr))
 
 (defun replace-regexp-in-string (regexp rep string &optional
-                                 fixedcase literal subexp start)
+					fixedcase literal subexp start)
   "Replace all matches for REGEXP with REP in STRING.
 
 Return a new string containing the replacements.
@@ -2775,7 +2819,7 @@ and replace a sub-expression, e.g.
 				       rep
 				     (funcall rep (match-string 0 str)))
 				   fixedcase literal str subexp)
-		    (cons (substring string start mb)       ; unmatched prefix
+		    (cons (substring string start mb) ; unmatched prefix
 			  matches)))
 	(setq start me))
       ;; Reconstruct a string from the pieces.
@@ -2796,7 +2840,8 @@ that can be added."
 (defun remove-from-invisibility-spec (element)
   "Remove ELEMENT from `buffer-invisibility-spec'."
   (if (consp buffer-invisibility-spec)
-    (setq buffer-invisibility-spec (delete element buffer-invisibility-spec))))
+      (setq buffer-invisibility-spec
+	    (delete element buffer-invisibility-spec))))
 
 ;;;; Syntax tables.
 
@@ -3142,7 +3187,7 @@ Usually the separator is \".\", but it can be any other string.")
 
 (defvar version-regexp-alist
   '(("^[-_+ ]?a\\(lpha\\)?$"   . -3)
-    ("^[-_+]$"                 . -3)	; treat "1.2.3-20050920" and "1.2-3" as alpha releases
+    ("^[-_+]$"                 . -3) ; treat "1.2.3-20050920" and "1.2-3" as alpha releases
     ("^[-_+ ]cvs$"             . -3)	; treat "1.2.3-CVS" as alpha release
     ("^[-_+ ]?b\\(eta\\)?$"    . -2)
     ("^[-_+ ]?\\(pre\\|rc\\)$" . -1))
@@ -3216,7 +3261,7 @@ See documentation for `version-separator' and `version-regexp-alist'."
   ;; Change .x.y to 0.x.y
   (if (and (>= (length ver) (length version-separator))
 	   (string-equal (substring ver 0 (length version-separator))
-		    version-separator))
+			 version-separator))
       (setq ver (concat "0" ver)))
   (save-match-data
     (let ((i 0)

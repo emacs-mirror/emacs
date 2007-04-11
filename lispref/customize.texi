@@ -186,9 +186,10 @@ choice is the official name of the package, such as MH-E or Gnus.
 @end defvar
 
 @node Group Definitions
-@section Defining Custom Groups
+@section Defining Customization Groups
+@cindex define customization group
+@cindex customization groups, defining
 
-@cindex custom groups, how to define
   Each Emacs Lisp package should have one main customization group which
 contains all the options, faces and other groups in the package.  If the
 package has a small number of options and faces, use just one group and
@@ -259,10 +260,10 @@ turn this feature back on, if someone would like to do the work.
 
 @node Variable Definitions
 @section Defining Customization Variables
-
+@cindex define customization options
 @cindex customization variables, how to define
-@cindex declare user-editable variables
-  Use @code{defcustom} to declare user-editable variables.
+
+  Use @code{defcustom} to declare user-customizable variables.
 
 @defmac defcustom option standard doc [keyword value]@dots{}
 This construct declares @var{option} as a customizable user option
@@ -701,7 +702,7 @@ The value must be a valid color name, and you can do completion with
 
 @node Composite Types
 @subsection Composite Types
-@cindex arguments (of composite type)
+@cindex Composite Types (customization)
 
   When none of the simple types is appropriate, you can use composite
 types, which build new types from other types or from specified data.

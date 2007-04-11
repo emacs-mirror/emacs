@@ -181,7 +181,7 @@ The signals which will cause this to happen are matched by
 	    (setq signum (abs (string-to-number id))))
 	   ((stringp id)
 	    (let (case-fold-search)
-	      (if (string-match "^-\\([A-Z]+\\)$" id)
+	      (if (string-match "^-\\([A-Z]+[12]?\\)$" id)
 		  (setq signum
 			(intern (concat "SIG" (match-string 1 id))))
 		(error "kill: bad signal spec `%s'" id))))
