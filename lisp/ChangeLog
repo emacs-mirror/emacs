@@ -1,3 +1,15 @@
+2007-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* desktop.el (desktop-save, desktop-create-buffer): Replace mapcar with
+	dolist.
+	(after-init-hook): Don't quote lambda.
+	(desktop-first-buffer): Don't wrap it in eval-when-compile.
+	(desktop-internal-v2s): Remove unused var `el'.
+	(desktop-buffer-major-mode, desktop-buffer-locals): Move out of
+	desktop-restore-file-buffer.
+	(desktop-buffer-ok-count, desktop-buffer-fail-count): Move out of
+	desktop-create-buffer.
+
 2007-04-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* woman.el (woman-decode-buffer): Postphone macro-set check...
@@ -25,8 +37,8 @@
 
 	* emacs-lisp/byte-opt.el (byte-optimize-char-before): Remove (move
 	to bytecomp.el as byte-compile-char-before).
-	* emacs-lisp/bytecomp.el (byte-compile-char-before): New
-	function (modified replacement for byte-optimize-char-before in
+	* emacs-lisp/bytecomp.el (byte-compile-char-before):
+	New function (modified replacement for byte-optimize-char-before in
 	byte-opt.el).
 
 2007-04-09  Alan Mackenzie  <acm@muc.de>
@@ -76,8 +88,8 @@
 
 2007-04-08  Johan Bockg,Ae(Brd  <bojohan+news@dd.chalmers.se>
 
-	* term/xterm.el (terminal-init-xterm): Fix key definitions.  Add
-	binding for C-M-SPC.
+	* term/xterm.el (terminal-init-xterm): Fix key definitions.
+	Add binding for C-M-SPC.
 
 2007-04-08  Richard Stallman  <rms@gnu.org>
 
@@ -142,8 +154,8 @@
 
 	* menu-bar.el (menu-bar-tools-menu): Revert 2003-07-25 change.
 
-	* desktop.el (desktop-create-buffer, desktop-save): Revert
-	2004-11-12 change.
+	* desktop.el (desktop-create-buffer, desktop-save):
+	Revert 2004-11-12 change for lack of copyright papers.
 
 	* dired-x.el (dired-guess-shell-case-fold-search): Delete var.
 	(dired-guess-default): Respect case.
