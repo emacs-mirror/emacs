@@ -2,6 +2,9 @@
 
         * emacs-lisp/byte-opt.el (byte-optimize-backward-char)
         (byte-optimize-backward-word): Remove (move to bytecomp.el)
+	(byte-optimize-form-code-walker): Evaluate pure function calls if
+	possible.
+	(byte-optimize-all-constp): New function.
 
         * emacs-lisp/bytecomp.el (byte-compile-char-before): Improve
         numeric argument case.
