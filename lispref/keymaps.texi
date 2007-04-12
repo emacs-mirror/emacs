@@ -255,7 +255,7 @@ lisp-mode-map
      (24 . lisp-send-defun)
      keymap
      ;; @r{@kbd{M-C-q}, treated as @kbd{@key{ESC} C-q}}
-     (17 . indent-sexp)))
+     (17 . indent-sexp))
 @end group
 @group
  ;; @r{This part is inherited from @code{lisp-mode-shared-map}.}
