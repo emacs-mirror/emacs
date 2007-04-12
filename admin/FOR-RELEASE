@@ -42,13 +42,21 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 * BUGS
 
 ** spurious scrolling bug
+Not sure what this refers to (added April 9). Maybe
+http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-04/msg00003.html ?
 
 ** crash in gc_sweep
+http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-04/msg00082.html
+ Reported by Kim Storm, who says "I've tried many ways / many times to
+ reproduce the crash, but I cannot... messing around with this in
+ various ways does not crash Emacs no matter how much I try."
 
 ** ryanmcgeary@hotmail.com, Apr 9: x-display-pixel-width
  change -- is it a bug?
+http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00400.html
 
 ** disumu@x3y2z1.net, Apr 10: url-http endless loop
+http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00379.html
 
 * DOCUMENTATION
 
