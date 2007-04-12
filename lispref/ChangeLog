@@ -1,3 +1,8 @@
+2007-04-12  Nick Roberts  <nickrob@snap.net.nz>
+
+	* keymaps.texi (Format of Keymaps): Remove spurious ")" from
+	value of lisp-mode-map.
+
 2007-04-11  Karl Berry  <karl@gnu.org>
 
 	* anti.texi (Antinews),
