@@ -2304,6 +2304,8 @@ gud, see `gud-mode'."
   (gud-def gud-up     "up\C-Mwhere"   "<"    "Up one stack frame.")
   (gud-def gud-down   "down\C-Mwhere" ">"    "Up one stack frame.")
   (gud-def gud-run    "run"           nil    "Run the program.") ;if VM start using jdb
+  (gud-def gud-print  "print %e"  "\C-p" "Evaluate Java expression at point.")
+
 
   (setq comint-prompt-regexp "^> \\|^[^ ]+\\[[0-9]+\\] ")
   (setq paragraph-start comint-prompt-regexp)
@@ -2853,7 +2855,9 @@ Obeying it means displaying in another window the specified file and line."
 	  (when (looking-at comint-prompt-regexp)
 	    (set-marker gud-delete-prompt-marker (point))
 	    (set-marker-insertion-type gud-delete-prompt-marker t))
-	  (insert (concat  expr " = ")))))
+	  (unless (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
+		      'jdb)
+	      (insert (concat  expr " = "))))))
     expr))
 
 ;; The next eight functions are hacked from gdbsrc.el by
