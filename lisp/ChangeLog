@@ -1,3 +1,8 @@
+2007-04-12  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-minor-mode-map): Make go button same
+	same length as stop button to lessen flicker.
+
 2007-04-11  Jason Rumney  <jasonr@gnu.org>
 
 	* dnd.el (dnd-get-local-file-name): Decode both upper and lower
