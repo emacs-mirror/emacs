@@ -35,7 +35,7 @@ any older versions of these packages to ensure that the Emacs 22
 version is used.  You can use M-x list-load-path-shadows to find such
 older packages.
 
-Some specific packages which are known to cause problems are:
+Some specific packages that are known to cause problems are:
 
 ** Semantic (used by CEDET, ECB, JDEE): upgrade to latest version.
 ** cua.el, cua-mode.el: remove old versions.
@@ -145,7 +145,7 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 ---
 ** Mac OS 9 port now uses the Carbon API by default.  You can also
-create non-Carbon build by specifying `NonCarbon' as a target.  See
+create a non-Carbon build by specifying `NonCarbon' as a target.  See
 the files mac/README and mac/INSTALL for build instructions.
 
 ---
@@ -227,10 +227,10 @@ affects the initial frame.
 
 ---
 ** Emacs built for MS-Windows now behaves like Emacs on X does,
-wrt its frame position: if you don't specify a position (in your
-.emacs init file, in the Registry, or with the --geometry command-line
-option), Emacs leaves the frame position to the Windows' window
-manager.
+with respect to its frame position: if you don't specify a position
+(in your .emacs init file, in the Registry, or with the --geometry
+command-line option), Emacs leaves the frame position to the Windows'
+window manager.
 
 +++
 ** Emacs can now be invoked in full-screen mode on a windowed display.
@@ -243,12 +243,12 @@ screen size.  (For now, this does not work with some window managers.)
 ** Emacs now displays a splash screen by default even if command-line
 arguments were given.  The new command-line option --no-splash
 disables the splash screen; see also the variable
-`inhibit-startup-message' (which is also aliased as
-`inhibit-splash-screen').
+`inhibit-splash-screen' (which is also aliased as
+`inhibit-startup-message').
 
 +++
 ** The default is now to use a bitmap as the icon, so the command-line options
---icon-type, -i has been replaced with options --no-bitmap-icon, -nbi to turn
+--icon-type, -i have been replaced with options --no-bitmap-icon, -nbi to turn
 the bitmap icon off.
 
 +++
@@ -1012,7 +1012,7 @@ so package-specific faces can inherit from it.
 *** New option `ebnf-arrow-extra-width' which specify extra width for arrow
 shape drawing.
 The extra width is used to avoid that the arrowhead and the terminal border
-overlap.  It depens on `ebnf-arrow-shape' and `ebnf-line-width'.
+overlap.  It depends on `ebnf-arrow-shape' and `ebnf-line-width'.
 
 +++
 *** New option `ebnf-arrow-scale' which specify the arrow scale.
@@ -1119,7 +1119,7 @@ and "Open File...".  "Open File..." now opens only existing files.  This is
 to support existing GUI file selection dialogs better.
 
 +++
-*** The file selection dialog for Gtk+, Mac, W32 and Motif/Lesstif can be
+*** The file selection dialog for Gtk+, Mac, W32 and Motif/LessTif can be
 disabled by customizing the variable `use-file-dialog'.
 
 ---
@@ -1127,7 +1127,7 @@ disabled by customizing the variable `use-file-dialog'.
 be navigated with the arrow keys (like Gtk+, Mac and W32).
 
 +++
-*** The menu bar for Motif/Lesstif/Lucid/Gtk+ can be navigated with keys.
+*** The menu bar for Motif/LessTif/Lucid/Gtk+ can be navigated with keys.
 Pressing F10 shows the first menu in the menu bar.  Navigation is done with
 the arrow keys, select with the return key and cancel with the escape keys.
 
@@ -1137,7 +1137,7 @@ to explicitly specify a fontSet resource for this to work, for example
 `-xrm "Emacs*fontSet:  -*-helvetica-medium-r-*--*-120-*-*-*-*-*-*,*"'.
 
 ---
-*** Dialogs for Lucid/Athena and Lesstif/Motif now pops down when pressing
+*** Dialogs for Lucid/Athena and LessTif/Motif now pop down on pressing
 ESC, like they do for Gtk+, Mac and W32.
 
 +++
@@ -1168,7 +1168,7 @@ Traditionally, Emacs uses a Mouse-1 click to set point and a Mouse-2
 click to follow a link, whereas most other applications use a Mouse-1
 click for both purposes, depending on whether you click outside or
 inside a link.  Now the behavior of a Mouse-1 click has been changed
-to match this context-sentitive dual behavior.  (If you prefer the old
+to match this context-sensitive dual behavior.  (If you prefer the old
 behavior, set the user option `mouse-1-click-follows-link' to nil.)
 
 Depending on the current mode, a Mouse-2 click in Emacs can do much
@@ -1620,7 +1620,7 @@ people knowing `find-grep-dired' would probably expect it.
 *** New commands `lgrep' (local grep) and `rgrep' (recursive grep) are
 more user-friendly versions of `grep' and `grep-find', which prompt
 separately for the regular expression to match, the files to search,
-and the base directory for the search.  Case sensitivitivy of the
+and the base directory for the search.  Case sensitivity of the
 search is controlled by the current value of `case-fold-search'.
 
 These commands build the shell commands based on the new variables
@@ -2127,7 +2127,7 @@ asterisk - for instance, the comment close of some languages (eg, c's "*/"
 or mathematica's "*)") - at the beginning of line are no longer are
 interpreted as level 1 topics in those modes.
 
-*** Many or most commonly occuring "accidental" topics are disqualified.
+*** Many or most commonly occurring "accidental" topics are disqualified.
 Text in item bodies that looks like a low-depth topic is no longer mistaken
 for one unless its first offspring (or that of its next sibling with
 offspring) is only one level deeper.
