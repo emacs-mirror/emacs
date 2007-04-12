@@ -205,7 +205,7 @@ usage: (char-to-string CHAR)  */)
   int len;
   unsigned char str[MAX_MULTIBYTE_LENGTH];
 
-  CHECK_NUMBER (character);
+  CHECK_CHARACTER (character);
 
   len = CHAR_STRING (XFASTINT (character), str);
   return make_string_from_bytes (str, 1, len);
@@ -2155,7 +2155,7 @@ general_insert_function (insert_func, insert_from_string_func,
   for (argnum = 0; argnum < nargs; argnum++)
     {
       val = args[argnum];
-      if (INTEGERP (val))
+      if (CHARACTERP (val))
 	{
 	  unsigned char str[MAX_MULTIBYTE_LENGTH];
 	  int len;

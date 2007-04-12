@@ -100,7 +100,7 @@ char unibyte_has_multibyte_table[256];
 
 int
 char_string (c, p)
-     int c;
+     unsigned c;
      unsigned char *p;
 {
   int bytes;
@@ -169,11 +169,13 @@ char_string (c, p)
       p[4] = (0x80 | (c & 0x3F));
       bytes = 5;
     }
-  else
+  else if (c <= MAX_CHAR)
     {
       c = CHAR_TO_BYTE8 (c);
       bytes = BYTE8_STRING (c, p);
     }
+  else
+    error ("Invalid character: %d", c);
 
   return bytes;
 }
