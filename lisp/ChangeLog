@@ -3,8 +3,8 @@
 	* progmodes/gud.el (gud-minor-mode-map): Make go button same same
 	length as stop button to lessen flicker.
 	(jdb): Add gud-print.
-	(gud-find-expr): jdb print expression with value, so don't insert
-	it in the output.
+	(gud-find-expr): Jdb prints the expression with the value, so
+	don't insert it in the output.
 
 2007-04-11  Jason Rumney  <jasonr@gnu.org>
 
