@@ -1835,6 +1835,8 @@ xrm_get_preference_database (application)
       if (app_id == NULL)
 	goto out;
     }
+  if (!CFPreferencesAppSynchronize (app_id))
+    goto out;
 
   key_set = CFSetCreateMutable (NULL, 0, &kCFCopyStringSetCallBacks);
   if (key_set == NULL)
@@ -4650,6 +4652,9 @@ otherwise.  */)
       if (app_id == NULL)
 	goto out;
     }
+  if (!CFPreferencesAppSynchronize (app_id))
+    goto out;
+
   key_str = cfstring_create_with_string (XCAR (key));
   if (key_str == NULL)
     goto out;
