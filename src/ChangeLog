@@ -1,3 +1,14 @@
+2007-04-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (xrm_get_preference_database, Fmac_get_preference)
+	[TARGET_API_MAC_CARBON]: Use CFPreferencesAppSynchronize.
+
+	* macterm.c [TARGET_API_MAC_CARBON] (mac_post_mouse_moved_event):
+	Use GetGlobalMouse instead of GetMouse and LocalToGlobal.
+	(mac_initialize_display_info) [MAC_OSX]: Use CGRectZero.
+	(mac_initialize_display_info) [!MAC_OSX]: dpyinfo->height and
+	dpyinfo->width are those of whole screen.
+
 2007-04-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (note_mode_line_or_margin_highlight): Don't decrement
