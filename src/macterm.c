@@ -10533,8 +10533,7 @@ mac_post_mouse_moved_event ()
     {
       Point mouse_pos;
 
-      GetMouse (&mouse_pos);
-      LocalToGlobal (&mouse_pos);
+      GetGlobalMouse (&mouse_pos);
       err = SetEventParameter (event, kEventParamMouseLocation, typeQDPoint,
 			       sizeof (Point), &mouse_pos);
     }
@@ -11554,7 +11553,7 @@ mac_initialize_display_info ()
       }
     if (err == noErr)
       {
-	CGRect bounds = CGRectMake (0, 0, 0, 0);
+	CGRect bounds = CGRectZero;
 
 	while (ndisps-- > 0)
 	  bounds = CGRectUnion (bounds, CGDisplayBounds (displays[ndisps]));
@@ -11569,15 +11568,21 @@ mac_initialize_display_info ()
   }
 #else
   {
-    GDHandle main_device_handle = LMGetMainDevice();
+    GDHandle gdh = GetMainDevice ();
+    Rect rect = (**gdh).gdRect;
 
-    dpyinfo->color_p = TestDeviceAttribute (main_device_handle, gdDevType);
+    dpyinfo->color_p = TestDeviceAttribute (gdh, gdDevType);
     for (dpyinfo->n_planes = 32; dpyinfo->n_planes > 0; dpyinfo->n_planes >>= 1)
-      if (HasDepth (main_device_handle, dpyinfo->n_planes,
-		    gdDevType, dpyinfo->color_p))
+      if (HasDepth (gdh, dpyinfo->n_planes, gdDevType, dpyinfo->color_p))
 	break;
-    dpyinfo->height = (**main_device_handle).gdRect.bottom;
-    dpyinfo->width = (**main_device_handle).gdRect.right;
+
+    for (gdh = GetDeviceList (); gdh; gdh = GetNextDevice (gdh))
+      if (TestDeviceAttribute (gdh, screenDevice)
+	  && TestDeviceAttribute (gdh, screenActive))
+	UnionRect (&rect, &(**gdh).gdRect, &rect);
+
+    dpyinfo->height = rect.bottom - rect.top;
+    dpyinfo->width = rect.right - rect.left;
   }
 #endif
   dpyinfo->grabbed = 0;
