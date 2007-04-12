@@ -91,7 +91,7 @@ Emacs with Leim.
 
 The Emacs Lisp Reference Manual in Info format is built as part of the
 Emacs build procedure and installed together with the Emacs User
-Manual.  A menu item was added to the menu bar that makes it easy
+Manual.  A menu item was added to the menu bar to make it easily
 accessible (Help->More Manuals->Emacs Lisp Reference).
 
 ---
@@ -100,7 +100,7 @@ the distribution.
 
 This manual is now part of the standard distribution and is installed,
 together with the Emacs User Manual, into the Info directory.  A menu
-item was added to the menu bar that makes it easy accessible
+item was added to the menu bar to make it easily accessible
 (Help->More Manuals->Introduction to Emacs Lisp).
 
 ---
