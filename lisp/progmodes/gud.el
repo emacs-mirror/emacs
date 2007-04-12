@@ -238,7 +238,7 @@ Used to grey out relevant toolbar icons.")
 	,(propertize "run" 'face 'font-lock-doc-face) gud-run
 	:visible (memq gud-minor-mode '(gdbmi gdb dbx jdb)))
        ([menu-bar go] menu-item 
-	,(propertize "go" 'face 'font-lock-doc-face) gud-go
+	,(propertize " go " 'face 'font-lock-doc-face) gud-go
 	:visible (and (not gud-running)
 		      (eq gud-minor-mode 'gdba)))
        ([menu-bar stop] menu-item
