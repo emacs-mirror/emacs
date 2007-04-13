@@ -1,3 +1,9 @@
+2007-04-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* outline.el (outline-get-next-sibling): Clarify docstring.
+	(outline-get-last-sibling): Handle case where we are at the first
+	heading.  Clarify docstring.
+
 2007-04-12  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-minor-mode-map): Make go button same same
