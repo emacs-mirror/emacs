@@ -2445,11 +2445,11 @@ Building Emacs 22 with Cygwin builds of GCC 3.4.4-1 and 3.4.4-2 is
 reported to either fail or cause Emacs to segfault at run time.  In
 addition, the Cygwin GCC 3.4.4-2 has problems with generating debug
 info.  Cygwin users are advised not to use these versions of GCC for
-compiling Emacs.  GCC versions 4.0.3, 4.1.1, and 4.1.2 reportedly
-build a working Cygwin binary of Emacs, so we recommend these GCC
-versions.  Note that these three versions of GCC, 4.0.3, 4.1.1, and
-4.1.2, are currently the _only_ versions known to succeed in building
-Emacs (as of v22.1).
+compiling Emacs.  GCC versions 4.0.3, 4.0.4, 4.1.1, and 4.1.2
+reportedly build a working Cygwin binary of Emacs, so we recommend
+these GCC versions.  Note that these versions of GCC, 4.0.3, 4.0.4,
+4.1.1, and 4.1.2, are currently the _only_ versions known to succeed
+in building Emacs (as of v22.1).
 
 *** Building the native MS-Windows port with Cygwin GCC can fail.
 
