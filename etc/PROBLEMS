@@ -213,15 +213,15 @@ configuring your compiler to use the native linker instead of GNU ld.
 This happens because of bugs in Gtk+.  Gtk+ 2.10 seems to be OK.  See bug
 http://bugzilla.gnome.org/show_bug.cgi?id=85715.
 
-** Emacs compiled with Gtk+ crashes on startup on cygwin.
+** Emacs compiled with Gtk+ crashes on startup on Cygwin.
 
 A typical error message is
   ***MEMORY-ERROR***: emacs[5172]: GSlice: failed to allocate 504 bytes
   (alignment: 512): Function not implemented
 
 Emacs supplies its own malloc, but glib (part of Gtk+) calls memalign and on
-cygwin that becomes the cygwin supplied memalign.  As malloc is not the
-cygwin malloc, the cygwin memalign always returns ENOSYS.  A fix for this
+Cygwin, that becomes the Cygwin supplied memalign.  As malloc is not the
+Cygwin malloc, the Cygwin memalign always returns ENOSYS.  A fix for this
 problem would be welcome.
 
 * General runtime problems
@@ -2439,7 +2439,7 @@ files are installed. Then use:
 
 (using the location of the 32-bit X libraries on your system).
 
-*** Building the Cygwin port for MS-Windows can fail with some GCC version
+*** Building the Cygwin port for MS-Windows can fail with some GCC versions
 
 Building Emacs 22 with Cygwin builds of GCC 3.4.4-1 and 3.4.4-2 is
 reported to either fail or cause Emacs to segfault at run time.  In
