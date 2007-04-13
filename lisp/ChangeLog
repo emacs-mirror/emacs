@@ -1,3 +1,10 @@
+2007-04-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/compile.el (compilation-start): Revert 2007-03-25
+	change.
+
+	* files.el: Ditto.
+
 2007-04-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	* cus-edit.el (minibuffer, auto-save): Fix typos in docstrings.
