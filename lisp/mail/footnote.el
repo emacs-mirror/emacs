@@ -267,14 +267,17 @@ Wrapping around the alphabet implies successive repetitions of letters."
 
 ;; Latin-1
 
-(defconst footnote-latin-regexp "¹²³ºª§¶"
+(defconst footnote-latin-string "¹²³ºª§¶"
+  "String of Latin-1 footnoting characters.")
+
+(defconst footnote-latin-regexp (concat "[" footnote-latin-string "]")
   "Regexp for Latin-1 footnoting characters.")
 
 (defun Footnote-latin (n)
   "Latin-1 footnote style.
 Use a range of Latin-1 non-ASCII characters for footnoting."
-  (string (aref footnote-latin-regexp
-		(mod (1- n) (length footnote-latin-regexp)))))
+  (string (aref footnote-latin-string
+		(mod (1- n) (length footnote-latin-string)))))
 
 ;;; list of all footnote styles
 (defvar footnote-style-alist
@@ -654,7 +657,7 @@ delete the footnote with that number."
       (while (< i notes)
 	(setq alist-ptr (nth i footnote-pointer-marker-alist))
 	(setq alist-txt (nth i footnote-text-marker-alist))
-	(unless (eq (1+ i) (car alist-ptr))
+	(unless (= (1+ i) (car alist-ptr))
 	  (Footnote-renumber (car alist-ptr) (1+ i) alist-ptr alist-txt))
 	(setq i (1+ i))))))
 
