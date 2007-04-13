@@ -320,6 +320,12 @@ undefined."
   "\\`\\([-a-zA-Z0-9+.]+:\\)"
   "A regular expression that will match an absolute URL.")
 
+(defcustom url-max-redirections 30
+  "*The maximum number of redirection requests to honor in a HTTP connection.
+A negative number means to honor an unlimited number of redirection requests."
+  :type 'integer
+  :group 'url)
+
 (defcustom url-confirmation-func 'y-or-n-p
   "*What function to use for asking yes or no functions.
 Possible values are `yes-or-no-p' or `y-or-n-p', or any function that
