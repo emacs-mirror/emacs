@@ -43,6 +43,7 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** spurious scrolling bug
 http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00443.html
+RMS has seen this too, happening during idle time, but cannot reproduce it.
 
 ** crash in gc_sweep
 http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-04/msg00082.html
@@ -65,6 +66,8 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00406.html
 
 ** BibTeX-mode: bibtex-user-optional-fields: INIT without {}
 http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-04/msg00255.html
+
+** cyd@stupidchicken.com, Apr 12: display margin errors on a tty
 
 * DOCUMENTATION
 
