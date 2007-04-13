@@ -42,8 +42,7 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 * BUGS
 
 ** spurious scrolling bug
-Not sure what this refers to (added April 9). Maybe
-http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-04/msg00003.html ?
+http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00443.html
 
 ** crash in gc_sweep
 http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-04/msg00082.html
@@ -52,19 +51,33 @@ http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-04/msg00082.html
  various ways does not crash Emacs no matter how much I try."
 
 ** ryanmcgeary@hotmail.com, Apr 9: x-display-pixel-width
+http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00400.html
 Not a bug, but doc must be updated.
 
 ** disumu@x3y2z1.net, Apr 10: url-http endless loop
 http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00379.html
 
+** Parsing URL attributes - url-mailto, url-imap, url-ldap broken?
+http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00455.html
+
 ** lennart.borgman@gmail.com, Apr 11: before-string in overlay
+http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-04/msg00153.html
 
 ** nickrob@snap.net.nz, April 12: display margin errors on a tty
+http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-04/msg00220.html
 
 ** footnote.el doesn't really let people customize footnote-style.
+http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00406.html
 
-** compile.el change to use compilation-directory instead of
-   default-directory does not work right.
+** compile.el change to use compilation-directory instead of                   
+   default-directory does not work right.                                      
+http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00342.html
+
+** tmm-menubar breaks in org mode
+http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-04/msg00230.html
+
+** BibTeX-mode: bibtex-user-optional-fields: INIT without {}
+http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-04/msg00255.html
 
 * DOCUMENTATION
 

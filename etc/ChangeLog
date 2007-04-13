@@ -2,6 +2,8 @@
 
 	* MACHINES: emacserver is removed.
 
+	* MORE.STUFF: Update some links, remove some dead ones.
+
 2007-04-04  Slawomir Nowaczyk  <slawomir.nowaczyk.847@student.lu.se>
 
 	* emacs.py (format_exception): New function.
