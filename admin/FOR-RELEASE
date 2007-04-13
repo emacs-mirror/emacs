@@ -54,9 +54,6 @@ http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-04/msg00082.html
 http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00400.html
 Not a bug, but doc must be updated.
 
-** disumu@x3y2z1.net, Apr 10: url-http endless loop
-http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00379.html
-
 ** Parsing URL attributes - url-mailto, url-imap, url-ldap broken?
 http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00455.html
 
