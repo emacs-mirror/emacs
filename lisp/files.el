@@ -2434,13 +2434,14 @@ asking you for confirmation."
 
 (mapc (lambda (pair)
 	(put (car pair) 'safe-local-variable (cdr pair)))
-      '((buffer-read-only                . booleanp) ;; C source code
-	(fill-column                     . integerp) ;; C source code
-	(indent-tabs-mode                . booleanp) ;; C source code
-	(left-margin                     . integerp) ;; C source code
-	(no-update-autoloads             . booleanp)
-	(tab-width                       . integerp) ;; C source code
-	(truncate-lines                  . booleanp))) ;; C source code
+      '((buffer-read-only     . booleanp)   ;; C source code
+	(default-directory    . stringp)    ;; C source code
+	(fill-column          . integerp)   ;; C source code
+	(indent-tabs-mode     . booleanp)   ;; C source code
+	(left-margin          . integerp)   ;; C source code
+	(no-update-autoloads  . booleanp)
+	(tab-width            . integerp)   ;; C source code
+	(truncate-lines       . booleanp))) ;; C source code
 
 (put 'c-set-style 'safe-local-eval-function t)
 

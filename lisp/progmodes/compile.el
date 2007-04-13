@@ -1042,7 +1042,7 @@ Returns the compilation buffer created."
 		 highlight-regexp))
 	;; Output a mode setter, for saving and later reloading this buffer.
 	(insert "-*- mode: " name-of-mode
-		"; compilation-directory: " (prin1-to-string compilation-directory)
+		"; default-directory: " (prin1-to-string default-directory)
 		" -*-\n"
 		(format "%s started at %s\n\n"
 			mode-name
