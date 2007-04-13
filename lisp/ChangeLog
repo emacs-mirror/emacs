@@ -1,3 +1,8 @@
+2007-04-13  Glenn Morris  <rgm@gnu.org>
+
+	* tmm.el (tmm-get-keybind): Use car-safe to avoid errors with
+	inherited keymaps.
+
 2007-04-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* outline.el (outline-get-next-sibling): Clarify docstring.
