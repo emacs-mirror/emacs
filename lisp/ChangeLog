@@ -1,10 +1,24 @@
+2007-04-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cus-edit.el (minibuffer, auto-save): Fix typos in docstrings.
+
+	* term.el (term-buffer-maximum-size, term-exec, term-escape-char)
+	(term-set-escape-char, term-termcap-format, term-get-old-input-default)
+	(term-skip-prompt, term-send-string, term-send-region, term-pager-page)
+	(term-pager-help): Fix typos in docstrings.
+
+	* wid-edit.el (widget-documentation): Fix typo in docstring.
+
+	* progmodes/ebnf2ps.el (ebnf-insert-style, ebnf-merge-style):
+	Fix typos in error messages.
+
 2007-04-13  Martin Rudalics  <rudalics@gmx.at>
 
 	* emacs-lisp/edebug.el (edebug-pop-to-buffer): Don't select
 	window marked as dedicated.
 
 	* mail/footnote.el (footnote-latin-string): New variable.
-	(footnote-latin-regexp): Redefined as regexp alternative. 
+	(footnote-latin-regexp): Redefined as regexp alternative.
 	(Footnote-latin): Use footnote-latin-string instead of
 	footnote-latin-regexp.
 
@@ -30,12 +44,12 @@
 2007-04-11  Jason Rumney  <jasonr@gnu.org>
 
 	* dnd.el (dnd-get-local-file-name): Decode both upper and lower
-	case hex. Do not try to decode non-hex letters.
+	case hex.  Do not try to decode non-hex letters.
 
 2007-04-11  Markus Triska  <markus.triska@gmx.at>
 
         * emacs-lisp/byte-opt.el (byte-optimize-backward-char)
-        (byte-optimize-backward-word): Remove (move to bytecomp.el)
+        (byte-optimize-backward-word): Remove (move to bytecomp.el).
 	(byte-optimize-form-code-walker): Evaluate pure function calls if
 	possible.
 	(byte-optimize-all-constp): New function.
@@ -60,7 +74,7 @@
 
 2007-04-10  Chong Yidong  <cyd@stupidchicken.com>
 
-	* woman.el (woman-decode-buffer): Postphone macro-set check...
+	* woman.el (woman-decode-buffer): Postpone macro-set check...
 	(woman-decode-region): ...to here.
 
 2007-04-10  Thien-Thi Nguyen  <ttn@gnu.org>
