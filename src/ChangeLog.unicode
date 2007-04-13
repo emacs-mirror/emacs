@@ -1,3 +1,14 @@
+2007-04-13  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fontset_find_font): New function.
+	(fontset_font): Use fontset_find_font.
+	(make_fontset_for_ascii_face): Don't set face ID in rfont_def.
+	Register the specified font for all Latin characters.
+	(new_fontset_from_font): Register the specified font for all Latin
+	characters.
+	(dump_fontset): For a realized fontset, include the base fontset
+	name in the returned vector.
+
 2007-04-11  Kenichi Handa  <handa@m17n.org>
 
 	* character.h (CHAR_STRING): Cast C to unsigned on calling
