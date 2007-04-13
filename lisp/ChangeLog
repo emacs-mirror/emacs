@@ -6,7 +6,7 @@
 
 2007-04-12  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gud.el (gud-minor-mode-map): Make go button same same
+	* progmodes/gud.el (gud-minor-mode-map): Make go button same
 	length as stop button to lessen flicker.
 	(jdb): Add gud-print.
 	(gud-find-expr): Jdb prints the expression with the value, so

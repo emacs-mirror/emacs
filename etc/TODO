@@ -528,7 +528,7 @@ but which can also be used as a modifier).
 
 * Internal changes
 
-** Cleanup all the GC_ mark bit stuff -- there is no longer any distiction
+** Cleanup all the GC_ mark bit stuff -- there is no longer any distinction
    since the mark bit is no longer stored in the Lisp_Object itself.
 
 ** Merge ibuffer.el and buff-menu.el.
