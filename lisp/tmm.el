@@ -547,9 +547,9 @@ of `menu-bar-final-items'."
 	  ;; the global list.
 	  (dolist (minor minorbind)
 	    (dolist (item (cdr minor))
-	      (setq globalbind (assq-delete-all (car item) globalbind))))
+	      (setq globalbind (assq-delete-all (car-safe item) globalbind))))
 	  (dolist (item (cdr localbind))
-	    (setq globalbind (assq-delete-all (car item) globalbind)))
+	    (setq globalbind (assq-delete-all (car-safe item) globalbind)))
 
 	  (setq globalbind (cons 'keymap globalbind))
 	  (setq allbind (cons globalbind (cons localbind minorbind)))
