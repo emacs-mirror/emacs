@@ -2609,7 +2609,7 @@ See `ebnf-style-database' documentation."
   (and (assoc name ebnf-style-database)
        (error "Style name already exists: %s" name))
   (or (assoc inherits ebnf-style-database)
-      (error "Style inheritance name does'nt exist: %s" inherits))
+      (error "Style inheritance name doesn't exist: %s" inherits))
   (setq ebnf-style-database
 	(cons (cons name (cons inherits (ebnf-check-style-values values)))
 	      ebnf-style-database)))
@@ -2639,7 +2639,7 @@ See `ebnf-style-database' documentation."
 See `ebnf-style-database' documentation."
   (interactive "SStyle name: \nXStyle values: ")
   (let ((style (or (assoc name ebnf-style-database)
-		   (error "Style name does'nt exist: %s" name)))
+		   (error "Style name doesn't exist: %s" name)))
 	(merge (ebnf-check-style-values values))
 	val elt new check)
     ;; modify value of existing variables
