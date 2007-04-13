@@ -1,3 +1,8 @@
+2007-04-13  Kim F. Storm  <storm@cua.dk>
+
+	* buffer.c (Fkill_buffer): gcpro BUF during kill_buffer_processes
+	and check that buffer is still alive upon return.
+
 2007-04-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c [!TARGET_API_MAC_CARBON]: Include Displays.h.
@@ -9,7 +14,7 @@
 	(XTread_socket): Call mac_get_screen_info if screen config changed.
 	(mac_initialized): Make static.
 	(mac_initialize_display_info): Remove function.
-	(mac_term_init): Call mac_get_screen_info.  Add partial contents of 
+	(mac_term_init): Call mac_get_screen_info.  Add partial contents of
 	mac_initialize_display_info.
 
 2007-04-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
