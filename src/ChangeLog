@@ -1,3 +1,17 @@
+2007-04-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c [!TARGET_API_MAC_CARBON]: Include Displays.h.
+	(mac_screen_config_changed): New variable.
+	(mac_handle_dm_notification, init_dm_notification_handler)
+	(mac_get_screen_info): New functions.
+	[MAC_OS8] (main): Call init_dm_notification_handler.
+	(mac_initialize) [MAC_OSX]: Likewise.
+	(XTread_socket): Call mac_get_screen_info if screen config changed.
+	(mac_initialized): Make static.
+	(mac_initialize_display_info): Remove function.
+	(mac_term_init): Call mac_get_screen_info.  Add partial contents of 
+	mac_initialize_display_info.
+
 2007-04-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* mac.c (xrm_get_preference_database, Fmac_get_preference)
