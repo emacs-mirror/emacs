@@ -88,6 +88,30 @@
   </li>
 </ol>
 
+<h3>new class: <code>mps_class_mv</code></h3>
+
+<p>Required header: <code>mpscmv.h</code></p>
+
+<p>Not really new of course, just not docuemented before.</p>
+
+<p>
+The Pool Class MV (Manual Variable) is a manually managed pool that
+manges blocks of a variable size.  It is general purpose pool suitable
+for malloc/free style management.
+</p>
+
+<p>
+Pool Class MV supports the <code>mps_alloc/mps_free</code> protocol.
+</p>
+
+<p>
+Additional arguments to mps_pool_create.  This class takes three extra
+arguments each one a <code>size_t</code>: <code>extendBy</code>,
+<code>avgSize</code>, <code>maxSize</code>.  extendBy must be smaller than
+maxSize.  (aside: this is deliberately vague, partly because the
+interface is rubbish)
+</p>
+
 
 <h2><a id="section-B" name="section-B">B. Document History</a></h2>
 
@@ -95,12 +119,13 @@
   2006-11-28  RHSK  Created: chain for AMC and AMS; mps_arena_step 
                     and mps_arena_start_collect.
   2006-12-29  RHSK  More comments on chain and arena_start/_step.
+  2007-04-13  DRJ   mps_class_mv
 </pre>
 
 
 <h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
 
-<p> This document is copyright &copy; 2006 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+<p> This document is copyright &copy; 2006,2007 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
 
 <p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
 
