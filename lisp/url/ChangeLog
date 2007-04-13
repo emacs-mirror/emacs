@@ -1,3 +1,10 @@
+2007-04-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* url-http.el (url-http-parse-headers): Stop after a set number of
+	redirections.  Suggested by Diane Murray.
+
+	* url-vars.el (url-max-redirections): New var.
+
 2007-04-01  Diane Murray  <disumu@x3y2z1.net>  (tiny change)
 
 	* url-http.el (url-http-handle-cookies): Reverse list returned by
