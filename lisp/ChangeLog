@@ -1,3 +1,13 @@
+2007-04-13  Martin Rudalics  <rudalics@gmx.at>
+
+	* emacs-lisp/edebug.el (edebug-pop-to-buffer): Don't select
+	window marked as dedicated.
+
+	* mail/footnote.el (footnote-latin-string): New variable.
+	(footnote-latin-regexp): Redefined as regexp alternative. 
+	(Footnote-latin): Use footnote-latin-string instead of
+	footnote-latin-regexp.
+
 2007-04-13  Glenn Morris  <rgm@gnu.org>
 
 	* tmm.el (tmm-get-keybind): Use car-safe to avoid errors with
