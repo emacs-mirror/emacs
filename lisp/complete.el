@@ -190,6 +190,10 @@ If nil, means use the colon-separated path in the variable $INCPATH instead."
 (defvar PC-do-completion-end nil
   "Internal variable used by `PC-do-completion'.")
 
+(defvar PC-goto-end nil
+   "Internal variable set in `PC-do-completion', used in
+`choose-completion-string-functions'.")
+
 ;;;###autoload
 (define-minor-mode partial-completion-mode
   "Toggle Partial Completion mode.
@@ -242,11 +246,16 @@ second TAB brings up the `*Completions*' buffer."
    (if partial-completion-mode 'add-hook 'remove-hook)
    'choose-completion-string-functions
    (lambda (choice buffer mini-p base-size)
-     (if mini-p (goto-char (point-max))
+     ;; When completing M-: (lisp- ) with point before the ), it is
+     ;; not appropriate to go to point-max (unlike the filename case).
+     (if (and (not PC-goto-end)
+              mini-p)
+         (goto-char (point-max))
        ;; Need a similar hack for the non-minibuffer-case -- gm.
        (when PC-do-completion-end
          (goto-char PC-do-completion-end)
          (setq PC-do-completion-end nil)))
+     (setq PC-goto-end nil)
      nil))
   ;; Build the env-completion and mapping table.
   (when (and partial-completion-mode (null PC-env-vars-alist))
@@ -417,7 +426,13 @@ of `minibuffer-completion-table' and the minibuffer contents.")
   (let ((result (try-completion string alist predicate)))
     (if (eq result t) string result)))
 
-(defun PC-do-completion (&optional mode beg end)
+;; TODO document MODE magic...
+(defun PC-do-completion (&optional mode beg end goto-end)
+  "Internal function to do the work of partial completion.
+Text to be completed lies between BEG and END.  Normally when
+replacing text in the minibuffer, this function replaces up to
+point-max (as is appropriate for completing a file name).  If
+GOTO-END is non-nil, however, it instead replaces up to END."
   (or beg (setq beg (minibuffer-prompt-end)))
   (or end (setq end (point-max)))
   (let* ((table minibuffer-completion-table)
@@ -772,7 +787,8 @@ of `minibuffer-completion-table' and the minibuffer contents.")
                           (setq completion-base-size (if dirname
                                                          dirlength
                                                        (- beg prompt-end))
-                                PC-do-completion-end end))))
+                                PC-do-completion-end end
+                                PC-goto-end goto-end))))
 		  (PC-temp-minibuffer-message " [Next char not unique]"))
 		nil)))))
 
@@ -886,11 +902,11 @@ or properties are considered."
     ;; Alternatively alternatively, maybe end should be computed in
     ;; the same way as beg. That would change the behaviour though.
     (if (equal last-command 'PC-lisp-complete-symbol)
-        (PC-do-completion nil beg PC-lisp-complete-end)
+        (PC-do-completion nil beg PC-lisp-complete-end t)
       (if PC-lisp-complete-end
           (move-marker PC-lisp-complete-end end)
         (setq PC-lisp-complete-end (copy-marker end t)))
-      (PC-do-completion nil beg end))))
+      (PC-do-completion nil beg end t))))
 
 (defun PC-complete-as-file-name ()
    "Perform completion on file names preceding point.
