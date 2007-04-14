@@ -1,3 +1,7 @@
+2007-04-14  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.1: Update some of the more obsolete information.
+
 2007-04-13  Glenn Morris  <rgm@gnu.org>
 
 	* MACHINES: emacserver is removed.
