@@ -190,9 +190,13 @@ If nil, means use the colon-separated path in the variable $INCPATH instead."
 (defvar PC-do-completion-end nil
   "Internal variable used by `PC-do-completion'.")
 
+(make-variable-buffer-local 'PC-do-completion-end)
+
 (defvar PC-goto-end nil
    "Internal variable set in `PC-do-completion', used in
 `choose-completion-string-functions'.")
+
+(make-variable-buffer-local 'PC-goto-end)
 
 ;;;###autoload
 (define-minor-mode partial-completion-mode
@@ -768,6 +772,8 @@ GOTO-END is non-nil, however, it instead replaces up to END."
                     (let ((prompt-end (minibuffer-prompt-end)))
                       (with-output-to-temp-buffer "*Completions*"
                         (display-completion-list (sort helpposs 'string-lessp))
+                        (setq PC-do-completion-end end
+                              PC-goto-end goto-end)
                         (with-current-buffer standard-output
                           ;; Record which part of the buffer we are completing
                           ;; so that choosing a completion from the list
@@ -786,9 +792,7 @@ GOTO-END is non-nil, however, it instead replaces up to END."
                           ;; plays around with point.
                           (setq completion-base-size (if dirname
                                                          dirlength
-                                                       (- beg prompt-end))
-                                PC-do-completion-end end
-                                PC-goto-end goto-end))))
+                                                       (- beg prompt-end))))))
 		  (PC-temp-minibuffer-message " [Next char not unique]"))
 		nil)))))
 
