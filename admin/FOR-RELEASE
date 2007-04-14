@@ -50,10 +50,6 @@ http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-04/msg00082.html
  reproduce the crash, but I cannot... messing around with this in
  various ways does not crash Emacs no matter how much I try."
 
-** ryanmcgeary@hotmail.com, Apr 9: x-display-pixel-width
-http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00400.html
-Not a bug, but doc must be updated.
-
 ** Parsing URL attributes - url-mailto, url-imap, url-ldap broken?
 http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00455.html
 
@@ -69,6 +65,10 @@ http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-04/msg00255.html
 ** cyd@stupidchicken.com, Apr 12: display margin errors on a tty
 
 * DOCUMENTATION
+
+** ryanmcgeary@hotmail.com, Apr 9: x-display-pixel-width
+http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00400.html
+Not a bug, but doc must be updated.
 
 ** cs-muelleimer-rubbish.bin@arcor.de, Apr 14:
  Org-mode and calc manual problems.
