@@ -1498,11 +1498,10 @@ Xenix (xenix)
   to make the Emacs meta key work.
 
 Local variables:
-mode: indented-text
+mode: text
 fill-prefix: "  "
 End:
 
-
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
