@@ -1,3 +1,10 @@
+2007-04-14  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/bibtex.el (bibtex-insert-kill): Pass non-nil NODELIM
+	arg to bibtex-make-field.
+	(bibtex-make-field): Add optional fourth arg NODELIM.  Insert
+	delimiters around INIT unless this arg is non-nil.
+
 2007-04-14  Nick Roberts  <nickrob@snap.net.nz>
 
 	* tmm.el (tmm-get-keybind): Use copy-sequence to ensure that the
