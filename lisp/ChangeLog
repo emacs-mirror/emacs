@@ -1,5 +1,13 @@
 2007-04-14  Glenn Morris  <rgm@gnu.org>
 
+	* complete.el (PC-goto-end): New variable.
+	(partial-completion-mode) <choose-completion-string-functions>:
+	Do not go to the end of the minibuffer if PC-goto-end is non-nil.
+	(PC-do-completion): New optional fourth argument GOTO-END.  Add a
+	doc string.  Set PC-goto-end for choose-completion.
+	(PC-lisp-complete-symbol): Pass non-nil GOTO-END arg to
+	PC-do-completion.
+
 	* textmodes/bibtex.el (bibtex-insert-kill): Pass non-nil NODELIM
 	arg to bibtex-make-field.
 	(bibtex-make-field): Add optional fourth arg NODELIM.  Insert
