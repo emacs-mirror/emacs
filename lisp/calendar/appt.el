@@ -233,8 +233,8 @@ The variable `appt-audible' controls the audible reminder."
   ;; vars appt-msg-window and appt-visible are dropped.
   (let ((appt-display-format
          (if (eq appt-display-format 'ignore)
-             (cond (appt-msg-window 'window)
-                   (appt-visible 'echo))
+               (cond (appt-msg-window 'window)
+                     (appt-visible 'echo))
            appt-display-format)))
     (cond ((eq appt-display-format 'window)
            (funcall appt-disp-window-function
@@ -457,7 +457,9 @@ NEW-TIME is a string giving the date."
 		  (same-window-p (buffer-name appt-disp-buf)))
 	;; By default, split the bottom window and use the lower part.
 	(appt-select-lowest-window)
-        (select-window (split-window)))
+        ;; Split the window, unless it's too small to do so.
+        (when (>= (window-height) (* 2 window-min-height))
+          (select-window (split-window))))
       (switch-to-buffer appt-disp-buf))
     (calendar-set-mode-line
      (format " Appointment in %s minutes. %s " min-to-app new-time))
