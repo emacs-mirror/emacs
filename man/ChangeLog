@@ -1,3 +1,14 @@
+2007-04-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* cmdargs.texi (Colors): Qualify "color of window" index entry by
+	"command line".
+
+	* display.texi (Faces): Refer to "Creating Frames" for face
+	and other frame customizations in .emacs.
+
+	* frames.texi (Creating Frames): Mention that face customizations can
+	be put in .emacs.  Add index entries.
+
 2007-04-12  Richard Stallman  <rms@gnu.org>
 
 	* glossary.texi (Glossary): Explain `iff'.
