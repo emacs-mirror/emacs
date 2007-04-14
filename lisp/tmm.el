@@ -541,7 +541,7 @@ of `menu-bar-final-items'."
 	  ;; Make a list of all the bindings in all the keymaps.
 	  (setq minorbind (mapcar 'cdr (minor-mode-key-binding keyseq)))
 	  (setq localbind (local-key-binding keyseq))
-	  (setq globalbind (cdr (global-key-binding keyseq)))
+	  (setq globalbind (copy-sequence (cdr (global-key-binding keyseq))))
 
 	  ;; If items have been redefined/undefined locally, remove them from
 	  ;; the global list.
