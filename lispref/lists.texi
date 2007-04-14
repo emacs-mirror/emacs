@@ -1366,6 +1366,9 @@ and the @code{(4)} in the @code{sample-list} are not @code{eq}:
 (delq '(4) sample-list)
      @result{} (a c (4))
 @end group
+
+If you want to delete elements that are @code{equal} to a given value,
+use @code{delete} (see below).
 @end example
 
 @defun remq object list
@@ -1388,9 +1391,6 @@ sample-list
      @result{} (a b c a b c)
 @end group
 @end example
-@noindent
-The function @code{delq} offers a way to perform this operation
-destructively.  See @ref{Sets And Lists}.
 @end defun
 
 @defun memql object list
@@ -1448,8 +1448,8 @@ If @code{sequence} is a list, this function destructively removes all
 elements @code{equal} to @var{object} from @var{sequence}.  For lists,
 @code{delete} is to @code{delq} as @code{member} is to @code{memq}: it
 uses @code{equal} to compare elements with @var{object}, like
-@code{member}; when it finds an element that matches, it removes the
-element just as @code{delq} would.
+@code{member}; when it finds an element that matches, it cuts the
+element out just as @code{delq} would.
 
 If @code{sequence} is a vector or string, @code{delete} returns a copy
 of @code{sequence} with all elements @code{equal} to @code{object}
@@ -1459,8 +1459,22 @@ For example:
 
 @example
 @group
-(delete '(2) '((2) (1) (2)))
+(setq l '((2) (1) (2)))
+(delete '(2) l)
      @result{} ((1))
+l
+     @result{} ((2) (1))
+;; @r{If you want to change @code{l} reliably,}
+;; @r{write @code{(setq l (delete elt l))}.}
+@end group
+@group
+(setq l '((2) (1) (2)))
+(delete '(1) l)
+     @result{} ((2) (2))
+l
+     @result{} ((2) (2))
+;; @r{In this case, it makes no difference whether you set @code{l},}
+;; @r{but you should do so for the sake of the other case.}
 @end group
 @group
 (delete '(2) [(2) (1) (2)])
@@ -1470,7 +1484,7 @@ For example:
 @end defun
 
 @defun remove object sequence
-This function is the non-destructive counterpart of @code{delete}.  If
+This function is the non-destructive counterpart of @code{delete}.  It
 returns a copy of @code{sequence}, a list, vector, or string, with
 elements @code{equal} to @code{object} removed.  For example:
 
@@ -1509,7 +1523,8 @@ several @code{equal} occurrences of an element in @var{list},
 @end defun
 
   See also the function @code{add-to-list}, in @ref{List Variables},
-for another way to add an element to a list stored in a variable.
+for a way to an element to a list stored in a variable and used as a
+set.
 
 @node Association Lists
 @section Association Lists
