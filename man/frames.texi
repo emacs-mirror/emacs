@@ -515,6 +515,8 @@ frame.  This runs @code{find-file-read-only-other-frame}.
 
 @cindex default-frame-alist
 @cindex initial-frame-alist
+@cindex face customization, in @file{~/.emacs}
+@cindex color customization, in @file{~/.emacs}
   You can control the appearance of new frames you create by setting the
 frame parameters in @code{default-frame-alist}.  You can use the
 variable @code{initial-frame-alist} to specify parameters that affect
@@ -537,6 +539,11 @@ Here's a similar example for specifying a foreground color:
 @example
 (add-to-list 'default-frame-alist '(foreground-color . "blue"))
 @end example
+
+@noindent
+By putting such customizations in your @file{~/.emacs} init file, you
+can control the appearance of all the frames Emacs creates, including
+the initial one.
 
 @node Frame Commands
 @section Frame Commands
