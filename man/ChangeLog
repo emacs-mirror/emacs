@@ -1,3 +1,8 @@
+2007-04-14  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Formula syntax for Calc): Emphasize the operator precedence
+	in Calc.
+
 2007-04-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* cmdargs.texi (Colors): Qualify "color of window" index entry by
