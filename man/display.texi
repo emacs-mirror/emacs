@@ -333,6 +333,11 @@ those to be created in the future.  (You can also set foreground and
 background colors for the current frame only; see @ref{Frame
 Parameters}.)
 
+  If you want to alter the appearance of all Emacs frames, you need to
+customize the frame parameters in the variable
+@code{default-frame-alist}; see @ref{Creating Frames,
+default-frame-alist}.
+
   Emacs can correctly display variable-width fonts, but Emacs commands
 that calculate width and indentation do not know how to calculate
 variable widths.  This can sometimes lead to incorrect results when
