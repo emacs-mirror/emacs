@@ -1,6 +1,7 @@
 2007-04-14  Glenn Morris  <rgm@gnu.org>
 
-	* complete.el (PC-goto-end): New variable.
+	* complete.el (PC-goto-end): New buffer-local variable.
+	(PC-do-completion-end): Make buffer-local.
 	(partial-completion-mode) <choose-completion-string-functions>:
 	Do not go to the end of the minibuffer if PC-goto-end is non-nil.
 	(PC-do-completion): New optional fourth argument GOTO-END.  Add a
