@@ -172,8 +172,7 @@ Several are for Debian GNU/Linux in particular.
    <URL:http://emacspeak.sourceforge.net/>
 
  * Emacs-w3m : <URL:http://emacs-w3m.namazu.org/>
-   A simple Emacs interface to w3m, which is a text-mode
-   WWW browser
+   A simple Emacs interface to w3m, which is a text-mode WWW browser
 
  * Emacs Wiki Mode: <URL:http://www.mwolson.org/projects/EmacsWiki.html>
    A wiki-like publishing tool and personal information manager
@@ -271,8 +270,7 @@ Several are for Debian GNU/Linux in particular.
    shell-script daemon and some LaTeX macros.
 
  * X-Symbol: <URL:http://x-symbol.sourceforge.net/>
-   Quasi-WYSIWYG editing of TeX & al.  (It will be improved to take
-   better advantage of Emacs 21 features.)
+   Quasi-WYSIWYG editing of TeX & al.
 
 Local Variables:
 mode: text
