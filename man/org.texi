@@ -1478,9 +1478,9 @@ described below, see @ref{Advanced features}.
 @cindex syntax, of formulas
 
 A formula can be any algebraic expression understood by the Emacs
-@file{Calc} package.  Note that @file{calc} has the slightly
+@file{Calc} package.  @b{Note that @file{calc} has the
 non-standard convention that @samp{/} has lower precedence than
-@samp{*}, so that @samp{a/b*c} is interpreted as @samp{a/(b*c)}.  Before
+@samp{*}, so that @samp{a/b*c} is interpreted as @samp{a/(b*c)}.}  Before
 evaluation by @code{calc-eval} (@pxref{Calling Calc from
 Your Programs,calc-eval,Calling calc from Your Lisp Programs,calc,GNU
 Emacs Calc Manual}),
