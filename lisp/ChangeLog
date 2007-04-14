@@ -1,3 +1,8 @@
+2007-04-14  Nick Roberts  <nickrob@snap.net.nz>
+
+	* tmm.el (tmm-get-keybind): Use copy-sequence to ensure that the
+	global map isn't modified
+
 2007-04-14  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/appt.el (appt-disp-window): Do not split small windows.
