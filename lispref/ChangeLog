@@ -1,3 +1,9 @@
+2007-04-14  Richard Stallman  <rms@gnu.org>
+
+	* lists.texi (Sets And Lists): Clarify `delete' examples.
+	Remove spurious xref to same node.
+	Clarify xref for add-to-list.
+
 2007-04-12  Nick Roberts  <nickrob@snap.net.nz>
 
 	* keymaps.texi (Format of Keymaps): Remove spurious ")" from
