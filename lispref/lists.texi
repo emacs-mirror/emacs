@@ -1523,7 +1523,7 @@ several @code{equal} occurrences of an element in @var{list},
 @end defun
 
   See also the function @code{add-to-list}, in @ref{List Variables},
-for a way to an element to a list stored in a variable and used as a
+for a way to add an element to a list stored in a variable and used as a
 set.
 
 @node Association Lists
