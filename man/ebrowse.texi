@@ -42,8 +42,6 @@ license to the document, as described in section 6 of the license.
 @title Ebrowse User's Manual
 @sp 4
 @subtitle Ebrowse/Emacs
-@sp 1
-@subtitle May 2000
 @sp 5
 @author Gerd Moellmann
 @page

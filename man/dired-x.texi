@@ -69,9 +69,6 @@ license to the document, as described in section 6 of the license.
 @sp 1
 @center @titlefont{Directory Editor}
 @sp 4
-@center Manual Revision: 2.53
-@center 2001/02/25 14:05:46
-@sp 5
 @center Lawrence R@. Dodd
 @c @center @t{dodd@@roebling.poly.edu}
 @sp 5
