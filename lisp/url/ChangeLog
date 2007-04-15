@@ -1,3 +1,7 @@
+2007-04-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* url-parse.el (url-generic-parse-url): Revert 2006-10-09 changes.
+
 2007-04-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* url-http.el (url-http-parse-headers): Stop after a set number of
