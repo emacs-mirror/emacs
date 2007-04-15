@@ -48,6 +48,7 @@ license to the document, as described in section 6 of the license.
 @author @uref{http://de.geocities.com/ulf_jasper}
 @page
 @vskip 0pt plus 1filll
+@insertcopying
 @end titlepage
 
 @contents
