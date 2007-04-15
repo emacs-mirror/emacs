@@ -1,5 +1,22 @@
 2007-04-15  Chong Yidong  <cyd@stupidchicken.com>
 
+	* ada-mode.texi, autotype.texi, cc-mode.texi, cl.texi:
+	* dired-x.texi, ebrowse.texi, ediff.texi:
+	* emacs-mime.texi, erc.texi, eshell.texi:
+	* eudc.texi, flymake.texi, forms.texi, gnus.texi:
+	* idlwave.texi, message.texi, newsticker.texi, org.texi:
+	* pcl-cvs.texi, pgg.texi, rcirc.texi, reftex.texi, sc.texi:
+	* ses.texi, sieve.texi, smtpmail.texi, speedbar.texi:
+	* tramp.texi, url.texi, vip.texi, viper.texi, widget.texi:
+	* woman.texi: Include GFDL.
+
+	* doclicense.texi: Remove node heading, so that it can be included by
+	other files.
+
+	* emacs.texi: Insert node heading for GFDL.
+
+	* dired-x.texi: Relicence under GFDL.
+	
 	* calc.texi (Algebraic Tutorial): Emphasize that / binds less strongly
 	than *.
 
