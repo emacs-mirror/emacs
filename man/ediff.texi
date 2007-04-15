@@ -56,9 +56,9 @@ license to the document, as described in section 6 of the license.
 @titlepage
 @title Ediff User's Manual
 @sp 4
-@subtitle Ediff version 2.76.1
+@subtitle Ediff version 2.81.1
 @sp 1
-@subtitle January 2002
+@subtitle April 2007
 @sp 5
 @author Michael Kifer
 @page
