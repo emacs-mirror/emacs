@@ -50,9 +50,6 @@ http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-04/msg00082.html
  reproduce the crash, but I cannot... messing around with this in
  various ways does not crash Emacs no matter how much I try."
 
-** Parsing URL attributes - url-mailto, url-imap, url-ldap broken?
-http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00455.html
-
 ** lennart.borgman@gmail.com, Apr 11: before-string in overlay
 http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-04/msg00153.html
 
