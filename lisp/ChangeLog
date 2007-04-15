@@ -1,13 +1,3 @@
-2007-04-15  Chong Yidong  <cyd@stupidchicken.com>
-
-	* mail/footnote.el (footnote-current-style): New var.
-	(Footnote-index-to-string, Footnote-current-regexp)
-	(Footnote-cycle-style, Footnote-set-style): Use it instead of
-	footnote-style.
-	(footnote-mode): Make footnote-current style buffer-local instead
-	of footnote-style, and initialize it to footnote-style.
-	(footnote-style): Update docstring.
-
 2007-04-15  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* textmodes/bibtex.el (bibtex-field-list): Use functionp.
