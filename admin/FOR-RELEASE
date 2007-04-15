@@ -44,12 +44,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 ** spurious scrolling bug
 RMS has seen this too, happening during idle time, but cannot reproduce it.
 
-** crash in gc_sweep
-http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-04/msg00082.html
- Reported by Kim Storm, who says "I've tried many ways / many times to
- reproduce the crash, but I cannot... messing around with this in
- various ways does not crash Emacs no matter how much I try."
-
 ** lennart.borgman@gmail.com, Apr 11: before-string in overlay
 http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-04/msg00153.html
 
@@ -64,6 +58,17 @@ Not a bug, but doc must be updated.
 
 ** cs-muelleimer-rubbish.bin@arcor.de, Apr 14:
  Org-mode and calc manual problems.
+
+** Several manuals have old dates on the cover page.
+
+** Every manual should be under the GFDL.  dired-x isn't.
+
+** Every manual should contain a copy of the GFDL.
+
+** A couple of manuals (flymake, newsticker) don't have an "@insertcopying"
+line in the title page, so the copyright doesn't appear when they're 
+processed.  (I'd say the same about widget, but that doesn't have a
+title page.)
 
 ** Check the Emacs Tutorial.
 
