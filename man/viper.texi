@@ -42,7 +42,7 @@ license to the document, as described in section 6 of the license.
 @titlepage
 @title Viper Is a Package for Emacs Rebels
 @subtitle a Vi emulator for Emacs
-@subtitle January 2002, Viper Version 3.11.2
+@subtitle April 2007, Viper Version 3.13.1
 
 @author Michael Kifer (Viper)
 @author Aamod Sane (VIP 4.4)
