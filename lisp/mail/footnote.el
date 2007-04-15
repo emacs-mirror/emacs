@@ -294,14 +294,18 @@ See footnote-han.el, footnote-greek.el and footnote-hebrew.el for more
 exciting styles.")
 
 (defcustom footnote-style 'numeric
-  "*Style used for footnoting.
+  "*Default style used for footnoting.
 numeric == 1, 2, 3, ...
 english-lower == a, b, c, ...
 english-upper == A, B, C, ...
 roman-lower == i, ii, iii, iv, v, ...
 roman-upper == I, II, III, IV, V, ...
 latin == ¹ ² ³ º ª § ¶
-See also variables `footnote-start-tag' and `footnote-end-tag'."
+See also variables `footnote-start-tag' and `footnote-end-tag'.
+
+Customizing this variable has no effect on buffers already
+displaying footnotes.  You can change the style of existing
+buffers using the command `Footnote-set-style'."
   :type (cons 'choice (mapcar (lambda (x) (list 'const (car x)))
 			      footnote-style-alist))
   :group 'footnote)
