@@ -52,10 +52,6 @@ http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-04/msg00272.html
 
 * DOCUMENTATION
 
-** ryanmcgeary@hotmail.com, Apr 9: x-display-pixel-width
-http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00400.html
-Not a bug, but doc must be updated.
-
 ** Several manuals have old dates on the cover page.
 
 ** Every manual should be under the GFDL.  dired-x isn't.
