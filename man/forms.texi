@@ -53,9 +53,9 @@ license to the document, as described in section 6 of the license.
 @sp 4
 @center Forms-Mode version 2
 @sp 1
-@center for GNU Emacs 20.1
+@center for GNU Emacs 22.1
 @sp 1
-@center June 1997
+@center April 2007
 @sp 5
 @center Johan Vromans
 @center @i{jvromans@@squirrel.nl}
