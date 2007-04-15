@@ -12777,6 +12777,8 @@ redisplay_window (window, just_this_one_p)
   int rc;
   int centering_position = -1;
   int last_line_misfit = 0;
+  int save_beg_unchanged = BEG_UNCHANGED;
+  int save_end_unchanged = END_UNCHANGED;
 
   SET_TEXT_POS (lpoint, PT, PT_BYTE);
   opoint = lpoint;
@@ -13145,11 +13147,20 @@ redisplay_window (window, just_this_one_p)
 	  && NILP (do_mouse_tracking)
 	  && CHARPOS (startp) > BEGV)
 	{
-	  /* Make sure beg_unchanged and end_unchanged are up to date.
-	     Do it only if buffer has really changed.  This may or may
-	     not have been done by try_window_id (see which) already. */
+#if 0
+	  /* The following code tried to make BEG_UNCHANGED and
+	     END_UNCHANGED up to date (similar to try_window_id).
+	     Is it important to do so?
+
+	     The trouble is that it's a little too strict when it
+	     comes to overlays: modify_overlay can call
+	     BUF_COMPUTE_UNCHANGED, which alters BUF_BEG_UNCHANGED and
+	     BUF_END_UNCHANGED directly without moving the gap.
+
+	     This can result in spurious recentering when overlays are
+	     altered in the buffer.  So unless it's proven necessary,
+	     let's leave this commented out for now. -- cyd.  */
 	  if (MODIFF > SAVE_MODIFF
-	      /* This seems to happen sometimes after saving a buffer.  */
 	      || BEG_UNCHANGED + END_UNCHANGED > Z_BYTE)
 	    {
 	      if (GPT - BEG < BEG_UNCHANGED)
@@ -13157,9 +13168,10 @@ redisplay_window (window, just_this_one_p)
 	      if (Z - GPT < END_UNCHANGED)
 		END_UNCHANGED = Z - GPT;
 	    }
+#endif
 
-	  if (CHARPOS (startp) > BEG + BEG_UNCHANGED
-	      && CHARPOS (startp) <= Z - END_UNCHANGED)
+	  if (CHARPOS (startp) > BEG + save_beg_unchanged
+	      && CHARPOS (startp) <= Z - save_end_unchanged)
 	    {
 	      /* There doesn't seems to be a simple way to find a new
 		 window start that is near the old window start, so
