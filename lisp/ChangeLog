@@ -1,3 +1,8 @@
+2007-04-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/footnote.el (footnote-style): Clarify docstring to state
+	that customizing this only applies to future footnotes.
+
 2007-04-15  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* textmodes/bibtex.el (bibtex-field-list): Use functionp.
