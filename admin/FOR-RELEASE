@@ -52,8 +52,6 @@ http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-04/msg00272.html
 
 * DOCUMENTATION
 
-** Several manuals have old dates on the cover page.
-
 ** A couple of manuals (flymake, newsticker) don't have an "@insertcopying"
 line in the title page, so the copyright doesn't appear when they're 
 processed.  (I'd say the same about widget, but that doesn't have a
