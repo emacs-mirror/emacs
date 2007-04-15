@@ -2128,6 +2128,10 @@ Calculator in Algebraic mode, which is closer to the way
 non-RPN calculators work.  In Algebraic mode, you enter formulas
 in traditional @expr{2+3} notation.
 
+@strong{Warning:} Note that @samp{/} has lower precedence than
+@samp{*}, so that @samp{a/b*c} is interpreted as @samp{a/(b*c)}.  See
+below for details.
+
 You don't really need any special ``mode'' to enter algebraic formulas.
 You can enter a formula at any time by pressing the apostrophe (@kbd{'})
 key.  Answer the prompt with the desired formula, then press @key{RET}.
