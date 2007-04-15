@@ -1,3 +1,10 @@
+2007-04-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Multiple Displays): Add note about "multi-monitor"
+	setups.
+	(Display Feature Testing): Note that display refers to all
+	physical monitors for multi-monitor setups.
+
 2007-04-14  Richard Stallman  <rms@gnu.org>
 
 	* lists.texi (Sets And Lists): Clarify `delete' examples.
