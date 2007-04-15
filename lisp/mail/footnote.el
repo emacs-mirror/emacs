@@ -294,7 +294,7 @@ See footnote-han.el, footnote-greek.el and footnote-hebrew.el for more
 exciting styles.")
 
 (defcustom footnote-style 'numeric
-  "*Style used for footnoting.
+  "*Default style used for footnoting.
 numeric == 1, 2, 3, ...
 english-lower == a, b, c, ...
 english-upper == A, B, C, ...
@@ -306,6 +306,10 @@ See also variables `footnote-start-tag' and `footnote-end-tag'."
 			      footnote-style-alist))
   :group 'footnote)
 
+(defvar footnote-current-style
+  "Style used for footnoting in the current buffer.
+The possible values are the same as in `footnote-style'.")
+
 ;;; Style utilities & functions
 (defun Footnote-style-p (style)
   "Return non-nil if style is a valid style known to footnote-mode."
@@ -314,14 +318,14 @@ See also variables `footnote-start-tag' and `footnote-end-tag'."
 (defun Footnote-index-to-string (index)
   "Convert a binary index into a string to display as a footnote.
 Conversion is done based upon the current selected style."
-  (let ((alist (if (Footnote-style-p footnote-style)
-		   (assq footnote-style footnote-style-alist)
+  (let ((alist (if (Footnote-style-p footnote-current-style)
+		   (assq footnote-current-style footnote-style-alist)
 		 (nth 0 footnote-style-alist))))
     (funcall (nth 1 alist) index)))
 
 (defun Footnote-current-regexp ()
   "Return the regexp of the index of the current style."
-  (concat (nth 2 (or (assq footnote-style footnote-style-alist)
+  (concat (nth 2 (or (assq footnote-current-style footnote-style-alist)
 		     (nth 0 footnote-style-alist))) "*"))
 
 (defun Footnote-refresh-footnotes (&optional index-regexp)
@@ -378,13 +382,13 @@ styles."
 (defun Footnote-cycle-style ()
   "Select next defined footnote style."
   (interactive)
-  (let ((old (Footnote-assoc-index footnote-style footnote-style-alist))
+  (let ((old (Footnote-assoc-index footnote-current-style footnote-style-alist))
 	(max (length footnote-style-alist))
 	idx)
     (setq idx (1+ old))
     (when (>= idx max)
       (setq idx 0))
-    (setq footnote-style (car (nth idx footnote-style-alist)))
+    (setq footnote-current-style (car (nth idx footnote-style-alist)))
     (Footnote-refresh-footnotes (nth 2 (nth old footnote-style-alist)))))
 
 (defun Footnote-set-style (&optional style)
@@ -393,7 +397,7 @@ styles."
    (list (intern (completing-read
 		  "Footnote Style: "
 		  obarray #'Footnote-style-p 'require-match))))
-  (setq footnote-style style))
+  (setq footnote-current-style style))
 
 ;; Internal functions
 (defun Footnote-insert-numbered-footnote (arg &optional mousable)
@@ -733,7 +737,7 @@ key		binding
 	  (> (prefix-numeric-value arg) 0)))
   (when footnote-mode
     ;; (Footnote-setup-keybindings)
-    (make-local-variable 'footnote-style)
+    (set (make-local-variable 'footnote-current-style) footnote-style)
     (if (fboundp 'force-mode-line-update)
 	(force-mode-line-update)
       (set-buffer-modified-p (buffer-modified-p)))
