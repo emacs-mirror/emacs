@@ -1,5 +1,5 @@
 \input texinfo  @comment -*-texinfo-*-
-@comment 3.47
+@comment 3.48
 @comment %**start of header (This is for running Texinfo on a region.)
 @setfilename ../info/sc
 @settitle Supercite Version 3.1 User's Manual
@@ -52,8 +52,8 @@ license to the document, as described in section 6 of the license.
 @sp 2
 @center @titlefont{Supercite Version 3.1}
 @sp 4
-@center Manual Revision: 3.47
-@center August 1993
+@center Manual Revision: 3.48
+@center April 2007
 @sp 5
 @center Barry A@. Warsaw
 @center @t{bwarsaw@@cen.com}
