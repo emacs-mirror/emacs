@@ -1,3 +1,8 @@
+2007-04-15  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-field-list): Use functionp.
+	(bibtex-make-field): Check that INIT is a string. Use functionp.
+
 2007-04-14  Glenn Morris  <rgm@gnu.org>
 
 	* complete.el (PC-goto-end): New buffer-local variable.
