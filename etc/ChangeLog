@@ -1,3 +1,7 @@
+2007-04-15  Glenn Morris  <rgm@gnu.org>
+
+	* FTP: Make it a duplicate of ../FTP.
+
 2007-04-14  Glenn Morris  <rgm@gnu.org>
 
 	* SERVICE: Replace with a pointer to the web version.

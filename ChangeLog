@@ -1,3 +1,7 @@
+2007-04-15  Glenn Morris  <rgm@gnu.org>
+
+	* FTP: Replace with a pointer to the web version.
+
 2007-04-13  Glenn Morris  <rgm@gnu.org>
 
 	* INSTALL: In lib-src, timer, wakeup, yow are removed.
