@@ -91,6 +91,7 @@ how to present it.
 * Miscellaneous::               Forms mode messages and other remarks.
 * Error Messages::              List of error messages forms mode can produce.
 * Long Example::                A more complex control file example.
+* GNU Free Documentation License:: The license for this documentation.
 * Credits::                     Thanks everyone.
 * Index::                       Index to this manual.
 @end menu
@@ -967,6 +968,10 @@ mode'' by Paul Davis at Schlumberger Cambridge Research
 
 None of this would have been possible without GNU Emacs of the Free
 Software Foundation.  Thanks, Richard!
+
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
+@include doclicense.texi
 
 @node Index
 @unnumbered Index

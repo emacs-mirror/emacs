@@ -59,6 +59,7 @@ license to the document, as described in section 6 of the license.
 * Using Flymake::
 * Configuring Flymake::
 * Flymake Implementation::
+* GNU Free Documentation License::
 * Index::
 @end menu
 
@@ -743,6 +744,10 @@ Flymake also provides an alternative command for starting compilation,
 
 It just kills all the active syntax check processes before calling
 @code{compile}.
+
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
+@include doclicense.texi
 
 @node Index
 @unnumbered Index

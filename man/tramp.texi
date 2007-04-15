@@ -159,6 +159,8 @@ For the developer:
 * Files directories and localnames::  How file names, directories and localnames are mangled and managed.
 * Issues::                      Debatable Issues and What Was Decided.
 
+* GNU Free Documentation License:: The license for this documentation.
+
 @detailmenu
  --- The Detailed Node Listing ---
 @c
@@ -2405,6 +2407,10 @@ The syntax for unified filenames is described in the @value{tramp} manual
 for @value{emacsothername}.
 @end ifset
 @end itemize
+
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
+@include doclicense.texi
 
 @node Concept Index
 @comment node-name,    next,  previous,      up

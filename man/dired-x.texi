@@ -25,38 +25,27 @@
 @comment %**end of header (This is for running Texinfo on a region.)
 
 @copying
-This documents the ``extra'' features for Dired Mode for GNU Emacs found in
-the file @file{dired-x.el}.
-
-Copyright @copyright{} 1993, 1994, 2001, 2002, 2003, 2004,
+Copyright @copyright{} 1994, 1995, 1999, 2001, 2002, 2003, 2004,
 2005, 2006, 2007  Free Software Foundation, Inc.
 
 @quotation
-Permission is granted to make and distribute verbatim copies of this
-manual provided the copyright notice and this permission notice are
-preserved on all copies.
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.2 or
+any later version published by the Free Software Foundation; with the
+Invariant Sections being ``The GNU Manifesto'', ``Distribution'' and
+``GNU GENERAL PUBLIC LICENSE'', with the Front-Cover texts being ``A GNU
+Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
+license is included in the section entitled ``GNU Free Documentation
+License'' in the Emacs manual.
 
-Permission is granted to copy and distribute modified versions of
-this manual under the conditions for verbatim copying, provided that
-the entire resulting derived work is distributed under the terms of
-a permission notice identical to this one.
+(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
+this GNU Manual, like GNU software.  Copies published by the Free
+Software Foundation raise funds for GNU development.''
 
-Permission is granted to copy and distribute translations of this
-manual into another language, under the above conditions for
-modified versions, except that this permission notice may be stated
-in a translation approved by the Free Software Foundation.
-
-The file used to create this is called @file{dired-x.texi}, but the
-original work that was altered to make that file was called
-@file{dired.texi} written by Sebastian Kremer.
-
-@ignore
-Permission is granted to process this file through TeX and print the
-results, provided the printed document carries copying permission
-notice identical to this one except for the removal of this paragraph
-(this paragraph not being relevant to the printed manual).
-
-@end ignore
+This document is part of a collection distributed under the GNU Free
+Documentation License.  If you want to distribute this document
+separately from the collection, you can do so by adding a copy of the
+license to the document, as described in section 6 of the license.
 @end quotation
 @end copying
 
@@ -138,6 +127,7 @@ For @file{dired-x.el} revision 2
 * Miscellaneous Commands::
 * Bugs::
 
+* GNU Free Documentation License::
 * Concept Index::
 * Command Index::
 * Key Index::
@@ -1228,7 +1218,7 @@ Bound to @kbd{%Y}.  Relative symlink all marked files containing
 info.
 @end table
 
-@node Bugs, Concept Index, Miscellaneous Commands, Top
+@node Bugs, GNU Free Documentation License, Miscellaneous Commands, Top
 @comment  node-name,  next,  previous,  up
 @chapter Bugs
 @cindex Bugs
@@ -1252,7 +1242,11 @@ maladjustment.
 Lawrence R. Dodd
 @c <dodd@@roebling.poly.edu>
 
-@node     Concept Index, Command Index, Bugs, Top
+@node GNU Free Documentation License, Concept Index, Bugs, Top
+@appendix GNU Free Documentation License
+@include doclicense.texi
+
+@node     Concept Index, Command Index, GNU Free Documentation License, Top
 @comment  node-name,  next,  previous,  up
 @unnumbered Concept Index
 @printindex cp

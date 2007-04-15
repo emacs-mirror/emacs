@@ -89,6 +89,7 @@ Software Foundation raise funds for GNU development.''
 * Miscellaneous::               All the rest which did not fit elsewhere
 * Extensions and Hacking::      It is possible to write add-on code
 * History and Acknowledgments::  How Org-mode came into being 
+* GNU Free Documentation License:: The license for this documentation.
 * Index::                       The fast road to specific information
 * Key Index::                   Key bindings and where they are described
 
@@ -6416,7 +6417,7 @@ MATCH is being ignored."
 @end lisp
 
 
-@node History and Acknowledgments, Index, Extensions and Hacking, Top
+@node History and Acknowledgments, GNU Free Documentation License, Extensions and Hacking, Top
 @appendix History and Acknowledgments
 @cindex acknowledgments
 @cindex history
@@ -6567,8 +6568,12 @@ work on a tty.
 and contributed various ideas and code snippets.
 @end itemize
 
+@node GNU Free Documentation License, Index, History and Acknowledgments, Top
+@appendix GNU Free Documentation License
+@include doclicense.texi
 
-@node Index, Key Index, History and Acknowledgments, Top
+
+@node Index, Key Index, GNU Free Documentation License, Top
 @unnumbered Index
 
 @printindex cp

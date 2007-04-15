@@ -75,6 +75,7 @@ read at least RFC2045 and RFC2047.
 * Interface Functions::   An abstraction over the basic functions.
 * Basic Functions::       Utility and basic parsing functions.
 * Standards::             A summary of RFCs and working documents used.
+* GNU Free Documentation License:: The license for this documentation.
 * Index::                 Function and variable index.
 @end menu
 
@@ -1805,6 +1806,9 @@ Documentation of the text/plain format parameter for flowed text.
 
 @end table
 
+@node GNU Free Documentation License
+@chapter GNU Free Documentation License
+@include doclicense.texi
 
 @node Index
 @chapter Index

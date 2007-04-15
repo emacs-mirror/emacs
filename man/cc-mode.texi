@@ -255,6 +255,7 @@ functions, classes etc - there are other packages for that.
 * FAQ::                         
 * Updating CC Mode::            
 * Mailing Lists and Bug Reports::  
+* GNU Free Documentation License::
 * Command and Function Index::  
 * Variable Index::              
 * Concept and Key Index::       
@@ -6892,7 +6893,7 @@ compatibility, etc. are all available on the web site:
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Mailing Lists and Bug Reports, Command and Function Index, Updating CC Mode, Top
+@node    Mailing Lists and Bug Reports, GNU Free Documentation License, Updating CC Mode, Top
 @comment node-name, next, previous, up
 @appendix Mailing Lists and Submitting Bug Reports
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -6934,9 +6935,15 @@ to the Usenet newsgroups @code{gnu.emacs.sources}, @code{comp.emacs},
 @code{comp.lang.idl}, and @code{comp.lang.awk}.
 @c There is no newsgroup for Pike.  :-(
 
+
+@node GNU Free Documentation License, Command and Function Index, Mailing Lists and Bug Reports, Top
+@appendix GNU Free Documentation License
+@include doclicense.texi
+
+
 @c Removed the tentative node "Mode Initialization" from here, 2005/8/27.
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Command and Function Index, Variable Index, Mailing Lists and Bug Reports, Top
+@node    Command and Function Index, Variable Index, GNU Free Documentation License, Top
 @comment node-name, next, previous, up
 @unnumbered Command and Function Index
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -80,6 +80,7 @@ license to the document, as described in section 6 of the license.
 * Remote and Compressed Files::  You may want to know about this.
 * Customization::               How to make Ediff work the way YOU want.
 * Credits::                     Thanks to those who helped.
+* GNU Free Documentation License:: The license for this documentation.
 * Index::
 @end menu
 
@@ -2411,7 +2412,7 @@ non-@code{nil} only if Ediff uses the multiframe display, i.e., when
 the control buffer is in its own frame.
 @end table
 
-@node Credits, Index, Customization, Top
+@node Credits, GNU Free Documentation License, Customization, Top
 @chapter Credits
 
 Ediff was written by Michael Kifer <kifer@@cs.stonybrook.edu>.  It was inspired
@@ -2527,7 +2528,12 @@ Ilya Zakharevich (ilya@@math.ohio-state.edu),
 Eli Zaretskii (eliz@@is.elta.co.il)
 @end example
 
-@node Index, , Credits, Top
+@node GNU Free Documentation License, Index, Credits, Top
+@appendix GNU Free Documentation License
+@include doclicense.texi
+
+
+@node Index, , GNU Free Documentation License, Top
 @unnumbered Index
 @printindex cp
 

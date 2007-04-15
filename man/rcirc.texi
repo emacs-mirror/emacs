@@ -55,6 +55,7 @@ just one other user.
 * Basics::
 * Reference::
 * Hacking and Tweaking::
+* GNU Free Documentation License::
 * Key Index::
 * Variable Index::
 * Index::
@@ -589,7 +590,7 @@ activation of this mode:
             (rcirc-track-minor-mode 1)))
 @end example
 
-@node Hacking and Tweaking, Key Index, Reference, Top
+@node Hacking and Tweaking, GNU Free Documentation License, Reference, Top
 @chapter Hacking and Tweaking
 @cindex hacking and tweaking
 
@@ -743,7 +744,12 @@ The real answer, therefore, is a @code{/reconnect} command:
                       channels))))
 @end smallexample
 
-@node Key Index, Variable Index, Hacking and Tweaking, Top
+@node GNU Free Documentation License, Key Index, Hacking and Tweaking, Top
+@appendix GNU Free Documentation License
+@include doclicense.texi
+
+
+@node Key Index, Variable Index, GNU Free Documentation License, Top
 @unnumbered Key Index
 @printindex ky
 
