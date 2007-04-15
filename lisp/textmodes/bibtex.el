@@ -2831,7 +2831,7 @@ and `bibtex-user-optional-fields'."
         (push (list "key"
                     "Used for reference key creation if author and editor fields are missing"
                     (if (or (stringp bibtex-include-OPTkey)
-                            (fboundp bibtex-include-OPTkey))
+                            (functionp bibtex-include-OPTkey))
                         bibtex-include-OPTkey))
               optional))
     (if (member-ignore-case entry-type bibtex-include-OPTcrossref)
@@ -3029,7 +3029,7 @@ If MOVE is non-nil, move point past the present field before making
 the new field.  If INTERACTIVE is non-nil, move point to the end of
 the new field.  Otherwise move point past the new field.
 MOVE and INTERACTIVE are t when called interactively.
-INIT is surrounded by delimiters, unless NODELIM is non-nil."
+INIT is surrounded by field delimiters, unless NODELIM is non-nil."
   (interactive
    (list (let ((completion-ignore-case t)
                (field-list (bibtex-field-list
@@ -3059,14 +3059,12 @@ INIT is surrounded by delimiters, unless NODELIM is non-nil."
     (indent-to-column (+ bibtex-entry-offset
                          bibtex-text-indentation)))
   (let ((init (nth 2 field)))
-    (insert (if nodelim
-                ""
-              (bibtex-field-left-delimiter))
-            (cond ((stringp init) init)
-                  ((fboundp init) (funcall init))
-                  (t ""))
-            (if nodelim
-                ""
+    (if (not init) (setq init "")
+      (if (functionp init) (setq init (funcall init)))
+      (unless (stringp init) (error "`%s' is not a string" init)))
+    ;; NODELIM is required by `bibtex-insert-kill'
+    (if nodelim (insert init)
+      (insert (bibtex-field-left-delimiter) init
               (bibtex-field-right-delimiter))))
   (when interactive
     ;; (bibtex-find-text nil nil bibtex-help-message)
