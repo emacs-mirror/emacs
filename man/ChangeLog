@@ -15,7 +15,7 @@
 
 	* emacs.texi: Insert node heading for GFDL.
 
-	* dired-x.texi: Relicence under GFDL.
+	* dired-x.texi: Relicence under GFDL.  Remove date from title page.
 	
 	* calc.texi (Algebraic Tutorial): Emphasize that / binds less strongly
 	than *.
