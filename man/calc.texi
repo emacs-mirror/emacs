@@ -10632,16 +10632,19 @@ Calculator's arithmetic is not intended to be IEEE-conformant in any
 way.
 
 While floats are always @emph{stored} in decimal, they can be entered
-and displayed in any radix just like integers and fractions.  The
-notation @samp{@var{radix}#@var{ddd}.@var{ddd}} is a floating-point
-number whose digits are in the specified radix.  Note that the @samp{.}
-is more aptly referred to as a ``radix point'' than as a decimal
-point in this case.  The number @samp{8#123.4567} is defined as
-@samp{8#1234567 * 8^-4}.  If the radix is 14 or less, you can use
-@samp{e} notation to write a non-decimal number in scientific notation.
-The exponent is written in decimal, and is considered to be a power
-of the radix: @samp{8#1234567e-4}.  If the radix is 15 or above, the
-letter @samp{e} is a digit, so scientific notation must be written
+and displayed in any radix just like integers and fractions.  Since a
+float that is entered in a radix other that 10 will be converted to
+decimal, the number that Calc stores may not be exactly the number that
+was entered, it will be the closest decimal approximation given the
+current precison.  The notation @samp{@var{radix}#@var{ddd}.@var{ddd}}
+is a floating-point number whose digits are in the specified radix.
+Note that the @samp{.}  is more aptly referred to as a ``radix point''
+than as a decimal point in this case.  The number @samp{8#123.4567} is
+defined as @samp{8#1234567 * 8^-4}.  If the radix is 14 or less, you can
+use @samp{e} notation to write a non-decimal number in scientific
+notation.  The exponent is written in decimal, and is considered to be a
+power of the radix: @samp{8#1234567e-4}.  If the radix is 15 or above,
+the letter @samp{e} is a digit, so scientific notation must be written
 out, e.g., @samp{16#123.4567*16^2}.  The first two exercises of the
 Modes Tutorial explore some of the properties of non-decimal floats.
 
