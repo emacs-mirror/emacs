@@ -1,3 +1,7 @@
+2007-04-16  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-entry-field-alist): Use defcustom.
+
 2007-04-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/perl-mode.el (perl-indent-level): Mark as safe local var.
