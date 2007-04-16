@@ -15865,13 +15865,37 @@ cursor_row_p (w, row)
 
   if (PT == MATRIX_ROW_END_CHARPOS (row))
     {
-      /* If the row ends with a newline from a string, we don't want
-	 the cursor there, but we still want it at the start of the
-	 string if the string starts in this row.
-	 If the row is continued it doesn't end in a newline.  */
+      /* Suppose the row ends on a string.
+	 Unless the row is continued, that means it ends on a newline
+	 in the string.  If it's anything other than a display string
+	 (e.g. a before-string from an overlay), we don't want the
+	 cursor there.  (This heuristic seems to give the optimal
+	 behavior for the various types of multi-line strings.)  */
       if (CHARPOS (row->end.string_pos) >= 0)
-	cursor_row_p = (row->continued_p
-			|| PT >= MATRIX_ROW_START_CHARPOS (row));
+	{
+	  if (row->continued_p)
+	    cursor_row_p = 1;
+	  else
+	    {
+	      /* Check for `display' property.  */
+	      struct glyph *beg = row->glyphs[TEXT_AREA];
+	      struct glyph *end = beg + row->used[TEXT_AREA] - 1;
+	      struct glyph *glyph;
+
+	      cursor_row_p = 0;
+	      for (glyph = end; glyph >= beg; --glyph)
+		if (STRINGP (glyph->object))
+		  {
+		    Lisp_Object prop
+		      = Fget_char_property (make_number (PT),
+					    Qdisplay, Qnil);
+		    cursor_row_p =
+		      (!NILP (prop)
+		       && display_prop_string_p (prop, glyph->object));
+		    break;
+		  }
+	    }
+	}
       else if (MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row))
 	{
 	  /* If the row ends in middle of a real character,
