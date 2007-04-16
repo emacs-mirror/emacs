@@ -1,5 +1,9 @@
 2007-04-16  Chong Yidong  <cyd@stupidchicken.com>
 
+	* dispnew.c (adjust_frame_glyphs_for_frame_redisplay): Set
+	garbaged flag in presence of window margins.
+	(showing_window_margins_p): New function.
+
 	* xdisp.c (cursor_row_p): Only end row on newline if it's a
 	display string.  Suggested by Lennart Borgman.
 
