@@ -1415,7 +1415,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	     (time2   (archive-l-e (+ p 17) 2))	;and UNIX format in level 2 header.)
 	     (hdrlvl  (char-after (+ p 20))) ;header level
 	     thsize		;total header size (base + extensions)
-	     fnlen efnname fiddle ifnname width p2
+	     fnlen efnname osid fiddle ifnname width p2
 	     neh	;beginning of next extension header (level 1 and 2)
 	     mode modestr uid gid text dir prname
 	     gname uname modtime moddate)
@@ -1474,7 +1474,22 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	      (setq thsize (- neh p))))
 	(if (= hdrlvl 0)  ;total header size
 	    (setq thsize hsize))
-	(setq fiddle  (if efnname (string= efnname (upcase efnname))))
+        ;; OS ID field not present in level 0 header, use code 0 "generic"
+        ;; in that case as per lha program header.c get_header()
+	(setq osid (cond ((= hdrlvl 0)  0)
+                         ((= hdrlvl 1)  (char-after (+ p 22 fnlen 2)))
+                         ((= hdrlvl 2)  (char-after (+ p 23)))))
+        ;; Filename fiddling must follow the lha program, otherwise the name
+        ;; passed to "lha pq" etc won't match (which for an extract silently
+        ;; results in no output).  As of version 1.14i it goes from the OS ID,
+        ;; - For 'M' MSDOS: msdos_to_unix_filename() downcases always, and
+        ;;   converts "\" to "/".
+        ;; - For 0 generic: generic_to_unix_filename() downcases if there's
+        ;;   no lower case already present, and converts "\" to "/".
+        ;; - For 'm' MacOS: macos_to_unix_filename() changes "/" to ":" and
+        ;;   ":" to "/"
+	(setq fiddle (cond ((= ?M osid) t)
+                           ((= 0 osid)  (string= efnname (upcase efnname)))))
 	(setq ifnname (if fiddle (downcase efnname) efnname))
 	(setq prname (if dir (concat dir ifnname) ifnname))
 	(setq width (if prname (string-width prname) 0))
