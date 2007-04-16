@@ -1148,6 +1148,11 @@ If nil, selections displayed but ignored.")
 
 (defvar calc-alg-map) ; Defined in calc-ext.el
 
+(defun calc-version ()
+  "Return version of this version of Calc."
+  (interactive)
+  (message (concat "Calc version " calc-version)))
+
 (defun calc-mode ()
   "Calculator major mode.
 
