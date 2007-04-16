@@ -3,6 +3,8 @@
 	* calc.texi (Title page): Remove the date.
 	(Basic Arithmetic): Emphasize that / binds less strongly than *.
 	(The Standard Calc Interface): Change trail title.
+	(Floats): Mention that when non-decimal floats are entered, only
+	approximations are stored.
 	(Copying): Move to the appendices.
 	(GNU Free Documentation License): Add as an appendix.
 

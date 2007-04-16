@@ -1,6 +1,7 @@
 2007-04-15  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc.el (calc-trail-mode): Shorten the title.
+	* calc/calc.el (calc-version): New function.
+	(calc-trail-mode): Shorten the title.
 
 2007-04-15  Chong Yidong  <cyd@stupidchicken.com>
 
