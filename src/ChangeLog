@@ -1,3 +1,8 @@
+2007-04-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (cursor_row_p): Only end row on newline if it's a
+	display string.  Suggested by Lennart Borgman.
+
 2007-04-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* alloc.c (mem_insert): Set min_heap_address and max_heap_address
