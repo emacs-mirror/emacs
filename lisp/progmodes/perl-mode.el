@@ -391,6 +391,7 @@ The expansion is entirely correct because it uses the C preprocessor."
   "*Indentation of Perl statements with respect to containing block."
   :type 'integer
   :group 'perl)
+(put 'perl-indent-level 'safe-local-variable 'integerp)
 (defcustom perl-continued-statement-offset 4
   "*Extra indent for lines not starting new statements."
   :type 'integer

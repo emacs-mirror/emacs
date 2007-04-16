@@ -1,3 +1,8 @@
+2007-04-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/perl-mode.el (perl-indent-level): Mark as safe local var.
+	* progmodes/cperl-mode.el (cperl-indent-level): Likewise.
+
 2007-04-15  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc.el (calc-version): New function.

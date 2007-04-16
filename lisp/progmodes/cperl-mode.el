@@ -233,6 +233,7 @@ for constructs with multiline if/unless/while/until/for/foreach condition."
   "*Indentation of CPerl statements with respect to containing block."
   :type 'integer
   :group 'cperl-indentation-details)
+(put 'cperl-indent-level 'safe-local-variable 'integerp)
 
 (defcustom cperl-lineup-step nil
   "*`cperl-lineup' will always lineup at multiple of this number.
