@@ -224,7 +224,7 @@ If parsing fails, try to set this variable to nil."
   :group 'bibtex
   :type 'boolean)
 
-(defvar bibtex-entry-field-alist
+(defcustom bibtex-entry-field-alist
   '(("Article"
      ((("author" "Author1 [and Author2 ...] [and others]")
        ("title" "Title of the article (BibTeX converts it to lowercase)")
@@ -452,7 +452,47 @@ appears in the echo area, INIT is either the initial content of the
 field or a function, which is called to determine the initial content
 of the field, and ALTERNATIVE-FLAG (either nil or t) marks if the
 field is an alternative.  ALTERNATIVE-FLAG may be t only in the
-REQUIRED or CROSSREF-REQUIRED lists.")
+REQUIRED or CROSSREF-REQUIRED lists."
+  :group 'bibtex
+  :type '(repeat (list (string :tag "Entry name")
+                       (list (repeat :tag "required"
+                                     (group (string :tag "Field")
+                                            (string :tag "Comment")
+                                            (option (choice :tag "Init" :value nil
+                                                            (const nil)
+                                                            (string :tag "string")
+                                                            (function :tag "function")))
+                                            (option (choice (const nil)
+                                                            (const :tag "Alternative" t)))))
+                             (repeat :tag "optional"
+                                     (group (string :tag "Field")
+                                            (string :tag "Comment")
+                                            (option (choice :tag "Init" :value nil
+                                                            (const nil)
+                                                            (string :tag "string")
+                                                            (function :tag "function")))
+                                            (option (choice (const nil)
+                                                            (const :tag "Alternative" t))))))
+                       (option
+                        (list :tag "Crossref"
+                              (repeat :tag "required"
+                                      (group (string :tag "Field")
+                                             (string :tag "Comment")
+                                             (option (choice :tag "Init" :value nil
+                                                             (const nil)
+                                                             (string :tag "string")
+                                                             (function :tag "function")))
+                                             (option (choice (const nil)
+                                                             (const :tag "Alternative" t)))))
+                              (repeat :tag "optional"
+                                      (group (string :tag "Field")
+                                             (string :tag "Comment")
+                                             (option (choice :tag "Init" :value nil
+                                                             (const nil)
+                                                             (string :tag "string")
+                                                             (function :tag "function")))
+                                             (option (choice (const nil)
+                                                             (const :tag "Alternative" t))))))))))
 (put 'bibtex-entry-field-alist 'risky-local-variable t)
 
 (defcustom bibtex-comment-start "@Comment"
