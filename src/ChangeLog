@@ -1,3 +1,8 @@
+2007-04-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* alloc.c (mem_insert): Set min_heap_address and max_heap_address
+	if they are not yet initialized.
+
 2007-04-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (redisplay_window): When deciding whether or not to
