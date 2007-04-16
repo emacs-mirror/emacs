@@ -1,3 +1,11 @@
+2007-04-15  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Title page): Remove the date.
+	(Basic Arithmetic): Emphasize that / binds less strongly than *.
+	(The Standard Calc Interface): Change trail title.
+	(Copying): Move to the appendices.
+	(GNU Free Documentation License): Add as an appendix.
+
 2007-04-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* ada-mode.texi, autotype.texi, cc-mode.texi, cl.texi:
