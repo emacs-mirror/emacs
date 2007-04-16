@@ -1258,8 +1258,7 @@ commands given here will actually operate on the *Calculator* stack."
     (set (make-local-variable 'calc-main-buffer) buf))
   (when (= (buffer-size) 0)
     (let ((buffer-read-only nil))
-      (insert (propertize (concat "Emacs Calculator v" calc-version
-				  " by Dave Gillespie\n")
+      (insert (propertize (concat "Emacs Calculator Trail\n")
 			  'font-lock-face 'italic))))
   (run-mode-hooks 'calc-trail-mode-hook))
 
