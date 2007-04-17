@@ -31,12 +31,6 @@
 ;; This collection of functions implements the features of calendar.el and
 ;; holiday.el that deal with daylight saving time.
 
-;; Comments, corrections, and improvements should be sent to
-;;  Edward M. Reingold               Department of Computer Science
-;;  (217) 333-6733                   University of Illinois at Urbana-Champaign
-;;  reingold@cs.uiuc.edu             1304 West Springfield Avenue
-;;                                   Urbana, Illinois 61801
-
 ;;; Code:
 
 (require 'calendar)
@@ -266,12 +260,20 @@ Returns a list (YEAR START END), where START and END are
 expressions that when evaluated return the start and end dates,
 respectively. This function first attempts to use pre-calculated
 data from `calendar-dst-transition-cache', otherwise it calls
-`calendar-dst-find-data' (and adds the results to the cache)."
+`calendar-dst-find-data' (and adds the results to the cache).
+If dates in YEAR cannot be handled by `encode-time' (e.g. if they
+are too large to be represented as a lisp integer), then rather
+than an error this function returns the result appropriate for
+the current year."
   (let ((e (assoc year calendar-dst-transition-cache))
         f)
     (or e
         (progn
-          (setq e (calendar-dst-find-data (encode-time 1 0 0 1 1 year))
+          (setq e (calendar-dst-find-data
+                   (condition-case nil
+                       (encode-time 1 0 0 1 1 year)
+                     (error
+                      (encode-time 1 0 0 1 1 (nth 5 (decode-time))))))
                 f (nth 4 e)
                 e (list year f (nth 5 e))
                 calendar-dst-transition-cache
