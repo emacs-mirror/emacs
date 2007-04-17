@@ -1,3 +1,10 @@
+2007-04-17  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (free_realized_fontsets): Avoid unnecessary call of
+	Fclear_face_cache.
+
+	* xfaces.c (face_for_font): Check also face->font==font->font.font.
+
 2007-04-13  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (fontset_find_font): New function.
