@@ -1,3 +1,7 @@
+2007-04-17  David Kastrup  <dak@gnu.org>
+
+	* replace.el (query-replace-regexp-eval): Deprecate.
+
 2007-04-17  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-cmds.el (c-beginning-of-defun): With -ve arg and

@@ -633,12 +633,12 @@ a match if part of it has a read-only property.
 *** When used interactively, the commands `query-replace-regexp' and
 `replace-regexp' allow \,expr to be used in a replacement string,
 where expr is an arbitrary Lisp expression evaluated at replacement
-time.  In many cases, this will be more convenient than using
-`query-replace-regexp-eval'.  `\#' in a replacement string now refers
-to the count of replacements already made by the replacement command.
-All regular expression replacement commands now allow `\?' in the
-replacement string to specify a position where the replacement string
-can be edited for each replacement.
+time.  `\#' in a replacement string now refers to the count of
+replacements already made by the replacement command.  All regular
+expression replacement commands now allow `\?' in the replacement
+string to specify a position where the replacement string can be
+edited for each replacement.  `query-replace-regexp-eval' is now
+deprecated since it offers no additional functionality.
 
 +++
 *** query-replace uses isearch lazy highlighting when the new user option
