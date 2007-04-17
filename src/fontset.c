@@ -1397,9 +1397,9 @@ static void
 free_realized_fontsets (base)
      Lisp_Object base;
 {
-#if 0
   int id;
 
+#if 0
   /* For the moment, this doesn't work because free_realized_face
      doesn't remove FACE from a cache.  Until we find a solution, we
      suppress this code, and simply use Fclear_face_cache even though
@@ -1427,7 +1427,18 @@ free_realized_fontsets (base)
     }
   UNBLOCK_INPUT;
 #else  /* not 0 */
-  Fclear_face_cache (Qt);
+  /* But, we don't have to call Fclear_face_cache if no fontset has
+     been realized from BASE.  */
+  for (id = 0; id < ASIZE (Vfontset_table); id++)
+    {
+      Lisp_Object this = AREF (Vfontset_table, id);
+
+      if (EQ (FONTSET_BASE (this), base))
+	{
+	  Fclear_face_cache (Qt);
+	  break;
+	}
+    }
 #endif /* not 0 */
 }
 
