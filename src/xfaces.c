@@ -6087,6 +6087,7 @@ face_for_font (f, font, base_face)
       if (face->ascii_face == face)
 	continue;
       if (face->ascii_face == base_face
+	  && face->font == font->font.font
 	  && face->font_info == (struct font_info *) font)
 	return face->id;
     }
