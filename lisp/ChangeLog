@@ -1,3 +1,8 @@
+2007-04-17  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-beginning-of-defun): With -ve arg and
+	point too close to EOB, leave point at EOB rather than last `}'.
+
 2007-04-17  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* textmodes/bibtex.el (bibtex-include-OPTkey)
