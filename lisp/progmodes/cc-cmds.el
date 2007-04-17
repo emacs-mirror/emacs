@@ -1531,7 +1531,7 @@ defun."
 	      (setq arg (c-forward-to-nth-EOF-} (- arg) where)))
 	  ;; Move forward to the next opening brace....
 	  (when (and (= arg 0)
-		     (c-syntactic-re-search-forward "{" nil t))
+		     (c-syntactic-re-search-forward "{" nil 'eob))
 	    (backward-char)
 	    ;; ... and backward to the function header.
 	    (c-beginning-of-decl-1)
