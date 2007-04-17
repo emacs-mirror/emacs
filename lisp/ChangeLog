@@ -1,3 +1,8 @@
+2007-04-17  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-dst.el (calendar-dst-find-startend): If YEAR cannot
+	be encoded, fall back to current year.
+
 2007-04-14  Kevin Ryde  <user42@zip.com.au>
 
 	* arc-mode.el (archive-lzh-summarize): Only apply the "downcase if
