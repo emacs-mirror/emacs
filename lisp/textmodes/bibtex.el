@@ -86,7 +86,7 @@ If this is a function, call it to generate the initial field text."
   :group 'bibtex
   :type '(choice (const :tag "None" nil)
                  (string :tag "Initial text")
-                 (function :tag "Initialize Function" :value fun)
+                 (function :tag "Initialize Function")
                  (const :tag "Default" t)))
 (put 'bibtex-include-OPTkey 'risky-local-variable t)
 
@@ -98,11 +98,8 @@ CROSSREF-OPTIONAL lists in `bibtex-entry-field-alist' (which see)."
   :group 'bibtex
   :type '(repeat (group (string :tag "Field")
                         (string :tag "Comment")
-                        (option (group :inline t
-                                       :extra-offset -4
-                                       (choice :tag "Init" :value ""
-                                               string
-                                               function))))))
+                        (option (choice :tag "Init"
+                                        (const nil) string function)))))
 (put 'bibtex-user-optional-fields 'risky-local-variable t)
 
 (defcustom bibtex-entry-format
@@ -454,45 +451,34 @@ of the field, and ALTERNATIVE-FLAG (either nil or t) marks if the
 field is an alternative.  ALTERNATIVE-FLAG may be t only in the
 REQUIRED or CROSSREF-REQUIRED lists."
   :group 'bibtex
-  :type '(repeat (list (string :tag "Entry name")
-                       (list (repeat :tag "required"
-                                     (group (string :tag "Field")
-                                            (string :tag "Comment")
-                                            (option (choice :tag "Init" :value nil
-                                                            (const nil)
-                                                            (string :tag "string")
-                                                            (function :tag "function")))
-                                            (option (choice (const nil)
-                                                            (const :tag "Alternative" t)))))
-                             (repeat :tag "optional"
-                                     (group (string :tag "Field")
-                                            (string :tag "Comment")
-                                            (option (choice :tag "Init" :value nil
-                                                            (const nil)
-                                                            (string :tag "string")
-                                                            (function :tag "function")))
-                                            (option (choice (const nil)
-                                                            (const :tag "Alternative" t))))))
-                       (option
-                        (list :tag "Crossref"
-                              (repeat :tag "required"
-                                      (group (string :tag "Field")
-                                             (string :tag "Comment")
-                                             (option (choice :tag "Init" :value nil
-                                                             (const nil)
-                                                             (string :tag "string")
-                                                             (function :tag "function")))
-                                             (option (choice (const nil)
-                                                             (const :tag "Alternative" t)))))
-                              (repeat :tag "optional"
-                                      (group (string :tag "Field")
-                                             (string :tag "Comment")
-                                             (option (choice :tag "Init" :value nil
-                                                             (const nil)
-                                                             (string :tag "string")
-                                                             (function :tag "function")))
-                                             (option (choice (const nil)
-                                                             (const :tag "Alternative" t))))))))))
+  :type '(repeat (group (string :tag "Entry name")
+                        (group (repeat :tag "Required fields"
+                                       (group (string :tag "Field")
+                                              (string :tag "Comment")
+                                              (option (choice :tag "Init" :value nil
+                                                              (const nil) string function))
+                                              (option (choice :tag "Alternative"
+                                                              (const :tag "No" nil)
+                                                              (const :tag "Yes" t)))))
+                               (repeat :tag "Optional fields"
+                                       (group (string :tag "Field")
+                                              (string :tag "Comment")
+                                              (option (choice :tag "Init" :value nil
+                                                              (const nil) string function)))))
+                        (option :extra-offset -4
+                         (group (repeat :tag "Crossref: required fields"
+                                        (group (string :tag "Field")
+                                               (string :tag "Comment")
+                                               (option (choice :tag "Init" :value nil
+                                                               (const nil) string function))
+                                               (option (choice :tag "Alternative"
+                                                               (const :tag "No" nil)
+                                                               (const :tag "Yes" t)))))
+                                (repeat :tag "Crossref: optional fields"
+                                        (group (string :tag "Field")
+                                               (string :tag "Comment")
+                                               (option (choice :tag "Init" :value nil
+                                                               (const nil) string function)))))))))
 (put 'bibtex-entry-field-alist 'risky-local-variable t)
 
 (defcustom bibtex-comment-start "@Comment"
