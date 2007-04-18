@@ -1,3 +1,7 @@
+2007-04-18  Glenn Morris  <rgm@gnu.org>
+
+	* INSTALL: Mention CPP.
+
 2007-04-15  Glenn Morris  <rgm@gnu.org>
 
 	* FTP: Replace with a pointer to the web version.

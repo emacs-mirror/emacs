@@ -1,3 +1,11 @@
+2007-04-18  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-header-line-format): Add a custom
+	:set function.
+	(diary-list-entries): Only switch to diary-mode from
+	default-major-mode (reverts 2007-03-21 change).  Otherwise, set
+	header-line-format, in case of any customization.
+
 2007-04-18  Levin Du  <zslevin@gmail.com>  (tiny change)
 
 	* calendar/parse-time.el (parse-time-string-chars): Check if CHAR
