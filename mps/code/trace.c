@@ -1108,6 +1108,9 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
 
     /* following is true whether or not scan was total */
     /* See <design/scan/#summary.subset>. */
+    /* .verify.segsummary: were the seg contents, as found by this 
+     * scan, consistent with the recorded SegSummary?
+     */
     AVER(RefSetSub(ss.unfixedSummary, SegSummary(seg)));
 
     if (res != ResOK || !wasTotal) {

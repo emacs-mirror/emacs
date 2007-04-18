@@ -144,6 +144,79 @@ static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size,
 }
 
 
+/* AMCSegSketch -- summarise the segment state for a human reader
+ *
+ * Write a short human-readable text representation of the segment 
+ * state into storage indicated by pbSketch+cbSketch.
+ *
+ * A typical sketch is "bGW_", meaning the seg has a nailboard, has 
+ * some Grey and some White objects, and has no buffer attached.
+ */
+
+static void AMCSegSketch(Seg seg, char *pbSketch, size_t cbSketch)
+{
+  amcSeg amcseg;
+  Buffer buffer;
+
+  AVER(pbSketch);
+  AVER(cbSketch >= 5);
+  AVERT(Seg, seg);
+  amcseg = Seg2amcSeg(seg);
+  AVERT(amcSeg, amcseg);
+
+  if (SegNailed(seg) == TraceSetEMPTY) {
+    pbSketch[0] = 'm';  /* mobile */
+  } else if (amcSegHasNailboard(seg)) {
+    pbSketch[0] = 'b';  /* boarded */
+  } else {
+    pbSketch[0] = 's';  /* stuck */
+  }
+
+  if (SegGrey(seg) == TraceSetEMPTY) {
+    pbSketch[1] = '_';
+  } else {
+    pbSketch[1] = 'G';  /* Grey */
+  }
+
+  if (SegWhite(seg) == TraceSetEMPTY) {
+    pbSketch[2] = '_';
+  } else {
+    pbSketch[2] = 'W';  /* White */
+  }
+
+  buffer = SegBuffer(seg);
+  if (buffer == NULL) {
+    pbSketch[3] = '_';
+  } else {
+    Bool mut = BufferIsMutator(buffer);
+    Bool flipped = ((buffer->mode & BufferModeFLIPPED) != 0);
+    Bool trapped = BufferIsTrapped(buffer);
+    Bool limitzeroed = (buffer->apStruct.limit == 0);
+
+    pbSketch[3] = 'X';  /* I don't know what's going on! */
+
+    if ( (flipped == trapped) && (trapped == limitzeroed) ) {
+      if (mut) {
+        if (flipped) {
+          pbSketch[3] = 's';  /* stalo */
+        } else {
+          pbSketch[3] = 'n';  /* neo */
+        }
+      } else {
+        if (!flipped) {
+          pbSketch[3] = 'f';  /* forwarding */
+        }
+      }
+    } else {
+      /* I don't know what's going on! */
+    }
+  }
+  
+  pbSketch[4] = '\0';
+  AVER(4 < cbSketch);
+}
+
+
 /* AMCSegDescribe -- describe the contents of a segment
  *
  * See <design/poolamc/#seg-describe>.
@@ -157,6 +230,7 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream)
   Addr i, p, base, limit, init;
   Align step;
   Size row;
+  char abzSketch[5];
 
   if (!CHECKT(Seg, seg)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
@@ -228,6 +302,10 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream)
     res = WriteF(stream, "\n", NULL);
     if (res != ResOK) return res;
   }
+
+  AMCSegSketch(seg, abzSketch, NELEMS(abzSketch));
+  res = WriteF(stream, "  Sketch: $S\n", (WriteFS)abzSketch, NULL);
+  if (res != ResOK) return res;
 
   res = WriteF(stream, "} AMC Seg $P\n", (WriteFP)seg, NULL);
   if (res != ResOK) return res;
@@ -1245,6 +1323,7 @@ static Res amcScanNailed(Bool *totalReturn, ScanState ss, Pool pool,
                          Seg seg, AMC amc)
 {
   Bool total, moreScanning;
+  size_t loops = 0;
 
   do {
     Res res;
@@ -1253,8 +1332,66 @@ static Res amcScanNailed(Bool *totalReturn, ScanState ss, Pool pool,
       *totalReturn = FALSE;
       return res;
     }
+    loops += 1;
   } while(moreScanning);
 
+  if (loops > 1)
+  {
+    {
+      /* looped: should only happen under emergency tracing */
+      TraceId ti;
+      Trace trace;
+      Bool emerg = FALSE;
+      TraceSet ts = ss->traces;
+      Arena arena = pool->arena;
+      
+      TRACE_SET_ITER(ti, trace, ts, arena)
+        if (trace->emergency) {
+          emerg = TRUE;
+        }
+      TRACE_SET_ITER_END(ti, trace, ts, arena);
+      AVER(emerg);
+    }
+    {      
+      /* looped: fixed refs (from 1st pass) were seen by MPS_FIX1
+       * (in later passes), so the "ss.unfixedSummary" is _not_ 
+       * purely unfixed.  In this one case, unfixedSummary is not 
+       * accurate, and cannot be used to verify the SegSummary (see 
+       * impl/trace/#verify.segsummary).  Use ScanStateSetSummary to 
+       * store ScanStateSummary in ss.fixedSummary and reset 
+       * ss.unfixedSummary.  See job001548.
+       */
+      RefSet refset;
+    
+      refset = ScanStateSummary(ss);
+
+#if 0
+      /* This might become useful diagnostic feedback.  
+       * (A rare event, which might prompt a rare defect to appear).
+       * For now (diagnostic feedback system still being developed), 
+       * use if0 to comment it out.  RHSK 2007-04-18.
+       */
+      (void) WriteF(mps_lib_get_stdout(),
+        "amcScanNailed completed, but had to loop $U times:\n", (WriteFU)loops,
+        " SegSummary:        $B\n", (WriteFB)SegSummary(seg),
+        " ss.white:          $B\n", (WriteFB)ss->white,
+        " ss.unfixedSummary: $B", (WriteFB)ss->unfixedSummary,
+          "$S\n", (WriteFS)( 
+            (RefSetSub(ss->unfixedSummary, SegSummary(seg)))
+            ? ""
+            : " <=== This would have failed .verify.segsummary!"
+            ),
+        " ss.fixedSummary:   $B\n", (WriteFB)ss->fixedSummary,
+        "ScanStateSummary:   $B\n", (WriteFB)refset,
+        "MOVING ScanStateSummary TO fixedSummary, "
+        "RESETTING unfixedSummary.\n", NULL
+      );
+#endif
+    
+      ScanStateSetSummary(ss, refset);
+    }
+  }
+  
   *totalReturn = total;
   return ResOK;
 }
