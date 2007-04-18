@@ -25,7 +25,7 @@
 	* textmodes/bibtex.el (bibtex-include-OPTkey)
 	(bibtex-user-optional-fields, bibtex-entry-field-alist): Fix
 	defcustom.
-	
+
 2007-04-17  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/cal-dst.el (calendar-dst-find-startend): If YEAR cannot
