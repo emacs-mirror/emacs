@@ -1,3 +1,8 @@
+2007-04-18  Levin Du  <zslevin@gmail.com>  (tiny change)
+
+	* calendar/parse-time.el (parse-time-string-chars): Check if CHAR
+	is less than the length of parse-time-syntax.
+
 2007-04-17  David Kastrup  <dak@gnu.org>
 
 	* replace.el (query-replace-regexp-eval): Deprecate.
@@ -730,6 +735,13 @@
 	(number-of-diary-entries): Change :set to use diary-set-maybe-redraw.
 	(diary-list-entries): Always run diary-mode.
 
+2007-03-20  Kenichi Handa  <handa@m17n.org>
+
+	* international/quail.el (quail-setup-completion-buf): Make the
+	completion buffer read-only.
+	(quail-completion): Adjusted for the above change.  Leave the
+	modified flag nil.
+
 2007-03-20  David Kastrup  <dak@gnu.org>
 
 	* files.el (magic-mode-alist): Require literal "%!PS" string for
@@ -793,6 +805,7 @@
 	* isearchb.el (isearchb-follow-char):
 	* subr.el (def-edebug-spec): Fix typo in docstring.
 
+>>>>>>> 1.10924
 2007-03-19  Richard Stallman  <rms@gnu.org>
 
 	* files.el (default-directory): Mark safe.
