@@ -2218,7 +2218,7 @@ handling of edits of concealed text, undo concerns, etc.
    - version number incremented to 2.2
 
 +++
-** The variable `woman-topic-at-point' was renamed
+** The variable `woman-topic-at-point' is renamed
 to `woman-use-topic-at-point' and behaves differently: if this
 variable is non-nil, the `woman' command uses the word at point
 automatically, without asking for a confirmation.  Otherwise, the word
