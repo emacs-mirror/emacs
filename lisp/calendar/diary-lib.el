@@ -446,8 +446,9 @@ If LIST-ONLY is non-nil don't modify or display the buffer, only return a list."
           ;; clobbers file local variables.
           ;; http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-03/msg00363.html
           ;; http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-04/msg00404.html
-          (setq header-line-format (and diary-header-line-flag
-                                        diary-header-line-format)))
+          (if (eq major-mode 'diary-mode)
+              (setq header-line-format (and diary-header-line-flag
+                                            diary-header-line-format))))
         ;; d-s-p is passed to the diary display function.
         (let ((diary-saved-point (point)))
           (save-excursion
