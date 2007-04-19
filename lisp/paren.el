@@ -143,6 +143,7 @@ in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
       (let ((oldpos (point))
 	    (dir (cond ((eq (syntax-class (syntax-after (1- (point)))) 5) -1)
                        ((eq (syntax-class (syntax-after (point)))      4) 1)))
+	    (window-start (window-start))
 	    pos mismatch face)
 	;;
 	;; Find the other end of the sexp.
@@ -247,7 +248,12 @@ in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
 	  ;;
 	  ;; Always set the overlay face, since it varies.
 	  (overlay-put show-paren-overlay 'priority show-paren-priority)
-	  (overlay-put show-paren-overlay 'face face)))
+	  (overlay-put show-paren-overlay 'face face))
+	;; If there are continued lines, the above operations can
+	;; force redisplay to recenter the window (since there is no
+	;; way for it to know that the overlay changes to the buffer
+	;; are harmless).  So reset the window-start.
+	(set-window-start (selected-window) window-start))
     ;; show-paren-mode is nil in this buffer.
     (and show-paren-overlay
 	 (delete-overlay show-paren-overlay))
