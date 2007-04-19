@@ -945,6 +945,28 @@ extern void StackProbe(Size depth);
 
 #endif
 
+/* Diagnostics */
+
+Bool DiagIsOn(void);
+
+#define DIAG_STREAM (DiagStream())
+
+#define DIAG(s) BEGIN \
+    s \
+  END
+
+/*
+ * Note the macro argument args should have parens around it (in the
+ * invocation); it is a variable number of arguments that we pass
+ * to another function.
+ * That makes this macro unclean in all sorts of ways.
+ */
+#define DIAG_WRITEF(stream, args) DIAG( \
+  if(DiagIsOn()) { \
+    WriteF a; \
+  } \
+)
+
 
 #endif /* mpm_h */
 
