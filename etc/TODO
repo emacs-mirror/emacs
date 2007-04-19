@@ -14,6 +14,12 @@ to the FSF.
 
 * Small but important fixes needed in existing features:
 
+** Fix compilation when Xaw3d libraries are present but libxaw is not.
+In new X11 versions, xaw3dg-dev does not depend on libxaw-dev, so the
+latter need not be installed.  As a result, all the source files that
+look for include files in X11/Xaw should look in X11/Xaw3d if we are
+using Xaw3d.
+
 ** Compute the list of active keymaps *after* reading the first event.
 
 ** Avoid using "iff" in doc strings.
