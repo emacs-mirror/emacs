@@ -1,3 +1,9 @@
+2007-04-19  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-in-function-trailer-p): Fix this: when a
+	function return type contains "struct", "union", etc.
+	c-end-of-defun goes too far forward.
+
 2007-04-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* paren.el (show-paren-function): Reset window-start to avoid
