@@ -1,3 +1,7 @@
+2007-04-19  Kenichi Handa  <handa@m17n.org>
+
+	* text.texi (Special Properties): Document composition property.
+
 2007-04-19  Glenn Morris  <rgm@gnu.org>
 
 	* files.texi (File Name Expansion): Mention "superroot".
