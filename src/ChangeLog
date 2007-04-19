@@ -1,3 +1,9 @@
+2007-04-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuf.c (Fminibuffer_contents, Fminibuffer_contents_no_properties)
+	(Fminibuffer_completion_contents, Fdelete_minibuffer_contents):
+	Doc fixes.
+
 2007-04-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dispnew.c (adjust_frame_glyphs_for_frame_redisplay): Set
