@@ -1,3 +1,7 @@
+2007-04-19  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/todo-mode.el: Fix typo: "threshhold" -> "threshold".
+
 2007-04-18  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/diary-lib.el (diary-header-line-format): Add a custom
