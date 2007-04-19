@@ -106,14 +106,14 @@ item was added to the menu bar to make it easily accessible
 ---
 ** New translations of the Emacs Tutorial are available in the
 following languages: Brasilian Portuguese, Bulgarian, Chinese (both
-with simplified and traditional characters), French, and Italian.
-Type `C-u C-h t' to choose one of them in case your language setup
-doesn't automatically select the right one.
+with simplified and traditional characters), French, Russian, and
+Italian.  Type `C-u C-h t' to choose one of them in case your language
+setup doesn't automatically select the right one.
 
 ---
-** A Portuguese translation of Emacs' reference card has been added.
-Its name is `pt-br-refcard.tex'.  The corresponding PostScript file is
-also included.
+** New translations of the Emacs reference card are available in the
+Brasilian Portuguese and Russian.  The corresponding PostScript files
+are also included.
 
 ---
 ** A French translation of the `Emacs Survival Guide' is available.
