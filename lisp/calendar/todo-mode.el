@@ -205,11 +205,11 @@
 ;;     	by the binary insertion algorithm.  However, you may not
 ;;     	really have a need for such accurate priorities amongst your
 ;;     	TODO items.  If you now think about the binary insertion
-;;     	halfing the size of the window each time, then the threshhold
+;;     	halfing the size of the window each time, then the threshold
 ;;     	is the window size at which it will stop.  If you set the
-;;     	threshhold to zero, the upper and lower bound will coincide at
+;;     	threshold to zero, the upper and lower bound will coincide at
 ;;     	the end of the loop and you will insert your item just before
-;;     	that point.  If you set the threshhold to, e.g. 8, it will stop
+;;     	that point.  If you set the threshold to, e.g. 8, it will stop
 ;;     	as soon as the window size drops below that amount and will
 ;;     	insert the item in the approximate centre of that window.  I
 ;;     	got the idea for this feature after reading a very helpful
@@ -307,10 +307,10 @@ If you have 8 items in your TODO list, then you may get asked 4
 questions by the binary insertion algorithm.  However, you may not
 really have a need for such accurate priorities amongst your TODO
 items.  If you now think about the binary insertion halfing the size
-of the window each time, then the threshhold is the window size at
-which it will stop.  If you set the threshhold to zero, the upper and
+of the window each time, then the threshold is the window size at
+which it will stop.  If you set the threshold to zero, the upper and
 lower bound will coincide at the end of the loop and you will insert
-your item just before that point.  If you set the threshhold to,
+your item just before that point.  If you set the threshold to,
 e.g. 8, it will stop as soon as the window size drops below that
 amount and will insert the item in the approximate center of that
 window."
