@@ -948,6 +948,7 @@ extern void StackProbe(Size depth);
 /* Diagnostics */
 
 Bool DiagIsOn(void);
+mps_lib_FILE *DiagStream(void);
 
 #define DIAG_STREAM (DiagStream())
 
@@ -961,9 +962,9 @@ Bool DiagIsOn(void);
  * to another function.
  * That makes this macro unclean in all sorts of ways.
  */
-#define DIAG_WRITEF(stream, args) DIAG( \
+#define DIAG_WRITEF(args) DIAG( \
   if(DiagIsOn()) { \
-    WriteF a; \
+    WriteF args; \
   } \
 )
 
