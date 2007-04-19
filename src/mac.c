@@ -4991,7 +4991,7 @@ extern int noninteractive;
    3. [If SELECT_USE_CFSOCKET is set]
       Only the window event channel and socket read/write channels are
       involved, and timeout is not too short (greater than
-      SELECT_TIMEOUT_THRESHHOLD_RUNLOOP seconds).
+      SELECT_TIMEOUT_THRESHOLD_RUNLOOP seconds).
       -> Create CFSocket for each socket and add it into the current
          event RunLoop so that the current event loop gets quit when
          the socket becomes ready.  Then ReceiveNextEvent can wait for
