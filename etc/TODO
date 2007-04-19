@@ -94,6 +94,8 @@ current buffer.
 
 ** make back_comment use syntax-ppss or equivalent.
 
+** Improve configure's treatment of NON_GNU_CPP on Solaris.
+
 * Important features:
 
 ** Provide user-friendly ways to list all available font families,
@@ -544,7 +546,7 @@ but which can also be used as a modifier).
    a derived mode of sendmail.el.  Or arrange for messages.el to be split
    into a small core and "the rest" so that we use less resources as long as
    we stick to the features provided in sendmail.el.
-
+ 
 ** Replace gmalloc.c with the modified Doug Lea code from the current
    GNU libc so that the special mmapping of buffers can be removed --
    that apparently loses under Solaris, at least. [fx has mostly done

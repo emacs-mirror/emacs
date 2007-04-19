@@ -1,3 +1,7 @@
+2007-04-19  Glenn Morris  <rgm@gnu.org>
+
+	* PROBLEMS: Expand a little on Emacs not knowing fqdn.
+
 2007-04-17  David Kastrup  <dak@gnu.org>
 
 	* NEWS: Mention `query-replace-regexp-eval' being deprecated.
