@@ -193,7 +193,7 @@ MPMCOMMON = mpsi.c mpm.c arenavm.c arenacl.c arena.c global.c locus.c \
             trace.c root.c seg.c format.c buffer.c ref.c bt.c ring.c \
             shield.c ld.c event.c sac.c message.c \
             poolmrg.c poolmfs.c poolmv.c dbgpool.c dbgpooli.c \
-            boot.c meter.c splay.c cbs.c version.c
+            boot.c meter.c splay.c cbs.c diag.c version.c
 MPM = $(MPMCOMMON) $(MPMPF)
 SWCOMMON = mpsi.c mpm.c arenavm.c arenacl.c arena.c global.c locus.c \
            tract.c walk.c reserv.c protocol.c pool.c poolabs.c \
