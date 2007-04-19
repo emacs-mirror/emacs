@@ -1030,6 +1030,8 @@ dnl see the `changequote' comment above.
 		;;
       *-sunos5* | *-solaris* )
 		opsys=sol2-6
+## FIXME: make this into a proper fix that checks the compiler type,
+## rather than relying on path. Or is /usr/ccs/lib/cpp a bad default now?
 		if [ "x$CC" = x/opt/SUNWspro/bin/cc ]; then
 		  ## -Xs prevents spurious whitespace.
 		  NON_GNU_CPP="/opt/SUNWspro/bin/cc -E -Xs"
