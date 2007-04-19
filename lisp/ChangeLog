@@ -1,3 +1,13 @@
+2007-04-19  Kevin Ryde  <user42@zip.com.au>
+
+	* arc-mode.el (archive-find-type): lzh-exe for lzh self-extracting exe.
+	(archive-lzh-summarize): Add optional start arg for where to start
+	looking at the archive.
+	(archive-lzh-exe-summarize, archive-lzh-exe-extract): New functions.
+
+	* international/mule.el (auto-coding-alist): no-conversion for .exe
+	and .EXE.
+
 2007-04-19  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-cmds.el (c-in-function-trailer-p): Fix this: when a
