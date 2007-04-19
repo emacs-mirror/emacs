@@ -1,3 +1,8 @@
+2007-04-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* paren.el (show-paren-function): Reset window-start to avoid
+	recentering.
+
 2007-04-19  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/todo-mode.el: Fix typo: "threshhold" -> "threshold".
