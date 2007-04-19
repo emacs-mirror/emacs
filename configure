@@ -2996,6 +2996,8 @@ _ACEOF
 		;;
       *-sunos5* | *-solaris* )
 		opsys=sol2-6
+## FIXME: make this into a proper fix that checks the compiler type,
+## rather than relying on path. Or is /usr/ccs/lib/cpp a bad default now?
 		if [ "x$CC" = x/opt/SUNWspro/bin/cc ]; then
 		  ## -Xs prevents spurious whitespace.
 		  NON_GNU_CPP="/opt/SUNWspro/bin/cc -E -Xs"
@@ -12014,7 +12016,7 @@ _ACEOF
   fi
 fi
 
-if test x"${USE_X_TOOLKIT}" = xmaybe; then
+if test x"${USE_X_TOOLKIT}" = xmaybe || test x"${USE_X_TOOLKIT}" = xLUCID; then
   if test x"${HAVE_X11R5}" = xyes; then
     { echo "$as_me:$LINENO: checking X11 version 5 with Xaw" >&5
 echo $ECHO_N "checking X11 version 5 with Xaw... $ECHO_C" >&6; }
@@ -12073,9 +12075,15 @@ fi
 echo "${ECHO_T}5 or newer, with Xaw; use toolkit by default" >&6; }
       USE_X_TOOLKIT=LUCID
     else
-      { echo "$as_me:$LINENO: result: before 5 or no Xaw; do not use toolkit by default" >&5
+      if test x"${USE_X_TOOLKIT}" = xLUCID; then
+        { { echo "$as_me:$LINENO: error: Lucid toolkit requires X11/Xaw include files" >&5
+echo "$as_me: error: Lucid toolkit requires X11/Xaw include files" >&2;}
+   { (exit 1); exit 1; }; }
+      else
+        { echo "$as_me:$LINENO: result: before 5 or no Xaw; do not use toolkit by default" >&5
 echo "${ECHO_T}before 5 or no Xaw; do not use toolkit by default" >&6; }
-      USE_X_TOOLKIT=none
+        USE_X_TOOLKIT=none
+      fi
     fi
   else
     USE_X_TOOLKIT=none
