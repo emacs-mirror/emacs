@@ -152,10 +152,10 @@ Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream)
   if (!CHECKT(Buffer, buffer)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  abzMode[0] = (buffer->mode & BufferModeTRANSITION)  ? 't' : '_';
-  abzMode[1] = (buffer->mode & BufferModeLOGGED)      ? 'l' : '_';
-  abzMode[2] = (buffer->mode & BufferModeFLIPPED)     ? 'f' : '_';
-  abzMode[3] = (buffer->mode & BufferModeATTACHED)    ? 'a' : '_';
+  abzMode[0] = (char)( (buffer->mode & BufferModeTRANSITION)  ? 't' : '_' );
+  abzMode[1] = (char)( (buffer->mode & BufferModeLOGGED)      ? 'l' : '_' );
+  abzMode[2] = (char)( (buffer->mode & BufferModeFLIPPED)     ? 'f' : '_' );
+  abzMode[3] = (char)( (buffer->mode & BufferModeATTACHED)    ? 'a' : '_' );
   abzMode[4] = '\0';
 
   res = WriteF(stream,
