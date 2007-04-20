@@ -1,3 +1,8 @@
+2007-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/fill.el (fill-move-to-break-point): Don't inhibit
+	fill-nobreak-predicate when the break is past fill-column.
+
 2007-04-20  Francesco Potort=8ec  <pot@gnu.org>
 
 	* locate.el (locate): Output from shell-command should go in the
@@ -113,8 +118,8 @@
 
 	* textmodes/bibtex.el (bibtex-insert-kill): Pass non-nil NODELIM
 	arg to bibtex-make-field.
-	(bibtex-make-field): Add optional fourth arg NODELIM.  Insert
-	delimiters around INIT unless this arg is non-nil.
+	(bibtex-make-field): Add optional fourth arg NODELIM.
+	Insert delimiters around INIT unless this arg is non-nil.
 
 2007-04-14  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -152,7 +157,7 @@
 	window marked as dedicated.
 
 	* mail/footnote.el (footnote-latin-string): New variable.
-	(footnote-latin-regexp): Redefined as regexp alternative.
+	(footnote-latin-regexp): Redefine as regexp alternative.
 	(Footnote-latin): Use footnote-latin-string instead of
 	footnote-latin-regexp.
 
@@ -182,17 +187,17 @@
 
 2007-04-11  Markus Triska  <markus.triska@gmx.at>
 
-        * emacs-lisp/byte-opt.el (byte-optimize-backward-char)
-        (byte-optimize-backward-word): Remove (move to bytecomp.el).
+	* emacs-lisp/byte-opt.el (byte-optimize-backward-char)
+	(byte-optimize-backward-word): Remove (move to bytecomp.el).
 	(byte-optimize-form-code-walker): Evaluate pure function calls if
 	possible.
 	(byte-optimize-all-constp): New function.
 
-        * emacs-lisp/bytecomp.el (byte-compile-char-before): Improve
-        numeric argument case.
-        (byte-compile-backward-char, byte-compile-backward-word): New
-        functions, performing rewriting previously done in byte-opt.el.
-        Fix their "Fixme" item (restriction to numeric arguments).
+	* emacs-lisp/bytecomp.el (byte-compile-char-before):
+	Improve numeric argument case.
+	(byte-compile-backward-char, byte-compile-backward-word):
+	New functions, performing rewriting previously done in byte-opt.el.
+	Fix their "Fixme" item (restriction to numeric arguments).
 
 2007-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
