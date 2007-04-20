@@ -1,8 +1,3 @@
-2007-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* textmodes/fill.el (fill-move-to-break-point): Don't bind
-	fill-nobreak-predicate.
-
 2007-04-20  Francesco Potort=8ec  <pot@gnu.org>
 
 	* locate.el (locate): Output from shell-command should go in the

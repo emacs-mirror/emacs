@@ -521,6 +521,7 @@ The break position will be always after LINEBEG and generally before point."
       ;; Ok, skip at least one word or one \c| character.
       ;; Meanwhile, don't stop at a period followed by one space.
       (let ((to (line-end-position))
+	    (fill-nobreak-predicate nil) ;to break sooner.
 	    (first t))
 	(goto-char linebeg)
 	(while (and (< (point) to) (or first (fill-nobreak-p)))
