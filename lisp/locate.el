@@ -310,7 +310,7 @@ the docstring of that function for its meaning."
         (set (make-local-variable 'locate-current-filter) filter)
 
         (if run-locate-command
-            (shell-command search-string)
+            (shell-command search-string (current-buffer))
           (apply 'call-process locate-cmd nil t nil locate-cmd-args))
 
         (and filter
