@@ -1,3 +1,7 @@
+2007-04-20  Martin Rudalics  <rudalics@gmx.at>
+
+	* display.texi (Scrolling): Fix typo.
+
 2007-04-15  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi (Title page): Remove the date.
@@ -26,7 +30,7 @@
 	* emacs.texi: Insert node heading for GFDL.
 
 	* dired-x.texi: Relicence under GFDL.  Remove date from title page.
-	
+
 	* calc.texi (Algebraic Tutorial): Emphasize that / binds less strongly
 	than *.
 
@@ -69,7 +73,7 @@
 	8.5x11 format.
 	* mule.texi (Language Environments): \hbadness=10000 since there's
 	no way to reword.
-	* emacs.texi (smallbook): new @set to more easily switch between
+	* emacs.texi (smallbook): New @set to more easily switch between
 	smallbook and 8.5x11.
 
 2007-04-11  Richard Stallman  <rms@gnu.org>
