@@ -1,3 +1,8 @@
+2007-04-20  David Koppelman  <koppel@ece.lsu.edu>
+
+	* display.texi (Highlight Interactively): Document
+	hi-lock-file-patterns-policy.
+
 2007-04-20  Martin Rudalics  <rudalics@gmx.at>
 
 	* display.texi (Scrolling): Fix typo.
