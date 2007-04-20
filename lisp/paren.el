@@ -253,7 +253,8 @@ in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
 	;; force redisplay to recenter the window (since there is no
 	;; way for it to know that the overlay changes to the buffer
 	;; are harmless).  So reset the window-start.
-	(set-window-start (selected-window) window-start))
+	(unless (window-minibuffer-p)
+	  (set-window-start (selected-window) window-start)))
     ;; show-paren-mode is nil in this buffer.
     (and show-paren-overlay
 	 (delete-overlay show-paren-overlay))
