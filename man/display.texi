@@ -128,7 +128,7 @@ same screen line.  To enable this behavior, set the variable
 @code{scroll-preserve-screen-position} to a non-@code{nil} value.  In
 this mode, when these commands would scroll the text around point off
 the screen, or within @code{scroll-margin} lines of the edge, they
-moves point to keep the same vertical position within the window.
+move point to keep the same vertical position within the window.
 This mode is convenient for browsing through a file by scrolling by
 screenfuls; if you come back to the screen where you started, point
 goes back to the line where it started.  However, this mode is
