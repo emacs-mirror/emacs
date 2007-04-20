@@ -1,3 +1,8 @@
+2007-04-20  Francesco Potort=8ec  <pot@gnu.org>
+
+	* locate.el (locate): Output from shell-command should go in the
+	current buffer rather than *Shell Command Output*.
+
 2007-04-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* paren.el (show-paren-function): Fix last fix.
