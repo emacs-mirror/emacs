@@ -5703,7 +5703,7 @@ and simply passes them to `defcustom', if applicable.
 *** `minor-mode-list' now holds a list of minor mode commands.
 
 +++
-*** `define-global-minor-mode'.
+*** `define-globalized-minor-mode'.
 
 This is a new name for what was formerly called
 `easy-mmode-define-global-mode'.  The old name remains as an alias.
