@@ -1,3 +1,7 @@
+2007-04-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* paren.el (show-paren-function): Fix last fix.
+
 2007-04-19  Kevin Ryde  <user42@zip.com.au>
 
 	* arc-mode.el (archive-find-type): lzh-exe for lzh self-extracting exe.
