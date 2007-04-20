@@ -1,3 +1,9 @@
+2007-04-20  David Koppelman  <koppel@ece.lsu.edu>
+
+	* hi-lock.el (hi-lock-file-patterns-policy): New var.
+	(hi-lock-find-patterns): Use hi-lock-file-patterns-policy.
+	(hi-lock-mode): Update docstring.
+
 2007-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/fill.el (fill-move-to-break-point): Don't inhibit
