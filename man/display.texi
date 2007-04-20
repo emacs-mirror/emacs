@@ -711,9 +711,16 @@ at point, with comment delimiters to prevent them from changing your
 program.  (This key binding runs the
 @code{hi-lock-write-interactive-patterns} command.)
 
-These patterns will be read the next time you visit the file while
+These patterns may be read the next time you visit the file while
 Hi Lock mode is enabled, or whenever you use the @kbd{M-x
-hi-lock-find-patterns} command.
+hi-lock-find-patterns} command. 
+
+Patterns are not read if the buffer's mode is listed in
+@code{hi-lock-exclude-modes}. Patterns are only used if
+@code{hi-lock-file-patterns-policy} is 'ask and the user responds yes
+to a prompt, or if @code{hi-lock-file-patterns-policy} is bound to a
+function and that function returns t. The function is called with the
+patterns as an argument.
 
 @item C-x w i
 @kindex C-x w i
