@@ -1,3 +1,11 @@
+2007-04-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/vhdl-mode.el (vhdl-template-type)
+	(vhdl-template-record, vhdl-template-nature)
+	(vhdl-template-configuration-spec, vhdl-template-component-inst)
+	(vhdl-template-break, vhdl-regress-line, vhdl-electric-tab): Use
+	delete-region instead of kill-word and kill-line.
+
 2007-04-21  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
 	* dired-x.el (dired-virtual-mode): Doc fix.
