@@ -790,21 +790,18 @@ nil."
     (revert-buffer)))
 
 ;; A zero-arg version of dired-virtual.
-;; You need my modified version of set-auto-mode for the
-;; `buffer-contents-mode-alist'.
-;; Or you use infer-mode.el and infer-mode-alist, same syntax.
 (defun dired-virtual-mode ()
   "Put current buffer into Virtual Dired mode (see `dired-virtual').
-Useful on `buffer-contents-mode-alist' (which see) with the regexp
+Useful on `magic-mode-alist' with the regexp
 
-    \"^  \\(/[^ /]+\\)/?+:$\"
+  \"^  \\\\(/[^ /]+\\\\)+/?:$\"
 
 to put saved dired buffers automatically into Virtual Dired mode.
 
-Also useful for `auto-mode-alist' (which see) like this:
+Also useful for `auto-mode-alist' like this:
 
-  \(setq auto-mode-alist (cons '(\"[^/]\\.dired\\'\" . dired-virtual-mode)
-                              auto-mode-alist)\)"
+  (add-to-list 'auto-mode-alist
+               '(\"[^/]\\\\.dired\\\\'\" . dired-virtual-mode))"
   (interactive)
   (dired-virtual (dired-virtual-guess-dir)))
 
