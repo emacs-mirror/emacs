@@ -3262,22 +3262,25 @@ Manual}) provides an example.
 @item composition
 @kindex composition @r{(text property)}
 This text property is used to display a sequence of characters as a
-single glyph composed from components.  For instance, Thai base
+single glyph composed from components.  For instance, in Thai a base
 consonant is composed with the following combining vowel as a single
-glyph.
+glyph.  The value should be a character or a sequence (vector, list,
+or string) of integers.
 
-The value is a character or a sequence (vector, list, or
-string) of integers.
+@itemize @bullet
+@item
+If it is a character, it means to display that character instead of
+the text in the region.
 
-If it is a character, it is an alternate character to display instead
+@item
+If it is a string, it means to display that string's contents instead
 of the text in the region.
 
-If it is a string, it is an alternate character sequences to
-display.
-
-If it is a vector or list, it is a sequence of alternate
-characters interleaved with internal codes specifying how to
-compose the following character with the previous one.
+@item
+If it is a vector or list, the elements are characters interleaved
+with internal codes specifying how to compose the following character
+with the previous one.
+@end itemize
 @end table
 
 @node Format Properties
