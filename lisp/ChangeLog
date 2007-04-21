@@ -1,3 +1,7 @@
+2007-04-21  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+
+	* dired-x.el (dired-virtual-mode): Doc fix.
+
 2007-04-21  Richard Stallman  <rms@gnu.org>
 
 	* font-lock.el (font-lock-keywords-alist): Mark as risky.
@@ -311,7 +315,7 @@
 
 	* cus-start.el <scroll-preserve-screen-position>: Add choices.
 
-2007-04-08  Johan Bockg,Ae(Brd  <bojohan+news@dd.chalmers.se>
+2007-04-08  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
 	* term/xterm.el (terminal-init-xterm): Fix key definitions.
 	Add binding for C-M-SPC.
@@ -669,7 +673,7 @@
 	* textmodes/flyspell.el (flyspell-large-region):
 	Use ispell-call-process-region.
 
-2007-03-26  Johan Bockg,Ae(Brd  <bojohan+sf@dd.chalmers.se>
+2007-03-26  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
 	* emacs-lisp/bytecomp.el (byte-compile-file-form-defmumble):
 	Use prin1 instead of princ.
@@ -5629,7 +5633,7 @@
 
 	* dired.el (dired-build-subdir-alist): Fix previous change.
 
-2006-10-01  Johan Bockg,Ae(Brd  <bojohan+mail@dd.chalmers.se>
+2006-10-01  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
 	* simple.el (undo-elt-crosses-region): Fix the inequalities.
 
@@ -21329,7 +21333,7 @@
 
 	* net/newsticker.el: Get rid of CVS keyword.
 
-2005-09-19  Johan Bockg,Ae(Brd  <bojohan+sf@dd.chalmers.se>
+2005-09-19  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
 	* dired-aux.el (dired-handle-overwrite): Don't use `format' here.
 	The prompt is formatted later.
@@ -30412,7 +30416,7 @@
 	(mail-directory-process defvar): Doc fix.
 	(mail-names): Doc fix.
 
-2005-03-25  Johan Bockg,Ae(Brd  <bojohan+mail@dd.chalmers.se>  (tiny change)
+2005-03-25  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>  (tiny change)
 
 	* textmodes/flyspell.el (mail-mode-flyspell-verify): Fix regexp syntax.
 
