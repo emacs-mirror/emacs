@@ -1,5 +1,7 @@
 2007-04-21  Richard Stallman  <rms@gnu.org>
 
+	* font-lock.el (font-lock-keywords-alist): Mark as risky.
+
 	* subr.el (read-number): Doc fix.
 
 	* simple.el (pop-to-mark-command): Display message "mark popped"
