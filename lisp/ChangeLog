@@ -1,4 +1,4 @@
-2007-04-21  acm  <acm@localhost.localdomain>
+2007-04-21  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-cmds.el (c-electric-slash): Replace wrong use of
 	`kill-region' by `delete-region'.
