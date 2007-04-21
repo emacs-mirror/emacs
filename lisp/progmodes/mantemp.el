@@ -105,14 +105,14 @@
 	    "^[A-z :&*<>~=,0-9+]*>::operator " nil t nil)
       (progn
 	(backward-char 11)
-	(kill-line)))
+	(delete-region (point) (line-end-position))))
     ;; Remove other member function extensions.
     (goto-char (point-min))
     (message "Removing member function extensions")
     (while (re-search-forward "^[A-z :&*<>~=,0-9+]*>::" nil t nil)
       (progn
 	(backward-char 2)
-	(kill-line)))))
+	(delete-region (point) (line-end-position))))))
 
 (defun mantemp-sort-and-unique-lines ()
   "Eliminate all consecutive duplicate lines in the buffer."
@@ -127,7 +127,7 @@
       (progn
 	(forward-line -1)
 	(beginning-of-line)
-	(kill-line 1)))))
+	(delete-region (point) (progn (forward-line 1) (point)))))))
 
 (defun mantemp-insert-cxx-syntax ()
   "Insert C++ syntax around each template class and function.
@@ -161,7 +161,7 @@ the lines."
       (progn
 	(beginning-of-line)
 	(forward-word 1)
-	(kill-word 1)))))
+	(delete-region (point) (progn (forward-word 1) (point)))))))
 
 (defun mantemp-make-mantemps ()
   "Gathering interface to the functions modifying the buffer."
@@ -189,16 +189,16 @@ This function does the same thing as `mantemp-make-mantemps-buffer',
 but operates on the region."
   (interactive)
   (let ((cur-buf (current-buffer))
-	(mantemp-buffer (generate-new-buffer "*mantemp*")))
+	(mantemp-buffer (generate-new-buffer "*mantemp*"))
+	(str (buffer-substring (mark) (point))))
     ;; Copy the region to a temporary buffer, make the C++ code there
     ;; and copy the result back to the current buffer.
-    (kill-region (mark) (point))
     (set-buffer mantemp-buffer)
-    (yank)
+    (insert str)
     (mantemp-make-mantemps)
-    (kill-region (point-min) (point-max))
+    (setq str (buffer-string))
     (set-buffer cur-buf)
-    (yank)
+    (insert str)
     (kill-buffer mantemp-buffer))
   (message "Done"))
 
