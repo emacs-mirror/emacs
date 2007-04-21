@@ -1719,6 +1719,9 @@ by doing (clear-string STRING)."
 
 ;; This should be used by `call-interactively' for `n' specs.
 (defun read-number (prompt &optional default)
+  "Read a numeric value in the minibuffer, prompting with PROMPT.
+DEFAULT specifies a default value to return if the user just types RET.
+The value of DEFAULT is inserted into PROMPT."
   (let ((n nil))
     (when default
       (setq prompt
