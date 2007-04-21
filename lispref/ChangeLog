@@ -1,3 +1,12 @@
+2007-04-21  Richard Stallman  <rms@gnu.org>
+
+	* text.texi (Special Properties): Clarify previous change.
+
+	* files.texi (File Name Expansion): Clarify previous change.
+
+	* display.texi (Attribute Functions): Fix example for
+	face-attribute-relative-p.
+
 2007-04-19  Kenichi Handa  <handa@m17n.org>
 
 	* text.texi (Special Properties): Document composition property.
