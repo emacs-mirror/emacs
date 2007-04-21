@@ -25,7 +25,7 @@
 	* textmodes/fill.el (fill-move-to-break-point): Don't inhibit
 	fill-nobreak-predicate when the break is past fill-column.
 
-2007-04-20  Francesco Potort=8ec  <pot@gnu.org>
+2007-04-20  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* locate.el (locate): Output from shell-command should go in the
 	current buffer rather than *Shell Command Output*.
