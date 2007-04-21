@@ -1125,7 +1125,8 @@ DEF is anything that can be a key's definition:
  a cons (STRING . DEFN), meaning that DEFN is the definition
     (DEFN should be a valid definition in its own right),
  or a cons (MAP . CHAR), meaning use definition of CHAR in keymap MAP,
- or an extended menu item definition.  (See info node `Extended Menu Items'.)
+ or an extended menu item definition. (See info node
+`(elisp)Extended Menu Items'.)
 
 If KEYMAP is a sparse keymap with a binding for KEY, the existing
 binding is altered.  If there is no binding for KEY, the new pair
