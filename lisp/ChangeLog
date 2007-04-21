@@ -5,6 +5,9 @@
 
 2007-04-21  Chong Yidong  <cyd@stupidchicken.com>
 
+	* progmodes/perl-mode.el (perl-indent-command): Use delete-region
+	instead of kill-region.
+
 	* progmodes/mantemp.el (mantemp-make-mantemps-region)
 	(mantemp-insert-cxx-syntax, mantemp-sort-and-unique-lines)
 	(mantemp-remove-memfuncs): Use delete-region instead of kill-word
