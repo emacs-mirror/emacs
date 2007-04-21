@@ -2144,10 +2144,9 @@ For @code{:height}, floating point values are also relative.
 For example:
 
 @example
-(read-face-name "Describe face" "= `default' face" t)
+(face-attribute-relative-p :height 2.0)
+     @result{} t
 @end example
-
-prompts with @samp{Describe face (default = `default' face): }.
 @end defun
 
 @defun merge-face-attribute attribute value1 value2
