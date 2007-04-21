@@ -114,8 +114,9 @@
 
 ;; Variables
 
-(defvar locate-current-search nil)
 (defvar locate-current-filter nil)
+(defvar locate-local-filter nil)
+(defvar locate-local-search nil)
 
 (defgroup locate nil
   "Interface to the locate command."
@@ -290,36 +291,31 @@ the docstring of that function for its meaning."
 	 (run-locate-command
 	  (or (and current-prefix-arg (not locate-prompt-for-command))
 	      (and (not current-prefix-arg) locate-prompt-for-command)))
-         locate-buffer
 	 )
 
     ;; Find the Locate buffer
-    (setq locate-buffer (if (eq major-mode 'locate-mode)
-                            (current-buffer)
-                          (get-buffer-create locate-buffer-name)))
-
-    (save-excursion
-      (set-buffer locate-buffer)
+    (save-window-excursion
+      (set-buffer (get-buffer-create locate-buffer-name))
       (locate-mode)
-
       (let ((inhibit-read-only t)
-            (buffer-undo-list t))
-        (erase-buffer)
+	    (buffer-undo-list t))
+	(erase-buffer)
 
-        (set (make-local-variable 'locate-current-search) search-string)
-        (set (make-local-variable 'locate-current-filter) filter)
+	(setq locate-current-filter filter)
+	(set (make-local-variable 'locate-local-search) search-string)
+	(set (make-local-variable 'locate-local-filter) filter)
 
-        (if run-locate-command
-            (shell-command search-string (current-buffer))
-          (apply 'call-process locate-cmd nil t nil locate-cmd-args))
+	(if run-locate-command
+	    (shell-command search-string locate-buffer-name)
+	  (apply 'call-process locate-cmd nil t nil locate-cmd-args))
 
-        (and filter
-             (locate-filter-output filter))
+	(and filter
+	     (locate-filter-output filter))
 
-        (locate-do-setup search-string)))
-
-    (unless (eq (current-buffer) locate-buffer)
-      (switch-to-buffer-other-window locate-buffer))
+	(locate-do-setup search-string)
+	))
+    (and (not (string-equal (buffer-name) locate-buffer-name))
+	(switch-to-buffer-other-window locate-buffer-name))
 
     (run-hooks 'dired-mode-hook)
     (dired-next-line 3)			;move to first matching file.
@@ -469,7 +465,6 @@ do not work in subdirectories.
         default-directory   "/"
 	buffer-read-only    t
 	selective-display   t)
-  (buffer-disable-undo)
   (dired-alist-add-1 default-directory (point-min-marker))
   (set (make-local-variable 'dired-directory) "/")
   (set (make-local-variable 'dired-subdir-switches) locate-ls-subdir-switches)
@@ -501,12 +496,11 @@ do not work in subdirectories.
     ;; Nothing returned from locate command?
     (and (eobp)
 	 (progn
-           (let ((filter locate-current-filter)) ; local
-             (kill-buffer (current-buffer))
-             (if filter
-                 (error "Locate: no match for %s in database using filter %s"
-                        search-string filter)
-               (error "Locate: no match for %s in database" search-string)))))
+	   (kill-buffer locate-buffer-name)
+	   (if locate-current-filter
+	       (error "Locate: no match for %s in database using filter %s"
+		      search-string locate-current-filter)
+	     (error "Locate: no match for %s in database" search-string))))
 
     (locate-insert-header search-string)
 
@@ -590,14 +584,15 @@ do not work in subdirectories.
   "Revert the *Locate* buffer.
 If `locate-update-when-revert' is non-nil, offer to update the
 locate database using the shell command in `locate-update-command'."
-  (and locate-update-when-revert
-       (yes-or-no-p "Update locate database (may take a few seconds)? ")
-       ;; `expand-file-name' is used in order to autoload Tramp if
-       ;; necessary.  It cannot be loaded when `default-directory'
-       ;; is remote.
-       (let ((default-directory (expand-file-name locate-update-path)))
-         (shell-command locate-update-command)))
-  (locate locate-current-search locate-current-filter))
+  (let ((locate-buffer-name (buffer-name)))
+    (and locate-update-when-revert
+	 (yes-or-no-p "Update locate database (may take a few seconds)? ")
+	 ;; `expand-file-name' is used in order to autoload Tramp if
+	 ;; necessary.  It cannot be loaded when `default-directory'
+	 ;; is remote.
+	 (let ((default-directory (expand-file-name locate-update-path)))
+	   (shell-command locate-update-command)))
+    (locate locate-local-search locate-local-filter)))
 
 ;;; Modified three functions from `dired.el':
 ;;;   dired-find-directory,
