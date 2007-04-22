@@ -1739,9 +1739,9 @@ table editing available in modern word processors.  The package also
 can generate a table source in typesetting and markup languages such
 as latex and html from the visually laid out text table.
 
-** The thumbnails.el package allows you to easily view, tag and in
+** The image-dired.el package allows you to easily view, tag and in
 other ways manipulate image files and their thumbnails, using dired as
-the main interface.  Thumbnails provides functionality to generate
+the main interface.  Image-Dired provides functionality to generate
 simple image galleries.
 
 ** Tramp is now part of the distribution.
