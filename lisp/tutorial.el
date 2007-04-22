@@ -154,7 +154,10 @@ options:
                           (format "%s" db)
                           " RET instead."))
               (insert "\n\nWith your current key bindings"
-                      " you can use the key "
+                      " you can use "
+                      (if (string-equal "the menus" where)
+                          ""
+                        "the key ")
                       where
                       " to get the function `"
                       (format "%s" db)

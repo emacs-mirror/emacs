@@ -1,20 +1,25 @@
 Tasks needed before the next release.
 
-* COPYRIGHTS
-  See the outstanding issues at the end of admin/notes/copyright.
-
 * TO BE DONE SHORTLY BEFORE RELEASE
 
 ** Check for widow and orphan lines in manuals;
 make sure all the pages really look ok in the manual as formatted.
 
 ** Check for text in manuals that assumes current version is 21.
-
-** Update AUTHORS.
+eshell.texi 'Known Problems' (does section need updating?)
+cc-mode.texi 'Performance Issues': "21.3 as of this writing"
 
 ** Cleanup temporary +++/--- lines in etc/NEWS.
 
 ** Regenerate the postscript files of the reference cards in etc.
+As of 2007/2/26, only ps files older than the associated tex files are:
+  cs-dired-ref.ps sk-dired-ref.ps
+
+May need update for Emacs-22:
+dired-ref.tex cs-dired-ref.tex fr-drdref.tex sk-dired-ref.tex
+
+Fix overfull lines p3 fr-refcard.ps.
+
 
 ** Ask maintainers of refcard translations to update them.
 
@@ -53,18 +58,14 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 * BUGS
 
 ** Fix up copyright confusions.
-  See admin/notes/copyright.
+  See end of admin/notes/copyright.
 
 ** simon.marshall@misys.com, Jan 12:
-  Font-lock decides function call is function declaration in C+ +
-
-** Fix needed for communication with gpg-agent
+  Font-lock decides function call is function declaration in C++
 
 ** md5i@cs.cmu.edu, Feb 20: move-end-of-line in comint buffers
 
-** 2007-02-23 change to process.c is broken (2 reports so far).
-
-
+** daniel@bigwalter.net, Feb 25: Echoing of keys and process I/O
 
 * DOCUMENTATION
 

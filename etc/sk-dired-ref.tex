@@ -104,7 +104,7 @@ MA 02110-1301, USA.
   \def\makefootline{\baselineskip10pt\hsize6.5in\line{\the\footline}}
 \else                           %2 or 3 columns uses prereduced size
   \hsize 3.4in
-  \vsize 7.95in
+  \vsize 9.2in
   \hoffset -.75in
   \voffset -.745in
   \font\titlefont=csbx10 \scaledmag2
@@ -252,6 +252,8 @@ MA 02110-1301, USA.
 % commands fit on a page in two-column format
 \def\dx{{\bf (DX)}}
 
+\nopagenumbers
+
 %**end of header
 
 
@@ -335,10 +337,17 @@ MA 02110-1301, USA.
 \key{zmeò znaèku na iné písmeno}{* c}
 \key{oznaè súbory, pre ktoré elispový výraz vrací t}{* ( \dx}
 
-\section{Nápoveda}
+\section{Modifikácia Dired bufferu}
 
-\key{zobraz nápovedu}{h}
-\key{prehµad príkazov dired}{?}
+\key{vlo¾ do tohto bufferu podadresár}{i}
+\key{odstráò oznaèené súbory z bufferu}{k}
+\key{odstráò z bufferu výpis podadresára}{C-u k}
+\key{znovu naèítaj adresár (znaèky sa zachovajú)}{g}
+\key{prepni triedenie adresára podµa mena/dátumu}{s}
+\key{uprav voµby príkazu ls}{C-u s}
+\key{obnov znaèky, skryté riadky a~pod.}{C-_}
+\key{skry v¹etky podadresáre}{M-\$}
+\key{skry alebo odkry v¹etky podadresáre}{\$}
 
 \section{Príkazy nad oznaèenými súbormi}
 
@@ -375,18 +384,6 @@ MA 02110-1301, USA.
 \key{vyma¾ súbory oznaèené na zmazanie}{x}
 \key{oznaè súbory vyhovujúce regulárnemu výrazu}{\% d}
 
-\section{Modifikácia Dired bufferu}
-
-\key{vlo¾ do tohto bufferu podadresár}{i}
-\key{odstráò oznaèené súbory z bufferu}{k}
-\key{odstráò z bufferu výpis podadresára}{C-u k}
-\key{znovu naèítaj adresár (znaèky sa zachovajú)}{g}
-\key{prepni triedenie adresára podµa mena/dátumu}{s}
-\key{uprav voµby príkazu ls}{C-u s}
-\key{obnov znaèky, skryté riadky a~pod.}{C-_}
-\key{skry v¹etky podadresáre}{M-\$}
-\key{skry alebo odkry v¹etky podadresáre}{\$}
-
 \section{Príkazy s regulárnymi výrazmi}
 
 \key{oznaè súbory vyhovujúce regulárnemu výrazu}{\% m}
@@ -402,7 +399,12 @@ MA 02110-1301, USA.
 \metax{otvor v dired súbory obsahujúce vzorku}{M-x find-grep-dired}
 \metax{otvor v dired súbory podµa výstupu \kbd{find}}{M-x find-dired}
 
-%\copyrightnotice
+\section{Nápoveda}
+
+\key{zobraz nápovedu}{h}
+\key{prehµad príkazov dired}{?}
+
+\copyrightnotice
 
 \bye
 

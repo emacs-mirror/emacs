@@ -1605,10 +1605,10 @@ specified buffer position instead of point are used.
 
       /* We are not interested in locations without event data */
 
-      if (EVENT_HAS_PARAMETERS (event))
+      if (EVENT_HAS_PARAMETERS (event) && CONSP (XCDR (event)))
 	{
 	  Lisp_Object kind = EVENT_HEAD_KIND (EVENT_HEAD (event));
-	  if (CONSP (XCDR (event)) && EQ (kind, Qmouse_click))
+	  if (EQ (kind, Qmouse_click))
 	    position = EVENT_START (event);
 	}
     }

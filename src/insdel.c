@@ -2351,6 +2351,17 @@ DEFUN ("combine-after-change-execute", Fcombine_after_change_execute,
   if (NILP (combine_after_change_list))
     return Qnil;
 
+  /* It is rare for combine_after_change_buffer to be invalid, but
+     possible.  It can happen when combine-after-change-calls is
+     non-nil, and insertion calls a file handler (e.g. through
+     lock_file) which scribbles into a temp file -- cyd  */
+  if (!BUFFERP (combine_after_change_buffer)
+      || NILP (XBUFFER (combine_after_change_buffer)->name))
+    {
+      combine_after_change_list = Qnil;
+      return Qnil;
+    }
+
   record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
 
   Fset_buffer (combine_after_change_buffer);

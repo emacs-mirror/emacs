@@ -930,6 +930,8 @@ If global mark is active, copy from register or one character."
 	  (if arg (goto-char pt))))
        ((eq this-original-command 'clipboard-yank)
 	(clipboard-yank))
+       ((eq this-original-command 'x-clipboard-yank)
+	(x-clipboard-yank))
        (t (yank arg)))))))
 
 
@@ -1406,6 +1408,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
   ;; replace region with rectangle or element on kill ring
   (define-key cua-global-keymap [remap yank]		'cua-paste)
   (define-key cua-global-keymap [remap clipboard-yank]	'cua-paste)
+  (define-key cua-global-keymap [remap x-clipboard-yank] 'cua-paste)
   ;; replace current yank with previous kill ring element
   (define-key cua-global-keymap [remap yank-pop]		'cua-paste-pop)
   ;; set mark

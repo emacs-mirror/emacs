@@ -1,3 +1,27 @@
+2007-03-02  Stuart D. Herring <herring@lanl.gov>
+
+	* keymap.c (Fkey_binding): Don't consider two-element lists as
+	events.
+
+2007-03-01  Kenichi Handa  <handa@m17n.org>
+
+	* process.c (send_process_object): Check the process status and
+	signal an error if something is wrong.
+
+2007-02-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* insdel.c (Fcombine_after_change_execute): Return nil if
+	combine_after_change_buffer has been invalidated.
+
+2007-02-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* m/xtensa.h: New file.
+
+2007-02-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* .gdbinit (xprintstr): Ensure GDB (> 6.6) prints symbol name
+	as strings and not character arrays.
+
 2007-02-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c [USE_TOOLKIT_SCROLL_BARS] (x_scroll_bar_handle_drag)

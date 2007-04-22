@@ -524,7 +524,7 @@ A replacement function for `newline-and-indent', aligning as it goes.
 ;;;***
 
 ;;;### (autoloads (outlineify-sticky allout-mode) "allout" "allout.el"
-;;;;;;  (17888 32278))
+;;;;;;  (17963 18444))
 ;;; Generated autoloads from allout.el
 
 (put (quote allout-show-bodies) (quote safe-local-variable) (if (fboundp (quote booleanp)) (quote booleanp) (quote (lambda (x) (member x (quote (t nil)))))))
@@ -796,11 +796,14 @@ PREFIX-PADDING:
         bullet, determining the ITEM's DEPTH.
 BULLET: A character at the end of the ITEM PREFIX, it must be one of
         the characters listed on `allout-plain-bullets-string' or
-        `allout-distinctive-bullets-string'.  (See the documentation
-        for these variables for more details.)  The default choice of
-        BULLET when generating ITEMs varies in a cycle with the DEPTH of
-        the ITEM.
-
+        `allout-distinctive-bullets-string'.  When creating a TOPIC,
+        plain BULLETs are by default used, according to the DEPTH of the
+        TOPIC.  Choice among the distinctive BULLETs is offered when you
+        provide a universal argugment (\\[universal-argument]) to the
+        TOPIC creation command, or when explictly rebulleting a TOPIC.  The
+        significance of the various distinctive bullets is purely by
+        convention.  See the documentation for the above bullet strings for
+        more details.
 EXPOSURE:
         The state of a TOPIC which determines the on-screen visibility
         of its OFFSPRING and contained ENTRY text.
@@ -5542,7 +5545,7 @@ INHERIT-INPUT-METHOD.
 ;;;***
 
 ;;;### (autoloads (cua-selection-mode cua-mode) "cua-base" "emulation/cua-base.el"
-;;;;;;  (17888 32279))
+;;;;;;  (17963 18438))
 ;;; Generated autoloads from emulation/cua-base.el
 
 (defvar cua-mode nil "\
@@ -6520,7 +6523,7 @@ as well as widgets, buttons, overlays, and text properties.
 ;;;### (autoloads (desktop-revert desktop-save-in-desktop-dir desktop-change-dir
 ;;;;;;  desktop-load-default desktop-read desktop-remove desktop-save
 ;;;;;;  desktop-clear desktop-locals-to-save desktop-save-mode) "desktop"
-;;;;;;  "desktop.el" (17888 32279))
+;;;;;;  "desktop.el" (17963 18446))
 ;;; Generated autoloads from desktop.el
 
 (defvar desktop-save-mode nil "\
@@ -10732,7 +10735,7 @@ Unconditionally turn on Fast Lock mode.
 
 ;;;### (autoloads (feedmail-queue-reminder feedmail-run-the-queue
 ;;;;;;  feedmail-run-the-queue-global-prompt feedmail-run-the-queue-no-prompts
-;;;;;;  feedmail-send-it) "feedmail" "mail/feedmail.el" (17888 32266))
+;;;;;;  feedmail-send-it) "feedmail" "mail/feedmail.el" (17963 18438))
 ;;; Generated autoloads from mail/feedmail.el
 
 (autoload (quote feedmail-send-it) "feedmail" "\
@@ -11233,7 +11236,7 @@ Define some key bindings for the find-function family of functions.
 ;;;***
 
 ;;;### (autoloads (find-lisp-find-dired-filter find-lisp-find-dired-subdirectories
-;;;;;;  find-lisp-find-dired) "find-lisp" "find-lisp.el" (17888 32279))
+;;;;;;  find-lisp-find-dired) "find-lisp" "find-lisp.el" (17963 18447))
 ;;; Generated autoloads from find-lisp.el
 
 (autoload (quote find-lisp-find-dired) "find-lisp" "\
@@ -11676,7 +11679,7 @@ and choose the directory as the fortune-file.
 ;;;***
 
 ;;;### (autoloads (gdb-enable-debug gdba) "gdb-ui" "progmodes/gdb-ui.el"
-;;;;;;  (17888 36650))
+;;;;;;  (17963 18447))
 ;;; Generated autoloads from progmodes/gdb-ui.el
 
 (autoload (quote gdba) "gdb-ui" "\
@@ -12820,8 +12823,8 @@ the form \"WINDOW-ID PIXMAP-ID\".  Value is non-nil if successful.
 
 ;;;***
 
-;;;### (autoloads (gdb-script-mode bashdb jdb pdb perldb xdb dbx
-;;;;;;  sdb gdb) "gud" "progmodes/gud.el" (17888 36930))
+;;;### (autoloads (gdb-script-mode jdb pdb perldb xdb dbx sdb gdb)
+;;;;;;  "gud" "progmodes/gud.el" (17963 18441))
 ;;; Generated autoloads from progmodes/gud.el
 
 (autoload (quote gdb) "gud" "\
@@ -12891,13 +12894,6 @@ original source file access method.
 
 For general information about commands available to control jdb from
 gud, see `gud-mode'.
-
-\(fn COMMAND-LINE)" t nil)
-
-(autoload (quote bashdb) "gud" "\
-Run bashdb on program FILE in buffer *gud-FILE*.
-The directory containing FILE becomes the initial working directory
-and source-file directory for your debugger.
 
 \(fn COMMAND-LINE)" t nil)
  (add-hook 'same-window-regexps "\\*gud-.*\\*\\(\\|<[0-9]+>\\)")
@@ -14710,8 +14706,8 @@ The main features of this mode are
 ;;;;;;  ido-find-alternate-file ido-find-file-other-window ido-find-file
 ;;;;;;  ido-find-file-in-dir ido-switch-buffer-other-frame ido-insert-buffer
 ;;;;;;  ido-kill-buffer ido-display-buffer ido-switch-buffer-other-window
-;;;;;;  ido-switch-buffer ido-mode ido-mode) "ido" "ido.el" (17888
-;;;;;;  36648))
+;;;;;;  ido-switch-buffer ido-mode ido-mode) "ido" "ido.el" (17963
+;;;;;;  18439))
 ;;; Generated autoloads from ido.el
 
 (defvar ido-mode nil "\
@@ -17682,7 +17678,7 @@ turn on menu bars; otherwise, turn off menu bars.
 ;;;;;;  message-cite-function message-yank-prefix message-citation-line-function
 ;;;;;;  message-send-mail-function message-user-organization-file
 ;;;;;;  message-signature-separator message-from-style) "message"
-;;;;;;  "gnus/message.el" (17888 32279))
+;;;;;;  "gnus/message.el" (17963 18449))
 ;;; Generated autoloads from gnus/message.el
 
 (defvar message-from-style (quote default) "\
@@ -18884,7 +18880,7 @@ Enable mouse wheel support.
 ;;;### (autoloads (network-connection network-connection-to-service
 ;;;;;;  whois-reverse-lookup whois finger ftp run-dig dns-lookup-host
 ;;;;;;  nslookup nslookup-host route arp netstat ipconfig ping traceroute)
-;;;;;;  "net-utils" "net/net-utils.el" (17888 32280))
+;;;;;;  "net-utils" "net/net-utils.el" (17963 18441))
 ;;; Generated autoloads from net/net-utils.el
 
 (autoload (quote traceroute) "net-utils" "\
@@ -19506,12 +19502,12 @@ The Custom feature is intended to make this obsolete.
 ;;;***
 
 ;;;### (autoloads (org-export-icalendar-combine-agenda-files org-export-icalendar-all-agenda-files
-;;;;;;  org-export-icalendar-this-file orgtbl-mode turn-on-orgtbl
-;;;;;;  org-remember-handler org-remember-apply-template org-remember-annotation
-;;;;;;  org-store-link org-tags-view org-diary org-cycle-agenda-files
-;;;;;;  org-todo-list org-agenda-list org-batch-agenda org-agenda
+;;;;;;  org-export-icalendar-this-file org-diary org-tags-view org-todo-list
+;;;;;;  org-agenda-list org-cycle-agenda-files org-batch-agenda org-agenda
+;;;;;;  org-remember-handler org-remember org-remember-apply-template
+;;;;;;  org-remember-annotation org-store-link orgtbl-mode turn-on-orgtbl
 ;;;;;;  org-global-cycle org-cycle org-mode) "org" "textmodes/org.el"
-;;;;;;  (17888 36930))
+;;;;;;  (17963 18455))
 ;;; Generated autoloads from textmodes/org.el
 
 (autoload (quote org-mode) "org" "\
@@ -19570,6 +19566,84 @@ Cycle the global visibility.  For details see `org-cycle'.
 
 \(fn &optional ARG)" t nil)
 
+(autoload (quote turn-on-orgtbl) "org" "\
+Unconditionally turn on `orgtbl-mode'.
+
+\(fn)" nil nil)
+
+(autoload (quote orgtbl-mode) "org" "\
+The `org-mode' table editor as a minor mode for use in other modes.
+
+\(fn &optional ARG)" t nil)
+
+(autoload (quote org-store-link) "org" "\
+\\<org-mode-map>Store an org-link to the current location.
+This link can later be inserted into an org-buffer with
+\\[org-insert-link].
+For some link types, a prefix arg is interpreted:
+For links to usenet articles, arg negates `org-usenet-links-prefer-google'.
+For file links, arg negates `org-context-in-file-links'.
+
+\(fn ARG)" t nil)
+
+(autoload (quote org-remember-annotation) "org" "\
+Return a link to the current location as an annotation for remember.el.
+If you are using Org-mode files as target for data storage with
+remember.el, then the annotations should include a link compatible with the
+conventions in Org-mode.  This function returns such a link.
+
+\(fn)" nil nil)
+
+(autoload (quote org-remember-apply-template) "org" "\
+Initialize *remember* buffer with template, invoke `org-mode'.
+This function should be placed into `remember-mode-hook' and in fact requires
+to be run from that hook to fucntion properly.
+
+\(fn &optional USE-CHAR SKIP-INTERACTIVE)" nil nil)
+
+(autoload (quote org-remember) "org" "\
+Call `remember'.  If this is already a remember buffer, re-apply template.
+If there is an active region, make sure remember uses it as initial content
+of the remember buffer.
+
+\(fn)" t nil)
+
+(autoload (quote org-remember-handler) "org" "\
+Store stuff from remember.el into an org file.
+First prompts for an org file.  If the user just presses return, the value
+of `org-default-notes-file' is used.
+Then the command offers the headings tree of the selected file in order to
+file the text at a specific location.
+You can either immediately press RET to get the note appended to the
+file, or you can use vertical cursor motion and visibility cycling (TAB) to
+find a better place.  Then press RET or <left> or <right> in insert the note.
+
+Key      Cursor position   Note gets inserted
+-----------------------------------------------------------------------------
+RET      buffer-start      as level 2 heading at end of file
+RET      on headline       as sublevel of the heading at cursor
+RET      no heading        at cursor position, level taken from context.
+			   Or use prefix arg to specify level manually.
+<left>   on headline       as same level, before current heading
+<right>  on headline       as same level, after current heading
+
+So the fastest way to store the note is to press RET RET to append it to
+the default file.  This way your current train of thought is not
+interrupted, in accordance with the principles of remember.el.  But with
+little extra effort, you can push it directly to the correct location.
+
+Before being stored away, the function ensures that the text has a
+headline, i.e. a first line that starts with a \"*\".  If not, a headline
+is constructed from the current date and some additional data.
+
+If the variable `org-adapt-indentation' is non-nil, the entire text is
+also indented so that it starts in the same column as the headline
+\(i.e. after the stars).
+
+See also the variable `org-reverse-note-order'.
+
+\(fn)" nil nil)
+
 (autoload (quote org-agenda) "org" "\
 Dispatch agenda commands to collect entries to the agenda buffer.
 Prompts for a character to select a command.  Any prefix arg will be passed
@@ -19602,6 +19676,13 @@ before running the agenda command.
 
 \(fn CMD-KEY &rest PARAMETERS)" nil (quote macro))
 
+(autoload (quote org-cycle-agenda-files) "org" "\
+Cycle through the files in `org-agenda-files'.
+If the current buffer visits an agenda file, find the next one in the list.
+If the current buffer does not, find the first agenda file.
+
+\(fn)" t nil)
+
 (autoload (quote org-agenda-list) "org" "\
 Produce a weekly view from all files in variable `org-agenda-files'.
 The view will be for the current week, but from the overview buffer you
@@ -19626,12 +19707,11 @@ for a keyword.  A numeric prefix directly selects the Nth keyword in
 
 \(fn ARG)" t nil)
 
-(autoload (quote org-cycle-agenda-files) "org" "\
-Cycle through the files in `org-agenda-files'.
-If the current buffer visits an agenda file, find the next one in the list.
-If the current buffer does not, find the first agenda file.
+(autoload (quote org-tags-view) "org" "\
+Show all headlines for all `org-agenda-files' matching a TAGS criterion.
+The prefix arg TODO-ONLY limits the search to TODO entries.
 
-\(fn)" t nil)
+\(fn &optional TODO-ONLY MATCH)" t nil)
 
 (autoload (quote org-diary) "org" "\
 Return diary information from org-files.
@@ -19678,83 +19758,6 @@ by the caller, because this is how the calendar works.  Don't use this
 function from a program - use `org-agenda-get-day-entries' instead.
 
 \(fn &rest ARGS)" nil nil)
-
-(autoload (quote org-tags-view) "org" "\
-Show all headlines for all `org-agenda-files' matching a TAGS criterion.
-The prefix arg TODO-ONLY limits the search to TODO entries.
-
-\(fn &optional TODO-ONLY MATCH)" t nil)
-
-(autoload (quote org-store-link) "org" "\
-\\<org-mode-map>Store an org-link to the current location.
-This link can later be inserted into an org-buffer with
-\\[org-insert-link].
-For some link types, a prefix arg is interpreted:
-For links to usenet articles, arg negates `org-usenet-links-prefer-google'.
-For file links, arg negates `org-context-in-file-links'.
-
-\(fn ARG)" t nil)
-
-(autoload (quote org-remember-annotation) "org" "\
-Return a link to the current location as an annotation for remember.el.
-If you are using Org-mode files as target for data storage with
-remember.el, then the annotations should include a link compatible with the
-conventions in Org-mode.  This function returns such a link.
-
-\(fn)" nil nil)
-
-(autoload (quote org-remember-apply-template) "org" "\
-Initialize *remember* buffer with template, invoke `org-mode'.
-This function should be placed into `remember-mode-hook' and in fact requires
-to be run from that hook to fucntion properly.
-
-\(fn)" nil nil)
-
-(autoload (quote org-remember-handler) "org" "\
-Store stuff from remember.el into an org file.
-First prompts for an org file.  If the user just presses return, the value
-of `org-default-notes-file' is used.
-Then the command offers the headings tree of the selected file in order to
-file the text at a specific location.
-You can either immediately press RET to get the note appended to the
-file, or you can use vertical cursor motion and visibility cycling (TAB) to
-find a better place.  Then press RET or <left> or <right> in insert the note.
-
-Key      Cursor position   Note gets inserted
------------------------------------------------------------------------------
-RET      buffer-start      as level 2 heading at end of file
-RET      on headline       as sublevel of the heading at cursor
-RET      no heading        at cursor position, level taken from context.
-			   Or use prefix arg to specify level manually.
-<left>   on headline       as same level, before current heading
-<right>  on headline       as same level, after current heading
-
-So the fastest way to store the note is to press RET RET to append it to
-the default file.  This way your current train of thought is not
-interrupted, in accordance with the principles of remember.el.  But with
-little extra effort, you can push it directly to the correct location.
-
-Before being stored away, the function ensures that the text has a
-headline, i.e. a first line that starts with a \"*\".  If not, a headline
-is constructed from the current date and some additional data.
-
-If the variable `org-adapt-indentation' is non-nil, the entire text is
-also indented so that it starts in the same column as the headline
-\(i.e. after the stars).
-
-See also the variable `org-reverse-note-order'.
-
-\(fn)" nil nil)
-
-(autoload (quote turn-on-orgtbl) "org" "\
-Unconditionally turn on `orgtbl-mode'.
-
-\(fn)" nil nil)
-
-(autoload (quote orgtbl-mode) "org" "\
-The `org-mode' table editor as a minor mode for use in other modes.
-
-\(fn &optional ARG)" t nil)
 
 (autoload (quote org-export-icalendar-this-file) "org" "\
 Export current file as an iCalendar file.
@@ -21462,8 +21465,8 @@ Not documented
 ;;;;;;  ps-spool-region ps-spool-buffer-with-faces ps-spool-buffer
 ;;;;;;  ps-print-region-with-faces ps-print-region ps-print-buffer-with-faces
 ;;;;;;  ps-print-buffer ps-print-customize ps-print-color-p ps-paper-type
-;;;;;;  ps-page-dimensions-database) "ps-print" "ps-print.el" (17888
-;;;;;;  36936))
+;;;;;;  ps-page-dimensions-database) "ps-print" "ps-print.el" (17963
+;;;;;;  18455))
 ;;; Generated autoloads from ps-print.el
 
 (defvar ps-page-dimensions-database (list (list (quote a4) (/ (* 72 21.0) 2.54) (/ (* 72 29.7) 2.54) "A4") (list (quote a3) (/ (* 72 29.7) 2.54) (/ (* 72 42.0) 2.54) "A3") (list (quote letter) (* 72 8.5) (* 72 11.0) "Letter") (list (quote legal) (* 72 8.5) (* 72 14.0) "Legal") (list (quote letter-small) (* 72 7.68) (* 72 10.16) "LetterSmall") (list (quote tabloid) (* 72 11.0) (* 72 17.0) "Tabloid") (list (quote ledger) (* 72 17.0) (* 72 11.0) "Ledger") (list (quote statement) (* 72 5.5) (* 72 8.5) "Statement") (list (quote executive) (* 72 7.5) (* 72 10.0) "Executive") (list (quote a4small) (* 72 7.47) (* 72 10.85) "A4Small") (list (quote b4) (* 72 10.125) (* 72 14.33) "B4") (list (quote b5) (* 72 7.16) (* 72 10.125) "B5")) "\
@@ -21660,7 +21663,7 @@ If EXTENSION is any other symbol, it is ignored.
 ;;;***
 
 ;;;### (autoloads (jython-mode python-mode run-python) "python" "progmodes/python.el"
-;;;;;;  (17888 32281))
+;;;;;;  (17963 18448))
 ;;; Generated autoloads from progmodes/python.el
 
 (add-to-list (quote interpreter-mode-alist) (quote ("jython" . jython-mode)))
@@ -22662,8 +22665,8 @@ variable.
 ;;;;;;  rmail-mail-new-frame rmail-primary-inbox-list rmail-delete-after-output
 ;;;;;;  rmail-highlight-face rmail-highlighted-headers rmail-retry-ignored-headers
 ;;;;;;  rmail-displayed-headers rmail-ignored-headers rmail-dont-reply-to-names
-;;;;;;  rmail-movemail-variant-p) "rmail" "mail/rmail.el" (17888
-;;;;;;  32280))
+;;;;;;  rmail-movemail-variant-p) "rmail" "mail/rmail.el" (17963
+;;;;;;  18438))
 ;;; Generated autoloads from mail/rmail.el
 
 (autoload (quote rmail-movemail-variant-p) "rmail" "\
@@ -26598,7 +26601,7 @@ Start coverage on function under point.
 
 ;;;***
 
-;;;### (autoloads (tetris) "tetris" "play/tetris.el" (17888 32281))
+;;;### (autoloads (tetris) "tetris" "play/tetris.el" (17963 18455))
 ;;; Generated autoloads from play/tetris.el
 
 (autoload (quote tetris) "tetris" "\
@@ -27969,7 +27972,7 @@ BUFFER defaults to `trace-buffer'.
 ;;;### (autoloads (tramp-unload-tramp tramp-completion-handle-file-name-completion
 ;;;;;;  tramp-completion-handle-file-name-all-completions tramp-unload-file-name-handlers
 ;;;;;;  tramp-file-name-handler tramp-completion-file-name-regexp
-;;;;;;  tramp-file-name-regexp) "tramp" "net/tramp.el" (17888 36931))
+;;;;;;  tramp-file-name-regexp) "tramp" "net/tramp.el" (17963 18447))
 ;;; Generated autoloads from net/tramp.el
 
 (defvar tramp-unified-filenames (not (featurep (quote xemacs))) "\
@@ -28228,8 +28231,8 @@ easy-to-use form.
 
 ;;;***
 
-;;;### (autoloads (help-with-tutorial) "tutorial" "tutorial.el" (17888
-;;;;;;  36587))
+;;;### (autoloads (help-with-tutorial) "tutorial" "tutorial.el" (17963
+;;;;;;  18445))
 ;;; Generated autoloads from tutorial.el
 
 (autoload (quote help-with-tutorial) "tutorial" "\
@@ -31225,7 +31228,7 @@ Zone out, completely.
 ;;;;;;  "url/url-vars.el" "url/vc-dav.el" "vc-hooks.el" "vcursor.el"
 ;;;;;;  "version.el" "vms-patch.el" "vmsproc.el" "vt-control.el"
 ;;;;;;  "vt100-led.el" "w32-fns.el" "w32-vars.el" "widget.el" "window.el"
-;;;;;;  "x-dnd.el") (17888 39099 529730))
+;;;;;;  "x-dnd.el") (17963 18741 697794))
 
 ;;;***
 

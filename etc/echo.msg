@@ -1,3 +1,6 @@
+The Free Software Foundation claims no copyright on this file, taken
+from a posting to the public newsgroup net.sources.
+
 Path: mit-amt!mit-eddie!think!harvard!seismo!gatech!akgua!whuxlm!whuxl!houxm!ihnp4!stolaf!umn-cs!herndon
 From: herndon@umn-cs.UUCP
 Newsgroups: net.sources

@@ -1,3 +1,64 @@
+2007-03-01  Kim F. Storm  <storm@cua.dk>
+
+	* ORDERS: Reformat text.
+
+	* NEWS (About external Lisp packages): New section.
+
+2007-02-28  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* TUTORIAL.it: Fix typo.
+
+2007-02-27  Glenn Morris  <rgm@gnu.org>
+
+	* cs-dired-ref.tex: Increase in 2 column case to make room
+	for copyright notice.
+	(nopagenumbers): Call to turn off numbers in 1 page document.
+	(N,Aa(Bpov,Al(Bda, Modifikace Dired bufferu): Swap sections to
+	balance column length in presence of copyright notice.
+	(copyrightnotice): Uncomment so that notice is displayed.
+
+	* dired-ref.tex (vsize): Increase in 2 column case to make room
+	for copyright notice.
+	(nopagenumbers): Call to turn off numbers in 1 page document.
+	(Getting Help, Modifying the Dired Buffer): Swap sections to
+	balance column length in presence of copyright notice.
+	(copyrightnotice): Uncomment so that notice is displayed.
+
+	* fr-drdref.tex (vsize): Increase in 2 column case.
+	(\key): Tweak space for description.
+	(\overfullrule): Set to 0pt to hide small overflows.
+	(nopagenumbers): Call to turn off numbers in 1 page document.
+	(Obtenir de l'aide, Modifier le tampon Dired): Swap sections to
+	balance column length.
+	(Mettre un flag sur les fichiers \`a d\'etruire): Hack in a line
+	break to prevent overfull line.
+	(find-names-dired): Use \key rather than \metax as a hack fix for
+	overflow.
+
+	* sk-dired-ref.tex (vsize): Increase in 2 column case to make room
+	for copyright notice.
+	(nopagenumbers): Call to turn off numbers in 1 page document.
+	(N,Aa(Bpoveda, Modifik,Aa(Bcia Dired bufferu): Swap sections to
+	balance column length in presence of copyright notice.
+	(copyrightnotice): Uncomment so that notice is displayed.
+
+2007-02-26  Carsten Dominik  <dominik@science.uva.nl>
+
+	* orgcard.tex (section{Visibility Cycling}): Document key for
+	indirect buffer access.
+	(section{Archiving}): New keys for archiving.
+	(section{Tables}): Combine two lines for hline creation.
+	Named-field formula changed to Field formula.
+	(section{Links}): Document keys for finding links.
+	(section{Agenda Views}): New key for agenda file cycling.
+	Document keys for stuck projects.  Typos fixed.
+	(section{Exporting and Publishing}): Export options no longer in
+	reference card.
+
+2007-02-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* PROBLEMS: Gtk+ and cygwin doesn't work.
+
 2007-02-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* MORE.STUFF: Add a pointer to Phil Sung's Emacs slides on MIT.

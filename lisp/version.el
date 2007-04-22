@@ -32,13 +32,13 @@ Version numbers of this version of Emacs.")
 
 (defconst emacs-major-version
   (progn (string-match "^[0-9]+" emacs-version)
-	 (string-to-int (match-string 0 emacs-version)))
+	 (string-to-number (match-string 0 emacs-version)))
   "Major version number of this version of Emacs.
 This variable first existed in version 19.23.")
 
 (defconst emacs-minor-version
   (progn (string-match "^[0-9]+\\.\\([0-9]+\\)" emacs-version)
-	 (string-to-int (match-string 1 emacs-version)))
+	 (string-to-number (match-string 1 emacs-version)))
   "Minor version number of this version of Emacs.
 This variable first existed in version 19.23.")
 
@@ -93,5 +93,5 @@ to the system configuration; look at `system-configuration' instead."
 ;;version-control: never
 ;;End:
 
-;;; arch-tag: e60dc445-6218-4a4c-a7df-f15a818642a0
+;; arch-tag: e60dc445-6218-4a4c-a7df-f15a818642a0
 ;;; version.el ends here

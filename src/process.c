@@ -5699,8 +5699,16 @@ send_process_object (proc, start, end)
       : ! NILP (XBUFFER (object)->enable_multibyte_characters))
     {
       struct Lisp_Process *p = XPROCESS (proc);
-      struct coding_system *coding = proc_encode_coding_system[XINT (p->outfd)];
+      struct coding_system *coding;
 
+      if (p->raw_status_new)
+	update_status (p);
+      if (! EQ (p->status, Qrun))
+	error ("Process %s not running", SDATA (p->name));
+      if (XINT (p->outfd) < 0)
+	error ("Output file descriptor of %s is closed", SDATA (p->name));
+
+      coding = proc_encode_coding_system[XINT (p->outfd)];
       if (! EQ (coding->symbol, p->encode_coding_system))
 	/* The coding system for encoding was changed to raw-text
 	   because we sent a unibyte text previously.  Now we are

@@ -1,3 +1,296 @@
+2007-03-03  Christopher Allan Webber  <cwebber@dustycloud.org>  (tiny change)
+
+	* play/gamegrid.el (gamegrid-add-score-with-update-game-score-1):
+	Jump to the line where new score has been uploaded.
+
+	* play/tetris.el (tetris-move-bottom, tetris-move-left)
+	(tetris-move-right, tetris-rotate-prev, tetris-rotate-next):
+	Do nothing when the game is paused.
+
+2007-03-03  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-set-tags): Prevent slipping of point
+	during completion.
+
+2007-03-01  Lennart Borgman  <lennart.borgman.073@student.lu.se>
+
+	* isearch.el (isearch-message-prefix):
+	Use minibuffer-prompt-properties.
+
+2007-03-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Replace (defvar VAR nil) by (defvar VAR).
+	(ps-setup): Print which Emacsen is running ps-print package.
+
+2007-03-01  Stuart Herring  <herring@lanl.gov>  (tiny change)
+
+	* files.el (set-auto-mode-0): Use `indirect-function'.
+	(hack-one-local-variable): Don't reapply current major mode.
+
+2007-03-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-quote-syntax): Don't bother with
+	syntax-ppss-context.
+	(python-fill-paragraph): Make sure that fenced-string delimiters that
+	stand on their own line stay there
+
+2007-03-01  Lennart Borgman  <lennart.borgman.073@student.lu.se>
+
+	* replace.el (perform-replace): Propertize message.
+
+2007-03-01  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-prepare-agenda-buffers): Also check for
+	invisible heading.
+
+2007-02-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* net/tramp.el (tramp-file-name-handler): Revert last change.
+
+2007-02-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-mouse-until, gdb-mouse-jump):
+	Correct doc strings.
+
+2007-02-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* replace.el (perform-replace): Undo forward-char immediately if
+	non-adjacent search fails.
+
+2007-02-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* version.el (emacs-major-version, emacs-minor-version):
+	string-to-int -> string-to-number.
+
+2007-02-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help.el (where-is): Fail gracefully when not passed a command.
+
+2007-02-28  Stuart Herring  <herring@lanl.gov>  (tiny change)
+
+	* find-lisp.el (find-lisp-default-directory-predicate):
+	Fix bug: Do symlink check on expanded filename.
+
+2007-02-28  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-set-tags, org-table-get-field): Avoid case
+	changes during replacement.
+	(org-agenda-mode-map): Add default binding for `org-agenda-archive'.
+
+2007-02-28  Lars Hansen  <larsh@soem.dk>
+
+	* desktop.el: Delete header line listing me as maintainer.
+
+2007-02-28  Glenn Morris  <rgm@gnu.org>
+
+	* tutorial.el (tutorial--describe-nonstandard-key): Tweak text in
+	the menus case.
+
+2007-02-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* net/tramp.el (tramp-file-name-handler): Inhibit modification
+	hooks to avoid confusion when combining after-change calls.
+
+2007-02-27  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-encrypt-string): Remove inhibition of gpg-agent,
+	now that pgg-gpg-process-region correctly honors passed-in passphrase.
+	(allout-distinctive-bullets-string): Add info about bullet conventions.
+	(allout-mode): Add info about distinctive vs plain bullets.
+
+2007-02-27  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-archive-subtree): Quote variable name.
+	(org-agenda-get-todos): Make sure skip properties are checked correctly.
+
+2007-02-26  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-bashdb-history, gud-bashdb-marker-filter)
+	(gud-bashdb-command-name, bashdb): Remove.
+	(gud, gud-menu-map): Remove references to bash/bashdb.
+
+2007-02-26  Andrey Zhdanov  <susuman@hotmail.com>  (tiny change)
+
+	(gud-pdb-marker-regexp): Add optional <module> keyword for Python 2.5.
+
+2007-02-26  Romain Francoise  <romain@orebokech.com>
+
+	* net/net-utils.el (whois-server-tld): Update server for .org.
+	(whois-server-list): Add whois.publicinterestregistry.net.
+	(whois-guess-server): Fix formatting in docstring.
+
+2007-02-26  Kim F. Storm  <storm@cua.dk>
+
+	* mouse.el (mouse-show-mark): Run hooks and perform command
+	remapping for mouse-region-delete-keys.
+
+2007-02-26  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+
+	* font-core.el (font-lock-mode): Doc fix.
+
+2007-02-25  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-buffer-internal): Set this-command to fallback command.
+	Add selected buffer to buffer-name-history.
+	(ido-file-internal): Set this-command to fallback command.
+	Add file names to file-name-history.
+
+	* emacs-lisp/map-ynp.el (map-y-or-n-p):
+	Apply minibuffer-prompt-properties.
+
+2007-02-25  Andreas Schwab  <schwab@suse.de>
+
+	* files.el (hack-one-local-variable-eval-safep): Correct handling
+	of edebug-form-spec property value.  Reported by Johan Bockg,Ae(Brd.
+
+2007-02-25  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-table-overlay-coordinates)
+	(org-table-toggle-coordinate-overlays): New functions.
+	(org-table-overlay-coordinates, org-table-coordinate-overlays):
+	New variables.
+	(org-startup-with-deadline-check): Option removed.
+	(org-mode): Remove deadline check on startup.
+	(org-table-limit-column-width): Option removed.
+	(org-table-formula-numbers-only): Option removed.
+	(org-link-style, org-link-format): Options removed.
+	(org-select-agenda-window, org-fit-agenda-window): Options removed.
+	(org-export-ascii-show-new-buffer)
+	(org-export-html-show-new-buffer): Options removed.
+	(org-activate-links): Camel option removed.
+	(org-file-link-context-use-camel-case): Option removed.
+	(org-camel-regexp): Veriable removed.
+	(org-activate-camels): Function removed.
+	(org-store-link): Removed Camel stuff.
+	(org-make-org-heading-camel): Function removed.
+	(org-open-at-point): Removed camel stuff.
+	(org-link-search): Removed camel stuff.
+	(org-camel-to-words): Function removed.
+	(org-get-agenda-file-buffer): Make sure we prepare the base
+	buffers, not any indirect buffers.
+	(org-sort-entries): Sort top-level when not on a headline, and no
+	active region.
+	(org-in-regexp): New function.
+	(org-search-not-self): Renamed from `org-search-not-link'.
+	(org-open-link-marker): New variable.
+	(org-open-at-point): Set `org-open-link-marker'.
+	(org-print-icalendar-entries): Fixed bug with excluding DONE
+	entries from the exported list.
+	(org-edit-formula-lisp-indent): New command.
+	(orgtbl-to-texinfo, orgtbl-to-html): New functions.
+	(orgtbl-to-latex, orgtbl-insert-radio-table)
+	(orgtbl-toggle-comment, orgtbl-send-table): New functions.
+	(orgtbl-radio-table-templates): New option.
+	(org-store-link-props):
+	(org-remember-templates): More possibilities to insert info
+	into templates.
+	(org-remember-apply-template): Make use of the extended
+	template capabilities.
+	(org-remember-redo-template): New command.
+	(org-upgrade-old-links)
+	(org-table-modify-formulas, org-table-replace-in-formulas)
+	(org-table-find-dataline)
+	(org-table-get-vertical-vector): Functions removed.
+	(org-table-remove-rectangle-highlight)
+	(org-time-stamp-format, org-toggle-log-option)
+	(org-table-highlight-rectangle)
+	(org-table-iterate, org-table-make-reference):
+	(org-translate-time, org-tree-to-indirect-buffer)
+	(org-table-field-info, org-table-fix-formulas)
+	(org-table-force-dataline, org-table-get-descriptor-line)
+	(org-table-get-range)
+	(org-skip-comments, org-sort)
+	(org-sort-entries, org-sublist, org-table-add-rectangle-overlay)
+	(org-table-current-dline, org-table-current-field-formula)
+	(org-table-edit-backward-field)
+	(org-table-edit-formulas-post-command)
+	(org-table-edit-line-down, org-table-edit-line-up)
+	(org-agenda-archive)
+	(org-agenda-clock-cancel)
+	(org-agenda-clock-out, org-agenda-list-stuck-projects)
+	(org-agenda-open-link, org-agenda-show-new-time)
+	(org-agenda-skip-subtree-when-regexp-matches)
+	(org-agenda-tree-to-indirect-buffer, org-agenda-undo)
+	(org-at-regexp-p, org-auto-repeat-maybe, org-check-log-option)
+	(org-do-sort, org-file-image-p, org-find-overlays)
+	(org-find-row-type, org-get-indirect-buffer, org-get-repeat)
+	(org-highlight-until-next-command, org-isearch-end)
+	(org-match-any-p, org-next-link, org-previous-link):
+	(org-remove-subtree-entries-from-agenda, org-replace-escapes)
+	(org-rewrite-old-row-references)
+	(org-isearch-post-command)
+	(org-table-edit-move, org-table-edit-next-field)
+	(org-table-edit-scroll, org-table-edit-scroll-down)
+	(org-set-frame-title, org-show-reference)
+	(org-unhighlight-once, org-verify-change-for-undo): New functions.
+	(org-show-variable): Command removed.
+	(org-add-log-maybe): New arguments STATE, FINDPOS
+	(org-table-sort-lines): Rewritten from scratch.
+	(org-link-search): New argument AVOID-POS.
+	(org-print-icalendar-entries): Argument CATEGORY removed.
+	(org-run-agenda-series): Argument WONDOW removed.
+	(org-next-link, org-previous-link): New commands.
+	(org-agenda-date-format): New option.
+	(org-table-iterate): New command.
+	(org-table-modify-formulas)
+	(org-table-replace-in-formulas): Functions removed.
+	(org-table-fix-formulas): New function.
+	(org-table-insert-column, org-table-delete-column)
+	(org-table-move-column): Use `org-table-fix-formulas'.
+	(org-follow-gnus-link): Patch from Bastien/Leo.
+	(org-table-current-field-formula): New function.
+	(org-file-image-p): New function.
+	(org-agenda-show-new-time): New function.
+	(org-agenda-date-later): Call `org-agenda-show-new-time'.
+	(org-with-remote-undo): New macro.
+	(org-agenda-undo): New command.
+	(org-verify-change-for-undo): New function.
+	(org-time-stamp-format): New function.
+	(org-agenda-get-timestamps): Skip scheduled if DONE and requested
+	by user.
+	(org-match-any-p): New function.
+	(org-make-tags-matcher): Handle regular expressions for tag and
+	todo matches.
+	(org-read-date): Accept "+N" as input for a date relative to the
+	current date.
+	(org-remove-subtree-entries-from-agenda): New function.
+	(org-agenda-archive, org-agenda-kill): Use
+	`org-remove-subtree-entries-from-agenda'.
+	(org-do-sort, org-sort-entries): New functions.
+	(org-sort): New command.
+	(org-table-sort-lines): Use `org-do-sort'.
+	(org-fix-decoded-time): New function.
+	(org-table-number-regexp): Require 0x... to identify as number
+	in tables.
+	(org-startup-options): New keywords for note taking.
+	(org-upgrade-old-links): Function removed.
+	(org-get-repeat): New function.
+	(org-show-context): Also show siblings on current level.
+	(org-show-siblings): New function.
+	(org-isearch-end, org-isearch-post-command): New functions.
+	(org-show-siblings): New option.
+	(org-show-context): Use `org-show-siblings'.
+	(org-table-maybe-recalculate-line): No longer require `calc-eval'
+	to be bound, because user may just use elisp.
+
+2007-02-24  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-paste): Handle x-clipboard-yank.
+	(cua--init-keymaps): Remap x-clipboard-yank to cua-paste.
+
+2007-02-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* startup.el (command-line): Also check if the abbrev file is readable.
+
+2007-02-24  John Paul Wallington  <jpw@pobox.com>
+
+	* net/tls.el (tls-certtool-program): Fix custom type.
+
+	* mail/feedmail.el (feedmail-message-id-generator)
+	(feedmail-date-generator): Fix custom types.
+
+	* mail/rmail.el (rmail-message-filter): Fix custom type.
+
 2007-02-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* startup.el (command-line): If simple.el cannot be found, proceed
@@ -8,7 +301,7 @@
 	* international/utf-8.el (utf-8-pre-write-conversion): Handle the
 	case that BEG is a string.
 
-2007-02-24  Chris Moore <dooglus@gmail.com>
+2007-02-24  Chris Moore  <dooglus@gmail.com>
 
 	* pgg-pgp5.el (pgg-pgp5-encrypt-region):
 	* pgg-pgp.el (pgg-pgp-encrypt-region):
@@ -27,7 +320,7 @@
 	* comint.el (comint-read-input-ring): Use comint-input-ring-size
 	from the comint buffer instead of the temporary one.
 
-2007-02-23  David Reitter <david.reitter@gmail.com>
+2007-02-23  David Reitter  <david.reitter@gmail.com>
 
 	* cus-edit.el (custom-save-all): Canonicalize custom-file before
 	storing it in recentf-exclude.
@@ -41,16 +334,14 @@
 
 	* progmodes/idlw-shell.el (idlwave-shell-mode): Clean up pending
 	commands, for restart.
-	(idlwave-shell-current-module): Fix handling of module name by
-	type.
+	(idlwave-shell-current-module): Fix handling of module name by type.
 	(idlwave-shell-break-in): Update type handling.
 	(idlwave-shell-bp-get): Encode type in BP structure.
-	(idlwave-shell-set-bp): Fix setting condition/count on disabled
-	BPs.
-	(idlwave-shell-module-source-query): Query routine info based on
-	type.  Fix path parsing for non-compiled files.
-	(idlwave-shell-module-source-filter): Don't signal error in
-	filter if no source found.
+	(idlwave-shell-set-bp): Fix setting condition/count on disabled BPs.
+	(idlwave-shell-module-source-query): Query routine info based on type.
+	Fix path parsing for non-compiled files.
+	(idlwave-shell-module-source-filter): Don't signal error in filter
+	if no source found.
 	(idlwave-shell-set-bp-in-module): Use fallback source to prevent
 	filter race.
 

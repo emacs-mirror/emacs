@@ -1,6 +1,6 @@
 % Reference Card for Org Mode
-\def\orgversionnumber{4.56}
-\def\versionyear{2006}          % latest update
+\def\orgversionnumber{4.67}
+\def\versionyear{2007}          % latest update
 \def\year{2007}                 % latest copyright year
 %
 %**start of header
@@ -21,7 +21,7 @@
 
 \columnsperpage=3
 
-% Copyright (C) 2004, 2005, 2006, 2007  Free Software Foundation, Inc.
+% Copyright (C) 2004, 2005, 2006, 2007 Free Software Foundation, Inc
 
 % GNU Emacs is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -286,6 +286,7 @@ are preserved on all copies.
 \key{rotate entire buffer between states}{S-TAB}
 \key{show the whole file}{C-c C-a}
 \key{reveal context around point}{C-c C-r}
+\key{show subtree in indirect buffer, ded.\ frame}{C-c C-k}
 %\key{show branches}{C-c C-k}
 
 \section{Motion}
@@ -317,8 +318,8 @@ are preserved on all copies.
 \key{toggle ARCHIVE tag}{C-c C-x C-a}
 \metax{mark fully done children}{C-u C-c C-x C-a}
 \key{force cycling of an ARCHIVEd tree}{C-TAB}
-\key{move subtree to archive file}{C-c \$}
-\key{move all fully done children}{C-u C-c \$}
+\key{move subtree to archive file}{C-c C-x C-s}
+\metax{move all fully done children}{C-u C-c C-x C-s}
 To set archive location for current file, add a line like$^2$:
 \vskip -1mm
 \beginexample%
@@ -367,8 +368,7 @@ Outside of tables, the same keys may have other functionality.
 \key{move the current row down}{M-DOWN}
 \key{kill the current row or horizontal line}{M-S-UP}
 \key{insert new row above the current row}{M-S-DOWN}
-\key{insert horizontal line below the current row}{C-c -}
-\key{insert horizontal line above the current row}{C-u C-c -}
+\key{insert hline below (\kbd{C-u} : above) current row}{C-c -}
 \key{sort lines in region}{C-c \^{}}
 
 {\bf Regions}
@@ -381,17 +381,18 @@ Outside of tables, the same keys may have other functionality.
 {\bf Calculations} (in combination with Emacs \kbd{calc} package)
 
 \key{set and eval column formula}{C-c =}
-\key{set and eval named-field formula}{C-u C-c =}
+\key{set and eval field formula}{C-u C-c =}
 \key{edit formulas in separate buffer}{C-c '}
 \key{re-apply all stored equations to current line}{C-c *}
 \key{re-apply all stored equations to entire table}{C-u C-c *}
+\key{iterate table to stability}{C-u C-u C-c *}
 
 %\kbd{TAB}, \kbd{RET} and \kbd{C-c C-c} trigger automatic recalculation
 %in lines starting with: {\tt | \# |}.
 
 \key{rotate calculation mark through \# * ! \^ \_ \$}{C-\#}
 
-\key{display column number cursor is in}{C-c ?}
+\key{show line, column, formula reference}{C-c ?}
 \key{sum numbers in current column/rectangle}{C-c +}
 \key{copy down with increment}{S-RET$^3$}
 
@@ -402,7 +403,7 @@ formula, \kbd{:=} a named-field formula.
 \key{Example: Add Col1 and Col2}{=\$1+\$2}
 \key{... with printf format specification}{=\$1+\$2;\%.2f}
 \key{... with constants from constants.el}{=\$1/\$c/\$cm}
-\key{sum from 3rd hline above to here}{:=vsum(\&III)}
+\metax{sum from 2nd to 3rd hline}{:=vsum(@II..@III)}
 \key{apply current column formula}{=}
 
 {\bf Miscellaneous}
@@ -432,6 +433,8 @@ formula, \kbd{:=} a named-field formula.
 \key{...force open in emacs/other window}{mouse-3}
 \key{record a position in mark ring}{C-c \%}
 \key{jump back to last followed link(s)}{C-c \&}
+\key{Find next link}{C-c C-x C-n}
+\key{Find previous link}{C-c C-x C-p}
 
 {\bf Internal Links}
 
@@ -566,15 +569,17 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 
 \key{add/move current file to front of agenda}{C-c [}
 \key{remove current file from your agenda}{C-c ]}
-\key{cycle through agenda file list}{C-,}
+\key{cycle through agenda file list}{C-'}
 
 \key{compile agenda for the current week}{C-c a a$^1$}
 \key{compile global TODO list}{C-c a t$^1$}
 \key{compile TODO list for specific keyword}{C-c a T$^1$}
 \key{match tags in agenda files}{C-c a m$^1$}
 \key{match tags in TODO entries}{C-c a M$^1$}
+\key{find stuck projects}{C-c a \#$^1$}
 \key{show timeline of current org file}{C-c a L$^1$}
 \key{configure custom commands}{C-c a C$^1$}
+\key{configure stuck projects}{C-c a !$^1$}
 \key{agenda for date at cursor}{C-c C-o}
 
 \vskip 1mm
@@ -594,6 +599,7 @@ To set categories, add lines like$^2$:
 \key{goto original location in other window}{TAB/mouse-2}
 %\key{... also available with}{mouse-2}
 \key{goto original location, delete other windows}{RET}
+\key{show subtree in indirect buffer, ded.\ frame}{b}
 \key{toggle follow-mode}{f}
 
 {\bf Change display}
@@ -614,6 +620,7 @@ To set categories, add lines like$^2$:
 \key{digit argument}{0-9}
 \key{change state of current TODO item}{t}
 \key{kill item and source}{C-k}
+\key{archive the subtree}{\$}
 \key{show tags of current headline}{T}
 \key{set tags for current headline}{:}
 \key{toggle ARCHIVE tag}{a}
@@ -625,11 +632,15 @@ To set categories, add lines like$^2$:
 \key{change timestamp to today}{>}
 \key{insert new entry into diary}{i}
 
-\key{Start the clock on current item (clock-in)}{I}
-\key{Stop the clock (clock-out)}{O}
-\key{Cancel current clock}{X}
+\key{start the clock on current item (clock-in)}{I}
+\key{stop the clock (clock-out)}{O}
+\key{cancel current clock}{X}
 
+{\bf Misc}
 
+\key{Open link in current line}{C-c C-o}
+
+\newcolumn
 {\bf Calendar commands}
 
 \key{find agenda cursor date in calendar}{c}
@@ -675,20 +686,19 @@ some other place.
 \key{links become HTML links}{http:... etc}
 \key{include html tags}{@<b>...@</b>}
 
-{\bf Export options}
-
-Include additional information for export by putting these anywhere in the
-org file.  Use {\tt M-TAB} completion to make sure to get the right
-keywords. {\tt M-TAB} again just after keyword is complete inserts examples.
-
-\key{the title to be shown}{\#+TITLE:}
-\key{the author}{\#+AUTHOR:}
-\key{authors email address}{\#+EMAIL:}
-\key{language code for html}{\#+LANGUAGE:}
-\key{free text description of file}{\#+TEXT:}
-\key{... which can carry over multiple lines}{\#+TEXT:}
-%\key{settings for the export process - see below}{\#+OPTIONS:}
-\key{settings for the export process}{\#+OPTIONS:}
+%{\bf Export options}
+%
+%Include additional information for export by putting these anywhere in the
+%org file.  Use {\tt M-TAB} completion to make sure to get the right
+%keywords. {\tt M-TAB} again just after keyword is complete inserts examples.
+%
+%\key{the title to be shown}{\#+TITLE:}
+%\key{the author}{\#+AUTHOR:}
+%\key{authors email address}{\#+EMAIL:}
+%\key{language code for html}{\#+LANGUAGE:}
+%\key{free text description of file}{\#+TEXT:}
+%\key{... which can carry over multiple lines}{\#+TEXT:}
+%\key{settings for the export process}{\#+OPTIONS:}
 
 %\key{set number of headline levels for export}{H:2}
 %\key{turn on/off section numbers}{num:t}

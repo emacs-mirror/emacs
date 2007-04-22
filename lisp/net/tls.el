@@ -86,7 +86,7 @@ The default is what GNUTLS's \"gnutls-cli\" or OpenSSL's
   "Name of  GnuTLS certtool.
 Used by `tls-certificate-information'."
   :version "22.1"
-  :type '(repeat string)
+  :type 'string
   :group 'tls)
 
 (defun tls-certificate-information (der)
