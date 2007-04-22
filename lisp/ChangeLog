@@ -1,3 +1,8 @@
+2007-04-22  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-define-abbrev): Downcase abbrev
+	before defining it.
+
 2007-04-21  Martin Rudalics  <rudalics@gmx.at>
 
 	* progmodes/cc-mode.el
