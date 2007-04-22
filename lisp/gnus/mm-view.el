@@ -238,7 +238,8 @@
   (mm-setup-w3m)
   (let ((text (mm-get-part handle))
 	(b (point))
-	(charset (mail-content-type-get (mm-handle-type handle) 'charset)))
+	(charset (or (mail-content-type-get (mm-handle-type handle) 'charset)
+		     mail-parse-charset)))
     (save-excursion
       (insert (if charset (mm-decode-string text charset) text))
       (save-restriction
@@ -302,7 +303,9 @@
   "Render a text/html part using w3m."
   (if (mm-w3m-standalone-supports-m17n-p)
       (let ((source (mm-get-part handle))
-	    (charset (mail-content-type-get (mm-handle-type handle) 'charset))
+	    (charset (or (mail-content-type-get (mm-handle-type handle)
+						'charset)
+			 (symbol-name mail-parse-charset)))
 	    cs)
 	(unless (and charset
 		     (setq cs (mm-charset-to-coding-system charset))
@@ -368,7 +371,8 @@
 
 (defun mm-inline-render-with-function (handle func &rest args)
   (let ((source (mm-get-part handle))
-	(charset (mail-content-type-get (mm-handle-type handle) 'charset)))
+	(charset (or (mail-content-type-get (mm-handle-type handle) 'charset)
+		     mail-parse-charset)))
     (mm-insert-inline
      handle
      (mm-with-multibyte-buffer

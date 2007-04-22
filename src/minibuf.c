@@ -387,7 +387,7 @@ Return (point-min) if current buffer is not a minibuffer.  */)
 DEFUN ("minibuffer-contents", Fminibuffer_contents,
        Sminibuffer_contents, 0, 0, 0,
        doc: /* Return the user input in a minibuffer as a string.
-The current buffer must be a minibuffer.  */)
+If the current buffer is not a minibuffer, return its entire contents.  */)
      ()
 {
   int prompt_end = XINT (Fminibuffer_prompt_end ());
@@ -397,7 +397,7 @@ The current buffer must be a minibuffer.  */)
 DEFUN ("minibuffer-contents-no-properties", Fminibuffer_contents_no_properties,
        Sminibuffer_contents_no_properties, 0, 0, 0,
        doc: /* Return the user input in a minibuffer as a string, without text-properties.
-The current buffer must be a minibuffer.  */)
+If the current buffer is not a minibuffer, return its entire contents.  */)
      ()
 {
   int prompt_end = XINT (Fminibuffer_prompt_end ());
@@ -408,7 +408,7 @@ DEFUN ("minibuffer-completion-contents", Fminibuffer_completion_contents,
        Sminibuffer_completion_contents, 0, 0, 0,
        doc: /* Return the user input in a minibuffer before point as a string.
 That is what completion commands operate on.
-The current buffer must be a minibuffer.  */)
+If the current buffer is not a minibuffer, return its entire contents.  */)
      ()
 {
   int prompt_end = XINT (Fminibuffer_prompt_end ());
@@ -420,7 +420,7 @@ The current buffer must be a minibuffer.  */)
 DEFUN ("delete-minibuffer-contents", Fdelete_minibuffer_contents,
        Sdelete_minibuffer_contents, 0, 0, 0,
        doc: /* Delete all user input in a minibuffer.
-The current buffer must be a minibuffer.  */)
+If the current buffer is not a minibuffer, erase its entire contents.  */)
      ()
 {
   int prompt_end = XINT (Fminibuffer_prompt_end ());
@@ -706,7 +706,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
     if (!NILP (current_buffer->enable_multibyte_characters)
 	&& ! STRING_MULTIBYTE (minibuf_prompt))
       minibuf_prompt = Fstring_make_multibyte (minibuf_prompt);
-    
+
     /* Insert the prompt, record where it ends.  */
     Finsert (1, &minibuf_prompt);
     if (PT > BEG)

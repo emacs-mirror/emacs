@@ -1990,6 +1990,19 @@ canonical form:
 @end group
 @end example
 
+In some cases, a leading @samp{..} can remain in the output:
+
+@example
+@group
+(expand-file-name "../home" "/")
+     @result{} "/../home"
+@end group
+@end example
+
+This is for use with filesystems that have the concept of a
+``superroot'' above the root directory @file{/}.  On other filesystems,
+@file{/../} is interpreted exactly the same as @file{/}.
+
 Note that @code{expand-file-name} does @emph{not} expand environment
 variables; only @code{substitute-in-file-name} does that.
 

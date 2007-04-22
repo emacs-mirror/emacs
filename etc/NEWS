@@ -106,14 +106,14 @@ item was added to the menu bar to make it easily accessible
 ---
 ** New translations of the Emacs Tutorial are available in the
 following languages: Brasilian Portuguese, Bulgarian, Chinese (both
-with simplified and traditional characters), French, and Italian.
-Type `C-u C-h t' to choose one of them in case your language setup
-doesn't automatically select the right one.
+with simplified and traditional characters), French, Russian, and
+Italian.  Type `C-u C-h t' to choose one of them in case your language
+setup doesn't automatically select the right one.
 
 ---
-** A Portuguese translation of Emacs' reference card has been added.
-Its name is `pt-br-refcard.tex'.  The corresponding PostScript file is
-also included.
+** New translations of the Emacs reference card are available in the
+Brasilian Portuguese and Russian.  The corresponding PostScript files
+are also included.
 
 ---
 ** A French translation of the `Emacs Survival Guide' is available.
@@ -633,12 +633,12 @@ a match if part of it has a read-only property.
 *** When used interactively, the commands `query-replace-regexp' and
 `replace-regexp' allow \,expr to be used in a replacement string,
 where expr is an arbitrary Lisp expression evaluated at replacement
-time.  In many cases, this will be more convenient than using
-`query-replace-regexp-eval'.  `\#' in a replacement string now refers
-to the count of replacements already made by the replacement command.
-All regular expression replacement commands now allow `\?' in the
-replacement string to specify a position where the replacement string
-can be edited for each replacement.
+time.  `\#' in a replacement string now refers to the count of
+replacements already made by the replacement command.  All regular
+expression replacement commands now allow `\?' in the replacement
+string to specify a position where the replacement string can be
+edited for each replacement.  `query-replace-regexp-eval' is now
+deprecated since it offers no additional functionality.
 
 +++
 *** query-replace uses isearch lazy highlighting when the new user option
@@ -2218,7 +2218,7 @@ handling of edits of concealed text, undo concerns, etc.
    - version number incremented to 2.2
 
 +++
-** The variable `woman-topic-at-point' was renamed
+** The variable `woman-topic-at-point' is renamed
 to `woman-use-topic-at-point' and behaves differently: if this
 variable is non-nil, the `woman' command uses the word at point
 automatically, without asking for a confirmation.  Otherwise, the word

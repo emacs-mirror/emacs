@@ -700,6 +700,10 @@ archive.
 		(string-match "\\.[aA][rR][cC]$"
 			      (or buffer-file-name (buffer-name))))
 	   'arc)
+          ;; This pattern modelled on the BSD/GNU+Linux `file' command.
+          ;; Have seen capital "LHA's", and file has lower case "LHa's" too.
+          ;; Note this regexp is also in archive-exe-p.
+          ((looking-at "MZ\\(.\\|\n\\)\\{34\\}LH[aA]'s SFX ") 'lzh-exe)
 	  (t (error "Buffer format not recognized")))))
 ;; -------------------------------------------------------------------------
 (defun archive-summarize (&optional shut-up)
@@ -1398,8 +1402,8 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 ;; -------------------------------------------------------------------------
 ;; Section: Lzh Archives
 
-(defun archive-lzh-summarize ()
-  (let ((p 1)
+(defun archive-lzh-summarize (&optional start)
+  (let ((p (or start 1)) ;; 1 for .lzh, something further on for .exe
 	(totalsize 0)
 	(maxlen 8)
         files
@@ -1621,6 +1625,34 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
    ;; This should work even though newmode will be dynamically accessed.
    (lambda (old) (archive-calc-mode old newmode t))
    files "a unix-style mode" 8))
+
+;; -------------------------------------------------------------------------
+;; Section: Lzh Self-Extracting .exe Archives
+;;
+;; No support for modifying these files.  It looks like the lha for unix
+;; program (as of version 1.14i) can't create or retain the DOS exe part.
+;; If you do an "lha a" on a .exe for instance it renames and writes to a
+;; plain .lzh.
+
+(defun archive-lzh-exe-summarize ()
+  "Summarize the contents of an LZH self-extracting exe, for `archive-mode'."
+
+  ;; Skip the initial executable code part and apply archive-lzh-summarize
+  ;; to the archive part proper.  The "-lh5-" etc regexp here for the start
+  ;; is the same as in archive-find-type.
+  ;;
+  ;; The lha program (version 1.14i) does this in skip_msdos_sfx1_code() by
+  ;; a similar scan.  It looks for "..-l..-" plus for level 0 or 1 a test of
+  ;; the header checksum, or level 2 a test of the "attribute" and size.
+  ;;
+  (re-search-forward "..-l[hz][0-9ds]-" nil)
+  (archive-lzh-summarize (match-beginning 0)))
+
+;; `archive-lzh-extract' runs "lha pq", and that works for .exe as well as
+;; .lzh files
+(defalias 'archive-lzh-exe-extract 'archive-lzh-extract
+  "Extract a member from an LZH self-extracting exe, for `archive-mode'.")
+
 ;; -------------------------------------------------------------------------
 ;; Section: Zip Archives
 

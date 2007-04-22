@@ -1360,10 +1360,24 @@ No indentation or other \"electric\" behavior is performed."
   (and c-opt-block-decls-with-vars-key
        (save-excursion
 	 (c-syntactic-skip-backward "^;}" lim)
-	 (and (eq (char-before) ?\})
-	      (eq (car (c-beginning-of-decl-1 lim)) 'previous)
-	      (looking-at c-opt-block-decls-with-vars-key)
-	      (point)))))
+	 (let ((eo-block (point))
+	       bod)
+	   (and (eq (char-before) ?\})
+		(eq (car (c-beginning-of-decl-1 lim)) 'previous)
+		(setq bod (point))
+		;; Look for struct or union or ...  If we find one, it might
+		;; be the return type of a function, or the like.  Exclude
+		;; this case.
+		(c-syntactic-re-search-forward
+		 (concat "[;=\(\[{]\\|\\("
+			 c-opt-block-decls-with-vars-key
+			 "\\)")
+		 eo-block t t t)
+		(match-beginning 1)	; Is there a "struct" etc., somewhere?
+		(not (eq (char-before) ?_))
+		(c-syntactic-re-search-forward "[;=\(\[{]" eo-block t t t)
+		(eq (char-before) ?\{)
+		bod)))))
 
 (defun c-where-wrt-brace-construct ()
   ;; Determine where we are with respect to functions (or other brace
@@ -1531,7 +1545,7 @@ defun."
 	      (setq arg (c-forward-to-nth-EOF-} (- arg) where)))
 	  ;; Move forward to the next opening brace....
 	  (when (and (= arg 0)
-		     (c-syntactic-re-search-forward "{" nil t))
+		     (c-syntactic-re-search-forward "{" nil 'eob))
 	    (backward-char)
 	    ;; ... and backward to the function header.
 	    (c-beginning-of-decl-1)

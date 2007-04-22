@@ -1,3 +1,56 @@
+2007-04-19  Kevin Ryde  <user42@zip.com.au>
+
+	* arc-mode.el (archive-find-type): lzh-exe for lzh self-extracting exe.
+	(archive-lzh-summarize): Add optional start arg for where to start
+	looking at the archive.
+	(archive-lzh-exe-summarize, archive-lzh-exe-extract): New functions.
+
+	* international/mule.el (auto-coding-alist): no-conversion for .exe
+	and .EXE.
+
+2007-04-19  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-in-function-trailer-p): Fix this: when a
+	function return type contains "struct", "union", etc.
+	c-end-of-defun goes too far forward.
+
+2007-04-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* paren.el (show-paren-function): Reset window-start to avoid
+	recentering.
+
+2007-04-19  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/todo-mode.el: Fix typo: "threshhold" -> "threshold".
+
+2007-04-18  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-header-line-format): Add a custom
+	:set function.
+	(diary-list-entries): Only switch to diary-mode from
+	default-major-mode (reverts 2007-03-21 change).  Otherwise, if in
+	diary-mode set header-line-format, in case of any customization.
+
+2007-04-18  Levin Du  <zslevin@gmail.com>  (tiny change)
+
+	* calendar/parse-time.el (parse-time-string-chars): Check if CHAR
+	is less than the length of parse-time-syntax.
+
+2007-04-17  David Kastrup  <dak@gnu.org>
+
+	* replace.el (query-replace-regexp-eval): Deprecate.
+
+2007-04-17  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-beginning-of-defun): With -ve arg and
+	point too close to EOB, leave point at EOB rather than last `}'.
+
+2007-04-17  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-include-OPTkey)
+	(bibtex-user-optional-fields, bibtex-entry-field-alist):
+	Fix defcustom.
+
 2007-04-17  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/cal-dst.el (calendar-dst-find-startend): If YEAR cannot
@@ -66,8 +119,7 @@
 
 2007-04-13  Chong Yidong  <cyd@stupidchicken.com>
 
-	* progmodes/compile.el (compilation-start): Revert 2007-03-25
-	change.
+	* progmodes/compile.el (compilation-start): Revert 2007-03-25 change.
 
 	* files.el: Ditto.
 
@@ -135,8 +187,8 @@
 
 2007-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* desktop.el (desktop-save, desktop-create-buffer): Replace mapcar with
-	dolist.
+	* desktop.el (desktop-save, desktop-create-buffer): Replace mapcar
+	with dolist.
 	(after-init-hook): Don't quote lambda.
 	(desktop-first-buffer): Don't wrap it in eval-when-compile.
 	(desktop-internal-v2s): Remove unused var `el'.
@@ -714,6 +766,13 @@
 	(diary-set-maybe-redraw): New function.
 	(number-of-diary-entries): Change :set to use diary-set-maybe-redraw.
 	(diary-list-entries): Always run diary-mode.
+
+2007-03-20  Kenichi Handa  <handa@m17n.org>
+
+	* international/quail.el (quail-setup-completion-buf): Make the
+	completion buffer read-only.
+	(quail-completion): Adjusted for the above change.  Leave the
+	modified flag nil.
 
 2007-03-20  David Kastrup  <dak@gnu.org>
 

@@ -386,9 +386,13 @@ again to say this:
 
 *** Emacs does not know your host's fully-qualified domain name.
 
+For example, (system-name) returns some variation on
+"localhost.localdomain", rather the name you were expecting.
+
 You need to configure your machine with a fully qualified domain name,
-either in /etc/hosts, /etc/hostname, the NIS, or wherever your system
-calls for specifying this.
+(i.e. a name with at least one ".") either in /etc/hosts,
+/etc/hostname, the NIS, or wherever your system calls for specifying
+this.
 
 If you cannot fix the configuration, you can set the Lisp variable
 mail-host-address to the value you want.

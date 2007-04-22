@@ -3241,7 +3241,6 @@ functions (which may be the same function).  In any case, all the
 It is possible with @code{char-after} to examine characters at various
 buffer positions without moving point to those positions.  Only an
 actual change in the value of point runs these hook functions.
-@end table
 
 @defvar inhibit-point-motion-hooks
 When this variable is non-@code{nil}, @code{point-left} and
@@ -3259,6 +3258,27 @@ Bar}).  The specified function is called with one argument, the help
 string to display.  Tooltip mode (@pxref{Tooltips,,, emacs, The GNU Emacs
 Manual}) provides an example.
 @end defvar
+
+@item composition
+@kindex composition @r{(text property)}
+This text property is used to display a sequence of characters as a
+single glyph composed from components.  For instance, Thai base
+consonant is composed with the following combining vowel as a single
+glyph.
+
+The value is a character or a sequence (vector, list, or
+string) of integers.
+
+If it is a character, it is an alternate character to display instead
+of the text in the region.
+
+If it is a string, it is an alternate character sequences to
+display.
+
+If it is a vector or list, it is a sequence of alternate
+characters interleaved with internal codes specifying how to
+compose the following character with the previous one.
+@end table
 
 @node Format Properties
 @subsection Formatted Text Properties
