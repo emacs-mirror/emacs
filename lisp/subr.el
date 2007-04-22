@@ -1735,9 +1735,11 @@ The value of DEFAULT is inserted into PROMPT."
 	  (let ((str (read-from-minibuffer prompt nil nil nil nil
 					   (and default
 						(number-to-string default)))))
-	    (setq n (cond
-		     ((zerop (length str)) default)
-		     ((stringp str) (read str)))))
+	    (condition-case nil
+		(setq n (cond
+			 ((zerop (length str)) default)
+			 ((stringp str) (read str))))
+	      (error nil)))
 	  (unless (numberp n)
 	    (message "Please enter a number.")
 	    (sit-for 1)
