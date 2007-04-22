@@ -3817,7 +3817,7 @@ for first matching file."
 If cursor is not at the end of the user input, delete to end of input."
   (interactive)
   (if (not (eobp))
-      (kill-line)
+      (delete-region (point) (line-end-position))
     (let ((enable-recursive-minibuffers t)
 	  (buf (ido-name (car ido-matches))))
       (when buf
@@ -3835,7 +3835,7 @@ If cursor is not at the end of the user input, delete to end of input."
 If cursor is not at the end of the user input, delete to end of input."
   (interactive)
   (if (not (eobp))
-      (kill-line)
+      (delete-region (point) (line-end-position))
     (let ((enable-recursive-minibuffers t)
 	  (file (ido-name (car ido-matches))))
       (if file
