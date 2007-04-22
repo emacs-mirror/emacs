@@ -67,7 +67,7 @@
 ;;    (setq hi-lock-file-patterns-policy 'ask)
 ;;
 ;;    If you get tired of being asked each time a file is loaded replace
-;;    'ask with a function that returns t if patterns should be read.
+;;    `ask' with a function that returns t if patterns should be read.
 ;;
 ;;    You might also want to bind the hi-lock commands to more
 ;;    finger-friendly sequences:
@@ -126,9 +126,9 @@ calls."
 
 (defcustom hi-lock-file-patterns-policy 'never
   "Specify when hi-lock should use patterns found in file.
-If 'ask, prompt when patterns found in buffer; if bound to a function,
+If `ask', prompt when patterns found in buffer; if bound to a function,
 use patterns when function returns t (function is called with patterns
-as first argument); if nil or 'never or anything else, don't use file
+as first argument); if nil or `never' or anything else, don't use file
 patterns."
   :type '(choice (const :tag "Do not use file patterns" never)
                  (const :tag "Ask about file patterns" ask)
