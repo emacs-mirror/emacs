@@ -2816,7 +2816,7 @@ works only when Emacs can display the specific image type.
 
 @findex thumbs-mode
 @findex mode, thumbs
-  See also the Thumbnails package (@pxref{Image-Dired}) for viewing
+  See also the Image-Dired package (@pxref{Image-Dired}) for viewing
 images as thumbnails.
 
 @node Filesets
