@@ -1,3 +1,9 @@
+2007-04-22  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-mode.el
+	(c-remove-any-local-eval-or-mode-variables): Replace wrong use of
+	`kill-line' by "delete-" code, to avoid polluting the kill ring.
+
 2007-04-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image-dired.el: Rename from thumbnails.el.  All instances of
