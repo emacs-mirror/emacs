@@ -36,6 +36,10 @@ Some specific packages that are known to cause problems are:
 
 * Installation Changes in Emacs 22.1
 
+** You can build Emacs with Gtk+ widgets by specifying `--with-x-toolkit=gtk'
+when you run configure.  This requires Gtk+ 2.4 or newer.  This port
+provides a way to display multilingual text in menus (with some caveats).
+
 ** Emacs comes with a new set of icons.
 These icons are displayed on the taskbar and/or titlebar when Emacs
 runs in a graphical environment.  Source files for these icons can be
@@ -43,33 +47,6 @@ found in etc/images/icons.  (You can't change the icons displayed by
 Emacs by changing these files directly.  On X, the icon is compiled
 into the Emacs executable; see gnu.h in the source tree.  On MS
 Windows, see nt/icons/emacs.ico.)
-
-** Emacs now supports new configure options `--program-prefix',
-`--program-suffix' and `--program-transform-name' that affect the names of
-installed programs.
-
-** Emacs can now be built without sound support.
-
-** You can build Emacs with Gtk+ widgets by specifying `--with-x-toolkit=gtk'
-when you run configure.  This requires Gtk+ 2.4 or newer.  This port
-provides a way to display multilingual text in menus (with some caveats).
-
-** The `emacsserver' program has been removed, replaced with Lisp code.
-
-** The `yow' program has been removed.
-Use the corresponding Emacs feature instead.
-
-** By default, Emacs now uses a setgid helper program to update game
-scores.  The directory ${localstatedir}/games/emacs is the normal
-place for game scores to be stored.  You can control this with the
-configure option `--with-game-dir'.  The specific user that Emacs uses
-to own the game scores is controlled by `--with-game-user'.  If access
-to a game user is not available, then scores will be stored separately
-in each user's home directory.
-
-** Leim is now part of the Emacs distribution.
-You no longer need to download a separate tarball in order to build
-Emacs with Leim.
 
 ** The Emacs Lisp Reference Manual is now part of the distribution.
 
@@ -85,6 +62,10 @@ This manual is now part of the standard distribution and is installed,
 together with the Emacs User Manual, into the Info directory.  A menu
 item was added to the menu bar to make it easily accessible
 (Help->More Manuals->Introduction to Emacs Lisp).
+
+** Leim is now part of the Emacs distribution.
+You no longer need to download a separate tarball in order to build
+Emacs with Leim.
 
 ** New translations of the Emacs Tutorial are available in the
 following languages: Brasilian Portuguese, Bulgarian, Chinese (both
@@ -103,22 +84,41 @@ are also included.
 the supported image types and their associated dynamic libraries by
 setting the variable `image-library-alist'.
 
-** Support for a Cygwin build of Emacs was added.
-
-** Support for FreeBSD/Alpha has been added.
+** Support for GNU/Linux systems on X86-64 machines was added.
 
 ** Support for GNU/Linux systems on S390 machines was added.
 
 ** Support for GNU/Linux systems on Tensilica Xtensa machines was added.
 
+** Support for FreeBSD/Alpha has been added.
+
+** Support for a Cygwin build of Emacs was added.
+
 ** Support for MacOS X was added.
 See the files mac/README and mac/INSTALL for build instructions.
-
-** Support for GNU/Linux systems on X86-64 machines was added.
 
 ** Mac OS 9 port now uses the Carbon API by default.  You can also
 create a non-Carbon build by specifying `NonCarbon' as a target.  See
 the files mac/README and mac/INSTALL for build instructions.
+
+** The `emacsserver' program has been removed, replaced with Lisp code.
+
+** The `yow' program has been removed.
+Use the corresponding Emacs feature instead.
+
+** Emacs now supports new configure options `--program-prefix',
+`--program-suffix' and `--program-transform-name' that affect the names of
+installed programs.
+
+** By default, Emacs now uses a setgid helper program to update game
+scores.  The directory ${localstatedir}/games/emacs is the normal
+place for game scores to be stored.  You can control this with the
+configure option `--with-game-dir'.  The specific user that Emacs uses
+to own the game scores is controlled by `--with-game-user'.  If access
+to a game user is not available, then scores will be stored separately
+in each user's home directory.
+
+** Emacs can now be built without sound support.
 
 ** Building with -DENABLE_CHECKING does not automatically build with union
 types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
@@ -200,9 +200,9 @@ disables the splash screen; see also the variable
 `inhibit-splash-screen' (which is also aliased as
 `inhibit-startup-message').
 
-** The default is now to use a bitmap as the icon, so the command-line options
---icon-type, -i have been replaced with options --no-bitmap-icon, -nbi to turn
-the bitmap icon off.
+** The default is now to use a bitmap as the icon.
+The command-line options --icon-type, -i have been replaced with
+options --no-bitmap-icon, -nbi to turn the bitmap icon off.
 
 ** New user option `inhibit-startup-buffer-menu'.
 When loading many files, for instance with `emacs *', Emacs normally
@@ -226,6 +226,10 @@ concatenation of `user-login-name' with the name of your host machine.
 
 * Incompatible Editing Changes in Emacs 22.1
 
+** You can now follow links by clicking Mouse-1 on the link.
+
+See below for more details.
+
 ** M-g is now a prefix key.
 M-g g and M-g M-g run goto-line.
 M-g n and M-g M-n run next-error (like C-x `).
@@ -237,30 +241,26 @@ and goes to the specified line in that buffer.
 When goto-line starts to execute, if there's a number in the buffer at
 point then it acts as the default argument for the minibuffer.
 
+** M-o now is the prefix key for setting text properties;
+M-o M-o requests refontification.
+
 ** The old bindings C-M-delete and C-M-backspace have been deleted,
 since there are situations where one or the other will shut down
 the operating system or your X server.
-
-** line-move-ignore-invisible now defaults to t.
 
 ** When the undo information of the current command gets really large
 (beyond the value of `undo-outer-limit'), Emacs discards it and warns
 you about it.
 
-** `apply-macro-to-region-lines' now operates on all lines that begin
-in the region, rather than on all complete lines in the region.
-
-** A prefix argument is no longer required to repeat a jump to a
-previous mark if you set `set-mark-command-repeat-pop' to t.  I.e. C-u
-C-SPC C-SPC C-SPC ... cycles through the mark ring.  Use C-u C-u C-SPC
-to set the mark immediately after a jump.
-
-** The info-search bindings on C-h C-f, C-h C-k and C-h C-i
-have been moved to C-h F, C-h K and C-h S.
-
 ** In incremental search, C-w is changed.  M-%, C-M-w and C-M-y are special.
 
 See below under "incremental search changes".
+
+** When Emacs prompts for file names, SPC no longer completes the file name.
+This is so filenames with embedded spaces could be input without the
+need to quote the space with a C-q.  The underlying changes in the
+keymaps that are active in the minibuffer are described below under
+"New keymaps for typing file names".
 
 ** C-x C-f RET (find-file), typing nothing in the minibuffer, is no longer
 a special case.
@@ -276,25 +276,25 @@ the actual file name into the minibuffer.
 to the text before point.  If there is text in the buffer after point,
 it remains unchanged.
 
-** When Emacs prompts for file names, SPC no longer completes the file name.
-This is so filenames with embedded spaces could be input without the
-need to quote the space with a C-q.  The underlying changes in the
-keymaps that are active in the minibuffer are described below under
-"New keymaps for typing file names".
-
-** M-o now is the prefix key for setting text properties;
-M-o M-o requests refontification.
-
-** You can now follow links by clicking Mouse-1 on the link.
-
-See below for more details.
-
 ** In Dired's ! command (dired-do-shell-command), `*' and `?' now
 control substitution of the file names only when they are surrounded
 by whitespace.  This means you can now use them as shell wildcards
 too.  If you want to use just plain `*' as a wildcard, type `*""'; the
 doublequotes make no difference in the shell, but they prevent
 special treatment in `dired-do-shell-command'.
+
+** A prefix argument is no longer required to repeat a jump to a
+previous mark if you set `set-mark-command-repeat-pop' to t.  I.e. C-u
+C-SPC C-SPC C-SPC ... cycles through the mark ring.  Use C-u C-u C-SPC
+to set the mark immediately after a jump.
+
+** The info-search bindings on C-h C-f, C-h C-k and C-h C-i
+have been moved to C-h F, C-h K and C-h S.
+
+** `apply-macro-to-region-lines' now operates on all lines that begin
+in the region, rather than on all complete lines in the region.
+
+** line-move-ignore-invisible now defaults to t.
 
 ** Adaptive filling misfeature removed.
 It no longer treats `NNN.' or `(NNN)' as a prefix.
@@ -333,9 +333,6 @@ converts whitespace around point to N spaces.
 but does not switch to that frame.  It's the multi-frame
 analogue of C-x 4 C-o.
 
-** New commands to operate on pairs of open and close characters:
-`insert-pair', `delete-pair', `raise-sexp'.
-
 ** New command `kill-whole-line' kills an entire line at once.
 By default, it is bound to C-S-<backspace>.
 
@@ -347,6 +344,9 @@ of register contents and rectangles also discards these properties.
 ** The default values of paragraph-start and indent-line-function have
 been changed to reflect those used in Text mode rather than those used
 in Indented-Text mode.
+
+** New commands to operate on pairs of open and close characters:
+`insert-pair', `delete-pair', `raise-sexp'.
 
 ** M-x setenv now expands environment variable references.
 
@@ -848,18 +848,7 @@ so package-specific faces can inherit from it.
 
 *** `vertical-border' face is used for the vertical divider between windows.
 
-** ebnf2ps changes:
-
-*** New option `ebnf-arrow-extra-width' which specify extra width for arrow
-shape drawing.
-The extra width is used to avoid that the arrowhead and the terminal border
-overlap.  It depends on `ebnf-arrow-shape' and `ebnf-line-width'.
-
-*** New option `ebnf-arrow-scale' which specify the arrow scale.
-Values lower than 1.0, shrink the arrow.
-Values greater than 1.0, expand the arrow.
-
-** Font-Lock changes:
+** Font-Lock (syntax highlighting) changes:
 
 *** M-o now is the prefix key for setting text properties;
 M-o M-o requests refontification.
@@ -918,14 +907,11 @@ refontification takes place.
 The `lazy-lock' package is superseded by `jit-lock' and is considered
 obsolete.  `jit-lock' is activated by default; if you wish to continue
 using `lazy-lock', activate it in your ~/.emacs like this:
-
   (setq font-lock-support-mode 'lazy-lock-mode)
 
 If you invoke `lazy-lock-mode' directly rather than through
 `font-lock-support-mode', it now issues a warning:
-
   "Use font-lock-support-mode rather than calling lazy-lock-mode"
-
 
 ** Menu support:
 
@@ -967,18 +953,6 @@ the new dialog.
 
 ** Mouse changes:
 
-*** If you set the new variable `mouse-autoselect-window' to a non-nil
-value, windows are automatically selected as you move the mouse from
-one Emacs window to another, even within a frame.  A minibuffer window
-can be selected only when it is active.
-
-*** On X, when the window manager requires that you click on a frame to
-select it (give it focus), the selected window and cursor position
-normally changes according to the mouse click position.  If you set
-the variable x-mouse-click-focus-ignore-position to t, the selected
-window and cursor position do not change when you click on a frame
-to give it focus.
-
 *** You can now follow links by clicking Mouse-1 on the link.
 
 Traditionally, Emacs uses a Mouse-1 click to set point and a Mouse-2
@@ -1008,6 +982,18 @@ drag-mouse-1 action, typically copy the text.
 
 You can customize the new Mouse-1 behavior via the new user options
 `mouse-1-click-follows-link' and `mouse-1-click-in-non-selected-windows'.
+
+*** If you set the new variable `mouse-autoselect-window' to a non-nil
+value, windows are automatically selected as you move the mouse from
+one Emacs window to another, even within a frame.  A minibuffer window
+can be selected only when it is active.
+
+*** On X, when the window manager requires that you click on a frame to
+select it (give it focus), the selected window and cursor position
+normally changes according to the mouse click position.  If you set
+the variable x-mouse-click-focus-ignore-position to t, the selected
+window and cursor position do not change when you click on a frame
+to give it focus.
 
 *** Emacs normally highlights mouse sensitive text whenever the mouse
 is over the text.  By setting the new variable `mouse-highlight', you
@@ -1099,26 +1085,23 @@ into Unicode characters (from the latin-iso8859-1 and
 mule-unicode-0100-24ff charsets) on decoding.  Note that this mode
 will often effectively clobber data with an iso-2022 encoding.
 
-*** There is support for decoding Greek and Cyrillic characters into
-either Unicode (the mule-unicode charsets) or the iso-8859 charsets,
-when possible.  The latter are more space-efficient.  This is
-controlled by user option utf-fragment-on-decoding.
-
-*** New language environments: French, Ukrainian, Tajik,
-Bulgarian, Belarusian, Ukrainian, UTF-8, Windows-1255, Welsh, Latin-6,
-Latin-7, Lithuanian, Latvian, Swedish, Slovenian, Croatian, Georgian,
-Italian, Russian, Malayalam, Tamil, Russian, Chinese-EUC-TW,
-Esperanto.  (Set up automatically according to the locale.)
+*** New language environments (set up automatically according to the
+locale): Belarusian, Bulgarian, Chinese-EUC-TW, Croatian, Esperanto,
+French, Georgian, Italian, Latin-7, Latvian, Lithuanian, Malayalam,
+Russian, Russian, Slovenian, Swedish, Tajik, Tamil, UTF-8,Ukrainian,
+Welsh,Latin-6, Windows-1255.
 
 *** New input methods: latin-alt-postfix, latin-postfix, latin-prefix,
-ukrainian-computer, belarusian, bulgarian-bds, russian-computer,
-vietnamese-telex, lithuanian-numeric, lithuanian-keyboard,
-latvian-keyboard, welsh, georgian, rfc1345, ucs, sgml,
-bulgarian-phonetic, dutch, slovenian, croatian, malayalam-inscript,
-tamil-inscript.
+belarusian, bulgarian-bds, bulgarian-phonetic, chinese-sisheng (for
+Chinese Pinyin characters), croatian, dutch, georgian, latvian-keyboard,
+lithuanian-numeric, lithuanian-keyboard, malayalam-inscript, rfc1345,
+russian-computer, sgml, slovenian, tamil-inscript, ukrainian-computer,
+ucs, vietnamese-telex, welsh.
 
-*** New input method chinese-sisheng for inputting Chinese Pinyin
-characters.
+*** There is support for decoding Greek and Cyrillic characters into
+either Unicode (the mule-unicode charsets) or the iso-8859 charsets,
+when possible.  The latter are more space-efficient.
+  This is controlled by user option utf-fragment-on-decoding.
 
 *** Improved Thai support.  A new minor mode `thai-word-mode' (which is
 automatically activated if you select Thai as a language
@@ -1133,11 +1116,8 @@ versions which recognize Thai words.  Affected commands are
 
 *** Indian support has been updated.
 The in-is13194 coding system is now Unicode-based.  CDAC fonts are
-assumed.  There is a framework for supporting various
-Indian scripts, but currently only Devanagari, Malayalam and Tamil are
-supported.
-
-*** A UTF-7 coding system is available in the library `utf-7'.
+assumed.  There is a framework for supporting various Indian scripts,
+but currently only Devanagari, Malayalam and Tamil are supported.
 
 *** The utf-8/16 coding systems have been enhanced.
 By default, untranslatable utf-8 sequences are simply composed into
@@ -1151,6 +1131,8 @@ You can augment/amend the CJK translation via hash tables
 coding system now also encodes characters from most of Emacs's
 one-dimensional internal charsets, specifically the ISO-8859 ones.
 The utf-16 coding system is affected similarly.
+
+*** A UTF-7 coding system is available in the library `utf-7'.
 
 *** A new coding system `euc-tw' has been added for traditional Chinese
 in CNS encoding; it accepts both Big 5 and CNS as input; on saving,
@@ -1290,11 +1272,11 @@ otherwise behaves quite similarly to the bash version.
 `comint-use-prompt-regexp'.  The old name has been kept as an alias,
 but declared obsolete.
 
-*** The new INSIDE_EMACS environment variable is set to "t" in
-subshells running inside Emacs.  This supersedes the EMACS environment
-variable, which will be removed in a future Emacs release.  Programs
-that need to know whether they are started inside Emacs should check
-INSIDE_EMACS instead of EMACS.
+*** The new INSIDE_EMACS environment variable is set to "t" in subshells
+running inside Emacs.  This supersedes the EMACS environment variable,
+which will be removed in a future Emacs release.  Programs that need
+to know whether they are started inside Emacs should check INSIDE_EMACS
+instead of EMACS.
 
 ** M-x Compile changes:
 
@@ -1488,6 +1470,17 @@ faces when running on a color terminal, including 16-, 88-, and
 colors as on X.
 
 *** There's a new support for colors on `rxvt' terminal emulator.
+
+** ebnf2ps changes:
+
+*** New option `ebnf-arrow-extra-width' which specify extra width for arrow
+shape drawing.
+The extra width is used to avoid that the arrowhead and the terminal border
+overlap.  It depends on `ebnf-arrow-shape' and `ebnf-line-width'.
+
+*** New option `ebnf-arrow-scale' which specify the arrow scale.
+Values lower than 1.0, shrink the arrow.
+Values greater than 1.0, expand the arrow.
 
 * New Modes and Packages in Emacs 22.1
 
@@ -3614,8 +3607,7 @@ If it is non-nil, the function lists only faces matching this regexp.
 By setting this variable to a function, you can control
 how the editor command loop shows the user an error message.
 
-*** `debug-on-entry' accepts primitive functions that are not special forms
-now.
+*** `debug-on-entry' accepts primitive functions that are not special forms.
 
 ** Lisp code indentation features:
 
