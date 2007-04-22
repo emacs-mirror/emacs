@@ -25,9 +25,8 @@
 
 2007-04-21  Martin Rudalics  <rudalics@gmx.at>
 
-	* progmodes/cc-mode.el
-	(c-remove-any-local-eval-or-mode-variables): Use delete-region
-	instead of kill-line.
+	* progmodes/cc-mode.el (c-remove-any-local-eval-or-mode-variables):
+	Use delete-region instead of kill-line.
 
 2007-04-21  Alan Mackenzie  <acm@muc.de>
 
