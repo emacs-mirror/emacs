@@ -222,7 +222,6 @@ Advanced Features
 			  "recursive editing level".
 * Emulation::	        Emulating some other editors with Emacs.
 * Hyperlinking::        Following links in buffers.
-* Thumbnails::          Browsing images using thumbnails.
 * Dissociated Press::   Dissociating text for fun.
 * Amusements::	        Various games and hacks.
 * Customization::       Modifying the behavior of Emacs.
@@ -801,6 +800,7 @@ Dired, the Directory Editor
 * Dired Updating::           Discarding lines for files of no interest.
 * Dired and Find::	     Using `find' to choose the files for Dired.
 * Wdired::                   Operating on files by editing the Dired buffer.
+* Image-Dired::              Viewing image thumbnails in Dired
 * Misc Dired Features::      Various other features.
 
 The Calendar and the Diary
