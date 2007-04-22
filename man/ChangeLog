@@ -1,9 +1,12 @@
 2007-04-22  Chong Yidong  <cyd@stupidchicken.com>
 
+	* dired.texi (Image-Dired): Move from Thumbnails node.
+	* misc.texi (Thumbnails): Node deleted.
+	* emacs.texi (Top): Update node listing.
+
 	* files.texi (File Conveniences): 
 	* ack.texi (Acknowledgments): 
-	* faq.texi (New in Emacs 22): 
-	* misc.texi (Thumbnails): Rename "tumme" to "thumbnails".
+	* faq.texi (New in Emacs 22): Rename "tumme" to "image-dired".
 
 2007-04-21  Richard Stallman  <rms@gnu.org>
 
