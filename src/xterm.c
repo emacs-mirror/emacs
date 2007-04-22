@@ -5308,7 +5308,7 @@ x_scroll_bar_expose (bar, event)
    /* Restore the foreground color of the GC if we changed it above.  */
    if (f->output_data.x->scroll_bar_foreground_pixel != -1)
      XSetForeground (FRAME_X_DISPLAY (f), gc,
- 		    f->output_data.x->foreground_pixel);
+		     FRAME_FOREGROUND_PIXEL (f));
 
    UNBLOCK_INPUT;
 
