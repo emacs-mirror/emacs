@@ -857,7 +857,7 @@ is inhibited."
 		   (back-to-indentation)
 		   (looking-at (concat c-current-comment-prefix "[ \t]*$")))))
       (delete-region (progn (forward-line 0) (point))
-		   (progn (end-of-line) (point)))
+		     (progn (end-of-line) (point)))
       (insert-char ?* 1)) ; the / comes later. ; Do I need a t (retain sticky properties) here?
 
     (setq indentp (and (not arg)
