@@ -1,5 +1,7 @@
 2007-04-22  Chong Yidong  <cyd@stupidchicken.com>
 
+	* dired.el: Rename "tumme" to "thumbnails".
+
 	* thumbnails.el: Rename from tumme.el.  All instances of "tumme"
 	replaced with "thumbnails".
 
