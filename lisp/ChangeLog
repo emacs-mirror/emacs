@@ -1,3 +1,8 @@
+2007-04-22  Nick Roberts  <nickrob@snap.net.nz>
+
+	* t-mouse.el (t-mouse-make-event): Pass on mev's more informative
+	error message.
+
 2007-04-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dired.el: Rename "tumme" to "thumbnails".
