@@ -1,3 +1,8 @@
+2007-04-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.el (dired-mode-map): Rename "thumbnails" again, to
+	"image-dired".
+
 2007-04-22  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-kill-buffer-at-head, ido-delete-file-at-head):
