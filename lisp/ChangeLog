@@ -1,5 +1,8 @@
 2007-04-22  Chong Yidong  <cyd@stupidchicken.com>
 
+	* image-dired.el: Rename from thumbnails.el.  All instances of
+	"thumbnails" replaced with "image-dired".
+
 	* dired.el (dired-mode-map): Rename "thumbnails" again, to
 	"image-dired".
 
