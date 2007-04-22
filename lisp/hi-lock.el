@@ -124,12 +124,20 @@ calls."
   :type '(repeat symbol)
   :group 'hi-lock)
 
-(defvar hi-lock-file-patterns-policy 'never
+(defcustom hi-lock-file-patterns-policy 'never
   "Specify when hi-lock should use patterns found in file.
 If 'ask, prompt when patterns found in buffer; if bound to a function,
 use patterns when function returns t (function is called with patterns
 as first argument); if nil or 'never or anything else, don't use file
-patterns.")
+patterns."
+  :type '(choice (const :tag "Do not use file patterns" never)
+                 (const :tag "Ask about file patterns" ask)
+                 (function :tag "Function to check file patterns"))
+  :group 'hi-lock
+  :version "22.1")
+
+;; It can have a function value.
+(put 'hi-lock-file-patterns-policy 'risky-local-variable t)
 
 (defgroup hi-lock-faces nil
   "Faces for hi-lock."
