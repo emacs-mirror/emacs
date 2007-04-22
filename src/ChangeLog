@@ -1,3 +1,9 @@
+2007-04-22  Richard Stallman  <rms@gnu.org>
+
+	* abbrev.c (Fdefine_abbrev): Doc fix.
+
+	* keymap.c (Fdefine_key): Minor doc fix.
+
 2007-04-21  Glenn Morris  <rgm@gnu.org>
 
 	* keymap.c (Fdefine_key): Fix info ref in doc string.

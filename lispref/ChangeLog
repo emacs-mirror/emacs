@@ -1,3 +1,8 @@
+2007-04-22  Richard Stallman  <rms@gnu.org>
+
+	* keymaps.texi (Extended Menu Items): Move the info about
+	format with cached keyboard binding.
+
 2007-04-21  Richard Stallman  <rms@gnu.org>
 
 	* text.texi (Special Properties): Clarify previous change.
