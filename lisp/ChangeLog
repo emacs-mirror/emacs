@@ -1,5 +1,8 @@
 2007-04-22  Glenn Morris  <rgm@gnu.org>
 
+	* hi-lock.el (hi-lock-file-patterns-policy): Make it a defcustom,
+	and give it the risky-local-variable property.
+
 	* textmodes/flyspell.el (flyspell-define-abbrev): Downcase abbrev
 	before defining it.
 
