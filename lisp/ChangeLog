@@ -1,3 +1,8 @@
+2007-04-22  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-kill-buffer-at-head, ido-delete-file-at-head):
+	Don't use kill-line.
+
 2007-04-22  Nick Roberts  <nickrob@snap.net.nz>
 
 	* t-mouse.el (t-mouse-make-event): Pass on mev's more informative
