@@ -1327,9 +1327,6 @@ it doesn't scroll the compilation output window.  If there is no left fringe,
 no arrow is displayed and a value of nil means display the message at the top
 of the window.
 
-*** The EMACS environment variable now defaults to Emacs's absolute
-file name, instead of to "t".
-
 ** Occur mode changes:
 
 *** In the *Occur* buffer, `o' switches to it in another window, and
