@@ -2094,7 +2094,17 @@ Here, @var{item-name} is an expression which evaluates to the menu item
 string.  Thus, the string need not be a constant.  The third element,
 @var{real-binding}, is the command to execute.  The tail of the list,
 @var{item-property-list}, has the form of a property list which contains
-other information.  Here is a table of the properties that are supported:
+other information.
+
+  When an equivalent keyboard key binding is cached, the extended menu
+item binding looks like this:
+
+@example
+(menu-item @var{item-name} @var{real-binding} (@var{key-binding-data})
+    . @var{item-property-list})
+@end example
+
+  Here is a table of the properties that are supported:
 
 @table @code
 @item :enable @var{form}
@@ -2179,13 +2189,6 @@ Emacs can call this function at any time that it does redisplay or
 operates on menu data structures, so you should write it so it can
 safely be called at any time.
 @end table
-
-  When an equivalent key binding is cached, the binding looks like this.
-
-@example
-(menu-item @var{item-name} @var{real-binding} (@var{key-binding-data})
-    . @var{item-property-list})
-@end example
 
 @node Menu Separators
 @subsubsection Menu Separators
