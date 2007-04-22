@@ -1,3 +1,7 @@
+2007-04-22  Glenn Morris  <rgm@gnu.org>
+
+	* NEWS: Change to EMACS env-var was reverted, so delete this entry.
+
 2007-04-19  Glenn Morris  <rgm@gnu.org>
 
 	* PROBLEMS: Expand a little on Emacs not knowing fqdn.
