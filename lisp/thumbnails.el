@@ -863,6 +863,9 @@ displayed."
 ;;;###autoload
 (defalias 'thumbnails 'thumbnails-show-all-from-dir)
 
+;;;###autoload
+(defalias 'tumme 'thumbnails-show-all-from-dir)
+
 (defun thumbnails-write-tags (file-tags)
   "Write file tags to database.
 Write each file and tag in FILE-TAGS to the database.  FILE-TAGS
