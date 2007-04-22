@@ -1148,6 +1148,11 @@ If nil, selections displayed but ignored.")
 
 (defvar calc-alg-map) ; Defined in calc-ext.el
 
+(defun calc-version ()
+  "Return version of this version of Calc."
+  (interactive)
+  (message (concat "Calc version " calc-version)))
+
 (defun calc-mode ()
   "Calculator major mode.
 
@@ -1258,8 +1263,7 @@ commands given here will actually operate on the *Calculator* stack."
     (set (make-local-variable 'calc-main-buffer) buf))
   (when (= (buffer-size) 0)
     (let ((buffer-read-only nil))
-      (insert (propertize (concat "Emacs Calculator v" calc-version
-				  " by Dave Gillespie\n")
+      (insert (propertize (concat "Emacs Calculator Trail\n")
 			  'font-lock-face 'italic))))
   (run-mode-hooks 'calc-trail-mode-hook))
 

@@ -85,7 +85,9 @@
 ;;; Code:
 
 (require 'erc)
-(eval-when-compile (require 'cl))
+(eval-when-compile
+  (require 'erc-networks)
+  (require 'cl))
 
 (defgroup erc-log nil
   "Logging facilities for ERC."
@@ -100,10 +102,12 @@ NICK is the current nick,
 SERVER and PORT are the parameters used to connect BUFFERs
 `erc-server-process'."
   :group 'erc-log
-  :type '(choice (const erc-generate-log-file-name-long)
-		 (const erc-generate-log-file-name-short)
-		 (const erc-generate-log-file-name-with-date)
-		 (symbol)))
+  :type '(choice (const :tag "Long style" erc-generate-log-file-name-long)
+		 (const :tag "Long, but with network name rather than server"
+			erc-generate-log-file-name-network)
+		 (const :tag "Short" erc-generate-log-file-name-short)
+		 (const :tag "With date" erc-generate-log-file-name-with-date)
+		 (symbol :tag "Other function")))
 
 (defcustom erc-truncate-buffer-on-save nil
   "Truncate any ERC (channel, query, server) buffer when it is saved."
@@ -197,7 +201,7 @@ also be a predicate function. To only log when you are not set away, use:
 \(setq erc-enable-logging
       (lambda (buffer)
 	(with-current-buffer buffer
-	  (not erc-away))))"
+	  (null (erc-away-time)))))"
   ;; enable
   ((when erc-log-write-after-insert
      (add-hook 'erc-insert-post-hook 'erc-save-buffer-in-logs))
@@ -211,8 +215,7 @@ also be a predicate function. To only log when you are not set away, use:
    ;; append, so that 'erc-initialize-log-marker runs first
    (add-hook 'erc-connect-pre-hook 'erc-log-setup-logging 'append)
    (dolist (buffer (erc-buffer-list))
-     (when (buffer-live-p buffer)
-       (with-current-buffer buffer (erc-log-setup-logging)))))
+     (erc-log-setup-logging buffer)))
   ;; disable
   ((remove-hook 'erc-insert-post-hook 'erc-save-buffer-in-logs)
    (remove-hook 'erc-send-post-hook 'erc-save-buffer-in-logs)
@@ -223,30 +226,38 @@ also be a predicate function. To only log when you are not set away, use:
    (remove-hook 'erc-part-hook 'erc-conditional-save-buffer)
    (remove-hook 'erc-connect-pre-hook 'erc-log-setup-logging)
    (dolist (buffer (erc-buffer-list))
-     (when (buffer-live-p buffer)
-       (with-current-buffer buffer (erc-log-disable-logging))))))
+     (erc-log-disable-logging buffer))))
 
 (define-key erc-mode-map "\C-c\C-l" 'erc-save-buffer-in-logs)
 
 ;;; functionality referenced from erc.el
-(defun erc-log-setup-logging ()
+(defun erc-log-setup-logging (buffer)
   "Setup the buffer-local logging variables in the current buffer.
-This function is destined to be run from `erc-connect-pre-hook'."
-  (when (erc-logging-enabled)
-    (auto-save-mode -1)
-    (setq buffer-file-name nil)
-    (set (make-local-variable 'write-file-functions)
-	 '(erc-save-buffer-in-logs))
-    (when erc-log-insert-log-on-open
-      (ignore-errors (insert-file-contents (erc-current-logfile))
-		     (move-marker erc-last-saved-position
-				  (1- (point-max)))))))
+This function is destined to be run from `erc-connect-pre-hook'.
+The current buffer is given by BUFFER."
+  (when (erc-logging-enabled buffer)
+    (with-current-buffer buffer
+      (auto-save-mode -1)
+      (setq buffer-file-name nil)
+      (cond ((boundp 'write-file-functions)
+	     (set (make-local-variable 'write-file-functions)
+		  '(erc-save-buffer-in-logs)))
+	    ((boundp 'local-write-file-hooks)
+	     (setq local-write-file-hooks '(erc-save-buffer-in-logs)))
+	    (t
+	     (set (make-local-variable 'write-file-hooks)
+		  '(erc-save-buffer-in-logs))))
+      (when erc-log-insert-log-on-open
+	(ignore-errors (insert-file-contents (erc-current-logfile))
+		       (move-marker erc-last-saved-position
+				    (1- (point-max))))))))
 
-(defun erc-log-disable-logging ()
-  "Disable logging in the current buffer."
-  (when (erc-logging-enabled)
-    (setq buffer-offer-save nil
-	  erc-enable-logging nil)))
+(defun erc-log-disable-logging (buffer)
+  "Disable logging in BUFFER."
+  (when (erc-logging-enabled buffer)
+    (with-current-buffer buffer
+      (setq buffer-offer-save nil
+	    erc-enable-logging nil))))
 
 (defun erc-log-all-but-server-buffers (buffer)
   "Returns t if logging should be enabled in BUFFER.
@@ -337,6 +348,19 @@ This function is a possible value for `erc-generate-log-file-name-function'."
 	       nick "@" server ":" (cond ((stringp port) port)
 					 ((numberp port)
 					  (number-to-string port))) ".txt")))
+    ;; we need a make-safe-file-name function.
+    (convert-standard-filename file)))
+
+(defun erc-generate-log-file-name-network (buffer target nick server port)
+  "Generates a log-file name using the network name rather than server name.
+This results in a file name of the form #channel!nick@network.txt.
+This function is a possible value for `erc-generate-log-file-name-function'."
+  (require 'erc-networks)
+  (let ((file (concat
+	       (if target (concat target "!"))
+	       nick "@"
+	       (or (with-current-buffer buffer (erc-network-name)) server)
+	       ".txt")))
     ;; we need a make-safe-file-name function.
     (convert-standard-filename file)))
 

@@ -3618,9 +3618,9 @@ mem_insert (start, end, type)
 {
   struct mem_node *c, *parent, *x;
 
-  if (start < min_heap_address)
+  if (min_heap_address == NULL || start < min_heap_address)
     min_heap_address = start;
-  if (end > max_heap_address)
+  if (max_heap_address == NULL || end > max_heap_address)
     max_heap_address = end;
 
   /* See where in the tree a node for START belongs.  In this

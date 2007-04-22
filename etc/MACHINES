@@ -126,7 +126,7 @@ Apple PowerPC Macintosh running GNU/Linux
   Emacs distribution, and remove the "#if 0" and "#endif" directives
   which surround the following block near the end of the file:
 
-    #if 0  /* This breaks things on PPC GNU/Linux ecept for Yellowdog,
+    #if 0  /* This breaks things on PPC GNU/Linux except for Yellowdog,
 	      even with identical GCC, as, ld.  Let's take it out until we
 	      know what's really going on here.  */
     /* GCC 2.95 and newer on GNU/Linux PPC changed the load address to
@@ -156,9 +156,8 @@ Apollo running X Windows (m68k-apollo-bsd)
   installations may have to edit src/Makefile manually after it is created.
   There are too many versions of both cc and X to automate this easily.
 
-  In `lib-src/Makefile', emacsclient and emacsserver compile and work fine
-  under CC 6.9.  They now probably work under other versions of the compiler,
-  as well.
+  In `lib-src/Makefile', emacsclient compiles and works fine under CC 6.9.
+  It now probably works under other versions of the compiler, as well.
 
   The Apollo Domain CC compiler will issue quite a few warning messages,
   mostly complaining about incompatible pointers.  In general, these are
@@ -1149,7 +1148,9 @@ Sun 3, Sun 4 (sparc), Sun 386 (m68k-sun-sunos, sparc-sun-sunos, i386-sun-sunos,
   On Solaris, do not use /usr/ucb/cc.  Use /opt/SUNWspro/bin/cc.  Make
   sure that /usr/ccs/bin and /opt/SUNWspro/bin are in your PATH before
   /usr/ucb.  (Most free software packages have the same requirement on
-  Solaris.)
+  Solaris.)  With this compiler, use `/opt/SUNWspro/bin/cc -E' as the
+  preprocessor.  If this inserts extra whitespace into its output (see
+  the PROBLEMS file) then add the option `-Xs'.
 
   If you have trouble using open-network-stream, get the distribution
   of `bind' (the BSD name-server), build libresolv.a, and link Emacs
@@ -1393,7 +1394,7 @@ System V rel 3 (usg5.3)
   cannot be made to work.  Whether or not the GNU relocating malloc is
   used, the symptom is that the first call Emacs makes to sbrk(0) returns
   (char *)-1.  Sorry, you're stuck with character-only mode.  Try
-  installing Xfree86 to fix this.
+  installing XFree86 to fix this.
 
 System V rel 4.0.3 and 4.0.4 (usg5.4)
 
@@ -1497,11 +1498,10 @@ Xenix (xenix)
   to make the Emacs meta key work.
 
 Local variables:
-mode: indented-text
+mode: text
 fill-prefix: "  "
 End:
 
-
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify

@@ -78,6 +78,7 @@ does assume a basic familiarity with Emacs Lisp.
 * Old CL Compatibility::        All known differences with old cl.el
 * Porting Common Lisp::         Hints for porting Common Lisp code
 
+* GNU Free Documentation License:: The license for this documentation.
 * Function Index::
 * Variable Index::
 @end menu
@@ -5141,7 +5142,7 @@ older versions of the old package used the unadorned names
 @code{floor}, @code{ceiling}, etc.; @code{cl-compat} cannot use
 these names because they conflict with Emacs built-ins.
 
-@node Porting Common Lisp, Function Index, Old CL Compatibility, Top
+@node Porting Common Lisp, GNU Free Documentation License, Old CL Compatibility, Top
 @appendix Porting Common Lisp
 
 @noindent
@@ -5353,7 +5354,11 @@ note that the current Emacs Lisp compiler does not optimize tail
 recursion.
 @end itemize
 
-@node Function Index, Variable Index, Porting Common Lisp, Top
+@node GNU Free Documentation License, Function Index, Porting Common Lisp, Top
+@appendix GNU Free Documentation License
+@include doclicense.texi
+
+@node Function Index, Variable Index, GNU Free Documentation License, Top
 @unnumbered Function Index
 
 @printindex fn

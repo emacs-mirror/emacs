@@ -233,6 +233,7 @@ for constructs with multiline if/unless/while/until/for/foreach condition."
   "*Indentation of CPerl statements with respect to containing block."
   :type 'integer
   :group 'cperl-indentation-details)
+(put 'cperl-indent-level 'safe-local-variable 'integerp)
 
 (defcustom cperl-lineup-step nil
   "*`cperl-lineup' will always lineup at multiple of this number.
@@ -1871,9 +1872,7 @@ or as help on variables `cperl-tips', `cperl-problems',
       (easy-menu-add cperl-menu))	; A NOP in Emacs.
   (run-mode-hooks 'cperl-mode-hook)
   (if cperl-hook-after-change
-      (progn
-	(make-local-hook 'after-change-functions)
-	(add-hook 'after-change-functions 'cperl-after-change-function nil t)))
+      (add-hook 'after-change-functions 'cperl-after-change-function nil t))
   ;; After hooks since fontification will break this
   (if cperl-pod-here-scan
       (or cperl-syntaxify-by-font-lock

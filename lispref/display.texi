@@ -126,6 +126,7 @@ Returns @code{t} if redisplay was performed, or @code{nil} otherwise.
 @node Truncation
 @section Truncation
 @cindex line wrapping
+@cindex line truncation
 @cindex continuation lines
 @cindex @samp{$} in display
 @cindex @samp{\} in display
@@ -216,6 +217,7 @@ explicitly.
 
 @node Displaying Messages
 @subsection Displaying Messages in the Echo Area
+@cindex display message in echo area
 
   This section describes the functions for explicitly producing echo
 area messages.  Many other Emacs features display messages there, too.
@@ -760,10 +762,9 @@ A character is invisible if its @code{invisible} property value
 is @var{atom} or if it is a list with @var{atom} as a member.
 
 @item (@var{atom} . t)
-A character is invisible if its @code{invisible} property value
-is @var{atom} or if it is a list with @var{atom} as a member.
-Moreover, if this character is at the end of a line and is followed
-by a visible newline, it displays an ellipsis.
+A character is invisible if its @code{invisible} property value is
+@var{atom} or if it is a list with @var{atom} as a member.  Moreover,
+a sequence of such characters displays as an ellipsis.
 @end table
 @end table
 @end defvar
@@ -839,7 +840,7 @@ make it invisible again.
 
 @node Selective Display
 @section Selective Display
-@cindex selective display
+@c @cindex selective display   Duplicates selective-display
 
   @dfn{Selective display} refers to a pair of related features for
 hiding certain lines on the screen.
@@ -1364,7 +1365,7 @@ specify a particular attribute for certain text.  @xref{Face
 Attributes}.
 
 @item
-A cons cell of the form @code{(foreground-color . @var{color-name})} or
+A cons cell, either of the form @code{(foreground-color . @var{color-name})} or
 @code{(background-color . @var{color-name})}.  These elements specify
 just the foreground color or just the background color.
 
@@ -1832,6 +1833,7 @@ frame must match one of the @var{value}s specified for it in
 
 @example
 @group
+(defface region
   '((((class color) (min-colors 88) (background dark))
      :background "blue3")
 @end group
@@ -2501,7 +2503,6 @@ makes @code{modeline} an alias for the @code{mode-line} face.
 @cindex automatic face assignment
 @cindex faces, automatic choice
 
-@cindex Font-Lock mode
   This hook is used for automatically assigning faces to text in the
 buffer.  It is part of the implementation of Font-Lock mode.
 
@@ -2743,7 +2744,7 @@ does that, this function's value may not be accurate.
 
 @node Fringes
 @section Fringes
-@cindex Fringes
+@cindex fringes
 
   The @dfn{fringes} of a window are thin vertical strips down the
 sides that are used for displaying bitmaps that indicate truncation,
@@ -3073,7 +3074,7 @@ bitmap's face controls the color to draw it in.
 
 @node Overlay Arrow
 @subsection The Overlay Arrow
-@cindex overlay arrow
+@c @cindex overlay arrow  Duplicates variable names
 
   The @dfn{overlay arrow} is useful for directing the user's attention
 to a particular line in a buffer.  For example, in the modes used for
@@ -3131,6 +3132,7 @@ is used.
 
 @node Scroll Bars
 @section Scroll Bars
+@cindex scroll bars
 
 Normally the frame parameter @code{vertical-scroll-bars} controls
 whether the windows in the frame have vertical scroll bars, and
@@ -3290,7 +3292,6 @@ display specifications and what they mean.
 @node Specified Space
 @subsection Specified Spaces
 @cindex spaces, specified height or width
-@cindex specified spaces
 @cindex variable-width spaces
 
   To display a space of specified width and/or height, use a display
@@ -3603,7 +3604,7 @@ libraries (though it is not possible to add new image formats).
 
   The supported image formats include XBM, XPM (this requires the
 libraries @code{libXpm} version 3.4k and @code{libz}), GIF (requiring
-@code{libungif} 4.1.0), Postscript, PBM, JPEG (requiring the
+@code{libungif} 4.1.0), PostScript, PBM, JPEG (requiring the
 @code{libjpeg} library version v6a), TIFF (requiring @code{libtiff}
 v3.4), and PNG (requiring @code{libpng} 1.0.2).
 
@@ -3658,7 +3659,7 @@ function always returns @code{t}; for other image types, it returns
 * XBM Images::          Special features for XBM format.
 * XPM Images::          Special features for XPM format.
 * GIF Images::          Special features for GIF format.
-* Postscript Images::   Special features for Postscript format.
+* PostScript Images::   Special features for PostScript format.
 * Other Image Types::   Various other formats are supported.
 * Defining Images::     Convenient ways to define an image for later use.
 * Showing Images::      Convenient ways to display an image once it is defined.
@@ -3980,11 +3981,11 @@ every 0.1 seconds.
     (run-with-timer 0.1 nil 'display-anim buffer file (1+ idx) max nil)))
 @end ignore
 
-@node Postscript Images
-@subsection Postscript Images
-@cindex Postscript images
+@node PostScript Images
+@subsection PostScript Images
+@cindex postscript images
 
-  To use Postscript for an image, specify image type @code{postscript}.
+  To use PostScript for an image, specify image type @code{postscript}.
 This works only if you have Ghostscript installed.  You must always use
 these three properties:
 
@@ -3999,15 +4000,15 @@ The value, @var{height}, specifies the height of the image in points
 
 @item :bounding-box @var{box}
 The value, @var{box}, must be a list or vector of four integers, which
-specifying the bounding box of the Postscript image, analogous to the
-@samp{BoundingBox} comment found in Postscript files.
+specifying the bounding box of the PostScript image, analogous to the
+@samp{BoundingBox} comment found in PostScript files.
 
 @example
 %%BoundingBox: 22 171 567 738
 @end example
 @end table
 
-  Displaying Postscript images from Lisp data is not currently
+  Displaying PostScript images from Lisp data is not currently
 implemented, but it may be implemented by the time you read this.
 See the @file{etc/NEWS} file to make sure.
 
@@ -4137,8 +4138,8 @@ should specify the image as follows:
 This function returns a suitable search path for images used by the
 Lisp package @var{library}.
 
-The function searches for @var{image} first in @code{image-load-path}
-(excluding @file{@code{data-directory}/images}) and then in
+The function searches for @var{image} first using @code{image-load-path},
+excluding @file{@code{data-directory}/images}, and then in
 @code{load-path}, followed by a path suitable for @var{library}, which
 includes @file{../../etc/images} and @file{../etc/images} relative to
 the library file itself, and finally in
@@ -4270,6 +4271,7 @@ cache, it can always be displayed, even if the value of
 
 @node Image Cache
 @subsection Image Cache
+@cindex image cache
 
   Emacs stores images in an image cache when it displays them, so it can
 display them again more efficiently.  It removes an image from the cache
@@ -4297,7 +4299,6 @@ are cleared.
 
 @node Buttons
 @section Buttons
-@cindex buttons
 @cindex buttons in buffers
 @cindex clickable buttons in buffers
 
@@ -4607,15 +4608,11 @@ is skipped over.  Returns the button found.
 @end deffn
 
 @defun next-button pos &optional count-current
-Return the next button after position @var{pos} in the current buffer.
-If @var{count-current} is non-@code{nil}, count any button at
-@var{pos} in the search, instead of starting at the next button.
-@end defun
-
-@defun previous-button pos &optional count-current
-Return the @var{n}th button before position @var{pos} in the current
-buffer.  If @var{count-current} is non-@code{nil}, count any button at
-@var{pos} in the search, instead of starting at the next button.
+@defunx previous-button pos &optional count-current
+Return the next button after (for @code{next-button} or before (for
+@code{previous-button}) position @var{pos} in the current buffer.  If
+@var{count-current} is non-@code{nil}, count any button at @var{pos}
+in the search, instead of starting at the next button.
 @end defun
 
 @node Abstract Display
@@ -4954,9 +4951,8 @@ ewoc is created to be either @code{nil} or an index into the vector
 @node Blinking
 @section Blinking Parentheses
 @cindex parenthesis matching
-@cindex blinking
+@cindex blinking parentheses
 @cindex balancing parentheses
-@cindex close parenthesis
 
   This section describes the mechanism by which Emacs shows a matching
 open parenthesis when the user inserts a close parenthesis.
@@ -5328,7 +5324,7 @@ display by sending @var{string} to the terminal.
 
 @node Beeping
 @section Beeping
-@cindex beeping
+@c  @cindex beeping   "beep" is adjacent
 @cindex bell
 
   This section describes how to make Emacs ring the bell (or blink the

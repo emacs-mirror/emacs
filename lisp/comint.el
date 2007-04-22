@@ -1502,6 +1502,7 @@ Similarly for Soar, Scheme, etc."
   ;; Note that the input string does not include its terminal newline.
   (let ((proc (get-buffer-process (current-buffer))))
     (if (not proc) (error "Current buffer has no process")
+        (widen)
 	(let* ((pmark (process-mark proc))
 	       (intxt (if (>= (point) (marker-position pmark))
 			  (progn (if comint-eol-on-send (end-of-line))
@@ -1646,8 +1647,8 @@ and moves the prompt overlay."
     (let ((inhibit-read-only t)
 	  (inhibit-modification-hooks t))
       (add-text-properties (overlay-start comint-last-prompt-overlay)
-                           (overlay-end comint-last-prompt-overlay)
-                           (overlay-properties comint-last-prompt-overlay)))))
+			   (overlay-end comint-last-prompt-overlay)
+			   (overlay-properties comint-last-prompt-overlay)))))
 
 (defun comint-carriage-motion (start end)
   "Interpret carriage control characters in the region from START to END.
@@ -2593,7 +2594,7 @@ its response can be seen."
 	 (proc-mark (process-mark proc)))
     (display-buffer proc-buf)
     (set-buffer proc-buf) ; but it's not the selected *window*
-    (let ((proc-win (get-buffer-window proc-buf))
+    (let ((proc-win (get-buffer-window proc-buf 0))
 	  (proc-pt (marker-position proc-mark)))
       (comint-send-string proc str) ; send the query
       (accept-process-output proc)  ; wait for some output
@@ -2959,7 +2960,7 @@ See also `comint-dynamic-complete-filename'."
 (defun comint-dynamic-list-completions (completions)
   "List in help buffer sorted COMPLETIONS.
 Typing SPC flushes the help buffer."
-  (let ((window (get-buffer-window "*Completions*")))
+  (let ((window (get-buffer-window "*Completions*" 0)))
     (setq completions (sort completions 'string-lessp))
     (if (and (eq last-command this-command)
 	     window (window-live-p window) (window-buffer window)

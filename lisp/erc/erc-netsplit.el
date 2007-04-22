@@ -184,7 +184,7 @@ join from that split has been detected or not.")
 ;;;###autoload
 (defun erc-cmd-WHOLEFT ()
   "Show who's gone."
-  (with-current-buffer (erc-server-buffer)
+  (erc-with-server-buffer
     (if (null erc-netsplit-list)
 	(erc-display-message
 	 nil 'notice 'active

@@ -433,11 +433,10 @@ The @code{table} argument to @code{translate-region} can no longer be
 a char-table; it has to be a string.
 
 @item
-The two functions @code{merge-coding-systems} and
-@code{decode-coding-inserted-region}, and the variable
-@code{auto-coding-functions}, have been deleted.  The
-@code{mime-text-unsuitable} coding system property no longer has any
-special meaning.
+The variable @code{auto-coding-functions} and the two functions
+@code{merge-coding-systems} and @code{decode-coding-inserted-region}
+have been deleted.  The coding system property
+@code{mime-text-unsuitable} no longer has any special meaning.
 
 @item
 If pure storage overflows while dumping, Emacs won't tell you how much

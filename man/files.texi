@@ -1153,13 +1153,14 @@ recover are present in Emacs buffers.  You should then save them.  Only
 this---saving them---updates the files themselves.
 
 @vindex auto-save-list-file-prefix
-  Emacs records interrupted sessions for later recovery in files named
+  Emacs records information about interrupted sessions for later
+recovery in files named
 @file{~/.emacs.d/auto-save-list/.saves-@var{pid}-@var{hostname}}.  All
-of this name except @file{@var{pid}-@var{hostname}} comes from the
-value of @code{auto-save-list-file-prefix}.  You can record sessions
-in a different place by customizing that variable.  If you set
-@code{auto-save-list-file-prefix} to @code{nil} in your @file{.emacs}
-file, sessions are not recorded for recovery.
+of this name except the @file{@var{pid}-@var{hostname}} part comes
+from the value of @code{auto-save-list-file-prefix}.  You can record
+sessions in a different place by customizing that variable.  If you
+set @code{auto-save-list-file-prefix} to @code{nil} in your
+@file{.emacs} file, sessions are not recorded for recovery.
 
 @node File Aliases
 @section File Name Aliases
@@ -2434,11 +2435,11 @@ contents of the specified file into the current buffer at point,
 leaving point unchanged before the contents and the mark after them.
 
 @findex insert-file-literally
-  @kbd{M-x insert-file-literally} is like @kbd{C-x i}, except it
-inserts the specified file with no conversion of the contents: no
-format conversion (@pxref{Formatted Text}), no character code
-conversion (@pxref{Coding Systems}), and no automatic uncompression
-(@pxref{Compressed Files}).
+  @kbd{M-x insert-file-literally} is like @kbd{M-x insert-file},
+except the file is inserted ``literally'': it is treated as a sequence
+of @acronym{ASCII} characters with no special encoding or conversion,
+similar to the @kbd{M-x find-file-literally} command
+(@pxref{Visiting}).
 
 @findex write-region
   @kbd{M-x write-region} is the inverse of @kbd{M-x insert-file}; it
@@ -2815,13 +2816,8 @@ works only when Emacs can display the specific image type.
 
 @findex thumbs-mode
 @findex mode, thumbs
-  Thumbs mode is a major mode for viewing directories containing many
-image files.  To use it, type @kbd{M-x thumbs} and specify the
-directory to view.  The images in that directory will be displayed in
-a @samp{Thumbs} buffer as @dfn{thumbnails}; type @kbd{RET} on a
-thumbnail to view the full-size image.  Thumbs mode requires the
-@file{convert} program, which is part of the ImageMagick software
-package.
+  See also the Tumme package (@pxref{Thumbnails}) for viewing images
+as thumbnails.
 
 @node Filesets
 @section Filesets

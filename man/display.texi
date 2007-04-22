@@ -333,6 +333,11 @@ those to be created in the future.  (You can also set foreground and
 background colors for the current frame only; see @ref{Frame
 Parameters}.)
 
+  If you want to alter the appearance of all Emacs frames, you need to
+customize the frame parameters in the variable
+@code{default-frame-alist}; see @ref{Creating Frames,
+default-frame-alist}.
+
   Emacs can correctly display variable-width fonts, but Emacs commands
 that calculate width and indentation do not know how to calculate
 variable widths.  This can sometimes lead to incorrect results when
@@ -349,7 +354,9 @@ future Emacs versions.
   To see what faces are currently defined, and what they look like,
 type @kbd{M-x list-faces-display}.  It's possible for a given face to
 look different in different frames; this command shows the appearance
-in the frame in which you type it.
+in the frame in which you type it.  With a prefix argument, this
+prompts for a regular expression, and displays only faces with names
+matching that regular expression.
 
   Here are the standard faces for specifying text appearance.  You can
 apply them to specific text when you want the effects they produce.

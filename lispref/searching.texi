@@ -106,7 +106,7 @@ leaves point at the beginning of the match.
 @end deffn
 
 @deffn Command word-search-forward string &optional limit noerror repeat
-@cindex word search
+@c  @cindex word search   Redundant
 This function searches forward from point for a ``word'' match for
 @var{string}.  If it finds a match, it sets point to the end of the
 match found, and returns the new value of point.
@@ -220,7 +220,7 @@ a regexp is a very powerful operation.  This section explains how to write
 regexps; the following section says how to search for them.
 
 @findex re-builder
-@cindex authoring regular expressions
+@cindex regular expressions, developing
   For convenient interactive development of regular expressions, you
 can use the @kbd{M-x re-builder} command.  It provides a convenient
 interface for creating regular expressions, by giving immediate visual
@@ -309,17 +309,16 @@ first tries to match all three @samp{a}s; but the rest of the pattern is
 The next alternative is for @samp{a*} to match only two @samp{a}s.  With
 this choice, the rest of the regexp matches successfully.
 
-@strong{Warning:} Nested repetition operators take a long time,
-or even forever, if they
-lead to ambiguous matching.  For example, trying to match the regular
-expression @samp{\(x+y*\)*a} against the string
-@samp{xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxz} could take hours before it
-ultimately fails.  Emacs must try each way of grouping the 35
-@samp{x}s before concluding that none of them can work.  Even worse,
-@samp{\(x*\)*} can match the null string in infinitely many ways, so
-it causes an infinite loop.  To avoid these problems, check nested
-repetitions carefully, to make sure that they do not cause combinatorial
-explosions in backtracking.
+@strong{Warning:} Nested repetition operators can run for an
+indefinitely long time, if they lead to ambiguous matching.  For
+example, trying to match the regular expression @samp{\(x+y*\)*a}
+against the string @samp{xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxz} could
+take hours before it ultimately fails.  Emacs must try each way of
+grouping the @samp{x}s before concluding that none of them can work.
+Even worse, @samp{\(x*\)*} can match the null string in infinitely
+many ways, so it causes an infinite loop.  To avoid these problems,
+check nested repetitions carefully, to make sure that they do not
+cause combinatorial explosions in backtracking.
 
 @item @samp{+}
 @cindex @samp{+} in regexp
@@ -1186,6 +1185,7 @@ match data around it, to prevent it from being overwritten.
 
 @node Replacing Match
 @subsection Replacing the Text that Matched
+@cindex replace matched text
 
   This function replaces all or part of the text matched by the last
 search.  It works by means of the match data.
@@ -1543,7 +1543,8 @@ associated with it still exists.
 
 @node Search and Replace
 @section Search and Replace
-@cindex replacement
+@cindex replacement after search
+@cindex searching and replacing
 
   If you want to find all matches for a regexp in part of the buffer,
 and replace them, the best way is to write an explicit loop using

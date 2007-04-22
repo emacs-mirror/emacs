@@ -1448,7 +1448,7 @@ Like @code{lpr-buffer} but print only the current region.
 @findex lpr-buffer
 @findex lpr-region
 @vindex lpr-switches
-  The hardcopy commands (aside from the Postscript commands) pass extra
+  The hardcopy commands (aside from the PostScript commands) pass extra
 switches to the @code{lpr} program based on the value of the variable
 @code{lpr-switches}.  Its value should be a list of strings, each string
 an option starting with @samp{-}.  For example, to specify a line width
@@ -2177,8 +2177,9 @@ also use the command @kbd{M-x scroll-all-mode} or set the variable
 @item EDT (DEC VMS editor)
 @findex edt-emulation-on
 @findex edt-emulation-off
-Turn on EDT emulation with @kbd{M-x edt-emulation-on}.  @kbd{M-x
-edt-emulation-off} restores normal Emacs command bindings.
+Turn on EDT emulation with the command @kbd{M-x edt-emulation-on},
+while @kbd{M-x edt-emulation-off} restores normal Emacs command
+bindings.
 
 Most of the EDT emulation commands are keypad keys, and most standard
 Emacs key bindings are still available.  The EDT emulation rebindings

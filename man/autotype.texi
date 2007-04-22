@@ -101,6 +101,7 @@ completions and expansions of text at point.
 * Tempo::                  Flexible template insertion.
 * Hippie Expand::          Expansion of text trying various methods.
 
+* GNU Free Documentation License:: The license for this documentation.
 * Concept Index::
 * Command Index::
 * Variable Index::
@@ -650,6 +651,9 @@ Typically you would bind @code{hippie-expand} to @kbd{M-/} with
 @code{dabbrev-expand}, the standard binding of @kbd{M-/}, providing one
 of the expansion possibilities.
 
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
+@include doclicense.texi
 
 @node Concept Index
 @unnumbered Concept Index

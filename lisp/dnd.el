@@ -146,7 +146,7 @@ Return nil if URI is not a local file."
 		  (substring uri (match-end 0))))))
     (when (and f must-exist)
       (setq f (replace-regexp-in-string
-	       "%[A-Z0-9][A-Z0-9]"
+	       "%[A-Fa-f0-9][A-Fa-f0-9]"
 	       (lambda (arg)
 		 (format "%c" (string-to-number (substring arg 1) 16)))
 	       f nil t))

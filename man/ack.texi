@@ -1310,7 +1310,7 @@ support.
 
 @item
 Jim Thompson wrote @file{ps-print.el}, which converts
-Emacs text to Postscript.
+Emacs text to PostScript.
 
 @item
 Tom Tromey and Chris Lindblad wrote @file{tcl.el}, a major mode for

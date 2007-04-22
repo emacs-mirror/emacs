@@ -144,7 +144,7 @@ For example, \"2\" for /dev/tty2."
 	 (event (if w
 		    (posn-at-x-y (- x left) (- y top) w t)
 		  (append (list nil 'menu-bar)
-			  (nthcdr 2 (posn-at-x-y x y w t))))))
+			  (nthcdr 2 (posn-at-x-y x y))))))
     (setcar (nthcdr 3 event) time)
     event))
 

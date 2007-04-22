@@ -77,6 +77,7 @@ To report bugs, send email to @email{jyavner@@member.fsf.org}.
 * For Gurus::                   Want to know @emph{even more}?
 * Index::                       Concept, Function and Variable Index
 * Acknowledgements::            Acknowledgements
+* GNU Free Documentation License:: The license for this documentation.
 @end menu
 
 @c ===================================================================
@@ -929,7 +930,7 @@ cell.
 
 @c ===================================================================
 
-@node Acknowledgements, , Index, Top
+@node Acknowledgements, GNU Free Documentation License, Index, Top
 @chapter Acknowledgements
 
 Coding by:
@@ -969,6 +970,10 @@ Jean-Philippe Theberge @email{jphil@@acs.pagesjaunes.fr}
 @end quotation
 
 @c ===================================================================
+
+@node GNU Free Documentation License, , Acknowledgements, Top
+@appendix GNU Free Documentation License
+@include doclicense.texi
 
 @bye
 

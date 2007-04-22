@@ -1000,7 +1000,8 @@ Stop at the first and last subheadings of a superior heading."
 	  (error "No following same-level heading"))))))
 
 (defun outline-get-next-sibling ()
-  "Move to next heading of the same level, and return point or nil if none."
+  "Move to next heading of the same level, and return point.
+If there is no such heading, return nil."
   (let ((level (funcall outline-level)))
     (outline-next-visible-heading 1)
     (while (and (not (eobp)) (> (funcall outline-level) level))
@@ -1026,15 +1027,18 @@ Stop at the first and last subheadings of a superior heading."
 	  (error "No previous same-level heading"))))))
 
 (defun outline-get-last-sibling ()
-  "Move to previous heading of the same level, and return point or nil if none."
-  (let ((level (funcall outline-level)))
+  "Move to previous heading of the same level, and return point.
+If there is no such heading, return nil."
+  (let ((opoint (point))
+	(level (funcall outline-level)))
     (outline-previous-visible-heading 1)
-    (while (and (> (funcall outline-level) level)
-		(not (bobp)))
-      (outline-previous-visible-heading 1))
-    (if (< (funcall outline-level) level)
-	nil
-        (point))))
+    (when (and (/= (point) opoint) (outline-on-heading-p))
+      (while (and (> (funcall outline-level) level)
+		  (not (bobp)))
+	(outline-previous-visible-heading 1))
+      (if (< (funcall outline-level) level)
+	  nil
+        (point)))))
 
 (defun outline-headers-as-kill (beg end)
   "Save the visible outline headers in region at the start of the kill ring.

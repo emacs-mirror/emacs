@@ -953,9 +953,11 @@ EmacsFrameSetCharSize (widget, columns, rows)
 	 Xt when the default font is changed.  Tell Xt not to wait,
 	 depending on the value of the frame parameter
 	 `wait-for-wm'.  */
+      x_catch_errors (FRAME_X_DISPLAY (f));
       XtVaSetValues (f->output_data.x->widget,
 		     XtNwaitForWm, (XtArgVal) f->output_data.x->wait_for_wm,
 		     NULL);
+      x_uncatch_errors ();
 
       /* Workaround: When a SIGIO or SIGALRM occurs while Xt is
 	 waiting for a ConfigureNotify event (see above), this leads
@@ -972,6 +974,7 @@ EmacsFrameSetCharSize (widget, columns, rows)
 	 as is because I think it can't do any harm.  */
       /* In April 2002, simon.marshall@misys.com reports the problem
 	 seems not to occur any longer.  */
+      x_catch_errors (FRAME_X_DISPLAY (f));
       XtVaSetValues (f->output_data.x->widget,
       		     XtNheight, (XtArgVal) (outer_widget_height + hdelta),
 		     XtNwidth, (XtArgVal) (outer_widget_width + wdelta),
@@ -984,6 +987,8 @@ EmacsFrameSetCharSize (widget, columns, rows)
                      XtNheight, (XtArgVal) pixel_height,
       		     XtNwidth, (XtArgVal) pixel_width,
 		     NULL);
+      x_uncatch_errors ();
+
 #ifdef SIGIO
       sigunblock (sigmask (SIGIO));
 #endif

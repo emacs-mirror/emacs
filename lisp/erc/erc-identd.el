@@ -42,12 +42,26 @@
 
 (defvar erc-identd-process nil)
 
+(defgroup erc-identd nil
+  "Run a local identd server."
+  :group 'erc)
+
+(defcustom erc-identd-port 8113
+  "Port to run the identd server on if not specified in the argument for
+`erc-identd-start'.
+
+This can be either a string or a number."
+  :group 'erc-identd
+  :type '(choice (const :tag "None" nil)
+		 (integer :tag "Port number")
+		 (string :tag "Port string")))
+
 ;;;###autoload (autoload 'erc-identd-mode "erc-identd")
 (define-erc-module identd nil
   "This mode launches an identd server on port 8113."
-  ((add-hook 'erc-connect-pre-hook 'erc-identd-start)
+  ((add-hook 'erc-connect-pre-hook 'erc-identd-quickstart)
    (add-hook 'erc-disconnected-hook 'erc-identd-stop))
-  ((remove-hook 'erc-connect-pre-hook 'erc-identd-start)
+  ((remove-hook 'erc-connect-pre-hook 'erc-identd-quickstart)
    (remove-hook 'erc-disconnected-hook 'erc-identd-stop)))
 
 (defun erc-identd-filter (proc string)
@@ -71,12 +85,11 @@ run from inetd.  The idea is to provide a simple identd server
 when you need one, without having to install one globally on your
 system."
   (interactive (list (read-string "Serve identd requests on port: " "8113")))
-  (if (null port)
-      (setq port 8113)
-    (if (stringp port)
-	(setq port (string-to-number port))))
-  (if erc-identd-process
-      (delete-process erc-identd-process))
+  (unless port (setq port erc-identd-port))
+  (when (stringp port)
+    (setq port (string-to-number port)))
+  (when erc-identd-process
+    (delete-process erc-identd-process))
   (setq erc-identd-process
 	(make-network-process :name "identd"
 			      :buffer nil
@@ -84,6 +97,11 @@ system."
 			      :server t :noquery t :nowait t
 			      :filter 'erc-identd-filter))
   (set-process-query-on-exit-flag erc-identd-process nil))
+
+(defun erc-identd-quickstart (&rest ignored)
+  "Start the identd server with the default port.
+The default port is specified by `erc-identd-port'."
+  (erc-identd-start))
 
 ;;;###autoload
 (defun erc-identd-stop (&rest ignore)

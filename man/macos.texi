@@ -319,8 +319,9 @@ by the name:
 -apple-monaco-medium-r-normal--12-*-*-*-*-*-iso10646-1
 @end example
 
-Note that it must be specified in a format containing 14 @samp{-}s
-(e.g., not by @samp{-apple-monaco-medium-r-normal--12-*-iso10646-1}),
+Note that these names must be specified using a format containing all
+14 @samp{-}s (not by
+@samp{-apple-monaco-medium-r-normal--12-*-iso10646-1}, for instance),
 because every @acronym{ATSUI}-compatible font is a scalable one.
 
   QuickDraw Text fonts have maker name @code{apple} and various charset
@@ -340,7 +341,7 @@ font for Latin-1 characters introduces wrong glyphs.
 
   Native Apple Traditional Chinese, Simplified Chinese, Japanese,
 Korean, Central European, Cyrillic, Symbol, and Dingbats fonts have
-charsets @samp{big5-0}, @samp{gb2312.1980-0},
+the charsets @samp{big5-0}, @samp{gb2312.1980-0},
 @samp{jisx0208.1983-sjis} and @samp{jisx0201.1976-0},
 @samp{ksc5601.1989-0}, @samp{mac-centraleurroman},
 @samp{mac-cyrillic}, @samp{mac-symbol}, and @samp{mac-dingbats},
@@ -380,6 +381,17 @@ such versions.  It can be changed by setting
 @code{mac-allow-anti-aliasing} to @code{t} (Quartz 2D) or @code{nil}
 (QuickDraw).  Both @acronym{ATSUI} and QuickDraw Text drawings are
 affected by the value of this variable.
+
+  Appearance of text in small sizes will also be affected by the ``Turn
+off text smoothing for font sizes @var{n} and smaller'' setting in the
+General pane (Mac OS X 10.1 or 10.2) or in the Appearance pane (10.3 or
+later) of the System Preferences.  This threshold can alternatively be
+set just for Emacs (i.e., not as the system-wide setting) using the
+@command{defaults} command:
+
+@example
+defaults write org.gnu.Emacs AppleAntiAliasingThreshold @var{n}
+@end example
 
 
 @node Mac Functions

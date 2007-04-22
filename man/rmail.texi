@@ -107,6 +107,8 @@ Scroll forward (@code{scroll-up}).
 Scroll backward (@code{scroll-down}).
 @item .
 Scroll to start of message (@code{rmail-beginning-of-message}).
+@item /
+Scroll to end of message (@code{rmail-end-of-message}).
 @end table
 
 @kindex SPC @r{(Rmail)}
@@ -116,11 +118,15 @@ through it by screenfuls, Rmail makes @key{SPC} and @key{DEL} synonyms of
 @kbd{C-v} (@code{scroll-up}) and @kbd{M-v} (@code{scroll-down})
 
 @kindex . @r{(Rmail)}
+@kindex / @r{(Rmail)}
 @findex rmail-beginning-of-message
+@findex rmail-end-of-message
   The command @kbd{.} (@code{rmail-beginning-of-message}) scrolls back to the
 beginning of the selected message.  This is not quite the same as @kbd{M-<}:
 for one thing, it does not set the mark; for another, it resets the buffer
-boundaries to the current message if you have changed them.
+boundaries to the current message if you have changed them.  Similarly,
+the command @kbd{/} (@code{rmail-end-of-message}) scrolls forward to the end
+of the selected message.
 
 @node Rmail Motion
 @section Moving Among Messages
@@ -1376,9 +1382,10 @@ then Rmail will ask you for the password to use.
 Otherwise, Rmail assumes no password is required.
 @end enumerate
 
-  For compatibility with previous versions, @code{rmail-pop-password}
-and @code{rmail-pop-password-required} may be used instead of
-@code{rmail-remote-password} and @code{rmail-remote-password-required}.
+  For compatibility with previous versions, the variables
+@code{rmail-pop-password} and @code{rmail-pop-password-required} may
+be used instead of @code{rmail-remote-password} and
+@code{rmail-remote-password-required}.
 
 @vindex rmail-movemail-flags
   If you need to pass additional command-line flags to @code{movemail},

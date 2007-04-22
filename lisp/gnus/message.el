@@ -226,7 +226,7 @@ Also see `message-required-news-headers' and
   "*Headers to be generated or prompted for when posting an article.
 RFC977 and RFC1036 require From, Date, Newsgroups, Subject,
 Message-ID.  Organization, Lines, In-Reply-To, Expires, and
-User-Agent are optional.  If don't you want message to insert some
+User-Agent are optional.  If you don't want message to insert some
 header, remove it from this list."
   :group 'message-news
   :group 'message-headers
@@ -433,16 +433,36 @@ nil means let mailer mail back a message to report errors."
   :type 'boolean)
 
 (defcustom message-generate-new-buffers 'unique
-  "*Non-nil means create a new message buffer whenever `message-setup' is called.
-If this is a function, call that function with three parameters:  The type,
-the to address and the group name.  (Any of these may be nil.)  The function
-should return the new buffer name."
+  "*Say whether to create a new message buffer to compose a message.
+Valid values include:
+
+nil
+  Generate the buffer name in the Message way (e.g., *mail*, *news*,
+  *mail to whom*, *news on group*, etc.) and continue editing in the
+  existing buffer of that name.  If there is no such buffer, it will
+  be newly created.
+
+`unique' or t
+  Create the new buffer with the name generated in the Message way.
+
+`unsent'
+  Similar to `unique' but the buffer name begins with \"*unsent \".
+
+`standard'
+  Similar to nil but the buffer name is simpler like *mail message*.
+
+function
+  If this is a function, call that function with three parameters:
+  The type, the To address and the group name (any of these may be nil).
+  The function should return the new buffer name."
   :group 'message-buffers
   :link '(custom-manual "(message)Message Buffers")
-  :type '(choice (const :tag "off" nil)
-		 (const :tag "unique" unique)
-		 (const :tag "unsent" unsent)
-		 (function fun)))
+  :type '(choice (const nil)
+		 (sexp :tag "unique" :format "unique\n" :value unique
+		       :match (lambda (widget value) (memq value '(unique t))))
+		 (const unsent)
+		 (const standard)
+		 (function :format "\n    %{%t%}: %v")))
 
 (defcustom message-kill-buffer-on-exit nil
   "*Non-nil means that the message buffer will be killed after sending a message."
@@ -1622,7 +1642,8 @@ functionality to work."
   (autoload 'rmail-output "rmailout")
   (autoload 'gnus-delay-article "gnus-delay")
   (autoload 'gnus-make-local-hook "gnus-util")
-  (autoload 'gnus-extract-address-components "gnus-util"))
+  (autoload 'gnus-extract-address-components "gnus-util")
+  (autoload 'gnus-select-frame-set-input-focus "gnus-util"))
 
 
 
@@ -3325,12 +3346,16 @@ prefix, and don't delete any headers."
       (delete-windows-on message-reply-buffer t)
       (push-mark (save-excursion
 		   (insert-buffer-substring message-reply-buffer)
+		   (unless (bolp)
+		     (insert ?\n))
 		   (point)))
       (unless arg
-	(funcall message-cite-function))
-      (message-exchange-point-and-mark)
-      (unless (bolp)
-	(insert ?\n))
+	(funcall message-cite-function)
+	(unless (eq (char-before (mark t)) ?\n)
+	  (let ((pt (point)))
+	    (goto-char (mark t))
+	    (insert-before-markers ?\n)
+	    (goto-char pt))))
       (unless modified
 	(setq message-checksum (message-checksum))))))
 
@@ -5501,7 +5526,7 @@ between beginning of field and beginning of line."
   "Return a new (unique) buffer name based on TYPE and TO."
   (cond
    ;; Generate a new buffer name The Message Way.
-   ((eq message-generate-new-buffers 'unique)
+   ((memq message-generate-new-buffers '(unique t))
     (generate-new-buffer-name
      (concat "*" type
 	     (if to
@@ -5525,20 +5550,51 @@ between beginning of field and beginning of line."
 	       "")
 	     (if (and group (not (string= group ""))) (concat " on " group) "")
 	     "*")))
-   ;; Use standard name.
+   ;; Search for the existing message buffer with the specified name.
    (t
-    (format "*%s message*" type))))
+    (let* ((new (if (eq message-generate-new-buffers 'standard)
+		    (generate-new-buffer-name (concat "*" type " message*"))
+		  (let ((message-generate-new-buffers 'unique))
+		    (message-buffer-name type to group))))
+	   (regexp (concat "\\`"
+			   (regexp-quote
+			    (if (string-match "<[0-9]+>\\'" new)
+				(substring new 0 (match-beginning 0))
+			      new))
+			   "\\(?:<\\([0-9]+\\)>\\)?\\'"))
+	   (case-fold-search nil))
+      (or (cdar
+	   (last
+	    (sort
+	     (delq nil
+		   (mapcar
+		    (lambda (b)
+		      (when (and (string-match regexp (setq b (buffer-name b)))
+				 (eq (with-current-buffer b major-mode)
+				     'message-mode))
+			(cons (string-to-number (or (match-string 1 b) "1"))
+			      b)))
+		    (buffer-list)))
+	     'car-less-than-car)))
+	  new)))))
 
 (defun message-pop-to-buffer (name)
   "Pop to buffer NAME, and warn if it already exists and is modified."
   (let ((buffer (get-buffer name)))
     (if (and buffer
 	     (buffer-name buffer))
-	(progn
-	  (set-buffer (pop-to-buffer buffer))
+	(let ((window (get-buffer-window buffer 0)))
+	  (if window
+	      ;; Raise the frame already displaying the message buffer.
+	      (progn
+		(gnus-select-frame-set-input-focus (window-frame window))
+		(select-window window))
+	    (set-buffer (pop-to-buffer buffer)))
 	  (when (and (buffer-modified-p)
-		     (not (y-or-n-p
-			   "Message already being composed; erase? ")))
+		     (not (prog1
+			      (y-or-n-p
+			       "Message already being composed; erase? ")
+			    (message nil))))
 	    (error "Message being composed")))
       (set-buffer (pop-to-buffer name)))
     (erase-buffer)
@@ -5598,7 +5654,8 @@ between beginning of field and beginning of line."
 	nil
       mua)))
 
-(defun message-setup (headers &optional replybuffer actions switch-function)
+(defun message-setup (headers &optional replybuffer actions
+			      continue switch-function)
   (let ((mua (message-mail-user-agent))
 	subject to field yank-action)
     (if (not (and message-this-is-mail mua))
@@ -5621,7 +5678,7 @@ between beginning of field and beginning of line."
 				 (format "%s" (car item))
 				 (cdr item)))
 			      headers)
-		      nil switch-function yank-action actions)))))
+		      continue switch-function yank-action actions)))))
 
 (defun message-headers-to-generate (headers included-headers excluded-headers)
   "Return a list that includes all headers from HEADERS.
@@ -5770,11 +5827,21 @@ are not included."
 			       other-headers continue switch-function
 			       yank-action send-actions)
   "Start editing a mail message to be sent.
-OTHER-HEADERS is an alist of header/value pairs."
+OTHER-HEADERS is an alist of header/value pairs.  CONTINUE says whether
+to continue editing a message already being composed.  SWITCH-FUNCTION
+is a function used to switch to and display the mail buffer."
   (interactive)
   (let ((message-this-is-mail t) replybuffer)
     (unless (message-mail-user-agent)
-      (message-pop-to-buffer (message-buffer-name "mail" to)))
+      (funcall
+       (or switch-function 'message-pop-to-buffer)
+       ;; Search for the existing message buffer if `continue' is non-nil.
+       (let ((message-generate-new-buffers
+	      (when (or (not continue)
+			(eq message-generate-new-buffers 'standard)
+			(functionp message-generate-new-buffers))
+		message-generate-new-buffers)))
+	 (message-buffer-name "mail" to))))
     ;; FIXME: message-mail should do something if YANK-ACTION is not
     ;; insert-buffer.
     (and (consp yank-action) (eq (car yank-action) 'insert-buffer)
@@ -5783,7 +5850,7 @@ OTHER-HEADERS is an alist of header/value pairs."
      (nconc
       `((To . ,(or to "")) (Subject . ,(or subject "")))
       (when other-headers other-headers))
-     replybuffer send-actions)
+     replybuffer send-actions continue switch-function)
     ;; FIXME: Should return nil if failure.
     t))
 
@@ -6655,7 +6722,7 @@ you."
       (message-pop-to-buffer (message-buffer-name "mail" to))))
   (let ((message-this-is-mail t))
     (message-setup `((To . ,(or to "")) (Subject . ,(or subject "")))
-		   nil nil 'switch-to-buffer-other-window)))
+		   nil nil nil 'switch-to-buffer-other-window)))
 
 ;;;###autoload
 (defun message-mail-other-frame (&optional to subject)
@@ -6670,7 +6737,7 @@ you."
       (message-pop-to-buffer (message-buffer-name "mail" to))))
   (let ((message-this-is-mail t))
     (message-setup `((To . ,(or to "")) (Subject . ,(or subject "")))
-		   nil nil 'switch-to-buffer-other-frame)))
+		   nil nil nil 'switch-to-buffer-other-frame)))
 
 ;;;###autoload
 (defun message-news-other-window (&optional newsgroups subject)

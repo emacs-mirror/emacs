@@ -364,30 +364,38 @@ Return the result of the last expression in BODY."
 
 (defun edebug-pop-to-buffer (buffer &optional window)
   ;; Like pop-to-buffer, but select window where BUFFER was last shown.
-  ;; Select WINDOW if it provided and it still exists.  Otherwise,
+  ;; Select WINDOW if it is provided and still exists.  Otherwise,
   ;; if buffer is currently shown in several windows, choose one.
   ;; Otherwise, find a new window, possibly splitting one.
-  (setq window (if (and (windowp window) (edebug-window-live-p window)
-			(eq (window-buffer window) buffer))
-		   window
-		 (if (eq (window-buffer (selected-window)) buffer)
-		     (selected-window)
-		   (edebug-get-buffer-window buffer))))
-  (if window
-      (select-window window)
-    (if (one-window-p)
-	(split-window))
-    ;;      (message "next window: %s" (next-window)) (sit-for 1)
-    (if (eq (get-buffer-window edebug-trace-buffer) (next-window))
-	;; Don't select trace window
-	nil
-      (select-window (next-window))))
-  (set-window-buffer (selected-window) buffer)
-  (set-window-hscroll (selected-window) 0);; should this be??
+  (setq window
+	(cond
+	 ((and (windowp window) (edebug-window-live-p window)
+	       (eq (window-buffer window) buffer))
+	  window)
+	 ((eq (window-buffer (selected-window)) buffer)
+	  ;; Selected window already displays BUFFER.
+	  (selected-window))
+	 ((edebug-get-buffer-window buffer))
+	 ((one-window-p 'nomini)
+	  ;; When there's one window only, split it.
+	  (split-window))
+	 ((let ((trace-window (get-buffer-window edebug-trace-buffer)))
+	    (catch 'found
+	      (dolist (elt (window-list nil 'nomini))
+		(unless (or (eq elt (selected-window)) (eq elt trace-window)
+			    (window-dedicated-p elt))
+		  ;; Found a non-dedicated window not showing
+		  ;; `edebug-trace-buffer', use it.
+		  (throw 'found elt))))))
+	 ;; All windows are dedicated or show `edebug-trace-buffer', split
+	 ;; selected one.
+	 (t (split-window))))
+  (select-window window)
+  (set-window-buffer window buffer)
+  (set-window-hscroll window 0);; should this be??
   ;; Selecting the window does not set the buffer until command loop.
   ;;(set-buffer buffer)
   )
-
 
 (defun edebug-get-displayed-buffer-points ()
   ;; Return a list of buffer point pairs, for all displayed buffers.
@@ -2755,7 +2763,8 @@ MSG is printed after `::::} '."
 	      )				; if edebug-save-windows
 
 	    ;; Restore current buffer always, in case application needs it.
-	    (set-buffer edebug-outside-buffer)
+	    (if (buffer-name edebug-outside-buffer)
+		(set-buffer edebug-outside-buffer))
 	    ;; Restore point, and mark.
 	    ;; Needed even if restoring windows because
 	    ;; that doesn't restore point and mark in the current buffer.

@@ -1,3 +1,186 @@
+2007-04-15  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Title page): Remove the date.
+	(Basic Arithmetic): Emphasize that / binds less strongly than *.
+	(The Standard Calc Interface): Change trail title.
+	(Floats): Mention that when non-decimal floats are entered, only
+	approximations are stored.
+	(Copying): Move to the appendices.
+	(GNU Free Documentation License): Add as an appendix.
+
+2007-04-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ada-mode.texi, autotype.texi, cc-mode.texi, cl.texi:
+	* dired-x.texi, ebrowse.texi, ediff.texi:
+	* emacs-mime.texi, erc.texi, eshell.texi:
+	* eudc.texi, flymake.texi, forms.texi, gnus.texi:
+	* idlwave.texi, message.texi, newsticker.texi, org.texi:
+	* pcl-cvs.texi, pgg.texi, rcirc.texi, reftex.texi, sc.texi:
+	* ses.texi, sieve.texi, smtpmail.texi, speedbar.texi:
+	* tramp.texi, url.texi, vip.texi, viper.texi, widget.texi:
+	* woman.texi: Include GFDL.
+
+	* doclicense.texi: Remove node heading, so that it can be included by
+	other files.
+
+	* emacs.texi: Insert node heading for GFDL.
+
+	* dired-x.texi: Relicence under GFDL.  Remove date from title page.
+	
+	* calc.texi (Algebraic Tutorial): Emphasize that / binds less strongly
+	than *.
+
+2007-04-14  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Formula syntax for Calc): Emphasize the operator precedence
+	in Calc.
+
+2007-04-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* cmdargs.texi (Colors): Qualify "color of window" index entry by
+	"command line".
+
+	* display.texi (Faces): Refer to "Creating Frames" for face
+	and other frame customizations in .emacs.
+
+	* frames.texi (Creating Frames): Mention that face customizations can
+	be put in .emacs.  Add index entries.
+
+2007-04-12  Richard Stallman  <rms@gnu.org>
+
+	* glossary.texi (Glossary): Explain `iff'.
+
+2007-04-11  Karl Berry  <karl@gnu.org>
+
+	* gnu.texi (Top),
+	* macos.texi (Mac Font Specs),
+	* anti.texi (Antinews),
+	* xresources.texi (Resources),
+	* misc.texi (Emulation),
+	* calendar.texi (Daylight Saving),
+	* dired.texi (Dired and Find),
+	* rmail.texi (Remote Mailboxes),
+	* sending.texi (Mail Headers),
+	* programs.texi (Which Function),
+	* files.texi (Recover),
+	* buffers.texi (Uniquify),
+	* frames.texi (Wheeled Mice),
+	* killing.texi (Rectangles): Wording to improve breaks in
+	8.5x11 format.
+	* mule.texi (Language Environments): \hbadness=10000 since there's
+	no way to reword.
+	* emacs.texi (smallbook): new @set to more easily switch between
+	smallbook and 8.5x11.
+
+2007-04-11  Richard Stallman  <rms@gnu.org>
+
+	* files.texi (File Conveniences): Add xref to Tumme.
+	Delete text about Thumbnail mode.
+
+2007-04-09  Romain Francoise  <romain@orebokech.com>
+
+	* faq.texi (New in Emacs 22): Mention improvements to the Windows and
+	Mac OS ports.  Make it clear that mouse-1 complements and doesn't
+	replace mouse-2.
+
+2007-04-09  Alan Mackenzie  <acm@muc.de>
+
+	* cmdargs.texi (Initial Options): Call "inhibit-splash-screen" by its
+	new name.  Insert concept index entries.
+
+2007-04-08  Richard Stallman  <rms@gnu.org>
+
+	* url.texi: Fix some indexing.
+	(Disk Caching): Drop discussion of old/other Emacs versions.
+
+2007-04-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Standard Faces): Document prefix arg for
+	list-faces-display.
+
+	* rmail.texi (Rmail Scrolling): Document rmail-end-of-message.
+
+	* woman.texi (Word at point, Interface Options): woman-topic-at-point
+	renamed to woman-use-topic-at-point.  Document new behavior.
+
+2007-04-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* url.texi (Disk Caching): Say Emacs 21 "and later".
+
+	* cc-mode.texi (Font Locking Preliminaries): Link to Emacs manual node
+	on Font locking which now mentions JIT lock.
+
+	* killing.texi (Deletion): Rewrite description of M-\ prefix argument.
+
+	* files.texi (Misc File Ops): Rewrite description of
+	insert-file-literally.
+
+2007-04-01  Michael Olson  <mwolson@gnu.org>
+
+	* erc.texi: Update for the ERC 5.2 release.
+
+2007-03-31  David Kastrup  <dak@gnu.org>
+
+	* woman.texi (Topic, Interface Options): Explain changes semantics of
+	woman-manpath in order to consider MANPATH_MAP entries.
+
+2007-03-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* misc.texi (Printing): Postscript -> PostScript.
+
+	* emacs-mime.texi (Non-MIME): Postscript -> PostScript.
+
+	* ack.texi (Acknowledgments): Postscript -> PostScript.
+
+	* custom.texi (Init File, Init Non-ASCII): Fix last change.
+
+	* emacs.texi (Top): Fix the menu due to the change in custom.texi
+	below.
+
+2007-03-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.texi (Non-ASCII Rebinding): Node deleted.  Material moved to
+	Init Non-ASCII.
+	(Init Rebinding, Init Syntax): Link to Init Non-ASCII instead.
+	(Init Non-ASCII): New node.
+
+2007-03-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macos.texi (Mac Font Specs): Mention AppleAntiAliasingThreshold.
+
+2007-03-26  Richard Stallman  <rms@gnu.org>
+
+	* pgg.texi (Caching passphrase): Clean up previous change.
+
+2007-03-25  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* gnus.texi (Setting Process Marks): Fix typo.
+
+2007-03-25  Romain Francoise  <romain@orebokech.com>
+
+	* faq.texi (New in Emacs 22): Reorganize using an itemized list for
+	readability, and include various fixes by Daniel Brockman, Nick Roberts
+	and Dieter Wilhelm.
+
+2007-03-24  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* gnus.texi (Splitting Mail): Reword "splitting"-as-adj to be -as-noun.
+
+	* gnus.texi (Mail Source Specifiers): Fix typo.
+
+2007-03-22  Ralf Angeli  <angeli@caeruleus.net>
+
+	* reftex.texi (Imprint): Update maintainer information.
+
+2007-03-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.texi (Message Buffers): Update documentation for
+	message-generate-new-buffers.
+
+2007-03-15  Daiki Ueno  <ueno@unixuser.org>
+
+	* pgg.texi (Caching passphrase): Describe pgg-passphrase-coding-system.
+
 2007-03-21  Glenn Morris  <rgm@gnu.org>
 
 	* eshell.texi (Known problems): Emacs 22 comes with eshell 2.4.2.

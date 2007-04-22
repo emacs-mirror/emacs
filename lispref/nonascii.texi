@@ -7,6 +7,7 @@
 @node Non-ASCII Characters, Searching and Matching, Text, Top
 @chapter Non-@acronym{ASCII} Characters
 @cindex multibyte characters
+@cindex characters, multi-byte
 @cindex non-@acronym{ASCII} characters
 
   This chapter covers the special issues relating to non-@acronym{ASCII}
@@ -374,7 +375,7 @@ This command displays a list of characters in the character set
 @section Characters and Bytes
 @cindex bytes and characters
 
-@cindex introduction sequence
+@cindex introduction sequence (of character)
 @cindex dimension (of character set)
   In multibyte representation, each character occupies one or more
 bytes.  Each character set has an @dfn{introduction sequence}, which is
@@ -407,6 +408,7 @@ set's introduction sequence:
 
 @node Splitting Characters
 @section Splitting Characters
+@cindex character as bytes
 
   The functions in this section convert between characters and the byte
 values used to represent them.  For most purposes, there is no need to
@@ -432,6 +434,7 @@ returns a list consisting of the symbol @code{unknown} and @var{character}.
 @end example
 @end defun
 
+@cindex generate characters in charsets
 @defun make-char charset &optional code1 code2
 This function returns the character in character set @var{charset} whose
 position codes are @var{code1} and @var{code2}.  This is roughly the
@@ -655,7 +658,9 @@ coding system, you'll get Unicode characters (of charset
 @code{iso-latin-2} and decode the result with the same coding system,
 you'll get Latin-2 characters.
 
-@cindex end of line conversion
+@cindex EOL conversion
+@cindex end-of-line conversion
+@cindex line end conversion
   @dfn{End of line conversion} handles three different conventions used
 on various systems for representing end of line in files.  The Unix
 convention is to use the linefeed character (also called newline).  The
@@ -808,9 +813,6 @@ If that is valid, it returns @var{coding-system}.
 Otherwise it signals an error with condition @code{coding-system-error}.
 @end defun
 
-@cindex EOL conversion
-@cindex end-of-line conversion
-@cindex line end conversion
 @defun coding-system-eol-type coding-system
 This function returns the type of end-of-line (a.k.a.@: @dfn{eol})
 conversion used by @var{coding-system}.  If @var{coding-system}
@@ -1103,11 +1105,11 @@ for decoding (in case @var{operation} does decoding), and
 @var{encoding-system} is the coding system for encoding (in case
 @var{operation} does encoding).
 
-The argument @var{operation} should be a symbol, any one of
-@code{insert-file-contents}, @code{write-region},
+The argument @var{operation} is a symbol, one of @code{write-region},
 @code{start-process}, @code{call-process}, @code{call-process-region},
-or @code{open-network-stream}.  These are the names of the Emacs I/O
-primitives that can do character code and eol conversion.
+@code{insert-file-contents}, or @code{open-network-stream}.  These are
+the names of the Emacs I/O primitives that can do character code and
+eol conversion.
 
 The remaining arguments should be the same arguments that might be given
 to the corresponding I/O primitive.  Depending on the primitive, one
@@ -1163,9 +1165,9 @@ of the right way to use the variable:
   (insert-file-contents filename))
 @end example
 
-When its value is non-@code{nil}, @code{coding-system-for-read} takes
-precedence over all other methods of specifying a coding system to use for
-input, including @code{file-coding-system-alist},
+When its value is non-@code{nil}, this variable takes precedence over
+all other methods of specifying a coding system to use for input,
+including @code{file-coding-system-alist},
 @code{process-coding-system-alist} and
 @code{network-coding-system-alist}.
 @end defvar
@@ -1190,8 +1192,8 @@ decoding functions (@pxref{Explicit Encoding}).
 
 @node Explicit Encoding
 @subsection Explicit Encoding and Decoding
-@cindex encoding text
-@cindex decoding text
+@cindex encoding in coding systems
+@cindex decoding in coding systems
 
   All the operations that transfer text in and out of Emacs have the
 ability to use a coding system to encode or decode the text.

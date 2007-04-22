@@ -255,6 +255,7 @@ functions, classes etc - there are other packages for that.
 * FAQ::                         
 * Updating CC Mode::            
 * Mailing Lists and Bug Reports::  
+* GNU Free Documentation License::
 * Command and Function Index::  
 * Variable Index::              
 * Concept and Key Index::       
@@ -1880,11 +1881,7 @@ This level is designed for fairly modern hardware and a font lock
 support mode like Lazy Lock or Just-in-time Lock mode that only
 fontifies the parts that are actually shown.  Fontifying the whole
 buffer at once can easily get bothersomely slow even on contemporary
-hardware.
-@c ACM, 2005/8/28:  There should be a page in the (X)Emacs manual
-@c describing these support modes.  There wasn't in the
-@c fourteenth edition of the Emacs manual (released with Emacs 21.3).
-@c There might be one in the Emacs CVS for 22.1.
+hardware. @xref{Font Lock,,,@emacsman{}, @emacsmantitle{}}.
 @end enumerate
 
 @cindex user defined types
@@ -6896,7 +6893,7 @@ compatibility, etc. are all available on the web site:
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Mailing Lists and Bug Reports, Command and Function Index, Updating CC Mode, Top
+@node    Mailing Lists and Bug Reports, GNU Free Documentation License, Updating CC Mode, Top
 @comment node-name, next, previous, up
 @appendix Mailing Lists and Submitting Bug Reports
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -6938,9 +6935,15 @@ to the Usenet newsgroups @code{gnu.emacs.sources}, @code{comp.emacs},
 @code{comp.lang.idl}, and @code{comp.lang.awk}.
 @c There is no newsgroup for Pike.  :-(
 
+
+@node GNU Free Documentation License, Command and Function Index, Mailing Lists and Bug Reports, Top
+@appendix GNU Free Documentation License
+@include doclicense.texi
+
+
 @c Removed the tentative node "Mode Initialization" from here, 2005/8/27.
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Command and Function Index, Variable Index, Mailing Lists and Bug Reports, Top
+@node    Command and Function Index, Variable Index, GNU Free Documentation License, Top
 @comment node-name, next, previous, up
 @unnumbered Command and Function Index
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

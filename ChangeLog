@@ -1,3 +1,27 @@
+2007-04-15  Glenn Morris  <rgm@gnu.org>
+
+	* FTP: Replace with a pointer to the web version.
+
+2007-04-13  Glenn Morris  <rgm@gnu.org>
+
+	* INSTALL: In lib-src, timer, wakeup, yow are removed.
+
+2007-04-04  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (NON_GNU_CPP): Use associated preprocessor when
+	compiling with Sun Studio on Solaris.
+
+2007-03-23  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Restore support for hp800 (removed 2007-01-27)
+	following clarification of legal status.
+
+2007-03-22  Joe Buehler  <jbuehler@spirentcom.com> (tiny change)
+
+	* configure.in: Add support for AIX4.3 on IBM RS6000.
+
+	* configure: Regenerate.
+
 2007-03-20  Richard Stallman  <rms@gnu.org>
 
 	* configure.in: Fix previous change.

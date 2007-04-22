@@ -73,6 +73,7 @@ A good online Sieve resources is @uref{http://www.cyrusoft.com/sieve/}.
 * Examples ::             A few Sieve code snippets.
 * Manage Sieve API ::     Interfacing to the Manage Sieve Protocol API.
 * Standards::             A summary of RFCs and working documents used.
+* GNU Free Documentation License:: The license for this documentation.
 * Index::                 Function and variable index.
 @end menu
 
@@ -349,9 +350,12 @@ A Protocol for Remotely Managing Sieve Scripts
 
 @end table
 
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
+@include doclicense.texi
 
 @node Index
-@chapter Index
+@unnumbered Index
 @printindex cp
 
 @summarycontents

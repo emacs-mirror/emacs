@@ -148,8 +148,8 @@ enters Help instead, see @ref{DEL Does Not Delete}.
   The other delete commands are those which delete only whitespace
 characters: spaces, tabs and newlines.  @kbd{M-\}
 (@code{delete-horizontal-space}) deletes all the spaces and tab
-characters before and after point.  (With a prefix argument, it
-deletes them before point, but not after.)  @kbd{M-@key{SPC}}
+characters before and after point.  With a prefix argument, this only
+deletes spaces and tab characters before point.  @kbd{M-@key{SPC}}
 (@code{just-one-space}) does likewise but leaves a single space after
 point, regardless of the number of spaces that existed previously
 (even if there were none before).  With a numeric argument @var{n}, it
@@ -551,13 +551,13 @@ Insert blank space to fill the space of the region-rectangle
 (@code{open-rectangle}).  This pushes the previous contents of the
 region-rectangle rightward.
 @item C-x r c
-Clear the region-rectangle by replacing its contents with spaces
+Clear the region-rectangle by replacing all of its contents with spaces
 (@code{clear-rectangle}).
 @item M-x delete-whitespace-rectangle
 Delete whitespace in each of the lines on the specified rectangle,
 starting from the left edge column of the rectangle.
 @item C-x r t @var{string} @key{RET}
-Replace rectangle contents with @var{string} on each line.
+Replace rectangle contents with @var{string} on each line
 (@code{string-rectangle}).
 @item M-x string-insert-rectangle @key{RET} @var{string} @key{RET}
 Insert @var{string} on each line of the rectangle.

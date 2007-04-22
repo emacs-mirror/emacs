@@ -87,6 +87,7 @@ request.")
 
 (defun url-http-mark-connection-as-busy (host port proc)
   (url-http-debug "Marking connection as busy: %s:%d %S" host port proc)
+  (set-process-query-on-exit-flag proc t)
   (puthash (cons host port)
 	      (delq proc (gethash (cons host port) url-http-open-connections))
 	      url-http-open-connections)
@@ -97,6 +98,7 @@ request.")
   (when (memq (process-status proc) '(open run connect))
     (set-process-buffer proc nil)
     (set-process-sentinel proc 'url-http-idle-sentinel)
+    (set-process-query-on-exit-flag proc nil)
     (puthash (cons host port)
 	     (cons proc (gethash (cons host port) url-http-open-connections))
 	     url-http-open-connections))
@@ -379,8 +381,8 @@ This allows us to use `mail-fetch-field', etc."
   "Handle all set-cookie / set-cookie2 headers in an HTTP response.
 The buffer must already be narrowed to the headers, so `mail-fetch-field' will
 work correctly."
-  (let ((cookies (mail-fetch-field "Set-Cookie" nil nil t))
-	(cookies2 (mail-fetch-field "Set-Cookie2" nil nil t)))
+  (let ((cookies (nreverse (mail-fetch-field "Set-Cookie" nil nil t)))
+	(cookies2 (nreverse (mail-fetch-field "Set-Cookie2" nil nil t))))
     (and cookies (url-http-debug "Found %d Set-Cookie headers" (length cookies)))
     (and cookies2 (url-http-debug "Found %d Set-Cookie2 headers" (length cookies2)))
     (while cookies
@@ -554,21 +556,43 @@ should be shown to the user."
            (let ((url-request-method url-http-method)
 		 (url-request-data url-http-data)
 		 (url-request-extra-headers url-http-extra-headers))
-	     ;; Remember that the request was redirected.
-	     (setf (car url-callback-arguments)
-		   (nconc (list :redirect redirect-uri)
-			  (car url-callback-arguments)))
-              ;; Put in the current buffer a forwarding pointer to the new
-              ;; destination buffer.
-              ;; FIXME: This is a hack to fix url-retrieve-synchronously
-              ;; without changing the API.  Instead url-retrieve should
-              ;; either simply not return the "destination" buffer, or it
-              ;; should take an optional `dest-buf' argument.
-              (set (make-local-variable 'url-redirect-buffer)
-		   (url-retrieve-internal
-		    redirect-uri url-callback-function
-		    url-callback-arguments))
-	      (url-mark-buffer-as-dead (current-buffer))))))
+	     ;; Check existing number of redirects
+	     (if (or (< url-max-redirections 0)
+		     (and (> url-max-redirections 0)
+			  (let ((events (car url-callback-arguments))
+				(old-redirects 0))
+			    (while events
+			      (if (eq (car events) :redirect)
+				  (setq old-redirects (1+ old-redirects)))
+			      (and (setq events (cdr events))
+				   (setq events (cdr events))))
+			    (< old-redirects url-max-redirections))))
+		 ;; url-max-redirections hasn't been reached, so go
+		 ;; ahead and redirect.
+		 (progn
+		   ;; Remember that the request was redirected.
+		   (setf (car url-callback-arguments)
+			 (nconc (list :redirect redirect-uri)
+				(car url-callback-arguments)))
+		   ;; Put in the current buffer a forwarding pointer to the new
+		   ;; destination buffer.
+		   ;; FIXME: This is a hack to fix url-retrieve-synchronously
+		   ;; without changing the API.  Instead url-retrieve should
+		   ;; either simply not return the "destination" buffer, or it
+		   ;; should take an optional `dest-buf' argument.
+		   (set (make-local-variable 'url-redirect-buffer)
+			(url-retrieve-internal
+			 redirect-uri url-callback-function
+			 url-callback-arguments))
+		   (url-mark-buffer-as-dead (current-buffer)))
+	       ;; We hit url-max-redirections, so issue an error and
+	       ;; stop redirecting.
+	       (url-http-debug "Maximum redirections reached")
+	       (setf (car url-callback-arguments)
+		     (nconc (list :error (list 'error 'http-redirect-limit
+					       redirect-uri))
+			    (car url-callback-arguments)))
+	       (setq success t))))))
       (4				; Client error
        ;; 400 Bad Request
        ;; 401 Unauthorized

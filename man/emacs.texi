@@ -5,7 +5,7 @@
 
 @c The edition number appears in several places in this file
 @set EDITION   Sixteenth
-@set EMACSVER  22.0.96
+@set EMACSVER  22.0.98
 
 @copying
 This is the @value{EDITION} edition of the @cite{GNU Emacs Manual},
@@ -39,15 +39,20 @@ Software Foundation raise funds for GNU development.''
 @c in general, keep the following line commented out, unless doing a
 @c copy of this manual that will be published.  the manual should go
 @c onto the distribution in the full, 8.5 x 11" size.
+@set smallbook
 
+@ifset smallbook
 @smallbook
+@end ifset
 
 @c per rms and peterb, use 10pt fonts for the main text, mostly to
 @c save on paper cost.  Also do not declare @setchapternewpage odd.
 @c Do this inside @tex for now, so current makeinfo does not complain.
 @tex
+@ifset smallbook
 @fonttextsize 10
-\global\hbadness=6000 % don't worry about not-too-underfull boxes
+@end ifset
+\global\hbadness=6666 % don't worry about not-too-underfull boxes
 @end tex
 
 @defcodeindex op
@@ -908,7 +913,6 @@ Customizing Key Bindings
 * Init Rebinding::      Rebinding keys with your init file, @file{.emacs}.
 * Function Keys::       Rebinding terminal function keys.
 * Named ASCII Chars::   Distinguishing @key{TAB} from @kbd{C-i}, and so on.
-* Non-ASCII Rebinding:: Rebinding non-@acronym{ASCII} characters such as Latin-1.
 * Mouse Buttons::       Rebinding mouse buttons in Emacs.
 * Disabling::           Disabling a command means confirmation is required
                           before it can be executed.  This is done to protect
@@ -920,6 +924,7 @@ The Init File, @file{~/.emacs}
 * Init Examples::       How to do some things with an init file.
 * Terminal Init::       Each terminal type can have an init file.
 * Find Init::	        How Emacs finds the init file.
+* Init Non-ASCII::      Using non-@acronym{ASCII} characters in an init file.
 
 Dealing with Emacs Trouble
 
@@ -1683,7 +1688,10 @@ consider it more useful to permit linking proprietary applications with the
 library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.
 
+@node GNU Free Documentation License, Emacs Invocation, Copying, Top
+@appendix GNU Free Documentation License
 @include doclicense.texi
+
 @include cmdargs.texi
 @include xresources.texi
 

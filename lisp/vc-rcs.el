@@ -666,6 +666,7 @@ Optional arg REVISION is a revision to annotate from."
                              "  "
                              (aref rda 0)
                              ls)
+                      :vc-annotate-prefix t
                       :vc-rcs-r/d/a rda)))
         (maphash
          (if all-me
@@ -688,9 +689,9 @@ encoded as fractional days."
   "Return the time of the next annotation (as fraction of days)
 systime, or nil if there is none.  Also, reposition point."
   (unless (eobp)
-    (search-forward ": ")
-    (vc-annotate-convert-time
-     (aref (get-text-property (point) :vc-rcs-r/d/a) 1))))
+    (prog1 (vc-annotate-convert-time
+            (aref (get-text-property (point) :vc-rcs-r/d/a) 1))
+      (goto-char (next-single-property-change (point) :vc-annotate-prefix)))))
 
 (defun vc-rcs-annotate-extract-revision-at-line ()
   (aref (get-text-property (point) :vc-rcs-r/d/a) 0))
@@ -907,7 +908,7 @@ Returns: nil            if no headers were found
 	  (vc-file-setprop file 'vc-state
 			   (cond
 			    ((eq locking-user 'none) 'up-to-date)
-			    ((string= locking-user (vc-user-login-name file)) 
+			    ((string= locking-user (vc-user-login-name file))
                              'edited)
 			    (t locking-user)))
 	  ;; If the file has headers, we don't want to query the

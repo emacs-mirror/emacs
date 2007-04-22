@@ -146,6 +146,8 @@ file name.
 
 @node Shell Arguments
 @section Shell Arguments
+@cindex arguments for shell commands
+@cindex shell command arguments
 
   Lisp programs sometimes need to run a shell and give it a command
 that contains file names that were specified by the user.  These
@@ -347,7 +349,7 @@ handler could be different from the handler chosen for the
 @var{infile} is on another remote host.  Or @code{default-directory}
 could be non-special, whereas @var{infile} is on a remote host.)
 
-If @var{buffer} has the form @code{(@var{real-destination}
+If @var{buffer} is a list of the form @code{(@var{real-destination}
 @var{error-destination})}, and @var{error-destination} names a file,
 then the same remarks as for @var{infile} apply.
 
@@ -1236,6 +1238,7 @@ there is no filter function:
 
 @node Decoding Output
 @subsection Decoding Process Output
+@cindex decode process output
 
   When Emacs writes process output directly into a multibyte buffer,
 it decodes the output according to the process output coding system.
@@ -1285,6 +1288,7 @@ This function returns the filter multibyte flag of @var{process}.
 
 @node Accepting Output
 @subsection Accepting Output from Processes
+@cindex accept input from processes
 
   Output from asynchronous subprocesses normally arrives only while
 Emacs is waiting for some sort of external event, such as elapsed time
@@ -1328,7 +1332,7 @@ arrived.
 @node Sentinels
 @section Sentinels: Detecting Process Status Changes
 @cindex process sentinel
-@cindex sentinel
+@cindex sentinel (of process)
 
   A @dfn{process sentinel} is a function that is called whenever the
 associated process changes status for any reason, including signals
@@ -1624,7 +1628,7 @@ The associated value is the process filter function.
 @item :sentinel
 The associated value is the process sentinel function.
 @item :remote
-In a connection, this is the address in internal format of the remote peer.
+In a connection, the address in internal format of the remote peer.
 @item :local
 The local address, in internal format.
 @item :service
@@ -1643,6 +1647,7 @@ For an ordinary child process, this function always returns @code{t}.
 
 @node Network Servers
 @section Network Servers
+@cindex network servers
 
   You create a server by calling @code{make-network-process} with
 @code{:server t}.  The server will listen for connection requests from
@@ -1722,7 +1727,7 @@ sets its remote peer address to @var{address}.
 @section Low-Level Network Access
 
   You can also create network connections by operating at a lower
-level that that of @code{open-network-stream}, using
+level than that of @code{open-network-stream}, using
 @code{make-network-process}.
 
 @menu
@@ -2061,8 +2066,9 @@ number @var{p}.  @code{format-network-address} converts that to the
 string @code{"@var{a}.@var{b}.@var{c}.@var{d}:@var{p}"}.
 
 A nine-element vector @code{[@var{a} @var{b} @var{c} @var{d} @var{e}
-@var{f} @var{g} @var{h} @var{p}]} represents an IPv6 address and port
-number.  @code{format-network-address} converts that to the string
+@var{f} @var{g} @var{h} @var{p}]} represents an IPv6 address along
+with a port number.  @code{format-network-address} converts that to
+the string
 @code{"[@var{a}:@var{b}:@var{c}:@var{d}:@var{e}:@var{f}:@var{g}:@var{h}]:@var{p}"}.
 
 If the vector does not include the port number, @var{p}, or if
@@ -2072,6 +2078,7 @@ If the vector does not include the port number, @var{p}, or if
 
 @node Byte Packing
 @section Packing and Unpacking Byte Arrays
+@cindex byte packing and unpacking
 
   This section describes how to pack and unpack arrays of bytes,
 usually for binary network protocols.  These functions convert byte arrays

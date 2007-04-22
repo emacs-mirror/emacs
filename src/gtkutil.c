@@ -2506,6 +2506,7 @@ xg_update_menubar (menubar, f, list, iter, pos, val,
           g_list_free (*list);
           *list = iter = gtk_container_get_children (GTK_CONTAINER (menubar));
           while (nr-- > 0) iter = g_list_next (iter);
+          if (iter) iter = g_list_next (iter);
           val = val->next;
           ++pos;
       }

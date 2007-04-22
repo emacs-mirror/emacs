@@ -224,7 +224,7 @@ If parsing fails, try to set this variable to nil."
   :group 'bibtex
   :type 'boolean)
 
-(defvar bibtex-entry-field-alist
+(defcustom bibtex-entry-field-alist
   '(("Article"
      ((("author" "Author1 [and Author2 ...] [and others]")
        ("title" "Title of the article (BibTeX converts it to lowercase)")
@@ -452,7 +452,47 @@ appears in the echo area, INIT is either the initial content of the
 field or a function, which is called to determine the initial content
 of the field, and ALTERNATIVE-FLAG (either nil or t) marks if the
 field is an alternative.  ALTERNATIVE-FLAG may be t only in the
-REQUIRED or CROSSREF-REQUIRED lists.")
+REQUIRED or CROSSREF-REQUIRED lists."
+  :group 'bibtex
+  :type '(repeat (list (string :tag "Entry name")
+                       (list (repeat :tag "required"
+                                     (group (string :tag "Field")
+                                            (string :tag "Comment")
+                                            (option (choice :tag "Init" :value nil
+                                                            (const nil)
+                                                            (string :tag "string")
+                                                            (function :tag "function")))
+                                            (option (choice (const nil)
+                                                            (const :tag "Alternative" t)))))
+                             (repeat :tag "optional"
+                                     (group (string :tag "Field")
+                                            (string :tag "Comment")
+                                            (option (choice :tag "Init" :value nil
+                                                            (const nil)
+                                                            (string :tag "string")
+                                                            (function :tag "function")))
+                                            (option (choice (const nil)
+                                                            (const :tag "Alternative" t))))))
+                       (option
+                        (list :tag "Crossref"
+                              (repeat :tag "required"
+                                      (group (string :tag "Field")
+                                             (string :tag "Comment")
+                                             (option (choice :tag "Init" :value nil
+                                                             (const nil)
+                                                             (string :tag "string")
+                                                             (function :tag "function")))
+                                             (option (choice (const nil)
+                                                             (const :tag "Alternative" t)))))
+                              (repeat :tag "optional"
+                                      (group (string :tag "Field")
+                                             (string :tag "Comment")
+                                             (option (choice :tag "Init" :value nil
+                                                             (const nil)
+                                                             (string :tag "string")
+                                                             (function :tag "function")))
+                                             (option (choice (const nil)
+                                                             (const :tag "Alternative" t))))))))))
 (put 'bibtex-entry-field-alist 'risky-local-variable t)
 
 (defcustom bibtex-comment-start "@Comment"
@@ -1785,7 +1825,7 @@ Optional arg COMMA is as in `bibtex-enclosing-field'."
           (set-mark (point))
           (message "Mark set")
           (bibtex-make-field (funcall fun 'bibtex-field-kill-ring-yank-pointer
-                                      bibtex-field-kill-ring) t))
+                                      bibtex-field-kill-ring) t nil t))
       ;; insert past the current entry
       (bibtex-skip-to-valid-entry)
       (set-mark (point))
@@ -2831,7 +2871,7 @@ and `bibtex-user-optional-fields'."
         (push (list "key"
                     "Used for reference key creation if author and editor fields are missing"
                     (if (or (stringp bibtex-include-OPTkey)
-                            (fboundp bibtex-include-OPTkey))
+                            (functionp bibtex-include-OPTkey))
                         bibtex-include-OPTkey))
               optional))
     (if (member-ignore-case entry-type bibtex-include-OPTcrossref)
@@ -3020,7 +3060,7 @@ interactive calls."
       (if comment (message "%s" (nth 1 comment))
         (message "No comment available")))))
 
-(defun bibtex-make-field (field &optional move interactive)
+(defun bibtex-make-field (field &optional move interactive nodelim)
   "Make a field named FIELD in current BibTeX entry.
 FIELD is either a string or a list of the form
 \(FIELD-NAME COMMENT-STRING INIT ALTERNATIVE-FLAG) as in
@@ -3028,7 +3068,8 @@ FIELD is either a string or a list of the form
 If MOVE is non-nil, move point past the present field before making
 the new field.  If INTERACTIVE is non-nil, move point to the end of
 the new field.  Otherwise move point past the new field.
-MOVE and INTERACTIVE are t when called interactively."
+MOVE and INTERACTIVE are t when called interactively.
+INIT is surrounded by field delimiters, unless NODELIM is non-nil."
   (interactive
    (list (let ((completion-ignore-case t)
                (field-list (bibtex-field-list
@@ -3058,10 +3099,13 @@ MOVE and INTERACTIVE are t when called interactively."
     (indent-to-column (+ bibtex-entry-offset
                          bibtex-text-indentation)))
   (let ((init (nth 2 field)))
-    (insert (cond ((stringp init) init)
-                  ((fboundp init) (funcall init))
-                  (t (concat (bibtex-field-left-delimiter)
-                             (bibtex-field-right-delimiter))))))
+    (if (not init) (setq init "")
+      (if (functionp init) (setq init (funcall init)))
+      (unless (stringp init) (error "`%s' is not a string" init)))
+    ;; NODELIM is required by `bibtex-insert-kill'
+    (if nodelim (insert init)
+      (insert (bibtex-field-left-delimiter) init
+              (bibtex-field-right-delimiter))))
   (when interactive
     ;; (bibtex-find-text nil nil bibtex-help-message)
     (if (memq (preceding-char) '(?} ?\")) (forward-char -1))

@@ -174,9 +174,15 @@ WALLCHOPS - supports sending messages to all operators in a channel")
 
 ;;; Server and connection state
 
+(defvar erc-server-ping-timer-alist nil
+  "Mapping of server buffers to their specific ping timer.")
+
 (defvar erc-server-connected nil
-  "Non-nil if the `current-buffer' is associated with an open IRC connection.
-This variable is buffer-local.")
+  "Non-nil if the current buffer has been used by ERC to establish
+an IRC connection.
+
+If you wish to determine whether an IRC connection is currently
+active, use the `erc-server-process-alive' function instead.")
 (make-variable-buffer-local 'erc-server-connected)
 
 (defvar erc-server-reconnect-count 0
@@ -187,9 +193,22 @@ This variable is buffer-local.")
   "Non-nil if the user requests a quit.")
 (make-variable-buffer-local 'erc-server-quitting)
 
+(defvar erc-server-reconnecting nil
+  "Non-nil if the user requests an explicit reconnect, and the
+current IRC process is still alive.")
+(make-variable-buffer-local 'erc-server-reconnecting)
+
+(defvar erc-server-timed-out nil
+  "Non-nil if the IRC server failed to respond to a ping.")
+(make-variable-buffer-local 'erc-server-timed-out)
+
 (defvar erc-server-banned nil
   "Non-nil if the user is denied access because of a server ban.")
 (make-variable-buffer-local 'erc-server-banned)
+
+(defvar erc-server-error-occurred nil
+  "Non-nil if the user triggers some server error.")
+(make-variable-buffer-local 'erc-server-error-occurred)
 
 (defvar erc-server-lines-sent nil
   "Line counter.")
@@ -209,6 +228,11 @@ This is useful for flood protection.")
   "Time the last ping was sent.
 This is useful for flood protection.")
 (make-variable-buffer-local 'erc-server-last-ping-time)
+
+(defvar erc-server-last-received-time nil
+  "Time the last message was received from the server.
+This is useful for detecting hung connections.")
+(make-variable-buffer-local 'erc-server-last-received-time)
 
 (defvar erc-server-lag nil
   "Calculated server lag time in seconds.
@@ -387,11 +411,24 @@ protection algorithm."
 
 ;; Ping handling
 
-(defcustom erc-server-send-ping-interval 90
+(defcustom erc-server-send-ping-interval 30
   "*Interval of sending pings to the server, in seconds.
 If this is set to nil, pinging the server is disabled."
   :group 'erc-server
-  :type '(choice (const nil) (integer :tag "Seconds")))
+  :type '(choice (const :tag "Disabled" nil)
+                 (integer :tag "Seconds")))
+
+(defcustom erc-server-send-ping-timeout 120
+  "*If the time between ping and response is greater than this, reconnect.
+The time is in seconds.
+
+This must be greater than or equal to the value for
+`erc-server-send-ping-interval'.
+
+If this is set to nil, never try to reconnect."
+  :group 'erc-server
+  :type '(choice (const :tag "Disabled" nil)
+                 (integer :tag "Seconds")))
 
 (defvar erc-server-ping-handler nil
   "This variable holds the periodic ping timer.")
@@ -424,20 +461,40 @@ Currently this is called by `erc-send-input'."
     (upcase-word 1)
     (buffer-string)))
 
-(defun erc-server-setup-periodical-server-ping (&rest ignore)
-  "Set up a timer to periodically ping the current server."
-  (and erc-server-ping-handler (erc-cancel-timer erc-server-ping-handler))
-  (when erc-server-send-ping-interval
-    (setq erc-server-ping-handler
-          (run-with-timer
-           4 erc-server-send-ping-interval
-           (lambda (buf)
-             (when (buffer-live-p buf)
-               (with-current-buffer buf
-                 (erc-server-send
-                  (format "PING %.0f"
-                          (erc-current-time))))))
-           (current-buffer)))))
+(defun erc-server-send-ping (buf)
+  "Send a ping to the IRC server buffer in BUF.
+Additionally, detect whether the IRC process has hung."
+  (if (buffer-live-p buf)
+      (with-current-buffer buf
+        (if (and erc-server-send-ping-timeout
+                 (>
+                  (erc-time-diff (erc-current-time)
+                                 erc-server-last-received-time)
+                  erc-server-send-ping-timeout))
+            (progn
+              ;; if the process is hung, kill it
+              (setq erc-server-timed-out t)
+              (delete-process erc-server-process))
+          (erc-server-send (format "PING %.0f" (erc-current-time)))))
+    ;; remove timer if the server buffer has been killed
+    (let ((timer (assq buf erc-server-ping-timer-alist)))
+      (when timer
+        (erc-cancel-timer (cdr timer))
+        (setcdr timer nil)))))
+
+(defun erc-server-setup-periodical-ping (buffer)
+  "Set up a timer to periodically ping the current server.
+The current buffer is given by BUFFER."
+  (with-current-buffer buffer
+    (and erc-server-ping-handler (erc-cancel-timer erc-server-ping-handler))
+    (when erc-server-send-ping-interval
+      (setq erc-server-ping-handler (run-with-timer
+                                     4 erc-server-send-ping-interval
+                                     #'erc-server-send-ping
+                                     buffer))
+      (setq erc-server-ping-timer-alist (cons (cons buffer
+                                                    erc-server-ping-handler)
+                                              erc-server-ping-timer-alist)))))
 
 (defun erc-server-process-alive ()
   "Return non-nil when `erc-server-process' is open or running."
@@ -447,40 +504,47 @@ Currently this is called by `erc-send-input'."
 
 ;;;; Connecting to a server
 
-(defun erc-server-connect (server port)
-  "Perform the connection and login.
-We will store server variables in the current buffer."
+(defun erc-server-connect (server port buffer)
+  "Perform the connection and login using the specified SERVER and PORT.
+We will store server variables in the buffer given by BUFFER."
   (let ((msg (erc-format-message 'connect ?S server ?p port)))
     (message "%s" msg)
-    (setq erc-server-process
-          (funcall erc-server-connect-function
-                   (format "erc-%s-%s" server port)
-                   (current-buffer) server port))
-    (message "%s...done" msg))
-  ;; Misc server variables
-  (setq erc-server-quitting nil)
-  (setq erc-server-banned nil)
-  (setq erc-server-last-sent-time (erc-current-time))
-  (setq erc-server-last-ping-time (erc-current-time))
-  (setq erc-server-lines-sent 0)
-  ;; last peers (sender and receiver)
-  (setq erc-server-last-peers '(nil . nil))
-  ;; process handlers
-  (set-process-sentinel erc-server-process 'erc-process-sentinel)
-  (set-process-filter erc-server-process 'erc-server-filter-function)
-  ;; we do our own encoding and decoding
-  (when (fboundp 'set-process-coding-system)
-    (set-process-coding-system erc-server-process 'raw-text))
-  (set-marker (process-mark erc-server-process) (point))
+    (let ((process (funcall erc-server-connect-function
+                            (format "erc-%s-%s" server port)
+                            nil server port)))
+      (message "%s...done" msg)
+      ;; Misc server variables
+      (with-current-buffer buffer
+        (setq erc-server-process process)
+        (setq erc-server-quitting nil)
+        (setq erc-server-reconnecting nil)
+        (setq erc-server-timed-out nil)
+        (setq erc-server-banned nil)
+        (setq erc-server-error-occurred nil)
+        (let ((time (erc-current-time)))
+          (setq erc-server-last-sent-time time)
+          (setq erc-server-last-ping-time time)
+          (setq erc-server-last-received-time time))
+        (setq erc-server-lines-sent 0)
+        ;; last peers (sender and receiver)
+        (setq erc-server-last-peers '(nil . nil)))
+      ;; we do our own encoding and decoding
+      (when (fboundp 'set-process-coding-system)
+        (set-process-coding-system process 'raw-text))
+      ;; process handlers
+      (set-process-sentinel process 'erc-process-sentinel)
+      (set-process-filter process 'erc-server-filter-function)
+      (set-process-buffer process buffer)))
   (erc-log "\n\n\n********************************************\n")
-  (message (erc-format-message 'login ?n (erc-current-nick)))
+  (message (erc-format-message
+            'login ?n
+            (with-current-buffer buffer (erc-current-nick))))
   ;; wait with script loading until we receive a confirmation (first
   ;; MOTD line)
   (if (eq erc-server-connect-function 'open-network-stream-nowait)
       ;; it's a bit unclear otherwise that it's attempting to establish a
       ;; connection
-      (erc-display-message nil nil (current-buffer)
-                           "Opening connection..\n")
+      (erc-display-message nil nil buffer "Opening connection..\n")
     (erc-login)))
 
 (defun erc-server-reconnect ()
@@ -501,6 +565,7 @@ Make sure you are in an ERC buffer when running this."
 (defun erc-server-filter-function (process string)
   "The process filter for the ERC server."
   (with-current-buffer (process-buffer process)
+    (setq erc-server-last-received-time (erc-current-time))
     ;; If you think this is written in a weird way - please refer to the
     ;; docstring of `erc-server-processing-p'
     (if erc-server-processing-p
@@ -529,16 +594,20 @@ Make sure you are in an ERC buffer when running this."
 (defsubst erc-server-reconnect-p (event)
   "Return non-nil if ERC should attempt to reconnect automatically.
 EVENT is the message received from the closed connection process."
-  (and erc-server-auto-reconnect
-       (not erc-server-banned)
-       ;; make sure we don't infinitely try to reconnect, unless the
-       ;; user wants that
-       (or (eq erc-server-reconnect-attempts t)
-           (and (integerp erc-server-reconnect-attempts)
-                (< erc-server-reconnect-count erc-server-reconnect-attempts)))
-       (not (string-match "^deleted" event))
-       ;; open-network-stream-nowait error for connection refused
-       (not (string-match "^failed with code 111" event))))
+  (or erc-server-reconnecting
+      (and erc-server-auto-reconnect
+           (not erc-server-banned)
+           (not erc-server-error-occurred)
+           ;; make sure we don't infinitely try to reconnect, unless the
+           ;; user wants that
+           (or (eq erc-server-reconnect-attempts t)
+               (and (integerp erc-server-reconnect-attempts)
+                    (< erc-server-reconnect-count
+                       erc-server-reconnect-attempts)))
+           (or erc-server-timed-out
+               (not (string-match "^deleted" event)))
+           ;; open-network-stream-nowait error for connection refused
+           (not (string-match "^failed with code 111" event)))))
 
 (defun erc-process-sentinel-1 (event)
   "Called when `erc-process-sentinel' has decided that we're disconnecting.
@@ -562,6 +631,7 @@ Conditionally try to reconnect and take appropriate action."
         (if (erc-server-reconnect-p event)
             (condition-case err
                 (progn
+                  (setq erc-server-reconnecting nil)
                   (erc-server-reconnect)
                   (setq erc-server-reconnect-count 0))
               (error (when (integerp erc-server-reconnect-attempts)
@@ -611,6 +681,7 @@ Conditionally try to reconnect and take appropriate action."
   "Return the coding system or cons cell appropriate for TARGET.
 This is determined via `erc-encoding-coding-alist' or
 `erc-server-coding-system'."
+  (unless target (setq target (erc-default-target)))
   (or (when target
         (let ((case-fold-search t))
           (catch 'match
@@ -656,14 +727,11 @@ See `erc-server-flood-margin' for an explanation of the flood
 protection algorithm."
   (erc-log (concat "erc-server-send: " string "(" (buffer-name) ")"))
   (setq erc-server-last-sent-time (erc-current-time))
-  (let ((buf (erc-server-buffer))
-        (encoding (erc-coding-system-for-target
-                   (or target (erc-default-target)))))
+  (let ((encoding (erc-coding-system-for-target target)))
     (when (consp encoding)
       (setq encoding (car encoding)))
-    (if (and buf
-             (erc-server-process-alive))
-        (with-current-buffer buf
+    (if (erc-server-process-alive)
+        (erc-with-server-buffer
           (let ((str (concat string "\r\n")))
             (if forcep
                 (progn
@@ -903,10 +971,8 @@ Finds hooks by looking in the `erc-server-responses' hashtable."
   (let ((hook (or (erc-get-hook (erc-response.command message))
                   'erc-default-server-functions)))
     (run-hook-with-args-until-success hook process message)
-    (let ((server-buffer (erc-server-buffer)))
-      (when (buffer-live-p server-buffer)
-        (with-current-buffer server-buffer
-          (run-hook-with-args 'erc-timer-hook (erc-current-time)))))))
+    (erc-with-server-buffer
+      (run-hook-with-args 'erc-timer-hook (erc-current-time)))))
 
 (add-hook 'erc-default-server-functions 'erc-handle-unknown-server-response)
 
@@ -1062,6 +1128,7 @@ add things to `%s' instead."
 
 (define-erc-response-handler (ERROR)
   "Handle an ERROR command from the server." nil
+  (setq erc-server-error-occurred t)
   (erc-display-message
    parsed 'error nil 'ERROR
    ?s (erc-response.sender parsed) ?c (erc-response.contents parsed)))
@@ -1445,6 +1512,9 @@ A server may send more than one 005 message."
 
 See `erc-display-server-message'." nil
   (erc-display-server-message proc parsed))
+
+(define-erc-response-handler (290)
+  "Handle dancer-ircd CAPAB messages." nil nil)
 
 (define-erc-response-handler (301)
   "AWAY notice." nil

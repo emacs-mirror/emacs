@@ -430,7 +430,7 @@ This function always returns @code{nil}.
 
 @node Selecting Windows
 @section Selecting Windows
-@cindex selecting windows
+@cindex selecting a window
 
   When a window is selected, the buffer in the window becomes the current
 buffer, and the cursor will appear in it.
@@ -572,7 +572,7 @@ In general, within each set of siblings at any level in the window tree,
 the order is left to right, or top to bottom.
 
 @defun next-window &optional window minibuf all-frames
-@cindex minibuffer window
+@cindex minibuffer window, and @code{next-window}
 This function returns the window following @var{window} in the cyclic
 ordering of windows.  This is the window that @kbd{C-x o} would select
 if typed when @var{window} is selected.  If @var{window} is the only
@@ -1195,6 +1195,7 @@ point and the buffer's point always move together; they remain equal.
 @noindent
 @xref{Positions}, for more details on buffer positions.
 
+@cindex cursor
   As far as the user is concerned, point is where the cursor is, and
 when the user switches to another buffer, the cursor jumps to the
 position of point in that buffer.
@@ -1223,6 +1224,7 @@ this simply does @code{goto-char}.
 
 @node Window Start
 @section The Window Start Position
+@cindex window start position
 
   Each window contains a marker used to keep track of a buffer position
 that specifies where in the buffer display should start.  This position
@@ -1621,7 +1623,7 @@ Replaces three keystroke sequence C-u 0 C-l."
 
 @node Vertical Scrolling
 @section Vertical Fractional Scrolling
-@cindex Vertical Fractional Scrolling
+@cindex vertical fractional scrolling
 
   @dfn{Vertical fractional scrolling} means shifting the image in the
 window up or down by a specified multiple or fraction of a line.
@@ -1985,6 +1987,7 @@ in character lines and columns.
 @node Resizing Windows
 @section Changing the Size of a Window
 @cindex window resizing
+@cindex resize window
 @cindex changing window size
 @cindex window size, changing
 
@@ -2355,6 +2358,7 @@ configurations.
 
 @node Window Hooks
 @section Hooks for Window Scrolling and Changes
+@cindex hooks for window operations
 
 This section describes how a Lisp program can take action whenever a
 window displays a different part of its buffer or a different buffer.

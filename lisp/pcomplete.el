@@ -33,7 +33,6 @@
 ;; To use pcomplete with shell-mode, for example, you will need the
 ;; following in your .emacs file:
 ;;
-;;   (load "pcmpl-auto")
 ;;   (add-hook 'shell-mode-hook 'pcomplete-shell-setup)
 ;;
 ;; Most of the code below simply provides support mechanisms for
@@ -947,10 +946,9 @@ generate the completions list.  This means that the hook
 (unless (fboundp 'event-matches-key-specifier-p)
   (defalias 'event-matches-key-specifier-p 'eq))
 
-(if (fboundp 'read-event)
-    (defsubst pcomplete-read-event (&optional prompt)
-      (read-event prompt))
-  (defsubst pcomplete-read-event (&optional prompt)
+(defun pcomplete-read-event (&optional prompt)
+  (if (fboundp 'read-event)
+      (read-event prompt)
     (aref (read-key-sequence prompt) 0)))
 
 (unless (fboundp 'event-basic-type)

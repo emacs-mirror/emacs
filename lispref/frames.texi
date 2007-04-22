@@ -150,6 +150,13 @@ screens belonging to one server, Emacs knows by the similarity in their
 names that they share a single keyboard, and it treats them as a single
 terminal.
 
+  Note that some graphical terminals can output to more than a one
+monitor (or other output device) at the same time.  On these
+``multi-monitor'' setups, a single @var{display} value controls the
+output to all the physical monitors.  In this situation, there is
+currently no platform-independent way for Emacs to distinguish between
+the different physical monitors.
+
 @deffn Command make-frame-on-display display &optional parameters
 This creates and returns a new frame on display @var{display}, taking
 the other frame parameters from @var{parameters}.  Aside from the
@@ -193,6 +200,7 @@ that display (@pxref{Deleting Frames}).
 
 @node Frame Parameters
 @section Frame Parameters
+@cindex frame parameters
 
   A frame has many parameters that control its appearance and behavior.
 Just what parameters a frame has depends on what display mechanism it
@@ -555,6 +563,7 @@ If non-@code{nil}, this frame's window is never split automatically.
 
 @node Management Parameters
 @subsubsection Window Management Parameters
+@cindex window manager, and frame parameters
 
   These frame parameters, meaningful only on window system displays,
 interact with the window manager.
@@ -885,6 +894,7 @@ Here is an example:
 
 @node Frame Titles
 @section Frame Titles
+@cindex frame title
 
   Every frame has a @code{name} parameter; this serves as the default
 for the frame title which window systems typically display at the top of
@@ -924,7 +934,7 @@ while processing @code{frame-title-format} or
 
 @node Deleting Frames
 @section Deleting Frames
-@cindex deletion of frames
+@cindex deleting frames
 
 Frames remain potentially visible until you explicitly @dfn{delete}
 them.  A deleted frame cannot appear on the screen, but continues to
@@ -956,6 +966,7 @@ calls the function @code{delete-frame}.  @xref{Misc Events}.
 
 @node Finding All Frames
 @section Finding All Frames
+@cindex frames, scanning all
 
 @defun frame-list
 The function @code{frame-list} returns a list of all the frames that
@@ -1077,7 +1088,7 @@ Displays}.
 @node Input Focus
 @section Input Focus
 @cindex input focus
-@cindex selected frame
+@c @cindex selected frame    Duplicates selected-frame
 
 At any time, one frame in Emacs is the @dfn{selected frame}.  The selected
 window always resides on the selected frame.
@@ -1260,7 +1271,7 @@ to ``lowest.''  Where two windows overlap, the one higher up covers
 the one underneath.  Even a window at the bottom of the stack can be
 seen if no other window overlaps it.
 
-@cindex raising a frame
+@c @cindex raising a frame  redundant with raise-frame
 @cindex lowering a frame
   A window's place in this ordering is not fixed; in fact, users tend
 to change the order frequently.  @dfn{Raising} a window means moving
@@ -1315,14 +1326,14 @@ unwanted frames are iconified instead.
 @node Mouse Tracking
 @section Mouse Tracking
 @cindex mouse tracking
-@cindex tracking the mouse
+@c @cindex tracking the mouse   Duplicates track-mouse
 
-Sometimes it is useful to @dfn{track} the mouse, which means to display
+  Sometimes it is useful to @dfn{track} the mouse, which means to display
 something to indicate where the mouse is and move the indicator as the
 mouse moves.  For efficient mouse tracking, you need a way to wait until
 the mouse actually moves.
 
-The convenient way to track the mouse is to ask for events to represent
+  The convenient way to track the mouse is to ask for events to represent
 mouse motion.  Then you can wait for motion by waiting for an event.  In
 addition, you can easily handle any other sorts of events that may
 occur.  That is useful, because normally you don't want to track the
@@ -2015,8 +2026,6 @@ a mouse.
 @end defun
 
 @defun display-graphic-p &optional display
-@cindex frames, more than one on display
-@cindex fonts, more than one on display
 This function returns @code{t} if @var{display} is a graphic display
 capable of displaying several frames and several different fonts at
 once.  This is true for displays that use a window system such as X, and
@@ -2087,11 +2096,19 @@ This function returns the number of screens associated with the display.
 @defun display-pixel-height &optional display
 This function returns the height of the screen in pixels.
 On a character terminal, it gives the height in characters.
+
+For graphical terminals, note that on ``multi-monitor'' setups this
+refers to the pixel width for all physical monitors associated with
+@var{display}.  @xref{Multiple Displays}.
 @end defun
 
 @defun display-pixel-width &optional display
 This function returns the width of the screen in pixels.
 On a character terminal, it gives the width in characters.
+
+For graphical terminals, note that on ``multi-monitor'' setups this
+refers to the pixel width for all physical monitors associated with
+@var{display}.  @xref{Multiple Displays}.
 @end defun
 
 @defun display-mm-height &optional display

@@ -338,7 +338,11 @@ since it could result in memory overflow and make Emacs crash."
 	     (split-height-threshold windows integer)
 	     (window-min-height windows integer)
 	     (window-min-width windows integer)
-	     (scroll-preserve-screen-position windows boolean)
+ 	     (scroll-preserve-screen-position
+ 	      windows (choice
+ 		       (const :tag "Off (nil)" :value nil)
+ 		       (const :tag "Full screen (t)" :value t)
+ 		       (other :tag "Always" 1)))
 	     (display-buffer-reuse-frames windows boolean "21.1")
 	     ;; xdisp.c
 	     (scroll-step windows integer)

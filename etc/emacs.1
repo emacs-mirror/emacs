@@ -19,8 +19,7 @@
 .\" Boston, MA 02110-1301, USA.
 .\"
 '\" t
-.TH EMACS 1 "2001 November 23"
-.UC 4
+.TH EMACS 1 "2007 April 13" "GNU Emacs 22.1"
 .SH NAME
 emacs \- GNU project Emacs
 .SH SYNOPSIS
@@ -40,11 +39,11 @@ written by the author of the original (PDP-10)
 Richard Stallman.
 .br
 The primary documentation of GNU Emacs is in the GNU Emacs Manual,
-which you can read on line using Info, a subsystem of Emacs.  Please
-look there for complete and up-to-date documentation.  This man page
-is updated only when someone volunteers to do so; the Emacs
-maintainers' priority goal is to minimize the amount of time this man
-page takes away from other more useful projects.
+which you can read using Info, either from Emacs or as a standalone
+program.  Please look there for complete and up-to-date documentation.
+This man page is updated only when someone volunteers to do so; the
+Emacs maintainers' priority goal is to minimize the amount of time
+this man page takes away from other more useful projects.
 .br
 The user functionality of GNU Emacs encompasses
 everything other
@@ -58,7 +57,7 @@ but the facility assumes that you know how to manipulate
 .I Emacs
 windows and buffers.
 CTRL-h or F1 enters the Help facility.  Help Tutorial (CTRL-h t)
-requests an interactive tutorial which can teach beginners the fundamentals
+starts an interactive tutorial which can teach beginners the fundamentals
 of
 .I Emacs
 in a few minutes.
@@ -77,7 +76,7 @@ outline editing (Outline), compiling (Compile), running subshells
 within
 .I Emacs
 windows (Shell), running a Lisp read-eval-print loop
-(Lisp-Interaction-Mode), and automated psychotherapy (Doctor).
+(Lisp-Interaction-Mode), automated psychotherapy (Doctor), and much more.
 .PP
 There is an extensive reference manual, but
 users of other Emacses
@@ -201,11 +200,6 @@ Display the
 .I Emacs
 window in reverse video.
 .TP
-.B \-i
-Use the "kitchen sink" bitmap icon when iconifying the
-.I Emacs
-window.
-.TP
 .BI \-font " font, " \-fn " font"
 Set the
 .I Emacs
@@ -262,8 +256,8 @@ with selecting or deselecting the tool bar and menu bar.
 .BI \-fg " color"
 On color displays, sets the color of the text.
 
-See the file
-.I /usr/lib/X11/rgb.txt
+Use the command
+.I M-x list-colors-display
 for a list of valid
 color names.
 .TP
@@ -299,7 +293,6 @@ switch when invoking
 from an
 .IR xterm (1)
 window, display is done in that window.
-This must be the first option specified in the command line.
 .PP
 You can set
 .I X
@@ -431,43 +424,31 @@ make and distribute copies of the Emacs manual.  The TeX source to the
 manual is also included in the Emacs source distribution.
 .PP
 .SH FILES
-/usr/local/share/info - files for the Info documentation browser
-(a subsystem of Emacs) to refer to.  Currently not much of Unix
-is documented here, but the complete text of the Emacs reference
-manual is included in a convenient tree structured form.
-
-/usr/local/share/emacs/$VERSION/src - C source files and object files
+/usr/local/share/info - files for the Info documentation browser.
+The complete text of the Emacs reference manual is included in a
+convenient tree structured form.  Also includes the Emacs Lisp
+Reference Manual, useful to anyone wishing to write programs in the
+Emacs Lisp extension language.
 
 /usr/local/share/emacs/$VERSION/lisp - Lisp source files and compiled files
 that define most editing commands.  Some are preloaded;
 others are autoloaded from this directory when used.
 
-/usr/local/share/emacs/$VERSION/etc - various programs that are used with
-GNU Emacs, and some files of information.
+/usr/local/libexec/emacs/$VERSION/$ARCH - various programs that are
+used with GNU Emacs.
+
+/usr/local/share/emacs/$VERSION/etc - various files of information.
 
 /usr/local/share/emacs/$VERSION/etc/DOC.* - contains the documentation
 strings for the Lisp primitives and preloaded Lisp functions
 of GNU Emacs.  They are stored here to reduce the size of
 Emacs proper.
 
-/usr/local/share/emacs/$VERSION/etc/OTHER.EMACSES discusses GNU Emacs
-vs. other versions of Emacs.
 .br
 /usr/local/share/emacs/$VERSION/etc/SERVICE lists people offering
 various services to assist users of GNU Emacs, including education,
 troubleshooting, porting and customization.
-.br
-These files also have information useful to anyone wishing to write
-programs in the Emacs Lisp extension language, which has not yet been fully
-documented.
 
-/usr/local/com/emacs/lock - holds lock files that are made for all
-files being modified in Emacs, to prevent simultaneous modification
-of one file by two users.
-
-.\" START DELETING HERE IF YOU'RE NOT USING X
-/usr/lib/X11/rgb.txt - list of valid X color names.
-.\" STOP DELETING HERE IF YOU'RE NOT USING X
 .PP
 .SH BUGS
 There is a mailing list, bug-gnu-emacs@gnu.org, for reporting Emacs
@@ -488,9 +469,6 @@ For more information about Emacs mailing lists, see the
 file /usr/local/emacs/etc/MAILINGLISTS.  Bugs tend actually to be
 fixed if they can be isolated, so it is in your interest to report
 them in such a way that they can be easily reproduced.
-.PP
-Bugs that I know about are: shell will not work with programs
-running in Raw mode on some Unix versions.
 .SH UNRESTRICTIONS
 .PP
 .I Emacs
@@ -519,11 +497,10 @@ Richard Stallman encourages you to improve and extend
 .I Emacs,
 and urges that
 you contribute your extensions to the GNU library.  Eventually GNU
-(Gnu's Not Unix) will be a complete replacement for Berkeley
-Unix.
+(Gnu's Not Unix) will be a complete replacement for Unix.
 Everyone will be free to use, copy, study and change the GNU system.
 .SH SEE ALSO
-X(1), xlsfonts(1), xterm(1), xrdb(1)
+emacsclient(1), etags(1), X(1), xlsfonts(1), xterm(1), xrdb(1)
 .SH AUTHORS
 .PP
 .I Emacs
@@ -532,7 +509,7 @@ Joachim Martillo and Robert Krawitz added the X features.
 .SH COPYING
 Copyright
 .if t \(co
-.if n (c)
+.if n (C)
 1995, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
       2006, 2007 Free Software Foundation, Inc.
 .PP

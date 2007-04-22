@@ -367,14 +367,6 @@ src/acldef.h, chpdef.h, ndir.h
   - see comments below. These files are OK to be released with Emacs
   22, but we may want to revisit them afterwards.
 
-[src/unexhp9k800.c - removed 2007/1/27]
-[src/m/sr2k.h - removed 2007/1/27]
-  - First file removed due to legal uncertainties; second file removed
-  due to dependency on first. Note that src/m/hp800.h is still needed on
-  hp800 arch.
-  NB we would like to re-add this file if we can. Please let us know
-  if you can clarify its legal status.
-
 
 ** Some notes on resolved issues, for historical information only
 
@@ -404,6 +396,23 @@ lisp/term/README
     Odds are that I did, but I'm not certain.
 
   Accordingly, FSF copyright was added.
+
+src/unexhp9k800.c  (and dependent src/m/sr2k.h)
+  - briefly removed due to legal uncertainly Jan-Mar 2007. The
+  relevant assignment is under "hp9k800" in copyright.list. File was
+  written by John V. Morris at HP, and disclaimed by the author and
+  HP. So this file is public domain.
+
+
+K Rodgers changes
+ It was pointed out that K Rodgers only had assigments for VC and
+ ps-print, but had changed several other files. We tried to contact
+ him for a general assignment, but he proved uncommunicative (despite
+ initially indicating to rms he would sign an assignment). As a result, his
+ changes were removed and/or rewritten independently. For details, see
+ threads:
+http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00225.html
+http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00257.html
 
 
 ** Issues that are "fixed" for the release of Emacs 22, but we may
@@ -547,8 +556,8 @@ noted in this file.
 
 REMOVED etc/gnu.xpm, nt/icons/emacs21.ico, nt/icons/sink.ico
   - Restore if find legal info. emacs21.ico is not due to Davenport.
-  Voelker could not immediately recall anything, but will check and
-  let us know if he finds anything.
+  Geoff Voelker checked but could not find a record of where it came
+  from.
 
 
 etc/images

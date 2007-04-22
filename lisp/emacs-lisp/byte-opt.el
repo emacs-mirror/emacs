@@ -545,8 +545,8 @@
 				(eq (car-safe (nth 2 last)) 'cdr)
 				(eq (cadr (nth 2 last)) var))))
 		    (progn
-		      (byte-compile-warn "value returned by `%s' is not used"
-					 (prin1-to-string (car form)))
+		      (byte-compile-warn "value returned from %s is unused"
+					 (prin1-to-string form))
 		      nil)))
 	   (byte-compile-log "  %s called for effect; deleted" fn)
 	   ;; appending a nil here might not be necessary, but it can't hurt.
@@ -557,8 +557,20 @@
 	   ;; Otherwise, no args can be considered to be for-effect,
 	   ;; even if the called function is for-effect, because we
 	   ;; don't know anything about that function.
-	   (cons fn (mapcar 'byte-optimize-form (cdr form)))))))
+	   (let ((args (mapcar #'byte-optimize-form (cdr form))))
+	     (if (and (get fn 'pure)
+		      (byte-optimize-all-constp args))
+		   (list 'quote (apply fn (mapcar #'eval args)))
+	       (cons fn args)))))))
 
+(defun byte-optimize-all-constp (list)
+  "Non-nil iff all elements of LIST satisfy `byte-compile-constp'."
+  (let ((constant t))
+    (while (and list constant)
+      (unless (byte-compile-constp (car list))
+	(setq constant nil))
+      (setq list (cdr list)))
+    constant))
 
 (defun byte-optimize-form (form &optional for-effect)
   "The source-level pass of the optimizer."
@@ -1117,55 +1129,6 @@
 	(byte-optimize-predicate form))
     form))
 
-(put 'concat 'byte-optimizer 'byte-optimize-pure-func)
-(put 'symbol-name 'byte-optimizer 'byte-optimize-pure-func)
-(put 'regexp-opt 'byte-optimizer 'byte-optimize-pure-func)
-(put 'regexp-quote 'byte-optimizer 'byte-optimize-pure-func)
-(put 'string-to-syntax 'byte-optimizer 'byte-optimize-pure-func)
-(defun byte-optimize-pure-func (form)
-  "Do constant folding for pure functions.
-This assumes that the function will not have any side-effects and that
-its return value depends solely on its arguments.
-If the function can signal an error, this might change the semantics
-of FORM by signaling the error at compile-time."
-  (let ((args (cdr form))
-	(constant t))
-    (while (and args constant)
-      (or (byte-compile-constp (car args))
-	  (setq constant nil))
-      (setq args (cdr args)))
-    (if constant
-	(list 'quote (eval form))
-      form)))
-
-;; Avoid having to write forward-... with a negative arg for speed.
-;; Fixme: don't be limited to constant args.
-(put 'backward-char 'byte-optimizer 'byte-optimize-backward-char)
-(defun byte-optimize-backward-char (form)
-  (cond ((and (= 2 (safe-length form))
-	      (numberp (nth 1 form)))
-	 (list 'forward-char (eval (- (nth 1 form)))))
-	((= 1 (safe-length form))
-	 '(forward-char -1))
-	(t form)))
-
-(put 'backward-word 'byte-optimizer 'byte-optimize-backward-word)
-(defun byte-optimize-backward-word (form)
-  (cond ((and (= 2 (safe-length form))
-	      (numberp (nth 1 form)))
-	 (list 'forward-word (eval (- (nth 1 form)))))
-	((= 1 (safe-length form))
-	 '(forward-word -1))
-	(t form)))
-
-(put 'char-before 'byte-optimizer 'byte-optimize-char-before)
-(defun byte-optimize-char-before (form)
-  (cond ((= 2 (safe-length form))
-	 `(char-after (1- ,(nth 1 form))))
-	((= 1 (safe-length form))
-	 '(char-after (1- (point))))
-	(t form)))
-
 ;; Fixme: delete-char -> delete-region (byte-coded)
 ;; optimize string-as-unibyte, string-as-multibyte, string-make-unibyte,
 ;; string-make-multibyte for constant args.
@@ -1290,6 +1253,18 @@ of FORM by signaling the error at compile-time."
     (setq side-effect-and-error-free-fns (cdr side-effect-and-error-free-fns)))
   nil)
 
+
+;; pure functions are side-effect free functions whose values depend
+;; only on their arguments. For these functions, calls with constant
+;; arguments can be evaluated at compile time. This may shift run time
+;; errors to compile time.
+
+(let ((pure-fns
+       '(concat symbol-name regexp-opt regexp-quote string-to-syntax)))
+  (while pure-fns
+    (put (car pure-fns) 'pure t)
+    (setq pure-fns (cdr pure-fns)))
+  nil)
 
 (defun byte-compile-splice-in-already-compiled-code (form)
   ;; form is (byte-code "..." [...] n)

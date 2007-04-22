@@ -1,3 +1,28 @@
+2007-04-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* url-parse.el (url-generic-parse-url): Revert 2006-10-09 changes.
+
+2007-04-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* url-http.el (url-http-parse-headers): Stop after a set number of
+	redirections.  Suggested by Diane Murray.
+
+	* url-vars.el (url-max-redirections): New var.
+
+2007-04-01  Diane Murray  <disumu@x3y2z1.net>  (tiny change)
+
+	* url-http.el (url-http-handle-cookies): Reverse list returned by
+	`mail-fetch-field', so that cookies are set in the correct order.
+
+	* url-cookie.el (url-cookie-retrieve, url-cookie-host-can-set-p):
+	Deal with wildcard dots in domain values.
+
+2007-03-31  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* url-http.el (url-http-mark-connection-as-busy)
+	(url-http-mark-connection-as-free): Clear query-on-exit flag on
+	idle connections.
+
 2007-02-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* url-http.el (url-http-connection-opened): New variable.
@@ -51,7 +76,7 @@
 	(url-http-parse-response): Set it.
 	(url-http-parse-headers): Use it to determine keep-alive behavior.
 
-2006-11-23  Diane Murray  <disumu@x3y2z1.net>
+2006-11-23  Diane Murray  <disumu@x3y2z1.net>  (tiny change)
 
 	* url-http.el (url-http-content-length-after-change-function): Use
 	`url-lazy-message'.
@@ -160,7 +185,7 @@
 	getenv returns an empty string for http_proxy.  This prevents an
 	error when calling `format' later on.
 
-2006-08-31  Diane Murray  <disumu@x3y2z1.net>
+2006-08-31  Diane Murray  <disumu@x3y2z1.net>  (tiny change)
 
 	* url-parse.el (url-recreate-url-attributes): New function, code
 	simply moved from `url-recreate-url'.
@@ -170,7 +195,7 @@
 	* url-http.el (url-http-create-request):
 	Use `url-recreate-url-attributes' when setting real-fname.
 
-2006-08-29  Diane Murray  <disumu@x3y2z1.net>
+2006-08-29  Diane Murray  <disumu@x3y2z1.net>  (tiny change)
 
 	* url-cookie.el (url-cookie-write-file): Really don't use versioned
 	backups.

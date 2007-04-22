@@ -99,6 +99,7 @@ Mile End Road, London E1 4NS, UK
 * Technical::           Technical Details
 * Bugs::                Reporting Bugs
 * Acknowledgements::    Acknowledgements
+* GNU Free Documentation License:: The license for this documentation.
 * Command Index::       Command Index
 * Variable Index::      Variable Index
 * Keystroke Index::     Keystroke Index
@@ -386,9 +387,9 @@ WoMan tries to pick up the information that would be used by the
 UNIX, then WoMan parses that.  Otherwise, if WoMan can find a
 configuration file named (by default) @file{man.conf} (or something very
 similar), which seems to be the standard mechanism under GNU/Linux, then
-it parses that.  To be precise, ``something very similar'' means having
-two name components separated by a dot and respectively containing
-@samp{man} and beginning with @samp{conf}, e.g.@: @file{manual.configuration}.
+it parses that.  To be precise, ``something very similar'' means
+starting with @samp{man} and ending with @samp{.conf} and possibly more
+lowercase letters, e.g.@: @file{manual.configuration}.
 The search path and/or precise full path name for this file are set by
 the value of the customizable user option @code{woman-man.conf-path}.
 If all else fails, WoMan uses a plausible default man search path.
@@ -407,7 +408,10 @@ elements of @code{woman-path} must be directories that contain man files
 @emph{directly}.  Secondly, the last directory component of each element
 of @code{woman-path} is treated as a regular (Emacs) match expression
 rather than a fixed name, which allows collections of related
-directories to be specified succinctly.
+directories to be specified succinctly.  Also, elements of
+@code{woman-manpath} can be conses, indicating a mapping from
+@samp{PATH} environment variable components to man directory
+hierarchies.
 
 For topic completion to work, WoMan must build a list of all the manual
 files that it can access, which can be very slow, especially if a
@@ -477,24 +481,22 @@ time it is run in a new Emacs session.
 @cindex point, word at
 
 By default, the @code{woman} command uses the word nearest to point in
-the current buffer as a suggestion for the topic to look up.  The topic
-must be confirmed or edited in the minibuffer.  This suggestion can be
-turned off, or @code{woman} can use the suggested topic without
-confirmation if possible, which is controlled by customizing the user
-option @code{woman-topic-at-point} to @code{nil} or @code{t}
-respectively.  (Its default value is neither @code{nil} nor @code{t},
-meaning ask for confirmation.)
+the current buffer as a suggestion for the topic to look up, if it
+exists as a valid topic.  The topic can be confirmed or edited in the
+minibuffer.
 
-The variable @code{woman-topic-at-point} can also be rebound locally
-(using @code{let}), which may be useful to provide special private key
-bindings, e.g.@: this key binding for @kbd{C-c w} runs WoMan on the topic
-at point without seeking confirmation:
+You can also bind the variable @code{woman-use-topic-at-point} locally
+to a non-@code{nil} value (using @code{let}), in which case
+@code{woman} will can use the suggested topic without confirmation if
+possible.  This may be useful to provide special private key bindings,
+e.g.@: this key binding for @kbd{C-c w} runs WoMan on the topic at
+point without seeking confirmation:
 
 @lisp
 (global-set-key "\C-cw"
                 (lambda ()
                   (interactive)
-                  (let ((woman-topic-at-point t))
+                  (let ((woman-use-topic-at-point t))
                     (woman))))
 @end lisp
 
@@ -943,7 +945,9 @@ A list of strings representing @emph{directory trees} to search for Unix
 manual files.  Each element should be the name of a directory that
 contains subdirectories of the form @file{man?}, or more precisely
 subdirectories selected by the value of @code{woman-manpath-man-regexp}.
-Non-directory and unreadable files are ignored.
+Non-directory and unreadable files are ignored.  This can also contain
+conses, with the car indicating a @code{PATH} variable component mapped
+to the directory tree given in the cdr.
 
 @cindex @code{MANPATH}, environment variable
 If not set then the environment variable @code{MANPATH} is used.  If no
@@ -1086,24 +1090,18 @@ a Contents menu to the menubar by calling @code{imenu-add-to-menubar}.
 A string representing the title to use if WoMan adds a Contents menu to
 the menubar.  Default is @code{"CONTENTS"}.
 
-@item woman-topic-at-point
-A symbol, which may be either @code{t}, @code{nil} or @code{confirm},
-that controls the use by @code{woman} of the ``word at point'' as a
-topic suggestion.  If it is non-@code{nil} then the @code{woman} command uses
-the word at point as an initial topic suggestion when it reads a topic
-from the minibuffer; if it is @code{t} then @code{woman} uses the word
-at point @emph{without interactive confirmation} if it exists as a
-topic.  The value @code{confirm} means suggest a topic and ask for
-confirmation.  The default value is that of
-@code{woman-topic-at-point-default}.
+@item woman-use-topic-at-point
+A boolean value that defaults to @code{nil}.  If non-@code{nil} then
+the @code{woman} command uses the word at point as the topic,
+@emph{without interactive confirmation}, if it exists as a topic.
 
-@item woman-topic-at-point-default
-A symbol, which may be either @code{t}, @code{nil} or @code{confirm},
-representing the default value for @code{woman-topic-at-point}.  The
-default value is @code{confirm}.  [The variable
-@code{woman-topic-at-point} may be @code{let}-bound when @code{woman} is
-loaded, in which case its global value does not get defined.  The
-function @code{woman-file-name} sets it to this value if it is unbound.]
+@item woman-use-topic-at-point-default
+A boolean value representing the default value for
+@code{woman-use-topic-at-point}.  The default value is @code{nil}.
+[The variable @code{woman-use-topic-at-point} may be @code{let}-bound
+when @code{woman} is loaded, in which case its global value does not
+get defined.  The function @code{woman-file-name} sets it to this
+value if it is unbound.]
 
 @item woman-uncompressed-file-regexp
 A regular match expression used to select man source files (ignoring any
@@ -1337,7 +1335,7 @@ man source file from, but do not send it unless asked to send it.
 
 @c ===================================================================
 
-@node Acknowledgements, Command Index, Bugs, Top
+@node Acknowledgements, GNU Free Documentation License, Bugs, Top
 @comment  node-name,  next,  previous,  up
 @chapter Acknowledgements
 @cindex acknowledgements
@@ -1393,7 +1391,12 @@ Eli Zaretskii, @email{eliz@@is.elta.co.il}
 @comment END OF MANUAL TEXT
 @page
 
-@node Command Index, Variable Index, Acknowledgements, Top
+
+@node GNU Free Documentation License, Command Index, Acknowledgements, Top
+@appendix GNU Free Documentation License
+@include doclicense.texi
+
+@node Command Index, Variable Index, GNU Free Documentation License, Top
 @comment  node-name,           next,      previous,  up
 @unnumbered Command Index
 

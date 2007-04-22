@@ -767,7 +767,7 @@ completion possibility specified by @var{collection} and
 strings, this is true if @var{string} appears in the list and
 @var{predicate} is satisfied.
 
-@code{test-completion} uses @code{completion-regexp-list} in the same
+This function uses @code{completion-regexp-list} in the same
 way that @code{try-completion} does.
 
 If @var{predicate} is non-@code{nil} and if @var{collection} contains
@@ -812,6 +812,8 @@ Here is an example of use:
 
 @node Minibuffer Completion
 @subsection Completion and the Minibuffer
+@cindex minibuffer completion
+@cindex reading from minibuffer with completion
 
   This section describes the basic interface for reading from the
 minibuffer with completion.
@@ -1222,6 +1224,8 @@ and @code{read-input-method-name}, in @ref{Input Methods}.
 
 @node Reading File Names
 @subsection Reading File Names
+@cindex read file names
+@cindex prompt for file name
 
   Here is another high-level completion function, designed for reading a
 file name.  It provides special features including automatic insertion
@@ -1782,6 +1786,7 @@ regular expression).
 
 @node Minibuffer Windows
 @section Minibuffer Windows
+@cindex minibuffer windows
 
   These functions access and select minibuffer windows
 and test whether they are active.
@@ -1872,6 +1877,7 @@ it erases the entire current buffer.
 
 @node Recursive Mini
 @section Recursive Minibuffers
+@cindex recursive minibuffers
 
   These functions and variables deal with recursive minibuffers
 (@pxref{Recursive Editing}):

@@ -163,6 +163,22 @@
 (define-key xterm-function-map "\e[4~" [select])
 (define-key xterm-function-map "\e[29~" [print])
 
+(define-key xterm-function-map "\eOj" [kp-multiply])
+(define-key xterm-function-map "\eOk" [kp-add])
+(define-key xterm-function-map "\eOl" [kp-separator])
+(define-key xterm-function-map "\eOm" [kp-subtract])
+(define-key xterm-function-map "\eOo" [kp-divide])
+(define-key xterm-function-map "\eOp" [kp-0])
+(define-key xterm-function-map "\eOq" [kp-1])
+(define-key xterm-function-map "\eOr" [kp-2])
+(define-key xterm-function-map "\eOs" [kp-3])
+(define-key xterm-function-map "\eOt" [kp-4])
+(define-key xterm-function-map "\eOu" [kp-5])
+(define-key xterm-function-map "\eOv" [kp-6])
+(define-key xterm-function-map "\eOw" [kp-7])
+(define-key xterm-function-map "\eOx" [kp-8])
+(define-key xterm-function-map "\eOy" [kp-9])
+
 ;; These keys are available in xterm starting from version 216
 ;; if the modifyOtherKeys resource is set to 1.
 
@@ -177,7 +193,7 @@
 (define-key xterm-function-map "\e[27;5;49~"  [?\C-1])
 ;; Not all C-DIGIT keys have a distinct binding.
 (define-key xterm-function-map "\e[27;5;57~"  [?\C-9])
-(define-key xterm-function-map "\e[27;5;59~"  [(C-\;)])
+(define-key xterm-function-map "\e[27;5;59~"  [?\C-\;])
 (define-key xterm-function-map "\e[27;5;61~"  [?\C-=])
 (define-key xterm-function-map "\e[27;5;92~"  [?\C-\\])
 
@@ -186,7 +202,7 @@
 (define-key xterm-function-map "\e[27;6;35~"  [?\C-#])
 (define-key xterm-function-map "\e[27;6;36~"  [?\C-$])
 (define-key xterm-function-map "\e[27;6;37~"  [?\C-%])
-(define-key xterm-function-map "\e[27;6;38~"  [(C-&)])
+(define-key xterm-function-map "\e[27;6;38~"  [?\C-&])
 (define-key xterm-function-map "\e[27;6;40~"  [?\C-(])
 (define-key xterm-function-map "\e[27;6;41~"  [?\C-)])
 (define-key xterm-function-map "\e[27;6;42~"  [?\C-*])
@@ -194,13 +210,13 @@
 (define-key xterm-function-map "\e[27;6;58~"  [?\C-:])
 (define-key xterm-function-map "\e[27;6;60~"  [?\C-<])
 (define-key xterm-function-map "\e[27;6;62~"  [?\C->])
-(define-key xterm-function-map "\e[27;6;63~"  [(C-\?)])
+(define-key xterm-function-map "\e[27;6;63~"  [(control ??)])
 
 ;; These are the strings emitted for various C-M- combinations
 ;; for keyboards that the Meta and Alt modifiers are on the same
 ;; key (usually labeled "Alt").
-(define-key xterm-function-map "\e[27;13;9~"  [(C-M-tab)])
-(define-key xterm-function-map "\e[27;13;13~" [(C-M-return)])
+(define-key xterm-function-map "\e[27;13;9~"  [C-M-tab])
+(define-key xterm-function-map "\e[27;13;13~" [C-M-return])
 
 (define-key xterm-function-map "\e[27;13;39~" [?\C-\M-\'])
 (define-key xterm-function-map "\e[27;13;44~" [?\C-\M-,])
@@ -226,7 +242,7 @@
 (define-key xterm-function-map "\e[27;14;35~"  [?\C-\M-#])
 (define-key xterm-function-map "\e[27;14;36~"  [?\C-\M-$])
 (define-key xterm-function-map "\e[27;14;37~"  [?\C-\M-%])
-(define-key xterm-function-map "\e[27;14;38~"  [(C-M-&)])
+(define-key xterm-function-map "\e[27;14;38~"  [?\C-\M-&])
 (define-key xterm-function-map "\e[27;14;40~"  [?\C-\M-(])
 (define-key xterm-function-map "\e[27;14;41~"  [?\C-\M-)])
 (define-key xterm-function-map "\e[27;14;42~"  [?\C-\M-*])
@@ -234,11 +250,12 @@
 (define-key xterm-function-map "\e[27;14;58~"  [?\C-\M-:])
 (define-key xterm-function-map "\e[27;14;60~"  [?\C-\M-<])
 (define-key xterm-function-map "\e[27;14;62~"  [?\C-\M->])
-(define-key xterm-function-map "\e[27;14;63~"  [(C-M-\?)])
+(define-key xterm-function-map "\e[27;14;63~"  [(control meta ??)])
 
-(define-key xterm-function-map "\e[27;7;9~"  [(C-M-tab)])
-(define-key xterm-function-map "\e[27;7;13~" [(C-M-return)])
+(define-key xterm-function-map "\e[27;7;9~"  [C-M-tab])
+(define-key xterm-function-map "\e[27;7;13~" [C-M-return])
 
+(define-key xterm-function-map "\e[27;7;32~" [?\C-\M-\s])
 (define-key xterm-function-map "\e[27;7;39~" [?\C-\M-\'])
 (define-key xterm-function-map "\e[27;7;44~" [?\C-\M-,])
 (define-key xterm-function-map "\e[27;7;45~" [?\C-\M--])
@@ -263,7 +280,7 @@
 (define-key xterm-function-map "\e[27;8;35~"  [?\C-\M-#])
 (define-key xterm-function-map "\e[27;8;36~"  [?\C-\M-$])
 (define-key xterm-function-map "\e[27;8;37~"  [?\C-\M-%])
-(define-key xterm-function-map "\e[27;8;38~"  [(C-M-&)])
+(define-key xterm-function-map "\e[27;8;38~"  [?\C-\M-&])
 (define-key xterm-function-map "\e[27;8;40~"  [?\C-\M-(])
 (define-key xterm-function-map "\e[27;8;41~"  [?\C-\M-)])
 (define-key xterm-function-map "\e[27;8;42~"  [?\C-\M-*])
@@ -271,13 +288,13 @@
 (define-key xterm-function-map "\e[27;8;58~"  [?\C-\M-:])
 (define-key xterm-function-map "\e[27;8;60~"  [?\C-\M-<])
 (define-key xterm-function-map "\e[27;8;62~"  [?\C-\M->])
-(define-key xterm-function-map "\e[27;8;63~"  [(C-M-\?)])
+(define-key xterm-function-map "\e[27;8;63~"  [(control meta ??)])
 
 (define-key xterm-function-map "\e[27;2;9~"   [S-tab])
 (define-key xterm-function-map "\e[27;2;13~"  [S-return])
 
-(define-key xterm-function-map "\e[27;6;9~"   [(C-S-tab)])
-(define-key xterm-function-map "\e[27;6;13~"  [(C-S-return)])
+(define-key xterm-function-map "\e[27;6;9~"   [C-S-tab])
+(define-key xterm-function-map "\e[27;6;13~"  [C-S-return])
 
 ;; Other versions of xterm might emit these.
 (define-key xterm-function-map "\e[A" [up])

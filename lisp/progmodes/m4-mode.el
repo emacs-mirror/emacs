@@ -118,14 +118,19 @@
 (defun m4-m4-buffer ()
   "Send contents of the current buffer to m4."
   (interactive)
-  (shell-command-on-region (point-min) (point-max) m4-program "*m4-output*"
-			   nil)
+  (shell-command-on-region
+   (point-min) (point-max)
+   (mapconcat 'identity (cons m4-program m4-program-options) "\s")
+   "*m4-output*" nil)
   (switch-to-buffer-other-window "*m4-output*"))
 
 (defun m4-m4-region ()
   "Send contents of the current region to m4."
   (interactive)
-  (shell-command-on-region (point) (mark) m4-program "*m4-output*" nil)
+  (shell-command-on-region
+   (point) (mark)
+   (mapconcat 'identity (cons m4-program m4-program-options) "\s")
+   "*m4-output*" nil)
   (switch-to-buffer-other-window "*m4-output*"))
 
 ;;;###autoload

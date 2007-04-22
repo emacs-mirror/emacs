@@ -6,6 +6,7 @@
 @setfilename ../info/backups
 @node Backups and Auto-Saving, Buffers, Files, Top
 @chapter Backups and Auto-Saving
+@cindex backups and auto-saving
 
   Backup files and auto-save files are two methods by which Emacs tries
 to protect the user from the consequences of crashes or of the user's
@@ -25,10 +26,10 @@ current session.
 
   A @dfn{backup file} is a copy of the old contents of a file you are
 editing.  Emacs makes a backup file the first time you save a buffer
-into its visited file.  Normally, this means that the backup file
-contains the contents of the file as it was before the current editing
-session.  The contents of the backup file normally remain unchanged once
-it exists.
+into its visited file.  Thus, normally, the backup file contains the
+contents of the file as it was before the current editing session.
+The contents of the backup file normally remain unchanged once it
+exists.
 
   Backups are usually made by renaming the visited file to a new name.
 Optionally, you can specify that backup files should be made by copying
@@ -66,11 +67,11 @@ function returns @code{nil}.
 @end defun
 
 @defvar buffer-backed-up
-  This buffer-local variable indicates whether this buffer's file has
-been backed up on account of this buffer.  If it is non-@code{nil}, then
+  This buffer-local variable says whether this buffer's file has
+been backed up on account of this buffer.  If it is non-@code{nil},
 the backup file has been written.  Otherwise, the file should be backed
 up when it is next saved (if backups are enabled).  This is a
-permanent local; @code{kill-all-local-variables} does not alter it.
+permanent local; @code{kill-all-local-variables} does not alter@tie{}it.
 @end defvar
 
 @defopt make-backup-files
@@ -162,7 +163,7 @@ files.  If you define it, you may need to change
 
 @node Rename or Copy
 @subsection Backup by Renaming or by Copying?
-@cindex backup files, how to make them
+@cindex backup files, rename or copy
 
   There are two ways that Emacs can make a backup file:
 
@@ -268,12 +269,12 @@ automatically or it can ask the user whether to delete them.
 @defopt kept-new-versions
 The value of this variable is the number of newest versions to keep
 when a new numbered backup is made.  The newly made backup is included
-in the count.  The default value is 2.
+in the count.  The default value is@tie{}2.
 @end defopt
 
 @defopt kept-old-versions
 The value of this variable is the number of oldest versions to keep
-when a new numbered backup is made.  The default value is 2.
+when a new numbered backup is made.  The default value is@tie{}2.
 @end defopt
 
   If there are backups numbered 1, 2, 3, 5, and 7, and both of these
@@ -294,7 +295,7 @@ Otherwise, they are not deleted at all.
 This variable specifies how many of the newest backup versions to keep
 in the Dired command @kbd{.} (@code{dired-clean-directory}).  That's the
 same thing @code{kept-new-versions} specifies when you make a new backup
-file.  The default value is 2.
+file.  The default is@tie{}2.
 @end defopt
 
 @node Backup Names
@@ -306,8 +307,8 @@ If you change one, you probably need to change the rest.
 
 @defun backup-file-name-p filename
 This function returns a non-@code{nil} value if @var{filename} is a
-possible name for a backup file.  A file with the name @var{filename}
-need not exist; the function just checks the name.
+possible name for a backup file.  It just checks the name, not whether
+a file with the name @var{filename} exists.
 
 @smallexample
 @group
@@ -417,7 +418,7 @@ automatically compare a file with its most recent backup.
 
 @node Auto-Saving
 @section Auto-Saving
-@cindex auto-saving
+@c @cindex auto-saving   Lots of symbols starting with auto-save here.
 
   Emacs periodically saves all files that you are visiting; this is
 called @dfn{auto-saving}.  Auto-saving prevents you from losing more

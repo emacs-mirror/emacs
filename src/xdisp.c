@@ -12786,6 +12786,8 @@ redisplay_window (window, just_this_one_p)
   int rc;
   int centering_position = -1;
   int last_line_misfit = 0;
+  int save_beg_unchanged = BEG_UNCHANGED;
+  int save_end_unchanged = END_UNCHANGED;
 
   SET_TEXT_POS (lpoint, PT, PT_BYTE);
   opoint = lpoint;
@@ -13154,11 +13156,20 @@ redisplay_window (window, just_this_one_p)
 	  && NILP (do_mouse_tracking)
 	  && CHARPOS (startp) > BEGV)
 	{
-	  /* Make sure beg_unchanged and end_unchanged are up to date.
-	     Do it only if buffer has really changed.  This may or may
-	     not have been done by try_window_id (see which) already. */
+#if 0
+	  /* The following code tried to make BEG_UNCHANGED and
+	     END_UNCHANGED up to date (similar to try_window_id).
+	     Is it important to do so?
+
+	     The trouble is that it's a little too strict when it
+	     comes to overlays: modify_overlay can call
+	     BUF_COMPUTE_UNCHANGED, which alters BUF_BEG_UNCHANGED and
+	     BUF_END_UNCHANGED directly without moving the gap.
+
+	     This can result in spurious recentering when overlays are
+	     altered in the buffer.  So unless it's proven necessary,
+	     let's leave this commented out for now. -- cyd.  */
 	  if (MODIFF > SAVE_MODIFF
-	      /* This seems to happen sometimes after saving a buffer.  */
 	      || BEG_UNCHANGED + END_UNCHANGED > Z_BYTE)
 	    {
 	      if (GPT - BEG < BEG_UNCHANGED)
@@ -13166,9 +13177,10 @@ redisplay_window (window, just_this_one_p)
 	      if (Z - GPT < END_UNCHANGED)
 		END_UNCHANGED = Z - GPT;
 	    }
+#endif
 
-	  if (CHARPOS (startp) > BEG + BEG_UNCHANGED
-	      && CHARPOS (startp) <= Z - END_UNCHANGED)
+	  if (CHARPOS (startp) > BEG + save_beg_unchanged
+	      && CHARPOS (startp) <= Z - save_end_unchanged)
 	    {
 	      /* There doesn't seems to be a simple way to find a new
 		 window start that is near the old window start, so
@@ -15865,13 +15877,37 @@ cursor_row_p (w, row)
 
   if (PT == MATRIX_ROW_END_CHARPOS (row))
     {
-      /* If the row ends with a newline from a string, we don't want
-	 the cursor there, but we still want it at the start of the
-	 string if the string starts in this row.
-	 If the row is continued it doesn't end in a newline.  */
+      /* Suppose the row ends on a string.
+	 Unless the row is continued, that means it ends on a newline
+	 in the string.  If it's anything other than a display string
+	 (e.g. a before-string from an overlay), we don't want the
+	 cursor there.  (This heuristic seems to give the optimal
+	 behavior for the various types of multi-line strings.)  */
       if (CHARPOS (row->end.string_pos) >= 0)
-	cursor_row_p = (row->continued_p
-			|| PT >= MATRIX_ROW_START_CHARPOS (row));
+	{
+	  if (row->continued_p)
+	    cursor_row_p = 1;
+	  else
+	    {
+	      /* Check for `display' property.  */
+	      struct glyph *beg = row->glyphs[TEXT_AREA];
+	      struct glyph *end = beg + row->used[TEXT_AREA] - 1;
+	      struct glyph *glyph;
+
+	      cursor_row_p = 0;
+	      for (glyph = end; glyph >= beg; --glyph)
+		if (STRINGP (glyph->object))
+		  {
+		    Lisp_Object prop
+		      = Fget_char_property (make_number (PT),
+					    Qdisplay, Qnil);
+		    cursor_row_p =
+		      (!NILP (prop)
+		       && display_prop_string_p (prop, glyph->object));
+		    break;
+		  }
+	    }
+	}
       else if (MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row))
 	{
 	  /* If the row ends in middle of a real character,
@@ -22451,7 +22487,7 @@ note_mode_line_or_margin_highlight (window, x, y, area)
 
   Lisp_Object mouse_face;
   int original_x_pixel = x;
-  struct glyph * glyph = NULL;
+  struct glyph * glyph = NULL, * row_start_glyph = NULL;
   struct glyph_row *row;
 
   if (area == ON_MODE_LINE || area == ON_HEADER_LINE)
@@ -22469,7 +22505,7 @@ note_mode_line_or_margin_highlight (window, x, y, area)
       /* Find glyph */
       if (row->mode_line_p && row->enabled_p)
 	{
-	  glyph = row->glyphs[TEXT_AREA];
+	  glyph = row_start_glyph = row->glyphs[TEXT_AREA];
 	  end = glyph + row->used[TEXT_AREA];
 
 	  for (x0 = original_x_pixel;
@@ -22593,12 +22629,17 @@ note_mode_line_or_margin_highlight (window, x, y, area)
 	     is converted to a flatten by emacs lisp interpreter.
 	     The internal string is an element of the structures.
 	     The displayed string is the flatten string. */
-	  for (tmp_glyph = glyph - 1, gpos = 0;
-	       tmp_glyph->charpos >= XINT (b);
-	       tmp_glyph--, gpos++)
+	  gpos = 0;
+	  if (glyph > row_start_glyph)
 	    {
-	      if (!EQ (tmp_glyph->object, glyph->object))
-		break;
+	      tmp_glyph = glyph - 1;
+	      while (tmp_glyph >= row_start_glyph
+		     && tmp_glyph->charpos >= XINT (b)
+		     && EQ (tmp_glyph->object, glyph->object))
+		{
+		  tmp_glyph--;
+		  gpos++;
+		}
 	    }
 
 	  /* Calculate the lenght(glyph sequence length: GSEQ_LENGTH) of
@@ -24081,7 +24122,7 @@ and is used only on frames for which no explicit name has been set
     doc: /* Maximum number of lines to keep in the message log buffer.
 If nil, disable message logging.  If t, log messages but don't truncate
 the buffer when it becomes large.  */);
-  Vmessage_log_max = make_number (50);
+  Vmessage_log_max = make_number (100);
 
   DEFVAR_LISP ("window-size-change-functions", &Vwindow_size_change_functions,
     doc: /* Functions called before redisplay, if window sizes have changed.

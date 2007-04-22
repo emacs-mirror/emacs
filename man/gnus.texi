@@ -402,6 +402,7 @@ the program.
 * Various::                  General purpose settings.
 * The End::                  Farewell and goodbye.
 * Appendices::               Terminology, Emacs intro, @acronym{FAQ}, History, Internals.
+* GNU Free Documentation License:: The license for this documentation.
 * Index::                    Variable, function and concept index.
 * Key Index::                Key Index.
 
@@ -6174,7 +6175,7 @@ Process marks are displayed as @code{#} in the summary buffer, and are
 used for marking articles in such a way that other commands will
 process these articles.  For instance, if you process mark four
 articles and then use the @kbd{*} command, Gnus will enter these four
-commands into the cache.  For more information,
+articles into the cache.  For more information,
 @pxref{Process/Prefix}.
 
 @table @kbd
@@ -13489,7 +13490,7 @@ function.
 
 @vindex nnmail-mail-splitting-charset
 @vindex nnmail-mail-splitting-decodes
-By default the splitting codes @acronym{MIME} decodes headers so you
+By default, splitting @acronym{MIME}-decodes headers so you
 can match on non-@acronym{ASCII} strings.  The
 @code{nnmail-mail-splitting-charset} variable specifies the default
 charset for decoding.  The behavior can be turned off completely by
@@ -13607,7 +13608,8 @@ TMP=$HOME/Mail/tmp
 rm -f $TMP; $MOVEMAIL $MAIL $TMP >/dev/null && cat $TMP
 @end example
 
-Alter this script to fit find the @samp{movemail} you want to use.
+Alter this script to fit the @samp{movemail} and temporary
+file you want to use.
 
 
 @item directory
@@ -29026,6 +29028,10 @@ former).  The manual is unambiguous, but it can be confusing.
 
 @page
 @include gnus-faq.texi
+
+@node GNU Free Documentation License
+@chapter GNU Free Documentation License
+@include doclicense.texi
 
 @node Index
 @chapter Index

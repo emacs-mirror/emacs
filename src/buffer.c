@@ -1471,7 +1471,16 @@ with SIGHUP.  */)
   unlock_buffer (b);
 #endif /* CLASH_DETECTION */
 
+  GCPRO1 (buf);
   kill_buffer_processes (buf);
+  UNGCPRO;
+
+  /* Killing buffer processes may run sentinels which may
+     have called kill-buffer.  */
+
+  if (NILP (b->name))
+    return Qnil;
+
   clear_charpos_cache (b);
 
   tem = Vinhibit_quit;
@@ -1643,6 +1652,8 @@ the current buffer's major mode.  */)
 {
   int count;
   Lisp_Object function;
+
+  CHECK_BUFFER (buffer);
 
   if (STRINGP (XBUFFER (buffer)->name)
       && strcmp (SDATA (XBUFFER (buffer)->name), "*scratch*") == 0)

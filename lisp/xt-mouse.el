@@ -50,7 +50,8 @@
 
 ;; Mouse events symbols must have an 'event-kind property with
 ;; the value 'mouse-click.
-(dolist (event-type '(mouse-1 mouse-2 mouse-3))
+(dolist (event-type '(mouse-1 mouse-2 mouse-3
+			      M-down-mouse-1 M-down-mouse-2 M-down-mouse-3))
   (put event-type 'event-kind 'mouse-click))
 
 (defun xterm-mouse-translate (event)
@@ -108,6 +109,8 @@
 ;;(defvar xterm-mouse-y 0
 ;;  "Position of last xterm mouse event relative to the frame.")
 
+(defvar xt-mouse-epoch nil)
+
 ;; Indicator for the xterm-mouse mode.
 
 (defun xterm-mouse-position-function (pos)
@@ -129,6 +132,13 @@
   (let* ((type (- (xterm-mouse-event-read) #o40))
 	 (x (- (xterm-mouse-event-read) #o40 1))
 	 (y (- (xterm-mouse-event-read) #o40 1))
+	 ;; Emulate timestamp information.  This is accurate enough
+	 ;; for default value of mouse-1-click-follows-link (450msec).
+	 (timestamp (truncate
+		     (* 1000
+			(- (float-time)
+			   (or xt-mouse-epoch
+			       (setq xt-mouse-epoch (float-time)))))))
 	 (mouse (intern
 		 ;; For buttons > 3, the release-event looks
 		 ;; differently (see xc/programs/xterm/button.c,
@@ -136,6 +146,11 @@
 		 ;; a release-event only, no down-event.
 		 (cond ((>= type 64)
 			(format "mouse-%d" (- type 60)))
+		       ((memq type '(8 9 10))
+			(setq xterm-mouse-last type)
+			(format "M-down-mouse-%d" (- type 7)))
+		       ((= type 11)
+			(format "mouse-%d" (- xterm-mouse-last 7)))
 		       ((= type 3)
 			(format "mouse-%d" (+ 1 xterm-mouse-last)))
 		       (t
@@ -150,10 +165,13 @@
     (set-terminal-parameter nil 'xterm-mouse-y y)
     (setq
      last-input-event
-     (if w
-	 (list mouse (posn-at-x-y (- x left) (- y top) w t))
-       (list mouse
-	     (append (list nil 'menu-bar) (nthcdr 2 (posn-at-x-y x y w t))))))))
+     (list mouse
+	   (let ((event (if w
+			    (posn-at-x-y (- x left) (- y top) w t)
+			  (append (list nil 'menu-bar)
+				  (nthcdr 2 (posn-at-x-y x y))))))
+	     (setcar (nthcdr 3 event) timestamp)
+	     event)))))
 
 ;;;###autoload
 (define-minor-mode xterm-mouse-mode

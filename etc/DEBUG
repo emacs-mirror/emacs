@@ -306,10 +306,15 @@ debugger, type "gdb temacs", then start it with `r -batch -l loadup'.
 
 ** If you encounter X protocol errors
 
-Try evaluating (x-synchronize t).  That puts Emacs into synchronous
-mode, where each Xlib call checks for errors before it returns.  This
-mode is much slower, but when you get an error, you will see exactly
-which call really caused the error.
+The X server normally reports protocol errors asynchronously,
+so you find out about them long after the primitive which caused
+the error has returned.
+
+To get clear information about the cause of an error, try evaluating
+(x-synchronize t).  That puts Emacs into synchronous mode, where each
+Xlib call checks for errors before it returns.  This mode is much
+slower, but when you get an error, you will see exactly which call
+really caused the error.
 
 You can start Emacs in a synchronous mode by invoking it with the -xrm
 option, like this:
@@ -562,7 +567,7 @@ are involved in the crash.
 
 Once you discover the corrupted Lisp object or data structure, grep
 the sources for its uses and try to figure out what could cause the
-corruption.  If looking at the sources doesn;t help, you could try
+corruption.  If looking at the sources doesn't help, you could try
 setting a watchpoint on the corrupted data, and see what code modifies
 it in some invalid way.  (Obviously, this technique is only useful for
 data that is modified only very rarely.)
@@ -726,7 +731,7 @@ prints the backtrace for a crash.  It is usually best to look at the
 disassembly to determine exactly what code is being run--the
 disassembly will probably show several source lines followed by a
 block of assembler for those lines.  The actual point where Emacs
-crashes will be one of those source lines, but not neccesarily the one
+crashes will be one of those source lines, but not necessarily the one
 that the debugger reports.
 
 Another problematic area with the MS debugger is with variables that

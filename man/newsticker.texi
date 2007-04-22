@@ -48,6 +48,7 @@ license to the document, as described in section 6 of the license.
 @author @uref{http://de.geocities.com/ulf_jasper}
 @page
 @vskip 0pt plus 1filll
+@insertcopying
 @end titlepage
 
 @contents
@@ -64,6 +65,7 @@ license to the document, as described in section 6 of the license.
 * Usage::           Basic newsticker instructions.
 * Configuration::   Customizable newsticker settings.
 * Remarks::         Remarks about newsticker.
+* GNU Free Documentation License:: The license for this documentation.
 * Index::           Variable, function, and concept index.
 @end menu
 
@@ -270,7 +272,9 @@ every once in a while.
 
 Byte-compiling newsticker.el is recommended.
 
-
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
+@include doclicense.texi
 
 @node Index
 @unnumbered Index

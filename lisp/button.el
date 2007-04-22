@@ -89,9 +89,6 @@ Mode-specific keymaps may want to use this as their parent keymap.")
 ;; Prevent insertions adjacent to the text-property buttons from
 ;; inheriting its properties.
 (put 'default-button 'rear-nonsticky t)
-;; Text property buttons don't have a `button' property of their own, so
-;; they inherit this.
-(put 'default-button 'button t)
 
 ;; A `category-symbol' property for the default button type
 (put 'button 'button-category-symbol 'default-button)
@@ -316,7 +313,11 @@ Also see `insert-text-button'."
       (setcar (cdr type-entry)
 	      (button-category-symbol (car (cdr type-entry))))))
   ;; Now add all the text properties at once
-  (add-text-properties beg end properties)
+  (add-text-properties beg end
+                       ;; Each button should have a non-eq `button'
+                       ;; property so that next-single-property-change can
+                       ;; detect boundaries reliably.
+                       (cons 'button (cons (list t) properties)))
   ;; Return something that can be used to get at the button.
   beg)
 
@@ -365,16 +366,29 @@ instead of starting at the next button."
 	     (next-button pos))))
 
 (defun previous-button (pos &optional count-current)
-  "Return the Nth button before position POS in the current buffer.
+  "Return the previous button before position POS in the current buffer.
 If COUNT-CURRENT is non-nil, count any button at POS in the search,
 instead of starting at the next button."
-  (unless count-current
-    (setq pos (previous-single-char-property-change pos 'button)))
-  (and (> pos (point-min))
-       (or (button-at (1- pos))
-	   ;; We must have originally been on a button, and are now in
-	   ;; the inter-button space.  Recurse to find a button.
-	   (previous-button pos))))
+  (let ((button (button-at pos)))
+    (if button
+	(if count-current
+	    button
+	  ;; We started out on a button, so move to its start and look
+	  ;; for the previous button boundary.
+	  (setq pos (previous-single-char-property-change
+		     (button-start button) 'button))
+	  (let ((new-button (button-at pos)))
+	    (if new-button
+		;; We are in a button again; this can happen if there
+		;; are adjacent buttons (or at bob).
+		(unless (= pos (button-start button)) new-button)
+	      ;; We are now in the space between buttons.
+	      (previous-button pos))))
+      ;; We started out in the space between buttons.
+      (setq pos (previous-single-char-property-change pos 'button))
+      (or (button-at pos)
+	  (and (> pos (point-min))
+	       (button-at (1- pos)))))))
 
 
 ;; User commands
