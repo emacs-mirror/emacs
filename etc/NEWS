@@ -1739,9 +1739,10 @@ table editing available in modern word processors.  The package also
 can generate a table source in typesetting and markup languages such
 as latex and html from the visually laid out text table.
 
-** The tumme.el package allows you to easily view, tag and in other ways
-manipulate image files and their thumbnails, using dired as the main interface.
-Tumme provides functionality to generate simple image galleries.
+** The thumbnails.el package allows you to easily view, tag and in
+other ways manipulate image files and their thumbnails, using dired as
+the main interface.  Thumbnails provides functionality to generate
+simple image galleries.
 
 ** Tramp is now part of the distribution.
 
@@ -1804,11 +1805,11 @@ is similar to the way sequential output to a terminal works.)
 
 ** Changes in Dired
 
-*** Bindings for Tumme added
+*** Bindings for Thumbnails added
 Several new keybindings, all starting with the C-t prefix, have been
-added to Dired.  They are all bound to commands in Tumme.  As a starting
-point, mark some image files in a dired buffer and do C-t d to display
-thumbnails of them in a separate buffer.
+added to Dired.  They are all bound to commands in Thumbnails.  As a
+starting point, mark some image files in a dired buffer and do C-t d
+to display thumbnails of them in a separate buffer.
 
 ** Changes in Hi Lock
 

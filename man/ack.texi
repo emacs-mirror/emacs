@@ -186,7 +186,7 @@ Doug Cutting and Jamie Zawinski wrote @file{disass.el}, a disassembler
 for compiled Emacs Lisp code.
 
 @item
-Mathias Dahl wrote @file{tumme.el}, a package for viewing image files
+Mathias Dahl wrote @file{thumbnails.el}, a package for viewing image files
 as ``thumbnails.''
 
 @item
