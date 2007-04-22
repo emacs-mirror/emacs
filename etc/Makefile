@@ -37,7 +37,7 @@ clean distclean maintainer-clean:
 	-rm -f DOC* core *.dvi *.log
 
 SOURCES = [0-9A-QS-Z]* README *.[ch16] emacs.* etags.* ledit.l ms-* \
-	spook-lines tasks.texi termcap.* ulimit.hack *.tex
+	spook-lines tasks.texi termcap.* *.tex
 
 unlock:
 	chmod u+w $(SOURCES)

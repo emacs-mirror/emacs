@@ -5744,6 +5744,14 @@ pbm_load (f, img)
     }
   else
     {
+      if (raw_p && (p + 3 * height * width > end))
+	{
+	  x_destroy_x_image (ximg);
+	  image_error ("Invalid image size in image `%s'",
+		       img->spec, Qnil);
+	  goto error;
+	}
+
       for (y = 0; y < height; ++y)
 	for (x = 0; x < width; ++x)
 	  {

@@ -6381,7 +6381,11 @@ FILE = nil means just close any termscript file currently open.  */)
   tty = CURTTY ();
 
   if (tty->termscript != 0)
+  {
+    BLOCK_INPUT;
     fclose (tty->termscript);
+    UNBLOCK_INPUT;
+  }
   tty->termscript = 0;
 
   if (! NILP (file))
@@ -6412,6 +6416,7 @@ currently selected frame.  */)
 
   /* ??? Perhaps we should do something special for multibyte strings here.  */
   CHECK_STRING (string);
+  BLOCK_INPUT;
 
   if (!t)
     error ("Unknown terminal device");
@@ -6425,6 +6430,7 @@ currently selected frame.  */)
     }
   fwrite (SDATA (string), 1, SBYTES (string), tty->output);
   fflush (tty->output);
+  UNBLOCK_INPUT;
   return Qnil;
 }
 

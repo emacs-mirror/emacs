@@ -165,7 +165,7 @@ Its purpose is to pass different call arguments to
 	(define-key global-map (vector (list modifier i)) 'isearchb))))
 
 (defun isearchb-follow-char ()
-  "Function added to post-command-hook to handle the isearchb \"mode\"."
+  "Function added to `post-command-hook' to handle the isearchb \"mode\"."
   (let (keys)
     (if (not (and (memq last-command '(isearchb isearchb-activate))
 		  (setq keys (this-command-keys))

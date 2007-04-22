@@ -403,8 +403,6 @@ LIBXT=$(LIBW)
 #endif /* not USE_X_TOOLKIT */
 
 #if HAVE_XFT
-#undef LIB_X11_LIB /* XFT_LIBS includes -lX11 */
-#define LIB_X11_LIB
 XFT_LIBS=@XFT_LIBS@
 #endif /* HAVE_XFT */
 
@@ -1088,7 +1086,7 @@ stamp-oldxmenu:
    They should define HAVE_ALLOCA.
    Some use the C version in alloca.c (these define C_ALLOCA in config.h).
    */
-alloca.o: alloca.c blockinput.h atimer.h
+alloca.o: alloca.c blockinput.h atimer.h systime.h
 
 /* Nearly all the following files depend on lisp.h,
    but it is not included as a dependency because
@@ -1121,7 +1119,7 @@ pre-crt0.o: pre-crt0.c
 ecrt0.o: ecrt0.c $(config_h)
 	CRT0_COMPILE ${srcdir}/ecrt0.c
 dired.o: dired.c commands.h buffer.h $(config_h) charset.h coding.h regex.h \
-   systime.h blockinput.h
+   systime.h blockinput.h atimer.h
 dispnew.o: dispnew.c systime.h commands.h process.h frame.h \
    window.h buffer.h dispextern.h termchar.h termopts.h termhooks.h cm.h \
    disptab.h indent.h intervals.h \
@@ -1130,14 +1128,15 @@ dispnew.o: dispnew.c systime.h commands.h process.h frame.h \
 doc.o: doc.c $(config_h) epaths.h buffer.h keyboard.h keymap.h charset.h
 doprnt.o: doprnt.c charset.h $(config_h)
 dosfns.o: buffer.h termchar.h termhooks.h frame.h blockinput.h window.h \
-   msdos.h dosfns.h dispextern.h charset.h coding.h $(config_h)
+   msdos.h dosfns.h dispextern.h charset.h coding.h atimer.h systime.h \
+   $(config_h)
 editfns.o: editfns.c window.h buffer.h systime.h $(INTERVAL_SRC) charset.h \
-   coding.h dispextern.h frame.h blockinput.h $(config_h)
+   coding.h dispextern.h frame.h blockinput.h atimer.h $(config_h)
 emacs.o: emacs.c commands.h systty.h syssignal.h blockinput.h process.h \
    termhooks.h buffer.h atimer.h systime.h $(INTERVAL_SRC) $(config_h) \
    window.h dispextern.h keyboard.h keymap.h
 fileio.o: fileio.c window.h buffer.h systime.h $(INTERVAL_SRC) charset.h \
-   coding.h msdos.h dispextern.h blockinput.h $(config_h)
+   coding.h msdos.h dispextern.h blockinput.h atimer.h $(config_h)
 filelock.o: filelock.c buffer.h charset.h coding.h systime.h epaths.h $(config_h)
 filemode.o: filemode.c  $(config_h)
 frame.o: frame.c xterm.h window.h frame.h termhooks.h commands.h keyboard.h \
@@ -1176,7 +1175,7 @@ minibuf.o: minibuf.c syntax.h dispextern.h frame.h window.h keyboard.h \
 mktime.o: mktime.c $(config_h)
 msdos.o: msdos.c msdos.h dosfns.h systime.h termhooks.h dispextern.h frame.h \
    termopts.h termchar.h charset.h coding.h ccl.h disptab.h window.h \
-   keyboard.h intervals.h buffer.h commands.h blockinput.h $(config_h)
+   keyboard.h intervals.h buffer.h commands.h blockinput.h atimer.h $(config_h)
 process.o: process.c process.h buffer.h window.h termhooks.h termopts.h \
    commands.h syssignal.h systime.h systty.h syswait.h frame.h dispextern.h \
    blockinput.h atimer.h charset.h coding.h ccl.h msdos.h composite.h \
@@ -1196,7 +1195,7 @@ sysdep.o: sysdep.c syssignal.h systty.h systime.h syswait.h blockinput.h \
    frame.h atimer.h window.h msdos.h dosfns.h keyboard.h cm.h $(config_h)
 term.o: term.c termchar.h termhooks.h termopts.h $(config_h) cm.h frame.h \
    disptab.h dispextern.h keyboard.h charset.h coding.h ccl.h msdos.h \
-   window.h keymap.h
+   window.h keymap.h blockinput.h atimer.h systime.h
 termcap.o: termcap.c $(config_h)
 terminal.o: terminal.c frame.h termchar.h termhooks.h charset.h coding.h \
    keyboard.h $(config_h)
@@ -1213,7 +1212,8 @@ widget.o: widget.c xterm.h frame.h dispextern.h widgetprv.h \
    $(srcdir)/../lwlib/lwlib.h $(config_h)
 window.o: window.c indent.h commands.h frame.h window.h buffer.h termchar.h \
    disptab.h keyboard.h dispextern.h msdos.h composite.h \
-   keymap.h blockinput.h $(INTERVAL_SRC) xterm.h w32term.h macterm.h $(config_h)
+   keymap.h blockinput.h atimer.h systime.h $(INTERVAL_SRC) \
+   xterm.h w32term.h macterm.h $(config_h)
 xdisp.o: xdisp.c macros.h commands.h process.h indent.h buffer.h dispextern.h coding.h \
    termchar.h frame.h window.h disptab.h termhooks.h charset.h $(config_h) \
    keyboard.h $(INTERVAL_SRC) region-cache.h xterm.h w32term.h macterm.h \
@@ -1238,7 +1238,8 @@ xrdb.o: xrdb.c $(config_h) epaths.h
 xsmfns.o: xsmfns.c $(config_h) systime.h sysselect.h termhooks.h xterm.h \
   lisp.h termopts.h
 gtkutil.o:  gtkutil.c gtkutil.h xterm.h lisp.h frame.h $(config_h) \
-  blockinput.h window.h atimer.h termhooks.h keyboard.h charset.h coding.h
+  blockinput.h window.h atimer.h systime.h termhooks.h keyboard.h \
+  charset.h coding.h
 
 hftctl.o: hftctl.c $(config_h)
 sound.o: sound.c dispextern.h $(config_h)
@@ -1256,10 +1257,10 @@ eval.o: eval.c commands.h keyboard.h blockinput.h atimer.h systime.h \
 floatfns.o: floatfns.c $(config_h)
 fns.o: fns.c commands.h $(config_h) frame.h buffer.h charset.h keyboard.h \
  keymap.h frame.h window.h dispextern.h $(INTERVAL_SRC) coding.h md5.h \
- blockinput.h xterm.h termhooks.h
+ blockinput.h atimer.h systime.h xterm.h termhooks.h
 print.o: print.c process.h frame.h window.h buffer.h keyboard.h charset.h \
    $(config_h) dispextern.h termchar.h $(INTERVAL_SRC) msdos.h composite.h \
-   termchar.h
+   blockinput.h atimer.h systime.h
 lread.o: lread.c commands.h keyboard.h buffer.h epaths.h charset.h \
  $(config_h) $(INTERVAL_SRC) termhooks.h coding.h msdos.h
 
@@ -1285,14 +1286,15 @@ mac.o: mac.c process.h sysselect.h blockinput.h atimer.h systime.h charset.h \
   coding.h ccl.h $(config_h)
 macfns.o: macfns.c charset.h macterm.h macgui.h frame.h window.h buffer.h \
   dispextern.h macgui.h fontset.h $(INTERVAL_SRC) keyboard.h blockinput.h \
-  atimer.h systime.h epaths.h termhooks.h coding.h systime.h $(config_h)
+  atimer.h systime.h epaths.h termhooks.h coding.h $(config_h)
 macmenu.o: macmenu.c termhooks.h frame.h window.h dispextern.h macgui.h \
   keyboard.h blockinput.h atimer.h systime.h buffer.h macterm.h $(config_h)
 macterm.o: blockinput.h atimer.h systime.h syssignal.h macterm.h macgui.h \
   frame.h charset.h ccl.h dispextern.h fontset.h termhooks.h termopts.h \
   termchar.h gnu.h disptab.h buffer.h window.h keyboard.h $(INTERVAL_SRC) \
   process.h coding.h $(config_h)
-macselect.o: blockinput.h macterm.h macgui.h frame.h keymap.h $(config_h)
+macselect.o: blockinput.h atimer.h systime.h macterm.h macgui.h frame.h \
+  keymap.h $(config_h)
 
 ${emacsapp}Contents/Resources/English.lproj:
 	mkdir -p $@

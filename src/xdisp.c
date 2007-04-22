@@ -10876,7 +10876,7 @@ redisplay_internal (preserve_echo_area)
 	return;
     }
 
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (MAC_OS)
   if (popup_activated ())
     return;
 #endif
@@ -13143,8 +13143,15 @@ redisplay_window (window, just_this_one_p)
 
       /* If first window line is a continuation line, and window start
 	 is inside the modified region, but the first change is before
-	 current window start, we must select a new window start.*/
+	 current window start, we must select a new window start.
+
+	 However, if this is the result of a down-mouse event (e.g. by
+	 extending the mouse-drag-overlay), we don't want to select a
+	 new window start, since that would change the position under
+	 the mouse, resulting in an unwanted mouse-movement rather
+	 than a simple mouse-click.  */
       if (NILP (w->start_at_line_beg)
+	  && NILP (do_mouse_tracking)
 	  && CHARPOS (startp) > BEGV)
 	{
 	  /* Make sure beg_unchanged and end_unchanged are up to date.
@@ -14903,7 +14910,7 @@ try_window_id (w)
     sync_frame_with_window_matrix_rows (w);
 
   /* Adjust buffer positions in reused rows.  */
-  if (delta)
+  if (delta || delta_bytes)
     increment_matrix_positions (current_matrix,
 				first_unchanged_at_end_vpos + dvpos,
 				bottom_vpos, delta, delta_bytes);
@@ -22679,7 +22686,7 @@ note_mouse_highlight (f, x, y)
   struct buffer *b;
 
   /* When a menu is active, don't highlight because this looks odd.  */
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (MAC_OS)
   if (popup_activated ())
     return;
 #endif

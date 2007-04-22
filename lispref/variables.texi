@@ -1654,10 +1654,21 @@ This section describes the functions and variables that affect
 processing of file local variables.
 
 @defopt enable-local-variables
-This variable controls whether to process file local variables.  A
-value of @code{t} means to process them, querying the user if unsafe
-variables are encountered; @code{nil} means ignore them; anything else
-means to query the user for each file.  The default value is @code{t}.
+This variable controls whether to process file local variables.
+The possible values are:
+
+@table @asis
+@item @code{t} (the default)
+Set the safe variables, and query (once) about any unsafe variables.
+@item @code{:safe}
+Set only the safe variables and do not query.
+@item @code{:all}
+Set all the variables and do not query.
+@item @code{nil}
+Don't set any variables.
+@item anything else
+Query (once) about all the variables.
+@end table
 @end defopt
 
 @defun hack-local-variables &optional mode-only

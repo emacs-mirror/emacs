@@ -6131,7 +6131,7 @@
 
 	* cal-dst.el (calendar-time-zone-daylight-rules): Remove
 	special case for Israel.  Israel has changed its daylight
-	savings time rules.  We don't know what the current rules are,
+	saving time rules.  We don't know what the current rules are,
 	but the special case was definitely incorrect.
 
 1993-09-06  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
@@ -8087,7 +8087,7 @@
         (general-holidays, calendar-holidays, hebrew-holidays,
         christian-holidays, islamic-holidays,
         solar-holidays): Rewritten to include require of cal-dst.el and to
-        show the time of the change to/from daylight savings time.
+        show the time of the change to/from daylight saving time.
         (calendar-current-time-zone, calendar-time-zone,
         calendar-daylight-time-offset, calendar-standard-time-zone-name,
         calendar-daylight-time-zone-name, calendar-daylight-savings-starts,
@@ -8772,7 +8772,7 @@
         (solar-time-string): Use calendar-daylight-time-offset instead of
         1 hr, and use calendar-daylight-savings-switchover-time instead of
         midnight.  Add an optional parameter to allow forcing the use of
-        standard or daylight savings time.  Fix code so it works in
+        standard or daylight saving time.  Fix code so it works in
         southern hemisphere (start of dst precedes end of dst in a
         calendar year) and when dst either starts or ends in a calendar
         year, but not both.

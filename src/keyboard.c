@@ -138,10 +138,10 @@ KBOARD the_only_kboard;
    do not execute it; call disabled-command-function's value instead.  */
 Lisp_Object Qdisabled, Qdisabled_command_function;
 
-#define NUM_RECENT_KEYS (100)
+#define NUM_RECENT_KEYS (300)
 int recent_keys_index;	/* Index for storing next element into recent_keys */
 int total_keys;		/* Total number of elements stored into recent_keys */
-Lisp_Object recent_keys; /* A vector, holding the last 100 keystrokes */
+Lisp_Object recent_keys; /* Vector holds the last NUM_RECENT_KEYS keystrokes */
 
 /* Vector holding the key sequence that invoked the current command.
    It is reused for each command, and it may be longer than the current
@@ -2533,6 +2533,17 @@ Lisp_Object print_help ();
 static Lisp_Object kbd_buffer_get_event ();
 static void record_char ();
 
+static Lisp_Object help_form_saved_window_configs;
+static Lisp_Object
+read_char_help_form_unwind (arg)
+{
+  Lisp_Object window_config = XCAR (help_form_saved_window_configs);
+  help_form_saved_window_configs = XCDR (help_form_saved_window_configs);
+  if (!NILP (window_config))
+    Fset_window_configuration (window_config);
+  return Qnil;
+}
+
 #define STOP_POLLING					\
 do { if (! polling_stopped_here) stop_polling ();	\
        polling_stopped_here = 1; } while (0)
@@ -3427,8 +3438,10 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       Lisp_Object tem0;
       count = SPECPDL_INDEX ();
 
-      record_unwind_protect (Fset_window_configuration,
-			     Fcurrent_window_configuration (Qnil));
+      help_form_saved_window_configs
+	= Fcons (Fcurrent_window_configuration (Qnil),
+		 help_form_saved_window_configs);
+      record_unwind_protect (read_char_help_form_unwind, Qnil);
 
       tem0 = Feval (Vhelp_form);
       if (STRINGP (tem0))
@@ -3436,7 +3449,12 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
 
       cancel_echoing ();
       do
-	c = read_char (0, 0, 0, Qnil, 0, NULL);
+	{
+	  c = read_char (0, 0, 0, Qnil, 0, NULL);
+	  if (EVENT_HAS_PARAMETERS (c)
+	      && EQ (EVENT_HEAD_KIND (EVENT_HEAD (c)), Qmouse_click))
+	    XSETCAR (help_form_saved_window_configs, Qnil);
+	}
       while (BUFFERP (c));
       /* Remove the help from the frame */
       unbind_to (count, Qnil);
@@ -3615,6 +3633,7 @@ record_char (c)
      If you, dear reader, have a better idea, you've got the source.  :-) */
   if (dribble)
     {
+      BLOCK_INPUT;
       if (INTEGERP (c))
 	{
 	  if (XUINT (c) < 0x100)
@@ -3640,6 +3659,7 @@ record_char (c)
 	}
 
       fflush (dribble);
+      UNBLOCK_INPUT;
     }
 }
 
@@ -9592,6 +9612,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		      if (!NILP (map) || !NILP (map2))
 			{
 			  from_string = string;
+			  keybuf[t++] = key;
+			  mock_input = t;
 			  goto replay_sequence;
 			}
 		    }
@@ -10483,7 +10505,7 @@ if there is a doubt, the value is t.  */)
 }
 
 DEFUN ("recent-keys", Frecent_keys, Srecent_keys, 0, 0, 0,
-       doc: /* Return vector of last 100 events, not counting those from keyboard macros.  */)
+       doc: /* Return vector of last 300 events, not counting those from keyboard macros.  */)
      ()
 {
   Lisp_Object *keys = XVECTOR (recent_keys)->contents;
@@ -10627,7 +10649,9 @@ If FILE is nil, close any open dribble file.  */)
 {
   if (dribble)
     {
+      BLOCK_INPUT;
       fclose (dribble);
+      UNBLOCK_INPUT;
       dribble = 0;
     }
   if (!NILP (file))
@@ -11731,6 +11755,9 @@ syms_of_keyboard ()
   menu_bar_items_vector = Qnil;
   staticpro (&menu_bar_items_vector);
 
+  help_form_saved_window_configs = Qnil;
+  staticpro (&help_form_saved_window_configs);
+
   defsubr (&Scurrent_idle_time);
   defsubr (&Sevent_convert_list);
   defsubr (&Sread_key_sequence);
@@ -11797,7 +11824,7 @@ An element of the form (t . EVENT) forces EVENT to be added to that list.  */);
   DEFVAR_LISP ("unread-post-input-method-events", &Vunread_post_input_method_events,
 	       doc: /* List of events to be processed as input by input methods.
 These events are processed before `unread-command-events'
-and actual keyboard input without given to `input-method-function'.  */);
+and actual keyboard input, but are not given to `input-method-function'.  */);
   Vunread_post_input_method_events = Qnil;
 
   DEFVAR_LISP ("unread-input-method-events", &Vunread_input_method_events,

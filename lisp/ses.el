@@ -1485,7 +1485,7 @@ overlay, remove special text properties."
 ;;;###autoload
 (defun ses-mode ()
   "Major mode for Simple Emacs Spreadsheet.
-See \"ses-example.ses\" (in the etc data directory) for more info.
+See \"ses-example.ses\" (in `data-directory') for more info.
 
 Key definitions:
 \\{ses-mode-map}

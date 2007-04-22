@@ -57,7 +57,7 @@
 ;;       appt.el                       Appointment notification
 ;;       cal-china.el                  Chinese calendar
 ;;       cal-coptic.el                 Coptic/Ethiopic calendars
-;;       cal-dst.el                    Daylight savings time rules
+;;       cal-dst.el                    Daylight saving time rules
 ;;       cal-hebrew.el                 Hebrew calendar
 ;;       cal-islam.el                  Islamic calendar
 ;;       cal-bahai.el                  Baha'i calendar
@@ -770,6 +770,8 @@ Can be used for appointment notification."
   :type 'hook
   :group 'diary)
 
+(autoload 'diary-set-maybe-redraw "diary-lib")
+
 ;;;###autoload
 (defcustom diary-display-hook nil
   "List of functions that handle the display of the diary.
@@ -794,6 +796,8 @@ if that day is a holiday; if you want such days to be shown in the fancy
 diary buffer, set the variable `diary-list-include-blanks' to t."
   :type 'hook
   :options '(fancy-diary-display)
+  :initialize 'custom-initialize-default
+  :set 'diary-set-maybe-redraw
   :group 'diary)
 
 ;;;###autoload
@@ -1160,7 +1164,7 @@ See the documentation for `calendar-holidays' for details."
       (funcall
        'holiday-sexp
         calendar-daylight-savings-starts
-        '(format "Daylight Savings Time Begins %s"
+        '(format "Daylight Saving Time Begins %s"
                   (if (fboundp 'atan)
                       (solar-time-string
                        (/ calendar-daylight-savings-starts-time (float 60))
@@ -1169,7 +1173,7 @@ See the documentation for `calendar-holidays' for details."
     (funcall
      'holiday-sexp
      calendar-daylight-savings-ends
-     '(format "Daylight Savings Time Ends %s"
+     '(format "Daylight Saving Time Ends %s"
               (if (fboundp 'atan)
                   (solar-time-string
                    (/ calendar-daylight-savings-ends-time (float 60))

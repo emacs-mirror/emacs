@@ -1347,7 +1347,11 @@ Quotes are single and double."
 (defun comint-delim-arg (arg)
   "Return a list of arguments from ARG.
 Break it up at the delimiters in `comint-delimiter-argument-list'.
-Returned list is backwards."
+Returned list is backwards.
+
+Characters with non-nil values of the text property `literal' are
+assumed to have literal values (e.g., backslash-escaped
+characters), and are not considered to be delimiters."
   (if (null comint-delimiter-argument-list)
       (list arg)
     (let ((args nil)
@@ -1356,12 +1360,16 @@ Returned list is backwards."
       (while (< pos len)
 	(let ((char (aref arg pos))
 	      (start pos))
-	  (if (memq char comint-delimiter-argument-list)
+	  (if (and (memq char comint-delimiter-argument-list)
+		   ;; Ignore backslash-escaped characters.
+		   (not (get-text-property pos 'literal arg)))
 	      (while (and (< pos len) (eq (aref arg pos) char))
 		(setq pos (1+ pos)))
 	    (while (and (< pos len)
-			(not (memq (aref arg pos)
-				   comint-delimiter-argument-list)))
+			(not (and (memq (aref arg pos)
+					comint-delimiter-argument-list)
+				  (not (get-text-property
+					pos 'literal arg)))))
 	      (setq pos (1+ pos))))
 	  (setq args (cons (substring arg start pos) args))))
       args)))
@@ -1381,24 +1389,32 @@ Argument 0 is the command name."
   ;; The third matches '-quoted strings.
   ;; The fourth matches `-quoted strings.
   ;; This seems to fit the syntax of BASH 2.0.
-  (let* ((first (if (if (fboundp 'w32-shell-dos-semantics)
-			(w32-shell-dos-semantics))
-		    "[^ \n\t\"'`]+\\|"
-		  "[^ \n\t\"'`\\]+\\|\\\\[\"'`\\ \t]+\\|"))
+  (let* ((backslash-escape (not (and (fboundp 'w32-shell-dos-semantics)
+				     (w32-shell-dos-semantics))))
+	 (first (if backslash-escape
+		    "[^ \n\t\"'`\\]\\|\\(\\\\.\\)\\|"
+		  "[^ \n\t\"'`]+\\|"))
 	 (argpart (concat first
 			  "\\(\"\\([^\"\\]\\|\\\\.\\)*\"\\|\
 '[^']*'\\|\
 `[^`]*`\\)"))
+	 (quote-subexpr (if backslash-escape 2 1))
 	 (args ()) (pos 0)
 	 (count 0)
 	 beg str quotes)
     ;; Build a list of all the args until we have as many as we want.
     (while (and (or (null mth) (<= count mth))
 		(string-match argpart string pos))
+      ;; Apply the `literal' text property to backslash-escaped
+      ;; characters, so that `comint-delim-arg' won't break them up.
+      (and backslash-escape
+	   (match-beginning 1)
+	   (put-text-property (match-beginning 1) (match-end 1)
+			      'literal t string))
       (if (and beg (= pos (match-beginning 0)))
 	  ;; It's contiguous, part of the same arg.
 	  (setq pos (match-end 0)
-		quotes (or quotes (match-beginning 1)))
+		quotes (or quotes (match-beginning quote-subexpr)))
 	;; It's a new separate arg.
 	(if beg
 	    ;; Put the previous arg, if there was one, onto ARGS.
@@ -1406,7 +1422,7 @@ Argument 0 is the command name."
 		  args (if quotes (cons str args)
 			 (nconc (comint-delim-arg str) args))))
 	(setq count (length args))
-	(setq quotes (match-beginning 1))
+	(setq quotes (match-beginning quote-subexpr))
 	(setq beg (match-beginning 0))
 	(setq pos (match-end 0))))
     (if beg

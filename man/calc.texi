@@ -17364,31 +17364,32 @@ business day.
 
 @noindent
 @cindex Time zones
-@cindex Daylight savings time
-Time zones and daylight savings time are a complicated business.
+@cindex Daylight saving time
+Time zones and daylight saving time are a complicated business.
 The conversions to and from Julian and Unix-style dates automatically
-compute the correct time zone and daylight savings adjustment to use,
+compute the correct time zone and daylight saving adjustment to use,
 provided they can figure out this information.  This section describes
 Calc's time zone adjustment algorithm in detail, in case you want to
 do conversions in different time zones or in case Calc's algorithms
 can't determine the right correction to use.
 
-Adjustments for time zones and daylight savings time are done by
+Adjustments for time zones and daylight saving time are done by
 @kbd{t U}, @kbd{t J}, @kbd{t N}, and @kbd{t C}, but not by any other
 commands.  In particular, @samp{<may 1 1991> - <apr 1 1991>} evaluates
-to exactly 30 days even though there is a daylight-savings
+to exactly 30 days even though there is a daylight-saving
 transition in between.  This is also true for Julian pure dates:
 @samp{julian(<may 1 1991>) - julian(<apr 1 1991>)}.  But Julian
-and Unix date/times will adjust for daylight savings time:
+and Unix date/times will adjust for daylight saving time:  using Calc's
+default daylight saving time rule (see the explanation below),
 @samp{julian(<12am may 1 1991>) - julian(<12am apr 1 1991>)}
-evaluates to @samp{29.95834} (that's 29 days and 23 hours)
-because one hour was lost when daylight savings commenced on
+evaluates to @samp{29.95833} (that's 29 days and 23 hours)
+because one hour was lost when daylight saving commenced on
 April 7, 1991.
 
 In brief, the idiom @samp{julian(@var{date1}) - julian(@var{date2})}
 computes the actual number of 24-hour periods between two dates, whereas
 @samp{@var{date1} - @var{date2}} computes the number of calendar
-days between two dates without taking daylight savings into account.
+days between two dates without taking daylight saving into account.
 
 @pindex calc-time-zone
 @ignore
@@ -17400,7 +17401,7 @@ zone specified by its numeric prefix argument into a number of
 seconds difference from Greenwich mean time (GMT).  If the argument
 is a number, the result is simply that value multiplied by 3600.
 Typical arguments for North America are 5 (Eastern) or 8 (Pacific).  If
-Daylight Savings time is in effect, one hour should be subtracted from
+Daylight Saving time is in effect, one hour should be subtracted from
 the normal difference.
 
 If you give a prefix of plain @kbd{C-u}, @code{calc-time-zone} (like other
@@ -17411,12 +17412,12 @@ stack position.)  This allows you to give a non-integer time zone
 adjustment.  The time-zone argument can also be an HMS form, or
 it can be a variable which is a time zone name in upper- or lower-case.
 For example @samp{tzone(PST) = tzone(8)} and @samp{tzone(pdt) = tzone(7)}
-(for Pacific standard and daylight savings times, respectively).
+(for Pacific standard and daylight saving times, respectively).
 
 North American and European time zone names are defined as follows;
 note that for each time zone there is one name for standard time,
-another for daylight savings time, and a third for ``generalized'' time
-in which the daylight savings adjustment is computed from context.
+another for daylight saving time, and a third for ``generalized'' time
+in which the daylight saving adjustment is computed from context.
 
 @smallexample
 @group
@@ -17441,7 +17442,7 @@ Pacific Time look like this:
 @smallexample
 @group
 ( ( "PST" 8 0 )    ; Name as an upper-case string, then standard
-  ( "PDT" 8 -1 )   ; adjustment, then daylight savings adjustment.
+  ( "PDT" 8 -1 )   ; adjustment, then daylight saving adjustment.
   ( "PGT" 8 "PST" "PDT" ) )   ; Generalized time zone.
 @end group
 @end smallexample
@@ -17464,10 +17465,10 @@ i.e., it uses the local time zone as obtained from the @code{date}
 command.
 
 If the time zone name found is one of the standard or daylight
-savings zone names from the above table, and Calc's internal
-daylight savings algorithm says that time and zone are consistent
+saving zone names from the above table, and Calc's internal
+daylight saving algorithm says that time and zone are consistent
 (e.g., @code{PDT} accompanies a date that Calc's algorithm would also
-consider to be daylight savings, or @code{PST} accompanies a date
+consider to be daylight saving, or @code{PST} accompanies a date
 that Calc would consider to be standard time), then Calc substitutes
 the corresponding generalized time zone (like @code{PGT}).
 
@@ -17484,38 +17485,41 @@ The @kbd{t J} and @code{t U} commands with no numeric prefix
 arguments do the same thing as @samp{tzone()}.  If the current
 time zone is a generalized time zone, e.g., @code{EGT}, Calc
 examines the date being converted to tell whether to use standard
-or daylight savings time.  But if the current time zone is explicit,
+or daylight saving time.  But if the current time zone is explicit,
 e.g., @code{EST} or @code{EDT}, then that adjustment is used exactly
-and Calc's daylight savings algorithm is not consulted.
+and Calc's daylight saving algorithm is not consulted.
 
-Some places don't follow the usual rules for daylight savings time.
-The state of Arizona, for example, does not observe daylight savings
+Some places don't follow the usual rules for daylight saving time.
+The state of Arizona, for example, does not observe daylight saving
 time.  If you run Calc during the winter season in Arizona, the
 Unix @code{date} command will report @code{MST} time zone, which
 Calc will change to @code{MGT}.  If you then convert a time that
 lies in the summer months, Calc will apply an incorrect daylight
-savings time adjustment.  To avoid this, set your @code{TimeZone}
+saving time adjustment.  To avoid this, set your @code{TimeZone}
 variable explicitly to @code{MST} to force the use of standard,
-non-daylight-savings time.
+non-daylight-saving time.
 
 @vindex math-daylight-savings-hook
 @findex math-std-daylight-savings
-By default Calc always considers daylight savings time to begin at
-2 a.m.@: on the first Sunday of April, and to end at 2 a.m.@: on the
-last Sunday of October.  This is the rule that has been in effect
-in North America since 1987.  If you are in a country that uses
-different rules for computing daylight savings time, you have two
-choices:  Write your own daylight savings hook, or control time
-zones explicitly by setting the @code{TimeZone} variable and/or
+By default Calc always considers daylight saving time to begin at
+2 a.m.@: on the second Sunday of March (for years from 2007 on) or on
+the last Sunday in April (for years before 2007), and to end at 2 a.m.@:
+on the first Sunday of November. (for years from 2007 on) or the last
+Sunday in October (for years before 2007).  These are the rules that have
+been in effect in much of North America since 1966 and takes into
+account the rule change that began in 2007.  If you are in a
+country that uses different rules for computing daylight saving time,
+you have two choices:  Write your own daylight saving hook, or control
+time zones explicitly by setting the @code{TimeZone} variable and/or
 always giving a time-zone argument for the conversion functions.
 
 The Lisp variable @code{math-daylight-savings-hook} holds the
-name of a function that is used to compute the daylight savings
+name of a function that is used to compute the daylight saving
 adjustment for a given date.  The default is
 @code{math-std-daylight-savings}, which computes an adjustment
 (either 0 or @mathit{-1}) using the North American rules given above.
 
-The daylight savings hook function is called with four arguments:
+The daylight saving hook function is called with four arguments:
 The date, as a floating-point number in standard Calc format;
 a six-element list of the date decomposed into year, month, day,
 hour, minute, and second, respectively; a string which contains
@@ -17525,18 +17529,18 @@ converting into a generalized time zone (see below).
 
 @findex math-prev-weekday-in-month
 The Lisp function @code{math-prev-weekday-in-month} is useful for
-daylight savings computations.  This is an internal version of
+daylight saving computations.  This is an internal version of
 the user-level @code{pwday} function described in the previous
 section. It takes four arguments:  The floating-point date value,
 the corresponding six-element date list, the day-of-month number,
 and the weekday number (0-6).
 
-The default daylight savings hook ignores the time zone name, but a
+The default daylight saving hook ignores the time zone name, but a
 more sophisticated hook could use different algorithms for different
 time zones.  It would also be possible to use different algorithms
 depending on the year number, but the default hook always uses the
 algorithm for 1987 and later.  Here is a listing of the default
-daylight savings hook:
+daylight saving hook:
 
 @smallexample
 (defun math-std-daylight-savings (date dt zone bump)
@@ -17566,25 +17570,25 @@ adjustments shown above ensure that the conversion behaves correctly
 and reasonably around the 2 a.m.@: transition in each direction.
 
 There is a ``missing'' hour between 2 a.m.@: and 3 a.m.@: at the
-beginning of daylight savings time; converting a date/time form that
+beginning of daylight saving time; converting a date/time form that
 falls in this hour results in a time value for the following hour,
-from 3 a.m.@: to 4 a.m.  At the end of daylight savings time, the
+from 3 a.m.@: to 4 a.m.  At the end of daylight saving time, the
 hour from 1 a.m.@: to 2 a.m.@: repeats itself; converting a date/time
 form that falls in this hour results in a time value for the first
 manifestation of that time (@emph{not} the one that occurs one hour later).
 
 If @code{math-daylight-savings-hook} is @code{nil}, then the
-daylight savings adjustment is always taken to be zero.
+daylight saving adjustment is always taken to be zero.
 
 In algebraic formulas, @samp{tzone(@var{zone}, @var{date})}
 computes the time zone adjustment for a given zone name at a
 given date.  The @var{date} is ignored unless @var{zone} is a
 generalized time zone.  If @var{date} is a date form, the
-daylight savings computation is applied to it as it appears.
+daylight saving computation is applied to it as it appears.
 If @var{date} is a numeric date value, it is adjusted for the
-daylight-savings version of @var{zone} before being given to
-the daylight savings hook.  This odd-sounding rule ensures
-that the daylight-savings computation is always done in
+daylight-saving version of @var{zone} before being given to
+the daylight saving hook.  This odd-sounding rule ensures
+that the daylight-saving computation is always done in
 local time, not in the GMT time that a numeric @var{date}
 is typically represented in.
 
@@ -17593,9 +17597,9 @@ is typically represented in.
 @end ignore
 @tindex dsadj
 The @samp{dsadj(@var{date}, @var{zone})} function computes the
-daylight savings adjustment that is appropriate for @var{date} in
+daylight saving adjustment that is appropriate for @var{date} in
 time zone @var{zone}.  If @var{zone} is explicitly in or not in
-daylight savings time (e.g., @code{PDT} or @code{PST}) the
+daylight saving time (e.g., @code{PDT} or @code{PST}) the
 @var{date} is ignored.  If @var{zone} is a generalized time zone,
 the algorithms described above are used.  If @var{zone} is omitted,
 the computation is done for the current time zone.

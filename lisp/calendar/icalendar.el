@@ -101,7 +101,7 @@
 
 ;;; Code:
 
-(defconst icalendar-version "0.14"
+(defconst icalendar-version "0.15"
   "Version number of icalendar.el.")
 
 ;; ======================================================================
@@ -226,16 +226,17 @@ buffer."
         (replace-match "" nil nil)))
     unfolded-buffer))
 
-(defsubst icalendar--rris (&rest args)
+(defsubst icalendar--rris (regexp rep string &optional fixedcase literal)
   "Replace regular expression in string.
-Pass ARGS to `replace-regexp-in-string' (Emacs) or to
-`replace-in-string' (XEmacs)."
-  (if (fboundp 'replace-regexp-in-string)
-      ;; Emacs:
-      (apply 'replace-regexp-in-string args)
-  ;; XEmacs:
-    (save-match-data ;; apparently XEmacs needs save-match-data
-      (apply 'replace-in-string args))))
+Pass arguments REGEXP REP STRING FIXEDCASE LITERAL to
+`replace-regexp-in-string' (Emacs) or to `replace-in-string' (XEmacs)."
+  (cond ((fboundp 'replace-regexp-in-string)
+         ;; Emacs:
+         (replace-regexp-in-string regexp rep string fixedcase literal))
+        ((fboundp 'replace-in-string)
+         ;; XEmacs:
+         (save-match-data ;; apparently XEmacs needs save-match-data
+           (replace-in-string string regexp rep literal)))))
 
 (defun icalendar--read-element (invalue inparams)
   "Recursively read the next iCalendar element in the current buffer.
@@ -1472,8 +1473,8 @@ object, reads it and adds all VEVENT elements to the diary
 DIARY-FILE.
 
 It will ask for each appointment whether to add it to the diary
-when DO-NOT-ASK is non-nil.  When called interactively,
-DO-NOT-ASK is set to t, so that you are asked fore each event.
+unless DO-NOT-ASK is non-nil.  When called interactively,
+DO-NOT-ASK is nil, so that you are asked for each event.
 
 NON-MARKING determines whether diary events are created as
 non-marking.
@@ -1669,8 +1670,11 @@ written into the buffer `*icalendar-errors*'."
                         (concat diary-string " "
                                 (icalendar--format-ical-event e)))
                   (if do-not-ask (setq summary nil))
-                  (icalendar--add-diary-entry diary-string diary-file
-                                              non-marking summary))
+                  ;; add entry to diary and store actual name of diary
+                  ;; file (in case it was nil)
+                  (setq diary-file
+                        (icalendar--add-diary-entry diary-string diary-file
+                                                    non-marking summary)))
               ;; event was not ok
               (setq found-error t)
               (setq error-string
@@ -1684,13 +1688,15 @@ written into the buffer `*icalendar-errors*'."
          (setq error-string (format "%s\n%s\nCannot handle this event: %s"
                                     error-val error-string e))
          (message "%s" error-string))))
+
     ;; insert final newline
-    (let ((b (find-buffer-visiting diary-file)))
-      (when b
-        (save-current-buffer
-          (set-buffer b)
-          (goto-char (point-max))
-          (insert "\n"))))
+    (if diary-file
+        (let ((b (find-buffer-visiting diary-file)))
+          (when b
+            (save-current-buffer
+              (set-buffer b)
+              (goto-char (point-max))
+              (insert "\n")))))
     (if found-error
         (save-current-buffer
           (set-buffer (get-buffer-create "*icalendar-errors*"))
@@ -1943,7 +1949,9 @@ the entry."
         (setq diary-file
               (read-file-name "Add appointment to this diary file: ")))
       ;; Note: make-diary-entry will add a trailing blank char.... :(
-      (make-diary-entry string non-marking diary-file))))
+      (make-diary-entry string non-marking diary-file)))
+  ;; return diary-file in case it has been changed interactively
+  diary-file)
 
 (provide 'icalendar)
 

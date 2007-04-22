@@ -4484,25 +4484,24 @@ note_mouse_movement (frame, pos)
   last_mouse_motion_position = *pos;
   XSETFRAME (last_mouse_motion_frame, frame);
 
+  if (frame == dpyinfo->mouse_face_mouse_frame
 #if TARGET_API_MAC_CARBON
-  if (!PtInRect (*pos, GetWindowPortBounds (FRAME_MAC_WINDOW (frame), &r)))
+      && !PtInRect (*pos, GetWindowPortBounds (FRAME_MAC_WINDOW (frame), &r))
 #else
-  if (!PtInRect (*pos, &FRAME_MAC_WINDOW (frame)->portRect))
+      && !PtInRect (*pos, &FRAME_MAC_WINDOW (frame)->portRect)
 #endif
+      )
     {
-      if (frame == dpyinfo->mouse_face_mouse_frame)
-	/* This case corresponds to LeaveNotify in X11.  */
-	{
-	  /* If we move outside the frame, then we're certainly no
-	     longer on any text in the frame.  */
-	  clear_mouse_face (dpyinfo);
-	  dpyinfo->mouse_face_mouse_frame = 0;
-	  if (!dpyinfo->grabbed)
-	    rif->define_frame_cursor (frame,
-				      frame->output_data.mac->nontext_cursor);
-	}
-      return 1;
+      /* This case corresponds to LeaveNotify in X11.  If we move
+	 outside the frame, then we're certainly no longer on any text
+	 in the frame.  */
+      clear_mouse_face (dpyinfo);
+      dpyinfo->mouse_face_mouse_frame = 0;
+      if (!dpyinfo->grabbed)
+	rif->define_frame_cursor (frame,
+				  frame->output_data.mac->nontext_cursor);
     }
+
   /* Has the mouse moved off the glyph it was on at the last sighting?  */
   if (frame != last_mouse_glyph_frame
       || !PtInRect (*pos, &last_mouse_glyph))
@@ -4963,7 +4962,7 @@ x_scroll_bar_create (w, top, left, width, height, disp_top, disp_height)
 #endif
 #if TARGET_API_MAC_CARBON
   ch = NewControl (FRAME_MAC_WINDOW (f), &r, "\p",
-#if USE_TOOLKIT_SCROLL_BARS
+#ifdef USE_TOOLKIT_SCROLL_BARS
 		   false,
 #else
 		   width < disp_height,
@@ -5217,7 +5216,11 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 #ifdef USE_TOOLKIT_SCROLL_BARS
   if (NILP (bar->track_top))
     {
-      if (sb_width >= disp_height)
+      if (sb_width >= disp_height
+#ifdef MAC_OSX
+	  || sb_width < MAC_AQUA_SMALL_VERTICAL_SCROLL_BAR_WIDTH
+#endif
+	  )
 	{
 	  XSETINT (bar->track_top, 0);
 	  XSETINT (bar->track_height, 0);
@@ -6222,6 +6225,16 @@ x_set_window_size (f, change_gravity, cols, rows)
   if (!NILP (tip_frame) && f == XFRAME (tip_frame))
 #endif
     mac_handle_size_change (f, pixelwidth, pixelheight);
+
+  if (f->output_data.mac->internal_border_width
+      != FRAME_INTERNAL_BORDER_WIDTH (f))
+    {
+      mac_clear_window (f);
+      f->output_data.mac->internal_border_width
+	= FRAME_INTERNAL_BORDER_WIDTH (f);
+    }
+
+  SET_FRAME_GARBAGED (f);
 
   UNBLOCK_INPUT;
 }
@@ -9974,23 +9987,30 @@ mac_handle_mouse_event (next_handler, event, data)
 	if (err != noErr || axis != kEventMouseWheelAxisY)
 	  break;
 
-	err = GetEventParameter (event, kEventParamMouseWheelDelta,
-				 typeSInt32, NULL, sizeof (SInt32),
-				 NULL, &delta);
-	if (err != noErr)
-	  break;
 	err = GetEventParameter (event, kEventParamMouseLocation,
 				 typeQDPoint, NULL, sizeof (Point),
 				 NULL, &point);
 	if (err != noErr)
 	  break;
+
+	SetPortWindowPort (wp);
+	GlobalToLocal (&point);
+	if (point.h < 0 || point.v < 0
+	    || EQ (window_from_coordinates (f, point.h, point.v, 0, 0, 0, 1),
+		   f->tool_bar_window))
+	  break;
+
+	err = GetEventParameter (event, kEventParamMouseWheelDelta,
+				 typeSInt32, NULL, sizeof (SInt32),
+				 NULL, &delta);
+	if (err != noErr)
+	  break;
+
 	read_socket_inev->kind = WHEEL_EVENT;
 	read_socket_inev->code = 0;
 	read_socket_inev->modifiers =
 	  (mac_event_to_emacs_modifiers (event)
 	   | ((delta < 0) ? down_modifier : up_modifier));
-	SetPortWindowPort (wp);
-	GlobalToLocal (&point);
 	XSETINT (read_socket_inev->x, point.h);
 	XSETINT (read_socket_inev->y, point.v);
 	XSETFRAME (read_socket_inev->frame_or_window, f);
@@ -11045,7 +11065,7 @@ XTread_socket (sd, expected, hold_quit)
 	    else
 	      {
 		/* A window has been deactivated */
-#if USE_TOOLKIT_SCROLL_BARS
+#ifdef USE_TOOLKIT_SCROLL_BARS
 		if (dpyinfo->grabbed && tracked_scroll_bar)
 		  {
 		    struct input_event event;

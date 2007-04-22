@@ -1957,9 +1957,8 @@ If there is no completion possible, say so and continue searching."
 		       (concat " [" current-input-method-title "]: ")
 		     ": ")
 		   )))
-    (apply 'propertize
-	   (concat (upcase (substring m 0 1)) (substring m 1))
-	   minibuffer-prompt-properties)))
+    (propertize (concat (upcase (substring m 0 1)) (substring m 1))
+		'face 'minibuffer-prompt)))
 
 (defun isearch-message-suffix (&optional c-q-hack ellipsis)
   (concat (if c-q-hack "^Q" "")

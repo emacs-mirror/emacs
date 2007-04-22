@@ -454,11 +454,10 @@ used to load it for compiling, but not executing.  For example,
   (require 'my-macro-package))  ;; only macros needed from this
 @end lisp
 
-The same sort of thing goes for macros or @code{defalias}es defined
-locally and only for use within the file.  They can be defined while
-compiling, but then not needed when executing.  This is good for code
-that's only a fallback for compatibility with other versions of Emacs.
-For example.
+The same sort of thing goes for macros and @code{defsubst} functions
+defined locally and only for use within the file.  They are needed for
+compiling the file, but in most cases they are not needed for
+execution of the compiled file.  For example,
 
 @lisp
 (eval-when-compile
@@ -466,6 +465,10 @@ For example.
     (defmacro 'some-new-thing ()
       (compatibility code))))
 @end lisp
+
+@noindent
+This is often good for code that's only a fallback for compatibility
+with other versions of Emacs.
 
 @strong{Common Lisp Note:} At top level, @code{eval-when-compile} is analogous to the Common
 Lisp idiom @code{(eval-when (compile eval) @dots{})}.  Elsewhere, the

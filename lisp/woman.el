@@ -3284,7 +3284,7 @@ If optional arg CONCAT is non-nil then join arguments."
 	;; Find font requests, paragraph macros and font escapes:
 	(re-search-forward
 	 "^[.'][ \t]*\\(\\(\\ft\\)\\|\\(.P\\)\\)\\|\\(\\\\f\\)" nil 1)
-      (let (font beg notfont)
+      (let (font beg notfont fescape)
 	;; Match font indicator and leave point at end of sequence:
 	(cond ((match-string 2)
 	       ;; .ft request found
@@ -3299,7 +3299,8 @@ If optional arg CONCAT is non-nil then join arguments."
 	       (setq font 'default))
 	      ((match-string 4)
 	       ;; \f escape found
-	       (setq beg (match-beginning 0))
+	       (setq beg (match-beginning 0)
+                     fescape t)
 	       (woman-match-name))
 	      (t (setq notfont t)))
 	(if notfont
@@ -3321,6 +3322,13 @@ If optional arg CONCAT is non-nil then join arguments."
 	  ;; Delete font control line or escape sequence:
 	  (cond (beg (delete-region beg (point))
 		     (if (eq font 'previous) (setq font previous-font))))
+          ;; Deal with things like \fB.cvsrc\fR at the start of a line.
+          ;; After removing the font control codes, this would
+          ;; otherwise match woman-request-regexp. The "\\&" which is
+          ;; inserted to prevent this is removed by woman2-process-escapes.
+          (and fescape
+               (looking-at woman-request-regexp)
+               (insert "\\&"))
 	  (woman-set-face previous-pos (point) current-font)
 	  (if beg
 	      ;; Explicit font control
@@ -3665,39 +3673,39 @@ expression in parentheses.  Leaves point after the value."
     (unwind-protect
 	(while
 	    ;; Find next control line:
-	    (re-search-forward woman-request-regexp nil t)
-	  (cond
-	   ;; Construct woman function to call:
-	   ((setq fn (intern-soft
-		      (concat "woman2-"
-			      (setq request (match-string 1)))))
-	    ;; Delete request or macro name:
-	    (woman-delete-match 0))
-	   ;; Unrecognised request:
-	   ((prog1 nil
-	      ;; (WoMan-warn ".%s request ignored!" request)
-	      (WoMan-warn-ignored request "ignored!")
-	      ;; (setq fn 'woman2-LP)
-	      ;; AVOID LEAVING A BLANK LINE!
-	      ;; (setq fn 'woman2-format-paragraphs)
-	      ))
-	   ;; .LP assumes it is at eol and leaves a (blank) line,
-	   ;; so leave point at end of line before paragraph:
-	   ((or (looking-at "[ \t]*$")	; no argument
-		woman-ignore)		; ignore all
-	    ;; (beginning-of-line) (kill-line)
-	    ;; AVOID LEAVING A BLANK LINE!
-	    (beginning-of-line) (woman-delete-line 1))
-	   (t (end-of-line) (insert ?\n))
-	   )
-	  (if (not (or fn
-		       (and (not (memq (following-char) '(?. ?')))
-			    (setq fn 'woman2-format-paragraphs))))
-	      ()
-	    ;; Find next control line:
-	    (set-marker to (woman-find-next-control-line))
-	    ;; Call the appropriate function:
-	    (funcall fn to)))
+            (re-search-forward woman-request-regexp nil t)
+          (cond
+           ;; Construct woman function to call:
+           ((setq fn (intern-soft
+                      (concat "woman2-"
+                              (setq request (match-string 1)))))
+            ;; Delete request or macro name:
+            (woman-delete-match 0))
+           ;; Unrecognised request:
+           ((prog1 nil
+              ;; (WoMan-warn ".%s request ignored!" request)
+              (WoMan-warn-ignored request "ignored!")
+              ;; (setq fn 'woman2-LP)
+              ;; AVOID LEAVING A BLANK LINE!
+              ;; (setq fn 'woman2-format-paragraphs)
+              ))
+           ;; .LP assumes it is at eol and leaves a (blank) line,
+           ;; so leave point at end of line before paragraph:
+           ((or (looking-at "[ \t]*$") ; no argument
+                woman-ignore)          ; ignore all
+            ;; (beginning-of-line) (kill-line)
+            ;; AVOID LEAVING A BLANK LINE!
+            (beginning-of-line) (woman-delete-line 1))
+           (t (end-of-line) (insert ?\n))
+           )
+           (if (not (or fn
+                        (and (not (memq (following-char) '(?. ?')))
+                             (setq fn 'woman2-format-paragraphs))))
+               ()
+             ;; Find next control line:
+             (set-marker to (woman-find-next-control-line))
+             ;; Call the appropriate function:
+             (funcall fn to)))
       (if (not (eobp))			; This should not happen, but ...
 	  (woman2-format-paragraphs (copy-marker (point-max) t)
                                     woman-left-margin))
@@ -4193,7 +4201,27 @@ If tag doesn't fit, place it on a separate line."
     (let ((i (woman2-get-prevailing-indent 'leave-eol)))
       (beginning-of-line)
       (woman-leave-blank-lines)		; must be here,
-      (woman2-tagged-paragraph to i))))
+      ;;
+      ;; The cvs.1 manpage contains some (possibly buggy) syntax that
+      ;; confuses woman, although the man program displays it ok.
+      ;; Most problems are caused by IP followed by another request on
+      ;; the next line. Without the following hack, the second request
+      ;; gets displayed raw in the output. Note that
+      ;; woman2-tagged-paragraph also contains a hack for similar
+      ;; issues (eg IP followed by SP).
+      ;;
+      ;; i) For IP followed by one or more IPs, we ignore all but the
+      ;; last (mimic man). The hack in w-t-p would only work for two
+      ;; consecutive IPs, and would use the first.
+      ;; ii) For IP followed by SP followed by one or more requests,
+      ;; do nothing. At least in cvs.1, there is usually another IP in
+      ;; there somewhere.
+      (unless (or (looking-at "^\\.IP")
+                  (and (looking-at "^\\.sp")
+                       (save-excursion
+                         (and (zerop (forward-line 1))
+                              (looking-at woman-request-regexp)))))
+        (woman2-tagged-paragraph to i)))))
 
 (defun woman-find-next-control-line-carefully ()
   "Find and return start of next control line, even if already there!"
@@ -4208,17 +4236,21 @@ Format paragraphs upto TO.  Set prevailing indent to I."
   (if (not (looking-at "\\s *$"))	; non-empty tag
       (setq woman-leave-blank-lines nil))
 
-  ;; Temporary hack for bash.1 and groff_mmse.7 until code is revised
-  ;; to process all requests uniformly:
-  (cond ((and (= (point) to) (looking-at "^[.'][ \t]*\\(PD\\|br\\|ta\\) *"))
-	 (if (string= (match-string 1) "br")
-	     (woman-delete-line 1)
-	   (woman-delete-match 0)
-	   (if (string= (match-string 1) "ta") ; for GetInt.3
-	       (woman2-ta to)
-	     (woman-set-interparagraph-distance)))
-	 (set-marker to (woman-find-next-control-line-carefully))
-	 ))
+  ;; Temporary hack for bash.1, cvs.1 and groff_mmse.7 until code is revised
+  ;; to process all requests uniformly.
+  ;; This hack deals with IP requests followed by other requests (eg
+  ;; SP) on the very next line. We skip over the SP, otherwise it gets
+  ;; inserted raw in the rendered output.
+  (cond ((and (= (point) to)
+              (looking-at "^[.'][ \t]*\\(PD\\|br\\|ta\\|sp\\) *"))
+         (if (member (match-string 1) '("br" "sp"))
+             (woman-delete-line 1)
+           (woman-delete-match 0)
+           (if (string= (match-string 1) "ta") ; for GetInt.3
+               (woman2-ta to)
+             (woman-set-interparagraph-distance)))
+         (set-marker to (woman-find-next-control-line-carefully))
+         ))
 
   (let ((tag (point)))
     (woman-reset-nospace)
@@ -4274,6 +4306,7 @@ Delete line from point and eol unless LEAVE-EOL is non-nil."
     (let ((i (woman-get-numeric-arg)))
       (woman-delete-line) (or leave-eol (delete-char 1))
       ;; i = 0 if the argument was not a number
+      ;; FIXME should this be >= 0? How else to reset to 0 indent?
       (if (> i 0) (setq woman-prevailing-indent i))))
   woman-prevailing-indent)
 

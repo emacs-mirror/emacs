@@ -103,6 +103,15 @@
 	    (prompt (isearch-message-prefix))
 	    (minibuffer-local-map isearch-minibuffer-local-map)
 	    str junk-hist)
+
+	;; PROMPT contains text-properties from
+	;; `minibuffer-prompt-properties', and some of these can screw up
+	;; its use in `read-string' below (specifically, a read-only
+	;; property will cause it to signal an error), so strip them here;
+	;; read-string will add the same properties itself anyway.
+	;;
+	(set-text-properties 0 (length prompt) nil prompt)
+
 	(if isearch-input-method-function
 	    (let (;; Let input method work rather tersely.
 		  (input-method-verbose-flag nil))

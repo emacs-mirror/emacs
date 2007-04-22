@@ -1742,7 +1742,7 @@ If nothing is specified, the return value is nil."
 	;; is just "\r" and we can't use "^" nor "$" in regexp.
 	(when (and tail-found (or (not coding-system) (not char-trans)))
 	  (goto-char tail-start)
-	  (re-search-forward "[\r\n]\^L" nil t)
+	  (re-search-forward "[\r\n]\^L" tail-end t)
 	  (if (re-search-forward
 	       "[\r\n]\\([^[\r\n]*\\)[ \t]*Local Variables:[ \t]*\\([^\r\n]*\\)[\r\n]"
 	       tail-end t)

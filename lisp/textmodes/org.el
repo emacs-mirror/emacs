@@ -3912,6 +3912,7 @@ between words."
 	   (if (memq 'radio lk) '(org-activate-target-links (0 'org-link t)))
 	   (if (memq 'date lk) '(org-activate-dates (0 'org-date t)))
 	   (if (memq 'tag lk) '(org-activate-tags (1 'org-tag prepend)))
+	   '(org-hide-wide-columns (0 nil append))
 	   ;; TODO lines
 	   (list (concat "^\\*+[ \t]*" org-not-done-regexp)
 		 '(1 'org-todo t))
@@ -18766,6 +18767,13 @@ because, in this case the deletion might narrow the column."
 (put 'orgtbl-self-insert-command 'delete-selection t)
 (put 'org-delete-char 'delete-selection 'supersede)
 (put 'org-delete-backward-char 'delete-selection 'supersede)
+
+;; Make `flyspell-mode' delay after some commands
+(put 'org-self-insert-command 'flyspell-delayed t)
+(put 'orgtbl-self-insert-command 'flyspell-delayed t)
+(put 'org-delete-char 'flyspell-delayed t)
+(put 'org-delete-backward-char 'flyspell-delayed t)
+
 
 ;; How to do this: Measure non-white length of current string
 ;; If equal to column width, we should realign.

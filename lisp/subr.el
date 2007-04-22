@@ -55,7 +55,7 @@ that complains if FORM ever does return differing values."
 
 (defmacro def-edebug-spec (symbol spec)
   "Set the `edebug-form-spec' property of SYMBOL according to SPEC.
-Both SYMBOL and SPEC are unevaluated. The SPEC can be 0, t, a symbol
+Both SYMBOL and SPEC are unevaluated.  The SPEC can be 0, t, a symbol
 \(naming a function), or a list."
   `(put (quote ,symbol) 'edebug-form-spec (quote ,spec)))
 
@@ -99,12 +99,20 @@ change the list."
 	      (list 'setq listname (list 'cdr listname)))))
 
 (defmacro when (cond &rest body)
-  "If COND yields non-nil, do BODY, else return nil."
+  "If COND yields non-nil, do BODY, else return nil.
+When COND yields non-nil, eval BODY forms sequentially and return
+value of last one, or nil if there are none.
+
+\(fn COND BODY ...)"
   (declare (indent 1) (debug t))
   (list 'if cond (cons 'progn body)))
 
 (defmacro unless (cond &rest body)
-  "If COND yields nil, do BODY, else return nil."
+  "If COND yields nil, do BODY, else return nil.
+When COND yields nil, eval BODY forms sequentially and return
+value of last one, or nil if there are none.
+
+\(fn COND BODY ...)"
   (declare (indent 1) (debug t))
   (cons 'if (cons cond (cons nil body))))
 
@@ -1895,21 +1903,32 @@ input (as a command if nothing else).
 Display MESSAGE (optional fourth arg) in the echo area.
 If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
   (or exit-char (setq exit-char ?\s))
-  (let ((momentary-overlay (make-overlay pos pos nil t)))
-    (overlay-put momentary-overlay 'before-string
-		 (propertize string 'face 'momentary))
+  (let ((inhibit-read-only t)
+	;; Don't modify the undo list at all.
+	(buffer-undo-list t)
+	(modified (buffer-modified-p))
+	(name buffer-file-name)
+	insert-end)
     (unwind-protect
 	(progn
-	  ;; If the message end is off screen, recenter now.
-	  (if (< (window-end nil t) (+ pos (length string)))
-	      (recenter (/ (window-height) 2)))
-	  ;; If that pushed message start off the screen,
-	  ;; scroll to start it at the top of the screen.
 	  (save-excursion
+	    (goto-char pos)
+	    ;; To avoid trouble with out-of-bounds position
+	    (setq pos (point))
+	    ;; defeat file locking... don't try this at home, kids!
+	    (setq buffer-file-name nil)
+	    (insert-before-markers string)
+	    (setq insert-end (point))
+	    ;; If the message end is off screen, recenter now.
+	    (if (< (window-end nil t) insert-end)
+		(recenter (/ (window-height) 2)))
+	    ;; If that pushed message start off the screen,
+	    ;; scroll to start it at the top of the screen.
 	    (move-to-window-line 0)
 	    (if (> (point) pos)
-		(goto-char pos)
-	      (recenter 0)))
+		(progn
+		  (goto-char pos)
+		  (recenter 0))))
 	  (message (or message "Type %s to continue editing.")
 		   (single-key-description exit-char))
 	  (let (char)
@@ -1929,7 +1948,11 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
 	      (or (eq char exit-char)
 		  (eq char (event-convert-list exit-char))
 		  (setq unread-command-events (list char))))))
-      (delete-overlay momentary-overlay))))
+      (if insert-end
+	  (save-excursion
+	    (delete-region pos insert-end)))
+      (setq buffer-file-name name)
+      (set-buffer-modified-p modified))))
 
 
 ;;;; Overlay operations

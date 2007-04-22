@@ -272,7 +272,7 @@ tells @code{gpg-agent} use its own terminal to prompt for passphrases.
 
 When @code{gpg-agent} is not being used, PGG prompts for a passphrase
 through Emacs.  It also has its own passphrase caching mechanism,
-which is controlled by the variable @code{pgg-read-passphrase} (see
+which is controlled by the variable @code{pgg-cache-passphrase} (see
 below).
 
 There is a security risk in handling passphrases through PGG rather

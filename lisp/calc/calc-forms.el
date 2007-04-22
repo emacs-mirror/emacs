@@ -8,20 +8,20 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY.  No author or distributor
-;; accepts responsibility to anyone for the consequences of using it
-;; or for whether it serves any particular purpose or works at all,
-;; unless he says so in writing.  Refer to the GNU Emacs General Public
-;; License for full details.
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
 
-;; Everyone is granted permission to copy, modify and redistribute
-;; GNU Emacs, but only under the conditions described in the
-;; GNU Emacs General Public License.   A copy of this license is
-;; supposed to have been given to you along with GNU Emacs so you
-;; can know your rights and responsibilities.  It should be in a
-;; file named COPYING.  Among other things, the copyright notice
-;; and this notice must be preserved on all copies.
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -508,7 +508,7 @@
 
 (defvar math-format-date-cache nil)
 
-;; The variables math-fd-date, math-fd-dt, math-fd-year, 
+;; The variables math-fd-date, math-fd-dt, math-fd-year,
 ;; math-fd-month, math-fd-day, math-fd-weekday, math-fd-hour,
 ;; math-fd-minute, math-fd-second, math-fd-bc-flag are local
 ;; to math-format-date, but are used by math-format-date-part,
@@ -533,7 +533,7 @@
 	       (calc-group-digits nil)
 	       (calc-leading-zeros nil)
 	       (calc-number-radix 10)
-	       math-fd-year math-fd-month math-fd-day math-fd-weekday 
+	       math-fd-year math-fd-month math-fd-day math-fd-weekday
                math-fd-hour math-fd-minute math-fd-second
 	       (math-fd-bc-flag nil)
 	       (fmt (apply 'concat (mapcar 'math-format-date-part
@@ -570,7 +570,7 @@
 		       math-fd-year (car math-fd-dt)
 		       math-fd-month (nth 1 math-fd-dt)
 		       math-fd-day (nth 2 math-fd-dt)
-		       math-fd-weekday (math-mod 
+		       math-fd-weekday (math-mod
                                         (math-add (math-floor math-fd-date) 6) 7)
 		       math-fd-hour (nth 3 math-fd-dt)
 		       math-fd-minute (nth 4 math-fd-dt)
@@ -727,8 +727,8 @@
 	      (a nil) (b nil) (c nil) (bigyear nil) temp)
 
 	  ;; Extract the time, if any.
-	  (if (or (string-match "\\([0-9][0-9]?\\):\\([0-9][0-9]?\\)\\(:\\([0-9][0-9]?\\(\\.[0-9]+\\)?\\)\\)? *\\([ap]m?\\|[ap]\\. *m\\.\\|noon\\|n\\>\\|midnight\\|mid\\>\\|m\\>\\)?" math-pd-str)
-		  (string-match "\\([0-9][0-9]?\\)\\(\\)\\(\\(\\(\\)\\)\\) *\\([ap]m?\\|[ap]\\. *m\\.\\|noon\\|n\\>\\|midnight\\|mid\\>\\|m\\>\\)" math-pd-str))
+	  (if (or (string-match "\\([0-9][0-9]?\\):\\([0-9][0-9]?\\)\\(:\\([0-9][0-9]?\\(\\.[0-9]+\\)?\\)\\)? *\\([ap]\\>\\|[ap]m\\|[ap]\\. *m\\.\\|noon\\|n\\>\\|midnight\\|mid\\>\\|m\\>\\)?" math-pd-str)
+		  (string-match "\\([0-9][0-9]?\\)\\(\\)\\(\\(\\(\\)\\)\\) *\\([ap]\\>\\|[ap]m\\|[ap]\\. *m\\.\\|noon\\|n\\>\\|midnight\\|mid\\>\\|m\\>\\)" math-pd-str))
 	      (let ((ampm (math-match-substring math-pd-str 6)))
 		(setq hour (string-to-number (math-match-substring math-pd-str 1))
 		      minute (math-match-substring math-pd-str 2)
@@ -784,7 +784,7 @@
 	  (while (and (string-match "[-+]?0*[1-9][0-9][0-9][0-9][0-9]+" math-pd-str)
 		      (setq temp (concat (substring math-pd-str 0 (match-beginning 0))
 					 (substring math-pd-str (match-end 0))))
-		      (string-match 
+		      (string-match
                        "[4-9][0-9]\\|[0-9][0-9][0-9]\\|[-+][0-9]+[^-]*\\'" temp))
 	    (setq math-pd-str temp))
 
@@ -1173,7 +1173,7 @@
 ;;; Note: Longer names must appear before shorter names which are
 ;;;       substrings of them.
 (defvar math-tzone-names
-  '(( "UTC" 0 0) 
+  '(( "UTC" 0 0)
     ( "MEGT" -1 "MET" "METDST" )                          ; Middle Europe
     ( "METDST" -1 -1 ) ( "MET" -1 0 )
     ( "MEGZ" -1 "MEZ" "MESZ" ) ( "MEZ" -1 0 ) ( "MESZ" -1 -1 )
@@ -1312,9 +1312,42 @@
     (calcFunc-unixtime (calcFunc-unixtime date z1) z2)))
 
 (defun math-std-daylight-savings (date dt zone bump)
-  "Standard North American daylight savings algorithm.
-This implements the rules for the U.S. and Canada as of 1987.
-Daylight savings begins on the first Sunday of April at 2 a.m.,
+  "Standard North American daylight saving algorithm.
+Before 2007, this uses `math-std-daylight-savings-old', where
+daylight saving began on the first Sunday of April at 2 a.m.,
+and ended on the last Sunday of October at 2 a.m.
+As of 2007, this uses `math-std-daylight-savings-new', where
+daylight saving begins on the second Sunday of March at 2 a.m.,
+and ends on the first Sunday of November at 2 a.m."
+  (if (< (car dt) 2007)
+      (math-std-daylight-savings-old date dt zone bump)
+    (math-std-daylight-savings-new date dt zone bump)))
+
+(defun math-std-daylight-savings-new (date dt zone bump)
+  "Standard North American daylight saving algorithm as of 2007.
+This implements the rules for the U.S. and Canada.
+Daylight saving begins on the second Sunday of March at 2 a.m.,
+and ends on the first Sunday of November at 2 a.m."
+  (cond ((< (nth 1 dt) 3) 0)
+	((= (nth 1 dt) 3)
+	 (let ((sunday (math-prev-weekday-in-month date dt 14 0)))
+	   (cond ((< (nth 2 dt) sunday) 0)
+		 ((= (nth 2 dt) sunday)
+		  (if (>= (nth 3 dt) (+ 3 bump)) -1 0))
+		 (t -1))))
+	((< (nth 1 dt) 11) -1)
+	((= (nth 1 dt) 11)
+	 (let ((sunday (math-prev-weekday-in-month date dt 7 0)))
+	   (cond ((< (nth 2 dt) sunday) -1)
+		 ((= (nth 2 dt) sunday)
+		  (if (>= (nth 3 dt) (+ 2 bump)) 0 -1))
+		 (t 0))))
+	(t 0)))
+
+(defun math-std-daylight-savings-old (date dt zone bump)
+  "Standard North American daylight saving algorithm before 2007.
+This implements the rules for the U.S. and Canada.
+Daylight saving begins on the first Sunday of April at 2 a.m.,
 and ends on the last Sunday of October at 2 a.m."
   (cond ((< (nth 1 dt) 4) 0)
 	((= (nth 1 dt) 4)
@@ -1817,7 +1850,7 @@ and ends on the last Sunday of October at 2 a.m."
 	   (math-make-intv 2 0 b)))))
 
 ;; The variables math-exp-str and math-exp-pos are local to
-;; math-read-exprs in math-aent.el, but are used by 
+;; math-read-exprs in math-aent.el, but are used by
 ;; math-read-angle-brackets, which is called (indirectly) by
 ;; math-read-exprs.
 (defvar math-exp-str)

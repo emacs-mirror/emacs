@@ -47,6 +47,7 @@ Boston, MA 02110-1301, USA.  */
 #include "dispextern.h"
 #include "window.h"
 #include "keymap.h"
+#include "blockinput.h"
 #include "syssignal.h"
 #include "systty.h"
 
@@ -695,11 +696,13 @@ tty_write_glyphs (struct frame *f, struct glyph *string, int len)
       conversion_buffer = encode_terminal_code (string, n, coding);
       if (coding->produced > 0)
 	{
+	  BLOCK_INPUT;
 	  fwrite (conversion_buffer, 1, coding->produced, tty->output);
 	  if (ferror (tty->output))
 	    clearerr (tty->output);
 	  if (tty->termscript)
 	    fwrite (conversion_buffer, 1, coding->produced, tty->termscript);
+	  UNBLOCK_INPUT;
 	}
       len -= n;
       string += n;
@@ -781,11 +784,13 @@ tty_insert_glyphs (struct frame *f, struct glyph *start, int len)
 
       if (coding->produced > 0)
 	{
+	  BLOCK_INPUT;
 	  fwrite (conversion_buffer, 1, coding->produced, tty->output);
 	  if (ferror (tty->output))
 	    clearerr (tty->output);
 	  if (tty->termscript)
 	    fwrite (conversion_buffer, 1, coding->produced, tty->termscript);
+	  UNBLOCK_INPUT;
 	}
 
       OUTPUT1_IF (tty, tty->TS_pad_inserted_char);

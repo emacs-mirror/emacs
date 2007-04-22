@@ -130,14 +130,13 @@
 
 (defcustom reb-re-syntax 'read
   "*Syntax for the REs in the RE Builder.
-Can either be `read', `string', `sregex' or `lisp-re'."
+Can either be `read', `string', `sregex', `lisp-re', `rx'."
   :group 're-builder
   :type '(choice (const :tag "Read syntax" read)
 		 (const :tag "String syntax" string)
 		 (const :tag "`sregex' syntax" sregex)
 		 (const :tag "`lisp-re' syntax" lisp-re)
-		 (const :tag "`rx' syntax" rx)
-		 (value: string)))
+		 (const :tag "`rx' syntax" rx)))
 
 (defcustom reb-auto-match-limit 200
   "*Positive integer limiting the matches for RE Builder auto updates.
@@ -640,11 +639,13 @@ If SUBEXP is non-nil mark only the corresponding sub-expressions."
       (set-buffer reb-target-buffer)
       (reb-delete-overlays)
       (goto-char (point-min))
-      (while (and (re-search-forward re (point-max) t)
+      (while (and (not (eobp))
+		  (re-search-forward re (point-max) t)
 		  (or (not reb-auto-match-limit)
 		      (< matches reb-auto-match-limit)))
 	(if (= 0 (length (match-string 0)))
-	    (error "Empty regular expression!"))
+	    (unless (eobp)
+	      (forward-char 1)))
 	(let ((i 0)
 	      suffix max-suffix)
 	  (setq matches (1+ matches))

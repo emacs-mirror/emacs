@@ -746,7 +746,7 @@ Don't use this command in Lisp programs!
 			     (/ size 10))
 			(/ (+ 10 (* size (prefix-numeric-value arg))) 10)))
 		 (point-min))))
-  (if arg (forward-line 1)))
+  (if (and arg (not (consp arg))) (forward-line 1)))
 
 (defun end-of-buffer (&optional arg)
   "Move point to the end of the buffer; leave mark at previous position.
@@ -773,7 +773,7 @@ Don't use this command in Lisp programs!
 		 (point-max))))
   ;; If we went to a place in the middle of the buffer,
   ;; adjust it to the beginning of a line.
-  (cond (arg (forward-line 1))
+  (cond ((and arg (not (consp arg))) (forward-line 1))
 	((> (point) (window-end nil t))
 	 ;; If the end of the buffer is not already on the screen,
 	 ;; then scroll specially to put it near, but not at, the bottom.
@@ -993,6 +993,9 @@ in *Help* buffer.  See also the command `describe-char'."
 
 (defvar read-expression-history nil)
 
+(defvar minibuffer-completing-symbol nil
+  "Non-nil means completing a Lisp symbol in the minibuffer.")
+
 (defcustom eval-expression-print-level 4
   "Value for `print-level' while printing value in `eval-expression'.
 A value of nil means no limit."
@@ -1044,9 +1047,10 @@ the echo area.
 If `eval-expression-debug-on-error' is non-nil, which is the default,
 this command arranges for all errors to enter the debugger."
   (interactive
-   (list (read-from-minibuffer "Eval: "
-			       nil read-expression-map t
-			       'read-expression-history)
+   (list (let ((minibuffer-completing-symbol t))
+	   (read-from-minibuffer "Eval: "
+				 nil read-expression-map t
+				 'read-expression-history))
 	 current-prefix-arg))
 
   (if (null eval-expression-debug-on-error)
@@ -1894,14 +1898,11 @@ the contents are inserted into the buffer anyway.
 
 Optional arguments NOT-THIS-WINDOW and FRAME are as for `display-buffer',
 and only used if a buffer is displayed."
-  (cond ((and (stringp message)
-	      (not (string-match "\n" message))
-	      (<= (length message) (frame-width)))
+  (cond ((and (stringp message) (not (string-match "\n" message)))
 	 ;; Trivial case where we can use the echo area
 	 (message "%s" message))
 	((and (stringp message)
-	      (= (string-match "\n" message) (1- (length message)))
-	      (<= (1- (length message)) (frame-width)))
+	      (= (string-match "\n" message) (1- (length message))))
 	 ;; Trivial case where we can just remove single trailing newline
 	 (message "%s" (substring message 0 (1- (length message)))))
 	(t
@@ -3582,7 +3583,7 @@ Outline mode sets this."
 			      'end-of-buffer)
 			    nil)))
 	    ;; Move by arg lines, but ignore invisible ones.
-	    (let (done line-end)
+	    (let (done)
 	      (while (and (> arg 0) (not done))
 		;; If the following character is currently invisible,
 		;; skip all characters with that same `invisible' property value.
@@ -3591,9 +3592,11 @@ Outline mode sets this."
 		;; Move a line.
 		;; We don't use `end-of-line', since we want to escape
 		;; from field boundaries ocurring exactly at point.
-		(let ((inhibit-field-text-motion t))
-		  (setq line-end (line-end-position)))
-		(goto-char (constrain-to-field line-end (point) t t))
+		(goto-char (constrain-to-field
+			    (let ((inhibit-field-text-motion t))
+			      (line-end-position))
+			    (point) t t
+			    'inhibit-line-move-field-capture))
 		;; If there's no invisibility here, move over the newline.
 		(cond
 		 ((eobp)
@@ -4715,9 +4718,16 @@ SEND-ACTIONS is a list of actions to call when the message is sent.
 Each action has the form (FUNCTION . ARGS)."
   (interactive
    (list nil nil nil current-prefix-arg))
-  (let ((function (get mail-user-agent 'composefunc)))
-    (funcall function to subject other-headers continue
-	     switch-function yank-action send-actions)))
+  (let ((function (get mail-user-agent 'composefunc))
+	result-buffer)
+    (if switch-function
+	(save-window-excursion
+	  (prog1
+	      (funcall function to subject other-headers continue
+		       nil yank-action send-actions)
+	    (funcall switch-function (current-buffer))))
+      (funcall function to subject other-headers continue
+	       nil yank-action send-actions))))
 
 (defun compose-mail-other-window (&optional to subject other-headers continue
 					    yank-action send-actions)
@@ -5080,7 +5090,8 @@ of the minibuffer before point is always the common substring.)")
     ;; so it will get copied into the completion list buffer.
     (if minibuffer-completing-file-name
 	(with-current-buffer mainbuf
-	  (setq default-directory (file-name-directory mbuf-contents))))
+	  (setq default-directory
+                (file-name-directory (expand-file-name mbuf-contents)))))
     (with-current-buffer standard-output
       (completion-list-mode)
       (set (make-local-variable 'completion-reference-buffer) mainbuf)
@@ -5100,6 +5111,7 @@ of the minibuffer before point is always the common substring.)")
 		(save-excursion
 		  (skip-chars-backward completion-root-regexp)
 		  (- (point) (minibuffer-prompt-end)))))
+	     (minibuffer-completing-symbol nil)
 	     ;; Otherwise, in minibuffer, the base size is 0.
 	     ((minibufferp mainbuf) 0)))
       (setq common-string-length
@@ -5152,7 +5164,7 @@ select the completion near point.\n\n"))))))
     (when window
       (select-window window)
       (goto-char (point-min))
-      (search-forward "\n\n")
+      (search-forward "\n\n" nil t)
       (forward-line 1))))
 
 ;;; Support keyboard commands to turn on various modifiers.

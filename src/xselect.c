@@ -3007,8 +3007,17 @@ it merely informs you that they have happened.  */);
 
   DEFVAR_LISP ("selection-coding-system", &Vselection_coding_system,
 	       doc: /* Coding system for communicating with other X clients.
-When sending or receiving text via selection and clipboard, the text is
-encoded or decoded by this coding system.
+
+When sending text via selection and clipboard, if the requested
+data-type is not "UTF8_STRING", the text is encoded by this coding
+system.
+
+When receiving text, if the data-type of the received text is not
+"UTF8_STRING", it is decoded by this coding system.
+
+See also the documentation of the variable `x-select-request-type' how
+to control which data-type to request for receiving text.
+
 The default value is `compound-text-with-extensions'.  */);
   Vselection_coding_system = intern ("compound-text-with-extensions");
 

@@ -1150,7 +1150,7 @@ modified by the user.  Additional arguments are added when the command
 is used by `run-python' et al.")
 
 (defvar python-buffer nil
-  "*The current python process buffer.
+  "*The current Python process buffer.
 
 Commands that send text from source buffers to Python processes have
 to choose a process to send to.  This is determined by buffer-local
@@ -1383,11 +1383,11 @@ buffer for a list of commands.)"
 COMMAND should be a single statement."
   ;; (assert (not (string-match "\n" command)))
   ;; (let ((end (marker-position (process-mark (python-proc)))))
-    (with-current-buffer python-buffer (goto-char (point-max)))
+  (with-current-buffer (process-buffer (python-proc))
+    (goto-char (point-max))
     (compilation-forget-errors)
     (python-send-string command)
-    (with-current-buffer python-buffer
-      (setq compilation-last-buffer (current-buffer)))
+    (setq compilation-last-buffer (current-buffer)))
     ;; No idea what this is for but it breaks the call to
     ;; compilation-fake-loc in python-send-region.  -- Stef
     ;; Must wait until this has completed before re-setting variables below.
@@ -1517,9 +1517,9 @@ See variable `python-buffer'.  Starts a new process if necessary."
   ;; isn't one for `python-buffer'.
   (unless (comint-check-proc python-buffer)
     (run-python nil t))
-  (get-buffer-process (or (if (derived-mode-p 'inferior-python-mode)
-                              (current-buffer)
-                            python-buffer))))
+  (get-buffer-process (if (derived-mode-p 'inferior-python-mode)
+                          (current-buffer)
+                        python-buffer)))
 
 (defun python-set-proc ()
   "Set the default value of `python-buffer' to correspond to this buffer.
@@ -2088,7 +2088,7 @@ The default contents correspond to the elements of `python-skeletons'.")
   > _ \n)
 
 (defvar python-default-template "if"
-  "Default template to expand by `python-insert-template'.
+  "Default template to expand by `python-expand-template'.
 Updated on each expansion.")
 
 (defun python-expand-template (name)

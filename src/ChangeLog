@@ -1,7 +1,183 @@
-2007-03-02  Stuart D. Herring <herring@lanl.gov>
+2007-03-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* keymap.c (Fkey_binding): Don't consider two-element lists as
-	events.
+	* Makefile.in (alloca.o, gtkutil.o): Depend on systime.h.
+	(dired.o, editfns.o, fileio.o, msdos.o): Depend on atimer.h.
+	(dosfns.o, window.o, fns.o, macselect.o): Depend on atimer.h and
+	systime.h.
+	(term.o, print.o, lread.o): Depend on blockinput.h, atimer.h, and
+	systime.h.
+	(macfns.o): Remove duplicate dependency on systime.h.
+
+	* dispnew.c (Fopen_termscript): Add BLOCK_INPUT around fclose.
+	(Fsend_string_to_terminal): Add BLOCK_INPUT around fwrite.
+
+	* fileio.c (do_auto_save_unwind): Add BLOCK_INPUT around fclose.
+	(Fdo_auto_save): Add BLOCK_INPUT around fwrite.
+
+	* keyboard.c (record_char): Add BLOCK_INPUT around fwrite.
+	(Fopen_dribble_file): Add BLOCK_INPUT around fclose.
+
+	* lread.c: Include blockinput.h.
+	(readchar, Fget_file_char): Add BLOCK_INPUT around getc.
+	(unreadchar): Add BLOCK_INPUT around ungetc.
+	(load_unwind): Add BLOCK_INPUT around fclose.
+
+	* print.c: Include blockinput.h.
+	(Fredirect_debugging_output): Add BLOCK_INPUT around fclose.
+
+	* process.c (Fmake_network_process) [HAVE_GETADDRINFO]: Clear
+	immediate_quit before calling freeaddrinfo.  Add BLOCK_INPUT
+	around freeaddrinfo.
+
+	* term.c: Include blockinput.h.
+	(write_glyphs, insert_glyphs): Add BLOCK_INPUT around fwrite.
+
+2007-03-19  Richard Stallman  <rms@gnu.org>
+
+	* keyboard.c (NUM_RECENT_KEYS): Bump up to 300.
+
+	* buffer.c (syms_of_buffer): Doc fix.
+
+2007-03-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (pbm_load): Signal error for invalid image size.
+
+2007-03-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (note_mouse_movement): Don't return immediately for
+	LeaveNotify case.
+
+	* macmenu.c (popup_activated_flag): New variable.
+	(x_activate_menubar, mac_menu_show): Set it during menu tracking.
+	(popup_activated): New function.
+
+	* xdisp.c (redisplay_internal, note_mouse_highlight): Check
+	popup_activated for MAC_OS.
+
+2007-03-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* buffer.c (syms_of_buffer) <buffer-display-table>: Doc fix.
+	Reported by Nikolaj Schumacher <n_schumacher@web.de>.
+
+2007-03-17  Richard Stallman  <rms@gnu.org>
+
+	* dired.c (file_name_completion): gcpro NAME.
+
+2007-03-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (try_window_id): Increment matrix positions if the
+	buffer's byte count has increased, but not the character count.
+
+2007-03-12  Andreas Schwab  <schwab@suse.de>
+
+	* lisp.h: Declare check_obarray.
+
+	* process.c (Fdelete_process): Properly handle deletion of first
+	element of deleted_pid_list.
+	(create_process): Declare pid as pid_t.
+
+2007-03-12  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (sigchld_handler): Change type of pid to pid_t.
+	Scan deleted_pid_list explicitly to avoid using Fmember which don't
+	know about mark bits and make_fixnum_or_float which may malloc.
+	Reported by Andreas Schwab.
+
+	* keyboard.c (read_key_sequence): Store original event into keybuf
+	when replaying sequence with local keymap(s) from string.
+
+2007-03-12  Glenn Morris  <rgm@gnu.org>
+
+	* editfns.c (Fdecode_time, Fencode_time): Doc fix ("daylight
+	savings" to "daylight saving").
+
+2007-03-11  Sam Steingold  <sds@gnu.org>
+
+	* process.c (sigchld_handler): Sleep before wait3 to avoid a busyloop.
+
+2007-03-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (Fx_server_vendor): Change vendor string to "Apple Inc.".
+
+2007-03-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c [USE_CARBON_EVENTS] (mac_handle_mouse_event):
+	Ignore mouse wheel movement on title bar or tool bar.
+
+2007-03-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (help_form_saved_window_configs): New var.
+	(read_char_help_form_unwind): New function.
+	(read_char): Don't restore window configuration if a mouse click
+	arrives while the help form is being displayed.
+
+2007-03-10  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (redisplay_window): Don't automatically select a new window
+	start for a contination line during mouse-click.
+
+2007-03-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (handle_one_xevent): Ignore buttons > 3 for the tool bar.
+
+2007-03-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* keymap.c (Fdescribe_buffer_bindings): Check that BUFFER is valid.
+
+2007-03-08  Richard Stallman  <rms@gnu.org>
+
+	* keyboard.c (syms_of_keyboard): Doc fix.
+
+2007-03-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuf.c (Ftry_completion): Don't short circuit if
+	completion-ignore-case is non-nil.
+
+2007-03-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (mac_set_scroll_bar_width, mac_frame_parm_handlers):
+	Undo 2006-03-06 changes.
+
+	* macterm.c (XTset_vertical_scroll_bar) [MAC_OSX]: Don't show scroll
+	bar if its width is smaller than that of Aqua small scroll bar.
+
+2007-03-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.c (read_minibuf): Bind inhibit-read-only a bit longer so as
+	to handle correctly prompts with read-only property.
+
+2007-03-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* sound.c (wav_play): Check header->data_length to see how much we
+	shall read.
+	(alsa_period_size): Convert ALSA period size in frames to bytes.
+	(alsa_write): Return if frames is zero.
+
+2007-03-06  Kenichi Handa  <handa@m17n.org>
+
+	* xselect.c (Vselection_coding_system): Documentation improved.
+
+2007-03-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (x_scroll_bar_create, XTread_socket): Replace #if
+	USE_TOOLKIT_SCROLL_BARS with #ifdef USE_TOOLKIT_SCROLL_BARS.
+	(x_set_window_size): Call SET_FRAME_GARBAGED.  Clear window if
+	internal border width has changed.
+
+	* macterm.h (struct mac_output): New member `internal_border_width'.
+
+2007-03-04  Richard Stallman  <rms@gnu.org>
+
+	* window.c (Fdisplay_buffer): Doc fix.
+
+2007-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Don't clear out LIB_X11_LIB, since XFT_LIBS does
+	not include -lX11 on Solaris.
+
+2007-03-02  Stuart D. Herring  <herring@lanl.gov>
+
+	* keymap.c (Fkey_binding): Don't consider one-element lists as events.
 
 2007-03-01  Kenichi Handa  <handa@m17n.org>
 
@@ -30,8 +206,8 @@
 	(x_scroll_bar_create, XTset_vertical_scroll_bar)
 	[USE_TOOLKIT_SCROLL_BARS]: Initialize bar->min_handle.
 
-	* macterm.h (struct scroll_bar) [USE_TOOLKIT_SCROLL_BARS]: New
-	member `min_handle'.
+	* macterm.h (struct scroll_bar) [USE_TOOLKIT_SCROLL_BARS]:
+	New member `min_handle'.
 
 2007-02-23  Kim F. Storm  <storm@cua.dk>
 
@@ -54,11 +230,11 @@
 	(mac_flush_display_optional) [USE_CG_DRAWING]: New function.
 	(x_redisplay_interface) [USE_CG_DRAWING]: Set it as handler for
 	flush_display_optional.
-	[USE_TOOLKIT_SCROLL_BARS] (x_scroll_bar_handle_press): New
-	argument MOUSE_POS.  All uses changed.  Set bar->dragging to
+	[USE_TOOLKIT_SCROLL_BARS] (x_scroll_bar_handle_press):
+	New argument MOUSE_POS.  All uses changed.  Set bar->dragging to
 	negative integer if scroll bar handle is pressed.
-	[USE_TOOLKIT_SCROLL_BARS] (x_scroll_bar_handle_release): Negative
-	bar->dragging means scroll bar handle is not dragged.
+	[USE_TOOLKIT_SCROLL_BARS] (x_scroll_bar_handle_release):
+	Negative bar->dragging means scroll bar handle is not dragged.
 	[USE_TOOLKIT_SCROLL_BARS] (x_scroll_bar_handle_drag): Get initial
 	offset of scroll bar handle from negative bar->dragging.
 	(XTread_socket) [USE_TOOLKIT_SCROLL_BARS]: Modifiers for scroll
@@ -93,8 +269,7 @@
 
 	* w32menu.c (current_popup_menu): Make available globally.
 	(menubar_selection_callback): Free menu strings before pushing the
-	menu event into the keyboard buffer.  Remove
-	menu_command_in_progress.
+	menu event into the keyboard buffer.  Remove menu_command_in_progress.
 
 	* w32fns.c (current_popup_menu): Use from w32menu.c.
 	(w32_wnd_proc) [WM_EXITMENULOOP, WM_TIMER]: Use menubar_active
@@ -364,8 +539,8 @@
 
 2007-01-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* macmenu.c (create_and_show_dialog) [TARGET_API_MAC_CARBON]: Use
-	DisableControl for disabled items.  Set default button to first
+	* macmenu.c (create_and_show_dialog) [TARGET_API_MAC_CARBON]:
+	Use DisableControl for disabled items.  Set default button to first
 	enabled one.  Use icon of application in execution.
 
 2007-01-13  Eli Zaretskii  <eliz@gnu.org>

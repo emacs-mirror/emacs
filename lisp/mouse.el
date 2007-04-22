@@ -409,11 +409,6 @@ MODE-LINE-P non-nil means dragging a mode line; nil means a header line."
 	 should-enlarge-minibuffer event mouse y top bot edges wconfig growth)
     (track-mouse
       (progn
-	;; enlarge-window only works on the selected window, so
-	;; we must select the window where the start event originated.
-	;; unwind-protect will restore the old selected window later.
-	(select-window start-event-window)
-
 	;; if this is the bottommost ordinary window, then to
 	;; move its modeline the minibuffer must be enlarged.
 	(setq should-enlarge-minibuffer
@@ -421,7 +416,7 @@ MODE-LINE-P non-nil means dragging a mode line; nil means a header line."
 		   mode-line-p
 		   (not (one-window-p t))
 		   (= (nth 1 (window-edges minibuffer))
-		      (nth 3 (window-edges)))))
+		      (nth 3 (window-edges start-event-window)))))
 
 	;; loop reading events and sampling the position of
 	;; the mouse.
@@ -459,7 +454,7 @@ MODE-LINE-P non-nil means dragging a mode line; nil means a header line."
 
 		(t
 		 (setq y (cdr (cdr mouse))
-		       edges (window-edges)
+		       edges (window-edges start-event-window)
 		       top (nth 1 edges)
 		       bot (nth 3 edges))
 
@@ -572,10 +567,6 @@ resized by dragging their header-line."
       (error "Attempt to drag leftmost scrollbar")))
     (track-mouse
       (progn
-	;; enlarge-window only works on the selected window, so
-	;; we must select the window where the start event originated.
-	;; unwind-protect will restore the old selected window later.
-	(select-window start-event-window)
 	;; loop reading events and sampling the position of
 	;; the mouse.
 	(while (not done)
@@ -611,9 +602,9 @@ resized by dragging their header-line."
 			;; If the scroll bar is on the window's left,
 			;; adjust the window on the left.
 			(if (eq which-side 'right)
-			    (selected-window)
+			    start-event-window
 			  (mouse-drag-vertical-line-rightward-window
-			   (selected-window)))))
+			   start-event-window))))
 		   (setq x (- (car (cdr mouse))
 			      (if (eq which-side 'right) 0 2))
 			 edges (window-edges window)
@@ -1061,7 +1052,6 @@ should only be used by mouse-drag-region."
 				(not (eq mouse-1-click-follows-link 'double))
 				(= click-count 0)
 				(= (event-click-count event) 1)
-				(not (input-pending-p))
 				(or (not (integerp mouse-1-click-follows-link))
 				    (let ((t0 (posn-timestamp (event-start start-event)))
 					  (t1 (posn-timestamp (event-end event))))

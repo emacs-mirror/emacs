@@ -849,10 +849,12 @@ Compatibility function for \\[next-error] invocations."
 
 (defface match
   '((((class color) (min-colors 88) (background light))
-     :background "Tan")
+     :background "yellow")
     (((class color) (min-colors 88) (background dark))
      :background "RoyalBlue3")
-    (((class color) (min-colors 8))
+    (((class color) (min-colors 8) (background light))
+     :background "yellow" :foreground "black")
+    (((class color) (min-colors 8) (background dark))
      :background "blue" :foreground "white")
     (((type tty) (class mono))
      :inverse-video t)
@@ -1049,7 +1051,9 @@ See also `multi-occur'."
 
     (with-current-buffer occur-buf
       (occur-mode)
-      (let ((inhibit-read-only t))
+      (let ((inhibit-read-only t)
+	    ;; Don't generate undo entries for creation of the initial contents.
+	    (buffer-undo-list t))
 	(erase-buffer)
 	(let ((count (occur-engine
 		      regexp active-bufs occur-buf
@@ -1086,8 +1090,6 @@ See also `multi-occur'."
 			    title-face prefix-face match-face keep-props)
   (with-current-buffer out-buf
     (let ((globalcount 0)
-	  ;; Don't generate undo entries for creation of the initial contents.
-	  (buffer-undo-list t)
 	  (coding nil))
       ;; Map over all the buffers
       (dolist (buf buffers)

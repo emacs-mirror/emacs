@@ -1147,39 +1147,40 @@ and on @code{xterm} with @kbd{emacs -nw}.
 @cindex Recently introduced features
 
 @cindex Default features
-Font Lock mode, auto-compression mode, and file name shadow mode are now
-enabled by default.  On graphics displays it is now possible to follow
-links with @kbd{mouse-1}, and the modeline of the selected window is now
-highlighted.  Window fringes are now customizable.  The minibuffer
-prompt is now displayed in a distinct face.
+Font Lock mode, auto-compression mode, and file name shadow mode are
+enabled by default.  On graphics displays it is possible to follow links
+with @kbd{mouse-1}.  The modeline of the selected window is now
+highlighted.  Window fringes are customizable.  The minibuffer prompt is
+displayed in a distinct face.
 
 Emacs now reads abbrev definitions automatically at startup.  The
-maximum size of buffers has been doubled and is now 256M on 32-bit
-machines.  Grep mode is now separate from Compilation mode and has many
-new specific options and commands.
+maximum size of buffers has been doubled and is 256M on 32-bit machines.
+Grep mode is separate from Compilation mode and has many new specific
+options and commands.
 
 The original Emacs macro system has been replaced by the new Kmacro
 package, which provides many new commands and features and a simple
-interface that uses the function keys F3 and F4.  Macros are now stored
+interface that uses the function keys F3 and F4.  Macros are stored
 in a macro ring, and can be debugged and edited interactively.
 
 The GUD (Grand Unified Debugger) package can now be used with a full
 graphical user interface to the debugger which provides many features
 found in traditional development environments, making it easy to
 manipulate breakpoints, add watch points, display the call stack, etc.
-Breakpoints are now displayed in the source buffer.
+Breakpoints are displayed in the source buffer.
 
 @cindex GTK+ Toolkit
 @cindex Drag-and-drop
 @cindex Mouse wheel
-Emacs can now be built with GTK+ widgets, and supports drag-and-drop
-operation on X.  Mouse wheel support is now enabled by default.
+Emacs can be built with GTK+ widgets, and supports drag-and-drop
+operation on X.  Mouse wheel support is enabled by default.
 
 @cindex New modes
-Many new modes and packages have been included in Emacs, such as Calc,
-Tramp and URL, as well as IDO, CUA, rcirc, ERC, conf-mode, python-mode,
-table, tumme, SES, ruler, Flymake, Org, PGG, wdired, t-mouse, longlines,
-dns-mode, savehist, Password, Printing, Reveal, etc.
+Many new modes and packages have been included in Emacs, such as MH-E,
+Calc, Tramp and URL, as well as IDO, CUA, rcirc, ERC, conf-mode,
+python-mode, table, tumme, SES, ruler, Flymake, Org, PGG, wdired,
+t-mouse, longlines, dns-mode, savehist, Password, Printing, Reveal, etc.
+Gnus has been updated to version 5.11.
 
 @cindex Multilingual Environment
 Leim is now part of Emacs.  Unicode support has been much improved, and

@@ -666,6 +666,16 @@ The following commands are accepted by the client:
     (run-with-timer 0 nil (lexical-let ((proc proc))
 			    (lambda () (server-process-filter proc ""))))
     (top-level))
+  (condition-case nil
+      ;; If we're running isearch, we must abort it to allow Emacs to
+      ;; display the buffer and switch to it.
+      (mapc #'(lambda (buffer)
+		(with-current-buffer buffer
+		  (when (bound-and-true-p isearch-mode)
+		    (isearch-cancel))))
+	    (buffer-list))
+    ;; Signaled by isearch-cancel
+    (quit (message nil)))
   (let ((prev (process-get proc 'previous-string)))
     (when prev
       (setq string (concat prev string))

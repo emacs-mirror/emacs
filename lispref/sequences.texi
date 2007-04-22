@@ -111,12 +111,8 @@ Emacs character code.
 @end example
 @end defun
 
-@defun string-bytes string
-@cindex string, number of bytes
-This function returns the number of bytes in @var{string}.
-If @var{string} is a multibyte string, this is greater than
-@code{(length @var{string})}.
-@end defun
+@noindent
+See also @code{string-bytes}, in @ref{Text Representations}.
 
 @defun elt sequence index
 @cindex elements of sequences

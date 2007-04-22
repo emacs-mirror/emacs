@@ -1055,10 +1055,16 @@ cperl-mode and make-mode support this.
 
 ---
 *** The default settings for JIT stealth lock parameters are changed.
-The default value for the user option jit-lock-stealth-time is now 16
-instead of 3, and the default value of jit-lock-stealth-nice is now
-0.5 instead of 0.125.  The new defaults should lower the CPU usage
-when Emacs is fontifying in the background.
+The default value for the user option jit-lock-stealth-time is now nil
+instead of 3.  This setting of jit-lock-stealth-time disables stealth
+fontification: on today's machines, it may be a bug in font lock
+patterns if fontification otherwise noticeably degrades interactivity.
+If you find movement in infrequently visited buffers sluggish (and the
+major mode maintainer has no better idea), customizing
+jit-lock-stealth-time to a non-nil value will let Emacs fontify
+buffers in the background when it considers the system to be idle.
+jit-lock-stealth-nice is now 0.5 instead of 0.125 which is supposed to
+cause less load than the old defaults.
 
 ---
 *** jit-lock can now be delayed with `jit-lock-defer-time'.
@@ -1749,8 +1755,8 @@ ERC is a powerful, modular, and extensible IRC client for Emacs.
 To see what modules are available, type
 M-x customize-option erc-modules RET.
 
-To start an IRC session, type M-x erc, and follow the prompts for
-server, port, and nick.
+To start an IRC session with ERC, type M-x erc, and follow the prompts
+for server, port, and nick.
 
 ---
 ** Rcirc is now part of the Emacs distribution.
@@ -1762,8 +1768,9 @@ several channels (many-to-many) and participate in private
 (one-to-one) chats.  Both channel and private chats are contained in
 separate buffers.
 
-To start an IRC session, type M-x irc, and follow the prompts for
-server, port, nick and initial channels.
+To start an IRC session using the default parameters, type M-x irc.
+If you type C-u M-x irc, it prompts you for the server, nick, port and
+startup channel parameters before connecting.
 
 ---
 ** Newsticker is now part of the Emacs distribution.
@@ -4072,6 +4079,10 @@ If it is non-nil, the function lists only faces matching this regexp.
 By setting this variable to a function, you can control
 how the editor command loop shows the user an error message.
 
++++
+*** `debug-on-entry' accepts primitive functions that are not special forms
+now.
+
 ** Lisp code indentation features:
 
 +++
@@ -4672,6 +4683,9 @@ arrives.  If the user types or clicks anything, BODY stops as if a
 quit had occurred.  `while-no-input' returns the value of BODY, if BODY
 finishes.  It returns nil if BODY was aborted by a quit, and t if
 BODY was aborted by arrival of input.
+
++++
+*** `recent-keys' now returns the last 300 keys.
 
 ** Minibuffer changes:
 

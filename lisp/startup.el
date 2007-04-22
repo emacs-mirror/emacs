@@ -49,7 +49,7 @@ The value is nil if the selected frame is on a text-only-terminal.")
 
 (defcustom inhibit-splash-screen nil
   "Non-nil inhibits the startup screen.
-It also inhibits display of the initial message in the *scratch* buffer.
+It also inhibits display of the initial message in the `*scratch*' buffer.
 
 This is for use in your personal init file, once you are familiar
 with the contents of the startup screen."
@@ -202,7 +202,7 @@ Emacs runs this hook after processing the command line arguments and loading
 the user's init file.")
 
 (defcustom initial-major-mode 'lisp-interaction-mode
-  "Major mode command symbol to use for the initial *scratch* buffer."
+  "Major mode command symbol to use for the initial `*scratch*' buffer."
   :type 'function
   :group 'initialization)
 
@@ -1126,13 +1126,13 @@ regardless of the value of this variable."
                ;; If there is a specific tutorial for the current language
                ;; environment and it is not English, append its title.
                (concat
-                "Emacs Tutorial\tLearn how to use Emacs efficiently"
+                "Emacs Tutorial\t\tLearn how to use Emacs efficiently"
                 (if (string= en tut)
                     ""
                   (concat " (" title ")"))
                 "\n")))
            :face variable-pitch "\
-Emacs FAQ\tFrequently asked questions and answers
+Emacs FAQ\t\tFrequently asked questions and answers
 View Emacs Manual\tView the Emacs manual using Info
 Absence of Warranty\tGNU Emacs comes with "
 	   :face (variable-pitch :slant oblique)
@@ -1142,12 +1142,13 @@ Absence of Warranty\tGNU Emacs comes with "
 Copying Conditions\tConditions for redistributing and changing Emacs
 Getting New Versions\tHow to obtain the latest version of Emacs
 More Manuals / Ordering Manuals       Buying printed manuals from the FSF\n")
-  (:face (variable-pitch :weight bold)
+  (:face variable-pitch
 	 "To quit a partially entered command, type "
 	 :face default
 	 "Control-g"
 	 :face variable-pitch
-	 "."
+	 ".\n"
+	 :face (variable-pitch :weight bold)
 	 "Useful File menu items:\n"
 	 :face variable-pitch
 	 "Exit Emacs\t\t(Or type "
@@ -1279,8 +1280,7 @@ using the mouse.\n\n")
      :face 'variable-pitch
      "Type "
      :face 'default
-     (substitute-command-keys
-      "\\[recenter]")
+     "Control-l"
      :face 'variable-pitch
      " to begin editing"
      (if (equal (buffer-name fancy-splash-outer-buffer)
@@ -1997,13 +1997,13 @@ With a prefix argument, any user input hides the splash screen."
     (with-no-warnings
      (setq menubar-bindings-done t))
 
-    ;; If *scratch* is selected and it is empty, insert an
-    ;; initial message saying not to create a file there.
-    (when (and initial-scratch-message
-	       (equal (buffer-name) "*scratch*")
-	       (= 0 (buffer-size)))
-      (insert initial-scratch-message)
-      (set-buffer-modified-p nil))
+    ;; If *scratch* exists and is empty, insert initial-scratch-message.
+    (and initial-scratch-message
+         (get-buffer "*scratch*")
+         (with-current-buffer "*scratch*"
+           (when (zerop (buffer-size))
+             (insert initial-scratch-message)
+             (set-buffer-modified-p nil))))
 
     ;; If user typed input during all that work,
     ;; abort the startup screen.  Otherwise, display it now.
