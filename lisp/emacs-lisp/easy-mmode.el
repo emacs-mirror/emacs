@@ -327,11 +327,12 @@ call another major mode in their body."
        (make-variable-buffer-local ',MODE-major-mode)
        ;; The actual global minor-mode
        (define-minor-mode ,global-mode
-	 ,(format "Toggle %s in every buffer.
+	 ,(format "Toggle %s in every possible buffer.
 With prefix ARG, turn %s on if and only if ARG is positive.
-%s is actually not turned on in every buffer but only in those
-in which `%s' turns it on."
-		  pretty-name pretty-global-name pretty-name turn-on)
+%s is enabled in all buffers where `%s' would do it.
+See `%s' for more information on %s."
+		  pretty-name pretty-global-name pretty-name turn-on
+		  mode pretty-name)
 	 :global t ,@group ,@(nreverse extra-keywords)
 
 	 ;; Setup hook to handle future mode changes and new buffers.
