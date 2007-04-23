@@ -1002,6 +1002,9 @@ C-@key{SPC}} to move back there.
   A numeric argument restricts replacement to matches that are surrounded
 by word boundaries.  The argument's value doesn't matter.
 
+  @xref{Replacement and Case}, for details about case-sensitivity in
+replace commands.
+
   What if you want to exchange @samp{x} and @samp{y}: replace every @samp{x} with a @samp{y} and vice versa?  You can do it this way:
 
 @example
@@ -1155,9 +1158,9 @@ This command finds occurrences of @samp{foo} one by one, displays each
 occurrence and asks you whether to replace it.  Aside from querying,
 @code{query-replace} works just like @code{replace-string}.  It
 preserves case, like @code{replace-string}, provided
-@code{case-replace} is non-@code{nil}, as it normally is.  A numeric
-argument means consider only occurrences that are bounded by
-word-delimiter characters.
+@code{case-replace} is non-@code{nil}, as it normally is
+(@pxref{Replacement and Case}).  A numeric argument means consider
+only occurrences that are bounded by word-delimiter characters.
 
 @kindex C-M-%
 @findex query-replace-regexp
