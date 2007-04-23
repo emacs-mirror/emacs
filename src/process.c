@@ -1562,9 +1562,10 @@ BUFFER is the buffer (or buffer name) to associate with the process.
 Process output (both standard output and standard error streams) goes
 at end of BUFFER, unless you specify an output stream or filter
 function to handle the output.  BUFFER may also be nil, meaning that
-this process is not associated with any buffer.  PROGRAM is the
-program file name.  It is searched for in PATH.  Remaining arguments
-are strings to give program as arguments.
+this process is not associated with any buffer.
+
+PROGRAM is the program file name.  It is searched for in PATH.
+Remaining arguments are strings to give program as arguments.
 
 If you want to separate standard output from standard error, invoke
 the command through a shell and redirect one of them using the shell
