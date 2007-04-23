@@ -1,3 +1,7 @@
+2007-04-23  Richard Stallman  <rms@gnu.org>
+
+	* simple.el (set-mark-command-repeat-pop): Doc fix.
+
 2007-04-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* info.el (Info-mouse-scroll-up, Info-mouse-scroll-down): New
