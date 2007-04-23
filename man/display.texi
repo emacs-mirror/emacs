@@ -726,12 +726,16 @@ match), and finally use this command (@code{hi-lock-find-patterns}) to
 have Hi Lock highlight the edited patterns.
 
 @vindex hi-lock-file-patterns-policy
-The variable @code{hi-lock-file-patterns-policy} controls whether
-@code{hi-lock-find-patterns} should really do anything.  Its value can
-be @code{nil} (do nothing), @code{t} (extract the patterns),
-@code{ask} (query the user), or a function.  If it is a function,
+The variable @code{hi-lock-file-patterns-policy} controls whether Hi
+Lock mode should automatically extract and highlight patterns found in
+a file when it is visited.  Its value can be @code{nil} (never
+highlight), @code{t} (highlight the patterns), @code{ask} (query the
+user), or a function.  If it is a function,
 @code{hi-lock-find-patterns} calls it with the patterns as argument;
-if the function returns non-@code{nil}, the patterns are used.
+if the function returns non-@code{nil}, the patterns are used.  The
+default is @code{nil}.  Note that patterns are always highlighted if
+you call @code{hi-lock-find-patterns} directly, regardless of the
+value of this variable.
 
 @vindex hi-lock-exclude-modes
 Also, @code{hi-lock-find-patterns} does nothing if the current major
