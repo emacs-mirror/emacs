@@ -3207,7 +3207,7 @@ will pop the mark three times.
 nil means \\[set-mark-command]'s behavior does not change
 after C-u \\[set-mark-command]."
   :type 'boolean
-  :group 'editing)
+  :group 'editing-basics)
 
 (defun set-mark-command (arg)
   "Set the mark where point is, or jump to the mark.
