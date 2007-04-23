@@ -53,8 +53,9 @@
 
 ;; Use color for the MS-DOS port because it doesn't support underline.
 ;; Also for the linux console.
-(defface button '((((type pc tty) (class color))
+(defface button '((((type pc) (class color))
 		   (:foreground "lightblue"))
+		  (((type tty)) (:inherit link))
 		  (t :underline t))
   "Default face used for buttons."
   :group 'basic-faces)
