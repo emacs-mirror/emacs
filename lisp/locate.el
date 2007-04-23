@@ -245,6 +245,7 @@ that is, with a prefix arg, you get the default behavior."
        (skip-chars-backward "." pt)
        (point)))))
 
+;; Function for use in interactive declarations.
 (defun locate-prompt-for-search-string ()
   (if (or (and current-prefix-arg
 	       (not locate-prompt-for-command))
