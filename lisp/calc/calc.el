@@ -4,7 +4,7 @@
 ;;   2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainer: Jay Belanger <belanger@truman.edu>
+;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
 ;; Keywords: convenience, extensions
 ;; Version: 2.1
 
@@ -401,7 +401,7 @@ This is not required to be present for user-written mode annotations."
   :group 'calc
   :type '(choice (string) (sexp)))
 
-(defvar calc-bug-address "belanger@truman.edu"
+(defvar calc-bug-address "jay.p.belanger@gmail.com"
   "Address of the maintainer of Calc, for use by `report-calc-bug'.")
 
 (defvar calc-scan-for-dels t
