@@ -2583,6 +2583,8 @@ requires the appropriate uncompression program.
   A separate but similar Archive mode is used for archives produced by
 the programs @code{arc}, @code{jar}, @code{lzh}, @code{zip}, and
 @code{zoo}, which have extensions corresponding to the program names.
+Archive mode also works for those @code{exe} files that are
+self-extracting executables.
 
   The key bindings of Archive mode are similar to those in Tar mode,
 with the addition of the @kbd{m} key which marks a file for subsequent
