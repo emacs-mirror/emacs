@@ -1,9 +1,3 @@
-2007-04-16  Miles Bader  <miles@gnu.org>
-
-	* emacs.c (main): Change default value of `enable_font_backend' to 1.
-	Parse "--disable-font-backend" option.
-	(standard_args): Add "--disable-font-backend" option.
-
 2007-04-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (note_mode_line_or_margin_highlight): Don't decrement

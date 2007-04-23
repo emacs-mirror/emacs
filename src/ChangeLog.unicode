@@ -5,6 +5,12 @@
 
 	* xfaces.c (face_for_font): Check also face->font==font->font.font.
 
+2007-04-16  Miles Bader  <miles@gnu.org>
+
+	* emacs.c (main): Change default value of `enable_font_backend' to 1.
+	Parse "--disable-font-backend" option.
+	(standard_args): Add "--disable-font-backend" option.
+
 2007-04-13  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (fontset_find_font): New function.
