@@ -2,6 +2,9 @@
 
 	* button.el (button): Use color for this face on a tty.
 
+	* files.el (magic-mode-alist): Allow for carriage-returns in
+	html-mode entry.
+
 2007-04-22  Richard Stallman  <rms@gnu.org>
 
 	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode):
