@@ -39,6 +39,13 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 ** python.el legal problem?
 http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-04/msg00459.html
 
+** rcyeske@gmail.com, April 22: Failure to build on OpenBSD.
+
+** nickrob@snap.net.nz, April 23: Info-scroll-up/down on mode-line
+
+** Finish fixing locate.el.
+
+** Stephen.Berman@gmx.net, April 22: redisplay
 
 * DOCUMENTATION
 
