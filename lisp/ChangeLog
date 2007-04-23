@@ -1,3 +1,10 @@
+2007-04-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* info.el (Info-mouse-scroll-up, Info-mouse-scroll-down): New
+	functions.
+	(Info-mode-line-node-keymap): Bind mouse commands to
+	Info-mouse-scroll-up/down instead of Info-scroll-up/down.
+
 2007-04-23  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* locate.el (locate-local-prompt): New var.
