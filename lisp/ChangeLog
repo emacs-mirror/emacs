@@ -1,6 +1,7 @@
 2007-04-23  Richard Stallman  <rms@gnu.org>
 
 	* simple.el (set-mark-command-repeat-pop): Doc fix.
+	Put in `editing-basics' group.
 
 2007-04-23  Chong Yidong  <cyd@stupidchicken.com>
 
