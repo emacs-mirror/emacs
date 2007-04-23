@@ -1,3 +1,8 @@
+2007-04-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* search.texi (Unconditional Replace, Query Replace): Add xref to
+	"Replacement and Case".
+
 2007-04-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dired.texi (Image-Dired): Move from Thumbnails node.

@@ -1,3 +1,7 @@
+2007-04-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* process.c (Fstart_process): Doc fix.
+
 2007-04-22  Richard Stallman  <rms@gnu.org>
 
 	* abbrev.c (Fdefine_abbrev): Doc fix.
