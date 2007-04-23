@@ -117,6 +117,7 @@
 (defvar locate-current-filter nil)
 (defvar locate-local-filter nil)
 (defvar locate-local-search nil)
+(defvar locate-local-prompt nil)
 
 (defgroup locate nil
   "Interface to the locate command."
@@ -221,7 +222,10 @@ option to \"/\"."
 
 (defcustom locate-prompt-for-command nil
   "If non-nil, the `locate' command prompts for a command to run.
-Otherwise, that behavior is invoked via a prefix argument."
+Otherwise, that behavior is invoked via a prefix argument.
+
+Setting this option non-nil actually inverts the meaning of a prefix arg;
+that is, with a prefix arg, you get the default behavior."
   :group 'locate
   :type 'boolean)
 
@@ -241,8 +245,31 @@ Otherwise, that behavior is invoked via a prefix argument."
        (skip-chars-backward "." pt)
        (point)))))
 
+(defun locate-prompt-for-search-string ()
+  (if (or (and current-prefix-arg
+	       (not locate-prompt-for-command))
+	  (and (not current-prefix-arg) locate-prompt-for-command))
+      (let ((locate-cmd (funcall locate-make-command-line "")))
+	(read-from-minibuffer
+	 "Run locate (like this): "
+	 (cons
+	  (concat (car locate-cmd) "  "
+		  (mapconcat 'identity (cdr locate-cmd) " "))
+	  (+ 2 (length (car locate-cmd))))
+	 nil nil 'locate-history-list))
+    (let* ((default (locate-word-at-point))
+	   (input
+	    (read-from-minibuffer
+	     (if  (> (length default) 0)
+		 (format "Locate (default %s): " default)
+	       (format "Locate: "))
+	     nil nil nil 'locate-history-list default t)))
+      (and (equal input "") default
+	   (setq input default))
+      input)))
+
 ;;;###autoload
-(defun locate (search-string &optional filter)
+(defun locate (search-string &optional filter arg)
   "Run the program `locate', putting results in `*Locate*' buffer.
 Pass it SEARCH-STRING as argument.  Interactively, prompt for SEARCH-STRING.
 With prefix arg, prompt for the exact shell command to run instead.
@@ -259,38 +286,23 @@ You can specify another program for this command to run by customizing
 the variables `locate-command' or `locate-make-command-line'.
 
 The main use of FILTER is to implement `locate-with-filter'.  See
-the docstring of that function for its meaning."
+the docstring of that function for its meaning.
+
+ARG is the interactive prefix arg."
   (interactive
-      (list
-       (if (or (and current-prefix-arg
-		    (not locate-prompt-for-command))
-	       (and (not current-prefix-arg) locate-prompt-for-command))
-	   (let ((locate-cmd (funcall locate-make-command-line "")))
-	     (read-from-minibuffer
-	      "Run locate (like this): "
-	      (cons
-	       (concat (car locate-cmd) "  "
-		       (mapconcat 'identity (cdr locate-cmd) " "))
-		       (+ 2 (length (car locate-cmd))))
-	      nil nil 'locate-history-list))
-	 (let* ((default (locate-word-at-point))
-	       (input
-		(read-from-minibuffer
-		 (if  (> (length default) 0)
-		     (format "Locate (default %s): " default)
-		   (format "Locate: "))
-		 nil nil nil 'locate-history-list default t)))
-	       (and (equal input "") default
-		    (setq input default))
-	       input))))
+   (list
+    (locate-prompt-for-search-string)
+    nil
+    current-prefix-arg))
+
   (if (equal search-string "")
       (error "Please specify a filename to search for"))
   (let* ((locate-cmd-list (funcall locate-make-command-line search-string))
 	 (locate-cmd (car locate-cmd-list))
 	 (locate-cmd-args (cdr locate-cmd-list))
 	 (run-locate-command
-	  (or (and current-prefix-arg (not locate-prompt-for-command))
-	      (and (not current-prefix-arg) locate-prompt-for-command)))
+	  (or (and arg (not locate-prompt-for-command))
+	      (and (not arg) locate-prompt-for-command)))
 	 )
 
     ;; Find the Locate buffer
@@ -304,6 +316,7 @@ the docstring of that function for its meaning."
 	(setq locate-current-filter filter)
 	(set (make-local-variable 'locate-local-search) search-string)
 	(set (make-local-variable 'locate-local-filter) filter)
+	(set (make-local-variable 'locate-local-prompt) run-locate-command)
 
 	(if run-locate-command
 	    (shell-command search-string locate-buffer-name)
@@ -324,7 +337,7 @@ the docstring of that function for its meaning."
   )
 
 ;;;###autoload
-(defun locate-with-filter (search-string filter)
+(defun locate-with-filter (search-string filter &optional arg)
   "Run the executable program `locate' with a filter.
 This function is similar to the function `locate', which see.
 The difference is that, when invoked interactively, the present function
@@ -334,14 +347,17 @@ that lists only those lines in the output of the locate program that
 contain a match for the regular expression FILTER; this is often useful
 to constrain a big search.
 
+ARG is the interactive prefix arg, which has the same effect as in `locate'.
+
 When called from Lisp, this function is identical with `locate',
 except that FILTER is not optional."
   (interactive
-   (list (read-from-minibuffer "Locate: " nil nil
-			       nil 'locate-history-list)
-	 (read-from-minibuffer "Filter: " nil nil
-			       nil 'locate-grep-history-list)))
-  (locate search-string filter))
+   (list
+    (locate-prompt-for-search-string)
+    (read-from-minibuffer "Filter: " nil nil
+			  nil 'locate-grep-history-list)
+    current-prefix-arg))
+  (locate search-string filter arg))
 
 (defun locate-filter-output (filter)
   "Filter output from the locate command."
@@ -584,7 +600,8 @@ do not work in subdirectories.
   "Revert the *Locate* buffer.
 If `locate-update-when-revert' is non-nil, offer to update the
 locate database using the shell command in `locate-update-command'."
-  (let ((locate-buffer-name (buffer-name)))
+  (let ((locate-buffer-name (buffer-name))
+	(locate-prompt-for-command locate-local-prompt))
     (and locate-update-when-revert
 	 (yes-or-no-p "Update locate database (may take a few seconds)? ")
 	 ;; `expand-file-name' is used in order to autoload Tramp if
