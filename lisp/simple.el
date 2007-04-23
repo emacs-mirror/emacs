@@ -3198,9 +3198,14 @@ Display `Mark set' unless the optional second arg NOMSG is non-nil."
 	(message "Mark activated")))))
 
 (defcustom set-mark-command-repeat-pop nil
-  "*Non-nil means that repeating \\[set-mark-command] after popping will pop.
-This means that if you type C-u \\[set-mark-command] \\[set-mark-command]
-will pop twice."
+  "*Non-nil means repeating \\[set-mark-command] after popping mark pops it again.
+That means that C-u \\[set-mark-command] \\[set-mark-command]
+will pop the mark twice, and
+C-u \\[set-mark-command] \\[set-mark-command] \\[set-mark-command]
+will pop the mark three times.
+
+nil means \\[set-mark-command]'s behavior does not change
+after C-u \\[set-mark-command]."
   :type 'boolean
   :group 'editing)
 
