@@ -1,5 +1,8 @@
 2007-04-23  Chong Yidong  <cyd@stupidchicken.com>
 
+	* display.texi (Highlight Interactively): Correct description of
+	hi-lock-file-patterns-policy.
+
 	* files.texi (File Archives): Mention self-extracting executables.
 
 2007-04-23  Eli Zaretskii  <eliz@gnu.org>
