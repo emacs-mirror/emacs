@@ -4987,11 +4987,11 @@ of multiline constructs so that such constructs get properly recognized.
 
 *** If new variable `auto-mode-case-fold' is set to a non-nil value,
 Emacs will perform a second case-insensitive search through
-`auto-mode-alist' if the first case-sensitive search fails.
-This means that a file FILE.TXT is opened in text-mode, and a file PROG.PY
-is opened in python-mode.  Note however, that independent of this
-setting, *.C files are usually recognized as C++ files.
-It also has no effect on systems with case-insensitive file names.
+`auto-mode-alist' if the first case-sensitive search fails.  This
+means that a file FILE.TXT is opened in text-mode, and a file
+PROG.HTML is opened in html-mode.  Note however, that independent of
+this setting, *.C files are usually recognized as C++ files.  It also
+has no effect on systems with case-insensitive file names.
 
 *** New variable `magic-mode-alist' determines major mode for a file by
 looking at the file contents.  It takes precedence over `auto-mode-alist'.
