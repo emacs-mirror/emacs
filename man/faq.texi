@@ -1213,7 +1213,7 @@ indicated in the source buffer.
 Many new modes and packages have been included in Emacs, such as Calc,
 TRAMP, URL, IDO, CUA, ERC, rcirc, Table, Image-Dired, SES, Ruler, Org,
 PGG, Flymake, Password, Printing, Reveal, wdired, t-mouse, longlines,
-savehist, Conf mode, Python mode, DNS mode, etc.
+savehist, Conf mode, DNS mode, etc.
 
 @cindex Multilingual Environment
 @item
