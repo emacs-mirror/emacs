@@ -6,7 +6,7 @@
 
 <head>
 
-<title>The design for the locus manager</title>
+<title>The MPS Locus Manager</title>
 
 </head>
 
@@ -26,7 +26,99 @@
 
 <hr />
 
+<h1>The MPS Locus Manager</h1>
+
 </div>
+
+<p>This document contains a <a href="#guide">guide</a> to the MPS locus manager, followed by the historical <a href="#initial-design">initial design</a>.  References, History, Copyright and License are <a href="#section-A">at the end</a>.</p>
+
+<hr />
+
+<h1> <a id="guide">Guide</a> </h1>
+
+<p> Readership: any MPS developer.  Not confidential. </p>
+
+
+<p>The MPS manages three main resources:</p>
+<ul>
+  <li>storage;</li>
+  <li>address-space;</li>
+  <li>time.</li>
+</ul>
+
+<h2> Management of arena address-space </h2>
+
+<p>The locus manager manages address-space at the arena level.</p>
+
+<p>[Tucker was right: <a href="http://info.ravenbrook.com/project/mps/mail/1998/11/02/14-25/0.txt">mail.ptw.1998-11-02.14-25</a>.  RHSK 2007-04-24].</p>
+
+<p>When a pool wants some address-space, it expresses some preferences to the locus manager.  The locus manager and the arena (working together) try to honour these preferences, and decide what address-space the pool gets.</p>
+
+<p>Preferences are expressed by the SegPref argument to SegAlloc().</p>
+
+<p>Note that, when they call SegAlloc(), pools are asking for address-space and writeable storage simultaneously, in a single call.  There is currently no way for pools to 'reserve' address space without requesting storage.</p>
+
+
+<h2> Why is it important to manage address-space? </h2>
+
+
+<h3> Trace differentiability </h3>
+
+<p>Carefully chosen addresses are used by reference tracing systems (ie. automatic pools), to:</p>
+<ul>
+  <li> categorise objects into clumps; </li>
+  <li> summarise and cheaply find references between clumps. </li>
+</ul>
+
+<p>Different clumps will become worth collecting at different times (the classic example, of course, is generations in a generational collector).  For these partial collections to be efficient, it must be cheap to keep these clumps differentiable, cheap to condemn (Whiten) a particular clump, and cheap to find a good conservative approximation to all inward references to a clump (both initially to constuct the Grey set, and to make scanning the Grey set efficient).</p>
+
+<p>This is what the MPS zone mechanism is all about.</p>
+
+<p>The locus manager manages the mapping from clumps to zones.</p>
+
+<p>To specify a clump, pools use the "SegPrefGen" tag to SegPrefExpress.  [The name is misleading: generations are only one sort of clump.  RHSK 2007-04-24]</p>
+
+
+<h3> Prevent address-space fragmentation (within arena) </h3>
+
+<p>Address-space is not infinite.</p>
+
+<p>In some use-cases, the MPS is required to remain efficient when using very nearly all available address-space and storage.  (For example, with the client-arena class, where the only address-space available is that of the storage available).</p>
+
+<p>Even with the VM arena class, typical storage sizes (in the year 2007) can make 32-bit address-space constrained: the problem may have Order(4GB) size, which leaves little 'spare' address-space.</p>
+
+<p>Address-space fragmentation incurs failure when there is no way to allocate a big block of address-space.  The big block may be requested via the MPS (by the client), or by something else in the same process, such as a 3rd-party graphics library, image library, etc.</p>
+
+<p>Address-space fragmentation incurs cost when:</p>
+<ul>
+  <li> desired large-block requests (such as for buffering) are denied, causing them to be re-requested as a smaller block, or as several smaller blocks; </li>
+  <li> possible operating-system costs in maintaining a fragmented mapping? </li>
+</ul>
+
+
+<h3> Prevent storage fragmentation (within tracts and segments) </h3>
+
+<p>Storage is not infinite: it is allocated in multiples of a fixed-size tract.  Small lonely objects, each retaining a whole tract, cause storage fragmentation. </p>
+
+<p>Non-moving pools manage this fragmentation with placement strategies that use:</p>
+<ul>
+  <li> co-located death (in space and time); </li>
+  <li> segment merging and splitting. </li>
+</ul>
+
+<p>These pool-level strategies always care about contiguity of object storage.  They also often care about on the <em>ordering</em> of addresses, because pool code uses an address-ordered search when choosing where to place a new object.  Both of these mean that the address matters.</p>
+
+<p>Pools can specify a preference for High and Low ends of address-space, which implies a search-order.  Pools could also specify clumping, using either SegPrefGen or SegPrefZoneSet.</p>
+
+
+<h2> Discovering the layout </h2>
+
+<p>The locus manager is not given advance notice of how much address-space will be required with what preferences.  Instead, the locus manager starts with an empty 'layout', and adapts it as more requests come in over time.  It is attempting to 'discover' a suitable layout by successive refinement.  This is ambitious.</p>
+
+
+<hr />
+
+<h1> <a id="initial-design">Initial Design</a> </h1>
 
 <pre>
                     THE DESIGN FOR THE LOCUS MANAGER
@@ -466,6 +558,7 @@ that PoolDestroy won't have to be used for that purpose.
 
 </pre>
 
+<hr />
 
 <h2><a id="section-A" name="section-A">A. References</a></h2>
 
@@ -496,13 +589,15 @@ that PoolDestroy won't have to be used for that purpose.
 <table>
 
 <tr valign="top">
-
   <td>2002-06-07</td>
-
   <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
-
   <td>Converted from MMInfo database design document.</td>
+</tr>
 
+<tr valign="top">
+  <td>2007-04-24</td>
+  <td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
+  <td>add Guide: Manage arena address-space, why, discover layout.</td>
 </tr>
 
 </table>
@@ -510,7 +605,7 @@ that PoolDestroy won't have to be used for that purpose.
 
 <h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
 
-<p> This document is copyright &copy; 1995-2002 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+<p> This document is copyright &copy; 1995-2002, 2007 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
 
 <p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
 
