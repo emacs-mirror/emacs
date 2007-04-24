@@ -2888,6 +2888,8 @@ font_at (c, pos, face, w, object)
   int dummy;
 
   f = XFRAME (w->frame);
+  if (! FRAME_WINDOW_P (f))
+    return Qnil;
   if (! face)
     {
       if (STRINGP (object))
