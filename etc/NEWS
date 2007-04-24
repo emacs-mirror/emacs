@@ -31,7 +31,11 @@ older packages.
 Some specific packages that are known to cause problems are:
 
 ** Semantic (used by CEDET, ECB, JDEE): upgrade to latest version.
+
 ** cua.el, cua-mode.el: remove old versions.
+
+** python-mode.el: Use python.el, available at
+   http://www.emacswiki.org/cgi-bin/wiki/PythonMode
 
 
 * Installation Changes in Emacs 22.1
