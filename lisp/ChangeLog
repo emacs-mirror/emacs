@@ -18,8 +18,8 @@
 2007-04-23  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* locate.el (locate-local-prompt): New var.
- 	(locate-prompt-for-command): Doc fix.
-  	(locate-prompt-for-search-string): New function.
+	(locate-prompt-for-command): Doc fix.
+	(locate-prompt-for-search-string): New function.
 	(locate): New optional arg.  Make locate-local-prompt
 	buffer-local.  Use locate-prompt-for-search-string.
 	(locate-with-filter): New optional arg.  Use
