@@ -1770,8 +1770,6 @@ recognized.
 
 ** GDB-Script-mode is used for files like .gdbinit.
 
-** The new python.el package is used to edit Python and Jython programs.
-
 ** The TCL package tcl-mode.el was replaced by tcl.el.
 This was actually done in Emacs-21.1, and was not documented.
 
