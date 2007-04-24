@@ -42,6 +42,11 @@ http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-04/msg00459.html
 ** rcyeske@gmail.com, April 22: Failure to build on OpenBSD macppc.
 OpenBSD compilation works on i386.
 
+** bojohan+news@dd.chalmers.se, April 23: delete-overlay causes recentering
+(This is now the same as the spurious scrolling bug.)
+
+** finish fixing locate.el
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
