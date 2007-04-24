@@ -683,8 +683,6 @@ character sets,
 characters on Latin-1 terminals by setting up appropriate display
 tables,
 @item
-@file{python.el}, a major mode for the Python programming language.
-@item
 @file{refill.el}, a mode for automatic paragraph refilling, akin to
 typical word processors,
 @item
