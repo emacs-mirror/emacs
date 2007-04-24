@@ -1418,6 +1418,9 @@ If these functions modify the buffer, they should bind
 @code{inhibit-modification-hooks} to @code{t} around doing so, to
 avoid confusing the internal mechanism that calls these hooks.
 
+Text properties also support the @code{modification-hooks} property,
+but the details are somewhat different (@pxref{Special Properties}).
+
 @item insert-in-front-hooks
 @kindex insert-in-front-hooks @r{(overlay property)}
 This property's value is a list of functions to be called before and
