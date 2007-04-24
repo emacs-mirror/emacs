@@ -1,4 +1,0 @@
-# Auto-generated lisp files, which ignore.
-precious ^([A-Z0-9].*|tsang-.*|quick-.*)\.el$
-
-# arch-tag: 3d0d3e6b-f7c3-4dce-9135-a72ba7fe095d

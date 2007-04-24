@@ -1,4 +1,0 @@
-# Auto-generated files, which ignore.
-precious ^(stamp-subdir|changed\..*|leim-list\.el)$
-
-# arch-tag: a4cda8ae-2a52-4d85-bd29-14e25c7ed2a2

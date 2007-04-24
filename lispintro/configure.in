@@ -1,9 +1,0 @@
-dnl autoconf input file for the emacs lisp intro
-
-AC_INIT(emacs-lisp-intro.texi)
-AM_INIT_AUTOMAKE(emacs-lisp-intro, 2.00)
-AC_OUTPUT(Makefile)
-
-m4_if(dnl	Do not change this comment
-   arch-tag: 8d676bd8-8677-4ae0-8aa0-99bfd595b373
-)dnl
