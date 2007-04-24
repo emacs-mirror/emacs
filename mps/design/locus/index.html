@@ -106,7 +106,9 @@
   <li> segment merging and splitting. </li>
 </ul>
 
-<p>These pool-level strategies always care about contiguity of object storage.  They also often care about on the <em>ordering</em> of addresses, because pool code uses an address-ordered search when choosing where to place a new object.  Both of these mean that the address matters.</p>
+<p>These pool-level strategies always care about contiguity of object storage.  They also often care about the <em>ordering</em> of addresses, because pool code uses an address-ordered search when choosing where to place a new object.  For these two reasons, the address chosen (by the locus manager and arena) for new tracts is important.</p>
+
+<p>Certain specialised pools, and/or some client programs that use them, have carefully tuned segment sizes, positioning, and search order.  Be careful: seemingly inconsequential changes can catastrophically break this tuning.</p>
 
 <p>Pools can specify a preference for High and Low ends of address-space, which implies a search-order.  Pools could also specify clumping, using either SegPrefGen or SegPrefZoneSet.</p>
 
