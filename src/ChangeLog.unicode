@@ -1,5 +1,8 @@
 2007-04-24  Kenichi Handa  <handa@m17n.org>
 
+	* font.c (font_at): If the window W is not on a window system,
+	return Qnil.
+
 	* coding.c (produce_chars): Don't call insert_from_gap if no
 	characters to produce.
 	(encode_coding): Likewise.
