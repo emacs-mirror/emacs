@@ -1,3 +1,12 @@
+2007-04-24  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* progmodes/idlw-shell.el (idlwave-shell-clear-all-bp): Don't
+	re-query for each cleared BP.
+	(idlwave-shell-clear-bp): Optionally skip BP query.
+	(idlwave-shell-update-bp-overlays): Use set-window-margins
+	instead of set-window-buffer, which incorrectly moves displayed
+	region.
+
 2007-04-23  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc.el (calc-bug-address): Update maintainer's address.
