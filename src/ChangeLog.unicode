@@ -1,3 +1,9 @@
+2007-04-24  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (produce_chars): Don't call insert_from_gap if no
+	characters to produce.
+	(encode_coding): Likewise.
+
 2007-04-17  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (free_realized_fontsets): Avoid unnecessary call of
