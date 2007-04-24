@@ -1,3 +1,7 @@
+2007-04-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/python.el: File removed due to unclear legal status.
+
 2007-04-24  J.D. Smith  <jdsmith@as.arizona.edu>
 
 	* progmodes/idlw-shell.el (idlwave-shell-clear-all-bp): Don't
