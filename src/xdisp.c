@@ -12777,8 +12777,7 @@ redisplay_window (window, just_this_one_p)
   int rc;
   int centering_position = -1;
   int last_line_misfit = 0;
-  int save_beg_unchanged = BEG_UNCHANGED;
-  int save_end_unchanged = END_UNCHANGED;
+  int save_beg_unchanged, save_end_unchanged;
 
   SET_TEXT_POS (lpoint, PT, PT_BYTE);
   opoint = lpoint;
@@ -12842,6 +12841,9 @@ redisplay_window (window, just_this_one_p)
      variables.  */
   set_buffer_internal_1 (XBUFFER (w->buffer));
   SET_TEXT_POS (opoint, PT, PT_BYTE);
+
+  save_beg_unchanged = BEG_UNCHANGED;
+  save_end_unchanged = END_UNCHANGED;
 
   current_matrix_up_to_date_p
     = (!NILP (w->window_end_valid)
