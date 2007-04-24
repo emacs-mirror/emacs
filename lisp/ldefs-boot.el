@@ -1129,8 +1129,8 @@ Returns list of symbols and documentation found.
 
 ;;;***
 
-;;;### (autoloads (archive-mode) "arc-mode" "arc-mode.el" (17956
-;;;;;;  9517))
+;;;### (autoloads (archive-mode) "arc-mode" "arc-mode.el" (17960
+;;;;;;  49045))
 ;;; Generated autoloads from arc-mode.el
 
 (autoload (quote archive-mode) "arc-mode" "\
@@ -1795,7 +1795,7 @@ non-interactive use see also `benchmark-run' and
 ;;;***
 
 ;;;### (autoloads (bibtex-mode) "bibtex" "textmodes/bibtex.el" (17956
-;;;;;;  9518))
+;;;;;;  21270))
 ;;; Generated autoloads from textmodes/bibtex.el
 
 (autoload (quote bibtex-mode) "bibtex" "\
@@ -2582,8 +2582,8 @@ name of buffer configuration.
 ;;;***
 
 ;;;### (autoloads (insert-text-button make-text-button insert-button
-;;;;;;  make-button define-button-type) "button" "button.el" (17935
-;;;;;;  59428))
+;;;;;;  make-button define-button-type) "button" "button.el" (17964
+;;;;;;  48350))
 ;;; Generated autoloads from button.el
 
 (defvar button-map (let ((map (make-sparse-keymap))) (define-key map "" (quote push-button)) (define-key map [mouse-2] (quote push-button)) map) "\
@@ -2777,7 +2777,7 @@ and corresponding effects.
 
 ;;;***
 
-;;;### (autoloads nil "cal-dst" "calendar/cal-dst.el" (17916 10823))
+;;;### (autoloads nil "cal-dst" "calendar/cal-dst.el" (17956 13479))
 ;;; Generated autoloads from calendar/cal-dst.el
 
 (put (quote calendar-daylight-savings-starts) (quote risky-local-variable) t)
@@ -2787,7 +2787,7 @@ and corresponding effects.
 ;;;***
 
 ;;;### (autoloads (list-yahrzeit-dates) "cal-hebrew" "calendar/cal-hebrew.el"
-;;;;;;  (17842 53792))
+;;;;;;  (17956 13479))
 ;;; Generated autoloads from calendar/cal-hebrew.el
 
 (autoload (quote list-yahrzeit-dates) "cal-hebrew" "\
@@ -2802,7 +2802,7 @@ from the cursor position.
 ;;;### (autoloads (defmath calc-embedded-activate calc-embedded calc-grab-rectangle
 ;;;;;;  calc-grab-region full-calc-keypad calc-keypad calc-eval quick-calc
 ;;;;;;  full-calc calc calc-dispatch calc-settings-file) "calc" "calc/calc.el"
-;;;;;;  (17955 4296))
+;;;;;;  (17965 11665))
 ;;; Generated autoloads from calc/calc.el
 
 (defvar calc-settings-file (convert-standard-filename "~/.calc.el") "\
@@ -2909,7 +2909,7 @@ See the documentation for `calculator-mode' for more information.
 ;;;;;;  mark-holidays-in-calendar view-calendar-holidays-initially
 ;;;;;;  calendar-remove-frame-by-deleting mark-diary-entries-in-calendar
 ;;;;;;  view-diary-entries-initially calendar-offset) "calendar"
-;;;;;;  "calendar/calendar.el" (17944 20140))
+;;;;;;  "calendar/calendar.el" (17956 13479))
 ;;; Generated autoloads from calendar/calendar.el
 
 (defvar calendar-offset 0 "\
@@ -3519,7 +3519,7 @@ Return the syntactic context of the current line.
 
 ;;;### (autoloads (pike-mode idl-mode java-mode objc-mode c++-mode
 ;;;;;;  c-mode c-initialize-cc-mode) "cc-mode" "progmodes/cc-mode.el"
-;;;;;;  (17926 45410))
+;;;;;;  (17962 52849))
 ;;; Generated autoloads from progmodes/cc-mode.el
 
 (autoload (quote c-initialize-cc-mode) "cc-mode" "\
@@ -6020,10 +6020,10 @@ or call the function `global-cwarn-mode'.")
 (custom-autoload (quote global-cwarn-mode) "cwarn" nil)
 
 (autoload (quote global-cwarn-mode) "cwarn" "\
-Toggle Cwarn mode in every buffer.
+Toggle Cwarn mode in every possible buffer.
 With prefix ARG, turn Global-Cwarn mode on if and only if ARG is positive.
-Cwarn mode is actually not turned on in every buffer but only in those
-in which `turn-on-cwarn-mode-if-enabled' turns it on.
+Cwarn mode is enabled in all buffers where `turn-on-cwarn-mode-if-enabled' would do it.
+See `cwarn-mode' for more information on Cwarn mode.
 
 \(fn &optional ARG)" t nil)
 
@@ -6736,7 +6736,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (diary-mode diary-mail-entries diary) "diary-lib"
-;;;;;;  "calendar/diary-lib.el" (17944 20140))
+;;;;;;  "calendar/diary-lib.el" (17958 11887))
 ;;; Generated autoloads from calendar/diary-lib.el
 
 (autoload (quote diary) "diary-lib" "\
@@ -6848,7 +6848,7 @@ Minor mode for viewing/editing context diffs.
 ;;;;;;  dired dired-copy-preserve-time dired-dwim-target dired-keep-marker-symlink
 ;;;;;;  dired-keep-marker-hardlink dired-keep-marker-copy dired-keep-marker-rename
 ;;;;;;  dired-trivial-filenames dired-ls-F-marks-symlinks dired-listing-switches)
-;;;;;;  "dired" "dired.el" (17851 56703))
+;;;;;;  "dired" "dired.el" (17963 25980))
 ;;; Generated autoloads from dired.el
 
 (defvar dired-listing-switches "-al" "\
@@ -7468,7 +7468,7 @@ true then the type of the file linked to by FILE is printed instead.
 ;;;***
 
 ;;;### (autoloads (dired-do-relsymlink dired-jump) "dired-x" "dired-x.el"
-;;;;;;  (17942 63381))
+;;;;;;  (17962 27565))
 ;;; Generated autoloads from dired-x.el
 
 (autoload (quote dired-jump) "dired-x" "\
@@ -7768,7 +7768,7 @@ Play sounds in message buffers.
 
 ;;;### (autoloads (easy-mmode-defsyntax easy-mmode-defmap easy-mmode-define-keymap
 ;;;;;;  define-globalized-minor-mode define-minor-mode) "easy-mmode"
-;;;;;;  "emacs-lisp/easy-mmode.el" (17860 50628))
+;;;;;;  "emacs-lisp/easy-mmode.el" (17964 48351))
 ;;; Generated autoloads from emacs-lisp/easy-mmode.el
 
 (defalias (quote easy-mmode-define-minor-mode) (quote define-minor-mode))
@@ -10905,7 +10905,7 @@ Set up hooks, load the cache file -- if existing -- and build the menu.
 
 ;;;***
 
-;;;### (autoloads nil "fill" "textmodes/fill.el" (17852 19718))
+;;;### (autoloads nil "fill" "textmodes/fill.el" (17961 33560))
 ;;; Generated autoloads from textmodes/fill.el
 (put 'colon-double-space 'safe-local-variable 'booleanp)
 
@@ -11327,7 +11327,7 @@ Turn flymake mode off.
 
 ;;;### (autoloads (flyspell-buffer flyspell-region flyspell-mode-off
 ;;;;;;  turn-off-flyspell turn-on-flyspell flyspell-mode flyspell-prog-mode)
-;;;;;;  "flyspell" "textmodes/flyspell.el" (17942 63381))
+;;;;;;  "flyspell" "textmodes/flyspell.el" (17962 52849))
 ;;; Generated autoloads from textmodes/flyspell.el
 
 (autoload (quote flyspell-prog-mode) "flyspell" "\
@@ -12008,7 +12008,7 @@ If CLEAN, obsolete (ignore).
 ;;;***
 
 ;;;### (autoloads (gnus-article-prepare-display) "gnus-art" "gnus/gnus-art.el"
-;;;;;;  (17938 29201))
+;;;;;;  (17960 49045))
 ;;; Generated autoloads from gnus/gnus-art.el
 
 (autoload (quote gnus-article-prepare-display) "gnus-art" "\
@@ -13341,7 +13341,7 @@ This discards the buffer's undo information.
 ;;;### (autoloads (hi-lock-write-interactive-patterns hi-lock-unface-buffer
 ;;;;;;  hi-lock-face-phrase-buffer hi-lock-face-buffer hi-lock-line-face-buffer
 ;;;;;;  global-hi-lock-mode hi-lock-mode) "hi-lock" "hi-lock.el"
-;;;;;;  (17860 50601))
+;;;;;;  (17964 48351))
 ;;; Generated autoloads from hi-lock.el
 
 (autoload (quote hi-lock-mode) "hi-lock" "\
@@ -13369,17 +13369,22 @@ called interactively, are:
   Remove highlighting on matches of REGEXP in current buffer.
 
 \\[hi-lock-write-interactive-patterns]
-  Write active REGEXPs into buffer as comments (if possible).  They will
+  Write active REGEXPs into buffer as comments (if possible).  They may
   be read the next time file is loaded or when the \\[hi-lock-find-patterns] command
   is issued.  The inserted regexps are in the form of font lock keywords.
-  (See `font-lock-keywords'.)  They may be edited and re-loaded with \\[hi-lock-find-patterns],
-  any valid `font-lock-keywords' form is acceptable.
+  (See `font-lock-keywords'.)  They may be edited and re-loaded with \\[hi-lock-find-patterns], 
+  any valid `font-lock-keywords' form is acceptable. When a file is
+  loaded the patterns are read if `hi-lock-file-patterns-policy is
+  'ask and the user responds y to the prompt, or if
+  `hi-lock-file-patterns-policy' is bound to a function and that
+  function returns t.
 
 \\[hi-lock-find-patterns]
   Re-read patterns stored in buffer (in the format produced by \\[hi-lock-write-interactive-patterns]).
 
-When hi-lock is started and if the mode is not excluded, the
-beginning of the buffer is searched for lines of the form:
+When hi-lock is started and if the mode is not excluded or patterns
+rejected, the beginning of the buffer is searched for lines of the
+form:
   Hi-lock: FOO
 where FOO is a list of patterns.  These are added to the font lock
 keywords already present.  The patterns must start before position
@@ -13400,10 +13405,10 @@ or call the function `global-hi-lock-mode'.")
 (custom-autoload (quote global-hi-lock-mode) "hi-lock" nil)
 
 (autoload (quote global-hi-lock-mode) "hi-lock" "\
-Toggle Hi-Lock mode in every buffer.
+Toggle Hi-Lock mode in every possible buffer.
 With prefix ARG, turn Global-Hi-Lock mode on if and only if ARG is positive.
-Hi-Lock mode is actually not turned on in every buffer but only in those
-in which `turn-on-hi-lock-if-enabled' turns it on.
+Hi-Lock mode is enabled in all buffers where `turn-on-hi-lock-if-enabled' would do it.
+See `hi-lock-mode' for more information on Hi-Lock mode.
 
 \(fn &optional ARG)" t nil)
 
@@ -13828,7 +13833,7 @@ Global-Hl-Line mode uses the functions `global-hl-line-unhighlight' and
 ;;;***
 
 ;;;### (autoloads (list-holidays holidays) "holidays" "calendar/holidays.el"
-;;;;;;  (17842 53792))
+;;;;;;  (17956 13479))
 ;;; Generated autoloads from calendar/holidays.el
 
 (autoload (quote holidays) "holidays" "\
@@ -14508,7 +14513,7 @@ with no args, if that value is non-nil.
 ;;;***
 
 ;;;### (autoloads (idlwave-shell) "idlw-shell" "progmodes/idlw-shell.el"
-;;;;;;  (17935 59227))
+;;;;;;  (17965 23638))
 ;;; Generated autoloads from progmodes/idlw-shell.el
 
 (autoload (quote idlwave-shell) "idlw-shell" "\
@@ -14669,8 +14674,8 @@ The main features of this mode are
 ;;;;;;  ido-find-alternate-file ido-find-file-other-window ido-find-file
 ;;;;;;  ido-find-file-in-dir ido-switch-buffer-other-frame ido-insert-buffer
 ;;;;;;  ido-kill-buffer ido-display-buffer ido-switch-buffer-other-window
-;;;;;;  ido-switch-buffer ido-mode ido-mode) "ido" "ido.el" (17932
-;;;;;;  16456))
+;;;;;;  ido-switch-buffer ido-mode ido-mode) "ido" "ido.el" (17963
+;;;;;;  25911))
 ;;; Generated autoloads from ido.el
 
 (defvar ido-mode nil "\
@@ -15137,6 +15142,145 @@ Example:
 
 ;;;***
 
+;;;### (autoloads (image-dired-dired-edit-comment-and-tags image-dired-mark-tagged-files
+;;;;;;  image-dired-dired-comment-files image-dired-dired-display-image
+;;;;;;  image-dired-dired-display-external image-dired-display-thumb
+;;;;;;  image-dired-display-thumbs-append image-dired-setup-dired-keybindings
+;;;;;;  image-dired-jump-thumbnail-buffer image-dired-delete-tag
+;;;;;;  image-dired-tag-files image-dired-show-all-from-dir image-dired-display-thumbs
+;;;;;;  image-dired-dired-with-window-configuration image-dired-dired-insert-marked-thumbs)
+;;;;;;  "image-dired" "image-dired.el" (17963 26200))
+;;; Generated autoloads from image-dired.el
+
+(autoload (quote image-dired-dired-insert-marked-thumbs) "image-dired" "\
+Insert thumbnails before file names of marked files in the dired buffer.
+
+\(fn)" t nil)
+
+(autoload (quote image-dired-dired-with-window-configuration) "image-dired" "\
+Open directory DIR and create a default window configuration.
+
+Convenience command that:
+
+ - Opens dired in folder DIR
+ - Splits windows in most useful (?) way
+ - Set `truncate-lines' to t
+
+After the command has finished, you would typically mark some
+image files in dired and type
+\\[image-dired-display-thumbs] (`image-dired-display-thumbs').
+
+If called with prefix argument ARG, skip splitting of windows.
+
+The current window configuration is saved and can be restored by
+calling `image-dired-restore-window-configuration'.
+
+\(fn DIR &optional ARG)" t nil)
+
+(autoload (quote image-dired-display-thumbs) "image-dired" "\
+Display thumbnails of all marked files, in `image-dired-thumbnail-buffer'.
+If a thumbnail image does not exist for a file, it is created on the
+fly.  With prefix argument ARG, display only thumbnail for file at
+point (this is useful if you have marked some files but want to show
+another one).
+
+Recommended usage is to split the current frame horizontally so that
+you have the dired buffer in the left window and the
+`image-dired-thumbnail-buffer' buffer in the right window.
+
+With optional argument APPEND, append thumbnail to thumbnail buffer
+instead of erasing it first.
+
+Option argument DO-NOT-POP controls if `pop-to-buffer' should be
+used or not.  If non-nil, use `display-buffer' instead of
+`pop-to-buffer'.  This is used from functions like
+`image-dired-next-line-and-display' and
+`image-dired-previous-line-and-display' where we do not want the
+thumbnail buffer to be selected.
+
+\(fn &optional ARG APPEND DO-NOT-POP)" t nil)
+
+(autoload (quote image-dired-show-all-from-dir) "image-dired" "\
+Make a preview buffer for all images in DIR and display it.
+If the number of files in DIR matching `image-file-name-regexp'
+exceeds `image-dired-show-all-from-dir-max-files', a warning will be
+displayed.
+
+\(fn DIR)" t nil)
+
+(defalias (quote image-dired) (quote image-dired-show-all-from-dir))
+
+(defalias (quote tumme) (quote image-dired-show-all-from-dir))
+
+(autoload (quote image-dired-tag-files) "image-dired" "\
+Tag marked file(s) in dired.  With prefix ARG, tag file at point.
+
+\(fn ARG)" t nil)
+
+(autoload (quote image-dired-delete-tag) "image-dired" "\
+Remove tag for selected file(s).
+With prefix argument ARG, remove tag from file at point.
+
+\(fn ARG)" t nil)
+
+(autoload (quote image-dired-jump-thumbnail-buffer) "image-dired" "\
+Jump to thumbnail buffer.
+
+\(fn)" t nil)
+
+(autoload (quote image-dired-setup-dired-keybindings) "image-dired" "\
+Setup easy-to-use keybindings for the commands to be used in dired mode.
+Note that n, p and <down> and <up> will be hijacked and bound to
+`image-dired-dired-x-line'.
+
+\(fn)" t nil)
+
+(autoload (quote image-dired-display-thumbs-append) "image-dired" "\
+Append thumbnails to `image-dired-thumbnail-buffer'.
+
+\(fn)" t nil)
+
+(autoload (quote image-dired-display-thumb) "image-dired" "\
+Shorthand for `image-dired-display-thumbs' with prefix argument.
+
+\(fn)" t nil)
+
+(autoload (quote image-dired-dired-display-external) "image-dired" "\
+Display file at point using an external viewer.
+
+\(fn)" t nil)
+
+(autoload (quote image-dired-dired-display-image) "image-dired" "\
+Display current image file.
+See documentation for `image-dired-display-image' for more information.
+With prefix argument ARG, display image in its original size.
+
+\(fn &optional ARG)" t nil)
+
+(autoload (quote image-dired-dired-comment-files) "image-dired" "\
+Add comment to current or marked files in dired.
+
+\(fn)" t nil)
+
+(autoload (quote image-dired-mark-tagged-files) "image-dired" "\
+Use regexp to mark files with matching tag.
+A `tag' is a keyword, a piece of meta data, associated with an
+image file and stored in image-dired's database file.  This command
+lets you input a regexp and this will be matched against all tags
+on all image files in the database file.  The files that have a
+matching tags will be marked in the dired buffer.
+
+\(fn)" t nil)
+
+(autoload (quote image-dired-dired-edit-comment-and-tags) "image-dired" "\
+Edit comment and tags of current or marked image files.
+Edit comment and tags for all marked image files in an
+easy-to-use form.
+
+\(fn)" t nil)
+
+;;;***
+
 ;;;### (autoloads (auto-image-file-mode insert-image-file image-file-name-regexp
 ;;;;;;  image-file-name-regexps image-file-name-extensions) "image-file"
 ;;;;;;  "image-file.el" (17842 58279))
@@ -15464,7 +15608,7 @@ of `inferior-lisp-program').  Runs the hooks from
 ;;;### (autoloads (Info-speedbar-browser Info-goto-emacs-key-command-node
 ;;;;;;  Info-goto-emacs-command-node Info-mode info-apropos Info-index
 ;;;;;;  Info-directory Info-on-current-buffer info-standalone info-emacs-manual
-;;;;;;  info info-other-window) "info" "info.el" (17936 34375))
+;;;;;;  info info-other-window) "info" "info.el" (17964 52883))
 ;;; Generated autoloads from info.el
 
 (autoload (quote info-other-window) "info" "\
@@ -16791,7 +16935,7 @@ such as redefining an Emacs function.
 ;;;***
 
 ;;;### (autoloads (locate-with-filter locate locate-ls-subdir-switches)
-;;;;;;  "locate" "locate.el" (17842 58279))
+;;;;;;  "locate" "locate.el" (17965 12050))
 ;;; Generated autoloads from locate.el
 
 (defvar locate-ls-subdir-switches "-al" "\
@@ -16819,7 +16963,9 @@ the variables `locate-command' or `locate-make-command-line'.
 The main use of FILTER is to implement `locate-with-filter'.  See
 the docstring of that function for its meaning.
 
-\(fn SEARCH-STRING &optional FILTER)" t nil)
+ARG is the interactive prefix arg.
+
+\(fn SEARCH-STRING &optional FILTER ARG)" t nil)
 
 (autoload (quote locate-with-filter) "locate" "\
 Run the executable program `locate' with a filter.
@@ -16831,10 +16977,12 @@ that lists only those lines in the output of the locate program that
 contain a match for the regular expression FILTER; this is often useful
 to constrain a big search.
 
+ARG is the interactive prefix arg, which has the same effect as in `locate'.
+
 When called from Lisp, this function is identical with `locate',
 except that FILTER is not optional.
 
-\(fn SEARCH-STRING FILTER)" t nil)
+\(fn SEARCH-STRING FILTER &optional ARG)" t nil)
 
 ;;;***
 
@@ -16998,8 +17146,8 @@ Otherwise they are treated as Emacs regexps (for backward compatibility).")
 
 ;;;***
 
-;;;### (autoloads (phases-of-moon) "lunar" "calendar/lunar.el" (17916
-;;;;;;  10998))
+;;;### (autoloads (phases-of-moon) "lunar" "calendar/lunar.el" (17956
+;;;;;;  13479))
 ;;; Generated autoloads from calendar/lunar.el
 
 (autoload (quote phases-of-moon) "lunar" "\
@@ -19697,7 +19845,7 @@ See the command `outline-mode' for more information on this mode.
 
 ;;;***
 
-;;;### (autoloads (show-paren-mode) "paren" "paren.el" (17842 58279))
+;;;### (autoloads (show-paren-mode) "paren" "paren.el" (17960 50513))
 ;;; Generated autoloads from paren.el
 
 (defvar show-paren-mode nil "\
@@ -19722,7 +19870,7 @@ in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time.
 ;;;***
 
 ;;;### (autoloads (parse-time-string) "parse-time" "calendar/parse-time.el"
-;;;;;;  (17842 53792))
+;;;;;;  (17957 43164))
 ;;; Generated autoloads from calendar/parse-time.el
 
 (autoload (quote parse-time-string) "parse-time" "\
@@ -20150,7 +20298,7 @@ The exact behavior is determined also by `cvs-dired-use-hook'." (when (stringp d
 ;;;***
 
 ;;;### (autoloads (perl-mode) "perl-mode" "progmodes/perl-mode.el"
-;;;;;;  (17955 36604))
+;;;;;;  (17962 28280))
 ;;; Generated autoloads from progmodes/perl-mode.el
 
 (autoload (quote perl-mode) "perl-mode" "\
@@ -21503,81 +21651,6 @@ EXTENSION is one of the following symbols:
 If EXTENSION is any other symbol, it is ignored.
 
 \(fn FACE-EXTENSION &optional MERGE-P ALIST-SYM)" nil nil)
-
-;;;***
-
-;;;### (autoloads (jython-mode python-mode run-python) "python" "progmodes/python.el"
-;;;;;;  (17956 9518))
-;;; Generated autoloads from progmodes/python.el
-
-(add-to-list (quote interpreter-mode-alist) (quote ("jython" . jython-mode)))
-
-(add-to-list (quote interpreter-mode-alist) (quote ("python" . python-mode)))
-
-(add-to-list (quote auto-mode-alist) (quote ("\\.py\\'" . python-mode)))
-
-(autoload (quote run-python) "python" "\
-Run an inferior Python process, input and output via buffer *Python*.
-CMD is the Python command to run.  NOSHOW non-nil means don't show the
-buffer automatically.
-
-Normally, if there is a process already running in `python-buffer',
-switch to that buffer.  Interactively, a prefix arg allows you to edit
-the initial command line (default is `python-command'); `-i' etc. args
-will be added to this as appropriate.  A new process is started if:
-one isn't running attached to `python-buffer', or interactively the
-default `python-command', or argument NEW is non-nil.  See also the
-documentation for `python-buffer'.
-
-Runs the hook `inferior-python-mode-hook' (after the
-`comint-mode-hook' is run).  (Type \\[describe-mode] in the process
-buffer for a list of commands.)
-
-\(fn &optional CMD NOSHOW NEW)" t nil)
-
-(autoload (quote python-mode) "python" "\
-Major mode for editing Python files.
-Font Lock mode is currently required for correct parsing of the source.
-See also `jython-mode', which is actually invoked if the buffer appears to
-contain Jython code.  See also `run-python' and associated Python mode
-commands for running Python under Emacs.
-
-The Emacs commands which work with `defun's, e.g. \\[beginning-of-defun], deal
-with nested `def' and `class' blocks.  They take the innermost one as
-current without distinguishing method and class definitions.  Used multiple
-times, they move over others at the same indentation level until they reach
-the end of definitions at that level, when they move up a level.
-\\<python-mode-map>
-Colon is electric: it outdents the line if appropriate, e.g. for
-an else statement.  \\[python-backspace] at the beginning of an indented statement
-deletes a level of indentation to close the current block; otherwise it
-deletes a character backward.  TAB indents the current line relative to
-the preceding code.  Successive TABs, with no intervening command, cycle
-through the possibilities for indentation on the basis of enclosing blocks.
-
-\\[fill-paragraph] fills comments and multi-line strings appropriately, but has no
-effect outside them.
-
-Supports Eldoc mode (only for functions, using a Python process),
-Info-Look and Imenu.  In Outline minor mode, `class' and `def'
-lines count as headers.  Symbol completion is available in the
-same way as in the Python shell using the `rlcompleter' module
-and this is added to the Hippie Expand functions locally if
-Hippie Expand mode is turned on.  Completion of symbols of the
-form x.y only works if the components are literal
-module/attribute names, not variables.  An abbrev table is set up
-with skeleton expansions for compound statement templates.
-
-\\{python-mode-map}
-
-\(fn)" t nil)
-
-(autoload (quote jython-mode) "python" "\
-Major mode for editing Jython files.
-Like `python-mode', but sets up parameters for Jython subprocesses.
-Runs `jython-mode-hook' after `python-mode-hook'.
-
-\(fn)" t nil)
 
 ;;;***
 
@@ -24197,7 +24270,7 @@ Turning on Sieve mode runs `sieve-mode-hook'.
 
 ;;;***
 
-;;;### (autoloads nil "simple" "simple.el" (17949 41467))
+;;;### (autoloads nil "simple" "simple.el" (17965 11665))
 ;;; Generated autoloads from simple.el
 (put 'fill-prefix 'safe-local-variable 'string-or-null-p)
 
@@ -24470,7 +24543,7 @@ then `snmpv2-mode-hook'.
 
 ;;;### (autoloads (solar-equinoxes-solstices sunrise-sunset calendar-location-name
 ;;;;;;  calendar-longitude calendar-latitude calendar-time-display-form)
-;;;;;;  "solar" "calendar/solar.el" (17916 11038))
+;;;;;;  "solar" "calendar/solar.el" (17956 13479))
 ;;; Generated autoloads from calendar/solar.el
 
 (defvar calendar-time-display-form (quote (12-hours ":" minutes am-pm (if time-zone " (") time-zone (if time-zone ")"))) "\
@@ -25460,7 +25533,7 @@ Studlify-case the current buffer.
 
 ;;;***
 
-;;;### (autoloads (locate-library) "subr" "subr.el" (17949 41467))
+;;;### (autoloads (locate-library) "subr" "subr.el" (17964 48351))
 ;;; Generated autoloads from subr.el
 
 (autoload (quote locate-library) "subr" "\
@@ -25514,7 +25587,7 @@ before, and `sc-post-hook' is run after the guts of this function.
 
 ;;;***
 
-;;;### (autoloads (t-mouse-mode) "t-mouse" "t-mouse.el" (17938 61442))
+;;;### (autoloads (t-mouse-mode) "t-mouse" "t-mouse.el" (17963 25911))
 ;;; Generated autoloads from t-mouse.el
 
 (defvar t-mouse-mode nil "\
@@ -26909,7 +26982,7 @@ Not documented
 
 ;;;### (autoloads (thumbs-dired-setroot thumbs-dired-show thumbs-dired-show-marked
 ;;;;;;  thumbs-show-from-dir thumbs-find-thumb) "thumbs" "thumbs.el"
-;;;;;;  (17842 58278))
+;;;;;;  (17963 26308))
 ;;; Generated autoloads from thumbs.el
 
 (autoload (quote thumbs-find-thumb) "thumbs" "\
@@ -27493,7 +27566,7 @@ Its value should be an event that has a binding in MENU.
 
 ;;;### (autoloads (todo-show todo-cp todo-mode todo-print todo-top-priorities
 ;;;;;;  todo-insert-item todo-add-item-non-interactively todo-add-category)
-;;;;;;  "todo-mode" "calendar/todo-mode.el" (17842 53792))
+;;;;;;  "todo-mode" "calendar/todo-mode.el" (17962 52848))
 ;;; Generated autoloads from calendar/todo-mode.el
 
 (autoload (quote todo-add-category) "todo-mode" "\
@@ -27843,142 +27916,6 @@ Discard Tramp from loading remote files.
 Not documented
 
 \(fn)" nil nil)
-
-;;;***
-
-;;;### (autoloads (tumme-dired-edit-comment-and-tags tumme-mark-tagged-files
-;;;;;;  tumme-dired-comment-files tumme-dired-display-image tumme-dired-display-external
-;;;;;;  tumme-display-thumb tumme-display-thumbs-append tumme-setup-dired-keybindings
-;;;;;;  tumme-jump-thumbnail-buffer tumme-delete-tag tumme-tag-files
-;;;;;;  tumme-show-all-from-dir tumme-display-thumbs tumme-dired-with-window-configuration
-;;;;;;  tumme-dired-insert-marked-thumbs) "tumme" "tumme.el" (17842
-;;;;;;  58278))
-;;; Generated autoloads from tumme.el
-
-(autoload (quote tumme-dired-insert-marked-thumbs) "tumme" "\
-Insert thumbnails before file names of marked files in the dired buffer.
-
-\(fn)" t nil)
-
-(autoload (quote tumme-dired-with-window-configuration) "tumme" "\
-Open directory DIR and create a default window configuration.
-
-Convenience command that:
-
- - Opens dired in folder DIR
- - Splits windows in most useful (?) way
- - Set `truncate-lines' to t
-
-After the command has finished, you would typically mark some
-image files in dired and type
-\\[tumme-display-thumbs] (`tumme-display-thumbs').
-
-If called with prefix argument ARG, skip splitting of windows.
-
-The current window configuration is saved and can be restored by
-calling `tumme-restore-window-configuration'.
-
-\(fn DIR &optional ARG)" t nil)
-
-(autoload (quote tumme-display-thumbs) "tumme" "\
-Display thumbnails of all marked files, in `tumme-thumbnail-buffer'.
-If a thumbnail image does not exist for a file, it is created on the
-fly.  With prefix argument ARG, display only thumbnail for file at
-point (this is useful if you have marked some files but want to show
-another one).
-
-Recommended usage is to split the current frame horizontally so that
-you have the dired buffer in the left window and the
-`tumme-thumbnail-buffer' buffer in the right window.
-
-With optional argument APPEND, append thumbnail to thumbnail buffer
-instead of erasing it first.
-
-Option argument DO-NOT-POP controls if `pop-to-buffer' should be
-used or not.  If non-nil, use `display-buffer' instead of
-`pop-to-buffer'.  This is used from functions like
-`tumme-next-line-and-display' and
-`tumme-previous-line-and-display' where we do not want the
-thumbnail buffer to be selected.
-
-\(fn &optional ARG APPEND DO-NOT-POP)" t nil)
-
-(autoload (quote tumme-show-all-from-dir) "tumme" "\
-Make a preview buffer for all images in DIR and display it.
-If the number of files in DIR matching `image-file-name-regexp'
-exceeds `tumme-show-all-from-dir-max-files', a warning will be
-displayed.
-
-\(fn DIR)" t nil)
-
-(defalias (quote tumme) (quote tumme-show-all-from-dir))
-
-(autoload (quote tumme-tag-files) "tumme" "\
-Tag marked file(s) in dired.  With prefix ARG, tag file at point.
-
-\(fn ARG)" t nil)
-
-(autoload (quote tumme-delete-tag) "tumme" "\
-Remove tag for selected file(s).
-With prefix argument ARG, remove tag from file at point.
-
-\(fn ARG)" t nil)
-
-(autoload (quote tumme-jump-thumbnail-buffer) "tumme" "\
-Jump to thumbnail buffer.
-
-\(fn)" t nil)
-
-(autoload (quote tumme-setup-dired-keybindings) "tumme" "\
-Setup easy-to-use keybindings for the commands to be used in dired mode.
-Note that n, p and <down> and <up> will be hijacked and bound to
-`tumme-dired-x-line'.
-
-\(fn)" t nil)
-
-(autoload (quote tumme-display-thumbs-append) "tumme" "\
-Append thumbnails to `tumme-thumbnail-buffer'.
-
-\(fn)" t nil)
-
-(autoload (quote tumme-display-thumb) "tumme" "\
-Shorthand for `tumme-display-thumbs' with prefix argument.
-
-\(fn)" t nil)
-
-(autoload (quote tumme-dired-display-external) "tumme" "\
-Display file at point using an external viewer.
-
-\(fn)" t nil)
-
-(autoload (quote tumme-dired-display-image) "tumme" "\
-Display current image file.
-See documentation for `tumme-display-image' for more information.
-With prefix argument ARG, display image in its original size.
-
-\(fn &optional ARG)" t nil)
-
-(autoload (quote tumme-dired-comment-files) "tumme" "\
-Add comment to current or marked files in dired.
-
-\(fn)" t nil)
-
-(autoload (quote tumme-mark-tagged-files) "tumme" "\
-Use regexp to mark files with matching tag.
-A `tag' is a keyword, a piece of meta data, associated with an
-image file and stored in tumme's database file.  This command
-lets you input a regexp and this will be matched against all tags
-on all image files in the database file.  The files that have a
-matching tags will be marked in the dired buffer.
-
-\(fn)" t nil)
-
-(autoload (quote tumme-dired-edit-comment-and-tags) "tumme" "\
-Edit comment and tags of current or marked image files.
-Edit comment and tags for all marked image files in an
-easy-to-use form.
-
-\(fn)" t nil)
 
 ;;;***
 
@@ -29317,7 +29254,7 @@ find any project directory." (let ((project-dir (getenv "PROJECTDIR")) dirs dir)
 ;;;***
 
 ;;;### (autoloads (vhdl-mode) "vhdl-mode" "progmodes/vhdl-mode.el"
-;;;;;;  (17854 10062))
+;;;;;;  (17962 27361))
 ;;; Generated autoloads from progmodes/vhdl-mode.el
 
 (autoload (quote vhdl-mode) "vhdl-mode" "\
@@ -30980,7 +30917,7 @@ Zone out, completely.
 ;;;;;;  "url/url-vars.el" "url/vc-dav.el" "vc-hooks.el" "vcursor.el"
 ;;;;;;  "version.el" "vms-patch.el" "vmsproc.el" "vt-control.el"
 ;;;;;;  "vt100-led.el" "w32-fns.el" "w32-vars.el" "widget.el" "window.el"
-;;;;;;  "x-dnd.el") (17956 9728 35408))
+;;;;;;  "x-dnd.el") (17965 26976 559735))
 
 ;;;***
 
