@@ -47,6 +47,9 @@ OpenBSD compilation works on i386.
 
 ** finish fixing locate.el
 
+** angeli@caeruleus.net, April 23: Excessive refontification when setting
+	jit-lock-context-unfontify-pos
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
