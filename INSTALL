@@ -364,8 +364,8 @@ Some tests might fail because the compiler should look in special
 directories for some header files, or link against optional
 libraries, or use special compilation options.  You can force
 `configure' and the build process which follows it to do that by
-setting the variables CPPFLGS, CFLAGS, LDFLAGS, LIBS, CPP and CC before
-running `configure'.  CPP is the command which invokes the
+setting the variables CPPFLAGS, CFLAGS, LDFLAGS, LIBS, CPP and CC
+before running `configure'.  CPP is the command which invokes the
 preprocessor, CPPFLAGS lists the options passed to it, CFLAGS are
 compilation options, LDFLAGS are options used when linking, LIBS are
 libraries to link against, and CC is the command which invokes the
