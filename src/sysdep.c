@@ -2433,7 +2433,9 @@ init_system_name ()
 		/* We still don't have a fully qualified domain name.
 		   Try to find one in the list of alternate names */
 		char **alias = hp->h_aliases;
-		while (*alias && !index (*alias, '.'))
+		while (*alias
+		       && (!index (*alias, '.')
+			   || !strcmp (*alias, "localhost.localdomain")))
 		  alias++;
 		if (*alias)
 		  fqdn = *alias;

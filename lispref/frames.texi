@@ -150,6 +150,13 @@ screens belonging to one server, Emacs knows by the similarity in their
 names that they share a single keyboard, and it treats them as a single
 terminal.
 
+  Note that some graphical terminals can output to more than a one
+monitor (or other output device) at the same time.  On these
+``multi-monitor'' setups, a single @var{display} value controls the
+output to all the physical monitors.  In this situation, there is
+currently no platform-independent way for Emacs to distinguish between
+the different physical monitors.
+
 @deffn Command make-frame-on-display display &optional parameters
 This creates and returns a new frame on display @var{display}, taking
 the other frame parameters from @var{parameters}.  Aside from the
@@ -2089,11 +2096,19 @@ This function returns the number of screens associated with the display.
 @defun display-pixel-height &optional display
 This function returns the height of the screen in pixels.
 On a character terminal, it gives the height in characters.
+
+For graphical terminals, note that on ``multi-monitor'' setups this
+refers to the pixel width for all physical monitors associated with
+@var{display}.  @xref{Multiple Displays}.
 @end defun
 
 @defun display-pixel-width &optional display
 This function returns the width of the screen in pixels.
 On a character terminal, it gives the width in characters.
+
+For graphical terminals, note that on ``multi-monitor'' setups this
+refers to the pixel width for all physical monitors associated with
+@var{display}.  @xref{Multiple Displays}.
 @end defun
 
 @defun display-mm-height &optional display

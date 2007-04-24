@@ -1827,7 +1827,7 @@ misspelled words backwards."
 (defun flyspell-define-abbrev (name expansion)
   (let ((table (flyspell-abbrev-table)))
     (when table
-      (define-abbrev table name expansion))))
+      (define-abbrev table (downcase name) expansion))))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-auto-correct-word ...                                   */

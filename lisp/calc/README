@@ -17,7 +17,7 @@ Written by:
 	daveg@synaptics.com, uunet!synaptx!daveg
 
 Currently maintained by:
-     Jay Belanger <belanger@truman.edu>
+     Jay Belanger <jay.p.belanger@gmail.com>
 
 From the introduction to the manual:
 
@@ -59,7 +59,7 @@ From the introduction to the manual:
 Calc is written entirely in Emacs Lisp, for maximum portability.
 
 I am anxious to hear about your experiences using Calc.  Send mail to
-"belanger@truman.edu".  A bug report is most useful if you include the
+"jay.p.belanger@gmail.com".  A bug report is most useful if you include the
 exact input and output that occurred, any modes in effect (such as the
 current precision), and so on.  If you find Calc is difficult to operate
 in any way, or if you have other suggestions, don't hesitate to let me

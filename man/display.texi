@@ -128,7 +128,7 @@ same screen line.  To enable this behavior, set the variable
 @code{scroll-preserve-screen-position} to a non-@code{nil} value.  In
 this mode, when these commands would scroll the text around point off
 the screen, or within @code{scroll-margin} lines of the edge, they
-moves point to keep the same vertical position within the window.
+move point to keep the same vertical position within the window.
 This mode is convenient for browsing through a file by scrolling by
 screenfuls; if you come back to the screen where you started, point
 goes back to the line where it started.  However, this mode is
@@ -332,6 +332,11 @@ the foreground and background colors on all frames, both existing and
 those to be created in the future.  (You can also set foreground and
 background colors for the current frame only; see @ref{Frame
 Parameters}.)
+
+  If you want to alter the appearance of all Emacs frames, you need to
+customize the frame parameters in the variable
+@code{default-frame-alist}; see @ref{Creating Frames,
+default-frame-alist}.
 
   Emacs can correctly display variable-width fonts, but Emacs commands
 that calculate width and indentation do not know how to calculate
@@ -646,15 +651,14 @@ recently.
 
 @cindex Hi Lock mode
 @findex hi-lock-mode
-  Hi Lock mode is another minor mode, which highlights text that
-matches your specified regular expressions.  For example, you might
-wish to see all the references to a certain variable in a program
-source file, highlight certain parts in a voluminous output of some
-program, or make certain names stand out in an article.  Use the
-@kbd{M-x hi-lock-mode} command to enable (or disable) Hi Lock mode.
-To enable Hi Lock mode for all buffers, use @kbd{M-x
-global-hi-lock-mode} or place @code{(global-hi-lock-mode 1)} in your
-@file{.emacs} file.
+  Hi Lock mode highlights text that matches regular expressions you
+specify.  For example, you might wish to see all the references to a
+certain variable in a program source file, highlight certain parts in
+a voluminous output of some program, or make certain names stand out
+in an article.  Use the @kbd{M-x hi-lock-mode} command to enable (or
+disable) Hi Lock mode.  To enable Hi Lock mode for all buffers, use
+@kbd{M-x global-hi-lock-mode} or place @code{(global-hi-lock-mode 1)}
+in your @file{.emacs} file.
 
   Hi Lock mode works like Font Lock mode (@pxref{Font Lock}), except
 that you specify explicitly the regular expressions to highlight.  You
@@ -706,26 +710,36 @@ at point, with comment delimiters to prevent them from changing your
 program.  (This key binding runs the
 @code{hi-lock-write-interactive-patterns} command.)
 
-These patterns will be read the next time you visit the file while
-Hi Lock mode is enabled, or whenever you use the @kbd{M-x
-hi-lock-find-patterns} command.
+These patterns are extracted from the comments, if appropriate, if you
+invoke @kbd{M-x hi-lock-find-patterns}, or if you visit the file while
+Hi Lock mode is enabled (since that runs @code{hi-lock-find-patterns}).
 
 @item C-x w i
 @kindex C-x w i
 @findex hi-lock-find-patterns
-@vindex hi-lock-exclude-modes
-Re-read regexp/face pairs in the current buffer
-(@code{hi-lock-write-interactive-patterns}).  Users familiar with Font
-Lock keywords might interactively enter patterns
-(@code{highlight-regexp}), write them into the file
-(@code{hi-lock-write-interactive-patterns}), edit them, perhaps
+Extract regexp/face pairs from comments in the current buffer
+(@code{hi-lock-find-patterns}).  Thus, you can enter patterns
+interactively with @code{highlight-regexp}, store them into the file
+with @code{hi-lock-write-interactive-patterns}, edit them (perhaps
 including different faces for different parenthesized parts of the
-match, and finally use this command
-(@code{hi-lock-write-interactive-patterns}) to have Hi Lock highlight
-them.
+match), and finally use this command (@code{hi-lock-find-patterns}) to
+have Hi Lock highlight the edited patterns.
 
-This command does nothing if the current major mode's symbol is a member
-of the list @code{hi-lock-exclude-modes}.
+@vindex hi-lock-file-patterns-policy
+The variable @code{hi-lock-file-patterns-policy} controls whether Hi
+Lock mode should automatically extract and highlight patterns found in
+a file when it is visited.  Its value can be @code{nil} (never
+highlight), @code{t} (highlight the patterns), @code{ask} (query the
+user), or a function.  If it is a function,
+@code{hi-lock-find-patterns} calls it with the patterns as argument;
+if the function returns non-@code{nil}, the patterns are used.  The
+default is @code{nil}.  Note that patterns are always highlighted if
+you call @code{hi-lock-find-patterns} directly, regardless of the
+value of this variable.
+
+@vindex hi-lock-exclude-modes
+Also, @code{hi-lock-find-patterns} does nothing if the current major
+mode's symbol is a member of the list @code{hi-lock-exclude-modes}.
 @end table
 
 @node Fringes

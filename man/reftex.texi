@@ -116,6 +116,7 @@ needed.
 * Options::                          How to extend and configure RefTeX.
 * Keymaps and Hooks::                For customization.
 * Changes::                          A List of recent changes to RefTeX.
+* GNU Free Documentation License::   The license for this documentation.
 
 The Index
 
@@ -5149,7 +5150,7 @@ their own keymaps and mode hooks.  See the respective sections.  There
 are many more hooks which are described in the relevant sections about
 options for a specific part of @b{Ref@TeX{}}.
 
-@node Changes, , Keymaps and Hooks, Top
+@node Changes, GNU Free Documentation License, Keymaps and Hooks, Top
 @chapter Changes
 @cindex Changes
 
@@ -5880,11 +5881,11 @@ new labels.
 released on 7 Jan 1997.
 @end itemize
 
+@node GNU Free Documentation License, Index, Changes, Top
+@appendix GNU Free Documentation License
+@include doclicense.texi
 
-
-
-
-@node Index,  , , Top
+@node Index, , GNU Free Documentation License, Top
 @unnumbered Index
 @printindex cp
 

@@ -192,7 +192,7 @@ default; they just include the files that you need to run Emacs, but
 not those you need to compile it.  For example, to compile Emacs with
 X11 support, you may need to install the special `X11 development'
 package.  For example, in April 2003, the package names to install
-were `XFree86-devel' and `Xaw3d-devel' on RedHat.  On Debian, the
+were `XFree86-devel' and `Xaw3d-devel' on Red Hat.  On Debian, the
 packages necessary to build the installed version should be
 sufficient; they can be installed using `apt-get build-dep emacs21' in
 Debian 3 and above.
@@ -353,7 +353,7 @@ tests in FILE instead of `config.cache'.  Set FILE to `/dev/null' to
 disable caching, for debugging `configure'.
 
 If the description of the system configuration printed by `configure'
-is not right, or if it claims some of the fatures or libraries are not
+is not right, or if it claims some of the features or libraries are not
 available when you know they are, look at the `config.log' file for
 the trace of the failed tests performed by `configure' to check
 whether these features are supported.  Typically, some test fails
@@ -364,11 +364,12 @@ Some tests might fail because the compiler should look in special
 directories for some header files, or link against optional
 libraries, or use special compilation options.  You can force
 `configure' and the build process which follows it to do that by
-setting the variables CPPFLAGS, CFLAGS, LDFLAGS, LIBS, and CC before
-running `configure'.  CPPFLAGS lists the options passed to the
-preprocessor, CFLAGS are compilation options, LDFLAGS are options used
-when linking, LIBS are libraries to link against, and CC is the
-command which invokes the compiler.
+setting the variables CPPFLAGS, CFLAGS, LDFLAGS, LIBS, CPP and CC
+before running `configure'.  CPP is the command which invokes the
+preprocessor, CPPFLAGS lists the options passed to it, CFLAGS are
+compilation options, LDFLAGS are options used when linking, LIBS are
+libraries to link against, and CC is the command which invokes the
+compiler.
 
 Here's an example of a `configure' invocation, assuming a Bourne-like
 shell such as Bash, which uses these variables:
@@ -385,7 +386,7 @@ libraries in addition to the standard ones.
 
 For some libraries, like Gtk+, fontconfig and ALSA, `configure' use 
 pkg-config to find where those libraries are installed. 
-If you wan't pkg-config to look in special directories, you have to set 
+If you want pkg-config to look in special directories, you have to set 
 the environment variable PKG_CONFIG_PATH to point to the directories 
 where the .pc-files for those libraries are.
 For example:
@@ -703,8 +704,8 @@ the following steps.
 the paths to the values specified in `./Makefile'.
 
 2) Go to directory `./lib-src' and run `make'.  This creates
-executables named `ctags' and `etags' and `wakeup' and `make-docfile'
-and `digest-doc' and `test-distrib'.  And others.
+executables named `ctags' and `etags' and `make-docfile' and
+`digest-doc' and `test-distrib'.  And others.
 
 3) Go to directory `./src' and Run `make'.  This refers to files in
 the `./lisp' and `./lib-src' subdirectories using names `../lisp' and
@@ -732,8 +733,8 @@ in `./lib-src' to their final destinations, as selected in `./src/paths.h'.
 
 Strictly speaking, not all of the executables in `./lib-src' need be copied.
 - The programs `cvtmail', `fakemail', `hexl',
-    `movemail', `profile', `rcs2log', `timer', `vcdiff', `wakeup',
-    and `yow' are used by Emacs; they do need to be copied.
+    `movemail', `profile', `rcs2log', and `vcdiff' are used by Emacs;
+    they do need to be copied.
 - The programs `etags', `ctags', `emacsclient', `b2m', and `rcs-checkin'
     are intended to be run by users; they are handled below.
 - The programs `make-docfile' and `test-distrib' were

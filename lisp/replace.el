@@ -303,6 +303,11 @@ Use \\[repeat-complex-command] after this command for details."
 
 (defun query-replace-regexp-eval (regexp to-expr &optional delimited start end)
   "Replace some things after point matching REGEXP with the result of TO-EXPR.
+
+Interactive use of this function is deprecated in favor of the
+`\\,' feature of `query-replace-regexp'.  For non-interactive use, a loop
+using `search-forward-regexp' and `replace-match' is preferred.
+
 As each match is found, the user must type a character saying
 what to do with it.  For directions, type \\[help-command] at that time.
 
@@ -353,6 +358,11 @@ Fourth and fifth arg START and END specify the region to operate on."
 	       (region-end))))))
   (perform-replace regexp (cons 'replace-eval-replacement to-expr)
 		   t 'literal delimited nil nil start end))
+
+(make-obsolete 'query-replace-regexp-eval
+  "for interactive use, use the special `\\,' feature of
+`query-replace-regexp' instead.  Non-interactively, a loop
+using `search-forward-regexp' and `replace-match' is preferred." "22.1")
 
 (defun map-query-replace-regexp (regexp to-strings &optional n start end)
   "Replace some matches for REGEXP with various strings, in rotation.

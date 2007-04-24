@@ -1,3 +1,31 @@
+2007-04-22  Glenn Morris  <rgm@gnu.org>
+
+	* NEWS: Change to EMACS env-var was reverted, so delete this entry.
+
+2007-04-19  Glenn Morris  <rgm@gnu.org>
+
+	* PROBLEMS: Expand a little on Emacs not knowing fqdn.
+
+2007-04-17  David Kastrup  <dak@gnu.org>
+
+	* NEWS: Mention `query-replace-regexp-eval' being deprecated.
+
+2007-04-15  Glenn Morris  <rgm@gnu.org>
+
+	* FTP: Make it a duplicate of ../FTP.
+
+2007-04-14  Glenn Morris  <rgm@gnu.org>
+
+	* SERVICE: Replace with a pointer to the web version.
+
+	* emacs.1: Update some of the more obsolete information.
+
+2007-04-13  Glenn Morris  <rgm@gnu.org>
+
+	* MACHINES: emacserver is removed.
+
+	* MORE.STUFF: Update some links, remove some dead ones.
+
 2007-04-04  Slawomir Nowaczyk  <slawomir.nowaczyk.847@student.lu.se>
 
 	* emacs.py (format_exception): New function.

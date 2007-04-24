@@ -1719,6 +1719,9 @@ by doing (clear-string STRING)."
 
 ;; This should be used by `call-interactively' for `n' specs.
 (defun read-number (prompt &optional default)
+  "Read a numeric value in the minibuffer, prompting with PROMPT.
+DEFAULT specifies a default value to return if the user just types RET.
+The value of DEFAULT is inserted into PROMPT."
   (let ((n nil))
     (when default
       (setq prompt
@@ -1732,9 +1735,11 @@ by doing (clear-string STRING)."
 	  (let ((str (read-from-minibuffer prompt nil nil nil nil
 					   (and default
 						(number-to-string default)))))
-	    (setq n (cond
-		     ((zerop (length str)) default)
-		     ((stringp str) (read str)))))
+	    (condition-case nil
+		(setq n (cond
+			 ((zerop (length str)) default)
+			 ((stringp str) (read str))))
+	      (error nil)))
 	  (unless (numberp n)
 	    (message "Please enter a number.")
 	    (sit-for 1)

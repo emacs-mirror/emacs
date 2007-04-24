@@ -63,6 +63,7 @@ Message mode buffers.
 * Variables::         Customizing the message buffers.
 * Compatibility::     Making Message backwards compatible.
 * Appendices::        More technical things.
+* GNU Free Documentation License:: The license for this documentation.
 * Index::             Variable, function and concept index.
 * Key Index::         List of Message mode keys.
 @end menu
@@ -2338,6 +2339,9 @@ basis of the new @code{Cc} header, except if this header is
 @end table
 
 
+@node GNU Free Documentation License
+@chapter GNU Free Documentation License
+@include doclicense.texi
 
 @node Index
 @chapter Index

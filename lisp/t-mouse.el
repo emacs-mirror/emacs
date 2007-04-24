@@ -166,6 +166,8 @@ Also trim the accumulator by all the data used to build the event."
     (if (or (eq (car ob-pos) 'STILL) (eq (car ob-pos) '***) (not ob-pos))
 	nil
       (setq ob (car ob-pos))
+      (if (string-match "mev:$" (prin1-to-string ob))
+	  (error "Can't open mouse connection"))
       (setq t-mouse-filter-accumulator
             (substring t-mouse-filter-accumulator (cdr ob-pos)))
 

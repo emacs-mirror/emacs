@@ -892,7 +892,7 @@ displays the entire font @samp{6x13}.
 
 @node Colors
 @appendixsec Window Color Options
-@cindex color of window
+@cindex color of window, from command line
 @cindex text colors, from command line
 
 @findex list-colors-display

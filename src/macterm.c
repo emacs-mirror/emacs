@@ -52,6 +52,7 @@ Boston, MA 02110-1301, USA.  */
 #include <LowMem.h>
 #include <Controls.h>
 #include <Windows.h>
+#include <Displays.h>
 #if defined (__MRC__) || (__MSL__ >= 0x6000)
 #include <ControlDefinitions.h>
 #endif
@@ -8890,6 +8891,9 @@ int mac_pass_control_to_system;
    Carbon/Apple event handlers.  */
 static struct input_event *read_socket_inev = NULL;
 
+/* Whether or not the screen configuration has changed.  */
+static int mac_screen_config_changed = 0;
+
 Point saved_menu_event_location;
 
 /* Apple Events */
@@ -10420,6 +10424,87 @@ remove_window_handler (window)
 }
 
 
+static pascal void
+mac_handle_dm_notification (event)
+     AppleEvent *event;
+{
+  mac_screen_config_changed = 1;
+}
+
+static OSErr
+init_dm_notification_handler ()
+{
+  OSErr err;
+  static DMNotificationUPP handle_dm_notificationUPP = NULL;
+  ProcessSerialNumber psn;
+
+  if (handle_dm_notificationUPP == NULL)
+    handle_dm_notificationUPP =
+      NewDMNotificationUPP (mac_handle_dm_notification);
+
+  err = GetCurrentProcess (&psn);
+  if (err == noErr)
+    err = DMRegisterNotifyProc (handle_dm_notificationUPP, &psn);
+
+  return err;
+}
+
+static void
+mac_get_screen_info (dpyinfo)
+     struct mac_display_info *dpyinfo;
+{
+#ifdef MAC_OSX
+  /* HasDepth returns true if it is possible to have a 32 bit display,
+     but this may not be what is actually used.  Mac OSX can do better.  */
+  dpyinfo->color_p = CGDisplaySamplesPerPixel (kCGDirectMainDisplay) > 1;
+  dpyinfo->n_planes = CGDisplayBitsPerPixel (kCGDirectMainDisplay);
+  {
+    CGDisplayErr err;
+    CGDisplayCount ndisps;
+    CGDirectDisplayID *displays;
+
+    err = CGGetActiveDisplayList (0, NULL, &ndisps);
+    if (err == noErr)
+      {
+	displays = alloca (sizeof (CGDirectDisplayID) * ndisps);
+	err = CGGetActiveDisplayList (ndisps, displays, &ndisps);
+      }
+    if (err == noErr)
+      {
+	CGRect bounds = CGRectZero;
+
+	while (ndisps-- > 0)
+	  bounds = CGRectUnion (bounds, CGDisplayBounds (displays[ndisps]));
+	dpyinfo->height = CGRectGetHeight (bounds);
+	dpyinfo->width = CGRectGetWidth (bounds);
+      }
+    else
+      {
+	dpyinfo->height = CGDisplayPixelsHigh (kCGDirectMainDisplay);
+	dpyinfo->width = CGDisplayPixelsWide (kCGDirectMainDisplay);
+      }
+  }
+#else  /* !MAC_OSX */
+  {
+    GDHandle gdh = GetMainDevice ();
+    Rect rect = (**gdh).gdRect;
+
+    dpyinfo->color_p = TestDeviceAttribute (gdh, gdDevType);
+    for (dpyinfo->n_planes = 32; dpyinfo->n_planes > 0; dpyinfo->n_planes >>= 1)
+      if (HasDepth (gdh, dpyinfo->n_planes, gdDevType, dpyinfo->color_p))
+	break;
+
+    for (gdh = DMGetFirstScreenDevice (dmOnlyActiveDisplays); gdh;
+	 gdh = DMGetNextScreenDevice (gdh, dmOnlyActiveDisplays))
+      UnionRect (&rect, &(**gdh).gdRect, &rect);
+
+    dpyinfo->height = rect.bottom - rect.top;
+    dpyinfo->width = rect.right - rect.left;
+  }
+#endif  /* !MAC_OSX */
+}
+
+
 #if __profile__
 void
 profiler_exit_proc ()
@@ -10476,6 +10561,8 @@ main (void)
   initialize_applescript ();
 
   init_apple_event_handler ();
+
+  init_dm_notification_handler ();
 
   {
     char **argv;
@@ -10554,8 +10641,7 @@ mac_post_mouse_moved_event ()
     {
       Point mouse_pos;
 
-      GetMouse (&mouse_pos);
-      LocalToGlobal (&mouse_pos);
+      GetGlobalMouse (&mouse_pos);
       err = SetEventParameter (event, kEventParamMouseLocation, typeQDPoint,
 			       sizeof (Point), &mouse_pos);
     }
@@ -11375,6 +11461,12 @@ XTread_socket (sd, expected, hold_quit)
       pending_autoraise_frame = 0;
     }
 
+  if (mac_screen_config_changed)
+    {
+      mac_get_screen_info (dpyinfo);
+      mac_screen_config_changed = 0;
+    }
+
 #if !USE_CARBON_EVENTS
   /* Check which frames are still visible.  We do this here because
      there doesn't seem to be any direct notification from the Window
@@ -11509,86 +11601,7 @@ make_mac_terminal_frame (struct frame *f)
 			    Initialization
  ***********************************************************************/
 
-int mac_initialized = 0;
-
-void
-mac_initialize_display_info ()
-{
-  struct mac_display_info *dpyinfo = &one_mac_display_info;
-
-  bzero (dpyinfo, sizeof (*dpyinfo));
-
-#ifdef MAC_OSX
-  dpyinfo->mac_id_name
-    = (char *) xmalloc (SCHARS (Vinvocation_name)
-			+ SCHARS (Vsystem_name)
-			+ 2);
-  sprintf (dpyinfo->mac_id_name, "%s@%s",
-	   SDATA (Vinvocation_name), SDATA (Vsystem_name));
-#else
-  dpyinfo->mac_id_name = (char *) xmalloc (strlen ("Mac Display") + 1);
-  strcpy (dpyinfo->mac_id_name, "Mac Display");
-#endif
-
-  dpyinfo->reference_count = 0;
-  dpyinfo->resx = 72.0;
-  dpyinfo->resy = 72.0;
-#ifdef MAC_OSX
-  /* HasDepth returns true if it is possible to have a 32 bit display,
-     but this may not be what is actually used.  Mac OSX can do better.  */
-  dpyinfo->color_p = CGDisplaySamplesPerPixel (kCGDirectMainDisplay) > 1;
-  dpyinfo->n_planes = CGDisplayBitsPerPixel (kCGDirectMainDisplay);
-  {
-    CGDisplayErr err;
-    CGDisplayCount ndisps;
-    CGDirectDisplayID *displays;
-
-    err = CGGetActiveDisplayList (0, NULL, &ndisps);
-    if (err == noErr)
-      {
-	displays = alloca (sizeof (CGDirectDisplayID) * ndisps);
-	err = CGGetActiveDisplayList (ndisps, displays, &ndisps);
-      }
-    if (err == noErr)
-      {
-	CGRect bounds = CGRectMake (0, 0, 0, 0);
-
-	while (ndisps-- > 0)
-	  bounds = CGRectUnion (bounds, CGDisplayBounds (displays[ndisps]));
-	dpyinfo->height = CGRectGetHeight (bounds);
-	dpyinfo->width = CGRectGetWidth (bounds);
-      }
-    else
-      {
-	dpyinfo->height = CGDisplayPixelsHigh (kCGDirectMainDisplay);
-	dpyinfo->width = CGDisplayPixelsWide (kCGDirectMainDisplay);
-      }
-  }
-#else
-  {
-    GDHandle main_device_handle = LMGetMainDevice();
-
-    dpyinfo->color_p = TestDeviceAttribute (main_device_handle, gdDevType);
-    for (dpyinfo->n_planes = 32; dpyinfo->n_planes > 0; dpyinfo->n_planes >>= 1)
-      if (HasDepth (main_device_handle, dpyinfo->n_planes,
-		    gdDevType, dpyinfo->color_p))
-	break;
-    dpyinfo->height = (**main_device_handle).gdRect.bottom;
-    dpyinfo->width = (**main_device_handle).gdRect.right;
-  }
-#endif
-  dpyinfo->grabbed = 0;
-  dpyinfo->root_window = NULL;
-  dpyinfo->image_cache = make_image_cache ();
-
-  dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
-  dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
-  dpyinfo->mouse_face_face_id = DEFAULT_FACE_ID;
-  dpyinfo->mouse_face_window = Qnil;
-  dpyinfo->mouse_face_overlay = Qnil;
-  dpyinfo->mouse_face_hidden = 0;
-}
-
+static int mac_initialized = 0;
 
 static XrmDatabase
 mac_make_rdb (xrm_option)
@@ -11622,9 +11635,37 @@ mac_term_init (display_name, xrm_option, resource_name)
   if (x_display_list)
     error ("Sorry, this version can only handle one display");
 
-  mac_initialize_display_info ();
-
   dpyinfo = &one_mac_display_info;
+  bzero (dpyinfo, sizeof (*dpyinfo));
+
+#ifdef MAC_OSX
+  dpyinfo->mac_id_name
+    = (char *) xmalloc (SCHARS (Vinvocation_name)
+			+ SCHARS (Vsystem_name)
+			+ 2);
+  sprintf (dpyinfo->mac_id_name, "%s@%s",
+	   SDATA (Vinvocation_name), SDATA (Vsystem_name));
+#else
+  dpyinfo->mac_id_name = (char *) xmalloc (strlen ("Mac Display") + 1);
+  strcpy (dpyinfo->mac_id_name, "Mac Display");
+#endif
+
+  dpyinfo->reference_count = 0;
+  dpyinfo->resx = 72.0;
+  dpyinfo->resy = 72.0;
+
+  mac_get_screen_info (dpyinfo);
+
+  dpyinfo->grabbed = 0;
+  dpyinfo->root_window = NULL;
+  dpyinfo->image_cache = make_image_cache ();
+
+  dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
+  dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
+  dpyinfo->mouse_face_face_id = DEFAULT_FACE_ID;
+  dpyinfo->mouse_face_window = Qnil;
+  dpyinfo->mouse_face_overlay = Qnil;
+  dpyinfo->mouse_face_hidden = 0;
 
   dpyinfo->xrdb = mac_make_rdb (xrm_option);
 
@@ -11642,6 +11683,7 @@ mac_term_init (display_name, xrm_option, resource_name)
 
   return dpyinfo;
 }
+
 /* Get rid of display DPYINFO, assuming all frames are already gone.  */
 
 void
@@ -11860,6 +11902,8 @@ mac_initialize ()
   init_coercion_handler ();
 
   init_apple_event_handler ();
+
+  init_dm_notification_handler ();
 
   if (!inhibit_window_system)
     {

@@ -267,14 +267,17 @@ Wrapping around the alphabet implies successive repetitions of letters."
 
 ;; Latin-1
 
-(defconst footnote-latin-regexp "¹²³ºª§¶"
+(defconst footnote-latin-string "¹²³ºª§¶"
+  "String of Latin-1 footnoting characters.")
+
+(defconst footnote-latin-regexp (concat "[" footnote-latin-string "]")
   "Regexp for Latin-1 footnoting characters.")
 
 (defun Footnote-latin (n)
   "Latin-1 footnote style.
 Use a range of Latin-1 non-ASCII characters for footnoting."
-  (string (aref footnote-latin-regexp
-		(mod (1- n) (length footnote-latin-regexp)))))
+  (string (aref footnote-latin-string
+		(mod (1- n) (length footnote-latin-string)))))
 
 ;;; list of all footnote styles
 (defvar footnote-style-alist
@@ -291,14 +294,18 @@ See footnote-han.el, footnote-greek.el and footnote-hebrew.el for more
 exciting styles.")
 
 (defcustom footnote-style 'numeric
-  "*Style used for footnoting.
+  "*Default style used for footnoting.
 numeric == 1, 2, 3, ...
 english-lower == a, b, c, ...
 english-upper == A, B, C, ...
 roman-lower == i, ii, iii, iv, v, ...
 roman-upper == I, II, III, IV, V, ...
 latin == ¹ ² ³ º ª § ¶
-See also variables `footnote-start-tag' and `footnote-end-tag'."
+See also variables `footnote-start-tag' and `footnote-end-tag'.
+
+Customizing this variable has no effect on buffers already
+displaying footnotes.  You can change the style of existing
+buffers using the command `Footnote-set-style'."
   :type (cons 'choice (mapcar (lambda (x) (list 'const (car x)))
 			      footnote-style-alist))
   :group 'footnote)
@@ -654,7 +661,7 @@ delete the footnote with that number."
       (while (< i notes)
 	(setq alist-ptr (nth i footnote-pointer-marker-alist))
 	(setq alist-txt (nth i footnote-text-marker-alist))
-	(unless (eq (1+ i) (car alist-ptr))
+	(unless (= (1+ i) (car alist-ptr))
 	  (Footnote-renumber (car alist-ptr) (1+ i) alist-ptr alist-txt))
 	(setq i (1+ i))))))
 

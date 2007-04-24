@@ -82,6 +82,7 @@ on.  @xref{Basic Navigation}.
 * Minor Modes::      Additional minor modes such as Info and RMAIL.
 * Customizing::      Changing speedbar behavior.
 * Extending::        Extend speedbar for your own project.
+* GNU Free Documentation License:: The license for this documentation.
 * Index::
 @end menu
 
@@ -885,7 +886,7 @@ Set this to implement your own scanning or rescan safe functions with
 state data.
 @end table
 
-@node Extending, Index, Customizing, Top
+@node Extending, GNU Free Documentation License, Customizing, Top
 @comment  node-name,  next,  previous,  up
 @chapter Extending
 @cindex extending
@@ -1241,7 +1242,12 @@ Two good values are @code{nil} and @code{statictag}.
 
 @end defun
 
-@node Index, , Extending, Top
+@node GNU Free Documentation License, Index, Extending, Top
+@appendix GNU Free Documentation License
+@include doclicense.texi
+
+
+@node Index, , GNU Free Documentation License, Top
 @comment  node-name,  next,  previous,  up
 @unnumbered Concept Index
 @printindex cp

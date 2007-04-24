@@ -767,7 +767,7 @@ completion possibility specified by @var{collection} and
 strings, this is true if @var{string} appears in the list and
 @var{predicate} is satisfied.
 
-@code{test-completion} uses @code{completion-regexp-list} in the same
+This function uses @code{completion-regexp-list} in the same
 way that @code{try-completion} does.
 
 If @var{predicate} is non-@code{nil} and if @var{collection} contains

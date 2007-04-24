@@ -57,6 +57,7 @@ Software Foundation raise funds for GNU development.''
 * Widget Minor Mode::
 * Utilities::
 * Widget Wishlist::
+* GNU Free Documentation License::
 * Index::
 @end menu
 
@@ -1774,7 +1775,7 @@ Get the item which @var{widget} is assumed to toggle.
 This is only meaningful for radio buttons or checkboxes in a list.
 @end defun
 
-@node  Widget Wishlist,  Index, Utilities, Top
+@node  Widget Wishlist, GNU Free Documentation License, Utilities, Top
 @comment  node-name,  next,  previous,  up
 @section Wishlist
 @cindex todo
@@ -1833,7 +1834,11 @@ See @code{TeX-printer-list} for an explanation.
 Add a @code{mailto} widget.
 @end itemize
 
-@node Index, , Widget Wishlist, Top
+@node GNU Free Documentation License, Index, Widget Wishlist, Top
+@appendix GNU Free Documentation License
+@include doclicense.texi
+
+@node Index, , GNU Free Documentation License, Top
 @comment  node-name,  next,  previous,  up
 @unnumbered Index
 

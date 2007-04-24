@@ -4,7 +4,7 @@
 ;;   2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainer: Jay Belanger <belanger@truman.edu>
+;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
 ;; Keywords: convenience, extensions
 ;; Version: 2.1
 
@@ -401,7 +401,7 @@ This is not required to be present for user-written mode annotations."
   :group 'calc
   :type '(choice (string) (sexp)))
 
-(defvar calc-bug-address "belanger@truman.edu"
+(defvar calc-bug-address "jay.p.belanger@gmail.com"
   "Address of the maintainer of Calc, for use by `report-calc-bug'.")
 
 (defvar calc-scan-for-dels t
@@ -1148,6 +1148,11 @@ If nil, selections displayed but ignored.")
 
 (defvar calc-alg-map) ; Defined in calc-ext.el
 
+(defun calc-version ()
+  "Return version of this version of Calc."
+  (interactive)
+  (message (concat "Calc version " calc-version)))
+
 (defun calc-mode ()
   "Calculator major mode.
 
@@ -1258,8 +1263,7 @@ commands given here will actually operate on the *Calculator* stack."
     (set (make-local-variable 'calc-main-buffer) buf))
   (when (= (buffer-size) 0)
     (let ((buffer-read-only nil))
-      (insert (propertize (concat "Emacs Calculator v" calc-version
-				  " by Dave Gillespie\n")
+      (insert (propertize (concat "Emacs Calculator Trail\n")
 			  'font-lock-face 'italic))))
   (run-mode-hooks 'calc-trail-mode-hook))
 

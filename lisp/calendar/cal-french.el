@@ -37,12 +37,6 @@
 ;; E. M. Reingold, N. Dershowitz, and S. M. Clamen, Software--Practice and
 ;; Experience, Volume 23, Number 4 (April, 1993), pages 383-404.
 
-;; Comments, corrections, and improvements should be sent to
-;;  Edward M. Reingold               Department of Computer Science
-;;  (217) 333-6733                   University of Illinois at Urbana-Champaign
-;;  reingold@cs.uiuc.edu             1304 West Springfield Avenue
-;;                                   Urbana, Illinois 61801
-
 ;;; Code:
 
 (defvar date)

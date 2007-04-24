@@ -64,6 +64,7 @@ license to the document, as described in section 6 of the license.
 * Automatic Casing::            Adjusting the case of words automatically
 * Statement Templates::         Inserting code templates
 * Comment Handling::            Reformatting comments easily
+* GNU Free Documentation License:: The license for this documentation.
 * Index::
 @end menu
 
@@ -1373,7 +1374,7 @@ exception (@code{ada-exception}).
 type (@code{ada-type}).
 @end table
 
-@node Comment Handling, Index, Statement Templates, Top
+@node Comment Handling, GNU Free Documentation License, Statement Templates, Top
 @chapter Comment Handling
 
 By default, comment lines get indented like Ada code. There are a few
@@ -1392,7 +1393,11 @@ Uncomment the selected region
 autofill the current comment.
 @end table
 
-@node Index,  , Comment Handling, Top
+@node GNU Free Documentation License, Index, Comment Handling, Top
+@appendix GNU Free Documentation License
+@include doclicense.texi
+
+@node Index,  , GNU Free Documentation License, Top
 @unnumbered Index
 
 @printindex fn

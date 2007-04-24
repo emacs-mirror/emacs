@@ -1153,13 +1153,14 @@ recover are present in Emacs buffers.  You should then save them.  Only
 this---saving them---updates the files themselves.
 
 @vindex auto-save-list-file-prefix
-  Emacs records interrupted sessions for later recovery in files named
+  Emacs records information about interrupted sessions for later
+recovery in files named
 @file{~/.emacs.d/auto-save-list/.saves-@var{pid}-@var{hostname}}.  All
-of this name except @file{@var{pid}-@var{hostname}} comes from the
-value of @code{auto-save-list-file-prefix}.  You can record sessions
-in a different place by customizing that variable.  If you set
-@code{auto-save-list-file-prefix} to @code{nil} in your @file{.emacs}
-file, sessions are not recorded for recovery.
+of this name except the @file{@var{pid}-@var{hostname}} part comes
+from the value of @code{auto-save-list-file-prefix}.  You can record
+sessions in a different place by customizing that variable.  If you
+set @code{auto-save-list-file-prefix} to @code{nil} in your
+@file{.emacs} file, sessions are not recorded for recovery.
 
 @node File Aliases
 @section File Name Aliases
@@ -2582,6 +2583,8 @@ requires the appropriate uncompression program.
   A separate but similar Archive mode is used for archives produced by
 the programs @code{arc}, @code{jar}, @code{lzh}, @code{zip}, and
 @code{zoo}, which have extensions corresponding to the program names.
+Archive mode also works for those @code{exe} files that are
+self-extracting executables.
 
   The key bindings of Archive mode are similar to those in Tar mode,
 with the addition of the @kbd{m} key which marks a file for subsequent
@@ -2815,13 +2818,8 @@ works only when Emacs can display the specific image type.
 
 @findex thumbs-mode
 @findex mode, thumbs
-  Thumbs mode is a major mode for viewing directories containing many
-image files.  To use it, type @kbd{M-x thumbs} and specify the
-directory to view.  The images in that directory will be displayed in
-a @samp{Thumbs} buffer as @dfn{thumbnails}; type @kbd{RET} on a
-thumbnail to view the full-size image.  Thumbs mode requires the
-@file{convert} program, which is part of the ImageMagick software
-package.
+  See also the Image-Dired package (@pxref{Image-Dired}) for viewing
+images as thumbnails.
 
 @node Filesets
 @section Filesets

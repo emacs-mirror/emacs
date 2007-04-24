@@ -3,7 +3,7 @@
 ;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007 Free Software Foundation, Inc.
 
-;; Author: David M. Koppelman, koppel@ee.lsu.edu
+;; Author: David M. Koppelman, koppel@ece.lsu.edu
 ;; Keywords: faces, minor-mode, matching, display
 
 ;; This file is part of GNU Emacs.
@@ -33,7 +33,8 @@
 ;;  will remove the highlighting.  Any existing face can be used for
 ;;  highlighting and a set of appropriate faces is provided.  The
 ;;  regexps can be written into the current buffer in a form that will
-;;  be recognized the next time the corresponding file is read.
+;;  be recognized the next time the corresponding file is read (when
+;;  file patterns is turned on).
 ;;
 ;;  Applications:
 ;;
@@ -59,6 +60,14 @@
 ;;    to the edit menu.
 ;;
 ;;    (global-hi-lock-mode 1)
+;;
+;;    To enable the use of patterns found in files (presumably placed
+;;    there by hi-lock) include the following in your .emacs file:
+;;
+;;    (setq hi-lock-file-patterns-policy 'ask)
+;;
+;;    If you get tired of being asked each time a file is loaded replace
+;;    `ask' with a function that returns t if patterns should be read.
 ;;
 ;;    You might also want to bind the hi-lock commands to more
 ;;    finger-friendly sequences:
@@ -115,6 +124,20 @@ calls."
   :type '(repeat symbol)
   :group 'hi-lock)
 
+(defcustom hi-lock-file-patterns-policy 'never
+  "Specify when hi-lock should use patterns found in file.
+If `ask', prompt when patterns found in buffer; if bound to a function,
+use patterns when function returns t (function is called with patterns
+as first argument); if nil or `never' or anything else, don't use file
+patterns."
+  :type '(choice (const :tag "Do not use file patterns" never)
+                 (const :tag "Ask about file patterns" ask)
+                 (function :tag "Function to check file patterns"))
+  :group 'hi-lock
+  :version "22.1")
+
+;; It can have a function value.
+(put 'hi-lock-file-patterns-policy 'risky-local-variable t)
 
 (defgroup hi-lock-faces nil
   "Faces for hi-lock."
@@ -196,7 +219,7 @@ calls."
   "History of regexps used for interactive fontification.")
 
 (defvar hi-lock-file-patterns-prefix "Hi-lock"
-  "Regexp for finding hi-lock patterns at top of file.")
+  "Search target for finding hi-lock patterns at top of file.")
 
 (defvar hi-lock-archaic-interface-message-used nil
   "True if user alerted that `global-hi-lock-mode' is now the global switch.
@@ -283,17 +306,22 @@ called interactively, are:
   Remove highlighting on matches of REGEXP in current buffer.
 
 \\[hi-lock-write-interactive-patterns]
-  Write active REGEXPs into buffer as comments (if possible).  They will
+  Write active REGEXPs into buffer as comments (if possible).  They may
   be read the next time file is loaded or when the \\[hi-lock-find-patterns] command
   is issued.  The inserted regexps are in the form of font lock keywords.
-  (See `font-lock-keywords'.)  They may be edited and re-loaded with \\[hi-lock-find-patterns],
-  any valid `font-lock-keywords' form is acceptable.
+  (See `font-lock-keywords'.)  They may be edited and re-loaded with \\[hi-lock-find-patterns], 
+  any valid `font-lock-keywords' form is acceptable. When a file is
+  loaded the patterns are read if `hi-lock-file-patterns-policy is
+  'ask and the user responds y to the prompt, or if
+  `hi-lock-file-patterns-policy' is bound to a function and that
+  function returns t.
 
 \\[hi-lock-find-patterns]
   Re-read patterns stored in buffer (in the format produced by \\[hi-lock-write-interactive-patterns]).
 
-When hi-lock is started and if the mode is not excluded, the
-beginning of the buffer is searched for lines of the form:
+When hi-lock is started and if the mode is not excluded or patterns
+rejected, the beginning of the buffer is searched for lines of the
+form:
   Hi-lock: FOO
 where FOO is a list of patterns.  These are added to the font lock
 keywords already present.  The patterns must start before position
@@ -590,9 +618,18 @@ not suitable."
                 (setq all-patterns (append (read (current-buffer)) all-patterns))
               (error (message "Invalid pattern list expression at %d"
                               (line-number-at-pos)))))))
-      (when hi-lock-mode (hi-lock-set-file-patterns all-patterns))
-      (if (interactive-p)
-        (message "Hi-lock added %d patterns." (length all-patterns))))))
+      (when (and all-patterns
+                 hi-lock-mode
+                 (cond
+                  ((eq this-command 'hi-lock-find-patterns) t)
+                  ((functionp hi-lock-file-patterns-policy)
+                   (funcall hi-lock-file-patterns-policy all-patterns))
+                  ((eq hi-lock-file-patterns-policy 'ask)
+                   (y-or-n-p "Add patterns from this buffer to hi-lock? "))
+                  (t nil)))
+        (hi-lock-set-file-patterns all-patterns)
+        (if (interactive-p)
+            (message "Hi-lock added %d patterns." (length all-patterns)))))))
 
 (defun hi-lock-font-lock-hook ()
   "Add hi-lock patterns to font-lock's."

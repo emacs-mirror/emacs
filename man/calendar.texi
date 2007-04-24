@@ -1614,11 +1614,12 @@ minutes.  The value for Cambridge, Massachusetts is 60.
 
 @c @vindex calendar-daylight-savings-starts-time  too long!
 @vindex calendar-daylight-savings-ends-time
-  The two variables @code{calendar-daylight-savings-starts-time} and
-@code{calendar-daylight-savings-ends-time} specify the number of minutes
-after midnight local time when the transition to and from daylight
-saving time should occur.  For Cambridge, Massachusetts both variables'
-values are 120.
+  Finally, the two variables
+@code{calendar-daylight-savings-starts-time} and
+@code{calendar-daylight-savings-ends-time} specify the number of
+minutes after midnight local time when the transition to and from
+daylight saving time should occur.  For Cambridge, Massachusetts both
+variables' values are 120.
 
 @node Time Intervals
 @section Summing Time Intervals

@@ -551,13 +551,13 @@ Insert blank space to fill the space of the region-rectangle
 (@code{open-rectangle}).  This pushes the previous contents of the
 region-rectangle rightward.
 @item C-x r c
-Clear the region-rectangle by replacing its contents with spaces
+Clear the region-rectangle by replacing all of its contents with spaces
 (@code{clear-rectangle}).
 @item M-x delete-whitespace-rectangle
 Delete whitespace in each of the lines on the specified rectangle,
 starting from the left edge column of the rectangle.
 @item C-x r t @var{string} @key{RET}
-Replace rectangle contents with @var{string} on each line.
+Replace rectangle contents with @var{string} on each line
 (@code{string-rectangle}).
 @item M-x string-insert-rectangle @key{RET} @var{string} @key{RET}
 Insert @var{string} on each line of the rectangle.
