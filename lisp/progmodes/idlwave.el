@@ -2411,16 +2411,18 @@ non-nil."
     ;; Reindent new line
     (idlwave-indent-line)))
 
-(defun idlwave-beginning-of-subprogram ()
-  "Moves point to the beginning of the current program unit."
+(defun idlwave-beginning-of-subprogram (&optional nomark)
+  "Moves point to the beginning of the current program unit.
+If NOMARK is non-nil, do not push mark."
   (interactive)
-  (idlwave-find-key idlwave-begin-unit-reg -1))
+  (idlwave-find-key idlwave-begin-unit-reg -1 nomark))
 
-(defun idlwave-end-of-subprogram ()
-  "Moves point to the start of the next program unit."
+(defun idlwave-end-of-subprogram (&optional nomark)
+  "Moves point to the start of the next program unit.
+If NOMARK is non-nil, do not push mark."
   (interactive)
   (idlwave-end-of-statement)
-  (idlwave-find-key idlwave-end-unit-reg 1))
+  (idlwave-find-key idlwave-end-unit-reg 1 nomark))
 
 (defun idlwave-mark-statement ()
   "Mark current IDL statement."
@@ -2535,7 +2537,7 @@ The marks are pushed."
   "Return (NAME TYPE CLASS) of current routine."
   (idlwave-routines)
   (save-excursion
-    (idlwave-beginning-of-subprogram)
+    (idlwave-beginning-of-subprogram 'nomark)
     (if (looking-at "[ \t]*\\<\\(pro\\|function\\)\\>\\s-+\\(\\([a-zA-Z0-9$_]+\\)::\\)?\\([a-zA-Z0-9$_]+\\)")
 	(let* ((type (if (string= (downcase (match-string 1)) "pro")
 			 'pro 'function))
