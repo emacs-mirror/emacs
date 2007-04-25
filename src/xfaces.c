@@ -4783,7 +4783,8 @@ set_font_frame_param (frame, lface)
 	      font_name = font_find_for_lface (f, &AREF (lface, 0), Qnil);
 	      if (NILP (font_name))
 		error ("No font matches the specified attribute");
-	      font_name = font_open_for_lface (f, &AREF (lface, 0), font_name);
+	      font_name = font_open_for_lface (f, font_name, &AREF (lface, 0),
+					       Qnil);
 	      if (NILP (font_name))
 		error ("No font matches the specified attribute");
 	    }
