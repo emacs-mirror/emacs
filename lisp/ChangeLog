@@ -1,3 +1,7 @@
+2007-04-25  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+
+	* custom.el (defface): Doc fix.
+
 2007-04-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/python.el: File removed due to unclear legal status.
