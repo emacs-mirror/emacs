@@ -1,3 +1,10 @@
+2007-04-25  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* progmodes/idlwave.el (idlwave-beginning-of-subprogram,
+	idlwave-end-of-subprogram): Take optional NOMARK arg to prevent
+	pushing mark.
+	(idlwave-current-routine): Don't push mark.
+
 2007-04-25  Mathias Dahl  <mathias.dahl@gmail.com>
 
 	* image-dired.el (image-dired-display-image): Derive image-type
