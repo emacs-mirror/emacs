@@ -1,3 +1,7 @@
+2007-04-25  Richard Stallman  <rms@gnu.org>
+
+	* hi-lock.el (hi-lock-file-patterns-policy): Default to `ask'.
+
 2007-04-25  Mathias Dahl  <mathias.dahl@gmail.com>
 
 	* image-dired.el (image-dired-display-image): Derive image-type

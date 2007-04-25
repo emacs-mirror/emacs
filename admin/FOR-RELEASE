@@ -51,6 +51,8 @@ OpenBSD compilation works on i386.
 ** rgm@gnu.org, Apr 24: [Stephen.Berman@gmx.net: Re: redisplay]
   Gives test case for problem that a dialog box blocks redisplay.
 
+** What to do with `button' face.
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
