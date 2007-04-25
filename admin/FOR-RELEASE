@@ -53,6 +53,10 @@ OpenBSD compilation works on i386.
 
 ** What to do with `button' face.
 
+** Spurious redisplay bug not fixed.
+
+** mituharu@math.s.chiba-u.ac.jp, Apr 25: Cursors in fringe not redrawn by expose events.
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
