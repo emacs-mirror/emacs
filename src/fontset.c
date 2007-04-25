@@ -465,7 +465,8 @@ reorder_font_vector (fontset_element)
   for (i = 0; i < size; i++)
     {
       font_def = AREF (fontset_element, i + 3);
-      if (! NILP (AREF (font_def, 2)))
+      if (VECTORP (AREF (font_def, 2))
+	  && INTEGERP (AREF (AREF (font_def, 2), 1)))
 	charset_id_table[i] = XINT (AREF (AREF (font_def, 2), 1));
       else
 	charset_id_table[i] = -1;
@@ -547,7 +548,7 @@ fontset_find_font (fontset, c, face, id, fallback)
      struct face *face;
      int id, fallback;
 {
-  Lisp_Object base_fontset, elt, vec;
+  Lisp_Object base_fontset, elt, vec, font_def;
   int i, from, to;
   int font_idx;
   FRAME_PTR f = XFRAME (FONTSET_FRAME (fontset));
@@ -604,7 +605,7 @@ fontset_find_font (fontset, c, face, id, fallback)
 	      && enable_font_backend
 	      && EQ (base_fontset, Vdefault_fontset))
 	    {
-	      Lisp_Object script, font_spec, tmp;
+	      Lisp_Object script, font_spec;
 
 	      script = CHAR_TABLE_REF (Vchar_script_table, c);
 	      if (NILP (script))
@@ -613,9 +614,11 @@ fontset_find_font (fontset, c, face, id, fallback)
 	      ASET (font_spec, FONT_REGISTRY_INDEX, Qiso10646_1);
 	      ASET (font_spec, FONT_EXTRA_INDEX,
 		    Fcons (Fcons (QCscript, script), Qnil));
-	      tmp = Fmake_vector (make_number (5), Qnil);
-	      ASET (tmp, 3, font_spec);
-	      ASET (vec, 3 + i, tmp);
+	      font_def = Fmake_vector (make_number (3), Qnil);
+	      ASET (font_def, 0, font_spec);
+	      elt = Fmake_vector (make_number (5), Qnil);
+	      ASET (elt, 2, font_def);
+	      ASET (vec, 3 + i, elt);
 	    }
 #endif	/* USE_FONT_BACKEND */
 
@@ -659,8 +662,6 @@ fontset_find_font (fontset, c, face, id, fallback)
   /* Find the first available font in the vector of RFONT-DEF.  */
   for (; i < ASIZE (vec); i++)
     {
-      Lisp_Object font_def;
-
       elt = AREF (vec, i);
       if (NILP (elt))
 	continue;
