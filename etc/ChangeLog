@@ -1,6 +1,6 @@
-2007-04-24  Chong Yidong  <cyd@stupidchicken.com>
+2007-04-25  Yavor Doganov <yavor@gnu.org>  (tiny change)
 
-	* emacs.py: File removed due to unclear legal issues.
+	* emacs.1, etags.1: Escape some minus signs.
 
 2007-04-22  Glenn Morris  <rgm@gnu.org>
 
