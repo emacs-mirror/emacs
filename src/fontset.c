@@ -583,6 +583,8 @@ fontset_find_font (fontset, c, face, id, fallback)
 	  if (! fallback
 	      && enable_font_backend
 	      && EQ (base_fontset, Vdefault_fontset))
+	    /* Extra one element is for an automatically added
+	       font-def specifying only a script.  */
 	    vec = Fmake_vector (make_number (ASIZE (elt) + 4), Qnil);
 	  else
 #endif	/* not USE_FONT_BACKEND */
@@ -680,44 +682,49 @@ fontset_find_font (fontset, c, face, id, fallback)
 	  /* ELT == [ FACE-ID FONT-INDEX FONT-DEF FONT-ENTITY FONT-OBJECT ] */
 	  Lisp_Object font_entity = AREF (elt, 3);
 	  Lisp_Object font_object = AREF (elt, 4);
+	  Lisp_Object font_spec = AREF (font_def, 0);
 	  int has_char;
 
-	  if (NILP (font_entity) && ! NILP (AREF (font_def, 0)))
-	    {
-	      Lisp_Object tmp = AREF (font_def, 0);
-	      Lisp_Object spec = Ffont_spec (0, NULL);
-
-	      if (STRINGP (tmp))
-		font_merge_old_spec (tmp, Qnil, Qnil, spec);
-	      else
-		{
-		  Lisp_Object family = AREF (tmp, 0);
-		  Lisp_Object registry = AREF (tmp, 5);;
-
-		  font_merge_old_spec (Qnil, family, registry, spec);
-		}
-	      font_entity = font_find_for_lface (f, face->lface, spec);
-	      ASET (elt, 3, font_entity);
-	    }
-	  else if (FONT_SPEC_P (font_entity))
-	    {
-	      font_entity = font_find_for_lface (f, face->lface, font_entity);
-	      ASET (elt, 3, font_entity);
-	    }
 	  if (NILP (font_entity))
 	    {
-	      ASET (elt, 1, make_number (-1));
-	      continue;
+	      if (! FONT_SPEC_P (font_spec))
+		{
+		  /* FONT_SPEC is FONT-NAME or (FAMILY . REGISTRY).  */
+		  font_spec = Ffont_spec (0, NULL);
+		  if (STRINGP (AREF (font_def, 0)))
+		    font_merge_old_spec (AREF (font_def, 0), Qnil, Qnil,
+					 font_spec);
+		  else
+		    {
+		      Lisp_Object family = AREF (AREF (font_def, 0), 0);
+		      Lisp_Object registry = AREF (AREF (font_def, 0), 5);;
+
+		      font_merge_old_spec (Qnil, family, registry, font_spec);
+		    }
+		  ASET (font_def, 0, font_spec);
+		}
+	      font_entity = font_find_for_lface (f, face->lface, font_spec);
+	      ASET (elt, 3, font_entity);
+	      if (NILP (font_entity))
+		{
+		  ASET (elt, 1, make_number (-1));
+		  continue;
+		}
+	      font_object = Qnil;
 	    }
 	  has_char = font_has_char (f, font_entity, c);
 	  if (has_char == 0)
 	    continue;
 	  if (NILP (font_object))
-	    font_object = font_open_for_lface (f, face->lface, font_entity);
-	  if (NILP (font_object))
 	    {
-	      ASET (elt, 1, make_number (-1));
-	      continue;
+	      font_object = font_open_for_lface (f, font_entity,
+						 face->lface, font_spec);
+	      ASET (elt, 4, font_object);
+	      if (NILP (font_object))
+		{
+		  ASET (elt, 1, make_number (-1));
+		  continue;
+		}
 	    }
 	  ASET (elt, 1, make_number (0));
 	  ASET (elt, 4, font_object);
