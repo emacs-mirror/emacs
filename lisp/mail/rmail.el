@@ -325,8 +325,14 @@ See also `rmail-highlight-face'."
   :type 'regexp
   :group 'rmail-headers)
 
+(defface rmail-highlight
+  '((t :default highlight))
+  "Face to use for highlighting the most important header fields."
+  :group 'rmail-headers
+  :version "22.1")
+
 ;;;###autoload
-(defcustom rmail-highlight-face 'bold "\
+(defcustom rmail-highlight-face 'rmail-highlight "\
 *Face used by Rmail for highlighting sender and subject.
 See `rmail-font-lock-keywords'."
   :type '(choice (const :tag "Default" nil)
