@@ -1,10 +1,12 @@
+2007-04-25  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* image-dired.el (image-dired-display-image): Derive image-type
+	from filename rather than assuming jpeg, in case no resizing was
+	needed.
+
 2007-04-25  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
 	* custom.el (defface): Doc fix.
-
-2007-04-24  Chong Yidong  <cyd@stupidchicken.com>
-
-	* progmodes/python.el: File removed due to unclear legal status.
 
 2007-04-24  J.D. Smith  <jdsmith@as.arizona.edu>
 

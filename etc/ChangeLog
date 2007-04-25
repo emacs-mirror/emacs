@@ -1,4 +1,8 @@
-2007-04-25  Yavor Doganov <yavor@gnu.org>  (tiny change)
+2007-04-25  Werner Lemberg  <wl@gnu.org>
+
+	* emacs.1: Replace -- with \(em.
+
+2007-04-25  Yavor Doganov  <yavor@gnu.org>  (tiny change)
 
 	* emacs.1, etags.1: Escape some minus signs.
 
