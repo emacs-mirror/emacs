@@ -1,3 +1,7 @@
+2007-04-25  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+
+	* custom.el (defface): Doc fix.
+
 2007-04-24  J.D. Smith  <jdsmith@as.arizona.edu>
 
 	* progmodes/idlw-shell.el (idlwave-shell-clear-all-bp): Don't
