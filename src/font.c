@@ -1483,14 +1483,7 @@ check_gstring (gstring)
 #ifdef HAVE_LIBOTF
 #include <otf.h>
 
-struct otf_list
-{
-  Lisp_Object entity;
-  OTF *otf;
-  struct otf_list *next;
-};
-
-static struct otf_list *otf_list;
+Lisp_Object otf_list;
 
 static Lisp_Object
 otf_tag_symbol (tag)
@@ -1507,19 +1500,18 @@ otf_open (entity, file)
      Lisp_Object entity;
      char *file;
 {
-  struct otf_list *list = otf_list;
-  
-  while (list && ! EQ (list->entity, entity))
-    list = list->next;
-  if (! list)
+  Lisp_Object val = Fassoc (entity, otf_list);
+  OTF *otf;
+
+  if (! NILP (val))
+    otf = XSAVE_VALUE (XCDR (val))->pointer;
+  else
     {
-      list = malloc (sizeof (struct otf_list));
-      list->entity = entity;
-      list->otf = file ? OTF_open (file) : NULL;
-      list->next = otf_list;
-      otf_list = list;
+      otf = file ? OTF_open (file) : NULL;
+      val = make_save_value (otf, 0);
+      otf_list = Fcons (Fcons (entity, val), otf_list);
     }
-  return list->otf;
+  return otf;
 }
 
 
@@ -1597,58 +1589,41 @@ font_otf_capability (font)
   return capability;
 }
 
+/* Parse OTF features in SPEC and write a proper features spec string
+   in FEATURES for the call of OTF_drive_gsub/gpos (of libotf).  It is
+   assured that the sufficient memory has already allocated for
+   FEATURES.  */
+
 static void
-parse_gsub_gpos_spec (spec, script, langsys, features, nbytes)
+generate_otf_features (spec, features)
      Lisp_Object spec;
-     char **script, **langsys, *features;
-     int nbytes;
+     char *features;
 {
   Lisp_Object val;
   char *p, *pend;
   int asterisk;
 
-  CHECK_CONS (spec);
-  val = XCAR (spec);
-  CHECK_SYMBOL (val);
-  *script = (char *) SDATA (SYMBOL_NAME (val));
-  spec = XCDR (spec);
-  CHECK_CONS (spec);
-  val = XCAR (spec);
-  CHECK_SYMBOL (val);
-  *langsys = NILP (val) ? NULL : (char *) SDATA (SYMBOL_NAME (val));
-  spec = XCDR (spec);
-
-  p = features, pend = p + nbytes - 1;
+  p = features;
   *p = '\0';
   for (asterisk = 0; CONSP (spec); spec = XCDR (spec))
     {
       val = XCAR (spec);
       CHECK_SYMBOL (val);
       if (p > features)
-	{
-	  if (p >= pend)
-	    break;
-	  *p++ = ',';
-	}
+	*p++ = ',';
       if (SREF (SYMBOL_NAME (val), 0) == '*')
 	{
 	  asterisk = 1;
-	  if (p >= pend)
-	    break;
 	  *p++ = '*';
 	}
       else if (! asterisk)
 	{
 	  val = SYMBOL_NAME (val);
-	  if (p + SBYTES (val) >= pend)
-	    break;
 	  p += sprintf (p, "%s", SDATA (val));
 	}
       else
 	{
 	  val = SYMBOL_NAME (val);
-	  if (p + 1 + SBYTES (val)>= pend)
-	    break;
 	  p += sprintf (p, "~%s", SDATA (val));
 	}
     }
@@ -1682,30 +1657,131 @@ adjust_anchor (struct font *font, OTF_Anchor *anchor,
     }
 }
 
+static void
+check_otf_features (otf_features)
+     Lisp_Object otf_features;
+{
+  Lisp_Object val, elt;
+
+  CHECK_CONS (otf_features);
+  CHECK_SYMBOL (XCAR (otf_features));
+  otf_features = XCDR (otf_features);
+  CHECK_CONS (otf_features);
+  CHECK_SYMBOL (XCAR (otf_features));
+  otf_features = XCDR (otf_features);
+  for (val = Fcar (otf_features); ! NILP (val);  val = Fcdr (val))
+    {
+      CHECK_SYMBOL (Fcar (val));
+      if (SBYTES (SYMBOL_NAME (XCAR (val))) > 4)
+	error ("Invalid OTF GSUB feature: %s", SYMBOL_NAME (XCAR (val)));
+    }
+  otf_features = XCDR (otf_features);
+  for (val = Fcar (otf_features); ! NILP (val);  val = Fcdr (val))
+    {
+      CHECK_SYMBOL (Fcar (val));
+      if (SBYTES (SYMBOL_NAME (XCAR (val))) > 4)
+	error ("Invalid OTF GPOS feature: %s", SYMBOL_NAME (XCAR (val)));
+    }
+}
+
+Lisp_Object
+font_otf_DeviceTable (device_table)
+     OTF_DeviceTable *device_table;
+{
+  int len = device_table->StartSize - device_table->EndSize + 1;
+
+  return Fcons (make_number (len),
+		make_unibyte_string (device_table->DeltaValue, len));
+}
+
+Lisp_Object
+font_otf_ValueRecord (value_format, value_record)
+     int value_format;
+     OTF_ValueRecord *value_record;
+{
+  Lisp_Object val = Fmake_vector (make_number (8), Qnil);
+
+  if (value_format & OTF_XPlacement)
+    ASET (val, 0, value_record->XPlacement);
+  if (value_format & OTF_YPlacement)
+    ASET (val, 1, value_record->YPlacement);
+  if (value_format & OTF_XAdvance)
+    ASET (val, 2, value_record->XAdvance);
+  if (value_format & OTF_YAdvance)
+    ASET (val, 3, value_record->YAdvance);
+  if (value_format & OTF_XPlaDevice)
+    ASET (val, 4, font_otf_DeviceTable (&value_record->XPlaDevice));
+  if (value_format & OTF_YPlaDevice)
+    ASET (val, 4, font_otf_DeviceTable (&value_record->YPlaDevice));
+  if (value_format & OTF_XAdvDevice)
+    ASET (val, 4, font_otf_DeviceTable (&value_record->XAdvDevice));
+  if (value_format & OTF_YAdvDevice)
+    ASET (val, 4, font_otf_DeviceTable (&value_record->YAdvDevice));
+  return val;
+}
+
+Lisp_Object
+font_otf_Anchor (anchor)
+     OTF_Anchor *anchor;
+{
+  Lisp_Object val;
+
+  val = Fmake_vector (make_number (anchor->AnchorFormat + 1), Qnil);
+  ASET (val, 0, make_number (anchor->XCoordinate));
+  ASET (val, 1, make_number (anchor->YCoordinate));
+  if (anchor->AnchorFormat == 2)
+    ASET (val, 2, make_number (anchor->f.f1.AnchorPoint));
+  else
+    {
+      ASET (val, 3, font_otf_DeviceTable (&anchor->f.f2.XDeviceTable));
+      ASET (val, 4, font_otf_DeviceTable (&anchor->f.f2.YDeviceTable));
+    }
+  return val;
+}
+
 #define REPLACEMENT_CHARACTER 0xFFFD
 
-/* Drive FONT's OTF GSUB features according to GSUB_SPEC.  See the
-   comment of (sturct font_driver).otf_gsub.  */
+/* Drive FONT's OpenType FEATURES.  See the comment of (sturct
+   font_driver).drive_otf.  */
 
 int
-font_otf_gsub (font, gsub_spec, gstring_in, from, to, gstring_out, idx,
+font_drive_otf (font, otf_features, gstring_in, from, to, gstring_out, idx,
 	       alternate_subst)
      struct font *font;
-     Lisp_Object gsub_spec;
+     Lisp_Object otf_features;
      Lisp_Object gstring_in;
      int from, to;
      Lisp_Object gstring_out;
      int idx, alternate_subst;
 {
+  Lisp_Object val;
   int len;
   int i;
   OTF *otf;
   OTF_GlyphString otf_gstring;
   OTF_Glyph *g;
-  char *script, *langsys, features[256];
+  char *script, *langsys = NULL, *gsub_features = NULL, *gpos_features = NULL;
   int need_cmap;
 
-  parse_gsub_gpos_spec (gsub_spec, &script, &langsys, features, 256);
+  val = XCAR (otf_features);
+  script = SDATA (SYMBOL_NAME (val));
+  otf_features = XCDR (otf_features);
+  val = XCAR (otf_features);
+  langsys = NILP (val) ? NULL : SDATA (SYMBOL_NAME (val));
+  otf_features = XCDR (otf_features);
+  val = XCAR (otf_features);
+  if (! NILP (val))
+    {
+      gsub_features = alloca (XINT (Flength (val)) * 6);
+      generate_otf_features (val, &script, &langsys, gsub_features);
+    }
+  otf_features = XCDR (otf_features);
+  val = XCAR (otf_features);
+  if (! NILP (val))
+    {
+      gpos_features = alloca (XINT (Flength (val)) * 6);
+      generate_otf_features (val, &script, &langsys, gpos_features);
+    }
 
   otf = otf_open (font->entity, font->file_name);
   if (! otf)
@@ -1714,8 +1790,10 @@ font_otf_gsub (font, gsub_spec, gstring_in, from, to, gstring_out, idx,
     return 0;
   if (OTF_get_table (otf, "cmap") < 0)
     return 0;
-  if (OTF_check_table (otf, "GSUB") < 0)
-    return 0;    
+  if ((! gsub_features || OTF_check_table (otf, "GSUB") < 0)
+      && (! gpos_features || OTF_check_table (otf, "GPOS") < 0))
+    return 0;
+
   len = to - from;
   otf_gstring.size = otf_gstring.used = len;
   otf_gstring.glyphs = (OTF_Glyph *) malloc (sizeof (OTF_Glyph) * len);
@@ -1735,216 +1813,164 @@ font_otf_gsub (font, gsub_spec, gstring_in, from, to, gstring_out, idx,
       else
 	otf_gstring.glyphs[i].glyph_id = XINT (LGLYPH_CODE (g));
     }
-
   if (need_cmap)
     OTF_drive_cmap (otf, &otf_gstring);
   OTF_drive_gdef (otf, &otf_gstring);
-  if ((alternate_subst
-       ? OTF_drive_gsub_alternate (otf, &otf_gstring, script, langsys, features)
-       : OTF_drive_gsub (otf, &otf_gstring, script, langsys, features)) < 0)
-    {
-      free (otf_gstring.glyphs);
-      return 0;
-    }
-  if (ASIZE (gstring_out) < idx + otf_gstring.used)
-    {
-      free (otf_gstring.glyphs);
-      return -1;
-    }
 
-  for (i = 0, g = otf_gstring.glyphs; i < otf_gstring.used;)
+  if (gsub_features)
     {
-      int i0 = g->f.index.from, i1 = g->f.index.to;
-      Lisp_Object glyph = LGSTRING_GLYPH (gstring_in, from + i0);
-      Lisp_Object min_idx = AREF (glyph, 0);
-      Lisp_Object max_idx = AREF (glyph, 1);
-
-      if (i0 < i1)
+      if ((alternate_subst
+	   ? OTF_drive_gsub_alternate (otf, &otf_gstring, script, langsys,
+				       gsub_features)
+	   : OTF_drive_gsub (otf, &otf_gstring, script, langsys,
+			     gsub_features)) < 0)
 	{
-	  int min_idx_i = XINT (min_idx), max_idx_i = XINT (max_idx);
+	  free (otf_gstring.glyphs);
+	  return 0;
+	}
+      if (ASIZE (gstring_out) < idx + otf_gstring.used)
+	{
+	  free (otf_gstring.glyphs);
+	  return -1;
+	}
+      for (i = 0, g = otf_gstring.glyphs; i < otf_gstring.used;)
+	{
+	  int i0 = g->f.index.from, i1 = g->f.index.to;
+	  Lisp_Object glyph = LGSTRING_GLYPH (gstring_in, from + i0);
+	  Lisp_Object min_idx = AREF (glyph, 0);
+	  Lisp_Object max_idx = AREF (glyph, 1);
 
-	  for (i0++; i0 <= i1; i0++)
+	  if (i0 < i1)
 	    {
-	      glyph = LGSTRING_GLYPH (gstring_in, from + i0);
-	      if (min_idx_i > XINT (AREF (glyph, 0)))
-		min_idx_i = XINT (AREF (glyph, 0));
-	      if (max_idx_i < XINT (AREF (glyph, 1)))
-		max_idx_i = XINT (AREF (glyph, 1));
+	      int min_idx_i = XINT (min_idx), max_idx_i = XINT (max_idx);
+
+	      for (i0++; i0 <= i1; i0++)
+		{
+		  glyph = LGSTRING_GLYPH (gstring_in, from + i0);
+		  if (min_idx_i > XINT (AREF (glyph, 0)))
+		    min_idx_i = XINT (AREF (glyph, 0));
+		  if (max_idx_i < XINT (AREF (glyph, 1)))
+		    max_idx_i = XINT (AREF (glyph, 1));
+		}
+	      min_idx = make_number (min_idx_i);
+	      max_idx = make_number (max_idx_i);
+	      i0 = g->f.index.from;
 	    }
-	  min_idx = make_number (min_idx_i);
-	  max_idx = make_number (max_idx_i);
-	  i0 = g->f.index.from;
-	}
-      for (; i < otf_gstring.used && g->f.index.from == i0; i++, g++)
-	{
-	  glyph = LGSTRING_GLYPH (gstring_out, idx + i);
-	  ASET (glyph, 0, min_idx);
-	  ASET (glyph, 1, max_idx);
-	  if (g->c > 0)
-	    LGLYPH_SET_CHAR (glyph, make_number (g->c));
-	  else
-	    LGLYPH_SET_CHAR (glyph, make_number (REPLACEMENT_CHARACTER));
-	  LGLYPH_SET_CODE (glyph, make_number (g->glyph_id));
+	  for (; i < otf_gstring.used && g->f.index.from == i0; i++, g++)
+	    {
+	      glyph = LGSTRING_GLYPH (gstring_out, idx + i);
+	      ASET (glyph, 0, min_idx);
+	      ASET (glyph, 1, max_idx);
+	      if (g->c > 0)
+		LGLYPH_SET_CHAR (glyph, make_number (g->c));
+	      else
+		LGLYPH_SET_CHAR (glyph, make_number (REPLACEMENT_CHARACTER));
+	      LGLYPH_SET_CODE (glyph, make_number (g->glyph_id));
+	    }
 	}
     }
 
-  free (otf_gstring.glyphs);  
-  return i;
-}
-
-/* Drive FONT's OTF GPOS features according to GPOS_SPEC.  See the
-   comment of (sturct font_driver).otf_gpos.  */
-
-int
-font_otf_gpos (font, gpos_spec, gstring, from, to)
-     struct font *font;
-     Lisp_Object gpos_spec;
-     Lisp_Object gstring;
-     int from, to;
-{
-  int len;
-  int i;
-  OTF *otf;
-  OTF_GlyphString otf_gstring;
-  OTF_Glyph *g;
-  char *script, *langsys, features[256];
-  int need_cmap;
-  Lisp_Object glyph;
-  int u, size;
-  Lisp_Object base, mark;
-
-  parse_gsub_gpos_spec (gpos_spec, &script, &langsys, features, 256);
-
-  otf = otf_open (font->entity, font->file_name);
-  if (! otf)
-    return 0;
-  if (OTF_get_table (otf, "head") < 0)
-    return 0;
-  if (OTF_get_table (otf, "cmap") < 0)
-    return 0;
-  if (OTF_check_table (otf, "GPOS") < 0)
-    return 0;    
-  len = to - from;
-  otf_gstring.size = otf_gstring.used = len;
-  otf_gstring.glyphs = (OTF_Glyph *) malloc (sizeof (OTF_Glyph) * len);
-  memset (otf_gstring.glyphs, 0, sizeof (OTF_Glyph) * len);
-  for (i = 0, need_cmap = 0; i < len; i++)
+  if (gpos_features)
     {
-      glyph = LGSTRING_GLYPH (gstring, from + i);
-      otf_gstring.glyphs[i].c = XINT (LGLYPH_CHAR (glyph));
-      if (otf_gstring.glyphs[i].c == REPLACEMENT_CHARACTER)
-	otf_gstring.glyphs[i].c = 0;
-      if (NILP (LGLYPH_CODE (glyph)))
+      Lisp_Object glyph;
+      int u = otf->head->unitsPerEm;
+      int size = font->pixel_size;
+      Lisp_Object base = Qnil, mark = Qnil;
+
+      if (OTF_drive_gpos (otf, &otf_gstring, script, langsys,
+			  gpos_features) < 0)
 	{
-	  otf_gstring.glyphs[i].glyph_id = 0;
-	  need_cmap = 1;
+	  free (otf_gstring.glyphs);
+	  return 0;
 	}
-      else
-	otf_gstring.glyphs[i].glyph_id = XINT (LGLYPH_CODE (glyph));
-    }
-  if (need_cmap)
-    OTF_drive_cmap (otf, &otf_gstring);
-  OTF_drive_gdef (otf, &otf_gstring);
-
-  if (OTF_drive_gpos (otf, &otf_gstring, script, langsys, features) < 0)
-    {
-      free (otf_gstring.glyphs);
-      return 0;
-    }
-
-  u = otf->head->unitsPerEm;
-  size = font->pixel_size;
-  base = mark = Qnil;
-  for (i = 0, g = otf_gstring.glyphs; i < otf_gstring.used; i++, g++)
-    {
-      Lisp_Object prev;
-      int xoff = 0, yoff = 0, width_adjust = 0;
-
-      if (! g->glyph_id)
-	continue;
-
-      glyph = LGSTRING_GLYPH (gstring, from + i);
-      switch (g->positioning_type)
+      for (i = 0, g = otf_gstring.glyphs; i < otf_gstring.used; i++, g++)
 	{
-	case 0:
-	  break;
-	case 1: case 2:
-	  {
-	    int format = g->f.f1.format;
+	  Lisp_Object prev;
+	  int xoff = 0, yoff = 0, width_adjust = 0;
 
-	    if (format & OTF_XPlacement)
-	      xoff = g->f.f1.value->XPlacement * size / u;
-	    if (format & OTF_XPlaDevice)
-	      xoff += DEVICE_DELTA (g->f.f1.value->XPlaDevice, size);
-	    if (format & OTF_YPlacement)
-	      yoff = - (g->f.f1.value->YPlacement * size / u);
-	    if (format & OTF_YPlaDevice)
-	      yoff -= DEVICE_DELTA (g->f.f1.value->YPlaDevice, size);
-	    if (format & OTF_XAdvance)
-	      width_adjust += g->f.f1.value->XAdvance * size / u;
-	    if (format & OTF_XAdvDevice)
-	      width_adjust += DEVICE_DELTA (g->f.f1.value->XAdvDevice, size);
-	  }
-	  break;
-	case 3:
-	  /* Not yet supported.  */
-	  break;
-	case 4: case 5:
-	  if (NILP (base))
-	    break;
-	  prev = base;
-	  goto label_adjust_anchor;
-	default:		/* i.e. case 6 */
-	  if (NILP (mark))
-	    break;
-	  prev = mark;
+	  if (! g->glyph_id)
+	    continue;
 
-	label_adjust_anchor:
-	  {
-	    int base_x, base_y, mark_x, mark_y, width;
-	    unsigned code;
-
-	    base_x = g->f.f4.base_anchor->XCoordinate * size / u;
-	    base_y = g->f.f4.base_anchor->YCoordinate * size / u;
-	    mark_x = g->f.f4.mark_anchor->XCoordinate * size / u;
-	    mark_y = g->f.f4.mark_anchor->YCoordinate * size / u;
-
-	    code = XINT (LGLYPH_CODE (prev));
-	    if (g->f.f4.base_anchor->AnchorFormat != 1)
-	      adjust_anchor (font, g->f.f4.base_anchor,
-			     code, size, &base_x, &base_y);
-	    if (g->f.f4.mark_anchor->AnchorFormat != 1)
-	      adjust_anchor (font, g->f.f4.mark_anchor,
-			     code, size, &mark_x, &mark_y);
-
-	    if (NILP (LGLYPH_WIDTH (prev)))
+	  switch (g->positioning_type)
+	    {
+	    case 0:
+	      break;
+	    case 1: case 2:
 	      {
-		width = font->driver->text_extents (font, &code, 1, NULL);
-		LGLYPH_SET_WIDTH (prev, make_number (width));
+		int format = g->f.f1.format;
+
+		if (format & OTF_XPlacement)
+		  xoff = g->f.f1.value->XPlacement * size / u;
+		if (format & OTF_XPlaDevice)
+		  xoff += DEVICE_DELTA (g->f.f1.value->XPlaDevice, size);
+		if (format & OTF_YPlacement)
+		  yoff = - (g->f.f1.value->YPlacement * size / u);
+		if (format & OTF_YPlaDevice)
+		  yoff -= DEVICE_DELTA (g->f.f1.value->YPlaDevice, size);
+		if (format & OTF_XAdvance)
+		  width_adjust += g->f.f1.value->XAdvance * size / u;
+		if (format & OTF_XAdvDevice)
+		  width_adjust += DEVICE_DELTA (g->f.f1.value->XAdvDevice, size);
 	      }
-	    else
-	      width = XINT (LGLYPH_WIDTH (prev));
-	    xoff = XINT (LGLYPH_XOFF (prev)) + (base_x - width) - mark_x;
-	    yoff = XINT (LGLYPH_YOFF (prev)) + mark_y - base_y;
-	  }
+	      break;
+	    case 3:
+	      /* Not yet supported.  */
+	      break;
+	    case 4: case 5:
+	      if (NILP (base))
+		break;
+	      prev = base;
+	      goto label_adjust_anchor;
+	    default:		/* i.e. case 6 */
+	      if (NILP (mark))
+		break;
+	      prev = mark;
+
+	    label_adjust_anchor:
+	      {
+		int base_x, base_y, mark_x, mark_y, width;
+		unsigned code;
+
+		base_x = g->f.f4.base_anchor->XCoordinate * size / u;
+		base_y = g->f.f4.base_anchor->YCoordinate * size / u;
+		mark_x = g->f.f4.mark_anchor->XCoordinate * size / u;
+		mark_y = g->f.f4.mark_anchor->YCoordinate * size / u;
+
+		code = XINT (LGLYPH_CODE (prev));
+		if (g->f.f4.base_anchor->AnchorFormat != 1)
+		  adjust_anchor (font, g->f.f4.base_anchor,
+				 code, size, &base_x, &base_y);
+		if (g->f.f4.mark_anchor->AnchorFormat != 1)
+		  adjust_anchor (font, g->f.f4.mark_anchor,
+				 code, size, &mark_x, &mark_y);
+
+		if (NILP (LGLYPH_WIDTH (prev)))
+		  {
+		    width = font->driver->text_extents (font, &code, 1, NULL);
+		    LGLYPH_SET_WIDTH (prev, make_number (width));
+		  }
+		else
+		  width = XINT (LGLYPH_WIDTH (prev));
+		xoff = XINT (LGLYPH_XOFF (prev)) + (base_x - width) - mark_x;
+		yoff = XINT (LGLYPH_YOFF (prev)) + mark_y - base_y;
+	      }
+	    }
+	  if (xoff || yoff || width_adjust)
+	    {
+	      Lisp_Object adjustment = Fmake_vector (make_number (3), Qnil);
+
+	      ASET (adjustment, 0, make_number (xoff));
+	      ASET (adjustment, 1, make_number (yoff));
+	      ASET (adjustment, 2, make_number (width_adjust));
+	      LGLYPH_SET_ADJUSTMENT (glyph, adjustment);
+	    }
+	  if (g->GlyphClass == OTF_GlyphClass0)
+	    base = mark = glyph;
+	  else if (g->GlyphClass == OTF_GlyphClassMark)
+	    mark = glyph;
+	  else
+	    base = glyph;
 	}
-
-      if (xoff || yoff || width_adjust)
-	{
-	  Lisp_Object adjustment = Fmake_vector (make_number (3), Qnil);
-
-	  ASET (adjustment, 0, make_number (xoff));
-	  ASET (adjustment, 1, make_number (yoff));
-	  ASET (adjustment, 2, make_number (width_adjust));
-	  LGLYPH_SET_ADJUSTMENT (glyph, adjustment);
-	}
-
-      if (g->GlyphClass == OTF_GlyphClass0)
-	base = mark = glyph;
-      else if (g->GlyphClass == OTF_GlyphClassMark)
-	mark = glyph;
-      else
-	base = glyph;
     }
 
   free (otf_gstring.glyphs);  
@@ -2660,16 +2686,23 @@ font_find_for_lface (f, lface, spec)
 }
 
 Lisp_Object
-font_open_for_lface (f, lface, entity)
+font_open_for_lface (f, entity, lface, spec)
      FRAME_PTR f;
-     Lisp_Object *lface;
      Lisp_Object entity;
+     Lisp_Object *lface;
+     Lisp_Object spec;
 {
-  double pt = XINT (lface[LFACE_HEIGHT_INDEX]);
   int size;
 
-  pt /= 10;
-  size = POINT_TO_PIXEL (pt, f->resy);
+  if (FONT_SPEC_P (spec) && INTEGERP (AREF (spec, FONT_SIZE_INDEX)))
+    size = XINT (AREF (spec, FONT_SIZE_INDEX));
+  else
+    {
+      double pt = XINT (lface[LFACE_HEIGHT_INDEX]);
+
+      pt /= 10;
+      size = POINT_TO_PIXEL (pt, f->resy);
+    }
   return font_open_entity (f, entity, size);
 }
 
@@ -2685,7 +2718,7 @@ font_load_for_face (f, face)
       Lisp_Object entity = font_find_for_lface (f, face->lface, Qnil);
 
       if (! NILP (entity))
-	font_object = font_open_for_lface (f, face->lface, entity);
+	font_object = font_open_for_lface (f, entity, face->lface, Qnil);
     }
 
   if (! NILP (font_object))
@@ -3237,7 +3270,7 @@ and is a vector of this form:
 HEADER is a vector of this form:
     [FONT-OBJECT LBEARING RBEARING WIDTH ASCENT DESCENT]
 where
-    FONT-OBJECT is a font-object for all glyphs in the G-string,
+    FONT-OBJECT is a font-object for all glyphs in the g-string,
     LBEARING thry DESCENT is the metrics (in pixels) of the whole G-string.
 GLYPH is a vector of this form:
     [ FROM-IDX TO-IDX C CODE WIDTH [ [X-OFF Y-OFF WADJUST] | nil] ]
@@ -3349,26 +3382,25 @@ FONT-OBJECT may be nil if GSTRING already already contains one.  */)
   return Qnil;
 }
 
-DEFUN ("font-otf-gsub", Ffont_otf_gsub, Sfont_otf_gsub, 6, 6, 0,
-       doc: /* Apply OpenType "GSUB" features on glyph-string GSTRING-IN.
-FEATURE-SPEC specifies which featuress to apply in this format:
-  (SCRIPT LANGSYS FEATURE ...)
+DEFUN ("font-drive-otf", Ffont_drive_otf, Sfont_drive_otf, 6, 6, 0,
+       doc: /* Apply OpenType features on glyph-string GSTRING-IN.
+OTF-SPEC specifies which featuress to apply in this format:
+  (SCRIPT LANGSYS GSUB GPOS)
 where
   SCRIPT is a symbol specifying a script tag of OpenType,
   LANGSYS is a symbol specifying a langsys tag of OpenType,
-  FEATURE is a symbol specifying a feature tag of Opentype.
+  GSUB and GPOS, if non-nil, are lists of symbols specifying feature tags.
 
 If LANGYS is nil, the default langsys is selected.
 
-The features are applied in the order appeared in the list.  FEATURE
-may be a symbol `*', in which case all available features not appeared
-in this list are applied, and the remaining FEATUREs are not ignored.
-For instance, (mlym nil vatu pstf * haln) means to apply vatu and pstf
-in this order, then to apply all available features other than vatu,
-pstf, and haln.
+The features are applied in the order appeared in the list.  The
+symbol `*' means to apply all available features not appeared in this
+list, and the remaining features are ignored.  For instance, (vatu
+pstf * haln) is to apply vatu and pstf in this order, then to apply
+all available features other than vatu, pstf, and haln.
 
 The features are applied to the glyphs in the range FROM and TO of
-GSTRING-IN.
+the glyph-string GSTRING-IN.
 
 If some of a feature is actually applicable, the resulting glyphs are
 produced in the glyph-string GSTRING-OUT from the index INDEX.  In
@@ -3382,18 +3414,26 @@ produced in GSTRING-OUT, and the value is nil.
 
 See the documentation of `font-make-gstring' for the format of
 glyph-string.  */)
-     (feature_spec, gstring_in, from, to, gstring_out, index)
-     Lisp_Object feature_spec, gstring_in, from, to, gstring_out, index;
+     (otf_features, gstring_in, from, to, gstring_out, index)
+     Lisp_Object otf_features, gstring_in, from, to, gstring_out, index;
 {
   Lisp_Object font_object = LGSTRING_FONT (gstring_in);
-  struct font *font = XSAVE_VALUE (font_object)->pointer;
+  Lisp_Object val;
+  struct font *font;
   int len, num;
 
+  check_otf_features (otf_features);
   CHECK_FONT_GET_OBJECT (font_object, font);
-  if (! font->driver->otf_gsub)
+  if (! font->driver->otf_drive)
     error ("Font backend %s can't drive OpenType GSUB table",
 	   SDATA (SYMBOL_NAME (font->driver->type)));
-  CHECK_CONS (feature_spec);
+  CHECK_CONS (otf_features);
+  CHECK_SYMBOL (XCAR (otf_features));
+  val = XCDR (otf_features);
+  CHECK_SYMBOL (XCAR (val));
+  val = XCDR (otf_features);
+  if (! NILP (val))
+    CHECK_CONS (val);
   len = check_gstring (gstring_in);
   CHECK_VECTOR (gstring_out);
   CHECK_NATNUM (from);
@@ -3404,46 +3444,13 @@ glyph-string.  */)
     args_out_of_range_3 (from, to, make_number (len));
   if (XINT (index) >= ASIZE (gstring_out))
     args_out_of_range (index, make_number (ASIZE (gstring_out)));
-  num = font->driver->otf_gsub (font, feature_spec,
-				gstring_in, XINT (from), XINT (to),
-				gstring_out, XINT (index), 0);
+  num = font->driver->otf_drive (font, otf_features,
+				 gstring_in, XINT (from), XINT (to),
+				 gstring_out, XINT (index), 0);
   if (num < 0)
     return Qnil;
   return make_number (num);
 }
-
-
-DEFUN ("font-otf-gpos", Ffont_otf_gpos, Sfont_otf_gpos, 4, 4, 0,
-       doc: /* Apply OpenType "GPOS" features on glyph-string GSTRING.
-FEATURE-SPEC specifies which features to apply in this format:
-  (SCRIPT LANGSYS FEATURE ...)
-See the documentation of `font-otf-gsub' for more detail.
-
-The features are applied to the glyphs in the range FROM and TO of
-GSTRING.  */)
-     (gpos_spec, gstring, from, to)
-     Lisp_Object gpos_spec, gstring, from, to;
-{
-  Lisp_Object font_object = LGSTRING_FONT (gstring);
-  struct font *font;
-  int len, num;
-
-  CHECK_FONT_GET_OBJECT (font_object, font);
-  if (! font->driver->otf_gpos)
-    error ("Font backend %s can't drive OpenType GPOS table",
-	   SDATA (SYMBOL_NAME (font->driver->type)));
-  CHECK_CONS (gpos_spec);
-  len = check_gstring (gstring);
-  CHECK_NATNUM (from);
-  CHECK_NATNUM (to);
-
-  if (XINT (from) >= XINT (to) || XINT (to) > len)
-    args_out_of_range_3 (from, to, make_number (len));
-  num = font->driver->otf_gpos (font, gpos_spec,
-				gstring, XINT (from), XINT (to));
-  return (num <= 0 ? Qnil : Qt);
-}
-
 
 DEFUN ("font-otf-alternates", Ffont_otf_alternates, Sfont_otf_alternates,
        3, 3, 0,
@@ -3457,8 +3464,8 @@ The value is a list of cons cells of the format (GLYPH-ID . CHARACTER),
 where GLYPH-ID is a glyph index of the font, and CHARACTER is a
 character code corresponding to the glyph or nil if there's no
 corresponding character.  */)
-     (font_object, character, feature_spec)
-     Lisp_Object font_object, character, feature_spec;
+     (font_object, character, otf_features)
+     Lisp_Object font_object, character, otf_features;
 {
   struct font *font;
   Lisp_Object gstring_in, gstring_out, g;
@@ -3466,18 +3473,18 @@ corresponding character.  */)
   int i, num;
 
   CHECK_FONT_GET_OBJECT (font_object, font);
-  if (! font->driver->otf_gsub)
+  if (! font->driver->otf_drive)
     error ("Font backend %s can't drive OpenType GSUB table",
 	   SDATA (SYMBOL_NAME (font->driver->type)));
   CHECK_CHARACTER (character);
-  CHECK_CONS (feature_spec);
+  CHECK_CONS (otf_features);
 
   gstring_in = Ffont_make_gstring (font_object, make_number (1));
   g = LGSTRING_GLYPH (gstring_in, 0);
   LGLYPH_SET_CHAR (g, character);
   gstring_out = Ffont_make_gstring (font_object, make_number (10));
-  while ((num = font->driver->otf_gsub (font, feature_spec, gstring_in, 0, 1,
-					gstring_out, 0, 1)) < 0)
+  while ((num = font->driver->otf_drive (font, otf_features, gstring_in, 0, 1,
+					 gstring_out, 0, 1)) < 0)
     gstring_out = Ffont_make_gstring (font_object,
 				      make_number (ASIZE (gstring_out) * 2));
   alternates = Qnil;
@@ -3792,6 +3799,11 @@ syms_of_font ()
   staticpro (&scratch_font_prefer);
   scratch_font_prefer = Ffont_spec (0, NULL);
 
+#ifdef HAVE_LIBOTF
+  staticpro (&otf_list);
+  otf_list = Qnil;
+#endif
+
   defsubr (&Sfontp);
   defsubr (&Sfont_spec);
   defsubr (&Sfont_get);
@@ -3804,8 +3816,7 @@ syms_of_font ()
   defsubr (&Sinternal_set_font_style_table);
   defsubr (&Sfont_make_gstring);
   defsubr (&Sfont_fill_gstring);
-  defsubr (&Sfont_otf_gsub);
-  defsubr (&Sfont_otf_gpos);
+  defsubr (&Sfont_drive_otf);
   defsubr (&Sfont_otf_alternates);
 
 #ifdef FONT_DEBUG
