@@ -77,10 +77,6 @@ For each step, check for possible errors.
     tell him to announce it using the announcement you prepared.  Remind
     him to set a Reply-to header to <emacs-pretest-bug@gnu.org>.
 
-> If no major problems with the April 16 pretest come to light, we
-> should cut the Emacs 22 CVS branch on Friday, April 20, and release
-> Emacs 22.1 on Monday, April 23.
-
 15. Shortly before the release, cut the branch with the following commands:
 
     cvs rtag EMACS_`NUMBER'_BASE
