@@ -42,12 +42,14 @@ http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-04/msg00459.html
 ** rcyeske@gmail.com, April 22: Failure to build on OpenBSD macppc.
 OpenBSD compilation works on i386.
 
-** angeli@caeruleus.net, April 23: Excessive refontification when setting
-	jit-lock-context-unfontify-pos
-
 ** michael.ewe@arcor.de, Apr 24: 22.0.98  not starting on Solaris 10/I386
 
 ** pj@heslin.eclipse.co.uk, Apr 24: Small bug in flyspell.el
+
+** mathias.dahl@gmail.com, Apr 24: Tumme fails with default custom settings
+
+** rgm@gnu.org, Apr 24: [Stephen.Berman@gmx.net: Re: redisplay]
+  Gives test case for problem that a dialog box blocks redisplay.
 
 * DOCUMENTATION
 
