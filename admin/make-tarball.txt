@@ -76,7 +76,24 @@ For each step, check for possible errors.
 14. For a pretest, let Richard Stallman <rms@gnu.org> know about the new pretest and
     tell him to announce it using the announcement you prepared.  Remind
     him to set a Reply-to header to <emacs-pretest-bug@gnu.org>.
-    For a release, Richard should prepare the announcement himself,
+
+> If no major problems with the April 16 pretest come to light, we
+> should cut the Emacs 22 CVS branch on Friday, April 20, and release
+> Emacs 22.1 on Monday, April 23.
+
+15. Shortly before the release, cut the branch with the following commands:
+
+    cvs rtag EMACS_`NUMBER'_BASE
+    cvs rtag -b EMACS_`NUMBER'_RC -r EMACS_`NUMBER'_BASE
+
+where `NUMBER' is the major version number of the release.  This makes it
+easier to  see what changes have been applied to the branch with:
+
+    cvs diff -r EMACS_`NUMBER'_BASE -r EMACS_`NUMBER'_RC
+
+or merge changes back to the trunk with "cvs update -j", if necessary.
+
+16. For a release, Richard should prepare the announcement himself,
     possibly starting from a previous announcment.
 
 # arch-tag: c23c771f-ca26-4584-8a04-50ecf0989390
