@@ -5,6 +5,7 @@
 
 	* fontset.c (fontset_find_font): Pay attention to font size
 	specified for a font.
+	(reorder_font_vector): Check contents of font_def.
 
 	* font.c (struct otf_list): Delete it.
 	(otf_list): Make it a lisp variable..
