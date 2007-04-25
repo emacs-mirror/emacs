@@ -479,9 +479,9 @@ extern struct font *font_prepare_composition P_ ((struct composition *cmp));
 extern Lisp_Object font_otf_capability P_ ((struct font *font));
 /* This can be used as `otf_drive' method of a font-driver.  */
 extern int font_drive_otf P_ ((struct font *font, Lisp_Object otf_features,
-			      Lisp_Object gstring_in, int from, int to,
-			      Lisp_Object gstring_out, int idx,
-			      int alternate_subst));
+			       Lisp_Object gstring_in, int from, int to,
+			       Lisp_Object gstring_out, int idx,
+			       int alternate_subst));
 #endif	/* HAVE_LIBOTF */
 
 #ifdef HAVE_FREETYPE
