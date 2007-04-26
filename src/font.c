@@ -1480,6 +1480,33 @@ check_gstring (gstring)
 
 /* OTF handler */
 
+static void
+check_otf_features (otf_features)
+     Lisp_Object otf_features;
+{
+  Lisp_Object val, elt;
+
+  CHECK_CONS (otf_features);
+  CHECK_SYMBOL (XCAR (otf_features));
+  otf_features = XCDR (otf_features);
+  CHECK_CONS (otf_features);
+  CHECK_SYMBOL (XCAR (otf_features));
+  otf_features = XCDR (otf_features);
+  for (val = Fcar (otf_features); ! NILP (val);  val = Fcdr (val))
+    {
+      CHECK_SYMBOL (Fcar (val));
+      if (SBYTES (SYMBOL_NAME (XCAR (val))) > 4)
+	error ("Invalid OTF GSUB feature: %s", SYMBOL_NAME (XCAR (val)));
+    }
+  otf_features = XCDR (otf_features);
+  for (val = Fcar (otf_features); ! NILP (val);  val = Fcdr (val))
+    {
+      CHECK_SYMBOL (Fcar (val));
+      if (SBYTES (SYMBOL_NAME (XCAR (val))) > 4)
+	error ("Invalid OTF GPOS feature: %s", SYMBOL_NAME (XCAR (val)));
+    }
+}
+
 #ifdef HAVE_LIBOTF
 #include <otf.h>
 
@@ -1654,33 +1681,6 @@ adjust_anchor (struct font *font, OTF_Anchor *anchor,
 	*x += DEVICE_DELTA (anchor->f.f2.XDeviceTable, size);
       if (anchor->f.f2.YDeviceTable.offset)
 	*y += DEVICE_DELTA (anchor->f.f2.YDeviceTable, size);
-    }
-}
-
-static void
-check_otf_features (otf_features)
-     Lisp_Object otf_features;
-{
-  Lisp_Object val, elt;
-
-  CHECK_CONS (otf_features);
-  CHECK_SYMBOL (XCAR (otf_features));
-  otf_features = XCDR (otf_features);
-  CHECK_CONS (otf_features);
-  CHECK_SYMBOL (XCAR (otf_features));
-  otf_features = XCDR (otf_features);
-  for (val = Fcar (otf_features); ! NILP (val);  val = Fcdr (val))
-    {
-      CHECK_SYMBOL (Fcar (val));
-      if (SBYTES (SYMBOL_NAME (XCAR (val))) > 4)
-	error ("Invalid OTF GSUB feature: %s", SYMBOL_NAME (XCAR (val)));
-    }
-  otf_features = XCDR (otf_features);
-  for (val = Fcar (otf_features); ! NILP (val);  val = Fcdr (val))
-    {
-      CHECK_SYMBOL (Fcar (val));
-      if (SBYTES (SYMBOL_NAME (XCAR (val))) > 4)
-	error ("Invalid OTF GPOS feature: %s", SYMBOL_NAME (XCAR (val)));
     }
 }
 
