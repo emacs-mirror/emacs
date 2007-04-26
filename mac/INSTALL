@@ -21,7 +21,7 @@ must install as root using the sudo command.  However, it is not
 recommended; see the notes section below for more details.
 
 The --enable-carbon-app specifies that the Carbon GUI application
-should be installed into /Application.  If you want it to install in a
+should be installed into /Applications.  If you want it to install in a
 different location, specify --enable-carbon-app=<mydir>
 
 You can type `make bootstrap' instead of `make' to rebuild everything,
@@ -44,7 +44,7 @@ still meaningful.
 To start Emacs as a GUI application from the terminal, the pathname to
 the executable in the bundle, i.e.,
 
-  /Application/Emacs.app/Contents/MacOS/Emacs
+  /Applications/Emacs.app/Contents/MacOS/Emacs
 
 must be typed to the shell to enable Emacs to locate its resources
 correctly.  You may want to create an alias to this path to quickly
