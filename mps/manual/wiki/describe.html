@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
 <head>
-  <title>MPS Wiki: ARTICLE-TITLE</title>
+  <title>MPS Wiki: Describe Methods and Inheritance</title>
   <style type = "text/css">
     <!--
     div.banner {text-align:center}
@@ -30,28 +30,99 @@
 
 <hr />
 
-<h1>MPS Wiki: ARTICLE-TITLE</h1>
+<h1>MPS Wiki: Describe Methods and Inheritance</h1>
 
 <address>
 <a href="mailto:rhsk@ravenbrook.com">Richard Kistruck</a>,
 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>,
-2007-01-01
+2007-04-26
 </address>
 
 </div>
 
 <p> This wiki article contains incomplete and informal notes about the MPS, the precursor to more formal documentation.  Not confidential.  Readership: MPS users and developers.  </p>
 
+
+<h2> Briefly... </h2>
+
+
+<p> The Describe methods print out a datastructure for a human programmer to read.  Often they need to use the class hierarchy and inheritance (see design/protocol for more on this).  Here are some examples of how it works: </p>
+
 <pre>
-replace ARTICLE-TITLE throughout
-correct Document Author (above) and Document History (below)
-add YOUR ARTICLE HERE.
+ArenaDescribe [arena.c] outputs generic stuff,
+ then calls down to the bottom: (*arena->class->describe)(arena, stream);
+ which then calls upwards...
+ (except that no arena classes override the topmost Triv method yet)
+
+
+PoolDescribe [pool.c] outputs generic stuff,
+ then calls down to the bottom: (*pool->class->describe)(pool, stream);
+ which then calls upwards...
+ (except that AMCDescribe doesn't, and AMSDescribe doesn't, 
+  presumably because they 'know' that the next method is 
+  PoolTrivDescribe which would say "No class-specific description 
+  available")
+
+
+SegDescribe [seg.c] outputs generic stuff,
+ then calls down to the bottom: seg->class->describe(seg, stream);
+ which then calls upwards:
+  eg. in AMCSegDescribe [poolamc.c]:
+     /* Describe the superclass fields first via next-method call */
+     super = SEG_SUPERCLASS(amcSegClass);
+     res = super->describe(seg, stream);
+
+
+I see it now: the "SegDescribe" etc is like the generic function.  
+But instead of merely doing the dispatching, and leaving all output 
+to the appropriate class-hierarchy methods, it 'makes a start' by 
+outputting the generic fields.  I'm not sure this is quite the nicest, 
+but that's how we do it at the moment.
+
+Here's a typical result of a single call to SegDescribe:
+
+    Segment 03FD9480 [037D4000,037D5000) {
+      class 0005D298 ("AMCSEG")
+      pool 03FFE278 (7)
+      shield depth 1
+      protection mode:
+      shield mode: read write
+      ranks: exact
+      white  00000000000000000000000000000001
+      grey   00000000000000000000000000000001
+      nailed 00000000000000000000000000000001
+      buffer: NULL
+      summary 00008400
+    AMC seg 03FD9480 [037D4000,037D5000){
+      Boarded
+      Map
+        037D4000  *=============*========*========*================*=========*====
+        037D4100  ======*=========*==*=============*==============*=========*=====
+        037D4200  =======*===*===========*==============*============*============
+        037D4300  =*============*==============*===================*===========*==
+        037D4400  ===*===============*==============*===================*=========
+        037D4500  ==*===============*======*========*===========*==============*==
+        037D4600  ===============*=============*===============*================*=
+        037D4700  ====*==========*============*===============*===================
+        037D4800  *=================*===========*===*============*==============*=
+        037D4900  ========*=====*==============*=============*====================
+        037D4A00  *========*===============*=======*===========*==========*=======
+        037D4B00  ==========*========*==================*============*============
+        037D4C00  ==*===============*===================*==================*======
+        037D4D00  ======*==========*==============*=======*===============*=======
+        037D4E00  ========*=========*============*============*===*=====*=========
+        037D4F00  ====*=*=*========*====*===============*==============*===*=*====
+    } AMC Seg 03FD9480
+
+    } Segment 03FD9480
 </pre>
+
+<p>This article taken from email: <a href="http://info.ravenbrook.com/mail/2007/04/25/17-03-21/0.txt">http://info.ravenbrook.com/mail/2007/04/25/17-03-21/0.txt</a><sup><a href="index.html#not-publicly-available" title="this document is not publicly available">&empty;</a></sup>.</p>
 
 <h2><a id="section-B" name="section-B">B. Document History</a></h2>
 
 <pre>
-  2007-01-01  RHSK  Created.
+  2007-04-26  RHSK  Created; in brief.
 </pre>
 
 
