@@ -89,6 +89,8 @@ easier to  see what changes have been applied to the branch with:
 
 or merge changes back to the trunk with "cvs update -j", if necessary.
 
+After doing this, increase the version number on the trunk as per step 4.
+
 16. For a release, Richard should prepare the announcement himself,
     possibly starting from a previous announcment.
 
