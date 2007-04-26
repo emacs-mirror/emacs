@@ -124,6 +124,7 @@ GREEK=${srcdir}/quail/greek.elc
 RUSSIAN=${srcdir}/quail/cyrillic.elc ${srcdir}/quail/cyril-jis.elc
 
 OTHERS= \
+	${srcdir}/quail/arabic.elc \
 	${srcdir}/quail/ethiopic.elc \
 	${srcdir}/quail/ipa.elc \
 	${srcdir}/quail/hebrew.elc \
