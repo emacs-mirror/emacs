@@ -1,4 +1,4 @@
-2007-04-26  Luc Teirlinck <teirllm@dms.auburn.edu>
+2007-04-26  Luc Teirlinck  <teirllm@dms.auburn.edu>
 
 	* locate.el (locate-in-alternate-database): Doc fix.
 
