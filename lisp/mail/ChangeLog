@@ -1,3 +1,8 @@
+2007-04-26  Henrik Enberg  <enberg@printf.se>
+
+	* rmail.el (rmail-highlight): New face.
+	(rmail-highlight-face): Use it.
+
 2006-04-11  Alex Schroeder  <alex@gnu.org>
 
 	* rmailsum.el (rmail-summary-kill-label): Call rmail-kill-label
