@@ -112,7 +112,5 @@ Based on Arabic table in X Keyboard Configuration DB.
 
  ("'" ?ط))
 
-;;; arch-tag: 
-
 ;; arch-tag: 7e81e2af-5ea5-417f-bfe7-dfa6fd955cb5
 ;;; arabic.el ends here
