@@ -1,3 +1,11 @@
+2007-04-26  Kenichi Handa  <handa@m17n.org>
+
+	* Makefile.in (OTHERS): Add arabic.elc.
+
+2007-04-26  James Cloos  <cloos@jhcloos.com>
+
+	* quail/arabic.el: New file.
+
 2004-10-19  Kenichi Handa  <handa@m17n.org>
 
 	* MISC-DIC/pinyin.map: Fix encoding to that of the original file.
