@@ -35,7 +35,7 @@
 
 2007-04-24  Chong Yidong  <cyd@stupidchicken.com>
 
-	* python.el: Remove due to unclear legal issues.
+	* progmodes/python.el: Remove due to unclear legal issues.
 
 2007-04-24  J.D. Smith  <jdsmith@as.arizona.edu>
 
