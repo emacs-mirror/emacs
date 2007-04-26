@@ -1,3 +1,7 @@
+2007-04-26  Glenn Morris  <rgm@gnu.org>
+
+	* elisp.texi (EMACSVER): Increase to 22.1.50.
+
 2007-04-25  Karl Berry  <karl@gnu.org>
 
 	* elisp.texi: Improve line breaks on copyright page,

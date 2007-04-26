@@ -1,3 +1,7 @@
+2007-04-26  Glenn Morris  <rgm@gnu.org>
+
+	* makefile.w32-in (VERSION): Increase to 22.1.50.
+
 2007-02-26  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* Makefile.in (etags, ctags): Define EMACS_NAME as "GNU Emacs".

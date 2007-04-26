@@ -591,8 +591,8 @@ REMOVED src/unexhp9k800.c
 
 *** These are copyright issues still to be addressed:
 
-Need an assignment from Kevin Rodgers (rms), else several changes to
-deal with.
+python.el potential legal problem
+http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-04/msg00459.html
 
 
 

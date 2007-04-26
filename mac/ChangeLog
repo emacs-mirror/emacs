@@ -1,7 +1,7 @@
 2007-04-26  Glenn Morris  <rgm@gnu.org>
 
 	* Emacs.app/Contents/Resources/English.lproj/InfoPlist.strings:
-	Increase version to 22.1.50.
+	* src/Emacs.r: Increase version to 22.1.50.
 
 2007-04-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
