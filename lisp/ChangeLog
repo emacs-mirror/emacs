@@ -1,3 +1,8 @@
+2007-04-26  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/python.el: Restore file pending consideration of legal
+	status.
+
 2007-04-26  Luc Teirlinck  <teirllm@dms.auburn.edu>
 
 	* locate.el (locate-in-alternate-database): Doc fix.
@@ -27,6 +32,10 @@
 2007-04-25  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
 	* custom.el (defface): Doc fix.
+
+2007-04-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* python.el: Remove due to unclear legal issues.
 
 2007-04-24  J.D. Smith  <jdsmith@as.arizona.edu>
 
