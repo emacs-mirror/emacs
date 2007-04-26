@@ -1774,7 +1774,8 @@ should feel snappy enough.
 If optional argument ORIGINAL-SIZE is non-nil, display image in its
 original size."
   (let ((new-file (expand-file-name image-dired-temp-image-file))
-        width height command ret)
+        width height command ret
+        (image-type 'jpeg))
     (setq file (expand-file-name file))
     (if (not original-size)
         (progn
@@ -1793,12 +1794,13 @@ original size."
 				  shell-command-switch command))
           (if (not (= 0 ret))
               (error "Could not resize image")))
+      (setq image-type (image-type-from-file-name file))
       (copy-file file new-file t))
     (with-current-buffer (image-dired-create-display-image-buffer)
       (let ((inhibit-read-only t))
         (erase-buffer)
         (clear-image-cache)
-        (image-dired-insert-image image-dired-temp-image-file 'jpeg 0 0)
+        (image-dired-insert-image image-dired-temp-image-file image-type 0 0)
         (goto-char (point-min))
         (image-dired-update-property 'original-file-name file)))))
 

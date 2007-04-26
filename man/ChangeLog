@@ -1,3 +1,14 @@
+2007-04-26  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.texi (EMACSVER): Increase to 22.1.50.
+
+2007-04-25  Karl Berry  <karl@gnu.org>
+
+	* emacs.texi: Improve line breaks on copyright page,
+	similar layout to lispref, 8.5x11 by default.
+
+	* dired.texi (Image-Dired): Improve line break, fix typo.
+
 2007-04-23  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc.texi (Reporting bugs): Update maintainer's address.

@@ -1,3 +1,7 @@
+2007-04-26  Glenn Morris  <rgm@gnu.org>
+
+	* README: Increase version to 22.1.50.
+
 2007-04-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* INSTALL (DETAILED BUILDING AND INSTALLATION): Fix typo.

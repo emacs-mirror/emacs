@@ -1,3 +1,11 @@
+2007-04-25  Werner Lemberg  <wl@gnu.org>
+
+	* emacs.1: Replace -- with \(em.
+
+2007-04-25  Yavor Doganov  <yavor@gnu.org>  (tiny change)
+
+	* emacs.1, etags.1: Escape some minus signs.
+
 2007-04-22  Glenn Morris  <rgm@gnu.org>
 
 	* NEWS: Change to EMACS env-var was reverted, so delete this entry.

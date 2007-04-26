@@ -52,11 +52,12 @@
 ;; Globals
 
 ;; Use color for the MS-DOS port because it doesn't support underline.
-;; Also for the linux console.
+;; FIXME if MS-DOS correctly answers the (supports) question, it need
+;; no longer be a special case.
 (defface button '((((type pc) (class color))
 		   (:foreground "lightblue"))
-		  (((type tty)) (:inherit link))
-		  (t :underline t))
+		  (((supports :underline t)) :underline t)
+		  (t (:foreground "lightblue")))
   "Default face used for buttons."
   :group 'basic-faces)
 
