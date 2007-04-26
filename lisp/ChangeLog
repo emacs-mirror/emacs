@@ -3,6 +3,8 @@
 	* button.el (button): Use underline if supported, else fall back
 	to color.
 
+	* version.el (emacs-version): Increase to 22.1.50.
+
 2007-04-25  J.D. Smith  <jdsmith@as.arizona.edu>
 
 	* progmodes/idlwave.el (idlwave-beginning-of-subprogram,
