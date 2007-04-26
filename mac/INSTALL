@@ -21,8 +21,8 @@ must install as root using the sudo command.  However, it is not
 recommended; see the notes section below for more details.
 
 The --enable-carbon-app specifies that the Carbon GUI application
-should be installed into /Applications.  If you want it to install in a
-different location, specify --enable-carbon-app=<mydir>
+should be installed into /Applications.  If you want it to install in
+a different location, specify --enable-carbon-app=<mydir>
 
 You can type `make bootstrap' instead of `make' to rebuild everything,
 including byte-compiling the Lisp files.
@@ -60,8 +60,8 @@ building Emacs to run on X Window System, you need to specify like:
 Note that the Carbon-specific functions mentioned above are not
 available on the X11-enabled build.
 
-To use colors in a terminal, put the following lines in the file
-~/.termcap and log in again.
+To use colors in Terminal.app on Mac OS X 10.1, put the following
+lines in the file ~/.termcap and log in again.
 
 -----
 # added ANSI color
