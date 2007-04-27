@@ -41,6 +41,12 @@
 /* no debug diagnostic statistic meters */
 /* no telemetry log events */
 
+#elif defined(CONFIG_VAR_DI) /* Diagnostic variety */
+#define CONFIG_ASSERT
+#define CHECKLEVEL_INITIAL CheckLevelMINIMAL
+#define CONFIG_DEBUG
+/* no telemetry log events */
+
 #elif defined(CONFIG_VAR_CI) || defined(CONFIG_VAR_CE) /* Cool varieties */
 #define CONFIG_ASSERT
 /* ... let PRODUCT determine CHECKLEVEL_INITIAL */
