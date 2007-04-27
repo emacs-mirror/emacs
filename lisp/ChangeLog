@@ -1,3 +1,8 @@
+2007-04-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/flyspell.el (flyspell-auto-correct-previous-word): Use
+	window-start and window-end.
+
 2007-04-26  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/python.el: Restore file pending consideration of legal
