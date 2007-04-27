@@ -1553,7 +1553,8 @@ static Res rootGrey(Root root, void *p)
   return ResOK;
 }
 
-void TraceStart(Trace trace, double mortality, double finishingTime)
+void TraceStart(Trace trace, double mortality,
+                double finishingTime, int why)
 {
   Arena arena;
   Message message;
@@ -1568,6 +1569,12 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
   AVER(finishingTime >= 0.0);
 
   arena = trace->arena;
+
+  DIAG_WRITEF(( DIAG_STREAM,  "\n** TraceStart: $S\n", (WriteFS)trace->startMessage.why, NULL ));
+  if (why != TraceStartWhyCHAIN_GEN0CAP) {
+    /* a non-minor collection */
+    DIAG( ArenaDescribe(arena, DIAG_STREAM); );
+  }
 
   message = TraceStartMessageMessage(&trace->startMessage);
   /* Attempt to re-use message.
@@ -1726,7 +1733,7 @@ static Res traceStartCollectAll(Trace *traceReturn, Arena arena, int why)
     /* Run out of time, should really try a smaller collection. @@@@ */
     finishingTime = 0.0;
   }
-  TraceStart(trace, TraceTopGenMortality, finishingTime);
+  TraceStart(trace, TraceTopGenMortality, finishingTime, why);
   *traceReturn = trace;
   return ResOK;
 
@@ -1791,16 +1798,17 @@ Size TracePoll(Globals globals)
 
       /* If one was found, start collection on that chain. */
       if (firstTime < 0) {
+        int why = TraceStartWhyCHAIN_GEN0CAP;
         double mortality;
 
-        res = TraceCreate(&trace, arena, TraceStartWhyCHAIN_GEN0CAP);
+        res = TraceCreate(&trace, arena, why);
         AVER(res == ResOK);
         res = ChainCondemnAuto(&mortality, firstChain, trace);
         if (res != ResOK) /* should try some other trace, really @@@@ */
           goto failCondemn;
         trace->chain = firstChain;
         ChainStartGC(firstChain, trace);
-        TraceStart(trace, mortality, trace->condemned * TraceWorkFactor);
+        TraceStart(trace, mortality, trace->condemned * TraceWorkFactor, why);
         scannedSize = traceWorkClock(trace);
       }
     } /* (dynamicDeferral > 0.0) */

@@ -358,7 +358,8 @@ extern void TraceDestroy(Trace trace);
 
 extern Res TraceAddWhite(Trace trace, Seg seg);
 extern Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet);
-extern void TraceStart(Trace trace, double mortality, double finishingTime);
+extern void TraceStart(Trace trace, double mortality,
+                       double finishingTime, int why);
 extern Size TracePoll(Globals globals);
 
 extern void TraceSegAccess(Arena arena, Seg seg, AccessSet mode);
