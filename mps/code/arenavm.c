@@ -191,6 +191,39 @@ static Bool VMArenaCheck(VMArena vmArena)
 }
 
 
+/* VMArenaDescribe -- describe the VMArena
+ */
+static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream)
+{
+  Res res;
+  VMArena vmArena;
+  ArenaClass super;
+
+  if (!CHECKT(Arena, arena)) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
+  vmArena = Arena2VMArena(arena);
+  if (!CHECKT(VMArena, vmArena)) return ResFAIL;
+
+  /* Describe the superclass fields first via next-method call */
+  /* ...but the next method is ArenaTrivDescribe, so don't call it;
+   * see impl.c.arena#describe.triv.dont-upcall.
+   *
+  super = ARENA_SUPERCLASS(VMArenaClass);
+  res = super->describe(arena, stream);
+  if (res != ResOK) return res;
+   *
+  */
+
+  res = WriteF(stream, "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n", NULL);
+  if (res != ResOK) return res;
+
+  /* @@@@ INCOMPLETE @@@@ */
+
+  return ResOK;
+}
+
+
+
 /* VM indirect functions
  *
  * These functions should be used to map and unmap within the arena.
@@ -1518,6 +1551,7 @@ DEFINE_ARENA_CLASS(VMArenaClass, this)
   this->free = VMFree;
   this->chunkInit = VMChunkInit;
   this->chunkFinish = VMChunkFinish;
+  this->describe = VMArenaDescribe;
 }
 
 

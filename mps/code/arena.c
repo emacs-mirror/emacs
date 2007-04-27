@@ -24,6 +24,18 @@ static Res ArenaTrivDescribe(Arena arena, mps_lib_FILE *stream)
   if (!CHECKT(Arena, arena)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
+  /* .describe.triv.never-called-from-subclass-method:
+   * This Triv method seems to assume that it will never get called
+   * from a subclass-method invoking ARENA_SUPERCLASS()->describe.
+   * It assumes that it only gets called if the describe method has
+   * not been subclassed.  (That's the only reason for printing the
+   * "No class-specific description available" message).
+   * This is bogus, but that's the status quo.  RHSK 2007-04-27.
+   */
+  /* .describe.triv.dont-upcall: Therefore (for now) the last 
+   * subclass describe method should avoid invoking 
+   * ARENA_SUPERCLASS()->describe.  RHSK 2007-04-27.
+   */
   return WriteF(stream,
     "  No class-specific description available.\n", NULL);
 }
