@@ -1,3 +1,8 @@
+2007-04-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/flyspell.el (flyspell-auto-correct-previous-word): Use
+	window-start and window-end.
+
 2007-04-27  Andreas Schwab  <schwab@suse.de>
 
 	* emacs-lisp/sregex.el (sregexq): Fix doc string quoting.
