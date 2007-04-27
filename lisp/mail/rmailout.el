@@ -169,6 +169,10 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 	(while (> count 0)
 	  (with-temp-buffer
 	    (insert-buffer-substring rmailbuf)
+	    ;; ensure we can write without barfing on exotic characters
+	    (setq buffer-file-coding-system
+		  (or rmail-file-coding-system 'raw-text))
+	    ;; prune junk headers
 	    (rmail-delete-unwanted-fields)
 	    (if (not destbuf)
 		;; The destination file is not being visited, just write
