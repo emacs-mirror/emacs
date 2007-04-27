@@ -627,7 +627,9 @@ the variable `rmail-mime-feature'.")
 
 ;;;###autoload
 (defvar rmail-mime-charset-pattern
-  "^content-type:[ ]*text/plain;[ \t\n]*charset=\"?\\([^ \t\n\";]+\\)\"?"
+  (concat "^content-type:[ \t]*text/plain;"
+	  "\\(?:[ \t\n]*\\(?:format\\|delsp\\)=\"?[-a-z0-9]+\"?;\\)*"
+	  "[ \t\n]*charset=\"?\\([^ \t\n\";]+\\)\"?")
   "Regexp to match MIME-charset specification in a header of message.
 The first parenthesized expression should match the MIME-charset name.")
 
@@ -788,11 +790,6 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
           (if existed
 	      (with-current-buffer existed enable-multibyte-characters)
             (default-value 'enable-multibyte-characters)))
-	 ;; Since the file may contain messages of different encodings
-	 ;; at the tail (non-BYBYL part), we can't decode them at once
-	 ;; on reading.  So, at first, we read the file without text
-	 ;; code conversion, then decode the messages one by one.
-	 (coding-system-for-read (and rmail-enable-multibyte 'raw-text))
 	 run-mail-hook msg-shown)
     (when (and existed (eq major-mode 'rmail-edit-mode))
       (error "Exit Rmail Edit mode before getting new mail"))
@@ -1087,12 +1084,12 @@ Instead, these commands are available:
   (let ((finding-rmail-file (not (eq major-mode 'rmail-mode))))
     (rmail-mode-2)
     (when (and finding-rmail-file
-	       (null coding-system-for-read)
-	       default-enable-multibyte-characters)
+    	       (null coding-system-for-read)
+    	       default-enable-multibyte-characters)
       (let ((rmail-enable-multibyte t))
-	(rmail-require-mime-maybe)
-	(goto-char (point-max))
-	(set-buffer-multibyte t)))
+    	(rmail-require-mime-maybe)
+    	(goto-char (point-max))
+    	(set-buffer-multibyte t)))
     (rmail-show-message rmail-total-messages)
     (when finding-rmail-file
       (when rmail-display-summary
@@ -1152,13 +1149,6 @@ Instead, these commands are available:
 
 ;; Set up the non-permanent locals associated with Rmail mode.
 (defun rmail-variables ()
-  (make-local-variable 'save-buffer-coding-system)
-  ;; If we don't already have a value for save-buffer-coding-system,
-  ;; get it from buffer-file-coding-system, and clear that
-  ;; because it should be determined in rmail-show-message.
-  (unless save-buffer-coding-system
-    (setq save-buffer-coding-system (or buffer-file-coding-system 'undecided))
-    (setq buffer-file-coding-system nil))
   ;; Don't let a local variables list in a message cause confusion.
   (make-local-variable 'local-enable-local-variables)
   (setq local-enable-local-variables nil)
@@ -1187,9 +1177,7 @@ Instead, these commands are available:
 (defun rmail-revert (arg noconfirm)
   (with-current-buffer rmail-buffer
     (let* ((revert-buffer-function (default-value 'revert-buffer-function))
-	   (rmail-enable-multibyte enable-multibyte-characters)
-	   ;; See similar code in `rmail'.
-	   (coding-system-for-read (and rmail-enable-multibyte 'raw-text)))
+	   (rmail-enable-multibyte enable-multibyte-characters))
       ;; Call our caller again, but this time it does the default thing.
       (when (revert-buffer arg noconfirm)
 	;; If the user said "yes", and we changed something, reparse the
@@ -1682,42 +1670,44 @@ is non-nil if the user has supplied the password interactively.
 
 ;;;; *** Rmail message decoding ***
 
-(defun rmail-decode-region (from to coding)
-  "Decode the region specified by FROM and TO by CODING.
-If CODING is nil or an invalid coding system, decode by `undecided'."
-  (unless (and coding (coding-system-p coding))
-    (setq coding 'undecided))
-  ;; Use -dos decoding, to remove ^M characters left from base64 or
-  ;; rogue qp-encoded text.
-  (decode-coding-region from to
-			(coding-system-change-eol-conversion
-			 coding 'dos))
-  ;; Don't reveal the fact we used -dos decoding, as users generally
-  ;; will not expect the RMAIL buffer to use DOS EOL format.
-  (setq buffer-file-coding-system
-	(setq last-coding-system-used
-	      (coding-system-change-eol-conversion
-	       coding 'unix))))
+;; these two are unused, and possibly harmul.
 
-(defun rmail-decode-by-content-type (from to)
-  "Decode message between FROM and TO according to Content-Type."
-  (when (and (not rmail-enable-mime) rmail-enable-multibyte)
-    (let ((coding-system-used nil)
-	  (case-fold-search t))
-      (save-restriction
-	(narrow-to-region from to)
-	(when (and (not rmail-enable-mime) rmail-enable-multibyte)
-	  (let ((coding
-		 (when (save-excursion
-			 (goto-char (rmail-header-get-limit))
-			 (re-search-backward
-			  rmail-mime-charset-pattern
-			  (point-min) t))
-		   (intern (downcase (match-string 1))))))
-	    (setq coding-system-used (rmail-decode-region
-				      (point-min) (point-max)
-				      coding)))))
-      (setq last-coding-system-used coding-system-used))))
+;; (defun rmail-decode-region (from to coding)
+;;   "Decode the region specified by FROM and TO by CODING.
+;; If CODING is nil or an invalid coding system, decode by `undecided'."
+;;   (unless (and coding (coding-system-p coding))
+;;     (setq coding 'undecided))
+;;   ;; Use -dos decoding, to remove ^M characters left from base64 or
+;;   ;; rogue qp-encoded text.
+;;   (decode-coding-region from to
+;; 			(coding-system-change-eol-conversion
+;; 			 coding 'dos))
+;;   ;; Don't reveal the fact we used -dos decoding, as users generally
+;;   ;; will not expect the RMAIL buffer to use DOS EOL format.
+;;   (setq buffer-file-coding-system
+;; 	(setq last-coding-system-used
+;; 	      (coding-system-change-eol-conversion
+;; 	       coding 'unix))))
+
+;; (defun rmail-decode-by-content-type (from to)
+;;   "Decode message between FROM and TO according to Content-Type."
+;;   (when (and (not rmail-enable-mime) rmail-enable-multibyte)
+;;     (let ((coding-system-used nil)
+;; 	  (case-fold-search t))
+;;       (save-restriction
+;; 	(narrow-to-region from to)
+;; 	(when (and (not rmail-enable-mime) rmail-enable-multibyte)
+;; 	  (let ((coding
+;; 		 (when (save-excursion
+;; 			 (goto-char (rmail-header-get-limit))
+;; 			 (re-search-backward
+;; 			  rmail-mime-charset-pattern
+;; 			  (point-min) t))
+;; 		   (intern (downcase (match-string 1))))))
+;; 	    (setq coding-system-used (rmail-decode-region
+;; 				      (point-min) (point-max)
+;; 				      coding)))))
+;;       (setq last-coding-system-used coding-system-used))))
 
 ;;;; *** Rmail Message Formatting and Header Manipulation ***
 
@@ -1915,7 +1905,6 @@ non-nil then do not show any progress messages."
 	      (rmail-register-keywords keywords))
 	    ;; Insure that we have From and Date headers.
 	    ;;(rmail-decode-from-line)
-
 	    ;; Perform User defined filtering.
 	    (save-excursion
 	      (if rmail-message-filter (funcall rmail-message-filter)))
@@ -2055,14 +2044,6 @@ If NO-SUMMARY is non-nil, then do not update the summary buffer."
         (widen)
 	(narrow-to-region beg end)
         (goto-char (point-min))
-	(condition-case nil
-	    (let* ((coding-system-name
-		    (rmail-header-get-header "X-Coding-System"))
-		   (coding-system (intern coding-system-name)))
-	      (check-coding-system coding-system)
-	      (setq buffer-file-coding-system coding-system))
-	  ;; no coding system or invalid coding system
-	  (error (setq buffer-file-coding-system nil)))
         ;; Clear the "unseen" attribute when we show a message, unless
 	;; it is already cleared.
 	(when (rmail-desc-attr-p rmail-desc-unseen-index n)

@@ -1,3 +1,14 @@
+2007-04-27  Henrik Enberg  <enberg@printf.se>
+
+	* rmailout.el (rmail-output): Don't bind
+	buffer-file-coding-system.
+
+	* rmail.el (rmail-mime-charset-pattern): Sync with trunk.
+	(rmail): Don't bind coding-system-for-read.
+	(rmail-revert): Likewise.
+	(rmail-variables): Don't set buffer-file-coding-system.
+	(rmail-show-message): Likewise.
+
 2007-04-26  Henrik Enberg  <enberg@printf.se>
 
 	* rmail.el (rmail-highlight): New face.
