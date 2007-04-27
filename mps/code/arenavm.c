@@ -293,6 +293,10 @@ static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size)
   AVERT(VMArena, vmArena);
   AVER(size > 0);
 
+  DIAG_WRITEF(( DIAG_STREAM, "\n** VMChunkCreate $U\n", size, NULL ));
+
+  DIAG( ArenaDescribe(VMArena2Arena(vmArena), DIAG_STREAM); );
+
   res = VMCreate(&vm, size);
   if (res != ResOK)
     goto failVMCreate;
