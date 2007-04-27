@@ -2161,6 +2161,11 @@ month names with consistent widths for some locales on some versions
 of Windows. This is caused by a deficiency in the underlying system
 library function.
 
+Files larger than 4GB cause overflow in the size (represented as a
+32-bit integer) reported by `file-attributes'.  This affects Dired as
+well, since the Windows port uses a Lisp emulation of `ls' that relies
+on `file-attributes'.
+
 ** Typing Alt-Shift has strange effects on MS-Windows.
 
 This combination of keys is a command to change keyboard layout.  If
