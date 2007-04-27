@@ -1,3 +1,8 @@
+2007-04-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_update_menubar, create_menus): Create empty
+	submenu for menu bar items.
+
 2007-04-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (redisplay_window): Use BEG_UNCHANGED and END_UNCHANGED
