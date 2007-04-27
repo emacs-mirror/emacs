@@ -1,7 +1,7 @@
 2007-04-26  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* INSTALL: Fix description about using colors in terminal.
-	Fix typos (/Application -> /Applications)
+	Fix typos (/Application -> /Applications).
 
 2007-04-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
