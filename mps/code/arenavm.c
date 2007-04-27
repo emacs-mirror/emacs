@@ -197,7 +197,6 @@ static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream)
 {
   Res res;
   VMArena vmArena;
-  ArenaClass super;
 
   if (!CHECKT(Arena, arena)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
@@ -208,9 +207,12 @@ static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream)
   /* ...but the next method is ArenaTrivDescribe, so don't call it;
    * see impl.c.arena#describe.triv.dont-upcall.
    *
-  super = ARENA_SUPERCLASS(VMArenaClass);
-  res = super->describe(arena, stream);
-  if (res != ResOK) return res;
+  {
+    ArenaClass super;
+    super = ARENA_SUPERCLASS(VMArenaClass);
+    res = super->describe(arena, stream);
+    if (res != ResOK) return res;
+  }
    *
   */
 
