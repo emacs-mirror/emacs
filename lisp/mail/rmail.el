@@ -1131,6 +1131,7 @@ Instead, these commands are available:
   (make-local-variable 'rmail-total-messages)
   (make-local-variable 'rmail-overlay-list)
   (setq rmail-overlay-list nil)
+  (make-local'variable 'rmail-desc-vector)
   (make-local-variable 'rmail-inbox-list)
   (setq rmail-inbox-list (rmail-get-file-inbox-list))
   ;; Provide default set of inboxes for primary mail file ~/RMAIL.
@@ -1464,6 +1465,8 @@ updated file.  It returns t if it got any new messages."
 	      ;; Process the new messages for spam using the integrated
 	      ;; spam filter.  The spam filter can mark messages for
 	      ;; deletion and can output a message.
+	      ;; XXX rmail-spam-filter hasn't been tested at all with
+	      ;; the mbox branch. --enberg
 	      (setq current-message (rmail-first-unseen-message))
 	      (when rmail-use-spam-filter
 		(while (<= current-message rmail-total-messages)

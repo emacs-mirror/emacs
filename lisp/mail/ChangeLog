@@ -3,7 +3,9 @@
 	* rmailout.el (rmail-output): Don't bind
 	buffer-file-coding-system.
 
-	* rmail.el (rmail-mime-charset-pattern): Sync with trunk.
+	* rmail.el (rmail-perm-variables): Make sure rmail-desc-vector is
+	buffer local.
+	(rmail-mime-charset-pattern): Sync with trunk.
 	(rmail): Don't bind coding-system-for-read.
 	(rmail-revert): Likewise.
 	(rmail-variables): Don't set buffer-file-coding-system.
