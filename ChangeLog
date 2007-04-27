@@ -1,3 +1,8 @@
+2007-04-27  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (config.status): Depend on
+	${srcdir}/lisp/version.el.
+
 2007-04-26  Glenn Morris  <rgm@gnu.org>
 
 	* README: Increase version to 22.1.50.
