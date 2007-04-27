@@ -44,8 +44,6 @@ OpenBSD compilation works on i386.
 
 ** michael.ewe@arcor.de, Apr 24: 22.0.98  not starting on Solaris 10/I386
 
-** mathias.dahl@gmail.com, Apr 24: Tumme fails with default custom settings
-
 ** rgm@gnu.org, Apr 24: [Stephen.Berman@gmx.net: Re: redisplay]
   Gives test case for problem that a dialog box blocks redisplay.
 
