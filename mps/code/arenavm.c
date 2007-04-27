@@ -214,10 +214,19 @@ static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream)
    *
   */
 
-  res = WriteF(stream, "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n", NULL);
+  AVER(3 < VMArenaGenCount);
+  res = WriteF(stream,
+    "  blacklist:     $B\n", (WriteFB)vmArena->blacklist,
+    "  genZoneSet[0]: $B\n", (WriteFB)vmArena->genZoneSet[0],
+    "  genZoneSet[1]: $B\n", (WriteFB)vmArena->genZoneSet[1],
+    "  genZoneSet[2]: $B\n", (WriteFB)vmArena->genZoneSet[2],
+    "  genZoneSet[3]: $B\n", (WriteFB)vmArena->genZoneSet[3],
+    "  freeSet:       $B\n", (WriteFB)vmArena->freeSet,
+    NULL
+  );
   if (res != ResOK) return res;
 
-  /* @@@@ INCOMPLETE @@@@ */
+  /* (incomplete: some fields are not Described) */
 
   return ResOK;
 }
@@ -294,7 +303,6 @@ static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size)
   AVER(size > 0);
 
   DIAG_WRITEF(( DIAG_STREAM, "\n** VMChunkCreate $U\n", size, NULL ));
-
   DIAG( ArenaDescribe(VMArena2Arena(vmArena), DIAG_STREAM); );
 
   res = VMCreate(&vm, size);
