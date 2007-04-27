@@ -1,7 +1,7 @@
 2007-04-27  Henrik Enberg  <enberg@printf.se>
 
-	* rmailout.el (rmail-output): Don't bind
-	buffer-file-coding-system.
+	* rmailout.el (rmail-output): Bind buffer-file-coding-system even
+	when rmail-enable-mime is nil.
 
 	* rmail.el (rmail-perm-variables): Make sure rmail-desc-vector is
 	buffer local.
