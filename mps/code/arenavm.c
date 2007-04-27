@@ -207,12 +207,9 @@ static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream)
   /* ...but the next method is ArenaTrivDescribe, so don't call it;
    * see impl.c.arena#describe.triv.dont-upcall.
    *
-  {
-    ArenaClass super;
-    super = ARENA_SUPERCLASS(VMArenaClass);
-    res = super->describe(arena, stream);
-    if (res != ResOK) return res;
-  }
+  super = ARENA_SUPERCLASS(VMArenaClass);
+  res = super->describe(arena, stream);
+  if (res != ResOK) return res;
    *
   */
 
