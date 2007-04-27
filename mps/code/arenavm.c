@@ -301,9 +301,6 @@ static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size)
   AVERT(VMArena, vmArena);
   AVER(size > 0);
 
-  DIAG_WRITEF(( DIAG_STREAM, "\n** VMChunkCreate $U\n", size, NULL ));
-  DIAG( ArenaDescribe(VMArena2Arena(vmArena), DIAG_STREAM); );
-
   res = VMCreate(&vm, size);
   if (res != ResOK)
     goto failVMCreate;
@@ -1054,6 +1051,10 @@ static Res vmArenaExtend(VMArena vmArena, Size size)
   /* more than vmArena->extendBy (because there will be fewer than */
   /* size bytes free in the new chunk).  Fix this. */
   chunkSize = vmArena->extendBy + size;
+
+  DIAG_WRITEF(( DIAG_STREAM, "\n** vmArenaExtend $U\n", chunkSize, NULL ));
+  DIAG( ArenaDescribe(VMArena2Arena(vmArena), DIAG_STREAM); );
+
   res = VMChunkCreate(&newChunk, vmArena, chunkSize);
   /* .improve.chunk-create.fail: If we fail we could try again */
   /* (with a smaller size, say).  We don't do this. */
