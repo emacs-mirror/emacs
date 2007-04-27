@@ -343,8 +343,13 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
   res = (*arena->class->describe)(arena, stream);
   if (res != ResOK) return res;
 
+  /* Do not call GlobalsDescribe: it makes too much output, thanks.
+   * RHSK 2007-04-27
+   *
   res = GlobalsDescribe(ArenaGlobals(arena), stream);
   if (res != ResOK) return res;
+   *
+   */
 
   res = WriteF(stream,
                "} Arena $P ($U)\n", (WriteFP)arena,
