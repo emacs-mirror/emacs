@@ -1131,7 +1131,7 @@ Instead, these commands are available:
   (make-local-variable 'rmail-total-messages)
   (make-local-variable 'rmail-overlay-list)
   (setq rmail-overlay-list nil)
-  (make-local'variable 'rmail-desc-vector)
+  (make-local-variable 'rmail-desc-vector)
   (make-local-variable 'rmail-inbox-list)
   (setq rmail-inbox-list (rmail-get-file-inbox-list))
   ;; Provide default set of inboxes for primary mail file ~/RMAIL.
