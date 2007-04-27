@@ -54,13 +54,10 @@
 #define CONFIG_LOG
 
 #elif defined(CONFIG_VAR_II)    /* Ice, Internal; variety.ii (HotLog) */
-/* This WAS a hot logging variety.  Now it's a hot diagnostic variety
- * (non-logging), pro tem.  RHSK 2007-04-27.
- */
 #define CONFIG_ASSERT
 #define CHECKLEVEL_INITIAL CheckLevelMINIMAL
-#define CONFIG_DEBUG
-/* no telemetry log events */
+/* no debug diagnostic statistic meters */
+#define CONFIG_LOG
 #endif
 
 
