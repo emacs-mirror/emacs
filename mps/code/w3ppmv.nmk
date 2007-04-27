@@ -17,7 +17,7 @@ MPM = <ring> <mpm> <bt> <protocol> <boot> \
       <ref> <trace> <protw3> <prmcan> <shield> <vmw3> \
       <than> <ssan> <mpsi> <mpsiw3> <ld> <span> \
       <event> <seg> <sac> <poolmrg> <message> <dbgpool> <dbgpooli> \
-      <abq> <meter> <cbs> <poolmv2> <splay> <version>
+      <abq> <meter> <cbs> <poolmv2> <splay> <diag> <version>
 SW  = <ring> <mpm> <bt> <protocol> <boot> \
       <arenavm> <arenacl> <locus> <arena> <global> <tract> <reserv> \
       <pool> <poolabs> <poolmfs> <poolmv> \
@@ -26,7 +26,7 @@ SW  = <ring> <mpm> <bt> <protocol> <boot> \
       <than> <ssan> <mpsi> <ld> \
       <event> <seg> <sac> <poolmrg> <message> <mpsioan> \
       <poolams> <poolamsi> <dbgpool> <dbgpooli> \
-      <abq> <meter> <cbs> <poolmv2> <splay> <version> <poolmvff>
+      <abq> <meter> <cbs> <poolmv2> <splay> <diag> <version> <poolmvff>
 PLINTH = <mpsliban> <mpsioan>
 AMC = <poolamc>
 AMS = <poolams> <poolamsi>
