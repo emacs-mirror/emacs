@@ -934,29 +934,13 @@ extern void StackProbe(Size depth);
 #define STATISTIC_STAT(gather) BEGIN gather; END
 #define STATISTIC_WRITE(format, arg) (format), (arg),
 
-#elif defined(DIAGNOSTICS_NONE)
-
-#define STATISTIC(gather) DISCARD(((gather), 0))
-#define STATISTIC_STAT(gather) DISCARD_STAT(gather)
-#define STATISTIC_WRITE(format, arg)
-
-#else
-
-#error "No diagnostics configured."
-
-#endif
-
-/* Diagnostics */
-
+/* Diagnostic Calculation and Output */
 Bool DiagIsOn(void);
 mps_lib_FILE *DiagStream(void);
-
 #define DIAG_STREAM (DiagStream())
-
 #define DIAG(s) BEGIN \
     s \
   END
-
 /*
  * Note the macro argument args should have parens around it (in the
  * invocation); it is a variable number of arguments that we pass
@@ -968,6 +952,22 @@ mps_lib_FILE *DiagStream(void);
     WriteF args; \
   } \
 )
+
+#elif defined(DIAGNOSTICS_NONE)
+
+#define STATISTIC(gather) DISCARD(((gather), 0))
+#define STATISTIC_STAT(gather) DISCARD_STAT(gather)
+#define STATISTIC_WRITE(format, arg)
+
+/* Diagnostic Calculation and Output */
+#define DIAG(s) BEGIN END
+#define DIAG_WRITEF(args) BEGIN END
+
+#else
+
+#error "No diagnostics configured."
+
+#endif
 
 
 #endif /* mpm_h */
