@@ -12,6 +12,7 @@ nmake /f w3i3mv.nmk VARIETY=he mps.lib mpsplan.lib mpsplcb.lib mpsdy.dll
 nmake /f w3i3mv.nmk VARIETY=hi mps.lib mpsplan.lib mpsplcb.lib mpsdy.dll
 nmake /f w3i3mv.nmk VARIETY=ce mps.lib mpsplan.lib mpsplcb.lib mpsdy.dll
 nmake /f w3i3mv.nmk VARIETY=ci mps.lib mpsplan.lib mpsplcb.lib mpsdy.dll
+nmake /f w3i3mv.nmk VARIETY=ii mps.lib mpsplan.lib mpsplcb.lib mpsdy.dll
 mkdir release
 mkdir release\include
 mkdir release\lib
@@ -22,6 +23,7 @@ mkdir release\lib\w3i3\ce
 mkdir release\lib\w3i3\wi
 mkdir release\lib\w3i3\hi
 mkdir release\lib\w3i3\ci
+mkdir release\lib\w3i3\ii
 mkdir release\src
 copy mps.h release\include
 copy mpsavm.h release\include
@@ -39,6 +41,7 @@ copy mpslibcb.h release\include
 copy mpstd.h release\include
 copy mpsw3.h release\include
 copy mpswin.h release\include
+
 copy w3i3mv\we\mps.lib release\lib\w3i3\we
 copy w3i3mv\he\mps.lib release\lib\w3i3\he
 copy w3i3mv\ce\mps.lib release\lib\w3i3\ce
@@ -54,20 +57,27 @@ copy w3i3mv\ce\mpsdy.dll release\lib\w3i3\ce
 copy w3i3mv\we\mpsdy.lib release\lib\w3i3\we
 copy w3i3mv\he\mpsdy.lib release\lib\w3i3\he
 copy w3i3mv\ce\mpsdy.lib release\lib\w3i3\ce
+
 copy w3i3mv\wi\mps.lib release\lib\w3i3\wi
 copy w3i3mv\hi\mps.lib release\lib\w3i3\hi
 copy w3i3mv\ci\mps.lib release\lib\w3i3\ci
+copy w3i3mv\ii\mps.lib release\lib\w3i3\ii
 copy w3i3mv\wi\mpsplan.lib release\lib\w3i3\wi
 copy w3i3mv\hi\mpsplan.lib release\lib\w3i3\hi
 copy w3i3mv\ci\mpsplan.lib release\lib\w3i3\ci
+copy w3i3mv\ii\mpsplan.lib release\lib\w3i3\ii
 copy w3i3mv\wi\mpsplcb.lib release\lib\w3i3\wi
 copy w3i3mv\hi\mpsplcb.lib release\lib\w3i3\hi
 copy w3i3mv\ci\mpsplcb.lib release\lib\w3i3\ci
+copy w3i3mv\ii\mpsplcb.lib release\lib\w3i3\ii
 copy w3i3mv\wi\mpsdy.dll release\lib\w3i3\wi
 copy w3i3mv\hi\mpsdy.dll release\lib\w3i3\hi
 copy w3i3mv\ci\mpsdy.dll release\lib\w3i3\ci
+copy w3i3mv\ii\mpsdy.dll release\lib\w3i3\ii
 copy w3i3mv\wi\mpsdy.lib release\lib\w3i3\wi
 copy w3i3mv\hi\mpsdy.lib release\lib\w3i3\hi
 copy w3i3mv\ci\mpsdy.lib release\lib\w3i3\ci
+copy w3i3mv\ii\mpsdy.lib release\lib\w3i3\ii
+
 copy mpsliban.c release\src
 copy mpsioan.c release\src
