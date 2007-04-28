@@ -1,3 +1,7 @@
+2007-04-28  Richard Stallman  <rms@gnu.org>
+
+	* files.texi (File Names): Fixes to ~ description on MS systems.
+
 2007-04-28  Karl Berry  <karl@gnu.org>
 
 	* emacs.texi: Improve line breaks on copyright page,
