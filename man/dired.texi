@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
+@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001, 2007,
 @c   2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Dired, Calendar/Diary, Rmail, Top
@@ -1196,17 +1196,17 @@ buffer containing image-dired, corresponding to the marked files.
 
   You can also enter Image-Dired directly by typing @kbd{M-x
 image-dired}.  This prompts for a directory; specify one that has
-images files.  This creates thumbnails for all the images in that
+image files.  This creates thumbnails for all the images in that
 directory, and displays them all in the ``thumbnail buffer.''  This
 takes a long time if the directory contains many image files, and it
 asks for confirmation if the number of image files exceeds
 @code{image-dired-show-all-from-dir-max-files}.
 
-  With point in the thumbnail buffer, type @kbd{RET}
+  With point in the thumbnail buffer, you can type @kbd{RET}
 (@code{image-dired-display-thumbnail-original-image}) to display a
 sized version of it in another window.  This sizes the image to fit
 the window.  Use the arrow keys to move around in the buffer.  For
-easy browsing, type @kbd{SPC}
+easy browsing, use @kbd{SPC}
 (@code{image-dired-display-next-thumbnail-original}) to advance and
 display the next image.  Typing @kbd{DEL}
 (@code{image-dired-display-previous-thumbnail-original}) backs up to
