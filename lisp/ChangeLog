@@ -1,5 +1,8 @@
 2007-04-28  Eli Zaretskii  <eliz@gnu.org>
 
+	* makefile.w32-in ($(lisp)/mh-e/mh-loaddefs.el): Use ./mh-e
+	instead of $(lisp)/mh-e.
+
 	* textmodes/fill.el (fill-paragraph): Doc fix.
 
 2007-04-28  Glenn Morris  <rgm@gnu.org>
