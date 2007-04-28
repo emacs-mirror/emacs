@@ -3465,6 +3465,17 @@ display tables.
 
 ** General Lisp changes:
 
+*** The escape sequence \s now stands for the SPACE character.
+
+`?\s' is a new way to write the space character.  You must make sure
+it is not followed by a dash, since `?\s-...' indicates the "super"
+modifier.  However, it would be strange to write a character constant
+and a following symbol (beginning with `-') with no space between
+them.
+
+`\s' stands for space in strings, too, but it is not really meant for
+strings; it is easier and nicer just to write a space.
+
 *** The function `expt' handles negative exponents differently.
 The value for `(expt A B)', if both A and B are integers and B is
 negative, is now a float.  For example: (expt 2 -2) => 0.25.
@@ -3673,17 +3684,6 @@ variable `customize-package-emacs-version-alist'.
 *** The new customization type `float' requires a floating point number.
 
 ** String changes:
-
-*** The escape sequence \s now stands for the SPACE character.
-
-`?\s' is a new way to write the space character.  You must make sure
-it is not followed by a dash, since `?\s-...' indicates the "super"
-modifier.  However, it would be strange to write a character constant
-and a following symbol (beginning with `-') with no space between
-them.
-
-`\s' stands for space in strings, too, but it is not really meant for
-strings; it is easier and nicer just to write a space.
 
 *** A hex escape in a string constant forces the string to be multibyte.
 
