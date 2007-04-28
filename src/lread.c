@@ -1894,7 +1894,7 @@ read_escape (readcharfun, stringp, byterep)
 
     case 's':
       c = READCHAR;
-      if (c != '-')
+      if (stringp || c != '-')
 	{
 	  UNREAD (c);
 	  return ' ';
