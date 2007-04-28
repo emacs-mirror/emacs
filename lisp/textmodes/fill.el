@@ -748,7 +748,9 @@ space does not end a sentence, so don't break a line there."
     (fill-paragraph arg)))
 
 (defun fill-paragraph (arg)
-  "Fill paragraph at or after point.  Prefix ARG means justify as well.
+  "Fill paragraph at or after point.
+
+If ARG is non-nil (interactively, with prefix argument), justify as well.
 If `sentence-end-double-space' is non-nil, then period followed by one
 space does not end a sentence, so don't break a line there.
 the variable `fill-column' controls the width for filling.
