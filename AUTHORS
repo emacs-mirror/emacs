@@ -456,9 +456,10 @@ Dave Lambert: changed sol2-5.h xfns.c xterm.c xterm.h
 
 Dave Love: wrote autoarg.el autoconf.el benchmark.el cfengine.el
   code-pages.el elide-head.el georgian.el hl-line.el latin-8.el
-  latin-9.el latin1-disp.el refill.el rfc1345.el sgml-input.el smiley.el
-  subst-big5.el subst-gb2312.el subst-jis.el subst-ksc.el tool-bar.el
-  ucs-tables.el uni-input.el utf-16.el utf-7.el utf-8-lang.el welsh.el
+  latin-9.el latin1-disp.el python.el refill.el rfc1345.el
+  sgml-input.el smiley.el subst-big5.el subst-gb2312.el subst-jis.el
+  subst-ksc.el tool-bar.el ucs-tables.el uni-input.el utf-16.el
+  utf-7.el utf-8-lang.el welsh.el
 and changed configure.in Makefile.in help.el fortran.el browse-url.el
   mule-cmds.el simple.el xterm.c cus-edit.el files.el info.el mule.el
   wid-edit.el fns.c vc.el rfc2047.el bindings.el cus-start.el buffer.c
