@@ -69,7 +69,8 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00951.html
 http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg01452.html
   this is probably an issue for autoconf, rather than Emacs
 
-** C mode fontification took 50 seconds [rms, emacs-devel, Apr 28]
+** C mode fontification took 50 seconds
+http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg01460.html
 
 * DOCUMENTATION
 
