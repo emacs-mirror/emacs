@@ -1,3 +1,7 @@
+2007-04-28  Richard Stallman  <rms@gnu.org>
+
+	* progmodes/sh-script.el (sh-mode): Recognize .profile as sh style.
+
 2007-04-28  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-menu-map): Pdb can't handle SIGINT so
