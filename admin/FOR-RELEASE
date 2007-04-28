@@ -57,8 +57,6 @@ OpenBSD compilation works on i386.
 
 ** Spurious redisplay bug not fixed.
 
-** mituharu@math.s.chiba-u.ac.jp, Apr 25: Cursors in fringe not redrawn by expose events.
-
 ** hiroshi.fujishima@gmail.com, Apr 27: emacs-22.0.99 configure problem
 
 * DOCUMENTATION
