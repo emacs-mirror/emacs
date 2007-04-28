@@ -1,3 +1,10 @@
+2007-04-28  Karl Berry  <karl@gnu.org>
+
+	* emacs.texi: Improve line breaks on copyright page,
+	similar layout to lispref, 8.5x11 by default.
+
+	* dired.texi (Image-Dired): Improve line break, fix typo.
+
 2007-04-27  J.D. Smith  <jdsmith@as.arizona.edu>
 
 	* idlwave.texi: Minor updates for IDLWAVE 6.1.

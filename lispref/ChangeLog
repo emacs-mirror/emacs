@@ -1,3 +1,8 @@
+2007-04-28  Karl Berry  <karl@gnu.org>
+
+	* elisp.texi: Improve line breaks on copyright page,
+	similar layout to emacs manual, 8.5x11 by default.
+
 2007-04-24  Richard Stallman  <rms@gnu.org>
 
 	* text.texi (Special Properties): Add xref to Overlay Properties.
