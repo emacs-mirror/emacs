@@ -298,13 +298,13 @@ or more of these options:
   --without-png        for PNG image support
 
 Use --without-toolkit-scroll-bars to disable LessTif/Motif or Xaw3d
-scroll bars.  
+scroll bars.
 
 Use --without-xim to inhibit the default use of X Input Methods.  In
 this case, the X resource useXIM can be used to turn on use of XIM.
 
 Use --disable-largefile omits support for files larger than 2GB on
-systems which support that.  
+systems which support that.
 
 Use --without-sound to disable sound support.
 
@@ -384,10 +384,10 @@ to look in `/bar/mylib' for libraries, pass the -O3 optimization
 switch to the compiler, and link against libfoo.a and libbar.a
 libraries in addition to the standard ones.
 
-For some libraries, like Gtk+, fontconfig and ALSA, `configure' use 
-pkg-config to find where those libraries are installed. 
-If you want pkg-config to look in special directories, you have to set 
-the environment variable PKG_CONFIG_PATH to point to the directories 
+For some libraries, like Gtk+, fontconfig and ALSA, `configure' use
+pkg-config to find where those libraries are installed.
+If you want pkg-config to look in special directories, you have to set
+the environment variable PKG_CONFIG_PATH to point to the directories
 where the .pc-files for those libraries are.
 For example:
 

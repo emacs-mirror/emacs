@@ -50,6 +50,15 @@ OpenBSD compilation works on i386.
 ** angeli@caeruleus.net, April 23: Excessive refontification when setting
 	jit-lock-context-unfontify-pos
 
+** michael.ewe@arcor.de, Apr 24: 22.0.98  not starting on Solaris 10/I386
+
+** rgm@gnu.org, Apr 24: [Stephen.Berman@gmx.net: Re: redisplay]
+  Gives test case for problem that a dialog box blocks redisplay.
+
+** Spurious redisplay bug not fixed.
+
+** mituharu@math.s.chiba-u.ac.jp, Apr 25: Cursors in fringe not redrawn by expose events.
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.

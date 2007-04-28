@@ -124,7 +124,7 @@ calls."
   :type '(repeat symbol)
   :group 'hi-lock)
 
-(defcustom hi-lock-file-patterns-policy 'never
+(defcustom hi-lock-file-patterns-policy 'ask
   "Specify when hi-lock should use patterns found in file.
 If `ask', prompt when patterns found in buffer; if bound to a function,
 use patterns when function returns t (function is called with patterns

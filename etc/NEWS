@@ -31,7 +31,11 @@ older packages.
 Some specific packages that are known to cause problems are:
 
 ** Semantic (used by CEDET, ECB, JDEE): upgrade to latest version.
+
 ** cua.el, cua-mode.el: remove old versions.
+
+** python-mode.el: Use python.el, available at
+   http://www.emacswiki.org/cgi-bin/wiki/PythonMode
 
 
 * Installation Changes in Emacs 22.1
@@ -1769,8 +1773,6 @@ section { }).  Many files under /etc/, or with suffixes like .cf through
 recognized.
 
 ** GDB-Script-mode is used for files like .gdbinit.
-
-** The new python.el package is used to edit Python and Jython programs.
 
 ** The TCL package tcl-mode.el was replaced by tcl.el.
 This was actually done in Emacs-21.1, and was not documented.

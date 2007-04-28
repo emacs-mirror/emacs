@@ -22,6 +22,10 @@
 
 	* version.el (emacs-version): Increase to 22.1.50.
 
+2007-04-25  Richard Stallman  <rms@gnu.org>
+
+	* hi-lock.el (hi-lock-file-patterns-policy): Default to `ask'.
+
 2007-04-25  J.D. Smith  <jdsmith@as.arizona.edu>
 
 	* progmodes/idlwave.el (idlwave-beginning-of-subprogram)
