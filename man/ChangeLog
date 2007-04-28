@@ -1,3 +1,8 @@
+2007-04-28  Glenn Morris  <rgm@gnu.org>
+
+	* programs.texi (Program Modes): Restore mention of python.el pending
+	consideration of legal status.
+
 2007-04-28  Richard Stallman  <rms@gnu.org>
 
 	* files.texi (File Names): Fixes to ~ description on MS systems.
