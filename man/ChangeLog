@@ -1,7 +1,7 @@
 2007-04-28  Glenn Morris  <rgm@gnu.org>
 
-	* ack.texi (Acknowledgments): Restore mention of python.el pending
-	consideration of legal status.
+	* ack.texi (Acknowledgments):
+	* anti.texi (Antinews):
 	* programs.texi (Program Modes): Restore mention of python.el pending
 	consideration of legal status.
 
