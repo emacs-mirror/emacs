@@ -1,3 +1,8 @@
+2007-04-28  David R. Linn  <drl@jekyll.vuse.vanderbilt.edu>
+
+	* PROBLEMS: Add section on Solaris out-of-tree install issues with
+	non-GNU make.
+
 2007-04-25  Werner Lemberg  <wl@gnu.org>
 
 	* emacs.1: Replace -- with \(em.
