@@ -669,7 +669,7 @@ locate database using the shell command in `locate-update-command'."
 
 ;; Only for GNU locate
 (defun locate-in-alternate-database  (search-string database)
-  "Run the GNU locate command, using an alternate database.
+  "Run the GNU locate program, using an alternate database.
 
 This command only works if you use GNU locate.  It does not work
 properly if `locate-prompt-for-command' is set to t.  In that
