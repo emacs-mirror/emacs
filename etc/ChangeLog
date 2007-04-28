@@ -1,3 +1,10 @@
+2007-04-28  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.py: Restore file pending consideration of python.el legal
+	status.
+	* NEWS: Restore mention of python.el pending consideration of
+	legal status.
+
 2007-04-28  David R. Linn  <drl@jekyll.vuse.vanderbilt.edu>
 
 	* PROBLEMS: Add section on Solaris out-of-tree install issues with
