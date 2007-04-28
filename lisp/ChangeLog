@@ -1,3 +1,9 @@
+2007-04-28  Glenn Morris  <rgm@gnu.org>
+
+	* image-dired.el (image-dired-cmd-create-thumbnail-options)
+	(image-dired-cmd-create-temp-image-options): Replace option
+	+profile "*" with -strip.
+
 2007-04-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* textmodes/flyspell.el (flyspell-auto-correct-previous-word): Use
