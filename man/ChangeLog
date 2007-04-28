@@ -1,3 +1,7 @@
+2007-04-28  Richard Stallman  <rms@gnu.org>
+
+	* files.texi (File Names): Fixes to ~ description on MS systems.
+
 2007-04-27  J.D. Smith  <jdsmith@as.arizona.edu>
 
 	* idlwave.texi: Minor updates for IDLWAVE 6.1.
