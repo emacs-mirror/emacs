@@ -1,3 +1,7 @@
+2007-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-ignore-dir-regexp): Add /.../ for the DFS filesystem.
+
 2007-04-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in ($(lisp)/mh-e/mh-loaddefs.el): Use ./mh-e
@@ -13,8 +17,8 @@
 
 2007-04-27  Chong Yidong  <cyd@stupidchicken.com>
 
-	* textmodes/flyspell.el (flyspell-auto-correct-previous-word): Use
-	window-start and window-end.
+	* textmodes/flyspell.el (flyspell-auto-correct-previous-word):
+	Use window-start and window-end.
 
 2007-04-26  Glenn Morris  <rgm@gnu.org>
 
@@ -43,9 +47,8 @@
 
 2007-04-25  Mathias Dahl  <mathias.dahl@gmail.com>
 
-	* image-dired.el (image-dired-display-image): Derive image-type
-	from filename rather than assuming jpeg, in case no resizing was
-	needed.
+	* image-dired.el (image-dired-display-image): Derive image-type from
+	filename rather than assuming jpeg, in case no resizing was needed.
 
 2007-04-25  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
@@ -57,12 +60,11 @@
 
 2007-04-24  J.D. Smith  <jdsmith@as.arizona.edu>
 
-	* progmodes/idlw-shell.el (idlwave-shell-clear-all-bp): Don't
-	re-query for each cleared BP.
+	* progmodes/idlw-shell.el (idlwave-shell-clear-all-bp):
+	Don't re-query for each cleared BP.
 	(idlwave-shell-clear-bp): Optionally skip BP query.
-	(idlwave-shell-update-bp-overlays): Use set-window-margins
-	instead of set-window-buffer, which incorrectly moves displayed
-	region.
+	(idlwave-shell-update-bp-overlays): Use set-window-margins instead
+	of set-window-buffer, which incorrectly moves displayed region.
 
 2007-04-23  Jay Belanger  <jay.p.belanger@gmail.com>
 
@@ -76,8 +78,8 @@
 
 2007-04-23  Chong Yidong  <cyd@stupidchicken.com>
 
-	* info.el (Info-mouse-scroll-up, Info-mouse-scroll-down): New
-	functions.
+	* info.el (Info-mouse-scroll-up, Info-mouse-scroll-down):
+	New functions.
 	(Info-mode-line-node-keymap): Bind mouse commands to
 	Info-mouse-scroll-up/down instead of Info-scroll-up/down.
 
@@ -88,8 +90,8 @@
 	(locate-prompt-for-search-string): New function.
 	(locate): New optional arg.  Make locate-local-prompt
 	buffer-local.  Use locate-prompt-for-search-string.
-	(locate-with-filter): New optional arg.  Use
-	locate-prompt-for-search-string.
+	(locate-with-filter): New optional arg.
+	Use locate-prompt-for-search-string.
 	(locate-update): Bind locate-prompt-for-command.
 
 2007-04-23  Glenn Morris  <rgm@gnu.org>
@@ -172,8 +174,8 @@
 	* progmodes/vhdl-mode.el (vhdl-template-type)
 	(vhdl-template-record, vhdl-template-nature)
 	(vhdl-template-configuration-spec, vhdl-template-component-inst)
-	(vhdl-template-break, vhdl-regress-line, vhdl-electric-tab): Use
-	delete-region instead of kill-word and kill-line.
+	(vhdl-template-break, vhdl-regress-line, vhdl-electric-tab):
+	Use delete-region instead of kill-word and kill-line.
 
 2007-04-21  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
