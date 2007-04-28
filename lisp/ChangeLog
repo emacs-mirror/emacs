@@ -1,3 +1,8 @@
+2007-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cc-mode.el (c-before-change): Use point-min rather
+	than 1.
+
 2007-04-28  Richard Stallman  <rms@gnu.org>
 
 	* progmodes/sh-script.el (sh-mode): Recognize .profile as sh style.
