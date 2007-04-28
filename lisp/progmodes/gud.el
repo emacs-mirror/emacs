@@ -152,7 +152,7 @@ Used to grey out relevant toolbar icons.")
 		  :visible (and (not gud-running)
 				(eq gud-minor-mode 'gdba)))
     ([stop]	menu-item "Stop" gud-stop-subjob
-		  :visible (or (not (eq gud-minor-mode 'gdba))
+		  :visible (or (not (memq gud-minor-mode '(gdba pdb)))
 			       (and gud-running
 				    (eq gud-minor-mode 'gdba))))
     ([until]	menu-item "Continue to selection" gud-until
