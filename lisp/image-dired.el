@@ -228,7 +228,7 @@ Used together with `image-dired-cmd-create-thumbnail-options'."
   :group 'image-dired)
 
 (defcustom image-dired-cmd-create-thumbnail-options
-  "%p -size %wx%h \"%f\" -resize %wx%h +profile \"*\" jpeg:\"%t\""
+  "%p -size %wx%h \"%f\" -resize %wx%h -strip jpeg:\"%t\""
   "Format of command used to create thumbnail image.
 Available options are %p which is replaced by
 `image-dired-cmd-create-thumbnail-program', %w which is replaced by
@@ -246,7 +246,7 @@ Used together with `image-dired-cmd-create-temp-image-options'."
   :group 'image-dired)
 
 (defcustom image-dired-cmd-create-temp-image-options
-  "%p -size %wx%h \"%f\" -resize %wx%h +profile \"*\" jpeg:\"%t\""
+  "%p -size %wx%h \"%f\" -resize %wx%h -strip jpeg:\"%t\""
   "Format of command used to create temporary image for display window.
 Available options are %p which is replaced by
 `image-dired-cmd-create-temp-image-program', %w and %h which is replaced by
