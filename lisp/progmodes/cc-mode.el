@@ -522,7 +522,7 @@ preferably use the `c-mode-menu' language constant directly."
 	    (setq lim (max (point-min) (1- (point))))
 
 	    ;; Look for the latest `c-type' property before end1
-	    (when (and (> end1 1)
+	    (when (and (> end1 (point-min))
 		       (setq type-pos
 			     (if (get-text-property (1- end1) 'c-type)
 				 end1
