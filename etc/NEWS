@@ -3465,7 +3465,7 @@ display tables.
 
 ** General Lisp changes:
 
-*** The escape sequence \s now stands for the SPACE character.
+*** New syntax: \s now stands for the SPACE character.
 
 `?\s' is a new way to write the space character.  You must make sure
 it is not followed by a dash, since `?\s-...' indicates the "super"
@@ -3475,6 +3475,15 @@ them.
 
 `\s' stands for space in strings, too, but it is not really meant for
 strings; it is easier and nicer just to write a space.
+
+*** New syntax: \uXXXX and \UXXXXXXXX specify Unicode code points in hex.
+
+For instance, you can use "\u0428" to specify a string consisting of
+CYRILLIC CAPITAL LETTER SHA, or `"U0001D6E2" to specify one consisting
+of MATHEMATICAL ITALIC CAPITAL ALPHA (the latter is greater than
+#xFFFF and thus needs the longer syntax).
+
+This syntax works for both character constants and strings.
 
 *** The function `expt' handles negative exponents differently.
 The value for `(expt A B)', if both A and B are integers and B is
@@ -3704,12 +3713,6 @@ text properties.
 *** The new function `assoc-string' replaces `assoc-ignore-case' and
 `assoc-ignore-representation', which are still available, but have
 been declared obsolete.
-
-*** New syntax: \uXXXX and \UXXXXXXXX specify Unicode code points in hex.
-Use "\u0428" to specify a string consisting of CYRILLIC CAPITAL LETTER SHA,
-or "\U0001D6E2" to specify one consisting of MATHEMATICAL ITALIC CAPITAL
-ALPHA (the latter is greater than #xFFFF and thus needs the longer
-syntax).  Also available for characters.
 
 ** Displaying warnings to the user.
 

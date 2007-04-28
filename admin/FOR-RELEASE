@@ -59,6 +59,8 @@ OpenBSD compilation works on i386.
 
 ** hiroshi.fujishima@gmail.com, Apr 27: emacs-22.0.99 configure problem
 
+** C mode fontification took 50 seconds
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
