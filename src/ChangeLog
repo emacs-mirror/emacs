@@ -1,3 +1,7 @@
+2007-04-29  Andreas Schwab  <schwab@suse.de>
+
+	* lisp.h (VECSIZE): Use OFFSETOF.
+
 2007-04-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* xdisp.c (try_window_reusing_current_matrix): Fix number of
