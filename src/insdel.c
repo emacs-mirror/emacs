@@ -1603,8 +1603,12 @@ replace_range (from, to, new, prepare, inherit, markers)
 
   if (! EQ (current_buffer->undo_list, Qt))
     {
+      /* Record the insertion first, so that when we undo,
+	 the deletion will be undone first.  Thus, undo
+	 will insert before deleting, and thus will keep
+	 the markers before and after this text separate.  */
+      record_insert (from + SCHARS (deletion), inschars);
       record_delete (from, deletion);
-      record_insert (from, inschars);
     }
 
   GAP_SIZE -= outgoing_insbytes;
