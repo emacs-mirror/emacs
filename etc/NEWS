@@ -3463,25 +3463,6 @@ display tables.
 * Lisp Changes in Emacs 22.1
 
 ** General Lisp changes:
-*** New syntax: \s now stands for the SPACE character.
-
-`?\s' is a new way to write the space character.  You must make sure
-it is not followed by a dash, since `?\s-...' indicates the "super"
-modifier.  However, it would be strange to write a character constant
-and a following symbol (beginning with `-') with no space between
-them.
-
-`\s' stands for space in strings, too, but it is not really meant for
-strings; it is easier and nicer just to write a space.
-
-*** New syntax: \uXXXX and \UXXXXXXXX specify Unicode code points in hex.
-
-For instance, you can use "\u0428" to specify a string consisting of
-CYRILLIC CAPITAL LETTER SHA, or `"U0001D6E2" to specify one consisting
-of MATHEMATICAL ITALIC CAPITAL ALPHA (the latter is greater than
-#xFFFF and thus needs the longer syntax).
-
-This syntax works for both character constants and strings.
 
 *** New syntax: \s now stands for the SPACE character.
 
