@@ -1,3 +1,8 @@
+2007-04-29  Andreas Schwab  <schwab@suse.de>
+
+	* lread.c (read1): Use CHAR_TABLE_STANDARD_SLOTS to validate
+	char-table size.
+
 2007-04-26  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (check_otf_features): Define it regardless of
