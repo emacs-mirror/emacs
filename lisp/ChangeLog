@@ -1,3 +1,7 @@
+2007-04-29  Richard Stallman  <rms@gnu.org>
+
+	* international/mule.el (auto-coding-alist): Add pdf => no-conversion.
+
 2007-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/cc-mode.el (c-before-change): Use point-min rather
