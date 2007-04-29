@@ -27,7 +27,7 @@ Reminders sent out on 2006-06-08.
 These don't need to be fixed before a release, but we call the
 attention of Windows users to fixing them.
 
-** Drew Adams 12 Aug bug rpt: overlay  display artifact: trace left behind
+** Drew Adams 12 Aug bug rpt: overlay display artifact: trace left behind
 Windows only bug. Bug appears only when Cleartype enabled, probably related
 to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
@@ -38,6 +38,38 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 See the copy of this file on the EMACS_22_BASE branch.
 
+** rcyeske@gmail.com, April 22: Failure to build on OpenBSD macppc.
+OpenBSD compilation works on i386.
+http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00932.html
+
+** bojohan+news@dd.chalmers.se, April 23: delete-overlay causes recentering
+(This is now the same as the spurious scrolling bug.)
+http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00514.html
+
+** Spurious redisplay bug not fixed.
+http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00443.html
+http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00732.html
+
+** finish fixing locate.el
+http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-04/msg00437.html
+
+** angeli@caeruleus.net, April 23: Excessive refontification when setting
+  jit-lock-context-unfontify-pos
+http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00993.html
+
+** michael.ewe@arcor.de, Apr 24: 22.0.98  not starting on Solaris 10/I386
+http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg01113.html
+
+** rgm@gnu.org, Apr 24: [Stephen.Berman@gmx.net: Re: redisplay]
+  Gives test case for problem that a dialog box blocks redisplay.
+http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00951.html
+
+** hiroshi.fujishima@gmail.com, Apr 27: emacs-22.0.99 configure problem
+http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg01452.html
+  this is probably an issue for autoconf, rather than Emacs
+
+** C mode fontification took 50 seconds
+http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg01460.html
 
 * DOCUMENTATION
 

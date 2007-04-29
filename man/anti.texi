@@ -278,7 +278,7 @@ tries to demonstrate this in the GUD buffer.
 @item
 The Calc, CUA, Ibuffer, Ido, Password, Printing, Reveal,
 Ruler-mode, SES, Table, Tramp, and URL packages have been removed.
-The Benchmark, Cfengine, Conf, Dns, Flymake, Pythno, Thumbs, and
+The Benchmark, Cfengine, Conf, Dns, Flymake, Python, Thumbs, and
 Wdired modes have also been removed.
 
 @item
