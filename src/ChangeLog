@@ -1,3 +1,8 @@
+2007-04-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (try_window_reusing_current_matrix): Fix number of
+	disabled lines.
+
 2007-04-28  Richard Stallman  <rms@gnu.org>
 
 	* lread.c (read_escape): In a string, \s is always space.
