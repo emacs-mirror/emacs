@@ -72,7 +72,7 @@ instead."
 	  (let ((start (match-beginning 0)))
 	    (re-search-forward "\n[^ \t]")
 	    (goto-char limit)
-	    (kill-region start (1+ (match-beginning 0))))
+	    (delete-region start (1+ (match-beginning 0))))
 	(goto-char limit))
       (when (> (length value) 0)
 	(insert header ": " value "\n")))))
