@@ -3,27 +3,36 @@ RHSK's AMC Seg state diagram.
 
 This diagram is slightly over-simplified; see .simplify.* below.
 
-STATES
-------
+DIAGRAM
+-------
+
+mBf  >|traceStart|>   [goto mBf]
+       uncondemned
+
+mBf  >|traceStart|>   [goto mGf]
+       greyen
+
 
 mBn
 mBs  >|traceStart|>     mBs
-mBf              |>   [goto mBf]
-
-         //  m0n  ..alloc..>  mBn  ..alloc..>  mB
+mB     uncondemned      mB
 
 
-     >|traceStart|>     mGs   ==[1a]==>   mBs
-       greyen    |>     mG    ==[1b]==>   mB
-                 |   ^detach**^        ^detach**^
-                 |>     mGf   ==[1c+]==>  mBf
+           //  m0n  ..alloc..>  mBn  ..alloc..>  mB
+
+mBn
+mBs  >|traceStart|>     mGs   ==[1a]==>   mBs
+mB     greyen    |>     mG    ==[1b]==>   mB
+                     ^detach**^        ^detach**^
+                        mGf   ==[1c+]==>  mBf
                       /        <fwd-to<
                   fwd-to
                   /
            //  m0f
 
-
-     >|traceStart|>      mW*Fs
+mBf
+mBn
+mBs  >|traceStart|>      mW*Fs
        whiten
                            --(A)-->   bGW*Fs ==[2]==>    bBW*Fs
                                              ==[2et+]=>
@@ -32,10 +41,10 @@ mBf              |>   [goto mBf]
    
                            --(et)-->  sGFs   ==[3]==>   sBFs
 
-KEY AND DISCUSSION
-------------------
+STATES
+------
 
-Seg states:
+AMC segment modes:
   m : mobile
   b : boarded (a nailboard has been allocated)
   s : stuck (SegNailed, but we can't allocate a nailboard)
@@ -54,14 +63,11 @@ Buffers:
 
   When a buffer detaches, it is replaced by a pad object (I think).  If the mutator is between reserve and commit, the collector cannot detach the stalo buffer.  Therefore any old (pre-flip) segment may have stale mutator buffer, which will never advance (init may, but the scanner must respect initAtFlip).  However, with threads, it could (I think) detach during scan of a segment.  This should be easy for scanners to cope with, because it is replaced by a pad, which may be scanned or not with no effect.
 
-General transitions:
- >traceStart>  : state change on TraceStart()
- //            : segment created post-flip
- ..alloc..>    : mutator allocates
- >fwd-to>      : objects forwarded to forwarding buffer
- ^detach**^    : forwarding causes buffer to detach, perhaps while scanning this seg
 
-Scans:
+TRANSITIONS
+-----------
+
+Scan:
  ==[]==>  : scan (G->B transition happens after scan is complete)
  .no-transition: no transition can happen *during* the scan (except for buffer-detach, see [1c+])
 
@@ -82,9 +88,35 @@ Reencounter fix:  (referent object FGB has already been preserved)
             (we should AVER this is not via Ambiguous ref!)
  GB       : do nothing
 
-Fix is trivial if seg has neither W nor F.  Discovering or reencountering never changes the referent object's segment's summary (but if it forwards, this changes the summary of the segment the forwarding buffer is on).
+Forward objects into:
+ >fwd-to>      : objects forwarded into forwarding buffer on this seg
 
-Can these fixes happen in the seg we are scanning?  Yes:
+Other transitions:
+ >traceStart>  : state change on TraceStart()
+ //            : segment created post-flip
+ ..alloc..>    : mutator allocates
+ ^detach**^    : forwarding causes buffer to detach, perhaps while scanning this seg
+
+
+THE THREE ROLES
+---------------
+
+During the main part of a trace, the three possible roles for a segment are:
+  - being scanned;
+  - holding the referent object ('being fixed');
+  - receiving the forwarded object.
+
+Scanning changes the segment summary.
+
+Fixing does not change the referent object's segment's summary.
+
+Forwarding changes the receiving segment's summary.
+
+
+SIMULTANEOUS ROLES
+------------------
+
+Can fixes happen in the seg we are scanning?  Yes:
 
   - discovery fix:  (referent object W in this seg must be preserved)
     So only in [2] and [2et+]:
@@ -99,6 +131,8 @@ Can these fixes happen in the seg we are scanning?  Yes:
      -- GB, the fix is trivial, and does not affect scan or summary.
 
   - can a fix cause a transition?  No: see .no-transition.
+
+Can objects be forwarded into the seg we are scanning?  Yes: see scan [1c+].
 
 
 TRUE STATEMENTS
@@ -131,4 +165,6 @@ HISTORY
                     analyse discovery and reencounter fixes.
   2007-03-23  RHSK  Complete note on stale mutator buffers.  Fixes don't 
                     change summary, but forwarding does in [1c+].
+  2007-04-30  RHSK  Show both fwdbuf-survives transitions as [goto].
+                    Describe three roles for a segment.
 --end--
