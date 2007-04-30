@@ -1,3 +1,8 @@
+2007-04-30  Henrik Enberg  <enberg@printf.se>
+
+	* rmailhdr.el (rmail-header-add-header): Use delete-region instead
+	of kill-region.
+
 2007-04-27  Henrik Enberg  <enberg@printf.se>
 
 	* rmailout.el (rmail-output): Bind buffer-file-coding-system even
