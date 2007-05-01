@@ -56,8 +56,10 @@
 ;; (erc-capab-identify-mode 1)
 
 ;; `erc-capab-identify-prefix' will now be added to the beginning of
-;; unidentified users' nicknames.  The default is an asterisk, "*".  If
-;; the value of this variable is nil or you disable this module (see
+;; unidentified users' nicknames.  The default is an asterisk, "*".
+;; You can customize the prefix and the face used to display it,
+;; `erc-capab-identify-unidentified'.  If the value of
+;; `erc-capab-identify-prefix' is nil or you disable this module (see
 ;; `erc-capab-identify-disable'), no prefix will be inserted, but the
 ;; flag sent by the server will still be stripped.
 
@@ -73,14 +75,19 @@
   :group 'erc)
 
 (defcustom erc-capab-identify-prefix "*"
-  "The prefix used for unidentified users."
+  "The prefix used for unidentified users.
+
+If you change this from the default \"*\", be sure to use a
+character not found in IRC nicknames to avoid confusion."
   :group 'erc-capab
   :type '(choice string (const nil)))
 
-;;; Define module:
+(defface erc-capab-identify-unidentified '((t)) ; same as `erc-default-face'
+  "Face to use for `erc-capab-identify-prefix'."
+  :group 'erc-capab
+  :group 'erc-faces)
 
-(define-erc-response-handler (290)
-  "Handle dancer-ircd CAPAB messages." nil nil)
+;;; Define module:
 
 ;;;###autoload (autoload 'erc-capab-identify-mode "erc-capab" nil t)
 (define-erc-module capab-identify nil
@@ -124,9 +131,9 @@ Optional argument PARSED is the current message, a response struct.
 These arguments are sent to this function when called as a hook in
 `erc-server-005-functions'."
   (unless erc-capab-identify-sent
-    (erc-capab-send-identify-messages)))
+    (erc-capab-identify-send-messages)))
 
-(defun erc-capab-send-identify-messages ()
+(defun erc-capab-identify-send-messages ()
   "Send CAPAB IDENTIFY messages if the server supports it."
   (when (and (stringp erc-server-version)
              (string-match "^\\(dancer-ircd\\|hyperion\\)" erc-server-version)
@@ -175,7 +182,7 @@ PARSED is an `erc-parsed' response struct."
   (when (and erc-capab-identify-prefix
              (erc-with-server-buffer erc-capab-identify-activated))
     (goto-char (or (erc-find-parsed-property) (point-min)))
-    (let ((nickname (erc-capab-get-unidentified-nickname
+    (let ((nickname (erc-capab-identify-get-unidentified-nickname
                      (erc-get-parsed-vector (point)))))
       (when (and nickname
                  (goto-char (point-min))
@@ -183,10 +190,9 @@ PARSED is an `erc-parsed' response struct."
                  (re-search-forward (regexp-quote nickname) nil t))
         (goto-char (match-beginning 0))
         (insert (erc-propertize erc-capab-identify-prefix
-                                'face (get-char-property (- (point) 1)
-                                                         'face)))))))
+                                'face 'erc-capab-identify-unidentified))))))
 
-(defun erc-capab-get-unidentified-nickname (parsed)
+(defun erc-capab-identify-get-unidentified-nickname (parsed)
   "Return the nickname of the user if unidentified.
 PARSED is an `erc-parsed' response struct."
   (when (and (erc-response-p parsed)

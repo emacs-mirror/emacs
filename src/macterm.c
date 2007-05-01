@@ -7172,11 +7172,14 @@ create_text_encoding_info_alist ()
       Lisp_Object existing_info;
 
       if (!(CONSP (charset_info)
-	    && STRINGP (charset = XCAR (charset_info))
+	    && (charset = XCAR (charset_info),
+		STRINGP (charset))
 	    && CONSP (XCDR (charset_info))
-	    && INTEGERP (text_encoding = XCAR (XCDR (charset_info)))
+	    && (text_encoding = XCAR (XCDR (charset_info)),
+		INTEGERP (text_encoding))
 	    && CONSP (XCDR (XCDR (charset_info)))
-	    && SYMBOLP (coding_system = XCAR (XCDR (XCDR (charset_info))))))
+	    && (coding_system = XCAR (XCDR (XCDR (charset_info))),
+		SYMBOLP (coding_system))))
 	continue;
 
       existing_info = assq_no_quit (text_encoding, result);
@@ -11538,8 +11541,32 @@ mac_initialize_display_info ()
      but this may not be what is actually used.  Mac OSX can do better.  */
   dpyinfo->color_p = CGDisplaySamplesPerPixel (kCGDirectMainDisplay) > 1;
   dpyinfo->n_planes = CGDisplayBitsPerPixel (kCGDirectMainDisplay);
-  dpyinfo->height = CGDisplayPixelsHigh (kCGDirectMainDisplay);
-  dpyinfo->width = CGDisplayPixelsWide (kCGDirectMainDisplay);
+  {
+    CGDisplayErr err;
+    CGDisplayCount ndisps;
+    CGDirectDisplayID *displays;
+
+    err = CGGetActiveDisplayList (0, NULL, &ndisps);
+    if (err == noErr)
+      {
+	displays = alloca (sizeof (CGDirectDisplayID) * ndisps);
+	err = CGGetActiveDisplayList (ndisps, displays, &ndisps);
+      }
+    if (err == noErr)
+      {
+	CGRect bounds = CGRectMake (0, 0, 0, 0);
+
+	while (ndisps-- > 0)
+	  bounds = CGRectUnion (bounds, CGDisplayBounds (displays[ndisps]));
+	dpyinfo->height = CGRectGetHeight (bounds);
+	dpyinfo->width = CGRectGetWidth (bounds);
+      }
+    else
+      {
+	dpyinfo->height = CGDisplayPixelsHigh (kCGDirectMainDisplay);
+	dpyinfo->width = CGDisplayPixelsWide (kCGDirectMainDisplay);
+      }
+  }
 #else
   {
     GDHandle main_device_handle = LMGetMainDevice();

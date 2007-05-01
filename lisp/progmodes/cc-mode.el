@@ -158,8 +158,8 @@
 ;; These are typically standard emacs variables such as `comment-start'.
 (defmacro c-make-emacs-variables-local ()
   `(progn
-     ,@(mapcan (lambda (init)
-		 `((make-local-variable ',(car init))))
+     ,@(mapcar (lambda (init)
+		 `(make-local-variable ',(car init)))
 	       (cdr c-emacs-variable-inits))))
 
 (defun c-init-language-vars-for (mode)
@@ -509,9 +509,9 @@ preferably use the `c-mode-menu' language constant directly."
 	      type type-pos
 	      marked-id term-pos
 	      (end1
-	       (if (eq (get-text-property end 'face) 'font-lock-comment-face)
-		   (previous-single-property-change end 'face)
-		 end)))
+	       (or (and (eq (get-text-property end 'face) 'font-lock-comment-face)
+			(previous-single-property-change end 'face))
+		   end)))
 	  (when (>= end1 beg) ; Don't hassle about changes entirely in comments.
 	    ;; Find a limit for the search for a `c-type' property
 	    (while

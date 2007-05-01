@@ -7,7 +7,7 @@
 @node Abbrevs, Processes, Syntax Tables, Top
 @chapter Abbrevs and Abbrev Expansion
 @cindex abbrev
-@cindex abbrev table
+@c  @cindex abbrev table  Redundant with "abbrev".
 
   An abbreviation or @dfn{abbrev} is a string of characters that may be
 expanded to a longer string.  The user can insert the abbrev string and

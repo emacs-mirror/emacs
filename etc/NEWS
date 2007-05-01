@@ -144,10 +144,6 @@ See the files mac/README and mac/INSTALL for build instructions.
 ** Support for GNU/Linux systems on X86-64 machines was added.
 
 ---
-** Support for HP 9000 series 800 and Hitachi SR2001/SR2201 machines
-was removed.
-
----
 ** Mac OS 9 port now uses the Carbon API by default.  You can also
 create non-Carbon build by specifying `NonCarbon' as a target.  See
 the files mac/README and mac/INSTALL for build instructions.
@@ -160,6 +156,7 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 ** When pure storage overflows while dumping, Emacs now prints how
 much pure storage it will approximately need.
 
+---
 ** The script etc/emacs-buffer.gdb can be used with gdb to retrieve the
 contents of buffers from a core dump and save them to files easily, should
 Emacs crash.
@@ -365,6 +362,7 @@ too.  If you want to use just plain `*' as a wildcard, type `*""'; the
 doublequotes make no difference in the shell, but they prevent
 special treatment in `dired-do-shell-command'.
 
+---
 ** Adaptive filling misfeature removed.
 It no longer treats `NNN.' or `(NNN)' as a prefix.
 
@@ -880,9 +878,11 @@ The variable `automatic-hscrolling' was renamed to
 the window now works sensibly, by automatically adjusting the window's
 vscroll property.
 
++++
 *** New customize option `overline-margin' controls the space between
 overline and text.
 
++++
 *** New variable `x-underline-at-descent-line' controls the relative
 position of the underline.  When set, it overrides the
 `x-use-underline-position-properties' variables.
@@ -991,6 +991,7 @@ uses the "very visible" cursor (the default) or the normal cursor.
 elements on mode-line (and header-line) like `highlight' face on text
 areas.
 
++++
 *** `mode-line-buffer-id' is the standard face for buffer identification
 parts of the mode line.
 
@@ -1220,6 +1221,7 @@ mouse-wheel-inhibit-click-time variables.
 
 ** Multilingual Environment (Mule) changes:
 
++++
 *** You can disable character translation for a file using the -*-
 construct.  Include `enable-character-translation: nil' inside the
 -*-...-*- to disable any character translation that may happen by
@@ -1748,6 +1750,7 @@ colors as on X.
 
 * New Modes and Packages in Emacs 22.1
 
+---
 ** ERC is now part of the Emacs distribution.
 
 ERC is a powerful, modular, and extensible IRC client for Emacs.
@@ -2020,6 +2023,7 @@ table editing available in modern word processors.  The package also
 can generate a table source in typesetting and markup languages such
 as latex and html from the visually laid out text table.
 
++++
 ** The tumme.el package allows you to easily view, tag and in other ways
 manipulate image files and their thumbnails, using dired as the main interface.
 Tumme provides functionality to generate simple image galleries.
@@ -2072,6 +2076,7 @@ recognized.
 ** The TCL package tcl-mode.el was replaced by tcl.el.
 This was actually done in Emacs-21.1, and was not documented.
 
+---
 ** The new package scroll-lock.el provides the Scroll Lock minor mode
 for pager-like scrolling.  Keys which normally move point by line or
 paragraph will scroll the buffer by the respective amount of lines
@@ -2087,6 +2092,7 @@ for Emacs 22.  In particular, the mode-line is now position sensitive.
 
 ** Changes in Shell Mode
 
+---
 *** Shell output normally scrolls so that the input line is at the
 bottom of the window -- thus showing the maximum possible text.  (This
 is similar to the way sequential output to a terminal works.)
@@ -2211,6 +2217,7 @@ handling of edits of concealed text, undo concerns, etc.
    - many, many other, more minor tweaks, fixes, and refinements.
    - version number incremented to 2.2
 
++++
 ** The variable `woman-topic-at-point' was renamed
 to `woman-use-topic-at-point' and behaves differently: if this
 variable is non-nil, the `woman' command uses the word at point
@@ -2730,6 +2737,7 @@ line is left untouched.
 The function `c-toggle-syntactic-indentation' can be used to toggle
 syntactic indentation.
 
+---
 ** In sh-script, a continuation line is only indented if the backslash was
 preceded by a SPC or a TAB.
 
@@ -2861,6 +2869,7 @@ i.e., there is always a closing tag.
 By default, its setting is inferred on a buffer-by-buffer basis
 from the file name or buffer contents.
 
+---
 *** The variable `sgml-transformation' has been renamed to
 `sgml-transformation-function'.  The old name is still available as
 alias.
@@ -2886,6 +2895,7 @@ and super/sub-scripts are made into super/sub-scripts.
 +++
 *** New major mode Doctex mode, for *.dtx files.
 
+---
 ** BibTeX mode:
 
 *** The new command `bibtex-url' browses a URL for the BibTeX entry at
@@ -2942,6 +2952,7 @@ extracting the content of a BibTeX field.
 `bibtex-autokey-titleword-case-convert-function'.  The old names are
 still available as aliases.
 
++++
 ** In Artist mode the variable `artist-text-renderer' has been
 renamed to `artist-text-renderer-function'.  The old name is still
 available as alias.
@@ -2973,6 +2984,7 @@ breakpoints.
 To use this package just type M-x gdb.  See the Emacs manual if you want the
 old behaviour.
 
+---
 *** The variable tooltip-gud-tips-p has been removed.  GUD tooltips can now be
 toggled independently of normal tooltips with the minor mode
 `gud-tooltip-mode'.
@@ -3339,6 +3351,7 @@ See the documentation of the user option
 ---
 *** Rmail now displays 5-digit message ids in its summary buffer.
 
++++
 *** The new commands rmail-end-of-message and rmail-summary end-of-message,
 by default bound to `/', go to the end of the current mail message in
 Rmail and Rmail summary buffers.
@@ -3705,6 +3718,7 @@ variable `calculator-radix-grouping-mode'.
 ---
 ** cplus-md.el has been deleted.
 
+---
 ** Ewoc changes
 
 *** The new function `ewoc-delete' deletes specified nodes.
@@ -3850,6 +3864,7 @@ w32-use-full-screen-buffer to t.
 `kTextEncodingMacRoman', `kTextEncodingISOLatin1', and
 `kTextEncodingISOLatin2' are obsolete.
 
++++
 ** The variable `mac-command-key-is-meta' is obsolete.  Use
 `mac-command-modifier' and `mac-option-modifier' instead.
 
@@ -3919,6 +3934,7 @@ display tables.
 
 ** General Lisp changes:
 
++++
 *** The function `expt' handles negative exponents differently.
 The value for `(expt A B)', if both A and B are integers and B is
 negative, is now a float.  For example: (expt 2 -2) => 0.25.
@@ -4050,6 +4066,12 @@ inside timer functions and `post-command-hook' functions.
 This combines `defalias' and `make-obsolete'.
 
 +++
+*** New macro `with-case-table'
+
+This executes the body with the case table temporarily set to a given
+case table.
+
++++
 *** New function `unsafep' determines whether a Lisp form is safe.
 
 It returns nil if the given Lisp form can't possibly do anything
@@ -4063,6 +4085,7 @@ it evaluates those expressions immediately.
 
 This is useful in packages that can be preloaded.
 
++++
 *** `list-faces-display' takes an optional argument, REGEXP.
 
 If it is non-nil, the function lists only faces matching this regexp.
@@ -4406,6 +4429,7 @@ binding of VARIABLE (a symbol) in buffer BUFFER.  If VARIABLE does not
 have a buffer-local binding in buffer BUFFER, it returns the default
 value of VARIABLE instead.
 
+---
 *** The function `frame-or-buffer-changed-p' now lets you maintain
 various status records in parallel.
 
@@ -5405,7 +5429,7 @@ override incorrect graphical display dimensions returned by functions
 ** Mouse pointer features:
 
 +++ (lispref)
-??? (man)
+--- (man)
 *** The mouse pointer shape in void text areas (i.e. after the end of a
 line or below the last line in the buffer) of the text window is now
 controlled by the new variable `void-text-area-pointer'.  The default
@@ -5847,6 +5871,12 @@ NOMODIFY.  If it is non-nil, it means don't mark the buffer modified.
 to examine a file being visited and deduce the proper coding system
 for it.  (If the coding system is detected incorrectly for a specific
 file, you can put a `coding:' tags to override it.)
+
++++
+*** The new variable `ascii-case-table' stores the case table for the
+ascii character set.  Language environments (such as Turkish) may
+alter the case correspondences of ASCII characters.  This variable
+saves the original ASCII case table before any such changes.
 
 ---
 *** The new function `merge-coding-systems' fills in unspecified aspects

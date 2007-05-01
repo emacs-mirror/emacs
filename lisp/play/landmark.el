@@ -1705,6 +1705,8 @@ Use \\[describe-mode] for more info."
 ;;;allout-layout: (0 : -1 -1 0)
 ;;;End:
 
+(random t)
+
 (provide 'landmark)
 
 ;;; arch-tag: ae5031be-96e6-459e-a3df-1df53117d3f2

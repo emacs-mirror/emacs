@@ -56,10 +56,12 @@
   "This mode buttonizes all messages according to `erc-button-alist'."
   ((add-hook 'erc-insert-modify-hook 'erc-button-add-buttons 'append)
    (add-hook 'erc-send-modify-hook 'erc-button-add-buttons 'append)
-   (add-hook 'erc-complete-functions 'erc-button-next))
+   (add-hook 'erc-complete-functions 'erc-button-next)
+   (add-hook 'erc-mode-hook 'erc-button-add-keys))
   ((remove-hook 'erc-insert-modify-hook 'erc-button-add-buttons)
    (remove-hook 'erc-send-modify-hook 'erc-button-add-buttons)
-   (remove-hook 'erc-complete-functions 'erc-button-next)))
+   (remove-hook 'erc-complete-functions 'erc-button-next)
+   (remove-hook 'erc-mode-hook 'erc-button-add-keys)))
 
 ;; Make XEmacs use `erc-button-face'.
 (when (featurep 'xemacs)
@@ -240,6 +242,16 @@ PAR is a number of a regexp grouping whose text will be passed to
   "Syntax table used when buttonizing messages.
 This syntax table should make all the legal nick characters word
 constituents.")
+
+(defvar erc-button-keys-added nil
+  "Internal variable used to keep track of whether we've added the
+global-level ERC button keys yet.")
+
+(defun erc-button-add-keys ()
+  "Add ERC mode-level button movement keys.  This is only done once."
+  (unless erc-button-keys-added
+    (define-key erc-mode-map (kbd "<backtab>") 'erc-button-previous)
+    (setq erc-button-keys-added t)))
 
 (defun erc-button-add-buttons ()
   "Find external references in the current buffer and make buttons of them.

@@ -3346,12 +3346,16 @@ prefix, and don't delete any headers."
       (delete-windows-on message-reply-buffer t)
       (push-mark (save-excursion
 		   (insert-buffer-substring message-reply-buffer)
+		   (unless (bolp)
+		     (insert ?\n))
 		   (point)))
       (unless arg
-	(funcall message-cite-function))
-      (message-exchange-point-and-mark)
-      (unless (bolp)
-	(insert ?\n))
+	(funcall message-cite-function)
+	(unless (eq (char-before (mark t)) ?\n)
+	  (let ((pt (point)))
+	    (goto-char (mark t))
+	    (insert-before-markers ?\n)
+	    (goto-char pt))))
       (unless modified
 	(setq message-checksum (message-checksum))))))
 

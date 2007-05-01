@@ -1614,6 +1614,8 @@ the current buffer's major mode.  */)
   int count;
   Lisp_Object function;
 
+  CHECK_BUFFER (buffer);
+
   if (STRINGP (XBUFFER (buffer)->name)
       && strcmp (SDATA (XBUFFER (buffer)->name), "*scratch*") == 0)
     function = find_symbol_value (intern ("initial-major-mode"));

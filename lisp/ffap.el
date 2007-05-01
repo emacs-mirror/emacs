@@ -1147,7 +1147,8 @@ which may actually result in an url rather than a filename."
 		(error nil))
 	      string))
 	 (abs (file-name-absolute-p name))
-	 (default-directory default-directory))
+	 (default-directory default-directory)
+         (oname name))
     (unwind-protect
 	(cond
 	 ;; Immediate rejects (/ and // and /* are too common in C/C++):
@@ -1164,13 +1165,7 @@ which may actually result in an url rather than a filename."
 	       (not abs) (string-match ffap-shell-prompt-regexp name)
                (ffap-file-exists-string (substring name (match-end 0)))))
 	 ;; Accept remote names without actual checking (too slow):
-	 ((if abs
-	      (ffap-file-remote-p name)
-	    ;; Try adding a leading "/" (common omission in ftp file names):
-	    (and
-	     ffap-ftp-sans-slash-regexp
-	     (string-match ffap-ftp-sans-slash-regexp name)
-	     (ffap-file-remote-p (concat "/" name)))))
+	 ((and abs (ffap-file-remote-p name)))
 	 ;; Ok, not remote, try the existence test even if it is absolute:
 	 ((and abs (ffap-file-exists-string name)))
 	 ;; If it contains a colon, get rid of it (and return if exists)
@@ -1193,6 +1188,14 @@ which may actually result in an url rather than a filename."
 				  (ffap-file-remote-p try)
 				  (ffap-file-exists-string try))))))
 	    try))
+         ;; Try adding a leading "/" (common omission in ftp file names).
+         ;; Note that this uses oname, which still has any colon part.
+         ;; This should have a lower priority than the alist stuff,
+         ;; else it matches things like "ffap.el:1234:56:Warning".
+         ((and (not abs)
+               ffap-ftp-sans-slash-regexp
+               (string-match ffap-ftp-sans-slash-regexp oname)
+               (ffap-file-remote-p (concat "/" oname))))
 	 ;; Alist failed?  Try to guess an active remote connection
 	 ;; from buffer variables, and try once more, both as an
 	 ;; absolute and relative file name on that remote host.

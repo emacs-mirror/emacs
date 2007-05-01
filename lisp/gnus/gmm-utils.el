@@ -26,7 +26,7 @@
 
 ;; This library provides self-contained utility functions.  The functions are
 ;; used in Gnus, Message and MML, but within this library there are no
-;; dependencies on Gnus, Message, or MML or Gnus.
+;; dependencies on Gnus, Message, or MML.
 
 ;;; Code:
 
@@ -217,7 +217,7 @@ Within each entry of ICON-LIST, the first element is a menu
 command, the second element is an icon file name and the third
 element is a test function.  You can use \\[describe-key]
 <menu-entry> to find out the name of a menu command.  The fourth
-and all following elements are passed a the PROPS argument to the
+and all following elements are passed as the PROPS argument to the
 function `tool-bar-local-item'.
 
 If ZAP-LIST is a list, remove those item from the default

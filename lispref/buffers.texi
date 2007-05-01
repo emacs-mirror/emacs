@@ -593,16 +593,17 @@ current buffer is used.
 
 @node Modification Time
 @comment  node-name,  next,  previous,  up
-@section Comparison of Modification Time
-@cindex comparison of modification time
-@cindex modification time, comparison of
+@section Buffer Modification Time
+@cindex comparing file modification time
+@cindex modification time of buffer
 
   Suppose that you visit a file and make changes in its buffer, and
 meanwhile the file itself is changed on disk.  At this point, saving the
 buffer would overwrite the changes in the file.  Occasionally this may
 be what you want, but usually it would lose valuable information.  Emacs
 therefore checks the file's modification time using the functions
-described below before saving the file.
+described below before saving the file.  (@xref{File Attributes},
+for how to examine a file's modification time.)
 
 @defun verify-visited-file-modtime buffer
 This function compares what @var{buffer} has recorded for the
@@ -679,12 +680,11 @@ reason.
 @end defun
 
 @defun ask-user-about-supersession-threat filename
-@cindex obsolete buffer
 This function is used to ask a user how to proceed after an attempt to
-modify an obsolete buffer visiting file @var{filename}.  An
-@dfn{obsolete buffer} is an unmodified buffer for which the associated
-file on disk is newer than the last save-time of the buffer.  This means
-some other program has probably altered the file.
+modify an buffer visiting file @var{filename} when the file is newer
+than the buffer text.  Emacs detects this because the modification
+time of the file on disk is newer than the last save-time of the
+buffer.  This means some other program has probably altered the file.
 
 @kindex file-supersession
 Depending on the user's answer, the function may return normally, in

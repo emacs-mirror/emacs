@@ -6,6 +6,7 @@
 @setfilename ../info/maps
 @node Standard Keymaps, Standard Hooks, Standard Buffer-Local Variables, Top
 @appendix Standard Keymaps
+@cindex standard keymaps
 
 The following symbols are used as the names for various keymaps.
 Some of these exist when Emacs is first started, others are
@@ -76,7 +77,6 @@ A full keymap used by Electric Command History mode.
 A sparse keymap used by Emacs Lisp mode.
 
 @item esc-map
-@vindex esc-map
 A full keymap for @kbd{ESC} (or @kbd{Meta}) commands.
 
 @item facemenu-menu

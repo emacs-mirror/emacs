@@ -263,6 +263,16 @@ search."
 	    (setq attr-list (cdr attr-list)))))
       (list entry ret-attr))))
 
+(defun diary-set-maybe-redraw (symbol value)
+  "Set SYMBOL's value to VALUE, and redraw the diary if necessary.
+Redraws the diary if it is being displayed (note this is not the same as
+just visiting the `diary-file'), and SYMBOL's value is to be changed."
+  (let ((oldvalue (eval symbol)))
+    (custom-set-default symbol value)
+    (and (not (equal value oldvalue))
+         (diary-live-p)
+         ;; Note this assumes diary was called without prefix arg.
+         (diary))))
 
 ;; This can be removed once the kill/yank treatment of invisible text
 ;; (see etc/TODO) is fixed. -- gm
@@ -292,27 +302,22 @@ Only used if `diary-header-line-flag' is non-nil."
 
 (defvar diary-saved-point)		; internal
 
+;; The first version of this also checked for diary-selective-display
+;; in the non-fancy case. This was an attempt to distinguish between
+;; displaying the diary and just visiting the diary file. However,
+;; when using fancy diary, calling diary when there are no entries to
+;; display does not create the fancy buffer, nor does it switch on
+;; selective-display in the diary buffer. This means some
+;; customizations will not take effect, eg:
+;; http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-03/msg00466.html
+;; So the check for selective-display was dropped. This means the
+;; diary will be displayed if one customizes a diary variable while
+;; just visiting the diary-file. This is i) unlikely, and ii) no great loss.
 (defun diary-live-p ()
-  "Return non-nil if the diary is being displayed.
-This is not the same as just visiting the `diary-file'."
+  "Return non-nil if the diary is being displayed."
   (or (get-buffer fancy-diary-buffer)
-      (when diary-file
-        (let ((dbuff (find-buffer-visiting
-                      (substitute-in-file-name diary-file))))
-          (when dbuff
-            (with-current-buffer dbuff
-              diary-selective-display))))))
-
-(defun diary-set-maybe-redraw (symbol value)
-  "Set SYMBOL's value to VALUE, and redraw the diary if necessary.
-Redraws the diary if it is being displayed (note this is not the same as
-just visiting the `diary-file'), and SYMBOL's value is to be changed."
-  (let ((oldvalue (eval symbol)))
-    (custom-set-default symbol value)
-    (and (not (equal value oldvalue))
-         (diary-live-p)
-         ;; Note this assumes diary was called without prefix arg.
-         (diary))))
+      (and diary-file
+           (find-buffer-visiting (substitute-in-file-name diary-file)))))
 
 (defcustom number-of-diary-entries 1
   "Specifies how many days of diary entries are to be displayed initially.
@@ -1990,51 +1995,53 @@ names."
 (eval-when-compile (require 'cal-hebrew)
                    (require 'cal-islam))
 
-(defvar diary-font-lock-keywords
-      (append
-       (diary-font-lock-date-forms calendar-month-name-array
-                                   nil calendar-month-abbrev-array)
-       (when (or (memq 'mark-hebrew-diary-entries
-                       nongregorian-diary-marking-hook)
-                 (memq 'list-hebrew-diary-entries
-                       nongregorian-diary-listing-hook))
-         (require 'cal-hebrew)
-         (diary-font-lock-date-forms
-          calendar-hebrew-month-name-array-leap-year
-          hebrew-diary-entry-symbol))
-       (when (or (memq 'mark-islamic-diary-entries
-                       nongregorian-diary-marking-hook)
-                 (memq 'list-islamic-diary-entries
-                       nongregorian-diary-listing-hook))
-         (require 'cal-islam)
-         (diary-font-lock-date-forms
-          calendar-islamic-month-name-array
-          islamic-diary-entry-symbol))
-       (list
-        (cons
-         (concat "^" (regexp-quote diary-include-string) ".*$")
-         'font-lock-keyword-face)
-        (cons
-         (concat "^" (regexp-quote diary-nonmarking-symbol)
-                 "?\\(" (regexp-quote sexp-diary-entry-symbol) "\\)")
-         '(1 font-lock-reference-face))
-        (cons
-         (concat "^" (regexp-quote diary-nonmarking-symbol))
-         'font-lock-reference-face)
-        (cons
-         (concat "^" (regexp-quote diary-nonmarking-symbol)
-                 "?\\(" (regexp-quote hebrew-diary-entry-symbol) "\\)")
-         '(1 font-lock-reference-face))
-        (cons
-         (concat "^" (regexp-quote diary-nonmarking-symbol)
-                 "?\\(" (regexp-quote islamic-diary-entry-symbol) "\\)")
-         '(1 font-lock-reference-face))
-        '(diary-font-lock-sexps . font-lock-keyword-face)
-        `(,(concat "\\(^\\|\\s-\\)"
-                   diary-time-regexp "\\(-" diary-time-regexp "\\)?")
-          . 'diary-time)))
-      "Forms to highlight in `diary-mode'.")
+(defun diary-font-lock-keywords ()
+  "Return a value for the variable `diary-font-lock-keywords'."
+  (append
+   (diary-font-lock-date-forms calendar-month-name-array
+                               nil calendar-month-abbrev-array)
+   (when (or (memq 'mark-hebrew-diary-entries
+                   nongregorian-diary-marking-hook)
+             (memq 'list-hebrew-diary-entries
+                   nongregorian-diary-listing-hook))
+     (require 'cal-hebrew)
+     (diary-font-lock-date-forms
+      calendar-hebrew-month-name-array-leap-year
+      hebrew-diary-entry-symbol))
+   (when (or (memq 'mark-islamic-diary-entries
+                   nongregorian-diary-marking-hook)
+             (memq 'list-islamic-diary-entries
+                   nongregorian-diary-listing-hook))
+     (require 'cal-islam)
+     (diary-font-lock-date-forms
+      calendar-islamic-month-name-array
+      islamic-diary-entry-symbol))
+   (list
+    (cons
+     (concat "^" (regexp-quote diary-include-string) ".*$")
+     'font-lock-keyword-face)
+    (cons
+     (concat "^" (regexp-quote diary-nonmarking-symbol)
+             "?\\(" (regexp-quote sexp-diary-entry-symbol) "\\)")
+     '(1 font-lock-reference-face))
+    (cons
+     (concat "^" (regexp-quote diary-nonmarking-symbol))
+     'font-lock-reference-face)
+    (cons
+     (concat "^" (regexp-quote diary-nonmarking-symbol)
+             "?\\(" (regexp-quote hebrew-diary-entry-symbol) "\\)")
+     '(1 font-lock-reference-face))
+    (cons
+     (concat "^" (regexp-quote diary-nonmarking-symbol)
+             "?\\(" (regexp-quote islamic-diary-entry-symbol) "\\)")
+     '(1 font-lock-reference-face))
+    '(diary-font-lock-sexps . font-lock-keyword-face)
+    `(,(concat "\\(^\\|\\s-\\)"
+               diary-time-regexp "\\(-" diary-time-regexp "\\)?")
+      . 'diary-time))))
 
+(defvar diary-font-lock-keywords (diary-font-lock-keywords)
+  "Forms to highlight in `diary-mode'.")
 
 ;; Following code from Dave Love <fx@gnu.org>.
 ;; Import Outlook-format appointments from mail messages in Gnus or

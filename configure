@@ -2559,6 +2559,13 @@ _ACEOF
     machine=nh6000 opsys=powerunix
     NON_GNU_CPP="cc -Xo -E -P"
   ;;
+  ## SR2001/SR2201 running HI-UX/MPP
+  hppa1.1-hitachi-hiuxmpp* )
+    machine=sr2k opsys=hiuxmpp
+  ;;
+  hppa1.1-hitachi-hiuxwe2* )
+    machine=sr2k opsys=hiuxwe2
+  ;;
   ## Honeywell XPS100
   xps*-honeywell-sysv* )
     machine=xps100 opsys=usg5-2
@@ -2581,10 +2588,46 @@ _ACEOF
     esac
   ;;
 
+  ## HP 9000 series 700 and 800, running HP/UX
+  hppa*-hp-hpux7* )
+    machine=hp800 opsys=hpux
+  ;;
+  hppa*-hp-hpux8* )
+    machine=hp800 opsys=hpux8
+  ;;
+  hppa*-hp-hpux9shr* )
+    machine=hp800 opsys=hpux9shr
+  ;;
+  hppa*-hp-hpux9* )
+    machine=hp800 opsys=hpux9
+  ;;
+  hppa*-hp-hpux10.2* )
+    machine=hp800 opsys=hpux10-20
+  ;;
+  hppa*-hp-hpux10* )
+    machine=hp800 opsys=hpux10
+  ;;
+  hppa*-hp-hpux1[1-9]* )
+    machine=hp800 opsys=hpux11
+    CFLAGS="-D_INCLUDE__STDC_A1_SOURCE $CFLAGS"
+  ;;
+
   hppa*-*-linux-gnu* )
     machine=hp800 opsys=gnu-linux
   ;;
 
+  ## HP 9000 series 700 and 800, running HP/UX
+  hppa*-hp-hpux* )
+    ## Cross-compilation?  Nah!
+    case "`uname -r`" in
+      ## Someone's system reports A.B8.05 for this.
+      ## I wonder what other possibilities there are.
+      *.B8.* ) machine=hp800 opsys=hpux8 ;;
+      *.08.* ) machine=hp800 opsys=hpux8 ;;
+      *.09.* ) machine=hp800 opsys=hpux9 ;;
+      *) machine=hp800 opsys=hpux10 ;;
+    esac
+  ;;
   hppa*-*-nextstep* )
     machine=hp800 opsys=nextstep
   ;;
@@ -2953,7 +2996,12 @@ _ACEOF
 		;;
       *-sunos5* | *-solaris* )
 		opsys=sol2-6
-		NON_GNU_CPP=/usr/ccs/lib/cpp
+		if [ "x$CC" = x/opt/SUNWspro/bin/cc ]; then
+		  ## -Xs prevents spurious whitespace.
+		  NON_GNU_CPP="/opt/SUNWspro/bin/cc -E -Xs"
+		else
+		  NON_GNU_CPP=/usr/ccs/lib/cpp
+		fi
 		;;
       *			  ) opsys=bsd4-2   ;;
     esac

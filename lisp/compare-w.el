@@ -32,7 +32,7 @@
 
 ;;; Code:
 
-(defgroup compare-w nil
+(defgroup compare-windows nil
   "Compare text between windows."
   :prefix "compare-"
   :group 'tools)
@@ -52,18 +52,18 @@ any text before that point.
 If the function returns the same value for both windows, then the
 whitespace is considered to match, and is skipped."
   :type '(choice regexp function)
-  :group 'compare-w)
+  :group 'compare-windows)
 
 (defcustom compare-ignore-whitespace nil
   "*Non-nil means `compare-windows' ignores whitespace."
   :type 'boolean
-  :group 'compare-w
+  :group 'compare-windows
   :version "22.1")
 
 (defcustom compare-ignore-case nil
   "*Non-nil means `compare-windows' ignores case differences."
   :type 'boolean
-  :group 'compare-w)
+  :group 'compare-windows)
 
 (defcustom compare-windows-sync 'compare-windows-sync-default-function
   "*Function or regexp that is used to synchronize points in two
@@ -87,10 +87,11 @@ regexp containing some field separator or a newline, depending on
 the nature of the difference units separator.  The variable can
 be made buffer-local.
 
-If the value of this variable is `nil', then function `ding' is
-called to beep or flash the screen when points are mismatched."
-  :type '(choice regexp function)
-  :group 'compare-w
+If the value of this variable is `nil' (option \"No sync\"), then
+no synchronization is performed, and the function `ding' is called
+to beep or flash the screen when points are mismatched."
+  :type '(choice function regexp (const :tag "No sync" nil))
+  :group 'compare-windows
   :version "22.1")
 
 (defcustom compare-windows-sync-string-size 32
@@ -102,7 +103,7 @@ difference regions more coarse-grained.
 
 The default value 32 is good for the most cases."
   :type 'integer
-  :group 'compare-w
+  :group 'compare-windows
   :version "22.1")
 
 (defcustom compare-windows-recenter nil
@@ -113,7 +114,7 @@ matching points side-by-side.
 The value `(-1 0)' is useful if windows are split vertically,
 and the value `((4) (4))' for horizontally split windows."
   :type '(list sexp sexp)
-  :group 'compare-w
+  :group 'compare-windows
   :version "22.1")
 
 (defcustom compare-windows-highlight t
@@ -125,13 +126,13 @@ out all highlighting later with the command `compare-windows-dehighlight'."
   :type '(choice (const :tag "No highlighting" nil)
 		 (const :tag "Persistent highlighting" persistent)
 		 (other :tag "Highlight until next command" t))
-  :group 'compare-w
+  :group 'compare-windows
   :version "22.1")
 
 (defface compare-windows
   '((t :inherit lazy-highlight))
   "Face for highlighting of compare-windows difference regions."
-  :group 'compare-w
+  :group 'compare-windows
   :version "22.1")
 
 (defvar compare-windows-overlay1 nil)

@@ -1917,9 +1917,8 @@ comment at the start of cc-engine.el for more info."
   ;; Is the region (beg end) WS, and is there WS (or BOB/EOB) next to the
   ;; region?  This is a "heuristic" function.  .....
   ;; 
-  ;; The motivation for the second bit is to check whether the removal of this
-  ;; space is to check whether removing this region would coalesce two
-  ;; symbols.
+  ;; The motivation for the second bit is to check whether removing this
+  ;; region would coalesce two symbols.
   ;;
   ;; FIXME!!!  This function doesn't check virtual semicolons in any way.  Be
   ;; careful about using this function for, e.g. AWK.  (2007/3/7)
@@ -5372,7 +5371,7 @@ comment at the start of cc-engine.el for more info."
 	  ;; True if there's a prefix match outside the outermost
 	  ;; paren pair that surrounds the declarator.
 	  got-prefix-before-parens
-y	  ;; True if there's a suffix match outside the outermost
+	  ;; True if there's a suffix match outside the outermost
 	  ;; paren pair that surrounds the declarator.  The value is
 	  ;; the position of the first suffix match.
 	  got-suffix-after-parens
@@ -5878,19 +5877,23 @@ y	  ;; True if there's a suffix match outside the outermost
 
 (defun c-forward-label (&optional assume-markup preceding-token-end limit)
   ;; Assuming that point is at the beginning of a token, check if it starts a
-  ;; label and if so move over it and return t, otherwise don't move and
-  ;; return nil.  "Label" here means "most things with a colon".
+  ;; label and if so move over it and return non-nil (t in default situations,
+  ;; specific symbols (see below) for interesting situations), otherwise don't
+  ;; move and return nil.  "Label" here means "most things with a colon".
   ;;
   ;; More precisely, a "label" is regarded as one of:
-  ;; (i) a goto target like "foo:";
-  ;; (ii) A case label - either the entire construct "case FOO:" or just the
-  ;;   bare "case", should the colon be missing;
-  ;; (iii) a keyword which needs a colon, like "default:" or "private:";
+  ;; (i) a goto target like "foo:" - returns the symbol `goto-target';
+  ;; (ii) A case label - either the entire construct "case FOO:", or just the
+  ;;   bare "case", should the colon be missing.  We return t;
+  ;; (iii) a keyword which needs a colon, like "default:" or "private:";  We
+  ;;   return t;
   ;; (iv) One of QT's "extended" C++ variants of
-  ;; "private:"/"protected:"/"public:"/"more:" looking like "public slots:".
+  ;;   "private:"/"protected:"/"public:"/"more:" looking like "public slots:".
+  ;;   Returns the symbol `qt-2kwds-colon'.
+  ;; (v) QT's construct "signals:".  Returns the symbol `qt-1kwd-colon'.
   ;; (v) One of the keywords matched by `c-opt-extra-label-key' (without any
   ;;   colon).  Currently (2006-03), this applies only to Objective C's
-  ;;   keywords "@private", "@protected", and "@public".
+  ;;   keywords "@private", "@protected", and "@public".  Returns t.
   ;;
   ;; One of the things which will NOT be recognised as a label is a bit-field
   ;; element of a struct, something like "int foo:5".
@@ -5919,8 +5922,10 @@ y	  ;; True if there's a suffix match outside the outermost
   ;; This function might do hidden buffer changes.
 
   (let ((start (point))
+	label-end
 	qt-symbol-idx
-	macro-start)			; if we're in one.
+	macro-start			; if we're in one.
+	label-type)
     (cond
      ;; "case" or "default" (Doesn't apply to AWK). 
      ((looking-at c-label-kwds-regexp)
@@ -5933,25 +5938,26 @@ y	  ;; True if there's a suffix match outside the outermost
 
 	;; Find the label end.
 	(goto-char kwd-end)
-	(if (and (c-syntactic-re-search-forward
-		  ;; Stop on chars that aren't allowed in expressions,
-		  ;; and on operator chars that would be meaningless
-		  ;; there.  FIXME: This doesn't cope with ?: operators.
-		  "[;{=,@]\\|\\(\\=\\|[^:]\\):\\([^:]\\|\\'\\)"
-		  limit t t nil 1)
-		 (match-beginning 2))
+	(setq label-type
+	      (if (and (c-syntactic-re-search-forward
+			;; Stop on chars that aren't allowed in expressions,
+			;; and on operator chars that would be meaningless
+			;; there.  FIXME: This doesn't cope with ?: operators.
+			"[;{=,@]\\|\\(\\=\\|[^:]\\):\\([^:]\\|\\'\\)"
+			limit t t nil 1)
+		       (match-beginning 2))
 
-	    (progn
-	      (goto-char (match-beginning 2)) ; just after the :
-	      (c-put-c-type-property (1- (point)) 'c-decl-end)
-	      t)
+		  (progn		; there's a proper :
+		    (goto-char (match-beginning 2)) ; just after the :
+		    (c-put-c-type-property (1- (point)) 'c-decl-end)
+		    t)
 
-	  ;; It's an unfinished label.  We consider the keyword enough
-	  ;; to recognize it as a label, so that it gets fontified.
-	  ;; Leave the point at the end of it, but don't put any
-	  ;; `c-decl-end' marker.
-	  (goto-char kwd-end)
-	  t)))
+	      ;; It's an unfinished label.  We consider the keyword enough
+	      ;; to recognize it as a label, so that it gets fontified.
+	      ;; Leave the point at the end of it, but don't put any
+	      ;; `c-decl-end' marker.
+		(goto-char kwd-end)
+		t))))
 
      ;; @private, @protected, @public, in Objective C, or similar.
      ((and c-opt-extra-label-key
@@ -5963,7 +5969,7 @@ y	  ;; True if there's a suffix match outside the outermost
       (when c-record-type-identifiers
 	(c-record-ref-id (cons (match-beginning 1) (point))))
       (c-put-c-type-property (1- (point)) 'c-decl-end)
-      t)
+      (setq label-type t))
 
      ;; All other cases of labels.
      ((and c-recognize-colon-labels	; nil for AWK and IDL, otherwise t.
@@ -6039,26 +6045,49 @@ y	  ;; True if there's a suffix match outside the outermost
 			 (c-forward-syntactic-ws)
 			 (c-forward-label nil pte start))))))))))
 
+	   ;; Point is still at the beginning of the possible label construct.
+	   ;; 
 	   ;; Check that the next nonsymbol token is ":", or that we're in one
 	   ;; of QT's "slots" declarations.  Allow '(' for the sake of macro
 	   ;; arguments.  FIXME: Should build this regexp from the language
 	   ;; constants.
-	   (when (c-syntactic-re-search-forward
-		  "[ \t[:?;{=*/%&|,<>!@+-]" limit t t) ; not at EOB
-	     (backward-char)
-	     (setq qt-symbol-idx
-		   (and (c-major-mode-is 'c++-mode)
-			(string-match
-			 "\\(p\\(r\\(ivate\\|otected\\)\\|ublic\\)\\|more\\)\\>"
-			 (buffer-substring start (point)))))
-	     (c-forward-syntactic-ws limit)
-	     (when (or (looking-at ":\\([^:]\\|\\'\\)") ; A single colon.
-		       (and qt-symbol-idx
-			    (search-forward-regexp "\\=slots\\>" limit t)
-			    (progn (c-forward-syntactic-ws limit)
-				   (looking-at ":\\([^:]\\|\\'\\)")))) ; A single colon
-	       (forward-char)		; to after the colon.
-	       t)))
+	   (cond
+	    ;; public: protected: private:
+	    ((and
+	      (c-major-mode-is 'c++-mode)
+	      (search-forward-regexp
+	       "\\=p\\(r\\(ivate\\|otected\\)\\|ublic\\)\\>[^_]" nil t)
+	      (progn (backward-char)
+		     (c-forward-syntactic-ws limit)
+		     (looking-at ":\\([^:]\\|\\'\\)"))) ; A single colon.
+	     (forward-char)
+	     (setq label-type t))
+	    ;; QT double keyword like "protected slots:" or goto target.
+	    ((progn (goto-char start) nil))
+	    ((when (c-syntactic-re-search-forward
+		    "[ \t\n[:?;{=*/%&|,<>!@+-]" limit t t) ; not at EOB
+	       (backward-char)
+	       (setq label-end (point))
+	       (setq qt-symbol-idx
+		     (and (c-major-mode-is 'c++-mode)
+			  (string-match
+			   "\\(p\\(r\\(ivate\\|otected\\)\\|ublic\\)\\|more\\)\\>"
+			   (buffer-substring start (point)))))  
+	       (c-forward-syntactic-ws limit)
+	       (cond
+		((looking-at ":\\([^:]\\|\\'\\)") ; A single colon.
+		 (forward-char)
+		 (setq label-type
+		       (if (string= "signals" ; Special QT macro
+				    (buffer-substring-no-properties start label-end))
+			   'qt-1kwd-colon
+			 'goto-target)))
+		((and qt-symbol-idx
+		      (search-forward-regexp "\\=slots\\>" limit t)
+		      (progn (c-forward-syntactic-ws limit)
+			     (looking-at ":\\([^:]\\|\\'\\)"))) ; A single colon
+		 (forward-char)
+		 (setq label-type 'qt-2kwds-colon)))))))
 
       (save-restriction
 	(narrow-to-region start (point))
@@ -6069,6 +6098,7 @@ y	  ;; True if there's a suffix match outside the outermost
 	  (while (progn
 		   (when (looking-at c-nonlabel-token-key)
 		     (goto-char start)
+		     (setq label-type nil)
 		     (throw 'check-label nil))
 		   (and (c-safe (c-forward-sexp)
 				(c-forward-syntactic-ws)
@@ -6088,12 +6118,12 @@ y	  ;; True if there's a suffix match outside the outermost
 
 	  (c-put-c-type-property (1- (point-max)) 'c-decl-end)
 	  (goto-char (point-max))
-	  t)))
+	  )))
 
      (t
       ;; Not a label.
-      (goto-char start)
-      nil))))
+      (goto-char start)))
+    label-type))
 
 (defun c-forward-objc-directive ()
   ;; Assuming the point is at the beginning of a token, try to move

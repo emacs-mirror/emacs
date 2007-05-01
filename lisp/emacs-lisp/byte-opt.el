@@ -546,8 +546,8 @@
 				(eq (car-safe (nth 2 last)) 'cdr)
 				(eq (cadr (nth 2 last)) var))))
 		    (progn
-		      (byte-compile-warn "value returned by `%s' is not used"
-					 (prin1-to-string (car form)))
+		      (byte-compile-warn "value returned from %s is unused"
+					 (prin1-to-string form))
 		      nil)))
 	   (byte-compile-log "  %s called for effect; deleted" fn)
 	   ;; appending a nil here might not be necessary, but it can't hurt.
@@ -1118,27 +1118,6 @@
 	(byte-optimize-predicate form))
     form))
 
-(put 'concat 'byte-optimizer 'byte-optimize-pure-func)
-(put 'symbol-name 'byte-optimizer 'byte-optimize-pure-func)
-(put 'regexp-opt 'byte-optimizer 'byte-optimize-pure-func)
-(put 'regexp-quote 'byte-optimizer 'byte-optimize-pure-func)
-(put 'string-to-syntax 'byte-optimizer 'byte-optimize-pure-func)
-(defun byte-optimize-pure-func (form)
-  "Do constant folding for pure functions.
-This assumes that the function will not have any side-effects and that
-its return value depends solely on its arguments.
-If the function can signal an error, this might change the semantics
-of FORM by signaling the error at compile-time."
-  (let ((args (cdr form))
-	(constant t))
-    (while (and args constant)
-      (or (byte-compile-constp (car args))
-	  (setq constant nil))
-      (setq args (cdr args)))
-    (if constant
-	(list 'quote (eval form))
-      form)))
-
 ;; Avoid having to write forward-... with a negative arg for speed.
 ;; Fixme: don't be limited to constant args.
 (put 'backward-char 'byte-optimizer 'byte-optimize-backward-char)
@@ -1157,14 +1136,6 @@ of FORM by signaling the error at compile-time."
 	 (list 'forward-word (eval (- (nth 1 form)))))
 	((= 1 (safe-length form))
 	 '(forward-word -1))
-	(t form)))
-
-(put 'char-before 'byte-optimizer 'byte-optimize-char-before)
-(defun byte-optimize-char-before (form)
-  (cond ((= 2 (safe-length form))
-	 `(char-after (1- ,(nth 1 form))))
-	((= 1 (safe-length form))
-	 '(char-after (1- (point))))
 	(t form)))
 
 ;; Fixme: delete-char -> delete-region (byte-coded)

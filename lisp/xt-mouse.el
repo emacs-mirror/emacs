@@ -49,7 +49,8 @@
 
 ;; Mouse events symbols must have an 'event-kind property with
 ;; the value 'mouse-click.
-(dolist (event-type '(mouse-1 mouse-2 mouse-3))
+(dolist (event-type '(mouse-1 mouse-2 mouse-3
+			      M-down-mouse-1 M-down-mouse-2 M-down-mouse-3))
   (put event-type 'event-kind 'mouse-click))
 
 (defun xterm-mouse-translate (event)
@@ -140,6 +141,11 @@
 		 ;; a release-event only, no down-event.
 		 (cond ((>= type 64)
 			(format "mouse-%d" (- type 60)))
+		       ((memq type '(8 9 10))
+			(setq xterm-mouse-last type)
+			(format "M-down-mouse-%d" (- type 7)))
+		       ((= type 11)
+			(format "mouse-%d" (- xterm-mouse-last 7)))
 		       ((= type 3)
 			(format "mouse-%d" (+ 1 xterm-mouse-last)))
 		       (t
@@ -158,7 +164,7 @@
 	   (let ((event (if w
 			    (posn-at-x-y (- x left) (- y top) w t)
 			  (append (list nil 'menu-bar)
-				  (nthcdr 2 (posn-at-x-y x y w t))))))
+				  (nthcdr 2 (posn-at-x-y x y))))))
 	     (setcar (nthcdr 3 event) timestamp)
 	     event)))))
 

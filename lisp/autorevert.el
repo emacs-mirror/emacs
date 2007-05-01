@@ -278,7 +278,7 @@ the list of old buffers.")
 (add-hook 'find-file-hook
 	  (lambda ()
 	    (set (make-local-variable 'auto-revert-tail-pos)
-		 (save-restriction (widen) (1- (point-max))))))
+		 (nth 7 (file-attributes buffer-file-name)))))
 
 ;; Functions:
 
@@ -341,7 +341,7 @@ Use `auto-revert-mode' for changes other than appends!"
       (add-hook 'before-save-hook (lambda () (auto-revert-tail-mode 0)) nil t)
       (or (local-variable-p 'auto-revert-tail-pos) ; don't lose prior position
 	  (set (make-local-variable 'auto-revert-tail-pos)
-	       (save-restriction (widen) (1- (point-max)))))
+	       (nth 7 (file-attributes buffer-file-name))))
       ;; let auto-revert-mode set up the mechanism for us if it isn't already
       (or auto-revert-mode
 	  (let ((auto-revert-tail-mode t))

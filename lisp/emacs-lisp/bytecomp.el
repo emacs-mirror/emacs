@@ -2418,7 +2418,7 @@ list that represents a doc string reference.
 		    (eq (car (car (cdr tail))) 'declare))
 	  (let ((declaration (car (cdr tail))))
 	    (setcdr tail (cdr (cdr tail)))
-	    (princ `(if macro-declaration-function
+	    (prin1 `(if macro-declaration-function
 			(funcall macro-declaration-function
 				 ',name ',declaration))
 		   outbuffer)))))
@@ -3417,6 +3417,7 @@ discarding."
 
 ;; more complicated compiler macros
 
+(byte-defop-compiler char-before)
 (byte-defop-compiler list)
 (byte-defop-compiler concat)
 (byte-defop-compiler fset)
@@ -3427,6 +3428,13 @@ discarding."
 (byte-defop-compiler-1 - byte-compile-minus)
 (byte-defop-compiler19 (/ byte-quo) byte-compile-quo)
 (byte-defop-compiler19 nconc)
+
+(defun byte-compile-char-before (form)
+  (cond ((= 2 (length form))
+         (byte-compile-form `(char-after (1- ,(nth 1 form)))))
+        ((= 1 (length form))
+         (byte-compile-form '(char-after (1- (point)))))
+        (t (byte-compile-subr-wrong-args form "0-1"))))
 
 (defun byte-compile-list (form)
   (let ((count (length (cdr form))))

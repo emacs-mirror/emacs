@@ -388,7 +388,7 @@ are often useful for objects known to be arrays.  @xref{Sequence Functions}.
 
 @node Vectors
 @section Vectors
-@cindex vector
+@cindex vector (type)
 
   Arrays in Lisp, like arrays in most languages, are blocks of memory
 whose elements can be accessed in constant time.  A @dfn{vector} is a

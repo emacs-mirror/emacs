@@ -1448,7 +1448,7 @@ Like @code{lpr-buffer} but print only the current region.
 @findex lpr-buffer
 @findex lpr-region
 @vindex lpr-switches
-  The hardcopy commands (aside from the Postscript commands) pass extra
+  The hardcopy commands (aside from the PostScript commands) pass extra
 switches to the @code{lpr} program based on the value of the variable
 @code{lpr-switches}.  Its value should be a list of strings, each string
 an option starting with @samp{-}.  For example, to specify a line width

@@ -620,16 +620,16 @@ Like Text Mode but with these additional commands:
 \\[mail-send-and-exit]  mail-send-and-exit (send the message and exit)
 
 Here are commands that move to a header field (and create it if there isn't):
-	 \\[mail-to]  move to To:	\\[mail-subject]  move to Subject:
-	 \\[mail-cc]  move to CC:	\\[mail-bcc]  move to BCC:
+	 \\[mail-to]  move to To:	\\[mail-subject]  move to Subj:
+	 \\[mail-bcc]  move to BCC:	\\[mail-cc]  move to CC:
 	 \\[mail-fcc]  move to FCC:	\\[mail-reply-to] move to Reply-To:
          \\[mail-mail-reply-to]  move to Mail-Reply-To:
          \\[mail-mail-followup-to] move to Mail-Followup-To:
-\\[mail-text]  mail-text (move to beginning of message text).
+\\[mail-text]  move to message text.
 \\[mail-signature]  mail-signature (insert `mail-signature-file' file).
 \\[mail-yank-original]  mail-yank-original (insert current message, in Rmail).
 \\[mail-fill-yanked-message]  mail-fill-yanked-message (fill what was yanked).
-\\[mail-sent-via]  mail-sent-via (add a Sent-via field for each To or CC).
+\\[mail-sent-via]  mail-sent-via (add a sent-via field for each To or CC).
 Turning on Mail mode runs the normal hooks `text-mode-hook' and
 `mail-mode-hook' (in that order)."
   (make-local-variable 'mail-reply-action)
@@ -1392,7 +1392,7 @@ Create a Mail-Followup-To field if none."
       nil)))
 
 (defun mail-text ()
-  "Move point to beginning of message text."
+  "Move point to beginning of text field."
   (interactive)
   (expand-abbrev)
   (goto-char (mail-text-start)))

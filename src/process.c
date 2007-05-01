@@ -1268,7 +1268,7 @@ Returns nil if format of ADDRESS is invalid.  */)
   if (VECTORP (address))  /* AF_INET or AF_INET6 */
     {
       register struct Lisp_Vector *p = XVECTOR (address);
-      Lisp_Object args[6];
+      Lisp_Object args[10];
       int nargs, i;
 
       if (p->size == 4 || (p->size == 5 && !NILP (omit_port)))
@@ -1295,7 +1295,20 @@ Returns nil if format of ADDRESS is invalid.  */)
 	return Qnil;
 
       for (i = 0; i < nargs; i++)
-	args[i+1] = p->contents[i];
+	{
+	  EMACS_INT element = XINT (p->contents[i]);
+
+	  if (element < 0 || element > 65535)
+	    return Qnil;
+
+	  if (nargs <= 5         /* IPv4 */
+	      && i < 4           /* host, not port */
+	      && element > 255)
+	    return Qnil;
+
+	  args[i+1] = p->contents[i];
+	}
+
       return Fformat (nargs+1, args);
     }
 
@@ -1305,7 +1318,6 @@ Returns nil if format of ADDRESS is invalid.  */)
       args[0] = build_string ("<Family %d>");
       args[1] = Fcar (address);
       return Fformat (2, args);
-
     }
 
   return Qnil;
@@ -1410,7 +1422,6 @@ list_processes_1 (query_only)
       symbol = p->status;
       if (CONSP (p->status))
 	symbol = XCAR (p->status);
-
 
       if (EQ (symbol, Qsignal))
 	{
@@ -4806,8 +4817,8 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 		 subprocess termination and SIGCHLD.  */
 	      else if (nread == 0 && !NETCONN_P (proc))
 		;
-#endif				/* O_NDELAY */
-#endif				/* O_NONBLOCK */
+#endif /* O_NDELAY */
+#endif /* O_NONBLOCK */
 #ifdef HAVE_PTYS
 	      /* On some OSs with ptys, when the process on one end of
 		 a pty exits, the other end gets an error reading with
@@ -4818,11 +4829,17 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 		 get a SIGCHLD).
 
 		 However, it has been known to happen that the SIGCHLD
-		 got lost.  So raise the signl again just in case.
+		 got lost.  So raise the signal again just in case.
 		 It can't hurt.  */
 	      else if (nread == -1 && errno == EIO)
-		kill (getpid (), SIGCHLD);
-#endif				/* HAVE_PTYS */
+		{
+		  /* Clear the descriptor now, so we only raise the signal once.  */
+		  FD_CLR (channel, &input_wait_mask);
+		  FD_CLR (channel, &non_keyboard_wait_mask);
+
+		  kill (getpid (), SIGCHLD);
+		}
+#endif /* HAVE_PTYS */
 	      /* If we can detect process termination, don't consider the process
 		 gone just because its pipe is closed.  */
 #ifdef SIGCHLD
@@ -6501,17 +6518,12 @@ sigchld_handler (signo)
 #define WUNTRACED 0
 #endif /* no WUNTRACED */
       /* Keep trying to get a status until we get a definitive result.  */
-      while (1)
-	{
+      do
+        {
 	  errno = 0;
 	  pid = wait3 (&w, WNOHANG | WUNTRACED, 0);
-	  if (! (pid < 0 && errno == EINTR))
-	    break;
-	  /* Avoid a busyloop: wait3 is a system call, so we do not want
-	     to prevent the kernel from actually sending SIGCHLD to emacs
-	     by asking for it all the time.  */
-	  sleep (1);
 	}
+      while (pid < 0 && errno == EINTR);
 
       if (pid <= 0)
 	{

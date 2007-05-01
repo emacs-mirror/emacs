@@ -1871,9 +1871,7 @@ or as help on variables `cperl-tips', `cperl-problems',
       (easy-menu-add cperl-menu))	; A NOP in Emacs.
   (run-mode-hooks 'cperl-mode-hook)
   (if cperl-hook-after-change
-      (progn
-	(make-local-hook 'after-change-functions)
-	(add-hook 'after-change-functions 'cperl-after-change-function nil t)))
+      (add-hook 'after-change-functions 'cperl-after-change-function nil t))
   ;; After hooks since fontification will break this
   (if cperl-pod-here-scan
       (or cperl-syntaxify-by-font-lock

@@ -44,8 +44,8 @@
   "Non-nil inhibits the startup screen.
 It also inhibits display of the initial message in the `*scratch*' buffer.
 
-This is for use in your personal init file, once you are familiar
-with the contents of the startup screen."
+This is for use in your personal init file (but NOT site-start.el), once
+you are familiar with the contents of the startup screen."
   :type 'boolean
   :group 'initialization)
 
@@ -510,7 +510,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 ;; Handle the X-like command-line arguments "-fg", "-bg", "-name", etc.
 (defun tty-handle-args (args)
   (let (rest)
-    (message "%s" args)
+    (message "%S" args)
     (while (and args
 		(not (equal (car args) "--")))
       (let* ((argi (pop args))
@@ -954,11 +954,11 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	    (with-current-buffer (window-buffer)
 	      (deactivate-mark)))
 
-	;; If the user has a file of abbrevs, read it.  
+	;; If the user has a file of abbrevs, read it.
         ;; FIXME: after the 22.0 release this should be changed so
 	;; that it does not read the abbrev file when -batch is used
 	;; on the command line.
-	(when (and (file-exists-p abbrev-file-name) 
+	(when (and (file-exists-p abbrev-file-name)
 		   (file-readable-p abbrev-file-name))
 	    (quietly-read-abbrev-file abbrev-file-name))
 

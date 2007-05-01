@@ -1288,7 +1288,8 @@ and initial semicolons."
 				     "\\|\\s-*\\([(;:\"]\\|`(\\|#'(\\)"))
 	    (paragraph-separate
 	     (concat paragraph-separate "\\|\\s-*\".*[,\\.]$"))
-            (fill-column (if (integerp emacs-lisp-docstring-fill-column)
+            (fill-column (if (and (integerp emacs-lisp-docstring-fill-column)
+                                  (derived-mode-p 'emacs-lisp-mode))
                              emacs-lisp-docstring-fill-column
                            fill-column)))
 	(fill-paragraph justify))

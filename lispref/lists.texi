@@ -6,7 +6,7 @@
 @setfilename ../info/lists
 @node Lists, Sequences Arrays Vectors, Strings and Characters, Top
 @chapter Lists
-@cindex list
+@cindex lists
 @cindex element (of list)
 
   A @dfn{list} represents a sequence of zero or more elements (which may
@@ -30,7 +30,6 @@ the whole list.
 @node Cons Cells
 @section Lists and Cons Cells
 @cindex lists and cons cells
-@cindex @code{nil} and lists
 
   Lists in Lisp are not a primitive data type; they are built up from
 @dfn{cons cells}.  A cons cell is a data object that represents an
@@ -104,7 +103,6 @@ otherwise.  @code{nil} is not a cons cell, although it @emph{is} a list.
 @end defun
 
 @defun atom object
-@cindex atoms
 This function returns @code{t} if @var{object} is an atom, @code{nil}
 otherwise.  All objects except cons cells are atoms.  The symbol
 @code{nil} is an atom and is also a list; it is the only Lisp object
@@ -159,7 +157,6 @@ considered a list and @code{not} when it is considered a truth value
 @end example
 @end defun
 
-@need 2000
 
 @node List Elements
 @section Accessing Elements of Lists
@@ -991,10 +988,9 @@ x1
 @end group
 @end example
 
-@need 4000
   Here is the result in box notation:
 
-@example
+@smallexample
 @group
                    --------------------
                   |                    |
@@ -1004,7 +1000,7 @@ x1
 |       |      |     |       |      |      |       |      |
  --------------       --------------        --------------
 @end group
-@end example
+@end smallexample
 
 @noindent
 The second cons cell, which previously held the element @code{b}, still
@@ -1307,7 +1303,7 @@ compare @var{object} against the elements of the list.  For example:
 @end defun
 
 @defun delq object list
-@cindex deletion of elements
+@cindex deleting list elements
 This function destructively removes all elements @code{eq} to
 @var{object} from @var{list}.  The letter @samp{q} in @code{delq} says
 that it uses @code{eq} to compare @var{object} against the elements of
@@ -1589,7 +1585,7 @@ of property lists and association lists.
 
 @defun assoc key alist
 This function returns the first association for @var{key} in
-@var{alist}.  It compares @var{key} against the alist elements using
+@var{alist}, comparing @var{key} against the alist elements using
 @code{equal} (@pxref{Equality Predicates}).  It returns @code{nil} if no
 association in @var{alist} has a @sc{car} @code{equal} to @var{key}.
 For example:

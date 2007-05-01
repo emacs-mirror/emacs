@@ -123,6 +123,7 @@ size of @var{buffer}.
 
 @node Motion
 @section Motion
+@cindex motion by chars, words, lines, lists
 
   Motion functions change the value of point, either relative to the
 current value of point, relative to the beginning or end of the buffer,
@@ -235,6 +236,7 @@ If this variable is non-@code{nil}, certain motion functions including
 
 @node Buffer End Motion
 @subsection Motion to an End of the Buffer
+@cindex move to beginning or end of buffer
 
   To move point to the beginning of the buffer, write:
 
@@ -642,6 +644,7 @@ beginning of the first screen line.  @xref{Minibuffer Contents}.
 @cindex sexp motion
 @cindex Lisp expression motion
 @cindex list motion
+@cindex balanced parenthesis motion
 
   Here are several functions concerned with balanced-parenthesis
 expressions (also called @dfn{sexps} in connection with moving across
@@ -827,7 +830,6 @@ Configurations}).
 @defspec save-excursion body@dots{}
 @cindex mark excursion
 @cindex point excursion
-@cindex current buffer excursion
 The @code{save-excursion} special form saves the identity of the current
 buffer and the values of point and the mark in it, evaluates
 @var{body}, and finally restores the buffer and its saved values of

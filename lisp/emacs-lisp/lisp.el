@@ -582,8 +582,7 @@ symbols with function definitions are considered.  Otherwise, all
 symbols with function definitions, values or properties are
 considered."
   (interactive)
-
-  (let ((window (get-buffer-window "*Completions*")))
+  (let ((window (get-buffer-window "*Completions*" 0)))
     (if (and (eq last-command this-command)
 	     window (window-live-p window) (window-buffer window)
 	     (buffer-name (window-buffer window)))

@@ -1224,23 +1224,42 @@ binding KEY to DEF is added at the front of KEYMAP.  */)
 
 /* This function may GC (it calls Fkey_binding).  */
 
-DEFUN ("command-remapping", Fcommand_remapping, Scommand_remapping, 1, 2, 0,
-       doc: /* Return the remapping for command COMMAND in current keymaps.
+DEFUN ("command-remapping", Fcommand_remapping, Scommand_remapping, 1, 3, 0,
+       doc: /* Return the remapping for command COMMAND.
 Returns nil if COMMAND is not remapped (or not a symbol).
 
 If the optional argument POSITION is non-nil, it specifies a mouse
 position as returned by `event-start' and `event-end', and the
 remapping occurs in the keymaps associated with it.  It can also be a
 number or marker, in which case the keymap properties at the specified
-buffer position instead of point are used. */)
-     (command, position)
-     Lisp_Object command, position;
+buffer position instead of point are used.  The KEYMAPS argument is
+ignored if POSITION is non-nil.
+
+If the optional argument KEYMAPS is non-nil, it should be a list of
+keymaps to search for command remapping.  Otherwise, search for the
+remapping in all currently active keymaps.  */)
+     (command, position, keymaps)
+     Lisp_Object command, position, keymaps;
 {
   if (!SYMBOLP (command))
     return Qnil;
 
   ASET (command_remapping_vector, 1, command);
-  return Fkey_binding (command_remapping_vector, Qnil, Qt, position);
+
+  if (NILP (keymaps))
+    return Fkey_binding (command_remapping_vector, Qnil, Qt, position);
+  else
+    {
+      Lisp_Object maps, binding;
+
+      for (maps = keymaps; !NILP (maps); maps = Fcdr (maps))
+	{
+	  binding = Flookup_key (Fcar (maps), command_remapping_vector, Qnil);
+	  if (!NILP (binding) && !INTEGERP (binding))
+	    return binding;
+	}
+      return Qnil;
+    }
 }
 
 /* Value is number if KEY is too long; nil if valid but has no definition. */
@@ -1401,8 +1420,10 @@ silly_event_symbol_error (c)
 static Lisp_Object *cmm_modes = NULL, *cmm_maps = NULL;
 static int cmm_size = 0;
 
-/* Store a pointer to an array of the keymaps of the currently active
-   minor modes in *buf, and return the number of maps it contains.
+/* Store a pointer to an array of the currently active minor modes in
+   *modeptr, a pointer to an array of the keymaps of the currently
+   active minor modes in *mapptr, and return the number of maps
+   *mapptr contains.
 
    This function always returns a pointer to the same buffer, and may
    free or reallocate it, so if you want to keep it for a long time or
@@ -1768,7 +1789,7 @@ specified buffer position instead of point are used.
   if (NILP (no_remap) && SYMBOLP (value))
     {
       Lisp_Object value1;
-      if (value1 = Fcommand_remapping (value, position), !NILP (value1))
+      if (value1 = Fcommand_remapping (value, position, Qnil), !NILP (value1))
 	value = value1;
     }
 
@@ -2577,15 +2598,6 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
   /* 1 means ignore all menu bindings entirely.  */
   int nomenus = !NILP (firstonly) && !EQ (firstonly, Qnon_ascii);
 
-  /* If this command is remapped, then it has no key bindings
-     of its own.  */
-  if (NILP (no_remap) && SYMBOLP (definition))
-    {
-      Lisp_Object tem;
-      if (tem = Fcommand_remapping (definition, Qnil), !NILP (tem))
-	return Qnil;
-    }
-
   found = keymaps;
   while (CONSP (found))
     {
@@ -2598,6 +2610,13 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
   GCPRO5 (definition, keymaps, maps, found, sequences);
   found = Qnil;
   sequences = Qnil;
+
+  /* If this command is remapped, then it has no key bindings
+     of its own.  */
+  if (NILP (no_remap)
+      && SYMBOLP (definition)
+      && !NILP (Fcommand_remapping (definition, Qnil, keymaps)))
+    RETURN_UNGCPRO (Qnil);
 
   for (; !NILP (maps); maps = Fcdr (maps))
     {

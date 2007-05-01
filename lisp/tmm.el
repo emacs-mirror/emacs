@@ -41,7 +41,7 @@
 (defvar tmm-short-cuts)
 (defvar tmm-old-mb-map nil)
 (defvar tmm-old-comp-map)
-(defvar tmm-c-prompt)
+(defvar tmm-c-prompt nil)
 (defvar tmm-km-list)
 (defvar tmm-next-shortcut-digit)
 (defvar tmm-table-undef)
@@ -71,17 +71,22 @@ we make that menu bar item (the one at that position) the default choice."
 				   (list this-one)))))
 	(setq list (cdr list))))
     (if x-position
-	(let ((tail menu-bar)
-	      this-one
-	      (column 0))
-	  (while (and tail (< column x-position))
+	(let ((tail menu-bar) (column 0)
+	      this-one name visible)
+	  (while (and tail (<= column x-position))
 	    (setq this-one (car tail))
-	    (if (and (consp (car tail))
-		     (consp (cdr (car tail)))
-		     (stringp (nth 1 (car tail))))
-		(setq column (+ column
-				(length (nth 1 (car tail)))
-				1)))
+	    (if (and (consp this-one)
+		     (consp (cdr this-one))
+		     (setq name  ;simple menu
+			   (cond ((stringp (nth 1  this-one))
+				  (nth 1  this-one))
+				 ;extended menu
+				 ((stringp (nth 2 this-one))
+				  (setq visible (plist-get
+						 (nthcdr 4 this-one) :visible))
+				  (unless (and visible (not (eval visible)))
+				    (nth 2 this-one))))))
+		(setq column (+ column (length name) 1)))
 	    (setq tail (cdr tail)))
 	  (setq menu-bar-item (car this-one))))
     (tmm-prompt menu-bar nil menu-bar-item)))
@@ -188,14 +193,20 @@ Its value should be an event that has a binding in MENU."
 	     ;; We use this to decide the initial minibuffer contents
 	     ;; and initial history position.
 	     (if default-item
-		 (let ((tail menu))
+		 (let ((tail menu) visible)
 		   (while (and tail
 			       (not (eq (car-safe (car tail)) default-item)))
 		     ;; Be careful to count only the elements of MENU
 		     ;; that actually constitute menu bar items.
 		     (if (and (consp (car tail))
 			      (or (stringp (car-safe (cdr (car tail))))
-				  (eq (car-safe (cdr (car tail))) 'menu-item)))
+				  (and
+				   (eq (car-safe (cdr (car tail))) 'menu-item)
+				   (progn
+				     (setq visible
+					   (plist-get
+					    (nthcdr 4 (car tail)) :visible))
+				     (or (not visible) (eval visible))))))
 			 (setq index-of-default (1+ index-of-default)))
 		     (setq tail (cdr tail)))))
              (let ((prompt (concat "^." (regexp-quote tmm-mid-prompt))))
@@ -210,21 +221,24 @@ Its value should be an event that has a binding in MENU."
 	     (setq history (append history history history history))
 	     (setq tmm-c-prompt (nth (- history-len 1 index-of-default) history))
 	     (add-hook 'minibuffer-setup-hook 'tmm-add-prompt)
-	     (save-excursion
-	       (unwind-protect
-		   (setq out
-			 (completing-read
-			  (concat gl-str " (up/down to change, PgUp to menu): ")
-			  tmm-km-list nil t nil
-			  (cons 'history (- (* 2 history-len) index-of-default))))
-		 (save-excursion
-		   (remove-hook 'minibuffer-setup-hook 'tmm-add-prompt)
-		   (if (get-buffer "*Completions*")
-		       (progn
-			 (set-buffer "*Completions*")
-			 (use-local-map tmm-old-comp-map)
-			 (bury-buffer (current-buffer)))))
-		 ))))
+	     (if default-item
+		 (setq out (car (nth index-of-default tmm-km-list)))
+	       (save-excursion
+		 (unwind-protect
+		     (setq out
+			   (completing-read
+			    (concat gl-str
+				    " (up/down to change, PgUp to menu): ")
+			    tmm-km-list nil t nil
+			    (cons 'history
+				  (- (* 2 history-len) index-of-default))))
+		   (save-excursion
+		     (remove-hook 'minibuffer-setup-hook 'tmm-add-prompt)
+		     (if (get-buffer "*Completions*")
+			 (progn
+			   (set-buffer "*Completions*")
+			   (use-local-map tmm-old-comp-map)
+			   (bury-buffer (current-buffer))))))))))
       (setq choice (cdr (assoc out tmm-km-list)))
       (and (null choice)
 	   (> (length out) (length tmm-c-prompt))
@@ -514,7 +528,7 @@ If KEYSEQ is a prefix key that has local and global bindings,
 we merge them into a single keymap which shows the proper order of the menu.
 However, for the menu bar itself, the value does not take account
 of `menu-bar-final-items'."
-  (let (allbind bind)
+  (let (allbind bind minorbind localbind globalbind)
     (setq bind (key-binding keyseq))
     ;; If KEYSEQ is a prefix key, then BIND is either nil
     ;; or a symbol defined as a keymap (which satisfies keymapp).
@@ -525,9 +539,21 @@ of `menu-bar-final-items'."
 	(progn
 	  ;; Otherwise, it is a prefix, so make a list of the subcommands.
 	  ;; Make a list of all the bindings in all the keymaps.
-	  (setq allbind (mapcar 'cdr (minor-mode-key-binding keyseq)))
-	  (setq allbind (cons (local-key-binding keyseq) allbind))
-	  (setq allbind (cons (global-key-binding keyseq) allbind))
+	  (setq minorbind (mapcar 'cdr (minor-mode-key-binding keyseq)))
+	  (setq localbind (local-key-binding keyseq))
+	  (setq globalbind (cdr (global-key-binding keyseq)))
+
+	  ;; If items have been redefined/undefined locally, remove them from
+	  ;; the global list.
+	  (dolist (minor minorbind)
+	    (dolist (item (cdr minor))
+	      (setq globalbind (assq-delete-all (car item) globalbind))))
+	  (dolist (item (cdr localbind))
+	    (setq globalbind (assq-delete-all (car item) globalbind)))
+
+	  (setq globalbind (cons 'keymap globalbind))
+	  (setq allbind (cons globalbind (cons localbind minorbind)))
+
 	  ;; Merge all the elements of ALLBIND into one keymap.
 	  (mapc (lambda (in)
 		  (if (and (symbolp in) (keymapp in))

@@ -1,6 +1,7 @@
 ;;; erc-speedbar.el --- Speedbar support for ERC
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2006, 2007 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2004, 2006,
+;;   2007 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Contributor: Eric M. Ludlam <eric@siege-engine.com>
@@ -113,7 +114,7 @@ This will add a speedbar major display mode."
   (erase-buffer)
   (let (serverp chanp queryp)
     (with-current-buffer buffer
-      (setq serverp (eq buffer (process-buffer erc-server-process)))
+      (setq serverp (erc-server-buffer-p))
       (setq chanp (erc-channel-p (erc-default-target)))
       (setq queryp (erc-query-buffer-p)))
     (cond (serverp

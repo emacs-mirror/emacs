@@ -1145,67 +1145,97 @@ and on @code{xterm} with @kbd{emacs -nw}.
 @cindex Differences between Emacs 21 and Emacs 22
 @cindex Emacs 22, new features in
 @cindex Recently introduced features
-
 @cindex Default features
-Font Lock mode, auto-compression mode, and file name shadow mode are
-enabled by default.  On graphics displays it is possible to follow links
-with @kbd{mouse-1}.  The modeline of the selected window is now
-highlighted.  Window fringes are customizable.  The minibuffer prompt is
-displayed in a distinct face.
 
-Emacs now reads abbrev definitions automatically at startup.  The
-maximum size of buffers has been doubled and is 256M on 32-bit machines.
-Grep mode is separate from Compilation mode and has many new specific
-options and commands.
-
-The original Emacs macro system has been replaced by the new Kmacro
-package, which provides many new commands and features and a simple
-interface that uses the function keys F3 and F4.  Macros are stored
-in a macro ring, and can be debugged and edited interactively.
-
-The GUD (Grand Unified Debugger) package can now be used with a full
-graphical user interface to the debugger which provides many features
-found in traditional development environments, making it easy to
-manipulate breakpoints, add watch points, display the call stack, etc.
-Breakpoints are displayed in the source buffer.
-
+@itemize
 @cindex GTK+ Toolkit
 @cindex Drag-and-drop
-@cindex Mouse wheel
+@item
 Emacs can be built with GTK+ widgets, and supports drag-and-drop
-operation on X.  Mouse wheel support is enabled by default.
+operation on X.
 
+@cindex Supported systems
+@item
+Emacs 22 features support for GNU/Linux systems on S390 and x86-64
+machines, as well as support for the Mac OS X and Cygwin operating
+systems.
+
+@item
+The native MS-Windows, Mac OS 9 and Mac OS X builds include full support
+for images, toolbar, and tooltips.
+
+@item
+Font Lock mode, Auto Compression mode, and File Name Shadow Mode are
+enabled by default.
+
+@item
+The maximum size of buffers has been doubled and is 256M on 32-bit
+machines.
+
+@item
+Links can be followed with @kbd{mouse-1}, in addition to @kbd{mouse-2}.
+
+@cindex Mouse wheel
+@item
+Mouse wheel support is enabled by default.
+
+@item
+Window fringes are customizable.
+
+@item
+The mode line of the selected window is now highlighted.
+
+@item
+The minibuffer prompt is displayed in a distinct face.
+
+@item
+Abbrev definitions are read automatically at startup.
+
+@item
+Grep mode is separate from Compilation mode and has many new options and
+commands specific to grep.
+
+@item
+The original Emacs macro system has been replaced by the new Kmacro
+package, which provides many new commands and features and a simple
+interface that uses the function keys F3 and F4.  Macros are stored in a
+macro ring, and can be debugged and edited interactively.
+
+@item
+The Grand Unified Debugger (GUD) can be used with a full graphical user
+interface to GDB; this provides many features found in traditional
+development environments, making it easy to manipulate breakpoints, add
+watch points, display the call stack, etc.  Breakpoints are visually
+indicated in the source buffer.
+
+@item
 @cindex New modes
-Many new modes and packages have been included in Emacs, such as MH-E,
-Calc, Tramp and URL, as well as IDO, CUA, rcirc, ERC, conf-mode,
-python-mode, table, tumme, SES, ruler, Flymake, Org, PGG, wdired,
-t-mouse, longlines, dns-mode, savehist, Password, Printing, Reveal, etc.
-Gnus has been updated to version 5.11.
+Many new modes and packages have been included in Emacs, such as Calc,
+TRAMP, URL, IDO, CUA, ERC, rcirc, Table, Tumme, SES, Ruler, Org, PGG,
+Flymake, Password, Printing, Reveal, wdired, t-mouse, longlines,
+savehist, Conf mode, Python mode, DNS mode, etc.
 
 @cindex Multilingual Environment
+@item
 Leim is now part of Emacs.  Unicode support has been much improved, and
 the following input methods have been added: belarusian, bulgarian-bds,
 bulgarian-phonetic, chinese-sisheng, croatian, dutch, georgian,
 latin-alt-postfix, latin-postfix, latin-prefix, latvian-keyboard,
 lithuanian-numeric, lithuanian-keyboard, malayalam-inscript, rfc1345,
-russian-computer, sgml, slovenian, tamil-inscript ucs,
+russian-computer, sgml, slovenian, tamil-inscript, ucs,
 ukrainian-computer, vietnamese-telex, and welsh.
 
-The following language environment have also been added: Belarusian,
+The following language environments have also been added: Belarusian,
 Bulgarian, Chinese-EUC-TW, Croatian, French, Georgian, Italian, Latin-6,
-Latin-7, Latvian, Lithuanian, Malayalam, Russian, Russian, Slovenian,
-Swedish, Tajik, Tamil, UTF-8, Ukrainian, Ukrainian, Welsh, and
-Windows-1255.
-
-@cindex Supported systems
-Emacs 22 features support for GNU/Linux systems on S390 and x86-64
-machines, as well as support for the Mac OS X and Cygwin operating
-systems.
+Latin-7, Latvian, Lithuanian, Malayalam, Russian, Slovenian, Swedish,
+Tajik, Tamil, UTF-8, Ukrainian, Welsh, and Windows-1255.
 
 @cindex Documentation
 @cindex Emacs Lisp Manual
+@item
 In addition, Emacs 22 now includes the Emacs Lisp Reference Manual
 (@pxref{Emacs Lisp documentation}) and the Emacs Lisp Intro.
+@end itemize
 
 Many other changes have been made in Emacs 22, use @kbd{C-h n} to get a
 full list.

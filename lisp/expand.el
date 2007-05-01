@@ -51,17 +51,17 @@
 ;;
 ;;   and enter Abbrev mode with the following hook :
 ;;
-;; (add-hook 'c-mode-hook (function (lambda ()
-;; 				   (expand-add-abbrevs c-mode-abbrev-table c-expand-list)
-;; 				   (abbrev-mode))))
+;; (add-hook 'c-mode-hook
+;; 	  (lambda ()
+;; 	    (expand-add-abbrevs c-mode-abbrev-table c-expand-list)
+;; 	    (abbrev-mode 1)))
 ;;
 ;;   you can also init some post-process hooks :
 ;;
 ;; (add-hook 'expand-load-hook
-;; 	  (function
-;; 	   (lambda ()
-;; 	     (add-hook 'expand-expand-hook 'indent-according-to-mode)
-;; 	     (add-hook 'expand-jump-hook 'indent-according-to-mode))))
+;; 	  (lambda ()
+;; 	    (add-hook 'expand-expand-hook 'indent-according-to-mode)
+;; 	    (add-hook 'expand-jump-hook 'indent-according-to-mode)))
 ;;
 ;; Remarks:
 ;;
@@ -336,6 +336,7 @@ This variable is local to a buffer.")
       'expand-abbrev-hook)))
 
 (put 'expand-abbrev-hook 'no-self-insert t)
+;;;###autoload
 (defun expand-abbrev-hook ()
   "Abbrev hook used to do the expansion job of expand abbrevs.
 See `expand-add-abbrevs'.  Value is non-nil if expansion was done."

@@ -148,8 +148,8 @@ enters Help instead, see @ref{DEL Does Not Delete}.
   The other delete commands are those which delete only whitespace
 characters: spaces, tabs and newlines.  @kbd{M-\}
 (@code{delete-horizontal-space}) deletes all the spaces and tab
-characters before and after point.  (With a prefix argument, it
-deletes them before point, but not after.)  @kbd{M-@key{SPC}}
+characters before and after point.  With a prefix argument, this only
+deletes spaces and tab characters before point.  @kbd{M-@key{SPC}}
 (@code{just-one-space}) does likewise but leaves a single space after
 point, regardless of the number of spaces that existed previously
 (even if there were none before).  With a numeric argument @var{n}, it

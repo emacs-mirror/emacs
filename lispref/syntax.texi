@@ -6,7 +6,7 @@
 @setfilename ../info/syntax
 @node Syntax Tables, Abbrevs, Searching and Matching, Top
 @chapter Syntax Tables
-@cindex parsing
+@cindex parsing buffer text
 @cindex syntax table
 @cindex text parsing
 
@@ -80,7 +80,7 @@ This function returns @code{t} if @var{object} is a syntax table.
 
 @node Syntax Descriptors
 @section Syntax Descriptors
-@cindex syntax classes
+@cindex syntax class
 
   This section describes the syntax classes and flags that denote the
 syntax of a character, and how they are represented as a @dfn{syntax
@@ -203,7 +203,7 @@ we do not want them to turn off the usual syntactic properties of
 other characters in the quotation.
 @end deffn
 
-@deffn {Syntax class} @w{escape}
+@deffn {Syntax class} @w{escape-syntax character}
 An @dfn{escape character} (designated by @samp{\}) starts an escape
 sequence such as is used in C string and character constants.  The
 character @samp{\} belongs to this class in both C and Lisp.  (In C, it
@@ -253,7 +253,7 @@ English text has no comment characters.  In Lisp, the semicolon
 (@samp{;}) starts a comment and a newline or formfeed ends one.
 @end deffn
 
-@deffn {Syntax class} @w{inherit}
+@deffn {Syntax class} @w{inherit standard syntax}
 This syntax class does not specify a particular syntax.  It says to look
 in the standard syntax table to find the syntax of this character.  The
 designator for this syntax class is @samp{@@}.
