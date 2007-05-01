@@ -60,6 +60,10 @@ Boston, MA 02110-1301, USA.  */
 #include "w32bdf.h"
 #include <shellapi.h>
 
+#ifdef USE_FONT_BACKEND
+#include "font.h"
+#endif	/* USE_FONT_BACKEND */
+
 #define abs(x)	((x) < 0 ? -(x) : (x))
 
 
@@ -1220,6 +1224,9 @@ x_get_font_repertory (f, font_info)
   XFontStruct *font = (XFontStruct *) font_info->font;
   Lisp_Object table;
   int min_byte1, max_byte1, min_byte2, max_byte2;
+  int c;
+  struct charset *charset = CHARSET_FROM_ID (font_info->charset);
+  int offset = CHARSET_OFFSET (charset);
 
   table = Fmake_char_table (Qnil, Qnil);
 
@@ -1274,7 +1281,17 @@ x_get_font_repertory (f, font_info)
   if (min_byte1 == 0 && max_byte1 == 0)
     {
       if (! font->per_char || font->all_chars_exist == True)
-	char_table_set_range (table, min_byte2, max_byte2, Qt);
+        {
+          if (offset >= 0)
+            char_table_set_range (table, offset + min_byte2,
+                                  offset + max_byte2, Qt);
+          else
+            for (; min_byte2 <= max_byte2; min_byte2++)
+              {
+                c = DECODE_CHAR (charset, min_byte2);
+                CHAR_TABLE_SET (table, c, Qt);
+              }
+        }
       else
 	{
 	  XCharStruct *pcm = font->per_char;
@@ -1287,7 +1304,15 @@ x_get_font_repertory (f, font_info)
 		{
 		  if (from >= 0)
 		    {
-		      char_table_set_range (table, from, i - 1, Qt);
+                      if (offset >= 0)
+                        char_table_set_range (table, offset + from,
+                                              offset + i - 1, Qt);
+                      else
+                        for (; from < i; from++)
+                          {
+                            c = DECODE_CHAR (charset, from);
+                            CHAR_TABLE_SET (table, c, Qt);
+                          }
 		      from = -1;
 		    }
 		}
@@ -1295,19 +1320,38 @@ x_get_font_repertory (f, font_info)
 		from = i;
 	    }
 	  if (from >= 0)
-	    char_table_set_range (table, from, i - 1, Qt);
+            {
+              if (offset >= 0)
+                char_table_set_range (table, offset + from, offset + i - 1,
+                                      Qt);
+              else
+                for (; from < i; from++)
+                  {
+                    c = DECODE_CHAR (charset, from);
+                    CHAR_TABLE_SET (table, c, Qt);
+                  }
+            }
 	}
     }
   else
     {
       if (! font->per_char || font->all_chars_exist == True)
 	{
-	  int i;
+	  int i, j;
 
-	  for (i = min_byte1; i <= max_byte1; i++)
-	    char_table_set_range (table,
-				  (i << 8) | min_byte2, (i << 8) | max_byte2,
-				  Qt);
+          if (offset >= 0)
+            for (i = min_byte1; i <= max_byte1; i++)
+              char_table_set_range
+                (table, offset + ((i << 8) | min_byte2),
+                 offset + ((i << 8) | max_byte2), Qt);
+          else
+            for (i = min_byte1; i <= max_byte1; i++)
+              for (j = min_byte2; j <= max_byte2; j++)
+                {
+                  unsiged code = (i << 8) | j;
+                  c = DECODE_CHAR (charset, code);
+                  CHAR_TABLE_SET (table, c, Qt);
+                }
 	}
       else
 	{
@@ -1325,8 +1369,19 @@ x_get_font_repertory (f, font_info)
 		    {
 		      if (from >= 0)
 			{
-			  char_table_set_range (table, (i << 8) | from,
-						(i << 8) | (j - 1), Qt);
+                          if (offset >= 0)
+                            char_table_set_range
+                              (table, offset + ((i << 8) | from),
+                               offset + ((i << 8) | (j - 1)), Qt);
+                          else
+                            {
+                              for (; from < j; from++)
+                                {
+                                  unsigned code = (i << 8) | from;
+                                  c = ENCODE_CHAR (charset, code);
+                                  CHAR_TABLE_SET (table, c, Qt);
+                                }
+                            }
 			  from = -1;
 			}
 		    }
@@ -1334,8 +1389,21 @@ x_get_font_repertory (f, font_info)
 		    from = j;
 		}
 	      if (from >= 0)
-		char_table_set_range (table, (i << 8) | from,
-				      (i << 8) | (j - 1), Qt);
+                {
+                  if (offset >= 0)
+                    char_table_set_range
+                      (table, offset + ((i << 8) | from),
+                       offset + ((i << 8) | (j - 1)), Qt);
+                  else
+                    {
+                      for (; from < j; from++)
+                        {
+                          unsigned code = (i << 8) | from;
+                          c = DECODE_CHAR (charset, code);
+                          CHAR_TABLE_SET (table, c, Qt);
+                        }
+                    }
+                }
 	    }
 	}
     }
@@ -1481,6 +1549,11 @@ x_set_mouse_face_gc (s)
   /* If font in this face is same as S->font, use it.  */
   if (s->font == s->face->font)
     s->gc = s->face->gc;
+#ifdef USE_FONT_BACKEND
+  else if (enable_font_backend)
+    /* No need of setting a font for s->gc.  */
+    s->gc = s->face->gc;
+#endif	/* USE_FONT_BACKEND */
   else
     {
       /* Otherwise construct scratch_cursor_gc with values from FACE
@@ -1577,8 +1650,45 @@ x_set_glyph_string_clipping (s)
   RECT r;
   get_glyph_string_clip_rect (s, &r);
   w32_set_clip_rectangle (s->hdc, &r);
+#ifdef USE_FONT_BACKEND
+  s->clip_x = r.left, s->clip_y = r.top;
+  s->clip_width = r.right - r.left, s->clip_height = r.bottom - r.top;
+#endif	/* USE_FONT_BACKEND */
 }
 
+/* Set SRC's clipping for output of glyph string DST.  This is called
+   when we are drawing DST's left_overhang or right_overhang only in
+   the area of SRC.  */
+
+static void
+x_set_glyph_string_clipping_exactly (src, dst)
+     struct glyph_string *src, *dst;
+{
+  RECT r;
+
+#ifdef USE_FONT_BACKEND
+  if (enable_font_backend)
+    {
+      r.left = dst->clip_x = src->x;
+      r.right = r.left + (dst->clip_width = src->width);
+      r.top = dst->clip_y = src->y;
+      r.bottom = r.top + (dst->clip_height = src->height);
+    }
+  else
+    {
+#endif	/* USE_FONT_BACKEND */
+  struct glyph_string *clip_head = src->clip_head;
+  struct glyph_string *clip_tail = src->clip_tail;
+
+  /* This foces clipping just this glyph string.  */
+  src->clip_head = src->clip_tail = src;
+  get_glyph_string_clip_rect (src, &r);
+  src->clip_head = clip_head, src->clip_tail = clip_tail;
+#ifdef USE_FONT_BACKEND
+    }
+#endif	/* USE_FONT_BACKEND */
+  w32_set_clip_rectangle (dst->hdc, &r);
+}
 
 /* RIF:
    Compute left and right overhang of glyph string S.  If S is a glyph
@@ -1723,6 +1833,30 @@ x_draw_glyph_string_foreground (s)
           x += g->pixel_width;
         }
     }
+#ifdef USE_FONT_BACKEND
+  else if (enable_font_backend)
+    {
+      unsigned *code = alloca (sizeof (unsigned) * s->nchars);
+      int boff = s->font_info->baseline_offset;
+      struct font *font = (struct font *) s->font_info;
+      int y;
+
+      for (i = 0; i < s->nchars; i++)
+	code[i] = (s->char2b[i].byte1 << 8) | s->char2b[i].byte2;
+
+      if (s->font_info->vertical_centering)
+	boff = VCENTER_BASELINE_OFFSET (s->font, s->f) - boff;
+
+      y = s->ybase - boff;
+      if (s->for_overlaps
+	  || (s->background_filled_p && s->hl != DRAW_CURSOR))
+	font->driver->draw (s, 0, s->nchars, x, y, 0);
+      else
+	font->driver->draw (s, 0, s->nchars, x, y, 1);
+      if (s->face->overstrike)
+	font->driver->draw (s, 0, s->nchars, x + 1, y, 0);
+    }
+#endif	/* USE_FONT_BACKEND */
   else
     {
       char *char1b = (char *) s->char2b;
@@ -1759,12 +1893,12 @@ static void
 x_draw_composite_glyph_string_foreground (s)
      struct glyph_string *s;
 {
-  int i, x;
+  int i, j, x;
   HFONT old_font;
 
   /* If first glyph of S has a left box line, start drawing the text
      of S to the right of that box line.  */
-  if (s->face->box != FACE_NO_BOX
+  if (s->face && s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p)
     x = s->x + abs (s->face->box_line_width);
   else
@@ -1791,18 +1925,76 @@ x_draw_composite_glyph_string_foreground (s)
         w32_draw_rectangle (s->hdc, s->gc, x, s->y, s->width - 1,
                             s->height - 1);
     }
+#ifdef USE_FONT_BACKEND
+  else if (enable_font_backend)
+    {
+      struct font *font = (struct font *) s->font_info;
+      int y = s->ybase;
+      int width = 0;
+
+      if (s->cmp->method == COMPOSITION_WITH_GLYPH_STRING)
+	{
+	  Lisp_Object gstring = AREF (XHASH_TABLE (composition_hash_table)
+				      ->key_and_value,
+				      s->cmp->hash_index * 2);
+	  int from;
+
+	  for (i = from = 0; i < s->nchars; i++)
+	    {
+	      Lisp_Object g = LGSTRING_GLYPH (gstring, i);
+	      Lisp_Object adjustment = LGLYPH_ADJUSTMENT (g);
+	      int xoff, yoff, wadjust;
+
+	      if (! VECTORP (adjustment))
+		{
+		  width += XINT (LGLYPH_WIDTH (g));
+		  continue;
+		}
+	      if (from < i)
+		{
+		  font->driver->draw (s, from, i, x, y, 0);
+		  x += width;
+		}
+	      xoff = XINT (AREF (adjustment, 0));
+	      yoff = XINT (AREF (adjustment, 1));
+	      wadjust = XINT (AREF (adjustment, 2));
+
+	      font->driver->draw (s, i, i + 1, x + xoff, y + yoff, 0);
+	      x += XINT (LGLYPH_WIDTH (g)) + wadjust;
+	      from = i + 1;
+	      width = 0;
+	    }
+	  if (from < i)
+	    font->driver->draw (s, from, i, x, y, 0);
+	}
+      else
+	{
+	  for (i = 0, j = s->gidx; i < s->nchars; i++, j++)
+	    if (COMPOSITION_GLYPH (s->cmp, j) != '\t')
+	      {
+		int xx = x + s->cmp->offsets[j * 2];
+		int yy = y - s->cmp->offsets[j * 2 + 1];
+
+		font->driver->draw (s, j, j + 1, xx, yy, 0);
+		if (s->face->overstrike)
+		  font->driver->draw (s, j, j + 1, xx + 1, yy, 0);
+	      }
+	}
+    }
+#endif	/* USE_FONT_BACKEND */
   else
     {
-      for (i = 0; i < s->nchars; i++, ++s->gidx)
-	{
-	  w32_text_out (s, x + s->cmp->offsets[s->gidx * 2],
-			s->ybase - s->cmp->offsets[s->gidx * 2 + 1],
-			s->char2b + i, 1);
-	  if (s->face->overstrike)
-	    w32_text_out (s, x + s->cmp->offsets[s->gidx * 2] + 1,
-			  s->ybase - s->cmp->offsets[s->gidx * 2 + 1],
-			  s->char2b + i, 1);
-	}
+      for (i = 0, j = s->gidx; i < s->nchars; i++, j++)
+	if (s->face)
+          {
+            w32_text_out (s, x + s->cmp->offsets[j * 2],
+                          s->ybase - s->cmp->offsets[j * 2 + 1],
+                          s->char2b + j, 1);
+            if (s->face->overstrike)
+	    w32_text_out (s, x + s->cmp->offsets[j * 2] + 1,
+			  s->ybase - s->cmp->offsets[j + 1],
+			  s->char2b + j, 1);
+          }
     }
 
   if (s->font && s->font->hfont)
@@ -2605,10 +2797,19 @@ x_draw_glyph_string (s)
      This makes S->next use XDrawString instead of XDrawImageString.  */
   if (s->next && s->right_overhang && !s->for_overlaps)
     {
-      xassert (s->next->img == NULL);
-      x_set_glyph_string_gc (s->next);
-      x_set_glyph_string_clipping (s->next);
-      x_draw_glyph_string_background (s->next, 1);
+      int width;
+      struct glyph_string *next;
+      for (width = 0, next = s->next; next;
+           width += next->width, next = next->next)
+        if (next->first_glyph->type != IMAGE_GLYPH)
+          {
+            x_set_glyph_string_gc (next);
+            x_set_glyph_string_clipping (next);
+            x_draw_glyph_string_background (next, 1);
+#ifdef USE_FONT_BACKEND
+            next->clip_width = 0;
+#endif /* USE_FONT_BACKEND */
+          }
     }
 
   /* Set up S->gc, set clipping and draw S.  */
@@ -2628,6 +2829,12 @@ x_draw_glyph_string (s)
       x_set_glyph_string_clipping (s);
       relief_drawn_p = 1;
     }
+  else if ((s->prev && s->prev->hl != s->hl && s->left_overhang)
+	   || (s->next && s->next->hl != s->hl && s->right_overhang))
+    /* We must clip just this glyph.  left_overhang part has already
+       drawn when s->prev was drawn, and right_overhang part will be
+       drawn later when s->next is drawn. */
+    x_set_glyph_string_clipping_exactly (s, s);
   else
     x_set_glyph_string_clipping (s);
 
@@ -2667,18 +2874,41 @@ x_draw_glyph_string (s)
       if (s->face->underline_p
           && (s->font->bdf || !s->font->tm.tmUnderlined))
         {
-          unsigned long h = 1;
+          unsigned long h;
           unsigned long dy = 0;
+	  /* Get the underline thickness.  Default is 1 pixel.  */
+#ifdef USE_FONT_BACKEND
+	  if (enable_font_backend)
+	    /* In the future, we must use information of font.  */
+	    h = 1;
+	  else
+#endif	/* USE_FONT_BACKEND */
+            h = 1;
 
-          if (x_underline_at_descent_line)
-            dy = s->height - h;
-          else
+#ifdef USE_FONT_BACKEND
+	  if (enable_font_backend)
+	    {
+	      if (s->face->font)
+		/* In the future, we must use information of font.  */
+		y = s->ybase + (s->face->font->max_bounds.descent + 1) / 2;
+	      else
+		y = s->y + s->height - h;
+	    }
+	  else
+#endif
             {
-              /* TODO: Use font information for positioning and thickness of
-                 underline.  See OUTLINETEXTMETRIC, and xterm.c.  Note: If
-                 you make this work, don't forget to change the doc string of
-                 x-use-underline-position-properties below.  */
-              dy = s->height - h;
+              if (x_underline_at_descent_line)
+                dy = s->height - h;
+              else
+                {
+                  /* TODO: Use font information for positioning and
+                     thickness of underline.  See OUTLINETEXTMETRIC,
+                     and xterm.c.  Note: If you makedev this work,
+                     don't forget to change the doc string of
+                     x-use-underline_color-position-properties
+                     below.  */
+                  dy = s->height - h;
+                }
             }
           if (s->face->underline_defaulted_p)
             {
@@ -2691,17 +2921,16 @@ x_draw_glyph_string (s)
                              s->y + dy, s->background_width, 1);
             }
         }
-
       /* Draw overline.  */
       if (s->face->overline_p)
         {
           unsigned long dy = 0, h = 1;
 
           if (s->face->overline_color_defaulted_p)
-        {
-          w32_fill_area (s->f, s->hdc, s->gc->foreground, s->x,
-                         s->y + dy, s->background_width, h);
-        }
+            {
+              w32_fill_area (s->f, s->hdc, s->gc->foreground, s->x,
+                             s->y + dy, s->background_width, h);
+            }
           else
             {
               w32_fill_area (s->f, s->hdc, s->face->overline_color, s->x,
@@ -2728,13 +2957,70 @@ x_draw_glyph_string (s)
             }
         }
 
-      /* Draw relief.  */
+      /* Draw relief if not yet drawn.  */
       if (!relief_drawn_p && s->face->box != FACE_NO_BOX)
         x_draw_glyph_string_box (s);
+
+      if (s->prev)
+        {
+          struct glyph_string *prev;
+
+          for (prev = s->prev; prev; prev = prev->prev)
+            if (prev->hl != s->hl
+                && prev->x + prev->width + prev->right_overhang > s->x)
+              {
+                /* As prev was drawn while clipped to its own area, we
+                   must draw the right_overhang part using s->hl now.  */
+		enum draw_glyphs_face save = prev->hl;
+
+		prev->hl = s->hl;
+		x_set_glyph_string_gc (prev);
+		x_set_glyph_string_clipping_exactly (s, prev);
+		if (prev->first_glyph->type == CHAR_GLYPH)
+		  x_draw_glyph_string_foreground (prev);
+		else
+		  x_draw_composite_glyph_string_foreground (prev);
+                w32_set_clip_rectangle (prev->hdc, NULL);
+		prev->hl = save;
+#ifdef USE_FONT_BACKEND
+		prev->clip_width = 0;
+#endif	/* USE_FONT_BACKEND */
+	      }
+	}
+
+      if (s->next)
+	{
+	  struct glyph_string *next;
+
+	  for (next = s->next; next; next = next->next)
+	    if (next->hl != s->hl
+		&& next->x - next->left_overhang < s->x + s->width)
+	      {
+		/* As next will be drawn while clipped to its own area,
+		   we must draw the left_overhang part using s->hl now.  */
+		enum draw_glyphs_face save = next->hl;
+
+		next->hl = s->hl;
+		x_set_glyph_string_gc (next);
+		x_set_glyph_string_clipping_exactly (s, next);
+		if (next->first_glyph->type == CHAR_GLYPH)
+		  x_draw_glyph_string_foreground (next);
+		else
+		  x_draw_composite_glyph_string_foreground (next);
+                w32_set_clip_rectangle (next->hdc, NULL);
+		next->hl = save;
+#ifdef USE_FONT_BACKEND
+		next->clip_width = 0;
+#endif	/* USE_FONT_BACKEND */
+	      }
+	}
     }
 
   /* Reset clipping.  */
   w32_set_clip_rectangle (s->hdc, NULL);
+#ifdef USE_FONT_BACKEND
+  s->clip_width = 0;
+#endif	/* USE_FONT_BACKEND */
 }
 
 
@@ -3378,6 +3664,9 @@ note_mouse_movement (frame, msg)
   last_mouse_movement_time = msg->time;
   memcpy (&last_mouse_motion_event, msg, sizeof (last_mouse_motion_event));
   XSETFRAME (last_mouse_motion_frame, frame);
+
+  if (!FRAME_X_OUTPUT (frame))
+    return 0;
 
   if (msg->hwnd != FRAME_W32_WINDOW (frame))
     {
@@ -5494,6 +5783,68 @@ x_new_fontset (f, fontsetname)
   return fontset_name (fontset);
 }
 
+#ifdef USE_FONT_BACKEND
+Lisp_Object
+x_new_fontset2 (f, fontset, font_object)
+     struct frame *f;
+     int fontset;
+     Lisp_Object font_object;
+{
+  struct font *font = XSAVE_VALUE (font_object)->pointer;
+
+  if (FRAME_FONT_OBJECT (f) == font)
+    /* This font is already set in frame F.  There's nothing more to
+       do.  */
+    return fontset_name (fontset);
+
+  BLOCK_INPUT;
+
+  FRAME_FONT_OBJECT (f) = font;
+  FRAME_FONT (f) = font->font.font;
+  FRAME_BASELINE_OFFSET (f) = font->font.baseline_offset;
+  FRAME_FONTSET (f) = fontset;
+
+  FRAME_COLUMN_WIDTH (f) = font->font.average_width;
+  FRAME_SPACE_WIDTH (f) = font->font.space_width;
+  FRAME_LINE_HEIGHT (f) = font->font.height;
+
+  compute_fringe_widths (f, 1);
+
+  /* Compute the scroll bar width in character columns.  */
+  if (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) > 0)
+    {
+      int wid = FRAME_COLUMN_WIDTH (f);
+      FRAME_CONFIG_SCROLL_BAR_COLS (f)
+	= (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) + wid - 1) / wid;
+    }
+  else
+    {
+      int wid = FRAME_COLUMN_WIDTH (f);
+      FRAME_CONFIG_SCROLL_BAR_COLS (f) = (14 + wid - 1) / wid;
+    }
+
+  /* Now make the frame display the given font.  */
+  if (FRAME_X_WINDOW (f) != 0)
+    {
+      /* Don't change the size of a tip frame; there's no point in
+	 doing it because it's done in Fx_show_tip, and it leads to
+	 problems because the tip frame has no widget.  */
+      if (NILP (tip_frame) || XFRAME (tip_frame) != f)
+	x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
+    }
+
+#ifdef HAVE_X_I18N
+  if (FRAME_XIC (f)
+      && (FRAME_XIC_STYLE (f) & (XIMPreeditPosition | XIMStatusArea)))
+    xic_set_xfontset (f, SDATA (fontset_ascii (fontset)));
+#endif
+
+  UNBLOCK_INPUT;
+
+  return fontset_name (fontset);
+}
+#endif	/* USE_FONT_BACKEND */
+
 
 /***********************************************************************
 	TODO: W32 Input Methods
@@ -6032,6 +6383,15 @@ x_free_frame_resources (f)
   struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
 
   BLOCK_INPUT;
+
+#ifdef USE_FONT_BACKEND
+      /* We must free faces before destroying windows because some
+	 font-driver (e.g. xft) access a window while finishing a
+	 face.  */
+      if (enable_font_backend
+	  && FRAME_FACE_CACHE (f))
+	free_frame_faces (f);
+#endif	/* USE_FONT_BACKEND */
 
   if (FRAME_W32_WINDOW (f))
     my_destroy_window (f, FRAME_W32_WINDOW (f));
