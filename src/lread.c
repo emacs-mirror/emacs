@@ -2057,7 +2057,7 @@ read_escape (readcharfun, stringp)
 
     case 's':
       c = READCHAR;
-      if (c != '-')
+      if (stringp || c != '-')
 	{
 	  UNREAD (c);
 	  return ' ';

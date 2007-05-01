@@ -333,10 +333,10 @@ Cheng Gao: changed MORE.STUFF flymake.el tips.texi url-dired.el
   url-file.el url-handlers.el url-http.el url-nfs.el
 
 Chong Yidong: changed cus-edit.el simple.el files.el custom.el
-  display.texi longlines.el xdisp.c files.texi keyboard.c compile.el
-  custom.texi info.el text.texi frames.texi image-mode.el mouse.el
+  display.texi longlines.el xdisp.c files.texi info.el keyboard.c
+  compile.el custom.texi text.texi frames.texi image-mode.el mouse.el
   misc.texi startup.el wid-edit.el xterm.c cus-theme.el
-  and 296 other files
+  and 295 other files
 
 Chris Hanson: changed xscheme.el scheme.el xterm.c hpux.h x11term.c
   hp9000s300.h keyboard.c process.c texinfmt.el emacsclient.c sort.el
@@ -456,10 +456,10 @@ Dave Lambert: changed sol2-5.h xfns.c xterm.c xterm.h
 
 Dave Love: wrote autoarg.el autoconf.el benchmark.el cfengine.el
   code-pages.el elide-head.el georgian.el hl-line.el latin-8.el
-  latin-9.el latin1-disp.el python.el refill.el rfc1345.el sgml-input.el
-  smiley.el subst-big5.el subst-gb2312.el subst-jis.el subst-ksc.el
-  tool-bar.el ucs-tables.el uni-input.el utf-16.el utf-7.el utf-8-lang.el
-  welsh.el
+  latin-9.el latin1-disp.el python.el refill.el rfc1345.el
+  sgml-input.el smiley.el subst-big5.el subst-gb2312.el subst-jis.el
+  subst-ksc.el tool-bar.el ucs-tables.el uni-input.el utf-16.el
+  utf-7.el utf-8-lang.el welsh.el
 and changed configure.in Makefile.in help.el fortran.el browse-url.el
   mule-cmds.el simple.el xterm.c cus-edit.el files.el info.el mule.el
   wid-edit.el fns.c vc.el rfc2047.el bindings.el cus-start.el buffer.c
@@ -1728,7 +1728,7 @@ Masayuki Ataka: changed texinfmt.el texinfo.el characters.el cmuscheme.el
 Masayuki Fujii: changed dnd.el w32-win.el
 
 Mathias Dahl: wrote image-dired.el
-and changed dired.el dired.texi
+and changed tumme.el dired.el dired.texi
 
 Mathias Megyei: changed Makefile.in
 
@@ -2399,8 +2399,8 @@ and changed comint.el font-lock.el shell.el rmail.el fortran.el
 
 Skip Collins: changed w32fns.c w32term.c w32term.h
 
-Slawomir Nowaczyk: changed emacs.py python.el TUTORIAL.pl flyspell.el
-  ls-lisp.el w32proc.c
+Slawomir Nowaczyk: changed python.el TUTORIAL.pl flyspell.el ls-lisp.el
+  w32proc.c
 
 Spencer Thomas: changed dabbrev.el emacsclient.c emacsserver.c gnus.texi
   server.el tcp.c unexec.c
@@ -2460,7 +2460,7 @@ Steve Youngs: changed mh-utils.el mh-xemacs-compat.el dgnushack.el
 
 Steven E. Harris: changed nnheader.el
 
-Steven Huwig: changed emacs.py python.el
+Steven Huwig: changed python.el
 
 Steven L. Baur: wrote earcon.el footnote.el gnus-audio.el gnus-setup.el
 and changed gnus-xmas.el gnus-msg.el add-log.el dgnushack.el edebug.el

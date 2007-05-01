@@ -421,6 +421,9 @@ K Rodgers changes
 http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00225.html
 http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00257.html
 
+ But then an assignment arrived before the release of Emacs 22:
+http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg01427.html
+
 
 ** Issues that are "fixed" for the release of Emacs 22, but we may
    wish to revisit later in more detail

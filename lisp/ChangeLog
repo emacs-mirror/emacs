@@ -1,3 +1,71 @@
+2007-05-01  Davis Herring  <herring@lanl.gov>
+
+        * calendar/timeclock.el: Update version number.
+        (timeclock-modeline-display): Mention timeclock-use-display-time
+        in explanatory message.
+        (timeclock-in): Fix non-interactive workday specifications.
+        (timeclock-log): Don't kill the log buffer if it already existed.
+        Suppress warnings when finding the log.  Don't check for a nil
+        project twice.  Run hooks after killing the buffer (if
+        applicable).
+        (timeclock-geometric-mean): Rename to `timeclock-mean' (it never
+        was geometric).  All uses changed.
+        (timeclock-generate-report): Support prefix argument.
+
+2007-05-01  Romain Francoise  <romain@orebokech.com>
+
+	* dired-x.el: Revert 2007-04-06 change.
+
+2007-04-29  Stephen Berman  <Stephen.Berman@gmx.net>
+
+	* find-dired.el (find-dired-filter): Propertize all text down to eob.
+
+2007-04-29  Richard Stallman  <rms@gnu.org>
+
+	* international/mule.el (auto-coding-alist): Add pdf => no-conversion.
+
+2007-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cc-mode.el (c-before-change): Use point-min rather
+	than 1.
+
+2007-04-28  Richard Stallman  <rms@gnu.org>
+
+	* progmodes/sh-script.el (sh-mode): Recognize .profile as sh style.
+
+2007-04-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-menu-map): Pdb can't handle SIGINT so
+	don't put stop on toolbar.
+
+2007-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-ignore-dir-regexp): Add /.../ for the DFS filesystem.
+
+2007-04-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(lisp)/mh-e/mh-loaddefs.el): Use ./mh-e
+	instead of $(lisp)/mh-e.
+
+2007-04-28  Glenn Morris  <rgm@gnu.org>
+
+	* image-dired.el (image-dired-cmd-create-thumbnail-options)
+	(image-dired-cmd-create-temp-image-options): Replace option
+	+profile "*" with -strip.
+
+2007-04-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/flyspell.el (flyspell-auto-correct-previous-word):
+	Use window-start and window-end.
+
+2007-04-27  Andreas Schwab  <schwab@suse.de>
+
+	* emacs-lisp/sregex.el (sregexq): Fix doc string quoting.
+
+2007-04-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* textmodes/fill.el (fill-paragraph): Doc fix.
+
 2007-04-26  Luc Teirlinck  <teirllm@dms.auburn.edu>
 
 	* locate.el (locate-in-alternate-database): Doc fix.
@@ -9,18 +77,21 @@
 
 	* version.el (emacs-version): Increase to 22.1.50.
 
+2007-04-25  Richard Stallman  <rms@gnu.org>
+
+	* hi-lock.el (hi-lock-file-patterns-policy): Default to `ask'.
+
 2007-04-25  J.D. Smith  <jdsmith@as.arizona.edu>
 
-	* progmodes/idlwave.el (idlwave-beginning-of-subprogram,
-	idlwave-end-of-subprogram): Take optional NOMARK arg to prevent
+	* progmodes/idlwave.el (idlwave-beginning-of-subprogram)
+	(idlwave-end-of-subprogram): Take optional NOMARK arg to prevent
 	pushing mark.
 	(idlwave-current-routine): Don't push mark.
 
 2007-04-25  Mathias Dahl  <mathias.dahl@gmail.com>
 
-	* image-dired.el (image-dired-display-image): Derive image-type
-	from filename rather than assuming jpeg, in case no resizing was
-	needed.
+	* image-dired.el (image-dired-display-image): Derive image-type from
+	filename rather than assuming jpeg, in case no resizing was needed.
 
 2007-04-25  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
@@ -28,12 +99,11 @@
 
 2007-04-24  J.D. Smith  <jdsmith@as.arizona.edu>
 
-	* progmodes/idlw-shell.el (idlwave-shell-clear-all-bp): Don't
-	re-query for each cleared BP.
+	* progmodes/idlw-shell.el (idlwave-shell-clear-all-bp):
+	Don't re-query for each cleared BP.
 	(idlwave-shell-clear-bp): Optionally skip BP query.
-	(idlwave-shell-update-bp-overlays): Use set-window-margins
-	instead of set-window-buffer, which incorrectly moves displayed
-	region.
+	(idlwave-shell-update-bp-overlays): Use set-window-margins instead
+	of set-window-buffer, which incorrectly moves displayed region.
 
 2007-04-23  Jay Belanger  <jay.p.belanger@gmail.com>
 
@@ -47,8 +117,8 @@
 
 2007-04-23  Chong Yidong  <cyd@stupidchicken.com>
 
-	* info.el (Info-mouse-scroll-up, Info-mouse-scroll-down): New
-	functions.
+	* info.el (Info-mouse-scroll-up, Info-mouse-scroll-down):
+	New functions.
 	(Info-mode-line-node-keymap): Bind mouse commands to
 	Info-mouse-scroll-up/down instead of Info-scroll-up/down.
 
@@ -59,8 +129,8 @@
 	(locate-prompt-for-search-string): New function.
 	(locate): New optional arg.  Make locate-local-prompt
 	buffer-local.  Use locate-prompt-for-search-string.
-	(locate-with-filter): New optional arg.  Use
-	locate-prompt-for-search-string.
+	(locate-with-filter): New optional arg.
+	Use locate-prompt-for-search-string.
 	(locate-update): Bind locate-prompt-for-command.
 
 2007-04-23  Glenn Morris  <rgm@gnu.org>
@@ -143,8 +213,8 @@
 	* progmodes/vhdl-mode.el (vhdl-template-type)
 	(vhdl-template-record, vhdl-template-nature)
 	(vhdl-template-configuration-spec, vhdl-template-component-inst)
-	(vhdl-template-break, vhdl-regress-line, vhdl-electric-tab): Use
-	delete-region instead of kill-word and kill-line.
+	(vhdl-template-break, vhdl-regress-line, vhdl-electric-tab):
+	Use delete-region instead of kill-word and kill-line.
 
 2007-04-21  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 

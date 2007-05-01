@@ -45,8 +45,12 @@
 ;; (add-hook 'dired-load-hook
 ;;           (function (lambda ()
 ;;                       (load "dired-x")
-;;                       ;; Set variables here.  For example:
+;;                       ;; Set global variables here.  For example:
 ;;                       ;; (setq dired-guess-shell-gnutar "gtar")
+;;                       )))
+;; (add-hook 'dired-mode-hook
+;;           (function (lambda ()
+;;                       ;; Set buffer-local variables here.  For example:
 ;;                       ;; (dired-omit-mode 1)
 ;;                       )))
 ;;
@@ -1123,11 +1127,17 @@ You can set this variable in your ~/.emacs.  For example, to add rules for
   :group 'dired-x
   :type '(alist :key-type regexp :value-type (repeat sexp)))
 
+(defcustom dired-guess-shell-case-fold-search t
+  "If non-nil, `dired-guess-shell-alist-default' and
+`dired-guess-shell-alist-user' are matched case-insensitively."
+  :group 'dired-x
+  :type 'boolean)
+
 (defun dired-guess-default (files)
   "Guess a shell commands for FILES.  Return command or list of commands.
 See `dired-guess-shell-alist-user'."
 
-  (let* ((case-fold-search t)
+  (let* ((case-fold-search dired-guess-shell-case-fold-search)
          ;; Prepend the user's alist to the default alist.
          (alist (append dired-guess-shell-alist-user
                         dired-guess-shell-alist-default))

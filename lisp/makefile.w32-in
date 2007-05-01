@@ -311,6 +311,8 @@ MH_E_SRC = $(lisp)/mh-e/mh-acros.el $(lisp)/mh-e/mh-alias.el	\
 	$(lisp)/mh-e/mh-tool-bar.el $(lisp)/mh-e/mh-utils.el	\
 	$(lisp)/mh-e/mh-xface.el
 
+# See the commentary for autoloads above for why we use ./mh-e below
+# instead of $(lisp)/mh-e.
 mh-autoloads: $(lisp)/mh-e/mh-loaddefs.el
 $(lisp)/mh-e/mh-loaddefs.el: $(MH_E_SRC)
 	$(MAKE) $(MFLAGS) pre-mh-loaddefs.el-$(SHELLTYPE)
@@ -322,7 +324,7 @@ $(lisp)/mh-e/mh-loaddefs.el: $(MH_E_SRC)
 	   --eval "(setq find-file-suppress-same-file-warnings t)" \
 	   --eval "(setq make-backup-files nil)" \
 	   -f w32-batch-update-autoloads \
-	   "$(lisp)/mh-e/mh-loaddefs.el" $(lisp)/mh-e
+	   "$(lisp)/mh-e/mh-loaddefs.el" ./mh-e
 
 pre-mh-loaddefs.el-SH:
 	echo ";;; mh-loaddefs.el --- automatically extracted autoloads" > $@

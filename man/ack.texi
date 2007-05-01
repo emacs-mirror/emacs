@@ -682,7 +682,7 @@ character sets,
 @file{latin1-disp.el}, a package that lets you display ISO 8859
 characters on Latin-1 terminals by setting up appropriate display
 tables,
-@item
+@item                                                                          
 @file{python.el}, a major mode for the Python programming language.
 @item
 @file{refill.el}, a mode for automatic paragraph refilling, akin to

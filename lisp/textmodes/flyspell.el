@@ -1961,12 +1961,8 @@ Sets `flyspell-auto-correct-previous-pos' to nil"
 But don't look beyond what's visible on the screen."
   (interactive "d")
 
-  (let (top bot)
-    (save-excursion
-      (move-to-window-line 0)
-      (setq top (point))
-      (move-to-window-line -1)
-      (setq bot (point)))
+  (let ((top (window-start))
+	(bot (window-end)))
     (save-excursion
       (save-restriction
 	(narrow-to-region top bot)

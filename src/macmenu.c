@@ -1011,6 +1011,11 @@ for instance using the window manager, then this produces a quit and
       DialogItemIndex item_hit;
       Lisp_Object tem;
 
+      /* Force a redisplay before showing the dialog.  If a frame is
+	 created just before showing the dialog, its contents may not
+	 have been fully drawn.  */
+      Fredisplay (Qt);
+
       tem = Fstring_match (concat3 (build_string ("\\("),
 				    call0 (intern ("sentence-end")),
 				    build_string ("\\)\n")),
@@ -2942,6 +2947,11 @@ mac_dialog_show (f, keymaps, title, header, error_name)
     wv->contents = first_wv;
     first_wv = wv;
   }
+
+  /* Force a redisplay before showing the dialog.  If a frame is created
+     just before showing the dialog, its contents may not have been fully
+     drawn.  */
+  Fredisplay (Qt);
 
   /* Actually create the dialog.  */
 #if TARGET_API_MAC_CARBON

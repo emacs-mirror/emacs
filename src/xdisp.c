@@ -13960,7 +13960,7 @@ try_window_reusing_current_matrix (w)
 			 nrows_scrolled);
 
 	  /* Disable lines that must be updated.  */
-	  for (i = 0; i < it.vpos; ++i)
+	  for (i = 0; i < nrows_scrolled; ++i)
 	    (start_row + i)->enabled_p = 0;
 
 	  /* Re-compute Y positions.  */

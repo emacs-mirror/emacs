@@ -113,6 +113,7 @@ older packages.
 Some specific packages that are known to cause problems are:
 
 ** Semantic (used by CEDET, ECB, JDEE): upgrade to latest version.
+
 ** cua.el, cua-mode.el: remove old versions.
 
 
@@ -3545,6 +3546,26 @@ display tables.
 
 ** General Lisp changes:
 
+*** New syntax: \s now stands for the SPACE character.
+
+`?\s' is a new way to write the space character.  You must make sure
+it is not followed by a dash, since `?\s-...' indicates the "super"
+modifier.  However, it would be strange to write a character constant
+and a following symbol (beginning with `-') with no space between
+them.
+
+`\s' stands for space in strings, too, but it is not really meant for
+strings; it is easier and nicer just to write a space.
+
+*** New syntax: \uXXXX and \UXXXXXXXX specify Unicode code points in hex.
+
+For instance, you can use "\u0428" to specify a string consisting of
+CYRILLIC CAPITAL LETTER SHA, or `"U0001D6E2" to specify one consisting
+of MATHEMATICAL ITALIC CAPITAL ALPHA (the latter is greater than
+#xFFFF and thus needs the longer syntax).
+
+This syntax works for both character constants and strings.
+
 *** The function `expt' handles negative exponents differently.
 The value for `(expt A B)', if both A and B are integers and B is
 negative, is now a float.  For example: (expt 2 -2) => 0.25.
@@ -3754,12 +3775,6 @@ variable `customize-package-emacs-version-alist'.
 
 ** String changes:
 
-*** The escape sequence \s is now interpreted as a SPACE character.
-
-Exception: In a character constant, if it is followed by a `-' in a
-character constant (e.g. ?\s-A), it is still interpreted as the super
-modifier.  In strings, \s is always interpreted as a space.
-
 *** A hex escape in a string constant forces the string to be multibyte.
 
 *** An octal escape in a string constant forces the string to be unibyte.
@@ -3779,12 +3794,6 @@ text properties.
 *** The new function `assoc-string' replaces `assoc-ignore-case' and
 `assoc-ignore-representation', which are still available, but have
 been declared obsolete.
-
-*** New syntax: \uXXXX and \UXXXXXXXX specify Unicode code points in hex.
-Use "\u0428" to specify a string consisting of CYRILLIC CAPITAL LETTER SHA,
-or "\U0001D6E2" to specify one consisting of MATHEMATICAL ITALIC CAPITAL
-ALPHA (the latter is greater than #xFFFF and thus needs the longer
-syntax).  Also available for characters.
 
 ** Displaying warnings to the user.
 
