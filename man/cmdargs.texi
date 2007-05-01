@@ -215,8 +215,8 @@ and input.
 @itemx --batch
 Run Emacs in @dfn{batch mode}.  Batch mode is used for running
 programs written in Emacs Lisp from shell scripts, makefiles, and so
-on.  You should also use the @samp{-l} option or @samp{-f} option, to
-invoke a Lisp program to do batch processing.
+on.  You should also use the @samp{-l}, @samp{-f} or @samp{--eval}
+option, to invoke a Lisp program to do batch processing.
 
 In batch mode, Emacs does not display the text being edited, and the
 standard terminal interrupt characters such as @kbd{C-z} and @kbd{C-c}
