@@ -1,3 +1,17 @@
+2007-05-01  Davis Herring  <herring@lanl.gov>
+
+        * calendar/timeclock.el: Update version number.
+        (timeclock-modeline-display): Mention timeclock-use-display-time
+        in explanatory message.
+        (timeclock-in): Fix non-interactive workday specifications.
+        (timeclock-log): Don't kill the log buffer if it already existed.
+        Suppress warnings when finding the log.  Don't check for a nil
+        project twice.  Run hooks after killing the buffer (if
+        applicable).
+        (timeclock-geometric-mean): Rename to `timeclock-mean' (it never
+        was geometric).  All uses changed.
+        (timeclock-generate-report): Support prefix argument.
+
 2007-05-01  Romain Francoise  <romain@orebokech.com>
 
 	* dired-x.el: Revert 2007-04-06 change.
