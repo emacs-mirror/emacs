@@ -1,3 +1,7 @@
+2007-05-01  Richard Stallman  <rms@gnu.org>
+
+	* cmdargs.texi (Initial Options): Under --batch, mention --eval.
+
 2007-04-28  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi (Acknowledgments):
