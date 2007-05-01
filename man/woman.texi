@@ -99,6 +99,7 @@ Mile End Road, London E1 4NS, UK
 * Technical::           Technical Details
 * Bugs::                Reporting Bugs
 * Acknowledgements::    Acknowledgements
+* GNU Free Documentation License:: The license for this documentation.
 * Command Index::       Command Index
 * Variable Index::      Variable Index
 * Keystroke Index::     Keystroke Index
@@ -1334,7 +1335,7 @@ man source file from, but do not send it unless asked to send it.
 
 @c ===================================================================
 
-@node Acknowledgements, Command Index, Bugs, Top
+@node Acknowledgements, GNU Free Documentation License, Bugs, Top
 @comment  node-name,  next,  previous,  up
 @chapter Acknowledgements
 @cindex acknowledgements
@@ -1390,7 +1391,12 @@ Eli Zaretskii, @email{eliz@@is.elta.co.il}
 @comment END OF MANUAL TEXT
 @page
 
-@node Command Index, Variable Index, Acknowledgements, Top
+
+@node GNU Free Documentation License, Command Index, Acknowledgements, Top
+@appendix GNU Free Documentation License
+@include doclicense.texi
+
+@node Command Index, Variable Index, GNU Free Documentation License, Top
 @comment  node-name,           next,      previous,  up
 @unnumbered Command Index
 

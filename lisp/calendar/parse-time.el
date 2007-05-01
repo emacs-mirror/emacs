@@ -66,7 +66,8 @@
   (aref parse-time-digits char))
 
 (defsubst parse-time-string-chars (char)
-  (aref parse-time-syntax char))
+  (and (< char (length parse-time-syntax))
+       (aref parse-time-syntax char)))
 
 (put 'parse-error 'error-conditions '(parse-error error))
 (put 'parse-error 'error-message "Parsing error")

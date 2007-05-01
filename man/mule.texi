@@ -261,6 +261,9 @@ Thai, Tibetan, Turkish, UTF-8 (for a setup which prefers Unicode
 characters and files encoded in UTF-8), Ukrainian, Vietnamese, Welsh,
 and Windows-1255 (for a setup which prefers Cyrillic characters and
 files encoded in Windows-1255).
+@tex
+\hbadness=10000\par  % just avoid underfull hbox warning
+@end tex
 @end quotation
 
 @cindex fonts for various scripts

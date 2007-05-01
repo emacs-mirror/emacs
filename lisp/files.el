@@ -2123,19 +2123,20 @@ associated with that interpreter in `interpreter-mode-alist'.")
   `((image-type-auto-detected-p . image-mode)
     ;; The < comes before the groups (but the first) to reduce backtracking.
     ;; TODO: UTF-16 <?xml may be preceded by a BOM 0xff 0xfe or 0xfe 0xff.
-    ;; We use [ \t\n] instead of `\\s ' to make regex overflow less likely.
+    ;; We use [ \t\r\n] instead of `\\s ' to make regex overflow less likely.
     (,(let* ((incomment-re "\\(?:[^-]\\|-[^-]\\)")
-	     (comment-re (concat "\\(?:!--" incomment-re "*-->[ \t\n]*<\\)")))
-	(concat "\\(?:<\\?xml[ \t\n]+[^>]*>\\)?[ \t\n]*<"
+	     (comment-re (concat "\\(?:!--" incomment-re "*-->[ \t\r\n]*<\\)")))
+	(concat "\\(?:<\\?xml[ \t\r\n]+[^>]*>\\)?[ \t\r\n]*<"
 		comment-re "*"
-		"\\(?:!DOCTYPE[ \t\n]+[^>]*>[ \t\n]*<[ \t\n]*" comment-re "*\\)?"
+		"\\(?:!DOCTYPE[ \t\r\n]+[^>]*>[ \t\r\n]*<[ \t\r\n]*" comment-re "*\\)?"
 		"[Hh][Tt][Mm][Ll]"))
      . html-mode)
+    ("<!DOCTYPE[ \t\r\n]+[Hh][Tt][Mm][Ll]" . html-mode)
     ;; These two must come after html, because they are more general:
     ("<\\?xml " . xml-mode)
     (,(let* ((incomment-re "\\(?:[^-]\\|-[^-]\\)")
-	     (comment-re (concat "\\(?:!--" incomment-re "*-->[ \t\n]*<\\)")))
-	(concat "[ \t\n]*<" comment-re "*!DOCTYPE "))
+	     (comment-re (concat "\\(?:!--" incomment-re "*-->[ \t\r\n]*<\\)")))
+	(concat "[ \t\r\n]*<" comment-re "*!DOCTYPE "))
      . sgml-mode)
     ("%!PS" . ps-mode)
     ("# xmcd " . conf-unix-mode))
@@ -2434,13 +2435,14 @@ asking you for confirmation."
 
 (mapc (lambda (pair)
 	(put (car pair) 'safe-local-variable (cdr pair)))
-      '((buffer-read-only                . booleanp) ;; C source code
-	(fill-column                     . integerp) ;; C source code
-	(indent-tabs-mode                . booleanp) ;; C source code
-	(left-margin                     . integerp) ;; C source code
-	(no-update-autoloads             . booleanp)
-	(tab-width                       . integerp) ;; C source code
-	(truncate-lines                  . booleanp))) ;; C source code
+      '((buffer-read-only     . booleanp)   ;; C source code
+	(default-directory    . stringp)    ;; C source code
+	(fill-column          . integerp)   ;; C source code
+	(indent-tabs-mode     . booleanp)   ;; C source code
+	(left-margin          . integerp)   ;; C source code
+	(no-update-autoloads  . booleanp)
+	(tab-width            . integerp)   ;; C source code
+	(truncate-lines       . booleanp))) ;; C source code
 
 (put 'c-set-style 'safe-local-eval-function t)
 

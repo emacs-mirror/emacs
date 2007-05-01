@@ -91,6 +91,7 @@ of the various commands and major modes for further information.
 * Customization::               How you can tailor PCL-CVS to suit your needs.
 * Bugs::                        Bugs (known and unknown).
 
+* GNU Free Documentation License:: The license for this documentation.
 * Function and Variable Index::  List of functions and variables.
 * Concept Index::               List of concepts.
 * Key Index::                   List of keystrokes.
@@ -1363,7 +1364,7 @@ Used to highlight CVS messages.
 @end table
 
 
-@node   Bugs, Function and Variable Index, Customization, Top
+@node   Bugs, GNU Free Documentation License, Customization, Top
 @chapter Bugs (known and unknown)
 @cindex Reporting bugs and ideas
 @cindex Bugs, how to report them
@@ -1403,7 +1404,13 @@ output of the CVS process (which should be found in the @samp{ *cvs-tmp*}
 buffer), and the versions of Emacs, PCL-CVS and CVS you are using.
 @end table
 
-@node Function and Variable Index, Concept Index, Bugs, Top
+@node GNU Free Documentation License, Function and Variable Index, Bugs, Top
+@appendix GNU Free Documentation License
+@include doclicense.texi
+
+
+
+@node Function and Variable Index, Concept Index, GNU Free Documentation License, Top
 @unnumbered Function and Variable Index
 
 This is an index of all the functions and variables documented in this

@@ -390,17 +390,11 @@ struct font_driver
   Lisp_Object (*otf_capability) P_ ((struct font *font));
 
   /* Optional.
-     Drive FONT's OTF GSUB features according to GSUB_SPEC.
+     Apply FONT's OTF-FEATURES to the glyph string.
 
-     GSUB_SPEC is in this format (all elements are symbols):
-	(SCRIPT LANGSYS GSUB-FEATURE ...)
-     If one of GSUB-FEATURE is nil, apply all gsub features except for
-     already applied and listed later.  For instance, if the font has
-     GSUB features nukt, haln, rphf, blwf, and half,
-	(deva nil nukt haln nil rphf)
-     applies nukt and haln in this order, then applies blwf and half
-     in the order apearing in the font.  The features are of the
-     default langsys of `deva' script.
+     FEATURES specifies which OTF features to apply in this format:
+	(SCRIPT LANGSYS GSUB-FEATURE GPOS-FEATURE)
+     See the documentation of `font-drive-otf' for the detail.
 
      This method applies the specified features to the codes in the
      elements of GSTRING-IN (between FROMth and TOth).  The output
@@ -410,26 +404,9 @@ struct font_driver
      Return the number of output codes.  If none of the features are
      applicable to the input data, return 0.  If GSTRING-OUT is too
      short, return -1.  */
-  int (*otf_gsub) P_ ((struct font *font, Lisp_Object gsub_spec,
+  int (*otf_drive) P_ ((struct font *font, Lisp_Object features,
 		       Lisp_Object gstring_in, int from, int to,
 		       Lisp_Object gstring_out, int idx, int alternate_subst));
-
-  /* Optional.
-     Drive FONT's OTF GPOS features according to GPOS_SPEC.
-
-     GPOS_SPEC is in this format (all elements are symbols):
-	(SCRIPT LANGSYS GPOS-FEATURE ...)
-     The meaning is the same as GSUB_SPEC above. 
-
-     This method applies the specified features to the codes in the
-     elements of GSTRING (between FROMth and TOth).  The resulting
-     positioning information (x-offset and y-offset) is stored in the
-     slots of the elements.
-
-     Return 1 if at least one glyph has nonzero x-offset or y-offset.
-     Otherwise return 0.  */
-  int (*otf_gpos) P_ ((struct font *font, Lisp_Object gpos_spec,
-		       Lisp_Object gstring, int from, int to));
 };
 
 
@@ -467,8 +444,9 @@ extern int font_set_lface_from_name P_ ((FRAME_PTR f,
 					 int force_p, int may_fail_p));
 extern Lisp_Object font_find_for_lface P_ ((FRAME_PTR f, Lisp_Object *lface,
 					    Lisp_Object spec));
-extern Lisp_Object font_open_for_lface P_ ((FRAME_PTR f, Lisp_Object *lface,
-					    Lisp_Object entity));
+extern Lisp_Object font_open_for_lface P_ ((FRAME_PTR f, Lisp_Object entity,
+					    Lisp_Object *lface,
+					    Lisp_Object spec));
 extern void font_load_for_face P_ ((FRAME_PTR f, struct face *face));
 extern void font_prepare_for_face P_ ((FRAME_PTR f, struct face *face));
 extern Lisp_Object font_open_by_name P_ ((FRAME_PTR f, char *name));
@@ -499,14 +477,11 @@ extern struct font *font_prepare_composition P_ ((struct composition *cmp));
 #ifdef HAVE_LIBOTF
 /* This can be used as `otf_capability' method of a font-driver.  */
 extern Lisp_Object font_otf_capability P_ ((struct font *font));
-/* This can be used as `otf_gsub' method of a font-driver.  */
-extern int font_otf_gsub P_ ((struct font *font, Lisp_Object gsub_spec,
-			      Lisp_Object gstring_in, int from, int to,
-			      Lisp_Object gstring_out, int idx,
-			      int alternate_subst));
-/* This can be used as `otf_gpos' method of a font-driver.  */
-extern int font_otf_gpos P_ ((struct font *font, Lisp_Object gpos_spec,
-			      Lisp_Object gstring, int from, int to));
+/* This can be used as `otf_drive' method of a font-driver.  */
+extern int font_drive_otf P_ ((struct font *font, Lisp_Object otf_features,
+			       Lisp_Object gstring_in, int from, int to,
+			       Lisp_Object gstring_out, int idx,
+			       int alternate_subst));
 #endif	/* HAVE_LIBOTF */
 
 #ifdef HAVE_FREETYPE

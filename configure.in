@@ -1039,6 +1039,8 @@ dnl see the `changequote' comment above.
 		;;
       *-sunos5* | *-solaris* )
 		opsys=sol2-6
+## FIXME: make this into a proper fix that checks the compiler type,
+## rather than relying on path. Or is /usr/ccs/lib/cpp a bad default now?
 		if [ "x$CC" = x/opt/SUNWspro/bin/cc ]; then
 		  ## -Xs prevents spurious whitespace.
 		  NON_GNU_CPP="/opt/SUNWspro/bin/cc -E -Xs"
@@ -2182,7 +2184,7 @@ fi
 
 dnl Do not put whitespace before the #include statements below.
 dnl Older compilers (eg sunos4 cc) choke on it.
-if test x"${USE_X_TOOLKIT}" = xmaybe; then
+if test x"${USE_X_TOOLKIT}" = xmaybe || test x"${USE_X_TOOLKIT}" = xLUCID; then
   if test x"${HAVE_X11R5}" = xyes; then
     AC_MSG_CHECKING(X11 version 5 with Xaw)
     AC_CACHE_VAL(emacs_cv_x11_version_5_with_xaw,
@@ -2196,8 +2198,12 @@ if test x"${USE_X_TOOLKIT}" = xmaybe; then
       AC_MSG_RESULT([5 or newer, with Xaw; use toolkit by default])
       USE_X_TOOLKIT=LUCID
     else
-      AC_MSG_RESULT(before 5 or no Xaw; do not use toolkit by default)
-      USE_X_TOOLKIT=none
+      if test x"${USE_X_TOOLKIT}" = xLUCID; then
+        AC_MSG_ERROR([Lucid toolkit requires X11/Xaw include files])
+      else
+        AC_MSG_RESULT(before 5 or no Xaw; do not use toolkit by default)
+        USE_X_TOOLKIT=none
+      fi
     fi
   else
     USE_X_TOOLKIT=none
@@ -2487,10 +2493,13 @@ if test "${HAVE_FREETYPE}" = "yes"; then
            [Define to 1 if you have freetype and fontconfig libraries.])
   AC_CHECK_PROG(HAVE_LIBOTF, libotf-config, yes, no)
   if test "${HAVE_LIBOTF}" = "yes"; then
-    AC_DEFINE(HAVE_LIBOTF, 1,
-             [Define to 1 if you have libotf library.])
-    LIBOTF_CFLAGS=`libotf-config --cflags`
-    LIBOTF_LIBS=`libotf-config --libs`
+    AC_CHECK_LIB(otf, OTF_get_features, , HAVE_LIBOTF=no)
+    if test "${HAVE_LIBOTF}" = "yes"; then
+      AC_DEFINE(HAVE_LIBOTF, 1,
+               [Define to 1 if you have libotf library.])
+      LIBOTF_CFLAGS=`libotf-config --cflags`
+      LIBOTF_LIBS=`libotf-config --libs`
+    fi
   fi
 fi
 AC_SUBST(FREETYPE_CFLAGS)

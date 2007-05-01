@@ -205,11 +205,11 @@
 ;;     	by the binary insertion algorithm.  However, you may not
 ;;     	really have a need for such accurate priorities amongst your
 ;;     	TODO items.  If you now think about the binary insertion
-;;     	halfing the size of the window each time, then the threshhold
+;;     	halving the size of the window each time, then the threshold
 ;;     	is the window size at which it will stop.  If you set the
-;;     	threshhold to zero, the upper and lower bound will coincide at
+;;     	threshold to zero, the upper and lower bound will coincide at
 ;;     	the end of the loop and you will insert your item just before
-;;     	that point.  If you set the threshhold to, e.g. 8, it will stop
+;;     	that point.  If you set the threshold to, e.g. 8, it will stop
 ;;     	as soon as the window size drops below that amount and will
 ;;     	insert the item in the approximate centre of that window.  I
 ;;     	got the idea for this feature after reading a very helpful
@@ -231,7 +231,7 @@
 ;;          an event (unless marked by &)
 ;;      o   The optional COUNT variable of todo-forward-item should be
 ;;          applied to the other functions performing similar tasks
-;;      o   Modularization could be done for repeaded elements of
+;;      o   Modularization could be done for repeated elements of
 ;;          the code, like the completing-read lines of code.
 ;;	o   license / version function
 ;;	o   export to diary file
@@ -241,7 +241,7 @@
 ;;          outline mode)
 ;;	o   rewrite complete package to store data as lisp objects
 ;;          and have display modes for display, for diary export,
-;;          etc. (Richard Stallman pointed out this is a bad idea)
+;;          etc.  (Richard Stallman pointed out this is a bad idea)
 ;;      o   so base todo-mode.el on generic-mode.el instead
 ;;
 ;;  History and Gossip
@@ -254,7 +254,7 @@
 ;;	things to my parents' address!
 ;;
 ;;	Oliver Seidel
-;;	(Lessingstr. 8, 65760 Eschborn, Federal Republic of Germany)
+;;	(Lessingstr.  8, 65760 Eschborn, Federal Republic of Germany)
 
 ;;; Code:
 
@@ -280,7 +280,7 @@ in your diary file to include your todo list file as part of your
 diary.  With the default value \"*/*\" the diary displays each entry
 every day and it may also be marked on every day of the calendar.
 Using \"&%%(equal (calendar-current-date) date)\" instead will only
-show and mark todo entreis for today, but may slow down processing of
+show and mark todo entries for today, but may slow down processing of
 the diary file somewhat."
   :type 'string
   :group 'todo)
@@ -306,11 +306,11 @@ the diary file somewhat."
 If you have 8 items in your TODO list, then you may get asked 4
 questions by the binary insertion algorithm.  However, you may not
 really have a need for such accurate priorities amongst your TODO
-items.  If you now think about the binary insertion halfing the size
-of the window each time, then the threshhold is the window size at
-which it will stop.  If you set the threshhold to zero, the upper and
+items.  If you now think about the binary insertion halving the size
+of the window each time, then the threshold is the window size at
+which it will stop.  If you set the threshold to zero, the upper and
 lower bound will coincide at the end of the loop and you will insert
-your item just before that point.  If you set the threshhold to,
+your item just before that point.  If you set the threshold to,
 e.g. 8, it will stop as soon as the window size drops below that
 amount and will insert the item in the approximate center of that
 window."

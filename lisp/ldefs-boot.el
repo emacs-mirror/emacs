@@ -4,7 +4,7 @@
 
 ;;;### (autoloads (5x5-crack 5x5-crack-xor-mutate 5x5-crack-mutating-best
 ;;;;;;  5x5-crack-mutating-current 5x5-crack-randomly 5x5) "5x5"
-;;;;;;  "play/5x5.el" (17876 15555))
+;;;;;;  "play/5x5.el" (17941 38806))
 ;;; Generated autoloads from play/5x5.el
 
 (autoload (quote 5x5) "5x5" "\
@@ -852,7 +852,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (animate-birthday-present animate-sequence animate-string)
-;;;;;;  "animate" "play/animate.el" (17842 55395))
+;;;;;;  "animate" "play/animate.el" (17941 38806))
 ;;; Generated autoloads from play/animate.el
 
 (autoload (quote animate-string) "animate" "\
@@ -945,7 +945,7 @@ Used in `antlr-mode'.  Also a useful function in `java-mode-hook'.
 ;;;### (autoloads (appt-activate appt-make-list appt-delete appt-add
 ;;;;;;  appt-display-diary appt-display-duration appt-display-mode-line
 ;;;;;;  appt-msg-window appt-visible appt-audible appt-message-warning-time
-;;;;;;  appt-issue-message) "appt" "calendar/appt.el" (17842 53792))
+;;;;;;  appt-issue-message) "appt" "calendar/appt.el" (17952 17513))
 ;;; Generated autoloads from calendar/appt.el
 
 (defvar appt-issue-message t "\
@@ -1129,8 +1129,8 @@ Returns list of symbols and documentation found.
 
 ;;;***
 
-;;;### (autoloads (archive-mode) "arc-mode" "arc-mode.el" (17842
-;;;;;;  58280))
+;;;### (autoloads (archive-mode) "arc-mode" "arc-mode.el" (17960
+;;;;;;  49045))
 ;;; Generated autoloads from arc-mode.el
 
 (autoload (quote archive-mode) "arc-mode" "\
@@ -1794,8 +1794,8 @@ non-interactive use see also `benchmark-run' and
 
 ;;;***
 
-;;;### (autoloads (bibtex-mode) "bibtex" "textmodes/bibtex.el" (17843
-;;;;;;  28300))
+;;;### (autoloads (bibtex-mode) "bibtex" "textmodes/bibtex.el" (17956
+;;;;;;  21270))
 ;;; Generated autoloads from textmodes/bibtex.el
 
 (autoload (quote bibtex-mode) "bibtex" "\
@@ -2582,8 +2582,8 @@ name of buffer configuration.
 ;;;***
 
 ;;;### (autoloads (insert-text-button make-text-button insert-button
-;;;;;;  make-button define-button-type) "button" "button.el" (17935
-;;;;;;  59428))
+;;;;;;  make-button define-button-type) "button" "button.el" (17964
+;;;;;;  48350))
 ;;; Generated autoloads from button.el
 
 (defvar button-map (let ((map (make-sparse-keymap))) (define-key map "" (quote push-button)) (define-key map [mouse-2] (quote push-button)) map) "\
@@ -2671,7 +2671,7 @@ Also see `make-text-button'.
 ;;;;;;  batch-byte-compile-if-not-done display-call-tree byte-compile
 ;;;;;;  compile-defun byte-compile-file byte-recompile-directory
 ;;;;;;  byte-force-recompile byte-compile-warnings-safe-p) "bytecomp"
-;;;;;;  "emacs-lisp/bytecomp.el" (17927 20254))
+;;;;;;  "emacs-lisp/bytecomp.el" (17949 41467))
 ;;; Generated autoloads from emacs-lisp/bytecomp.el
 (put 'byte-compile-dynamic 'safe-local-variable 'booleanp)
 (put 'byte-compile-disable-print-circle 'safe-local-variable 'booleanp)
@@ -2777,7 +2777,7 @@ and corresponding effects.
 
 ;;;***
 
-;;;### (autoloads nil "cal-dst" "calendar/cal-dst.el" (17916 10823))
+;;;### (autoloads nil "cal-dst" "calendar/cal-dst.el" (17956 13479))
 ;;; Generated autoloads from calendar/cal-dst.el
 
 (put (quote calendar-daylight-savings-starts) (quote risky-local-variable) t)
@@ -2787,7 +2787,7 @@ and corresponding effects.
 ;;;***
 
 ;;;### (autoloads (list-yahrzeit-dates) "cal-hebrew" "calendar/cal-hebrew.el"
-;;;;;;  (17842 53792))
+;;;;;;  (17956 13479))
 ;;; Generated autoloads from calendar/cal-hebrew.el
 
 (autoload (quote list-yahrzeit-dates) "cal-hebrew" "\
@@ -2802,7 +2802,7 @@ from the cursor position.
 ;;;### (autoloads (defmath calc-embedded-activate calc-embedded calc-grab-rectangle
 ;;;;;;  calc-grab-region full-calc-keypad calc-keypad calc-eval quick-calc
 ;;;;;;  full-calc calc calc-dispatch calc-settings-file) "calc" "calc/calc.el"
-;;;;;;  (17919 4936))
+;;;;;;  (17965 11665))
 ;;; Generated autoloads from calc/calc.el
 
 (defvar calc-settings-file (convert-standard-filename "~/.calc.el") "\
@@ -2909,7 +2909,7 @@ See the documentation for `calculator-mode' for more information.
 ;;;;;;  mark-holidays-in-calendar view-calendar-holidays-initially
 ;;;;;;  calendar-remove-frame-by-deleting mark-diary-entries-in-calendar
 ;;;;;;  view-diary-entries-initially calendar-offset) "calendar"
-;;;;;;  "calendar/calendar.el" (17929 8808))
+;;;;;;  "calendar/calendar.el" (17956 13479))
 ;;; Generated autoloads from calendar/calendar.el
 
 (defvar calendar-offset 0 "\
@@ -3507,7 +3507,7 @@ it fails.
 ;;;***
 
 ;;;### (autoloads (c-guess-basic-syntax) "cc-engine" "progmodes/cc-engine.el"
-;;;;;;  (17926 45410))
+;;;;;;  (17942 63381))
 ;;; Generated autoloads from progmodes/cc-engine.el
 
 (autoload (quote c-guess-basic-syntax) "cc-engine" "\
@@ -3519,7 +3519,7 @@ Return the syntactic context of the current line.
 
 ;;;### (autoloads (pike-mode idl-mode java-mode objc-mode c++-mode
 ;;;;;;  c-mode c-initialize-cc-mode) "cc-mode" "progmodes/cc-mode.el"
-;;;;;;  (17926 45410))
+;;;;;;  (17962 52849))
 ;;; Generated autoloads from progmodes/cc-mode.el
 
 (autoload (quote c-initialize-cc-mode) "cc-mode" "\
@@ -3728,14 +3728,14 @@ and exists only for compatibility reasons.
 
 ;;;***
 
-;;;### (autoloads nil "cc-subword" "progmodes/cc-subword.el" (17842
-;;;;;;  56333))
+;;;### (autoloads nil "cc-subword" "progmodes/cc-subword.el" (17949
+;;;;;;  41467))
 ;;; Generated autoloads from progmodes/cc-subword.el
  (autoload 'c-subword-mode "cc-subword" "Mode enabling subword movement and editing keys." t)
 
 ;;;***
 
-;;;### (autoloads nil "cc-vars" "progmodes/cc-vars.el" (17854 7681))
+;;;### (autoloads nil "cc-vars" "progmodes/cc-vars.el" (17941 38806))
 ;;; Generated autoloads from progmodes/cc-vars.el
 (put 'c-basic-offset 'safe-local-variable 'integerp)
 (put 'c-backslash-column 'safe-local-variable 'integerp)
@@ -4535,7 +4535,7 @@ on third call it again advances points to the next difference and so on.
 ;;;;;;  compilation-shell-minor-mode compilation-mode compilation-start
 ;;;;;;  compile compilation-disable-input compile-command compilation-search-path
 ;;;;;;  compilation-ask-about-save compilation-window-height compilation-mode-hook)
-;;;;;;  "compile" "progmodes/compile.el" (17928 33291))
+;;;;;;  "compile" "progmodes/compile.el" (17952 11093))
 ;;; Generated autoloads from progmodes/compile.el
 
 (defvar compilation-mode-hook nil "\
@@ -4698,7 +4698,7 @@ This is the value of `next-error-function' in Compilation buffers.
 ;;;***
 
 ;;;### (autoloads (partial-completion-mode) "complete" "complete.el"
-;;;;;;  (17931 55720))
+;;;;;;  (17954 15344))
 ;;; Generated autoloads from complete.el
 
 (defvar partial-completion-mode nil "\
@@ -5200,7 +5200,7 @@ Insert a copyright by $ORGANIZATION notice at cursor.
 ;;;***
 
 ;;;### (autoloads (cperl-perldoc-at-point cperl-perldoc cperl-mode)
-;;;;;;  "cperl-mode" "progmodes/cperl-mode.el" (17899 1957))
+;;;;;;  "cperl-mode" "progmodes/cperl-mode.el" (17955 36604))
 ;;; Generated autoloads from progmodes/cperl-mode.el
 
 (autoload (quote cperl-mode) "cperl-mode" "\
@@ -5538,7 +5538,7 @@ Enable CUA selection mode without the C-z/C-x/C-c/C-v bindings.
 ;;;;;;  customize-mode customize customize-save-variable customize-set-variable
 ;;;;;;  customize-set-value custom-menu-sort-alphabetically custom-buffer-sort-alphabetically
 ;;;;;;  custom-browse-sort-alphabetically) "cus-edit" "cus-edit.el"
-;;;;;;  (17900 13368))
+;;;;;;  (17952 11093))
 ;;; Generated autoloads from cus-edit.el
 
 (defvar custom-browse-sort-alphabetically nil "\
@@ -5960,10 +5960,10 @@ or call the function `global-cwarn-mode'.")
 (custom-autoload (quote global-cwarn-mode) "cwarn" nil)
 
 (autoload (quote global-cwarn-mode) "cwarn" "\
-Toggle Cwarn mode in every buffer.
+Toggle Cwarn mode in every possible buffer.
 With prefix ARG, turn Global-Cwarn mode on if and only if ARG is positive.
-Cwarn mode is actually not turned on in every buffer but only in those
-in which `turn-on-cwarn-mode-if-enabled' turns it on.
+Cwarn mode is enabled in all buffers where `turn-on-cwarn-mode-if-enabled' would do it.
+See `cwarn-mode' for more information on Cwarn mode.
 
 \(fn &optional ARG)" t nil)
 
@@ -6044,8 +6044,8 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion].
 
 ;;;***
 
-;;;### (autoloads (dcl-mode) "dcl-mode" "progmodes/dcl-mode.el" (17842
-;;;;;;  56333))
+;;;### (autoloads (dcl-mode) "dcl-mode" "progmodes/dcl-mode.el" (17949
+;;;;;;  41468))
 ;;; Generated autoloads from progmodes/dcl-mode.el
 
 (autoload (quote dcl-mode) "dcl-mode" "\
@@ -6442,7 +6442,7 @@ as well as widgets, buttons, overlays, and text properties.
 ;;;### (autoloads (desktop-revert desktop-save-in-desktop-dir desktop-change-dir
 ;;;;;;  desktop-load-default desktop-read desktop-remove desktop-save
 ;;;;;;  desktop-clear desktop-locals-to-save desktop-save-mode) "desktop"
-;;;;;;  "desktop.el" (17893 17506))
+;;;;;;  "desktop.el" (17949 41467))
 ;;; Generated autoloads from desktop.el
 
 (defvar desktop-save-mode nil "\
@@ -6676,7 +6676,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (diary-mode diary-mail-entries diary) "diary-lib"
-;;;;;;  "calendar/diary-lib.el" (17929 8808))
+;;;;;;  "calendar/diary-lib.el" (17958 11887))
 ;;; Generated autoloads from calendar/diary-lib.el
 
 (autoload (quote diary) "diary-lib" "\
@@ -6756,14 +6756,13 @@ With prefix arg, prompt for diff switches.
 ;;;***
 
 ;;;### (autoloads (diff-minor-mode diff-mode) "diff-mode" "diff-mode.el"
-;;;;;;  (17907 56729))
+;;;;;;  (17942 63381))
 ;;; Generated autoloads from diff-mode.el
 
 (autoload (quote diff-mode) "diff-mode" "\
 Major mode for viewing/editing context diffs.
 Supports unified and context diffs as well as (to a lesser extent)
-normal diffs.  If you edit the buffer manually, diff-mode will try
-to update the hunk headers for you on-the-fly.
+normal diffs.
 
 When the buffer is read-only, the ESC prefix is not necessary.
 If you edit the buffer manually, diff-mode will try to update the hunk
@@ -6772,9 +6771,6 @@ headers for you on-the-fly.
 You can also switch between context diff and unified diff with \\[diff-context->unified],
 or vice versa with \\[diff-unified->context] and you can also reverse the direction of
 a diff with \\[diff-reverse-direction].
-
-When the buffer is read-only, the Meta- modifier is not necessary
-to run the Diff mode commands:
 
    \\{diff-mode-map}
 
@@ -6792,7 +6788,7 @@ Minor mode for viewing/editing context diffs.
 ;;;;;;  dired dired-copy-preserve-time dired-dwim-target dired-keep-marker-symlink
 ;;;;;;  dired-keep-marker-hardlink dired-keep-marker-copy dired-keep-marker-rename
 ;;;;;;  dired-trivial-filenames dired-ls-F-marks-symlinks dired-listing-switches)
-;;;;;;  "dired" "dired.el" (17851 56703))
+;;;;;;  "dired" "dired.el" (17963 25980))
 ;;; Generated autoloads from dired.el
 
 (defvar dired-listing-switches "-al" "\
@@ -7412,7 +7408,7 @@ true then the type of the file linked to by FILE is printed instead.
 ;;;***
 
 ;;;### (autoloads (dired-do-relsymlink dired-jump) "dired-x" "dired-x.el"
-;;;;;;  (17859 33405))
+;;;;;;  (17962 27565))
 ;;; Generated autoloads from dired-x.el
 
 (autoload (quote dired-jump) "dired-x" "\
@@ -7596,7 +7592,7 @@ for users who call this function in `.emacs'.
 ;;;***
 
 ;;;### (autoloads (dissociated-press) "dissociate" "play/dissociate.el"
-;;;;;;  (17842 55395))
+;;;;;;  (17941 38806))
 ;;; Generated autoloads from play/dissociate.el
 
 (autoload (quote dissociated-press) "dissociate" "\
@@ -7612,7 +7608,7 @@ Default is 2.
 
 ;;;***
 
-;;;### (autoloads (dnd-protocol-alist) "dnd" "dnd.el" (17842 58280))
+;;;### (autoloads (dnd-protocol-alist) "dnd" "dnd.el" (17949 41467))
 ;;; Generated autoloads from dnd.el
 
 (defvar dnd-protocol-alist (quote (("^file:///" . dnd-open-local-file) ("^file://" . dnd-open-file) ("^file:" . dnd-open-local-file) ("^\\(https?\\|ftp\\|file\\|nfs\\)://" . dnd-open-file))) "\
@@ -7657,7 +7653,7 @@ Locate SOA record and increment the serial field.
 
 ;;;***
 
-;;;### (autoloads (doctor) "doctor" "play/doctor.el" (17842 55395))
+;;;### (autoloads (doctor) "doctor" "play/doctor.el" (17941 38806))
 ;;; Generated autoloads from play/doctor.el
 
 (autoload (quote doctor) "doctor" "\
@@ -7712,7 +7708,7 @@ Play sounds in message buffers.
 
 ;;;### (autoloads (easy-mmode-defsyntax easy-mmode-defmap easy-mmode-define-keymap
 ;;;;;;  define-globalized-minor-mode define-minor-mode) "easy-mmode"
-;;;;;;  "emacs-lisp/easy-mmode.el" (17860 50628))
+;;;;;;  "emacs-lisp/easy-mmode.el" (17964 48351))
 ;;; Generated autoloads from emacs-lisp/easy-mmode.el
 
 (defalias (quote easy-mmode-define-minor-mode) (quote define-minor-mode))
@@ -7956,7 +7952,7 @@ To implement dynamic menus, either call this from
 ;;;;;;  ebnf-eps-directory ebnf-spool-region ebnf-spool-buffer ebnf-spool-file
 ;;;;;;  ebnf-spool-directory ebnf-print-region ebnf-print-buffer
 ;;;;;;  ebnf-print-file ebnf-print-directory ebnf-customize) "ebnf2ps"
-;;;;;;  "progmodes/ebnf2ps.el" (17859 54480))
+;;;;;;  "progmodes/ebnf2ps.el" (17952 11093))
 ;;; Generated autoloads from progmodes/ebnf2ps.el
 
 (autoload (quote ebnf-customize) "ebnf2ps" "\
@@ -8413,7 +8409,7 @@ With prefix arg NOCONFIRM, execute current line as-is without editing.
 
 ;;;### (autoloads (edebug-all-forms edebug-all-defs edebug-eval-top-level-form
 ;;;;;;  edebug-basic-spec edebug-all-forms edebug-all-defs) "edebug"
-;;;;;;  "emacs-lisp/edebug.el" (17930 34071))
+;;;;;;  "emacs-lisp/edebug.el" (17952 11093))
 ;;; Generated autoloads from emacs-lisp/edebug.el
 
 (defvar edebug-all-defs nil "\
@@ -10719,7 +10715,7 @@ you can set `feedmail-queue-reminder-alist' to nil.
 ;;;***
 
 ;;;### (autoloads (ffap-bindings dired-at-point ffap-at-mouse ffap-menu
-;;;;;;  find-file-at-point ffap-next) "ffap" "ffap.el" (17829 31540))
+;;;;;;  find-file-at-point ffap-next) "ffap" "ffap.el" (17943 4602))
 ;;; Generated autoloads from ffap.el
 
 (autoload (quote ffap-next) "ffap" "\
@@ -10849,7 +10845,7 @@ Set up hooks, load the cache file -- if existing -- and build the menu.
 
 ;;;***
 
-;;;### (autoloads nil "fill" "textmodes/fill.el" (17852 19718))
+;;;### (autoloads nil "fill" "textmodes/fill.el" (17961 33560))
 ;;; Generated autoloads from textmodes/fill.el
 (put 'colon-double-space 'safe-local-variable 'booleanp)
 
@@ -11271,7 +11267,7 @@ Turn flymake mode off.
 
 ;;;### (autoloads (flyspell-buffer flyspell-region flyspell-mode-off
 ;;;;;;  turn-off-flyspell turn-on-flyspell flyspell-mode flyspell-prog-mode)
-;;;;;;  "flyspell" "textmodes/flyspell.el" (17927 20254))
+;;;;;;  "flyspell" "textmodes/flyspell.el" (17962 52849))
 ;;; Generated autoloads from textmodes/flyspell.el
 
 (autoload (quote flyspell-prog-mode) "flyspell" "\
@@ -11414,8 +11410,8 @@ in your `~/.emacs' file, replacing [f7] by your favourite key:
 
 ;;;***
 
-;;;### (autoloads (footnote-mode) "footnote" "mail/footnote.el" (17842
-;;;;;;  55035))
+;;;### (autoloads (footnote-mode) "footnote" "mail/footnote.el" (17954
+;;;;;;  24686))
 ;;; Generated autoloads from mail/footnote.el
 
 (autoload (quote footnote-mode) "footnote" "\
@@ -11609,7 +11605,7 @@ and choose the directory as the fortune-file.
 ;;;***
 
 ;;;### (autoloads (gdb-enable-debug gdba) "gdb-ui" "progmodes/gdb-ui.el"
-;;;;;;  (17893 61665))
+;;;;;;  (17941 38806))
 ;;; Generated autoloads from progmodes/gdb-ui.el
 
 (autoload (quote gdba) "gdb-ui" "\
@@ -11952,7 +11948,7 @@ If CLEAN, obsolete (ignore).
 ;;;***
 
 ;;;### (autoloads (gnus-article-prepare-display) "gnus-art" "gnus/gnus-art.el"
-;;;;;;  (17938 29201))
+;;;;;;  (17960 49045))
 ;;; Generated autoloads from gnus/gnus-art.el
 
 (autoload (quote gnus-article-prepare-display) "gnus-art" "\
@@ -12303,7 +12299,7 @@ Update the .newsrc.eld file to reflect the change of nntp server.
 ;;;***
 
 ;;;### (autoloads (gnus-button-reply gnus-button-mailto gnus-msg-mail)
-;;;;;;  "gnus-msg" "gnus/gnus-msg.el" (17938 61442))
+;;;;;;  "gnus-msg" "gnus/gnus-msg.el" (17949 41467))
 ;;; Generated autoloads from gnus/gnus-msg.el
 
 (autoload (quote gnus-msg-mail) "gnus-msg" "\
@@ -12543,7 +12539,7 @@ Add the window configuration CONF to `gnus-buffer-configuration'.
 
 ;;;***
 
-;;;### (autoloads (gomoku) "gomoku" "play/gomoku.el" (17842 55395))
+;;;### (autoloads (gomoku) "gomoku" "play/gomoku.el" (17941 38806))
 ;;; Generated autoloads from play/gomoku.el
 
 (autoload (quote gomoku) "gomoku" "\
@@ -12600,7 +12596,7 @@ Also fontifies the buffer appropriately (see `goto-address-fontify-p' and
 
 ;;;### (autoloads (rgrep lgrep grep-find grep grep-mode grep-compute-defaults
 ;;;;;;  grep-process-setup grep-setup-hook grep-find-command grep-command
-;;;;;;  grep-window-height) "grep" "progmodes/grep.el" (17908 16392))
+;;;;;;  grep-window-height) "grep" "progmodes/grep.el" (17944 20144))
 ;;; Generated autoloads from progmodes/grep.el
 
 (defvar grep-window-height nil "\
@@ -12643,10 +12639,10 @@ The default find program for `grep-find-command'.
 This variable's value takes effect when `grep-compute-defaults' is called.")
 
 (defvar grep-find-use-xargs nil "\
-Whether \\[grep-find] uses the `xargs' utility by default.
-
-If `exec', it uses `find -exec'; if `gnu', it uses `find -print0' and `xargs -0';
-if not nil and not `gnu', it uses `find -print' and `xargs'.
+Non-nil means that `grep-find' uses the `xargs' utility by default.
+If `exec', use `find -exec'.
+If `gnu', use `find -print0' and `xargs -0'.
+Any other non-nil value means to use `find -print' and `xargs'.
 
 This variable's value takes effect when `grep-compute-defaults' is called.")
 
@@ -12754,7 +12750,7 @@ the form \"WINDOW-ID PIXMAP-ID\".  Value is non-nil if successful.
 ;;;***
 
 ;;;### (autoloads (gdb-script-mode jdb pdb perldb xdb dbx sdb gdb)
-;;;;;;  "gud" "progmodes/gud.el" (17938 61442))
+;;;;;;  "gud" "progmodes/gud.el" (17950 21759))
 ;;; Generated autoloads from progmodes/gud.el
 
 (autoload (quote gdb) "gud" "\
@@ -13285,7 +13281,7 @@ This discards the buffer's undo information.
 ;;;### (autoloads (hi-lock-write-interactive-patterns hi-lock-unface-buffer
 ;;;;;;  hi-lock-face-phrase-buffer hi-lock-face-buffer hi-lock-line-face-buffer
 ;;;;;;  global-hi-lock-mode hi-lock-mode) "hi-lock" "hi-lock.el"
-;;;;;;  (17860 50601))
+;;;;;;  (17964 48351))
 ;;; Generated autoloads from hi-lock.el
 
 (autoload (quote hi-lock-mode) "hi-lock" "\
@@ -13313,17 +13309,22 @@ called interactively, are:
   Remove highlighting on matches of REGEXP in current buffer.
 
 \\[hi-lock-write-interactive-patterns]
-  Write active REGEXPs into buffer as comments (if possible).  They will
+  Write active REGEXPs into buffer as comments (if possible).  They may
   be read the next time file is loaded or when the \\[hi-lock-find-patterns] command
   is issued.  The inserted regexps are in the form of font lock keywords.
-  (See `font-lock-keywords'.)  They may be edited and re-loaded with \\[hi-lock-find-patterns],
-  any valid `font-lock-keywords' form is acceptable.
+  (See `font-lock-keywords'.)  They may be edited and re-loaded with \\[hi-lock-find-patterns], 
+  any valid `font-lock-keywords' form is acceptable. When a file is
+  loaded the patterns are read if `hi-lock-file-patterns-policy is
+  'ask and the user responds y to the prompt, or if
+  `hi-lock-file-patterns-policy' is bound to a function and that
+  function returns t.
 
 \\[hi-lock-find-patterns]
   Re-read patterns stored in buffer (in the format produced by \\[hi-lock-write-interactive-patterns]).
 
-When hi-lock is started and if the mode is not excluded, the
-beginning of the buffer is searched for lines of the form:
+When hi-lock is started and if the mode is not excluded or patterns
+rejected, the beginning of the buffer is searched for lines of the
+form:
   Hi-lock: FOO
 where FOO is a list of patterns.  These are added to the font lock
 keywords already present.  The patterns must start before position
@@ -13344,10 +13345,10 @@ or call the function `global-hi-lock-mode'.")
 (custom-autoload (quote global-hi-lock-mode) "hi-lock" nil)
 
 (autoload (quote global-hi-lock-mode) "hi-lock" "\
-Toggle Hi-Lock mode in every buffer.
+Toggle Hi-Lock mode in every possible buffer.
 With prefix ARG, turn Global-Hi-Lock mode on if and only if ARG is positive.
-Hi-Lock mode is actually not turned on in every buffer but only in those
-in which `turn-on-hi-lock-if-enabled' turns it on.
+Hi-Lock mode is enabled in all buffers where `turn-on-hi-lock-if-enabled' would do it.
+See `hi-lock-mode' for more information on Hi-Lock mode.
 
 \(fn &optional ARG)" t nil)
 
@@ -13772,7 +13773,7 @@ Global-Hl-Line mode uses the functions `global-hl-line-unhighlight' and
 ;;;***
 
 ;;;### (autoloads (list-holidays holidays) "holidays" "calendar/holidays.el"
-;;;;;;  (17842 53792))
+;;;;;;  (17956 13479))
 ;;; Generated autoloads from calendar/holidays.el
 
 (autoload (quote holidays) "holidays" "\
@@ -14452,7 +14453,7 @@ with no args, if that value is non-nil.
 ;;;***
 
 ;;;### (autoloads (idlwave-shell) "idlw-shell" "progmodes/idlw-shell.el"
-;;;;;;  (17935 59227))
+;;;;;;  (17965 23638))
 ;;; Generated autoloads from progmodes/idlw-shell.el
 
 (autoload (quote idlwave-shell) "idlw-shell" "\
@@ -14613,8 +14614,8 @@ The main features of this mode are
 ;;;;;;  ido-find-alternate-file ido-find-file-other-window ido-find-file
 ;;;;;;  ido-find-file-in-dir ido-switch-buffer-other-frame ido-insert-buffer
 ;;;;;;  ido-kill-buffer ido-display-buffer ido-switch-buffer-other-window
-;;;;;;  ido-switch-buffer ido-mode ido-mode) "ido" "ido.el" (17932
-;;;;;;  16456))
+;;;;;;  ido-switch-buffer ido-mode ido-mode) "ido" "ido.el" (17963
+;;;;;;  25911))
 ;;; Generated autoloads from ido.el
 
 (defvar ido-mode nil "\
@@ -15081,6 +15082,145 @@ Example:
 
 ;;;***
 
+;;;### (autoloads (image-dired-dired-edit-comment-and-tags image-dired-mark-tagged-files
+;;;;;;  image-dired-dired-comment-files image-dired-dired-display-image
+;;;;;;  image-dired-dired-display-external image-dired-display-thumb
+;;;;;;  image-dired-display-thumbs-append image-dired-setup-dired-keybindings
+;;;;;;  image-dired-jump-thumbnail-buffer image-dired-delete-tag
+;;;;;;  image-dired-tag-files image-dired-show-all-from-dir image-dired-display-thumbs
+;;;;;;  image-dired-dired-with-window-configuration image-dired-dired-insert-marked-thumbs)
+;;;;;;  "image-dired" "image-dired.el" (17963 26200))
+;;; Generated autoloads from image-dired.el
+
+(autoload (quote image-dired-dired-insert-marked-thumbs) "image-dired" "\
+Insert thumbnails before file names of marked files in the dired buffer.
+
+\(fn)" t nil)
+
+(autoload (quote image-dired-dired-with-window-configuration) "image-dired" "\
+Open directory DIR and create a default window configuration.
+
+Convenience command that:
+
+ - Opens dired in folder DIR
+ - Splits windows in most useful (?) way
+ - Set `truncate-lines' to t
+
+After the command has finished, you would typically mark some
+image files in dired and type
+\\[image-dired-display-thumbs] (`image-dired-display-thumbs').
+
+If called with prefix argument ARG, skip splitting of windows.
+
+The current window configuration is saved and can be restored by
+calling `image-dired-restore-window-configuration'.
+
+\(fn DIR &optional ARG)" t nil)
+
+(autoload (quote image-dired-display-thumbs) "image-dired" "\
+Display thumbnails of all marked files, in `image-dired-thumbnail-buffer'.
+If a thumbnail image does not exist for a file, it is created on the
+fly.  With prefix argument ARG, display only thumbnail for file at
+point (this is useful if you have marked some files but want to show
+another one).
+
+Recommended usage is to split the current frame horizontally so that
+you have the dired buffer in the left window and the
+`image-dired-thumbnail-buffer' buffer in the right window.
+
+With optional argument APPEND, append thumbnail to thumbnail buffer
+instead of erasing it first.
+
+Option argument DO-NOT-POP controls if `pop-to-buffer' should be
+used or not.  If non-nil, use `display-buffer' instead of
+`pop-to-buffer'.  This is used from functions like
+`image-dired-next-line-and-display' and
+`image-dired-previous-line-and-display' where we do not want the
+thumbnail buffer to be selected.
+
+\(fn &optional ARG APPEND DO-NOT-POP)" t nil)
+
+(autoload (quote image-dired-show-all-from-dir) "image-dired" "\
+Make a preview buffer for all images in DIR and display it.
+If the number of files in DIR matching `image-file-name-regexp'
+exceeds `image-dired-show-all-from-dir-max-files', a warning will be
+displayed.
+
+\(fn DIR)" t nil)
+
+(defalias (quote image-dired) (quote image-dired-show-all-from-dir))
+
+(defalias (quote tumme) (quote image-dired-show-all-from-dir))
+
+(autoload (quote image-dired-tag-files) "image-dired" "\
+Tag marked file(s) in dired.  With prefix ARG, tag file at point.
+
+\(fn ARG)" t nil)
+
+(autoload (quote image-dired-delete-tag) "image-dired" "\
+Remove tag for selected file(s).
+With prefix argument ARG, remove tag from file at point.
+
+\(fn ARG)" t nil)
+
+(autoload (quote image-dired-jump-thumbnail-buffer) "image-dired" "\
+Jump to thumbnail buffer.
+
+\(fn)" t nil)
+
+(autoload (quote image-dired-setup-dired-keybindings) "image-dired" "\
+Setup easy-to-use keybindings for the commands to be used in dired mode.
+Note that n, p and <down> and <up> will be hijacked and bound to
+`image-dired-dired-x-line'.
+
+\(fn)" t nil)
+
+(autoload (quote image-dired-display-thumbs-append) "image-dired" "\
+Append thumbnails to `image-dired-thumbnail-buffer'.
+
+\(fn)" t nil)
+
+(autoload (quote image-dired-display-thumb) "image-dired" "\
+Shorthand for `image-dired-display-thumbs' with prefix argument.
+
+\(fn)" t nil)
+
+(autoload (quote image-dired-dired-display-external) "image-dired" "\
+Display file at point using an external viewer.
+
+\(fn)" t nil)
+
+(autoload (quote image-dired-dired-display-image) "image-dired" "\
+Display current image file.
+See documentation for `image-dired-display-image' for more information.
+With prefix argument ARG, display image in its original size.
+
+\(fn &optional ARG)" t nil)
+
+(autoload (quote image-dired-dired-comment-files) "image-dired" "\
+Add comment to current or marked files in dired.
+
+\(fn)" t nil)
+
+(autoload (quote image-dired-mark-tagged-files) "image-dired" "\
+Use regexp to mark files with matching tag.
+A `tag' is a keyword, a piece of meta data, associated with an
+image file and stored in image-dired's database file.  This command
+lets you input a regexp and this will be matched against all tags
+on all image files in the database file.  The files that have a
+matching tags will be marked in the dired buffer.
+
+\(fn)" t nil)
+
+(autoload (quote image-dired-dired-edit-comment-and-tags) "image-dired" "\
+Edit comment and tags of current or marked image files.
+Edit comment and tags for all marked image files in an
+easy-to-use form.
+
+\(fn)" t nil)
+
+;;;***
+
 ;;;### (autoloads (auto-image-file-mode insert-image-file image-file-name-regexp
 ;;;;;;  image-file-name-regexps image-file-name-extensions) "image-file"
 ;;;;;;  "image-file.el" (17842 58279))
@@ -15408,7 +15548,7 @@ of `inferior-lisp-program').  Runs the hooks from
 ;;;### (autoloads (Info-speedbar-browser Info-goto-emacs-key-command-node
 ;;;;;;  Info-goto-emacs-command-node Info-mode info-apropos Info-index
 ;;;;;;  Info-directory Info-on-current-buffer info-standalone info-emacs-manual
-;;;;;;  info info-other-window) "info" "info.el" (17936 34375))
+;;;;;;  info info-other-window) "info" "info.el" (17964 52883))
 ;;; Generated autoloads from info.el
 
 (autoload (quote info-other-window) "info" "\
@@ -16488,7 +16628,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (lm lm-test-run) "landmark" "play/landmark.el"
-;;;;;;  (17842 55395))
+;;;;;;  (17941 38806))
 ;;; Generated autoloads from play/landmark.el
 
 (defalias (quote landmark-repeat) (quote lm-test-run))
@@ -16711,8 +16851,8 @@ generations (this defaults to 1).
 
 ;;;***
 
-;;;### (autoloads (unload-feature) "loadhist" "loadhist.el" (17870
-;;;;;;  63949))
+;;;### (autoloads (unload-feature) "loadhist" "loadhist.el" (17942
+;;;;;;  63381))
 ;;; Generated autoloads from loadhist.el
 
 (autoload (quote unload-feature) "loadhist" "\
@@ -16735,7 +16875,7 @@ such as redefining an Emacs function.
 ;;;***
 
 ;;;### (autoloads (locate-with-filter locate locate-ls-subdir-switches)
-;;;;;;  "locate" "locate.el" (17842 58279))
+;;;;;;  "locate" "locate.el" (17965 12050))
 ;;; Generated autoloads from locate.el
 
 (defvar locate-ls-subdir-switches "-al" "\
@@ -16763,7 +16903,9 @@ the variables `locate-command' or `locate-make-command-line'.
 The main use of FILTER is to implement `locate-with-filter'.  See
 the docstring of that function for its meaning.
 
-\(fn SEARCH-STRING &optional FILTER)" t nil)
+ARG is the interactive prefix arg.
+
+\(fn SEARCH-STRING &optional FILTER ARG)" t nil)
 
 (autoload (quote locate-with-filter) "locate" "\
 Run the executable program `locate' with a filter.
@@ -16775,10 +16917,12 @@ that lists only those lines in the output of the locate program that
 contain a match for the regular expression FILTER; this is often useful
 to constrain a big search.
 
+ARG is the interactive prefix arg, which has the same effect as in `locate'.
+
 When called from Lisp, this function is identical with `locate',
 except that FILTER is not optional.
 
-\(fn SEARCH-STRING FILTER)" t nil)
+\(fn SEARCH-STRING FILTER &optional ARG)" t nil)
 
 ;;;***
 
@@ -16942,8 +17086,8 @@ Otherwise they are treated as Emacs regexps (for backward compatibility).")
 
 ;;;***
 
-;;;### (autoloads (phases-of-moon) "lunar" "calendar/lunar.el" (17916
-;;;;;;  10998))
+;;;### (autoloads (phases-of-moon) "lunar" "calendar/lunar.el" (17956
+;;;;;;  13479))
 ;;; Generated autoloads from calendar/lunar.el
 
 (autoload (quote phases-of-moon) "lunar" "\
@@ -17450,8 +17594,8 @@ yourself the value of `master-of' by calling `master-show-slave'.
 
 ;;;***
 
-;;;### (autoloads (menu-bar-mode) "menu-bar" "menu-bar.el" (17842
-;;;;;;  58279))
+;;;### (autoloads (menu-bar-mode) "menu-bar" "menu-bar.el" (17942
+;;;;;;  63381))
 ;;; Generated autoloads from menu-bar.el
 
 (put (quote menu-bar-mode) (quote standard-value) (quote (t)))
@@ -17486,7 +17630,7 @@ turn on menu bars; otherwise, turn off menu bars.
 ;;;;;;  message-cite-function message-yank-prefix message-citation-line-function
 ;;;;;;  message-send-mail-function message-user-organization-file
 ;;;;;;  message-signature-separator message-from-style) "message"
-;;;;;;  "gnus/message.el" (17929 33467))
+;;;;;;  "gnus/message.el" (17949 41467))
 ;;; Generated autoloads from gnus/message.el
 
 (defvar message-from-style (quote default) "\
@@ -19570,7 +19714,7 @@ The file is stored under the name `org-combined-agenda-icalendar-file'.
 ;;;***
 
 ;;;### (autoloads (outline-minor-mode outline-mode) "outline" "outline.el"
-;;;;;;  (17881 61722))
+;;;;;;  (17952 11093))
 ;;; Generated autoloads from outline.el
 (put 'outline-regexp 'safe-local-variable 'string-or-null-p)
 
@@ -19641,7 +19785,7 @@ See the command `outline-mode' for more information on this mode.
 
 ;;;***
 
-;;;### (autoloads (show-paren-mode) "paren" "paren.el" (17842 58279))
+;;;### (autoloads (show-paren-mode) "paren" "paren.el" (17960 50513))
 ;;; Generated autoloads from paren.el
 
 (defvar show-paren-mode nil "\
@@ -19666,7 +19810,7 @@ in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time.
 ;;;***
 
 ;;;### (autoloads (parse-time-string) "parse-time" "calendar/parse-time.el"
-;;;;;;  (17842 53792))
+;;;;;;  (17957 43164))
 ;;; Generated autoloads from calendar/parse-time.el
 
 (autoload (quote parse-time-string) "parse-time" "\
@@ -19949,8 +20093,8 @@ Completion for the `chgrp' command.
 
 ;;;### (autoloads (pcomplete-shell-setup pcomplete-comint-setup pcomplete-list
 ;;;;;;  pcomplete-help pcomplete-expand pcomplete-continue pcomplete-expand-and-complete
-;;;;;;  pcomplete-reverse pcomplete) "pcomplete" "pcomplete.el" (17900
-;;;;;;  30230))
+;;;;;;  pcomplete-reverse pcomplete) "pcomplete" "pcomplete.el" (17944
+;;;;;;  62194))
 ;;; Generated autoloads from pcomplete.el
 
 (autoload (quote pcomplete) "pcomplete" "\
@@ -20094,7 +20238,7 @@ The exact behavior is determined also by `cvs-dired-use-hook'." (when (stringp d
 ;;;***
 
 ;;;### (autoloads (perl-mode) "perl-mode" "progmodes/perl-mode.el"
-;;;;;;  (17842 56332))
+;;;;;;  (17962 28280))
 ;;; Generated autoloads from progmodes/perl-mode.el
 
 (autoload (quote perl-mode) "perl-mode" "\
@@ -21447,81 +21591,6 @@ EXTENSION is one of the following symbols:
 If EXTENSION is any other symbol, it is ignored.
 
 \(fn FACE-EXTENSION &optional MERGE-P ALIST-SYM)" nil nil)
-
-;;;***
-
-;;;### (autoloads (jython-mode python-mode run-python) "python" "progmodes/python.el"
-;;;;;;  (17930 34071))
-;;; Generated autoloads from progmodes/python.el
-
-(add-to-list (quote interpreter-mode-alist) (quote ("jython" . jython-mode)))
-
-(add-to-list (quote interpreter-mode-alist) (quote ("python" . python-mode)))
-
-(add-to-list (quote auto-mode-alist) (quote ("\\.py\\'" . python-mode)))
-
-(autoload (quote run-python) "python" "\
-Run an inferior Python process, input and output via buffer *Python*.
-CMD is the Python command to run.  NOSHOW non-nil means don't show the
-buffer automatically.
-
-Normally, if there is a process already running in `python-buffer',
-switch to that buffer.  Interactively, a prefix arg allows you to edit
-the initial command line (default is `python-command'); `-i' etc. args
-will be added to this as appropriate.  A new process is started if:
-one isn't running attached to `python-buffer', or interactively the
-default `python-command', or argument NEW is non-nil.  See also the
-documentation for `python-buffer'.
-
-Runs the hook `inferior-python-mode-hook' (after the
-`comint-mode-hook' is run).  (Type \\[describe-mode] in the process
-buffer for a list of commands.)
-
-\(fn &optional CMD NOSHOW NEW)" t nil)
-
-(autoload (quote python-mode) "python" "\
-Major mode for editing Python files.
-Font Lock mode is currently required for correct parsing of the source.
-See also `jython-mode', which is actually invoked if the buffer appears to
-contain Jython code.  See also `run-python' and associated Python mode
-commands for running Python under Emacs.
-
-The Emacs commands which work with `defun's, e.g. \\[beginning-of-defun], deal
-with nested `def' and `class' blocks.  They take the innermost one as
-current without distinguishing method and class definitions.  Used multiple
-times, they move over others at the same indentation level until they reach
-the end of definitions at that level, when they move up a level.
-\\<python-mode-map>
-Colon is electric: it outdents the line if appropriate, e.g. for
-an else statement.  \\[python-backspace] at the beginning of an indented statement
-deletes a level of indentation to close the current block; otherwise it
-deletes a character backward.  TAB indents the current line relative to
-the preceding code.  Successive TABs, with no intervening command, cycle
-through the possibilities for indentation on the basis of enclosing blocks.
-
-\\[fill-paragraph] fills comments and multi-line strings appropriately, but has no
-effect outside them.
-
-Supports Eldoc mode (only for functions, using a Python process),
-Info-Look and Imenu.  In Outline minor mode, `class' and `def'
-lines count as headers.  Symbol completion is available in the
-same way as in the Python shell using the `rlcompleter' module
-and this is added to the Hippie Expand functions locally if
-Hippie Expand mode is turned on.  Completion of symbols of the
-form x.y only works if the components are literal
-module/attribute names, not variables.  An abbrev table is set up
-with skeleton expansions for compound statement templates.
-
-\\{python-mode-map}
-
-\(fn)" t nil)
-
-(autoload (quote jython-mode) "python" "\
-Major mode for editing Jython files.
-Like `python-mode', but sets up parameters for Jython subprocesses.
-Runs `jython-mode-hook' after `python-mode-hook'.
-
-\(fn)" t nil)
 
 ;;;***
 
@@ -23470,7 +23539,7 @@ during scrolling.
 ;;;;;;  mail-alias-file mail-default-reply-to mail-archive-file-name
 ;;;;;;  mail-header-separator send-mail-function mail-interactive
 ;;;;;;  mail-self-blind mail-specify-envelope-from mail-from-style)
-;;;;;;  "sendmail" "mail/sendmail.el" (17842 55035))
+;;;;;;  "sendmail" "mail/sendmail.el" (17942 63381))
 ;;; Generated autoloads from mail/sendmail.el
 
 (defvar mail-from-style (quote angles) "\
@@ -23667,16 +23736,16 @@ Like Text Mode but with these additional commands:
 \\[mail-send-and-exit]  mail-send-and-exit (send the message and exit)
 
 Here are commands that move to a header field (and create it if there isn't):
-	 \\[mail-to]  move to To:	\\[mail-subject]  move to Subject:
-	 \\[mail-cc]  move to CC:	\\[mail-bcc]  move to BCC:
+	 \\[mail-to]  move to To:	\\[mail-subject]  move to Subj:
+	 \\[mail-bcc]  move to BCC:	\\[mail-cc]  move to CC:
 	 \\[mail-fcc]  move to FCC:	\\[mail-reply-to] move to Reply-To:
          \\[mail-mail-reply-to]  move to Mail-Reply-To:
          \\[mail-mail-followup-to] move to Mail-Followup-To:
-\\[mail-text]  mail-text (move to beginning of message text).
+\\[mail-text]  move to message text.
 \\[mail-signature]  mail-signature (insert `mail-signature-file' file).
 \\[mail-yank-original]  mail-yank-original (insert current message, in Rmail).
 \\[mail-fill-yanked-message]  mail-fill-yanked-message (fill what was yanked).
-\\[mail-sent-via]  mail-sent-via (add a Sent-via field for each To or CC).
+\\[mail-sent-via]  mail-sent-via (add a sent-via field for each To or CC).
 Turning on Mail mode runs the normal hooks `text-mode-hook' and
 `mail-mode-hook' (in that order).
 
@@ -24141,7 +24210,7 @@ Turning on Sieve mode runs `sieve-mode-hook'.
 
 ;;;***
 
-;;;### (autoloads nil "simple" "simple.el" (17938 22875))
+;;;### (autoloads nil "simple" "simple.el" (17965 11665))
 ;;; Generated autoloads from simple.el
 (put 'fill-prefix 'safe-local-variable 'string-or-null-p)
 
@@ -24344,7 +24413,7 @@ interactively. If there's no argument, do it at the current buffer
 ;;;***
 
 ;;;### (autoloads (smtpmail-send-queued-mail smtpmail-send-it) "smtpmail"
-;;;;;;  "mail/smtpmail.el" (17938 24686))
+;;;;;;  "mail/smtpmail.el" (17939 50716))
 ;;; Generated autoloads from mail/smtpmail.el
 
 (autoload (quote smtpmail-send-it) "smtpmail" "\
@@ -24414,7 +24483,7 @@ then `snmpv2-mode-hook'.
 
 ;;;### (autoloads (solar-equinoxes-solstices sunrise-sunset calendar-location-name
 ;;;;;;  calendar-longitude calendar-latitude calendar-time-display-form)
-;;;;;;  "solar" "calendar/solar.el" (17916 11038))
+;;;;;;  "solar" "calendar/solar.el" (17956 13479))
 ;;; Generated autoloads from calendar/solar.el
 
 (defvar calendar-time-display-form (quote (12-hours ":" minutes am-pm (if time-zone " (") time-zone (if time-zone ")"))) "\
@@ -25404,7 +25473,7 @@ Studlify-case the current buffer.
 
 ;;;***
 
-;;;### (autoloads (locate-library) "subr" "subr.el" (17938 61442))
+;;;### (autoloads (locate-library) "subr" "subr.el" (17964 48351))
 ;;; Generated autoloads from subr.el
 
 (autoload (quote locate-library) "subr" "\
@@ -25458,7 +25527,7 @@ before, and `sc-post-hook' is run after the guts of this function.
 
 ;;;***
 
-;;;### (autoloads (t-mouse-mode) "t-mouse" "t-mouse.el" (17938 61442))
+;;;### (autoloads (t-mouse-mode) "t-mouse" "t-mouse.el" (17963 25911))
 ;;; Generated autoloads from t-mouse.el
 
 (defvar t-mouse-mode nil "\
@@ -26215,8 +26284,8 @@ Normally input is edited in Emacs and sent a line at a time.
 
 ;;;***
 
-;;;### (autoloads (ansi-term term make-term) "term" "term.el" (17922
-;;;;;;  37595))
+;;;### (autoloads (ansi-term term make-term) "term" "term.el" (17952
+;;;;;;  11093))
 ;;; Generated autoloads from term.el
 
 (autoload (quote make-term) "term" "\
@@ -26292,7 +26361,7 @@ Start coverage on function under point.
 
 ;;;***
 
-;;;### (autoloads (tetris) "tetris" "play/tetris.el" (17897 26294))
+;;;### (autoloads (tetris) "tetris" "play/tetris.el" (17941 38806))
 ;;; Generated autoloads from play/tetris.el
 
 (autoload (quote tetris) "tetris" "\
@@ -26853,7 +26922,7 @@ Not documented
 
 ;;;### (autoloads (thumbs-dired-setroot thumbs-dired-show thumbs-dired-show-marked
 ;;;;;;  thumbs-show-from-dir thumbs-find-thumb) "thumbs" "thumbs.el"
-;;;;;;  (17842 58278))
+;;;;;;  (17963 26308))
 ;;; Generated autoloads from thumbs.el
 
 (autoload (quote thumbs-find-thumb) "thumbs" "\
@@ -27396,7 +27465,7 @@ PATTERN regexp.
 ;;;***
 
 ;;;### (autoloads (tmm-prompt tmm-menubar-mouse tmm-menubar) "tmm"
-;;;;;;  "tmm.el" (17938 22875))
+;;;;;;  "tmm.el" (17952 58711))
 ;;; Generated autoloads from tmm.el
  (define-key global-map "\M-`" 'tmm-menubar)
  (define-key global-map [f10] 'tmm-menubar)
@@ -27437,7 +27506,7 @@ Its value should be an event that has a binding in MENU.
 
 ;;;### (autoloads (todo-show todo-cp todo-mode todo-print todo-top-priorities
 ;;;;;;  todo-insert-item todo-add-item-non-interactively todo-add-category)
-;;;;;;  "todo-mode" "calendar/todo-mode.el" (17842 53792))
+;;;;;;  "todo-mode" "calendar/todo-mode.el" (17962 52848))
 ;;; Generated autoloads from calendar/todo-mode.el
 
 (autoload (quote todo-add-category) "todo-mode" "\
@@ -27787,142 +27856,6 @@ Discard Tramp from loading remote files.
 Not documented
 
 \(fn)" nil nil)
-
-;;;***
-
-;;;### (autoloads (tumme-dired-edit-comment-and-tags tumme-mark-tagged-files
-;;;;;;  tumme-dired-comment-files tumme-dired-display-image tumme-dired-display-external
-;;;;;;  tumme-display-thumb tumme-display-thumbs-append tumme-setup-dired-keybindings
-;;;;;;  tumme-jump-thumbnail-buffer tumme-delete-tag tumme-tag-files
-;;;;;;  tumme-show-all-from-dir tumme-display-thumbs tumme-dired-with-window-configuration
-;;;;;;  tumme-dired-insert-marked-thumbs) "tumme" "tumme.el" (17842
-;;;;;;  58278))
-;;; Generated autoloads from tumme.el
-
-(autoload (quote tumme-dired-insert-marked-thumbs) "tumme" "\
-Insert thumbnails before file names of marked files in the dired buffer.
-
-\(fn)" t nil)
-
-(autoload (quote tumme-dired-with-window-configuration) "tumme" "\
-Open directory DIR and create a default window configuration.
-
-Convenience command that:
-
- - Opens dired in folder DIR
- - Splits windows in most useful (?) way
- - Set `truncate-lines' to t
-
-After the command has finished, you would typically mark some
-image files in dired and type
-\\[tumme-display-thumbs] (`tumme-display-thumbs').
-
-If called with prefix argument ARG, skip splitting of windows.
-
-The current window configuration is saved and can be restored by
-calling `tumme-restore-window-configuration'.
-
-\(fn DIR &optional ARG)" t nil)
-
-(autoload (quote tumme-display-thumbs) "tumme" "\
-Display thumbnails of all marked files, in `tumme-thumbnail-buffer'.
-If a thumbnail image does not exist for a file, it is created on the
-fly.  With prefix argument ARG, display only thumbnail for file at
-point (this is useful if you have marked some files but want to show
-another one).
-
-Recommended usage is to split the current frame horizontally so that
-you have the dired buffer in the left window and the
-`tumme-thumbnail-buffer' buffer in the right window.
-
-With optional argument APPEND, append thumbnail to thumbnail buffer
-instead of erasing it first.
-
-Option argument DO-NOT-POP controls if `pop-to-buffer' should be
-used or not.  If non-nil, use `display-buffer' instead of
-`pop-to-buffer'.  This is used from functions like
-`tumme-next-line-and-display' and
-`tumme-previous-line-and-display' where we do not want the
-thumbnail buffer to be selected.
-
-\(fn &optional ARG APPEND DO-NOT-POP)" t nil)
-
-(autoload (quote tumme-show-all-from-dir) "tumme" "\
-Make a preview buffer for all images in DIR and display it.
-If the number of files in DIR matching `image-file-name-regexp'
-exceeds `tumme-show-all-from-dir-max-files', a warning will be
-displayed.
-
-\(fn DIR)" t nil)
-
-(defalias (quote tumme) (quote tumme-show-all-from-dir))
-
-(autoload (quote tumme-tag-files) "tumme" "\
-Tag marked file(s) in dired.  With prefix ARG, tag file at point.
-
-\(fn ARG)" t nil)
-
-(autoload (quote tumme-delete-tag) "tumme" "\
-Remove tag for selected file(s).
-With prefix argument ARG, remove tag from file at point.
-
-\(fn ARG)" t nil)
-
-(autoload (quote tumme-jump-thumbnail-buffer) "tumme" "\
-Jump to thumbnail buffer.
-
-\(fn)" t nil)
-
-(autoload (quote tumme-setup-dired-keybindings) "tumme" "\
-Setup easy-to-use keybindings for the commands to be used in dired mode.
-Note that n, p and <down> and <up> will be hijacked and bound to
-`tumme-dired-x-line'.
-
-\(fn)" t nil)
-
-(autoload (quote tumme-display-thumbs-append) "tumme" "\
-Append thumbnails to `tumme-thumbnail-buffer'.
-
-\(fn)" t nil)
-
-(autoload (quote tumme-display-thumb) "tumme" "\
-Shorthand for `tumme-display-thumbs' with prefix argument.
-
-\(fn)" t nil)
-
-(autoload (quote tumme-dired-display-external) "tumme" "\
-Display file at point using an external viewer.
-
-\(fn)" t nil)
-
-(autoload (quote tumme-dired-display-image) "tumme" "\
-Display current image file.
-See documentation for `tumme-display-image' for more information.
-With prefix argument ARG, display image in its original size.
-
-\(fn &optional ARG)" t nil)
-
-(autoload (quote tumme-dired-comment-files) "tumme" "\
-Add comment to current or marked files in dired.
-
-\(fn)" t nil)
-
-(autoload (quote tumme-mark-tagged-files) "tumme" "\
-Use regexp to mark files with matching tag.
-A `tag' is a keyword, a piece of meta data, associated with an
-image file and stored in tumme's database file.  This command
-lets you input a regexp and this will be matched against all tags
-on all image files in the database file.  The files that have a
-matching tags will be marked in the dired buffer.
-
-\(fn)" t nil)
-
-(autoload (quote tumme-dired-edit-comment-and-tags) "tumme" "\
-Edit comment and tags of current or marked image files.
-Edit comment and tags for all marked image files in an
-easy-to-use form.
-
-\(fn)" t nil)
 
 ;;;***
 
@@ -28469,7 +28402,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (url-http-options url-http-file-attributes url-http-file-exists-p
-;;;;;;  url-http) "url-http" "url/url-http.el" (17935 53395))
+;;;;;;  url-http) "url-http" "url/url-http.el" (17952 11683))
 ;;; Generated autoloads from url/url-http.el
 
 (autoload (quote url-http) "url-http" "\
@@ -28665,7 +28598,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (url-generic-parse-url url-recreate-url) "url-parse"
-;;;;;;  "url/url-parse.el" (17842 56569))
+;;;;;;  "url/url-parse.el" (17954 22157))
 ;;; Generated autoloads from url/url-parse.el
 
 (autoload (quote url-recreate-url) "url-parse" "\
@@ -29255,7 +29188,7 @@ find any project directory." (let ((project-dir (getenv "PROJECTDIR")) dirs dir)
 ;;;***
 
 ;;;### (autoloads (vhdl-mode) "vhdl-mode" "progmodes/vhdl-mode.el"
-;;;;;;  (17854 10062))
+;;;;;;  (17962 27361))
 ;;; Generated autoloads from progmodes/vhdl-mode.el
 
 (autoload (quote vhdl-mode) "vhdl-mode" "\
@@ -30415,8 +30348,8 @@ With arg, turn widget mode on if and only if arg is positive.
 ;;;***
 
 ;;;### (autoloads (widget-setup widget-insert widget-delete widget-create
-;;;;;;  widget-prompt-value widgetp) "wid-edit" "wid-edit.el" (17884
-;;;;;;  58614))
+;;;;;;  widget-prompt-value widgetp) "wid-edit" "wid-edit.el" (17952
+;;;;;;  11093))
 ;;; Generated autoloads from wid-edit.el
 
 (autoload (quote widgetp) "wid-edit" "\
@@ -30533,7 +30466,7 @@ With arg, turn Winner mode on if and only if arg is positive.
 ;;;***
 
 ;;;### (autoloads (woman-find-file woman-dired-find-file woman) "woman"
-;;;;;;  "woman.el" (17934 34122))
+;;;;;;  "woman.el" (17949 41467))
 ;;; Generated autoloads from woman.el
 
 (autoload (quote woman) "woman" "\
@@ -30778,7 +30711,7 @@ Zippy goes to the analyst.
 
 ;;;***
 
-;;;### (autoloads (zone) "zone" "play/zone.el" (17842 55395))
+;;;### (autoloads (zone) "zone" "play/zone.el" (17941 38806))
 ;;; Generated autoloads from play/zone.el
 
 (autoload (quote zone) "zone" "\
@@ -30918,7 +30851,7 @@ Zone out, completely.
 ;;;;;;  "url/url-vars.el" "url/vc-dav.el" "vc-hooks.el" "vcursor.el"
 ;;;;;;  "version.el" "vms-patch.el" "vmsproc.el" "vt-control.el"
 ;;;;;;  "vt100-led.el" "w32-fns.el" "w32-vars.el" "widget.el" "window.el"
-;;;;;;  "x-dnd.el") (17938 62045 277063))
+;;;;;;  "x-dnd.el") (17965 26976 559735))
 
 ;;;***
 

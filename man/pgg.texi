@@ -52,6 +52,7 @@ user interface to encrypt, decrypt, sign, and verify MIME messages.
 * How to use::                  Getting started quickly.
 * Architecture::                
 * Parsing OpenPGP packets::     
+* GNU Free Documentation License:: The license for this documentation.
 * Function Index::              
 * Variable Index::              
 @end menu
@@ -474,12 +475,16 @@ and @var{end}.
 If non-@code{nil}, don't check the checksum of the packets.
 @end defvar
 
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
+@include doclicense.texi
+
 @node Function Index
-@chapter Function Index
+@unnumbered Function Index
 @printindex fn
 
 @node Variable Index
-@chapter Variable Index
+@unnumbered Variable Index
 @printindex vr
 
 @summarycontents

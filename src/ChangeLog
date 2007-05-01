@@ -1,3 +1,115 @@
+2007-05-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macmenu.c (mac_dialog_show): Apply 2007-04-27 change for xmenu.c.
+	(Fx_popup_dialog) [MAC_OSX]: Likewise.
+
+2007-04-29  Richard Stallman  <rms@gnu.org>
+
+	* insdel.c (replace_range): For undo, record insertion first.
+
+2007-04-29  Andreas Schwab  <schwab@suse.de>
+
+	* lisp.h (VECSIZE): Use OFFSETOF.
+
+2007-04-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (try_window_reusing_current_matrix): Fix number of
+	disabled lines.
+
+2007-04-28  Richard Stallman  <rms@gnu.org>
+
+	* lread.c (read_escape): In a string, \s is always space.
+
+2007-04-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (xdialog_show): Call Fredisplay before showing the dialog.
+
+	* gtkutil.c (xg_update_menubar, create_menus): Create empty
+	submenu for menu bar items.
+
+2007-04-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (redisplay_window): Use BEG_UNCHANGED and END_UNCHANGED
+	values of the actual window.
+
+2007-04-23  Richard Stallman  <rms@gnu.org>
+
+	* process.c (Fstart_process): Doc fix.
+
+2007-04-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* process.c (Fstart_process): Doc fix.
+
+2007-04-22  Richard Stallman  <rms@gnu.org>
+
+	* abbrev.c (Fdefine_abbrev): Doc fix.
+
+	* keymap.c (Fdefine_key): Minor doc fix.
+
+2007-04-21  Glenn Morris  <rgm@gnu.org>
+
+	* keymap.c (Fdefine_key): Fix info ref in doc string.
+
+2007-04-20  Glenn Morris  <rgm@gnu.org>
+
+	* sysdep.c (init_system_name): Don't accept localhost.localdomain.
+
+2007-04-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuf.c (Fminibuffer_contents, Fminibuffer_contents_no_properties)
+	(Fminibuffer_completion_contents, Fdelete_minibuffer_contents):
+	Doc fixes.
+
+2007-04-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dispnew.c (adjust_frame_glyphs_for_frame_redisplay): Set
+	garbaged flag in presence of window margins.
+	(showing_window_margins_p): New function.
+
+	* xdisp.c (cursor_row_p): Only end row on newline if it's a
+	display string.  Suggested by Lennart Borgman.
+
+2007-04-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* alloc.c (mem_insert): Set min_heap_address and max_heap_address
+	if they are not yet initialized.
+
+2007-04-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (redisplay_window): When deciding whether or not to
+	recenter, don't use the reset values of BEG_UNCHANGED and
+	END_UNCHANGED.
+
+2007-04-13  Kim F. Storm  <storm@cua.dk>
+
+	* buffer.c (Fkill_buffer): gcpro BUF during kill_buffer_processes
+	and check that buffer is still alive upon return.
+
+2007-04-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c [!TARGET_API_MAC_CARBON]: Include Displays.h.
+	(mac_screen_config_changed): New variable.
+	(mac_handle_dm_notification, init_dm_notification_handler)
+	(mac_get_screen_info): New functions.
+	[MAC_OS8] (main): Call init_dm_notification_handler.
+	(mac_initialize) [MAC_OSX]: Likewise.
+	(XTread_socket): Call mac_get_screen_info if screen config changed.
+	(mac_initialized): Make static.
+	(mac_initialize_display_info): Remove function.
+	(mac_term_init): Call mac_get_screen_info.  Add partial contents of
+	mac_initialize_display_info.
+
+2007-04-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (xrm_get_preference_database, Fmac_get_preference)
+	[TARGET_API_MAC_CARBON]: Use CFPreferencesAppSynchronize.
+
+	* macterm.c [TARGET_API_MAC_CARBON] (mac_post_mouse_moved_event):
+	Use GetGlobalMouse instead of GetMouse and LocalToGlobal.
+	(mac_initialize_display_info) [MAC_OSX]: Use CGRectZero.
+	(mac_initialize_display_info) [!MAC_OSX]: dpyinfo->height and
+	dpyinfo->width are those of whole screen.
+
 2007-04-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (note_mode_line_or_margin_highlight): Don't decrement

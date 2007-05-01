@@ -55,6 +55,7 @@ license to the document, as described in section 6 of the license.
 * Queued delivery::	Sending mail without an internet connection.
 * Server workarounds::	Mail servers with special requirements.
 * Debugging::		Tracking down problems.
+* GNU Free Documentation License:: The license for this documentation.
 
 Indices
 
@@ -402,6 +403,10 @@ mail delivery to take considerable time if the final destination
 cannot accept mail.
 
 @end table
+
+@node GNU Free Documentation License
+@chapter GNU Free Documentation License
+@include doclicense.texi
 
 @node Index
 @chapter Index

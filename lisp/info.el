@@ -1400,8 +1400,8 @@ any double quotes or backslashes must be escaped (\\\",\\\\)."
 
 (defvar Info-mode-line-node-keymap
   (let ((map (make-sparse-keymap)))
-    (define-key map [mode-line mouse-1] 'Info-scroll-up)
-    (define-key map [mode-line mouse-3] 'Info-scroll-down)
+    (define-key map [mode-line mouse-1] 'Info-mouse-scroll-up)
+    (define-key map [mode-line mouse-3] 'Info-mouse-scroll-down)
     map)
   "Keymap to put on the Info node name in the mode line.")
 
@@ -2620,6 +2620,15 @@ in other ways.)"
 	 (t (Info-next-preorder)))
       (scroll-up))))
 
+(defun Info-mouse-scroll-up (e)
+  "Scroll one screenful forward in Info, using the mouse.
+See `Info-scroll-up'."
+  (interactive "e")
+  (save-selected-window
+    (if (eventp e)
+	(select-window (posn-window (event-start e))))
+    (Info-scroll-up)))
+
 (defun Info-scroll-down ()
   "Scroll one screenful back in Info, considering all nodes as one sequence.
 If point is within the menu of a node, and `Info-scroll-prefer-subnodes'
@@ -2645,6 +2654,15 @@ parent node."
 	    (pos-visible-in-window-p (point-min) nil t))
 	(Info-last-preorder)
       (scroll-down))))
+
+(defun Info-mouse-scroll-down (e)
+  "Scroll one screenful backward in Info, using the mouse.
+See `Info-scroll-down'."
+  (interactive "e")
+  (save-selected-window
+    (if (eventp e)
+	(select-window (posn-window (event-start e))))
+    (Info-scroll-down)))
 
 (defun Info-next-reference (&optional recur)
   "Move cursor to the next cross-reference or menu item in the node."

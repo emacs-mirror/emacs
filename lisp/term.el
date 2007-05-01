@@ -627,7 +627,7 @@ executed once when the buffer is created."
   "Keyboard map for sending characters directly to the inferior process.")
 (defvar term-escape-char nil
   "Escape character for char sub-mode of term mode.
-Do not change it directly;  use `term-set-escape-char' instead.")
+Do not change it directly; use `term-set-escape-char' instead.")
 (defvar term-raw-escape-map nil)
 
 (defvar term-pager-break-map nil)
@@ -714,7 +714,7 @@ Buffer local variable.")
 (defvar term-buffer-maximum-size 2048
   "*The maximum size in lines for term buffers.
 Term buffers are truncated from the top to be no greater than this number.
-Notice that a setting of 0 means 'don't truncate anything'.  This variable
+Notice that a setting of 0 means \"don't truncate anything\".  This variable
 is buffer-local.")
 ;;;
 
@@ -856,7 +856,7 @@ is buffer-local.")
 ;; Set up term-raw-map, etc.
 
 (defun term-set-escape-char (c)
-  "Change term-escape-char and keymaps that depend on it."
+  "Change `term-escape-char' and keymaps that depend on it."
   (when term-escape-char
     (define-key term-raw-map term-escape-char 'term-send-raw))
   (setq c (make-string 1 c))
@@ -1098,7 +1098,7 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   (make-local-variable 'term-current-face)
   (make-local-variable 'term-pending-frame)
   (setq term-pending-frame nil)
-  ;; Cua-mode's keybindings interfere with the term keybindings, disable it. 
+  ;; Cua-mode's keybindings interfere with the term keybindings, disable it.
   (set (make-local-variable 'cua-mode) nil)
   (run-mode-hooks 'term-mode-hook)
   (when (featurep 'xemacs)
@@ -1194,7 +1194,7 @@ without any interpretation."
   "Insert the last stretch of killed text at the position clicked on."
   (interactive "e\nP")
   (if (featurep 'xemacs)
-      (term-send-raw-string 
+      (term-send-raw-string
        (or (condition-case () (x-get-selection) (error ()))
 	   (x-get-cutbuffer)
 	   (error "No selection or cut buffer available")))
@@ -1312,7 +1312,7 @@ commands to use in that buffer.
   "Start up a process in buffer for term modes.
 Blasts any old process running in the buffer.  Doesn't set the buffer mode.
 You can use this to cheaply run a series of processes in the same term
-buffer.  The hook term-exec-hook is run after each exec."
+buffer.  The hook `term-exec-hook' is run after each exec."
   (save-excursion
     (set-buffer buffer)
     (let ((proc (get-buffer-process buffer)))	; Blast any old process.
@@ -1342,7 +1342,7 @@ buffer.  The hook term-exec-hook is run after each exec."
     (run-hooks 'term-exec-hook)
     buffer)))
 
-(defun term-sentinel  (proc msg)
+(defun term-sentinel (proc msg)
   "Sentinel for term buffers.
 The main purpose is to get rid of the local keymap."
   (let ((buffer (process-buffer proc)))
@@ -1402,7 +1402,7 @@ The main purpose is to get rid of the local keymap."
 :kb=^?:kD=^[[3~:sc=\\E7:rc=\\E8:r1=\\Ec:"
 ;;; : -undefine ic
 ;;; don't define :te=\\E[2J\\E[?47l\\E8:ti=\\E7\\E[?47h\
-  "termcap capabilities supported")
+  "Termcap capabilities supported.")
 
 ;;; This auxiliary function cranks up the process for term-exec in
 ;;; the appropriate environment.
@@ -2044,9 +2044,9 @@ Similarly for Soar, Scheme, etc."
 	(funcall term-input-sender proc input)))))
 
 (defun term-get-old-input-default ()
-  "Default for term-get-old-input.
+  "Default for `term-get-old-input'.
 Take the current line, and discard any initial text matching
-term-prompt-regexp."
+`term-prompt-regexp'."
   (save-excursion
     (beginning-of-line)
     (term-skip-prompt)
@@ -2066,7 +2066,7 @@ Calls `term-get-old-input' to get old input."
       (insert input))))
 
 (defun term-skip-prompt ()
-  "Skip past the text matching regexp term-prompt-regexp.
+  "Skip past the text matching regexp `term-prompt-regexp'.
 If this takes us past the end of the current line, don't skip at all."
   (let ((eol (save-excursion (end-of-line) (point))))
     (when (and (looking-at term-prompt-regexp)
@@ -2097,7 +2097,7 @@ If a prefix argument is given (\\[universal-argument]), then no prompt skip
 -- go straight to column 0.
 
 The prompt skip is done by skipping text matching the regular expression
-term-prompt-regexp, a buffer local variable."
+`term-prompt-regexp', a buffer local variable."
   (interactive "P")
   (beginning-of-line)
   (when (null arg) (term-skip-prompt)))
@@ -2180,8 +2180,8 @@ If your process is choking on big inputs, try lowering the value.")
 
 (defun term-send-string (proc str)
   "Send to PROC the contents of STR as input.
-This is equivalent to process-send-string, except that long input strings
-are broken up into chunks of size term-input-chunk-size.  Processes
+This is equivalent to `process-send-string', except that long input strings
+are broken up into chunks of size `term-input-chunk-size'.  Processes
 are given a chance to output between chunks.  This can help prevent processes
 from hanging when you send them long inputs on some OS's."
   (let* ((len (length str))
@@ -2195,7 +2195,7 @@ from hanging when you send them long inputs on some OS's."
 
 (defun term-send-region (proc start end)
   "Send to PROC the region delimited by START and END.
-This is a replacement for process-send-region that tries to keep
+This is a replacement for `process-send-region' that tries to keep
 your process from hanging on long inputs.  See `term-send-string'."
   (term-send-string proc (buffer-substring start end)))
 
@@ -2874,7 +2874,7 @@ See `term-prompt-regexp'."
 			 ;;  (setq term-terminal-state 0))
 			 ((eq char ?M) ;; scroll reversed (terminfo: ri)
 			  (if (or (< (term-current-row) term-scroll-start)
-				  (>= (1- (term-current-row)) 
+				  (>= (1- (term-current-row))
 				      term-scroll-start))
 			      ;; Scrolling up will not move outside
 			      ;; the scroll region.
@@ -2900,7 +2900,7 @@ See `term-prompt-regexp'."
 			  (when term-saved-cursor
 			    (term-goto (nth 0 term-saved-cursor)
 				       (nth 1 term-saved-cursor))
-			    (setq term-ansi-current-bg-color 
+			    (setq term-ansi-current-bg-color
 				  (nth 2 term-saved-cursor)
 				  term-ansi-current-bold
 				  (nth 3 term-saved-cursor)
@@ -3188,7 +3188,7 @@ See `term-prompt-regexp'."
 	  (when term-ansi-current-underline
 	    (setq term-current-face
 		  (append '(:underline t) term-current-face))))))
-  
+
 ;;;	(message "Debug %S" term-current-face)
   (setq term-ansi-face-already-done nil))
 
@@ -3217,7 +3217,7 @@ See `term-prompt-regexp'."
    ((eq char ?A)
     (term-handle-deferred-scroll)
     (let ((tcr (term-current-row)))
-      (term-down 
+      (term-down
        (if (< (- tcr term-terminal-parameter) term-scroll-start)
 	   ;; If the amount to move is before scroll start, move
 	   ;; to scroll start.
@@ -3229,7 +3229,7 @@ See `term-prompt-regexp'."
    ((eq char ?B)
     (let ((tcr (term-current-row)))
       (unless (= tcr (1- term-scroll-end))
-	(term-down 
+	(term-down
 	 (if (> (+ tcr term-terminal-parameter) term-scroll-end)
 	     (- term-scroll-end 1 tcr)
 	   (max 1 term-terminal-parameter)) t))))
@@ -3493,7 +3493,7 @@ The top-most line is line 0."
 	  ((term-pager-continue deficit)))))
 
 (defun term-pager-page (arg)
-  "Proceed past the **MORE** break, allowing the next page of output to appear"
+  "Proceed past the **MORE** break, allowing the next page of output to appear."
   (interactive "p")
   (term-pager-line (* arg term-height)))
 
@@ -3562,7 +3562,7 @@ The top-most line is line 0."
  (put 'term-fake-pager-disable 'menu-enable 'term-pager-count))
 
 (defun term-pager-help ()
-  "Provide help on commands available in a terminal-emulator **MORE** break"
+  "Provide help on commands available in a terminal-emulator **MORE** break."
   (interactive)
   (message "Terminal-emulator pager break help...")
   (sit-for 0)
@@ -3604,9 +3604,9 @@ all pending output has been dealt with."))
 
 (defun term-handle-scroll (down)
   (let ((scroll-needed
-	 (- (+ (term-current-row) down) 
+	 (- (+ (term-current-row) down)
 	    (if (< down 0) term-scroll-start term-scroll-end))))
-    (when (or (and (< down 0) (< scroll-needed 0)) 
+    (when (or (and (< down 0) (< scroll-needed 0))
 	      (and (> down 0) (> scroll-needed 0)))
       (let ((save-point (copy-marker (point))) (save-top))
 	(goto-char term-home-marker)
@@ -3704,7 +3704,7 @@ all pending output has been dealt with."))
       ;; contain a space, to force the previous line to continue to wrap.
       ;; We could do this always, but it seems preferable to not add the
       ;; extra space when wrapped is false.
-      (when wrapped 
+      (when wrapped
 	(insert ? ))
       (insert ?\n)
       (put-text-property saved-point (point) 'face 'default)
@@ -3795,8 +3795,8 @@ Should only be called when point is at the start of a screen line."
     ;; we need to go one line past it in order to ensure correct
     ;; scrolling.
     (if (< save-current-row term-scroll-start)
-	;; If point is before scroll start, 
-	(progn 
+	;; If point is before scroll start,
+	(progn
 	  (setq lines (- lines (- term-scroll-start save-current-row)))
 	  (term-down (- term-scroll-start save-current-row))
 	  (setq start (point)))

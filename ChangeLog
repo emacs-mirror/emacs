@@ -1,3 +1,33 @@
+2007-04-27  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (config.status): Depend on
+	${srcdir}/lisp/version.el.
+
+2007-04-26  Glenn Morris  <rgm@gnu.org>
+
+	* README: Increase version to 22.1.50.
+
+2007-04-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* INSTALL (DETAILED BUILDING AND INSTALLATION): Fix typo.
+
+2007-04-19  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Signal error if Xaw libs are missing in a Lucid
+	build.
+
+2007-04-18  Glenn Morris  <rgm@gnu.org>
+
+	* INSTALL: Mention CPP.
+
+2007-04-15  Glenn Morris  <rgm@gnu.org>
+
+	* FTP: Replace with a pointer to the web version.
+
+2007-04-13  Glenn Morris  <rgm@gnu.org>
+
+	* INSTALL: In lib-src, timer, wakeup, yow are removed.
+
 2007-04-04  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (NON_GNU_CPP): Use associated preprocessor when
@@ -8,7 +38,7 @@
 	* configure.in: Restore support for hp800 (removed 2007-01-27)
 	following clarification of legal status.
 
-2007-03-22  Joe Buehler  <jbuehler@spirentcom.com> (tiny change)
+2007-03-22  Joe Buehler  <jbuehler@spirentcom.com>  (tiny change)
 
 	* configure.in: Add support for AIX4.3 on IBM RS6000.
 

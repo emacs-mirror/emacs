@@ -120,6 +120,7 @@ struct dim
 
 static struct glyph_matrix *save_current_matrix P_ ((struct frame *));
 static void restore_current_matrix P_ ((struct frame *, struct glyph_matrix *));
+static int showing_window_margins_p P_ ((struct window *));
 static void fake_current_matrices P_ ((Lisp_Object));
 static void redraw_overlapping_rows P_ ((struct window *, int));
 static void redraw_overlapped_rows P_ ((struct window *, int));
@@ -2164,6 +2165,33 @@ adjust_frame_glyphs (f)
   f->glyphs_initialized_p = 1;
 }
 
+/* Return 1 if any window in the tree has nonzero window margins.  See
+   the hack at the end of adjust_frame_glyphs_for_frame_redisplay.  */
+static int
+showing_window_margins_p (w)
+     struct window *w;
+{
+  while (w)
+    {
+      if (!NILP (w->hchild))
+	{
+	  if (showing_window_margins_p (XWINDOW (w->hchild)))
+	    return 1;
+	}
+      else if (!NILP (w->vchild))
+	{
+	  if (showing_window_margins_p (XWINDOW (w->vchild)))
+	    return 1;
+	}
+      else if (!NILP (w->left_margin_cols)
+	       || !NILP (w->right_margin_cols))
+	return 1;
+ 
+      w = NILP (w->next) ? 0 : XWINDOW (w->next);
+    }
+  return 0;
+}
+
 
 /* In the window tree with root W, build current matrices of leaf
    windows from the frame's current matrix.  */
@@ -2351,7 +2379,12 @@ adjust_frame_glyphs_for_frame_redisplay (f)
       if (display_completed
 	  && !FRAME_GARBAGED_P (f)
 	  && matrix_dim.width == f->current_matrix->matrix_w
-	  && matrix_dim.height == f->current_matrix->matrix_h)
+	  && matrix_dim.height == f->current_matrix->matrix_h
+	  /* For some reason, the frame glyph matrix gets corrupted if
+	     any of the windows contain margins.  I haven't been able
+	     to hunt down the reason, but for the moment this prevents
+	     the problem from manifesting. -- cyd  */
+	  && !showing_window_margins_p (XWINDOW (FRAME_ROOT_WINDOW (f))))
 	{
 	  struct glyph_matrix *copy = save_current_matrix (f);
 	  adjust_glyph_matrix (NULL, f->desired_matrix, 0, 0, matrix_dim);

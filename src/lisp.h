@@ -738,9 +738,9 @@ struct Lisp_Vector
 
 /* If a struct is made to look like a vector, this macro returns the length
    of the shortest vector that would hold that struct.  */
-#define VECSIZE(type) ((sizeof (type) - (sizeof (struct Lisp_Vector)  \
-                                         - sizeof (Lisp_Object))      \
-                        + sizeof(Lisp_Object) - 1) /* round up */     \
+#define VECSIZE(type) ((sizeof (type)					  \
+			- OFFSETOF (struct Lisp_Vector, contents[0])      \
+                        + sizeof(Lisp_Object) - 1) /* round up */	  \
 		       / sizeof (Lisp_Object))
 
 /* Like VECSIZE, but used when the pseudo-vector has non-Lisp_Object fields

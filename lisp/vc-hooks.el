@@ -52,7 +52,9 @@ BACKEND, use `vc-handled-backends'.")
 (defvar vc-header-alist ())
 (make-obsolete-variable 'vc-header-alist 'vc-BACKEND-header)
 
-(defcustom vc-ignore-dir-regexp "\\`\\([\\/][\\/]\\|/net/\\|/afs/\\)\\'"
+(defcustom vc-ignore-dir-regexp
+  ;; Stop SMB, automounter, AFS, and DFS host lookups.
+  "\\`\\(?:[\\/][\\/]\\|/\\(?:net\\|afs\\|\\.\\\.\\.\\)/\\)\\'"
   "Regexp matching directory names that are not under VC's control.
 The default regexp prevents fruitless and time-consuming attempts
 to determine the VC status in directories in which filenames are

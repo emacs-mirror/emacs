@@ -44,6 +44,7 @@ on all of them with on command.
 * Updating: Dired Updating.   Discarding lines for files of no interest.
 * Find: Dired and Find.	      Using `find' to choose the files for Dired.
 * Wdired::                    Operating on files by editing the Dired buffer.
+* Image-Dired::               Viewing image thumbnails in Dired
 * Misc: Misc Dired Features.  Various other features.
 @end menu
 
@@ -920,6 +921,9 @@ Use the @kbd{l} command (@code{dired-do-redisplay}) to update the
 subdirectory's contents.  Use @kbd{C-u k} on the subdirectory header
 line to delete the subdirectory.  @xref{Dired Updating}.
 
+
+
+
 @ifnottex
 @include dired-xtra.texi
 @end ifnottex
@@ -1132,9 +1136,9 @@ may need to change the value of this variable.
 @findex locate-with-filter
 @cindex file database (locate)
 @vindex locate-command
-  @kbd{M-x locate} provides a similar interface to the @code{locate}
-program.  @kbd{M-x locate-with-filter} is similar, but keeps only files
-whose names match a given regular expression.
+  The command @kbd{M-x locate} provides a similar interface to the
+@code{locate} program.  @kbd{M-x locate-with-filter} is similar, but
+keeps only files whose names match a given regular expression.
 
   These buffers don't work entirely like ordinary Dired buffers: file
 operations work, but do not always automatically update the buffer.
@@ -1173,6 +1177,78 @@ However, if you set @code{wdired-allow-to-change-permissions} to
 change @samp{-rw-r--r--} to @samp{-rw-rw-rw-} to make a file
 world-writable.  These changes also take effect when you type @kbd{C-c
 C-c}.
+
+@node Image-Dired
+@section Viewing Image Thumbnails in Dired
+@cindex image-dired mode
+@cindex image-dired
+
+  Image-Dired is a facility for browsing image files.  It provides viewing
+the images either as thumbnails or in full size, either inside Emacs
+or through an external viewer.
+
+@kindex C-t d @r{(Image-Dired)}
+@findex image-dired-display-thumbs
+  To enter Image-Dired, mark the image files you want to look at in
+the Dired buffer, using @kbd{m} as usual.  Then type @kbd{C-t d}
+(@code{image-dired-display-thumbs}).  This creates and switches to a
+buffer containing image-dired, corresponding to the marked files.
+
+  You can also enter Image-Dired directly by typing @kbd{M-x
+image-dired}.  This prompts for a directory; specify one that has
+image files.  This creates thumbnails for all the images in that
+directory, and displays them all in the ``thumbnail buffer.''  This
+takes a long time if the directory contains many image files, and it
+asks for confirmation if the number of image files exceeds
+@code{image-dired-show-all-from-dir-max-files}.
+
+  With point in the thumbnail buffer, you can type @kbd{RET}
+(@code{image-dired-display-thumbnail-original-image}) to display a
+sized version of it in another window.  This sizes the image to fit
+the window.  Use the arrow keys to move around in the buffer.  For
+easy browsing, use @kbd{SPC}
+(@code{image-dired-display-next-thumbnail-original}) to advance and
+display the next image.  Typing @kbd{DEL}
+(@code{image-dired-display-previous-thumbnail-original}) backs up to
+the previous thumbnail and displays that instead.
+
+@vindex image-dired-external-viewer
+  To view and the image in its original size, either provide a prefix
+argument (@kbd{C-u}) before pressing @kbd{RET}, or type
+@kbd{C-@key{RET}} (@code{image-dired-thumbnail-display-external}) to
+display the image in an external viewer.  You must first configure
+@code{image-dired-external-viewer}.
+
+  You can delete images through Image-Dired also.  Type @kbd{d}
+(@code{image-dired-flag-thumb-original-file}) to flag the image file
+for deletion in the Dired buffer.  You can also delete the thumbnail
+image from the thumbnail buffer with @kbd{C-d}
+(@code{image-dired-delete-char}).
+
+  More advanced features include @dfn{image tags}, which are metadata
+used to categorize image files.  The tags are stored in a plain text
+file configured by @code{image-dired-db-file}.
+
+  To tag image files, mark them in the dired buffer (you can also mark
+files in Dired from the thumbnail buffer by typing @kbd{m}) and type
+@kbd{C-t t} (@code{image-dired-tag-files}).  You will be prompted for
+a tag.  To mark files having a certain tag, type @kbd{C-t f}
+(@code{image-dired-mark-tagged-files}).  After marking image files
+with a certain tag, you can use @kbd{C-t d} to view them.
+
+  You can also tag a file directly from the thumbnail buffer by typing
+@kbd{t t} and you can remove a tag by typing @kbd{t r}.  There is also
+a special ``tag'' called ``comment'' for each file (it is not a tag in
+the exact same sense as the other tags, it is handled slightly
+different).  That is used to enter a comment or description about the
+image.  You comment a file from the thumbnail buffer by typing
+@kbd{c}.  You will be prompted for a comment.  Type @kbd{C-t c} to add
+a comment from Dired (@code{image-dired-dired-comment-files}).
+
+  Image-Dired also provides simple image manipulation.  In the
+thumbnail buffer, type @kbd{L} to rotate the original image 90 degrees
+anti clockwise, and @kbd{R} to rotate it 90 degrees clockwise.  This
+rotation is lossless, and uses an external utility called JpegTRAN.
 
 @node Misc Dired Features
 @section Other Dired Features

@@ -1,3 +1,160 @@
+2007-04-30  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Article Highlighting): Clarify gnus-cite-parse-max-size.
+
+2007-04-28  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments):
+	* anti.texi (Antinews):
+	* faq.texi (New in Emacs 22):
+	* programs.texi (Program Modes): Restore mention of python.el pending
+	consideration of legal status.
+
+2007-04-28  Richard Stallman  <rms@gnu.org>
+
+	* files.texi (File Names): Fixes to ~ description on MS systems.
+
+2007-04-27  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* idlwave.texi: Minor updates for IDLWAVE 6.1.
+
+2007-04-26  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.texi (EMACSVER): Increase to 22.1.50.
+
+2007-04-25  Karl Berry  <karl@gnu.org>
+
+	* emacs.texi: Improve line breaks on copyright page,
+	similar layout to lispref, 8.5x11 by default.
+
+	* dired.texi (Image-Dired): Improve line break, fix typo.
+
+2007-04-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* programs.texi (Program Modes):
+	* faq.texi (New in Emacs 22):
+	* anti.texi (Antinews):
+	* ack.texi (Acknowledgments): python.el removed.
+
+2007-04-23  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Reporting bugs): Update maintainer's address.
+
+2007-04-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Highlight Interactively): Correct description of
+	hi-lock-file-patterns-policy.
+
+	* files.texi (File Archives): Mention self-extracting executables.
+
+2007-04-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* search.texi (Unconditional Replace, Query Replace): Add xref to
+	"Replacement and Case".
+
+2007-04-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.texi (Image-Dired): Move from Thumbnails node.
+	* misc.texi (Thumbnails): Node deleted.
+	* emacs.texi (Top): Update node listing.
+
+	* files.texi (File Conveniences): 
+	* ack.texi (Acknowledgments): 
+	* faq.texi (New in Emacs 22): Rename "tumme" to "image-dired".
+
+2007-04-21  Richard Stallman  <rms@gnu.org>
+
+	* display.texi (Highlight Interactively): Correct previous change.
+	Clarify doc of hi-lock-find-patterns, and move new features into it.
+
+2007-04-20  David Koppelman  <koppel@ece.lsu.edu>
+
+	* display.texi (Highlight Interactively): Document
+	hi-lock-file-patterns-policy.
+
+2007-04-20  Martin Rudalics  <rudalics@gmx.at>
+
+	* display.texi (Scrolling): Fix typo.
+
+2007-04-15  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Title page): Remove the date.
+	(Basic Arithmetic): Emphasize that / binds less strongly than *.
+	(The Standard Calc Interface): Change trail title.
+	(Floats): Mention that when non-decimal floats are entered, only
+	approximations are stored.
+	(Copying): Move to the appendices.
+	(GNU Free Documentation License): Add as an appendix.
+
+2007-04-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ada-mode.texi, autotype.texi, cc-mode.texi, cl.texi:
+	* dired-x.texi, ebrowse.texi, ediff.texi:
+	* emacs-mime.texi, erc.texi, eshell.texi:
+	* eudc.texi, flymake.texi, forms.texi, gnus.texi:
+	* idlwave.texi, message.texi, newsticker.texi, org.texi:
+	* pcl-cvs.texi, pgg.texi, rcirc.texi, reftex.texi, sc.texi:
+	* ses.texi, sieve.texi, smtpmail.texi, speedbar.texi:
+	* tramp.texi, url.texi, vip.texi, viper.texi, widget.texi:
+	* woman.texi: Include GFDL.
+
+	* doclicense.texi: Remove node heading, so that it can be included by
+	other files.
+
+	* emacs.texi: Insert node heading for GFDL.
+
+	* dired-x.texi: Relicence under GFDL.  Remove date from title page.
+
+	* calc.texi (Algebraic Tutorial): Emphasize that / binds less strongly
+	than *.
+
+2007-04-14  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Formula syntax for Calc): Emphasize the operator precedence
+	in Calc.
+
+2007-04-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* cmdargs.texi (Colors): Qualify "color of window" index entry by
+	"command line".
+
+	* display.texi (Faces): Refer to "Creating Frames" for face
+	and other frame customizations in .emacs.
+
+	* frames.texi (Creating Frames): Mention that face customizations can
+	be put in .emacs.  Add index entries.
+
+2007-04-12  Richard Stallman  <rms@gnu.org>
+
+	* glossary.texi (Glossary): Explain `iff'.
+
+2007-04-11  Karl Berry  <karl@gnu.org>
+
+	* gnu.texi (Top),
+	* macos.texi (Mac Font Specs),
+	* anti.texi (Antinews),
+	* xresources.texi (Resources),
+	* misc.texi (Emulation),
+	* calendar.texi (Daylight Saving),
+	* dired.texi (Dired and Find),
+	* rmail.texi (Remote Mailboxes),
+	* sending.texi (Mail Headers),
+	* programs.texi (Which Function),
+	* files.texi (Recover),
+	* buffers.texi (Uniquify),
+	* frames.texi (Wheeled Mice),
+	* killing.texi (Rectangles): Wording to improve breaks in
+	8.5x11 format.
+	* mule.texi (Language Environments): \hbadness=10000 since there's
+	no way to reword.
+	* emacs.texi (smallbook): New @set to more easily switch between
+	smallbook and 8.5x11.
+
+2007-04-11  Richard Stallman  <rms@gnu.org>
+
+	* files.texi (File Conveniences): Add xref to Tumme.
+	Delete text about Thumbnail mode.
+
 2007-04-09  Romain Francoise  <romain@orebokech.com>
 
 	* faq.texi (New in Emacs 22): Mention improvements to the Windows and

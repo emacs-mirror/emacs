@@ -1382,9 +1382,10 @@ then Rmail will ask you for the password to use.
 Otherwise, Rmail assumes no password is required.
 @end enumerate
 
-  For compatibility with previous versions, @code{rmail-pop-password}
-and @code{rmail-pop-password-required} may be used instead of
-@code{rmail-remote-password} and @code{rmail-remote-password-required}.
+  For compatibility with previous versions, the variables
+@code{rmail-pop-password} and @code{rmail-pop-password-required} may
+be used instead of @code{rmail-remote-password} and
+@code{rmail-remote-password-required}.
 
 @vindex rmail-movemail-flags
   If you need to pass additional command-line flags to @code{movemail},

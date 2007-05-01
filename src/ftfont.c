@@ -301,8 +301,7 @@ struct font_driver ftfont_driver =
     ftfont_anchor_point,
 #ifdef HAVE_LIBOTF
     font_otf_capability,
-    font_otf_gsub,
-    font_otf_gpos
+    font_drive_otf,
 #else
     NULL,
     NULL,

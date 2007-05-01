@@ -70,6 +70,7 @@ LDAP or the CCSO white pages directory system (PH/QI)
 * Installation::                How to install EUDC
 * Usage::                       The various usage possibilities explained
 * Credits::                     Who's done what
+* GNU Free Documentation License:: The license for this documentation.
 * Command and Function Index::
 * Variables Index::
 @end menu
@@ -949,7 +950,7 @@ Update all EUDC variables according to their local settings.
 
 
 
-@node Credits, Command and Function Index, Usage, Top
+@node Credits, GNU Free Documentation License, Usage, Top
 @comment  node-name,  next,  previous,  up
 @chapter Credits
 
@@ -959,7 +960,11 @@ same author.
 Thanks to Soren Dayton for his suggestions, his enthusiasm and his help
 in testing and proofreading the code and docs of @file{ph.el}.
 
-@node Command and Function Index, Variables Index, Credits, Top
+@node GNU Free Documentation License, Command and Function Index, Credits, Top
+@appendix GNU Free Documentation License
+@include doclicense.texi
+
+@node Command and Function Index, Variables Index, GNU Free Documentation License, Top
 @comment  node-name,  next,  previous,  up
 @unnumbered Command and Function Index
 

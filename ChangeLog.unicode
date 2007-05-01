@@ -1,3 +1,10 @@
+2007-05-01  Kenichi Handa  <handa@m17n.org>
+
+	* configure: Re-generated.
+
+	* configure.in: Don't define HAVE_LIBOTF if OTF_get_features is
+	not available.
+
 2006-08-28   Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: Don't use FONT_BACKEND if no x11

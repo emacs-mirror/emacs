@@ -522,7 +522,7 @@ preferably use the `c-mode-menu' language constant directly."
 	    (setq lim (max (point-min) (1- (point))))
 
 	    ;; Look for the latest `c-type' property before end1
-	    (when (and (> end1 1)
+	    (when (and (> end1 (point-min))
 		       (setq type-pos
 			     (if (get-text-property (1- end1) 'c-type)
 				 end1
@@ -820,7 +820,7 @@ compatible with old code; callers should always specify it."
 		      "$")
 	      nil t)
 	(beginning-of-line)
-	(kill-line 1)))
+	(delete-region (point) (progn (end-of-line) (point)))))
 
     ;; Delete the first line, if we've got one, in case it contains a mode spec.
     (unless (and lv-point
@@ -828,8 +828,7 @@ compatible with old code; callers should always specify it."
 			(forward-line 0)
 			(bobp)))
       (goto-char (point-min))
-      (unless (eobp)
-	(kill-line 1)))))
+      (delete-region (point) (progn (end-of-line) (point))))))
 
 (defun c-postprocess-file-styles ()
   "Function that post processes relevant file local variables in CC Mode.

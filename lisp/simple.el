@@ -3179,6 +3179,8 @@ Start discarding off end if gets this big."
   (interactive)
   (if (null (mark t))
       (error "No mark set in this buffer")
+    (if (= (point) (mark t))
+	(message "Mark popped"))
     (goto-char (mark t))
     (pop-mark)))
 
@@ -3196,24 +3198,31 @@ Display `Mark set' unless the optional second arg NOMSG is non-nil."
 	(message "Mark activated")))))
 
 (defcustom set-mark-command-repeat-pop nil
-  "*Non-nil means that repeating \\[set-mark-command] after popping will pop.
-This means that if you type C-u \\[set-mark-command] \\[set-mark-command]
-will pop twice."
+  "*Non-nil means repeating \\[set-mark-command] after popping mark pops it again.
+That means that C-u \\[set-mark-command] \\[set-mark-command]
+will pop the mark twice, and
+C-u \\[set-mark-command] \\[set-mark-command] \\[set-mark-command]
+will pop the mark three times.
+
+nil means \\[set-mark-command]'s behavior does not change
+after C-u \\[set-mark-command]."
   :type 'boolean
-  :group 'editing)
+  :group 'editing-basics)
 
 (defun set-mark-command (arg)
-  "Set mark where point is, or jump to mark.
-Setting the mark also sets the \"region\", which is the closest
-equivalent in Emacs to what some editors call the \"selection\".
+  "Set the mark where point is, or jump to the mark.
+Setting the mark also alters the region, which is the text
+between point and mark; this is the closest equivalent in
+Emacs to what some editors call the \"selection\".
 
-With no prefix argument, set mark and push old mark position on local
-mark ring.  Also, push mark on global mark ring, if last mark was set in
-another buffer.  Immediately repeating the command activates
-`transient-mark-mode' temporarily.
+With no prefix argument, set the mark at point, and push the
+old mark position on local mark ring.  Also push the old mark on
+global mark ring, if the previous mark was set in another buffer.
+
+Immediately repeating this command activates `transient-mark-mode' temporarily.
 
 With prefix argument \(e.g., \\[universal-argument] \\[set-mark-command]\), \
-jump to mark, and set mark from
+jump to the mark, and set the mark from
 position popped off the local mark ring \(this does not affect the global
 mark ring\).  Use \\[pop-global-mark] to jump to a mark popped off the global
 mark ring \(see `pop-global-mark'\).
@@ -3222,9 +3231,9 @@ If `set-mark-command-repeat-pop' is non-nil, repeating
 the \\[set-mark-command] command with no prefix argument pops the next position
 off the local (or global) mark ring and jumps there.
 
-With a double \\[universal-argument] prefix argument \(e.g., \\[universal-argument] \
-\\[universal-argument] \\[set-mark-command]\), unconditionally
-set mark where point is, even if `set-mark-command-repeat-pop' is non-nil.
+With \\[universal-argument] \\[universal-argument] as prefix
+argument, unconditionally set mark where point is, even if
+`set-mark-command-repeat-pop' is non-nil.
 
 Novice Emacs Lisp programmers often try to use the mark for the wrong
 purposes.  See the documentation of `set-mark' for more information."

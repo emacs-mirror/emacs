@@ -1530,6 +1530,8 @@ with your script for an edit-interpret-debug cycle."
           "ksh")
          ((string-match "[.]csh\\>" buffer-file-name)
           "csh")
+	 ((equal (file-name-nondirectory buffer-file-name) ".profile")
+          "sh")
          (t
           sh-shell-file))
    nil nil)

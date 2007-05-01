@@ -2057,7 +2057,7 @@ read_escape (readcharfun, stringp)
 
     case 's':
       c = READCHAR;
-      if (c != '-')
+      if (stringp || c != '-')
 	{
 	  UNREAD (c);
 	  return ' ';
@@ -2302,7 +2302,7 @@ read1 (readcharfun, pch, first_in_list)
 	    {
 	      Lisp_Object tmp;
 	      tmp = read_vector (readcharfun, 0);
-	      if (XVECTOR (tmp)->size < VECSIZE (struct Lisp_Char_Table))
+	      if (XVECTOR (tmp)->size < CHAR_TABLE_STANDARD_SLOTS)
 		error ("Invalid size char-table");
 	      XSETCHAR_TABLE (tmp, XCHAR_TABLE (tmp));
 	      return tmp;

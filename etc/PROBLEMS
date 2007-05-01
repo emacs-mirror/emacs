@@ -217,15 +217,15 @@ configuring your compiler to use the native linker instead of GNU ld.
 This happens because of bugs in Gtk+.  Gtk+ 2.10 seems to be OK.  See bug
 http://bugzilla.gnome.org/show_bug.cgi?id=85715.
 
-** Emacs compiled with Gtk+ crashes on startup on cygwin.
+** Emacs compiled with Gtk+ crashes on startup on Cygwin.
 
 A typical error message is
   ***MEMORY-ERROR***: emacs[5172]: GSlice: failed to allocate 504 bytes
   (alignment: 512): Function not implemented
 
 Emacs supplies its own malloc, but glib (part of Gtk+) calls memalign and on
-cygwin that becomes the cygwin supplied memalign.  As malloc is not the
-cygwin malloc, the cygwin memalign always returns ENOSYS.  A fix for this
+Cygwin, that becomes the Cygwin supplied memalign.  As malloc is not the
+Cygwin malloc, the Cygwin memalign always returns ENOSYS.  A fix for this
 problem would be welcome.
 
 * General runtime problems
@@ -390,9 +390,13 @@ again to say this:
 
 *** Emacs does not know your host's fully-qualified domain name.
 
+For example, (system-name) returns some variation on
+"localhost.localdomain", rather the name you were expecting.
+
 You need to configure your machine with a fully qualified domain name,
-either in /etc/hosts, /etc/hostname, the NIS, or wherever your system
-calls for specifying this.
+(i.e. a name with at least one ".") either in /etc/hosts,
+/etc/hostname, the NIS, or wherever your system calls for specifying
+this.
 
 If you cannot fix the configuration, you can set the Lisp variable
 mail-host-address to the value you want.
@@ -1202,7 +1206,7 @@ The problems seem to depend on the version of LessTif and the Motif
 emulation for which it is set up.
 
 Only the Motif 1.2 emulation seems to be stable enough in LessTif.
-Lesstif 0.92-17's Motif 1.2 emulation seems to work okay on FreeBSD.
+LessTif 0.92-17's Motif 1.2 emulation seems to work okay on FreeBSD.
 On GNU/Linux systems, lesstif-0.92.6 configured with "./configure
 --enable-build-12 --enable-default-12" is reported to be the most
 successful.  The binary GNU/Linux package
@@ -1299,7 +1303,7 @@ be carried out at the same time:
    improves performance dramatically, at the slight expense of correctness
    of the X protocol.  lbxproxy acheives the performance gain by grouping
    several X requests in one TCP packet and sending them off together,
-   instead of requiring a round-trip for each X request in a seperate
+   instead of requiring a round-trip for each X request in a separate
    packet.  The switches that seem to work best for emacs are:
     -noatomsfile  -nowinattr  -cheaterrors -cheatevents
    Note that the -nograbcmap option is known to cause problems.
@@ -1405,7 +1409,7 @@ The easy way to do this is to put
 
 in your site-init.el file.
 
-* Runtime problems on character termunals
+* Runtime problems on character terminals
 
 ** Emacs spontaneously displays "I-search: " at the bottom of the screen.
 
@@ -2161,6 +2165,11 @@ month names with consistent widths for some locales on some versions
 of Windows. This is caused by a deficiency in the underlying system
 library function.
 
+Files larger than 4GB cause overflow in the size (represented as a
+32-bit integer) reported by `file-attributes'.  This affects Dired as
+well, since the Windows port uses a Lisp emulation of `ls' that relies
+on `file-attributes'.
+
 ** Typing Alt-Shift has strange effects on MS-Windows.
 
 This combination of keys is a command to change keyboard layout.  If
@@ -2356,7 +2365,7 @@ The relevant switch in this case is "-Xs" (``compile assuming
 *** Building Emacs over NFS fails with ``Text file busy''.
 
 This was reported to happen when building Emacs on a GNU/Linux system
-(RedHat Linux 6.2) using a build directory automounted from Solaris
+(Red Hat Linux 6.2) using a build directory automounted from Solaris
 (SunOS 5.6) file server, but it might not be limited to that
 configuration alone.  Presumably, the NFS server doesn't commit the
 files' data to disk quickly enough, and the Emacs executable file is
@@ -2443,17 +2452,17 @@ files are installed. Then use:
 
 (using the location of the 32-bit X libraries on your system).
 
-*** Building the Cygwin port for MS-Windows can fail with some GCC version
+*** Building the Cygwin port for MS-Windows can fail with some GCC versions
 
 Building Emacs 22 with Cygwin builds of GCC 3.4.4-1 and 3.4.4-2 is
 reported to either fail or cause Emacs to segfault at run time.  In
 addition, the Cygwin GCC 3.4.4-2 has problems with generating debug
 info.  Cygwin users are advised not to use these versions of GCC for
-compiling Emacs.  GCC versions 4.0.3, 4.1.1, and 4.1.2 reportedly
-build a working Cygwin binary of Emacs, so we recommend these GCC
-versions.  Note that these three versions of GCC, 4.0.3, 4.1.1, and
-4.1.2, are currently the _only_ versions known to succeed in building
-Emacs (as of v22.1).
+compiling Emacs.  GCC versions 4.0.3, 4.0.4, 4.1.1, and 4.1.2
+reportedly build a working Cygwin binary of Emacs, so we recommend
+these GCC versions.  Note that these versions of GCC, 4.0.3, 4.0.4,
+4.1.1, and 4.1.2, are currently the _only_ versions known to succeed
+in building Emacs (as of v22.1).
 
 *** Building the native MS-Windows port with Cygwin GCC can fail.
 
@@ -2604,7 +2613,7 @@ The fix is to install a newer version of ncurses, such as version 4.2.
 
 *** Linux: Segfault during `make bootstrap' under certain recent versions of the Linux kernel.
 
-With certain recent Linux kernels (like the one of Redhat Fedora Core
+With certain recent Linux kernels (like the one of Red Hat Fedora Core
 1 and newer), the new "Exec-shield" functionality is enabled by default, which
 creates a different memory layout that breaks the emacs dumper.  Emacs tries
 to handle this at build time, but if the workaround used fails, these
@@ -2780,6 +2789,25 @@ For example, if you call configure with a directory-related option
 with spaces in the value, eg --enable-locallisppath='/path/with\ spaces'.
 Using directory paths with spaces is not supported at this time: you
 must re-configure without using spaces.
+
+*** On Solaris, use GNU Make when installing an out-of-tree build
+
+The Emacs configuration process allows you to configure the
+build environment so that you can build emacs in a directory
+outside of the distribution tree.  When installing Emacs from an
+out-of-tree build directory on Solaris, you may need to use GNU
+make.  The make programs bundled with Solaris support the VPATH
+macro but use it differently from the way the VPATH macro is
+used by GNU make.  The differences will cause the "make install"
+step to fail, leaving you with an incomplete emacs
+installation.  GNU make is available in /usr/sfw/bin on Solaris
+10 and can be installed as /opt/sfw/bin/gmake from the Solaris 9
+Software Companion CDROM.
+
+The problems due to the VPATH processing differences affect only
+out of tree builds so, if you are on a Solaris installation
+without GNU make, you can install Emacs completely by installing
+from a build environment using the original emacs distribution tree.
 
 ** First execution
 

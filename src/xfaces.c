@@ -4783,7 +4783,8 @@ set_font_frame_param (frame, lface)
 	      font_name = font_find_for_lface (f, &AREF (lface, 0), Qnil);
 	      if (NILP (font_name))
 		error ("No font matches the specified attribute");
-	      font_name = font_open_for_lface (f, &AREF (lface, 0), font_name);
+	      font_name = font_open_for_lface (f, font_name, &AREF (lface, 0),
+					       Qnil);
 	      if (NILP (font_name))
 		error ("No font matches the specified attribute");
 	    }
@@ -6087,6 +6088,7 @@ face_for_font (f, font, base_face)
       if (face->ascii_face == face)
 	continue;
       if (face->ascii_face == base_face
+	  && face->font == font->font.font
 	  && face->font_info == (struct font_info *) font)
 	return face->id;
     }

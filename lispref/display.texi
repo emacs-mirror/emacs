@@ -1365,7 +1365,7 @@ specify a particular attribute for certain text.  @xref{Face
 Attributes}.
 
 @item
-A cons cell of the form @code{(foreground-color . @var{color-name})} or
+A cons cell, either of the form @code{(foreground-color . @var{color-name})} or
 @code{(background-color . @var{color-name})}.  These elements specify
 just the foreground color or just the background color.
 
@@ -1417,6 +1417,9 @@ beginning and end are equal.)
 If these functions modify the buffer, they should bind
 @code{inhibit-modification-hooks} to @code{t} around doing so, to
 avoid confusing the internal mechanism that calls these hooks.
+
+Text properties also support the @code{modification-hooks} property,
+but the details are somewhat different (@pxref{Special Properties}).
 
 @item insert-in-front-hooks
 @kindex insert-in-front-hooks @r{(overlay property)}
@@ -2144,10 +2147,9 @@ For @code{:height}, floating point values are also relative.
 For example:
 
 @example
-(read-face-name "Describe face" "= `default' face" t)
+(face-attribute-relative-p :height 2.0)
+     @result{} t
 @end example
-
-prompts with @samp{Describe face (default = `default' face): }.
 @end defun
 
 @defun merge-face-attribute attribute value1 value2
@@ -4138,8 +4140,8 @@ should specify the image as follows:
 This function returns a suitable search path for images used by the
 Lisp package @var{library}.
 
-The function searches for @var{image} first in @code{image-load-path}
-(excluding @file{@code{data-directory}/images}) and then in
+The function searches for @var{image} first using @code{image-load-path},
+excluding @file{@code{data-directory}/images}, and then in
 @code{load-path}, followed by a path suitable for @var{library}, which
 includes @file{../../etc/images} and @file{../etc/images} relative to
 the library file itself, and finally in

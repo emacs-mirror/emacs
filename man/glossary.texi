@@ -601,6 +601,10 @@ have.  To make a character Hyper, type it while holding down the
 @kbd{Hyper-} (usually written @kbd{H-} for short).  @xref{User Input,
 Hyper}.
 
+@item Iff
+``Iff'' means ``if and only if.''  This terminology comes from
+mathematics.
+
 @item Inbox
 An inbox is a file in which mail is delivered by the operating system.
 Rmail transfers mail from inboxes to Rmail files (q.v.@:) in which the

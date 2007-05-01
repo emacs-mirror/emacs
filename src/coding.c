@@ -6079,7 +6079,7 @@ produce_chars (coding, translation_table, last_block)
     }
 
   produced = dst - (coding->destination + coding->produced);
-  if (BUFFERP (coding->dst_object))
+  if (BUFFERP (coding->dst_object) && produced_chars > 0)
     insert_from_gap (produced_chars, produced);
   coding->produced += produced;
   coding->produced_char += produced_chars;
@@ -6648,7 +6648,7 @@ encode_coding (coding)
     (*(coding->encoder)) (coding);
   } while (coding->consumed_char < coding->src_chars);
 
-  if (BUFFERP (coding->dst_object))
+  if (BUFFERP (coding->dst_object) && coding->produced_char > 0)
     insert_from_gap (coding->produced_char, coding->produced);
 
   return (coding->result);

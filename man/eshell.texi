@@ -89,6 +89,7 @@ handling the sort of tasks accomplished by those tools.
 * Extension modules::
 * Extras and Goodies::
 * Bugs and ideas::              Known problems, and future ideas.
+* GNU Free Documentation License:: The license for this documentation.
 * Concept Index::
 * Function and Variable Index::
 * Key Index::
@@ -921,6 +922,10 @@ eshell}, it doesn't display anything.
 Since it keeps the cursor up where the command was invoked.
 
 @end table
+
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
+@include doclicense.texi
 
 @node Concept Index
 @unnumbered Concept Index

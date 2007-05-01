@@ -1,3 +1,90 @@
+2007-05-01  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c [USE_FONT_BACKEND]:
+	(x_get_font_repertory, note_mouse_movement, x_set_mouse_face_gc):
+	(x_set_glyph_string_clipping, x_set_glyph_string_clipping_exactly):
+	(x_draw_glyph_string, x_draw_glyph_string_foreground):
+	(x_draw_composite_glyph_string_foreground, x_new_fontset2):
+	(x_free_frame_resources): Sync with xterm.c.
+
+2007-04-29  Andreas Schwab  <schwab@suse.de>
+
+	* lread.c (read1): Use CHAR_TABLE_STANDARD_SLOTS to validate
+	char-table size.
+
+2007-04-26  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (check_otf_features): Define it regardless of
+	HAVE_LIBOTF.
+
+2007-04-25  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_driver): Delete font_otf_gsub and
+	font_otf_gpos, add font_drive_otf.
+
+	* fontset.c (fontset_find_font): Pay attention to font size
+	specified for a font.
+	(reorder_font_vector): Check contents of font_def.
+
+	* font.c (struct otf_list): Delete it.
+	(otf_list): Make it a lisp variable..
+	(otf_open): Use lispy otf_list.
+	(generate_otf_features): Renamed from parse_gsub_gpos_spec.
+	(check_otf_features): New function.
+	(font_otf_DeviceTable, font_otf_ValueRecord, font_otf_Anchor): New
+	functinos.
+	(font_drive_otf): New function merging font_otf_gsub and
+	font_otf_gpos.
+	(font_open_for_lface): New arg spec.  Change argument order.
+	(font_load_for_face): Adjusted for the change of
+	font_open_for_lface.
+	(Ffont_drive_otf): New function merging Ffont_otf_gsub and
+	Ffont_otf_gpos.
+	(syms_of_font): Staticpro otf_list.  Delete defsubr of
+	Sfont_otf_gsub and Sfont_otf_gpos.  Defsubr Sfont_drive_otf.
+
+	* xfaces.c (set_font_frame_param): Adjusted for the change of
+	font_open_for_lface.
+
+	* font.h (font_open_for_lface): Adjust prototype.
+	(struct font_driver): Delete members otf_gsub and otf_gpos, add
+	member otf_drive.
+	(font_otf_gsub, font_otf_gpos): Delete externs.
+	(font_drive_otf): Extern it.
+
+2007-04-24  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_at): If the window W is not on a window system,
+	return Qnil.
+
+	* coding.c (produce_chars): Don't call insert_from_gap if no
+	characters to produce.
+	(encode_coding): Likewise.
+
+2007-04-17  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (free_realized_fontsets): Avoid unnecessary call of
+	Fclear_face_cache.
+
+	* xfaces.c (face_for_font): Check also face->font==font->font.font.
+
+2007-04-16  Miles Bader  <miles@gnu.org>
+
+	* emacs.c (main): Change default value of `enable_font_backend' to 1.
+	Parse "--disable-font-backend" option.
+	(standard_args): Add "--disable-font-backend" option.
+
+2007-04-13  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fontset_find_font): New function.
+	(fontset_font): Use fontset_find_font.
+	(make_fontset_for_ascii_face): Don't set face ID in rfont_def.
+	Register the specified font for all Latin characters.
+	(new_fontset_from_font): Register the specified font for all Latin
+	characters.
+	(dump_fontset): For a realized fontset, include the base fontset
+	name in the returned vector.
+
 2007-04-11  Kenichi Handa  <handa@m17n.org>
 
 	* character.h (CHAR_STRING): Cast C to unsigned on calling
