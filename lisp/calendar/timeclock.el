@@ -5,7 +5,7 @@
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Created: 25 Mar 1999
-;; Version: 2.6
+;; Version: 2.6.1
 ;; Keywords: calendar data
 
 ;; This file is part of GNU Emacs.
@@ -304,8 +304,8 @@ display (non-nil means on)."
                 ;; Update immediately so there is a visible change
                 ;; on calling this function.
                 (if display-time-mode (timeclock-update-modeline)
-                  (message "Activate `display-time-mode' to see \
-timeclock information"))
+                  (message "Activate `display-time-mode' or turn off \
+`timeclock-use-display-time' to see timeclock information"))
                 (add-hook 'display-time-hook 'timeclock-update-modeline))
 	    (setq timeclock-update-timer
 		  (run-at-time nil 60 'timeclock-update-modeline))))
@@ -375,8 +375,9 @@ discover the name of the project."
 	(setq timeclock-discrepancy
 	      (- (or timeclock-discrepancy 0) workday))
 	(if (not (= workday timeclock-workday))
-	    (timeclock-log "h" (and (numberp arg)
-				    (number-to-string arg))))))
+	    (timeclock-log "h" (number-to-string
+				(/ workday (if (zerop (% workday (* 60 60)))
+					       60 60.0) 60))))))
     (timeclock-log "i" (or project
 			   (and timeclock-get-project-function
 				(or find-project (interactive-p))
@@ -588,6 +589,38 @@ relative only to the time worked today, and not to past time."
 	(message "%s" string)
       string)))
 
+(defun timeclock-make-hours-explicit (old-default)
+  "Specify all workday lengths in `timeclock-file'.
+OLD-DEFAULT hours are set for every day that has no number indicated."
+  (interactive "P")
+  (if old-default (setq old-default (prefix-numeric-value old-default))
+    (error "timelog-make-hours-explicit requires an explicit argument"))
+  (let ((extant-timelog (find-buffer-visiting timeclock-file))
+	current-date)
+    (with-current-buffer (find-file-noselect timeclock-file t)
+      (unwind-protect
+	  (save-excursion
+	    (save-restriction
+	      (widen)
+	      (goto-char (point-min))
+	      (while (progn (skip-chars-forward "\n") (not (eobp)))
+		;; This is just a variant of `timeclock-moment-regexp'.
+		(unless (looking-at
+			 (concat "^\\([bhioO]\\) \\([0-9]+/[0-9]+/[0-9]+\\) "
+				 "\\([0-9]+:[0-9]+:[0-9]+\\)"))
+		  (error "Can't parse `%s'" timeclock-file))
+		(let ((this-date (match-string 2)))
+		  (unless (or (and current-date
+				   (string= this-date current-date))
+			      (string= (match-string 1) "h"))
+		    (insert (format "h %s %s %s\n" (match-string 2)
+				    (match-string 3) old-default)))
+		  (if (string-match "^[ih]" (match-string 1)) ; ignore logouts
+		      (setq current-date this-date)))
+		(forward-line))
+	      (save-buffer)))
+	(unless extant-timelog (kill-buffer (current-buffer)))))))
+
 ;;; Internal Functions:
 
 (defvar timeclock-project-list nil)
@@ -651,31 +684,34 @@ that variable's documentation."
   "Log the event CODE to the timeclock log, at the time of call.
 If PROJECT is a string, it represents the project which the event is
 being logged for.  Normally only \"in\" events specify a project."
-  (with-current-buffer (find-file-noselect timeclock-file)
-    (goto-char (point-max))
-    (if (not (bolp))
-	(insert "\n"))
-    (let ((now (current-time)))
-      (insert code " "
-	      (format-time-string "%Y/%m/%d %H:%M:%S" now)
-	      (or (and project
-		       (stringp project)
-		       (> (length project) 0)
-		       (concat " " project))
-		  "")
-	      "\n")
-      (if (equal (downcase code) "o")
-	  (setq timeclock-last-period
-		(- (timeclock-time-to-seconds now)
-		   (timeclock-time-to-seconds
-		    (cadr timeclock-last-event)))
-		timeclock-discrepancy
-		(+ timeclock-discrepancy
-		   timeclock-last-period)))
-      (setq timeclock-last-event (list code now project)))
-    (save-buffer)
-    (run-hooks 'timeclock-event-hook)
-    (kill-buffer (current-buffer))))
+  (let ((extant-timelog (find-buffer-visiting timeclock-file)))
+    (with-current-buffer (find-file-noselect timeclock-file t)
+      (save-excursion
+	(save-restriction
+	  (widen)
+	  (goto-char (point-max))
+	  (if (not (bolp))
+	      (insert "\n"))
+	  (let ((now (current-time)))
+	    (insert code " "
+		    (format-time-string "%Y/%m/%d %H:%M:%S" now)
+		    (or (and (stringp project)
+			     (> (length project) 0)
+			     (concat " " project))
+			"")
+		    "\n")
+	    (if (equal (downcase code) "o")
+		(setq timeclock-last-period
+		      (- (timeclock-time-to-seconds now)
+			 (timeclock-time-to-seconds
+			  (cadr timeclock-last-event)))
+		      timeclock-discrepancy
+		      (+ timeclock-discrepancy
+			 timeclock-last-period)))
+	    (setq timeclock-last-event (list code now project)))))
+      (save-buffer)
+      (unless extant-timelog (kill-buffer (current-buffer)))))
+  (run-hooks 'timeclock-event-hook))
 
 (defvar timeclock-moment-regexp
   (concat "\\([bhioO]\\)\\s-+"
@@ -1147,8 +1183,8 @@ If optional argument TIME is non-nil, use that instead of the current time."
     (setcar (nthcdr 2 decoded) 0)
     (apply 'encode-time decoded)))
 
-(defun timeclock-geometric-mean (l)
-  "Compute the geometric mean of the values in the list L."
+(defun timeclock-mean (l)
+  "Compute the arithmetic mean of the values in the list L."
   (let ((total 0)
 	(count 0))
     (while l
@@ -1163,7 +1199,7 @@ If optional argument TIME is non-nil, use that instead of the current time."
   "Generate a summary report based on the current timelog file.
 By default, the report is in plain text, but if the optional argument
 HTML-P is non-nil, HTML markup is added."
-  (interactive)
+  (interactive "P")
   (let ((log (timeclock-log-data))
 	(today (timeclock-day-base)))
     (if html-p (insert "<p>"))
@@ -1295,14 +1331,10 @@ HTML-P is non-nil, HTML markup is added."
 	  ;; average statistics
 	  (let ((i 0) (l 5))
 	    (while (< i l)
-	      (aset time-in i (timeclock-geometric-mean
-			       (cdr (aref time-in i))))
-	      (aset time-out i (timeclock-geometric-mean
-				(cdr (aref time-out i))))
-	      (aset breaks i (timeclock-geometric-mean
-			      (cdr (aref breaks i))))
-	      (aset workday i (timeclock-geometric-mean
-			       (cdr (aref workday i))))
+	      (aset time-in i (timeclock-mean (cdr (aref time-in i))))
+	      (aset time-out i (timeclock-mean (cdr (aref time-out i))))
+	      (aset breaks i (timeclock-mean (cdr (aref breaks i))))
+	      (aset workday i (timeclock-mean (cdr (aref workday i))))
 	      (setq i (1+ i))))
 	  ;; Output the HTML table
 	  (insert "<tr>\n")
