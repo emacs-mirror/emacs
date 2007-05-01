@@ -4,7 +4,7 @@
 ;;   2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainer: Jay Belanger  <belanger@truman.edu>
+;; Maintainer: Jay Belanger  <jay.p.belanger@gmail.com>
 
 ;; This file is part of GNU Emacs.
 

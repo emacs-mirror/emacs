@@ -338,13 +338,13 @@ buffer.
 
 @findex which-function-mode
 @vindex which-func-modes
-  To enable (or disable) Which Function mode, use the command @kbd{M-x
-which-function-mode}.  This command is global; it applies to all
-buffers, both existing ones and those yet to be created.  However, it
-takes effect only in certain major modes, those listed in the value of
-@code{which-func-modes}.  If the value is @code{t}, then Which Function
-mode applies to all major modes that know how to support it---in other
-words, all the major modes that support Imenu.
+  To either enable or disable Which Function mode, use the command
+@kbd{M-x which-function-mode}.  This command is global; it applies to
+all buffers, both existing ones and those yet to be created.  However,
+it takes effect only in certain major modes, those listed in the value
+of @code{which-func-modes}.  If the value is @code{t}, then Which
+Function mode applies to all major modes that know how to support
+it---in other words, all the major modes that support Imenu.
 
 @node Program Indent
 @section Indentation for Programs

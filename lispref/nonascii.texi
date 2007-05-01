@@ -1105,11 +1105,11 @@ for decoding (in case @var{operation} does decoding), and
 @var{encoding-system} is the coding system for encoding (in case
 @var{operation} does encoding).
 
-The argument @var{operation} should be a symbol, any one of
-@code{insert-file-contents}, @code{write-region},
+The argument @var{operation} is a symbol, one of @code{write-region},
 @code{start-process}, @code{call-process}, @code{call-process-region},
-or @code{open-network-stream}.  These are the names of the Emacs I/O
-primitives that can do character code and eol conversion.
+@code{insert-file-contents}, or @code{open-network-stream}.  These are
+the names of the Emacs I/O primitives that can do character code and
+eol conversion.
 
 The remaining arguments should be the same arguments that might be given
 to the corresponding I/O primitive.  Depending on the primitive, one
@@ -1165,9 +1165,9 @@ of the right way to use the variable:
   (insert-file-contents filename))
 @end example
 
-When its value is non-@code{nil}, @code{coding-system-for-read} takes
-precedence over all other methods of specifying a coding system to use for
-input, including @code{file-coding-system-alist},
+When its value is non-@code{nil}, this variable takes precedence over
+all other methods of specifying a coding system to use for input,
+including @code{file-coding-system-alist},
 @code{process-coding-system-alist} and
 @code{network-coding-system-alist}.
 @end defvar

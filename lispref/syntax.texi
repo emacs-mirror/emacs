@@ -1011,8 +1011,9 @@ corresponds to each syntax flag.
 @end multitable
 
 @defun string-to-syntax @var{desc}
-This function returns the internal form @code{(@var{syntax-code} .
-@var{matching-char})} corresponding to the syntax descriptor @var{desc}.
+This function returns the internal form corresponding to the syntax
+descriptor @var{desc}, a cons cell @code{(@var{syntax-code}
+. @var{matching-char})}.
 @end defun
 
 @defun syntax-after pos

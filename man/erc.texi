@@ -20,7 +20,14 @@ Copyright @copyright{} 2005, 2006, 2007 Free Software Foundation, Inc.
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.2 or
 any later version published by the Free Software Foundation; with no
-Invariant Sections, Front-Cover texts, or Back-Cover Texts.
+Invariant Sections, Front-Cover texts, or Back-Cover Texts.  A copy of
+the license is included in the section entitled ``GNU Free
+Documentation License'' in the Emacs manual.
+
+This document is part of a collection distributed under the GNU Free
+Documentation License.  If you want to distribute this document
+separately from the collection, you can do so by adding a copy of the
+license to the document, as described in section 6 of the license.
 
 All Emacs Lisp code contained in this document may be used, distributed,
 and modified without restriction.
@@ -61,6 +68,7 @@ and modified without restriction.
 * Advanced Usage::              Cool ways of using ERC.
 * Getting Help and Reporting Bugs::  
 * History::                     The history of ERC.
+* GNU Free Documentation License:: The license for this documentation.
 * Concept Index::               Search for terms.
 
 @detailmenu
@@ -939,7 +947,7 @@ questions.
 @end itemize
 
 
-@node History, Concept Index, Getting Help and Reporting Bugs, Top
+@node History, GNU Free Documentation License, Getting Help and Reporting Bugs, Top
 @comment  node-name,  next,  previous,  up
 @chapter History
 @cindex history, of ERC
@@ -1001,7 +1009,11 @@ our revision control system.  Our mailing list address changed as well.
 
 @end itemize
 
-@node Concept Index,  , History, Top
+@node GNU Free Documentation License, Concept Index, History, Top
+@appendix GNU Free Documentation License
+@include doclicense.texi
+
+@node Concept Index,  , GNU Free Documentation License, Top
 @comment  node-name,  next,  previous,  up
 @unnumbered Index
 

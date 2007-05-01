@@ -47,9 +47,6 @@ You might find bug-fixes or enhancements in these places.
 
  * Battery and Info Look: <URL:http://www-cdf.fnal.gov/~sthrlnd/emacs/>
 
- * BibTeX:
-   <URL:http://www.ida.ing.tu-bs.de/people/dirk/bibtex/index.html>
-
  * BS: <URL:http://www.geekware.de/software/emacs/index.html>
 
  * Calculator: <URL:http://www.barzilay.org/misc/calculator.el>
@@ -85,26 +82,26 @@ You might find bug-fixes or enhancements in these places.
 
  * MH-E: <URL:http://mh-e.sourceforge.net/>
 
- * PC Selection: <URL:ftp://ftp.thp.uni-duisburg.de/pub/source/elisp/>
-
  * PS mode: <URL:http://odur.let.rug.nl/%7Ekleiweg/postscript/>
 
- * PS-print: <URL:http://www.cpqd.com.br/~vinicius/emacs/>
+ * PS-print: <URL:http://www.emacswiki.org/cgi-bin/wiki/PsPrintPackage>
+
+ * Python mode: <URL:http://www.emacswiki.org/cgi-bin/wiki/PythonMode>
 
  * QuickURL: <URL:http://www.davep.org/emacs/>
 
- * RefTeX: <URL:http://staff.science.uva.nl/~dominik/Tools/reftex/>
+ * RefTeX: <URL:http://www.gnu.org/software/auctex/reftex.html>
 
  * Speedbar, Checkdoc etc: <URL:http://cedet.sourceforge.net/>
 
- * SQL: <URL:http://www.geocities.com/TimesSquare/6120/emacs.html>
+ * SQL: <URL:http://www.emacswiki.org/cgi-bin/wiki/sql.el>
 
  * Tramp: Remote file access via rsh/ssh
    <URL:http://savannah.gnu.org/projects/tramp/>
 
  * Webjump: <URL:http://www.neilvandyke.org/webjump>
 
- * Whitespace: <URL:http://www.dsmit.com/lisp/>
+ * Whitespace: <URL:http://www.dsmit.com/lisp/whitespace.el>
 
 * Auxiliary files
 
@@ -147,7 +144,7 @@ Several are for Debian GNU/Linux in particular.
    mirrors of the `CTAN' TeX archives.
 
  * Dismal: spreadsheet:
-   <URL:http://www.gnu.org/software/dismal/dismal.html>
+   <URL:http://ritter.ist.psu.edu/dismal/dismal.html>
 
  * ECB: Emacs Code Browser: <URL:http://ecb.sourceforge.net/>
 
@@ -177,8 +174,7 @@ Several are for Debian GNU/Linux in particular.
    <URL:http://emacspeak.sourceforge.net/>
 
  * Emacs-w3m : <URL:http://emacs-w3m.namazu.org/>
-   A simple Emacs interface to w3m, which is a text-mode
-   WWW browser
+   A simple Emacs interface to w3m, which is a text-mode WWW browser
 
  * Emacs Wiki Mode: <URL:http://www.mwolson.org/projects/EmacsWiki.html>
    A wiki-like publishing tool and personal information manager
@@ -198,7 +194,7 @@ Several are for Debian GNU/Linux in particular.
    HTML-specific editing.  Can work with PSGML.
 
  * Hyperbole:
-   <URL:http://ftp.gnu.org/pub/gnu/hyperbole/>
+   <URL:http://directory.fsf.org/hyperbole.html>
    Hyperbole is an open, efficient, programmable information
    management and hypertext system.
 
@@ -229,11 +225,11 @@ Several are for Debian GNU/Linux in particular.
    nXML mode is an addon for GNU Emacs, which makes GNU Emacs into a
    powerful XML editor.
 
- * Planner Mode: <URL:http://www.plannerlove.com/>
+ * Planner Mode: <URL:http://wjsullivan.net/PlannerMode>
    Planner is an organizer and day planner for Emacs.
 
  * Preview LaTeX: embed preview LaTeX images in source buffer.
-   <URL:http://preview-latex.sourceforge.net/>
+   <URL:http://www.gnu.org/software/auctex/preview-latex>
 
  * PSGML: <URL:http://www.lysator.liu.se/projects/about_psgml.html>
    DTD-aware serious SGML/XML editing.
@@ -260,7 +256,7 @@ Several are for Debian GNU/Linux in particular.
 
  * Tiny Tools: <URL:http://tiny-tools.sourceforge.net/>
 
- * VM (View Mail): <URL:http://www.wonderworks.com/vm/> Alternative
+ * VM (View Mail): <URL:http://www.nongnu.org/viewmail/> Alternative
    mail reader.  There is a VM newsgroup: <URL:news:gnu.emacs.vm.info>
 
  * W3: <URL:http://savannah.gnu.org/projects/w3/>
@@ -276,8 +272,7 @@ Several are for Debian GNU/Linux in particular.
    shell-script daemon and some LaTeX macros.
 
  * X-Symbol: <URL:http://x-symbol.sourceforge.net/>
-   Quasi-WYSIWYG editing of TeX & al.  (It will be improved to take
-   better advantage of Emacs 21 features.)
+   Quasi-WYSIWYG editing of TeX & al.
 
 Local Variables:
 mode: text

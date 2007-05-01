@@ -468,6 +468,7 @@ they are added at the end.
 
 This is normally set via `font-lock-add-keywords' and
 `font-lock-remove-keywords'.")
+(put 'font-lock-keywords-alist 'risky-local-variable t)
 
 (defvar font-lock-removed-keywords-alist nil
   "Alist of `font-lock-keywords' elements to be removed for major modes.

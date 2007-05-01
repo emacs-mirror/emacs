@@ -14,6 +14,16 @@ to the FSF.
 
 * Small but important fixes needed in existing features:
 
+** Fix compilation when Xaw3d libraries are present but libxaw is not.
+In new X11 versions, xaw3dg-dev does not depend on libxaw-dev, so the
+latter need not be installed.  As a result, all the source files that
+look for include files in X11/Xaw should look in X11/Xaw3d if we are
+using Xaw3d.
+
+** Compute the list of active keymaps *after* reading the first event.
+
+** Avoid using "iff" in doc strings.
+
 ** mouse-autoselect-window should wait to select the window until
 the mouse is put to rest or after a delay or both, so that moving over
 a window doesn't select it.
@@ -82,8 +92,6 @@ current buffer.
 
 ** Add function to redraw the tool bar.
 
-** Modify allout.el to use overlays, like outline.el.
-
 ** M-! M-n should fetch the buffer-file-name as the default.
 
 ** Redesign the load-history data structure so it can cope better
@@ -91,6 +99,15 @@ current buffer.
   recording which file the latest definition came from.
 
 ** make back_comment use syntax-ppss or equivalent.
+
+** Improve configure's treatment of NON_GNU_CPP on Solaris.
+(patch available for after Emacs 22)
+
+** Consider improving src/sysdep.c's search for a fqdn.
+http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00782.html
+
+** Find a proper fix for rcirc multiline nick adding.
+http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00684.html
 
 * Important features:
 
@@ -467,6 +484,13 @@ when the body only calls primitives.
   the definition of `file-attributes' and `directory-files-and-attributes'
   and from the calls.
 
+** Modify the emulation of `stat' for MS-Windows to support large files.
+  The current version uses the stock Windows definition of `struct
+  stat', where the file's size is returned as a 32-bit integer.  That
+  overflows for files larger than 4GB.  To fix, modify `stat' to use
+  64-bit size, and use a declaration of `struct stat' that supports
+  such sizes.
+
 ** Make language-info-alist customizable.  Currently a user can customize
   only the variable `current-language-environment'.
 
@@ -509,9 +533,6 @@ when the body only calls primitives.
 ** Let LEIM handle the Mode_switch key like XIM does (i.e. a toggle like C-\
 but which can also be used as a modifier).
 
-** Provide the toolbar on ttys. This could map a bit like tmm-menubar
-   for the menubar and buttons could look a bit like those used by customize.
-
 ** Improve Help buffers: Change the face of previously visited links (like
    Info, but also with regard to namespace), add a forward button to make the
    Help buffer more browser like and gives the value of lisp expressions
@@ -529,7 +550,7 @@ but which can also be used as a modifier).
 
 * Internal changes
 
-** Cleanup all the GC_ mark bit stuff -- there is no longer any distiction
+** Cleanup all the GC_ mark bit stuff -- there is no longer any distinction
    since the mark bit is no longer stored in the Lisp_Object itself.
 
 ** Merge ibuffer.el and buff-menu.el.
@@ -545,7 +566,7 @@ but which can also be used as a modifier).
    a derived mode of sendmail.el.  Or arrange for messages.el to be split
    into a small core and "the rest" so that we use less resources as long as
    we stick to the features provided in sendmail.el.
-
+ 
 ** Replace gmalloc.c with the modified Doug Lea code from the current
    GNU libc so that the special mmapping of buffers can be removed --
    that apparently loses under Solaris, at least. [fx has mostly done

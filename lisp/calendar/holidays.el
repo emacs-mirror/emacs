@@ -45,12 +45,6 @@
 ;; reingold@cs.uiuc.edu with the SUBJECT "send-paper-cal" (no quotes) and
 ;; the message BODY containing your mailing address (snail).
 
-;; Comments, corrections, and improvements should be sent to
-;;  Edward M. Reingold               Department of Computer Science
-;;  (217) 333-6733                   University of Illinois at Urbana-Champaign
-;;  reingold@cs.uiuc.edu             1304 West Springfield Avenue
-;;                                   Urbana, Illinois 61801
-
 ;;; Code:
 
 (defvar displayed-month)

@@ -42,8 +42,6 @@ license to the document, as described in section 6 of the license.
 @title Ebrowse User's Manual
 @sp 4
 @subtitle Ebrowse/Emacs
-@sp 1
-@subtitle May 2000
 @sp 5
 @author Gerd Moellmann
 @page
@@ -65,6 +63,7 @@ Ebrowse.
 * Tree Buffers::		Traversing class hierarchies
 * Member Buffers::		Looking at member information
 * Tags-like Functions::		Finding members from source files
+* GNU Free Documentation License:: The license for this documentation.
 * Concept Index::		An entry for each concept defined
 @end menu
 
@@ -1240,7 +1239,7 @@ This key is bound to @code{describe-mode}.
 @comment ***		    TAGS LIKE FUNCTIONS
 @comment **************************************************************
 
-@node Tags-like Functions, Concept Index, Member Buffers, Top
+@node Tags-like Functions, GNU Free Documentation License, Member Buffers, Top
 @comment  node-name,       next,       previous,      up
 @chapter Tags-like Functions
 
@@ -1438,7 +1437,7 @@ The command @kbd{C-c C-m @key{TAB}} completes the symbol in front of point.
 
 
 
-@node Member Buffer Display,  , Symbol Completion, Tags-like Functions
+@node Member Buffer Display, , Symbol Completion, Tags-like Functions
 @section Quick Member Display
 @cindex member buffer, for member at point
 
@@ -1446,7 +1445,12 @@ You can quickly display a member buffer containing the member the cursor
 in on with the command @kbd{C-c C-m m}.
 
 
-@node Concept Index, , Tags-like Functions, Top
+@node GNU Free Documentation License, Concept Index, Tags-like Functions, Top
+@appendix GNU Free Documentation License
+@include doclicense.texi
+
+
+@node Concept Index, , GNU Free Documentation License, Top
 @unnumbered Concept Index
 @printindex cp
 

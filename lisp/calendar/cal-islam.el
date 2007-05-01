@@ -34,12 +34,6 @@
 ;; ``Calendrical Calculations: The Millennium Edition'' by Edward M. Reingold
 ;; and Nachum Dershowitz, Cambridge University Press (2001).
 
-;; Comments, corrections, and improvements should be sent to
-;;  Edward M. Reingold               Department of Computer Science
-;;  (217) 333-6733                   University of Illinois at Urbana-Champaign
-;;  reingold@cs.uiuc.edu             1304 West Springfield Avenue
-;;                                   Urbana, Illinois 61801
-
 ;;; Code:
 
 (defvar date)

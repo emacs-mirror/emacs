@@ -331,7 +331,7 @@ For a list of valid keywords, see the common keywords listed in
 
 SPEC should be an alist of the form ((DISPLAY ATTS)...).
 
-In the first element, DISPLAY can be :default.  The ATTS in that
+In the first element, DISPLAY can be `default'.  The ATTS in that
 element then act as defaults for all the following elements.
 
 Aside from that, DISPLAY specifies conditions to match some or
@@ -341,7 +341,7 @@ frame.  The ATTRs in this element take effect, and the following
 elements are ignored, on that frame.
 
 In the last element, DISPLAY can be t.  That element applies to a
-frame if none of the previous elements (except the :default if
+frame if none of the previous elements (except the `default' if
 any) did.
 
 ATTS is a list of face attributes followed by their values:
@@ -351,7 +351,7 @@ The possible attributes are `:family', `:width', `:height', `:weight',
 `:slant', `:underline', `:overline', `:strike-through', `:box',
 `:foreground', `:background', `:stipple', `:inverse-video', and `:inherit'.
 
-DISPLAY can be `:default' (only in the first element), the symbol
+DISPLAY can be `default' (only in the first element), the symbol
 t (only in the last element) to match all frames, or an alist of
 conditions of the form \(REQ ITEM...).  For such an alist to
 match a frame, each of the conditions must be satisfied, meaning

@@ -3418,6 +3418,8 @@ discarding."
 ;; more complicated compiler macros
 
 (byte-defop-compiler char-before)
+(byte-defop-compiler backward-char)
+(byte-defop-compiler backward-word)
 (byte-defop-compiler list)
 (byte-defop-compiler concat)
 (byte-defop-compiler fset)
@@ -3431,10 +3433,31 @@ discarding."
 
 (defun byte-compile-char-before (form)
   (cond ((= 2 (length form))
-         (byte-compile-form `(char-after (1- ,(nth 1 form)))))
-        ((= 1 (length form))
-         (byte-compile-form '(char-after (1- (point)))))
-        (t (byte-compile-subr-wrong-args form "0-1"))))
+	 (byte-compile-form (list 'char-after (if (numberp (nth 1 form))
+						  (1- (nth 1 form))
+						`(1- ,(nth 1 form))))))
+	((= 1 (length form))
+	 (byte-compile-form '(char-after (1- (point)))))
+	(t (byte-compile-subr-wrong-args form "0-1"))))
+
+;; backward-... ==> forward-... with negated argument.
+(defun byte-compile-backward-char (form)
+  (cond ((= 2 (length form))
+	 (byte-compile-form (list 'forward-char (if (numberp (nth 1 form))
+						    (- (nth 1 form))
+						  `(- ,(nth 1 form))))))
+	((= 1 (length form))
+	 (byte-compile-form '(forward-char -1)))
+	(t (byte-compile-subr-wrong-args form "0-1"))))
+
+(defun byte-compile-backward-word (form)
+  (cond ((= 2 (length form))
+	 (byte-compile-form (list 'forward-word (if (numberp (nth 1 form))
+						    (- (nth 1 form))
+						  `(- ,(nth 1 form))))))
+	((= 1 (length form))
+	 (byte-compile-form '(forward-word -1)))
+	(t (byte-compile-subr-wrong-args form "0-1"))))
 
 (defun byte-compile-list (form)
   (let ((count (length (cdr form))))

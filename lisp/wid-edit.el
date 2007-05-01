@@ -84,7 +84,7 @@
   :group 'hypermedia)
 
 (defgroup widget-documentation nil
-  "Options controling the display of documentation strings."
+  "Options controlling the display of documentation strings."
   :group 'widgets)
 
 (defgroup widget-faces nil

@@ -110,7 +110,7 @@ DEFUN ("clear-abbrev-table", Fclear_abbrev_table, Sclear_abbrev_table, 1, 1, 0,
 
 DEFUN ("define-abbrev", Fdefine_abbrev, Sdefine_abbrev, 3, 6, 0,
        doc: /* Define an abbrev in TABLE named NAME, to expand to EXPANSION and call HOOK.
-NAME must be a string.
+NAME must be a string, and should be lower-case.
 EXPANSION should usually be a string.
 To undefine an abbrev, define it with EXPANSION = nil.
 If HOOK is non-nil, it should be a function of no arguments;

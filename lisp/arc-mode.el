@@ -700,6 +700,10 @@ archive.
 		(string-match "\\.[aA][rR][cC]$"
 			      (or buffer-file-name (buffer-name))))
 	   'arc)
+          ;; This pattern modelled on the BSD/GNU+Linux `file' command.
+          ;; Have seen capital "LHA's", and file has lower case "LHa's" too.
+          ;; Note this regexp is also in archive-exe-p.
+          ((looking-at "MZ\\(.\\|\n\\)\\{34\\}LH[aA]'s SFX ") 'lzh-exe)
 	  (t (error "Buffer format not recognized")))))
 ;; -------------------------------------------------------------------------
 (defun archive-summarize (&optional shut-up)
@@ -1398,8 +1402,8 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 ;; -------------------------------------------------------------------------
 ;; Section: Lzh Archives
 
-(defun archive-lzh-summarize ()
-  (let ((p 1)
+(defun archive-lzh-summarize (&optional start)
+  (let ((p (or start 1)) ;; 1 for .lzh, something further on for .exe
 	(totalsize 0)
 	(maxlen 8)
         files
@@ -1415,7 +1419,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	     (time2   (archive-l-e (+ p 17) 2))	;and UNIX format in level 2 header.)
 	     (hdrlvl  (char-after (+ p 20))) ;header level
 	     thsize		;total header size (base + extensions)
-	     fnlen efnname fiddle ifnname width p2
+	     fnlen efnname osid fiddle ifnname width p2
 	     neh	;beginning of next extension header (level 1 and 2)
 	     mode modestr uid gid text dir prname
 	     gname uname modtime moddate)
@@ -1474,7 +1478,22 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	      (setq thsize (- neh p))))
 	(if (= hdrlvl 0)  ;total header size
 	    (setq thsize hsize))
-	(setq fiddle  (if efnname (string= efnname (upcase efnname))))
+        ;; OS ID field not present in level 0 header, use code 0 "generic"
+        ;; in that case as per lha program header.c get_header()
+	(setq osid (cond ((= hdrlvl 0)  0)
+                         ((= hdrlvl 1)  (char-after (+ p 22 fnlen 2)))
+                         ((= hdrlvl 2)  (char-after (+ p 23)))))
+        ;; Filename fiddling must follow the lha program, otherwise the name
+        ;; passed to "lha pq" etc won't match (which for an extract silently
+        ;; results in no output).  As of version 1.14i it goes from the OS ID,
+        ;; - For 'M' MSDOS: msdos_to_unix_filename() downcases always, and
+        ;;   converts "\" to "/".
+        ;; - For 0 generic: generic_to_unix_filename() downcases if there's
+        ;;   no lower case already present, and converts "\" to "/".
+        ;; - For 'm' MacOS: macos_to_unix_filename() changes "/" to ":" and
+        ;;   ":" to "/"
+	(setq fiddle (cond ((= ?M osid) t)
+                           ((= 0 osid)  (string= efnname (upcase efnname)))))
 	(setq ifnname (if fiddle (downcase efnname) efnname))
 	(setq prname (if dir (concat dir ifnname) ifnname))
 	(setq width (if prname (string-width prname) 0))
@@ -1606,6 +1625,34 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
    ;; This should work even though newmode will be dynamically accessed.
    (lambda (old) (archive-calc-mode old newmode t))
    files "a unix-style mode" 8))
+
+;; -------------------------------------------------------------------------
+;; Section: Lzh Self-Extracting .exe Archives
+;;
+;; No support for modifying these files.  It looks like the lha for unix
+;; program (as of version 1.14i) can't create or retain the DOS exe part.
+;; If you do an "lha a" on a .exe for instance it renames and writes to a
+;; plain .lzh.
+
+(defun archive-lzh-exe-summarize ()
+  "Summarize the contents of an LZH self-extracting exe, for `archive-mode'."
+
+  ;; Skip the initial executable code part and apply archive-lzh-summarize
+  ;; to the archive part proper.  The "-lh5-" etc regexp here for the start
+  ;; is the same as in archive-find-type.
+  ;;
+  ;; The lha program (version 1.14i) does this in skip_msdos_sfx1_code() by
+  ;; a similar scan.  It looks for "..-l..-" plus for level 0 or 1 a test of
+  ;; the header checksum, or level 2 a test of the "attribute" and size.
+  ;;
+  (re-search-forward "..-l[hz][0-9ds]-" nil)
+  (archive-lzh-summarize (match-beginning 0)))
+
+;; `archive-lzh-extract' runs "lha pq", and that works for .exe as well as
+;; .lzh files
+(defalias 'archive-lzh-exe-extract 'archive-lzh-extract
+  "Extract a member from an LZH self-extracting exe, for `archive-mode'.")
+
 ;; -------------------------------------------------------------------------
 ;; Section: Zip Archives
 

@@ -29,12 +29,6 @@
 ;; This collection of functions implements the diary features as described
 ;; in calendar.el.
 
-;; Comments, corrections, and improvements should be sent to
-;;  Edward M. Reingold               Department of Computer Science
-;;  (217) 333-6733                   University of Illinois at Urbana-Champaign
-;;  reingold@cs.uiuc.edu             1304 West Springfield Avenue
-;;                                   Urbana, Illinois 61801
-
 ;;; Code:
 
 (require 'calendar)
@@ -282,6 +276,7 @@ The format of the header is specified by `diary-header-line-format'."
   :group   'diary
   :type    'boolean
   :initialize 'custom-initialize-default
+  ;; FIXME overkill.
   :set 'diary-set-maybe-redraw
   :version "22.1")
 
@@ -298,6 +293,9 @@ before edit/copy"
 Only used if `diary-header-line-flag' is non-nil."
   :group   'diary
   :type    'sexp
+  :initialize 'custom-initialize-default
+  ;; FIXME overkill.
+  :set 'diary-set-maybe-redraw
   :version "22.1")
 
 (defvar diary-saved-point)		; internal
@@ -440,10 +438,17 @@ If LIST-ONLY is non-nil don't modify or display the buffer, only return a list."
             (or (verify-visited-file-modtime diary-buffer)
                 (revert-buffer t t))))
         ;; Setup things like the header-line-format and invisibility-spec.
-        ;; This used to only run if the major-mode was default-major-mode,
-        ;; but that meant eg changes to header-line-format did not
-        ;; take effect from one diary invocation to the next.
-        (diary-mode)
+        (if (eq major-mode default-major-mode)
+            (diary-mode)
+          ;; This kludge is to make customizations to
+          ;; diary-header-line-flag after diary has been displayed
+          ;; take effect. Unconditionally calling (diary-mode)
+          ;; clobbers file local variables.
+          ;; http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-03/msg00363.html
+          ;; http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-04/msg00404.html
+          (if (eq major-mode 'diary-mode)
+              (setq header-line-format (and diary-header-line-flag
+                                            diary-header-line-format))))
         ;; d-s-p is passed to the diary display function.
         (let ((diary-saved-point (point)))
           (save-excursion

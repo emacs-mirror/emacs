@@ -422,7 +422,7 @@
   :group 'development)
 
 (defgroup minibuffer nil
-  "Controling the behavior of the minibuffer."
+  "Controlling the behavior of the minibuffer."
   :link '(custom-manual "(emacs)Minibuffer")
   :group 'environment)
 
@@ -443,7 +443,7 @@
   :group 'environment)
 
 (defgroup auto-save nil
-  "Preventing accidential loss of data."
+  "Preventing accidental loss of data."
   :group 'files)
 
 (defgroup processes-basics nil

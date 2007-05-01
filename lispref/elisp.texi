@@ -7,24 +7,31 @@
 @c Version of the manual and of Emacs.
 @c Please remember to update the edition number in README as well.
 @set VERSION  2.9
-@set EMACSVER 22.0.97
+@set EMACSVER 22.1.50
 
 @dircategory Emacs
 @direntry
 * Elisp: (elisp).       The Emacs Lisp Reference Manual.
 @end direntry
 
-@c So that anyone making the printed manual gets the version we have
-@c tuned to avoid bad line breaks, etc.
+@c in general, keep the following line commented out, unless doing a
+@c copy of this manual that will be published.  the manual should go
+@c onto the distribution in the full, 8.5 x 11" size.
+@c set smallbook
+
+@ifset smallbook
 @smallbook
+@end ifset
 
 @c per rms and peterb, use 10pt fonts for the main text, mostly to
 @c save on paper cost.  Also, do not declare @setchapternewpage odd,
 @c for the same reason. Do this inside @tex for now, so the
 @c last-released makeinfo does not complain.
 @tex
+@ifset smallbook
 @fonttextsize 10
-\global\hbadness=6000 % don't worry about not-too-underfull boxes
+@end ifset
+\global\hbadness=6666 % don't worry about not-too-underfull boxes
 @end tex
 
 @c Combine indices.
@@ -36,8 +43,8 @@
 @c @syncodeindex tp fn
 
 @copying
-This is edition @value{VERSION} of the GNU Emacs Lisp
-Reference Manual, corresponding to Emacs version @value{EMACSVER}.
+This is edition @value{VERSION} of the GNU Emacs Lisp Reference Manual,@*
+corresponding to Emacs version @value{EMACSVER}.
 
 Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998,
 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007  Free Software
@@ -61,7 +68,7 @@ Software Foundation raise funds for GNU development.''
 @titlepage
 @title GNU Emacs Lisp Reference Manual
 @subtitle For Emacs Version @value{EMACSVER}
-@subtitle Revision @value{VERSION}, January 2002
+@subtitle Revision @value{VERSION}, April 2007
 
 @author by Bil Lewis, Dan LaLiberte, Richard Stallman
 @author and the GNU Manual Group
@@ -69,14 +76,14 @@ Software Foundation raise funds for GNU development.''
 @vskip 0pt plus 1filll
 @insertcopying
 
-@sp 1
+@sp 2
 Published by the Free Software Foundation @*
 51 Franklin St, Fifth Floor @*
 Boston, MA 02110-1301 @*
 USA @*
 ISBN 1-882114-74-4
 
-@sp 1
+@sp 2
 Cover art by Etienne Suvasa.
 @end titlepage
 

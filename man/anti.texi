@@ -53,9 +53,9 @@ command-line option @samp{--no-splash} is therefore obsolete, and has
 been removed.
 
 @item
-The command line options @samp{--color}, @samp{--fullwidth},
-@samp{--fullheight}, @samp{--fullscreen}, @samp{--no-blinking-cursor},
-@samp{--no-desktop}, and @samp{-Q} have also been removed.
+These command line options have also been removed: @samp{--color},
+@samp{--fullwidth}, @samp{--fullheight}, @samp{--fullscreen},
+@samp{--no-blinking-cursor}, @samp{--no-desktop}, and @samp{-Q}.
 
 @item
 The @samp{--geometry} option applies only to the initial frame, and

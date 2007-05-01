@@ -1,3 +1,76 @@
+2007-04-26  Glenn Morris  <rgm@gnu.org>
+
+	* elisp.texi (EMACSVER): Increase to 22.1.50.
+
+2007-04-25  Karl Berry  <karl@gnu.org>
+
+	* elisp.texi: Improve line breaks on copyright page,
+	similar layout to emacs manual, 8.5x11 by default.
+
+2007-04-24  Richard Stallman  <rms@gnu.org>
+
+	* text.texi (Special Properties): Add xref to Overlay Properties.
+
+	* display.texi (Overlay Properties): Add xref to Special Properties.
+
+2007-04-22  Richard Stallman  <rms@gnu.org>
+
+	* keymaps.texi (Extended Menu Items): Move the info about
+	format with cached keyboard binding.
+
+2007-04-21  Richard Stallman  <rms@gnu.org>
+
+	* text.texi (Special Properties): Clarify previous change.
+
+	* files.texi (File Name Expansion): Clarify previous change.
+
+	* display.texi (Attribute Functions): Fix example for
+	face-attribute-relative-p.
+
+2007-04-19  Kenichi Handa  <handa@m17n.org>
+
+	* text.texi (Special Properties): Document composition property.
+
+2007-04-19  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (File Name Expansion): Mention "superroot".
+
+2007-04-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Multiple Displays): Add note about "multi-monitor"
+	setups.
+	(Display Feature Testing): Note that display refers to all
+	physical monitors for multi-monitor setups.
+
+2007-04-14  Richard Stallman  <rms@gnu.org>
+
+	* lists.texi (Sets And Lists): Clarify `delete' examples.
+	Remove spurious xref to same node.
+	Clarify xref for add-to-list.
+
+2007-04-12  Nick Roberts  <nickrob@snap.net.nz>
+
+	* keymaps.texi (Format of Keymaps): Remove spurious ")" from
+	value of lisp-mode-map.
+
+2007-04-11  Karl Berry  <karl@gnu.org>
+
+	* anti.texi (Antinews),
+	* display.texi (Overlay Properties) and (Defining Images),
+	* processes.texi (Synchronous Processes) and (Sentinels),
+	* syntax.texi (Syntax Table Internals),
+	* searching.texi (Regexp Special),
+	* nonascii.texi (Default Coding Systems),
+	* text.texi (Special Properties),
+	* minibuf.texi (Basic Completion): Wording to improve breaks in
+	8.5x11 format.
+	* elisp.texi (smallbook): new @set to more easily switch between
+	smallbook and 8.5x11.
+
+2007-04-11  Richard Stallman  <rms@gnu.org>
+
+	* text.texi (Lazy Properties): Minor fix.
+
 2007-04-08  Karl Berry  <karl@gnu.org>
 
 	* symbols.texi (Plists and Alists): Period after "vs" in index entries.
@@ -15,7 +88,7 @@
 	adaptive-fill-regexp's value, since they are not in the standard
 	TeX fonts.
 
-2007-04-07  Herbert Euler  <herberteuler@hotmail.com>
+2007-04-07  Guanpeng Xu  <herberteuler@hotmail.com>
 
 	* display.texi (Defining Faces): Fix example.
 

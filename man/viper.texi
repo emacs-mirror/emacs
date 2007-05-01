@@ -42,7 +42,7 @@ license to the document, as described in section 6 of the license.
 @titlepage
 @title Viper Is a Package for Emacs Rebels
 @subtitle a Vi emulator for Emacs
-@subtitle January 2002, Viper Version 3.11.2
+@subtitle April 2007, Viper Version 3.13.1
 
 @author Michael Kifer (Viper)
 @author Aamod Sane (VIP 4.4)
@@ -114,6 +114,8 @@ Please use the Ex command @kbd{:submitReport} for this purpose.@refill
 * Concept Index::               Vi, Ex and Emacs concepts
 
 * Acknowledgments::
+* GNU Free Documentation License:: The license for this documentation.
+
 @end menu
 @iftex
 @unnumbered Introduction
@@ -4534,6 +4536,9 @@ whicken@@dragon.parasoft.com (Wendell Hicken),
 zapman@@cc.gatech.edu (Jason Zapman II),
 @end example
 
+@node GNU Free Documentation License,,, Top
+@appendix GNU Free Documentation License
+@include doclicense.texi
 
 @node Key Index,Function Index,,Top
 @comment  node-name,  next,  previous,  up

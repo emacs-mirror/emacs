@@ -1,3 +1,15 @@
+2007-04-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-mime-strip-charset-parameters): New function.
+	(gnus-mime-view-part-as-charset): Use it; redisplay subpart currently
+	displayed of multipart/alternative part if it is invoked from summary
+	buffer.
+	(gnus-article-part-wrapper): Select article window.
+
+	* mm-view.el (mm-inline-text-html-render-with-w3m)
+	(mm-inline-text-html-render-with-w3m-standalone)
+	(mm-inline-render-with-function): Use mail-parse-charset by default.
+
 2007-04-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-msg.el (gnus-inews-yank-articles): Use

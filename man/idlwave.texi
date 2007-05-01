@@ -9,16 +9,13 @@
 @synindex ky cp
 @syncodeindex vr cp
 @syncodeindex fn cp
-@set VERSION 6.0
-@set EDITION 6.0
-@set IDLVERSION 6.2
-@set NSYSROUTINES 1966
-@set DATE Feb, 2006
+@set VERSION 6.1
+@set EDITION 6.1
+@set IDLVERSION 6.3
+@set NSYSROUTINES 4346
+@set DATE April, 2007
 @set AUTHOR J.D. Smith & Carsten Dominik
-@set AUTHOREMAIL jdsmith@@as.arizona.edu
 @set MAINTAINER J.D. Smith
-@set MAINTAINEREMAIL jdsmith@@as.arizona.edu
-@set IDLWAVEHOMEPAGE http://idlwave.org/
 @c %**end of header
 @finalout
 
@@ -106,6 +103,7 @@ Interactive Data Language (IDL), and running IDL as an inferior shell.
 * Configuration Examples::      The user is king
 * Windows and MacOS::           What still works, and how
 * Troubleshooting::             When good computers turn bad
+* GNU Free Documentation License:: The license for this documentation.
 * Index::                       Fast access
 
 @detailmenu
@@ -319,6 +317,9 @@ appendix.
 @tab Re-indent all lines in the current statement.
 @item @kbd{M-@key{RET}}
 @tab Start a continuation line, splitting the current line at point.
+@item @kbd{M-;}
+@tab Start new comment at line beginning or after code, or (un)comment
+highlighted region.
 @item @kbd{M-q}
 @tab Fill the current comment paragraph.
 @item @kbd{C-c ?}
@@ -353,6 +354,8 @@ at point.
 @tab Complete a procedure name, function name or keyword in the shell buffer.
 @item @kbd{C-c C-d C-c}
 @tab Save and compile the source file in the current buffer.
+@item @kbd{C-c C-d C-e}
+@tab Compile and run the current region.
 @item @kbd{C-c C-d C-x}
 @tab Go to next syntax error.
 @item @kbd{C-c C-d C-v}
@@ -2953,6 +2956,13 @@ prefix argument: @kbd{C-u C-c C-d C-y}.  If no default command line has
 been set (or you give two prefix arguments), the last command on the
 @code{comint} input history is sent.
 
+@kindex C-c C-d C-e
+@cindex Compiling regions
+For quickly compiling and running the currently marked region as a main
+level program @kbd{C-c C-d C-e} (@code{idlwave-shell-run-region}) is
+very useful.  A temporary file is created holding the contents of the
+current region (with @code{END} appended), and run from the shell.
+
 @node Walking the Calling Stack, Electric Debug Mode, Compiling Programs, Debugging IDL Programs
 @subsection Walking the Calling Stack
 @cindex Calling stack, walking
@@ -3438,7 +3448,7 @@ routines on a system, IDLWAVE collects data from many sources:
 @item
 It has a @emph{builtin list} with information about the routines IDL
 ships with.  IDLWAVE @value{VERSION} is distributed with a list of
-@value{NSYSROUTINES} routines, reflecting IDL version
+@value{NSYSROUTINES} routines and object methods, reflecting IDL version
 @value{IDLVERSION}.  As of IDL v6.2, the routine info is distributed
 directly with IDL in the form of an XML catalog which IDLWAVE scans.
 Formerly, this list was created by scanning the IDL manuals to produce
@@ -4061,7 +4071,7 @@ talking to the IDL program.
 Here is an example of the additional configuration needed for a Windows
 system.  I am assuming that IDLWAVE has been installed in
 @w{@samp{C:\Program Files\IDLWAVE}} and that IDL is installed in
-@w{@samp{C:\RSI\IDL62}}.
+@w{@samp{C:\RSI\IDL63}}.
 
 @lisp
 ;; location of the lisp files (only needed if IDLWAVE is not part of
@@ -4071,10 +4081,10 @@ system.  I am assuming that IDLWAVE has been installed in
 ;; The location of the IDL library directories, both standard,  and your own.
 ;; note that the initial "+" expands the path recursively
 (setq idlwave-library-path
-        '("+c:/RSI/IDL55/lib/" "+c:/path/to/my/idllibs" ))
+        '("+c:/RSI/IDL63/lib/" "+c:/path/to/my/idllibs" ))
 
 ;; location of the IDL system directory (try "print,!DIR")
-(setq idlwave-system-directory "c:/RSI/IDL62/")
+(setq idlwave-system-directory "c:/RSI/IDL63/")
 
 @end lisp
 
@@ -4096,7 +4106,7 @@ help can skip the browser and use the HTMLHelp functionality directly.
 @html
 <A NAME="TROUBLE"></A>
 @end html
-@node Troubleshooting, Index, Windows and MacOS, Top
+@node Troubleshooting, GNU Free Documentation License, Windows and MacOS, Top
 @appendix Troubleshooting
 @cindex Troubleshooting
 
@@ -4302,7 +4312,11 @@ IDLWAVE is @samp{fsf-compat, xemacs-base, mail-lib}.
 
 @end enumerate
 
-@node Index,  , Troubleshooting, Top
+@node GNU Free Documentation License, Index, Troubleshooting, Top
+@appendix GNU Free Documentation License
+@include doclicense.texi
+
+@node Index,  , GNU Free Documentation License, Top
 @unnumbered Index
 @printindex cp
 

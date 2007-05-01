@@ -45,9 +45,9 @@
 ;; "Saving Emacs Sessions" in the GNU Emacs Manual.
 
 ;; When the desktop module is loaded, the function `desktop-kill' is
-;; added to the `kill-emacs-hook'. This function is responsible for
+;; added to the `kill-emacs-hook'.  This function is responsible for
 ;; saving the desktop when Emacs is killed.  Furthermore an anonymous
-;; function is added to the `after-init-hook'. This function is
+;; function is added to the `after-init-hook'.  This function is
 ;; responsible for loading the desktop when Emacs is started.
 
 ;; Special handling.
@@ -55,12 +55,12 @@
 ;; Variables `desktop-buffer-mode-handlers' and `desktop-minor-mode-handlers'
 ;; are supplied to handle special major and minor modes respectively.
 ;; `desktop-buffer-mode-handlers' is an alist of major mode specific functions
-;; to restore a desktop buffer. Elements must have the form
+;; to restore a desktop buffer.  Elements must have the form
 ;;
 ;;    (MAJOR-MODE . RESTORE-BUFFER-FUNCTION).
 ;;
 ;; Functions listed are called by `desktop-create-buffer' when `desktop-read'
-;; evaluates the desktop file. Buffers with a major mode not specified here,
+;; evaluates the desktop file.  Buffers with a major mode not specified here,
 ;; are restored by the default handler `desktop-restore-file-buffer'.
 ;; `desktop-minor-mode-handlers' is an alist of functions to restore
 ;; non-standard minor modes.  Elements must have the form
@@ -85,7 +85,7 @@
 ;;                 '(bar-mode . bar-desktop-restore))
 
 ;; in the module itself, and make shure that the mode function is
-;; autoloaded. See the docstrings of `desktop-buffer-mode-handlers' and
+;; autoloaded.  See the docstrings of `desktop-buffer-mode-handlers' and
 ;; `desktop-minor-mode-handlers' for more info.
 
 ;; Minor modes.
@@ -100,7 +100,7 @@
 ;; The variables `desktop-minor-mode-table' and `desktop-minor-mode-handlers'
 ;; are used to handle non-conventional minor modes.  `desktop-save' uses
 ;; `desktop-minor-mode-table' to map minor mode variables to minor mode
-;; functions before writing `desktop-minor-modes'. If a minor mode has a
+;; functions before writing `desktop-minor-modes'.  If a minor mode has a
 ;; variable name that is different form its function name, an entry
 
 ;;    (NAME RESTORE-FUNCTION)
@@ -619,8 +619,7 @@ QUOTE may be `may' (value may be quoted),
 	  (setq newlist (cons q.txt newlist)))
 	(setq p (cdr p)))
       (if p
-	  (let ((last (desktop-internal-v2s p))
-		(el (car newlist)))
+	  (let ((last (desktop-internal-v2s p)))
 	    (or anynil (setq anynil (null (car last))))
 	    (or anynil
 		(setq newlist (cons '(must . ".") newlist)))
@@ -782,7 +781,8 @@ See also `desktop-base-file-name'."
          ";; Desktop file format version " desktop-file-version "\n"
          ";; Emacs version " emacs-version "\n\n"
          ";; Global section:\n")
-        (mapcar (function desktop-outvar) desktop-globals-to-save)
+        (dolist (varspec desktop-globals-to-save)
+          (desktop-outvar varspec))
         (if (memq 'kill-ring desktop-globals-to-save)
             (insert
              "(setq kill-ring-yank-pointer (nthcdr "
@@ -790,22 +790,20 @@ See also `desktop-base-file-name'."
              " kill-ring))\n"))
 
         (insert "\n;; Buffer section -- buffers listed in same order as in buffer list:\n")
-        (mapcar #'(lambda (l)
-                  (when (apply 'desktop-save-buffer-p l)
-                    (insert "("
-                            (if (or (not (integerp eager))
-                                    (unless (zerop eager)
-                                      (setq eager (1- eager))
-                                      t))
-                                "desktop-create-buffer"
-                              "desktop-append-buffer-args")
-                            " "
-                            desktop-file-version)
-                    (mapcar #'(lambda (e)
-                              (insert "\n  " (desktop-value-to-string e)))
-                          l)
-                    (insert ")\n\n")))
-              info)
+        (dolist (l info)
+          (when (apply 'desktop-save-buffer-p l)
+            (insert "("
+                    (if (or (not (integerp eager))
+                            (unless (zerop eager)
+                              (setq eager (1- eager))
+                              t))
+                        "desktop-create-buffer"
+                      "desktop-append-buffer-args")
+                    " "
+                    desktop-file-version)
+            (dolist (e l)
+              (insert "\n  " (desktop-value-to-string e)))
+            (insert ")\n\n")))
         (setq default-directory dirname)
         (let ((coding-system-for-write 'emacs-mule))
           (write-region (point-min) (point-max) filename nil 'nomessage)))))
@@ -941,14 +939,13 @@ directory DIRNAME."
   (desktop-clear)
   (desktop-read desktop-dirname))
 
+(defvar desktop-buffer-major-mode)
+(defvar desktop-buffer-locals)
 ;; ----------------------------------------------------------------------------
 (defun desktop-restore-file-buffer (desktop-buffer-file-name
                                     desktop-buffer-name
                                     desktop-buffer-misc)
   "Restore a file buffer."
-  (eval-when-compile ; Just to silence the byte compiler
-    (defvar desktop-buffer-major-mode)
-    (defvar desktop-buffer-locals))
   (if desktop-buffer-file-name
       (if (or (file-exists-p desktop-buffer-file-name)
               (let ((msg (format "Desktop: File \"%s\" no longer exists."
@@ -985,8 +982,12 @@ directory DIRNAME."
 ;; called from Desktop file only.
 
 ;; Just to silence the byte compiler.
-(eval-when-compile
-  (defvar desktop-first-buffer)) ; Dynamically bound in `desktop-read'
+
+(defvar desktop-first-buffer)          ; Dynamically bound in `desktop-read'
+
+;; Bound locally in `desktop-read'.
+(defvar desktop-buffer-ok-count)
+(defvar desktop-buffer-fail-count)
 
 (defun desktop-create-buffer
   (desktop-file-version
@@ -1000,10 +1001,6 @@ directory DIRNAME."
    desktop-buffer-misc
    &optional
    desktop-buffer-locals)
-  ;; Just to silence the byte compiler. Bound locally in `desktop-read'.
-  (eval-when-compile
-    (defvar desktop-buffer-ok-count)
-    (defvar desktop-buffer-fail-count))
   ;; To make desktop files with relative file names possible, we cannot
   ;; allow `default-directory' to change. Therefore we save current buffer.
   (save-current-buffer
@@ -1045,21 +1042,22 @@ directory DIRNAME."
               ((equal '(nil) desktop-buffer-minor-modes) ; backwards compatible
                (auto-fill-mode 0))
               (t
-               (mapcar #'(lambda (minor-mode)
-                         ;; Give minor mode module a chance to add a handler.
-                         (desktop-load-file minor-mode)
-                         (let ((handler (cdr (assq minor-mode desktop-minor-mode-handlers))))
-                           (if handler
-                               (funcall handler desktop-buffer-locals)
-                             (when (functionp minor-mode)
-                               (funcall minor-mode 1)))))
-		     desktop-buffer-minor-modes)))
-        ;; Even though point and mark are non-nil when written by `desktop-save',
-        ;; they may be modified by handlers wanting to set point or mark themselves.
+               (dolist (minor-mode desktop-buffer-minor-modes)
+                 ;; Give minor mode module a chance to add a handler.
+                 (desktop-load-file minor-mode)
+                 (let ((handler (cdr (assq minor-mode desktop-minor-mode-handlers))))
+                   (if handler
+                       (funcall handler desktop-buffer-locals)
+                     (when (functionp minor-mode)
+                       (funcall minor-mode 1)))))))
+        ;; Even though point and mark are non-nil when written by
+        ;; `desktop-save', they may be modified by handlers wanting to set
+        ;; point or mark themselves.
         (when desktop-buffer-point
           (goto-char
             (condition-case err
-                ;; Evaluate point. Thus point can be something like '(search-forward ...
+                ;; Evaluate point.  Thus point can be something like
+                ;; '(search-forward ...
                 (eval desktop-buffer-point)
               (error (message "%s" (error-message-string err)) 1))))
         (when desktop-buffer-mark
@@ -1167,7 +1165,7 @@ If there are no buffers left to create, kill the timer."
 ;; functions are processed after `after-init-hook'.
 (add-hook
   'after-init-hook
-  '(lambda ()
+  (lambda ()
     (let ((key "--no-desktop"))
       (when (member key command-line-args)
         (setq command-line-args (delete key command-line-args))
@@ -1176,5 +1174,5 @@ If there are no buffers left to create, kill the timer."
 
 (provide 'desktop)
 
-;;; arch-tag: 221907c3-1771-4fd3-9c2e-c6f700c6ede9
+;; arch-tag: 221907c3-1771-4fd3-9c2e-c6f700c6ede9
 ;;; desktop.el ends here

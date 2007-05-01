@@ -89,6 +89,7 @@ Software Foundation raise funds for GNU development.''
 * Miscellaneous::               All the rest which did not fit elsewhere
 * Extensions and Hacking::      It is possible to write add-on code
 * History and Acknowledgments::  How Org-mode came into being 
+* GNU Free Documentation License:: The license for this documentation.
 * Index::                       The fast road to specific information
 * Key Index::                   Key bindings and where they are described
 
@@ -1478,9 +1479,9 @@ described below, see @ref{Advanced features}.
 @cindex syntax, of formulas
 
 A formula can be any algebraic expression understood by the Emacs
-@file{Calc} package.  Note that @file{calc} has the slightly
+@file{Calc} package.  @b{Note that @file{calc} has the
 non-standard convention that @samp{/} has lower precedence than
-@samp{*}, so that @samp{a/b*c} is interpreted as @samp{a/(b*c)}.  Before
+@samp{*}, so that @samp{a/b*c} is interpreted as @samp{a/(b*c)}.}  Before
 evaluation by @code{calc-eval} (@pxref{Calling Calc from
 Your Programs,calc-eval,Calling calc from Your Lisp Programs,calc,GNU
 Emacs Calc Manual}),
@@ -6416,7 +6417,7 @@ MATCH is being ignored."
 @end lisp
 
 
-@node History and Acknowledgments, Index, Extensions and Hacking, Top
+@node History and Acknowledgments, GNU Free Documentation License, Extensions and Hacking, Top
 @appendix History and Acknowledgments
 @cindex acknowledgments
 @cindex history
@@ -6567,8 +6568,12 @@ work on a tty.
 and contributed various ideas and code snippets.
 @end itemize
 
+@node GNU Free Documentation License, Index, History and Acknowledgments, Top
+@appendix GNU Free Documentation License
+@include doclicense.texi
 
-@node Index, Key Index, History and Acknowledgments, Top
+
+@node Index, Key Index, GNU Free Documentation License, Top
 @unnumbered Index
 
 @printindex cp

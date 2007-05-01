@@ -257,7 +257,7 @@ Thus ARG can also contain additional grep options."
 		  (delete-region (point) (- (point) 2)))
 		;; Find all the complete lines in the unprocessed
 		;; output and process it to add text properties.
-		(goto-char end)
+		(goto-char (point-max))
 		(if (search-backward "\n" (process-mark proc) t)
 		    (progn
 		      (dired-insert-set-properties (process-mark proc)

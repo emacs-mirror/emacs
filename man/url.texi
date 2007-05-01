@@ -74,6 +74,7 @@ License.''
 * General Facilities::          URLs can be cached, accessed via a gateway
                                 and tracked in a history list.
 * Customization::               Variables you can alter.
+* GNU Free Documentation License:: The license for this documentation.
 * Function Index::
 * Variable Index::
 * Concept Index::
@@ -1175,6 +1176,10 @@ Connect with SSL;
 Connect directly.
 @end table
 @end defopt
+
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
+@include doclicense.texi
 
 @node Function Index
 @unnumbered Command and Function Index

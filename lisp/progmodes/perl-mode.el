@@ -391,6 +391,7 @@ The expansion is entirely correct because it uses the C preprocessor."
   "*Indentation of Perl statements with respect to containing block."
   :type 'integer
   :group 'perl)
+(put 'perl-indent-level 'safe-local-variable 'integerp)
 (defcustom perl-continued-statement-offset 4
   "*Extra indent for lines not starting new statements."
   :type 'integer
@@ -646,10 +647,10 @@ possible action from the following list:
 		     (if (and comment-start-skip
 			      (re-search-forward comment-start-skip eol 'move))
 			 (if (eolp)
-			     (progn	; kill existing comment
+			     (progn	; delete existing comment
 			       (goto-char (match-beginning 0))
 			       (skip-chars-backward " \t")
-			       (kill-region (point) eol))
+			       (delete-region (point) eol))
 			   (if (or (< oldpnt (point)) (= oldpnt eol))
 			       (indent-for-comment) ; indent existing comment
 			     (end-of-line)))

@@ -43,8 +43,6 @@
 ;;  reingold@cs.uiuc.edu             1304 West Springfield Avenue
 ;;                                   Urbana, Illinois 61801
 
-;; Comments, improvements, and bug reports should be sent to Reingold.
-
 ;; Technical details of the Mayan calendrical calculations can be found in
 ;; ``Calendrical Calculations: The Millennium Edition'' by Edward M. Reingold
 ;; and Nachum Dershowitz, Cambridge University Press (2001), and in

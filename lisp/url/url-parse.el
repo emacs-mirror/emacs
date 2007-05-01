@@ -108,7 +108,7 @@
 (defun url-recreate-url-attributes (urlobj)
   "Recreate the attributes of an URL string from the parsed URLOBJ."
   (when (url-attributes urlobj)
-    (concat "?"
+    (concat ";"
 	    (mapconcat (lambda (x)
                          (if (cdr x)
                              (concat (car x) "=" (cdr x))
@@ -168,7 +168,7 @@ Format is:
 	      (setq full t)
 	      (forward-char 2)
 	      (setq save-pos (point))
-	      (skip-chars-forward "^/\\?#")
+	      (skip-chars-forward "^/")
 	      (setq host (buffer-substring save-pos (point)))
 	      (if (string-match "^\\([^@]+\\)@" host)
 		  (setq user (match-string 1 host)
@@ -189,25 +189,29 @@ Format is:
 	    (setq port (url-scheme-get-property prot 'default-port)))
 
 	;; 3.3. Path
+	;; Gross hack to preserve ';' in data URLs
 	(setq save-pos (point))
-	(skip-chars-forward "^#?")
-	(setq file (buffer-substring save-pos (point)))
 
 	;; 3.4. Query
-	(when (looking-at "\\?")
-	  (forward-char 1)
-	  (setq save-pos (point))
+	(if (string= "data" prot)
+	    (goto-char (point-max))
+	  ;; Now check for references
 	  (skip-chars-forward "^#")
-	  ;; RFC 3986 specifies no general way of parsing the query
-	  ;; string, but `url-parse-args' seems universal enough.
-	  (setq attr (url-parse-args (buffer-substring save-pos (point)) t)
-		attr (nreverse attr)))
+	  (if (eobp)
+	      nil
+	    (delete-region
+	     (point)
+	     (progn
+	       (skip-chars-forward "#")
+	       (setq refs (buffer-substring (point) (point-max)))
+	       (point-max))))
+	  (goto-char save-pos)
+	  (skip-chars-forward "^;")
+	  (if (not (eobp))
+	      (setq attr (url-parse-args (buffer-substring (point) (point-max)) t)
+		    attr (nreverse attr))))
 
-	;; 3.5. Fragment
-	(when (looking-at "#")
-	  (forward-char 1)
-	  (setq refs (buffer-substring (point) (point-max))))
-
+	(setq file (buffer-substring save-pos (point)))
 	(if (and host (string-match "%[0-9][0-9]" host))
 	    (setq host (url-unhex-string host)))
 	(vector prot user pass host port file refs attr full))))))

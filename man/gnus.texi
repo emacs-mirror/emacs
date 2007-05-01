@@ -402,6 +402,7 @@ the program.
 * Various::                  General purpose settings.
 * The End::                  Farewell and goodbye.
 * Appendices::               Terminology, Emacs intro, @acronym{FAQ}, History, Internals.
+* GNU Free Documentation License:: The license for this documentation.
 * Index::                    Variable, function and concept index.
 * Key Index::                Key Index.
 
@@ -8147,8 +8148,8 @@ Some variables to customize the citation highlights:
 @vindex gnus-cite-parse-max-size
 
 @item gnus-cite-parse-max-size
-If the article size if bigger than this variable (which is 25000 by
-default), no citation highlighting will be performed.
+If the article size in bytes is bigger than this variable (which is
+25000 by default), no citation highlighting will be performed.
 
 @item gnus-cite-max-prefix
 @vindex gnus-cite-max-prefix
@@ -29027,6 +29028,10 @@ former).  The manual is unambiguous, but it can be confusing.
 
 @page
 @include gnus-faq.texi
+
+@node GNU Free Documentation License
+@chapter GNU Free Documentation License
+@include doclicense.texi
 
 @node Index
 @chapter Index

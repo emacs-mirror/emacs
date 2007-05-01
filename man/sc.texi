@@ -1,5 +1,5 @@
 \input texinfo  @comment -*-texinfo-*-
-@comment 3.47
+@comment 3.48
 @comment %**start of header (This is for running Texinfo on a region.)
 @setfilename ../info/sc
 @settitle Supercite Version 3.1 User's Manual
@@ -52,8 +52,8 @@ license to the document, as described in section 6 of the license.
 @sp 2
 @center @titlefont{Supercite Version 3.1}
 @sp 4
-@center Manual Revision: 3.47
-@center August 1993
+@center Manual Revision: 3.48
+@center April 2007
 @sp 5
 @center Barry A@. Warsaw
 @center @t{bwarsaw@@cen.com}
@@ -86,6 +86,7 @@ subsystems.  The manual is divided into the following chapters.
 * Thanks and History::
 * The Supercite Mailing List::
 
+* GNU Free Documentation License::
 * Concept Index::
 * Command Index::
 * Key Index::
@@ -2444,7 +2445,7 @@ for adding the magic lisp to their code to support this.
 
 All who have helped and contributed have been greatly appreciated.
 
-@node  The Supercite Mailing List, Concept Index, Thanks and History, Top
+@node  The Supercite Mailing List, GNU Free Documentation License, Thanks and History, Top
 @comment  node-name,  next,  previous,  up
 @cindex supercite mailing list address
 @cindex mailing list address
@@ -2481,7 +2482,11 @@ will set up a mail buffer automatically with this address on the
 supercite-help@@python.org
 @end example
 
-@node  Concept Index, Command Index, The Supercite Mailing List, Top
+@node GNU Free Documentation License, Concept Index, The Supercite Mailing List, Top
+@appendix GNU Free Documentation License
+@include doclicense.texi
+
+@node  Concept Index, Command Index, GNU Free Documentation License, Top
 @comment  node-name,  next,  previous,  up
 @unnumbered Concept Index
 @printindex cp

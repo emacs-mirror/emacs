@@ -1211,8 +1211,8 @@ indicated in the source buffer.
 @item
 @cindex New modes
 Many new modes and packages have been included in Emacs, such as Calc,
-TRAMP, URL, IDO, CUA, ERC, rcirc, Table, Tumme, SES, Ruler, Org, PGG,
-Flymake, Password, Printing, Reveal, wdired, t-mouse, longlines,
+TRAMP, URL, IDO, CUA, ERC, rcirc, Table, Image-Dired, SES, Ruler, Org,
+PGG, Flymake, Password, Printing, Reveal, wdired, t-mouse, longlines,
 savehist, Conf mode, Python mode, DNS mode, etc.
 
 @cindex Multilingual Environment

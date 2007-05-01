@@ -1835,6 +1835,8 @@ xrm_get_preference_database (application)
       if (app_id == NULL)
 	goto out;
     }
+  if (!CFPreferencesAppSynchronize (app_id))
+    goto out;
 
   key_set = CFSetCreateMutable (NULL, 0, &kCFCopyStringSetCallBacks);
   if (key_set == NULL)
@@ -4650,6 +4652,9 @@ otherwise.  */)
       if (app_id == NULL)
 	goto out;
     }
+  if (!CFPreferencesAppSynchronize (app_id))
+    goto out;
+
   key_str = cfstring_create_with_string (XCAR (key));
   if (key_str == NULL)
     goto out;
@@ -4986,7 +4991,7 @@ extern int noninteractive;
    3. [If SELECT_USE_CFSOCKET is set]
       Only the window event channel and socket read/write channels are
       involved, and timeout is not too short (greater than
-      SELECT_TIMEOUT_THRESHHOLD_RUNLOOP seconds).
+      SELECT_TIMEOUT_THRESHOLD_RUNLOOP seconds).
       -> Create CFSocket for each socket and add it into the current
          event RunLoop so that the current event loop gets quit when
          the socket becomes ready.  Then ReceiveNextEvent can wait for
