@@ -1,3 +1,7 @@
+2007-05-01  Romain Francoise  <romain@orebokech.com>
+
+	* dired-x.el: Revert 2007-04-06 change.
+
 2007-04-29  Stephen Berman  <Stephen.Berman@gmx.net>
 
 	* find-dired.el (find-dired-filter): Propertize all text down to eob.
