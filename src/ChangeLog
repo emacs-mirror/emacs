@@ -1,3 +1,8 @@
+2007-05-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macmenu.c (mac_dialog_show): Apply 2007-04-27 change for xmenu.c.
+	(Fx_popup_dialog) [MAC_OSX]: Likewise.
+
 2007-04-29  Richard Stallman  <rms@gnu.org>
 
 	* insdel.c (replace_range): For undo, record insertion first.
