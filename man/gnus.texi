@@ -8148,8 +8148,8 @@ Some variables to customize the citation highlights:
 @vindex gnus-cite-parse-max-size
 
 @item gnus-cite-parse-max-size
-If the article size if bigger than this variable (which is 25000 by
-default), no citation highlighting will be performed.
+If the article size in bytes is bigger than this variable (which is
+25000 by default), no citation highlighting will be performed.
 
 @item gnus-cite-max-prefix
 @vindex gnus-cite-max-prefix
