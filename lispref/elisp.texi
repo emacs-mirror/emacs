@@ -32,6 +32,8 @@
 @fonttextsize 10
 @end ifset
 \global\hbadness=6666 % don't worry about not-too-underfull boxes
+\global\let\urlcolor=\Black % don't print links in grayscale
+\global\let\linkcolor=\Black
 @end tex
 
 @c Combine indices.
