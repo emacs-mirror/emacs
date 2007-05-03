@@ -7,7 +7,7 @@
 @c Version of the manual and of Emacs.
 @c Please remember to update the edition number in README as well.
 @set VERSION  2.9
-@set EMACSVER 22.1.50
+@set EMACSVER 22.0.99
 
 @dircategory Emacs
 @direntry
@@ -32,6 +32,8 @@
 @fonttextsize 10
 @end ifset
 \global\hbadness=6666 % don't worry about not-too-underfull boxes
+\global\let\urlcolor=\Black % don't print links in grayscale
+\global\let\linkcolor=\Black
 @end tex
 
 @c Combine indices.
