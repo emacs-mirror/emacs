@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2007-04-08.09}
+\def\texinfoversion{2007-05-03.09}
 %
 % Copyright (C) 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -1327,7 +1327,11 @@ output) for that.)}
   % used to mark target names; must be expandable.
   \def\pdfmkpgn#1{#1}
   %
-  \let\linkcolor = \Blue  % was Cyan, but that seems light?
+  % by default, use a color that is dark enough to print on paper as
+  % nearly black, but still distinguishable for online viewing.
+  % (Defined in pdfcolor.tex.)
+  \let\urlcolor = \BrickRed
+  \let\linkcolor = \BrickRed
   \def\endlink{\Black\pdfendlink}
   %
   % Adding outlines to PDF; macros for calculating structure of outlines
@@ -1461,7 +1465,7 @@ output) for that.)}
       \def\@{@}%
       \let\/=\empty
       \makevalueexpandable
-      \leavevmode\Red
+      \leavevmode\urlcolor
       \startlink attr{/Border [0 0 0]}%
         user{/Subtype /Link /A << /S /URI /URI (#1) >>}%
     \endgroup}
@@ -1551,11 +1555,276 @@ output) for that.)}
   }%
 }
 
+%
+% PDF CMaps.  See also LaTeX's t1.cmap.
+%
+% \cmapOT1
+\ifpdf
+  \begingroup
+    \catcode`\^^M=\active \def^^M{^^J}% Output line endings as the ^^J char.
+    \catcode`\%=12 \immediate\pdfobj stream {%!PS-Adobe-3.0 Resource-CMap
+%%DocumentNeededResources: ProcSet (CIDInit)
+%%IncludeResource: ProcSet (CIDInit)
+%%BeginResource: CMap (TeX-OT1-0)
+%%Title: (TeX-OT1-0 TeX OT1 0)
+%%Version: 1.000
+%%EndComments
+/CIDInit /ProcSet findresource begin
+12 dict begin
+begincmap
+/CIDSystemInfo
+<< /Registry (TeX)
+/Ordering (OT1)
+/Supplement 0
+>> def
+/CMapName /TeX-OT1-0 def
+/CMapType 2 def
+1 begincodespacerange
+<00> <7F>
+endcodespacerange
+8 beginbfrange
+<00> <01> <0393>
+<09> <0A> <03A8>
+<23> <26> <0023>
+<28> <3B> <0028>
+<3F> <5B> <003F>
+<5D> <5E> <005D>
+<61> <7A> <0061>
+<7B> <7C> <2013>
+endbfrange
+40 beginbfchar
+<02> <0398>
+<03> <039B>
+<04> <039E>
+<05> <03A0>
+<06> <03A3>
+<07> <03D2>
+<08> <03A6>
+<0B> <00660066>
+<0C> <00660069>
+<0D> <0066006C>
+<0E> <006600660069>
+<0F> <00660066006C>
+<10> <0131>
+<11> <0237>
+<12> <0060>
+<13> <00B4>
+<14> <02C7>
+<15> <02D8>
+<16> <00AF>
+<17> <02DA>
+<18> <00B8>
+<19> <00DF>
+<1A> <00E6>
+<1B> <0153>
+<1C> <00F8>
+<1D> <00C6>
+<1E> <0152>
+<1F> <00D8>
+<21> <0021>
+<22> <201D>
+<27> <2019>
+<3C> <00A1>
+<3D> <003D>
+<3E> <00BF>
+<5C> <201C>
+<5F> <02D9>
+<60> <2018>
+<7D> <02DD>
+<7E> <007E>
+<7F> <00A8>
+endbfchar
+endcmap
+CMapName currentdict /CMap defineresource pop
+end
+end
+%%EndResource
+%%EOF
+    }\endgroup
+  \expandafter\edef\csname cmapOT1\endcsname#1{%
+    \pdffontattr#1{/ToUnicode \the\pdflastobj\space 0 R}%
+  }%
+%
+% \cmapOT1IT
+  \begingroup
+    \catcode`\^^M=\active \def^^M{^^J}% Output line endings as the ^^J char.
+    \catcode`\%=12 \immediate\pdfobj stream {%!PS-Adobe-3.0 Resource-CMap
+%%DocumentNeededResources: ProcSet (CIDInit)
+%%IncludeResource: ProcSet (CIDInit)
+%%BeginResource: CMap (TeX-OT1IT-0)
+%%Title: (TeX-OT1IT-0 TeX OT1IT 0)
+%%Version: 1.000
+%%EndComments
+/CIDInit /ProcSet findresource begin
+12 dict begin
+begincmap
+/CIDSystemInfo
+<< /Registry (TeX)
+/Ordering (OT1IT)
+/Supplement 0
+>> def
+/CMapName /TeX-OT1IT-0 def
+/CMapType 2 def
+1 begincodespacerange
+<00> <7F>
+endcodespacerange
+8 beginbfrange
+<00> <01> <0393>
+<09> <0A> <03A8>
+<25> <26> <0025>
+<28> <3B> <0028>
+<3F> <5B> <003F>
+<5D> <5E> <005D>
+<61> <7A> <0061>
+<7B> <7C> <2013>
+endbfrange
+42 beginbfchar
+<02> <0398>
+<03> <039B>
+<04> <039E>
+<05> <03A0>
+<06> <03A3>
+<07> <03D2>
+<08> <03A6>
+<0B> <00660066>
+<0C> <00660069>
+<0D> <0066006C>
+<0E> <006600660069>
+<0F> <00660066006C>
+<10> <0131>
+<11> <0237>
+<12> <0060>
+<13> <00B4>
+<14> <02C7>
+<15> <02D8>
+<16> <00AF>
+<17> <02DA>
+<18> <00B8>
+<19> <00DF>
+<1A> <00E6>
+<1B> <0153>
+<1C> <00F8>
+<1D> <00C6>
+<1E> <0152>
+<1F> <00D8>
+<21> <0021>
+<22> <201D>
+<23> <0023>
+<24> <00A3>
+<27> <2019>
+<3C> <00A1>
+<3D> <003D>
+<3E> <00BF>
+<5C> <201C>
+<5F> <02D9>
+<60> <2018>
+<7D> <02DD>
+<7E> <007E>
+<7F> <00A8>
+endbfchar
+endcmap
+CMapName currentdict /CMap defineresource pop
+end
+end
+%%EndResource
+%%EOF
+    }\endgroup
+  \expandafter\edef\csname cmapOT1IT\endcsname#1{%
+    \pdffontattr#1{/ToUnicode \the\pdflastobj\space 0 R}%
+  }%
+%
+% \cmapOT1TT
+  \begingroup
+    \catcode`\^^M=\active \def^^M{^^J}% Output line endings as the ^^J char.
+    \catcode`\%=12 \immediate\pdfobj stream {%!PS-Adobe-3.0 Resource-CMap
+%%DocumentNeededResources: ProcSet (CIDInit)
+%%IncludeResource: ProcSet (CIDInit)
+%%BeginResource: CMap (TeX-OT1TT-0)
+%%Title: (TeX-OT1TT-0 TeX OT1TT 0)
+%%Version: 1.000
+%%EndComments
+/CIDInit /ProcSet findresource begin
+12 dict begin
+begincmap
+/CIDSystemInfo
+<< /Registry (TeX)
+/Ordering (OT1TT)
+/Supplement 0
+>> def
+/CMapName /TeX-OT1TT-0 def
+/CMapType 2 def
+1 begincodespacerange
+<00> <7F>
+endcodespacerange
+5 beginbfrange
+<00> <01> <0393>
+<09> <0A> <03A8>
+<21> <26> <0021>
+<28> <5F> <0028>
+<61> <7E> <0061>
+endbfrange
+32 beginbfchar
+<02> <0398>
+<03> <039B>
+<04> <039E>
+<05> <03A0>
+<06> <03A3>
+<07> <03D2>
+<08> <03A6>
+<0B> <2191>
+<0C> <2193>
+<0D> <0027>
+<0E> <00A1>
+<0F> <00BF>
+<10> <0131>
+<11> <0237>
+<12> <0060>
+<13> <00B4>
+<14> <02C7>
+<15> <02D8>
+<16> <00AF>
+<17> <02DA>
+<18> <00B8>
+<19> <00DF>
+<1A> <00E6>
+<1B> <0153>
+<1C> <00F8>
+<1D> <00C6>
+<1E> <0152>
+<1F> <00D8>
+<20> <2423>
+<27> <2019>
+<60> <2018>
+<7F> <00A8>
+endbfchar
+endcmap
+CMapName currentdict /CMap defineresource pop
+end
+end
+%%EndResource
+%%EOF
+    }\endgroup
+  \expandafter\edef\csname cmapOT1TT\endcsname#1{%
+    \pdffontattr#1{/ToUnicode \the\pdflastobj\space 0 R}%
+  }%
+\else
+  \expandafter\let\csname cmapOT1\endcsname\gobble
+  \expandafter\let\csname cmapOT1IT\endcsname\gobble
+  \expandafter\let\csname cmapOT1TT\endcsname\gobble
+\fi
+
 
 % Set the font macro #1 to the font named #2, adding on the
 % specified font prefix (normally `cm').
-% #3 is the font's design size, #4 is a scale factor
-\def\setfont#1#2#3#4{\font#1=\fontprefix#2#3 scaled #4}
+% #3 is the font's design size, #4 is a scale factor, #5 is the CMap
+% encoding (currently only OT1, OT1IT and OT1TT are allowed, pass
+% empty to omit).
+\def\setfont#1#2#3#4#5{%
+  \font#1=\fontprefix#2#3 scaled #4
+  \csname cmap#5\endcsname#1%
+}
+% This is what gets called when #5 of \setfont is empty.
+\let\cmap\gobble
 
 
 % Use cm as the default font prefix.
@@ -1588,59 +1857,59 @@ output) for that.)}
 % Text fonts (11.2pt, magstep1).
 \def\textnominalsize{11pt}
 \edef\mainmagstep{\magstephalf}
-\setfont\textrm\rmshape{10}{\mainmagstep}
-\setfont\texttt\ttshape{10}{\mainmagstep}
-\setfont\textbf\bfshape{10}{\mainmagstep}
-\setfont\textit\itshape{10}{\mainmagstep}
-\setfont\textsl\slshape{10}{\mainmagstep}
-\setfont\textsf\sfshape{10}{\mainmagstep}
-\setfont\textsc\scshape{10}{\mainmagstep}
-\setfont\textttsl\ttslshape{10}{\mainmagstep}
+\setfont\textrm\rmshape{10}{\mainmagstep}{OT1}
+\setfont\texttt\ttshape{10}{\mainmagstep}{OT1TT}
+\setfont\textbf\bfshape{10}{\mainmagstep}{OT1}
+\setfont\textit\itshape{10}{\mainmagstep}{OT1IT}
+\setfont\textsl\slshape{10}{\mainmagstep}{OT1}
+\setfont\textsf\sfshape{10}{\mainmagstep}{OT1}
+\setfont\textsc\scshape{10}{\mainmagstep}{OT1}
+\setfont\textttsl\ttslshape{10}{\mainmagstep}{OT1TT}
 \font\texti=cmmi10 scaled \mainmagstep
 \font\textsy=cmsy10 scaled \mainmagstep
 
 % A few fonts for @defun names and args.
-\setfont\defbf\bfshape{10}{\magstep1}
-\setfont\deftt\ttshape{10}{\magstep1}
-\setfont\defttsl\ttslshape{10}{\magstep1}
+\setfont\defbf\bfshape{10}{\magstep1}{OT1}
+\setfont\deftt\ttshape{10}{\magstep1}{OT1TT}
+\setfont\defttsl\ttslshape{10}{\magstep1}{OT1TT}
 \def\df{\let\tentt=\deftt \let\tenbf = \defbf \let\tenttsl=\defttsl \bf}
 
 % Fonts for indices, footnotes, small examples (9pt).
 \def\smallnominalsize{9pt}
-\setfont\smallrm\rmshape{9}{1000}
-\setfont\smalltt\ttshape{9}{1000}
-\setfont\smallbf\bfshape{10}{900}
-\setfont\smallit\itshape{9}{1000}
-\setfont\smallsl\slshape{9}{1000}
-\setfont\smallsf\sfshape{9}{1000}
-\setfont\smallsc\scshape{10}{900}
-\setfont\smallttsl\ttslshape{10}{900}
+\setfont\smallrm\rmshape{9}{1000}{OT1}
+\setfont\smalltt\ttshape{9}{1000}{OT1TT}
+\setfont\smallbf\bfshape{10}{900}{OT1}
+\setfont\smallit\itshape{9}{1000}{OT1IT}
+\setfont\smallsl\slshape{9}{1000}{OT1}
+\setfont\smallsf\sfshape{9}{1000}{OT1}
+\setfont\smallsc\scshape{10}{900}{OT1}
+\setfont\smallttsl\ttslshape{10}{900}{OT1TT}
 \font\smalli=cmmi9
 \font\smallsy=cmsy9
 
 % Fonts for small examples (8pt).
 \def\smallernominalsize{8pt}
-\setfont\smallerrm\rmshape{8}{1000}
-\setfont\smallertt\ttshape{8}{1000}
-\setfont\smallerbf\bfshape{10}{800}
-\setfont\smallerit\itshape{8}{1000}
-\setfont\smallersl\slshape{8}{1000}
-\setfont\smallersf\sfshape{8}{1000}
-\setfont\smallersc\scshape{10}{800}
-\setfont\smallerttsl\ttslshape{10}{800}
+\setfont\smallerrm\rmshape{8}{1000}{OT1}
+\setfont\smallertt\ttshape{8}{1000}{OT1TT}
+\setfont\smallerbf\bfshape{10}{800}{OT1}
+\setfont\smallerit\itshape{8}{1000}{OT1IT}
+\setfont\smallersl\slshape{8}{1000}{OT1}
+\setfont\smallersf\sfshape{8}{1000}{OT1}
+\setfont\smallersc\scshape{10}{800}{OT1}
+\setfont\smallerttsl\ttslshape{10}{800}{OT1TT}
 \font\smalleri=cmmi8
 \font\smallersy=cmsy8
 
 % Fonts for title page (20.4pt):
 \def\titlenominalsize{20pt}
-\setfont\titlerm\rmbshape{12}{\magstep3}
-\setfont\titleit\itbshape{10}{\magstep4}
-\setfont\titlesl\slbshape{10}{\magstep4}
-\setfont\titlett\ttbshape{12}{\magstep3}
-\setfont\titlettsl\ttslshape{10}{\magstep4}
-\setfont\titlesf\sfbshape{17}{\magstep1}
+\setfont\titlerm\rmbshape{12}{\magstep3}{OT1}
+\setfont\titleit\itbshape{10}{\magstep4}{OT1IT}
+\setfont\titlesl\slbshape{10}{\magstep4}{OT1}
+\setfont\titlett\ttbshape{12}{\magstep3}{OT1TT}
+\setfont\titlettsl\ttslshape{10}{\magstep4}{OT1TT}
+\setfont\titlesf\sfbshape{17}{\magstep1}{OT1}
 \let\titlebf=\titlerm
-\setfont\titlesc\scbshape{10}{\magstep4}
+\setfont\titlesc\scbshape{10}{\magstep4}{OT1}
 \font\titlei=cmmi12 scaled \magstep3
 \font\titlesy=cmsy10 scaled \magstep4
 \def\authorrm{\secrm}
@@ -1648,53 +1917,53 @@ output) for that.)}
 
 % Chapter (and unnumbered) fonts (17.28pt).
 \def\chapnominalsize{17pt}
-\setfont\chaprm\rmbshape{12}{\magstep2}
-\setfont\chapit\itbshape{10}{\magstep3}
-\setfont\chapsl\slbshape{10}{\magstep3}
-\setfont\chaptt\ttbshape{12}{\magstep2}
-\setfont\chapttsl\ttslshape{10}{\magstep3}
-\setfont\chapsf\sfbshape{17}{1000}
+\setfont\chaprm\rmbshape{12}{\magstep2}{OT1}
+\setfont\chapit\itbshape{10}{\magstep3}{OT1IT}
+\setfont\chapsl\slbshape{10}{\magstep3}{OT1}
+\setfont\chaptt\ttbshape{12}{\magstep2}{OT1TT}
+\setfont\chapttsl\ttslshape{10}{\magstep3}{OT1TT}
+\setfont\chapsf\sfbshape{17}{1000}{OT1}
 \let\chapbf=\chaprm
-\setfont\chapsc\scbshape{10}{\magstep3}
+\setfont\chapsc\scbshape{10}{\magstep3}{OT1}
 \font\chapi=cmmi12 scaled \magstep2
 \font\chapsy=cmsy10 scaled \magstep3
 
 % Section fonts (14.4pt).
 \def\secnominalsize{14pt}
-\setfont\secrm\rmbshape{12}{\magstep1}
-\setfont\secit\itbshape{10}{\magstep2}
-\setfont\secsl\slbshape{10}{\magstep2}
-\setfont\sectt\ttbshape{12}{\magstep1}
-\setfont\secttsl\ttslshape{10}{\magstep2}
-\setfont\secsf\sfbshape{12}{\magstep1}
+\setfont\secrm\rmbshape{12}{\magstep1}{OT1}
+\setfont\secit\itbshape{10}{\magstep2}{OT1IT}
+\setfont\secsl\slbshape{10}{\magstep2}{OT1}
+\setfont\sectt\ttbshape{12}{\magstep1}{OT1TT}
+\setfont\secttsl\ttslshape{10}{\magstep2}{OT1TT}
+\setfont\secsf\sfbshape{12}{\magstep1}{OT1}
 \let\secbf\secrm
-\setfont\secsc\scbshape{10}{\magstep2}
+\setfont\secsc\scbshape{10}{\magstep2}{OT1}
 \font\seci=cmmi12 scaled \magstep1
 \font\secsy=cmsy10 scaled \magstep2
 
 % Subsection fonts (13.15pt).
 \def\ssecnominalsize{13pt}
-\setfont\ssecrm\rmbshape{12}{\magstephalf}
-\setfont\ssecit\itbshape{10}{1315}
-\setfont\ssecsl\slbshape{10}{1315}
-\setfont\ssectt\ttbshape{12}{\magstephalf}
-\setfont\ssecttsl\ttslshape{10}{1315}
-\setfont\ssecsf\sfbshape{12}{\magstephalf}
+\setfont\ssecrm\rmbshape{12}{\magstephalf}{OT1}
+\setfont\ssecit\itbshape{10}{1315}{OT1IT}
+\setfont\ssecsl\slbshape{10}{1315}{OT1}
+\setfont\ssectt\ttbshape{12}{\magstephalf}{OT1TT}
+\setfont\ssecttsl\ttslshape{10}{1315}{OT1TT}
+\setfont\ssecsf\sfbshape{12}{\magstephalf}{OT1}
 \let\ssecbf\ssecrm
-\setfont\ssecsc\scbshape{10}{1315}
+\setfont\ssecsc\scbshape{10}{1315}{OT1}
 \font\sseci=cmmi12 scaled \magstephalf
 \font\ssecsy=cmsy10 scaled 1315
 
 % Reduced fonts for @acro in text (10pt).
 \def\reducednominalsize{10pt}
-\setfont\reducedrm\rmshape{10}{1000}
-\setfont\reducedtt\ttshape{10}{1000}
-\setfont\reducedbf\bfshape{10}{1000}
-\setfont\reducedit\itshape{10}{1000}
-\setfont\reducedsl\slshape{10}{1000}
-\setfont\reducedsf\sfshape{10}{1000}
-\setfont\reducedsc\scshape{10}{1000}
-\setfont\reducedttsl\ttslshape{10}{1000}
+\setfont\reducedrm\rmshape{10}{1000}{OT1}
+\setfont\reducedtt\ttshape{10}{1000}{OT1TT}
+\setfont\reducedbf\bfshape{10}{1000}{OT1}
+\setfont\reducedit\itshape{10}{1000}{OT1IT}
+\setfont\reducedsl\slshape{10}{1000}{OT1}
+\setfont\reducedsf\sfshape{10}{1000}{OT1}
+\setfont\reducedsc\scshape{10}{1000}{OT1}
+\setfont\reducedttsl\ttslshape{10}{1000}{OT1TT}
 \font\reducedi=cmmi10
 \font\reducedsy=cmsy10
 
@@ -1713,59 +1982,59 @@ output) for that.)}
 % Text fonts (10pt).
 \def\textnominalsize{10pt}
 \edef\mainmagstep{1000}
-\setfont\textrm\rmshape{10}{\mainmagstep}
-\setfont\texttt\ttshape{10}{\mainmagstep}
-\setfont\textbf\bfshape{10}{\mainmagstep}
-\setfont\textit\itshape{10}{\mainmagstep}
-\setfont\textsl\slshape{10}{\mainmagstep}
-\setfont\textsf\sfshape{10}{\mainmagstep}
-\setfont\textsc\scshape{10}{\mainmagstep}
-\setfont\textttsl\ttslshape{10}{\mainmagstep}
+\setfont\textrm\rmshape{10}{\mainmagstep}{OT1}
+\setfont\texttt\ttshape{10}{\mainmagstep}{OT1TT}
+\setfont\textbf\bfshape{10}{\mainmagstep}{OT1}
+\setfont\textit\itshape{10}{\mainmagstep}{OT1IT}
+\setfont\textsl\slshape{10}{\mainmagstep}{OT1}
+\setfont\textsf\sfshape{10}{\mainmagstep}{OT1}
+\setfont\textsc\scshape{10}{\mainmagstep}{OT1}
+\setfont\textttsl\ttslshape{10}{\mainmagstep}{OT1TT}
 \font\texti=cmmi10 scaled \mainmagstep
 \font\textsy=cmsy10 scaled \mainmagstep
 
 % A few fonts for @defun names and args.
-\setfont\defbf\bfshape{10}{\magstephalf}
-\setfont\deftt\ttshape{10}{\magstephalf}
-\setfont\defttsl\ttslshape{10}{\magstephalf}
+\setfont\defbf\bfshape{10}{\magstephalf}{OT1}
+\setfont\deftt\ttshape{10}{\magstephalf}{OT1TT}
+\setfont\defttsl\ttslshape{10}{\magstephalf}{OT1TT}
 \def\df{\let\tentt=\deftt \let\tenbf = \defbf \let\tenttsl=\defttsl \bf}
 
 % Fonts for indices, footnotes, small examples (9pt).
 \def\smallnominalsize{9pt}
-\setfont\smallrm\rmshape{9}{1000}
-\setfont\smalltt\ttshape{9}{1000}
-\setfont\smallbf\bfshape{10}{900}
-\setfont\smallit\itshape{9}{1000}
-\setfont\smallsl\slshape{9}{1000}
-\setfont\smallsf\sfshape{9}{1000}
-\setfont\smallsc\scshape{10}{900}
-\setfont\smallttsl\ttslshape{10}{900}
+\setfont\smallrm\rmshape{9}{1000}{OT1}
+\setfont\smalltt\ttshape{9}{1000}{OT1TT}
+\setfont\smallbf\bfshape{10}{900}{OT1}
+\setfont\smallit\itshape{9}{1000}{OT1IT}
+\setfont\smallsl\slshape{9}{1000}{OT1}
+\setfont\smallsf\sfshape{9}{1000}{OT1}
+\setfont\smallsc\scshape{10}{900}{OT1}
+\setfont\smallttsl\ttslshape{10}{900}{OT1TT}
 \font\smalli=cmmi9
 \font\smallsy=cmsy9
 
 % Fonts for small examples (8pt).
 \def\smallernominalsize{8pt}
-\setfont\smallerrm\rmshape{8}{1000}
-\setfont\smallertt\ttshape{8}{1000}
-\setfont\smallerbf\bfshape{10}{800}
-\setfont\smallerit\itshape{8}{1000}
-\setfont\smallersl\slshape{8}{1000}
-\setfont\smallersf\sfshape{8}{1000}
-\setfont\smallersc\scshape{10}{800}
-\setfont\smallerttsl\ttslshape{10}{800}
+\setfont\smallerrm\rmshape{8}{1000}{OT1}
+\setfont\smallertt\ttshape{8}{1000}{OT1TT}
+\setfont\smallerbf\bfshape{10}{800}{OT1}
+\setfont\smallerit\itshape{8}{1000}{OT1IT}
+\setfont\smallersl\slshape{8}{1000}{OT1}
+\setfont\smallersf\sfshape{8}{1000}{OT1}
+\setfont\smallersc\scshape{10}{800}{OT1}
+\setfont\smallerttsl\ttslshape{10}{800}{OT1TT}
 \font\smalleri=cmmi8
 \font\smallersy=cmsy8
 
 % Fonts for title page (20.4pt):
 \def\titlenominalsize{20pt}
-\setfont\titlerm\rmbshape{12}{\magstep3}
-\setfont\titleit\itbshape{10}{\magstep4}
-\setfont\titlesl\slbshape{10}{\magstep4}
-\setfont\titlett\ttbshape{12}{\magstep3}
-\setfont\titlettsl\ttslshape{10}{\magstep4}
-\setfont\titlesf\sfbshape{17}{\magstep1}
+\setfont\titlerm\rmbshape{12}{\magstep3}{OT1}
+\setfont\titleit\itbshape{10}{\magstep4}{OT1IT}
+\setfont\titlesl\slbshape{10}{\magstep4}{OT1}
+\setfont\titlett\ttbshape{12}{\magstep3}{OT1TT}
+\setfont\titlettsl\ttslshape{10}{\magstep4}{OT1TT}
+\setfont\titlesf\sfbshape{17}{\magstep1}{OT1}
 \let\titlebf=\titlerm
-\setfont\titlesc\scbshape{10}{\magstep4}
+\setfont\titlesc\scbshape{10}{\magstep4}{OT1}
 \font\titlei=cmmi12 scaled \magstep3
 \font\titlesy=cmsy10 scaled \magstep4
 \def\authorrm{\secrm}
@@ -1773,53 +2042,53 @@ output) for that.)}
 
 % Chapter fonts (14.4pt).
 \def\chapnominalsize{14pt}
-\setfont\chaprm\rmbshape{12}{\magstep1}
-\setfont\chapit\itbshape{10}{\magstep2}
-\setfont\chapsl\slbshape{10}{\magstep2}
-\setfont\chaptt\ttbshape{12}{\magstep1}
-\setfont\chapttsl\ttslshape{10}{\magstep2}
-\setfont\chapsf\sfbshape{12}{\magstep1}
+\setfont\chaprm\rmbshape{12}{\magstep1}{OT1}
+\setfont\chapit\itbshape{10}{\magstep2}{OT1IT}
+\setfont\chapsl\slbshape{10}{\magstep2}{OT1}
+\setfont\chaptt\ttbshape{12}{\magstep1}{OT1TT}
+\setfont\chapttsl\ttslshape{10}{\magstep2}{OT1TT}
+\setfont\chapsf\sfbshape{12}{\magstep1}{OT1}
 \let\chapbf\chaprm
-\setfont\chapsc\scbshape{10}{\magstep2}
+\setfont\chapsc\scbshape{10}{\magstep2}{OT1}
 \font\chapi=cmmi12 scaled \magstep1
 \font\chapsy=cmsy10 scaled \magstep2
 
 % Section fonts (12pt).
 \def\secnominalsize{12pt}
-\setfont\secrm\rmbshape{12}{1000}
-\setfont\secit\itbshape{10}{\magstep1}
-\setfont\secsl\slbshape{10}{\magstep1}
-\setfont\sectt\ttbshape{12}{1000}
-\setfont\secttsl\ttslshape{10}{\magstep1}
-\setfont\secsf\sfbshape{12}{1000}
+\setfont\secrm\rmbshape{12}{1000}{OT1}
+\setfont\secit\itbshape{10}{\magstep1}{OT1IT}
+\setfont\secsl\slbshape{10}{\magstep1}{OT1}
+\setfont\sectt\ttbshape{12}{1000}{OT1TT}
+\setfont\secttsl\ttslshape{10}{\magstep1}{OT1TT}
+\setfont\secsf\sfbshape{12}{1000}{OT1}
 \let\secbf\secrm
-\setfont\secsc\scbshape{10}{\magstep1}
+\setfont\secsc\scbshape{10}{\magstep1}{OT1}
 \font\seci=cmmi12 
 \font\secsy=cmsy10 scaled \magstep1
 
 % Subsection fonts (10pt).
 \def\ssecnominalsize{10pt}
-\setfont\ssecrm\rmbshape{10}{1000}
-\setfont\ssecit\itbshape{10}{1000}
-\setfont\ssecsl\slbshape{10}{1000}
-\setfont\ssectt\ttbshape{10}{1000}
-\setfont\ssecttsl\ttslshape{10}{1000}
-\setfont\ssecsf\sfbshape{10}{1000}
+\setfont\ssecrm\rmbshape{10}{1000}{OT1}
+\setfont\ssecit\itbshape{10}{1000}{OT1IT}
+\setfont\ssecsl\slbshape{10}{1000}{OT1}
+\setfont\ssectt\ttbshape{10}{1000}{OT1TT}
+\setfont\ssecttsl\ttslshape{10}{1000}{OT1TT}
+\setfont\ssecsf\sfbshape{10}{1000}{OT1}
 \let\ssecbf\ssecrm
-\setfont\ssecsc\scbshape{10}{1000}
+\setfont\ssecsc\scbshape{10}{1000}{OT1}
 \font\sseci=cmmi10
 \font\ssecsy=cmsy10
 
 % Reduced fonts for @acro in text (9pt).
 \def\reducednominalsize{9pt}
-\setfont\reducedrm\rmshape{9}{1000}
-\setfont\reducedtt\ttshape{9}{1000}
-\setfont\reducedbf\bfshape{10}{900}
-\setfont\reducedit\itshape{9}{1000}
-\setfont\reducedsl\slshape{9}{1000}
-\setfont\reducedsf\sfshape{9}{1000}
-\setfont\reducedsc\scshape{10}{900}
-\setfont\reducedttsl\ttslshape{10}{900}
+\setfont\reducedrm\rmshape{9}{1000}{OT1}
+\setfont\reducedtt\ttshape{9}{1000}{OT1TT}
+\setfont\reducedbf\bfshape{10}{900}{OT1}
+\setfont\reducedit\itshape{9}{1000}{OT1IT}
+\setfont\reducedsl\slshape{9}{1000}{OT1}
+\setfont\reducedsf\sfshape{9}{1000}{OT1}
+\setfont\reducedsc\scshape{10}{900}{OT1}
+\setfont\reducedttsl\ttslshape{10}{900}{OT1TT}
 \font\reducedi=cmmi9
 \font\reducedsy=cmsy9
 
@@ -1977,10 +2246,10 @@ output) for that.)}
 \newcount\fontdepth \fontdepth=0
 
 % Fonts for short table of contents.
-\setfont\shortcontrm\rmshape{12}{1000}
-\setfont\shortcontbf\bfshape{10}{\magstep1}  % no cmb12
-\setfont\shortcontsl\slshape{12}{1000}
-\setfont\shortconttt\ttshape{12}{1000}
+\setfont\shortcontrm\rmshape{12}{1000}{OT1}
+\setfont\shortcontbf\bfshape{10}{\magstep1}{OT1}  % no cmb12
+\setfont\shortcontsl\slshape{12}{1000}{OT1}
+\setfont\shortconttt\ttshape{12}{1000}{OT1TT}
 
 %% Add scribe-like font environments, plus @l for inline lisp (usually sans
 %% serif) and @ii for TeX italic
@@ -2043,7 +2312,7 @@ output) for that.)}
   \null
 }
 \def\samp#1{`\tclose{#1}'\null}
-\setfont\keyrm\rmshape{8}{1000}
+\setfont\keyrm\rmshape{8}{1000}{OT1}
 \font\keysy=cmsy9
 \def\key#1{{\keyrm\textfont2=\keysy \leavevmode\hbox{%
   \raise0.4pt\hbox{\angleleft}\kern-.08em\vtop{%
