@@ -51,10 +51,11 @@ Software Foundation raise funds for GNU development.''
 @tex
 @ifset smallbook
 @fonttextsize 10
-@end ifset
-\global\hbadness=6666 % don't worry about not-too-underfull boxes
+@set EMACSVER 22
 \global\let\urlcolor=\Black % don't print links in grayscale
 \global\let\linkcolor=\Black
+@end ifset
+\global\hbadness=6666 % don't worry about not-too-underfull boxes
 @end tex
 
 @defcodeindex op

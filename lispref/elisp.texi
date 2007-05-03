@@ -24,16 +24,16 @@
 @end ifset
 
 @c per rms and peterb, use 10pt fonts for the main text, mostly to
-@c save on paper cost.  Also, do not declare @setchapternewpage odd,
-@c for the same reason. Do this inside @tex for now, so the
-@c last-released makeinfo does not complain.
+@c save on paper cost.  
+@c Do this inside @tex for now, so current makeinfo does not complain.
 @tex
 @ifset smallbook
 @fonttextsize 10
-@end ifset
-\global\hbadness=6666 % don't worry about not-too-underfull boxes
+@set EMACSVER 22
 \global\let\urlcolor=\Black % don't print links in grayscale
 \global\let\linkcolor=\Black
+@end ifset
+\global\hbadness=6666 % don't worry about not-too-underfull boxes
 @end tex
 
 @c Combine indices.

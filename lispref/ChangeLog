@@ -1,6 +1,7 @@
 2007-05-03  Karl Berry  <karl@tug.org>
 
 	* elisp.texi (\urlcolor, \linkcolor) [smallbook]: \Black for printing.
+	 (EMACSVER) [smallbook]: 22 for printed version.
 
 	* control.texi (Signaling Errors) <signal>: texinfo.tex is fixed,
 	so restore anchor to normal position after defun.  Found by Kevin Ryde.

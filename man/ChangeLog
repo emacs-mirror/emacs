@@ -1,5 +1,9 @@
 2007-05-03  Karl Berry  <karl@tug.org>
 
+	* emacs.texi (EMACSVER) [smallbook]: 22 for printed version.
+
+	* .cvsignore (*.pdf): new entry.
+
 	* texinfo.tex: update from current version for better pdf generation.
 
 	* emacs.texi (\urlcolor, \linkcolor) [smallbook]: \let to \Black
