@@ -1,3 +1,9 @@
+2007-05-03  Karl Berry  <karl@gnu.org>
+
+	* control.texi (Signaling Errors) <signal>: texinfo.tex is fixed,
+	so restore anchor to normal position after defun.  Found by Kevin
+	Ryde.
+
 2007-04-26  Glenn Morris  <rgm@gnu.org>
 
 	* elisp.texi (EMACSVER): Increase to 22.1.50.
