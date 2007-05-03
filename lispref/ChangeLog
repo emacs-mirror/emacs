@@ -1,3 +1,8 @@
+2007-05-03  Karl Berry  <karl@tug.org>
+
+	* control.texi (Signaling Errors) <signal>: texinfo.tex is fixed,
+	so restore anchor to normal position after defun.  Found by Kevin Ryde.
+
 2007-04-28  Karl Berry  <karl@gnu.org>
 
 	* elisp.texi: Improve line breaks on copyright page,
