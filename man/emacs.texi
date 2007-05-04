@@ -51,7 +51,7 @@ Software Foundation raise funds for GNU development.''
 @tex
 @ifset smallbook
 @fonttextsize 10
-@set EMACSVER 22
+@set EMACSVER 22.1
 \global\let\urlcolor=\Black % don't print links in grayscale
 \global\let\linkcolor=\Black
 @end ifset
