@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2007-05-03.09}
+\def\texinfoversion{2007-05-04.09}
 %
 % Copyright (C) 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -1435,7 +1435,7 @@ output) for that.)}
       \indexnofonts
       \setupdatafile
       \catcode`\\=\active \otherbackslash
-      \input \jobname.toc
+      \input \tocreadfilename
     \endgroup
   }
   %
@@ -4301,11 +4301,8 @@ end
     % The following is kludged to not output a line of dots in the index if
     % there are no page numbers.  The next person who breaks this will be
     % cursed by a Unix daemon.
-    \def\tempa{{\rm }}%
-    \def\tempb{#1}%
-    \edef\tempc{\tempa}%
-    \edef\tempd{\tempb}%
-    \ifx\tempc\tempd
+    \setbox\boxA = \hbox{#1}%
+    \ifdim\wd\boxA = 0pt
       \ %
     \else
       %
@@ -5177,7 +5174,7 @@ end
 \def\readtocfile{%
   \setupdatafile
   \activecatcodes
-  \input \jobname.toc
+  \input \tocreadfilename
 }
 
 \newskip\contentsrightmargin \contentsrightmargin=1in
@@ -5208,11 +5205,16 @@ end
     \ifnum \pageno>0 \global\pageno = \lastnegativepageno \fi
 }
 
+% redefined for the two-volume lispref.  We always output on
+% \jobname.toc even if this is redefined.
+% 
+\def\tocreadfilename{\jobname.toc}
 
 % Normal (long) toc.
+%
 \def\contents{%
   \startcontents{\putwordTOC}%
-    \openin 1 \jobname.toc
+    \openin 1 \tocreadfilename\space
     \ifeof 1 \else
       \readtocfile
     \fi
@@ -5250,7 +5252,7 @@ end
     \let\numsubsubsecentry = \numsecentry
     \let\appsubsubsecentry = \numsecentry
     \let\unnsubsubsecentry = \numsecentry
-    \openin 1 \jobname.toc
+    \openin 1 \tocreadfilename\space
     \ifeof 1 \else
       \readtocfile
     \fi
@@ -8340,7 +8342,7 @@ should work if nowhere else does.}
   \textleading = 12pt
   %
   \internalpagesizes{7.5in}{5in}%
-                    {\voffset}{.25in}%
+                    {-.2in}{0in}%
                     {\bindingoffset}{16pt}%
                     {9.25in}{7in}%
   %
