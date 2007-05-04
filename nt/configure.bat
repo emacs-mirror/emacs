@@ -41,11 +41,11 @@ rem  mingw32/gcc-2.92.2 make (3.77):      okay          okay[4]
 rem  cygwin compiled gmake 3.77:          fails[1,5]    fails[2,5]
 rem  cygwin compiled gmake 3.78.1:        fails[5]      fails[2,5]
 rem  cygwin compiled gmake 3.79.1:        fails[3,5]    fails[2?,5]
-rem  cygwin compiled make 3.80:           fails?[6]     fails?[6]
-rem  cygwin compiled make 3.81:           fails         fails?[6]
+rem  cygwin compiled make 3.80:           okay[6]       fails?[7]
+rem  cygwin compiled make 3.81:           fails         fails?[7]
 rem  mingw32 compiled make 3.79.1:        okay          okay
-rem  mingw32 compiled make 3.80:          okay          okay?[6]
-rem  mingw32 compiled make 3.81:          okay          okay[7]
+rem  mingw32 compiled make 3.80:          okay          okay?[7]
+rem  mingw32 compiled make 3.81:          okay          okay[8]
 rem
 rem [1] doesn't cope with makefiles with DOS line endings, so must mount
 rem     emacs source with text!=binary.
@@ -55,8 +55,10 @@ rem     versions of cygwin.
 rem [4] may fail on Windows 9X and Windows ME; if so, install Bash.
 rem [5] fails when building leim due to the use of cygwin style paths.
 rem     May work if building emacs without leim.
-rem [6] not recommended; please report if you try this combination.
-rem [7] tested only on Windows XP.
+rem [6] need to uncomment 3 lines in nt/gmake.defs that invoke `cygpath';
+rem    	look for "cygpath" near line 85 of gmake.defs.
+rem [7] not recommended; please report if you try this combination.
+rem [8] tested only on Windows XP.
 rem
 
 if exist config.log del config.log
