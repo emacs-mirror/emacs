@@ -1,3 +1,8 @@
+2007-05-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* tips.texi (Documentation Tips): Rearrange items to place the
+	more important ones first.  Add an index entry for hyperlinks.
+
 2007-05-03  Karl Berry  <karl@gnu.org>
 
 	* elisp.texi (\urlcolor, \linkcolor) [smallbook]: \Black for printing.
