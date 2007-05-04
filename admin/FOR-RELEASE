@@ -49,12 +49,7 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00732.html
 ** michael.ewe@arcor.de, Apr 24: 22.0.98  not starting on Solaris 10/I386
 http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg01113.html
 
-** rgm@gnu.org, Apr 24: [Stephen.Berman@gmx.net: Re: redisplay]
-  Gives test case for problem that a dialog box blocks redisplay.
-http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00951.html
-
-** C mode fontification took 50 seconds
-http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg01460.html
+** Takaaki.Ota@am.sony.com, May 2: table cell menu does not appear at the menubar
 
 * DOCUMENTATION
 

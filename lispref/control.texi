@@ -785,8 +785,8 @@ undesirable results.  Instead, use @code{(error "%s" @var{string})}.
 @defun signal error-symbol data
 @anchor{Definition of signal}
 This function signals an error named by @var{error-symbol}.  The
-argument @var{data} is a list of additional Lisp objects relevant to the
-circumstances of the error.
+argument @var{data} is a list of additional Lisp objects relevant to
+the circumstances of the error.
 
 The argument @var{error-symbol} must be an @dfn{error symbol}---a symbol
 bearing a property @code{error-conditions} whose value is a list of
