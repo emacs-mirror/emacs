@@ -51,6 +51,9 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00732.html
 http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg01113.html
 
 ** Takaaki.Ota@am.sony.com, May 2: table cell menu does not appear at the menubar
+   Bug is intermittent.
+
+** david.reitter@gmail.com, May 4: Euro sign bound, Pound sign not bound. (Bug?)
 
 * DOCUMENTATION
 
