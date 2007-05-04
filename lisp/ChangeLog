@@ -1,3 +1,8 @@
+2007-05-04  Nick Roberts  <nickrob@snap.net.nz>
+
+	* t-mouse.el (t-mouse-mode): Do nothing on a graphical display
+	when disabling t-mouse-mode.
+
 2007-05-01  Davis Herring  <herring@lanl.gov>
 
         * calendar/timeclock.el: Update version number.
