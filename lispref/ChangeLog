@@ -1,3 +1,7 @@
+2007-05-04  Karl Berry  <karl@tug.org>
+
+	* elisp.texi (EMACSVER) [smallbook]: 22.1, not 22.
+
 2007-05-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* tips.texi (Documentation Tips): Rearrange items to place the

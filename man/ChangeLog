@@ -1,3 +1,7 @@
+2007-05-04  Karl Berry  <karl@tug.org>
+
+	* emacs.texi (EMACSVER) [smallbook]: 22.1 for printed version, not 22.
+
 2007-05-03  Karl Berry  <karl@tug.org>
 
 	* emacs.texi (EMACSVER) [smallbook]: 22 for printed version.
