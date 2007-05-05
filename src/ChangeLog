@@ -1,4 +1,4 @@
-2007-05-03  Per Cederqvist  <ceder@lysator.liu.se>
+2007-05-03  Per Cederqvist  <ceder@lysator.liu.se>  (tiny change)
 
 	* process.c (Faccept_process_output): Revert 2006-03-22 change so
 	that the third argument once again is in microseconds (not
