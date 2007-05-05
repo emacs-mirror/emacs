@@ -1,3 +1,8 @@
+2007-05-05  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* maintaining.texi (Create Tags Table): Add text about the dangers of
+	making symbolic links to tags files.
+
 2007-05-04  Karl Berry  <karl@gnu.org>
 
 	* emacs.texi (EMACSVER) [smallbook]: 22.1 for printed version, not 22.
@@ -77,8 +82,8 @@
 	* misc.texi (Thumbnails): Node deleted.
 	* emacs.texi (Top): Update node listing.
 
-	* files.texi (File Conveniences): 
-	* ack.texi (Acknowledgments): 
+	* files.texi (File Conveniences):
+	* ack.texi (Acknowledgments):
 	* faq.texi (New in Emacs 22): Rename "tumme" to "image-dired".
 
 2007-04-21  Richard Stallman  <rms@gnu.org>
