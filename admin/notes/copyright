@@ -228,6 +228,8 @@ lisp/play/tetris.el
   the concept.
   rms: "My understanding is that game rules as such are not copyrightable."
   <http://lists.gnu.org/archive/html/emacs-devel/2007-01/msg00960.html>
+  But then this issue came up again:
+  <http://lists.gnu.org/archive/html/emacs-devel/2007-05/msg00016.html>
 
 lispref/doclicense.texi
 man/doclicense.texi
@@ -597,6 +599,8 @@ REMOVED src/unexhp9k800.c
 python.el potential legal problem
 http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-04/msg00459.html
 
+tetris trademark?
+http://lists.gnu.org/archive/html/emacs-devel/2007-05/msg00016.html
 
 
 This file is part of GNU Emacs.
