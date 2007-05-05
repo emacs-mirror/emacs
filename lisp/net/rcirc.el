@@ -312,7 +312,7 @@ and the cdr part is used for encoding."
   "List of urls seen in the current buffer.")
 (put 'rcirc-urls 'permanent-local t)
 
-(defvar rcirc-timeout-seconds 60
+(defvar rcirc-timeout-seconds 600
   "Kill connection after this many seconds if there is no activity.")
 
 (defconst rcirc-id-string (concat "rcirc on GNU Emacs " emacs-version))
