@@ -22,6 +22,10 @@ sk	Miroslav Vaško        No response
 
 Reminders sent out on 2006-06-08.
 
+** Remove temporary +++/--- lines in NEWS.
+
+** Try to reorder NEWS: most important things first, related items together.
+
 * WINDOWS SUPPORT BUGS.
 
 These don't need to be fixed before a release, but we call the
