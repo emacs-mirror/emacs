@@ -3912,8 +3912,8 @@ It is read into the process' buffers or given to their filter functions.
 Non-nil arg PROCESS means do not return until some output has been received
 from PROCESS.
 
-Non-nil second arg SECONDS and third arg MILLISEC are number of
-seconds and milliseconds to wait; return after that much time whether
+Non-nil second arg SECONDS and third arg MICROSEC are number of
+seconds and microseconds to wait; return after that much time whether
 or not there is input.  If SECONDS is a floating point number,
 it specifies a fractional number of seconds to wait.
 
@@ -3921,8 +3921,8 @@ If optional fourth arg JUST-THIS-ONE is non-nil, only accept output
 from PROCESS, suspending reading output from other processes.
 If JUST-THIS-ONE is an integer, don't run any timers either.
 Return non-nil iff we received any output before the timeout expired.  */)
-     (process, seconds, millisec, just_this_one)
-     register Lisp_Object process, seconds, millisec, just_this_one;
+     (process, seconds, microsec, just_this_one)
+     register Lisp_Object process, seconds, microsec, just_this_one;
 {
   int secs, usecs = 0;
 
@@ -3944,10 +3944,10 @@ Return non-nil iff we received any output before the timeout expired.  */)
       else
 	wrong_type_argument (Qnumberp, seconds);
 
-      if (INTEGERP (millisec))
+      if (INTEGERP (microsec))
 	{
 	  int carry;
-	  usecs += XINT (millisec) * 1000;
+	  usecs += XINT (microsec);
 	  carry = usecs / 1000000;
 	  secs += carry;
 	  if ((usecs -= carry * 1000000) < 0)
