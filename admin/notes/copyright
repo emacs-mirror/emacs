@@ -407,6 +407,7 @@ lisp/term/README
   Accordingly, FSF copyright was added.
 
 src/unexhp9k800.c  (and dependent src/m/sr2k.h)
+  http://lists.gnu.org/archive/html/emacs-devel/2007-02/msg00138.html
   - briefly removed due to legal uncertainly Jan-Mar 2007. The
   relevant assignment is under "hp9k800" in copyright.list. File was
   written by John V. Morris at HP, and disclaimed by the author and
@@ -551,9 +552,6 @@ system)
     Emacs 22 is released (though if they can be fixed before, that is
     obviously good):
 
-Maybe some relevant comments here?
-<http://groups.google.com/group/linux.debian.legal/browse_thread/thread/123547ea95437a1f>
-
 
 Is it OK to just `cvs remove' a file for legal reasons, or is
 something more drastic needed? A removed file is still available from
@@ -586,12 +584,6 @@ etc/TUTORIAL* (translations)
   Only a few sentences around the license notice need changing from
   previous version.
 Done: TUTORIAL.eo
-
-
-REMOVED src/unexhp9k800.c
-  - we would like to re-add this file if possible. Please let us know
-  if you can clarify its legal status.
-  http://lists.gnu.org/archive/html/emacs-devel/2007-02/msg00138.html
 
 
 *** These are copyright issues still to be addressed:
