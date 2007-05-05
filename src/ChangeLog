@@ -1,3 +1,10 @@
+2007-05-03  Per Cederqvist  <ceder@lysator.liu.se>
+
+	* process.c (Faccept_process_output): Revert 2006-03-22 change so
+	that the third argument once again is in microseconds (not
+	milliseconds).  This makes it compatible with Emacs 21 and
+	earlier.  Problem found by Henrik Rindlöw.
+
 2007-05-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macmenu.c (mac_dialog_show): Apply 2007-04-27 change for xmenu.c.

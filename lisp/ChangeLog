@@ -1,3 +1,8 @@
+2007-05-03  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el (rcirc-timeout-seconds): Increase to prevent unwanted
+	disconnections.
+
 2007-05-01  Romain Francoise  <romain@orebokech.com>
 
 	* dired-x.el: Revert 2007-04-06 change.
@@ -10,6 +15,12 @@
 2007-04-29  Stephen Berman  <Stephen.Berman@gmx.net>
 
 	* find-dired.el (find-dired-filter): Propertize all text down to eob.
+
+2007-04-29  Davis Herring  <herring@lanl.gov>
+
+        * calendar/timeclock.el (timeclock-in): Fix non-interactive
+	workday specifications.
+        (timeclock-log): Don't kill the log buffer if it already existed.
 
 2007-04-29  Richard Stallman  <rms@gnu.org>
 
