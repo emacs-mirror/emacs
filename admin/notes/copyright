@@ -228,8 +228,7 @@ lisp/play/tetris.el
   the concept.
   rms: "My understanding is that game rules as such are not copyrightable."
   <http://lists.gnu.org/archive/html/emacs-devel/2007-01/msg00960.html>
-  But then this issue came up again:
-  <http://lists.gnu.org/archive/html/emacs-devel/2007-05/msg00016.html>
+  rms: Legal advice is that we are ok and need not worry about this.
 
 lispref/doclicense.texi
 man/doclicense.texi
