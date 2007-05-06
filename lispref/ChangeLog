@@ -1,3 +1,7 @@
+2007-05-06  Richard Stallman  <rms@gnu.org>
+
+	* processes.texi (Accepting Output): Revert most of previous change.
+
 2007-05-05  Richard Stallman  <rms@gnu.org>
 
 	* processes.texi (Accepting Output): accept-process-output

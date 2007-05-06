@@ -1,3 +1,8 @@
+2007-05-05  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* maintaining.texi (Create Tags Table): Add text about the dangers of
+	making symbolic links to tags files.  (Clarified by RMS.)
+
 2007-05-04  Karl Berry  <karl@tug.org>
 
 	* emacs.texi (EMACSVER) [smallbook]: 22.1 for printed version, not 22.

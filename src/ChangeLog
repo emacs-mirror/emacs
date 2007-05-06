@@ -1,9 +1,13 @@
+2007-05-06  Richard Stallman  <rms@gnu.org>
+
+	* process.c: Undo May 3 change.
+
 2007-05-03  Per Cederqvist  <ceder@lysator.liu.se>  (tiny change)
 
 	* process.c (Faccept_process_output): Revert 2006-03-22 change so
 	that the third argument once again is in microseconds (not
 	milliseconds).  This makes it compatible with Emacs 21 and
-	earlier.  Problem found by Henrik Rindlöw.
+	earlier.  Problem found by Henrik Rindl,Av(Bw.
 
 2007-05-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
