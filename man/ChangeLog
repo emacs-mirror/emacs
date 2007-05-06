@@ -1,3 +1,7 @@
+2007-05-06  Richard Stallman  <rms@gnu.org>
+
+	* maintaining.texi (Create Tags Table): Clean up previous change.
+
 2007-05-05  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* maintaining.texi (Create Tags Table): Add text about the dangers of
