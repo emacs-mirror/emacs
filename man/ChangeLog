@@ -1,3 +1,7 @@
+2007-05-07  Karl Berry  <karl@gnu.org>
+
+	* emacs.texi (EMACSVER): back to 22.
+
 2007-05-06  Richard Stallman  <rms@gnu.org>
 
 	* maintaining.texi (Create Tags Table): Clean up previous change.
