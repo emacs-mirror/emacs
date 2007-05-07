@@ -1,3 +1,7 @@
+2007-05-07  Andreas Schwab  <schwab@suse.de>
+
+	* keymap.c (Flookup_key): Fix typo in last change. 
+
 2007-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keymap.c (Fdefine_key, Flookup_key): Only do the 0x80->meta_modifier
