@@ -1,3 +1,8 @@
+2007-05-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-ts-unicode-for-key-event): Check if text is
+	available.
+
 2007-05-06  Richard Stallman  <rms@gnu.org>
 
 	* emacs-lisp/eldoc.el (turn-on-eldoc-mode): Doc fix.
