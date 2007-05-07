@@ -1,3 +1,7 @@
+2007-05-06  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/eldoc.el (turn-on-eldoc-mode): Doc fix.
+
 2007-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* diff.el (diff): Use buffer-local vars diff-old-file and diff-new-file
@@ -20,6 +24,11 @@
 	(timeclock-geometric-mean): Rename to `timeclock-mean' (it never
 	was geometric).  All uses changed.
 	(timeclock-generate-report): Support prefix argument.
+
+2007-05-03  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el (rcirc-timeout-seconds): Increase to prevent unwanted
+	disconnections.
 
 2007-05-01  Romain Francoise  <romain@orebokech.com>
 
