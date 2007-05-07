@@ -1,3 +1,8 @@
+2007-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (Fdefine_key, Flookup_key): Only do the 0x80->meta_modifier
+	mapping for unibyte strings.
+
 2007-05-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macmenu.c (mac_dialog_show): Apply 2007-04-27 change for xmenu.c.
@@ -62,8 +67,8 @@
 
 2007-04-16  Chong Yidong  <cyd@stupidchicken.com>
 
-	* dispnew.c (adjust_frame_glyphs_for_frame_redisplay): Set
-	garbaged flag in presence of window margins.
+	* dispnew.c (adjust_frame_glyphs_for_frame_redisplay):
+	Set garbaged flag in presence of window margins.
 	(showing_window_margins_p): New function.
 
 	* xdisp.c (cursor_row_p): Only end row on newline if it's a
