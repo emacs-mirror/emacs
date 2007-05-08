@@ -1,5 +1,8 @@
 2007-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* diff-mode.el (diff-apply-hunk, diff-test-hunk): Don't do by default
+	the exact opposite of diff-goto-source.
+
 	* emacs-lisp/advice.el (ad-special-forms): Remove.
 	(ad-special-form-p): Use subr-arity.
 
