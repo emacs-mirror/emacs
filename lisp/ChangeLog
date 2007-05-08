@@ -1,5 +1,10 @@
 2007-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/sgml-mode.el (sgml-lexical-context): Add handling of
+	XML style Processing Instructions.
+	(sgml-parse-tag-backward): Handle XML-style PIs.  Also ensure progress.
+	(sgml-calculate-indent): Handle `pi' context.
+
 	* vc.el: Ensure that update-changelog issues an error when used with
 	a backend that does not implement it.
 	(vc-update-changelog-rcs2log): Rename from vc-default-update-changelog.

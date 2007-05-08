@@ -937,7 +937,7 @@ and move to the line in the SGML document that caused it."
 (defun sgml-lexical-context (&optional limit)
   "Return the lexical context at point as (TYPE . START).
 START is the location of the start of the lexical element.
-TYPE is one of `string', `comment', `tag', `cdata', or `text'.
+TYPE is one of `string', `comment', `tag', `cdata', `pi', or `text'.
 
 Optional argument LIMIT is the position to start parsing from.
 If nil, start from a preceding tag at indentation."
@@ -964,12 +964,19 @@ If nil, start from a preceding tag at indentation."
                   (let ((cdata-start (point)))
                     (unless (search-forward "]]>" pos 'move)
                       (list 0 nil nil 'cdata nil nil nil nil cdata-start))))
+                 ((and sgml-xml-mode (looking-at "<\\?"))
+                  ;; Processing Instructions.
+                  ;; In SGML, it's basically a normal tag of the form
+                  ;; <?NAME ...> but in XML, it takes the form <? ... ?>.
+                  (let ((pi-start (point)))
+                    (unless (search-forward "?>" pos 'move)
+                      (list 0 nil nil 'pi nil nil nil nil pi-start))))
                  (t
                   ;; We've reached a tag.  Parse it.
                   ;; FIXME: Handle net-enabling start-tags
                   (parse-partial-sexp (point) pos 0))))))
       (cond
-       ((eq (nth 3 state) 'cdata) (cons 'cdata (nth 8 state)))
+       ((memq (nth 3 state) '(cdata pi)) (cons (nth 3 state) (nth 8 state)))
        ((nth 3 state) (cons 'string (nth 8 state)))
        ((nth 4 state) (cons 'comment (nth 8 state)))
        ((and state (> (nth 0 state) 0)) (cons 'tag (nth 1 state)))
@@ -1093,9 +1100,15 @@ Leave point at the beginning of the tag."
       (when (eq (char-after) ?<)
 	;; Oops!! Looks like we were not in a textual context after all!.
 	;; Let's try to recover.
+        ;; Remember the tag-start so we don't need to look for it later.
+	;; This is not just an optimization but also makes sure we don't get
+	;; stuck in infloops in cases where "looking back for <" would not go
+	;; back far enough.
+        (setq tag-start (point))
 	(with-syntax-table sgml-tag-syntax-table
 	  (let ((pos (point)))
 	    (condition-case nil
+                ;; FIXME: This does not correctly skip over PI an CDATA tags.
 		(forward-sexp)
 	      (scan-error
 	       ;; This < seems to be just a spurious one, let's ignore it.
@@ -1110,33 +1123,41 @@ Leave point at the beginning of the tag."
       (cond
        ((sgml-looking-back-at "--")	; comment
 	(setq tag-type 'comment
-	      tag-start (search-backward "<!--" nil t)))
+	      tag-start (or tag-start (search-backward "<!--" nil t))))
        ((sgml-looking-back-at "]]")	; cdata
 	(setq tag-type 'cdata
-	      tag-start (re-search-backward "<!\\[[A-Z]+\\[" nil t)))
+	      tag-start (or tag-start
+                            (re-search-backward "<!\\[[A-Z]+\\[" nil t))))
+       ((sgml-looking-back-at "?")      ; XML processing-instruction
+        (setq tag-type 'pi
+              ;; IIUC: SGML processing instructions take the form <?foo ...>
+              ;; i.e. a "normal" tag, handled below.  In XML this is changed
+              ;; to <?foo ... ?> where "..." can contain < and > and even <?
+              ;; but not ?>.  This means that when parsing backward, there's
+              ;; no easy way to make sure that we find the real beginning of
+              ;; the PI.
+	      tag-start (or tag-start (search-backward "<?" nil t))))
        (t
-	(setq tag-start
-	      (with-syntax-table sgml-tag-syntax-table
-		(goto-char tag-end)
-		(condition-case nil
-		    (backward-sexp)
-		  (scan-error
-		   ;; This > isn't really the end of a tag. Skip it.
-		   (goto-char (1- tag-end))
-		   (throw 'found (sgml-parse-tag-backward limit))))
-		(point)))
+        (unless tag-start
+          (setq tag-start
+                (with-syntax-table sgml-tag-syntax-table
+                  (goto-char tag-end)
+                  (condition-case nil
+                      (backward-sexp)
+                    (scan-error
+                     ;; This > isn't really the end of a tag. Skip it.
+                     (goto-char (1- tag-end))
+                     (throw 'found (sgml-parse-tag-backward limit))))
+                  (point))))
 	(goto-char (1+ tag-start))
 	(case (char-after)
-	  (?!				; declaration
-	   (setq tag-type 'decl))
-	  (??				; processing-instruction
-	   (setq tag-type 'pi))
+	  (?! (setq tag-type 'decl))    ; declaration
+	  (?? (setq tag-type 'pi))      ; processing-instruction
+	  (?% (setq tag-type 'jsp))	; JSP tags
 	  (?/				; close-tag
 	   (forward-char 1)
 	   (setq tag-type 'close
 		 name (sgml-parse-tag-name)))
-	  (?%				; JSP tags
-	   (setq tag-type 'jsp))
 	  (t				; open or empty tag
 	   (setq tag-type 'open
 		 name (sgml-parse-tag-name))
@@ -1331,6 +1352,8 @@ LCON is the lexical context, if any."
 
     ;; We don't know how to indent it.  Let's be honest about it.
     (cdata nil)
+    ;; We don't know how to indent it.  Let's be honest about it.
+    (pi nil)
 
     (tag
      (goto-char (1+ (cdr lcon)))
