@@ -3456,6 +3456,9 @@ the command `undefined'.  (In earlier Emacs versions, it used
 `substitute-key-definition' to rebind self inserting characters to
 `undefined'.)
 
+** The third argument of `accept-process-output' is now milliseconds.
+It used to be microseconds.
+
 ** The function find-operation-coding-system may be called with a cons
 (FILENAME . BUFFER) in the second argument if the first argument
 OPERATION is `insert-file-contents', and thus a function registered in

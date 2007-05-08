@@ -1,3 +1,8 @@
+2007-05-08  David Reitter  <david.reitter@gmail.com>
+
+	* progmodes/python.el (python-guess-indent): Check non-nullness
+	before comparing indent against the 2..8 interval.
+
 2007-05-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (mac-ts-unicode-for-key-event): Check if text is
