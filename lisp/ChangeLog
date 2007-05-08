@@ -1,3 +1,8 @@
+2007-05-08  David Reitter  <david.reitter@gmail.com>
+
+	* progmodes/python.el (python-guess-indent): Check non-nullness
+	before comparing indent against the 2..8 interval.
+
 2007-05-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (mac-ts-unicode-for-key-event): Check if text is
@@ -27,9 +32,9 @@
 
 2007-04-29  Davis Herring  <herring@lanl.gov>
 
-        * calendar/timeclock.el (timeclock-in): Fix non-interactive
+	* calendar/timeclock.el (timeclock-in): Fix non-interactive
 	workday specifications.
-        (timeclock-log): Don't kill the log buffer if it already existed.
+	(timeclock-log): Don't kill the log buffer if it already existed.
 
 2007-04-29  Richard Stallman  <rms@gnu.org>
 

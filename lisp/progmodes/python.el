@@ -461,7 +461,7 @@ Set `python-indent' locally to the value guessed."
 	      (let ((initial (current-indentation)))
 		(if (zerop (python-next-statement))
 		    (setq indent (- (current-indentation) initial)))
-		(if (and (>= indent 2) (<= indent 8)) ; sanity check
+		(if (and indent (>= indent 2) (<= indent 8)) ; sanity check
 		    (setq done t))))))
 	(when done
 	  (when (/= indent (default-value 'python-indent))
