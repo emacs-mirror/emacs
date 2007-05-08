@@ -1,5 +1,13 @@
 2007-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* newcomment.el (comment-search-forward): Make sure we search forward.
+	(comment-enter-backward): Try and distinguish the non-matching case at
+	EOB from the non-matching case with a missing comment-end-skip for
+	a 2-char comment ender.
+	(comment-choose-indent): New function extracted from comment-indent.
+	Improve the alignment algorithm.
+	(comment-indent): Use it.
+
 	* textmodes/sgml-mode.el (sgml-lexical-context): Add handling of
 	XML style Processing Instructions.
 	(sgml-parse-tag-backward): Handle XML-style PIs.  Also ensure progress.
