@@ -1,5 +1,8 @@
 2007-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/advice.el (ad-special-forms): Remove.
+	(ad-special-form-p): Use subr-arity.
+
 	* newcomment.el (comment-search-forward): Make sure we search forward.
 	(comment-enter-backward): Try and distinguish the non-matching case at
 	EOB from the non-matching case with a missing comment-end-skip for
