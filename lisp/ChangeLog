@@ -1,3 +1,14 @@
+2007-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el: Ensure that update-changelog issues an error when used with
+	a backend that does not implement it.
+	(vc-update-changelog-rcs2log): Rename from vc-default-update-changelog.
+	Remove `backend' argument.  Use expand-file-name.
+	(vc-cvs-update-changelog, vc-rcs-update-changelog): New aliases.
+
+	* progmodes/python.el (python-end-of-block): Revert last change.
+	(python-end-of-statement): Make sure we move *forward*.
+
 2007-05-08  David Reitter  <david.reitter@gmail.com>
 
 	* progmodes/python.el (python-guess-indent): Check non-nullness
@@ -13668,8 +13679,8 @@
 
 2006-01-29  Edward O'Connor  <ted@oconnor.cx>
 
-	* emulation/viper.el (viper-major-mode-modifier-list): Add
-	insert-state and vi-state entries for erc-mode.
+	* emulation/viper.el (viper-major-mode-modifier-list):
+	Add insert-state and vi-state entries for erc-mode.
 	(viper-go-away, viper-set-hooks): Add and remove
 	viper-comint-mode-hook from erc-mode-hook as appropriate.
 
