@@ -38,6 +38,11 @@
 	* progmodes/python.el (python-end-of-block): Revert last change.
 	(python-end-of-statement): Make sure we move *forward*.
 
+2007-05-08  Richard Stallman  <rms@gnu.org>
+
+	* mail/mailabbrev.el (sendmail-pre-abbrev-expand-hook):
+	Don't include non-self-insert commands in the exception for `-'.
+
 2007-05-08  David Reitter  <david.reitter@gmail.com>
 
 	* progmodes/python.el (python-guess-indent): Check non-nullness
