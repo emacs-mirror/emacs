@@ -1,3 +1,9 @@
+2007-05-09  Edward O'Connor  <hober0@gmail.com>  (tiny change)
+
+	* progmodes/python.el (python-font-lock-keywords)
+	(python-open-block-statement-p, python-mode): Add support for the new
+	"with" keyword.
+
 2007-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* diff-mode.el (diff-apply-hunk, diff-test-hunk): Don't do by default

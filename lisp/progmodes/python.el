@@ -96,7 +96,7 @@
 	     "import" "in" "is" "lambda" "not" "or" "pass" "print"
 	     "raise" "return" "try" "while" "yield"
 	     ;; Future keywords
-	     "as" "None"
+	     "as" "None" "with"
              ;; Not real keywords, but close enough to be fontified as such
              "self" "True" "False")
 	 symbol-end)
@@ -374,7 +374,7 @@ BOS non-nil means point is known to be at beginning of statement."
   (save-excursion
     (unless bos (python-beginning-of-statement))
     (looking-at (rx (and (or "if" "else" "elif" "while" "for" "def"
-			     "class" "try" "except" "finally")
+			     "class" "try" "except" "finally" "with")
 			 symbol-end)))))
 
 (defun python-close-block-statement-p (&optional bos)
@@ -2239,7 +2239,7 @@ with skeleton expansions for compound statement templates.
        #'python-current-defun)
   (set (make-local-variable 'outline-regexp)
        (rx (* space) (or "class" "def" "elif" "else" "except" "finally"
-			 "for" "if" "try" "while")
+			 "for" "if" "try" "while" "with")
 	   symbol-end))
   (set (make-local-variable 'outline-heading-end-regexp) ":\\s-*\n")
   (set (make-local-variable 'outline-level) #'python-outline-level)
