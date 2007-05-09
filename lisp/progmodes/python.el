@@ -883,10 +883,13 @@ On a comment line, go to end of line."
 			   nil)
 			  ((eq 'string (syntax-ppss-context s))
 			   ;; Go to start of string and skip it.
-			   (goto-char (nth 8 s))
-			   (condition-case () ; beware invalid syntax
-			       (progn (forward-sexp) t)
-			     (error (end-of-line))))
+                           (let ((pos (point)))
+                             (goto-char (nth 8 s))
+                             (condition-case () ; beware invalid syntax
+                                 (progn (forward-sexp) t)
+                               ;; If there's a mismatched string, make sure
+                               ;; we still overall move *forward*.
+                               (error (goto-char pos) (end-of-line)))))
 			  ((python-skip-out t s))))
 	     (end-of-line))
 	   (unless comment
@@ -981,15 +984,11 @@ don't move and return nil.  Otherwise return t."
 		       (_ (if (python-comment-line-p)
 			      (python-skip-comments/blanks t)))
 		       (ci (current-indentation))
-		       (open (python-open-block-statement-p))
-		       opoint)
+		       (open (python-open-block-statement-p)))
 		  (if (and (zerop ci) (not open))
 		      (not (goto-char point))
 		    (catch 'done
-		      (setq opoint (point))
-		      (while (and (zerop (python-next-statement))
-		      		  (not (= opoint (point))))
-			(setq opoint (point))
+                      (while (zerop (python-next-statement))
 			(when (or (and open (<= (current-indentation) ci))
 				  (< (current-indentation) ci))
 			  (python-skip-comments/blanks t)
