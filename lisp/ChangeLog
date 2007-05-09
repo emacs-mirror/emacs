@@ -1,3 +1,7 @@
+2007-05-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-find-root): Stop searching when the user changes.
+
 2007-05-09  Edward O'Connor  <hober0@gmail.com>  (tiny change)
 
 	* progmodes/python.el (python-font-lock-keywords)
