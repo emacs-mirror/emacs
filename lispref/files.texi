@@ -374,8 +374,7 @@ buffer name instead.
 @end deffn
 
   Saving a buffer runs several hooks.  It also performs format
-conversion (@pxref{Format Conversion}), and may save text properties in
-``annotations'' (@pxref{Saving Properties}).
+conversion (@pxref{Format Conversion}).
 
 @defvar write-file-functions
 The value of this variable is a list of functions to be called before
@@ -496,9 +495,9 @@ and the length of the data inserted.  An error is signaled if
 
 The function @code{insert-file-contents} checks the file contents
 against the defined file formats, and converts the file contents if
-appropriate.  @xref{Format Conversion}.  It also calls the functions in
-the list @code{after-insert-file-functions}; see @ref{Saving
-Properties}.  Normally, one of the functions in the
+appropriate and also calls the functions in
+the list @code{after-insert-file-functions}.  @xref{Format Conversion}.
+Normally, one of the functions in the
 @code{after-insert-file-functions} list determines the coding system
 (@pxref{Coding Systems}) used for decoding the file's contents,
 including end-of-line conversion.
@@ -620,9 +619,10 @@ file name to use for purposes of locking and unlocking, overriding
 @var{filename} and @var{visit} for that purpose.
 
 The function @code{write-region} converts the data which it writes to
-the appropriate file formats specified by @code{buffer-file-format}.
-@xref{Format Conversion}.  It also calls the functions in the list
-@code{write-region-annotate-functions}; see @ref{Saving Properties}.
+the appropriate file formats specified by @code{buffer-file-format}
+and also calls the functions in the list
+@code{write-region-annotate-functions}.
+@xref{Format Conversion}.
 
 Normally, @code{write-region} displays the message @samp{Wrote
 @var{filename}} in the echo area.  If @var{visit} is neither @code{t}
@@ -2802,23 +2802,70 @@ is a good way to come up with one.
 @cindex file format conversion
 @cindex encoding file formats
 @cindex decoding file formats
-  The variable @code{format-alist} defines a list of @dfn{file formats},
-which describe textual representations used in files for the data (text,
-text-properties, and possibly other information) in an Emacs buffer.
-Emacs performs format conversion if appropriate when reading and writing
-files.
+@cindex text properties in files
+@cindex saving text properties
+  Emacs performs several steps to convert the data in a buffer (text,
+text properties, and possibly other information) to and from a
+representation suitable for storing into a file.  This section describes
+the fundamental functions that perform this @dfn{format conversion},
+namely @code{insert-file-contents} for reading a file into a buffer,
+and @code{write-region} for writing a buffer into a file.
+
+@menu
+* Overview: Format Conversion Overview.     @code{insert-file-contents} and @code{write-region}
+* Round-Trip: Format Conversion Round-Trip. Using @code{format-alist}.
+* Piecemeal: Format Conversion Piecemeal.   Specifying non-paired conversion.
+@end menu
+
+@node Format Conversion Overview
+@subsection Overview
+@noindent
+The function @code{insert-file-contents}:
+
+@itemize
+@item initially, inserts bytes from the file into the buffer;
+@item decodes bytes to characters as appropriate;
+@item processes formats as defined by entries in @code{format-alist}; and
+@item calls functions in @code{after-insert-file-functions}.
+@end itemize
+
+@noindent
+The function @code{write-region}:
+
+@itemize
+@item initially, calls functions in @code{write-region-annotate-functions};
+@item processes formats as defined by entries in @code{format-alist};
+@item encodes characters to bytes as appropriate; and
+@item modifies the file with the bytes.
+@end itemize
+
+  This shows the symmetry of the lowest-level operations; reading and
+writing handle things in opposite order.  The rest of this section
+describes the two facilities surrounding the three variables named
+above, as well as some related functions.  @ref{Coding Systems}, for
+details on character encoding and decoding.
+
+@node Format Conversion Round-Trip
+@subsection Round-Trip Specification
+
+  The most general of the two facilities is controlled by the variable
+@code{format-alist}, a list of @dfn{file format} specifications, which
+describe textual representations used in files for the data in an Emacs
+buffer.  The descriptions for reading and writing are paired, which is
+why we call this ``round-trip'' specification
+(@pxref{Format Conversion Piecemeal}, for non-paired specification).
 
 @defvar format-alist
 This list contains one format definition for each defined file format.
-@end defvar
-
-@cindex format definition
 Each format definition is a list of this form:
 
 @example
 (@var{name} @var{doc-string} @var{regexp} @var{from-fn} @var{to-fn} @var{modify} @var{mode-fn})
 @end example
+@end defvar
 
+@cindex format definition
+@noindent
 Here is what the elements in a format definition mean:
 
 @table @var
@@ -2955,6 +3002,89 @@ is @code{t}, the default, auto-saving uses the same format as a
 regular save in the same buffer.  This variable is always buffer-local
 in all buffers.
 @end defvar
+
+@node Format Conversion Piecemeal
+@subsection Piecemeal Specification
+
+  In contrast to the round-trip specification described in the previous
+subsection (@pxref{Format Conversion Round-Trip}), you can use the variables
+@code{after-insert-file-functions} and @code{write-region-annotate-functions}
+to separately control the respective reading and writing conversions.
+
+  Conversion starts with one representation and produces another
+representation.  When there is only one conversion to do, there is no
+conflict about what to start with.  However, when there are multiple
+conversions involved, conflict may arise when two conversions need to
+start with the same data.
+
+  This situation is best understood in the context of converting text
+properties during @code{write-region}.  For example, the character at
+position 42 in a buffer is @samp{X} with a text property @code{foo}.  If
+the conversion for @code{foo} is done by inserting into the buffer, say,
+@samp{FOO:}, then that changes the character at position 42 from
+@samp{X} to @samp{F}.  The next conversion will start with the wrong
+data straight away.
+
+  To avoid conflict, cooperative conversions do not modify the buffer,
+but instead specify @dfn{annotations}, a list of elements of the form
+@code{(@var{position} . @var{string})}, sorted in order of increasing
+@var{position}.
+
+  If there is more than one conversion, @code{write-region} merges their
+annotations destructively into one sorted list.  Later, when the text
+from the buffer is actually written to the file, it intermixes the
+specified annotations at the corresponding positions.  All this takes
+place without modifying the buffer.
+
+@c ??? What about ``overriding'' conversions like those allowed
+@c ??? for `write-region-annotate-functions', below?  --ttn
+
+  In contrast, when reading, the annotations intermixed with the text
+are handled immediately.  @code{insert-file-contents} sets point to the
+beginning of some text to be converted, then calls the conversion
+functions with the length of that text.  These functions should always
+return with point at the beginning of the inserted text.  This approach
+makes sense for reading because annotations removed by the first
+converter can't be mistakenly processed by a later converter.
+
+  Each conversion function should scan for the annotations it
+recognizes, remove the annotation, modify the buffer text (to set a text
+property, for example), and return the updated length of the text, as it
+stands after those changes.  The value returned by one function becomes
+the argument to the next function.
+
+@defvar write-region-annotate-functions
+A list of functions for @code{write-region} to call.  Each function in
+the list is called with two arguments: the start and end of the region
+to be written.  These functions should not alter the contents of the
+buffer.  Instead, they should return annotations.
+
+@c ??? Following adapted from comment in `build_annotations' (fileio.c).
+@c ??? Perhaps this is intended for internal use only?
+@c ??? Someone who understands this, please reword it. --ttn
+As a special case, if a function returns with a different buffer
+current, Emacs takes it to mean the current buffer contains altered text
+to be output, and discards all previous annotations because they should
+have been dealt with by this function.
+@end defvar
+
+@defvar after-insert-file-functions
+Each function in this list is called by @code{insert-file-contents}
+with one argument, the number of characters inserted, and should
+return the new character count, leaving point the same.
+@c ??? The docstring mentions a handler from `file-name-handler-alist'
+@c     "intercepting" `insert-file-contents'.  Hmmm.  --ttn
+@end defvar
+
+  We invite users to write Lisp programs to store and retrieve text
+properties in files, using these hooks, and thus to experiment with
+various data formats and find good ones.  Eventually we hope users
+will produce good, general extensions we can install in Emacs.
+
+  We suggest not trying to handle arbitrary Lisp objects as text property
+names or values---because a program that general is probably difficult
+to write, and slow.  Instead, choose a set of possible data types that
+are reasonably flexible, and not too hard to encode.
 
 @ignore
    arch-tag: 141f74ce-6ae3-40dc-a6c4-ef83fc4ec35c
