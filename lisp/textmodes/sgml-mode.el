@@ -45,12 +45,12 @@
   :group 'languages)
 
 (defcustom sgml-basic-offset 2
-  "*Specifies the basic indentation level for `sgml-indent-line'."
+  "Specifies the basic indentation level for `sgml-indent-line'."
   :type 'integer
   :group 'sgml)
 
 (defcustom sgml-transformation-function 'identity
-  "*Default value for `skeleton-transformation-function' in SGML mode."
+  "Default value for `skeleton-transformation-function' in SGML mode."
   :type 'function
   :group 'sgml)
 
@@ -166,7 +166,7 @@ This takes effect when first loading the `sgml-mode' library.")
   "Syntax table used to parse SGML tags.")
 
 (defcustom sgml-name-8bit-mode nil
-  "*When non-nil, insert non-ASCII characters as named entities."
+  "When non-nil, insert non-ASCII characters as named entities."
   :type 'boolean
   :group 'sgml)
 
@@ -225,7 +225,7 @@ Currently, only Latin-1 characters are supported.")
 ;; The -s option suppresses output.
 
 (defcustom sgml-validate-command "nsgmls -s" ; replaced old `sgmls'
-  "*The command to validate an SGML document.
+  "The command to validate an SGML document.
 The file name of current buffer file name will be appended to this,
 separated by a space."
   :type 'string
@@ -238,7 +238,7 @@ separated by a space."
 ;; I doubt that null end tags are used much for large elements,
 ;; so use a small distance here.
 (defcustom sgml-slash-distance 1000
-  "*If non-nil, is the maximum distance to search for matching `/'."
+  "If non-nil, is the maximum distance to search for matching `/'."
   :type '(choice (const nil) integer)
   :group 'sgml)
 
@@ -318,7 +318,7 @@ When more these are fontified together with `sgml-font-lock-keywords'.")
     ("!doctype")
     ("!element")
     ("!entity"))
-  "*Alist of tag names for completing read and insertion rules.
+  "Alist of tag names for completing read and insertion rules.
 This alist is made up as
 
   ((\"tag\" . TAGRULE)
@@ -348,15 +348,14 @@ an optional alist of possible values."
     ("!doctype" . "Document type (DTD) declaration")
     ("!element" . "Tag declaration")
     ("!entity" . "Entity (macro) declaration"))
-  "*Alist of tag name and short description."
+  "Alist of tag name and short description."
   :type '(repeat (cons (string :tag "Tag Name")
 		       (string :tag "Description")))
   :group 'sgml)
 
 (defcustom sgml-xml-mode nil
-  "*When non-nil, tag insertion functions will be XML-compliant.
-If this variable is customized, the custom value is used always.
-Otherwise, it is set to be buffer-local when the file has
+  "When non-nil, tag insertion functions will be XML-compliant.
+It is set to be buffer-local when the file has
 a DOCTYPE or an XML declaration."
   :type 'boolean
   :version "22.1"
@@ -1010,8 +1009,10 @@ See `sgml-tag-alist' for info about attribute rules."
 	      (insert alist ?\")
 	    (delete-backward-char 2)))
       (insert "=\"")
-      (when alist
-        (insert (skeleton-read '(completing-read "Value: " alist))))
+      (if (cdr alist)
+          (insert (skeleton-read '(completing-read "Value: " alist)))
+        (when (null alist)
+          (insert (skeleton-read '(read-string "Value: ")))))
       (insert ?\"))))
 
 (defun sgml-quote (start end &optional unquotep)

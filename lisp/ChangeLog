@@ -1,3 +1,8 @@
+2007-05-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/sgml-mode.el (sgml-value): Fix handling of attributes which
+	can take any number of values.
+
 2007-05-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/tex-mode.el (tex-font-lock-keywords-2): Add citet and citep
