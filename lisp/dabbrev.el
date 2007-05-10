@@ -128,7 +128,7 @@ Set this to nil if no characters should be skipped."
 		 (const :tag "off" nil))
   :group 'dabbrev)
 
-(defcustom dabbrev--eliminate-newlines t
+(defcustom dabbrev-eliminate-newlines t
   "*Non-nil means dabbrev should not insert newlines.
 Instead it converts them to spaces."
   :type 'boolean
@@ -913,10 +913,12 @@ to record whether we upcased the expansion, downcased it, or did neither."
 			  ((equal abbrev (downcase abbrev)) 'downcase)))))
 
     ;; Convert whitespace to single spaces.
-    (if dabbrev--eliminate-newlines
-	;; Start searching at end of ABBREV so that any whitespace
-	;; carried over from the existing text is not changed.
-	(let ((pos (length abbrev)))
+    (if dabbrev-eliminate-newlines
+	(let ((pos
+	       (if (equal abbrev " ") 0 (length abbrev))))
+	  ;; If ABBREV is real, search after the end of it.
+	  ;; If ABBREV is space and we are copying successive words,
+	  ;; search starting at the front.
 	  (while (string-match "[\n \t]+" expansion pos)
 	    (setq pos (1+ (match-beginning 0)))
 	    (setq expansion (replace-match " " nil nil expansion)))))
