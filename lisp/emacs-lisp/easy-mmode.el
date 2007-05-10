@@ -197,7 +197,7 @@ Use the command `%s' to change this variable." pretty-name mode))
 
 	  (let ((base-doc-string
                  (concat "Non-nil if %s is enabled.
-See the command `%s' for a description of this minor-mode."
+See the command `%s' for a description of this minor mode."
                          (if body "
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
