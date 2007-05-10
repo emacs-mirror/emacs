@@ -1,3 +1,9 @@
+2007-05-10  Edward O'Connor  <hober0@gmail.com>  (tiny change)
+
+	* progmodes/python.el (python-font-lock-keywords)
+	(python-open-block-statement-p, python-mode): Add support for the new
+	"with" keyword.
+
 2007-05-10  Richard Stallman  <rms@gnu.org>
 
 	* international/iso-cvt.el (iso-cvt-read-only): Ignore arguments.
