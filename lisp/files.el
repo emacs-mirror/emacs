@@ -2151,8 +2151,21 @@ If FUNCTION is nil, then it is not called.  (That is a way of saying
 \"allow `auto-mode-alist' to decide for these files.\")")
 (put 'magic-mode-alist 'risky-local-variable t)
 
+(defvar file-start-mode-alist
+  nil
+  "Like `magic-mode-alist' but has lower priority than `auto-mode-alist'.
+Each element looks like (REGEXP . FUNCTION) or (MATCH-FUNCTION . FUNCTION).
+After visiting a file, if REGEXP matches the text at the beginning of the
+buffer, or calling MATCH-FUNCTION returns non-nil, `normal-mode' will
+call FUNCTION, provided that `magic-mode-alist' and `auto-mode-alist'
+have not specified a mode for this file.
+
+If FUNCTION is nil, then it is not called.")
+(put 'file-start-mode-alist 'risky-local-variable t)
+
 (defvar magic-mode-regexp-match-limit 4000
-  "Upper limit on `magic-mode-alist' regexp matches.")
+  "Upper limit on `magic-mode-alist' regexp matches.
+Also applies to `file-start-mode-alist'.")
 
 (defun set-auto-mode (&optional keep-mode-if-same)
   "Select major mode appropriate for current buffer.
@@ -2207,10 +2220,10 @@ only set the major mode, if that would change it."
 	      (or (set-auto-mode-0 mode keep-mode-if-same)
 		  ;; continuing would call minor modes again, toggling them off
 		  (throw 'nop nil))))))
+    ;; If we didn't, look for an interpreter specified in the first line.
+    ;; As a special case, allow for things like "#!/bin/env perl", which
+    ;; finds the interpreter anywhere in $PATH.
     (unless done
-      ;; If we didn't, look for an interpreter specified in the first line.
-      ;; As a special case, allow for things like "#!/bin/env perl", which
-      ;; finds the interpreter anywhere in $PATH.
       (setq mode (save-excursion
 		   (goto-char (point-min))
 		   (if (looking-at auto-mode-interpreter-regexp)
@@ -2223,7 +2236,7 @@ only set the major mode, if that would change it."
       ;; If we found an interpreter mode to use, invoke it now.
       (if done
 	  (set-auto-mode-0 (cdr done) keep-mode-if-same)))
-    ;; If we didn't, match the buffer beginning against magic-mode-alist.
+    ;; Next try matching the buffer beginning against magic-mode-alist.
     (unless done
       (if (setq done (save-excursion
 		       (goto-char (point-min))
@@ -2236,39 +2249,55 @@ only set the major mode, if that would change it."
 					  (if (functionp re)
 					      (funcall re)
 					    (looking-at re)))))))
-	  (set-auto-mode-0 done keep-mode-if-same)
-	;; Compare the filename against the entries in auto-mode-alist.
-	(if buffer-file-name
-	    (let ((name buffer-file-name))
-	      ;; Remove backup-suffixes from file name.
-	      (setq name (file-name-sans-versions name))
-	      (while name
-		;; Find first matching alist entry.
-		(setq mode
-		      (if (memq system-type '(vax-vms windows-nt cygwin))
-			  ;; System is case-insensitive.
-			  (let ((case-fold-search t))
-			    (assoc-default name auto-mode-alist
-					   'string-match))
-			;; System is case-sensitive.
-			(or
-			 ;; First match case-sensitively.
-			 (let ((case-fold-search nil))
-			   (assoc-default name auto-mode-alist
-					  'string-match))
-			 ;; Fallback to case-insensitive match.
-			 (and auto-mode-case-fold
-			      (let ((case-fold-search t))
-				(assoc-default name auto-mode-alist
-					       'string-match))))))
-		(if (and mode
-			 (consp mode)
-			 (cadr mode))
-		    (setq mode (car mode)
-			  name (substring name 0 (match-beginning 0)))
-		  (setq name))
-		(when mode
-		  (set-auto-mode-0 mode keep-mode-if-same)))))))))
+	  (set-auto-mode-0 done keep-mode-if-same)))
+    ;; Next compare the filename against the entries in auto-mode-alist.
+    (unless done
+      (if buffer-file-name
+	  (let ((name buffer-file-name))
+	    ;; Remove backup-suffixes from file name.
+	    (setq name (file-name-sans-versions name))
+	    (while name
+	      ;; Find first matching alist entry.
+	      (setq mode
+		    (if (memq system-type '(vax-vms windows-nt cygwin))
+			;; System is case-insensitive.
+			(let ((case-fold-search t))
+			  (assoc-default name auto-mode-alist
+					 'string-match))
+		      ;; System is case-sensitive.
+		      (or
+		       ;; First match case-sensitively.
+		       (let ((case-fold-search nil))
+			 (assoc-default name auto-mode-alist
+					'string-match))
+		       ;; Fallback to case-insensitive match.
+		       (and auto-mode-case-fold
+			    (let ((case-fold-search t))
+			      (assoc-default name auto-mode-alist
+					     'string-match))))))
+	      (if (and mode
+		       (consp mode)
+		       (cadr mode))
+		  (setq mode (car mode)
+			name (substring name 0 (match-beginning 0)))
+		(setq name))
+	      (when mode
+		(set-auto-mode-0 mode keep-mode-if-same)
+		(setq done t))))))
+    ;; Next try matching the buffer beginning against file-start-mode-alist.
+    (unless done
+      (if (setq done (save-excursion
+		       (goto-char (point-min))
+		       (save-restriction
+			 (narrow-to-region (point-min)
+					   (min (point-max)
+						(+ (point-min) magic-mode-regexp-match-limit)))
+			 (assoc-default nil file-start-mode-alist
+					(lambda (re dummy)
+					  (if (functionp re)
+					      (funcall re)
+					    (looking-at re)))))))
+	  (set-auto-mode-0 done keep-mode-if-same)))))
 
 ;; When `keep-mode-if-same' is set, we are working on behalf of
 ;; set-visited-file-name.  In that case, if the major mode specified is the
