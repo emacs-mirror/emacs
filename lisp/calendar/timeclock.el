@@ -375,8 +375,9 @@ discover the name of the project."
 	(setq timeclock-discrepancy
 	      (- (or timeclock-discrepancy 0) workday))
 	(if (not (= workday timeclock-workday))
-	    (timeclock-log "h" (and (numberp arg)
-				    (number-to-string arg))))))
+	    (timeclock-log "h" (number-to-string
+				(/ workday (if (zerop (% workday (* 60 60)))
+					       60 60.0) 60))))))
     (timeclock-log "i" (or project
 			   (and timeclock-get-project-function
 				(or find-project (interactive-p))
@@ -651,31 +652,35 @@ that variable's documentation."
   "Log the event CODE to the timeclock log, at the time of call.
 If PROJECT is a string, it represents the project which the event is
 being logged for.  Normally only \"in\" events specify a project."
-  (with-current-buffer (find-file-noselect timeclock-file)
-    (goto-char (point-max))
-    (if (not (bolp))
-	(insert "\n"))
-    (let ((now (current-time)))
-      (insert code " "
-	      (format-time-string "%Y/%m/%d %H:%M:%S" now)
-	      (or (and project
-		       (stringp project)
-		       (> (length project) 0)
-		       (concat " " project))
-		  "")
-	      "\n")
-      (if (equal (downcase code) "o")
-	  (setq timeclock-last-period
-		(- (timeclock-time-to-seconds now)
-		   (timeclock-time-to-seconds
-		    (cadr timeclock-last-event)))
-		timeclock-discrepancy
-		(+ timeclock-discrepancy
-		   timeclock-last-period)))
-      (setq timeclock-last-event (list code now project)))
-    (save-buffer)
-    (run-hooks 'timeclock-event-hook)
-    (kill-buffer (current-buffer))))
+  (let ((extant-timelog (find-buffer-visiting timeclock-file)))
+    (with-current-buffer (find-file-noselect timeclock-file)
+      (save-excursion
+	(save-restriction
+	  (widen)
+	  (goto-char (point-max))
+	  (if (not (bolp))
+	      (insert "\n"))
+	  (let ((now (current-time)))
+	    (insert code " "
+		    (format-time-string "%Y/%m/%d %H:%M:%S" now)
+		    (or (and project
+			     (stringp project)
+			     (> (length project) 0)
+			     (concat " " project))
+			"")
+		    "\n")
+	    (if (equal (downcase code) "o")
+		(setq timeclock-last-period
+		      (- (timeclock-time-to-seconds now)
+			 (timeclock-time-to-seconds
+			  (cadr timeclock-last-event)))
+		      timeclock-discrepancy
+		      (+ timeclock-discrepancy
+			 timeclock-last-period)))
+	    (setq timeclock-last-event (list code now project)))))
+      (save-buffer)
+      (run-hooks 'timeclock-event-hook)
+      (unless extant-timelog (kill-buffer (current-buffer))))))
 
 (defvar timeclock-moment-regexp
   (concat "\\([bhioO]\\)\\s-+"
