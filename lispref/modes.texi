@@ -616,6 +616,11 @@ the text at the beginning of the buffer matches @var{regexp} and
 @code{auto-mode-alist} gets to decide the mode.
 @end defvar
 
+@defvar file-start-mode-alist
+This works like @code{magic-mode-alist}, except that it is handled
+only if @code{auto-mode-alist} does not specify a mode for this file.
+@end defvar
+
 @defvar auto-mode-alist
 This variable contains an association list of file name patterns
 (regular expressions) and corresponding major mode commands.  Usually,
