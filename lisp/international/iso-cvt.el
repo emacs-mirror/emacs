@@ -823,13 +823,13 @@ Optional arg BUFFER is ignored (for use in `format-alist')."
  (iso-translate-conventions from to iso-sgml2iso-trans-tab))
 
 ;;;###autoload
-(defun iso-cvt-read-only ()
+(defun iso-cvt-read-only (&rest ignore)
   "Warn that format is read-only."
   (interactive)
   (error "This format is read-only; specify another format for writing"))
 
 ;;;###autoload
-(defun iso-cvt-write-only ()
+(defun iso-cvt-write-only (&rest ignore)
   "Warn that format is write-only."
   (interactive)
   (error "This format is write-only"))
