@@ -623,6 +623,7 @@ Select Methods
 * IMAP::                        Using Gnus as a @acronym{IMAP} client.
 * Other Sources::               Reading directories, files, SOUP packets.
 * Combined Groups::             Combining groups into one group.
+* Email Based Diary::           Using mails to manage diary events in Gnus.
 * Gnus Unplugged::              Reading news and mail offline.
 
 Server Buffer
@@ -719,6 +720,25 @@ Combined Groups
 
 * Virtual Groups::              Combining articles from many groups.
 * Kibozed Groups::              Looking through parts of the newsfeed for articles.
+
+Email Based Diary
+
+* The NNDiary Back End::        Basic setup and usage.
+* The Gnus Diary Library::      Utility toolkit on top of nndiary.
+* Sending or Not Sending::      A final note on sending diary messages.
+
+The NNDiary Back End
+
+* Diary Messages::              What makes a message valid for nndiary.
+* Running NNDiary::             NNDiary has two modes of operation.
+* Customizing NNDiary::         Bells and whistles.
+
+The Gnus Diary Library
+
+* Diary Summary Line Format::           A nicer summary buffer line format.
+* Diary Articles Sorting::              A nicer way to sort messages.
+* Diary Headers Generation::            Not doing it manually.
+* Diary Group Parameters::              Not handling them manually.
 
 Gnus Unplugged
 
@@ -8148,8 +8168,8 @@ Some variables to customize the citation highlights:
 @vindex gnus-cite-parse-max-size
 
 @item gnus-cite-parse-max-size
-If the article size if bigger than this variable (which is 25000 by
-default), no citation highlighting will be performed.
+If the article size in bytes is bigger than this variable (which is
+25000 by default), no citation highlighting will be performed.
 
 @item gnus-cite-max-prefix
 @vindex gnus-cite-max-prefix
@@ -12343,6 +12363,7 @@ The different methods all have their peculiarities, of course.
 * IMAP::                        Using Gnus as a @acronym{IMAP} client.
 * Other Sources::               Reading directories, files, SOUP packets.
 * Combined Groups::             Combining groups into one group.
+* Email Based Diary::           Using mails to manage diary events in Gnus.
 * Gnus Unplugged::              Reading news and mail offline.
 @end menu
 
@@ -17877,6 +17898,381 @@ component articles.
 Articles marked as read in the @code{nnkiboze} group will have
 their @acronym{NOV} lines removed from the @acronym{NOV} file.
 
+
+@node Email Based Diary
+@section Email Based Diary
+@cindex diary
+@cindex email based diary
+@cindex calendar
+
+This section describes a special mail back end called @code{nndiary},
+and its companion library @code{gnus-diary}.  It is ``special'' in the
+sense that it is not meant to be one of the standard alternatives for
+reading mail with Gnus.  See @ref{Choosing a Mail Back End} for that.
+Instead, it is used to treat @emph{some} of your mails in a special way,
+namely, as event reminders.
+
+Here is a typical scenario:
+
+@itemize @bullet
+@item
+You've got a date with Andy Mc Dowell or Bruce Willis (select according
+to your sexual preference) in one month.  You don't want to forget it.
+@item
+So you send a ``reminder'' message (actually, a diary one) to yourself.
+@item
+You forget all about it and keep on getting and reading new mail, as usual.
+@item
+From time to time, as you type `g' in the group buffer and as the date
+is getting closer, the message will pop up again to remind you of your
+appointment, just as if it were new and unread.
+@item
+Read your ``new'' messages, this one included, and start dreaming again
+of the night you're gonna have.
+@item
+Once the date is over (you actually fell asleep just after dinner), the
+message will be automatically deleted if it is marked as expirable.
+@end itemize
+
+The Gnus Diary back end has the ability to handle regular appointments
+(that wouldn't ever be deleted) as well as punctual ones, operates as a
+real mail back end and is configurable in many ways.  All of this is
+explained in the sections below.
+
+@menu
+* The NNDiary Back End::        Basic setup and usage.
+* The Gnus Diary Library::      Utility toolkit on top of nndiary.
+* Sending or Not Sending::      A final note on sending diary messages.
+@end menu
+
+
+@node The NNDiary Back End
+@subsection The NNDiary Back End
+@cindex nndiary
+@cindex the nndiary back end
+
+@code{nndiary} is a back end very similar to @code{nnml} (@pxref{Mail
+Spool}).  Actually, it could appear as a mix of @code{nnml} and
+@code{nndraft}.  If you know @code{nnml}, you're already familiar with
+the message storing scheme of @code{nndiary}: one file per message, one
+directory per group.
+
+  Before anything, there is one requirement to be able to run
+@code{nndiary} properly: you @emph{must} use the group timestamp feature
+of Gnus.  This adds a timestamp to each group's parameters.  @ref{Group
+Timestamp} to see how it's done.
+
+@menu
+* Diary Messages::              What makes a message valid for nndiary.
+* Running NNDiary::             NNDiary has two modes of operation.
+* Customizing NNDiary::         Bells and whistles.
+@end menu
+
+@node Diary Messages
+@subsubsection Diary Messages
+@cindex nndiary messages
+@cindex nndiary mails
+
+@code{nndiary} messages are just normal ones, except for the mandatory
+presence of 7 special headers.  These headers are of the form
+@code{X-Diary-<something>}, @code{<something>} being one of
+@code{Minute}, @code{Hour}, @code{Dom}, @code{Month}, @code{Year},
+@code{Time-Zone} and @code{Dow}.  @code{Dom} means ``Day of Month'', and
+@code{dow} means ``Day of Week''.  These headers actually behave like
+crontab specifications and define the event date(s):
+
+@itemize @bullet
+@item
+For all headers except the @code{Time-Zone} one, a header value is
+either a star (meaning all possible values), or a list of fields
+(separated by a comma).
+@item
+A field is either an integer, or a range.
+@item
+A range is two integers separated by a dash.
+@item
+Possible integer values are 0--59 for @code{Minute}, 0--23 for
+@code{Hour}, 1--31 for @code{Dom}, 1--12 for @code{Month}, above 1971
+for @code{Year} and 0--6 for @code{Dow} (0 meaning Sunday).
+@item
+As a special case, a star in either @code{Dom} or @code{Dow} doesn't
+mean ``all possible values'', but ``use only the other field''.  Note
+that if both are star'ed, the use of either one gives the same result.
+@item
+The @code{Time-Zone} header is special in that it can only have one
+value (@code{GMT}, for instance).  A star doesn't mean ``all possible
+values'' (because it makes no sense), but ``the current local time
+zone''.  Most of the time, you'll be using a star here.  However, for a
+list of available time zone values, see the variable
+@code{nndiary-headers}.
+@end itemize
+
+As a concrete example, here are the diary headers to add to your message
+for specifying ``Each Monday and each 1st of month, at 12:00, 20:00,
+21:00, 22:00, 23:00 and 24:00, from 1999 to 2010'' (I'll let you find
+what to do then):
+
+@example
+X-Diary-Minute: 0
+X-Diary-Hour: 12, 20-24
+X-Diary-Dom: 1
+X-Diary-Month: *
+X-Diary-Year: 1999-2010
+X-Diary-Dow: 1
+X-Diary-Time-Zone: *
+@end example
+
+@node Running NNDiary
+@subsubsection Running NNDiary
+@cindex running nndiary
+@cindex nndiary operation modes
+
+@code{nndiary} has two modes of operation: ``traditional'' (the default)
+and ``autonomous''.  In traditional mode, @code{nndiary} does not get new
+mail by itself.  You have to move (@kbd{B m}) or copy (@kbd{B c}) mails
+from your primary mail back end to nndiary groups in order to handle them
+as diary messages.  In autonomous mode, @code{nndiary} retrieves its own
+mail and handles it independently from your primary mail back end.
+
+One should note that Gnus is not inherently designed to allow several
+``master'' mail back ends at the same time.  However, this does make
+sense with @code{nndiary}: you really want to send and receive diary
+messages to your diary groups directly.  So, @code{nndiary} supports
+being sort of a ``second primary mail back end'' (to my knowledge, it is
+the only back end offering this feature).  However, there is a limitation
+(which I hope to fix some day): respooling doesn't work in autonomous
+mode.
+
+In order to use @code{nndiary} in autonomous mode, you have several
+things to do:
+
+@itemize @bullet
+@item
+Allow @code{nndiary} to retrieve new mail by itself.  Put the following
+line in your @file{~/.gnus.el} file:
+
+@lisp
+(setq nndiary-get-new-mail t)
+@end lisp
+@item
+You must arrange for diary messages (those containing @code{X-Diary-*}
+headers) to be split in a private folder @emph{before} Gnus treat them.
+Again, this is needed because Gnus cannot (yet ?) properly handle
+multiple primary mail back ends.  Getting those messages from a separate
+source will compensate this misfeature to some extent.
+
+As an example, here's my procmailrc entry to store diary files in
+@file{~/.nndiary} (the default @code{nndiary} mail source file):
+
+@example
+:0 HD :
+* ^X-Diary
+.nndiary
+@end example
+@end itemize
+
+Once this is done, you might want to customize the following two options
+that affect the diary mail retrieval and splitting processes:
+
+@defvar nndiary-mail-sources
+This is the diary-specific replacement for the standard
+@code{mail-sources} variable.  It obeys the same syntax, and defaults to
+@code{(file :path "~/.nndiary")}.
+@end defvar
+
+@defvar nndiary-split-methods
+This is the diary-specific replacement for the standard
+@code{nnmail-split-methods} variable.  It obeys the same syntax.
+@end defvar
+
+  Finally, you may add a permanent @code{nndiary} virtual server
+(something like @code{(nndiary "diary")} should do) to your
+@code{gnus-secondary-select-methods}.
+
+  Hopefully, almost everything (see the TODO section in
+@file{nndiary.el}) will work as expected when you restart Gnus: in
+autonomous mode, typing @kbd{g} and @kbd{M-g} in the group buffer, will
+also get your new diary mails and split them according to your
+diary-specific rules, @kbd{F} will find your new diary groups etc.
+
+@node Customizing NNDiary
+@subsubsection Customizing NNDiary
+@cindex customizing nndiary
+@cindex nndiary customization
+
+Now that @code{nndiary} is up and running, it's time to customize it.
+The custom group is called @code{nndiary} (no, really ?!).  You should
+browse it to figure out which options you'd like to tweak.  The following
+two variables are probably the only ones you will want to change:
+
+@defvar nndiary-reminders
+This is the list of times when you want to be reminded of your
+appointements (e.g. 3 weeks before, then 2 days before, then 1 hour
+before and that's it).  Remember that ``being reminded'' means that the
+diary message will pop up as brand new and unread again when you get new
+mail.
+@end defvar
+
+@defvar nndiary-week-starts-on-monday
+Rather self-explanatory.  Otherwise, Sunday is assumed (this is the
+default).
+@end defvar
+
+
+@node The Gnus Diary Library
+@subsection The Gnus Diary Library
+@cindex gnus-diary
+@cindex the gnus diary library
+
+Using @code{nndiary} manually (I mean, writing the headers by hand and
+so on) would be rather boring.  Fortunately, there is a library called
+@code{gnus-diary} written on top of @code{nndiary}, that does many
+useful things for you.
+
+  In order to use it, add the following line to your @file{~/.gnus.el} file:
+
+@lisp
+(require 'gnus-diary)
+@end lisp
+
+  Also, you shouldn't use any @code{gnus-user-format-function-[d|D]}
+(@pxref{Summary Buffer Lines}).  @code{gnus-diary} provides both of these
+(sorry if you used them before).
+
+
+@menu
+* Diary Summary Line Format::           A nicer summary buffer line format.
+* Diary Articles Sorting::              A nicer way to sort messages.
+* Diary Headers Generation::            Not doing it manually.
+* Diary Group Parameters::              Not handling them manually.
+@end menu
+
+@node Diary Summary Line Format
+@subsubsection Diary Summary Line Format
+@cindex diary summary buffer line
+@cindex diary summary line format
+
+Displaying diary messages in standard summary line format (usually
+something like @samp{From Joe: Subject}) is pretty useless.  Most of
+the time, you're the one who wrote the message, and you mostly want to
+see the event's date.
+
+  @code{gnus-diary} provides two supplemental user formats to be used in
+summary line formats.  @code{D} corresponds to a formatted time string
+for the next occurrence of the event (e.g. ``Sat, Sep 22 01, 12:00''),
+while @code{d} corresponds to an approximative remaining time until the
+next occurrence of the event (e.g. ``in 6 months, 1 week'').
+
+  For example, here's how Joe's birthday is displayed in my
+@code{nndiary+diary:birthdays} summary buffer (note that the message is
+expirable, but will never be deleted, as it specifies a periodic event):
+
+@example
+   E  Sat, Sep 22 01, 12:00: Joe's birthday (in 6 months, 1 week)
+@end example
+
+In order to get something like the above, you would normally add the
+following line to your diary groups'parameters:
+
+@lisp
+(gnus-summary-line-format "%U%R%z %uD: %(%s%) (%ud)\n")
+@end lisp
+
+However, @code{gnus-diary} does it automatically (@pxref{Diary Group
+Parameters}).  You can however customize the provided summary line format
+with the following user options:
+
+@defvar gnus-diary-summary-line-format
+Defines the summary line format used for diary groups (@pxref{Summary
+Buffer Lines}).  @code{gnus-diary} uses it to automatically update the
+diary groups'parameters.
+@end defvar
+
+@defvar gnus-diary-time-format
+Defines the format to display dates in diary summary buffers.  This is
+used by the @code{D} user format.  See the docstring for details.
+@end defvar
+
+@defvar gnus-diary-delay-format-function
+Defines the format function to use for displaying delays (remaining
+times) in diary summary buffers.  This is used by the @code{d} user
+format.  There are currently built-in functions for English and French;
+you can also define your own.  See the docstring for details.
+@end defvar
+
+@node Diary Articles Sorting
+@subsubsection Diary Articles Sorting
+@cindex diary articles sorting
+@cindex diary summary lines sorting
+@findex gnus-summary-sort-by-schedule
+@findex gnus-thread-sort-by-schedule
+@findex gnus-article-sort-by-schedule
+
+@code{gnus-diary} provides new sorting functions (@pxref{Sorting the
+Summary Buffer} ) called @code{gnus-summary-sort-by-schedule},
+@code{gnus-thread-sort-by-schedule} and
+@code{gnus-article-sort-by-schedule}.  These functions let you organize
+your diary summary buffers from the closest event to the farthest one.
+
+@code{gnus-diary} automatically installs
+@code{gnus-summary-sort-by-schedule} as a menu item in the summary
+buffer's ``sort'' menu, and the two others as the primary (hence
+default) sorting functions in the group parameters (@pxref{Diary Group
+Parameters}).
+
+@node Diary Headers Generation
+@subsubsection Diary Headers Generation
+@cindex diary headers generation
+@findex gnus-diary-check-message
+
+@code{gnus-diary} provides a function called
+@code{gnus-diary-check-message} to help you handle the @code{X-Diary-*}
+headers.  This function ensures that the current message contains all the
+required diary headers, and prompts you for values or corrections if
+needed.
+
+  This function is hooked into the @code{nndiary} back end, so that
+moving or copying an article to a diary group will trigger it
+automatically.  It is also bound to @kbd{C-c D c} in @code{message-mode}
+and @code{article-edit-mode} in order to ease the process of converting
+a usual mail to a diary one.
+
+  This function takes a prefix argument which will force prompting of
+all diary headers, regardless of their presence or validity.  That way,
+you can very easily reschedule an already valid diary message, for
+instance.
+
+@node Diary Group Parameters
+@subsubsection Diary Group Parameters
+@cindex diary group parameters
+
+When you create a new diary group, or visit one, @code{gnus-diary}
+automatically checks your group parameters and if needed, sets the
+summary line format to the diary-specific value, installs the
+diary-specific sorting functions, and also adds the different
+@code{X-Diary-*} headers to the group's posting-style.  It is then easier
+to send a diary message, because if you use @kbd{C-u a} or @kbd{C-u m}
+on a diary group to prepare a message, these headers will be inserted
+automatically (although not filled with proper values yet).
+
+@node Sending or Not Sending
+@subsection Sending or Not Sending
+
+Well, assuming you've read of of the above, here are two final notes on
+mail sending with @code{nndiary}:
+
+@itemize @bullet
+@item
+@code{nndiary} is a @emph{real} mail back end.  You really send real diary
+messsages for real.  This means for instance that you can give
+appointements to anybody (provided they use Gnus and @code{nndiary}) by
+sending the diary message to them as well.
+@item
+However, since @code{nndiary} also has a @code{request-post} method, you
+can also use @kbd{C-u a} instead of @kbd{C-u m} on a diary group and the
+message won't actually be sent; just stored locally in the group. This
+comes in very handy for private appointments.
+@end itemize
 
 @node Gnus Unplugged
 @section Gnus Unplugged
