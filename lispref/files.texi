@@ -2856,9 +2856,10 @@ convert the usual Emacs data representation into this format.
 If @var{to-fn} is a string, it is a shell command; Emacs runs the
 command as a filter to perform the conversion.
 
-If @var{to-fn} is a function, it is called with two arguments, @var{begin}
-and @var{end}, which specify the part of the buffer it should convert.
-There are two ways it can do the conversion:
+If @var{to-fn} is a function, it is called with three arguments:
+@var{begin} and @var{end}, which specify the part of the buffer it
+should convert, and @var{buffer}, which specifies which buffer.  There
+are two ways it can do the conversion:
 
 @itemize @bullet
 @item
