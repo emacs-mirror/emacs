@@ -1,5 +1,12 @@
 2007-05-10  Richard Stallman  <rms@gnu.org>
 
+	* keymaps.texi (Scanning Keymaps): Update where-is-internal example.
+
+	* help.texi (Keys in Documentation): Add reference to
+	Documentation Tips.
+
+	* files.texi (Format Conversion): TO-FN gets three arguments.
+
 	* modes.texi (Auto Major Mode): Document file-start-mode-alist.
 
 2007-05-06  Richard Stallman  <rms@gnu.org>
