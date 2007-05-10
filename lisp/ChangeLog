@@ -1,3 +1,10 @@
+2007-05-10  Richard Stallman  <rms@gnu.org>
+
+	* files.el (file-start-mode-alist): New variable.
+	(magic-mode-regexp-match-limit): Doc fix.
+	(set-auto-mode): Handle file-start-mode-alist.
+	A little cleanup of structure.
+
 2007-05-08  Richard Stallman  <rms@gnu.org>
 
 	* mail/mailabbrev.el (sendmail-pre-abbrev-expand-hook):

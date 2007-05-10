@@ -1,3 +1,7 @@
+2007-05-10  Richard Stallman  <rms@gnu.org>
+
+	* modes.texi (Auto Major Mode): Document file-start-mode-alist.
+
 2007-05-06  Richard Stallman  <rms@gnu.org>
 
 	* processes.texi (Accepting Output): Revert most of previous change.
