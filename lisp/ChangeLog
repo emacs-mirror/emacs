@@ -1,3 +1,22 @@
+2007-05-10  Richard Stallman  <rms@gnu.org>
+
+	* international/iso-cvt.el (iso-cvt-read-only): Ignore arguments.
+	(iso-cvt-write-only): Likewise.
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode):
+	Fix generated doc string.
+
+	* startup.el (fancy-splash-text): Add URL of guided tour.
+	Adjust horizontal and vertical whitespace.
+
+	* progmodes/compile.el (compilation-handle-exit):
+	Use run-hook-with-args to run compilation-finish-functions.
+
+	* files.el (file-start-mode-alist): New variable.
+	(magic-mode-regexp-match-limit): Doc fix.
+	(set-auto-mode): Handle file-start-mode-alist.
+	A little cleanup of structure.
+
 2007-05-10  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* man.el (Man-next-section): Don't consider the last line of the page

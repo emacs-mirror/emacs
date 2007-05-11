@@ -384,6 +384,10 @@ C-g             abort-recursive-edit
 @end group
 @end smallexample
 
+  There are other special conventions for the text in documentation
+strings---for instance, you can refer to functions, variables, and
+sections of this manual.  @xref{Documentation Tips}, for details.
+
 @node Describing Characters
 @section Describing Characters for Help Messages
 @cindex describe characters and events
