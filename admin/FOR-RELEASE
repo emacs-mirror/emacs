@@ -50,8 +50,6 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg01113.html
 ** Takaaki.Ota@am.sony.com, May 2: table cell menu does not appear at the menubar
    Bug is intermittent.
 
-** Install python.el `with' patch from trunk.
-
 ** Install vc-hooks.el patch from trunk.
 
 * DOCUMENTATION
