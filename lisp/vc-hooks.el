@@ -52,7 +52,9 @@ BACKEND, use `vc-handled-backends'.")
 (defvar vc-header-alist ())
 (make-obsolete-variable 'vc-header-alist 'vc-BACKEND-header)
 
-(defcustom vc-ignore-dir-regexp "\\`\\([\\/][\\/]\\|/net/\\|/afs/\\)\\'"
+(defcustom vc-ignore-dir-regexp
+  ;; Stop SMB, automounter, AFS, and DFS host lookups.
+  "\\`\\(?:[\\/][\\/]\\|/\\(?:net\\|afs\\|\\.\\\.\\.\\)/\\)\\'"
   "Regexp matching directory names that are not under VC's control.
 The default regexp prevents fruitless and time-consuming attempts
 to determine the VC status in directories in which filenames are
@@ -313,10 +315,17 @@ If WITNESS if not found, return nil, otherwise return the root."
   ;; Represent /home/luser/foo as ~/foo so that we don't try to look for
   ;; witnesses in /home or in /.
   (setq file (abbreviate-file-name file))
-  (let ((root nil))
+  (let ((root nil)
+        (user (nth 2 (file-attributes file))))
     (while (not (or root
                    (equal file (setq file (file-name-directory file)))
                    (null file)
+                   ;; As a heuristic, we stop looking up the hierarchy of
+                   ;; directories as soon as we find a directory belonging
+                   ;; to another user.  This should save us from looking in
+                   ;; things like /net and /afs.  This assumes that all the
+                   ;; files inside a project belong to the same user.
+                   (not (equal user (file-attributes file)))
                    (string-match vc-ignore-dir-regexp file)))
       (if (file-exists-p (expand-file-name witness file))
          (setq root file)

@@ -311,7 +311,7 @@ blessmail: ${SUBDIR_MAKEFILES} src FRC
 Makefile: $(srcdir)/Makefile.in config.status
 	./config.status
 
-config.status: ${srcdir}/configure
+config.status: ${srcdir}/configure ${srcdir}/lisp/version.el
 	./config.status --recheck
 
 AUTOCONF_INPUTS = @MAINT@ $(srcdir)/configure.in $(srcdir)/m4/getopt.m4

@@ -2235,7 +2235,7 @@ not use it.
 key bindings.
 @end table
 
-@node Hyperlinking, Thumbnails, Emulation, Top
+@node Hyperlinking, Dissociated Press, Emulation, Top
 @section Hyperlinking and Navigation Features
 
 @cindex hyperlinking
@@ -2401,76 +2401,7 @@ Display a menu of files and URLs mentioned in current buffer, then
 find the one you select (@code{ffap-menu}).
 @end table
 
-@node Thumbnails, Dissociated Press, Hyperlinking, Top
-@section Viewing Images as Thumbnails
-@cindex tumme mode
-@cindex thumbnails
-
-  Tumme is a facility for browsing image files.  It provides viewing
-the images either as thumbnails or in full size, either inside Emacs
-or through an external viewer.
-
-  To enter Tumme, type @kbd{M-x tumme}.  It prompts for a directory;
-specify one that has images files.  This creates thumbnails for all
-the images in that directory, and displays them all in the ``thumbnail
-buffer.''  This takes a long time if the directory contains many image
-files, and it asks for confirmation if the number of image files
-exceeds @code{tumme-show-all-from-dir-max-files}.
-
-@kindex C-t d @r{(Tumme)}
-@findex tumme-display-thumbs
-  You can also enter Tumme through Dired.  Mark the image files you
-want to look at, using @kbd{m} as usual, then type @kbd{C-t d}
-(@code{tumme-display-thumbs}).  This too creates and switches to
-a buffer containing thumbnails, corresponding to the marked files.
-
-  With point in the thumbnail buffer, type @kbd{RET}
-(@code{tumme-display-thumbnail-original-image}) to display a sized
-version of it in another window.  This sizes the image to fit the
-window.  Use the arrow keys to move around in the buffer.  For easy
-browsing, type @kbd{SPC} (@code{tumme-display-next-thumbnail-original})
-to advance and display the next image.  Typing @kbd{DEL}
-(@code{tumme-display-previous-thumbnail-original}) backs up to the
-previous thumbnail and displays that instead.
-
-@vindex tumme-external-viewer
-  To view and the image in its original size, either provide a prefix
-argument (@kbd{C-u}) before pressing @kbd{RET}, or type @kbd{C-@key{RET}}
-(@code{tumme-thumbnail-display-external}) to display the image in an
-external viewer.  You must first configure
-@code{tumme-external-viewer}.
-
-  You can delete images through Tumme also.  Type @kbd{d}
-(@code{tumme-flag-thumb-original-file}) to flag the image file for
-deletion in the Dired buffer.  You can also delete the thumbnail image
-from the thumbnail buffer with @kbd{C-d} (@code{tumme-delete-char}).
-
-  More advanced features include @dfn{image tags}, which are metadata
-used to categorize image files.  The tags are stored in a plain text
-file configured by @code{tumme-db-file}.
-
-  To tag image files, mark them in the dired buffer (you can also mark
-files in Dired from the thumbnail buffer by typing @kbd{m}) and type
-@kbd{C-t t} (@code{tumme-tag-files}).  You will be prompted for a tag.
-To mark files having a certain tag, type @kbd{C-t f}
-(@code{tumme-mark-tagged-files}).  After marking image files with a
-certain tag, you can use @kbd{C-t d} to view them.
-
-  You can also tag a file directly from the thumbnail buffer by typing
-@kbd{t t} and you can remove a tag by typing @kbd{t r}.  There is also
-a special ``tag'' called ``comment'' for each file (it is not a tag in
-the exact same sense as the other tags, it is handled slightly
-different).  That is used to enter a comment or description about the
-image.  You comment a file from the thumbnail buffer by typing
-@kbd{c}.  You will be prompted for a comment.  Type @kbd{C-t c} to add
-a comment from Dired (@code{tumme-dired-comment-files}).
-
-  Tumme also provides simple image manipulation.  In the thumbnail
-buffer, type @kbd{L} to rotate the original image 90 degrees anti
-clockwise, and @kbd{R} to rotate it 90 degrees clockwise.  This
-rotation is lossless, and uses an external utility called JpegTRAN.
-
-@node Dissociated Press, Amusements, Thumbnails, Top
+@node Dissociated Press, Amusements, Hyperlinking, Top
 @section Dissociated Press
 
 @findex dissociated-press

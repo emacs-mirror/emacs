@@ -1118,7 +1118,8 @@ DEF is anything that can be a key's definition:
  a cons (STRING . DEFN), meaning that DEFN is the definition
     (DEFN should be a valid definition in its own right),
  or a cons (MAP . CHAR), meaning use definition of CHAR in keymap MAP,
- or an extended menu item definition.  (See info node `Extended Menu Items'.)
+ or an extended menu item definition.
+ (See info node `(elisp)Extended Menu Items'.)
 
 If KEYMAP is a sparse keymap with a binding for KEY, the existing
 binding is altered.  If there is no binding for KEY, the new pair
@@ -1148,7 +1149,8 @@ binding KEY to DEF is added at the front of KEYMAP.  */)
   if (SYMBOLP (def) && !EQ (Vdefine_key_rebound_commands, Qt))
     Vdefine_key_rebound_commands = Fcons (def, Vdefine_key_rebound_commands);
 
-  meta_bit = VECTORP (key) ? meta_modifier : 0x80;
+  meta_bit = (VECTORP (key) || STRINGP (key) && STRING_MULTIBYTE (key)
+	      ? meta_modifier : 0x80);
 
   if (VECTORP (def) && ASIZE (def) > 0 && CONSP (AREF (def, 0)))
     { /* DEF is apparently an XEmacs-style keyboard macro.  */
@@ -1304,7 +1306,7 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
 	c = Fevent_convert_list (c);
 
       /* Turn the 8th bit of string chars into a meta modifier.  */
-      if (INTEGERP (c) && XINT (c) & 0x80 && STRINGP (key))
+      if (STRINGP (key) && XINT (c) & 0x80 && !STRING_MULTIBYTE (key))
 	XSETINT (c, (XINT (c) | meta_modifier) & ~0x80);
 
       /* Allow string since binding for `menu-bar-select-buffer'

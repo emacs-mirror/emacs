@@ -1,3 +1,370 @@
+2007-05-10  Richard Stallman  <rms@gnu.org>
+
+	* international/iso-cvt.el (iso-cvt-read-only): Ignore arguments.
+	(iso-cvt-write-only): Likewise.
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode):
+	Fix generated doc string.
+
+	* startup.el (fancy-splash-text): Add URL of guided tour.
+	Adjust horizontal and vertical whitespace.
+
+	* progmodes/compile.el (compilation-handle-exit):
+	Use run-hook-with-args to run compilation-finish-functions.
+
+	* files.el (file-start-mode-alist): New variable.
+	(magic-mode-regexp-match-limit): Doc fix.
+	(set-auto-mode): Handle file-start-mode-alist.
+	A little cleanup of structure.
+
+2007-05-10  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+
+	* man.el (Man-next-section): Don't consider the last line of the page
+	as being part of any section.
+
+2007-05-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/sgml-mode.el (sgml-value): Fix handling of attributes which
+	can take any number of values.
+
+2007-05-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-font-lock-keywords-2): Add citet and citep
+	to the list of citation commands.
+
+2007-05-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-find-root): Stop searching when the user changes.
+
+2007-05-09  Edward O'Connor  <hober0@gmail.com>  (tiny change)
+
+	* progmodes/python.el (python-font-lock-keywords)
+	(python-open-block-statement-p, python-mode): Add support for the new
+	"with" keyword.
+
+2007-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-apply-hunk, diff-test-hunk): Don't do by default
+	the exact opposite of diff-goto-source.
+
+	* emacs-lisp/advice.el (ad-special-forms): Remove.
+	(ad-special-form-p): Use subr-arity.
+
+	* newcomment.el (comment-search-forward): Make sure we search forward.
+	(comment-enter-backward): Try and distinguish the non-matching case at
+	EOB from the non-matching case with a missing comment-end-skip for
+	a 2-char comment ender.
+	(comment-choose-indent): New function extracted from comment-indent.
+	Improve the alignment algorithm.
+	(comment-indent): Use it.
+
+	* textmodes/sgml-mode.el (sgml-lexical-context): Add handling of
+	XML style Processing Instructions.
+	(sgml-parse-tag-backward): Handle XML-style PIs.  Also ensure progress.
+	(sgml-calculate-indent): Handle `pi' context.
+
+	* vc.el: Ensure that update-changelog issues an error when used with
+	a backend that does not implement it.
+	(vc-update-changelog-rcs2log): Rename from vc-default-update-changelog.
+	Remove `backend' argument.  Use expand-file-name.
+	(vc-cvs-update-changelog, vc-rcs-update-changelog): New aliases.
+
+	* progmodes/python.el (python-end-of-block): Revert last change.
+	(python-end-of-statement): Make sure we move *forward*.
+
+2007-05-08  Richard Stallman  <rms@gnu.org>
+
+	* mail/mailabbrev.el (sendmail-pre-abbrev-expand-hook):
+	Don't include non-self-insert commands in the exception for `-'.
+
+2007-05-08  David Reitter  <david.reitter@gmail.com>
+
+	* progmodes/python.el (python-guess-indent): Check non-nullness
+	before comparing indent against the 2..8 interval.
+
+2007-05-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-ts-unicode-for-key-event): Check if text is
+	available.
+
+2007-05-06  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/eldoc.el (turn-on-eldoc-mode): Doc fix.
+
+2007-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff.el (diff): Use buffer-local vars diff-old-file and diff-new-file
+	rather than storing their value in the revert-buffer function.
+
+2007-05-04  Nick Roberts  <nickrob@snap.net.nz>
+
+	* t-mouse.el (t-mouse-mode): Do nothing on a graphical display
+	when disabling t-mouse-mode.
+
+2007-05-01  Davis Herring  <herring@lanl.gov>
+
+	* calendar/timeclock.el: Update version number.
+	(timeclock-modeline-display): Mention timeclock-use-display-time
+	in explanatory message.
+	(timeclock-in): Fix non-interactive workday specifications.
+	(timeclock-log): Don't kill the log buffer if it already existed.
+	Suppress warnings when finding the log.  Don't check for a nil
+	project twice.  Run hooks after killing the buffer (if applicable).
+	(timeclock-geometric-mean): Rename to `timeclock-mean' (it never
+	was geometric).  All uses changed.
+	(timeclock-generate-report): Support prefix argument.
+
+2007-05-03  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el (rcirc-timeout-seconds): Increase to prevent unwanted
+	disconnections.
+
+2007-05-01  Romain Francoise  <romain@orebokech.com>
+
+	* dired-x.el: Revert 2007-04-06 change.
+
+2007-04-29  Stephen Berman  <Stephen.Berman@gmx.net>
+
+	* find-dired.el (find-dired-filter): Propertize all text down to eob.
+
+2007-04-29  Richard Stallman  <rms@gnu.org>
+
+	* international/mule.el (auto-coding-alist): Add pdf => no-conversion.
+
+2007-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cc-mode.el (c-before-change): Use point-min rather
+	than 1.
+
+2007-04-28  Richard Stallman  <rms@gnu.org>
+
+	* progmodes/sh-script.el (sh-mode): Recognize .profile as sh style.
+
+2007-04-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-menu-map): Pdb can't handle SIGINT so
+	don't put stop on toolbar.
+
+2007-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-ignore-dir-regexp): Add /.../ for the DFS filesystem.
+
+2007-04-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(lisp)/mh-e/mh-loaddefs.el): Use ./mh-e
+	instead of $(lisp)/mh-e.
+
+2007-04-28  Glenn Morris  <rgm@gnu.org>
+
+	* image-dired.el (image-dired-cmd-create-thumbnail-options)
+	(image-dired-cmd-create-temp-image-options): Replace option
+	+profile "*" with -strip.
+
+2007-04-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/flyspell.el (flyspell-auto-correct-previous-word):
+	Use window-start and window-end.
+
+2007-04-27  Andreas Schwab  <schwab@suse.de>
+
+	* emacs-lisp/sregex.el (sregexq): Fix doc string quoting.
+
+2007-04-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* textmodes/fill.el (fill-paragraph): Doc fix.
+
+2007-04-26  Luc Teirlinck  <teirllm@dms.auburn.edu>
+
+	* locate.el (locate-in-alternate-database): Doc fix.
+
+2007-04-26  Glenn Morris  <rgm@gnu.org>
+
+	* button.el (button): Use underline if supported, else fall back
+	to color.
+
+	* version.el (emacs-version): Increase to 22.1.50.
+
+2007-04-25  Richard Stallman  <rms@gnu.org>
+
+	* hi-lock.el (hi-lock-file-patterns-policy): Default to `ask'.
+
+2007-04-25  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* progmodes/idlwave.el (idlwave-beginning-of-subprogram)
+	(idlwave-end-of-subprogram): Take optional NOMARK arg to prevent
+	pushing mark.
+	(idlwave-current-routine): Don't push mark.
+
+2007-04-25  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* image-dired.el (image-dired-display-image): Derive image-type from
+	filename rather than assuming jpeg, in case no resizing was needed.
+
+2007-04-25  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+
+	* custom.el (defface): Doc fix.
+
+2007-04-24  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* progmodes/idlw-shell.el (idlwave-shell-clear-all-bp):
+	Don't re-query for each cleared BP.
+	(idlwave-shell-clear-bp): Optionally skip BP query.
+	(idlwave-shell-update-bp-overlays): Use set-window-margins instead
+	of set-window-buffer, which incorrectly moves displayed region.
+
+2007-04-23  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-bug-address): Update maintainer's address.
+	* calc/*: Update maintainer's address.
+
+2007-04-23  Richard Stallman  <rms@gnu.org>
+
+	* simple.el (set-mark-command-repeat-pop): Doc fix.
+	Put in `editing-basics' group.
+
+2007-04-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* info.el (Info-mouse-scroll-up, Info-mouse-scroll-down):
+	New functions.
+	(Info-mode-line-node-keymap): Bind mouse commands to
+	Info-mouse-scroll-up/down instead of Info-scroll-up/down.
+
+2007-04-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* locate.el (locate-local-prompt): New var.
+	(locate-prompt-for-command): Doc fix.
+	(locate-prompt-for-search-string): New function.
+	(locate): New optional arg.  Make locate-local-prompt
+	buffer-local.  Use locate-prompt-for-search-string.
+	(locate-with-filter): New optional arg.
+	Use locate-prompt-for-search-string.
+	(locate-update): Bind locate-prompt-for-command.
+
+2007-04-23  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (magic-mode-alist): `<!DOCTYPE HTML' in html-mode.
+
+2007-04-23  Nick Roberts  <nickrob@snap.net.nz>
+
+	* button.el (button): Inherit from link face on a tty.
+
+2007-04-23  Glenn Morris  <rgm@gnu.org>
+
+	* button.el (button): Use color for this face on a tty.
+
+	* files.el (magic-mode-alist): Allow for carriage-returns in
+	html-mode and sgml-mode entries.
+
+2007-04-22  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode):
+	Improve doc string of generated command.
+
+	* subr.el (read-number): Catch errors.
+
+	* hi-lock.el (hi-lock-file-patterns-policy): Doc fix.
+
+2007-04-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-dired.el: Rename from thumbnails.el.  All instances of
+	"thumbnails" replaced with "image-dired".
+
+	* dired.el (dired-mode-map): Rename "thumbnails" again, to
+	"image-dired".
+
+2007-04-22  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-kill-buffer-at-head, ido-delete-file-at-head):
+	Don't use kill-line.
+
+2007-04-22  Nick Roberts  <nickrob@snap.net.nz>
+
+	* t-mouse.el (t-mouse-make-event): Pass on mev's more informative
+	error message.
+
+2007-04-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.el: Rename "tumme" to "thumbnails".
+
+	* thumbnails.el: Rename from tumme.el.  All instances of "tumme"
+	replaced with "thumbnails".
+
+2007-04-22  Glenn Morris  <rgm@gnu.org>
+
+	* hi-lock.el (hi-lock-file-patterns-policy): Make it a defcustom,
+	and give it the risky-local-variable property.
+
+	* textmodes/flyspell.el (flyspell-define-abbrev): Downcase abbrev
+	before defining it.
+
+2007-04-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* progmodes/cc-mode.el (c-remove-any-local-eval-or-mode-variables):
+	Use delete-region instead of kill-line.
+
+2007-04-21  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-electric-slash): Replace wrong use of
+	`kill-region' by `delete-region'.
+
+2007-04-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/perl-mode.el (perl-indent-command): Use delete-region
+	instead of kill-region.
+
+	* progmodes/mantemp.el (mantemp-make-mantemps-region)
+	(mantemp-insert-cxx-syntax, mantemp-sort-and-unique-lines)
+	(mantemp-remove-memfuncs): Use delete-region instead of kill-word
+	and kill-line.
+
+	* progmodes/vhdl-mode.el (vhdl-template-type)
+	(vhdl-template-record, vhdl-template-nature)
+	(vhdl-template-configuration-spec, vhdl-template-component-inst)
+	(vhdl-template-break, vhdl-regress-line, vhdl-electric-tab):
+	Use delete-region instead of kill-word and kill-line.
+
+2007-04-21  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+
+	* dired-x.el (dired-virtual-mode): Doc fix.
+
+2007-04-21  Richard Stallman  <rms@gnu.org>
+
+	* font-lock.el (font-lock-keywords-alist): Mark as risky.
+
+	* subr.el (read-number): Doc fix.
+
+	* simple.el (pop-to-mark-command): Display message "mark popped"
+	if point does not move.
+	(set-mark-command): Doc fix.
+
+2007-04-21  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* locate.el: Revert 2006-09-09 and 2007-04-20 changes.
+	(locate-local-filter, locate-local-search): New vars.
+	(locate): Make variables local.
+	(locate-update): Bind locate-buffer-name.  Call locate using
+	locate-local-filter and locate-local-search.
+
+2007-04-20  David Koppelman  <koppel@ece.lsu.edu>
+
+	* hi-lock.el (hi-lock-file-patterns-policy): New var.
+	(hi-lock-find-patterns): Use hi-lock-file-patterns-policy.
+	(hi-lock-mode): Update docstring.
+
+2007-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/fill.el (fill-move-to-break-point): Don't inhibit
+	fill-nobreak-predicate when the break is past fill-column.
+
+2007-04-20  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* locate.el (locate): Output from shell-command should go in the
+	current buffer rather than *Shell Command Output*.
+
+2007-04-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* paren.el (show-paren-function): Fix last fix.
+
 2007-04-19  Kevin Ryde  <user42@zip.com.au>
 
 	* arc-mode.el (archive-find-type): lzh-exe for lzh self-extracting exe.
@@ -104,8 +471,8 @@
 
 	* textmodes/bibtex.el (bibtex-insert-kill): Pass non-nil NODELIM
 	arg to bibtex-make-field.
-	(bibtex-make-field): Add optional fourth arg NODELIM.  Insert
-	delimiters around INIT unless this arg is non-nil.
+	(bibtex-make-field): Add optional fourth arg NODELIM.
+	Insert delimiters around INIT unless this arg is non-nil.
 
 2007-04-14  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -143,7 +510,7 @@
 	window marked as dedicated.
 
 	* mail/footnote.el (footnote-latin-string): New variable.
-	(footnote-latin-regexp): Redefined as regexp alternative.
+	(footnote-latin-regexp): Redefine as regexp alternative.
 	(Footnote-latin): Use footnote-latin-string instead of
 	footnote-latin-regexp.
 
@@ -173,17 +540,17 @@
 
 2007-04-11  Markus Triska  <markus.triska@gmx.at>
 
-        * emacs-lisp/byte-opt.el (byte-optimize-backward-char)
-        (byte-optimize-backward-word): Remove (move to bytecomp.el).
+	* emacs-lisp/byte-opt.el (byte-optimize-backward-char)
+	(byte-optimize-backward-word): Remove (move to bytecomp.el).
 	(byte-optimize-form-code-walker): Evaluate pure function calls if
 	possible.
 	(byte-optimize-all-constp): New function.
 
-        * emacs-lisp/bytecomp.el (byte-compile-char-before): Improve
-        numeric argument case.
-        (byte-compile-backward-char, byte-compile-backward-word): New
-        functions, performing rewriting previously done in byte-opt.el.
-        Fix their "Fixme" item (restriction to numeric arguments).
+	* emacs-lisp/bytecomp.el (byte-compile-char-before):
+	Improve numeric argument case.
+	(byte-compile-backward-char, byte-compile-backward-word):
+	New functions, performing rewriting previously done in byte-opt.el.
+	Fix their "Fixme" item (restriction to numeric arguments).
 
 2007-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -273,7 +640,7 @@
 
 	* cus-start.el <scroll-preserve-screen-position>: Add choices.
 
-2007-04-08  Johan Bockg,Ae(Brd  <bojohan+news@dd.chalmers.se>
+2007-04-08  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
 	* term/xterm.el (terminal-init-xterm): Fix key definitions.
 	Add binding for C-M-SPC.
@@ -631,7 +998,7 @@
 	* textmodes/flyspell.el (flyspell-large-region):
 	Use ispell-call-process-region.
 
-2007-03-26  Johan Bockg,Ae(Brd  <bojohan+sf@dd.chalmers.se>
+2007-03-26  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
 	* emacs-lisp/bytecomp.el (byte-compile-file-form-defmumble):
 	Use prin1 instead of princ.
@@ -5591,7 +5958,7 @@
 
 	* dired.el (dired-build-subdir-alist): Fix previous change.
 
-2006-10-01  Johan Bockg,Ae(Brd  <bojohan+mail@dd.chalmers.se>
+2006-10-01  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
 	* simple.el (undo-elt-crosses-region): Fix the inequalities.
 
@@ -13380,8 +13747,8 @@
 
 2006-01-29  Edward O'Connor  <ted@oconnor.cx>
 
-	* emulation/viper.el (viper-major-mode-modifier-list): Add
-	insert-state and vi-state entries for erc-mode.
+	* emulation/viper.el (viper-major-mode-modifier-list):
+	Add insert-state and vi-state entries for erc-mode.
 	(viper-go-away, viper-set-hooks): Add and remove
 	viper-comint-mode-hook from erc-mode-hook as appropriate.
 
@@ -21291,7 +21658,7 @@
 
 	* net/newsticker.el: Get rid of CVS keyword.
 
-2005-09-19  Johan Bockg,Ae(Brd  <bojohan+sf@dd.chalmers.se>
+2005-09-19  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
 	* dired-aux.el (dired-handle-overwrite): Don't use `format' here.
 	The prompt is formatted later.
@@ -30374,7 +30741,7 @@
 	(mail-directory-process defvar): Doc fix.
 	(mail-names): Doc fix.
 
-2005-03-25  Johan Bockg,Ae(Brd  <bojohan+mail@dd.chalmers.se>  (tiny change)
+2005-03-25  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>  (tiny change)
 
 	* textmodes/flyspell.el (mail-mode-flyspell-verify): Fix regexp syntax.
 

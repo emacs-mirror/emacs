@@ -1448,10 +1448,7 @@ Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
     (with-no-warnings
       (if compilation-finish-function
 	  (funcall compilation-finish-function (current-buffer) msg)))
-    (let ((functions compilation-finish-functions))
-      (while functions
-	(funcall (car functions) (current-buffer) msg)
-	(setq functions (cdr functions))))))
+    (run-hook-with-args compilation-finish-functions (current-buffer) msg)))
 
 ;; Called when compilation process changes state.
 (defun compilation-sentinel (proc msg)
@@ -1863,7 +1860,24 @@ Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
           (let* ((name (read-file-name
                         (format "Find this %s in (default %s): "
                                 compilation-error filename)
-                        spec-dir filename t nil))
+                        spec-dir filename t nil
+                        ;; The predicate below is fine when called from
+                        ;; minibuffer-complete-and-exit, but it's too
+                        ;; restrictive otherwise, since it also prevents the
+                        ;; user from completing "fo" to "foo/" when she
+                        ;; wants to enter "foo/bar".
+                        ;; 
+                        ;; Try to make sure the user can only select
+                        ;; a valid answer.  This predicate may be ignored,
+                        ;; tho, so we still have to double-check afterwards.
+                        ;; TODO: We should probably fix read-file-name so
+                        ;; that it never ignores this predicate, even when
+                        ;; using popup dialog boxes.
+                        ;; (lambda (name)
+                        ;;   (if (file-directory-p name)
+                        ;;       (setq name (expand-file-name filename name)))
+                        ;;   (file-exists-p name))
+                        ))
                  (origname name))
             (cond
              ((not (file-exists-p name))

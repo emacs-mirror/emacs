@@ -1,3 +1,83 @@
+2007-05-10  Richard Stallman  <rms@gnu.org>
+
+	* keymaps.texi (Scanning Keymaps): Update where-is-internal example.
+
+	* help.texi (Keys in Documentation): Add reference to
+	Documentation Tips.
+
+	* files.texi (Format Conversion): TO-FN gets three arguments.
+
+	* modes.texi (Auto Major Mode): Document file-start-mode-alist.
+
+2007-05-10  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* elisp.texi (Top): Remove "Saving Properties" from detailed menu.
+	* files.texi (Format Conversion): Expand intro; add menu.
+	(Format Conversion Overview, Format Conversion Round-Trip)
+	(Format Conversion Piecemeal): New nodes/subsections.
+	* hooks.texi: Xref "Format Conversion" , not "Saving Properties".
+	* text.texi (Text Properties): Remove "Saving Properties" from menu.
+	(Saving Properties): Delete node/subsection.
+
+2007-05-07  Karl Berry  <karl@gnu.org>
+
+	* elisp.texi (EMACSVER): back to 22.
+
+2007-05-06  Richard Stallman  <rms@gnu.org>
+
+	* processes.texi (Accepting Output): Revert most of previous change.
+
+2007-05-05  Richard Stallman  <rms@gnu.org>
+
+	* processes.texi (Accepting Output): accept-process-output
+	uses microseconds, not milliseconds.  But that arg is obsolete.
+
+2007-05-04  Karl Berry  <karl@tug.org>
+
+	* elisp.texi (EMACSVER) [smallbook]: 22.1, not 22.
+
+2007-05-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* tips.texi (Documentation Tips): Rearrange items to place the
+	more important ones first.  Add an index entry for hyperlinks.
+
+2007-05-03  Karl Berry  <karl@gnu.org>
+
+	* elisp.texi (\urlcolor, \linkcolor) [smallbook]: \Black for printing.
+	 (EMACSVER) [smallbook]: 22 for printed version.
+
+	* control.texi (Signaling Errors) <signal>: texinfo.tex is fixed,
+	so restore anchor to normal position after defun.  Found by Kevin Ryde.
+
+2007-04-26  Glenn Morris  <rgm@gnu.org>
+
+	* elisp.texi (EMACSVER): Increase to 22.1.50.
+
+2007-04-28  Karl Berry  <karl@gnu.org>
+
+	* elisp.texi: Improve line breaks on copyright page,
+	similar layout to emacs manual, 8.5x11 by default.
+
+2007-04-24  Richard Stallman  <rms@gnu.org>
+
+	* text.texi (Special Properties): Add xref to Overlay Properties.
+
+	* display.texi (Overlay Properties): Add xref to Special Properties.
+
+2007-04-22  Richard Stallman  <rms@gnu.org>
+
+	* keymaps.texi (Extended Menu Items): Move the info about
+	format with cached keyboard binding.
+
+2007-04-21  Richard Stallman  <rms@gnu.org>
+
+	* text.texi (Special Properties): Clarify previous change.
+
+	* files.texi (File Name Expansion): Clarify previous change.
+
+	* display.texi (Attribute Functions): Fix example for
+	face-attribute-relative-p.
+
 2007-04-19  Kenichi Handa  <handa@m17n.org>
 
 	* text.texi (Special Properties): Document composition property.
@@ -326,7 +406,7 @@
 
 	* loading.texi (How Programs Do Loading): Fix anchor position at
 	load-read-function definition doc. (tiny change)
-	
+
 2007-02-21  Kim F. Storm  <storm@cua.dk>
 
 	* strings.texi (Text Comparison): Mention that assoc-string

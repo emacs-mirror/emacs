@@ -35165,7 +35165,7 @@ and @code{calc-embedded-open-close-plain-alist}.
 If you find a bug in Calc, send e-mail to Jay Belanger,
 
 @example
-belanger@@truman.edu
+jay.p.belanger@@gmail.com
 @end example
 
 @noindent

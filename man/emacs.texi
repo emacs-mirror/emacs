@@ -5,10 +5,10 @@
 
 @c The edition number appears in several places in this file
 @set EDITION   Sixteenth
-@set EMACSVER  22.0.98
+@set EMACSVER  22.1.50
 
 @copying
-This is the @value{EDITION} edition of the @cite{GNU Emacs Manual},
+This is the @value{EDITION} edition of the @cite{GNU Emacs Manual},@*
 updated for Emacs version @value{EMACSVER}.
 
 Copyright @copyright{} 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997,
@@ -39,18 +39,21 @@ Software Foundation raise funds for GNU development.''
 @c in general, keep the following line commented out, unless doing a
 @c copy of this manual that will be published.  the manual should go
 @c onto the distribution in the full, 8.5 x 11" size.
-@set smallbook
+@c set smallbook
 
 @ifset smallbook
 @smallbook
 @end ifset
 
 @c per rms and peterb, use 10pt fonts for the main text, mostly to
-@c save on paper cost.  Also do not declare @setchapternewpage odd.
+@c save on paper cost.
 @c Do this inside @tex for now, so current makeinfo does not complain.
 @tex
 @ifset smallbook
 @fonttextsize 10
+@set EMACSVER 22
+\global\let\urlcolor=\Black % don't print links in grayscale
+\global\let\linkcolor=\Black
 @end ifset
 \global\hbadness=6666 % don't worry about not-too-underfull boxes
 @end tex
@@ -76,10 +79,10 @@ Software Foundation raise funds for GNU development.''
 @insertcopying
 
 @sp 2
-ISBN 1-882114-86-8*
 Published by the Free Software Foundation @*
 51 Franklin Street, Fifth Floor @*
-Boston, MA 02110-1301 USA
+Boston, MA 02110-1301 USA @*
+ISBN 1-882114-86-8
 
 @sp 2
 Cover art by Etienne Suvasa.
@@ -222,7 +225,6 @@ Advanced Features
 			  "recursive editing level".
 * Emulation::	        Emulating some other editors with Emacs.
 * Hyperlinking::        Following links in buffers.
-* Thumbnails::          Browsing images using thumbnails.
 * Dissociated Press::   Dissociating text for fun.
 * Amusements::	        Various games and hacks.
 * Customization::       Modifying the behavior of Emacs.
@@ -801,6 +803,7 @@ Dired, the Directory Editor
 * Dired Updating::           Discarding lines for files of no interest.
 * Dired and Find::	     Using `find' to choose the files for Dired.
 * Wdired::                   Operating on files by editing the Dired buffer.
+* Image-Dired::              Viewing image thumbnails in Dired
 * Misc Dired Features::      Various other features.
 
 The Calendar and the Diary

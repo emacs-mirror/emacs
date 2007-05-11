@@ -436,11 +436,11 @@ Here are the clauses allowed in an `sregex' or `sregexq' expression:
   or end of a word.
 
 - the symbol `bow'
-  Stands for \"\\\\\\=<\", matching the empty string at the beginning of a
+  Stands for \"\\\\=\\<\", matching the empty string at the beginning of a
   word.
 
 - the symbol `eow'
-  Stands for \"\\\\\\=>\", matching the empty string at the end of a word.
+  Stands for \"\\\\=\\>\", matching the empty string at the end of a word.
 
 - the symbol `wordchar'
   Stands for the regex \"\\\\w\", matching a word-constituent character

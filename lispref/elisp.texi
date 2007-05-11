@@ -7,29 +7,35 @@
 @c Version of the manual and of Emacs.
 @c Please remember to update the edition number in README as well.
 @set VERSION  2.9
-@set EMACSVER 22.0.98
+@set EMACSVER 22.0.99
 
 @dircategory Emacs
 @direntry
 * Elisp: (elisp).       The Emacs Lisp Reference Manual.
 @end direntry
 
-@c for full 8.5x11, comment this out.
-@set smallbook
+@c in general, keep the following line commented out, unless doing a
+@c copy of this manual that will be published.  the manual should go
+@c onto the distribution in the full, 8.5 x 11" size.
+@c set smallbook
 
 @ifset smallbook
 @smallbook
 @end ifset
 
 @c per rms and peterb, use 10pt fonts for the main text, mostly to
-@c save on paper cost.  Also, do not declare @setchapternewpage odd,
-@c for the same reason. Do this inside @tex for now, so the
-@c last-released makeinfo does not complain.
+@c save on paper cost.  
+@c Do this inside @tex for now, so current makeinfo does not complain.
 @tex
 @ifset smallbook
 @fonttextsize 10
+@set EMACSVER 22
+\global\let\urlcolor=\Black % don't print links in grayscale
+\global\let\linkcolor=\Black
 @end ifset
 \global\hbadness=6666 % don't worry about not-too-underfull boxes
+\global\let\urlcolor=\Black % don't print links in grayscale
+\global\let\linkcolor=\Black
 @end tex
 
 @c Combine indices.
@@ -41,8 +47,8 @@
 @c @syncodeindex tp fn
 
 @copying
-This is edition @value{VERSION} of the GNU Emacs Lisp
-Reference Manual, corresponding to Emacs version @value{EMACSVER}.
+This is edition @value{VERSION} of the GNU Emacs Lisp Reference Manual,@*
+corresponding to Emacs version @value{EMACSVER}.
 
 Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998,
 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007  Free Software
@@ -74,14 +80,14 @@ Software Foundation raise funds for GNU development.''
 @vskip 0pt plus 1filll
 @insertcopying
 
-@sp 1
+@sp 2
 Published by the Free Software Foundation @*
 51 Franklin St, Fifth Floor @*
 Boston, MA 02110-1301 @*
 USA @*
 ISBN 1-882114-74-4
 
-@sp 1
+@sp 2
 Cover art by Etienne Suvasa.
 @end titlepage
 
@@ -1060,8 +1066,6 @@ Text Properties
 * Format Properties::       Properties for representing formatting of text.
 * Sticky Properties::       How inserted text gets properties from
                               neighboring text.
-* Saving Properties::       Saving text properties in files, and reading
-                              them back.
 * Lazy Properties::         Computing text properties in a lazy fashion
                               only when text is examined.
 * Clickable Text::          Using text properties to make regions of text

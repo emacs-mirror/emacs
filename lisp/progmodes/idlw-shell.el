@@ -2586,7 +2586,7 @@ breakpoint can not be set."
 			      (if (idlwave-shell-hide-p 'debug) 'mostly)
 			      nil t))
 
-(defun idlwave-shell-clear-bp (bp)
+(defun idlwave-shell-clear-bp (bp &optional no-query)
   "Clear breakpoint BP.
 Clears in IDL and in `idlwave-shell-bp-alist'."
   (let ((index (idlwave-shell-bp-get bp)))
@@ -2595,7 +2595,7 @@ Clears in IDL and in `idlwave-shell-bp-alist'."
           (idlwave-shell-send-command
            (concat "breakpoint,/clear," (int-to-string index))
 	   nil (idlwave-shell-hide-p 'breakpoint) nil t)
-	  (idlwave-shell-bp-query)))))
+	  (unless no-query (idlwave-shell-bp-query))))))
 
 (defun idlwave-shell-current-frame ()
   "Return a list containing the current file name and line point is in.
@@ -3722,17 +3722,22 @@ Existing overlays are recycled, in order to minimize consumption."
 		(setq old-buffers (delq (current-buffer) old-buffers)))
 	    (if (fboundp 'set-specifier) ;; XEmacs
 		(set-specifier left-margin-width (cons (current-buffer) 2))
-	      (setq left-margin-width 2))
-	    (if (setq win (get-buffer-window (current-buffer) t))
-		(set-window-buffer win (current-buffer))))))
+	      (if (< left-margin-width 2)
+		  (setq left-margin-width 2)))
+	    (let ((window (get-buffer-window (current-buffer) 0)))
+	      (if window
+		  (set-window-margins 
+		   window left-margin-width right-margin-width))))))
       (if use-glyph
 	  (while (setq buf (pop old-buffers))
 	    (with-current-buffer buf
 	      (if (fboundp 'set-specifier) ;; XEmacs
 		  (set-specifier left-margin-width (cons (current-buffer) 0))
 		(setq left-margin-width 0))
-	      (if (setq win (get-buffer-window buf t))
-		  (set-window-buffer win buf))))))))
+	      (let ((window (get-buffer-window buf 0)))
+		(if window
+		    (set-window-margins 
+		     window left-margin-width right-margin-width)))))))))
 
 (defun idlwave-shell-make-new-bp-overlay (&optional type disabled)
   "Make a new overlay for highlighting breakpoints.  
@@ -4055,7 +4060,9 @@ list elements of the form:
    idlwave-shell-bp-query
    '(progn
       (idlwave-shell-filter-bp)
-      (mapcar 'idlwave-shell-clear-bp idlwave-shell-bp-alist))
+      (mapcar (lambda (x) (idlwave-shell-clear-bp x 'no-query))
+	      idlwave-shell-bp-alist)
+      (idlwave-shell-bp-query))
    'hide))
 
 (defun idlwave-shell-list-all-bp ()

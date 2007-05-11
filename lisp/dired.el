@@ -1251,19 +1251,19 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map "\177" 'dired-unmark-backward)
     (define-key map [remap undo] 'dired-undo)
     (define-key map [remap advertised-undo] 'dired-undo)
-    ;; thumbnail manipulation (tumme)
-    (define-key map "\C-td" 'tumme-display-thumbs)
-    (define-key map "\C-tt" 'tumme-tag-files)
-    (define-key map "\C-tr" 'tumme-delete-tag)
-    (define-key map "\C-tj" 'tumme-jump-thumbnail-buffer)
-    (define-key map "\C-ti" 'tumme-dired-display-image)
-    (define-key map "\C-tx" 'tumme-dired-display-external)
-    (define-key map "\C-ta" 'tumme-display-thumbs-append)
-    (define-key map "\C-t." 'tumme-display-thumb)
-    (define-key map "\C-tc" 'tumme-dired-comment-files)
-    (define-key map "\C-tf" 'tumme-mark-tagged-files)
-    (define-key map "\C-t\C-t" 'tumme-dired-insert-marked-thumbs)
-    (define-key map "\C-te" 'tumme-dired-edit-comment-and-tags)
+    ;; thumbnail manipulation (image-dired)
+    (define-key map "\C-td" 'image-dired-display-thumbs)
+    (define-key map "\C-tt" 'image-dired-tag-files)
+    (define-key map "\C-tr" 'image-dired-delete-tag)
+    (define-key map "\C-tj" 'image-dired-jump-thumbnail-buffer)
+    (define-key map "\C-ti" 'image-dired-dired-display-image)
+    (define-key map "\C-tx" 'image-dired-dired-display-external)
+    (define-key map "\C-ta" 'image-dired-display-thumbs-append)
+    (define-key map "\C-t." 'image-dired-display-thumb)
+    (define-key map "\C-tc" 'image-dired-dired-comment-files)
+    (define-key map "\C-tf" 'image-dired-mark-tagged-files)
+    (define-key map "\C-t\C-t" 'image-dired-dired-insert-marked-thumbs)
+    (define-key map "\C-te" 'image-dired-dired-edit-comment-and-tags)
 
     ;; Make menu bar items.
 
@@ -1310,12 +1310,12 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
       (cons "Immediate" (make-sparse-keymap "Immediate")))
 
     (define-key map
-      [menu-bar immediate tumme-dired-display-external]
-      '(menu-item "Display Image Externally" tumme-dired-display-external
+      [menu-bar immediate image-dired-dired-display-external]
+      '(menu-item "Display Image Externally" image-dired-dired-display-external
                   :help "Display image in external viewer"))
     (define-key map
-      [menu-bar immediate tumme-dired-display-image]
-      '(menu-item "Display Image" tumme-dired-display-image
+      [menu-bar immediate image-dired-dired-display-image]
+      '(menu-item "Display Image" image-dired-dired-display-image
                   :help "Display sized image in a separate window"))
 
     (define-key map [menu-bar immediate dashes-4]
@@ -1358,8 +1358,8 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
       (cons "Regexp" (make-sparse-keymap "Regexp")))
 
     (define-key map
-      [menu-bar regexp tumme-mark-tagged-files]
-      '(menu-item "Mark From Image Tag..." tumme-mark-tagged-files
+      [menu-bar regexp image-dired-mark-tagged-files]
+      '(menu-item "Mark From Image Tag..." image-dired-mark-tagged-files
                   :help "Mark files whose image tags matches regexp"))    
     
     (define-key map [menu-bar regexp dashes-1]
@@ -1456,21 +1456,21 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
       '("--"))
 
     (define-key map
-      [menu-bar operate tumme-delete-tag]
-      '(menu-item "Delete Image Tag..." tumme-delete-tag
+      [menu-bar operate image-dired-delete-tag]
+      '(menu-item "Delete Image Tag..." image-dired-delete-tag
                   :help "Delete image tag from current or marked files"))
     (define-key map
-      [menu-bar operate tumme-tag-files]
-      '(menu-item "Add Image Tags..." tumme-tag-files
+      [menu-bar operate image-dired-tag-files]
+      '(menu-item "Add Image Tags..." image-dired-tag-files
                   :help "Add image tags to current or marked files"))
     (define-key map
-      [menu-bar operate tumme-dired-comment-files]
-      '(menu-item "Add Image Comment..." tumme-dired-comment-files
+      [menu-bar operate image-dired-dired-comment-files]
+      '(menu-item "Add Image Comment..." image-dired-dired-comment-files
                   :help "Add image comment to current or marked files"))
     (define-key map
-      [menu-bar operate tumme-display-thumbs]
-      '(menu-item "Display Thumbnails" tumme-display-thumbs
-                  :help "Display thumbnails for current or marked image files"))
+      [menu-bar operate image-dired-display-thumbs]
+      '(menu-item "Display Image-Dired" image-dired-display-thumbs
+                  :help "Display image-dired for current or marked image files"))
     
     (define-key map [menu-bar operate dashes-3]
       '("--"))    

@@ -48,7 +48,7 @@ or their values are used). The variables whose names end in
 @xref{Init File}.
 
 @item after-insert-file-functions
-@xref{Saving Properties}.
+@xref{Format Conversion}.
 
 @item after-make-frame-functions
 @xref{Creating Frames}.
@@ -330,7 +330,7 @@ Manual}.
 @xref{Saving Buffers}.
 
 @item write-region-annotate-functions
-@xref{Saving Properties}.
+@xref{Format Conversion}.
 @end table
 
 @ignore

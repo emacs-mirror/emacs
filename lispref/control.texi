@@ -783,13 +783,10 @@ undesirable results.  Instead, use @code{(error "%s" @var{string})}.
 @end defun
 
 @defun signal error-symbol data
-This
 @anchor{Definition of signal}
-@c unfortunately, a page break is allowed if the anchor immediately
-@c follows the @defun, due to hard-to-fix TeXnicalities.  
-function signals an error named by @var{error-symbol}.  The
-argument @var{data} is a list of additional Lisp objects relevant to the
-circumstances of the error.
+This function signals an error named by @var{error-symbol}.  The
+argument @var{data} is a list of additional Lisp objects relevant to
+the circumstances of the error.
 
 The argument @var{error-symbol} must be an @dfn{error symbol}---a symbol
 bearing a property @code{error-conditions} whose value is a list of

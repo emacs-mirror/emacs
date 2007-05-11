@@ -101,6 +101,13 @@ current buffer.
 ** make back_comment use syntax-ppss or equivalent.
 
 ** Improve configure's treatment of NON_GNU_CPP on Solaris.
+(patch available for after Emacs 22)
+
+** Consider improving src/sysdep.c's search for a fqdn.
+http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00782.html
+
+** Find a proper fix for rcirc multiline nick adding.
+http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00684.html
 
 * Important features:
 
@@ -477,6 +484,13 @@ when the body only calls primitives.
   the definition of `file-attributes' and `directory-files-and-attributes'
   and from the calls.
 
+** Modify the emulation of `stat' for MS-Windows to support large files.
+  The current version uses the stock Windows definition of `struct
+  stat', where the file's size is returned as a 32-bit integer.  That
+  overflows for files larger than 4GB.  To fix, modify `stat' to use
+  64-bit size, and use a declaration of `struct stat' that supports
+  such sizes.
+
 ** Make language-info-alist customizable.  Currently a user can customize
   only the variable `current-language-environment'.
 
@@ -579,6 +593,33 @@ but which can also be used as a modifier).
    class to the standard "link" face.
 
 * Other known bugs:
+
+** The \\{...} keymap dump output does not correctly remove shadowed entries:
+From: "Drew Adams" <drew.adams@oracle.com>
+
+(define-key minibuffer-local-map [(control ?=)] 'foo)
+(define-key minibuffer-local-completion-map [(control ?=)] 'foo)
+
+(defun toto () "\\{minibuffer-local-completion-map}"  4)
+
+C-h f toto shows a duplicate entry for C-=:
+
+toto is a Lisp function.
+(toto)
+
+key             binding
+- ---             -------
+
+C-g		abort-recursive-edit
+TAB		minibuffer-complete
+C-j		exit-minibuffer
+RET		exit-minibuffer
+ESC		Prefix Command
+SPC		minibuffer-complete-word
+?		minibuffer-completion-help
+C-=		foo
+C-=		foo
+...
 
 ** a two-char comment-starter whose two chars are symbol constituents will
 not be noticed if it appears within a word.

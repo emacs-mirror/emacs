@@ -5,8 +5,6 @@ Tasks needed before the next release.
 ** Check for widow and orphan lines in manuals;
 make sure all the pages really look ok in the manual as formatted.
 
-** Cleanup temporary +++/--- lines in etc/NEWS.
-
 ** Regenerate the postscript files of the reference cards in etc.
 
 ** Ask maintainers of refcard translations to update them.
@@ -24,15 +22,16 @@ sk	Miroslav Vaško        No response
 
 Reminders sent out on 2006-06-08.
 
-** Send an email to the various distributions, including the GNOME
-and KDE projects, to use the new Emacs icons in etc/images/icons.
+** Remove temporary +++/--- lines in NEWS.
+
+** Try to reorder NEWS: most important things first, related items together.
 
 * WINDOWS SUPPORT BUGS.
 
 These don't need to be fixed before a release, but we call the
 attention of Windows users to fixing them.
 
-** Drew Adams 12 Aug bug rpt: overlay  display artifact: trace left behind
+** Drew Adams 12 Aug bug rpt: overlay display artifact: trace left behind
 Windows only bug. Bug appears only when Cleartype enabled, probably related
 to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
@@ -41,7 +40,25 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 * BUGS
 
-** nferrier@tapsellferrier.co.uk, April 18: rcirc multiline nick adding
+See the copy of this file on the EMACS_22_BASE branch.
+
+** rcyeske@gmail.com, April 22: Failure to build on OpenBSD macppc.
+OpenBSD compilation works on i386.
+http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00932.html
+
+** Spurious redisplay bug not fixed.
+http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00443.html
+http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00732.html
+
+** michael.ewe@arcor.de, Apr 24: 22.0.98  not starting on Solaris 10/I386
+http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg01113.html
+
+** Takaaki.Ota@am.sony.com, May 2: table cell menu does not appear at the menubar
+   Bug is intermittent.
+
+** Install python.el `with' patch from trunk.
+
+** Install vc-hooks.el patch from trunk.
 
 * DOCUMENTATION
 

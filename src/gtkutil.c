@@ -2192,7 +2192,9 @@ create_menus (data, f, select_cb, deactivate_cb, highlight_cb,
                                       cl_data,
                                       &group);
 
-          if (item->contents)
+          /* Create a possibly empty submenu for menu bar items, since some
+             themes don't highlight items correctly without it. */
+          if (item->contents || menu_bar_p)
             {
               GtkWidget *submenu = create_menus (item->contents,
                                                  f,
@@ -2479,8 +2481,14 @@ xg_update_menubar (menubar, f, list, iter, pos, val,
                                                  cl_data,
                                                  &group);
 
+          /* Create a possibly empty submenu for menu bar items, since some
+             themes don't highlight items correctly without it. */
+          GtkWidget *submenu = create_menus (NULL, f,
+                                             select_cb, NULL, highlight_cb,
+                                             0, 0, 0, 0, cl_data, 0);
           gtk_widget_set_name (w, MENU_ITEM_NAME);
           gtk_menu_shell_insert (GTK_MENU_SHELL (menubar), w, pos);
+          gtk_menu_item_set_submenu (GTK_MENU_ITEM (w), submenu);
 
           g_list_free (*list);
           *list = iter = gtk_container_get_children (GTK_CONTAINER (menubar));

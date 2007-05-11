@@ -2909,7 +2909,11 @@ log entries should be gathered."
   (vc-call-backend (vc-responsible-backend default-directory)
                    'update-changelog args))
 
-(defun vc-default-update-changelog (backend files)
+(defalias 'vc-cvs-update-changelog 'vc-update-changelog-rcs2log)
+(defalias 'vc-rcs-update-changelog 'vc-update-changelog-rcs2log)
+;; FIXME: This should probably be moved to vc-rcs.el and replaced in
+;; vc-cvs.el by code using cvs2cl.
+(defun vc-update-changelog-rcs2log (files)
   "Default implementation of update-changelog.
 Uses `rcs2log' which only works for RCS and CVS."
   ;; FIXME: We (c|sh)ould add support for cvs2cl
@@ -2950,9 +2954,7 @@ Uses `rcs2log' which only works for RCS and CVS."
                                     (mapcar
                                      (lambda (f)
                                        (file-relative-name
-                                        (if (file-name-absolute-p f)
-                                            f
-                                          (concat odefault f))))
+                                        (expand-file-name f odefault)))
                                      files)))
                        "done"
 		     (pop-to-buffer (get-buffer-create "*vc*"))

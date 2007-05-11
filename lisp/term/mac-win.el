@@ -2104,7 +2104,8 @@ either in the current buffer or in the echo area."
 	 (coding (or (cdr (assq (car script-language)
 				mac-script-code-coding-systems))
 		     'mac-roman)))
-    (mac-unread-string (mac-utxt-to-string text coding))))
+    (if text
+	(mac-unread-string (mac-utxt-to-string text coding)))))
 
 ;; kEventClassTextInput/kEventTextInputUpdateActiveInputArea
 (define-key mac-apple-event-map [text-input update-active-input-area]

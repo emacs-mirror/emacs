@@ -124,9 +124,13 @@ With prefix arg, prompt for diff switches."
 	(erase-buffer))
       (buffer-enable-undo (current-buffer))
       (diff-mode)
+      ;; Use below 2 vars for backward-compatibility.
+      (set (make-local-variable 'diff-old-file) old)
+      (set (make-local-variable 'diff-new-file) new)
+      (set (make-local-variable 'diff-extra-args) (list switches no-async))
       (set (make-local-variable 'revert-buffer-function)
-	   `(lambda (ignore-auto noconfirm)
-	      (diff ',old ',new ',switches ',no-async)))
+	   (lambda (ignore-auto noconfirm)
+             (apply 'diff diff-old-file diff-new-file diff-extra-args)))
       (set (make-local-variable 'diff-old-temp-file) old-alt)
       (set (make-local-variable 'diff-new-temp-file) new-alt)
       (setq default-directory thisdir)
@@ -186,5 +190,5 @@ With prefix arg, prompt for diff switches."
 
 (provide 'diff)
 
-;;; arch-tag: 7de2c29b-7ea5-4b85-9b9d-72dd860de2bd
+;; arch-tag: 7de2c29b-7ea5-4b85-9b9d-72dd860de2bd
 ;;; diff.el ends here

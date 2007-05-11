@@ -197,7 +197,7 @@ Use the command `%s' to change this variable." pretty-name mode))
 
 	  (let ((base-doc-string
                  (concat "Non-nil if %s is enabled.
-See the command `%s' for a description of this minor-mode."
+See the command `%s' for a description of this minor mode."
                          (if body "
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
@@ -327,11 +327,12 @@ call another major mode in their body."
        (make-variable-buffer-local ',MODE-major-mode)
        ;; The actual global minor-mode
        (define-minor-mode ,global-mode
-	 ,(format "Toggle %s in every buffer.
+	 ,(format "Toggle %s in every possible buffer.
 With prefix ARG, turn %s on if and only if ARG is positive.
-%s is actually not turned on in every buffer but only in those
-in which `%s' turns it on."
-		  pretty-name pretty-global-name pretty-name turn-on)
+%s is enabled in all buffers where `%s' would do it.
+See `%s' for more information on %s."
+		  pretty-name pretty-global-name pretty-name turn-on
+		  mode pretty-name)
 	 :global t ,@group ,@(nreverse extra-keywords)
 
 	 ;; Setup hook to handle future mode changes and new buffers.

@@ -527,6 +527,8 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	    (citations (regexp-opt
 			'("label" "ref" "pageref" "vref" "eqref"
 			  "cite" "nocite" "index" "glossary" "bibitem"
+                          ;; natbib's two variants of \cite:
+                          "citep" "citet"
 			  ;; These are text, rather than citations.
 			  ;; "caption" "footnote" "footnotemark" "footnotetext"
 			  )

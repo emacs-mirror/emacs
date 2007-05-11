@@ -1,3 +1,7 @@
+2007-04-26  Glenn Morris  <rgm@gnu.org>
+
+	* makefile.w32-in (VERSION): Increase to 22.1.50.
+
 2007-02-26  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* Makefile.in (etags, ctags): Define EMACS_NAME as "GNU Emacs".
@@ -1845,7 +1849,7 @@
 	[WINDOWSNT]: #undef DOS_NT and #define it even if built with
 	HAVE_CONFIG_H.  This change does nothing in Emacs, as DOS_NT is
 	always defined when HAVE_CONFIG_H and WINDOWS are both defined.
-	[!HAVE_UNISTD_H]: use defined(WINDOWSNT) instead of the bare
+	[!HAVE_UNISTD_H]: Use defined(WINDOWSNT) instead of the bare
 	WINDOWSNT, as this is the correct way to use it.
 
 2001-01-28  Francesco Potort,Al(B  <pot@gnu.org>
@@ -2996,7 +3000,7 @@
 
 1997-03-14  Francesco Potort,Al(B  <F.Potorti@cnuce.cnr.it>
 
-	* etags.c (add_regex): reset *putbuf before using it.
+	* etags.c (add_regex): Reset *putbuf before using it.
 
 1997-02-23  Jonathan I. Kamens  <jik@kamens.brookline.ma.us>
 
@@ -3560,7 +3564,7 @@
 
 1995-12-04  Francesco Potort,Al(B  <pot@cnuce.cnr.it>
 
-	* Makefile.in (ctags): depend on etags only for simplicity;
+	* Makefile.in (ctags): Depend on etags only for simplicity;
 	compile with regexp support enabled.
 
 1995-11-24  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
@@ -3685,13 +3689,13 @@
 
 1995-06-27  Francesco Potort,Al(B  (pot@cnuce.cnr.it)
 
-	* etags.c (plain_C_entries): new function.
-	(lowcase): new macro.
-	(tail, Fortran_functions, Pascal_functions): use new macro lowcase.
-	(lang_suffixes): new suffix ".pc" for Pro*C files.
-	(consider_token): don't tag all tokens beginning with DEFUN & Co..
-	(tail): look for the end of the token when comparing.
-	(takeprec): since now tail behaves differently, use strneq.
+	* etags.c (plain_C_entries): New function.
+	(lowcase): New macro.
+	(tail, Fortran_functions, Pascal_functions): Use new macro lowcase.
+	(lang_suffixes): New suffix ".pc" for Pro*C files.
+	(consider_token): Don't tag all tokens beginning with DEFUN & Co..
+	(tail): Look for the end of the token when comparing.
+	(takeprec): Since now tail behaves differently, use strneq.
 
 1995-07-08  Paul Eggert  <eggert@twinsun.com>
 
@@ -3723,13 +3727,13 @@
 
 1995-06-27  Francesco Potort,Al(B  (pot@cnuce.cnr.it)
 
-	* etags.c (plain_C_entries): new function.
-	(lowcase): new macro.
-	(tail, Fortran_functions, Pascal_functions): use new macro lowcase.
-	(lang_suffixes): new suffix ".pc" for Pro*C files.
-	(consider_token): don't tag all tokens beginning with DEFUN & Co..
-	(tail): look for the end of the token when comparing.
-	(takeprec): since now tail behaves differently, use strneq.
+	* etags.c (plain_C_entries): New function.
+	(lowcase): New macro.
+	(tail, Fortran_functions, Pascal_functions): Use new macro lowcase.
+	(lang_suffixes): New suffix ".pc" for Pro*C files.
+	(consider_token): Don't tag all tokens beginning with DEFUN & Co..
+	(tail): Look for the end of the token when comparing.
+	(takeprec): Since now tail behaves differently, use strneq.
 
 1995-06-26  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -3906,7 +3910,7 @@
 
 1995-03-13  Francesco Potort,Al(B  (pot@cnuce.cnr.it)
 
-	* etags.c (process_file): free (filename) after using it.
+	* etags.c (process_file): Free (filename) after using it.
 	(readline_internal): Do not access the char before start of line.
 
 1995-02-22  Francesco Potort,Al(B  (pot@cnuce.cnr.it)
@@ -4039,8 +4043,8 @@
 
 1994-11-22  Francesco Potort,Al(B  (pot@cnuce.cnr.it)
 
-	* etags.c (print_help): print --regex usage for ctags also.
-	(main): use -h in addition to -H as abbreviation for --help.
+	* etags.c (print_help): Print --regex usage for ctags also.
+	(main): Use -h in addition to -H as abbreviation for --help.
 
 1994-11-16  Francesco Potort,Al(B  (pot@cnuce.cnr.it)
 
@@ -4105,9 +4109,9 @@
 
 1994-10-21  Francesco Potort,Al(B  (pot@cnuce.cnr.it)
 
-	* etags.c (prestr, substr): return a logical type.
+	* etags.c (prestr, substr): Return a logical type.
 	(consider_token): Comment out "EXFUN".  Use "DEFUN" instead of "DEF".
-	(consider_token): set funcdef to fignore when a DEFUN is met.
+	(consider_token): Set funcdef to fignore when a DEFUN is met.
 	(C_entries): Now we can use Tom Hageman patch for extern "C".
 
 1994-10-20  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
@@ -4190,8 +4194,8 @@
 
 1994-10-17  Francesco Potort,Al(B  (pot@fly.cnuce.cnr.it)
 
-	* Makefile.in.in (etags): add dependency on regex.o, link with it.
-	(REGEXPOBJ, REGEXPDEPS, regex.o): target and macros added.
+	* Makefile.in.in (etags): Add dependency on regex.o, link with it.
+	(REGEXPOBJ, REGEXPDEPS, regex.o): Target and macros added.
 
 1994-10-12  David J. MacKenzie  (djm@duality.gnu.ai.mit.edu)
 
@@ -4341,7 +4345,7 @@
 
 1994-07-08  Dave Love  (d.love@dl.ac.uk)
 
-	* etags.c (takeprec): recognise `character*(*) function'
+	* etags.c (takeprec): Recognise `character*(*) function'.
 
 1994-07-08  Francesco Potort,Al(B  (pot@cnuce.cnr.it)
 
@@ -4489,11 +4493,11 @@
 
 1994-04-18  Francesco Potort,Al(B  (pot@fly.cnuce.cnr.it)
 
-	* etags.c (main, print_help): eliminate the -F option.
+	* etags.c (main, print_help): Eliminate the -F option.
 
 1994-04-18  Francesco Potort,Al(B  (pot@fly.cnuce.cnr.it)
 
-	* etags.c (absolute_filename): compare against '\0' instead of NULL.
+	* etags.c (absolute_filename): Compare against '\0' instead of NULL.
 
 1994-04-16  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -4527,21 +4531,21 @@
 
 1994-04-08  Francesco Potort,Al(B  (pot@fly.cnuce.cnr.it)
 
-	* etags.c (outf, outfiledir): renamed to tagf, tagfiledir.
-	(PF_funcs, Asm_funcs, L_funcs, PAS_funcs, TEX_funcs,
-	Scheme_funcs, prolog_funcs): renamed to Fortran_functions,
+	* etags.c (outf, outfiledir): Renamed to tagf, tagfiledir.
+	(PF_funcs, Asm_funcs, L_funcs, PAS_funcs, TEX_funcs)
+	(Scheme_funcs, prolog_funcs): Renamed to Fortran_functions,
 	Asm_labels, Lisp_functions, Pascal_functions, Scheme_functions,
 	TeX_functions, Prolog_functions.
-	(inf): no more a global variable.
-	(C_entries): take 2nd parameter `inf' instead of using the global one.
-	(find_entries): added the cp1 var for optimisation.
-	(find_entries): added more suffixes for assembler files.
+	(inf): No more a global variable.
+	(C_entries): Take 2nd parameter `inf' instead of using the global one.
+	(find_entries): Added the cp1 var for optimisation.
+	(find_entries): Added more suffixes for assembler files.
 	(Asm_funcs): Now finds labels even without an ending colon.
 
 1994-03-30  Francesco Potort,Al(B  (pot@fly.cnuce.cnr.it)
 
-	* etags.c (main): use etags_getcwd for compatibility.
-	(etags_getcwd): new function.
+	* etags.c (main): Use etags_getcwd for compatibility.
+	(etags_getcwd): New function.
 
 1994-03-25  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -4549,22 +4553,22 @@
 
 1994-03-25  Francesco Potort,Al(B  (pot@cnuce.cnr.it)
 
-	* etags.c (emacs_tags_format, ETAGS): removed.  Use CTAGS instead.
-	(main): don't allow the use of -t and -T in etags mode.
-	(print_help): don't show options enabled by default.
-	(print_version): show the emacs version number if VERSION is #defined.
-	(find_entries): add "ss" as suffix for Chez Scheme.
+	* etags.c (emacs_tags_format, ETAGS): Removed.  Use CTAGS instead.
+	(main): Don't allow the use of -t and -T in etags mode.
+	(print_help): Don't show options enabled by default.
+	(print_version): Show the emacs version number if VERSION is #defined.
+	(find_entries): Add "ss" as suffix for Chez Scheme.
 
 1994-03-23  Francesco Potort,Al(B  (pot@cnuce.cnr.it)
 
-	* etags.c (cwd, outfiledir): vars added.
+	* etags.c (cwd, outfiledir): Vars added.
 	(relative_filename, absolute_filename, absolute_dirname):
 	functions added to compute filenames in tags files.
-	(process_file): filenames in tags file are relative to the
+	(process_file): Filenames in tags file are relative to the
 	directory where the tags file is (useful with the -o option).
-	(main): initialise the outfiledir var.
-	(TYPEDST): added the `tignore' value.
-	(C_entries): corrected various small bugs.
+	(main): Initialise the outfiledir var.
+	(TYPEDST): Added the `tignore' value.
+	(C_entries): Corrected various small bugs.
 
 1994-03-19  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -4579,8 +4583,8 @@
 
 1994-03-14  Francesco Potort,Al(B  (pot@cnuce.cnr.it)
 
-	* etags.c (TYPEDST): added the `tignore' value.
-	(C_entries): corrected various bugs, now correctly parses the
+	* etags.c (TYPEDST): Added the `tignore' value.
+	(C_entries): Corrected various bugs, now correctly parses the
 	`extern "C" {' construction (patch by Tom R.Hageman).
 
 1994-03-05  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -4621,7 +4625,7 @@
 1994-02-22  Karl Heuer  (kwzh@gnu.ai.mit.edu)
 
 	* profile.c (get_time): Simplify; avoid calling index.
-	(main): exit on EOF.
+	(main): Exit on EOF.
 
 1994-02-17  Francesco Potort,Al(B  (pot@cnuce.cnr.it)
 
@@ -4633,11 +4637,11 @@
 
 1994-02-14  Francesco Potort,Al(B  (pot@fly)
 
-	* etags.c (absolute_pathnames, cwd): added global vars.
-	(longopts, print_help, main, process_file): put absolute filenames
+	* etags.c (absolute_pathnames, cwd): Added global vars.
+	(longopts, print_help, main, process_file): Put absolute filenames
 	in the tag file if the -A --absolute-pathnames option is used.
-	(print_help): alfabetically order the options.
-	(malloc, realloc, strcpy, strncpy, strcmp): remove extern declar.
+	(print_help): Alfabetically order the options.
+	(malloc, realloc, strcpy, strncpy, strcmp): Remove extern declar.
 
 1994-02-09  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -4666,15 +4670,15 @@
 1994-01-14  Francesco Potort,Al(B  (pot@cnuce.cnr.it)
 
 	* etags.c (stab_entry, stab_create, stab_find, stab_search,
-	stab_type, add_keyword, C_reate_stab, C_create_stabs): deleted.
+	stab_type, add_keyword, C_reate_stab, C_create_stabs): Deleted.
 	Use gperf generated hash table instead of linked list.
-	(C_stab_entry, hash, in_word_set, get_C_stab, C_symtype): added.
+	(C_stab_entry, hash, in_word_set, get_C_stab, C_symtype): Added.
 	Mostly code generated by gperf.
-	(consider_token): removed unused parameter `lp'.
-	(PF_funcs, getit): allow subroutine and similar declarations
+	(consider_token): Removed unused parameter `lp'.
+	(PF_funcs, getit): Allow subroutine and similar declarations
 	to span multiple lines.
-	(C_entries): check for newline if inchar to avoid bus errors.
-	(process_file, find_entries): distinguish among nonexistent
+	(C_entries): Check for newline if inchar to avoid bus errors.
+	(process_file, find_entries): Distinguish among nonexistent
 	and not regular file.
 
 1994-01-14  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -4811,14 +4815,14 @@
 	functions returning a pointer to a function, a la `signal', can be
 	parsed.  This also required new state `fstartlist' to `FUNCST'.
 	(SAVE_TOKEN, RESTORE_TOKEN, TOKEN_SAVED_P): 1-deep token save stack.
-	(C_entries, CNL): use it to isolate preprocessor directive processing
+	(C_entries, CNL): Use it to isolate preprocessor directive processing
 	from the other state engines.
-	(begtk): add '~', for C++ class destructors.
+	(begtk): Add '~', for C++ class destructors.
 
 1993-11-02  Francesco Potort,Al(B  (pot@cnuce.cnr.it)
 
-	* etags.c (consider_token): removed unused variable firsttok.
-	(prolog_getit): call pfnote with the right number of arguments.
+	* etags.c (consider_token): Removed unused variable firsttok.
+	(prolog_getit): Call pfnote with the right number of arguments.
 
 1993-10-19  Paul Eggert  (eggert@twinsun.com)
 
@@ -4837,9 +4841,9 @@
 
 1993-10-01  Francesco Potort,Al(B  (pot@cnuce.cnr.it)
 
-	* etags.c (process_file): dead code removed.
+	* etags.c (process_file): Dead code removed.
 	(S_ISREG): #define it using S_IFREG if not defined.
-	(process_file): regular files have nothing to do with symlinks.
+	(process_file): Regular files have nothing to do with symlinks.
 
 1993-09-28  Brian Fox  (bfox@ai.mit.edu)
 
@@ -4922,10 +4926,10 @@
 
 1993-08-04  Francesco Potort,Al(B  (pot@spiff.gnu.ai.mit.edu)
 
-	* etags.c (L_isdef, L_isquote, L_getit): small optimisations.
-	(L_funcs): the (foo::defmumble stuff now should work.
-	(consider_token): function returned random value--corrected.
-	(C_entries): corrected == versus = typo.
+	* etags.c (L_isdef, L_isquote, L_getit): Small optimisations.
+	(L_funcs): The (foo::defmumble stuff now should work.
+	(consider_token): Function returned random value--corrected.
+	(C_entries): Corrected == versus = typo.
 
 1993-08-01  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
@@ -4941,11 +4945,11 @@
 	* etags.c (FINCST): Added the fignore status.  Means we are
 	after the parameter list and before the open curly brace.
 	Allows correct parsing of C++ constructors.
-	(C_entries, consider_token): make use of fignore.
-	(consider_token): reset funcdef when next_token_is_func: when in
+	(C_entries, consider_token): Make use of fignore.
+	(consider_token): Reset funcdef when next_token_is_func: when in
 	ctags mode makes DEFVAR and others work better.
-	(L_isquote): function that recognises the "(quote" string.
-	(L_getit): ignore quoting via "'" or "(quote".  Useful for defalias.
+	(L_isquote): Function that recognises the "(quote" string.
+	(L_getit): Ignore quoting via "'" or "(quote".  Useful for defalias.
 
 1993-07-29  Paul Eggert  (eggert@twinsun.com)
 
@@ -4977,20 +4981,20 @@
 
 1993-07-08  Francesco Potort,Al(B  (pot@cnuce.cnr.it)
 
-	* etags.c (alloca): removed all references to it.
-	(main): now calls xnew instead of alloca for portability.
-	(../src/config.h): included only if HAVE_CONFIG_H.
-	(const): void definition removed--config.h takes care of it.
+	* etags.c (alloca): Removed all references to it.
+	(main): Now calls xnew instead of alloca for portability.
+	(../src/config.h): Included only if HAVE_CONFIG_H.
+	(const): Void definition removed--config.h takes care of it.
 
 1993-07-08  Francesco Potort,Al(B  (pot@cnuce.cnr.it)
 
-	* etags.c (consider_token): was `==', now is `='.
+	* etags.c (consider_token): Was `==', now is `='.
 	(consider_token): DEFUNs now treated like funcs in ctags mode.
 
-	* etags.c (LEVEL_OK_FOR_FUNCDEF): removed.
-	(C_entries): optimized the test that used LEVEL_OK_FOR_FUNCDEF.
-	(C_entries): removed a piece of useless code.
-	(C_entries): making typedef tags is delayed until a semicolon
+	* etags.c (LEVEL_OK_FOR_FUNCDEF): Removed.
+	(C_entries): Optimized the test that used LEVEL_OK_FOR_FUNCDEF.
+	(C_entries): Removed a piece of useless code.
+	(C_entries): Making typedef tags is delayed until a semicolon
 	is met.  This handles "typedef int X, Y, Z;" correctly.
 
 1993-07-06  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
@@ -5266,38 +5270,38 @@
 
 1993-03-22  Francesco Potort,Al(B  (pot@cnuce.cnr.it)
 
-	* etags.c (YACC): flag added to c_ext.
-	(c_ext): no more a synonim for c_ext&C_PLPL because of YACC.
-	(find_entries): consistently use streq when reasonable.
-	(find_entries): a .y file is a yacc file.
+	* etags.c (YACC): Flag added to c_ext.
+	(c_ext): No more a synonim for c_ext&C_PLPL because of YACC.
+	(find_entries): Consistently use streq when reasonable.
+	(find_entries): A .y file is a yacc file.
 	(get_C_stab): c_ext becomes c_ext&C_PLPL.
-	(C_entries): logical cplpl means c_ext&C_PLPL.
-	(C_entries): logical yacc_rules means we are after the first %%.
-	(C_entries): added logic for yacc files.
+	(C_entries): Logical cplpl means c_ext&C_PLPL.
+	(C_entries): Logical yacc_rules means we are after the first %%.
+	(C_entries): Added logic for yacc files.
 
 1993-03-16  Francesco Potort,Al(B  (pot@cnuce.cnr.it)
 
 	* etags.c (C_entries): ':' case moved to the second switch.
-	(C_entries): do not examine token if structdef==scolonseen.
+	(C_entries): Do not examine token if structdef==scolonseen.
 	(consider_token): structtag set to null string for enum.
 
 1993-03-12  Francesco Potort,Al(B  (pot@cnuce.cnr.it)
 
-	* etags.c (GET_COOKIE): and related macros removed.
-	(logical): is now int, no more a char.
-	(reg): define deleted.
-	(isgood, _gd, notgd): deleted.
-	(gotone): deleted.
-	(TOKEN): member linestart removed.
-	(linepos, prev_linepos, lb1): deleted.
-	(main): call initbuffer on lbs array instead of lb1.
-	(init): removed the initialisation of the logical _gd array;
-	(find_entries): a .sa suffix means assembler file.
+	* etags.c (GET_COOKIE): And related macros removed.
+	(logical): Is now int, no more a char.
+	(reg): Define deleted.
+	(isgood, _gd, notgd): Deleted.
+	(gotone): Deleted.
+	(TOKEN): Member linestart removed.
+	(linepos, prev_linepos, lb1): Deleted.
+	(main): Call initbuffer on lbs array instead of lb1.
+	(init): Removed the initialisation of the logical _gd array;
+	(find_entries): A .sa suffix means assembler file.
 	(C_create_stab): "auto", "void", "extern", "static" are st_C_typespec.
 	All C state machines rewritten.
-	(C_entries): complete rewrite.
-	(condider_token): complete rewrite.
-	(getline): deleted.
+	(C_entries): Complete rewrite.
+	(condider_token): Complete rewrite.
+	(getline): Deleted.
 
 1993-03-01  Francesco Potort,Al(B  (pot@fly.CNUCE.CNR.IT)
 
@@ -5311,7 +5315,7 @@
 
 1993-03-19  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
 
-	* Makefile.in (EXECUTABLES): added rcs-checkin.
+	* Makefile.in (EXECUTABLES): Added rcs-checkin.
 
 	* Makefile.in (unlock, relock): New productions.
 
@@ -5594,7 +5598,7 @@
 
 1992-05-04  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
-	* Makefile.in: flags in CC invocations rearranged for no reason.
+	* Makefile.in: Flags in CC invocations rearranged for no reason.
 
 1992-04-20  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
@@ -6007,13 +6011,13 @@
 
 1989-04-18  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
-	* loadst.c: on bsd4.3, use gettimeofday instead of CPUSTATES.
+	* loadst.c: On bsd4.3, use gettimeofday instead of CPUSTATES.
 
 1989-03-15  Jeff Peck  (rms@sugar-bombs.ai.mit.edu)
 
 	* emacstool.c: setenv IN_EMACSTOOL=t, TERM=sun, TERMCAP=.
 
-	* emacsstool.1: update to document environment variables.
+	* emacsstool.1: Update to document environment variables.
 
 1989-02-21  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
@@ -6114,7 +6118,7 @@
 
 1988-09-24  Richard Stallman  (rms@gluteus.ai.mit.edu)
 
-	* etags.c (main): default setting of eflag was backwards.
+	* etags.c (main): Default setting of eflag was backwards.
 
 1988-09-23  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
@@ -6197,7 +6201,7 @@
 1988-04-28  Richard Stallman  (rms@frosted-flakes.ai.mit.edu)
 
 	* movemail.c: #undef close, since config can #define it on V.3.
-	* emacsclient.c, fakemail.c, loadst.c, server.c: likewise.
+	* emacsclient.c, fakemail.c, loadst.c, server.c: Likewise.
 
 1988-04-26  Richard Stallman  (rms@lucky-charms.ai.mit.edu)
 
@@ -6208,9 +6212,9 @@
 
 1988-03-20  Richard M. Stallman  (rms@wilson)
 
-	* server.c [not BSD and not HAVE_SYSVIPC]: fix error message.
+	* server.c [not BSD and not HAVE_SYSVIPC]: Fix error message.
 
-	* loadst.c (main) [XENIX]: use /usr/spool/mail, not /usr/mail.
+	* loadst.c (main) [XENIX]: Use /usr/spool/mail, not /usr/mail.
 
 ;; Local Variables:
 ;; coding: iso-2022-7bit

@@ -1,3 +1,72 @@
+2007-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* editfns.c (Ftranspose_regions): Yet another int/Lisp_Object mixup (YAILOM)
+
+2007-05-07  Andreas Schwab  <schwab@suse.de>
+
+	* keymap.c (Flookup_key): Fix typo in last change. 
+
+2007-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (Fdefine_key, Flookup_key): Only do the 0x80->meta_modifier
+	mapping for unibyte strings.
+
+2007-05-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macmenu.c (mac_dialog_show): Apply 2007-04-27 change for xmenu.c.
+	(Fx_popup_dialog) [MAC_OSX]: Likewise.
+
+2007-04-29  Richard Stallman  <rms@gnu.org>
+
+	* insdel.c (replace_range): For undo, record insertion first.
+
+2007-04-29  Andreas Schwab  <schwab@suse.de>
+
+	* lisp.h (VECSIZE): Use OFFSETOF.
+
+2007-04-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (try_window_reusing_current_matrix): Fix number of
+	disabled lines.
+
+2007-04-28  Richard Stallman  <rms@gnu.org>
+
+	* lread.c (read_escape): In a string, \s is always space.
+
+2007-04-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (xdialog_show): Call Fredisplay before showing the dialog.
+
+	* gtkutil.c (xg_update_menubar, create_menus): Create empty
+	submenu for menu bar items.
+
+2007-04-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (redisplay_window): Use BEG_UNCHANGED and END_UNCHANGED
+	values of the actual window.
+
+2007-04-23  Richard Stallman  <rms@gnu.org>
+
+	* process.c (Fstart_process): Doc fix.
+
+2007-04-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* process.c (Fstart_process): Doc fix.
+
+2007-04-22  Richard Stallman  <rms@gnu.org>
+
+	* abbrev.c (Fdefine_abbrev): Doc fix.
+
+	* keymap.c (Fdefine_key): Minor doc fix.
+
+2007-04-21  Glenn Morris  <rgm@gnu.org>
+
+	* keymap.c (Fdefine_key): Fix info ref in doc string.
+
+2007-04-20  Glenn Morris  <rgm@gnu.org>
+
+	* sysdep.c (init_system_name): Don't accept localhost.localdomain.
+
 2007-04-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* minibuf.c (Fminibuffer_contents, Fminibuffer_contents_no_properties)
@@ -6,8 +75,8 @@
 
 2007-04-16  Chong Yidong  <cyd@stupidchicken.com>
 
-	* dispnew.c (adjust_frame_glyphs_for_frame_redisplay): Set
-	garbaged flag in presence of window margins.
+	* dispnew.c (adjust_frame_glyphs_for_frame_redisplay):
+	Set garbaged flag in presence of window margins.
 	(showing_window_margins_p): New function.
 
 	* xdisp.c (cursor_row_p): Only end row on newline if it's a

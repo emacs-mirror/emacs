@@ -1307,13 +1307,13 @@ The arguments @var{seconds} and @var{millisec} let you specify timeout
 periods.  The former specifies a period measured in seconds and the
 latter specifies one measured in milliseconds.  The two time periods
 thus specified are added together, and @code{accept-process-output}
-returns after that much time whether or not there has been any
+returns after that much time, whether or not there has been any
 subprocess output.
-
-The argument @var{seconds} need not be an integer.  If it is a floating
-point number, this function waits for a fractional number of seconds.
-If @var{seconds} is 0, the function accepts whatever output is
-pending but does not wait.
+  
+The argument @var{millisec} is semi-obsolete nowadays because
+@var{seconds} can be a floating point number to specify waiting a
+fractional number of seconds.  If @var{seconds} is 0, the function
+accepts whatever output is pending but does not wait.
 
 @c Emacs 22.1 feature
 If @var{process} is a process, and the argument @var{just-this-one} is

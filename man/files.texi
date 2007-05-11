@@ -112,9 +112,9 @@ first slash in the double slash; the result is @samp{/x1/rms/foo}.
 or @file{~@var{user-id}/} to mean the home directory of a user whose
 login name is @code{user-id}@footnote{
 On MS-Windows and MS-DOS systems, where a user doesn't have a home
-directory, Emacs substitutes @file{~/} with the value of the
-environment variable @code{HOME}; see @ref{General Variables}.  The
-@file{~@var{user-id}/} construct is supported on those systems only
+directory, Emacs replaces @file{~/} with the value of the
+environment variable @code{HOME}; see @ref{General Variables}.  On
+these systems, the @file{~@var{user-id}/} construct is supported only
 for the current user, i.e., only if @var{user-id} is the current
 user's login name.}.
 
@@ -2583,6 +2583,8 @@ requires the appropriate uncompression program.
   A separate but similar Archive mode is used for archives produced by
 the programs @code{arc}, @code{jar}, @code{lzh}, @code{zip}, and
 @code{zoo}, which have extensions corresponding to the program names.
+Archive mode also works for those @code{exe} files that are
+self-extracting executables.
 
   The key bindings of Archive mode are similar to those in Tar mode,
 with the addition of the @kbd{m} key which marks a file for subsequent
@@ -2816,8 +2818,8 @@ works only when Emacs can display the specific image type.
 
 @findex thumbs-mode
 @findex mode, thumbs
-  See also the Tumme package (@pxref{Thumbnails}) for viewing images
-as thumbnails.
+  See also the Image-Dired package (@pxref{Image-Dired}) for viewing
+images as thumbnails.
 
 @node Filesets
 @section Filesets

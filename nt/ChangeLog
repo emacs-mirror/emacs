@@ -1,3 +1,7 @@
+2007-04-26  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.rc: Increase version to 22.1.50.
+
 2007-03-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* INSTALL: Mention the VCVARS32.BAT batch file for VS.NET users.

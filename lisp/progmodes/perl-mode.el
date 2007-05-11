@@ -647,10 +647,10 @@ possible action from the following list:
 		     (if (and comment-start-skip
 			      (re-search-forward comment-start-skip eol 'move))
 			 (if (eolp)
-			     (progn	; kill existing comment
+			     (progn	; delete existing comment
 			       (goto-char (match-beginning 0))
 			       (skip-chars-backward " \t")
-			       (kill-region (point) eol))
+			       (delete-region (point) eol))
 			   (if (or (< oldpnt (point)) (= oldpnt eol))
 			       (indent-for-comment) ; indent existing comment
 			     (end-of-line)))

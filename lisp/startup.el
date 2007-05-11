@@ -1133,21 +1133,25 @@ regardless of the value of this variable."
                 "\n")))
            :face variable-pitch "\
 Emacs FAQ\t\tFrequently asked questions and answers
-View Emacs Manual\tView the Emacs manual using Info
+View Emacs Manual\t\tView the Emacs manual using Info
 Absence of Warranty\tGNU Emacs comes with "
 	   :face (variable-pitch :slant oblique)
 	   "ABSOLUTELY NO WARRANTY\n"
 	   :face variable-pitch
 	   "\
-Copying Conditions\tConditions for redistributing and changing Emacs
+Copying Conditions\t\tConditions for redistributing and changing Emacs
 Getting New Versions\tHow to obtain the latest version of Emacs
 More Manuals / Ordering Manuals       Buying printed manuals from the FSF\n")
   (:face variable-pitch
-	 "To quit a partially entered command, type "
+	 "\nTo quit a partially entered command, type "
 	 :face default
 	 "Control-g"
 	 :face variable-pitch
-	 ".\n"
+	 ".
+
+Emacs Guided Tour\t\tSee http://www.gnu.org/software/emacs/tour/
+
+"
 	 :face (variable-pitch :weight bold)
 	 "Useful File menu items:\n"
 	 :face variable-pitch
@@ -1160,13 +1164,7 @@ More Manuals / Ordering Manuals       Buying printed manuals from the FSF\n")
 	 "Control-c"
 	 :face variable-pitch
 	 ")
-Recover Crashed Session\tRecover files you were editing before a crash
-
-
-
-
-
-"
+Recover Crashed Session\tRecover files you were editing before a crash\n"
 	   ))
   "A list of texts to show in the middle part of splash screens.
 Each element in the list should be a list of strings or pairs

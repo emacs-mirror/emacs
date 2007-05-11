@@ -166,6 +166,8 @@ Also trim the accumulator by all the data used to build the event."
     (if (or (eq (car ob-pos) 'STILL) (eq (car ob-pos) '***) (not ob-pos))
 	nil
       (setq ob (car ob-pos))
+      (if (string-match "mev:$" (prin1-to-string ob))
+	  (error "Can't open mouse connection"))
       (setq t-mouse-filter-accumulator
             (substring t-mouse-filter-accumulator (cdr ob-pos)))
 
@@ -273,32 +275,32 @@ With prefix arg, turn t-mouse mode on iff arg is positive.
 
 Turn it on to use Emacs mouse commands, and off to use t-mouse commands."
   nil " Mouse" nil :global t
-  (if t-mouse-mode
-      ;; Turn it on
-      (unless window-system
-        ;; Starts getting a stream of mouse events from an asynchronous process.
-        ;; Only works if Emacs is running on a virtual terminal without a window system.
+  (unless window-system
+    (if t-mouse-mode
+	;; Turn it on.  Starts getting a stream of mouse events from an
+        ;; asynchronous process.  Only works if Emacs is running on a virtual
+        ;; terminal without a window system.
 	(progn
-	 (setq mouse-position-function #'t-mouse-mouse-position-function)
-	 (let ((tty (t-mouse-tty))
-	       (process-connection-type t))
-	   (if (not (stringp tty))
-	       (error "Cannot find a virtual terminal"))
-	   (setq t-mouse-process
-		 (start-process "t-mouse" nil
-				"mev" "-i" "-E" "-C" tty
-				(if t-mouse-swap-alt-keys
-				    "-M-leftAlt" "-M-rightAlt")
-				"-e-move"
-				"-dall" "-d-hard"
-				"-f")))
-	 (setq t-mouse-filter-accumulator "")
-	 (set-process-filter t-mouse-process 't-mouse-process-filter)
-	 (set-process-query-on-exit-flag t-mouse-process nil)))
+	  (setq mouse-position-function #'t-mouse-mouse-position-function)
+	  (let ((tty (t-mouse-tty))
+		(process-connection-type t))
+	    (if (not (stringp tty))
+		(error "Cannot find a virtual terminal"))
+	    (setq t-mouse-process
+		  (start-process "t-mouse" nil
+				 "mev" "-i" "-E" "-C" tty
+				 (if t-mouse-swap-alt-keys
+				     "-M-leftAlt" "-M-rightAlt")
+				 "-e-move"
+				 "-dall" "-d-hard"
+				 "-f")))
+	  (setq t-mouse-filter-accumulator "")
+	  (set-process-filter t-mouse-process 't-mouse-process-filter)
+	  (set-process-query-on-exit-flag t-mouse-process nil))
     ;; Turn it off
-    (setq mouse-position-function nil)
-    (delete-process t-mouse-process)
-    (setq t-mouse-process nil)))
+      (setq mouse-position-function nil)
+      (delete-process t-mouse-process)
+      (setq t-mouse-process nil))))
 
 (provide 't-mouse)
 
