@@ -75,22 +75,22 @@ gnus-booklet.dvi: gnus-refcard.tex
 
 ## A4, landscape.
 de-refcard.ps fr-refcard.ps pt-br-refcard.ps orgcard.ps: %.ps: %.dvi
-	dvips -t a4 -t landscape $<
+	dvips -t a4 -t landscape $< -o $@
 
 ## A4, portrait.
 cs-dired-ref.ps cs-refcard.ps cs-survival.ps fr-drdref.ps \
 pl-refcard.ps ru-refcard.ps \
 sk-dired-ref.ps sk-refcard.ps sk-survival.ps: %.ps: %.dvi
-	dvips -t a4 $<
+	dvips -t a4 $< -o $@
 
 ## letter, landscape.
 calccard.ps refcard.ps: %.ps: %.dvi
-	dvips -t letter -t landscape $<
+	dvips -t letter -t landscape $< -o $@
 
 ## letter, portrait.
 dired-ref.ps gnus-booklet.ps gnus-refcard.ps survival.ps vipcard.ps \
 viperCard.ps: %.ps: %.dvi
-	dvips -t letter $<
+	dvips -t letter $< -o $@
 
 
 .PHONY: mostlyclean clean distclean maintainer-clean unlock relock
