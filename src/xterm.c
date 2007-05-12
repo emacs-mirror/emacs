@@ -7065,6 +7065,7 @@ XTread_socket (sd, expected, hold_quit)
 #endif
 
 #ifndef USE_GTK
+      x_catch_errors (dpyinfo->display);
       while (XPending (dpyinfo->display))
 	{
           int finish;
@@ -7083,6 +7084,7 @@ XTread_socket (sd, expected, hold_quit)
           if (finish == X_EVENT_GOTO_OUT)
             goto out;
         }
+      x_uncatch_errors ();
 #endif /* not USE_GTK */
     }
 
