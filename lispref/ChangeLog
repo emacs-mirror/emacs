@@ -1,3 +1,12 @@
+2007-05-12  Richard Stallman  <rms@gnu.org>
+
+	* text.texi (Margins): indent-to-left-margin is not the default.
+	(Mode-Specific Indent): For indent-line-function, the default
+	is indent-relative.
+
+	* modes.texi (Example Major Modes): Explain last line of text-mode
+	is redundant.
+
 2007-05-10  Richard Stallman  <rms@gnu.org>
 
 	* keymaps.texi (Scanning Keymaps): Update where-is-internal example.
