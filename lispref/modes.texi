@@ -956,7 +956,11 @@ Turning on Text mode runs the normal hook `text-mode-hook'."
 @end group
 @end smallexample
 
-  But here is how it was defined formerly, before
+@noindent
+(The last line is redundant nowadays, since @code{indent-relative} is
+the default value, and we'll delete it in a future version.)
+
+  Here is how it was defined formerly, before
 @code{define-derived-mode} existed:
 
 @smallexample
