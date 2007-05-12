@@ -1,3 +1,11 @@
+2007-05-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-mode): Make longlines-auto-wrap
+	buffer-local.  Add hooks unconditionally.
+	(longlines-auto-wrap): Toggle wrapping.
+	(longlines-after-change-function)
+	(longlines-post-command-function): Check longlines-auto-wrap.
+
 2007-05-12  Nick Roberts  <nickrob@snap.net.nz>
 
 	* xt-mouse.el (xterm-mouse-debug-buffer): New variable.
