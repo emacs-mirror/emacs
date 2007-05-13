@@ -1,3 +1,12 @@
+2007-05-13  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Use default color when foreground or background color
+	are unspecified.  Reported by Leo <sdl.web@gmail.com>.
+	(ps-print-version): New version 7.2.3.
+	(ps-rgb-color): New argument.  Use default color when color is
+	unspecified.
+	(ps-begin-job): Fix code.
+
 2007-03-28  Riccardo Murri  <riccardo.murri@gmail.com>
 
 	* vc-bzr.el: New file.
