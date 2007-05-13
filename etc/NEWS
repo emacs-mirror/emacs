@@ -357,7 +357,7 @@ in the value, use `$$'.
 
 ** The default values of paragraph-start and indent-line-function have
 been changed to reflect those used in Text mode rather than those used
-in Indented-Text mode.
+in Paragraph-Indent Text mode.
 
 ** The default for the paper size (variable ps-paper-type) is taken
 from the locale.
@@ -5015,7 +5015,7 @@ looking at the file contents.  It takes precedence over `auto-mode-alist'.
 
 *** New variable `file-start-mode-alist' determines major mode for a file by
 looking at the file contents.  It is handled after `auto-mode-alist',
-only if `auto-mode-alist' says nothing about the file.
+only if `auto-mode-alist' (and `magic-mode-alist') says nothing about the file.
 
 *** XML or SGML major mode is selected when file starts with an `<?xml'
 or `<!DOCTYPE' declaration.

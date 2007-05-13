@@ -2,8 +2,7 @@
 
 	* image.c (pbm_load): Correctly check image size for greyscale pbm.
 
-	* xterm.c (XTread_socket): Yet another uncaught X error
-	crash (YAUXEC).
+	* xterm.c (XTread_socket): Yet Another Uncaught X Error Crash (YAUXEC).
 
 2007-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
