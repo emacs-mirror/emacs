@@ -31,14 +31,14 @@
 
 (defun terminal-init-tvi970 ()
   "Terminal initialization function for tvi970."
-  (or (lookup-key function-key-map "\e[")
-      (define-key function-key-map "\e[" (make-keymap)))
-  ;; (or (lookup-key function-key-map "\eO")
-  ;;    (define-key function-key-map "\eO" (make-keymap)))
+  (or (lookup-key local-function-key-map "\e[")
+      (define-key local-function-key-map "\e[" (make-keymap)))
+  ;; (or (lookup-key local-function-key-map "\eO")
+  ;;    (define-key local-function-key-map "\eO" (make-keymap)))
 
   ;; Miscellaneous keys
   (mapcar (function (lambda (key-binding)
-		      (define-key function-key-map
+		      (define-key local-function-key-map
 			(car key-binding) (nth 1 key-binding))))
 	  '(
 	    ;; These are set up by termcap or terminfo
@@ -54,7 +54,7 @@
 	    ("\e[@"	[insert])
 	    ("\e[L"	[insertline])
 	    ("\e[M"	[deleteline])
-	    ("\e[U"	[next])	;; actually the `page' key
+	    ("\e[U"	[next])		;; actually the `page' key
 
 	    ;; These won't be set up by either
 	    ("\eOm"	[kp-subtract])
@@ -87,22 +87,23 @@
   ;; The numeric keypad keys.
   (let ((i 0))
     (while (< i 10)
-      (define-key function-key-map
+      (define-key local-function-key-map
 	(format "\eO%c" (+ i ?p))
 	(vector (intern (format "kp-%d" i))))
       (setq i (1+ i))))
   ;; The numbered function keys.
   (let ((i 0))
     (while (< i 16)
-      (define-key function-key-map
+      (define-key local-function-key-map
 	(format "\e?%c" (+ i ?a))
 	(vector (intern (format "f%d" (1+ i)))))
-      (define-key function-key-map
+      (define-key local-function-key-map
 	(format "\e?%c" (+ i ?A))
 	(vector (intern (format "S-f%d" (1+ i)))))
       (setq i (1+ i))))
 
   (tvi970-set-keypad-mode 1))
+
 
 ;;; Should keypad numbers send ordinary digits or distinct escape sequences?
 (defvar tvi970-keypad-numeric nil

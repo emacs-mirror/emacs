@@ -2219,7 +2219,7 @@ other modes in which C preprocessor directives are used. e.g. `asm-mode' and
      `(;; Control structures.  Emacs Lisp forms.
        (,(concat
 	  "(" (regexp-opt
-	       '("cond" "if" "while" "while-no-input" "let" "let*"
+	       '("cond" "if" "while" "while-no-input" "let" "let*" "let-environment"
 		 "prog" "progn" "progv" "prog1" "prog2" "prog*"
 		 "inline" "lambda" "save-restriction" "save-excursion"
 		 "save-window-excursion" "save-selected-window"
@@ -2231,7 +2231,7 @@ other modes in which C preprocessor directives are used. e.g. `asm-mode' and
 		 "with-current-buffer" "with-electric-help"
 		 "with-local-quit" "with-no-warnings"
 		 "with-output-to-string" "with-output-to-temp-buffer"
-		 "with-selected-window" "with-syntax-table"
+		 "with-selected-window" "with-selected-frame" "with-syntax-table"
 		 "with-temp-buffer" "with-temp-file" "with-temp-message"
 		 "with-timeout" "with-timeout-handler") t)
 	  "\\>")

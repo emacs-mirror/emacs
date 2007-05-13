@@ -6,19 +6,43 @@ See the end of the file for license conditions.
    This directory contains files of elisp that customize Emacs for certain
 terminal types.
 
-   When Emacs starts, it checks the TERM environment variable to see what type
-of terminal the user is running on, checks for an elisp file named
-"term/${TERM}.el", and if one exists, loads it.  If that doesn't yield a file
-that exists, the last hyphen and what follows it is stripped.  If that doesn't
-yield a file that exists, the previous hyphen is stripped, and so on until all
-hyphens are gone.  For example, if the terminal type is `aaa-48-foo', Emacs
-will try first `term/aaa-48-foo.el', then `term/aaa-48.el' and finally
-`term/aaa.el'.  Each terminal specific file should contain a function
-named terminal-init-TERMINALNAME (eg terminal-init-aaa-48 for
-term/aaa-48.el) that Emacs will call in order to initialize the
-terminal. The terminal files should not contain any top level forms
-that are executed when the file is loaded, all the initialization
-actions are performed by the terminal-init-TERMINALNAME functions.
+   When Emacs opens a new terminal, it checks the TERM environment variable to
+see what type of terminal the user is running on, searches for an elisp file
+named "term/${TERM}.el", and if one exists, loads it.  If Emacs finds no
+suitable file, then it strips the last hyphen and what follows it from TERM,
+and tries again.  If that still doesn't yield a file, then the previous hyphen
+is stripped, and so on until all hyphens are gone.  For example, if the
+terminal type is `aaa-48-foo', Emacs will try first `term/aaa-48-foo.el', then
+`term/aaa-48.el' and finally `term/aaa.el'.  Emacs stops searching at the
+first file found, and will not load more than one file for any terminal.  Note
+that it is not an error if Emacs is unable to find a terminal initialization
+file; in that case, it will simply proceed with the next step without loading
+any files.
+
+   Once the file has been loaded (or the search failed), Emacs tries to call a
+function named `terminal-init-TERMINALNAME' (eg `terminal-init-aaa-48' for the
+`aaa-48' terminal) in order to initialize the terminal.  Once again, if the
+function is not found, Emacs strips the last component of the name and tries
+again using the shorter name.  This search is independent of the previous file
+search, so that you can have terminal initialization functions for a family of
+terminals collected in a single file named after the family name, and users
+may put terminal initialization functions directly in their .emacs files.
+
+   Note that an individual terminal file is loaded only once in an Emacs
+session; if the same terminal type is opened again, Emacs will simply call the
+initialization function without reloading the file.  Therefore, all the actual
+initialization actions should be collected in terminal-init-* functions; the
+file should not contain any top-level form that is not a function or variable
+declaration.  Simply loading the file should not have any side effect.
+
+   Similarly, the terminal initialization function is called only once on any
+given terminal, when the first frame is created on it.  The function is not
+called for subsequent frames on the same terminal.  Therefore, terminal-init-*
+functions should only modify terminal-local variables (such as
+`local-function-key-map') and terminal parameters.  For example, it is not
+correct to modify frame parameters, since the modifications will only be
+applied for the first frame opened on the terminal.
+
 
    When writing terminal packages, there are some things it is good to keep in
 mind.

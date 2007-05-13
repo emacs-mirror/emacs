@@ -1370,11 +1370,11 @@ x_set_mouse_color (f, arg, oldval)
   Cursor cursor, nontext_cursor, mode_cursor, hand_cursor;
   Cursor hourglass_cursor, horizontal_drag_cursor;
   unsigned long pixel = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
-  unsigned long mask_color = x->background_pixel;
+  unsigned long mask_color = FRAME_BACKGROUND_PIXEL (f);
 
   /* Don't let pointers be invisible.  */
   if (mask_color == pixel)
-    pixel = x->foreground_pixel;
+    pixel = FRAME_FOREGROUND_PIXEL (f);
 
   f->output_data.mac->mouse_pixel = pixel;
 
@@ -2401,8 +2401,8 @@ x_make_gc (f)
     = (XCreatePixmapFromBitmapData
        (FRAME_X_DISPLAY (f), FRAME_X_DISPLAY_INFO (f)->root_window,
 	gray_bits, gray_width, gray_height,
-	f->output_data.x->foreground_pixel,
-	f->output_data.x->background_pixel,
+	FRAME_FOREGROUND_PIXEL (f),
+	FRAME_BACKGROUND_PIXEL (f),
 	DefaultDepth (FRAME_X_DISPLAY (f), FRAME_X_SCREEN_NUMBER (f))));
 #endif
 

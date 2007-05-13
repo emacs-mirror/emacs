@@ -865,7 +865,7 @@ xg_create_frame_widgets (f)
 
   /* Since GTK clears its window by filling with the background color,
      we must keep X and GTK background in sync.  */
-  xg_pix_to_gcolor (wfixed, f->output_data.x->background_pixel, &bg);
+  xg_pix_to_gcolor (wfixed, FRAME_BACKGROUND_PIXEL (f), &bg);
   gtk_widget_modify_bg (wfixed, GTK_STATE_NORMAL, &bg);
 
   /* Also, do not let any background pixmap to be set, this looks very
@@ -2034,7 +2034,7 @@ xg_create_one_menuitem (item, f, select_cb, highlight_cb, cl_data, group)
   return w;
 }
 
-/* Callback called when keyboard traversal (started by menu-bar-open) ends.
+/* Callback called when keyboard traversal (started by x-menu-bar-open) ends.
    WMENU is the menu for which traversal has been done.  DATA points to the
    frame for WMENU.  We must release grabs, some bad interaction between GTK
    and Emacs makes the menus keep the grabs.  */

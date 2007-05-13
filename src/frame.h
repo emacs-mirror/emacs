@@ -29,9 +29,7 @@ Boston, MA 02110-1301, USA.  */
 
 /* Miscellanea.  */
 
-/* Nonzero means don't assume anything about current contents of
-   actual terminal frame */
-
+/* Nonzero means there is at least one garbaged frame. */
 extern int frame_garbaged;
 
 /* Nonzero means FRAME_MESSAGE_BUF (selected_frame) is being used by
@@ -44,6 +42,7 @@ extern int message_buf_print;
 
 enum output_method
 {
+  output_initial,
   output_termcap,
   output_x_window,
   output_msdos_raw,
@@ -68,30 +67,10 @@ enum text_cursor_kinds
   HBAR_CURSOR
 };
 
-#if !defined(MSDOS) && !defined(WINDOWSNT) && !defined(MAC_OS)
+#define FRAME_FOREGROUND_PIXEL(f) ((f)->foreground_pixel)
+#define FRAME_BACKGROUND_PIXEL(f) ((f)->background_pixel)
 
-#if !defined(HAVE_X_WINDOWS)
-
-#define PIX_TYPE unsigned long
-
-/* A (mostly empty) x_output structure definition for building Emacs
-   on Unix and GNU/Linux without X support.  */
-struct x_output
-{
-  PIX_TYPE background_pixel;
-  PIX_TYPE foreground_pixel;
-};
-
-#endif /* ! HAVE_X_WINDOWS */
-
-
-#define FRAME_FOREGROUND_PIXEL(f) ((f)->output_data.x->foreground_pixel)
-#define FRAME_BACKGROUND_PIXEL(f) ((f)->output_data.x->background_pixel)
-
-/* A structure describing a termcap frame display.  */
-extern struct x_output tty_display;
-
-#endif /* ! MSDOS && ! WINDOWSNT && ! MAC_OS */
+struct terminal;
 
 struct frame
 {
@@ -153,7 +132,7 @@ struct frame
      Actually, we don't specify exactly what is stored here at all; the
      scroll bar implementation code can use it to store anything it likes.
      This field is marked by the garbage collector.  It is here
-     instead of in the `display' structure so that the garbage
+     instead of in the `device' structure so that the garbage
      collector doesn't need to look inside the window-system-dependent
      structure.  */
   Lisp_Object scroll_bars;
@@ -182,6 +161,10 @@ struct frame
   /* List of buffers viewed in this frame, for other-buffer.  */
   Lisp_Object buffer_list;
 
+  /* List of buffers that were viewed, then buried in this frame.  The
+     most recently buried buffer is first.  For last-buffer.  */
+  Lisp_Object buried_buffer_list;
+  
   /* A dummy window used to display menu bars under X when no X
      toolkit support is available.  */
   Lisp_Object menu_bar_window;
@@ -283,20 +266,24 @@ struct frame
   /* Canonical Y unit.  Height of a line, in pixels.  */
   int line_height;
 
-  /* The output method says how the contents of this frame
-     are displayed.  It could be using termcap, or using an X window.  */
+  /* The output method says how the contents of this frame are
+     displayed.  It could be using termcap, or using an X window.
+     This must be the same as the terminal->type. */
   enum output_method output_method;
 
-  /* A structure of auxiliary data used for displaying the contents.
-     struct x_output is used for X window frames;
-     it is defined in xterm.h.
-     struct w32_output is used for W32 window frames;
-     it is defined in w32term.h.  */
+  /* The terminal device that this frame uses.  If this is NULL, then
+     the frame has been deleted. */
+  struct terminal *terminal;
+  
+  /* Device-dependent, frame-local auxiliary data used for displaying
+     the contents.  When the frame is deleted, this data is deleted as
+     well. */
   union output_data
   {
-    struct x_output *x;
-    struct w32_output *w32;
-    struct mac_output *mac;
+    struct tty_output *tty;     /* termchar.h */
+    struct x_output *x;         /* xterm.h */
+    struct w32_output *w32;     /* w32term.h */
+    struct mac_output *mac;     /* macterm.h */
     EMACS_INT nothing;
   }
   output_data;
@@ -310,13 +297,6 @@ struct frame
 
   /* The extra width (in pixels) currently allotted for fringes.  */
   int left_fringe_width, right_fringe_width;
-
-#ifdef MULTI_KBOARD
-  /* A pointer to the kboard structure associated with this frame.
-     For termcap frames, this points to initial_kboard.  For X frames,
-     it will be the same as display.x->display_info->kboard.  */
-  struct kboard *kboard;
-#endif
 
   /* See FULLSCREEN_ enum below */
   int want_fullscreen;
@@ -341,13 +321,13 @@ struct frame
      frame becomes visible again, it must be marked as garbaged.  The
      FRAME_SAMPLE_VISIBILITY macro takes care of this.
 
-     On Windows NT/9X, to avoid wasting effort updating visible frames
-     that are actually completely obscured by other windows on the
-     display, we bend the meaning of visible slightly: if greater than
-     1, then the frame is obscured - we still consider it to be
-     "visible" as seen from lisp, but we don't bother updating it.  We
-     must take care to garbage the frame when it ceaces to be obscured
-     though.  Note that these semantics are only used on NT/9X.
+     On ttys and on Windows NT/9X, to avoid wasting effort updating
+     visible frames that are actually completely obscured by other
+     windows on the display, we bend the meaning of visible slightly:
+     if greater than 1, then the frame is obscured - we still consider
+     it to be "visible" as seen from lisp, but we don't bother
+     updating it.  We must take care to garbage the frame when it
+     ceaces to be obscured though.
 
      iconified is nonzero if the frame is currently iconified.
 
@@ -441,7 +421,7 @@ struct frame
   /* The baud rate that was used to calculate costs for this frame.  */
   int cost_calculation_baud_rate;
 
-  /* Nonzero if the mouse has moved on this display
+  /* Nonzero if the mouse has moved on this display device
      since the last time we checked.  */
   char mouse_moved;
 
@@ -460,7 +440,11 @@ struct frame
   /* Set to non-zero in when we want for force a flush_display in
      update_frame, usually after resizing the frame.  */
   unsigned force_flush_display_p : 1;
-
+  
+  /* All display backends seem to need these two pixel values. */
+  unsigned long background_pixel;
+  unsigned long foreground_pixel;
+  
   /* Set to non-zero if the default face for the frame has been
      realized.  Reset to zero whenever the default face changes.
      Used to see the difference between a font change and face change.  */
@@ -479,7 +463,7 @@ struct frame
 };
 
 #ifdef MULTI_KBOARD
-#define FRAME_KBOARD(f) ((f)->kboard)
+#define FRAME_KBOARD(f) ((f)->terminal->kboard)
 #else
 #define FRAME_KBOARD(f) (&the_only_kboard)
 #endif
@@ -493,6 +477,7 @@ typedef struct frame *FRAME_PTR;
 #define WINDOW_FRAME(w) (w)->frame
 
 /* Test a frame for particular kinds of display methods.  */
+#define FRAME_INITIAL_P(f) ((f)->output_method == output_initial)
 #define FRAME_TERMCAP_P(f) ((f)->output_method == output_termcap)
 #define FRAME_X_P(f) ((f)->output_method == output_x_window)
 #define FRAME_W32_P(f) ((f)->output_method == output_w32)
@@ -516,7 +501,7 @@ typedef struct frame *FRAME_PTR;
 #endif
 
 /* Nonzero if frame F is still alive (not deleted).  */
-#define FRAME_LIVE_P(f) ((f)->output_data.nothing != 0)
+#define FRAME_LIVE_P(f) ((f)->terminal != 0)
 
 /* Nonzero if frame F is a minibuffer-only frame.  */
 #define FRAME_MINIBUF_ONLY_P(f) \
@@ -756,7 +741,10 @@ typedef struct frame *FRAME_PTR;
 
    Also, if a frame used to be invisible, but has just become visible,
    it must be marked as garbaged, since redisplay hasn't been keeping
-   up its contents.  */
+   up its contents.
+
+   Note that a tty frame is visible if and only if it is the topmost
+   frame. */
 
 #define FRAME_SAMPLE_VISIBILITY(f) \
   (((f)->async_visible && (f)->visible != (f)->async_visible) ? \
@@ -789,10 +777,14 @@ typedef struct frame *FRAME_PTR;
 
 
 extern Lisp_Object Qframep, Qframe_live_p;
+extern Lisp_Object Qtty, Qtty_type;
+extern Lisp_Object Qterminal, Qterminal_live_p;
+extern Lisp_Object Qenvironment;
 
 extern struct frame *last_nonminibuf_frame;
 
-extern struct frame *make_terminal_frame P_ ((void));
+extern struct frame *make_initial_frame P_ ((void));
+extern struct frame *make_terminal_frame P_ ((struct terminal *));
 extern struct frame *make_frame P_ ((int));
 #ifdef HAVE_WINDOW_SYSTEM
 extern struct frame *make_minibuffer_frame P_ ((void));
@@ -992,7 +984,7 @@ extern Lisp_Object selected_frame;
 
 extern Lisp_Object Qauto_raise, Qauto_lower;
 extern Lisp_Object Qborder_color, Qborder_width;
-extern Lisp_Object Qbuffer_predicate, Qbuffer_list;
+extern Lisp_Object Qbuffer_predicate, Qbuffer_list, Qburied_buffer_list;
 extern Lisp_Object Qcursor_color, Qcursor_type;
 extern Lisp_Object Qfont;
 extern Lisp_Object Qbackground_color, Qforeground_color;
@@ -1023,6 +1015,8 @@ extern Lisp_Object Qx_resource_name;
 
 extern Lisp_Object Qleft, Qright, Qtop, Qbox;
 extern Lisp_Object Qdisplay;
+
+extern Lisp_Object Qwindow_system;
 
 #ifdef HAVE_WINDOW_SYSTEM
 

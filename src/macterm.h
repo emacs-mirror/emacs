@@ -348,9 +348,6 @@ typedef struct mac_output mac_output;
 #define FRAME_MAC_WINDOW(f) ((f)->output_data.mac->window_desc)
 #define FRAME_X_WINDOW(f) ((f)->output_data.mac->window_desc)
 
-#define FRAME_FOREGROUND_PIXEL(f) ((f)->output_data.x->foreground_pixel)
-#define FRAME_BACKGROUND_PIXEL(f) ((f)->output_data.x->background_pixel)
-
 #define FRAME_FONT(f) ((f)->output_data.mac->font)
 #define FRAME_FONTSET(f) ((f)->output_data.mac->fontset)
 

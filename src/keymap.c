@@ -31,6 +31,7 @@ Boston, MA 02110-1301, USA.  */
 #include "buffer.h"
 #include "charset.h"
 #include "keyboard.h"
+#include "frame.h"
 #include "termhooks.h"
 #include "blockinput.h"
 #include "puresize.h"
@@ -89,14 +90,6 @@ Lisp_Object Vminor_mode_overriding_map_alist;
 
 /* List of emulation mode keymap alists.  */
 Lisp_Object Vemulation_mode_map_alists;
-
-/* Keymap mapping ASCII function key sequences onto their preferred forms.
-   Initialized by the terminal-specific lisp files.  See DEFVAR for more
-   documentation.  */
-Lisp_Object Vfunction_key_map;
-
-/* Keymap mapping ASCII function key sequences onto their preferred forms.  */
-Lisp_Object Vkey_translation_map;
 
 /* A list of all commands given new bindings since a certain time
    when nil was stored here.
@@ -3021,11 +3014,11 @@ You type        Translation\n\
   outbuf = Fcurrent_buffer ();
 
   /* Report on alternates for keys.  */
-  if (STRINGP (Vkeyboard_translate_table) && !NILP (prefix))
+  if (STRINGP (current_kboard->Vkeyboard_translate_table) && !NILP (prefix))
     {
       int c;
-      const unsigned char *translate = SDATA (Vkeyboard_translate_table);
-      int translate_len = SCHARS (Vkeyboard_translate_table);
+      const unsigned char *translate = SDATA (current_kboard->Vkeyboard_translate_table);
+      int translate_len = SCHARS (current_kboard->Vkeyboard_translate_table);
 
       for (c = 0; c < translate_len; c++)
 	if (translate[c] != c)
@@ -3048,14 +3041,14 @@ You type        Translation\n\
 	    insert ("\n", 1);
 
 	    /* Insert calls signal_after_change which may GC. */
-	    translate = SDATA (Vkeyboard_translate_table);
+	    translate = SDATA (current_kboard->Vkeyboard_translate_table);
 	  }
 
       insert ("\n", 1);
     }
 
-  if (!NILP (Vkey_translation_map))
-    describe_map_tree (Vkey_translation_map, 0, Qnil, prefix,
+  if (!NILP (current_kboard->Vlocal_key_translation_map))
+    describe_map_tree (current_kboard->Vlocal_key_translation_map, 0, Qnil, prefix,
 		       "Key translations", nomenu, 1, 0, 0);
 
 
@@ -3144,8 +3137,8 @@ You type        Translation\n\
 		     "\f\nGlobal Bindings", nomenu, 0, 1, 0);
 
   /* Print the function-key-map translations under this prefix.  */
-  if (!NILP (Vfunction_key_map))
-    describe_map_tree (Vfunction_key_map, 0, Qnil, prefix,
+  if (!NILP (current_kboard->Vlocal_function_key_map))
+    describe_map_tree (current_kboard->Vlocal_function_key_map, 0, Qnil, prefix,
 		       "\f\nFunction key map translations", nomenu, 1, 0, 0);
 
   UNGCPRO;
@@ -4114,37 +4107,6 @@ symbol with a variable binding which is a keymap alist, and it is used
 the same way.  The "active" keymaps in each alist are used before
 `minor-mode-map-alist' and `minor-mode-overriding-map-alist'.  */);
   Vemulation_mode_map_alists = Qnil;
-
-
-  DEFVAR_LISP ("function-key-map", &Vfunction_key_map,
-	       doc: /* Keymap that translates key sequences to key sequences during input.
-This is used mainly for mapping ASCII function key sequences into
-real Emacs function key events (symbols).
-
-The `read-key-sequence' function replaces any subsequence bound by
-`function-key-map' with its binding.  More precisely, when the active
-keymaps have no binding for the current key sequence but
-`function-key-map' binds a suffix of the sequence to a vector or string,
-`read-key-sequence' replaces the matching suffix with its binding, and
-continues with the new sequence.
-
-If the binding is a function, it is called with one argument (the prompt)
-and its return value (a key sequence) is used.
-
-The events that come from bindings in `function-key-map' are not
-themselves looked up in `function-key-map'.
-
-For example, suppose `function-key-map' binds `ESC O P' to [f1].
-Typing `ESC O P' to `read-key-sequence' would return [f1].  Typing
-`C-x ESC O P' would return [?\\C-x f1].  If [f1] were a prefix
-key, typing `ESC O P x' would return [f1 x].  */);
-  Vfunction_key_map = Fmake_sparse_keymap (Qnil);
-
-  DEFVAR_LISP ("key-translation-map", &Vkey_translation_map,
-	       doc: /* Keymap of key translations that can override keymaps.
-This keymap works like `function-key-map', but comes after that,
-and its non-prefix bindings override ordinary bindings.  */);
-  Vkey_translation_map = Qnil;
 
   staticpro (&Vmouse_events);
   Vmouse_events = Fcons (intern ("menu-bar"),

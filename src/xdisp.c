@@ -580,21 +580,12 @@ Lisp_Object Vmessage_log_max;
 
 static Lisp_Object Vmessages_buffer_name;
 
-/* Index 0 is the buffer that holds the current (desired) echo area message,
-   or nil if none is desired right now.
-
-   Index 1 is the buffer that holds the previously displayed echo area message,
-   or nil to indicate no message.  This is normally what's on the screen now.
-
-   These two can point to the same buffer.  That happens when the last
-   message output by the user (or made by echoing) has been displayed.  */
+/* Current, index 0, and last displayed echo area message.  Either
+   buffers from echo_buffers, or nil to indicate no message.  */
 
 Lisp_Object echo_area_buffer[2];
 
-/* Permanent pointers to the two buffers that are used for echo area
-   purposes.  Once the two buffers are made, and their pointers are
-   placed here, these two slots remain unchanged unless those buffers
-   need to be created afresh.  */
+/* The buffers referenced from echo_area_buffer.  */
 
 static Lisp_Object echo_buffer[2];
 
@@ -812,10 +803,6 @@ static int clear_face_cache_count;
 #define CLEAR_IMAGE_CACHE_COUNT	101
 static int clear_image_cache_count;
 #endif
-
-/* Record the previous terminal frame we displayed.  */
-
-static struct frame *previous_terminal_frame;
 
 /* Non-zero while redisplay_internal is in progress.  */
 
@@ -2508,7 +2495,7 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
   XSETWINDOW (it->window, w);
   it->w = w;
   it->f = XFRAME (w->frame);
-
+  
   /* Extra space between lines (on window systems only).  */
   if (base_face_id == DEFAULT_FACE_ID
       && FRAME_WINDOW_P (it->f))
@@ -2525,9 +2512,9 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
 
   /* If realized faces have been removed, e.g. because of face
      attribute changes of named faces, recompute them.  When running
-     in batch mode, the face cache of Vterminal_frame is null.  If
+     in batch mode, the face cache of the initial frame is null.  If
      we happen to get called, make a dummy face cache.  */
-  if (noninteractive && FRAME_FACE_CACHE (it->f) == NULL)
+  if (FRAME_FACE_CACHE (it->f) == NULL)
     init_frame_faces (it->f);
   if (FRAME_FACE_CACHE (it->f)->used == 0)
     recompute_basic_faces (it->f);
@@ -3952,7 +3939,7 @@ handle_single_display_spec (it, spec, object, position,
       && EQ (XCAR (spec), Qheight)
       && CONSP (XCDR (spec)))
     {
-      if (FRAME_TERMCAP_P (it->f) || FRAME_MSDOS_P (it->f))
+      if (!FRAME_WINDOW_P (it->f))
 	return 0;
 
       it->font_height = XCAR (XCDR (spec));
@@ -4018,7 +4005,7 @@ handle_single_display_spec (it, spec, object, position,
       && EQ (XCAR (spec), Qspace_width)
       && CONSP (XCDR (spec)))
     {
-      if (FRAME_TERMCAP_P (it->f) || FRAME_MSDOS_P (it->f))
+      if (!FRAME_WINDOW_P (it->f))
 	return 0;
 
       value = XCAR (XCDR (spec));
@@ -4034,7 +4021,7 @@ handle_single_display_spec (it, spec, object, position,
     {
       Lisp_Object tem;
 
-      if (FRAME_TERMCAP_P (it->f) || FRAME_MSDOS_P (it->f))
+      if (!FRAME_WINDOW_P (it->f))
 	return 0;
 
       if (tem = XCDR (spec), CONSP (tem))
@@ -4060,7 +4047,7 @@ handle_single_display_spec (it, spec, object, position,
       && EQ (XCAR (spec), Qraise)
       && CONSP (XCDR (spec)))
     {
-      if (FRAME_TERMCAP_P (it->f) || FRAME_MSDOS_P (it->f))
+      if (!FRAME_WINDOW_P (it->f))
 	return 0;
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -4101,7 +4088,7 @@ handle_single_display_spec (it, spec, object, position,
       int face_id = DEFAULT_FACE_ID;
       int fringe_bitmap;
 
-      if (FRAME_TERMCAP_P (it->f) || FRAME_MSDOS_P (it->f))
+      if (!FRAME_WINDOW_P (it->f))
 	/* If we return here, POSITION has been advanced
 	   across the text with this property.  */
 	return 0;
@@ -4150,7 +4137,7 @@ handle_single_display_spec (it, spec, object, position,
 	  it->left_user_fringe_face_id = face_id;
 	}
       else
-	{
+        {
 	  it->right_user_fringe_bitmap = fringe_bitmap;
 	  it->right_user_fringe_face_id = face_id;
 	}
@@ -4195,9 +4182,9 @@ handle_single_display_spec (it, spec, object, position,
 
   valid_p = (STRINGP (value)
 #ifdef HAVE_WINDOW_SYSTEM
-	     || (!FRAME_TERMCAP_P (it->f) && valid_image_p (value))
+             || (FRAME_WINDOW_P (it->f) && valid_image_p (value))
 #endif /* not HAVE_WINDOW_SYSTEM */
-	     || (CONSP (value) && EQ (XCAR (value), Qspace)));
+             || (CONSP (value) && EQ (XCAR (value), Qspace)));
 
   if (valid_p && !display_replaced_before_p)
     {
@@ -4267,7 +4254,7 @@ handle_single_display_spec (it, spec, object, position,
 }
 
 
-/* Check if SPEC is a display specification value whose text should be
+/* Check if SPEC is a display sub-property value whose text should be
    treated as intangible.  */
 
 static int
@@ -7524,8 +7511,8 @@ message2_nolog (m, nbytes, multibyte)
       do_pending_window_change (0);
       echo_area_display (1);
       do_pending_window_change (0);
-      if (frame_up_to_date_hook != 0 && ! gc_in_progress)
-	(*frame_up_to_date_hook) (f);
+      if (FRAME_TERMINAL (f)->frame_up_to_date_hook != 0 && ! gc_in_progress)
+	(*FRAME_TERMINAL (f)->frame_up_to_date_hook) (f);
     }
 }
 
@@ -7628,8 +7615,8 @@ message3_nolog (m, nbytes, multibyte)
       do_pending_window_change (0);
       echo_area_display (1);
       do_pending_window_change (0);
-      if (frame_up_to_date_hook != 0 && ! gc_in_progress)
-	(*frame_up_to_date_hook) (f);
+      if (FRAME_TERMINAL (f)->frame_up_to_date_hook != 0 && ! gc_in_progress)
+	(*FRAME_TERMINAL (f)->frame_up_to_date_hook) (f);
     }
 }
 
@@ -7867,6 +7854,10 @@ ensure_echo_area_buffers ()
    WHICH > 0 means use echo_area_buffer[1].  If that is nil, choose a
    suitable buffer from echo_buffer[] and clear it.
 
+   If WHICH < 0, set echo_area_buffer[1] to echo_area_buffer[0], so
+   that the current message becomes the last displayed one, make
+   choose a suitable buffer for echo_area_buffer[0], and clear it.
+
    Value is what FN returns.  */
 
 static int
@@ -7891,6 +7882,17 @@ with_echo_area_buffer (w, which, fn, a1, a2, a3, a4)
     this_one = 0, the_other = 1;
   else if (which > 0)
     this_one = 1, the_other = 0;
+  else
+    {
+      this_one = 0, the_other = 1;
+      clear_buffer_p = 1;
+
+      /* We need a fresh one in case the current echo buffer equals
+	 the one containing the last displayed echo area message.  */
+      if (!NILP (echo_area_buffer[this_one])
+	  && EQ (echo_area_buffer[this_one], echo_area_buffer[the_other]))
+	echo_area_buffer[this_one] = Qnil;
+    }
 
   /* Choose a suitable buffer from echo_buffer[] is we don't
      have one.  */
@@ -8528,7 +8530,7 @@ set_message (s, string, nbytes, multibyte_p)
     = ((s && multibyte_p)
        || (STRINGP (string) && STRING_MULTIBYTE (string)));
 
-  with_echo_area_buffer (0, 0, set_message_1,
+  with_echo_area_buffer (0, -1, set_message_1,
 			 (EMACS_INT) s, string, nbytes, multibyte_p);
   message_buf_print = 0;
   help_echo_showing_p = 0;
@@ -8558,7 +8560,6 @@ set_message_1 (a1, a2, nbytes, multibyte_p)
 
   /* Insert new message at BEG.  */
   TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
-  Ferase_buffer ();
 
   if (STRINGP (string))
     {
@@ -8654,11 +8655,11 @@ clear_garbaged_frames ()
     {
       Lisp_Object tail, frame;
       int changed_count = 0;
-
+      
       FOR_EACH_FRAME (tail, frame)
 	{
 	  struct frame *f = XFRAME (frame);
-
+	  
 	  if (FRAME_VISIBLE_P (f) && FRAME_GARBAGED_P (f))
 	    {
 	      if (f->resized_p)
@@ -8672,7 +8673,7 @@ clear_garbaged_frames ()
 	      f->resized_p = 0;
 	    }
 	}
-
+      
       frame_garbaged = 0;
       if (changed_count)
 	++windows_or_buffers_changed;
@@ -8705,11 +8706,10 @@ echo_area_display (update_frame_p)
 /* The terminal frame is used as the first Emacs frame on the Mac OS.  */
 #ifndef MAC_OS8
 #ifdef HAVE_WINDOW_SYSTEM
-  /* When Emacs starts, selected_frame may be a visible terminal
-     frame, even if we run under a window system.  If we let this
-     through, a message would be displayed on the terminal.  */
-  if (EQ (selected_frame, Vterminal_frame)
-      && !NILP (Vwindow_system))
+  /* When Emacs starts, selected_frame may be the initial terminal
+     frame.  If we let this through, a message would be displayed on
+     the terminal.  */
+  if (FRAME_INITIAL_P (XFRAME (selected_frame)))
     return 0;
 #endif /* HAVE_WINDOW_SYSTEM */
 #endif
@@ -8760,7 +8760,7 @@ echo_area_display (update_frame_p)
 		 Can do with a display update of the echo area,
 		 unless we displayed some mode lines.  */
 	      update_single_window (w, 1);
-	      rif->flush_display (f);
+	      FRAME_RIF (f)->flush_display (f);
 	    }
 	  else
 	    update_frame (f, 1, 1);
@@ -8775,8 +8775,10 @@ echo_area_display (update_frame_p)
   else if (!EQ (mini_window, selected_window))
     windows_or_buffers_changed++;
 
-  /* The current message is now also the last one displayed.  */
+  /* Last displayed message is now the current message.  */
   echo_area_buffer[1] = echo_area_buffer[0];
+  /* Inform read_char that we're not echoing.  */
+  echo_message_buffer = Qnil;
 
   /* Prevent redisplay optimization in redisplay_internal by resetting
      this_line_start_pos.  This is done because the mini-buffer now
@@ -9330,8 +9332,8 @@ x_cursor_to (vpos, hpos, y, x)
     {
       BLOCK_INPUT;
       display_and_set_cursor (w, 1, hpos, vpos, x, y);
-      if (rif->flush_display_optional)
-	rif->flush_display_optional (SELECTED_FRAME ());
+      if (FRAME_RIF (SELECTED_FRAME ())->flush_display_optional)
+	FRAME_RIF (SELECTED_FRAME ())->flush_display_optional (SELECTED_FRAME ());
       UNBLOCK_INPUT;
     }
 }
@@ -10783,6 +10785,8 @@ select_frame_for_redisplay (frame)
   Lisp_Object tail, sym, val;
   Lisp_Object old = selected_frame;
 
+  xassert (FRAMEP (frame) && FRAME_LIVE_P (XFRAME (frame)));
+
   selected_frame = frame;
 
   for (tail = XFRAME (frame)->param_alist; CONSP (tail); tail = XCDR (tail))
@@ -10920,17 +10924,16 @@ redisplay_internal (preserve_echo_area)
   if (face_change_count)
     ++windows_or_buffers_changed;
 
-  if (! FRAME_WINDOW_P (sf)
-      && previous_terminal_frame != sf)
+  if (FRAME_TERMCAP_P (sf)
+      && FRAME_TTY (sf)->previous_frame != sf)
     {
-      /* Since frames on an ASCII terminal share the same display
-	 area, displaying a different frame means redisplay the whole
-	 thing.  */
+      /* Since frames on a single ASCII terminal share the same
+	 display area, displaying a different frame means redisplay
+	 the whole thing.  */
       windows_or_buffers_changed++;
       SET_FRAME_GARBAGED (sf);
-      XSETFRAME (Vterminal_frame, sf);
+      FRAME_TTY (sf)->previous_frame = sf;
     }
-  previous_terminal_frame = sf;
 
   /* Set the visible flags for all frames.  Do this before checking
      for resized or garbaged frames; they want to know if their frames
@@ -10952,6 +10955,7 @@ redisplay_internal (preserve_echo_area)
       }
   }
 
+  
   /* Notice any pending interrupt request to change frame size.  */
   do_pending_window_change (1);
 
@@ -11307,7 +11311,7 @@ redisplay_internal (preserve_echo_area)
 	{
 	  struct frame *f = XFRAME (frame);
 
-	  if (FRAME_WINDOW_P (f) || f == sf)
+	  if (FRAME_WINDOW_P (f) || FRAME_TERMCAP_P (f) || f == sf)
 	    {
 	      if (! EQ (frame, selected_frame))
 		/* Select the frame, for the sake of frame-local
@@ -11316,16 +11320,16 @@ redisplay_internal (preserve_echo_area)
 
 	      /* Mark all the scroll bars to be removed; we'll redeem
 		 the ones we want when we redisplay their windows.  */
-	      if (condemn_scroll_bars_hook)
-		condemn_scroll_bars_hook (f);
+	      if (FRAME_TERMINAL (f)->condemn_scroll_bars_hook)
+		FRAME_TERMINAL (f)->condemn_scroll_bars_hook (f);
 
 	      if (FRAME_VISIBLE_P (f) && !FRAME_OBSCURED_P (f))
 		redisplay_windows (FRAME_ROOT_WINDOW (f));
 
 	      /* Any scroll bars which redisplay_windows should have
 		 nuked should now go away.  */
-	      if (judge_scroll_bars_hook)
-		judge_scroll_bars_hook (f);
+	      if (FRAME_TERMINAL (f)->judge_scroll_bars_hook)
+		FRAME_TERMINAL (f)->judge_scroll_bars_hook (f);
 
 	      /* If fonts changed, display again.  */
 	      /* ??? rms: I suspect it is a mistake to jump all the way
@@ -11372,12 +11376,12 @@ redisplay_internal (preserve_echo_area)
 	  FOR_EACH_FRAME (tail, frame)
 	    {
 	      struct frame *f = XFRAME (frame);
-	      if (f->updated_p)
-		{
-		  mark_window_display_accurate (f->root_window, 1);
-		  if (frame_up_to_date_hook)
-		    frame_up_to_date_hook (f);
-		}
+              if (f->updated_p)
+                {
+                  mark_window_display_accurate (f->root_window, 1);
+                  if (FRAME_TERMINAL (f)->frame_up_to_date_hook)
+                    FRAME_TERMINAL (f)->frame_up_to_date_hook (f);
+                }
 	    }
 	}
     }
@@ -11462,8 +11466,8 @@ redisplay_internal (preserve_echo_area)
 	  /* Say overlay arrows are up to date.  */
 	  update_overlay_arrows (1);
 
-	  if (frame_up_to_date_hook != 0)
-	    frame_up_to_date_hook (sf);
+	  if (FRAME_TERMINAL (sf)->frame_up_to_date_hook != 0)
+	    FRAME_TERMINAL (sf)->frame_up_to_date_hook (sf);
 	}
 
       update_mode_lines = 0;
@@ -11573,8 +11577,9 @@ redisplay_preserve_echo_area (from_where)
   else
     redisplay_internal (1);
 
-  if (rif != NULL && rif->flush_display_optional)
-    rif->flush_display_optional (NULL);
+  if (FRAME_RIF (SELECTED_FRAME ()) != NULL
+      && FRAME_RIF (SELECTED_FRAME ())->flush_display_optional)
+    FRAME_RIF (SELECTED_FRAME ())->flush_display_optional (NULL);
 }
 
 
@@ -11582,7 +11587,8 @@ redisplay_preserve_echo_area (from_where)
    redisplay_internal.  Reset redisplaying_p to the value it had
    before redisplay_internal was called, and clear
    prevent_freeing_realized_faces_p.  It also selects the previously
-   selected frame.  */
+   selected frame, unless it has been deleted (by an X connection
+   failure during redisplay, for example).  */
 
 static Lisp_Object
 unwind_redisplay (val)
@@ -11593,7 +11599,8 @@ unwind_redisplay (val)
   old_redisplaying_p = XCAR (val);
   redisplaying_p = XFASTINT (old_redisplaying_p);
   old_frame = XCDR (val);
-  if (! EQ (old_frame, selected_frame))
+  if (! EQ (old_frame, selected_frame)
+      && FRAME_LIVE_P (XFRAME (old_frame)))
     select_frame_for_redisplay (old_frame);
   return Qnil;
 }
@@ -12742,7 +12749,9 @@ set_vertical_scroll_bar (w)
     start = end = whole = 0;
 
   /* Indicate what this scroll bar ought to be displaying now.  */
-  set_vertical_scroll_bar_hook (w, end - start, whole, start);
+  if (FRAME_TERMINAL (XFRAME (w->frame))->set_vertical_scroll_bar_hook)
+    (*FRAME_TERMINAL (XFRAME (w->frame))->set_vertical_scroll_bar_hook)
+      (w, end - start, whole, start);
 }
 
 
@@ -13483,20 +13492,22 @@ redisplay_window (window, just_this_one_p)
         display_menu_bar (w);
 
 #ifdef HAVE_WINDOW_SYSTEM
+      if (FRAME_WINDOW_P (f))
+        {
 #ifdef USE_GTK
-      redisplay_tool_bar_p = FRAME_EXTERNAL_TOOL_BAR (f);
+          redisplay_tool_bar_p = FRAME_EXTERNAL_TOOL_BAR (f);
 #else
-      redisplay_tool_bar_p = WINDOWP (f->tool_bar_window)
-        && (FRAME_TOOL_BAR_LINES (f) > 0
-            || !NILP (Vauto_resize_tool_bars));
-
+          redisplay_tool_bar_p = WINDOWP (f->tool_bar_window)
+            && (FRAME_TOOL_BAR_LINES (f) > 0
+                || !NILP (Vauto_resize_tool_bars));
 #endif
 
-      if (redisplay_tool_bar_p && redisplay_tool_bar (f))
-	{
-	  extern int ignore_mouse_drag_p;
-	  ignore_mouse_drag_p = 1;
-	}
+          if (redisplay_tool_bar_p && redisplay_tool_bar (f))
+	    {
+	      extern int ignore_mouse_drag_p;
+	      ignore_mouse_drag_p = 1;
+	    }
+        }
 #endif
     }
 
@@ -13530,7 +13541,8 @@ redisplay_window (window, just_this_one_p)
 
       /* Note that we actually used the scroll bar attached to this
 	 window, so it shouldn't be deleted at the end of redisplay.  */
-      redeem_scroll_bar_hook (w);
+      if (FRAME_TERMINAL (f)->redeem_scroll_bar_hook)
+        (*FRAME_TERMINAL (f)->redeem_scroll_bar_hook) (w);
     }
 
   /* Restore current_buffer and value of point in it.  */
@@ -13796,10 +13808,10 @@ try_window_reusing_current_matrix (w)
 	  if (run.height > 0 && run.current_y != run.desired_y)
 	    {
 	      update_begin (f);
-	      rif->update_window_begin_hook (w);
-	      rif->clear_window_mouse_face (w);
-	      rif->scroll_run_hook (w, &run);
-	      rif->update_window_end_hook (w, 0, 0);
+	      FRAME_RIF (f)->update_window_begin_hook (w);
+	      FRAME_RIF (f)->clear_window_mouse_face (w);
+	      FRAME_RIF (f)->scroll_run_hook (w, &run);
+	      FRAME_RIF (f)->update_window_end_hook (w, 0, 0);
 	      update_end (f);
 	    }
 
@@ -13968,10 +13980,10 @@ try_window_reusing_current_matrix (w)
       if (run.height)
 	{
 	  update_begin (f);
-	  rif->update_window_begin_hook (w);
-	  rif->clear_window_mouse_face (w);
-	  rif->scroll_run_hook (w, &run);
-	  rif->update_window_end_hook (w, 0, 0);
+	  FRAME_RIF (f)->update_window_begin_hook (w);
+	  FRAME_RIF (f)->clear_window_mouse_face (w);
+	  FRAME_RIF (f)->scroll_run_hook (w, &run);
+	  FRAME_RIF (f)->update_window_end_hook (w, 0, 0);
 	  update_end (f);
 	}
 
@@ -14421,7 +14433,7 @@ try_window_id (w)
 
   /* Window must either use window-based redisplay or be full width.  */
   if (!FRAME_WINDOW_P (f)
-      && (!line_ins_del_ok
+      && (!FRAME_LINE_INS_DEL_OK (f)
 	  || !WINDOW_FULL_WIDTH_P (w)))
     GIVE_UP (4);
 
@@ -14830,10 +14842,10 @@ try_window_id (w)
 
       if (FRAME_WINDOW_P (f))
 	{
-	  rif->update_window_begin_hook (w);
-	  rif->clear_window_mouse_face (w);
-	  rif->scroll_run_hook (w, &run);
-	  rif->update_window_end_hook (w, 0, 0);
+	  FRAME_RIF (f)->update_window_begin_hook (w);
+	  FRAME_RIF (f)->clear_window_mouse_face (w);
+	  FRAME_RIF (f)->scroll_run_hook (w, &run);
+	  FRAME_RIF (f)->update_window_end_hook (w, 0, 0);
 	}
       else
 	{
@@ -14851,36 +14863,36 @@ try_window_id (w)
 	    {
 	      /* Scroll last_unchanged_at_beg_row to the end of the
 		 window down dvpos lines.  */
-	      set_terminal_window (end);
+	      set_terminal_window (f, end);
 
 	      /* On dumb terminals delete dvpos lines at the end
 		 before inserting dvpos empty lines.  */
-	      if (!scroll_region_ok)
-		ins_del_lines (end - dvpos, -dvpos);
+	      if (!FRAME_SCROLL_REGION_OK (f))
+		ins_del_lines (f, end - dvpos, -dvpos);
 
 	      /* Insert dvpos empty lines in front of
                  last_unchanged_at_beg_row.  */
-	      ins_del_lines (from, dvpos);
+	      ins_del_lines (f, from, dvpos);
 	    }
 	  else if (dvpos < 0)
 	    {
 	      /* Scroll up last_unchanged_at_beg_vpos to the end of
 		 the window to last_unchanged_at_beg_vpos - |dvpos|.  */
-	      set_terminal_window (end);
+	      set_terminal_window (f, end);
 
 	      /* Delete dvpos lines in front of
 		 last_unchanged_at_beg_vpos.  ins_del_lines will set
 		 the cursor to the given vpos and emit |dvpos| delete
 		 line sequences.  */
-	      ins_del_lines (from + dvpos, dvpos);
+	      ins_del_lines (f, from + dvpos, dvpos);
 
 	      /* On a dumb terminal insert dvpos empty lines at the
                  end.  */
-	      if (!scroll_region_ok)
-		ins_del_lines (end + dvpos, -dvpos);
+	      if (!FRAME_SCROLL_REGION_OK (f))
+		ins_del_lines (f, end + dvpos, -dvpos);
 	    }
 
-	  set_terminal_window (0);
+	  set_terminal_window (f, 0);
 	}
 
       update_end (f);
@@ -16685,10 +16697,10 @@ display_mode_line (w, face_id, format)
   /* Temporarily make frame's keyboard the current kboard so that
      kboard-local variables in the mode_line_format will get the right
      values.  */
-  push_frame_kboard (it.f);
+  push_kboard (FRAME_KBOARD (it.f));
   record_unwind_save_match_data ();
   display_mode_element (&it, 0, 0, 0, format, Qnil, 0);
-  pop_frame_kboard ();
+  pop_kboard ();
 
   unbind_to (count, Qnil);
 
@@ -17403,9 +17415,9 @@ are the selected window and the window's buffer).  */)
 	= (NILP (face) ? Qnil : Fcons (Qface, Fcons (face, Qnil)));
     }
 
-  push_frame_kboard (it.f);
+  push_kboard (FRAME_KBOARD (it.f));
   display_mode_element (&it, 0, 0, 0, format, Qnil, 0);
-  pop_frame_kboard ();
+  pop_kboard ();
 
   if (no_props)
     {
@@ -18029,8 +18041,8 @@ decode_mode_spec (w, c, field_width, precision, multibyte)
 	  {
 	    /* No need to mention EOL here--the terminal never needs
 	       to do EOL conversion.  */
-	    p = decode_mode_spec_coding (keyboard_coding.symbol, p, 0);
-	    p = decode_mode_spec_coding (terminal_coding.symbol, p, 0);
+	    p = decode_mode_spec_coding (FRAME_KEYBOARD_CODING (f)->symbol, p, 0);
+	    p = decode_mode_spec_coding (FRAME_TERMINAL_CODING (f)->symbol, p, 0);
 	  }
 	p = decode_mode_spec_coding (b->buffer_file_coding_system,
 				     p, eol_flag);
@@ -18522,6 +18534,8 @@ calc_pixel_width_or_height (res, it, prop, font, width_p, align_to)
   if (NILP (prop))
     return OK_PIXELS (0);
 
+  xassert (FRAME_LIVE_P (it->f));
+
   if (SYMBOLP (prop))
     {
       if (SCHARS (SYMBOL_NAME (prop)) == 2)
@@ -18638,7 +18652,8 @@ calc_pixel_width_or_height (res, it, prop, font, width_p, align_to)
       if (SYMBOLP (car))
 	{
 #ifdef HAVE_WINDOW_SYSTEM
-	  if (valid_image_p (prop))
+	  if (FRAME_WINDOW_P (it->f)
+	      && valid_image_p (prop))
 	    {
 	      int id = lookup_image (it->f, prop);
 	      struct image *img = IMAGE_FROM_ID (it->f, id);
@@ -18879,7 +18894,7 @@ get_glyph_face_and_encoding (f, glyph, char2b, two_byte_p)
 	    = FONT_INFO_FROM_ID (f, face->font_info_id);
 	  if (font_info)
 	    glyph->font_type
-	      = rif->encode_char (glyph->u.ch, char2b, font_info, two_byte_p);
+	      = FRAME_RIF (f)->encode_char (glyph->u.ch, char2b, font_info, two_byte_p);
 	}
     }
 
@@ -19112,7 +19127,7 @@ x_get_glyph_overhangs (glyph, f, left, right)
       font = face->font;
       font_info = FONT_INFO_FROM_ID (f, face->font_info_id);
       if (font  /* ++KFS: Should this be font_info ?  */
-	  && (pcm = rif->per_char_metric (font, &char2b, glyph->font_type)))
+	  && (pcm = FRAME_RIF (f)->per_char_metric (font, &char2b, glyph->font_type)))
 	{
 	  if (pcm->rbearing > pcm->width)
 	    *right = pcm->rbearing - pcm->width;
@@ -19280,7 +19295,7 @@ get_char_face_and_encoding (f, c, face_id, char2b, multibyte_p, display_p)
 	  struct font_info *font_info
 	    = FONT_INFO_FROM_ID (f, face->font_info_id);
 	  if (font_info)
-	    rif->encode_char (c, char2b, font_info, 0);
+	    FRAME_RIF (f)->encode_char (c, char2b, font_info, 0);
 	}
     }
 
@@ -19343,8 +19358,8 @@ compute_overhangs_and_x (s, x, backward_p)
     {
       while (s)
 	{
-	  if (rif->compute_glyph_string_overhangs)
-	    rif->compute_glyph_string_overhangs (s);
+	  if (FRAME_RIF (s->f)->compute_glyph_string_overhangs)
+	    FRAME_RIF (s->f)->compute_glyph_string_overhangs (s);
 	  x -= s->width;
 	  s->x = x;
 	  s = s->prev;
@@ -19354,8 +19369,8 @@ compute_overhangs_and_x (s, x, backward_p)
     {
       while (s)
 	{
-	  if (rif->compute_glyph_string_overhangs)
-	    rif->compute_glyph_string_overhangs (s);
+	  if (FRAME_RIF (s->f)->compute_glyph_string_overhangs)
+	    FRAME_RIF (s->f)->compute_glyph_string_overhangs (s);
 	  s->x = x;
 	  x += s->width;
 	  s = s->next;
@@ -19643,9 +19658,9 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps)
       struct glyph_string *h, *t;
 
       /* Compute overhangs for all glyph strings.  */
-      if (rif->compute_glyph_string_overhangs)
+      if (FRAME_RIF (f)->compute_glyph_string_overhangs)
 	for (s = head; s; s = s->next)
-	  rif->compute_glyph_string_overhangs (s);
+	  FRAME_RIF (f)->compute_glyph_string_overhangs (s);
 
       /* Prepend glyph strings for glyphs in front of the first glyph
 	 string that are overwritten because of the first glyph
@@ -19723,7 +19738,7 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps)
 
   /* Draw all strings.  */
   for (s = head; s; s = s->next)
-    rif->draw_glyph_string (s);
+    FRAME_RIF (f)->draw_glyph_string (s);
 
   if (area == TEXT_AREA
       && !row->full_width_p
@@ -20418,20 +20433,20 @@ x_produce_glyphs (it)
 
 	  it->nglyphs = 1;
 
-	  pcm = rif->per_char_metric (font, &char2b,
-				      FONT_TYPE_FOR_UNIBYTE (font, it->char_to_display));
+          pcm = FRAME_RIF (it->f)->per_char_metric
+            (font, &char2b, FONT_TYPE_FOR_UNIBYTE (font, it->char_to_display));
 
-	  if (it->override_ascent >= 0)
-	    {
-	      it->ascent = it->override_ascent;
-	      it->descent = it->override_descent;
-	      boff = it->override_boff;
-	    }
-	  else
-	    {
-	      it->ascent = FONT_BASE (font) + boff;
-	      it->descent = FONT_DESCENT (font) - boff;
-	    }
+ 	  if (it->override_ascent >= 0)
+ 	    {
+ 	      it->ascent = it->override_ascent;
+ 	      it->descent = it->override_descent;
+ 	      boff = it->override_boff;
+ 	    }
+ 	  else
+ 	    {
+ 	      it->ascent = FONT_BASE (font) + boff;
+ 	      it->descent = FONT_DESCENT (font) - boff;
+ 	    }
 
 	  if (pcm)
 	    {
@@ -20649,8 +20664,8 @@ x_produce_glyphs (it)
 	     from the charset width; this is what old redisplay code
 	     did.  */
 
-	  pcm = rif->per_char_metric (font, &char2b,
-				      FONT_TYPE_FOR_MULTIBYTE (font, it->c));
+	  pcm = FRAME_RIF (it->f)->per_char_metric (font, &char2b,
+                                                    FONT_TYPE_FOR_MULTIBYTE (font, it->c));
 
 	  if (font_not_found_p || !pcm)
 	    {
@@ -20781,8 +20796,8 @@ x_produce_glyphs (it)
 
 	  /* Initialize the bounding box.  */
 	  if (font_info
-	      && (pcm = rif->per_char_metric (font, &char2b,
-					      FONT_TYPE_FOR_MULTIBYTE (font, it->c))))
+	      && (pcm = FRAME_RIF (it->f)->per_char_metric (font, &char2b,
+                                                            FONT_TYPE_FOR_MULTIBYTE (font, it->c))))
 	    {
 	      width = pcm->width;
 	      ascent = pcm->ascent;
@@ -20840,8 +20855,8 @@ x_produce_glyphs (it)
 		}
 
 	      if (font_info
-		  && (pcm = rif->per_char_metric (font, &char2b,
-						  FONT_TYPE_FOR_MULTIBYTE (font, ch))))
+		  && (pcm = FRAME_RIF (it->f)->per_char_metric (font, &char2b,
+                                                                FONT_TYPE_FOR_MULTIBYTE (font, ch))))
 		{
 		  width = pcm->width;
 		  ascent = pcm->ascent;
@@ -21081,8 +21096,8 @@ x_insert_glyphs (start, len)
   frame_x = window_box_left (w, updated_area) + output_cursor.x;
   frame_y = WINDOW_TO_FRAME_PIXEL_Y (w, output_cursor.y);
 
-  rif->shift_glyphs_for_insert (f, frame_x, frame_y, shifted_region_width,
-				line_height, shift_by_width);
+  FRAME_RIF (f)->shift_glyphs_for_insert (f, frame_x, frame_y, shifted_region_width,
+                                          line_height, shift_by_width);
 
   /* Write the glyphs.  */
   hpos = start - row->glyphs[updated_area];
@@ -21164,8 +21179,8 @@ x_clear_end_of_line (to_x)
   if (to_x > from_x && to_y > from_y)
     {
       BLOCK_INPUT;
-      rif->clear_frame_area (f, from_x, from_y,
-			     to_x - from_x, to_y - from_y);
+      FRAME_RIF (f)->clear_frame_area (f, from_x, from_y,
+                                       to_x - from_x, to_y - from_y);
       UNBLOCK_INPUT;
     }
 }
@@ -21678,7 +21693,7 @@ erase_phys_cursor (w)
       x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, max (x, left_x));
 
       if (width > 0)
-      rif->clear_frame_area (f, x, y, width, cursor_row->visible_height);
+	FRAME_RIF (f)->clear_frame_area (f, x, y, width, cursor_row->visible_height);
     }
 
   /* Erase the cursor by redrawing the character underneath it.  */
@@ -21775,9 +21790,9 @@ display_and_set_cursor (w, on, hpos, vpos, x, y)
       w->phys_cursor.vpos = vpos;
     }
 
-  rif->draw_window_cursor (w, glyph_row, x, y,
-			   new_cursor_type, new_cursor_width,
-			   on, active_cursor);
+  FRAME_RIF (f)->draw_window_cursor (w, glyph_row, x, y,
+                                     new_cursor_type, new_cursor_width,
+                                     on, active_cursor);
 }
 
 
@@ -21926,11 +21941,11 @@ show_mouse_face (dpyinfo, draw)
 
   /* Change the mouse cursor.  */
   if (draw == DRAW_NORMAL_TEXT && !EQ (dpyinfo->mouse_face_window, f->tool_bar_window))
-    rif->define_frame_cursor (f, FRAME_X_OUTPUT (f)->text_cursor);
+    FRAME_RIF (f)->define_frame_cursor (f, FRAME_X_OUTPUT (f)->text_cursor);
   else if (draw == DRAW_MOUSE_FACE)
-    rif->define_frame_cursor (f, FRAME_X_OUTPUT (f)->hand_cursor);
+    FRAME_RIF (f)->define_frame_cursor (f, FRAME_X_OUTPUT (f)->hand_cursor);
   else
-    rif->define_frame_cursor (f, FRAME_X_OUTPUT (f)->nontext_cursor);
+    FRAME_RIF (f)->define_frame_cursor (f, FRAME_X_OUTPUT (f)->nontext_cursor);
 }
 
 /* EXPORT:
@@ -22369,7 +22384,6 @@ on_hot_spot_p (hot_spot, x, y)
 	  return inside;
 	}
     }
-  /* If we don't understand the format, pretend we're not in the hot-spot.  */
   return 0;
 }
 
@@ -22449,7 +22463,7 @@ define_frame_cursor1 (f, cursor, pointer)
     }
 
   if (cursor != No_Cursor)
-    rif->define_frame_cursor (f, cursor);
+    FRAME_RIF (f)->define_frame_cursor (f, cursor);
 }
 
 /* Take proper action when mouse has moved to the mode or header line
@@ -23417,8 +23431,8 @@ phys_cursor_in_rect_p (w, r)
 	 I assume the effect is the same -- and this is portable.  */
       return x_intersect_rectangles (&cr, r, &result);
     }
-  else
-    return 0;
+  /* If we don't understand the format, pretend we're not in the hot-spot.  */
+  return 0;
 }
 
 
@@ -23430,6 +23444,8 @@ void
 x_draw_vertical_border (w)
      struct window *w;
 {
+  struct frame *f = XFRAME (WINDOW_FRAME (w));
+  
   /* We could do better, if we knew what type of scroll-bar the adjacent
      windows (on either side) have...  But we don't :-(
      However, I think this works ok.  ++KFS 2003-04-25 */
@@ -23450,9 +23466,9 @@ x_draw_vertical_border (w)
       y1 -= 1;
 
       if (WINDOW_LEFT_FRINGE_WIDTH (w) == 0)
-	x1 -= 1;
+        x1 -= 1;
 
-      rif->draw_vertical_window_border (w, x1, y0, y1);
+      FRAME_RIF (f)->draw_vertical_window_border (w, x1, y0, y1);
     }
   else if (!WINDOW_LEFTMOST_P (w)
 	   && !WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w))
@@ -23463,9 +23479,9 @@ x_draw_vertical_border (w)
       y1 -= 1;
 
       if (WINDOW_LEFT_FRINGE_WIDTH (w) == 0)
-	x0 -= 1;
+        x0 -= 1;
 
-      rif->draw_vertical_window_border (w, x0, y0, y1);
+      FRAME_RIF (f)->draw_vertical_window_border (w, x0, y0, y1);
     }
 }
 

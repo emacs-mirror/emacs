@@ -1627,7 +1627,7 @@ any other non-digit terminates the character code and is then used as input."))
       ;; or C-q C-x might not return immediately since ESC or C-x might be
       ;; bound to some prefix in function-key-map or key-translation-map.
       (setq translated char)
-      (let ((translation (lookup-key function-key-map (vector char))))
+      (let ((translation (lookup-key local-function-key-map (vector char))))
 	(if (arrayp translation)
 	    (setq translated (aref translation 0))))
       (cond ((null translated))
@@ -2377,6 +2377,23 @@ See also `with-temp-buffer'."
 		(set-frame-selected-window (car elt) (cadr elt))))
 	 (if (window-live-p save-selected-window-window)
 	     (select-window save-selected-window-window 'norecord))))))
+
+(defmacro with-selected-frame (frame &rest body)
+  "Execute the forms in BODY with FRAME as the selected frame.
+The value returned is the value of the last form in BODY.
+See also `with-temp-buffer'."
+  (declare (indent 1) (debug t))
+  (let ((old-frame (make-symbol "old-frame"))
+	(old-buffer (make-symbol "old-buffer")))
+    `(let ((,old-frame (selected-frame))
+	   (,old-buffer (current-buffer)))
+       (unwind-protect
+	   (progn (select-frame ,frame)
+		  ,@body)
+	 (if (frame-live-p ,old-frame)
+	     (select-frame ,old-frame))
+	 (if (buffer-live-p ,old-buffer)
+	     (set-buffer ,old-buffer))))))
 
 (defmacro with-temp-file (file &rest body)
   "Create a new buffer, evaluate BODY there, and write the buffer to FILE.

@@ -38,10 +38,9 @@
 
 ;; Set up function-key-map entries that termcap and terminfo don't know.
 
-
 (defun terminal-init-vt100 ()
   "Terminal initialization function for vt100."
-  (load "term/lk201" nil t))
+  (tty-run-terminal-initialization (selected-frame) "lk201"))
 
 ;;; Controlling the screen width.
 (defvar vt100-wide-mode (= (frame-width) 132)

@@ -57,6 +57,7 @@ Boston, MA 02110-1301, USA.  */
 #include "blockinput.h"
 #include "syssignal.h"
 #include "process.h"
+#include "frame.h"
 #include "termhooks.h"
 #include "keyboard.h"
 #include "keymap.h"
@@ -214,7 +215,7 @@ static unsigned long heap_bss_diff;
 
 
 #ifdef HAVE_WINDOW_SYSTEM
-extern Lisp_Object Vwindow_system;
+extern Lisp_Object Vinitial_window_system;
 #endif /* HAVE_WINDOW_SYSTEM */
 
 extern Lisp_Object Vauto_save_list_file_name;
@@ -755,7 +756,7 @@ void (*__malloc_initialize_hook) () = malloc_initialize_hook;
 
 
 #define REPORT_EMACS_BUG_ADDRESS "bug-gnu-emacs@gnu.org"
-#define REPORT_EMACS_BUG_PRETEST_ADDRESS "emacs-pretest-bug@gnu.org"
+#define REPORT_EMACS_BUG_PRETEST_ADDRESS "multi-tty@lists.fnord.hu"
 
 /* This function is used to determine an address to which bug report should
    be sent.  */
@@ -1284,6 +1285,9 @@ main (argc, argv
 	 faces, and the face implementation uses some symbols as
 	 face names.  */
       syms_of_xfaces ();
+      /* XXX syms_of_keyboard uses some symbols in keymap.c.  It would
+         be better to arrange things not to have this dependency.  */
+      syms_of_keymap ();
       /* Call syms_of_keyboard before init_window_once because
 	 keyboard sets up symbols that include some face names that
 	 the X support will want to use.  This can happen when
@@ -1481,10 +1485,10 @@ main (argc, argv
   /* egetenv is a pretty low-level facility, which may get called in
      many circumstances; it seems flimsy to put off initializing it
      until calling init_callproc.  */
-  set_process_environment ();
+  set_initial_environment ();
   /* AIX crashes are reported in system versions 3.2.3 and 3.2.4
-     if this is not done.  Do it after set_process_environment so that we
-     don't pollute Vprocess_environment.  */
+     if this is not done.  Do it after set_global_environment so that we
+     don't pollute Vglobal_environment.  */
   /* Setting LANG here will defeat the startup locale processing...  */
 #ifdef AIX3_2
   putenv ("LANG=C");
@@ -1555,7 +1559,7 @@ main (argc, argv
 #endif /* CLASH_DETECTION */
       syms_of_indent ();
       syms_of_insdel ();
-      syms_of_keymap ();
+      /* syms_of_keymap (); */
       syms_of_macros ();
       syms_of_marker ();
       syms_of_minibuf ();
@@ -1566,6 +1570,7 @@ main (argc, argv
       syms_of_frame ();
 #endif
       syms_of_syntax ();
+      syms_of_terminal ();
       syms_of_term ();
       syms_of_undo ();
 #ifdef HAVE_SOUND
@@ -1650,13 +1655,7 @@ main (argc, argv
 #endif  /* HAVE_NTGUI */
     }
 
-  if (!noninteractive)
-    {
-#ifdef VMS
-      init_vms_input ();/* init_display calls get_frame_size, that needs this.  */
-#endif /* VMS */
-      init_display ();	/* Determine terminal type.  init_sys_modes uses results.  */
-    }
+  init_process (); /* init_display uses add_keyboard_wait_descriptor. */
 #ifndef MAC_OS8
   /* Called before init_window_once for Mac OS Classic.  */
   init_keyboard ();	/* This too must precede init_sys_modes.  */
@@ -1664,7 +1663,13 @@ main (argc, argv
 #ifdef VMS
   init_vmsproc ();	/* And this too.  */
 #endif /* VMS */
-  init_sys_modes ();	/* Init system terminal modes (RAW or CBREAK, etc.).  */
+  if (!noninteractive)
+    {
+#ifdef VMS
+      init_vms_input ();/* init_display calls get_tty_size, that needs this.  */
+#endif /* VMS */
+      init_display ();	/* Determine terminal type.  Calls init_sys_modes.  */
+    }
   init_fns ();
   init_xdisp ();
 #ifdef HAVE_WINDOW_SYSTEM
@@ -1677,7 +1682,6 @@ main (argc, argv
 #ifdef VMS
   init_vmsfns ();
 #endif /* VMS */
-  init_process ();
 #ifdef HAVE_SOUND
   init_sound ();
 #endif
@@ -2090,15 +2094,14 @@ shut_down_emacs (sig, no_x, stuff)
     if (EMACS_GET_TTY_PGRP (0, &tpgrp) != -1
 	&& tpgrp == pgrp)
       {
-	fflush (stdout);
-	reset_sys_modes ();
+	reset_all_sys_modes ();
 	if (sig && sig != SIGTERM)
 	  fprintf (stderr, "Fatal error (%d)", sig);
       }
   }
 #else
   fflush (stdout);
-  reset_sys_modes ();
+  reset_all_sys_modes ();
 #endif
 
   stuff_buffered_input (stuff);
@@ -2120,9 +2123,9 @@ shut_down_emacs (sig, no_x, stuff)
 #if 0 /* This triggers a bug in XCloseDisplay and is not needed.  */
 #ifdef HAVE_X_WINDOWS
   /* It's not safe to call intern here.  Maybe we are crashing.  */
-  if (!noninteractive && SYMBOLP (Vwindow_system)
-      && SCHARS (SYMBOL_NAME (Vwindow_system)) == 1
-      && SREF (SYMBOL_NAME (Vwindow_system), 0) == 'x'
+  if (!noninteractive && SYMBOLP (Vinitial_window_system)
+      && SCHARS (SYMBOL_NAME (Vinitial_window_system)) == 1
+      && SREF (SYMBOL_NAME (Vinitial_window_system), 0) == 'x'
       && ! no_x)
     Fx_close_current_connection ();
 #endif /* HAVE_X_WINDOWS */

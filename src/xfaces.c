@@ -195,11 +195,13 @@ Boston, MA 02110-1301, USA.  */
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <stdio.h>              /* This needs to be before termchar.h */
 
 #include "lisp.h"
 #include "charset.h"
 #include "keyboard.h"
 #include "frame.h"
+#include "termhooks.h"
 
 #ifdef HAVE_WINDOW_SYSTEM
 #include "fontset.h"
@@ -242,6 +244,7 @@ Boston, MA 02110-1301, USA.  */
 #include "blockinput.h"
 #include "window.h"
 #include "intervals.h"
+#include "termchar.h"
 
 #ifdef HAVE_X_WINDOWS
 
@@ -3221,6 +3224,20 @@ push_named_merge_point (struct named_merge_point *new_named_merge_point,
 
 
 
+static Lisp_Object
+internal_resolve_face_name (nargs, args)
+     int nargs;
+     Lisp_Object *args;
+{
+  Fget (args[0], args[1]);
+}
+
+static Lisp_Object
+resolve_face_name_error (ignore)
+     Lisp_Object ignore;
+{
+  return Qnil;
+}
 
 /* Resolve face name FACE_NAME.  If FACE_NAME is a string, intern it
    to make it a symbol.  If FACE_NAME is an alias for another face,
@@ -6145,7 +6162,7 @@ tty_supports_face_attributes_p (f, attrs, def_face)
   /* See if the capabilities we selected above are supported, with the
      given colors.  */
   if (test_caps != 0 &&
-      ! tty_capable_p (f, test_caps, fg_tty_color.pixel, bg_tty_color.pixel))
+      ! tty_capable_p (FRAME_TTY (f), test_caps, fg_tty_color.pixel, bg_tty_color.pixel))
     return 0;
 
 
@@ -6949,7 +6966,8 @@ realize_basic_faces (f)
 	{
 	  FRAME_FACE_CACHE (f)->menu_face_changed_p = 0;
 #ifdef USE_X_TOOLKIT
-	  x_update_menu_appearance (f);
+          if (FRAME_WINDOW_P (f))
+            x_update_menu_appearance (f);
 #endif
 	}
 
@@ -7036,7 +7054,7 @@ realize_default_face (f)
 	LFACE_FOREGROUND (lface) = XCDR (color);
       else if (FRAME_WINDOW_P (f))
 	return 0;
-      else if (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
+      else if (FRAME_INITIAL_P (f) || FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
 	LFACE_FOREGROUND (lface) = build_string (unspecified_fg);
       else
 	abort ();
@@ -7051,7 +7069,7 @@ realize_default_face (f)
 	LFACE_BACKGROUND (lface) = XCDR (color);
       else if (FRAME_WINDOW_P (f))
 	return 0;
-      else if (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
+      else if (FRAME_INITIAL_P (f) || FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
 	LFACE_BACKGROUND (lface) = build_string (unspecified_bg);
       else
 	abort ();
@@ -7068,17 +7086,17 @@ realize_default_face (f)
 
 #ifdef HAVE_WINDOW_SYSTEM
 #ifdef HAVE_X_WINDOWS
-  if (face->font != FRAME_FONT (f))
+  if (FRAME_X_P (f) && face->font != FRAME_FONT (f))
     {
       /* This can happen when making a frame on a display that does
-	 not support the default font.  */
+ 	 not support the default font.  */
       if (!face->font)
-	return 0;
-
+ 	return 0;
+ 
       /* Otherwise, the font specified for the frame was not
-	 acceptable as a font for the default face (perhaps because
-	 auto-scaled fonts are rejected), so we must adjust the frame
-	 font.  */
+ 	 acceptable as a font for the default face (perhaps because
+ 	 auto-scaled fonts are rejected), so we must adjust the frame
+ 	 font.  */
       x_set_font (f, build_string (face->font_name), Qnil);
     }
 #endif	/* HAVE_X_WINDOWS */
@@ -7158,6 +7176,11 @@ realize_face (cache, attrs, c, base_face, former_face_id)
     face = realize_x_face (cache, attrs, c, base_face);
   else if (FRAME_TERMCAP_P (cache->f) || FRAME_MSDOS_P (cache->f))
     face = realize_tty_face (cache, attrs, c);
+  else if (FRAME_INITIAL_P (cache->f))
+    {
+      /* Create a dummy face. */
+      face = make_realized_face (attrs);
+    }
   else
     abort ();
 

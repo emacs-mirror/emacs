@@ -351,6 +351,8 @@ encode_coding_XXX (coding, source, destination, src_bytes, dst_bytes)
 #include "coding.h"
 #include "window.h"
 #include "intervals.h"
+#include "frame.h"
+#include "termhooks.h"
 
 #else  /* not emacs */
 
@@ -436,15 +438,9 @@ int inhibit_iso_escape_detection;
 /* Flag to make buffer-file-coding-system inherit from process-coding.  */
 int inherit_process_coding_system;
 
-/* Coding system to be used to encode text for terminal display.  */
-struct coding_system terminal_coding;
-
 /* Coding system to be used to encode text for terminal display when
    terminal coding system is nil.  */
 struct coding_system safe_terminal_coding;
-
-/* Coding system of what is sent from terminal keyboard.  */
-struct coding_system keyboard_coding;
 
 /* Default coding system to be used to write a file.  */
 struct coding_system default_buffer_file_coding;
@@ -7368,21 +7364,23 @@ Return the corresponding character code in Big5.  */)
 }
 
 DEFUN ("set-terminal-coding-system-internal", Fset_terminal_coding_system_internal,
-       Sset_terminal_coding_system_internal, 1, 1, 0,
+       Sset_terminal_coding_system_internal, 1, 2, 0,
        doc: /* Internal use only.  */)
-     (coding_system)
+     (coding_system, terminal)
      Lisp_Object coding_system;
+     Lisp_Object terminal;
 {
+  struct coding_system *terminal_coding = TERMINAL_TERMINAL_CODING (get_terminal (terminal, 1));
   CHECK_SYMBOL (coding_system);
-  setup_coding_system (Fcheck_coding_system (coding_system), &terminal_coding);
+  setup_coding_system (Fcheck_coding_system (coding_system), terminal_coding);
   /* We had better not send unsafe characters to terminal.  */
-  terminal_coding.mode |= CODING_MODE_INHIBIT_UNENCODABLE_CHAR;
+  terminal_coding->mode |= CODING_MODE_INHIBIT_UNENCODABLE_CHAR;
   /* Character composition should be disabled.  */
-  terminal_coding.composing = COMPOSITION_DISABLED;
+  terminal_coding->composing = COMPOSITION_DISABLED;
   /* Error notification should be suppressed.  */
-  terminal_coding.suppress_error = 1;
-  terminal_coding.src_multibyte = 1;
-  terminal_coding.dst_multibyte = 0;
+  terminal_coding->suppress_error = 1;
+  terminal_coding->src_multibyte = 1;
+  terminal_coding->dst_multibyte = 0;
   return Qnil;
 }
 
@@ -7405,32 +7403,42 @@ DEFUN ("set-safe-terminal-coding-system-internal", Fset_safe_terminal_coding_sys
 }
 
 DEFUN ("terminal-coding-system", Fterminal_coding_system,
-       Sterminal_coding_system, 0, 0, 0,
-       doc: /* Return coding system specified for terminal output.  */)
-     ()
+       Sterminal_coding_system, 0, 1, 0,
+       doc: /* Return coding system specified for terminal output on the given terminal.
+TERMINAL may be a terminal id, a frame, or nil for the selected
+frame's terminal device.  */)
+     (terminal)
+     Lisp_Object terminal;
 {
-  return terminal_coding.symbol;
+  return TERMINAL_TERMINAL_CODING (get_terminal (terminal, 1))->symbol;
 }
 
 DEFUN ("set-keyboard-coding-system-internal", Fset_keyboard_coding_system_internal,
-       Sset_keyboard_coding_system_internal, 1, 1, 0,
+       Sset_keyboard_coding_system_internal, 1, 2, 0,
        doc: /* Internal use only.  */)
-     (coding_system)
+     (coding_system, terminal)
      Lisp_Object coding_system;
+     Lisp_Object terminal;
 {
+  struct terminal *t = get_terminal (terminal, 1);
   CHECK_SYMBOL (coding_system);
-  setup_coding_system (Fcheck_coding_system (coding_system), &keyboard_coding);
+
+  setup_coding_system (Fcheck_coding_system (coding_system),
+                       TERMINAL_KEYBOARD_CODING (t));
   /* Character composition should be disabled.  */
-  keyboard_coding.composing = COMPOSITION_DISABLED;
+  TERMINAL_KEYBOARD_CODING (t)->composing = COMPOSITION_DISABLED;
   return Qnil;
 }
 
 DEFUN ("keyboard-coding-system", Fkeyboard_coding_system,
-       Skeyboard_coding_system, 0, 0, 0,
-       doc: /* Return coding system specified for decoding keyboard input.  */)
-     ()
+       Skeyboard_coding_system, 0, 1, 0,
+       doc: /* Return coding system for decoding keyboard input on TERMINAL.
+TERMINAL may be a terminal id, a frame, or nil for the selected
+frame's terminal device.  */)
+     (terminal)
+     Lisp_Object terminal;
 {
-  return keyboard_coding.symbol;
+  return TERMINAL_KEYBOARD_CODING (get_terminal (terminal, 1))->symbol;
 }
 
 
@@ -7693,8 +7701,6 @@ init_coding_once ()
   iso_code_class[ISO_CODE_SS3] = ISO_single_shift_3;
   iso_code_class[ISO_CODE_CSI] = ISO_control_sequence_introducer;
 
-  setup_coding_system (Qnil, &keyboard_coding);
-  setup_coding_system (Qnil, &terminal_coding);
   setup_coding_system (Qnil, &safe_terminal_coding);
   setup_coding_system (Qnil, &default_buffer_file_coding);
 

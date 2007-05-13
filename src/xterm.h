@@ -149,6 +149,9 @@ struct x_display_info
   /* Chain of all x_display_info structures.  */
   struct x_display_info *next;
 
+  /* The generic display parameters corresponding to this X display. */
+  struct terminal *terminal;
+
   /* Connection number (normally a file descriptor number).  */
   int connection;
 
@@ -327,9 +330,6 @@ struct x_display_info
   /* Atom used in toolkit scroll bar client messages.  */
   Atom Xatom_Scrollbar;
 
-#ifdef MULTI_KBOARD
-  struct kboard *kboard;
-#endif
   int cut_buffers_initialized; /* Whether we're sure they all exist */
 
   /* The frame (if any) which has the X window that has keyboard focus.
@@ -532,8 +532,10 @@ struct x_output
 
   /* Pixel values used for various purposes.
      border_pixel may be -1 meaning use a gray tile.  */
+#if 0 /* These are also defined in struct frame.  Use that instead.  */
   unsigned long background_pixel;
   unsigned long foreground_pixel;
+#endif
   unsigned long cursor_pixel;
   unsigned long border_pixel;
   unsigned long mouse_pixel;
@@ -984,7 +986,6 @@ extern int x_had_errors_p P_ ((Display *));
 extern int x_catching_errors P_ ((void));
 extern void x_uncatch_errors P_ ((void));
 extern void x_clear_errors P_ ((Display *));
-extern void x_fully_uncatch_errors P_ ((void));
 extern void x_set_window_size P_ ((struct frame *, int, int, int));
 extern void x_set_mouse_position P_ ((struct frame *, int, int));
 extern void x_set_mouse_pixel_position P_ ((struct frame *, int, int));
@@ -999,6 +1000,7 @@ extern void x_wm_set_size_hint P_ ((struct frame *, long, int));
 extern void x_wm_set_window_state P_ ((struct frame *, int));
 extern void x_wm_set_icon_pixmap P_ ((struct frame *, int));
 extern void x_delete_display P_ ((struct x_display_info *));
+extern void x_delete_terminal P_ ((struct terminal *terminal));
 extern void x_initialize P_ ((void));
 extern unsigned long x_copy_color P_ ((struct frame *, unsigned long));
 #ifdef USE_X_TOOLKIT
@@ -1099,6 +1101,7 @@ extern void widget_store_internal_border P_ ((Widget));
 extern void x_session_initialize P_ ((struct x_display_info *dpyinfo));
 extern int x_session_check_input P_ ((struct input_event *bufp));
 extern int x_session_have_connection P_ ((void));
+extern void x_session_close P_ ((void));
 #endif
 
 #define FONT_TYPE_FOR_UNIBYTE(font, ch) 0

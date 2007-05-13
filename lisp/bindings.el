@@ -170,6 +170,12 @@ corresponding to the mode line clicked."
       (push (cons eol (cons mnemonic desc)) mode-line-eol-desc-cache)
       desc)))
 
+(defvar mode-line-client
+  `(""
+    (:propertize ("" (:eval (if (frame-parameter nil 'client) "@" "")))
+		 help-echo "Emacsclient frame"))
+  "Mode-line control for identifying Emacsclient frames.")
+
 (defvar mode-line-mule-info
   `(""
     (current-input-method
@@ -209,7 +215,7 @@ mnemonics of the following coding systems:
 
 (make-variable-buffer-local 'mode-line-mule-info)
 
-(defvar mode-line-frame-identification '("-%F  ")
+(defvar mode-line-frame-identification '(window-system "  " "-%F  ")
   "Mode-line control to describe the current frame.")
 
 (defvar mode-line-process nil "\
@@ -286,6 +292,7 @@ Keymap to display on minor modes.")
 	 "%e"
 	 (propertize "-" 'help-echo help-echo)
 	 'mode-line-mule-info
+	 'mode-line-client
 	 'mode-line-modified
 	 'mode-line-frame-identification
 	 'mode-line-buffer-identification
@@ -314,6 +321,7 @@ Keymap to display on minor modes.")
 		     'local-map (make-mode-line-mouse-map
 				 'mouse-2 #'mode-line-widen))
 	 (propertize ")%]--" 'help-echo help-echo)))
+
        (standard-mode-line-position
 	`((-3 ,(propertize "%p" 'help-echo help-echo))
 	  (size-indication-mode

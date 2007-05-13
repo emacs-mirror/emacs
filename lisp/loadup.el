@@ -60,14 +60,16 @@
 (load "widget")
 (load "custom")
 (load "emacs-lisp/map-ynp")
-(load "env")
 (load "cus-start")
 (load "international/mule")
 (load "international/mule-conf.el") ;Don't get confused if someone compiled this by mistake.
+(load "env")
 (load "format")
 (load "bindings")
 (setq load-source-file-function 'load-with-code-conversion)
 (load "files")
+
+(load "startup")
 
 (load "cus-face")
 (load "faces")  ; after here, `defface' may be used.
@@ -131,6 +133,7 @@
 (load "indent")
 (load "window")
 (load "frame")
+(load "termdev")
 (load "term/tty-colors")
 (load "font-core")
 ;; facemenu must be loaded before font-lock, because `facemenu-keymap'
@@ -153,7 +156,6 @@
 (message "%s" (garbage-collect))
 (load "menu-bar")
 (load "paths.el")  ;Don't get confused if someone compiled paths by mistake.
-(load "startup")
 (load "emacs-lisp/lisp")
 (load "textmodes/page")
 (load "register")
@@ -177,9 +179,9 @@
       (load "international/fontset")
       (load "dnd")
       (load "mwheel")
-      (load "tool-bar")))
-(if (featurep 'x)
-    (load "x-dnd"))
+      (load "tool-bar")
+      (load "x-dnd")
+      (load "term/x-win")))
 (message "%s" (garbage-collect))
 
 (if (eq system-type 'vax-vms)

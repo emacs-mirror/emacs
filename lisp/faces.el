@@ -931,7 +931,7 @@ an integer value."
   (let ((valid
          (case attribute
            (:family
-            (if window-system
+            (if (window-system frame)
                 (mapcar #'(lambda (x) (cons (car x) (car x)))
                         (x-font-family-list))
 	      ;; Only one font on TTYs.
@@ -940,7 +940,7 @@ an integer value."
             (mapcar #'(lambda (x) (cons (symbol-name x) x))
                     (internal-lisp-face-attribute-values attribute)))
            ((:underline :overline :strike-through :box)
-            (if window-system
+            (if (window-system frame)
                 (nconc (mapcar #'(lambda (x) (cons (symbol-name x) x))
                                (internal-lisp-face-attribute-values attribute))
                        (mapcar #'(lambda (c) (cons c c))
@@ -953,7 +953,7 @@ an integer value."
            ((:height)
             'integerp)
            (:stipple
-            (and (memq window-system '(x w32 mac))
+            (and (memq (window-system frame) '(x w32 mac))
                  (mapcar #'list
                          (apply #'nconc
                                 (mapcar (lambda (dir)
@@ -1071,7 +1071,7 @@ of a global face.  Value is the new attribute value."
 	       ;; explicitly in VALID, using color approximation code
 	       ;; in tty-colors.el.
 	       (when (and (memq attribute '(:foreground :background))
-			  (not (memq window-system '(x w32 mac)))
+			  (not (memq (window-system frame) '(x w32 mac)))
 			  (not (member new-value
 				       '("unspecified"
 					 "unspecified-fg" "unspecified-bg"))))
@@ -1367,14 +1367,14 @@ If FRAME is nil, the current FRAME is used."
 	    req (car conjunct)
 	    options (cdr conjunct)
 	    match (cond ((eq req 'type)
-			 (or (memq window-system options)
+			 (or (memq (window-system frame) options)
 			     ;; FIXME: This should be revisited to use
 			     ;; display-graphic-p, provided that the
 			     ;; color selection depends on the number
 			     ;; of supported colors, and all defface's
 			     ;; are changed to look at number of colors
 			     ;; instead of (type graphic) etc.
-			     (and (null window-system)
+			     (and (null (window-system frame))
 				  (memq 'tty options))
 			     (and (memq 'motif options)
 				  (featurep 'motif))
@@ -1589,35 +1589,40 @@ variable with `setq'; this won't have the expected effect."
 		 (const light)
 		 (const :tag "automatic" nil)))
 
-(defvar default-frame-background-mode nil
-  "Internal variable for the default brightness of the background.
-Emacs sets it automatically depending on the terminal type.
-The value `nil' means `dark'.  If Emacs runs in non-windowed
-mode from `xterm' or a similar terminal emulator, the value is
-`light'.  On rxvt terminals, the value depends on the environment
-variable COLORFGBG.")
 
 (defun frame-set-background-mode (frame)
   "Set up display-dependent faces on FRAME.
 Display-dependent faces are those which have different definitions
 according to the `background-mode' and `display-type' frame parameters."
   (let* ((bg-resource
-	  (and window-system
+	  (and (window-system frame)
 	       (x-get-resource "backgroundMode" "BackgroundMode")))
 	 (bg-color (frame-parameter frame 'background-color))
+	 (terminal-bg-mode (terminal-parameter frame 'background-mode))
+	 (tty-type (tty-type frame))
 	 (bg-mode
 	  (cond (frame-background-mode)
 		(bg-resource
 		 (intern (downcase bg-resource)))
-		((and (null window-system) (null bg-color))
-		 ;; No way to determine this automatically (?).
-		 (or default-frame-background-mode 'dark))
-		;; Unspecified frame background color can only happen
-		;; on tty's.
-		((member bg-color '(unspecified "unspecified-bg"))
-		 (or default-frame-background-mode 'dark))
+		(terminal-bg-mode)
+		((and (null (window-system frame))
+		      ;; Unspecified frame background color can only
+		      ;; happen on tty's.
+		      (member bg-color '(nil unspecified "unspecified-bg")))
+		 ;; There is no way to determine the background mode
+		 ;; automatically, so we make a guess based on the
+		 ;; terminal type.
+		 (if (and tty-type
+			  (string-match "^\\(xterm\\|rxvt\\|dtterm\\|eterm\\)"
+					tty-type))
+		     'light
+		   'dark))
 		((equal bg-color "unspecified-fg") ; inverted colors
-		 (if (eq default-frame-background-mode 'light) 'dark 'light))
+		 (if (and tty-type
+			  (string-match "^\\(xterm\\|rxvt\\|dtterm\\|eterm\\)"
+					tty-type))
+		     'dark
+		   'light))
 		((>= (apply '+ (color-values bg-color frame))
 		    ;; Just looking at the screen, colors whose
 		    ;; values add up to .6 of the white total
@@ -1626,7 +1631,7 @@ according to the `background-mode' and `display-type' frame parameters."
 		 'light)
 		(t 'dark)))
 	 (display-type
-	  (cond ((null window-system)
+	  (cond ((null (window-system frame))
 		 (if (tty-display-color-p frame) 'color 'mono))
 		((display-color-p frame)
 		 'color)
@@ -1722,15 +1727,24 @@ the X resource ``reverseVideo'' is present, handle that.
 Value is the new frame created."
   (setq parameters (x-handle-named-frame-geometry parameters))
   (let ((visibility-spec (assq 'visibility parameters))
-	(frame-list (frame-list))
-	(frame (x-create-frame (cons '(visibility . nil) parameters)))
+	(frame (x-create-frame `((visibility . nil) . ,parameters)))
 	success)
     (unwind-protect
 	(progn
+	  (x-setup-function-keys frame)
 	  (x-handle-reverse-video frame parameters)
 	  (frame-set-background-mode frame)
 	  (face-set-after-frame-default frame)
-	  (if (or (null frame-list) (null visibility-spec))
+	  ;; Arrange for the kill and yank functions to set and check the clipboard.
+	  (modify-frame-parameters
+	   frame '((interprogram-cut-function . x-select-text)))
+	  (modify-frame-parameters
+	   frame '((interprogram-paste-function . x-cut-buffer-or-selection-value)))
+	  ;; Make sure the tool-bar is ready to be enabled.  The
+	  ;; `tool-bar-lines' frame parameter will not take effect
+	  ;; without this call.
+	  (tool-bar-setup frame)
+	  (if (null visibility-spec)
 	      (make-frame-visible frame)
 	    (modify-frame-parameters frame (list visibility-spec)))
 	  (setq success t))
@@ -1789,7 +1803,7 @@ Initialize colors of certain faces from frame parameters."
       (condition-case ()
 	  (progn
 	    (face-spec-set face (face-user-default-spec face) frame)
-	    (if (memq window-system '(x w32 mac))
+	    (if (memq (window-system frame) '(x w32 mac))
 		(make-face-x-resource-internal face frame))
 	    (internal-merge-in-global-face face frame))
 	(error nil)))
@@ -1825,8 +1839,15 @@ created."
   (let ((frame (make-terminal-frame parameters))
 	success)
     (unwind-protect
-	(progn
+	(with-selected-frame frame
 	  (tty-handle-reverse-video frame (frame-parameters frame))
+
+	  ;; Make sure the kill and yank functions do not touch the X clipboard.
+	  (modify-frame-parameters frame '((interprogram-cut-function . nil)))
+	  (modify-frame-parameters frame '((interprogram-paste-function . nil)))
+
+	  (set-locale-environment nil frame)
+	  (tty-run-terminal-initialization frame)
 	  (frame-set-background-mode frame)
 	  (face-set-after-frame-default frame)
 	  (setq success t))
@@ -1834,6 +1855,52 @@ created."
 	(delete-frame frame)))
     frame))
 
+(defun tty-find-type (pred type)
+  "Return the longest prefix of TYPE to which PRED returns non-nil.
+TYPE should be a tty type name such as \"xterm-16color\".
+
+The function tries only those prefixes that are followed by a
+dash or underscore in the original type name, like \"xterm\" in
+the above example."
+  (let (hyphend)
+    (while (and type
+		(not (funcall pred type)))
+      ;; Strip off last hyphen and what follows, then try again
+      (setq type
+	    (if (setq hyphend (string-match "[-_][^-_]+$" type))
+		(substring type 0 hyphend)
+	      nil))))
+  type)
+
+(defun tty-run-terminal-initialization (frame &optional type)
+  "Run the special initialization code for the terminal type of FRAME.
+The optional TYPE parameter may be used to override the autodetected
+terminal type to a different value."
+  (setq type (or type (tty-type frame)))
+  ;; Load library for our terminal type.
+  ;; User init file can set term-file-prefix to nil to prevent this.
+  (with-selected-frame frame
+    (unless (or (null term-file-prefix)
+		;; Don't reinitialize the terminal each time a new
+		;; frame is opened on it.
+		(terminal-parameter frame 'terminal-initted))
+      (let* (term-init-func)
+	;; First, load the terminal initialization file, if it is
+	;; available and it hasn't been loaded already.
+	(tty-find-type #'(lambda (type)
+			   (let ((file (locate-library (concat term-file-prefix type))))
+			     (and file
+				  (or (assoc file load-history)
+				      (load file t t)))))
+		       type)
+	;; Next, try to find a matching initialization function, and call it.
+	(tty-find-type #'(lambda (type)
+			   (fboundp (setq term-init-func
+					  (intern (concat "terminal-init-" type)))))
+		       type)
+	(when (fboundp term-init-func)
+	  (funcall term-init-func))
+	(set-terminal-parameter frame 'terminal-initted term-init-func)))))
 
 ;; Called from C function init_display to initialize faces of the
 ;; dumped terminal frame on startup.

@@ -27,6 +27,7 @@ Boston, MA 02110-1301, USA.  */
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <errno.h>
+#include <setjmp.h>
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"
@@ -34,6 +35,7 @@ Boston, MA 02110-1301, USA.  */
 #include <epaths.h>
 #include "commands.h"
 #include "keyboard.h"
+#include "frame.h"
 #include "termhooks.h"
 #include "coding.h"
 #include "blockinput.h"
@@ -446,8 +448,6 @@ static void substitute_in_interval P_ ((INTERVAL, Lisp_Object));
 
 /* Get a character from the tty.  */
 
-extern Lisp_Object read_char ();
-
 /* Read input events until we get one that's acceptable for our purposes.
 
    If NO_SWITCH_FRAME is non-zero, switch-frame events are stashed
@@ -499,10 +499,12 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii,
       EMACS_ADD_TIME (end_time, end_time, wait_time);
     }
 
-  /* Read until we get an acceptable event.  */
+/* Read until we get an acceptable event.  */
  retry:
-  val = read_char (0, 0, 0, (input_method ? Qnil : Qt), 0,
-		   NUMBERP (seconds) ? &end_time : NULL);
+  do 
+    val = read_char (0, 0, 0, (input_method ? Qnil : Qt), 0,
+		     NUMBERP (seconds) ? &end_time : NULL);
+  while (INTEGERP (val) && XINT (val) == -2); /* wrong_kboard_jmpbuf */
 
   if (BUFFERP (val))
     goto retry;

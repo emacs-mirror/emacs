@@ -21,6 +21,8 @@ the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA.  */
 
 #include <config.h>
+#include <stdio.h>
+
 #include "lisp.h"
 #include "buffer.h"
 #include "keyboard.h"
@@ -7247,7 +7249,7 @@ and scrolling positions.  */)
 void
 init_window_once ()
 {
-  struct frame *f = make_terminal_frame ();
+  struct frame *f = make_initial_frame ();
   XSETFRAME (selected_frame, f);
   Vterminal_frame = selected_frame;
   minibuf_window = f->minibuffer_window;

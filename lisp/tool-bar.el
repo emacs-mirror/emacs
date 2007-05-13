@@ -55,21 +55,21 @@ conveniently adding tool bar items."
   :group 'mouse
   :group 'frames
   (and (display-images-p)
-       (let ((lines (if tool-bar-mode 1 0)))
-	 ;; Alter existing frames...
-	 (mapc (lambda (frame)
-		 (modify-frame-parameters frame
-					  (list (cons 'tool-bar-lines lines))))
-	       (frame-list))
-	 ;; ...and future ones.
-	 (let ((elt (assq 'tool-bar-lines default-frame-alist)))
-	   (if elt
-	       (setcdr elt lines)
-	     (add-to-list 'default-frame-alist (cons 'tool-bar-lines lines)))))
+       (modify-all-frames-parameters (list (cons 'tool-bar-lines
+						 (if tool-bar-mode 1 0))))
        (if (and tool-bar-mode
-		(display-graphic-p)
-		(= 1 (length (default-value 'tool-bar-map)))) ; not yet setup
+		(display-graphic-p))
 	   (tool-bar-setup))))
+
+;;;###autoload
+;; Used in the Show/Hide menu, to have the toggle reflect the current frame.
+(defun toggle-tool-bar-mode-from-frame (&optional arg)
+  "Toggle tool bar on or off, based on the status of the current frame.
+See `tool-bar-mode' for more information."
+  (interactive (list (or current-prefix-arg 'toggle)))
+  (if (eq arg 'toggle)
+      (tool-bar-mode (if (> (frame-parameter nil 'tool-bar-lines) 0) 0 1))
+    (tool-bar-mode arg)))
 
 ;;;###autoload
 ;; We want to pretend the toolbar by standard is on, as this will make
@@ -228,42 +228,47 @@ holds a keymap."
 
 ;;; Set up some global items.  Additions/deletions up for grabs.
 
-(defun tool-bar-setup ()
-  ;; People say it's bad to have EXIT on the tool bar, since users
-  ;; might inadvertently click that button.
-  ;;(tool-bar-add-item-from-menu 'save-buffers-kill-emacs "exit")
-  (tool-bar-add-item-from-menu 'find-file "new")
-  (tool-bar-add-item-from-menu 'menu-find-file-existing "open")
-  (tool-bar-add-item-from-menu 'dired "diropen")
-  (tool-bar-add-item-from-menu 'kill-this-buffer "close")
-  (tool-bar-add-item-from-menu 'save-buffer "save" nil
-			       :visible '(or buffer-file-name
-					     (not (eq 'special
-						      (get major-mode
-							   'mode-class)))))
-  (tool-bar-add-item-from-menu 'write-file "saveas" nil
-			       :visible '(or buffer-file-name
-					     (not (eq 'special
-						      (get major-mode
-							   'mode-class)))))
-  (tool-bar-add-item-from-menu 'undo "undo" nil
-			       :visible '(not (eq 'special (get major-mode
-								'mode-class))))
-  (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [cut])
-			       "cut" nil
-			       :visible '(not (eq 'special (get major-mode
-								'mode-class))))
-  (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [copy])
-			       "copy")
-  (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [paste])
-			       "paste" nil
-			       :visible '(not (eq 'special (get major-mode
-								'mode-class))))
-  (tool-bar-add-item-from-menu 'nonincremental-search-forward "search")
-  ;;(tool-bar-add-item-from-menu 'ispell-buffer "spell")
+(defvar tool-bar-setup nil
+  "t if the tool-bar has been set up by `tool-bar-setup'.")
 
-  ;; There's no icon appropriate for News and we need a command rather
-  ;; than a lambda for Read Mail.
+(defun tool-bar-setup (&optional frame)
+  (unless tool-bar-setup
+    (with-selected-frame (or frame (selected-frame))
+      ;; People say it's bad to have EXIT on the tool bar, since users
+      ;; might inadvertently click that button.
+      ;;(tool-bar-add-item-from-menu 'save-buffers-kill-emacs "exit")
+      (tool-bar-add-item-from-menu 'find-file "new")
+      (tool-bar-add-item-from-menu 'menu-find-file-existing "open")
+      (tool-bar-add-item-from-menu 'dired "diropen")
+      (tool-bar-add-item-from-menu 'kill-this-buffer "close")
+      (tool-bar-add-item-from-menu 'save-buffer "save" nil
+				   :visible '(or buffer-file-name
+						 (not (eq 'special
+							  (get major-mode
+							       'mode-class)))))
+      (tool-bar-add-item-from-menu 'write-file "saveas" nil
+				   :visible '(or buffer-file-name
+						 (not (eq 'special
+							  (get major-mode
+							       'mode-class)))))
+      (tool-bar-add-item-from-menu 'undo "undo" nil
+				   :visible '(not (eq 'special (get major-mode
+								    'mode-class))))
+      (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [cut])
+				   "cut" nil
+				   :visible '(not (eq 'special (get major-mode
+								    'mode-class))))
+      (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [copy])
+				   "copy")
+      (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [paste])
+				   "paste" nil
+				   :visible '(not (eq 'special (get major-mode
+								    'mode-class))))
+      (tool-bar-add-item-from-menu 'nonincremental-search-forward "search")
+      ;;(tool-bar-add-item-from-menu 'ispell-buffer "spell")
+
+      ;; There's no icon appropriate for News and we need a command rather
+      ;; than a lambda for Read Mail.
   ;;(tool-bar-add-item-from-menu 'compose-mail "mail/compose")
 
   (tool-bar-add-item-from-menu 'print-buffer "print")
@@ -281,9 +286,9 @@ holds a keymap."
 				(popup-menu menu-bar-help-menu))
 		       'help
 		       :help "Pop up the Help menu"))
-  )
+  (setq tool-bar-setup t))))
+
 
 (provide 'tool-bar)
-
 ;;; arch-tag: 15f30f0a-d0d7-4d50-bbb7-f48fd0c8582f
 ;;; tool-bar.el ends here

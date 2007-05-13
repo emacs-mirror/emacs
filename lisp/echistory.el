@@ -66,7 +66,7 @@ With prefix arg NOCONFIRM, execute current line as-is without editing."
   (define-key electric-history-map "\C-c" nil)
   (define-key electric-history-map "\C-c\C-c" 'Electric-history-quit)
   (define-key electric-history-map "\C-]" 'Electric-history-quit)
-  (define-key electric-history-map "\C-z" 'suspend-emacs)
+  (define-key electric-history-map "\C-z" 'suspend-frame)
   (define-key electric-history-map (char-to-string help-char) 'Helper-help)
   (define-key electric-history-map "?" 'Helper-describe-bindings)
   (define-key electric-history-map "\e>" 'end-of-buffer)

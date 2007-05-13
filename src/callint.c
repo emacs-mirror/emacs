@@ -402,8 +402,8 @@ invoke it.  If KEYS is omitted or nil, the return value of
       real_this_command= save_real_this_command;
       current_kboard->Vlast_command = save_last_command;
 
-      single_kboard_state ();
-      return apply1 (function, specs);
+      temporarily_switch_to_single_kboard (NULL);
+      return unbind_to (speccount, apply1 (function, specs));
     }
 
   /* Here if function specifies a string to control parsing the defaults */
@@ -851,12 +851,11 @@ invoke it.  If KEYS is omitted or nil, the return value of
   real_this_command= save_real_this_command;
   current_kboard->Vlast_command = save_last_command;
 
-  single_kboard_state ();
-
   {
     Lisp_Object val;
     specbind (Qcommand_debug_status, Qnil);
 
+    temporarily_switch_to_single_kboard (NULL);
     val = Ffuncall (count + 1, args);
     UNGCPRO;
     return unbind_to (speccount, val);

@@ -11869,19 +11869,20 @@ mac_initialize ()
   redeem_scroll_bar_hook = XTredeem_scroll_bar;
   judge_scroll_bars_hook = XTjudge_scroll_bars;
 
-  scroll_region_ok = 1;         /* we'll scroll partial frames */
-  char_ins_del_ok = 1;
-  line_ins_del_ok = 1;          /* we'll just blt 'em */
-  fast_clear_end_of_line = 1;   /* X does this well */
-  memory_below_frame = 0;       /* we don't remember what scrolls
-				   off the bottom */
+  TTY_SCROLL_REGION_OK (CURTTY ()) = 1; /* we'll scroll partial frames */
+  TTY_CHAR_INS_DEL_OK (CURTTY ()) = 1;
+  TTY_LINE_INS_DEL_OK (CURTTY ()) = 1; /* we'll just blt 'em */
+  TTY_FAST_CLEAR_END_OF_LINE (CURTTY ()) = 1; /* X does this well */
+  TTY_MEMORY_BELOW_FRAME (CURTTY ()) = 0; /* we don't remember what
+                                                         scrolls off the
+                                                         bottom */
   baud_rate = 19200;
 
   last_tool_bar_item = -1;
   any_help_event_p = 0;
 
   /* Try to use interrupt input; if we can't, then start polling.  */
-  Fset_input_mode (Qt, Qnil, Qt, Qnil);
+  Fset_input_interrupt_mode (Qt);
 
   BLOCK_INPUT;
 

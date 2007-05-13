@@ -32,7 +32,6 @@ Boston, MA 02110-1301, USA.  */
 #include "lisp.h"
 #include "termchar.h"
 #include "termopts.h"
-#include "termhooks.h"
 /* cm.h must come after dispextern.h on Windows.  */
 #include "dispextern.h"
 #include "cm.h"
@@ -40,6 +39,7 @@ Boston, MA 02110-1301, USA.  */
 #include "charset.h"
 #include "keyboard.h"
 #include "frame.h"
+#include "termhooks.h"
 #include "window.h"
 #include "commands.h"
 #include "disptab.h"
@@ -238,9 +238,9 @@ int inverse_video;
 EMACS_INT baud_rate;
 
 /* Either nil or a symbol naming the window system under which Emacs
-   is running.  */
+   creates the first frame.  */
 
-Lisp_Object Vwindow_system;
+Lisp_Object Vinitial_window_system;
 
 /* Version number of X windows: 10, 11 or nil.  */
 
@@ -282,14 +282,6 @@ Lisp_Object selected_frame;
 
 struct frame *last_nonminibuf_frame;
 
-/* Stdio stream being used for copy of all output.  */
-
-FILE *termscript;
-
-/* Structure for info on cursor positioning.  */
-
-struct cm Wcm;
-
 /* 1 means SIGWINCH happened when not safe.  */
 
 int delayed_size_change;
@@ -327,11 +319,6 @@ int glyph_pool_count;
    null, window matrices are worked on.  */
 
 static struct frame *frame_matrix_frame;
-
-/* Current interface for window-based redisplay.  Set from init_xterm.
-   A null value means we are not using window-based redisplay.  */
-
-struct redisplay_interface *rif;
 
 /* Non-zero means that fonts have been loaded since the last glyph
    matrix adjustments.  Redisplay must stop, and glyph matrices must
@@ -1423,7 +1410,7 @@ line_hash_code (row)
 	{
 	  int c = glyph->u.ch;
 	  int face_id = glyph->face_id;
-	  if (must_write_spaces)
+	  if (FRAME_MUST_WRITE_SPACES (SELECTED_FRAME ())) /* XXX Is SELECTED_FRAME OK here? */
 	    c -= SPACEGLYPH;
 	  hash = (((hash << 4) + (hash >> 24)) & 0x0fffffff) + c;
 	  hash = (((hash << 4) + (hash >> 24)) & 0x0fffffff) + face_id;
@@ -1455,7 +1442,7 @@ line_draw_cost (matrix, vpos)
   int glyph_table_len = GLYPH_TABLE_LENGTH;
 
   /* Ignore trailing and leading spaces if we can.  */
-  if (!must_write_spaces)
+  if (!FRAME_MUST_WRITE_SPACES (SELECTED_FRAME ())) /* XXX Is SELECTED_FRAME OK here? */
     {
       /* Skip from the end over trailing spaces.  */
       while (end > beg && CHAR_GLYPH_SPACE_P (*(end - 1)))
@@ -1671,8 +1658,10 @@ realloc_glyph_pool (pool, matrix_dim)
 #if GLYPH_DEBUG
 
 
-/* Flush standard output.  This is sometimes useful to call from
-   the debugger.  */
+/* Flush standard output.  This is sometimes useful to call from the debugger.
+   XXX Maybe this should be changed to flush the current terminal instead of
+   stdout.
+*/
 
 void
 flush_stdout ()
@@ -3393,12 +3382,15 @@ DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
     return Qnil;
 
   update_begin (f);
+#ifdef MSDOS
   if (FRAME_MSDOS_P (f))
-    set_terminal_modes ();
-  clear_frame ();
+    set_terminal_modes (FRAME_TERMINAL (f));
+#endif
+  clear_frame (f);
   clear_current_matrices (f);
   update_end (f);
-  fflush (stdout);
+  if (FRAME_TERMCAP_P (f))
+    fflush (FRAME_TTY (f)->output);
   windows_or_buffers_changed++;
   /* Mark all windows as inaccurate, so that every window will have
      its redisplay done.  */
@@ -3539,7 +3531,7 @@ direct_output_for_insert (g)
 
   /* If we can't insert glyphs, we can use this method only
      at the end of a line.  */
-  if (!char_ins_del_ok)
+  if (!FRAME_CHAR_INS_DEL_OK (f))
     if (PT != ZV && FETCH_BYTE (PT_BYTE) != '\n')
       return 0;
 
@@ -3689,24 +3681,24 @@ direct_output_for_insert (g)
   updated_row = glyph_row;
   updated_area = TEXT_AREA;
   update_begin (f);
-  if (rif)
+  if (FRAME_RIF (f))
     {
-      rif->update_window_begin_hook (w);
+      FRAME_RIF (f)->update_window_begin_hook (w);
 
       if (glyphs == end - n
 	  /* In front of a space added by append_space.  */
 	  || (glyphs == end - n - 1
 	      && (end - n)->charpos <= 0))
-	rif->write_glyphs (glyphs, n);
+	FRAME_RIF (f)->write_glyphs (glyphs, n);
       else
-	rif->insert_glyphs (glyphs, n);
+	FRAME_RIF (f)->insert_glyphs (glyphs, n);
     }
   else
     {
       if (glyphs == end - n)
-	write_glyphs (glyphs, n);
+	write_glyphs (f, glyphs, n);
       else
-	insert_glyphs (glyphs, n);
+	insert_glyphs (f, glyphs, n);
     }
 
   w->cursor.hpos += n;
@@ -3719,8 +3711,8 @@ direct_output_for_insert (g)
      a frame matrix is used, cursor_to expects frame coordinates,
      and the X and Y parameters are not used.  */
   if (window_redisplay_p)
-    rif->cursor_to (w->cursor.vpos, w->cursor.hpos,
-		    w->cursor.y, w->cursor.x);
+    FRAME_RIF (f)->cursor_to (w->cursor.vpos, w->cursor.hpos,
+                              w->cursor.y, w->cursor.x);
   else
     {
       int x, y;
@@ -3729,18 +3721,19 @@ direct_output_for_insert (g)
 	      ? XFASTINT (w->left_margin_cols)
 	      : 0));
       y = WINDOW_TO_FRAME_VPOS (w, w->cursor.vpos);
-      cursor_to (y, x);
+      cursor_to (f, y, x);
     }
 
 #ifdef HAVE_WINDOW_SYSTEM
   update_window_fringes (w, 0);
 #endif
 
-  if (rif)
-    rif->update_window_end_hook (w, 1, 0);
+  if (FRAME_RIF (f))
+    FRAME_RIF (f)->update_window_end_hook (w, 1, 0);
   update_end (f);
   updated_row = NULL;
-  fflush (stdout);
+  if (FRAME_TERMCAP_P (f))
+    fflush (FRAME_TTY (f)->output);
 
   TRACE ((stderr, "direct output for insert\n"));
   mark_window_display_accurate (it.window, 1);
@@ -3818,8 +3811,8 @@ direct_output_forward_char (n)
 	   && w->cursor.hpos < w->desired_matrix->matrix_w);
 
   if (FRAME_WINDOW_P (f))
-    rif->cursor_to (w->cursor.vpos, w->cursor.hpos,
-		    w->cursor.y, w->cursor.x);
+    FRAME_RIF (f)->cursor_to (w->cursor.vpos, w->cursor.hpos,
+                              w->cursor.y, w->cursor.x);
   else
     {
       int x, y;
@@ -3828,10 +3821,11 @@ direct_output_forward_char (n)
 	      ? XFASTINT (w->left_margin_cols)
 	      : 0));
       y = WINDOW_TO_FRAME_VPOS (w, w->cursor.vpos);
-      cursor_to (y, x);
+      cursor_to (f, y, x);
     }
 
-  fflush (stdout);
+  if (FRAME_TERMCAP_P (f))
+    fflush (FRAME_TTY (f)->output);
   redisplay_performed_directly_p = 1;
   return 1;
 }
@@ -3930,14 +3924,14 @@ update_frame (f, force_p, inhibit_hairy_id_p)
       update_end (f);
 
       /* This flush is a performance bottleneck under X,
-	 and it doesn't seem to be necessary anyway (in general).
+ 	 and it doesn't seem to be necessary anyway (in general).
          It is necessary when resizing the window with the mouse, or
-	 at least the fringes are not redrawn in a timely manner.  ++kfs */
+ 	 at least the fringes are not redrawn in a timely manner.  ++kfs */
       if (f->force_flush_display_p)
-	{
-	  rif->flush_display (f);
-	  f->force_flush_display_p = 0;
-	}
+ 	{
+     	  FRAME_RIF (f)->flush_display (f);
+ 	  f->force_flush_display_p = 0;
+ 	}
     }
   else
     {
@@ -3953,9 +3947,12 @@ update_frame (f, force_p, inhibit_hairy_id_p)
       paused_p = update_frame_1 (f, force_p, inhibit_hairy_id_p);
       update_end (f);
 
-      if (termscript)
-	fflush (termscript);
-      fflush (stdout);
+      if (FRAME_TERMCAP_P (f))
+        {
+          if (FRAME_TTY (f)->termscript)
+            fflush (FRAME_TTY (f)->termscript);
+          fflush (FRAME_TTY (f)->output);
+        }
 
       /* Check window matrices for lost pointers.  */
 #if GLYPH_DEBUG
@@ -4060,7 +4057,8 @@ redraw_overlapped_rows (w, yb)
      int yb;
 {
   int i;
-
+  struct frame *f = XFRAME (WINDOW_FRAME (w));
+  
   /* If rows overlapping others have been changed, the rows being
      overlapped have to be redrawn.  This won't draw lines that have
      already been drawn in update_window_line because overlapped_p in
@@ -4083,10 +4081,12 @@ redraw_overlapped_rows (w, yb)
 	    {
 	      updated_row = row;
 	      updated_area = area;
-	      rif->cursor_to (i, 0, row->y, area == TEXT_AREA ? row->x : 0);
+	      FRAME_RIF (f)->cursor_to (i, 0, row->y,
+                                        area == TEXT_AREA ? row->x : 0);
 	      if (row->used[area])
-		rif->write_glyphs (row->glyphs[area], row->used[area]);
-	      rif->clear_end_of_line (-1);
+		FRAME_RIF (f)->write_glyphs (row->glyphs[area],
+                                             row->used[area]);
+	      FRAME_RIF (f)->clear_end_of_line (-1);
 	    }
 
 	  row->overlapped_p = 0;
@@ -4108,7 +4108,8 @@ redraw_overlapping_rows (w, yb)
 {
   int i, bottom_y;
   struct glyph_row *row;
-
+  struct redisplay_interface *rif = FRAME_RIF (XFRAME (WINDOW_FRAME (w)));
+  
   for (i = 0; i < w->current_matrix->nrows; ++i)
     {
       row = w->current_matrix->rows + i;
@@ -4199,10 +4200,10 @@ update_window (w, force_p)
 #endif
   extern int input_pending;
   extern Lisp_Object do_mouse_tracking;
+  struct redisplay_interface *rif = FRAME_RIF (XFRAME (WINDOW_FRAME (w)));
 #if GLYPH_DEBUG
   /* Check that W's frame doesn't have glyph matrices.  */
   xassert (FRAME_WINDOW_P (XFRAME (WINDOW_FRAME (w))));
-  xassert (updating_frame != NULL);
 #endif
 
   /* Check pending input the first time so that we can quickly return.  */
@@ -4387,6 +4388,7 @@ update_marginal_area (w, area, vpos)
      int area, vpos;
 {
   struct glyph_row *desired_row = MATRIX_ROW (w->desired_matrix, vpos);
+  struct redisplay_interface *rif = FRAME_RIF (XFRAME (WINDOW_FRAME (w)));
 
   /* Let functions in xterm.c know what area subsequent X positions
      will be relative to.  */
@@ -4412,6 +4414,7 @@ update_text_area (w, vpos)
 {
   struct glyph_row *current_row = MATRIX_ROW (w->current_matrix, vpos);
   struct glyph_row *desired_row = MATRIX_ROW (w->desired_matrix, vpos);
+  struct redisplay_interface *rif = FRAME_RIF (XFRAME (WINDOW_FRAME (w)));
   int changed_p = 0;
 
   /* Let functions in xterm.c know what area subsequent X positions
@@ -4647,6 +4650,7 @@ update_window_line (w, vpos, mouse_face_overwritten_p)
 {
   struct glyph_row *current_row = MATRIX_ROW (w->current_matrix, vpos);
   struct glyph_row *desired_row = MATRIX_ROW (w->desired_matrix, vpos);
+  struct redisplay_interface *rif = FRAME_RIF (XFRAME (WINDOW_FRAME (w)));
   int changed_p = 0;
 
   /* Set the row being updated.  This is important to let xterm.c
@@ -4715,6 +4719,7 @@ set_window_cursor_after_update (w)
      struct window *w;
 {
   struct frame *f = XFRAME (w->frame);
+  struct redisplay_interface *rif = FRAME_RIF (f);
   int cx, cy, vpos, hpos;
 
   /* Not intended for frame matrix updates.  */
@@ -4938,6 +4943,7 @@ scrolling_window (w, header_line_p)
   int i, j, first_old, first_new, last_old, last_new;
   int nruns, nbytes, n, run_idx;
   struct row_entry *entry;
+  struct redisplay_interface *rif = FRAME_RIF (XFRAME (WINDOW_FRAME (w)));
 
   /* Skip over rows equal at the start.  */
   for (i = header_line_p ? 1 : 0; i < current_matrix->nrows - 1; ++i)
@@ -5262,7 +5268,7 @@ update_frame_1 (f, force_p, inhibit_id_p)
 #endif
 
   /* If we cannot insert/delete lines, it's no use trying it.  */
-  if (!line_ins_del_ok)
+  if (!FRAME_LINE_INS_DEL_OK (f))
     inhibit_id_p = 1;
 
   /* See if any of the desired lines are enabled; don't compute for
@@ -5290,18 +5296,18 @@ update_frame_1 (f, force_p, inhibit_id_p)
 		 Also flush out if likely to have more than 1k buffered
 		 otherwise.   I'm told that some telnet connections get
 		 really screwed by more than 1k output at once.  */
-	      int outq = PENDING_OUTPUT_COUNT (stdout);
+	      int outq = PENDING_OUTPUT_COUNT (FRAME_TTY (f)->output);
 	      if (outq > 900
 		  || (outq > 20 && ((i - 1) % preempt_count == 0)))
 		{
-		  fflush (stdout);
+		  fflush (FRAME_TTY (f)->output);
 		  if (preempt_count == 1)
 		    {
 #ifdef EMACS_OUTQSIZE
 		      if (EMACS_OUTQSIZE (0, &outq) < 0)
 			/* Probably not a tty.  Ignore the error and reset
 			   the outq count.  */
-			outq = PENDING_OUTPUT_COUNT (stdout);
+			outq = PENDING_OUTPUT_COUNT (FRAME_TTY (f->output));
 #endif
 		      outq *= 10;
 		      if (baud_rate <= outq && baud_rate > 0)
@@ -5404,7 +5410,7 @@ update_frame_1 (f, force_p, inhibit_id_p)
 		}
 	    }
 
-	  cursor_to (row, col);
+	  cursor_to (f, row, col);
 	}
       else
 	{
@@ -5426,7 +5432,7 @@ update_frame_1 (f, force_p, inhibit_id_p)
 		x += XFASTINT (w->left_margin_cols);
 
 	      /* x = max (min (x, FRAME_TOTAL_COLS (f) - 1), 0); */
-	      cursor_to (y, x);
+	      cursor_to (f, y, x);
 	    }
 	}
     }
@@ -5495,21 +5501,23 @@ scrolling (frame)
     }
 
   /* If changed lines are few, don't allow preemption, don't scroll.  */
-  if ((!scroll_region_ok && changed_lines < baud_rate / 2400)
+  if ((!FRAME_SCROLL_REGION_OK (frame)
+       && changed_lines < baud_rate / 2400)
       || unchanged_at_bottom == FRAME_LINES (frame))
     return 1;
 
   window_size = (FRAME_LINES (frame) - unchanged_at_top
 		 - unchanged_at_bottom);
 
-  if (scroll_region_ok)
+  if (FRAME_SCROLL_REGION_OK (frame))
     free_at_end_vpos -= unchanged_at_bottom;
-  else if (memory_below_frame)
+  else if (FRAME_MEMORY_BELOW_FRAME (frame))
     free_at_end_vpos = -1;
 
   /* If large window, fast terminal and few lines in common between
      current frame and desired frame, don't bother with i/d calc.  */
-  if (!scroll_region_ok && window_size >= 18 && baud_rate > 2400
+  if (!FRAME_SCROLL_REGION_OK (frame)
+      && window_size >= 18 && baud_rate > 2400
       && (window_size >=
 	  10 * scrolling_max_lines_saved (unchanged_at_top,
 					  FRAME_LINES (frame) - unchanged_at_bottom,
@@ -5589,7 +5597,7 @@ update_frame_line (f, vpos)
   struct glyph_row *current_row = MATRIX_ROW (current_matrix, vpos);
   struct glyph_row *desired_row = MATRIX_ROW (desired_matrix, vpos);
   int must_write_whole_line_p;
-  int write_spaces_p = must_write_spaces;
+  int write_spaces_p = FRAME_MUST_WRITE_SPACES (f);
   int colored_spaces_p = (FACE_FROM_ID (f, DEFAULT_FACE_ID)->background
 			  != FACE_TTY_DEFAULT_BG_COLOR);
 
@@ -5640,8 +5648,8 @@ update_frame_line (f, vpos)
       /* Write the contents of the desired line.  */
       if (nlen)
 	{
-          cursor_to (vpos, 0);
-	  write_glyphs (nbody, nlen);
+          cursor_to (f, vpos, 0);
+	  write_glyphs (f, nbody, nlen);
 	}
 
       /* Don't call clear_end_of_line if we already wrote the whole
@@ -5649,13 +5657,13 @@ update_frame_line (f, vpos)
 	 case but in the line below.  */
       if (nlen < FRAME_TOTAL_COLS (f))
 	{
-	  cursor_to (vpos, nlen);
-          clear_end_of_line (FRAME_TOTAL_COLS (f));
+	  cursor_to (f, vpos, nlen);
+          clear_end_of_line (f, FRAME_TOTAL_COLS (f));
 	}
       else
 	/* Make sure we are in the right row, otherwise cursor movement
 	   with cmgoto might use `ch' in the wrong row.  */
-	cursor_to (vpos, 0);
+	cursor_to (f, vpos, 0);
 
       make_current (desired_matrix, current_matrix, vpos);
       return;
@@ -5668,7 +5676,7 @@ update_frame_line (f, vpos)
       nlen--;
 
   /* If there's no i/d char, quickly do the best we can without it.  */
-  if (!char_ins_del_ok)
+  if (!FRAME_CHAR_INS_DEL_OK (f))
     {
       int i, j;
 
@@ -5687,8 +5695,8 @@ update_frame_line (f, vpos)
 		++j;
 
 	      /* Output this run of non-matching chars.  */
-	      cursor_to (vpos, i);
-	      write_glyphs (nbody + i, j - i);
+	      cursor_to (f, vpos, i);
+	      write_glyphs (f, nbody + i, j - i);
 	      i = j - 1;
 
 	      /* Now find the next non-match.  */
@@ -5698,8 +5706,8 @@ update_frame_line (f, vpos)
       /* Clear the rest of the line, or the non-clear part of it.  */
       if (olen > nlen)
 	{
-	  cursor_to (vpos, nlen);
-	  clear_end_of_line (olen);
+	  cursor_to (f, vpos, nlen);
+	  clear_end_of_line (f, olen);
 	}
 
       /* Make current row = desired row.  */
@@ -5721,8 +5729,8 @@ update_frame_line (f, vpos)
 
       if (nlen > nsp)
 	{
-	  cursor_to (vpos, nsp);
-	  write_glyphs (nbody + nsp, nlen - nsp);
+	  cursor_to (f, vpos, nsp);
+	  write_glyphs (f, nbody + nsp, nlen - nsp);
 	}
 
       /* Exchange contents between current_frame and new_frame.  */
@@ -5771,7 +5779,8 @@ update_frame_line (f, vpos)
 
   tem = (nlen - nsp) - (olen - osp);
   if (endmatch && tem
-      && (!char_ins_del_ok || endmatch <= char_ins_del_cost (f)[tem]))
+      && (!FRAME_CHAR_INS_DEL_OK (f)
+          || endmatch <= char_ins_del_cost (f)[tem]))
     endmatch = 0;
 
   /* nsp - osp is the distance to insert or delete.
@@ -5780,7 +5789,7 @@ update_frame_line (f, vpos)
      Is it worth it?  */
 
   if (nsp != osp
-      && (!char_ins_del_ok
+      && (!FRAME_CHAR_INS_DEL_OK (f)
 	  || begmatch + endmatch <= char_ins_del_cost (f)[nsp - osp]))
     {
       begmatch = 0;
@@ -5793,8 +5802,8 @@ update_frame_line (f, vpos)
 
   if (osp > nsp)
     {
-      cursor_to (vpos, nsp);
-      delete_glyphs (osp - nsp);
+      cursor_to (f, vpos, nsp);
+      delete_glyphs (f, osp - nsp);
     }
   else if (nsp > osp)
     {
@@ -5803,12 +5812,12 @@ update_frame_line (f, vpos)
 	 must delete first to avoid losing data in the insert */
       if (endmatch && nlen < olen + nsp - osp)
 	{
-	  cursor_to (vpos, nlen - endmatch + osp - nsp);
-	  delete_glyphs (olen + nsp - osp - nlen);
+	  cursor_to (f, vpos, nlen - endmatch + osp - nsp);
+	  delete_glyphs (f, olen + nsp - osp - nlen);
 	  olen = nlen - (nsp - osp);
 	}
-      cursor_to (vpos, osp);
-      insert_glyphs (0, nsp - osp);
+      cursor_to (f, vpos, osp);
+      insert_glyphs (f, 0, nsp - osp);
     }
   olen += nsp - osp;
 
@@ -5829,8 +5838,8 @@ update_frame_line (f, vpos)
 	     unnecessary cursor movement.  */
 	  if (nlen - tem > 0)
 	    {
-	      cursor_to (vpos, nsp + begmatch);
-	      write_glyphs (nbody + nsp + begmatch, nlen - tem);
+	      cursor_to (f, vpos, nsp + begmatch);
+	      write_glyphs (f, nbody + nsp + begmatch, nlen - tem);
 	    }
 	}
       else if (nlen > olen)
@@ -5845,27 +5854,27 @@ update_frame_line (f, vpos)
 	  int out = olen - tem;	/* Columns to be overwritten originally.  */
 	  int del;
 
-	  cursor_to (vpos, nsp + begmatch);
+	  cursor_to (f, vpos, nsp + begmatch);
 
 	  /* Calculate columns we can actually overwrite.  */
 	  while (CHAR_GLYPH_PADDING_P (nbody[nsp + begmatch + out]))
 	    out--;
-	  write_glyphs (nbody + nsp + begmatch, out);
+	  write_glyphs (f, nbody + nsp + begmatch, out);
 
 	  /* If we left columns to be overwritten, we must delete them.  */
 	  del = olen - tem - out;
 	  if (del > 0)
-	    delete_glyphs (del);
+	    delete_glyphs (f, del);
 
 	  /* At last, we insert columns not yet written out.  */
-	  insert_glyphs (nbody + nsp + begmatch + out, nlen - olen + del);
+	  insert_glyphs (f, nbody + nsp + begmatch + out, nlen - olen + del);
 	  olen = nlen;
 	}
       else if (olen > nlen)
 	{
-	  cursor_to (vpos, nsp + begmatch);
-	  write_glyphs (nbody + nsp + begmatch, nlen - tem);
-	  delete_glyphs (olen - nlen);
+	  cursor_to (f, vpos, nsp + begmatch);
+	  write_glyphs (f, nbody + nsp + begmatch, nlen - tem);
+	  delete_glyphs (f, olen - nlen);
 	  olen = nlen;
 	}
     }
@@ -5874,8 +5883,8 @@ update_frame_line (f, vpos)
   /* If any unerased characters remain after the new line, erase them.  */
   if (olen > nlen)
     {
-      cursor_to (vpos, nlen);
-      clear_end_of_line (olen);
+      cursor_to (f, vpos, nlen);
+      clear_end_of_line (f, olen);
     }
 
   /* Exchange contents between current_frame and new_frame.  */
@@ -6172,31 +6181,34 @@ window_change_signal (signalnum) /* If we don't have an argument, */
 #endif
   int old_errno = errno;
 
+  struct tty_display_info *tty;
+
   signal (SIGWINCH, window_change_signal);
   SIGNAL_THREAD_CHECK (signalnum);
 
-  get_frame_size (&width, &height);
+  /* The frame size change obviously applies to a single
+     termcap-controlled terminal, but we can't decide which.
+     Therefore, we resize the frames corresponding to each tty.
+  */
+  for (tty = tty_list; tty; tty = tty->next) {
 
-  /* The frame size change obviously applies to a termcap-controlled
-     frame.  Find such a frame in the list, and assume it's the only
-     one (since the redisplay code always writes to stdout, not a
-     FILE * specified in the frame structure).  Record the new size,
-     but don't reallocate the data structures now.  Let that be done
-     later outside of the signal handler.  */
+    if (! tty->term_initted)
+      continue;
 
-  {
-    Lisp_Object tail, frame;
-
-    FOR_EACH_FRAME (tail, frame)
-      {
-	if (FRAME_TERMCAP_P (XFRAME (frame)))
-	  {
-	    change_frame_size (XFRAME (frame), height, width, 0, 1, 0);
-	    break;
-	  }
-      }
+    get_tty_size (fileno (tty->input), &width, &height);
+    
+    if (width > 5 && height > 2) {
+      Lisp_Object tail, frame;
+      
+      FOR_EACH_FRAME (tail, frame)
+        if (FRAME_TERMCAP_P (XFRAME (frame)) && FRAME_TTY (XFRAME (frame)) == tty)
+          /* Record the new sizes, but don't reallocate the data
+             structures now.  Let that be done later outside of the
+             signal handler.  */
+          change_frame_size (XFRAME (frame), height, width, 0, 1, 0);
+    }
   }
-
+  
   errno = old_errno;
 }
 #endif /* SIGWINCH */
@@ -6250,10 +6262,11 @@ change_frame_size (f, newheight, newwidth, pretend, delay, safe)
 {
   Lisp_Object tail, frame;
 
-  if (! FRAME_WINDOW_P (f))
+  if (FRAME_MSDOS_P (f))
     {
-      /* When using termcap, or on MS-DOS, all frames use
-	 the same screen, so a change in size affects all frames.  */
+      /* On MS-DOS, all frames use the same screen, so a change in
+         size affects all frames.  Termcap now supports multiple
+         ttys. */
       FOR_EACH_FRAME (tail, frame)
 	if (! FRAME_WINDOW_P (XFRAME (frame)))
 	  change_frame_size_1 (XFRAME (frame), newheight, newwidth,
@@ -6333,7 +6346,7 @@ change_frame_size_1 (f, newheight, newwidth, pretend, delay, safe)
 			   newheight - FRAME_TOP_MARGIN (f), 0);
 
       if (FRAME_TERMCAP_P (f) && !pretend)
-	FrameRows = newheight;
+	FrameRows (FRAME_TTY (f)) = newheight;
     }
 
   if (new_frame_total_cols != FRAME_TOTAL_COLS (f))
@@ -6343,7 +6356,7 @@ change_frame_size_1 (f, newheight, newwidth, pretend, delay, safe)
 	set_window_width (FRAME_MINIBUF_WINDOW (f), new_frame_total_cols, 0);
 
       if (FRAME_TERMCAP_P (f) && !pretend)
-	FrameCols = newwidth;
+	FrameCols (FRAME_TTY (f)) = newwidth;
 
       if (WINDOWP (f->tool_bar_window))
 	XSETFASTINT (XWINDOW (f->tool_bar_window)->total_cols, newwidth);
@@ -6393,19 +6406,26 @@ FILE = nil means just close any termscript file currently open.  */)
      (file)
      Lisp_Object file;
 {
-  if (termscript != 0)
-    {
-      BLOCK_INPUT;
-      fclose (termscript);
-      UNBLOCK_INPUT;
-    }
-  termscript = 0;
+  struct tty_display_info *tty;
+
+  if (! FRAME_TERMCAP_P (SELECTED_FRAME ()))
+    error ("Current frame is not on a tty device");
+
+  tty = CURTTY ();
+
+  if (tty->termscript != 0)
+  {
+    BLOCK_INPUT;
+    fclose (tty->termscript);
+    UNBLOCK_INPUT;
+  }
+  tty->termscript = 0;
 
   if (! NILP (file))
     {
       file = Fexpand_file_name (file, Qnil);
-      termscript = fopen (SDATA (file), "w");
-      if (termscript == 0)
+      tty->termscript = fopen (SDATA (file), "w");
+      if (tty->termscript == 0)
 	report_file_error ("Opening termscript", Fcons (file, Qnil));
     }
   return Qnil;
@@ -6413,23 +6433,36 @@ FILE = nil means just close any termscript file currently open.  */)
 
 
 DEFUN ("send-string-to-terminal", Fsend_string_to_terminal,
-       Ssend_string_to_terminal, 1, 1, 0,
+       Ssend_string_to_terminal, 1, 2, 0,
        doc: /* Send STRING to the terminal without alteration.
-Control characters in STRING will have terminal-dependent effects.  */)
-     (string)
+Control characters in STRING will have terminal-dependent effects.
+
+Optional parameter TERMINAL specifies the tty terminal device to use.
+It may be a terminal id, a frame, or nil for the terminal used by the
+currently selected frame.  */)
+  (string, terminal)
      Lisp_Object string;
+     Lisp_Object terminal;
 {
+  struct terminal *t = get_tty_terminal (terminal, 1);
+  struct tty_display_info *tty;
+
   /* ??? Perhaps we should do something special for multibyte strings here.  */
   CHECK_STRING (string);
   BLOCK_INPUT;
-  fwrite (SDATA (string), 1, SBYTES (string), stdout);
-  fflush (stdout);
-  if (termscript)
+
+  if (!t)
+    error ("Unknown terminal device");
+
+  tty = t->display_info.tty;
+  
+  if (tty->termscript)
     {
-      fwrite (SDATA (string), 1, SBYTES (string),
-	      termscript);
-      fflush (termscript);
+      fwrite (SDATA (string), 1, SBYTES (string), tty->termscript);
+      fflush (tty->termscript);
     }
+  fwrite (SDATA (string), 1, SBYTES (string), tty->output);
+  fflush (tty->output);
   UNBLOCK_INPUT;
   return Qnil;
 }
@@ -6447,8 +6480,7 @@ terminate any keyboard macro currently executing.  */)
       if (noninteractive)
 	putchar (07);
       else
-	ring_bell ();
-      fflush (stdout);
+	ring_bell (XFRAME (selected_frame));
     }
   else
     bitch_at_user ();
@@ -6464,8 +6496,7 @@ bitch_at_user ()
   else if (!INTERACTIVE)  /* Stop executing a keyboard macro.  */
     error ("Keyboard macro terminated by a command ringing the bell");
   else
-    ring_bell ();
-  fflush (stdout);
+    ring_bell (XFRAME (selected_frame));
 }
 
 
@@ -6748,8 +6779,6 @@ pass nil for VARIABLE.  */)
 			    Initialization
 ***********************************************************************/
 
-char *terminal_type;
-
 /* Initialization done when Emacs fork is started, before doing stty.
    Determine terminal type and set terminal_driver.  Then invoke its
    decoding routine to set up variables in the terminal package.  */
@@ -6757,6 +6786,8 @@ char *terminal_type;
 void
 init_display ()
 {
+  char *terminal_type;
+
 #ifdef HAVE_X_WINDOWS
   extern int display_arg;
 #endif
@@ -6766,14 +6797,23 @@ init_display ()
   SET_CHAR_GLYPH_FROM_GLYPH (space_glyph, ' ');
   space_glyph.charpos = -1;
 
-  meta_key = 0;
   inverse_video = 0;
   cursor_in_echo_area = 0;
   terminal_type = (char *) 0;
 
   /* Now is the time to initialize this; it's used by init_sys_modes
      during startup.  */
-  Vwindow_system = Qnil;
+  Vinitial_window_system = Qnil;
+
+  /* SIGWINCH needs to be handled no matter what display we start
+     with.  Otherwise newly opened tty frames will not resize
+     automatically. */
+#ifdef SIGWINCH
+#ifndef CANNOT_DUMP
+  if (initialized)
+#endif /* CANNOT_DUMP */
+    signal (SIGWINCH, window_change_signal);
+#endif /* SIGWINCH */
 
   /* If the user wants to use a window system, we shouldn't bother
      initializing the terminal.  This is especially important when the
@@ -6809,7 +6849,7 @@ init_display ()
 #endif
      )
     {
-      Vwindow_system = intern ("x");
+      Vinitial_window_system = intern ("x");
 #ifdef HAVE_X11
       Vwindow_system_version = make_number (11);
 #else
@@ -6829,7 +6869,7 @@ init_display ()
 #ifdef HAVE_NTGUI
   if (!inhibit_window_system)
     {
-      Vwindow_system = intern ("w32");
+      Vinitial_window_system = intern ("w32");
       Vwindow_system_version = make_number (1);
       adjust_frame_glyphs_initially ();
       return;
@@ -6839,7 +6879,7 @@ init_display ()
 #ifdef MAC_OS
   if (!inhibit_window_system)
     {
-      Vwindow_system = intern ("mac");
+      Vinitial_window_system = intern ("mac");
       Vwindow_system_version = make_number (1);
       adjust_frame_glyphs_initially ();
       return;
@@ -6891,8 +6931,38 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
   }
 #endif /* VMS */
 
-  term_init (terminal_type);
+  {
+    struct terminal *t;
+    struct frame *f = XFRAME (selected_frame);
 
+    /* Open a display on the controlling tty. */
+    t = init_tty (0, terminal_type, 1); /* Errors are fatal. */
+
+    /* Convert the initial frame to use the new display. */
+    if (f->output_method != output_initial)
+      abort ();
+    f->output_method = t->type;
+    f->terminal = t;
+
+    t->reference_count++;
+    t->display_info.tty->top_frame = selected_frame;
+    change_frame_size (XFRAME (selected_frame),
+                       FrameRows (t->display_info.tty),
+                       FrameCols (t->display_info.tty), 0, 0, 1);
+
+    /* Delete the initial terminal. */
+    if (--initial_terminal->reference_count == 0
+        && initial_terminal->delete_terminal_hook)
+      (*initial_terminal->delete_terminal_hook) (initial_terminal);
+
+    /* Update frame parameters to reflect the new type. */
+    Fmodify_frame_parameters (selected_frame, Fcons (Fcons (Qwindow_system, Qnil), Qnil));
+    Fmodify_frame_parameters
+      (selected_frame, Fcons (Fcons (Qtty_type,
+                                     Ftty_type (selected_frame)), Qnil));
+    Fmodify_frame_parameters (selected_frame, Fcons (Fcons (Qtty, Qnil), Qnil));
+  }
+  
   {
     struct frame *sf = SELECTED_FRAME ();
     int width = FRAME_TOTAL_COLS (sf);
@@ -6909,13 +6979,6 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
   adjust_frame_glyphs_initially ();
   calculate_costs (XFRAME (selected_frame));
 
-#ifdef SIGWINCH
-#ifndef CANNOT_DUMP
-  if (initialized)
-#endif /* CANNOT_DUMP */
-    signal (SIGWINCH, window_change_signal);
-#endif /* SIGWINCH */
-
   /* Set up faces of the initial terminal frame of a dumped Emacs.  */
   if (initialized
       && !noninteractive
@@ -6926,7 +6989,7 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
 	 and internal_terminal_init.  */
       && (strcmp (terminal_type, "internal") != 0 || inhibit_window_system)
 #endif
-      && NILP (Vwindow_system))
+      && NILP (Vinitial_window_system))
     {
       /* For the initial frame, we don't have any way of knowing what
 	 are the foreground and background colors of the terminal.  */
@@ -7038,8 +7101,8 @@ A non-nil value is useful if the terminal can automatically preserve
 Emacs's frame display when you reenter Emacs.
 It is up to you to set this variable if your terminal can do that.  */);
 
-  DEFVAR_LISP ("window-system", &Vwindow_system,
-	       doc: /* Name of window system that Emacs is displaying through.
+  DEFVAR_LISP ("initial-window-system", &Vinitial_window_system,
+	       doc: /* Name of the window system that Emacs uses for the first frame.
 The value is a symbol--for instance, `x' for X windows.
 The value is nil if Emacs is using a text-only terminal.  */);
 
@@ -7082,7 +7145,7 @@ If nil, never pre-empt redisplay.  */);
   if (noninteractive)
 #endif
     {
-      Vwindow_system = Qnil;
+      Vinitial_window_system = Qnil;
       Vwindow_system_version = Qnil;
     }
 }

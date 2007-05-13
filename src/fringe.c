@@ -29,6 +29,7 @@ Boston, MA 02110-1301, USA.  */
 #include "dispextern.h"
 #include "buffer.h"
 #include "blockinput.h"
+#include "termhooks.h"
 
 #ifdef HAVE_WINDOW_SYSTEM
 
@@ -686,7 +687,7 @@ draw_fringe_bitmap_1 (w, row, left_p, overlay, which)
       break;
     }
 
-  rif->draw_fringe_bitmap (w, row, &p);
+  FRAME_RIF (f)->draw_fringe_bitmap (w, row, &p);
 }
 
 static int
@@ -1278,6 +1279,8 @@ destroy_fringe_bitmap (n)
   fbp = &fringe_bitmaps[n];
   if (*fbp && (*fbp)->dynamic)
     {
+      /* XXX Is SELECTED_FRAME OK here? */
+      struct redisplay_interface *rif = FRAME_RIF (SELECTED_FRAME ());
       if (rif && rif->destroy_fringe_bitmap)
 	rif->destroy_fringe_bitmap (n);
       xfree (*fbp);
@@ -1383,6 +1386,9 @@ init_fringe_bitmap (which, fb, once_p)
 
   if (!once_p)
     {
+      /* XXX Is SELECTED_FRAME OK here? */
+      struct redisplay_interface *rif = FRAME_RIF (SELECTED_FRAME ());
+
       destroy_fringe_bitmap (which);
 
       if (rif && rif->define_fringe_bitmap)

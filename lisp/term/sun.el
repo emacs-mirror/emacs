@@ -150,7 +150,7 @@
 
 (defun terminal-init-sun ()
   "Terminal initialization function for sun."
-  (define-key function-key-map "\e[" sun-raw-prefix)
+  (define-key local-function-key-map "\e[" sun-raw-prefix)
 
   (define-key sun-raw-prefix "210z" [r3])
   (define-key sun-raw-prefix "213z" [r6])

@@ -1087,7 +1087,7 @@ set print sevenbit-strings
 
 show environment DISPLAY
 show environment TERM
-set args -geometry 80x40+0+0
+#set args -geometry 80x40+0+0
 
 # People get bothered when they see messages about non-existent functions...
 xgetptr Vsystem_type
@@ -1115,7 +1115,7 @@ end
 tbreak init_sys_modes
 commands
   silent
-  xgetptr Vwindow_system
+  xgetptr Vinitial_window_system
   set $tem = (struct Lisp_Symbol *) $ptr
   xgetptr $tem->xname
   set $tem = (struct Lisp_String *) $ptr

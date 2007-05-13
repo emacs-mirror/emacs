@@ -42,6 +42,7 @@ Boston, MA 02110-1301, USA.  */
 #include "fontset.h"
 #endif
 #include "blockinput.h"
+#include "termchar.h"
 #include "termhooks.h"
 #include "dispextern.h"
 #include "window.h"
@@ -74,6 +75,8 @@ Lisp_Object Qbackground_mode;
 
 Lisp_Object Qx_frame_parameter;
 Lisp_Object Qx_resource_name;
+Lisp_Object Qterminal;
+Lisp_Object Qterminal_live_p;
 
 /* Frame parameters (set or reported).  */
 
@@ -103,14 +106,16 @@ Lisp_Object Qtitle, Qname;
 Lisp_Object Qunsplittable;
 Lisp_Object Qmenu_bar_lines, Qtool_bar_lines;
 Lisp_Object Qleft_fringe, Qright_fringe;
-Lisp_Object Qbuffer_predicate, Qbuffer_list;
+Lisp_Object Qbuffer_predicate, Qbuffer_list, Qburied_buffer_list;
 Lisp_Object Qtty_color_mode;
+Lisp_Object Qtty, Qtty_type;
+Lisp_Object Qwindow_system;
+Lisp_Object Qenvironment;
 
 Lisp_Object Qfullscreen, Qfullwidth, Qfullheight, Qfullboth;
 
 Lisp_Object Qinhibit_face_set_after_frame_default;
 Lisp_Object Qface_set_after_frame_default;
-
 
 Lisp_Object Vterminal_frame;
 Lisp_Object Vdefault_frame_alist;
@@ -121,8 +126,8 @@ Lisp_Object Vdelete_frame_functions;
 
 static void
 set_menu_bar_lines_1 (window, n)
-  Lisp_Object window;
-  int n;
+     Lisp_Object window;
+     int n;
 {
   struct window *w = XWINDOW (window);
 
@@ -180,8 +185,6 @@ set_menu_bar_lines (f, value, oldval)
 Lisp_Object Vemacs_iconified;
 Lisp_Object Vframe_list;
 
-struct x_output tty_display;
-
 extern Lisp_Object Vminibuffer_list;
 extern Lisp_Object get_minibuffer ();
 extern Lisp_Object Fhandle_switch_frame ();
@@ -203,6 +206,7 @@ See also `frame-live-p'.  */)
     return Qnil;
   switch (XFRAME (object)->output_method)
     {
+    case output_initial: /* The initial frame is like a termcap frame. */
     case output_termcap:
       return Qt;
     case output_x_window:
@@ -221,7 +225,7 @@ See also `frame-live-p'.  */)
 DEFUN ("frame-live-p", Fframe_live_p, Sframe_live_p, 1, 1, 0,
        doc: /* Return non-nil if OBJECT is a frame which has not been deleted.
 Value is nil if OBJECT is not a live frame.  If object is a live
-frame, the return value indicates what sort of output device it is
+frame, the return value indicates what sort of terminal device it is
 displayed on.  See the documentation of `framep' for possible
 return values.  */)
      (object)
@@ -232,6 +236,30 @@ return values.  */)
 	  ? Fframep (object)
 	  : Qnil);
 }
+
+DEFUN ("window-system", Fwindow_system, Swindow_system, 0, 1, 0,
+       doc: /* The name of the window system that FRAME is displaying through.
+The value is a symbol---for instance, 'x' for X windows.
+The value is nil if Emacs is using a text-only terminal.
+
+FRAME defaults to the currently selected frame.  */)
+  (frame)
+     Lisp_Object frame;
+{
+  Lisp_Object type;
+  if (NILP (frame))
+    frame = selected_frame;
+
+  type = Fframep (frame);
+
+  if (NILP (type))
+    wrong_type_argument (Qframep, frame);
+
+  if (EQ (type, Qt))
+    return Qnil;
+  else
+    return type;
+}      
 
 struct frame *
 make_frame (mini_p)
@@ -276,9 +304,7 @@ make_frame (mini_p)
   f->menu_bar_items_used = 0;
   f->buffer_predicate = Qnil;
   f->buffer_list = Qnil;
-#ifdef MULTI_KBOARD
-  f->kboard = initial_kboard;
-#endif
+  f->buried_buffer_list = Qnil;
   f->namebuf = 0;
   f->title = Qnil;
   f->menu_bar_window = Qnil;
@@ -398,8 +424,8 @@ make_frame_without_minibuffer (mini_window, kb, display)
 
 #ifdef MULTI_KBOARD
   if (!NILP (mini_window)
-      && XFRAME (XWINDOW (mini_window)->frame)->kboard != kb)
-    error ("Frame and minibuffer must be on the same display");
+      && FRAME_KBOARD (XFRAME (XWINDOW (mini_window)->frame)) != kb)
+    error ("Frame and minibuffer must be on the same terminal");
 #endif
 
   /* Make a frame containing just a root window.  */
@@ -475,18 +501,19 @@ make_minibuffer_frame ()
 }
 #endif /* HAVE_WINDOW_SYSTEM */
 
-/* Construct a frame that refers to the terminal (stdin and stdout).  */
+/* Construct a frame that refers to a terminal.  */
 
-static int terminal_frame_count;
+static int tty_frame_count;
 
 struct frame *
-make_terminal_frame ()
+make_initial_frame (void)
 {
-  register struct frame *f;
+  struct frame *f;
+  struct terminal *terminal;
   Lisp_Object frame;
-  char name[20];
 
 #ifdef MULTI_KBOARD
+  /* Create the initial keyboard. */
   if (!initial_kboard)
     {
       initial_kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
@@ -500,13 +527,51 @@ make_terminal_frame ()
   if (! (NILP (Vframe_list) || CONSP (Vframe_list)))
     Vframe_list = Qnil;
 
+  terminal = init_initial_terminal ();
+
+  f = make_frame (1);
+  XSETFRAME (frame, f);
+
+  Vframe_list = Fcons (frame, Vframe_list);
+
+  tty_frame_count = 1;
+  f->name = build_string ("F1");
+
+  f->visible = 1;
+  f->async_visible = 1;
+
+  f->output_method = terminal->type;
+  f->terminal = terminal;
+  f->terminal->reference_count++;
+  f->output_data.nothing = 0;
+  
+  FRAME_FOREGROUND_PIXEL (f) = FACE_TTY_DEFAULT_FG_COLOR;
+  FRAME_BACKGROUND_PIXEL (f) = FACE_TTY_DEFAULT_BG_COLOR;
+    
+  FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
+  FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
+
+  return f;
+}
+
+
+struct frame *
+make_terminal_frame (struct terminal *terminal)
+{
+  register struct frame *f;
+  Lisp_Object frame;
+  char name[20];
+
+  if (terminal->deleted)
+    error ("Terminal is being deleted, can't create new frames on it");
+
   f = make_frame (1);
 
   XSETFRAME (frame, f);
   Vframe_list = Fcons (frame, Vframe_list);
 
-  terminal_frame_count++;
-  sprintf (name, "F%d", terminal_frame_count);
+  tty_frame_count++;
+  sprintf (name, "F%d", tty_frame_count);
   f->name = build_string (name);
 
   f->visible = 1;		/* FRAME_SET_VISIBLE wd set frame_garbaged. */
@@ -526,11 +591,11 @@ make_terminal_frame ()
 	 for the black color.  Other frames all inherit their pixels
 	 from what's already in the_only_x_display.  */
       if ((!FRAMEP (selected_frame) || !FRAME_LIVE_P (XFRAME (selected_frame)))
-	  && f->output_data.x->background_pixel == 0
-	  && f->output_data.x->foreground_pixel == 0)
+	  && FRAME_BACKGROUND_PIXEL (f) == 0
+	  && FRAME_FOREGROUND_PIXEL (f) == 0)
 	{
-	  f->output_data.x->background_pixel = FACE_TTY_DEFAULT_BG_COLOR;
-	  f->output_data.x->foreground_pixel = FACE_TTY_DEFAULT_FG_COLOR;
+	  FRAME_BACKGROUND_PIXEL (f) = FACE_TTY_DEFAULT_BG_COLOR;
+	  FRAME_FOREGROUND_PIXEL (f) = FACE_TTY_DEFAULT_FG_COLOR;
 	}
     }
   else
@@ -538,12 +603,31 @@ make_terminal_frame ()
 #else
 #ifdef WINDOWSNT
   f->output_method = output_termcap;
-  f->output_data.x = &tty_display;
+  f->output_data.x = &tty_display; /* XXX ??? */
 #else
 #ifdef MAC_OS8
   make_mac_terminal_frame (f);
 #else
-  f->output_data.x = &tty_display;
+  {
+    f->output_method = output_termcap;
+    f->terminal = terminal;
+    f->terminal->reference_count++;
+    create_tty_output (f);
+    
+    FRAME_FOREGROUND_PIXEL (f) = FACE_TTY_DEFAULT_FG_COLOR;
+    FRAME_BACKGROUND_PIXEL (f) = FACE_TTY_DEFAULT_BG_COLOR;
+    
+    FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
+    FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
+
+    /* Set the top frame to the newly created frame. */
+    if (FRAME_TTY (f)->top_frame
+        && FRAME_LIVE_P (XFRAME (FRAME_TTY (f)->top_frame)))
+      XFRAME (FRAME_TTY (f)->top_frame)->async_visible = 2; /* obscured */
+    
+    FRAME_TTY (f)->top_frame = frame;
+  }
+  
 #ifdef CANNOT_DUMP
   FRAME_FOREGROUND_PIXEL(f) = FACE_TTY_DEFAULT_FG_COLOR;
   FRAME_BACKGROUND_PIXEL(f) = FACE_TTY_DEFAULT_BG_COLOR;
@@ -558,18 +642,55 @@ make_terminal_frame ()
   return f;
 }
 
+/* Get a suitable value for frame parameter PARAMETER for a newly
+   created frame, based on (1) the user-supplied frame parameter
+   alist SUPPLIED_PARMS, (2) CURRENT_VALUE, and finally, if all else
+   fails, (3) Vdefault_frame_alist.  */
+
+static Lisp_Object
+get_future_frame_param (Lisp_Object parameter,
+                        Lisp_Object supplied_parms,
+                        char *current_value)
+{
+  Lisp_Object result;
+
+  result = Fassq (parameter, supplied_parms);
+  if (NILP (result))
+    result = Fassq (parameter, XFRAME (selected_frame)->param_alist);
+  if (NILP (result) && current_value != NULL)
+    result = build_string (current_value);
+  if (NILP (result))
+    result = Fassq (parameter, Vdefault_frame_alist);
+  if (!NILP (result) && !STRINGP (result))
+    result = XCDR (result);
+  if (NILP (result) || !STRINGP (result))
+    result = Qnil;
+
+  return result;
+}
+
 DEFUN ("make-terminal-frame", Fmake_terminal_frame, Smake_terminal_frame,
        1, 1, 0,
-       doc: /* Create an additional terminal frame.
-You can create multiple frames on a text-only terminal in this way.
-Only the selected terminal frame is actually displayed.
+       doc: /* Create an additional terminal frame, possibly on another terminal.
 This function takes one argument, an alist specifying frame parameters.
-In practice, generally you don't need to specify any parameters.
-Note that changing the size of one terminal frame automatically affects all.  */)
+
+You can create multiple frames on a single text-only terminal, but
+only one of them (the selected terminal frame) is actually displayed.
+
+In practice, generally you don't need to specify any parameters,
+except when you want to create a new frame on another terminal.
+In that case, the `tty' parameter specifies the device file to open,
+and the `tty-type' parameter specifies the terminal type.  Example:
+
+   (make-terminal-frame '((tty . "/dev/pts/5") (tty-type . "xterm")))
+
+Note that changing the size of one terminal frame automatically
+affects all frames on the same terminal device.  */)
      (parms)
      Lisp_Object parms;
 {
   struct frame *f;
+  struct terminal *t = NULL;
   Lisp_Object frame, tem;
   struct frame *sf = SELECTED_FRAME ();
 
@@ -583,21 +704,78 @@ Note that changing the size of one terminal frame automatically affects all.  */
   if (sf->output_method != output_mac)
     error ("Not running on a Macintosh screen; cannot make a new Macintosh frame");
 #else
+#if 0                           /* This should work now! */
   if (sf->output_method != output_termcap)
     error ("Not using an ASCII terminal now; cannot make a new ASCII frame");
 #endif
+#endif
 #endif /* not MSDOS */
+  
+  {
+    Lisp_Object terminal;
 
-  f = make_terminal_frame ();
+    terminal = Fassq (Qterminal, parms);
+    if (!NILP (terminal))
+      {
+        terminal = XCDR (terminal);
+        t = get_terminal (terminal, 1);
+      }
+  }
+  
+  if (!t)
+    { 
+      char *name = 0, *type = 0;
+      Lisp_Object tty, tty_type;
 
-  change_frame_size (f, FRAME_LINES (sf),
-		     FRAME_COLS (sf), 0, 0, 0);
+      tty = get_future_frame_param
+        (Qtty, parms, (FRAME_TERMCAP_P (XFRAME (selected_frame))
+                       ? FRAME_TTY (XFRAME (selected_frame))->name
+                       : NULL));
+      if (!NILP (tty))
+        {
+          name = (char *) alloca (SBYTES (tty) + 1);
+          strncpy (name, SDATA (tty), SBYTES (tty));
+          name[SBYTES (tty)] = 0;
+        }
+      
+      tty_type = get_future_frame_param
+        (Qtty_type, parms, (FRAME_TERMCAP_P (XFRAME (selected_frame))
+                            ? FRAME_TTY (XFRAME (selected_frame))->type
+                            : NULL));
+      if (!NILP (tty_type))
+        {
+          type = (char *) alloca (SBYTES (tty_type) + 1);
+          strncpy (type, SDATA (tty_type), SBYTES (tty_type));
+          type[SBYTES (tty_type)] = 0;
+        }
+
+      t = init_tty (name, type, 0); /* Errors are not fatal. */
+    }
+
+  f = make_terminal_frame (t);
+
+  {
+    int width, height;
+    get_tty_size (fileno (FRAME_TTY (f)->input), &width, &height);
+    change_frame_size (f, height, width, 0, 0, 0);
+  }
+  
   adjust_glyphs (f);
   calculate_costs (f);
   XSETFRAME (frame, f);
   Fmodify_frame_parameters (frame, Vdefault_frame_alist);
   Fmodify_frame_parameters (frame, parms);
-
+  Fmodify_frame_parameters (frame, Fcons (Fcons (Qwindow_system, Qnil), Qnil));
+  Fmodify_frame_parameters (frame, Fcons (Fcons (Qtty_type,
+                                                 build_string (t->display_info.tty->type)),
+                                          Qnil));
+  if (t->display_info.tty->name != NULL)
+    Fmodify_frame_parameters (frame, Fcons (Fcons (Qtty,
+                                                   build_string (t->display_info.tty->name)),
+                                            Qnil));
+  else
+    Fmodify_frame_parameters (frame, Fcons (Fcons (Qtty, Qnil), Qnil));
+  
   /* Make the frame face alist be frame-specific, so that each
      frame could change its face definitions independently.  */
   f->face_alist = Fcopy_alist (sf->face_alist);
@@ -620,7 +798,7 @@ Note that changing the size of one terminal frame automatically affects all.  */
    frame's focus to FRAME instead.
 
    FOR_DELETION non-zero means that the selected frame is being
-   deleted, which includes the possibility that the frame's display
+   deleted, which includes the possibility that the frame's terminal
    is dead.  */
 
 Lisp_Object
@@ -694,6 +872,15 @@ do_switch_frame (frame, track, for_deletion)
 
   if (!for_deletion && FRAME_HAS_MINIBUF_P (sf))
     resize_mini_window (XWINDOW (FRAME_MINIBUF_WINDOW (sf)), 1);
+
+  if (FRAME_TERMCAP_P (XFRAME (selected_frame))
+      && FRAME_TERMCAP_P (XFRAME (frame))
+      && FRAME_TTY (XFRAME (selected_frame)) == FRAME_TTY (XFRAME (frame)))
+    {
+      XFRAME (selected_frame)->async_visible = 2; /* obscured */
+      XFRAME (frame)->async_visible = 1;
+      FRAME_TTY (XFRAME (frame))->top_frame = frame;
+    }
 
   selected_frame = frame;
   if (! FRAME_MINIBUF_ONLY_P (XFRAME (selected_frame)))
@@ -878,6 +1065,7 @@ If FRAME is the selected frame, this makes WINDOW the selected window.  */)
 
   return XFRAME (frame)->selected_window = window;
 }
+
 
 DEFUN ("frame-list", Fframe_list, Sframe_list,
        0, 0, 0,
@@ -925,7 +1113,10 @@ next_frame (frame, minibuf)
 	f = XCAR (tail);
 
 	if (passed
-	    && FRAME_KBOARD (XFRAME (f)) == FRAME_KBOARD (XFRAME (frame)))
+	    && ((!FRAME_TERMCAP_P (XFRAME (f)) && !FRAME_TERMCAP_P (XFRAME (frame))
+                 && FRAME_KBOARD (XFRAME (f)) == FRAME_KBOARD (XFRAME (frame)))
+                || (FRAME_TERMCAP_P (XFRAME (f)) && FRAME_TERMCAP_P (XFRAME (frame))
+                    && FRAME_TTY (XFRAME (f)) == FRAME_TTY (XFRAME (frame)))))
 	  {
 	    /* Decide whether this frame is eligible to be returned.  */
 
@@ -1002,7 +1193,10 @@ prev_frame (frame, minibuf)
       if (EQ (frame, f) && !NILP (prev))
 	return prev;
 
-      if (FRAME_KBOARD (XFRAME (f)) == FRAME_KBOARD (XFRAME (frame)))
+      if ((!FRAME_TERMCAP_P (XFRAME (f)) && !FRAME_TERMCAP_P (XFRAME (frame))
+           && FRAME_KBOARD (XFRAME (f)) == FRAME_KBOARD (XFRAME (frame)))
+          || (FRAME_TERMCAP_P (XFRAME (f)) && FRAME_TERMCAP_P (XFRAME (frame))
+              && FRAME_TTY (XFRAME (f)) == FRAME_TTY (XFRAME (frame))))
 	{
 	  /* Decide whether this frame is eligible to be returned,
 	     according to minibuf.  */
@@ -1136,6 +1330,14 @@ other_visible_frames (f)
   return 1;
 }
 
+/* Error handler for `delete-frame-functions'. */
+static Lisp_Object
+delete_frame_handler (Lisp_Object arg)
+{
+  add_to_log ("Error during `delete-frame': %s", arg, Qnil);
+  return Qnil;
+}
+
 DEFUN ("delete-frame", Fdelete_frame, Sdelete_frame, 0, 2, "",
        doc: /* Delete FRAME, permanently eliminating it from use.
 If omitted, FRAME defaults to the selected frame.
@@ -1151,6 +1353,8 @@ The functions are run with one arg, the frame to be deleted.  */)
 {
   struct frame *f;
   struct frame *sf = SELECTED_FRAME ();
+  struct kboard *kb;
+
   int minibuffer_selected;
 
   if (EQ (frame, Qnil))
@@ -1209,10 +1413,21 @@ The functions are run with one arg, the frame to be deleted.  */)
       && NILP (Fframe_parameter (frame, intern ("tooltip"))))
     {
       Lisp_Object args[2];
+      struct gcpro gcpro1, gcpro2;
+
+      /* Don't let a rogue function in `delete-frame-functions'
+	 prevent the frame deletion. */
+      GCPRO2 (args[0], args[1]);
       args[0] = intern ("delete-frame-functions");
       args[1] = frame;
-      Frun_hook_with_args (2, args);
+      internal_condition_case_2 (Frun_hook_with_args, 2, args,
+				 Qt, delete_frame_handler);
+      UNGCPRO;
     }
+
+  /* The hook may sometimes (indirectly) cause the frame to be deleted.  */
+  if (! FRAME_LIVE_P (f))
+    return Qnil;
 
   minibuffer_selected = EQ (minibuf_window, selected_window);
 
@@ -1229,7 +1444,7 @@ The functions are run with one arg, the frame to be deleted.  */)
 	{
 	  FOR_EACH_FRAME (tail, frame1)
 	    {
-	      if (! EQ (frame, frame1))
+	      if (! EQ (frame, frame1) && FRAME_LIVE_P (XFRAME (frame1)))
 		break;
 	    }
 	}
@@ -1255,6 +1470,24 @@ The functions are run with one arg, the frame to be deleted.  */)
   if (EQ (f->minibuffer_window, echo_area_window))
     echo_area_window = sf->minibuffer_window;
 
+  /* Don't allow other frames to refer to a deleted frame in their
+     'environment parameter.  */
+  {
+    Lisp_Object tail, frame1;
+    Lisp_Object env = get_frame_param (XFRAME (frame), Qenvironment);
+    FOR_EACH_FRAME (tail, frame1)
+      {
+        if (EQ (frame, frame1) || !FRAME_LIVE_P (XFRAME (frame1)))
+          continue;
+        if (EQ (frame, get_frame_param (XFRAME (frame1), Qenvironment)))
+          {
+            store_frame_param (XFRAME (frame1), Qenvironment, env);
+            if (!FRAMEP (env))
+              env = frame1;
+          }
+      }
+  }
+  
   /* Clear any X selections for this frame.  */
 #ifdef HAVE_X_WINDOWS
   if (FRAME_X_P (f))
@@ -1295,18 +1528,34 @@ The functions are run with one arg, the frame to be deleted.  */)
     xfree (FRAME_MESSAGE_BUF (f));
 
   /* Since some events are handled at the interrupt level, we may get
-     an event for f at any time; if we zero out the frame's display
+     an event for f at any time; if we zero out the frame's terminal
      now, then we may trip up the event-handling code.  Instead, we'll
-     promise that the display of the frame must be valid until we have
-     called the window-system-dependent frame destruction routine.  */
+     promise that the terminal of the frame must be valid until we
+     have called the window-system-dependent frame destruction
+     routine.  */
 
-  /* I think this should be done with a hook.  */
-#ifdef HAVE_WINDOW_SYSTEM
-  if (FRAME_WINDOW_P (f))
-    x_destroy_window (f);
-#endif
+  if (FRAME_TERMINAL (f)->delete_frame_hook)
+    (*FRAME_TERMINAL (f)->delete_frame_hook) (f);
 
-  f->output_data.nothing = 0;
+  {
+    struct terminal *terminal = FRAME_TERMINAL (f);
+    f->output_data.nothing = 0; 
+    f->terminal = 0;             /* Now the frame is dead. */
+
+    /* If needed, delete the terminal that this frame was on.
+       (This must be done after the frame is killed.) */
+    terminal->reference_count--;
+    if (terminal->reference_count == 0)
+      {
+        kb = NULL;
+        if (terminal->delete_terminal_hook)
+          (*terminal->delete_terminal_hook) (terminal);
+        else
+          delete_terminal (terminal);
+      }
+    else
+      kb = terminal->kboard;
+  }
 
   /* If we've deleted the last_nonminibuf_frame, then try to find
      another one.  */
@@ -1331,38 +1580,39 @@ The functions are run with one arg, the frame to be deleted.  */)
 
   /* If there's no other frame on the same kboard, get out of
      single-kboard state if we're in it for this kboard.  */
-  {
-    Lisp_Object frames;
-    /* Some frame we found on the same kboard, or nil if there are none.  */
-    Lisp_Object frame_on_same_kboard;
+  if (kb != NULL)
+    {
+      Lisp_Object frames;
+      /* Some frame we found on the same kboard, or nil if there are none.  */
+      Lisp_Object frame_on_same_kboard;
 
-    frame_on_same_kboard = Qnil;
+      frame_on_same_kboard = Qnil;
 
-    for (frames = Vframe_list;
-	 CONSP (frames);
-	 frames = XCDR (frames))
-      {
-	Lisp_Object this;
-	struct frame *f1;
+      for (frames = Vframe_list;
+	   CONSP (frames);
+	   frames = XCDR (frames))
+	{
+	  Lisp_Object this;
+	  struct frame *f1;
 
-	this = XCAR (frames);
-	if (!FRAMEP (this))
-	  abort ();
-	f1 = XFRAME (this);
+	  this = XCAR (frames);
+	  if (!FRAMEP (this))
+	    abort ();
+	  f1 = XFRAME (this);
 
-	if (FRAME_KBOARD (f) == FRAME_KBOARD (f1))
-	  frame_on_same_kboard = this;
-      }
+	  if (kb == FRAME_KBOARD (f1))
+	    frame_on_same_kboard = this;
+	}
 
-    if (NILP (frame_on_same_kboard))
-      not_single_kboard_state (FRAME_KBOARD (f));
-  }
+      if (NILP (frame_on_same_kboard))
+	not_single_kboard_state (kb);
+    }
 
 
   /* If we've deleted this keyboard's default_minibuffer_frame, try to
      find another one.  Prefer minibuffer-only frames, but also notice
      frames with other windows.  */
-  if (EQ (frame, FRAME_KBOARD (f)->Vdefault_minibuffer_frame))
+  if (kb != NULL && EQ (frame, kb->Vdefault_minibuffer_frame))
     {
       Lisp_Object frames;
 
@@ -1388,7 +1638,7 @@ The functions are run with one arg, the frame to be deleted.  */)
 
 	  /* Consider only frames on the same kboard
 	     and only those with minibuffers.  */
-	  if (FRAME_KBOARD (f) == FRAME_KBOARD (f1)
+	  if (kb == FRAME_KBOARD (f1)
 	      && FRAME_HAS_MINIBUF_P (f1))
 	    {
 	      frame_with_minibuf = this;
@@ -1396,7 +1646,7 @@ The functions are run with one arg, the frame to be deleted.  */)
 		break;
 	    }
 
-	  if (FRAME_KBOARD (f) == FRAME_KBOARD (f1))
+	  if (kb == FRAME_KBOARD (f1))
 	    frame_on_same_kboard = this;
 	}
 
@@ -1411,11 +1661,11 @@ The functions are run with one arg, the frame to be deleted.  */)
 	  if (NILP (frame_with_minibuf))
 	    abort ();
 
-	  FRAME_KBOARD (f)->Vdefault_minibuffer_frame = frame_with_minibuf;
+	  kb->Vdefault_minibuffer_frame = frame_with_minibuf;
 	}
       else
 	/* No frames left on this kboard--say no minibuffer either.  */
-	FRAME_KBOARD (f)->Vdefault_minibuffer_frame = Qnil;
+	kb->Vdefault_minibuffer_frame = Qnil;
     }
 
   /* Cause frame titles to update--necessary if we now have just one frame.  */
@@ -1452,11 +1702,11 @@ and returns whatever that function returns.  */)
 
 #ifdef HAVE_MOUSE
   /* It's okay for the hook to refrain from storing anything.  */
-  if (mouse_position_hook)
-    (*mouse_position_hook) (&f, -1,
-			    &lispy_dummy, &party_dummy,
-			    &x, &y,
-			    &long_dummy);
+  if (FRAME_TERMINAL (f)->mouse_position_hook)
+    (*FRAME_TERMINAL (f)->mouse_position_hook) (&f, -1,
+                                                &lispy_dummy, &party_dummy,
+                                                &x, &y,
+                                                &long_dummy);
   if (! NILP (x))
     {
       col = XINT (x);
@@ -1496,11 +1746,11 @@ and nil for X and Y.  */)
 
 #ifdef HAVE_MOUSE
   /* It's okay for the hook to refrain from storing anything.  */
-  if (mouse_position_hook)
-    (*mouse_position_hook) (&f, -1,
-			    &lispy_dummy, &party_dummy,
-			    &x, &y,
-			    &long_dummy);
+  if (FRAME_TERMINAL (f)->mouse_position_hook)
+    (*FRAME_TERMINAL (f)->mouse_position_hook) (&f, -1,
+                                                &lispy_dummy, &party_dummy,
+                                                &x, &y,
+                                                &long_dummy);
 #endif
   XSETFRAME (lispy_dummy, f);
   return Fcons (lispy_dummy, Fcons (x, y));
@@ -1773,16 +2023,19 @@ doesn't support multiple overlapping frames, this function does nothing.  */)
      (frame)
      Lisp_Object frame;
 {
+  struct frame *f;
   if (NILP (frame))
     frame = selected_frame;
 
   CHECK_LIVE_FRAME (frame);
 
+  f = XFRAME (frame);
+  
   /* Do like the documentation says. */
   Fmake_frame_visible (frame);
 
-  if (frame_raise_lower_hook)
-    (*frame_raise_lower_hook) (XFRAME (frame), 1);
+  if (FRAME_TERMINAL (f)->frame_raise_lower_hook)
+    (*FRAME_TERMINAL (f)->frame_raise_lower_hook) (f, 1);
 
   return Qnil;
 }
@@ -1796,13 +2049,17 @@ doesn't support multiple overlapping frames, this function does nothing.  */)
      (frame)
      Lisp_Object frame;
 {
+  struct frame *f;
+  
   if (NILP (frame))
     frame = selected_frame;
 
   CHECK_LIVE_FRAME (frame);
 
-  if (frame_raise_lower_hook)
-    (*frame_raise_lower_hook) (XFRAME (frame), 0);
+  f = XFRAME (frame);
+  
+  if (FRAME_TERMINAL (f)->frame_raise_lower_hook)
+    (*FRAME_TERMINAL (f)->frame_raise_lower_hook) (f, 0);
 
   return Qnil;
 }
@@ -1836,6 +2093,8 @@ The redirection lasts until `redirect-frame-focus' is called to change it.  */)
      (frame, focus_frame)
      Lisp_Object frame, focus_frame;
 {
+  struct frame *f;
+  
   /* Note that we don't check for a live frame here.  It's reasonable
      to redirect the focus of a frame you're about to delete, if you
      know what other frame should receive those keystrokes.  */
@@ -1844,10 +2103,12 @@ The redirection lasts until `redirect-frame-focus' is called to change it.  */)
   if (! NILP (focus_frame))
     CHECK_LIVE_FRAME (focus_frame);
 
-  XFRAME (frame)->focus_frame = focus_frame;
+  f = XFRAME (frame);
+  
+  f->focus_frame = focus_frame;
 
-  if (frame_rehighlight_hook)
-    (*frame_rehighlight_hook) (XFRAME (frame));
+  if (FRAME_TERMINAL (f)->frame_rehighlight_hook)
+    (*FRAME_TERMINAL (f)->frame_rehighlight_hook) (f);
 
   return Qnil;
 }
@@ -1909,7 +2170,7 @@ set_frame_buffer_list (frame, list)
   XFRAME (frame)->buffer_list = list;
 }
 
-/* Discard BUFFER from the buffer-list of each frame.  */
+/* Discard BUFFER from the buffer-list and buried-buffer-list of each frame.  */
 
 void
 frames_discard_buffer (buffer)
@@ -1921,6 +2182,8 @@ frames_discard_buffer (buffer)
     {
       XFRAME (frame)->buffer_list
 	= Fdelq (buffer, XFRAME (frame)->buffer_list);
+      XFRAME (frame)->buried_buffer_list
+        = Fdelq (buffer, XFRAME (frame)->buried_buffer_list);
     }
 }
 
@@ -1979,8 +2242,8 @@ set_term_frame_name (f, name)
 			    SBYTES (f->name)))
 	return;
 
-      terminal_frame_count++;
-      sprintf (namebuf, "F%d", terminal_frame_count);
+      tty_frame_count++;
+      sprintf (namebuf, "F%d", tty_frame_count);
       name = build_string (namebuf);
     }
   else
@@ -2008,11 +2271,16 @@ store_frame_param (f, prop, val)
 {
   register Lisp_Object old_alist_elt;
 
-  /* The buffer-alist parameter is stored in a special place and is
-     not in the alist.  */
+  /* The buffer-list parameters are stored in a special place and not
+     in the alist.  */
   if (EQ (prop, Qbuffer_list))
     {
       f->buffer_list = val;
+      return;
+    }
+  if (EQ (prop, Qburied_buffer_list))
+    {
+      f->buried_buffer_list = val;
       return;
     }
 
@@ -2027,6 +2295,7 @@ store_frame_param (f, prop, val)
       if ((BUFFER_LOCAL_VALUEP (valcontents)
   	   || SOME_BUFFER_LOCAL_VALUEP (valcontents))
 	  && XBUFFER_LOCAL_VALUE (valcontents)->check_frame
+	  && XBUFFER_LOCAL_VALUE (valcontents)->found_for_frame
  	  && XFRAME (XBUFFER_LOCAL_VALUE (valcontents)->frame) == f)
  	swap_in_global_binding (prop);
     }
@@ -2154,6 +2423,7 @@ If FRAME is omitted, return information on the currently selected frame.  */)
 		   : FRAME_MINIBUF_WINDOW (f)));
   store_in_alist (&alist, Qunsplittable, (FRAME_NO_SPLIT_P (f) ? Qt : Qnil));
   store_in_alist (&alist, Qbuffer_list, frame_buffer_list (frame));
+  store_in_alist (&alist, Qburied_buffer_list, XFRAME (frame)->buried_buffer_list);
 
   /* I think this should be done with a hook.  */
 #ifdef HAVE_WINDOW_SYSTEM
@@ -2321,9 +2591,44 @@ enabled such bindings for that variable with `make-variable-frame-local'.  */)
 	    call1 (Qframe_set_background_mode, frame);
 	}
     }
-
-  return Qnil;
 }
+
+DEFUN ("frame-with-environment", Fframe_with_environment, Sframe_with_environment, 0, 1, 0,
+       doc: /* Return the frame that has the environment variable list for FRAME.
+
+The frame-local environment variable list is normally shared between
+frames that were created in the same Emacsclient session.  The
+environment list is stored in a single frame's 'environment parameter;
+the other frames' 'environment parameter is set to this frame.  This
+function follows the chain of 'environment references to reach the
+frame that stores the actual local environment list, and returns that
+frame.  */)
+     (frame)
+     Lisp_Object frame;
+{
+  Lisp_Object hare, tortoise;
+
+  if (NILP (frame))
+    frame = selected_frame;
+  CHECK_FRAME (frame);
+
+  hare = tortoise = get_frame_param (XFRAME (frame), Qenvironment);
+  while (!NILP (hare) && FRAMEP (hare))
+    {
+      frame = hare;
+      hare = get_frame_param (XFRAME (hare), Qenvironment);
+      if (NILP (hare) || !FRAMEP (hare))
+        break;
+      frame = hare;
+      hare = get_frame_param (XFRAME (hare), Qenvironment);
+      tortoise = get_frame_param (XFRAME (tortoise), Qenvironment);
+      if (EQ (hare, tortoise))
+        error ("Cyclic frame-local environment indirection");
+    }
+
+  return frame;
+}
+
 
 DEFUN ("frame-char-height", Fframe_char_height, Sframe_char_height,
        0, 1, 0,
@@ -2740,9 +3045,8 @@ x_set_frame_parameters (f, alist)
 	      if (NATNUMP (param_index)
 		  && (XFASTINT (param_index)
 		      < sizeof (frame_parms)/sizeof (frame_parms[0]))
-		  && rif->frame_parm_handlers[XINT (param_index)])
-		(*(rif->frame_parm_handlers[XINT (param_index)])) (f, val, old_value);
-
+                  && FRAME_RIF (f)->frame_parm_handlers[XINT (param_index)])
+                (*(FRAME_RIF (f)->frame_parm_handlers[XINT (param_index)])) (f, val, old_value);
 	      unbind_to (count, Qnil);
 	    }
 	}
@@ -2786,8 +3090,8 @@ x_set_frame_parameters (f, alist)
 	  if (NATNUMP (param_index)
 	      && (XFASTINT (param_index)
 		  < sizeof (frame_parms)/sizeof (frame_parms[0]))
-	      && rif->frame_parm_handlers[XINT (param_index)])
-	    (*(rif->frame_parm_handlers[XINT (param_index)])) (f, val, old_value);
+	      && FRAME_RIF (f)->frame_parm_handlers[XINT (param_index)])
+	    (*(FRAME_RIF (f)->frame_parm_handlers[XINT (param_index)])) (f, val, old_value);
 	}
     }
 
@@ -3025,8 +3329,8 @@ x_set_fullscreen (f, new_value, old_value)
   else if (EQ (new_value, Qfullheight))
     f->want_fullscreen = FULLSCREEN_HEIGHT;
 
-  if (fullscreen_hook != NULL) 
-    fullscreen_hook (f);
+  if (FRAME_TERMINAL (f)->fullscreen_hook != NULL) 
+    FRAME_TERMINAL (f)->fullscreen_hook (f);
 }
 
 
@@ -3075,9 +3379,9 @@ x_set_screen_gamma (f, new_value, old_value)
       if (NATNUMP (index)
 	  && (XFASTINT (index)
 	      < sizeof (frame_parms)/sizeof (frame_parms[0]))
-	  && rif->frame_parm_handlers[XFASTINT (index)])
-	(*(rif->frame_parm_handlers[XFASTINT (index)]))
-	  (f, bgcolor, Qnil);
+	  && FRAME_RIF (f)->frame_parm_handlers[XFASTINT (index)])
+	  (*FRAME_RIF (f)->frame_parm_handlers[XFASTINT (index)])
+	    (f, bgcolor, Qnil);
     }
 
   Fclear_face_cache (Qnil);
@@ -4013,13 +4317,23 @@ syms_of_frame ()
   staticpro (&Qbuffer_predicate);
   Qbuffer_list = intern ("buffer-list");
   staticpro (&Qbuffer_list);
+  Qburied_buffer_list = intern ("buried-buffer-list");
+  staticpro (&Qburied_buffer_list);
   Qdisplay_type = intern ("display-type");
   staticpro (&Qdisplay_type);
   Qbackground_mode = intern ("background-mode");
   staticpro (&Qbackground_mode);
   Qtty_color_mode = intern ("tty-color-mode");
   staticpro (&Qtty_color_mode);
-
+  Qtty = intern ("tty");
+  staticpro (&Qtty);
+  Qtty_type = intern ("tty-type");
+  staticpro (&Qtty_type);
+  Qwindow_system = intern ("window-system");
+  staticpro (&Qwindow_system);
+  Qenvironment = intern ("environment");
+  staticpro (&Qenvironment);
+  
   Qface_set_after_frame_default = intern ("face-set-after-frame-default");
   staticpro (&Qface_set_after_frame_default);
 
@@ -4039,6 +4353,11 @@ syms_of_frame ()
   Qx_frame_parameter = intern ("x-frame-parameter");
   staticpro (&Qx_frame_parameter);
 
+  Qterminal = intern ("terminal");
+  staticpro (&Qterminal);
+  Qterminal_live_p = intern ("terminal-live-p");
+  staticpro (&Qterminal_live_p);
+  
   {
     int i;
 
@@ -4087,6 +4406,7 @@ These may be set in your init file, like this:
 These override values given in window system configuration data,
  including X Windows' defaults database.
 For values specific to the first Emacs frame, see `initial-frame-alist'.
+For window-system specific values, see `window-system-default-frame-alist'.
 For values specific to the separate minibuffer frame, see
  `minibuffer-frame-alist'.
 The `menu-bar-lines' element of the list controls whether new frames
@@ -4108,7 +4428,7 @@ Setting this variable does not affect existing frames, only new ones.  */);
 #endif
 
   DEFVAR_LISP ("terminal-frame", &Vterminal_frame,
-	       doc: /* The initial frame-object, which represents Emacs's stdout.  */);
+               doc: /* The initial frame-object, which represents Emacs's stdout.  */);
 
   DEFVAR_LISP ("emacs-iconified", &Vemacs_iconified,
 	       doc: /* Non-nil if all of Emacs is iconified and frame updates are not needed.  */);
@@ -4133,7 +4453,14 @@ when the mouse is over clickable text.  */);
   DEFVAR_LISP ("delete-frame-functions", &Vdelete_frame_functions,
 	       doc: /* Functions to be run before deleting a frame.
 The functions are run with one arg, the frame to be deleted.
-See `delete-frame'.  */);
+See `delete-frame'.
+
+Note that functions in this list may be called twice on the same
+frame.  In the second invocation, the frame is already deleted, and
+the function should do nothing.  (You can use `frame-live-p' to check
+for this.)  This wrinkle happens when an earlier function in
+`delete-frame-functions' (indirectly) calls delete-frame
+recursively.  */);
   Vdelete_frame_functions = Qnil;
 
   DEFVAR_KBOARD ("default-minibuffer-frame", Vdefault_minibuffer_frame,
@@ -4156,6 +4483,7 @@ This variable is local to the current terminal and cannot be buffer-local.  */);
   defsubr (&Sactive_minibuffer_window);
   defsubr (&Sframep);
   defsubr (&Sframe_live_p);
+  defsubr (&Swindow_system);
   defsubr (&Smake_terminal_frame);
   defsubr (&Shandle_switch_frame);
   defsubr (&Sselect_frame);
@@ -4189,6 +4517,7 @@ This variable is local to the current terminal and cannot be buffer-local.  */);
   defsubr (&Sframe_parameters);
   defsubr (&Sframe_parameter);
   defsubr (&Smodify_frame_parameters);
+  defsubr (&Sframe_with_environment);
   defsubr (&Sframe_char_height);
   defsubr (&Sframe_char_width);
   defsubr (&Sframe_pixel_height);

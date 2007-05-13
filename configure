@@ -11172,7 +11172,6 @@ _ACEOF
     with_toolkit_scroll_bars=yes
   fi
 
-      HAVE_GTK_MULTIDISPLAY=no
 
 for ac_func in gdk_display_open
 do
@@ -11274,6 +11273,7 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
   fi
+
       HAVE_GTK_FILE_SELECTION=no
 
 for ac_func in gtk_file_selection_new
@@ -17907,11 +17907,13 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <stdio.h>
+#include <sys/types.h> /* for off_t */
+     #include <stdio.h>
 int
 main ()
 {
-return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
+int (*fp) (FILE *, off_t, int) = fseeko;
+     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
   ;
   return 0;
 }
@@ -17951,11 +17953,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 #define _LARGEFILE_SOURCE 1
-#include <stdio.h>
+#include <sys/types.h> /* for off_t */
+     #include <stdio.h>
 int
 main ()
 {
-return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
+int (*fp) (FILE *, off_t, int) = fseeko;
+     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
   ;
   return 0;
 }

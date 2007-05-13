@@ -23,8 +23,9 @@ Boston, MA 02110-1301, USA.  */
 
 /* Length of echobuf field in each KBOARD.  */
 
-/* Each KBOARD represents one logical input stream from which Emacs gets input.
-   If we are using an ordinary terminal, it has one KBOARD object.
+/* Each KBOARD represents one logical input stream from which Emacs
+   gets input.  If we are using ordinary terminals, it has one KBOARD
+   object for each terminal device.
    Usually each X display screen has its own KBOARD,
    but when two of them are on the same X server,
    we assume they share a keyboard and give them one KBOARD in common.
@@ -83,6 +84,9 @@ struct kboard
        other commands.  */
     Lisp_Object Vreal_last_command;
 
+    /* User-supplied table to translate input characters through.  */
+    Lisp_Object Vkeyboard_translate_table;
+    
     /* The prefix argument for the next command, in raw form.  */
     Lisp_Object Vprefix_arg;
 
@@ -123,6 +127,14 @@ struct kboard
     /* Cache for modify_event_symbol.  */
     Lisp_Object system_key_syms;
 
+    /* Keymap mapping ASCII function key sequences onto their
+       preferred forms.  Initialized by the terminal-specific lisp
+       files.  See the DEFVAR for more documentation.  */
+    Lisp_Object Vlocal_function_key_map;
+    
+    /* Keymap of key translations that can override keymaps.  */
+    Lisp_Object Vlocal_key_translation_map;
+
     /* Minibufferless frames on this display use this frame's minibuffer.  */
     Lisp_Object Vdefault_minibuffer_frame;
 
@@ -155,7 +167,7 @@ struct kboard
   };
 
 #ifdef MULTI_KBOARD
-/* Temporarily used before a frame has been opened, and for termcap frames */
+/* Temporarily used before a frame has been opened. */
 extern KBOARD *initial_kboard;
 
 /* In the single-kboard state, this is the kboard
@@ -189,10 +201,6 @@ extern EMACS_INT num_nonmacro_input_events;
 
 /* Nonzero means polling for input is temporarily suppressed.  */
 extern int poll_suppress_count;
-
-/* Keymap mapping ASCII function key sequences onto their preferred forms.
-   Initialized by the terminal-specific lisp files.  */
-extern Lisp_Object Vfunction_key_map;
 
 /* Vector holding the key sequence that invoked the current command.
    It is reused for each command, and it may be longer than the current
@@ -301,18 +309,24 @@ extern Lisp_Object parse_modifiers P_ ((Lisp_Object));
 extern Lisp_Object reorder_modifiers P_ ((Lisp_Object));
 extern Lisp_Object read_char P_ ((int, int, Lisp_Object *, Lisp_Object,
 				  int *, EMACS_TIME *));
-/* User-supplied string to translate input characters through.  */
-extern Lisp_Object Vkeyboard_translate_table;
+
+
+/* Parent keymap of terminal-local function-key-map instances.  */
+extern Lisp_Object Vfunction_key_map;
+
+/* Parent keymap of terminal-local key-translation-map instances.  */
+extern Lisp_Object Vkey_translation_map;
 
 extern int parse_menu_item P_ ((Lisp_Object, int, int));
 
 extern void echo_now P_ ((void));
 extern void init_kboard P_ ((KBOARD *));
 extern void delete_kboard P_ ((KBOARD *));
-extern void single_kboard_state P_ ((void));
 extern void not_single_kboard_state P_ ((KBOARD *));
+extern void push_kboard P_ ((struct kboard *));
 extern void push_frame_kboard P_ ((struct frame *));
-extern void pop_frame_kboard P_ ((void));
+extern void pop_kboard P_ ((void));
+extern void temporarily_switch_to_single_kboard P_ ((struct frame *));
 extern void record_asynch_buffer_change P_ ((void));
 extern SIGTYPE input_poll_signal P_ ((int));
 extern void start_polling P_ ((void));
@@ -345,6 +359,9 @@ extern void kbd_buffer_store_help_event P_ ((Lisp_Object, Lisp_Object));
 extern Lisp_Object menu_item_eval_property P_ ((Lisp_Object));
 extern int  kbd_buffer_events_waiting P_ ((int));
 extern void add_user_signals P_ ((int, const char *));
+
+extern int tty_read_avail_input P_ ((struct terminal *, int,
+                                     struct input_event *));
 
 /* arch-tag: 769cbade-1ba9-4950-b886-db265b061aa3
    (do not change this comment) */

@@ -489,9 +489,9 @@ doubt, use whitespace."
 	     (fkey nil) tlen tkey
 	     (bind (or (loop for map in maps for b = (lookup-key map key)
 			     thereis (and (not (integerp b)) b))
-		       (and (setq fkey (lookup-key function-key-map rest-mac))
+		       (and (setq fkey (lookup-key local-function-key-map rest-mac))
 			    (setq tlen fkey tkey (edmacro-subseq rest-mac 0 tlen)
-				  fkey (lookup-key function-key-map tkey))
+				  fkey (lookup-key local-function-key-map tkey))
 			    (loop for map in maps
 				  for b = (lookup-key map fkey)
 				  when (and (not (integerp b)) b)

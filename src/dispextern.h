@@ -1029,13 +1029,8 @@ extern int fonts_changed_p;
 
 extern struct glyph space_glyph;
 
-/* Frame being updated by update_window/update_frame.  */
-
-extern struct frame *updating_frame;
-
 /* Window being updated by update_window.  This is non-null as long as
-   update_window has not finished, and null otherwise.  It's role is
-   analogous to updating_frame.  */
+   update_window has not finished, and null otherwise.  */
 
 extern struct window *updated_window;
 
@@ -1355,7 +1350,7 @@ struct glyph_string
 	DESCENT = FONT->descent
 	HEIGHT = FONT_HEIGHT (FONT)
 	F_DESCENT = (FRAME_FONT (F)->descent
-		     - F->output_data.x->baseline_offset)
+		     - F->terminal->output_data.x->baseline_offset)
 	F_HEIGHT = FRAME_LINE_HEIGHT (F)
 */
 
@@ -2184,16 +2179,16 @@ struct it
 /* Call produce_glyphs or produce_glyphs_hook, if set.  Shortcut to
    avoid the function call overhead.  */
 
-#define PRODUCE_GLYPHS(IT) 			\
-     do {					\
-       extern int inhibit_free_realized_faces;	\
-       if (rif != NULL)				\
-	 rif->produce_glyphs ((IT));		\
-       else					\
-	 produce_glyphs ((IT));			\
-       if ((IT)->glyph_row != NULL)		\
-	 inhibit_free_realized_faces = 1;	\
-     } while (0)
+#define PRODUCE_GLYPHS(IT)                              \
+  do {                                                  \
+    extern int inhibit_free_realized_faces;             \
+    if (FRAME_RIF ((IT)->f) != NULL)                    \
+      FRAME_RIF ((IT)->f)->produce_glyphs ((IT));       \
+    else                                                \
+      produce_glyphs ((IT));                            \
+    if ((IT)->glyph_row != NULL)                        \
+      inhibit_free_realized_faces = 1;                  \
+  } while (0)
 
 /* Bit-flags indicating what operation move_it_to should perform.  */
 
@@ -2366,10 +2361,6 @@ struct redisplay_interface
 
 #endif /* HAVE_WINDOW_SYSTEM */
 };
-
-/* The current interface for window-based redisplay.  */
-
-extern struct redisplay_interface *rif;
 
 
 /***********************************************************************
@@ -2667,8 +2658,6 @@ void init_iterator_to_row_start P_ ((struct it *, struct window *,
 				     struct glyph_row *));
 int get_next_display_element P_ ((struct it *));
 void set_iterator_to_next P_ ((struct it *, int));
-void produce_glyphs P_ ((struct it *));
-void produce_special_glyphs P_ ((struct it *, enum display_element_type));
 void start_display P_ ((struct it *, struct window *, struct text_pos));
 void move_it_to P_ ((struct it *, int, int, int, int, int));
 void move_it_vertically P_ ((struct it *, int));
@@ -2815,11 +2804,11 @@ int image_ascent P_ ((struct image *, struct face *, struct glyph_slice *));
 
 /* Defined in sysdep.c */
 
-void get_frame_size P_ ((int *, int *));
+void get_tty_size P_ ((int, int *, int *));
 void request_sigio P_ ((void));
 void unrequest_sigio P_ ((void));
-int tabs_safe_p P_ ((void));
-void init_baud_rate P_ ((void));
+int tabs_safe_p P_ ((int));
+void init_baud_rate P_ ((int));
 void init_sigio P_ ((int));
 
 /* Defined in xfaces.c */
@@ -2958,8 +2947,6 @@ void clear_glyph_row P_ ((struct glyph_row *));
 void prepare_desired_row P_ ((struct glyph_row *));
 int line_hash_code P_ ((struct glyph_row *));
 void set_window_update_flags P_ ((struct window *, int));
-void write_glyphs P_ ((struct glyph *, int));
-void insert_glyphs P_ ((struct glyph *, int));
 void redraw_frame P_ ((struct frame *));
 void redraw_garbaged_frames P_ ((void));
 int scroll_cost P_ ((struct frame *, int, int, int));
@@ -2976,31 +2963,44 @@ void syms_of_display P_ ((void));
 extern Lisp_Object Qredisplay_dont_pause;
 GLYPH spec_glyph_lookup_face P_ ((struct window *, GLYPH));
 
-/* Defined in term.c */
+/* Defined in terminal.c */
 
-extern void ring_bell P_ ((void));
-extern void set_terminal_modes P_ ((void));
-extern void reset_terminal_modes P_ ((void));
+extern void ring_bell P_ ((struct frame *));
 extern void update_begin P_ ((struct frame *));
 extern void update_end P_ ((struct frame *));
-extern void set_terminal_window P_ ((int));
-extern void set_scroll_region P_ ((int, int));
-extern void turn_off_insert P_ ((void));
-extern void turn_off_highlight P_ ((void));
-extern void background_highlight P_ ((void));
-extern void clear_frame P_ ((void));
-extern void clear_end_of_line P_ ((int));
-extern void clear_end_of_line_raw P_ ((int));
-extern void delete_glyphs P_ ((int));
-extern void ins_del_lines P_ ((int, int));
+extern void set_terminal_window P_ ((struct frame *, int));
+extern void cursor_to P_ ((struct frame *, int, int));
+extern void raw_cursor_to P_ ((struct frame *, int, int));
+extern void clear_to_end P_ ((struct frame *));
+extern void clear_frame P_ ((struct frame *));
+extern void clear_end_of_line P_ ((struct frame *, int));
+extern void write_glyphs P_ ((struct frame *, struct glyph *, int));
+extern void insert_glyphs P_ ((struct frame *, struct glyph *, int));
+extern void delete_glyphs P_ ((struct frame *, int));
+extern void ins_del_lines P_ ((struct frame *, int, int));
+
+extern struct terminal *init_initial_terminal P_ ((void));
+
+
+/* Defined in term.c */
+
+extern void tty_set_terminal_modes P_ ((struct terminal *));
+extern void tty_reset_terminal_modes P_ ((struct terminal *));
+extern void tty_turn_off_insert P_ ((struct tty_display_info *));
+extern void tty_turn_off_highlight P_ ((struct tty_display_info *));
 extern int string_cost P_ ((char *));
 extern int per_line_cost P_ ((char *));
 extern void calculate_costs P_ ((struct frame *));
+extern void produce_glyphs P_ ((struct it *));
+extern void produce_special_glyphs P_ ((struct it *, enum display_element_type));
+extern int tty_capable_p P_ ((struct tty_display_info *, unsigned, unsigned long, unsigned long));
 extern void set_tty_color_mode P_ ((struct frame *, Lisp_Object));
-extern void tty_setup_colors P_ ((int));
-extern void term_init P_ ((char *));
-void cursor_to P_ ((int, int));
-extern int tty_capable_p P_ ((struct frame *, unsigned, unsigned long, unsigned long));
+extern struct terminal *get_tty_terminal P_ ((Lisp_Object, int));
+extern struct terminal *get_named_tty P_ ((char *));
+EXFUN (Ftty_type, 1);
+extern void create_tty_output P_ ((struct frame *));
+extern struct terminal *init_tty P_ ((char *, char *, int));
+
 
 /* Defined in scroll.c */
 

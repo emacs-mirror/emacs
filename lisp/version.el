@@ -27,7 +27,7 @@
 
 ;;; Code:
 
-(defconst emacs-version "22.1.50" "\
+(defconst emacs-version "23.0.51" "\
 Version numbers of this version of Emacs.")
 
 (defconst emacs-major-version
@@ -55,8 +55,8 @@ to the system configuration; look at `system-configuration' instead."
   (interactive "P")
   (let ((version-string
          (format (if (not (interactive-p))
-		     "GNU Emacs %s (%s%s%s)\n of %s on %s"
-		   "GNU Emacs %s (%s%s%s) of %s on %s")
+		     "GNU Emacs %s (%s%s%s%s)\n of %s on %s"
+		   "GNU Emacs %s (%s%s%s%s) of %s on %s")
                  emacs-version
 		 system-configuration
 		 (cond ((featurep 'motif)
@@ -72,6 +72,7 @@ to the system configuration; look at `system-configuration' instead."
 		     (format ", %s scroll bars"
 			     (capitalize (symbol-name x-toolkit-scroll-bars)))
 		   "")
+		 (if (featurep 'multi-tty) ", multi-tty" "")
 		 (format-time-string "%Y-%m-%d" emacs-build-time)
                  emacs-build-system)))
     (if here

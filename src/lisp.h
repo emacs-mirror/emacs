@@ -84,14 +84,14 @@ extern void die P_((const char *, const char *, int)) NO_RETURN;
 
 #ifdef ENABLE_CHECKING
 
-#define CHECK(check,msg) (((check) || suppress_checking		\
-			   ? (void) 0				\
-			   : die ((msg), __FILE__, __LINE__)),	\
+#define CHECK(check,msg) ((void)((check) || suppress_checking           \
+                                 ? (void) 0                             \
+                                 : die ((msg), __FILE__, __LINE__)),	\
 			  0)
 #else
 
 /* Produce same side effects and result, but don't complain.  */
-#define CHECK(check,msg) ((check),0)
+#define CHECK(check,msg) ((void)(check),0)
 
 #endif
 
@@ -2989,6 +2989,10 @@ extern Lisp_Object Qvertical_scroll_bar;
 extern void discard_mouse_events P_ ((void));
 EXFUN (Fevent_convert_list, 1);
 EXFUN (Fread_key_sequence, 5);
+EXFUN (Fset_input_interrupt_mode, 1);
+EXFUN (Fset_output_flow_control, 2);
+EXFUN (Fset_input_meta_mode, 2);
+EXFUN (Fset_quit_char, 1);
 EXFUN (Fset_input_mode, 4);
 extern int detect_input_pending P_ ((void));
 extern int detect_input_pending_ignore_squeezables P_ ((void));
@@ -3044,6 +3048,7 @@ EXFUN (Fvisible_frame_list, 0);
 EXFUN (Fframe_parameter, 2);
 EXFUN (Fframe_parameters, 1);
 EXFUN (Fmodify_frame_parameters, 2);
+EXFUN (Fframe_with_environment, 1);
 EXFUN (Fset_frame_height, 3);
 EXFUN (Fset_frame_width, 3);
 EXFUN (Fset_frame_size, 3);
@@ -3109,7 +3114,7 @@ EXFUN (Fcall_process, MANY);
 extern int child_setup P_ ((int, int, int, char **, int, Lisp_Object));
 extern void init_callproc_1 P_ ((void));
 extern void init_callproc P_ ((void));
-extern void set_process_environment P_ ((void));
+extern void set_global_environment P_ ((void));
 extern void syms_of_callproc P_ ((void));
 
 /* defined in doc.c */
@@ -3171,28 +3176,31 @@ EXFUN (Fx_popup_menu, 2);
 EXFUN (Fx_popup_dialog, 3);
 extern void syms_of_xmenu P_ ((void));
 
+/* defined in termchar.h */
+struct tty_display_info;
+
+/* defined in termhooks.h */
+struct terminal;
+
 /* defined in sysdep.c */
 #ifndef HAVE_GET_CURRENT_DIR_NAME
 extern char *get_current_dir_name P_ ((void));
 #endif
 extern void stuff_char P_ ((char c));
 extern void init_sigio P_ ((int));
-extern void request_sigio P_ ((void));
-extern void unrequest_sigio P_ ((void));
-extern void reset_sys_modes P_ ((void));
 extern void sys_subshell P_ ((void));
 extern void sys_suspend P_ ((void));
 extern void discard_tty_input P_ ((void));
-extern void init_sys_modes P_ ((void));
-extern void get_frame_size P_ ((int *, int *));
+extern void init_sys_modes P_ ((struct tty_display_info *));
+extern void reset_sys_modes P_ ((struct tty_display_info *));
+extern void init_all_sys_modes P_ ((void));
+extern void reset_all_sys_modes P_ ((void));
 extern void wait_for_termination P_ ((int));
 extern void flush_pending_output P_ ((int));
 extern void child_setup_tty P_ ((int));
 extern void setup_pty P_ ((int));
 extern int set_window_size P_ ((int, int, int));
 extern void create_process P_ ((Lisp_Object, char **, Lisp_Object));
-extern int tabs_safe_p P_ ((void));
-extern void init_baud_rate P_ ((void));
 extern int emacs_open P_ ((const char *, int, int));
 extern int emacs_close P_ ((int));
 extern int emacs_read P_ ((int, char *, unsigned int));
@@ -3226,6 +3234,9 @@ extern void syms_of_dired P_ ((void));
 /* Defined in term.c */
 extern void syms_of_term P_ ((void));
 extern void fatal () NO_RETURN;
+
+/* Defined in terminal.c */
+extern void syms_of_terminal P_ ((void));
 
 #ifdef HAVE_WINDOW_SYSTEM
 /* Defined in fontset.c */

@@ -929,15 +929,15 @@ mail status in mode line"))
 	:button `(:toggle . tooltip-mode)))
 
 (define-key menu-bar-showhide-menu [menu-bar-mode]
-  '(menu-item "Menu-bar" menu-bar-mode
+  '(menu-item "Menu-bar" toggle-menu-bar-mode-from-frame
 	      :help "Turn menu-bar on/off"
-	      :button (:toggle . menu-bar-mode)))
+	      :button (:toggle . (> (frame-parameter nil 'menu-bar-lines) 0))))
 
 (define-key menu-bar-showhide-menu [showhide-tool-bar]
-  (list 'menu-item "Tool-bar" 'tool-bar-mode
-	:help "Turn tool-bar on/off"
+  (list 'menu-item "Tool-bar" 'toggle-tool-bar-mode-from-frame
+	:help "Toggle tool-bar on/off"
 	:visible `(display-graphic-p)
-	:button `(:toggle . tool-bar-mode)))
+	:button `(:toggle . (> (frame-parameter nil 'tool-bar-lines) 0))))
 
 (define-key menu-bar-options-menu [showhide]
   (list 'menu-item "Show/Hide" menu-bar-showhide-menu))
@@ -1748,18 +1748,10 @@ turn on menu bars; otherwise, turn off menu bars."
   :init-value nil
   :global t
   :group 'frames
+
   ;; Make menu-bar-mode and default-frame-alist consistent.
-  (let ((lines (if menu-bar-mode 1 0)))
-    ;; Alter existing frames...
-    (mapc (lambda (frame)
-	    (modify-frame-parameters frame
-				     (list (cons 'menu-bar-lines lines))))
-	  (frame-list))
-    ;; ...and future ones.
-    (let ((elt (assq 'menu-bar-lines default-frame-alist)))
-      (if elt
-	  (setcdr elt lines)
-	(add-to-list 'default-frame-alist (cons 'menu-bar-lines lines)))))
+  (modify-all-frames-parameters (list (cons 'menu-bar-lines
+					    (if menu-bar-mode 1 0))))
 
   ;; Make the message appear when Emacs is idle.  We can not call message
   ;; directly.  The minor-mode message "Menu-bar mode disabled" comes
@@ -1768,6 +1760,30 @@ turn on menu bars; otherwise, turn off menu bars."
     (run-with-idle-timer 0 nil 'message
 			 "Menu-bar mode disabled.  Use M-x menu-bar-mode to make the menu bar appear."))
   menu-bar-mode)
+
+(defun toggle-menu-bar-mode-from-frame (&optional arg)
+  "Toggle menu bar on or off, based on the status of the current frame.
+See `menu-bar-mode' for more information."
+  (interactive (list (or current-prefix-arg 'toggle)))
+  (if (eq arg 'toggle)
+      (menu-bar-mode (if (> (frame-parameter nil 'menu-bar-lines) 0) 0 1))
+    (menu-bar-mode arg)))
+
+(defun menu-bar-open (&optional frame)
+  "Start key navigation of the menu bar in FRAME.
+
+This function decides which method to use to access the menu
+depending on FRAME's terminal device.  On X displays, it calls
+`x-menu-bar-open'; otherwise it calls `tmm-menubar'.
+
+If FRAME is nil or not given, use the selected frame."
+  (interactive)
+  (if (eq window-system 'x)
+      (x-menu-bar-open frame)
+    (with-selected-frame (or frame (selected-frame))
+      (tmm-menubar))))
+
+(global-set-key [f10] 'menu-bar-open)
 
 (provide 'menu-bar)
 

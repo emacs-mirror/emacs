@@ -88,7 +88,7 @@ struct interval
 
 #ifdef ENABLE_CHECKING
 #define NULL_INTERVAL_P(i) \
-   (CHECK (!INT_LISPLIKE (i), "non-interval"), (i) == NULL_INTERVAL)
+  ((void)CHECK (!INT_LISPLIKE (i), "non-interval"), (i) == NULL_INTERVAL)
 /* old #define NULL_INTERVAL_P(i) ((i) == NULL_INTERVAL || INT_LISPLIKE (i)) */
 #else
 #define NULL_INTERVAL_P(i) ((i) == NULL_INTERVAL)

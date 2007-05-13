@@ -1,18 +1,27 @@
-This file describes the CVS branch in which it is maintained.
+This file describes the Arch branch in which it is maintained.
 Everything below the line is branch-specific.
 ________________________________________________________________________
 
-This is the "HEAD" branch, otherwise known as the "trunk".  Its primary
-purpose is to accumulate changes that are not yet partitioned into a
-specific (versioned) release.  When people say "use CVS emacs", this is
-the branch they are talking about.  Likewise, a "cvs checkout" without
-the "-r" option results in this branch.
+This is the "multi-tty" branch.  It contains a version of Emacs that
+is able to create frames on multiple display devices and display
+types, including multiple tty devices and tty+X combined sessions.
+The branch has an enhanced version of emacsclient that is capable of
+opening a new Emacs frame on the terminal it runs on.
 
-The plans for this branch are not specified; Emacs hackers add to it
-relatively free of constraint (aside from proper legal / accounting
-practices), although sometimes there is related discussion on the
-emacs-devel mailing list.
+Commit access to the multi-tty branch is only available to its
+maintainer, Károly LÅ‘rentey (lorentey@elte.hu).  The best way to
+contribute to the project is to create your own public Arch branch,
+and publish your changes there.  (I will then be able to easily "pull"
+your changes into the multi-tty branch.)
 
-The closure process for this branch is undocumented; concepts such as
-"freeze", "release", or "integration with the trunk" are not applicable
-to this branch.
+The branch is scheduled for inclusion in the next major release of
+Emacs, version 22.
+
+Please read the file README.multi-tty in the base directory for
+details.
+
+
+
+Local Variables:
+coding: utf-8
+End:

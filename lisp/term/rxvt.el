@@ -26,8 +26,95 @@
 
 ;;; Code:
 
+(defvar rxvt-function-map (make-sparse-keymap)
+  "Function key overrides for rxvt.")
+
+;; Set up function-key-map entries that termcap and terminfo don't know.
+(define-key rxvt-function-map "\e[A" [up])
+(define-key rxvt-function-map "\e[B" [down])
+(define-key rxvt-function-map "\e[C" [right])
+(define-key rxvt-function-map "\e[D" [left])
+(define-key rxvt-function-map "\e[2~" [insert])
+(define-key rxvt-function-map "\e[3~" [delete])
+(define-key rxvt-function-map "\e[4~" [select])
+(define-key rxvt-function-map "\e[5~" [prior])
+(define-key rxvt-function-map "\e[6~" [next])
+(define-key rxvt-function-map "\e[7~" [home])
+(define-key rxvt-function-map "\e[8~" [end])
+(define-key rxvt-function-map "\e[11~" [f1])
+(define-key rxvt-function-map "\e[12~" [f2])
+(define-key rxvt-function-map "\e[13~" [f3])
+(define-key rxvt-function-map "\e[14~" [f4])
+(define-key rxvt-function-map "\e[15~" [f5])
+(define-key rxvt-function-map "\e[17~" [f6])
+(define-key rxvt-function-map "\e[18~" [f7])
+(define-key rxvt-function-map "\e[19~" [f8])
+(define-key rxvt-function-map "\e[20~" [f9])
+(define-key rxvt-function-map "\e[21~" [f10])
+;; The strings emitted by f11 and f12 are the same as the strings
+;; emitted by S-f1 and S-f2, so don't define f11 and f12.
+;; (define-key rxvt-function-map "\e[23~" [f11])
+;; (define-key rxvt-function-map "\e[24~" [f12])
+(define-key rxvt-function-map "\e[29~" [print])
+
+(define-key rxvt-function-map "\e[11^" [C-f1])
+(define-key rxvt-function-map "\e[12^" [C-f2])
+(define-key rxvt-function-map "\e[13^" [C-f3])
+(define-key rxvt-function-map "\e[14^" [C-f4])
+(define-key rxvt-function-map "\e[15^" [C-f5])
+(define-key rxvt-function-map "\e[17^" [C-f6])
+(define-key rxvt-function-map "\e[18^" [C-f7])
+(define-key rxvt-function-map "\e[19^" [C-f8])
+(define-key rxvt-function-map "\e[20^" [C-f9])
+(define-key rxvt-function-map "\e[21^" [C-f10])
+
+(define-key rxvt-function-map "\e[23~" [S-f1])
+(define-key rxvt-function-map "\e[24~" [S-f2])
+(define-key rxvt-function-map "\e[25~" [S-f3])
+(define-key rxvt-function-map "\e[26~" [S-f4])
+(define-key rxvt-function-map "\e[28~" [S-f5])
+(define-key rxvt-function-map "\e[29~" [S-f6])
+(define-key rxvt-function-map "\e[31~" [S-f7])
+(define-key rxvt-function-map "\e[32~" [S-f8])
+(define-key rxvt-function-map "\e[33~" [S-f9])
+(define-key rxvt-function-map "\e[34~" [S-f10])
+
+(define-key rxvt-function-map "\e[23^" [C-S-f1])
+(define-key rxvt-function-map "\e[24^" [C-S-f2])
+(define-key rxvt-function-map "\e[25^" [C-S-f3])
+(define-key rxvt-function-map "\e[26^" [C-S-f4])
+(define-key rxvt-function-map "\e[28^" [C-S-f5])
+(define-key rxvt-function-map "\e[29^" [C-S-f6])
+(define-key rxvt-function-map "\e[31^" [C-S-f7])
+(define-key rxvt-function-map "\e[32^" [C-S-f8])
+(define-key rxvt-function-map "\e[33^" [C-S-f9])
+(define-key rxvt-function-map "\e[34^" [C-S-f10])
+
+(define-key rxvt-function-map "\e[2^" [C-insert])
+(define-key rxvt-function-map "\e[3^" [C-delete])
+(define-key rxvt-function-map "\e[5^" [C-prior])
+(define-key rxvt-function-map "\e[6^" [C-next])
+(define-key rxvt-function-map "\e[7^" [C-home])
+(define-key rxvt-function-map "\e[8^" [C-end])
+(define-key rxvt-function-map "\eOd" [C-left])
+(define-key rxvt-function-map "\eOc" [C-right])
+(define-key rxvt-function-map "\eOa" [C-up])
+(define-key rxvt-function-map "\eOb" [C-down])
+
+(define-key rxvt-function-map "\e[2;2~" [S-insert])
+(define-key rxvt-function-map "\e[3$" [S-delete])
+(define-key rxvt-function-map "\e[5$" [S-prior])
+(define-key rxvt-function-map "\e[6$" [S-next])
+(define-key rxvt-function-map "\e[7$" [S-home])
+(define-key rxvt-function-map "\e[8$" [S-end])
+(define-key rxvt-function-map "\e[d" [S-left])
+(define-key rxvt-function-map "\e[c" [S-right])
+(define-key rxvt-function-map "\e[a" [S-up])
+(define-key rxvt-function-map "\e[b" [S-down])
+
 (defun terminal-init-rxvt ()
   "Terminal initialization function for rxvt."
+
   ;; The terminal intialization C code file might have initialized
   ;; function keys F11->F42 from the termcap/terminfo information.  On
   ;; a PC-style keyboard these keys correspond to
@@ -36,128 +123,45 @@
   ;; function-key-map.  This substitution is needed because if a key
   ;; definition if found in function-key-map, there are no further
   ;; lookups in other keymaps.
-  (substitute-key-definition [f11] [S-f1] function-key-map)
-  (substitute-key-definition [f12] [S-f2] function-key-map)
-  (substitute-key-definition [f13] [S-f3] function-key-map)
-  (substitute-key-definition [f14] [S-f4] function-key-map)
-  (substitute-key-definition [f15] [S-f5] function-key-map)
-  (substitute-key-definition [f16] [S-f6] function-key-map)
-  (substitute-key-definition [f17] [S-f7] function-key-map)
-  (substitute-key-definition [f18] [S-f8] function-key-map)
-  (substitute-key-definition [f19] [S-f9] function-key-map)
-  (substitute-key-definition [f20] [S-f10] function-key-map)
+  (substitute-key-definition [f11] [S-f1] local-function-key-map)
+  (substitute-key-definition [f12] [S-f2] local-function-key-map)
+  (substitute-key-definition [f13] [S-f3] local-function-key-map)
+  (substitute-key-definition [f14] [S-f4] local-function-key-map)
+  (substitute-key-definition [f15] [S-f5] local-function-key-map)
+  (substitute-key-definition [f16] [S-f6] local-function-key-map)
+  (substitute-key-definition [f17] [S-f7] local-function-key-map)
+  (substitute-key-definition [f18] [S-f8] local-function-key-map)
+  (substitute-key-definition [f19] [S-f9] local-function-key-map)
+  (substitute-key-definition [f20] [S-f10] local-function-key-map)
 
-  (substitute-key-definition [f23] [C-f1] function-key-map)
-  (substitute-key-definition [f24] [C-f2] function-key-map)
-  (substitute-key-definition [f25] [C-f3] function-key-map)
-  (substitute-key-definition [f26] [C-f4] function-key-map)
-  (substitute-key-definition [f27] [C-f5] function-key-map)
-  (substitute-key-definition [f28] [C-f6] function-key-map)
-  (substitute-key-definition [f29] [C-f7] function-key-map)
-  (substitute-key-definition [f30] [C-f8] function-key-map)
-  (substitute-key-definition [f31] [C-f9] function-key-map)
-  (substitute-key-definition [f32] [C-f10] function-key-map)
+  (substitute-key-definition [f23] [C-f1] local-function-key-map)
+  (substitute-key-definition [f24] [C-f2] local-function-key-map)
+  (substitute-key-definition [f25] [C-f3] local-function-key-map)
+  (substitute-key-definition [f26] [C-f4] local-function-key-map)
+  (substitute-key-definition [f27] [C-f5] local-function-key-map)
+  (substitute-key-definition [f28] [C-f6] local-function-key-map)
+  (substitute-key-definition [f29] [C-f7] local-function-key-map)
+  (substitute-key-definition [f30] [C-f8] local-function-key-map)
+  (substitute-key-definition [f31] [C-f9] local-function-key-map)
+  (substitute-key-definition [f32] [C-f10] local-function-key-map)
 
-  (substitute-key-definition [f33] [C-S-f1] function-key-map)
-  (substitute-key-definition [f34] [C-S-f2] function-key-map)
-  (substitute-key-definition [f35] [C-S-f3] function-key-map)
-  (substitute-key-definition [f36] [C-S-f4] function-key-map)
-  (substitute-key-definition [f37] [C-S-f5] function-key-map)
-  (substitute-key-definition [f38] [C-S-f6] function-key-map)
-  (substitute-key-definition [f39] [C-S-f7] function-key-map)
-  (substitute-key-definition [f40] [C-S-f8] function-key-map)
-  (substitute-key-definition [f41] [C-S-f9] function-key-map)
-  (substitute-key-definition [f42] [C-S-f10] function-key-map)
+  (substitute-key-definition [f33] [C-S-f1] local-function-key-map)
+  (substitute-key-definition [f34] [C-S-f2] local-function-key-map)
+  (substitute-key-definition [f35] [C-S-f3] local-function-key-map)
+  (substitute-key-definition [f36] [C-S-f4] local-function-key-map)
+  (substitute-key-definition [f37] [C-S-f5] local-function-key-map)
+  (substitute-key-definition [f38] [C-S-f6] local-function-key-map)
+  (substitute-key-definition [f39] [C-S-f7] local-function-key-map)
+  (substitute-key-definition [f40] [C-S-f8] local-function-key-map)
+  (substitute-key-definition [f41] [C-S-f9] local-function-key-map)
+  (substitute-key-definition [f42] [C-S-f10] local-function-key-map)
 
-  ;; Set up function-key-map entries that termcap and terminfo don't know.
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\e[A" [up])
-    (define-key map "\e[B" [down])
-    (define-key map "\e[C" [right])
-    (define-key map "\e[D" [left])
-    (define-key map "\e[2~" [insert])
-    (define-key map "\e[3~" [delete])
-    (define-key map "\e[4~" [select])
-    (define-key map "\e[5~" [prior])
-    (define-key map "\e[6~" [next])
-    (define-key map "\e[7~" [home])
-    (define-key map "\e[8~" [end])
-    (define-key map "\e[11~" [f1])
-    (define-key map "\e[12~" [f2])
-    (define-key map "\e[13~" [f3])
-    (define-key map "\e[14~" [f4])
-    (define-key map "\e[15~" [f5])
-    (define-key map "\e[17~" [f6])
-    (define-key map "\e[18~" [f7])
-    (define-key map "\e[19~" [f8])
-    (define-key map "\e[20~" [f9])
-    (define-key map "\e[21~" [f10])
-    ;; The strings emitted by f11 and f12 are the same as the strings
-    ;; emitted by S-f1 and S-f2, so don't define f11 and f12.
-    ;; (define-key map "\e[23~" [f11])
-    ;; (define-key map "\e[24~" [f12])
-    (define-key map "\e[29~" [print])
-
-    (define-key map "\e[11^" [C-f1])
-    (define-key map "\e[12^" [C-f2])
-    (define-key map "\e[13^" [C-f3])
-    (define-key map "\e[14^" [C-f4])
-    (define-key map "\e[15^" [C-f5])
-    (define-key map "\e[17^" [C-f6])
-    (define-key map "\e[18^" [C-f7])
-    (define-key map "\e[19^" [C-f8])
-    (define-key map "\e[20^" [C-f9])
-    (define-key map "\e[21^" [C-f10])
-
-    (define-key map "\e[23~" [S-f1])
-    (define-key map "\e[24~" [S-f2])
-    (define-key map "\e[25~" [S-f3])
-    (define-key map "\e[26~" [S-f4])
-    (define-key map "\e[28~" [S-f5])
-    (define-key map "\e[29~" [S-f6])
-    (define-key map "\e[31~" [S-f7])
-    (define-key map "\e[32~" [S-f8])
-    (define-key map "\e[33~" [S-f9])
-    (define-key map "\e[34~" [S-f10])
-
-    (define-key map "\e[23^" [C-S-f1])
-    (define-key map "\e[24^" [C-S-f2])
-    (define-key map "\e[25^" [C-S-f3])
-    (define-key map "\e[26^" [C-S-f4])
-    (define-key map "\e[28^" [C-S-f5])
-    (define-key map "\e[29^" [C-S-f6])
-    (define-key map "\e[31^" [C-S-f7])
-    (define-key map "\e[32^" [C-S-f8])
-    (define-key map "\e[33^" [C-S-f9])
-    (define-key map "\e[34^" [C-S-f10])
-
-    (define-key map "\e[2^" [C-insert])
-    (define-key map "\e[3^" [C-delete])
-    (define-key map "\e[5^" [C-prior])
-    (define-key map "\e[6^" [C-next])
-    (define-key map "\e[7^" [C-home])
-    (define-key map "\e[8^" [C-end])
-    (define-key map "\eOd" [C-left])
-    (define-key map "\eOc" [C-right])
-    (define-key map "\eOa" [C-up])
-    (define-key map "\eOb" [C-down])
-
-    (define-key map "\e[2;2~" [S-insert])
-    (define-key map "\e[3$" [S-delete])
-    (define-key map "\e[5$" [S-prior])
-    (define-key map "\e[6$" [S-next])
-    (define-key map "\e[7$" [S-home])
-    (define-key map "\e[8$" [S-end])
-    (define-key map "\e[d" [S-left])
-    (define-key map "\e[c" [S-right])
-    (define-key map "\e[a" [S-up])
-    (define-key map "\e[b" [S-down])
-
-    ;; Use inheritance to let the main keymap override those defaults.
-    ;; This way we don't override terminfo-derived settings or settings
-    ;; made in the .emacs file.
-    (set-keymap-parent map (keymap-parent function-key-map))
-    (set-keymap-parent function-key-map map))
+  ;; Use inheritance to let the main keymap override those defaults.
+  ;; This way we don't override terminfo-derived settings or settings
+  ;; made in the .emacs file.
+  (let ((m (copy-keymap rxvt-function-map)))
+    (set-keymap-parent m (keymap-parent local-function-key-map))
+    (set-keymap-parent local-function-key-map m))
 
   ;; Initialize colors and background mode.
   (rxvt-register-default-colors)
@@ -239,7 +243,7 @@ for the currently selected frame."
 			    (- 256 ncolors)
 			    (list color color color))
 	  (setq ncolors (1- ncolors))))
-       
+
        ((= ncolors 72) ; rxvt-unicode
 	;; 64 non-gray colors
 	(let ((levels '(0 139 205 255))
@@ -280,9 +284,9 @@ for the currently selected frame."
 ;; intelligent way than the default guesswork in startup.el.
 (defun rxvt-set-background-mode ()
   "Set background mode as appropriate for the default rxvt colors."
-  (let ((fgbg (getenv "COLORFGBG"))
+  (let ((fgbg (getenv "COLORFGBG" (terminal-id)))
 	bg rgb)
-    (setq default-frame-background-mode 'light)
+    (set-terminal-parameter nil 'background-mode 'light)
     (when (and fgbg
 	       (string-match ".*;\\([0-9][0-9]?\\)\\'" fgbg))
       (setq bg (string-to-number (substring fgbg (match-beginning 1))))
@@ -295,8 +299,7 @@ for the currently selected frame."
 	     ;; The following line assumes that white is the 15th
 	     ;; color in rxvt-standard-colors.
 	     (* (apply '+ (car (cddr (nth 15 rxvt-standard-colors)))) 0.6))
-	  (setq default-frame-background-mode 'dark)))
-    (frame-set-background-mode (selected-frame))))
+	  (set-terminal-parameter nil 'background-mode 'dark)))))
 
 ;; arch-tag: 20cf2fb6-6318-4bab-9dbf-1d15048f2257
 ;;; rxvt.el ends here

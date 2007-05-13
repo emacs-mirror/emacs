@@ -341,7 +341,9 @@ Lisp_Object Vgc_elapsed;	/* accumulated elapsed time in GC  */
 EMACS_INT gcs_done;		/* accumulated GCs  */
 
 static void mark_buffer P_ ((Lisp_Object));
+extern void mark_terminals P_ ((void));
 extern void mark_kboards P_ ((void));
+extern void mark_ttys P_ ((void));
 extern void mark_backtrace P_ ((void));
 static void gc_sweep P_ ((void));
 static void mark_glyph_matrix P_ ((struct glyph_matrix *));
@@ -1236,7 +1238,8 @@ emacs_blocked_malloc (size, ptr)
   BLOCK_INPUT_ALLOC;
   __malloc_hook = old_malloc_hook;
 #ifdef DOUG_LEA_MALLOC
-    mallopt (M_TOP_PAD, malloc_hysteresis * 4096);
+  /* Segfaults on my system.  --lorentey */
+  /* mallopt (M_TOP_PAD, malloc_hysteresis * 4096); */
 #else
     __malloc_extra_blocks = malloc_hysteresis;
 #endif
@@ -5160,7 +5163,9 @@ returns nil, because real GC can't be done.  */)
       mark_object (bind->symbol);
       mark_object (bind->old_value);
     }
+  mark_terminals ();
   mark_kboards ();
+  mark_ttys ();
 
 #ifdef USE_GTK
   {
@@ -5595,6 +5600,7 @@ mark_object (arg)
 	  mark_object (ptr->menu_bar_vector);
 	  mark_object (ptr->buffer_predicate);
 	  mark_object (ptr->buffer_list);
+	  mark_object (ptr->buried_buffer_list);
 	  mark_object (ptr->menu_bar_window);
 	  mark_object (ptr->tool_bar_window);
 	  mark_face_cache (ptr->face_cache);

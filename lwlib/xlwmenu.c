@@ -1837,6 +1837,7 @@ XlwMenuRealize (w, valueMask, attributes)
   XlwMenuWidget mw = (XlwMenuWidget)w;
   XSetWindowAttributes xswa;
   int mask;
+  int count;
 
   (*xlwMenuWidgetClass->core_class.superclass->core_class.realize)
     (w, valueMask, attributes);
@@ -1844,7 +1845,16 @@ XlwMenuRealize (w, valueMask, attributes)
   xswa.save_under = True;
   xswa.cursor = mw->menu.cursor_shape;
   mask = CWSaveUnder | CWCursor;
+  /* I sometimes get random BadCursor errors while creating the first
+     frame on a display.  I can not find their reason, but they are
+     annoying so for now let's ignore any errors here.  -- lorentey  */
+#ifdef emacs
+  x_catch_errors (XtDisplay (w));
+#endif
   XChangeWindowAttributes (XtDisplay (w), XtWindow (w), mask, &xswa);
+#ifdef emacs
+  x_uncatch_errors ();
+#endif
 
   mw->menu.windows [0].window = XtWindow (w);
   mw->menu.windows [0].x = w->core.x;

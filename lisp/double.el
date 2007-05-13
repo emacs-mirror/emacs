@@ -145,11 +145,12 @@ but not `C-u X' or `ESC X' since the X is not the prefix key."
   (if enable-flag
       (progn
 	;; Set up key-translation-map as indicated by `double-map'.
+	;; XXX I don't think key-translation-map should be made local here. -- Lorentey
 	(kill-local-variable 'key-translation-map)
 	(make-local-variable 'key-translation-map)
 	(setq key-translation-map (if (keymapp key-translation-map)
-				      (copy-keymap key-translation-map)
-				    (make-sparse-keymap)))
+					     (copy-keymap key-translation-map)
+					   (make-sparse-keymap)))
 	(mapcar (function (lambda (entry)
 			    (define-key key-translation-map
 			      (vector (nth 0 entry))
