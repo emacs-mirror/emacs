@@ -1,3 +1,7 @@
+2007-05-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.c (XTread_socket): Revert last change.
+
 2007-05-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image.c (pbm_load): Correctly check image size for greyscale pbm.
