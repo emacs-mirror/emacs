@@ -931,6 +931,29 @@ usage: (string &rest CHARACTERS)  */)
   return make_string_from_bytes ((char *) buf, n, p - buf);
 }
 
+DEFUN ("unibyte-string", Funibyte_string, Sunibyte_string, 0, MANY, 0,
+       doc: /* Concatenate all the argument bytes and make the result a unibyte string.  */)
+     (n, args)
+     int n;
+     Lisp_Object *args;
+{
+  int i;
+  unsigned char *buf = (unsigned char *) alloca (n);
+  unsigned char *p = buf;
+  unsigned c;
+
+  for (i = 0; i < n; i++)
+    {
+      CHECK_NATNUM (args[i]);
+      c = XFASTINT (args[i]);
+      if (c >= 256)
+	args_out_of_range_3 (args[i], make_number (0), make_number (255));
+      *p++ = c;
+    }
+
+  return make_string_from_bytes ((char *) buf, n, p - buf);
+}
+
 void
 init_character_once ()
 {
@@ -956,6 +979,7 @@ syms_of_character ()
   defsubr (&Sstring_width);
   defsubr (&Schar_direction);
   defsubr (&Sstring);
+  defsubr (&Sunibyte_string);
 
   DEFVAR_LISP ("translation-table-vector",  &Vtranslation_table_vector,
 	       doc: /*
