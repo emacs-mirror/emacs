@@ -212,8 +212,7 @@ in the environment list of the selected frame."
   (let ((value (getenv-internal (if (multibyte-string-p variable)
 				    (encode-coding-string
 				     variable locale-coding-system)
-				  variable)
-				frame)))
+				  variable))))
     (if (and enable-multibyte-characters value)
 	(setq value (decode-coding-string value locale-coding-system)))
     (when (interactive-p)
