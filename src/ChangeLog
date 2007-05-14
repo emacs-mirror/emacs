@@ -1,3 +1,7 @@
+2007-05-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (pbm_load): Check image size for monochrome pbm.
+
 2007-05-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xterm.c (XTread_socket): Revert last change.
