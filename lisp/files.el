@@ -287,7 +287,7 @@ A value of t means do this only when the file is about to be saved.
 A value of `visit' means do this right after the file is visited.
 A value of `visit-save' means do it at both of those times.
 Any other non-nil value means ask user whether to add a newline, when saving.
-nil means don't add newlines.
+A value of nil means don't add newlines.
 
 Certain major modes set this locally to the value obtained
 from `mode-require-final-newline'."
@@ -309,10 +309,10 @@ A value of `visit' means do this right after the file is visited.
 A value of `visit-save' means do it at both of those times.
 Any other non-nil value means ask user whether to add a newline, when saving.
 
-nil means do not add newlines.  That is a risky choice in this variable
-since this value is used for modes for files that ought to have final newlines.
-So if you set this to nil, you must explicitly check and add
-a final newline, whenever you save a file that really needs one."
+A value of nil means do not add newlines.  That is a risky choice in this
+variable since this value is used for modes for files that ought to have
+final newlines.  So if you set this to nil, you must explicitly check and
+add a final newline, whenever you save a file that really needs one."
   :type '(choice (const :tag "When visiting" visit)
 		 (const :tag "When saving" t)
 		 (const :tag "When visiting or saving" visit-save)
@@ -459,7 +459,7 @@ not safe, Emacs queries you, once, whether to set them all.
 :safe means set the safe variables, and ignore the rest.
 :all means set all variables, whether safe or not.
  (Don't set it permanently to :all.)
-nil means always ignore the file local variables.
+A value of nil means always ignore the file local variables.
 
 Any other value means always query you once whether to set them all.
 \(When you say yes to certain values, they are remembered as safe, but
@@ -491,7 +491,7 @@ specified in a -*- line.")
   "Control processing of the \"variable\" `eval' in a file's local variables.
 The value can be t, nil or something else.
 A value of t means obey `eval' variables;
-nil means ignore them; anything else means query."
+A value of nil means ignore them; anything else means query."
   :type '(choice (const :tag "Obey" t)
 		 (const :tag "Ignore" nil)
 		 (other :tag "Query" other))
