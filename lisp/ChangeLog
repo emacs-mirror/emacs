@@ -1,3 +1,8 @@
+2007-05-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* files.el (mode-require-final-newline, require-final-newline)
+	(enable-local-variables, enable-local-eval): Doc fixes.
+
 2007-05-10  Edward O'Connor  <hober0@gmail.com>  (tiny change)
 
 	* progmodes/python.el (python-font-lock-keywords)
