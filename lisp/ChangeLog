@@ -1,3 +1,9 @@
+2007-05-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmail.el (rmail-convert-to-babyl-format): Check
+	content-transfer-encoding _last_, because it's its position that
+	we need as value of base64-header-field-end.
+
 2007-05-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* files.el (mode-require-final-newline, require-final-newline)
