@@ -20,14 +20,15 @@ the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA.  */
 
 #include <config.h>
-#include <signal.h>
 
+#include <signal.h>
 #include <stdio.h>
+
 #include "lisp.h"
-#include "termhooks.h"
 #include "keyboard.h"
 #include "keymap.h"
 #include "frame.h"
+#include "termhooks.h"
 #include "window.h"
 #include "blockinput.h"
 #include "buffer.h"
@@ -673,8 +674,8 @@ cached information about equivalent key sequences.  */)
 	  enum scroll_bar_part part;
 	  unsigned long time;
 
-	  if (mouse_position_hook)
-	    (*mouse_position_hook) (&new_f, 1, &bar_window,
+	  if (FRAME_TERMINAL (new_f)->mouse_position_hook)
+	    (*FRAME_TERMINAL (new_f)->mouse_position_hook) (&new_f, 1, &bar_window,
 				    &part, &x, &y, &time);
 	  if (new_f != 0)
 	    XSETFRAME (window, new_f);
