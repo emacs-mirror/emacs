@@ -35,11 +35,12 @@ Boston, MA 02110-1301, USA.
 #include "charset.h"
 #include "coding.h"
 #include "disptab.h"
-#include "termhooks.h"
-#include "dispextern.h"
 /* Disable features in frame.h that require a Window System.  */
 #undef HAVE_WINDOW_SYSTEM
 #include "frame.h"
+#include "termhooks.h"
+#include "termchar.h"
+#include "dispextern.h"
 #include "w32inevt.h"
 
 /* from window.c */
@@ -51,21 +52,17 @@ extern int detect_input_pending ();
 /* from sysdep.c */
 extern int read_input_pending ();
 
-extern struct frame * updating_frame;
-extern int meta_key;
-
-static void w32con_move_cursor (int row, int col);
-static void w32con_clear_to_end (void);
-static void w32con_clear_frame (void);
-static void w32con_clear_end_of_line (int);
-static void w32con_ins_del_lines (int vpos, int n);
-static void w32con_insert_glyphs (struct glyph *start, int len);
-static void w32con_write_glyphs (struct glyph *string, int len);
-static void w32con_delete_glyphs (int n);
-void w32_sys_ring_bell (void);
-static void w32con_reset_terminal_modes (void);
-static void w32con_set_terminal_modes (void);
-static void w32con_set_terminal_window (int size);
+static void w32con_move_cursor (struct frame *f, int row, int col);
+static void w32con_clear_to_end (struct frame *f);
+static void w32con_clear_frame (struct frame *f);
+static void w32con_clear_end_of_line (struct frame *f, int);
+static void w32con_ins_del_lines (struct frame *f, int vpos, int n);
+static void w32con_insert_glyphs (struct frame *f, struct glyph *start, int len);
+static void w32con_write_glyphs (struct frame *f, struct glyph *string, int len);
+static void w32con_delete_glyphs (struct frame *f, int n);
+static void w32con_reset_terminal_modes (struct terminal *t);
+static void w32con_set_terminal_modes (struct terminal *t);
+static void w32con_set_terminal_window (struct frame *f, int size);
 static void w32con_update_begin (struct frame * f);
 static void w32con_update_end (struct frame * f);
 static WORD w32_face_attributes (struct frame *f, int face_id);
@@ -99,38 +96,31 @@ ctrl_c_handler (unsigned long type)
 	  && (type == CTRL_C_EVENT || type == CTRL_BREAK_EVENT));
 }
 
-/* If we're updating a frame, use it as the current frame
-   Otherwise, use the selected frame.  */
-#define PICK_FRAME() (updating_frame ? updating_frame : SELECTED_FRAME ())
 
-/* Move the cursor to (row, col).  */
+/* Move the cursor to (ROW, COL) on FRAME.  */
 static void
-w32con_move_cursor (int row, int col)
+w32con_move_cursor (struct frame *f, int row, int col)
 {
   cursor_coords.X = col;
   cursor_coords.Y = row;
 
-  if (updating_frame == (struct frame *) NULL)
-    {
-      SetConsoleCursorPosition (cur_screen, cursor_coords);
-    }
+  /* TODO: for multi-tty support, cur_screen should be replaced with a
+     reference to the terminal for this frame.  */
+  SetConsoleCursorPosition (cur_screen, cursor_coords);
 }
 
 /* Clear from cursor to end of screen.  */
 static void
-w32con_clear_to_end (void)
+w32con_clear_to_end (struct frame *f)
 {
-  struct frame * f = PICK_FRAME ();
-
-  w32con_clear_end_of_line (FRAME_COLS (f) - 1);
-  w32con_ins_del_lines (cursor_coords.Y, FRAME_LINES (f) - cursor_coords.Y - 1);
+  w32con_clear_end_of_line (f, FRAME_COLS (f) - 1);
+  w32con_ins_del_lines (f, cursor_coords.Y, FRAME_LINES (f) - cursor_coords.Y - 1);
 }
 
 /* Clear the frame.  */
 static void
-w32con_clear_frame (void)
+w32con_clear_frame (struct frame *f)
 {
-  struct frame *  f = PICK_FRAME ();
   COORD	     dest;
   int        n;
   DWORD      r;
@@ -145,7 +135,7 @@ w32con_clear_frame (void)
   FillConsoleOutputAttribute (cur_screen, char_attr_normal, n, dest, &r);
   FillConsoleOutputCharacter (cur_screen, ' ', n, dest, &r);
 
-  w32con_move_cursor (0, 0);
+  w32con_move_cursor (f, 0, 0);
 }
 
 
@@ -154,7 +144,7 @@ static BOOL  ceol_initialized = FALSE;
 
 /* Clear from Cursor to end (what's "standout marker"?).  */
 static void
-w32con_clear_end_of_line (int end)
+w32con_clear_end_of_line (struct frame *f, int end)
 {
   if (!ceol_initialized)
     {
@@ -165,18 +155,17 @@ w32con_clear_end_of_line (int end)
         }
       ceol_initialized = TRUE;
     }
-  w32con_write_glyphs (glyph_base, end - cursor_coords.X);	/* fencepost ?	*/
+  w32con_write_glyphs (f, glyph_base, end - cursor_coords.X);	/* fencepost ?	*/
 }
 
 /* Insert n lines at vpos. if n is negative delete -n lines.  */
 static void
-w32con_ins_del_lines (int vpos, int n)
+w32con_ins_del_lines (struct frame *f, int vpos, int n)
 {
   int	     i, nb;
   SMALL_RECT scroll;
   COORD	     dest;
   CHAR_INFO  fill;
-  struct frame *  f = PICK_FRAME ();
 
   if (n < 0)
     {
@@ -213,8 +202,8 @@ w32con_ins_del_lines (int vpos, int n)
         {
 	  for (i = scroll.Bottom; i < dest.Y; i++)
             {
-	      w32con_move_cursor (i, 0);
-	      w32con_clear_end_of_line (FRAME_COLS (f));
+	      w32con_move_cursor (f, i, 0);
+	      w32con_clear_end_of_line (f, FRAME_COLS (f));
             }
         }
     }
@@ -226,8 +215,8 @@ w32con_ins_del_lines (int vpos, int n)
         {
 	  for (i = nb; i < scroll.Top; i++)
             {
-	      w32con_move_cursor (i, 0);
-	      w32con_clear_end_of_line (FRAME_COLS (f));
+	      w32con_move_cursor (f, i, 0);
+	      w32con_clear_end_of_line (f, FRAME_COLS (f));
             }
         }
     }
@@ -242,14 +231,13 @@ w32con_ins_del_lines (int vpos, int n)
 #define	RIGHT	0
 
 static void
-scroll_line (int dist, int direction)
+scroll_line (struct frame *f, int dist, int direction)
 {
   /* The idea here is to implement a horizontal scroll in one line to
      implement delete and half of insert.  */
   SMALL_RECT scroll;
   COORD	     dest;
   CHAR_INFO  fill;
-  struct frame *  f = PICK_FRAME ();
 
   scroll.Top = cursor_coords.Y;
   scroll.Bottom = cursor_coords.Y;
@@ -277,9 +265,9 @@ scroll_line (int dist, int direction)
 
 /* If start is zero insert blanks instead of a string at start ?. */
 static void
-w32con_insert_glyphs (register struct glyph *start, register int len)
+w32con_insert_glyphs (struct frame *f, register struct glyph *start, register int len)
 {
-  scroll_line (len, RIGHT);
+  scroll_line (f, len, RIGHT);
 
   /* Move len chars to the right starting at cursor_coords, fill with blanks */
   if (start)
@@ -287,11 +275,11 @@ w32con_insert_glyphs (register struct glyph *start, register int len)
       /* Print the first len characters of start, cursor_coords.X adjusted
 	 by write_glyphs.  */
 
-      w32con_write_glyphs (start, len);
+      w32con_write_glyphs (f, start, len);
     }
   else
     {
-      w32con_clear_end_of_line (cursor_coords.X + len);
+      w32con_clear_end_of_line (f, cursor_coords.X + len);
     }
 }
 
@@ -299,11 +287,11 @@ extern unsigned char *encode_terminal_code P_ ((struct glyph *, int,
 						struct coding_system *));
 
 static void
-w32con_write_glyphs (register struct glyph *string, register int len)
+w32con_write_glyphs (struct frame *f, register struct glyph *string,
+                     register int len)
 {
   int produced, consumed;
   DWORD r;
-  struct frame * f = PICK_FRAME ();
   WORD char_attr;
   unsigned char *conversion_buffer;
   struct coding_system *coding;
@@ -314,11 +302,11 @@ w32con_write_glyphs (register struct glyph *string, register int len)
   /* If terminal_coding does any conversion, use it, otherwise use
      safe_terminal_coding.  We can't use CODING_REQUIRE_ENCODING here
      because it always return 1 if the member src_multibyte is 1.  */
-  coding = (terminal_coding.common_flags & CODING_REQUIRE_ENCODING_MASK
-	    ? &terminal_coding : &safe_terminal_coding);
+  coding = (FRAME_TERMINAL_CODING (f)->common_flags & CODING_REQUIRE_ENCODING_MASK
+	    ? FRAME_TERMINAL_CODING (f) : &safe_terminal_coding);
   /* The mode bit CODING_MODE_LAST_BLOCK should be set to 1 only at
      the tail.  */
-  terminal_coding.mode &= ~CODING_MODE_LAST_BLOCK;
+  coding->mode &= ~CODING_MODE_LAST_BLOCK;
 
   while (len > 0)
     {
@@ -360,7 +348,7 @@ w32con_write_glyphs (register struct glyph *string, register int len)
 	    }
 
 	  cursor_coords.X += coding->produced;
-	  w32con_move_cursor (cursor_coords.Y, cursor_coords.X);
+	  w32con_move_cursor (f, cursor_coords.Y, cursor_coords.X);
 	}
       len -= n;
       string += n;
@@ -369,20 +357,20 @@ w32con_write_glyphs (register struct glyph *string, register int len)
 
 
 static void
-w32con_delete_glyphs (int n)
+w32con_delete_glyphs (struct frame *f, int n)
 {
   /* delete chars means scroll chars from cursor_coords.X + n to
      cursor_coords.X, anything beyond the edge of the screen should
      come out empty...  */
 
-  scroll_line (n, LEFT);
+  scroll_line (f, n, LEFT);
 }
 
 static unsigned int sound_type = 0xFFFFFFFF;
 #define MB_EMACS_SILENT (0xFFFFFFFF - 1)
 
 void
-w32_sys_ring_bell (void)
+w32_sys_ring_bell (struct frame *f)
 {
   if (sound_type == 0xFFFFFFFF)
     {
@@ -428,7 +416,7 @@ SOUND is nil to use the normal beep.  */)
 }
 
 static void
-w32con_reset_terminal_modes (void)
+w32con_reset_terminal_modes (struct terminal *t)
 {
 #ifdef USE_SEPARATE_SCREEN
   SetConsoleActiveScreenBuffer (prev_screen);
@@ -439,7 +427,7 @@ w32con_reset_terminal_modes (void)
 }
 
 static void
-w32con_set_terminal_modes (void)
+w32con_set_terminal_modes (struct terminal *t)
 {
   CONSOLE_CURSOR_INFO cci;
 
@@ -473,7 +461,7 @@ w32con_update_end (struct frame * f)
 }
 
 static void
-w32con_set_terminal_window (int size)
+w32con_set_terminal_window (struct frame *f, int size)
 {
 }
 
@@ -546,29 +534,34 @@ vga_stdcolor_name (int idx)
 
 typedef int (*term_hook) ();
 
+/* TEMPORARY HACK to get w32console compiling. To support multiple consoles,
+   this needs to go! */
+struct terminal one_and_only_w32cons;
+
 void
 initialize_w32_display (void)
 {
   CONSOLE_SCREEN_BUFFER_INFO	info;
+  struct terminal *term = &one_and_only_w32cons;
 
-  cursor_to_hook		= w32con_move_cursor;
-  raw_cursor_to_hook		= w32con_move_cursor;
-  clear_to_end_hook		= w32con_clear_to_end;
-  clear_frame_hook		= w32con_clear_frame;
-  clear_end_of_line_hook	= w32con_clear_end_of_line;
-  ins_del_lines_hook		= w32con_ins_del_lines;
-  insert_glyphs_hook		= w32con_insert_glyphs;
-  write_glyphs_hook		= w32con_write_glyphs;
-  delete_glyphs_hook		= w32con_delete_glyphs;
-  ring_bell_hook		= w32_sys_ring_bell;
-  reset_terminal_modes_hook	= w32con_reset_terminal_modes;
-  set_terminal_modes_hook	= w32con_set_terminal_modes;
-  set_terminal_window_hook	= w32con_set_terminal_window;
-  update_begin_hook		= w32con_update_begin;
-  update_end_hook		= w32con_update_end;
+  term->cursor_to_hook		= w32con_move_cursor;
+  term->raw_cursor_to_hook		= w32con_move_cursor;
+  term->clear_to_end_hook		= w32con_clear_to_end;
+  term->clear_frame_hook		= w32con_clear_frame;
+  term->clear_end_of_line_hook	= w32con_clear_end_of_line;
+  term->ins_del_lines_hook		= w32con_ins_del_lines;
+  term->insert_glyphs_hook		= w32con_insert_glyphs;
+  term->write_glyphs_hook		= w32con_write_glyphs;
+  term->delete_glyphs_hook		= w32con_delete_glyphs;
+  term->ring_bell_hook		= w32_sys_ring_bell;
+  term->reset_terminal_modes_hook	= w32con_reset_terminal_modes;
+  term->set_terminal_modes_hook	= w32con_set_terminal_modes;
+  term->set_terminal_window_hook	= w32con_set_terminal_window;
+  term->update_begin_hook		= w32con_update_begin;
+  term->update_end_hook		= w32con_update_end;
 
-  read_socket_hook = w32_console_read_socket;
-  mouse_position_hook = w32_console_mouse_position;
+  term->read_socket_hook = w32_console_read_socket;
+  term->mouse_position_hook = w32_console_mouse_position;
 
   /* Initialize interrupt_handle.  */
   init_crit ();
@@ -633,7 +626,6 @@ initialize_w32_display (void)
 
   GetConsoleScreenBufferInfo (cur_screen, &info);
 
-  meta_key = 1;
   char_attr_normal = info.wAttributes;
 
   /* Determine if the info returned by GetConsoleScreenBufferInfo
@@ -672,6 +664,25 @@ initialize_w32_display (void)
 
   w32_initialize_display_info (build_string ("Console"));
 
+}
+
+/* Initialize the tty-dependent part of frame F.  The frame must
+   already have its device initialized. */
+void
+create_w32cons_output(struct frame *f)
+{
+  struct tty_output *tty;
+
+  if (! FRAME_TERMCAP_P (f))
+    abort ();
+
+  tty = xmalloc (sizeof (struct tty_output));
+  bzero (tty, sizeof (struct tty_output));
+
+  tty->display_info = FRAME_TERMINAL (f)->display_info.tty;
+  tty->display_info->meta_key = 1;
+
+  f->output_data.tty = tty;
 }
 
 DEFUN ("set-screen-color", Fset_screen_color, Sset_screen_color, 2, 2, 0,
