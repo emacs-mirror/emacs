@@ -235,9 +235,9 @@ static void x_font_min_bounds P_ ((XFontStruct *, int *, int *));
 int x_compute_min_glyph_bounds P_ ((struct frame *));
 static void x_update_end P_ ((struct frame *));
 static void w32_frame_up_to_date P_ ((struct frame *));
-static void w32_set_terminal_modes P_ ((void));
-static void w32_reset_terminal_modes P_ ((void));
-static void x_clear_frame P_ ((void));
+static void w32_set_terminal_modes P_ ((struct terminal *));
+static void w32_reset_terminal_modes P_ ((struct terminal *));
+static void x_clear_frame P_ ((struct frame *));
 static void frame_highlight P_ ((struct frame *));
 static void frame_unhighlight P_ ((struct frame *));
 static void x_new_focus_frame P_ ((struct w32_display_info *,
@@ -801,7 +801,7 @@ w32_destroy_fringe_bitmap (which)
    rarely happens).  */
 
 static void
-w32_set_terminal_modes (void)
+w32_set_terminal_modes (struct terminal *term)
 {
 }
 
@@ -809,7 +809,7 @@ w32_set_terminal_modes (void)
    the W32 windows go away, and suspending requires no action. */
 
 static void
-w32_reset_terminal_modes (void)
+w32_reset_terminal_modes (struct terminal *term)
 {
 }
 
@@ -2608,16 +2608,10 @@ w32_shift_glyphs_for_insert (f, x, y, width, height, shift_by)
    for X frames.  */
 
 static void
-x_delete_glyphs (n)
+x_delete_glyphs (f, n)
+     struct frame *f;
      register int n;
 {
-  struct frame *f;
-
-  if (updating_frame)
-    f = updating_frame;
-  else
-    f = SELECTED_FRAME ();
-
   if (! FRAME_W32_P (f))
     return;
 
@@ -2629,15 +2623,8 @@ x_delete_glyphs (n)
    frame.  Otherwise clear the selected frame.  */
 
 static void
-x_clear_frame ()
+x_clear_frame (struct frame *f)
 {
-  struct frame *f;
-
-  if (updating_frame)
-    f = updating_frame;
-  else
-    f = SELECTED_FRAME ();
-
   if (! FRAME_W32_P (f))
     return;
 
@@ -2664,18 +2651,14 @@ x_clear_frame ()
 /* Make audible bell.  */
 
 static void
-w32_ring_bell (void)
+w32_ring_bell (struct frame *f)
 {
-  struct frame *f;
-
-  f = SELECTED_FRAME ();
-
   BLOCK_INPUT;
 
   if (FRAME_W32_P (f) && visible_bell)
     {
       int i;
-      HWND hwnd = FRAME_W32_WINDOW (SELECTED_FRAME ());
+      HWND hwnd = FRAME_W32_WINDOW (f);
 
       for (i = 0; i < 5; i++)
 	{
@@ -2685,7 +2668,7 @@ w32_ring_bell (void)
       FlashWindow (hwnd, FALSE);
     }
   else
-      w32_sys_ring_bell ();
+      w32_sys_ring_bell (f);
 
   UNBLOCK_INPUT;
 }
@@ -2712,16 +2695,10 @@ w32_set_terminal_window (n)
    lines or deleting -N lines at vertical position VPOS.  */
 
 static void
-x_ins_del_lines (vpos, n)
+x_ins_del_lines (f, vpos, n)
+     struct frame *f;
      int vpos, n;
 {
-  struct frame *f;
-
-  if (updating_frame)
-    f = updating_frame;
-  else
-    f = SELECTED_FRAME ();
-
   if (! FRAME_W32_P (f))
     return;
 
@@ -5910,14 +5887,13 @@ x_free_frame_resources (f)
 
 
 /* Destroy the window of frame F.  */
-
+void
 x_destroy_window (f)
      struct frame *f;
 {
   struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
 
   x_free_frame_resources (f);
-
   dpyinfo->reference_count--;
 }
 
@@ -6177,6 +6153,116 @@ w32_make_rdb (xrm_option)
   return buffer;
 }
 
+void
+x_flush (struct frame * f)
+{ /* Nothing to do */ }
+
+
+extern frame_parm_handler w32_frame_parm_handlers[];
+
+static struct redisplay_interface w32_redisplay_interface =
+{
+  w32_frame_parm_handlers,
+  x_produce_glyphs,
+  x_write_glyphs,
+  x_insert_glyphs,
+  x_clear_end_of_line,
+  x_scroll_run,
+  x_after_update_window_line,
+  x_update_window_begin,
+  x_update_window_end,
+  x_cursor_to,
+  x_flush,
+  0,  /* flush_display_optional */
+  x_clear_window_mouse_face,
+  w32_get_glyph_overhangs,
+  x_fix_overlapping_area,
+  w32_draw_fringe_bitmap,
+  w32_define_fringe_bitmap,
+  w32_destroy_fringe_bitmap,
+  w32_per_char_metric,
+  w32_encode_char,
+  NULL, /* w32_compute_glyph_string_overhangs */
+  x_draw_glyph_string,
+  w32_define_frame_cursor,
+  w32_clear_frame_area,
+  w32_draw_window_cursor,
+  w32_draw_vertical_window_border,
+  w32_shift_glyphs_for_insert
+};
+
+static void x_delete_terminal (struct terminal *term);
+
+static struct terminal *
+w32_create_terminal (struct w32_display_info *dpyinfo)
+{
+  struct terminal *terminal;
+  
+  terminal = create_terminal ();
+
+  terminal->type = output_w32;
+  terminal->display_info.w32 = dpyinfo;
+  dpyinfo->terminal = terminal;
+
+  /* MSVC does not type K&R functions with no arguments correctly, and
+     so we must explicitly cast them.  */
+  terminal->clear_frame_hook = x_clear_frame;
+  terminal->ins_del_lines_hook = x_ins_del_lines;
+  terminal->delete_glyphs_hook = x_delete_glyphs;
+  terminal->ring_bell_hook = w32_ring_bell;
+  terminal->reset_terminal_modes_hook = w32_reset_terminal_modes;
+  terminal->set_terminal_modes_hook = w32_set_terminal_modes;
+  terminal->update_begin_hook = x_update_begin;
+  terminal->update_end_hook = x_update_end;
+  terminal->set_terminal_window_hook = w32_set_terminal_window;
+  terminal->read_socket_hook = w32_read_socket;
+  terminal->frame_up_to_date_hook = w32_frame_up_to_date;
+  terminal->mouse_position_hook = w32_mouse_position;
+  terminal->frame_rehighlight_hook = w32_frame_rehighlight;
+  terminal->frame_raise_lower_hook = w32_frame_raise_lower;
+  //  terminal->fullscreen_hook = XTfullscreen_hook;
+  terminal->set_vertical_scroll_bar_hook = w32_set_vertical_scroll_bar;
+  terminal->condemn_scroll_bars_hook = w32_condemn_scroll_bars;
+  terminal->redeem_scroll_bar_hook = w32_redeem_scroll_bar;
+  terminal->judge_scroll_bars_hook = w32_judge_scroll_bars;
+
+  terminal->delete_frame_hook = x_destroy_window;
+  terminal->delete_terminal_hook = x_delete_terminal;
+  
+  terminal->rif = &w32_redisplay_interface;
+  terminal->scroll_region_ok = 1;    /* We'll scroll partial frames. */
+  terminal->char_ins_del_ok = 1;
+  terminal->line_ins_del_ok = 1;         /* We'll just blt 'em. */
+  terminal->fast_clear_end_of_line = 1;  /* X does this well. */
+  terminal->memory_below_frame = 0;   /* We don't remember what scrolls
+                                        off the bottom. */
+
+  return terminal;
+}
+
+static void
+x_delete_terminal (struct terminal *terminal)
+{
+  struct w32_display_info *dpyinfo = terminal->display_info.w32;
+  int i;
+
+  /* Protect against recursive calls.  Fdelete_frame in
+     delete_terminal calls us back when it deletes our last frame.  */
+  if (terminal->deleted)
+    return;
+
+  BLOCK_INPUT;
+  /* Free the fonts in the font table.  */
+  for (i = 0; i < dpyinfo->n_fonts; i++)
+    if (dpyinfo->font_table[i].name)
+      {
+        DeleteObject (((XFontStruct*)(dpyinfo->font_table[i].font))->hfont);
+      }
+
+  x_delete_display (dpyinfo);
+  UNBLOCK_INPUT;
+}
+
 struct w32_display_info *
 w32_term_init (display_name, xrm_option, resource_name)
      Lisp_Object display_name;
@@ -6184,6 +6270,7 @@ w32_term_init (display_name, xrm_option, resource_name)
      char *resource_name;
 {
   struct w32_display_info *dpyinfo;
+  struct terminal *terminal;
   HDC hdc;
 
   BLOCK_INPUT;
@@ -6197,6 +6284,12 @@ w32_term_init (display_name, xrm_option, resource_name)
   w32_initialize_display_info (display_name);
 
   dpyinfo = &one_w32_display_info;
+  terminal = w32_create_terminal (dpyinfo);
+
+  /* Set the name of the terminal. */
+  terminal->name = (char *) xmalloc (SBYTES (display_name) + 1);
+  strncpy (terminal->name, SDATA (display_name), SBYTES (display_name));
+  terminal->name[SBYTES (display_name)] = 0;
 
   dpyinfo->xrdb = xrm_option ? w32_make_rdb (xrm_option) : NULL;
 
@@ -6257,7 +6350,6 @@ w32_term_init (display_name, xrm_option, resource_name)
 }
 
 /* Get rid of display DPYINFO, assuming all frames are already gone.  */
-
 void
 x_delete_display (dpyinfo)
      struct w32_display_info *dpyinfo;
@@ -6309,73 +6401,8 @@ x_delete_display (dpyinfo)
 DWORD WINAPI w32_msg_worker (void * arg);
 
 void
-x_flush (struct frame * f)
-{ /* Nothing to do */ }
-
-extern frame_parm_handler w32_frame_parm_handlers[];
-
-static struct redisplay_interface w32_redisplay_interface =
-{
-  w32_frame_parm_handlers,
-  x_produce_glyphs,
-  x_write_glyphs,
-  x_insert_glyphs,
-  x_clear_end_of_line,
-  x_scroll_run,
-  x_after_update_window_line,
-  x_update_window_begin,
-  x_update_window_end,
-  x_cursor_to,
-  x_flush,
-  0,  /* flush_display_optional */
-  x_clear_window_mouse_face,
-  w32_get_glyph_overhangs,
-  x_fix_overlapping_area,
-  w32_draw_fringe_bitmap,
-  w32_define_fringe_bitmap,
-  w32_destroy_fringe_bitmap,
-  w32_per_char_metric,
-  w32_encode_char,
-  NULL, /* w32_compute_glyph_string_overhangs */
-  x_draw_glyph_string,
-  w32_define_frame_cursor,
-  w32_clear_frame_area,
-  w32_draw_window_cursor,
-  w32_draw_vertical_window_border,
-  w32_shift_glyphs_for_insert
-};
-
-void
 w32_initialize ()
 {
-  rif = &w32_redisplay_interface;
-
-  /* MSVC does not type K&R functions with no arguments correctly, and
-     so we must explicitly cast them.  */
-  clear_frame_hook = (void (*)(void)) x_clear_frame;
-  ring_bell_hook = (void (*)(void)) w32_ring_bell;
-  update_begin_hook = x_update_begin;
-  update_end_hook = x_update_end;
-
-  read_socket_hook = w32_read_socket;
-
-  frame_up_to_date_hook = w32_frame_up_to_date;
-
-  mouse_position_hook = w32_mouse_position;
-  frame_rehighlight_hook = w32_frame_rehighlight;
-  frame_raise_lower_hook = w32_frame_raise_lower;
-  set_vertical_scroll_bar_hook = w32_set_vertical_scroll_bar;
-  condemn_scroll_bars_hook = w32_condemn_scroll_bars;
-  redeem_scroll_bar_hook = w32_redeem_scroll_bar;
-  judge_scroll_bars_hook = w32_judge_scroll_bars;
-
-  TTY_SCROLL_REGION_OK (CURTTY ()) = 1; /* we'll scroll partial frames */
-  TTY_CHAR_INS_DEL_OK (CURTTY ()) = 1;
-  TTY_LINE_INS_DEL_OK (CURTTY ()) = 1; /* we'll just blt 'em */
-  TTY_FAST_CLEAR_END_OF_LINE (CURTTY ()) = 1; /* X does this well */
-  TTY_MEMORY_BELOW_FRAME (CURTTY ()) = 0; /* we don't remember what
-                                                            scrolls off the
-                                                            bottom */
   baud_rate = 19200;
 
   w32_system_caret_hwnd = NULL;
