@@ -1,3 +1,30 @@
+2007-05-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (pbm_load): Check image size for monochrome pbm.
+
+2007-05-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.c (XTread_socket): Revert last change.
+
+2007-05-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (pbm_load): Correctly check image size for greyscale pbm.
+
+	* xterm.c (XTread_socket): Yet Another Uncaught X Error Crash (YAUXEC).
+
+2007-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* editfns.c (Ftranspose_regions): Yet another int/Lisp_Object mixup (YAILOM)
+
+2007-05-07  Andreas Schwab  <schwab@suse.de>
+
+	* keymap.c (Flookup_key): Fix typo in last change. 
+
+2007-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (Fdefine_key, Flookup_key): Only do the 0x80->meta_modifier
+	mapping for unibyte strings.
+
 2007-05-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macmenu.c (mac_dialog_show): Apply 2007-04-27 change for xmenu.c.
@@ -62,8 +89,8 @@
 
 2007-04-16  Chong Yidong  <cyd@stupidchicken.com>
 
-	* dispnew.c (adjust_frame_glyphs_for_frame_redisplay): Set
-	garbaged flag in presence of window margins.
+	* dispnew.c (adjust_frame_glyphs_for_frame_redisplay):
+	Set garbaged flag in presence of window margins.
 	(showing_window_margins_p): New function.
 
 	* xdisp.c (cursor_row_p): Only end row on newline if it's a

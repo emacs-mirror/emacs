@@ -45,12 +45,12 @@
   :group 'languages)
 
 (defcustom sgml-basic-offset 2
-  "*Specifies the basic indentation level for `sgml-indent-line'."
+  "Specifies the basic indentation level for `sgml-indent-line'."
   :type 'integer
   :group 'sgml)
 
 (defcustom sgml-transformation-function 'identity
-  "*Default value for `skeleton-transformation-function' in SGML mode."
+  "Default value for `skeleton-transformation-function' in SGML mode."
   :type 'function
   :group 'sgml)
 
@@ -164,7 +164,7 @@ This takes effect when first loading the `sgml-mode' library.")
   "Syntax table used to parse SGML tags.")
 
 (defcustom sgml-name-8bit-mode nil
-  "*When non-nil, insert non-ASCII characters as named entities."
+  "When non-nil, insert non-ASCII characters as named entities."
   :type 'boolean
   :group 'sgml)
 
@@ -223,7 +223,7 @@ Currently, only Latin-1 characters are supported.")
 ;; The -s option suppresses output.
 
 (defcustom sgml-validate-command "nsgmls -s" ; replaced old `sgmls'
-  "*The command to validate an SGML document.
+  "The command to validate an SGML document.
 The file name of current buffer file name will be appended to this,
 separated by a space."
   :type 'string
@@ -236,7 +236,7 @@ separated by a space."
 ;; I doubt that null end tags are used much for large elements,
 ;; so use a small distance here.
 (defcustom sgml-slash-distance 1000
-  "*If non-nil, is the maximum distance to search for matching `/'."
+  "If non-nil, is the maximum distance to search for matching `/'."
   :type '(choice (const nil) integer)
   :group 'sgml)
 
@@ -316,7 +316,7 @@ When more these are fontified together with `sgml-font-lock-keywords'.")
     ("!doctype")
     ("!element")
     ("!entity"))
-  "*Alist of tag names for completing read and insertion rules.
+  "Alist of tag names for completing read and insertion rules.
 This alist is made up as
 
   ((\"tag\" . TAGRULE)
@@ -346,15 +346,14 @@ an optional alist of possible values."
     ("!doctype" . "Document type (DTD) declaration")
     ("!element" . "Tag declaration")
     ("!entity" . "Entity (macro) declaration"))
-  "*Alist of tag name and short description."
+  "Alist of tag name and short description."
   :type '(repeat (cons (string :tag "Tag Name")
 		       (string :tag "Description")))
   :group 'sgml)
 
 (defcustom sgml-xml-mode nil
-  "*When non-nil, tag insertion functions will be XML-compliant.
-If this variable is customized, the custom value is used always.
-Otherwise, it is set to be buffer-local when the file has
+  "When non-nil, tag insertion functions will be XML-compliant.
+It is set to be buffer-local when the file has
 a DOCTYPE or an XML declaration."
   :type 'boolean
   :version "22.1"
@@ -935,7 +934,7 @@ and move to the line in the SGML document that caused it."
 (defun sgml-lexical-context (&optional limit)
   "Return the lexical context at point as (TYPE . START).
 START is the location of the start of the lexical element.
-TYPE is one of `string', `comment', `tag', `cdata', or `text'.
+TYPE is one of `string', `comment', `tag', `cdata', `pi', or `text'.
 
 Optional argument LIMIT is the position to start parsing from.
 If nil, start from a preceding tag at indentation."
@@ -962,12 +961,19 @@ If nil, start from a preceding tag at indentation."
                   (let ((cdata-start (point)))
                     (unless (search-forward "]]>" pos 'move)
                       (list 0 nil nil 'cdata nil nil nil nil cdata-start))))
+                 ((and sgml-xml-mode (looking-at "<\\?"))
+                  ;; Processing Instructions.
+                  ;; In SGML, it's basically a normal tag of the form
+                  ;; <?NAME ...> but in XML, it takes the form <? ... ?>.
+                  (let ((pi-start (point)))
+                    (unless (search-forward "?>" pos 'move)
+                      (list 0 nil nil 'pi nil nil nil nil pi-start))))
                  (t
                   ;; We've reached a tag.  Parse it.
                   ;; FIXME: Handle net-enabling start-tags
                   (parse-partial-sexp (point) pos 0))))))
       (cond
-       ((eq (nth 3 state) 'cdata) (cons 'cdata (nth 8 state)))
+       ((memq (nth 3 state) '(cdata pi)) (cons (nth 3 state) (nth 8 state)))
        ((nth 3 state) (cons 'string (nth 8 state)))
        ((nth 4 state) (cons 'comment (nth 8 state)))
        ((and state (> (nth 0 state) 0)) (cons 'tag (nth 1 state)))
@@ -1001,8 +1007,10 @@ See `sgml-tag-alist' for info about attribute rules."
 	      (insert alist ?\")
 	    (delete-backward-char 2)))
       (insert "=\"")
-      (when alist
-        (insert (skeleton-read '(completing-read "Value: " alist))))
+      (if (cdr alist)
+          (insert (skeleton-read '(completing-read "Value: " alist)))
+        (when (null alist)
+          (insert (skeleton-read '(read-string "Value: ")))))
       (insert ?\"))))
 
 (defun sgml-quote (start end &optional unquotep)
@@ -1091,9 +1099,15 @@ Leave point at the beginning of the tag."
       (when (eq (char-after) ?<)
 	;; Oops!! Looks like we were not in a textual context after all!.
 	;; Let's try to recover.
+        ;; Remember the tag-start so we don't need to look for it later.
+	;; This is not just an optimization but also makes sure we don't get
+	;; stuck in infloops in cases where "looking back for <" would not go
+	;; back far enough.
+        (setq tag-start (point))
 	(with-syntax-table sgml-tag-syntax-table
 	  (let ((pos (point)))
 	    (condition-case nil
+                ;; FIXME: This does not correctly skip over PI an CDATA tags.
 		(forward-sexp)
 	      (scan-error
 	       ;; This < seems to be just a spurious one, let's ignore it.
@@ -1108,33 +1122,41 @@ Leave point at the beginning of the tag."
       (cond
        ((sgml-looking-back-at "--")	; comment
 	(setq tag-type 'comment
-	      tag-start (search-backward "<!--" nil t)))
+	      tag-start (or tag-start (search-backward "<!--" nil t))))
        ((sgml-looking-back-at "]]")	; cdata
 	(setq tag-type 'cdata
-	      tag-start (re-search-backward "<!\\[[A-Z]+\\[" nil t)))
+	      tag-start (or tag-start
+                            (re-search-backward "<!\\[[A-Z]+\\[" nil t))))
+       ((sgml-looking-back-at "?")      ; XML processing-instruction
+        (setq tag-type 'pi
+              ;; IIUC: SGML processing instructions take the form <?foo ...>
+              ;; i.e. a "normal" tag, handled below.  In XML this is changed
+              ;; to <?foo ... ?> where "..." can contain < and > and even <?
+              ;; but not ?>.  This means that when parsing backward, there's
+              ;; no easy way to make sure that we find the real beginning of
+              ;; the PI.
+	      tag-start (or tag-start (search-backward "<?" nil t))))
        (t
-	(setq tag-start
-	      (with-syntax-table sgml-tag-syntax-table
-		(goto-char tag-end)
-		(condition-case nil
-		    (backward-sexp)
-		  (scan-error
-		   ;; This > isn't really the end of a tag. Skip it.
-		   (goto-char (1- tag-end))
-		   (throw 'found (sgml-parse-tag-backward limit))))
-		(point)))
+        (unless tag-start
+          (setq tag-start
+                (with-syntax-table sgml-tag-syntax-table
+                  (goto-char tag-end)
+                  (condition-case nil
+                      (backward-sexp)
+                    (scan-error
+                     ;; This > isn't really the end of a tag. Skip it.
+                     (goto-char (1- tag-end))
+                     (throw 'found (sgml-parse-tag-backward limit))))
+                  (point))))
 	(goto-char (1+ tag-start))
 	(case (char-after)
-	  (?!				; declaration
-	   (setq tag-type 'decl))
-	  (??				; processing-instruction
-	   (setq tag-type 'pi))
+	  (?! (setq tag-type 'decl))    ; declaration
+	  (?? (setq tag-type 'pi))      ; processing-instruction
+	  (?% (setq tag-type 'jsp))	; JSP tags
 	  (?/				; close-tag
 	   (forward-char 1)
 	   (setq tag-type 'close
 		 name (sgml-parse-tag-name)))
-	  (?%				; JSP tags
-	   (setq tag-type 'jsp))
 	  (t				; open or empty tag
 	   (setq tag-type 'open
 		 name (sgml-parse-tag-name))
@@ -1329,6 +1351,8 @@ LCON is the lexical context, if any."
 
     ;; We don't know how to indent it.  Let's be honest about it.
     (cdata nil)
+    ;; We don't know how to indent it.  Let's be honest about it.
+    (pi nil)
 
     (tag
      (goto-char (1+ (cdr lcon)))

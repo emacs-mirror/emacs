@@ -1,16 +1,156 @@
+2007-05-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmail.el (rmail-convert-to-babyl-format): Check
+	content-transfer-encoding _last_, because it's its position that
+	we need as value of base64-header-field-end.
+
+2007-05-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* files.el (mode-require-final-newline, require-final-newline)
+	(enable-local-variables, enable-local-eval): Doc fixes.
+
+2007-05-13  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Use default color when foreground or background color
+	are unspecified.  Reported by Leo <sdl.web@gmail.com>.
+	(ps-print-version): New version 6.7.4.
+	(ps-rgb-color): New argument.  Use default color when color is
+	unspecified.
+	(ps-begin-job): Fix code.
+
+2007-05-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-mode): Make longlines-auto-wrap
+	buffer-local.  Add hooks unconditionally.
+	(longlines-auto-wrap): Toggle wrapping.
+	(longlines-after-change-function)
+	(longlines-post-command-function): Check longlines-auto-wrap.
+
+2007-05-12  Nick Roberts  <nickrob@snap.net.nz>
+
+	* xt-mouse.el (xterm-mouse-debug-buffer): New variable.
+	(xterm-mouse-translate): Use it.
+
+2007-05-10  Richard Stallman  <rms@gnu.org>
+
+	* international/iso-cvt.el (iso-cvt-read-only): Ignore arguments.
+	(iso-cvt-write-only): Likewise.
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode):
+	Fix generated doc string.
+
+	* startup.el (fancy-splash-text): Add URL of guided tour.
+	Adjust horizontal and vertical whitespace.
+
+	* progmodes/compile.el (compilation-handle-exit):
+	Use run-hook-with-args to run compilation-finish-functions.
+
+	* files.el (file-start-mode-alist): New variable.
+	(magic-mode-regexp-match-limit): Doc fix.
+	(set-auto-mode): Handle file-start-mode-alist.
+	A little cleanup of structure.
+
+2007-05-10  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+
+	* man.el (Man-next-section): Don't consider the last line of the page
+	as being part of any section.
+
+2007-05-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/sgml-mode.el (sgml-value): Fix handling of attributes which
+	can take any number of values.
+
+2007-05-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-font-lock-keywords-2): Add citet and citep
+	to the list of citation commands.
+
+2007-05-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-find-root): Stop searching when the user changes.
+
+2007-05-09  Edward O'Connor  <hober0@gmail.com>  (tiny change)
+
+	* progmodes/python.el (python-font-lock-keywords)
+	(python-open-block-statement-p, python-mode): Add support for the new
+	"with" keyword.
+
+2007-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-apply-hunk, diff-test-hunk): Don't do by default
+	the exact opposite of diff-goto-source.
+
+	* emacs-lisp/advice.el (ad-special-forms): Remove.
+	(ad-special-form-p): Use subr-arity.
+
+	* newcomment.el (comment-search-forward): Make sure we search forward.
+	(comment-enter-backward): Try and distinguish the non-matching case at
+	EOB from the non-matching case with a missing comment-end-skip for
+	a 2-char comment ender.
+	(comment-choose-indent): New function extracted from comment-indent.
+	Improve the alignment algorithm.
+	(comment-indent): Use it.
+
+	* textmodes/sgml-mode.el (sgml-lexical-context): Add handling of
+	XML style Processing Instructions.
+	(sgml-parse-tag-backward): Handle XML-style PIs.  Also ensure progress.
+	(sgml-calculate-indent): Handle `pi' context.
+
+	* vc.el: Ensure that update-changelog issues an error when used with
+	a backend that does not implement it.
+	(vc-update-changelog-rcs2log): Rename from vc-default-update-changelog.
+	Remove `backend' argument.  Use expand-file-name.
+	(vc-cvs-update-changelog, vc-rcs-update-changelog): New aliases.
+
+	* progmodes/python.el (python-end-of-block): Revert last change.
+	(python-end-of-statement): Make sure we move *forward*.
+
+2007-05-08  Richard Stallman  <rms@gnu.org>
+
+	* mail/mailabbrev.el (sendmail-pre-abbrev-expand-hook):
+	Don't include non-self-insert commands in the exception for `-'.
+
+2007-05-08  David Reitter  <david.reitter@gmail.com>
+
+	* progmodes/python.el (python-guess-indent): Check non-nullness
+	before comparing indent against the 2..8 interval.
+
+2007-05-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-ts-unicode-for-key-event): Check if text is
+	available.
+
+2007-05-06  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/eldoc.el (turn-on-eldoc-mode): Doc fix.
+
+2007-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff.el (diff): Use buffer-local vars diff-old-file and diff-new-file
+	rather than storing their value in the revert-buffer function.
+
+2007-05-04  Nick Roberts  <nickrob@snap.net.nz>
+
+	* t-mouse.el (t-mouse-mode): Do nothing on a graphical display
+	when disabling t-mouse-mode.
+
 2007-05-01  Davis Herring  <herring@lanl.gov>
 
-        * calendar/timeclock.el: Update version number.
-        (timeclock-modeline-display): Mention timeclock-use-display-time
-        in explanatory message.
-        (timeclock-in): Fix non-interactive workday specifications.
-        (timeclock-log): Don't kill the log buffer if it already existed.
-        Suppress warnings when finding the log.  Don't check for a nil
-        project twice.  Run hooks after killing the buffer (if
-        applicable).
-        (timeclock-geometric-mean): Rename to `timeclock-mean' (it never
-        was geometric).  All uses changed.
-        (timeclock-generate-report): Support prefix argument.
+	* calendar/timeclock.el: Update version number.
+	(timeclock-modeline-display): Mention timeclock-use-display-time
+	in explanatory message.
+	(timeclock-in): Fix non-interactive workday specifications.
+	(timeclock-log): Don't kill the log buffer if it already existed.
+	Suppress warnings when finding the log.  Don't check for a nil
+	project twice.  Run hooks after killing the buffer (if applicable).
+	(timeclock-geometric-mean): Rename to `timeclock-mean' (it never
+	was geometric).  All uses changed.
+	(timeclock-generate-report): Support prefix argument.
+
+2007-05-03  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el (rcirc-timeout-seconds): Increase to prevent unwanted
+	disconnections.
 
 2007-05-01  Romain Francoise  <romain@orebokech.com>
 
@@ -13640,8 +13780,8 @@
 
 2006-01-29  Edward O'Connor  <ted@oconnor.cx>
 
-	* emulation/viper.el (viper-major-mode-modifier-list): Add
-	insert-state and vi-state entries for erc-mode.
+	* emulation/viper.el (viper-major-mode-modifier-list):
+	Add insert-state and vi-state entries for erc-mode.
 	(viper-go-away, viper-set-hooks): Add and remove
 	viper-comint-mode-hook from erc-mode-hook as appropriate.
 

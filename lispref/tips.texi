@@ -648,75 +648,18 @@ you need to explain the details of how to use the function or
 variable.  Please use complete sentences for the rest of the text too.
 
 @item
-The first line should mention all the important arguments of the
-function, and should mention them in the order that they are written
-in a function call.  If the function has many arguments, then it is
-not feasible to mention them all in the first line; in that case, the
-first line should mention the first few arguments, including the most
-important arguments.
-
-@item
-For consistency, phrase the verb in the first sentence of a function's
-documentation string as an imperative---for instance, use ``Return the
-cons of A and B.'' in preference to ``Returns the cons of A and B@.''
-Usually it looks good to do likewise for the rest of the first
-paragraph.  Subsequent paragraphs usually look better if each sentence
-is indicative and has a proper subject.
-
-@item
-Write documentation strings in the active voice, not the passive, and in
-the present tense, not the future.  For instance, use ``Return a list
-containing A and B.'' instead of ``A list containing A and B will be
-returned.''
-
-@item
-Avoid using the word ``cause'' (or its equivalents) unnecessarily.
-Instead of, ``Cause Emacs to display text in boldface,'' write just
-``Display text in boldface.''
-
-@item
-When a command is meaningful only in a certain mode or situation,
-do mention that in the documentation string.  For example,
-the documentation of @code{dired-find-file} is:
-
-@example
-In Dired, visit the file or directory named on this line.
-@end example
-
-@item
-Do not start or end a documentation string with whitespace.
-
-@item
-@strong{Do not} indent subsequent lines of a documentation string so
-that the text is lined up in the source code with the text of the first
-line.  This looks nice in the source code, but looks bizarre when users
-view the documentation.  Remember that the indentation before the
-starting double-quote is not part of the string!
-
-@item
 When the user tries to use a disabled command, Emacs displays just the
 first paragraph of its documentation string---everything through the
 first blank line.  If you wish, you can choose which information to
 include before the first blank line so as to make this display useful.
 
 @item
-When you define a variable that users ought to set interactively, you
-normally should use @code{defcustom}.  However, if for some reason you
-use @code{defvar} instead, start the doc string with a @samp{*}.
-@xref{Defining Variables}.
-
-@item
-The documentation string for a variable that is a yes-or-no flag should
-start with words such as ``Non-nil means,'' to make it clear that
-all non-@code{nil} values are equivalent and indicate explicitly what
-@code{nil} and non-@code{nil} mean.
-
-@item
-The documentation string for a function that is a yes-or-no predicate
-should start with words such as ``Return t if,'' to indicate
-explicitly what constitutes ``truth.''  The word ``return'' avoids
-starting the sentence with lower-case ``t,'' which could be somewhat
-distracting.
+The first line should mention all the important arguments of the
+function, and should mention them in the order that they are written
+in a function call.  If the function has many arguments, then it is
+not feasible to mention them all in the first line; in that case, the
+first line should mention the first few arguments, including the most
+important arguments.
 
 @item
 When a function's documentation string mentions the value of an argument
@@ -754,16 +697,14 @@ and that annoys you, rewrite the sentence so that the symbol
 is not at the start of it.
 
 @item
-If a line in a documentation string begins with an open-parenthesis,
-write a backslash before the open-parenthesis, like this:
+Do not start or end a documentation string with whitespace.
 
-@example
-The argument FOO can be either a number
-\(a buffer position) or a string (a file name).
-@end example
-
-This prevents the open-parenthesis from being treated as the start of a
-defun (@pxref{Defuns,, Defuns, emacs, The GNU Emacs Manual}).
+@item
+@strong{Do not} indent subsequent lines of a documentation string so
+that the text is lined up in the source code with the text of the first
+line.  This looks nice in the source code, but looks bizarre when users
+view the documentation.  Remember that the indentation before the
+starting double-quote is not part of the string!
 
 @anchor{Docstring hyperlinks}
 @item
@@ -781,6 +722,7 @@ t and nil without single-quotes.  (In this manual, we use a different
 convention, with single-quotes for all symbols.)
 @end ifnottex
 
+@cindex hyperlinks in documentation strings
 Help mode automatically creates a hyperlink when a documentation string
 uses a symbol name inside single quotes, if the symbol has either a
 function or a variable definition.  You do not need to do anything
@@ -863,6 +805,65 @@ It is not practical to use @samp{\\[@dots{}]} very many times, because
 display of the documentation string will become slow.  So use this to
 describe the most important commands in your major mode, and then use
 @samp{\\@{@dots{}@}} to display the rest of the mode's keymap.
+
+@item
+For consistency, phrase the verb in the first sentence of a function's
+documentation string as an imperative---for instance, use ``Return the
+cons of A and B.'' in preference to ``Returns the cons of A and B@.''
+Usually it looks good to do likewise for the rest of the first
+paragraph.  Subsequent paragraphs usually look better if each sentence
+is indicative and has a proper subject.
+
+@item
+The documentation string for a function that is a yes-or-no predicate
+should start with words such as ``Return t if,'' to indicate
+explicitly what constitutes ``truth.''  The word ``return'' avoids
+starting the sentence with lower-case ``t,'' which could be somewhat
+distracting.
+
+@item
+If a line in a documentation string begins with an open-parenthesis,
+write a backslash before the open-parenthesis, like this:
+
+@example
+The argument FOO can be either a number
+\(a buffer position) or a string (a file name).
+@end example
+
+This prevents the open-parenthesis from being treated as the start of a
+defun (@pxref{Defuns,, Defuns, emacs, The GNU Emacs Manual}).
+
+@item
+Write documentation strings in the active voice, not the passive, and in
+the present tense, not the future.  For instance, use ``Return a list
+containing A and B.'' instead of ``A list containing A and B will be
+returned.''
+
+@item
+Avoid using the word ``cause'' (or its equivalents) unnecessarily.
+Instead of, ``Cause Emacs to display text in boldface,'' write just
+``Display text in boldface.''
+
+@item
+When a command is meaningful only in a certain mode or situation,
+do mention that in the documentation string.  For example,
+the documentation of @code{dired-find-file} is:
+
+@example
+In Dired, visit the file or directory named on this line.
+@end example
+
+@item
+When you define a variable that users ought to set interactively, you
+normally should use @code{defcustom}.  However, if for some reason you
+use @code{defvar} instead, start the doc string with a @samp{*}.
+@xref{Defining Variables}.
+
+@item
+The documentation string for a variable that is a yes-or-no flag should
+start with words such as ``Non-nil means,'' to make it clear that
+all non-@code{nil} values are equivalent and indicate explicitly what
+@code{nil} and non-@code{nil} mean.
 @end itemize
 
 @node Comment Tips

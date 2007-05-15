@@ -594,6 +594,33 @@ but which can also be used as a modifier).
 
 * Other known bugs:
 
+** The \\{...} keymap dump output does not correctly remove shadowed entries:
+From: "Drew Adams" <drew.adams@oracle.com>
+
+(define-key minibuffer-local-map [(control ?=)] 'foo)
+(define-key minibuffer-local-completion-map [(control ?=)] 'foo)
+
+(defun toto () "\\{minibuffer-local-completion-map}"  4)
+
+C-h f toto shows a duplicate entry for C-=:
+
+toto is a Lisp function.
+(toto)
+
+key             binding
+- ---             -------
+
+C-g		abort-recursive-edit
+TAB		minibuffer-complete
+C-j		exit-minibuffer
+RET		exit-minibuffer
+ESC		Prefix Command
+SPC		minibuffer-complete-word
+?		minibuffer-completion-help
+C-=		foo
+C-=		foo
+...
+
 ** a two-char comment-starter whose two chars are symbol constituents will
 not be noticed if it appears within a word.
 

@@ -1,3 +1,7 @@
+2007-05-03  Glenn Morris  <rgm@gnu.org>
+
+	* configure: Tweak message about the absence of shell functions.
+
 2007-04-27  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in (config.status): Depend on

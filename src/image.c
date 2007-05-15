@@ -5730,7 +5730,17 @@ pbm_load (f, img)
 	    if (raw_p)
 	      {
 		if ((x & 7) == 0)
-		  c = *p++;
+		  {
+		    if (p >= end)
+		      {
+			x_destroy_x_image (ximg);
+			x_clear_image (f, img);
+			image_error ("Invalid image size in image `%s'",
+				     img->spec, Qnil);
+			goto error;
+		      }
+		    c = *p++;
+		  }
 		g = c & 0x80;
 		c <<= 1;
 	      }
@@ -5742,9 +5752,13 @@ pbm_load (f, img)
     }
   else
     {
-      if (raw_p && (p + 3 * height * width > end))
+      if (raw_p
+	  && ((type == PBM_GRAY)
+	      ? (p + height * width > end)
+	      : (p + 3 * height * width > end)))
 	{
 	  x_destroy_x_image (ximg);
+	  x_clear_image (f, img);
 	  image_error ("Invalid image size in image `%s'",
 		       img->spec, Qnil);
 	  goto error;

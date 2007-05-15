@@ -1,3 +1,24 @@
+2007-05-15  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+
+	* fr-refcard.tex: Rewrite using German layout.
+
+	* fr-refcard.ps: Regenerate.
+
+2007-05-12  Richard Stallman  <rms@gnu.org>
+
+	* refcard.tex (section{Incremental Search}): Minor corrections.
+
+2007-05-12  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+
+	* Makefile (viperCard.ps, calccard.ps refcard.ps)
+	(sk-dired-ref.ps sk-refcard.ps sk-survival.ps)
+	(de-refcard.ps fr-refcard.ps pt-br-refcard.ps orgcard.ps): Use an
+	explicit output argument for `dvips'.
+
+2007-05-05  Glenn Morris  <rgm@gnu.org>
+
+	* NEWS: Re-order.
+
 2007-04-28  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.py: Restore file pending consideration of python.el legal

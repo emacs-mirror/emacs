@@ -64,10 +64,10 @@ use the set command until the inferior process has been started.
 Put a breakpoint early in `main', or suspend the Emacs,
 to get an opportunity to do the set command.
 
-When Emacs is running in a terminal, it is useful to use a separate terminal
-for the debug session.  This can be done by starting Emacs as usual, then
-attaching to it from gdb with the `attach' command which is explained in the
-node "Attach" of the GDB manual.
+When Emacs is running in a terminal, it is sometimes useful to use a separate
+terminal for the debug session.  This can be done by starting Emacs as usual,
+then attaching to it from gdb with the `attach' command which is explained in
+the node "Attach" of the GDB manual.
 
 ** Examining Lisp object values.
 
