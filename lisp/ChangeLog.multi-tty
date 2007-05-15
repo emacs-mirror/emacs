@@ -1,0 +1,36 @@
+2007-05-16  Jason Rumney  <jasonr@gnu.org>
+
+	* term/w32-win.el: Provide w32-win.
+	Don't throw error when global window-system not w32.
+	(x-cut-buffer-max): Remove.
+	(w32-initialize-window-system): New function.
+	(handle-args-function-alist, frame-creation-function-alist):
+	(window-system-initialization-alist): Add w32 entries.
+
+	* loadup.el: Only load x-dnd and x-win when X is compiled in.
+	Load w32-win and dependencies on windows-nt.
+
+;; Local Variables:
+;; coding: iso-2022-7bit
+;; add-log-time-zone-rule: t
+;; End:
+
+    Copyright (C) 2007 Free Software Foundation, Inc.
+
+  This file is part of GNU Emacs.
+
+  GNU Emacs is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2, or (at your option)
+  any later version.
+
+  GNU Emacs is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with GNU Emacs; see the file COPYING.  If not, write to the
+  Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+  Boston, MA 02110-1301, USA.
+
