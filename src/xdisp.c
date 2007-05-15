@@ -16466,7 +16466,7 @@ display_menu_bar (w)
 
   /* Don't do all this for graphical frames.  */
 #ifdef HAVE_NTGUI
-  if (!NILP (Vwindow_system))
+  if (FRAME_W32_P (f))
     return;
 #endif
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
