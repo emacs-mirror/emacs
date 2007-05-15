@@ -1705,6 +1705,7 @@ mac_init_fringe ()
 #endif
 {
   int bt;
+  struct redisplay_interface *rif = FRAME_RIF (SELECTED_FRAME ());
 
   if (!rif)
     return;
@@ -1723,6 +1724,7 @@ w32_reset_fringes ()
 {
   /* Destroy row bitmaps.  */
   int bt;
+  struct redisplay_interface *rif = FRAME_RIF (SELECTED_FRAME ());
 
   if (!rif)
     return;
