@@ -172,7 +172,7 @@ char *server_file = NULL;
 int emacs_pid = 0;
 
 /* Socket used to communicate with the Emacs server process.  */
-HSOCKET s;
+/*HSOCKET s;*/
 
 void print_help_and_exit () NO_RETURN;
 
@@ -889,6 +889,25 @@ set_tcp_socket ()
   return s;
 }
 
+
+/* Returns 1 if PREFIX is a prefix of STRING. */
+static int
+strprefix (char *prefix, char *string)
+{
+  int i;
+  if (! prefix)
+    return 1;
+
+  if (!string)
+    return 0;
+
+  for (i = 0; prefix[i]; i++)
+    if (!string[i] || string[i] != prefix[i])
+      return 0;
+  return 1;
+}
+
+
 #if !defined (NO_SOCKETS_IN_FILE_SYSTEM)
 
 /* Three possibilities:
@@ -976,7 +995,6 @@ handle_sigtstp (int signalnum)
 
   errno = old_errno;
 }
-
 /* Set up signal handlers before opening a frame on the current tty.  */
 
 void
@@ -996,25 +1014,6 @@ init_signals (void)
   signal (SIGCONT, handle_sigcont);
   signal (SIGTSTP, handle_sigtstp);
   signal (SIGTTOU, handle_sigtstp);
-}
-
-
-
-/* Returns 1 if PREFIX is a prefix of STRING. */
-static int
-strprefix (char *prefix, char *string)
-{
-  int i;
-  if (! prefix)
-    return 1;
-
-  if (!string)
-    return 0;
-
-  for (i = 0; prefix[i]; i++)
-    if (!string[i] || string[i] != prefix[i])
-      return 0;
-  return 1;
 }
 
 
@@ -1266,6 +1265,7 @@ main (argc, argv)
      int argc;
      char **argv;
 {
+  HSOCKET s;
   int i, rl, needlf = 0;
   char *cwd, *str;
   char string[BUFSIZ+1];
@@ -1347,7 +1347,10 @@ main (argc, argv)
 
   if (tty)
     {
-      char *tty_name = ttyname (fileno (stdin));
+      char *tty_name = NULL;
+#ifndef WINDOWSNT
+      tty_name = ttyname (fileno (stdin));
+#endif
       char *type = getenv ("TERM");
 
       if (! tty_name)
@@ -1370,8 +1373,9 @@ main (argc, argv)
                    " is not supported\n", progname);
           fail ();
         }
-
+#if !defined (NO_SOCKETS_IN_FILE_SYSTEM)
       init_signals ();
+#endif
 
       SEND_STRING ("-tty ");
       SEND_QUOTED (tty_name);
@@ -1498,6 +1502,7 @@ main (argc, argv)
           fprintf (stderr, "*ERROR*: %s", str);
           needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
         }
+#ifndef WINDOWSNT
       else if (strprefix ("-suspend ", string))
         {
           /* -suspend: Suspend this terminal, i.e., stop the process. */
@@ -1506,6 +1511,7 @@ main (argc, argv)
           needlf = 0;
           kill (0, SIGSTOP);
         }
+#endif
       else
         {
           /* Unknown command. */
