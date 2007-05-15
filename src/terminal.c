@@ -581,8 +581,9 @@ init_initial_terminal (void)
   initial_terminal = create_terminal ();
   initial_terminal->type = output_initial;
   initial_terminal->name = xstrdup ("initial_terminal");
+#ifdef MULTI_KBOARD
   initial_terminal->kboard = initial_kboard;
-
+#endif
   initial_terminal->delete_terminal_hook = &delete_initial_terminal;
   /* All other hooks are NULL. */
 
