@@ -1816,10 +1816,8 @@ x_set_tool_bar_lines (f, value, oldval)
      below the menu bar.  */
   if (FRAME_W32_WINDOW (f) && FRAME_TOOL_BAR_LINES (f) == 0)
     {
-      updating_frame = f;
-      clear_frame ();
+      clear_frame (f);
       clear_current_matrices (f);
-      updating_frame = NULL;
     }
 
   /* If the tool bar gets smaller, the internal border below it
@@ -4214,6 +4212,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   /* By default, make scrollbars the system standard width. */
   FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = GetSystemMetrics (SM_CXVSCROLL);
+
+  f->terminal = dpyinfo->terminal;
+  f->terminal->reference_count++;
 
   f->output_method = output_w32;
   f->output_data.w32 =
@@ -6703,8 +6704,10 @@ terminate Emacs if we can't open the connection.  */)
   if (! NILP (xrm_string))
     CHECK_STRING (xrm_string);
 
+#if 0
   if (! EQ (Vwindow_system, intern ("w32")))
     error ("Not using Microsoft Windows");
+#endif
 
   /* Allow color mapping to be defined externally; first look in user's
      HOME directory, then in Emacs etc dir for a file called rgb.txt. */
