@@ -603,7 +603,9 @@ make_terminal_frame (struct terminal *terminal)
 #else
 #ifdef WINDOWSNT
   f->output_method = output_termcap;
-  f->output_data.x = &tty_display; /* XXX ??? */
+  f->terminal = terminal;
+  f->terminal->reference_count++;
+  create_w32cons_output (f);
 #else
 #ifdef MAC_OS8
   make_mac_terminal_frame (f);
@@ -1553,8 +1555,10 @@ The functions are run with one arg, the frame to be deleted.  */)
         else
           delete_terminal (terminal);
       }
+#ifdef MULTI_KBOARD
     else
       kb = terminal->kboard;
+#endif
   }
 
   /* If we've deleted the last_nonminibuf_frame, then try to find
