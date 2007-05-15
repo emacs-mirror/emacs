@@ -68,8 +68,8 @@
 ;; An alist of X options and the function which handles them.  See
 ;; ../startup.el.
 
-(if (not (eq window-system 'w32))
-    (error "%s: Loading w32-win.el but not compiled for w32" (invocation-name)))
+;; (if (not (eq window-system 'w32))
+;;     (error "%s: Loading w32-win.el but not compiled for w32" (invocation-name)))
 
 (require 'frame)
 (require 'mouse)
@@ -1075,8 +1075,8 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 
 (setq frame-creation-function 'x-create-frame-with-faces)
 
-(setq x-cut-buffer-max (min (- (/ (x-server-max-request-size) 2) 100)
-			    x-cut-buffer-max))
+;; (setq x-cut-buffer-max (min (- (/ (x-server-max-request-size) 2) 100)
+;; 			    x-cut-buffer-max))
 
 ;; W32 expects the menu bar cut and paste commands to use the clipboard.
 ;; This has ,? to match both on Sunos and on Solaris.
@@ -1245,6 +1245,17 @@ pop-up menu are unaffected by `w32-list-proportional-fonts')."
         (jpeg "jpeg62.dll" "libjpeg.dll" "jpeg-62.dll" "jpeg.dll")
         (tiff "libtiff3.dll" "libtiff.dll")
         (gif "giflib4.dll" "libungif4.dll" "libungif.dll")))
+
+;; multi-tty support
+(defun w32-initialize-window-system ()
+  "Initialize Emacs for W32 GUI frames."
+)
+
+(add-to-list 'handle-args-function-alist '(w32 . x-handle-args))
+(add-to-list 'frame-creation-function-alist '(w32 . x-create-frame-with-faces))
+(add-to-list 'window-system-initialization-alist '(w32 . w32-initialize-window-system))
+
+(provide 'w32-win)
 
 ;; arch-tag: 69fb1701-28c2-4890-b351-3d1fe4b4f166
 ;;; w32-win.el ends here
