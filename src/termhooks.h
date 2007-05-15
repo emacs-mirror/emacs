@@ -327,6 +327,9 @@ struct terminal
   {
     struct tty_display_info *tty;     /* termchar.h */
     struct x_display_info *x;         /* xterm.h */
+#ifdef WINDOWSNT
+    struct w32_display_info *w32;     /* w32term.h */
+#endif
   } display_info;
 
 
