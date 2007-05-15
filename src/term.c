@@ -2365,6 +2365,7 @@ set_tty_hooks (struct terminal *terminal)
 static void
 dissociate_if_controlling_tty (int fd)
 {
+#ifndef WINDOWSNT
   int pgid;
   EMACS_GET_TTY_PGRP (fd, &pgid); /* If tcgetpgrp succeeds, fd is the ctty. */
   if (pgid != -1)
@@ -2389,6 +2390,7 @@ dissociate_if_controlling_tty (int fd)
 #endif  /* ! TIOCNOTTY */
 #endif  /* ! USG */
     }
+#endif
 }
 
 static void maybe_fatal();
@@ -2509,11 +2511,17 @@ init_tty (char *name, char *terminal_type, int must_succeed)
 
   area = (char *) xmalloc (2044);
 
-  FrameRows (tty) = FRAME_LINES (f); /* XXX */
-  FrameCols (tty) = FRAME_COLS (f);  /* XXX */
-  tty->specified_window = FRAME_LINES (f); /* XXX */
+  {
+    struct frame *f = XFRAME (selected_frame);
 
-  tty->terminal->delete_in_insert_mode = 1;
+    FrameRows (tty) = FRAME_LINES (f); /* XXX */
+    FrameCols (tty) = FRAME_COLS (f);  /* XXX */
+    tty->specified_window = FRAME_LINES (f); /* XXX */
+
+    FRAME_CAN_HAVE_SCROLL_BARS (f) = 0; /* XXX */
+    FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none; /* XXX */
+  }
+  tty->delete_in_insert_mode = 1;
 
   UseTabs (tty) = 0;
   terminal->scroll_region_ok = 0;
@@ -2526,9 +2534,7 @@ init_tty (char *name, char *terminal_type, int must_succeed)
 
   baud_rate = 19200;
 
-  FRAME_CAN_HAVE_SCROLL_BARS (f) = 0; /* XXX */
-  FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none; /* XXX */
-  TN_max_colors = 16;  /* Required to be non-zero for tty-display-color-p */
+  tty->TN_max_colors = 16;  /* Required to be non-zero for tty-display-color-p */
 
   return terminal;
 #else  /* not WINDOWSNT */
