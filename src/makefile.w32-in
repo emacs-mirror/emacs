@@ -123,7 +123,8 @@ OBJ1 =  $(BLD)/abbrev.$(O)			\
 	$(BLD)/ccl.$(O)				\
 	$(BLD)/fontset.$(O)			\
 	$(BLD)/fringe.$(O)			\
-	$(BLD)/image.$(O)
+	$(BLD)/image.$(O)			\
+	$(BLD)/terminal.$(O)
 
 WIN32OBJ = $(BLD)/w32term.$(O)			\
 	   $(BLD)/w32xfns.$(O)			\
