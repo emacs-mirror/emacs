@@ -859,18 +859,6 @@ alarm (int seconds)
   return 0;
 }
 
-void
-unrequest_sigio (void)
-{
-  return;
-}
-
-void
-request_sigio (void)
-{
-  return;
-}
-
 #define REG_ROOT "SOFTWARE\\GNU\\Emacs"
 
 LPBYTE
