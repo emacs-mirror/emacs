@@ -643,7 +643,9 @@ maybe_generate_resize_event ()
 }
 
 int
-w32_console_read_socket (int sd, int expected, struct input_event *hold_quit)
+w32_console_read_socket (struct terminal *terminal,
+                         int expected,
+                         struct input_event *hold_quit)
 {
   BOOL no_events = TRUE;
   int nev, ret = 0, add;
