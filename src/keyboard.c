@@ -678,7 +678,9 @@ static void save_getcjmp ();
 static void restore_getcjmp P_ ((jmp_buf));
 static Lisp_Object apply_modifiers P_ ((int, Lisp_Object));
 static void clear_event P_ ((struct input_event *));
+#ifdef MULTI_KBOARD
 static Lisp_Object restore_kboard_configuration P_ ((Lisp_Object));
+#endif
 static SIGTYPE interrupt_signal P_ ((int signalnum));
 static void handle_interrupt P_ ((void));
 static void timer_start_idle P_ ((void));
@@ -1222,6 +1224,7 @@ record_single_kboard_state ()
 }
 #endif
 
+#ifdef MULTI_KBOARD
 static Lisp_Object
 restore_kboard_configuration (was_locked)
      Lisp_Object was_locked;
@@ -1239,6 +1242,8 @@ restore_kboard_configuration (was_locked)
     }
   return Qnil;
 }
+#endif
+
 
 /* Handle errors that are not handled at inner levels
    by printing an error message and returning to the editor command loop.  */
