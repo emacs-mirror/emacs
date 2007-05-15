@@ -100,6 +100,9 @@ struct w32_display_info
   /* Chain of all w32_display_info structures.  */
   struct w32_display_info *next;
 
+  /* The generic display parameters corresponding to this w32 display.  */
+  struct terminal *terminal;
+
   /* This is a cons cell of the form (NAME . FONT-LIST-CACHE).
      The same cons cell also appears in x_display_name_list.  */
   Lisp_Object name_list_element;
@@ -681,6 +684,9 @@ extern void complete_deferred_msg (HWND hwnd, UINT msg, LRESULT result);
 extern void wait_for_sync ();
 
 extern BOOL parse_button ();
+
+extern void w32_sys_ring_bell (struct frame *f);
+extern void x_delete_display (struct w32_display_info *dpyinfo);
 
 /* Keypad command key support.  W32 doesn't have virtual keys defined
    for the function keys on the keypad (they are mapped to the standard
