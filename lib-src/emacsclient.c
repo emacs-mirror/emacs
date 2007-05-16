@@ -108,8 +108,8 @@ char *(getcwd) ();
 #define VERSION "unspecified"
 #endif
 
-#define SEND_STRING(data) (send_to_emacs (s, (data)))
-#define SEND_QUOTED(data) (quote_argument (s, (data)))
+#define SEND_STRING(data) (send_to_emacs (emacs_socket, (data)))
+#define SEND_QUOTED(data) (quote_argument (emacs_socket, (data)))
 
 #ifndef EXIT_SUCCESS
 #define EXIT_SUCCESS 0
@@ -170,9 +170,6 @@ char *server_file = NULL;
 
 /* PID of the Emacs server process.  */
 int emacs_pid = 0;
-
-/* Socket used to communicate with the Emacs server process.  */
-HSOCKET s;
 
 void print_help_and_exit () NO_RETURN;
 
@@ -567,6 +564,8 @@ extern int errno;
 /* Buffer to accumulate data to send in TCP connections.  */
 char send_buffer[SEND_BUFFER_SIZE + 1];
 int sblen = 0;	/* Fill pointer for the send buffer.  */
+/* Socket used to communicate with the Emacs server process.  */
+HSOCKET emacs_socket = 0;
 
 /* Let's send the data to Emacs when either
    - the data ends in "\n", or
@@ -1281,7 +1280,7 @@ main (argc, argv)
       exit (EXIT_FAILURE);
     }
 
-  if ((s = set_socket ()) == INVALID_SOCKET)
+  if ((emacs_socket = set_socket ()) == INVALID_SOCKET)
     fail ();
 
 
@@ -1453,7 +1452,7 @@ main (argc, argv)
   fsync (1);
 
   /* Now, wait for an answer and print any messages.  */
-  while ((rl = recv (s, string, BUFSIZ, 0)) > 0)
+  while ((rl = recv (emacs_socket, string, BUFSIZ, 0)) > 0)
     {
       char *p;
       string[rl] = '\0';
@@ -1523,7 +1522,7 @@ main (argc, argv)
   fflush (stdout);
   fsync (1);
 
-  CLOSE_SOCKET (s);
+  CLOSE_SOCKET (emacs_socket);
   return EXIT_SUCCESS;
 }
 
