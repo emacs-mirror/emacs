@@ -1448,7 +1448,7 @@ Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
     (with-no-warnings
       (if compilation-finish-function
 	  (funcall compilation-finish-function (current-buffer) msg)))
-    (run-hook-with-args compilation-finish-functions (current-buffer) msg)))
+    (run-hook-with-args 'compilation-finish-functions (current-buffer) msg)))
 
 ;; Called when compilation process changes state.
 (defun compilation-sentinel (proc msg)
