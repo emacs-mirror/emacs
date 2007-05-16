@@ -8,7 +8,8 @@
 	* msb.el (msb-menu-cond):
 	* pcvs.el (cvs-dired-use-hook):
 	* simple.el (set-mark-command-repeat-pop):
-	* time.el (display-time-24hr-format): Doc fixes.
+	* time.el (display-time-24hr-format, display-time-mail-file):
+	Doc fixes.
 
 	* tutorial.el (get-lang-string, tutorial--find-changed-keys):
 	* printing.el (pr-ps-fast-fire): Fix typos in docstrings.
