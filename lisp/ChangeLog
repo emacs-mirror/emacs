@@ -1,3 +1,8 @@
+2007-05-16  Nikolaj Schumacher  <n_schumacher@web.de>  (tiny change)
+
+	* progmodes/compile.el (compilation-handle-exit): Quote first
+	argument of `run-hook-with-args'.
+
 2007-05-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* buff-menu.el (Buffer-menu-sort-column):
