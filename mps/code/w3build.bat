@@ -10,6 +10,8 @@ nmake /f w3i3mv.nmk VARIETY=we mps.lib mpsplan.lib mpsplcb.lib mpsdy.dll
 nmake /f w3i3mv.nmk VARIETY=hi mps.lib mpsplan.lib mpsplcb.lib mpsdy.dll
 nmake /f w3i3mv.nmk VARIETY=di mps.lib mpsplan.lib mpsplcb.lib mpsdy.dll
 nmake /f w3i3mv.nmk VARIETY=ci mps.lib mpsplan.lib mpsplcb.lib mpsdy.dll
+
+rmdir /q/s release
 mkdir release
 
 mkdir release\include
