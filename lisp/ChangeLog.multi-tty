@@ -1,5 +1,13 @@
 2007-05-16  Jason Rumney  <jasonr@gnu.org>
 
+	* term/w32-win.el: Reorder to match x-win.el more closely.
+	(x-setup-function-keys): Use local-function-key-map.
+	(w32-initialized): New variable.
+	(w32-initialize-window-system): Set it.
+	Move more global setup here.
+
+2007-05-16  Jason Rumney  <jasonr@gnu.org>
+
 	* term/w32-win.el (x-setup-function-keys): New function.
 	(w32-initialize-window-system): Move non function key global setup
 	here.
