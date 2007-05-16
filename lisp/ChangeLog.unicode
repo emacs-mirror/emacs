@@ -1,3 +1,7 @@
+2007-05-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* printing.el (pr-ps-fast-fire): Fix typos in docstring.
+
 2007-05-13  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el: Use default color when foreground or background color
