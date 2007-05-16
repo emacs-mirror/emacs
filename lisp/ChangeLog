@@ -1,5 +1,8 @@
 2007-05-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* files.el (magic-mode-alist, magic-fallback-mode-alist):
+	Move the *ml, Postscript, and XmCD entries to the fallback part.
+
 	* files.el (magic-fallback-mode-alist):
 	Rename from file-start-mode-alist.
 
