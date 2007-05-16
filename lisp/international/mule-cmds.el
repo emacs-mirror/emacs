@@ -2454,7 +2454,7 @@ is returned.  Thus, for instance, if charset \"ISO8859-2\",
 ;; too, for setting things such as calendar holidays, ps-print paper
 ;; size, spelling dictionary.
 
-(defun set-locale-environment (&optional locale-name display)
+(defun set-locale-environment (&optional locale-name frame)
   "Set up multi-lingual environment for using LOCALE-NAME.
 This sets the language environment, the coding system priority,
 the default input method and sometimes other things.
@@ -2475,10 +2475,9 @@ directory named `/usr/share/locale' or `/usr/lib/locale'.  LOCALE-NAME
 will be translated according to the table specified by
 `locale-translation-file-name'.
 
-If DISPLAY is non-nil, only set the keyboard coding system and
-the terminal coding system for the given display, and don't touch
-session-global parameters like the language environment.  DISPLAY
-may be a display id or a frame.
+If FRAME is non-nil, only set the keyboard coding system and the
+terminal coding system for the terminal of that frame, and don't
+touch session-global parameters like the language environment.
 
 See also `locale-charset-language-names', `locale-language-names',
 `locale-preferred-coding-systems' and `locale-coding-system'."
@@ -2509,7 +2508,7 @@ See also `locale-charset-language-names', `locale-language-names',
       (let ((vars '("LC_ALL" "LC_CTYPE" "LANG")))
 	(while (and vars
 		    (= 0 (length locale))) ; nil or empty string
-	  (setq locale (getenv (pop vars) display)))))
+	  (setq locale (getenv (pop vars) frame)))))
 
     (unless locale
       ;; The two tests are kept separate so the byte-compiler sees
@@ -2583,7 +2582,7 @@ See also `locale-charset-language-names', `locale-language-names',
 
 	  ;; Set up for this character set.  This is now the right way
 	  ;; to do it for both unibyte and multibyte modes.
-	  (unless display
+	  (unless frame
 	    (set-language-environment language-name))
 
 	  ;; If default-enable-multibyte-characters is nil,
@@ -2591,7 +2590,7 @@ See also `locale-charset-language-names', `locale-language-names',
 	  ;; so the display table and terminal coding system are irrelevant.
 	  (when default-enable-multibyte-characters
 	    (set-display-table-and-terminal-coding-system
-	     language-name coding-system display))
+	     language-name coding-system frame))
 
 	  ;; Set the `keyboard-coding-system' if appropriate (tty
 	  ;; only).  At least X and MS Windows can generate
@@ -2603,13 +2602,13 @@ See also `locale-charset-language-names', `locale-language-names',
 	  (let ((kcs (or coding-system
 			 (car (get-language-info language-name
 						 'coding-system)))))
-	    (if kcs (set-keyboard-coding-system kcs display)))
+	    (if kcs (set-keyboard-coding-system kcs frame)))
 
-	  (unless display
+	  (unless frame
 	    (setq locale-coding-system
 		  (car (get-language-info language-name 'coding-priority)))))
 
-	(when (and (not display)
+	(when (and (not frame)
 		   coding-system
 		   (not (coding-system-equal coding-system
 					     locale-coding-system)))
@@ -2625,9 +2624,9 @@ See also `locale-charset-language-names', `locale-language-names',
     (when (boundp 'w32-ansi-code-page)
       (let ((code-page-coding (intern (format "cp%d" w32-ansi-code-page))))
 	(when (coding-system-p code-page-coding)
-	  (unless display (setq locale-coding-system code-page-coding))
-	  (set-keyboard-coding-system code-page-coding display)
-	  (set-terminal-coding-system code-page-coding display))))
+	  (unless frame (setq locale-coding-system code-page-coding))
+	  (set-keyboard-coding-system code-page-coding frame)
+	  (set-terminal-coding-system code-page-coding frame))))
 
     (when (eq system-type 'darwin)
       ;; On Darwin, file names are always encoded in utf-8, no matter
@@ -2636,13 +2635,13 @@ See also `locale-charset-language-names', `locale-language-names',
       ;; Mac OS X's Terminal.app by default uses utf-8 regardless of
       ;; the locale.
       (when (and (null window-system)
-		 (equal (getenv "TERM_PROGRAM" display) "Apple_Terminal"))
+		 (equal (getenv "TERM_PROGRAM" frame) "Apple_Terminal"))
 	(set-terminal-coding-system 'utf-8)
 	(set-keyboard-coding-system 'utf-8)))
 
     ;; Default to A4 paper if we're not in a C, POSIX or US locale.
     ;; (See comments in Flocale_info.)
-    (unless display
+    (unless frame
       (let ((locale locale)
 	    (paper (locale-info 'paper)))
 	(if paper
@@ -2654,7 +2653,7 @@ See also `locale-charset-language-names', `locale-language-names',
 	      (setq ps-paper-type 'a4)))
 	  (let ((vars '("LC_ALL" "LC_PAPER" "LANG")))
 	    (while (and vars (= 0 (length locale)))
-	      (setq locale (getenv (pop vars) display))))
+	      (setq locale (getenv (pop vars) frame))))
 	  (when locale
 	    ;; As of glibc 2.2.5, these are the only US Letter locales,
 	    ;; and the rest are A4.

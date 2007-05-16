@@ -2436,7 +2436,7 @@ order until succeed.")
 	  (aset x-resource-name i ?-))))
 
   (x-open-connection (or x-display-name
-			 (setq x-display-name (or (getenv "DISPLAY" (terminal-id))
+			 (setq x-display-name (or (getenv "DISPLAY" (selected-frame))
 						  (getenv "DISPLAY"))))
 		     x-command-line-resources
 		     ;; Exit Emacs with fatal error if this fails and we

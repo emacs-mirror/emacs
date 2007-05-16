@@ -212,19 +212,23 @@ in the environment list of the selected frame."
   (let ((value (getenv-internal (if (multibyte-string-p variable)
 				    (encode-coding-string
 				     variable locale-coding-system)
-				  variable))))
+				  variable)
+				frame)))
     (if (and enable-multibyte-characters value)
 	(setq value (decode-coding-string value locale-coding-system)))
     (when (interactive-p)
       (message "%s" (if value value "Not set")))
     value))
 
-(defun environment ()
+(defun environment (&optional frame)
   "Return a list of environment variables with their values.
 Each entry in the list is a string of the form NAME=VALUE.
 
 The returned list can not be used to change environment
 variables, only read them.  See `setenv' to do that.
+
+If optional parameter FRAME is non-nil, then it should be a
+frame.  The function returns the environment of that frame.
 
 The list is constructed by concatenating the elements of
 `process-environment' and the 'environment parameter of the
@@ -234,7 +238,7 @@ Non-ASCII characters are encoded according to the initial value of
 `locale-coding-system', i.e. the elements must normally be decoded for use.
 See `setenv' and `getenv'."
   (let* ((env (append process-environment
-		      (frame-parameter (frame-with-environment)
+		      (frame-parameter (frame-with-environment frame)
 				       'environment)
 		      nil))
 	 (scan env)

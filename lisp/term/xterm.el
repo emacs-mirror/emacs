@@ -327,8 +327,8 @@
   ;; rxvt terminals sometimes set the TERM variable to "xterm", but
   ;; rxvt's keybindings are incompatible with xterm's. It is
   ;; better in that case to use rxvt's initializion function.
-  (if (and (getenv "COLORTERM" (terminal-id))
-	   (string-match "\\`rxvt" (getenv "COLORTERM" (terminal-id))))
+  (if (and (getenv "COLORTERM" (selected-frame))
+	   (string-match "\\`rxvt" (getenv "COLORTERM" (selected-frame))))
       (tty-run-terminal-initialization (selected-frame) "rxvt")
 
     ;; The terminal intialization C code file might have initialized

@@ -268,19 +268,21 @@ The environment variables are then restored to their previous values.
 VARS should be a list of strings.
 ENV should be in the same format as `process-environment'."
   (declare (indent 2))
-  (let ((oldvalues (make-symbol "oldvalues"))
+  (let ((old-env (make-symbol "old-env"))
 	(var (make-symbol "var"))
 	(value (make-symbol "value"))
 	(pair (make-symbol "pair")))
-    `(let (,oldvalues)
+    `(let ((,old-env process-environment))
        (dolist (,var ,vars)
 	 (let ((,value (server-getenv-from ,env ,var)))
-	   (setq ,oldvalues (cons (cons ,var (getenv ,var)) ,oldvalues))
-	   (setenv ,var ,value)))
+	   (setq process-environment
+		 (cons (if (null ,value)
+			   ,var
+			 (concat ,var "=" ,value))
+		       process-environment))))
        (unwind-protect
 	   (progn ,@body)
-	 (dolist (,pair ,oldvalues)
-	   (setenv (car ,pair) (cdr ,pair)))))))
+	 (setq process-environment ,old-env)))))
 
 (defun server-delete-client (client &optional noframe)
   "Delete CLIENT, including its buffers, terminals and frames.

@@ -19,13 +19,8 @@ nice if they could connect to this instance from a remote ssh session
 and check their messages without opening a remote X frame or resorting
 to gnus-slave.
 
-WHO IS DOING IT
----------------
-
-I'm Károly Lőrentey.  My address: lorentey@elte.hu.
-
-Comments, bug reports, suggestions and patches are welcome; send them
-to multi-tty@lists.fnord.hu.
+THANKS
+------
 
 The following is a (sadly incomplete) list of people who have
 contributed to the project by testing, submitting patches, bug
@@ -70,21 +65,6 @@ Richard Stallman was kind enough to review an earlier version of my
 patches.
 
 
-MAILING LISTS
--------------
-
-The multi-tty mailing list (discussion & bug reports):
-
-    	Address:	multi-tty@lists.fnord.hu
-	Signup:		http://lists.fnord.hu/mailman/listinfo/multi-tty
-	Archive:	http://news.gmane.org/gmane.emacs.multi-tty/
-
-Commit notifications (read-only):
-
-        Address:	multi-tty-commits@lists.fnord.hu
-	Signup:		http://lists.fnord.hu/mailman/listinfo/multi-tty-commits
-
-
 STATUS
 ------
 
@@ -107,13 +87,14 @@ few tricky test cases for you.
 Known problems:
 
         * GTK support.  If you compile your Emacs with the GTK
-          toolkit, some functionality of multi-tty will be lost.  In
-          particular, you will not be able to work on multiple X
-          displays at once.  Current releases of GTK have limitations
-          and bugs that prevent full-blown multi-display support in
-          Emacs.  (GTK crashes when Emacs tries to disconnect from an
-          X server.)  Use the Lucid toolkit if you want to see a
-          complete feature set.
+          toolkit, some functionality of multi-tty may be lost.  In
+          particular, you may get crashes while working on multiple X
+          displays at once.  Previous releases of GTK had limitations
+          and bugs that prevented full-blown multi-display support in
+          Emacs.  (GTK crashed when Emacs tries to disconnect from an
+          X server.)  Things are much improved in the current GTK
+          version, but if you do experience crashes in libgtk, try
+          compiling Emacs with the Lucid toolkit instead.
 
         * The single-kboard mode.
 
@@ -154,68 +135,12 @@ Known problems:
 HOW TO GET THE BRANCH
 ---------------------
 
-The branch uses Bazaar 1 (http://bazaar.canonical.com) for version control.
+To get the branch, check out the "multi-tty" CVS branch from Emacs CVS.
 
-Retrieving the latest version of the branch:
+Alternatively, you can use Bazaar version 1 (not 2) or tla:
 
-	baz register-archive -f http://aszt.inf.elte.hu/~lorentey/mirror/arch/2004
-	baz get lorentey@elte.hu--2004/emacs--multi-tty <directory>
-
-This incantation uses an archive mirror that is hosted on a
-high-bandwidth site.  Please note that on average there is a two-hour
-delay for commits to arrive on this mirror.  My primary mirror is on the
-low-bandwidth http://lorentey.hu/ site:
-
-	baz register-archive -f http://lorentey.hu/arch/2004/
-	baz get lorentey@elte.hu--2004/emacs--multi-tty <directory>
-
-This is "instantly" updated, but very slow from outside Hungary.
-(By "instantly" I mean as soon as I connect the notebook I work on to
-a network.  It could take days.)
-
-The Arch supermirror provides mirroring services for all public Arch
-repositories.  We have a mirror there, too, if you prefer.
-
-	baz register-archive -f http://mirrors.sourcecontrol.net/lorentey%40elte.hu--2004
-	baz get lorentey@elte.hu--2004/emacs--multi-tty <directory>
-
-My GPG key id is 0FB27A3F; it is available from
-hkp://wwwkeys.eu.pgp.net/, or from my homepage at
-http://lorentey.hu/rolam/gpg.html)
-
-Don't worry if the above checkout takes a few minutes to complete;
-once you have a source tree, updating it to the latest revision will
-be _much_ faster.  Use the following command for the update:
-
-	baz replay
-
-You can find more information about Bazaar on
-http://bazaar.canonical.com/.  It's a distributed source control
-system that is somewhat less broken than competing projects.
-
-If you don't have Bazaar, the branch has a homepage from which you can
-download conventional patches against Emacs CVS HEAD:
-
-	http://lorentey.hu/project/emacs.html
-
-I suggest you use Bazaar whenever feasible.
-
-
-DEBIAN PACKAGES
----------------
-
-If you run Debian, or a distribution based on Debian, you are welcome
-to use our binary packages; put these lines in your /etc/apt/sources.list:
-
-	# Multi-tty Emacs
-	deb http://aszt.inf.elte.hu/~lorentey/mirror/apt unstable multi-tty
-	deb-src http://aszt.inf.elte.hu/~lorentey/mirror/apt unstable multi-tty
-
-Note that these packages are intended solely to provide an easy way to
-test the new multi-tty features.  They are not to be taken as Emacs
-releases, and it's a mistake to expect robust operation or any kind of
-timely support for them.  Do not install them, unless you'd like to
-have your editor crash on you.
+	baz register-archive http://arch.sv.gnu.org/archives/emacs
+	baz get emacs@sv.gnu.org/emacs--multi-tty--0 <directory>
 
 
 COMPILATION
@@ -225,7 +150,7 @@ The multi-tty branch is compiled the same way as Emacs itself:
 
 	make maintainer-clean  # (If you have compiled Emacs before)
 
-	./configure --without-gtk <your favourite options>
+	./configure <your favourite options>
 	make bootstrap
 	make install
 
@@ -262,8 +187,9 @@ exit emacs, all terminals should be restored to their previous states.
 
 This is work in progress, and probably full of bugs.  It is a good
 idea to run emacs from gdb, so that you'll have a live instance to
-debug if something goes wrong.  Please send me your bug reports on our
-mailing list: multi-tty@lists.fnord.hu
+debug if something goes wrong.  Please send your bug reports to
+emacs-devel@gnu.org.  Please don't forget to mention that you are
+using the multi-tty branch.
 
 TIPS & TRICKS
 -------------
@@ -348,8 +274,7 @@ following:
 CHANGELOG
 ---------
 
-See arch logs.
-
+See the ChangeLog.multi-tty files in the source tree.
 
 NEWS
 ----
