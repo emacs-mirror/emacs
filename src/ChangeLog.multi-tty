@@ -63,6 +63,11 @@
 
 	* s/ms-w32.h (SYSTEM_PURESIZE_EXTRA): Bump to 50k.
 
+2007-05-12  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+
+	This placeholder will be replaced by the Arch logs of the
+	multi-tty branch.
+
 ;; Local Variables:
 ;; coding: iso-2022-7bit
 ;; add-log-time-zone-rule: t
@@ -87,4 +92,4 @@
   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
   Boston, MA 02110-1301, USA.
 
-;; arch-tag: bb9cf4dd-ffe4-4cba-ad2e-9ae41830e5cb
+;;; arch-tag: 4015a0e0-033e-11dc-807c-00114368b55b

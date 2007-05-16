@@ -10,6 +10,32 @@
 	* loadup.el: Only load x-dnd and x-win when X is compiled in.
 	Load w32-win and dependencies on windows-nt.
 
+2007-05-16  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+
+	* env.el (getenv): Restore David Kastrup's fix.
+	(environment): Add optional frame parameter.
+
+	* mule-cmds.el (set-locale-environment): Fix getenv call.
+	* term/rxvt.el (rxvt-set-background-mode): Ditto.
+	* x-win.el (x-initialize-window-system, terminal-init-xterm): Ditto.
+
+	* server.el (server-with-environment): Restore the original
+	environment.
+	
+2007-05-14  David Kastrup  <dak@gnu.org>
+
+	* env.el (getenv): Fix reverted by demand of Dan Nicolaescu
+	because it exposes further problems.
+
+2007-05-13  David Kastrup  <dak@gnu.org>
+
+	* env.el (getenv): Pass frame to getenv-internal.
+
+2007-05-12  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+
+	This placeholder will be replaced by the Arch logs of the
+	multi-tty branch.
+
 ;; Local Variables:
 ;; coding: iso-2022-7bit
 ;; add-log-time-zone-rule: t
@@ -34,4 +60,4 @@
   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
   Boston, MA 02110-1301, USA.
 
-;; arch-tag: 1d1a86d3-db48-43d3-8055-73c08f87dd7a
+;;; arch-tag: 58312fd6-033a-11dc-a0fb-00114368b55b
