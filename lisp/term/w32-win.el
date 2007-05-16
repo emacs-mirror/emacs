@@ -89,9 +89,6 @@
 ;; The following definition is used for debugging scroll bar events.
 ;(defun w32-handle-scroll-bar-event (event) (interactive "e") (princ event))
 
-;; Handle mouse-wheel events with mwheel.
-(mouse-wheel-mode 1)
-
 (defun w32-drag-n-drop-debug (event)
   "Print the drag-n-drop EVENT in a readable form."
   (interactive "e")
@@ -1039,44 +1036,18 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 
 ;;;; Function keys
 
-;;; make f10 activate the real menubar rather than the mini-buffer menu
-;;; navigation feature.
-(global-set-key [f10] (lambda ()
-			(interactive) (w32-send-sys-command ?\xf100)))
+(defun x-setup-function-keys (frame)
+  "Setup Function Keys for w32."
+  ;; make f10 activate the real menubar rather than the mini-buffer menu
+  ;; navigation feature.
+  (global-set-key [f10] (lambda ()
+                          (interactive) (w32-send-sys-command ?\xf100)))
 
-(substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
-			   global-map)
+  (substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
+                             global-map)
 
-(define-key function-key-map [S-tab] [backtab])
-
+  (define-key function-key-map [S-tab] [backtab]))
 
-;;; Do the actual Windows setup here; the above code just defines
-;;; functions and variables that we use now.
-
-(setq command-line-args (x-handle-args command-line-args))
-
-;;; Make sure we have a valid resource name.
-(or (stringp x-resource-name)
-    (setq x-resource-name
-	  ;; Change any . or * characters in x-resource-name to hyphens,
-	  ;; so as not to choke when we use it in X resource queries.
-	  (replace-regexp-in-string "[.*]" "-" (invocation-name))))
-
-;; For the benefit of older Emacses (19.27 and earlier) that are sharing
-;; the same lisp directory, don't pass the third argument unless we seem
-;; to have the multi-display support.
-(if (fboundp 'x-close-connection)
-    (x-open-connection ""
-		       x-command-line-resources
-		       ;; Exit Emacs with fatal error if this fails.
-		       t)
-  (x-open-connection ""
-		     x-command-line-resources))
-
-(setq frame-creation-function 'x-create-frame-with-faces)
-
-;; (setq x-cut-buffer-max (min (- (/ (x-server-max-request-size) 2) 100)
-;; 			    x-cut-buffer-max))
 
 ;; W32 expects the menu bar cut and paste commands to use the clipboard.
 ;; This has ,? to match both on Sunos and on Solaris.
@@ -1093,83 +1064,9 @@ European languages which are distributed with Windows as
 
 See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
-;; Conditional on new-fontset so bootstrapping works on non-GUI compiles
-(if (fboundp 'new-fontset)
-    (progn
-      ;; Setup the default fontset.
-      (setup-default-fontset)
-      ;; Create the standard fontset.
-      (create-fontset-from-fontset-spec w32-standard-fontset-spec t)
-      ;; Create fontset specified in X resources "Fontset-N" (N is 0, 1,...).
-      (create-fontset-from-x-resource)
-      ;; Try to create a fontset from a font specification which comes
-      ;; from initial-frame-alist, default-frame-alist, or X resource.
-      ;; A font specification in command line argument (i.e. -fn XXXX)
-      ;; should be already in default-frame-alist as a `font'
-      ;; parameter.  However, any font specifications in site-start
-      ;; library, user's init file (.emacs), and default.el are not
-      ;; yet handled here.
-
-      (let ((font (or (cdr (assq 'font initial-frame-alist))
-                      (cdr (assq 'font default-frame-alist))
-                      (x-get-resource "font" "Font")))
-            xlfd-fields resolved-name)
-        (if (and font
-                 (not (query-fontset font))
-                 (setq resolved-name (x-resolve-font-name font))
-                 (setq xlfd-fields (x-decompose-font-name font)))
-            (if (string= "fontset"
-                         (aref xlfd-fields xlfd-regexp-registry-subnum))
-                (new-fontset font
-                             (x-complement-fontset-spec xlfd-fields nil))
-              ;; Create a fontset from FONT.  The fontset name is
-              ;; generated from FONT.
-              (create-fontset-from-ascii-font font
-					      resolved-name "startup"))))))
-
-;; Apply a geometry resource to the initial frame.  Put it at the end
-;; of the alist, so that anything specified on the command line takes
-;; precedence.
-(let* ((res-geometry (x-get-resource "geometry" "Geometry"))
-       parsed)
-  (if res-geometry
-      (progn
-	(setq parsed (x-parse-geometry res-geometry))
-	;; If the resource specifies a position,
-	;; call the position and size "user-specified".
-	(if (or (assq 'top parsed) (assq 'left parsed))
-	    (setq parsed (cons '(user-position . t)
-			       (cons '(user-size . t) parsed))))
-	;; All geometry parms apply to the initial frame.
-	(setq initial-frame-alist (append initial-frame-alist parsed))
-	;; The size parms apply to all frames.
-	(if (assq 'height parsed)
-	    (push (cons 'height (cdr (assq 'height parsed)))
-		  default-frame-alist))
-	(if (assq 'width parsed)
-	    (push (cons 'width (cdr (assq 'width parsed)))
-		  default-frame-alist)))))
-
-;; Check the reverseVideo resource.
-(let ((case-fold-search t))
-  (let ((rv (x-get-resource "reverseVideo" "ReverseVideo")))
-    (if (and rv (string-match "^\\(true\\|yes\\|on\\)$" rv))
-	(push '(reverse . t) default-frame-alist))))
-
 (defun x-win-suspend-error ()
   "Report an error when a suspend is attempted."
   (error "Suspending an Emacs running under W32 makes no sense"))
-(add-hook 'suspend-hook 'x-win-suspend-error)
-
-;;; Turn off window-splitting optimization; w32 is usually fast enough
-;;; that this is only annoying.
-(setq split-window-keep-point t)
-
-;; Don't show the frame name; that's redundant.
-(setq-default mode-line-frame-identification "  ")
-
-;;; Set to a system sound if you want a fancy bell.
-(set-message-beep 'ok)
 
 ;; Remap some functions to call w32 common dialogs
 
@@ -1249,7 +1146,96 @@ pop-up menu are unaffected by `w32-list-proportional-fonts')."
 ;; multi-tty support
 (defun w32-initialize-window-system ()
   "Initialize Emacs for W32 GUI frames."
-)
+  ;; Handle mouse-wheel events with mwheel.
+  (mouse-wheel-mode 1)
+
+  ;; Do the actual Windows setup here; the above code just defines
+  ;; functions and variables that we use now.
+
+  (setq command-line-args (x-handle-args command-line-args))
+
+  ;; Make sure we have a valid resource name.
+  (or (stringp x-resource-name)
+      (setq x-resource-name
+            ;; Change any . or * characters in x-resource-name to hyphens,
+            ;; so as not to choke when we use it in X resource queries.
+            (replace-regexp-in-string "[.*]" "-" (invocation-name))))
+
+  (x-open-connection "" x-command-line-resources t)
+
+  (setq frame-creation-function 'x-create-frame-with-faces)
+
+  ;; Setup the default fontset.
+  (setup-default-fontset)
+  ;; Create the standard fontset.
+  (create-fontset-from-fontset-spec w32-standard-fontset-spec t)
+  ;; Create fontset specified in X resources "Fontset-N" (N is 0, 1,...).
+  (create-fontset-from-x-resource)
+  ;; Try to create a fontset from a font specification which comes
+  ;; from initial-frame-alist, default-frame-alist, or X resource.
+  ;; A font specification in command line argument (i.e. -fn XXXX)
+  ;; should be already in default-frame-alist as a `font'
+  ;; parameter.  However, any font specifications in site-start
+  ;; library, user's init file (.emacs), and default.el are not
+  ;; yet handled here.
+
+  (let ((font (or (cdr (assq 'font initial-frame-alist))
+                  (cdr (assq 'font default-frame-alist))
+                  (x-get-resource "font" "Font")))
+        xlfd-fields resolved-name)
+    (if (and font
+             (not (query-fontset font))
+             (setq resolved-name (x-resolve-font-name font))
+             (setq xlfd-fields (x-decompose-font-name font)))
+        (if (string= "fontset"
+                     (aref xlfd-fields xlfd-regexp-registry-subnum))
+            (new-fontset font
+                         (x-complement-fontset-spec xlfd-fields nil))
+          ;; Create a fontset from FONT.  The fontset name is
+          ;; generated from FONT.
+          (create-fontset-from-ascii-font font
+                                          resolved-name "startup"))))
+
+  ;; Apply a geometry resource to the initial frame.  Put it at the end
+  ;; of the alist, so that anything specified on the command line takes
+  ;; precedence.
+  (let* ((res-geometry (x-get-resource "geometry" "Geometry"))
+         parsed)
+    (if res-geometry
+        (progn
+          (setq parsed (x-parse-geometry res-geometry))
+          ;; If the resource specifies a position,
+          ;; call the position and size "user-specified".
+          (if (or (assq 'top parsed) (assq 'left parsed))
+              (setq parsed (cons '(user-position . t)
+                                 (cons '(user-size . t) parsed))))
+          ;; All geometry parms apply to the initial frame.
+          (setq initial-frame-alist (append initial-frame-alist parsed))
+          ;; The size parms apply to all frames.
+          (if (assq 'height parsed)
+              (push (cons 'height (cdr (assq 'height parsed)))
+                    default-frame-alist))
+          (if (assq 'width parsed)
+              (push (cons 'width (cdr (assq 'width parsed)))
+                    default-frame-alist)))))
+
+  (add-hook 'suspend-hook 'x-win-suspend-error)
+
+  ;; Turn off window-splitting optimization; w32 is usually fast enough
+  ;; that this is only annoying.
+  (setq split-window-keep-point t)
+
+  ;; Don't show the frame name; that's redundant.
+  (setq-default mode-line-frame-identification "  ")
+
+  ;; Set to a system sound if you want a fancy bell.
+  (set-message-beep 'ok)
+
+  ;; Check the reverseVideo resource.
+  (let ((case-fold-search t))
+    (let ((rv (x-get-resource "reverseVideo" "ReverseVideo")))
+      (if (and rv (string-match "^\\(true\\|yes\\|on\\)$" rv))
+          (push '(reverse . t) default-frame-alist)))))
 
 (add-to-list 'handle-args-function-alist '(w32 . x-handle-args))
 (add-to-list 'frame-creation-function-alist '(w32 . x-create-frame-with-faces))
