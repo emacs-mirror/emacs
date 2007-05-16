@@ -3204,7 +3204,7 @@ will pop the mark twice, and
 C-u \\[set-mark-command] \\[set-mark-command] \\[set-mark-command]
 will pop the mark three times.
 
-nil means \\[set-mark-command]'s behavior does not change
+A value of nil means \\[set-mark-command]'s behavior does not change
 after C-u \\[set-mark-command]."
   :type 'boolean
   :group 'editing-basics)
