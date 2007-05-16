@@ -378,6 +378,8 @@ $(BLD)/callproc.$(O) : \
 	$(SRC)/process.h \
 	$(SRC)/syssignal.h \
 	$(SRC)/systty.h \
+	$(SRC)/frame.h \
+	$(SRC)/termhooks.h \
 	$(SRC)/w32.h
 
 $(BLD)/casefiddle.$(O) : \
@@ -467,6 +469,8 @@ $(BLD)/coding.$(O) : \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/intervals.h \
+	$(SRC)/frame.h \
+	$(SRC)/termhooks.h \
 	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
@@ -494,7 +498,8 @@ $(BLD)/data.$(O) : \
 	$(SRC)/frame.h \
 	$(SRC)/keyboard.h \
 	$(SRC)/puresize.h \
-	$(SRC)/syssignal.h
+	$(SRC)/syssignal.h \
+	$(SRC)/termhooks.h
 
 $(BLD)/dired.$(O) : \
 	$(SRC)/dired.c \
@@ -697,6 +702,7 @@ $(BLD)/fns.$(O) : \
 	$(SRC)/keymap.h \
 	$(SRC)/md5.h \
 	$(SRC)/systime.h \
+	$(SRC)/termhooks.h \
 	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
@@ -713,6 +719,7 @@ $(BLD)/fontset.$(O) : \
 	$(SRC)/fontset.h \
 	$(SRC)/frame.h \
 	$(SRC)/keyboard.h \
+	$(SRC)/termhooks.h \
 	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
@@ -732,6 +739,7 @@ $(BLD)/frame.$(O) : \
 	$(SRC)/frame.h \
 	$(SRC)/keyboard.h \
 	$(SRC)/systime.h \
+	$(SRC)/termchar.h \
 	$(SRC)/termhooks.h \
 	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
@@ -901,6 +909,7 @@ $(BLD)/lread.$(O) : \
 	$(EMACS_ROOT)/src/config.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
 	$(EMACS_ROOT)/src/epaths.h \
+	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
 	$(SRC)/ccl.h \
 	$(SRC)/charset.h \
@@ -955,6 +964,7 @@ $(BLD)/minibuf.$(O) : \
 	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
 	$(SRC)/syntax.h \
+	$(SRC)/termhooks.h \
 	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
@@ -1116,6 +1126,7 @@ $(BLD)/scroll.$(O) : \
 	$(SRC)/frame.h \
 	$(SRC)/keyboard.h \
 	$(SRC)/termchar.h \
+	$(SRC)/termhooks.h \
 	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
@@ -1182,6 +1193,7 @@ $(BLD)/sysdep.$(O) : \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
+	$(SRC)/cm.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/frame.h \
 	$(SRC)/keyboard.h \
@@ -1226,6 +1238,18 @@ $(BLD)/termcap.$(O) : \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h
+
+$(BLD)/terminal.$(O) : \
+	$(SRC)/terminal.c \
+	$(EMACS_ROOT)/src/s/ms-w32.h \
+	$(EMACS_ROOT)/src/m/intel386.h \
+	$(EMACS_ROOT)/src/config.h \
+	$(SRC)/charset.h \
+	$(SRC)/coding.h \
+	$(SRC)/frame.h \
+	$(SRC)/keyboard.h \
+	$(SRC)/termchar.h \
+	$(SRC)/termhooks.h
 
 $(BLD)/textprop.$(O) : \
 	$(SRC)/textprop.c \
@@ -1340,6 +1364,8 @@ $(BLD)/xfaces.$(O): \
 	$(SRC)/intervals.h \
 	$(SRC)/keyboard.h \
 	$(SRC)/systime.h \
+	$(SRC)/termchar.h \
+	$(SRC)/termhooks.h \
 	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32term.h \
