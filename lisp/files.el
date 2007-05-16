@@ -2151,7 +2151,7 @@ If FUNCTION is nil, then it is not called.  (That is a way of saying
 \"allow `auto-mode-alist' to decide for these files.\")")
 (put 'magic-mode-alist 'risky-local-variable t)
 
-(defvar file-start-mode-alist
+(defvar magic-fallback-mode-alist
   nil
   "Like `magic-mode-alist' but has lower priority than `auto-mode-alist'.
 Each element looks like (REGEXP . FUNCTION) or (MATCH-FUNCTION . FUNCTION).
@@ -2161,11 +2161,11 @@ call FUNCTION, provided that `magic-mode-alist' and `auto-mode-alist'
 have not specified a mode for this file.
 
 If FUNCTION is nil, then it is not called.")
-(put 'file-start-mode-alist 'risky-local-variable t)
+(put 'magic-fallback-mode-alist 'risky-local-variable t)
 
 (defvar magic-mode-regexp-match-limit 4000
   "Upper limit on `magic-mode-alist' regexp matches.
-Also applies to `file-start-mode-alist'.")
+Also applies to `magic-fallback-mode-alist'.")
 
 (defun set-auto-mode (&optional keep-mode-if-same)
   "Select major mode appropriate for current buffer.
@@ -2284,7 +2284,7 @@ only set the major mode, if that would change it."
 	      (when mode
 		(set-auto-mode-0 mode keep-mode-if-same)
 		(setq done t))))))
-    ;; Next try matching the buffer beginning against file-start-mode-alist.
+    ;; Next try matching the buffer beginning against magic-fallback-mode-alist.
     (unless done
       (if (setq done (save-excursion
 		       (goto-char (point-min))
@@ -2292,7 +2292,7 @@ only set the major mode, if that would change it."
 			 (narrow-to-region (point-min)
 					   (min (point-max)
 						(+ (point-min) magic-mode-regexp-match-limit)))
-			 (assoc-default nil file-start-mode-alist
+			 (assoc-default nil magic-fallback-mode-alist
 					(lambda (re dummy)
 					  (if (functionp re)
 					      (funcall re)

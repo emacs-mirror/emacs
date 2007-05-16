@@ -1,3 +1,8 @@
+2007-05-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (magic-fallback-mode-alist):
+	Rename from file-start-mode-alist.
+
 2007-05-16  Nikolaj Schumacher  <n_schumacher@web.de>  (tiny change)
 
 	* progmodes/compile.el (compilation-handle-exit): Quote first
