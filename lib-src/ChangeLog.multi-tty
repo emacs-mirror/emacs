@@ -1,3 +1,8 @@
+2007-05-16  Jason Rumney  <jasonr@gnu.org>
+
+	* emacsclient.c: (emacs_socket): Rename from s.
+	Move definition below includes it depends on.
+
 2007-05-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emacsclient.c (s): Restore.
