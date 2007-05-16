@@ -94,7 +94,7 @@ past 15 minutes.  The default is to display 1 minute load average."
 
 (defcustom display-time-24hr-format nil
   "*Non-nil indicates time should be displayed as hh:mm, 0 <= hh <= 23.
-nil means 1 <= hh <= 12, and an AM/PM suffix is used."
+A value of nil means 1 <= hh <= 12, and an AM/PM suffix is used."
   :type 'boolean
   :group 'display-time)
 
