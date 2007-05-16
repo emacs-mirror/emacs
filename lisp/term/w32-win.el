@@ -1040,18 +1040,17 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
   "Setup Function Keys for w32."
   ;; make f10 activate the real menubar rather than the mini-buffer menu
   ;; navigation feature.
-  (global-set-key [f10] (lambda ()
-                          (interactive) (w32-send-sys-command ?\xf100)))
+  (with-selected-frame frame
+     (define-key local-function-key-map [f10]
+       (lambda ()
+         (interactive) (w32-send-sys-command ?\xf100)))
 
-  (substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
-                             global-map)
+     (substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
+                                local-function-key-map global-map)
 
-  (define-key function-key-map [S-tab] [backtab]))
+     (define-key local-function-key-map [S-tab] [backtab]))
+  (set-terminal-parameter frame 'x-setup-function-keys t))
 
-
-;; W32 expects the menu bar cut and paste commands to use the clipboard.
-;; This has ,? to match both on Sunos and on Solaris.
-(menu-bar-enable-clipboard)
 
 ;; W32 systems have different fonts than commonly found on X, so
 ;; we define our own standard fontset here.
@@ -1143,11 +1142,12 @@ pop-up menu are unaffected by `w32-list-proportional-fonts')."
         (tiff "libtiff3.dll" "libtiff.dll")
         (gif "giflib4.dll" "libungif4.dll" "libungif.dll")))
 
-;; multi-tty support
+;;; multi-tty support
+(defvar w32-initialized nil
+  "Non-nil if the w32 window system has been initialized.")
+
 (defun w32-initialize-window-system ()
   "Initialize Emacs for W32 GUI frames."
-  ;; Handle mouse-wheel events with mwheel.
-  (mouse-wheel-mode 1)
 
   ;; Do the actual Windows setup here; the above code just defines
   ;; functions and variables that we use now.
@@ -1161,9 +1161,10 @@ pop-up menu are unaffected by `w32-list-proportional-fonts')."
             ;; so as not to choke when we use it in X resource queries.
             (replace-regexp-in-string "[.*]" "-" (invocation-name))))
 
-  (x-open-connection "" x-command-line-resources t)
-
-  (setq frame-creation-function 'x-create-frame-with-faces)
+  (x-open-connection "" x-command-line-resources
+                     ;; Exit with a fatal error if this fails and we
+                     ;; are the initial display
+                     (eq initial-window-system 'w32))
 
   ;; Setup the default fontset.
   (setup-default-fontset)
@@ -1219,23 +1220,31 @@ pop-up menu are unaffected by `w32-list-proportional-fonts')."
               (push (cons 'width (cdr (assq 'width parsed)))
                     default-frame-alist)))))
 
+  ;; Check the reverseVideo resource.
+  (let ((case-fold-search t))
+    (let ((rv (x-get-resource "reverseVideo" "ReverseVideo")))
+      (if (and rv (string-match "^\\(true\\|yes\\|on\\)$" rv))
+          (push '(reverse . t) default-frame-alist))))
+
+  ;; Don't let Emacs suspend under w32 gui
   (add-hook 'suspend-hook 'x-win-suspend-error)
 
   ;; Turn off window-splitting optimization; w32 is usually fast enough
   ;; that this is only annoying.
   (setq split-window-keep-point t)
 
+  ;; Turn on support for mouse wheels
+  (mouse-wheel-mode 1)
+
+  ;; W32 expects the menu bar cut and paste commands to use the clipboard.
+  (menu-bar-enable-clipboard)
+
   ;; Don't show the frame name; that's redundant.
   (setq-default mode-line-frame-identification "  ")
 
   ;; Set to a system sound if you want a fancy bell.
   (set-message-beep 'ok)
-
-  ;; Check the reverseVideo resource.
-  (let ((case-fold-search t))
-    (let ((rv (x-get-resource "reverseVideo" "ReverseVideo")))
-      (if (and rv (string-match "^\\(true\\|yes\\|on\\)$" rv))
-          (push '(reverse . t) default-frame-alist)))))
+  (setq w32-initialized t))
 
 (add-to-list 'handle-args-function-alist '(w32 . x-handle-args))
 (add-to-list 'frame-creation-function-alist '(w32 . x-create-frame-with-faces))
