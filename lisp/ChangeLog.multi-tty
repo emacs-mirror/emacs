@@ -1,5 +1,11 @@
 2007-05-16  Jason Rumney  <jasonr@gnu.org>
 
+	* term/w32-win.el (x-setup-function-keys): New function.
+	(w32-initialize-window-system): Move non function key global setup
+	here.
+
+2007-05-16  Jason Rumney  <jasonr@gnu.org>
+
 	* term/w32-win.el: Provide w32-win.
 	Don't throw error when global window-system not w32.
 	(x-cut-buffer-max): Remove.
