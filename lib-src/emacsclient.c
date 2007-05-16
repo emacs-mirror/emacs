@@ -172,7 +172,7 @@ char *server_file = NULL;
 int emacs_pid = 0;
 
 /* Socket used to communicate with the Emacs server process.  */
-/*HSOCKET s;*/
+HSOCKET s;
 
 void print_help_and_exit () NO_RETURN;
 
@@ -314,7 +314,41 @@ w32_window_app ()
 
   return window_app;
 }
-#endif
+
+/*
+  execvp wrapper for Windows. Quotes arguments with embedded spaces.
+
+  This is necessary due to the broken implementation of exec* routines in
+  the Microsoft libraries: they concatenate the arguments together without
+  quoting special characters, and pass the result to CreateProcess, with
+  predictably bad results.  By contrast, Posix execvp passes the arguments
+  directly into the argv array of the child process.
+*/
+int
+w32_execvp (path, argv)
+     char *path;
+     char **argv;
+{
+  int i;
+
+  /* Required to allow a .BAT script as alternate editor.  */
+  argv[0] = (char *) alternate_editor;
+
+  for (i = 0; argv[i]; i++)
+    if (strchr (argv[i], ' '))
+      {
+	char *quoted = alloca (strlen (argv[i]) + 3);
+	sprintf (quoted, "\"%s\"", argv[i]);
+	argv[i] = quoted;
+      }
+
+  return execvp (path, argv);
+}
+
+#undef execvp
+#define execvp w32_execvp
+
+#endif /* WINDOWSNT */
 
 void
 message (int is_error, char *message, ...)
@@ -736,43 +770,6 @@ initialize_sockets ()
 #endif /* WINDOWSNT */
 
 
-#ifdef WINDOWSNT
-
-/*
-  execvp wrapper for Windows. Quotes arguments with embedded spaces.
-
-  This is necessary due to the broken implementation of exec* routines in
-  the Microsoft libraries: they concatenate the arguments together without
-  quoting special characters, and pass the result to CreateProcess, with
-  predictably bad results.  By contrast, Posix execvp passes the arguments
-  directly into the argv array of the child process.
-*/
-int
-w32_execvp (path, argv)
-     char *path;
-     char **argv;
-{
-  int i;
-
-  /* Required to allow a .BAT script as alternate editor.  */
-  argv[0] = (char *) alternate_editor;
-
-  for (i = 0; argv[i]; i++)
-    if (strchr (argv[i], ' '))
-      {
-	char *quoted = alloca (strlen (argv[i]) + 3);
-	sprintf (quoted, "\"%s\"", argv[i]);
-	argv[i] = quoted;
-      }
-
-  return execvp (path, argv);
-}
-
-#undef execvp
-#define execvp w32_execvp
-
-#endif /* WINDOWSNT */
-
 /*
  * Read the information needed to set up a TCP comm channel with
  * the Emacs server: host, port, pid and authentication string.
@@ -1265,7 +1262,6 @@ main (argc, argv)
      int argc;
      char **argv;
 {
-  HSOCKET s;
   int i, rl, needlf = 0;
   char *cwd, *str;
   char string[BUFSIZ+1];

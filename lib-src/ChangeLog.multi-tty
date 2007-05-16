@@ -1,3 +1,9 @@
+2007-05-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacsclient.c (s): Restore.
+	(main): Don't define s here.
+	(w32_execvp): Move definition before use.
+
 2007-05-16  Jason Rumney  <jasonr@gnu.org>
 
 	* emacsclient.c (s): Remove.
