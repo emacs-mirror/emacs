@@ -2,6 +2,9 @@
 
 	* emacsclient.c: (emacs_socket): Rename from s.
 	Move definition below includes it depends on.
+	(SEND_STRING, SEND_QUOTED): Remove obfuscation macros.
+	(quote_argument, set_tcp_socket, handle_sigcont, handle_sigtstp):
+	(main): Expand removed macros inline.
 
 2007-05-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
