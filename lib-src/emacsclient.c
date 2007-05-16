@@ -108,8 +108,6 @@ char *(getcwd) ();
 #define VERSION "unspecified"
 #endif
 
-#define SEND_STRING(data) (send_to_emacs (emacs_socket, (data)))
-#define SEND_QUOTED(data) (quote_argument (emacs_socket, (data)))
 
 #ifndef EXIT_SUCCESS
 #define EXIT_SUCCESS 0
@@ -645,7 +643,7 @@ quote_argument (s, str)
     }
   *q++ = 0;
 
-  SEND_STRING (copy);
+  send_to_emacs (s, copy);
 
   free (copy);
 }
@@ -878,9 +876,9 @@ set_tcp_socket ()
    */
   auth_string[AUTH_KEY_LENGTH] = '\0';
 
-  SEND_STRING ("-auth ");
-  SEND_STRING (auth_string);
-  SEND_STRING ("\n");
+  send_to_emacs (s, "-auth ");
+  send_to_emacs (s, auth_string);
+  send_to_emacs (s, "\n");
 
   return s;
 }
@@ -953,7 +951,7 @@ handle_sigcont (int signalnum)
   if (tcgetpgrp (1) == getpgrp ())
     {
       /* We are in the foreground. */
-      SEND_STRING ("-resume \n");
+      send_to_emacs (emacs_socket, "-resume \n");
     }
   else
     {
@@ -978,7 +976,7 @@ handle_sigtstp (int signalnum)
   sigset_t set;
   
   if (s)
-    SEND_STRING ("-suspend \n");
+    send_to_emacs (emacs_socket, "-suspend \n");
 
   /* Unblock this signal and call the default handler by temprarily
      changing the handler and resignalling. */
@@ -1298,9 +1296,9 @@ main (argc, argv)
 #endif
 
   /* First of all, send our version number for verification. */
-  SEND_STRING ("-version ");
-  SEND_STRING (VERSION);
-  SEND_STRING (" ");
+  send_to_emacs (emacs_socket, "-version ");
+  send_to_emacs (emacs_socket, VERSION);
+  send_to_emacs (emacs_socket, " ");
 
   /* Send over our environment. */
   if (!current_frame)
@@ -1311,33 +1309,33 @@ main (argc, argv)
         {
           char *name = xstrdup (environ[i]);
           char *value = strchr (name, '=');
-          SEND_STRING ("-env ");
-          SEND_QUOTED (environ[i]);
-          SEND_STRING (" ");
+          send_to_emacs (emacs_socket, "-env ");
+          quote_argument (emacs_socket, environ[i]);
+          send_to_emacs (emacs_socket, " ");
         }
     }
 
   /* Send over our current directory. */
   if (!current_frame)
     {
-      SEND_STRING ("-dir ");          
-      SEND_QUOTED (cwd);
-      SEND_STRING ("/");
-      SEND_STRING (" ");
+      send_to_emacs (emacs_socket, "-dir ");
+      quote_argument (emacs_socket, cwd);
+      send_to_emacs (emacs_socket, "/");
+      send_to_emacs (emacs_socket, " ");
     }
 
  retry:
   if (nowait)
-    SEND_STRING ("-nowait ");
+    send_to_emacs (emacs_socket, "-nowait ");
 
   if (current_frame)
-    SEND_STRING ("-current-frame ");
+    send_to_emacs (emacs_socket, "-current-frame ");
   
   if (display)
     {
-      SEND_STRING ("-display ");
-      SEND_QUOTED (display);
-      SEND_STRING (" ");
+      send_to_emacs (emacs_socket, "-display ");
+      quote_argument (emacs_socket, display);
+      send_to_emacs (emacs_socket, " ");
     }
 
   if (tty)
@@ -1372,15 +1370,15 @@ main (argc, argv)
       init_signals ();
 #endif
 
-      SEND_STRING ("-tty ");
-      SEND_QUOTED (tty_name);
-      SEND_STRING (" ");
-      SEND_QUOTED (type);
-      SEND_STRING (" ");
+      send_to_emacs (emacs_socket, "-tty ");
+      quote_argument (emacs_socket, tty_name);
+      send_to_emacs (emacs_socket, " ");
+      quote_argument (emacs_socket, type);
+      send_to_emacs (emacs_socket, " ");
     }
 
   if (window_system)
-    SEND_STRING ("-window-system ");
+    send_to_emacs (emacs_socket, "-window-system ");
 
   if ((argc - optind > 0))
     {
@@ -1391,9 +1389,9 @@ main (argc, argv)
 	  if (eval)
             {
               /* Don't prepend cwd or anything like that.  */
-              SEND_STRING ("-eval ");
-              SEND_QUOTED (argv[i]);
-              SEND_STRING (" ");
+              send_to_emacs (emacs_socket, "-eval ");
+              quote_argument (emacs_socket, argv[i]);
+              send_to_emacs (emacs_socket, " ");
               continue;
             }
 
@@ -1403,9 +1401,9 @@ main (argc, argv)
 	      while (isdigit ((unsigned char) *p) || *p == ':') p++;
 	      if (*p == 0)
                 {
-                  SEND_STRING ("-position ");
-                  SEND_QUOTED (argv[i]);
-                  SEND_STRING (" ");
+                  send_to_emacs (emacs_socket, "-position ");
+                  quote_argument (emacs_socket, argv[i]);
+                  send_to_emacs (emacs_socket, " ");
                   continue;
                 }
               else
@@ -1414,14 +1412,14 @@ main (argc, argv)
           else if (! file_name_absolute_p (argv[i]))
             relative = 1;
 
-          SEND_STRING ("-file ");
+          send_to_emacs (emacs_socket, "-file ");
           if (relative)
             {
-              SEND_QUOTED (cwd);
-              SEND_STRING ("/");
+              quote_argument (emacs_socket, cwd);
+              send_to_emacs (emacs_socket, "/");
             }
-          SEND_QUOTED (argv[i]);
-          SEND_STRING (" ");
+          quote_argument (emacs_socket, argv[i]);
+          send_to_emacs (emacs_socket, " ");
         }
     }
   else
@@ -1431,16 +1429,16 @@ main (argc, argv)
           while ((str = fgets (string, BUFSIZ, stdin)))
             {
               if (eval)
-                SEND_STRING ("-eval ");
+                send_to_emacs (emacs_socket, "-eval ");
               else
-                SEND_STRING ("-file ");
-              SEND_QUOTED (str);
+                send_to_emacs (emacs_socket, "-file ");
+              quote_argument (emacs_socket, str);
             }
-          SEND_STRING (" ");
+          send_to_emacs (emacs_socket, " ");
         }
     }
 
-  SEND_STRING ("\n");
+  send_to_emacs (emacs_socket, "\n");
 
   /* Wait for an answer. */
   if (!eval && !tty && !nowait)
