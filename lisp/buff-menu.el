@@ -102,8 +102,8 @@ as it is by default."
 
 ;; This should get updated & resorted when you click on a column heading
 (defvar Buffer-menu-sort-column nil
-  "2 for sorting by buffer names.  5 for sorting by file names.
-nil for default sorting by visited order.")
+  "2 for sorting by buffer names, 5 for sorting by file names,
+or nil for default sorting by visited order.")
 
 (defconst Buffer-menu-buffer-column 4)
 
