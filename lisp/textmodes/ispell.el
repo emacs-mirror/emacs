@@ -2483,7 +2483,12 @@ When asynchronous processes are not supported, `run' is always returned."
 (defun ispell-start-process ()
   "Start the ispell process, with support for no asynchronous processes.
 Keeps argument list for future ispell invocations for no async support."
-  (let (args)
+  (let ((default-directory default-directory)
+	args)
+    (unless (and (file-directory-p default-directory)
+		 (file-readable-p default-directory))
+      ;; Defend against bad `default-directory'.
+      (setq default-directory (expand-file-name "~/")))
     ;; Local dictionary becomes the global dictionary in use.
     (setq ispell-current-dictionary
 	  (or ispell-local-dictionary ispell-dictionary))
