@@ -4402,7 +4402,7 @@ Interactively, you have the following situations:
    C-u 2 M-x pr-ps-fast-fire RET
       The command prompts the user for a N-UP value, then for a current
       PostScript printer and, finally, for a file name.  Then change the active
-      printer to that choosen by user and saves the PostScript image in
+      printer to that chosen by user and saves the PostScript image in
       that file instead of sending it to the printer.
 
 
@@ -4421,7 +4421,7 @@ zero and the argument SELECT is treated as follows:
 
    If it's an integer greater or equal to 2, the command prompts the user for a
    current PostScript printer and for a file name.  Then change the active
-   printer to that choosen by user and saves the PostScript image in that file
+   printer to that chosen by user and saves the PostScript image in that file
    instead of sending it to the printer.
 
    If it's a symbol which it's defined in `pr-ps-printer-alist', it's the new
