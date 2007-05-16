@@ -458,9 +458,11 @@ decode_options (argc, argv)
 
   if (!tty && display)
     window_system = 1;
+#ifndef WINDOWSNT
   else
     tty = 1;
-
+#endif
+  
   /* --no-wait implies --current-frame on ttys when there are file
        arguments or expressions given.  */
   if (nowait && tty && argc - optind > 0)
