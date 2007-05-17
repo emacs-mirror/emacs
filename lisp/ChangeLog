@@ -1,3 +1,8 @@
+2007-05-17  Christian Plate  <cplate@web.de>  (tiny change)
+
+	* textmodes/sgml-mode.el (sgml-tag):
+	Fix bug: Call sgml-transformation-function.
+
 2007-05-17  Martin Rudalics  <rudalics@gmx.at>
 
 	* hilit-chg.el (highlight-changes-rotate-faces): Don't set
