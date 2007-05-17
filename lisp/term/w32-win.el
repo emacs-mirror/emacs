@@ -1067,33 +1067,6 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   "Report an error when a suspend is attempted."
   (error "Suspending an Emacs running under W32 makes no sense"))
 
-;; Remap some functions to call w32 common dialogs
-
-(defun internal-face-interactive (what &optional bool)
-  (let* ((fn (intern (concat "face-" what)))
-	 (prompt (concat "Set " what " of face "))
-	 (face (read-face-name prompt))
-	 (default (if (fboundp fn)
-		      (or (funcall fn face (selected-frame))
-			  (funcall fn 'default (selected-frame)))))
-	 (fn-win (intern (concat (symbol-name window-system) "-select-" what)))
-	 value)
-    (setq value
-	  (cond ((fboundp fn-win)
-		 (funcall fn-win))
-		((eq bool 'color)
-		 (completing-read (concat prompt " " (symbol-name face) " to: ")
-				  (mapcar (function (lambda (color)
-						      (cons color color)))
-					  x-colors)
-				  nil nil nil nil default))
-		(bool
-		 (y-or-n-p (concat "Should face " (symbol-name face)
-				   " be " bool "? ")))
-		(t
-		 (read-string (concat prompt " " (symbol-name face) " to: ")
-			      nil nil default))))
-    (list face (if (equal value "") nil value))))
 
 ;;; Enable Japanese fonts on Windows to be used by default.
 (set-fontset-font nil (make-char 'katakana-jisx0201) '("*" . "JISX0208-SJIS"))
