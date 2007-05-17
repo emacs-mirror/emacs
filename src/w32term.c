@@ -6319,6 +6319,9 @@ w32_term_init (display_name, xrm_option, resource_name)
     w32_defined_color (0, "black", &color, 1);
   }
 
+  /* Add the default keyboard.  */
+  add_keyboard_wait_descriptor (0);
+
   /* Create Fringe Bitmaps and store them for later use.
 
      On W32, bitmaps are all unsigned short, as Windows requires
