@@ -2772,6 +2772,15 @@ Remove the "#if 0" and "#endif" directives which surround this, save
 the file, and then reconfigure and rebuild Emacs.  The dumping process
 should now succeed.
 
+*** OpenBSD 4.0 macppc: Segfault during dumping.
+
+The build aborts with signal 11 when the command `./temacs --batch
+--load loadup bootstrap' tries to load files.el.  This seems to be a
+GCC problem specific to the macppc architecture, possibly only
+occurring with some versions of GCC.  A workaround seems to be to
+reduce the level of compiler optimization used during the build (from
+-O2 to -O1).
+
 ** Installation
 
 *** Installing Emacs gets an error running `install-info'.
