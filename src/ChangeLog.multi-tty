@@ -1,3 +1,9 @@
+2007-05-17  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (w32_term_init): Call add_keyboard_wait_descriptor.
+
+	* w32fns.c (x_create_tip_frame): Set terminal and ref count.
+
 2007-05-16  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in: Update dependancies from Makefile.in
