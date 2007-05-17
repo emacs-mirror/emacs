@@ -1360,10 +1360,10 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map
       [menu-bar regexp image-dired-mark-tagged-files]
       '(menu-item "Mark From Image Tag..." image-dired-mark-tagged-files
-                  :help "Mark files whose image tags matches regexp"))    
-    
+                  :help "Mark files whose image tags matches regexp"))
+
     (define-key map [menu-bar regexp dashes-1]
-      '("--"))    
+      '("--"))
 
     (define-key map [menu-bar regexp downcase]
       '(menu-item "Downcase" dired-downcase
@@ -1471,9 +1471,9 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
       [menu-bar operate image-dired-display-thumbs]
       '(menu-item "Display Image-Dired" image-dired-display-thumbs
                   :help "Display image-dired for current or marked image files"))
-    
+
     (define-key map [menu-bar operate dashes-3]
-      '("--"))    
+      '("--"))
 
     (define-key map [menu-bar operate query-replace]
       '(menu-item "Query Replace in Files..." dired-do-query-replace-regexp
@@ -3101,7 +3101,7 @@ The idea is to set this buffer-locally in special dired buffers.")
   (when (eq major-mode 'dired-mode)
     (setq mode-name
 	  (let (case-fold-search)
-	    (cond ((string-match 
+	    (cond ((string-match
 		    dired-sort-by-name-regexp dired-actual-switches)
 		   "Dired by name")
 		  ((string-match

@@ -58,7 +58,9 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg01113.html
 
 ** Install vc-hooks.el patch from trunk.
 
-** Move some items from magic-mode-alist to file-start-mode-alist.
+** Move some items from magic-mode-alist to magic-fallback-mode-alist.
+
+** cloos@jhcloos.com, May 11: A redisplay bug in 22.0.99
 
 * DOCUMENTATION
 

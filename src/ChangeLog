@@ -1,3 +1,8 @@
+2007-05-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c [USE_CARBON_EVENTS] (mac_convert_event_ref): Also convert
+	dead key repeat and up events.
+
 2007-05-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image.c (pbm_load): Check image size for monochrome pbm.

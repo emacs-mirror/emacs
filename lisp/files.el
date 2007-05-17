@@ -2120,8 +2120,20 @@ of the regular expression.  The mode is then determined as the mode
 associated with that interpreter in `interpreter-mode-alist'.")
 
 (defvar magic-mode-alist
-  `((image-type-auto-detected-p . image-mode)
-    ;; The < comes before the groups (but the first) to reduce backtracking.
+  `((image-type-auto-detected-p . image-mode))
+  "Alist of buffer beginnings vs. corresponding major mode functions.
+Each element looks like (REGEXP . FUNCTION) or (MATCH-FUNCTION . FUNCTION).
+After visiting a file, if REGEXP matches the text at the beginning of the
+buffer, or calling MATCH-FUNCTION returns non-nil, `normal-mode' will
+call FUNCTION rather than allowing `auto-mode-alist' to decide the buffer's
+major mode.
+
+If FUNCTION is nil, then it is not called.  (That is a way of saying
+\"allow `auto-mode-alist' to decide for these files.\")")
+(put 'magic-mode-alist 'risky-local-variable t)
+
+(defvar magic-fallback-mode-alist
+  `(;; The < comes before the groups (but the first) to reduce backtracking.
     ;; TODO: UTF-16 <?xml may be preceded by a BOM 0xff 0xfe or 0xfe 0xff.
     ;; We use [ \t\r\n] instead of `\\s ' to make regex overflow less likely.
     (,(let* ((incomment-re "\\(?:[^-]\\|-[^-]\\)")
@@ -2140,19 +2152,6 @@ associated with that interpreter in `interpreter-mode-alist'.")
      . sgml-mode)
     ("%!PS" . ps-mode)
     ("# xmcd " . conf-unix-mode))
-  "Alist of buffer beginnings vs. corresponding major mode functions.
-Each element looks like (REGEXP . FUNCTION) or (MATCH-FUNCTION . FUNCTION).
-After visiting a file, if REGEXP matches the text at the beginning of the
-buffer, or calling MATCH-FUNCTION returns non-nil, `normal-mode' will
-call FUNCTION rather than allowing `auto-mode-alist' to decide the buffer's
-major mode.
-
-If FUNCTION is nil, then it is not called.  (That is a way of saying
-\"allow `auto-mode-alist' to decide for these files.\")")
-(put 'magic-mode-alist 'risky-local-variable t)
-
-(defvar file-start-mode-alist
-  nil
   "Like `magic-mode-alist' but has lower priority than `auto-mode-alist'.
 Each element looks like (REGEXP . FUNCTION) or (MATCH-FUNCTION . FUNCTION).
 After visiting a file, if REGEXP matches the text at the beginning of the
@@ -2161,11 +2160,11 @@ call FUNCTION, provided that `magic-mode-alist' and `auto-mode-alist'
 have not specified a mode for this file.
 
 If FUNCTION is nil, then it is not called.")
-(put 'file-start-mode-alist 'risky-local-variable t)
+(put 'magic-fallback-mode-alist 'risky-local-variable t)
 
 (defvar magic-mode-regexp-match-limit 4000
   "Upper limit on `magic-mode-alist' regexp matches.
-Also applies to `file-start-mode-alist'.")
+Also applies to `magic-fallback-mode-alist'.")
 
 (defun set-auto-mode (&optional keep-mode-if-same)
   "Select major mode appropriate for current buffer.
@@ -2284,7 +2283,7 @@ only set the major mode, if that would change it."
 	      (when mode
 		(set-auto-mode-0 mode keep-mode-if-same)
 		(setq done t))))))
-    ;; Next try matching the buffer beginning against file-start-mode-alist.
+    ;; Next try matching the buffer beginning against magic-fallback-mode-alist.
     (unless done
       (if (setq done (save-excursion
 		       (goto-char (point-min))
@@ -2292,7 +2291,7 @@ only set the major mode, if that would change it."
 			 (narrow-to-region (point-min)
 					   (min (point-max)
 						(+ (point-min) magic-mode-regexp-match-limit)))
-			 (assoc-default nil file-start-mode-alist
+			 (assoc-default nil magic-fallback-mode-alist
 					(lambda (re dummy)
 					  (if (functionp re)
 					      (funcall re)

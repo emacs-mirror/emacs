@@ -5013,7 +5013,7 @@ of multiline constructs so that such constructs get properly recognized.
 *** New variable `magic-mode-alist' determines major mode for a file by
 looking at the file contents.  It takes precedence over `auto-mode-alist'.
 
-*** New variable `file-start-mode-alist' determines major mode for a file by
+*** New variable `magic-fallback-mode-alist' determines major mode for a file by
 looking at the file contents.  It is handled after `auto-mode-alist',
 only if `auto-mode-alist' (and `magic-mode-alist') says nothing about the file.
 
