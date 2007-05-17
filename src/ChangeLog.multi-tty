@@ -1,5 +1,8 @@
 2007-05-17  Jason Rumney  <jasonr@gnu.org>
 
+	* w32term.h (x_output): Remove foreground_pixel and background_pixel.
+	(w32_clear_rect, w32_clear_area): Use background from frame.
+
 	* w32term.c (w32_term_init): Call add_keyboard_wait_descriptor.
 
 	* w32fns.c (x_create_tip_frame): Set terminal and ref count.
