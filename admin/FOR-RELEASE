@@ -47,14 +47,7 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00732.html
 ** michael.ewe@arcor.de, Apr 24: 22.0.98  not starting on Solaris 10/I386
 http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg01113.html
 
-** Takaaki.Ota@am.sony.com, May 2: table cell menu does not appear at the menubar
-   Bug is intermittent.
-
-** Install vc-hooks.el patch from trunk.
-
 ** Move some items from magic-mode-alist to magic-fallback-mode-alist.
-
-** cloos@jhcloos.com, May 11: A redisplay bug in 22.0.99
 
 * DOCUMENTATION
 
