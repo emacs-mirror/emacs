@@ -7428,6 +7428,8 @@ x_create_tip_frame (dpyinfo, parms, text)
 					      Qnil));
   }
 
+  Fmodify_frame_parameters (frame, Fcons (Fcons (Qwindow_system, Qw32), Qnil));
+
   f->no_split = 1;
 
   UNGCPRO;
