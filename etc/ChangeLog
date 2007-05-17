@@ -1,3 +1,7 @@
+2007-05-17  Glenn Morris  <rgm@gnu.org>
+
+	* PROBLEMS (Dumping): Mention OpenBSD macppc problem.
+
 2007-05-15  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* fr-refcard.tex: Rewrite using German layout.
