@@ -1,3 +1,10 @@
+2007-05-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.c (init_tty): Better initialize ttys in windows.
+	* w32fns.c (Fx_create_frame): Set the default minibuffer frame,
+	window_system and the rest of the frame parameters following what
+	is done in X11.
+
 2007-05-17  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.h (x_output): Remove foreground_pixel and background_pixel.

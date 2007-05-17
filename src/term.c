@@ -2424,6 +2424,7 @@ init_tty (char *name, char *terminal_type, int must_succeed)
                  "Unknown terminal type",
                  "Unknown terminal type");
 
+#ifndef WINDOWSNT  
   if (name == NULL)
     name = "/dev/tty";
   if (!strcmp (name, "/dev/tty"))
@@ -2437,7 +2438,8 @@ init_tty (char *name, char *terminal_type, int must_succeed)
   terminal = get_named_tty (name);
   if (terminal)
     return terminal;
-
+#endif
+  
   terminal = create_terminal ();
   tty = (struct tty_display_info *) xmalloc (sizeof (struct tty_display_info));
   bzero (tty, sizeof (struct tty_display_info));
@@ -2451,6 +2453,7 @@ init_tty (char *name, char *terminal_type, int must_succeed)
   tty->Wcm = (struct cm *) xmalloc (sizeof (struct cm));
   Wcm_clear (tty);
 
+#ifndef WINDOWSNT
   set_tty_hooks (terminal);
   
   {
@@ -2497,19 +2500,33 @@ init_tty (char *name, char *terminal_type, int must_succeed)
     tty->input = file;
     tty->output = file;
   }
-
+  
   tty->type = xstrdup (terminal_type);
 
   add_keyboard_wait_descriptor (fileno (tty->input));
+
+#endif
 
   encode_terminal_bufsize = 0;
 
 #ifdef WINDOWSNT
   initialize_w32_display ();
 
+  /* XXX Can this be non-null?  */
+  if (name)
+    {
+      tty->name = xstrdup (name);
+      terminal->name = xstrdup (name);
+    }
+  tty->type = xstrdup (terminal_type);  
+
+  /* XXX not sure if this line is correct. If it is not set then we
+     crash in update_display_1. */
+  tty->output = stdout;
+  
   Wcm_clear (tty);
 
-  area = (char *) xmalloc (2044);
+  area = (char *) xmalloc (2044); /* XXX this seems unused. */
 
   {
     struct frame *f = XFRAME (selected_frame);
