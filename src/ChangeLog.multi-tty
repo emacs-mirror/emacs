@@ -1,3 +1,7 @@
+2007-05-17  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (x_create_tip_frame): Set window_system.
+
 2007-05-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term.c (init_tty): Better initialize ttys in windows.
