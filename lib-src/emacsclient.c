@@ -977,7 +977,7 @@ handle_sigtstp (int signalnum)
   int old_errno = errno;
   sigset_t set;
   
-  if (s)
+  if (emacs_socket)
     send_to_emacs (emacs_socket, "-suspend \n");
 
   /* Unblock this signal and call the default handler by temprarily
