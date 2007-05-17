@@ -2777,9 +2777,9 @@ should now succeed.
 The build aborts with signal 11 when the command `./temacs --batch
 --load loadup bootstrap' tries to load files.el.  This seems to be a
 GCC problem specific to the macppc architecture, possibly only
-occurring with some versions of GCC.  A workaround seems to be to
-reduce the level of compiler optimization used during the build (from
--O2 to -O1).
+occurring with older versions of GCC (e.g. 3.3.5).  A workaround seems
+to be to reduce the level of compiler optimization used during the
+build (from -O2 to -O1).
 
 ** Installation
 
