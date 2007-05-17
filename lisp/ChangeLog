@@ -1,3 +1,29 @@
+2007-05-17  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Group together all XEmacs/Emacs definitions.
+	(pr-version): New version 6.9.
+	(pr-global-menubar, pr-menu-char-height, pr-menu-char-width): New funs.
+	(pr-menu-char-height, pr-menu-char-width): Fix initialization code.
+	(pr-menu-bind): Fix code.
+	(pr-e-frame-char-height, pr-e-frame-char-width)
+	(pr-e-mouse-pixel-position, pr-x-add-submenu, pr-x-event-function)
+	(pr-x-event-object, pr-x-find-menu-item, pr-x-font-height)
+	(pr-x-font-width, pr-x-get-popup-menu-response, pr-x-make-event)
+	(pr-x-misc-user-event-p, pr-x-relabel-menu-item, pr-x-event-x-pixel)
+	(pr-x-event-y-pixel): Aliases eliminated.
+	(pr-xemacs-global-menubar): Macro moved.
+	(current-menubar, current-mouse-event, zmacs-region-stays)
+	(deactivate-mark, pr-menu-position, pr-menu-state, pr-ps-name-old)
+	(pr-txt-name-old, pr-ps-utility-old, pr-even-or-odd-old, pr-temp-menu):
+	Vars moved.
+	(pr-region-active-p, pr-menu-position, pr-menu-lookup, pr-menu-lock)
+	(pr-update-mode-line, pr-do-update-menus, pr-menu-alist)
+	(pr-relabel-menu-item, pr-menu-set-ps-title, pr-menu-set-txt-title)
+	(pr-menu-set-utility-title, pr-even-or-odd-pages)
+	(pr-f-set-keymap-parents, pr-f-set-keymap-name, pr-f-read-string)
+	(pr-keep-region-active, pr-menu-get-item, pr-menu-set-item-name): Funs
+	moved.
+
 2007-05-17  Christian Plate  <cplate@web.de>  (tiny change)
 
 	* textmodes/sgml-mode.el (sgml-tag):
