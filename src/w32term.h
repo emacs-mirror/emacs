@@ -275,8 +275,10 @@ extern void w32_find_ccl_program();
    diffs between X and w32 code.  */
 struct x_output
 {
+#if 0 /* These are also defined in struct frame.  Use that instead.  */
   PIX_TYPE background_pixel;
   PIX_TYPE foreground_pixel;
+#endif
 
   /* Keep track of focus.  May be EXPLICIT if we received a FocusIn for this
      frame, or IMPLICIT if we received an EnterNotify.
@@ -587,10 +589,10 @@ extern void w32_clear_window ();
 }
 
 #define w32_clear_rect(f,hdc,lprect) \
-w32_fill_rect (f,hdc,f->output_data.x->background_pixel,lprect)
+  w32_fill_rect (f, hdc, FRAME_BACKGROUND_PIXEL (f), lprect)
 
 #define w32_clear_area(f,hdc,px,py,nx,ny) \
-w32_fill_area (f,hdc,f->output_data.x->background_pixel,px,py,nx,ny)
+  w32_fill_area (f, hdc, FRAME_BACKGROUND_PIXEL (f), px, py, nx, ny)
 
 extern struct font_info *w32_load_font ();
 extern void w32_unload_font ();
