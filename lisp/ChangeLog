@@ -1,3 +1,8 @@
+2007-05-17  Martin Rudalics  <rudalics@gmx.at>
+
+	* textmodes/ispell.el (ispell-start-process): Defend against bad
+	default-directory.
+
 2007-05-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-hooks.el (vc-find-root): Stop searching when the user changes.
