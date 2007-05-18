@@ -1,3 +1,7 @@
+2007-05-18  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* textmodes/sgml-mode.el: Revert last change.
+
 2007-05-17  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* printing.el: Group together all XEmacs/Emacs definitions.
