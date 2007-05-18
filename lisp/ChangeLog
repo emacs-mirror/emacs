@@ -1,3 +1,7 @@
+2007-05-18  Richard Stallman  <rms@gnu.org>
+
+	* simple.el (push-mark): Doc fix.
+
 2007-05-18  Rob Riepel  <riepel@Stanford.EDU>
 
 	* emulation/tpu-edt.el (CSI-map, SS3-map) Moved from global-map to
