@@ -619,10 +619,10 @@ This only works for Latin-1 input."
   "Prompt for a tag and insert it, optionally with attributes.
 Completion and configuration are done according to `sgml-tag-alist'.
 If you like tags and attributes in uppercase do \\[set-variable]
-`sgml-transformation-function' RET `upcase' RET, or put this
+`skeleton-transformation-function' RET `upcase' RET, or put this
 in your `.emacs':
   (setq sgml-transformation-function 'upcase)"
-  (funcall (or sgml-transformation-function 'identity)
+  (funcall (or skeleton-transformation-function 'identity)
            (setq sgml-tag-last
 		 (completing-read
 		  (if (> (length sgml-tag-last) 0)
