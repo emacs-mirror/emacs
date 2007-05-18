@@ -60,10 +60,10 @@ University of California, as described above. */
 
 /*
  * Authors:
- *	Ctags originally by Ken Arnold.
- *	Fortran added by Jim Kleckner.
- *	Ed Pelegri-Llopart added C typedefs.
- *	Gnu Emacs TAGS format and modifications by RMS?
+ * 1983	Ctags originally by Ken Arnold.
+ * 1984	Fortran added by Jim Kleckner.
+ * 1984	Ed Pelegri-Llopart added C typedefs.
+ * 1985	Emacs TAGS format by Richard Stallman.
  * 1989	Sam Kendall added C++.
  * 1992 Joseph B. Wells improved C and C++ parsing.
  * 1993	Francesco Potortì reorganised C and C++.
@@ -80,7 +80,7 @@ University of California, as described above. */
  * configuration file containing regexp definitions for etags.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 17.26";
+char pot_etags_version[] = "@(#) pot revision number is 17.31";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -159,7 +159,14 @@ char pot_etags_version[] = "@(#) pot revision number is 17.26";
 #  include <stdlib.h>
 #  include <string.h>
 # else /* no standard C headers */
-    extern char *getenv ();
+   extern char *getenv ();
+   extern char *strcpy ();
+   extern char *strncpy ();
+   extern char *strcat ();
+   extern char *strncat ();
+   extern unsigned long strlen ();
+   extern PTR malloc ();
+   extern PTR realloc ();
 #  ifdef VMS
 #   define EXIT_SUCCESS	1
 #   define EXIT_FAILURE	0
@@ -483,7 +490,7 @@ static char
   *midtk = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz$0123456789";
 
 static bool append_to_tagfile;	/* -a: append to tags */
-/* The next four default to TRUE for etags, but to FALSE for ctags.  */
+/* The next five default to TRUE for etags, but to FALSE for ctags.  */
 static bool typedefs;		/* -t: create tags for C and Ada typedefs */
 static bool typedefs_or_cplusplus; /* -T: create tags for C typedefs, level */
 				/* 0 struct/enum/union decls, and C++ */
@@ -875,7 +882,7 @@ etags --help --lang=ada.");
 # define EMACS_NAME "standalone"
 #endif
 #ifndef VERSION
-# define VERSION "version"
+# define VERSION "17.31"
 #endif
 static void
 print_version ()
@@ -969,7 +976,11 @@ Relative ones are stored relative to the output file's directory.\n");
     puts ("--no-globals\n\
 	Do not create tag entries for global variables in some\n\
 	languages.  This makes the tags file smaller.");
-  puts ("--no-members\n\
+  if (CTAGS)
+    puts ("--members\n\
+	Create tag entries for members of structures in some languages.");
+  else
+    puts ("--no-members\n\
 	Do not create tag entries for members of structures\n\
 	in some languages.");
 
@@ -1215,7 +1226,7 @@ main (argc, argv)
   if (!CTAGS)
     {
       typedefs = typedefs_or_cplusplus = constantypedefs = TRUE;
-      globals = TRUE;
+      globals = members = TRUE;
     }
 
   /* When the optstring begins with a '-' getopt_long does not rearrange the
@@ -3397,17 +3408,15 @@ C_entries (c_ext, inf)
 	case '/':
 	  if (*lp == '*')
 	    {
-	      lp++;
 	      incomm = TRUE;
-	      continue;
+	      lp++;
+	      c = ' ';
 	    }
 	  else if (/* cplpl && */ *lp == '/')
 	    {
 	      c = '\0';
-	      break;
 	    }
-	  else
-	    break;
+	  break;
 	case '%':
 	  if ((c_ext & YACC) && *lp == '%')
 	    {
