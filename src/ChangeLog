@@ -1,3 +1,8 @@
+2007-05-18  Glenn Morris  <rgm@gnu.org>
+
+	* m/alpha.h (ORDINARY_LINK): No longer define on OpenBSD.
+	Suggested by Alfred M. Szmidt <ams@gnu.org>.
+
 2007-05-17  Glenn Morris  <rgm@gnu.org>
 
 	* m/macppc.h (ORDINARY_LINK): No longer define on OpenBSD.
