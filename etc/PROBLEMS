@@ -2775,11 +2775,11 @@ should now succeed.
 *** OpenBSD 4.0 macppc: Segfault during dumping.
 
 The build aborts with signal 11 when the command `./temacs --batch
---load loadup bootstrap' tries to load files.el.  This seems to be a
-GCC problem specific to the macppc architecture, possibly only
-occurring with older versions of GCC (e.g. 3.3.5).  A workaround seems
+--load loadup bootstrap' tries to load files.el.  A workaround seems
 to be to reduce the level of compiler optimization used during the
-build (from -O2 to -O1).
+build (from -O2 to -O1).  It is possible this is an OpenBSD
+GCC problem specific to the macppc architecture, possibly only
+occurring with older versions of GCC (e.g. 3.3.5).
 
 ** Installation
 
