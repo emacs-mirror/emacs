@@ -271,8 +271,12 @@
   Binaries for the image libraries (among many others) can be found at
   the GnuWin32 project.  These are built with MinGW, but they can be
   used with both GCC/MinGW and MSVC builds of Emacs.  See the info on
-  http://ourcomments.org/Emacs/EmacsW32.html for more details about
-  installing image support libraries.
+  http://ourcomments.org/Emacs/w32-build-emacs.html, under "How to Get
+  Images Support", for more details about installing image support
+  libraries.  Note specifically that, due to some packaging snafus in
+  the GnuWin32-supplied image libraries, you will need to download
+  _source_ packages for some of the libraries in order to get the
+  header files necessary for building Emacs with image support.
 
 * Building
 
