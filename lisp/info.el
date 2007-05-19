@@ -4074,7 +4074,8 @@ the variable `Info-file-list-for-emacs'."
       ;; Fontify http and ftp references
       (goto-char (point-min))
       (when not-fontified-p
-        (while (re-search-forward "[hf]t?tp://[^ \t\n\"`({<>})']+" nil t)
+        (while (re-search-forward "\\(https?\\|ftp\\)://[^ \t\n\"`({<>})']+"
+                                  nil t)
           (add-text-properties (match-beginning 0) (match-end 0)
                                '(font-lock-face info-xref
                                                 mouse-face highlight
