@@ -1,3 +1,10 @@
+2007-05-19  Glenn Morris  <rgm@gnu.org>
+
+	* images/cancel.pbm: Convert from PGM to PBM.
+
+	* images/copy.pbm, images/next-node.pbm, images/prev-node.pbm:
+	* images/save.pbm, images/up-node.pbm: Convert from PPM to PBM.
+
 2007-05-17  Glenn Morris  <rgm@gnu.org>
 
 	* PROBLEMS (Dumping): Mention OpenBSD macppc problem.
