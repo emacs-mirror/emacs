@@ -1,3 +1,9 @@
+2007-05-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (redisplay_window): If first window line is a
+	continuation line, recompute the new window start instead of
+	recentering.
+
 2007-05-18  Glenn Morris  <rgm@gnu.org>
 
 	* m/alpha.h (ORDINARY_LINK): No longer define on OpenBSD.
