@@ -1,3 +1,8 @@
+2007-05-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Fix URL of EmacsW32 site where building with image
+	support is described.
+
 2007-03-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* INSTALL: Mention the VCVARS32.BAT batch file for VS.NET users.
