@@ -1,3 +1,40 @@
+2007-05-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/darwin.h (SYSTEM_PURESIZE_EXTRA): Define here.
+
+	* termhooks.h (union display_info): Add mac_display_info.
+
+	* term.c (init_tty): Only use terminal->kboard when MULTI_KBOARD
+	is defined.
+
+	* macterm.h (struct mac_display_info): Add terminal.
+
+	* w32term.c (w32_initialize): Make static.
+
+	* macterm.c (XTset_terminal_modes): Add a terminal parameter.
+	(XTreset_terminal_modes): Likewise.
+	(x_clear_frame): Add a frame parameter.
+	(note_mouse_movement): Get rif from the frame.
+	(mac_term_init): Initialize the terminal.
+	(mac_initialize): Make static and move terminal initialization ...
+	(mac_create_terminal): ... in this new function.
+
+	* macmenu.c: Reorder includes.
+	(Fx_popup_menu): Use terminal specific mouse_position_hook.
+
+	* macfns.c (x_set_mouse_color): Get rif from the frame.
+	(x_set_tool_bar_lines): Don't use updating_frame.
+	(mac_window): Add 2 new parameters for consistency with other
+	systems.  
+	(Fx_create_frame): Fix doc string. Rename the parameter.
+	(Fx_create_frame): Set the frame parameters following what is done
+	in X11 and w32.
+	(Fx_open_connection): Remove window-system check.
+	(start_hourglass): Likewise.
+	(x_create_tip_frame): Get the keyboard from the terminal.
+
+	* w32fns.c (Fx_create_frame): Use kboard from the terminal.
+
 2007-05-17  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (x_create_tip_frame): Set window_system.

@@ -65,8 +65,8 @@
 ;; An alist of X options and the function which handles them.  See
 ;; ../startup.el.
 
-(if (not (eq window-system 'mac))
-    (error "%s: Loading mac-win.el but not compiled for Mac" (invocation-name)))
+;; (if (not (eq window-system 'mac))
+;;     (error "%s: Loading mac-win.el but not compiled for Mac" (invocation-name)))
 
 (require 'frame)
 (require 'mouse)
@@ -2594,13 +2594,23 @@ ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
 
 (defun x-win-suspend-error ()
   (error "Suspending an Emacs running under Mac makes no sense"))
+
+(defalias 'x-cut-buffer-or-selection-value 'x-get-selection-value)
+
+(defvar mac-initialized nil
+  "Non-nil if the w32 window system has been initialized.")
+
+(defun mac-initialize-window-system ()
+  "Initialize Emacs for Mac GUI frames."
+
 (add-hook 'suspend-hook 'x-win-suspend-error)
 
 ;;; Arrange for the kill and yank functions to set and check the clipboard.
 (setq interprogram-cut-function 'x-select-text)
 (setq interprogram-paste-function 'x-get-selection-value)
 
-(defalias 'x-cut-buffer-or-selection-value 'x-get-selection-value)
+
+
 
 ;;; Turn off window-splitting optimization; Mac is usually fast enough
 ;;; that this is only annoying.
@@ -2615,6 +2625,7 @@ ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
 
 ;; Enable CLIPBOARD copy/paste through menu bar commands.
 (menu-bar-enable-clipboard)
+
 
 ;; Initiate drag and drop
 
@@ -2636,6 +2647,8 @@ ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
 
 (global-unset-key [vertical-scroll-bar drag-mouse-1])
 (global-unset-key [vertical-scroll-bar mouse-1])
+
+(setq mac-initialized t)))
 
 (defun mac-handle-scroll-bar-event (event)
   "Handle scroll bar EVENT to emulate Mac Toolbox style scrolling."
@@ -2683,7 +2696,6 @@ ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
     (mac-scroll-ignore-events)
     (scroll-up 1)))
 
-)
 
 
 ;;;; Others
@@ -2720,6 +2732,12 @@ ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
 ;; fonts with both truetype and bitmap representations but no italic
 ;; or bold bitmap versions will not display these variants correctly.
 (setq scalable-fonts-allowed t)
+
+(add-to-list 'handle-args-function-alist '(mac . x-handle-args))
+(add-to-list 'frame-creation-function-alist '(mac . x-create-frame-with-faces))
+(add-to-list 'window-system-initialization-alist '(mac . mac-initialize-window-system))
+
+(provide 'mac-win)
 
 ;; arch-tag: 71dfcd14-cde8-4d66-b05c-85ec94fb23a6
 ;;; mac-win.el ends here

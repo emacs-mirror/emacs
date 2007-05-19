@@ -2732,9 +2732,8 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
      prompt in the mini-buffer.  */
   if (current_kboard == initial_kboard)
     current_kboard = terminal->kboard;
-#endif
-
   term_get_fkeys (address, terminal->kboard);
+#endif
 
   /* Get frame size from system, or else from termcap.  */
   {

@@ -293,6 +293,9 @@ enum {
 #endif /* CONSP */
 
 
+struct mac_display_info;
+struct w32_display_info;
+
 /* Terminal-local parameters. */
 struct terminal
 {
@@ -327,9 +330,8 @@ struct terminal
   {
     struct tty_display_info *tty;     /* termchar.h */
     struct x_display_info *x;         /* xterm.h */
-#ifdef WINDOWSNT
     struct w32_display_info *w32;     /* w32term.h */
-#endif
+    struct mac_display_info *mac;     /* macterm.h */
   } display_info;
 
 

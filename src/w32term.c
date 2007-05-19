@@ -230,7 +230,7 @@ void x_raise_frame P_ ((struct frame *));
 void x_set_window_size P_ ((struct frame *, int, int, int));
 void x_wm_set_window_state P_ ((struct frame *, int));
 void x_wm_set_icon_pixmap P_ ((struct frame *, int));
-void w32_initialize P_ ((void));
+static void w32_initialize P_ ((void));
 static void x_font_min_bounds P_ ((XFontStruct *, int *, int *));
 int x_compute_min_glyph_bounds P_ ((struct frame *));
 static void x_update_end P_ ((struct frame *));
@@ -6403,7 +6403,7 @@ x_delete_display (dpyinfo)
 
 DWORD WINAPI w32_msg_worker (void * arg);
 
-void
+static void
 w32_initialize ()
 {
   baud_rate = 19200;

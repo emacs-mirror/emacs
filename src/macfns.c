@@ -107,7 +107,6 @@ extern Lisp_Object Vwindow_system_version;
 int image_cache_refcount, dpyinfo_refcount;
 #endif
 
-
 #if 0 /* Use xstricmp instead.  */
 /* compare two strings ignoring case */
 
@@ -1447,7 +1446,7 @@ x_set_mouse_color (f, arg, oldval)
   BLOCK_INPUT;
 
   if (FRAME_MAC_WINDOW (f) != 0)
-    rif->define_frame_cursor (f, cursor);
+    FRAME_TERMINAL (f)->rif->define_frame_cursor (f, cursor);
 
   f->output_data.mac->text_cursor = cursor;
   f->output_data.mac->nontext_cursor = nontext_cursor;
@@ -1708,10 +1707,8 @@ x_set_tool_bar_lines (f, value, oldval)
      below the menu bar.  */
   if (FRAME_MAC_WINDOW (f) && FRAME_TOOL_BAR_LINES (f) == 0)
     {
-      updating_frame = f;
-      clear_frame ();
+      clear_frame (f);
       clear_current_matrices (f);
-      updating_frame = NULL;
     }
 
   /* If the tool bar gets smaller, the internal border below it
@@ -2237,8 +2234,10 @@ XParseGeometry (string, x, y, width, height)
 /* Create and set up the Mac window for frame F.  */
 
 static void
-mac_window (f)
+mac_window (f, window_prompting, minibuffer_only)
      struct frame *f;
+     long window_prompting;
+     int minibuffer_only;
 {
   Rect r;
 
@@ -2497,15 +2496,15 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
        1, 1, 0,
        doc: /* Make a new window, which is called a "frame" in Emacs terms.
 Returns an Emacs frame object.
-ALIST is an alist of frame parameters.
+PARAMETERS is an alist of frame parameters.
 If the parameters specify that the frame should not have a minibuffer,
 and do not specify a specific minibuffer window to use,
 then `default-minibuffer-frame' must be a frame whose minibuffer can
 be shared by the new frame.
 
 This function is an internal primitive--use `make-frame' instead.  */)
-     (parms)
-     Lisp_Object parms;
+     (parameters)
+     Lisp_Object parameters;
 {
   struct frame *f;
   Lisp_Object frame, tem;
@@ -2522,23 +2521,21 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   check_mac ();
 
-  parms = Fcopy_alist (parms);
-
   /* Use this general default value to start with
      until we know if this frame has a specified name.  */
   Vx_resource_name = Vinvocation_name;
 
-  display = mac_get_arg (parms, Qdisplay, 0, 0, RES_TYPE_STRING);
+  display = mac_get_arg (parameters, Qdisplay, 0, 0, RES_TYPE_STRING);
   if (EQ (display, Qunbound))
     display = Qnil;
   dpyinfo = check_x_display_info (display);
 #ifdef MULTI_KBOARD
-  kb = dpyinfo->kboard;
+  kb = dpyinfo->terminal->kboard;
 #else
   kb = &the_only_kboard;
 #endif
 
-  name = mac_get_arg (parms, Qname, "name", "Name", RES_TYPE_STRING);
+  name = mac_get_arg (parameters, Qname, "name", "Name", RES_TYPE_STRING);
   if (!STRINGP (name)
       && ! EQ (name, Qunbound)
       && ! NILP (name))
@@ -2548,7 +2545,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
     Vx_resource_name = name;
 
   /* See if parent window is specified.  */
-  parent = mac_get_arg (parms, Qparent_id, NULL, NULL, RES_TYPE_NUMBER);
+  parent = mac_get_arg (parameters, Qparent_id, NULL, NULL, RES_TYPE_NUMBER);
   if (EQ (parent, Qunbound))
     parent = Qnil;
   if (! NILP (parent))
@@ -2558,8 +2555,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
   /* No need to protect DISPLAY because that's not used after passing
      it to make_frame_without_minibuffer.  */
   frame = Qnil;
-  GCPRO4 (parms, parent, name, frame);
-  tem = mac_get_arg (parms, Qminibuffer, "minibuffer", "Minibuffer",
+  GCPRO4 (parameters, parent, name, frame);
+  tem = mac_get_arg (parameters, Qminibuffer, "minibuffer", "Minibuffer",
 		     RES_TYPE_SYMBOL);
   if (EQ (tem, Qnone) || NILP (tem))
     f = make_frame_without_minibuffer (Qnil, kb, display);
@@ -2578,20 +2575,24 @@ This function is an internal primitive--use `make-frame' instead.  */)
   /* Note that X Windows does support scroll bars.  */
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 1;
 
+  f->terminal = dpyinfo->terminal;
+  f->terminal->reference_count++;
+
   f->output_method = output_mac;
   f->output_data.mac = (struct mac_output *) xmalloc (sizeof (struct mac_output));
   bzero (f->output_data.mac, sizeof (struct mac_output));
   FRAME_FONTSET (f) = -1;
+  record_unwind_protect (unwind_create_frame, frame);
 
   f->icon_name
-    = mac_get_arg (parms, Qicon_name, "iconName", "Title", RES_TYPE_STRING);
+    = mac_get_arg (parameters, Qicon_name, "iconName", "Title", RES_TYPE_STRING);
   if (! STRINGP (f->icon_name))
     f->icon_name = Qnil;
 
-/*   FRAME_MAC_DISPLAY_INFO (f) = dpyinfo; */
+  /* XXX Is this needed? */
+  FRAME_MAC_DISPLAY_INFO (f) = dpyinfo;
 
   /* With FRAME_MAC_DISPLAY_INFO set up, this unwind-protect is safe.  */
-  record_unwind_protect (unwind_create_frame, frame);
 #if GLYPH_DEBUG
   image_cache_refcount = FRAME_X_IMAGE_CACHE (f)->refcount;
   dpyinfo_refcount = dpyinfo->reference_count;
@@ -2633,7 +2634,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   {
     Lisp_Object font;
 
-    font = mac_get_arg (parms, Qfont, "font", "Font", RES_TYPE_STRING);
+    font = mac_get_arg (parameters, Qfont, "font", "Font", RES_TYPE_STRING);
 
     BLOCK_INPUT;
     /* First, try whatever font the caller has specified.  */
@@ -2645,7 +2646,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
 	else
 	  font = x_new_font (f, SDATA (font));
       }
-
     /* Try out a font which we hope has bold and italic variations.  */
 #if USE_ATSUI
     if (! STRINGP (font))
@@ -2664,48 +2664,50 @@ This function is an internal primitive--use `make-frame' instead.  */)
       error ("Cannot find any usable font");
     UNBLOCK_INPUT;
 
-    x_set_frame_parameters (f, Fcons (Fcons (Qfont, font), Qnil));
+    x_default_parameter (f, parameters, Qfont, font,
+			 "font", "Font", RES_TYPE_STRING);
   }
 
-  x_default_parameter (f, parms, Qborder_width, make_number (0),
+  /* XXX Shouldn't this be borderWidth,  not borderwidth ?*/
+  x_default_parameter (f, parameters, Qborder_width, make_number (0),
 		       "borderwidth", "BorderWidth", RES_TYPE_NUMBER);
   /* This defaults to 2 in order to match xterm.  We recognize either
      internalBorderWidth or internalBorder (which is what xterm calls
      it).  */
-  if (NILP (Fassq (Qinternal_border_width, parms)))
+  if (NILP (Fassq (Qinternal_border_width, parameters)))
     {
       Lisp_Object value;
 
-      value = mac_get_arg (parms, Qinternal_border_width,
+      value = mac_get_arg (parameters, Qinternal_border_width,
 			 "internalBorder", "InternalBorder", RES_TYPE_NUMBER);
       if (! EQ (value, Qunbound))
-	parms = Fcons (Fcons (Qinternal_border_width, value),
-		       parms);
+	parameters = Fcons (Fcons (Qinternal_border_width, value),
+                            parameters);
     }
   /* Default internalBorderWidth to 0 on Windows to match other programs.  */
-  x_default_parameter (f, parms, Qinternal_border_width, make_number (0),
+  x_default_parameter (f, parameters, Qinternal_border_width, make_number (0),
 		       "internalBorderWidth", "InternalBorder", RES_TYPE_NUMBER);
-  x_default_parameter (f, parms, Qvertical_scroll_bars, Qright,
+  x_default_parameter (f, parameters, Qvertical_scroll_bars, Qright,
 		       "verticalScrollBars", "ScrollBars", RES_TYPE_SYMBOL);
 
   /* Also do the stuff which must be set before the window exists.  */
-  x_default_parameter (f, parms, Qforeground_color, build_string ("black"),
+  x_default_parameter (f, parameters, Qforeground_color, build_string ("black"),
 		       "foreground", "Foreground", RES_TYPE_STRING);
-  x_default_parameter (f, parms, Qbackground_color, build_string ("white"),
+  x_default_parameter (f, parameters, Qbackground_color, build_string ("white"),
 		       "background", "Background", RES_TYPE_STRING);
-  x_default_parameter (f, parms, Qmouse_color, build_string ("black"),
+  x_default_parameter (f, parameters, Qmouse_color, build_string ("black"),
 		       "pointerColor", "Foreground", RES_TYPE_STRING);
-  x_default_parameter (f, parms, Qcursor_color, build_string ("black"),
+  x_default_parameter (f, parameters, Qcursor_color, build_string ("black"),
 		       "cursorColor", "Foreground", RES_TYPE_STRING);
-  x_default_parameter (f, parms, Qborder_color, build_string ("black"),
+  x_default_parameter (f, parameters, Qborder_color, build_string ("black"),
 		       "borderColor", "BorderColor", RES_TYPE_STRING);
-  x_default_parameter (f, parms, Qscreen_gamma, Qnil,
+  x_default_parameter (f, parameters, Qscreen_gamma, Qnil,
 		       "screenGamma", "ScreenGamma", RES_TYPE_FLOAT);
-  x_default_parameter (f, parms, Qline_spacing, Qnil,
+  x_default_parameter (f, parameters, Qline_spacing, Qnil,
 		       "lineSpacing", "LineSpacing", RES_TYPE_NUMBER);
-  x_default_parameter (f, parms, Qleft_fringe, Qnil,
+  x_default_parameter (f, parameters, Qleft_fringe, Qnil,
 		       "leftFringe", "LeftFringe", RES_TYPE_NUMBER);
-  x_default_parameter (f, parms, Qright_fringe, Qnil,
+  x_default_parameter (f, parameters, Qright_fringe, Qnil,
 		       "rightFringe", "RightFringe", RES_TYPE_NUMBER);
 
 
@@ -2717,29 +2719,29 @@ This function is an internal primitive--use `make-frame' instead.  */)
      happen.  */
   init_frame_faces (f);
 
-  x_default_parameter (f, parms, Qmenu_bar_lines, make_number (1),
+  x_default_parameter (f, parameters, Qmenu_bar_lines, make_number (1),
 		       "menuBar", "MenuBar", RES_TYPE_NUMBER);
-  x_default_parameter (f, parms, Qtool_bar_lines, make_number (1),
-		       "toolBar", "ToolBar", RES_TYPE_NUMBER);
-  x_default_parameter (f, parms, Qbuffer_predicate, Qnil,
-		       "bufferPredicate", "BufferPredicate",
-		       RES_TYPE_SYMBOL);
-  x_default_parameter (f, parms, Qtitle, Qnil,
+  x_default_parameter (f, parameters, Qtool_bar_lines, make_number (1),
+                       "toolBar", "ToolBar", RES_TYPE_NUMBER);
+
+  x_default_parameter (f, parameters, Qbuffer_predicate, Qnil,
+		       "bufferPredicate", "BufferPredicate", RES_TYPE_SYMBOL);
+  x_default_parameter (f, parameters, Qtitle, Qnil,
 		       "title", "Title", RES_TYPE_STRING);
-  x_default_parameter (f, parms, Qfullscreen, Qnil,
+  x_default_parameter (f, parameters, Qfullscreen, Qnil,
                        "fullscreen", "Fullscreen", RES_TYPE_SYMBOL);
 
   f->output_data.mac->parent_desc = FRAME_MAC_DISPLAY_INFO (f)->root_window;
 
   /* Compute the size of the window.  */
-  window_prompting = x_figure_window_size (f, parms, 1);
+  window_prompting = x_figure_window_size (f, parameters, 1);
 
-  tem = mac_get_arg (parms, Qunsplittable, 0, 0, RES_TYPE_BOOLEAN);
+  tem = mac_get_arg (parameters, Qunsplittable, 0, 0, RES_TYPE_BOOLEAN);
   f->no_split = minibuffer_only || EQ (tem, Qt);
 
-  mac_window (f);
+  mac_window (f, window_prompting, minibuffer_only);
+  x_icon (f, parameters);
 
-  x_icon (f, parms);
   x_make_gc (f);
 
   /* Now consider the frame official.  */
@@ -2748,18 +2750,17 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   /* We need to do this after creating the window, so that the
      icon-creation functions can say whose icon they're describing.  */
-  x_default_parameter (f, parms, Qicon_type, Qnil,
+  x_default_parameter (f, parameters, Qicon_type, Qnil,
 		       "bitmapIcon", "BitmapIcon", RES_TYPE_SYMBOL);
 
-  x_default_parameter (f, parms, Qauto_raise, Qnil,
+  x_default_parameter (f, parameters, Qauto_raise, Qnil,
 		       "autoRaise", "AutoRaiseLower", RES_TYPE_BOOLEAN);
-  x_default_parameter (f, parms, Qauto_lower, Qnil,
+  x_default_parameter (f, parameters, Qauto_lower, Qnil,
 		       "autoLower", "AutoRaiseLower", RES_TYPE_BOOLEAN);
-  x_default_parameter (f, parms, Qcursor_type, Qbox,
+  x_default_parameter (f, parameters, Qcursor_type, Qbox,
 		       "cursorType", "CursorType", RES_TYPE_SYMBOL);
-  x_default_parameter (f, parms, Qscroll_bar_width, Qnil,
-		       "scrollBarWidth", "ScrollBarWidth",
-		       RES_TYPE_NUMBER);
+  x_default_parameter (f, parameters, Qscroll_bar_width, Qnil,
+		       "scrollBarWidth", "ScrollBarWidth", RES_TYPE_NUMBER);
 
   /* Dimensions, especially FRAME_LINES (f), must be done via change_frame_size.
      Change will not be effected unless different from the current
@@ -2767,8 +2768,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
   width = FRAME_COLS (f);
   height = FRAME_LINES (f);
 
-  SET_FRAME_COLS (f, 0);
   FRAME_LINES (f) = 0;
+  SET_FRAME_COLS (f, 0);
   change_frame_size (f, height, width, 1, 0, 0);
 
   /* Tell the server what size and position, etc, we want, and how
@@ -2785,7 +2786,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
     {
       Lisp_Object visibility;
 
-      visibility = mac_get_arg (parms, Qvisibility, 0, 0, RES_TYPE_SYMBOL);
+      visibility = mac_get_arg (parameters, Qvisibility, 0, 0, RES_TYPE_SYMBOL);
       if (EQ (visibility, Qunbound))
 	visibility = Qt;
 
@@ -2807,10 +2808,12 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   /* All remaining specified parameters, which have not been "used"
      by x_get_arg and friends, now go in the misc. alist of the frame.  */
-  for (tem = parms; !NILP (tem); tem = XCDR (tem))
+  for (tem = parameters; !NILP (tem); tem = XCDR (tem))
     if (CONSP (XCAR (tem)) && !NILP (XCAR (XCAR (tem))))
       f->param_alist = Fcons (XCAR (tem), f->param_alist);
 
+  store_frame_param (f, Qwindow_system, Qmac);
+  
   UNGCPRO;
 
   /* Make sure windows on this frame appear in calls to next-window
@@ -3273,9 +3276,6 @@ x_display_info_for_name (name)
 
   CHECK_STRING (name);
 
-  if (! EQ (Vwindow_system, intern ("mac")))
-    error ("Not using Mac native windows");
-
   for (dpyinfo = &one_mac_display_info, names = x_display_name_list;
        dpyinfo;
        dpyinfo = dpyinfo->next, names = XCDR (names))
@@ -3319,9 +3319,6 @@ terminate Emacs if we can't open the connection.  */)
   CHECK_STRING (display);
   if (! NILP (xrm_string))
     CHECK_STRING (xrm_string);
-
-  if (! EQ (Vwindow_system, intern ("mac")))
-    error ("Not using Mac native windows");
 
   if (! NILP (xrm_string))
     xrm_option = (unsigned char *) SDATA (xrm_string);
@@ -3585,10 +3582,6 @@ start_hourglass ()
   EMACS_TIME delay;
   int secs, usecs = 0;
 
-  /* Don't bother for ttys.  */
-  if (NILP (Vwindow_system))
-    return;
-
   cancel_hourglass ();
 
   if (INTEGERP (Vhourglass_delay)
@@ -3801,7 +3794,7 @@ x_create_tip_frame (dpyinfo, parms, text)
   parms = Fcopy_alist (parms);
 
 #ifdef MULTI_KBOARD
-  kb = dpyinfo->kboard;
+  kb = dpyinfo->terminal->kboard;
 #else
   kb = &the_only_kboard;
 #endif

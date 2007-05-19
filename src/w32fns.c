@@ -4165,7 +4165,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
     display = Qnil;
   dpyinfo = check_x_display_info (display);
 #ifdef MULTI_KBOARD
-  kb = dpyinfo->kboard;
+  kb = dpyinfo->terminal->kboard;
 #else
   kb = &the_only_kboard;
 #endif

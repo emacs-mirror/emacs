@@ -231,14 +231,14 @@ void x_raise_frame P_ ((struct frame *));
 void x_set_window_size P_ ((struct frame *, int, int, int));
 void x_wm_set_window_state P_ ((struct frame *, int));
 void x_wm_set_icon_pixmap P_ ((struct frame *, int));
-void mac_initialize P_ ((void));
+static void mac_initialize P_ ((void));
 static void x_font_min_bounds P_ ((XFontStruct *, int *, int *));
 static int x_compute_min_glyph_bounds P_ ((struct frame *));
 static void x_update_end P_ ((struct frame *));
 static void XTframe_up_to_date P_ ((struct frame *));
-static void XTset_terminal_modes P_ ((void));
-static void XTreset_terminal_modes P_ ((void));
-static void x_clear_frame P_ ((void));
+static void XTset_terminal_modes P_ ((struct terminal *));
+static void XTreset_terminal_modes P_ ((struct terminal *));
+static void x_clear_frame P_ ((struct frame *));
 static void frame_highlight P_ ((struct frame *));
 static void frame_unhighlight P_ ((struct frame *));
 static void x_new_focus_frame P_ ((struct x_display_info *, struct frame *));
@@ -266,6 +266,8 @@ static void x_scroll_bar_report_motion P_ ((struct frame **, Lisp_Object *,
 static int is_emacs_window P_ ((WindowPtr));
 static XCharStruct *mac_per_char_metric P_ ((XFontStruct *, XChar2b *, int));
 static void XSetFont P_ ((Display *, GC, XFontStruct *));
+static struct terminal *mac_create_terminal P_ ((struct mac_display_info *dpyinfo));
+
 
 #define GC_FORE_COLOR(gc)	(&(gc)->fore_color)
 #define GC_BACK_COLOR(gc)	(&(gc)->back_color)
@@ -2306,7 +2308,7 @@ mac_destroy_fringe_bitmap (which)
    rarely happens).  */
 
 static void
-XTset_terminal_modes ()
+XTset_terminal_modes (struct terminal *t)
 {
 }
 
@@ -2314,7 +2316,7 @@ XTset_terminal_modes ()
    the windows go away, and suspending requires no action.  */
 
 static void
-XTreset_terminal_modes ()
+XTreset_terminal_modes (struct terminal *t)
 {
 }
 
@@ -3957,15 +3959,8 @@ x_delete_glyphs (n)
    frame.  Otherwise clear the selected frame.  */
 
 static void
-x_clear_frame ()
+x_clear_frame (struct frame *f)
 {
-  struct frame *f;
-
-  if (updating_frame)
-    f = updating_frame;
-  else
-    f = SELECTED_FRAME ();
-
   /* Clearing the frame will erase any cursor, so mark them all as no
      longer visible.  */
   mark_window_cursors_off (XWINDOW (FRAME_ROOT_WINDOW (f)));
@@ -4499,7 +4494,7 @@ note_mouse_movement (frame, pos)
       clear_mouse_face (dpyinfo);
       dpyinfo->mouse_face_mouse_frame = 0;
       if (!dpyinfo->grabbed)
-	rif->define_frame_cursor (frame,
+	FRAME_RIF (frame)->define_frame_cursor (frame,
 				  frame->output_data.mac->nontext_cursor);
     }
 
@@ -11626,6 +11621,7 @@ mac_term_init (display_name, xrm_option, resource_name)
      char *resource_name;
 {
   struct mac_display_info *dpyinfo;
+  struct terminal *terminal;
 
   BLOCK_INPUT;
 
@@ -11640,6 +11636,13 @@ mac_term_init (display_name, xrm_option, resource_name)
 
   dpyinfo = &one_mac_display_info;
   bzero (dpyinfo, sizeof (*dpyinfo));
+
+  terminal = mac_create_terminal (dpyinfo);
+
+  /* Set the name of the terminal. */
+  terminal->name = (char *) xmalloc (SBYTES (display_name) + 1);
+  strncpy (terminal->name, SDATA (display_name), SBYTES (display_name));
+  terminal->name[SBYTES (display_name)] = 0;
 
 #ifdef MAC_OSX
   dpyinfo->mac_id_name
@@ -11844,31 +11847,39 @@ static struct redisplay_interface x_redisplay_interface =
   mac_shift_glyphs_for_insert
 };
 
-void
-mac_initialize ()
+static struct terminal *
+mac_create_terminal (struct mac_display_info *dpyinfo)
 {
-  rif = &x_redisplay_interface;
+  struct terminal *terminal;
+  
+  terminal = create_terminal ();
 
-  clear_frame_hook = x_clear_frame;
-  ins_del_lines_hook = x_ins_del_lines;
-  delete_glyphs_hook = x_delete_glyphs;
-  ring_bell_hook = XTring_bell;
-  reset_terminal_modes_hook = XTreset_terminal_modes;
-  set_terminal_modes_hook = XTset_terminal_modes;
-  update_begin_hook = x_update_begin;
-  update_end_hook = x_update_end;
-  set_terminal_window_hook = XTset_terminal_window;
-  read_socket_hook = XTread_socket;
-  frame_up_to_date_hook = XTframe_up_to_date;
-  mouse_position_hook = XTmouse_position;
-  frame_rehighlight_hook = XTframe_rehighlight;
-  frame_raise_lower_hook = XTframe_raise_lower;
+  terminal->type = output_mac;
+  terminal->display_info.mac = dpyinfo;
+  dpyinfo->terminal = terminal;
 
-  set_vertical_scroll_bar_hook = XTset_vertical_scroll_bar;
-  condemn_scroll_bars_hook = XTcondemn_scroll_bars;
-  redeem_scroll_bar_hook = XTredeem_scroll_bar;
-  judge_scroll_bars_hook = XTjudge_scroll_bars;
+  terminal->rif = &x_redisplay_interface;
+  terminal->clear_frame_hook = x_clear_frame;
+  terminal->ins_del_lines_hook = x_ins_del_lines;
+  terminal->delete_glyphs_hook = x_delete_glyphs;
+  terminal->ring_bell_hook = XTring_bell;
+  terminal->reset_terminal_modes_hook = XTreset_terminal_modes;
+  terminal->set_terminal_modes_hook = XTset_terminal_modes;
+  terminal->update_begin_hook = x_update_begin;
+  terminal->update_end_hook = x_update_end;
+  terminal->set_terminal_window_hook = XTset_terminal_window;
+  terminal->read_socket_hook = XTread_socket;
+  terminal->frame_up_to_date_hook = XTframe_up_to_date;
+  terminal->mouse_position_hook = XTmouse_position;
+  terminal->frame_rehighlight_hook = XTframe_rehighlight;
+  terminal->frame_raise_lower_hook = XTframe_raise_lower;
 
+ terminal->set_vertical_scroll_bar_hook = XTset_vertical_scroll_bar;
+ terminal->condemn_scroll_bars_hook = XTcondemn_scroll_bars;
+ terminal->redeem_scroll_bar_hook = XTredeem_scroll_bar;
+ terminal->judge_scroll_bars_hook = XTjudge_scroll_bars;
+
+#if 0
   TTY_SCROLL_REGION_OK (CURTTY ()) = 1; /* we'll scroll partial frames */
   TTY_CHAR_INS_DEL_OK (CURTTY ()) = 1;
   TTY_LINE_INS_DEL_OK (CURTTY ()) = 1; /* we'll just blt 'em */
@@ -11876,6 +11887,22 @@ mac_initialize ()
   TTY_MEMORY_BELOW_FRAME (CURTTY ()) = 0; /* we don't remember what
                                                          scrolls off the
                                                          bottom */
+#else
+  terminal->scroll_region_ok = 1;    /* We'll scroll partial frames. */
+  terminal->char_ins_del_ok = 1;
+  terminal->line_ins_del_ok = 1;         /* We'll just blt 'em. */
+  terminal->fast_clear_end_of_line = 1;  /* X does this well. */
+  terminal->memory_below_frame = 0;   /* We don't remember what scrolls
+                                        off the bottom. */
+
+#endif
+  return terminal;
+}
+
+static void
+mac_initialize ()
+{
+
   baud_rate = 19200;
 
   last_tool_bar_item = -1;
@@ -11925,6 +11952,7 @@ mac_initialize ()
 #endif
 
   UNBLOCK_INPUT;
+
 }
 
 

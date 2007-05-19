@@ -1,3 +1,14 @@
+2007-05-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/mac-win.el: Provide mac-win.
+	(mac-initialized): New variable.
+	(mac-initialize-window-system): New function. Move global setup
+	here.
+	(handle-args-function-alist, frame-creation-function-alist):
+	(window-system-initialization-alist): Add mac entries.
+
+	* loadup.el: Load mac-win on a Mac.
+
 2007-05-17  Jason Rumney  <jasonr@gnu.org>
 
 	* term/w32-win.el (internal-face-interactive): Remove obsolete function.

@@ -53,6 +53,10 @@ Boston, MA 02110-1301, USA.  */
 #endif
 #endif
 
+/* We need a little extra space, see ../../lisp/loadup.el. */
+#define SYSTEM_PURESIZE_EXTRA 30000
+
+
 /* SYSTEM_TYPE should indicate the kind of system you are using.
  It sets the Lisp variable system-type.  */
 

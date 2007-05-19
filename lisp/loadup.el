@@ -212,6 +212,9 @@
 (if (eq system-type 'macos)
     (progn
       (load "ls-lisp")))
+(if (eq system-type 'darwin)
+    (progn
+      (load "term/mac-win")))
 (if (fboundp 'atan)	; preload some constants and
     (progn		; floating pt. functions if we have float support.
       (load "emacs-lisp/float-sup")))
