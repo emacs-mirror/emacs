@@ -50,12 +50,10 @@ Boston, MA 02110-1301, USA.  */
 #ifdef MAC_OSX
 #ifdef HAVE_CARBON
 #define MAC_OS
-#endif
-#endif
-
 /* We need a little extra space, see ../../lisp/loadup.el. */
 #define SYSTEM_PURESIZE_EXTRA 30000
-
+#endif
+#endif
 
 /* SYSTEM_TYPE should indicate the kind of system you are using.
  It sets the Lisp variable system-type.  */

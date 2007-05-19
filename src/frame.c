@@ -702,7 +702,9 @@ affects all frames on the same terminal device.  */)
     abort ();
 #else /* not MSDOS */
 
-#ifdef MAC_OS
+#if 0 /* #ifdef MAC_OS */
+  /* This can happen for multi-tty when using both terminal frames and
+     Carbon frames. */
   if (sf->output_method != output_mac)
     error ("Not running on a Macintosh screen; cannot make a new Macintosh frame");
 #else

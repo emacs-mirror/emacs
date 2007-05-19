@@ -458,7 +458,7 @@ decode_options (argc, argv)
 
   if (!tty && display)
     window_system = 1;
-#ifndef WINDOWSNT
+#if !defined (WINDOWSNT) && !defined (HAVE_CARBON)
   else
     tty = 1;
 #endif

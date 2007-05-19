@@ -2590,7 +2590,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
     f->icon_name = Qnil;
 
   /* XXX Is this needed? */
-  FRAME_MAC_DISPLAY_INFO (f) = dpyinfo;
+  /*FRAME_MAC_DISPLAY_INFO (f) = dpyinfo;*/
 
   /* With FRAME_MAC_DISPLAY_INFO set up, this unwind-protect is safe.  */
 #if GLYPH_DEBUG

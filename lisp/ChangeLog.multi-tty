@@ -6,8 +6,11 @@
 	here.
 	(handle-args-function-alist, frame-creation-function-alist):
 	(window-system-initialization-alist): Add mac entries.
+	(x-setup-function-keys): New function containing all the
+	top level function key definitions.
 
-	* loadup.el: Load mac-win on a Mac.
+	* loadup.el: Load mac-win on a Mac. Avoid loading both x-win and
+	mac-win.
 
 2007-05-17  Jason Rumney  <jasonr@gnu.org>
 

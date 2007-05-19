@@ -1,6 +1,9 @@
 2007-05-19  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* frame.c (Fmake_terminal_frame): Disable output method test. 
+
 	* s/darwin.h (SYSTEM_PURESIZE_EXTRA): Define here.
+	(SYSTEM_PURESIZE_EXTRA): Only define on Carbon.
 
 	* termhooks.h (union display_info): Add mac_display_info.
 
@@ -32,6 +35,7 @@
 	(Fx_open_connection): Remove window-system check.
 	(start_hourglass): Likewise.
 	(x_create_tip_frame): Get the keyboard from the terminal.
+	(Fx_create_frame): Don't use FRAME_MAC_DISPLAY_INFO.
 
 	* w32fns.c (Fx_create_frame): Use kboard from the terminal.
 

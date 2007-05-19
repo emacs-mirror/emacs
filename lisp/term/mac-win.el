@@ -1062,6 +1062,8 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 (substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
 			   global-map)
 
+(defun x-setup-function-keys (frame)
+  "Setup Function Keys for mac."
 ;; Map certain keypad keys into ASCII characters
 ;; that people usually expect.
 (define-key local-function-key-map [backspace] [?\d])
@@ -1078,6 +1080,7 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 (define-key local-function-key-map [M-clear] [?\M-\C-l])
 (define-key local-function-key-map [M-return] [?\M-\C-m])
 (define-key local-function-key-map [M-escape] [?\M-\e])
+)
 
 ;; These tell read-char how to convert
 ;; these special chars to ASCII.
@@ -2281,34 +2284,6 @@ See also `mac-dnd-known-types'."
 	  (mac-dnd-drop-data event (selected-frame) window
 			     (cdr item) (car item) action)))))
 
-;;; Do the actual Windows setup here; the above code just defines
-;;; functions and variables that we use now.
-
-(setq command-line-args (x-handle-args command-line-args))
-
-;;; Make sure we have a valid resource name.
-(or (stringp x-resource-name)
-    (let (i)
-      (setq x-resource-name (invocation-name))
-
-      ;; Change any . or * characters in x-resource-name to hyphens,
-      ;; so as not to choke when we use it in X resource queries.
-      (while (setq i (string-match "[.*]" x-resource-name))
-	(aset x-resource-name i ?-))))
-
-(if (x-display-list)
-    ;; On Mac OS 8/9, Most coding systems used in code conversion for
-    ;; font names are not ready at the time when the terminal frame is
-    ;; created.  So we reconstruct font name table for the initial
-    ;; frame.
-    (mac-clear-font-name-table)
-  (x-open-connection "Mac"
-		     x-command-line-resources
-		     ;; Exit Emacs with fatal error if this fails.
-		     t))
-
-(setq frame-creation-function 'x-create-frame-with-faces)
-
 (defvar mac-font-encoder-list
   '(("mac-roman" mac-roman-encoder
      ccl-encode-mac-roman-font "%s")
@@ -2486,6 +2461,88 @@ It returns a name of the created fontset."
     (fontset-add-mac-fonts fontset t)
     fontset))
 
+(defun x-win-suspend-error ()
+  (error "Suspending an Emacs running under Mac makes no sense"))
+
+(defalias 'x-cut-buffer-or-selection-value 'x-get-selection-value)
+
+(defvar mac-initialized nil
+  "Non-nil if the w32 window system has been initialized.")
+
+(defun mac-initialize-window-system ()
+  "Initialize Emacs for Mac GUI frames."
+
+;;; Do the actual Windows setup here; the above code just defines
+;;; functions and variables that we use now.
+
+(setq command-line-args (x-handle-args command-line-args))
+
+;;; Make sure we have a valid resource name.
+(or (stringp x-resource-name)
+    (let (i)
+      (setq x-resource-name (invocation-name))
+
+      ;; Change any . or * characters in x-resource-name to hyphens,
+      ;; so as not to choke when we use it in X resource queries.
+      (while (setq i (string-match "[.*]" x-resource-name))
+	(aset x-resource-name i ?-))))
+
+(if (x-display-list)
+    ;; On Mac OS 8/9, Most coding systems used in code conversion for
+    ;; font names are not ready at the time when the terminal frame is
+    ;; created.  So we reconstruct font name table for the initial
+    ;; frame.
+    (mac-clear-font-name-table)
+  (x-open-connection "Mac"
+		     x-command-line-resources
+		     ;; Exit Emacs with fatal error if this fails.
+		     t))
+
+(add-hook 'suspend-hook 'x-win-suspend-error)
+
+;;; Arrange for the kill and yank functions to set and check the clipboard.
+(setq interprogram-cut-function 'x-select-text)
+(setq interprogram-paste-function 'x-get-selection-value)
+
+
+
+
+;;; Turn off window-splitting optimization; Mac is usually fast enough
+;;; that this is only annoying.
+(setq split-window-keep-point t)
+
+;; Don't show the frame name; that's redundant.
+(setq-default mode-line-frame-identification "  ")
+
+;; Turn on support for mouse wheels.
+(mouse-wheel-mode 1)
+
+
+;; Enable CLIPBOARD copy/paste through menu bar commands.
+(menu-bar-enable-clipboard)
+
+
+;; Initiate drag and drop
+
+(define-key special-event-map [drag-n-drop] 'mac-dnd-handle-drag-n-drop-event)
+
+
+;;;; Non-toolkit Scroll bars
+
+(unless x-toolkit-scroll-bars
+
+;; for debugging
+;; (defun mac-handle-scroll-bar-event (event) (interactive "e") (princ event))
+
+;;(global-set-key [vertical-scroll-bar mouse-1] 'mac-handle-scroll-bar-event)
+
+(global-set-key
+ [vertical-scroll-bar down-mouse-1]
+ 'mac-handle-scroll-bar-event)
+
+(global-unset-key [vertical-scroll-bar drag-mouse-1])
+(global-unset-key [vertical-scroll-bar mouse-1])
+
 ;; Adjust Courier font specifications in x-fixed-font-alist.
 (let ((courier-fonts (assoc "Courier" x-fixed-font-alist)))
   (if courier-fonts
@@ -2591,62 +2648,6 @@ ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
 	     (string-match "^\\(true\\|yes\\|on\\)$" rv))
 	(setq default-frame-alist
 	      (cons '(reverse . t) default-frame-alist)))))
-
-(defun x-win-suspend-error ()
-  (error "Suspending an Emacs running under Mac makes no sense"))
-
-(defalias 'x-cut-buffer-or-selection-value 'x-get-selection-value)
-
-(defvar mac-initialized nil
-  "Non-nil if the w32 window system has been initialized.")
-
-(defun mac-initialize-window-system ()
-  "Initialize Emacs for Mac GUI frames."
-
-(add-hook 'suspend-hook 'x-win-suspend-error)
-
-;;; Arrange for the kill and yank functions to set and check the clipboard.
-(setq interprogram-cut-function 'x-select-text)
-(setq interprogram-paste-function 'x-get-selection-value)
-
-
-
-
-;;; Turn off window-splitting optimization; Mac is usually fast enough
-;;; that this is only annoying.
-(setq split-window-keep-point t)
-
-;; Don't show the frame name; that's redundant.
-(setq-default mode-line-frame-identification "  ")
-
-;; Turn on support for mouse wheels.
-(mouse-wheel-mode 1)
-
-
-;; Enable CLIPBOARD copy/paste through menu bar commands.
-(menu-bar-enable-clipboard)
-
-
-;; Initiate drag and drop
-
-(define-key special-event-map [drag-n-drop] 'mac-dnd-handle-drag-n-drop-event)
-
-
-;;;; Non-toolkit Scroll bars
-
-(unless x-toolkit-scroll-bars
-
-;; for debugging
-;; (defun mac-handle-scroll-bar-event (event) (interactive "e") (princ event))
-
-;;(global-set-key [vertical-scroll-bar mouse-1] 'mac-handle-scroll-bar-event)
-
-(global-set-key
- [vertical-scroll-bar down-mouse-1]
- 'mac-handle-scroll-bar-event)
-
-(global-unset-key [vertical-scroll-bar drag-mouse-1])
-(global-unset-key [vertical-scroll-bar mouse-1])
 
 (setq mac-initialized t)))
 
