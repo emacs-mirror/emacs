@@ -1,3 +1,8 @@
+2007-05-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (x_calc_absolute_position): Add BLOCK_INPUT around
+	mac_get_window_bounds.
+
 2007-05-17  Glenn Morris  <rgm@gnu.org>
 
 	* m/macppc.h (ORDINARY_LINK): No longer define on OpenBSD.
