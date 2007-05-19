@@ -270,10 +270,12 @@ The (secret) scrollbar interface is not implemented yet."
 
 ;;;###autoload
 (define-minor-mode t-mouse-mode
-  "Toggle t-mouse mode.
+  "Toggle t-mouse mode to use the mouse in Linux consoles.
 With prefix arg, turn t-mouse mode on iff arg is positive.
 
-Turn it on to use Emacs mouse commands, and off to use t-mouse commands."
+This allows the use of the mouse when operating on a Linux console, in the
+same way as you can use the mouse under X11.
+It requires the `mev' program, part of the `gpm' utilities."
   nil " Mouse" nil :global t
   (if t-mouse-mode
       ;; Turn it on
