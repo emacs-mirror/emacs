@@ -6008,6 +6008,7 @@ make_lispy_event (event)
       }
 #endif
 
+#ifdef HAVE_GPM_H
     case GPM_CLICK_EVENT:
       {
 	FRAME_PTR f = XFRAME (event->frame_or_window);
@@ -6065,6 +6066,7 @@ make_lispy_event (event)
 			Fcons (position,
 			       Qnil));
        }
+#endif /* HAVE_GPM_H */
 
       /* The 'kind' field of the event is something we don't recognize.  */
     default:
