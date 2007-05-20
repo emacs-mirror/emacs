@@ -47,8 +47,9 @@ With prefix arg, turn t-mouse mode on iff arg is positive.
 This allows the use of the mouse when operating on a Linux console, in the
 same way as you can use the mouse under X11.
 It requires the `mev' program, part of the `gpm' utilities."
-  nil " Mouse" nil :global t
-  (unless window-system
+  :global t :group 'mouse
+  (if window-system
+      (error "t-mouse only works in the console on GNU/Linux")
     (if t-mouse-mode
 	(progn
 	  (unless (fboundp 'term-open-connection)
