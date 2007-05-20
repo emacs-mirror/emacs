@@ -769,7 +769,6 @@ The following commands are accepted by the client:
 
 			  ;; Display *scratch* by default.
 			  (switch-to-buffer (get-buffer-create "*scratch*") 'norecord)
-			  (if dir (setq default-directory dir))
 
 			  (setq dontkill t))
 		      ;; This emacs does not support X.
@@ -826,7 +825,6 @@ The following commands are accepted by the client:
 
 		      ;; Display *scratch* by default.
 		      (switch-to-buffer (get-buffer-create "*scratch*") 'norecord)
-		      (if dir (setq default-directory dir))
 
 		      ;; Reply with our pid.
 		      (server-send-string proc (concat "-emacs-pid " (number-to-string (emacs-pid)) "\n"))

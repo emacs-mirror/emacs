@@ -1,3 +1,8 @@
+2007-05-20  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+
+	* lisp/server.el (server-process-filter): Don't change
+	default-directory in *scratch*.
+
 2007-05-19  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/mac-win.el: Provide mac-win.
