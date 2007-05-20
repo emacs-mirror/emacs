@@ -231,6 +231,9 @@ Boston, MA 02110-1301, USA.  */
 /* Define to 1 if you have the ungif library (-lungif). */
 #undef HAVE_GIF
 
+/* Define to 1 if you have the <gpm.h> header file. */
+#undef HAVE_GPM_H
+
 /* Define to 1 if you have the `grantpt' function. */
 #undef HAVE_GRANTPT
 
