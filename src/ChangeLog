@@ -1,3 +1,8 @@
+2007-05-20  Nick Roberts  <nickrob@snap.net.nz>
+
+	* keyboard.c (make_lispy_event): Make case GPM_CLICK_EVENT
+	conditional on [HAVE_GPM_H].
+
 2007-05-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* syntax.c (skip_chars): Update syntax-table only after we checked that
