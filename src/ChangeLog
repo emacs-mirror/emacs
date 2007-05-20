@@ -1,3 +1,7 @@
+2007-05-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* Makefile.in: Move GPM check outside HAVE_X_WINDOWS.
+
 2007-05-20  Nick Roberts  <nickrob@snap.net.nz>
 
 	* config.in, keyboard.c, Makefile.in, sysdep.c, term.c,
