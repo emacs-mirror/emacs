@@ -1,5 +1,10 @@
 2007-05-20  Nick Roberts  <nickrob@snap.net.nz>
 
+	* config.in, keyboard.c, Makefile.in, sysdep.c, term.c,
+	* termhooks.h: Use HAVE_GPM instead of HAVE_GPM_H.
+
+2007-05-20  Nick Roberts  <nickrob@snap.net.nz>
+
 	* keyboard.c (make_lispy_event): Make case GPM_CLICK_EVENT
 	conditional on [HAVE_GPM_H].
 
