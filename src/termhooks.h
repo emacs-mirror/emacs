@@ -343,7 +343,7 @@ enum event_kind
   MAC_APPLE_EVENT,
 #endif
 
-#ifdef HAVE_GPM_H
+#ifdef HAVE_GPM
   GPM_CLICK_EVENT
 #endif
 };
@@ -450,7 +450,7 @@ enum {
   meta_modifier	=  CHAR_META	/* Under X, the XK_Meta_[LR] keysyms.  */
 };
 
-#ifdef HAVE_GPM_H
+#ifdef HAVE_GPM
 #include <gpm.h>
 extern int handle_one_term_event (Gpm_Event *, struct input_event *);
 

@@ -410,7 +410,7 @@ static void term_mouse_highlight (struct frame *f, int x, int y);
 #define FRAME_TERMCAP_P(_f_) 0
 #endif /* WINDOWSNT */
 
-#ifdef HAVE_GPM_H
+#ifdef HAVE_GPM
 #include <sys/fcntl.h>
 #include "buffer.h"
 
@@ -435,7 +435,7 @@ int mouse_face_mouse_x, mouse_face_mouse_y;
 
 static int pos_x, pos_y;
 static int last_mouse_x, last_mouse_y;
-#endif /* HAVE_GPM_H */
+#endif /* HAVE_GPM */
 
 void
 ring_bell ()
@@ -2381,7 +2381,7 @@ set_tty_color_mode (f, val)
 			       Mouse
  ***********************************************************************/
 
-#ifdef HAVE_GPM_H
+#ifdef HAVE_GPM
 static void
 term_show_mouse_face (enum draw_glyphs_face draw)
 {
@@ -3024,7 +3024,7 @@ DEFUN ("term-close-connection", Fterm_close_connection, Sterm_close_connection,
    term_gpm = 0;
    return Qnil;
 }
-#endif /* HAVE_GPM_H */
+#endif /* HAVE_GPM */
 
 
 /***********************************************************************
@@ -3045,7 +3045,7 @@ term_init (terminal_type)
 
   encode_terminal_bufsize = 0;
 
-#ifdef HAVE_GPM_H
+#ifdef HAVE_GPM
   /* TODO: Can't get Gpm_Snapshot in term_mouse_position to work: test with
      (mouse-position).  Also set-mouse-position won't work as is.  */
   /* mouse_position_hook = term_mouse_position;  */
@@ -3500,10 +3500,10 @@ bigger, or it may make it blink, or it may do nothing at all.  */);
   defsubr (&Stty_display_color_p);
   defsubr (&Stty_display_color_cells);
   defsubr (&Stty_no_underline);
-#ifdef HAVE_GPM_H
+#ifdef HAVE_GPM
   defsubr (&Sterm_open_connection);
   defsubr (&Sterm_close_connection);
-#endif /* HAVE_GPM_H */
+#endif /* HAVE_GPM */
 
   fullscreen_hook = NULL;
 }

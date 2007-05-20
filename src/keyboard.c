@@ -6008,7 +6008,7 @@ make_lispy_event (event)
       }
 #endif
 
-#ifdef HAVE_GPM_H
+#ifdef HAVE_GPM
     case GPM_CLICK_EVENT:
       {
 	FRAME_PTR f = XFRAME (event->frame_or_window);
@@ -6066,7 +6066,7 @@ make_lispy_event (event)
 			Fcons (position,
 			       Qnil));
        }
-#endif /* HAVE_GPM_H */
+#endif /* HAVE_GPM */
 
       /* The 'kind' field of the event is something we don't recognize.  */
     default:
@@ -6925,7 +6925,7 @@ read_avail_input (expected)
       if (n_to_read == 0)
 	return 0;
 #else /* not MSDOS */
-#ifdef HAVE_GPM_H
+#ifdef HAVE_GPM
       if (term_gpm)
 	{
 	  Gpm_Event event;
@@ -6943,7 +6943,7 @@ read_avail_input (expected)
 	  if (nread)
 	    return nread;
 	}
-#endif /* HAVE_GPM_H */
+#endif /* HAVE_GPM */
 #ifdef FIONREAD
 
      /* Find out how much input is available.  */

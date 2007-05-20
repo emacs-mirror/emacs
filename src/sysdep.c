@@ -1675,14 +1675,14 @@ init_sys_modes ()
       old_fcntl_owner = fcntl (input_fd, F_GETOWN, 0);
       fcntl (input_fd, F_SETOWN, getpid ());
       init_sigio (input_fd);
-#ifdef HAVE_GPM_H
+#ifdef HAVE_GPM
       if (term_gpm)
 	{
 	  fcntl (gpm_fd, F_SETOWN, getpid ());
 	  fcntl (gpm_fd, F_SETFL, O_NONBLOCK);
 	  init_sigio (gpm_fd);
 	}
-#endif /* HAVE_GPM_H */
+#endif /* HAVE_GPM */
     }
 #endif /* F_GETOWN */
 #endif /* F_SETOWN_BUG */
