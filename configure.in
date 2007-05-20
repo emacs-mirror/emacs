@@ -1620,7 +1620,6 @@ if test "${with_sound}" != "no"; then
     LIBSOUND="$LIBSOUND $ALSA_LIBS"
     CFLAGS_SOUND="$CFLAGS_SOUND $ALSA_CFLAGS"
     AC_DEFINE(HAVE_ALSA, 1, [Define to 1 if ALSA is available.])
-    AC_SUBST()
   fi
   AC_SUBST(CFLAGS_SOUND)
 fi
