@@ -54,6 +54,11 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00732.html
 http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg01113.html
 
 ** coldwell@redhat.com, May 18: 22.0.99 emacs dumper (?) problem
+This seems to be caused by a binary incompatible change for the malloc
+implementation in glibc. The problem would occur when emacs is built
+on one system and used on another. See 
+https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=239344#c60
+for a possible complete explanation.
 
 * DOCUMENTATION
 
