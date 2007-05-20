@@ -1,3 +1,13 @@
+2007-05-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.c (skip_chars): Update syntax-table only after we checked that
+	the new location is valid.
+
+2007-05-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (x_calc_absolute_position): Add BLOCK_INPUT around
+	mac_get_window_bounds.
+
 2007-05-20  Nick Roberts  <nickrob@snap.net.nz>
 
 	* Makefile.in (LIBGPM): Allow it to be set from configure.

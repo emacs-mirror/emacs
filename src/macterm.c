@@ -6084,7 +6084,9 @@ x_calc_absolute_position (f)
 
   /* Find the offsets of the outside upper-left corner of
      the inner window, with respect to the outer window.  */
+  BLOCK_INPUT;
   mac_get_window_bounds (f, &inner, &outer);
+  UNBLOCK_INPUT;
 
   width_diff = (outer.right - outer.left) - (inner.right - inner.left);
   height_diff = (outer.bottom - outer.top) - (inner.bottom - inner.top);

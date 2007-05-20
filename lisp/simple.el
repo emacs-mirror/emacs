@@ -3271,12 +3271,11 @@ purposes.  See the documentation of `set-mark' for more information."
 If the last global mark pushed was not in the current buffer,
 also push LOCATION on the global mark ring.
 Display `Mark set' unless the optional second arg NOMSG is non-nil.
-In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil.
 
 Novice Emacs Lisp programmers often try to use the mark for the wrong
 purposes.  See the documentation of `set-mark' for more information.
 
-In Transient Mark mode, this does not activate the mark."
+In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   (unless (null (mark t))
     (setq mark-ring (cons (copy-marker (mark-marker)) mark-ring))
     (when (> (length mark-ring) mark-ring-max)

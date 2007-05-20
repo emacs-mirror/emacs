@@ -53,7 +53,7 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00732.html
 ** michael.ewe@arcor.de, Apr 24: 22.0.98  not starting on Solaris 10/I386
 http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg01113.html
 
-** cloos@jhcloos.com, May 11: A redisplay bug in 22.0.99
+** coldwell@redhat.com, May 18: 22.0.99 emacs dumper (?) problem
 
 * DOCUMENTATION
 

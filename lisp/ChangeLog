@@ -20,6 +20,29 @@
 
 	* textmodes/sgml-mode.el: Revert last change.
 
+2007-05-18  Richard Stallman  <rms@gnu.org>
+
+	* simple.el (push-mark): Doc fix.
+
+2007-05-18  Rob Riepel  <riepel@Stanford.EDU>
+
+	* emulation/tpu-edt.el (CSI-map, SS3-map) Moved from global-map to
+	tpu-global-map.
+	(tpu-original-global-map) Variable deleted.
+	(tpu-control-keys-map) New keymap variable.
+	(tpu-set-control-keys) Use tpu-reset-control-keys rather than
+	setting keymapping directly.
+	(tpu-reset-control-keys) Use tpu-control-keys-map instead of
+	tpu-global-map.
+	(tpu-edt-on): Activate the tpu-global-map.
+	(tpu-edt-off): Deactivate the tpu-global-map.
+	
+2007-05-18  Ryan Yeske  <rcyeske@gmail.com>
+
+	* textmodes/ispell.el (ispell-get-word): Return markers
+	for start and end positions.
+	(ispell-word): Assume END is a marker.
+
 2007-05-17  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* printing.el: Group together all XEmacs/Emacs definitions.
