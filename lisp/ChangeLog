@@ -183,6 +183,9 @@
 	(set-auto-mode): Handle file-start-mode-alist.
 	A little cleanup of structure.
 
+	* dabbrev.el (dabbrev-eliminate-newlines):
+	Renamed from dabbrev--eliminate-newlines.  All uses changed.
+
 2007-05-10  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* man.el (Man-next-section): Don't consider the last line of the page
