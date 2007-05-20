@@ -30,10 +30,10 @@
 ;; The "gpm" server runs under Linux, so this package is rather
 ;; Linux-dependent.
 
-;; The file, t-mouse was originally written by Alessandro Rubini and Ian T
-;; Zimmerman and communicated with Emacs through the client program mev.  Now
-;; the interface with gpm is directly through a Unix socket, so this file is
-;; reduced to a minor mode macro call.
+;; The file, t-mouse.el was originally written by Alessandro Rubini and Ian T
+;; Zimmerman, and Emacs communicated with gpm through a client program called
+;; mev.  Now the interface with gpm is directly through a Unix socket, so this
+;; file is reduced to a single minor mode macro call.
 
 ;; 
 
@@ -53,9 +53,13 @@ It requires the `mev' program, part of the `gpm' utilities."
     (if t-mouse-mode
 	(progn
 	  (unless (fboundp 'term-open-connection)
-	    (error "Emacs must be built with Gpm to use this mode"))
+	    (progn
+	      (setq t-mouse-mode nil)
+	      (error "Emacs must be built with Gpm to use this mode")))
 	  (unless (term-open-connection)
-	    (error "Can't open mouse connection")))
+	    (progn
+	      (setq t-mouse-mode nil)
+	      (error "Can't open mouse connection"))))
       ;; Turn it off
       (term-close-connection))))
 
