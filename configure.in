@@ -1630,7 +1630,7 @@ AC_CHECK_HEADERS(sys/select.h sys/timeb.h sys/time.h unistd.h utime.h \
   linux/version.h sys/systeminfo.h termios.h limits.h string.h stdlib.h \
   termcap.h stdio_ext.h fcntl.h strings.h coff.h pty.h sys/mman.h \
   sys/param.h sys/vlimit.h sys/resource.h locale.h sys/_mbstate_t.h \
-  sys/utsname.h pwd.h)
+  sys/utsname.h pwd.h gpm.h)
 
 AC_MSG_CHECKING(if personality LINUX32 can be set)
 AC_TRY_COMPILE([#include <sys/personality.h>], [personality (PER_LINUX32)],
@@ -2937,6 +2937,9 @@ if test "${REL_ALLOC}" = "yes" ; then
 	    [Define REL_ALLOC if you want to use the relocating allocator for
 	     buffer space.])
 fi
+
+AC_CHECK_LIB(gpm, Gpm_Open, LIBGPM=-lgpm)
+AC_SUBST(LIBGPM)
 
 AH_TOP([/* GNU Emacs site configuration template file.
    Copyright (C) 1988, 1993, 1994, 1999, 2000, 2001, 2002, 2004, 2005, 2006, 2007
