@@ -1,6 +1,9 @@
 2007-05-20  Nick Roberts  <nickrob@snap.net.nz>
 
 	* t-mouse.el: Reduce to a minor-mode macro call.
+	(t-mouse-mode) Remove the lighter.
+
+	* term/linux.el (terminal-init-linux): Enable t-mouse by default.
 
 2007-05-19  Dan Nicolaescu  <dann@ics.uci.edu>
 
