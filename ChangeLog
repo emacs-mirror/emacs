@@ -1,5 +1,11 @@
 2007-05-20  Nick Roberts  <nickrob@snap.net.nz>
 
+	* configure.in: Use HAVE_GPM instead of HAVE_GPM_H and implement
+	it like others.
+	* configure: Regenerate.
+
+2007-05-20  Nick Roberts  <nickrob@snap.net.nz>
+
 	* configure.in (AC_CHECK_HEADERS) Add gpm.h.
 	(AC_CHECK_LIB): Add -lgpm.
 	* configure: Regenerate.
