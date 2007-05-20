@@ -1,3 +1,7 @@
+2007-05-20  Nick Roberts  <nickrob@snap.net.nz>
+
+	* t-mouse.el: Reduce to a minor-mode macro call.
+
 2007-05-19  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* files.el (auto-mode-alist): Change the regexp so that
