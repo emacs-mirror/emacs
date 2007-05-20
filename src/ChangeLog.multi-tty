@@ -1,3 +1,8 @@
+2007-05-20  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+
+	* emacs.c (REPORT_EMACS_BUG_PRETEST_ADDRESS): Revert to
+	official Emacs pretest bug report address.
+
 2007-05-19  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* frame.c (Fmake_terminal_frame): Disable output method test. 
