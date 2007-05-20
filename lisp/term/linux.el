@@ -9,6 +9,8 @@
   ;; It can't really display underlines.
   (tty-no-underline)
 
+  (if (fboundp 'term-open-connection) (t-mouse-mode 1))
+
   ;; Make Latin-1 input characters work, too.
   ;; Meta will continue to work, because the kernel
   ;; turns that into Escape.
