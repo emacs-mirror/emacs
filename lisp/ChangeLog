@@ -1,5 +1,13 @@
 2007-05-20  Nick Roberts  <nickrob@snap.net.nz>
 
+	* t-mouse.el (t-mouse-mode): Reset t-mouse-mode to nil if there
+	is an error.
+
+	* term/linux.el (terminal-init-linux): Don't signal an error
+	if gpm isn't running.
+
+2007-05-20  Nick Roberts  <nickrob@snap.net.nz>
+
 	* t-mouse.el: Reduce to a minor-mode macro call.
 	(t-mouse-mode) Remove the lighter.
 
