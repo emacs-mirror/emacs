@@ -340,7 +340,11 @@ enum event_kind
      symbols, respectively.  Member `arg' is a Lisp object converted
      from the received Apple event.  Parameters for non-Apple events
      are converted to those in Apple events.  */
-  MAC_APPLE_EVENT
+  MAC_APPLE_EVENT,
+#endif
+
+#ifdef HAVE_GPM_H
+  GPM_CLICK_EVENT
 #endif
 };
 
@@ -445,6 +449,14 @@ enum {
   ctrl_modifier	=  CHAR_CTL,
   meta_modifier	=  CHAR_META	/* Under X, the XK_Meta_[LR] keysyms.  */
 };
+
+#ifdef HAVE_GPM_H
+#include <gpm.h>
+extern int handle_one_term_event (Gpm_Event *, struct input_event *);
+
+/* Nonzero means mouse is enabled on Linux console */
+extern int term_gpm;
+#endif
 
 #endif
 
