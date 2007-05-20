@@ -683,7 +683,6 @@ LIBSOUND
 PKG_CONFIG
 ALSA_CFLAGS
 ALSA_LIBS
-
 CFLAGS_SOUND
 SET_MAKE
 XMKMF
@@ -6498,7 +6497,6 @@ echo "$as_me: error: pkg-config found alsa, but it does not compile.  See config
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_ALSA 1
 _ACEOF
-
 
   fi
 
@@ -18121,13 +18119,11 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <sys/types.h> /* for off_t */
-     #include <stdio.h>
+#include <stdio.h>
 int
 main ()
 {
-int (*fp) (FILE *, off_t, int) = fseeko;
-     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
+return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
   ;
   return 0;
 }
@@ -18167,13 +18163,11 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 #define _LARGEFILE_SOURCE 1
-#include <sys/types.h> /* for off_t */
-     #include <stdio.h>
+#include <stdio.h>
 int
 main ()
 {
-int (*fp) (FILE *, off_t, int) = fseeko;
-     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
+return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
   ;
   return 0;
 }
