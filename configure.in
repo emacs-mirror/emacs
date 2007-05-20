@@ -113,6 +113,8 @@ AC_ARG_WITH(gif,
 [  --with-gif              use -lungif for displaying GIF images])
 AC_ARG_WITH(png,
 [  --with-png              use -lpng for displaying PNG images])
+AC_ARG_WITH(gpm,
+[  --with-gpm              use -lgpm for mouse support on a GNU/Linux console])
 AC_ARG_WITH(gtk,
 [  --with-gtk              use GTK (same as --with-x-toolkit=gtk)])
 AC_ARG_WITH(pkg-config-prog,
@@ -1630,7 +1632,7 @@ AC_CHECK_HEADERS(sys/select.h sys/timeb.h sys/time.h unistd.h utime.h \
   linux/version.h sys/systeminfo.h termios.h limits.h string.h stdlib.h \
   termcap.h stdio_ext.h fcntl.h strings.h coff.h pty.h sys/mman.h \
   sys/param.h sys/vlimit.h sys/resource.h locale.h sys/_mbstate_t.h \
-  sys/utsname.h pwd.h gpm.h)
+  sys/utsname.h pwd.h)
 
 AC_MSG_CHECKING(if personality LINUX32 can be set)
 AC_TRY_COMPILE([#include <sys/personality.h>], [personality (PER_LINUX32)],
@@ -2507,6 +2509,17 @@ if test "${HAVE_X11}" = "yes"; then
   fi
 fi
 
+### Use -lgpm if available, unless `--with-gpm=no'.
+HAVE_GPM=no
+if test "${with_gpm}" != "no"; then
+  AC_CHECK_HEADER(gpm.h,
+    AC_CHECK_LIB(gpm, Gpm_Open, HAVE_GPM=yes))
+fi
+
+if test "${HAVE_GPM}" = "yes"; then
+  AC_DEFINE(HAVE_GPM, 1, [Define to 1 if you have the gpm library (-lgpm).])
+fi
+
 dnl Check for malloc/malloc.h on darwin
 AC_CHECK_HEADER(malloc/malloc.h, AC_DEFINE(HAVE_MALLOC_MALLOC_H, 1, [Define to 1 if you have the <malloc/malloc.h> header file.]))
 
@@ -2938,9 +2951,6 @@ if test "${REL_ALLOC}" = "yes" ; then
 	     buffer space.])
 fi
 
-AC_CHECK_LIB(gpm, Gpm_Open, LIBGPM=-lgpm)
-AC_SUBST(LIBGPM)
-
 AH_TOP([/* GNU Emacs site configuration template file.
    Copyright (C) 1988, 1993, 1994, 1999, 2000, 2001, 2002, 2004, 2005, 2006, 2007
              Free Software Foundation, Inc.
@@ -3270,6 +3280,7 @@ echo "  Does Emacs use -ljpeg?                                  ${HAVE_JPEG}"
 echo "  Does Emacs use -ltiff?                                  ${HAVE_TIFF}"
 echo "  Does Emacs use -lungif?                                 ${HAVE_GIF}"
 echo "  Does Emacs use -lpng?                                   ${HAVE_PNG}"
+echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use X toolkit scroll bars?                   ${USE_TOOLKIT_SCROLL_BARS}"
 echo
 
