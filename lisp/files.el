@@ -287,7 +287,7 @@ A value of t means do this only when the file is about to be saved.
 A value of `visit' means do this right after the file is visited.
 A value of `visit-save' means do it at both of those times.
 Any other non-nil value means ask user whether to add a newline, when saving.
-nil means don't add newlines.
+A value of nil means don't add newlines.
 
 Certain major modes set this locally to the value obtained
 from `mode-require-final-newline'."
@@ -309,10 +309,10 @@ A value of `visit' means do this right after the file is visited.
 A value of `visit-save' means do it at both of those times.
 Any other non-nil value means ask user whether to add a newline, when saving.
 
-nil means do not add newlines.  That is a risky choice in this variable
-since this value is used for modes for files that ought to have final newlines.
-So if you set this to nil, you must explicitly check and add
-a final newline, whenever you save a file that really needs one."
+A value of nil means do not add newlines.  That is a risky choice in this
+variable since this value is used for modes for files that ought to have
+final newlines.  So if you set this to nil, you must explicitly check and
+add a final newline, whenever you save a file that really needs one."
   :type '(choice (const :tag "When visiting" visit)
 		 (const :tag "When saving" t)
 		 (const :tag "When visiting or saving" visit-save)
@@ -459,7 +459,7 @@ not safe, Emacs queries you, once, whether to set them all.
 :safe means set the safe variables, and ignore the rest.
 :all means set all variables, whether safe or not.
  (Don't set it permanently to :all.)
-nil means always ignore the file local variables.
+A value of nil means always ignore the file local variables.
 
 Any other value means always query you once whether to set them all.
 \(When you say yes to certain values, they are remembered as safe, but
@@ -491,7 +491,7 @@ specified in a -*- line.")
   "Control processing of the \"variable\" `eval' in a file's local variables.
 The value can be t, nil or something else.
 A value of t means obey `eval' variables;
-nil means ignore them; anything else means query."
+A value of nil means ignore them; anything else means query."
   :type '(choice (const :tag "Obey" t)
 		 (const :tag "Ignore" nil)
 		 (other :tag "Query" other))
@@ -1924,7 +1924,7 @@ since only a single case-insensitive search through the alist is made."
      ("\\.[sS]\\'" . asm-mode)
      ("\\.asm\\'" . asm-mode)
      ("[cC]hange\\.?[lL]og?\\'" . change-log-mode)
-     ("[cC]hange[lL]og[-.][0-9]+\\'" . change-log-mode)
+     ("[cC]hange[lL]og[-.][-0-9a-z]+\\'" . change-log-mode)
      ("\\$CHANGE_LOG\\$\\.TXT" . change-log-mode)
      ("\\.scm\\.[0-9]*\\'" . scheme-mode)
      ("\\.[ck]?sh\\'\\|\\.shar\\'\\|/\\.z?profile\\'" . sh-mode)
@@ -2120,8 +2120,20 @@ of the regular expression.  The mode is then determined as the mode
 associated with that interpreter in `interpreter-mode-alist'.")
 
 (defvar magic-mode-alist
-  `((image-type-auto-detected-p . image-mode)
-    ;; The < comes before the groups (but the first) to reduce backtracking.
+  `((image-type-auto-detected-p . image-mode))
+  "Alist of buffer beginnings vs. corresponding major mode functions.
+Each element looks like (REGEXP . FUNCTION) or (MATCH-FUNCTION . FUNCTION).
+After visiting a file, if REGEXP matches the text at the beginning of the
+buffer, or calling MATCH-FUNCTION returns non-nil, `normal-mode' will
+call FUNCTION rather than allowing `auto-mode-alist' to decide the buffer's
+major mode.
+
+If FUNCTION is nil, then it is not called.  (That is a way of saying
+\"allow `auto-mode-alist' to decide for these files.\")")
+(put 'magic-mode-alist 'risky-local-variable t)
+
+(defvar magic-fallback-mode-alist
+  `(;; The < comes before the groups (but the first) to reduce backtracking.
     ;; TODO: UTF-16 <?xml may be preceded by a BOM 0xff 0xfe or 0xfe 0xff.
     ;; We use [ \t\r\n] instead of `\\s ' to make regex overflow less likely.
     (,(let* ((incomment-re "\\(?:[^-]\\|-[^-]\\)")
@@ -2140,19 +2152,6 @@ associated with that interpreter in `interpreter-mode-alist'.")
      . sgml-mode)
     ("%!PS" . ps-mode)
     ("# xmcd " . conf-unix-mode))
-  "Alist of buffer beginnings vs. corresponding major mode functions.
-Each element looks like (REGEXP . FUNCTION) or (MATCH-FUNCTION . FUNCTION).
-After visiting a file, if REGEXP matches the text at the beginning of the
-buffer, or calling MATCH-FUNCTION returns non-nil, `normal-mode' will
-call FUNCTION rather than allowing `auto-mode-alist' to decide the buffer's
-major mode.
-
-If FUNCTION is nil, then it is not called.  (That is a way of saying
-\"allow `auto-mode-alist' to decide for these files.\")")
-(put 'magic-mode-alist 'risky-local-variable t)
-
-(defvar file-start-mode-alist
-  nil
   "Like `magic-mode-alist' but has lower priority than `auto-mode-alist'.
 Each element looks like (REGEXP . FUNCTION) or (MATCH-FUNCTION . FUNCTION).
 After visiting a file, if REGEXP matches the text at the beginning of the
@@ -2161,11 +2160,11 @@ call FUNCTION, provided that `magic-mode-alist' and `auto-mode-alist'
 have not specified a mode for this file.
 
 If FUNCTION is nil, then it is not called.")
-(put 'file-start-mode-alist 'risky-local-variable t)
+(put 'magic-fallback-mode-alist 'risky-local-variable t)
 
 (defvar magic-mode-regexp-match-limit 4000
   "Upper limit on `magic-mode-alist' regexp matches.
-Also applies to `file-start-mode-alist'.")
+Also applies to `magic-fallback-mode-alist'.")
 
 (defun set-auto-mode (&optional keep-mode-if-same)
   "Select major mode appropriate for current buffer.
@@ -2284,7 +2283,7 @@ only set the major mode, if that would change it."
 	      (when mode
 		(set-auto-mode-0 mode keep-mode-if-same)
 		(setq done t))))))
-    ;; Next try matching the buffer beginning against file-start-mode-alist.
+    ;; Next try matching the buffer beginning against magic-fallback-mode-alist.
     (unless done
       (if (setq done (save-excursion
 		       (goto-char (point-min))
@@ -2292,7 +2291,7 @@ only set the major mode, if that would change it."
 			 (narrow-to-region (point-min)
 					   (min (point-max)
 						(+ (point-min) magic-mode-regexp-match-limit)))
-			 (assoc-default nil file-start-mode-alist
+			 (assoc-default nil magic-fallback-mode-alist
 					(lambda (re dummy)
 					  (if (functionp re)
 					      (funcall re)

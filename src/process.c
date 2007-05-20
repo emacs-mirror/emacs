@@ -336,6 +336,10 @@ static SELECT_TYPE non_keyboard_wait_mask;
 
 static SELECT_TYPE non_process_wait_mask;
 
+/* Mask for the gpm mouse input descriptor.  */
+
+static SELECT_TYPE gpm_wait_mask;
+
 #ifdef NON_BLOCKING_CONNECT
 /* Mask of bits indicating the descriptors that we wait for connect to
    complete on.  Once they complete, they are removed from this mask
@@ -356,6 +360,9 @@ static int max_process_desc;
 
 /* The largest descriptor currently in use for keyboard input.  */
 static int max_keyboard_desc;
+
+/* The largest descriptor currently in use for gpm mouse input.  */
+static int max_gpm_desc;
 
 /* Nonzero means delete a process right away if it exits.  */
 static int delete_exited_processes;
@@ -4451,7 +4458,8 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	  IF_NON_BLOCKING_CONNECT (Ctemp = connect_wait_mask);
 
 	  EMACS_SET_SECS_USECS (timeout, 0, 0);
-	  if ((select (max (max_process_desc, max_keyboard_desc) + 1,
+	  if ((select (max (max (max_process_desc, max_keyboard_desc),
+			      max_gpm_desc) + 1,
 		       &Atemp,
 #ifdef NON_BLOCKING_CONNECT
 		       (num_pending_connects > 0 ? &Ctemp : (SELECT_TYPE *)0),
@@ -4596,7 +4604,8 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	    }
 #endif
 
-	  nfds = select (max (max_process_desc, max_keyboard_desc) + 1,
+	  nfds = select (max (max (max_process_desc, max_keyboard_desc),
+			      max_gpm_desc) + 1,
 			 &Available,
 #ifdef NON_BLOCKING_CONNECT
 			 (check_connect ? &Connecting : (SELECT_TYPE *)0),
@@ -6975,6 +6984,21 @@ add_keyboard_wait_descriptor (desc)
     max_keyboard_desc = desc;
 }
 
+static int add_gpm_wait_descriptor_called_flag;
+
+void
+add_gpm_wait_descriptor (desc)
+     int desc;
+{
+  if (! add_gpm_wait_descriptor_called_flag)
+    FD_CLR (0, &input_wait_mask);
+  add_gpm_wait_descriptor_called_flag = 1;
+  FD_SET (desc, &input_wait_mask);
+  FD_SET (desc, &gpm_wait_mask);
+  if (desc > max_gpm_desc)
+    max_gpm_desc = desc;
+}
+
 /* From now on, do not expect DESC to give keyboard input.  */
 
 void
@@ -6990,8 +7014,27 @@ delete_keyboard_wait_descriptor (desc)
   if (desc == max_keyboard_desc)
     for (fd = 0; fd < lim; fd++)
       if (FD_ISSET (fd, &input_wait_mask)
-	  && !FD_ISSET (fd, &non_keyboard_wait_mask))
+	  && !FD_ISSET (fd, &non_keyboard_wait_mask)
+	  && !FD_ISSET (fd, &gpm_wait_mask))
 	max_keyboard_desc = fd;
+}
+
+void
+delete_gpm_wait_descriptor (desc)
+     int desc;
+{
+  int fd;
+  int lim = max_gpm_desc;
+
+  FD_CLR (desc, &input_wait_mask);
+  FD_CLR (desc, &non_process_wait_mask);
+
+  if (desc == max_gpm_desc)
+    for (fd = 0; fd < lim; fd++)
+      if (FD_ISSET (fd, &input_wait_mask)
+	  && !FD_ISSET (fd, &non_keyboard_wait_mask)
+	  && !FD_ISSET (fd, &non_process_wait_mask))
+	max_gpm_desc = fd;
 }
 
 /* Return nonzero if *MASK has a bit set

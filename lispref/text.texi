@@ -1655,11 +1655,10 @@ they default to the whole buffer.
 @end defun
 
 @defun indent-to-left-margin
-This is the default @code{indent-line-function}, used in Fundamental
-mode, Text mode, etc.  Its effect is to adjust the indentation at the
-beginning of the current line to the value specified by the variable
-@code{left-margin}.  This may involve either inserting or deleting
-whitespace.
+This function adjusts the indentation at the beginning of the current
+line to the value specified by the variable @code{left-margin}.  (That
+may involve either inserting or deleting whitespace.)  This function
+is value of @code{indent-line-function} in Paragraph-Indent Text mode.
 @end defun
 
 @defvar left-margin
@@ -2199,9 +2198,7 @@ various commands) to indent the current line.  The command
 
 In Lisp mode, the value is the symbol @code{lisp-indent-line}; in C
 mode, @code{c-indent-line}; in Fortran mode, @code{fortran-indent-line}.
-In Fundamental mode, Text mode, and many other modes with no standard
-for indentation, the value is @code{indent-to-left-margin} (which is the
-default value).
+The default value is @code{indent-relative}.
 @end defvar
 
 @deffn Command indent-according-to-mode

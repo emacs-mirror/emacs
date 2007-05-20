@@ -171,6 +171,9 @@ static int system_uses_terminfo;
 char *tparam ();
 
 extern char *tgetstr ();
+
+static void term_clear_mouse_face ();
+static void term_mouse_highlight (struct frame *f, int x, int y);
 
 
 #ifdef WINDOWSNT
@@ -184,6 +187,35 @@ extern char *tgetstr ();
 #define FRAME_TERMCAP_P(_f_) 0
 #endif /* WINDOWSNT */
 
+#ifdef HAVE_GPM
+#include <sys/fcntl.h>
+#include "buffer.h"
+
+/* Nonzero means mouse is enabled on Linux console.  */
+int term_gpm = 0;
+
+/* The id of the terminal device for which we have gpm support.  */
+int gpm_tty;
+
+/* These variables describe the range of text currently shown in its
+   mouse-face, together with the window they apply to.  As long as
+   the mouse stays within this range, we need not redraw anything on
+   its account.  Rows and columns are glyph matrix positions in
+   MOUSE_FACE_WINDOW.  */
+static int mouse_face_beg_row, mouse_face_beg_col;
+static int mouse_face_end_row, mouse_face_end_col;
+static int mouse_face_past_end;
+static Lisp_Object mouse_face_window;
+static int mouse_face_face_id;
+
+/* FRAME and X, Y position of mouse when last checked for
+   highlighting.  X and Y can be negative or out of range for the frame.  */
+struct frame *mouse_face_mouse_frame;
+int mouse_face_mouse_x, mouse_face_mouse_y;
+
+static int pos_x, pos_y;
+static int last_mouse_x, last_mouse_y;
+#endif /* HAVE_GPM */
 
 /* Ring the bell on a tty. */
 
@@ -714,6 +746,66 @@ tty_write_glyphs (struct frame *f, struct glyph *string, int len)
 
   cmcheckmagic (tty);
 }
+
+static void
+tty_write_glyphs_with_face (f, string, len, face_id)
+     register struct frame *f;
+     register struct glyph *string;
+     register int len, face_id;
+{
+  unsigned char *conversion_buffer;
+  struct coding_system *coding;
+
+  struct tty_display_info *tty = FRAME_TTY (f);
+
+  tty_turn_off_insert (tty);
+  tty_hide_cursor (tty);
+
+  /* Don't dare write in last column of bottom line, if Auto-Wrap,
+     since that would scroll the whole frame on some terminals.  */
+
+  if (AutoWrap (tty)
+      && curY (tty) + 1 == FRAME_LINES (f)
+      && (curX (tty) + len) == FRAME_COLS (f))
+    len --;
+  if (len <= 0)
+    return;
+
+  cmplus (tty, len);
+
+  /* If terminal_coding does any conversion, use it, otherwise use
+     safe_terminal_coding.  We can't use CODING_REQUIRE_ENCODING here
+     because it always return 1 if the member src_multibyte is 1.  */
+  coding = (FRAME_TERMINAL_CODING (f)->common_flags & CODING_REQUIRE_ENCODING_MASK
+	    ? FRAME_TERMINAL_CODING (f) : &safe_terminal_coding);
+  /* The mode bit CODING_MODE_LAST_BLOCK should be set to 1 only at
+     the tail.  */
+  coding->mode &= ~CODING_MODE_LAST_BLOCK;
+
+  /* Turn appearance modes of the face.  */
+  tty_highlight_if_desired (tty);
+  turn_on_face (f, face_id);
+
+  coding->mode |= CODING_MODE_LAST_BLOCK;
+  conversion_buffer = encode_terminal_code (string, len, coding);
+  if (coding->produced > 0)
+    {
+      BLOCK_INPUT;
+      fwrite (conversion_buffer, 1, coding->produced, tty->output);
+      if (ferror (tty->output))
+	clearerr (tty->output);
+      if (tty->termscript)
+	fwrite (conversion_buffer, 1, coding->produced, tty->termscript);
+      UNBLOCK_INPUT;
+    }
+
+  /* Turn appearance modes off.  */
+  turn_off_face (f, face_id);
+  tty_turn_off_highlight (tty);
+
+  cmcheckmagic (tty);
+}
+
 
 /* An implementation of insert_glyphs for termcap frames. */
 
@@ -2248,6 +2340,663 @@ the currently selected frame. */)
 
 
 /***********************************************************************
+			       Mouse
+ ***********************************************************************/
+
+#ifdef HAVE_GPM
+static void
+term_show_mouse_face (enum draw_glyphs_face draw)
+{
+  struct window *w = XWINDOW (mouse_face_window);
+  int save_x, save_y;
+  int i, j;
+
+  struct frame *f = XFRAME (w->frame);
+  struct tty_display_info *tty = FRAME_TTY (f);
+
+  if (/* If window is in the process of being destroyed, don't bother
+	 to do anything.  */
+      w->current_matrix != NULL
+      /* Recognize when we are called to operate on rows that don't exist
+	 anymore.  This can happen when a window is split.  */
+      && mouse_face_end_row < w->current_matrix->nrows)
+    {
+      /* write_glyphs writes at cursor position, so we need to
+	 temporarily move cursor coordinates to the beginning of
+	 the highlight region.  */
+      
+      /* Save current cursor co-ordinates */
+      save_y = curY (tty);
+      save_x = curX (tty);
+
+      /* Note that mouse_face_beg_row etc. are window relative.  */
+      for (i = mouse_face_beg_row; i <= mouse_face_end_row; i++)
+	{
+	  int start_hpos, end_hpos, nglyphs;
+	  struct glyph_row *row = MATRIX_ROW (w->current_matrix, i);
+
+	  /* Don't do anything if row doesn't have valid contents.  */
+	  if (!row->enabled_p)
+	    continue;
+
+	  /* For all but the first row, the highlight starts at column 0.  */
+	  if (i == mouse_face_beg_row)
+	    start_hpos = mouse_face_beg_col;
+	  else
+	    start_hpos = 0;
+
+	  if (i == mouse_face_end_row)
+	    end_hpos = mouse_face_end_col;
+	  else
+	    {
+	      end_hpos = row->used[TEXT_AREA];
+	      if (draw == DRAW_NORMAL_TEXT)
+		row->fill_line_p = 1; /* Clear to end of line */
+	    }
+
+	  if (end_hpos <= start_hpos)
+	    continue;
+	  /* Record that some glyphs of this row are displayed in
+	     mouse-face.  */
+	  row->mouse_face_p = draw > 0;
+
+	  nglyphs = end_hpos - start_hpos;
+
+	  if (end_hpos >= row->used[TEXT_AREA])
+	    nglyphs = row->used[TEXT_AREA] - start_hpos;
+
+	  pos_y = row->y + WINDOW_TOP_EDGE_Y (w);
+	  pos_x = row->used[LEFT_MARGIN_AREA] + start_hpos
+	    + WINDOW_LEFT_EDGE_X (w);
+	  
+	  cursor_to (f, pos_y, pos_x);
+
+	  if (draw == DRAW_MOUSE_FACE)
+	    {
+	      tty_write_glyphs_with_face (f, row->glyphs[TEXT_AREA] + start_hpos,
+				      nglyphs, mouse_face_face_id);
+	    }
+	  else /* draw == DRAW_NORMAL_TEXT */
+	    write_glyphs (f, row->glyphs[TEXT_AREA] + start_hpos, nglyphs);
+	}
+      cursor_to (f, save_y, save_x);
+    }
+}
+
+static void
+term_clear_mouse_face ()
+{
+  if (!NILP (mouse_face_window))
+    term_show_mouse_face (DRAW_NORMAL_TEXT);
+
+  mouse_face_beg_row = mouse_face_beg_col = -1;
+  mouse_face_end_row = mouse_face_end_col = -1;
+  mouse_face_window = Qnil;
+}
+
+/* Find the glyph matrix position of buffer position POS in window W.
+   *HPOS and *VPOS are set to the positions found.  W's current glyphs
+   must be up to date.  If POS is above window start return (0, 0).
+   If POS is after end of W, return end of last line in W.
+   - taken from msdos.c */
+static int
+fast_find_position (struct window *w, int pos, int *hpos, int *vpos)
+{
+  int i, lastcol, line_start_position, maybe_next_line_p = 0;
+  int yb = window_text_bottom_y (w);
+  struct glyph_row *row = MATRIX_ROW (w->current_matrix, 0), *best_row = row;
+
+  while (row->y < yb)
+    {
+      if (row->used[TEXT_AREA])
+	line_start_position = row->glyphs[TEXT_AREA]->charpos;
+      else
+	line_start_position = 0;
+
+      if (line_start_position > pos)
+	break;
+      /* If the position sought is the end of the buffer,
+	 don't include the blank lines at the bottom of the window.  */
+      else if (line_start_position == pos
+	       && pos == BUF_ZV (XBUFFER (w->buffer)))
+	{
+	  maybe_next_line_p = 1;
+	  break;
+	}
+      else if (line_start_position > 0)
+	best_row = row;
+
+      /* Don't overstep the last matrix row, lest we get into the
+	 never-never land... */
+      if (row->y + 1 >= yb)
+	break;
+
+      ++row;
+    }
+
+  /* Find the right column within BEST_ROW.  */
+  lastcol = 0;
+  row = best_row;
+  for (i = 0; i < row->used[TEXT_AREA]; i++)
+    {
+      struct glyph *glyph = row->glyphs[TEXT_AREA] + i;
+      int charpos;
+
+      charpos = glyph->charpos;
+      if (charpos == pos)
+	{
+	  *hpos = i;
+	  *vpos = row->y;
+	  return 1;
+	}
+      else if (charpos > pos)
+	break;
+      else if (charpos > 0)
+	lastcol = i;
+    }
+
+  /* If we're looking for the end of the buffer,
+     and we didn't find it in the line we scanned,
+     use the start of the following line.  */
+  if (maybe_next_line_p)
+    {
+      ++row;
+      lastcol = 0;
+    }
+
+  *vpos = row->y;
+  *hpos = lastcol + 1;
+  return 0;
+}
+
+static void
+term_mouse_highlight (struct frame *f, int x, int y)
+{
+  enum window_part part;
+  Lisp_Object window;
+  struct window *w;
+  struct buffer *b;
+
+  if (NILP (Vmouse_highlight)
+      || !f->glyphs_initialized_p)
+    return;
+
+  mouse_face_mouse_x = x;
+  mouse_face_mouse_y = y;
+  mouse_face_mouse_frame = f;
+
+  /* Which window is that in?  */
+  window = window_from_coordinates (f, x, y, &part, &x, &y, 0);
+
+  /* Not on a window -> return.  */
+  if (!WINDOWP (window))
+    return;
+
+  if (!EQ (window, mouse_face_window))
+    term_clear_mouse_face ();
+
+  w = XWINDOW (window);
+
+  /* Are we in a window whose display is up to date?
+     And verify the buffer's text has not changed.  */
+  b = XBUFFER (w->buffer);
+  if (part == ON_TEXT
+      && EQ (w->window_end_valid, w->buffer)
+      && XFASTINT (w->last_modified) == BUF_MODIFF (b)
+      && XFASTINT (w->last_overlay_modified) == BUF_OVERLAY_MODIFF (b))
+    {
+      int pos, i, nrows = w->current_matrix->nrows;
+      struct glyph_row *row;
+      struct glyph *glyph;
+
+      /* Find the glyph under X/Y.  */
+      glyph = NULL;
+      if (y >= 0 && y < nrows)
+	{
+	  row = MATRIX_ROW (w->current_matrix, y);
+	  /* Give up if some row before the one we are looking for is
+	     not enabled.  */
+	  for (i = 0; i <= y; i++)
+	    if (!MATRIX_ROW (w->current_matrix, i)->enabled_p)
+	      break;
+	  if (i > y  /* all rows upto and including the one at Y are enabled */
+	      && row->displays_text_p
+	      && x <  window_box_width (w, TEXT_AREA))
+	    {
+	      glyph = row->glyphs[TEXT_AREA];
+	      if (x >= row->used[TEXT_AREA])
+		glyph = NULL;
+	      else
+		{
+		  glyph += x;
+		  if (!BUFFERP (glyph->object))
+		    glyph = NULL;
+		}
+	    }
+	}
+
+      /* Clear mouse face if X/Y not over text.  */
+      if (glyph == NULL)
+	{
+	  term_clear_mouse_face ();
+	  return;
+	}
+
+      if (!BUFFERP (glyph->object))
+	abort ();
+      pos = glyph->charpos;
+
+      /* Check for mouse-face.  */
+      {
+	extern Lisp_Object Qmouse_face;
+	Lisp_Object mouse_face, overlay, position, *overlay_vec;
+	int noverlays, obegv, ozv;;
+	struct buffer *obuf;
+
+	/* If we get an out-of-range value, return now; avoid an error.  */
+	if (pos > BUF_Z (b))
+	  return;
+
+	/* Make the window's buffer temporarily current for
+	   overlays_at and compute_char_face.  */
+	obuf = current_buffer;
+	current_buffer = b;
+	obegv = BEGV;
+	ozv = ZV;
+	BEGV = BEG;
+	ZV = Z;
+
+	/* Is this char mouse-active?  */
+	XSETINT (position, pos);
+
+	/* Put all the overlays we want in a vector in overlay_vec.  */
+	GET_OVERLAYS_AT (pos, overlay_vec, noverlays, NULL, 0);
+	/* Sort overlays into increasing priority order.  */
+	noverlays = sort_overlays (overlay_vec, noverlays, w);
+
+	/* Check mouse-face highlighting.  */
+	if (!(EQ (window, mouse_face_window)
+	      && y >= mouse_face_beg_row
+	      && y <= mouse_face_end_row
+	      && (y > mouse_face_beg_row
+		  || x >= mouse_face_beg_col)
+	      && (y < mouse_face_end_row
+		  || x < mouse_face_end_col
+		  || mouse_face_past_end)))
+	  {
+	    /* Clear the display of the old active region, if any.  */
+	    term_clear_mouse_face ();
+
+	    /* Find the highest priority overlay that has a mouse-face
+	       property.  */
+	    overlay = Qnil;
+	    for (i = noverlays - 1; i >= 0; --i)
+	      {
+		mouse_face = Foverlay_get (overlay_vec[i], Qmouse_face);
+		if (!NILP (mouse_face))
+		  {
+		    overlay = overlay_vec[i];
+		    break;
+		  }
+	      }
+
+	    /* If no overlay applies, get a text property.  */
+	    if (NILP (overlay))
+	      mouse_face = Fget_text_property (position, Qmouse_face,
+					       w->buffer);
+
+	    /* Handle the overlay case.  */
+	    if (!NILP (overlay))
+	      {
+		/* Find the range of text around this char that
+		   should be active.  */
+		Lisp_Object before, after;
+		int ignore;
+
+
+		before = Foverlay_start (overlay);
+		after = Foverlay_end (overlay);
+		/* Record this as the current active region.  */
+		fast_find_position (w, XFASTINT (before),
+				    &mouse_face_beg_col,
+				    &mouse_face_beg_row);
+
+		mouse_face_past_end
+		  = !fast_find_position (w, XFASTINT (after),
+					 &mouse_face_end_col,
+					 &mouse_face_end_row);
+		mouse_face_window = window;
+
+		mouse_face_face_id
+		  = face_at_buffer_position (w, pos, 0, 0,
+					     &ignore, pos + 1, 1);
+
+		/* Display it as active.  */
+		term_show_mouse_face (DRAW_MOUSE_FACE);
+	      }
+	    /* Handle the text property case.  */
+	    else if (!NILP (mouse_face))
+	      {
+		/* Find the range of text around this char that
+		   should be active.  */
+		Lisp_Object before, after, beginning, end;
+		int ignore;
+
+		beginning = Fmarker_position (w->start);
+		XSETINT (end, (BUF_Z (b) - XFASTINT (w->window_end_pos)));
+		before
+		  = Fprevious_single_property_change (make_number (pos + 1),
+						      Qmouse_face,
+						      w->buffer, beginning);
+		after
+		  = Fnext_single_property_change (position, Qmouse_face,
+						  w->buffer, end);
+
+		/* Record this as the current active region.  */
+		fast_find_position (w, XFASTINT (before),
+				    &mouse_face_beg_col,
+				    &mouse_face_beg_row);
+		mouse_face_past_end
+		  = !fast_find_position (w, XFASTINT (after),
+					 &mouse_face_end_col,
+					 &mouse_face_end_row);
+		mouse_face_window = window;
+
+		mouse_face_face_id
+		  = face_at_buffer_position (w, pos, 0, 0,
+					     &ignore, pos + 1, 1);
+
+		/* Display it as active.  */
+		term_show_mouse_face (DRAW_MOUSE_FACE);
+	      }
+	  }
+
+	/* Look for a `help-echo' property.  */
+	{
+	  Lisp_Object help;
+	  extern Lisp_Object Qhelp_echo;
+
+	  /* Check overlays first.  */
+	  help = Qnil;
+	  for (i = noverlays - 1; i >= 0 && NILP (help); --i)
+	    {
+	      overlay = overlay_vec[i];
+	      help = Foverlay_get (overlay, Qhelp_echo);
+	    }
+
+	  if (!NILP (help))
+	    {
+	      help_echo_string = help;
+	      help_echo_window = window;
+	      help_echo_object = overlay;
+	      help_echo_pos = pos;
+	    }
+	  /* Try text properties.  */
+	  else if (NILP (help)
+		   && ((STRINGP (glyph->object)
+			&& glyph->charpos >= 0
+			&& glyph->charpos < SCHARS (glyph->object))
+		       || (BUFFERP (glyph->object)
+			   && glyph->charpos >= BEGV
+			   && glyph->charpos < ZV)))
+	    {
+	      help = Fget_text_property (make_number (glyph->charpos),
+					 Qhelp_echo, glyph->object);
+	      if (!NILP (help))
+		{
+		  help_echo_string = help;
+		  help_echo_window = window;
+		  help_echo_object = glyph->object;
+		  help_echo_pos = glyph->charpos;
+		}
+	    }
+	}
+
+	BEGV = obegv;
+	ZV = ozv;
+	current_buffer = obuf;
+      }
+    }
+}
+
+static int
+term_mouse_movement (FRAME_PTR frame, Gpm_Event *event)
+{
+  /* Has the mouse moved off the glyph it was on at the last sighting?  */
+  if (event->x != last_mouse_x || event->y != last_mouse_y)
+    {
+      frame->mouse_moved = 1;
+      term_mouse_highlight (frame, event->x - 1, event->y - 1);
+      /* Remember which glyph we're now on.  */
+      last_mouse_x = event->x;
+      last_mouse_y = event->y;
+      return 1;
+    }
+  return 0;
+}
+
+/* Return the current position of the mouse.
+
+   Set *f to the frame the mouse is in, or zero if the mouse is in no
+   Emacs frame.  If it is set to zero, all the other arguments are
+   garbage.
+
+   Set *bar_window to Qnil, and *x and *y to the column and
+   row of the character cell the mouse is over.
+
+   Set *time to the time the mouse was at the returned position.
+
+   This should clear mouse_moved until the next motion
+   event arrives.
+
+   NOT CURRENTLY INVOKED: see mouse_position_hook below.  */
+static void
+term_mouse_position (FRAME_PTR *fp, int insist, Lisp_Object *bar_window,
+		     enum scroll_bar_part *part, Lisp_Object *x,
+		     Lisp_Object *y, unsigned long *time)
+{
+  Gpm_Event event;
+  struct timeval now;
+  int i;
+
+  BLOCK_INPUT;
+
+  *fp = SELECTED_FRAME ();
+
+  *bar_window = Qnil;
+  *part = 0;
+
+  i = Gpm_GetSnapshot (&event);
+
+  XSETINT (*x, event.x);
+  XSETINT (*y, event.y);
+  gettimeofday(&now, 0);
+  *time = (now.tv_sec * 1000) + (now.tv_usec / 1000);
+
+  UNBLOCK_INPUT;
+}
+
+/* Prepare a mouse-event in *RESULT for placement in the input queue.
+
+   If the event is a button press, then note that we have grabbed
+   the mouse.  */
+
+static Lisp_Object
+term_mouse_click (struct input_event *result, Gpm_Event *event,
+		  struct frame *f)
+{
+  struct timeval now;
+  int i, j;
+
+  result->kind = GPM_CLICK_EVENT;
+  for (i = 0, j = GPM_B_LEFT; i < 3; i++, j >>= 1 )
+    {
+      if (event->buttons & j) {
+	result->code = i; /* button number */
+	break;
+      }
+    }
+  gettimeofday(&now, 0);
+  result->timestamp = (now.tv_sec * 1000) + (now.tv_usec / 1000);
+
+  if (event->type & GPM_UP)
+    result->modifiers = up_modifier;
+  else if (event->type & GPM_DOWN)
+    result->modifiers = down_modifier;
+  else
+    result->modifiers = 0;
+  
+  if (event->type & GPM_SINGLE)
+    result->modifiers |= click_modifier;
+  
+  if (event->type & GPM_DOUBLE)
+    result->modifiers |= double_modifier;
+
+  if (event->type & GPM_TRIPLE)
+    result->modifiers |= triple_modifier;
+
+  if (event->type & GPM_DRAG)
+    result->modifiers |= drag_modifier;
+
+  if (!(event->type & (GPM_MOVE|GPM_DRAG))) {
+
+    /* 1 << KG_SHIFT */
+    if (event->modifiers & (1 << 0))
+      result->modifiers |= shift_modifier;
+
+    /* 1 << KG_CTRL */
+    if (event->modifiers & (1 << 2))
+      result->modifiers |= ctrl_modifier;
+
+    /* 1 << KG_ALT || KG_ALTGR */
+    if (event->modifiers & (1 << 3)
+	|| event->modifiers & (1 << 1))
+      result->modifiers |= meta_modifier;
+  }
+
+  XSETINT (result->x, event->x - 1);
+  XSETINT (result->y, event->y - 1);
+  XSETFRAME (result->frame_or_window, f);
+  result->arg = Qnil;
+  return Qnil;
+}
+
+int 
+handle_one_term_event (struct tty_display_info *tty, Gpm_Event *event, struct input_event* hold_quit)
+{
+  struct frame *f = XFRAME (tty->top_frame);
+  int i, j, fd;
+  struct input_event ie;
+  int do_help = 0;
+  int count = 0;
+
+  EVENT_INIT (ie);
+  ie.kind = NO_EVENT;
+  ie.arg = Qnil;
+
+  if (event->type & GPM_MOVE) {
+    unsigned char buf[6 * sizeof (short)];
+    unsigned short *arg = (unsigned short *) buf + 1;
+    const char *name;
+
+    previous_help_echo_string = help_echo_string;
+    help_echo_string = Qnil;
+
+    /* Display mouse pointer */
+    buf[sizeof(short) - 1] = 2;  /* set selection */
+
+    arg[0] = arg[2] = (unsigned short) event->x;
+    arg[1] = arg[3] = (unsigned short) event->y;
+    arg[4] = (unsigned short) 3;
+    
+    name = (const char *) ttyname (0);
+    fd = open (name, O_WRONLY);
+    ioctl (fd, TIOCLINUX, buf + sizeof (short) - 1);
+    close(fd);
+
+    term_mouse_movement (f, event);
+
+    /* If the contents of the global variable help_echo_string
+       has changed, generate a HELP_EVENT.  */
+    if (!NILP (help_echo_string)
+	|| !NILP (previous_help_echo_string))
+      do_help = 1;
+
+    goto done;
+  }
+  else {
+    f->mouse_moved = 0;
+    term_mouse_click (&ie, event, f);
+    //kbd_buffer_store_event_hold (&ie, hold_quit);
+  }
+
+ done:
+  if (ie.kind != NO_EVENT)
+    {
+      kbd_buffer_store_event_hold (&ie, hold_quit);
+      count++;
+    }
+
+  if (do_help
+      && !(hold_quit && hold_quit->kind != NO_EVENT))
+    {
+      Lisp_Object frame;
+
+      if (f)
+	XSETFRAME (frame, f);
+      else
+	frame = Qnil;
+
+      gen_help_event (help_echo_string, frame, help_echo_window,
+		      help_echo_object, help_echo_pos);
+      count++;
+    }
+
+  return count;
+}
+
+DEFUN ("term-open-connection", Fterm_open_connection, Sterm_open_connection,
+       0, 0, 0,
+       doc: /* Open a connection to Gpm.  */)
+     ()
+{
+  struct tty_display_info *tty = FRAME_TTY (SELECTED_FRAME ());
+  Gpm_Connect connection;
+
+  connection.eventMask = ~0;
+  connection.defaultMask = ~GPM_HARD;
+  connection.maxMod = ~0;
+  connection.minMod = 0;
+
+  /* We only support GPM on the controlling tty.  */
+  if (term_gpm || tty->terminal->id > 1
+      || Gpm_Open (&connection, 0) < 0)
+    return Qnil;
+  else
+    {
+      term_gpm = 1;
+      gpm_tty = tty->terminal->id;
+      reset_sys_modes (tty);
+      init_sys_modes (tty);
+      add_gpm_wait_descriptor (gpm_fd);
+      return Qt;
+    }
+}
+
+DEFUN ("term-close-connection", Fterm_close_connection, Sterm_close_connection,
+       0, 0, 0,
+       doc: /* Close a connection to Gpm.  */)
+     ()
+{
+   delete_gpm_wait_descriptor (gpm_fd);
+   while (Gpm_Close()); /* close all the stack */
+   term_gpm = 0;
+   return Qnil;
+}
+#endif /* HAVE_GPM */
+
+
+/***********************************************************************
 			    Initialization
  ***********************************************************************/
 
@@ -2508,6 +3257,14 @@ init_tty (char *name, char *terminal_type, int must_succeed)
 #endif
 
   encode_terminal_bufsize = 0;
+
+#ifdef HAVE_GPM
+  /* TODO: Can't get Gpm_Snapshot in term_mouse_position to work: test with
+     (mouse-position).  Also set-mouse-position won't work as is.  */
+  /* mouse_position_hook = term_mouse_position;  */
+
+  mouse_face_window = Qnil;
+#endif
 
 #ifdef WINDOWSNT
   initialize_w32_display ();
@@ -3139,6 +3896,10 @@ bigger, or it may make it blink, or it may do nothing at all.  */);
   defsubr (&Scontrolling_tty_p);
   defsubr (&Ssuspend_tty);
   defsubr (&Sresume_tty);
+#ifdef HAVE_GPM
+  defsubr (&Sterm_open_connection);
+  defsubr (&Sterm_close_connection);
+#endif /* HAVE_GPM */
 }
 
 

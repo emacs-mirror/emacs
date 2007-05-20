@@ -43,6 +43,8 @@
 
 ;;; Code:
 
+(defvar xterm-mouse-debug-buffer nil)
+
 ;; XXX Perhaps this should be terminal-local instead. --lorentey
 (define-key function-key-map "\e[M" 'xterm-mouse-translate)
 
@@ -96,6 +98,8 @@
 		       (list (intern (format "drag-mouse-%d"
 					     (+ 1 xterm-mouse-last)))
 			     down-data click-data)))))
+	    (if xterm-mouse-debug-buffer
+		(print unread-command-events xterm-mouse-debug-buffer))
 	    (if (and (symbolp down-where)
 		     (consp down-where))
 		(vector (list down-where down-data) down)

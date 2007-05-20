@@ -147,7 +147,7 @@ Any other non-nil version means case is not significant."
 
 (defcustom dabbrev-upcase-means-case-search nil
   "*The significance of an uppercase character in an abbreviation.
-nil means case fold search when searching for possible expansions;
+A nil value means case fold search when searching for possible expansions;
 non-nil means case sensitive search.
 
 This variable has an effect only when the value of

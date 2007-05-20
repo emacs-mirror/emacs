@@ -508,7 +508,7 @@ Lisp_Object Qmake_frame_visible;
 Lisp_Object Qselect_window;
 Lisp_Object Qhelp_echo;
 
-#ifdef HAVE_MOUSE
+#if defined (HAVE_MOUSE) || defined (HAVE_GPM)
 Lisp_Object Qmouse_fixup_help_message;
 #endif
 
@@ -661,7 +661,7 @@ static Lisp_Object read_char_x_menu_prompt ();
 static Lisp_Object read_char_minibuf_menu_prompt P_ ((int, int,
 						      Lisp_Object *));
 static Lisp_Object make_lispy_event P_ ((struct input_event *));
-#ifdef HAVE_MOUSE
+#if defined (HAVE_MOUSE) || defined (HAVE_GPM)
 static Lisp_Object make_lispy_movement P_ ((struct frame *, Lisp_Object,
 					    enum scroll_bar_part,
 					    Lisp_Object, Lisp_Object,
@@ -1466,7 +1466,7 @@ DEFUN ("abort-recursive-edit", Fabort_recursive_edit, Sabort_recursive_edit, 0, 
   return Qnil;
 }
 
-#ifdef HAVE_MOUSE
+#if defined (HAVE_MOUSE) || defined (HAVE_GPM)
 
 /* Restore mouse tracking enablement.  See Ftrack_mouse for the only use
    of this function.  */
@@ -1542,7 +1542,7 @@ some_mouse_moved ()
   return 0;
 }
 
-#endif	/* HAVE_MOUSE */
+#endif	/* HAVE_MOUSE || HAVE_GPM */
 
 /* This is the actual command reading loop,
    sans error-handling encapsulation.  */
@@ -2476,7 +2476,7 @@ show_help_echo (help, window, object, pos, ok_to_overwrite_keystroke_echo)
 	return;
     }
 
-#ifdef HAVE_MOUSE
+#if defined (HAVE_MOUSE) || defined (HAVE_GPM)
   if (!noninteractive && STRINGP (help))
     {
       /* The mouse-fixup-help-message Lisp function can call
@@ -3753,7 +3753,7 @@ readable_events (flags)
 	return 1;
     }
 
-#ifdef HAVE_MOUSE
+#if defined (HAVE_MOUSE) || defined (HAVE_GPM)
   if (!(flags & READABLE_EVENTS_IGNORE_SQUEEZABLES)
       && !NILP (do_mouse_tracking) && some_mouse_moved ())
     return 1;
@@ -4103,7 +4103,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
     {
       if (kbd_fetch_ptr != kbd_store_ptr)
 	break;
-#ifdef HAVE_MOUSE
+#if defined (HAVE_MOUSE) || defined (HAVE_GPM)
       if (!NILP (do_mouse_tracking) && some_mouse_moved ())
 	break;
 #endif
@@ -4125,7 +4125,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 #endif /* SIGIO */
       if (kbd_fetch_ptr != kbd_store_ptr)
 	break;
-#ifdef HAVE_MOUSE
+#if defined (HAVE_MOUSE) || defined (HAVE_GPM)
       if (!NILP (do_mouse_tracking) && some_mouse_moved ())
 	break;
 #endif
@@ -4361,7 +4361,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 	    }
 	}
     }
-#ifdef HAVE_MOUSE
+#if defined (HAVE_MOUSE) || defined (HAVE_GPM)
   /* Try generating a mouse motion event.  */
   else if (!NILP (do_mouse_tracking) && some_mouse_moved ())
     {
@@ -4406,7 +4406,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
       if (!NILP (x) && NILP (obj))
 	obj = make_lispy_movement (f, bar_window, part, x, y, time);
     }
-#endif	/* HAVE_MOUSE */
+#endif	/* HAVE_MOUSE || HAVE GPM */
   else
     /* We were promised by the above while loop that there was
        something for us to read!  */
@@ -6123,6 +6123,66 @@ make_lispy_event (event)
       }
 #endif
 
+#ifdef HAVE_GPM
+    case GPM_CLICK_EVENT:
+      {
+	FRAME_PTR f = XFRAME (event->frame_or_window);
+	Lisp_Object head, position;
+	Lisp_Object *start_pos_ptr;
+	Lisp_Object start_pos;
+	int button = event->code;
+
+	if (button >= ASIZE (button_down_location))
+	  {
+	    button_down_location = larger_vector (button_down_location,
+						  button + 1, Qnil);
+	    mouse_syms = larger_vector (mouse_syms, button + 1, Qnil);
+	  }
+
+	start_pos_ptr = &AREF (button_down_location, button);
+	start_pos = *start_pos_ptr;
+
+	position = make_lispy_position (f, &event->x, &event->y,
+					    event->timestamp);
+
+ 	if (event->modifiers & down_modifier)
+	  *start_pos_ptr = Fcopy_alist (position);
+	else if (event->modifiers & (up_modifier | drag_modifier))
+	  {
+	    if (!CONSP (start_pos))
+	      return Qnil;
+	    event->modifiers &= ~up_modifier;
+	  }
+
+	head = modify_event_symbol (button,
+				    event->modifiers,
+				    Qmouse_click, Vlispy_mouse_stem,
+				    NULL,
+				    &mouse_syms,
+				    XVECTOR (mouse_syms)->size);
+
+	if (event->modifiers & drag_modifier)
+	  return Fcons (head,
+			Fcons (start_pos,
+			       Fcons (position,
+				      Qnil)));
+	else if (event->modifiers & double_modifier)
+	  return Fcons (head,
+			Fcons (position,
+			       Fcons (make_number (2),
+				      Qnil)));
+	else if (event->modifiers & triple_modifier)
+	  return Fcons (head,
+			Fcons (position,
+			       Fcons (make_number (3),
+				      Qnil)));
+ 	else
+	  return Fcons (head,
+			Fcons (position,
+			       Qnil));
+       }
+#endif /* HAVE_GPM */
+
       /* The 'kind' field of the event is something we don't recognize.  */
     default:
       abort ();
@@ -7057,7 +7117,27 @@ tty_read_avail_input (struct terminal *terminal,
   if (! tty->input)
     return 0;                   /* The terminal is suspended. */
 
-  /* Determine how many characters we should *try* to read.  */
+#ifdef HAVE_GPM
+  if (term_gpm && gpm_tty == tty->terminal->id)
+  {
+      Gpm_Event event;
+      struct input_event hold_quit;
+      int gpm;
+
+      EVENT_INIT (hold_quit);
+      hold_quit.kind = NO_EVENT;
+
+      while (gpm = Gpm_GetEvent (&event), gpm == 1) {
+	  nread += handle_one_term_event (tty, &event, &hold_quit);
+      }
+      if (hold_quit.kind != NO_EVENT)
+	  kbd_buffer_store_event (&hold_quit);
+      if (nread)
+	  return nread;
+  }
+#endif /* HAVE_GPM */
+
+/* Determine how many characters we should *try* to read.  */
 #ifdef FIONREAD
   /* Find out how much input is available.  */
   if (ioctl (fileno (tty->input), FIONREAD, &n_to_read) < 0)
@@ -11440,7 +11520,7 @@ init_keyboard ()
   recent_keys_index = 0;
   kbd_fetch_ptr = kbd_buffer;
   kbd_store_ptr = kbd_buffer;
-#ifdef HAVE_MOUSE
+#if defined (HAVE_MOUSE) || defined (HAVE_GPM)
   do_mouse_tracking = Qnil;
 #endif
   input_pending = 0;
@@ -11636,7 +11716,7 @@ syms_of_keyboard ()
   Qmenu_bar = intern ("menu-bar");
   staticpro (&Qmenu_bar);
 
-#ifdef HAVE_MOUSE
+#if defined (HAVE_MOUSE) || defined (HAVE_GPM)
   Qmouse_fixup_help_message = intern ("mouse-fixup-help-message");
   staticpro (&Qmouse_fixup_help_message);
 #endif
@@ -11768,7 +11848,7 @@ syms_of_keyboard ()
   defsubr (&Sread_key_sequence);
   defsubr (&Sread_key_sequence_vector);
   defsubr (&Srecursive_edit);
-#ifdef HAVE_MOUSE
+#if defined (HAVE_MOUSE) || defined (HAVE_GPM)
   defsubr (&Strack_mouse);
 #endif
   defsubr (&Sinput_pending_p);

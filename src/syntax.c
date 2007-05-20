@@ -1669,10 +1669,10 @@ skip_chars (forwardp, syntaxp, string, lim, handle_iso_classes)
 		      p = GPT_ADDR;
 		      stop = endp;
 		    }
+		  UPDATE_SYNTAX_TABLE_BACKWARD (pos - 1);
 		  if (! fastmap[(int) SYNTAX (p[-1])])
 		    break;
 		  p--, pos--;
-		  UPDATE_SYNTAX_TABLE_BACKWARD (pos - 1);
 		}
 	  }
       }

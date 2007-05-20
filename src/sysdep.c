@@ -1747,6 +1747,14 @@ init_sys_modes (tty_out)
         fcntl (fileno (tty_out->input), F_GETOWN, 0);
       fcntl (fileno (tty_out->input), F_SETOWN, getpid ());
       init_sigio (fileno (tty_out->input));
+#ifdef HAVE_GPM
+      if (term_gpm)
+	{
+	  fcntl (gpm_fd, F_SETOWN, getpid ());
+	  fcntl (gpm_fd, F_SETFL, O_NONBLOCK);
+	  init_sigio (gpm_fd);
+	}
+#endif /* HAVE_GPM */
     }
 #endif /* F_GETOWN */
 #endif /* F_SETOWN_BUG */

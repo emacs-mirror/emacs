@@ -616,7 +616,7 @@ the text at the beginning of the buffer matches @var{regexp} and
 @code{auto-mode-alist} gets to decide the mode.
 @end defvar
 
-@defvar file-start-mode-alist
+@defvar magic-fallback-mode-alist
 This works like @code{magic-mode-alist}, except that it is handled
 only if @code{auto-mode-alist} does not specify a mode for this file.
 @end defvar
@@ -956,7 +956,11 @@ Turning on Text mode runs the normal hook `text-mode-hook'."
 @end group
 @end smallexample
 
-  But here is how it was defined formerly, before
+@noindent
+(The last line is redundant nowadays, since @code{indent-relative} is
+the default value, and we'll delete it in a future version.)
+
+  Here is how it was defined formerly, before
 @code{define-derived-mode} existed:
 
 @smallexample

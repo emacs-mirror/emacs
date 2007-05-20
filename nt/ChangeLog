@@ -1,3 +1,8 @@
+2007-05-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Fix URL of EmacsW32 site where building with image
+	support is described.
+
 2007-04-26  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.rc: Increase version to 22.1.50.

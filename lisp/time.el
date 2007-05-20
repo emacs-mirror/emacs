@@ -37,7 +37,7 @@
 
 (defcustom display-time-mail-file nil
   "*File name of mail inbox file, for indicating existence of new mail.
-Non-nil and not a string means don't check for mail.  nil means use
+Non-nil and not a string means don't check for mail; nil means use
 default, which is system-dependent, and is the same as used by Rmail."
   :type '(choice (const :tag "None" none)
 		 (const :tag "Default" nil)
@@ -94,7 +94,7 @@ past 15 minutes.  The default is to display 1 minute load average."
 
 (defcustom display-time-24hr-format nil
   "*Non-nil indicates time should be displayed as hh:mm, 0 <= hh <= 23.
-nil means 1 <= hh <= 12, and an AM/PM suffix is used."
+A value of nil means 1 <= hh <= 12, and an AM/PM suffix is used."
   :type 'boolean
   :group 'display-time)
 

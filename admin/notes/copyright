@@ -427,6 +427,14 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00257.html
 http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg01427.html
 
 
+lisp/progmodes/python.el
+Dave Love alerted us to a potential legal problem:
+http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-04/msg00459.html
+
+On consultation with a lawyer, we found there was no problem:
+http://lists.gnu.org/archive/html/emacs-devel/2007-05/msg00466.html
+
+
 ** Issues that are "fixed" for the release of Emacs 22, but we may
    wish to revisit later in more detail
 
@@ -587,8 +595,9 @@ Done: TUTORIAL.eo
 
 *** These are copyright issues still to be addressed:
 
-python.el potential legal problem
-http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-04/msg00459.html
+None known.
+
+
 
 This file is part of GNU Emacs.
 

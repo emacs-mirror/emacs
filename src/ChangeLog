@@ -1,3 +1,103 @@
+2007-05-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* Makefile.in: Move GPM check outside HAVE_X_WINDOWS.
+
+2007-05-20  Nick Roberts  <nickrob@snap.net.nz>
+
+	* config.in, keyboard.c, Makefile.in, sysdep.c, term.c,
+	* termhooks.h: Use HAVE_GPM instead of HAVE_GPM_H.
+
+2007-05-20  Nick Roberts  <nickrob@snap.net.nz>
+
+	* keyboard.c (make_lispy_event): Make case GPM_CLICK_EVENT
+	conditional on [HAVE_GPM_H].
+
+2007-05-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.c (skip_chars): Update syntax-table only after we checked that
+	the new location is valid.
+
+2007-05-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (x_calc_absolute_position): Add BLOCK_INPUT around
+	mac_get_window_bounds.
+
+2007-05-20  Nick Roberts  <nickrob@snap.net.nz>
+
+	* Makefile.in (LIBGPM): Allow it to be set from configure.
+	If set then link Emacs with it.
+
+	* config.in: Regenerate.
+
+	* lisp.h (add_gpm_wait_descriptor, delete_gpm_wait_descriptor):
+	New externs.
+
+	* termhooks.h [HAVE_GPM_H] (enum event_kind): Add GPM_CLICK_EVENT.
+	Include gpm.h.
+	(handle_one_term_event, term_gpm) New externs.
+
+	* sysdep.c [HAVE_GPM_H] (init_sys_modes): Make gpm_fd nonblocking
+	and allow it to be interrupted by SIGIO.
+
+	* process.c (gpm_wait_mask, max_gpm_desc): New variables.
+	(wait_reading_process_output): Wait on gpm_fd too.
+	(add_gpm_wait_descriptor, delete_gpm_wait_descriptor)): New functions.
+	(add_gpm_wait_descriptor_called_flag): New variable.
+	(delete_keyboard_wait_descriptor): Check gpm_wait_mask.
+
+	* keyboard.c [HAVE_GPM_H] (Qmouse_fixup_help_message)
+	(make_lispy_movement, tracking_off, Ftrack_mouse, some_mouse_moved)
+	(show_help_echo, readable_events, kbd_buffer_get_event, init_keyboard):
+	Extend HAVE_MOUSE ifdefs to HAVE_GPM_H.
+	(make_lispy_event): Add case GPM_CLICK_EVENT.
+	(read_avail_input): Handle mouse input.
+
+	* term.c (write_glyphs_with_face): New function.
+	[HAVE_GPM_H]: Include buffer.h, sys/fcntl.h.
+	(mouse_face_beg_row, mouse_face_beg_col, mouse_face_end_row)
+	(mouse_face_end_col, mouse_face_past_end, mouse_face_window)
+	(mouse_face_face_id, term_gpm, pos_x, pos_y)
+	(last_mouse_x, last_mouse_y): New variables.
+	(term_show_mouse_face, term_clear_mouse_face, fast_find_position)
+	(term_mouse_highlight, term_mouse_movement, term_mouse_position)
+	(term_mouse_click, handle_one_term_event, Fterm_open_connection)
+	(Fterm_close_connection): New functions.
+	(term_init): Initialise mouse_face_window.
+
+2007-05-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (redisplay_window): If first window line is a
+	continuation line, recompute the new window start instead of
+	recentering.
+
+2007-05-18  Glenn Morris  <rgm@gnu.org>
+
+	* m/alpha.h (ORDINARY_LINK): No longer define on OpenBSD.
+	Suggested by Alfred M. Szmidt <ams@gnu.org>.
+
+2007-05-17  Glenn Morris  <rgm@gnu.org>
+
+	* m/macppc.h (ORDINARY_LINK): No longer define on OpenBSD.
+
+2007-05-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c [USE_CARBON_EVENTS] (mac_convert_event_ref): Also convert
+	dead key repeat and up events.
+
+2007-05-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (pbm_load): Check image size for monochrome pbm.
+
+2007-05-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.c (XTread_socket): Revert last change.
+
+2007-05-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (pbm_load): Correctly check image size for greyscale pbm.
+
+	* xterm.c (XTread_socket): Yet Another Uncaught X Error Crash (YAUXEC).
+
 2007-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* editfns.c (Ftranspose_regions): Yet another int/Lisp_Object mixup (YAILOM)

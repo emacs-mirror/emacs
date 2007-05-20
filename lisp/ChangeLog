@@ -1,3 +1,169 @@
+2007-05-20  Nick Roberts  <nickrob@snap.net.nz>
+
+	* t-mouse.el (t-mouse-mode): Reset t-mouse-mode to nil if there
+	is an error.
+
+	* term/linux.el (terminal-init-linux): Don't signal an error
+	if gpm isn't running.
+
+2007-05-20  Nick Roberts  <nickrob@snap.net.nz>
+
+	* t-mouse.el: Reduce to a minor-mode macro call.
+	(t-mouse-mode) Remove the lighter.
+
+	* term/linux.el (terminal-init-linux): Enable t-mouse by default.
+
+2007-05-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* files.el (auto-mode-alist): Change the regexp so that
+	ChangeLog.unicode and ChangeLog.multi-tty use change-log-mode.
+
+2007-05-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* paren.el (show-paren-function): Undo 2007-04-19 and 2007-04-20
+	changes.
+
+2007-05-19  Kevin Ryde  <user42@zip.com.au>
+
+	* info.el (Info-fontify-node): Fontify https as well as http and ftp.
+
+2007-05-18  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* textmodes/sgml-mode.el: Revert last change.
+
+2007-05-18  Richard Stallman  <rms@gnu.org>
+
+	* simple.el (push-mark): Doc fix.
+
+2007-05-18  Rob Riepel  <riepel@Stanford.EDU>
+
+	* emulation/tpu-edt.el (CSI-map, SS3-map) Moved from global-map to
+	tpu-global-map.
+	(tpu-original-global-map) Variable deleted.
+	(tpu-control-keys-map) New keymap variable.
+	(tpu-set-control-keys) Use tpu-reset-control-keys rather than
+	setting keymapping directly.
+	(tpu-reset-control-keys) Use tpu-control-keys-map instead of
+	tpu-global-map.
+	(tpu-edt-on): Activate the tpu-global-map.
+	(tpu-edt-off): Deactivate the tpu-global-map.
+	
+2007-05-18  Ryan Yeske  <rcyeske@gmail.com>
+
+	* textmodes/ispell.el (ispell-get-word): Return markers
+	for start and end positions.
+	(ispell-word): Assume END is a marker.
+
+2007-05-17  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Group together all XEmacs/Emacs definitions.
+	(pr-version): New version 6.9.
+	(pr-global-menubar, pr-menu-char-height, pr-menu-char-width): New funs.
+	(pr-menu-char-height, pr-menu-char-width): Fix initialization code.
+	(pr-menu-bind): Fix code.
+	(pr-e-frame-char-height, pr-e-frame-char-width)
+	(pr-e-mouse-pixel-position, pr-x-add-submenu, pr-x-event-function)
+	(pr-x-event-object, pr-x-find-menu-item, pr-x-font-height)
+	(pr-x-font-width, pr-x-get-popup-menu-response, pr-x-make-event)
+	(pr-x-misc-user-event-p, pr-x-relabel-menu-item, pr-x-event-x-pixel)
+	(pr-x-event-y-pixel): Aliases eliminated.
+	(pr-xemacs-global-menubar): Macro moved.
+	(current-menubar, current-mouse-event, zmacs-region-stays)
+	(deactivate-mark, pr-menu-position, pr-menu-state, pr-ps-name-old)
+	(pr-txt-name-old, pr-ps-utility-old, pr-even-or-odd-old, pr-temp-menu):
+	Vars moved.
+	(pr-region-active-p, pr-menu-position, pr-menu-lookup, pr-menu-lock)
+	(pr-update-mode-line, pr-do-update-menus, pr-menu-alist)
+	(pr-relabel-menu-item, pr-menu-set-ps-title, pr-menu-set-txt-title)
+	(pr-menu-set-utility-title, pr-even-or-odd-pages)
+	(pr-f-set-keymap-parents, pr-f-set-keymap-name, pr-f-read-string)
+	(pr-keep-region-active, pr-menu-get-item, pr-menu-set-item-name): Funs
+	moved.
+
+2007-05-17  Christian Plate  <cplate@web.de>  (tiny change)
+
+	* textmodes/sgml-mode.el (sgml-tag):
+	Fix bug: Call sgml-transformation-function.
+
+2007-05-17  Martin Rudalics  <rudalics@gmx.at>
+
+	* hilit-chg.el (highlight-changes-rotate-faces): Don't set
+	modified flag of buffer.  Use `inhibit-modification-hooks'.
+
+2007-05-16  Richard Stallman  <rms@gnu.org>
+
+	* buff-menu.el (Buffer-menu-sort-column): Doc fix.
+
+2007-05-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (magic-mode-alist, magic-fallback-mode-alist):
+	Move the *ml, Postscript, and XmCD entries to the fallback part.
+
+	* files.el (magic-fallback-mode-alist):
+	Rename from file-start-mode-alist.
+
+2007-05-16  Nikolaj Schumacher  <n_schumacher@web.de>  (tiny change)
+
+	* progmodes/compile.el (compilation-handle-exit): Quote first
+	argument of `run-hook-with-args'.
+
+2007-05-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* buff-menu.el (Buffer-menu-sort-column):
+	* dabbrev.el (dabbrev-upcase-means-case-search):
+	* dired.el (dired-recursive-deletes, dired-recursive-copies):
+	* info.el (Info-current-subfile):
+	* ls-lisp.el (ls-lisp-verbosity):
+	* msb.el (msb-menu-cond):
+	* pcvs.el (cvs-dired-use-hook):
+	* simple.el (set-mark-command-repeat-pop):
+	* time.el (display-time-24hr-format, display-time-mail-file):
+	Doc fixes.
+
+	* tutorial.el (get-lang-string, tutorial--find-changed-keys):
+	* printing.el (pr-ps-fast-fire): Fix typos in docstrings.
+
+	* view.el (view-inhibit-help-message): Fix typo in docstring.
+	(view-scroll-auto-exit, view-try-extend-at-buffer-end): Doc fixes.
+
+2007-05-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* textmodes/ispell.el (ispell-start-process): Defend against bad
+	default-directory.
+
+2007-05-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmail.el (rmail-convert-to-babyl-format): Check
+	content-transfer-encoding _last_, because it's its position that
+	we need as value of base64-header-field-end.
+
+2007-05-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* files.el (mode-require-final-newline, require-final-newline)
+	(enable-local-variables, enable-local-eval): Doc fixes.
+
+2007-05-13  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Use default color when foreground or background color
+	are unspecified.  Reported by Leo <sdl.web@gmail.com>.
+	(ps-print-version): New version 6.7.4.
+	(ps-rgb-color): New argument.  Use default color when color is
+	unspecified.
+	(ps-begin-job): Fix code.
+
+2007-05-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-mode): Make longlines-auto-wrap
+	buffer-local.  Add hooks unconditionally.
+	(longlines-auto-wrap): Toggle wrapping.
+	(longlines-after-change-function)
+	(longlines-post-command-function): Check longlines-auto-wrap.
+
+2007-05-12  Nick Roberts  <nickrob@snap.net.nz>
+
+	* xt-mouse.el (xterm-mouse-debug-buffer): New variable.
+	(xterm-mouse-translate): Use it.
+
 2007-05-10  Richard Stallman  <rms@gnu.org>
 
 	* international/iso-cvt.el (iso-cvt-read-only): Ignore arguments.
