@@ -45,6 +45,13 @@
 #define CONFIG_ASSERT
 #define CHECKLEVEL_INITIAL CheckLevelMINIMAL
 #define CONFIG_DEBUG
+/* Choose a DIAG_WITH_... output method.
+ * (We need to choose because the DIAG output system is under 
+ * development.  When it works, this will simply be the same as 
+ * "CONFIG_DEBUG".  RHSK 2007-05-21).
+ */
+/* #define DIAG_WITH_STREAM_AND_WRITEF -- this does not work in CET */
+#define DIAG_WITH_PRINTF
 /* no telemetry log events */
 
 #elif defined(CONFIG_VAR_CI) || defined(CONFIG_VAR_CE) /* Cool varieties */

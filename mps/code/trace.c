@@ -1570,10 +1570,9 @@ void TraceStart(Trace trace, double mortality,
 
   arena = trace->arena;
 
-  DIAG_WRITEF(( DIAG_STREAM,  "\n** TraceStart: $S\n", (WriteFS)trace->startMessage.why, NULL ));
   if (why != TraceStartWhyCHAIN_GEN0CAP) {
     /* a non-minor collection */
-    DIAG( ArenaDescribe(arena, DIAG_STREAM); );
+    DIAG_PRINTF(( "\n>MPS> TraceStart non-minor: %s\n", trace->startMessage.why ));
   }
 
   message = TraceStartMessageMessage(&trace->startMessage);

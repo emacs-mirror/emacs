@@ -10,7 +10,7 @@
 #include "mpm.h"
 #include "mpslib.h" /* for mps_lib_stdout */
 
-#if defined(DIAGNOSTICS)
+#if defined(DIAG_WITH_STREAM_AND_WRITEF)
 
 Bool DiagEnabledGlobal = TRUE;
 
@@ -19,24 +19,16 @@ Bool DiagIsOn(void)
   return DiagEnabledGlobal;
 }
 
-
 mps_lib_FILE *DiagStream(void)
 {
   return mps_lib_stdout;
 }
 
-
-#elif defined(DIAGNOSTICS_NONE)
-
-#else
-
-#error "No diagnostics configured."
-
 #endif
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2003 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2007 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
