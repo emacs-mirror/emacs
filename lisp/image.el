@@ -292,43 +292,28 @@ be determined."
   "Determine the type of image file FILE from its name.
 Value is a symbol specifying the image type, or nil if type cannot
 be determined."
-  (let ((types image-type-file-name-regexps)
-	type)
-    (while types
-      (if (string-match (car (car types)) file)
-	  (setq type (cdr (car types))
-		types nil)
-	(setq types (cdr types))))
-    type))
+  (assoc-default file image-type-file-name-regexps 'string-match))
 
 
 ;;;###autoload
-(defun image-type (file-or-data &optional type data-p)
+(defun image-type (source &optional type data-p)
   "Determine and return image type.
-FILE-OR-DATA is an image file name or image data.
+SOURCE is an image file name or image data.
 Optional TYPE is a symbol describing the image type.  If TYPE is omitted
 or nil, try to determine the image type from its first few bytes
-of image data.  If that doesn't work, and FILE-OR-DATA is a file name,
+of image data.  If that doesn't work, and SOURCE is a file name,
 use its file extension as image type.
-Optional DATA-P non-nil means FILE-OR-DATA is a string containing image data."
-  (when (and (not data-p) (not (stringp file-or-data)))
-    (error "Invalid image file name `%s'" file-or-data))
-  (cond ((null data-p)
-	 ;; FILE-OR-DATA is a file name.
-	 (unless (or type
-		     (setq type (image-type-from-file-header file-or-data)))
-	   (let ((extension (file-name-extension file-or-data)))
-	     (unless extension
-	       (error "Cannot determine image type"))
-	     (setq type (intern extension)))))
-	(t
-	 ;; FILE-OR-DATA contains image data.
-	 (unless type
-	   (setq type (image-type-from-data file-or-data)))))
+Optional DATA-P non-nil means SOURCE is a string containing image data."
+  (when (and (not data-p) (not (stringp source)))
+    (error "Invalid image file name `%s'" source))
   (unless type
-    (error "Cannot determine image type"))
-  (unless (symbolp type)
-    (error "Invalid image type `%s'" type))
+    (setq type (if data-p
+		   (image-type-from-data source)
+		 (or (image-type-from-file-header source)
+		     (image-type-from-file-name source))))
+    (or type (error "Cannot determine image type")))
+  (or (memq type image-types)
+      (error "Invalid image type `%s'" type))
   type)
 
 
@@ -343,30 +328,15 @@ Image types are symbols like `xbm' or `jpeg'."
 ;;;###autoload
 (defun image-type-auto-detected-p ()
   "Return t iff the current buffer contains an auto-detectable image.
-This function is intended to be used from `magic-mode-alist' (which see).
+This function is intended to be used from `magic-fallback-mode-alist'.
 
-First, compare the beginning of the buffer with `image-type-header-regexps'.
-If an appropriate image type is found, check if that image type can be
-autodetected using the variable `image-type-auto-detectable'.  Finally,
-if `buffer-file-name' is non-nil, check if it matches another major mode
-in `auto-mode-alist' apart from `image-mode'; if there is another match,
-the autodetection is considered to have failed.  Return t if all the above
-steps succeed."
+The buffer is considered to contain an auto-detectable image if
+its beginning matches an image type in `image-type-header-regexps',
+and that image type is present in `image-type-auto-detectable'."
   (let* ((type (image-type-from-buffer))
 	 (auto (and type (cdr (assq type image-type-auto-detectable)))))
-    (and auto
-	 (or (eq auto t) (image-type-available-p type))
-	 (or (null buffer-file-name)
-	     (not (assoc-default
-		   buffer-file-name
-		   (delq nil (mapcar 
-			      (lambda (elt)
-				(unless (memq (or (car-safe (cdr elt))
-						  (cdr elt))
-					      '(image-mode image-mode-maybe))
-				  elt))
-			      auto-mode-alist))
-		   'string-match))))))
+    (and type
+	 (or (eq auto t) (image-type-available-p type)))))
 
 
 ;;;###autoload
