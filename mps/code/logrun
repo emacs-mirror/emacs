@@ -11,16 +11,22 @@
 
 
 LOGRUNCOMMAND="$1"
-# The ${foo##*/} construct drops all except the last component of the 
-# path to the command, so "./xcppgc/hi/amcss" --> "amcss".
-LOGRUNCOMMANDNAME="${LOGRUNCOMMAND##*/}"
 shift
-LOGRUNFILE="`date -u '+%Y%m%dt%H%M%S'`-${LOGRUNCOMMANDNAME}"
+
+# This ${foo##*/} construct drops all except the last component of the 
+# path foo, so "./xcppgc/hi/amcss" --> "amcss".
+LOGRUNCOMMANDNAME="${LOGRUNCOMMAND##*/}"
+
+# Some commands have a language suffix, eg .py.  But that does not 
+# mean the resulting logfile is in that language: so append .txt.
+LOGRUNFILE="log/`date -u '+%Y%m%dt%H%M%S'`-${LOGRUNCOMMANDNAME}.txt"
 
 mkdir -p log
-echo "(${LOGRUNCOMMAND} $@)(Logging to log/${LOGRUNFILE})" | tee log/${LOGRUNFILE}
-"${LOGRUNCOMMAND}" "$@" 2>&1 | tee -a log/${LOGRUNFILE}
-mate log/${LOGRUNFILE}
+echo "(${LOGRUNCOMMAND} $@)(Logging to ${LOGRUNFILE})" | tee ${LOGRUNFILE}
+"${LOGRUNCOMMAND}" "$@" 2>&1 | tee -a ${LOGRUNFILE}
+
+# open logfile in your favourite editor...
+mate ${LOGRUNFILE}
 
 
 # C. COPYRIGHT AND LICENSE
