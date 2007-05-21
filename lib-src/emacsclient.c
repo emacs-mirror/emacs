@@ -462,7 +462,7 @@ decode_options (argc, argv)
   else
     tty = 1;
 #endif
-  
+
   /* --no-wait implies --current-frame on ttys when there are file
        arguments or expressions given.  */
   if (nowait && tty && argc - optind > 0)
@@ -482,27 +482,32 @@ decode_options (argc, argv)
 void
 print_help_and_exit ()
 {
+  /* Spaces and tabs are significant in this message; they're chosen so the
+     message aligns properly both in a tty and in a Windows message box.
+     Please try to preserve them; otherwise the output is very hard to read
+     when using emacsclientw.  */
   message (FALSE,
 	   "Usage: %s [OPTIONS] FILE...\n\
 Tell the Emacs server to visit the specified files.\n\
 Every FILE can be either just a FILENAME or [+LINE[:COLUMN]] FILENAME.\n\
 \n\
 The following OPTIONS are accepted:\n\
--V, --version           Just print version info and return\n\
--H, --help              Print this usage information message\n\
--t, --tty               Open a new Emacs frame on the current terminal\n\
--c, --current-frame	Do not create a new frame; use the current Emacs frame\n\
--e, --eval              Evaluate the FILE arguments as ELisp expressions\n\
--n, --no-wait           Don't wait for the server to return\n\
--d, --display=DISPLAY   Visit the file in the given display\n"
+-V, --version		Just print version info and return\n\
+-H, --help    		Print this usage information message\n\
+-t, --tty    		Open a new Emacs frame on the current terminal\n\
+-c, --current-frame  	Do not create a new frame;\n\
+			use the current Emacs frame\n\
+-e, --eval    		Evaluate the FILE arguments as ELisp expressions\n\
+-n, --no-wait		Don't wait for the server to return\n\
+-d, --display=DISPLAY	Visit the file in the given display\n"
 #ifndef NO_SOCKETS_IN_FILE_SYSTEM
 "-s, --socket-name=FILENAME\n\
-                        Set filename of the UNIX socket for communication\n"
+			Set filename of the UNIX socket for communication\n"
 #endif
 "-f, --server-file=FILENAME\n\
-                        Set filename of the TCP authentication file\n\
+			Set filename of the TCP authentication file\n\
 -a, --alternate-editor=EDITOR\n\
-                        Editor to fallback to if the server is not running\n\
+			Editor to fallback to if the server is not running\n\
 \n\
 Report bugs to bug-gnu-emacs@gnu.org.\n", progname);
   exit (EXIT_SUCCESS);
@@ -538,7 +543,7 @@ main (argc, argv)
   main_argv = argv;
   progname = argv[0];
   message (TRUE, "%s: Sorry, the Emacs server is supported only\n"
-	   "on systems with Berkeley sockets.\n", 
+	   "on systems with Berkeley sockets.\n",
 	   argv[0]);
   fail ();
 }
@@ -976,7 +981,7 @@ handle_sigtstp (int signalnum)
 {
   int old_errno = errno;
   sigset_t set;
-  
+
   if (emacs_socket)
     send_to_emacs (emacs_socket, "-suspend \n");
 
@@ -1145,9 +1150,9 @@ HSOCKET
 set_socket ()
 {
   HSOCKET s;
-  
+
   INITIALIZE ();
-  
+
 #ifndef NO_SOCKETS_IN_FILE_SYSTEM
   /* Explicit --socket-name argument.  */
   if (socket_name)
@@ -1170,12 +1175,12 @@ set_socket ()
       s = set_tcp_socket ();
       if ((s != INVALID_SOCKET) || alternate_editor)
 	return s;
- 
+
       message (TRUE, "%s: error accessing server file \"%s\"",
 	       progname, server_file);
       exit (EXIT_FAILURE);
     }
-  
+
 #ifndef NO_SOCKETS_IN_FILE_SYSTEM
   /* Implicit local socket.  */
   s = set_local_socket ();
@@ -1332,7 +1337,7 @@ main (argc, argv)
 
   if (current_frame)
     send_to_emacs (emacs_socket, "-current-frame ");
-  
+
   if (display)
     {
       send_to_emacs (emacs_socket, "-display ");
