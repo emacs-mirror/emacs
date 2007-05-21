@@ -150,7 +150,7 @@ This is caused by a binary incompatible change to the malloc
 implementation in glibc 2.5.90-22.  As a result, Emacs binaries built
 using prior versions of glibc crash when run under 2.5.90-22.
 
-This problem was first seen in pre-release version of Fedora 7, and
+This problem was first seen in pre-release versions of Fedora 7, and
 may be fixed in the final Fedora 7 release.  To stop the crash from
 happening, first try upgrading to the newest version of glibc; if this
 does not work, rebuild Emacs with the same version of glibc that you
