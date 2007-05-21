@@ -1,3 +1,13 @@
+2007-05-21  Trent Buck  <trentbuck@gmail.com>  (tiny change)
+
+	* net/rcirc.el (rcirc-fill-column): Allow `window-width'.
+	(rcirc-print): Handle `window-width'.
+	(rcirc-buffer-maximum-lines): Doc fix.
+
+2007-05-19  Kevin Ryde  <user42@zip.com.au>
+
+	* info.el (Info-fontify-node): Match https also.
+
 2007-05-18  Richard Stallman  <rms@gnu.org>
 
 	* simple.el (push-mark): Doc fix.
