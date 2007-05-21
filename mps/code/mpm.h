@@ -934,6 +934,23 @@ extern void StackProbe(Size depth);
 #define STATISTIC_STAT(gather) BEGIN gather; END
 #define STATISTIC_WRITE(format, arg) (format), (arg),
 
+#elif defined(DIAGNOSTICS_NONE)
+
+#define STATISTIC(gather) DISCARD(((gather), 0))
+#define STATISTIC_STAT(gather) DISCARD_STAT(gather)
+#define STATISTIC_WRITE(format, arg)
+
+#else
+
+#error "No diagnostics configured."
+
+#endif
+
+
+/* ------------ DIAG_WITH_STREAM_AND_WRITEF --------------- */
+
+#if defined(DIAG_WITH_STREAM_AND_WRITEF)
+
 /* Diagnostic Calculation and Output */
 Bool DiagIsOn(void);
 mps_lib_FILE *DiagStream(void);
@@ -953,19 +970,28 @@ mps_lib_FILE *DiagStream(void);
   } \
 )
 
-#elif defined(DIAGNOSTICS_NONE)
-
-#define STATISTIC(gather) DISCARD(((gather), 0))
-#define STATISTIC_STAT(gather) DISCARD_STAT(gather)
-#define STATISTIC_WRITE(format, arg)
+#else
 
 /* Diagnostic Calculation and Output */
 #define DIAG(s) BEGIN END
 #define DIAG_WRITEF(args) BEGIN END
 
+#endif
+
+/* ------------ DIAG_WITH_PRINTF --------------- */
+
+#if defined(DIAG_WITH_PRINTF)
+
+#include <stdio.h>
+
+#define DIAG_PRINTF(args) BEGIN\
+  printf args ; \
+  END
+
 #else
 
-#error "No diagnostics configured."
+#define DIAG_PRINTF(args) BEGIN\
+  END
 
 #endif
 
