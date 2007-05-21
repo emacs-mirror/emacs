@@ -46,6 +46,8 @@ on one system and used on another. See
 https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=239344#c60
 for a possible complete explanation.
 
+** eliz@gnu.org, May 20: EOL conversion of files in .tar archives
+
 * FIXES FOR EMACS 22.2
 
 Here we list small fixes that arrived too late for Emacs 22.1, but
@@ -53,6 +55,8 @@ that should be installed on the release branch after 22.1 is released.
 
 ** Changes to six pbm icons in etc/images.
 Sync change from trunk 2007-05-19.
+
+** viper and tramp should not load cl at run time.
 
 * DOCUMENTATION
 
