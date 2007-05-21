@@ -294,7 +294,7 @@ int main(int argc, char **argv)
 
   randomize(argc, argv);
 
-  die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE/8),
+  die(mps_arena_create(&arena, mps_arena_class_vm(), 2*testArenaSIZE),
       "arena_create");
   mps_message_type_enable(arena, mps_message_type_gc());
   mps_message_type_enable(arena, mps_message_type_gc_start());
