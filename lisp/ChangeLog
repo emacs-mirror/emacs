@@ -1,5 +1,9 @@
 2007-05-21  Chong Yidong  <cyd@stupidchicken.com>
 
+	* image-mode.el (image-toggle-display): Don't clear image cache.
+	Only use filename in image spec if the file is readable.  Call
+	image-refresh.
+
 	* image.el (image-type-from-file-name, image-type): Simplify.
 	(image-type-auto-detected-p): Don't scan auto-mode-alist.
 
