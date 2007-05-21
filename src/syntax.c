@@ -2051,10 +2051,10 @@ skip_syntaxes (forwardp, string, lim)
 		    p = GPT_ADDR;
 		    stop = endp;
 		  }
+		UPDATE_SYNTAX_TABLE_BACKWARD (pos - 1);
 		if (! fastmap[(int) SYNTAX (p[-1])])
 		  break;
 		p--, pos--, pos_byte--;
-		UPDATE_SYNTAX_TABLE_BACKWARD (pos - 1);
 	      }
 	  }
       }
