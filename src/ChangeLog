@@ -1,3 +1,8 @@
+2007-05-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (uncache_image): New function.
+	(Fimage_refresh): New function.
+
 2007-05-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* Makefile.in: Move GPM check outside HAVE_X_WINDOWS.
