@@ -53,7 +53,7 @@
 
       emacs-22.1-bin-i386.zip
 
-  NB. If you just want to run Emacs, get one of the distributions above.
+  NB: If you just want to run Emacs, get the distribution above.
 
   + Bare executables, useful if you want to get the complete source
     release, but can't compile Emacs yourself:
