@@ -1,17 +1,16 @@
 		      Precompiled Distributions of
 			   Emacs for Windows
 
-			      Version 21.3
+			      Version 22.1
 
-			     April 22, 2003
+			     May 22, 2007
 		
   This directory contains source and precompiled distributions for GNU
-  Emacs on Windows NT/2000/XP and Windows 95/98/Me.  This port is a part
-  of the standard GNU Emacs distribution from the Free Software
+  Emacs on Windows NT/2000/XP and Windows 95/98/Me.  This port is a
+  part of the standard GNU Emacs distribution from the Free Software
   Foundation; the precompiled distributions are provided here for
-  convenience since, unlike Unix, the majority of Windows users do not
-  have access to a compiler (and, besides, do you really want to compile
-  Emacs when you don't have to?).
+  convenience since the majority of Windows users are not accustomed
+  to compiling programs themselves.
 
   If you have access to the World Wide Web, I would recommend pointing
   your favorite web browser to the following document (if you haven't
@@ -27,79 +26,56 @@
 
   If you want to redistribute any of the precompiled distributions of
   Emacs, be careful to check the implications of the GPL.  For instance,
-  if you put the emacs-21.3-bin-i386.tar.gz file from this directory on
+  if you put the emacs-22.1-bin-i386.tar.gz file from this directory on
   an Internet site, you must arrange to distribute the source files of
-  the SAME version (i.e. emacs-21.3-src.tar.gz).
+  the SAME version (i.e. emacs-22.1-src.tar.gz).
 
   Making a link to our copy of the source is NOT sufficient, since we
   might upgrade to a new version while you are still distributing the
   old binaries.
 
 
-* Distributions in .tar.gz format
+* Distributions in .tar.gz and .zip format
 
-  Emacs is distributed primarily as a set of large gzipped tar files
+  Emacs is distributed primarily as source code in a large gzipped tar file
   (*.tar.gz).  Because Emacs is quite large and therefore difficult to
-  download over unreliable connections, it is provided in several
-  combinations, ranging from the complete source plus executables, to
-  just the minimal amount needed to run without any source, plus a
-  couple of optional packages.  Here are the combinations (i386 in the
-  name indicates a tarball contains executables compiled for
-  Intel-compatible x86 systems):
+  download over unreliable connections, the Windows binaries are provided
+  in several combinations, ranging from the complete source plus executables,
+  to just the minimal amount needed to run without any source, plus a
+  couple of optional packages.  Formerly, we used the same .tar.gz format
+  but since there are no longer legal problems with .zip files, and the
+  latest versions of Windows support these natively, the Windows binaries
+  of Emacs are now distributed as .zip files.
+  Here are the combinations (i386 in the name indicates a zipfile contains
+  executables compiled for Intel-compatible x86 systems):
 
   + Primary precompiled distribution, including lisp source:
 
-      emacs-21.3-fullbin-i386.tar.gz
+      emacs-22.1-bin-i386.zip
 
-  + Minimal precompiled distribution, which excludes lisp source:
+  NB. If you just want to run Emacs, get the distribution above.
 
-      emacs-21.3-bin-i386.tar.gz
+  + Bare executables, useful if you want to get the complete source
+    release, but can't compile Emacs yourself:
 
-    You can download emacs-21.3-lisp.tar.gz to get the lisp source, if
-    you later decide you want it - it is useful for understanding how
-    packages work, and how they can best be setup or customized.
-
-
-  NB. If you just want to run Emacs, get one of the distributions above.
-
-
-  + Bare executables, only useful if you want to get the complete source
-    release below, but can't compile Emacs yourself:
-
-      emacs-21.3-barebin-i386.tar.gz  (requires emacs-21.3-src.tar.gz)
-
-  + Undumped executable, only needed for rebuilding Emacs after changing
-    certain core lisp files:
-
-      emacs-21.3-undumped-i386.tar.gz
-
-  + Optional package providing the Library of Emacs Input Methods for
-    typing non-ascii characters, notably Chinese, Japanese and Korean,
-    but also including European and other character sets:
-
-      emacs-21.3-leim.tar.gz
+      emacs-22.1-barebin-i386.zip  (requires ../emacs-22.1.tar.gz)
 
   + The complete official source for Emacs:
 
-      emacs-21.3-src.tar.gz
-
-  + The complete official source for LEIM:
-
-      leim-21.3-src.tar.gz
-
+      ../emacs-22.1-src.tar.gz
 
 * Distributions for non-x86 platforms
 
   Distributions for non-x86 platforms are no longer supplied. Older
   platforms supported by Windows NT no longer seem to be in demand,
   and Emacs is yet to be ported to 64bit Windows platforms. If you are
-  willing to help port Emacs to 64bit versions of Windows, your
+  willing to help port Emacs 23 to 64bit versions of Windows, your
   contribution will be welcome on the emacs-devel mailing list.
 
 * Unpacking distributions
 
-  Ports of GNU gzip and GNU tar for handling the distribution file
-  formats can be found in several places that distribute ports of GNU
+  Ports of GNU gzip and GNU tar for handling the source distribution file
+  format can be found in several places that distribute ports of GNU
   programs, for example:
 
     Cygwin:   http://www.cygwin.com/
@@ -132,6 +108,11 @@
   You may be prompted to rename or overwrite directories when using
   djtarnt: simply type return to continue (this is harmless).
 
+  The precompiled binaries can be unpacked using unzip.exe from info-zip.org
+  if you do not already have other tools to do this.
+
+    % unzip some.zip
+
   Once you have unpacked a precompiled distribution of Emacs, it should
   have the following subdirectories:
 
@@ -143,11 +124,11 @@
   If you do use other utility programs to unpack the distribution, check
   the following to be sure the distribution was not corrupted:
 
-  + Be sure to disable the CR/LF translation or the executables will be
-    unusable.  Older versions of WinZip would enable this translation
-    by default.  If you are using WinZip, disable it.  (I don't have
-    WinZip myself, and I do not know the specific commands necessary
-    to disable it.)
+  + Be sure to disable the CR/LF translation or the executables will
+    be unusable.  Older versions of WinZip would enable this
+    translation by default when unpacking .tar files.  If you are
+    using WinZip, disable it.  (I don't have WinZip myself, and I do
+    not know the specific commands necessary to disable it.)
 
   + Check that filenames were not truncated to 8.3.  For example, there
     should be a file lisp/abbrevlist.el; if this has been truncated to
