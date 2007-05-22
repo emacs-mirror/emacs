@@ -2169,10 +2169,11 @@ Also applies to `magic-fallback-mode-alist'.")
 (defun set-auto-mode (&optional keep-mode-if-same)
   "Select major mode appropriate for current buffer.
 
-This checks for a -*- mode tag in the buffer's text, checks the
-interpreter that runs this file against `interpreter-mode-alist',
-compares the buffer beginning against `magic-mode-alist', or
-compares the filename against the entries in `auto-mode-alist'.
+To find the right major mode, this function checks for a -*- mode tag,
+checks if it uses an interpreter listed in `interpreter-mode-alist',
+matches the buffer beginning against `magic-mode-alist',
+compares the filename against the entries in `auto-mode-alist',
+then matches the buffer beginning against `magic-fallback-mode-alist'.
 
 It does not check for the `mode:' local variable in the
 Local Variables section of the file; for that, use `hack-local-variables'.
@@ -2181,7 +2182,8 @@ If `enable-local-variables' is nil, this function does not check for a
 -*- mode tag.
 
 If the optional argument KEEP-MODE-IF-SAME is non-nil, then we
-only set the major mode, if that would change it."
+set the major mode only if that would change it.  In other words
+we don't actually set it to the same mode the buffer already has."
   ;; Look for -*-MODENAME-*- or -*- ... mode: MODENAME; ... -*-
   (let (end done mode modes)
     ;; Find a -*- mode tag
