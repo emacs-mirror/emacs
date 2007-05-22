@@ -1,3 +1,14 @@
+2007-05-22  Andreas Schwab  <schwab@suse.de>
+
+	* configure.in: Prefer build_alias over host when host_alias is
+	not set.
+	* configure: Regenerate.
+
+2007-05-20  Andreas Schwab  <schwab@suse.de>
+
+	* configure.in: Remove empty AC_SUBST.
+	* configure: Regenerate.
+
 2007-05-20  Nick Roberts  <nickrob@snap.net.nz>
 
 	* configure.in: Use HAVE_GPM instead of HAVE_GPM_H and implement
