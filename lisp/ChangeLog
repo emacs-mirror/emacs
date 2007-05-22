@@ -1,3 +1,9 @@
+2007-05-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* help-fns.el (find-source-lisp-file): New function.
+	(describe-function-1): Use find-source-lisp-file to find source
+	file in compile tree.
+
 2007-05-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* dos-w32.el (find-buffer-file-type-coding-system): Doc fix.
