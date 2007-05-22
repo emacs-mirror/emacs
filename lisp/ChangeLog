@@ -1,3 +1,8 @@
+2007-05-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode)
+	(easy-mmode-define-navigation): Fix typos in docstrings.
+
 2007-05-22  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (auto-mode-alist): Open `.asd' files in lisp-mode.
@@ -37,7 +42,7 @@
 2007-05-20  Nick Roberts  <nickrob@snap.net.nz>
 
 	* t-mouse.el: Reduce to a minor-mode macro call.
-	(t-mouse-mode) Remove the lighter.
+	(t-mouse-mode): Remove the lighter.
 
 	* term/linux.el (terminal-init-linux): Enable t-mouse by default.
 
@@ -65,17 +70,17 @@
 
 2007-05-18  Rob Riepel  <riepel@Stanford.EDU>
 
-	* emulation/tpu-edt.el (CSI-map, SS3-map) Moved from global-map to
+	* emulation/tpu-edt.el (CSI-map, SS3-map): Moved from global-map to
 	tpu-global-map.
-	(tpu-original-global-map) Variable deleted.
-	(tpu-control-keys-map) New keymap variable.
-	(tpu-set-control-keys) Use tpu-reset-control-keys rather than
+	(tpu-original-global-map): Variable deleted.
+	(tpu-control-keys-map): New keymap variable.
+	(tpu-set-control-keys): Use tpu-reset-control-keys rather than
 	setting keymapping directly.
-	(tpu-reset-control-keys) Use tpu-control-keys-map instead of
+	(tpu-reset-control-keys): Use tpu-control-keys-map instead of
 	tpu-global-map.
 	(tpu-edt-on): Activate the tpu-global-map.
 	(tpu-edt-off): Deactivate the tpu-global-map.
-	
+
 2007-05-18  Ryan Yeske  <rcyeske@gmail.com>
 
 	* textmodes/ispell.el (ispell-get-word): Return markers
@@ -5706,7 +5711,7 @@
 	(cperl-block-p): Move, updatedfor attributes.
 	(cperl-calculate-indent): Try to allow '_' be non-word char
 		Support subs with attributes.
-	(cperl-where-am-i): Queit (?) a warning.
+	(cperl-where-am-i): Quiet (?) a warning.
 	(cperl-cached-syntax-table)	New function.
 	(cperl-forward-re): Use `cperl-cached-syntax-table'.
 	(cperl-unwind-to-safe): Recognize `syntax-type' property
@@ -13108,7 +13113,7 @@
 	selective display for concealed text.  Also, lots of general
 	cleanup, and improved compatibility code.
 
-	(allout-version) Incremented, corrected, revised, and refined
+	(allout-version): Incremented, corrected, revised, and refined
 	module commentary.
 
 	(provide 'allout): Moved to the bottom, added a require of overlay.
@@ -14194,7 +14199,7 @@
 	(tramp-unload-file-name-handler-alist)
 	(tramp-unload-tramp): New defuns.
 	(tramp-advice-PC-expand-many-files): New defadvice.
-	(tramp-save-PC-expand-many-files, tramp-setup-complete) Defuns
+	(tramp-save-PC-expand-many-files, tramp-setup-complete): Defuns
 	removed.
 	(tramp-handle-expand-file-name): Remove double slash.
 	(tramp-handle-file-attributes-with-ls): Return t as 9th attribute.
@@ -15415,7 +15420,7 @@
 	text properties).
 	(hi-lock-string-serialize-hash, hi-lock-string-serialize-serial):
 	New variables.
-	(hi-lock-string-serialize) New function.
+	(hi-lock-string-serialize): New function.
 
 2005-12-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -15977,7 +15982,7 @@
 
 	* hi-lock.el (hi-lock-mode): Rename from hi-lock-buffer-mode;
 	react if global-hi-lock-mode seems intended.
-	(global-hi-lock-mode) Renamed from hi-lock-mode.
+	(global-hi-lock-mode): Renamed from hi-lock-mode.
 	(hi-lock-archaic-interface-message-used)
 	(hi-lock-archaic-interface-deduce): New variables.
 	(turn-on-hi-lock-if-enabled, hi-lock-line-face-buffer)
@@ -16078,7 +16083,7 @@
 	(recentf-menu-open-all-flag, recentf-menu-append-commands-flag)
 	(recentf-arrange-by-rule-others)
 	(recentf-arrange-by-rules-min-items)
-	(recentf-arrange-by-rule-subfilter) : Don't use
+	(recentf-arrange-by-rule-subfilter): Don't use
 	`recentf-menu-customization-changed'.
 	(recentf-arrange-rules): Likewise.  Accept functions to compute
 	sub-menu titles.
@@ -16153,7 +16158,7 @@
 	(for GNU Emacs 20.4)
 
 	* progmodes/cc-defs.el:
-	(i) Load cc-fix.elc for `push' and `pop' (for GNU Emacs 20.4)
+	(i): Load cc-fix.elc for `push' and `pop' (for GNU Emacs 20.4)
 
 	* progmodes/cc-cmds.el (c-show-syntactic-information): Change the
 	highlighting mechanism so it will work in XEmacs too.
@@ -16198,9 +16203,9 @@
 2005-12-08  Alan Mackenzie  <bug-cc-mode@gnu.org>
 
 	* progmodes/cc-mode.el:
-	(i) Insert a binding for C-c C-backspace into
+	(i): Insert a binding for C-c C-backspace into
 	c-bind-special-erase-keys which works in TTYs.
-	(ii) Make sure that when file styles are used, any explicitly
+	(ii): Make sure that when file styles are used, any explicitly
 	given style variables take priority over those in the style.
 	Do this by calling `hack-local-variables' a second time.
 
@@ -22368,7 +22373,7 @@
 	* custom.el (custom-known-themes): Clarify meaning of "standard".
 	(custom-push-theme): Save old values in the standard theme.
 	(disable-theme): Correct typo.
-	(custom-face-theme-value) Deleted unused function.
+	(custom-face-theme-value): Deleted unused function.
 	(custom-theme-recalc-face): Rewritten to treat enable/disable properly.
 
 2005-09-05  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -24875,7 +24880,7 @@
 	(calc-do-embedded): Use calc-embedded-firsttime,
 	calc-embedded-firsttime-buf and calc-embedded-firsttime-formula to
 	determine whether or not to run hooks.
-	(calc-embedded-make-info) Set calc-embedded-firsttime-buf and
+	(calc-embedded-make-info): Set calc-embedded-firsttime-buf and
 	calc-embedded-firsttime-formula appropriately.
 	Set calc-embedded delimiter variables according to mode.
 
@@ -30610,7 +30615,7 @@
 
 2005-03-31  Olive Lin  <olive.lin@versateladsl.be>  (tiny change)
 
-	* textmodes/tex-mode.el (tex-start-tex) Use shell-quote-argument,
+	* textmodes/tex-mode.el (tex-start-tex): Use shell-quote-argument,
 	not comint-quote-filename.
 
 2005-03-31  Thien-Thi Nguyen  <ttn@gnu.org>
@@ -33125,7 +33130,7 @@
 
 	Sync with Tramp 2.0.47.
 
-	* net/tramp.el (tramp-operation-not-permitted-regexp) New defcustom,
+	* net/tramp.el (tramp-operation-not-permitted-regexp): New defcustom,
 	catching keep-date problems in cp/scp operations.
 	(tramp-handle-copy-file): Don't call `set-file-modes'
 	unconditionally.  Specialized functions should know better what is
