@@ -1567,13 +1567,11 @@ void TraceStart(Trace trace, double mortality,
   AVER(0.0 <= mortality);
   AVER(mortality <= 1.0);
   AVER(finishingTime >= 0.0);
+  UNUSED(why);
 
   arena = trace->arena;
 
-  if (why != TraceStartWhyCHAIN_GEN0CAP) {
-    /* a non-minor collection */
-    DIAG_PRINTF(( "\n>MPS> TraceStart non-minor: %s\n", trace->startMessage.why ));
-  }
+  DIAG_PRINTF(( "\nMPS: TraceStart: %s\n", trace->startMessage.why ));
 
   message = TraceStartMessageMessage(&trace->startMessage);
   /* Attempt to re-use message.
