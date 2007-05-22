@@ -200,7 +200,7 @@ fi
 
 AC_CANONICAL_HOST
 canonical=$host
-configuration=${host_alias-$host}
+configuration=${host_alias-${build_alias-$host}}
 
 dnl This used to use changequote, but, apart from `changequote is evil'
 dnl per the autoconf manual, we can speed up autoconf somewhat by quoting
