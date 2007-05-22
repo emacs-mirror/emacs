@@ -1,3 +1,7 @@
+2007-05-22  Richard Stallman  <rms@gnu.org>
+
+	* files.el (set-auto-mode): Doc fix.
+
 2007-05-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* dos-w32.el (find-buffer-file-type-coding-system): Doc fix.
