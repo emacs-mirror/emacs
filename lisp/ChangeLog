@@ -1,3 +1,7 @@
+2007-05-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* dos-w32.el (find-buffer-file-type-coding-system): Doc fix.
+
 2007-05-21  Trent Buck  <trentbuck@gmail.com>  (tiny change)
 
 	* net/rcirc.el (rcirc-fill-column): Allow `window-width'.
