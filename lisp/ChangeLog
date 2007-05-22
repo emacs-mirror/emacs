@@ -1,4 +1,4 @@
-2007-05-22  Katsumi Yamaoka  <yamaoka@jpl.org>
+2007-05-22  Katsumi Yamaoka  <yamaoka@jpl.org>  (tiny change)
 
 	* mail/mail-extr.el (mail-extract-address-components): Recognize
 	non-ASCII characters except for NBSP as words.
