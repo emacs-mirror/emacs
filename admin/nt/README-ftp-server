@@ -28,7 +28,7 @@
   Emacs, be careful to check the implications of the GPL.  For instance,
   if you put the emacs-22.1-bin-i386.tar.gz file from this directory on
   an Internet site, you must arrange to distribute the source files of
-  the SAME version (i.e. emacs-22.1-src.tar.gz).
+  the SAME version (i.e. ../emacs-22.1.tar.gz).
 
   Making a link to our copy of the source is NOT sufficient, since we
   might upgrade to a new version while you are still distributing the
@@ -53,7 +53,7 @@
 
       emacs-22.1-bin-i386.zip
 
-  NB. If you just want to run Emacs, get the distribution above.
+  NB. If you just want to run Emacs, get one of the distributions above.
 
   + Bare executables, useful if you want to get the complete source
     release, but can't compile Emacs yourself:
@@ -62,7 +62,7 @@
 
   + The complete official source for Emacs:
 
-      ../emacs-22.1-src.tar.gz
+      ../emacs-22.1.tar.gz
 
 * Distributions for non-x86 platforms
 
