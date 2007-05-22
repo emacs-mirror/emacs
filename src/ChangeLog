@@ -1,3 +1,7 @@
+2007-05-22  Richard Stallman  <rms@gnu.org>
+
+	* xterm.c (x_connection_closed): Remove NO_RETURN.
+
 2007-05-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* syntax.c (skip_chars): Update syntax-table only after we checked that
