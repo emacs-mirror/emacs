@@ -51,6 +51,8 @@ Sync change from trunk 2007-05-19.
 
 ** viper and tramp should not load cl at run time.
 
+** yamaoka@jpl.org's patch for mail-extract-address-components problem.
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
