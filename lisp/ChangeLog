@@ -1,3 +1,7 @@
+2007-05-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* dos-w32.el (find-buffer-file-type-coding-system): Doc fix.
+
 2007-05-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/easy-mmode.el (define-minor-mode)
