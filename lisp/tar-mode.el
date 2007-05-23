@@ -681,6 +681,12 @@ appear on disk when you save the tar-file's buffer."
   (goto-char (posn-point (event-end event)))
   (tar-extract))
 
+(defun tar-file-name-handler (op &rest args)
+  "Helper function for `tar-extract'."
+  (or (eq op 'file-exists-p)
+      (let ((file-name-handler-alist nil))
+	(apply op args))))
+
 (defun tar-extract (&optional other-window-p)
   "In Tar mode, extract this entry of the tar file into its own buffer."
   (interactive)
@@ -735,9 +741,19 @@ appear on disk when you save the tar-file's buffer."
 				  (save-excursion
 				    (funcall set-auto-coding-function
 					     name (- (point-max) (point)))))
-			     (car (find-operation-coding-system
-				   'insert-file-contents
-				   (cons name (current-buffer)) t))))
+			     ;; The following binding causes
+			     ;; find-buffer-file-type-coding-system
+			     ;; (defined on dos-w32.el) to act as if
+			     ;; the file being extracted existed, so
+			     ;; that the file's contents' encoding and
+			     ;; EOL format are auto-detected.
+			     (let ((file-name-handler-alist
+				    (if (featurep 'dos-w32)
+					'(("" . tar-file-name-handler))
+				      file-name-handler-alist)))
+			       (car (find-operation-coding-system
+				     'insert-file-contents
+				     (cons name (current-buffer)) t)))))
 			(multibyte enable-multibyte-characters)
 			(detected (detect-coding-region
 				   (point-min)
@@ -758,7 +774,9 @@ appear on disk when you save the tar-file's buffer."
 			      (coding-system-change-text-conversion
 			       coding 'raw-text)))
 		    (decode-coding-region (point-min) (point-max) coding)
-		    (set-buffer-file-coding-system coding))
+		    ;; Force buffer-file-coding-system to what
+		    ;; decode-coding-region actually used.
+		    (set-buffer-file-coding-system last-coding-system-used t))
 		  ;; Set the default-directory to the dir of the
 		  ;; superior buffer.
 		  (setq default-directory
