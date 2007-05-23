@@ -1571,7 +1571,7 @@ void TraceStart(Trace trace, double mortality,
 
   arena = trace->arena;
 
-  DIAG_PRINTF(( "\nMPS: TraceStart: %s\n", trace->startMessage.why ));
+  DIAG_WRITEF(( DIAG_STREAM, "\nMPS: TraceStart: $S\n", (WriteFS)trace->startMessage.why, NULL ));
 
   message = TraceStartMessageMessage(&trace->startMessage);
   /* Attempt to re-use message.
