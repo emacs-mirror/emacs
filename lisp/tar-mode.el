@@ -363,6 +363,7 @@ MODE should be an integer which is a file mode value."
 		  ((eq type 29) ?M)	; multivolume continuation
 		  ((eq type 35) ?S)	; sparse
 		  ((eq type 38) ?V)	; volume header
+		  ((eq type 55) ?H)	; extended pax header
 		  (t ?\s)
 		  )
 	    (tar-grind-file-mode mode)
@@ -421,7 +422,7 @@ is visible (and the real data of the buffer is hidden)."
                                   (buffer-substring pos (+ pos 512)))))))
         (setq pos (+ pos 512))
         (progress-reporter-update progress-reporter pos)
-        (if (eq (tar-header-link-type tokens) 20)
+        (if (memq (tar-header-link-type tokens) '(20 55))
             ;; Foo.  There's an extra empty block after these.
             (setq pos (+ pos 512)))
         (let ((size (tar-header-size tokens)))
@@ -657,13 +658,14 @@ appear on disk when you save the tar-file's buffer."
 	 (size (tar-header-size tokens))
 	 (link-p (tar-header-link-type tokens)))
     (if link-p
-	(error "This is a %s, not a real file"
-	       (cond ((eq link-p 5) "directory")
-		     ((eq link-p 20) "tar directory header")
-		     ((eq link-p 28) "next has longname")
-		     ((eq link-p 29) "multivolume-continuation")
-		     ((eq link-p 35) "sparse entry")
-		     ((eq link-p 38) "volume header")
+	(error "This is a%s, not a real file"
+	       (cond ((eq link-p 5) " directory")
+		     ((eq link-p 20) " tar directory header")
+		     ((eq link-p 28) " next has longname")
+		     ((eq link-p 29) " multivolume-continuation")
+		     ((eq link-p 35) " sparse entry")
+		     ((eq link-p 38) " volume header")
+		     ((eq link-p 55) "n extended pax header")
 		     (t "link"))))
     (if (zerop size) (error "This is a zero-length file"))
     descriptor))
