@@ -1,4 +1,4 @@
-2007-05-23  Nikolaj Schumacher <n_schumacher@web.de>  (tiny change)
+2007-05-23  Nikolaj Schumacher  <n_schumacher@web.de>  (tiny change)
 
 	* progmodes/compile.el (compilation-handle-exit):
 	`compilation-finish-function' may change the current buffer.
