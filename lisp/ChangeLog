@@ -1,3 +1,12 @@
+2007-05-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* tar-mode.el (tar-file-name-handler): New function.
+	(tar-extract): Bind file-name-handler-alist to it to force
+	find-buffer-file-type-coding-system behave as if the file being
+	extracted existed.  Use last-coding-system-used to force
+	buffer-file-coding-system to what decode-coding-region actually
+	used to decode the file.
+
 2007-05-23  Nikolaj Schumacher  <n_schumacher@web.de>  (tiny change)
 
 	* progmodes/compile.el (compilation-handle-exit):
