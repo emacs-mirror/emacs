@@ -1567,11 +1567,11 @@ void TraceStart(Trace trace, double mortality,
   AVER(0.0 <= mortality);
   AVER(mortality <= 1.0);
   AVER(finishingTime >= 0.0);
-  UNUSED(why);
+  UNUSED(why);  /* except perhaps in DIAG varieties */
 
   arena = trace->arena;
 
-  DIAG_PRINTF(( "\nMPS: TraceStart: %s\n", trace->startMessage.why ));
+  DIAG_PRINTF(( "\nMPS: TraceStart why: %d; arena->Chunks: %u\n", why, arena->chunkSerial ));
 
   message = TraceStartMessageMessage(&trace->startMessage);
   /* Attempt to re-use message.
