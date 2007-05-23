@@ -1,3 +1,8 @@
+2007-05-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* tar-mode.el (tar-header-block-summarize, tar-summarize-buffer)
+	(tar-get-descriptor): Handle type 55, an extended pax header.
+
 2007-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* autoinsert.el (auto-insert-alist): Quote elisp sample code so as not
