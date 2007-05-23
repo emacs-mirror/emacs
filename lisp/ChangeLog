@@ -16,7 +16,6 @@
 2007-05-22  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (auto-mode-alist): Open `.asd' files in lisp-mode.
-	Suggested by twb@cyber.com.au.
 
 2007-05-22  Katsumi Yamaoka  <yamaoka@jpl.org>  (tiny change)
 
