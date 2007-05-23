@@ -1,3 +1,8 @@
+2007-05-23  Nikolaj Schumacher  <n_schumacher@web.de>  (tiny change)
+
+	* progmodes/compile.el (compilation-handle-exit):
+	`compilation-finish-function' may change the current buffer.
+
 2007-05-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* help-fns.el (find-source-lisp-file): New function.
