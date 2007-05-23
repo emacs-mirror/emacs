@@ -1,3 +1,8 @@
+2007-05-23  Nikolaj Schumacher <n_schumacher@web.de>  (tiny change)
+
+	* progmodes/compile.el (compilation-handle-exit):
+	`compilation-finish-function' may change the current buffer.
+
 2007-05-22  Richard Stallman  <rms@gnu.org>
 
 	* files.el (set-auto-mode): Doc fix.
