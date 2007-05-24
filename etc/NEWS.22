@@ -5281,20 +5281,6 @@ formerly used for that purpose is now an alias for locale-coding-system.
 *** New function `redirect-debugging-output' can be used to redirect
 debugging output on the stderr file handle to a file.
 
-** New `function vector' type, including function currying
-The `function vector', or `funvec' type extends the old
-byte-compiled-function vector type to have other uses as well, and
-includes existing byte-compiled functions as a special case.  The kind
-of funvec is determined by the first element: a list is a byte-compiled
-function, and a non-nil atom is one of the new extended uses, currently
-`curry' for curried functions.  See the node `Funvec Type' in the Emacs
-Lisp Reference Manual for more information.
-
-*** New function curry allows constructing `curried functions'
-(see the node `Function Currying' in the Emacs Lisp Reference Manual).
-
-*** New functions funvec and funvecp allow primitive access to funvecs
-
 ** GC changes:
 
 *** New variable `gc-cons-percentage' automatically grows the GC cons threshold
