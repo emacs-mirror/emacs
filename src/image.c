@@ -1631,6 +1631,27 @@ make_image_cache ()
 }
 
 
+/* Search frame F for an images with spec SPEC, and free it.  */
+
+static void
+uncache_image (f, spec)
+     struct frame *f;
+     Lisp_Object spec;
+{
+  struct image_cache *c = FRAME_X_IMAGE_CACHE (f);
+  struct image *img = IMAGE_FROM_ID (f, lookup_image (f, spec));
+  unsigned hash = sxhash (spec, 0);
+  int i = hash % IMAGE_CACHE_BUCKETS_SIZE;
+
+  for (img = c->buckets[i]; img; img = img->next)
+    if (img->hash == hash && !NILP (Fequal (img->spec, spec)))
+      {
+	free_image (f, img);
+	break;
+      }
+}
+
+
 /* Free image cache of frame F.  Be aware that X frames share images
    caches.  */
 
@@ -1736,6 +1757,36 @@ FRAME t means clear the image caches of all frames.  */)
     }
   else
     clear_image_cache (check_x_frame (frame), 1);
+
+  return Qnil;
+}
+
+
+DEFUN ("image-refresh", Fimage_refresh, Simage_refresh,
+       1, 2, 0,
+       doc: /* Refresh the image with specification SPEC on frame FRAME.
+If SPEC specifies an image file, the displayed image is updated with
+the current contents of that file.
+FRAME nil or omitted means use the selected frame.
+FRAME t means refresh the image on all frames.  */)
+     (spec, frame)
+     Lisp_Object spec, frame;
+{
+  if (!valid_image_p (spec))
+    error ("Invalid image specification");
+
+  if (EQ (frame, Qt))
+    {
+      Lisp_Object tail;
+      FOR_EACH_FRAME (tail, frame)
+	{
+	  struct frame *f = XFRAME (frame);
+	  if (FRAME_WINDOW_P (f))
+	    uncache_image (f, spec);
+	}
+    }
+  else
+    uncache_image (check_x_frame (frame), spec);
 
   return Qnil;
 }
@@ -8662,6 +8713,7 @@ non-numeric, there is no explicit limit on the size of images.  */);
 
   defsubr (&Sinit_image_library);
   defsubr (&Sclear_image_cache);
+  defsubr (&Simage_refresh);
   defsubr (&Simage_size);
   defsubr (&Simage_mask_p);
   defsubr (&Simage_extension_data);

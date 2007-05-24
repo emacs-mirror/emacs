@@ -1,3 +1,26 @@
+2007-05-22  Katsumi Yamaoka  <yamaoka@jpl.org>  (tiny change)
+
+	* mail/mail-extr.el (mail-extract-address-components): Recognize
+	non-ASCII characters except for NBSP as words.
+
+2007-05-21  Trent Buck  <trentbuck@gmail.com>  (tiny change)
+
+	* net/rcirc.el (rcirc-fill-column): Allow `window-width'.
+	(rcirc-print): Handle `window-width'.
+	(rcirc-buffer-maximum-lines): Doc fix.
+
+2007-05-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-mode.el (image-toggle-display): Don't clear image cache.
+	Only use filename in image spec if the file is readable.  Call
+	image-refresh.
+
+	* image.el (image-type-from-file-name, image-type): Simplify.
+	(image-type-auto-detected-p): Don't scan auto-mode-alist.
+
+	* files.el (magic-mode-alist): Remove image-type-auto-detected-p.
+	(magic-fallback-mode-alist): Add image-type-auto-detected-p.
+
 2007-05-20  Nick Roberts  <nickrob@snap.net.nz>
 
 	* t-mouse.el (t-mouse-mode): Reset t-mouse-mode to nil if there
@@ -182,6 +205,9 @@
 	(magic-mode-regexp-match-limit): Doc fix.
 	(set-auto-mode): Handle file-start-mode-alist.
 	A little cleanup of structure.
+
+	* dabbrev.el (dabbrev-eliminate-newlines):
+	Renamed from dabbrev--eliminate-newlines.  All uses changed.
 
 2007-05-10  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
