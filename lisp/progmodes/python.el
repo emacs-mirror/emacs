@@ -96,7 +96,7 @@
 	     "import" "in" "is" "lambda" "not" "or" "pass" "print"
 	     "raise" "return" "try" "while" "yield"
 	     ;; Future keywords
-	     "as" "None"
+	     "as" "None" "with"
              ;; Not real keywords, but close enough to be fontified as such
              "self" "True" "False")
 	 symbol-end)
@@ -374,7 +374,7 @@ BOS non-nil means point is known to be at beginning of statement."
   (save-excursion
     (unless bos (python-beginning-of-statement))
     (looking-at (rx (and (or "if" "else" "elif" "while" "for" "def"
-			     "class" "try" "except" "finally")
+			     "class" "try" "except" "finally" "with")
 			 symbol-end)))))
 
 (defun python-close-block-statement-p (&optional bos)
@@ -461,7 +461,7 @@ Set `python-indent' locally to the value guessed."
 	      (let ((initial (current-indentation)))
 		(if (zerop (python-next-statement))
 		    (setq indent (- (current-indentation) initial)))
-		(if (and (>= indent 2) (<= indent 8)) ; sanity check
+		(if (and indent (>= indent 2) (<= indent 8)) ; sanity check
 		    (setq done t))))))
 	(when done
 	  (when (/= indent (default-value 'python-indent))
@@ -883,10 +883,13 @@ On a comment line, go to end of line."
 			   nil)
 			  ((eq 'string (syntax-ppss-context s))
 			   ;; Go to start of string and skip it.
-			   (goto-char (nth 8 s))
-			   (condition-case () ; beware invalid syntax
-			       (progn (forward-sexp) t)
-			     (error (end-of-line))))
+                           (let ((pos (point)))
+                             (goto-char (nth 8 s))
+                             (condition-case () ; beware invalid syntax
+                                 (progn (forward-sexp) t)
+                               ;; If there's a mismatched string, make sure
+                               ;; we still overall move *forward*.
+                               (error (goto-char pos) (end-of-line)))))
 			  ((python-skip-out t s))))
 	     (end-of-line))
 	   (unless comment
@@ -981,15 +984,11 @@ don't move and return nil.  Otherwise return t."
 		       (_ (if (python-comment-line-p)
 			      (python-skip-comments/blanks t)))
 		       (ci (current-indentation))
-		       (open (python-open-block-statement-p))
-		       opoint)
+		       (open (python-open-block-statement-p)))
 		  (if (and (zerop ci) (not open))
 		      (not (goto-char point))
 		    (catch 'done
-		      (setq opoint (point))
-		      (while (and (zerop (python-next-statement))
-		      		  (not (= opoint (point))))
-			(setq opoint (point))
+                      (while (zerop (python-next-statement))
 			(when (or (and open (<= (current-indentation) ci))
 				  (< (current-indentation) ci))
 			  (python-skip-comments/blanks t)
@@ -2240,7 +2239,7 @@ with skeleton expansions for compound statement templates.
        #'python-current-defun)
   (set (make-local-variable 'outline-regexp)
        (rx (* space) (or "class" "def" "elif" "else" "except" "finally"
-			 "for" "if" "try" "while")
+			 "for" "if" "try" "while" "with")
 	   symbol-end))
   (set (make-local-variable 'outline-heading-end-regexp) ":\\s-*\n")
   (set (make-local-variable 'outline-level) #'python-outline-level)

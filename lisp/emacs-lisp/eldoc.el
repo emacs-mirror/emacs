@@ -157,7 +157,7 @@ With prefix ARG, turn ElDoc mode on if and only if ARG is positive."
 
 ;;;###autoload
 (defun turn-on-eldoc-mode ()
-  "Unequivocally turn on eldoc-mode (see variable documentation)."
+  "Unequivocally turn on ElDoc mode (see command `eldoc-mode')."
   (interactive)
   (eldoc-mode 1))
 

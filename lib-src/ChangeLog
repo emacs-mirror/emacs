@@ -1,3 +1,11 @@
+2007-05-18  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* etags.c: Extern definitions of some more pointer functions for
+	standalone compilation, especially important for 64bit platforms.
+	(main, print_help): --members is now the default for etags.
+	(C_entries): Parse start of C comment as a space == end of token.
+	This is not necessary for C++ comment, already parsed as newline.
+
 2007-04-26  Glenn Morris  <rgm@gnu.org>
 
 	* makefile.w32-in (VERSION): Increase to 22.1.50.

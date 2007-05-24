@@ -2315,7 +2315,7 @@ Sensible values are `cvs-examine', `cvs-status' and `cvs-quickdir'."
 ;;;###autoload
 (defcustom cvs-dired-use-hook '(4)
   "Whether or not opening a CVS directory should run PCL-CVS.
-nil means never do it.
+A value of nil means never do it.
 ALWAYS means to always do it unless a prefix argument is given to the
   command that prompted the opening of the directory.
 Anything else means to do it only if the prefix arg is equal to this value."

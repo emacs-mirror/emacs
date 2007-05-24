@@ -1,4 +1,4 @@
-;;; gnus-diary.el --- Wrapper around the NNDiary Gnus backend
+;;; gnus-diary.el --- Wrapper around the NNDiary Gnus back end
 
 ;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005,
 ;;   2006, 2007  Free Software Foundation, Inc.
@@ -33,63 +33,8 @@
 ;; Description:
 ;; ===========
 
-;; Gnus-Diary is a wrapper around the NNDiary Gnus backend.  It is here to
-;; make your nndiary-user life easier in different ways.  So, you don't have
-;; to use it if you don't want to.  But, really, you should.
-
-;; Gnus-Diary offers the following features on top of the NNDiary backend:
-
-;;  - A nice summary line format:
-;;    Displaying diary messages in standard summary line format (usually
-;;    something like "<From Joe>: <Subject>") is pretty useless.  Most of the
-;;    time, you're the one who wrote the message, and you mostly want to see
-;;    the event's date.  Gnus-Diary offers you a nice summary line format
-;;    which will do this.  By default, a summary line will appear like this:
-;;
-;;     <Event Date>: <Subject> <Remaining time>
-;;
-;;   for example, here's how Joe's birthday is displayed in my
-;;   "nndiary:birhdays" summary buffer (the message is expirable, but will
-;;   never be deleted, as it specifies a regular event):
-;;
-;;   E  Sat, Sep 22 01, 12:00: Joe's birthday (in 6 months, 1 week)
-
-;;  - More article sorting functions:
-;;    Gnus-Diary adds a new sorting function called
-;;    `gnus-summary-sort-by-schedule'.  This function lets you organize your
-;;    diary summary buffers from the closest event to the farthest one.
-
-;;  - Automatic generation of diary group parameters:
-;;    When you create a new diary group, or visit one, Gnus-Diary checks your
-;;    group parameters, and if needed, sets the summary line format to the
-;;    diary-specific value, adds the diary-specific sorting functions, and
-;;    also adds the different `X-Diary-*' headers to the group's
-;;    posting-style.  It is then easier to send a diary message, because if
-;;    you use `C-u a' or `C-u m' on a diary group to prepare a message, these
-;;    headers will be inserted automatically (but not filled with proper
-;;    values yet).
-
-;;  - An interactive mail-to-diary convertion function:
-;;    The function `gnus-diary-check-message' ensures that the current message
-;;    contains all the required diary headers, and prompts you for values /
-;;    correction if needed.  This function is hooked in the nndiary backend so
-;;    that moving an article to an nndiary group will trigger it
-;;    automatically.  It is also bound to `C-c D c' in message-mode and
-;;    article-edit-mode in order to ease the process of converting a usual
-;;    mail to a diary one.  This function takes a prefix argument which will
-;;    force prompting of all diary headers, regardless of their
-;;    presence/validity.  That way, you can very easily reschedule a diary
-;;    message for instance.
-
-
-;; Usage:
-;; =====
-
-;; 0/ Don't use any `gnus-user-format-function-[d|D]'.  Gnus-Diary provides
-;;    both of these (sorry if you used them before).
-;; 1/ Add '(require 'gnus-diary) to your gnusrc file.
-;; 2/ Customize your gnus-diary options to suit your needs.
-
+;; gnus-diary is a utility toolkit used on top of the nndiary back end. It is
+;; now fully documented in the Gnus manual.
 
 
 ;; Bugs / Todo:
@@ -103,7 +48,7 @@
 (require 'gnus-art)
 
 (defgroup gnus-diary nil
-  "Utilities on top of the nndiary backend for Gnus."
+  "Utilities on top of the nndiary back end for Gnus."
   :version "22.1"
   :group 'gnus)
 
@@ -136,7 +81,7 @@ There are currently two built-in format functions:
   :group 'gnus-diary)
 
 (defconst gnus-diary-version nndiary-version
-  "Current Diary backend version.")
+  "Current Diary back end version.")
 
 
 ;; Compatibility functions ==================================================
@@ -334,7 +279,7 @@ Optional prefix (or REVERSE argument) means sort in reverse order."
     ))
 
 ;; Called when a group is subscribed. This is needed because groups created
-;; because of mail splitting are *not* created with the backend function.
+;; because of mail splitting are *not* created with the back end function.
 ;; Thus, `nndiary-request-create-group-hooks' is inoperative.
 (defun gnus-diary-maybe-update-group-parameters (group)
   (when (eq (car (gnus-find-method-for-group group)) 'nndiary)
@@ -452,7 +397,7 @@ If ARG (or prefix) is non-nil, force prompting for all fields."
 ;; The end ==================================================================
 
 (defun gnus-diary-version ()
-  "Current Diary backend version."
+  "Current Diary back end version."
   (interactive)
   (message "NNDiary version %s" nndiary-version))
 

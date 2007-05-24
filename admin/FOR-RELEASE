@@ -22,6 +22,10 @@ sk	Miroslav Vaško        No response
 
 Reminders sent out on 2006-06-08.
 
+** Remove temporary +++/--- lines in NEWS.
+
+** Try to reorder NEWS: most important things first, related items together.
+
 * WINDOWS SUPPORT BUGS.
 
 These don't need to be fixed before a release, but we call the
@@ -36,25 +40,24 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 * BUGS
 
-See the copy of this file on the EMACS_22_BASE branch.
-
-** rcyeske@gmail.com, April 22: Failure to build on OpenBSD macppc.
-OpenBSD compilation works on i386.
-http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00932.html
-
-** Spurious redisplay bug not fixed.
-http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00443.html
-http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00732.html
+NB the definitive copy of this file for Emacs 22 is on the
+EMACS_22_BASE branch.  Any entries below are automatically copied from
+that branch.  Do not make manual changes to this file on the trunk.
 
 ** michael.ewe@arcor.de, Apr 24: 22.0.98  not starting on Solaris 10/I386
 http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg01113.html
 
-** rgm@gnu.org, Apr 24: [Stephen.Berman@gmx.net: Re: redisplay]
-  Gives test case for problem that a dialog box blocks redisplay.
-http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00951.html
+* FIXES FOR EMACS 22.2
 
-** C mode fontification took 50 seconds
-http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg01460.html
+Here we list small fixes that arrived too late for Emacs 22.1, but
+that should be installed on the release branch after 22.1 is released.
+
+** Changes to six pbm icons in etc/images.
+Sync change from trunk 2007-05-19.
+
+** viper and tramp should not load cl at run time.
+
+** yamaoka@jpl.org's patch for mail-extract-address-components problem.
 
 * DOCUMENTATION
 

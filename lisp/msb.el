@@ -230,7 +230,7 @@ the test is surrounded by calls to `save-excursion' and
 `save-match-data'.
 
 The categories are sorted by MENU-SORT-KEY.  Smaller keys are on top.
-nil means don't display this menu.
+A value of nil means don't display this menu.
 
 MENU-TITLE is really a format.  If you add %d in it, the %d is
 replaced with the number of items in that menu.

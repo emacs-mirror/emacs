@@ -12777,7 +12777,7 @@ redisplay_window (window, just_this_one_p)
   int rc;
   int centering_position = -1;
   int last_line_misfit = 0;
-  int save_beg_unchanged, save_end_unchanged;
+  int beg_unchanged, end_unchanged;
 
   SET_TEXT_POS (lpoint, PT, PT_BYTE);
   opoint = lpoint;
@@ -12842,8 +12842,8 @@ redisplay_window (window, just_this_one_p)
   set_buffer_internal_1 (XBUFFER (w->buffer));
   SET_TEXT_POS (opoint, PT, PT_BYTE);
 
-  save_beg_unchanged = BEG_UNCHANGED;
-  save_end_unchanged = END_UNCHANGED;
+  beg_unchanged = BEG_UNCHANGED;
+  end_unchanged = END_UNCHANGED;
 
   current_matrix_up_to_date_p
     = (!NILP (w->window_end_valid)
@@ -12967,6 +12967,8 @@ redisplay_window (window, just_this_one_p)
       else if (IT_CHARPOS (it) > PT && CHARPOS (startp) <= PT)
 	w->force_start = Qt;
     }
+
+ force_start:
 
   /* Handle case where place to start displaying has been specified,
      unless the specified location is outside the accessible range.  */
@@ -13147,40 +13149,16 @@ redisplay_window (window, just_this_one_p)
 	 than a simple mouse-click.  */
       if (NILP (w->start_at_line_beg)
 	  && NILP (do_mouse_tracking)
-	  && CHARPOS (startp) > BEGV)
+      	  && CHARPOS (startp) > BEGV
+	  && CHARPOS (startp) > BEG + beg_unchanged
+	  && CHARPOS (startp) <= Z - end_unchanged)
 	{
-#if 0
-	  /* The following code tried to make BEG_UNCHANGED and
-	     END_UNCHANGED up to date (similar to try_window_id).
-	     Is it important to do so?
-
-	     The trouble is that it's a little too strict when it
-	     comes to overlays: modify_overlay can call
-	     BUF_COMPUTE_UNCHANGED, which alters BUF_BEG_UNCHANGED and
-	     BUF_END_UNCHANGED directly without moving the gap.
-
-	     This can result in spurious recentering when overlays are
-	     altered in the buffer.  So unless it's proven necessary,
-	     let's leave this commented out for now. -- cyd.  */
-	  if (MODIFF > SAVE_MODIFF
-	      || BEG_UNCHANGED + END_UNCHANGED > Z_BYTE)
-	    {
-	      if (GPT - BEG < BEG_UNCHANGED)
-		BEG_UNCHANGED = GPT - BEG;
-	      if (Z - GPT < END_UNCHANGED)
-		END_UNCHANGED = Z - GPT;
-	    }
-#endif
-
-	  if (CHARPOS (startp) > BEG + save_beg_unchanged
-	      && CHARPOS (startp) <= Z - save_end_unchanged)
-	    {
-	      /* There doesn't seems to be a simple way to find a new
-		 window start that is near the old window start, so
-		 we just recenter.  */
-	      goto recenter;
-	    }
-	}
+	  w->force_start = Qt;
+	  if (XMARKER (w->start)->buffer == current_buffer)
+	    compute_window_start_on_continuation_line (w);
+	  SET_TEXT_POS_FROM_MARKER (startp, w->start);
+	  goto force_start;
+      	}
 
 #if GLYPH_DEBUG
       debug_method_add (w, "same window start");

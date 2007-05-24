@@ -10,11 +10,11 @@
 ;; Maintainer: Kenichi Handa <handa@m17n.org> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Version: 6.7.3
+;; Version: 6.7.4
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
-(defconst ps-print-version "6.7.3"
-  "ps-print.el, v 6.7.3 <2007/02/06 vinicius>
+(defconst ps-print-version "6.7.4"
+  "ps-print.el, v 6.7.4 <2007/05/13 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -5817,21 +5817,27 @@ XSTART YSTART are the relative position for the first page in a sheet.")
   (ps-get-size (symbol-value font-sym) "font size" font-sym))
 
 
-(defun ps-rgb-color (color default)
-  (cond ((and color (listp color) (= (length color) 3)
-	      (let ((cl color)
-		    (ok t) e)
-		(while (and ok cl)
-		  (setq e  (car cl)
-			cl (cdr cl)
-			ok (and (floatp e) (<= 0.0 e) (<= e 1.0))))
-		ok))
-	 color)
-	((and (floatp color) (<= 0.0 color) (<= color 1.0))
-	 (list color color color))
-	((stringp color) (ps-color-scale color))
-	(t (list default default default))
-	))
+(defun ps-rgb-color (color unspecified default)
+  (cond
+   ;; (float float float) ==> (R G B)
+   ((and color (listp color) (= (length color) 3)
+	 (let ((cl color)
+	       (ok t) e)
+	   (while (and ok cl)
+	     (setq e  (car cl)
+		   cl (cdr cl)
+		   ok (and (floatp e) (<= 0.0 e) (<= e 1.0))))
+	   ok))
+    color)
+   ;; float ==> 0.0 = black .. 1.0 = white
+   ((and (floatp color) (<= 0.0 color) (<= color 1.0))
+    (list color color color))
+   ;; "colorName" but different from "unspecified-[bf]g"
+   ((and (stringp color) (not (string= color unspecified)))
+    (ps-color-scale color))
+   ;; ok, use the default
+   (t
+    (list default default default))))
 
 
 (defun ps-begin-job (genfunc)
@@ -5913,6 +5919,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 				 (ps-face-background-name 'default))
 				(t
 				 ps-default-bg))
+			       "unspecified-bg"
 			       1.0)
 	ps-default-foreground (ps-rgb-color
 			       (cond
@@ -5924,6 +5931,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 				 (ps-face-foreground-name 'default))
 				(t
 				 ps-default-fg))
+			       "unspecified-fg"
 			       0.0)
 	ps-default-color (and (eq ps-print-color-p t) ps-default-foreground)
 	ps-current-color ps-default-color

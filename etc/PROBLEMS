@@ -144,6 +144,20 @@ Reportedly this patch in X fixes the problem.
 	 }
 	 return ret;
 
+** Emacs crashes on startup after a glibc upgrade.
+
+This is caused by a binary incompatible change to the malloc
+implementation in glibc 2.5.90-22.  As a result, Emacs binaries built
+using prior versions of glibc crash when run under 2.5.90-22.
+
+This problem was first seen in pre-release versions of Fedora 7, and
+may be fixed in the final Fedora 7 release.  To stop the crash from
+happening, first try upgrading to the newest version of glibc; if this
+does not work, rebuild Emacs with the same version of glibc that you
+will run it under.  For details, see
+
+https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=239344
+
 * Crash bugs
 
 ** Emacs crashes in x-popup-dialog.
@@ -2438,6 +2452,27 @@ This results from a bug in a VERY old version of GNU Sed.  To solve
 the problem, install the current version of GNU Sed, then rerun
 Emacs's configure script.
 
+*** Compiling on GNU/Linux fails due to a missing left operand in gnu-linux.h.
+
+The error messages have the form:
+
+  ../src/s/gnu-linux.h:49:24: error: operator '>' has no left operand
+
+This error occurs because your system defines LINUX_VERSION_CODE in
+the standard header file linux/version.h but does not give it a value.
+As a workaround, you can edit the file src/s/gnu-linux.h to add the
+needed definition.  On the line after "#include <linux/version.h>",
+add a line as shown below:
+
+#include <linux/version.h>
+#define LINUX_VERSION_CODE 132626
+
+The number to use depends on your kernel version (the example shown is
+for kernel 2.6.18).  The number can be obtained by running the
+following command in the shell:
+
+uname -r | sed -e 's/\./ /g' -e 's/-.*//' | awk '{print $1*(2^16) + $2*(2^8) + $3}'
+
 *** Building a 32-bit executable on a 64-bit GNU/Linux architecture.
 
 First ensure that the necessary 32-bit system libraries and include
@@ -2772,6 +2807,15 @@ Remove the "#if 0" and "#endif" directives which surround this, save
 the file, and then reconfigure and rebuild Emacs.  The dumping process
 should now succeed.
 
+*** OpenBSD 4.0 macppc: Segfault during dumping.
+
+The build aborts with signal 11 when the command `./temacs --batch
+--load loadup bootstrap' tries to load files.el.  A workaround seems
+to be to reduce the level of compiler optimization used during the
+build (from -O2 to -O1).  It is possible this is an OpenBSD
+GCC problem specific to the macppc architecture, possibly only
+occurring with older versions of GCC (e.g. 3.3.5).
+
 ** Installation
 
 *** Installing Emacs gets an error running `install-info'.
@@ -2785,6 +2829,14 @@ For example, if you call configure with a directory-related option
 with spaces in the value, eg --enable-locallisppath='/path/with\ spaces'.
 Using directory paths with spaces is not supported at this time: you
 must re-configure without using spaces.
+
+*** Installing to a directory with non-ASCII characters in the name fails.
+
+Installation may fail, or the Emacs executable may not start
+correctly, if a directory name containing non-ASCII characters is used
+as a `configure' argument (e.g. `--prefix').  The problem can also
+occur if a non-ASCII directory is specified in the EMACSLOADPATH
+envvar.
 
 *** On Solaris, use GNU Make when installing an out-of-tree build
 

@@ -1276,19 +1276,19 @@ scan_words (from, count)
          position of it.  */
       while (1)
 	{
-	  int temp_byte;
-
 	  if (from == beg)
 	    break;
-	  temp_byte = dec_bytepos (from_byte);
+	  DEC_BOTH (from, from_byte);
 	  UPDATE_SYNTAX_TABLE_BACKWARD (from);
-	  ch0 = FETCH_CHAR (temp_byte);
+	  ch0 = FETCH_CHAR (from_byte);
 	  code = SYNTAX (ch0);
 	  if (!(words_include_escapes
 		&& (code == Sescape || code == Scharquote)))
 	    if (code != Sword || WORD_BOUNDARY_P (ch0, ch1))
-	      break;
-	  DEC_BOTH (from, from_byte);
+	      {
+		INC_BOTH (from, from_byte);
+		break;
+	      }
 	  ch1 = ch0;
 	}
       count++;
@@ -1669,10 +1669,10 @@ skip_chars (forwardp, syntaxp, string, lim, handle_iso_classes)
 		      p = GPT_ADDR;
 		      stop = endp;
 		    }
+		  UPDATE_SYNTAX_TABLE_BACKWARD (pos - 1);
 		  if (! fastmap[(int) SYNTAX (p[-1])])
 		    break;
 		  p--, pos--;
-		  UPDATE_SYNTAX_TABLE_BACKWARD (pos - 1);
 		}
 	  }
       }

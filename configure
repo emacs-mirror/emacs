@@ -683,7 +683,6 @@ LIBSOUND
 PKG_CONFIG
 ALSA_CFLAGS
 ALSA_LIBS
-
 CFLAGS_SOUND
 SET_MAKE
 XMKMF
@@ -1340,6 +1339,7 @@ Optional Packages:
   --with-tiff             use -ltiff for displaying TIFF images
   --with-gif              use -lungif for displaying GIF images
   --with-png              use -lpng for displaying PNG images
+  --with-gpm              use -lgpm for mouse support on a GNU/Linux console
   --with-gtk              use GTK (same as --with-x-toolkit=gtk)
   --with-pkg-config-prog  Path to pkg-config to use for finding GTK
   --without-toolkit-scroll-bars
@@ -1942,6 +1942,12 @@ if test "${with_png+set}" = set; then
 fi
 
 
+# Check whether --with-gpm was given.
+if test "${with_gpm+set}" = set; then
+  withval=$with_gpm;
+fi
+
+
 # Check whether --with-gtk was given.
 if test "${with_gtk+set}" = set; then
   withval=$with_gtk;
@@ -2170,7 +2176,7 @@ case $host_os in *\ *) host_os=`echo "$host_os" | sed 's/ /-/g'`;; esac
 
 
 canonical=$host
-configuration=${host_alias-$host}
+configuration=${host_alias-${build_alias-$host}}
 
 
 
@@ -6491,7 +6497,6 @@ echo "$as_me: error: pkg-config found alsa, but it does not compile.  See config
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_ALSA 1
 _ACEOF
-
 
   fi
 
@@ -13935,6 +13940,213 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
   fi
+fi
+
+### Use -lgpm if available, unless `--with-gpm=no'.
+HAVE_GPM=no
+if test "${with_gpm}" != "no"; then
+  if test "${ac_cv_header_gpm_h+set}" = set; then
+  { echo "$as_me:$LINENO: checking for gpm.h" >&5
+echo $ECHO_N "checking for gpm.h... $ECHO_C" >&6; }
+if test "${ac_cv_header_gpm_h+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_header_gpm_h" >&5
+echo "${ECHO_T}$ac_cv_header_gpm_h" >&6; }
+else
+  # Is the header compilable?
+{ echo "$as_me:$LINENO: checking gpm.h usability" >&5
+echo $ECHO_N "checking gpm.h usability... $ECHO_C" >&6; }
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+$ac_includes_default
+#include <gpm.h>
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+  ac_header_compiler=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_header_compiler=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+{ echo "$as_me:$LINENO: result: $ac_header_compiler" >&5
+echo "${ECHO_T}$ac_header_compiler" >&6; }
+
+# Is the header present?
+{ echo "$as_me:$LINENO: checking gpm.h presence" >&5
+echo $ECHO_N "checking gpm.h presence... $ECHO_C" >&6; }
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <gpm.h>
+_ACEOF
+if { (ac_try="$ac_cpp conftest.$ac_ext"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_cpp conftest.$ac_ext") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } >/dev/null && {
+	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       }; then
+  ac_header_preproc=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+  ac_header_preproc=no
+fi
+
+rm -f conftest.err conftest.$ac_ext
+{ echo "$as_me:$LINENO: result: $ac_header_preproc" >&5
+echo "${ECHO_T}$ac_header_preproc" >&6; }
+
+# So?  What about this header?
+case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+  yes:no: )
+    { echo "$as_me:$LINENO: WARNING: gpm.h: accepted by the compiler, rejected by the preprocessor!" >&5
+echo "$as_me: WARNING: gpm.h: accepted by the compiler, rejected by the preprocessor!" >&2;}
+    { echo "$as_me:$LINENO: WARNING: gpm.h: proceeding with the compiler's result" >&5
+echo "$as_me: WARNING: gpm.h: proceeding with the compiler's result" >&2;}
+    ac_header_preproc=yes
+    ;;
+  no:yes:* )
+    { echo "$as_me:$LINENO: WARNING: gpm.h: present but cannot be compiled" >&5
+echo "$as_me: WARNING: gpm.h: present but cannot be compiled" >&2;}
+    { echo "$as_me:$LINENO: WARNING: gpm.h:     check for missing prerequisite headers?" >&5
+echo "$as_me: WARNING: gpm.h:     check for missing prerequisite headers?" >&2;}
+    { echo "$as_me:$LINENO: WARNING: gpm.h: see the Autoconf documentation" >&5
+echo "$as_me: WARNING: gpm.h: see the Autoconf documentation" >&2;}
+    { echo "$as_me:$LINENO: WARNING: gpm.h:     section \"Present But Cannot Be Compiled\"" >&5
+echo "$as_me: WARNING: gpm.h:     section \"Present But Cannot Be Compiled\"" >&2;}
+    { echo "$as_me:$LINENO: WARNING: gpm.h: proceeding with the preprocessor's result" >&5
+echo "$as_me: WARNING: gpm.h: proceeding with the preprocessor's result" >&2;}
+    { echo "$as_me:$LINENO: WARNING: gpm.h: in the future, the compiler will take precedence" >&5
+echo "$as_me: WARNING: gpm.h: in the future, the compiler will take precedence" >&2;}
+
+    ;;
+esac
+{ echo "$as_me:$LINENO: checking for gpm.h" >&5
+echo $ECHO_N "checking for gpm.h... $ECHO_C" >&6; }
+if test "${ac_cv_header_gpm_h+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_cv_header_gpm_h=$ac_header_preproc
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_header_gpm_h" >&5
+echo "${ECHO_T}$ac_cv_header_gpm_h" >&6; }
+
+fi
+if test $ac_cv_header_gpm_h = yes; then
+  { echo "$as_me:$LINENO: checking for Gpm_Open in -lgpm" >&5
+echo $ECHO_N "checking for Gpm_Open in -lgpm... $ECHO_C" >&6; }
+if test "${ac_cv_lib_gpm_Gpm_Open+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lgpm  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char Gpm_Open ();
+int
+main ()
+{
+return Gpm_Open ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
+  ac_cv_lib_gpm_Gpm_Open=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_lib_gpm_Gpm_Open=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_lib_gpm_Gpm_Open" >&5
+echo "${ECHO_T}$ac_cv_lib_gpm_Gpm_Open" >&6; }
+if test $ac_cv_lib_gpm_Gpm_Open = yes; then
+  HAVE_GPM=yes
+fi
+
+fi
+
+
+fi
+
+if test "${HAVE_GPM}" = "yes"; then
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_GPM 1
+_ACEOF
+
 fi
 
 if test "${ac_cv_header_malloc_malloc_h+set}" = set; then
@@ -23107,6 +23319,7 @@ echo "  Does Emacs use -ljpeg?                                  ${HAVE_JPEG}"
 echo "  Does Emacs use -ltiff?                                  ${HAVE_TIFF}"
 echo "  Does Emacs use -lungif?                                 ${HAVE_GIF}"
 echo "  Does Emacs use -lpng?                                   ${HAVE_PNG}"
+echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use X toolkit scroll bars?                   ${USE_TOOLKIT_SCROLL_BARS}"
 echo
 

@@ -1895,7 +1895,8 @@ other command.  However, if @var{no-remap} is non-@code{nil}.
 @smallexample
 @group
 (where-is-internal 'describe-function)
-    @result{} ("\^hf" "\^hd")
+    @result{} ([8 102] [f1 102] [help 102]
+         [menu-bar help-menu describe describe-function])
 @end group
 @end smallexample
 @end defun

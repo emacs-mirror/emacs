@@ -6084,7 +6084,9 @@ x_calc_absolute_position (f)
 
   /* Find the offsets of the outside upper-left corner of
      the inner window, with respect to the outer window.  */
+  BLOCK_INPUT;
   mac_get_window_bounds (f, &inner, &outer);
+  UNBLOCK_INPUT;
 
   width_diff = (outer.right - outer.left) - (inner.right - inner.left);
   height_diff = (outer.bottom - outer.top) - (inner.bottom - inner.top);
@@ -9164,15 +9166,16 @@ mac_get_mouse_btn (EventRef ref)
 
 /* Normally, ConvertEventRefToEventRecord will correctly handle all
    events.  However the click of the mouse wheel is not converted to a
-   mouseDown or mouseUp event.  Likewise for dead key down events.
-   This calls ConvertEventRef, but then checks to see if it is a mouse
-   up/down, or a dead key down carbon event that has not been
+   mouseDown or mouseUp event.  Likewise for dead key events.  This
+   calls ConvertEventRefToEventRecord, but then checks to see if it is
+   a mouse up/down, or a dead key Carbon event that has not been
    converted, and if so, converts it by hand (to be picked up in the
    XTread_socket loop).  */
 static Boolean mac_convert_event_ref (EventRef eventRef, EventRecord *eventRec)
 {
   OSStatus err;
   Boolean result = ConvertEventRefToEventRecord (eventRef, eventRec);
+  EventKind action;
 
   if (result)
     return result;
@@ -9201,6 +9204,14 @@ static Boolean mac_convert_event_ref (EventRef eventRef, EventRecord *eventRec)
       switch (GetEventKind (eventRef))
 	{
 	case kEventRawKeyDown:
+	  action = keyDown;
+	  goto keystroke_common;
+	case kEventRawKeyRepeat:
+	  action = autoKey;
+	  goto keystroke_common;
+	case kEventRawKeyUp:
+	  action = keyUp;
+	keystroke_common:
 	  {
 	    unsigned char char_codes;
 	    UInt32 key_code;
@@ -9214,7 +9225,7 @@ static Boolean mac_convert_event_ref (EventRef eventRef, EventRecord *eventRec)
 				       NULL, &key_code);
 	    if (err == noErr)
 	      {
-		eventRec->what = keyDown;
+		eventRec->what = action;
 		eventRec->message = char_codes | ((key_code & 0xff) << 8);
 		result = 1;
 	      }
@@ -9882,6 +9893,7 @@ mac_handle_window_event (next_handler, event, data)
 	      width = bounds.right - bounds.left;
 	      height = bounds.bottom - bounds.top;
 	      mac_handle_size_change (f, width, height);
+	      mac_wakeup_from_rne ();
 	    }
 	}
 

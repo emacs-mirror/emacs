@@ -99,10 +99,6 @@ NOTE-END
 # endif
 #endif
 
-#if defined(__OpenBSD__)
-#define ORDINARY_LINK
-#endif
-
 #ifdef __ELF__
 #undef UNEXEC
 #define UNEXEC unexelf.o

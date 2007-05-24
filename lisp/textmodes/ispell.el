@@ -1669,7 +1669,7 @@ quit          spell session exited."
 			  ;; to avoid collapsing markers before and after
 			  ;; into a single place.
 			  (ispell-insert-word new-word)
-			  (delete-region (point) (+ (point) (- end start)))
+			  (delete-region (point) end)
 			  ;; It is meaningless to preserve the cursor position
 			  ;; inside a word that has changed.
 			  (setq cursor-location (point))
@@ -1751,8 +1751,8 @@ which is in `ispell-local-dictionary-alist' or `ispell-dictionary-alist'."
 	    ;; return dummy word when just flagging misspellings
 	    (list "" (point) (point))
 	  (error "No word found to check!"))
-      (setq start (match-beginning 0)
-	    end (point)
+      (setq start (copy-marker (match-beginning 0))
+	    end (point-marker)
 	    word (buffer-substring-no-properties start end))
       (list word start end))))
 
@@ -2483,7 +2483,12 @@ When asynchronous processes are not supported, `run' is always returned."
 (defun ispell-start-process ()
   "Start the ispell process, with support for no asynchronous processes.
 Keeps argument list for future ispell invocations for no async support."
-  (let (args)
+  (let ((default-directory default-directory)
+	args)
+    (unless (and (file-directory-p default-directory)
+		 (file-readable-p default-directory))
+      ;; Defend against bad `default-directory'.
+      (setq default-directory (expand-file-name "~/")))
     ;; Local dictionary becomes the global dictionary in use.
     (setq ispell-current-dictionary
 	  (or ispell-local-dictionary ispell-dictionary))

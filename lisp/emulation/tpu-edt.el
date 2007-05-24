@@ -584,9 +584,12 @@ GOLD is the ASCII 7-bit escape sequence <ESC>OP.")
   "Maps the SS3 function keys on the VT100 keyboard.
 SS3 is DEC's name for the sequence <ESC>O.")
 
-(defvar tpu-global-map nil "TPU-edt global keymap.")
-(defvar tpu-original-global-map global-map
-  "Original non-TPU global keymap.")
+(defvar tpu-global-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\e[" CSI-map)
+    (define-key map "\eO" SS3-map)
+    map)
+  "TPU-edt global keymap.")
 
 (and (not (boundp 'minibuffer-local-ns-map))
      (defvar minibuffer-local-ns-map (make-sparse-keymap)
@@ -2267,46 +2270,43 @@ Accepts a prefix argument for the number of tpu-pan-columns to scroll."
 ;;;
 ;;;  Functions to set, reset, and toggle the control key bindings
 ;;;
-(defun tpu-set-control-keys nil
+
+(defvar tpu-control-keys-map
+  (let ((map (make-sparse-keymap)))
+  (define-key map "\C-\\" 'quoted-insert)                ; ^\
+  (define-key map "\C-a" 'tpu-toggle-overwrite-mode)     ; ^A
+  (define-key map "\C-b" 'repeat-complex-command)        ; ^B
+  (define-key map "\C-e" 'tpu-current-end-of-line)       ; ^E
+  (define-key map "\C-h" 'tpu-next-beginning-of-line)    ; ^H (BS)
+  (define-key map "\C-j" 'tpu-delete-previous-word)      ; ^J (LF)
+  (define-key map "\C-k" 'tpu-define-macro-key)          ; ^K
+  (define-key map "\C-l" 'tpu-insert-formfeed)           ; ^L (FF)
+  (define-key map "\C-r" 'recenter)                      ; ^R
+  (define-key map "\C-u" 'tpu-delete-to-bol)             ; ^U
+  (define-key map "\C-v" 'tpu-quoted-insert)             ; ^V
+  (define-key map "\C-w" 'redraw-display)                ; ^W
+  (define-key map "\C-z" 'tpu-exit)                      ; ^Z
+  map))
+
+(defun tpu-set-control-keys ()
   "Set control keys to TPU style functions."
-  (define-key global-map "\C-\\" 'quoted-insert)                ; ^\
-  (define-key global-map "\C-a" 'tpu-toggle-overwrite-mode)     ; ^A
-  (define-key global-map "\C-b" 'repeat-complex-command)        ; ^B
-  (define-key global-map "\C-e" 'tpu-current-end-of-line)       ; ^E
-  (define-key global-map "\C-h" 'tpu-next-beginning-of-line)    ; ^H (BS)
-  (define-key global-map "\C-j" 'tpu-delete-previous-word)      ; ^J (LF)
-  (define-key global-map "\C-k" 'tpu-define-macro-key)          ; ^K
-  (define-key global-map "\C-l" 'tpu-insert-formfeed)           ; ^L (FF)
-  (define-key global-map "\C-r" 'recenter)                      ; ^R
-  (define-key global-map "\C-u" 'tpu-delete-to-bol)             ; ^U
-  (define-key global-map "\C-v" 'tpu-quoted-insert)             ; ^V
-  (define-key global-map "\C-w" 'redraw-display)                ; ^W
-  (define-key global-map "\C-z" 'tpu-exit)                      ; ^Z
-  (setq tpu-control-keys t))
+  (tpu-reset-control-keys 'tpu))
 
 (defun tpu-reset-control-keys (tpu-style)
   "Set control keys to TPU or Emacs style functions."
-  (let* ((tpu   (and tpu-style (not tpu-control-keys)))
-	 (emacs (and (not tpu-style) tpu-control-keys))
-	 (doit  (or tpu emacs)))
-    (cond (doit
-	   (if emacs (setq tpu-global-map (copy-keymap global-map)))
-	   (let ((map (if tpu tpu-global-map tpu-original-global-map)))
-
- 	     (define-key global-map "\C-\\" (lookup-key map "\C-\\"))   ; ^\
- 	     (define-key global-map "\C-a" (lookup-key map "\C-a"))     ; ^A
- 	     (define-key global-map "\C-b" (lookup-key map "\C-b"))     ; ^B
- 	     (define-key global-map "\C-e" (lookup-key map "\C-e"))     ; ^E
-	     (define-key global-map "\C-h" (lookup-key map "\C-h"))     ; ^H (BS)
-	     (define-key global-map "\C-j" (lookup-key map "\C-j"))     ; ^J (LF)
-	     (define-key global-map "\C-k" (lookup-key map "\C-k"))     ; ^K
-	     (define-key global-map "\C-l" (lookup-key map "\C-l"))     ; ^L (FF)
-	     (define-key global-map "\C-r" (lookup-key map "\C-r"))     ; ^R
-	     (define-key global-map "\C-u" (lookup-key map "\C-u"))     ; ^U
-	     (define-key global-map "\C-v" (lookup-key map "\C-v"))     ; ^V
-	     (define-key global-map "\C-w" (lookup-key map "\C-w"))     ; ^W
-	     (define-key global-map "\C-z" (lookup-key map "\C-z"))     ; ^Z
-	     (setq tpu-control-keys tpu-style))))))
+  (let ((parent (keymap-parent tpu-global-map)))
+    (if tpu-style
+        (if (eq parent tpu-control-keys-map)
+            nil                         ;All done already.
+          ;; Insert tpu-control-keys-map in the global map.
+          (set-keymap-parent tpu-control-keys-map parent)
+          (set-keymap-parent tpu-global-map tpu-control-keys-map))
+      (if (not (eq parent tpu-control-keys-map))
+          nil                         ;All done already.
+        ;; Remove tpu-control-keys-map from the global map.
+        (set-keymap-parent tpu-global-map (keymap-parent parent))
+        (set-keymap-parent tpu-control-keys-map nil)))
+    (setq tpu-control-keys tpu-style)))
 
 (defun tpu-toggle-control-keys nil
   "Toggles control key bindings between TPU-edt and Emacs."
@@ -2447,8 +2447,11 @@ If FILE is nil, try to load a default file.  The default file names are
 (defun tpu-edt-on ()
   "Turn on TPU/edt emulation."
   (interactive)
-  (and window-system (tpu-load-xkeys nil))
-  (tpu-arrow-history)
+  ;; First, activate tpu-global-map, while protecting the original keymap.
+  (set-keymap-parent tpu-global-map global-map)
+  (setq global-map tpu-global-map)
+  (use-global-map global-map)
+  ;; Then do the normal TPU setup.
   (transient-mark-mode t)
   (add-hook 'post-command-hook 'tpu-search-highlight)
   (tpu-set-mode-line t)
@@ -2457,10 +2460,14 @@ If FILE is nil, try to load a default file.  The default file names are
   (setq-default page-delimiter "\f")
   (setq-default truncate-lines t)
   (setq scroll-step 1)
-  (setq global-map (copy-keymap global-map))
   (tpu-set-control-keys)
-  (define-key global-map "\e[" CSI-map)
-  (define-key global-map "\eO" SS3-map)
+  (and window-system (tpu-load-xkeys nil))
+  (tpu-arrow-history)
+  ;; Then protect tpu-global-map from user modifications.
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map global-map)
+    (setq global-map map)
+    (use-global-map map))
   (setq tpu-edt-mode t))
 
 (defun tpu-edt-off ()
@@ -2472,8 +2479,13 @@ If FILE is nil, try to load a default file.  The default file names are
   (setq-default page-delimiter "^\f")
   (setq-default truncate-lines nil)
   (setq scroll-step 0)
-  (setq global-map tpu-original-global-map)
-  (use-global-map global-map)
+  ;; Remove tpu-global-map from the global map.
+  (let ((map global-map))
+    (while map
+      (let ((parent (keymap-parent map)))
+        (if (eq tpu-global-map parent)
+            (set-keymap-parent map (keymap-parent parent))
+          (setq map parent)))))
   (setq tpu-edt-mode nil))
 
 (provide 'tpu-edt)

@@ -406,8 +406,8 @@ where
   WHERE       is a text describing the key sequences to which DEF-FUN is
               bound now (or, if it is remapped, a key sequence
               for the function it is remapped to)
-  REMARK      is a list with info about rebinding. It has either of these
-              formats:
+  REMARK      is a list with info about rebinding.  It has either of
+              these formats:
 
                 \(TEXT cua-mode)
                 \(TEXT current-binding KEY-FUN DEF-FUN KEY WHERE)
@@ -912,14 +912,14 @@ See `get-lang-string' for more information.")
 
 (defun get-lang-string (lang stringid &optional no-eng-fallback)
   "Get a language specific string for Emacs.
-In certain places Emacs can replace a string showed to the user with a language specific string.
-This function retrieves such strings.
+In certain places Emacs can replace a string shown to the user with
+a language specific string.  This function retrieves such strings.
 
-LANG is the language specification. It should be one of those
+LANG is the language specification.  It should be one of those
 strings that can be returned by `read-language-name'.  STRINGID
 is a symbol that specifies the string to retrieve.
 
-If no string is found for STRINGID in the choosen language then
+If no string is found for STRINGID in the chosen language then
 the English string is returned unless NO-ENG-FALLBACK is non-nil.
 
 See `lang-strings' for more information.

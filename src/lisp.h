@@ -3124,6 +3124,8 @@ extern int wait_reading_process_output P_ ((int, int, int, int,
 					    int));
 extern void add_keyboard_wait_descriptor P_ ((int));
 extern void delete_keyboard_wait_descriptor P_ ((int));
+extern void add_gpm_wait_descriptor P_ ((int));
+extern void delete_gpm_wait_descriptor P_ ((int));
 extern void close_process_descs P_ ((void));
 extern void init_process P_ ((void));
 extern void syms_of_process P_ ((void));

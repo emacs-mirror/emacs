@@ -112,6 +112,12 @@ Miles Bader
 Thien-Thi Nguyen
 	VMS
 
+Juanma Barranquero
+       lisp/bs.el
+       lisp/server.el
+       lib-src/emacsclient.c
+       lib-src/grep-changelog
+
 ==============================================================================
 3.
 ==============================================================================
@@ -149,13 +155,16 @@ src/filelock.c
 src/filemode.c
 src/firstfile.c
 src/floatfns.c
+src/fringe.c
 src/fns.c
 src/fontset.c
 src/getloadavg.c
 src/gmalloc.c
+src/gtkutil.c
 src/hftctl.c
 src/indent.c
 src/insdel.c
+src/image.c
 src/lastfile.c
 src/lread.c
 src/m/

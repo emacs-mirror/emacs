@@ -157,11 +157,11 @@
     cygwin compiled gmake 3.77:          fails[1, 5]   fails[2, 5]
     cygwin compiled make 3.78.1:         fails[5]      fails[2, 5]
     cygwin compiled make 3.79.1:         fails[3, 5]   fails[2?, 5]
-    cygwin compiled make 3.80:           fails?[6]     fails?[6]
-    cygwin compiled make 3.81:           fails         fails?[6]
+    cygwin compiled make 3.80:           okay[6]       fails?[7]
+    cygwin compiled make 3.81:           fails         fails?[7]
     mingw32 compiled make 3.79.1:        okay          okay
-    mingw32 compiled make 3.80:          okay          okay[6]
-    mingw32 compiled make 3.81:          okay          okay[7]
+    mingw32 compiled make 3.80:          okay          okay[7]
+    mingw32 compiled make 3.81:          okay          okay[8]
 
   Notes:
 
@@ -173,8 +173,10 @@
     [4] may fail on Windows 9X and Windows ME; if so, install Bash.
     [5] fails when building leim due to the use of cygwin style paths.
         May work if building emacs without leim.
-    [6] not recommended; please report if you try this combination.
-    [7] tested only on Windows XP.
+    [6] need to uncomment 3 lines in nt/gmake.defs that invoke `cygpath'
+    	(look for "cygpath" near line 85 of gmake.defs).
+    [7] not recommended; please report if you try this combination.
+    [8] tested only on Windows XP.
 
   Other compilers may work, but specific reports from people that have
   tried suggest that the Intel C compiler (for example) may produce an
@@ -225,6 +227,9 @@
   To configure Emacs to build with GCC or MSVC, whichever is available,
   simply change to the `nt' subdirectory and run `configure.bat' with no
   options.  To see what options are available, run `configure --help'.
+  Do NOT use the --no-debug option to configure.bat unless you are
+  absolutely sure the produced binaries will never need to be run under
+  a debugger.
 
   N.B.  It is normal to see a few error messages output while configure
   is running, when gcc support is being tested.  These cannot be
@@ -269,8 +274,12 @@
   Binaries for the image libraries (among many others) can be found at
   the GnuWin32 project.  These are built with MinGW, but they can be
   used with both GCC/MinGW and MSVC builds of Emacs.  See the info on
-  http://ourcomments.org/Emacs/EmacsW32.html for more details about
-  installing image support libraries.
+  http://ourcomments.org/Emacs/w32-build-emacs.html, under "How to Get
+  Images Support", for more details about installing image support
+  libraries.  Note specifically that, due to some packaging snafus in
+  the GnuWin32-supplied image libraries, you will need to download
+  _source_ packages for some of the libraries in order to get the
+  header files necessary for building Emacs with image support.
 
 * Building
 
@@ -374,7 +383,8 @@
 
   You should be able to debug Emacs using the debugger that is
   appropriate for the compiler you used, namely DevStudio or Windbg if
-  compiled with MSVC, or GDB if compiled with GCC.
+  compiled with MSVC, or GDB if compiled with GCC.  (GDB for Windows
+  is available from the MinGW site, http://www.mingw.org/download.shtml.)
 
   When Emacs aborts due to a fatal internal error, Emacs on Windows
   pops up an Emacs Abort Dialog asking you whether you want to debug
