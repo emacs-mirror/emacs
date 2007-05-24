@@ -2,6 +2,10 @@
 
 	* keyboard.c (make_lispy_movement): Condition on HAVE_GPM too.
 
+2007-05-22  Richard Stallman  <rms@gnu.org>
+
+	* xterm.c (x_connection_closed): Remove NO_RETURN.
+
 2007-05-22  Martin Rudalics  <rudalics@gmx.at>
 
 	* syntax.c (scan_words): Fix arg to UPDATE_SYNTAX_TABLE_BACKWARD.

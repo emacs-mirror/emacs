@@ -747,8 +747,8 @@ appear on disk when you save the tar-file's buffer."
 			     ;; find-buffer-file-type-coding-system
 			     ;; (defined on dos-w32.el) to act as if
 			     ;; the file being extracted existed, so
-			     ;; that the file's contents' encoding is
-			     ;; auto-detected.
+			     ;; that the file's contents' encoding and
+			     ;; EOL format are auto-detected.
 			     (let ((file-name-handler-alist
 				    '(("" . tar-file-name-handler))))
 			       (car (find-operation-coding-system
