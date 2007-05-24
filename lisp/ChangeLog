@@ -1,3 +1,9 @@
+2007-05-24  Richard Stallman  <rms@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-correct-word-before-point):
+	Don't let opoint be nil.
+	(flyspell-emacs-popup): Explicit error if no dialogs.
+
 2007-05-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* tar-mode.el (tar-file-name-handler): New function.
