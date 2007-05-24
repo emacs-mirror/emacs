@@ -43,11 +43,162 @@
 ;;;###autoload (push '("\\.p[bpgn]m\\'" . image-mode) auto-mode-alist)
 ;;;###autoload (push '("\\.x[bp]m\\'"   . image-mode-maybe) auto-mode-alist)
 
+;;; Image scrolling functions
+
+(defun image-forward-hscroll (&optional n)
+  "Scroll image in current window to the left by N character widths.
+Stop if the right edge of the image is reached."
+  (interactive "p")
+  (cond ((= n 0) nil)
+	((< n 0)
+	 (set-window-hscroll (selected-window)
+			     (max 0 (+ (window-hscroll) n))))
+	(t
+	 (let* ((image (get-text-property 1 'display))
+		(edges (window-inside-edges))
+		(win-width (- (nth 2 edges) (nth 0 edges)))
+		(img-width (ceiling (car (image-size image)))))
+	   (set-window-hscroll (selected-window)
+			       (min (max 0 (- img-width win-width))
+				    (+ n (window-hscroll))))))))
+
+(defun image-backward-hscroll (&optional n)
+  "Scroll image in current window to the right by N character widths.
+Stop if the left edge of the image is reached."
+  (interactive "p")
+  (image-forward-hscroll (- n)))
+
+(defun image-next-line (&optional n)
+  "Scroll image in current window upward by N lines.
+Stop if the bottom edge of the image is reached."
+  (interactive "p")
+  (cond ((= n 0) nil)
+	((< n 0)
+	 (set-window-vscroll (selected-window)
+			     (max 0 (+ (window-vscroll) n))))
+	(t
+	 (let* ((image (get-text-property 1 'display))
+		(edges (window-inside-edges))
+		(win-height (- (nth 3 edges) (nth 1 edges)))
+		(img-height (ceiling (cdr (image-size image)))))
+	   (set-window-vscroll (selected-window)
+			       (min (max 0 (- img-height win-height))
+				    (+ n (window-vscroll))))))))
+
+(defun image-previous-line (&optional n)
+  "Scroll image in current window downward by N lines.
+Stop if the top edge of the image is reached."
+  (interactive "p")
+  (image-next-line (- n)))
+
+(defun image-scroll-up (&optional n)
+  "Scroll image in current window upward by N lines.
+Stop if the bottom edge of the image is reached.
+If ARG is omitted or nil, scroll upward by a near full screen.
+A near full screen is `next-screen-context-lines' less than a full screen.
+Negative ARG means scroll downward.
+If ARG is the atom `-', scroll downward by nearly full screen.
+When calling from a program, supply as argument a number, nil, or `-'."
+  (interactive "P")
+  (cond ((null n)
+	 (let* ((edges (window-inside-edges))
+		(win-height (- (nth 3 edges) (nth 1 edges))))
+	   (image-next-line
+	    (max 0 (- win-height next-screen-context-lines)))))
+	((eq n '-)
+	 (let* ((edges (window-inside-edges))
+		(win-height (- (nth 3 edges) (nth 1 edges))))
+	   (image-next-line
+	    (min 0 (- next-screen-context-lines win-height)))))
+	(t (image-next-line (prefix-numeric-value n)))))
+
+(defun image-scroll-down (&optional n)
+  "Scroll image in current window downward by N lines
+Stop if the top edge of the image is reached.
+If ARG is omitted or nil, scroll downward by a near full screen.
+A near full screen is `next-screen-context-lines' less than a full screen.
+Negative ARG means scroll upward.
+If ARG is the atom `-', scroll upward by nearly full screen.
+When calling from a program, supply as argument a number, nil, or `-'."
+  (interactive "P")
+  (cond ((null n)
+	 (let* ((edges (window-inside-edges))
+		(win-height (- (nth 3 edges) (nth 1 edges))))
+	   (image-next-line
+	    (min 0 (- next-screen-context-lines win-height)))))
+	((eq n '-)
+	 (let* ((edges (window-inside-edges))
+		(win-height (- (nth 3 edges) (nth 1 edges))))
+	   (image-next-line
+	    (max 0 (- win-height next-screen-context-lines)))))
+	(t (image-next-line (- (prefix-numeric-value n))))))
+
+(defun image-bol (arg)
+  "Scroll horizontally to the left edge of the image in the current window.
+With argument ARG not nil or 1, move forward ARG - 1 lines first,
+stopping if the top or bottom edge of the image is reached."
+  (interactive "p")
+  (and arg
+       (/= (setq arg (prefix-numeric-value arg)) 1)
+       (image-next-line (- arg 1)))
+  (set-window-hscroll (selected-window) 0))
+
+(defun image-eol (arg)
+  "Scroll horizontally to the right edge of the image in the current window.
+With argument ARG not nil or 1, move forward ARG - 1 lines first,
+stopping if the top or bottom edge of the image is reached."
+  (interactive "p")
+  (and arg
+       (/= (setq arg (prefix-numeric-value arg)) 1)
+       (image-next-line (- arg 1)))
+  (let* ((image (get-text-property 1 'display))
+	 (edges (window-inside-edges))
+	 (win-width (- (nth 2 edges) (nth 0 edges)))
+	 (img-width (ceiling (car (image-size image)))))
+    (set-window-hscroll (selected-window)
+			(max 0 (- img-width win-width)))))
+
+(defun image-bob ()
+  "Scroll to the top-left corner of the image in the current window."
+  (interactive)
+  (set-window-hscroll (selected-window) 0)
+  (set-window-vscroll (selected-window) 0))
+
+(defun image-eob ()
+  "Scroll to the bottom-right corner of the image in the current window."
+  (interactive)
+  (let* ((image (get-text-property 1 'display))
+	 (edges (window-inside-edges))
+	 (win-width (- (nth 2 edges) (nth 0 edges)))
+	 (img-width (ceiling (car (image-size image))))
+	 (win-height (- (nth 3 edges) (nth 1 edges)))
+	 (img-height (ceiling (cdr (image-size image)))))
+    (set-window-hscroll (selected-window) (max 0 (- img-width win-width)))
+    (set-window-vscroll (selected-window) (max 0 (- img-height win-height)))))
+
+;;; Image Mode setup
+
 (defvar image-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-c" 'image-toggle-display)
+    (define-key map [remap forward-char] 'image-forward-hscroll)
+    (define-key map [remap backward-char] 'image-backward-hscroll)
+    (define-key map [remap previous-line] 'image-previous-line)
+    (define-key map [remap next-line] 'image-next-line)
+    (define-key map [remap scroll-up] 'image-scroll-up)
+    (define-key map [remap scroll-down] 'image-scroll-down)
+    (define-key map [remap move-beginning-of-line] 'image-bol)
+    (define-key map [remap move-end-of-line] 'image-eol)
+    (define-key map [remap beginning-of-buffer] 'image-bob)
+    (define-key map [remap end-of-buffer] 'image-eob)
     map)
-  "Major mode keymap for Image mode.")
+  "Major mode keymap for viewing images in Image mode.")
+
+(defvar image-mode-text-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-c\C-c" 'image-toggle-display)
+    map)
+  "Major mode keymap for viewing images as text in Image mode.")
 
 ;;;###autoload
 (defun image-mode ()
@@ -58,13 +209,13 @@ to toggle between display as an image and display as text."
   (kill-all-local-variables)
   (setq mode-name "Image")
   (setq major-mode 'image-mode)
-  (use-local-map image-mode-map)
   (add-hook 'change-major-mode-hook 'image-toggle-display-text nil t)
   (if (and (display-images-p)
 	   (not (get-text-property (point-min) 'display)))
       (image-toggle-display)
     ;; Set next vars when image is already displayed but local
     ;; variables were cleared by kill-all-local-variables
+    (use-local-map image-mode-map)
     (setq cursor-type nil truncate-lines t))
   (run-mode-hooks 'image-mode-hook)
   (if (display-images-p)
@@ -140,6 +291,8 @@ and showing the image as an image."
 	(set-buffer-modified-p modified)
 	(kill-local-variable 'cursor-type)
 	(kill-local-variable 'truncate-lines)
+	(kill-local-variable 'auto-hscroll-mode)
+	(use-local-map image-mode-text-map)
 	(if (called-interactively-p)
 	    (message "Repeat this command to go back to displaying the image")))
     ;; Turn the image data into a real image, but only if the whole file
@@ -161,12 +314,9 @@ and showing the image as an image."
 	       nil t)))
 	   (props
 	    `(display ,image
-		      intangible ,image
-		      rear-nonsticky (display intangible)
-		      ;; This a cheap attempt to make the whole buffer
-		      ;; read-only when we're visiting the file (as
-		      ;; opposed to just inserting it).
-		      read-only t front-sticky (read-only)))
+	      intangible ,image
+	      rear-nonsticky (display intangible)
+	      read-only t front-sticky (read-only)))
 	   (inhibit-read-only t)
 	   (buffer-undo-list t)
 	   (modified (buffer-modified-p)))
@@ -179,6 +329,9 @@ and showing the image as an image."
       ;; This just makes the arrow displayed in the right fringe
       ;; area look correct when the image is wider than the window.
       (setq truncate-lines t)
+      ;; Allow navigation of large images
+      (set (make-local-variable 'auto-hscroll-mode) nil)
+      (use-local-map image-mode-map)
       (if (called-interactively-p)
 	  (message "Repeat this command to go back to displaying the file as text")))))
 
