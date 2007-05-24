@@ -1,3 +1,26 @@
+2007-05-22  Andreas Schwab  <schwab@suse.de>
+
+	* configure.in: Prefer build_alias over host when host_alias is
+	not set.
+	* configure: Regenerate.
+
+2007-05-20  Andreas Schwab  <schwab@suse.de>
+
+	* configure.in: Remove empty AC_SUBST.
+	* configure: Regenerate.
+
+2007-05-20  Nick Roberts  <nickrob@snap.net.nz>
+
+	* configure.in: Use HAVE_GPM instead of HAVE_GPM_H and implement
+	it like others.
+	* configure: Regenerate.
+
+2007-05-20  Nick Roberts  <nickrob@snap.net.nz>
+
+	* configure.in (AC_CHECK_HEADERS) Add gpm.h.
+	(AC_CHECK_LIB): Add -lgpm.
+	* configure: Regenerate.
+
 2007-05-03  Glenn Morris  <rgm@gnu.org>
 
 	* configure: Tweak message about the absence of shell functions.

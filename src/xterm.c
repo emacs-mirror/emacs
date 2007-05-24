@@ -371,7 +371,9 @@ static void x_check_expected_move P_ ((struct frame *, int, int));
 static void x_sync_with_move P_ ((struct frame *, int, int, int));
 static int handle_one_xevent P_ ((struct x_display_info *, XEvent *,
 				  int *, struct input_event *));
-static SIGTYPE x_connection_closed P_ ((Display *, char *)) NO_RETURN;
+/* Don't declare this NO_RETURN because we want no
+   interference with debugging failing X calls.  */
+static SIGTYPE x_connection_closed P_ ((Display *, char *));
 
 
 /* Flush display of frame F, or of all frames if F is null.  */

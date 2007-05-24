@@ -117,6 +117,8 @@ AC_ARG_WITH(freetype,
 [  --with-freetype         use -lfreetype for local fonts support])
 AC_ARG_WITH(xft,
 [  --with-xft              use -lXft for anti aliased fonts])
+AC_ARG_WITH(gpm,
+[  --with-gpm              use -lgpm for mouse support on a GNU/Linux console])
 AC_ARG_WITH(gtk,
 [  --with-gtk              use GTK (same as --with-x-toolkit=gtk)])
 AC_ARG_WITH(pkg-config-prog,
@@ -207,7 +209,7 @@ fi
 
 AC_CANONICAL_HOST
 canonical=$host
-configuration=${host_alias-$host}
+configuration=${host_alias-${build_alias-$host}}
 
 dnl This used to use changequote, but, apart from `changequote is evil'
 dnl per the autoconf manual, we can speed up autoconf somewhat by quoting
@@ -1629,7 +1631,6 @@ if test "${with_sound}" != "no"; then
     LIBSOUND="$LIBSOUND $ALSA_LIBS"
     CFLAGS_SOUND="$CFLAGS_SOUND $ALSA_CFLAGS"
     AC_DEFINE(HAVE_ALSA, 1, [Define to 1 if ALSA is available.])
-    AC_SUBST()
   fi
   AC_SUBST(CFLAGS_SOUND)
 fi
@@ -2572,6 +2573,17 @@ if test "${HAVE_X11}" = "yes"; then
   fi
 fi
 
+### Use -lgpm if available, unless `--with-gpm=no'.
+HAVE_GPM=no
+if test "${with_gpm}" != "no"; then
+  AC_CHECK_HEADER(gpm.h,
+    AC_CHECK_LIB(gpm, Gpm_Open, HAVE_GPM=yes))
+fi
+
+if test "${HAVE_GPM}" = "yes"; then
+  AC_DEFINE(HAVE_GPM, 1, [Define to 1 if you have the gpm library (-lgpm).])
+fi
+
 dnl Check for malloc/malloc.h on darwin
 AC_CHECK_HEADER(malloc/malloc.h, AC_DEFINE(HAVE_MALLOC_MALLOC_H, 1, [Define to 1 if you have the <malloc/malloc.h> header file.]))
 
@@ -3332,6 +3344,7 @@ echo "  Does Emacs use -ljpeg?                                  ${HAVE_JPEG}"
 echo "  Does Emacs use -ltiff?                                  ${HAVE_TIFF}"
 echo "  Does Emacs use -lungif?                                 ${HAVE_GIF}"
 echo "  Does Emacs use -lpng?                                   ${HAVE_PNG}"
+echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use X toolkit scroll bars?                   ${USE_TOOLKIT_SCROLL_BARS}"
 echo
 

@@ -64,13 +64,13 @@
 ;; is now controlled by the presence of a value in `view-return-to-alist'.
 (defcustom view-scroll-auto-exit nil
   "*Non-nil means scrolling past the end of buffer exits View mode.
-nil means attempting to scroll past the end of the buffer,
+A value of nil means attempting to scroll past the end of the buffer,
 only rings the bell and gives a message on how to leave."
   :type 'boolean
   :group 'view)
 
 (defcustom view-try-extend-at-buffer-end nil
- "*Non-nil means try load more of file when reaching end of buffer.
+ "*Non-nil means try to load more of file when reaching end of buffer.
 This variable is mainly intended to be temporarily set to non-nil by
 the F command in view-mode, but you can set it to t if you want the action
 for all scroll commands in view mode."
@@ -94,7 +94,7 @@ considered for restoring."
   :group 'view)
 
 (defcustom view-inhibit-help-message nil
-  "*Non-nil inhibits the help message showed upon entering View mode."
+  "*Non-nil inhibits the help message shown upon entering View mode."
   :type 'boolean
   :group 'view
   :version "22.1")

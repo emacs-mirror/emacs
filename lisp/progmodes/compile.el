@@ -1426,7 +1426,8 @@ Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
 			     process-status exit-status msg)
 		  (cons msg exit-status)))
 	(omax (point-max))
-	(opoint (point)))
+	(opoint (point))
+	(cur-buffer (current-buffer)))
     ;; Record where we put the message, so we can ignore it later on.
     (goto-char omax)
     (insert ?\n mode-name " " (car status))
@@ -1447,8 +1448,8 @@ Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
 	(goto-char opoint))
     (with-no-warnings
       (if compilation-finish-function
-	  (funcall compilation-finish-function (current-buffer) msg)))
-    (run-hook-with-args compilation-finish-functions (current-buffer) msg)))
+	  (funcall compilation-finish-function cur-buffer msg)))
+    (run-hook-with-args 'compilation-finish-functions cur-buffer msg)))
 
 ;; Called when compilation process changes state.
 (defun compilation-sentinel (proc msg)

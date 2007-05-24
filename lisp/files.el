@@ -1924,7 +1924,7 @@ since only a single case-insensitive search through the alist is made."
      ("\\.[sS]\\'" . asm-mode)
      ("\\.asm\\'" . asm-mode)
      ("[cC]hange\\.?[lL]og?\\'" . change-log-mode)
-     ("[cC]hange[lL]og[-.][0-9]+\\'" . change-log-mode)
+     ("[cC]hange[lL]og[-.][-0-9a-z]+\\'" . change-log-mode)
      ("\\$CHANGE_LOG\\$\\.TXT" . change-log-mode)
      ("\\.scm\\.[0-9]*\\'" . scheme-mode)
      ("\\.[ck]?sh\\'\\|\\.shar\\'\\|/\\.z?profile\\'" . sh-mode)
@@ -1985,6 +1985,8 @@ since only a single case-insensitive search through the alist is made."
      ("[:/]_emacs\\'" . emacs-lisp-mode)
      ("/crontab\\.X*[0-9]+\\'" . shell-script-mode)
      ("\\.ml\\'" . lisp-mode)
+     ;; Common Lisp ASDF package system.
+     ("\\.asd\\'" . lisp-mode)
      ("\\.\\(asn\\|mib\\|smi\\)\\'" . snmp-mode)
      ("\\.\\(as\\|mi\\|sm\\)2\\'" . snmpv2-mode)
      ("\\.\\(diffs?\\|patch\\|rej\\)\\'" . diff-mode)
@@ -2119,7 +2121,19 @@ is assumed to be interpreted by the interpreter matched by the second group
 of the regular expression.  The mode is then determined as the mode
 associated with that interpreter in `interpreter-mode-alist'.")
 
-(defvar magic-mode-alist
+(defvar magic-mode-alist nil
+  "Alist of buffer beginnings vs. corresponding major mode functions.
+Each element looks like (REGEXP . FUNCTION) or (MATCH-FUNCTION . FUNCTION).
+After visiting a file, if REGEXP matches the text at the beginning of the
+buffer, or calling MATCH-FUNCTION returns non-nil, `normal-mode' will
+call FUNCTION rather than allowing `auto-mode-alist' to decide the buffer's
+major mode.
+
+If FUNCTION is nil, then it is not called.  (That is a way of saying
+\"allow `auto-mode-alist' to decide for these files.\")")
+(put 'magic-mode-alist 'risky-local-variable t)
+
+(defvar magic-fallback-mode-alist
   `((image-type-auto-detected-p . image-mode)
     ;; The < comes before the groups (but the first) to reduce backtracking.
     ;; TODO: UTF-16 <?xml may be preceded by a BOM 0xff 0xfe or 0xfe 0xff.
@@ -2140,19 +2154,6 @@ associated with that interpreter in `interpreter-mode-alist'.")
      . sgml-mode)
     ("%!PS" . ps-mode)
     ("# xmcd " . conf-unix-mode))
-  "Alist of buffer beginnings vs. corresponding major mode functions.
-Each element looks like (REGEXP . FUNCTION) or (MATCH-FUNCTION . FUNCTION).
-After visiting a file, if REGEXP matches the text at the beginning of the
-buffer, or calling MATCH-FUNCTION returns non-nil, `normal-mode' will
-call FUNCTION rather than allowing `auto-mode-alist' to decide the buffer's
-major mode.
-
-If FUNCTION is nil, then it is not called.  (That is a way of saying
-\"allow `auto-mode-alist' to decide for these files.\")")
-(put 'magic-mode-alist 'risky-local-variable t)
-
-(defvar file-start-mode-alist
-  nil
   "Like `magic-mode-alist' but has lower priority than `auto-mode-alist'.
 Each element looks like (REGEXP . FUNCTION) or (MATCH-FUNCTION . FUNCTION).
 After visiting a file, if REGEXP matches the text at the beginning of the
@@ -2161,19 +2162,20 @@ call FUNCTION, provided that `magic-mode-alist' and `auto-mode-alist'
 have not specified a mode for this file.
 
 If FUNCTION is nil, then it is not called.")
-(put 'file-start-mode-alist 'risky-local-variable t)
+(put 'magic-fallback-mode-alist 'risky-local-variable t)
 
 (defvar magic-mode-regexp-match-limit 4000
   "Upper limit on `magic-mode-alist' regexp matches.
-Also applies to `file-start-mode-alist'.")
+Also applies to `magic-fallback-mode-alist'.")
 
 (defun set-auto-mode (&optional keep-mode-if-same)
   "Select major mode appropriate for current buffer.
 
-This checks for a -*- mode tag in the buffer's text, checks the
-interpreter that runs this file against `interpreter-mode-alist',
-compares the buffer beginning against `magic-mode-alist', or
-compares the filename against the entries in `auto-mode-alist'.
+To find the right major mode, this function checks for a -*- mode tag,
+checks if it uses an interpreter listed in `interpreter-mode-alist',
+matches the buffer beginning against `magic-mode-alist',
+compares the filename against the entries in `auto-mode-alist',
+then matches the buffer beginning against `magic-fallback-mode-alist'.
 
 It does not check for the `mode:' local variable in the
 Local Variables section of the file; for that, use `hack-local-variables'.
@@ -2182,7 +2184,8 @@ If `enable-local-variables' is nil, this function does not check for a
 -*- mode tag.
 
 If the optional argument KEEP-MODE-IF-SAME is non-nil, then we
-only set the major mode, if that would change it."
+set the major mode only if that would change it.  In other words
+we don't actually set it to the same mode the buffer already has."
   ;; Look for -*-MODENAME-*- or -*- ... mode: MODENAME; ... -*-
   (let (end done mode modes)
     ;; Find a -*- mode tag
@@ -2284,7 +2287,7 @@ only set the major mode, if that would change it."
 	      (when mode
 		(set-auto-mode-0 mode keep-mode-if-same)
 		(setq done t))))))
-    ;; Next try matching the buffer beginning against file-start-mode-alist.
+    ;; Next try matching the buffer beginning against magic-fallback-mode-alist.
     (unless done
       (if (setq done (save-excursion
 		       (goto-char (point-min))
@@ -2292,7 +2295,7 @@ only set the major mode, if that would change it."
 			 (narrow-to-region (point-min)
 					   (min (point-max)
 						(+ (point-min) magic-mode-regexp-match-limit)))
-			 (assoc-default nil file-start-mode-alist
+			 (assoc-default nil magic-fallback-mode-alist
 					(lambda (re dummy)
 					  (if (functionp re)
 					      (funcall re)

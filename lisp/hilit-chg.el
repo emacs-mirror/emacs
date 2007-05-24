@@ -790,17 +790,37 @@ this, eval the following in the buffer to be saved:
   (interactive)
   ;; If not in active mode do nothing but don't complain because this
   ;; may be bound to a hook.
-  (if (eq highlight-changes-mode 'active)
-      (let ((after-change-functions nil))
-	;; ensure hilit-chg-list is made and up to date
-	(hilit-chg-make-list)
-	;; remove our existing overlays
-	(hilit-chg-hide-changes)
-	;; for each change text property, increment it
-	(hilit-chg-map-changes 'hilit-chg-bump-change)
-	;; and display them all if active
-	(if (eq highlight-changes-mode 'active)
-	    (hilit-chg-display-changes))))
+  (when (eq highlight-changes-mode 'active)
+    (let ((modified (buffer-modified-p))
+	  (inhibit-modification-hooks t))
+      ;; The `modified' related code tries to combine two goals: (1) Record the
+      ;; rotation in `buffer-undo-list' and (2) avoid setting the modified flag
+      ;; of the current buffer due to the rotation.  We do this by inserting (in
+      ;; `buffer-undo-list') entries restoring buffer-modified-p to nil before
+      ;; and after the entry for the rotation.
+      (unless modified
+	;; Install the "before" entry.
+	(setq buffer-undo-list
+	      (cons '(apply restore-buffer-modified-p nil)
+		    buffer-undo-list)))
+      (unwind-protect
+	  (progn
+	    ;; ensure hilit-chg-list is made and up to date
+	    (hilit-chg-make-list)
+	    ;; remove our existing overlays
+	    (hilit-chg-hide-changes)
+	    ;; for each change text property, increment it
+	    (hilit-chg-map-changes 'hilit-chg-bump-change)
+	    ;; and display them all if active
+	    (if (eq highlight-changes-mode 'active)
+		(hilit-chg-display-changes)))
+	(unless modified
+	  ;; Install the "after" entry.
+	  (setq buffer-undo-list
+		(cons '(apply restore-buffer-modified-p nil)
+		      buffer-undo-list))
+
+	  (restore-buffer-modified-p nil)))))
   ;; This always returns nil so it is safe to use in write-file-functions
   nil)
 

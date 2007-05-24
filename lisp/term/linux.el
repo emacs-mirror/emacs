@@ -9,6 +9,9 @@
   ;; It can't really display underlines.
   (tty-no-underline)
 
+  (condition-case nil (t-mouse-mode 1)
+    (error nil))
+
   ;; Make Latin-1 input characters work, too.
   ;; Meta will continue to work, because the kernel
   ;; turns that into Escape.

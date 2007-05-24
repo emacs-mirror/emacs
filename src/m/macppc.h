@@ -66,10 +66,6 @@ Boston, MA 02110-1301, USA.  */
 
 /* #define NO_SOCK_SIGIO */
 
-#if defined(__OpenBSD__)
-#define ORDINARY_LINK
-#endif
-
 #define UNEXEC unexelf.o
 
 #define NO_TERMIO

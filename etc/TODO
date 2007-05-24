@@ -553,6 +553,10 @@ but which can also be used as a modifier).
 ** Cleanup all the GC_ mark bit stuff -- there is no longer any distinction
    since the mark bit is no longer stored in the Lisp_Object itself.
 
+** Refine the `predicate' arg to read-file-name.
+   Currently, it mixes up the predicate to apply when doing completion and the
+   one to use when terminating the selection.
+
 ** Merge ibuffer.el and buff-menu.el.
    More specifically do what's needed to make ibuffer.el the default,
    or just an extension of buff-menu.el.

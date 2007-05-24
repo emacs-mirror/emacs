@@ -40,25 +40,24 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 * BUGS
 
-See the copy of this file on the EMACS_22_BASE branch.
-
-** rcyeske@gmail.com, April 22: Failure to build on OpenBSD macppc.
-OpenBSD compilation works on i386.
-http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00932.html
-
-** Spurious redisplay bug not fixed.
-http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00443.html
-http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00732.html
+NB the definitive copy of this file for Emacs 22 is on the
+EMACS_22_BASE branch.  Any entries below are automatically copied from
+that branch.  Do not make manual changes to this file on the trunk.
 
 ** michael.ewe@arcor.de, Apr 24: 22.0.98  not starting on Solaris 10/I386
 http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg01113.html
 
-** Takaaki.Ota@am.sony.com, May 2: table cell menu does not appear at the menubar
-   Bug is intermittent.
+* FIXES FOR EMACS 22.2
 
-** Install vc-hooks.el patch from trunk.
+Here we list small fixes that arrived too late for Emacs 22.1, but
+that should be installed on the release branch after 22.1 is released.
 
-** Move some items from magic-mode-alist to file-start-mode-alist.
+** Changes to six pbm icons in etc/images.
+Sync change from trunk 2007-05-19.
+
+** viper and tramp should not load cl at run time.
+
+** yamaoka@jpl.org's patch for mail-extract-address-components problem.
 
 * DOCUMENTATION
 

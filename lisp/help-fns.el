@@ -232,6 +232,23 @@ face (according to `face-differs-from-default-p')."
 	      libname)
 	  file))))
 
+(defun find-source-lisp-file (file-name)
+  (let* ((elc-file (locate-file (concat file-name
+				 (if (string-match "\\.el" file-name)
+				     "c"
+				   ".elc"))
+				 load-path))
+	 (str (if (and elc-file (file-readable-p elc-file))
+		  (with-temp-buffer 
+		    (insert-file-contents-literally elc-file nil 0 256)
+		    (buffer-string))))
+	 (src-file (and str
+			(string-match ";;; from file \\(.*\\.el\\)" str)
+			(match-string 1 str))))
+    (if (and src-file (file-readable-p src-file))
+	src-file
+      file-name)))
+
 ;;;###autoload
 (defun describe-function-1 (function)
   (let* ((def (if (symbolp function)
@@ -309,6 +326,10 @@ face (according to `face-differs-from-default-p')."
       ;; but that's completely wrong when the user used load-file.
       (princ (if (eq file-name 'C-source) "C source code" file-name))
       (princ "'")
+      ;; See if lisp files are present where they where installed from.
+      (if (not (eq file-name 'C-source))
+	  (setq file-name (find-source-lisp-file file-name)))
+
       ;; Make a hyperlink to the library.
       (with-current-buffer standard-output
         (save-excursion
