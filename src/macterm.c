@@ -9893,6 +9893,7 @@ mac_handle_window_event (next_handler, event, data)
 	      width = bounds.right - bounds.left;
 	      height = bounds.bottom - bounds.top;
 	      mac_handle_size_change (f, width, height);
+	      mac_wakeup_from_rne ();
 	    }
 	}
 
