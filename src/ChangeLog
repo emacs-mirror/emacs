@@ -1,3 +1,8 @@
+2007-05-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c [USE_CARBON_EVENTS] (mac_handle_window_event):
+	Call mac_wakeup_from_rne on window size change.
+
 2007-05-22  Richard Stallman  <rms@gnu.org>
 
 	* xterm.c (x_connection_closed): Remove NO_RETURN.
