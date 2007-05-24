@@ -1,3 +1,8 @@
+2007-05-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/fill.el (canonically-space-region): Make the second arg
+	a marker if it's not already the case.
+
 2007-05-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* tar-mode.el (tar-header-block-summarize, tar-summarize-buffer)
