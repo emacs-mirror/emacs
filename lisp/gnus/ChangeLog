@@ -1,3 +1,19 @@
+2007-05-24  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-narrow-to-headers-or-head): Ignore
+	mail-header-separator in the body.
+
+2007-05-10  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-art.el (gnus-article-mode): Fix comment about displaying
+	non-break space.
+
+2007-05-09  Didier Verna  <didier@xemacs.org>
+
+	* gnus-diary.el, nndiary.el: Remove the description comment (nndiary is
+	now properly documented in the Gnus manual).  Fix the spelling of "Back
+	End".
+
 2007-04-19  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-mime-strip-charset-parameters): New function.

@@ -1296,7 +1296,9 @@ The following key bindings are currently in effect in the buffer:
 	(forward-line 1))
     (if (re-search-forward Man-heading-regexp (point-max) t n)
 	(beginning-of-line)
-      (goto-char (point-max)))))
+      (goto-char (point-max))
+      ;; The last line doesn't belong to any section.
+      (forward-line -1))))
 
 (defun Man-previous-section (n)
   "Move point to Nth previous section (default 1)."

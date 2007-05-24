@@ -1,0 +1,114 @@
+GNU Emacs NEWS -- history of user-visible changes.
+
+Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+          Free Software Foundation, Inc.
+See the end of the file for license conditions.
+
+Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
+If possible, use M-x report-emacs-bug.
+
+This file is about changes in the Emacs "unicode" branch.
+
+Fixme: The notes about Emacs 23 are quite incomplete.
+
+
+* Changes in Emacs 23.1
+
+** The Emacs character set is now a superset of Unicode.  
+(It has about four times the code space, which should be plenty).
+
+The internal encoding used for buffers and strings is now
+Unicode-based and called `utf-8-emacs'.  utf-8-emacs is backwards
+compatible with the UTF-8 encoding of Unicode.  The `emacs-mule'
+coding system can still read and write data in the old internal
+encoding.
+
+There are still charsets which contain disjoint sets of characters
+where this is necessary or useful, especially for various Far Eastern
+sets which are problematic with Unicode.
+
+Since the internal encoding is also used by default for byte-compiled
+files -- i.e. the normal coding system for byte-compiled Lisp files is
+now utf-8-Emacs -- Lisp containing non-ASCII characters which is
+compiled by Emacs 23 can't be read by earlier versions of Emacs.  Files
+compiled by Emacs 20, 21, or 22 are loaded correctly as emacs-mule
+(whether or not they contain multibyte characters), which makes loading
+them somewhat slower than Emacs 23-compiled files.  Thus it may be worth
+recompiling existing .elc files which don't need to be shared with older
+Emacsen.
+
+** There are assorted new coding systems/aliases -- see
+M-x list-coding-systems.
+
+** New charset implementation with many new charsets.
+See M-x list-character-sets.  New charsets can be defined conveniently
+as tables of unicodes.
+
+The dimension of a charset is now 0, 1, 2, or 3, and the size of each
+dimension is no longer limited to 94 or 96.
+
+Generic characters no longer exist.  
+
+A dynamic charset priority list is used to infer the charset of
+unicodes for display &c.
+
+** The following facilities are obsolete:
+
+Minor modes: unify-8859-on-encoding-mode, unify-8859-on-decoding-mode
+
+
+* Lisp changes in Emacs 23.1
+
+map-char-table's behaviour has changed.
+
+New functions: characterp, max-char, map-charset-chars,
+define-charset-alias, primary-charset, set-primary-charset,
+unify-charset, clear-charset-maps, charset-priority-list,
+set-charset-priority, define-coding-system,
+define-coding-system-alias, coding-system-aliases, langinfo,
+string-to-multibyte.
+
+Changed functions: copy-sequence, decode-char, encode-char,
+set-fontset-font, new-fontset, modify-syntax-entry, define-charset,
+modify-category-entry
+
+Obsoleted: char-bytes, chars-in-region, set-coding-priority,
+char-valid-p
+
+
+* Incompatible Lisp changes
+
+Deleted functions: make-coding-system, register-char-codings,
+coding-system-spec
+
+** The character codes for characters from the
+eight-bit-control/eight-bit-graphic charsets aren't now in the range
+128-255.
+
+
+
+----------------------------------------------------------------------
+This file is part of GNU Emacs.
+
+GNU Emacs is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2, or (at your option)
+any later version.
+
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Emacs; see the file COPYING.  If not, write to the
+Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.
+
+
+Local variables:
+mode: outline
+paragraph-separate: "[ 	]*$"
+end:
+
+arch-tag: e21801b9-0724-4cda-8c07-7d60bf3db3fd

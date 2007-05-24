@@ -1655,11 +1655,10 @@ they default to the whole buffer.
 @end defun
 
 @defun indent-to-left-margin
-This is the default @code{indent-line-function}, used in Fundamental
-mode, Text mode, etc.  Its effect is to adjust the indentation at the
-beginning of the current line to the value specified by the variable
-@code{left-margin}.  This may involve either inserting or deleting
-whitespace.
+This function adjusts the indentation at the beginning of the current
+line to the value specified by the variable @code{left-margin}.  (That
+may involve either inserting or deleting whitespace.)  This function
+is value of @code{indent-line-function} in Paragraph-Indent Text mode.
 @end defun
 
 @defvar left-margin
@@ -2199,9 +2198,7 @@ various commands) to indent the current line.  The command
 
 In Lisp mode, the value is the symbol @code{lisp-indent-line}; in C
 mode, @code{c-indent-line}; in Fortran mode, @code{fortran-indent-line}.
-In Fundamental mode, Text mode, and many other modes with no standard
-for indentation, the value is @code{indent-to-left-margin} (which is the
-default value).
+The default value is @code{indent-relative}.
 @end defvar
 
 @deffn Command indent-according-to-mode
@@ -2577,8 +2574,6 @@ along with the characters; this includes such diverse functions as
 * Format Properties::      Properties for representing formatting of text.
 * Sticky Properties::      How inserted text gets properties from
                              neighboring text.
-* Saving Properties::      Saving text properties in files, and reading
-                             them back.
 * Lazy Properties::        Computing text properties in a lazy fashion
                              only when text is examined.
 * Clickable Text::         Using text properties to make regions of text
@@ -3398,75 +3393,6 @@ adjoining text.
 
   @xref{Insertion}, for the ordinary insertion functions which do not
 inherit.
-
-@node Saving Properties
-@subsection Saving Text Properties in Files
-@cindex text properties in files
-@cindex saving text properties
-
-  You can save text properties in files (along with the text itself),
-and restore the same text properties when visiting or inserting the
-files, using these two hooks:
-
-@defvar write-region-annotate-functions
-This variable's value is a list of functions for @code{write-region} to
-run to encode text properties in some fashion as annotations to the text
-being written in the file.  @xref{Writing to Files}.
-
-Each function in the list is called with two arguments: the start and
-end of the region to be written.  These functions should not alter the
-contents of the buffer.  Instead, they should return lists indicating
-annotations to write in the file in addition to the text in the
-buffer.
-
-Each function should return a list of elements of the form
-@code{(@var{position} . @var{string})}, where @var{position} is an
-integer specifying the relative position within the text to be written,
-and @var{string} is the annotation to add there.
-
-Each list returned by one of these functions must be already sorted in
-increasing order by @var{position}.  If there is more than one function,
-@code{write-region} merges the lists destructively into one sorted list.
-
-When @code{write-region} actually writes the text from the buffer to the
-file, it intermixes the specified annotations at the corresponding
-positions.  All this takes place without modifying the buffer.
-@end defvar
-
-@defvar after-insert-file-functions
-This variable holds a list of functions for @code{insert-file-contents}
-to call after inserting a file's contents.  These functions should scan
-the inserted text for annotations, and convert them to the text
-properties they stand for.
-
-Each function receives one argument, the length of the inserted text;
-point indicates the start of that text.  The function should scan that
-text for annotations, delete them, and create the text properties that
-the annotations specify.  The function should return the updated length
-of the inserted text, as it stands after those changes.  The value
-returned by one function becomes the argument to the next function.
-
-These functions should always return with point at the beginning of
-the inserted text.
-
-The intended use of @code{after-insert-file-functions} is for converting
-some sort of textual annotations into actual text properties.  But other
-uses may be possible.
-@end defvar
-
-We invite users to write Lisp programs to store and retrieve text
-properties in files, using these hooks, and thus to experiment with
-various data formats and find good ones.  Eventually we hope users
-will produce good, general extensions we can install in Emacs.
-
-We suggest not trying to handle arbitrary Lisp objects as text property
-names or values---because a program that general is probably difficult
-to write, and slow.  Instead, choose a set of possible data types that
-are reasonably flexible, and not too hard to encode.
-
-@xref{Format Conversion}, for a related feature.
-
-@c ??? In next edition, merge this info Format Conversion.
 
 @node Lazy Properties
 @subsection Lazy Computation of Text Properties

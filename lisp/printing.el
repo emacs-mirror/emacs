@@ -1284,7 +1284,7 @@ If SUFFIX is non-nil, add that at the end of the file name."
 	(pr-menu-lock 'postscript-options 8 12 'toggle nil)))
 
   )
- (t					; emacs
+ (t					; GNU Emacs
   ;; Do nothing
   ))					; end cond featurep
 
@@ -1292,7 +1292,7 @@ If SUFFIX is non-nil, add that at the end of the file name."
 
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Emacs Definitions
+;; GNU Emacs Definitions
 
 
 (cond
@@ -1332,7 +1332,7 @@ If SUFFIX is non-nil, add that at the end of the file name."
   ;; third... time, but "print" item exists only in the first load.
   (eval-and-compile
     (cond
-     ;; Emacs 20
+     ;; GNU Emacs 20
      ((< emacs-major-version 21)
       (defun pr-global-menubar (pr-menu-spec)
 	(easy-menu-change '("tools") "Printing" pr-menu-spec pr-menu-print-item)
@@ -1342,12 +1342,12 @@ If SUFFIX is non-nil, add that at the end of the file name."
 		pr-menu-bar (vector 'menu-bar 'tools
 				    (pr-get-symbol "Printing")))))
       )
-     ;; Emacs 21 & 22
+     ;; GNU Emacs 21 & 22
      (t
       (defun pr-global-menubar (pr-menu-spec)
 	(let ((menu-file (if (= emacs-major-version 21)
-			     '("menu-bar" "files") ; Emacs 21
-			   '("menu-bar" "file")))) ; Emacs 22 or higher
+			     '("menu-bar" "files") ; GNU Emacs 21
+			   '("menu-bar" "file")))) ; GNU Emacs 22 or higher
 	  (cond
 	   (pr-menu-print-item
 	    (easy-menu-add-item global-map menu-file
@@ -4741,7 +4741,7 @@ Interactively, you have the following situations:
    C-u 2 M-x pr-ps-fast-fire RET
       The command prompts the user for a N-UP value, then for a current
       PostScript printer and, finally, for a file name.  Then change the active
-      printer to that choosen by user and saves the PostScript image in
+      printer to that chosen by user and saves the PostScript image in
       that file instead of sending it to the printer.
 
 
@@ -4760,7 +4760,7 @@ zero and the argument SELECT is treated as follows:
 
    If it's an integer greater or equal to 2, the command prompts the user for a
    current PostScript printer and for a file name.  Then change the active
-   printer to that choosen by user and saves the PostScript image in that file
+   printer to that chosen by user and saves the PostScript image in that file
    instead of sending it to the printer.
 
    If it's a symbol which it's defined in `pr-ps-printer-alist', it's the new

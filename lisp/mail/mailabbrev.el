@@ -494,6 +494,8 @@ of a mail alias.  The value is set up, buffer-local, when first needed.")
 	     ;; the usual syntax table.
 
 	     (or (and (integerp last-command-char)
+		      ;; Some commands such as M-> may want to expand first.
+		      (equal this-command 'self-insert)
 		      (or (eq (char-syntax last-command-char) ?_)
 			  ;; Don't expand on @.
 			  (memq last-command-char '(?@ ?. ?% ?! ?_ ?-))))

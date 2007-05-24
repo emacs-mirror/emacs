@@ -113,7 +113,7 @@ option will have no effect until you restart Emacs."
 	(t '(links uid gid)))		; GNU ls
   "*A list of optional file attributes that ls-lisp should display.
 It should contain none or more of the symbols: links, uid, gid.
-nil (or an empty list) means display none of them.
+A value of nil (or an empty list) means display none of them.
 
 Concepts come from UNIX: `links' means count of names associated with
 the file\; `uid' means user (owner) identifier\; `gid' means group

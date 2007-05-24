@@ -1,4 +1,4 @@
-;;; nndiary.el --- A diary backend for Gnus
+;;; nndiary.el --- A diary back end for Gnus
 
 ;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007 Free Software Foundation, Inc.
@@ -33,127 +33,8 @@
 ;; Description:
 ;; ===========
 
-;; This package implements NNDiary, a diary backend for Gnus.  NNDiary is a
-;; mail backend, pretty similar to nnml in its functionnning (it has all the
-;; features of nnml, actually), but in which messages are treated as event
-;; reminders.
-
-;; Here is a typical scenario:
-;; - You've got a date with Andy Mc Dowell or Bruce Willis (select according
-;;   to your sexual preference) in one month.  You don't want to forget it.
-;; - Send a (special) diary message to yourself (see below).
-;; - Forget all about it and keep on getting and reading new mail, as usual.
-;; - From time to time, as you type `g' in the group buffer and as the date
-;;   is getting closer, the message will pop up again, just like if it were
-;;   new and unread.
-;; - Read your "new" messages, this one included, and start dreaming of the
-;;   night you're gonna have.
-;; - Once the date is over (you actually fell asleep just after dinner), the
-;;   message will be automatically deleted if it is marked as expirable.
-
-;; Some more notes on the diary backend:
-;; - NNDiary is a *real* mail backend.  You *really* send real diary
-;;   messsages.  This means for instance that you can give appointements to
-;;   anybody (provided they use Gnus and NNDiary) by sending the diary message
-;;   to them as well.
-;; - However, since NNDiary also has a 'request-post method, you can also
-;;  `C-u a' instead of `C-u m' on a diary group and the message won't actually
-;;   be sent; just stored in the group.
-;; - The events you want to remember need not be punctual.  You can set up
-;;   reminders for regular dates (like once each week, each monday at 13:30
-;;   and so on).  Diary messages of this kind will never be deleted (unless
-;;   you do it explicitely).  But that, you guessed.
-
-
-;; Usage:
-;; =====
-
-;;  1/ NNDiary has two modes of operation: traditional (the default) and
-;;     autonomous.
-;;     a/ In traditional mode, NNDiary does not get new mail by itself.  You
-;;        have to move mails from your primary mail backend to nndiary
-;;        groups.
-;;     b/ In autonomous mode, NNDiary retrieves its own mail and handles it
-;;        independantly of your primary mail backend.  To use NNDiary in
-;;        autonomous mode, you have several things to do:
-;;           i/ Put (setq nndiary-get-new-mail t) in your gnusrc file.
-;;          ii/ Diary messages contain several `X-Diary-*' special headers.
-;;              You *must* arrange that these messages be split in a private
-;;              folder *before* Gnus treat them.  You need this because Gnus
-;;              is not able yet to manage multiple backends for mail
-;;              retrieval.  Getting them from a separate source will
-;;              compensate this misfeature to some extent, as we will see.
-;;              As an example, here's my procmailrc entry to store diary files
-;;              in ~/.nndiary (the default nndiary mail source file):
-;;
-;;              :0 HD :
-;;              * ^X-Diary
-;;              .nndiary
-;;         iii/ Customize the variables `nndiary-mail-sources' and
-;;              `nndiary-split-methods'.  These are replacements for the usual
-;;              mail sources and split methods which, and will be used in
-;;              autonomous mode.  `nndiary-mail-sources' defaults to
-;;              '(file :path "~/.nndiary").
-;;  2/ Install nndiary somewhere Emacs / Gnus can find it.  Normally, you
-;;     *don't* have to '(require 'nndiary) anywhere.  Gnus will do so when
-;;     appropriate as long as nndiary is somewhere in the load path.
-;;  3/ Now, customize the rest of nndiary.  In particular, you should
-;;     customize `nndiary-reminders', the list of times when you want to be
-;;     reminded of your appointements (e.g. 3 weeks before, then 2 days
-;;     before, then 1 hour before and that's it).
-;;  4/ You *must* use the group timestamp feature of Gnus.  This adds a
-;;     timestamp to each groups' parameters (please refer to the Gnus
-;;     documentation ("Group Timestamp" info node) to see how it's done.
-;;  5/ Once you have done this, you may add a permanent nndiary virtual server
-;;     (something like '(nndiary "")) to your `gnus-secondary-select-methods'.
-;;     Yes, this server will be able to retrieve mails and split them when you
-;;     type `g' in the group buffer, just as if it were your only mail backend.
-;;     This is the benefit of using a private folder.
-;;  6/ Hopefully, almost everything (see the TODO section below) will work as
-;;     expected when you restart Gnus: in the group buffer, `g' and `M-g' will
-;;     also get your new diary mails, `F' will find your new diary groups etc.
-
-
-;; How to send diary messages:
-;; ==========================
-
-;; There are 7 special headers in diary messages. These headers are of the
-;; form `X-Diary-<something>', the <something> being one of `Minute', `Hour',
-;; `Dom', `Month', `Year', `Time-Zone' and `Dow'. `Dom' means "Day of Month",
-;; and `dow' means "Day of Week".  These headers actually behave like crontab
-;; specifications and define the event date(s).
-
-;; For all headers but the `Time-Zone' one, a header value is either a
-;; star (meaning all possible values), or a list of fields (separated by a
-;; comma).  A field is either an integer, or a range.  A range is two integers
-;; separated by a dash.  Possible integer values are 0-59 for `Minute', 0-23
-;; for `Hour', 1-31 for `Dom', `1-12' for Month, above 1971 for `Year' and 0-6
-;; for `Dow' (0 = sunday).  As a special case, a star in either `Dom' or `Dow'
-;; doesn't mean "all possible values", but "use only the other field".  Note
-;; that if both are star'ed, the use of either one gives the same result :-),
-
-;; The `Time-Zone' header is special in that it can have only one value (you
-;; bet ;-).
-;; A star doesn't mean "all possible values" (because it has no sense), but
-;; "the current local time zone".
-
-;; As an example, here's how you would say "Each Monday and each 1st of month,
-;; at 12:00, 20:00, 21:00, 22:00, 23:00 and 24:00, from 1999 to 2010" (I let
-;; you find what to do then):
-;;
-;;   X-Diary-Minute: 0
-;;   X-Diary-Hour: 12, 20-24
-;;   X-Diary-Dom: 1
-;;   X-Diary-Month: *
-;;   X-Diary-Year: 1999-2010
-;;   X-Diary-Dow: 1
-;;   X-Diary-Time-Zone: *
-;;
-;;
-;; Sending a diary message is not different from sending any other kind of
-;; mail, except that such messages are identified by the presence of these
-;; special headers.
-
+;; nndiary is a mail back end designed to handle mails as diary event
+;; reminders. It is now fully documented in the Gnus manual.
 
 
 ;; Bugs / Todo:
@@ -161,43 +42,43 @@
 
 ;; * Respooling doesn't work because contrary to the request-scan function,
 ;;   Gnus won't allow me to override the split methods when calling the
-;;   respooling backend functions.
+;;   respooling back end functions.
 ;; * There's a bug in the time zone mechanism with variable TZ locations.
 ;; * We could allow a keyword like `ask' in X-Diary-* headers, that would mean
 ;;   "ask for value upon reception of the message".
 ;; * We could add an optional header X-Diary-Reminders to specify a special
 ;;   reminders value for this message. Suggested by Jody Klymak.
 ;; * We should check messages validity in other circumstances than just
-;;   moving an article from sonwhere else (request-accept). For instance, when
-;;   editing / saving and so on.
+;;   moving an article from somewhere else (request-accept). For instance,
+;;   when editing / saving and so on.
 
 
 ;; Remarks:
 ;; =======
 
-;; * nnoo.
-;;   NNDiary is very similar to nnml.  This makes the idea of using nnoo (to
-;;   derive nndiary from nnml) natural.  However, my experience with nnoo is
-;;   that for reasonably complex backends like this one, noo is a burden
-;;   rather than an help.  It's tricky to use, not everything can be
-;;   inherited, what can be inherited and when is not very clear, and you've
-;;   got to be very careful because a little mistake can fuck up your your
-;;   other backends, especially because their variables will be use instead of
-;;   your real ones.  Finally, I found it easier to just clone the needed
-;;   parts of nnml, and tracking nnml updates is not a big deal.
+;; * nnoo. NNDiary is very similar to nnml. This makes the idea of using nnoo
+;;   (to derive nndiary from nnml) natural. However, my experience with nnoo
+;;   is that for reasonably complex back ends like this one, noo is a burden
+;;   rather than an help. It's tricky to use, not everything can be inherited,
+;;   what can be inherited and when is not very clear, and you've got to be
+;;   very careful because a little mistake can fuck up your other back ends,
+;;   especially because their variables will be use instead of your real ones.
+;;   Finally, I found it easier to just clone the needed parts of nnml, and
+;;   tracking nnml updates is not a big deal.
 
 ;;   IMHO, nnoo is actually badly designed.  A much simpler, and yet more
 ;;   powerful one would be to make *real* functions and variables for a new
-;;   backend based on another. Lisp is a reflexive language so that's a very
+;;   back end based on another. Lisp is a reflexive language so that's a very
 ;;   easy thing to do: inspect the function's form, replace occurences of
 ;;   <nnfrom> (even in strings) with <nnto>, and you're done.
 
 ;; * nndiary-get-new-mail, nndiary-mail-source and nndiary-split-methods:
 ;;   NNDiary has some experimental parts, in the sense Gnus normally uses only
-;;   one mail backends for mail retreival and splitting.  This backend is also
-;;   an attempt to make it behave differently.  For Gnus developpers: as you
-;;   can see if you snarf into the code, that was not a very difficult thing
-;;   to do.  Something should be done about the respooling breakage though.
+;;   one mail back ends for mail retreival and splitting. This back end is
+;;   also an attempt to make it behave differently. For Gnus developpers: as
+;;   you can see if you snarf into the code, that was not a very difficult
+;;   thing to do. Something should be done about the respooling breakage
+;;   though.
 
 
 ;;; Code:
@@ -220,10 +101,10 @@
       (apply #'error args))))
 
 
-;; Backend behavior customization ===========================================
+;; Back End behavior customization ===========================================
 
 (defgroup nndiary nil
-  "The Gnus Diary backend."
+  "The Gnus Diary back end."
   :version "22.1"
   :group 'gnus-diary)
 
@@ -326,27 +207,27 @@ The hooks will be called with the article in the current buffer."
   :type 'boolean)
 
 
-;; Backend declaration ======================================================
+;; Back End declaration ======================================================
 
 ;; Well, most of this is nnml clonage.
 
 (nnoo-declare nndiary)
 
 (defvoo nndiary-directory (nnheader-concat gnus-directory "diary/")
-  "Spool directory for the nndiary backend.")
+  "Spool directory for the nndiary back end.")
 
 (defvoo nndiary-active-file
     (expand-file-name "active" nndiary-directory)
-  "Active file for the nndiary backend.")
+  "Active file for the nndiary back end.")
 
 (defvoo nndiary-newsgroups-file
     (expand-file-name "newsgroups" nndiary-directory)
-  "Newsgroups description file for the nndiary backend.")
+  "Newsgroups description file for the nndiary back end.")
 
 (defvoo nndiary-get-new-mail nil
   "Whether nndiary gets new mail and split it.
-Contrary to traditional mail backends, this variable can be set to t
-even if your primary mail backend also retreives mail. In such a case,
+Contrary to traditional mail back ends, this variable can be set to t
+even if your primary mail back end also retreives mail. In such a case,
 NDiary uses its own mail-sources and split-methods.")
 
 (defvoo nndiary-nov-is-evil nil
@@ -367,10 +248,10 @@ all.  This may very well take some time.")
 
 
 (defconst nndiary-version "0.2-b14"
-  "Current Diary backend version.")
+  "Current Diary back end version.")
 
 (defun nndiary-version ()
-  "Current Diary backend version."
+  "Current Diary back end version."
   (interactive)
   (message "NNDiary version %s" nndiary-version))
 
@@ -631,7 +512,7 @@ all.  This may very well take some time.")
 
 (deffoo nndiary-request-scan (&optional group server)
   ;; Use our own mail sources and split methods while Gnus doesn't let us have
-  ;; multiple backends for retrieving mail.
+  ;; multiple back ends for retrieving mail.
   (let ((mail-sources nndiary-mail-sources)
 	(nnmail-split-methods nndiary-split-methods))
     (setq nndiary-article-file-alist nil)

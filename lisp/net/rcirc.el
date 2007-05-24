@@ -95,9 +95,11 @@ Each element looks like (SERVER-REGEXP . CHANNEL-LIST)."
 
 (defcustom rcirc-fill-column nil
   "*Column beyond which automatic line-wrapping should happen.
-If nil, use value of `fill-column'.  If 'frame-width, use the
-maximum frame width."
+If nil, use value of `fill-column'.
+If `window-width', use the window's width as maximum.
+If `frame-width', use the frame's width as maximum."
   :type '(choice (const :tag "Value of `fill-column'")
+		 (const :tag "Full window width" window-width)
 		 (const :tag "Full frame width" frame-width)
 		 (integer :tag "Number of columns"))
   :group 'rcirc)
@@ -143,8 +145,7 @@ number.  If zero or nil, no truncating is done."
   :group 'rcirc)
 
 (defcustom rcirc-scroll-show-maximum-output t
-  "*If non-nil, scroll buffer to keep the point at the bottom of
-the window."
+  "*If non-nil, scroll buffer to keep the point at the bottom of the window."
   :type 'boolean
   :group 'rcirc)
 
@@ -312,7 +313,7 @@ and the cdr part is used for encoding."
   "List of urls seen in the current buffer.")
 (put 'rcirc-urls 'permanent-local t)
 
-(defvar rcirc-timeout-seconds 60
+(defvar rcirc-timeout-seconds 600
   "Kill connection after this many seconds if there is no activity.")
 
 (defconst rcirc-id-string (concat "rcirc on GNU Emacs " emacs-version))
@@ -1245,6 +1246,8 @@ record activity."
 			   (make-string (- text-start fill-start) ?\s)))
 		      (fill-column (cond ((eq rcirc-fill-column 'frame-width)
 					  (1- (frame-width)))
+					 ((eq rcirc-fill-column 'window-width)
+					  (1- (window-width)))
 					 (rcirc-fill-column
 					  rcirc-fill-column)
 					 (t fill-column))))

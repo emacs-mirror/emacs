@@ -288,7 +288,7 @@ It doesn't contain directory names or file name extensions added by Info.")
 
 (defvar Info-current-subfile nil
   "Info subfile that is actually in the *info* buffer now.
-nil if current Info file is not split into subfiles.")
+It is nil if current Info file is not split into subfiles.")
 
 (defvar Info-current-node nil
   "Name of node that Info is now looking at, or nil.")
@@ -4075,7 +4075,8 @@ the variable `Info-file-list-for-emacs'."
       ;; Fontify http and ftp references
       (goto-char (point-min))
       (when not-fontified-p
-        (while (re-search-forward "[hf]t?tp://[^ \t\n\"`({<>})']+" nil t)
+        (while (re-search-forward "\\(https?\\|ftp\\)://[^ \t\n\"`({<>})']+"
+                                  nil t)
           (add-text-properties (match-beginning 0) (match-end 0)
                                '(font-lock-face info-xref
                                                 mouse-face highlight

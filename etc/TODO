@@ -553,6 +553,10 @@ but which can also be used as a modifier).
 ** Cleanup all the GC_ mark bit stuff -- there is no longer any distinction
    since the mark bit is no longer stored in the Lisp_Object itself.
 
+** Refine the `predicate' arg to read-file-name.
+   Currently, it mixes up the predicate to apply when doing completion and the
+   one to use when terminating the selection.
+
 ** Merge ibuffer.el and buff-menu.el.
    More specifically do what's needed to make ibuffer.el the default,
    or just an extension of buff-menu.el.
@@ -593,6 +597,33 @@ but which can also be used as a modifier).
    class to the standard "link" face.
 
 * Other known bugs:
+
+** The \\{...} keymap dump output does not correctly remove shadowed entries:
+From: "Drew Adams" <drew.adams@oracle.com>
+
+(define-key minibuffer-local-map [(control ?=)] 'foo)
+(define-key minibuffer-local-completion-map [(control ?=)] 'foo)
+
+(defun toto () "\\{minibuffer-local-completion-map}"  4)
+
+C-h f toto shows a duplicate entry for C-=:
+
+toto is a Lisp function.
+(toto)
+
+key             binding
+- ---             -------
+
+C-g		abort-recursive-edit
+TAB		minibuffer-complete
+C-j		exit-minibuffer
+RET		exit-minibuffer
+ESC		Prefix Command
+SPC		minibuffer-complete-word
+?		minibuffer-completion-help
+C-=		foo
+C-=		foo
+...
 
 ** a two-char comment-starter whose two chars are symbol constituents will
 not be noticed if it appears within a word.

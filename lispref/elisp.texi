@@ -7,7 +7,7 @@
 @c Version of the manual and of Emacs.
 @c Please remember to update the edition number in README as well.
 @set VERSION  2.9
-@set EMACSVER 22.1.50
+@set EMACSVER 22.0.990
 
 @dircategory Emacs
 @direntry
@@ -24,14 +24,18 @@
 @end ifset
 
 @c per rms and peterb, use 10pt fonts for the main text, mostly to
-@c save on paper cost.  Also, do not declare @setchapternewpage odd,
-@c for the same reason. Do this inside @tex for now, so the
-@c last-released makeinfo does not complain.
+@c save on paper cost.  
+@c Do this inside @tex for now, so current makeinfo does not complain.
 @tex
 @ifset smallbook
 @fonttextsize 10
+@set EMACSVER 22
+\global\let\urlcolor=\Black % don't print links in grayscale
+\global\let\linkcolor=\Black
 @end ifset
 \global\hbadness=6666 % don't worry about not-too-underfull boxes
+\global\let\urlcolor=\Black % don't print links in grayscale
+\global\let\linkcolor=\Black
 @end tex
 
 @c Combine indices.
@@ -1062,8 +1066,6 @@ Text Properties
 * Format Properties::       Properties for representing formatting of text.
 * Sticky Properties::       How inserted text gets properties from
                               neighboring text.
-* Saving Properties::       Saving text properties in files, and reading
-                              them back.
 * Lazy Properties::         Computing text properties in a lazy fashion
                               only when text is examined.
 * Clickable Text::          Using text properties to make regions of text

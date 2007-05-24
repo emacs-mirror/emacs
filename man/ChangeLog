@@ -1,3 +1,44 @@
+2007-05-09  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Running NNDiary): Use ~/.gnus.el instead of gnusrc.
+
+2007-05-09  Didier Verna  <didier@xemacs.org>
+
+	* gnus.texi (Email Based Diary): New. Proper documentation for the
+	nndiary back end and the gnus-diary library.
+
+2007-05-07  Karl Berry  <karl@gnu.org>
+
+	* emacs.texi (EMACSVER): back to 22.
+
+2007-05-06  Richard Stallman  <rms@gnu.org>
+
+	* maintaining.texi (Create Tags Table): Clean up previous change.
+
+2007-05-05  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* maintaining.texi (Create Tags Table): Add text about the dangers of
+	making symbolic links to tags files.
+
+2007-05-04  Karl Berry  <karl@gnu.org>
+
+	* emacs.texi (EMACSVER) [smallbook]: 22.1 for printed version, not 22.
+
+2007-05-03  Karl Berry  <karl@gnu.org>
+
+	* emacs.texi (EMACSVER) [smallbook]: 22 for printed version.
+
+	* .cvsignore (*.pdf): new entry.
+
+	* texinfo.tex: update from current version for better pdf generation.
+
+	* emacs.texi (\urlcolor, \linkcolor) [smallbook]: \let to \Black
+	for printing.
+
+2007-05-01  Richard Stallman  <rms@gnu.org>
+
+	* cmdargs.texi (Initial Options): Under --batch, mention --eval.
+
 2007-04-30  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Article Highlighting): Clarify gnus-cite-parse-max-size.
@@ -58,8 +99,8 @@
 	* misc.texi (Thumbnails): Node deleted.
 	* emacs.texi (Top): Update node listing.
 
-	* files.texi (File Conveniences): 
-	* ack.texi (Acknowledgments): 
+	* files.texi (File Conveniences):
+	* ack.texi (Acknowledgments):
 	* faq.texi (New in Emacs 22): Rename "tumme" to "image-dired".
 
 2007-04-21  Richard Stallman  <rms@gnu.org>

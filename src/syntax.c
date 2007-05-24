@@ -1299,20 +1299,20 @@ scan_words (from, count)
 	  script = CHAR_TABLE_REF (Vchar_script_table, ch1);
 	  while (1)
 	    {
-	      int temp_byte;
-
 	      if (from == beg)
 		break;
-	      temp_byte = dec_bytepos (from_byte);
+	      DEC_BOTH (from, from_byte);
 	      UPDATE_SYNTAX_TABLE_BACKWARD (from);
-	      ch0 = FETCH_CHAR_AS_MULTIBYTE (temp_byte);
+	      ch0 = FETCH_CHAR_AS_MULTIBYTE (from_byte);
 	      code = SYNTAX (ch0);
 	      if ((code != Sword
 		   && (! words_include_escapes
 		       || (code != Sescape && code != Scharquote)))
 		  || ! EQ (CHAR_TABLE_REF (Vchar_script_table, ch0), script))
-		break;
-	      DEC_BOTH (from, from_byte);
+		{
+		  INC_BOTH (from, from_byte);
+		  break;
+		}
 	      ch1 = ch0;
 	    }
 	}
@@ -2031,13 +2031,13 @@ skip_syntaxes (forwardp, string, lim)
 		    p = GPT_ADDR;
 		    stop = endp;
 		  }
+		UPDATE_SYNTAX_TABLE_BACKWARD (pos - 1);
 		prev_p = p;
 		while (--p >= stop && ! CHAR_HEAD_P (*p));
 		c = STRING_CHAR (p, MAX_MULTIBYTE_LENGTH);
 		if (! fastmap[(int) SYNTAX (c)])
 		  break;
 		pos--, pos_byte -= prev_p - p;
-		UPDATE_SYNTAX_TABLE_BACKWARD (pos);
 	      }
 	  }
 	else
@@ -2051,10 +2051,10 @@ skip_syntaxes (forwardp, string, lim)
 		    p = GPT_ADDR;
 		    stop = endp;
 		  }
+		UPDATE_SYNTAX_TABLE_BACKWARD (pos - 1);
 		if (! fastmap[(int) SYNTAX (p[-1])])
 		  break;
 		p--, pos--, pos_byte--;
-		UPDATE_SYNTAX_TABLE_BACKWARD (pos - 1);
 	      }
 	  }
       }

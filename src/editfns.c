@@ -4537,8 +4537,7 @@ Transposing beyond buffer boundaries is an error.  */)
       fix_start_end_in_overlays (start1, end2);
     }
 
-  signal_after_change (XINT (start1), XINT (end2 - start1),
-		       XINT (end2 - start1));
+  signal_after_change (start1, end2 - start1, end2 - start1);
   return Qnil;
 }
 

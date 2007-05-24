@@ -144,16 +144,17 @@ and showing the image as an image."
 	    (message "Repeat this command to go back to displaying the image")))
     ;; Turn the image data into a real image, but only if the whole file
     ;; was inserted
-    (let* ((image
-	    (if (and (buffer-file-name)
-		     (not (file-remote-p (buffer-file-name)))
+    (let* ((filename (buffer-file-name))
+	   (image
+	    (if (and filename
+		     (file-readable-p filename)
+		     (not (file-remote-p filename))
 		     (not (buffer-modified-p))
 		     (not (and (boundp 'archive-superior-buffer)
 			       archive-superior-buffer))
 		     (not (and (boundp 'tar-superior-buffer)
 			       tar-superior-buffer)))
-		(progn (clear-image-cache)
-		       (create-image (buffer-file-name)))
+		(create-image filename)
 	      (create-image
 	       (string-make-unibyte
 		(buffer-substring-no-properties (point-min) (point-max)))
@@ -169,6 +170,7 @@ and showing the image as an image."
 	   (inhibit-read-only t)
 	   (buffer-undo-list t)
 	   (modified (buffer-modified-p)))
+      (image-refresh image)
       (add-text-properties (point-min) (point-max) props)
       (set-buffer-modified-p modified)
       ;; Inhibit the cursor when the buffer contains only an image,

@@ -72,7 +72,7 @@
   :group 'diff-mode)
 
 (defcustom diff-jump-to-old-file nil
-  "*Non-nil means `diff-goto-source' jumps to the old file.
+  "Non-nil means `diff-goto-source' jumps to the old file.
 Else, it jumps to the new file."
   :type 'boolean
   :group 'diff-mode)
@@ -1276,7 +1276,7 @@ Whitespace differences are ignored."
 	(if (> (- (car forw) orig) (- orig (car back))) back forw)
       (or back forw))))
 
-(defsubst diff-xor (a b) (if a (not b) b))
+(defsubst diff-xor (a b) (if a (if (not b) a) b))
 
 (defun diff-find-source-location (&optional other-file reverse)
   "Find out (BUF LINE-OFFSET POS SRC DST SWITCHED).
@@ -1358,8 +1358,15 @@ the value of this variable when given an appropriate prefix argument).
 With a prefix argument, REVERSE the hunk."
   (interactive "P")
   (destructuring-bind (buf line-offset pos old new &optional switched)
-      ;; If REVERSE go to the new file, otherwise go to the old.
-      (diff-find-source-location (not reverse) reverse)
+      ;; Sometimes we'd like to have the following behavior: if REVERSE go
+      ;; to the new file, otherwise go to the old.  But that means that by
+      ;; default we use the old file, which is the opposite of the default
+      ;; for diff-goto-source, and is thus confusing.  Also when you don't
+      ;; know about it it's pretty surprising.
+      ;; TODO: make it possible to ask explicitly for this behavior.
+      ;; 
+      ;; This is duplicated in diff-test-hunk.
+      (diff-find-source-location nil reverse)
     (cond
      ((null line-offset)
       (error "Can't find the text to patch"))
@@ -1403,8 +1410,7 @@ With a prefix argument, REVERSE the hunk."
 With a prefix argument, try to REVERSE the hunk."
   (interactive "P")
   (destructuring-bind (buf line-offset pos src dst &optional switched)
-      ;; If REVERSE go to the new file, otherwise go to the old.
-      (diff-find-source-location (not reverse) reverse)
+      (diff-find-source-location nil reverse)
     (set-window-point (display-buffer buf) (+ (car pos) (cdr src)))
     (diff-hunk-status-msg line-offset (diff-xor reverse switched) t)))
 
