@@ -153,6 +153,11 @@ options to user
 
 For usage of other options, use the --help option.
 
+Note: due to the problem "Installing to a directory with non-ASCII
+characters in the name fails" mentioned in etc/PROBLEMS, you may not
+move a self-contained Emacs.app application bundle to a non-ASCII
+directory.
+
 * BUILDING EMACS ON MAC OS Classic
 
 You can use MPW-GM (Aug. 2001) to build Emacs.  MPW-GM can be
