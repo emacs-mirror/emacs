@@ -1,3 +1,9 @@
+2007-05-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (redisplay_window): If first window line is a
+	continuation line, recompute the new window start instead of
+	recentering.
+
 2007-05-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c [USE_CARBON_EVENTS] (mac_handle_window_event):
