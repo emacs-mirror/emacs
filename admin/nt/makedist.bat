@@ -36,7 +36,7 @@ rem Info-ZIP zip seems to be broken on Windows.
 rem It always writes to zip.zip and treats the zipfile argument as one
 rem of the files to go in it.
 rem zip -9 -r %2-bin-i386 emacs-%1/BUGS emacs-%1/README emacs-%1/README.W32 emacs-%1/bin emacs-%1/etc emacs-%1/info emacs-%1/lisp emacs-%1/leim -x emacs.mdp *.pdb *.opt *~ CVS
-7z a -tZIP -mx=9 -xr!emacs.mdp -xr!*.pdb -xr!*.opt -xr!*~ -xr!CVS %2-bin-i386.zip emacs-%1/BUGS emacs-%1/README emacs-%1/README.W32 emacs-%1/bin emacs-%1/etc emacs-%1/info emacs-%1/lisp emacs-%1/leim 
+7z a -tZIP -mx=9 -xr!emacs.mdp -xr!*.pdb -xr!*.opt -xr!*~ -xr!CVS -xr!.arch-inventory %2-bin-i386.zip emacs-%1/BUGS emacs-%1/README emacs-%1/README.W32 emacs-%1/bin emacs-%1/etc emacs-%1/info emacs-%1/lisp emacs-%1/leim 
 del emacs-%1\README.W32
 if not (%4) == () goto end
 
@@ -45,6 +45,7 @@ echo Create archive with just the basic binaries and generated files
 echo (the user needs to unpack the full source distribution for
 echo  everything else)
 copy %3\README.W32 emacs-%1\README.W32
+copy %3\dump.bat emacs-%1\bin\dump.bat
 rem Info-ZIP zip seems to be broken on Windows.
 rem It always writes to zip.zip and treats the zipfile argument as one
 rem of the files to go in it.
