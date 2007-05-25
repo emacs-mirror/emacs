@@ -1,3 +1,7 @@
+2007-05-25  Miles Bader  <miles@fencepost.gnu.org>
+
+	* vc-hooks.el (vc-find-root): Fix file attribute test.
+
 2007-05-24  Richard Stallman  <rms@gnu.org>
 
 	* textmodes/flyspell.el (flyspell-correct-word-before-point):
