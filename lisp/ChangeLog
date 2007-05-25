@@ -1,5 +1,8 @@
 2007-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/derived.el (define-derived-mode): Remove bogus
+	compatibiity code.
+
 	* emacs-lisp/copyright.el (copyright-names-regexp): New var.
 	(copyright-update-year): Use it.
 
