@@ -1,3 +1,11 @@
+2007-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/fill.el (canonically-space-region): Make the second arg
+	a marker if it's not already the case.
+
+	* xt-mouse.el (xterm-mouse-truncate-wrap): New function.
+	(xterm-mouse-event): Use it.
+
 2007-05-25  Miles Bader  <miles@fencepost.gnu.org>
 
 	* vc-hooks.el (vc-find-root): Fix file attribute test.
@@ -46,17 +54,17 @@
 
 2007-05-18  Rob Riepel  <riepel@Stanford.EDU>
 
-	* emulation/tpu-edt.el (CSI-map, SS3-map) Moved from global-map to
+	* emulation/tpu-edt.el (CSI-map, SS3-map): Move from global-map to
 	tpu-global-map.
-	(tpu-original-global-map) Variable deleted.
-	(tpu-control-keys-map) New keymap variable.
-	(tpu-set-control-keys) Use tpu-reset-control-keys rather than
+	(tpu-original-global-map): Delete variable.
+	(tpu-control-keys-map): New keymap variable.
+	(tpu-set-control-keys): Use tpu-reset-control-keys rather than
 	setting keymapping directly.
-	(tpu-reset-control-keys) Use tpu-control-keys-map instead of
+	(tpu-reset-control-keys): Use tpu-control-keys-map instead of
 	tpu-global-map.
 	(tpu-edt-on): Activate the tpu-global-map.
 	(tpu-edt-off): Deactivate the tpu-global-map.
-	
+
 2007-05-18  Ryan Yeske  <rcyeske@gmail.com>
 
 	* textmodes/ispell.el (ispell-get-word): Return markers
@@ -119,9 +127,9 @@
 
 2007-05-14  Eli Zaretskii  <eliz@gnu.org>
 
-	* mail/rmail.el (rmail-convert-to-babyl-format): Check
-	content-transfer-encoding _last_, because we need its position in
-	base64-header-field-end.
+	* mail/rmail.el (rmail-convert-to-babyl-format):
+	Check content-transfer-encoding _last_, because we need its position
+	in base64-header-field-end.
 
 2007-05-14  Juanma Barranquero  <lekktu@gmail.com>
 
