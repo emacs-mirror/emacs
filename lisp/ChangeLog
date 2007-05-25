@@ -1,5 +1,7 @@
 2007-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* edmacro.el (edmacro-format-keys): Use current-active-maps.
+
 	* ediff-init.el (ediff-defvar-local, ediff-with-current-buffer):
 	Add indentation and debugging info.  Fix up comment convention.
 

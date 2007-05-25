@@ -430,10 +430,7 @@ doubt, use whitespace."
 
 (defun edmacro-format-keys (macro &optional verbose)
   (setq macro (edmacro-fix-menu-commands macro))
-  (let* ((maps (append (current-minor-mode-maps)
-		       (if (current-local-map)
-			   (list (current-local-map)))
-		       (list (current-global-map))))
+  (let* ((maps (current-active-maps))
 	 (pkeys '(end-macro ?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9 ?- ?\C-u
 		  ?\M-- ?\M-0 ?\M-1 ?\M-2 ?\M-3 ?\M-4 ?\M-5 ?\M-6
 		  ?\M-7 ?\M-8 ?\M-9))
