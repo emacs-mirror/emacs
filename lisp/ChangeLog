@@ -1,3 +1,8 @@
+2007-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xt-mouse.el (xterm-mouse-truncate-wrap): New function.
+	(xterm-mouse-event): Use it.
+
 2007-05-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bs.el (bs-cycle-previous): Don't modify the cycle list until
