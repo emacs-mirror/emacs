@@ -1,3 +1,13 @@
+2007-05-25  Miles Bader  <miles@fencepost.gnu.org>
+
+	* vc-hooks.el (vc-find-root): Fix file attribute test.
+
+2007-05-24  Richard Stallman  <rms@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-correct-word-before-point):
+	Don't let opoint be nil.
+	(flyspell-emacs-popup): Explicit error if no dialogs.
+
 2007-05-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image-mode.el (image-forward-hscroll, image-backward-hscroll)
