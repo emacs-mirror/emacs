@@ -37,7 +37,7 @@
   :group 'tools)
 
 (defcustom copyright-limit 2000
-  "*Don't try to update copyright beyond this position unless interactive.
+  "Don't try to update copyright beyond this position unless interactive.
 A value of nil means to search whole buffer."
   :group 'copyright
   :type '(choice (integer :tag "Limit")
@@ -49,21 +49,28 @@ A value of nil means to search whole buffer."
  "\\([Å©é©]\\|@copyright{}\\|[Cc]opyright\\s *:?\\s *\\(?:(C)\\)?\
 \\|[Cc]opyright\\s *:?\\s *[Å©é©]\\)\
 \\s *\\([1-9]\\([-0-9, ';/*%#\n\t]\\|\\s<\\|\\s>\\)*[0-9]+\\)"
-  "*What your copyright notice looks like.
+  "What your copyright notice looks like.
 The second \\( \\) construct must match the years."
   :group 'copyright
   :type 'regexp)
 
+(defcustom copyright-names-regexp ""
+  "Regexp matching the names which correspond to the user.
+Only copyright lines where the name matches this regexp will be updated.
+This allows you to avoid adding yars to a copyright notice belonging to
+someone else or to a group for which you do not work."
+  :type 'regexp)
+
 (defcustom copyright-years-regexp
  "\\(\\s *\\)\\([1-9]\\([-0-9, ';/*%#\n\t]\\|\\s<\\|\\s>\\)*[0-9]+\\)"
-  "*Match additional copyright notice years.
+  "Match additional copyright notice years.
 The second \\( \\) construct must match the years."
   :group 'copyright
   :type 'regexp)
 
 
 (defcustom copyright-query 'function
-  "*If non-nil, ask user before changing copyright.
+  "If non-nil, ask user before changing copyright.
 When this is `function', only ask when called non-interactively."
   :group 'copyright
   :type '(choice (const :tag "Do not ask")
@@ -83,7 +90,17 @@ When this is `function', only ask when called non-interactively."
   "String representing the current year.")
 
 (defun copyright-update-year (replace noquery)
-  (when (re-search-forward copyright-regexp (+ (point) copyright-limit) t)
+  (when
+      (condition-case err
+	  (re-search-forward (concat "\\(" copyright-regexp
+				     "\\)\\([ \t]*\n\\)?.*\\(?:"
+				     copyright-names-regexp "\\)")
+			     (+ (point) copyright-limit) t)
+	;; In case the regexp is rejected.  This is useful because
+	;; copyright-update is typically called from before-save-hook where
+	;; such an error is very inconvenient for the user.
+	(error (message "Can't update copyright: %s" err) nil))
+    (goto-char (match-end 1))
     ;; If the years are continued onto multiple lined
     ;; that are marked as comments, skip to the end of the years anyway.
     (while (save-excursion
@@ -94,7 +111,7 @@ When this is `function', only ask when called non-interactively."
 		  (save-match-data
 		    (forward-line 1)
 		    (and (looking-at comment-start-skip)
-			 (goto-char (match-end 0))))
+			 (goto-char (match-end 1))))
 		  (save-match-data
 		    (looking-at copyright-years-regexp))))
       (forward-line 1)
@@ -103,7 +120,7 @@ When this is `function', only ask when called non-interactively."
 
     ;; Note that `current-time-string' isn't locale-sensitive.
     (setq copyright-current-year (substring (current-time-string) -4))
-    (unless (string= (buffer-substring (- (match-end 2) 2) (match-end 2))
+    (unless (string= (buffer-substring (- (match-end 3) 2) (match-end 3))
 		     (substring copyright-current-year -2))
       (if (or noquery
 	      (y-or-n-p (if replace
@@ -235,5 +252,5 @@ Uses heuristic: year >= 50 means 19xx, < 50 means 20xx."
 ;; coding: emacs-mule
 ;; End:
 
-;;; arch-tag: b4991afb-b6b1-4590-bebe-e076d9d4aee8
+;; arch-tag: b4991afb-b6b1-4590-bebe-e076d9d4aee8
 ;;; copyright.el ends here

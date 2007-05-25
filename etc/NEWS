@@ -34,6 +34,10 @@ with a prefix argument or by typing C-u C-h C-n.
 
 * Changes in Specialized Modes and Packages in Emacs 23.1
 
+** In the `copyright' package, you can specify your copyright holders's names.
+Only copyright lines with holders matching copyright-names-regexp will be
+considered for update.
+
 
 * Changes in Emacs 23.1 on non-free operating systems
 
