@@ -220,7 +220,7 @@ with either the `--unibyte' option or the EMACS_UNIBYTE environment
 variable, or else customize `enable-multibyte-characters'.
 
 With prefix argument, this command enables European character display
-if arg is positive, disables it otherwise.  Otherwise, it toggles
+if ARG is positive, disables it otherwise.  Otherwise, it toggles
 European character display.
 
 When this mode is enabled, characters in the range of 160 to 255
@@ -264,5 +264,5 @@ for users who call this function in `.emacs'."
 
 (provide 'disp-table)
 
-;;; arch-tag: ffe4c28c-960c-47aa-b8a8-ae89d371ffc7
+;; arch-tag: ffe4c28c-960c-47aa-b8a8-ae89d371ffc7
 ;;; disp-table.el ends here
