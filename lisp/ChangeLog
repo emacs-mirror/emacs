@@ -1,5 +1,8 @@
 2007-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* ediff-init.el (ediff-defvar-local, ediff-with-current-buffer):
+	Add indentation and debugging info.  Fix up comment convention.
+
 	* cus-dep.el (custom-make-dependencies): Simplify.
 
 	* composite.el (compose-region, decompose-region):
