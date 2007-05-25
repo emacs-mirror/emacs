@@ -3,6 +3,10 @@
 	* macterm.c [USE_CARBON_EVENTS] (mac_handle_window_event):
 	Call mac_wakeup_from_rne on window size change.
 
+2007-05-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (uncache_image): Fix typo.
+
 2007-05-23  Johannes Weiner <hannes@saeurebad.de> (tiny change)
 
 	* keyboard.c (make_lispy_movement): Condition on HAVE_GPM too.

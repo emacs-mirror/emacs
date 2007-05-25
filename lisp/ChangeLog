@@ -1,3 +1,24 @@
+2007-05-25  Miles Bader  <miles@fencepost.gnu.org>
+
+	* vc-hooks.el (vc-find-root): Fix file attribute test.
+
+2007-05-24  Richard Stallman  <rms@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-correct-word-before-point):
+	Don't let opoint be nil.
+	(flyspell-emacs-popup): Explicit error if no dialogs.
+
+2007-05-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-mode.el (image-forward-hscroll, image-backward-hscroll)
+	(image-next-line, image-previous-line, image-scroll-up)
+	(image-scroll-down, image-bol, image-eol, image-bob, image-eob):
+	New functions.
+	(image-mode-map): Remap motion commands.
+	(image-mode-text-map): New keymap for viewing images as text.
+	(image-mode): Use image-mode-map.
+	(image-toggle-display): Toggle auto-hscroll-mode and mode keymaps.
+
 2007-05-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/fill.el (canonically-space-region): Make the second arg

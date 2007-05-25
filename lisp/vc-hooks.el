@@ -325,7 +325,7 @@ If WITNESS if not found, return nil, otherwise return the root."
                    ;; to another user.  This should save us from looking in
                    ;; things like /net and /afs.  This assumes that all the
                    ;; files inside a project belong to the same user.
-                   (not (equal user (file-attributes file)))
+                   (not (equal user (nth 2 (file-attributes file))))
                    (string-match vc-ignore-dir-regexp file)))
       (if (file-exists-p (expand-file-name witness file))
          (setq root file)

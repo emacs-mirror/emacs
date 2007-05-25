@@ -1639,7 +1639,7 @@ uncache_image (f, spec)
      Lisp_Object spec;
 {
   struct image_cache *c = FRAME_X_IMAGE_CACHE (f);
-  struct image *img = IMAGE_FROM_ID (f, lookup_image (f, spec));
+  struct image *img;
   unsigned hash = sxhash (spec, 0);
   int i = hash % IMAGE_CACHE_BUCKETS_SIZE;
 
