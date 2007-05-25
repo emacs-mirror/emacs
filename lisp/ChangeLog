@@ -1,5 +1,8 @@
 2007-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* composite.el (compose-region, decompose-region):
+	Use inhibit-read-only and restore-buffer-modified-p.
+
 	* xt-mouse.el (xterm-mouse-truncate-wrap): New function.
 	(xterm-mouse-event): Use it.
 

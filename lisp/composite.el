@@ -194,7 +194,7 @@ adjust the composition when it gets invalid because of a change of
 text in the composition."
   (interactive "r")
   (let ((modified-p (buffer-modified-p))
-	(buffer-read-only nil))
+	(inhibit-read-only t))
     (if (or (vectorp components) (listp components))
 	(setq components (encode-composition-components components)))
     (compose-region-internal start end components modification-func)
@@ -208,9 +208,9 @@ When called from a program, expects two arguments,
 positions (integers or markers) specifying the region."
   (interactive "r")
   (let ((modified-p (buffer-modified-p))
-	(buffer-read-only nil))
+	(inhibit-read-only t))
     (remove-text-properties start end '(composition nil))
-    (set-buffer-modified-p modified-p)))
+    (restore-buffer-modified-p modified-p)))
 
 ;;;###autoload
 (defun compose-string (string &optional start end components modification-func)
@@ -372,8 +372,8 @@ after a sequence of character events."
 ;;;###autoload(global-set-key [compose-last-chars] 'compose-last-chars)
 
 
-;;; The following codes are only for backward compatibility with Emacs
-;;; 20.4 and earlier.
+;; The following codes are only for backward compatibility with Emacs
+;; 20.4 and earlier.
 
 ;;;###autoload
 (defun decompose-composite-char (char &optional type with-composition-rule)
@@ -392,5 +392,5 @@ Optional 3rd arg WITH-COMPOSITION-RULE is ignored."
 
 
 
-;;; arch-tag: ee703d77-1723-45d4-a31f-e9f0f867aa33
+;; arch-tag: ee703d77-1723-45d4-a31f-e9f0f867aa33
 ;;; composite.el ends here
