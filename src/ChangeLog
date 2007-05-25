@@ -1,3 +1,7 @@
+2007-05-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (uncache_image): Fix typo.
+
 2007-05-23  Johannes Weiner <hannes@saeurebad.de> (tiny change)
 
 	* keyboard.c (make_lispy_movement): Condition on HAVE_GPM too.
