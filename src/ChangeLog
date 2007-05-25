@@ -1,3 +1,20 @@
+2007-05-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c [USE_CARBON_EVENTS] (mac_handle_window_event):
+	Call mac_wakeup_from_rne on window size change.
+
+2007-05-23  Johannes Weiner <hannes@saeurebad.de> (tiny change)
+
+	* keyboard.c (make_lispy_movement): Condition on HAVE_GPM too.
+
+2007-05-22  Richard Stallman  <rms@gnu.org>
+
+	* xterm.c (x_connection_closed): Remove NO_RETURN.
+
+2007-05-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* syntax.c (scan_words): Fix arg to UPDATE_SYNTAX_TABLE_BACKWARD.
+
 2007-05-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image.c (uncache_image): New function.

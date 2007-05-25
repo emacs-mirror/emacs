@@ -6189,7 +6189,7 @@ make_lispy_event (event)
     }
 }
 
-#ifdef HAVE_MOUSE
+#if defined(HAVE_MOUSE) || defined(HAVE_GPM)
 
 static Lisp_Object
 make_lispy_movement (frame, bar_window, part, x, y, time)
@@ -6228,7 +6228,7 @@ make_lispy_movement (frame, bar_window, part, x, y, time)
     }
 }
 
-#endif /* HAVE_MOUSE */
+#endif /* HAVE_MOUSE || HAVE GPM */
 
 /* Construct a switch frame event.  */
 static Lisp_Object

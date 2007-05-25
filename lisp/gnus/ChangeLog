@@ -1,3 +1,8 @@
+2007-05-24  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-narrow-to-headers-or-head): Ignore
+	mail-header-separator in the body.
+
 2007-05-10  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-art.el (gnus-article-mode): Fix comment about displaying

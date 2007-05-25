@@ -103,7 +103,7 @@ used (see below).
 
 BODY contains code to execute each time the mode is activated or deactivated.
   It is executed after toggling the mode,
-  and before running the hook variable `mode-HOOK'.
+  and before running the hook variable `MODE-hook'.
   Before the actual body code, you can write keyword arguments (alternating
   keywords and values).  These following keyword arguments are supported (other
   keywords will be passed to `defcustom' if the minor mode is global):
@@ -486,7 +486,7 @@ BASE-next also tries to make sure that the whole entry is visible by
   the next entry) and recentering if necessary.
 ENDFUN should return the end position (with or without moving point).
 NARROWFUN non-nil means to check for narrowing before moving, and if
-found, do widen first and then call NARROWFUN with no args after moving."
+found, do `widen' first and then call NARROWFUN with no args after moving."
   (let* ((base-name (symbol-name base))
 	 (prev-sym (intern (concat base-name "-prev")))
 	 (next-sym (intern (concat base-name "-next")))

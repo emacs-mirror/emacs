@@ -92,7 +92,7 @@ against the file name, and TYPE is nil for text, t for binary.")
 
 (defun find-buffer-file-type-coding-system (command)
   "Choose a coding system for a file operation in COMMAND.
-COMMAND is a list that specifies the operation, and I/O primitive as its
+COMMAND is a list that specifies the operation, an I/O primitive, as its
 CAR, and the arguments that might be given to that operation as its CDR.
 If operation is `insert-file-contents', the coding system is chosen based
 upon the filename (the CAR of the arguments beyond the operation), the contents
@@ -108,6 +108,10 @@ and whether the file exists:
   Otherwise:
     If the file exists:					`undecided'
     If the file does not exist:	       default-buffer-file-coding-system
+
+Note that the CAR of arguments to `insert-file-contents' operation could
+be a cons cell of the form \(FILENAME . BUFFER\), where BUFFER is a buffer
+into which the file's contents were already read, but not yet decoded.
 
 If operation is `write-region', the coding system is chosen based upon
 the value of `buffer-file-coding-system' and `buffer-file-type'. If
