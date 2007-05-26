@@ -6269,7 +6269,7 @@ next_element_from_buffer (it)
 	it->c = *p, it->len = 1;
 
       /* Record what we have and where it came from.  */
-      it->what = IT_CHARACTER;;
+      it->what = IT_CHARACTER;
       it->object = it->w->buffer;
       it->position = it->current.pos;
 
