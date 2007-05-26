@@ -1,3 +1,31 @@
+2007-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/derived.el (define-derived-mode): Remove bogus
+	compatibiity code.
+
+	* emacs-lisp/copyright.el (copyright-names-regexp): New var.
+	(copyright-update-year): Use it.
+
+	* edmacro.el (edmacro-format-keys): Use current-active-maps.
+
+	* ediff-init.el (ediff-defvar-local, ediff-with-current-buffer):
+	Add indentation and debugging info.  Fix up comment convention.
+
+	* cus-dep.el (custom-make-dependencies): Simplify.
+
+	* composite.el (compose-region, decompose-region):
+	Use inhibit-read-only and restore-buffer-modified-p.
+
+	* xt-mouse.el (xterm-mouse-truncate-wrap): New function.
+	(xterm-mouse-event): Use it.
+
+2007-05-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs-cycle-previous): Don't modify the cycle list until
+	`switch-to-buffer' has returned succesfully.
+	(bs-cycle-next): Ditto.  Also, don't bury the buffer when the
+	window is dedicated (it could iconify the frame).
+
 2007-05-25  Miles Bader  <miles@fencepost.gnu.org>
 
 	* vc-hooks.el (vc-find-root): Fix file attribute test.

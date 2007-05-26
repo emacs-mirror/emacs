@@ -110,6 +110,7 @@ that Ediff doesn't know about.")
 ;;
 ;; Plagiarised from `emerge-defvar-local' for XEmacs.
 (defmacro ediff-defvar-local (var value doc)
+  (declare (indent defun))
   `(progn
      (defvar ,var ,value ,doc)
      (make-variable-buffer-local ',var)
@@ -258,6 +259,7 @@ It needs to be killed when we quit the session.")
 ;; Doesn't save the point and mark.
 ;; This is `with-current-buffer' with the added test for live buffers."
 (defmacro ediff-with-current-buffer (buffer &rest body)
+  (declare (indent 1) (debug (form body)))
   `(if (ediff-buffer-live-p ,buffer)
        (save-current-buffer
 	 (set-buffer ,buffer)
@@ -1873,11 +1875,11 @@ Unless optional argument INPLACE is non-nil, return a new string."
 
 
 
-;;; Local Variables:
-;;; eval: (put 'ediff-defvar-local 'lisp-indent-hook 'defun)
-;;; eval: (put 'ediff-with-current-buffer 'lisp-indent-hook 1)
-;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
-;;; End:
+;; Local Variables:
+;; eval: (put 'ediff-defvar-local 'lisp-indent-hook 'defun)
+;; eval: (put 'ediff-with-current-buffer 'lisp-indent-hook 1)
+;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
+;; End:
 
-;;; arch-tag: fa31d384-1e70-4d4b-82a7-3e96307c46f5
+;; arch-tag: fa31d384-1e70-4d4b-82a7-3e96307c46f5
 ;;; ediff-init.el ends here
