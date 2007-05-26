@@ -1347,11 +1347,11 @@ main (argc, argv)
 
   if (tty)
     {
+      char *type = getenv ("TERM");
       char *tty_name = NULL;
 #ifndef WINDOWSNT
       tty_name = ttyname (fileno (stdin));
 #endif
-      char *type = getenv ("TERM");
 
       if (! tty_name)
         {

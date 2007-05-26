@@ -1,3 +1,8 @@
+2007-05-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacsclient.c (main): Avoid having a declaration after a
+	statement. 
+
 2007-05-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacsclient.c (print_help_and_exit): Restore and adapt trunk

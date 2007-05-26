@@ -2791,7 +2791,7 @@ sys_select (nfds, rfds, wfds, efds, timeout)
     }
   return ravail;
 }
-#endif not WINDOWSNT
+#endif /* not WINDOWSNT */
 
 /* Read keyboard input into the standard buffer,
    waiting for at least one character.  */
