@@ -1,3 +1,7 @@
+2007-05-26  Michael Olson  <mwolson@gnu.org>
+
+	* erc.texi (Modules): Fix references to completion modules.
+
 2007-05-10  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Running NNDiary): Use ~/.gnus.el instead of gnusrc.
