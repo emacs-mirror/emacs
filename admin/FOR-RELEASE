@@ -36,8 +36,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 * BUGS
 
-** xterm-mouse-event truncation bug: install Stefan's patch.
-
 * FIXES FOR EMACS 22.2
 
 Here we list small fixes that arrived too late for Emacs 22.1, but
