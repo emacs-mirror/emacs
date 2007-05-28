@@ -415,7 +415,6 @@ static void term_mouse_highlight (struct frame *f, int x, int y);
 
 #ifdef HAVE_GPM
 #include <sys/fcntl.h>
-#include "buffer.h"
 
 /* Nonzero means mouse is enabled on Linux console.  */
 int term_gpm = 0;
