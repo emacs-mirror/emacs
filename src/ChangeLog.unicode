@@ -1,3 +1,7 @@
+2007-05-28  Kenichi Handa  <handa@m17n.org>
+
+	* term.c: Don't include "buffer.h" twice.
+
 2007-05-21  Kenichi Handa  <handa@m17n.org>
 
 	* syntax.c (skip_syntaxes): Synch with the trunk.
