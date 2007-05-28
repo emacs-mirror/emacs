@@ -2,6 +2,8 @@
 
 	* message.el (message-pop-to-buffer): Add switch-function argument.
 	(message-mail): Pass switch-function argument to it.
+	(message-narrow-to-headers-or-head): Ignore mail-header-separator in
+	the body.
 
 2007-05-09  Didier Verna  <didier@xemacs.org>
 
