@@ -1,3 +1,8 @@
+2007-05-28  Kenichi Handa  <handa@m17n.org>
+
+	* disp-table.el (make-glyph-code): Fix for a new character code
+	space (22-bit).
+
 2007-05-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* printing.el (pr-ps-fast-fire): Fix typos in docstring.
