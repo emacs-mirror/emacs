@@ -191,7 +191,7 @@ X frame."
   "Return a glyph code representing char CHAR with face FACE."
   ;; Due to limitations on Emacs integer values, faces with
   ;; face id greater that 512 are silently ignored.
-  (if (and face (<= (face-id face) #xfff))
+  (if (and face (<= (face-id face) #x1ff))
       (logior char (lsh (face-id face) 22))
     char))
 
