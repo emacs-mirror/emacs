@@ -1,3 +1,7 @@
+2007-05-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/sgml-mode.el (sgml-point-entered): Use condition-case.
+
 2007-05-27  Tetsurou Okazaki  <okazaki@be.to>  (tiny change)
 
 	* log-edit.el (log-edit-changelog-paragraph): Return point-max
