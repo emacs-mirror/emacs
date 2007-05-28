@@ -1,3 +1,8 @@
+2007-05-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (redisplay_internal): Bind inhibit-point-motion-hooks to t
+	around current_column call.
+
 2007-05-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (redisplay_window): If first window line is a
