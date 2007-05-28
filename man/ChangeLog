@@ -1,3 +1,10 @@
+2007-05-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.56.
+
+	* tramp.texi (Frequently Asked Questions): Improve ~/.zshrc
+	settings.  Reported by Ted Zlatanov <tzz@lifelogs.com>.
+
 2007-05-26  Michael Olson  <mwolson@gnu.org>
 
 	* erc.texi (Modules): Fix references to completion modules.

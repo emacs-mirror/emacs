@@ -1,3 +1,35 @@
+2007-05-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.56.
+
+	* net/tramp.el:
+	* net/tramp-ftp.el:
+	* net/tramp-smb.el:
+	* net/tramp-util.el:
+	* net/tramp-vc.el:
+	Don't load cl.el, because that pollutes the namespace.  Replace cl
+	macros by their implementations where necessary.  Requested by
+	Richard Stallman <rms@gnu.org>.
+
+	* net/tramp.el (top): Make `set-buffer-multibyte' an alias if it
+	doesn't exist.
+	(with-parsed-tramp-file-name): Protect debug spec during
+	compilation.
+	(tramp-handle-insert-directory): Check (featurep 'ls-lisp).
+	(tramp-file-name-p, tramp-file-name-multi-method)
+	(tramp-file-name-method, tramp-file-name-user)
+	(tramp-file-name-host, tramp-file-name-localname): New defuns,
+	replacing defstruct `tramp-file-name'.
+	(tramp-handle-file-remote-p, tramp-completion-dissect-file-name1)
+	(tramp-dissect-file-name, tramp-dissect-multi-file-name): Apply
+	`vector' instead of `make-tramp-file-name'.
+	(tramp-handle-make-auto-save-file-name): Apply
+	`tramp-temporary-file-directory' for compatibility reasons.
+	(tramp-completion-mode): Use `natnump' instead of `wholenump'
+	because of XEmacs.
+	(tramp-completion-mode): `last-input-event' is nil when XEmacs is
+	started.
+
 2007-05-27  Ryan Yeske  <rcyeske@gmail.com>
 
 	* net/webjump.el (webjump-sample-sites):
