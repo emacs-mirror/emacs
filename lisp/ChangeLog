@@ -1,3 +1,7 @@
+2007-05-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/idlwave.el (idlwave-routines): Fix typo in docstring.
+
 2007-05-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.0.56.
