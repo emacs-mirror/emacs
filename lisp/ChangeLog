@@ -1,3 +1,8 @@
+2007-05-27  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/webjump.el (webjump-sample-sites):
+	Add simple Wikipedia query.
+
 2007-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/derived.el (define-derived-mode): Remove bogus
