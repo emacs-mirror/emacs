@@ -198,12 +198,12 @@ X frame."
 ;;;###autoload
 (defun glyph-char (glyph)
   "Return the character of glyph code GLYPH."
-  (logand glyph #x7ffff))
+  (logand glyph #x3fffff))
 
 ;;;###autoload
 (defun glyph-face (glyph)
   "Return the face of glyph code GLYPH, or nil if glyph has default face."
-  (let ((face-id (lsh glyph -19)))
+  (let ((face-id (lsh glyph -22)))
     (and (> face-id 0)
 	 (car (delq nil (mapcar (lambda (face)
 				  (and (eq (get face 'face) face-id)
