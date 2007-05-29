@@ -725,8 +725,7 @@ CHAR
      matches the empty string, but only at point.
 
 `word-start', `bow'
-     matches the empty string, but only at the beginning or end of a
-     word.
+     matches the empty string, but only at the beginning of a word.
 
 `word-end', `eow'
      matches the empty string, but only at the end of a word.
@@ -739,6 +738,12 @@ CHAR
 `not-word-boundary'
      matches the empty string, but not at the beginning or end of a
      word.
+
+`symbol-start'
+     matches the empty string, but only at the beginning of a symbol.
+
+`symbol-end'
+     matches the empty string, but only at the end of a symbol.
 
 `digit', `numeric', `num'
      matches 0 through 9.
