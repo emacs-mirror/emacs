@@ -1,3 +1,16 @@
+2007-05-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/mule-cmds.el (toggle-enable-multibyte-characters)
+	(sort-coding-systems, search-unencodable-char): Doc fixes.
+	(default-input-method, input-method-verbose-flag)
+	(input-method-highlight-flag): Remove * in defcustom's docstrings.
+	(exit-language-environment-hook, set-default-coding-systems)
+	(coding-system-change-eol-conversion, prefer-coding-system)
+	(find-multibyte-characters, leim-list-entry-regexp)
+	(set-input-method, input-method-exit-on-first-char, princ-list)
+	(locale-language-names, locale-charset-language-names)
+	(define-char-code-property): Fix typos in docstrings.
+
 2007-05-28  Kenichi Handa  <handa@m17n.org>
 
 	* disp-table.el (make-glyph-code): Fix for a new character code
@@ -747,7 +760,7 @@
 	(ethio-sera-to-fidel-region-noethio)
 	(ethio-use-colon-for-colon, ethio-use-three-dot-question): New
 	functions.
-	
+
 2005-01-30  Kenichi Handa  <handa@m17n.org>
 
 	* international/uni-name.el: Re-generated.
@@ -913,7 +926,7 @@
 
 	* term/mac-win.el: Use mac-standard-fontset-spec to create
 	fontset-mac
-	(mac-standard-fontset-spec): Created 
+	(mac-standard-fontset-spec): Created
 
 2004-04-27  Kenichi Handa  <handa@m17n.org>
 
@@ -1140,7 +1153,7 @@
 
 	* descr-text.el (describe-char): Check `charset' property.
 	Show the code point in the charset in hexadigits.
-	
+
 	* international/mule-diag.el (stretches-for-character-list):
 	Delete it.
 	(list-block-of-chars): Use tabs instead of `display' property for
@@ -1312,14 +1325,14 @@
 	* progmodes/cap-words.el (capitalized-words-mode): Add autoload
 	cookie.  Doc fix.
 
-	* textmodes/tex-mode.el (tex-font-lock-syntactic-face-function): 
-	* progmodes/sh-script.el (sh-font-lock-syntactic-face-function): 
-	* progmodes/perl-mode.el (perl-font-lock-syntactic-face-function): 
-	* eshell/esh-opt.el (eshell-process-option): 
-	* emulation/keypad.el (keypad-setup): 
-	* emacs-lisp/lisp-mode.el (prin1-char): 
-	* generic.el (generic-mode-set-comments): 
-	* edmacro.el (edmacro-parse-keys): 
+	* textmodes/tex-mode.el (tex-font-lock-syntactic-face-function):
+	* progmodes/sh-script.el (sh-font-lock-syntactic-face-function):
+	* progmodes/perl-mode.el (perl-font-lock-syntactic-face-function):
+	* eshell/esh-opt.el (eshell-process-option):
+	* emulation/keypad.el (keypad-setup):
+	* emacs-lisp/lisp-mode.el (prin1-char):
+	* generic.el (generic-mode-set-comments):
+	* edmacro.el (edmacro-parse-keys):
 	* disp-table.el (standard-display-default): Use characterp.
 
 2003-06-23  Kenichi Handa  <handa@m17n.org>
@@ -1373,7 +1386,7 @@
 
 2003-05-24  Dave Love  <fx@gnu.org>
 
-	* international/mule-conf.el (utf-16le, utf-16be-16be) 
+	* international/mule-conf.el (utf-16le, utf-16be-16be)
 	(utf-16le-with-signature, utf-16be-with-signature, utf-16):
 	Define :mime-text-unsuitable.  `utf-16{b,l}e...' renamed from
 	`-16-{b,l}e-' and aliases defined for the old names.
@@ -1388,7 +1401,7 @@
 
 2003-05-06  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-conf.el (utf-16-be) 
+	* international/mule-conf.el (utf-16-be)
 	(utf-16-be-with-signature): Cancel the previous change.
 	(utf-16): Add :endinan 'big.
 
@@ -1434,7 +1447,7 @@
 
 2003-02-04  Dave Love  <fx@gnu.org>
 
-	* international/mule.el (charset-iso-final-char) 
+	* international/mule.el (charset-iso-final-char)
 	(define-coding-system): Doc fix.
 
 2003-01-30  Kenichi Handa  <handa@m17n.org>
@@ -1558,7 +1571,7 @@
 	* language/lao.el: Register lao-composition-function in
 	composition-function-table for Lao vowels and tones.
 	(lao): Don't use lao-post-read-conversion.
-	
+
 	* language/lao-util.el (lao-post-read-conversion): Delete this
 	function.
 	(lao-composition-function): Change arguments to conform to
@@ -1699,7 +1712,7 @@
 
 	* international/quail.el (quail-help): Fix underlining.
 
-	* language/chinese.el (chinese-gb18030, gb18030) 
+	* language/chinese.el (chinese-gb18030, gb18030)
 	("Chinese-GB18030"): New.
 
 	* international/mule-cmds.el (locale-language-names): Add GB18030.
@@ -1708,8 +1721,8 @@
 
 2002-10-05  Dave Love  <fx@gnu.org>
 
-	* language/czech.el ("Czech"): 
-	* language/slovak.el ("Slovak"): 
+	* language/czech.el ("Czech"):
+	* language/slovak.el ("Slovak"):
 	* language/romanian.el ("Romanian"): Remove unibyte-syntax property.
 
 	* language/greek.el ("Greek"): Remove unibyte-syntax property.
@@ -1817,8 +1830,8 @@
 
 2002-09-12  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/mule-conf.el (emacs-mule, iso-2022-7bit) 
-	(iso-2022-7bit-ss2, iso-2022-7bit-lock, iso-2022-8bit-ss2) 
+	* international/mule-conf.el (emacs-mule, iso-2022-7bit)
+	(iso-2022-7bit-ss2, iso-2022-7bit-lock, iso-2022-8bit-ss2)
 	(compound-text, ctext-no-compositions): Cancel provious change.
 
 2002-09-09  Dave Love  <fx@gnu.org>
@@ -2168,7 +2181,7 @@
 	* language/lao-util.el: Remove redundant unicodes in
 	category-setting.
 
-	* international/mule-conf.el (japanese-jisx0213-1) 
+	* international/mule-conf.el (japanese-jisx0213-1)
 	(japanese-jisx0213-2): Add unify-map.
 
 2002-06-12  Kenichi Handa  <handa@etl.go.jp>
@@ -2244,7 +2257,7 @@
 	* language/hebrew.el ("Hebrew"): Add windows-1255, cp862 coding
 	systems.
 
-	* language/china-util.el (post-read-decode-hz) 
+	* language/china-util.el (post-read-decode-hz)
 	(pre-write-encode-hz): Moved from chinese.el.
 	(big5-to-flat-code, flat-code-to-big5, euc-to-flat-code)
 	(flat-code-to-euc, expand-euc-big5-alist, big5-to-cns): Deleted.
@@ -2260,7 +2273,7 @@
 
 2002-05-31  Dave Love  <fx@gnu.org>
 
-	* international/mule-conf.el (chinese-sisheng, ipa) 
+	* international/mule-conf.el (chinese-sisheng, ipa)
 	(indian-is13194, tibetan, ethiopic): Add :unify-map.
 
 	* international/mule-diag.el (describe-character-set): Account for
@@ -2311,7 +2324,7 @@
 
 2002-05-27  Dave Love  <fx@gnu.org>
 
-	* international/mule.el (unify-8859-on-encoding-mode) 
+	* international/mule.el (unify-8859-on-encoding-mode)
 	(unify-8859-on-decoding-mode): Dummy versions.
 
 	* international/ucs-tables.el: Removed.
@@ -2522,7 +2535,7 @@
 
 	* international/mule-conf.el (ebcdic-us, ebcdic-uk): Change map
 	file name.
-	(windows-1253, windows-1254, windows-1255, windows-1256) 
+	(windows-1253, windows-1254, windows-1255, windows-1256)
 	(windows-1257, windows-1258, next): New charsets.
 
 	* international/utf-8.el, international/utf-8-subst.el: Removed.
@@ -2558,8 +2571,8 @@
 	(describe-coding-system): Use keyword properties.
 	(describe-character-set): Re-written.
 
-	* international/mule-conf.el (koi8-u, koi8-t, georgian-ps) 
-	(windows-1250, windows-1251, windows-1252, cp1125, ebcdic-us) 
+	* international/mule-conf.el (koi8-u, koi8-t, georgian-ps)
+	(windows-1250, windows-1251, windows-1252, cp1125, ebcdic-us)
 	(ebcdic-uk): New charsets.
 
 	* language/cyrillic.el (koi8-u, koi8-t, windows-1251, cp1125): New
@@ -2614,17 +2627,17 @@
 	* mail/sendmail.el (sendmail-send-it): Use :mime-charset, not
 	mime-charset.
 
-	* language/vietnamese.el, language/korean.el, language/japanese.el: 
-	* language/hebrew.el, language/greek.el, language/chinese.el: 
+	* language/vietnamese.el, language/korean.el, language/japanese.el:
+	* language/hebrew.el, language/greek.el, language/chinese.el:
 	Fix :mime-charset properties.
 
-	* language/cyrillic.el (cyrillic-iso-8bit, cyrillic-koi8) 
+	* language/cyrillic.el (cyrillic-iso-8bit, cyrillic-koi8)
 	(cyrillic-alternativnyj): Fix :mime-charset.
 	(cp878, cp866): New alias.
 
 	* language/european.el: Fix mime-charset properties.
 
-	* international/mule-cmds.el (sort-coding-systems) 
+	* international/mule-cmds.el (sort-coding-systems)
 	(select-safe-coding-system, select-message-coding-system): Use
 	:mime-charset, not 'mime-charset.
 
