@@ -1,3 +1,9 @@
+2007-05-29  Martin Rudalics  <rudalics@gmx.at>
+
+	* textmodes/table.el (table--point-entered-cell-function)
+	(table--point-left-cell-function): Bind
+	`inhibit-point-motion-hooks' to t.
+
 2007-05-29  Nikolaj Schumacher  <n_schumacher@web.de>  (tiny change)
 
 	* emacs-lisp/rx.el (rx): Doc fix.
@@ -37,6 +43,16 @@
 	because of XEmacs.
 	(tramp-completion-mode): `last-input-event' is nil when XEmacs is
 	started.
+
+2007-05-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/sgml-mode.el (sgml-point-entered): Use condition-case.
+
+2007-05-27  Tetsurou Okazaki  <okazaki@be.to>  (tiny change)
+
+	* log-edit.el (log-edit-changelog-paragraph): Return point-max
+	as the end of the ChangeLog paragraph when it ends without a line
+	termination.
 
 2007-05-27  Ryan Yeske  <rcyeske@gmail.com>
 

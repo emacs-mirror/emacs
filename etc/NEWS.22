@@ -1949,11 +1949,11 @@ old name remains available as alias, but has been marked obsolete.
 
 If point is at the end of a file buffer before reverting, Auto Revert
 mode keeps it at the end after reverting.  Similarly if point is
-displayed at the end of a file buffer in any window, it stays at
-the end of the buffer in that window.  This allows you to tail a file:
-just put point at the end of the buffer and it stays there.  This
-rule applies to file buffers.  For non-file buffers, the behavior can
-be mode dependent.
+displayed at the end of a file buffer in any window, it stays at the end
+of the buffer in that window.  This allows you to "tail" a file: just
+put point at the end of the buffer and it stays there.  This rule
+applies to file buffers.  For non-file buffers, the behavior can be mode
+dependent.
 
 If you are sure that the file will only change by growing at the end,
 then you can tail the file more efficiently by using the new minor
