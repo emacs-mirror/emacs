@@ -1,3 +1,7 @@
+2007-05-29  Robert J. Chassell  <bob@rattlesnake.com>
+
+	* NEWS: Fix instances of `allow' without object.
+
 2007-05-17  Glenn Morris  <rgm@gnu.org>
 
 	* PROBLEMS (Dumping): Mention OpenBSD macppc problem.
