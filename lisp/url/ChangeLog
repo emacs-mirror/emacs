@@ -2,7 +2,7 @@
 
 	* url-mailto.el (url-mailto): Insert body after
 	mail-header-separator if present, so that it is before signature.
-	Suggested by Leo <sdl.web@gmail.com>.
+	Bug reported by Leo <sdl.web@gmail.com>.
 
 2007-04-15  Chong Yidong  <cyd@stupidchicken.com>
 
