@@ -1,3 +1,7 @@
+2007-05-29  Nikolaj Schumacher  <n_schumacher@web.de>  (tiny change)
+
+	* emacs-lisp/rx.el (rx): Doc fix.
+
 2007-05-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/idlwave.el (idlwave-routines): Fix typo in docstring.
