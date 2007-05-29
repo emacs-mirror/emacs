@@ -1,3 +1,9 @@
+2007-05-29  Martin Rudalics  <rudalics@gmx.at>
+
+	* textmodes/table.el (table--point-entered-cell-function)
+	(table--point-left-cell-function): Bind
+	`inhibit-point-motion-hooks' to t.
+
 2007-05-29  Nikolaj Schumacher  <n_schumacher@web.de>  (tiny change)
 
 	* emacs-lisp/rx.el (rx): Doc fix.
