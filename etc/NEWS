@@ -442,7 +442,7 @@ same string that would be displayed on mouse-over using the
 `help-echo' property, but, in certain cases, it can display a more
 keyboard oriented alternative.
 
-*** New user option `help-at-pt-display-when-idle' allows to
+*** New user option `help-at-pt-display-when-idle' allows you to
 automatically show the help provided by `display-local-help' on
 point-over, after suitable idle time.  The amount of idle time is
 determined by the user option `help-at-pt-timer-delay' and defaults
@@ -1950,7 +1950,7 @@ old name remains available as alias, but has been marked obsolete.
 If point is at the end of a file buffer before reverting, Auto Revert
 mode keeps it at the end after reverting.  Similarly if point is
 displayed at the end of a file buffer in any window, it stays at
-the end of the buffer in that window.  This allows to tail a file:
+the end of the buffer in that window.  This allows you to tail a file:
 just put point at the end of the buffer and it stays there.  This
 rule applies to file buffers.  For non-file buffers, the behavior can
 be mode dependent.
@@ -3047,7 +3047,7 @@ struct members in C, members variables in C++ and variables in PHP.
 
 *** Support for `movemail' from GNU mailutils was added to Rmail.
 
-This version of `movemail' allows to read mail from a wide range of
+This version of `movemail' allows you to read mail from a wide range of
 mailbox formats, including remote POP3 and IMAP4 mailboxes with or
 without TLS encryption.  If GNU mailutils is installed on the system
 and its version of `movemail' can be found in exec-path, it will be
