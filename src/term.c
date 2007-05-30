@@ -2382,7 +2382,8 @@ set_tty_color_mode (f, val)
  ***********************************************************************/
 
 #ifdef HAVE_GPM
-void term_mouse_moveto (int x, int y)
+void
+term_mouse_moveto (int x, int y)
 {
   const char *name;
   int fd;
