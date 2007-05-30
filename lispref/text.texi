@@ -2953,6 +2953,11 @@ meanings.  The following sections list a few additional special property
 names that control filling and property inheritance.  All other names
 have no standard meaning, and you can use them as you like.
 
+  Note: the properties @code{composition}, @code{display},
+@code{invisible} and @code{intangible} can also cause point to move to
+an acceptable place, after each Emacs command.  @xref{Adjusting
+Point}.
+
 @table @code
 @cindex property category of text character
 @kindex category @r{(text property)}
@@ -3139,6 +3144,10 @@ If a group of consecutive characters have equal and non-@code{nil}
 If you try to move point forward into the group, point actually moves to
 the end of the group.  If you try to move point backward into the group,
 point actually moves to the start of the group.
+
+If consecutive characters have unequal non-@code{nil}
+@code{intangible} properties, they belong to separate groups; each
+group is separately treated as described above.
 
 When the variable @code{inhibit-point-motion-hooks} is non-@code{nil},
 the @code{intangible} property is ignored.
