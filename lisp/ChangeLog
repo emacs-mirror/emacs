@@ -1,3 +1,11 @@
+2007-05-30  Michael Olson  <mwolson@gnu.org>
+
+	* emacs-lisp/tq.el (tq-queue-pop): Stifle error when a process has
+	died and we are trying to send a signal to it.  The program using
+	tq.el should periodically check to see whether the process has
+	died and react appropriately -- this is not the responsibility of
+	tq.el, and is consistent with the rest of the tq.el source code.
+
 2007-05-29  Martin Rudalics  <rudalics@gmx.at>
 
 	* textmodes/table.el (table--point-entered-cell-function)
