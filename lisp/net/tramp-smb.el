@@ -31,12 +31,7 @@
 (require 'tramp)
 
 ;; Pacify byte-compiler
-(eval-when-compile
-  (require 'cl)
-  (require 'custom)
-  ;; Emacs 19.34 compatibility hack -- is this needed?
-  (or (>= emacs-major-version 20)
-      (load "cl-seq")))
+(eval-when-compile (require 'custom))
 
 ;; Avoid byte-compiler warnings if the byte-compiler supports this.
 ;; Currently, XEmacs supports this.

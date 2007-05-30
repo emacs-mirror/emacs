@@ -6417,7 +6417,7 @@ next_element_from_buffer (it)
 	it->c = *p, it->len = 1;
 
       /* Record what we have and where it came from.  */
-      it->what = IT_CHARACTER;;
+      it->what = IT_CHARACTER;
       it->object = it->w->buffer;
       it->position = it->current.pos;
 
@@ -10996,7 +10996,7 @@ redisplay_internal (preserve_echo_area)
   int must_finish = 0;
   struct text_pos tlbufpos, tlendpos;
   int number_of_visible_frames;
-  int count;
+  int count, count1;
   struct frame *sf;
   int polling_stopped_here = 0;
 
@@ -11134,6 +11134,10 @@ redisplay_internal (preserve_echo_area)
 	update_mode_lines++;
     }
 
+  /* Avoid invocation of point motion hooks by `current_column' below.  */
+  count1 = SPECPDL_INDEX ();
+  specbind (Qinhibit_point_motion_hooks, Qt);
+
   /* If %c is in the mode line, update it if needed.  */
   if (!NILP (w->column_number_displayed)
       /* This alternative quickly identifies a common case
@@ -11144,6 +11148,8 @@ redisplay_internal (preserve_echo_area)
       && (XFASTINT (w->column_number_displayed)
           != (int) current_column ()))  /* iftc */
     w->update_mode_line = Qt;
+
+  unbind_to (count1, Qnil);
 
   FRAME_SCROLL_BOTTOM_VPOS (XFRAME (w->frame)) = -1;
 

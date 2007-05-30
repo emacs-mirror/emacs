@@ -538,7 +538,7 @@ If we are between paragraphs, return the previous paragraph."
             (point))
           (if (re-search-forward "^[ \t\n]*$" nil t)
               (match-beginning 0)
-            (point)))))
+            (point-max)))))
 
 (defun log-edit-changelog-subparagraph ()
   "Return the bounds of the ChangeLog subparagraph containing point.

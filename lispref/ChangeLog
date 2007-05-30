@@ -1,3 +1,9 @@
+2007-05-30  Nick Roberts  <nickrob@snap.net.nz>
+
+	* commands.texi (Click Events): Layout more logically.  Describe
+	width and height.
+	(Drag Events, Motion Events): Update to new format for position.
+
 2007-05-12  Richard Stallman  <rms@gnu.org>
 
 	* text.texi (Margins): indent-to-left-margin is not the default.

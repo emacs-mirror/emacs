@@ -8477,7 +8477,7 @@ syms_of_xfaces ()
   staticpro (&QCforeground);
   QCbackground = intern (":background");
   staticpro (&QCbackground);
-  QCstipple = intern (":stipple");;
+  QCstipple = intern (":stipple");
   staticpro (&QCstipple);
   QCwidth = intern (":width");
   staticpro (&QCwidth);

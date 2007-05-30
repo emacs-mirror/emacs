@@ -100,8 +100,9 @@ to a tcp server on another machine."
 (defun tq-queue-pop (tq)
   (setcar tq (cdr (car tq)))
   (let ((question (tq-queue-head-question tq)))
-    (when question
-      (process-send-string (tq-process tq) question)))
+    (condition-case nil
+	(process-send-string (tq-process tq) question)
+      (error nil)))
   (null (car tq)))
 
 (defun tq-enqueue (tq question regexp closure fn &optional delay-question)

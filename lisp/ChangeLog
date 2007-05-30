@@ -1,3 +1,72 @@
+2007-05-30  Michael Olson  <mwolson@gnu.org>
+
+	* emacs-lisp/tq.el (tq-queue-pop): Stifle error when a process has
+	died and we are trying to send a signal to it.  The program using
+	tq.el should periodically check to see whether the process has
+	died and react appropriately -- this is not the responsibility of
+	tq.el, and is consistent with the rest of the tq.el source code.
+
+2007-05-29  Martin Rudalics  <rudalics@gmx.at>
+
+	* textmodes/table.el (table--point-entered-cell-function)
+	(table--point-left-cell-function): Bind
+	`inhibit-point-motion-hooks' to t.
+
+2007-05-29  Nikolaj Schumacher  <n_schumacher@web.de>  (tiny change)
+
+	* emacs-lisp/rx.el (rx): Doc fix.
+
+2007-05-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/idlwave.el (idlwave-routines): Fix typo in docstring.
+
+2007-05-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.56.
+
+	* net/tramp.el:
+	* net/tramp-ftp.el:
+	* net/tramp-smb.el:
+	* net/tramp-util.el:
+	* net/tramp-vc.el:
+	Don't load cl.el, because that pollutes the namespace.  Replace cl
+	macros by their implementations where necessary.  Requested by
+	Richard Stallman <rms@gnu.org>.
+
+	* net/tramp.el (top): Make `set-buffer-multibyte' an alias if it
+	doesn't exist.
+	(with-parsed-tramp-file-name): Protect debug spec during
+	compilation.
+	(tramp-handle-insert-directory): Check (featurep 'ls-lisp).
+	(tramp-file-name-p, tramp-file-name-multi-method)
+	(tramp-file-name-method, tramp-file-name-user)
+	(tramp-file-name-host, tramp-file-name-localname): New defuns,
+	replacing defstruct `tramp-file-name'.
+	(tramp-handle-file-remote-p, tramp-completion-dissect-file-name1)
+	(tramp-dissect-file-name, tramp-dissect-multi-file-name): Apply
+	`vector' instead of `make-tramp-file-name'.
+	(tramp-handle-make-auto-save-file-name): Apply
+	`tramp-temporary-file-directory' for compatibility reasons.
+	(tramp-completion-mode): Use `natnump' instead of `wholenump'
+	because of XEmacs.
+	(tramp-completion-mode): `last-input-event' is nil when XEmacs is
+	started.
+
+2007-05-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/sgml-mode.el (sgml-point-entered): Use condition-case.
+
+2007-05-27  Tetsurou Okazaki  <okazaki@be.to>  (tiny change)
+
+	* log-edit.el (log-edit-changelog-paragraph): Return point-max
+	as the end of the ChangeLog paragraph when it ends without a line
+	termination.
+
+2007-05-27  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/webjump.el (webjump-sample-sites):
+	Add simple Wikipedia query.
+
 2007-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/derived.el (define-derived-mode): Remove bogus

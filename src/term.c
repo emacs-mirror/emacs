@@ -427,7 +427,7 @@ int term_gpm = 0;
 static int mouse_face_beg_row, mouse_face_beg_col;
 static int mouse_face_end_row, mouse_face_end_col;
 static int mouse_face_past_end;
-static Lisp_Object mouse_face_window;
+static Lisp_Object Qmouse_face_window;
 static int mouse_face_face_id;
 
 /* FRAME and X, Y position of mouse when last checked for
@@ -2494,10 +2494,23 @@ set_tty_color_mode (f, val)
  ***********************************************************************/
 
 #ifdef HAVE_GPM
+void term_mouse_moveto (int x, int y)
+{
+  const char *name;
+  int fd;
+  name = (const char *) ttyname (0);
+  fd = open (name, O_WRONLY);
+  /* TODO: how to set mouse position?
+     SOME_FUNCTION (x, y, fd);  */
+  close (fd);
+  last_mouse_x = x;
+  last_mouse_y = y;
+}
+
 static void
 term_show_mouse_face (enum draw_glyphs_face draw)
 {
-  struct window *w = XWINDOW (mouse_face_window);
+  struct window *w = XWINDOW (Qmouse_face_window);
   int save_x, save_y;
   int i, j;
 
@@ -2573,12 +2586,12 @@ term_show_mouse_face (enum draw_glyphs_face draw)
 static void
 term_clear_mouse_face ()
 {
-  if (!NILP (mouse_face_window))
+  if (!NILP (Qmouse_face_window))
     term_show_mouse_face (DRAW_NORMAL_TEXT);
 
   mouse_face_beg_row = mouse_face_beg_col = -1;
   mouse_face_end_row = mouse_face_end_col = -1;
-  mouse_face_window = Qnil;
+  Qmouse_face_window = Qnil;
 }
 
 /* Find the glyph matrix position of buffer position POS in window W.
@@ -2679,7 +2692,7 @@ term_mouse_highlight (struct frame *f, int x, int y)
   if (!WINDOWP (window))
     return;
 
-  if (!EQ (window, mouse_face_window))
+  if (!EQ (window, Qmouse_face_window))
     term_clear_mouse_face ();
 
   w = XWINDOW (window);
@@ -2737,7 +2750,7 @@ term_mouse_highlight (struct frame *f, int x, int y)
       {
 	extern Lisp_Object Qmouse_face;
 	Lisp_Object mouse_face, overlay, position, *overlay_vec;
-	int noverlays, obegv, ozv;;
+	int noverlays, obegv, ozv;
 	struct buffer *obuf;
 
 	/* If we get an out-of-range value, return now; avoid an error.  */
@@ -2762,7 +2775,7 @@ term_mouse_highlight (struct frame *f, int x, int y)
 	noverlays = sort_overlays (overlay_vec, noverlays, w);
 
 	/* Check mouse-face highlighting.  */
-	if (!(EQ (window, mouse_face_window)
+	if (!(EQ (window, Qmouse_face_window)
 	      && y >= mouse_face_beg_row
 	      && y <= mouse_face_end_row
 	      && (y > mouse_face_beg_row
@@ -2812,7 +2825,7 @@ term_mouse_highlight (struct frame *f, int x, int y)
 		  = !fast_find_position (w, XFASTINT (after),
 					 &mouse_face_end_col,
 					 &mouse_face_end_row);
-		mouse_face_window = window;
+		Qmouse_face_window = window;
 
 		mouse_face_face_id
 		  = face_at_buffer_position (w, pos, 0, 0,
@@ -2847,7 +2860,7 @@ term_mouse_highlight (struct frame *f, int x, int y)
 		  = !fast_find_position (w, XFASTINT (after),
 					 &mouse_face_end_col,
 					 &mouse_face_end_row);
-		mouse_face_window = window;
+		Qmouse_face_window = window;
 
 		mouse_face_face_id
 		  = face_at_buffer_position (w, pos, 0, 0,
@@ -2934,33 +2947,31 @@ term_mouse_movement (FRAME_PTR frame, Gpm_Event *event)
    Set *time to the time the mouse was at the returned position.
 
    This should clear mouse_moved until the next motion
-   event arrives.
-
-   NOT CURRENTLY INVOKED: see mouse_position_hook below.  */
+   event arrives.  */
 static void
 term_mouse_position (FRAME_PTR *fp, int insist, Lisp_Object *bar_window,
 		     enum scroll_bar_part *part, Lisp_Object *x,
 		     Lisp_Object *y, unsigned long *time)
 {
-  Gpm_Event event;
   struct timeval now;
-  int i;
-
-  BLOCK_INPUT;
+  Lisp_Object frame, window;
+  struct window *w;
 
   *fp = SELECTED_FRAME ();
+  (*fp)->mouse_moved = 0;
 
   *bar_window = Qnil;
   *part = 0;
 
-  i = Gpm_GetSnapshot (&event);
+  XSETINT (*x, last_mouse_x); 
+  XSETINT (*y, last_mouse_y);
+  XSETFRAME (frame, *fp);
+  window = Fwindow_at (*x, *y, frame);
 
-  XSETINT (*x, event.x);
-  XSETINT (*y, event.y);
+  XSETINT (*x, last_mouse_x - WINDOW_LEFT_EDGE_COL (XWINDOW (window)));
+  XSETINT (*y, last_mouse_y - WINDOW_TOP_EDGE_LINE (XWINDOW (window)));
   gettimeofday(&now, 0);
   *time = (now.tv_sec * 1000) + (now.tv_usec / 1000);
-
-  UNBLOCK_INPUT;
 }
 
 /* Prepare a mouse-event in *RESULT for placement in the input queue.
@@ -3059,7 +3070,7 @@ handle_one_term_event (Gpm_Event *event, struct input_event* hold_quit)
     name = (const char *) ttyname (0);
     fd = open (name, O_WRONLY);
     ioctl (fd, TIOCLINUX, buf + sizeof (short) - 1);
-    close(fd);
+    close (fd);
 
     term_mouse_movement (f, event);
 
@@ -3074,7 +3085,6 @@ handle_one_term_event (Gpm_Event *event, struct input_event* hold_quit)
   else {
     f->mouse_moved = 0;
     term_mouse_click (&ie, event, f);
-    //kbd_buffer_store_event_hold (&ie, hold_quit);
   }
 
  done:
@@ -3159,11 +3169,8 @@ term_init (terminal_type)
   encode_terminal_dst_size = 0;
 
 #ifdef HAVE_GPM
-  /* TODO: Can't get Gpm_Snapshot in term_mouse_position to work: test with
-     (mouse-position).  Also set-mouse-position won't work as is.  */
-  /* mouse_position_hook = term_mouse_position;  */
-
-  mouse_face_window = Qnil;
+  mouse_position_hook = term_mouse_position;
+  Qmouse_face_window = Qnil;
 #endif
 
 #ifdef WINDOWSNT
@@ -3616,6 +3623,8 @@ bigger, or it may make it blink, or it may do nothing at all.  */);
 #ifdef HAVE_GPM
   defsubr (&Sterm_open_connection);
   defsubr (&Sterm_close_connection);
+
+  staticpro (&Qmouse_face_window);
 #endif /* HAVE_GPM */
 
   fullscreen_hook = NULL;

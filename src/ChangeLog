@@ -1,3 +1,21 @@
+2007-05-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (redisplay_internal): Bind inhibit-point-motion-hooks to t
+	around current_column call.
+
+2007-05-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xfaces.c (syms_of_xfaces): Delete stray semicolon.
+	* xdisp.c (next_element_from_buffer): 
+	* window.c (delete_window): 
+	* term.c (term_mouse_highlight): 
+	* msdos.c (getdefdir): 
+	* macterm.c (mac_create_bitmap_from_bitmap_data)
+	(init_font_name_table): 
+	* fns.c (Fsxhash): 
+	* data.c (Fmake_local_variable): 
+	* ccl.c (ccl_driver): Likewise.
+
 2007-05-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c [USE_CARBON_EVENTS] (mac_handle_window_event):
