@@ -81,7 +81,7 @@ XMakeAssoc(dpy, table, x_id, data)
 	/* If we are here then the new entry should be inserted just */
 	/* before the current value of "Entry". */
 	/* Create a new XAssoc and load it with new provided data. */
-	new_entry = (XAssoc *) xmalloc(sizeof(XAssoc));
+	new_entry = (XAssoc *) malloc(sizeof(XAssoc));
 	new_entry->display = dpy;
 	new_entry->x_id = x_id;
 	new_entry->data = data;
