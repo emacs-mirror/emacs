@@ -1,3 +1,7 @@
+2007-05-30  Richard Stallman  <rms@gnu.org>
+
+	* text.texi (Special Properties): Add link to Adjusting Point.
+
 2007-05-12  Richard Stallman  <rms@gnu.org>
 
 	* text.texi (Margins): indent-to-left-margin is not the default.
