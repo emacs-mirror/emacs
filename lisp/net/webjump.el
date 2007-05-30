@@ -229,6 +229,8 @@
     ("Yahoo" .
      [simple-query "www.yahoo.com" "search.yahoo.com/search?p=" ""])
     ("Yahoo: Reference" . "www.yahoo.com/Reference/")
+    ("Wikipedia" .
+     [simple-query "wikipedia.org" "wikipedia.org/wiki/" ""])
 
     ;; Misc. general interest.
     ("Interactive Weather Information Network" . webjump-to-iwin)

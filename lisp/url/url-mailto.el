@@ -100,7 +100,9 @@
     (while args
       (if (string= (caar args) "body")
 	  (progn
-	    (goto-char (point-max))
+	    (goto-char (point-min))
+	    (or (search-forward (concat "\n" mail-header-separator "\n") nil t)
+	    	(goto-char (point-max)))
 	    (insert (mapconcat 
 		     #'(lambda (string)
 			 (replace-regexp-in-string "\r\n" "\n" string))

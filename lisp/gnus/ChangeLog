@@ -1,3 +1,8 @@
+2007-05-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-pop-to-buffer): Add switch-function argument.
+	(message-mail): Pass switch-function argument to it.
+
 2007-05-24  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* message.el (message-narrow-to-headers-or-head): Ignore

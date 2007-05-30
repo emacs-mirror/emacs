@@ -4342,7 +4342,7 @@ catalog \('lib).")
 (defvar idlwave-true-path-alist nil
   "Like `idlwave-path-alist', but with true filenames.")
 (defvar idlwave-routines nil
-  "Holds the combinded procedure/function/method routine-info.")
+  "Holds the combined procedure/function/method routine-info.")
 (defvar idlwave-class-alist nil
   "Holds the class names known to IDLWAVE.")
 (defvar idlwave-class-history nil
@@ -4846,7 +4846,7 @@ Gets set in cached XML rinfo, or `idlw-rinfo.el'.")
   ;; Create a sysvar list entry from the xml parsed list.
   (let* ((nameblock (nth 1 xml-entry))
 	 (name (cdr (assq 'name nameblock)))
-	 (sysvar (substring name (progn (string-match "^ *!" name) 
+	 (sysvar (substring name (progn (string-match "^ *!" name)
 					(match-end 0))))
 	 (link (cdr (assq 'link nameblock)))
 	 (params (cddr xml-entry))

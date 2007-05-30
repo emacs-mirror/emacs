@@ -1584,7 +1584,7 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
       {
 	extern Lisp_Object Qmouse_face;
 	Lisp_Object mouse_face, overlay, position, *overlay_vec;
-	int noverlays, obegv, ozv;;
+	int noverlays, obegv, ozv;
 	struct buffer *obuf;
 
 	/* If we get an out-of-range value, return now; avoid an error.  */
@@ -4071,7 +4071,7 @@ getdefdir (drive, dst)
      int drive;
      char *dst;
 {
-  char in_path[4], *p = in_path, e = errno;;
+  char in_path[4], *p = in_path, e = errno;
 
   /* Generate "X:." (when drive is X) or "." (when drive is 0).  */
   if (drive != 0)

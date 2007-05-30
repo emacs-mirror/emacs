@@ -896,16 +896,19 @@ With prefix argument ARG, repeat this ARG times."
   ;; Show preceding or following hidden tag, depending of cursor direction.
   (let ((inhibit-point-motion-hooks t))
     (save-excursion
-      (message "Invisible tag: %s"
-	       ;; Strip properties, otherwise, the text is invisible.
-	       (buffer-substring-no-properties
-		(point)
-		(if (or (and (> x y)
-			     (not (eq (following-char) ?<)))
-			(and (< x y)
-			     (eq (preceding-char) ?>)))
-		    (backward-list)
-		  (forward-list)))))))
+      (condition-case nil
+	  (message "Invisible tag: %s"
+		   ;; Strip properties, otherwise, the text is invisible.
+		   (buffer-substring-no-properties
+		    (point)
+		    (if (or (and (> x y)
+				 (not (eq (following-char) ?<)))
+			    (and (< x y)
+				 (eq (preceding-char) ?>)))
+			(backward-list)
+		      (forward-list))))
+	(error nil)))))
+
 
 
 (defun sgml-validate (command)

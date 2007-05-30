@@ -10,8 +10,6 @@ ren emacs.exe emacs.exe.orig
 
 :dump
 rem Overwrites emacs.exe if still present
-mkdir ..\lib-src
-copy fns* ..\lib-src
 mkdir obj
 mkdir obj\i386
 mkdir obj\etc

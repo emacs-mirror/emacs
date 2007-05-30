@@ -1795,6 +1795,13 @@ before calling this function on it, like this.
       Fselect_frame (frame);
       mouse_moveto (XINT (x), XINT (y));
     }
+#else
+#ifdef HAVE_GPM
+    {
+      Fselect_frame (frame);
+      term_mouse_moveto (XINT (x), XINT (y));
+    }
+#endif
 #endif
 #endif
 

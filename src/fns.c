@@ -5215,7 +5215,7 @@ DEFUN ("sxhash", Fsxhash, Ssxhash, 1, 1, 0,
      (obj)
      Lisp_Object obj;
 {
-  unsigned hash = sxhash (obj, 0);;
+  unsigned hash = sxhash (obj, 0);
   return make_number (hash);
 }
 

@@ -2452,27 +2452,6 @@ This results from a bug in a VERY old version of GNU Sed.  To solve
 the problem, install the current version of GNU Sed, then rerun
 Emacs's configure script.
 
-*** Compiling on GNU/Linux fails due to a missing left operand in gnu-linux.h.
-
-The error messages have the form:
-
-  ../src/s/gnu-linux.h:49:24: error: operator '>' has no left operand
-
-This error occurs because your system defines LINUX_VERSION_CODE in
-the standard header file linux/version.h but does not give it a value.
-As a workaround, you can edit the file src/s/gnu-linux.h to add the
-needed definition.  On the line after "#include <linux/version.h>",
-add a line as shown below:
-
-#include <linux/version.h>
-#define LINUX_VERSION_CODE 132626
-
-The number to use depends on your kernel version (the example shown is
-for kernel 2.6.18).  The number can be obtained by running the
-following command in the shell:
-
-uname -r | sed -e 's/\./ /g' -e 's/-.*//' | awk '{print $1*(2^16) + $2*(2^8) + $3}'
-
 *** Building a 32-bit executable on a 64-bit GNU/Linux architecture.
 
 First ensure that the necessary 32-bit system libraries and include

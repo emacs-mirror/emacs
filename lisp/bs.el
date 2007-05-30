@@ -1221,10 +1221,13 @@ by buffer configuration `bs-cycle-configuration-name'."
 					bs--cycle-list)))
 	     (next (car tupel))
 	     (cycle-list (cdr tupel)))
+	(unless (window-dedicated-p (selected-window))
+	  ;; We don't want the frame iconified if the only window in the frame
+	  ;; happens to be dedicated; let's get the error from switch-to-buffer
+	  (bury-buffer))
+	(switch-to-buffer next)
 	(setq bs--cycle-list (append (cdr cycle-list)
 				     (list (car cycle-list))))
-	(bury-buffer)
-	(switch-to-buffer next)
 	(bs-message-without-log "Next buffers: %s"
 				(or (cdr bs--cycle-list)
 				    "this buffer"))))))
@@ -1251,9 +1254,9 @@ by buffer configuration `bs-cycle-configuration-name'."
 					    bs--cycle-list)))
 	     (prev-buffer (car tupel))
 	     (cycle-list (cdr tupel)))
+	(switch-to-buffer prev-buffer)
 	(setq bs--cycle-list (append (last cycle-list)
 				     (reverse (cdr (reverse cycle-list)))))
-	(switch-to-buffer prev-buffer)
 	(bs-message-without-log "Previous buffers: %s"
 				(or (reverse (cdr bs--cycle-list))
 				    "this buffer"))))))
