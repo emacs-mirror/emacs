@@ -1,6 +1,7 @@
 2007-05-31  Jason Rumney  <jasonr@gnu.org>
 
 	* font.c (Ffont_get): Use font driver to determine otf capability.
+	(adjust_anchor): Check if driver defines anchor_point before using.
 
 	* w32font.c (w32font_open): Handle size, height and pixel_size better.
 	(w32font_draw): Use options.
