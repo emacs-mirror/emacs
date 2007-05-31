@@ -1356,13 +1356,9 @@ x_draw_glyph_string_foreground (s)
 #ifdef USE_FONT_BACKEND
   else if (enable_font_backend)
     {
-      unsigned *code = alloca (sizeof (unsigned) * s->nchars);
       int boff = s->font_info->baseline_offset;
       struct font *font = (struct font *) s->font_info;
       int y;
-
-      for (i = 0; i < s->nchars; i++)
-	code[i] = (s->char2b[i].byte1 << 8) | s->char2b[i].byte2;
 
       if (s->font_info->vertical_centering)
 	boff = VCENTER_BASELINE_OFFSET (s->font, s->f) - boff;
