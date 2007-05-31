@@ -2410,7 +2410,9 @@ Anything else, ask for each sub-directory."
 (defun dired-do-flagged-delete (&optional nomessage)
   "In Dired, delete the files flagged for deletion.
 If NOMESSAGE is non-nil, we don't display any message
-if there are no flagged files."
+if there are no flagged files.
+`dired-recursive-deletes' controls whether 
+deletion of non-empty directories is allowed."
   (interactive)
   (let* ((dired-marker-char dired-del-marker)
 	 (regexp (dired-marker-regexp))
@@ -2426,7 +2428,9 @@ if there are no flagged files."
 	  (message "(No deletions requested)")))))
 
 (defun dired-do-delete (&optional arg)
-  "Delete all marked (or next ARG) files."
+  "Delete all marked (or next ARG) files.
+`dired-recursive-deletes' controls whether 
+deletion of non-empty directories is allowed."
   ;; This is more consistent with the file marking feature than
   ;; dired-do-flagged-delete.
   (interactive "P")
