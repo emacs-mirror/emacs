@@ -2998,11 +2998,10 @@ FONT is a font-spec, a font-entity, or a font-object.  */)
 
       if (EQ (prop, QCotf))
 	{
-#ifdef HAVE_LIBOTF
-	  return font_otf_capability (fontp);
-#else  /* not HAVE_LIBOTF */
-	  return Qnil;
-#endif	/* not HAVE_LIBOTF */
+          if (fontp->driver->otf_capability)
+            return fontp->driver->otf_capability (fontp);
+          else
+            return Qnil;
 	}
       font = fontp->entity;
     }
