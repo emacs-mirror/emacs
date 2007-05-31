@@ -1,5 +1,9 @@
 2007-05-31  Jason Rumney  <jasonr@gnu.org>
 
+	* font.c (font_put_extra): Expose externally.
+
+	* font.h (font_put_extra): Moved declaration from font.c.
+
 	* font.c (Ffont_get): Use font driver to determine otf capability.
 	(adjust_anchor): Check if driver defines anchor_point before using.
 
