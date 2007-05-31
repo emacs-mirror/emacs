@@ -222,7 +222,7 @@ w32font_open (f, font_entity, pixel_size)
   if (size == 0)
     size = pixel_size;
 
-  logfont.lfHeight = size;
+  logfont.lfHeight = -size;
   hfont = CreateFontIndirect (&logfont);
 
   if (hfont == NULL)
