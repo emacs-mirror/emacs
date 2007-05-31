@@ -4147,7 +4147,7 @@ x_default_font_parameter (f, parms)
     {
       int i;
       static char *names[]
-        = { "-*-Courier New-normal-r-*-*-*-100-*-*-c-*-iso8859-1",
+        = { "Courier New-10",
             "-*-Courier-normal-r-*-*-13-*-*-*-c-*-iso8859-1",
             "-*-Fixedsys-normal-r-*-*-12-*-*-*-c-*-iso8859-1",
             "Fixedsys",
@@ -4296,6 +4296,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
       /* use the frame's title when getting resources for this frame.  */
       specbind (Qx_resource_name, name);
     }
+
+  f->resx = dpyinfo->resx;
+  f->resy = dpyinfo->resy;
 
 #ifdef USE_FONT_BACKEND
   if (enable_font_backend)
@@ -7394,6 +7397,9 @@ x_create_tip_frame (dpyinfo, parms, text)
       /* use the frame's title when getting resources for this frame.  */
       specbind (Qx_resource_name, name);
     }
+
+  f->resx = dpyinfo->resx;
+  f->resy = dpyinfo->resy;
 
 #ifdef USE_FONT_BACKEND
   if (enable_font_backend)
