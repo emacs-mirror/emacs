@@ -1,3 +1,7 @@
+2007-06-01  Jason Rumney  <jasonr@gnu.org>
+
+	* term/w32-win.el: Don't create fontset from command-line font.
+
 2007-05-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* international/mule-cmds.el (toggle-enable-multibyte-characters)
