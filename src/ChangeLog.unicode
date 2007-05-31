@@ -1,5 +1,7 @@
 2007-05-31  Jason Rumney  <jasonr@gnu.org>
 
+	* font.c (Ffont_get): Use font driver to determine otf capability.
+
 	* w32font.c (w32font_open): Handle size, height and pixel_size better.
 	(w32font_draw): Use options.
 	(w32_enumfont_pattern_entity): Set size to 0 for scalable fonts.
