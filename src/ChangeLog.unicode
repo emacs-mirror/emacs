@@ -1,3 +1,10 @@
+2007-06-01  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_open): Make lfHeight negative.
+
+	* w32fns.c (x_default_font_parameter): Use new style font name.
+	(Fx_create_frame, x_create_tip_frame): Initialize resx and resy.
+
 2007-05-31  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (QCsubranges): New symbol.
