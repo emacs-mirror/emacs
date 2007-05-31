@@ -19154,11 +19154,12 @@ fill_composite_glyph_string (s, base_face, overlaps)
 	{
 	  Lisp_Object g = LGSTRING_GLYPH (gstring, i);
 	  unsigned code;
-
+          XChar2b * store_pos;
 	  if (NILP (LGLYPH_FROM (g)))
 	    break;
 	  code = XUINT (LGLYPH_CODE (g));
-	  STORE_XCHAR2B (s->char2b + i, code >> 8, code & 0xFF);
+          store_pos = s->char2b + i;
+	  STORE_XCHAR2B (store_pos, code >> 8, code & 0xFF);
 	}
       s->width = s->cmp->pixel_width;
     }
