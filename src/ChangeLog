@@ -1,3 +1,7 @@
+2007-05-31  Richard Stallman  <rms@gnu.org>
+
+	* buffer.c (syms_of_buffer): Doc fix.
+
 2007-05-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* xdisp.c (redisplay_internal): Bind inhibit-point-motion-hooks to t
