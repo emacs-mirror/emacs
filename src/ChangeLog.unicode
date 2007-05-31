@@ -1,5 +1,8 @@
 2007-05-31  Jason Rumney  <jasonr@gnu.org>
 
+	* xterm.c (x_draw_glyph_string_foreground) [USE_FONT_BACKEND]:
+	Remove redundant loop and allocation.
+
 	* makefile.w32-in (font.o, w32font.o): New objects.
 	(fontset.o, xdisp.o, xfaces.o, w32fns.o, w32term.o): Depend on font.h
 	(FONTOBJ): New group of objects conditioned on USE_FONT_BACKEND.
