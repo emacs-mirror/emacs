@@ -4707,7 +4707,7 @@ w32_load_system_font (f,fontname,size)
     fontp->name = (char *) xmalloc (strlen (fontname) + 1);
     bcopy (fontname, fontp->name, strlen (fontname) + 1);
 
-    if (lf.lfPitchAndFamily == FIXED_PITCH)
+    if ((lf.lfPitchAndFamily & 0x03) == FIXED_PITCH)
       {
 	/* Fixed width font.  */
 	fontp->average_width = fontp->space_width = FONT_WIDTH (font);
@@ -4724,7 +4724,6 @@ w32_load_system_font (f,fontname,size)
 
 	fontp->average_width = font->tm.tmAveCharWidth;
       }
-
 
     fontp->charset = -1;
     charset = xlfd_charset_of_font (fontname);
@@ -5612,8 +5611,12 @@ x_to_w32_font (lpxstr, lplogfont)
 	lplogfont->lfHeight = atoi (height) * dpi / 720;
 
       if (fields > 0)
-      lplogfont->lfPitchAndFamily =
-	(fields > 0 && pitch == 'p') ? VARIABLE_PITCH : FIXED_PITCH;
+        {
+          if (pitch == 'p')
+            lplogfont->lfPitchAndFamily = VARIABLE_PITCH | FF_DONTCARE;
+          else if (pitch == 'c')
+            lplogfont->lfPitchAndFamily = FIXED_PITCH | FF_DONTCARE;
+        }
 
       fields--;
 
