@@ -41,7 +41,7 @@ struct w32font_info
 
 extern struct font_driver w32font_driver;
 
-Lisp_Object Qw32;
+Lisp_Object Qw32, QCsubranges;
 static Lisp_Object Qmodern, Qswiss, Qroman, Qdecorative, Qscript, Qunknown;
 
 static void fill_in_logfont P_ ((FRAME_PTR f, LOGFONT *logfont,
@@ -194,7 +194,7 @@ static struct font* w32font_open (FRAME_PTR f, Lisp_Object font_entity,
   LOGFONT logfont;
   HDC dc;
   HFONT hfont, old_font;
-  Lisp_Object val;
+  Lisp_Object val, extra;
   /* For backwards compatibility.  */
   W32FontStruct *compat_w32_font;
 
@@ -272,11 +272,19 @@ static struct font* w32font_open (FRAME_PTR f, Lisp_Object font_entity,
 
   /* Truetype fonts will have extra information about the characters
      covered by the font.  */
-  val = AREF (font_entity, FONT_EXTRA_INDEX);
-  if (XTYPE (val) == Lisp_Misc && XMISCTYPE (val) == Lisp_Misc_Save_Value)
-    ((struct w32font_info *)(font))->subranges = XSAVE_VALUE (val)->pointer;
-  else
-    ((struct w32font_info *)(font))->subranges = NULL;
+  ((struct w32font_info *)(font))->subranges = NULL;
+  extra = AREF (font_entity, FONT_EXTRA_INDEX);
+  if (CONSP (extra))
+    {
+      val = assq_no_quit (extra, QCsubranges);
+      if (CONSP (val))
+        {
+          val = XCDR (val);
+
+          if (XTYPE (val) == Lisp_Misc && XMISCTYPE (val) == Lisp_Misc_Save_Value)
+            ((struct w32font_info *)(font))->subranges = XSAVE_VALUE (val)->pointer;
+        }
+    }
 
   return font;
 }
@@ -305,12 +313,20 @@ static void w32font_close (FRAME_PTR f, struct font *font)
    it, return -1.  */
 static int w32font_has_char (Lisp_Object entity, int c)
 {
-  Lisp_Object val;
+  Lisp_Object val, extra;
   DWORD *ranges;
   int index;
   DWORD mask;
 
-  val = AREF (entity, FONT_EXTRA_INDEX);
+  extra = AREF (entity, FONT_EXTRA_INDEX);
+  if (!CONSP (extra))
+    return -1;
+
+  val = assq_no_quit (extra, QCsubranges);
+  if (!CONSP (val))
+    return -1;
+
+  val = XCDR (val);
   if (XTYPE (val) != Lisp_Misc || XMISCTYPE (val) != Lisp_Misc_Save_Value)
     return -1;
 
@@ -617,7 +633,7 @@ Lisp_Object w32_enumfont_pattern_entity (ENUMLOGFONTEX *logical_font,
     {
       DWORD *subranges = xmalloc(16);
       memcpy (subranges, physical_font->ntmFontSig.fsUsb, 16);
-      ASET (entity, FONT_EXTRA_INDEX, make_save_value (subranges, 0));
+      font_put_extra (entity, QCsubranges, make_save_value (subranges, 0));
     }
   return entity;
 }
@@ -1103,7 +1119,7 @@ void syms_of_w32font ()
   DEFSYM (Qscript, "script");
   DEFSYM (Qswiss, "swiss");
   DEFSYM (Qunknown, "unknown");
-
+  DEFSYM (QCsubranges, ":unicode-subranges");
   w32font_driver.type = Qw32;
   register_font_driver (&w32font_driver, NULL);
 }
