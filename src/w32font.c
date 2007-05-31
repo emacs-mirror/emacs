@@ -190,7 +190,7 @@ static Lisp_Object w32font_list_family (Lisp_Object frame)
 static struct font* w32font_open (FRAME_PTR f, Lisp_Object font_entity,
                                   int pixel_size)
 {
-  int len;
+  int len, size;
   LOGFONT logfont;
   HDC dc;
   HFONT hfont, old_font;
@@ -207,6 +207,11 @@ static struct font* w32font_open (FRAME_PTR f, Lisp_Object font_entity,
   bzero (&logfont, sizeof (logfont));
   fill_in_logfont (f, &logfont, font_entity);
 
+  size = XINT (AREF (font_entity, FONT_SIZE_INDEX));
+  if (size == 0)
+    size = pixel_size;
+
+  logfont.lfHeight = size;
   hfont = CreateFontIndirect (&logfont);
 
   if (hfont == NULL)
@@ -241,8 +246,9 @@ static struct font* w32font_open (FRAME_PTR f, Lisp_Object font_entity,
   font->font.full_name = font->font.name;
   font->font.charset = 0;
   font->font.codepage = 0;
-  font->font.size = logfont.lfWidth;
-  font->font.height = w32_font->metrics.tmHeight;
+  font->font.size = w32_font->metrics.tmMaxCharWidth;
+  font->font.height = w32_font->metrics.tmHeight
+    + w32_font->metrics.tmExternalLeading;
   font->font.space_width = font->font.average_width
     = w32_font->metrics.tmAveCharWidth;
 
@@ -253,7 +259,7 @@ static struct font* w32font_open (FRAME_PTR f, Lisp_Object font_entity,
   font->font.default_ascent = w32_font->metrics.tmAscent;
   font->font.font_encoder = NULL;
   font->entity = font_entity;
-  font->pixel_size = pixel_size;
+  font->pixel_size = size;
   font->driver = &w32font_driver;
   font->format = Qw32;
   font->file_name = NULL;
@@ -450,6 +456,7 @@ static int w32font_text_extents (struct font *font,
 static int w32font_draw (struct glyph_string *s, int from, int to,
                          int x, int y, int with_background)
 {
+  /* TODO: Do we need to specify ETO_GLYPH_INDEX or is char2b always utf-16?  */
   UINT options = 0;
 
   if (with_background)
@@ -459,7 +466,8 @@ static int w32font_draw (struct glyph_string *s, int from, int to,
     }
   else
     SetBkMode (s->hdc, TRANSPARENT);
-  ExtTextOutW (s->hdc, x, y, 0, NULL, s->char2b + from, to - from + 1, NULL);
+
+  ExtTextOutW (s->hdc, x, y, options, NULL, s->char2b + from, to - from, NULL);
 }
 
 /* w32 implementation of free_entity for font backend.
@@ -598,11 +606,14 @@ Lisp_Object w32_enumfont_pattern_entity (ENUMLOGFONTEX *logical_font,
   ASET (entity, FONT_WIDTH_INDEX,
         make_number (physical_font->ntmTm.tmAveCharWidth));
 
-  ASET (entity, FONT_SIZE_INDEX, make_number (abs (lf->lfHeight)));
+  if (font_type & RASTER_FONTTYPE)
+    ASET (entity, FONT_SIZE_INDEX, make_number (physical_font->ntmTm.tmHeight));
+  else
+    ASET (entity, FONT_SIZE_INDEX, make_number (0));
 
   /* Cache unicode codepoints covered by this font, as there is no other way
      of getting this information easily.  */
-  if (font_type == TRUETYPE_FONTTYPE)
+  if (font_type & TRUETYPE_FONTTYPE)
     {
       DWORD *subranges = xmalloc(16);
       memcpy (subranges, physical_font->ntmFontSig.fsUsb, 16);
@@ -647,6 +658,8 @@ static LONG registry_to_w32_charset (Lisp_Object charset)
     return DEFAULT_CHARSET; /* UNICODE_CHARSET not defined in MingW32 */
   else if (EQ (charset, Qiso8859_1))
     return ANSI_CHARSET;
+  else if (SYMBOLP (charset))
+    return x_to_w32_charset (SDATA (SYMBOL_NAME (charset)));
   else if (STRINGP (charset))
     return x_to_w32_charset (SDATA (charset));
   else
@@ -658,7 +671,10 @@ static Lisp_Object w32_registry (LONG w32_charset)
   if (w32_charset == ANSI_CHARSET)
     return Qiso8859_1;
   else
-    return build_string (w32_to_x_charset (w32_charset, NULL));
+    {
+      char * charset = w32_to_x_charset (w32_charset, NULL);
+      return intern_downcase (charset, strlen(charset));
+    }
 }
 
 static void set_fonts_frame (Lisp_Object fontlist, Lisp_Object frame)
@@ -687,14 +703,15 @@ static void fill_in_logfont (FRAME_PTR f, LOGFONT *logfont, Lisp_Object font_spe
   /* Height  */
   tmp = AREF (font_spec, FONT_SIZE_INDEX);
   if (INTEGERP (tmp))
-    logfont->lfHeight = -1 * dpi / 720 * XINT (tmp);
+    logfont->lfHeight = -1 * XINT (tmp);
   else if (FLOATP (tmp))
-    logfont->lfHeight = -1 * (int) XFLOAT(tmp);
+    logfont->lfHeight = (int) (-1.0 *  dpi * XFLOAT_DATA (tmp) / 72.0);
 
-  /* Width  */
+  /* Width  TODO: makes fonts look distorted.
   tmp = AREF (font_spec, FONT_WIDTH_INDEX);
   if (INTEGERP (tmp))
     logfont->lfWidth = XINT (tmp);
+ */
 
   /* Escapement  */
 
@@ -729,7 +746,10 @@ static void fill_in_logfont (FRAME_PTR f, LOGFONT *logfont, Lisp_Object font_spe
 
   /* Out Precision  */
   /* Clip Precision  */
-  /* Quality  */
+  /* Quality  TODO: Allow different quality to be specified, so user
+     can enable/disable anti-aliasing for individual fonts.  */
+  logfont->lfQuality = DEFAULT_QUALITY;
+
   /* Pitch and Family  */
   /* Facename  TODO: handle generic names  */
   tmp = AREF (font_spec, FONT_FAMILY_INDEX);
