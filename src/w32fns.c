@@ -57,6 +57,10 @@ Boston, MA 02110-1301, USA.  */
 #include <dlgs.h>
 #define FILE_NAME_TEXT_FIELD edt1
 
+#ifdef USE_FONT_BACKEND
+#include "font.h"
+#endif
+
 void syms_of_w32fns ();
 void globals_of_w32fns ();
 
@@ -4129,6 +4133,38 @@ unwind_create_frame (frame)
   return Qnil;
 }
 
+#ifdef USE_FONT_BACKEND
+static void
+x_default_font_parameter (f, parms)
+     struct frame *f;
+     Lisp_Object parms;
+{
+  struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
+  Lisp_Object font = x_get_arg (dpyinfo, parms, Qfont, "font", "Font",
+                                RES_TYPE_STRING);
+
+  if (!STRINGP (font))
+    {
+      int i;
+      static char *names[]
+        = { "-*-Courier New-normal-r-*-*-*-100-*-*-c-*-iso8859-1",
+            "-*-Courier-normal-r-*-*-13-*-*-*-c-*-iso8859-1",
+            "-*-Fixedsys-normal-r-*-*-12-*-*-*-c-*-iso8859-1",
+            "Fixedsys",
+            NULL };
+
+      for (i = 0; names[i]; i++)
+        {
+          font = font_open_by_name (f, names[i]);
+          if (! NILP (font))
+            break;
+        }
+      if (NILP (font))
+        error ("No suitable font was found");
+    }
+  x_default_parameter (f, parms, Qfont, font, "font", "Font", RES_TYPE_STRING);
+}
+#endif
 
 DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
        1, 1, 0,
@@ -4261,8 +4297,25 @@ This function is an internal primitive--use `make-frame' instead.  */)
       specbind (Qx_resource_name, name);
     }
 
+#ifdef USE_FONT_BACKEND
+  if (enable_font_backend)
+    {
+      /* Perhaps, we must allow frame parameter, say `font-backend',
+	 to specify which font backends to use.  */
+      register_font_driver (&w32font_driver, f);
+
+      x_default_parameter (f, parameters, Qfont_backend, Qnil,
+			   "fontBackend", "FontBackend", RES_TYPE_STRING);
+    }
+#endif	/* USE_FONT_BACKEND */
+
   /* Extract the window parameters from the supplied values
      that are needed to determine window geometry.  */
+#ifdef USE_FONT_BACKEND
+  if (enable_font_backend)
+    x_default_font_parameter (f, parameters);
+  else
+#endif 
   {
     Lisp_Object font;
 
@@ -4852,7 +4905,7 @@ w32_to_x_weight (fnweight)
     return "*";
 }
 
-static LONG
+LONG
 x_to_w32_charset (lpcs)
     char * lpcs;
 {
@@ -4940,7 +4993,7 @@ x_to_w32_charset (lpcs)
 }
 
 
-static char *
+char *
 w32_to_x_charset (fncharset, matching)
     int fncharset;
     char *matching;
@@ -7339,8 +7392,25 @@ x_create_tip_frame (dpyinfo, parms, text)
       specbind (Qx_resource_name, name);
     }
 
+#ifdef USE_FONT_BACKEND
+  if (enable_font_backend)
+    {
+      /* Perhaps, we must allow frame parameter, say `font-backend',
+	 to specify which font backends to use.  */
+      register_font_driver (&w32font_driver, f);
+
+      x_default_parameter (f, parms, Qfont_backend, Qnil,
+			   "fontBackend", "FontBackend", RES_TYPE_STRING);
+    }
+#endif	/* USE_FONT_BACKEND */
+
   /* Extract the window parameters from the supplied values
      that are needed to determine window geometry.  */
+#ifdef USE_FONT_BACKEND
+  if (enable_font_backend)
+    x_default_font_parameter (f, parms);
+  else
+#endif	/* USE_FONT_BACKEND */
   {
     Lisp_Object font;
 
@@ -8655,6 +8725,9 @@ frame_parm_handler w32_frame_parm_handlers[] =
   x_set_fringe_width,
   0, /* x_set_wait_for_wm, */
   x_set_fullscreen,
+#ifdef USE_FONT_BACKEND
+  x_set_font_backend
+#endif
 };
 
 void
