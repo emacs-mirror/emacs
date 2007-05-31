@@ -92,7 +92,9 @@ memq_no_quit (elt, list)
 /* w32 implementation of get_cache for font backend.
    Return a cache of font-entities on FRAME.  The cache must be a
    cons whose cdr part is the actual cache area.  */
-static Lisp_Object w32font_get_cache (Lisp_Object frame)
+static Lisp_Object
+w32font_get_cache (frame)
+     Lisp_Object frame;
 {
   struct w32_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (XFRAME (frame));
 
@@ -103,7 +105,9 @@ static Lisp_Object w32font_get_cache (Lisp_Object frame)
    List fonts exactly matching with FONT_SPEC on FRAME.  The value
    is a vector of font-entities.  This is the sole API that
    allocates font-entities.  */
-static Lisp_Object w32font_list (Lisp_Object frame, Lisp_Object font_spec)
+static Lisp_Object
+w32font_list (frame, font_spec)
+     Lisp_Object frame, font_spec;
 {
   Lisp_Object list = Qnil;
   LOGFONT font_match_pattern;
@@ -139,7 +143,9 @@ static Lisp_Object w32font_list (Lisp_Object frame, Lisp_Object font_spec)
    Return a font entity most closely matching with FONT_SPEC on
    FRAME.  The closeness is detemined by the font backend, thus
    `face-font-selection-order' is ignored here.  */
-static Lisp_Object w32font_match (Lisp_Object frame, Lisp_Object font_spec)
+static Lisp_Object
+w32font_match (frame, font_spec)
+     Lisp_Object frame, font_spec;
 {
   Lisp_Object list = Qnil;
   LOGFONT font_match_pattern;
@@ -165,7 +171,9 @@ static Lisp_Object w32font_match (Lisp_Object frame, Lisp_Object font_spec)
 /* w32 implementation of list_family for font backend.
    List available families.  The value is a list of family names
    (symbols).  */
-static Lisp_Object w32font_list_family (Lisp_Object frame)
+static Lisp_Object
+w32font_list_family (frame)
+     Lisp_Object frame;
 {
   Lisp_Object list = Qnil;
   LOGFONT font_match_pattern;
@@ -187,8 +195,11 @@ static Lisp_Object w32font_list_family (Lisp_Object frame)
 /* w32 implementation of open for font backend.
    Open a font specified by FONT_ENTITY on frame F.
    If the font is scalable, open it with PIXEL_SIZE.  */
-static struct font* w32font_open (FRAME_PTR f, Lisp_Object font_entity,
-                                  int pixel_size)
+static struct font *
+w32font_open (f, font_entity, pixel_size)
+     FRAME_PTR f;
+     Lisp_Object font_entity;
+     int pixel_size;
 {
   int len, size;
   LOGFONT logfont;
@@ -291,7 +302,10 @@ static struct font* w32font_open (FRAME_PTR f, Lisp_Object font_entity,
 
 /* w32 implementation of close for font_backend.
    Close FONT on frame F.  */
-static void w32font_close (FRAME_PTR f, struct font *font)
+static void
+w32font_close (f, font)
+     FRAME_PTR f;
+     struct font *font;
 {
   if (font->font.font)
     {
@@ -311,7 +325,10 @@ static void w32font_close (FRAME_PTR f, struct font *font)
    If FONT_ENTITY has a glyph for character C (Unicode code point),
    return 1.  If not, return 0.  If a font must be opened to check
    it, return -1.  */
-static int w32font_has_char (Lisp_Object entity, int c)
+static int
+w32font_has_char (entity, c)
+     Lisp_Object entity;
+     int c;
 {
   Lisp_Object val, extra;
   DWORD *ranges;
@@ -345,7 +362,10 @@ static int w32font_has_char (Lisp_Object entity, int c)
 /* w32 implementation of encode_char for font backend.
    Return a glyph code of FONT for characer C (Unicode code point).
    If FONT doesn't have such a glyph, return FONT_INVALID_CODE.  */
-static unsigned w32font_encode_char (struct font *font, int c)
+static unsigned
+w32font_encode_char (font, c)
+     struct font *font;
+     int c;
 {
   if (get_glyph_indices_fn)
     {
@@ -381,9 +401,12 @@ static unsigned w32font_encode_char (struct font *font, int c)
    of METRICS.  The glyphs are specified by their glyph codes in
    CODE (length NGLYPHS).  Apparently medtrics can be NULL, in this
    case just return the overall width.  */
-static int w32font_text_extents (struct font *font,
-                                 unsigned *code, int nglyphs,
-                                 struct font_metrics *metrics)
+static int
+w32font_text_extents (font, code, nglyphs, metrics)
+     struct font *font;
+     unsigned *code;
+     int nglyphs;
+     struct font_metrics *metrics;
 {
   int i;
   HFONT old_font;
@@ -469,8 +492,10 @@ static int w32font_text_extents (struct font *font,
    position of frame F with S->FACE and S->GC.  If WITH_BACKGROUND
    is nonzero, fill the background in advance.  It is assured that
    WITH_BACKGROUND is zero when (FROM > 0 || TO < S->nchars).  */
-static int w32font_draw (struct glyph_string *s, int from, int to,
-                         int x, int y, int with_background)
+static int
+w32font_draw (s, from, to, x, y, with_background)
+     struct glyph_string *s;
+     int from, to, x, y, with_background;
 {
   /* TODO: Do we need to specify ETO_GLYPH_INDEX or is char2b always utf-16?  */
   UINT options = 0;
@@ -489,7 +514,8 @@ static int w32font_draw (struct glyph_string *s, int from, int to,
 /* w32 implementation of free_entity for font backend.
    Optional (if FONT_EXTRA_INDEX is not Lisp_Save_Value).
    Free FONT_EXTRA_INDEX field of FONT_ENTITY.
-static void w32font_free_entity (Lisp_Object entity);
+static void
+w32font_free_entity (Lisp_Object entity);
   */
 
 /* w32 implementation of prepare_face for font backend.
@@ -497,51 +523,58 @@ static void w32font_free_entity (Lisp_Object entity);
    Prepare FACE for displaying characters by FONT on frame F by
    storing some data in FACE->extra.  If successful, return 0.
    Otherwise, return -1.
-static int w32font_prepare_face (FRAME_PTR f, struct face *face);
+static int
+w32font_prepare_face (FRAME_PTR f, struct face *face);
   */
 /* w32 implementation of done_face for font backend.
    Optional.
    Done FACE for displaying characters by FACE->font on frame F.
-static void w32font_done_face (FRAME_PTR f, struct face *face);  */
+static void
+w32font_done_face (FRAME_PTR f, struct face *face);  */
 
 /* w32 implementation of get_bitmap for font backend.
    Optional.
    Store bitmap data for glyph-code CODE of FONT in BITMAP.  It is
    intended that this method is callled from the other font-driver
    for actual drawing.
-static int w32font_get_bitmap (struct font *font, unsigned code,
-                               struct font_bitmap *bitmap,
-                               int bits_per_pixel);
+static int
+w32font_get_bitmap (struct font *font, unsigned code,
+                    struct font_bitmap *bitmap, int bits_per_pixel);
   */
 /* w32 implementation of free_bitmap for font backend.
    Optional.
    Free bitmap data in BITMAP.
-static void w32font_free_bitmap (struct font *font, struct font_bitmap *bitmap);
+static void
+w32font_free_bitmap (struct font *font, struct font_bitmap *bitmap);
   */
 /* w32 implementation of get_outline for font backend.
    Optional.
    Return an outline data for glyph-code CODE of FONT.  The format
    of the outline data depends on the font-driver.
-static void* w32font_get_outline (struct font *font, unsigned code);
+static void *
+w32font_get_outline (struct font *font, unsigned code);
   */
 /* w32 implementation of free_outline for font backend.
    Optional.
    Free OUTLINE (that is obtained by the above method).
-static void w32font_free_outline (struct font *font, void *outline);
+static void
+w32font_free_outline (struct font *font, void *outline);
   */
 /* w32 implementation of anchor_point for font backend.
    Optional.
    Get coordinates of the INDEXth anchor point of the glyph whose
    code is CODE.  Store the coordinates in *X and *Y.  Return 0 if
    the operations was successfull.  Otherwise return -1.
-static int w32font_anchor_point (struct font *font, unsigned code,
+static int
+w32font_anchor_point (struct font *font, unsigned code,
                                  int index, int *x, int *y);
   */
 /* w32 implementation of otf_capability for font backend.
    Optional.
    Return a list describing which scripts/languages FONT
    supports by which GSUB/GPOS features of OpenType tables.
-static Lisp_Object w32font_otf_capability (struct font *font);
+static Lisp_Object
+w32font_otf_capability (struct font *font);
   */
 /* w32 implementation of otf_drive for font backend.
    Optional.
@@ -559,18 +592,21 @@ static Lisp_Object w32font_otf_capability (struct font *font);
    Return the number of output codes.  If none of the features are
    applicable to the input data, return 0.  If GSTRING-OUT is too
    short, return -1.
-static int w32font_otf_drive (struct font *font, Lisp_Object features,
-                              Lisp_Object gstring_in, int from, int to,
-                              Lisp_Object gstring_out, int idx,
-                              int alternate_subst);
+static int
+w32font_otf_drive (struct font *font, Lisp_Object features,
+                   Lisp_Object gstring_in, int from, int to,
+                   Lisp_Object gstring_out, int idx,
+                   int alternate_subst);
   */
 
 /* Callback function for EnumFontFamiliesEx.
  * Adds the name of a font to a Lisp list (passed in as the lParam arg).  */
-static int CALLBACK add_font_name_to_list (ENUMLOGFONTEX *logical_font,
-                                           NEWTEXTMETRICEX *physical_font,
-                                           DWORD font_type,
-                                  LPARAM list_object)
+static int CALLBACK
+add_font_name_to_list (logical_font, physical_font, font_type, list_object)
+     ENUMLOGFONTEX *logical_font;
+     NEWTEXTMETRICEX *physical_font;
+     DWORD font_type;
+     LPARAM list_object;
 {
   Lisp_Object* list = (Lisp_Object *) list_object;
   Lisp_Object family = intern_downcase (logical_font->elfLogFont.lfFaceName,
@@ -582,9 +618,11 @@ static int CALLBACK add_font_name_to_list (ENUMLOGFONTEX *logical_font,
 }
 
 /* Convert an enumerated Windows font to an Emacs font entity.  */
-Lisp_Object w32_enumfont_pattern_entity (ENUMLOGFONTEX *logical_font,
-                                         NEWTEXTMETRICEX *physical_font,
-                                         DWORD font_type)
+static Lisp_Object
+w32_enumfont_pattern_entity (logical_font, physical_font, font_type)
+     ENUMLOGFONTEX *logical_font;
+     NEWTEXTMETRICEX *physical_font;
+     DWORD font_type;
 {
   Lisp_Object entity, tem;
   LOGFONT *lf = (LOGFONT*) logical_font;
@@ -640,10 +678,12 @@ Lisp_Object w32_enumfont_pattern_entity (ENUMLOGFONTEX *logical_font,
 
 /* Callback function for EnumFontFamiliesEx.
  * Adds the name of a font to a Lisp list (passed in as the lParam arg).  */
-static int CALLBACK add_font_entity_to_list (ENUMLOGFONTEX *logical_font,
-                                             NEWTEXTMETRICEX *physical_font,
-                                             DWORD font_type,
-                                             LPARAM list_object)
+static int CALLBACK
+add_font_entity_to_list (logical_font, physical_font, font_type, list_object)
+     ENUMLOGFONTEX *logical_font;
+     NEWTEXTMETRICEX *physical_font;
+     DWORD font_type;
+     LPARAM list_object;
 {
   Lisp_Object *list = (Lisp_Object *) list_object;
   Lisp_Object entity = w32_enumfont_pattern_entity (logical_font,
@@ -657,17 +697,21 @@ static int CALLBACK add_font_entity_to_list (ENUMLOGFONTEX *logical_font,
 /* Callback function for EnumFontFamiliesEx.
  * Adds the name of a font to a Lisp list (passed in as the lParam arg),
  * then terminate the search.  */
-static int CALLBACK add_one_font_entity_to_list (ENUMLOGFONTEX *logical_font,
-                                                 NEWTEXTMETRICEX *physical_font,
-                                                 DWORD font_type,
-                                                 LPARAM list_object)
+static int CALLBACK
+add_one_font_entity_to_list (logical_font, physical_font, font_type, list)
+     ENUMLOGFONTEX *logical_font;
+     NEWTEXTMETRICEX *physical_font;
+     DWORD font_type;
+     LPARAM list;
 {
-  add_font_entity_to_list (logical_font, physical_font, font_type, list_object);
+  add_font_entity_to_list (logical_font, physical_font, font_type, list);
   return 0;
 }
 
 /* Convert a Lisp font registry (symbol) to a windows charset.  */
-static LONG registry_to_w32_charset (Lisp_Object charset)
+static LONG
+registry_to_w32_charset (charset)
+     Lisp_Object charset;
 {
   if (EQ (charset, Qiso10646_1) || EQ (charset, Qunicode_bmp)
       || EQ (charset, Qunicode_sip))
@@ -682,7 +726,9 @@ static LONG registry_to_w32_charset (Lisp_Object charset)
     return DEFAULT_CHARSET;
 }
 
-static Lisp_Object w32_registry (LONG w32_charset)
+static Lisp_Object
+w32_registry (w32_charset)
+     LONG w32_charset;
 {
   if (w32_charset == ANSI_CHARSET)
     return Qiso8859_1;
@@ -693,7 +739,10 @@ static Lisp_Object w32_registry (LONG w32_charset)
     }
 }
 
-static void set_fonts_frame (Lisp_Object fontlist, Lisp_Object frame)
+static void
+set_fonts_frame (fontlist, frame)
+     Lisp_Object fontlist;
+     Lisp_Object frame;
 {
   if (VECTORP (fontlist))
     ASET (fontlist, FONT_FRAME_INDEX, frame);
@@ -709,7 +758,11 @@ static void set_fonts_frame (Lisp_Object fontlist, Lisp_Object frame)
 }
 
 /* Fill in all the available details of LOGFONT from FONT_SPEC.  */
-static void fill_in_logfont (FRAME_PTR f, LOGFONT *logfont, Lisp_Object font_spec)
+static void
+fill_in_logfont (f, logfont, font_spec)
+     FRAME_PTR f;
+     LOGFONT *logfont;
+     Lisp_Object font_spec;
 {
   Lisp_Object val, tmp, extra;
   int dpi = FRAME_W32_DISPLAY_INFO (f)->resy;
@@ -777,9 +830,11 @@ static void fill_in_logfont (FRAME_PTR f, LOGFONT *logfont, Lisp_Object font_spe
 
 }
 
-static void list_all_matching_fonts (Lisp_Object frame,
-                                     LOGFONT *font_match_pattern,
-                                     Lisp_Object* list)
+static void
+list_all_matching_fonts (frame, font_match_pattern, list)
+     Lisp_Object frame;
+     LOGFONT *font_match_pattern;
+     Lisp_Object* list;
 {
   HDC dc;
   Lisp_Object families = w32font_list_family (frame);
@@ -808,7 +863,9 @@ static void list_all_matching_fonts (Lisp_Object frame,
   release_frame_dc (f, dc);
 }
 
-static int unicode_range_for_char (unsigned c)
+static int
+unicode_range_for_char (c)
+     unsigned c;
 {
   /* Is there really no Windows API function for this?!!! */
   if (c < 0x80)
@@ -1097,7 +1154,8 @@ struct font_driver w32font_driver =
 
 /* Initialize the font subsystem for the environment on which
    Emacs is running.   */
-void w32font_initialize ()
+void
+w32font_initialize ()
 {
   /* Load functions that might not exist on older versions of Windows.  */
   HANDLE gdi = LoadLibrary ("gdi32.dll");
@@ -1110,7 +1168,8 @@ void w32font_initialize ()
 
 /* Initialize state that does not change between invocations. This is only
    called when Emacs is dumped.  */
-void syms_of_w32font ()
+void
+syms_of_w32font ()
 {
   DEFSYM (Qw32, "w32");
   DEFSYM (Qdecorative, "decorative");
@@ -1119,7 +1178,7 @@ void syms_of_w32font ()
   DEFSYM (Qscript, "script");
   DEFSYM (Qswiss, "swiss");
   DEFSYM (Qunknown, "unknown");
-  DEFSYM (QCsubranges, ":unicode-subranges");
+  DEFSYM (QCsubranges, ":subranges");
   w32font_driver.type = Qw32;
   register_font_driver (&w32font_driver, NULL);
 }
