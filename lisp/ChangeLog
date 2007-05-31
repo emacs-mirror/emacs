@@ -1,3 +1,7 @@
+2007-05-31  Richard Stallman  <rms@gnu.org>
+
+	* dired.el (dired-do-delete, dired-do-flagged-delete): Doc fixes.
+
 2007-05-29  Martin Rudalics  <rudalics@gmx.at>
 
 	* textmodes/table.el (table--point-entered-cell-function)
