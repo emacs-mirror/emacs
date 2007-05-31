@@ -1,3 +1,9 @@
+2007-05-31  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (font.o, w32font.o): New objects.
+	(fontset.o, xdisp.o, xfaces.o, w32fns.o, w32term.o): Depend on font.h
+	(FONTOBJ): New group of objects conditioned on USE_FONT_BACKEND.
+
 2007-05-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* xdisp.c (redisplay_internal): Bind inhibit-point-motion-hooks to t
