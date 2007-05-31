@@ -1,0 +1,11 @@
+2007-05-31  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat: Add --with-font-backend option.
+
+;; Local Variables:
+;; coding: iso-2022-7bit
+;; End:
+
+    Copyright (C) 2007 Free Software Foundation, Inc.
+  Copying and distribution of this file, with or without modification,
+  are permitted provided the copyright notice and this notice are preserved.
