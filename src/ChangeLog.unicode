@@ -1,5 +1,18 @@
 2007-05-31  Jason Rumney  <jasonr@gnu.org>
 
+	* w32font.c (w32font_open): Handle size, height and pixel_size better.
+	(w32font_draw): Use options.
+	(w32_enumfont_pattern_entity): Set size to 0 for scalable fonts.
+	Fix detection of truetype fonts.
+	(registry_to_w32_charset): Handle charsets other than iso8859-1
+	expressed as lisp symbols.
+	(w32_registry): Express charset as lisp symbol.
+	(fill_in_logfont): Reverse pixel and point height logic.
+	Don't set width here. Set quality to default.
+
+	* w32fns.c (w32_load_system_font): Fix detecting FIXED_PITCH fonts.
+	(x_to_w32_font): Fill in lfPitchAndFamily correctly.
+
 	* xterm.c (x_draw_glyph_string_foreground) [USE_FONT_BACKEND]:
 	Remove redundant loop and allocation.
 
