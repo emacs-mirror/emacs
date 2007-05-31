@@ -137,7 +137,7 @@ extern Lisp_Object null_string;
 extern Lisp_Object null_vector;
 
 /* Structure for an opened font.  We can safely cast this structure to
-   "struft font_info".  */
+   "struct font_info".  */
 
 struct font
 {
