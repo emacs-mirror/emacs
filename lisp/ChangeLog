@@ -1,3 +1,7 @@
+2007-05-31  Richard Stallman  <rms@gnu.org>
+
+	* dired.el (dired-do-flagged-delete, dired-do-delete): Doc fix.
+
 2007-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/css-mode.el: New file.
