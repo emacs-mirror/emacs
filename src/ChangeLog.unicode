@@ -1,3 +1,27 @@
+2007-05-31  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (font.o, w32font.o): New objects.
+	(fontset.o, xdisp.o, xfaces.o, w32fns.o, w32term.o): Depend on font.h
+	(FONTOBJ): New group of objects conditioned on USE_FONT_BACKEND.
+
+	* xdisp.c (fill_composite_glyph_string): Make the first arg to
+	STORE_XCHARB a valid l-value.
+
+	* w32term.c (w32_native_per_char_metric): Swap width and rbearing
+	calculations for non-Truetype fonts.
+	(x_draw_glyph_string): Sync with xterm.c.
+	(x_draw_glyph_string_foreground) [USE_FONT_BACKEND]: Remove
+	redundant code.
+	(w32_initialize) [USE_FONT_BACKEND]: Call w32font_initialize.
+
+	* w32term.h (w32_output_data) [USE_FONT_BACKEND]: Add fontp member.
+	(FRAME_FONT_OBJECT) [USE_FONT_BACKEND]: New macro from xterm.h.
+
+	* w32fns.c [USE_FONT_BACKEND]: Port font backend changes from xfns.c.
+	(x_to_w32_charset, w32_to_x_charset): Expose externally.
+
+	* w32font.c: New file for w32 font backend.	
+
 2007-05-28  Kenichi Handa  <handa@m17n.org>
 
 	* term.c: Don't include "buffer.h" twice.
