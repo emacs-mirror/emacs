@@ -1,5 +1,11 @@
 2007-05-31  Jason Rumney  <jasonr@gnu.org>
 
+	* w32font.c (QCsubranges): New symbol.
+	(w32font_open, w32font_has_char): Get subranges from subproperty
+	of extra.
+	(w32_enumfont_pattern_entity): Set subranges as subproperty of extra.
+	(syms_of_w32font): Define :subranges symbol.
+
 	* font.c (font_put_extra): Expose externally.
 
 	* font.h (font_put_extra): Moved declaration from font.c.
