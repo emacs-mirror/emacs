@@ -260,7 +260,6 @@ static Lisp_Object font_prop_validate_spacing P_ ((enum font_property_index,
 						   Lisp_Object, Lisp_Object));
 static int get_font_prop_index P_ ((Lisp_Object, int));
 static Lisp_Object font_prop_validate P_ ((Lisp_Object));
-static Lisp_Object font_put_extra P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 
 static Lisp_Object
 font_prop_validate_symbol (prop_index, prop, val)
@@ -408,7 +407,7 @@ font_prop_validate (spec)
   return spec;
 }
       
-static Lisp_Object
+Lisp_Object
 font_put_extra (font, prop, val)
      Lisp_Object font, prop, val;
 {
