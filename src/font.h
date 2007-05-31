@@ -473,6 +473,8 @@ extern Lisp_Object font_at P_ ((int c, EMACS_INT pos, struct face *face,
 
 extern struct font *font_prepare_composition P_ ((struct composition *cmp));
 
+extern Lisp_Object font_put_extra P_ ((Lisp_Object font, Lisp_Object prop,
+                                       Lisp_Object val));
 
 #ifdef HAVE_LIBOTF
 /* This can be used as `otf_capability' method of a font-driver.  */
