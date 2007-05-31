@@ -1667,7 +1667,7 @@ void
 adjust_anchor (struct font *font, OTF_Anchor *anchor,
 	       unsigned code, int size, int *x, int *y)
 {
-  if (anchor->AnchorFormat == 2)
+  if (anchor->AnchorFormat == 2 && font->driver->anchor_point)
     {
       int x0, y0;
 
