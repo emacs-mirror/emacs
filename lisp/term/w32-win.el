@@ -1094,38 +1094,13 @@ European languages which are distributed with Windows as
 See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 ;; Conditional on new-fontset so bootstrapping works on non-GUI compiles
-(if (fboundp 'new-fontset)
-    (progn
+(when (fboundp 'new-fontset)
       ;; Setup the default fontset.
       (setup-default-fontset)
       ;; Create the standard fontset.
       (create-fontset-from-fontset-spec w32-standard-fontset-spec t)
       ;; Create fontset specified in X resources "Fontset-N" (N is 0, 1,...).
-      (create-fontset-from-x-resource)
-      ;; Try to create a fontset from a font specification which comes
-      ;; from initial-frame-alist, default-frame-alist, or X resource.
-      ;; A font specification in command line argument (i.e. -fn XXXX)
-      ;; should be already in default-frame-alist as a `font'
-      ;; parameter.  However, any font specifications in site-start
-      ;; library, user's init file (.emacs), and default.el are not
-      ;; yet handled here.
-
-      (let ((font (or (cdr (assq 'font initial-frame-alist))
-                      (cdr (assq 'font default-frame-alist))
-                      (x-get-resource "font" "Font")))
-            xlfd-fields resolved-name)
-        (if (and font
-                 (not (query-fontset font))
-                 (setq resolved-name (x-resolve-font-name font))
-                 (setq xlfd-fields (x-decompose-font-name font)))
-            (if (string= "fontset"
-                         (aref xlfd-fields xlfd-regexp-registry-subnum))
-                (new-fontset font
-                             (x-complement-fontset-spec xlfd-fields nil))
-              ;; Create a fontset from FONT.  The fontset name is
-              ;; generated from FONT.
-              (create-fontset-from-ascii-font font
-					      resolved-name "startup"))))))
+      (create-fontset-from-x-resource))
 
 ;; Apply a geometry resource to the initial frame.  Put it at the end
 ;; of the alist, so that anything specified on the command line takes
