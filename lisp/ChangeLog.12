@@ -271,7 +271,7 @@
 2007-04-14  Nick Roberts  <nickrob@snap.net.nz>
 
 	* tmm.el (tmm-get-keybind): Use copy-sequence to ensure that the
-	global map isn't modified
+	global map isn't modified.
 
 2007-04-14  Glenn Morris  <rgm@gnu.org>
 
@@ -1413,7 +1413,7 @@
 	* progmodes/python.el (python-quote-syntax): Don't bother with
 	syntax-ppss-context.
 	(python-fill-paragraph): Make sure that fenced-string delimiters that
-	stand on their own line stay there
+	stand on their own line stay there.
 
 2007-03-01  Lennart Borgman  <lennart.borgman.073@student.lu.se>
 
@@ -2549,7 +2549,7 @@
 	* type-break.el (type-break-demo-hanoi, type-break-demo-life)
 	(type-break-demo-boring): Call read-event instead of read-char.
 
-2007-01-19  Daniel Pfeiffer  <occitan@esperanto.org>  (small change)
+2007-01-19  Daniel Pfeiffer  <occitan@esperanto.org>  (tiny change)
 
 	* progmodes/compile.el: Add handling for makepplog.
 
@@ -5797,7 +5797,7 @@
 
 	* wid-edit.el (widget-button-click-moves-point): New variable.
 	(widget-button-click): If widget-button-click-moves-point is
-	non-nil, set point after performing the button action
+	non-nil, set point after performing the button action.
 
 	* cus-edit.el (custom-mode): Set widget-button-click-moves-point.
 
@@ -6121,7 +6121,7 @@
 
 	* cus-start.el (all): Rename x-gtk-show-chooser-help-text to
 	x-gtk-file-dialog-help-text.  Rename x-use-old-gtk-file-dialog
-	to x-gtk-use-old-file-dialog
+	to x-gtk-use-old-file-dialog.
 
 2006-09-18  Richard Stallman  <rms@gnu.org>
 
@@ -9203,7 +9203,7 @@
 	(ewoc--wrap): New func.
 	(ewoc-create): Take additional arg NOSEP.  If nil, wrap node and
 	header/footer pretty-printers.  Save header/footer pretty-printer.
-	(ewoc-set-hf): Use ewoc's header/footer pretty-printer.  *
+	(ewoc-set-hf): Use ewoc's header/footer pretty-printer.
 
 	* pcvs.el (cvs-make-cvs-buffer): Specify NOSEP to `ewoc-create'.
 
@@ -10152,7 +10152,7 @@
 2006-05-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* startup.el (command-line): On MS-Windows, probe "~", not
-	"~USER", for warning about non-existent home directory
+	"~USER", for warning about non-existent home directory.
 
 	* arc-mode.el (archive-l-e): New optional argument `float' means
 	generate a float value.
@@ -15747,10 +15747,10 @@
 2005-12-08  Alan Mackenzie  <bug-cc-mode@gnu.org>
 
 	* progmodes/cc-fix.el: Add definitions of the macros push and pop
-	(for GNU Emacs 20.4)
+	(for GNU Emacs 20.4).
 
 	* progmodes/cc-defs.el:
-	(i): Load cc-fix.elc for `push' and `pop' (for GNU Emacs 20.4)
+	(i): Load cc-fix.elc for `push' and `pop' (for GNU Emacs 20.4).
 
 	* progmodes/cc-cmds.el (c-show-syntactic-information): Change the
 	highlighting mechanism so it will work in XEmacs too.
@@ -16051,7 +16051,7 @@
 
 	Introduce an "awk" style, mainly for auto-newline and clean-ups.
 
-	* progmodes/cc-align.el: New function c-snug-1line-defun-close
+	* progmodes/cc-align.el: New function c-snug-1line-defun-close.
 
 	* progmodes/cc-cmds.el: In c-electric-brace, add code for new
 	clean-up one-liner-defun.
@@ -20402,7 +20402,7 @@
 
 2005-10-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* startup.el (command-line-x-option-alist): -nb => -nbi
+	* startup.el (command-line-x-option-alist): -nb => -nbi.
 
 2005-10-12  Kim F. Storm  <storm@cua.dk>
 
@@ -20580,7 +20580,7 @@
 	* term/x-win.el: Remove -i, --icon-type from comment.
 
 	* startup.el (command-line-x-option-alist): Remove options -i,
-	-itype, --icon-type, added -nb, --no-bitmap-icon
+	-itype, --icon-type, added -nb, --no-bitmap-icon.
 
 2005-10-09  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -20866,7 +20866,7 @@
 	* textmodes/ispell.el (ispell-word, ispell-region):
 	Call ispell-maybe-find-aspell-dictionaries.
 	(ispell-accept-buffer-local-defs):
-	Don't call ispell-maybe-find-aspell-dictionaries
+	Don't call ispell-maybe-find-aspell-dictionaries.
 
 2005-10-04  Richard M. Stallman  <rms@gnu.org>
 
@@ -22474,7 +22474,7 @@
 
 	* calendar/diary-lib.el (diary-modify-entry-list-string-function):
 	New hook.
-	(add-to-diary-list): Call `diary-modify-entry-list-string-function'
+	(add-to-diary-list): Call `diary-modify-entry-list-string-function'.
 
 2005-08-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -24379,7 +24379,7 @@
 	* viper-init.el: Get rid of -face in face names.
 
 	* ediff-diff.el (ediff-extract-diffs, ediff-extract-diffs3):
-	Make it work with longlines mode
+	Make it work with longlines mode.
 
 	* ediff-mult.el (ediff-meta-mode-hook): New variable.
 
@@ -27822,7 +27822,7 @@
 	(reftex-unhighlight): Use `reftex-delete-overlay'.
 	(reftex-uniq): Function removed.  Use `reftex-uniquify' instead.
 	(reftex-access-search-path): Use `reftex-uniquify' instead of
-	`reftex-uniq'
+	`reftex-uniq'.
 
 	* textmodes/reftex-sel.el (reftex-select-unmark): Overlay
 	`before-string' property modification enables for Emacs as well.
@@ -29461,7 +29461,7 @@
 	`org-insert-mode-line-in-empty-file' has been set.
 	(org-agenda-todo, org-agenda-priority): Modify to use
 	`org-agenda-change-all-lines'.
-	(org-warning-face): Change color on dark background
+	(org-warning-face): Change color on dark background.
 
 2005-04-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -29585,7 +29585,7 @@
 
 2005-04-11  Rajesh Vaidheeswarran  <rv@gnu.org>
 
-	* whitespace.el (whitespace-version): Bump to 3.5
+	* whitespace.el (whitespace-version): Bump to 3.5.
 
 	(whitespace-buffer-leading, whitespace-buffer-trailing):
 	Invert sense of the test to highlight the whitespace.
@@ -29613,7 +29613,7 @@
 
 	* dired.el (dired-mode): Use dnd-* instead of x-dnd-*
 	(dired-dnd-handle-local-file): Call dnd-get-local-file-name.
-	(dired-dnd-handle-file): Call dnd-get-local-file-uri
+	(dired-dnd-handle-file): Call dnd-get-local-file-uri.
 
 	* cus-edit.el (dnd): New group.
 
@@ -32604,7 +32604,7 @@
 2005-01-21  Ren,Ai(B Kyllingstad  <listmailxemacs@kyllingstad.com>
 
 	* pcomplete.el: Define pcomplete-read-event instead of read-event,
-	since it's not a complete read-event implementation
+	since it's not a complete read-event implementation.
 
 2005-01-20  Jay Belanger  <belanger@truman.edu>
 
