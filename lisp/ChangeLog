@@ -1,3 +1,8 @@
+2007-06-01  David Kastrup  <dak@gnu.org>
+
+	* dired.el (dired-recursive-deletes, dired-recursive-copies):
+	Change default to `top'.
+
 2007-05-31  Richard Stallman  <rms@gnu.org>
 
 	* dired.el (dired-do-flagged-delete, dired-do-delete): Doc fix.

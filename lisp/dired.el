@@ -2362,7 +2362,7 @@ Optional argument means return a file name relative to `default-directory'."
 
 ;; Deleting files
 
-(defcustom dired-recursive-deletes nil ; Default only delete empty directories.
+(defcustom dired-recursive-deletes 'top ; Default only delete empty directories.
   "*Decide whether recursive deletes are allowed.
 A value of nil means no recursive deletes.
 `always' means delete recursively without asking.  This is DANGEROUS!
@@ -3210,7 +3210,7 @@ To be called first in body of `dired-sort-other', etc."
 
 ;;;;  Drag and drop support
 
-(defcustom dired-recursive-copies nil
+(defcustom dired-recursive-copies 'top
   "*Decide whether recursive copies are allowed.
 A value of nil means no recursive copies.
 `always' means copy recursively without asking.
