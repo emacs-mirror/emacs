@@ -172,7 +172,8 @@
 
 2007-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* editfns.c (Ftranspose_regions): Yet another int/Lisp_Object mixup (YAILOM)
+	* editfns.c (Ftranspose_regions): Yet another int/Lisp_Object
+	mixup (YAILOM).
 
 2007-05-07  Andreas Schwab  <schwab@suse.de>
 
@@ -2627,7 +2628,7 @@
 	for writing files.  Call gtk_file_chooser_set_current_name to keep
 	default filename.
 
-	* minibuf.c (Finternal_complete_buffer): Move after DEFUN:s it calls
+	* minibuf.c (Finternal_complete_buffer): Move after DEFUN:s it calls.
 
 2006-09-02  Jindrich Makovicka  <makovick@gmail.com>  (tiny change)
 
@@ -2884,7 +2885,7 @@
 	* xterm.h (struct x_display_info): Add x_dnd_atoms* to keep track
 	of drag and drop Atoms.
 
-	* xterm.c (x_term_init): Initialize dpyinfo->x_dnd_atoms*
+	* xterm.c (x_term_init): Initialize dpyinfo->x_dnd_atoms*.
 
 2006-08-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -4050,7 +4051,7 @@
 
 2006-05-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* xterm.c: Remove declarations already in xterm.h
+	* xterm.c: Remove declarations already in xterm.h.
 
 	* xterm.h: Add extern declarations for x_clear_errors,
 	x_fully_uncatch_errors, x_catching_errors and
@@ -4791,7 +4792,8 @@
 
 	* puresize.h (pure_write_error): Mark as NO_RETURN.
 
-	* lisp.h (args_out_of_range, args_out_of_range_3)
+	* lisp.h (args_out_of_range, args_out_of_range_3, Fkill_emacs):
+	Likewise.
 
 2006-04-08  Eli Zaretskii  <eliz@gnu.org>
 
@@ -10026,7 +10028,7 @@
 	(cfobject_desc_to_lisp, cfproperty_list_to_lisp): Likewise.
 
 	* process.c (init_process): Change `#ifdef DARWIN' to `#if
-	defined (DARWIN) || defined (MAC_OSX)'
+	defined (DARWIN) || defined (MAC_OSX)'.
 
 	* s/darwin.h (DARWIN): Don't define.
 
@@ -11453,7 +11455,7 @@
 
 2004-12-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* macterm.c (mac_do_list_fonts): Fix memory leak
+	* macterm.c (mac_do_list_fonts): Fix memory leak.
 
 2004-12-20  Richard M. Stallman  <rms@gnu.org>
 
@@ -12233,7 +12235,7 @@
 	* Makefile.in (SOME_MACHINE_OBJECTS): Add fringe.o, image.o
 	and w32*.o.
 	(temacs${EXEEXT}): Generate buildobj.lst when temacs is linked.
-	(mostlyclean): Rm buildobj.lst
+	(mostlyclean): Rm buildobj.lst.
 
 	* makefile.w32-in ($(TEMACS)): Generate buildobj.lst when temacs
 	is linked.
@@ -13233,7 +13235,7 @@
 	(single_submenu): Use ENCODE_MENU_STRING
 	(mac_menu_show): Use ENCODE_MENU_STRING.  Reset grabbed because
 	button release isn't passed to event loop
-	(add_menu_item): Use SetMenuItemWithCFString
+	(add_menu_item): Use SetMenuItemWithCFString.
 
 2004-08-26  Steven Tamm  <steventamm@mac.com>
 
@@ -13502,7 +13504,7 @@
 	blocking on event queue only by calling ReceiveNextEvent
 	instead of select (since GUI events aren't on an fd).
 	(sys_read): Remove function
-	* sysdep.c: Remove redefine of read to sys_read if HAVE_CARBON
+	* sysdep.c: Remove redefine of read to sys_read if HAVE_CARBON.
 
 2004-07-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -13512,12 +13514,12 @@
 	* macterm.c (x_make_frame_visible): Comment in polling on
 	frame creation.
 
-	* keyboard.c: Undef SIGIO on Carbon
+	* keyboard.c: Undef SIGIO on Carbon.
 
 	* atimer.c (alarm_signal_handler): Call alarm handlers after
 	scheduling.
 
-	* eval.c (Feval): Remove quit_char test
+	* eval.c (Feval): Remove quit_char test.
 
 	* process.c (wait_reading_process_input): Remove clearing
 	stdin for select call on process input.
@@ -14469,7 +14471,7 @@
 2004-05-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (x_flush, XTframe_up_to_date): Use FRAME_MAC_P
-	instead of FRAME_X_P
+	instead of FRAME_X_P.
 
 2004-05-11  Kim F. Storm  <storm@cua.dk>
 
@@ -14639,7 +14641,7 @@
 
 2004-05-01  Jason Rumney  <jasonr@gnu.org>
 
-	* w32term.c (x_draw_hollow_cursor): Sync with xterm.c
+	* w32term.c (x_draw_hollow_cursor): Sync with xterm.c.
 
 2004-04-30  Kim F. Storm  <storm@cua.dk>
 
@@ -17432,7 +17434,7 @@
 
 	* makefile.w32-in (alloca.o): Remove.
 	(coding.o): Depend on intervals.h
-	(emacs.o, bytecode.o): Depend on window.h
+	(emacs.o, bytecode.o): Depend on window.h.
 
 2003-09-01  Dave Love  <fx@gnu.org>
 
@@ -18213,7 +18215,7 @@
 	* gtkutil.c: Include keyboard.h, charset.h, coding.h.
 	(xg_create_frame_widgets): Use ENCODE_UTF_8.
 
-	* xterm.c (Qutf_8): Move to coding.c
+	* xterm.c (Qutf_8): Move to coding.c.
 
 	* xmenu.c (ENCODE_MENU_STRING): New.
 	(list_of_panes, list_of_items, digest_single_submenu, xmenu_show):
@@ -20942,7 +20944,7 @@
 	(redisplay_internal): Add check for USE_GTK and popup_activated.
 	(redisplay_window): Add check for USE_GTK and FRAME_EXTERNAL_MENU_BAR.
 	(redisplay_window): Add check for USE_GTK and FRAME_EXTERNAL_TOOL_BAR.
-	(display_menu_bar): Add check for USE_GTK
+	(display_menu_bar): Add check for USE_GTK.
 
 	* lisp.h (Vx_resource_name): Declare extern.
 
@@ -22060,7 +22062,7 @@
 
 	* buffer.c (assoc_ignore_text_properties, Fother_buffer, Fkill_buffer)
 	(call_overlay_mod_hooks): Use CONSP and XCAR/XCDR.
-	(Fget_buffer_create, advance_to_char_boundary): Use BEG and BEG_BYTE;
+	(Fget_buffer_create, advance_to_char_boundary): Use BEG and BEG_BYTE.
 
 2002-10-21  Stefan Monnier  <monnier@cs.yale.edu>
 
