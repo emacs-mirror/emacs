@@ -1,3 +1,22 @@
+2007-05-30  Nick Roberts  <nickrob@snap.net.nz>
+
+	* sysdep.c (init_sys_modes): Add rather than replace with
+	O_NONBLOCK.
+
+	* frame.c [HAVE_GPM] (Fset_mouse_pixel_position): Add call to
+	term_mouse_moveto.
+
+	* termhooks.h (term_mouse_moveto): New extern.
+
+	* term.c (mouse_face_window): Rename...
+	(Qmouse_face_window): ...to this.
+	(term_show_mouse_face, term_clear_mouse_face)
+	(term_mouse_highlight): Use Qmouse_face_window.
+	(term_mouse_moveto): New function.
+	(term_mouse_position): Make it work.
+	(syms_of_term): Uncomment assignment to mouse_position_hook.
+	Staticpro Qmouse_face_window.
+
 2007-05-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* xdisp.c (redisplay_internal): Bind inhibit-point-motion-hooks to t
