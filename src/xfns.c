@@ -1516,6 +1516,8 @@ x_set_scroll_bar_background (f, value, oldval)
 /* Encode Lisp string STRING as a text in a format appropriate for
    XICCC (X Inter Client Communication Conventions).
 
+   This can call Lisp code, so callers must GCPRO.
+
    If STRING contains only ASCII characters, do no conversion and
    return the string data of STRING.  Otherwise, encode the text by
    CODING_SYSTEM, and return a newly allocated memory area which
@@ -1563,7 +1565,11 @@ x_encode_text (string, coding_system, selectionp, text_bytes, stringp, freep)
       && SYMBOLP (coding.pre_write_conversion)
       && !NILP (Ffboundp (coding.pre_write_conversion)))
     {
+      struct gcpro gcpro1;
+      /* We don't need to GCPRO string.  */
+      GCPRO1 (coding_system);
       string = run_pre_post_conversion_on_str (string, &coding, 1);
+      UNGCPRO;
       str = SDATA (string);
       chars = SCHARS (string);
       bytes = SBYTES (string);
@@ -1601,22 +1607,20 @@ x_set_name_internal (f, name)
       BLOCK_INPUT;
 #ifdef HAVE_X11R4
       {
+#ifdef USE_GTK
+	Lisp_Object encoded_name;
+
+	encoded_name = ENCODE_UTF_8 (name);
+
+        gtk_window_set_title (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+                              (char *) SDATA (encoded_name));
+#else /* not USE_GTK */
 	XTextProperty text, icon;
 	int bytes, stringp;
         int do_free_icon_value = 0, do_free_text_value = 0;
 	Lisp_Object coding_system;
-#ifdef USE_GTK
-	Lisp_Object encoded_name;
-	struct gcpro gcpro1;
-
-	/* As ENCODE_UTF_8 may cause GC and relocation of string data,
-	   we use it before x_encode_text that may return string data.  */
-	GCPRO1 (name);
-	encoded_name = ENCODE_UTF_8 (name);
-	UNGCPRO;
-#endif
-
 	coding_system = Qcompound_text;
+
 	/* Note: Encoding strategy
 
 	   We encode NAME by compound-text and use "COMPOUND-TEXT" in
@@ -1653,12 +1657,7 @@ x_set_name_internal (f, name)
 	    icon.nitems = bytes;
 	  }
 
-#ifdef USE_GTK
-        gtk_window_set_title (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-                              (char *) SDATA (encoded_name));
-#else /* not USE_GTK */
 	XSetWMName (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), &text);
-#endif /* not USE_GTK */
 
 	XSetWMIconName (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), &icon);
 
@@ -1666,6 +1665,7 @@ x_set_name_internal (f, name)
 	  xfree (icon.value);
 	if (do_free_text_value)
 	  xfree (text.value);
+#endif /* not USE_GTK */
       }
 #else /* not HAVE_X11R4 */
       XSetIconName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
