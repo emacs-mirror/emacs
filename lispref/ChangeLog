@@ -1,7 +1,7 @@
-2007-06-01  Chong Yidong  <cyd@stupidchicken.com>
+2007-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* text.texi (Special Properties): Correct meaning of fontified
-	face.  Text suggested by Stefan Monnier.
+	face.
 
 2007-05-30  Richard Stallman  <rms@gnu.org>
 
