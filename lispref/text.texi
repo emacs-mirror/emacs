@@ -3026,24 +3026,11 @@ that all text between the character and where the mouse is have the same
 
 @item fontified
 @kindex fontified @r{(text property)}
-This property says whether the character has a face assigned to it by font
-locking.  The display engine tests it to decide whether a buffer
-portion needs refontifying before display.  @xref{Auto Faces}.  It
-takes one of three values:
-
-@table @asis
-@item @code{nil}
-Font locking is disabled, or the character's @code{face} property, if
-any, is invalid.
-
-@item @code{defer}
-This value is only used when ``just in time'' font locking is enabled
-and it means that the character's @code{face} property is invalid and
-needs deferred fontification.
-
-@item @code{t}
-The character's @code{face} property, or absence of one, is valid.
-@end table
+This property says whether the text is ready for display.  If
+@code{nil}, Emacs's redisplay routine calls the functions in
+@code{fontification-functions} (@pxref{Auto Faces}) to prepare this
+part of the buffer before it is displayed.  It is used internally by
+the ``just in time'' font locking code.
 
 @item display
 This property activates various features that change the
