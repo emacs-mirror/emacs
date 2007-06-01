@@ -1,3 +1,8 @@
+2007-06-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* text.texi (Special Properties): Correct meaning of fontified
+	face.  Text suggested by Stefan Monnier.
+
 2007-05-30  Richard Stallman  <rms@gnu.org>
 
 	* text.texi (Special Properties): Add link to Adjusting Point.
