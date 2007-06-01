@@ -1605,6 +1605,16 @@ x_set_name_internal (f, name)
 	int bytes, stringp;
         int do_free_icon_value = 0, do_free_text_value = 0;
 	Lisp_Object coding_system;
+#ifdef USE_GTK
+	Lisp_Object encoded_name;
+	struct gcpro gcpro1;
+
+	/* As ENCODE_UTF_8 may cause GC and relocation of string data,
+	   we use it before x_encode_text that may return string data.  */
+	GCPRO1 (name);
+	encoded_name = ENCODE_UTF_8 (name);
+	UNGCPRO;
+#endif
 
 	coding_system = Qcompound_text;
 	/* Note: Encoding strategy
@@ -1645,7 +1655,7 @@ x_set_name_internal (f, name)
 
 #ifdef USE_GTK
         gtk_window_set_title (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-                              (char *) SDATA (ENCODE_UTF_8 (name)));
+                              (char *) SDATA (encoded_name));
 #else /* not USE_GTK */
 	XSetWMName (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), &text);
 #endif /* not USE_GTK */
