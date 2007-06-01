@@ -1,3 +1,8 @@
+2007-06-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xfns.c (x_set_name_internal): Save encoded name before
+	x_encode_text in case string data is relocated.
+
 2007-05-30  Nick Roberts  <nickrob@snap.net.nz>
 
 	* sysdep.c (init_sys_modes): Add rather than replace with
