@@ -1,3 +1,7 @@
+2007-06-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* window.c (Fshrink_window): Reflow docstring.
+
 2007-06-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* xfns.c (x_set_name_internal): Save encoded name before
@@ -30,14 +34,14 @@
 2007-05-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* xfaces.c (syms_of_xfaces): Delete stray semicolon.
-	* xdisp.c (next_element_from_buffer): 
-	* window.c (delete_window): 
-	* term.c (term_mouse_highlight): 
-	* msdos.c (getdefdir): 
+	* xdisp.c (next_element_from_buffer):
+	* window.c (delete_window):
+	* term.c (term_mouse_highlight):
+	* msdos.c (getdefdir):
 	* macterm.c (mac_create_bitmap_from_bitmap_data)
-	(init_font_name_table): 
-	* fns.c (Fsxhash): 
-	* data.c (Fmake_local_variable): 
+	(init_font_name_table):
+	* fns.c (Fsxhash):
+	* data.c (Fmake_local_variable):
 	* ccl.c (ccl_driver): Likewise.
 
 2007-05-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
@@ -49,7 +53,7 @@
 
 	* image.c (uncache_image): Fix typo.
 
-2007-05-23  Johannes Weiner <hannes@saeurebad.de> (tiny change)
+2007-05-23  Johannes Weiner  <hannes@saeurebad.de>  (tiny change)
 
 	* keyboard.c (make_lispy_movement): Condition on HAVE_GPM too.
 
@@ -172,7 +176,7 @@
 
 2007-05-07  Andreas Schwab  <schwab@suse.de>
 
-	* keymap.c (Flookup_key): Fix typo in last change. 
+	* keymap.c (Flookup_key): Fix typo in last change.
 
 2007-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
