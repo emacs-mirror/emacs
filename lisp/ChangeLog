@@ -1,3 +1,8 @@
+2007-06-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* paren.el (show-paren-function): Undo 2007-04-19 and 2007-04-20
+	changes.
+
 2007-05-31  Richard Stallman  <rms@gnu.org>
 
 	* dired.el (dired-do-delete, dired-do-flagged-delete): Doc fixes.
