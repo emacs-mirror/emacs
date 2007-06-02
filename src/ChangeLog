@@ -1,3 +1,12 @@
+2007-06-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfns.c (x_set_name_internal): Undo last change.
+
+2007-06-01  Richard Stallman  <rms@gnu.org>
+
+	* xfns.c (x_encode_text): Add GCPRO.
+	(x_set_name_internal): Separate USE_GTK and non-USE_GTK cases.
+
 2007-06-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* xfns.c (x_set_name_internal): Save encoded name before
