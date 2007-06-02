@@ -1,3 +1,9 @@
+2007-06-02  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* MORE.STUFF (Hideshow): Delete.
+	(EDB, Go in a buffer): Update urls.
+	Suggested by CHENG Gao <chenggao@gmail.com>.
+
 2007-05-29  Robert J. Chassell  <bob@rattlesnake.com>
 
 	* NEWS: Fix instances of `allow' without object.
