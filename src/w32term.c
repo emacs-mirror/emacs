@@ -62,7 +62,6 @@ Boston, MA 02110-1301, USA.  */
 
 #ifdef USE_FONT_BACKEND
 #include "font.h"
-void w32font_initialize P_ ((void));
 #endif	/* USE_FONT_BACKEND */
 
 #define abs(x)	((x) < 0 ? -(x) : (x))
@@ -7000,11 +6999,6 @@ w32_initialize ()
       && SystemParametersInfo (SPI_GETFONTSMOOTHINGTYPE, 0, &smoothing_type, 0)
       && smoothing_type == FE_FONTSMOOTHINGCLEARTYPE;
   }
-
-#ifdef USE_FONT_BACKEND
-  w32font_initialize ();
-
-#endif
 }
 
 void
