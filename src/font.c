@@ -143,7 +143,7 @@ font_pixel_size (f, spec)
     return 0;
   point_size = XFLOAT_DATA (size);
   extra = AREF (spec, FONT_EXTRA_INDEX);
-  val = assq_no_quit (extra, QCdpi);
+  val = assq_no_quit (QCdpi, extra);
   if (CONSP (val))
     {
       if (INTEGERP (XCDR (val)))
