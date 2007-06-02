@@ -1062,9 +1062,9 @@ w32_cache_char_metrics (font)
         {
           /* Use the font width and height as max bounds, as not all BDF
              fonts contain the letter 'x'. */
-          font->max_bounds.width = FONT_MAX_WIDTH (font);
+          font->max_bounds.width = FONT_WIDTH (font);
           font->max_bounds.lbearing = -font->bdf->llx;
-          font->max_bounds.rbearing = FONT_MAX_WIDTH (font) - font->bdf->urx;
+          font->max_bounds.rbearing = FONT_WIDTH (font) - font->bdf->urx;
           font->max_bounds.ascent = FONT_BASE (font);
           font->max_bounds.descent = FONT_DESCENT (font);
         }
@@ -6544,7 +6544,7 @@ x_font_min_bounds (font, w, h)
    * average and maximum width, and maximum height.
    */
   *h = FONT_HEIGHT (font);
-  *w = FONT_WIDTH (font);
+  *w = FONT_AVG_WIDTH (font);
 }
 
 
