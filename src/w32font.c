@@ -1182,3 +1182,6 @@ syms_of_w32font ()
   w32font_driver.type = Qw32;
   register_font_driver (&w32font_driver, NULL);
 }
+
+/* arch-tag: 65b8a3cd-46aa-4c0d-a1f3-99e75b9c07ee
+   (do not change this comment) */
