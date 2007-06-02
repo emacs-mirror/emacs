@@ -76,8 +76,6 @@ You might find bug-fixes or enhancements in these places.
  * Ffap: <URL:http://www.mathcs.emory.edu/%7Emic/ftp/emacs/>
    (And some addons for it.)
 
- * Hideshow: <URL:http://www.glug.org/people/ttn/software/hideshow/>
-
  * Ispell: <URL:http://www.eng.utah.edu/~kstevens/ispell-page.html>
 
  * MH-E: <URL:http://mh-e.sourceforge.net/>
@@ -148,7 +146,7 @@ Several are for Debian GNU/Linux in particular.
 
  * ECB: Emacs Code Browser: <URL:http://ecb.sourceforge.net/>
 
- * EDB: database: <URL:http://www.glug.org/people/ttn/software/edb/>
+ * EDB: database: <URL:http://www.gnuvola.org/software/edb/>
 
  * Ee: categorizing information manager:
    <URL:http://www.jurta.org/emacs/ee/>
@@ -185,7 +183,7 @@ Several are for Debian GNU/Linux in particular.
    page: eiffel-mode.el.
 
  * Go in a buffer: Go Text Protocol client:
-   <URL:http://www.glug.org/people/ttn/software/personal-elisp/standalone/>
+   <URL:http://www.gnuvola.org/software/personal-elisp/standalone/>
    A modified version is also bundled with GNU Go:
    <URL:http://www.gnu.org/software/gnugo/gnugo.html>
 
