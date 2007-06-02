@@ -1,3 +1,8 @@
+2007-06-02  CHENG Gao  <chenggao@gmail.com>
+
+	* MORE.STUFF: Remove dead URL for Fortune, and update URLs for
+	Hideshow, Org, EDB, and Remember.
+
 2007-05-29  Robert J. Chassell  <bob@rattlesnake.com>
 
 	* NEWS: Fix instances of `allow' without object.
