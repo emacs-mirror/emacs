@@ -35,25 +35,33 @@ struct w32font_info
 {
   struct font font;
   TEXTMETRIC metrics;
-  /* Unicode subset bitfield. See MSDN documentation for FONTSIGNATURE.  */
-  DWORD *subranges;
 };
 
 extern struct font_driver w32font_driver;
 
-Lisp_Object Qw32, QCsubranges;
-static Lisp_Object Qmodern, Qswiss, Qroman, Qdecorative, Qscript, Qunknown;
+Lisp_Object Qw32, QCfamily;
+static Lisp_Object Qmonospace, Qsans_serif, Qserif, Qmono, Qsans, Qsans__serif;
+static Lisp_Object Qscript, Qdecorative, Qraster, Qoutline, Qunknown;
+
+/* scripts */
+static Lisp_Object Qlatin, Qgreek, Qcoptic, Qcyrillic, Qarmenian, Qhebrew;
+static Lisp_Object Qarabic, Qsyriac, Qnko, Qthaana, Qdevanagari, Qbengali;
+static Lisp_Object Qgurmukhi, Qgujarati, Qoriya, Qtamil, Qtelugu;
+static Lisp_Object Qkannada, Qmalayalam, Qsinhala, Qthai, Qlao;
+static Lisp_Object Qtibetan, Qmyanmar, Qgeorgian, Qhangul, Qethiopic;
+static Lisp_Object Qcherokee, Qcanadian_aboriginal, Qogham, Qrunic;
+static Lisp_Object Qkhmer, Qmongolian, Qsymbol, Qbraille, Qhan;
+static Lisp_Object Qideographic_description, Qcjk_misc, Qkana, Qbopomofo;
+static Lisp_Object Qkanbun, Qyi, Qbyzantine_musical_symbol;
+static Lisp_Object Qmusical_symbol, Qmathematical;
+
+/* Font spacing symbols - defined in font.c.  */
+extern Lisp_Object Qc, Qp, Qm;
 
 static void fill_in_logfont P_ ((FRAME_PTR f, LOGFONT *logfont,
                                  Lisp_Object font_spec));
 
-static void set_fonts_frame P_ ((Lisp_Object fontlist, Lisp_Object frame));
-
-static int unicode_range_for_char (unsigned c);
-
-static void list_all_matching_fonts P_ ((Lisp_Object frame,
-                                         LOGFONT *font_match_pattern,
-                                         Lisp_Object* list));
+static Lisp_Object font_supported_scripts P_ ((FONTSIGNATURE * sig));
 
 /* From old font code in w32fns.c */
 char * w32_to_x_charset P_ ((int charset, char * matching));
@@ -71,11 +79,27 @@ static int CALLBACK add_font_name_to_list P_ ((ENUMLOGFONTEX *,
                                                NEWTEXTMETRICEX *,
                                                DWORD, LPARAM));
 
-/* W32 API functions only available on some versions of Windows  */
-typedef DWORD (*GETGLYPHINDICES) (HDC, wchar_t *, int, LPWORD, DWORD);
-typedef BOOL (*GETTEXTEXTENTPTI) (HDC, LPWORD, int, LPSIZE);
-static GETGLYPHINDICES get_glyph_indices_fn = NULL;
-static GETTEXTEXTENTPTI get_text_extent_pointi_fn = NULL;
+/* struct passed in as LPARAM arg to EnumFontFamiliesEx, for keeping track
+   of what we really want.  */
+struct font_callback_data
+{
+  /* The logfont we are matching against. EnumFontFamiliesEx only matches
+     face name and charset, so we need to manually match everything else
+     in the callback function.  */
+  LOGFONT pattern;
+  /* The original font spec or entity.  */
+  Lisp_Object orig_font_spec;
+  /* The frame the font is being loaded on.  */
+  Lisp_Object frame;
+  /* The list to add matches to.  */
+  Lisp_Object list;
+};
+
+/* Handles the problem that EnumFontFamiliesEx will not return all
+   style variations if the font name is not specified.  */
+static void list_all_matching_fonts P_ ((struct font_callback_data *match_data));
+
+
 /* MingW headers only define this when _WIN32_WINNT >= 0x0500, but we
    target older versions.  */
 #define GGI_MARK_NONEXISTING_GLYPHS 1
@@ -109,34 +133,34 @@ static Lisp_Object
 w32font_list (frame, font_spec)
      Lisp_Object frame, font_spec;
 {
-  Lisp_Object list = Qnil;
-  LOGFONT font_match_pattern;
+  Lisp_Object tem;
+  struct font_callback_data match_data;
   HDC dc;
   FRAME_PTR f = XFRAME (frame);
 
-  bzero (&font_match_pattern, sizeof (font_match_pattern));
-  fill_in_logfont (f, &font_match_pattern, font_spec);
+  match_data.orig_font_spec = font_spec;
+  match_data.list = Qnil;
+  match_data.frame = frame;
+  bzero (&match_data.pattern, sizeof (LOGFONT));
+  fill_in_logfont (f, &match_data.pattern, font_spec);
 
-
-  if (font_match_pattern.lfFaceName[0] == '\0')
+  if (match_data.pattern.lfFaceName[0] == '\0')
     {
       /* EnumFontFamiliesEx does not take other fields into account if
          font name is blank, so need to use two passes.  */
-      list_all_matching_fonts (frame, &font_match_pattern, &list);
+      list_all_matching_fonts (&match_data);
     }
   else
     {
       dc = get_frame_dc (f);
 
-      EnumFontFamiliesEx (dc, &font_match_pattern,
+      EnumFontFamiliesEx (dc, &match_data.pattern,
                           (FONTENUMPROC) add_font_entity_to_list,
-                          (LPARAM) &list, 0);
+                          (LPARAM) &match_data, 0);
       release_frame_dc (f, dc);
     }
 
-  set_fonts_frame (list, frame);
-
-  return list;
+  return NILP (match_data.list) ? null_vector : Fvconcat (1, &match_data.list);
 }
 
 /* w32 implementation of match for font backend.
@@ -147,24 +171,24 @@ static Lisp_Object
 w32font_match (frame, font_spec)
      Lisp_Object frame, font_spec;
 {
-  Lisp_Object list = Qnil;
-  LOGFONT font_match_pattern;
+  struct font_callback_data match_data;
   HDC dc;
   FRAME_PTR f = XFRAME (frame);
 
-  bzero (&font_match_pattern, sizeof (font_match_pattern));
-  fill_in_logfont (f, &font_match_pattern, font_spec);
+  match_data.orig_font_spec = font_spec;
+  match_data.frame = frame;
+  match_data.list = Qnil;
+  bzero (&match_data.pattern, sizeof (LOGFONT));
+  fill_in_logfont (f, &match_data.pattern, font_spec);
 
   dc = get_frame_dc (f);
 
-  EnumFontFamiliesEx (dc, &font_match_pattern,
+  EnumFontFamiliesEx (dc, &match_data.pattern,
                       (FONTENUMPROC) add_one_font_entity_to_list,
-                      (LPARAM) &list, 0);
+                      (LPARAM) &match_data, 0);
   release_frame_dc (f, dc);
 
-  set_fonts_frame (list, frame);
-
-  return NILP (list) ? Qnil : XCAR (list);
+  return NILP (match_data.list) ? Qnil : XCAR (match_data.list);
 }
 
 
@@ -219,7 +243,7 @@ w32font_open (f, font_entity, pixel_size)
   fill_in_logfont (f, &logfont, font_entity);
 
   size = XINT (AREF (font_entity, FONT_SIZE_INDEX));
-  if (size == 0)
+  if (!size)
     size = pixel_size;
 
   logfont.lfHeight = -size;
@@ -281,22 +305,6 @@ w32font_open (f, font_entity, pixel_size)
   font->descent = w32_font->metrics.tmDescent;
   font->scalable = w32_font->metrics.tmPitchAndFamily & TMPF_VECTOR;
 
-  /* Truetype fonts will have extra information about the characters
-     covered by the font.  */
-  ((struct w32font_info *)(font))->subranges = NULL;
-  extra = AREF (font_entity, FONT_EXTRA_INDEX);
-  if (CONSP (extra))
-    {
-      val = assq_no_quit (extra, QCsubranges);
-      if (CONSP (val))
-        {
-          val = XCDR (val);
-
-          if (XTYPE (val) == Lisp_Misc && XMISCTYPE (val) == Lisp_Misc_Save_Value)
-            ((struct w32font_info *)(font))->subranges = XSAVE_VALUE (val)->pointer;
-        }
-    }
-
   return font;
 }
 
@@ -330,33 +338,22 @@ w32font_has_char (entity, c)
      Lisp_Object entity;
      int c;
 {
-  Lisp_Object val, extra;
-  DWORD *ranges;
-  int index;
+  Lisp_Object supported_scripts, extra, script;
   DWORD mask;
 
   extra = AREF (entity, FONT_EXTRA_INDEX);
   if (!CONSP (extra))
     return -1;
 
-  val = assq_no_quit (extra, QCsubranges);
-  if (!CONSP (val))
+  supported_scripts = assq_no_quit (QCscript, extra);
+  if (!CONSP (supported_scripts))
     return -1;
 
-  val = XCDR (val);
-  if (XTYPE (val) != Lisp_Misc || XMISCTYPE (val) != Lisp_Misc_Save_Value)
-    return -1;
+  supported_scripts = XCDR (supported_scripts);
 
-  ranges = XSAVE_VALUE (val)->pointer;
+  script = CHAR_TABLE_REF (Vchar_script_table, c);
 
-  index = unicode_range_for_char (c);
-  mask = 1 << (index % 32);
-  index = index / 32;
-
-  if (ranges[index] & mask)
-    return 1;
-  else
-    return 0;
+  return (memq_no_quit (script, supported_scripts)) ? 1 : 0;
 }
 
 /* w32 implementation of encode_char for font backend.
@@ -367,32 +364,8 @@ w32font_encode_char (font, c)
      struct font *font;
      int c;
 {
-  if (get_glyph_indices_fn)
-    {
-      HFONT old_font;
-      WORD glyph[2];
-      int converted;
-      /* FIXME: Be nice if we had a frame here, rather than getting
-         the desktop's device context to measure against... */
-      HDC dc = GetDC (NULL);
-      wchar_t string[2];
-      string[0] = c;
-      string[1] = 0x0000;
-
-      if (get_glyph_indices_fn)
-        converted = (*get_glyph_indices_fn) (dc, string, 1, glyph,
-                                             GGI_MARK_NONEXISTING_GLYPHS);
-
-      /* Restore state and release DC.  */
-      SelectObject (dc, old_font);
-      ReleaseDC (NULL, dc);
-      if (converted > 0 && glyph[0] != 0xFFFF)
-        return glyph[0];
-      else if (converted != GDI_ERROR)
-        return FONT_INVALID_CODE;
-    }
-  /* On older platforms, or if the above fails, return the unicode
-     code point.  */
+  /* Avoid unneccesary conversion - all the Win32 APIs will take a unicode
+     character.  */
   return c;
 }
 
@@ -417,21 +390,34 @@ w32font_text_extents (font, code, nglyphs, metrics)
 
   /* TODO: Allow some extra room for surrogates. */
   WORD *wcode = alloca(nglyphs * sizeof (WORD));
+  SIZE size;
 
   old_font = SelectObject (dc, ((W32FontStruct *)(font->font.font))->hfont);
 
   if (metrics)
     {
       GLYPHMETRICS gm;
-      int i;
+      MAT2 transform;
+      int i, width;
       UINT format = GGO_METRICS;
-      if (get_text_extent_pointi_fn)
-        format |= GGO_GLYPH_INDEX;
+
+      /* Set transform to the identity matrix.  */
+      bzero (&transform, sizeof (transform));
+      transform.eM11.value = 1;
+      transform.eM22.value = 1;
 
       for (i = 0; i < nglyphs; i++)
         {
-          if (GetGlyphOutline (dc, *(code + i), format, &gm, 0, NULL, NULL)
-              != GDI_ERROR)
+	  if (code[i] < 0x10000)
+	    wcode[i] = code[i];
+	  else
+	    {
+	      /* TODO: Convert to surrogate, reallocating array if needed */
+	      wcode[i] = 0xffff;
+	    }
+
+          if (GetGlyphOutlineW (dc, *(code + i), format, &gm, 0,
+                                NULL, &transform) != GDI_ERROR)
             {
               metrics[i].lbearing = gm.gmptGlyphOrigin.x;
               metrics[i].rbearing = gm.gmptGlyphOrigin.x + gm.gmBlackBoxX;
@@ -450,28 +436,26 @@ w32font_text_extents (font, code, nglyphs, metrics)
             }
         }
     }
-
-  for (i = 0; i < nglyphs; i++)
+  else
     {
-      if (code[i] < 0x10000)
-        wcode[i] = code[i];
-      else
-        {
-          /* TODO: Convert to surrogate, reallocating array if needed */
-          wcode[i] = 0xffff;
-        }
+      for (i = 0; i < nglyphs; i++)
+	{
+	  if (code[i] < 0x10000)
+	    wcode[i] = code[i];
+	  else
+	    {
+	      /* TODO: Convert to surrogate, reallocating array if needed */
+	      wcode[i] = 0xffff;
+	    }
+	}
     }
 
-  if (get_text_extent_pointi_fn)
+  if (GetTextExtentPoint32W (dc, wcode, nglyphs, &size))
     {
-      SIZE size;
-      if ((*get_text_extent_pointi_fn) (dc, wcode, nglyphs, &size))
-        {
-          total_width = size.cx;
-        }
+      total_width = size.cx;
     }
 
-  if (total_width == 0)
+  if (!total_width)
     {
       RECT rect;
       rect.top = 0; rect.bottom = font->font.height; rect.left = 0; rect.right = 1;
@@ -479,6 +463,7 @@ w32font_text_extents (font, code, nglyphs, metrics)
                  DT_CALCRECT | DT_NOPREFIX | DT_SINGLELINE);
       total_width = rect.right;
     }
+
   /* Restore state and release DC.  */
   SelectObject (dc, old_font);
   ReleaseDC (NULL, dc);
@@ -497,7 +482,6 @@ w32font_draw (s, from, to, x, y, with_background)
      struct glyph_string *s;
      int from, to, x, y, with_background;
 {
-  /* TODO: Do we need to specify ETO_GLYPH_INDEX or is char2b always utf-16?  */
   UINT options = 0;
 
   if (with_background)
@@ -619,7 +603,8 @@ add_font_name_to_list (logical_font, physical_font, font_type, list_object)
 
 /* Convert an enumerated Windows font to an Emacs font entity.  */
 static Lisp_Object
-w32_enumfont_pattern_entity (logical_font, physical_font, font_type)
+w32_enumfont_pattern_entity (frame, logical_font, physical_font, font_type)
+     Lisp_Object frame;
      ENUMLOGFONTEX *logical_font;
      NEWTEXTMETRICEX *physical_font;
      DWORD font_type;
@@ -628,37 +613,58 @@ w32_enumfont_pattern_entity (logical_font, physical_font, font_type)
   LOGFONT *lf = (LOGFONT*) logical_font;
   BYTE generic_type;
 
-  entity = Fmake_vector (make_number (FONT_ENTITY_MAX), null_string);
+  entity = Fmake_vector (make_number (FONT_ENTITY_MAX), Qnil);
 
   ASET (entity, FONT_TYPE_INDEX, Qw32);
+  ASET (entity, FONT_FRAME_INDEX, frame);
   ASET (entity, FONT_REGISTRY_INDEX, w32_registry (lf->lfCharSet));
   ASET (entity, FONT_OBJLIST_INDEX, Qnil);
 
   /* Foundry is difficult to get in readable form on Windows.
-     But Emacs crashes if it is not set, so set it to the generic type.  */
-  generic_type = physical_font->ntmTm.tmPitchAndFamily & 0xF0;
-  if (generic_type == FF_DECORATIVE)
-    tem = Qdecorative;
-  else if (generic_type == FF_MODERN)
-    tem = Qmodern;
-  else if (generic_type == FF_ROMAN)
-    tem = Qroman;
-  else if (generic_type == FF_SCRIPT)
-    tem = Qscript;
-  else if (generic_type == FF_SWISS)
-    tem = Qswiss;
+     But Emacs crashes if it is not set, so set it to something more
+     generic.  Thes values make xflds compatible with Emacs 22. */
+  if (lf->lfOutPrecision == OUT_STRING_PRECIS)
+    tem = Qraster;
+  else if (lf->lfOutPrecision == OUT_STROKE_PRECIS)
+    tem = Qoutline;
   else
     tem = Qunknown;
 
   ASET (entity, FONT_FOUNDRY_INDEX, tem);
+
+  /* Save the generic family in the extra info, as it is likely to be
+     useful to users looking for a close match.  */
+  generic_type = physical_font->ntmTm.tmPitchAndFamily & 0xF0;
+  if (generic_type == FF_DECORATIVE)
+    tem = Qdecorative;
+  else if (generic_type == FF_MODERN)
+    tem = Qmonospace;
+  else if (generic_type == FF_ROMAN)
+    tem = Qserif;
+  else if (generic_type == FF_SCRIPT)
+    tem = Qscript;
+  else if (generic_type == FF_SWISS)
+    tem = Qsans_serif;
+  else
+    tem = Qnil;
+    
+  if (! NILP (tem))
+    font_put_extra (entity, QCfamily, tem);
+
+
+  if (physical_font->ntmTm.tmPitchAndFamily & 0x01)
+    font_put_extra (entity, QCspacing, make_number (FONT_SPACING_PROPORTIONAL));
+  else
+    font_put_extra (entity, QCspacing, make_number (FONT_SPACING_MONO));
 
   ASET (entity, FONT_FAMILY_INDEX,
         intern_downcase (lf->lfFaceName, strlen (lf->lfFaceName)));
 
   ASET (entity, FONT_WEIGHT_INDEX, make_number (lf->lfWeight));
   ASET (entity, FONT_SLANT_INDEX, make_number (lf->lfItalic ? 200 : 100));
-  ASET (entity, FONT_WIDTH_INDEX,
-        make_number (physical_font->ntmTm.tmAveCharWidth));
+  /* TODO: PANOSE struct has this info, but need to call GetOutlineTextMetrics
+     to get it.  */
+  ASET (entity, FONT_WIDTH_INDEX, make_number (100));
 
   if (font_type & RASTER_FONTTYPE)
     ASET (entity, FONT_SIZE_INDEX, make_number (physical_font->ntmTm.tmHeight));
@@ -669,43 +675,255 @@ w32_enumfont_pattern_entity (logical_font, physical_font, font_type)
      of getting this information easily.  */
   if (font_type & TRUETYPE_FONTTYPE)
     {
-      DWORD *subranges = xmalloc(16);
-      memcpy (subranges, physical_font->ntmFontSig.fsUsb, 16);
-      font_put_extra (entity, QCsubranges, make_save_value (subranges, 0));
+      font_put_extra (entity, QCscript,
+                      font_supported_scripts (&physical_font->ntmFontSig));
     }
+
   return entity;
 }
 
-/* Callback function for EnumFontFamiliesEx.
- * Adds the name of a font to a Lisp list (passed in as the lParam arg).  */
-static int CALLBACK
-add_font_entity_to_list (logical_font, physical_font, font_type, list_object)
-     ENUMLOGFONTEX *logical_font;
-     NEWTEXTMETRICEX *physical_font;
-     DWORD font_type;
-     LPARAM list_object;
-{
-  Lisp_Object *list = (Lisp_Object *) list_object;
-  Lisp_Object entity = w32_enumfont_pattern_entity (logical_font,
-                                                    physical_font, font_type);
-  if (!NILP (entity))
-    *list = Fcons (entity, *list);
 
+/* Convert generic families to the family portion of lfPitchAndFamily.  */
+BYTE
+w32_generic_family (Lisp_Object name)
+{
+  /* Generic families.  */
+  if (EQ (name, Qmonospace) || EQ (name, Qmono))
+    return FF_MODERN;
+  else if (EQ (name, Qsans_serif) || EQ (name, Qsans__serif)
+           || EQ (name, Qsans))
+    return FF_SWISS;
+  else if (EQ (name, Qserif))
+    return FF_ROMAN;
+  else if (EQ (name, Qdecorative))
+    return FF_DECORATIVE;
+  else if (EQ (name, Qscript))
+    return FF_SCRIPT;
+  else
+    return FF_DONTCARE;
+}
+
+static int
+logfonts_match (font, pattern)
+     LOGFONT *font, *pattern;
+{
+  /* Only check height for raster fonts.  */
+  if (pattern->lfHeight && font->lfOutPrecision == OUT_STRING_PRECIS
+      && font->lfHeight != pattern->lfHeight)
+    return 0;
+
+  /* Have some flexibility with weights.  */
+  if (pattern->lfWeight
+      && ((font->lfWeight < (pattern->lfWeight - 150))
+          || font->lfWeight > (pattern->lfWeight + 150)))
+      return 0;
+
+  /* Charset and face should be OK.  Italic has to be checked
+     against the original spec, in case we don't have any preference.  */
+  return 1;
+}
+
+static int
+font_matches_spec (type, font, spec)
+     DWORD type;
+     NEWTEXTMETRICEX *font;
+     Lisp_Object spec;
+{
+  Lisp_Object extra, val;
+
+  /* Check italic. Can't check logfonts, since it is a boolean field,
+     so there is no difference between "non-italic" and "don't care".  */
+  val = AREF (spec, FONT_SLANT_INDEX);
+  if (INTEGERP (val))
+    {
+      int slant = XINT (val);
+      if ((slant > 150 && !font->ntmTm.tmItalic)
+          || (slant <= 150 && font->ntmTm.tmItalic))
+        {
+          OutputDebugString ("italic mismatch");
+        return 0;
+        }
+    }
+
+  /* Check extra parameters.  */
+  for (extra = AREF (spec, FONT_EXTRA_INDEX);
+       CONSP (extra); extra = XCDR (extra))
+    {
+      Lisp_Object extra_entry;
+      extra_entry = XCAR (extra);
+      if (CONSP (extra_entry))
+        {
+          Lisp_Object key = XCAR (extra_entry);
+          val = XCDR (extra_entry);
+          if (EQ (key, QCfamily))
+            {
+              /* Generic family. Most useful when there is no font name
+                 specified. eg, if a script does not exist in the default
+                 font, we could look for a font with the same generic family
+                 that does support the script. Full PANOSE support would
+                 be better, but we need to open the font to get that.  */
+              BYTE w32_family = w32_generic_family (val);
+
+              /* Reject if FF_DONTCARE is returned, as it means the
+                 font spec is bad.  */
+              if (w32_family == FF_DONTCARE
+                  || w32_family != (font->ntmTm.tmPitchAndFamily & 0xF0))
+                return 0;
+            }
+          else if (EQ (key, QCspacing))
+            {
+              int proportional;
+              if (INTEGERP (val))
+                {
+                  int spacing = XINT (val);
+                  proportional = (spacing < FONT_SPACING_MONO);
+                }
+              else if (EQ (val, Qp))
+                proportional = 1;
+              else if (EQ (val, Qc) || EQ (val, Qm))
+                proportional = 0;
+              else
+                return 0; /* Bad font spec.  */
+
+              if ((proportional && !(font->ntmTm.tmPitchAndFamily & 0x01))
+                  || (!proportional && (font->ntmTm.tmPitchAndFamily & 0x01)))
+                return 0;
+            }
+          else if (EQ (key, QCscript) && SYMBOLP (val))
+            {
+              /* Only truetype fonts will have information about what
+                 scripts they support.  This probably means the user
+                 will have to force Emacs to use raster, postscript
+                 or atm fonts for non-ASCII text.  */
+              if (type & TRUETYPE_FONTTYPE)
+                {
+                  Lisp_Object support
+                    = font_supported_scripts (&font->ntmFontSig);
+                  if (! memq_no_quit (val, support))
+                    return 0;
+                }
+              else
+                {
+                  /* Return specific matches, but play it safe. Fonts
+                     that cover more than their charset would suggest
+                     are likely to be truetype or opentype fonts,
+                     covered above.  */
+                  if (EQ (val, Qlatin))
+                    {
+                      /* Although every charset but symbol, thai and
+                         arabic contains the basic ASCII set of latin
+                         characters, Emacs expects much more.  */
+                      if (font->ntmTm.tmCharSet != ANSI_CHARSET)
+                        return 0;
+                    }
+                  else if (EQ (val, Qsymbol))
+                    {
+                      if (font->ntmTm.tmCharSet != SYMBOL_CHARSET)
+                        return 0;
+                    }
+                  else if (EQ (val, Qcyrillic))
+                    {
+                      if (font->ntmTm.tmCharSet != RUSSIAN_CHARSET)
+                        return 0;
+                    }
+                  else if (EQ (val, Qgreek))
+                    {
+                      if (font->ntmTm.tmCharSet != GREEK_CHARSET)
+                        return 0;
+                    }
+                  else if (EQ (val, Qarabic))
+                    {
+                      if (font->ntmTm.tmCharSet != ARABIC_CHARSET)
+                        return 0;
+                    }
+                  else if (EQ (val, Qhebrew))
+                    {
+                      if (font->ntmTm.tmCharSet != HEBREW_CHARSET)
+                        return 0;
+                    }
+                  else if (EQ (val, Qthai))
+                    {
+                      if (font->ntmTm.tmCharSet != THAI_CHARSET)
+                        return 0;
+                    }
+                  else if (EQ (val, Qkana))
+                    {
+                      if (font->ntmTm.tmCharSet != SHIFTJIS_CHARSET)
+                        return 0;
+                    }
+                  else if (EQ (val, Qbopomofo))
+                    {
+                      if (font->ntmTm.tmCharSet != CHINESEBIG5_CHARSET)
+                        return 0;
+                    }
+                  else if (EQ (val, Qhangul))
+                    {
+                      if (font->ntmTm.tmCharSet != HANGUL_CHARSET
+                          && font->ntmTm.tmCharSet != JOHAB_CHARSET)
+                        return 0;
+                    }
+                  else if (EQ (val, Qhan))
+                    {
+                      if (font->ntmTm.tmCharSet != CHINESEBIG5_CHARSET
+                          && font->ntmTm.tmCharSet != GB2312_CHARSET
+                          && font->ntmTm.tmCharSet != HANGUL_CHARSET
+                          && font->ntmTm.tmCharSet != JOHAB_CHARSET
+                          && font->ntmTm.tmCharSet != SHIFTJIS_CHARSET)
+                        return 0;
+                    }
+                  else
+                    /* Other scripts unlikely to be handled.  */
+                    return 0;
+                }
+            }
+        }
+    }
   return 1;
 }
 
 /* Callback function for EnumFontFamiliesEx.
- * Adds the name of a font to a Lisp list (passed in as the lParam arg),
- * then terminate the search.  */
+ * Checks if a font matches everything we are trying to check agaist,
+ * and if so, adds it to a list. Both the data we are checking against
+ * and the list to which the fonts are added are passed in via the
+ * lparam argument, in the form of a font_callback_data struct. */
 static int CALLBACK
-add_one_font_entity_to_list (logical_font, physical_font, font_type, list)
+add_font_entity_to_list (logical_font, physical_font, font_type, lParam)
      ENUMLOGFONTEX *logical_font;
      NEWTEXTMETRICEX *physical_font;
      DWORD font_type;
-     LPARAM list;
+     LPARAM lParam;
 {
-  add_font_entity_to_list (logical_font, physical_font, font_type, list);
-  return 0;
+  struct font_callback_data *match_data
+    = (struct font_callback_data *) lParam;
+
+  if (logfonts_match (&logical_font->elfLogFont, &match_data->pattern)
+      && font_matches_spec (font_type, physical_font,
+                            match_data->orig_font_spec))
+    {
+      Lisp_Object entity
+        = w32_enumfont_pattern_entity (match_data->frame, logical_font,
+                                       physical_font, font_type);
+      if (!NILP (entity))
+        match_data->list = Fcons (entity, match_data->list);
+    }
+  return 1;
+}
+
+/* Callback function for EnumFontFamiliesEx.
+ * Terminates the search once we have a match. */
+static int CALLBACK
+add_one_font_entity_to_list (logical_font, physical_font, font_type, lParam)
+     ENUMLOGFONTEX *logical_font;
+     NEWTEXTMETRICEX *physical_font;
+     DWORD font_type;
+     LPARAM lParam;
+{
+  struct font_callback_data *match_data
+    = (struct font_callback_data *) lParam;
+  add_font_entity_to_list (logical_font, physical_font, font_type, lParam);
+
+  /* If we have a font in the list, terminate the search.  */
+  return !NILP (match_data->list);
 }
 
 /* Convert a Lisp font registry (symbol) to a windows charset.  */
@@ -731,29 +949,11 @@ w32_registry (w32_charset)
      LONG w32_charset;
 {
   if (w32_charset == ANSI_CHARSET)
-    return Qiso8859_1;
+    return Qiso10646_1;
   else
     {
       char * charset = w32_to_x_charset (w32_charset, NULL);
       return intern_downcase (charset, strlen(charset));
-    }
-}
-
-static void
-set_fonts_frame (fontlist, frame)
-     Lisp_Object fontlist;
-     Lisp_Object frame;
-{
-  if (VECTORP (fontlist))
-    ASET (fontlist, FONT_FRAME_INDEX, frame);
-  else
-    {
-      for ( ; CONSP (fontlist); fontlist = XCDR (fontlist))
-        {
-          Lisp_Object entity = XCAR (fontlist);
-          if (VECTORP (entity))
-            ASET (entity, FONT_FRAME_INDEX, frame);
-        }
     }
 }
 
@@ -764,23 +964,30 @@ fill_in_logfont (f, logfont, font_spec)
      LOGFONT *logfont;
      Lisp_Object font_spec;
 {
-  Lisp_Object val, tmp, extra;
+  Lisp_Object tmp, extra;
   int dpi = FRAME_W32_DISPLAY_INFO (f)->resy;
 
-  /* TODO: Allow user to override dpi settings.  */
+  extra = AREF (font_spec, FONT_EXTRA_INDEX);
+  /* Allow user to override dpi settings.  */
+  if (CONSP (extra))
+    {
+      tmp = assq_no_quit (QCdpi, extra);
+      if (CONSP (tmp) && INTEGERP (XCDR (tmp)))
+        {
+          dpi = XINT (XCDR (tmp));
+        }
+      else if (CONSP (tmp) && FLOATP (XCDR (tmp)))
+        {
+          dpi = (int) (XFLOAT_DATA (XCDR (tmp)) + 0.5);
+        }
+    }
 
   /* Height  */
   tmp = AREF (font_spec, FONT_SIZE_INDEX);
   if (INTEGERP (tmp))
     logfont->lfHeight = -1 * XINT (tmp);
   else if (FLOATP (tmp))
-    logfont->lfHeight = (int) (-1.0 *  dpi * XFLOAT_DATA (tmp) / 72.0);
-
-  /* Width  TODO: makes fonts look distorted.
-  tmp = AREF (font_spec, FONT_WIDTH_INDEX);
-  if (INTEGERP (tmp))
-    logfont->lfWidth = XINT (tmp);
- */
+    logfont->lfHeight = (int) (-1.0 *  dpi * XFLOAT_DATA (tmp) / 72.27 + 0.5);
 
   /* Escapement  */
 
@@ -806,12 +1013,7 @@ fill_in_logfont (f, logfont, font_spec)
   /* Charset  */
   tmp = AREF (font_spec, FONT_REGISTRY_INDEX);
   if (! NILP (tmp))
-    {
-      if (STRINGP (tmp))
-        logfont->lfCharSet = x_to_w32_charset (SDATA (tmp));
-      else
-        logfont->lfCharSet = registry_to_w32_charset (tmp);
-    }
+    logfont->lfCharSet = registry_to_w32_charset (tmp);
 
   /* Out Precision  */
   /* Clip Precision  */
@@ -819,311 +1021,211 @@ fill_in_logfont (f, logfont, font_spec)
      can enable/disable anti-aliasing for individual fonts.  */
   logfont->lfQuality = DEFAULT_QUALITY;
 
-  /* Pitch and Family  */
-  /* Facename  TODO: handle generic names  */
-  tmp = AREF (font_spec, FONT_FAMILY_INDEX);
-  /* Font families are interned  */
-  if (SYMBOLP (tmp))
-    strncpy (logfont->lfFaceName, SDATA (SYMBOL_NAME (tmp)), LF_FACESIZE);
-  else if (STRINGP (tmp))
-    strncpy (logfont->lfFaceName, SDATA (tmp), LF_FACESIZE);
+  /* Generic Family and Face Name  */
+  logfont->lfPitchAndFamily = FF_DONTCARE | DEFAULT_PITCH;
 
+  tmp = AREF (font_spec, FONT_FAMILY_INDEX);
+  if (! NILP (tmp))
+    {
+      logfont->lfPitchAndFamily = w32_generic_family (tmp) | DEFAULT_PITCH;
+      if ((logfont->lfPitchAndFamily & 0xF0) != FF_DONTCARE)
+        ; /* Font name was generic, don't fill in font name.  */
+        /* Font families are interned, but allow for strings also in case of
+           user input.  */
+      else if (SYMBOLP (tmp))
+        strncpy (logfont->lfFaceName, SDATA (SYMBOL_NAME (tmp)), LF_FACESIZE);
+      else if (STRINGP (tmp))
+        strncpy (logfont->lfFaceName, SDATA (tmp), LF_FACESIZE);
+    }
+
+  /* Process EXTRA info.  */
+  for ( ; CONSP (extra); extra = XCDR (extra))
+    {
+      tmp = XCAR (extra);
+      if (CONSP (tmp))
+        {
+          Lisp_Object key, val;
+          key = XCAR (tmp), val = XCDR (tmp);
+          if (EQ (key, QCfamily))
+            {
+              /* Override generic family.  */
+              BYTE family = w32_generic_family (val);
+              if (family != FF_DONTCARE)
+                logfont->lfPitchAndFamily
+                  = logfont->lfPitchAndFamily & 0x0F | family;
+            }
+          else if (EQ (key, QCspacing))
+            {
+              /* Set pitch based on the spacing property.  */
+              if (INTEGERP (val))
+                {
+                  int spacing = XINT (val);
+                  if (spacing < FONT_SPACING_MONO)
+                    logfont->lfPitchAndFamily
+                      = logfont->lfPitchAndFamily & 0xF0 | VARIABLE_PITCH;
+                  else
+                    logfont->lfPitchAndFamily
+                      = logfont->lfPitchAndFamily & 0xF0 | FIXED_PITCH;
+                }
+              else if (EQ (val, Qp))
+                logfont->lfPitchAndFamily
+                  = logfont->lfPitchAndFamily & 0xF0 | VARIABLE_PITCH;
+              else if (EQ (val, Qc) || EQ (val, Qm))
+                logfont->lfPitchAndFamily
+                  = logfont->lfPitchAndFamily & 0xF0 | FIXED_PITCH;
+            }
+          /* Only use QCscript if charset is not provided, or is unicode
+             and a single script is specified.  This is rather crude,
+             and is only used to narrow down the fonts returned where
+             there is a definite match.  Some scripts, such as latin, han,
+             cjk-misc match multiple lfCharSet values, so we can't pre-filter
+             them.  */
+          else if (EQ (key, QCscript)
+                   && logfont->lfCharSet == DEFAULT_CHARSET
+                   && SYMBOLP (val))
+            {
+              if (EQ (val, Qgreek))
+                logfont->lfCharSet = GREEK_CHARSET;
+              else if (EQ (val, Qhangul))
+                logfont->lfCharSet = HANGUL_CHARSET;
+              else if (EQ (val, Qkana) || EQ (val, Qkanbun))
+                logfont->lfCharSet = SHIFTJIS_CHARSET;
+              else if (EQ (val, Qbopomofo))
+                logfont->lfCharSet = CHINESEBIG5_CHARSET;
+              /* GB 18030 supports tibetan, yi, mongolian,
+                 fonts that support it should show up if we ask for
+                 GB2312 fonts. */
+              else if (EQ (val, Qtibetan) || EQ (val, Qyi)
+                       || EQ (val, Qmongolian))
+                logfont->lfCharSet = GB2312_CHARSET;
+              else if (EQ (val, Qhebrew))
+                logfont->lfCharSet = HEBREW_CHARSET;
+              else if (EQ (val, Qarabic))
+                logfont->lfCharSet = ARABIC_CHARSET;
+              else if (EQ (val, Qthai))
+                logfont->lfCharSet = THAI_CHARSET;
+              else if (EQ (val, Qsymbol))
+                logfont->lfCharSet = SYMBOL_CHARSET;
+            }
+        }
+    }
 }
 
 static void
-list_all_matching_fonts (frame, font_match_pattern, list)
-     Lisp_Object frame;
-     LOGFONT *font_match_pattern;
-     Lisp_Object* list;
+list_all_matching_fonts (match_data)
+     struct font_callback_data *match_data;
 {
   HDC dc;
-  Lisp_Object families = w32font_list_family (frame);
-  struct frame *f = XFRAME (frame);
+  Lisp_Object families = w32font_list_family (match_data->frame);
+  struct frame *f = XFRAME (match_data->frame);
 
   dc = get_frame_dc (f);
 
   while (!NILP (families))
     {
+      /* TODO: Use the Unicode versions of the W32 APIs, so we can
+         handle non-ASCII font names.  */
+      char *name;
       Lisp_Object family = CAR (families);
       families = CDR (families);
-      if (STRINGP (family))
-        {
-          /* TODO: Use the Unicode versions of the W32 APIs, so we can
-             handle non-ASCII font names.  */
-          char * name = SDATA (family);
-          strncpy (font_match_pattern->lfFaceName, name, LF_FACESIZE);
-          font_match_pattern->lfFaceName[LF_FACESIZE - 1] = '\0';
+      if (NILP (family))
+        continue;
+      else if (STRINGP (family))
+        name = SDATA (family);
+      else
+        name = SDATA (SYMBOL_NAME (family)); 
 
-          EnumFontFamiliesEx (dc, font_match_pattern,
-                              (FONTENUMPROC) add_font_entity_to_list,
-                              (LPARAM)&list, 0);
-        }
+      strncpy (match_data->pattern.lfFaceName, name, LF_FACESIZE);
+      match_data->pattern.lfFaceName[LF_FACESIZE - 1] = '\0';
+
+      EnumFontFamiliesEx (dc, &match_data->pattern,
+                          (FONTENUMPROC) add_font_entity_to_list,
+                          (LPARAM) match_data, 0);
     }
 
   release_frame_dc (f, dc);
 }
 
-static int
-unicode_range_for_char (c)
-     unsigned c;
+/* Return a list of all the scripts that the font supports.  */
+static Lisp_Object
+font_supported_scripts (FONTSIGNATURE * sig)
 {
-  /* Is there really no Windows API function for this?!!! */
-  if (c < 0x80)
-    return 0;              // Basic Latin
-  else if (c < 0x100)
-    return 1;              // Latin-1 supplement
-  else if (c < 0x180)
-    return 2;              // Latin Extended-A
-  else if (c < 0x250)
-    return 3;              // Latin Extended-B
-  else if (c < 0x2B0)
-    return 4;              // IPA Extensions
-  else if (c < 0x300)
-    return 5;              // Spacing modifiers
-  else if (c < 0x370)
-    return 6;              // Combining diacritical marks
-  else if (c < 0x400)
-    return 7;              // Greek and Coptic
-  else if (c < 0x530)
-    return 9;              // Cyrillic, Cyrillic supplementary
-  else if (c < 0x590)
-    return 10;             // Armenian
-  else if (c < 0x600)
-    return 11;             // Hebrew
-  else if (c < 0x700)
-    return 13;             // Arabic
-  else if (c < 0x750)
-    return 71;             // Syriac
-  else if (c < 0x780)
-    return 13;             // Arabic supplement
-  else if (c < 0x7c0)
-    return 72;             // Thaana
-  else if (c < 0x800)
-    return 14;             // N'Ko
-  else if (c < 0x900)
-    return -1;             // Unsupported range
-  else if (c < 0x980)
-    return 15;             // Devanagari
-  else if (c < 0xA00)
-    return 16;             // Bengali
-  else if (c < 0xA80)
-    return 17;             // Gurmukhi
-  else if (c < 0xB00)
-    return 18;             // Gujarati
-  else if (c < 0xB80)
-    return 19;             // Oriya
-  else if (c < 0xC00)
-    return 20;             // Tamil
-  else if (c < 0xC80)
-    return 21;             // Telugu
-  else if (c < 0xD00)
-    return 22;             // Kannada
-  else if (c < 0xD80)
-    return 23;             // Malayalam
-  else if (c < 0xE00)
-    return 73;             // Sinhala
-  else if (c < 0xE80)
-    return 24;             // Thai
-  else if (c < 0xF00)
-    return 25;             // Lao
-  else if (c < 0x1000)
-    return 70;             // Tibetan
-  else if (c < 0x10A0)
-    return 74;             // Myanmar
-  else if (c < 0x1100)
-    return 26;             // Georgian
-  else if (c < 0x1200)
-    return 28;             // Hangul Jamo
-  else if (c < 0x13A0)
-    return 75;             // Ethiopic, Ethiopic Supplement
-  else if (c < 0x1400)
-    return 76;             // Cherokee
-  else if (c < 0x1680)
-    return 77;             // Unified Canadian Aboriginal Syllabics
-  else if (c < 0x16A0)
-    return 78;             // Ogham
-  else if (c < 0x1700)
-    return 79;             // Runic
-  else if (c < 0x1780)
-    return 84;             // Tagalog, Hanunoo, Buhid, Tagbanwa
-  else if (c < 0x1800)
-    return 80;             // Khmer
-  else if (c < 0x18B0)
-    return 81;             // Mongolian
-  else if (c < 0x1900)
-    return -1;             // Unsupported range
-  else if (c < 0x1950)
-    return 93;             // Limbu
-  else if (c < 0x1980)
-    return 94;             // Tai Le
-  else if (c < 0x19E0)
-    return 95;             // New Tai Le
-  else if (c < 0x1A00)
-    return 80;             // Khmer Symbols
-  else if (c < 0x1A20)
-    return 96;             // Buginese
-  else if (c < 0x1B00)
-    return -1;             // Unsupported range
-  else if (c < 0x1B80)
-    return 27;             // Balinese
-  else if (c < 0x1D00)
-    return -1;             // Unsupported range
-  else if (c < 0x1DC0)
-    return 4;              // Phonetic extensions + supplement
-  else if (c < 0x1E00)
-    return 6;              // Combining diacritical marks supplement
-  else if (c < 0x1F00)
-    return 29;             // Latin Extended additional
-  else if (c < 0x2000)
-    return 30;             // Greek Extended
-  else if (c < 0x2070)
-    return 31;             // General Punctuation
-  else if (c < 0x20A0)
-    return 32;             // Subscripts and Superscripts
-  else if (c < 0x20D0)
-    return 33;             // Currency symbols
-  else if (c < 0x2100)
-    return 34;             // Combining marks for diacriticals
-  else if (c < 0x2150)
-    return 35;             // Letterlike symbols
-  else if (c < 0x2190)
-    return 36;             // Number forms
-  else if (c < 0x2200)
-    return 37;             // Arrows
-  else if (c < 0x2300)
-    return 38;             // Mathematical operators
-  else if (c < 0x2400)
-    return 39;             // Miscellaneous technical
-  else if (c < 0x2440)
-    return 40;             // Control pictures
-  else if (c < 0x2460)
-    return 41;             // Optical character recognition
-  else if (c < 0x2500)
-    return 42;             // Enclosed alphanumerics
-  else if (c < 0x2580)
-    return 43;             // Box drawing
-  else if (c < 0x25A0)
-    return 44;             // Block elements
-  else if (c < 0x2600)
-    return 45;             // Geometric shapes
-  else if (c < 0x2700)
-    return 46;             // Miscellaneous symbols
-  else if (c < 0x27C0)
-    return 47;             // Dingbats
-  else if (c < 0x27F0)
-    return 38;             // Misc Math symbols-A
-  else if (c < 0x2800)
-    return 37;             // Supplemental arrows-A
-  else if (c < 0x2900)
-    return 82;             // Braille patterns
-  else if (c < 0x2980)
-    return 37;             // Supplemental arrows-B
-  else if (c < 0x2B00)
-    return 38;             // Misc Math symbols-B, Supplemental Math operators
-  else if (c < 0x2C00)
-    return 37;             // Misc Symbols and Arrows
-  else if (c < 0x2C60)
-    return 97;             // Galgolitic
-  else if (c < 0x2C80)
-    return 29;             // Latin Extended-C
-  else if (c < 0x2D00)
-    return 8;              // Coptic
-  else if (c < 0x2D30)
-    return 26;             // Georgian supplement
-  else if (c < 0x2D80)
-    return 98;             // Tifinagh
-  else if (c < 0x2DE0)
-    return 75;             // Ethiopic extended
-  else if (c < 0x2E00)
-    return -1;             // Unsupported range
-  else if (c < 0x2E80)
-    return 31;             // Supplemental punctuation
-  else if (c < 0x2FE0)
-    return 59;             // CJK radicals supplement, Kangxi radicals
-  else if (c < 0x2FF0)
-    return -1;             // Unsupported range
-  else if (c < 0x3000)
-    return 59;             // Ideographic description characters
-  else if (c < 0x3040)
-    return 48;             // CJK symbols and punctuation
-  else if (c < 0x30A0)
-    return 49;             // Hiragana
-  else if (c < 0x3100)
-    return 50;             // Katakana
-  else if (c < 0x3130)
-    return 51;             // Bopomofo
-  else if (c < 0x3190)
-    return 52;             // Hangul compatibility Jamo
-  else if (c < 0x31A0)
-    return 59;             // Kanbun
-  else if (c < 0x31C0)
-    return 51;             // Bopomofo extended
-  else if (c < 0x31F0)
-    return 61;             // CJK strokes
-  else if (c < 0x3200)
-    return 50;             // Katakana phonetic extensions
-  else if (c < 0x3300)
-    return 54;             // CJK enclosed letters and months
-  else if (c < 0x3400)
-    return 55;             // CJK compatibility
-  else if (c < 0x4DC0)
-    return 59;             // CJK unified ideographs extension-A
-  else if (c < 0x4E00)
-    return 99;             // Yijing Hexagram Symbols
-  else if (c < 0xA000)
-    return 59;             // CJK unified ideographs
-  else if (c < 0xA4D0)
-    return 83;             // Yi syllables, Yi radicals
-  else if (c < 0xA700)
-    return -1;             // Unsupported range
-  else if (c < 0xA720)
-    return 5;              // Modifier tone letters
-  else if (c < 0xA800)
-    return 29;             // Latin Extended-D
-  else if (c < 0xA830)
-    return 100;            // Syloti Nagri
-  else if (c < 0xA840)
-    return -1;             // Unsupported range
-  else if (c < 0xA880)
-    return 53;             // Phags-pa
-  else if (c < 0xAC00)
-    return -1;             // Unsupported range
-  else if (c < 0xD7A4)
-    return 56;             // Hangul syllables
-  else if (c < 0xD800)
-    return -1;             // Unsupported range
-  else if (c < 0xE000)
-    return 57;             // Surrogates
-  else if (c < 0xF900)
-    return 60;             // Private use (plane 0)
-  else if (c < 0xFB00)
-    return 61;             // CJK Compatibility ideographs
-  else if (c < 0xFB50)
-    return 62;             // Alphabetic Presentation Forms
-  else if (c < 0xFE00)
-    return 63;             // Arabic Presentation Forms-A
-  else if (c < 0xFE10)
-    return 91;             // Variation selectors
-  else if (c < 0xFE20)
-    return 65;             // Vertical forms
-  else if (c < 0xFE30)
-    return 64;             // Combining half marks
-  else if (c < 0xFE50)
-    return 65;             // CJK compatibility forms
-  else if (c < 0xFE70)
-    return 66;             // Small form variants
-  else if (c < 0xFEFF)
-    return 67;             // Arabic Presentation Forms-B
-  else if (c == 0xFEFF)
-    return -1;             // Unsupported range
-  else if (c < 0xFFF0)
-    return 68;             // Halfwidth and fullwidth forms
-  else if (c <= 0xFFFF)
-    return 69;             // Specials
+  DWORD * subranges = sig->fsUsb;
+  Lisp_Object supported = Qnil;
 
-  // If int is 64 bit, it could represent characters from 10000 up, but 
-  // any font that handles them should have the surrogate bit set (57).
-  return 57;
+  /* Match a single subrange. SYM is set if bit N is set in subranges.  */
+#define SUBRANGE(n,sym) \
+  if (subranges[(n) / 32] & (1 << ((n) % 32))) \
+    supported = Fcons ((sym), supported)
+
+  /* Match multiple subranges. SYM is set if any MASK bit is set in
+     subranges[0 - 3].  */
+#define MASK_ANY(mask0,mask1,mask2,mask3,sym)      \
+  if ((subranges[0] & (mask0)) || (subranges[1] & (mask1))     \
+      || (subranges[2] & (mask2)) || (subranges[3] & (mask3))) \
+    supported = Fcons ((sym), supported)
+
+  SUBRANGE (0, Qlatin); /* There are many others... */
+
+  SUBRANGE (7, Qgreek);
+  SUBRANGE (8, Qcoptic);
+  SUBRANGE (9, Qcyrillic);
+  SUBRANGE (10, Qarmenian);
+  SUBRANGE (11, Qhebrew);
+  SUBRANGE (13, Qarabic);
+  SUBRANGE (14, Qnko);
+  SUBRANGE (15, Qdevanagari);
+  SUBRANGE (16, Qbengali);
+  SUBRANGE (17, Qgurmukhi);
+  SUBRANGE (18, Qgujarati);
+  SUBRANGE (19, Qoriya);
+  SUBRANGE (20, Qtamil);
+  SUBRANGE (21, Qtelugu);
+  SUBRANGE (22, Qkannada);
+  SUBRANGE (23, Qmalayalam);
+  SUBRANGE (24, Qthai);
+  SUBRANGE (25, Qlao);
+  SUBRANGE (26, Qgeorgian);
+
+  SUBRANGE (48, Qcjk_misc);
+  SUBRANGE (51, Qbopomofo);
+  SUBRANGE (54, Qkanbun); /* Is this right?  */
+  SUBRANGE (56, Qhangul);
+
+  SUBRANGE (59, Qhan); /* There are others, but this is the main one.  */
+  SUBRANGE (59, Qideographic_description); /* Windows lumps this in  */
+
+  SUBRANGE (70, Qtibetan);
+  SUBRANGE (71, Qsyriac);
+  SUBRANGE (72, Qthaana);
+  SUBRANGE (73, Qsinhala);
+  SUBRANGE (74, Qmyanmar);
+  SUBRANGE (75, Qethiopic);
+  SUBRANGE (76, Qcherokee);
+  SUBRANGE (77, Qcanadian_aboriginal);
+  SUBRANGE (78, Qogham);
+  SUBRANGE (79, Qrunic);
+  SUBRANGE (80, Qkhmer);
+  SUBRANGE (81, Qmongolian);
+  SUBRANGE (82, Qbraille);
+  SUBRANGE (83, Qyi);
+
+  SUBRANGE (88, Qbyzantine_musical_symbol);
+  SUBRANGE (88, Qmusical_symbol); /* Windows doesn't distinguish these.  */
+
+  SUBRANGE (89, Qmathematical);
+
+  /* Match either katakana or hiragana for kana.  */
+  MASK_ANY (0, 0x00060000, 0, 0, Qkana);
+
+  /* There isn't really a main symbol range, so include symbol if any
+     relevant range is set.  */
+  MASK_ANY (0x8000000, 0x0000FFFF, 0, 0, Qsymbol);
+
+#undef SUBRANGE
+#undef MASK_ANY
+
+  return supported;
 }
 
 
@@ -1152,19 +1254,6 @@ struct font_driver w32font_driver =
     NULL /* otf_drive */
   };
 
-/* Initialize the font subsystem for the environment on which
-   Emacs is running.   */
-void
-w32font_initialize ()
-{
-  /* Load functions that might not exist on older versions of Windows.  */
-  HANDLE gdi = LoadLibrary ("gdi32.dll");
-
-  get_glyph_indices_fn
-    = (GETGLYPHINDICES) GetProcAddress (gdi, "GetGlyphIndicesW");
-  get_text_extent_pointi_fn
-    = (GETTEXTEXTENTPTI) GetProcAddress (gdi, "GetTextExtentPoint32W");
-}
 
 /* Initialize state that does not change between invocations. This is only
    called when Emacs is dumped.  */
@@ -1172,13 +1261,73 @@ void
 syms_of_w32font ()
 {
   DEFSYM (Qw32, "w32");
-  DEFSYM (Qdecorative, "decorative");
-  DEFSYM (Qmodern, "modern");
-  DEFSYM (Qroman, "roman");
+
+  /* Generic font families.  */
+  DEFSYM (Qmonospace, "monospace");
+  DEFSYM (Qserif, "serif");
+  DEFSYM (Qsans_serif, "sans-serif");
   DEFSYM (Qscript, "script");
-  DEFSYM (Qswiss, "swiss");
+  DEFSYM (Qdecorative, "decorative");
+  /* Aliases.  */
+  DEFSYM (Qsans__serif, "sans_serif");
+  DEFSYM (Qsans, "sans");
+  DEFSYM (Qmono, "mono");
+
+  /* Fake foundries.  */
+  DEFSYM (Qraster, "raster");
+  DEFSYM (Qoutline, "outline");
   DEFSYM (Qunknown, "unknown");
-  DEFSYM (QCsubranges, ":subranges");
+
+  /* Indexes for extra info.  */
+  DEFSYM (QCfamily, ":family");
+
+  /* Scripts  */
+  DEFSYM (Qlatin, "latin");
+  DEFSYM (Qgreek, "greek");
+  DEFSYM (Qcoptic, "coptic");
+  DEFSYM (Qcyrillic, "cyrillic");
+  DEFSYM (Qarmenian, "armenian");
+  DEFSYM (Qhebrew, "hebrew");
+  DEFSYM (Qarabic, "arabic");
+  DEFSYM (Qsyriac, "syriac");
+  DEFSYM (Qnko, "nko");
+  DEFSYM (Qthaana, "thaana");
+  DEFSYM (Qdevanagari, "devanagari");
+  DEFSYM (Qbengali, "bengali");
+  DEFSYM (Qgurmukhi, "gurmukhi");
+  DEFSYM (Qgujarati, "gujarati");
+  DEFSYM (Qoriya, "oriya");
+  DEFSYM (Qtamil, "tamil");
+  DEFSYM (Qtelugu, "telugu");
+  DEFSYM (Qkannada, "kannada");
+  DEFSYM (Qmalayalam, "malayalam");
+  DEFSYM (Qsinhala, "sinhala");
+  DEFSYM (Qthai, "thai");
+  DEFSYM (Qlao, "lao");
+  DEFSYM (Qtibetan, "tibetan");
+  DEFSYM (Qmyanmar, "myanmar");
+  DEFSYM (Qgeorgian, "georgian");
+  DEFSYM (Qhangul, "hangul");
+  DEFSYM (Qethiopic, "ethiopic");
+  DEFSYM (Qcherokee, "cherokee");
+  DEFSYM (Qcanadian_aboriginal, "canadian-aboriginal");
+  DEFSYM (Qogham, "ogham");
+  DEFSYM (Qrunic, "runic");
+  DEFSYM (Qkhmer, "khmer");
+  DEFSYM (Qmongolian, "mongolian");
+  DEFSYM (Qsymbol, "symbol");
+  DEFSYM (Qbraille, "braille");
+  DEFSYM (Qhan, "han");
+  DEFSYM (Qideographic_description, "ideographic-description");
+  DEFSYM (Qcjk_misc, "cjk-misc");
+  DEFSYM (Qkana, "kana");
+  DEFSYM (Qbopomofo, "bopomofo");
+  DEFSYM (Qkanbun, "kanbun");
+  DEFSYM (Qyi, "yi");
+  DEFSYM (Qbyzantine_musical_symbol, "byzantine-musical-symbol");
+  DEFSYM (Qmusical_symbol, "musical-symbol");
+  DEFSYM (Qmathematical, "mathematical");
+
   w32font_driver.type = Qw32;
   register_font_driver (&w32font_driver, NULL);
 }
