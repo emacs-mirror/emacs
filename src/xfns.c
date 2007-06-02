@@ -1607,20 +1607,22 @@ x_set_name_internal (f, name)
       BLOCK_INPUT;
 #ifdef HAVE_X11R4
       {
-#ifdef USE_GTK
-	Lisp_Object encoded_name;
-
-	encoded_name = ENCODE_UTF_8 (name);
-
-        gtk_window_set_title (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-                              (char *) SDATA (encoded_name));
-#else /* not USE_GTK */
 	XTextProperty text, icon;
 	int bytes, stringp;
         int do_free_icon_value = 0, do_free_text_value = 0;
 	Lisp_Object coding_system;
-	coding_system = Qcompound_text;
+#ifdef USE_GTK
+	Lisp_Object encoded_name;
+	struct gcpro gcpro1;
 
+	/* As ENCODE_UTF_8 may cause GC and relocation of string data,
+	   we use it before x_encode_text that may return string data.  */
+	GCPRO1 (name);
+	encoded_name = ENCODE_UTF_8 (name);
+	UNGCPRO;
+#endif
+
+	coding_system = Qcompound_text;
 	/* Note: Encoding strategy
 
 	   We encode NAME by compound-text and use "COMPOUND-TEXT" in
@@ -1657,7 +1659,12 @@ x_set_name_internal (f, name)
 	    icon.nitems = bytes;
 	  }
 
+#ifdef USE_GTK
+        gtk_window_set_title (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+                              (char *) SDATA (encoded_name));
+#else /* not USE_GTK */
 	XSetWMName (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), &text);
+#endif /* not USE_GTK */
 
 	XSetWMIconName (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), &icon);
 
@@ -1665,7 +1672,6 @@ x_set_name_internal (f, name)
 	  xfree (icon.value);
 	if (do_free_text_value)
 	  xfree (text.value);
-#endif /* not USE_GTK */
       }
 #else /* not HAVE_X11R4 */
       XSetIconName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
