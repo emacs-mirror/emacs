@@ -1,3 +1,49 @@
+2007-06-03  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (w32_initialize): Don't call w32font_initialize.
+
+	* w32font.c (w32font_info): Remove subranges.
+	(QCsubranges, Qmodern, Qswiss, Qroman): Remove.
+	(QCfamily, Qmonospace, Qsans_serif, Qmono, Qsans, Qsans__serif)
+	(Qraster, Qoutline, Qlatin, Qgreek, Qcoptic, Qcyrillic, Qarmenian)
+	(Qhebrew, Qarabic, Qsyriac, Qnko, Qthaana, Qdevanagari, Qbengali)
+	(Qgurmukhi, Qgujarati, Qoriya, Qtamil, Qtelugu, Qkannada)
+	(Qmalayalam, Qsinhala, Qthai, Qlao, Qtibetan, Qmyanmar, Qgeorgian)
+	(Qhangul, Qethiopic, Qcherokee, Qcanadian_aboriginal, Qogham)
+	(Qrunic, Qkhmer, Qmongolian, Qsymbol, Qbraille, Qhan)
+	(Qideographic_description, Qcjk_misc, Qkana, Qbopomofo, Qkanbun)
+	(Qyi, Qbyzantine_musical_symbol, Qmusical_symbol, Qmathematical):
+	New symbols.
+	(font_callback_data): New struct.
+	(w32font_list, w32font_match): Use it.
+	(w32font_open): Don't populate subranges.
+	(w32font_has_char): Use script Lisp symbols, not subrange bitmask.
+	(w32font_encode_char): Always return unicode code-point as-is.
+	(w32font_text_extents): Supply a tranformation matrix to
+	GetGlyphOutline. Never look up by glyph index. Avoid looping
+	twice. Use unicode version of GetTexExtentPoint32 instead of
+	glyph index version.
+	(set_fonts_frame): Remove
+	(w32_enumfont_pattern_entity): Add frame parameter, use it to
+	set frame parameter. Use backward compatible fake foundries.
+	Save generic family in extra slot under QCfamily. Make width slot
+	constant. Save QCspacing value. Save list of scripts instead of
+	binary subranges.
+	(w32_generic_family, logfonts_match, font_matches_spec): New functions.
+	(add_font_entity_to_list): Use font_callback_data struct. Filter
+	unwanted fonts.
+	(add_one_font_entity_to_list): Use font_callback_data struct.
+	(w32_registry): Default to iso10646_1;
+	(fill_in_logfont): Use dpi from extra slot. Don't bother with
+	string font registries. Don't fill in font name if it is a generic
+	family name, fill family instead. Use spacing, family and script
+	extra info to fill pitch, family and charset fields.
+	(list_all_matching_fonts): Use font_callback_data struct.
+	(unicode_range_for_char): Remove.
+	(font_supported_scripts): New function.
+	(w32font_initialize): Remove.
+	(syms_of_w32font): Update which symbols are defined.
+
 2007-06-02  Jason Rumney  <jasonr@gnu.org>
 
 	* font.c (font_pixel_size): Reverse assq_no_quit args.
