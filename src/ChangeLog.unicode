@@ -1,3 +1,19 @@
+2007-06-02  Jason Rumney  <jasonr@gnu.org>
+
+	* font.c (font_pixel_size): Reverse assq_no_quit args.
+
+	* w32term.h (FONT_WIDTH): Report max width, not average.
+	(FONT_MAX_WIDTH): Remove.
+	(FONT_AVG_WIDTH): New macro.
+
+	* xfaces.c (Fx_list_fonts) [WINDOWSNT]: Remove Windows only
+	redefinition of FONT_WIDTH.
+
+	* w32term.c (x_font_min_bounds): Use FONT_AVG_WIDTH.
+	(w32_cache_char_metrics): Use FONT_WIDTH.
+
+	* w32fns.c (w32_load_system_font, w32_list_fonts): Use FONT_AVG_WIDTH.
+
 2007-06-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (w32font_open): Make lfHeight negative.
