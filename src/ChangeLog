@@ -1,5 +1,7 @@
 2007-06-02  Chong Yidong  <cyd@stupidchicken.com>
 
+	* Version 22.1 released.
+
 	* xfns.c (x_set_name_internal): Undo last change.
 
 2007-06-01  Richard Stallman  <rms@gnu.org>
