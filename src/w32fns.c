@@ -4713,7 +4713,7 @@ w32_load_system_font (f,fontname,size)
     if ((lf.lfPitchAndFamily & 0x03) == FIXED_PITCH)
       {
 	/* Fixed width font.  */
-	fontp->average_width = fontp->space_width = FONT_WIDTH (font);
+	fontp->average_width = fontp->space_width = FONT_AVG_WIDTH (font);
       }
     else
       {
@@ -4723,7 +4723,7 @@ w32_load_system_font (f,fontname,size)
 	if (pcm)
 	  fontp->space_width = pcm->width;
 	else
-	  fontp->space_width = FONT_WIDTH (font);
+	  fontp->space_width = FONT_AVG_WIDTH (font);
 
 	fontp->average_width = font->tm.tmAveCharWidth;
       }
@@ -6267,7 +6267,7 @@ w32_list_fonts (f, pattern, size, maxnames)
               hdc = GetDC (dpyinfo->root_window);
               oldobj = SelectObject (hdc, thisinfo.hfont);
               if (GetTextMetrics (hdc, &thisinfo.tm))
-                XSETCDR (tem, make_number (FONT_WIDTH (&thisinfo)));
+                XSETCDR (tem, make_number (FONT_AVG_WIDTH (&thisinfo)));
               else
                 XSETCDR (tem, make_number (0));
               SelectObject (hdc, oldobj);
