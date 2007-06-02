@@ -28,15 +28,15 @@ Boston, MA 02110-1301, USA.  */
 #define WHITE_PIX_DEFAULT(f) PALETTERGB(255,255,255)
 
 #define FONT_WIDTH(f)       \
-  ((f)->bdf ? (f)->bdf->width : (f)->tm.tmAveCharWidth)
+  ((f)->bdf ? (f)->bdf->width : (f)->tm.tmMaxCharWidth)
 #define FONT_HEIGHT(f)      \
    ((f)->bdf ? (f)->bdf->height : (f)->tm.tmHeight)
 #define FONT_BASE(f)        \
   ((f)->bdf ? (f)->bdf->ury : (f)->tm.tmAscent)
 #define FONT_DESCENT(f)     \
   ((f)->bdf ? -((f)->bdf->lly) : (f)->tm.tmDescent)
-#define FONT_MAX_WIDTH(f)   \
-  ((f)->bdf ? (f)->bdf->width : (f)->tm.tmMaxCharWidth)
+#define FONT_AVG_WIDTH(f)   \
+  ((f)->bdf ? (f)->bdf->width : (f)->tm.tmAveCharWidth)
 
 #define CP_DEFAULT 1004
 /* Special pseudo-codepages. */
