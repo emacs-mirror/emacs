@@ -1,3 +1,7 @@
+2007-06-02  Richard Stallman  <rms@gnu.org>
+
+	* frames.texi (Color Parameters): Add xref to (emacs)Standard Faces.
+
 2007-06-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 22.1 released.
