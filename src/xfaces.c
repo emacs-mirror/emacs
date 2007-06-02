@@ -3148,13 +3148,6 @@ the WIDTH times as wide as FACE on FRAME.  */)
 			   ? NULL
 			   : FACE_FROM_ID (f, face_id));
 
-#ifdef WINDOWSNT
-/* For historic reasons, FONT_WIDTH refers to average width on W32,
-   not maximum as on X.  Redefine here. */
-#undef FONT_WIDTH
-#define FONT_WIDTH FONT_MAX_WIDTH
-#endif
-
       if (face && face->font)
 	size = FONT_WIDTH (face->font);
       else
