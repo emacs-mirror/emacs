@@ -3918,6 +3918,9 @@ discard_mouse_events ()
 #ifdef WINDOWSNT
 	  || sp->kind == W32_SCROLL_BAR_CLICK_EVENT
 #endif
+#ifdef HAVE_GPM
+	  || sp->kind == GPM_CLICK_EVENT
+#endif
 	  || sp->kind == SCROLL_BAR_CLICK_EVENT)
 	{
 	  sp->kind = NO_EVENT;
