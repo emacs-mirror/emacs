@@ -1,3 +1,8 @@
+2007-06-03  Nick Roberts  <nickrob@snap.net.nz>
+
+	* commands.texi (Click Events): Describe width and height when
+	object is nil.
+
 2007-05-30  Nick Roberts  <nickrob@snap.net.nz>
 
 	* commands.texi (Click Events): Layout more logically.  Describe
