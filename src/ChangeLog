@@ -1,3 +1,18 @@
+2007-06-03  Nick Roberts  <nickrob@snap.net.nz>
+
+	* keyboard.c (discard_mouse_events): Add GPM_CLICK_EVENT case.
+
+	* frame.c (Fmouse_position, Fmouse_pixel_position): 
+	Condition on HAVE_GPM too.
+
+	* term.c (term_mouse_highlight): Remove unused variables.
+	(Fterm_open_connection): Set gpm_zerobased to 1.
+	(term_mouse_movement, term_mouse_click, handle_one_term_event):
+	Use zero based co-ordinates.
+	(handle_one_term_event): Report a drag as mouse movement too.
+
+	* Makefile.in (MOUSE_SUPPORT): Define for HAVE_GPM.
+
 2007-06-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image.c (search_image_cache): New function.  Require background
