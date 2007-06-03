@@ -28,6 +28,8 @@ with a prefix argument or by typing C-u C-h C-n.
 
 * Editing Changes in Emacs 23.1
 
+** New command kill-matching-buffers kills buffers whose name matches a regexp.
+
 
 * New Modes and Packages in Emacs 23.1
 

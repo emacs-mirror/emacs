@@ -1,3 +1,9 @@
+2007-06-03  Sam Steingold  <sds@gnu.org>
+
+	* files.el (kill-buffer-ask): New function.
+	(kill-some-buffers): Use it.
+	(kill-matching-buffers): New user command.
+
 2007-06-01  David Kastrup  <dak@gnu.org>
 
 	* dired.el (dired-recursive-deletes, dired-recursive-copies):
