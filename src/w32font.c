@@ -273,7 +273,6 @@ w32font_open (f, font_entity, pixel_size)
   bcopy (&w32_font->metrics,  &compat_w32_font->tm, sizeof (TEXTMETRIC));
   compat_w32_font->hfont = hfont;
 
-  font->font.font_idx = 0;
   len = strlen (logfont.lfFaceName);
   font->font.name = (char *) xmalloc (len + 1);
   bcopy (logfont.lfFaceName, font->font.name, len);
@@ -425,6 +424,16 @@ w32font_text_extents (font, code, nglyphs, metrics)
               metrics[i].ascent = -gm.gmptGlyphOrigin.y;
               metrics[i].descent = gm.gmBlackBoxY + gm.gmptGlyphOrigin.y;
             }
+          else if (GetTextExtentPoint32W (dc, wcode + i, 1, &size)
+                   != GDI_ERROR)
+            {
+              metrics[i].lbearing = 0;
+              metrics[i].rbearing = size.cx
+                + ((struct w32font_info *) font)->metrics.tmOverhang;
+              metrics[i].width = size.cx;
+              metrics[i].ascent = font->ascent;
+              metrics[i].descent = font->descent;
+            }
           else
             {
               metrics[i].lbearing = 0;
@@ -486,8 +495,15 @@ w32font_draw (s, from, to, x, y, with_background)
 
   if (with_background)
     {
-      options = ETO_OPAQUE;
-      SetBkColor (s->hdc, s->gc->background);
+      HBRUSH brush;
+      RECT rect;
+
+      brush = CreateSolidBrush (s->gc->background);
+      rect.left = x;
+      rect.top = y - ((struct font *) (s->font_info->font))->ascent;
+      rect.right = x + s->width;
+      rect.bottom = y + ((struct font *) (s->font_info->font))->descent;
+      FillRect (s->hdc, &rect, brush);
     }
   else
     SetBkMode (s->hdc, TRANSPARENT);
