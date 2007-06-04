@@ -1,3 +1,7 @@
+2007-06-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* loadup.el: Use a better feature test on a mac.
+
 2007-05-20  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
 
 	* server.el (server-process-filter): Don't change

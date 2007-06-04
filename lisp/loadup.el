@@ -212,7 +212,7 @@
 (if (eq system-type 'macos)
     (progn
       (load "ls-lisp")))
-(if (and (eq system-type 'darwin) (not (featurep 'x)))
+(if (featurep 'mac-carbon)
     (progn
       (load "term/mac-win")))
 (if (fboundp 'atan)	; preload some constants and

@@ -1,3 +1,12 @@
+2007-06-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.c (init_tty): Use terminal specific mouse_position_hook.
+
+	* macterm.c (mac_create_terminal): Indent and rearrange to be more
+	similar to the X11 version.
+
+	* config.in: Disable multi-keyboard support on a mac.
+
 2007-05-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* sysdep.c: Comment out text after #endif.

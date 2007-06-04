@@ -11870,7 +11870,6 @@ mac_create_terminal (struct mac_display_info *dpyinfo)
   terminal->display_info.mac = dpyinfo;
   dpyinfo->terminal = terminal;
 
-  terminal->rif = &x_redisplay_interface;
   terminal->clear_frame_hook = x_clear_frame;
   terminal->ins_del_lines_hook = x_ins_del_lines;
   terminal->delete_glyphs_hook = x_delete_glyphs;
@@ -11885,12 +11884,15 @@ mac_create_terminal (struct mac_display_info *dpyinfo)
   terminal->mouse_position_hook = XTmouse_position;
   terminal->frame_rehighlight_hook = XTframe_rehighlight;
   terminal->frame_raise_lower_hook = XTframe_raise_lower;
+  /* terminal->fullscreen_hook = XTfullscreen_hook; */
+  terminal->set_vertical_scroll_bar_hook = XTset_vertical_scroll_bar;
+  terminal->condemn_scroll_bars_hook = XTcondemn_scroll_bars;
+  terminal->redeem_scroll_bar_hook = XTredeem_scroll_bar;
+  terminal->judge_scroll_bars_hook = XTjudge_scroll_bars;
+  terminal->delete_frame_hook = x_destroy_window;
+  /* terminal->delete_terminal_hook = x_delete_terminal; */
 
- terminal->set_vertical_scroll_bar_hook = XTset_vertical_scroll_bar;
- terminal->condemn_scroll_bars_hook = XTcondemn_scroll_bars;
- terminal->redeem_scroll_bar_hook = XTredeem_scroll_bar;
- terminal->judge_scroll_bars_hook = XTjudge_scroll_bars;
-
+  terminal->rif = &x_redisplay_interface;
 #if 0
   TTY_SCROLL_REGION_OK (CURTTY ()) = 1; /* we'll scroll partial frames */
   TTY_CHAR_INS_DEL_OK (CURTTY ()) = 1;

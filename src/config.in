@@ -922,17 +922,19 @@ Boston, MA 02110-1301, USA.  */
 #define HAVE_MOUSE
 #endif
 
+/* Multi-tty support relies on MULTI_KBOARD.  It seems safe to turn it
+   on unconditionally. */
+#ifndef MULTI_KBOARD
+#define MULTI_KBOARD
+#endif
+
 /* If we're using the Carbon API on Mac OS X, define a few more
    variables as well.  */
 #ifdef HAVE_CARBON
 #define HAVE_WINDOW_SYSTEM
 #define HAVE_MOUSE
-#endif
-
-/* Multi-tty support relies on MULTI_KBOARD.  It seems safe to turn it
-   on unconditionally. */
-#ifndef MULTI_KBOARD
-#define MULTI_KBOARD
+/* XXX The MULTI_KBOARD support does not work yet on this platform. */
+#undef MULTI_KBOARD
 #endif
 
 /* Define USER_FULL_NAME to return a string

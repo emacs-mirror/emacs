@@ -3269,7 +3269,7 @@ init_tty (char *name, char *terminal_type, int must_succeed)
   encode_terminal_bufsize = 0;
 
 #ifdef HAVE_GPM
-  mouse_position_hook = term_mouse_position;
+  terminal->mouse_position_hook = term_mouse_position;
   Qmouse_face_window = Qnil;
 #endif
 
