@@ -1022,6 +1022,7 @@ x_handle_selection_clear (event)
 
   TRACE0 ("x_handle_selection_clear");
 
+#ifdef MULTI_KBOARD  
   /* If the new selection owner is also Emacs,
      don't clear the new selection.  */
   BLOCK_INPUT;
@@ -1040,7 +1041,8 @@ x_handle_selection_clear (event)
 	  }
       }
   UNBLOCK_INPUT;
-
+#endif
+  
   selection_symbol = x_atom_to_symbol (display, selection);
 
   local_selection_data = assq_no_quit (selection_symbol, Vselection_alist);

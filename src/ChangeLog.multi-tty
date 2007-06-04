@@ -1,5 +1,8 @@
 2007-06-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* xselect.c (x_handle_selection_clear): Only access
+	terminal->kboard when MULTI_KBOARD is defined.
+
 	* term.c (init_tty): Use terminal specific mouse_position_hook.
 
 	* macterm.c (mac_create_terminal): Indent and rearrange to be more
