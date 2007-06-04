@@ -1,3 +1,8 @@
+2007-06-04  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat: Rename --with-font-backend to --enable-font-backend
+	for consistency with other platforms.
+
 2007-05-31  Jason Rumney  <jasonr@gnu.org>
 
 	* configure.bat: Add --with-font-backend option.
