@@ -2119,8 +2119,7 @@ is assumed to be interpreted by the interpreter matched by the second group
 of the regular expression.  The mode is then determined as the mode
 associated with that interpreter in `interpreter-mode-alist'.")
 
-(defvar magic-mode-alist
-  `((image-type-auto-detected-p . image-mode))
+(defvar magic-mode-alist nil
   "Alist of buffer beginnings vs. corresponding major mode functions.
 Each element looks like (REGEXP . FUNCTION) or (MATCH-FUNCTION . FUNCTION).
 After visiting a file, if REGEXP matches the text at the beginning of the
@@ -2133,7 +2132,8 @@ If FUNCTION is nil, then it is not called.  (That is a way of saying
 (put 'magic-mode-alist 'risky-local-variable t)
 
 (defvar magic-fallback-mode-alist
-  `(;; The < comes before the groups (but the first) to reduce backtracking.
+  `((image-type-auto-detected-p . image-mode)
+    ;; The < comes before the groups (but the first) to reduce backtracking.
     ;; TODO: UTF-16 <?xml may be preceded by a BOM 0xff 0xfe or 0xfe 0xff.
     ;; We use [ \t\r\n] instead of `\\s ' to make regex overflow less likely.
     (,(let* ((incomment-re "\\(?:[^-]\\|-[^-]\\)")
