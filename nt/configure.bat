@@ -106,7 +106,7 @@ if "%1" == "--without-jpeg" goto withoutjpeg
 if "%1" == "--without-gif" goto withoutgif
 if "%1" == "--without-tiff" goto withouttiff
 if "%1" == "--without-xpm" goto withoutxpm
-if "%1" == "--with-font-backend" goto withfont
+if "%1" == "--enable-font-backend" goto withfont
 if "%1" == "" goto checkutils
 :usage
 echo Usage: configure [options]
@@ -124,7 +124,7 @@ echo.   --without-jpeg          do not use jpeg-6b even if it is installed
 echo.   --without-gif           do not use libungif even if it is installed
 echo.   --without-tiff          do not use libtiff even if it is installed
 echo.   --without-xpm           do not use libXpm even if it is installed
-echo.   --with-font-backend     use the experimental font backend
+echo.   --enable-font-backend   build with font backend support
 goto end
 rem ----------------------------------------------------------------------
 :setprefix
