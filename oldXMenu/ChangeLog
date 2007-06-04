@@ -1,3 +1,8 @@
+2007-06-04  Ulrich Mueller  <ulm@gentoo.org>  (tiny change)
+
+	* ChgPane.c, ChgSel.c: Quiet --with-x-toolkit=no
+	compilation warnings: #include <config.h>.
+
 2007-05-30  Ulrich Mueller  <ulm@gentoo.org>  (tiny change)
 
 	* XMakeAssoc.c (XMakeAssoc): Use malloc rather than xmalloc.
