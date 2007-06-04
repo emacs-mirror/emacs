@@ -1,3 +1,7 @@
+2007-06-04  Andreas Schwab  <schwab@suse.de>
+
+	* emacs-lisp/sregex.el (sregexq): Fix doc string quoting.
+
 2007-06-04  Davis Herring  <herring@lanl.gov>
 
 	* calendar/timeclock.el: Update version number.
