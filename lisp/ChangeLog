@@ -1,3 +1,7 @@
+2007-06-04  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/webjump.el (webjump-sample-sites): Add Wikipedia query.
+
 2007-06-04  Michael Olson  <mwolson@gnu.org>
 
 	* emacs-lisp/tq.el (tq-queue-pop): Stifle error when a process has
