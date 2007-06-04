@@ -1,3 +1,12 @@
+2007-06-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/socks.el: New file, taken from w3 repository.
+	(top): Update Copyright.  Don't load cl.el.
+	(all): Replace `case' by `cond', `string-to-int' by
+	`string-to-number', and `process-kill-without-query' by
+	`set-process-query-on-exit-flag'.
+	(socks-char-int): Remove defalias and all occurencies.
+
 2007-06-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/compile.el (compilation-find-file, compilation-handle-exit):
