@@ -220,11 +220,11 @@ resource 'FREF' (129) {
 resource 'vers' (1) {
 	0x22,		/* Major revision in BCD */
 	0x1,		/* Minor revision in BCD */
-	final,	/* development, alpha, beta, or final (release) */
-	0,		/* Non-final release # */
+	development,	/* development, alpha, beta, or final (release) */
+	50,		/* Non-final release # */
 	0,		/* Region code */
-	"22.1",	/* Short version number */
-	"22.1, Copyright \0xa9 2007 "
+	"22.1.50",	/* Short version number */
+	"22.1.50, Copyright \0xa9 2007 "
 	"Free Software Foundation, Inc." /* Long version number */
 };
 
