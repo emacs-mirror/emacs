@@ -873,7 +873,17 @@ consing a string.)"
 	      (mail-extr-nuke-char-at (point))
 	      (forward-char 1))
 	     (t
-	      (forward-word 1)))
+	      ;; Do `(forward-word 1)', recognizing non-ASCII characters
+	      ;; except Latin-1 nbsp as words.
+	      (while (progn
+		       (skip-chars-forward "^\000-\177 ")
+		       (and (not (eobp))
+			    (eq ?w (char-syntax (char-after)))
+			    (progn
+			      (forward-word 1)
+			      (and (not (eobp))
+				   (> (char-after) ?\177)
+				   (not (eq (char-after) ? )))))))))
 	    (or (eq char ?\()
 		;; At the end of first address of a multiple address header.
 		(and (eq char ?,)
