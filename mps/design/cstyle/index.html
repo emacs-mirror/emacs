@@ -1,0 +1,524 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+
+<title>C Style -- Formatting</title>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#000099" vlink="#660066" alink="#FF0000">
+
+<div align="center">
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a>
+</p>
+
+<p><i><a href="/project/mps/">Memory Pool System Project</a></i></p>
+
+<hr />
+
+
+<h1>C Style -- Formatting</h1>
+
+<address>
+<a href="mailto:mps-staff@ravenbrook.com">MPS Staff</a>,
+<a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>,
+1995-08-07
+</address>
+
+</div>
+
+<h2 id="section-1">1. Introduction</h2>
+
+<p>
+.scope: This document describes the Ravebrnook conventions for the general format 
+of C source code in the MPS.
+</p>
+
+<p>
+.readership: This document is intended for anyone working on or with the C 
+source code.
+</p>
+
+
+
+<h2 id="section-2">2. General Formatting Conventions</h2>
+
+<h3>Line Width</h3>
+
+<p>
+.width: Lines should be no wider than 80 characters. [This rule will
+change to 72 -- DRJ 2007-06-04]
+</p>
+
+
+<h3>White Space</h3>
+
+<p>
+.space.notab: No tab characters should appear in the source files.  Ordinary 
+spaces should be used to indent and format the sources.  Tab characters are 
+displayed differently on different platforms, and sometimes translated back and 
+forth, destroying layout information.
+</p>
+
+<p>
+.space.punct: There should always be whitespace after commas and semicolons and 
+similar punctuation.
+</p>
+
+<p>
+.space.op: Put white space around operators in expressions, except when 
+removing it would make the expression clearer by binding certain 
+sub-expressions more tightly.  For example:
+</p>
+
+<pre>
+  foo = x + y*z;
+</pre>
+
+[to be announced: rule about having no white space after if/for/while --
+DRJ 2007-06-04]
+
+
+<h3>Sections and Paragraphs</h3>
+
+<p>
+.section: Source files can be thought of as breaking down into "sections" and 
+"paragraphs".  A section might be the leader comment of a file, the imports, or 
+a set of declarations which are related.
+</p>
+
+<p>
+.section.space: Precede sections by two blank lines (except the first one in 
+the file, which should be the leader comment in any case).
+</p>
+
+<p>
+.section.comment: Each section should start with a banner comment (see 
+.comment.banner) describing what the section contains.
+</p>
+
+<p>
+.para: Within sections, code often breaks down into natural units called 
+"paragraphs".  A paragraph might be a set of strongly related declarations 
+(Init and Finish, for example), or a few lines of code which it makes sense to 
+consider together (the assignment of fields into a structure, for example).
+</p>
+
+<p>
+.para.space: Precede paragraphs by a single blank line.
+</p>
+
+
+<h3>Statements</h3>
+
+<p>
+.statement.one: Generally only have at most one statement per line.  In 
+particular the following are deprecated:
+</p>
+
+<pre>
+  if(thing) return;  
+
+  a=0; b=0;
+
+  case 0: f = inRampMode ? AMCGen0RampmodeFrequency : AMCGen0Frequency;
+</pre>
+
+<p>
+.statement.one.why: Debuggers can often only place breakpoints on lines, not 
+expressions or statements within a line.  The "if(thing) return;" is a 
+particularly important case, if thing is a reasonably rare return condition 
+then you might want to breakpoint it in a debugger session.  Annoying because
+"if(thing) return;" is quite compact and pleasing otherwise.
+</p>
+
+<p>
+.statement.one.exception: There's one exception but it's really only for 
+pedants.  Other people wouldn't notice anyway.  Multiple case statements 
+sharing the same body are allowed on the one line:
+</p>
+
+<pre>
+  switch(c) {
+  case '0': case '1': case '2': case '3':
+  case '4': case '5': case '6': case '7':
+    is_octal = 1;
+  }
+</pre>
+
+
+<h3>Indentation</h3>
+
+<p>
+.indent: Indent code blocks by two spaces.  For example:
+</p>
+
+<pre>
+  if(res != ResOK) {
+    SegFinish(&span->segStruct);
+    PoolFreeP(MV->spanPool, span, sizeof(SpanStruct));
+    return res;
+  }
+</pre>
+
+<p>
+Usually, it is possible to determine the correct indentation for a line by 
+looking to see if the previous line ends with a semicolon.  If it does, indent 
+to the same amount, otherwise indent by two more spaces.  The exceptions are 
+open braces, which are at the same level as the previous line but cause the 
+next to be indented (unless using .brace.otb), and close brace, which is 
+outdented to match the controlling statement.
+</p>
+
+<p>
+.indent.elseif: As a special exception to the indentation rule above, an else 
+may be immediately followed by an if, in which case the if body is at the same 
+level as the previous if body.  For example:
+</p>
+
+<pre>
+  if(j == block->base) {
+    if(j+step == block->limit)
+      putc('@', stream);
+    else
+      putc('[', stream);
+  } else if(j+step == block->limit) {
+    putc(']', stream);
+    pop_bracket();
+  } else if(j > block->base && j < block->limit)
+    putc('=', stream);
+  else
+    putc('.', stream);
+</pre>
+
+<p>
+.indent.label: All label statements are indented (i.e. actually "outdented" 
+with respect to nearby code) to the same level as the surrounding block.  This 
+includes "goto" labels, case labels, and switch default labels (these are all 
+label statements in the terminology of the standard).  For example:
+</p>
+
+<pre>
+  result foo(void)
+  {
+    statement();
+    if(error)
+      goto foo;
+    statement();
+    return OK;
+
+  foo:
+    unwind();
+    return ERROR;
+  }
+</pre>
+
+<p>
+and...
+</p>
+
+<pre>
+  switch(s) {
+  case SPONG:
+    ...;
+    break;
+
+  default:
+    UNREACHED;
+  }
+</pre>
+
+<p>
+.indent.cont: If an expression or statement won't fit on a single line, indent 
+the continuation lines by two spaces, unless you're breaking a parameter list 
+or other parenthesized expression, in which case indent so that the 
+continuation lines up just after the open parenthesis.  For example:
+</p>
+
+<pre>
+  PoolClassInit(&PoolClassMVStruct,
+                "MV", init, finish, allocP, freeP,
+                NULL, NULL, describe, isValid);
+</pre>
+
+<p>
+.indent.expr: Note that when breaking an expression it is clearer to place the operator at 
+the start of the continuation line: [Is it?  Opinions vary -- DRJ
+2007-06-04]
+</p>
+
+<pre>
+  CHECKL(AddrAdd((Addr)chunk->pageTableMapped,
+                 BTSize(chunk->pageTablePages))
+         <= AddrAdd(chunk->base, chunk->ullageSize));
+</pre>
+
+
+<h3>Positioning of Braces</h3>
+
+<p>
+.brace: Two brace placements are allowed.  These have been chosen not to clash 
+with one another, and can also help to convey information in the vertical 
+spacing of the code.  With switch and case statements it can get confusing.  
+See .brace.case below.  
+</p>
+
+<p>
+.brace.otb: "One True Brace" (or OTB) places the open brace after the control 
+statement, separated by a space, and when there is an else, places that after 
+the close brace.  For example:
+</p>
+
+<pre>
+  if(isBase) {
+    new->base = limit;
+    new->limit = block->limit;
+    block->limit = base;
+    new->next = block->next;
+    block->next = new;
+  } else {
+    new->base = block->base;
+    new->limit = base;
+    block->base = limit;
+    new->next = block;
+    *prev = new;
+  }
+</pre>
+
+<p>
+The same applies to struct, enum, union, and function definitions.
+</p>
+
+<p>
+.brace.otb.split: There is a further division of the OTB style.
+</p>
+
+<p>
+.brace.otb.most: The "At Most One True Brace" allows one to have an if 
+statement with a block statement in one tail and an unblocked statement in the 
+other.  Like this:
+</p>
+
+<pre>
+  if(isBad) {
+    FooBar();
+    BarFoo();
+  } else
+    Zing();
+</pre>
+
+<p>
+.brace.otb.exactly: The "Exactly One True Brace" does not admit the mixture of 
+braces and not-braces in "if"s.  The above example in EOTB would be:
+</p>
+
+<pre>
+  if(isBad) {
+    FooBar();
+    BarFoo();
+  } else {
+    Zing();
+  }
+</pre>
+
+<p>
+.brace.otb.more: There are further refinements according to whether you admit 
+any non-braced statements in "if"s, "while"s, and so on.
+</p>
+
+<p>
+.brace.block: The "block" style places the brace on a separate line, thusly:
+</p>
+
+<pre>
+  while(node != DequeSentinel(&pool->segDeque))
+  {
+    DequeNode next = DequeNodeNext(node);
+    Seg seg = DequeNodeElement(Seg, poolDeque, node);
+
+    DequeNodeRemove(node);
+    SegFinish(seg);
+
+    node = next;
+  }
+</pre>
+
+<p>
+.brace.case: If you need to put braces around the "contents" of a case 
+statement (inside a switch) then do it like this:
+</p>
+
+<pre>
+  switch(s) {
+  case WIBBLE:
+  case WOBBLE: {
+    int local;
+    ...;
+  } break;
+  default:
+    /* ... */
+  }
+</pre>
+
+<p>
+[I suspect this has changed without the justification being updated,
+hence it might not make sense.  -- DRJ 2007-06-04]
+</p>
+
+<p>
+.brace.case.why: If you followed the general brace style rigidly then you'd get:
+</p>
+
+<pre>
+  switch(s) {
+  case WOBBLE: {
+      int local;
+      ...;
+  } break;
+  }
+</pre>
+
+<p>
+(with the two '}' in the same column) or...
+</p>
+
+<pre>
+  switch(s) {
+  case WOBBLE:
+    {
+      int local;
+      ...;
+    }
+    break;
+  }
+</pre>
+
+<p>
+both of which look ugly.
+</p>
+
+
+<h3>Formatting Comments</h3>
+
+<p>
+.comment: There are three types of comments: banners, paragraph comments, and 
+columnar comments.
+</p>
+
+<p>
+.comment.banner: Banner comments come at the start of sections.  A banner 
+comment consists of a heading usually composed of a symbol, an em-dash (--) and 
+an short explanation, followed by English text which is formatted using 
+conventional text documentation guidelines (see guide.text).  The open and 
+close comment tokens ("/*" and "*/") are placed at the top and bottom of a 
+column of asterisks.  The text is separated from the asterisks by one space.  
+Place a blank line between the banner comment and the section it comments.  For 
+example:
+</p>
+
+<pre>
+/* BlockStruct --  Block descriptor
+ *
+ * The pool maintains a descriptor structure for each 
+ * contiguous allocated block of memory it manages.  
+ * The descriptor is on a simple linked-list of such 
+ * descriptors, which is in ascending order of address.
+ */
+
+typedef struct BlockStruct {
+</pre>
+
+<p>
+.comment.para: Paragraph comments come at the start of paragraphs in the code.  
+A paragraph comment consists of formatted English text, with each line wrapped 
+by the open and close comment tokens ("/*" and "*/").  (This avoids problems 
+when cutting and pasting comments.)  For example:
+</p>
+
+<pre>
+  /* If the freed area is in the base sentinel then insert */
+  /* the new descriptor after it, otherwise insert before. */
+  if(isBase) {
+</pre>
+
+<p>
+.comment.column: Columnar comments appear in a column to the right of the 
+code.  They should be used sparingly, since they clutter the code and make it 
+hard to edit.  Use them on variable declarations and structure, union, or enum 
+declarations.  They should start at least at column 32, and should be terse 
+descriptive text.  Abandon English sentence structure if this makes the comment 
+clearer.  Don't write more than one line.  Here's an example:
+</p>
+
+<pre>
+  typedef struct PoolMVStruct
+  {
+    Pool blockPool;           /* for block descriptors */
+    Pool spanPool;            /* for span descriptors */
+    size_t extendBy;          /* size to extend pool by */
+    size_t avgSize;           /* estimate of allocation size */
+    size_t maxSize;           /* estimate of maximum size */
+    Addr space;               /* total free space in pool */
+    Addr lost;                /* lost when free can't allocate */
+    struct SpanStruct *spans; /* span chain */
+  } PoolMVStruct;
+</pre>
+
+<h2 id="section-B">B. History</h2>
+
+<table>
+
+<tr valign='top'>
+<td>2007-06-04</td>
+<td><a href="mailto:drj@ravenbrook.com">DRJ</a></td>
+<td>Adopted from
+//info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mminfo/guide/impl/c/format/index.txt
+and edited.</td>
+</tr>
+
+</table>
+
+<h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
+
+<p> This document is copyright &copy; 2002-2005 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+
+<p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
+
+<ol>
+
+<li> Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. </li>
+
+<li> Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. </li>
+
+<li> Redistributions in any form must be accompanied by information on how to obtain complete source code for this software and any accompanying software that uses this software.  The source code must either be included in the distribution or be available for no more than the cost of distribution plus a nominal fee, and must be freely redistributable under reasonable conditions.  For an executable file, complete source code means the source code for all modules it contains. It does not include source code for modules or files that typically accompany the major components of the operating system on which the executable file runs. </li>
+
+</ol>
+
+<p> <strong> This software is provided by the copyright holders and contributors "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement, are disclaimed.  In no event shall the copyright holders and contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage. </strong> </p>
+
+
+<hr />
+
+<div align="center">
+
+<p><code>$Id: //info.ravenbrook.com/project/mps/master/index.html#8 $</code></p>
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a>
+</p>
+
+</div>
+
+</body>
+
+</html>
