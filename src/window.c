@@ -4110,8 +4110,8 @@ too small.  */)
 DEFUN ("shrink-window", Fshrink_window, Sshrink_window, 1, 2, "p",
        doc: /* Make current window ARG lines smaller.
 From program, optional second arg non-nil means shrink sideways arg columns.
-Interactively, if an argument is not given, make the window one line smaller.  Only
-siblings to the right or below are changed.  */)
+Interactively, if an argument is not given, make the window one line smaller.
+Only siblings to the right or below are changed.  */)
      (arg, side)
      Lisp_Object arg, side;
 {
