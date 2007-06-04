@@ -117,7 +117,7 @@ bound to the compilation buffer and window, respectively.")
   "Function to compute the name of a compilation buffer.
 The function receives one argument, the name of the major mode of the
 compilation buffer.  It should return a string.
-nil means compute the name with `(concat \"*\" (downcase major-mode) \"*\")'.")
+If nil, compute the name with `(concat \"*\" (downcase major-mode) \"*\")'.")
 
 ;;;###autoload
 (defvar compilation-finish-function nil
@@ -126,7 +126,7 @@ It is called with two arguments: the compilation buffer, and a string
 describing how the process finished.")
 
 (make-obsolete-variable 'compilation-finish-function
-  "Use `compilation-finish-functions', but it works a little differently."
+  "use `compilation-finish-functions', but it works a little differently."
   "22.1")
 
 ;;;###autoload
@@ -466,7 +466,7 @@ Otherwise, it saves all modified buffers without asking."
 (defcustom compilation-search-path '(nil)
   "*List of directories to search for source files named in error messages.
 Elements should be directory names, not file names of directories.
-nil as an element means to try the default directory."
+The value nil as an element means to try the default directory."
   :type '(repeat (choice (const :tag "Default" nil)
 			 (string :tag "Directory")))
   :group 'compilation)
@@ -1419,7 +1419,7 @@ Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
     (font-lock-fontify-buffer)))
 
 (defun compilation-handle-exit (process-status exit-status msg)
-  "Write MSG in the current buffer and hack its mode-line-process."
+  "Write MSG in the current buffer and hack its `mode-line-process'."
   (let ((inhibit-read-only t)
 	(status (if compilation-exit-message-function
 		    (funcall compilation-exit-message-function
@@ -1825,8 +1825,8 @@ and overlay is highlighted between MK and END-MK."
 Search the directories in `compilation-search-path'.
 A nil in `compilation-search-path' means to try the
 \"current\" directory, which is passed in DIRECTORY.
-If DIRECTORY. is relative, it is combined with `default-directory'.
-If DIRECTORY. is nil, that means use `default-directory'.
+If DIRECTORY is relative, it is combined with `default-directory'.
+If DIRECTORY is nil, that means use `default-directory'.
 If FILENAME is not found at all, ask the user where to find it.
 Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
   (or formats (setq formats '("%s")))
