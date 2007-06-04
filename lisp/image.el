@@ -343,30 +343,15 @@ Image types are symbols like `xbm' or `jpeg'."
 ;;;###autoload
 (defun image-type-auto-detected-p ()
   "Return t iff the current buffer contains an auto-detectable image.
-This function is intended to be used from `magic-mode-alist' (which see).
+This function is intended to be used from `magic-fallback-mode-alist'.
 
-First, compare the beginning of the buffer with `image-type-header-regexps'.
-If an appropriate image type is found, check if that image type can be
-autodetected using the variable `image-type-auto-detectable'.  Finally,
-if `buffer-file-name' is non-nil, check if it matches another major mode
-in `auto-mode-alist' apart from `image-mode'; if there is another match,
-the autodetection is considered to have failed.  Return t if all the above
-steps succeed."
+The buffer is considered to contain an auto-detectable image if
+its beginning matches an image type in `image-type-header-regexps',
+and that image type is present in `image-type-auto-detectable'."
   (let* ((type (image-type-from-buffer))
 	 (auto (and type (cdr (assq type image-type-auto-detectable)))))
     (and auto
-	 (or (eq auto t) (image-type-available-p type))
-	 (or (null buffer-file-name)
-	     (not (assoc-default
-		   buffer-file-name
-		   (delq nil (mapcar 
-			      (lambda (elt)
-				(unless (memq (or (car-safe (cdr elt))
-						  (cdr elt))
-					      '(image-mode image-mode-maybe))
-				  elt))
-			      auto-mode-alist))
-		   'string-match))))))
+	 (or (eq auto t) (image-type-available-p type)))))
 
 
 ;;;###autoload
