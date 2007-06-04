@@ -1,3 +1,8 @@
+2007-06-04  Martin Rudalics  <rudalics@gmx.at>
+
+	* hilit-chg.el (highlight-changes-rotate-faces): Don't set
+	modified flag of buffer.  Use `inhibit-modification-hooks'.
+
 2007-06-04  Katsumi Yamaoka  <yamaoka@jpl.org>  (tiny change)
 
 	* mail/mail-extr.el (mail-extract-address-components): Recognize
