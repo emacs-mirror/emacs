@@ -1,3 +1,11 @@
+2007-06-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-mode): Make longlines-auto-wrap
+	buffer-local.  Add hooks unconditionally.
+	(longlines-auto-wrap): Toggle wrapping.
+	(longlines-after-change-function)
+	(longlines-post-command-function): Check longlines-auto-wrap.
+
 2007-06-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 22.1 released.
