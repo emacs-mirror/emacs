@@ -1,3 +1,7 @@
+2007-06-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-auto-wrap): Handle argument correctly.
+
 2007-06-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/socks.el: New file, taken from w3 repository.
