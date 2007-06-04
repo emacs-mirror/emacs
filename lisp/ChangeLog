@@ -1,3 +1,8 @@
+2007-06-04  Katsumi Yamaoka  <yamaoka@jpl.org>  (tiny change)
+
+	* mail/mail-extr.el (mail-extract-address-components): Recognize
+	non-ASCII characters except for NBSP as words.
+
 2007-06-04  Ryan Yeske  <rcyeske@gmail.com>
 
 	* net/webjump.el (webjump-sample-sites): Add Wikipedia query.
