@@ -1,3 +1,8 @@
+2007-06-04  Michael Olson  <mwolson@gnu.org>
+
+	* emacs-lisp/tq.el (tq-queue-pop): Stifle error when a process has
+	died and we are trying to send a signal to it.
+
 2007-06-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/easy-mmode.el (define-minor-mode)
