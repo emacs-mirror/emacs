@@ -1,3 +1,15 @@
+2007-06-04  Davis Herring  <herring@lanl.gov>
+
+	* calendar/timeclock.el: Update version number.
+	(timeclock-modeline-display): Mention timeclock-use-display-time
+	in explanatory message.
+	(timeclock-log): Suppress warnings when finding the log.  Don't
+	check for a nil project twice.  Run hooks after killing the
+	buffer (if applicable).
+	(timeclock-geometric-mean): Rename to `timeclock-mean' (it never
+	was geometric).  All uses changed.
+	(timeclock-generate-report): Support prefix argument.
+
 2007-06-04  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* man.el (Man-next-section): Don't consider the last line of the
