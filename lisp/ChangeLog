@@ -1,3 +1,8 @@
+2007-06-04  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+
+	* man.el (Man-next-section): Don't consider the last line of the
+	page as being part of any section.
+
 2007-06-04  Martin Rudalics  <rudalics@gmx.at>
 
 	* hilit-chg.el (highlight-changes-rotate-faces): Don't set
