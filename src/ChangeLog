@@ -1,3 +1,7 @@
+2007-06-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* window.c (Fshrink_window): Reflow docstring.
+
 2007-06-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 22.1 released.
