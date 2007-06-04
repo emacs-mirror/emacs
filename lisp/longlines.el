@@ -110,6 +110,7 @@ are indicated with a symbol."
         (add-hook 'change-major-mode-hook 'longlines-mode-off nil t)
 	(add-hook 'before-revert-hook 'longlines-before-revert-hook nil t)
         (make-local-variable 'buffer-substring-filters)
+        (make-local-variable 'longlines-auto-wrap)
 	(set (make-local-variable 'isearch-search-fun-function)
 	     'longlines-search-function)
         (add-to-list 'buffer-substring-filters 'longlines-encode-string)
@@ -149,12 +150,10 @@ are indicated with a symbol."
 	       (add-to-list 'message-indent-citation-function
 			    'longlines-decode-region t)))
 
+	(add-hook 'after-change-functions 'longlines-after-change-function nil t)
+	(add-hook 'post-command-hook 'longlines-post-command-function nil t)
         (when longlines-auto-wrap
-          (auto-fill-mode 0)
-          (add-hook 'after-change-functions
-                    'longlines-after-change-function nil t)
-          (add-hook 'post-command-hook
-                    'longlines-post-command-function nil t)))
+          (auto-fill-mode 0)))
     ;; Turn off longlines mode
     (setq buffer-file-format (delete 'longlines buffer-file-format))
     (if longlines-showing
@@ -365,29 +364,27 @@ Hard newlines are left intact."
 ;; Auto wrap
 
 (defun longlines-auto-wrap (&optional arg)
-  "Turn on automatic line wrapping, and wrap the entire buffer.
-With optional argument ARG, turn off line wrapping."
+  "Toggle automatic line wrapping.
+With optional argument ARG, turn on line wrapping if and only if ARG is positive.
+If automatic line wrapping is turned on, wrap the entire buffer."
   (interactive "P")
-  (remove-hook 'after-change-functions 'longlines-after-change-function t)
-  (remove-hook 'post-command-hook 'longlines-post-command-function t)
+  (setq arg (if arg
+		(> (prefix-numeric-value arg) 0)
+	      (not longlines-auto-wrap)))
   (if arg
-      (progn (setq longlines-auto-wrap nil)
-             (message "Auto wrap disabled."))
-    (setq longlines-auto-wrap t)
-    (add-hook 'after-change-functions
-              'longlines-after-change-function nil t)
-    (add-hook 'post-command-hook
-              'longlines-post-command-function nil t)
-    (let ((mod (buffer-modified-p)))
-      (longlines-wrap-region (point-min) (point-max))
-      (set-buffer-modified-p mod))
-    (message "Auto wrap enabled.")))
+      (let ((mod (buffer-modified-p)))
+	(setq longlines-auto-wrap t)
+	(longlines-wrap-region (point-min) (point-max))
+	(set-buffer-modified-p mod)
+	(message "Auto wrap enabled."))
+    (setq longlines-auto-wrap nil)
+    (message "Auto wrap disabled.")))
 
 (defun longlines-after-change-function (beg end len)
   "Update `longlines-wrap-beg' and `longlines-wrap-end'.
 This is called by `after-change-functions' to keep track of the region
 that has changed."
-  (unless undo-in-progress
+  (when (and longlines-auto-wrap (not undo-in-progress))
     (setq longlines-wrap-beg
           (if longlines-wrap-beg (min longlines-wrap-beg beg) beg))
     (setq longlines-wrap-end
@@ -396,7 +393,7 @@ that has changed."
 (defun longlines-post-command-function ()
   "Perform line wrapping on the parts of the buffer that have changed.
 This is called by `post-command-hook' after each command."
-  (when longlines-wrap-beg
+  (when (and longlines-auto-wrap longlines-wrap-beg)
     (if (or (eq this-command 'yank)
 	    (eq this-command 'yank-pop))
 	(longlines-decode-region (point) (mark t)))
