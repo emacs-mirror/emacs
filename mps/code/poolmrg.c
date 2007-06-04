@@ -319,7 +319,7 @@ static Count MRGGuardiansPerSeg(MRG mrg)
   nGuardians = mrg->extendBy / sizeof(Ref);
   AVER(nGuardians > 0);
 
-  return(nGuardians);
+  return nGuardians;
 }
 
 
