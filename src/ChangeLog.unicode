@@ -1,3 +1,10 @@
+2007-06-04  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_open): Don't set font_idx.
+	(w32font_text_extents): Try GetTextExtentPoint32W before defaulting
+	to font settings.
+	(w32font_draw): Fill background explicitly.
+
 2007-06-03  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (w32_initialize): Don't call w32font_initialize.
