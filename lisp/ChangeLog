@@ -1,3 +1,10 @@
+2007-06-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/compile.el (compilation-find-file, compilation-handle-exit):
+	Fix typos in docstrings.
+	(compilation-search-path, compilation-buffer-name-function): Doc fixes.
+	(compilation-finish-function): Fix typo in obsolescence declaration.
+
 2007-06-03  Sam Steingold  <sds@gnu.org>
 
 	Add TIMESTAMP to LOC to handle "incremental compilation", e.g.,
