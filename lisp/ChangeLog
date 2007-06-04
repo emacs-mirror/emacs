@@ -1,5 +1,11 @@
 2007-06-04  Chong Yidong  <cyd@stupidchicken.com>
 
+	* files.el (magic-mode-alist): Remove image-type-auto-detected-p.
+	(magic-fallback-mode-alist): Add image-type-auto-detected-p.
+
+	* image.el (image-type-auto-detected-p): Don't scan
+	auto-mode-alist.
+
 	* longlines.el (longlines-mode): Make longlines-auto-wrap
 	buffer-local.  Add hooks unconditionally.
 	(longlines-auto-wrap): Toggle wrapping.
