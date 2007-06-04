@@ -54,8 +54,11 @@ source code.
 <h3>Line Width</h3>
 
 <p>
-.width: Lines should be no wider than 80 characters. [This rule will
-change to 72 -- DRJ 2007-06-04]
+.width: Lines should be no wider than 72 characters. .width.why: Many
+people use 80 column terminal windows so that multiple windows can be
+placed side by side.  Restricting lines to 72 characters allows line
+numbering to be used (in vi for example) and also allows diffs to be
+displayed without overflowing the terminal.
 </p>
 
 
@@ -63,7 +66,8 @@ change to 72 -- DRJ 2007-06-04]
 
 <p>
 .space.notab: No tab characters should appear in the source files.  Ordinary 
-spaces should be used to indent and format the sources.  Tab characters are 
+spaces should be used to indent and format the sources.
+.space.notab.why: Tab characters are 
 displayed differently on different platforms, and sometimes translated back and 
 forth, destroying layout information.
 </p>
@@ -83,8 +87,9 @@ sub-expressions more tightly.  For example:
   foo = x + y*z;
 </pre>
 
-[to be announced: rule about having no white space after if/for/while --
-DRJ 2007-06-04]
+<p>
+.space.control.not: No space between the keywords <em>if</em>,
+<em>for</em>, <em>while</em> and the following paren.
 
 
 <h3>Sections and Paragraphs</h3>
@@ -179,24 +184,28 @@ outdented to match the controlling statement.
 </p>
 
 <p>
-.indent.elseif: As a special exception to the indentation rule above, an else 
-may be immediately followed by an if, in which case the if body is at the same 
-level as the previous if body.  For example:
+.indent.elseif: The usual style for <em>else if</em> chains is
+a special exception to the indentation rule above: an <em>else</em>
+may be immediately followed by an <em>if</em>, in which case the
+<em>if</em> body is at the same 
+level as the previous <em>if</em> body.  For example:
 </p>
 
 <pre>
   if(j == block->base) {
-    if(j+step == block->limit)
+    if(j+step == block->limit) {
       putc('@', stream);
-    else
+    } else {
       putc('[', stream);
+    }
   } else if(j+step == block->limit) {
     putc(']', stream);
     pop_bracket();
   } else if(j > block->base && j < block->limit)
     putc('=', stream);
-  else
+  } else {
     putc('.', stream);
+  }
 </pre>
 
 <p>
@@ -251,14 +260,23 @@ continuation lines up just after the open parenthesis.  For example:
 
 <p>
 .indent.expr: Note that when breaking an expression it is clearer to place the operator at 
-the start of the continuation line: [Is it?  Opinions vary -- DRJ
-2007-06-04]
+the start of the continuation line:
 </p>
 
 <pre>
   CHECKL(AddrAdd((Addr)chunk->pageTableMapped,
                  BTSize(chunk->pageTablePages))
          <= AddrAdd(chunk->base, chunk->ullageSize));
+</pre>
+
+<p>
+This is particularly useful in long conditional expressions that use &&
+and ||.  For example:
+</p>
+
+<pre>
+  } while(trace->state != TraceFINISHED
+          && (trace->emergency || traceWorkClock(trace) < pollEnd));
 </pre>
 
 
@@ -294,44 +312,11 @@ the close brace.  For example:
 </pre>
 
 <p>
-The same applies to struct, enum, union, and function definitions.
+The same applies to struct, enum, union.
 </p>
 
 <p>
-.brace.otb.split: There is a further division of the OTB style.
-</p>
-
-<p>
-.brace.otb.most: The "At Most One True Brace" allows one to have an if 
-statement with a block statement in one tail and an unblocked statement in the 
-other.  Like this:
-</p>
-
-<pre>
-  if(isBad) {
-    FooBar();
-    BarFoo();
-  } else
-    Zing();
-</pre>
-
-<p>
-.brace.otb.exactly: The "Exactly One True Brace" does not admit the mixture of 
-braces and not-braces in "if"s.  The above example in EOTB would be:
-</p>
-
-<pre>
-  if(isBad) {
-    FooBar();
-    BarFoo();
-  } else {
-    Zing();
-  }
-</pre>
-
-<p>
-.brace.otb.more: There are further refinements according to whether you admit 
-any non-braced statements in "if"s, "while"s, and so on.
+.brace.otb.function.not: OTB is never used for function definitions.
 </p>
 
 <p>
@@ -350,6 +335,24 @@ any non-braced statements in "if"s, "while"s, and so on.
     node = next;
   }
 </pre>
+
+<p>
+.brace.always: Braces are always required for <em>if</em>, <em>for</em>,
+<em>while</em>, and so on.
+.brace.always.except: Except that an <em>if</em> with no <em>else</em>
+is allowed to drop its braces when its body is a single simple statement.
+Typically this will be a <em>goto</em> or an assignment.  For example:
+</p>
+
+<pre>
+  if(res != ResOK)
+    goto failStart;
+</pre>
+
+<p>
+Note in particular that an <em>if</em> with an <em>else</em> must have
+braces on both paths.
+</p>
 
 <p>
 .brace.case: If you need to put braces around the "contents" of a case 
@@ -450,6 +453,11 @@ when cutting and pasting comments.)  For example:
 </pre>
 
 <p>
+.comment.para.precede: Paragraph comments, even one-liners, precede the
+code to which they apply.
+</p>
+
+<p>
 .comment.column: Columnar comments appear in a column to the right of the 
 code.  They should be used sparingly, since they clutter the code and make it 
 hard to edit.  Use them on variable declarations and structure, union, or enum 
@@ -482,6 +490,15 @@ clearer.  Don't write more than one line.  Here's an example:
 <td>Adopted from
 //info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mminfo/guide/impl/c/format/index.txt
 and edited.</td>
+</tr>
+
+<tr valign='top'>
+<td>2007-06-04</td>
+<td><a href="mailto:drj@ravenbrook.com">DRJ</a></td>
+<td>Changed .width from 80 to 72.  Banned space between "if" and "(".
+Required braces on almost everything.  Clarified that paragraph comments
+precede the code.
+</td>
 </tr>
 
 </table>
