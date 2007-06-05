@@ -29,11 +29,9 @@
 
 2007-06-03  Sam Steingold  <sds@gnu.org>
 
-	Add TIMESTAMP to LOC to handle "incremental compilation", e.g.,
-	with `omake -P': the compilation process never terminates and
-	automatically recompiles modified files.
-
-	* progmodes/compile.el (compilation-loop): VISITED is not 5th CDR.
+	* progmodes/compile.el: Add TIMESTAMP to the LOC data structure, to
+	handle unending automatic recompilation of changed files (`omake -P').
+	(compilation-loop): VISITED is not 5th CDR.
 	(compilation-next-error-function): Set TIMESTAMP.
 
 2007-06-03  Sam Steingold  <sds@gnu.org>
