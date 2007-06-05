@@ -1,3 +1,8 @@
+2007-06-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (auto-mode-alist): Add lower-priority match for names
+	like ChangeLog.old.
+
 2007-06-04  Andreas Schwab  <schwab@suse.de>
 
 	* emacs-lisp/sregex.el (sregexq): Fix doc string quoting.
