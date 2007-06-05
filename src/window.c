@@ -1532,7 +1532,7 @@ delete_window (window)
 	if (!EQ (window, pwindow))
 	  break;
 	/* Otherwise, try another window for SWINDOW.  */
-	swindow = Fnext_window (swindow, Qlambda, Qnil);;
+	swindow = Fnext_window (swindow, Qlambda, Qnil);
 
 	/* If we get back to the frame's selected window,
 	   it means there was no acceptable alternative,
