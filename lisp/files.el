@@ -2010,6 +2010,9 @@ since only a single case-insensitive search through the alist is made."
      ("[/.]c\\(?:on\\)?f\\(?:i?g\\)?\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-mode)
      ("\\`/etc/\\(?:DIR_COLORS\\|ethers\\|.?fstab\\|.*hosts\\|lesskey\\|login\\.?de\\(?:fs\\|vperm\\)\\|magic\\|mtab\\|pam\\.d/.*\\|permissions\\(?:\\.d/.+\\)?\\|protocols\\|rpc\\|services\\)\\'" . conf-space-mode)
      ("\\`/etc/\\(?:acpid?/.+\\|aliases\\(?:\\.d/.+\\)?\\|default/.+\\|group-?\\|hosts\\..+\\|inittab\\|ksysguarddrc\\|opera6rc\\|passwd-?\\|shadow-?\\|sysconfig/.+\\)\\'" . conf-mode)
+     ;; ChangeLog.old etc.  Other change-log-mode entries are above;
+     ;; this has lower priority to avoid matching changelog.sgml etc.
+     ("[cC]hange[lL]og[-.][-0-9a-z]+\\'" . change-log-mode)
      ;; either user's dot-files or under /etc or some such
      ("/\\.?\\(?:gnokiirc\\|kde.*rc\\|mime\\.types\\|wgetrc\\)\\'" . conf-mode)
      ;; alas not all ~/.*rc files are like this
