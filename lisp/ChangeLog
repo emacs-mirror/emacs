@@ -36,7 +36,7 @@
 
 	* progmodes/compile.el: Add TIMESTAMP to the LOC data structure, to
 	handle unending automatic recompilation of changed files (`omake -P').
-	(compilation-loop): VISITED is not 5th CDR.
+	(compilation-loop): VISITED is now 5th CDR.
 	(compilation-next-error-function): Set TIMESTAMP.
 
 2007-06-03  Sam Steingold  <sds@gnu.org>
