@@ -1,3 +1,10 @@
+2007-06-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs-cycle-previous): Don't modify the cycle list until
+	`switch-to-buffer' has returned succesfully.
+	(bs-cycle-next): Ditto.  Also, don't bury the buffer when the
+	window is dedicated (it could iconify the frame).
+
 2007-06-05  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (auto-mode-alist): Open `.asd' files in lisp-mode.
