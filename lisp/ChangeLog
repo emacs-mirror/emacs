@@ -1,3 +1,7 @@
+2007-06-05  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (auto-mode-alist): Open `.asd' files in lisp-mode.
+
 2007-06-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (auto-mode-alist): Add lower-priority match for names
