@@ -1,3 +1,7 @@
+2007-06-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Add socks.el as new package.
+
 2007-06-02  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* MORE.STUFF (Hideshow): Delete.
@@ -260,7 +264,7 @@
 
 2007-02-19  Kenichi Handa  <handa@m17n.org>
 
-	* NEWS (New language environmets): Add "Esperanto".
+	* NEWS (New language environments): Add "Esperanto".
 
 2007-02-16  Dale Gulledge  <dsplat@rochester.rr.com>
 
