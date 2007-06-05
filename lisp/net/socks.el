@@ -647,4 +647,5 @@ version.")
 
 (provide 'socks)
 
+;; arch-tag: 67aef0d9-f4f7-4056-89c3-b4c9bf93ce7f
 ;;; socks.el ends here
