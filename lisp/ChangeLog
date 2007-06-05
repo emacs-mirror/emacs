@@ -1,3 +1,8 @@
+2007-06-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faces.el (face-id): If the argument is a face alias,
+	return the ID of the target face.
+
 2007-06-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/socks.el (top): Remove unnecessary copyright line.
