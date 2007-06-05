@@ -1,3 +1,8 @@
+2007-06-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (auto-mode-alist): Separate "ChangeLog.1" and
+	"ChangeLog.a" entries, giving the latter lower priority.
+
 2007-06-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* faces.el (face-id): If the argument is a face alias,
