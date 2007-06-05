@@ -734,7 +734,7 @@ mac_create_bitmap_from_bitmap_data (bitmap, bits, w, h)
 	  /* Bitswap XBM bytes to match how Mac does things.  */
 	  unsigned char c = *bits++;
 	  *p++ = (unsigned char)((swap_nibble[c & 0xf] << 4)
-				 | (swap_nibble[(c>>4) & 0xf]));;
+				 | (swap_nibble[(c>>4) & 0xf]));
 	}
     }
 
@@ -7558,7 +7558,7 @@ init_font_name_table ()
 	make_hash_table (Qequal, make_number (DEFAULT_HASH_SIZE),
 			 make_float (DEFAULT_REHASH_SIZE),
 			 make_float (DEFAULT_REHASH_THRESHOLD),
-			 Qnil, Qnil, Qnil);;
+			 Qnil, Qnil, Qnil);
       h = XHASH_TABLE (atsu_font_id_hash);
 
       err = ATSUFontCount (&nfonts);
