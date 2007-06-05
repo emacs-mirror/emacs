@@ -1,8 +1,12 @@
+2007-06-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xfaces.c (Finternal_lisp_face_p): Signal error for face alias loops.
+
 2007-06-03  Nick Roberts  <nickrob@snap.net.nz>
 
 	* keyboard.c (discard_mouse_events): Add GPM_CLICK_EVENT case.
 
-	* frame.c (Fmouse_position, Fmouse_pixel_position): 
+	* frame.c (Fmouse_position, Fmouse_pixel_position):
 	Condition on HAVE_GPM too.
 
 	* term.c (term_mouse_highlight): Remove unused variables.
