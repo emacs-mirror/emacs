@@ -1,3 +1,12 @@
+2007-06-04  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-mime-view-part-externally)
+	(gnus-mime-view-part-internally): Fix predicate function passed to
+	completing-read.
+
+	* mm-decode.el (mm-image-fit-p): Return t if argument is not an image;
+	return t if image size is just the same as window size.
+
 2007-05-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* message.el (message-pop-to-buffer): Add switch-function argument.
