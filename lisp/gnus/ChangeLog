@@ -1,3 +1,7 @@
+2007-06-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnus-sum.el (gnus-summary-highlight): Fix typos in docstring.
+
 2007-05-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* message.el (message-pop-to-buffer): Add switch-function argument.
@@ -347,7 +351,7 @@
 	(message-simplify-subject): New function to remove duplicate code.
 	(message-reply, message-followup): Use it.
 	(message-simplify-subject-functions): New variable.
-	(message-strip-subject-encoded-words): New function
+	(message-strip-subject-encoded-words): New function.
 
 2006-11-08  Wolfgang Jenkner  <wjenkner@inode.at>  (tiny change)
 
@@ -1187,8 +1191,7 @@
 	* mm-view.el (mm-fill-flowed): New variable.
 	(mm-inline-text): Use it.
 
-2006-02-21  Wolfram Fenske  <wolfram.fenske@student.uni-magdeburg.de>
-	(tiny change)
+2006-02-21  Wolfram Fenske  <wolfram.fenske@student.uni-magdeburg.de>  (tiny change)
 
 	* nnimap.el (nnimap-request-move-article): Change folder back to
 	source group before deleting.
@@ -1750,7 +1753,7 @@
 	(pgg-pgp5-sign-region, pgg-pgp5-sign): Add optional 'passphrase'
 	argument to all these routines, so the passphrase can be managed
 	externally and passed in to the system.
-	(pgg-pgp5-sign-region): Use new name of	pgg-add-passphrase-to-cache
+	(pgg-pgp5-sign-region): Use new name of pgg-add-passphrase-to-cache
 	function.
 
 2005-10-29  Ken Manheimer  <ken.manheimer@gmail.com>
@@ -3625,7 +3628,7 @@
 	* nnmail.el (nnmail-split-fancy-with-parent-ignore-groups)
 	(nnmail-cache-ignore-groups, nnmail-spool-hook)
 	(nnmail-split-fancy-match-partial-words)
-	(nnmail-split-lowercase-expanded):
+	(nnmail-split-lowercase-expanded): Add :version.
 
 	* nndiary.el (nndiary): Add :version.
 
@@ -3901,7 +3904,7 @@
 	* gnus-int.el (gnus-request-delete-group):
 	Use gnus-cache-delete-group and gnus-agent-delete-group to keep the
 	local disk in sync with the server.
-	 (gnus-request-rename-group):
+	(gnus-request-rename-group):
 	Use gnus-cache-rename-group and gnus-agent-rename-group to keep the
 	local disk in sync with the server.
 
@@ -4028,7 +4031,7 @@
 
 	* gnus-sum.el (gnus-select-newgroup): Replace inline code with
 	gnus-agent-possibly-alter-active.
-	(gnus-adjust-marked-articles): Faster handling of simple lists
+	(gnus-adjust-marked-articles): Faster handling of simple lists.
 
 2004-10-18  David Edmondson  <dme@dme.org>
 
@@ -4171,7 +4174,7 @@
 
 	* gnus-fun.el: Require gnus-ems and gnus-util.
 
-	* gnus-diary.el (gnus-diary-header-schedule): caddr -> car (cddr
+	* gnus-diary.el (gnus-diary-header-schedule): caddr -> car (cddr).
 
 	* gnus-art.el (gnus-article-edit-mode): Define before first reference.
 
@@ -4254,6 +4257,7 @@
 
 	* nnmail.el (nnmail-fancy-expiry-targets)
 	(nnmail-mail-splitting-charset, nnmail-mail-splitting-decodes):
+	Add :version.
 
 	* nnimap.el (nnimap-split-download-body, nnimap-dont-close)
 	(nnimap-retrieve-groups-asynchronous): Add :version.
@@ -4262,7 +4266,7 @@
 	* mml.el (mml-content-disposition-parameters)
 	(mml-insert-mime-headers-always): Add :version.
 
-	* mm-util.el (mm-coding-system-priorities):
+	* mm-util.el (mm-coding-system-priorities): Add :version.
 
 	* mm-decode.el (mm-inline-text-html-with-images)
 	(mm-keep-viewer-alive-types, mm-external-terminal-program)
@@ -4319,7 +4323,7 @@
 	* gnus-srvr.el (gnus-server-browse-in-group-buffer)
 	(gnus-server-offline-face): Add :version.
 
-	* gnus-score.el (gnus-adaptive-word-length-limit):
+	* gnus-score.el (gnus-adaptive-word-length-limit): Add :version.
 
 	* gnus-msg.el (gnus-gcc-externalize-attachments)
 	(gnus-debug-files, gnus-debug-exclude-variables)
@@ -4341,7 +4345,7 @@
 	* gnus-delay.el (gnus-delay-default-hour): Add :version.
 
 	* gnus-cite.el (gnus-cite-blank-line-after-header)
-	(gnus-article-boring-faces):
+	(gnus-article-boring-faces): Add :version.
 
 	* gnus-art.el (gnus-buttonized-mime-types)
 	(gnus-inhibit-mime-unbuttonizing)
@@ -4405,10 +4409,10 @@
 2004-09-10  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* nnimap.el (nnimap-open-connection): Allow 'imaps' as a synonym
-	for the 'imap' port in netrc files
+	for the 'imap' port in netrc files.
 
 	* gnus-registry.el (gnus-registry-trim): Watch out for negatives
-	in gnus-registry-trim
+	in gnus-registry-trim.
 
 2004-09-10  Simon Josefsson  <jas@extundo.com>
 
