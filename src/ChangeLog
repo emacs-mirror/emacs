@@ -1,3 +1,30 @@
+2007-06-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (mac_window): Replace WindowPtr with WindowRef.
+
+	* macgui.h: Replace WindowPtr with WindowRef.
+
+	* macmenu.c: Replace MenuHandle and GetMenuHandle with MenuRef and
+	GetMenuRef, respectively.  Replace WindowPtr with WindowRef.
+	Replace ControlHandle with ControlRef.
+	(install_menu_quit_handler): Rename arg MENU_HANDLE to ROOT_MENU.
+
+	* macterm.c: Replace MenuHandle and GetMenuHandle with MenuRef and
+	GetMenuRef, respectively.  Replace WindowPtr with WindowRef.
+	Replace ControlHandle with ControlRef.
+	(USE_CARBON_EVENTS): Remove.  Use TARGET_API_MAC_CARBON instead.
+	[MAC_OS8] (do_get_menus): Rename variable `menu_handle' to `menu'.
+
+	* macterm.h (struct scroll_bar): Rename member control_handle_low
+	and control_handle_high to control_ref_low and control_ref_high.
+	All uses changed.
+	(SCROLL_BAR_CONTROL_REF, SET_SCROLL_BAR_CONTROL_REF): Rename from
+	SCROLL_BAR_CONTROL_HANDLE and SET_SCROLL_BAR_CONTROL_HANDLE,
+	respectively.  All uses changed.
+	(XCreatePixmap, XCreatePixmapFromBitmapData, XSetWindowBackground)
+	(install_window_handler, remove_window_handler): Replace WindowPtr
+	with WindowRef in externs.
+
 2007-06-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* xfaces.c (Finternal_lisp_face_p): Signal error for face alias loops.
