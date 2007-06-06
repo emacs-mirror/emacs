@@ -409,8 +409,8 @@ source files, and the tags file will still refer correctly to the source
 files.  If the tags file is in @file{/dev}, however, the file names are
 made relative to the current working directory.  This is useful, for
 example, when writing the tags to @file{/dev/stdout}.
- 
-  When using a a relative file name, it should not be a symbolic link
+
+  When using a relative file name, it should not be a symbolic link
 pointing to a tags file in a different directory, because this would
 generally render the file names invalid.
 
