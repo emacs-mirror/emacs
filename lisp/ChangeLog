@@ -1,3 +1,7 @@
+2007-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/css-mode.el: New file.
+
 2007-06-06  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/socks.el: New file, taken from w3 repository.
