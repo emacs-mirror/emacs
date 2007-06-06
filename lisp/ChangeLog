@@ -1,3 +1,113 @@
+2007-06-06  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: 	* textmodes/org.el:
+	(org-export-region-as-html, org-replace-region-by-html)
+	(org-number-to-letters, org-table-fedit-finish)
+	(org-normalize-color, org-table-fedit-ref-right)
+	(org-date-to-gregorian, org-table-fedit-move)
+	(org-table-convert-refs-to-rc, org-calendar-holiday)
+	(org-table-fedit-toggle-ref-type, org-write-agenda)
+	(org-colgroup-info-to-vline-list, org-agenda-todo-previousset)
+	(org-defkey, org-encode-for-stdout)
+	(org-indent-line-function, org-export-as-html-to-buffer)
+	(org-store-agenda-views, org-update-mode-line)
+	(org-find-if, org-delete-all)
+	(org-table-fedit-convert-buffer, org-emphasize)
+	(org-uniquify, org-table-fedit-lisp-indent)
+	(org-table-fedit-scroll, org-get-todo-sequence-head)
+	(org-table-fedit-scroll-down, org-table-fedit-line-down)
+	(org-table-fedit-ref-left, org-agenda-export-csv-mapper)
+	(org-table-fedit-toggle-coordinates, org-dvipng-color)
+	(org-table-fedit-line-up, org-table-fedit-ref-down)
+	(org-table-formula-from-user, org-mode-flyspell-verify)
+	(org-cycle-show-empty-lines, org-ctrl-c-ret)
+	(org-table-formula-to-user, org-diary-to-ical-string)
+	(orgtbl-export, org-table-fedit-post-command)
+	(org-closed-in-range, org-shiftcontrolright)
+	(org-table-convert-refs-to-an, org-table-hline-and-move)
+	(org-table-formula-less-p, org-format-table-ascii)
+	(org-agenda-get-sexps, org-shift-refpart)
+	(org-diary-sexp-entry, org-time-string-to-absolute)
+	(org-table-show-reference, org-letters-to-number)
+	(org-fix-agenda-info, org-table-fedit-ref-up)
+	(org-table-fedit-shift-reference, org-table-fedit-abort)
+	(org-closest-date, org-shiftcontrolleft)
+	(org-at-heading-or-item-p, org-rematch-and-replace)
+	(org-agenda-todo-nextset, org-export-grab-title-from-buffer): New
+	function.
+	(org-table-edit-scroll-down, org-finish-edit-formulas)
+	(org-table-edit-next-field, org-abort-edit-formulas)
+	(org-font-lock-level, org-export-find-first-heading-line)
+	(org-table-edit-line-down, org-table-edit-backward-field)
+	(org-edit-formula-lisp-indent, org-table-edit-move)
+	(org-check-log-option, org-this-word)
+	(org-table-edit-line-up, org-table-edit-formulas-post-command)
+	(org-agenda-file-to-end, org-expand-file-name)
+	(org-fake-empty-table-line, org-table-edit-scroll)
+	(org-toggle-log-option, org-show-reference): Function removed.
+	(org-inhibit-invisibility, org-table-formula-make-cmp-string): New
+	defsubst.
+	(org-unmodified, org-batch-store-agenda-views)
+	(org-batch-agenda-csv): New macro.
+	(org-agenda-export): New customization group.
+	(org-agenda-skip-deadline-if-done, org-agenda-remove-tags)
+	(org-highest-priority, org-agenda-exporter-settings)
+	(org-log-done-with-time, org-replace-disputed-keys)
+	(org-format-latex-header, org-export-table-header-tags)
+	(org-cycle-separator-lines, org-export-table-data-tags)
+	(org-icalendar-include-sexps)
+	(org-empty-line-terminates-plain-lists)
+	(org-log-repeat, org-special-ctrl-a)
+	(org-table-use-standard-references, org-disputed-keys)
+	(org-export-skip-text-before-1st-heading, org-agenda-with-colors)
+	(org-agenda-export-html-style): New option.
+	(org-allow-auto-repeat,  org-agenda-remove-tags-when-in-prefix)
+	(org-CUA-compatible): Option removed.
+	(org-agenda-structure,  org-sexp-date): New face.
+	(org-todo-keywords-for-agenda, org-not-done-keywords)
+	(org-planning-or-clock-line-re, org-agenda-name)
+	(org-table-colgroup-info, org-todo-sets)
+	(constants-unit-system, org-clock-mode-line-entry)
+	(org-mode-line-timer, org-table-current-begin-pos)
+	(org-todo-keywords-1, org-mode-line-string)
+	(org-table-clean-did-remove-column, org-table-fedit-map)
+	(org-clock-heading, org-table-buffer-is-an)
+	(org-agenda-info, org-done-keywords)
+	(org-done-keywords-for-agenda, org-todo-heads)
+	(org-todo-kwd-alist, org-clock-start-time): New variable.
+	(org-todo-kwd-priority-p, org-edit-formulas-map)
+	(org-repeat-re, org-todo-kwd-max-priority)
+	(org-version, org-done-string)
+	(org-table-clean-did-remove-column-1, org-disputed-keys): Variable
+	removed.
+	(org-table-translate-regexp, org-repeat-re, org-version): New
+	constant.
+	(org-ts-lengths): Constant removed.
+	(org-follow-gnus-link): Don't ask how many articles to read.
+	(org-export-find-first-export-line): Renamed from
+	`org-export-find-first-heading'.  Use
+	`org-export-skip-text-before-1st-heading'.
+	(org-table-fedit-post-command): Renamed from
+	`org-table-edit-formulas-post-command'.
+	(org-table-fedit-finish): Renamed from `org-finish-edit-formulas'.
+	(org-table-fedit-abort): Renamed from `org-abort-edit-formulas'.
+	(org-table-fedit-lisp-indent): Renamed from
+	`org-edit-formula-lisp-indent'.
+	(org-table-show-reference): Renamed from `org-show-reference'.
+	(org-table-store-formulas): Use `org-table-formula-less-p'.
+	(org-table-edit-formulas): Position cursor to current field
+	equation.
+	(org-update-checkbox-count, org-hide-archived-subtrees)
+	(org-timestamp-up-day, org-timestamp-down-day)
+	(org-shiftmetaleft, org-shiftmetaright, org-shiftmetaup)
+	(org-shiftmetadown, org-metaleft, org-metaright, org-metaup)
+	(org-metadown, org-shiftup, org-shiftdown, org-shiftright)
+	(org-shiftleft, org-ctrl-c-ctrl-c, org-context): Let
+	`org-on-heading-p' also check for invisible heading.
+	(org-read-date): Match am/pm times.
+	(org-eval-in-calendar): Fix default date in prompt.
+
+
 2007-06-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (auto-mode-alist): Separate "ChangeLog.1" and
