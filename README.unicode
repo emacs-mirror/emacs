@@ -166,11 +166,11 @@ The new files are:
 		utilizing methods provided by ftfont.c.
 	ftxfont.c -- font-driver on X directly using FreeType fonts
 		utilizing methods provided by ftfont.c.
+	w32font.c -- font driver on w32 using Windows native fonts,
+		corresponding to xfont.c
 
 So we already have codes for X.  For the other systems (w32 and mac),
 it seems that we need these files:
-	w32font.c -- font driver on w32 using Windows native fonts,
-		corresponding to xfont.c
 	atmfont.c -- font-driver on mac using ATM fonts, corresponding
 		to xfont.c
 As BDF fonts are currently used on w32, we may also implement these:
@@ -183,9 +183,9 @@ Fontconfig are also available on w32, what we need may be:
 	ftw32font.c -- font-driver on w32 directly using FreeType fonts
 		utilizing methods provided by ftfont.c.
 
-And, for those to work, w32term.c (macterm.c) and w32fns.c (macfns.c)
-must be changed by the similar way as xterm.c and xfns.c (the parts
-"#ifdef USE_FONT_BACKEND" ... "#endif" should be checked).
+And, for those to work, macterm.c and macfns.c must be changed by the
+similar way as xterm.c and xfns.c (the parts "#ifdef USE_FONT_BACKEND"
+... "#endif" should be checked).
 
 It may be interesting if Emacs supports a frame buffer directly and
 have these font driver.
