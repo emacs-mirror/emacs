@@ -5756,7 +5756,7 @@ Otherwise, use the `erc-header-line' face."
 		 (function :tag "Call a function")))
 
 (defcustom erc-show-channel-key-p t
-  "Show the the channel key in the header line."
+  "Show the channel key in the header line."
   :group 'erc-paranoia
   :type 'boolean)
 
