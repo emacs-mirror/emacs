@@ -142,9 +142,9 @@ $(BLD)/ctags.$(O): ctags.c
 # make-docfile blindly replaces .o with .c anyway.  Keep .o in this list
 # as it is required by code in doc.c.
 #
-obj=    sunfns.o dosfns.o msdos.o \
+obj =   sunfns.o dosfns.o msdos.o \
 	xterm.o xfns.o xmenu.o xselect.o xrdb.o  fringe.o image.o \
-	mac.o macterm.o macfns.o macmenu.o fontset.o \
+	mac.o macterm.o macfns.o macmenu.o fontset.o font.o w32font.o \
 	w32.o w32bdf.o w32console.o w32fns.o w32heap.o w32inevt.o \
 	w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o \
 	dispnew.o frame.o scroll.o xdisp.o window.o \
