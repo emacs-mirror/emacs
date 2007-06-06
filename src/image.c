@@ -3978,9 +3978,6 @@ xpm_load (f, img)
   attrs.valuemask |= XpmCloseness;
 #endif /* not XpmAllocCloseColors */
 #endif /* ALLOC_XPM_COLORS */
-#ifdef ALLOC_XPM_COLORS
-  xpm_init_color_cache (f, &attrs);
-#endif
 
   /* If image specification contains symbolic color definitions, add
      these to `attrs'.  */
