@@ -1,6 +1,8 @@
 2007-06-06  Juanma Barranquero  <lekktu@gmail.com>
 
-	* gnus.texi (Article Buttons):
+	* cc-mode.texi (Comment Commands, Getting Started, Style Variables):
+	* gnus.texi (Article Buttons, Mail Source Customization)
+	(Sending or Not Sending, Customizing NNDiary):
 	* maintaining.texi (Create Tags Table):
 	* message.texi (Message Headers):
 	* mh-e.texi (HTML): Fix typos.
@@ -1382,9 +1384,9 @@
 	* emacs.texi (\hbadness): Set to 6000 so we aren't bothered by
 	not-too-underfull hboxes in the TeX output.
 	* abbrevs.texi, buffers.texi, building.texi, calendar.texi,
-	cmdargs.texi, custom.texi, dired.texi, macos.texi,
-	maintaining.texi, misc.texi, mule.texi, programs.texi, rmail.texi,
-	sending.texi, text.texi: fix overfull/underfull boxes.
+	* cmdargs.texi, custom.texi, dired.texi, macos.texi,
+	* maintaining.texi, misc.texi, mule.texi, programs.texi, rmail.texi,
+	* sending.texi, text.texi: Fix overfull/underfull boxes.
 
 2006-07-03  Romain Francoise  <romain@orebokech.com>
 
@@ -1951,11 +1953,11 @@
 
 2006-05-05  Karl Berry  <karl@gnu.org>
 
-	* texinfo.tex (\definetextfonsizexi, \definetextfonsizex): new cmds.
-	(\fonttextsize): new user-level command to change text font size.
-	* emacs.texi: call  @fonttextsize 10, inside @tex to avoid
+	* texinfo.tex (\definetextfonsizexi, \definetextfonsizex): New cmds.
+	(\fonttextsize): New user-level command to change text font size.
+	* emacs.texi: Call @fonttextsize 10, inside @tex to avoid
 	errors from the current release of makeinfo (4.8).
-	* help.texi (Library Keywords): change widest word in multitable
+	* help.texi (Library Keywords): Change widest word in multitable
 	template from `emulations' to `convenience'.  (Not sure if this is
 	related to the font change.)
 
@@ -2155,7 +2157,7 @@
 	(Inserting Version Control Headers, Customizing VC, General Options)
 	(Options for RCS and SCCS, Options specific for CVS): Move all
 	these nodes to emacs-xtra.texi, for brevity.
-	* cmdargs.texi, files.texi: change cross-references.
+	* cmdargs.texi, files.texi: Change cross-references.
 
 2006-04-11  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -2186,13 +2188,13 @@
 
 2006-04-09  Karl Berry  <karl@gnu.org>
 
-	* msdog.texi, emacs-xtra.texi: move all the MS-DOS material to
+	* msdog.texi, emacs-xtra.texi: Move all the MS-DOS material to
 	emacs-xtra.texi, leaving only MS Windows information.
 	* building.texi, emacs.texi, frames.texi, gnu.texi, macos.texi,
-	msdog.texi, mule.texi, trouble.texi: change cross-references and
+	* msdog.texi, mule.texi, trouble.texi: Change cross-references and
 	node names.
 
-	* emacs.texi: move @summarycontents and @contents to the beginning
+	* emacs.texi: Move @summarycontents and @contents to the beginning
 	of the file.
 
 2006-04-07  Reiner Steib  <Reiner.Steib@gmx.de>
@@ -2271,7 +2273,7 @@
 
 	* sending.texi (Mail Sending): pxref to Top needs five args.
 
-	* texinfo.tex: update to current version (2006-03-21.13).
+	* texinfo.tex: Update to current version (2006-03-21.13).
 
 2006-04-02  Bill Wohler  <wohler@newt.com>
 
