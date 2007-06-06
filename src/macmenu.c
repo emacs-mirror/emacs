@@ -200,7 +200,7 @@ static void list_of_items P_ ((Lisp_Object));
 
 static void find_and_call_menu_selection P_ ((FRAME_PTR, int, Lisp_Object,
 					      void *));
-static int fill_menu P_ ((MenuHandle, widget_value *, enum mac_menu_kind, int));
+static int fill_menu P_ ((MenuRef, widget_value *, enum mac_menu_kind, int));
 static void fill_menubar P_ ((widget_value *, int));
 static void dispose_menus P_ ((enum mac_menu_kind, int));
 
@@ -1162,7 +1162,7 @@ x_activate_menubar (f)
 #endif
     if (menu_id)
       {
-        MenuHandle menu = GetMenuHandle (menu_id);
+        MenuRef menu = GetMenuRef (menu_id);
 
         if (menu)
           {
@@ -1632,7 +1632,7 @@ menu_target_item_handler (next_handler, event, data)
 
 OSStatus
 install_menu_target_item_handler (window)
-     WindowPtr window;
+     WindowRef window;
 {
   OSStatus err = noErr;
 #if TARGET_API_MAC_CARBON
@@ -1687,15 +1687,15 @@ menu_quit_handler (nextHandler, theEvent, userData)
 }
 #endif	/* MAC_OS_X_VERSION_MAX_ALLOWED >= 1030 */
 
-/* Add event handler to all menus that belong to KIND so we can detect C-g.
-   MENU_HANDLE is the root menu of the tracking session to dismiss
-   when C-g is detected.  NULL means the menu bar.
-   If CancelMenuTracking isn't available, do nothing.  */
+/* Add event handler to all menus that belong to KIND so we can detect
+   C-g.  ROOT_MENU is the root menu of the tracking session to dismiss
+   when C-g is detected.  NULL means the menu bar.  If
+   CancelMenuTracking isn't available, do nothing.  */
 
 static void
-install_menu_quit_handler (kind, menu_handle)
+install_menu_quit_handler (kind, root_menu)
      enum mac_menu_kind kind;
-     MenuHandle menu_handle;
+     MenuRef root_menu;
 {
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
   static const EventTypeSpec typesList[] =
@@ -1708,13 +1708,13 @@ install_menu_quit_handler (kind, menu_handle)
 #endif
   for (id = min_menu_id[kind]; id < min_menu_id[kind + 1]; id++)
     {
-      MenuHandle menu = GetMenuHandle (id);
+      MenuRef menu = GetMenuRef (id);
 
       if (menu == NULL)
 	break;
       InstallMenuEventHandler (menu, menu_quit_handler,
 			       GetEventTypeCount (typesList),
-			       typesList, menu_handle, NULL);
+			       typesList, root_menu, NULL);
     }
 #endif	/* MAC_OS_X_VERSION_MAX_ALLOWED >= 1030 */
 }
@@ -1978,7 +1978,7 @@ pop_down_menu (arg)
 {
   struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
   FRAME_PTR f = p->pointer;
-  MenuHandle menu = GetMenuHandle (min_menu_id[MAC_MENU_POPUP]);
+  MenuRef menu = GetMenuRef (min_menu_id[MAC_MENU_POPUP]);
 
   BLOCK_INPUT;
 
@@ -2024,7 +2024,7 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
   int i;
   int menu_item_choice;
   UInt32 menu_item_selection;
-  MenuHandle menu;
+  MenuRef menu;
   Point pos;
   widget_value *wv, *save_wv = 0, *first_wv = 0, *prev_wv = 0;
   widget_value **submenu_stack
@@ -2254,7 +2254,7 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
   /* Get the refcon to find the correct item */
   if (menu_item_choice)
     {
-      MenuHandle sel_menu = GetMenuHandle (HiWord (menu_item_choice));
+      MenuRef sel_menu = GetMenuRef (HiWord (menu_item_choice));
 
       if (sel_menu)
 	GetMenuItemRefCon (sel_menu, LoWord (menu_item_choice),
@@ -2724,8 +2724,8 @@ mac_dialog (widget_value *wv)
   int i;
   int dialog_width;
   Rect rect;
-  WindowPtr window_ptr;
-  ControlHandle ch;
+  WindowRef window_ptr;
+  ControlRef ch;
   int left;
   EventRecord event_record;
   SInt16 part_code;
@@ -2754,7 +2754,7 @@ mac_dialog (widget_value *wv)
       wv = wv->next;
     }
 
-  window_ptr = GetNewCWindow (DIALOG_WINDOW_RESOURCE, NULL, (WindowPtr) -1);
+  window_ptr = GetNewCWindow (DIALOG_WINDOW_RESOURCE, NULL, (WindowRef) -1);
 
   SetPortWindowPort (window_ptr);
 
@@ -3031,7 +3031,7 @@ name_is_separator (name)
 
 static void
 add_menu_item (menu, pos, wv)
-     MenuHandle menu;
+     MenuRef menu;
      int pos;
      widget_value *wv;
 {
@@ -3108,7 +3108,7 @@ add_menu_item (menu, pos, wv)
 
 static int
 fill_menu (menu, wv, kind, submenu_id)
-     MenuHandle menu;
+     MenuRef menu;
      widget_value *wv;
      enum mac_menu_kind kind;
      int submenu_id;
@@ -3120,7 +3120,7 @@ fill_menu (menu, wv, kind, submenu_id)
       add_menu_item (menu, pos, wv);
       if (wv->contents && submenu_id < min_menu_id[kind + 1])
 	{
-	  MenuHandle submenu = NewMenu (submenu_id, "\pX");
+	  MenuRef submenu = NewMenu (submenu_id, "\pX");
 
 	  InsertMenu (submenu, -1);
 	  SetMenuItemHierarchicalID (menu, pos, submenu_id);
@@ -3139,7 +3139,7 @@ fill_menubar (wv, deep_p)
      int deep_p;
 {
   int id, submenu_id;
-  MenuHandle menu;
+  MenuRef menu;
   Str255 title;
 #if !TARGET_API_MAC_CARBON
   int title_changed_p = 0;
@@ -3166,7 +3166,7 @@ fill_menubar (wv, deep_p)
       title[255] = '\0';
       c2pstr (title);
 
-      menu = GetMenuHandle (id);
+      menu = GetMenuRef (id);
       if (menu)
 	{
 #if TARGET_API_MAC_CARBON
@@ -3181,7 +3181,7 @@ fill_menubar (wv, deep_p)
 	      DeleteMenu (id);
 	      DisposeMenu (menu);
 	      menu = NewMenu (id, title);
-	      InsertMenu (menu, GetMenuHandle (id + 1) ? id + 1 : 0);
+	      InsertMenu (menu, GetMenuRef (id + 1) ? id + 1 : 0);
 	      title_changed_p = 1;
 	    }
 #endif  /* !TARGET_API_MAC_CARBON */
@@ -3200,7 +3200,7 @@ fill_menubar (wv, deep_p)
 				submenu_id);
     }
 
-  if (id < min_menu_id[MAC_MENU_MENU_BAR + 1] && GetMenuHandle (id))
+  if (id < min_menu_id[MAC_MENU_MENU_BAR + 1] && GetMenuRef (id))
     {
       dispose_menus (MAC_MENU_MENU_BAR, id);
 #if !TARGET_API_MAC_CARBON
@@ -3224,7 +3224,7 @@ dispose_menus (kind, id)
 {
   for (id = max (id, min_menu_id[kind]); id < min_menu_id[kind + 1]; id++)
     {
-      MenuHandle menu = GetMenuHandle (id);
+      MenuRef menu = GetMenuRef (id);
 
       if (menu == NULL)
 	break;
