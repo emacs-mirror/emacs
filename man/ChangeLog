@@ -1,3 +1,10 @@
+2007-06-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnus.texi (Article Buttons):
+	* maintaining.texi (Create Tags Table):
+	* message.texi (Message Headers):
+	* mh-e.texi (HTML): Fix typos.
+
 2007-05-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.0.56.
@@ -15,12 +22,12 @@
 
 2007-05-09  Didier Verna  <didier@xemacs.org>
 
-	* gnus.texi (Email Based Diary): New. Proper documentation for the
+	* gnus.texi (Email Based Diary): New.  Proper documentation for the
 	nndiary back end and the gnus-diary library.
 
 2007-05-07  Karl Berry  <karl@gnu.org>
 
-	* emacs.texi (EMACSVER): back to 22.
+	* emacs.texi (EMACSVER): Back to 22.
 
 2007-05-06  Richard Stallman  <rms@gnu.org>
 
@@ -39,9 +46,9 @@
 
 	* emacs.texi (EMACSVER) [smallbook]: 22 for printed version.
 
-	* .cvsignore (*.pdf): new entry.
+	* .cvsignore (*.pdf): New entry.
 
-	* texinfo.tex: update from current version for better pdf generation.
+	* texinfo.tex: Update from current version for better pdf generation.
 
 	* emacs.texi (\urlcolor, \linkcolor) [smallbook]: \let to \Black
 	for printing.
@@ -1460,7 +1467,7 @@
 
 2006-06-25  Nick Roberts  <nickrob@snap.net.nz>
 
-	* frames.texi (XTerm Mouse) Rename to...
+	* frames.texi (XTerm Mouse): Rename to...
 	(Text-Only Mouse): ...this.  Mention t-mouse-mode.
 
 	* emacs.texi (Top): Use new node name.
@@ -1803,7 +1810,7 @@
 2006-05-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (emacs.dvi):
-	* Makefile.in (emacs.dvi): Add xresmini.texi
+	* Makefile.in (emacs.dvi): Add xresmini.texi.
 
 	* xresmini.texi (Table of Resources): Remove xref to non-existent
 	node "LessTif Resources".
@@ -1889,7 +1896,7 @@
 	Next, and Up links.
 
 	* emacs.texi (Top) [ifnottex]: Add menu entries for "Picture Mode"
-	and its sections.  @include picture-xtra.texi
+	and its sections.  @include picture-xtra.texi.
 
 	* maintaining.texi (Maintaining) [ifnottex]: Add menu entry for
 	"Emerge".
@@ -2913,7 +2920,7 @@
 	* mark.texi: Minor clarifications.
 	(Selective Undo): Node deleted.
 
-	* m-x.texi: Minor clarifications
+	* m-x.texi: Minor clarifications.
 
 	* killing.texi: Minor clarifications.
 	Refer to "graphical" terminals, rather than window systems.
@@ -3603,7 +3610,7 @@
 
 2005-11-04  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi: Version number changed to 3.19
+	* org.texi: Version number changed to 3.19.
 
 2005-11-04  Romain Francoise  <romain@orebokech.com>
 
@@ -3802,7 +3809,7 @@
 
 2005-10-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* cmdargs.texi (Icons X): -nb => -nbi
+	* cmdargs.texi (Icons X): -nb => -nbi.
 
 2005-10-10  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -3893,7 +3900,7 @@
 
 2005-09-23  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi Version 3.16
+	* org.texi Version 3.16.
 
 2005-09-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -4153,11 +4160,11 @@
 
 2005-07-19  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi: Version 3.14
+	* org.texi: Version 3.14.
 
 2005-07-04  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi: Version 3.13
+	* org.texi: Version 3.13.
 
 2005-07-19  Juri Linkov  <juri@jurta.org>
 
@@ -4261,7 +4268,7 @@
 
 2005-06-29  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi: Version 3.12
+	* org.texi: Version 3.12.
 
 2005-06-24  Richard M. Stallman  <rms@gnu.org>
 
@@ -4341,7 +4348,7 @@
 
 2005-06-13  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi: Version 3.11
+	* org.texi: Version 3.11.
 
 2005-06-12  Jay Belanger  <belanger@truman.edu>
 
@@ -4487,11 +4494,11 @@
 
 2005-05-20  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi: Version 3.09
+	* org.texi: Version 3.09.
 
 2005-05-18  Carsten Dominik  <dominik@science.uva.nl>
 
-	* reftex.texi: Version 4.28
+	* reftex.texi: Version 4.28.
 
 2005-05-18  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -4639,7 +4646,7 @@
 
 2005-04-25  Chong Yidong  <cyd@stupidchicken.com>
 
-	* ack.texi (Acknowledgments): Delete info about iso-acc.el
+	* ack.texi (Acknowledgments): Delete info about iso-acc.el.
 
 	* dired.texi (Misc Dired Features): Document
 	dired-compare-directories.
@@ -6199,7 +6206,7 @@
 
 2004-09-10  Eli Zaretskii  <eliz@gnu.org>
 
-	* Makefile.in (../info/gnus, gnus.dvi): Depend on gnus-faq.texi
+	* Makefile.in (../info/gnus, gnus.dvi): Depend on gnus-faq.texi.
 
 2004-09-09  Kim F. Storm  <storm@cua.dk>
 
@@ -7305,7 +7312,7 @@
 
 2003-02-17  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* xresources.texi (GTK names in Emacs): Add emacs-toolbar - GtkToolbar
+	* xresources.texi (GTK names in Emacs): Add emacs-toolbar - GtkToolbar.
 
 2003-02-05  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
 
@@ -7375,8 +7382,8 @@
 	Also use @ifnottex instead of @ifinfo around the top node, where
 	needed for the sake of the HTML output.
 	(The Gnus manual is not fixed since it's not clear to me how it
-	 works; and the Tramp manual already uses @copying, although in an
-	 unusual way.  All others were changed.)
+	works; and the Tramp manual already uses @copying, although in an
+	unusual way.  All others were changed.)
 
 2002-09-10  Jonathan Yavner  <jyavner@engineer.com>
 
@@ -7501,7 +7508,7 @@
 1999-10-12  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* Makefile.in (faq): Use ../info/emacs-faq.info (as specified in the
-	  faq.texi file) rather than ../info/faq.
+	faq.texi file) rather than ../info/faq.
 
 1999-10-07  Gerd Moellmann  <gerd@gnu.org>
 
