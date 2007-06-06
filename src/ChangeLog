@@ -1,3 +1,8 @@
+2007-06-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (xpm_load): Remove spurious call to
+	xpm_init_color_cache.
+
 2007-06-06  Martin Rudalics  <rudalics@gmx.at>
 
 	* syntax.c (scan_words): Fix arg to UPDATE_SYNTAX_TABLE_BACKWARD.
