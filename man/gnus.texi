@@ -8936,7 +8936,7 @@ This variable determines what to do when the button on a string as
 message ID or a mail address.  If it is one of the symbols @code{mid} or
 @code{mail}, Gnus will always assume that the string is a message ID or
 a mail address, respectively.  If this variable is set to the symbol
-@code{ask}, always query the user what do do.  If it is a function, this
+@code{ask}, always query the user what to do.  If it is a function, this
 function will be called with the string as its only argument.  The
 function must return @code{mid}, @code{mail}, @code{invalid} or
 @code{ask}.  The default value is the function
@@ -14034,7 +14034,7 @@ files.  If a positive number, delete files older than number of days
 
 @item mail-source-delete-old-incoming-confirm
 @vindex mail-source-delete-old-incoming-confirm
-If non-@code{nil}, ask for for confirmation before deleting old incoming
+If non-@code{nil}, ask for confirmation before deleting old incoming
 files.  This variable only applies when
 @code{mail-source-delete-incoming} is a positive number.
 
@@ -16589,7 +16589,7 @@ Probably the only useful value to change this to is
 messages instead of the internal article date.  See section 6.4.4 of
 RFC 2060 for more information on valid strings.
 
-However, if @code{nnimap-search-uids-not-since-is-evil} 
+However, if @code{nnimap-search-uids-not-since-is-evil}
 is true, this variable has no effect since the search logic
 is reversed, as described below.
 
@@ -18107,7 +18107,7 @@ two variables are probably the only ones you will want to change:
 
 @defvar nndiary-reminders
 This is the list of times when you want to be reminded of your
-appointements (e.g. 3 weeks before, then 2 days before, then 1 hour
+appointments (e.g. 3 weeks before, then 2 days before, then 1 hour
 before and that's it).  Remember that ``being reminded'' means that the
 diary message will pop up as brand new and unread again when you get new
 mail.
@@ -18258,14 +18258,14 @@ automatically (although not filled with proper values yet).
 @node Sending or Not Sending
 @subsection Sending or Not Sending
 
-Well, assuming you've read of of the above, here are two final notes on
+Well, assuming you've read all of the above, here are two final notes on
 mail sending with @code{nndiary}:
 
 @itemize @bullet
 @item
 @code{nndiary} is a @emph{real} mail back end.  You really send real diary
 messsages for real.  This means for instance that you can give
-appointements to anybody (provided they use Gnus and @code{nndiary}) by
+appointments to anybody (provided they use Gnus and @code{nndiary}) by
 sending the diary message to them as well.
 @item
 However, since @code{nndiary} also has a @code{request-post} method, you
