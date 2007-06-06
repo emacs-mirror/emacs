@@ -1,3 +1,7 @@
+2007-06-06  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (obj): Add font.o and w32font.o
+
 2005-10-14  Zhang Wei <id.brep@gmail.com>  (tiny change)
 
 	* lib-src/makefile.w32-in (lisp1): Delete ucs-tables.elc,
