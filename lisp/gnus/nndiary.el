@@ -131,7 +131,7 @@ non-nil."
 
 
 (defcustom nndiary-reminders '((0 . day))
-  "*Different times when you want to be reminded of your appointements.
+  "*Different times when you want to be reminded of your appointments.
 Diary articles will appear again, as if they'd been just received.
 
 Entries look like (3 . day) which means something like \"Please
@@ -145,7 +145,7 @@ not 'century, sorry).
 NOTE: the units of measure actually express dates, not durations: if you
 use 'week, messages will pop up on Sundays at 00:00 (or Mondays if
 `nndiary-week-starts-on-monday' is non-nil) and *not* 7 days before the
-appointement, if you use 'month, messages will pop up on the first day of
+appointment, if you use 'month, messages will pop up on the first day of
 each months, at 00:00 and so on.
 
 If you really want to specify a duration (like 24 hours exactly), you can
@@ -155,15 +155,15 @@ scheme might appear somewhat weird at a first glance, it is very powerful.
 In order to make this clear, here are some examples:
 
 - '(0 . day): this is the default value of `nndiary-reminders'.  It means
-  pop up the appointements of the day each morning at 00:00.
+  pop up the appointments of the day each morning at 00:00.
 
-- '(1 . day): this means pop up the appointements the day before, at 00:00.
+- '(1 . day): this means pop up the appointments the day before, at 00:00.
 
-- '(6 . hour): for an appointement at 18:30, this would pop up the
-  appointement message at 12:00.
+- '(6 . hour): for an appointment at 18:30, this would pop up the
+  appointment message at 12:00.
 
-- '(360 . minute): for an appointement at 18:30 and 15 seconds, this would
-  pop up the appointement message at 12:30."
+- '(360 . minute): for an appointment at 18:30 and 15 seconds, this would
+  pop up the appointment message at 12:30."
   :group 'nndiary
   :type '(repeat (cons :format "%v\n"
 		       (integer :format "%v")
