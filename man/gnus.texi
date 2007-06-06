@@ -8936,7 +8936,7 @@ This variable determines what to do when the button on a string as
 message ID or a mail address.  If it is one of the symbols @code{mid} or
 @code{mail}, Gnus will always assume that the string is a message ID or
 a mail address, respectively.  If this variable is set to the symbol
-@code{ask}, always query the user what do do.  If it is a function, this
+@code{ask}, always query the user what to do.  If it is a function, this
 function will be called with the string as its only argument.  The
 function must return @code{mid}, @code{mail}, @code{invalid} or
 @code{ask}.  The default value is the function
@@ -16589,7 +16589,7 @@ Probably the only useful value to change this to is
 messages instead of the internal article date.  See section 6.4.4 of
 RFC 2060 for more information on valid strings.
 
-However, if @code{nnimap-search-uids-not-since-is-evil} 
+However, if @code{nnimap-search-uids-not-since-is-evil}
 is true, this variable has no effect since the search logic
 is reversed, as described below.
 
