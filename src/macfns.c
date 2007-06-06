@@ -2266,7 +2266,7 @@ mac_window (f)
 #else
   FRAME_MAC_WINDOW (f)
     = NewCWindow (NULL, &r, "\p", false, zoomDocProc,
-		  (WindowPtr) -1, 1, (long) f->output_data.mac);
+		  (WindowRef) -1, 1, (long) f->output_data.mac);
 #endif
   /* so that update events can find this mac_output struct */
   f->output_data.mac->mFP = f;  /* point back to emacs frame */
