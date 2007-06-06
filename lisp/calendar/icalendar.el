@@ -678,7 +678,7 @@ takes care of european-style."
       nil)))
 
 (defun icalendar--diarytime-to-isotime (timestring ampmstring)
-  "Convert a a time like 9:30pm to an iso-conform string like T213000.
+  "Convert a time like 9:30pm to an iso-conform string like T213000.
 In this example the TIMESTRING would be \"9:30\" and the AMPMSTRING
 would be \"pm\"."
   (if timestring
