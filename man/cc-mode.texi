@@ -236,113 +236,113 @@ functions, classes etc - there are other packages for that.
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @menu
-* Introduction::                
-* Overview::                    
-* Getting Started::             
-* Commands::                    
-* Font Locking::                
-* Config Basics::               
-* Custom Filling and Breaking::  
-* Custom Auto-newlines::        
-* Clean-ups::                   
-* Indentation Engine Basics::   
-* Customizing Indentation::     
-* Custom Macros::               
-* Odds and Ends::               
-* Sample .emacs File::          
-* Performance Issues::          
-* Limitations and Known Bugs::  
-* FAQ::                         
-* Updating CC Mode::            
-* Mailing Lists and Bug Reports::  
+* Introduction::
+* Overview::
+* Getting Started::
+* Commands::
+* Font Locking::
+* Config Basics::
+* Custom Filling and Breaking::
+* Custom Auto-newlines::
+* Clean-ups::
+* Indentation Engine Basics::
+* Customizing Indentation::
+* Custom Macros::
+* Odds and Ends::
+* Sample .emacs File::
+* Performance Issues::
+* Limitations and Known Bugs::
+* FAQ::
+* Updating CC Mode::
+* Mailing Lists and Bug Reports::
 * GNU Free Documentation License::
-* Command and Function Index::  
-* Variable Index::              
-* Concept and Key Index::       
+* Command and Function Index::
+* Variable Index::
+* Concept and Key Index::
 
 @detailmenu
  --- The Detailed Node Listing ---
 
 Commands
 
-* Indentation Commands::        
-* Comment Commands::            
-* Movement Commands::           
-* Filling and Breaking::        
-* Minor Modes::                 
-* Electric Keys::               
-* Auto-newlines::               
-* Hungry WS Deletion::          
-* Subword Movement::            
-* Other Commands::              
+* Indentation Commands::
+* Comment Commands::
+* Movement Commands::
+* Filling and Breaking::
+* Minor Modes::
+* Electric Keys::
+* Auto-newlines::
+* Hungry WS Deletion::
+* Subword Movement::
+* Other Commands::
 
 Font Locking
 
-* Font Locking Preliminaries::  
-* Faces::                       
-* Doc Comments::                
-* AWK Mode Font Locking::       
+* Font Locking Preliminaries::
+* Faces::
+* Doc Comments::
+* AWK Mode Font Locking::
 
 Configuration Basics
 
-* CC Hooks::                    
-* Style Variables::             
-* Styles::                      
+* CC Hooks::
+* Style Variables::
+* Styles::
 
 Styles
 
-* Built-in Styles::             
-* Choosing a Style::            
-* Adding Styles::               
-* File Styles::                 
+* Built-in Styles::
+* Choosing a Style::
+* Adding Styles::
+* File Styles::
 
 Customizing Auto-newlines
 
-* Hanging Braces::              
-* Hanging Colons::              
-* Hanging Semicolons and Commas::  
+* Hanging Braces::
+* Hanging Colons::
+* Hanging Semicolons and Commas::
 
 Hanging Braces
 
-* Custom Braces::               
+* Custom Braces::
 
 Indentation Engine Basics
 
-* Syntactic Analysis::          
-* Syntactic Symbols::           
-* Indentation Calculation::     
+* Syntactic Analysis::
+* Syntactic Symbols::
+* Indentation Calculation::
 
 Syntactic Symbols
 
-* Function Symbols::            
-* Class Symbols::               
-* Conditional Construct Symbols::  
-* Switch Statement Symbols::    
-* Brace List Symbols::          
-* External Scope Symbols::      
-* Paren List Symbols::          
-* Literal Symbols::             
-* Multiline Macro Symbols::     
-* Objective-C Method Symbols::  
-* Anonymous Class Symbol::      
-* Statement Block Symbols::     
-* K&R Symbols::                 
+* Function Symbols::
+* Class Symbols::
+* Conditional Construct Symbols::
+* Switch Statement Symbols::
+* Brace List Symbols::
+* External Scope Symbols::
+* Paren List Symbols::
+* Literal Symbols::
+* Multiline Macro Symbols::
+* Objective-C Method Symbols::
+* Anonymous Class Symbol::
+* Statement Block Symbols::
+* K&R Symbols::
 
 Customizing Indentation
 
-* c-offsets-alist::             
-* Interactive Customization::   
-* Line-Up Functions::           
-* Custom Line-Up::              
-* Other Indentation::           
+* c-offsets-alist::
+* Interactive Customization::
+* Line-Up Functions::
+* Custom Line-Up::
+* Other Indentation::
 
 Line-Up Functions
 
-* Brace/Paren Line-Up::         
-* List Line-Up::                
-* Operator Line-Up::            
-* Comment Line-Up::             
-* Misc Line-Up::                
+* Brace/Paren Line-Up::
+* List Line-Up::
+* Operator Line-Up::
+* Comment Line-Up::
+* Misc Line-Up::
 
 @end detailmenu
 @end menu
@@ -534,7 +534,7 @@ is no ``easy customization'' facility for making this change.}:
 @end example
 
 @noindent
-Details of of this and other similar ``Minor Modes'' appear in the
+Details of this and other similar ``Minor Modes'' appear in the
 section @ref{Minor Modes}.
 
 @item Making the @key{RET} key indent the new line
@@ -613,16 +613,16 @@ structures.
 
 
 @menu
-* Indentation Commands::        
-* Comment Commands::            
-* Movement Commands::           
-* Filling and Breaking::        
-* Minor Modes::                 
-* Electric Keys::               
-* Auto-newlines::               
-* Hungry WS Deletion::          
-* Subword Movement::            
-* Other Commands::              
+* Indentation Commands::
+* Comment Commands::
+* Movement Commands::
+* Filling and Breaking::
+* Minor Modes::
+* Electric Keys::
+* Auto-newlines::
+* Hungry WS Deletion::
+* Subword Movement::
+* Other Commands::
 @end menu
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -852,7 +852,7 @@ actions describing how they should be handled.  If a certain line type
 isn't present on the list then the line is indented to the column
 specified by @code{comment-column}.
 
-See the documentation string for for a full description of this
+See the documentation string for a full description of this
 variable (use @kbd{C-h v c-indent-comment-alist}).
 @end defopt
 
@@ -1810,10 +1810,10 @@ chapter, @ref{AWK Mode Font Locking}, applies to AWK.  The other
 sections apply to the other languages.
 
 @menu
-* Font Locking Preliminaries::  
-* Faces::                       
-* Doc Comments::                
-* AWK Mode Font Locking::       
+* Font Locking Preliminaries::
+* Faces::
+* Doc Comments::
+* AWK Mode Font Locking::
 @end menu
 
 
@@ -2318,9 +2318,9 @@ have it enabled by default by placing the following in your
 @end table
 
 @menu
-* CC Hooks::                    
-* Style Variables::             
-* Styles::                      
+* CC Hooks::
+* Style Variables::
+* Styles::
 @end menu
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -2409,7 +2409,7 @@ The variables that @ccmode{}'s style system control are called
 @dfn{style variables}.  Note that style variables are ordinary Lisp
 variables, which the style system initializes; you can change their
 values at any time (e.g. in a hook function).  The style system can
-also also set other variables, to some extent.  @xref{Styles}.
+also set other variables, to some extent.  @xref{Styles}.
 
 @dfn{Style variables} are handled specially in several ways:
 
@@ -2509,10 +2509,10 @@ for any particular style, and pretty easily start editing new or
 existing code using these styles.
 
 @menu
-* Built-in Styles::             
-* Choosing a Style::            
-* Adding Styles::               
-* File Styles::                 
+* Built-in Styles::
+* Choosing a Style::
+* Adding Styles::
+* File Styles::
 @end menu
 
 
@@ -3059,9 +3059,9 @@ to remove these automatically added newlines in certain specific
 circumstances.  @xref{Clean-ups}.
 
 @menu
-* Hanging Braces::              
-* Hanging Colons::              
-* Hanging Semicolons and Commas::  
+* Hanging Braces::
+* Hanging Colons::
+* Hanging Semicolons and Commas::
 @end menu
 
 
@@ -3212,7 +3212,7 @@ themselves.
 @end defopt
 
 @menu
-* Custom Braces::               
+* Custom Braces::
 @end menu
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -3732,9 +3732,9 @@ of the variables associated with indentation, not even
 @end defopt
 
 @menu
-* Syntactic Analysis::          
-* Syntactic Symbols::           
-* Indentation Calculation::     
+* Syntactic Analysis::
+* Syntactic Symbols::
+* Indentation Calculation::
 @end menu
 
 
@@ -4113,19 +4113,19 @@ Java.  @ref{Anonymous Class Symbol}.
 @end table
 
 @menu
-* Function Symbols::            
-* Class Symbols::               
-* Conditional Construct Symbols::  
-* Switch Statement Symbols::    
-* Brace List Symbols::          
-* External Scope Symbols::      
-* Paren List Symbols::          
-* Literal Symbols::             
-* Multiline Macro Symbols::     
-* Objective-C Method Symbols::  
-* Anonymous Class Symbol::      
-* Statement Block Symbols::     
-* K&R Symbols::                 
+* Function Symbols::
+* Class Symbols::
+* Conditional Construct Symbols::
+* Switch Statement Symbols::
+* Brace List Symbols::
+* External Scope Symbols::
+* Paren List Symbols::
+* Literal Symbols::
+* Multiline Macro Symbols::
+* Objective-C Method Symbols::
+* Anonymous Class Symbol::
+* Statement Block Symbols::
+* K&R Symbols::
 @end menu
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -5019,11 +5019,11 @@ can install functions here to make ad-hoc adjustments to any line's
 indentation.
 
 @menu
-* c-offsets-alist::             
-* Interactive Customization::   
-* Line-Up Functions::           
-* Custom Line-Up::              
-* Other Indentation::           
+* c-offsets-alist::
+* Interactive Customization::
+* Line-Up Functions::
+* Custom Line-Up::
+* Other Indentation::
 @end menu
 
 
@@ -5371,11 +5371,11 @@ Works with:
 @end iftex
 
 @menu
-* Brace/Paren Line-Up::         
-* List Line-Up::                
-* Operator Line-Up::            
-* Comment Line-Up::             
-* Misc Line-Up::                
+* Brace/Paren Line-Up::
+* List Line-Up::
+* Operator Line-Up::
+* Comment Line-Up::
+* Misc Line-Up::
 @end menu
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
