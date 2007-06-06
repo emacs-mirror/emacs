@@ -1,3 +1,10 @@
+2007-06-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* pgg.el (pgg-sign-region, pgg-sign):
+	* ses.el (ses-call-printer):
+	* calendar/icalendar.el (icalendar--diarytime-to-isotime):
+	* textmodes/org.el (org-cycle): Doc fixes.
+
 2007-06-06  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el:
@@ -106,7 +113,6 @@
 	`org-on-heading-p' also check for invisible heading.
 	(org-read-date): Match am/pm times.
 	(org-eval-in-calendar): Fix default date in prompt.
-
 
 2007-06-05  Chong Yidong  <cyd@stupidchicken.com>
 
