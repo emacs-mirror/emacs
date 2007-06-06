@@ -1,3 +1,10 @@
+2007-06-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* pgg.el (pgg-sign-region, pgg-sign):
+	* ses.el (ses-call-printer):
+	* calendar/icalendar.el (icalendar--diarytime-to-isotime):
+	* textmodes/org.el (org-cycle): Fix typos in docstrings.
+
 2007-06-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* tar-mode.el (tar-header-block-summarize, tar-summarize-buffer)
