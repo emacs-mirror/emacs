@@ -1,3 +1,8 @@
+2007-06-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (xpm_load): Remove spurious call to
+	xpm_init_color_cache.
+
 2007-06-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macfns.c (mac_window): Replace WindowPtr with WindowRef.
