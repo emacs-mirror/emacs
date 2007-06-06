@@ -4378,8 +4378,8 @@ between words."
   `indent-relative', like TAB normally does.  See the option
   `org-cycle-emulate-tab' for details.
 
-- Special case: if point is the the beginning of the buffer and there is
-  no headline in line 1, this function will act as if called with prefix arg."
+- Special case: if point is the beginning of the buffer and there is no
+  headline in line 1, this function will act as if called with prefix arg."
   (interactive "P")
   (let* ((outline-regexp
 	  (if (and (org-mode-p) org-cycle-include-plain-lists)
@@ -14630,7 +14630,7 @@ priority-n   The computed numerical priority"
 	  (set-buffer "*Org Agenda*")
 	  (while files
 	    (eval (list 'let (append org-agenda-exporter-settings opts pars)
-			(list 'org-write-agenda 
+			(list 'org-write-agenda
 			      (expand-file-name (pop files) dir) t)))))
 	(kill-buffer org-agenda-buffer-name)))))
 
@@ -15064,7 +15064,7 @@ dates."
 	(setq day-numbers (delq nil (mapcar (lambda(x)
 					      (if (>= x today) x nil))
 					    day-numbers))))
-    (org-prepare-agenda (concat "Timeline " 
+    (org-prepare-agenda (concat "Timeline "
 				(file-name-nondirectory buffer-file-name)))
     (if doclosed (push :closed args))
     (push :timestamp args)
