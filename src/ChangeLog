@@ -1,3 +1,7 @@
+2007-06-06  Martin Rudalics  <rudalics@gmx.at>
+
+	* syntax.c (scan_words): Fix arg to UPDATE_SYNTAX_TABLE_BACKWARD.
+
 2007-06-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* xfaces.c (syms_of_xfaces): Delete stray semicolon.
