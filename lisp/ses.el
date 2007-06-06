@@ -878,9 +878,9 @@ preceding cell has spilled over."
 
 (defun ses-call-printer (printer &optional value)
   "Invokes PRINTER (a string or parenthesized string or function-symbol or
-lambda of one argument) on VALUE.  Result is the the printed cell as a
-string.  The variable `ses-call-printer-return' is set to t if the printer
-used parenthesis to request left-justification, or the error-signal if the
+lambda of one argument) on VALUE.  Result is the printed cell as a string.
+The variable `ses-call-printer-return' is set to t if the printer used
+parenthesis to request left-justification, or the error-signal if the
 printer signaled one (and \"%s\" is used as the default printer), else nil."
   (setq ses-call-printer-return nil)
   (unless value
