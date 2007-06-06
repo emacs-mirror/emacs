@@ -504,6 +504,7 @@ w32font_draw (s, from, to, x, y, with_background)
       rect.right = x + s->width;
       rect.bottom = y + ((struct font *) (s->font_info->font))->descent;
       FillRect (s->hdc, &rect, brush);
+      DeleteObject (brush);
     }
   else
     SetBkMode (s->hdc, TRANSPARENT);
@@ -535,7 +536,7 @@ w32font_done_face (FRAME_PTR f, struct face *face);  */
 /* w32 implementation of get_bitmap for font backend.
    Optional.
    Store bitmap data for glyph-code CODE of FONT in BITMAP.  It is
-   intended that this method is callled from the other font-driver
+   intended that this method is called from the other font-driver
    for actual drawing.
 static int
 w32font_get_bitmap (struct font *font, unsigned code,
