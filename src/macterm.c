@@ -35,12 +35,7 @@ Boston, MA 02110-1301, USA.  */
 #include <alloca.h>
 #endif
 
-#if TARGET_API_MAC_CARBON
-/* USE_CARBON_EVENTS determines if the Carbon Event Manager is used to
-   obtain events from the event queue.  If set to 0, WaitNextEvent is
-   used instead.  */
-#define USE_CARBON_EVENTS 1
-#else /* not TARGET_API_MAC_CARBON */
+#if !TARGET_API_MAC_CARBON
 #include <Quickdraw.h>
 #include <ToolUtils.h>
 #include <Sound.h>
@@ -263,7 +258,7 @@ static void x_scroll_bar_report_motion P_ ((struct frame **, Lisp_Object *,
 					    Lisp_Object *, Lisp_Object *,
 					    unsigned long *));
 
-static int is_emacs_window P_ ((WindowPtr));
+static int is_emacs_window P_ ((WindowRef));
 static XCharStruct *mac_per_char_metric P_ ((XFontStruct *, XChar2b *, int));
 static void XSetFont P_ ((Display *, GC, XFontStruct *));
 
@@ -753,7 +748,7 @@ mac_free_bitmap (bitmap)
 Pixmap
 XCreatePixmap (display, w, width, height, depth)
      Display *display;		/* not used */
-     WindowPtr w;
+     WindowRef w;
      unsigned int width, height;
      unsigned int depth;
 {
@@ -782,7 +777,7 @@ XCreatePixmap (display, w, width, height, depth)
 Pixmap
 XCreatePixmapFromBitmapData (display, w, data, width, height, fg, bg, depth)
      Display *display;		/* not used */
-     WindowPtr w;
+     WindowRef w;
      char *data;
      unsigned int width, height;
      unsigned long fg, bg;
@@ -1590,7 +1585,7 @@ mac_scroll_area (f, gc, src_x, src_y, width, height, dest_x, dest_y)
   DisposeRgn (dummy);
 #else /* not TARGET_API_MAC_CARBON */
   Rect src_r, dest_r;
-  WindowPtr w = FRAME_MAC_WINDOW (f);
+  WindowRef w = FRAME_MAC_WINDOW (f);
 
   SetPort (w);
 
@@ -1850,7 +1845,7 @@ mac_reset_clip_rectangles (display, gc)
 void
 XSetWindowBackground (display, w, color)
      Display *display;
-     WindowPtr w;
+     WindowRef w;
      unsigned long color;
 {
 #if !TARGET_API_MAC_CARBON
@@ -4373,7 +4368,7 @@ x_detect_focus_change (dpyinfo, event, bufp)
 {
   struct frame *frame;
 
-  frame = mac_window_to_frame ((WindowPtr) event->message);
+  frame = mac_window_to_frame ((WindowRef) event->message);
   if (! frame)
     return;
 
@@ -4644,14 +4639,14 @@ static OSStatus set_scroll_bar_timer P_ ((EventTimerInterval));
 static int control_part_code_to_scroll_bar_part P_ ((ControlPartCode));
 static void construct_scroll_bar_click P_ ((struct scroll_bar *, int,
 					    struct input_event *));
-static OSStatus get_control_part_bounds P_ ((ControlHandle, ControlPartCode,
+static OSStatus get_control_part_bounds P_ ((ControlRef, ControlPartCode,
 					     Rect *));
 static void x_scroll_bar_handle_press P_ ((struct scroll_bar *,
 					   ControlPartCode, Point,
 					   struct input_event *));
 static void x_scroll_bar_handle_release P_ ((struct scroll_bar *,
 					     struct input_event *));
-static void x_scroll_bar_handle_drag P_ ((WindowPtr, struct scroll_bar *,
+static void x_scroll_bar_handle_drag P_ ((WindowRef, struct scroll_bar *,
 					  Point, struct input_event *));
 static void x_set_toolkit_scroll_bar_thumb P_ ((struct scroll_bar *,
 						int, int, int));
@@ -4744,7 +4739,7 @@ construct_scroll_bar_click (bar, part, bufp)
 
 static OSStatus
 get_control_part_bounds (ch, part_code, rect)
-     ControlHandle ch;
+     ControlRef ch;
      ControlPartCode part_code;
      Rect *rect;
 {
@@ -4774,7 +4769,7 @@ x_scroll_bar_handle_press (bar, part_code, mouse_pos, bufp)
   if (part != scroll_bar_handle)
     {
       construct_scroll_bar_click (bar, part, bufp);
-      HiliteControl (SCROLL_BAR_CONTROL_HANDLE (bar), part_code);
+      HiliteControl (SCROLL_BAR_CONTROL_REF (bar), part_code);
       set_scroll_bar_timer (SCROLL_BAR_FIRST_DELAY);
       bar->dragging = Qnil;
     }
@@ -4782,7 +4777,7 @@ x_scroll_bar_handle_press (bar, part_code, mouse_pos, bufp)
     {
       Rect r;
 
-      get_control_part_bounds (SCROLL_BAR_CONTROL_HANDLE (bar),
+      get_control_part_bounds (SCROLL_BAR_CONTROL_REF (bar),
 			       kControlIndicatorPart, &r);
       XSETINT (bar->dragging, - (mouse_pos.v - r.top) - 1);
     }
@@ -4800,7 +4795,7 @@ x_scroll_bar_handle_release (bar, bufp)
       || (INTEGERP (bar->dragging) && XINT (bar->dragging) >= 0))
     construct_scroll_bar_click (bar, scroll_bar_end_scroll, bufp);
 
-  HiliteControl (SCROLL_BAR_CONTROL_HANDLE (bar), 0);
+  HiliteControl (SCROLL_BAR_CONTROL_REF (bar), 0);
   set_scroll_bar_timer (kEventDurationForever);
 
   last_scroll_bar_part = -1;
@@ -4810,19 +4805,19 @@ x_scroll_bar_handle_release (bar, bufp)
 
 static void
 x_scroll_bar_handle_drag (win, bar, mouse_pos, bufp)
-     WindowPtr win;
+     WindowRef win;
      struct scroll_bar *bar;
      Point mouse_pos;
      struct input_event *bufp;
 {
-  ControlHandle ch = SCROLL_BAR_CONTROL_HANDLE (bar);
+  ControlRef ch = SCROLL_BAR_CONTROL_REF (bar);
 
   if (last_scroll_bar_part == scroll_bar_handle)
     {
       int top, top_range;
       Rect r;
 
-      get_control_part_bounds (SCROLL_BAR_CONTROL_HANDLE (bar),
+      get_control_part_bounds (SCROLL_BAR_CONTROL_REF (bar),
 			       kControlIndicatorPart, &r);
 
       if (INTEGERP (bar->dragging) && XINT (bar->dragging) < 0)
@@ -4870,13 +4865,13 @@ x_scroll_bar_handle_drag (win, bar, mouse_pos, bufp)
 	}
 
       if (unhilite_p)
-	HiliteControl (SCROLL_BAR_CONTROL_HANDLE (bar), 0);
+	HiliteControl (SCROLL_BAR_CONTROL_REF (bar), 0);
       else if (part != last_scroll_bar_part
 	       || scroll_bar_timer_event_posted_p)
 	{
 	  construct_scroll_bar_click (bar, part, bufp);
 	  last_scroll_bar_part = part;
-	  HiliteControl (SCROLL_BAR_CONTROL_HANDLE (bar), part_code);
+	  HiliteControl (SCROLL_BAR_CONTROL_REF (bar), part_code);
 	  set_scroll_bar_timer (SCROLL_BAR_CONTINUOUS_DELAY);
 	}
     }
@@ -4890,7 +4885,7 @@ x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
      struct scroll_bar *bar;
      int portion, position, whole;
 {
-  ControlHandle ch = SCROLL_BAR_CONTROL_HANDLE (bar);
+  ControlRef ch = SCROLL_BAR_CONTROL_REF (bar);
   int value, viewsize, maximum;
 
   if (XINT (bar->track_height) == 0)
@@ -4949,7 +4944,7 @@ x_scroll_bar_create (w, top, left, width, height, disp_top, disp_height)
   struct scroll_bar *bar
     = XSCROLL_BAR (Fmake_vector (make_number (SCROLL_BAR_VEC_SIZE), Qnil));
   Rect r;
-  ControlHandle ch;
+  ControlRef ch;
 
   BLOCK_INPUT;
 
@@ -4973,7 +4968,7 @@ x_scroll_bar_create (w, top, left, width, height, disp_top, disp_height)
   ch = NewControl (FRAME_MAC_WINDOW (f), &r, "\p", width < disp_height,
 		   0, 0, 0, scrollBarProc, (long) bar);
 #endif
-  SET_SCROLL_BAR_CONTROL_HANDLE (bar, ch);
+  SET_SCROLL_BAR_CONTROL_REF (bar, ch);
 
   XSETWINDOW (bar->window, w);
   XSETINT (bar->top, top);
@@ -5023,7 +5018,7 @@ x_scroll_bar_set_handle (bar, start, end, rebuild)
      int rebuild;
 {
   int dragging = ! NILP (bar->dragging);
-  ControlHandle ch = SCROLL_BAR_CONTROL_HANDLE (bar);
+  ControlRef ch = SCROLL_BAR_CONTROL_REF (bar);
   FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
   int top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, XINT (bar->height));
   int length = end - start;
@@ -5092,7 +5087,7 @@ x_scroll_bar_remove (bar)
   mac_prepare_for_quickdraw (f);
 #endif
   /* Destroy the Mac scroll bar control  */
-  DisposeControl (SCROLL_BAR_CONTROL_HANDLE (bar));
+  DisposeControl (SCROLL_BAR_CONTROL_REF (bar));
 
   /* Disassociate this scroll bar from its window.  */
   XWINDOW (bar->window)->vertical_scroll_bar = Qnil;
@@ -5170,10 +5165,10 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
   else
     {
       /* It may just need to be moved and resized.  */
-      ControlHandle ch;
+      ControlRef ch;
 
       bar = XSCROLL_BAR (w->vertical_scroll_bar);
-      ch = SCROLL_BAR_CONTROL_HANDLE (bar);
+      ch = SCROLL_BAR_CONTROL_REF (bar);
 
       BLOCK_INPUT;
 
@@ -5229,7 +5224,7 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 	}
       else
 	{
-	  ControlHandle ch = SCROLL_BAR_CONTROL_HANDLE (bar);
+	  ControlRef ch = SCROLL_BAR_CONTROL_REF (bar);
 	  Rect r0, r1;
 
 	  BLOCK_INPUT;
@@ -5506,11 +5501,11 @@ x_scroll_bar_report_motion (fp, bar_window, part, x, y, time)
      unsigned long *time;
 {
   struct scroll_bar *bar = XSCROLL_BAR (last_mouse_scroll_bar);
-  ControlHandle ch = SCROLL_BAR_CONTROL_HANDLE (bar);
+  ControlRef ch = SCROLL_BAR_CONTROL_REF (bar);
 #if TARGET_API_MAC_CARBON
-  WindowPtr wp = GetControlOwner (ch);
+  WindowRef wp = GetControlOwner (ch);
 #else
-  WindowPtr wp = (*ch)->contrlOwner;
+  WindowRef wp = (*ch)->contrlOwner;
 #endif
   Point mouse_pos;
   struct frame *f = mac_window_to_frame (wp);
@@ -6146,9 +6141,7 @@ x_set_offset (f, xoff, yoff, change_gravity)
   ConstrainWindowToScreen (FRAME_MAC_WINDOW (f), kWindowTitleBarRgn,
 			   kWindowConstrainMoveRegardlessOfFit
 			   | kWindowConstrainAllowPartial, NULL, NULL);
-#if USE_CARBON_EVENTS
   if (!NILP (tip_frame) && XFRAME (tip_frame) == f)
-#endif
     mac_handle_origin_change (f);
 #else
   {
@@ -6224,7 +6217,7 @@ x_set_window_size (f, change_gravity, cols, rows)
 
   SizeWindow (FRAME_MAC_WINDOW (f), pixelwidth, pixelheight, 0);
 
-#if USE_CARBON_EVENTS
+#if TARGET_API_MAC_CARBON
   if (!NILP (tip_frame) && f == XFRAME (tip_frame))
 #endif
     mac_handle_size_change (f, pixelwidth, pixelheight);
@@ -6363,7 +6356,7 @@ static void
 mac_handle_visibility_change (f)
      struct frame *f;
 {
-  WindowPtr wp = FRAME_MAC_WINDOW (f);
+  WindowRef wp = FRAME_MAC_WINDOW (f);
   int visible = 0, iconified = 0;
   struct input_event buf;
 
@@ -6448,9 +6441,7 @@ x_make_frame_visible (f)
 				  kWindowCascadeOnParentWindowScreen
 #endif
 				  );
-#if USE_CARBON_EVENTS
 	      if (!NILP (tip_frame) && f == XFRAME (tip_frame))
-#endif
 		mac_handle_origin_change (f);
 	    }
 	  else
@@ -6541,7 +6532,7 @@ x_make_frame_invisible (f)
 
   UNBLOCK_INPUT;
 
-#if !USE_CARBON_EVENTS
+#if !TARGET_API_MAC_CARBON
   mac_handle_visibility_change (f);
 #endif
 }
@@ -6580,7 +6571,7 @@ x_iconify_frame (f)
   if (err != noErr)
     error ("Can't notify window manager of iconification");
 
-#if !USE_CARBON_EVENTS
+#if !TARGET_API_MAC_CARBON
   mac_handle_visibility_change (f);
 #endif
 }
@@ -6593,7 +6584,7 @@ x_free_frame_resources (f)
      struct frame *f;
 {
   struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
-  WindowPtr wp = FRAME_MAC_WINDOW (f);
+  WindowRef wp = FRAME_MAC_WINDOW (f);
 
   BLOCK_INPUT;
 
@@ -8853,7 +8844,7 @@ Lisp_Object Vmac_function_modifier;
    a three button mouse */
 Lisp_Object Vmac_emulate_three_button_mouse;
 
-#if USE_CARBON_EVENTS
+#if TARGET_API_MAC_CARBON
 /* Non-zero if the mouse wheel button (i.e. button 4) should map to
    mouse-2, instead of mouse-3.  */
 int mac_wheel_button_is_mouse_2;
@@ -8878,7 +8869,7 @@ static int mac_screen_config_changed = 0;
 Point saved_menu_event_location;
 
 /* Apple Events */
-#if USE_CARBON_EVENTS
+#if TARGET_API_MAC_CARBON
 static Lisp_Object Qhi_command;
 #ifdef MAC_OSX
 extern Lisp_Object Qwindow;
@@ -8913,9 +8904,9 @@ extern OSErr install_drag_handler P_ ((WindowRef));
 extern void remove_drag_handler P_ ((WindowRef));
 
 /* Showing help echo string during menu tracking  */
-extern OSStatus install_menu_target_item_handler P_ ((WindowPtr));
+extern OSStatus install_menu_target_item_handler P_ ((WindowRef));
 
-#if USE_CARBON_EVENTS
+#if TARGET_API_MAC_CARBON
 #ifdef MAC_OSX
 extern void init_service_handler ();
 static Lisp_Object Qservice, Qpaste, Qperform;
@@ -8925,7 +8916,7 @@ static Lisp_Object Qservice, Qpaste, Qperform;
 static pascal OSStatus mac_handle_window_event (EventHandlerCallRef,
 						EventRef, void *);
 #endif
-OSStatus install_window_handler (WindowPtr);
+OSStatus install_window_handler (WindowRef);
 
 extern void init_emacs_passwd_dir ();
 extern int emacs_main (int, char **, char **);
@@ -9009,7 +9000,7 @@ static const unsigned char fn_keycode_to_keycode_table[] = {
 #endif	/* MAC_OSX */
 
 static int
-#if USE_CARBON_EVENTS
+#if TARGET_API_MAC_CARBON
 mac_to_emacs_modifiers (UInt32 mods)
 #else
 mac_to_emacs_modifiers (EventModifiers mods)
@@ -9118,7 +9109,7 @@ mac_quit_char_key_p (modifiers, key_code)
 }
 #endif
 
-#if USE_CARBON_EVENTS
+#if TARGET_API_MAC_CARBON
 /* Obtains the event modifiers from the event ref and then calls
    mac_to_emacs_modifiers.  */
 static int
@@ -9267,7 +9258,7 @@ static void
 do_get_menus (void)
 {
   Handle menubar_handle;
-  MenuHandle menu_handle;
+  MenuRef menu;
 
   menubar_handle = GetNewMBar (128);
   if(menubar_handle == NULL)
@@ -9276,9 +9267,9 @@ do_get_menus (void)
   DrawMenuBar ();
 
 #if !TARGET_API_MAC_CARBON
-  menu_handle = GetMenuHandle (M_APPLE);
-  if(menu_handle != NULL)
-    AppendResMenu (menu_handle,'DRVR');
+  menu = GetMenuRef (M_APPLE);
+  if (menu != NULL)
+    AppendResMenu (menu, 'DRVR');
   else
     abort ();
 #endif
@@ -9327,7 +9318,7 @@ do_check_ram_size (void)
 #endif /* MAC_OS8 */
 
 static void
-do_window_update (WindowPtr win)
+do_window_update (WindowRef win)
 {
   struct frame *f = mac_window_to_frame (win);
 
@@ -9372,7 +9363,7 @@ do_window_update (WindowPtr win)
 }
 
 static int
-is_emacs_window (WindowPtr win)
+is_emacs_window (WindowRef win)
 {
   Lisp_Object tail, frame;
 
@@ -9485,7 +9476,7 @@ do_apple_menu (SInt16 menu_item)
     NoteAlert (ABOUT_ALERT_ID, NULL);
   else
     {
-      GetMenuItemText (GetMenuHandle (M_APPLE), menu_item, item_name);
+      GetMenuItemText (GetMenuRef (M_APPLE), menu_item, item_name);
       da_driver_refnum = OpenDeskAcc (item_name);
     }
 }
@@ -9496,7 +9487,7 @@ do_apple_menu (SInt16 menu_item)
 
 static void
 do_grow_window (w, e)
-     WindowPtr w;
+     WindowRef w;
      const EventRecord *e;
 {
   Rect limit_rect;
@@ -9548,7 +9539,7 @@ mac_get_ideal_size (f)
      struct frame *f;
 {
   struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
-  WindowPtr w = FRAME_MAC_WINDOW (f);
+  WindowRef w = FRAME_MAC_WINDOW (f);
   Point ideal_size;
   Rect standard_rect;
   int height, width, columns, rows;
@@ -9574,7 +9565,7 @@ mac_get_ideal_size (f)
    wide (DEFAULT_NUM_COLS) and as tall as will fit on the screen.  */
 
 static void
-do_zoom_window (WindowPtr w, int zoom_in_or_out)
+do_zoom_window (WindowRef w, int zoom_in_or_out)
 {
   Rect zoom_rect, port_rect;
   int width, height;
@@ -9637,13 +9628,9 @@ do_zoom_window (WindowPtr w, int zoom_in_or_out)
   SetPort (save_port);
 #endif /* not TARGET_API_MAC_CARBON */
 
-#if !USE_CARBON_EVENTS
+#if !TARGET_API_MAC_CARBON
   /* retrieve window size and update application values */
-#if TARGET_API_MAC_CARBON
-  GetWindowPortBounds (w, &port_rect);
-#else
   port_rect = w->portRect;
-#endif
   height = port_rect.bottom - port_rect.top;
   width = port_rect.right - port_rect.left;
 
@@ -9730,9 +9717,7 @@ mac_store_drag_event (window, mouse_pos, modifiers, desc)
   buf.arg = mac_aedesc_to_lisp (desc);
   kbd_buffer_store_event (&buf);
 }
-#endif
 
-#if USE_CARBON_EVENTS
 static pascal OSStatus
 mac_handle_command_event (next_handler, event, data)
      EventHandlerCallRef next_handler;
@@ -9785,14 +9770,14 @@ mac_handle_window_event (next_handler, event, data)
      EventRef event;
      void *data;
 {
-  WindowPtr wp;
+  WindowRef wp;
   OSStatus result, err;
   struct frame *f;
   UInt32 attributes;
   XSizeHints *size_hints;
 
   err = GetEventParameter (event, kEventParamDirectObject, typeWindowRef,
-			   NULL, sizeof (WindowPtr), NULL, &wp);
+			   NULL, sizeof (WindowRef), NULL, &wp);
   if (err != noErr)
     return eventNotHandledErr;
 
@@ -9981,7 +9966,7 @@ mac_handle_mouse_event (next_handler, event, data)
     {
     case kEventMouseWheelMoved:
       {
-	WindowPtr wp;
+	WindowRef wp;
 	struct frame *f;
 	EventMouseWheelAxis axis;
 	SInt32 delta;
@@ -10321,15 +10306,15 @@ mac_store_service_event (event)
   return err;
 }
 #endif	/* MAC_OSX */
-#endif	/* USE_CARBON_EVENTS */
+#endif	/* TARGET_API_MAC_CARBON */
 
 
 OSStatus
 install_window_handler (window)
-     WindowPtr window;
+     WindowRef window;
 {
   OSStatus err = noErr;
-#if USE_CARBON_EVENTS
+#if TARGET_API_MAC_CARBON
   static const EventTypeSpec specs_window[] =
     {{kEventClassWindow, kEventWindowUpdate},
      {kEventClassWindow, kEventWindowGetIdealSize},
@@ -10409,7 +10394,7 @@ install_window_handler (window)
 
 void
 remove_window_handler (window)
-     WindowPtr window;
+     WindowRef window;
 {
   remove_drag_handler (window);
 }
@@ -10580,7 +10565,7 @@ main (void)
 }
 #endif
 
-#if !USE_CARBON_EVENTS
+#if !TARGET_API_MAC_CARBON
 static RgnHandle mouse_region = NULL;
 
 Boolean
@@ -10617,7 +10602,7 @@ mac_wait_next_event (er, sleep_time, dequeue)
     er_buf.what = nullEvent;
   return true;
 }
-#endif /* not USE_CARBON_EVENTS */
+#endif /* not TARGET_API_MAC_CARBON */
 
 #if TARGET_API_MAC_CARBON
 OSStatus
@@ -10700,7 +10685,7 @@ XTread_socket (sd, expected, hold_quit)
 {
   struct input_event inev;
   int count = 0;
-#if USE_CARBON_EVENTS
+#if TARGET_API_MAC_CARBON
   EventRef eventRef;
   EventTargetRef toolbox_dispatcher;
 #endif
@@ -10721,7 +10706,7 @@ XTread_socket (sd, expected, hold_quit)
 
   ++handling_signal;
 
-#if USE_CARBON_EVENTS
+#if TARGET_API_MAC_CARBON
   toolbox_dispatcher = GetEventDispatcherTarget ();
 
   while (
@@ -10730,9 +10715,9 @@ XTread_socket (sd, expected, hold_quit)
 #endif
 	 !ReceiveNextEvent (0, NULL, kEventDurationNoWait,
 			    kEventRemoveFromQueue, &eventRef))
-#else /* !USE_CARBON_EVENTS */
+#else /* !TARGET_API_MAC_CARBON */
   while (mac_wait_next_event (&er, 0, true))
-#endif /* !USE_CARBON_EVENTS */
+#endif /* !TARGET_API_MAC_CARBON */
     {
       int do_help = 0;
       struct frame *f;
@@ -10742,13 +10727,13 @@ XTread_socket (sd, expected, hold_quit)
       inev.kind = NO_EVENT;
       inev.arg = Qnil;
 
-#if USE_CARBON_EVENTS
+#if TARGET_API_MAC_CARBON
       timestamp = GetEventTime (eventRef) / kEventDurationMillisecond;
 #else
       timestamp = er.when * (1000 / 60); /* ticks to milliseconds */
 #endif
 
-#if USE_CARBON_EVENTS
+#if TARGET_API_MAC_CARBON
       /* Handle new events */
       if (!mac_convert_event_ref (eventRef, &er))
 	{
@@ -10765,17 +10750,17 @@ XTread_socket (sd, expected, hold_quit)
 	  read_socket_inev = NULL;
 	}
       else
-#endif /* USE_CARBON_EVENTS */
+#endif /* TARGET_API_MAC_CARBON */
       switch (er.what)
 	{
 	case mouseDown:
 	case mouseUp:
 	  {
-	    WindowPtr window_ptr;
+	    WindowRef window_ptr;
 	    ControlPartCode part_code;
 	    int tool_bar_p = 0;
 
-#if USE_CARBON_EVENTS
+#if TARGET_API_MAC_CARBON
 	    /* This is needed to send mouse events like aqua window
 	       buttons to the correct handler.  */
 	    if (SendEventToEventTarget (eventRef, toolbox_dispatcher)
@@ -10827,7 +10812,7 @@ XTread_socket (sd, expected, hold_quit)
 		else
 		  {
 		    ControlPartCode control_part_code;
-		    ControlHandle ch;
+		    ControlRef ch;
 		    Point mouse_loc = er.where;
 #ifdef MAC_OSX
 		    ControlKind control_kind;
@@ -10850,7 +10835,7 @@ XTread_socket (sd, expected, hold_quit)
 						     &ch);
 #endif
 
-#if USE_CARBON_EVENTS
+#if TARGET_API_MAC_CARBON
 		    inev.code = mac_get_mouse_btn (eventRef);
 		    inev.modifiers = mac_event_to_emacs_modifiers (eventRef);
 #else
@@ -10986,16 +10971,14 @@ XTread_socket (sd, expected, hold_quit)
 		DragWindow (window_ptr, er.where, NULL);
 #else /* not TARGET_API_MAC_CARBON */
 		DragWindow (window_ptr, er.where, &qd.screenBits.bounds);
-#endif /* not TARGET_API_MAC_CARBON */
 		/* Update the frame parameters.  */
-#if !USE_CARBON_EVENTS
 		{
 		  struct frame *f = mac_window_to_frame (window_ptr);
 
 		  if (f && !f->async_iconified)
 		    mac_handle_origin_change (f);
 		}
-#endif
+#endif /* not TARGET_API_MAC_CARBON */
 		break;
 
 	      case inGoAway:
@@ -11026,17 +11009,17 @@ XTread_socket (sd, expected, hold_quit)
 	  break;
 
 	case updateEvt:
-#if USE_CARBON_EVENTS
+#if TARGET_API_MAC_CARBON
 	  if (SendEventToEventTarget (eventRef, toolbox_dispatcher)
 	      != eventNotHandledErr)
 	    break;
 #else
-	  do_window_update ((WindowPtr) er.message);
+	  do_window_update ((WindowRef) er.message);
 #endif
 	  break;
 
 	case osEvt:
-#if USE_CARBON_EVENTS
+#if TARGET_API_MAC_CARBON
 	  if (SendEventToEventTarget (eventRef, toolbox_dispatcher)
 	      != eventNotHandledErr)
 	    break;
@@ -11053,7 +11036,7 @@ XTread_socket (sd, expected, hold_quit)
 	      break;
 
 	    case mouseMovedMessage:
-#if !USE_CARBON_EVENTS
+#if !TARGET_API_MAC_CARBON
 	      SetRectRgn (mouse_region, er.where.h, er.where.v,
 			  er.where.h + 1, er.where.v + 1);
 #endif
@@ -11074,7 +11057,7 @@ XTread_socket (sd, expected, hold_quit)
 
 	      if (f)
 		{
-		  WindowPtr wp = FRAME_MAC_WINDOW (f);
+		  WindowRef wp = FRAME_MAC_WINDOW (f);
 		  Point mouse_pos = er.where;
 
 		  SetPortWindowPort (wp);
@@ -11133,9 +11116,9 @@ XTread_socket (sd, expected, hold_quit)
 
 	case activateEvt:
 	  {
-	    WindowPtr window_ptr = (WindowPtr) er.message;
+	    WindowRef window_ptr = (WindowRef) er.message;
 
-#if USE_CARBON_EVENTS
+#if TARGET_API_MAC_CARBON
 	    if (SendEventToEventTarget (eventRef, toolbox_dispatcher)
 		!= eventNotHandledErr)
 	      break;
@@ -11215,14 +11198,14 @@ XTread_socket (sd, expected, hold_quit)
 	    SInt16 current_key_script;
 	    UInt32 modifiers = er.modifiers, mapped_modifiers;
 
-#if USE_CARBON_EVENTS && defined (MAC_OSX)
+#ifdef MAC_OSX
 	    GetEventParameter (eventRef, kEventParamKeyModifiers,
 			       typeUInt32, NULL,
 			       sizeof (UInt32), NULL, &modifiers);
 #endif
 	    mapped_modifiers = mac_mapped_modifiers (modifiers);
 
-#if USE_CARBON_EVENTS && (defined (MAC_OSX) || USE_MAC_TSM)
+#if defined (MAC_OSX) || USE_MAC_TSM
 	    /* When using Carbon Events, we need to pass raw keyboard
 	       events to the TSM ourselves.  If TSM handles it, it
 	       will pass back noErr, otherwise it will pass back
@@ -11430,7 +11413,7 @@ XTread_socket (sd, expected, hold_quit)
 	default:
 	  break;
 	}
-#if USE_CARBON_EVENTS
+#if TARGET_API_MAC_CARBON
       ReleaseEvent (eventRef);
 #endif
 
@@ -11482,7 +11465,7 @@ XTread_socket (sd, expected, hold_quit)
       mac_screen_config_changed = 0;
     }
 
-#if !USE_CARBON_EVENTS
+#if !TARGET_API_MAC_CARBON
   /* Check which frames are still visible.  We do this here because
      there doesn't seem to be any direct notification from the Window
      Manager that the visibility of a window has changed (at least,
@@ -11587,7 +11570,7 @@ make_mac_terminal_frame (struct frame *f)
 
   if (!(FRAME_MAC_WINDOW (f) =
 	NewCWindow (NULL, &r, "\p", true, dBoxProc,
-		    (WindowPtr) -1, 1, (long) f->output_data.mac)))
+		    (WindowRef) -1, 1, (long) f->output_data.mac)))
     abort ();
   /* so that update events can find this mac_output struct */
   f->output_data.mac->mFP = f;  /* point back to emacs frame */
@@ -11777,7 +11760,6 @@ init_menu_bar ()
 				     &menu, &menu_index);
   if (err == noErr)
     SetMenuItemCommandKey (menu, menu_index, false, 0);
-#if USE_CARBON_EVENTS
   EnableMenuCommand (NULL, kHICommandPreferences);
   err = GetIndMenuItemWithCommandID (NULL, kHICommandPreferences, 1,
 				     &menu, &menu_index);
@@ -11789,10 +11771,9 @@ init_menu_bar ()
       InsertMenuItemTextWithCFString (menu, CFSTR ("About Emacs"),
 				      0, 0, kHICommandAbout);
     }
-#endif	/* USE_CARBON_EVENTS */
 #else	/* !MAC_OSX */
-#if USE_CARBON_EVENTS
-  SetMenuItemCommandID (GetMenuHandle (M_APPLE), I_ABOUT, kHICommandAbout);
+#if TARGET_API_MAC_CARBON
+  SetMenuItemCommandID (GetMenuRef (M_APPLE), I_ABOUT, kHICommandAbout);
 #endif
 #endif
 }
@@ -11899,7 +11880,6 @@ mac_initialize ()
 
 #if TARGET_API_MAC_CARBON
 
-#if USE_CARBON_EVENTS
 #ifdef MAC_OSX
   init_service_handler ();
 #endif	/* MAC_OSX */
@@ -11911,7 +11891,6 @@ mac_initialize ()
 #if USE_MAC_TSM
   init_tsm ();
 #endif
-#endif	/* USE_CARBON_EVENTS */
 
 #ifdef MAC_OSX
   init_coercion_handler ();
@@ -11961,7 +11940,7 @@ syms_of_macterm ()
   Fput (Qhyper,   Qmodifier_value, make_number (hyper_modifier));
   Fput (Qsuper,   Qmodifier_value, make_number (super_modifier));
 
-#if USE_CARBON_EVENTS
+#if TARGET_API_MAC_CARBON
   Qhi_command   = intern ("hi-command");    staticpro (&Qhi_command);
 #ifdef MAC_OSX
   Qtoolbar_switch_mode = intern ("toolbar-switch-mode");
@@ -12086,7 +12065,7 @@ The symbol `reverse' means that the option-key will register for
 mouse-3 and the command-key will register for mouse-2.  */);
   Vmac_emulate_three_button_mouse = Qnil;
 
-#if USE_CARBON_EVENTS
+#if TARGET_API_MAC_CARBON
   DEFVAR_BOOL ("mac-wheel-button-is-mouse-2", &mac_wheel_button_is_mouse_2,
     doc: /* *Non-nil if the wheel button is mouse-2 and the right click mouse-3.
 Otherwise, the right click will be treated as mouse-2 and the wheel
