@@ -3,11 +3,11 @@
 	* pgg.el (pgg-sign-region, pgg-sign):
 	* ses.el (ses-call-printer):
 	* calendar/icalendar.el (icalendar--diarytime-to-isotime):
-	* textmodes/org.el (org-cycle): Doc fixes.
+	* textmodes/org.el (org-cycle): Fix typos in docstrings.
 
 2007-06-06  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el:
+	* textmodes/org.el
 	(org-export-region-as-html, org-replace-region-by-html)
 	(org-number-to-letters, org-table-fedit-finish)
 	(org-normalize-color, org-table-fedit-ref-right)
