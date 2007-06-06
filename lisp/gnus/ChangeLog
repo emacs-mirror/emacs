@@ -1,6 +1,8 @@
 2007-06-06  Juanma Barranquero  <lekktu@gmail.com>
 
-	* gnus-sum.el (gnus-summary-highlight): Fix typos in docstring.
+	* gnus-diary.el (gnus-diary-time-format, gnus-summary-sort-by-schedule):
+	* gnus-sum.el (gnus-summary-highlight):
+	* nndiary.el (nndiary-reminders): Fix typos in docstrings.
 
 2007-05-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
