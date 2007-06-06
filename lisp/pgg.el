@@ -416,7 +416,7 @@ If the optional 3rd argument CLEARTEXT is non-nil, it does not create
 a detached signature.
 
 If this function is called interactively, CLEARTEXT is enabled
-and the the output is displayed.
+and the output is displayed.
 
 If optional PASSPHRASE is not specified, it will be obtained from the
 passphrase cache or user."
@@ -441,7 +441,7 @@ If optional arguments START and END are specified, only sign data
 within the region.
 
 If this function is called interactively, CLEARTEXT is enabled
-and the the output is displayed.
+and the output is displayed.
 
 If optional PASSPHRASE is not specified, it will be obtained from the
 passphrase cache or user."
