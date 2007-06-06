@@ -1,3 +1,7 @@
+2007-06-06  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_draw): Delete brush after using it.
+
 2007-06-04  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (w32font_open): Don't set font_idx.
