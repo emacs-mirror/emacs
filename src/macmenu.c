@@ -1595,14 +1595,12 @@ menu_target_item_handler (next_handler, event, data)
      EventRef event;
      void *data;
 {
-  OSStatus err, result;
+  OSStatus err;
   MenuRef menu;
   MenuItemIndex menu_item;
   Lisp_Object help;
   GrafPtr port;
   int specpdl_count = SPECPDL_INDEX ();
-
-  result = CallNextEventHandler (next_handler, event);
 
   err = GetEventParameter (event, kEventParamDirectObject, typeMenuRef,
 			   NULL, sizeof (MenuRef), NULL, &menu);
@@ -1626,30 +1624,21 @@ menu_target_item_handler (next_handler, event, data)
   SetPort (port);
   unbind_to (specpdl_count, Qnil);
 
-  return err == noErr ? noErr : result;
+  return err == noErr ? noErr : eventNotHandledErr;
 }
-#endif
 
 OSStatus
-install_menu_target_item_handler (window)
-     WindowRef window;
+install_menu_target_item_handler ()
 {
-  OSStatus err = noErr;
-#if TARGET_API_MAC_CARBON
   static const EventTypeSpec specs[] =
     {{kEventClassMenu, kEventMenuTargetItem}};
-  static EventHandlerUPP menu_target_item_handlerUPP = NULL;
 
-  if (menu_target_item_handlerUPP == NULL)
-    menu_target_item_handlerUPP =
-      NewEventHandlerUPP (menu_target_item_handler);
-
-  err = InstallWindowEventHandler (window, menu_target_item_handlerUPP,
-				   GetEventTypeCount (specs), specs,
-				   NULL, NULL);
-#endif
-  return err;
+  return InstallApplicationEventHandler (NewEventHandlerUPP
+					 (menu_target_item_handler),
+					 GetEventTypeCount (specs),
+					 specs, NULL, NULL);
 }
+#endif  /* TARGET_API_MAC_CARBON */
 
 /* Event handler function that pops down a menu on C-g.  We can only pop
    down menus if CancelMenuTracking is present (OSX 10.3 or later).  */
@@ -1738,10 +1727,13 @@ set_frame_menubar (f, first_time, deep_p)
 
   XSETFRAME (Vmenu_updating_frame, f);
 
+  /* This seems to be unnecessary for Carbon.  */
+#if 0
   if (! menubar_widget)
     deep_p = 1;
   else if (pending_menu_activation && !deep_p)
     deep_p = 1;
+#endif
 
   if (deep_p)
     {
@@ -2025,7 +2017,6 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
   int menu_item_choice;
   UInt32 menu_item_selection;
   MenuRef menu;
-  Point pos;
   widget_value *wv, *save_wv = 0, *first_wv = 0, *prev_wv = 0;
   widget_value **submenu_stack
     = (widget_value **) alloca (menu_items_used * sizeof (widget_value *));
@@ -2231,11 +2222,8 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
   free_menubar_widget_value_tree (first_wv);
 
   /* Adjust coordinates to be root-window-relative.  */
-  pos.h = x;
-  pos.v = y;
-
-  SetPortWindowPort (FRAME_MAC_WINDOW (f));
-  LocalToGlobal (&pos);
+  x += f->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f);
+  y += f->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f);
 
   /* No selection has been chosen yet.  */
   menu_item_selection = 0;
@@ -2248,7 +2236,7 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 
   /* Display the menu.  */
   popup_activated_flag = 1;
-  menu_item_choice = PopUpMenuSelect (menu, pos.v, pos.h, 0);
+  menu_item_choice = PopUpMenuSelect (menu, y, x, 0);
   popup_activated_flag = 0;
 
   /* Get the refcon to find the correct item */
@@ -2330,6 +2318,14 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 
 #if TARGET_API_MAC_CARBON
 
+#define DIALOG_BUTTON_COMMAND_ID_OFFSET 'Bt\0\0'
+#define DIALOG_BUTTON_COMMAND_ID_P(id)			\
+  (((id) & ~0xffff) == DIALOG_BUTTON_COMMAND_ID_OFFSET)
+#define DIALOG_BUTTON_COMMAND_ID_VALUE(id)	\
+  ((id) - DIALOG_BUTTON_COMMAND_ID_OFFSET)
+#define DIALOG_BUTTON_MAKE_COMMAND_ID(value)	\
+  ((value) + DIALOG_BUTTON_COMMAND_ID_OFFSET)
+
 static pascal OSStatus
 mac_handle_dialog_event (next_handler, event, data)
      EventHandlerCallRef next_handler;
@@ -2349,7 +2345,7 @@ mac_handle_dialog_event (next_handler, event, data)
 				 typeHICommand, NULL, sizeof (HICommand),
 				 NULL, &command);
 	if (err == noErr)
-	  if ((command.commandID & ~0xffff) == 'Bt\0\0')
+	  if (DIALOG_BUTTON_COMMAND_ID_P (command.commandID))
 	    {
 	      SetWRefCon (window, command.commandID);
 	      err = QuitAppModalLoopForWindow (window);
@@ -2402,7 +2398,10 @@ mac_handle_dialog_event (next_handler, event, data)
 	      break;
 	    }
 
-	return err == noErr ? noErr : result;
+	if (err == noErr)
+	  result = noErr;
+
+	return result;
       }
       break;
 
@@ -2518,14 +2517,16 @@ create_and_show_dialog (f, first_wv)
 	    }
 	  if (err == noErr)
 	    {
+	      UInt32 command_id;
+
 	      OffsetRect (&rects[i], -rects[i].left, -rects[i].top);
 	      if (rects[i].right < DIALOG_BUTTON_MIN_WIDTH)
 		rects[i].right = DIALOG_BUTTON_MIN_WIDTH;
 	      else if (rects[i].right > DIALOG_MAX_INNER_WIDTH)
 		rects[i].right = DIALOG_MAX_INNER_WIDTH;
 
-	      err = SetControlCommandID (buttons[i],
-					 'Bt\0\0' + (int) wv->call_data);
+	      command_id = DIALOG_BUTTON_MAKE_COMMAND_ID ((int) wv->call_data);
+	      err = SetControlCommandID (buttons[i], command_id);
 	    }
 	  if (err != noErr)
 	    break;
@@ -2702,8 +2703,8 @@ create_and_show_dialog (f, first_wv)
     {
       UInt32 command_id = GetWRefCon (window);
 
-      if ((command_id & ~0xffff) == 'Bt\0\0')
-	result = command_id - 'Bt\0\0';
+      if (DIALOG_BUTTON_COMMAND_ID_P (command_id))
+	result = DIALOG_BUTTON_COMMAND_ID_VALUE (command_id);
     }
 
   if (window)
@@ -3139,8 +3140,6 @@ fill_menubar (wv, deep_p)
      int deep_p;
 {
   int id, submenu_id;
-  MenuRef menu;
-  Str255 title;
 #if !TARGET_API_MAC_CARBON
   int title_changed_p = 0;
 #endif
@@ -3162,19 +3161,36 @@ fill_menubar (wv, deep_p)
        wv != NULL && id < min_menu_id[MAC_MENU_MENU_BAR + 1];
        wv = wv->next, id++)
     {
+      OSStatus err = noErr;
+      MenuRef menu;
+#if TARGET_API_MAC_CARBON
+      CFStringRef title;
+
+      title = CFStringCreateWithCString (NULL, wv->name,
+					 kCFStringEncodingMacRoman);
+#else
+      Str255 title;
+
       strncpy (title, wv->name, 255);
       title[255] = '\0';
       c2pstr (title);
+#endif
 
       menu = GetMenuRef (id);
       if (menu)
 	{
 #if TARGET_API_MAC_CARBON
-	  Str255 old_title;
+	  CFStringRef old_title;
 
-	  GetMenuTitle (menu, old_title);
-	  if (!EqualString (title, old_title, false, false))
-	    SetMenuTitle (menu, title);
+	  err = CopyMenuTitleAsCFString (menu, &old_title);
+	  if (err == noErr)
+	    {
+	      if (CFStringCompare (title, old_title, 0) != kCFCompareEqualTo)
+		err = SetMenuTitleWithCFString (menu, title);
+	      CFRelease (old_title);
+	    }
+	  else
+	    err = SetMenuTitleWithCFString (menu, title);
 #else  /* !TARGET_API_MAC_CARBON */
 	  if (!EqualString (title, (*menu)->menuData, false, false))
 	    {
@@ -3188,16 +3204,29 @@ fill_menubar (wv, deep_p)
 	}
       else
 	{
+#if TARGET_API_MAC_CARBON
+	  err = CreateNewMenu (id, 0, &menu);
+	  if (err == noErr)
+	    err = SetMenuTitleWithCFString (menu, title);
+#else
 	  menu = NewMenu (id, title);
-	  InsertMenu (menu, 0);
-#if !TARGET_API_MAC_CARBON
-	  title_changed_p = 1;
 #endif
+	  if (err == noErr)
+	    {
+	      InsertMenu (menu, 0);
+#if !TARGET_API_MAC_CARBON
+	      title_changed_p = 1;
+#endif
+	    }
 	}
+#if TARGET_API_MAC_CARBON
+      CFRelease (title);
+#endif
 
-      if (wv->contents)
-        submenu_id = fill_menu (menu, wv->contents, MAC_MENU_MENU_BAR_SUB,
-				submenu_id);
+      if (err == noErr)
+	if (wv->contents)
+	  submenu_id = fill_menu (menu, wv->contents, MAC_MENU_MENU_BAR_SUB,
+				  submenu_id);
     }
 
   if (id < min_menu_id[MAC_MENU_MENU_BAR + 1] && GetMenuRef (id))
