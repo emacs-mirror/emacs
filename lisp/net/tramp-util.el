@@ -29,7 +29,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'compile)
 (require 'tramp)
 (add-hook 'tramp-util-unload-hook
