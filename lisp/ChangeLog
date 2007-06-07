@@ -1,5 +1,10 @@
 2007-06-07  Glenn Morris  <rgm@gnu.org>
 
+	* tutorial.el (tutorial--describe-nonstandard-key): Adjust for new
+	format of "menu" description.
+	(tutorial--find-changed-keys): Describe the specific menu a
+	command is in.
+
 	* dframe.el (dframe-frame-parameter, dframe-mouse-event-p):
 	Rewrite compatibility functions to silence byte-compiler.
 
