@@ -1,3 +1,7 @@
+2007-06-07  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: Version number fixed.
+
 2007-06-07  Glenn Morris  <rgm@gnu.org>
 
 	* version.el (emacs-copyright): New constant.
