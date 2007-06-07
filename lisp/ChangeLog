@@ -1,5 +1,7 @@
 2007-06-07  Glenn Morris  <rgm@gnu.org>
 
+	* version.el (emacs-copyright): New constant.
+
 	* emacs-lisp/bytecomp.el (byte-compile-warnings): Add new option
 	`make-local'.
 	(byte-compile-warnings-safe-p): Add `make-local'.
