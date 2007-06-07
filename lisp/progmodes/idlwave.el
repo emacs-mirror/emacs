@@ -7095,7 +7095,7 @@ sort the list before displaying"
   "Make the user select an element from the alist in the variable SYM.
 The keys of the alist are expected to be strings.  The function returns the
 car of the selected association.
-To do this, PROMPT is displayed and and the user must hit a letter key to
+To do this, PROMPT is displayed and the user must hit a letter key to
 select an entry.  If the user does not reply within DELAY seconds, a help
 window with the options is displayed automatically.
 The key which is associated with each option is generated automatically.
