@@ -263,7 +263,7 @@ system.  Possible values are:
 		 (const t)))
 
 (defvar checkdoc-ispell-lisp-words
-  '("alist" "emacs" "etags" "iff" "keymap" "paren" "regexp" "sexp" "xemacs")
+  '("alist" "emacs" "etags" "keymap" "paren" "regexp" "sexp" "xemacs")
   "List of words that are correct when spell-checking Lisp documentation.")
 
 (defcustom checkdoc-max-keyref-before-warn 10
