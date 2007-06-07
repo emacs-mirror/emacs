@@ -1,3 +1,8 @@
+2007-06-07  Alfred M. Szmidt  <ams@gnu.org>  (tiny change)
+
+	* mail/rmailsum.el (rmail-summary-save-buffer): New command.
+	(rmail-summary-mode-map): Add rmail-summary-save-buffer.
+
 2007-06-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/ebrowse.el (ebrowse-member-table):
