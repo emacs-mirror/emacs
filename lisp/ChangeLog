@@ -1,3 +1,8 @@
+2007-06-07  David Kastrup  <dak@gnu.org>
+
+	* dired.el (dired-recursive-deletes, dired-recursive-copies):
+	Change default to `top'.
+
 2007-06-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dired.el (dired-mode-map): Remove spurious separator.
