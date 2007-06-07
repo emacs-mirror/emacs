@@ -83,7 +83,7 @@
 
 ;;; Version
 
-(defconst org-version "4.76"
+(defconst org-version "4.77"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
