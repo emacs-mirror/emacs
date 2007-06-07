@@ -1,3 +1,9 @@
+2007-06-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/ebrowse.el (ebrowse-member-table):
+	* textmodes/org.el (org-export-ascii-bullets, org-batch-agenda)
+	(org-batch-agenda-csv): Fix typos in docstrings.
+
 2007-06-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* pgg.el (pgg-sign-region, pgg-sign):
