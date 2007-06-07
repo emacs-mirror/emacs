@@ -6,7 +6,7 @@
 ;; Keywords: hypermedia, outlines
 ;; Version: 1.80
 
-;; $Id: org-publish.el,v 1.80 2007/03/22 02:31:03 dto Exp dto $
+;; $Id: org-publish.el,v 1.1 2007/06/06 15:16:21 cdominik Exp $
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -598,4 +598,6 @@ With prefix argument, force publish all files."
 
 
 (provide 'org-publish)
+
+;; arch-tag: 72807f3c-8af0-4a6b-8dca-c3376eb25adb
 ;;; org-publish.el ends here
