@@ -284,7 +284,7 @@ files older than number of days."
 		 (integer :tag "days")))
 
 (defcustom mail-source-delete-old-incoming-confirm t
-  "*If non-nil, ask for for confirmation before deleting old incoming files.
+  "*If non-nil, ask for confirmation before deleting old incoming files.
 This variable only applies when `mail-source-delete-incoming' is a positive
 number."
   :version "22.1"
