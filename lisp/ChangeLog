@@ -1,7 +1,7 @@
 2007-06-07  Glenn Morris  <rgm@gnu.org>
 
 	* version.el (emacs-copyright): New constant.
-
+	* startup.el (fancy-splash-tail): Use emacs-copyright.
 	* calc/calc-help.el (calc-full-help): Use emacs-copyright.
 
 	* emacs-lisp/bytecomp.el (byte-compile-warnings): Add new option
