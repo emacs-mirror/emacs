@@ -2,6 +2,8 @@
 
 	* version.el (emacs-copyright): New constant.
 
+	* calc/calc-help.el (calc-full-help): Use emacs-copyright.
+
 	* emacs-lisp/bytecomp.el (byte-compile-warnings): Add new option
 	`make-local'.
 	(byte-compile-warnings-safe-p): Add `make-local'.
