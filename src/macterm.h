@@ -369,6 +369,12 @@ typedef struct mac_output mac_output;
 /* This is the 'font_info *' which frame F has.  */
 #define FRAME_MAC_FONT_TABLE(f) (FRAME_MAC_DISPLAY_INFO (f)->font_table)
 
+/* The difference in pixels between the top left corner of the
+   Emacs window (including possible window manager decorations)
+   and FRAME_MAC_WINDOW (f).  */
+#define FRAME_OUTER_TO_INNER_DIFF_X(f) ((f)->x_pixels_diff)
+#define FRAME_OUTER_TO_INNER_DIFF_Y(f) ((f)->y_pixels_diff)
+
 /* Value is the smallest width of any character in any font on frame F.  */
 
 #define FRAME_SMALLEST_CHAR_WIDTH(F) \
@@ -643,6 +649,7 @@ extern void do_apple_menu P_ ((SInt16));
 #if USE_CG_DRAWING
 extern void mac_prepare_for_quickdraw P_ ((struct frame *));
 #endif
+extern void mac_get_window_bounds P_ ((struct frame *, Rect *, Rect *));
 extern int mac_quit_char_key_p P_ ((UInt32, UInt32));
 
 #define FONT_TYPE_FOR_UNIBYTE(font, ch) 0
