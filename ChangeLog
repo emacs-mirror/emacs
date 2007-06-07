@@ -1,3 +1,8 @@
+2007-06-07  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (NON_GNU_CPP): On Solaris, set using a proper check
+	for a Sun C compiler.
+
 2007-05-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mkinstalldirs: Sync to version in automake CVS.
