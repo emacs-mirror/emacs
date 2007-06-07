@@ -1,3 +1,9 @@
+2007-06-07  Jason Rumney  <jasonr@gnu.org>
+
+	* s/ms-w32.h: Don't define HAVE_TZNAME.
+
+	* editfns.c (Fcurrent_time_zone): Remove hack for Japanese Windows.
+
 2007-06-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* mac.c (xrm_get_preference_database): Remove BLOCK_INPUT.
