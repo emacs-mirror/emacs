@@ -33,6 +33,20 @@ Some specific packages that are known to cause problems are:
 ** Semantic (used by CEDET, ECB, JDEE): upgrade to latest version.
 
 ** cua.el, cua-mode.el: remove old versions.
+
+* Installation Changes in Emacs 22.2
+
+* Changes in Emacs 22.2
+
+** The values of `dired-recursive-deletes' and `dired-recursive-copies'
+have been changed to `top'.  This means that the user is asked once,
+before deleting/copying the indicated directory recursively.
+
+* New Modes and Packages in Emacs 22.2
+
+** The new package css-mode.el provides a major mode for editing CSS files.
+
+** The new package socks.el implements the SOCKS v5 protocol.
 
 
 * Installation Changes in Emacs 22.1
