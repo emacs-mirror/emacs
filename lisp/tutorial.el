@@ -155,9 +155,9 @@ options:
                           " RET instead."))
               (insert "\n\nWith your current key bindings"
                       " you can use "
-                      (if (string-equal "the menus" where)
+                      (if (string-match "^the .*menus?$" where)
                           ""
-                        "the key ")
+                        "the key")
                       where
                       " to get the function `"
                       (format "%s" db)
@@ -406,7 +406,7 @@ where
   WHERE       is a text describing the key sequences to which DEF-FUN is
               bound now (or, if it is remapped, a key sequence
               for the function it is remapped to)
-  REMARK      is a list with info about rebinding.  It has either of
+  REMARK      is a list with info about rebinding. It has either of
               these formats:
 
                 \(TEXT cua-mode)
@@ -434,14 +434,26 @@ where
 	       (key-fun (if (eq def-fun 'ESC-prefix)
 			    (lookup-key global-map [27])
 			  (key-binding key)))
-	       (where (where-is-internal (if rem-fun rem-fun def-fun))))
+	       (where (where-is-internal (if rem-fun rem-fun def-fun)))
+	       cwhere)
 	  (if where
 	      (progn
-		(setq where (key-description (car where)))
+		(setq cwhere (car where)
+		      where (key-description cwhere))
 		(when (and (< 10 (length where))
 			   (string= (substring where 0 (length "<menu-bar>"))
 				    "<menu-bar>"))
-		  (setq where "the menus")))
+		  (setq where
+			(if (and (vectorp cwhere)
+				 (setq cwhere (elt cwhere 1))
+				 (setq cwhere
+				       (cadr
+					(assoc cwhere
+					       (lookup-key global-map
+							   [menu-bar]))))
+				 (stringp cwhere))
+			    (format "the `%s' menu" cwhere)
+			  "the menus"))))
 	    (setq where ""))
 	  (setq remark nil)
 	  (unless
@@ -915,7 +927,7 @@ See `get-lang-string' for more information.")
 In certain places Emacs can replace a string shown to the user with
 a language specific string.  This function retrieves such strings.
 
-LANG is the language specification.  It should be one of those
+LANG is the language specification. It should be one of those
 strings that can be returned by `read-language-name'.  STRINGID
 is a symbol that specifies the string to retrieve.
 
