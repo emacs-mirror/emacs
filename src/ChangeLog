@@ -1,3 +1,78 @@
+2007-06-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (xrm_get_preference_database): Remove BLOCK_INPUT.
+
+	* macfns.c (mac_get_window_bounds): Move extern to macterm.h.
+	(compute_tip_xy) [TARGET_API_MAC_CARBON]: Use GetGlobalMouse.
+
+	* macmenu.c [TARGET_API_MAC_CARBON] (menu_target_item_handler):
+	Don't call next handler.
+	[TARGET_API_MAC_CARBON] (install_menu_target_item_handler):
+	Remove argument.  Install handler to application.
+	(set_frame_menubar): Don't change deep_p.
+	(mac_menu_show):  Use FRAME_OUTER_TO_INNER_DIFF_X and
+	FRAME_OUTER_TO_INNER_DIFF_Y.
+	(DIALOG_BUTTON_COMMAND_ID_OFFSET, DIALOG_BUTTON_COMMAND_ID_P)
+	(DIALOG_BUTTON_COMMAND_ID_VALUE, DIALOG_BUTTON_MAKE_COMMAND_ID)
+	[HAVE_DIALOGS]: New macros.
+	[HAVE_DIALOGS] (mac_handle_dialog_event, create_and_show_dialog):
+	Use them.
+	(fill_menubar) [TARGET_API_MAC_CARBON]: Use CFString.
+
+	* macselect.c [MAC_OSX] (install_service_handler): Rename from
+	init_service_handler.  All callers changed.  Return OSStatus value.
+
+	* macterm.c (mac_begin_cg_clip): New arg F.  Call SetPortWindowPort.
+	All callers changed so as not to call SetPortWindowPort.
+	(mac_begin_cg_clip) [USE_CG_DRAWING]: Call mac_prepare_for_quickdraw.
+	(mac_draw_image_string_atsui) [USE_ATSUI]: New function created from
+	mac_draw_string_common.
+	(mac_draw_image_string_qd): Likewise.
+	(mac_draw_string_common): Use them.  Add INLINE.
+	(XTmouse_position, x_scroll_bar_report_motion) [TARGET_API_MAC_CARBON]:
+	Use FRAME_OUTER_TO_INNER_DIFF_X, FRAME_OUTER_TO_INNER_DIFF_Y, and
+	GetGlobalMouse.
+	(x_set_mouse_pixel_position) [MAC_OSX]: Use FRAME_OUTER_TO_INNER_DIFF_X
+	and FRAME_OUTER_TO_INNER_DIFF_Y.
+	[TARGET_API_MAC_CARBON] (mac_handle_mouse_event): Likewise.
+	[USE_MAC_TSM] (mac_handle_text_input_event): Likewise.
+	(x_make_frame_visible) [TARGET_API_MAC_CARBON]: Move code for
+	repositioning window to mac_handle_window_event.
+	(x_make_frame_invisible) [TARGET_API_MAC_CARBON]: Move code for
+	saving window location to mac_handle_window_event
+	[USE_MAC_FONT_PANEL] (mac_show_hide_font_panel): Install handler here.
+	(install_menu_target_item_handler): Remove argument in extern.
+	[TARGET_API_MAC_CARBON] (mac_event_to_emacs_modifiers):
+	Also accept command events.
+	(do_keystroke): New function created from XTread_socket.
+	(init_command_handler): Remove functions.
+	[TARGET_API_MAC_CARBON] (mac_handle_window_event): Reposition window
+	and save window location by kEventWindowShowing and kEventWindowHiding
+	handlers here.  Don't call next handler for window state change and
+	focus events.
+	(mac_handle_application_event, mac_handle_keyboard_event)
+	[TARGET_API_MAC_CARBON]: New functions.
+	(install_window_handler) [TARGET_API_MAC_CARBON]: Register handlers for
+	kEventWindowShowing and kEventWindowHiding events.  Move installation
+	of mouse, font, text input and menu target item handlers to
+	install_application_handler.
+	(install_application_handler) [TARGET_API_MAC_CARBON]: New function.
+	(mac_handle_cg_display_reconfig) [MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]:
+	New function.
+	(init_dm_notification_handler) [MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]:
+	Register it.
+	(XTread_socket) [TARGET_API_MAC_CARBON]: Consolidate
+	SendEventToEventTarget calls.  Use FRAME_OUTER_TO_INNER_DIFF_X and
+	FRAME_OUTER_TO_INNER_DIFF_Y.  Move application activation handler
+	to mac_handle_application_event.  Move keyboard handler to
+	mac_handle_keyboard_event.
+	(XTread_socket) [!TARGET_API_MAC_CARBON]: Use do_keystroke.
+	(mac_initialize) [TARGET_API_MAC_CARBON]: Don't call
+	init_command_handler.  Call install_application_handler.
+
+	* macterm.h (mac_get_window_bounds): Move extern from macfns.c.
+	(FRAME_OUTER_TO_INNER_DIFF_X, FRAME_OUTER_TO_INNER_DIFF_Y): New macros.
+
 2007-06-07  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.c (main): Use `emacs-copyright' in --version output.
