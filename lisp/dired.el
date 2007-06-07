@@ -1452,9 +1452,6 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map [menu-bar operate]
       (cons "Operate" (make-sparse-keymap "Operate")))
 
-    (define-key map [menu-bar operate dashes-2]
-      '("--"))
-
     (define-key map
       [menu-bar operate image-dired-delete-tag]
       '(menu-item "Delete Image Tag..." image-dired-delete-tag
