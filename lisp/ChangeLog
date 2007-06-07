@@ -1,3 +1,8 @@
+2007-06-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/ebrowse.el (ebrowse-member-table):
+	* textmodes/org.el (org-export-ascii-bullets): Fix typos in docstrings.
+
 2007-06-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* pgg.el (pgg-sign-region, pgg-sign):
@@ -21,7 +26,7 @@
 	(all): Replace `case' by `cond', `string-to-int' by
 	`string-to-number', and `process-kill-without-query' by
 	`set-process-query-on-exit-flag'.
-	(socks-char-int): Remove defalias and all occurencies.
+	(socks-char-int): Remove defalias and all occurrences.
 
 2007-06-06  Juanma Barranquero  <lekktu@gmail.com>
 
