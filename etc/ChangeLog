@@ -1,3 +1,10 @@
+2007-06-07  Glenn Morris  <rgm@gnu.org>
+
+	* images/cancel.pbm: Convert from PGM to PBM.
+
+	* images/copy.pbm, images/next-node.pbm, images/prev-node.pbm:
+	* images/save.pbm, images/up-node.pbm: Convert from PPM to PBM.
+
 2007-06-07  Mark H. Weaver  <mhw@netris.org>  (tiny change)
 
 	* NEWS (set-mark-command-repeat-pop): Fix duplicate entry.
