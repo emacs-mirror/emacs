@@ -1,5 +1,7 @@
 2007-06-07  Juanma Barranquero  <lekktu@gmail.com>
 
+	* progmodes/ebrowse.el (ebrowse-draw-file-member-info): Doc fix.
+
 	* progmodes/idlwave.el (idlwave-one-key-select): Fix typo in docstring.
 
 2007-06-07  Alfred M. Szmidt  <ams@gnu.org>  (tiny change)
