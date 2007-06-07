@@ -1,5 +1,6 @@
 2007-06-07  Juanma Barranquero  <lekktu@gmail.com>
 
+	* gnus-art.el (gnus-split-methods):
 	* mail-source.el (mail-source-delete-old-incoming-confirm):
 	Fix typo in docstring.
 
