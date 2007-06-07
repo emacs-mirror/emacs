@@ -1032,14 +1032,8 @@ dnl see the `changequote' comment above.
 		;;
       *-sunos5* | *-solaris* )
 		opsys=sol2-6
-## FIXME: make this into a proper fix that checks the compiler type,
-## rather than relying on path. Or is /usr/ccs/lib/cpp a bad default now?
-		if [ "x$CC" = x/opt/SUNWspro/bin/cc ]; then
-		  ## -Xs prevents spurious whitespace.
-		  NON_GNU_CPP="/opt/SUNWspro/bin/cc -E -Xs"
-		else
-		  NON_GNU_CPP=/usr/ccs/lib/cpp
-		fi
+		emacs_check_sunpro_c=yes
+		NON_GNU_CPP=/usr/ccs/lib/cpp
 		;;
       *			  ) opsys=bsd4-2   ;;
     esac
@@ -1273,6 +1267,24 @@ AC_PROG_CC
 # On Suns, sometimes $CPP names a directory.
 if test -n "$CPP" && test -d "$CPP"; then
   CPP=
+fi
+
+## If not using gcc, and on Solaris, and no CPP specified, see if
+## using a Sun compiler, which needs -Xs to prevent whitespace.
+if test x"$GCC" != xyes && test x"$emacs_check_sunpro_c" = xyes && \
+ test x"$CPP" = x; then
+  AC_MSG_CHECKING([whether we are using a Sun C compiler])
+  AC_CACHE_VAL(emacs_cv_sunpro_c,
+  [AC_TRY_LINK([],
+[#ifndef __SUNPRO_C
+fail;
+#endif
+], emacs_cv_sunpro_c=yes, emacs_cv_sunpro_c=no)])
+  AC_MSG_RESULT($emacs_cv_sunpro_c)
+
+  if test x"$emacs_cv_sunpro_c" = xyes; then
+    NON_GNU_CPP="$CC -E -Xs"
+  fi
 fi
 
 #### Some systems specify a CPP to use unless we are using GCC.
