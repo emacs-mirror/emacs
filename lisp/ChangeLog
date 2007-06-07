@@ -1,3 +1,7 @@
+2007-06-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/idlwave.el (idlwave-one-key-select): Fix typo in docstring.
+
 2007-06-07  Alfred M. Szmidt  <ams@gnu.org>  (tiny change)
 
 	* mail/rmailsum.el (rmail-summary-save-buffer): New command.
