@@ -1,3 +1,7 @@
+2007-06-07  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.c (main): Use `emacs-copyright' in --version output.
+
 2007-06-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image.c (xpm_load): Remove spurious call to
