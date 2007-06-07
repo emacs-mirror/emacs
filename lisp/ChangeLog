@@ -1,3 +1,8 @@
+2007-06-07  Alfred M. Szmidt  <ams@gnu.org>  (tiny change)
+
+	* mail/rmailsum.el (rmail-summary-save-buffer): New command.
+	(rmail-summary-mode-map): Add rmail-summary-save-buffer.
+
 2007-06-07  Eric M. Ludlam  <eric@siege-engine.com>
 
 	* emacs-lisp/checkdoc.el (checkdoc-ispell-lisp-words): Remove
