@@ -1003,7 +1003,7 @@ type `ebrowse-hs' is set to the resulting obarray."
 
 
 (defun ebrowse-member-table (header)
-  "Return the member obarray.  Build it it hasn't been set up yet.
+  "Return the member obarray.  Build it if it hasn't been set up yet.
 HEADER is the tree header structure of the class tree."
   (when (null (ebrowse-hs-member-table header))
     (loop for buffer in (ebrowse-browser-buffer-list)
