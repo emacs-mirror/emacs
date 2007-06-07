@@ -1,3 +1,7 @@
+2007-06-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* erc.el (erc-startup-file-list): Fix typo in docstring.
+
 2007-06-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* erc.el (erc-show-channel-key-p): Fix typo in docstring.
