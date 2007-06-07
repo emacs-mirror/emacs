@@ -12,10 +12,10 @@ make sure all the pages really look ok in the manual as formatted.
 Requests to have been sent out on 2006-05-23 (Reiner Steib).
 
 LANG	Translator            Status
-cs	Pavel JanÃ­k           Can't work on it now.
+cs	Pavel Janík           Can't work on it now.
 de	Sven Joachim          Done
 fr	Eric Jacoboni         Done
-pl	WÅ‚odek Bzyl           Done
+pl	WÅÂ‚odek Bzyl           Done
 pt-br	Rodrigo Real          Done
 ru	Alex Ott              Done
 sk	Miroslav VaÅ¡ko        No response
@@ -41,7 +41,7 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 Here we list small fixes that arrived too late for Emacs 22.1, but
 that should be installed on the release branch after 22.1 is released.
 
-** viper and tramp should not load cl at run time.
+** viper should not load cl at run time.
 
 ** yamaoka@jpl.org's patch for mail-extract-address-components problem.
 
@@ -62,7 +62,7 @@ SECTION                  READERS
 etc/TUTORIAL             rms
 etc/TUTORIAL.bg          Ognyan Kulev <ogi@fmi.uni-sofia.bg>
 etc/TUTORIAL.cn
-etc/TUTORIAL.cs          Pavel JanÃ­k <Pavel@Janik.cz>
+etc/TUTORIAL.cs          Pavel Janík <Pavel@Janik.cz>
 etc/TUTORIAL.de          Werner LEMBERG <wl@gnu.org>
 etc/TUTORIAL.eo
 etc/TUTORIAL.es          Marcelo Toledo
@@ -75,7 +75,7 @@ etc/TUTORIAL.pl          Slawomir Nowaczyk <slawek@cs.lth.se>
 etc/TUTORIAL.pt_BR       Marcelo Toledo
 etc/TUTORIAL.ro
 etc/TUTORIAL.ru          Alex Ott <alexott@gmail.com>
-etc/TUTORIAL.sk          Pavel JanÃ­k <Pavel@Janik.cz>
+etc/TUTORIAL.sk          Pavel Janík <Pavel@Janik.cz>
 etc/TUTORIAL.sl          Primoz PETERLIN <primoz.peterlin@biofiz.mf.uni-lj.si>
 etc/TUTORIAL.sv          Mats Lidell <matsl@contactor.se>
 etc/TUTORIAL.th          Virach Sornlertlamvanich <virach@tcllab.org>
