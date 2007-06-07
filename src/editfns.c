@@ -1974,6 +1974,7 @@ the data it can't find.  */)
       int offset = tm_diff (t, &gmt);
       char *s = 0;
       char buf[6];
+
 #ifdef HAVE_TM_ZONE
       if (t->tm_zone)
 	s = (char *)t->tm_zone;
@@ -1984,19 +1985,6 @@ the data it can't find.  */)
 #endif
 #endif /* not HAVE_TM_ZONE */
 
-#if defined HAVE_TM_ZONE || defined HAVE_TZNAME
-      if (s)
-	{
-	  /* On Japanese w32, we can get a Japanese string as time
-	     zone name.  Don't accept that.  */
-	  char *p;
-	  for (p = s; *p && (isalnum ((unsigned char)*p) || *p == ' '); ++p)
-	    ;
-	  if (p == s || *p)
-	    s = NULL;
-	}
-#endif
-
       if (!s)
 	{
 	  /* No local time zone name is available; use "+-NNNN" instead.  */
@@ -2004,6 +1992,7 @@ the data it can't find.  */)
 	  sprintf (buf, "%c%02d%02d", (offset < 0 ? '-' : '+'), am/60, am%60);
 	  s = buf;
 	}
+
       return Fcons (make_number (offset), Fcons (build_string (s), Qnil));
     }
   else
