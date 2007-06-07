@@ -2682,7 +2682,7 @@ In the given sequence, these characters will be used for level 1, 2, ..."
 
 (defcustom org-export-ascii-bullets '(?* ?+ ?-)
   "Bullet characters for headlines converted to lists in ASCII export.
-The first character is is used for the first lest level generated in this
+The first character is used for the first lest level generated in this
 way, and so on.  If there are more levels than characters given here,
 the list will be repeated.
 Note that plain lists will keep the same bullets as the have in the
@@ -14477,7 +14477,7 @@ L   Timeline for current buffer          #   List stuck projects (!=configure)
   "Run an agenda command in batch mode and send the result to STDOUT.
 If CMD-KEY is a string of length 1, it is used as a key in
 `org-agenda-custom-commands' and triggers this command.  If it is a
-longer string is is used as a tags/todo match string.
+longer string it is used as a tags/todo match string.
 Paramters are alternating variable names and values that will be bound
 before running the agenda command."
   (let (pars)
@@ -14503,7 +14503,7 @@ before running the agenda command."
   "Run an agenda command in batch mode and send the result to STDOUT.
 If CMD-KEY is a string of length 1, it is used as a key in
 `org-agenda-custom-commands' and triggers this command.  If it is a
-longer string is is used as a tags/todo match string.
+longer string it is used as a tags/todo match string.
 Paramters are alternating variable names and values that will be bound
 before running the agenda command.
 
