@@ -1,5 +1,11 @@
 2007-06-07  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/bytecomp.el (byte-compile-warnings): Add new option
+	`make-local'.
+	(byte-compile-warnings-safe-p): Add `make-local'.
+	(byte-compile-make-variable-buffer-local): Allow
+	byte-compile-warnings to suppress this warning.
+
 	* tutorial.el (tutorial--describe-nonstandard-key): Adjust for new
 	format of "menu" description.
 	(tutorial--find-changed-keys): Describe the specific menu a
