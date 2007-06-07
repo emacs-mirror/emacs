@@ -280,11 +280,6 @@ too.  If you want to use just plain `*' as a wildcard, type `*""'; the
 doublequotes make no difference in the shell, but they prevent
 special treatment in `dired-do-shell-command'.
 
-** A prefix argument is no longer required to repeat a jump to a
-previous mark if you set `set-mark-command-repeat-pop' to t.  I.e. C-u
-C-SPC C-SPC C-SPC ... cycles through the mark ring.  Use C-u C-u C-SPC
-to set the mark immediately after a jump.
-
 ** The info-search bindings on C-h C-f, C-h C-k and C-h C-i
 have been moved to C-h F, C-h K and C-h S.
 
@@ -451,8 +446,9 @@ to one second.  This feature is turned off by default.
 ** Mark command changes:
 
 *** A prefix argument is no longer required to repeat a jump to a
-previous mark, i.e. C-u C-SPC C-SPC C-SPC ... cycles through the
-mark ring.  Use C-u C-u C-SPC to set the mark immediately after a jump.
+previous mark if you set `set-mark-command-repeat-pop' to t.  I.e. C-u
+C-SPC C-SPC C-SPC ... cycles through the mark ring.  Use C-u C-u C-SPC
+to set the mark immediately after a jump.
 
 *** Marking commands extend the region when invoked multiple times.
 
