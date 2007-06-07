@@ -2,6 +2,7 @@
 
 	* gnus-diary.el (gnus-diary-time-format, gnus-summary-sort-by-schedule):
 	* gnus-sum.el (gnus-summary-highlight):
+	* mail-source.el (mail-source-delete-old-incoming-confirm):
 	* nndiary.el (nndiary-reminders): Fix typos in docstrings.
 
 2007-06-04  Katsumi Yamaoka  <yamaoka@jpl.org>
