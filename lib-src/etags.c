@@ -887,8 +887,11 @@ etags --help --lang=ada.");
 static void
 print_version ()
 {
+  /* Makes it easier to update automatically. */
+  char emacs_copyright[] = "Copyright (C) 2007 Free Software Foundation, Inc."
+
   printf ("%s (%s %s)\n", (CTAGS) ? "ctags" : "etags", EMACS_NAME, VERSION);
-  puts ("Copyright (C) 2007 Free Software Foundation, Inc.");
+  puts (emacs_copyright);
   puts ("This program is distributed under the terms in ETAGS.README");
 
   exit (EXIT_SUCCESS);
