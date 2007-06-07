@@ -1,3 +1,8 @@
+2007-06-07  Glenn Morris  <rgm@gnu.org>
+
+	* dframe.el (dframe-frame-parameter, dframe-mouse-event-p):
+	Rewrite compatibility functions to silence byte-compiler.
+
 2007-06-07  Alfred M. Szmidt  <ams@gnu.org>  (tiny change)
 
 	* mail/rmailsum.el (rmail-summary-save-buffer): New command.
