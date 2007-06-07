@@ -2,6 +2,7 @@
 
 	* progmodes/ebrowse.el (ebrowse-draw-file-member-info): Doc fix.
 
+	* progmodes/mixal-mode.el (mixal-operation-codes-alist):
 	* progmodes/idlwave.el (idlwave-one-key-select): Fix typo in docstring.
 
 2007-06-07  Carsten Dominik  <dominik@science.uva.nl>
