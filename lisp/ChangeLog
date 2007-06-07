@@ -1,3 +1,7 @@
+2007-06-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.el (dired-mode-map): Remove spurious separator.
+
 2007-06-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/ebrowse.el (ebrowse-draw-file-member-info): Doc fix.
