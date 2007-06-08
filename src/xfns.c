@@ -1841,9 +1841,9 @@ x_default_scroll_bar_color_parameter (f, alist, prop, xprop, xclass,
 				    build_string (foreground_p
 						  ? "foreground"
 						  : "background"),
-				    empty_string,
+				    empty_unibyte_string,
 				    build_string ("verticalScrollBar"),
-				    empty_string);
+				    empty_unibyte_string);
       if (!STRINGP (tem))
 	{
 	  /* If nothing has been specified, scroll bars will use a
