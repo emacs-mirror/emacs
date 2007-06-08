@@ -1756,6 +1756,8 @@ init_strings ()
   string_blocks = NULL;
   n_string_blocks = 0;
   string_free_list = NULL;
+  empty_unibyte_string = make_pure_string ("", 0, 0, 0);
+  empty_multibyte_string = make_pure_string ("", 0, 0, 1);
 }
 
 
@@ -2479,6 +2481,9 @@ make_uninit_string (length)
      int length;
 {
   Lisp_Object val;
+
+  if (!length)
+    return empty_unibyte_string;
   val = make_uninit_multibyte_string (length, length);
   STRING_SET_UNIBYTE (val);
   return val;
@@ -2497,6 +2502,8 @@ make_uninit_multibyte_string (nchars, nbytes)
 
   if (nchars < 0)
     abort ();
+  if (!nbytes)
+    return empty_multibyte_string;
 
   s = allocate_string ();
   allocate_string_data (s, nchars, nbytes);
