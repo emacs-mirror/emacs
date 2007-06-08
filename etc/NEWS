@@ -19,6 +19,8 @@ with a prefix argument or by typing C-u C-h C-n.
 
 * Installation Changes in Emacs 23.1
 
+** The default X toolkit has changed from Lucid to Gtk+.
+
 
 * Startup Changes in Emacs 23.1
 
