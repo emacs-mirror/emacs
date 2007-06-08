@@ -6430,7 +6430,7 @@ and `read-file-name-function'.  */)
       if (! replace_in_history)
 	add_to_history = 1;
 
-      val = empty_string;
+      val = empty_unibyte_string;
     }
 
   unbind_to (count, Qnil);
