@@ -133,8 +133,8 @@ Lisp_Object Vinstallation_directory;
 /* Hook run by `kill-emacs' before it does really anything.  */
 Lisp_Object Vkill_emacs_hook;
 
-/* An empty lisp string.  To avoid having to build any other.  */
-Lisp_Object empty_string;
+/* Empty lisp strings.  To avoid having to build any others.  */
+Lisp_Object empty_unibyte_string, empty_multibyte_string;
 
 /* Search path separator.  */
 Lisp_Object Vpath_separator;
@@ -2473,9 +2473,6 @@ see `kill-emacs-query-functions' instead.
 
 The hook is not run in batch mode, i.e., if `noninteractive' is non-nil.  */);
   Vkill_emacs_hook = Qnil;
-
-  empty_string = build_string ("");
-  staticpro (&empty_string);
 
   DEFVAR_INT ("emacs-priority", &emacs_priority,
 	      doc: /* Priority for Emacs to run at.
