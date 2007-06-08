@@ -1199,7 +1199,7 @@ openp (path, str, suffixes, storeptr, predicate)
 	fn = (char *) alloca (fn_size = 100 + want_size);
 
       /* Loop over suffixes.  */
-      for (tail = NILP (suffixes) ? Fcons (build_string (""), Qnil) : suffixes;
+      for (tail = NILP (suffixes) ? Fcons (empty_unibyte_string, Qnil) : suffixes;
 	   CONSP (tail); tail = XCDR (tail))
 	{
 	  int lsuffix = SBYTES (XCAR (tail));
@@ -4070,8 +4070,7 @@ and, if so, which suffixes they should try to append to the file name
 in order to do so.  However, if you want to customize which suffixes
 the loading functions recognize as compression suffixes, you should
 customize `jka-compr-load-suffixes' rather than the present variable.  */);
-  /* We don't use empty_string because it's not initialized yet.  */
-  Vload_file_rep_suffixes = Fcons (build_string (""), Qnil);
+  Vload_file_rep_suffixes = Fcons (empty_unibyte_string, Qnil);
 
   DEFVAR_BOOL ("load-in-progress", &load_in_progress,
 	       doc: /* Non-nil iff inside of `load'.  */);
