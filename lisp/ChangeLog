@@ -1,3 +1,13 @@
+2007-06-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* help-mode.el (help-xref-forward-stack)
+	(help-xref-stack-forward-item, help-forward-label): New variables.
+	(help-forward): New button type.
+	(help-setup-xref): Initialise help-xref-forward-stack.
+	(help-make-xrefs): Add forward button, if appropriate.
+	(help-xref-go-back): Push item on forward stack.
+	(help-xref-go-forward, help-go-forward): New functions.
+
 2007-06-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dired.el (dired-mode-map): Remove spurious separator.
