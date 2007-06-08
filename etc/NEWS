@@ -42,6 +42,10 @@ Some specific packages that are known to cause problems are:
 have been changed to `top'.  This means that the user is asked once,
 before deleting/copying the indicated directory recursively.
 
+** In Image mode, whenever the displayed image is wider and/or higher
+than the window, the usual keys for moving the cursor cause the image
+to be scrolled horizontally or vertically instead.
+
 * New Modes and Packages in Emacs 22.2
 
 ** The new package css-mode.el provides a major mode for editing CSS files.
