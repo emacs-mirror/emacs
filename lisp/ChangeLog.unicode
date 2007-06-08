@@ -22,6 +22,8 @@
 
 	* disp-table.el (make-glyph-code): Fix for a new character code
 	space (22-bit).
+	(glyph-char): Likewise.
+	(glyph-face): Likewise.
 
 2007-05-16  Juanma Barranquero  <lekktu@gmail.com>
 
