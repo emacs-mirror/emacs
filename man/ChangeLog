@@ -1,3 +1,8 @@
+2007-06-08  Alan Mackenzie  <acm@muc.de>
+
+	* display.texi (Optional Mode Line): Document the new form of
+	line+column numbers, "(561,2)".
+
 2007-06-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* cc-mode.texi (Comment Commands, Getting Started, Style Variables):
