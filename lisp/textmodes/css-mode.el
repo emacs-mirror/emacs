@@ -347,7 +347,7 @@
     (map-char-table (lambda (c v)
                       ;; Turn punctuation (code = 1) into symbol (code = 1).
                       (if (eq (car-safe v) 1)
-                          (aset st c (cons 3 (cdr v)))))
+                          (set-char-table-range st c (cons 3 (cdr v)))))
                     st)
     st))
 

@@ -1,3 +1,8 @@
+2007-06-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/css-mode.el (css-navigation-syntax-table):
+	Use set-char-table-range so it also works in the unicode branch.
+
 2007-06-08  Nick Roberts  <nickrob@snap.net.nz>
 
 	* help-mode.el (help-xref-forward-stack)
@@ -32,8 +37,8 @@
 	* emacs-lisp/bytecomp.el (byte-compile-warnings): Add new option
 	`make-local'.
 	(byte-compile-warnings-safe-p): Add `make-local'.
-	(byte-compile-make-variable-buffer-local): Allow
-	byte-compile-warnings to suppress this warning.
+	(byte-compile-make-variable-buffer-local):
+	Allow byte-compile-warnings to suppress this warning.
 
 	* tutorial.el (tutorial--describe-nonstandard-key): Adjust for new
 	format of "menu" description.
@@ -100,8 +105,8 @@
 	(org-table-fedit-shift-reference, org-table-fedit-abort)
 	(org-closest-date, org-shiftcontrolleft)
 	(org-at-heading-or-item-p, org-rematch-and-replace)
-	(org-agenda-todo-nextset, org-export-grab-title-from-buffer): New
-	function.
+	(org-agenda-todo-nextset, org-export-grab-title-from-buffer):
+	New functions.
 	(org-table-edit-scroll-down, org-finish-edit-formulas)
 	(org-table-edit-next-field, org-abort-edit-formulas)
 	(org-font-lock-level, org-export-find-first-heading-line)
@@ -112,8 +117,8 @@
 	(org-agenda-file-to-end, org-expand-file-name)
 	(org-fake-empty-table-line, org-table-edit-scroll)
 	(org-toggle-log-option, org-show-reference): Function removed.
-	(org-inhibit-invisibility, org-table-formula-make-cmp-string): New
-	defsubst.
+	(org-inhibit-invisibility, org-table-formula-make-cmp-string):
+	New defsubsts.
 	(org-unmodified, org-batch-store-agenda-views)
 	(org-batch-agenda-csv): New macro.
 	(org-agenda-export): New customization group.
@@ -145,32 +150,30 @@
 	(org-todo-kwd-priority-p, org-edit-formulas-map)
 	(org-repeat-re, org-todo-kwd-max-priority)
 	(org-version, org-done-string)
-	(org-table-clean-did-remove-column-1, org-disputed-keys): Variable
-	removed.
-	(org-table-translate-regexp, org-repeat-re, org-version): New
-	constant.
+	(org-table-clean-did-remove-column-1, org-disputed-keys):
+	Remove Variables.
+	(org-table-translate-regexp, org-repeat-re, org-version): New consts.
 	(org-ts-lengths): Constant removed.
 	(org-follow-gnus-link): Don't ask how many articles to read.
-	(org-export-find-first-export-line): Renamed from
-	`org-export-find-first-heading'.  Use
-	`org-export-skip-text-before-1st-heading'.
-	(org-table-fedit-post-command): Renamed from
+	(org-export-find-first-export-line): Rename from
+	`org-export-find-first-heading'.
+	Use `org-export-skip-text-before-1st-heading'.
+	(org-table-fedit-post-command): Rename from
 	`org-table-edit-formulas-post-command'.
-	(org-table-fedit-finish): Renamed from `org-finish-edit-formulas'.
-	(org-table-fedit-abort): Renamed from `org-abort-edit-formulas'.
-	(org-table-fedit-lisp-indent): Renamed from
+	(org-table-fedit-finish): Rename from `org-finish-edit-formulas'.
+	(org-table-fedit-abort): Rename from `org-abort-edit-formulas'.
+	(org-table-fedit-lisp-indent): Rename from
 	`org-edit-formula-lisp-indent'.
-	(org-table-show-reference): Renamed from `org-show-reference'.
+	(org-table-show-reference): Rename from `org-show-reference'.
 	(org-table-store-formulas): Use `org-table-formula-less-p'.
-	(org-table-edit-formulas): Position cursor to current field
-	equation.
+	(org-table-edit-formulas): Position cursor to current field equation.
 	(org-update-checkbox-count, org-hide-archived-subtrees)
 	(org-timestamp-up-day, org-timestamp-down-day)
 	(org-shiftmetaleft, org-shiftmetaright, org-shiftmetaup)
 	(org-shiftmetadown, org-metaleft, org-metaright, org-metaup)
 	(org-metadown, org-shiftup, org-shiftdown, org-shiftright)
-	(org-shiftleft, org-ctrl-c-ctrl-c, org-context): Let
-	`org-on-heading-p' also check for invisible heading.
+	(org-shiftleft, org-ctrl-c-ctrl-c, org-context):
+	Let `org-on-heading-p' also check for invisible heading.
 	(org-read-date): Match am/pm times.
 	(org-eval-in-calendar): Fix default date in prompt.
 
@@ -405,8 +408,8 @@
 
 2007-05-22  Katsumi Yamaoka  <yamaoka@jpl.org>  (tiny change)
 
-	* mail/mail-extr.el (mail-extract-address-components): Recognize
-	non-ASCII characters except for NBSP as words.
+	* mail/mail-extr.el (mail-extract-address-components):
+	Recognize non-ASCII characters except for NBSP as words.
 
 2007-05-21  Trent Buck  <trentbuck@gmail.com>  (tiny change)
 
@@ -417,8 +420,8 @@
 2007-05-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image-mode.el (image-toggle-display): Don't clear image cache.
-	Only use filename in image spec if the file is readable.  Call
-	image-refresh.
+	Only use filename in image spec if the file is readable.
+	Call image-refresh.
 
 	* image.el (image-type-from-file-name, image-type): Simplify.
 	(image-type-auto-detected-p): Don't scan auto-mode-alist.
@@ -465,7 +468,7 @@
 
 2007-05-18  Rob Riepel  <riepel@Stanford.EDU>
 
-	* emulation/tpu-edt.el (CSI-map, SS3-map): Moved from global-map to
+	* emulation/tpu-edt.el (CSI-map, SS3-map): Move from global-map to
 	tpu-global-map.
 	(tpu-original-global-map): Variable deleted.
 	(tpu-control-keys-map): New keymap variable.
