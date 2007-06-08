@@ -1,3 +1,38 @@
+2007-06-08  Juanma Barranquero	<lekktu@gmail.com>
+
+	* callint.c (Fcall_interactively):
+	* editfns.c (Fdelete_and_extract_region):
+	* fileio.c (Fread_file_name):
+	* fns.c (Fmapconcat):
+	* keyboard.c (cmd_error_internal):
+	* keymap.c (Fkey_description):
+	* lread.c (openp):
+	* minibuf.c (read_minibuf):
+	* search.c (wordify):
+	* sunfns.c (sel_read):
+	* xdisp.c (Fformat_mode_line, syms_of_xdisp):
+	* xfns.c (x_default_scroll_bar_color_parameter):
+	* xmenu.c (menu_help_callback):
+	* xselect.c (Fx_get_atom_name):
+	* xterm.c (x_term_init): Use empty_unibyte_string.
+
+2007-06-08  Dmitry Antipov  <dmitry.antipov@mail.ru>  (tiny change)
+
+	* alloc.c (init_strings): Initialize canonical empty strings.
+	(make_uninit_string, make_uninit_multibyte_string): Return appropriate
+	canonical empty string when the requested size is 0.
+
+	* emacs.c (empty_unibyte_string): Rename from empty_string.
+	(empty_multibyte_string): New canonical empty string.
+	(syms_of_emacs): Don't initialize empty_string.
+
+	* lisp.h (STRING_SET_UNIBYTE): Return the canonical empty unibyte
+	string, if appropriate.
+	(empty_unibyte_string, empty_multibyte_string): New externs.
+	(empty_string): Remove extern.
+
+	* lread.c (syms_of_lread): Use empty_unibyte_string.
+
 2007-06-07  Jason Rumney  <jasonr@gnu.org>
 
 	* s/ms-w32.h: Don't define HAVE_TZNAME.
