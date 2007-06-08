@@ -409,11 +409,6 @@ install-arch-dep: mkdir
 ## Note that we copy DOC* and then delete DOC
 ## as a workaround for a bug in tar on Ultrix 4.2.
 
-## FIXME
-## Should only install the DOC- file appropriate to this build, not DOC-*.
-## http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-01/msg00417.html
-## (fix available for consideration post-release).
-
 ## We install only the relevant DOC file if possible
 ## (ie DOC-${version}.buildnumber), otherwise DOC-${version}*.
 
