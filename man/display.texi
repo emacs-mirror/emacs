@@ -922,8 +922,18 @@ accessible part of the buffer is shown.
 Number mode is enabled.  Use the command @kbd{M-x line-number-mode} to
 turn this mode on and off; normally it is on.  The line number appears
 after the buffer percentage @var{pos}, with the letter @samp{L} to
-indicate what it is.  @xref{Minor Modes}, for more information about
-minor modes and about how to use this command.
+indicate what it is.
+
+@cindex Column Number mode
+@cindex mode, Column Number
+@findex column-number-mode
+  Similarly, you can display the current column number by turning on
+Column number mode with @kbd{M-x column-number-mode}.  The column
+number is indicated by the letter @samp{C}.  However, when both of
+these modes are enabled, the line and column numbers are displayed in
+parentheses, the line number first, rather than with @samp{L} and
+@samp{C}.  For example: @samp{(561,2)}.  @xref{Minor Modes}, for more
+information about minor modes and about how to use these commands.
 
 @cindex narrowing, and line number display
   If you have narrowed the buffer (@pxref{Narrowing}), the displayed
@@ -945,13 +955,6 @@ numbers if the average width, in characters, of lines near point is
 larger than the value of the variable
 @code{line-number-display-limit-width}.  The default value is 200
 characters.
-
-@cindex Column Number mode
-@cindex mode, Column Number
-@findex column-number-mode
-  You can also display the current column number by turning on Column
-Number mode.  It displays the current column number preceded by the
-letter @samp{C}.  Type @kbd{M-x column-number-mode} to toggle this mode.
 
 @findex display-time
 @cindex time (on mode line)
