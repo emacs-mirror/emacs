@@ -10,6 +10,10 @@
 	* Makefile.in (install-arch-indep): Install only the DOC- file
 	specific to the build, if possible, rather than DOC-*.
 
+2007-06-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 22.1 released.
+
 2007-05-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mkinstalldirs: Sync to version in automake CVS.

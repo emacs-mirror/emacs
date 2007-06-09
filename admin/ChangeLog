@@ -6,6 +6,10 @@
 
 	* make-tarball.txt: Add note about cutting the branch.
 
+2007-06-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 22.1 released.
+
 2007-02-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* nt/makedist.bat: Change EOL format to DOS.  Don't use

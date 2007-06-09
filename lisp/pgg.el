@@ -332,7 +332,7 @@ cache or user."
   (interactive "r")
   (let ((status
 	 (pgg-save-coding-system start end
-	   (pgg-invoke "encrypt-symmetric-region" 
+	   (pgg-invoke "encrypt-symmetric-region"
 		       (or pgg-scheme pgg-default-scheme)
 		       (point-min) (point-max) passphrase))))
     (when (interactive-p)
@@ -485,7 +485,7 @@ signer's public key from `pgg-default-keyserver-address'."
 	       (or (cdr (assq 'preferred-key-server packet))
 		   pgg-default-keyserver-address))
 	 (pgg-fetch-key keyserver key))
-    (setq status 
+    (setq status
 	  (pgg-save-coding-system start end
 	    (pgg-invoke "verify-region" (or pgg-scheme pgg-default-scheme)
 			(point-min) (point-max) signature)))

@@ -1516,6 +1516,8 @@ x_set_scroll_bar_background (f, value, oldval)
 /* Encode Lisp string STRING as a text in a format appropriate for
    XICCC (X Inter Client Communication Conventions).
 
+   This can call Lisp code, so callers must GCPRO.
+
    If STRING contains only ASCII characters, do no conversion and
    return the string data of STRING.  Otherwise, encode the text by
    CODING_SYSTEM, and return a newly allocated memory area which
@@ -1563,7 +1565,11 @@ x_encode_text (string, coding_system, selectionp, text_bytes, stringp, freep)
       && SYMBOLP (coding.pre_write_conversion)
       && !NILP (Ffboundp (coding.pre_write_conversion)))
     {
+      struct gcpro gcpro1;
+      /* We don't need to GCPRO string.  */
+      GCPRO1 (coding_system);
       string = run_pre_post_conversion_on_str (string, &coding, 1);
+      UNGCPRO;
       str = SDATA (string);
       chars = SCHARS (string);
       bytes = SBYTES (string);

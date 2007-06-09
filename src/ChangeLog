@@ -179,10 +179,22 @@
 
 	* window.c (Fshrink_window): Reflow docstring.
 
+2007-06-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 22.1 released.
+
+2007-06-01  Richard Stallman  <rms@gnu.org>
+
+	* xfns.c (x_encode_text): Add GCPRO.
+
 2007-06-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* xfns.c (x_set_name_internal): Save encoded name before
 	x_encode_text in case string data is relocated.
+
+2007-05-31  Richard Stallman  <rms@gnu.org>
+
+	* buffer.c (syms_of_buffer): Doc fix.
 
 2007-05-30  Nick Roberts  <nickrob@snap.net.nz>
 

@@ -69,6 +69,16 @@
 
 2007-06-06  Juanma Barranquero  <lekktu@gmail.com>
 
+	* international/mule-cmds.el (toggle-enable-multibyte-characters)
+	(sort-coding-systems, search-unencodable-char): Doc fixes.
+	(coding-system-change-eol-conversion, set-default-coding-systems)
+	(prefer-coding-system, find-multibyte-characters, princ-list)
+	(leim-list-entry-regexp, set-input-method, locale-language-names)
+	(input-method-exit-on-first-char, exit-language-environment-hook)
+	(locale-charset-language-names): Fix typos in docstrings.
+
+2007-06-06  Juanma Barranquero  <lekktu@gmail.com>
+
 	* pgg.el (pgg-sign-region, pgg-sign):
 	* ses.el (ses-call-printer):
 	* calendar/icalendar.el (icalendar--diarytime-to-isotime):
@@ -452,6 +462,10 @@
 
 	* files.el (auto-mode-alist): Change the regexp so that
 	ChangeLog.unicode and ChangeLog.multi-tty use change-log-mode.
+
+2007-06-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 22.1 released.
 
 2007-05-19  Chong Yidong  <cyd@stupidchicken.com>
 
