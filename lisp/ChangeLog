@@ -1,3 +1,7 @@
+2007-06-09  Alfred M. Szmidt  <ams@gnu.org>  (tiny change)
+
+	* mail/rmail.el (rmail-movemail-variant-in-use): Fix doc typo.
+
 2007-06-09  Davis Herring  <herring@lanl.gov>
 
 	* desktop.el (desktop-minor-mode-table): Doc fix.
