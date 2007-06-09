@@ -1,3 +1,7 @@
+2007-06-09  Davis Herring  <herring@lanl.gov>
+
+	* desktop.el (desktop-minor-mode-table): Doc fix.
+
 2007-06-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image-mode.el (image-forward-hscroll, image-backward-hscroll)
