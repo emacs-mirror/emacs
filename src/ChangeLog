@@ -1,3 +1,7 @@
+2007-06-10  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (Fx_file_dialog): Take size from struct not pointer.
+
 2007-06-08  Juanma Barranquero	<lekktu@gmail.com>
 
 	* callint.c (Fcall_interactively):
