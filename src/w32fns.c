@@ -7902,9 +7902,9 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
     /* Apparently NT4 crashes if you give it an unexpected size.
        I'm not sure about Windows 9x, so play it safe.  */
     if (w32_major_version > 4 && w32_major_version < 95)
-      file_details->lStructSize = sizeof (new_file_details);
+      file_details->lStructSize = sizeof (NEWOPENFILENAME);
     else
-      file_details->lStructSize = sizeof (file_details);
+      file_details->lStructSize = sizeof (OPENFILENAME);
 
     file_details->hwndOwner = FRAME_W32_WINDOW (f);
     /* Undocumented Bug in Common File Dialog:
