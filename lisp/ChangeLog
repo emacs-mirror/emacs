@@ -1,3 +1,10 @@
+2007-06-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* emacs-lisp/bytecomp.el (byte-compile-find-cl-functions): Match
+	against file-name-nondirectory.
+	Fix text on user customization variables.
+	Reported by Johan Bockg,Ae(Brd <bojohan@dd.chalmers.se>.
+
 2007-06-09  Alfred M. Szmidt  <ams@gnu.org>  (tiny change)
 
 	* mail/rmail.el (rmail-movemail-variant-in-use): Fix doc typo.
