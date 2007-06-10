@@ -98,7 +98,7 @@
 ;;				`obsolete'  (obsolete variables and functions)
 ;;				`noruntime' (calls to functions only defined
 ;;					     within `eval-when-compile')
-;;				`cl-warnings' (calls to CL functions)
+;;				`cl-functions' (calls to CL functions)
 ;;				`interactive-only' (calls to commands that are
 ;;						   not good to call from Lisp)
 ;;				`make-local' (dubious calls to
@@ -1348,7 +1348,8 @@ extra args."
   (unless byte-compile-cl-functions
     (dolist (elt load-history)
       (when (and (stringp (car elt))
-		 (string-match "^cl\\>" (car elt)))
+		 (string-match
+		  "^cl\\>" (file-name-nondirectory (car elt))))
 	(setq byte-compile-cl-functions
 	      (append byte-compile-cl-functions
 		      (cdr elt)))))
