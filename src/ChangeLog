@@ -1,3 +1,7 @@
+2007-06-10  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (Fx_file_dialog): Take size from struct not pointer.
+
 2007-06-06  Jason Rumney  <jasonr@gnu.org>
 
 	* s/ms-w32.h: Don't define HAVE_TZNAME.
