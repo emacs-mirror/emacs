@@ -8749,29 +8749,17 @@ syms_of_w32fns ()
 
   w32_visible_system_caret_hwnd = NULL;
 
-  Qnone = intern ("none");
-  staticpro (&Qnone);
-  Qsuppress_icon = intern ("suppress-icon");
-  staticpro (&Qsuppress_icon);
-  Qundefined_color = intern ("undefined-color");
-  staticpro (&Qundefined_color);
-  Qcancel_timer = intern ("cancel-timer");
-  staticpro (&Qcancel_timer);
-
-  Qhyper = intern ("hyper");
-  staticpro (&Qhyper);
-  Qsuper = intern ("super");
-  staticpro (&Qsuper);
-  Qmeta = intern ("meta");
-  staticpro (&Qmeta);
-  Qalt = intern ("alt");
-  staticpro (&Qalt);
-  Qctrl = intern ("ctrl");
-  staticpro (&Qctrl);
-  Qcontrol = intern ("control");
-  staticpro (&Qcontrol);
-  Qshift = intern ("shift");
-  staticpro (&Qshift);
+  DEFSYM (Qnone, "none");
+  DEFSYM (Qsuppress_icon, "suppress-icon");
+  DEFSYM (Qundefined_color, "undefined-color");
+  DEFSYM (Qcancel_timer, "cancel-timer");
+  DEFSYM (Qhyper, "hyper");
+  DEFSYM (Qsuper, "super");
+  DEFSYM (Qmeta, "meta");
+  DEFSYM (Qalt, "alt");
+  DEFSYM (Qctrl, "ctrl");
+  DEFSYM (Qcontrol, "control");
+  DEFSYM (Qshift, "shift");
   /* This is the end of symbol initialization.  */
 
   /* Text property `display' should be nonsticky by default.  */
@@ -9038,24 +9026,16 @@ CODEPAGE should be an integer specifying the codepage that should be used
 to display the character set, t to do no translation and output as Unicode,
 or nil to do no translation and output as 8 bit (or multibyte on far-east
 versions of Windows) characters.  */);
-    Vw32_charset_info_alist = Qnil;
+  Vw32_charset_info_alist = Qnil;
 
-  staticpro (&Qw32_charset_ansi);
-  Qw32_charset_ansi = intern ("w32-charset-ansi");
-  staticpro (&Qw32_charset_symbol);
-  Qw32_charset_default = intern ("w32-charset-default");
-  staticpro (&Qw32_charset_default);
-  Qw32_charset_symbol = intern ("w32-charset-symbol");
-  staticpro (&Qw32_charset_shiftjis);
-  Qw32_charset_shiftjis = intern ("w32-charset-shiftjis");
-  staticpro (&Qw32_charset_hangeul);
-  Qw32_charset_hangeul = intern ("w32-charset-hangeul");
-  staticpro (&Qw32_charset_chinesebig5);
-  Qw32_charset_chinesebig5 = intern ("w32-charset-chinesebig5");
-  staticpro (&Qw32_charset_gb2312);
-  Qw32_charset_gb2312 = intern ("w32-charset-gb2312");
-  staticpro (&Qw32_charset_oem);
-  Qw32_charset_oem = intern ("w32-charset-oem");
+  DEFSYM (Qw32_charset_ansi, "w32-charset-ansi");
+  DEFSYM (Qw32_charset_symbol, "w32-charset-symbol");
+  DEFSYM (Qw32_charset_default, "w32-charset-default");
+  DEFSYM (Qw32_charset_shiftjis, "w32-charset-shiftjis");
+  DEFSYM (Qw32_charset_hangeul, "w32-charset-hangeul");
+  DEFSYM (Qw32_charset_chinesebig5, "w32-charset-chinesebig5");
+  DEFSYM (Qw32_charset_gb2312, "w32-charset-gb2312");
+  DEFSYM (Qw32_charset_oem, "w32-charset-oem");
 
 #ifdef JOHAB_CHARSET
   {
@@ -9063,28 +9043,17 @@ versions of Windows) characters.  */);
     DEFVAR_BOOL ("w32-extra-charsets-defined", &w32_extra_charsets_defined,
 		 doc: /* Internal variable.  */);
 
-    staticpro (&Qw32_charset_johab);
-    Qw32_charset_johab = intern ("w32-charset-johab");
-    staticpro (&Qw32_charset_easteurope);
-    Qw32_charset_easteurope = intern ("w32-charset-easteurope");
-    staticpro (&Qw32_charset_turkish);
-    Qw32_charset_turkish = intern ("w32-charset-turkish");
-    staticpro (&Qw32_charset_baltic);
-    Qw32_charset_baltic = intern ("w32-charset-baltic");
-    staticpro (&Qw32_charset_russian);
-    Qw32_charset_russian = intern ("w32-charset-russian");
-    staticpro (&Qw32_charset_arabic);
-    Qw32_charset_arabic = intern ("w32-charset-arabic");
-    staticpro (&Qw32_charset_greek);
-    Qw32_charset_greek = intern ("w32-charset-greek");
-    staticpro (&Qw32_charset_hebrew);
-    Qw32_charset_hebrew = intern ("w32-charset-hebrew");
-    staticpro (&Qw32_charset_vietnamese);
-    Qw32_charset_vietnamese = intern ("w32-charset-vietnamese");
-    staticpro (&Qw32_charset_thai);
-    Qw32_charset_thai = intern ("w32-charset-thai");
-    staticpro (&Qw32_charset_mac);
-    Qw32_charset_mac = intern ("w32-charset-mac");
+    DEFSYM (Qw32_charset_johab, "w32-charset-johab");
+    DEFSYM (Qw32_charset_easteurope, "w32-charset-easteurope");
+    DEFSYM (Qw32_charset_turkish, "w32-charset-turkish");
+    DEFSYM (Qw32_charset_baltic, "w32-charset-baltic");
+    DEFSYM (Qw32_charset_russian, "w32-charset-russian");
+    DEFSYM (Qw32_charset_arabic, "w32-charset-arabic");
+    DEFSYM (Qw32_charset_greek, "w32-charset-greek");
+    DEFSYM (Qw32_charset_hebrew, "w32-charset-hebrew");
+    DEFSYM (Qw32_charset_vietnamese, "w32-charset-vietnamese");
+    DEFSYM (Qw32_charset_thai, "w32-charset-thai");
+    DEFSYM (Qw32_charset_mac, "w32-charset-mac");
   }
 #endif
 
@@ -9094,9 +9063,7 @@ versions of Windows) characters.  */);
     DEFVAR_BOOL ("w32-unicode-charset-defined",
                  &w32_unicode_charset_defined,
 		 doc: /* Internal variable.  */);
-
-    staticpro (&Qw32_charset_unicode);
-    Qw32_charset_unicode = intern ("w32-charset-unicode");
+    DEFSYM (Qw32_charset_unicode, "w32-charset-unicode");
   }
 #endif
 
