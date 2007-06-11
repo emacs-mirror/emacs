@@ -1,5 +1,8 @@
 2007-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* complete.el (PC-bindings): Don't bind things already bound in the
+	parent keymap.
+
 	* textmodes/bibtex-style.el: New file.
 
 2007-06-11  Riccardo Murri  <riccardo.murri@gmail.com>
