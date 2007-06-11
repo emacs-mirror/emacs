@@ -2543,14 +2543,13 @@ DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_
 
 void syms_of_w32menu ()
 {
-	globals_of_w32menu ();
+  globals_of_w32menu ();
   staticpro (&menu_items);
   menu_items = Qnil;
 
   current_popup_menu = NULL;
 
-  Qdebug_on_next_call = intern ("debug-on-next-call");
-  staticpro (&Qdebug_on_next_call);
+  DEFSYM (Qdebug_on_next_call, "debug-on-next-call");
 
   defsubr (&Sx_popup_menu);
   defsubr (&Smenu_or_popup_active_p);
