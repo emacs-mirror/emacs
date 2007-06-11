@@ -1,7 +1,11 @@
+2007-06-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-switch-buffer): Remove redundant check.
+
 2007-06-10  Martin Rudalics  <rudalics@gmx.at>
 
-	* emacs-lisp/bytecomp.el (byte-compile-find-cl-functions): Match
-	against file-name-nondirectory.
+	* emacs-lisp/bytecomp.el (byte-compile-find-cl-functions):
+	Match against file-name-nondirectory.
 	Fix text on user customization variables.
 	Reported by Johan Bockg,Ae(Brd <bojohan@dd.chalmers.se>.
 
