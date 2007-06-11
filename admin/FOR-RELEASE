@@ -36,32 +36,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 * BUGS
 
-** hi-lock-mode doesn't always turn on font-lock-mode-internal
-
-From: Alan Mackenzie <acm@muc.de>
-Subject: hi-lock-mode doesn't work with emacs -Q.
-Message-ID: <20070607092651.GA1710@muc.de>
-
-Start emacs -Q.  (Emacs 22.1, of course).  Visit a new file with:
-
-    C-x C-f foo.txt
-
-.  Type this:
-
-    This file is foo.txt.
-
-.  Enable hi-lock-mode and make "foo" a highlightable pattern:
-
-    M-x hi-lock-mode
-    C-x w h foo<CR><CR>    ; accept the default hi-yellow face.
-
-.  This highlights the "foo" yellow, as expected.  At the end of the
-line, type:
-
-    foo
-
-.  This new "foo" doesn't get highlighted.  It should be.
-
 * FIXES FOR EMACS 22.2
 
 Here we list small fixes that arrived too late for Emacs 22.1, but
