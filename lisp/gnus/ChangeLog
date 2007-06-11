@@ -1,3 +1,14 @@
+2007-06-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-ems.el (gnus-x-splash): Make it work.
+
+	* gnus-start.el (gnus-1): Relax restrictions that prevent gnus-x-splash
+	from being used.
+
+	* gnus-art.el (gnus-article-summary-command-nosave): Correct the order
+	of the arguments passed to pop-to-buffer.
+	(gnus-article-read-summary-keys): Ditto.
+
 2007-06-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* gnus-art.el (gnus-split-methods): Fix typo in docstring.

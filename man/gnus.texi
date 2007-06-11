@@ -4084,8 +4084,8 @@ happens.  You just have to be careful if you do stuff like that.
 @item v
 @kindex v (Group)
 @cindex keys, reserved for users (Group)
-The key @kbd{v} is reserved for users.  You can bind it key to some
-function or better use it as a prefix key.  For example:
+The key @kbd{v} is reserved for users.  You can bind it to some
+command or better use it as a prefix key.  For example:
 
 @lisp
 (define-key gnus-group-mode-map (kbd "v j d")
@@ -4498,8 +4498,8 @@ available in Emacs.
 
 @kindex v (Summary)
 @cindex keys, reserved for users (Summary)
-The key @kbd{v} is reserved for users.  You can bind it key to some
-function or better use it as a prefix key.  For example:
+The key @kbd{v} is reserved for users.  You can bind it to some
+command or better use it as a prefix key.  For example:
 @lisp
 (define-key gnus-summary-mode-map (kbd "v -") "LrS") ;; lower subthread
 @end lisp
@@ -11422,8 +11422,8 @@ buffer.
 
 @kindex v (Article)
 @cindex keys, reserved for users (Article)
-The key @kbd{v} is reserved for users.  You can bind it key to some
-function or better use it as a prefix key.
+The key @kbd{v} is reserved for users.  You can bind it to some
+command or better use it as a prefix key.
 
 A few additional keystrokes are available:
 
@@ -12460,8 +12460,8 @@ Also @pxref{Formatting Variables}.
 @item v
 @kindex v (Server)
 @cindex keys, reserved for users (Server)
-The key @kbd{v} is reserved for users.  You can bind it key to some
-function or better use it as a prefix key.
+The key @kbd{v} is reserved for users.  You can bind it to some
+command or better use it as a prefix key.
 
 @item a
 @kindex a (Server)

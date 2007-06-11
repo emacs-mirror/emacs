@@ -1,3 +1,8 @@
+2007-06-06  Andreas Seltenreich  <andreas@gate450.dyndns.org>
+
+	* gnus.texi (Misc Group Stuff, Summary Buffer)
+	(Server Commands, Article Keymap): Fix typo.  s/function/command/.
+
 2007-06-07  Alan Mackenzie  <acm@muc.de>
 
 	* display.texi (Optional Mode Line): Document the new form of
