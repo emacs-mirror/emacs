@@ -1898,12 +1898,12 @@ if test "${with_x_toolkit+set}" = set; then
 	    m | mo | mot | moti | motif )	val=motif ;;
 	    g | gt | gtk  )	val=gtk ;;
 	    * )
-{ { echo "$as_me:$LINENO: error: \`--with-x-toolkit=$withval' is invalid\;
+{ { echo "$as_me:$LINENO: error: \`--with-x-toolkit=$withval' is invalid;
 this option's value should be \`yes', \`no', \`lucid', \`athena', \`motif' or \`gtk'.
-Currently, \`yes' and \`gtk', and \`athena' and \`lucid' are synonyms." >&5
-echo "$as_me: error: \`--with-x-toolkit=$withval' is invalid\;
+\`yes' and \`gtk' are synonyms. \`athena' and \`lucid' are synonyms." >&5
+echo "$as_me: error: \`--with-x-toolkit=$withval' is invalid;
 this option's value should be \`yes', \`no', \`lucid', \`athena', \`motif' or \`gtk'.
-Currently, \`yes' and \`gtk', and \`athena' and \`lucid' are synonyms." >&2;}
+\`yes' and \`gtk' are synonyms. \`athena' and \`lucid' are synonyms." >&2;}
    { (exit 1); exit 1; }; }
 	    ;;
 	  esac
