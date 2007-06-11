@@ -1,5 +1,10 @@
 2007-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/sh-script.el (sh-font-lock-backslash-quote)
+	(sh-font-lock-flush-syntax-ppss-cache): New functions.
+	(sh-font-lock-syntactic-keywords): Use them to distinguish the
+	different possible cases for \'.
+
 	* complete.el (PC-bindings): Don't bind things already bound in the
 	parent keymap.
 
