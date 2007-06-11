@@ -3148,13 +3148,6 @@ the WIDTH times as wide as FACE on FRAME.  */)
 			   ? NULL
 			   : FACE_FROM_ID (f, face_id));
 
-#ifdef WINDOWSNT
-/* For historic reasons, FONT_WIDTH refers to average width on W32,
-   not maximum as on X.  Redefine here. */
-#undef FONT_WIDTH
-#define FONT_WIDTH FONT_MAX_WIDTH
-#endif
-
       if (face && face->font)
 	size = FONT_WIDTH (face->font);
       else
@@ -4166,6 +4159,8 @@ Otherwise check for the existence of a global face.  */)
      Lisp_Object face, frame;
 {
   Lisp_Object lface;
+
+  face = resolve_face_name (face, 1);
 
   if (!NILP (frame))
     {
@@ -8477,7 +8472,7 @@ syms_of_xfaces ()
   staticpro (&QCforeground);
   QCbackground = intern (":background");
   staticpro (&QCbackground);
-  QCstipple = intern (":stipple");;
+  QCstipple = intern (":stipple");
   staticpro (&QCstipple);
   QCwidth = intern (":width");
   staticpro (&QCwidth);

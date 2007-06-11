@@ -1532,7 +1532,7 @@ delete_window (window)
 	if (!EQ (window, pwindow))
 	  break;
 	/* Otherwise, try another window for SWINDOW.  */
-	swindow = Fnext_window (swindow, Qlambda, Qnil);;
+	swindow = Fnext_window (swindow, Qlambda, Qnil);
 
 	/* If we get back to the frame's selected window,
 	   it means there was no acceptable alternative,
@@ -4110,8 +4110,8 @@ too small.  */)
 DEFUN ("shrink-window", Fshrink_window, Sshrink_window, 1, 2, "p",
        doc: /* Make current window ARG lines smaller.
 From program, optional second arg non-nil means shrink sideways arg columns.
-Interactively, if an argument is not given, make the window one line smaller.  Only
-siblings to the right or below are changed.  */)
+Interactively, if an argument is not given, make the window one line smaller.
+Only siblings to the right or below are changed.  */)
      (arg, side)
      Lisp_Object arg, side;
 {

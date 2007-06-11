@@ -143,7 +143,7 @@ font_pixel_size (f, spec)
     return 0;
   point_size = XFLOAT_DATA (size);
   extra = AREF (spec, FONT_EXTRA_INDEX);
-  val = assq_no_quit (extra, QCdpi);
+  val = assq_no_quit (QCdpi, extra);
   if (CONSP (val))
     {
       if (INTEGERP (XCDR (val)))
@@ -260,7 +260,6 @@ static Lisp_Object font_prop_validate_spacing P_ ((enum font_property_index,
 						   Lisp_Object, Lisp_Object));
 static int get_font_prop_index P_ ((Lisp_Object, int));
 static Lisp_Object font_prop_validate P_ ((Lisp_Object));
-static Lisp_Object font_put_extra P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 
 static Lisp_Object
 font_prop_validate_symbol (prop_index, prop, val)
@@ -408,7 +407,7 @@ font_prop_validate (spec)
   return spec;
 }
       
-static Lisp_Object
+Lisp_Object
 font_put_extra (font, prop, val)
      Lisp_Object font, prop, val;
 {
@@ -1679,7 +1678,7 @@ void
 adjust_anchor (struct font *font, OTF_Anchor *anchor,
 	       unsigned code, int size, int *x, int *y)
 {
-  if (anchor->AnchorFormat == 2)
+  if (anchor->AnchorFormat == 2 && font->driver->anchor_point)
     {
       int x0, y0;
 
@@ -3014,11 +3013,10 @@ FONT is a font-spec, a font-entity, or a font-object.  */)
 
       if (EQ (prop, QCotf))
 	{
-#ifdef HAVE_LIBOTF
-	  return font_otf_capability (fontp);
-#else  /* not HAVE_LIBOTF */
-	  return Qnil;
-#endif	/* not HAVE_LIBOTF */
+          if (fontp->driver->otf_capability)
+            return fontp->driver->otf_capability (fontp);
+          else
+            return Qnil;
 	}
       font = fontp->entity;
     }

@@ -141,7 +141,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 				    (member where
 					    (cdr (assoc version version-alist)))
 				  (push where (cdr (assoc version version-alist))))
-			      (push (cons version (list where)) version-alist)))
+			      (push (list version where) version-alist)))
 			;; This is a group
 			(insert "(custom-put-if-not '" (symbol-name symbol)
 				" 'custom-version ")

@@ -28,15 +28,15 @@ Boston, MA 02110-1301, USA.  */
 #define WHITE_PIX_DEFAULT(f) PALETTERGB(255,255,255)
 
 #define FONT_WIDTH(f)       \
-  ((f)->bdf ? (f)->bdf->width : (f)->tm.tmAveCharWidth)
+  ((f)->bdf ? (f)->bdf->width : (f)->tm.tmMaxCharWidth)
 #define FONT_HEIGHT(f)      \
    ((f)->bdf ? (f)->bdf->height : (f)->tm.tmHeight)
 #define FONT_BASE(f)        \
   ((f)->bdf ? (f)->bdf->ury : (f)->tm.tmAscent)
 #define FONT_DESCENT(f)     \
   ((f)->bdf ? -((f)->bdf->lly) : (f)->tm.tmDescent)
-#define FONT_MAX_WIDTH(f)   \
-  ((f)->bdf ? (f)->bdf->width : (f)->tm.tmMaxCharWidth)
+#define FONT_AVG_WIDTH(f)   \
+  ((f)->bdf ? (f)->bdf->width : (f)->tm.tmAveCharWidth)
 
 #define CP_DEFAULT 1004
 /* Special pseudo-codepages. */
@@ -324,6 +324,10 @@ struct w32_output
   /* Default ASCII font of this frame. */
   XFontStruct *font;
 
+#ifdef USE_FONT_BACKEND
+  struct font *fontp;
+#endif	/* USE_FONT_BACKEND */
+
   /* The baseline offset of the default ASCII font.  */
   int baseline_offset;
 
@@ -412,6 +416,10 @@ extern struct w32_output w32term_display;
 #define FRAME_FONT(f) ((f)->output_data.w32->font)
 #define FRAME_FONTSET(f) ((f)->output_data.w32->fontset)
 #define FRAME_BASELINE_OFFSET(f) ((f)->output_data.w32->baseline_offset)
+
+#ifdef USE_FONT_BACKEND
+#define FRAME_FONT_OBJECT(f) ((f)->output_data.w32->fontp)
+#endif	/* USE_FONT_BACKEND */
 
 /* This gives the w32_display_info structure for the display F is on.  */
 #define FRAME_W32_DISPLAY_INFO(f) (&one_w32_display_info)

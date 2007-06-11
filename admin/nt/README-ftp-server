@@ -35,6 +35,72 @@
   old binaries.
 
 
+* Files in this directory
+
+  + emacs-22.1-bin-i386.zip
+    Windows binaries of Emacs-22.1, with all lisp code and documentation
+    included.
+
+    Download this file if you want a single installation package, and
+    are not interested in the C source code for Emacs. After
+    unpacking, you can optionally run the file bin/addpm.exe to have
+    Emacs add icons to the Start Menu.
+
+    If you need the C source code at a later date, it will be safe to
+    unpack the source distribution on top of this installation.
+
+  + emacs-22.1-barebin-i386.zip
+    Windows binaries of Emacs-22.1, without lisp code or documentation.
+
+    Download this file if you already have the source distribution, or
+    if you need to redump the emacs.exe executable.
+
+    Unpack this over the top of either the source distribution or the
+    bin distribution above. It contains the bin subdirectory and etc/DOC
+    file, plus temacs.exe and dump.bat, which are required if you want to
+    redump emacs without recompiling it.
+
+  + emacs-21.3-bin-i386.tar.gz
+    Windows binaries of Emacs 21.3, with compiled lisp code and some
+    documentation included.
+
+    This is provided for users who require the older version.
+
+  + emacs-21.3-leim.tar.gz
+    Compiled lisp input methods. This optional addition to Emacs-21.3
+    is required if you want to enter languages that are not directly
+    supported by your keyboard.
+
+* Image support
+
+  Emacs 22.1 contains support for images, however for most image formats
+  supporting libraries are required.  This distribution has been tested
+  with the libraries that are distributed with GTK for Windows, and the
+  libraries found at http://gnuwin32.sourceforge.net/. The following image
+  formats are supported:
+
+      PBM/PGM/PPM: Supported natively by Emacs. This format is used for
+      the black and white versions of the toolbar icons.
+
+      XPM: requires a Windows port of the XPM library 3.4 or later,
+      which will be named xpm4.dll, libxpm-nox4.dll or
+      libxpm.dll. This format is used for the color versions of the
+      toolbar icons, and other images in Emacs.
+
+      PNG: requires the PNG reference library 1.2 or later, which will
+      be named libpng13d.dll, libpng13.dll, libpng12d.dll, libpng12.dll
+      or libpng.dll. LibPNG requires zlib, which should come from the same
+      source as you got libpng.
+
+      JPEG: requires the Independant JPEG Group's libjpeg 6b or later,
+      which will be called jpeg62.dll, libjpeg.dll, jpeg-62.dll or jpeg.dll.
+
+      TIFF: requires libTIFF 3.0 or later, which will be called libtiff3.dll
+      or libtiff.dll.
+
+      GIF: requires libungif or giflib 4.1 or later, which will be
+      called giflib4.dll, libungif4.dll or libungif.dll.
+
 * Distributions in .tar.gz and .zip format
 
   Emacs is distributed primarily as source code in a large gzipped tar file
@@ -46,23 +112,6 @@
   but since there are no longer legal problems with .zip files, and the
   latest versions of Windows support these natively, the Windows binaries
   of Emacs are now distributed as .zip files.
-  Here are the combinations (i386 in the name indicates a zipfile contains
-  executables compiled for Intel-compatible x86 systems):
-
-  + Primary precompiled distribution, including lisp source:
-
-      emacs-22.1-bin-i386.zip
-
-  NB. If you just want to run Emacs, get one of the distributions above.
-
-  + Bare executables, useful if you want to get the complete source
-    release, but can't compile Emacs yourself:
-
-      emacs-22.1-barebin-i386.zip  (requires ../emacs-22.1.tar.gz)
-
-  + The complete official source for Emacs:
-
-      ../emacs-22.1.tar.gz
 
 * Distributions for non-x86 platforms
 
@@ -107,6 +156,11 @@
 
   You may be prompted to rename or overwrite directories when using
   djtarnt: simply type return to continue (this is harmless).
+
+  Zip files can be unpacked using unzip.exe from info-zip.org
+  if you do not already have other tools to do this.
+
+    % unzip some.zip
 
   The precompiled binaries can be unpacked using unzip.exe from info-zip.org
   if you do not already have other tools to do this.
@@ -165,7 +219,10 @@
 	http://www.gnu.org/software/emacs/windows/ntemacs.html
 
   This document serves as an FAQ and a source for further information
-  about the Windows port and related software packages.
+  about the Windows port and related software packages. Note that as
+  of writing, most of the information in that FAQ was for Emacs-21.3
+  and earlier versions, so some information may not be relevant to
+  Emacs-22.1.
 
   In addition to the FAQ, there is a mailing list for discussing issues
   related to the Windows port of Emacs.  For information about the

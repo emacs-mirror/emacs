@@ -24,6 +24,8 @@
 
 ;; add-release-logs	Add ``Version X released'' change log entries.
 ;; set-version		Change Emacs version number in source tree.
+;; set-copyright        Change emacs short copyright string (eg as
+;;                      printed by --version) in source tree.
 
 ;;; Code:
 
@@ -157,6 +159,51 @@ Root must be the root of an Emacs source tree."
        root "mac/src/Emacs.r" release
        (rx (and (submatch (1+ (in "a-z"))) (0+ space) ?\, (0+ space)
 		"/* development, alpha, beta, or final (release) */"))))))
+
+;; Note this makes some assumptions about form of short copyright.
+(defun set-copyright (root copyright)
+  "Set Emacs short copyright to COPYRIGHT in relevant files under ROOT.
+Root must be the root of an Emacs source tree."
+  (interactive (list
+                (read-directory-name "Emacs root directory: " nil nil t)
+                (read-string
+                 "Short copyright string: "
+                 (format "Copyright (C) %s Free Software Foundation, Inc."
+                         (format-time-string "%Y")))))
+  (unless (file-exists-p (expand-file-name "src/emacs.c" root))
+    (error "%s doesn't seem to be the root of an Emacs source tree" root))
+  (set-version-in-file root "lisp/version.el" copyright
+		       (rx (and "emacs-copyright" (0+ space)
+				?\" (submatch (1+ (not (in ?\")))) ?\")))
+  (set-version-in-file root "lib-src/etags.c" copyright
+                       (rx (and "emacs_copyright" (0+ (not (in ?\")))
+				?\" (submatch (1+ (not (in ?\")))) ?\")))
+  (set-version-in-file root "lib-src/rcs2log" copyright
+		       (rx (and "Copyright" (0+ space) ?= (0+ space)
+				?\' (submatch (1+ nonl)))))
+  (set-version-in-file
+   root "mac/Emacs.app/Contents/Resources/English.lproj/InfoPlist.strings"
+   copyright (rx (and "CFBundleGetInfoString" (0+ space) ?= (0+ space) ?\"
+                      (1+ anything)
+                      (submatch "Copyright" (1+ (not (in ?\")))))))
+  ;; This one is a nuisance, as it needs to be split over two lines.
+  (string-match "\\(.*[0-9]\\{4\\} *\\)\\(.*\\)" copyright)
+  (let ((csign "\\0xa9")
+        (cyear (match-string 1 copyright))  ; "Copyright (C) 2007 "
+        (owner (match-string 2 copyright))) ; "Free Software Foundation, Inc."
+    (set-version-in-file root "mac/src/Emacs.r"
+                         (regexp-quote
+                          (replace-regexp-in-string "(C)"
+                                                    (regexp-quote csign) cyear))
+                         (rx (and
+                              (submatch "Copyright" (0+ space) (eval csign)
+                                        (0+ space) (= 4 num)
+                                        (0+ (not (in ?\")))) ?\")))
+    (set-version-in-file root "mac/src/Emacs.r" owner
+                         (rx (and ?\"
+                              (submatch (1+ (not (in ?\"))))
+                              ?\" (0+ space)
+                              "/* Long version number */")))))
 
 ;;; arch-tag: 4ea83636-2293-408b-884e-ad64f22a3bf5
 ;; admin.el ends here.

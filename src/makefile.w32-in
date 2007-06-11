@@ -137,6 +137,12 @@ WIN32OBJ = $(BLD)/w32term.$(O)			\
 	   $(BLD)/w32reg.$(O)			\
 	   $(BLD)/w32bdf.$(O)
 
+FONTOBJ =
+ifdef USE_FONTBACKEND
+FONTOBJ = $(BLD)/font.$(O) \
+	  $(BLD)/w32font.$(O)
+endif
+
 LIBS =  $(TLIB0)	\
 	$(TLIB1)	\
 	$(TLIBW32)	\
@@ -178,6 +184,7 @@ $(TEMACS):      $(TLIB0) $(TLIB1) $(TLIBW32) $(TLASTLIB) $(TOBJ) $(TRES) \
 	echo $(OBJ0) > $(BLD)/buildobj.lst
 	echo $(OBJ1) >> $(BLD)/buildobj.lst
 	echo $(WIN32OBJ) >> $(BLD)/buildobj.lst
+	echo $(FONTOBJ) >> $(BLD)/buildobj.lst
 
 bootstrap: bootstrap-emacs
 
@@ -226,7 +233,7 @@ $(TLIB0):       $(OBJ0)
 $(TLIB1):       $(OBJ1)
 	- $(DEL) $@
 	$(AR) $(AR_OUT)$@ $(ALL_DEPS)
-$(TLIBW32):	$(WIN32OBJ)
+$(TLIBW32):	$(WIN32OBJ) $(FONTOBJ)
 	- $(DEL) $@
 	$(AR) $(AR_OUT)$@ $(ALL_DEPS)
 
@@ -742,6 +749,19 @@ $(BLD)/fns.$(O) : \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
+$(BLD)/font.$(O) : \
+	$(SRC)/font.c \
+	$(EMACS_ROOT)/src/s/ms-w32.h \
+	$(EMACS_ROOT)/src/m/intel386.h \
+	$(EMACS_ROOT)/src/config.h \
+	$(SRC)/dispextern.h \
+	$(SRC)/frame.h \
+	$(SRC)/window.h \
+	$(SRC)/ccl.h \
+	$(SRC)/character.h \
+	$(SRC)/charset.h \
+	$(SRC)/font.h
+
 $(BLD)/fontset.$(O) : \
 	$(SRC)/fontset.c \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
@@ -752,6 +772,7 @@ $(BLD)/fontset.$(O) : \
 	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/dispextern.h \
+	$(SRC)/font.h \
 	$(SRC)/fontset.h \
 	$(SRC)/frame.h \
 	$(SRC)/keyboard.h \
@@ -1365,6 +1386,7 @@ $(BLD)/xdisp.$(O) : \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/disptab.h \
+	$(SRC)/font.h \
 	$(SRC)/fontset.h \
 	$(SRC)/frame.h \
 	$(SRC)/indent.h \
@@ -1394,6 +1416,7 @@ $(BLD)/xfaces.$(O): \
 	$(SRC)/charset.h \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
+	$(SRC)/font.h \
 	$(SRC)/fontset.h \
 	$(SRC)/frame.h \
 	$(SRC)/intervals.h \
@@ -1419,6 +1442,7 @@ $(BLD)/w32fns.$(O): \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/epaths.h \
+	$(SRC)/font.h \
 	$(SRC)/fontset.h \
 	$(SRC)/frame.h \
 	$(SRC)/intervals.h \
@@ -1468,6 +1492,7 @@ $(BLD)/w32term.$(O): \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/disptab.h \
+	$(SRC)/font.h \
 	$(SRC)/fontset.h \
 	$(SRC)/frame.h \
 	$(SRC)/gnu.h \
@@ -1554,7 +1579,21 @@ $(BLD)/w32bdf.$(O): \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32term.h
 
+$(BLD)/w32font$(O): \
+	$(SRC)/w32font.c \
+	$(EMACS_ROOT)/src/s/ms-w32.h \
+	$(EMACS_ROOT)/src/m/intel386.h \
+	$(EMACS_ROOT)/src/config.h \
+	$(SRC)/character.h \
+	$(SRC)/charset.h \
+	$(SRC)/dispextern.h \
+	$(SRC)/font.h \
+	$(SRC)/fontset.h \
+	$(SRC)/frame.h \
+	$(SRC)/w32gui.h \
+	$(SRC)/w32term.h
+
 # Each object file depends on stamp_BLD, because in parallel builds we must
 # make sure $(BLD) exists before starting compilations.
 #
-$(OBJ0) $(OBJ1) $(WIN32OBJ) $(BLD)/lastfile.$(O) $(BLD)/firstfile.$(O): stamp_BLD
+$(OBJ0) $(OBJ1) $(WIN32OBJ) $(FONTOBJ) $(BLD)/lastfile.$(O) $(BLD)/firstfile.$(O): stamp_BLD

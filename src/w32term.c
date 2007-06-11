@@ -980,8 +980,8 @@ w32_native_per_char_metric (font, char2b, font_type, pcm)
 
       if (retval)
 	{
-	  pcm->width = sz.cx - font->tm.tmOverhang;
-	  pcm->rbearing = sz.cx;
+	  pcm->width = sz.cx;
+	  pcm->rbearing = sz.cx + font->tm.tmOverhang;
 	  pcm->lbearing = 0;
 	  pcm->ascent = FONT_BASE (font);
 	  pcm->descent = FONT_DESCENT (font);
@@ -1063,9 +1063,9 @@ w32_cache_char_metrics (font)
         {
           /* Use the font width and height as max bounds, as not all BDF
              fonts contain the letter 'x'. */
-          font->max_bounds.width = FONT_MAX_WIDTH (font);
+          font->max_bounds.width = FONT_WIDTH (font);
           font->max_bounds.lbearing = -font->bdf->llx;
-          font->max_bounds.rbearing = FONT_MAX_WIDTH (font) - font->bdf->urx;
+          font->max_bounds.rbearing = FONT_WIDTH (font) - font->bdf->urx;
           font->max_bounds.ascent = FONT_BASE (font);
           font->max_bounds.descent = FONT_DESCENT (font);
         }
@@ -1838,13 +1838,9 @@ x_draw_glyph_string_foreground (s)
 #ifdef USE_FONT_BACKEND
   else if (enable_font_backend)
     {
-      unsigned *code = alloca (sizeof (unsigned) * s->nchars);
       int boff = s->font_info->baseline_offset;
       struct font *font = (struct font *) s->font_info;
       int y;
-
-      for (i = 0; i < s->nchars; i++)
-	code[i] = (s->char2b[i].byte1 << 8) | s->char2b[i].byte2;
 
       if (s->font_info->vertical_centering)
 	boff = VCENTER_BASELINE_OFFSET (s->font, s->f) - boff;
@@ -2877,7 +2873,7 @@ x_draw_glyph_string (s)
           && (s->font->bdf || !s->font->tm.tmUnderlined))
         {
           unsigned long h;
-          unsigned long dy = 0;
+          int y;
 	  /* Get the underline thickness.  Default is 1 pixel.  */
 #ifdef USE_FONT_BACKEND
 	  if (enable_font_backend)
@@ -2899,28 +2895,29 @@ x_draw_glyph_string (s)
 	  else
 #endif
             {
-              if (x_underline_at_descent_line)
-                dy = s->height - h;
-              else
+                y = s->y + s->height - h;
+                /* TODO: Use font information for positioning and
+                   thickness of underline.  See OUTLINETEXTMETRIC,
+                   and xterm.c.  Note: If you make this work,
+                   don't forget to change the doc string of
+                   x-use-underline_color-position-properties
+                   below.  */
+#if 0
+              if (!x_underline_at_descent_line)
                 {
-                  /* TODO: Use font information for positioning and
-                     thickness of underline.  See OUTLINETEXTMETRIC,
-                     and xterm.c.  Note: If you makedev this work,
-                     don't forget to change the doc string of
-                     x-use-underline_color-position-properties
-                     below.  */
-                  dy = s->height - h;
+                  ...
                 }
+#endif
             }
           if (s->face->underline_defaulted_p)
             {
               w32_fill_area (s->f, s->hdc, s->gc->foreground, s->x,
-                             s->y + dy, s->background_width, 1);
+                             y, s->background_width, 1);
             }
           else
             {
               w32_fill_area (s->f, s->hdc, s->face->underline_color, s->x,
-                             s->y + dy, s->background_width, 1);
+                             y, s->background_width, 1);
             }
         }
       /* Draw overline.  */
@@ -6548,7 +6545,7 @@ x_font_min_bounds (font, w, h)
    * average and maximum width, and maximum height.
    */
   *h = FONT_HEIGHT (font);
-  *w = FONT_WIDTH (font);
+  *w = FONT_AVG_WIDTH (font);
 }
 
 

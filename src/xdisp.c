@@ -6417,7 +6417,7 @@ next_element_from_buffer (it)
 	it->c = *p, it->len = 1;
 
       /* Record what we have and where it came from.  */
-      it->what = IT_CHARACTER;;
+      it->what = IT_CHARACTER;
       it->object = it->w->buffer;
       it->position = it->current.pos;
 
@@ -10996,7 +10996,7 @@ redisplay_internal (preserve_echo_area)
   int must_finish = 0;
   struct text_pos tlbufpos, tlendpos;
   int number_of_visible_frames;
-  int count;
+  int count, count1;
   struct frame *sf;
   int polling_stopped_here = 0;
 
@@ -11134,6 +11134,10 @@ redisplay_internal (preserve_echo_area)
 	update_mode_lines++;
     }
 
+  /* Avoid invocation of point motion hooks by `current_column' below.  */
+  count1 = SPECPDL_INDEX ();
+  specbind (Qinhibit_point_motion_hooks, Qt);
+
   /* If %c is in the mode line, update it if needed.  */
   if (!NILP (w->column_number_displayed)
       /* This alternative quickly identifies a common case
@@ -11144,6 +11148,8 @@ redisplay_internal (preserve_echo_area)
       && (XFASTINT (w->column_number_displayed)
           != (int) current_column ()))  /* iftc */
     w->update_mode_line = Qt;
+
+  unbind_to (count1, Qnil);
 
   FRAME_SCROLL_BOTTOM_VPOS (XFRAME (w->frame)) = -1;
 
@@ -17485,7 +17491,7 @@ are the selected window and the window's buffer).  */)
   CHECK_BUFFER (buffer);
 
   if (NILP (format))
-    return build_string ("");
+    return empty_unibyte_string;
 
   if (no_props)
     face = Qnil;
@@ -17543,7 +17549,7 @@ are the selected window and the window's buffer).  */)
     {
       mode_line_string_list = Fnreverse (mode_line_string_list);
       str = Fmapconcat (intern ("identity"), mode_line_string_list,
-			make_string ("", 0));
+			empty_unibyte_string);
     }
 
   unbind_to (count, Qnil);
@@ -19148,11 +19154,12 @@ fill_composite_glyph_string (s, base_face, overlaps)
 	{
 	  Lisp_Object g = LGSTRING_GLYPH (gstring, i);
 	  unsigned code;
-
+          XChar2b * store_pos;
 	  if (NILP (LGLYPH_FROM (g)))
 	    break;
 	  code = XUINT (LGLYPH_CODE (g));
-	  STORE_XCHAR2B (s->char2b + i, code >> 8, code & 0xFF);
+          store_pos = s->char2b + i;
+	  STORE_XCHAR2B (store_pos, code >> 8, code & 0xFF);
 	}
       s->width = s->cmp->pixel_width;
     }
@@ -24380,7 +24387,7 @@ and is used only on frames for which no explicit name has been set
     = Vframe_title_format
     = Fcons (intern ("multiple-frames"),
 	     Fcons (build_string ("%b"),
-		    Fcons (Fcons (empty_string,
+		    Fcons (Fcons (empty_unibyte_string,
 				  Fcons (intern ("invocation-name"),
 					 Fcons (build_string ("@"),
 						Fcons (intern ("system-name"),

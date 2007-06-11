@@ -104,17 +104,30 @@ REGISTRY, ALTERNATIVE1, ALTERNATIVE2, and etc."
 
 
 (defcustom font-weight-table
-  '((thin . 0)
-    (ultralight . 40) (ultra-light . 40) (extra-light . 40)
-    (light . 50)
-    (semilight . 65) (semi-light . 65)
-    (book . 75)
-    (medium . 100) (regular . 100) (normal . 100)
-    (semibold . 180) (semi-bold . 180) (demibold . 180) (demi . 180)
-    (bold . 200)
-    (extrabold . 205) (extra-bold . 205)
-    (ultrabold . 205) (ultra-bold . 205)
-    (black . 210) (heavy . 210))
+  (if (eq system-type 'windows-nt)
+      '((thin . 100)
+        (ultralight . 200) (ultra-light . 200) (extra-light . 200)
+        (light . 300)
+        (semilight . 330) (semi-light . 330)
+        (book . 350)
+        (normal . 400) (regular . 400)
+        (medium . 500) 
+        (semibold . 600) (semi-bold . 600) (demibold . 600) (demi . 600)
+        (bold . 700)
+        (extrabold . 800) (extra-bold . 800)
+        (ultrabold . 800) (ultra-bold . 800)
+        (black . 900) (heavy . 900))
+    '((thin . 0)
+      (ultralight . 40) (ultra-light . 40) (extra-light . 40)
+      (light . 50)
+      (semilight . 65) (semi-light . 65)
+      (book . 75)
+      (medium . 100) (regular . 100) (normal . 100)
+      (semibold . 180) (semi-bold . 180) (demibold . 180) (demi . 180)
+      (bold . 200)
+      (extrabold . 205) (extra-bold . 205)
+      (ultrabold . 205) (ultra-bold . 205)
+      (black . 210) (heavy . 210)))
   "*Alist of font weight symbols vs the corresponding numeric values."
   :tag "Font weight table"
   :version "23.1"
@@ -279,11 +292,12 @@ Value is FACE."
 
 (defun face-id (face &optional frame)
   "Return the internal ID of face with name FACE.
+If FACE is a face-alias, return the ID of the target face.
 The optional argument FRAME is ignored, since the internal face ID
 of a face name is the same for all frames."
   (check-face face)
-  (get face 'face))
-
+  (or (get face 'face)
+      (face-id (get face 'face-alias))))
 
 (defun face-equal (face1 face2 &optional frame)
   "Non-nil if faces FACE1 and FACE2 are equal.

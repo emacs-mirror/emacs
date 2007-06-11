@@ -1356,13 +1356,9 @@ x_draw_glyph_string_foreground (s)
 #ifdef USE_FONT_BACKEND
   else if (enable_font_backend)
     {
-      unsigned *code = alloca (sizeof (unsigned) * s->nchars);
       int boff = s->font_info->baseline_offset;
       struct font *font = (struct font *) s->font_info;
       int y;
-
-      for (i = 0; i < s->nchars; i++)
-	code[i] = (s->char2b[i].byte1 << 8) | s->char2b[i].byte2;
 
       if (s->font_info->vertical_centering)
 	boff = VCENTER_BASELINE_OFFSET (s->font, s->f) - boff;
@@ -8656,7 +8652,7 @@ wm_supports (f, atomname)
                            prop_atom, 0, max_len, False, target_type,
                            &actual_type, &actual_format, &actual_size,
                            &bytes_remaining, &tmp_data);
-  
+
   if (rc != Success || actual_type != XA_WINDOW || x_had_errors_p (dpy))
     {
       if (tmp_data) XFree (tmp_data);
@@ -8711,7 +8707,7 @@ wm_supports (f, atomname)
   rc = 0;
   want_atom = XInternAtom (dpy, atomname, False);
 
-  for (i = 0; rc == 0 && i < dpyinfo->nr_net_supported_atoms; ++i) 
+  for (i = 0; rc == 0 && i < dpyinfo->nr_net_supported_atoms; ++i)
     rc = dpyinfo->net_supported_atoms[i] == want_atom;
 
   x_uncatch_errors ();
@@ -11112,7 +11108,7 @@ x_term_init (display_name, xrm_option, resource_name)
 	    UNBLOCK_INPUT;
 	    dpyinfo->kboard->Vsystem_key_alist
 	      = call1 (Qvendor_specific_keysyms,
-		       build_string (vendor ? vendor : ""));
+		       vendor ? build_string (vendor) : empty_unibyte_string);
 	    BLOCK_INPUT;
 	  }
 

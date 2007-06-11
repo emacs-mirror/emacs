@@ -190,20 +190,20 @@ X frame."
 (defun make-glyph-code (char &optional face)
   "Return a glyph code representing char CHAR with face FACE."
   ;; Due to limitations on Emacs integer values, faces with
-  ;; face id greater that 4091 are silently ignored.
-  (if (and face (<= (face-id face) #xfff))
-      (logior char (lsh (face-id face) 19))
+  ;; face id greater that 512 are silently ignored.
+  (if (and face (<= (face-id face) #x1ff))
+      (logior char (lsh (face-id face) 22))
     char))
 
 ;;;###autoload
 (defun glyph-char (glyph)
   "Return the character of glyph code GLYPH."
-  (logand glyph #x7ffff))
+  (logand glyph #x3fffff))
 
 ;;;###autoload
 (defun glyph-face (glyph)
   "Return the face of glyph code GLYPH, or nil if glyph has default face."
-  (let ((face-id (lsh glyph -19)))
+  (let ((face-id (lsh glyph -22)))
     (and (> face-id 0)
 	 (car (delq nil (mapcar (lambda (face)
 				  (and (eq (get face 'face) face-id)
@@ -220,7 +220,7 @@ with either the `--unibyte' option or the EMACS_UNIBYTE environment
 variable, or else customize `enable-multibyte-characters'.
 
 With prefix argument, this command enables European character display
-if arg is positive, disables it otherwise.  Otherwise, it toggles
+if ARG is positive, disables it otherwise.  Otherwise, it toggles
 European character display.
 
 When this mode is enabled, characters in the range of 160 to 255
@@ -264,5 +264,5 @@ for users who call this function in `.emacs'."
 
 (provide 'disp-table)
 
-;;; arch-tag: ffe4c28c-960c-47aa-b8a8-ae89d371ffc7
+;; arch-tag: ffe4c28c-960c-47aa-b8a8-ae89d371ffc7
 ;;; disp-table.el ends here

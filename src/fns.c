@@ -2497,7 +2497,7 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string.  */)
     wrong_type_argument (Qlistp, sequence);
   leni = XINT (len);
   nargs = leni + leni - 1;
-  if (nargs < 0) return build_string ("");
+  if (nargs < 0) return empty_unibyte_string;
 
   SAFE_ALLOCA_LISP (args, nargs);
 
@@ -4585,7 +4585,7 @@ DEFUN ("sxhash", Fsxhash, Ssxhash, 1, 1, 0,
      (obj)
      Lisp_Object obj;
 {
-  unsigned hash = sxhash (obj, 0);;
+  unsigned hash = sxhash (obj, 0);
   return make_number (hash);
 }
 

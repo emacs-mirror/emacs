@@ -5333,21 +5333,25 @@ instead of the current buffer and returns the OBJECT."
 (defun table--point-entered-cell-function (&optional old-point new-point)
   "Point has entered a cell.
 Refresh the menu bar."
-  (unless table-cell-entered-state
-    (setq table-cell-entered-state t)
-    (setq table-mode-indicator t)
-    (force-mode-line-update)
-    (table--warn-incompatibility)
-    (run-hooks 'table-point-entered-cell-hook)))
+  ;; Avoid calling point-motion-hooks recursively.
+  (let ((inhibit-point-motion-hooks t))
+    (unless table-cell-entered-state
+      (setq table-cell-entered-state t)
+      (setq table-mode-indicator t)
+      (force-mode-line-update)
+      (table--warn-incompatibility)
+      (run-hooks 'table-point-entered-cell-hook))))
 
 (defun table--point-left-cell-function (&optional old-point new-point)
   "Point has left a cell.
 Refresh the menu bar."
-  (when table-cell-entered-state
-    (setq table-cell-entered-state nil)
-    (setq table-mode-indicator nil)
-    (force-mode-line-update)
-    (run-hooks 'table-point-left-cell-hook)))
+  ;; Avoid calling point-motion-hooks recursively.
+  (let ((inhibit-point-motion-hooks t))
+    (when table-cell-entered-state
+      (setq table-cell-entered-state nil)
+      (setq table-mode-indicator nil)
+      (force-mode-line-update)
+      (run-hooks 'table-point-left-cell-hook))))
 
 (defun table--warn-incompatibility ()
   "If called from interactive operation warn the know incompatibilities.

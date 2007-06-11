@@ -133,8 +133,8 @@ Lisp_Object Vinstallation_directory;
 /* Hook run by `kill-emacs' before it does really anything.  */
 Lisp_Object Vkill_emacs_hook;
 
-/* An empty lisp string.  To avoid having to build any other.  */
-Lisp_Object empty_string;
+/* Empty lisp strings.  To avoid having to build any others.  */
+Lisp_Object empty_unibyte_string, empty_multibyte_string;
 
 /* Search path separator.  */
 Lisp_Object Vpath_separator;
@@ -859,17 +859,23 @@ main (argc, argv
          So ignore --version otherwise.  */
       && initialized)
     {
-      Lisp_Object tem;
+      Lisp_Object tem, tem2;
       tem = Fsymbol_value (intern ("emacs-version"));
+      tem2 = Fsymbol_value (intern ("emacs-copyright"));
       if (!STRINGP (tem))
 	{
 	  fprintf (stderr, "Invalid value of `emacs-version'\n");
 	  exit (1);
 	}
+      if (!STRINGP (tem2))
+	{
+	  fprintf (stderr, "Invalid value of `emacs-copyright'\n");
+	  exit (1);
+	}
       else
 	{
 	  printf ("GNU Emacs %s\n", SDATA (tem));
-	  printf ("Copyright (C) 2007 Free Software Foundation, Inc.\n");
+	  printf ("%s\n", SDATA(tem2));
 	  printf ("GNU Emacs comes with ABSOLUTELY NO WARRANTY.\n");
 	  printf ("You may redistribute copies of Emacs\n");
 	  printf ("under the terms of the GNU General Public License.\n");
@@ -2493,9 +2499,6 @@ see `kill-emacs-query-functions' instead.
 
 The hook is not run in batch mode, i.e., if `noninteractive' is non-nil.  */);
   Vkill_emacs_hook = Qnil;
-
-  empty_string = build_string ("");
-  staticpro (&empty_string);
 
   DEFVAR_INT ("emacs-priority", &emacs_priority,
 	      doc: /* Priority for Emacs to run at.

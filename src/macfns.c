@@ -218,9 +218,6 @@ void x_explicitly_set_name P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_menu_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_title P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_tool_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
-
-extern void mac_get_window_bounds P_ ((struct frame *, Rect *, Rect *));
-
 
 
 /* Store the screen positions of frame F into XPTR and YPTR.
@@ -2263,11 +2260,11 @@ mac_window (f)
 	  FRAME_MAC_WINDOW (f) = NULL;
 	}
     }
-#else
+#else  /* !TARGET_API_MAC_CARBON */
   FRAME_MAC_WINDOW (f)
     = NewCWindow (NULL, &r, "\p", false, zoomDocProc,
-		  (WindowPtr) -1, 1, (long) f->output_data.mac);
-#endif
+		  (WindowRef) -1, 1, (long) f->output_data.mac);
+#endif  /* !TARGET_API_MAC_CARBON */
   /* so that update events can find this mac_output struct */
   f->output_data.mac->mFP = f;  /* point back to emacs frame */
 
@@ -3120,7 +3117,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
       UNBLOCK_INPUT;
     }
 #if MAC_OS_X_VERSION_MIN_REQUIRED == 1020
-  else
+  else				/* CGDisplayScreenSize == NULL */
 #endif
 #endif	/* MAC_OS_X_VERSION_MAX_ALLOWED >= 1030  */
 #if MAC_OS_X_VERSION_MAX_ALLOWED < 1030 || MAC_OS_X_VERSION_MIN_REQUIRED == 1020
@@ -3157,7 +3154,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
       UNBLOCK_INPUT;
     }
 #if MAC_OS_X_VERSION_MIN_REQUIRED == 1020
-  else
+  else				/* CGDisplayScreenSize == NULL */
 #endif
 #endif	/* MAC_OS_X_VERSION_MAX_ALLOWED >= 1030  */
 #if MAC_OS_X_VERSION_MAX_ALLOWED < 1030 || MAC_OS_X_VERSION_MIN_REQUIRED == 1020
@@ -4076,8 +4073,12 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
       Point mouse_pos;
 
       BLOCK_INPUT;
+#if TARGET_API_MAC_CARBON
+      GetGlobalMouse (&mouse_pos);
+#else
       GetMouse (&mouse_pos);
       LocalToGlobal (&mouse_pos);
+#endif
       *root_x = mouse_pos.h;
       *root_y = mouse_pos.v;
       UNBLOCK_INPUT;

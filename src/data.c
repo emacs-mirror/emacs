@@ -1575,7 +1575,7 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
       XBUFFER_LOCAL_VALUE (newval)->found_for_frame = 0;
       XBUFFER_LOCAL_VALUE (newval)->check_frame = 0;
       XBUFFER_LOCAL_VALUE (newval)->cdr = tem;
-      SET_SYMBOL_VALUE (variable, newval);;
+      SET_SYMBOL_VALUE (variable, newval);
     }
   /* Make sure this buffer has its own value of symbol.  */
   tem = Fassq (variable, current_buffer->local_var_alist);

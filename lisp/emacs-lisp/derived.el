@@ -254,11 +254,7 @@ No problems result if this variable is not bound.
 	  ,@body
 	  )
 	 ;; Run the hooks, if any.
-	 ;; Make the generated code work in older Emacs versions
-	 ;; that do not yet have run-mode-hooks.
-	 (if (fboundp 'run-mode-hooks)
-	     (run-mode-hooks ',hook)
-	   (run-hooks ',hook))))))
+         (run-mode-hooks ',hook)))))
 
 ;; PUBLIC: find the ultimate class of a derived mode.
 

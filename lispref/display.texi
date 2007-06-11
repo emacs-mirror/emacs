@@ -2505,8 +2505,9 @@ makes @code{modeline} an alias for the @code{mode-line} face.
 @cindex automatic face assignment
 @cindex faces, automatic choice
 
-  This hook is used for automatically assigning faces to text in the
-buffer.  It is part of the implementation of Font-Lock mode.
+  This hook is used for automatically assigning facesto text in the
+buffer.  It is part of the implementation of Jit-Lock mode, used by
+Font-Lock.
 
 @defvar fontification-functions
 This variable holds a list of functions that are called by Emacs

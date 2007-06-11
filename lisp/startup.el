@@ -1315,7 +1315,7 @@ using the mouse.\n\n")
 			 (emacs-version)
 			 "\n"
 			 :face '(variable-pitch :height 0.5)
-			 "Copyright (C) 2007 Free Software Foundation, Inc.")
+			 emacs-copyright)
     (and auto-save-list-file-prefix
 	 ;; Don't signal an error if the
 	 ;; directory for auto-save-list files

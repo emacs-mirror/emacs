@@ -453,6 +453,7 @@ enum {
 #ifdef HAVE_GPM
 #include <gpm.h>
 extern int handle_one_term_event (Gpm_Event *, struct input_event *);
+extern void term_mouse_moveto (int, int);
 
 /* Nonzero means mouse is enabled on Linux console */
 extern int term_gpm;

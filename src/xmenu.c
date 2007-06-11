@@ -325,7 +325,7 @@ restore_menu_items (saved)
   menu_items_used = XINT (XCAR (saved));
   saved = XCDR (saved);
   menu_items_n_panes = XINT (XCAR (saved));
-  saved = XCDR (saved);  
+  saved = XCDR (saved);
   menu_items_submenu_depth = XINT (XCAR (saved));
   return Qnil;
 }
@@ -3432,7 +3432,7 @@ menu_help_callback (help_string, pane, item)
     pane_name = first_item[MENU_ITEMS_PANE_NAME];
   else if (EQ (first_item[0], Qquote))
     /* This shouldn't happen, see xmenu_show.  */
-    pane_name = empty_string;
+    pane_name = empty_unibyte_string;
   else
     pane_name = first_item[MENU_ITEMS_ITEM_NAME];
 

@@ -71,7 +71,7 @@ typedef unsigned long Time;
 #undef Z
 #define Z (current_buffer->text->z)
 #else /* not HAVE_CARBON */
-#include <QuickDraw.h>		/* for WindowPtr */
+#include <QuickDraw.h>		/* for WindowRef */
 #include <QDOffscreen.h>	/* for GWorldPtr */
 #include <Appearance.h>		/* for ThemeCursor */
 #include <Windows.h>
@@ -119,7 +119,7 @@ typedef unsigned long Time;
 #endif
 #endif
 
-typedef WindowPtr Window;
+typedef WindowRef Window;
 typedef GWorldPtr Pixmap;
 
 #define Cursor ThemeCursor
