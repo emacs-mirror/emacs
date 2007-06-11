@@ -1,3 +1,7 @@
+2007-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term.c: Include intervals.h to declare Fget_text_property.
+
 2007-06-10  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (Fx_file_dialog): Take size from struct not pointer.
@@ -106,11 +110,11 @@
 	New function.
 	(init_dm_notification_handler) [MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]:
 	Register it.
-	(XTread_socket) [TARGET_API_MAC_CARBON]: Consolidate
-	SendEventToEventTarget calls.  Use FRAME_OUTER_TO_INNER_DIFF_X and
-	FRAME_OUTER_TO_INNER_DIFF_Y.  Move application activation handler
-	to mac_handle_application_event.  Move keyboard handler to
-	mac_handle_keyboard_event.
+	(XTread_socket) [TARGET_API_MAC_CARBON]:
+	Consolidate SendEventToEventTarget calls.
+	Use FRAME_OUTER_TO_INNER_DIFF_X and FRAME_OUTER_TO_INNER_DIFF_Y.
+	Move application activation handler to mac_handle_application_event.
+	Move keyboard handler to mac_handle_keyboard_event.
 	(XTread_socket) [!TARGET_API_MAC_CARBON]: Use do_keystroke.
 	(mac_initialize) [TARGET_API_MAC_CARBON]: Don't call
 	init_command_handler.  Call install_application_handler.
@@ -124,8 +128,7 @@
 
 2007-06-06  Chong Yidong  <cyd@stupidchicken.com>
 
-	* image.c (xpm_load): Remove spurious call to
-	xpm_init_color_cache.
+	* image.c (xpm_load): Remove spurious call to xpm_init_color_cache.
 
 2007-06-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
