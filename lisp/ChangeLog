@@ -1,3 +1,7 @@
+2007-06-11  Richard Stallman  <rms@gnu.org>
+
+	* cus-edit.el (custom-variable-type): Doc fix.
+
 2007-06-09  Alfred M. Szmidt  <ams@gnu.org>  (tiny change)
 
 	* mail/rmail.el (rmail-movemail-variant-in-use): Fix doc typo.
