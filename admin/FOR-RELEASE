@@ -12,10 +12,10 @@ make sure all the pages really look ok in the manual as formatted.
 Requests to have been sent out on 2006-05-23 (Reiner Steib).
 
 LANG	Translator            Status
-cs	Pavel Janík           Can't work on it now.
+cs	Pavel JanÃ­k           Can't work on it now.
 de	Sven Joachim          Done
 fr	Eric Jacoboni         Done
-pl	WÅÂ‚odek Bzyl           Done
+pl	WÅ‚odek Bzyl           Done
 pt-br	Rodrigo Real          Done
 ru	Alex Ott              Done
 sk	Miroslav VaÅ¡ko        No response
@@ -35,6 +35,32 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
   (Did we decide that is unreproducible?)
 
 * BUGS
+
+** hi-lock-mode doesn't always turn on font-lock-mode-internal
+
+From: Alan Mackenzie <acm@muc.de>
+Subject: hi-lock-mode doesn't work with emacs -Q.
+Message-ID: <20070607092651.GA1710@muc.de>
+
+Start emacs -Q.  (Emacs 22.1, of course).  Visit a new file with:
+
+    C-x C-f foo.txt
+
+.  Type this:
+
+    This file is foo.txt.
+
+.  Enable hi-lock-mode and make "foo" a highlightable pattern:
+
+    M-x hi-lock-mode
+    C-x w h foo<CR><CR>    ; accept the default hi-yellow face.
+
+.  This highlights the "foo" yellow, as expected.  At the end of the
+line, type:
+
+    foo
+
+.  This new "foo" doesn't get highlighted.  It should be.
 
 * FIXES FOR EMACS 22.2
 
@@ -62,7 +88,7 @@ SECTION                  READERS
 etc/TUTORIAL             rms
 etc/TUTORIAL.bg          Ognyan Kulev <ogi@fmi.uni-sofia.bg>
 etc/TUTORIAL.cn
-etc/TUTORIAL.cs          Pavel Janík <Pavel@Janik.cz>
+etc/TUTORIAL.cs          Pavel JanÃ­k <Pavel@Janik.cz>
 etc/TUTORIAL.de          Werner LEMBERG <wl@gnu.org>
 etc/TUTORIAL.eo
 etc/TUTORIAL.es          Marcelo Toledo
@@ -75,7 +101,7 @@ etc/TUTORIAL.pl          Slawomir Nowaczyk <slawek@cs.lth.se>
 etc/TUTORIAL.pt_BR       Marcelo Toledo
 etc/TUTORIAL.ro
 etc/TUTORIAL.ru          Alex Ott <alexott@gmail.com>
-etc/TUTORIAL.sk          Pavel Janík <Pavel@Janik.cz>
+etc/TUTORIAL.sk          Pavel JanÃ­k <Pavel@Janik.cz>
 etc/TUTORIAL.sl          Primoz PETERLIN <primoz.peterlin@biofiz.mf.uni-lj.si>
 etc/TUTORIAL.sv          Mats Lidell <matsl@contactor.se>
 etc/TUTORIAL.th          Virach Sornlertlamvanich <virach@tcllab.org>
