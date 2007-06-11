@@ -1,3 +1,8 @@
+2007-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-svn.el (vc-svn-program): New var.
+	(vc-svn-command): Use it.
+
 2007-06-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* server.el (server-switch-buffer): Remove redundant check.
