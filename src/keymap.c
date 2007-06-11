@@ -2181,7 +2181,7 @@ spaces are put between sequence elements, etc.  */)
 	  len += 2;
 	}
       else if (len == 0)
-	return empty_string;
+	return empty_unibyte_string;
       return Fconcat (len - 1, args);
     }
 

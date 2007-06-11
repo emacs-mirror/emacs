@@ -1924,7 +1924,7 @@ since only a single case-insensitive search through the alist is made."
      ("\\.[sS]\\'" . asm-mode)
      ("\\.asm\\'" . asm-mode)
      ("[cC]hange\\.?[lL]og?\\'" . change-log-mode)
-     ("[cC]hange[lL]og[-.][-0-9a-z]+\\'" . change-log-mode)
+     ("[cC]hange[lL]og[-.][0-9]+\\'" . change-log-mode)
      ("\\$CHANGE_LOG\\$\\.TXT" . change-log-mode)
      ("\\.scm\\.[0-9]*\\'" . scheme-mode)
      ("\\.[ck]?sh\\'\\|\\.shar\\'\\|/\\.z?profile\\'" . sh-mode)
@@ -2012,6 +2012,9 @@ since only a single case-insensitive search through the alist is made."
      ("[/.]c\\(?:on\\)?f\\(?:i?g\\)?\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-mode)
      ("\\`/etc/\\(?:DIR_COLORS\\|ethers\\|.?fstab\\|.*hosts\\|lesskey\\|login\\.?de\\(?:fs\\|vperm\\)\\|magic\\|mtab\\|pam\\.d/.*\\|permissions\\(?:\\.d/.+\\)?\\|protocols\\|rpc\\|services\\)\\'" . conf-space-mode)
      ("\\`/etc/\\(?:acpid?/.+\\|aliases\\(?:\\.d/.+\\)?\\|default/.+\\|group-?\\|hosts\\..+\\|inittab\\|ksysguarddrc\\|opera6rc\\|passwd-?\\|shadow-?\\|sysconfig/.+\\)\\'" . conf-mode)
+     ;; ChangeLog.old etc.  Other change-log-mode entries are above;
+     ;; this has lower priority to avoid matching changelog.sgml etc.
+     ("[cC]hange[lL]og[-.][-0-9a-z]+\\'" . change-log-mode)
      ;; either user's dot-files or under /etc or some such
      ("/\\.?\\(?:gnokiirc\\|kde.*rc\\|mime\\.types\\|wgetrc\\)\\'" . conf-mode)
      ;; alas not all ~/.*rc files are like this
@@ -4390,6 +4393,14 @@ This command is used in the special Dired buffer created by
 	    (message "No files can be recovered from this session now")))
       (kill-buffer buffer))))
 
+(defun kill-buffer-ask (buffer)
+  "Kill buffer if confirmed."
+  (when (yes-or-no-p
+         (format "Buffer %s %s.  Kill? " (buffer-name buffer)
+                 (if (buffer-modified-p buffer)
+                     "HAS BEEN EDITED" "is unmodified")))
+    (kill-buffer buffer)))
+
 (defun kill-some-buffers (&optional list)
   "Kill some buffers.  Asks the user whether to kill each one of them.
 Non-interactively, if optional argument LIST is non-nil, it
@@ -4404,13 +4415,20 @@ specifies the list of buffers to kill, asking for approval for each one."
 					; if we killed the base buffer.
 	   (not (string-equal name ""))
 	   (/= (aref name 0) ?\s)
-	   (yes-or-no-p
-	    (format "Buffer %s %s.  Kill? "
-		    name
-		    (if (buffer-modified-p buffer)
-			"HAS BEEN EDITED" "is unmodified")))
-	   (kill-buffer buffer)))
+	   (kill-buffer-ask buffer)))
     (setq list (cdr list))))
+
+(defun kill-matching-buffers (regexp &optional internal-too)
+  "Kill buffers whose name matches the specified regexp.
+The optional second argument indicates whether to kill internal buffers too."
+  (interactive "sKill buffers matching this regular expression: \nP")
+  (dolist (buffer (buffer-list))
+    (let ((name (buffer-name buffer)))
+      (when (and name (not (string-equal name ""))
+                 (or internal-too (/= (aref name 0) ?\s))
+                 (string-match regexp name))
+        (kill-buffer-ask buffer)))))
+
 
 (defun auto-save-mode (arg)
   "Toggle auto-saving of contents of current buffer.

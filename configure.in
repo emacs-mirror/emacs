@@ -84,7 +84,7 @@ AC_ARG_WITH(x-toolkit,
 [  --with-x-toolkit=KIT    use an X toolkit
                               (KIT = yes/lucid/athena/motif/gtk/no)],
 [	  case "${withval}" in
-	    y | ye | yes )	val=athena ;;
+	    y | ye | yes )	val=gtk ;;
 	    n | no )		val=no  ;;
 	    l | lu | luc | luci | lucid )	val=lucid ;;
 	    a | at | ath | athe | athen | athena )	val=athena ;;
@@ -98,7 +98,7 @@ dnl AC_MSG_ERROR([the `--with-x-toolkit' option is supposed to have a value
 dnl which is `yes', `no', `lucid', `athena', `motif' or `open-look'.])
 AC_MSG_ERROR([`--with-x-toolkit=$withval' is invalid\;
 this option's value should be `yes', `no', `lucid', `athena', `motif' or `gtk'.
-Currently, `yes', `athena' and `lucid' are synonyms.])
+Currently, `yes' and `gtk', and `athena' and `lucid' are synonyms.])
 	    ;;
 	  esac
 	  with_x_toolkit=$val
@@ -1032,14 +1032,8 @@ dnl see the `changequote' comment above.
 		;;
       *-sunos5* | *-solaris* )
 		opsys=sol2-6
-## FIXME: make this into a proper fix that checks the compiler type,
-## rather than relying on path. Or is /usr/ccs/lib/cpp a bad default now?
-		if [ "x$CC" = x/opt/SUNWspro/bin/cc ]; then
-		  ## -Xs prevents spurious whitespace.
-		  NON_GNU_CPP="/opt/SUNWspro/bin/cc -E -Xs"
-		else
-		  NON_GNU_CPP=/usr/ccs/lib/cpp
-		fi
+		emacs_check_sunpro_c=yes
+		NON_GNU_CPP=/usr/ccs/lib/cpp
 		;;
       *			  ) opsys=bsd4-2   ;;
     esac
@@ -1273,6 +1267,24 @@ AC_PROG_CC
 # On Suns, sometimes $CPP names a directory.
 if test -n "$CPP" && test -d "$CPP"; then
   CPP=
+fi
+
+## If not using gcc, and on Solaris, and no CPP specified, see if
+## using a Sun compiler, which needs -Xs to prevent whitespace.
+if test x"$GCC" != xyes && test x"$emacs_check_sunpro_c" = xyes && \
+ test x"$CPP" = x; then
+  AC_MSG_CHECKING([whether we are using a Sun C compiler])
+  AC_CACHE_VAL(emacs_cv_sunpro_c,
+  [AC_TRY_LINK([],
+[#ifndef __SUNPRO_C
+fail;
+#endif
+], emacs_cv_sunpro_c=yes, emacs_cv_sunpro_c=no)])
+  AC_MSG_RESULT($emacs_cv_sunpro_c)
+
+  if test x"$emacs_cv_sunpro_c" = xyes; then
+    NON_GNU_CPP="$CC -E -Xs"
+  fi
 fi
 
 #### Some systems specify a CPP to use unless we are using GCC.
@@ -1868,9 +1880,15 @@ dnl Dont set this for GTK.  A lot of tests below assumes Xt when
 dnl USE_X_TOOLKIT is set.
             USE_X_TOOLKIT=none ;;
       no ) USE_X_TOOLKIT=none ;;
-dnl If user did not say whether to use a toolkit,
-dnl make this decision later: use the toolkit if we have X11R5 or newer.
-      * ) USE_X_TOOLKIT=maybe ;;
+dnl If user did not say whether to use a toolkit, make this decision later:
+dnl use the toolkit if we have gtk, or X11R5 or newer.
+      * ) 
+          if test x"$with_gtk" = xyes; then
+             USE_X_TOOLKIT=none
+          else
+             USE_X_TOOLKIT=maybe
+          fi
+          ;;
     esac
   ;;
   mac | none )
@@ -2098,7 +2116,8 @@ HAVE_GTK=no
 if test "${with_gtk}" = "yes" && test "$USE_X_TOOLKIT" = "gtk"; then
   USE_X_TOOLKIT=none
 fi
-if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "gtk"; then
+if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "gtk" || \
+ test "$USE_X_TOOLKIT" = "maybe"; then
   if test "$USE_X_TOOLKIT" != "none" && test "$USE_X_TOOLKIT" != "maybe"; then
     AC_MSG_ERROR([Conflicting options, --with-gtk is incompatible with --with-x-toolkit=${with_x_toolkit}]);
   fi
@@ -2111,7 +2130,15 @@ if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "gtk"; then
     PKG_CONFIG="${with_pkg_config_prog}"
   fi
   dnl Checks for libraries.
-  PKG_CHECK_MODULES(GTK, $GTK_MODULES)
+  PKG_CHECK_MODULES(GTK, $GTK_MODULES, pkg_check_gtk=yes, pkg_check_gtk=no)
+  if test "$pkg_check_gtk" = "no" && test "$USE_X_TOOLKIT" != "maybe"; then
+     AC_MSG_ERROR($GTK_PKG_ERRORS)
+  fi
+fi
+
+
+if test x"$pkg_check_gtk" = xyes; then
+
   AC_SUBST(GTK_CFLAGS)
   AC_SUBST(GTK_LIBS)
   C_SWITCH_X_SITE="$C_SWITCH_X_SITE $GTK_CFLAGS"
@@ -2121,12 +2148,19 @@ if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "gtk"; then
   GTK_COMPILES=no
   AC_CHECK_FUNCS(gtk_main, GTK_COMPILES=yes)
   if test "${GTK_COMPILES}" != "yes"; then
-    AC_MSG_ERROR([Gtk+ wanted, but it does not compile, see config.log.  Maybe some x11-devel files missing?]);
+    if test "$USE_X_TOOLKIT" != "maybe"; then
+      AC_MSG_ERROR([Gtk+ wanted, but it does not compile, see config.log.  Maybe some x11-devel files missing?]);
+    fi
+  else
+    HAVE_GTK=yes
+    AC_DEFINE(HAVE_GTK, 1, [Define to 1 if using GTK.])
+    USE_X_TOOLKIT=none
   fi
-  
-  HAVE_GTK=yes
-  AC_DEFINE(HAVE_GTK, 1, [Define to 1 if using GTK.])
-  USE_X_TOOLKIT=none
+
+fi
+
+
+if test "${HAVE_GTK}" = "yes"; then
 
   dnl  GTK scrollbars resemble toolkit scrollbars a lot, so to avoid
   dnl  a lot if #ifdef:s, say we have toolkit scrollbars.

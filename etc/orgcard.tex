@@ -1,27 +1,27 @@
 % Reference Card for Org Mode
-\def\orgversionnumber{4.67}
+\def\orgversionnumber{4.77}
 \def\versionyear{2007}          % latest update
 \def\year{2007}                 % latest copyright year
-%
+
 %**start of header
 \newcount\columnsperpage
+\newcount\letterpaper
 
 % This file can be printed with 1, 2, or 3 columns per page (see below).
-% At the moment this card works quite nicely in 3 column format and
-% currently takes 2 full pages.  It is thus suited to producing one 
-% double-side page when printed.
-
-% There are a couple of tweaks in the format of this card which make it work
-% slightly better on A4 paper.  The changes due, I think, to Stephen Eglen,
-% are commented below.  Revert the changes if you want letter sized paper.
-
-% Try running something like
-% tex org-mode-ref.tex; dvips -t landscape org-mode-ref.dvi
-% to print the card
+% Specify how many you want here.
 
 \columnsperpage=3
 
-% Copyright (C) 2004, 2005, 2006, 2007 Free Software Foundation, Inc
+% Set letterpapaer to 0 for A4 paper, 1 for letter (US) paper.  Useful
+% only when columnsperpage is 2 or 3.
+
+\letterpaper=0
+
+% Nothing else needs to be changed below this line.
+% Copyright (C) 1987, 1993, 1996, 1997, 2001, 2002, 2003, 2004,
+%   2005, 2006, 2007  Free Software Foundation, Inc.
+
+% This file is part of GNU Emacs.
 
 % GNU Emacs is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -35,8 +35,8 @@
 
 % You should have received a copy of the GNU General Public License
 % along with GNU Emacs; see the file COPYING.  If not, write to
-% the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-% Boston, MA 02111-1307, USA.
+% the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+% Boston, MA 02110-1301, USA.
 
 % This file is intended to be processed by plain TeX (TeX82).
 %
@@ -53,6 +53,10 @@
 %    ready-to-use 8.5 x 11 inch reference card.
 %    For this you need a dvi device driver that can print sideways.
 % Which mode to use is controlled by setting \columnsperpage above.
+%
+% To compile and print this document:
+% tex refcard.tex
+% dvips -t landscape refcard.dvi
 %
 % Author:
 %  Stephen Gildea
@@ -82,20 +86,20 @@ are preserved on all copies.
 % can be scanned without complaint.
 \def\bye{\par\vfill\supereject\end}
 
-\newdimen\intercolumnskip       %horizontal space between columns
-\newbox\columna                 %boxes to hold columns already built
+\newdimen\intercolumnskip	%horizontal space between columns
+\newbox\columna			%boxes to hold columns already built
 \newbox\columnb
 
 \def\ncolumns{\the\columnsperpage}
 
-\message{[\ncolumns\space 
+\message{[\ncolumns\space
   column\if 1\ncolumns\else s\fi\space per page]}
 
 \def\scaledmag#1{ scaled \magstep #1}
 
 % This multi-way format was designed by Stephen Gildea October 1986.
 % Note that the 1-column format is fontfamily-independent.
-\if 1\ncolumns                  %one-column format uses normal size
+\if 1\ncolumns			%one-column format uses normal size
   \hsize 4in
   \vsize 10in
   \voffset -.7in
@@ -106,14 +110,14 @@ are preserved on all copies.
 
   \footline{\hss\folio}
   \def\makefootline{\baselineskip10pt\hsize6.5in\line{\the\footline}}
-\else                           %2 or 3 columns uses prereduced size
+\else				%2 or 3 columns uses prereduced size
   \hsize 3.2in
-
-% FIXME - Try to make things more A4 friendly
-%  \vsize 7.95in
-  \vsize 7.65in
-%  \hoffset -.75in
-  \hoffset -.25in
+  \if 1\the\letterpaper
+     \vsize 7.95in
+  \else
+     \vsize 7.65in
+  \fi
+  \hoffset -.75in
   \voffset -.745in
   \font\titlefont=cmbx10 \scaledmag2
   \font\headingfont=cmbx10 \scaledmag1
@@ -132,13 +136,14 @@ are preserved on all copies.
   \def\bf{\eightbf}
   \def\it{\eightit}
   \def\tt{\eighttt}
-
-% FIXME - Try to make things more A4 friendly
-%  \normalbaselineskip=.8\normalbaselineskip
-  \normalbaselineskip=.7\normalbaselineskip
+  \if 1\the\letterpaper
+     \normalbaselineskip=.8\normalbaselineskip
+  \else
+     \normalbaselineskip=.7\normalbaselineskip
+  \fi
   \normallineskip=.8\normallineskip
   \normallineskiplimit=.8\normallineskiplimit
-  \normalbaselines\rm           %make definitions take effect
+  \normalbaselines\rm		%make definitions take effect
 
   \if 2\ncolumns
     \let\maxcolumn=b
@@ -154,16 +159,16 @@ are preserved on all copies.
 
   \intercolumnskip=.46in
   \def\abc{a}
-  \output={%                    %see The TeXbook page 257
+  \output={%			%see The TeXbook page 257
       % This next line is useful when designing the layout.
       %\immediate\write16{Column \folio\abc\space starts with \firstmark}
       \if \maxcolumn\abc \multicolumnformat \global\def\abc{a}
       \else\if a\abc
-        \global\setbox\columna\columnbox \global\def\abc{b}
+	\global\setbox\columna\columnbox \global\def\abc{b}
         %% in case we never use \columnb (two-column mode)
         \global\setbox\columnb\hbox to -\intercolumnskip{}
       \else
-        \global\setbox\columnb\columnbox \global\def\abc{c}\fi\fi}
+	\global\setbox\columnb\columnbox \global\def\abc{c}\fi\fi}
   \def\multicolumnformat{\shipout\vbox{\makeheadline
       \hbox{\box\columna\hskip\intercolumnskip
         \box\columnb\hskip\intercolumnskip\columnbox}
@@ -173,7 +178,7 @@ are preserved on all copies.
   \def\bye{\par\vfill\supereject
     \if a\abc \else\null\vfill\eject\fi
     \if a\abc \else\null\vfill\eject\fi
-    \end}  
+    \end}
 \fi
 
 % we won't be using math mode much, so redefine some of the characters
@@ -225,7 +230,7 @@ are preserved on all copies.
 \def\<#1>{{\it #1\/}}
 
 % kbd - argument is characters typed literally.  Like the Texinfo command.
-\def\kbd#1{{\tt#1}\null}        %\null so not an abbrev even if period follows
+\def\kbd#1{{\tt#1}\null}	%\null so not an abbrev even if period follows
 
 % beginexample...endexample - surrounds literal text, such a code example.
 % typeset in a typewriter font with line breaks preserved
@@ -316,15 +321,15 @@ are preserved on all copies.
 \section{Archiving}
 
 \key{toggle ARCHIVE tag}{C-c C-x C-a}
-\metax{mark fully done children}{C-u C-c C-x C-a}
+%\metax{mark fully done children}{C-u C-c C-x C-a}
 \key{force cycling of an ARCHIVEd tree}{C-TAB}
 \key{move subtree to archive file}{C-c C-x C-s}
-\metax{move all fully done children}{C-u C-c C-x C-s}
-To set archive location for current file, add a line like$^2$:
-\vskip -1mm
-\beginexample%
-\#+ARCHIVE: archfile::* Archived Tasks
-\endexample
+%\metax{move all fully done children}{C-u C-c C-x C-s}
+%To set archive location for current file, add a line like$^2$:
+%\vskip -1mm
+%\beginexample%
+%\#+ARCHIVE: archfile::* Archived Tasks
+%\endexample
 
 \section{Filtering and Sparse Trees}
 
@@ -359,13 +364,11 @@ Outside of tables, the same keys may have other functionality.
 
 {\bf Row and column editing}
 
-\key{move the current column left}{M-LEFT}
-\key{move the current column right}{M-RIGHT}
+\key{move the current column left}{M-LEFT/RIGHT}
 \key{kill the current column}{M-S-LEFT}
 \key{insert new column to left of cursor position}{M-S-RIGHT}
 
-\key{move the current row up}{M-UP}
-\key{move the current row down}{M-DOWN}
+\key{move the current row up/down}{M-UP/DOWN}
 \key{kill the current row or horizontal line}{M-S-UP}
 \key{insert new row above the current row}{M-S-DOWN}
 \key{insert hline below (\kbd{C-u} : above) current row}{C-c -}
@@ -378,34 +381,6 @@ Outside of tables, the same keys may have other functionality.
 \key{paste rectangular region}{C-c C-x C-y}
 \key{fill paragraph across selected cells}{C-c C-q}
 
-{\bf Calculations} (in combination with Emacs \kbd{calc} package)
-
-\key{set and eval column formula}{C-c =}
-\key{set and eval field formula}{C-u C-c =}
-\key{edit formulas in separate buffer}{C-c '}
-\key{re-apply all stored equations to current line}{C-c *}
-\key{re-apply all stored equations to entire table}{C-u C-c *}
-\key{iterate table to stability}{C-u C-u C-c *}
-
-%\kbd{TAB}, \kbd{RET} and \kbd{C-c C-c} trigger automatic recalculation
-%in lines starting with: {\tt | \# |}.
-
-\key{rotate calculation mark through \# * ! \^ \_ \$}{C-\#}
-
-\key{show line, column, formula reference}{C-c ?}
-\key{sum numbers in current column/rectangle}{C-c +}
-\key{copy down with increment}{S-RET$^3$}
-
-Formulas typed in field are executed by \kbd{TAB},
-\kbd{RET} and \kbd{C-c C-c}.  \kbd{=} introduces a column
-formula, \kbd{:=} a named-field formula.
-
-\key{Example: Add Col1 and Col2}{=\$1+\$2}
-\key{... with printf format specification}{=\$1+\$2;\%.2f}
-\key{... with constants from constants.el}{=\$1/\$c/\$cm}
-\metax{sum from 2nd to 3rd hline}{:=vsum(@II..@III)}
-\key{apply current column formula}{=}
-
 {\bf Miscellaneous}
 
 \key{to limit column width to \kbd{N} characters, use}{...| <N> |...}
@@ -413,12 +388,49 @@ formula, \kbd{:=} a named-field formula.
 \key{make current field fully visible}{C-u TAB}
 \metax{export as tab-separated file}{M-x org-table-export}
 \metax{import tab-separated file}{M-x org-table-import}
+\key{sum numbers in current column/rectangle}{C-c +}
 
 {\bf Tables created with the \kbd{table.el} package}
 
 \key{insert a new \kbd{table.el} table}{C-c ~}
 \key{recognize existing table.el table}{C-c C-c}
 \key{convert table (Org-mode $\leftrightarrow$ table.el)}{C-c ~}
+
+{\bf Spreadsheet}
+
+Formulas typed in field are executed by \kbd{TAB},
+\kbd{RET} and \kbd{C-c C-c}.  \kbd{=} introduces a column
+formula, \kbd{:=} a field formula.
+
+\key{Example: Add Col1 and Col2}{|=\$1+\$2      |}
+\key{... with printf format specification}{|=\$1+\$2;\%.2f|}
+\key{... with constants from constants.el}{|=\$1/\$c/\$cm |}
+\metax{sum from 2nd to 3rd hline}{|:=vsum(@II..@III)|}
+\key{apply current column formula}{| = |}
+
+\key{set and eval column formula}{C-c =}
+\key{set and eval field formula}{C-u C-c =}
+\key{re-apply all stored equations to current line}{C-c *}
+\key{re-apply all stored equations to entire table}{C-u C-c *}
+\key{iterate table to stability}{C-u C-u C-c *}
+\key{rotate calculation mark through \# * ! \^ \_ \$}{C-\#}
+\key{show line, column, formula reference}{C-c ?}
+\key{toggle coordinate grid}{C-c \}}
+\key{toggle formula debugger}{C-c \{}
+
+{\it Formula Editor}
+
+\key{edit formulas in separate buffer}{C-c '}
+\key{exit and install new formulas}{C-c C-c}
+\key{exit, install, and apply new formulas}{C-u C-c C-c}
+\key{abort}{C-c C-q}
+\key{toggle reference style}{C-c C-r}
+\key{pretty-print Lisp formula}{TAB}
+\key{complete Lisp symbol}{M-TAB}
+\key{shift reference point}{S-cursor}
+\key{shift test line for column references}{M-up/down}
+\key{scroll the window showing the table}{M-S-up/down}
+\key{toggle table coordinate grid}{C-c \}}
 
 \section{Links}
 
@@ -466,24 +478,24 @@ formula, \kbd{:=} a named-field formula.
 %\key{\kbd{vm://myself@some.where.org/folder\#id}}{\rm VM remote}
 
 
-\section{Remember-mode Integration}
+% \section{Remember-mode Integration}
 
-See the manual for how to make remember.el use Org-mode links and
-files.  The note-finishing command \kbd{C-c C-c} will first prompt for
-an org file. In the file, find a location with:
+% See the manual for how to make remember.el use Org-mode links and
+% files.  The note-finishing command \kbd{C-c C-c} will first prompt for
+% an org file. In the file, find a location with:
 
-\key{rotate subtree visibility}{TAB}
-\key{next heading}{DOWN}
-\key{previous heading}{UP}
+% \key{rotate subtree visibility}{TAB}
+% \key{next heading}{DOWN}
+% \key{previous heading}{UP}
 
-Insert the note with one of the following: 
+% Insert the note with one of the following: 
 
-\key{as sublevel of heading at cursor}{RET}
-\key{right here (cursor not on heading)}{RET}
-\key{before current heading}{LEFT}
-\key{after current heading}{RIGHT}
-\key{shortcut to end of buffer (cursor at buf-start)}{RET}
-\key{Abort}{q}
+% \key{as sublevel of heading at cursor}{RET}
+% \key{right here (cursor not on heading)}{RET}
+% \key{before current heading}{LEFT}
+% \key{after current heading}{RIGHT}
+% \key{shortcut to end of buffer (cursor at buf-start)}{RET}
+% \key{Abort}{q}
 
 \section{Completion}
 
@@ -502,16 +514,18 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 \section{TODO Items and Checkboxes}
 
 \key{rotate the state of the current item}{C-c C-t}
+\metax{select next/previous state}{S-LEFT/RIGHT}
+\metax{select next/previous set}{C-S-LEFT/RIGHT}
 \key{view TODO items in a sparse tree}{C-c C-v}
 \key{view 3rd TODO keyword's sparse tree}{C-3 C-c C-v}
 
 \key{set the priority of the current item}{C-c , [ABC]}
 \key{remove priority cookie from current item}{C-c , SPC}
-\key{raise priority of current item}{S-UP$^3$}
-\key{lower priority of current item}{S-DOWN$^3$}
+\key{raise/lower priority of current item}{S-UP/DOWN$^3$}
+%\key{lower priority of current item}{S-DOWN$^3$}
 
-\key{\kbd{\#+SEQ_TODO: TODO TRY BLUFF DONE}}{\rm todo workflow}
-\key{\kbd{\#+TYP_TODO: Phil home work DONE}}{\rm todo types}
+%\key{\kbd{\#+SEQ_TODO: TODO TRY BLUFF DONE}}{\rm todo workflow}
+%\key{\kbd{\#+TYP_TODO: Phil home work DONE}}{\rm todo types}
 
 \key{insert new checkbox item in plain list}{M-S-RET}
 \key{toggle checkbox(es) in region/entry/at point}{C-c C-x C-b}
@@ -548,13 +562,11 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 %\key{... forward/backward one month}{M-S-LEFT/RIGT}
 \key{Toggle custom format display for dates/times}{C-c C-x C-t}
 
-
-\section{Clocking Time}
+{\bf Clocking time}
 
 \key{start clock on current item}{C-c C-x C-i}
 \key{stop clock on current item}{C-c C-x C-o}
 \key{cancel current clock}{C-c C-x C-x}
-
 \key{display total subtree times}{C-c C-x C-d}
 \key{remove displayed times}{C-c C-c}
 \key{insert/update table with clock report}{C-c C-x C-r}
@@ -720,21 +732,6 @@ Subtrees whose header starts with COMMENT are never exported.
 
 \key{toggle COMMENT keyword on entry}{C-c ;}
 
-
-%\section{CUA and pc-select compatibility}%
-
-%Configure the variable {\tt org-CUA-compatibility} to make Org-mode
-%avoid the \kbd{S-<cursor>} bindings used by these modes.  When set,
-%Org-mode will change the following keybindings (also in the agenda
-%buffer, but not during date selection). See note mark four$^3$
-%throughout the reference card.
-%%\vskip-mm
-%\beginexample
-%S-UP    $\to$ M-p             S-DOWN  $\to$ M-n
-%S-LEFT  $\to$ M--             S-RIGHT $\to$ M-+
-%S-RET   $\to$ C-S-RET
-%\endexample
-
 \section{Dynamic Blocks}
 
 \key{update dynamic block at point}{C-c C-x C-u}
@@ -753,10 +750,8 @@ $^3$ Keybinding affected by {\tt org-CUA-compatibility}.
 
 \bye
 
+% Local variables:
+% compile-command: "tex refcard"
+% End:
 
 % arch-tag: 139f6750-5cfc-49ca-92b5-237fe5795290
-
-%%% Local Variables: 
-%%% mode: latex
-%%% TeX-master: t
-%%% End: 

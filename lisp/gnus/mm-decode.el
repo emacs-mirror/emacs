@@ -1371,18 +1371,19 @@ be determined."
 (defun mm-image-fit-p (handle)
   "Say whether the image in HANDLE will fit the current window."
   (let ((image (mm-get-image handle)))
-    (if (fboundp 'glyph-width)
-	;; XEmacs' glyphs can actually tell us about their width, so
-	;; lets be nice and smart about them.
-	(or mm-inline-large-images
-	    (and (< (glyph-width image) (window-pixel-width))
-		 (< (glyph-height image) (window-pixel-height))))
-      (let* ((size (image-size image))
-	     (w (car size))
-	     (h (cdr size)))
-	(or mm-inline-large-images
-	    (and (< h (1- (window-height))) ; Don't include mode line.
-		 (< w (window-width))))))))
+    (or (not image)
+	(if (fboundp 'glyph-width)
+	    ;; XEmacs' glyphs can actually tell us about their width, so
+	    ;; lets be nice and smart about them.
+	    (or mm-inline-large-images
+		(and (<= (glyph-width image) (window-pixel-width))
+		     (<= (glyph-height image) (window-pixel-height))))
+	  (let* ((size (image-size image))
+		 (w (car size))
+		 (h (cdr size)))
+	    (or mm-inline-large-images
+		(and (<= h (1- (window-height))) ; Don't include mode line.
+		     (<= w (window-width)))))))))
 
 (defun mm-valid-image-format-p (format)
   "Say whether FORMAT can be displayed natively by Emacs."

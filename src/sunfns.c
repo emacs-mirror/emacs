@@ -287,7 +287,7 @@ sel_read (sel, file)
   register int i, n;
   register char *cp;
 
-  Current_Selection = make_string ("", 0);
+  Current_Selection = empty_unibyte_string;
   if (sel->sel_items <= 0)
     return (0);
   cp = (char *) malloc(sel->sel_items);

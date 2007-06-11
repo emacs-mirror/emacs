@@ -1017,7 +1017,7 @@ The converted character representation is stored in rAX."
   "Alist that contains all the possible operation codes for mix.
 Each elt has the form
   (OP-CODE GROUP FULL-NAME C-BYTE F-BYTE DESCRIPTION EXECUTION-TIME)
-Where OP-CODE is the text of the opcode as an symbol,
+Where OP-CODE is the text of the opcode as a symbol,
 FULL-NAME is the human readable name as a string,
 C-BYTE is the operation code telling what operation is to be performed,
 F-BYTE holds a modification of the operation code which can be a symbol

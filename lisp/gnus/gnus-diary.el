@@ -59,7 +59,7 @@
   :group 'gnus-summary-format)
 
 (defcustom gnus-diary-time-format "%a, %b %e %y, %H:%M"
-  "*Time format to display appointements in nndiary summary buffers.
+  "*Time format to display appointments in nndiary summary buffers.
 Please refer to `format-time-string' for information on possible values."
   :type 'string
   :group 'gnus-diary)
@@ -224,7 +224,7 @@ There are currently two built-in format functions:
 				 (gnus-thread-header h2)))
 
 (defun gnus-summary-sort-by-schedule (&optional reverse)
-  "Sort nndiary summary buffers by schedule of appointements.
+  "Sort nndiary summary buffers by schedule of appointments.
 Optional prefix (or REVERSE argument) means sort in reverse order."
   (interactive "P")
   (gnus-summary-sort 'schedule reverse))

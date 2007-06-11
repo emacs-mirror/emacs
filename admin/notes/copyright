@@ -131,7 +131,7 @@ mac/Emacs.app/Contents/Resources/English.lproj/InfoPlist.strings
 mac/src/Emacs.r           # resource 'vers'
 src/emacs.c
   - remember to change the latest copyright year in the --version output.
-  [Post-release, will automate this like set-version does for version.]
+   `set-copyright' in admin.el will do all the above.
 
 <top-level>/install-sh
 lispintro/install-sh

@@ -255,7 +255,6 @@ Boston, MA 02110-1301, USA.  */
 
 #undef  TM_IN_SYS_TIME
 #undef  HAVE_TM_ZONE
-#define HAVE_TZNAME 1
 
 #define HAVE_LONG_FILE_NAMES 1
 

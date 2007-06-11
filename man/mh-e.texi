@@ -132,64 +132,64 @@ Fifth Floor, Boston, MA 02110-1301, USA.
 
 Tour Through MH-E
 
-* Sending Mail Tour::           
-* Reading Mail Tour::           
-* Processing Mail Tour::        
-* Leaving MH-E::                
-* More About MH-E::             
+* Sending Mail Tour::
+* Reading Mail Tour::
+* Processing Mail Tour::
+* Leaving MH-E::
+* More About MH-E::
 
 Using This Manual
 
-* Options::                     
-* Ranges::                      
-* Folder Selection::            
+* Options::
+* Ranges::
+* Folder Selection::
 
 Reading Your Mail
 
-* Viewing::                     
-* Viewing Attachments::         
-* HTML::                        
-* Digests::                     
-* Reading PGP::                 
-* Printing::                    
-* Files and Pipes::             
-* Navigating::                  
-* Miscellaneous Commands and Options::  
+* Viewing::
+* Viewing Attachments::
+* HTML::
+* Digests::
+* Reading PGP::
+* Printing::
+* Files and Pipes::
+* Navigating::
+* Miscellaneous Commands and Options::
 
 Sending Mail
 
-* Composing::                   
-* Replying::                    
-* Forwarding::                  
-* Redistributing::              
-* Editing Again::               
+* Composing::
+* Replying::
+* Forwarding::
+* Redistributing::
+* Editing Again::
 
 Editing a Draft
 
-* Editing Message::             
-* Inserting Letter::            
-* Inserting Messages::          
-* Signature::                   
-* Picture::                     
-* Adding Attachments::          
-* Sending PGP::                 
-* Checking Recipients::         
-* Sending Message::             
-* Killing Draft::               
+* Editing Message::
+* Inserting Letter::
+* Inserting Messages::
+* Signature::
+* Picture::
+* Adding Attachments::
+* Sending PGP::
+* Checking Recipients::
+* Sending Message::
+* Killing Draft::
 
 Odds and Ends
 
-* Bug Reports::                 
-* Mailing Lists::               
-* MH FAQ and Support::          
-* Getting MH-E::                
+* Bug Reports::
+* Mailing Lists::
+* MH FAQ and Support::
+* Getting MH-E::
 
 History of MH-E
 
-* From Brian Reid::             
-* From Jim Larus::              
-* From Stephen Gildea::         
-* From Bill Wohler::            
+* From Brian Reid::
+* From Jim Larus::
+* From Stephen Gildea::
+* From Bill Wohler::
 
 @end detailmenu
 @end menu
@@ -360,7 +360,7 @@ mode (@pxref{Reading Mail Tour}). In this mode, simply enter the
 numerical argument before entering the command.
 @end quotation
 @sp 1
- 
+
 @cindex @file{.emacs}
 @cindex Emacs, variables
 @cindex files, @file{.emacs}
@@ -415,7 +415,7 @@ Face Customization} in @cite{The GNU Emacs Manual}.
 @findex customize-option
 
 Commands often offer @dfn{hooks} which enable you to extend or modify
-the way a command works. 
+the way a command works.
 @ifnothtml
 @ref{Hooks, , Hooks, emacs, The GNU Emacs Manual}, in @cite{The GNU
 Emacs Manual}
@@ -673,11 +673,11 @@ use all the features of MH-E. I suggest you read this chapter first to
 get the big picture, and then you can read the manual as you wish.
 
 @menu
-* Sending Mail Tour::           
-* Reading Mail Tour::           
-* Processing Mail Tour::        
-* Leaving MH-E::                
-* More About MH-E::             
+* Sending Mail Tour::
+* Reading Mail Tour::
+* Processing Mail Tour::
+* Leaving MH-E::
+* More About MH-E::
 @end menu
 
 @node Sending Mail Tour, Reading Mail Tour, Tour Through MH-E, Tour Through MH-E
@@ -843,10 +843,10 @@ sending the original message, like this:
 
 @cartouche
 @smallexample
-To: 
-cc: 
-Subject: Re: Test 
-In-reply-to: <31054.1142621351@@stop.mail-abuse.org> 
+To:
+cc:
+Subject: Re: Test
+In-reply-to: <31054.1142621351@@stop.mail-abuse.org>
 References: <31054.1142621351@@stop.mail-abuse.org>
 Comments: In-reply-to Bill Wohler <wohler@@stop.mail-abuse.org>
    message dated "Fri, 17 Mar 2006 10:49:11 -0800."
@@ -1161,9 +1161,9 @@ conflicts with existing MH-E symbols, use a prefix like @samp{my-} or
 your initials. (Unless, of course, your initials happen to be @emph{mh}!)
 
 @menu
-* Options::                     
-* Ranges::                      
-* Folder Selection::            
+* Options::
+* Ranges::
+* Folder Selection::
 @end menu
 
 @node Options, Ranges, Using This Manual, Using This Manual
@@ -2001,15 +2001,15 @@ The functions and variables introduced here are explained in more
 detail in the following sections.
 
 @menu
-* Viewing::                     
-* Viewing Attachments::         
-* HTML::                        
-* Digests::                     
-* Reading PGP::                 
-* Printing::                    
-* Files and Pipes::             
-* Navigating::                  
-* Miscellaneous Commands and Options::  
+* Viewing::
+* Viewing Attachments::
+* HTML::
+* Digests::
+* Reading PGP::
+* Printing::
+* Files and Pipes::
+* Navigating::
+* Miscellaneous Commands and Options::
 @end menu
 
 @node Viewing, Viewing Attachments, Reading Mail, Reading Mail
@@ -2047,7 +2047,7 @@ The option @code{mh-show-maximum-size} provides an opportunity to skip
 over large messages which may be slow to load. The default value of 0
 means that all message are shown regardless of size.
 
-A litany of options control what displayed messages look like. 
+A litany of options control what displayed messages look like.
 
 @vindex mh-show-cc
 @vindex mh-show-date
@@ -2637,7 +2637,7 @@ the Gnus command @kbd{W h} (@pxref{Article Washing,,,gnus},).
 @end ifinfo
 @ifnotinfo
 see section @uref{http://www.gnus.org/manual/emacs-mime_6.html,
-Display Customization} in the @cite{The Emacs MIME Manual} and the the
+Display Customization} in the @cite{The Emacs MIME Manual} and the
 documentation for the Gnus command @kbd{W h} (see section
 @uref{http://www.gnus.org/manual/gnus_99.html, Article Washing} in the
 @cite{The Gnus Manual}).
@@ -2808,7 +2808,7 @@ The latter is used whether the signature is unknown or untrusted.
 @cindex customization group, @samp{pgg}
 
 The @samp{pgg} customization group may have some settings which may
-interest you. 
+interest you.
 @iftex
 See @cite{The PGG Manual}.
 @end iftex
@@ -3942,11 +3942,11 @@ The functions and options introduced here are explained in more detail
 in the following sections.
 
 @menu
-* Composing::                   
-* Replying::                    
-* Forwarding::                  
-* Redistributing::              
-* Editing Again::               
+* Composing::
+* Replying::
+* Forwarding::
+* Redistributing::
+* Editing Again::
 @end menu
 
 @node Composing, Replying, Sending Mail, Sending Mail
@@ -4686,16 +4686,16 @@ The commands and options introduced here are explained in more
 detail in the following sections.
 
 @menu
-* Editing Message::             
-* Inserting Letter::            
-* Inserting Messages::          
-* Signature::                   
-* Picture::                     
-* Adding Attachments::          
-* Sending PGP::                 
-* Checking Recipients::         
-* Sending Message::             
-* Killing Draft::               
+* Editing Message::
+* Inserting Letter::
+* Inserting Messages::
+* Signature::
+* Picture::
+* Adding Attachments::
+* Sending PGP::
+* Checking Recipients::
+* Sending Message::
+* Killing Draft::
 @end menu
 
 @node Editing Message, Inserting Letter, Editing Drafts, Editing Drafts
@@ -4795,7 +4795,7 @@ the alias expansion in the minibuffer if
 @code{mh-alias-flash-on-comma} is turned on.
 
 @c XXX Document the replacement for the inaccessible 'long argument.
- 
+
 @findex mh-letter-toggle-header-field-display
 @kindex C-c C-t
 
@@ -5543,7 +5543,7 @@ mechanisms include vanilla @samp{PGP} and @samp{S/MIME}.
 @cindex customization group, @samp{pgg}
 
 The @samp{pgg} customization group may have some settings which may
-interest you. 
+interest you.
 @iftex
 See @cite{The PGG Manual}.
 @end iftex
@@ -5954,7 +5954,7 @@ mh-alias-apropos} to show all aliases or addresses that match a
 regular expression
 @ifnothtml
 (@pxref{Regexps, , Syntax of Regular Expressions, emacs, The
-GNU Emacs Manual}). 
+GNU Emacs Manual}).
 @end ifnothtml
 @ifhtml
 (see the section
@@ -6104,7 +6104,7 @@ customize @code{mh-auto-fields-list}, click on the @samp{INS} button
 and enter a regular expression for the recipient's address
 @ifnothtml
 (@pxref{Regexps, , Syntax of Regular Expressions, emacs, The
-GNU Emacs Manual}). 
+GNU Emacs Manual}).
 @end ifnothtml
 @ifhtml
 (see the section
@@ -6142,7 +6142,7 @@ recipient is also listed there so that he receives replies to your
 reply.
 @c -------------------------
 @item Other Field
-Other header fields may be added using this menu item. 
+Other header fields may be added using this menu item.
 @end table
 
 @findex mh-insert-auto-fields
@@ -6181,7 +6181,7 @@ added. To customize @code{mh-identity-handlers}, replace the name of
 an existing handler function associated with the field you want to
 change with the name of a function you have written. You can also
 click on an @samp{INS} button and insert a field of your choice and
-the name of the function you have written to handle it. 
+the name of the function you have written to handle it.
 
 @vindex mh-identity-list
 
@@ -6210,7 +6210,7 @@ containing the value for the field is given.
 @kindex M-x speedbar
 @kindex Mouse-2
 
-You can also use the speedbar 
+You can also use the speedbar
 @ifnothtml
 (@pxref{Speedbar, , Speedbar Frames, emacs, The GNU Emacs Manual},)
 @end ifnothtml
@@ -6573,7 +6573,7 @@ There is one option from the @samp{mh-search} customization group used
 in searching.
 
 @vtable @code
-@item mh-search-program 
+@item mh-search-program
 Search program that MH-E shall use (default: @samp{Auto-detect}).
 @end vtable
 
@@ -7145,7 +7145,7 @@ Limit to messages with the same @samp{Cc:} field
 @c -------------------------
 @kindex / m
 @findex mh-narrow-to-from
-@item / m	
+@item / m
 Limit to messages with the same @samp{From:} field
 (@code{mh-narrow-to-from}).
 @c -------------------------
@@ -7635,7 +7635,7 @@ If you don't use @command{spamc}, use @samp{spamassassin -P -a}.
 
 Note that one of the recipes above throws away messages with a score
 greater than or equal to 10. Here's how you can determine a value that
-works best for you. 
+works best for you.
 
 First, run @samp{spamassassin -t} on every mail message in your
 archive and use @command{gnumeric} to verify that the average plus the
@@ -8579,10 +8579,10 @@ tell you how to report bugs and how to get on the MH-E mailing lists.
 I also point out some additional sources of information.
 
 @menu
-* Bug Reports::                 
-* Mailing Lists::               
-* MH FAQ and Support::          
-* Getting MH-E::                
+* Bug Reports::
+* Mailing Lists::
+* MH FAQ and Support::
+* Getting MH-E::
 @end menu
 
 @node Bug Reports, Mailing Lists, Odds and Ends, Odds and Ends
@@ -8713,10 +8713,10 @@ development to @uref{http://sourceforge.net/, SourceForge} where it
 lives today.
 
 @menu
-* From Brian Reid::             
-* From Jim Larus::              
-* From Stephen Gildea::         
-* From Bill Wohler::            
+* From Brian Reid::
+* From Jim Larus::
+* From Stephen Gildea::
+* From Bill Wohler::
 @end menu
 
 @node From Brian Reid, From Jim Larus, History, History
@@ -9715,7 +9715,7 @@ Public License instead of this License.
 @c The following are words that ispell should ignore that would not
 @c normally be in a dictionary (global or personal). Be careful not to
 @c include words here that could potentially be typos of other words
-@c (such as url, elisp, or MHE). 
+@c (such as url, elisp, or MHE).
 @c
 @c LocalWords: CTRL ESC SPC f's
 @c LocalWords: addr Aliasfile alist

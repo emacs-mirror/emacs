@@ -1225,7 +1225,7 @@ input stream.  @xref{Key Sequence Input}.
 
 
 @item @var{x}, @var{y}
-These are the pixel-denominated coordinates of the click, relative to
+These are the pixel coordinates of the click, relative to
 the top left corner of @var{window}, which is @code{(0 . 0)}.
 For the mode or header line, @var{y} does not have meaningful data.
 For the vertical line, @var{x} does not have meaningful data.
@@ -1266,13 +1266,14 @@ This is the image object on which the click occurred.  It is either
 an image object as returned by @code{find-image} if click was in an image.
 
 @item @var{dx}, @var{dy}
-These are the pixel-denominated coordinates of the click, relative to
+These are the pixel coordinates of the click, relative to
 the top left corner of @var{object}, which is @code{(0 . 0)}.  If
 @var{object} is @code{nil}, the coordinates are relative to the top
 left corner of the character glyph clicked on.
 
 @item @var{width}, @var{height}
-These are the pixel-denominated width and height of @var{object}.
+These are the pixel width and height of @var{object} or, if this is
+@code{nil}, those of the character glyph clicked on.
 @end table
  
 @sp 1

@@ -412,10 +412,10 @@ else
 fi
 
 test \$exitcode = 0") || {
-  echo No shell found that supports shell functions.
-  echo Please tell autoconf@gnu.org about your system,
-  echo including any error possibly output before this
-  echo message
+  echo Please tell bug-autoconf@gnu.org about your system,
+  echo including any error possibly output before this message.
+  echo This can help us improve future autoconf versions.
+  echo Configuration will now proceed without shell functions.
 }
 
 
@@ -1891,7 +1891,7 @@ fi
 # Check whether --with-x-toolkit was given.
 if test "${with_x_toolkit+set}" = set; then
   withval=$with_x_toolkit; 	  case "${withval}" in
-	    y | ye | yes )	val=athena ;;
+	    y | ye | yes )	val=gtk ;;
 	    n | no )		val=no  ;;
 	    l | lu | luc | luci | lucid )	val=lucid ;;
 	    a | at | ath | athe | athen | athena )	val=athena ;;
@@ -1900,10 +1900,10 @@ if test "${with_x_toolkit+set}" = set; then
 	    * )
 { { echo "$as_me:$LINENO: error: \`--with-x-toolkit=$withval' is invalid\;
 this option's value should be \`yes', \`no', \`lucid', \`athena', \`motif' or \`gtk'.
-Currently, \`yes', \`athena' and \`lucid' are synonyms." >&5
+Currently, \`yes' and \`gtk', and \`athena' and \`lucid' are synonyms." >&5
 echo "$as_me: error: \`--with-x-toolkit=$withval' is invalid\;
 this option's value should be \`yes', \`no', \`lucid', \`athena', \`motif' or \`gtk'.
-Currently, \`yes', \`athena' and \`lucid' are synonyms." >&2;}
+Currently, \`yes' and \`gtk', and \`athena' and \`lucid' are synonyms." >&2;}
    { (exit 1); exit 1; }; }
 	    ;;
 	  esac
@@ -3002,14 +3002,8 @@ _ACEOF
 		;;
       *-sunos5* | *-solaris* )
 		opsys=sol2-6
-## FIXME: make this into a proper fix that checks the compiler type,
-## rather than relying on path. Or is /usr/ccs/lib/cpp a bad default now?
-		if [ "x$CC" = x/opt/SUNWspro/bin/cc ]; then
-		  ## -Xs prevents spurious whitespace.
-		  NON_GNU_CPP="/opt/SUNWspro/bin/cc -E -Xs"
-		else
-		  NON_GNU_CPP=/usr/ccs/lib/cpp
-		fi
+		emacs_check_sunpro_c=yes
+		NON_GNU_CPP=/usr/ccs/lib/cpp
 		;;
       *			  ) opsys=bsd4-2   ;;
     esac
@@ -4165,6 +4159,72 @@ if test -n "$CPP" && test -d "$CPP"; then
   CPP=
 fi
 
+## If not using gcc, and on Solaris, and no CPP specified, see if
+## using a Sun compiler, which needs -Xs to prevent whitespace.
+if test x"$GCC" != xyes && test x"$emacs_check_sunpro_c" = xyes && \
+ test x"$CPP" = x; then
+  { echo "$as_me:$LINENO: checking whether we are using a Sun C compiler" >&5
+echo $ECHO_N "checking whether we are using a Sun C compiler... $ECHO_C" >&6; }
+
+if test "${emacs_cv_sunpro_c+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+int
+main ()
+{
+#ifndef __SUNPRO_C
+fail;
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
+  emacs_cv_sunpro_c=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	emacs_cv_sunpro_c=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+fi
+
+  { echo "$as_me:$LINENO: result: $emacs_cv_sunpro_c" >&5
+echo "${ECHO_T}$emacs_cv_sunpro_c" >&6; }
+
+  if test x"$emacs_cv_sunpro_c" = xyes; then
+    NON_GNU_CPP="$CC -E -Xs"
+  fi
+fi
+
 #### Some systems specify a CPP to use unless we are using GCC.
 #### Now that we know whether we are using GCC, we can decide whether
 #### to use that one.
@@ -4191,7 +4251,6 @@ if test x$GCC = x && test "x$NON_GCC_TEST_OPTIONS" != x
 then
   CC="$CC $NON_GCC_TEST_OPTIONS"
 fi
-
 
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
@@ -9509,7 +9568,13 @@ case "${window_system}" in
       gtk ) with_gtk=yes
             USE_X_TOOLKIT=none ;;
       no ) USE_X_TOOLKIT=none ;;
-      * ) USE_X_TOOLKIT=maybe ;;
+      * )
+          if test x"$with_gtk" = xyes; then
+             USE_X_TOOLKIT=none
+          else
+             USE_X_TOOLKIT=maybe
+          fi
+          ;;
     esac
   ;;
   mac | none )
@@ -10944,7 +11009,8 @@ HAVE_GTK=no
 if test "${with_gtk}" = "yes" && test "$USE_X_TOOLKIT" = "gtk"; then
   USE_X_TOOLKIT=none
 fi
-if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "gtk"; then
+if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "gtk" || \
+ test "$USE_X_TOOLKIT" = "maybe"; then
   if test "$USE_X_TOOLKIT" != "none" && test "$USE_X_TOOLKIT" != "maybe"; then
     { { echo "$as_me:$LINENO: error: Conflicting options, --with-gtk is incompatible with --with-x-toolkit=${with_x_toolkit}" >&5
 echo "$as_me: error: Conflicting options, --with-gtk is incompatible with --with-x-toolkit=${with_x_toolkit}" >&2;}
@@ -11005,11 +11071,7 @@ fi
   fi
 
   if test "$PKG_CONFIG" = "no" ; then
-     { { echo "$as_me:$LINENO: error:
-      *** The pkg-config script could not be found. Make sure it is in your path, or give the full path to pkg-config with the PKG_CONFIG environment variable or --with-pkg-config-prog.  Or see http://www.freedesktop.org/software/pkgconfig to get pkg-config." >&5
-echo "$as_me: error:
-      *** The pkg-config script could not be found. Make sure it is in your path, or give the full path to pkg-config with the PKG_CONFIG environment variable or --with-pkg-config-prog.  Or see http://www.freedesktop.org/software/pkgconfig to get pkg-config." >&2;}
-   { (exit 1); exit 1; }; }
+     pkg_check_gtk=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
      if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
@@ -11040,7 +11102,7 @@ echo "${ECHO_T}no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
             ## do set a variable so people can do so.
             GTK_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "$GTK_MODULES"`
-            echo $GTK_PKG_ERRORS
+
         fi
 
 
@@ -11052,12 +11114,20 @@ echo "${ECHO_T}no" >&6; }
   fi
 
   if test $succeeded = yes; then
-     :
+     pkg_check_gtk=yes
   else
-     { { echo "$as_me:$LINENO: error: Library requirements ($GTK_MODULES) not met; consider adjusting the PKG_CONFIG_PATH environment variable if your libraries are in a nonstandard prefix so pkg-config can find them." >&5
-echo "$as_me: error: Library requirements ($GTK_MODULES) not met; consider adjusting the PKG_CONFIG_PATH environment variable if your libraries are in a nonstandard prefix so pkg-config can find them." >&2;}
+     pkg_check_gtk=no
+  fi
+
+  if test "$pkg_check_gtk" = "no" && test "$USE_X_TOOLKIT" != "maybe"; then
+     { { echo "$as_me:$LINENO: error: $GTK_PKG_ERRORS" >&5
+echo "$as_me: error: $GTK_PKG_ERRORS" >&2;}
    { (exit 1); exit 1; }; }
   fi
+fi
+
+
+if test x"$pkg_check_gtk" = xyes; then
 
 
 
@@ -11160,18 +11230,25 @@ fi
 done
 
   if test "${GTK_COMPILES}" != "yes"; then
-    { { echo "$as_me:$LINENO: error: Gtk+ wanted, but it does not compile, see config.log.  Maybe some x11-devel files missing?" >&5
+    if test "$USE_X_TOOLKIT" != "maybe"; then
+      { { echo "$as_me:$LINENO: error: Gtk+ wanted, but it does not compile, see config.log.  Maybe some x11-devel files missing?" >&5
 echo "$as_me: error: Gtk+ wanted, but it does not compile, see config.log.  Maybe some x11-devel files missing?" >&2;}
    { (exit 1); exit 1; }; };
-  fi
-
-  HAVE_GTK=yes
+    fi
+  else
+    HAVE_GTK=yes
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_GTK 1
 _ACEOF
 
-  USE_X_TOOLKIT=none
+    USE_X_TOOLKIT=none
+  fi
+
+fi
+
+
+if test "${HAVE_GTK}" = "yes"; then
 
       if test "$with_toolkit_scroll_bars" != no; then
     with_toolkit_scroll_bars=yes

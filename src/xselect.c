@@ -2712,7 +2712,7 @@ If the value is 0 or the atom is not known, return the empty string.  */)
     ret = make_string (name, strlen (name));
 
   if (atom && name) XFree (name);
-  if (NILP (ret)) ret = make_string ("", 0);
+  if (NILP (ret)) ret = empty_unibyte_string;
 
   UNBLOCK_INPUT;
 

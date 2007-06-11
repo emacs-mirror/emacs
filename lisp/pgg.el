@@ -332,7 +332,7 @@ cache or user."
   (interactive "r")
   (let ((status
 	 (pgg-save-coding-system start end
-	   (pgg-invoke "encrypt-symmetric-region" 
+	   (pgg-invoke "encrypt-symmetric-region"
 		       (or pgg-scheme pgg-default-scheme)
 		       (point-min) (point-max) passphrase))))
     (when (interactive-p)
@@ -416,7 +416,7 @@ If the optional 3rd argument CLEARTEXT is non-nil, it does not create
 a detached signature.
 
 If this function is called interactively, CLEARTEXT is enabled
-and the the output is displayed.
+and the output is displayed.
 
 If optional PASSPHRASE is not specified, it will be obtained from the
 passphrase cache or user."
@@ -441,7 +441,7 @@ If optional arguments START and END are specified, only sign data
 within the region.
 
 If this function is called interactively, CLEARTEXT is enabled
-and the the output is displayed.
+and the output is displayed.
 
 If optional PASSPHRASE is not specified, it will be obtained from the
 passphrase cache or user."
@@ -485,7 +485,7 @@ signer's public key from `pgg-default-keyserver-address'."
 	       (or (cdr (assq 'preferred-key-server packet))
 		   pgg-default-keyserver-address))
 	 (pgg-fetch-key keyserver key))
-    (setq status 
+    (setq status
 	  (pgg-save-coding-system start end
 	    (pgg-invoke "verify-region" (or pgg-scheme pgg-default-scheme)
 			(point-min) (point-max) signature)))

@@ -585,7 +585,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	case 'G':		/* Possibly nonexistent file name,
 				   default to directory alone. */
 	  args[i] = Fread_file_name (callint_message,
-				     Qnil, Qnil, Qnil, build_string (""), Qnil);
+				     Qnil, Qnil, Qnil, empty_unibyte_string, Qnil);
 	  break;
 
 	case 'i':		/* Ignore an argument -- Does not do I/O */

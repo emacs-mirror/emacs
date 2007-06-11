@@ -651,7 +651,7 @@ value is a list of possible files to save in if the match is non-nil.
 If the match is a string, it is used as a regexp match on the
 article.  If the match is a symbol, that symbol will be funcalled
 from the buffer of the article to be saved with the newsgroup as the
-parameter.  If it is a list, it will be evaled in the same buffer.
+parameter.  If it is a list, it will be evalled in the same buffer.
 
 If this form or function returns a string, this string will be used as
 a possible file name; and if it returns a non-nil list, that list will
@@ -4674,7 +4674,7 @@ specified charset."
          (mm-enable-external t))
     (if (not (stringp method))
 	(gnus-mime-view-part-as-type
-	 nil (lambda (type) (stringp (mailcap-mime-info type))))
+	 nil (lambda (types) (stringp (mailcap-mime-info (car types)))))
       (when handle
 	(if (mm-handle-undisplayer handle)
 	    (mm-remove-part handle)
@@ -4695,7 +4695,7 @@ If no internal viewer is available, use an external viewer."
 	 (inhibit-read-only t))
     (if (not (mm-inlinable-p handle))
         (gnus-mime-view-part-as-type
-         nil (lambda (type) (mm-inlinable-p handle type)))
+         nil (lambda (types) (mm-inlinable-p handle (car types))))
       (when handle
 	(if (mm-handle-undisplayer handle)
 	    (mm-remove-part handle)
@@ -5607,7 +5607,7 @@ not have a face in `gnus-article-boring-faces'."
   "Execute the last keystroke in the summary buffer."
   (interactive)
   (let (func)
-    (pop-to-buffer gnus-article-current-summary 'norecord)
+    (pop-to-buffer gnus-article-current-summary nil 'norecord)
     (setq func (lookup-key (current-local-map) (this-command-keys)))
     (call-interactively func)))
 
@@ -5646,7 +5646,7 @@ not have a face in `gnus-article-boring-faces'."
 	    (member keys nosave-in-article))
 	(let (func)
 	  (save-window-excursion
-	    (pop-to-buffer gnus-article-current-summary 'norecord)
+	    (pop-to-buffer gnus-article-current-summary nil 'norecord)
 	    ;; We disable the pick minor mode commands.
 	    (let (gnus-pick-mode)
 	      (setq func (lookup-key (current-local-map) keys))))
@@ -5658,14 +5658,14 @@ not have a face in `gnus-article-boring-faces'."
 	    (call-interactively func)
 	    (setq new-sum-point (point)))
 	  (when (member keys nosave-but-article)
-	    (pop-to-buffer gnus-article-buffer 'norecord)))
+	    (pop-to-buffer gnus-article-buffer nil 'norecord)))
       ;; These commands should restore window configuration.
       (let ((obuf (current-buffer))
 	    (owin (current-window-configuration))
 	    (opoint (point))
 	    win func in-buffer selected new-sum-start new-sum-hscroll)
 	(cond (not-restore-window
-	       (pop-to-buffer gnus-article-current-summary 'norecord))
+	       (pop-to-buffer gnus-article-current-summary nil 'norecord))
 	      ((setq win (get-buffer-window gnus-article-current-summary))
 	       (select-window win))
 	      (t

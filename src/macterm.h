@@ -369,6 +369,12 @@ typedef struct mac_output mac_output;
 /* This is the 'font_info *' which frame F has.  */
 #define FRAME_MAC_FONT_TABLE(f) (FRAME_MAC_DISPLAY_INFO (f)->font_table)
 
+/* The difference in pixels between the top left corner of the
+   Emacs window (including possible window manager decorations)
+   and FRAME_MAC_WINDOW (f).  */
+#define FRAME_OUTER_TO_INNER_DIFF_X(f) ((f)->x_pixels_diff)
+#define FRAME_OUTER_TO_INNER_DIFF_Y(f) ((f)->y_pixels_diff)
+
 /* Value is the smallest width of any character in any font on frame F.  */
 
 #define FRAME_SMALLEST_CHAR_WIDTH(F) \
@@ -406,9 +412,9 @@ struct scroll_bar {
   /* The next and previous in the chain of scroll bars in this frame.  */
   Lisp_Object next, prev;
 
-  /* The Mac control handle of this scroll bar.  Since this is a
+  /* The Mac control reference of this scroll bar.  Since this is a
      pointer value, we store it split into two Lisp integers.  */
-  Lisp_Object control_handle_low, control_handle_high;
+  Lisp_Object control_ref_low, control_ref_high;
 
   /* The position and size of the scroll bar in pixels, relative to the
      frame.  */
@@ -466,14 +472,14 @@ struct scroll_bar {
 
 /* Extract the Mac control handle of the scroll bar from a struct
    scroll_bar.  */
-#define SCROLL_BAR_CONTROL_HANDLE(ptr) \
-  ((ControlHandle) SCROLL_BAR_PACK ((ptr)->control_handle_low, \
-                                    (ptr)->control_handle_high))
+#define SCROLL_BAR_CONTROL_REF(ptr)				\
+  ((ControlRef) SCROLL_BAR_PACK ((ptr)->control_ref_low,	\
+				 (ptr)->control_ref_high))
 
 /* Store a Mac control handle in a struct scroll_bar.  */
-#define SET_SCROLL_BAR_CONTROL_HANDLE(ptr, handle) \
-  (SCROLL_BAR_UNPACK ((ptr)->control_handle_low, \
-                      (ptr)->control_handle_high, (unsigned long) (handle)))
+#define SET_SCROLL_BAR_CONTROL_REF(ptr, ref)				\
+  (SCROLL_BAR_UNPACK ((ptr)->control_ref_low,				\
+                      (ptr)->control_ref_high, (unsigned long) (ref)))
 
 /* Return the inside width of a vertical scroll bar, given the outside
    width.  */
@@ -614,9 +620,10 @@ extern void x_free_frame_resources P_ ((struct frame *));
 extern void x_destroy_window P_ ((struct frame *));
 extern void x_wm_set_size_hint P_ ((struct frame *, long, int));
 extern void x_delete_display P_ ((struct x_display_info *));
-extern Pixmap XCreatePixmap P_ ((Display *, WindowPtr, unsigned int,
+extern void mac_initialize P_ ((void));
+extern Pixmap XCreatePixmap P_ ((Display *, WindowRef, unsigned int,
 				 unsigned int, unsigned int));
-extern Pixmap XCreatePixmapFromBitmapData P_ ((Display *, WindowPtr, char *,
+extern Pixmap XCreatePixmapFromBitmapData P_ ((Display *, WindowRef, char *,
 					       unsigned int, unsigned int,
 					       unsigned long, unsigned long,
 					       unsigned int));
@@ -625,7 +632,7 @@ extern GC XCreateGC P_ ((Display *, void *, unsigned long, XGCValues *));
 extern void XFreeGC P_ ((Display *, GC));
 extern void XSetForeground P_ ((Display *, GC, unsigned long));
 extern void XSetBackground P_ ((Display *, GC, unsigned long));
-extern void XSetWindowBackground P_ ((Display *, WindowPtr, unsigned long));
+extern void XSetWindowBackground P_ ((Display *, WindowRef, unsigned long));
 extern void XDrawLine P_ ((Display *, Pixmap, GC, int, int, int, int));
 extern void mac_clear_area P_ ((struct frame *, int, int,
 				unsigned int, unsigned int));
@@ -633,8 +640,8 @@ extern void mac_unload_font P_ ((struct mac_display_info *, XFontStruct *));
 extern int mac_font_panel_visible_p P_ ((void));
 extern OSStatus mac_show_hide_font_panel P_ ((void));
 extern OSStatus mac_set_font_info_for_selection P_ ((struct frame *, int, int));
-extern OSStatus install_window_handler P_ ((WindowPtr));
-extern void remove_window_handler P_ ((WindowPtr));
+extern OSStatus install_window_handler P_ ((WindowRef));
+extern void remove_window_handler P_ ((WindowRef));
 extern OSStatus mac_post_mouse_moved_event P_ ((void));
 #if !TARGET_API_MAC_CARBON
 extern void do_apple_menu P_ ((SInt16));
@@ -642,6 +649,7 @@ extern void do_apple_menu P_ ((SInt16));
 #if USE_CG_DRAWING
 extern void mac_prepare_for_quickdraw P_ ((struct frame *));
 #endif
+extern void mac_get_window_bounds P_ ((struct frame *, Rect *, Rect *));
 extern int mac_quit_char_key_p P_ ((UInt32, UInt32));
 
 #define FONT_TYPE_FOR_UNIBYTE(font, ch) 0

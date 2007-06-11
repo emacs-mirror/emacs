@@ -1327,7 +1327,7 @@ cmd_error_internal (data, context)
   /* Use user's specified output function if any.  */
   if (!NILP (Vcommand_error_function))
     call3 (Vcommand_error_function, data,
-	   build_string (context ? context : ""),
+	   context ? build_string (context) : empty_unibyte_string,
 	   Vsignaling_function);
   /* If the window system or terminal frame hasn't been initialized
      yet, or we're not interactive, write the message to stderr and exit.  */
@@ -4028,6 +4028,9 @@ discard_mouse_events ()
 	  || sp->kind == WHEEL_EVENT
 #ifdef WINDOWSNT
 	  || sp->kind == W32_SCROLL_BAR_CLICK_EVENT
+#endif
+#ifdef HAVE_GPM
+	  || sp->kind == GPM_CLICK_EVENT
 #endif
 	  || sp->kind == SCROLL_BAR_CLICK_EVENT)
 	{

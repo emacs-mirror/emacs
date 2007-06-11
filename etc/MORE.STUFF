@@ -63,24 +63,24 @@ You might find bug-fixes or enhancements in these places.
  * ERC: IRC client:
    <URL:http://www.emacswiki.org/cgi-bin/wiki?EmacsIRCClient>
 
- * EShell: <URL:http://www.newartisans.com/johnw/emacs.html>
+ * EShell: <URL:http://johnwiegley.com/eshell.html>
 
  * Etags: <URL:ftp://pot.potorti.it/pub/software/unix/etags.tar.gz>
 
  * Expand: <URL:http://w3.teaser.fr/%7Eflepied/expand.el.gz>
-
- * Fortune: <URL:http://www.coling.uni-freiburg.de/%7Eschauer/emacs.html>
 
  * Gnus: <URL:http://www.gnus.org/>
 
  * Ffap: <URL:http://www.mathcs.emory.edu/%7Emic/ftp/emacs/>
    (And some addons for it.)
 
- * Hideshow: <URL:http://www.glug.org/people/ttn/software/hideshow/>
+ * Hideshow: <URL:http://staff.science.uva.nl/~dominik/Tools/org/>
 
  * Ispell: <URL:http://www.eng.utah.edu/~kstevens/ispell-page.html>
 
  * MH-E: <URL:http://mh-e.sourceforge.net/>
+
+ * Org mode: <URL:http://staff.science.uva.nl/~dominik/Tools/org/>
 
  * PS mode: <URL:http://odur.let.rug.nl/%7Ekleiweg/postscript/>
 
@@ -148,7 +148,7 @@ Several are for Debian GNU/Linux in particular.
 
  * ECB: Emacs Code Browser: <URL:http://ecb.sourceforge.net/>
 
- * EDB: database: <URL:http://www.glug.org/people/ttn/software/edb/>
+ * EDB: database: <URL:http://www.gnuvola.org/software/edb/>
 
  * Ee: categorizing information manager:
    <URL:http://www.jurta.org/emacs/ee/>
@@ -185,7 +185,7 @@ Several are for Debian GNU/Linux in particular.
    page: eiffel-mode.el.
 
  * Go in a buffer: Go Text Protocol client:
-   <URL:http://www.glug.org/people/ttn/software/personal-elisp/standalone/>
+   <URL:http://www.gnuvola.org/software/personal-elisp/standalone/>
    A modified version is also bundled with GNU Go:
    <URL:http://www.gnu.org/software/gnugo/gnugo.html>
 
@@ -235,10 +235,10 @@ Several are for Debian GNU/Linux in particular.
    DTD-aware serious SGML/XML editing.
 
  * Quack: <URL:http://www.neilvandyke.org/quack/>
-   Quack enhances Emacs support for Scheme
+   Quack enhances Emacs support for Scheme.
 
- * Remember:
-   <URL:http://sacha.free.net.ph/notebook/wiki/RememberEl.php>
+ * Remember: <URL:https://gna.org/p/remember-el>
+   A Personal Information Manager (PIM) for Emacs.
 
  * Session: <URL:http://emacs-session.sourceforge.net/>
    Session Management for Emacs.

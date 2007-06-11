@@ -6016,7 +6016,7 @@ same format as a regular save would use.  */);
 The default is t, which means that text is invisible
 if it has a non-nil `invisible' property.
 If the value is a list, a text character is invisible if its `invisible'
-property is an element in that list.
+property is an element in that list (or is a list with members in common).
 If an element is a cons cell of the form (PROP . ELLIPSIS),
 then characters with property value PROP are invisible,
 and they have an ellipsis as well if ELLIPSIS is non-nil.  */);

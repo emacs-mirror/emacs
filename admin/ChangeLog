@@ -1,6 +1,14 @@
+2007-06-07  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (set-copyright): New function.
+
 2007-04-25  Nick Roberts  <nickrob@snap.net.nz>
 
 	* make-tarball.txt: Add note about cutting the branch.
+
+2007-06-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 22.1 released.
 
 2007-02-03  Eli Zaretskii  <eliz@gnu.org>
 

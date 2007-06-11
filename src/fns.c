@@ -3134,7 +3134,7 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string.  */)
   len = Flength (sequence);
   leni = XINT (len);
   nargs = leni + leni - 1;
-  if (nargs < 0) return build_string ("");
+  if (nargs < 0) return empty_unibyte_string;
 
   SAFE_ALLOCA_LISP (args, nargs);
 

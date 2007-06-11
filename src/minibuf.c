@@ -529,7 +529,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   GCPRO5 (map, initial, val, ambient_dir, input_method);
 
   if (!STRINGP (prompt))
-    prompt = empty_string;
+    prompt = empty_unibyte_string;
 
   if (!enable_recursive_minibuffers
       && minibuf_level > 0)

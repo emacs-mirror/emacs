@@ -1667,7 +1667,7 @@ This action can be undone by running \\[undo]."
 (defun mh-mh-directive-present-p (&optional begin end)
   "Check if the text between BEGIN and END might be a MH-style directive.
 The optional argument BEGIN defaults to the beginning of the
-buffer, while END defaults to the the end of the buffer."
+buffer, while END defaults to the end of the buffer."
   (unless begin (setq begin (point-min)))
   (unless end (setq end (point-max)))
   (save-excursion
