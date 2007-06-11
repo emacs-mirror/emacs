@@ -44,6 +44,9 @@ with a prefix argument or by typing C-u C-h C-n.
 Only copyright lines with holders matching copyright-names-regexp will be
 considered for update.
 
+
+** VC has some support for Bazaar (bzr).
+
 
 * Changes in Emacs 23.1 on non-free operating systems
 
