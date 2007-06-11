@@ -96,9 +96,9 @@ dnl		| open-loo | open-look )	val=open-look ;;
 	    * )
 dnl AC_MSG_ERROR([the `--with-x-toolkit' option is supposed to have a value
 dnl which is `yes', `no', `lucid', `athena', `motif' or `open-look'.])
-AC_MSG_ERROR([`--with-x-toolkit=$withval' is invalid\;
+AC_MSG_ERROR([`--with-x-toolkit=$withval' is invalid;
 this option's value should be `yes', `no', `lucid', `athena', `motif' or `gtk'.
-Currently, `yes' and `gtk', and `athena' and `lucid' are synonyms.])
+`yes' and `gtk' are synonyms. `athena' and `lucid' are synonyms.])
 	    ;;
 	  esac
 	  with_x_toolkit=$val
