@@ -35,9 +35,7 @@ with a prefix argument or by typing C-u C-h C-n.
 
 * New Modes and Packages in Emacs 23.1
 
-** css-mode to edit Cascading Style Sheets.
-
-** socks.el (which had been part of W3) is now part of Emacs.
+** bibtex-style-mode helps you write BibTeX's *.bst files.
 
 
 * Changes in Specialized Modes and Packages in Emacs 23.1
