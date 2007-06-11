@@ -1,3 +1,267 @@
+2007-06-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* emacs-lisp/bytecomp.el (byte-compile-find-cl-functions): Match
+	against file-name-nondirectory.
+	Fix text on user customization variables.
+	Reported by Johan Bockg,Ae(Brd <bojohan@dd.chalmers.se>.
+
+2007-06-09  Alfred M. Szmidt  <ams@gnu.org>  (tiny change)
+
+	* mail/rmail.el (rmail-movemail-variant-in-use): Fix doc typo.
+
+2007-06-09  Davis Herring  <herring@lanl.gov>
+
+	* desktop.el (desktop-minor-mode-table): Doc fix.
+
+2007-06-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/css-mode.el (css-navigation-syntax-table):
+	Use set-char-table-range so it also works in the unicode branch.
+
+2007-06-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* help-mode.el (help-xref-forward-stack)
+	(help-xref-stack-forward-item, help-forward-label): New variables.
+	(help-forward): New button type.
+	(help-setup-xref): Initialise help-xref-forward-stack.
+	(help-make-xrefs): Add forward button, if appropriate.
+	(help-xref-go-back): Push item on forward stack.
+	(help-xref-go-forward, help-go-forward): New functions.
+
+2007-06-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.el (dired-mode-map): Remove spurious separator.
+
+2007-06-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/ebrowse.el (ebrowse-draw-file-member-info): Doc fix.
+
+	* progmodes/mixal-mode.el (mixal-operation-codes-alist):
+	* progmodes/idlwave.el (idlwave-one-key-select): Fix typo in docstring.
+
+2007-06-07  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: Version number fixed.
+
+2007-06-07  Glenn Morris  <rgm@gnu.org>
+
+	* version.el (emacs-copyright): New constant.
+	* startup.el (fancy-splash-tail): Use emacs-copyright.
+	* calc/calc-help.el (calc-full-help): Use emacs-copyright.
+
+	* emacs-lisp/bytecomp.el (byte-compile-warnings): Add new option
+	`make-local'.
+	(byte-compile-warnings-safe-p): Add `make-local'.
+	(byte-compile-make-variable-buffer-local):
+	Allow byte-compile-warnings to suppress this warning.
+
+	* tutorial.el (tutorial--describe-nonstandard-key): Adjust for new
+	format of "menu" description.
+	(tutorial--find-changed-keys): Describe the specific menu a
+	command is in.
+
+	* dframe.el (dframe-frame-parameter, dframe-mouse-event-p):
+	Rewrite compatibility functions to silence byte-compiler.
+
+2007-06-07  Alfred M. Szmidt  <ams@gnu.org>  (tiny change)
+
+	* mail/rmailsum.el (rmail-summary-save-buffer): New command.
+	(rmail-summary-mode-map): Add rmail-summary-save-buffer.
+
+2007-06-07  Eric M. Ludlam  <eric@siege-engine.com>
+
+	* emacs-lisp/checkdoc.el (checkdoc-ispell-lisp-words): Remove "iff".
+
+2007-06-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/ebrowse.el (ebrowse-member-table):
+	* textmodes/org.el (org-export-ascii-bullets, org-batch-agenda)
+	(org-batch-agenda-csv): Fix typos in docstrings.
+
+2007-06-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/mule-cmds.el (toggle-enable-multibyte-characters)
+	(sort-coding-systems, search-unencodable-char): Doc fixes.
+	(coding-system-change-eol-conversion, set-default-coding-systems)
+	(prefer-coding-system, find-multibyte-characters, princ-list)
+	(leim-list-entry-regexp, set-input-method, locale-language-names)
+	(input-method-exit-on-first-char, exit-language-environment-hook)
+	(locale-charset-language-names): Fix typos in docstrings.
+
+2007-06-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* pgg.el (pgg-sign-region, pgg-sign):
+	* ses.el (ses-call-printer):
+	* calendar/icalendar.el (icalendar--diarytime-to-isotime):
+	* textmodes/org.el (org-cycle): Fix typos in docstrings.
+
+2007-06-06  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el
+	(org-export-region-as-html, org-replace-region-by-html)
+	(org-number-to-letters, org-table-fedit-finish)
+	(org-normalize-color, org-table-fedit-ref-right)
+	(org-date-to-gregorian, org-table-fedit-move)
+	(org-table-convert-refs-to-rc, org-calendar-holiday)
+	(org-table-fedit-toggle-ref-type, org-write-agenda)
+	(org-colgroup-info-to-vline-list, org-agenda-todo-previousset)
+	(org-defkey, org-encode-for-stdout)
+	(org-indent-line-function, org-export-as-html-to-buffer)
+	(org-store-agenda-views, org-update-mode-line)
+	(org-find-if, org-delete-all)
+	(org-table-fedit-convert-buffer, org-emphasize)
+	(org-uniquify, org-table-fedit-lisp-indent)
+	(org-table-fedit-scroll, org-get-todo-sequence-head)
+	(org-table-fedit-scroll-down, org-table-fedit-line-down)
+	(org-table-fedit-ref-left, org-agenda-export-csv-mapper)
+	(org-table-fedit-toggle-coordinates, org-dvipng-color)
+	(org-table-fedit-line-up, org-table-fedit-ref-down)
+	(org-table-formula-from-user, org-mode-flyspell-verify)
+	(org-cycle-show-empty-lines, org-ctrl-c-ret)
+	(org-table-formula-to-user, org-diary-to-ical-string)
+	(orgtbl-export, org-table-fedit-post-command)
+	(org-closed-in-range, org-shiftcontrolright)
+	(org-table-convert-refs-to-an, org-table-hline-and-move)
+	(org-table-formula-less-p, org-format-table-ascii)
+	(org-agenda-get-sexps, org-shift-refpart)
+	(org-diary-sexp-entry, org-time-string-to-absolute)
+	(org-table-show-reference, org-letters-to-number)
+	(org-fix-agenda-info, org-table-fedit-ref-up)
+	(org-table-fedit-shift-reference, org-table-fedit-abort)
+	(org-closest-date, org-shiftcontrolleft)
+	(org-at-heading-or-item-p, org-rematch-and-replace)
+	(org-agenda-todo-nextset, org-export-grab-title-from-buffer):
+	New functions.
+	(org-table-edit-scroll-down, org-finish-edit-formulas)
+	(org-table-edit-next-field, org-abort-edit-formulas)
+	(org-font-lock-level, org-export-find-first-heading-line)
+	(org-table-edit-line-down, org-table-edit-backward-field)
+	(org-edit-formula-lisp-indent, org-table-edit-move)
+	(org-check-log-option, org-this-word)
+	(org-table-edit-line-up, org-table-edit-formulas-post-command)
+	(org-agenda-file-to-end, org-expand-file-name)
+	(org-fake-empty-table-line, org-table-edit-scroll)
+	(org-toggle-log-option, org-show-reference): Function removed.
+	(org-inhibit-invisibility, org-table-formula-make-cmp-string):
+	New defsubsts.
+	(org-unmodified, org-batch-store-agenda-views)
+	(org-batch-agenda-csv): New macro.
+	(org-agenda-export): New customization group.
+	(org-agenda-skip-deadline-if-done, org-agenda-remove-tags)
+	(org-highest-priority, org-agenda-exporter-settings)
+	(org-log-done-with-time, org-replace-disputed-keys)
+	(org-format-latex-header, org-export-table-header-tags)
+	(org-cycle-separator-lines, org-export-table-data-tags)
+	(org-icalendar-include-sexps)
+	(org-empty-line-terminates-plain-lists)
+	(org-log-repeat, org-special-ctrl-a)
+	(org-table-use-standard-references, org-disputed-keys)
+	(org-export-skip-text-before-1st-heading, org-agenda-with-colors)
+	(org-agenda-export-html-style): New option.
+	(org-allow-auto-repeat,  org-agenda-remove-tags-when-in-prefix)
+	(org-CUA-compatible): Option removed.
+	(org-agenda-structure,  org-sexp-date): New face.
+	(org-todo-keywords-for-agenda, org-not-done-keywords)
+	(org-planning-or-clock-line-re, org-agenda-name)
+	(org-table-colgroup-info, org-todo-sets)
+	(constants-unit-system, org-clock-mode-line-entry)
+	(org-mode-line-timer, org-table-current-begin-pos)
+	(org-todo-keywords-1, org-mode-line-string)
+	(org-table-clean-did-remove-column, org-table-fedit-map)
+	(org-clock-heading, org-table-buffer-is-an)
+	(org-agenda-info, org-done-keywords)
+	(org-done-keywords-for-agenda, org-todo-heads)
+	(org-todo-kwd-alist, org-clock-start-time): New variable.
+	(org-todo-kwd-priority-p, org-edit-formulas-map)
+	(org-repeat-re, org-todo-kwd-max-priority)
+	(org-version, org-done-string)
+	(org-table-clean-did-remove-column-1, org-disputed-keys):
+	Remove Variables.
+	(org-table-translate-regexp, org-repeat-re, org-version): New consts.
+	(org-ts-lengths): Constant removed.
+	(org-follow-gnus-link): Don't ask how many articles to read.
+	(org-export-find-first-export-line): Rename from
+	`org-export-find-first-heading'.
+	Use `org-export-skip-text-before-1st-heading'.
+	(org-table-fedit-post-command): Rename from
+	`org-table-edit-formulas-post-command'.
+	(org-table-fedit-finish): Rename from `org-finish-edit-formulas'.
+	(org-table-fedit-abort): Rename from `org-abort-edit-formulas'.
+	(org-table-fedit-lisp-indent): Rename from
+	`org-edit-formula-lisp-indent'.
+	(org-table-show-reference): Rename from `org-show-reference'.
+	(org-table-store-formulas): Use `org-table-formula-less-p'.
+	(org-table-edit-formulas): Position cursor to current field equation.
+	(org-update-checkbox-count, org-hide-archived-subtrees)
+	(org-timestamp-up-day, org-timestamp-down-day)
+	(org-shiftmetaleft, org-shiftmetaright, org-shiftmetaup)
+	(org-shiftmetadown, org-metaleft, org-metaright, org-metaup)
+	(org-metadown, org-shiftup, org-shiftdown, org-shiftright)
+	(org-shiftleft, org-ctrl-c-ctrl-c, org-context):
+	Let `org-on-heading-p' also check for invisible heading.
+	(org-read-date): Match am/pm times.
+	(org-eval-in-calendar): Fix default date in prompt.
+
+2007-06-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (auto-mode-alist): Separate "ChangeLog.1" and
+	"ChangeLog.a" entries, giving the latter lower priority.
+
+2007-06-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faces.el (face-id): If the argument is a face alias,
+	return the ID of the target face.
+
+2007-06-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/socks.el (top): Remove unnecessary copyright line.
+
+2007-06-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-auto-wrap): Handle argument correctly.
+
+2007-06-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/socks.el: New file, taken from w3 repository.
+	(top): Update Copyright.  Don't load cl.el.
+	(all): Replace `case' by `cond', `string-to-int' by
+	`string-to-number', and `process-kill-without-query' by
+	`set-process-query-on-exit-flag'.
+	(socks-char-int): Remove defalias and all occurencies.
+
+2007-06-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/compile.el (compilation-find-file, compilation-handle-exit):
+	Fix typos in docstrings.
+	(compilation-search-path, compilation-buffer-name-function): Doc fixes.
+	(compilation-finish-function): Fix typo in obsolescence declaration.
+
+2007-06-03  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/compile.el: Add TIMESTAMP to the LOC data structure, to
+	handle unending automatic recompilation of changed files (`omake -P').
+	(compilation-loop): VISITED is now 5th CDR.
+	(compilation-next-error-function): Set TIMESTAMP.
+
+2007-06-03  Sam Steingold  <sds@gnu.org>
+
+	* files.el (kill-buffer-ask): New function.
+	(kill-some-buffers): Use it.
+	(kill-matching-buffers): New user command.
+
+2007-06-01  David Kastrup  <dak@gnu.org>
+
+	* dired.el (dired-recursive-deletes, dired-recursive-copies):
+	Change default to `top'.
+
+2007-05-31  Richard Stallman  <rms@gnu.org>
+
+	* dired.el (dired-do-flagged-delete, dired-do-delete): Doc fix.
+
+2007-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/css-mode.el: New file.
+
 2007-05-30  Michael Olson  <mwolson@gnu.org>
 
 	* emacs-lisp/tq.el (tq-queue-pop): Stifle error when a process has
@@ -9,8 +273,8 @@
 2007-05-29  Martin Rudalics  <rudalics@gmx.at>
 
 	* textmodes/table.el (table--point-entered-cell-function)
-	(table--point-left-cell-function): Bind
-	`inhibit-point-motion-hooks' to t.
+	(table--point-left-cell-function):
+	Bind `inhibit-point-motion-hooks' to t.
 
 2007-05-29  Nikolaj Schumacher  <n_schumacher@web.de>  (tiny change)
 
@@ -35,18 +299,17 @@
 
 	* net/tramp.el (top): Make `set-buffer-multibyte' an alias if it
 	doesn't exist.
-	(with-parsed-tramp-file-name): Protect debug spec during
-	compilation.
+	(with-parsed-tramp-file-name): Protect debug spec during compilation.
 	(tramp-handle-insert-directory): Check (featurep 'ls-lisp).
 	(tramp-file-name-p, tramp-file-name-multi-method)
 	(tramp-file-name-method, tramp-file-name-user)
 	(tramp-file-name-host, tramp-file-name-localname): New defuns,
 	replacing defstruct `tramp-file-name'.
 	(tramp-handle-file-remote-p, tramp-completion-dissect-file-name1)
-	(tramp-dissect-file-name, tramp-dissect-multi-file-name): Apply
-	`vector' instead of `make-tramp-file-name'.
-	(tramp-handle-make-auto-save-file-name): Apply
-	`tramp-temporary-file-directory' for compatibility reasons.
+	(tramp-dissect-file-name, tramp-dissect-multi-file-name):
+	Apply `vector' instead of `make-tramp-file-name'.
+	(tramp-handle-make-auto-save-file-name):
+	Apply `tramp-temporary-file-directory' for compatibility reasons.
 	(tramp-completion-mode): Use `natnump' instead of `wholenump'
 	because of XEmacs.
 	(tramp-completion-mode): `last-input-event' is nil when XEmacs is
@@ -170,8 +433,8 @@
 
 2007-05-22  Katsumi Yamaoka  <yamaoka@jpl.org>  (tiny change)
 
-	* mail/mail-extr.el (mail-extract-address-components): Recognize
-	non-ASCII characters except for NBSP as words.
+	* mail/mail-extr.el (mail-extract-address-components):
+	Recognize non-ASCII characters except for NBSP as words.
 
 2007-05-21  Trent Buck  <trentbuck@gmail.com>  (tiny change)
 
@@ -182,8 +445,8 @@
 2007-05-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image-mode.el (image-toggle-display): Don't clear image cache.
-	Only use filename in image spec if the file is readable.  Call
-	image-refresh.
+	Only use filename in image spec if the file is readable.
+	Call image-refresh.
 
 	* image.el (image-type-from-file-name, image-type): Simplify.
 	(image-type-auto-detected-p): Don't scan auto-mode-alist.
@@ -211,6 +474,10 @@
 	* files.el (auto-mode-alist): Change the regexp so that
 	ChangeLog.unicode and ChangeLog.multi-tty use change-log-mode.
 
+2007-06-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 22.1 released.
+
 2007-05-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* paren.el (show-paren-function): Undo 2007-04-19 and 2007-04-20
@@ -230,7 +497,7 @@
 
 2007-05-18  Rob Riepel  <riepel@Stanford.EDU>
 
-	* emulation/tpu-edt.el (CSI-map, SS3-map): Moved from global-map to
+	* emulation/tpu-edt.el (CSI-map, SS3-map): Move from global-map to
 	tpu-global-map.
 	(tpu-original-global-map): Variable deleted.
 	(tpu-control-keys-map): New keymap variable.

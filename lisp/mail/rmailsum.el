@@ -854,6 +854,15 @@ Search, the `unseen' attribute is restored.")
 		      (set-buffer rmail-buffer)
 		      (rmail-show-message msg-num t))))))
 	(rmail-summary-update-highlight nil)))))
+
+(defun rmail-summary-save-buffer ()
+  "Save the buffer associated with this RMAIL summary."
+  (interactive)
+  (save-window-excursion
+    (save-excursion
+      (switch-to-buffer rmail-buffer)
+      (save-buffer))))
+
 
 (if rmail-summary-mode-map
     nil
@@ -923,6 +932,7 @@ Search, the `unseen' attribute is restored.")
     'rmail-summary-sort-by-lines)
   (define-key rmail-summary-mode-map "\C-c\C-s\C-k"
     'rmail-summary-sort-by-labels)
+  (define-key rmail-summary-mode-map "\C-x\C-s" 'rmail-summary-save-buffer)
   )
 
 ;;; Menu bar bindings.

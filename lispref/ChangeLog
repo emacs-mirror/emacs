@@ -1,8 +1,30 @@
+2007-06-03  Nick Roberts  <nickrob@snap.net.nz>
+
+	* commands.texi (Click Events): Describe width and height when
+	object is nil.
+
 2007-05-30  Nick Roberts  <nickrob@snap.net.nz>
 
 	* commands.texi (Click Events): Layout more logically.  Describe
 	width and height.
 	(Drag Events, Motion Events): Update to new format for position.
+
+2007-06-02  Richard Stallman  <rms@gnu.org>
+
+	* frames.texi (Color Parameters): Add xref to (emacs)Standard Faces.
+
+2007-06-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 22.1 released.
+
+2007-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* text.texi (Special Properties): Correct meaning of fontified
+	face.
+
+2007-05-30  Richard Stallman  <rms@gnu.org>
+
+	* text.texi (Special Properties): Add link to Adjusting Point.
 
 2007-05-12  Richard Stallman  <rms@gnu.org>
 

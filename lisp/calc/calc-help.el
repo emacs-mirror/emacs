@@ -414,7 +414,7 @@ C-w  Describe how there is no warranty for Calc."
     (princ (format "GNU Emacs Calculator version %s.\n"
 		   calc-version))
     (princ "  By Dave Gillespie.\n")
-    (princ "  Copyright (C) 2007 Free Software Foundation, Inc.\n\n")
+    (princ (format "  %s\n\n" emacs-copyright))
     (princ "Type `h s' for a more detailed summary.\n")
     (princ "Or type `h i' to read the full Calc manual on-line.\n\n")
     (princ "Basic keys:\n")

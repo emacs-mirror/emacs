@@ -2076,7 +2076,7 @@ wordify (string)
   if (SYNTAX (prev_c) == Sword)
     word_count++;
   if (!word_count)
-    return empty_string;
+    return empty_unibyte_string;
 
   adjust = - punct_count + 5 * (word_count - 1) + 4;
   if (STRING_MULTIBYTE (string))

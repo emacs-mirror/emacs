@@ -1452,9 +1452,6 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map [menu-bar operate]
       (cons "Operate" (make-sparse-keymap "Operate")))
 
-    (define-key map [menu-bar operate dashes-2]
-      '("--"))
-
     (define-key map
       [menu-bar operate image-dired-delete-tag]
       '(menu-item "Delete Image Tag..." image-dired-delete-tag
@@ -2362,7 +2359,7 @@ Optional argument means return a file name relative to `default-directory'."
 
 ;; Deleting files
 
-(defcustom dired-recursive-deletes nil ; Default only delete empty directories.
+(defcustom dired-recursive-deletes 'top ; Default only delete empty directories.
   "*Decide whether recursive deletes are allowed.
 A value of nil means no recursive deletes.
 `always' means delete recursively without asking.  This is DANGEROUS!
@@ -2410,7 +2407,9 @@ Anything else, ask for each sub-directory."
 (defun dired-do-flagged-delete (&optional nomessage)
   "In Dired, delete the files flagged for deletion.
 If NOMESSAGE is non-nil, we don't display any message
-if there are no flagged files."
+if there are no flagged files.
+`dired-recursive-deletes' controls whether 
+deletion of non-empty directories is allowed."
   (interactive)
   (let* ((dired-marker-char dired-del-marker)
 	 (regexp (dired-marker-regexp))
@@ -2426,7 +2425,9 @@ if there are no flagged files."
 	  (message "(No deletions requested)")))))
 
 (defun dired-do-delete (&optional arg)
-  "Delete all marked (or next ARG) files."
+  "Delete all marked (or next ARG) files.
+`dired-recursive-deletes' controls whether 
+deletion of non-empty directories is allowed."
   ;; This is more consistent with the file marking feature than
   ;; dired-do-flagged-delete.
   (interactive "P")
@@ -3206,7 +3207,7 @@ To be called first in body of `dired-sort-other', etc."
 
 ;;;;  Drag and drop support
 
-(defcustom dired-recursive-copies nil
+(defcustom dired-recursive-copies 'top
   "*Decide whether recursive copies are allowed.
 A value of nil means no recursive copies.
 `always' means copy recursively without asking.

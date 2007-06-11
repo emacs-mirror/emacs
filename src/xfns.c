@@ -1523,6 +1523,8 @@ x_set_scroll_bar_background (f, value, oldval)
 /* Encode Lisp string STRING as a text in a format appropriate for
    XICCC (X Inter Client Communication Conventions).
 
+   This can call Lisp code, so callers must GCPRO.
+
    If STRING contains only ASCII characters, do no conversion and
    return the string data of STRING.  Otherwise, encode the text by
    CODING_SYSTEM, and return a newly allocated memory area which
@@ -1591,6 +1593,16 @@ x_set_name_internal (f, name)
 	int bytes, stringp;
         int do_free_icon_value = 0, do_free_text_value = 0;
 	Lisp_Object coding_system;
+#ifdef USE_GTK
+	Lisp_Object encoded_name;
+	struct gcpro gcpro1;
+
+	/* As ENCODE_UTF_8 may cause GC and relocation of string data,
+	   we use it before x_encode_text that may return string data.  */
+	GCPRO1 (name);
+	encoded_name = ENCODE_UTF_8 (name);
+	UNGCPRO;
+#endif
 
 	coding_system = Qcompound_text;
 	/* Note: Encoding strategy
@@ -1631,7 +1643,7 @@ x_set_name_internal (f, name)
 
 #ifdef USE_GTK
         gtk_window_set_title (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-                              (char *) SDATA (ENCODE_UTF_8 (name)));
+                              (char *) SDATA (encoded_name));
 #else /* not USE_GTK */
 	XSetWMName (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), &text);
 #endif /* not USE_GTK */
@@ -1817,9 +1829,9 @@ x_default_scroll_bar_color_parameter (f, alist, prop, xprop, xclass,
 				    build_string (foreground_p
 						  ? "foreground"
 						  : "background"),
-				    empty_string,
+				    empty_unibyte_string,
 				    build_string ("verticalScrollBar"),
-				    empty_string);
+				    empty_unibyte_string);
       if (!STRINGP (tem))
 	{
 	  /* If nothing has been specified, scroll bars will use a

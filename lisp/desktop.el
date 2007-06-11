@@ -423,7 +423,7 @@ Furthermore the major mode function must be autoloaded.")
 Each entry has the form (NAME RESTORE-FUNCTION).
 NAME is the name of the buffer-local variable indicating that the minor
 mode is active.  RESTORE-FUNCTION is the function to activate the minor mode.
-called.  RESTORE-FUNCTION nil means don't try to restore the minor mode.
+RESTORE-FUNCTION nil means don't try to restore the minor mode.
 Only minor modes for which the name of the buffer-local variable
 and the name of the minor mode function are different have to be added to
 this table.  See also `desktop-minor-mode-handlers'."

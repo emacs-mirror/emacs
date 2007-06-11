@@ -691,7 +691,11 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj) $(LIBO
 #define MOUSE_SUPPORT ${lispsource}mouse.elc \
   ${lispsource}select.elc ${lispsource}scroll-bar.elc
 #else
+#ifdef HAVE_GPM
+#define MOUSE_SUPPORT ${lispsource}mouse.elc
+#else
 #define MOUSE_SUPPORT
+#endif
 #endif
 
 #ifdef VMS

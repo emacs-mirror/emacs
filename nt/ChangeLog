@@ -1,3 +1,7 @@
+2007-06-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 22.1 released.
+
 2007-05-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* INSTALL: Add information about where to find GDB, and warn

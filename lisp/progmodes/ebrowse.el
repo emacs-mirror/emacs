@@ -1003,7 +1003,7 @@ type `ebrowse-hs' is set to the resulting obarray."
 
 
 (defun ebrowse-member-table (header)
-  "Return the member obarray.  Build it it hasn't been set up yet.
+  "Return the member obarray.  Build it if it hasn't been set up yet.
 HEADER is the tree header structure of the class tree."
   (when (null (ebrowse-hs-member-table header))
     (loop for buffer in (ebrowse-browser-buffer-list)
@@ -3598,7 +3598,7 @@ The file name is read from the minibuffer."
 
 
 (defun* ebrowse-draw-file-member-info (info &optional (kind ""))
-  "Display a line in an the members per file info buffer.
+  "Display a line in the members info buffer.
 INFO describes the member.  It has the form (TREE ACCESSOR MEMBER).
 TREE is the class of the member to display.
 ACCESSOR is the accessor symbol of its member list.

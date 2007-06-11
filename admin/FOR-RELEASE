@@ -55,7 +55,7 @@ that should be installed on the release branch after 22.1 is released.
 ** Changes to six pbm icons in etc/images.
 Sync change from trunk 2007-05-19.
 
-** viper and tramp should not load cl at run time.
+** viper should not load cl at run time.
 
 ** yamaoka@jpl.org's patch for mail-extract-address-components problem.
 

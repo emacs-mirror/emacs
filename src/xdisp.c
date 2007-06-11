@@ -17491,7 +17491,7 @@ are the selected window and the window's buffer).  */)
   CHECK_BUFFER (buffer);
 
   if (NILP (format))
-    return build_string ("");
+    return empty_unibyte_string;
 
   if (no_props)
     face = Qnil;
@@ -17549,7 +17549,7 @@ are the selected window and the window's buffer).  */)
     {
       mode_line_string_list = Fnreverse (mode_line_string_list);
       str = Fmapconcat (intern ("identity"), mode_line_string_list,
-			make_string ("", 0));
+			empty_unibyte_string);
     }
 
   unbind_to (count, Qnil);
@@ -24387,7 +24387,7 @@ and is used only on frames for which no explicit name has been set
     = Vframe_title_format
     = Fcons (intern ("multiple-frames"),
 	     Fcons (build_string ("%b"),
-		    Fcons (Fcons (empty_string,
+		    Fcons (Fcons (empty_unibyte_string,
 				  Fcons (intern ("invocation-name"),
 					 Fcons (build_string ("@"),
 						Fcons (intern ("system-name"),

@@ -98,9 +98,11 @@
 ;;				`obsolete'  (obsolete variables and functions)
 ;;				`noruntime' (calls to functions only defined
 ;;					     within `eval-when-compile')
-;;				`cl-warnings' (calls to CL functions)
+;;				`cl-functions' (calls to CL functions)
 ;;				`interactive-only' (calls to commands that are
 ;;						   not good to call from Lisp)
+;;				`make-local' (dubious calls to
+;;					      `make-variable-buffer-local')
 ;; byte-compile-compatibility	Whether the compiler should
 ;;				generate .elc files which can be loaded into
 ;;				generic emacs 18.
@@ -356,14 +358,16 @@ Elements of the list may be:
   cl-functions    calls to runtime functions from the CL package (as
 		  distinguished from macros and aliases).
   interactive-only
-	      commands that normally shouldn't be called from Lisp code."
+	      commands that normally shouldn't be called from Lisp code.
+  make-local  calls to make-variable-buffer-local that may be incorrect."
   :group 'bytecomp
   :type `(choice (const :tag "All" t)
 		 (set :menu-tag "Some"
 		      (const free-vars) (const unresolved)
 		      (const callargs) (const redefine)
 		      (const obsolete) (const noruntime)
-		      (const cl-functions) (const interactive-only))))
+		      (const cl-functions) (const interactive-only)
+		      (const make-local))))
 (put 'byte-compile-warnings 'safe-local-variable 'byte-compile-warnings-safe-p)
 ;;;###autoload
 (defun byte-compile-warnings-safe-p (x)
@@ -374,7 +378,7 @@ Elements of the list may be:
 		     (when (memq e '(free-vars unresolved
 				     callargs redefine
 				     obsolete noruntime
-				     cl-functions interactive-only))
+				     cl-functions interactive-only make-local))
 		       e))
 		   x)
 		  x))))
@@ -1344,7 +1348,8 @@ extra args."
   (unless byte-compile-cl-functions
     (dolist (elt load-history)
       (when (and (stringp (car elt))
-		 (string-match "^cl\\>" (car elt)))
+		 (string-match
+		  "^cl\\>" (file-name-nondirectory (car elt))))
 	(setq byte-compile-cl-functions
 	      (append byte-compile-cl-functions
 		      (cdr elt)))))
@@ -3890,7 +3895,8 @@ that suppresses all warnings during execution of BODY."
 ;; Warn about misuses of make-variable-buffer-local.
 (byte-defop-compiler-1 make-variable-buffer-local byte-compile-make-variable-buffer-local)
 (defun byte-compile-make-variable-buffer-local (form)
-  (if (eq (car-safe (car-safe (cdr-safe form))) 'quote)
+  (if (and (eq (car-safe (car-safe (cdr-safe form))) 'quote)
+           (memq 'make-local byte-compile-warnings))
       (byte-compile-warn
        "`make-variable-buffer-local' should be called at toplevel"))
   (byte-compile-normal-call form))

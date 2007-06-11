@@ -33,6 +33,24 @@ Some specific packages that are known to cause problems are:
 ** Semantic (used by CEDET, ECB, JDEE): upgrade to latest version.
 
 ** cua.el, cua-mode.el: remove old versions.
+
+* Installation Changes in Emacs 22.2
+
+* Changes in Emacs 22.2
+
+** The values of `dired-recursive-deletes' and `dired-recursive-copies'
+have been changed to `top'.  This means that the user is asked once,
+before deleting/copying the indicated directory recursively.
+
+** In Image mode, whenever the displayed image is wider and/or higher
+than the window, the usual keys for moving the cursor cause the image
+to be scrolled horizontally or vertically instead.
+
+* New Modes and Packages in Emacs 22.2
+
+** The new package css-mode.el provides a major mode for editing CSS files.
+
+** The new package socks.el implements the SOCKS v5 protocol.
 
 
 * Installation Changes in Emacs 22.1
@@ -280,11 +298,6 @@ too.  If you want to use just plain `*' as a wildcard, type `*""'; the
 doublequotes make no difference in the shell, but they prevent
 special treatment in `dired-do-shell-command'.
 
-** A prefix argument is no longer required to repeat a jump to a
-previous mark if you set `set-mark-command-repeat-pop' to t.  I.e. C-u
-C-SPC C-SPC C-SPC ... cycles through the mark ring.  Use C-u C-u C-SPC
-to set the mark immediately after a jump.
-
 ** The info-search bindings on C-h C-f, C-h C-k and C-h C-i
 have been moved to C-h F, C-h K and C-h S.
 
@@ -451,8 +464,9 @@ to one second.  This feature is turned off by default.
 ** Mark command changes:
 
 *** A prefix argument is no longer required to repeat a jump to a
-previous mark, i.e. C-u C-SPC C-SPC C-SPC ... cycles through the
-mark ring.  Use C-u C-u C-SPC to set the mark immediately after a jump.
+previous mark if you set `set-mark-command-repeat-pop' to t.  I.e. C-u
+C-SPC C-SPC C-SPC ... cycles through the mark ring.  Use C-u C-u C-SPC
+to set the mark immediately after a jump.
 
 *** Marking commands extend the region when invoked multiple times.
 

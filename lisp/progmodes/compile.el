@@ -38,11 +38,14 @@
 ;; LINE will be nil for a message that doesn't contain them.  Then the
 ;; location refers to a indented beginning of line or beginning of file.
 ;; Once any location in some file has been jumped to, the list is extended to
-;; (COLUMN LINE FILE-STRUCTURE MARKER . VISITED) for all LOCs pertaining to
-;; that file.
+;; (COLUMN LINE FILE-STRUCTURE MARKER TIMESTAMP . VISITED)
+;; for all LOCs pertaining to that file.
 ;; MARKER initially points to LINE and COLUMN in a buffer visiting that file.
 ;; Being a marker it sticks to some text, when the buffer grows or shrinks
 ;; before that point.  VISITED is t if we have jumped there, else nil.
+;; TIMESTAMP is necessary because of "incremental compilation": `omake -P'
+;; polls filesystem for changes and recompiles when a file is modified
+;; using the same *compilation* buffer. this necessitates re-parsing markers.
 
 ;;   FILE-STRUCTURE is a list of
 ;;   ((FILENAME . DIRECTORY) FORMATS (LINE LOC ...) ...)
@@ -117,7 +120,7 @@ bound to the compilation buffer and window, respectively.")
   "Function to compute the name of a compilation buffer.
 The function receives one argument, the name of the major mode of the
 compilation buffer.  It should return a string.
-nil means compute the name with `(concat \"*\" (downcase major-mode) \"*\")'.")
+If nil, compute the name with `(concat \"*\" (downcase major-mode) \"*\")'.")
 
 ;;;###autoload
 (defvar compilation-finish-function nil
@@ -126,7 +129,7 @@ It is called with two arguments: the compilation buffer, and a string
 describing how the process finished.")
 
 (make-obsolete-variable 'compilation-finish-function
-  "Use `compilation-finish-functions', but it works a little differently."
+  "use `compilation-finish-functions', but it works a little differently."
   "22.1")
 
 ;;;###autoload
@@ -466,7 +469,7 @@ Otherwise, it saves all modified buffers without asking."
 (defcustom compilation-search-path '(nil)
   "*List of directories to search for source files named in error messages.
 Elements should be directory names, not file names of directories.
-nil as an element means to try the default directory."
+The value nil as an element means to try the default directory."
   :type '(repeat (choice (const :tag "Default" nil)
 			 (string :tag "Directory")))
   :group 'compilation)
@@ -1419,7 +1422,7 @@ Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
     (font-lock-fontify-buffer)))
 
 (defun compilation-handle-exit (process-status exit-status msg)
-  "Write MSG in the current buffer and hack its mode-line-process."
+  "Write MSG in the current buffer and hack its `mode-line-process'."
   (let ((inhibit-read-only t)
 	(status (if compilation-exit-message-function
 		    (funcall compilation-exit-message-function
@@ -1516,7 +1519,7 @@ Just inserts the text, but uses `insert-before-markers'."
 	       (eq (prog1 last (setq last (nth 2 (car msg))))
 		   last))
 	   (if compilation-skip-visited
-	       (nthcdr 4 (car msg)))
+	       (nthcdr 5 (car msg)))
 	   (if compilation-skip-to-next-location
 	       (eq (car msg) loc))
 	   ;; count this message only if none of the above are true
@@ -1619,7 +1622,7 @@ This is the value of `next-error-function' in Compilation buffers."
   (when reset
     (setq compilation-current-error nil))
   (let* ((columns compilation-error-screen-columns) ; buffer's local value
-	 (last 1)
+	 (last 1) timestamp
 	 (loc (compilation-next-error (or n 1) nil
 				      (or compilation-current-error
 					  compilation-messages-start
@@ -1632,10 +1635,17 @@ This is the value of `next-error-function' in Compilation buffers."
 		compilation-current-error
 	      (copy-marker (line-beginning-position)))
 	  loc (car loc))
-    ;; If loc contains no marker, no error in that file has been visited.  If
-    ;; the marker is invalid the buffer has been killed.  So, recalculate all
-    ;; markers for that file.
-    (unless (and (nth 3 loc) (marker-buffer (nth 3 loc)))
+    ;; If loc contains no marker, no error in that file has been visited.
+    ;; If the marker is invalid the buffer has been killed.
+    ;; If the file is newer than the timestamp, it has been modified
+    ;; (`omake -P' polls filesystem for changes and recompiles when needed
+    ;;  in the same process and buffer).
+    ;; So, recalculate all markers for that file.
+    (unless (and (nth 3 loc) (marker-buffer (nth 3 loc))
+                 (equal (nth 4 loc)
+                        (setq timestamp
+                              (with-current-buffer (marker-buffer (nth 3 loc))
+                                (visited-file-modtime)))))
       (with-current-buffer (compilation-find-file marker (caar (nth 2 loc))
 						  (cadr (car (nth 2 loc))))
 	(save-restriction
@@ -1658,7 +1668,8 @@ This is the value of `next-error-function' in Compilation buffers."
 		  (set-marker (nth 3 col) (point))
 		(setcdr (nthcdr 2 col) `(,(point-marker)))))))))
     (compilation-goto-locus marker (nth 3 loc) (nth 3 end-loc))
-    (setcdr (nthcdr 3 loc) t)))		; Set this one as visited.
+    (setcdr (nthcdr 3 loc) (list timestamp))
+    (setcdr (nthcdr 4 loc) t)))		; Set this one as visited.
 
 (defvar compilation-gcpro nil
   "Internal variable used to keep some values from being GC'd.")
@@ -1825,8 +1836,8 @@ and overlay is highlighted between MK and END-MK."
 Search the directories in `compilation-search-path'.
 A nil in `compilation-search-path' means to try the
 \"current\" directory, which is passed in DIRECTORY.
-If DIRECTORY. is relative, it is combined with `default-directory'.
-If DIRECTORY. is nil, that means use `default-directory'.
+If DIRECTORY is relative, it is combined with `default-directory'.
+If DIRECTORY is nil, that means use `default-directory'.
 If FILENAME is not found at all, ask the user where to find it.
 Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
   (or formats (setq formats '("%s")))
@@ -1867,7 +1878,7 @@ Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
                         ;; restrictive otherwise, since it also prevents the
                         ;; user from completing "fo" to "foo/" when she
                         ;; wants to enter "foo/bar".
-                        ;; 
+                        ;;
                         ;; Try to make sure the user can only select
                         ;; a valid answer.  This predicate may be ignored,
                         ;; tho, so we still have to double-check afterwards.

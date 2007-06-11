@@ -1450,7 +1450,7 @@ responding to a message:
 @vindex message-subject-trailing-was-regexp
 Controls what to do with trailing @samp{(was: <old subject>)} in subject
 lines.  If @code{nil}, leave the subject unchanged.  If it is the symbol
-@code{ask}, query the user what do do.  In this case, the subject is
+@code{ask}, query the user what to do.  In this case, the subject is
 matched against @code{message-subject-trailing-was-ask-regexp}.  If
 @code{message-subject-trailing-was-query} is @code{t}, always strip the
 trailing old subject.  In this case,

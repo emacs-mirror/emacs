@@ -1623,16 +1623,19 @@ remove_drag_handler (window)
 			Services menu support
 ***********************************************************************/
 #ifdef MAC_OSX
-void
-init_service_handler ()
+OSStatus
+install_service_handler ()
 {
   static const EventTypeSpec specs[] =
     {{kEventClassService, kEventServiceGetTypes},
      {kEventClassService, kEventServiceCopy},
      {kEventClassService, kEventServicePaste},
      {kEventClassService, kEventServicePerform}};
-  InstallApplicationEventHandler (NewEventHandlerUPP (mac_handle_service_event),
-				  GetEventTypeCount (specs), specs, NULL, NULL);
+
+  return InstallApplicationEventHandler (NewEventHandlerUPP
+					 (mac_handle_service_event),
+					 GetEventTypeCount (specs),
+					 specs, NULL, NULL);
 }
 
 extern OSStatus mac_store_service_event P_ ((EventRef));

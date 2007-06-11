@@ -19,6 +19,8 @@ with a prefix argument or by typing C-u C-h C-n.
 
 * Installation Changes in Emacs 23.1
 
+** The default X toolkit has changed from Lucid to Gtk+.
+
 
 * Startup Changes in Emacs 23.1
 
@@ -28,8 +30,14 @@ with a prefix argument or by typing C-u C-h C-n.
 
 * Editing Changes in Emacs 23.1
 
+** New command kill-matching-buffers kills buffers whose name matches a regexp.
+
 
 * New Modes and Packages in Emacs 23.1
+
+** css-mode to edit Cascading Style Sheets.
+
+** socks.el (which had been part of W3) is now part of Emacs.
 
 
 * Changes in Specialized Modes and Packages in Emacs 23.1

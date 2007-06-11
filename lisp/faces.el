@@ -292,11 +292,12 @@ Value is FACE."
 
 (defun face-id (face &optional frame)
   "Return the internal ID of face with name FACE.
+If FACE is a face-alias, return the ID of the target face.
 The optional argument FRAME is ignored, since the internal face ID
 of a face name is the same for all frames."
   (check-face face)
-  (get face 'face))
-
+  (or (get face 'face)
+      (face-id (get face 'face-alias))))
 
 (defun face-equal (face1 face2 &optional frame)
   "Non-nil if faces FACE1 and FACE2 are equal.

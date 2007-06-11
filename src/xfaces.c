@@ -4160,6 +4160,8 @@ Otherwise check for the existence of a global face.  */)
 {
   Lisp_Object lface;
 
+  face = resolve_face_name (face, 1);
+
   if (!NILP (frame))
     {
       CHECK_LIVE_FRAME (frame);

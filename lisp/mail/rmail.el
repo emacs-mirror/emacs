@@ -228,7 +228,7 @@ Otherwise, look for `movemail' in the directories in
   `emacs'     Means any implementation, compatible with the native Emacs one.
               This is the default;
   `mailutils' Means GNU mailutils implementation, capable of handling full
-mail URLs as the source mailbox;")
+mail URLs as the source mailbox.")
 
 ;;;###autoload
 (defun rmail-movemail-variant-p (&rest variants)

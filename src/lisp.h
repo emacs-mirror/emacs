@@ -704,7 +704,10 @@ extern int string_bytes P_ ((struct Lisp_String *));
 #endif /* not GC_CHECK_STRING_BYTES */
 
 /* Mark STR as a unibyte string.  */
-#define STRING_SET_UNIBYTE(STR)      (XSTRING (STR)->size_byte = -1)
+#define STRING_SET_UNIBYTE(STR)  \
+  do { if (EQ (STR, empty_multibyte_string))  \
+      (STR) = empty_unibyte_string;  \
+    else XSTRING (STR)->size_byte = -1; } while (0)
 
 /* Get text properties.  */
 #define STRING_INTERVALS(STR)  (XSTRING (STR)->intervals + 0)
@@ -3098,7 +3101,8 @@ extern void syms_of_frame P_ ((void));
 /* defined in emacs.c */
 extern Lisp_Object decode_env_path P_ ((char *, char *));
 extern Lisp_Object Vinvocation_name, Vinvocation_directory;
-extern Lisp_Object Vinstallation_directory, empty_string;
+extern Lisp_Object Vinstallation_directory;
+extern Lisp_Object empty_unibyte_string, empty_multibyte_string;
 EXFUN (Fkill_emacs, 1);
 #if HAVE_SETLOCALE
 void fixup_locale P_ ((void));

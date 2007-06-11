@@ -1826,8 +1826,6 @@ xrm_get_preference_database (application)
 
   GCPRO3 (database, quarks, value);
 
-  BLOCK_INPUT;
-
   app_id = kCFPreferencesCurrentApplication;
   if (application)
     {
@@ -1878,8 +1876,6 @@ xrm_get_preference_database (application)
   if (key_set)
     CFRelease (key_set);
   CFRelease (app_id);
-
-  UNBLOCK_INPUT;
 
   UNGCPRO;
 

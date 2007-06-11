@@ -1357,7 +1357,7 @@ record is invalid return 'error."
 ;;;###mh-autoload
 (defun mh-index-group-by-folder ()
   "Partition the messages based on source folder.
-Returns an alist with the the folder names in the car and the cdr
+Returns an alist with the folder names in the car and the cdr
 being the list of messages originally from that folder."
   (save-excursion
     (goto-char (point-min))

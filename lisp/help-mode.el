@@ -40,6 +40,7 @@
 
 (define-key help-mode-map [mouse-2] 'help-follow-mouse)
 (define-key help-mode-map "\C-c\C-b" 'help-go-back)
+(define-key help-mode-map "\C-c\C-f" 'help-go-forward)
 (define-key help-mode-map "\C-c\C-c" 'help-follow-symbol)
 ;; Documentation only, since we use minor-mode-overriding-map-alist.
 (define-key help-mode-map "\r" 'help-follow)
@@ -52,13 +53,28 @@ To use the element, do (apply FUNCTION ARGS) then goto the point.")
 (put 'help-xref-stack 'permanent-local t)
 (make-variable-buffer-local 'help-xref-stack)
 
+(defvar help-xref-forward-stack nil
+  "The stack of used to navigate help forwards  after using the back button.
+Used by `help-follow' and `help-xref-go-forward'.
+An element looks like (POSITION FUNCTION ARGS...).
+To use the element, do (apply FUNCTION ARGS) then goto the point.")
+(put 'help-xref-forward-stack 'permanent-local t)
+(make-variable-buffer-local 'help-xref-forward-stack)
+
 (defvar help-xref-stack-item nil
   "An item for `help-follow' in this buffer to push onto `help-xref-stack'.
 The format is (FUNCTION ARGS...).")
 (put 'help-xref-stack-item 'permanent-local t)
 (make-variable-buffer-local 'help-xref-stack-item)
 
+(defvar help-xref-stack-forward-item nil
+  "An item for `help-go-back' to push onto `help-xref-forward-stack'.
+The format is (FUNCTION ARGS...).")
+(put 'help-xref-stack-forward-item 'permanent-local t)
+(make-variable-buffer-local 'help-xref-stack-forward-item)
+
 (setq-default help-xref-stack nil help-xref-stack-item nil)
+(setq-default help-xref-forward-stack nil help-xref-forward-stack-item nil)
 
 (defcustom help-mode-hook nil
   "Hook run by `help-mode'."
@@ -122,6 +138,11 @@ The format is (FUNCTION ARGS...).")
   :supertype 'help-xref
   'help-function #'help-xref-go-back
   'help-echo (purecopy "mouse-2, RET: go back to previous help buffer"))
+
+(define-button-type 'help-forward
+  :supertype 'help-xref
+  'help-function #'help-xref-go-forward
+  'help-echo (purecopy "mouse-2, RET: move forward to next help buffer"))
 
 (define-button-type 'help-info
   :supertype 'help-xref
@@ -242,6 +263,9 @@ Commands:
 (defvar help-back-label (purecopy "[back]")
   "Label to use by `help-make-xrefs' for the go-back reference.")
 
+(defvar help-forward-label (purecopy "[forward]")
+  "Label to use by `help-make-xrefs' for the go-forward reference.")
+
 (defconst help-xref-symbol-regexp
   (purecopy (concat "\\(\\<\\(\\(variable\\|option\\)\\|"  ; Link to var
  		    "\\(function\\|command\\)\\|"          ; Link to function
@@ -286,7 +310,8 @@ because we want to record the \"previous\" position of point so we can
 restore it properly when going back."
   (with-current-buffer (help-buffer)
     (when help-xref-stack-item
-      (push (cons (point) help-xref-stack-item) help-xref-stack))
+      (push (cons (point) help-xref-stack-item) help-xref-stack)
+      (setq help-xref-forward-stack nil))
     (when interactive-p
       (let ((tail (nthcdr 10 help-xref-stack)))
 	;; Truncate the stack.
@@ -480,6 +505,11 @@ that."
 	  (insert "\n")
 	  (help-insert-xref-button help-back-label 'help-back
 				   (current-buffer))
+          (insert "\t"))
+        ;; Make a forward-reference in this buffer if appropriate.
+        (when help-xref-forward-stack
+	  (help-insert-xref-button help-forward-label 'help-forward
+				   (current-buffer))
           (insert "\n")))
       ;; View mode steals RET from us.
       (set (make-local-variable 'minor-mode-overriding-map-alist)
@@ -598,6 +628,7 @@ help buffer."
   "From BUFFER, go back to previous help buffer text using `help-xref-stack'."
   (let (item position method args)
     (with-current-buffer buffer
+      (push (cons (point) help-xref-stack-item) help-xref-forward-stack)
       (when help-xref-stack
 	(setq item (pop help-xref-stack)
 	      ;; Clear the current item so that it won't get pushed
@@ -613,12 +644,39 @@ help buffer."
 	  (set-window-point (get-buffer-window buffer) position)
 	(goto-char position)))))
 
+(defun help-xref-go-forward (buffer)
+  "From BUFFER, go forward to next help buffer."
+  (let (item position method args)
+    (with-current-buffer buffer
+      (push (cons (point) help-xref-stack-item) help-xref-stack)
+      (when help-xref-forward-stack
+	(setq item (pop help-xref-forward-stack)
+	      ;; Clear the current item so that it won't get pushed
+	      ;; by the function we're about to call.  TODO: We could also
+	      ;; push it onto a "forward" stack and add a `forw' button.
+	      help-xref-stack-item nil
+	      position (car item)
+	      method (cadr item)
+	      args (cddr item))))
+    (apply method args)
+    (with-current-buffer buffer
+      (if (get-buffer-window buffer)
+	  (set-window-point (get-buffer-window buffer) position)
+	(goto-char position)))))
+ 
 (defun help-go-back ()
   "Go back to previous topic in this help buffer."
   (interactive)
   (if help-xref-stack
       (help-xref-go-back (current-buffer))
     (error "No previous help buffer")))
+ 
+(defun help-go-forward ()
+  "Go back to next topic in this help buffer."
+  (interactive)
+  (if help-xref-forward-stack
+      (help-xref-go-forward (current-buffer))
+    (error "No next help buffer")))
 
 (defun help-do-xref (pos function args)
   "Call the help cross-reference function FUNCTION with args ARGS.

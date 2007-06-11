@@ -152,13 +152,11 @@
 
 ;;; Compatibility functions
 ;;
-(if (fboundp 'frame-parameter)
-
-    (defalias 'dframe-frame-parameter 'frame-parameter)
-
-  (defun dframe-frame-parameter (frame parameter)
-    "Return FRAME's PARAMETER value."
-    (cdr (assoc parameter (frame-parameters frame)))))
+(defun dframe-frame-parameter (frame parameter)
+  "Return FRAME's PARAMETER value."
+  (if (fboundp 'frame-parameter)
+      (frame-parameter frame parameter)
+    (cdr (assoc parameter (frame-parameters frame))))) ; XEmacs
 
 
 ;;; Variables
@@ -887,10 +885,10 @@ Must be bound to event E."
 
 ;;; Interactive user functions for the mouse
 ;;
-(if dframe-xemacsp
-    (defalias 'dframe-mouse-event-p 'button-press-event-p)
-  (defun dframe-mouse-event-p (event)
-    "Return t if the event is a mouse related event."
+(defun dframe-mouse-event-p (event)
+  "Return t if the event is a mouse related event."
+  (if (fboundp 'button-press-event-p)
+      (button-press-event-p event)      ; XEmacs
     (if (and (listp event)
 	     (member (event-basic-type event)
 		     '(mouse-1 mouse-2 mouse-3)))
