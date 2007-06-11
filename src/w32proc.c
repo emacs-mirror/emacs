@@ -2217,10 +2217,8 @@ If successful, the new layout id is returned, otherwise nil.  */)
 
 syms_of_ntproc ()
 {
-  Qhigh = intern ("high");
-  Qlow = intern ("low");
-  staticpro (&Qhigh);
-  staticpro (&Qlow);
+  DEFSYM (Qhigh, "high");
+  DEFSYM (Qlow, "low");
 
 #ifdef HAVE_SOCKETS
   defsubr (&Sw32_has_winsock);
