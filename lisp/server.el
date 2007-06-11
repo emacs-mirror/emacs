@@ -735,8 +735,7 @@ Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
                 (select-window win)
                 (set-buffer next-buffer))
 	    ;; Otherwise, let's find an appropriate window.
-	    (cond ((and (windowp server-window)
-			(window-live-p server-window))
+	    (cond ((window-live-p server-window)
 		   (select-window server-window))
 		  ((framep server-window)
 		   (unless (frame-live-p server-window)
