@@ -1,3 +1,7 @@
+2007-06-11  Riccardo Murri  <riccardo.murri@gmail.com>
+
+	* vc-bzr.el: New file.
+
 2007-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-svn.el (vc-svn-program): New var.
