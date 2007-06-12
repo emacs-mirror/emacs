@@ -1,3 +1,7 @@
+2007-06-12  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (HAVE_GIF): If -lungif fails, try -lgif.
+
 2007-06-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in: Change wording about yes/gtk and lucid/athena being
