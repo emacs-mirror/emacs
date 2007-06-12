@@ -1,5 +1,7 @@
 2007-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emulation/tpu-mapper.el (tpu-emacs-map-key): Use new keymap names.
+
 	* emulation/tpu-edt.el (tpu-gold-map): Rename from GOLD-map.
 	(tpu-lucid-emacs-p): Remove.  Use (featurep 'xemacs) instead.
 	(CSI-map, GOLD-CSI-map, GOLD-SS3-map, SS3-map):	Delete vars.
