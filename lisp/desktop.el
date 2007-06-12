@@ -190,6 +190,22 @@ determine where the desktop is saved."
   :group 'desktop
   :version "22.1")
 
+(defcustom desktop-load-locked-desktop 'ask
+  "Specifies whether the desktop should be loaded if locked.
+Possible values are:
+   t    -- load anyway.
+   nil  -- don't load.
+   ask  -- ask the user.
+If the value is nil, or `ask' and the user chooses not to load the desktop,
+the normal hook `desktop-not-loaded-hook' is run."
+  :type
+  '(choice
+    (const :tag "Load anyway" t)
+    (const :tag "Don't load" nil)
+    (const :tag "Ask the user" ask))
+  :group 'desktop
+  :version "23.1")
+
 (defcustom desktop-base-file-name
   (convert-standard-filename ".emacs.desktop")
   "Name of file for Emacs desktop, excluding the directory part."
@@ -557,8 +573,8 @@ DIRNAME omitted or nil means use `desktop-dirname'."
 (defun desktop-truncate (list n)
   "Truncate LIST to at most N elements destructively."
   (let ((here (nthcdr (1- n) list)))
-    (if (consp here)
-	(setcdr here nil))))
+    (when (consp here)
+      (setcdr here nil))))
 
 ;; ----------------------------------------------------------------------------
 ;;;###autoload
@@ -571,7 +587,7 @@ Furthermore, it clears the variables listed in `desktop-globals-to-clear'."
   (desktop-lazy-abort)
   (dolist (var desktop-globals-to-clear)
     (if (symbolp var)
-      (eval `(setq-default ,var nil))
+	(eval `(setq-default ,var nil))
       (eval `(setq-default ,(car var) ,(cdr var)))))
   (let ((buffers (buffer-list))
         (preserve-regexp (concat "^\\("
@@ -680,77 +696,77 @@ TXT is a string that when read and evaluated yields value.
 QUOTE may be `may' (value may be quoted),
 `must' (values must be quoted), or nil (value may not be quoted)."
   (cond
-   ((or (numberp value) (null value) (eq t value) (keywordp value))
-    (cons 'may (prin1-to-string value)))
-   ((stringp value)
-    (let ((copy (copy-sequence value)))
-      (set-text-properties 0 (length copy) nil copy)
-      ;; Get rid of text properties because we cannot read them
-      (cons 'may (prin1-to-string copy))))
-   ((symbolp value)
-    (cons 'must (prin1-to-string value)))
-   ((vectorp value)
-    (let* ((special nil)
-	   (pass1 (mapcar
-		   (lambda (el)
-		     (let ((res (desktop-internal-v2s el)))
-		       (if (null (car res))
-			   (setq special t))
-		       res))
-		   value)))
-      (if special
-	  (cons nil (concat "(vector "
-			    (mapconcat (lambda (el)
-					 (if (eq (car el) 'must)
-					     (concat "'" (cdr el))
-					   (cdr el)))
-				       pass1
-				       " ")
-			    ")"))
-	(cons 'may (concat "[" (mapconcat 'cdr pass1 " ") "]")))))
-   ((consp value)
-    (let ((p value)
-	  newlist
-	  use-list*
-	  anynil)
-      (while (consp p)
-	(let ((q.txt (desktop-internal-v2s (car p))))
-	  (or anynil (setq anynil (null (car q.txt))))
-	  (setq newlist (cons q.txt newlist)))
-	(setq p (cdr p)))
-      (if p
-	  (let ((last (desktop-internal-v2s p)))
-	    (or anynil (setq anynil (null (car last))))
-	    (or anynil
-		(setq newlist (cons '(must . ".") newlist)))
-	    (setq use-list* t)
-	    (setq newlist (cons last newlist))))
-      (setq newlist (nreverse newlist))
-      (if anynil
-	  (cons nil
-		(concat (if use-list* "(desktop-list* "  "(list ")
-			(mapconcat (lambda (el)
-				     (if (eq (car el) 'must)
-					 (concat "'" (cdr el))
-				       (cdr el)))
-				   newlist
-				   " ")
-			")"))
-	(cons 'must
-	      (concat "(" (mapconcat 'cdr newlist " ") ")")))))
-   ((subrp value)
-    (cons nil (concat "(symbol-function '"
-		      (substring (prin1-to-string value) 7 -1)
-		      ")")))
-   ((markerp value)
-    (let ((pos (prin1-to-string (marker-position value)))
-	  (buf (prin1-to-string (buffer-name (marker-buffer value)))))
-      (cons nil (concat "(let ((mk (make-marker)))"
-			" (add-hook 'desktop-delay-hook"
-			" (list 'lambda '() (list 'set-marker mk "
-			pos " (get-buffer " buf ")))) mk)"))))
-   (t					; save as text
-    (cons 'may "\"Unprintable entity\""))))
+    ((or (numberp value) (null value) (eq t value) (keywordp value))
+     (cons 'may (prin1-to-string value)))
+    ((stringp value)
+     (let ((copy (copy-sequence value)))
+       (set-text-properties 0 (length copy) nil copy)
+       ;; Get rid of text properties because we cannot read them
+       (cons 'may (prin1-to-string copy))))
+    ((symbolp value)
+     (cons 'must (prin1-to-string value)))
+    ((vectorp value)
+     (let* ((special nil)
+	    (pass1 (mapcar
+		    (lambda (el)
+		      (let ((res (desktop-internal-v2s el)))
+			(if (null (car res))
+			    (setq special t))
+			res))
+		    value)))
+       (if special
+	   (cons nil (concat "(vector "
+			     (mapconcat (lambda (el)
+					  (if (eq (car el) 'must)
+					      (concat "'" (cdr el))
+					    (cdr el)))
+					pass1
+					" ")
+			     ")"))
+	 (cons 'may (concat "[" (mapconcat 'cdr pass1 " ") "]")))))
+    ((consp value)
+     (let ((p value)
+	   newlist
+	   use-list*
+	   anynil)
+       (while (consp p)
+	 (let ((q.txt (desktop-internal-v2s (car p))))
+	   (or anynil (setq anynil (null (car q.txt))))
+	   (setq newlist (cons q.txt newlist)))
+	 (setq p (cdr p)))
+       (if p
+	   (let ((last (desktop-internal-v2s p)))
+	     (or anynil (setq anynil (null (car last))))
+	     (or anynil
+		 (setq newlist (cons '(must . ".") newlist)))
+	     (setq use-list* t)
+	     (setq newlist (cons last newlist))))
+       (setq newlist (nreverse newlist))
+       (if anynil
+	   (cons nil
+		 (concat (if use-list* "(desktop-list* "  "(list ")
+			 (mapconcat (lambda (el)
+				      (if (eq (car el) 'must)
+					  (concat "'" (cdr el))
+					(cdr el)))
+				    newlist
+				    " ")
+			 ")"))
+	 (cons 'must
+	       (concat "(" (mapconcat 'cdr newlist " ") ")")))))
+    ((subrp value)
+     (cons nil (concat "(symbol-function '"
+		       (substring (prin1-to-string value) 7 -1)
+		       ")")))
+    ((markerp value)
+     (let ((pos (prin1-to-string (marker-position value)))
+	   (buf (prin1-to-string (buffer-name (marker-buffer value)))))
+       (cons nil (concat "(let ((mk (make-marker)))"
+			 " (add-hook 'desktop-delay-hook"
+			 " (list 'lambda '() (list 'set-marker mk "
+			 pos " (get-buffer " buf ")))) mk)"))))
+    (t					 ; save as text
+     (cons 'may "\"Unprintable entity\""))))
 
 ;; ----------------------------------------------------------------------------
 (defun desktop-value-to-string (value)
@@ -776,17 +792,16 @@ which means to truncate VAR's value to at most MAX-SIZE elements
     (if (consp varspec)
 	(setq var (car varspec) size (cdr varspec))
       (setq var varspec))
-    (if (boundp var)
-	(progn
-	  (if (and (integerp size)
-		   (> size 0)
-		   (listp (eval var)))
-	      (desktop-truncate (eval var) size))
-	  (insert "(setq "
-		  (symbol-name var)
-		  " "
-		  (desktop-value-to-string (symbol-value var))
-		  ")\n")))))
+    (when (boundp var)
+      (when (and (integerp size)
+		 (> size 0)
+		 (listp (eval var)))
+	(desktop-truncate (eval var) size))
+      (insert "(setq "
+	      (symbol-name var)
+	      " "
+	      (desktop-value-to-string (symbol-value var))
+	      ")\n"))))
 
 ;; ----------------------------------------------------------------------------
 (defun desktop-save-buffer-p (filename bufname mode &rest dummy)
@@ -944,12 +959,15 @@ It returns t if a desktop file was loaded, nil otherwise."
 	      ;; Avoid desktop saving during evaluation of desktop buffer.
 	      (desktop-save nil))
 	  (if (and owner
-		   (not (y-or-n-p (format "Warning: desktop file appears to be in use by PID %s.\n\
-Using it may cause conflicts.  Use it anyway? " owner))))
-	      (progn (setq desktop-dirname nil)
-		     (let ((default-directory desktop-dirname))
-		       (run-hooks 'desktop-not-loaded-hook))
-		     (message "Desktop file in use; not loaded."))
+		   (memq desktop-load-locked-desktop '(nil ask))
+		   (or (null desktop-load-locked-desktop)
+		       (not (y-or-n-p (format "Warning: desktop file appears to be in use by PID %s.\n\
+Using it may cause conflicts.  Use it anyway? " owner)))))
+	      (progn
+		(setq desktop-dirname nil)
+		(let ((default-directory desktop-dirname))
+		  (run-hooks 'desktop-not-loaded-hook))
+		(message "Desktop file in use; not loaded."))
 	    (desktop-lazy-abort)
 	    ;; Evaluate desktop buffer and remember when it was modified.
 	    (load (desktop-full-file-name) t t t)
@@ -1044,28 +1062,28 @@ directory DIRNAME."
                                     desktop-buffer-name
                                     desktop-buffer-misc)
   "Restore a file buffer."
-  (if desktop-buffer-file-name
-      (if (or (file-exists-p desktop-buffer-file-name)
-              (let ((msg (format "Desktop: File \"%s\" no longer exists."
-                                 desktop-buffer-file-name)))
-                 (if desktop-missing-file-warning
-		     (y-or-n-p (concat msg " Re-create buffer? "))
-                   (message "%s" msg)
-                   nil)))
-	  (let* ((auto-insert nil) ; Disable auto insertion
-		 (coding-system-for-read
-		  (or coding-system-for-read
-		      (cdr (assq 'buffer-file-coding-system
-				 desktop-buffer-locals))))
-		 (buf (find-file-noselect desktop-buffer-file-name)))
-	    (condition-case nil
-		(switch-to-buffer buf)
-	      (error (pop-to-buffer buf)))
-	    (and (not (eq major-mode desktop-buffer-major-mode))
-		 (functionp desktop-buffer-major-mode)
-		 (funcall desktop-buffer-major-mode))
-	    buf)
-	nil)))
+  (when desktop-buffer-file-name
+    (if (or (file-exists-p desktop-buffer-file-name)
+	    (let ((msg (format "Desktop: File \"%s\" no longer exists."
+			       desktop-buffer-file-name)))
+	      (if desktop-missing-file-warning
+		  (y-or-n-p (concat msg " Re-create buffer? "))
+		(message "%s" msg)
+		nil)))
+	(let* ((auto-insert nil) ; Disable auto insertion
+	       (coding-system-for-read
+		(or coding-system-for-read
+		    (cdr (assq 'buffer-file-coding-system
+			       desktop-buffer-locals))))
+	       (buf (find-file-noselect desktop-buffer-file-name)))
+	  (condition-case nil
+	      (switch-to-buffer buf)
+	    (error (pop-to-buffer buf)))
+	  (and (not (eq major-mode desktop-buffer-major-mode))
+	       (functionp desktop-buffer-major-mode)
+	       (funcall desktop-buffer-major-mode))
+	  buf)
+      nil)))
 
 (defun desktop-load-file (function)
   "Load the file where auto loaded FUNCTION is defined."
@@ -1160,19 +1178,19 @@ directory DIRNAME."
               (error (message "%s" (error-message-string err)) 1))))
         (when desktop-buffer-mark
           (if (consp desktop-buffer-mark)
-            (progn
-              (set-mark (car desktop-buffer-mark))
-              (setq mark-active (car (cdr desktop-buffer-mark))))
+	      (progn
+		(set-mark (car desktop-buffer-mark))
+		(setq mark-active (car (cdr desktop-buffer-mark))))
             (set-mark desktop-buffer-mark)))
         ;; Never override file system if the file really is read-only marked.
-        (if desktop-buffer-read-only (setq buffer-read-only desktop-buffer-read-only))
+        (when desktop-buffer-read-only (setq buffer-read-only desktop-buffer-read-only))
         (while desktop-buffer-locals
           (let ((this (car desktop-buffer-locals)))
             (if (consp this)
-              ;; an entry of this form `(symbol . value)'
-              (progn
-                (make-local-variable (car this))
-                (set (car this) (cdr this)))
+		;; an entry of this form `(symbol . value)'
+		(progn
+		  (make-local-variable (car this))
+		  (set (car this) (cdr this)))
               ;; an entry of the form `symbol'
               (make-local-variable this)
               (makunbound this)))
