@@ -1,3 +1,12 @@
+2007-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emulation/tpu-edt.el (tpu-gold-map): Rename from GOLD-map.
+	(tpu-lucid-emacs-p): Remove.  Use (featurep 'xemacs) instead.
+	(CSI-map, GOLD-CSI-map, GOLD-SS3-map, SS3-map):	Delete vars.
+	(tpu-gold-map, tpu-global-map): Add all the SS3 and CSI bindings, using
+	keysyms rather than byte sequences.
+	(tpu-copy-keyfile): Don't force the user to use tpu-mapper.el.
+
 2007-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/sh-script.el (sh-font-lock-backslash-quote)
