@@ -70,6 +70,9 @@ considered for update.
 
 * Lisp Changes in Emacs 23.1
 
++++
+** The regexp form \(?<num>:<regexp>\) specifies the group number explicitly.
+
 
 * New Packages for Lisp Programming in Emacs 23.1
 
