@@ -168,7 +168,7 @@
 
 (defun viper-set-cursor-color-according-to-state (&optional frame)
   (cond ((eq viper-current-state 'replace-state)
-	 (viper-change-cursor-color viper-replace-state-cursor-color frame))
+	 (viper-change-cursor-color viper-replace-overlay-cursor-color frame))
 	((and (eq viper-current-state 'emacs-state)
 	      viper-emacs-state-cursor-color)
 	 (viper-change-cursor-color viper-emacs-state-cursor-color frame))
@@ -889,9 +889,7 @@
 ;; Sit for VAL milliseconds.  XEmacs doesn't support the millisecond arg
 ;; in sit-for, so this function smoothes out the differences.
 (defsubst viper-sit-for-short (val &optional nodisp)
-  (if viper-xemacs-p
-      (sit-for (/ val 1000.0) nodisp)
-    (sit-for 0 val nodisp)))
+  (sit-for (/ val 1000.0) nodisp))
 
 ;; EVENT may be a single event of a sequence of events
 (defsubst viper-ESC-event-p (event)

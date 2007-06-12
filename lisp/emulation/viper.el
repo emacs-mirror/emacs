@@ -298,7 +298,6 @@
 ;;; Code:
 
 (require 'advice)
-(require 'cl)
 (require 'ring)
 
 ;; compiler pacifier
@@ -457,6 +456,7 @@ unless it is coming up in a wrong Viper state."
 (defcustom viper-insert-state-mode-list
   '(internal-ange-ftp-mode
     comint-mode
+    gud-mode
     inferior-emacs-lisp-mode
     erc-mode
     eshell-mode
@@ -481,6 +481,7 @@ unless it is coming up in a wrong Viper state."
   '((help-mode emacs-state viper-slash-and-colon-map)
     (comint-mode insert-state viper-comint-mode-modifier-map)
     (comint-mode vi-state viper-comint-mode-modifier-map)
+    (gud-mode insert-state viper-comint-mode-modifier-map)
     (shell-mode insert-state viper-comint-mode-modifier-map)
     (inferior-emacs-lisp-mode insert-state viper-comint-mode-modifier-map)
     (shell-mode vi-state viper-comint-mode-modifier-map)

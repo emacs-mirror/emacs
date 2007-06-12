@@ -338,7 +338,7 @@ when editing big diffs)."
     ("^--- .+ ----$"             . diff-hunk-header-face) ;context
     ("^[0-9,]+[acd][0-9,]+$"     . diff-hunk-header-face) ;normal
     ("^---$"                     . diff-hunk-header-face) ;normal
-    ("^\\(---\\|\\+\\+\\+\\|\\*\\*\\*\\) \\(\\S-+\\)\\(.*[^*-]\\)?\n"
+    ("^\\(---\\|\\+\\+\\+\\|\\*\\*\\*\\) \\([^\t]+\\)\\(.*[^*-]\\)?\n"
      (0 diff-header-face) (2 diff-file-header-face prepend))
     ("^\\([-<]\\)\\(.*\n\\)"
      (1 diff-indicator-removed-face) (2 diff-removed-face))

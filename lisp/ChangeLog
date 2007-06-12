@@ -1,3 +1,38 @@
+2007-06-12  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* emulation/viper-cmd.el (viper-prefix-arg-com,viper-prefix-arg-value): display
+	error messages
+	(viper-prev-destructive-command,viper-insert-prev-from-insertion-ring):
+	get rid of cl.el dependencies.
+	
+	* emulation/viper-init.el (viper-suppress-input-method-change-message): new
+	variable.
+	(viper-activate-input-method-action,viper-inactivate-input-method-action):
+	use viper-suppress-input-method-change-message.
+	
+	* emulation/viper-kem.el (viper-vi-basic-map): disable the bindings for C-s, C-r.
+	
+	* emulation/viper-util.el (viper-set-cursor-color-according-to-state): use
+	viper-replace-overlay-cursor-color instead of
+	viper-replace-overlay-cursor-color.
+	(viper-sit-for-short): use sit-for with 3 arguments.
+	
+	* emulation/viper.el (viper-insert-state-mode-list): add gud-mode.
+	(viper-major-mode-modifier-list): add viper-comint-mode-modifier-map to
+	gud-mode.
+	
+	* ediff-mult.el
+	(ediff-meta-buffer-brief-message,ediff-meta-buffer-verbose-message):
+	new variables.
+	(ediff-meta-buffer-message): variable deleted.
+	(ediff-verbose-help-enabled): new variable.
+	(ediff-toggle-verbose-help-meta-buffer): new function.
+	(ediff-redraw-directory-group-buffer): made aware of short/verbose
+	message options
+	
+	* ediff-ptch.el (ediff-context-diff-label-regexp): better regexp.
+	(ediff-fixup-patch-map): improved heuristic.
+	
 2007-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* log-view.el (log-view-file-re, log-view-message-re): Use \(?1:...\).
