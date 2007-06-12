@@ -1,3 +1,10 @@
+2007-06-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-load-locked-desktop): New option.
+	(desktop-read): Use it.
+	(desktop-truncate, desktop-outvar, desktop-restore-file-buffer):
+	Use `when'.
+
 2007-06-12  Davis Herring  <herring@lanl.gov>
 
 	* desktop.el (desktop-save-mode-off): New function.
