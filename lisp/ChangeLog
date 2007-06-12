@@ -1,3 +1,7 @@
+2007-06-12  Ralf Angeli  <angeli@caeruleus.net>
+
+	* scroll-lock.el (scroll-lock-mode): Doc fix.
+
 2007-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* font-lock.el (font-lock-add-keywords): In case font-lock was only
