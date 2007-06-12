@@ -564,7 +564,7 @@ The following commands are accepted by the server:
 
 `-auth AUTH-STRING'
   Authenticate the client using the secret authentication string
-  AUTH_STRING.
+  AUTH-STRING.
 
 `-version CLIENT-VERSION'
   Check version numbers between server and client, and signal an
