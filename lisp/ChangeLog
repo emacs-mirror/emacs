@@ -1,3 +1,9 @@
+2007-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* log-view.el (log-view-file-re, log-view-message-re): Use \(?1:...\).
+	(log-view-font-lock-keywords): Simplify.
+	(log-view-current-file, log-view-current-tag): Simplify.
+
 2007-06-12  Sam Steingold  <sds@gnu.org>
 
 	* vc-arch.el (vc-arch-command): Also try "baz" and "bzr".

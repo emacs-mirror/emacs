@@ -129,14 +129,15 @@
 (defvar log-view-message-face 'log-view-message)
 
 (defconst log-view-file-re
-  (concat "^\\(?:Working file: \\(.+\\)"                ;RCS and CVS.
-          "\\|\\(?:SCCS/s\\.\\|Changes to \\)\\(.+\\):" ;SCCS and Darcs.
+  (concat "^\\(?:Working file: \\(?1:.+\\)"                ;RCS and CVS.
+          ;; Subversion has no such thing??
+          "\\|\\(?:SCCS/s\\.\\|Changes to \\)\\(?1:.+\\):" ;SCCS and Darcs.
 	  "\\)\n"))                   ;Include the \n for font-lock reasons.
 
 (defconst log-view-message-re
-  (concat "^\\(?:revision \\([.0-9]+\\)\\(?:\t.*\\)?" ; RCS and CVS.
-          "\\|r\\([0-9]+\\) | .* | .*"                ; Subversion.
-          "\\|D \\([.0-9]+\\) .*"                     ; SCCS.
+  (concat "^\\(?:revision \\(?1:[.0-9]+\\)\\(?:\t.*\\)?" ; RCS and CVS.
+          "\\|r\\(?1:[0-9]+\\) | .* | .*"                ; Subversion.
+          "\\|D \\(?1:[.0-9]+\\) .*"                     ; SCCS.
           ;; Darcs doesn't have revision names.  VC-darcs uses patch names
           ;; instead.  Darcs patch names are hashcodes, which do not appear
           ;; in the log output :-(, but darcs accepts any prefix of the log
@@ -145,13 +146,12 @@
           ;; First loosely match the date format.
           (concat "\\|[^ \n].*[^0-9\n][0-9][0-9]:[0-9][0-9][^0-9\n].*[^ \n]"
                   ;;Email of user and finally Msg, used as revision name.
-                  "  .*@.*\n\\(?:  \\* \\(.*\\)\\)?")
+                  "  .*@.*\n\\(?:  \\* \\(?1:.*\\)\\)?")
           "\\)$"))
 
 (defconst log-view-font-lock-keywords
   `((,log-view-file-re
-     (1 (if (boundp 'cvs-filename-face) cvs-filename-face) nil t)
-     (2 (if (boundp 'cvs-filename-face) cvs-filename-face) nil t)
+     (1 (if (boundp 'cvs-filename-face) cvs-filename-face))
      (0 log-view-file-face append))
     (,log-view-message-re . log-view-message-face)))
 (defconst log-view-font-lock-defaults
@@ -194,7 +194,7 @@
     (forward-line 1)
     (or (re-search-backward log-view-file-re nil t)
 	(re-search-forward log-view-file-re))
-    (let* ((file (or (match-string 1) (match-string 2)))
+    (let* ((file (match-string 1))
 	   (cvsdir (and (re-search-backward log-view-dir-re nil t)
 			(match-string 1)))
 	   (pcldir (and (boundp 'cvs-pcl-cvs-dirchange-re)
@@ -212,10 +212,7 @@
     (forward-line 1)
     (let ((pt (point)))
       (when (re-search-backward log-view-message-re nil t)
-        (let (rev)
-          ;; Find the subgroup that matched.
-          (dotimes (i (/ (length (match-data 'integers)) 2))
-            (setq rev (or rev (match-string (1+ i)))))
+	(let ((rev (match-string 1)))
 	  (unless (re-search-forward log-view-file-re pt t)
 	    rev))))))
 
