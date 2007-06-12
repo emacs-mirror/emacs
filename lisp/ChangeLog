@@ -1,10 +1,9 @@
 2007-06-12  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
-	* ediff-ptch.el (ediff-context-diff-label-regexp): spurious
-	parenthesis.
-	
-	* ediff-init.el: doc strings.
-	
+
+	* ediff-ptch.el (ediff-context-diff-label-regexp): Spurious parenthesis.
+
+	* ediff-init.el: Doc strings.
+
 2007-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (byte-compile-current-group): New var.
@@ -19,7 +18,7 @@
 2007-06-12  Michael Kifer  <kifer@cs.stonybrook.edu>
 
 	* emulation/viper-cmd.el (viper-prefix-arg-com, viper-prefix-arg-value):
-	Display error messages
+	Display error messages.
 	(viper-prev-destructive-command, viper-insert-prev-from-insertion-ring):
 	Get rid of cl.el dependencies.
 
