@@ -1,3 +1,7 @@
+2007-06-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-process-filter): Fix typo in docstring.
+
 2007-06-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* loadup.el: Use a better feature test on a mac.
@@ -65,7 +69,7 @@
 
 	* server.el (server-with-environment): Restore the original
 	environment.
-	
+
 2007-05-14  David Kastrup  <dak@gnu.org>
 
 	* env.el (getenv): Fix reverted by demand of Dan Nicolaescu
