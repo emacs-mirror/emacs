@@ -90,6 +90,7 @@ sub-expressions more tightly.  For example:
 <p>
 .space.control.not: No space between the keywords <em>if</em>,
 <em>for</em>, <em>while</em> and the following paren.
+</p>
 
 
 <h3>Sections and Paragraphs</h3>
@@ -168,7 +169,7 @@ sharing the same body are allowed on the one line:
 
 <pre>
   if(res != ResOK) {
-    SegFinish(&span->segStruct);
+    SegFinish(&amp;span->segStruct);
     PoolFreeP(MV->spanPool, span, sizeof(SpanStruct));
     return res;
   }
@@ -201,7 +202,7 @@ level as the previous <em>if</em> body.  For example:
   } else if(j+step == block->limit) {
     putc(']', stream);
     pop_bracket();
-  } else if(j > block->base && j < block->limit)
+  } else if(j > block->base &amp;&amp; j &lt; block->limit)
     putc('=', stream);
   } else {
     putc('.', stream);
@@ -253,7 +254,7 @@ continuation lines up just after the open parenthesis.  For example:
 </p>
 
 <pre>
-  PoolClassInit(&PoolClassMVStruct,
+  PoolClassInit(&amp;PoolClassMVStruct,
                 "MV", init, finish, allocP, freeP,
                 NULL, NULL, describe, isValid);
 </pre>
@@ -266,17 +267,17 @@ the start of the continuation line:
 <pre>
   CHECKL(AddrAdd((Addr)chunk->pageTableMapped,
                  BTSize(chunk->pageTablePages))
-         <= AddrAdd(chunk->base, chunk->ullageSize));
+         &lt;= AddrAdd(chunk->base, chunk->ullageSize));
 </pre>
 
 <p>
-This is particularly useful in long conditional expressions that use &&
+This is particularly useful in long conditional expressions that use &amp;&amp;
 and ||.  For example:
 </p>
 
 <pre>
   } while(trace->state != TraceFINISHED
-          && (trace->emergency || traceWorkClock(trace) < pollEnd));
+          &amp;&amp; (trace->emergency || traceWorkClock(trace) &lt; pollEnd));
 </pre>
 
 
@@ -324,7 +325,7 @@ The same applies to struct, enum, union.
 </p>
 
 <pre>
-  while(node != DequeSentinel(&pool->segDeque))
+  while(node != DequeSentinel(&amp;pool->segDeque))
   {
     DequeNode next = DequeNodeNext(node);
     Seg seg = DequeNodeElement(Seg, poolDeque, node);
