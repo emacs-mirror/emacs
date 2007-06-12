@@ -1,3 +1,14 @@
+2007-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-current-group): New var.
+	(byte-compile-file): Bind it.
+	(byte-compile-nogroup-warn): Use it to avoid spurious warnings when the
+	group argument is provided implicitly.
+	(byte-compile-format-warn, byte-compile-from-buffer)
+	(byte-compile-insert-header): Don't hardcode point-min==1.
+	(byte-compile-file-form-require): Remove unused var old-load-list.
+	(byte-compile-eval): Remove unused vars old-autoloads and hist-nil-new.
+
 2007-06-12  Michael Kifer  <kifer@cs.stonybrook.edu>
 
 	* emulation/viper-cmd.el (viper-prefix-arg-com, viper-prefix-arg-value):
@@ -32,7 +43,7 @@
 	message options
 
 	* ediff-ptch.el (ediff-context-diff-label-regexp): Better regexp.
-	(ediff-fixup-patch-map): Improved heuristic.
+	(ediff-fixup-patch-map): Improve heuristic.
 
 2007-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
