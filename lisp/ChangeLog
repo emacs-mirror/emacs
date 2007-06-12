@@ -1,3 +1,16 @@
+2007-06-12  Davis Herring  <herring@lanl.gov>
+
+	* desktop.el (desktop-save-mode-off): New function.
+	(desktop-base-lock-name, desktop-not-loaded-hook): New variables.
+	(desktop-full-lock-name, desktop-file-modtime, desktop-owner)
+	(desktop-claim-lock, desktop-release-lock): New functions.
+	(desktop-kill): Tell `desktop-save' that this is the last save.
+	Release the lock afterwards.
+	(desktop-buffer-info): New function.
+	(desktop-save): Use it.	 Run `desktop-save-hook' where the doc
+	says to.  Detect conflicts, and manage the lock.
+	(desktop-read): Detect conflicts.  Manage the lock.
+
 2007-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emulation/tpu-mapper.el (tpu-emacs-map-key): Use new keymap names.
