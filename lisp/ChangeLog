@@ -1,28 +1,27 @@
+2007-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-arch.el (vc-arch-command): Remove bzr.  It's a different program.
+
 2007-06-12  Tom Tromey  <tromey@redhat.com>
 
 	* subr.el (user-emacs-directory): New defconst.
-	* cmuscheme.el (scheme-start-file): Use user-emacs-directory.
-	* shell.el (shell): Use user-emacs-directory.
-	* completion.el (save-completions-file-name): Use
-	user-emacs-directory.
-	* custom.el (custom-theme-directory): Use user-emacs-directory.
-	* term/x-win.el (emacs-session-filename): Use
-	user-emacs-directory.
-	* filesets.el (filesets-menu-cache-file): Use
-	user-emacs-directory.
-	* thumbs.el (thumbs-thumbsdir): Use user-emacs-directory.
-	* server.el (server-auth-dir): Use user-emacs-directory.
-	* image-dired.el (image-dired-dir): Use user-emacs-directory.
-	(image-dired-db-file): Likewise.
-	(image-dired-temp-image-file): Likewise.
-	(image-dired-gallery-dir): Likewise.
-	(image-dired-temp-rotate-image-file): Likewise.
-	* play/gamegrid.el (gamegrid-user-score-file-directory): Use
-	user-emacs-directory.
-	* savehist.el (savehist-file): Use user-emacs-directory.
-	* tutorial.el (tutorial--saved-dir): Use user-emacs-directory.
-	* startup.el (auto-save-list-file-prefix): Use
-	user-emacs-directory.
+	* cmuscheme.el (scheme-start-file):
+	* shell.el (shell):
+	* completion.el (save-completions-file-name):
+	* custom.el (custom-theme-directory):
+	* term/x-win.el (emacs-session-filename):
+	* filesets.el (filesets-menu-cache-file):
+	* thumbs.el (thumbs-thumbsdir):
+	* server.el (server-auth-dir):
+	* image-dired.el (image-dired-dir):
+	(image-dired-db-file):
+	(image-dired-temp-image-file):
+	(image-dired-gallery-dir):
+	(image-dired-temp-rotate-image-file):
+	* play/gamegrid.el (gamegrid-user-score-file-directory):
+	* savehist.el (savehist-file):
+	* tutorial.el (tutorial--saved-dir):
+	* startup.el (auto-save-list-file-prefix): Use user-emacs-directory.
 
 2007-06-12  Ralf Angeli  <angeli@caeruleus.net>
 
