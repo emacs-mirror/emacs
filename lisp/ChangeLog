@@ -1,3 +1,8 @@
+2007-06-13  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>  (tiny change)
+
+        * term/xterm.el (terminal-init-xterm): Escape parens in character
+        constants.
+
 2007-06-12  Ralf Angeli  <angeli@caeruleus.net>
 
 	* scroll-lock.el (scroll-lock-mode): Doc fix.
