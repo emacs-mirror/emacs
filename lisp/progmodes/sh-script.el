@@ -235,7 +235,7 @@
     (wsh . sh)
     (zsh . ksh88)
     (rpm . sh))
-  "*Alist showing the direct ancestor of various shells.
+  "Alist showing the direct ancestor of various shells.
 This is the basis for `sh-feature'.  See also `sh-alias-alist'.
 By default we have the following three hierarchies:
 
@@ -270,7 +270,7 @@ sh		Bourne Shell
 	 '((ksh . ksh88)
            (bash2 . bash)
 	   (sh5 . sh)))
-  "*Alist for transforming shell names to what they really are.
+  "Alist for transforming shell names to what they really are.
 Use this where the name of the executable doesn't correspond to the type of
 shell it really is."
   :type '(repeat (cons symbol symbol))
@@ -296,7 +296,7 @@ shell it really is."
 	    (file-name-sans-extension (downcase shell)))))
    (getenv "SHELL")
    "/bin/sh")
-  "*The executable file name for the shell being programmed."
+  "The executable file name for the shell being programmed."
   :type 'string
   :group 'sh-script)
 
@@ -315,7 +315,7 @@ shell it really is."
     (wksh)
     ;; -f means don't run .zshrc.
     (zsh . "-f"))
-  "*Single argument string for the magic number.  See `sh-feature'."
+  "Single argument string for the magic number.  See `sh-feature'."
   :type '(repeat (cons (symbol :tag "Shell")
 		       (choice (const :tag "No Arguments" nil)
 			       (string :tag "Arguments")
@@ -324,8 +324,8 @@ shell it really is."
 
 (defcustom sh-imenu-generic-expression
   `((sh
-     . ((nil "^\\s-*\\(function\\s-+\\)?\\([A-Za-z_][A-Za-z_0-9]+\\)\\s-*()" 2))))
-  "*Alist of regular expressions for recognizing shell function definitions.
+     . ((nil "^\\s-*\\(function\\s-+\\)?\\([[:alpha:]_][[:alnum:]_]+\\)\\s-*()" 2))))
+  "Alist of regular expressions for recognizing shell function definitions.
 See `sh-feature' and `imenu-generic-expression'."
   :type '(alist :key-type (symbol :tag "Shell")
 		:value-type (alist :key-type (choice :tag "Title"
@@ -501,7 +501,7 @@ This is buffer-local in every such buffer.")
   '(shell-dynamic-complete-environment-variable
     shell-dynamic-complete-command
     comint-dynamic-complete-filename)
-  "*Functions for doing TAB dynamic completion."
+  "Functions for doing TAB dynamic completion."
   :type '(repeat function)
   :group 'sh-script)
 
@@ -509,7 +509,7 @@ This is buffer-local in every such buffer.")
 (defcustom sh-require-final-newline
   '((csh . t)
     (pdksh . t))
-  "*Value of `require-final-newline' in Shell-Script mode buffers.
+  "Value of `require-final-newline' in Shell-Script mode buffers.
 \(SHELL . t) means use the value of `mode-require-final-newline' for SHELL.
 See `sh-feature'."
   :type '(repeat (cons (symbol :tag "Shell")
@@ -519,12 +519,12 @@ See `sh-feature'."
 
 
 (defcustom sh-assignment-regexp
-  '((csh . "\\<\\([a-zA-Z0-9_]+\\)\\(\\[.+\\]\\)?[ \t]*[-+*/%^]?=")
+  '((csh . "\\<\\([[:alnum:]_]+\\)\\(\\[.+\\]\\)?[ \t]*[-+*/%^]?=")
     ;; actually spaces are only supported in let/(( ... ))
-    (ksh88 . "\\<\\([a-zA-Z0-9_]+\\)\\(\\[.+\\]\\)?[ \t]*\\([-+*/%&|~^]\\|<<\\|>>\\)?=")
-    (rc . "\\<\\([a-zA-Z0-9_*]+\\)[ \t]*=")
-    (sh . "\\<\\([a-zA-Z0-9_]+\\)="))
-  "*Regexp for the variable name and what may follow in an assignment.
+    (ksh88 . "\\<\\([[:alnum:]_]+\\)\\(\\[.+\\]\\)?[ \t]*\\([-+*/%&|~^]\\|<<\\|>>\\)?=")
+    (rc . "\\<\\([[:alnum:]_*]+\\)[ \t]*=")
+    (sh . "\\<\\([[:alnum:]_]+\\)="))
+  "Regexp for the variable name and what may follow in an assignment.
 First grouping matches the variable name.  This is upto and including the `='
 sign.  See `sh-feature'."
   :type '(repeat (cons (symbol :tag "Shell")
@@ -540,7 +540,7 @@ sign.  See `sh-feature'."
 
 
 (defcustom sh-remember-variable-min 3
-  "*Don't remember variables less than this length for completing reads."
+  "Don't remember variables less than this length for completing reads."
   :type 'integer
   :group 'sh-script)
 
@@ -551,16 +551,16 @@ That command is also used for setting this variable.")
 
 
 (defcustom sh-beginning-of-command
-  "\\([;({`|&]\\|\\`\\|[^\\]\n\\)[ \t]*\\([/~a-zA-Z0-9:]\\)"
-  "*Regexp to determine the beginning of a shell command.
+  "\\([;({`|&]\\|\\`\\|[^\\]\n\\)[ \t]*\\([/~[:alnum:]:]\\)"
+  "Regexp to determine the beginning of a shell command.
 The actual command starts at the beginning of the second \\(grouping\\)."
   :type 'regexp
   :group 'sh-script)
 
 
 (defcustom sh-end-of-command
-  "\\([/~a-zA-Z0-9:]\\)[ \t]*\\([;#)}`|&]\\|$\\)"
-  "*Regexp to determine the end of a shell command.
+  "\\([/~[:alnum:]:]\\)[ \t]*\\([;#)}`|&]\\|$\\)"
+  "Regexp to determine the end of a shell command.
 The actual command ends at the end of the first \\(grouping\\)."
   :type 'regexp
   :group 'sh-script)
@@ -647,6 +647,7 @@ removed when closing the here document."
     (shell "cd" "echo" "eval" "set" "shift" "umask" "unset" "wait")
 
     (wksh sh-append ksh88
+          ;; FIXME: This looks too much like a regexp.  --Stef
 	  "Xt[A-Z][A-Za-z]*")
 
     (zsh sh-append ksh88
@@ -656,7 +657,7 @@ removed when closing the here document."
 	 "readonly" "rehash" "sched" "setopt" "source" "suspend" "true"
 	 "ttyctl" "type" "unfunction" "unhash" "unlimit" "unsetopt" "vared"
 	 "which"))
-  "*List of all shell builtins for completing read and fontification.
+  "List of all shell builtins for completing read and fontification.
 Note that on some systems not all builtins are available or some are
 implemented as aliases.  See `sh-feature'."
   :type '(repeat (cons (symbol :tag "Shell")
@@ -677,7 +678,7 @@ implemented as aliases.  See `sh-feature'."
     (rc "else")
 
     (sh "!" "do" "elif" "else" "if" "then" "trap" "type" "until" "while"))
-  "*List of keywords that may be immediately followed by a builtin or keyword.
+  "List of keywords that may be immediately followed by a builtin or keyword.
 Given some confusion between keywords and builtins depending on shell and
 system, the distinction here has been based on whether they influence the
 flow of control or syntax.  See `sh-feature'."
@@ -716,7 +717,7 @@ flow of control or syntax.  See `sh-feature'."
 
     (zsh sh-append bash
 	 "select"))
-  "*List of keywords not in `sh-leading-keywords'.
+  "List of keywords not in `sh-leading-keywords'.
 See `sh-feature'."
   :type '(repeat (cons (symbol :tag "Shell")
 		       (choice (repeat string)
@@ -837,18 +838,18 @@ See `sh-feature'.")
 
 (defvar sh-font-lock-keywords-var
   '((csh sh-append shell
-	 ("\\${?[#?]?\\([A-Za-z_][A-Za-z0-9_]*\\|0\\)" 1
+	 ("\\${?[#?]?\\([[:alpha:]_][[:alnum:]_]*\\|0\\)" 1
           font-lock-variable-name-face))
 
     (es sh-append executable-font-lock-keywords
-	("\\$#?\\([A-Za-z_][A-Za-z0-9_]*\\|[0-9]+\\)" 1
+	("\\$#?\\([[:alpha:]_][[:alnum:]_]*\\|[0-9]+\\)" 1
          font-lock-variable-name-face))
 
     (rc sh-append es)
     (bash sh-append shell ("\\$(\\(\\sw+\\)" (1 'sh-quoted-exec t) ))
     (sh sh-append shell
 	;; Variable names.
-	("\\$\\({#?\\)?\\([A-Za-z_][A-Za-z0-9_]*\\|[-#?@!]\\)" 2
+	("\\$\\({#?\\)?\\([[:alpha:]_][[:alnum:]_]*\\|[-#?@!]\\)" 2
 	  font-lock-variable-name-face)
 	;; Function names.
 	("^\\(\\sw+\\)[ \t]*(" 1 font-lock-function-name-face)
@@ -861,8 +862,8 @@ See `sh-feature'.")
     (shell
            ;; Using font-lock-string-face here confuses sh-get-indent-info.
            ("\\(^\\|[^\\]\\)\\(\\\\\\\\\\)*\\(\\\\\\)$" 3 'sh-escaped-newline)
-	   ("\\\\[^A-Za-z0-9]" 0 font-lock-string-face)
-	   ("\\${?\\([A-Za-z_][A-Za-z0-9_]*\\|[0-9]+\\|[$*_]\\)" 1
+	   ("\\\\[^[:alnum:]]" 0 font-lock-string-face)
+	   ("\\${?\\([[:alpha:]_][[:alnum:]_]*\\|[0-9]+\\|[$*_]\\)" 1
 	     font-lock-variable-name-face))
     (rpm sh-append rpm2
 	 ("%{?\\(\\sw+\\)"  1 font-lock-keyword-face))
@@ -991,46 +992,38 @@ subshells can nest."
 	     (eq ?\" (nth 3 (syntax-ppss))))
     ;; bingo we have a $( or a ` inside a ""
     (let ((char (char-after (point)))
-          (continue t)
-          (pos (point))
-          (data nil)      ;; value to put into match-data (and return)
-          (last nil)      ;; last char seen
-          (bq  (equal (match-string 1) "`")) ;; ` state flip-flop
-          (seen nil)                         ;; list of important positions
-          (nest 1))                          ;; subshell nesting level
-      (while (and continue char (<= pos limit))
-        ;; unescaped " inside a $( ... ) construct.
-        ;; state machine time...
-        ;; \ => ignore next char;
-        ;; ` => increase or decrease nesting level based on bq flag
-        ;; ) [where nesting > 0] => decrease nesting
-        ;; ( [where nesting > 0] => increase nesting
-        ;; ( [preceeded by $ ]   => increase nesting
-        ;; " [nesting <= 0 ]     => terminate, we're done.
-        ;; " [nesting >  0 ]     => remember this, it's not a proper "
-        ;; FIXME: don't count parens that appear within quotes.
-        (cond
-         ((eq ?\\ last) nil)
-         ((eq ?\` char) (setq nest (+ nest (if bq -1 1)) bq (not bq)))
-         ((and (> nest 0) (eq ?\) char))   (setq nest (1- nest)))
-         ((and (eq ?$ last) (eq ?\( char)) (setq nest (1+ nest)))
-         ((and (> nest 0) (eq ?\( char))   (setq nest (1+ nest)))
-         ((eq char ?\")
-          (if (>= 0 nest) (setq continue nil) (push pos seen))))
-        ;;(message "POS: %d [%d]" pos nest)
-        (setq last char
-              pos  (1+ pos)
-              char (char-after pos)) )
-      ;; FIXME: why construct a costly match data to pass to
-      ;; sh-apply-quoted-subshell rather than apply the highlight
-      ;; directly here?  -- Stef
-      (when seen
-        ;;(message "SEEN: %S" seen)
-        (setq data (list (current-buffer)))
-        (dolist(P seen)
-          (setq data (cons P (cons (1+ P) data))))
-        (store-match-data data))
-      data) ))
+          ;; `state' can be: double-quote, backquote, code.
+          (state (if (eq (char-before) ?`) 'backquote 'code))
+          ;; Stacked states in the context.
+          (states '(double-quote)))
+      (while (and state (progn (skip-chars-forward "^'\\\"`$()" limit)
+                               (< (point) limit)))
+        ;; unescape " inside a $( ... ) construct.
+        (case (char-after)
+          (?\' (skip-chars-forward "^'" limit))
+          (?\\ (forward-char 1))
+          (?\" (case state
+                 (double-quote (setq state (pop states)))
+                 (t (push state states) (setq state 'double-quote)))
+               (if state (put-text-property (point) (1+ (point))
+                                            'syntax-table '(1))))
+          (?\` (case state
+                 (backquote (setq state (pop states)))
+                 (t (push state states) (setq state 'backquote))))
+          (?\$ (if (not (eq (char-after (1+ (point))) ?\())
+                   nil
+                 (case state
+                   (t (push state states) (setq state 'code)))))
+          (?\( (case state
+                 (double-quote nil)
+                 (t (push state states) (setq state 'code))))
+          (?\) (case state
+                 (double-quote nil)
+                 (t (setq state (pop states)))))
+          (t (error "Internal error in sh-quoted-subshell")))
+        (forward-char 1)))
+    t))
+            
 
 (defun sh-is-quoted-p (pos)
   (and (eq (char-before pos) ?\\)
@@ -1075,17 +1068,6 @@ subshells can nest."
   (goto-char limit)
   nil)
 
-(defun sh-apply-quoted-subshell ()
-  "Apply the `sh-st-punc' syntax to all the matches in `match-data'.
-This is used to flag quote characters in subshell constructs inside strings
-\(which should therefore not be treated as normal quote characters\)"
-  (let ((m (match-data)) a b)
-    (while m
-      (setq a (car  m)
-            b (cadr m)
-            m (cddr m))
-      (put-text-property a b 'syntax-table sh-st-punc))) sh-st-punc)
-
 (defconst sh-font-lock-syntactic-keywords
   ;; A `#' begins a comment when it is unquoted and at the beginning of a
   ;; word.  In the shell, words are separated by metacharacters.
@@ -1112,8 +1094,7 @@ This is used to flag quote characters in subshell constructs inside strings
     (")" 0 (sh-font-lock-paren (match-beginning 0)))
     ;; highlight (possibly nested) subshells inside "" quoted regions correctly.
     ;; This should be at the very end because it uses syntax-ppss.
-    (sh-quoted-subshell
-     (1 (sh-apply-quoted-subshell) t t))))
+    (sh-quoted-subshell)))
 
 (defun sh-font-lock-syntactic-face-function (state)
   (let ((q (nth 3 state)))
@@ -1134,17 +1115,17 @@ and command `sh-reset-indent-vars-to-global-values'."
 
 
 (defcustom sh-set-shell-hook nil
-  "*Hook run by `sh-set-shell'."
+  "Hook run by `sh-set-shell'."
   :type 'hook
   :group 'sh-script)
 
 (defcustom sh-mode-hook nil
-  "*Hook run by `sh-mode'."
+  "Hook run by `sh-mode'."
   :type 'hook
   :group 'sh-script)
 
 (defcustom sh-learn-basic-offset nil
-  "*When `sh-guess-basic-offset' should learn `sh-basic-offset'.
+  "When `sh-guess-basic-offset' should learn `sh-basic-offset'.
 
 nil mean:              never.
 t means:               only if there seems to be an obvious value.
@@ -1156,7 +1137,7 @@ Anything else means:   whenever we have a \"good guess\" as to the value."
   :group 'sh-indentation)
 
 (defcustom sh-popup-occur-buffer nil
-  "*Controls when  `sh-learn-buffer-indent' pops the `*indent*' buffer.
+  "Controls when  `sh-learn-buffer-indent' pops the `*indent*' buffer.
 If t it is always shown.  If nil, it is shown only when there
 are conflicts."
   :type '(choice
@@ -1165,7 +1146,7 @@ are conflicts."
   :group 'sh-indentation)
 
 (defcustom sh-blink t
-  "*If non-nil, `sh-show-indent' shows the line indentation is relative to.
+  "If non-nil, `sh-show-indent' shows the line indentation is relative to.
 The position on the line is not necessarily meaningful.
 In some cases the line will be the matching keyword, but this is not
 always the case."
@@ -1173,7 +1154,7 @@ always the case."
   :group 'sh-indentation)
 
 (defcustom sh-first-lines-indent 0
-  "*The indentation of the first non-blank non-comment line.
+  "The indentation of the first non-blank non-comment line.
 Usually 0 meaning first column.
 Can be set to a number, or to nil which means leave it as is."
   :type '(choice
@@ -1184,13 +1165,13 @@ Can be set to a number, or to nil which means leave it as is."
 
 
 (defcustom sh-basic-offset 4
-  "*The default indentation increment.
+  "The default indentation increment.
 This value is used for the `+' and `-' symbols in an indentation variable."
   :type 'integer
   :group 'sh-indentation)
 
 (defcustom sh-indent-comment nil
-  "*How a comment line is to be indented.
+  "How a comment line is to be indented.
 nil means leave it as it is;
 t  means indent it as a normal line, aligning it to previous non-blank
    non-comment line;
@@ -1229,7 +1210,7 @@ a number means align to that column, e.g. 0 means fist column."
 	   :menu-tag "/   Indent left  half sh-basic-offset")))
 
 (defcustom sh-indent-for-else 0
-  "*How much to indent an `else' relative to its `if'.  Usually 0."
+  "How much to indent an `else' relative to its `if'.  Usually 0."
   :type `(choice
 	  (integer :menu-tag "A number (positive=>indent right)"
 		   :tag "A number")
@@ -1245,41 +1226,41 @@ a number means align to that column, e.g. 0 means fist column."
 	  sh-symbol-list))
 
 (defcustom sh-indent-for-fi 0
-  "*How much to indent a `fi' relative to its `if'.  Usually 0."
+  "How much to indent a `fi' relative to its `if'.  Usually 0."
   :type `(choice ,@ sh-number-or-symbol-list )
   :group 'sh-indentation)
 
 (defcustom sh-indent-for-done 0
-  "*How much to indent a `done' relative to its matching stmt.  Usually 0."
+  "How much to indent a `done' relative to its matching stmt.  Usually 0."
   :type `(choice ,@ sh-number-or-symbol-list )
   :group 'sh-indentation)
 
 (defcustom sh-indent-after-else '+
-  "*How much to indent a statement after an `else' statement."
+  "How much to indent a statement after an `else' statement."
   :type `(choice ,@ sh-number-or-symbol-list )
   :group 'sh-indentation)
 
 (defcustom sh-indent-after-if '+
-  "*How much to indent a statement after an `if' statement.
+  "How much to indent a statement after an `if' statement.
 This includes lines after `else' and `elif' statements, too, but
 does not affect the `else', `elif' or `fi' statements themselves."
   :type `(choice ,@ sh-number-or-symbol-list )
   :group 'sh-indentation)
 
 (defcustom sh-indent-for-then 0
-  "*How much to indent a `then' relative to its `if'."
+  "How much to indent a `then' relative to its `if'."
   :type `(choice ,@ sh-number-or-symbol-list )
   :group 'sh-indentation)
 
 (defcustom sh-indent-for-do 0
-  "*How much to indent a `do' statement.
+  "How much to indent a `do' statement.
 This is relative to the statement before the `do', typically a
 `while', `until', `for', `repeat' or `select' statement."
   :type `(choice ,@ sh-number-or-symbol-list)
   :group 'sh-indentation)
 
 (defcustom sh-indent-after-do '+
-  "*How much to indent a line after a `do' statement.
+  "How much to indent a line after a `do' statement.
 This is used when the `do' is the first word of the line.
 This is relative to the statement before the `do', typically a
 `while', `until', `for', `repeat' or `select' statement."
@@ -1287,7 +1268,7 @@ This is relative to the statement before the `do', typically a
   :group 'sh-indentation)
 
 (defcustom sh-indent-after-loop-construct '+
-  "*How much to indent a statement after a loop construct.
+  "How much to indent a statement after a loop construct.
 
 This variable is used when the keyword `do' is on the same line as the
 loop statement (e.g., `until', `while' or `for').
@@ -1297,7 +1278,7 @@ If the `do' is on a line by itself, then `sh-indent-after-do' is used instead."
 
 
 (defcustom sh-indent-after-done 0
-  "*How much to indent a statement after a `done' keyword.
+  "How much to indent a statement after a `done' keyword.
 Normally this is 0, which aligns the `done' to the matching
 looping construct line.
 Setting it non-zero allows you to have the `do' statement on a line
@@ -1306,55 +1287,55 @@ by itself and align the done under to do."
   :group 'sh-indentation)
 
 (defcustom sh-indent-for-case-label '+
-  "*How much to indent a case label statement.
+  "How much to indent a case label statement.
 This is relative to the line containing the `case' statement."
   :type `(choice ,@ sh-number-or-symbol-list)
   :group 'sh-indentation)
 
 (defcustom sh-indent-for-case-alt '++
-  "*How much to indent statements after the case label.
+  "How much to indent statements after the case label.
 This is relative to the line containing the `case' statement."
   :type `(choice ,@ sh-number-or-symbol-list)
   :group 'sh-indentation)
 
 
 (defcustom sh-indent-for-continuation '+
-  "*How much to indent for a continuation statement."
+  "How much to indent for a continuation statement."
   :type `(choice ,@ sh-number-or-symbol-list)
   :group 'sh-indentation)
 
 (defcustom sh-indent-after-open '+
-  "*How much to indent after a line with an opening parenthesis or brace.
+  "How much to indent after a line with an opening parenthesis or brace.
 For an open paren after a function, `sh-indent-after-function' is used."
   :type `(choice ,@ sh-number-or-symbol-list)
   :group 'sh-indentation)
 
 (defcustom sh-indent-after-function '+
-  "*How much to indent after a function line."
+  "How much to indent after a function line."
   :type `(choice ,@ sh-number-or-symbol-list)
   :group 'sh-indentation)
 
 ;; These 2 are for the rc shell:
 
 (defcustom sh-indent-after-switch '+
-  "*How much to indent a `case' statement relative to the `switch' statement.
+  "How much to indent a `case' statement relative to the `switch' statement.
 This is for the rc shell."
   :type `(choice ,@ sh-number-or-symbol-list)
   :group 'sh-indentation)
 
 (defcustom sh-indent-after-case '+
-  "*How much to indent a statement relative to the `case' statement.
+  "How much to indent a statement relative to the `case' statement.
 This is for the rc shell."
   :type `(choice ,@ sh-number-or-symbol-list)
   :group 'sh-indentation)
 
 (defcustom sh-backslash-column 48
-  "*Column in which `sh-backslash-region' inserts backslashes."
+  "Column in which `sh-backslash-region' inserts backslashes."
   :type 'integer
   :group 'sh)
 
 (defcustom sh-backslash-align t
-  "*If non-nil, `sh-backslash-region' will align backslashes."
+  "If non-nil, `sh-backslash-region' will align backslashes."
   :type 'boolean
   :group 'sh)
 
@@ -1364,7 +1345,7 @@ This is for the rc shell."
   "Make a regexp which matches WORD as a word.
 This specifically excludes an occurrence of WORD followed by
 punctuation characters like '-'."
-  (concat word "\\([^-a-z0-9_]\\|$\\)"))
+  (concat word "\\([^-[:alnum:]_]\\|$\\)"))
 
 (defconst sh-re-done (sh-mkword-regexpr "done"))
 
@@ -2251,6 +2232,7 @@ STRING	     This is ignored for the purposes of calculating
 		      (setq align-point (point))))
 		(or (bobp)
 		    (forward-char -1))
+                ;; FIXME: This charset looks too much like a regexp.  --Stef
 		(skip-chars-forward "[a-z0-9]*?")
 		)
 	       ((string-match "[])}]" x)
@@ -2459,7 +2441,7 @@ we go to the end of the previous line and do not check for continuations."
 	(if (looking-at "[\"'`]")
 	    (sh-safe-forward-sexp)
 	  ;; (> (skip-chars-forward "^ \t\n\"'`") 0)
-	  (> (skip-chars-forward "-_a-zA-Z$0-9") 0)
+	  (> (skip-chars-forward "-_$[:alnum:]") 0)
 	  ))
     (buffer-substring start (point))
     ))

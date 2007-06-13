@@ -1,5 +1,12 @@
 2007-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/sh-script.el: Remove unneeded * from docstrings.
+	Use [:alpha:] and [:alnum:] where applicable.
+	(sh-quoted-subshell): Rewrite to correctly
+	handle nested mixes of `...` and $(...).
+	(sh-apply-quoted-subshell): Remove.
+	(sh-font-lock-syntactic-keywords): Adjust call to sh-quoted-subshell.
+
 	* vc-arch.el (vc-arch-command): Remove bzr.  It's a different program.
 
 2007-06-12  Tom Tromey  <tromey@redhat.com>
