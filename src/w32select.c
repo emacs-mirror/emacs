@@ -82,6 +82,7 @@ Boston, MA 02110-1301, USA.  */
 #include "keyboard.h"	/* cmd_error_internal() */
 #include "charset.h"
 #include "coding.h"
+#include "character.h"
 #include "composite.h"
 
 
