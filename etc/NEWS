@@ -73,6 +73,10 @@ considered for update.
 +++
 ** The regexp form \(?<num>:<regexp>\) specifies the group number explicitly.
 
++++
+** New variable `user-emacs-directory'.
+Use this instead of "~/.emacs.d".
+
 
 * New Packages for Lisp Programming in Emacs 23.1
 
