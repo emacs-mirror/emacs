@@ -1,3 +1,9 @@
+2007-06-12  Karl Berry  <karl@gnu.org>
+
+	* vol1.texi, vol2.texi, two-volume-cross-refs.txt: update.
+	* two-volume.make: new file.
+	* .cvsignore: ignore two-volume files.
+
 2007-06-02  Richard Stallman  <rms@gnu.org>
 
 	* frames.texi (Color Parameters): Add xref to (emacs)Standard Faces.
