@@ -1337,7 +1337,7 @@ Optional Packages:
   --with-xpm              use -lXpm for displaying XPM images
   --with-jpeg             use -ljpeg for displaying JPEG images
   --with-tiff             use -ltiff for displaying TIFF images
-  --with-gif              use -lungif for displaying GIF images
+  --with-gif              use -lungif (or -lgif) for displaying GIF images
   --with-png              use -lpng for displaying PNG images
   --with-gpm              use -lgpm for mouse support on a GNU/Linux console
   --with-gtk              use GTK (same as --with-x-toolkit=gtk)
@@ -13808,11 +13808,10 @@ _ACEOF
   fi
 fi
 
-### Use -lgif if available, unless `--with-gif=no'.
+### Use -lgif or -lungif if available, unless `--with-gif=no'.
 HAVE_GIF=no
-if test "${HAVE_X11}" = "yes"; then
-  if test "${with_gif}" != "no"; then
-    if test "${ac_cv_header_gif_lib_h+set}" = set; then
+if test "${HAVE_X11}" = "yes" && test "${with_gif}" != "no"; then
+  if test "${ac_cv_header_gif_lib_h+set}" = set; then
   { echo "$as_me:$LINENO: checking for gif_lib.h" >&5
 echo $ECHO_N "checking for gif_lib.h... $ECHO_C" >&6; }
 if test "${ac_cv_header_gif_lib_h+set}" = set; then
@@ -13940,7 +13939,7 @@ fi
 if test $ac_cv_header_gif_lib_h = yes; then
   # EGifPutExtensionLast only exists from version libungif-4.1.0b1.
 # Earlier versions can crash Emacs.
-      { echo "$as_me:$LINENO: checking for EGifPutExtensionLast in -lungif" >&5
+    { echo "$as_me:$LINENO: checking for EGifPutExtensionLast in -lungif" >&5
 echo $ECHO_N "checking for EGifPutExtensionLast in -lungif... $ECHO_C" >&6; }
 if test "${ac_cv_lib_ungif_EGifPutExtensionLast+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
@@ -14003,11 +14002,94 @@ fi
 echo "${ECHO_T}$ac_cv_lib_ungif_EGifPutExtensionLast" >&6; }
 if test $ac_cv_lib_ungif_EGifPutExtensionLast = yes; then
   HAVE_GIF=yes
+else
+  try_libgif=yes
 fi
 
 fi
 
 
+
+  if test "$HAVE_GIF" = yes; then
+      ac_gif_lib_name="-lungif"
+  fi
+
+# If gif_lib.h but no libungif, try libgif.
+  if test x"$try_libgif" = xyes; then
+    { echo "$as_me:$LINENO: checking for EGifPutExtensionLast in -lgif" >&5
+echo $ECHO_N "checking for EGifPutExtensionLast in -lgif... $ECHO_C" >&6; }
+if test "${ac_cv_lib_gif_EGifPutExtensionLast+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lgif  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char EGifPutExtensionLast ();
+int
+main ()
+{
+return EGifPutExtensionLast ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
+  ac_cv_lib_gif_EGifPutExtensionLast=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_lib_gif_EGifPutExtensionLast=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_lib_gif_EGifPutExtensionLast" >&5
+echo "${ECHO_T}$ac_cv_lib_gif_EGifPutExtensionLast" >&6; }
+if test $ac_cv_lib_gif_EGifPutExtensionLast = yes; then
+  HAVE_GIF=yes
+fi
+
+
+    if test "$HAVE_GIF" = yes; then
+
+cat >>confdefs.h <<\_ACEOF
+#define LIBGIF -lgif
+_ACEOF
+
+      ac_gif_lib_name="-lgif"
+    fi
   fi
 
   if test "${HAVE_GIF}" = "yes"; then
@@ -23394,7 +23476,7 @@ echo "  Does Emacs use -lXaw3d?                                 ${HAVE_XAW3D}"
 echo "  Does Emacs use -lXpm?                                   ${HAVE_XPM}"
 echo "  Does Emacs use -ljpeg?                                  ${HAVE_JPEG}"
 echo "  Does Emacs use -ltiff?                                  ${HAVE_TIFF}"
-echo "  Does Emacs use -lungif?                                 ${HAVE_GIF}"
+echo "  Does Emacs use a gif library?                           ${HAVE_GIF} $ac_gif_lib_name"
 echo "  Does Emacs use -lpng?                                   ${HAVE_PNG}"
 echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use X toolkit scroll bars?                   ${USE_TOOLKIT_SCROLL_BARS}"
