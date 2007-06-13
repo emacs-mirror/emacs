@@ -38,7 +38,7 @@
 <h2 id="section-1">1. Introduction</h2>
 
 <p>
-.scope: This document describes the Ravebrnook conventions for the general format 
+.scope: This document describes the Ravenbrook conventions for the general format 
 of C source code in the MPS.
 </p>
 
@@ -146,25 +146,28 @@ then you might want to breakpoint it in a debugger session.  Annoying because
 "if(thing) return;" is quite compact and pleasing otherwise.
 </p>
 
-<p>
-.statement.one.exception: There's one exception but it's really only for 
-pedants.  Other people wouldn't notice anyway.  Multiple case statements 
-sharing the same body are allowed on the one line:
-</p>
-
-<pre>
-  switch(c) {
-  case '0': case '1': case '2': case '3':
-  case '4': case '5': case '6': case '7':
-    is_octal = 1;
-  }
-</pre>
-
 
 <h3>Indentation</h3>
 
 <p>
-.indent: Indent code blocks by two spaces.  For example:
+.indent: Indent the body of a block by two spaces.  
+For formatting purposes, the "body of a block" means:
+</p>
+
+<ul>
+  <li> statements between braces, </li>
+  <li> a single statement following a lone if; </li>
+  <li> statements in a case-clause; see .switch. </li>
+</ul>
+
+<p>
+(.indent.logical: The aim is to group what we think of as logical 
+blocks, even though they may not exactly match how "block" is used 
+in the definition of C syntax).
+</p>
+
+<p>
+Some examples:
 </p>
 
 <pre>
@@ -173,47 +176,33 @@ sharing the same body are allowed on the one line:
     PoolFreeP(MV->spanPool, span, sizeof(SpanStruct));
     return res;
   }
-</pre>
 
-<p>
-Usually, it is possible to determine the correct indentation for a line by 
-looking to see if the previous line ends with a semicolon.  If it does, indent 
-to the same amount, otherwise indent by two more spaces.  The exceptions are 
-open braces, which are at the same level as the previous line but cause the 
-next to be indented (unless using .brace.otb), and close brace, which is 
-outdented to match the controlling statement.
-</p>
+  if (res != ResOK)
+    goto error;
 
-<p>
-.indent.elseif: The usual style for <em>else if</em> chains is
-a special exception to the indentation rule above: an <em>else</em>
-may be immediately followed by an <em>if</em>, in which case the
-<em>if</em> body is at the same 
-level as the previous <em>if</em> body.  For example:
-</p>
-
-<pre>
   if(j == block->base) {
     if(j+step == block->limit) {
-      putc('@', stream);
-    } else {
-      putc('[', stream);
+      if(block->thing)
+        putc('@', stream);
     }
   } else if(j+step == block->limit) {
     putc(']', stream);
     pop_bracket();
-  } else if(j > block->base &amp;&amp; j &lt; block->limit)
-    putc('=', stream);
   } else {
     putc('.', stream);
+  }
+
+  case 'A': {
+    c = 'A';
+    p += 1;
+    break;
   }
 </pre>
 
 <p>
-.indent.label: All label statements are indented (i.e. actually "outdented" 
-with respect to nearby code) to the same level as the surrounding block.  This 
-includes "goto" labels, case labels, and switch default labels (these are all 
-label statements in the terminology of the standard).  For example:
+.indent.goto-label: Place each goto-label on a line of its own, 
+outdented to the same level as the surrounding block.  Then indent 
+the non-label part of the statement normally.
 </p>
 
 <pre>
@@ -232,27 +221,21 @@ label statements in the terminology of the standard).  For example:
 </pre>
 
 <p>
-and...
+.indent.case-label.not: Do not outdent case- and default-labels in a 
+switch statement.  See .switch.
 </p>
-
-<pre>
-  switch(s) {
-  case SPONG:
-    ...;
-    break;
-
-  default:
-    UNREACHED;
-  }
-</pre>
 
 <p>
-.indent.cont: If an expression or statement won't fit on a single line, indent 
-the continuation lines by two spaces, unless you're breaking a parameter list 
-or other parenthesized expression, in which case indent so that the 
-continuation lines up just after the open parenthesis.  For example:
+.indent.cont: If an expression or statement won't fit on a single line, 
+indent the continuation lines by two spaces, apart from the following 
+exception:
 </p>
 
+<p>
+.indent.cont.parens: if you break a statement inside a parameter list 
+or other parenthesized expression, indent so that the continuation 
+lines up just after the open parenthesis. For example:
+</p>
 <pre>
   PoolClassInit(&amp;PoolClassMVStruct,
                 "MV", init, finish, allocP, freeP,
@@ -260,8 +243,8 @@ continuation lines up just after the open parenthesis.  For example:
 </pre>
 
 <p>
-.indent.expr: Note that when breaking an expression it is clearer to place the operator at 
-the start of the continuation line:
+.indent.cont.expr: Note that when breaking an expression it is clearer 
+to place the operator at the start of the continuation line:
 </p>
 
 <pre>
@@ -271,8 +254,8 @@ the start of the continuation line:
 </pre>
 
 <p>
-This is particularly useful in long conditional expressions that use &amp;&amp;
-and ||.  For example:
+This is particularly useful in long conditional expressions that use 
+&amp;&amp; and ||.  For example:
 </p>
 
 <pre>
@@ -280,20 +263,23 @@ and ||.  For example:
           &amp;&amp; (trace->emergency || traceWorkClock(trace) &lt; pollEnd));
 </pre>
 
+<p>
+.indent.hint: 
+Usually, it is possible to determine the correct indentation for a line 
+by looking to see if the previous line ends with a semicolon.  If it 
+does, indent to the same amount, otherwise indent by two more spaces.  
+The main exceptions are lines starting with a close brace, goto-labels, 
+and line-breaks between parentheses.
+</p>
+
 
 <h3>Positioning of Braces</h3>
 
 <p>
-.brace: Two brace placements are allowed.  These have been chosen not to clash 
-with one another, and can also help to convey information in the vertical 
-spacing of the code.  With switch and case statements it can get confusing.  
-See .brace.case below.  
-</p>
-
-<p>
-.brace.otb: "One True Brace" (or OTB) places the open brace after the control 
-statement, separated by a space, and when there is an else, places that after 
-the close brace.  For example:
+.brace.otb: Use the "One True Brace" (or OTB) style.  
+This places the open brace after the control 
+word or expression, separated by a space, and when there is an else, 
+places that after the close brace.  For example:
 </p>
 
 <pre>
@@ -321,28 +307,16 @@ The same applies to struct, enum, union.
 </p>
 
 <p>
-.brace.block: The "block" style places the brace on a separate line, thusly:
+.brace.always: Braces are always required after 
+<em>if</em>, <em>else</em>, <em>switch</em>, 
+<em>while</em>, <em>do</em>, and <em>for</em>.
 </p>
 
-<pre>
-  while(node != DequeSentinel(&amp;pool->segDeque))
-  {
-    DequeNode next = DequeNodeNext(node);
-    Seg seg = DequeNodeElement(Seg, poolDeque, node);
-
-    DequeNodeRemove(node);
-    SegFinish(seg);
-
-    node = next;
-  }
-</pre>
-
 <p>
-.brace.always: Braces are always required for <em>if</em>, <em>for</em>,
-<em>while</em>, and so on.
-.brace.always.except: Except that an <em>if</em> with no <em>else</em>
-is allowed to drop its braces when its body is a single simple statement.
-Typically this will be a <em>goto</em> or an assignment.  For example:
+.brace.always.except: Except that a lone <em>if</em> with no 
+<em>else</em> is allowed to drop its braces when its body is a single 
+simple statement.  Typically this will be a <em>goto</em> or an 
+assignment.  For example:
 </p>
 
 <pre>
@@ -355,59 +329,96 @@ Note in particular that an <em>if</em> with an <em>else</em> must have
 braces on both paths.
 </p>
 
+
+<h3>Switch Statements</h3>
+
 <p>
-.brace.case: If you need to put braces around the "contents" of a case 
-statement (inside a switch) then do it like this:
+.switch: format switch statements like this:
 </p>
 
 <pre>
-  switch(s) {
-  case WIBBLE:
-  case WOBBLE: {
-    int local;
-    ...;
-  } break;
-  default:
-    /* ... */
-  }
-</pre>
-
-<p>
-[I suspect this has changed without the justification being updated,
-hence it might not make sense.  -- DRJ 2007-06-04]
-</p>
-
-<p>
-.brace.case.why: If you followed the general brace style rigidly then you'd get:
-</p>
-
-<pre>
-  switch(s) {
-  case WOBBLE: {
-      int local;
-      ...;
-  } break;
-  }
-</pre>
-
-<p>
-(with the two '}' in the same column) or...
-</p>
-
-<pre>
-  switch(s) {
-  case WOBBLE:
-    {
-      int local;
-      ...;
+  switch(action) {
+    case WIBBLE:
+    case WOBBLE: {
+      int angle;
+      err = move(plate, action, &amp;angle);
+      break;
     }
-    break;
+    case QUIESCENT: {
+      err = 0;
+      break;
+    }
+    default: {
+      NOTREACHED;
+      break;
+    }
   }
 </pre>
 
 <p>
-both of which look ugly.
+The component rules that result in this style are:
 </p>
+
+<p>
+.switch.two-levels: The switch statement as a whole is a block, and 
+(for formatting purposes) each case- or default-label starts a nested 
+block within that.  <strong>Always</strong> use two levels.  Do not 
+try to 'save a level' by outdenting case-labels: it's an anachronism 
+from when BSD used 8-column indents, and it causes havoc with brace 
+positioning.
+</p>
+
+<p>
+.switch.brace: Put braces around every case-clause body.  Put the open 
+brace on the same line as the last case-label (following .brace.otb).  Put 
+the close brace on a line on its own.
+</p>
+
+<p>
+.switch.break: The last line of every case-clause body, before the 
+close brace, must be an unconditional jump statement (usually 
+<code>break</code>, but may be <code>goto</code>, 
+<code>continue</code>, or <code>return</code>), or if a fall-through 
+is intended, the comment <code>/* fall-through */</code>.  (Note: if 
+the unconditional jump should never be taken, because of previous 
+conditional jumps, use <code>NOTREACHED</code> on the line before it).  
+This rule is to prevent accidental fall-throughs, even if someone makes a editing mistake that causes a conditional jump to be missed.
+</p>
+
+<p>
+(.switch.break.outside.not: Do not put the break outside the 
+case-clause braces: there is no need.  Placing it on the last line of 
+the case-clause body is less weird and equally clear.)
+</p>
+
+<p>
+.switch.default: It is usually a good idea to have a default-clause, 
+even if all it contains is NOTREACHED and break.
+</p>
+
+<p>
+.switch.new-rules: The above rules are simple, consistent, and not 
+onerous.  But they are also new, so existing MPS source code may not 
+yet follow them.
+</p>
+
+<p>
+.switch.horrors: There are currently around 5 different formatting 
+styles for switch statements in MPS source code: this is madness.  
+Variation is mostly caused by inventive violations of 
+.switch.two-levels (either case-label outdenting, or something worse: 
+see root.c), compounded by inventive violations of OTB for the braces 
+around the case-clause.  The following transgressions are deprecated:
+</p>
+
+<pre>
+  switch(action) {
+  case WOBBLE: {   /* BAD: open brace on outdented case-label line! */
+    ...
+  }  /* BAD: outdented close brace! */
+
+  } break;  /* BAD: break sharing line with close brace! */
+</pre>
 
 
 <h3>Formatting Comments</h3>
@@ -502,11 +513,21 @@ precede the code.
 </td>
 </tr>
 
+<tr valign='top'>
+<td>2007-06-13</td>
+<td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
+<td>Removed .brace.block, because MPS source always uses .brace.otb.  
+Remove .indent.elseif because it is obvious (ahem) and showing an 
+example is sufficient.  New rules for .switch.*: current MPS practice 
+is a mess, so lay down a neat new law.
+</td>
+</tr>
+
 </table>
 
 <h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
 
-<p> This document is copyright &copy; 2002-2005 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+<p> This document is copyright &copy; 2002-2005, 2007 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
 
 <p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
 
