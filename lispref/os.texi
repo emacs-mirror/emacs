@@ -261,6 +261,7 @@ the value refers to the corresponding source file.
 @defvar user-emacs-directory
 This variable holds the name of the @file{.emacs.d} directory.  It is
 ordinarily @file{~/.emacs.d}, but differs on some platforms.
+@end defvar
 
 @node Terminal-Specific
 @subsection Terminal-Specific Initialization
