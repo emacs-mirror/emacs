@@ -1647,6 +1647,7 @@ search_image_cache (f, spec, hash)
 
   /* If the image spec does not specify a background color, the cached
      image must have the same background color as the current frame.
+     Likewise for the foreground color of the cached monochrome image.
      The following code be improved.  For example, jpeg does not
      support transparency, but currently a jpeg image spec won't match
      a cached spec created with a different frame background.  The
@@ -1656,8 +1657,8 @@ search_image_cache (f, spec, hash)
   for (img = c->buckets[i]; img; img = img->next)
     if (img->hash == hash
 	&& !NILP (Fequal (img->spec, spec))
-	&& (STRINGP (specified_bg)
-	    || img->background == FRAME_BACKGROUND_PIXEL (f)))
+	&& img->frame_foreground == FRAME_FOREGROUND_PIXEL (f)
+	&& img->frame_background == FRAME_BACKGROUND_PIXEL (f))
       break;
   return img;
 }
@@ -1929,6 +1930,8 @@ lookup_image (f, spec)
       img = make_image (spec, hash);
       cache_image (f, img);
       img->load_failed_p = img->type->load (f, img) == 0;
+      img->frame_foreground = FRAME_FOREGROUND_PIXEL (f);
+      img->frame_background = FRAME_BACKGROUND_PIXEL (f);
 
       /* If we can't load the image, and we don't have a width and
 	 height, use some arbitrary width and height so that we can
