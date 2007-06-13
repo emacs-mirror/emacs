@@ -1,7 +1,11 @@
+2007-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-font-lock-keywords): Fix M. Kifer's last change.
+
 2007-06-13  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>  (tiny change)
 
-        * term/xterm.el (terminal-init-xterm): Escape parens in character
-        constants.
+	* term/xterm.el (terminal-init-xterm): Escape parens in character
+	constants.
 
 2007-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
