@@ -1,3 +1,7 @@
+2007-06-12  Tom Tromey  <tromey@redhat.com>
+
+	* os.texi (Init File): Document user-emacs-directory.
+
 2007-06-03  Nick Roberts  <nickrob@snap.net.nz>
 
 	* commands.texi (Click Events): Describe width and height when
