@@ -258,6 +258,10 @@ actual init file loaded is a compiled file, such as @file{.emacs.elc},
 the value refers to the corresponding source file.
 @end defvar
 
+@defvar user-emacs-directory
+This variable holds the name of the @file{.emacs.d} directory.  It is
+ordinarily @file{~/.emacs.d}, but differs on some platforms.
+
 @node Terminal-Specific
 @subsection Terminal-Specific Initialization
 @cindex terminal-specific initialization
