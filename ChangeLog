@@ -1,3 +1,8 @@
+2007-06-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in: Merge xaw3d and libXaw checks.  Check xaw3d even
+	when compiling without scrollbars.
+
 2007-06-12  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (HAVE_GIF): If -lungif fails, try -lgif.
