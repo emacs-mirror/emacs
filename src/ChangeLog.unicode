@@ -1,5 +1,7 @@
 2007-06-13  Jason Rumney  <jasonr@gnu.org>
 
+	* w32font.c (w32font_close): Delete the GDI font object.
+
 	* w32menu.c: Include character.h
 
 	* w32proc.c: Likewise.
