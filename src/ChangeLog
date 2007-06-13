@@ -1,3 +1,11 @@
+2007-06-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispextern.h (struct image) [HAVE_WINDOW_SYSTEM]: New members
+	frame_foreground and frame_background.
+
+	* image.c (lookup_image): Save frame foreground and background colors.
+	(search_image_cache): Check if saved and current frame colors match.
+
 2007-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* regex.c (regex_compile): Remove the `regnum' counter.
