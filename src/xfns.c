@@ -74,7 +74,7 @@ Boston, MA 02110-1301, USA.  */
 #ifndef USE_MOTIF
 #ifdef HAVE_XAW3D
 #include <X11/Xaw3d/Paned.h>
-#include <X11/Xaw/Label.h>
+#include <X11/Xaw3d/Label.h>
 #else /* !HAVE_XAW3D */
 #include <X11/Xaw/Paned.h>
 #include <X11/Xaw/Label.h>
