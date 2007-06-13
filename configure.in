@@ -1874,7 +1874,6 @@ case "${window_system}" in
     case "${with_x_toolkit}" in
       athena | lucid ) USE_X_TOOLKIT=LUCID ;;
       motif ) USE_X_TOOLKIT=MOTIF ;;
-dnl      open-look ) USE_X_TOOLKIT=OPEN_LOOK ;;
       gtk ) with_gtk=yes
 dnl Dont set this for GTK.  A lot of tests below assumes Xt when
 dnl USE_X_TOOLKIT is set.
@@ -2241,29 +2240,45 @@ fi
 
 dnl Do not put whitespace before the #include statements below.
 dnl Older compilers (eg sunos4 cc) choke on it.
+HAVE_XAW3D=no
 if test x"${USE_X_TOOLKIT}" = xmaybe || test x"${USE_X_TOOLKIT}" = xLUCID; then
-  if test x"${HAVE_X11R5}" = xyes; then
-    AC_MSG_CHECKING(X11 version 5 with Xaw)
-    AC_CACHE_VAL(emacs_cv_x11_version_5_with_xaw,
+  if test x"${HAVE_X11R5}" != xyes; then
+    USE_X_TOOLKIT=none
+  else
+    AC_MSG_CHECKING(for xaw3d)
+    AC_CACHE_VAL(emacs_cv_xaw3d,
     [AC_TRY_LINK([
 #include <X11/Intrinsic.h>
-#include <X11/Xaw/Simple.h>],
+#include <X11/Xaw3d/Simple.h>],
       [],
-      emacs_cv_x11_version_5_with_xaw=yes,
-      emacs_cv_x11_version_5_with_xaw=no)])
-    if test $emacs_cv_x11_version_5_with_xaw = yes; then
-      AC_MSG_RESULT([5 or newer, with Xaw; use toolkit by default])
+      emacs_cv_xaw3d=yes,
+      emacs_cv_xaw3d=no)])
+    if test $emacs_cv_xaw3d = yes; then
+      AC_MSG_RESULT([yes; using Lucid toolkit])
       USE_X_TOOLKIT=LUCID
+      HAVE_XAW3D=yes
+      AC_DEFINE(HAVE_XAW3D, 1,
+                [Define to 1 if you have the Xaw3d library (-lXaw3d).])
     else
-      if test x"${USE_X_TOOLKIT}" = xLUCID; then
+      AC_MSG_RESULT(no)
+      AC_MSG_CHECKING(for libXaw)
+      AC_CACHE_VAL(emacs_cv_xaw,
+      [AC_TRY_LINK([
+#include <X11/Intrinsic.h>
+#include <X11/Xaw/Simple.h>],
+        [],
+        emacs_cv_xaw=yes,
+        emacs_cv_xaw=no)])
+      if test $emacs_cv_xaw = yes; then
+        AC_MSG_RESULT([yes; using Lucid toolkit])
+        USE_X_TOOLKIT=LUCID
+      elif test x"${USE_X_TOOLKIT}" = xLUCID; then
         AC_MSG_ERROR([Lucid toolkit requires X11/Xaw include files])
       else
-        AC_MSG_RESULT(before 5 or no Xaw; do not use toolkit by default)
+        AC_MSG_RESULT([no; do not use toolkit by default])
         USE_X_TOOLKIT=none
       fi
     fi
-  else
-    USE_X_TOOLKIT=none
   fi
 fi
 
@@ -2347,21 +2362,6 @@ Motif version prior to 2.1.
     else
       CFLAGS=$OLD_CFLAGS
       CPPFLAGS=$OLD_CPPFLAGS
-    fi
-  fi
-fi
-
-### Is -lXaw3d available?
-HAVE_XAW3D=no
-if test "${HAVE_X11}" = "yes"; then
-  if test "${USE_X_TOOLKIT}" != "none" && test "${with_toolkit_scroll_bars}" != "no"; then
-    dnl Fixme: determine what Scrollbar.h needs to avoid compilation
-    dnl errors from the test without the `-'.
-    AC_CHECK_HEADER(X11/Xaw3d/Scrollbar.h,
-	[AC_CHECK_LIB(Xaw3d, XawScrollbarSetThumb, HAVE_XAW3D=yes)], , -)
-    if test "${HAVE_XAW3D}" = "yes"; then
-	AC_DEFINE(HAVE_XAW3D, 1,
-		  [Define to 1 if you have the Xaw3d library (-lXaw3d).])
     fi
   fi
 fi
