@@ -301,9 +301,9 @@ See also `save-completions-retention-time'."
   (let ((olddef (convert-standard-filename "~/.completions")))
     (cond
      ((file-readable-p olddef) olddef)
-     ((file-directory-p (convert-standard-filename "~/.emacs.d/"))
+     ((file-directory-p user-emacs-directory)
       (convert-standard-filename
-       (expand-file-name "completions" "~/.emacs.d/")))
+       (expand-file-name "completions" user-emacs-directory)))
      (t olddef)))
   "The filename to save completions to."
   :type 'file
