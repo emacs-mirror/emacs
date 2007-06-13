@@ -138,8 +138,7 @@ New font handling mechanism with font backend method
 This branch now contains new codes for handling fonts by multiple font
 backends.  The old font handling codes still exist completely parallel
 to the new codes, and the new codes are used only when you configure
-Emacs with the argument "--enable-font-backend" and run Emacs with the
-same argument.
+Emacs with the argument "--enable-font-backend".
 
 Which font backends to use can be specified by X resource
 "FontBackend".  For instance, if you want to use Xft fonts only,
@@ -150,7 +149,7 @@ will work.  If this resource is not set, Emacs tries to use all font
 backends available on your graphic device.
 
 The configure script, if invoked with "--enable-font-backend", checks
-existing of libraries freetype and fontconfig.  If they are both
+if libraries freetype and fontconfig exist.  If they are both
 available, macro "USE_FONT_BACKEND" is defined in src/config.h.  In
 that case, the existing of Xft library is checked too.
 
@@ -195,7 +194,7 @@ have these font driver.
 Note: The fontset related codes are not yet matuared to work well with
 the font backend method.  So, for instance, even if you start Emacs
 as something like this:
-  % emacs --enable-font-backend -fn tahoma
+  % emacs -fn tahoma
 Non-ASCII Latin characters will not be displayed by the font "tahoma".
 In such a case, please try this:
 
