@@ -48,7 +48,11 @@ Boston, MA 02110-1301, USA.  */
 #endif /* not USE_MOTIF && USE_LUCID */
 #endif
 #if defined (USE_XAW)
+#ifdef HAVE_XAW3D
+#include <X11/Xaw3d/Paned.h>
+#else /* !HAVE_XAW3D */
 #include <X11/Xaw/Paned.h>
+#endif /* HAVE_XAW3D */
 #include "lwlib-Xaw.h"
 #endif
 
