@@ -1,3 +1,29 @@
+2007-06-12  Tom Tromey  <tromey@redhat.com>
+
+	* subr.el (user-emacs-directory): New defconst.
+	* cmuscheme.el (scheme-start-file): Use user-emacs-directory.
+	* shell.el (shell): Use user-emacs-directory.
+	* completion.el (save-completions-file-name): Use
+	user-emacs-directory.
+	* custom.el (custom-theme-directory): Use user-emacs-directory.
+	* term/x-win.el (emacs-session-filename): Use
+	user-emacs-directory.
+	* filesets.el (filesets-menu-cache-file): Use
+	user-emacs-directory.
+	* thumbs.el (thumbs-thumbsdir): Use user-emacs-directory.
+	* server.el (server-auth-dir): Use user-emacs-directory.
+	* image-dired.el (image-dired-dir): Use user-emacs-directory.
+	(image-dired-db-file): Likewise.
+	(image-dired-temp-image-file): Likewise.
+	(image-dired-gallery-dir): Likewise.
+	(image-dired-temp-rotate-image-file): Likewise.
+	* play/gamegrid.el (gamegrid-user-score-file-directory): Use
+	user-emacs-directory.
+	* savehist.el (savehist-file): Use user-emacs-directory.
+	* tutorial.el (tutorial--saved-dir): Use user-emacs-directory.
+	* startup.el (auto-save-list-file-prefix): Use
+	user-emacs-directory.
+
 2007-06-12  Ralf Angeli  <angeli@caeruleus.net>
 
 	* scroll-lock.el (scroll-lock-mode): Doc fix.
