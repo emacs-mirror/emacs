@@ -32,6 +32,7 @@ Boston, MA 02110-1301, USA.  */
 #include "blockinput.h"
 #include "buffer.h"
 #include "charset.h"
+#include "character.h"
 #include "coding.h"
 
 /* This may include sys/types.h, and that somehow loses
