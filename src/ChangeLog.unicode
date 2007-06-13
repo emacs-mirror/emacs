@@ -1,3 +1,13 @@
+2007-06-13  Jason Rumney  <jasonr@gnu.org>
+
+	* w32menu.c: Include character.h
+
+	* w32proc.c: Likewise.
+
+	* w32select.c: Likewise.
+
+	* makefile.w32-in (w32proc.o): Depend on character.h
+
 2007-06-11  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (syms_of_w32fns): Use DEFSYM macro.
