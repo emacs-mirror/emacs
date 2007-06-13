@@ -412,10 +412,10 @@ else
 fi
 
 test \$exitcode = 0") || {
-  echo No shell found that supports shell functions.
-  echo Please tell autoconf@gnu.org about your system,
-  echo including any error possibly output before this
-  echo message
+  echo Please tell bug-autoconf@gnu.org about your system,
+  echo including any error possibly output before this message.
+  echo This can help us improve future autoconf versions.
+  echo Configuration will now proceed without shell functions.
 }
 
 
@@ -13067,6 +13067,13 @@ echo "${ECHO_T}yes" >&6; }
       else
 	{ echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6; }
+        { { echo "$as_me:$LINENO: error: libXpm is required, but I didn't find it.
+Maybe some development libraries/packages are missing?
+Use --with-xpm=no if you don't wan't to link with libXpm" >&5
+echo "$as_me: error: libXpm is required, but I didn't find it.
+Maybe some development libraries/packages are missing?
+Use --with-xpm=no if you don't wan't to link with libXpm" >&2;}
+   { (exit 1); exit 1; }; }
       fi
     fi
   fi
@@ -13278,6 +13285,15 @@ fi
 fi
 
 
+    if  test "${HAVE_JPEG}" != "yes"; then
+      { { echo "$as_me:$LINENO: error: libjpeg is required, but I didn't find it.
+Maybe some development libraries/packages are missing?
+Use --with-jpeg=no if you don't wan't to link with libjpeg" >&5
+echo "$as_me: error: libjpeg is required, but I didn't find it.
+Maybe some development libraries/packages are missing?
+Use --with-jpeg=no if you don't wan't to link with libjpeg" >&2;}
+   { (exit 1); exit 1; }; }
+    fi
   fi
 
 
@@ -13526,6 +13542,15 @@ if test $ac_cv_lib_png_png_get_channels = yes; then
 fi
 
     fi
+    if  test "${HAVE_PNG}" != "yes"; then
+      { { echo "$as_me:$LINENO: error: libpng is required, but I didn't find it.
+Maybe some development libraries/packages are missing?
+Use --with-png=no if you don't wan't to link with libpng" >&5
+echo "$as_me: error: libpng is required, but I didn't find it.
+Maybe some development libraries/packages are missing?
+Use --with-png=no if you don't wan't to link with libpng" >&2;}
+   { (exit 1); exit 1; }; }
+    fi
   fi
 
   if test "${HAVE_PNG}" = "yes"; then
@@ -13738,6 +13763,15 @@ fi
 fi
 
 
+    if  test "${HAVE_TIFF}" != "yes"; then
+      { { echo "$as_me:$LINENO: error: libtiff is required, but I didn't find it.
+Maybe some development libraries/packages are missing?
+Use --with-tiff=no if you don't wan't to link with libtiff" >&5
+echo "$as_me: error: libtiff is required, but I didn't find it.
+Maybe some development libraries/packages are missing?
+Use --with-tiff=no if you don't wan't to link with libtiff" >&2;}
+   { (exit 1); exit 1; }; }
+    fi
   fi
 
   if test "${HAVE_TIFF}" = "yes"; then
@@ -14039,6 +14073,14 @@ cat >>confdefs.h <<\_ACEOF
 #define HAVE_GIF 1
 _ACEOF
 
+  else
+    { { echo "$as_me:$LINENO: error: libgif or libungif is required, but I didn't find it.
+Maybe some development libraries/packages are missing?
+Use --with-gif=no if you don't wan't to link with libgif/ungif" >&5
+echo "$as_me: error: libgif or libungif is required, but I didn't find it.
+Maybe some development libraries/packages are missing?
+Use --with-gif=no if you don't wan't to link with libgif/ungif" >&2;}
+   { (exit 1); exit 1; }; }
   fi
 fi
 
