@@ -2462,6 +2462,9 @@ no_return_alloc_pixels
 	AC_MSG_RESULT(yes)
       else
 	AC_MSG_RESULT(no)
+        AC_MSG_ERROR([libXpm is required, but I didn't find it.
+Maybe some development libraries/packages are missing?
+Use --with-xpm=no if you don't wan't to link with libXpm])
       fi
     fi
   fi
@@ -2479,6 +2482,11 @@ if test "${HAVE_X11}" = "yes"; then
     dnl  HAVE_STDLIB_H.
     AC_CHECK_HEADER(jerror.h,
       AC_CHECK_LIB(jpeg, jpeg_destroy_compress, HAVE_JPEG=yes))
+    if  test "${HAVE_JPEG}" != "yes"; then
+      AC_MSG_ERROR([libjpeg is required, but I didn't find it.
+Maybe some development libraries/packages are missing?
+Use --with-jpeg=no if you don't wan't to link with libjpeg])
+    fi
   fi
 
   AH_TEMPLATE(HAVE_JPEG, [Define to 1 if you have the jpeg library (-ljpeg).])dnl
@@ -2504,6 +2512,11 @@ if test "${HAVE_X11}" = "yes"; then
     if test "$ac_cv_header_png_h" = yes || test "$ac_cv_header_libpng_png_h" = yes ; then
       AC_CHECK_LIB(png, png_get_channels, HAVE_PNG=yes, , -lz -lm)
     fi
+    if  test "${HAVE_PNG}" != "yes"; then
+      AC_MSG_ERROR([libpng is required, but I didn't find it.
+Maybe some development libraries/packages are missing?
+Use --with-png=no if you don't wan't to link with libpng])
+    fi
   fi
 
   if test "${HAVE_PNG}" = "yes"; then
@@ -2520,6 +2533,11 @@ if test "${HAVE_X11}" = "yes"; then
       # At least one tiff package requires the jpeg library.
       if test "${HAVE_JPEG}" = yes; then tifflibs="-ljpeg $tifflibs"; fi
       AC_CHECK_LIB(tiff, TIFFGetVersion, HAVE_TIFF=yes, , $tifflibs))
+    if  test "${HAVE_TIFF}" != "yes"; then
+      AC_MSG_ERROR([libtiff is required, but I didn't find it.
+Maybe some development libraries/packages are missing?
+Use --with-tiff=no if you don't wan't to link with libtiff])
+    fi
   fi
 
   if test "${HAVE_TIFF}" = "yes"; then
@@ -2551,6 +2569,10 @@ if test "${HAVE_X11}" = "yes" && test "${with_gif}" != "no"; then
 
   if test "${HAVE_GIF}" = "yes"; then
     AC_DEFINE(HAVE_GIF, 1, [Define to 1 if you have a gif library (default -lungif; otherwise specify with LIBGIF).])
+  else
+    AC_MSG_ERROR([libgif or libungif is required, but I didn't find it.
+Maybe some development libraries/packages are missing?
+Use --with-gif=no if you don't wan't to link with libgif/ungif])
   fi
 fi
 
