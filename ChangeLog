@@ -1,3 +1,8 @@
+2007-06-13  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* ediff-ptch.el (ediff-context-diff-label-regexp): partially undid
+	previous patch
+
 2007-06-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* configure.in: Merge xaw3d and libXaw checks.  Check xaw3d even

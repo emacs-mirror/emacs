@@ -134,11 +134,13 @@ patch.  So, don't change these variables, unless the default doesn't work."
   :type '(choice (const nil) string)
   :group 'ediff-ptch)
 
+;; This context diff does not recognize spaces inside files, but removing ' '
+;; from [^ \t] breaks normal patches for some reason
 (defcustom ediff-context-diff-label-regexp
   (concat "\\(" 	; context diff 2-liner
-	  "^\\*\\*\\* \\([^\t]+\\)[^*]+[\t ]*\n--- \\([^\t]+\\)"
+	  "^\\*\\*\\* +\\([^ \t]+\\)[^*]+[\t ]*\n--- +\\([^ \t]+\\)"
 	  "\\|" 	; GNU unified format diff 2-liner
-	  "^--- \\([^\t]+\\)[\t ]+.*\n\\+\\+\\+ \\([^\t]+\\)"
+	  "^--- +\\([^ \t]+\\)[\t ]+.*\n\\+\\+\\+ +\\([^ \t]+\\)"
 	  "\\)")
   "*Regexp matching filename 2-liners at the start of each context diff.
 You probably don't want to change that, unless you are using an obscure patch
