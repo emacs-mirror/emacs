@@ -1,3 +1,7 @@
+2007-06-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfns.c, xmenu.c: Link to xaw3d if available.
+
 2007-06-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* dispextern.h (struct image) [HAVE_WINDOW_SYSTEM]: New members
