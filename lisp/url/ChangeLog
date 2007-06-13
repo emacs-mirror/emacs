@@ -1,3 +1,7 @@
+2007-06-12  Tom Tromey  <tromey@redhat.com>
+
+	* url.el (url-configuration-directory): Use user-emacs-directory.
+
 2007-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-cookie.el (url-cookie-name, url-cookie-value)
