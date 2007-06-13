@@ -1,3 +1,66 @@
+2007-06-13  Ryan Yeske  <rcyeske@gmail.com>
+
+	* rcirc.el (rcirc-format-response-string): Use rcirc-nick-syntax
+	around bright and dim regexps. Make sure bright and dim matches
+	use word anchors.  Send text through rcirc-markup functions.
+	(rcirc-url-regexp): Add single quote character.
+	(rcirc-connect): Write logs to disk on auto-save-hook.
+	Make server a non-optional argument.
+	(rcirc-log-alist): New variable.
+	(rcirc-log-directory): Make customizable.
+	(rcirc-log-flag): New customizable variable.
+	(rcirc-log): New function.
+	(rcirc-print): Use above function.
+	(rcirc-log-write): New function.
+	(rcirc-generate-new-buffer-name): Strip text properties.
+	(rcirc-switch-to-buffer-function): Remove variable.
+	(rcirc-last-non-irc-buffer): Remove variable.
+	(rcirc-non-irc-buffer): Add function.
+	(rcirc-next-active-buffer): Use above function.
+	(rcirc-keepalive): Send KEEPALIVE ctcp instead of a PING.
+	(rcirc-handler-ctcp-KEEPALIVE): Add handler.
+	(rcirc-handler-CTCP): Don't print KEEPALIVE responses.
+	(rcirc-omit-mode): Add minor-mode.
+	(rcirc-mode-map): Change C-c C-o binding.
+	(rcirc-mode): Clear mode-line-process. Use a custom
+	fill-paragraph-function.  Set up buffer-invisibility-spec.
+	(rcirc-response-formats): Remove timestamp code.
+	(rcirc-omit-responses): Add variable.
+	(rcirc-print): Don't put the overlay arrow on potentially omitted
+	lines.  Log line to disk.  Record activity for private messages
+	from /dim nicks.  Facify the fill-prefix with rcirc-timestamp face.
+	(rcirc-jump-to-first-unread-line): Print message if there is no
+	unread text.
+	(rcirc-clear-unread): New function.
+	(rcirc-markup-text-functions): Add variable.
+	(rcirc-markup-timestamp, rcirc-markup-fill): Add functions.
+	(rcirc-debug): Don't mess with window configuration.
+	(rcirc-send-message): Send message before printing locally.
+	Add SILENT argument, do not print message if non-nil.
+	(rcirc-visible-buffers): New function and variable.
+	(rcirc-window-configuration-change-1): Add function.
+	(rcirc-target-buffer): Make sure ACTIONs don't get sent to the
+	server buffer.
+	(rcirc-clean-up-buffer): Set rcirc-target to nil when finished.
+	(rcirc-fill-paragraph): Add function.
+	(rcirc-record-activity, rcirc-window-configuration-change-1):
+	Only update the activity string if it has actually changed.
+	(rcirc-update-activity-string): Remove padding characters from the
+	mode-line string.
+	(rcirc-disconnect-buffer): New function to be called when a
+	channel is parted or the user quits.
+	(rcirc-server-name): Warn when the server-name hasn't been set.
+	(rcirc-window-configuration-change): Postpone work until
+	post-command-hook.
+	(rcirc-window-configuration-change-1): Update mode-line and
+	overlay arrows here.
+	(rcirc-authenticate): Fix chanserv identification.
+	(rcirc-default-server): Remove variable.
+	(rcirc): Connect according to rcirc-connections.
+	(rcirc-connections): Add variable.
+	(rcirc-startup-channels-alist): Remove variable.
+	(rcirc-startup-channels): Remove function.
+
 2007-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* diff-mode.el (diff-font-lock-keywords): Fix M. Kifer's last change.
