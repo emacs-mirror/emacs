@@ -57,7 +57,7 @@ numbers, and the build number."
   (x-server-version))
 
 (defun w32-using-nt ()
-  "Return non-nil if running on a 32-bit Windows system.
+  "Return non-nil if running on a Windows NT descendant.
 That includes all Windows systems except for 9X/Me."
   (and (eq system-type 'windows-nt) (getenv "SystemRoot")))
 
