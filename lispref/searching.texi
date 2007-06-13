@@ -655,7 +655,8 @@ is the @dfn{explicitly numbered group} construct.  Normal groups get
 their number implicitly, based on their position, which can be
 inconvenient.  This construct allows you to force a particular group
 number.  There is no particular restriction on the numbering,
-e.g.@: you can have several groups with the same number.
+e.g.@: you can have several groups with the same number in which case
+the last one to match (i.e.@: the rightmost match) will win.
 Implicitly numbered groups always get the smallest integer larger than
 the one of any previous group.
 
