@@ -3,11 +3,6 @@
 	* regex.c (regex_compile): Remove the `regnum' counter.
 	Use bufp->re_nsub instead.  Add support for \(?N:RE\).
 
-2007-06-12  Glenn Morris  <rgm@gnu.org>
-
-	* config.in (HAVE_GIF): Doc fix.
-	(LIBGIF): New (already used by Makefile.in).
-
 2007-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* term.c: Include intervals.h to declare Fget_text_property.
