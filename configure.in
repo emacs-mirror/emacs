@@ -90,12 +90,7 @@ AC_ARG_WITH(x-toolkit,
 	    a | at | ath | athe | athen | athena )	val=athena ;;
 	    m | mo | mot | moti | motif )	val=motif ;;
 	    g | gt | gtk  )	val=gtk ;;
-dnl These don't currently work.
-dnl	    o | op | ope | open | open- | open-l | open-lo \
-dnl		| open-loo | open-look )	val=open-look ;;
 	    * )
-dnl AC_MSG_ERROR([the `--with-x-toolkit' option is supposed to have a value
-dnl which is `yes', `no', `lucid', `athena', `motif' or `open-look'.])
 AC_MSG_ERROR([`--with-x-toolkit=$withval' is invalid;
 this option's value should be `yes', `no', `lucid', `athena', `motif' or `gtk'.
 `yes' and `gtk' are synonyms. `athena' and `lucid' are synonyms.])
@@ -2462,9 +2457,6 @@ no_return_alloc_pixels
 	AC_MSG_RESULT(yes)
       else
 	AC_MSG_RESULT(no)
-        AC_MSG_ERROR([libXpm is required, but I didn't find it.
-Maybe some development libraries/packages are missing?
-Use --with-xpm=no if you don't wan't to link with libXpm])
       fi
     fi
   fi
@@ -2482,11 +2474,6 @@ if test "${HAVE_X11}" = "yes"; then
     dnl  HAVE_STDLIB_H.
     AC_CHECK_HEADER(jerror.h,
       AC_CHECK_LIB(jpeg, jpeg_destroy_compress, HAVE_JPEG=yes))
-    if  test "${HAVE_JPEG}" != "yes"; then
-      AC_MSG_ERROR([libjpeg is required, but I didn't find it.
-Maybe some development libraries/packages are missing?
-Use --with-jpeg=no if you don't wan't to link with libjpeg])
-    fi
   fi
 
   AH_TEMPLATE(HAVE_JPEG, [Define to 1 if you have the jpeg library (-ljpeg).])dnl
@@ -2512,11 +2499,6 @@ if test "${HAVE_X11}" = "yes"; then
     if test "$ac_cv_header_png_h" = yes || test "$ac_cv_header_libpng_png_h" = yes ; then
       AC_CHECK_LIB(png, png_get_channels, HAVE_PNG=yes, , -lz -lm)
     fi
-    if  test "${HAVE_PNG}" != "yes"; then
-      AC_MSG_ERROR([libpng is required, but I didn't find it.
-Maybe some development libraries/packages are missing?
-Use --with-png=no if you don't wan't to link with libpng])
-    fi
   fi
 
   if test "${HAVE_PNG}" = "yes"; then
@@ -2533,11 +2515,6 @@ if test "${HAVE_X11}" = "yes"; then
       # At least one tiff package requires the jpeg library.
       if test "${HAVE_JPEG}" = yes; then tifflibs="-ljpeg $tifflibs"; fi
       AC_CHECK_LIB(tiff, TIFFGetVersion, HAVE_TIFF=yes, , $tifflibs))
-    if  test "${HAVE_TIFF}" != "yes"; then
-      AC_MSG_ERROR([libtiff is required, but I didn't find it.
-Maybe some development libraries/packages are missing?
-Use --with-tiff=no if you don't wan't to link with libtiff])
-    fi
   fi
 
   if test "${HAVE_TIFF}" = "yes"; then
@@ -2569,10 +2546,31 @@ if test "${HAVE_X11}" = "yes" && test "${with_gif}" != "no"; then
 
   if test "${HAVE_GIF}" = "yes"; then
     AC_DEFINE(HAVE_GIF, 1, [Define to 1 if you have a gif library (default -lungif; otherwise specify with LIBGIF).])
-  else
-    AC_MSG_ERROR([libgif or libungif is required, but I didn't find it.
+  fi
+fi
+
+dnl Check for required libraries.
+if test "${HAVE_X11}" = "yes"; then
+  MISSING=""
+  WITH_NO=""
+  test "${with_xpm}" != "no" && test "${HAVE_XPM}" != "yes" &&
+    MISSING="libXpm" && WITH_NO="--with-xpm=no"
+  test "${with_jpeg}" != "no" && test "${HAVE_JPEG}" != "yes" &&
+    MISSING="$MISSING libjpeg" && WITH_NO="$WITH_NO --with-jpeg=no"
+  test "${with_png}" != "no" && test "${HAVE_PNG}" != "yes" &&
+    MISSING="$MISSING libpng" && WITH_NO="$WITH_NO --with-png=no"
+  test "${with_gif}" != "no" && test "${HAVE_GIF}" != "yes" &&
+    MISSING="$MISSING libgif/libungif" && WITH_NO="$WITH_NO --with-gif=no"
+  test "${with_tiff}" != "no" && test "${HAVE_TIFF}" != "yes" &&
+    MISSING="$MISSING libtiff" && WITH_NO="$WITH_NO --with-tiff=no"
+
+  if test "X${MISSING}" != X; then
+    AC_MSG_ERROR([The following required libraries was not found:
+    $MISSING
 Maybe some development libraries/packages are missing?
-Use --with-gif=no if you don't wan't to link with libgif/ungif])
+If you don't want to link with them give
+    $WITH_NO
+as options to configure])
   fi
 fi
 
@@ -3017,6 +3015,7 @@ if test "${REL_ALLOC}" = "yes" ; then
 	    [Define REL_ALLOC if you want to use the relocating allocator for
 	     buffer space.])
 fi
+
 
 AH_TOP([/* GNU Emacs site configuration template file.
    Copyright (C) 1988, 1993, 1994, 1999, 2000, 2001, 2002, 2004, 2005, 2006, 2007
