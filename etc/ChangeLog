@@ -1,3 +1,7 @@
+2007-06-14  Nick Roberts  <nickrob@snap.net.nz>
+
+	* NEWS: Mention mouse highlighting in a GNU/Linux console.
+
 2007-06-14  Werner Lemberg  <wl@gnu.org>
 
 	* emacs.1: Completely revised.
