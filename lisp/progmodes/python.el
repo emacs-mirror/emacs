@@ -1925,7 +1925,7 @@ Repeating the command scrolls the completion window."
   (interactive)
   (let ((window (get-buffer-window "*Completions*")))
     (if (and (eq last-command this-command)
-	     window (window-live-p window) (window-buffer window)
+	     (window-live-p window) (window-buffer window)
 	     (buffer-name (window-buffer window)))
 	(with-current-buffer (window-buffer window)
 	  (if (pos-visible-in-window-p (point-max) window)
