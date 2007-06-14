@@ -1,3 +1,7 @@
+2007-06-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* configure.in: Check for all image libraries before exiting.
+
 2007-06-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in: Exit with error if image libraries aren't found.
