@@ -486,20 +486,16 @@ init_user_info ()
      the user-sid as the user id value (same for group id using the
      primary group sid from the process token). */
 
-  char            user_sid[256], name[256], domain[256];
-  DWORD           length = sizeof (name), dlength = sizeof (domain), trash;
-  HANDLE          token = NULL;
-  SID_NAME_USE    user_type;
+  char         user_sid[256], name[256], domain[256];
+  DWORD        length = sizeof (name), dlength = sizeof (domain), trash;
+  HANDLE       token = NULL;
+  SID_NAME_USE user_type;
 
-  if (
-			open_process_token (GetCurrentProcess (), TOKEN_QUERY, &token)
-      && get_token_information (
-					token, TokenUser,
-			      (PVOID) user_sid, sizeof (user_sid), &trash)
-      && lookup_account_sid (
-					NULL, *((PSID *) user_sid), name, &length,
-			   domain, &dlength, &user_type)
-			)
+  if (open_process_token (GetCurrentProcess (), TOKEN_QUERY, &token)
+      && get_token_information (token, TokenUser,
+				(PVOID) user_sid, sizeof (user_sid), &trash)
+      && lookup_account_sid (NULL, *((PSID *) user_sid), name, &length,
+			     domain, &dlength, &user_type))
     {
       strcpy (the_passwd.pw_name, name);
       /* Determine a reasonable uid value. */
@@ -524,7 +520,7 @@ init_user_info ()
 
 	  /* Get group id */
 	  if (get_token_information (token, TokenPrimaryGroup,
-				   (PVOID) user_sid, sizeof (user_sid), &trash))
+				     (PVOID) user_sid, sizeof (user_sid), &trash))
 	    {
 	      SID_IDENTIFIER_AUTHORITY * pSIA;
 
@@ -541,7 +537,7 @@ init_user_info ()
 	}
     }
   /* If security calls are not supported (presumably because we
-       are running under Windows 95), fallback to this. */
+     are running under Windows 95), fallback to this. */
   else if (GetUserName (name, &length))
     {
       strcpy (the_passwd.pw_name, name);
