@@ -1,9 +1,16 @@
+2007-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-current-group)
+	(byte-compile-nogroup-warn, byte-compile-file): Revert part of last
+	change.  Apparently the "warning even if the group is implicit" is
+	a feature rather than a bug.
+
 2007-06-14  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
+
 	* viper.el (viper-describe-key-ad, viper-describe-key-briefly-ad):
-	different advices for Emacs and XEmacs. Compile them conditionally.
+	different advices for Emacs and XEmacs.  Compile them conditionally.
 	(viper-version): belated version change.
-	
+
 2007-06-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* follow.el (follow-all-followers, follow-generic-filter):
