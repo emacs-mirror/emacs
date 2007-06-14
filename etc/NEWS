@@ -32,6 +32,14 @@ so we will look at it and add it to the manual.
 searching for a GIF library.
 
 
+* Changes in Emacs 23.1
+
+** If the gpm mouse server is running and t-mouse-mode enabled, Emacs uses a
+Unix socket in a GNU/Linux console to talk to server, rather than faking events
+using the client program mev.  This C level approach provides mouse
+highlighting, and help echoing in the minibuffer.
+
+
 * Startup Changes in Emacs 23.1
 
 
