@@ -1,3 +1,7 @@
+2007-06-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* composite.c (update_compositions): Check validity of compositions.
+
 2007-06-10  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (Fx_file_dialog): Take size from struct not pointer.
