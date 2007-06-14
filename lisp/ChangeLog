@@ -1,3 +1,13 @@
+2007-06-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* follow.el (follow-all-followers, follow-generic-filter):
+	* pcomplete.el (pcomplete-restore-windows):
+	* x-dnd.el (x-dnd-maybe-call-test-function, x-dnd-save-state)
+	(x-dnd-drop-data):
+	* emacs-lisp/edebug.el (edebug-pop-to-buffer, edebug-display):
+	* progmodes/python.el (python-complete-symbol):
+	* term/mac-win.el (mac-dnd-drop-data): Remove redundant check.
+
 2007-06-13  Ryan Yeske  <rcyeske@gmail.com>
 
 	* rcirc.el (rcirc-format-response-string): Use rcirc-nick-syntax
