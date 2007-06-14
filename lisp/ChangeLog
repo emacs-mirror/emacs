@@ -1,3 +1,20 @@
+2007-06-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* wid-edit.el (widget-default-create): Move ?h handling here...
+	(widget-default-format-handler): ...from here.
+	(widget-docstring, widget-add-documentation-string-button): New funs.
+	(documentation-string): Add :visibility-widget property.
+	(widget-documentation-string-value-create): Use it.
+
+	* cus-edit.el (custom-split-regexp-maybe): Simplify.
+	(custom-buffer-create-internal): Simplify message.
+	(custom-variable-tag): Reduce height to normal.
+	(custom-variable-value-create, custom-face-value-create)
+	(custom-visibility): New widget.
+	(custom-visibility): New face.
+	(custom-group-value-create): Call
+	widget-add-documentation-string-button, using `custom-visibility'.
+
 2007-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (byte-compile-current-group)
