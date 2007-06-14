@@ -212,6 +212,15 @@
 
 2007-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* font-lock.el (font-lock-add-keywords): In case font-lock was only
+	half-activated, forcefully activate it completely.
+
+2007-06-11  Richard Stallman  <rms@gnu.org>
+
+	* cus-edit.el (custom-variable-type): Doc fix.
+
+2007-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* progmodes/sh-script.el (sh-font-lock-backslash-quote)
 	(sh-font-lock-flush-syntax-ppss-cache): New functions.
 	(sh-font-lock-syntactic-keywords): Use them to distinguish the

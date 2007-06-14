@@ -2500,7 +2500,8 @@ However, setting it through Custom sets the default value.")
 (defun custom-variable-type (symbol)
   "Return a widget suitable for editing the value of SYMBOL.
 If SYMBOL has a `custom-type' property, use that.
-Otherwise, look up symbol in `custom-guess-type-alist'."
+Otherwise, try matching SYMBOL against `custom-guess-name-alist' and
+try matching its doc string against `custom-guess-doc-alist'."
   (let* ((type (or (get symbol 'custom-type)
 		   (and (not (get symbol 'standard-value))
 			(custom-guess-type symbol))
