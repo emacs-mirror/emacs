@@ -1,3 +1,7 @@
+2007-06-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (search_image_cache): Remove unused variable.
+
 2007-06-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xfns.c, xmenu.c: Link to xaw3d if available.
