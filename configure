@@ -13067,13 +13067,6 @@ echo "${ECHO_T}yes" >&6; }
       else
 	{ echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6; }
-        { { echo "$as_me:$LINENO: error: libXpm is required, but I didn't find it.
-Maybe some development libraries/packages are missing?
-Use --with-xpm=no if you don't wan't to link with libXpm" >&5
-echo "$as_me: error: libXpm is required, but I didn't find it.
-Maybe some development libraries/packages are missing?
-Use --with-xpm=no if you don't wan't to link with libXpm" >&2;}
-   { (exit 1); exit 1; }; }
       fi
     fi
   fi
@@ -13285,15 +13278,6 @@ fi
 fi
 
 
-    if  test "${HAVE_JPEG}" != "yes"; then
-      { { echo "$as_me:$LINENO: error: libjpeg is required, but I didn't find it.
-Maybe some development libraries/packages are missing?
-Use --with-jpeg=no if you don't wan't to link with libjpeg" >&5
-echo "$as_me: error: libjpeg is required, but I didn't find it.
-Maybe some development libraries/packages are missing?
-Use --with-jpeg=no if you don't wan't to link with libjpeg" >&2;}
-   { (exit 1); exit 1; }; }
-    fi
   fi
 
 
@@ -13542,15 +13526,6 @@ if test $ac_cv_lib_png_png_get_channels = yes; then
 fi
 
     fi
-    if  test "${HAVE_PNG}" != "yes"; then
-      { { echo "$as_me:$LINENO: error: libpng is required, but I didn't find it.
-Maybe some development libraries/packages are missing?
-Use --with-png=no if you don't wan't to link with libpng" >&5
-echo "$as_me: error: libpng is required, but I didn't find it.
-Maybe some development libraries/packages are missing?
-Use --with-png=no if you don't wan't to link with libpng" >&2;}
-   { (exit 1); exit 1; }; }
-    fi
   fi
 
   if test "${HAVE_PNG}" = "yes"; then
@@ -13763,15 +13738,6 @@ fi
 fi
 
 
-    if  test "${HAVE_TIFF}" != "yes"; then
-      { { echo "$as_me:$LINENO: error: libtiff is required, but I didn't find it.
-Maybe some development libraries/packages are missing?
-Use --with-tiff=no if you don't wan't to link with libtiff" >&5
-echo "$as_me: error: libtiff is required, but I didn't find it.
-Maybe some development libraries/packages are missing?
-Use --with-tiff=no if you don't wan't to link with libtiff" >&2;}
-   { (exit 1); exit 1; }; }
-    fi
   fi
 
   if test "${HAVE_TIFF}" = "yes"; then
@@ -14073,13 +14039,36 @@ cat >>confdefs.h <<\_ACEOF
 #define HAVE_GIF 1
 _ACEOF
 
-  else
-    { { echo "$as_me:$LINENO: error: libgif or libungif is required, but I didn't find it.
+  fi
+fi
+
+if test "${HAVE_X11}" = "yes"; then
+  MISSING=""
+  WITH_NO=""
+  test "${with_xpm}" != "no" && test "${HAVE_XPM}" != "yes" &&
+    MISSING="libXpm" && WITH_NO="--with-xpm=no"
+  test "${with_jpeg}" != "no" && test "${HAVE_JPEG}" != "yes" &&
+    MISSING="$MISSING libjpeg" && WITH_NO="$WITH_NO --with-jpeg=no"
+  test "${with_png}" != "no" && test "${HAVE_PNG}" != "yes" &&
+    MISSING="$MISSING libpng" && WITH_NO="$WITH_NO --with-png=no"
+  test "${with_gif}" != "no" && test "${HAVE_GIF}" != "yes" &&
+    MISSING="$MISSING libgif/libungif" && WITH_NO="$WITH_NO --with-gif=no"
+  test "${with_tiff}" != "no" && test "${HAVE_TIFF}" != "yes" &&
+    MISSING="$MISSING libtiff" && WITH_NO="$WITH_NO --with-tiff=no"
+
+  if test "X${MISSING}" != X; then
+    { { echo "$as_me:$LINENO: error: The following required libraries was not found:
+    $MISSING
 Maybe some development libraries/packages are missing?
-Use --with-gif=no if you don't wan't to link with libgif/ungif" >&5
-echo "$as_me: error: libgif or libungif is required, but I didn't find it.
+If you don't want to link with them give
+    $WITH_NO
+as options to configure" >&5
+echo "$as_me: error: The following required libraries was not found:
+    $MISSING
 Maybe some development libraries/packages are missing?
-Use --with-gif=no if you don't wan't to link with libgif/ungif" >&2;}
+If you don't want to link with them give
+    $WITH_NO
+as options to configure" >&2;}
    { (exit 1); exit 1; }; }
   fi
 fi
@@ -23418,6 +23407,7 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
 fi
+
 
 
 
