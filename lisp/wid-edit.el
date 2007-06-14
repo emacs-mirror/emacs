@@ -1491,6 +1491,8 @@ If that does not exists, call the value of `widget-complete-field'."
 		      (delete-backward-char 1))
 		    (insert ?\n)
 		    (setq doc-end (point)))))
+	       ((eq escape ?h)
+		(widget-add-documentation-string-button widget))
 	       ((eq escape ?v)
 		(if (and button-begin (not button-end))
 		    (widget-apply widget :value-create)
@@ -1516,44 +1518,7 @@ If that does not exists, call the value of `widget-complete-field'."
   (widget-clear-undo))
 
 (defun widget-default-format-handler (widget escape)
-  ;; We recognize the %h escape by default.
-  (let* ((buttons (widget-get widget :buttons)))
-    (cond ((eq escape ?h)
-	   (let* ((doc-property (widget-get widget :documentation-property))
-		  (doc-try (cond ((widget-get widget :doc))
-				 ((functionp doc-property)
-				  (funcall doc-property
-					   (widget-get widget :value)))
-				 ((symbolp doc-property)
-				  (documentation-property
-				   (widget-get widget :value)
-				   doc-property))))
-		  (doc-text (and (stringp doc-try)
-				 (> (length doc-try) 1)
-				 doc-try))
-		  (doc-indent (widget-get widget :documentation-indent)))
-	     (when doc-text
-	       (and (eq (preceding-char) ?\n)
-		    (widget-get widget :indent)
-		    (insert-char ?\s (widget-get widget :indent)))
-	       ;; The `*' in the beginning is redundant.
-	       (when (eq (aref doc-text  0) ?*)
-		 (setq doc-text (substring doc-text 1)))
-	       ;; Get rid of trailing newlines.
-	       (when (string-match "\n+\\'" doc-text)
-		 (setq doc-text (substring doc-text 0 (match-beginning 0))))
-	       (push (widget-create-child-and-convert
-		      widget 'documentation-string
-		      :indent (cond ((numberp doc-indent )
-				     doc-indent)
-				    ((null doc-indent)
-				     nil)
-				    (t 0))
-		      doc-text)
-		     buttons))))
-	  (t
-	   (error "Unknown escape `%c'" escape)))
-    (widget-put widget :buttons buttons)))
+  (error "Unknown escape `%c'" escape))
 
 (defun widget-default-button-face-get (widget)
   ;; Use :button-face or widget-button-face
@@ -1665,12 +1630,31 @@ If that does not exists, call the value of `widget-complete-field'."
   (widget-default-action widget event))
 
 (defun widget-default-prompt-value (widget prompt value unbound)
-  "Read an arbitrary value.  Stolen from `set-variable'."
-;; (let ((initial (if unbound
-;; nil
-;; It would be nice if we could do a `(cons val 1)' here.
-;; (prin1-to-string (custom-quote value))))))
+  "Read an arbitrary value."
   (eval-minibuffer prompt))
+
+(defun widget-docstring (widget)
+  "Return the documentation string specificied by WIDGET, or nil if none.
+If WIDGET has a `:doc' property, that specifies the documentation string.
+Otherwise, try the `:documentation-property' property.  If this
+is a function, call it with the widget's value as an argument; if
+it is a symbol, use this symbol together with the widget's value
+as the argument to `documentation-property'."
+  (let ((doc (or (widget-get widget :doc)
+		 (let ((doc-prop (widget-get widget :documentation-property))
+		       (value (widget-get widget :value)))
+		   (cond ((functionp doc-prop)
+			  (funcall doc-prop value))
+			 ((symbolp doc-prop)
+			  (documentation-property value doc-prop)))))))
+    (when (and (stringp doc) (> (length doc) 0))
+      ;; Remove any redundant `*' in the beginning.
+      (when (eq (aref doc 0) ?*)
+	(setq doc (substring doc 1)))
+      ;; Remove trailing newlines.
+      (when (string-match "\n+\\'" doc)
+	(setq doc (substring doc 0 (match-beginning 0))))
+      doc)))
 
 ;;; The `item' Widget.
 
@@ -2913,7 +2897,8 @@ link for that string."
   "A documentation string."
   :format "%v"
   :action 'widget-documentation-string-action
-  :value-create 'widget-documentation-string-value-create)
+  :value-create 'widget-documentation-string-value-create
+  :visibility-widget 'visibility)
 
 (defun widget-documentation-string-value-create (widget)
   ;; Insert documentation string.
@@ -2929,7 +2914,7 @@ link for that string."
 	  (widget-documentation-link-add widget start (point))
 	  (setq button
 		(widget-create-child-and-convert
-		 widget 'visibility
+		 widget (widget-get widget :visibility-widget)
 		 :help-echo "Show or hide rest of the documentation."
 		 :on "Hide Rest"
 		 :off "More"
@@ -2954,6 +2939,30 @@ link for that string."
 		(not (widget-get parent :documentation-shown))))
   ;; Redraw.
   (widget-value-set widget (widget-value widget)))
+
+(defun widget-add-documentation-string-button (widget &rest args)
+  "Insert a new `documentation-string' widget based on WIDGET.
+The new widget becomes a child of WIDGET, and is also added to
+its `:buttons' list.  The documentation string is found from
+WIDGET using the function `widget-docstring'.
+Optional ARGS specifies additional keyword arguments for the
+`documentation-string' widget."
+  (let ((doc (widget-docstring widget))
+	(indent (widget-get widget :indent))
+	(doc-indent (widget-get widget :documentation-indent)))
+    (when doc
+      (and (eq (preceding-char) ?\n)
+	   indent
+	   (insert-char ?\s indent))
+      (unless (or (numberp doc-indent) (null doc-indent))
+	(setq doc-indent 0))
+      (setq indent (widget-get widget :documentation-indent))
+      (widget-put widget :buttons
+		  (cons (apply 'widget-create-child-and-convert
+			       widget 'documentation-string
+			       :indent indent
+			       (nconc args (list doc)))
+			(widget-get widget :buttons))))))
 
 ;;; The Sexp Widgets.
 
