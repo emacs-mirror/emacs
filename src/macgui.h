@@ -117,6 +117,13 @@ typedef unsigned long Time;
 #endif
 #endif
 
+/* Whether to use HIToolbar.  */
+#ifndef USE_MAC_TOOLBAR
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030 && MAC_OS_X_VERSION_MIN_REQUIRED != 1020
+#define USE_MAC_TOOLBAR 1
+#endif
+#endif
+
 typedef WindowRef Window;
 typedef GWorldPtr Pixmap;
 
