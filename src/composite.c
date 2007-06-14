@@ -500,7 +500,8 @@ update_compositions (from, to, check_mask)
 	 avoid it, in such a case, we change the property of the
 	 latter to the copy of it.  */
       if (from > BEGV
-	  && find_composition (from - 1, -1, &start, &end, &prop, Qnil))
+	  && find_composition (from - 1, -1, &start, &end, &prop, Qnil)
+	  && COMPOSITION_VALID_P (start, end, prop))
 	{
 	  if (from < end)
 	    Fput_text_property (make_number (from), make_number (end),
@@ -510,7 +511,8 @@ update_compositions (from, to, check_mask)
 	  from = end;
 	}
       else if (from < ZV
-	       && find_composition (from, -1, &start, &from, &prop, Qnil))
+	       && find_composition (from, -1, &start, &from, &prop, Qnil)
+	       && COMPOSITION_VALID_P (start, end, prop))
 	run_composition_function (start, from, prop);
     }
 
@@ -521,6 +523,7 @@ update_compositions (from, to, check_mask)
          (to - 1).  */
       while (from < to - 1
 	     && find_composition (from, to, &start, &from, &prop, Qnil)
+	     && COMPOSITION_VALID_P (start, end, prop)
 	     && from < to - 1)
 	run_composition_function (start, from, prop);
     }
@@ -528,7 +531,8 @@ update_compositions (from, to, check_mask)
   if (check_mask & CHECK_TAIL)
     {
       if (from < to
-	  && find_composition (to - 1, -1, &start, &end, &prop, Qnil))
+	  && find_composition (to - 1, -1, &start, &end, &prop, Qnil)
+	  && COMPOSITION_VALID_P (start, end, prop))
 	{
 	  /* TO should be also at composition boundary.  But,
 	     insertion or deletion will make two compositions adjacent
@@ -542,7 +546,8 @@ update_compositions (from, to, check_mask)
 	  run_composition_function (start, end, prop);
 	}
       else if (to < ZV
-	       && find_composition (to, -1, &start, &end, &prop, Qnil))
+	       && find_composition (to, -1, &start, &end, &prop, Qnil)
+	       && COMPOSITION_VALID_P (start, end, prop))
 	run_composition_function (start, end, prop);
     }
 }
