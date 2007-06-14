@@ -224,3 +224,4 @@ elisp2-init: vol2.texi
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
  
+# arch-tag: 5c258a2e-d4a9-4d0e-b279-fb3a6faa27eb
