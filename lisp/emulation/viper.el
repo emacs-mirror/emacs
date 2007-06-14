@@ -9,7 +9,7 @@
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Keywords: emulations
 
-(defconst viper-version "3.13.1 of October 23, 2006"
+(defconst viper-version "3.14 of June 14, 2007"
   "The current version of Viper")
 
 ;; This file is part of GNU Emacs.
@@ -1026,48 +1026,63 @@ It also can't undo some Viper settings."
       (setq global-mode-string
 	    (append '("" viper-mode-string) (cdr global-mode-string))))
 
-  (defadvice describe-key (before viper-describe-key-ad protect activate)
-    "Force to read key via `viper-read-key-sequence'."
-    (interactive (let (key)
-		   (setq key (viper-read-key-sequence
-			      "Describe key (or click or menu item): "))
-		   (list key
-			 (prefix-numeric-value current-prefix-arg)
-			 ;; If KEY is a down-event, read also the
-			 ;; corresponding up-event.
-			 (and (vectorp key)
-			      (let ((last-idx (1- (length key))))
-				(and (eventp (aref key last-idx))
-				     (memq 'down (event-modifiers
-						  (aref key last-idx)))))
-			      (or (and (eventp (aref key 0))
-				       (memq 'down (event-modifiers
-						    (aref key 0)))
-				       ;; For the C-down-mouse-2 popup
-				       ;; menu, there is no subsequent up-event.
-				       (= (length key) 1))
-				  (and (> (length key) 1)
-				       (eventp (aref key 1))
-				       (memq 'down (event-modifiers (aref key 1)))))
-			      (read-event))))))
+  (viper-cond-compile-for-xemacs-or-emacs
+   ;; XEmacs
+   (defadvice describe-key (before viper-describe-key-ad protect activate)
+     "Force to read key via `viper-read-key-sequence'."
+     (interactive (list (viper-read-key-sequence "Describe key: "))))
+   ;; Emacs
+   (defadvice describe-key (before viper-describe-key-ad protect activate)
+     "Force to read key via `viper-read-key-sequence'."
+     (interactive (let (key)
+		    (setq key (viper-read-key-sequence
+			       "Describe key (or click or menu item): "))
+		    (list key
+			  (prefix-numeric-value current-prefix-arg)
+			  ;; If KEY is a down-event, read also the
+			  ;; corresponding up-event.
+			  (and (vectorp key)
+			       (let ((last-idx (1- (length key))))
+				 (and (eventp (aref key last-idx))
+				      (memq 'down (event-modifiers
+						   (aref key last-idx)))))
+			       (or (and (eventp (aref key 0))
+					(memq 'down (event-modifiers
+						     (aref key 0)))
+					;; For the C-down-mouse-2 popup menu,
+					;; there is no subsequent up-event
+					(= (length key) 1))
+				   (and (> (length key) 1)
+					(eventp (aref key 1))
+					(memq 'down (event-modifiers (aref key 1)))))
+			       (read-event))))))
+   ) ; viper-cond-compile-for-xemacs-or-emacs
 
-  (defadvice describe-key-briefly
-    (before viper-describe-key-briefly-ad protect activate)
-    "Force to read key via `viper-read-key-sequence'."
-    (interactive (let (key)
-		   (setq key (viper-read-key-sequence
-			      "Describe key (or click or menu item): "))
-		   ;; If KEY is a down-event, read and discard the
-		   ;; corresponding up-event.
-		   (and (vectorp key)
-			(let ((last-idx (1- (length key))))
-			  (and (eventp (aref key last-idx))
-			       (memq 'down (event-modifiers (aref key last-idx)))))
-			(read-event))
-		   (list key
-			 (if current-prefix-arg
-			     (prefix-numeric-value current-prefix-arg))
-			 1))))
+  (viper-cond-compile-for-xemacs-or-emacs
+   ;; XEmacs
+   (defadvice describe-key-briefly
+     (before viper-describe-key-briefly-ad protect activate)
+     "Force to read key via `viper-read-key-sequence'."
+     (interactive (list (viper-read-key-sequence "Describe key briefly: "))))
+   ;; Emacs
+   (defadvice describe-key-briefly
+     (before viper-describe-key-briefly-ad protect activate)
+     "Force to read key via `viper-read-key-sequence'."
+     (interactive (let (key)
+		    (setq key (viper-read-key-sequence
+			       "Describe key (or click or menu item): "))
+		    ;; If KEY is a down-event, read and discard the
+		    ;; corresponding up-event.
+		    (and (vectorp key)
+			 (let ((last-idx (1- (length key))))
+			   (and (eventp (aref key last-idx))
+				(memq 'down (event-modifiers (aref key last-idx)))))
+			 (read-event))
+		    (list key
+			  (if current-prefix-arg
+			      (prefix-numeric-value current-prefix-arg))
+			  1))))
+   ) ;; viper-cond-compile-for-xemacs-or-emacs
 
   (defadvice find-file (before viper-add-suffix-advice activate)
     "Use `read-file-name' for reading arguments."

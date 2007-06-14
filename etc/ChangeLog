@@ -1,3 +1,9 @@
+2007-06-14  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* viper.el (viper-describe-key-ad, viper-describe-key-briefly-ad):
+	different advices for Emacs and XEmacs. Compile them conditionally.
+	(viper-version): belated version change.
+	
 2007-06-14  Nick Roberts  <nickrob@snap.net.nz>
 
 	* NEWS: Mention mouse highlighting in a GNU/Linux console.
