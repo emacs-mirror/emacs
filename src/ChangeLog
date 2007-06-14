@@ -1,3 +1,11 @@
+2007-06-14  Jason Rumney  <jasonr@gnu.org>
+
+	* w32.c (get_process_times_fn): New function pointer.
+	(globals_of_w32): Intialize it if present in kernel32.dll.
+	(w32_get_internal_run_time): New function.
+
+	* editfns.c (Fget_internal_run_time) [WINDOWSNT]: Use it.
+
 2007-06-14  Kenichi Handa  <handa@etlken.m17n.org>
 
 	* composite.c (update_compositions): Check the validness of
