@@ -77,6 +77,10 @@ considered for update.
 ** New variable `user-emacs-directory'.
 Use this instead of "~/.emacs.d".
 
++++
+** The new function `image-refresh' refreshes all images associated
+with a given image specification.
+
 
 * New Packages for Lisp Programming in Emacs 23.1
 
