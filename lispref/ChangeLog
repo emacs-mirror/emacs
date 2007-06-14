@@ -1,3 +1,7 @@
+2007-06-14  Karl Berry  <karl@tug.org>
+
+	* anti.texi (Antinews): typo.
+
 2007-06-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* display.texi (Image Cache): Document image-refresh.
