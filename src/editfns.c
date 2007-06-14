@@ -84,6 +84,11 @@ extern char **environ;
 
 extern size_t emacs_strftimeu P_ ((char *, size_t, const char *,
 				   const struct tm *, int));
+
+#ifdef WINDOWSNT
+extern Lisp_Object w32_get_internal_run_time ();
+#endif
+
 static int tm_diff P_ ((struct tm *, struct tm *));
 static void find_field P_ ((Lisp_Object, Lisp_Object, Lisp_Object, int *, Lisp_Object, int *));
 static void update_buffer_properties P_ ((int, int));
@@ -1483,9 +1488,13 @@ on systems that do not provide resolution finer than a second.  */)
   return list3 (make_number ((secs >> 16) & 0xffff),
 		make_number ((secs >> 0)  & 0xffff),
 		make_number (usecs));
-#else
+#else /* ! HAVE_GETRUSAGE  */
+#if WINDOWSNT
+  return w32_get_internal_run_time ();
+#else /* ! WINDOWSNT  */
   return Fcurrent_time ();
-#endif
+#endif /* WINDOWSNT  */
+#endif /* HAVE_GETRUSAGE  */
 }
 
 
