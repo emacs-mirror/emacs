@@ -1,21 +1,50 @@
+2007-06-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-ems.el (gnus-x-splash): Make it work.
+
+	* gnus-start.el (gnus-1): Relax restrictions that prevent gnus-x-splash
+	from being used.
+
+	* lpath.el: Bind line-spacing and tool-bar-mode for XEmacs.
+
+	* gnus-art.el (gnus-article-summary-command-nosave): Correct the order
+	of the arguments passed to pop-to-buffer.
+	(gnus-article-read-summary-keys): Ditto.
+
 2007-06-07  Juanma Barranquero  <lekktu@gmail.com>
 
-	* gnus-art.el (gnus-split-methods):
-	* mail-source.el (mail-source-delete-old-incoming-confirm):
-	Fix typo in docstring.
+	* gnus-art.el (gnus-split-methods): Fix typo in docstring.
 
 2007-06-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* gnus-diary.el (gnus-diary-time-format, gnus-summary-sort-by-schedule):
 	* gnus-sum.el (gnus-summary-highlight):
+	* mail-source.el (mail-source-delete-old-incoming-confirm):
 	* nndiary.el (nndiary-reminders): Fix typos in docstrings.
+
+2007-06-04  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-mime-view-part-externally)
+	(gnus-mime-view-part-internally): Fix predicate function passed to
+	completing-read.
+
+	* mm-decode.el (mm-image-fit-p): Return t if argument is not an image;
+	return t if image size is just the same as window size.
 
 2007-05-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* message.el (message-pop-to-buffer): Add switch-function argument.
 	(message-mail): Pass switch-function argument to it.
-	(message-narrow-to-headers-or-head): Ignore mail-header-separator in
-	the body.
+
+2007-05-24  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-narrow-to-headers-or-head): Ignore
+	mail-header-separator in the body.
+
+2007-05-10  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-art.el (gnus-article-mode): Fix comment about displaying
+	non-break space.
 
 2007-05-09  Didier Verna  <didier@xemacs.org>
 
@@ -34,6 +63,11 @@
 	* mm-view.el (mm-inline-text-html-render-with-w3m)
 	(mm-inline-text-html-render-with-w3m-standalone)
 	(mm-inline-render-with-function): Use mail-parse-charset by default.
+
+2007-04-18  Levin Du  <zslevin@gmail.com>  (tiny change)
+
+	* calendar/parse-time.el (parse-time-string-chars): Check if CHAR
+	is less than the length of parse-time-syntax.
 
 2007-04-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 

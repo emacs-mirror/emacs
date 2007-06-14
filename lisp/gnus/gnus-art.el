@@ -3925,7 +3925,8 @@ commands:
   (make-local-variable 'gnus-article-image-alist)
   (make-local-variable 'gnus-article-charset)
   (make-local-variable 'gnus-article-ignored-charsets)
-  ;; Prevent recent Emacsen from displaying non-break space as "\ ".
+  ;; Prevent Emacs 22 from displaying non-break space with `nobreak-space'
+  ;; face.
   (set (make-local-variable 'nobreak-char-display) nil)
   (setq cursor-in-non-selected-windows nil)
   (gnus-set-default-directory)
@@ -4673,7 +4674,7 @@ specified charset."
          (mm-enable-external t))
     (if (not (stringp method))
 	(gnus-mime-view-part-as-type
-	 nil (lambda (type) (stringp (mailcap-mime-info type))))
+	 nil (lambda (types) (stringp (mailcap-mime-info (car types)))))
       (when handle
 	(if (mm-handle-undisplayer handle)
 	    (mm-remove-part handle)
@@ -4694,7 +4695,7 @@ If no internal viewer is available, use an external viewer."
 	 (inhibit-read-only t))
     (if (not (mm-inlinable-p handle))
         (gnus-mime-view-part-as-type
-         nil (lambda (type) (mm-inlinable-p handle type)))
+         nil (lambda (types) (mm-inlinable-p handle (car types))))
       (when handle
 	(if (mm-handle-undisplayer handle)
 	    (mm-remove-part handle)
@@ -5606,7 +5607,7 @@ not have a face in `gnus-article-boring-faces'."
   "Execute the last keystroke in the summary buffer."
   (interactive)
   (let (func)
-    (pop-to-buffer gnus-article-current-summary 'norecord)
+    (pop-to-buffer gnus-article-current-summary nil 'norecord)
     (setq func (lookup-key (current-local-map) (this-command-keys)))
     (call-interactively func)))
 
@@ -5645,7 +5646,7 @@ not have a face in `gnus-article-boring-faces'."
 	    (member keys nosave-in-article))
 	(let (func)
 	  (save-window-excursion
-	    (pop-to-buffer gnus-article-current-summary 'norecord)
+	    (pop-to-buffer gnus-article-current-summary nil 'norecord)
 	    ;; We disable the pick minor mode commands.
 	    (let (gnus-pick-mode)
 	      (setq func (lookup-key (current-local-map) keys))))
@@ -5657,14 +5658,14 @@ not have a face in `gnus-article-boring-faces'."
 	    (call-interactively func)
 	    (setq new-sum-point (point)))
 	  (when (member keys nosave-but-article)
-	    (pop-to-buffer gnus-article-buffer 'norecord)))
+	    (pop-to-buffer gnus-article-buffer nil 'norecord)))
       ;; These commands should restore window configuration.
       (let ((obuf (current-buffer))
 	    (owin (current-window-configuration))
 	    (opoint (point))
 	    win func in-buffer selected new-sum-start new-sum-hscroll)
 	(cond (not-restore-window
-	       (pop-to-buffer gnus-article-current-summary 'norecord))
+	       (pop-to-buffer gnus-article-current-summary nil 'norecord))
 	      ((setq win (get-buffer-window gnus-article-current-summary))
 	       (select-window win))
 	      (t
