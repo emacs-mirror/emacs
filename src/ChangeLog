@@ -1,3 +1,7 @@
+2007-06-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* composite.c (update_compositions): Fix last fix.
+
 2007-06-14  Jason Rumney  <jasonr@gnu.org>
 
 	* w32.c (get_process_times_fn): New function pointer.
