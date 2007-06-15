@@ -2096,7 +2096,7 @@ See Info node `Merging'."
     (define-key vmap "t" 'vc-dired-toggle-terse-mode)
     map))
 
-(define-derived-mode vc-dired-mode dired-mode "Dired under VC"
+(define-derived-mode vc-dired-mode dired-mode "Dired under "
   "The major mode used in VC directory buffers.
 
 It works like Dired, but lists only files under version control, with
@@ -2156,6 +2156,8 @@ There is a special command, `*l', to mark all files currently locked."
        (set (make-local-variable 'dired-actual-switches)
             vc-dired-switches))
   (set (make-local-variable 'vc-dired-terse-mode) vc-dired-terse-display)
+  (setq mode-name (concat mode-name (symbol-name (vc-responsible-backend 
+						  default-directory))))
   (setq vc-dired-mode t))
 
 (defun vc-dired-toggle-terse-mode ()
