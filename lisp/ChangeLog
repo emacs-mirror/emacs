@@ -1,3 +1,8 @@
+2007-06-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* wid-edit.el (widget-add-documentation-string-button): Fix
+	handling of documentation indent.
+
 2007-06-15  Miles Bader  <miles@fencepost.gnu.org>
 
 	* mb-depth.el: New file.
