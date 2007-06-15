@@ -1,6 +1,9 @@
 2007-06-15  Masatake YAMATO  <jet@gyve.org>
 
-	* vc.el (vc-dired-hook): check the backend returned from 
+	* vc-bzr.el (vc-bzr-root): Cache the output of shell command
+	execution.
+
+	* vc.el (vc-dired-hook): Check the backend returned from 
 	`vc-responsible-backend' can really handle `subdir'.
 
 2007-06-15  Chong Yidong  <cyd@stupidchicken.com>
