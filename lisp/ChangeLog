@@ -1,3 +1,7 @@
+2007-06-15  Miles Bader  <miles@fencepost.gnu.org>
+
+	* mb-depth.el: New file.
+
 2007-06-15  Masatake YAMATO  <jet@gyve.org>
 
 	* vc.el (vc-dired-mode): Show backend name as part of mode name.
