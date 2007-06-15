@@ -1,3 +1,8 @@
+2007-06-15  Masatake YAMATO  <jet@gyve.org>
+
+	* vc.el (vc-dired-hook): check the backend returned from 
+	`vc-responsible-backend' can really handle `subdir'.
+
 2007-06-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* wid-edit.el (widget-add-documentation-string-button): Fix

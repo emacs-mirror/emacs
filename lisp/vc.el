@@ -2216,7 +2216,9 @@ Called by dired after any portion of a vc-dired buffer has been read in."
 	;; if the backend supports it, get the state
 	;; of all files in this directory at once
 	(let ((backend (vc-responsible-backend subdir)))
-	  (if (vc-find-backend-function backend 'dir-state)
+	  ;; check `backend' can really handle `subdir'.
+	  (if (and (vc-call-backend backend 'responsible-p subdir)
+		   (vc-find-backend-function backend 'dir-state))
 	      (vc-call-backend backend 'dir-state subdir)))
         (forward-line 1)
         ;; erase (but don't remove) the "total" line
