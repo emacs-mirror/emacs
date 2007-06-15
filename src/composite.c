@@ -512,7 +512,7 @@ update_compositions (from, to, check_mask)
 	}
       else if (from < ZV
 	       && find_composition (from, -1, &start, &from, &prop, Qnil)
-	       && COMPOSITION_VALID_P (start, end, prop))
+	       && COMPOSITION_VALID_P (start, from, prop))
 	run_composition_function (start, from, prop);
     }
 
@@ -523,7 +523,7 @@ update_compositions (from, to, check_mask)
          (to - 1).  */
       while (from < to - 1
 	     && find_composition (from, to, &start, &from, &prop, Qnil)
-	     && COMPOSITION_VALID_P (start, end, prop)
+	     && COMPOSITION_VALID_P (start, from, prop)
 	     && from < to - 1)
 	run_composition_function (start, from, prop);
     }
