@@ -57,7 +57,9 @@ highlighting, and help echoing in the minibuffer.
 
 ** bibtex-style-mode helps you write BibTeX's *.bst files.
 
-** socks.el (which had been part of W3) is now part of Emacs. 
+** socks.el (which had been part of W3) is now part of Emacs.
+
+** minibuffer-indicate-depth-mode shows the minibuffer depth in the prompt.
 
 
 * Changes in Specialized Modes and Packages in Emacs 23.1
