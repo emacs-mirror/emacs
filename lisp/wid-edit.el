@@ -2956,11 +2956,10 @@ Optional ARGS specifies additional keyword arguments for the
 	   (insert-char ?\s indent))
       (unless (or (numberp doc-indent) (null doc-indent))
 	(setq doc-indent 0))
-      (setq indent (widget-get widget :documentation-indent))
       (widget-put widget :buttons
 		  (cons (apply 'widget-create-child-and-convert
 			       widget 'documentation-string
-			       :indent indent
+			       :indent doc-indent
 			       (nconc args (list doc)))
 			(widget-get widget :buttons))))))
 
