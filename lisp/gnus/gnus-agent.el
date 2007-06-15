@@ -1768,6 +1768,7 @@ article numbers will be returned."
                        (gnus-uncompress-range (gnus-active group))
                      (gnus-list-of-unread-articles group)))
          (gnus-decode-encoded-word-function 'identity)
+	 (gnus-decode-encoded-address-function 'identity)
          (file (gnus-agent-article-name ".overview" group)))
 
     (unless fetch-all
@@ -3571,6 +3572,7 @@ has been fetched."
   (save-excursion
     (gnus-agent-create-buffer)
     (let ((gnus-decode-encoded-word-function 'identity)
+	  (gnus-decode-encoded-address-function 'identity)
 	  (file (gnus-agent-article-name ".overview" group))
 	  cached-articles uncached-articles)
       (gnus-make-directory (nnheader-translate-file-chars
