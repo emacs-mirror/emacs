@@ -3103,7 +3103,7 @@ overwritten.
 
 The overlay-arrow string is displayed in any given buffer if the value
 of @code{overlay-arrow-position} in that buffer points into that
-buffer.  Thus, it works to can display multiple overlay arrow strings
+buffer.  Thus, it is possible to display multiple overlay arrow strings
 by creating buffer-local bindings of @code{overlay-arrow-position}.
 However, it is usually cleaner to use
 @code{overlay-arrow-variable-list} to achieve this result.
