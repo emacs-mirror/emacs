@@ -68,4 +68,5 @@ Returns non-nil if the new state is enabled."
 
 (provide 'mb-depth)
 
+;; arch-tag: 50224089-5bf5-46f8-803d-18f018c5eacf
 ;;; mb-depth.el ends here
