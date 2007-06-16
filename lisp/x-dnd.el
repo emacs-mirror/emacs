@@ -172,7 +172,7 @@ FRAME-OR-WINDOW is the frame or window that the mouse is over."
 WINDOW is the window the mouse is over.  ACTION is the suggested
 action from the source.  If nothing has changed, return the last
 action and type we got from `x-dnd-test-function'."
-  (let ((buffer (when (and (windowp window) (window-live-p window))
+  (let ((buffer (when (window-live-p window)
 		  (window-buffer window)))
 	(current-state (x-dnd-get-state-for-frame window)))
     (when (or (not (equal buffer (aref current-state 0)))
@@ -207,9 +207,7 @@ EXTRA-DATA is data needed for a specific protocol."
     (when types (aset current-state 2 types))
     (when extra-data (aset current-state 6 extra-data))
     (aset current-state 1 window)
-    (aset current-state 0 (if (and (windowp window)
-				   (window-live-p window))
-			      (window-buffer window) nil))
+    (aset current-state 0 (and (window-live-p window) (window-buffer window)))
     (setcdr (x-dnd-get-state-cons-for-frame window) current-state)))
 
 
@@ -320,7 +318,7 @@ nil if not."
 	 (action (aref state 5))
 	 (w (posn-window (event-start event))))
     (when handler
-      (if (and (windowp w) (window-live-p w)
+      (if (and (window-live-p w)
 	       (not (window-minibuffer-p w))
 	       (not (window-dedicated-p w)))
 	  ;; If dropping in an ordinary window which we could use,

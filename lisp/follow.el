@@ -912,7 +912,7 @@ of the way from the true end."
   "Return all windows displaying the same buffer as the TESTWIN.
 The list contains only windows displayed in the same frame as TESTWIN.
 If TESTWIN is nil the selected window is used."
-  (or (and testwin (window-live-p testwin))
+  (or (window-live-p testwin)
       (setq testwin (selected-window)))
   (let* ((top (frame-first-window (window-frame testwin)))
 	 (win top)
@@ -1968,7 +1968,7 @@ report this using the `report-emacs-bug' function."
     ;; If we're in follow mode, do our stuff.  Select a new window and
     ;; redisplay.  (Actually, it is redundant to check `buf', but I
     ;; feel it's more correct.)
-    (if (and buf win (window-live-p win))
+    (if (and buf (window-live-p win))
 	(progn
 	  (set-buffer buf)
 	  (if (and (boundp 'follow-mode) follow-mode)

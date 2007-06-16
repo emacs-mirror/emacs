@@ -1,3 +1,18 @@
+2007-06-14  Nick Roberts  <nickrob@snap.net.nz>
+
+	* NEWS: Mention mouse highlighting in a GNU/Linux console.
+
+2007-06-14  Werner Lemberg  <wl@gnu.org>
+
+	* emacs.1: Completely revised.
+	Fix many typographical glitches.
+	Updated to handle current state of options and resources.
+
+2007-06-12  Glenn Morris  <rgm@gnu.org>
+
+	* NEWS: Change bug address.  Add back +++/--- note.
+	Use present tense for X-toolkit entry.  Mention libgif.
+
 2007-06-07  Mark H. Weaver  <mhw@netris.org>  (tiny change)
 
 	* NEWS (set-mark-command-repeat-pop): Fix duplicate entry.

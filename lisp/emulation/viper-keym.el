@@ -339,8 +339,8 @@ If running in a terminal, [(escape)] is not understood, so must use \"\\e\"."
 (define-key viper-vi-basic-map "\C-m" 'viper-next-line-at-bol)
 (define-key viper-vi-basic-map "\C-u" 'viper-scroll-down)
 (define-key viper-vi-basic-map "\C-y" 'viper-scroll-down-one)
-(define-key viper-vi-basic-map "\C-s" 'viper-isearch-forward)
-(define-key viper-vi-basic-map "\C-r" 'viper-isearch-backward)
+;;(define-key viper-vi-basic-map "\C-s" 'viper-isearch-forward)
+;;(define-key viper-vi-basic-map "\C-r" 'viper-isearch-backward)
 (define-key viper-vi-basic-map "\C-c/" 'viper-toggle-search-style)
 (define-key viper-vi-basic-map "\C-c\C-g" 'viper-info-on-file)
 

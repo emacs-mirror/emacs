@@ -202,9 +202,9 @@
   (setq tpu-key (concat "[" (format "%s" tpu-key-seq) "]"))
   (cond ((not (equal tpu-key tpu-return))
 	 (set-buffer "Keys")
-	 (insert (format"(global-set-key %s %s)\n" tpu-key func))
+	 (insert (format"(define-key tpu-global-map %s %s)\n" tpu-key func))
 	 (set-buffer "Gold-Keys")
-	 (insert (format "(define-key GOLD-map %s %s)\n" tpu-key gold-func))
+	 (insert (format "(define-key tpu-gold-map %s %s)\n" tpu-key gold-func))
 	 (set-buffer "Directions"))
 	;; bogosity to get next prompt to come up, if the user hits <CR>!
 	;; check periodically to see if this is still needed...
@@ -393,5 +393,5 @@
 ")
 (goto-char (point-min))
 
-;;; arch-tag: bab5872f-cd3a-4c1c-aedb-047b67646f6c
+;; arch-tag: bab5872f-cd3a-4c1c-aedb-047b67646f6c
 ;;; tpu-mapper.el ends here

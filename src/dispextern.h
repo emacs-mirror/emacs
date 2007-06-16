@@ -2422,6 +2422,10 @@ struct image
      if necessary.  */
   unsigned long background;
 
+  /* Foreground and background colors of the frame on which the image
+     is created.  */
+  unsigned long frame_foreground, frame_background;
+
   /* True if this image has a `transparent' background -- that is, is
      uses an image mask.  The accessor macro for this is
      `IMAGE_BACKGROUND_TRANSPARENT'.  */

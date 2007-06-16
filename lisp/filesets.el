@@ -354,7 +354,7 @@ See `add-submenu' for documentation."
 (defcustom filesets-menu-cache-file
   (if filesets-running-xemacs
       "~/.xemacs/filesets-cache.el"
-      "~/.emacs.d/filesets-cache.el")
+    (concat user-emacs-directory "filesets-cache.el"))
   "*File to be used for saving the filesets menu between sessions.
 Set this to \"\", to disable caching of menus.
 Don't forget to check out `filesets-menu-ensure-use-cached'."

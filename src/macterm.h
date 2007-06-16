@@ -336,6 +336,16 @@ struct mac_output
   /* Hints for the size and the position of a window.  */
   XSizeHints *size_hints;
 
+#if USE_MAC_TOOLBAR
+  /* This variable records the gravity value of the window position if
+     the window has an external tool bar when it is created.  The
+     position of the window is adjusted using this information when
+     the tool bar is first redisplayed.  Once the tool bar is
+     redisplayed, it is set to 0 in order to avoid further
+     adjustment.  */
+  int toolbar_win_gravity;
+#endif
+
 #if USE_CG_DRAWING
   /* Quartz 2D graphics context.  */
   CGContextRef cg_context;
@@ -440,6 +450,12 @@ struct scroll_bar {
      is the number of pixels plus 1.  If the handle isn't currently
      being dragged, this is Qnil.  */
   Lisp_Object dragging;
+
+#ifdef MAC_OSX
+  /* t if the background of the fringe that is adjacent to a scroll
+     bar is extended to the gap between the fringe and the bar.  */
+  Lisp_Object fringe_extended_p;
+#endif
 
 #ifdef USE_TOOLKIT_SCROLL_BARS
   /* The position and size of the scroll bar handle track area in
@@ -651,6 +667,10 @@ extern void mac_prepare_for_quickdraw P_ ((struct frame *));
 #endif
 extern void mac_get_window_bounds P_ ((struct frame *, Rect *, Rect *));
 extern int mac_quit_char_key_p P_ ((UInt32, UInt32));
+#if USE_MAC_TOOLBAR
+extern void update_frame_tool_bar P_ ((FRAME_PTR f));
+extern void free_frame_tool_bar P_ ((FRAME_PTR f));
+#endif
 
 #define FONT_TYPE_FOR_UNIBYTE(font, ch) 0
 #define FONT_TYPE_FOR_MULTIBYTE(font, ch) 0

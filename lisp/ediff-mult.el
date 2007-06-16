@@ -129,9 +129,15 @@
 ;; the registry buffer
 (defvar ediff-registry-buffer nil)
 
-(defconst ediff-meta-buffer-message "This is an Ediff Session Group Panel: %s
+(defconst ediff-meta-buffer-brief-message "Ediff Session Group Panel: %s
 
-Useful commands:
+     Type ? to show useful commands in this buffer
+
+")
+
+(defconst ediff-meta-buffer-verbose-message "Ediff Session Group Panel: %s
+
+Useful commands (type ? to hide them and free up screen):
      button2, v, or RET over session record:   start that Ediff session
      M:\tin sessions invoked from here, brings back this group panel
      R:\tdisplay the registry of active Ediff sessions
@@ -360,10 +366,24 @@ buffers."
        (if (stringp (ediff-get-session-objC-name session-info))
 	   (file-directory-p (ediff-get-session-objC-name session-info)) t)))
 
+
+(ediff-defvar-local ediff-verbose-help-enabled nil
+  "If t, display redundant help in ediff-directories and other meta buffers.
+Toggled by ediff-toggle-verbose-help-meta-buffer" )
+  
+;; Toggle verbose help in meta-buffers
+;; TODO: Someone who understands all this can make it better.
+(defun ediff-toggle-verbose-help-meta-buffer ()
+  "Toggle showing tediously verbose help in meta buffers."
+  (interactive)
+  (setq ediff-verbose-help-enabled (not ediff-verbose-help-enabled))
+  (ediff-update-meta-buffer (current-buffer) 'must-redraw))
+
 ;; set up the keymap in the meta buffer
 (defun ediff-setup-meta-map ()
   (setq ediff-meta-buffer-map (make-sparse-keymap))
   (suppress-keymap ediff-meta-buffer-map)
+  (define-key ediff-meta-buffer-map "?" 'ediff-toggle-verbose-help-meta-buffer)
   (define-key ediff-meta-buffer-map "q" 'ediff-quit-meta-buffer)
   (define-key ediff-meta-buffer-map "T" 'ediff-toggle-filename-truncation)
   (define-key ediff-meta-buffer-map "R" 'ediff-show-registry)
@@ -924,27 +944,31 @@ behavior."
        (mapcar 'delete-overlay (overlays-in 1 1))  ; emacs
        )
 
-      (insert (format ediff-meta-buffer-message
-		      (ediff-abbrev-jobname ediff-metajob-name)))
-
       (setq regexp (ediff-get-group-regexp meta-list)
 	    merge-autostore-dir
 	    (ediff-get-group-merge-autostore-dir meta-list))
 
-      (cond ((ediff-collect-diffs-metajob)
-	     (insert
-	      "     P:\tcollect custom diffs of all marked sessions\n"))
-	    ((ediff-patch-metajob)
-	     (insert
-	      "     P:\tshow patch appropriately for the context (session or group)\n")))
-      (insert
-       "     ^:\tshow parent session group\n")
-      (or (ediff-one-filegroup-metajob)
-	  (insert
-	   "     D:\tshow differences among directories\n"
-	   "    ==:\tfor each session, show which files are identical\n"
-	   "    =h:\tlike ==, but also marks those sessions for hiding\n"
-	   "    =m:\tlike ==, but also marks those sessions for operation\n\n"))
+      (if ediff-verbose-help-enabled
+	  (progn
+	    (insert (format ediff-meta-buffer-verbose-message
+			    (ediff-abbrev-jobname ediff-metajob-name)))
+
+	    (cond ((ediff-collect-diffs-metajob)
+		   (insert
+		    "     P:\tcollect custom diffs of all marked sessions\n"))
+		  ((ediff-patch-metajob)
+		   (insert
+		    "     P:\tshow patch appropriately for the context (session or group)\n")))
+	    (insert
+	     "     ^:\tshow parent session group\n")
+	    (or (ediff-one-filegroup-metajob)
+		(insert
+		 "     D:\tshow differences among directories\n"
+		 "    ==:\tfor each session, show which files are identical\n"
+		 "    =h:\tlike ==, but also marks sessions for hiding\n"
+		 "    =m:\tlike ==, but also marks sessions for operation\n\n")))
+	(insert (format ediff-meta-buffer-brief-message
+			(ediff-abbrev-jobname ediff-metajob-name))))
 
       (insert "\n")
       (if (and (stringp regexp) (> (length regexp) 0))

@@ -853,13 +853,11 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 		(when (and (consp s) (eq t (car s)))
 		  (push (cdr s) old-autoloads)))))))
       (when (memq 'cl-functions byte-compile-warnings)
-	(let ((hist-new load-history)
-	      (hist-nil-new current-load-list))
+	(let ((hist-new load-history))
 	  ;; Go through load-history, look for newly loaded files
 	  ;; and mark all the functions defined therein.
 	  (while (and hist-new (not (eq hist-new hist-orig)))
-	    (let ((xs (pop hist-new))
-		  old-autoloads)
+	    (let ((xs (pop hist-new)))
 	      ;; Make sure the file was not already loaded before.
 	      (when (and (equal (car xs) "cl") (not (assoc (car xs) hist-orig)))
 		(byte-compile-find-cl-functions)))))))))
@@ -1265,7 +1263,7 @@ extra args."
 	     (get (car form) 'byte-compile-format-like))
     (let ((nfields (with-temp-buffer
 		     (insert (nth 1 form))
-		     (goto-char 1)
+		     (goto-char (point-min))
 		     (let ((n 0))
 		       (while (re-search-forward "%." nil t)
 			 (unless (eq ?% (char-after (1+ (match-beginning 0))))
@@ -1283,19 +1281,19 @@ extra args."
 ;; Warn if a custom definition fails to specify :group.
 (defun byte-compile-nogroup-warn (form)
   (let ((keyword-args (cdr (cdr (cdr (cdr form)))))
-	(name (cadr form)))
+        (name (cadr form)))
     (or (not (eq (car-safe name) 'quote))
-	(and (eq (car form) 'custom-declare-group)
-	     (equal name ''emacs))
-	(plist-get keyword-args :group)
-	(not (and (consp name) (eq (car name) 'quote)))
-	(byte-compile-warn
-	 "%s for `%s' fails to specify containing group"
-	 (cdr (assq (car form)
-		    '((custom-declare-group . defgroup)
-		      (custom-declare-face . defface)
-		      (custom-declare-variable . defcustom))))
-	 (cadr name)))))
+        (and (eq (car form) 'custom-declare-group)
+             (equal name ''emacs))
+        (plist-get keyword-args :group)
+        (not (and (consp name) (eq (car name) 'quote)))
+        (byte-compile-warn
+         "%s for `%s' fails to specify containing group"
+         (cdr (assq (car form)
+                    '((custom-declare-group . defgroup)
+                      (custom-declare-face . defface)
+                      (custom-declare-variable . defcustom))))
+         (cadr name)))))
 
 ;; Warn if the function or macro is being redefined with a different
 ;; number of arguments.
@@ -1834,9 +1832,8 @@ With argument, insert value in current buffer after the form."
 	;;				   byte-compile-warnings))
 	)
     (byte-compile-close-variables
-     (save-excursion
-       (setq outbuffer
-	     (set-buffer (get-buffer-create " *Compiler Output*")))
+     (with-current-buffer
+         (setq outbuffer (get-buffer-create " *Compiler Output*"))
        (set-buffer-multibyte t)
        (erase-buffer)
        ;;	 (emacs-lisp-mode)
@@ -1850,9 +1847,8 @@ With argument, insert value in current buffer after the form."
        (setq overwrite-mode 'overwrite-mode-binary))
      (displaying-byte-compile-warnings
       (and filename (byte-compile-insert-header filename inbuffer outbuffer))
-      (save-excursion
-	(set-buffer inbuffer)
-	(goto-char 1)
+      (with-current-buffer inbuffer
+	(goto-char (point-min))
 
 	;; Compile the forms from the input buffer.
 	(while (progn
@@ -1920,7 +1916,7 @@ With argument, insert value in current buffer after the form."
   (let ((dynamic-docstrings byte-compile-dynamic-docstrings)
 	(dynamic byte-compile-dynamic))
     (set-buffer outbuffer)
-    (goto-char 1)
+    (goto-char (point-min))
     ;; The magic number of .elc files is ";ELC", or 0x3B454C43.  After
     ;; that is the file-format version number (18, 19 or 20) as a
     ;; byte, followed by some nulls.  The primary motivation for doing
@@ -2241,8 +2237,7 @@ list that represents a doc string reference.
 
 (put 'require 'byte-hunk-handler 'byte-compile-file-form-require)
 (defun byte-compile-file-form-require (form)
-  (let ((old-load-list current-load-list)
-	(args (mapcar 'eval (cdr form))))
+  (let ((args (mapcar 'eval (cdr form))))
     (apply 'require args)
     ;; Detect (require 'cl) in a way that works even if cl is already loaded.
     (if (member (car args) '("cl" cl))

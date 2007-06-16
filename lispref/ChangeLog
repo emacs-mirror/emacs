@@ -1,3 +1,25 @@
+2007-06-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* display.texi (Overlay Arrow): Doc fix.
+
+2007-06-14  Karl Berry  <karl@tug.org>
+
+	* anti.texi (Antinews): Typo.
+
+2007-06-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Image Cache): Document image-refresh.
+
+2007-06-12  Karl Berry  <karl@gnu.org>
+
+	* vol1.texi, vol2.texi, two-volume-cross-refs.txt: Update.
+	* two-volume.make: New file.
+	* .cvsignore: Ignore two-volume files.
+
+2007-06-12  Tom Tromey  <tromey@redhat.com>
+
+	* os.texi (Init File): Document user-emacs-directory.
+
 2007-06-03  Nick Roberts  <nickrob@snap.net.nz>
 
 	* commands.texi (Click Events): Describe width and height when
@@ -58,7 +80,7 @@
 
 2007-05-07  Karl Berry  <karl@gnu.org>
 
-	* elisp.texi (EMACSVER): back to 22.
+	* elisp.texi (EMACSVER): Back to 22.
 
 2007-05-06  Richard Stallman  <rms@gnu.org>
 
@@ -81,7 +103,7 @@
 2007-05-03  Karl Berry  <karl@gnu.org>
 
 	* elisp.texi (\urlcolor, \linkcolor) [smallbook]: \Black for printing.
-	 (EMACSVER) [smallbook]: 22 for printed version.
+	(EMACSVER) [smallbook]: 22 for printed version.
 
 	* control.texi (Signaling Errors) <signal>: texinfo.tex is fixed,
 	so restore anchor to normal position after defun.  Found by Kevin Ryde.
@@ -143,16 +165,16 @@
 
 2007-04-11  Karl Berry  <karl@gnu.org>
 
-	* anti.texi (Antinews),
-	* display.texi (Overlay Properties) and (Defining Images),
-	* processes.texi (Synchronous Processes) and (Sentinels),
-	* syntax.texi (Syntax Table Internals),
-	* searching.texi (Regexp Special),
-	* nonascii.texi (Default Coding Systems),
-	* text.texi (Special Properties),
+	* anti.texi (Antinews):
+	* display.texi (Overlay Properties, Defining Images):
+	* processes.texi (Synchronous Processes, Sentinels):
+	* syntax.texi (Syntax Table Internals):
+	* searching.texi (Regexp Special):
+	* nonascii.texi (Default Coding Systems):
+	* text.texi (Special Properties):
 	* minibuf.texi (Basic Completion): Wording to improve breaks in
 	8.5x11 format.
-	* elisp.texi (smallbook): new @set to more easily switch between
+	* elisp.texi (smallbook): New @set to more easily switch between
 	smallbook and 8.5x11.
 
 2007-04-11  Richard Stallman  <rms@gnu.org>
@@ -299,10 +321,10 @@
 
 2007-04-01  Karl Berry  <karl@gnu.org>
 
-	* processes.texi (Low-Level Network): typo.
-	* loading.texi (Hooks for Loading): avoid double "the".
-	* keymaps.texi (Key Sequences): no double "and".
-	(Changing Key Bindings): shorten to improve line break.
+	* processes.texi (Low-Level Network): Typo.
+	* loading.texi (Hooks for Loading): Avoid double "the".
+	* keymaps.texi (Key Sequences): No double "and".
+	(Changing Key Bindings): Shorten to improve line break.
 
 2007-03-31  Glenn Morris  <rgm@gnu.org>
 

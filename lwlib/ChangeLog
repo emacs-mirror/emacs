@@ -1,3 +1,7 @@
+2007-06-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* lwlib-Xaw.c, lwlib.c: Link to xaw3d if available.
+
 2007-06-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 22.1 released.

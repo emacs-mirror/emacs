@@ -35,12 +35,21 @@ Boston, MA 02110-1301, USA.  */
 #include <X11/CoreP.h>
 #include <X11/Shell.h>
 
+#ifdef HAVE_XAW3D
+#include <X11/Xaw3d/Scrollbar.h>
+#include <X11/Xaw3d/Paned.h>
+#include <X11/Xaw3d/Dialog.h>
+#include <X11/Xaw3d/Form.h>
+#include <X11/Xaw3d/Command.h>
+#include <X11/Xaw3d/Label.h>
+#else /* !HAVE_XAW3D */
 #include <X11/Xaw/Scrollbar.h>
 #include <X11/Xaw/Paned.h>
 #include <X11/Xaw/Dialog.h>
 #include <X11/Xaw/Form.h>
 #include <X11/Xaw/Command.h>
 #include <X11/Xaw/Label.h>
+#endif /* HAVE_XAW3D */
 
 #include <X11/Xatom.h>
 

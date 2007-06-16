@@ -90,15 +90,10 @@ AC_ARG_WITH(x-toolkit,
 	    a | at | ath | athe | athen | athena )	val=athena ;;
 	    m | mo | mot | moti | motif )	val=motif ;;
 	    g | gt | gtk  )	val=gtk ;;
-dnl These don't currently work.
-dnl	    o | op | ope | open | open- | open-l | open-lo \
-dnl		| open-loo | open-look )	val=open-look ;;
 	    * )
-dnl AC_MSG_ERROR([the `--with-x-toolkit' option is supposed to have a value
-dnl which is `yes', `no', `lucid', `athena', `motif' or `open-look'.])
-AC_MSG_ERROR([`--with-x-toolkit=$withval' is invalid\;
+AC_MSG_ERROR([`--with-x-toolkit=$withval' is invalid;
 this option's value should be `yes', `no', `lucid', `athena', `motif' or `gtk'.
-Currently, `yes' and `gtk', and `athena' and `lucid' are synonyms.])
+`yes' and `gtk' are synonyms. `athena' and `lucid' are synonyms.])
 	    ;;
 	  esac
 	  with_x_toolkit=$val
@@ -110,7 +105,7 @@ AC_ARG_WITH(jpeg,
 AC_ARG_WITH(tiff,
 [  --with-tiff             use -ltiff for displaying TIFF images])
 AC_ARG_WITH(gif,
-[  --with-gif              use -lungif for displaying GIF images])
+[  --with-gif              use -lungif (or -lgif) for displaying GIF images])
 AC_ARG_WITH(png,
 [  --with-png              use -lpng for displaying PNG images])
 AC_ARG_WITH(gpm,
@@ -1874,7 +1869,6 @@ case "${window_system}" in
     case "${with_x_toolkit}" in
       athena | lucid ) USE_X_TOOLKIT=LUCID ;;
       motif ) USE_X_TOOLKIT=MOTIF ;;
-dnl      open-look ) USE_X_TOOLKIT=OPEN_LOOK ;;
       gtk ) with_gtk=yes
 dnl Dont set this for GTK.  A lot of tests below assumes Xt when
 dnl USE_X_TOOLKIT is set.
@@ -2241,29 +2235,45 @@ fi
 
 dnl Do not put whitespace before the #include statements below.
 dnl Older compilers (eg sunos4 cc) choke on it.
+HAVE_XAW3D=no
 if test x"${USE_X_TOOLKIT}" = xmaybe || test x"${USE_X_TOOLKIT}" = xLUCID; then
-  if test x"${HAVE_X11R5}" = xyes; then
-    AC_MSG_CHECKING(X11 version 5 with Xaw)
-    AC_CACHE_VAL(emacs_cv_x11_version_5_with_xaw,
+  if test x"${HAVE_X11R5}" != xyes; then
+    USE_X_TOOLKIT=none
+  else
+    AC_MSG_CHECKING(for xaw3d)
+    AC_CACHE_VAL(emacs_cv_xaw3d,
     [AC_TRY_LINK([
 #include <X11/Intrinsic.h>
-#include <X11/Xaw/Simple.h>],
+#include <X11/Xaw3d/Simple.h>],
       [],
-      emacs_cv_x11_version_5_with_xaw=yes,
-      emacs_cv_x11_version_5_with_xaw=no)])
-    if test $emacs_cv_x11_version_5_with_xaw = yes; then
-      AC_MSG_RESULT([5 or newer, with Xaw; use toolkit by default])
+      emacs_cv_xaw3d=yes,
+      emacs_cv_xaw3d=no)])
+    if test $emacs_cv_xaw3d = yes; then
+      AC_MSG_RESULT([yes; using Lucid toolkit])
       USE_X_TOOLKIT=LUCID
+      HAVE_XAW3D=yes
+      AC_DEFINE(HAVE_XAW3D, 1,
+                [Define to 1 if you have the Xaw3d library (-lXaw3d).])
     else
-      if test x"${USE_X_TOOLKIT}" = xLUCID; then
+      AC_MSG_RESULT(no)
+      AC_MSG_CHECKING(for libXaw)
+      AC_CACHE_VAL(emacs_cv_xaw,
+      [AC_TRY_LINK([
+#include <X11/Intrinsic.h>
+#include <X11/Xaw/Simple.h>],
+        [],
+        emacs_cv_xaw=yes,
+        emacs_cv_xaw=no)])
+      if test $emacs_cv_xaw = yes; then
+        AC_MSG_RESULT([yes; using Lucid toolkit])
+        USE_X_TOOLKIT=LUCID
+      elif test x"${USE_X_TOOLKIT}" = xLUCID; then
         AC_MSG_ERROR([Lucid toolkit requires X11/Xaw include files])
       else
-        AC_MSG_RESULT(before 5 or no Xaw; do not use toolkit by default)
+        AC_MSG_RESULT([no; do not use toolkit by default])
         USE_X_TOOLKIT=none
       fi
     fi
-  else
-    USE_X_TOOLKIT=none
   fi
 fi
 
@@ -2347,21 +2357,6 @@ Motif version prior to 2.1.
     else
       CFLAGS=$OLD_CFLAGS
       CPPFLAGS=$OLD_CPPFLAGS
-    fi
-  fi
-fi
-
-### Is -lXaw3d available?
-HAVE_XAW3D=no
-if test "${HAVE_X11}" = "yes"; then
-  if test "${USE_X_TOOLKIT}" != "none" && test "${with_toolkit_scroll_bars}" != "no"; then
-    dnl Fixme: determine what Scrollbar.h needs to avoid compilation
-    dnl errors from the test without the `-'.
-    AC_CHECK_HEADER(X11/Xaw3d/Scrollbar.h,
-	[AC_CHECK_LIB(Xaw3d, XawScrollbarSetThumb, HAVE_XAW3D=yes)], , -)
-    if test "${HAVE_XAW3D}" = "yes"; then
-	AC_DEFINE(HAVE_XAW3D, 1,
-		  [Define to 1 if you have the Xaw3d library (-lXaw3d).])
     fi
   fi
 fi
@@ -2527,18 +2522,55 @@ if test "${HAVE_X11}" = "yes"; then
   fi
 fi
 
-### Use -lgif if available, unless `--with-gif=no'.
+### Use -lgif or -lungif if available, unless `--with-gif=no'.
 HAVE_GIF=no
-if test "${HAVE_X11}" = "yes"; then
-  if test "${with_gif}" != "no"; then
-    AC_CHECK_HEADER(gif_lib.h,
+if test "${HAVE_X11}" = "yes" && test "${with_gif}" != "no"; then
+  AC_CHECK_HEADER(gif_lib.h,
 # EGifPutExtensionLast only exists from version libungif-4.1.0b1.
 # Earlier versions can crash Emacs.
-      AC_CHECK_LIB(ungif, EGifPutExtensionLast, HAVE_GIF=yes))
+    AC_CHECK_LIB(ungif, EGifPutExtensionLast, HAVE_GIF=yes, try_libgif=yes))
+
+  if test "$HAVE_GIF" = yes; then
+      ac_gif_lib_name="-lungif"
+  fi
+
+# If gif_lib.h but no libungif, try libgif.
+  if test x"$try_libgif" = xyes; then
+    AC_CHECK_LIB(gif, EGifPutExtensionLast, HAVE_GIF=yes)
+
+    if test "$HAVE_GIF" = yes; then
+      AC_DEFINE(LIBGIF, -lgif, [Compiler option to link with the gif library (if not -lungif).])
+      ac_gif_lib_name="-lgif"
+    fi
   fi
 
   if test "${HAVE_GIF}" = "yes"; then
-    AC_DEFINE(HAVE_GIF, 1, [Define to 1 if you have the ungif library (-lungif).])
+    AC_DEFINE(HAVE_GIF, 1, [Define to 1 if you have a gif library (default -lungif; otherwise specify with LIBGIF).])
+  fi
+fi
+
+dnl Check for required libraries.
+if test "${HAVE_X11}" = "yes"; then
+  MISSING=""
+  WITH_NO=""
+  test "${with_xpm}" != "no" && test "${HAVE_XPM}" != "yes" &&
+    MISSING="libXpm" && WITH_NO="--with-xpm=no"
+  test "${with_jpeg}" != "no" && test "${HAVE_JPEG}" != "yes" &&
+    MISSING="$MISSING libjpeg" && WITH_NO="$WITH_NO --with-jpeg=no"
+  test "${with_png}" != "no" && test "${HAVE_PNG}" != "yes" &&
+    MISSING="$MISSING libpng" && WITH_NO="$WITH_NO --with-png=no"
+  test "${with_gif}" != "no" && test "${HAVE_GIF}" != "yes" &&
+    MISSING="$MISSING libgif/libungif" && WITH_NO="$WITH_NO --with-gif=no"
+  test "${with_tiff}" != "no" && test "${HAVE_TIFF}" != "yes" &&
+    MISSING="$MISSING libtiff" && WITH_NO="$WITH_NO --with-tiff=no"
+
+  if test "X${MISSING}" != X; then
+    AC_MSG_ERROR([The following required libraries was not found:
+    $MISSING
+Maybe some development libraries/packages are missing?
+If you don't want to link with them give
+    $WITH_NO
+as options to configure])
   fi
 fi
 
@@ -2984,6 +3016,7 @@ if test "${REL_ALLOC}" = "yes" ; then
 	     buffer space.])
 fi
 
+
 AH_TOP([/* GNU Emacs site configuration template file.
    Copyright (C) 1988, 1993, 1994, 1999, 2000, 2001, 2002, 2004, 2005, 2006, 2007
              Free Software Foundation, Inc.
@@ -3311,7 +3344,7 @@ echo "  Does Emacs use -lXaw3d?                                 ${HAVE_XAW3D}"
 echo "  Does Emacs use -lXpm?                                   ${HAVE_XPM}"
 echo "  Does Emacs use -ljpeg?                                  ${HAVE_JPEG}"
 echo "  Does Emacs use -ltiff?                                  ${HAVE_TIFF}"
-echo "  Does Emacs use -lungif?                                 ${HAVE_GIF}"
+echo "  Does Emacs use a gif library?                           ${HAVE_GIF} $ac_gif_lib_name"
 echo "  Does Emacs use -lpng?                                   ${HAVE_PNG}"
 echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use X toolkit scroll bars?                   ${USE_TOOLKIT_SCROLL_BARS}"

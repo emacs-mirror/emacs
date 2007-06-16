@@ -1,3 +1,14 @@
+2007-06-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-agent.el (gnus-agent-fetch-headers)
+	(gnus-agent-retrieve-headers): Bind
+	gnus-decode-encoded-address-function to identity.
+
+	* nntp.el (nntp-send-xover-command): Recognize an xover command is
+	available also when the server returns simply a dot.
+
+	* gnus-ems.el (gnus-x-splash): Redisplay window before measuring it.
+
 2007-06-08  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-ems.el (gnus-x-splash): Make it work.
