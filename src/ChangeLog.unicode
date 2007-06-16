@@ -1,3 +1,8 @@
+2007-06-16  Kenichi Handa  <handa@m17n.org>
+
+	* Makefile.in (lisp): Add ${lispsource}language/tai-viet.el.
+	(shortlisp): Add ../lisp/language/tai-viet.el.
+
 2007-06-15  Ulrich Mueller  <ulm@gentoo.org>  (tiny change)
 
 	* Makefile.in (${lispsource}international/charprop.el): Depend on
