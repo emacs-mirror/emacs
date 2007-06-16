@@ -1,3 +1,8 @@
+2007-06-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32menu.c (add_menu_item): Escape `&' characters in menu items
+	and their keybindings.
+
 2007-06-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* composite.c (update_compositions): Check validity of compositions.
