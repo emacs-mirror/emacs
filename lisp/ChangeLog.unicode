@@ -1,3 +1,11 @@
+2007-06-16  Kenichi Handa  <handa@m17n.org>
+
+	* loadup.el: Load "language/tai-viet".
+
+	* language/tai-viet.el: New file.
+
+	* language/tv-util.el: New file.
+
 2007-06-01  Jason Rumney  <jasonr@gnu.org>
 
 	* faces.el (font-weight-table): Use defaults on w32 that match
