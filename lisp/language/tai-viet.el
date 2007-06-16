@@ -64,3 +64,5 @@ is available at this web page:
 ;; Local Variables:
 ;; coding: utf-8
 ;; End:
+
+;; arch-tag: db4e3377-2ba7-47a0-b173-e44420d540c3
