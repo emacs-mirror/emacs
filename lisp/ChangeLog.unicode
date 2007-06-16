@@ -1,5 +1,15 @@
 2007-06-16  Kenichi Handa  <handa@m17n.org>
 
+	* international/mule-cmds.el
+	(select-safe-coding-system-interactively): Fix printing of
+	rejected and unsafe coding-systems.
+
+	* international/fontset.el (setup-default-fontset): Add tai-viet.
+
+	* international/characters.el: Setup syntax/category table for Tai
+	Viet.
+	(script-list): Add tai-viet.
+
 	* loadup.el: Load "language/tai-viet".
 
 	* language/tai-viet.el: New file.
