@@ -1196,12 +1196,7 @@ describe events by their types; thus, if there is a key binding for
 @item @var{position}
 This is the position where the mouse click occurred.  The actual
 format of @var{position} depends on what part of a window was clicked
-on.  The various formats are described below.
-
-@item @var{click-count}
-This is the number of rapid repeated presses so far of the same mouse
-button.  @xref{Repeat Events}.
-@end table
+on.
 
 For mouse click events in the text area, mode line, header line, or in
 the marginal areas, @var{position} has this form:
@@ -1223,8 +1218,14 @@ which the click occurred.  It is one of the symbols @code{mode-line},
 @code{header-line}, @code{vertical-line}, @code{left-margin},
 @code{right-margin}, @code{left-fringe}, or @code{right-fringe}.
 
+In one special case, @var{pos-or-area} is a list containing a symbol (one
+of the symbols listed above) instead of just the symbol.  This happens
+after the imaginary prefix keys for the event are inserted into the
+input stream.  @xref{Key Sequence Input}.
+
+
 @item @var{x}, @var{y}
-These are the pixel-denominated coordinates of the click, relative to
+These are the pixel coordinates of the click, relative to
 the top left corner of @var{window}, which is @code{(0 . 0)}.
 For the mode or header line, @var{y} does not have meaningful data.
 For the vertical line, @var{x} does not have meaningful data.
@@ -1238,6 +1239,7 @@ This is the object on which the click occurred.  It is either
 (@var{string} . @var{string-pos}) when there is a string-type text
 property at the click position.
 
+@table @asis
 @item @var{string}
 This is the string on which the click occurred, including any
 properties.
@@ -1245,6 +1247,7 @@ properties.
 @item @var{string-pos}
 This is the position in the string on which the click occurred,
 relevant if properties at the click need to be looked up.
+@end table
 
 @item @var{text-pos}
 For clicks on a marginal area or on a fringe, this is the buffer
@@ -1263,12 +1266,17 @@ This is the image object on which the click occurred.  It is either
 an image object as returned by @code{find-image} if click was in an image.
 
 @item @var{dx}, @var{dy}
-These are the pixel-denominated coordinates of the click, relative to
+These are the pixel coordinates of the click, relative to
 the top left corner of @var{object}, which is @code{(0 . 0)}.  If
 @var{object} is @code{nil}, the coordinates are relative to the top
 left corner of the character glyph clicked on.
-@end table
 
+@item @var{width}, @var{height}
+These are the pixel width and height of @var{object} or, if this is
+@code{nil}, those of the character glyph clicked on.
+@end table
+ 
+@sp 1
 For mouse clicks on a scroll-bar, @var{position} has this form:
 
 @example
@@ -1299,10 +1307,10 @@ of the symbols @code{above-handle}, @code{handle}, @code{below-handle},
 @code{up}, @code{down}, @code{top}, @code{bottom}, and @code{end-scroll}.
 @end table
 
-In one special case, @var{buffer-pos} is a list containing a symbol (one
-of the symbols listed above) instead of just the symbol.  This happens
-after the imaginary prefix keys for the event are inserted into the
-input stream.  @xref{Key Sequence Input}.
+@item @var{click-count}
+This is the number of rapid repeated presses so far of the same mouse
+button.  @xref{Repeat Events}.
+@end table
 
 @node Drag Events
 @subsection Drag Events
@@ -1318,19 +1326,18 @@ position and the final position, like this:
 
 @example
 (@var{event-type}
- (@var{window1} @var{buffer-pos1} (@var{x1} . @var{y1}) @var{timestamp1})
- (@var{window2} @var{buffer-pos2} (@var{x2} . @var{y2}) @var{timestamp2})
- @var{click-count})
+ (@var{window1} START-POSITION)
+ (@var{window2} END-POSITION))
 @end example
 
 For a drag event, the name of the symbol @var{event-type} contains the
-prefix @samp{drag-}.  For example, dragging the mouse with button 2 held
-down generates a @code{drag-mouse-2} event.  The second and third
-elements of the event give the starting and ending position of the drag.
-Aside from that, the data have the same meanings as in a click event
-(@pxref{Click Events}).  You can access the second element of any mouse
-event in the same way, with no need to distinguish drag events from
-others.
+prefix @samp{drag-}.  For example, dragging the mouse with button 2
+held down generates a @code{drag-mouse-2} event.  The second and third
+elements of the event give the starting and ending position of the
+drag.  They have the same form as @var{position} in a click event
+(@pxref{Click Events}) that is not on the scroll bar part of the
+window.  You can access the second element of any mouse event in the
+same way, with no need to distinguish drag events from others.
 
 The @samp{drag-} prefix follows the modifier key prefixes such as
 @samp{C-} and @samp{M-}.
@@ -1470,7 +1477,7 @@ of the mouse without any button activity.  Mouse motion events are
 represented by lists that look like this:
 
 @example
-(mouse-movement (@var{window} @var{buffer-pos} (@var{x} . @var{y}) @var{timestamp}))
+(mouse-movement (POSITION))
 @end example
 
 The second element of the list describes the current position of the

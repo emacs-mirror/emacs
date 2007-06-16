@@ -1450,7 +1450,7 @@ and returns whatever that function returns.  */)
   f = SELECTED_FRAME ();
   x = y = Qnil;
 
-#ifdef HAVE_MOUSE
+#if defined (HAVE_MOUSE) || defined (HAVE_GPM)
   /* It's okay for the hook to refrain from storing anything.  */
   if (mouse_position_hook)
     (*mouse_position_hook) (&f, -1,
@@ -1494,7 +1494,7 @@ and nil for X and Y.  */)
   f = SELECTED_FRAME ();
   x = y = Qnil;
 
-#ifdef HAVE_MOUSE
+#if defined (HAVE_MOUSE) || defined (HAVE_GPM)
   /* It's okay for the hook to refrain from storing anything.  */
   if (mouse_position_hook)
     (*mouse_position_hook) (&f, -1,
@@ -1539,6 +1539,13 @@ before calling this function on it, like this.
       Fselect_frame (frame);
       mouse_moveto (XINT (x), XINT (y));
     }
+#else
+#ifdef HAVE_GPM
+    {
+      Fselect_frame (frame);
+      term_mouse_moveto (XINT (x), XINT (y));
+    }
+#endif
 #endif
 #endif
 
@@ -1574,6 +1581,13 @@ before calling this function on it, like this.
       Fselect_frame (frame);
       mouse_moveto (XINT (x), XINT (y));
     }
+#else
+#ifdef HAVE_GPM
+    {
+      Fselect_frame (frame);
+      term_mouse_moveto (XINT (x), XINT (y));
+    }
+#endif
 #endif
 #endif
 

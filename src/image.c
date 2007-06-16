@@ -1609,6 +1609,7 @@ x_alloc_image_color (f, img, color_name, dflt)
 			     Image Cache
  ***********************************************************************/
 
+static struct image *search_image_cache P_ ((struct frame *, Lisp_Object, unsigned));
 static void cache_image P_ ((struct frame *f, struct image *img));
 static void postprocess_image P_ ((struct frame *, struct image *));
 
@@ -1631,24 +1632,47 @@ make_image_cache ()
 }
 
 
-/* Search frame F for an images with spec SPEC, and free it.  */
+/* Find an image matching SPEC in the cache, and return it.  If no
+   image is found, return NULL.  */
+static struct image *
+search_image_cache (f, spec, hash)
+     struct frame *f;
+     Lisp_Object spec;
+     unsigned hash;
+{
+  struct image *img;
+  struct image_cache *c = FRAME_X_IMAGE_CACHE (f);
+  Lisp_Object specified_bg = image_spec_value (spec, QCbackground, NULL);
+  int i = hash % IMAGE_CACHE_BUCKETS_SIZE;
+
+  /* If the image spec does not specify a background color, the cached
+     image must have the same background color as the current frame.
+     The following code be improved.  For example, jpeg does not
+     support transparency, but currently a jpeg image spec won't match
+     a cached spec created with a different frame background.  The
+     extra memory usage is probably negligible in practice.  */
+  if (!c) return NULL;
+
+  for (img = c->buckets[i]; img; img = img->next)
+    if (img->hash == hash
+	&& !NILP (Fequal (img->spec, spec))
+	&& (STRINGP (specified_bg)
+	    || img->background == FRAME_BACKGROUND_PIXEL (f)))
+      break;
+  return img;
+}
+
+
+/* Search frame F for an image with spec SPEC, and free it.  */
 
 static void
 uncache_image (f, spec)
      struct frame *f;
      Lisp_Object spec;
 {
-  struct image_cache *c = FRAME_X_IMAGE_CACHE (f);
-  struct image *img = IMAGE_FROM_ID (f, lookup_image (f, spec));
-  unsigned hash = sxhash (spec, 0);
-  int i = hash % IMAGE_CACHE_BUCKETS_SIZE;
-
-  for (img = c->buckets[i]; img; img = img->next)
-    if (img->hash == hash && !NILP (Fequal (img->spec, spec)))
-      {
-	free_image (f, img);
-	break;
-      }
+  struct image *img = search_image_cache (f, spec, sxhash (spec, 0));
+  if (img)
+    free_image (f, img);
 }
 
 
@@ -1875,9 +1899,7 @@ lookup_image (f, spec)
      struct frame *f;
      Lisp_Object spec;
 {
-  struct image_cache *c = FRAME_X_IMAGE_CACHE (f);
   struct image *img;
-  int i;
   unsigned hash;
   struct gcpro gcpro1;
   EMACS_TIME now;
@@ -1891,12 +1913,7 @@ lookup_image (f, spec)
 
   /* Look up SPEC in the hash table of the image cache.  */
   hash = sxhash (spec, 0);
-  i = hash % IMAGE_CACHE_BUCKETS_SIZE;
-
-  for (img = c->buckets[i]; img; img = img->next)
-    if (img->hash == hash && !NILP (Fequal (img->spec, spec)))
-      break;
-
+  img = search_image_cache (f, spec, hash);
   if (img && img->load_failed_p)
     {
       free_image (f, img);
@@ -3961,9 +3978,6 @@ xpm_load (f, img)
   attrs.valuemask |= XpmCloseness;
 #endif /* not XpmAllocCloseColors */
 #endif /* ALLOC_XPM_COLORS */
-#ifdef ALLOC_XPM_COLORS
-  xpm_init_color_cache (f, &attrs);
-#endif
 
   /* If image specification contains symbolic color definitions, add
      these to `attrs'.  */

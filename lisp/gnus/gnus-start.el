@@ -758,8 +758,7 @@ prompt the user for the name of an NNTP server to use."
       (cond
        ((featurep 'xemacs)
 	(gnus-xmas-splash))
-       ((and window-system
-	     (= (frame-height) (1+ (window-height))))
+       (window-system
 	(gnus-x-splash))))
 
     (let ((level (and (numberp arg) (> arg 0) arg))

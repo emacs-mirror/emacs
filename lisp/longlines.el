@@ -368,10 +368,10 @@ Hard newlines are left intact."
 With optional argument ARG, turn on line wrapping if and only if ARG is positive.
 If automatic line wrapping is turned on, wrap the entire buffer."
   (interactive "P")
-  (and (null arg)
-       (null longlines-auto-wrap)
-       (setq arg 1))
-  (if (> (prefix-numeric-value arg) 0)
+  (setq arg (if arg
+		(> (prefix-numeric-value arg) 0)
+	      (not longlines-auto-wrap)))
+  (if arg
       (let ((mod (buffer-modified-p)))
 	(setq longlines-auto-wrap t)
 	(longlines-wrap-region (point-min) (point-max))

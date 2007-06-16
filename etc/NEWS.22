@@ -33,6 +33,24 @@ Some specific packages that are known to cause problems are:
 ** Semantic (used by CEDET, ECB, JDEE): upgrade to latest version.
 
 ** cua.el, cua-mode.el: remove old versions.
+
+* Installation Changes in Emacs 22.2
+
+* Changes in Emacs 22.2
+
+** The values of `dired-recursive-deletes' and `dired-recursive-copies'
+have been changed to `top'.  This means that the user is asked once,
+before deleting/copying the indicated directory recursively.
+
+** In Image mode, whenever the displayed image is wider and/or higher
+than the window, the usual keys for moving the cursor cause the image
+to be scrolled horizontally or vertically instead.
+
+* New Modes and Packages in Emacs 22.2
+
+** The new package css-mode.el provides a major mode for editing CSS files.
+
+** The new package socks.el implements the SOCKS v5 protocol.
 
 
 * Installation Changes in Emacs 22.1
@@ -280,11 +298,6 @@ too.  If you want to use just plain `*' as a wildcard, type `*""'; the
 doublequotes make no difference in the shell, but they prevent
 special treatment in `dired-do-shell-command'.
 
-** A prefix argument is no longer required to repeat a jump to a
-previous mark if you set `set-mark-command-repeat-pop' to t.  I.e. C-u
-C-SPC C-SPC C-SPC ... cycles through the mark ring.  Use C-u C-u C-SPC
-to set the mark immediately after a jump.
-
 ** The info-search bindings on C-h C-f, C-h C-k and C-h C-i
 have been moved to C-h F, C-h K and C-h S.
 
@@ -442,7 +455,7 @@ same string that would be displayed on mouse-over using the
 `help-echo' property, but, in certain cases, it can display a more
 keyboard oriented alternative.
 
-*** New user option `help-at-pt-display-when-idle' allows to
+*** New user option `help-at-pt-display-when-idle' allows you to
 automatically show the help provided by `display-local-help' on
 point-over, after suitable idle time.  The amount of idle time is
 determined by the user option `help-at-pt-timer-delay' and defaults
@@ -451,8 +464,9 @@ to one second.  This feature is turned off by default.
 ** Mark command changes:
 
 *** A prefix argument is no longer required to repeat a jump to a
-previous mark, i.e. C-u C-SPC C-SPC C-SPC ... cycles through the
-mark ring.  Use C-u C-u C-SPC to set the mark immediately after a jump.
+previous mark if you set `set-mark-command-repeat-pop' to t.  I.e. C-u
+C-SPC C-SPC C-SPC ... cycles through the mark ring.  Use C-u C-u C-SPC
+to set the mark immediately after a jump.
 
 *** Marking commands extend the region when invoked multiple times.
 
@@ -1949,11 +1963,11 @@ old name remains available as alias, but has been marked obsolete.
 
 If point is at the end of a file buffer before reverting, Auto Revert
 mode keeps it at the end after reverting.  Similarly if point is
-displayed at the end of a file buffer in any window, it stays at
-the end of the buffer in that window.  This allows to tail a file:
-just put point at the end of the buffer and it stays there.  This
-rule applies to file buffers.  For non-file buffers, the behavior can
-be mode dependent.
+displayed at the end of a file buffer in any window, it stays at the end
+of the buffer in that window.  This allows you to "tail" a file: just
+put point at the end of the buffer and it stays there.  This rule
+applies to file buffers.  For non-file buffers, the behavior can be mode
+dependent.
 
 If you are sure that the file will only change by growing at the end,
 then you can tail the file more efficiently by using the new minor
@@ -3047,7 +3061,7 @@ struct members in C, members variables in C++ and variables in PHP.
 
 *** Support for `movemail' from GNU mailutils was added to Rmail.
 
-This version of `movemail' allows to read mail from a wide range of
+This version of `movemail' allows you to read mail from a wide range of
 mailbox formats, including remote POP3 and IMAP4 mailboxes with or
 without TLS encryption.  If GNU mailutils is installed on the system
 and its version of `movemail' can be found in exec-path, it will be

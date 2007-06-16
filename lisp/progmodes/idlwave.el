@@ -4342,7 +4342,7 @@ catalog \('lib).")
 (defvar idlwave-true-path-alist nil
   "Like `idlwave-path-alist', but with true filenames.")
 (defvar idlwave-routines nil
-  "Holds the combinded procedure/function/method routine-info.")
+  "Holds the combined procedure/function/method routine-info.")
 (defvar idlwave-class-alist nil
   "Holds the class names known to IDLWAVE.")
 (defvar idlwave-class-history nil
@@ -4846,7 +4846,7 @@ Gets set in cached XML rinfo, or `idlw-rinfo.el'.")
   ;; Create a sysvar list entry from the xml parsed list.
   (let* ((nameblock (nth 1 xml-entry))
 	 (name (cdr (assq 'name nameblock)))
-	 (sysvar (substring name (progn (string-match "^ *!" name) 
+	 (sysvar (substring name (progn (string-match "^ *!" name)
 					(match-end 0))))
 	 (link (cdr (assq 'link nameblock)))
 	 (params (cddr xml-entry))
@@ -7095,7 +7095,7 @@ sort the list before displaying"
   "Make the user select an element from the alist in the variable SYM.
 The keys of the alist are expected to be strings.  The function returns the
 car of the selected association.
-To do this, PROMPT is displayed and and the user must hit a letter key to
+To do this, PROMPT is displayed and the user must hit a letter key to
 select an entry.  If the user does not reply within DELAY seconds, a help
 window with the options is displayed automatically.
 The key which is associated with each option is generated automatically.

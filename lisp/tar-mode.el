@@ -658,15 +658,15 @@ appear on disk when you save the tar-file's buffer."
 	 (size (tar-header-size tokens))
 	 (link-p (tar-header-link-type tokens)))
     (if link-p
-	(error "This is a%s, not a real file"
-	       (cond ((eq link-p 5) " directory")
-		     ((eq link-p 20) " tar directory header")
-		     ((eq link-p 28) " next has longname")
-		     ((eq link-p 29) " multivolume-continuation")
-		     ((eq link-p 35) " sparse entry")
-		     ((eq link-p 38) " volume header")
-		     ((eq link-p 55) "n extended pax header")
-		     (t "link"))))
+	(error "This is %s, not a real file"
+	       (cond ((eq link-p 5) "a directory")
+		     ((eq link-p 20) "a tar directory header")
+		     ((eq link-p 28) "a next has longname")
+		     ((eq link-p 29) "a multivolume-continuation")
+		     ((eq link-p 35) "a sparse entry")
+		     ((eq link-p 38) "a volume header")
+		     ((eq link-p 55) "an extended pax header")
+		     (t "a link"))))
     (if (zerop size) (error "This is a zero-length file"))
     descriptor))
 

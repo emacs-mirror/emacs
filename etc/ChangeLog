@@ -1,3 +1,38 @@
+2007-06-07  Mark H. Weaver  <mhw@netris.org>  (tiny change)
+
+	* NEWS (set-mark-command-repeat-pop): Fix duplicate entry.
+
+2007-06-07  Michael Olson  <mwolson@gnu.org>
+
+	* MORE.STUFF: Update eshell URL.
+
+2007-06-06  Carsten Dominik  <dominik@science.uva.nl>
+
+	* orgcard.tex: Version 4.77.
+
+2007-06-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Add socks.el as new package.
+
+2007-06-02  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* MORE.STUFF (Hideshow): Delete.
+	(EDB, Go in a buffer): Update urls.
+	Suggested by CHENG Gao <chenggao@gmail.com>.
+
+2007-06-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 22.1 released.
+
+2007-06-02  CHENG Gao  <chenggao@gmail.com>
+
+	* MORE.STUFF: Remove dead URL for Fortune, and update URLs for
+	Hideshow, Org, EDB, and Remember.
+
+2007-05-29  Robert J. Chassell  <bob@rattlesnake.com>
+
+	* NEWS: Fix instances of `allow' without object.
+
 2007-05-22  Glenn Morris  <rgm@gnu.org>
 
 	* NEWS.22: New file with entries for Emacs 22.
@@ -250,7 +285,7 @@
 
 2007-02-19  Kenichi Handa  <handa@m17n.org>
 
-	* NEWS (New language environmets): Add "Esperanto".
+	* NEWS (New language environments): Add "Esperanto".
 
 2007-02-16  Dale Gulledge  <dsplat@rochester.rr.com>
 

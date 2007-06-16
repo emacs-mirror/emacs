@@ -1679,7 +1679,7 @@ init_sys_modes ()
       if (term_gpm)
 	{
 	  fcntl (gpm_fd, F_SETOWN, getpid ());
-	  fcntl (gpm_fd, F_SETFL, O_NONBLOCK);
+	  fcntl (gpm_fd, F_SETFL, fcntl (gpm_fd, F_GETFL, 0) | O_NONBLOCK);
 	  init_sigio (gpm_fd);
 	}
 #endif /* HAVE_GPM */

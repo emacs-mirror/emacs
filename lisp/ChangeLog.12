@@ -271,7 +271,7 @@
 2007-04-14  Nick Roberts  <nickrob@snap.net.nz>
 
 	* tmm.el (tmm-get-keybind): Use copy-sequence to ensure that the
-	global map isn't modified
+	global map isn't modified.
 
 2007-04-14  Glenn Morris  <rgm@gnu.org>
 
@@ -1413,7 +1413,7 @@
 	* progmodes/python.el (python-quote-syntax): Don't bother with
 	syntax-ppss-context.
 	(python-fill-paragraph): Make sure that fenced-string delimiters that
-	stand on their own line stay there
+	stand on their own line stay there.
 
 2007-03-01  Lennart Borgman  <lennart.borgman.073@student.lu.se>
 
@@ -2549,7 +2549,7 @@
 	* type-break.el (type-break-demo-hanoi, type-break-demo-life)
 	(type-break-demo-boring): Call read-event instead of read-char.
 
-2007-01-19  Daniel Pfeiffer  <occitan@esperanto.org>  (small change)
+2007-01-19  Daniel Pfeiffer  <occitan@esperanto.org>  (tiny change)
 
 	* progmodes/compile.el: Add handling for makepplog.
 
@@ -3414,7 +3414,7 @@
 	(wdired-search-and-rename): Simplify code.
 	(wdired-preprocess-files, wdired-preprocess-perms): Make
 	read-only property of preceding character rear-nonsticky to
-	avoid that it can be modified.	Put old-name and old-link
+	avoid that it can be modified.  Put old-name and old-link
 	properties on character preceding name and replace
 	put-text-property by add-text-properties.
 	(wdired-get-filename, wdired-get-previous-link): Get old-name
@@ -3605,7 +3605,7 @@
 	allout-mode-map.  Call it on file load, so the mode docstring
 	substitutions work even if allout mode has not yet been invoked.
 	(allout-mode): Use new allout-setup-mode-map to track any keybinding
-	customizations since the map was last processed.  Also,	refine the
+	customizations since the map was last processed.  Also, refine the
 	docstring so it's ship-shape for release.
 	(allout-default-layout, allout-beginning-of-line-cycles)
 	(allout-distinctive-bullets-string, allout-use-mode-specific-leader)
@@ -5281,7 +5281,7 @@
 	New C-c key bindings: for `cperl-find-bad-style',
 	`cperl-pod-spell', `cperl-here-doc-spell', `cperl-narrow-to-here-doc',
 	`cperl-perdoc', and `cperl-perldoc-at-point'.
-	CPerl Mode menu changes:	"Fix style by spaces", "Imenu on Perl Info"
+	CPerl Mode menu changes: "Fix style by spaces", "Imenu on Perl Info"
 	moved, new submenu of Tools with Ispell entries and narrowing.
 	(cperl-after-sub-regexp): New defsubst.
 	(cperl-imenu--function-name-regexp-perl): Use `cperl-after-sub-regexp'.
@@ -5304,7 +5304,7 @@
 	(cperl-calculate-indent): Try to allow '_' be non-word char
 		Support subs with attributes.
 	(cperl-where-am-i): Quiet (?) a warning.
-	(cperl-cached-syntax-table)	New function.
+	(cperl-cached-syntax-table): New function.
 	(cperl-forward-re): Use `cperl-cached-syntax-table'.
 	(cperl-unwind-to-safe): Recognize `syntax-type' property
 		changing in a middle of line.
@@ -5478,7 +5478,7 @@
 	(cperl-string-syntax-table): Make { and } not-grouping
 	  (Sometimes they ARE grouping in RExen, but matching them would only
 	   confuse in many situations when they are not)
-	(beginning-of-buffer): Replace two occurences with goto-char...
+	(beginning-of-buffer): Replace two occurrences with goto-char...
 	(cperl-calculate-indent): `char-after' could be nil...
 	(cperl-find-pods-heres): REx can start after "[" too.
 		Hightlight (??{}) in RExen too.
@@ -5551,7 +5551,7 @@
 	(cperl-next-interpolated-REx): New function.
 	(cperl-next-interpolated-REx-0): Likewise.
 	(cperl-next-interpolated-REx-1): Likewise.
-	"\C-c\C-x", "\C-c\C-y", "\C-c\C-v":	New keybinding for these functions.
+	"\C-c\C-x", "\C-c\C-y", "\C-c\C-v": New keybinding for these functions.
 	Perl/Regexp menu: 3 new entries for `cperl-next-interpolated-REx'.
 	(cperl-praise): Mention finded interpolated RExen.
 
@@ -5797,7 +5797,7 @@
 
 	* wid-edit.el (widget-button-click-moves-point): New variable.
 	(widget-button-click): If widget-button-click-moves-point is
-	non-nil, set point after performing the button action
+	non-nil, set point after performing the button action.
 
 	* cus-edit.el (custom-mode): Set widget-button-click-moves-point.
 
@@ -6069,8 +6069,8 @@
 	buffer-read-only isn't set.
 	(allout-annotate-hidden): Enable topic annotation during copies even
 	when the buffer is read-only, eg for topic copies.  Ensure that the loop
-	advances, even when the span extends beyond the	deletion region.
-	(allout-toggle-subtree-encryption): Use	allout-structure-added-hook
+	advances, even when the span extends beyond the deletion region.
+	(allout-toggle-subtree-encryption): Use allout-structure-added-hook
 	rather than allout-exposure-changed-hook, as a stronger assertion.
 	(allout-keybindings-list): Add bindings for
 	allout-copy-line-as-kill and allout-copy-topic-as-kill.
@@ -6121,7 +6121,7 @@
 
 	* cus-start.el (all): Rename x-gtk-show-chooser-help-text to
 	x-gtk-file-dialog-help-text.  Rename x-use-old-gtk-file-dialog
-	to x-gtk-use-old-file-dialog
+	to x-gtk-use-old-file-dialog.
 
 2006-09-18  Richard Stallman  <rms@gnu.org>
 
@@ -8116,7 +8116,7 @@
 
 	* tumme.el (tumme-create-thumb, tumme-thumbnail-display-external)
 	(tumme-display-image, tumme-rotate-thumbnail, tumme-rotate-original)
-	(tumme-set-exif-data, tumme-get-exif-data): Use	shell-command-switch.
+	(tumme-set-exif-data, tumme-get-exif-data): Use shell-command-switch.
 
 	* thumbs.el (thumbs-call-convert): Use shell-command-switch.
 
@@ -8652,7 +8652,7 @@
 	(viper-next-line-at-bol): If point is on a widget or a button, simulate
 	clicking on that widget/button.
 
-	* viper.el (viper-mode): Allow a separate cursor color in Emacs	state.
+	* viper.el (viper-mode): Allow a separate cursor color in Emacs state.
 
 	* ediff-diff (ediff-test-patch-utility): Catch errors.
 	(ediff-actual-diff-options, ediff-actual-diff3-options): New variables.
@@ -9203,7 +9203,7 @@
 	(ewoc--wrap): New func.
 	(ewoc-create): Take additional arg NOSEP.  If nil, wrap node and
 	header/footer pretty-printers.  Save header/footer pretty-printer.
-	(ewoc-set-hf): Use ewoc's header/footer pretty-printer.  *
+	(ewoc-set-hf): Use ewoc's header/footer pretty-printer.
 
 	* pcvs.el (cvs-make-cvs-buffer): Specify NOSEP to `ewoc-create'.
 
@@ -10152,7 +10152,7 @@
 2006-05-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* startup.el (command-line): On MS-Windows, probe "~", not
-	"~USER", for warning about non-existent home directory
+	"~USER", for warning about non-existent home directory.
 
 	* arc-mode.el (archive-l-e): New optional argument `float' means
 	generate a float value.
@@ -12103,7 +12103,7 @@
 	preserve window-start.
 	(speedbar-update-directory-contents): Try to preserve window-start
 	and window-point.
-	(speedbar-update-special-contents): Don't move back to start of	window.
+	(speedbar-update-special-contents): Don't move back to start of window.
 
 	* progmodes/gdb-ui.el (gdb-speedbar-refresh): Rename from
 	gdb-speedbar-timer-fn.  Use speedbar-refresh instead of
@@ -12729,7 +12729,7 @@
 
 	(allout-mode): Explicitly specify the mode map in the docstring.
 	Clarify provision for various write-file hook var names.
-	Adjusted for invisible-text overlays instead of	selective-display.
+	Adjusted for invisible-text overlays instead of selective-display.
 
 	(allout-depth): Really return 0 if not within any topic.  This
 	rectifies `allout-beginning-of-level' and sequence numbering
@@ -15747,10 +15747,10 @@
 2005-12-08  Alan Mackenzie  <bug-cc-mode@gnu.org>
 
 	* progmodes/cc-fix.el: Add definitions of the macros push and pop
-	(for GNU Emacs 20.4)
+	(for GNU Emacs 20.4).
 
 	* progmodes/cc-defs.el:
-	(i): Load cc-fix.elc for `push' and `pop' (for GNU Emacs 20.4)
+	(i): Load cc-fix.elc for `push' and `pop' (for GNU Emacs 20.4).
 
 	* progmodes/cc-cmds.el (c-show-syntactic-information): Change the
 	highlighting mechanism so it will work in XEmacs too.
@@ -16051,7 +16051,7 @@
 
 	Introduce an "awk" style, mainly for auto-newline and clean-ups.
 
-	* progmodes/cc-align.el: New function c-snug-1line-defun-close
+	* progmodes/cc-align.el: New function c-snug-1line-defun-close.
 
 	* progmodes/cc-cmds.el: In c-electric-brace, add code for new
 	clean-up one-liner-defun.
@@ -16185,7 +16185,7 @@
 
 	* progmodes/cc-awk.el: Move regexps for analysing AWK code to near the
 	start of the file.  ^L now separate sections of the file.
-	(c-awk-non-eol-esc-pair-re,	c-awk-blank-or-comment-line-re)
+	(c-awk-non-eol-esc-pair-re, c-awk-blank-or-comment-line-re)
 	(c-awk-one-line-possibly-open-string-re)
 	(c-awk-regexp-one-line-possibly-open-char-class-re)
 	(c-awk-one-line-possibly-open-regexp-re)
@@ -17298,7 +17298,7 @@
 
 2005-11-30  Kim F. Storm  <storm@cua.dk>
 
-	* emulation/cua-rect.el (cua--rectangle-overlays): Make	permanent-local.
+	* emulation/cua-rect.el (cua--rectangle-overlays): Make permanent-local.
 	(cua--rectangle-post-command): Cleanup overlays and deactivate mark
 	after revert-buffer (or anything else which kills all local variables).
 
@@ -18540,7 +18540,7 @@
 	(pgg-pgp5-sign-region, pgg-pgp5-sign): Add optional PASSPHRASE
 	argument to all these routines, so the passphrase can be managed
 	externally and passed in to the system.
-	(pgg-pgp5-sign-region): Use new name of	pgg-add-passphrase-to-cache
+	(pgg-pgp5-sign-region): Use new name of pgg-add-passphrase-to-cache
 	function.
 
 2005-11-04  Dan Nicolaescu  <dann@ics.uci.edu>
@@ -18762,7 +18762,7 @@
 	(pgg-pgp5-sign-region, pgg-pgp5-sign): Add optional PASSPHRASE
 	argument to all these routines, so the passphrase can be managed
 	externally and passed in to the system.
-	(pgg-pgp5-sign-region): Use new name of	pgg-add-passphrase-to-cache
+	(pgg-pgp5-sign-region): Use new name of pgg-add-passphrase-to-cache
 	function.
 
 2005-11-04  Edward O'Connor  <hober0@gmail.com>  (tiny change)
@@ -19664,14 +19664,14 @@
 	New defvar.  Replaces `dired-move-to-filename-regexp' from dired.el.
 
 	* dired.el (dired-move-to-filename-regexp): Remove.
-	All occurences replaced by `directory-listing-before-filename-regexp'.
+	All occurrences replaced by `directory-listing-before-filename-regexp'.
 
 	* dired-x.el, locate.el, vc.el:
 	Replace `dired-move-to-filename-regexp' by
 	`directory-listing-before-filename-regexp'.  In vc.el it is
 	overwritten locally; maybe this can be handled in files.el too.
 
-	* net/ange-ftp.el (ange-ftp-date-regexp): Remove.  All occurences
+	* net/ange-ftp.el (ange-ftp-date-regexp): Remove.  All occurrences
 	replaced by `directory-listing-before-filename-regexp'.
 
 2005-10-23  Andreas Schwab  <schwab@suse.de>
@@ -19923,7 +19923,7 @@
 	(outlineify-sticky): Use the file vars mechanism.
 	(allout-inhibit-protection, allout-during-write-cue)
 	(allout-override-protect, allout-before-change-protect): Remove.
-	(allout-flag-region, allout-open-topic): Adjust	read-only text.
+	(allout-flag-region, allout-open-topic): Adjust read-only text.
 	(allout-open-line-not-read-only): Add to facilitate read-only
 	text based protection.
 	(allout-kill-line): Revise to adjust read-only text, clue the
@@ -20402,7 +20402,7 @@
 
 2005-10-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* startup.el (command-line-x-option-alist): -nb => -nbi
+	* startup.el (command-line-x-option-alist): -nb => -nbi.
 
 2005-10-12  Kim F. Storm  <storm@cua.dk>
 
@@ -20580,7 +20580,7 @@
 	* term/x-win.el: Remove -i, --icon-type from comment.
 
 	* startup.el (command-line-x-option-alist): Remove options -i,
-	-itype, --icon-type, added -nb, --no-bitmap-icon
+	-itype, --icon-type, added -nb, --no-bitmap-icon.
 
 2005-10-09  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -20866,7 +20866,7 @@
 	* textmodes/ispell.el (ispell-word, ispell-region):
 	Call ispell-maybe-find-aspell-dictionaries.
 	(ispell-accept-buffer-local-defs):
-	Don't call ispell-maybe-find-aspell-dictionaries
+	Don't call ispell-maybe-find-aspell-dictionaries.
 
 2005-10-04  Richard M. Stallman  <rms@gnu.org>
 
@@ -22474,7 +22474,7 @@
 
 	* calendar/diary-lib.el (diary-modify-entry-list-string-function):
 	New hook.
-	(add-to-diary-list): Call `diary-modify-entry-list-string-function'
+	(add-to-diary-list): Call `diary-modify-entry-list-string-function'.
 
 2005-08-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -24379,7 +24379,7 @@
 	* viper-init.el: Get rid of -face in face names.
 
 	* ediff-diff.el (ediff-extract-diffs, ediff-extract-diffs3):
-	Make it work with longlines mode
+	Make it work with longlines mode.
 
 	* ediff-mult.el (ediff-meta-mode-hook): New variable.
 
@@ -27822,7 +27822,7 @@
 	(reftex-unhighlight): Use `reftex-delete-overlay'.
 	(reftex-uniq): Function removed.  Use `reftex-uniquify' instead.
 	(reftex-access-search-path): Use `reftex-uniquify' instead of
-	`reftex-uniq'
+	`reftex-uniq'.
 
 	* textmodes/reftex-sel.el (reftex-select-unmark): Overlay
 	`before-string' property modification enables for Emacs as well.
@@ -29301,7 +29301,7 @@
 
 	* isearch.el (isearch-edit-string): Make the search-ring available for
 	minibuffer history commands.
-	(minibuffer-local-isearch-map): Remove bindings for M-p	and M-n,
+	(minibuffer-local-isearch-map): Remove bindings for M-p and M-n,
 	the default history commands now work just as well.
 	(isearch-ring-retreat-edit, isearch-ring-advance-edit): Remove.
 
@@ -29461,7 +29461,7 @@
 	`org-insert-mode-line-in-empty-file' has been set.
 	(org-agenda-todo, org-agenda-priority): Modify to use
 	`org-agenda-change-all-lines'.
-	(org-warning-face): Change color on dark background
+	(org-warning-face): Change color on dark background.
 
 2005-04-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -29585,7 +29585,7 @@
 
 2005-04-11  Rajesh Vaidheeswarran  <rv@gnu.org>
 
-	* whitespace.el (whitespace-version): Bump to 3.5
+	* whitespace.el (whitespace-version): Bump to 3.5.
 
 	(whitespace-buffer-leading, whitespace-buffer-trailing):
 	Invert sense of the test to highlight the whitespace.
@@ -29613,7 +29613,7 @@
 
 	* dired.el (dired-mode): Use dnd-* instead of x-dnd-*
 	(dired-dnd-handle-local-file): Call dnd-get-local-file-name.
-	(dired-dnd-handle-file): Call dnd-get-local-file-uri
+	(dired-dnd-handle-file): Call dnd-get-local-file-uri.
 
 	* cus-edit.el (dnd): New group.
 
@@ -32029,7 +32029,7 @@
 	(calcFunc-sech, calcFunc-csch, calcFunc-coth, math-sec-raw)
 	(math-csc-raw, math-cot-raw): New functions.
 
-	* calc/calc-rules.el (calc-DistribRules, calc-NegateRules): Add	rules.
+	* calc/calc-rules.el (calc-DistribRules, calc-NegateRules): Add rules.
 
 	* calc/calc-undo.el (calc-handle-undo): Remove prefix from
 	the variable name in a message.
@@ -32604,7 +32604,7 @@
 2005-01-21  Ren,Ai(B Kyllingstad  <listmailxemacs@kyllingstad.com>
 
 	* pcomplete.el: Define pcomplete-read-event instead of read-event,
-	since it's not a complete read-event implementation
+	since it's not a complete read-event implementation.
 
 2005-01-20  Jay Belanger  <belanger@truman.edu>
 

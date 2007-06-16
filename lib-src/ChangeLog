@@ -1,3 +1,8 @@
+2007-06-07  Glenn Morris  <rgm@gnu.org>
+
+	* etags.c (print_version): Add `emacs_copyright' string, for
+	easier automatic updating.
+
 2007-05-18  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* etags.c: Extern definitions of some more pointer functions for
@@ -9,6 +14,10 @@
 2007-04-26  Glenn Morris  <rgm@gnu.org>
 
 	* makefile.w32-in (VERSION): Increase to 22.1.50.
+
+2007-06-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 22.1 released.
 
 2007-02-26  Francesco Potort,Al(B  <pot@gnu.org>
 

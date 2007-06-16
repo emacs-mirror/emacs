@@ -3935,6 +3935,8 @@ Otherwise check for the existence of a global face.  */)
 {
   Lisp_Object lface;
 
+  face = resolve_face_name (face, 1);
+
   if (!NILP (frame))
     {
       CHECK_LIVE_FRAME (frame);
@@ -7987,7 +7989,7 @@ syms_of_xfaces ()
   staticpro (&QCforeground);
   QCbackground = intern (":background");
   staticpro (&QCbackground);
-  QCstipple = intern (":stipple");;
+  QCstipple = intern (":stipple");
   staticpro (&QCstipple);
   QCwidth = intern (":width");
   staticpro (&QCwidth);

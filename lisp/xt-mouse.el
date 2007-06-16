@@ -126,6 +126,21 @@
         (+ c #x8000000 128)
       c)))
 
+(defun xterm-mouse-truncate-wrap (f)
+  "Truncate with wrap-around."
+  (condition-case nil
+      ;; First try the built-in truncate, in case there's no overflow.
+      (truncate f)
+    ;; In case of overflow, do wraparound by hand.
+    (range-error
+     ;; In our case, we wrap around every 3 days or so, so if we assume
+     ;; a maximum of 65536 wraparounds, we're safe for a couple years.
+     ;; Using a power of 2 makes rounding errors less likely.
+     (let* ((maxwrap (* 65536 2048))
+            (dbig (truncate (/ f maxwrap)))
+            (fdiff (- f (* 1.0 maxwrap dbig))))
+       (+ (truncate fdiff) (* maxwrap dbig))))))
+
 (defun xterm-mouse-event ()
   "Convert XTerm mouse event to Emacs mouse event."
   (let* ((type (- (xterm-mouse-event-read) #o40))
@@ -133,12 +148,12 @@
 	 (y (- (xterm-mouse-event-read) #o40 1))
 	 ;; Emulate timestamp information.  This is accurate enough
 	 ;; for default value of mouse-1-click-follows-link (450msec).
-	 (timestamp (truncate
-		     (* 1000
-			(- (float-time)
-			   (or xt-mouse-epoch
-			       (setq xt-mouse-epoch (float-time)))))))
-	 (mouse (intern
+	 (timestamp (xterm-mouse-truncate-wrap
+                     (* 1000
+                        (- (float-time)
+                           (or xt-mouse-epoch
+                               (setq xt-mouse-epoch (float-time)))))))
+         (mouse (intern
 		 ;; For buttons > 3, the release-event looks
 		 ;; differently (see xc/programs/xterm/button.c,
 		 ;; function EditorButton), and there seems to come in
@@ -210,5 +225,5 @@ down the SHIFT key while pressing the mouse button."
 
 (provide 'xt-mouse)
 
-;;; arch-tag: 84962d4e-fae9-4c13-a9d7-ef4925a4ac03
+;; arch-tag: 84962d4e-fae9-4c13-a9d7-ef4925a4ac03
 ;;; xt-mouse.el ends here

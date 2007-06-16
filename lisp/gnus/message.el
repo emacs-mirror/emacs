@@ -5576,7 +5576,7 @@ between beginning of field and beginning of line."
 	     'car-less-than-car)))
 	  new)))))
 
-(defun message-pop-to-buffer (name)
+(defun message-pop-to-buffer (name &optional switch-function)
   "Pop to buffer NAME, and warn if it already exists and is modified."
   (let ((buffer (get-buffer name)))
     (if (and buffer
@@ -5587,14 +5587,16 @@ between beginning of field and beginning of line."
 	      (progn
 		(gnus-select-frame-set-input-focus (window-frame window))
 		(select-window window))
-	    (set-buffer (pop-to-buffer buffer)))
+	    (funcall (or switch-function 'pop-to-buffer) buffer)
+	    (set-buffer buffer))
 	  (when (and (buffer-modified-p)
 		     (not (prog1
 			      (y-or-n-p
 			       "Message already being composed; erase? ")
 			    (message nil))))
 	    (error "Message being composed")))
-      (set-buffer (pop-to-buffer name)))
+      (funcall (or switch-function 'pop-to-buffer) name)
+      (set-buffer name))
     (erase-buffer)
     (message-mode)))
 
@@ -5831,15 +5833,15 @@ is a function used to switch to and display the mail buffer."
   (interactive)
   (let ((message-this-is-mail t) replybuffer)
     (unless (message-mail-user-agent)
-      (funcall
-       (or switch-function 'message-pop-to-buffer)
+      (message-pop-to-buffer
        ;; Search for the existing message buffer if `continue' is non-nil.
        (let ((message-generate-new-buffers
 	      (when (or (not continue)
 			(eq message-generate-new-buffers 'standard)
 			(functionp message-generate-new-buffers))
 		message-generate-new-buffers)))
-	 (message-buffer-name "mail" to))))
+	 (message-buffer-name "mail" to))
+       switch-function))
     ;; FIXME: message-mail should do something if YANK-ACTION is not
     ;; insert-buffer.
     (and (consp yank-action) (eq (car yank-action) 'insert-buffer)

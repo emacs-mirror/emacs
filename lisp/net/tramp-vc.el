@@ -31,8 +31,6 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
 (require 'vc)
 ;; Old VC defines vc-rcs-release in vc.el, new VC requires extra module.
 (unless (boundp 'vc-rcs-release)

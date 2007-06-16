@@ -1,3 +1,23 @@
+2007-06-08  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Make gtk the default toolkit.
+
+2007-06-07  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (NON_GNU_CPP): On Solaris, set using a proper check
+	for a Sun C compiler.
+
+	* Makefile.in (install-arch-indep): Install only the DOC- file
+	specific to the build, if possible, rather than DOC-*.
+
+2007-06-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 22.1 released.
+
+2007-05-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mkinstalldirs: Sync to version in automake CVS.
+
 2007-05-22  Andreas Schwab  <schwab@suse.de>
 
 	* configure.in: Prefer build_alias over host when host_alias is
