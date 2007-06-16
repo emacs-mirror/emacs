@@ -263,7 +263,7 @@ See also `emacs-session-save'.")
 If the directory ~/.emacs.d exists, we make a filename in there, otherwise
 a file in the home directory."
   (let ((basename (concat "session." session-id))
-	(emacs-dir "~/.emacs.d/"))
+	(emacs-dir user-emacs-directory))
     (expand-file-name (if (file-directory-p emacs-dir)
 			  (concat emacs-dir basename)
 			(concat "~/.emacs-" basename)))))

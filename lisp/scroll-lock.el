@@ -50,7 +50,7 @@
 
 ;;;###autoload
 (define-minor-mode scroll-lock-mode
-  "Minor mode for pager-like scrolling.
+  "Buffer-local minor mode for pager-like scrolling.
 Keys which normally move point by line or paragraph will scroll
 the buffer by the respective amount of lines instead and point
 will be kept vertically fixed relative to window boundaries

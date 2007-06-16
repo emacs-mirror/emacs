@@ -3103,7 +3103,7 @@ overwritten.
 
 The overlay-arrow string is displayed in any given buffer if the value
 of @code{overlay-arrow-position} in that buffer points into that
-buffer.  Thus, it works to can display multiple overlay arrow strings
+buffer.  Thus, it is possible to display multiple overlay arrow strings
 by creating buffer-local bindings of @code{overlay-arrow-position}.
 However, it is usually cleaner to use
 @code{overlay-arrow-variable-list} to achieve this result.
@@ -4276,13 +4276,43 @@ cache, it can always be displayed, even if the value of
 @subsection Image Cache
 @cindex image cache
 
-  Emacs stores images in an image cache when it displays them, so it can
-display them again more efficiently.  It removes an image from the cache
-when it hasn't been displayed for a specified period of time.
+  Emacs stores images in an image cache so that it can display them
+again more efficiently.  When Emacs displays an image, it searches the
+image cache for an existing image specification @code{equal} to the
+desired specification.  If a match is found, the image is displayed
+from the cache; otherwise, Emacs loads the image normally.
 
-When an image is looked up in the cache, its specification is compared
-with cached image specifications using @code{equal}.  This means that
-all images with equal specifications share the same image in the cache.
+  Occasionally, you may need to tell Emacs to refresh the images
+associated with a given image specification.  For example, suppose you
+display an image using a specification that contains a @code{:file}
+property.  The image is loaded from the given file and stored in the
+image cache.  If you later display the image again, using the same
+image specification, the image is displayed from the image cache.
+Normally, this is not a problem.  However, if the image file has
+changed in the meantime, Emacs would be displaying the old version of
+the image.  In such a situation, it is necessary to ``refresh'' the
+image using @code{image-refresh}.
+
+@defun image-refresh spec &optional frame
+This function refreshes any images having image specifications
+@code{equal} to @var{spec} on frame @var{frame}.  If @var{frame} is
+@code{nil}, the selected frame is used.  If @var{frame} is @code{t},
+the refresh is applied to all existing frames.
+
+This works by removing all image with image specifications matching
+@var{spec} from the image cache.  Thus, the next time the image is
+displayed, Emacs will load the image again.
+@end defun
+
+@defun clear-image-cache &optional frame
+This function clears the entire image cache.  If @var{frame} is
+non-@code{nil}, only the cache for that frame is cleared.  Otherwise,
+all frames' caches are cleared.
+@end defun
+
+If an image in the image cache has not been displayed for a specified
+period of time, Emacs removes it from the cache and frees the
+associated memory.
 
 @defvar image-cache-eviction-delay
 This variable specifies the number of seconds an image can remain in the
@@ -4293,12 +4323,6 @@ If the value is @code{nil}, Emacs does not remove images from the cache
 except when you explicitly clear it.  This mode can be useful for
 debugging.
 @end defvar
-
-@defun clear-image-cache &optional frame
-This function clears the image cache.  If @var{frame} is non-@code{nil},
-only the cache for that frame is cleared.  Otherwise all frames' caches
-are cleared.
-@end defun
 
 @node Buttons
 @section Buttons

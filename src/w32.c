@@ -137,6 +137,15 @@ typedef BOOL (WINAPI * GetTokenInformation_Proc) (
     LPVOID TokenInformation,
     DWORD TokenInformationLength,
     PDWORD ReturnLength);
+typedef BOOL (WINAPI * GetProcessTimes_Proc) (
+    HANDLE process_handle,
+    LPFILETIME creation_time,
+    LPFILETIME exit_time,
+    LPFILETIME kernel_time,
+    LPFILETIME user_time);
+
+GetProcessTimes_Proc get_process_times_fn = NULL;
+
 #ifdef _UNICODE
 const char * const LookupAccountSid_Name = "LookupAccountSidW";
 #else
@@ -170,6 +179,46 @@ is_windows_9x ()
         }
     }
   return s_b_ret;
+}
+
+/* Get total user and system times for get-internal-run-time.
+   Returns a list of three integers if the times are provided by the OS
+   (NT derivatives), otherwise it returns the result of current-time. */
+Lisp_Object
+w32_get_internal_run_time ()
+{
+  if (get_process_times_fn)
+    {
+      FILETIME create, exit, kernel, user;
+      HANDLE proc = GetCurrentProcess();
+      if ((*get_process_times_fn) (proc, &create, &exit, &kernel, &user))
+        {
+          LARGE_INTEGER user_int, kernel_int, total;
+          int microseconds;
+          user_int.LowPart = user.dwLowDateTime;
+          user_int.HighPart = user.dwHighDateTime;
+          kernel_int.LowPart = kernel.dwLowDateTime;
+          kernel_int.HighPart = kernel.dwHighDateTime;
+          total.QuadPart = user_int.QuadPart + kernel_int.QuadPart;
+          /* FILETIME is 100 nanosecond increments, Emacs only wants
+             microsecond resolution.  */
+          total.QuadPart /= 10;
+          microseconds = total.QuadPart % 1000000;
+          total.QuadPart /= 1000000;
+
+          /* Sanity check to make sure we can represent the result.  */
+          if (total.HighPart == 0)
+            {
+              int secs = total.LowPart;
+
+              return list3 (make_number ((secs >> 16) & 0xffff),
+                            make_number (secs & 0xffff),
+                            make_number (microseconds));
+            }
+        }
+    }
+
+  return Fcurrent_time ();
 }
 
   /* ** The wrapper functions ** */
@@ -486,20 +535,16 @@ init_user_info ()
      the user-sid as the user id value (same for group id using the
      primary group sid from the process token). */
 
-  char            user_sid[256], name[256], domain[256];
-  DWORD           length = sizeof (name), dlength = sizeof (domain), trash;
-  HANDLE          token = NULL;
-  SID_NAME_USE    user_type;
+  char         user_sid[256], name[256], domain[256];
+  DWORD        length = sizeof (name), dlength = sizeof (domain), trash;
+  HANDLE       token = NULL;
+  SID_NAME_USE user_type;
 
-  if (
-			open_process_token (GetCurrentProcess (), TOKEN_QUERY, &token)
-      && get_token_information (
-					token, TokenUser,
-			      (PVOID) user_sid, sizeof (user_sid), &trash)
-      && lookup_account_sid (
-					NULL, *((PSID *) user_sid), name, &length,
-			   domain, &dlength, &user_type)
-			)
+  if (open_process_token (GetCurrentProcess (), TOKEN_QUERY, &token)
+      && get_token_information (token, TokenUser,
+				(PVOID) user_sid, sizeof (user_sid), &trash)
+      && lookup_account_sid (NULL, *((PSID *) user_sid), name, &length,
+			     domain, &dlength, &user_type))
     {
       strcpy (the_passwd.pw_name, name);
       /* Determine a reasonable uid value. */
@@ -524,7 +569,7 @@ init_user_info ()
 
 	  /* Get group id */
 	  if (get_token_information (token, TokenPrimaryGroup,
-				   (PVOID) user_sid, sizeof (user_sid), &trash))
+				     (PVOID) user_sid, sizeof (user_sid), &trash))
 	    {
 	      SID_IDENTIFIER_AUTHORITY * pSIA;
 
@@ -541,7 +586,7 @@ init_user_info ()
 	}
     }
   /* If security calls are not supported (presumably because we
-       are running under Windows 95), fallback to this. */
+     are running under Windows 95), fallback to this. */
   else if (GetUserName (name, &length))
     {
       strcpy (the_passwd.pw_name, name);
@@ -4148,6 +4193,11 @@ BOOL WINAPI shutdown_handler(DWORD type)
 void
 globals_of_w32 ()
 {
+  HMODULE kernel32 = GetModuleHandle ("kernel32.dll");
+
+  get_process_times_fn = (GetProcessTimes_Proc)
+    GetProcAddress (kernel32, "GetProcessTimes");
+
   g_b_init_is_windows_9x = 0;
   g_b_init_open_process_token = 0;
   g_b_init_get_token_information = 0;

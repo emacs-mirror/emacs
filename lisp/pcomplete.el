@@ -934,7 +934,7 @@ generate the completions list.  This means that the hook
   (if pcomplete-last-window-config
       (let* ((cbuf (get-buffer "*Completions*"))
 	     (cwin (and cbuf (get-buffer-window cbuf))))
-	(when (and cwin (window-live-p cwin))
+	(when (window-live-p cwin)
 	  (bury-buffer cbuf)
 	  (set-window-configuration pcomplete-last-window-config))))
   (setq pcomplete-last-window-config nil

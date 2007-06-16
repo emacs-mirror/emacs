@@ -1,3 +1,18 @@
+2007-06-12  Tom Tromey  <tromey@redhat.com>
+
+	* url.el (url-configuration-directory): Use user-emacs-directory.
+
+2007-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-cookie.el (url-cookie-name, url-cookie-value)
+	(url-cookie-expires, url-cookie-localpart, url-cookie-domain)
+	(url-cookie-secure, url-cookie-set-name, url-cookie-set-value)
+	(url-cookie-set-expires, url-cookie-set-localpart)
+	(url-cookie-set-domain, url-cookie-set-secure)
+	(url-cookie-retrieve-arg, url-cookie-create, url-cookie-p): Remove.
+	(url-cookie): New struct.
+	(url-cookie-store): Use setf instead of url-cookie-set-*.
+
 2007-05-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* url-mailto.el (url-mailto): Insert body after
