@@ -1,3 +1,11 @@
+2007-06-15  Karl Fogel  <kfogel@red-bean.com>
+
+	* thingatpt.el: Add support for email addresses (`email').
+	(thing-at-point, bounds-of-thing-at-point): Document `email' support.
+	(thing-at-point-email-regexp): New variable.
+	(`email'): Put `bounds-of-thing-at-point' and `thing-at-point'
+	properties on this symbol, with lambda forms for values.
+	
 2007-06-15  Masatake YAMATO  <jet@gyve.org>
 
 	* vc-bzr.el (vc-bzr-root): Cache the output of shell command
