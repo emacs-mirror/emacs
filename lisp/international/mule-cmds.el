@@ -715,7 +715,7 @@ DEFAULT is the coding system to use by default in the query."
 	    (let ((pos (point))
 		  (fill-prefix "  "))
 	      (dolist (x (append rejected unsafe))
-		(princ "  ") (princ (car x)))
+		(princ "  ") (princ x))
 	      (insert "\n")
 	      (fill-region-as-paragraph pos (point)))
 	    (when rejected
