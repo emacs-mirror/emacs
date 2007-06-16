@@ -1,213 +1,130 @@
-This file is obsolete, and no longer part of the Emacs Lisp Reference Manual.
-It is still present in CVS in case we ever want to use some of it again.
-
-@c This is part of the GNU Emacs Lisp Reference Manual.
+\input texinfo  @c -*-texinfo-*-
+@c This file is used for printing the GNU Emacs Lisp Reference Manual
+@c in two volumes.  It is a modified version of elisp.texi.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
 @c   2002, 2003, 2004, 2005, 2006, 2007  Free Software Foundation, Inc.
-@c See the file elisp.texi for copying conditions.
-
-\input texinfo  @c -*-texinfo-*-
 @c %**start of header
 @setfilename elisp
 @settitle GNU Emacs Lisp Reference Manual: Volume 1
-@smallbook
 @c %**end of header
 
-
+@c See two-volume-cross-refs.txt.
 @tex
-%%%% Experiment with smaller skip before sections and subsections.
-%%%% --rjc 30mar92
-
-\global\secheadingskip = 17pt plus 6pt minus 3pt
-\global\subsecheadingskip = 14pt plus 6pt minus 3pt
-
-% The defaults are:
-%   \secheadingskip = 21pt plus 8pt minus 4pt
-%   \subsecheadingskip = 17pt plus 8pt minus 4pt
-@end tex
-
-@finalout
-@c tex
-@c \overfullrule=0pt
-@c end tex
-
-@c Start volume 1 chapter numbering on chapter 1;
-@c this must be listed as chapno 0.
-@tex
+\message{Formatting for two volume edition...Volume 1...}
+%
+% Read special toc file, set up in two-volume.make.
+\gdef\tocreadfilename{elisp1-toc-ready.toc}
+%
+% Don't make outlines, they're not needed and \readdatafile can't pay
+% attention to the special definition above.
+\global\let\pdfmakeoutlines=\relax
+%
+% Start volume 1 chapter numbering at 1; this must be listed as chapno0.
 \global\chapno=0
 @end tex
 
-@c ================================================================
-@c Note: I was unable to figure out how to get .aux files copied
-@c properly in the time I had.  Hence need to copy .aux file before
-@c running Tex.  --rjc
+@c Version of the manual and of Emacs.
+@c Please remember to update the edition number in README as well.
+@set VERSION  2.9
+@set EMACSVER 22.0.99
 
+@dircategory Emacs
+@direntry
+* Elisp: (elisp).       The Emacs Lisp Reference Manual.
+@end direntry
+
+@c in general, keep the following line commented out, unless doing a
+@c copy of this manual that will be published.  the manual should go
+@c onto the distribution in the full, 8.5 x 11" size.
+@set smallbook
+
+@ifset smallbook
+@smallbook
+@end ifset
+
+@c per rms and peterb, use 10pt fonts for the main text, mostly to
+@c save on paper cost.  
+@c Do this inside @tex for now, so current makeinfo does not complain.
 @tex
-
-\message{}
-\message{Redefining contents commands...}
-\message{}
-
-% Special @contents  command
-
-% This inputs fixed up table of contents file rather than create new one.
-\global\def\contents{%
-   \startcontents{Table of Contents}%
-      \input elisp1-toc-ready.toc
-   \endgroup
-   \vfill \eject
-}
-
-% Special @summarycontents  command
-% This inputs fixed up table of contents file rather than create new one.
-\global\def\summarycontents{%
-   \startcontents{Short Contents}%
-      %
-      \let\chapentry = \shortchapentry
-      \let\unnumbchapentry = \shortunnumberedentry
-      % We want a true roman here for the page numbers.
-      \secfonts
-      \let\rm=\shortcontrm \let\bf=\shortcontbf \let\sl=\shortcontsl
-      \rm
-      \advance\baselineskip by 1pt % Open it up a little.
-      \def\secentry ##1##2##3##4{}
-      \def\unnumbsecentry ##1##2{}
-      \def\subsecentry ##1##2##3##4##5{}
-      \def\unnumbsubsecentry ##1##2{}
-      \def\subsubsecentry ##1##2##3##4##5##6{}
-      \def\unnumbsubsubsecentry ##1##2{}
-      \input elisp1-toc-ready.toc
-   \endgroup
-   \vfill \eject
-}
-
-\message{}
-\message{Formatting special two volume edition...Volume 1...}
-\message{}
+@ifset smallbook
+@fonttextsize 10
+@set EMACSVER 22
+\global\let\urlcolor=\Black % don't print links in grayscale
+\global\let\linkcolor=\Black
+@end ifset
+\global\hbadness=6666 % don't worry about not-too-underfull boxes
 @end tex
-@c ================================================================
 
-
-@c ==> This `elisp-small.texi' is a `smallbook' version of the manual.
-
-@c ==== Following are acceptable over and underfull hboxes in TeX ====
-
-@c -----
-@c [163] [164] [165] [166]) (loading.texi Chapter 13 [167] [168] [169]
-@c Overfull \hbox (20.5428pt too wide) in paragraph at lines 131--131
-@c []@ninett
-@c setenv EMAC-SLOAD-PATH .:/user/bil/emacs:/usr/local/lib/emacs/lisp[]
-@c -----
-@c (minibuf.texi Chapter 17 [206] [207] [208] [209] [210] [211] [212] [213]
-@c [214] [215]
-@c Overfull \hbox (2.09094pt too wide) in paragraph at lines 550--560
-@c @texttt map[] @textrm if @textsl require-match @textrm is
-@c  @texttt nil[]@textrm , or else with the keymap @texttt minibuffer-
-@c -----
-@c (locals.texi Appendix @char 68 [533] [534]
-@c Underfull \hbox (badness 2512) in paragraph at lines 4--4
-@c []@chaprm Appendix DStandard Buffer-Local
-
-@c -------------------------------------------------------------------
-
-@c
 @c Combine indices.
 @synindex cp fn
 @syncodeindex vr fn
 @syncodeindex ky fn
 @syncodeindex pg fn
-@syncodeindex tp fn
-@c oops: texinfo-format-buffer ignores synindex
-@c
+@c We use the "type index" to index new functions and variables.
+@c @syncodeindex tp fn
 
-@ifinfo
-This file documents GNU Emacs Lisp.
+@copying
+This is edition @value{VERSION} of the GNU Emacs Lisp Reference Manual,@*
+corresponding to Emacs version @value{EMACSVER}.
 
-@c The edition number appears in several places in this file
-@c and also in the file intro.texi.
-This is edition 2.4 of the GNU Emacs Lisp Reference
-Manual.  It corresponds to Emacs Version 19.29.
-@c Please REMEMBER to update edition number in *four* places in this file
-@c                 and also in *one* place in ==> intro.texi <==
-@c huh?  i only found three real places where the edition is stated, and
-@c one place where it is not stated explicitly ("this info file is newer
-@c than the foobar edition").  --mew 13sep93
+Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998,
+1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007  Free Software
+Foundation, Inc.
 
-Published by the Free Software Foundation
-51 Franklin Street, Fifth Floor
-Boston, MA  02110-1301 USA
-@end ifinfo
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.2 or
+any later version published by the Free Software Foundation; with the
+Invariant Sections being ``GNU General Public License,'' with the
+Front-Cover texts being ``A GNU Manual,'' and with the Back-Cover
+Texts as in (a) below.  A copy of the license is included in the
+section entitled ``GNU Free Documentation License.''
 
-@setchapternewpage odd
+(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
+this GNU Manual, like GNU software.  Copies published by the Free
+Software Foundation raise funds for GNU development.''
+@end quotation
+@end copying
 
-@iftex
-@shorttitlepage The GNU Emacs Lisp Reference Manual: Volume 1
-@end iftex
 @titlepage
-@sp 1
-@center @titlefont{The}
-@sp 1
-@center @titlefont{GNU Emacs Lisp}
-@sp 1
-@center @titlefont{Reference Manual}
-@sp 2
-@center GNU Emacs Version 19.29
-@center for Unix Users
-@sp 1
-@center Edition 2.4, June 1995
-@sp 2
-@center @titlefont{Volume 1}
-@sp 3
-@center by Bil Lewis, Dan LaLiberte,
-@center and the GNU Manual Group
+@title GNU Emacs Lisp Reference Manual
+@subtitle Volume 1
+@subtitle For Emacs Version @value{EMACSVER}
+@subtitle Revision @value{VERSION}, June 2007
+
+@author by Bil Lewis, Dan LaLiberte, Richard Stallman
+@author and the GNU Manual Group
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
+@insertcopying
 
 @sp 2
-Edition 2.4 @*
-Revised for Emacs Version 19.29,@*
-June, 1995.@*
-@sp 2
-ISBN 1-882114-71-X
 
-@sp 2
 Published by the Free Software Foundation @*
-51 Franklin Street, Fifth Floor @*
-Boston, MA  02110-1301 USA
-
-@sp 1
-Permission is granted to make and distribute verbatim copies of this
-manual provided the copyright notice and this permission notice are
-preserved on all copies.
-
-Permission is granted to copy and distribute modified versions of this
-manual under the conditions for verbatim copying, provided also that the
-section entitled ``GNU General Public License'' is included
-exactly as in the original, and provided that the entire resulting
-derived work is distributed under the terms of a permission notice
-identical to this one.
-
-Permission is granted to copy and distribute translations of this manual
-into another language, under the above conditions for modified versions,
-except that the section entitled ``GNU General Public License'' may be
-included in a translation approved by the Free Software Foundation
-instead of in the original English.
+51 Franklin St, Fifth Floor @*
+Boston, MA 02110-1301 @*
+USA @*
+ISBN 1-882114-74-4
 
 @sp 2
 Cover art by Etienne Suvasa.
 @end titlepage
-@page
 
-@node Top, Copying, (dir), (dir)
 
-@ifinfo
-This Info file contains edition 2.4 of the GNU Emacs Lisp Reference
-Manual, corresponding to GNU Emacs version 19.29.
-@end ifinfo
+@c Print the tables of contents
+@summarycontents
+@contents
+
+
+@ifnottex
+@node Top, Introduction, (dir), (dir)
+@top Emacs Lisp
+
+This Info file contains edition @value{VERSION} of the GNU Emacs Lisp
+Reference Manual, corresponding to GNU Emacs version @value{EMACSVER}.
+@end ifnottex
 
 @menu
-* Copying::                 Conditions for copying and changing GNU Emacs.
 * Introduction::            Introduction and conventions used.
 
 * Lisp Data Types::         Data types of objects in Emacs Lisp.
@@ -217,6 +134,7 @@ Manual, corresponding to GNU Emacs version 19.29.
 * Sequences Arrays Vectors::  Lists, strings and vectors are called sequences.
                                 Certain functions act on any kind of sequence.
                                 The description of vectors is here as well.
+* Hash Tables::             Very fast lookup-tables.
 * Symbols::                 Symbols represent names, uniquely.
 
 * Evaluation::              How Lisp expressions are evaluated.
@@ -225,9 +143,11 @@ Manual, corresponding to GNU Emacs version 19.29.
 * Functions::               A function is a Lisp program
                               that can be invoked from other functions.
 * Macros::                  Macros are a way to extend the Lisp language.
+* Customization::           Writing customization declarations.
 
 * Loading::                 Reading files of Lisp code into Lisp.
 * Byte Compilation::        Compilation makes programs run faster.
+* Advising Functions::      Adding to the definition of a function.
 * Debugging::               Tools and tips for debugging Lisp programs.
 
 * Read and Print::          Converting Lisp objects to text and back.
@@ -243,36 +163,51 @@ Manual, corresponding to GNU Emacs version 19.29.
                               files are made.
 * Buffers::                 Creating and using buffer objects.
 * Windows::                 Manipulating windows and displaying buffers.
-* Frames::		    Making multiple X windows.
+* Frames::		    Making multiple system-level windows.
 * Positions::               Buffer positions and motion functions.
 * Markers::                 Markers represent positions and update
                               automatically when the text is changed.
 
 * Text::                    Examining and changing text in buffers.
+* Non-ASCII Characters::    Non-ASCII text in buffers and strings.
 * Searching and Matching::  Searching buffers for strings or regexps.
 * Syntax Tables::           The syntax table controls word and list parsing.
 * Abbrevs::                 How Abbrev mode works, and its data structures.
 
 * Processes::               Running and communicating with subprocesses.
+* Display::	            Features for controlling the screen display.
 * System Interface::        Getting the user id, system type, environment
                               variables, and other such things.
-* Display::	            Parameters controlling screen usage.
-                              The bell.  Waiting for input.
 
 Appendices
 
-* Tips::                    Advice for writing Lisp programs.
+* Antinews::                Info for users downgrading to Emacs 21.
+* GNU Free Documentation License:: The license for this documentation
+* GPL::                     Conditions for copying and changing GNU Emacs.
+* Tips::                    Advice and coding conventions for Emacs Lisp.
 * GNU Emacs Internals::     Building and dumping Emacs;
                               internal data structures.
 * Standard Errors::         List of all error symbols.
-* Standard Buffer-Local Variables::  List of variables local in all buffers.
+* Standard Buffer-Local Variables::
+                            List of variables buffer-local in all buffers.
 * Standard Keymaps::        List of standard keymaps.
 * Standard Hooks::          List of standard hook variables.
 
 * Index::                   Index including concepts, functions, variables,
                               and other terms.
 
-      --- The Detailed Node Listing ---
+@ignore
+* New Symbols::             New functions and variables in Emacs @value{EMACSVER}.
+@end ignore
+
+@c Do NOT modify the following 3 lines!  They must have this form to
+@c be correctly identified by `texinfo-multiple-files-update'.  In
+@c particular, the detailed menu header line MUST be identical to the
+@c value of `texinfo-master-menu-header'.  See texnfo-upd.el.
+
+@detailmenu
+ --- The Detailed Node Listing ---
+ ---------------------------------
 
 Here are other nodes that are inferiors of those already listed,
 mentioned here so you can get to them in one step:
@@ -282,6 +217,7 @@ Introduction
 * Caveats::                 Flaws and a request for help.
 * Lisp History::            Emacs Lisp is descended from Maclisp.
 * Conventions::             How the manual is formatted.
+* Version Info::            Which Emacs version is running?
 * Acknowledgements::        The authors, editors, and sponsors of this manual.
 
 Conventions
@@ -296,8 +232,10 @@ Conventions
 
 Format of Descriptions
 
-* A Sample Function Description::
-* A Sample Variable Description::
+* A Sample Function Description::  A description of an imaginary
+                                     function, @code{foo}.
+* A Sample Variable Description::  A description of an imaginary
+                                     variable, @code{electric-future-map}.
 
 Lisp Data Types
 
@@ -305,6 +243,7 @@ Lisp Data Types
 * Comments::                Comments and their formatting conventions.
 * Programming Types::       Types found in all Lisp systems.
 * Editing Types::           Types specific to Emacs.
+* Circular Objects::            Read syntax for circular structure.
 * Type Predicates::         Tests related to types.
 * Equality Predicates::     Tests of equality between any two objects.
 
@@ -313,70 +252,95 @@ Programming Types
 * Integer Type::        Numbers without fractional parts.
 * Floating Point Type:: Numbers with fractional parts and with a large range.
 * Character Type::      The representation of letters, numbers and
-                        control characters.
+                          control characters.
+* Symbol Type::         A multi-use object that refers to a function,
+                        variable, property list, or itself.
 * Sequence Type::       Both lists and arrays are classified as sequences.
 * Cons Cell Type::      Cons cells, and lists (which are made from cons cells).
 * Array Type::          Arrays include strings and vectors.
 * String Type::         An (efficient) array of characters.
 * Vector Type::         One-dimensional arrays.
-* Symbol Type::         A multi-use object that refers to a function,
-                        variable, property list, or itself.
+* Char-Table Type::     One-dimensional sparse arrays indexed by characters.
+* Bool-Vector Type::    One-dimensional arrays of @code{t} or @code{nil}.
+* Hash Table Type::     Super-fast lookup tables.
 * Function Type::       A piece of executable code you can call from elsewhere.
 * Macro Type::          A method of expanding an expression into another
                           expression, more fundamental but less pretty.
 * Primitive Function Type::     A function written in C, callable from Lisp.
 * Byte-Code Type::      A function written in Lisp, then compiled.
 * Autoload Type::       A type used for automatically loading seldom-used
-                        functions.
+                          functions.
 
-List Type
+Character Type
 
+* Basic Char Syntax::       Syntax for regular characters.
+* General Escape Syntax::   How to specify characters by their codes.
+* Ctl-Char Syntax::         Syntax for control characters.
+* Meta-Char Syntax::        Syntax for meta-characters.
+* Other Char Bits::         Syntax for hyper-, super-, and alt-characters.
+
+Cons Cell and List Types
+
+* Box Diagrams::            Drawing pictures of lists.
 * Dotted Pair Notation::    An alternative syntax for lists.
 * Association List Type::   A specially constructed list.
+
+String Type
+
+* Syntax for Strings::      How to specify Lisp strings.
+* Non-ASCII in Strings::    International characters in strings.
+* Nonprinting Characters::  Literal unprintable characters in strings.
+* Text Props and Strings::  Strings with text properties.
 
 Editing Types
 
 * Buffer Type::             The basic object of editing.
-* Window Type::             What makes buffers visible.
-* Window Configuration Type::Save what the screen looks like.
 * Marker Type::             A position in a buffer.
+* Window Type::             What makes buffers visible.
+* Frame Type::		    Windows subdivide frames.
+* Window Configuration Type::  Recording the way a frame is subdivided.
+* Frame Configuration Type::   Recording the status of all frames.
 * Process Type::            A process running on the underlying OS.
 * Stream Type::             Receive or send characters.
 * Keymap Type::             What function a keystroke invokes.
-* Syntax Table Type::       What a character means.
+* Overlay Type::            How an overlay is represented.
 
 Numbers
 
-* Integer Basics::            Representation and range of integers.
-* Float Basics::	      Representation and range of floating point.
-* Predicates on Numbers::     Testing for numbers.
-* Comparison of Numbers::     Equality and inequality predicates.
-* Arithmetic Operations::     How to add, subtract, multiply and divide.
-* Bitwise Operations::        Logical and, or, not, shifting.
-* Numeric Conversions::	      Converting float to integer and vice versa.
-* Math Functions::            Trig, exponential and logarithmic functions.
-* Random Numbers::            Obtaining random integers, predictable or not.
+* Integer Basics::          Representation and range of integers.
+* Float Basics::	    Representation and range of floating point.
+* Predicates on Numbers::   Testing for numbers.
+* Comparison of Numbers::   Equality and inequality predicates.
+* Numeric Conversions::	    Converting float to integer and vice versa.
+* Arithmetic Operations::   How to add, subtract, multiply and divide.
+* Rounding Operations::     Explicitly rounding floating point numbers.
+* Bitwise Operations::      Logical and, or, not, shifting.
+* Math Functions::          Trig, exponential and logarithmic functions.
+* Random Numbers::          Obtaining random integers, predictable or not.
 
 Strings and Characters
 
 * String Basics::           Basic properties of strings and characters.
 * Predicates for Strings::  Testing whether an object is a string or char.
 * Creating Strings::        Functions to allocate new strings.
+* Modifying Strings::         Altering the contents of an existing string.
 * Text Comparison::         Comparing characters or strings.
-* String Conversion::       Converting characters or strings and vice versa.
-* Formatting Strings::      @code{format}: Emacs's analog of @code{printf}.
-* Character Case::          Case conversion functions.
+* String Conversion::       Converting characters to strings and vice versa.
+* Formatting Strings::      @code{format}: Emacs's analogue of @code{printf}.
+* Case Conversion::         Case conversion functions.
+* Case Tables::		    Customizing case conversion.
 
 Lists
 
 * Cons Cells::              How lists are made out of cons cells.
-* Lists as Boxes::          Graphical notation to explain lists.
 * List-related Predicates:: Is this object a list?  Comparing two lists.
 * List Elements::           Extracting the pieces of a list.
 * Building Lists::          Creating list structure.
+* List Variables::          Modifying lists stored in variables.
 * Modifying Lists::         Storing new pieces into an existing list.
 * Sets And Lists::          A list can represent a finite mathematical set.
 * Association Lists::       A list can represent a finite relation or mapping.
+* Rings::                   Managing a fixed-size ring of objects.
 
 Modifying Existing List Structure
 
@@ -390,7 +354,17 @@ Sequences, Arrays, and Vectors
 * Sequence Functions::      Functions that accept any kind of sequence.
 * Arrays::                  Characteristics of arrays in Emacs Lisp.
 * Array Functions::         Functions specifically for arrays.
-* Vectors::                 Functions specifically for vectors.
+* Vectors::                 Special characteristics of Emacs Lisp vectors.
+* Vector Functions::        Functions specifically for vectors.
+* Char-Tables::             How to work with char-tables.
+* Bool-Vectors::            How to work with bool-vectors.
+
+Hash Tables
+
+* Creating Hash::           Functions to create hash tables.
+* Hash Access::             Reading and writing the hash table contents.
+* Defining Hash::           Defining new comparison methods
+* Other Hash::              Miscellaneous.
 
 Symbols
 
@@ -401,19 +375,28 @@ Symbols
 * Property Lists::          Each symbol has a property list
                               for recording miscellaneous information.
 
+Property Lists
+
+* Plists and Alists::       Comparison of the advantages of property
+                              lists and association lists.
+* Symbol Plists::           Functions to access symbols' property lists.
+* Other Plists::            Accessing property lists stored elsewhere.
+
 Evaluation
 
 * Intro Eval::              Evaluation in the scheme of things.
-* Eval::                    How to invoke the Lisp interpreter explicitly.
 * Forms::                   How various sorts of objects are evaluated.
 * Quoting::                 Avoiding evaluation (to put constants in
                               the program).
+* Eval::                    How to invoke the Lisp interpreter explicitly.
 
 Kinds of Forms
 
 * Self-Evaluating Forms::   Forms that evaluate to themselves.
 * Symbol Forms::            Symbols evaluate as variables.
 * Classifying Lists::       How to distinguish various sorts of list forms.
+* Function Indirection::    When a symbol appears as the car of a list,
+			      we find the real function via the symbol.
 * Function Forms::          Forms that call functions.
 * Macro Forms::             Forms that call macros.
 * Special Forms::           "Special forms" are idiosyncratic primitives,
@@ -424,7 +407,7 @@ Kinds of Forms
 Control Structures
 
 * Sequencing::              Evaluation in textual order.
-* Conditionals::            @code{if}, @code{cond}.
+* Conditionals::            @code{if}, @code{cond}, @code{when}, @code{unless}.
 * Combining Conditions::    @code{and}, @code{or}, @code{not}.
 * Iteration::               @code{while} loops.
 * Nonlocal Exits::          Jumping out of a sequence.
@@ -443,6 +426,7 @@ Errors
 * Processing of Errors::    What Emacs does when you report an error.
 * Handling Errors::         How you can trap errors and continue execution.
 * Error Symbols::           How errors are classified for trapping them.
+* Standard Errors::         List of all error symbols.
 
 Variables
 
@@ -451,11 +435,21 @@ Variables
 * Local Variables::         Variable values that exist only temporarily.
 * Void Variables::          Symbols that lack values.
 * Defining Variables::      A definition says a symbol is used as a variable.
+* Tips for Defining::       Things you should think about when you
+                              define a variable.
 * Accessing Variables::     Examining values of variables whose names
                               are known only at run time.
 * Setting Variables::       Storing new values in variables.
 * Variable Scoping::        How Lisp chooses among local and global values.
 * Buffer-Local Variables::  Variable values in effect only in one buffer.
+* Frame-Local Variables::   Variable values in effect only in one frame.
+* Future Local Variables::  New kinds of local values we might add some day.
+* File Local Variables::    Handling local variable lists in files.
+* Variable Aliases::        Variables that are aliases for other variables.
+* Variables with Restricted Values::  Non-constant variables whose value can
+                                        @emph{not} be an arbitrary Lisp object.
+* Standard Buffer-Local Variables::
+                            List of variables buffer-local in all buffers.
 
 Scoping Rules for Variable Bindings
 
@@ -471,7 +465,7 @@ Buffer-Local Variables
 * Intro to Buffer-Local::   Introduction and concepts.
 * Creating Buffer-Local::   Creating and destroying buffer-local bindings.
 * Default Value::           The default value is seen in buffers
-                              that don't have their own local values.
+                              that don't have their own buffer-local values.
 
 Functions
 
@@ -484,6 +478,9 @@ Functions
 * Anonymous Functions::     Lambda-expressions are functions with no names.
 * Function Cells::          Accessing or setting the function definition
                               of a symbol.
+* Obsolete Functions::      Declaring functions obsolete.
+* Inline Functions::	    Defining functions that the compiler will open code.
+* Function Safety::         Determining whether a function is safe to call.
 * Related Topics::          Cross-references to specific Lisp primitives
                               that have a special bearing on how
                               functions work.
@@ -504,36 +501,113 @@ Macros
 * Backquote::               Easier construction of list structure.
 * Problems with Macros::    Don't evaluate the macro arguments too many times.
                               Don't hide the user's variables.
+* Indenting Macros::        Specifying how to indent macro calls.
+
+Common Problems Using Macros
+
+* Wrong Time::             Do the work in the expansion, not in the macro.
+* Argument Evaluation::    The expansion should evaluate each macro arg once.
+* Surprising Local Vars::  Local variable bindings in the expansion
+                              require special care.
+* Eval During Expansion::  Don't evaluate them; put them in the expansion.
+* Repeated Expansion::     Avoid depending on how many times expansion is done.
+
+Writing Customization Definitions
+
+* Common Keywords::         Common keyword arguments for all kinds of
+                              customization declarations.
+* Group Definitions::       Writing customization group definitions.
+* Variable Definitions::    Declaring user options.
+* Customization Types::     Specifying the type of a user option.
+
+Customization Types
+
+* Simple Types::            Simple customization types: sexp, integer, number,
+                              string, file, directory, alist.
+* Composite Types::         Build new types from other types or data.
+* Splicing into Lists::     Splice elements into list with @code{:inline}.
+* Type Keywords::           Keyword-argument pairs in a customization type.
+* Defining New Types::      Give your type a name.
 
 Loading
 
 * How Programs Do Loading:: The @code{load} function and others.
+* Load Suffixes::           Details about the suffixes that @code{load} tries.
+* Library Search::          Finding a library to load.
+* Loading Non-ASCII::       Non-@acronym{ASCII} characters in Emacs Lisp files.
 * Autoload::                Setting up a function to autoload.
-* Named Features::          Loading a library if it isn't already loaded.
 * Repeated Loading::        Precautions about loading a file twice.
+* Named Features::          Loading a library if it isn't already loaded.
+* Where Defined::           Finding which file defined a certain symbol.
+* Unloading::		    How to "unload" a library that was loaded.
+* Hooks for Loading::	    Providing code to be run when
+			      particular libraries are loaded.
 
 Byte Compilation
 
+* Speed of Byte-Code::      An example of speedup from byte compilation.
 * Compilation Functions::   Byte compilation functions.
+* Docs and Compilation::    Dynamic loading of documentation strings.
+* Dynamic Loading::         Dynamic loading of individual functions.
+* Eval During Compile::     Code to be evaluated when you compile.
+* Compiler Errors::         Handling compiler error messages.
+* Byte-Code Objects::	    The data type used for byte-compiled functions.
 * Disassembly::             Disassembling byte-code; how to read byte-code.
+
+Advising Emacs Lisp Functions
+
+* Simple Advice::           A simple example to explain the basics of advice.
+* Defining Advice::         Detailed description of @code{defadvice}.
+* Around-Advice::           Wrapping advice around a function's definition.
+* Computed Advice::         ...is to @code{defadvice} as @code{fset} is to @code{defun}.
+* Activation of Advice::    Advice doesn't do anything until you activate it.
+* Enabling Advice::         You can enable or disable each piece of advice.
+* Preactivation::           Preactivation is a way of speeding up the
+                              loading of compiled advice.
+* Argument Access in Advice:: How advice can access the function's arguments.
+* Advising Primitives::     Accessing arguments when advising a primitive.
+* Combined Definition::     How advice is implemented.
 
 Debugging Lisp Programs
 
 * Debugger::                How the Emacs Lisp debugger is implemented.
+* Edebug::                  A source-level Emacs Lisp debugger.
 * Syntax Errors::           How to find syntax errors.
+* Test Coverage::           Ensuring you have tested all branches in your code.
 * Compilation Errors::      How to find errors that show up in
                               byte compilation.
-* Edebug::                  A source-level Emacs Lisp debugger.
 
 The Lisp Debugger
 
 * Error Debugging::         Entering the debugger when an error happens.
+* Infinite Loops::	    Stopping and debugging a program that doesn't exit.
 * Function Debugging::      Entering it when a certain function is called.
 * Explicit Debug::          Entering it at a certain point in the program.
 * Using Debugger::          What the debugger does; what you see while in it.
 * Debugger Commands::       Commands used while in the debugger.
 * Invoking the Debugger::   How to call the function @code{debug}.
 * Internals of Debugger::   Subroutines of the debugger, and global variables.
+
+Edebug
+
+* Using Edebug::	    Introduction to use of Edebug.
+* Instrumenting::	    You must instrument your code
+			      in order to debug it with Edebug.
+* Edebug Execution Modes::  Execution modes, stopping more or less often.
+* Jumping::		    Commands to jump to a specified place.
+* Edebug Misc::		    Miscellaneous commands.
+* Breaks::		    Setting breakpoints to make the program stop.
+* Trapping Errors::	    Trapping errors with Edebug.
+* Edebug Views::	    Views inside and outside of Edebug.
+* Edebug Eval::		    Evaluating expressions within Edebug.
+* Eval List::		    Expressions whose values are displayed
+			      each time you enter Edebug.
+* Printing in Edebug::	    Customization of printing.
+* Trace Buffer::	    How to produce trace output in a buffer.
+* Coverage Testing::	    How to test evaluation coverage.
+* The Outside Context::	    Data that Edebug saves and restores.
+* Edebug and Macros::       Specifying how to handle macro calls.
+* Edebug Options::	    Option variables for customizing Edebug.
 
 Debugging Invalid Lisp Syntax
 
@@ -549,14 +623,25 @@ Reading and Printing Lisp Objects
 * Output Streams::          Various data types that can be used as
                               output streams.
 * Output Functions::        Functions to print Lisp objects as text.
+* Output Variables::        Variables that control what the printing
+                              functions do.
 
 Minibuffers
 
 * Intro to Minibuffers::    Basic information about minibuffers.
 * Text from Minibuffer::    How to read a straight text string.
 * Object from Minibuffer::  How to read a Lisp object or expression.
+* Minibuffer History::	    Recording previous minibuffer inputs
+			      so the user can reuse them.
+* Initial Input::           Specifying initial contents for the minibuffer.
 * Completion::              How to invoke and customize completion.
 * Yes-or-No Queries::       Asking a question with a simple answer.
+* Multiple Queries::	    Asking a series of similar questions.
+* Reading a Password::	    Reading a password from the terminal.
+* Minibuffer Commands::     Commands used as key bindings in minibuffers.
+* Minibuffer Contents::     How such commands access the minibuffer text.
+* Minibuffer Windows::      Operating on the special minibuffer windows.
+* Recursive Mini::          Whether recursive entry to minibuffer is allowed.
 * Minibuffer Misc::         Various customization hooks and variables.
 
 Completion
@@ -576,8 +661,10 @@ Command Loop
 * Defining Commands::   Specifying how a function should read arguments.
 * Interactive Call::    Calling a command, so that it will read arguments.
 * Command Loop Info::   Variables set by the command loop for you to examine.
+* Adjusting Point::     Adjustment of point after a command.
 * Input Events::	What input looks like when you read it.
 * Reading Input::       How to read input events from the keyboard or mouse.
+* Special Events::      Events processed immediately and individually.
 * Waiting::             Waiting for user input or elapsed time.
 * Quitting::            How @kbd{C-g} works.  How to catch or defer quitting.
 * Prefix Command Arguments::    How the commands to set prefix args work.
@@ -594,50 +681,155 @@ Defining Commands
                               in various ways.
 * Interactive Examples::    Examples of how to read interactive arguments.
 
+Input Events
+
+* Keyboard Events::         Ordinary characters--keys with symbols on them.
+* Function Keys::           Function keys--keys with names, not symbols.
+* Mouse Events::            Overview of mouse events.
+* Click Events::            Pushing and releasing a mouse button.
+* Drag Events::             Moving the mouse before releasing the button.
+* Button-Down Events::      A button was pushed and not yet released.
+* Repeat Events::           Double and triple click (or drag, or down).
+* Motion Events::           Just moving the mouse, not pushing a button.
+* Focus Events::            Moving the mouse between frames.
+* Misc Events::             Other events the system can generate.
+* Event Examples::          Examples of the lists for mouse events.
+* Classifying Events::      Finding the modifier keys in an event symbol.
+* Accessing Events::        Functions to extract info from events.
+* Strings of Events::       Special considerations for putting
+                              keyboard character events in a string.
+
+Reading Input
+
+* Key Sequence Input::      How to read one key sequence.
+* Reading One Event::       How to read just one event.
+* Event Mod::               How Emacs modifies events as they are read.
+* Invoking the Input Method::   How reading an event uses the input method.
+* Quoted Character Input::  Asking the user to specify a character.
+* Event Input Misc::        How to reread or throw away input events.
+
 Keymaps
 
-* Keymap Terminology::        	Definitions of terms pertaining to keymaps.
-* Format of Keymaps::		What a keymap looks like as a Lisp object.
-* Creating Keymaps:: 		Functions to create and copy keymaps.
-* Inheritance and Keymaps::	How one keymap can inherit the bindings
-				  of another keymap.
-* Prefix Keys::                 Defining a key with a keymap as its definition.
-* Menu Keymaps::		A keymap can define a menu for X
-				  or for use from the terminal.
-* Active Keymaps::	        Each buffer has a local keymap
-                                  to override the standard (global) bindings.
-				Each minor mode can also override them.
-* Key Lookup::                  How extracting elements from keymaps works.
+* Key Sequences::           Key sequences as Lisp objects.
+* Keymap Basics::           Basic concepts of keymaps.
+* Format of Keymaps::       What a keymap looks like as a Lisp object.
+* Creating Keymaps::        Functions to create and copy keymaps.
+* Inheritance and Keymaps:: How one keymap can inherit the bindings
+                              of another keymap.
+* Prefix Keys::             Defining a key with a keymap as its definition.
+* Active Keymaps::          How Emacs searches the active keymaps
+                              for a key binding.
+* Searching Keymaps::       A pseudo-Lisp summary of searching active maps.
+* Controlling Active Maps:: Each buffer has a local keymap
+                               to override the standard (global) bindings.
+                               A minor mode can also override them.
+* Key Lookup::              How extracting elements from keymaps works.
 * Functions for Key Lookup::    How to request key lookup.
-* Changing Key Bindings::       Redefining a key in a keymap.
-* Key Binding Commands::        Interactive interfaces for redefining keys.
-* Scanning Keymaps::            Looking through all keymaps, for printing help.
+* Changing Key Bindings::   Redefining a key in a keymap.
+* Remapping Commands::      A keymap can translate one command to another.
+* Translation Keymaps::     Keymaps for translating sequences of events.
+* Key Binding Commands::    Interactive interfaces for redefining keys.
+* Scanning Keymaps::        Looking through all keymaps, for printing help.
+* Menu Keymaps::            A keymap can define a menu for X
+                              or for use from the terminal.
+* Standard Keymaps::        List of standard keymaps.
 
 Major and Minor Modes
 
+* Hooks::                   How to use hooks; how to write code that
+                              provides hooks.
 * Major Modes::             Defining major modes.
 * Minor Modes::             Defining minor modes.
 * Mode Line Format::        Customizing the text that appears in the mode line.
-* Hooks::                   How to use hooks; how to write code that
-                              provides hooks.
+* Imenu::                   How a mode can provide a menu
+                              of definitions in the buffer.
+* Font Lock Mode::          How modes can highlight text according to syntax.
+* Desktop Save Mode::       How modes can have buffer state saved between
+                              Emacs sessions.
+
+Menu Keymaps
+
+* Defining Menus::          How to make a keymap that defines a menu.
+* Mouse Menus::             How users actuate the menu with the mouse.
+* Keyboard Menus::          How users actuate the menu with the keyboard.
+* Menu Example::            Making a simple menu.
+* Menu Bar::                How to customize the menu bar.
+* Tool Bar::                A tool bar is a row of images.
+* Modifying Menus::         How to add new items to a menu.
+
+Defining Menus
+
+* Simple Menu Items::       A simple kind of menu key binding,
+                              limited in capabilities.
+* Extended Menu Items::     More powerful menu item definitions
+                              let you specify keywords to enable
+                              various features.
+* Menu Separators::         Drawing a horizontal line through a menu.
+* Alias Menu Items::        Using command aliases in menu items.
+
+Major and Minor Modes
+
+* Hooks::              How to use hooks; how to write code that provides hooks.
+* Major Modes::        Defining major modes.
+* Minor Modes::        Defining minor modes.
+* Mode Line Format::   Customizing the text that appears in the mode line.
+* Imenu::              How a mode can provide a menu
+                         of definitions in the buffer.
+* Font Lock Mode::     How modes can highlight text according to syntax.
+* Desktop Save Mode::  How modes can have buffer state saved between
+                         Emacs sessions.
 
 Major Modes
 
+* Major Mode Basics::
 * Major Mode Conventions::  Coding conventions for keymaps, etc.
 * Example Major Modes::     Text mode and Lisp modes.
 * Auto Major Mode::         How Emacs chooses the major mode automatically.
 * Mode Help::               Finding out how to use a mode.
+* Derived Modes::           Defining a new major mode based on another major
+                              mode.
+* Generic Modes::           Defining a simple major mode that supports
+                              comment syntax and Font Lock mode.
+* Mode Hooks::              Hooks run at the end of major mode functions.
 
 Minor Modes
 
 * Minor Mode Conventions::  Tips for writing a minor mode.
 * Keymaps and Minor Modes:: How a minor mode can have its own keymap.
+* Defining Minor Modes::    A convenient facility for defining minor modes.
 
 Mode Line Format
 
+* Mode Line Basics::
 * Mode Line Data::          The data structure that controls the mode line.
 * Mode Line Variables::     Variables used in that data structure.
 * %-Constructs::            Putting information into a mode line.
+* Properties in Mode::      Using text properties in the mode line.
+* Header Lines::            Like a mode line, but at the top.
+* Emulating Mode Line::     Formatting text as the mode line would.
+
+Font Lock Mode
+
+* Font Lock Basics::        Overview of customizing Font Lock.
+* Search-based Fontification::  Fontification based on regexps.
+* Customizing Keywords::    Customizing search-based fontification.
+* Other Font Lock Variables::   Additional customization facilities.
+* Levels of Font Lock::     Each mode can define alternative levels
+                              so that the user can select more or less.
+* Precalculated Fontification:: How Lisp programs that produce the buffer
+                                  contents can also specify how to fontify it.
+* Faces for Font Lock::     Special faces specifically for Font Lock.
+* Syntactic Font Lock::     Fontification based on syntax tables.
+* Setting Syntax Properties::   Defining character syntax based on context
+                                  using the Font Lock mechanism.
+* Multiline Font Lock::     How to coerce Font Lock into properly
+                              highlighting multiline constructs.
+
+Multiline Font Lock Constructs
+
+* Font Lock Multiline::     Marking multiline chunks with a text property
+* Region to Fontify::       Controlling which region gets refontified
+                              after a buffer change.
 
 Documentation
 
@@ -656,11 +848,15 @@ Files
 * Reading from Files::      Reading files into other buffers.
 * Writing to Files::        Writing new files from parts of buffers.
 * File Locks::              Locking and unlocking files, to prevent
-                                simultaneous editing by two people.
-* Information about Files::   Testing existence, accessibility, size of files.
-* Contents of Directories::   Getting a list of the files in a directory.
-* Changing File Attributes::  Renaming files, changing protection, etc.
-* File Names::                Decomposing and expanding file names.
+                              simultaneous editing by two people.
+* Information about Files:: Testing existence, accessibility, size of files.
+* Changing Files::          Renaming files, changing protection, etc.
+* File Names::              Decomposing and expanding file names.
+* Contents of Directories:: Getting a list of the files in a directory.
+* Create/Delete Dirs::	    Creating and Deleting Directories.
+* Magic File Names::	    Defining "magic" special handling
+			      for certain file names.
+* Format Conversion::       Conversion to and from various file formats.
 
 Visiting Files
 
@@ -670,19 +866,23 @@ Visiting Files
 Information about Files
 
 * Testing Accessibility::   Is a given file readable?  Writable?
-* Kinds of Files::          Is it a directory?  A link?
+* Kinds of Files::          Is it a directory?  A symbolic link?
+* Truenames::		    Eliminating symbolic links from a file name.
 * File Attributes::         How large is it?  Any other names?  Etc.
+* Locating Files::          How to find a file in standard places.
 
 File Names
 
 * File Name Components::    The directory part of a file name, and the rest.
-* Directory Names::         A directory's name as a directory
-                              is different from its name as a file.
 * Relative File Names::     Some file names are relative to a
                               current directory.
+* Directory Names::         A directory's name as a directory
+                              is different from its name as a file.
 * File Name Expansion::     Converting relative file names to absolute ones.
 * Unique File Names::       Generating names for temporary files.
 * File Name Completion::    Finding the completions for a given file name.
+* Standard File Names::     If your package uses a fixed file name,
+                              how to handle various operating systems simply.
 
 Backups and Auto-Saving
 
@@ -704,19 +904,22 @@ Backup Files
 Buffers
 
 * Buffer Basics::           What is a buffer?
+* Current Buffer::          Designating a buffer as current
+                              so primitives will access its contents.
 * Buffer Names::            Accessing and changing buffer names.
 * Buffer File Name::        The buffer file name indicates which file
                               is visited.
 * Buffer Modification::     A buffer is @dfn{modified} if it needs to be saved.
 * Modification Time::       Determining whether the visited file was changed
-                              "behind Emacs's back".
+                              ``behind Emacs's back''.
 * Read Only Buffers::       Modifying text is not allowed in a
                               read-only buffer.
 * The Buffer List::         How to look at all the existing buffers.
 * Creating Buffers::        Functions that create buffers.
 * Killing Buffers::         Buffers exist until explicitly killed.
-* Current Buffer::          Designating a buffer as current
-                              so primitives will access its contents.
+* Indirect Buffers::        An indirect buffer shares text with some
+                              other buffer.
+* Buffer Gap::              The gap in the buffer.
 
 Windows
 
@@ -726,21 +929,28 @@ Windows
 * Selecting Windows::       The selected window is the one that you edit in.
 * Cyclic Window Ordering::  Moving around the existing windows.
 * Buffers and Windows::     Each window displays the contents of a buffer.
-* Displaying Buffers::      Higher-lever functions for displaying a buffer
+* Displaying Buffers::      Higher-level functions for displaying a buffer
                               and choosing a window for it.
+* Choosing Window::	    How to choose a window for displaying a buffer.
 * Window Point::            Each window has its own location of point.
 * Window Start::            The display-start position controls which text
                               is on-screen in the window.
-* Vertical Scrolling::      Moving text up and down in the window.
-* Horizontal Scrolling::    Moving text sideways on the window.
+* Textual Scrolling::       Moving text up and down through the window.
+* Vertical Scrolling::      Moving the contents up and down on the window.
+* Horizontal Scrolling::    Moving the contents sideways on the window.
 * Size of Window::          Accessing the size of a window.
 * Resizing Windows::        Changing the size of a window.
+* Coordinates and Windows:: Converting coordinates to windows.
+* Window Tree::             The layout and sizes of all windows in a frame.
 * Window Configurations::   Saving and restoring the state of the screen.
+* Window Hooks::            Hooks for scrolling, window size changes,
+                              redisplay going past a certain point,
+                              or window configuration changes.
 
 Frames
 
 * Creating Frames::	    Creating additional frames.
-* Multiple Displays::       Creating frames on other X displays.
+* Multiple Displays::       Creating frames on other displays.
 * Frame Parameters::	    Controlling frame size, position, font, etc.
 * Frame Titles::            Automatic updating of frame titles.
 * Deleting Frames::	    Frames last until explicitly deleted.
@@ -750,18 +960,40 @@ Frames
 * Minibuffers and Frames::  How a frame finds the minibuffer to use.
 * Input Focus::		    Specifying the selected frame.
 * Visibility of Frames::    Frames may be visible or invisible, or icons.
-* Raising and Lowering::    Raising a frame makes it hide other X windows;
-			      lowering it makes the others hide them.
+* Raising and Lowering::    Raising a frame makes it hide other windows;
+			      lowering it puts it underneath the others.
 * Frame Configurations::    Saving the state of all frames.
 * Mouse Tracking::	    Getting events that say when the mouse moves.
 * Mouse Position::	    Asking where the mouse is, or moving it.
 * Pop-Up Menus::	    Displaying a menu for the user to select from.
 * Dialog Boxes::            Displaying a box to ask yes or no.
-* Pointer Shapes::          Specifying the shape of the mouse pointer.
-* X Selections::	    Transferring text to and from other X clients.
+* Pointer Shape::           Specifying the shape of the mouse pointer.
+* Window System Selections::Transferring text to and from other windows.
+* Drag and Drop::               Internals of Drag-and-Drop implementation.
 * Color Names::	            Getting the definitions of color names.
+* Text Terminal Colors::    Defining colors for text-only terminals.
 * Resources::		    Getting resource values from the server.
-* Server Data::		    Getting info about the X server.
+* Display Feature Testing:: Determining the features of a terminal.
+
+Frame Parameters
+
+* Parameter Access::        How to change a frame's parameters.
+* Initial Parameters::	    Specifying frame parameters when you make a frame.
+* Window Frame Parameters:: List of frame parameters for window systems.
+* Size and Position::       Changing the size and position of a frame.
+* Geometry::                Parsing geometry specifications.
+
+Window Frame Parameters
+
+* Basic Parameters::        Parameters that are fundamental.
+* Position Parameters::     The position of the frame on the screen.
+* Size Parameters::         Frame's size.
+* Layout Parameters::       Size of parts of the frame, and
+                              enabling or disabling some parts.
+* Buffer Parameters::       Which buffers have been or should be shown.
+* Management Parameters::   Communicating with the window manager.
+* Cursor Parameters::       Controlling the cursor appearance.
+* Color Parameters::        Colors of various parts of the frame.
 
 Positions
 
@@ -785,9 +1017,11 @@ Markers
 * Overview of Markers::     The components of a marker, and how it relocates.
 * Predicates on Markers::   Testing whether an object is a marker.
 * Creating Markers::        Making empty markers or markers at certain places.
-* Information from Markers::  Finding the marker's buffer or character
-                                position.
-* Changing Markers::        Moving the marker to a new buffer or position.
+* Information from Markers::Finding the marker's buffer or character
+                              position.
+* Marker Insertion Types::  Two ways a marker can relocate when you
+                              insert where it points.
+* Moving Markers::          Moving the marker to a new buffer or position.
 * The Mark::                How "the mark" is implemented with a marker.
 * The Region::              How to access "the region".
 
@@ -795,6 +1029,7 @@ Text
 
 * Near Point::              Examining text in the vicinity of point.
 * Buffer Contents::         Examining text in a general fashion.
+* Comparing Text::          Comparing substrings of buffers.
 * Insertion::               Adding new text to a buffer.
 * Commands for Insertion::  User-level commands to insert text.
 * Deletion::                Removing text from a buffer.
@@ -802,21 +1037,32 @@ Text
 * The Kill Ring::           Where removed text sometimes is saved for
                               later use.
 * Undo::                    Undoing changes to the text of a buffer.
-* Auto Filling::            How auto-fill mode is implemented to break lines.
+* Maintaining Undo::        How to enable and disable undo information.
+			      How to control how much information is kept.
 * Filling::                 Functions for explicit filling.
 * Margins::                 How to specify margins for filling commands.
+* Adaptive Fill::           Adaptive Fill mode chooses a fill prefix
+                              from context.
+* Auto Filling::            How auto-fill mode is implemented to break lines.
 * Sorting::                 Functions for sorting parts of the buffer.
-* Indentation::             Functions to insert or adjust indentation.
 * Columns::                 Computing horizontal positions, and using them.
+* Indentation::             Functions to insert or adjust indentation.
 * Case Changes::            Case conversion of parts of the buffer.
+* Text Properties::         Assigning Lisp property lists to text characters.
 * Substitution::            Replacing a given character wherever it appears.
+* Transposition::           Swapping two portions of a buffer.
 * Registers::               How registers are implemented.  Accessing
                               the text or position stored in a register.
+* Base 64::                 Conversion to or from base 64 encoding.
+* MD5 Checksum::            Compute the MD5 "message digest"/"checksum".
+* Atomic Changes::          Installing several buffer changes "atomically".
+* Change Hooks::            Supplying functions to be run when text is changed.
 
 The Kill Ring
 
 * Kill Ring Concepts::      What text looks like in the kill ring.
 * Kill Functions::          Functions that kill text.
+* Yanking::                 How yanking is done.
 * Yank Commands::           Commands that access the kill ring.
 * Low-Level Kill Ring::	    Functions and variables for kill ring access.
 * Internals of Kill Ring::  Variables that hold kill-ring data.
@@ -830,48 +1076,130 @@ Indentation
 * Indent Tabs::             Adjustable, typewriter-like tab stops.
 * Motion by Indent::        Move to first non-blank character.
 
+Text Properties
+
+* Examining Properties::    Looking at the properties of one character.
+* Changing Properties::	    Setting the properties of a range of text.
+* Property Search::	    Searching for where a property changes value.
+* Special Properties::	    Particular properties with special meanings.
+* Format Properties::       Properties for representing formatting of text.
+* Sticky Properties::       How inserted text gets properties from
+                              neighboring text.
+* Saving Properties::       Saving text properties in files, and reading
+                              them back.
+* Lazy Properties::         Computing text properties in a lazy fashion
+                              only when text is examined.
+* Clickable Text::          Using text properties to make regions of text
+                              do something when you click on them.
+* Links and Mouse-1::       How to make @key{Mouse-1} follow a link.
+* Fields::                  The @code{field} property defines
+                              fields within the buffer.
+* Not Intervals::	    Why text properties do not use
+			      Lisp-visible text intervals.
+
+Non-ASCII Characters
+
+* Text Representations::    Unibyte and multibyte representations
+* Converting Representations::  Converting unibyte to multibyte and vice versa.
+* Selecting a Representation::  Treating a byte sequence as unibyte or multi.
+* Character Codes::         How unibyte and multibyte relate to
+                                codes of individual characters.
+* Character Sets::          The space of possible character codes
+                                is divided into various character sets.
+* Chars and Bytes::         More information about multibyte encodings.
+* Splitting Characters::    Converting a character to its byte sequence.
+* Scanning Charsets::       Which character sets are used in a buffer?
+* Translation of Characters::   Translation tables are used for conversion.
+* Coding Systems::          Coding systems are conversions for saving files.
+* Input Methods::           Input methods allow users to enter various
+                                non-ASCII characters without special keyboards.
+* Locales::                 Interacting with the POSIX locale.
+
+Coding Systems
+
+* Coding System Basics::    Basic concepts.
+* Encoding and I/O::        How file I/O functions handle coding systems.
+* Lisp and Coding Systems:: Functions to operate on coding system names.
+* User-Chosen Coding Systems::  Asking the user to choose a coding system.
+* Default Coding Systems::  Controlling the default choices.
+* Specifying Coding Systems::   Requesting a particular coding system
+                                    for a single file operation.
+* Explicit Encoding::       Encoding or decoding text without doing I/O.
+* Terminal I/O Encoding::   Use of encoding for terminal I/O.
+* MS-DOS File Types::       How DOS "text" and "binary" files
+                                relate to coding systems.
+
 Searching and Matching
 
 * String Search::           Search for an exact match.
+* Searching and Case::      Case-independent or case-significant searching.
 * Regular Expressions::     Describing classes of strings.
 * Regexp Search::           Searching for a match for a regexp.
-* Match Data::              Finding out which part of the text matched
-                              various parts of a regexp, after regexp search.
-* Saving Match Data::       Saving and restoring this information.
+* POSIX Regexps::           Searching POSIX-style for the longest match.
+* Match Data::              Finding out which part of the text matched,
+                              after a string or regexp search.
+* Search and Replace::	    Commands that loop, searching and replacing.
 * Standard Regexps::        Useful regexps for finding sentences, pages,...
-* Searching and Case::      Case-independent or case-significant searching.
 
 Regular Expressions
 
 * Syntax of Regexps::       Rules for writing regular expressions.
 * Regexp Example::          Illustrates regular expression syntax.
+* Regexp Functions::        Functions for operating on regular expressions.
+
+Syntax of Regular Expressions
+
+* Regexp Special::          Special characters in regular expressions.
+* Char Classes::            Character classes used in regular expressions.
+* Regexp Backslash::        Backslash-sequences in regular expressions.
+
+The Match Data
+
+* Replacing Match::	    Replacing a substring that was matched.
+* Simple Match Data::       Accessing single items of match data,
+			      such as where a particular subexpression started.
+* Entire Match Data::       Accessing the entire match data at once, as a list.
+* Saving Match Data::       Saving and restoring the match data.
 
 Syntax Tables
 
+* Syntax Basics::           Basic concepts of syntax tables.
 * Syntax Descriptors::      How characters are classified.
 * Syntax Table Functions::  How to create, examine and alter syntax tables.
+* Syntax Properties::       Overriding syntax with text properties.
+* Motion and Syntax::	    Moving over characters with certain syntaxes.
 * Parsing Expressions::     Parsing balanced expressions
                               using the syntax table.
 * Standard Syntax Tables::  Syntax tables used by various major modes.
 * Syntax Table Internals::  How syntax table information is stored.
+* Categories::              Another way of classifying character syntax.
 
 Syntax Descriptors
 
 * Syntax Class Table::      Table of syntax classes.
 * Syntax Flags::            Additional flags each character can have.
 
+Parsing Expressions
+
+* Motion via Parsing::      Motion functions that work by parsing.
+* Position Parse::          Determining the syntactic state of a position.
+* Parser State::            How Emacs represents a syntactic state.
+* Low-Level Parsing::       Parsing across a specified region.
+* Control Parsing::         Parameters that affect parsing.
+
 Abbrevs And Abbrev Expansion
 
 * Abbrev Mode::             Setting up Emacs for abbreviation.
-* Tables: Abbrev Tables.    Creating and working with abbrev tables.
+* Abbrev Tables::           Creating and working with abbrev tables.
 * Defining Abbrevs::        Specifying abbreviations and their expansions.
-* Files: Abbrev Files.      Saving abbrevs in files.
-* Expansion: Abbrev Expansion.  Controlling expansion; expansion subroutines.
+* Abbrev Files::            Saving abbrevs in files.
+* Abbrev Expansion::        Controlling expansion; expansion subroutines.
 * Standard Abbrev Tables::  Abbrev tables used by various major modes.
 
 Processes
 
 * Subprocess Creation::     Functions that start subprocesses.
+* Shell Arguments::         Quoting an argument to pass it to a shell.
 * Synchronous Processes::   Details of using synchronous subprocesses.
 * Asynchronous Processes::  Starting up an asynchronous subprocess.
 * Deleting Processes::      Eliminating an asynchronous subprocess.
@@ -881,67 +1209,218 @@ Processes
                               an asynchronous subprocess.
 * Output from Processes::   Collecting output from an asynchronous subprocess.
 * Sentinels::               Sentinels run when process run-status changes.
+* Query Before Exit::       Whether to query if exiting will kill a process.
+* Transaction Queues::      Transaction-based communication with subprocesses.
 * Network::                 Opening network connections.
+* Network Servers::         Network servers let Emacs accept net connections.
+* Datagrams::               UDP network connections.
+* Low-Level Network::       Lower-level but more general function
+                              to create connections and servers.
+* Misc Network::            Additional relevant functions for network connections.
+* Byte Packing::            Using bindat to pack and unpack binary data.
 
 Receiving Output from Processes
 
 * Process Buffers::         If no filter, output is put in a buffer.
 * Filter Functions::        Filter functions accept output from the process.
+* Decoding Output::         Filters can get unibyte or multibyte strings.
 * Accepting Output::        How to wait until process output arrives.
+
+Low-Level Network Access
+
+* Proc: Network Processes.  Using @code{make-network-process}.
+* Options: Network Options.  Further control over network connections.
+* Features: Network Feature Testing.
+                            Determining which network features work on
+                              the machine you are using.
+
+Packing and Unpacking Byte Arrays
+
+* Bindat Spec::             Describing data layout.
+* Bindat Functions::        Doing the unpacking and packing.
+* Bindat Examples::         Samples of what bindat.el can do for you!
+
+Emacs Display
+
+* Refresh Screen::          Clearing the screen and redrawing everything on it.
+* Forcing Redisplay::       Forcing redisplay.
+* Truncation::              Folding or wrapping long text lines.
+* The Echo Area::           Displaying messages at the bottom of the screen.
+* Warnings::                Displaying warning messages for the user.
+* Invisible Text::          Hiding part of the buffer text.
+* Selective Display::       Hiding part of the buffer text (the old way).
+* Temporary Displays::      Displays that go away automatically.
+* Overlays::		    Use overlays to highlight parts of the buffer.
+* Width::                   How wide a character or string is on the screen.
+* Line Height::             Controlling the height of lines.
+* Faces::		    A face defines a graphics style
+                              for text characters: font, colors, etc.
+* Fringes::                 Controlling window fringes.
+* Scroll Bars::             Controlling vertical scroll bars.
+* Display Property::        Enabling special display features.
+* Images::                  Displaying images in Emacs buffers.
+* Buttons::                 Adding clickable buttons to Emacs buffers.
+* Abstract Display::        Emacs' Widget for Object Collections.
+* Blinking::                How Emacs shows the matching open parenthesis.
+* Usual Display::	    The usual conventions for displaying nonprinting chars.
+* Display Tables::	    How to specify other conventions.
+* Beeping::                 Audible signal to the user.
+* Window Systems::          Which window system is being used.
+
+The Echo Area
+
+* Displaying Messages::     Explicitly displaying text in the echo area.
+* Progress::                Informing user about progress of a long operation.
+* Logging Messages::        Echo area messages are logged for the user.
+* Echo Area Customization:: Controlling the echo area.
+
+Reporting Warnings
+
+* Warning Basics::          Warnings concepts and functions to report them.
+* Warning Variables::       Variables programs bind to customize their warnings.
+* Warning Options::         Variables users set to control display of warnings.
+
+Overlays
+
+* Managing Overlays::       Creating and moving overlays.
+* Overlay Properties::      How to read and set properties.
+			    What properties do to the screen display.
+* Finding Overlays::        Searching for overlays.
+
+Faces
+
+* Defining Faces::          How to define a face with @code{defface}.
+* Face Attributes::         What is in a face?
+* Attribute Functions::     Functions to examine and set face attributes.
+* Displaying Faces::        How Emacs combines the faces specified for
+                              a character.
+* Font Selection::          Finding the best available font for a face.
+* Face Functions::          How to define and examine faces.
+* Auto Faces::              Hook for automatic face assignment.
+* Font Lookup::             Looking up the names of available fonts
+                              and information about them.
+* Fontsets::                A fontset is a collection of fonts
+                              that handle a range of character sets.
+
+Fringes
+
+* Fringe Size/Pos::         Specifying where to put the window fringes.
+* Fringe Indicators::       Displaying indicator icons in the window fringes.
+* Fringe Cursors::          Displaying cursors in the right fringe.
+* Fringe Bitmaps::          Specifying bitmaps for fringe indicators.
+* Customizing Bitmaps::     Specifying your own bitmaps to use in the fringes.
+* Overlay Arrow::           Display of an arrow to indicate position.
+
+The @code{display} Property
+
+* Specified Space::         Displaying one space with a specified width.
+* Pixel Specification::     Specifying space width or height in pixels.
+* Other Display Specs::     Displaying an image; magnifying text; moving it
+                              up or down on the page; adjusting the width
+                              of spaces within text.
+* Display Margins::         Displaying text or images to the side of
+                              the main text.
+
+Images
+
+* Image Descriptors::       How to specify an image for use in @code{:display}.
+* XBM Images::              Special features for XBM format.
+* XPM Images::              Special features for XPM format.
+* GIF Images::              Special features for GIF format.
+* PostScript Images::       Special features for PostScript format.
+* Other Image Types::       Various other formats are supported.
+* Defining Images::         Convenient ways to define an image for later use.
+* Showing Images::          Convenient ways to display an image once
+                              it is defined.
+* Image Cache::             Internal mechanisms of image display.
+
+Buttons
+
+* Button Properties::       Button properties with special meanings.
+* Button Types::            Defining common properties for classes of buttons.
+* Making Buttons::          Adding buttons to Emacs buffers.
+* Manipulating Buttons::    Getting and setting properties of buttons.
+* Button Buffer Commands::  Buffer-wide commands and bindings for buttons.
+
+Abstract Display
+
+* Abstract Display Functions::  Functions in the Ewoc package.
+* Abstract Display Example::    Example of using Ewoc.
+
+Display Tables
+
+* Display Table Format::    What a display table consists of.
+* Active Display Table::    How Emacs selects a display table to use.
+* Glyphs::                  How to define a glyph, and what glyphs mean.
 
 Operating System Interface
 
 * Starting Up::             Customizing Emacs start-up processing.
 * Getting Out::             How exiting works (permanent or temporary).
 * System Environment::      Distinguish the name and kind of system.
-* Terminal Input::          Recording terminal input for debugging.
-* Terminal Output::         Recording terminal output for debugging.
-* Flow Control::            How to turn output flow control on or off.
+* User Identification::     Finding the name and user id of the user.
+* Time of Day::		    Getting the current time.
+* Time Conversion::         Converting a time from numeric form to a string, or
+                              to calendrical data (or vice versa).
+* Time Parsing::            Converting a time from numeric form to text
+                              and vice versa.
+* Processor Run Time::      Getting the run time used by Emacs.
+* Time Calculations::       Adding, subtracting, comparing times, etc.
+* Timers::		    Setting a timer to call a function at a certain time.
+* Idle Timers::             Setting a timer to call a function when Emacs has
+                              been idle for a certain length of time.
+* Terminal Input::          Accessing and recording terminal input.
+* Terminal Output::         Controlling and recording terminal output.
+* Sound Output::            Playing sounds on the computer's speaker.
+* X11 Keysyms::             Operating on key symbols for X Windows
 * Batch Mode::              Running Emacs without terminal interaction.
+* Session Management::      Saving and restoring state with X Session Management.
 
 Starting Up Emacs
 
-* Start-up Summary::        Sequence of actions Emacs performs at start-up.
+* Startup Summary::         Sequence of actions Emacs performs at start-up.
 * Init File::               Details on reading the init file (@file{.emacs}).
 * Terminal-Specific::       How the terminal-specific Lisp file is read.
-* Command Line Arguments::  How command line arguments are processed,
+* Command-Line Arguments::  How command-line arguments are processed,
                               and how you can customize them.
 
-Getting out of Emacs
+Getting Out of Emacs
 
 * Killing Emacs::           Exiting Emacs irreversibly.
 * Suspending Emacs::        Exiting Emacs reversibly.
 
-Emacs Display
+Terminal Input
 
-* Refresh Screen::          Clearing the screen and redrawing everything on it.
-* Truncation::              Folding or wrapping long text lines.
-* The Echo Area::           Where messages are displayed.
-* Selective Display::       Hiding part of the buffer text.
-* Overlay Arrow::           Display of an arrow to indicate position.
-* Temporary Displays::      Displays that go away automatically.
-* Waiting::                 Forcing display update and waiting for user.
-* Blinking::                How Emacs shows the matching open parenthesis.
-* Usual Display::	    How control characters are displayed.
-* Beeping::                 Audible signal to the user.
-* Window Systems::          Which window system is being used.
+* Input Modes::		    Options for how input is processed.
+* Recording Input::	    Saving histories of recent or all input events.
+
+Tips and Conventions
+
+* Coding Conventions::      Conventions for clean and robust programs.
+* Key Binding Conventions:: Which keys should be bound by which programs.
+* Programming Tips::        Making Emacs code fit smoothly in Emacs.
+* Compilation Tips::        Making compiled code run fast.
+* Warning Tips::            Turning off compiler warnings.
+* Documentation Tips::      Writing readable documentation strings.
+* Comment Tips::	    Conventions for writing comments.
+* Library Headers::         Standard headers for library packages.
 
 GNU Emacs Internals
 
-* Building Emacs::          How to preload Lisp libraries into Emacs.
+* Building Emacs::          How the dumped Emacs is made.
 * Pure Storage::            A kludge to make preloaded Lisp functions sharable.
 * Garbage Collection::      Reclaiming space for Lisp objects no longer used.
-* Object Internals::        Data formats of buffers, windows, processes.
+* Memory Usage::            Info about total size of Lisp objects made so far.
 * Writing Emacs Primitives::  Writing C code for Emacs.
+* Object Internals::        Data formats of buffers, windows, processes.
 
 Object Internals
 
 * Buffer Internals::        Components of a buffer structure.
 * Window Internals::        Components of a window structure.
 * Process Internals::       Components of a process structure.
+@end detailmenu
 @end menu
-
-@c ================ Volume 1 ================
 
 @include intro.texi
 @include objects.texi
@@ -950,6 +1429,7 @@ Object Internals
 
 @include lists.texi
 @include sequences.texi
+@include hash.texi
 @include symbols.texi
 @include eval.texi
 
@@ -958,36 +1438,40 @@ Object Internals
 @include functions.texi
 @include macros.texi
 
+@include customize.texi
 @include loading.texi
 @include compile.texi
+@include advice.texi
+
 @include debugging.texi
 @include streams.texi
-
 @include minibuf.texi
 @include commands.texi
+
 @include keymaps.texi
 @include modes.texi
+@include help.texi
+@include files.texi
+
+@include backups.texi
 
 @c ================ Beginning of Volume 2 ================
-
-@c include help.texi
-@c include files.texi
-@c include backups.texi
 @c include buffers.texi
-
 @c include windows.texi
 @c include frames.texi
+
 @c include positions.texi
 @c include markers.texi
 @c include text.texi
+@c include nonascii.texi
 
 @c include searching.texi
 @c include syntax.texi
 @c include abbrevs.texi
-
 @c include processes.texi
-@c include os.texi
+
 @c include display.texi
+@c include os.texi
 
 @c MOVE to Emacs Manual:  include misc-modes.texi
 
@@ -995,21 +1479,24 @@ Object Internals
 
 @c  REMOVE this:  include non-hacker.texi
 
+@c include anti.texi
+@c include doclicense.texi
+@c include gpl.texi
 @c include tips.texi
 @c include internals.texi
 @c include errors.texi
 @c include locals.texi
 @c include maps.texi
 @c include hooks.texi
-@c include anti.texi
 
-@include index-vol1.texi
+@include index.texi
 
-@page
-@c Print the tables of contents
-@summarycontents
-@contents
-@c That's all
+@ignore
+@node New Symbols, , Index, Top
+@unnumbered New Symbols Since the Previous Edition
+
+@printindex tp
+@end ignore
 
 @bye
 

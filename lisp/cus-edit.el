@@ -501,17 +501,12 @@
 
 (defun custom-split-regexp-maybe (regexp)
   "If REGEXP is a string, split it to a list at `\\|'.
-You can get the original back with from the result with:
+You can get the original back from the result with:
   (mapconcat 'identity result \"\\|\")
 
 IF REGEXP is not a string, return it unchanged."
   (if (stringp regexp)
-      (let ((start 0)
-	    all)
-	(while (string-match "\\\\|" regexp start)
-	  (setq all (cons (substring regexp start (match-beginning 0)) all)
-		start (match-end 0)))
-	(nreverse (cons (substring regexp start) all)))
+      (split-string regexp "\\\\|")
     regexp))
 
 (defun custom-variable-prompt ()
@@ -1559,18 +1554,15 @@ Editing a setting changes only the text in the buffer."
 				 "Square brackets indicate")))
 	(if init-file-user
 	    (widget-insert "
-Use the setting's State button to set it or save changes in it.
-Saving a change normally works by editing your Emacs init file.")
-	    (widget-insert "
-\nSince you started Emacs with `-q', which inhibits use of the
-Emacs init file, you cannot save settings into the Emacs init file."))
-	(widget-insert "\nSee ")
+Use the Save or Set buttons to set apply your changes.
+Saving a change normally works by editing your Emacs ")
+	  (widget-insert "
+\nSince you started Emacs with `-q', you cannot save settings into
+the Emacs "))
 	(widget-create 'custom-manual
-		       :tag "Custom file"
+		       :tag "init file"
 		       "(emacs)Saving Customizations")
-	(widget-insert
-	 " for information on how to save in a different file.\n
-See ")
+	(widget-insert ".\nSee ")
 	(widget-create 'custom-manual
 		       :tag "Help"
 		       :help-echo "Read the online help."
@@ -2439,13 +2431,13 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 (defface custom-variable-tag
   `((((class color)
       (background dark))
-     (:foreground "light blue" :weight bold :height 1.2 :inherit variable-pitch))
+     (:foreground "light blue" :weight bold :inherit variable-pitch))
     (((min-colors 88) (class color)
       (background light))
-     (:foreground "blue1" :weight bold :height 1.2 :inherit variable-pitch))
+     (:foreground "blue1" :weight bold :inherit variable-pitch))
     (((class color)
       (background light))
-     (:foreground "blue" :weight bold :height 1.2 :inherit variable-pitch))
+     (:foreground "blue" :weight bold :inherit variable-pitch))
     (t (:weight bold)))
   "Face used for unpushable variable tags."
   :group 'custom-faces)
@@ -2500,7 +2492,8 @@ However, setting it through Custom sets the default value.")
 (defun custom-variable-type (symbol)
   "Return a widget suitable for editing the value of SYMBOL.
 If SYMBOL has a `custom-type' property, use that.
-Otherwise, look up symbol in `custom-guess-type-alist'."
+Otherwise, try matching SYMBOL against `custom-guess-name-alist' and
+try matching its doc string against `custom-guess-doc-alist'."
   (let* ((type (or (get symbol 'custom-type)
 		   (and (not (get symbol 'standard-value))
 			(custom-guess-type symbol))
@@ -2635,15 +2628,11 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
 		    widget 'custom-magic nil)))
 	(widget-put widget :custom-magic magic)
 	(push magic buttons))
-      ;; ### NOTE: this is ugly!!!! I need to update the :buttons property
-      ;; before the call to `widget-default-format-handler'. Otherwise, I
-      ;; loose my current `buttons'. This function shouldn't be called like
-      ;; this anyway. The doc string widget should be added like the others.
-      ;; --dv
       (widget-put widget :buttons buttons)
       (insert "\n")
       ;; Insert documentation.
-      (widget-default-format-handler widget ?h)
+      (widget-add-documentation-string-button
+       widget :visibility-widget 'custom-visibility)
 
       ;; The comment field
       (unless (eq state 'hidden)
@@ -2982,6 +2971,21 @@ to switch between two values."
     (custom-variable-state-set widget)
     ;; This call will possibly make the comment invisible
     (custom-redraw widget)))
+
+;;; The `custom-visibility' Widget
+
+(define-widget 'custom-visibility 'visibility
+  "Show or hide a documentation string."
+  :button-face 'custom-visibility
+  :pressed-face 'custom-visibility
+  :mouse-face 'highlight
+  :pressed-face 'highlight)
+
+(defface custom-visibility
+  '((t :height 0.8 :inherit link))
+  "Face for the `custom-visibility' widget."
+  :version "23.1"
+  :group 'custom-faces)
 
 ;;; The `custom-face-edit' Widget.
 
@@ -3354,7 +3358,9 @@ SPEC must be a full face spec."
 	   ;; Update buttons.
 	   (widget-put widget :buttons buttons)
 	   ;; Insert documentation.
-	   (widget-default-format-handler widget ?h)
+	   (widget-add-documentation-string-button
+	    widget :visibility-widget 'custom-visibility)
+
 	   ;; The comment field
 	   (unless (eq state 'hidden)
 	     (let* ((comment (get symbol 'face-comment))
@@ -3926,7 +3932,9 @@ If GROUPS-ONLY non-nil, return only those members that are groups."
 	   ;; Insert documentation.
 	   (if (and (eq custom-buffer-style 'links) (> level 1))
 	       (widget-put widget :documentation-indent 0))
-	   (widget-default-format-handler widget ?h))
+	   (widget-add-documentation-string-button
+	    widget :visibility-widget 'custom-visibility))
+
 	  ;; Nested style.
 	  (t				;Visible.
 	   ;; Add parent groups references above the group.
@@ -3934,7 +3942,7 @@ If GROUPS-ONLY non-nil, return only those members that are groups."
 		    ;;; was made to display a group.
 	       (when (eq level 1)
 		 (if (custom-add-parent-links widget
-					      "Go to parent group:")
+					      "Parent group:")
 		     (insert "\n"))))
 	   ;; Create level indicator.
 	   (insert-char ?\  (* custom-buffer-indent (1- level)))
@@ -3970,7 +3978,9 @@ If GROUPS-ONLY non-nil, return only those members that are groups."
 	   ;; Update buttons.
 	   (widget-put widget :buttons buttons)
 	   ;; Insert documentation.
-	   (widget-default-format-handler widget ?h)
+	   (widget-add-documentation-string-button
+	    widget :visibility-widget 'custom-visibility)
+
 	   ;; Parent groups.
 	   (if nil  ;;; This should test that the buffer
 		    ;;; was not made to display a group.

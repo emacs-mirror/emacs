@@ -1345,7 +1345,7 @@ Optional Packages:
   --with-xpm              use -lXpm for displaying XPM images
   --with-jpeg             use -ljpeg for displaying JPEG images
   --with-tiff             use -ltiff for displaying TIFF images
-  --with-gif              use -lungif for displaying GIF images
+  --with-gif              use -lungif (or -lgif) for displaying GIF images
   --with-png              use -lpng for displaying PNG images
   --with-freetype         use -lfreetype for local fonts support
   --with-xft              use -lXft for anti aliased fonts
@@ -1908,12 +1908,12 @@ if test "${with_x_toolkit+set}" = set; then
 	    m | mo | mot | moti | motif )	val=motif ;;
 	    g | gt | gtk  )	val=gtk ;;
 	    * )
-{ { echo "$as_me:$LINENO: error: \`--with-x-toolkit=$withval' is invalid\;
+{ { echo "$as_me:$LINENO: error: \`--with-x-toolkit=$withval' is invalid;
 this option's value should be \`yes', \`no', \`lucid', \`athena', \`motif' or \`gtk'.
-Currently, \`yes' and \`gtk', and \`athena' and \`lucid' are synonyms." >&5
-echo "$as_me: error: \`--with-x-toolkit=$withval' is invalid\;
+\`yes' and \`gtk' are synonyms. \`athena' and \`lucid' are synonyms." >&5
+echo "$as_me: error: \`--with-x-toolkit=$withval' is invalid;
 this option's value should be \`yes', \`no', \`lucid', \`athena', \`motif' or \`gtk'.
-Currently, \`yes' and \`gtk', and \`athena' and \`lucid' are synonyms." >&2;}
+\`yes' and \`gtk' are synonyms. \`athena' and \`lucid' are synonyms." >&2;}
    { (exit 1); exit 1; }; }
 	    ;;
 	  esac
@@ -11807,11 +11807,79 @@ _ACEOF
   fi
 fi
 
+HAVE_XAW3D=no
 if test x"${USE_X_TOOLKIT}" = xmaybe || test x"${USE_X_TOOLKIT}" = xLUCID; then
-  if test x"${HAVE_X11R5}" = xyes; then
-    { echo "$as_me:$LINENO: checking X11 version 5 with Xaw" >&5
-echo $ECHO_N "checking X11 version 5 with Xaw... $ECHO_C" >&6; }
-    if test "${emacs_cv_x11_version_5_with_xaw+set}" = set; then
+  if test x"${HAVE_X11R5}" != xyes; then
+    USE_X_TOOLKIT=none
+  else
+    { echo "$as_me:$LINENO: checking for xaw3d" >&5
+echo $ECHO_N "checking for xaw3d... $ECHO_C" >&6; }
+    if test "${emacs_cv_xaw3d+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+#include <X11/Intrinsic.h>
+#include <X11/Xaw3d/Simple.h>
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
+  emacs_cv_xaw3d=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	emacs_cv_xaw3d=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+fi
+
+    if test $emacs_cv_xaw3d = yes; then
+      { echo "$as_me:$LINENO: result: yes; using Lucid toolkit" >&5
+echo "${ECHO_T}yes; using Lucid toolkit" >&6; }
+      USE_X_TOOLKIT=LUCID
+      HAVE_XAW3D=yes
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_XAW3D 1
+_ACEOF
+
+    else
+      { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+      { echo "$as_me:$LINENO: checking for libXaw" >&5
+echo $ECHO_N "checking for libXaw... $ECHO_C" >&6; }
+      if test "${emacs_cv_xaw+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   cat >conftest.$ac_ext <<_ACEOF
@@ -11849,35 +11917,32 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
-  emacs_cv_x11_version_5_with_xaw=yes
+  emacs_cv_xaw=yes
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
-	emacs_cv_x11_version_5_with_xaw=no
+	emacs_cv_xaw=no
 fi
 
 rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
       conftest$ac_exeext conftest.$ac_ext
 fi
 
-    if test $emacs_cv_x11_version_5_with_xaw = yes; then
-      { echo "$as_me:$LINENO: result: 5 or newer, with Xaw; use toolkit by default" >&5
-echo "${ECHO_T}5 or newer, with Xaw; use toolkit by default" >&6; }
-      USE_X_TOOLKIT=LUCID
-    else
-      if test x"${USE_X_TOOLKIT}" = xLUCID; then
+      if test $emacs_cv_xaw = yes; then
+        { echo "$as_me:$LINENO: result: yes; using Lucid toolkit" >&5
+echo "${ECHO_T}yes; using Lucid toolkit" >&6; }
+        USE_X_TOOLKIT=LUCID
+      elif test x"${USE_X_TOOLKIT}" = xLUCID; then
         { { echo "$as_me:$LINENO: error: Lucid toolkit requires X11/Xaw include files" >&5
 echo "$as_me: error: Lucid toolkit requires X11/Xaw include files" >&2;}
    { (exit 1); exit 1; }; }
       else
-        { echo "$as_me:$LINENO: result: before 5 or no Xaw; do not use toolkit by default" >&5
-echo "${ECHO_T}before 5 or no Xaw; do not use toolkit by default" >&6; }
+        { echo "$as_me:$LINENO: result: no; do not use toolkit by default" >&5
+echo "${ECHO_T}no; do not use toolkit by default" >&6; }
         USE_X_TOOLKIT=none
       fi
     fi
-  else
-    USE_X_TOOLKIT=none
   fi
 fi
 
@@ -12310,130 +12375,6 @@ echo "${ECHO_T}$emacs_cv_lesstif" >&6; }
     else
       CFLAGS=$OLD_CFLAGS
       CPPFLAGS=$OLD_CPPFLAGS
-    fi
-  fi
-fi
-
-### Is -lXaw3d available?
-HAVE_XAW3D=no
-if test "${HAVE_X11}" = "yes"; then
-  if test "${USE_X_TOOLKIT}" != "none" && test "${with_toolkit_scroll_bars}" != "no"; then
-            { echo "$as_me:$LINENO: checking for X11/Xaw3d/Scrollbar.h" >&5
-echo $ECHO_N "checking for X11/Xaw3d/Scrollbar.h... $ECHO_C" >&6; }
-if test "${ac_cv_header_X11_Xaw3d_Scrollbar_h+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-#include <X11/Xaw3d/Scrollbar.h>
-_ACEOF
-if { (ac_try="$ac_cpp conftest.$ac_ext"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-  (eval "$ac_cpp conftest.$ac_ext") 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
-	 test ! -s conftest.err
-       }; then
-  ac_cv_header_X11_Xaw3d_Scrollbar_h=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-  ac_cv_header_X11_Xaw3d_Scrollbar_h=no
-fi
-
-rm -f conftest.err conftest.$ac_ext
-fi
-{ echo "$as_me:$LINENO: result: $ac_cv_header_X11_Xaw3d_Scrollbar_h" >&5
-echo "${ECHO_T}$ac_cv_header_X11_Xaw3d_Scrollbar_h" >&6; }
-if test $ac_cv_header_X11_Xaw3d_Scrollbar_h = yes; then
-  { echo "$as_me:$LINENO: checking for XawScrollbarSetThumb in -lXaw3d" >&5
-echo $ECHO_N "checking for XawScrollbarSetThumb in -lXaw3d... $ECHO_C" >&6; }
-if test "${ac_cv_lib_Xaw3d_XawScrollbarSetThumb+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lXaw3d  $LIBS"
-cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char XawScrollbarSetThumb ();
-int
-main ()
-{
-return XawScrollbarSetThumb ();
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.$ac_objext conftest$ac_exeext
-if { (ac_try="$ac_link"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-  (eval "$ac_link") 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
-	 test ! -s conftest.err
-       } && test -s conftest$ac_exeext &&
-       $as_test_x conftest$ac_exeext; then
-  ac_cv_lib_Xaw3d_XawScrollbarSetThumb=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-	ac_cv_lib_Xaw3d_XawScrollbarSetThumb=no
-fi
-
-rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
-      conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ echo "$as_me:$LINENO: result: $ac_cv_lib_Xaw3d_XawScrollbarSetThumb" >&5
-echo "${ECHO_T}$ac_cv_lib_Xaw3d_XawScrollbarSetThumb" >&6; }
-if test $ac_cv_lib_Xaw3d_XawScrollbarSetThumb = yes; then
-  HAVE_XAW3D=yes
-fi
-
-fi
-
-
-    if test "${HAVE_XAW3D}" = "yes"; then
-
-cat >>confdefs.h <<\_ACEOF
-#define HAVE_XAW3D 1
-_ACEOF
-
     fi
   fi
 fi
@@ -14198,11 +14139,10 @@ _ACEOF
   fi
 fi
 
-### Use -lgif if available, unless `--with-gif=no'.
+### Use -lgif or -lungif if available, unless `--with-gif=no'.
 HAVE_GIF=no
-if test "${HAVE_X11}" = "yes"; then
-  if test "${with_gif}" != "no"; then
-    if test "${ac_cv_header_gif_lib_h+set}" = set; then
+if test "${HAVE_X11}" = "yes" && test "${with_gif}" != "no"; then
+  if test "${ac_cv_header_gif_lib_h+set}" = set; then
   { echo "$as_me:$LINENO: checking for gif_lib.h" >&5
 echo $ECHO_N "checking for gif_lib.h... $ECHO_C" >&6; }
 if test "${ac_cv_header_gif_lib_h+set}" = set; then
@@ -14330,7 +14270,7 @@ fi
 if test $ac_cv_header_gif_lib_h = yes; then
   # EGifPutExtensionLast only exists from version libungif-4.1.0b1.
 # Earlier versions can crash Emacs.
-      { echo "$as_me:$LINENO: checking for EGifPutExtensionLast in -lungif" >&5
+    { echo "$as_me:$LINENO: checking for EGifPutExtensionLast in -lungif" >&5
 echo $ECHO_N "checking for EGifPutExtensionLast in -lungif... $ECHO_C" >&6; }
 if test "${ac_cv_lib_ungif_EGifPutExtensionLast+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
@@ -14393,11 +14333,94 @@ fi
 echo "${ECHO_T}$ac_cv_lib_ungif_EGifPutExtensionLast" >&6; }
 if test $ac_cv_lib_ungif_EGifPutExtensionLast = yes; then
   HAVE_GIF=yes
+else
+  try_libgif=yes
 fi
 
 fi
 
 
+
+  if test "$HAVE_GIF" = yes; then
+      ac_gif_lib_name="-lungif"
+  fi
+
+# If gif_lib.h but no libungif, try libgif.
+  if test x"$try_libgif" = xyes; then
+    { echo "$as_me:$LINENO: checking for EGifPutExtensionLast in -lgif" >&5
+echo $ECHO_N "checking for EGifPutExtensionLast in -lgif... $ECHO_C" >&6; }
+if test "${ac_cv_lib_gif_EGifPutExtensionLast+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lgif  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char EGifPutExtensionLast ();
+int
+main ()
+{
+return EGifPutExtensionLast ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
+  ac_cv_lib_gif_EGifPutExtensionLast=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_lib_gif_EGifPutExtensionLast=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_lib_gif_EGifPutExtensionLast" >&5
+echo "${ECHO_T}$ac_cv_lib_gif_EGifPutExtensionLast" >&6; }
+if test $ac_cv_lib_gif_EGifPutExtensionLast = yes; then
+  HAVE_GIF=yes
+fi
+
+
+    if test "$HAVE_GIF" = yes; then
+
+cat >>confdefs.h <<\_ACEOF
+#define LIBGIF -lgif
+_ACEOF
+
+      ac_gif_lib_name="-lgif"
+    fi
   fi
 
   if test "${HAVE_GIF}" = "yes"; then
@@ -14406,6 +14429,37 @@ cat >>confdefs.h <<\_ACEOF
 #define HAVE_GIF 1
 _ACEOF
 
+  fi
+fi
+
+if test "${HAVE_X11}" = "yes"; then
+  MISSING=""
+  WITH_NO=""
+  test "${with_xpm}" != "no" && test "${HAVE_XPM}" != "yes" &&
+    MISSING="libXpm" && WITH_NO="--with-xpm=no"
+  test "${with_jpeg}" != "no" && test "${HAVE_JPEG}" != "yes" &&
+    MISSING="$MISSING libjpeg" && WITH_NO="$WITH_NO --with-jpeg=no"
+  test "${with_png}" != "no" && test "${HAVE_PNG}" != "yes" &&
+    MISSING="$MISSING libpng" && WITH_NO="$WITH_NO --with-png=no"
+  test "${with_gif}" != "no" && test "${HAVE_GIF}" != "yes" &&
+    MISSING="$MISSING libgif/libungif" && WITH_NO="$WITH_NO --with-gif=no"
+  test "${with_tiff}" != "no" && test "${HAVE_TIFF}" != "yes" &&
+    MISSING="$MISSING libtiff" && WITH_NO="$WITH_NO --with-tiff=no"
+
+  if test "X${MISSING}" != X; then
+    { { echo "$as_me:$LINENO: error: The following required libraries was not found:
+    $MISSING
+Maybe some development libraries/packages are missing?
+If you don't want to link with them give
+    $WITH_NO
+as options to configure" >&5
+echo "$as_me: error: The following required libraries was not found:
+    $MISSING
+Maybe some development libraries/packages are missing?
+If you don't want to link with them give
+    $WITH_NO
+as options to configure" >&2;}
+   { (exit 1); exit 1; }; }
   fi
 fi
 
@@ -23752,6 +23806,7 @@ fi
 
 
 
+
 #### Report on what we decided to do.
 #### Report GTK as a toolkit, even if it doesn't use Xt.
 #### It makes printing result more understandable as using GTK sets
@@ -23788,7 +23843,7 @@ echo "  Does Emacs use -lXaw3d?                                 ${HAVE_XAW3D}"
 echo "  Does Emacs use -lXpm?                                   ${HAVE_XPM}"
 echo "  Does Emacs use -ljpeg?                                  ${HAVE_JPEG}"
 echo "  Does Emacs use -ltiff?                                  ${HAVE_TIFF}"
-echo "  Does Emacs use -lungif?                                 ${HAVE_GIF}"
+echo "  Does Emacs use a gif library?                           ${HAVE_GIF} $ac_gif_lib_name"
 echo "  Does Emacs use -lpng?                                   ${HAVE_PNG}"
 echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use X toolkit scroll bars?                   ${USE_TOOLKIT_SCROLL_BARS}"

@@ -153,11 +153,8 @@ If nil, means use the colon-separated path in the variable $INCPATH instead."
 	   (define-key completion-map " "	'minibuffer-complete-word)
 	   (define-key completion-map "?"	'minibuffer-completion-help)
 
-	   (define-key must-match-map "\t"	'minibuffer-complete)
-	   (define-key must-match-map " "	'minibuffer-complete-word)
 	   (define-key must-match-map "\r"	'minibuffer-complete-and-exit)
 	   (define-key must-match-map "\n"	'minibuffer-complete-and-exit)
-	   (define-key must-match-map "?"	'minibuffer-completion-help)
 
 	   (define-key global-map [remap lisp-complete-symbol]	nil))
 	  (PC-default-bindings
@@ -173,17 +170,11 @@ If nil, means use the colon-separated path in the variable $INCPATH instead."
 	   (define-key completion-map "\e\n"	'PC-force-complete-and-exit)
 	   (define-key completion-map "\e?"	'PC-completion-help)
 
-	   (define-key must-match-map "\t"	'PC-complete)
-	   (define-key must-match-map " "	'PC-complete-word)
 	   (define-key must-match-map "\r"	'PC-complete-and-exit)
 	   (define-key must-match-map "\n"	'PC-complete-and-exit)
-	   (define-key must-match-map "?"	'PC-completion-help)
 
-	   (define-key must-match-map "\e\t"	'PC-complete)
-	   (define-key must-match-map "\e "	'PC-complete-word)
 	   (define-key must-match-map "\e\r"	'PC-complete-and-exit)
 	   (define-key must-match-map "\e\n"	'PC-complete-and-exit)
-	   (define-key must-match-map "\e?"	'PC-completion-help)
 
 	   (define-key global-map [remap lisp-complete-symbol]	'PC-lisp-complete-symbol)))))
 

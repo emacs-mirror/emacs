@@ -23,6 +23,7 @@ Boston, MA 02110-1301, USA.  */
 #include <signal.h>
 
 #include <stdio.h>
+#include <mbstring.h>
 #include "lisp.h"
 #include "termhooks.h"
 #include "keyboard.h"
@@ -2262,8 +2263,9 @@ static int
 add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 {
   UINT fuFlags;
-  char *out_string;
+  char *out_string, *p, *q;
   int return_value;
+  size_t nlen, orig_len;
 
   if (name_is_separator (wv->name))
     {
@@ -2286,6 +2288,33 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 	}
       else
 	out_string = wv->name;
+
+      /* Quote any special characters within the menu item's text and
+	 key binding.  */
+      nlen = orig_len = strlen (out_string);
+      for (p = out_string; *p; p = _mbsinc (p))
+	{
+	  if (_mbsnextc (p) == '&')
+	    nlen++;
+	}
+      if (nlen > orig_len)
+	{
+	  p = out_string;
+	  out_string = alloca (nlen + 1);
+	  q = out_string;
+	  while (*p)
+	    {
+	      if (_mbsnextc (p) == '&')
+		{
+		  _mbsncpy (q, p, 1);
+		  q = _mbsinc (q);
+		}
+	      _mbsncpy (q, p, 1);
+	      p = _mbsinc (p);
+	      q = _mbsinc (q);
+	    }
+	  *q = '\0';
+	}
 
       if (item != NULL)
 	fuFlags = MF_POPUP;

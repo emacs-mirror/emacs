@@ -101,8 +101,8 @@ minibuffer histories, such as `compile-command' or `kill-ring'."
   (cond
    ;; Backward compatibility with previous versions of savehist.
    ((file-exists-p "~/.emacs-history") "~/.emacs-history")
-   ((and (not (featurep 'xemacs)) (file-directory-p "~/.emacs.d/"))
-    "~/.emacs.d/history")
+   ((and (not (featurep 'xemacs)) (file-directory-p user-emacs-directory))
+    (concat user-emacs-directory "history"))
    ((and (featurep 'xemacs) (file-directory-p "~/.xemacs/"))
     "~/.xemacs/history")
    ;; For users without `~/.emacs.d/' or `~/.xemacs/'.

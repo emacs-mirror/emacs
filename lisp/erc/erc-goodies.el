@@ -77,7 +77,7 @@ You can control which line is recentered to by customizing the
 variable `erc-input-line-position'.
 
 DISPLAY-START is ignored."
-  (if (and window (window-live-p window))
+  (if (window-live-p window)
       ;; Temporarily bind resize-mini-windows to nil so that users who have it
       ;; set to a non-nil value will not suffer from premature minibuffer
       ;; shrinkage due to the below recenter call.  I have no idea why this

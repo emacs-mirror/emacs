@@ -50,7 +50,8 @@
 (defvar url-configuration-directory
   (cond
    ((file-directory-p "~/.url") "~/.url")
-   ((file-directory-p "~/.emacs.d") "~/.emacs.d/url")
+   ((file-directory-p user-emacs-directory)
+    (concat user-emacs-directory "url"))
    (t "~/.url")))
 
 (defun url-do-setup ()

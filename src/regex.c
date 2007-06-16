@@ -2620,11 +2620,6 @@ regex_compile (pattern, size, syntax, bufp)
      last -- ends with a forward jump of this sort.  */
   unsigned char *fixup_alt_jump = 0;
 
-  /* Counts open-groups as they are encountered.  Remembered for the
-     matching close-group on the compile stack, so the same register
-     number is put in the stop_memory as the start_memory.  */
-  regnum_t regnum = 0;
-
   /* Work area for range table of charset.  */
   struct range_table_work_area range_table_work;
 
@@ -3276,28 +3271,54 @@ regex_compile (pattern, size, syntax, bufp)
 	    handle_open:
 	      {
 		int shy = 0;
+		regnum_t regnum = 0;
 		if (p+1 < pend)
 		  {
 		    /* Look for a special (?...) construct */
 		    if ((syntax & RE_SHY_GROUPS) && *p == '?')
 		      {
 			PATFETCH (c); /* Gobble up the '?'.  */
-			PATFETCH (c);
-			switch (c)
+			while (!shy)
 			  {
-			  case ':': shy = 1; break;
-			  default:
-			    /* Only (?:...) is supported right now. */
-			    FREE_STACK_RETURN (REG_BADPAT);
+			    PATFETCH (c);
+			    switch (c)
+			      {
+			      case ':': shy = 1; break;
+			      case '0':
+				/* An explicitly specified regnum must start
+				   with non-0. */
+				if (regnum == 0)
+				  FREE_STACK_RETURN (REG_BADPAT);
+			      case '1': case '2': case '3': case '4':
+			      case '5': case '6': case '7': case '8': case '9':
+				regnum = 10*regnum + (c - '0'); break;
+			      default:
+				/* Only (?:...) is supported right now. */
+				FREE_STACK_RETURN (REG_BADPAT);
+			      }
 			  }
 		      }
 		  }
 
 		if (!shy)
-		  {
-		    bufp->re_nsub++;
-		    regnum++;
+		  regnum = ++bufp->re_nsub;
+		else if (regnum)
+		  { /* It's actually not shy, but explicitly numbered.  */
+		    shy = 0;
+		    if (regnum > bufp->re_nsub)
+		      bufp->re_nsub = regnum;
+		    else if (regnum > bufp->re_nsub
+			     /* Ideally, we'd want to check that the specified
+				group can't have matched (i.e. all subgroups
+				using the same regnum are in other branches of
+				OR patterns), but we don't currently keep track
+				of enough info to do that easily.  */
+			     || group_in_compile_stack (compile_stack, regnum))
+		      FREE_STACK_RETURN (REG_BADPAT);
 		  }
+		else
+		  /* It's really shy.  */
+		  regnum = - bufp->re_nsub;
 
 		if (COMPILE_STACK_FULL)
 		  {
@@ -3316,12 +3337,11 @@ regex_compile (pattern, size, syntax, bufp)
 		COMPILE_STACK_TOP.fixup_alt_jump
 		  = fixup_alt_jump ? fixup_alt_jump - bufp->buffer + 1 : 0;
 		COMPILE_STACK_TOP.laststart_offset = b - bufp->buffer;
-		COMPILE_STACK_TOP.regnum = shy ? -regnum : regnum;
+		COMPILE_STACK_TOP.regnum = regnum;
 
-		/* Do not push a
-		   start_memory for groups beyond the last one we can
-		   represent in the compiled pattern.  */
-		if (regnum <= MAX_REGNUM && !shy)
+		/* Do not push a start_memory for groups beyond the last one
+		   we can represent in the compiled pattern.  */
+		if (regnum <= MAX_REGNUM && regnum > 0)
 		  BUF_PUSH_2 (start_memory, regnum);
 
 		compile_stack.avail++;
@@ -3366,7 +3386,7 @@ regex_compile (pattern, size, syntax, bufp)
 		/* We don't just want to restore into `regnum', because
 		   later groups should continue to be numbered higher,
 		   as in `(ab)c(de)' -- the second group is #2.  */
-		regnum_t this_group_regnum;
+		regnum_t regnum;
 
 		compile_stack.avail--;
 		begalt = bufp->buffer + COMPILE_STACK_TOP.begalt_offset;
@@ -3375,7 +3395,7 @@ regex_compile (pattern, size, syntax, bufp)
 		    ? bufp->buffer + COMPILE_STACK_TOP.fixup_alt_jump - 1
 		    : 0;
 		laststart = bufp->buffer + COMPILE_STACK_TOP.laststart_offset;
-		this_group_regnum = COMPILE_STACK_TOP.regnum;
+		regnum = COMPILE_STACK_TOP.regnum;
 		/* If we've reached MAX_REGNUM groups, then this open
 		   won't actually generate any code, so we'll have to
 		   clear pending_exact explicitly.  */
@@ -3383,8 +3403,8 @@ regex_compile (pattern, size, syntax, bufp)
 
 		/* We're at the end of the group, so now we know how many
 		   groups were inside this one.  */
-		if (this_group_regnum <= MAX_REGNUM && this_group_regnum > 0)
-		  BUF_PUSH_2 (stop_memory, this_group_regnum);
+		if (regnum <= MAX_REGNUM && regnum > 0)
+		  BUF_PUSH_2 (stop_memory, regnum);
 	      }
 	      break;
 
@@ -3710,8 +3730,9 @@ regex_compile (pattern, size, syntax, bufp)
 
 		reg = c - '0';
 
-		/* Can't back reference to a subexpression before its end.  */
-		if (reg > regnum || group_in_compile_stack (compile_stack, reg))
+		if (reg > bufp->re_nsub || reg < 1
+		    /* Can't back reference to a subexp before its end.  */
+		    || group_in_compile_stack (compile_stack, reg))
 		  FREE_STACK_RETURN (REG_ESUBREG);
 
 		laststart = b;

@@ -1580,7 +1580,8 @@ password contained in '~/.nntp-authinfo'."
 		 ;; article number.  How... helpful.
 		 (progn
 		   (forward-line 1)
-		   (looking-at "[0-9]+\t...")) ; More text after number.
+		   ;; More text after number, or a dot.
+		   (looking-at "[0-9]+\t...\\|\\.\r?\n"))
 		 (setq nntp-server-xover (car commands))))
 	  (setq commands (cdr commands)))
 	;; If none of the commands worked, we disable XOVER.

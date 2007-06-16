@@ -97,6 +97,13 @@
   :tag "Is it VMS?"
   :group 'viper-misc)
 
+(defcustom viper-suppress-input-method-change-message nil
+  "If t, the message notifying about changes in the input method is not displayed.
+Normally, a message is displayed each time on enters the vi, insert or replace
+state."
+  :type 'boolean
+  :group 'viper-misc)
+
 (defcustom viper-force-faces nil
   "If t, Viper will think that it is running on a display that supports faces.
 This is provided as a temporary relief for users of graphics-capable terminals
@@ -326,7 +333,8 @@ Use `M-x viper-set-expert-level' to change this.")
     ;; turn off special input methods in vi-state
     (if (eq viper-current-state 'vi-state)
 	(viper-set-input-method nil))
-    (if (memq viper-current-state '(vi-state insert-state replace-state))
+    (if (and (memq viper-current-state '(vi-state insert-state replace-state))
+	     (not viper-suppress-input-method-change-message))
 	(message "Viper special input method%s: on"
 		 (if (or current-input-method default-input-method)
 		     (format " %S"
@@ -339,7 +347,8 @@ Use `M-x viper-set-expert-level' to change this.")
   (if (null viper-mule-hook-flag)
       ()
     (setq viper-special-input-method nil)
-    (if (memq viper-current-state '(vi-state insert-state replace-state))
+    (if (and (memq viper-current-state '(vi-state insert-state replace-state))
+	     (not viper-suppress-input-method-change-message))
 	(message "Viper special input method%s: off"
 		 (if (or current-input-method default-input-method)
 		     (format " %S"
@@ -369,7 +378,7 @@ Use `M-x viper-set-expert-level' to change this.")
 ;; Set quail-mode to ARG
 (defun viper-set-input-method (arg)
   (setq viper-mule-hook-flag t) ; just a precaution
-  (let (viper-mule-hook-flag) ; temporarily inactivate viper mule hooks
+  (let (viper-mule-hook-flag) ; temporarily deactivate viper mule hooks
     (cond ((and arg (> (prefix-numeric-value arg) 0) default-input-method)
 	   ;; activate input method
 	   (viper-activate-input-method))

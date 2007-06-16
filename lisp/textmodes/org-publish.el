@@ -6,8 +6,6 @@
 ;; Keywords: hypermedia, outlines
 ;; Version: 1.80
 
-;; $Id: org-publish.el,v 1.2 2007/06/07 02:04:17 miles Exp $
-
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 2, or (at your option)

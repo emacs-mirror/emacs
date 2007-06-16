@@ -2197,6 +2197,57 @@ x_draw_fringe_bitmap (w, row, p)
   struct face *face = p->face;
   int rowY;
 
+#ifdef MAC_OSX
+  if (p->bx >= 0 && !p->overlay_p)
+    {
+      int bx = p->bx, nx = p->nx;
+
+#if 0  /* MAC_TODO: stipple */
+      /* In case the same realized face is used for fringes and
+	 for something displayed in the text (e.g. face `region' on
+	 mono-displays, the fill style may have been changed to
+	 FillSolid in x_draw_glyph_string_background.  */
+      if (face->stipple)
+	XSetFillStyle (FRAME_X_DISPLAY (f), face->gc, FillOpaqueStippled);
+      else
+	XSetForeground (FRAME_X_DISPLAY (f), face->gc, face->background);
+#endif
+
+      /* If the fringe is adjacent to the left (right) scroll bar of a
+	 leftmost (rightmost, respectively) window, then extend its
+	 background to the gap between the fringe and the bar.  */
+      if ((WINDOW_LEFTMOST_P (w)
+	   && WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w))
+	  || (WINDOW_RIGHTMOST_P (w)
+	      && WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_RIGHT (w)))
+	{
+	  int sb_width = WINDOW_CONFIG_SCROLL_BAR_WIDTH (w);
+
+	  if (sb_width > 0)
+	    {
+	      int left = WINDOW_SCROLL_BAR_AREA_X (w);
+	      int width = (WINDOW_CONFIG_SCROLL_BAR_COLS (w)
+			   * FRAME_COLUMN_WIDTH (f));
+
+	      if (left + width == bx)
+		{
+		  bx = left + sb_width;
+		  nx += width - sb_width;
+		}
+	      else if (bx + nx == left)
+		nx += width - sb_width;
+	    }
+	}
+
+      mac_erase_rectangle (f, face->gc, bx, p->by, nx, p->ny);
+
+#if 0  /* MAC_TODO: stipple */
+      if (!face->stipple)
+	XSetForeground (FRAME_X_DISPLAY (f), face->gc, face->foreground);
+#endif
+    }
+#endif	/* MAC_OSX */
+
   /* Must clip because of partially visible lines.  */
   rowY = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
   if (p->y < rowY)
@@ -2214,6 +2265,7 @@ x_draw_fringe_bitmap (w, row, p)
   else
     x_clip_to_row (w, row, -1, face->gc);
 
+#ifndef MAC_OSX
   if (p->bx >= 0 && !p->overlay_p)
     {
 #if 0  /* MAC_TODO: stipple */
@@ -2234,6 +2286,7 @@ x_draw_fringe_bitmap (w, row, p)
 	XSetForeground (FRAME_X_DISPLAY (f), face->gc, face->foreground);
 #endif
     }
+#endif	/* !MAC_OSX */
 
   if (p->which
 #if USE_CG_DRAWING
@@ -4997,6 +5050,9 @@ x_scroll_bar_create (w, top, left, width, height, disp_top, disp_height)
   XSETINT (bar->start, 0);
   XSETINT (bar->end, 0);
   bar->dragging = Qnil;
+#ifdef MAC_OSX
+  bar->fringe_extended_p = Qnil;
+#endif
 #ifdef USE_TOOLKIT_SCROLL_BARS
   bar->track_top = Qnil;
   bar->track_height = Qnil;
@@ -5129,6 +5185,9 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
   struct scroll_bar *bar;
   int top, height, left, sb_left, width, sb_width, disp_top, disp_height;
   int window_y, window_height;
+#ifdef MAC_OSX
+  int fringe_extended_p;
+#endif
 
   /* Get window dimensions.  */
   window_box (w, -1, 0, &window_y, 0, &window_height);
@@ -5148,9 +5207,9 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 
   /* Compute the left edge of the scroll bar.  */
   if (WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_RIGHT (w))
-    sb_left = left;
+    sb_left = left + (WINDOW_RIGHTMOST_P (w) ? width - sb_width : 0);
   else
-    sb_left = left + width - sb_width;
+    sb_left = left + (WINDOW_LEFTMOST_P (w) ? 0 : width - sb_width);
 
   /* Adjustments according to Inside Macintosh to make it look nice */
   disp_top = top;
@@ -5171,11 +5230,29 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
     sb_left++;
 #endif
 
+#ifdef MAC_OSX
+  if (WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w))
+    fringe_extended_p = (WINDOW_LEFTMOST_P (w)
+			 && WINDOW_LEFT_FRINGE_WIDTH (w)
+			 && (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
+			     || WINDOW_LEFT_MARGIN_COLS (w) == 0));
+  else
+    fringe_extended_p = (WINDOW_RIGHTMOST_P (w)
+			 && WINDOW_RIGHT_FRINGE_WIDTH (w)
+			 && (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
+			     || WINDOW_RIGHT_MARGIN_COLS (w) == 0));
+#endif
+
   /* Does the scroll bar exist yet?  */
   if (NILP (w->vertical_scroll_bar))
     {
       BLOCK_INPUT;
-      mac_clear_area (f, left, top, width, height);
+#ifdef MAC_OSX
+      if (fringe_extended_p)
+	mac_clear_area (f, sb_left, top, sb_width, height);
+      else
+#endif
+	mac_clear_area (f, left, top, width, height);
       UNBLOCK_INPUT;
       bar = x_scroll_bar_create (w, top, sb_left, sb_width, height, disp_top,
 				 disp_height);
@@ -5195,11 +5272,20 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
       if (!(XINT (bar->left) == sb_left
 	    && XINT (bar->top) == top
 	    && XINT (bar->width) == sb_width
-	    && XINT (bar->height) == height))
+	    && XINT (bar->height) == height
+#ifdef MAC_OSX
+	    && !NILP (bar->fringe_extended_p) == fringe_extended_p
+#endif
+	    ))
 	{
 	  /* Since toolkit scroll bars are smaller than the space reserved
 	     for them on the frame, we have to clear "under" them.  */
-	  mac_clear_area (f, left, top, width, height);
+#ifdef MAC_OSX
+	  if (fringe_extended_p)
+	    mac_clear_area (f, sb_left, top, sb_width, height);
+	  else
+#endif
+	    mac_clear_area (f, left, top, width, height);
 
 #if USE_CG_DRAWING
 	  mac_prepare_for_quickdraw (f);
@@ -5227,6 +5313,10 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 
       UNBLOCK_INPUT;
     }
+
+#ifdef MAC_OSX
+  bar->fringe_extended_p = fringe_extended_p ? Qt : Qnil;
+#endif
 
 #ifdef USE_TOOLKIT_SCROLL_BARS
   if (NILP (bar->track_top))
@@ -5588,6 +5678,539 @@ x_scroll_bar_clear (f)
   XTcondemn_scroll_bars (f);
   XTjudge_scroll_bars (f);
 }
+
+
+/***********************************************************************
+			       Tool-bars
+ ***********************************************************************/
+#if USE_MAC_TOOLBAR
+
+/* In identifiers such as function/variable names, Emacs tool bar is
+   referred to as `tool_bar', and Carbon HIToolbar as `toolbar'.  */
+
+#define TOOLBAR_IDENTIFIER (CFSTR ("org.gnu.Emacs.toolbar"))
+#define TOOLBAR_ICON_ITEM_IDENTIFIER (CFSTR ("org.gnu.Emacs.toolbar.icon"))
+
+#define TOOLBAR_ITEM_COMMAND_ID_OFFSET 'Tb\0\0'
+#define TOOLBAR_ITEM_COMMAND_ID_P(id)			\
+  (((id) & ~0xffff) == TOOLBAR_ITEM_COMMAND_ID_OFFSET)
+#define TOOLBAR_ITEM_COMMAND_ID_VALUE(id)	\
+  ((id) - TOOLBAR_ITEM_COMMAND_ID_OFFSET)
+#define TOOLBAR_ITEM_MAKE_COMMAND_ID(value)	\
+  ((value) + TOOLBAR_ITEM_COMMAND_ID_OFFSET)
+
+static int mac_event_to_emacs_modifiers P_ ((EventRef));
+static void mac_handle_origin_change P_ ((struct frame *));
+static OSStatus mac_handle_toolbar_command_event P_ ((EventHandlerCallRef,
+						      EventRef, void *));
+
+static void
+mac_move_window_with_gravity (f, win_gravity, left, top)
+     struct frame *f;
+     int win_gravity;
+     short left, top;
+{
+  Rect inner, outer;
+
+  mac_get_window_bounds (f, &inner, &outer);
+
+  switch (win_gravity)
+    {
+    case NorthWestGravity:
+    case WestGravity:
+    case SouthWestGravity:
+      left += inner.left - outer.left;
+      break;
+
+    case NorthGravity:
+    case CenterGravity:
+    case SouthGravity:
+      left += ((inner.left - outer.left) + (inner.right - outer.right)) / 2;
+      break;
+
+    case NorthEastGravity:
+    case EastGravity:
+    case SouthEastGravity:
+      left += inner.right - outer.right;
+      break;
+    }
+
+  switch (win_gravity)
+    {
+    case NorthWestGravity:
+    case NorthGravity:
+    case NorthEastGravity:
+      top += inner.top - outer.top;
+      break;
+
+    case WestGravity:
+    case CenterGravity:
+    case EastGravity:
+      top += ((inner.top - outer.top) + (inner.bottom - outer.bottom)) / 2;
+      break;
+
+    case SouthWestGravity:
+    case SouthGravity:
+    case SouthEastGravity:
+      top += inner.bottom - outer.bottom;
+      break;
+    }
+
+  MoveWindow (FRAME_MAC_WINDOW (f), left, top, false);
+}
+
+static void
+mac_get_window_origin_with_gravity (f, win_gravity, left, top)
+     struct frame *f;
+     int win_gravity;
+     short *left, *top;
+{
+  Rect inner, outer;
+
+  mac_get_window_bounds (f, &inner, &outer);
+
+  switch (win_gravity)
+    {
+    case NorthWestGravity:
+    case WestGravity:
+    case SouthWestGravity:
+      *left = outer.left;
+      break;
+
+    case NorthGravity:
+    case CenterGravity:
+    case SouthGravity:
+      *left = outer.left + ((outer.right - outer.left)
+			    - (inner.right - inner.left)) / 2;
+      break;
+
+    case NorthEastGravity:
+    case EastGravity:
+    case SouthEastGravity:
+      *left = outer.right - (inner.right - inner.left);
+      break;
+    }
+
+  switch (win_gravity)
+    {
+    case NorthWestGravity:
+    case NorthGravity:
+    case NorthEastGravity:
+      *top = outer.top;
+      break;
+
+    case WestGravity:
+    case CenterGravity:
+    case EastGravity:
+      *top = outer.top + ((outer.bottom - outer.top)
+			  - (inner.bottom - inner.top)) / 2;
+      break;
+
+    case SouthWestGravity:
+    case SouthGravity:
+    case SouthEastGravity:
+      *top = outer.bottom - (inner.bottom - inner.top);
+      break;
+    }
+}
+
+static OSStatus
+mac_handle_toolbar_event (next_handler, event, data)
+     EventHandlerCallRef next_handler;
+     EventRef event;
+     void *data;
+{
+  OSStatus err, result = eventNotHandledErr;
+
+  switch (GetEventKind (event))
+    {
+    case kEventToolbarGetDefaultIdentifiers:
+      result = noErr;
+      break;
+
+    case kEventToolbarGetAllowedIdentifiers:
+      {
+	CFMutableArrayRef array;
+
+	GetEventParameter (event, kEventParamMutableArray,
+			   typeCFMutableArrayRef, NULL,
+			   sizeof (CFMutableArrayRef), NULL, &array);
+	CFArrayAppendValue (array, TOOLBAR_ICON_ITEM_IDENTIFIER);
+	result = noErr;
+      }
+      break;
+
+    case kEventToolbarCreateItemWithIdentifier:
+      {
+	CFStringRef identifier;
+	HIToolbarItemRef item = NULL;
+
+	GetEventParameter (event, kEventParamToolbarItemIdentifier,
+			   typeCFStringRef, NULL,
+			   sizeof (CFStringRef), NULL, &identifier);
+
+	if (CFStringCompare (identifier, TOOLBAR_ICON_ITEM_IDENTIFIER, 0)
+	    == kCFCompareEqualTo)
+	  HIToolbarItemCreate (identifier,
+			       kHIToolbarItemAllowDuplicates
+			       | kHIToolbarItemCantBeRemoved, &item);
+
+	if (item)
+	  {
+	    SetEventParameter (event, kEventParamToolbarItem,
+			       typeHIToolbarItemRef,
+			       sizeof (HIToolbarItemRef), &item);
+	    result = noErr;
+	  }
+      }
+      break;
+
+    default:
+      abort ();
+    }
+
+  return result;
+}
+
+static CGImageRef
+mac_image_spec_to_cg_image (f, image)
+     struct frame *f;
+     Lisp_Object image;
+{
+  if (!valid_image_p (image))
+    return NULL;
+  else
+    {
+      int img_id = lookup_image (f, image);
+      struct image *img = IMAGE_FROM_ID (f, img_id);
+
+      prepare_image_for_display (f, img);
+
+      return img->data.ptr_val;
+    }
+}
+
+/* Create a tool bar for frame F.  */
+
+static OSStatus
+mac_create_frame_tool_bar (f)
+     FRAME_PTR f;
+{
+  OSStatus err;
+  HIToolbarRef toolbar;
+
+  err = HIToolbarCreate (TOOLBAR_IDENTIFIER, kHIToolbarNoAttributes,
+			 &toolbar);
+  if (err == noErr)
+    {
+      static const EventTypeSpec specs[] =
+	{{kEventClassToolbar, kEventToolbarGetDefaultIdentifiers},
+	 {kEventClassToolbar, kEventToolbarGetAllowedIdentifiers},
+	 {kEventClassToolbar, kEventToolbarCreateItemWithIdentifier}};
+
+      err = InstallEventHandler (HIObjectGetEventTarget (toolbar),
+				 mac_handle_toolbar_event,
+				 GetEventTypeCount (specs), specs,
+				 f, NULL);
+    }
+
+  if (err == noErr)
+    err = HIToolbarSetDisplayMode (toolbar, kHIToolbarDisplayModeIconOnly);
+  if (err == noErr)
+    {
+      static const EventTypeSpec specs[] =
+	{{kEventClassCommand, kEventCommandProcess}};
+
+      err = InstallWindowEventHandler (FRAME_MAC_WINDOW (f),
+				       mac_handle_toolbar_command_event,
+				       GetEventTypeCount (specs),
+				       specs, f, NULL);
+    }
+  if (err == noErr)
+    err = SetWindowToolbar (FRAME_MAC_WINDOW (f), toolbar);
+
+  if (toolbar)
+    CFRelease (toolbar);
+
+  return err;
+}
+
+/* Update the tool bar for frame F.  Add new buttons and remove old.  */
+
+void
+update_frame_tool_bar (f)
+     FRAME_PTR f;
+{
+  HIToolbarRef toolbar = NULL;
+  short left, top;
+  CFArrayRef old_items = NULL;
+  CFIndex old_count;
+  int i, pos, win_gravity = f->output_data.mac->toolbar_win_gravity;
+  struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
+
+  BLOCK_INPUT;
+
+  GetWindowToolbar (FRAME_MAC_WINDOW (f), &toolbar);
+  if (toolbar == NULL)
+    {
+      mac_create_frame_tool_bar (f);
+      GetWindowToolbar (FRAME_MAC_WINDOW (f), &toolbar);
+      if (toolbar == NULL)
+	goto out;
+      if (win_gravity >= NorthWestGravity && win_gravity <= SouthEastGravity)
+	mac_get_window_origin_with_gravity (f, win_gravity, &left, &top);
+    }
+
+  HIToolbarCopyItems (toolbar, &old_items);
+  if (old_items == NULL)
+    goto out;
+
+  old_count = CFArrayGetCount (old_items);
+  pos = 0;
+  for (i = 0; i < f->n_tool_bar_items; ++i)
+    {
+#define PROP(IDX) AREF (f->tool_bar_items, i * TOOL_BAR_ITEM_NSLOTS + (IDX))
+
+      int enabled_p = !NILP (PROP (TOOL_BAR_ITEM_ENABLED_P));
+      int selected_p = !NILP (PROP (TOOL_BAR_ITEM_SELECTED_P));
+      int idx;
+      Lisp_Object image;
+      CGImageRef cg_image;
+      CFStringRef label;
+      HIToolbarItemRef item;
+
+      /* If image is a vector, choose the image according to the
+	 button state.  */
+      image = PROP (TOOL_BAR_ITEM_IMAGES);
+      if (VECTORP (image))
+	{
+	  if (enabled_p)
+	    idx = (selected_p
+		   ? TOOL_BAR_IMAGE_ENABLED_SELECTED
+		   : TOOL_BAR_IMAGE_ENABLED_DESELECTED);
+	  else
+	    idx = (selected_p
+		   ? TOOL_BAR_IMAGE_DISABLED_SELECTED
+		   : TOOL_BAR_IMAGE_DISABLED_DESELECTED);
+
+	  xassert (ASIZE (image) >= idx);
+	  image = AREF (image, idx);
+	}
+      else
+	idx = -1;
+
+      cg_image = mac_image_spec_to_cg_image (f, image);
+      /* Ignore invalid image specifications.  */
+      if (cg_image == NULL)
+	continue;
+
+      label = cfstring_create_with_string (PROP (TOOL_BAR_ITEM_CAPTION));
+      if (label == NULL)
+	label = CFSTR ("");
+
+      if (pos < old_count)
+	{
+	  CGImageRef old_cg_image = NULL;
+	  CFStringRef old_label = NULL;
+	  Boolean old_enabled_p;
+
+	  item = (HIToolbarItemRef) CFArrayGetValueAtIndex (old_items, pos);
+
+	  HIToolbarItemCopyImage (item, &old_cg_image);
+	  if (cg_image != old_cg_image)
+	    HIToolbarItemSetImage (item, cg_image);
+	  CGImageRelease (old_cg_image);
+
+	  HIToolbarItemCopyLabel (item, &old_label);
+	  if (CFStringCompare (label, old_label, 0) != kCFCompareEqualTo)
+	    HIToolbarItemSetLabel (item, label);
+	  CFRelease (old_label);
+
+	  old_enabled_p = HIToolbarItemIsEnabled (item);
+	  if ((enabled_p || idx >= 0) != old_enabled_p)
+	    HIToolbarItemSetEnabled (item, (enabled_p || idx >= 0));
+	}
+      else
+	{
+	  item = NULL;
+	  HIToolbarCreateItemWithIdentifier (toolbar,
+					     TOOLBAR_ICON_ITEM_IDENTIFIER,
+					     NULL, &item);
+	  if (item)
+	    {
+	      HIToolbarItemSetImage (item, cg_image);
+	      HIToolbarItemSetLabel (item, label);
+	      HIToolbarItemSetEnabled (item, (enabled_p || idx >= 0));
+	      HIToolbarAppendItem (toolbar, item);
+	      CFRelease (item);
+	    }
+	}
+
+      CFRelease (label);
+      if (item)
+	{
+	  HIToolbarItemSetCommandID (item, TOOLBAR_ITEM_MAKE_COMMAND_ID (i));
+	  pos++;
+	}
+    }
+
+  CFRelease (old_items);
+
+  while (pos < old_count)
+    HIToolbarRemoveItemAtIndex (toolbar, --old_count);
+
+  ShowHideWindowToolbar (FRAME_MAC_WINDOW (f), true,
+			 !win_gravity && f == mac_focus_frame (dpyinfo));
+  /* Mac OS X 10.3 does not issue kEventWindowBoundsChanged events on
+     toolbar visibility change.  */
+  mac_handle_origin_change (f);
+  if (win_gravity >= NorthWestGravity && win_gravity <= SouthEastGravity)
+    {
+      mac_move_window_with_gravity (f, win_gravity, left, top);
+      /* If the title bar is completely outside the screen, adjust the
+	 position. */
+      ConstrainWindowToScreen (FRAME_MAC_WINDOW (f), kWindowTitleBarRgn,
+			       kWindowConstrainMoveRegardlessOfFit
+			       | kWindowConstrainAllowPartial, NULL, NULL);
+      f->output_data.mac->toolbar_win_gravity = 0;
+    }
+
+ out:
+  UNBLOCK_INPUT;
+}
+
+/* Hide the tool bar on frame F.  Unlike the counterpart on GTK+, it
+   doesn't deallocate the resources.  */
+
+void
+free_frame_tool_bar (f)
+     FRAME_PTR f;
+{
+  if (IsWindowToolbarVisible (FRAME_MAC_WINDOW (f)))
+    {
+      struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
+
+      BLOCK_INPUT;
+      ShowHideWindowToolbar (FRAME_MAC_WINDOW (f), false,
+			     f == mac_focus_frame (dpyinfo));
+      /* Mac OS X 10.3 does not issue kEventWindowBoundsChanged events
+	 on toolbar visibility change.  */
+      mac_handle_origin_change (f);
+      UNBLOCK_INPUT;
+    }
+}
+
+static void
+mac_tool_bar_note_mouse_movement (f, event)
+     struct frame *f;
+     EventRef event;
+{
+  OSStatus err;
+  struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
+  int mouse_down_p;
+  HIViewRef item_view;
+  UInt32 command_id;
+
+  mouse_down_p = (dpyinfo->grabbed
+		  && f == last_mouse_frame
+		  && FRAME_LIVE_P (f));
+  if (mouse_down_p)
+    return;
+
+  err = HIViewGetViewForMouseEvent (HIViewGetRoot (FRAME_MAC_WINDOW (f)),
+				    event, &item_view);
+  /* This doesn't work on Mac OS X 10.2.  On Mac OS X 10.3 and 10.4, a
+     toolbar item view seems to have the same command ID with that of
+     the toolbar item.  */
+  if (err == noErr)
+    err = GetControlCommandID (item_view, &command_id);
+  if (err == noErr && TOOLBAR_ITEM_COMMAND_ID_P (command_id))
+    {
+      int i = TOOLBAR_ITEM_COMMAND_ID_VALUE (command_id);
+
+      if (i < f->n_tool_bar_items)
+	{
+	  HIRect bounds;
+	  HIViewRef content_view;
+
+	  err = HIViewGetBounds (item_view, &bounds);
+	  if (err == noErr)
+	    err = HIViewFindByID (HIViewGetRoot (FRAME_MAC_WINDOW (f)),
+				  kHIViewWindowContentID, &content_view);
+	  if (err == noErr)
+	    err = HIViewConvertRect (&bounds, item_view, content_view);
+	  if (err == noErr)
+	    SetRect (&last_mouse_glyph,
+		     CGRectGetMinX (bounds), CGRectGetMinY (bounds),
+		     CGRectGetMaxX (bounds), CGRectGetMaxY (bounds));
+
+	  help_echo_object = help_echo_window = Qnil;
+	  help_echo_pos = -1;
+	  help_echo_string = PROP (TOOL_BAR_ITEM_HELP);
+	  if (NILP (help_echo_string))
+	    help_echo_string = PROP (TOOL_BAR_ITEM_CAPTION);
+	}
+    }
+}
+
+static OSStatus
+mac_handle_toolbar_command_event (next_handler, event, data)
+     EventHandlerCallRef next_handler;
+     EventRef event;
+     void *data;
+{
+  OSStatus err, result = eventNotHandledErr;
+  struct frame *f = (struct frame *) data;
+  HICommand command;
+
+  err = GetEventParameter (event, kEventParamDirectObject,
+			   typeHICommand, NULL,
+			   sizeof (HICommand), NULL, &command);
+  if (err != noErr)
+    return result;
+
+  switch (GetEventKind (event))
+    {
+    case kEventCommandProcess:
+      if (!TOOLBAR_ITEM_COMMAND_ID_P (command.commandID))
+	result = CallNextEventHandler (next_handler, event);
+      else
+	{
+	  int i = TOOLBAR_ITEM_COMMAND_ID_VALUE (command.commandID);
+
+	  if (i < f->n_tool_bar_items
+	      && !NILP (PROP (TOOL_BAR_ITEM_ENABLED_P)))
+	    {
+	      Lisp_Object frame;
+	      struct input_event buf;
+
+	      EVENT_INIT (buf);
+
+	      XSETFRAME (frame, f);
+	      buf.kind = TOOL_BAR_EVENT;
+	      buf.frame_or_window = frame;
+	      buf.arg = frame;
+	      kbd_buffer_store_event (&buf);
+
+	      buf.kind = TOOL_BAR_EVENT;
+	      buf.frame_or_window = frame;
+	      buf.arg = PROP (TOOL_BAR_ITEM_KEY);
+	      buf.modifiers = mac_event_to_emacs_modifiers (event);
+	      kbd_buffer_store_event (&buf);
+
+	      result = noErr;
+	    }
+	}
+      break;
+
+    default:
+      abort ();
+    }
+#undef PROP
+
+  return result;
+}
+#endif	/* USE_MAC_TOOLBAR */
 
 
 /***********************************************************************
@@ -10101,6 +10724,13 @@ mac_handle_window_event (next_handler, event, data)
 				kWindowCascadeOnParentWindowScreen
 #endif
 				);
+#if USE_MAC_TOOLBAR
+	      /* This is a workaround.  RepositionWindow fails to put
+		 a window at the cascading position when its parent
+		 window has a Carbon HIToolbar.  */
+	      if (f->top_pos == sf->top_pos && f->left_pos == sf->left_pos)
+		MoveWindowStructure (wp,  f->left_pos + 10, f->top_pos + 32);
+#endif
 	    }
 	  result = noErr;
 	}
@@ -10383,8 +11013,7 @@ mac_handle_keyboard_event (next_handler, event, data)
       if (err != noErr)
 	break;
 
-      do_keystroke ((GetEventKind (event) == kEventRawKeyDown
-		     ? keyDown : autoKey),
+      do_keystroke ((event_kind == kEventRawKeyDown ? keyDown : autoKey),
 		    char_code, key_code, modifiers,
 		    ((unsigned long)
 		     (GetEventTime (event) / kEventDurationMillisecond)),
@@ -11438,6 +12067,21 @@ XTread_socket (sd, expected, hold_quit)
 		  do_zoom_window (window_ptr, part_code);
 		break;
 
+#if USE_MAC_TOOLBAR
+	      case inStructure:
+		{
+		  OSStatus err;
+		  HIViewRef ch;
+
+		  err = HIViewGetViewForMouseEvent (HIViewGetRoot (window_ptr),
+						    eventRef, &ch);
+		  /* This doesn't work on Mac OS X 10.2.  */
+		  if (err == noErr)
+		    HIViewClick (ch, eventRef);
+		}
+		break;
+#endif	/* USE_MAC_TOOLBAR */
+
 	      default:
 		break;
 	      }
@@ -11522,6 +12166,10 @@ XTread_socket (sd, expected, hold_quit)
 			}
 		      if (!note_mouse_movement (f, &mouse_pos))
 			help_echo_string = previous_help_echo_string;
+#if USE_MAC_TOOLBAR
+		      else
+			mac_tool_bar_note_mouse_movement (f, eventRef);
+#endif
 		    }
 		}
 

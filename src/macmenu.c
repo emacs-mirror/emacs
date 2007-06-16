@@ -1602,6 +1602,10 @@ menu_target_item_handler (next_handler, event, data)
   GrafPtr port;
   int specpdl_count = SPECPDL_INDEX ();
 
+  /* Don't be bothered with the overflowed toolbar items menu.  */
+  if (!popup_activated ())
+    return eventNotHandledErr;
+
   err = GetEventParameter (event, kEventParamDirectObject, typeMenuRef,
 			   NULL, sizeof (MenuRef), NULL, &menu);
   if (err == noErr)
