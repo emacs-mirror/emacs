@@ -71,6 +71,8 @@ considered for update.
 
 ** VC has some support for Bazaar (bzr).
 
+** sgml-electric-tag-pair-mode lets you simultaneously edit matched tag pairs.
+
 
 * Changes in Emacs 23.1 on non-free operating systems
 

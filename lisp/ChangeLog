@@ -1,3 +1,16 @@
+2007-06-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/sgml-mode.el (sgml-xml-guess): Return the result rather
+	than setting sgml-xml-mode.
+	(sgml-mode, html-mode): Set sgml-xml-mode.
+	(sgml-skip-tag-backward): Tell if we skipped over matched tags.
+	(sgml-skip-tag-backward, sgml-electric-tag-pair-overlays): New var.
+	(sgml-electric-tag-pair-before-change-function)
+	(sgml-electric-tag-pair-flush-overlays): New functions.
+	(sgml-electric-tag-pair-mode): New minor mode.
+	(sgml-font-lock-keywords-2, sgml-get-context, sgml-unclosed-tag-p)
+	(sgml-calculate-indent): Use assoc-string.
+
 2007-06-16  Karl Fogel  <kfogel@red-bean.com>
 
 	* thingatpt.el (thing-at-point-email-regexp): Don't require two
@@ -11,19 +24,18 @@
 	(thing-at-point-email-regexp): New variable.
 	(`email'): Put `bounds-of-thing-at-point' and `thing-at-point'
 	properties on this symbol, with lambda forms for values.
-	
+
 2007-06-15  Masatake YAMATO  <jet@gyve.org>
 
-	* vc-bzr.el (vc-bzr-root): Cache the output of shell command
-	execution.
+	* vc-bzr.el (vc-bzr-root): Cache the output of shell command execution.
 
-	* vc.el (vc-dired-hook): Check the backend returned from 
+	* vc.el (vc-dired-hook): Check the backend returned from
 	`vc-responsible-backend' can really handle `subdir'.
 
 2007-06-15  Chong Yidong  <cyd@stupidchicken.com>
 
-	* wid-edit.el (widget-add-documentation-string-button): Fix
-	handling of documentation indent.
+	* wid-edit.el (widget-add-documentation-string-button):
+	Fix handling of documentation indent.
 
 2007-06-15  Miles Bader  <miles@fencepost.gnu.org>
 
@@ -47,8 +59,8 @@
 	(custom-variable-value-create, custom-face-value-create)
 	(custom-visibility): New widget.
 	(custom-visibility): New face.
-	(custom-group-value-create): Call
-	widget-add-documentation-string-button, using `custom-visibility'.
+	(custom-group-value-create):
+	Call widget-add-documentation-string-button, using `custom-visibility'.
 
 2007-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
