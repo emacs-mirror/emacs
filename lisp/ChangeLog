@@ -1,3 +1,8 @@
+2007-06-17  Glenn Morris  <rgm@gnu.org>
+
+	* lpr.el (lpr-page-header-switches): Move %s to separate element
+	for correct quoting.  Doc fix.
+
 2007-06-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/sgml-mode.el (sgml-xml-guess): Return the result rather
