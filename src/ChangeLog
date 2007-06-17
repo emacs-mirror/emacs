@@ -1,3 +1,8 @@
+2007-06-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xdisp.c (syms_of_xdisp) <auto-resize-tool-bars>:
+	Fix typo in docstring.
+
 2007-06-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32menu.c (add_menu_item): Escape `&' characters in menu items
