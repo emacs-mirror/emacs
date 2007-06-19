@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.77
+;; Version: 4.78
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -83,7 +83,7 @@
 
 ;;; Version
 
-(defconst org-version "4.77"
+(defconst org-version "4.78"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -973,6 +973,7 @@ Changing this variable requires a restart of Emacs to become effective."
 	      (const :tag "plain text links" plain)
 	      (const :tag "Radio target matches" radio)
 	      (const :tag "Tags" tag)
+	      (const :tag "Tags" target)
 	      (const :tag "Timestamps" date)))
 
 (defgroup org-link-store nil
@@ -1580,7 +1581,8 @@ To turn this on on a per-file basis, insert anywhere in the file:
   '("<%m/%d/%y %a>" . "<%m/%d/%y %a %H:%M>") ; american
   "Custom formats for time stamps.  See `format-time-string' for the syntax.
 These are overlayed over the default ISO format if the variable
-`org-display-custom-times' is set."
+`org-display-custom-times' is set.  Time like %H:%M should be at the
+end of the second format."
   :group 'org-time
   :type 'sexp)
 
@@ -2682,7 +2684,7 @@ In the given sequence, these characters will be used for level 1, 2, ..."
 
 (defcustom org-export-ascii-bullets '(?* ?+ ?-)
   "Bullet characters for headlines converted to lists in ASCII export.
-The first character is used for the first lest level generated in this
+The first character is is used for the first lest level generated in this
 way, and so on.  If there are more levels than characters given here,
 the list will be repeated.
 Note that plain lists will keep the same bullets as the have in the
@@ -2699,6 +2701,11 @@ Org-mode file."
   "Options specific for HTML export of Org-mode files."
   :tag "Org Export HTML"
   :group 'org-export)
+
+(defcustom org-export-html-coding-system nil
+  ""
+  :group 'org-export-html
+  :type 'coding-system)
 
 (defcustom org-export-html-style
 "<style type=\"text/css\">
@@ -3145,6 +3152,13 @@ color of the frame."
   "Face for links."
   :group 'org-faces)
 
+(defface org-target
+  '((((class color) (background light)) (:underline t))
+    (((class color) (background dark)) (:underline t))
+    (t (:underline t)))
+  "Face for links."
+  :group 'org-faces)
+
 (defface org-date
   '((((class color) (background light)) (:foreground "Purple" :underline t))
     (((class color) (background dark)) (:foreground "Cyan" :underline t))
@@ -3494,7 +3508,7 @@ means to push this value onto the list in the variable.")
 	    (cond
 	     ((equal e "{") (push '(:startgroup) tgs))
 	     ((equal e "}") (push '(:endgroup) tgs))
-	     ((string-match "^\\([0-9a-zA-Z_@]+\\)(\\(.\\))$" e)
+	     ((string-match "^\\([[:alnum:]_@]+\\)(\\(.\\))$" e)
 	      (push (cons (match-string 1 e)
 			  (string-to-char (match-string 2 e)))
 		    tgs))
@@ -3530,7 +3544,7 @@ means to push this value onto the list in the variable.")
 	  org-todo-line-tags-regexp
 	  (concat "^\\(\\*+\\)[ \t]*\\(?:\\("
 		  (mapconcat 'regexp-quote org-todo-keywords-1 "\\|")
-		  "\\)\\>\\)? *\\(.*?\\([ \t]:[a-zA-Z0-9:_@]+:[ \t]*\\)?$\\)")
+		  "\\)\\>\\)? *\\(.*?\\([ \t]:[[:alnum:]:_@]+:[ \t]*\\)?$\\)")
 	  org-looking-at-done-regexp
 	  (concat "^" "\\(?:"
 		  (mapconcat 'regexp-quote org-done-keywords "\\|") "\\)"
@@ -3986,11 +4000,14 @@ that will be added to PLIST.  Returns the string that was modified."
   "Regular expression for fast time stamp matching.")
 (defconst org-ts-regexp-both "[[<]\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\} [^\r\n>]*?\\)[]>]"
   "Regular expression for fast time stamp matching.")
+(defconst org-ts-regexp0 "\\(\\([0-9]\\{4\\}\\)-\\([0-9]\\{2\\}\\)-\\([0-9]\\{2\\}\\)\\([^]0-9>\r\n]*\\)\\(\\([0-9]\\{2\\}\\):\\([0-9]\\{2\\}\\)\\)?\\)"
+  "Regular expression matching time strings for analysis.
+This one does not require the space after the date.")
 (defconst org-ts-regexp1 "\\(\\([0-9]\\{4\\}\\)-\\([0-9]\\{2\\}\\)-\\([0-9]\\{2\\}\\) \\([^]0-9>\r\n]*\\)\\(\\([0-9]\\{2\\}\\):\\([0-9]\\{2\\}\\)\\)?\\)"
   "Regular expression matching time strings for analysis.")
-(defconst org-ts-regexp2 (concat "<" org-ts-regexp1 "[^>\n]\\{0,6\\}>")
+(defconst org-ts-regexp2 (concat "<" org-ts-regexp1 "[^>\n]\\{0,11\\}>")
   "Regular expression matching time stamps, with groups.")
-(defconst org-ts-regexp3 (concat "[[<]" org-ts-regexp1 "[^]>\n]\\{0,6\\}[]>]")
+(defconst org-ts-regexp3 (concat "[[<]" org-ts-regexp1 "[^]>\n]\\{0,11\\}[]>]")
   "Regular expression matching time stamps (also [..]), with groups.")
 (defconst org-tr-regexp (concat org-ts-regexp "--?-?" org-ts-regexp)
   "Regular expression matching a time stamp range.")
@@ -4162,7 +4179,9 @@ We use a macro so that the test can happen at compilation time."
 (defvar org-target-regexp "<<\\([^<>\n\r]+\\)>>"
   "Regular expression matching a link target.")
 (defvar org-radio-target-regexp "<<<\\([^<>\n\r]+\\)>>>"
-  "Regular expression matching a link target.")
+  "Regular expression matching a radio target.")
+(defvar org-any-target-regexp "<<<?\\([^<>\n\r]+\\)>>>?" ; FIXME, not exact, would match <<<aaa>>  as a radio target.
+  "Regular expression matching any target.")
 
 (defun org-activate-target-links (limit)
   "Run through the buffer and add overlays to target matches."
@@ -4230,7 +4249,7 @@ between words."
 	"\\)\\>")))
 
 (defun org-activate-tags (limit)
-  (if (re-search-forward "[ \t]\\(:[A-Za-z_@0-9:]+:\\)[ \r\n]" limit t)
+  (if (re-search-forward "[ \t]\\(:[[:alnum:]_@:]+:\\)[ \r\n]" limit t)
       (progn
 	(add-text-properties (match-beginning 1) (match-end 1)
 			     (list 'mouse-face 'highlight
@@ -4324,7 +4343,6 @@ between words."
   "Get the right face for match N in font-lock matching of healdines."
   (setq org-l (- (match-end 2) (match-beginning 1)))
   (if org-odd-levels-only (setq org-l (1+ (/ org-l 2))))
-;  (setq org-f (nth (1- (% org-l org-n-levels)) org-level-faces))
   (setq org-f (nth (% (1- org-l) org-n-levels) org-level-faces))
   (cond
    ((eq n 1) (if org-hide-leading-stars 'org-hide org-f))
@@ -4378,8 +4396,8 @@ between words."
   `indent-relative', like TAB normally does.  See the option
   `org-cycle-emulate-tab' for details.
 
-- Special case: if point is the beginning of the buffer and there is no
-  headline in line 1, this function will act as if called with prefix arg."
+- Special case: if point is at the beginning of the buffer and there is
+  no headline in line 1, this function will act as if called with prefix arg."
   (interactive "P")
   (let* ((outline-regexp
 	  (if (and (org-mode-p) org-cycle-include-plain-lists)
@@ -5714,9 +5732,9 @@ Error if not at a plain list, or if this is the last item in the list."
 
 (defun org-previous-item ()
   "Move to the beginning of the previous item in the current plain list.
-Error if not at a plain list, or if this is the last item in the list."
+Error if not at a plain list, or if this is the first item in the list."
   (interactive)
-  (let (beg ind (pos (point)))
+  (let (beg ind ind1 (pos (point)))
     (org-beginning-of-item)
     (setq beg (point))
     (setq ind (org-get-indentation))
@@ -5726,10 +5744,13 @@ Error if not at a plain list, or if this is the last item in the list."
 	(beginning-of-line 0)
 	(if (looking-at "[ \t]*$")
 	    nil
-	  (if (<= (org-get-indentation) ind)
+	  (if (<= (setq ind1 (org-get-indentation)) ind)
 	      (throw 'exit t)))))
     (condition-case nil
-	(org-beginning-of-item)
+	(if (or (not (org-at-item-p))
+		(< ind1 (1- ind)))
+	    (error "")
+	  (org-beginning-of-item))
       (error (goto-char pos)
 	     (error "On first item")))))
 
@@ -5802,10 +5823,18 @@ so this really moves item trees."
   "Renumber the ordered list at point if setup allows it.
 This tests the user option `org-auto-renumber-ordered-lists' before
 doing the renumbering."
-  (and org-auto-renumber-ordered-lists
-       (org-at-item-p)
-       (match-beginning 3)
-       (org-renumber-ordered-list 1)))
+  (interactive)
+  (when (and org-auto-renumber-ordered-lists
+	     (org-at-item-p))
+    (if (match-beginning 3)
+	(org-renumber-ordered-list 1)
+      (org-fix-bullet-type 1))))
+
+(defun org-maybe-renumber-ordered-list-safe ()
+  (condition-case nil
+      (save-excursion
+	(org-maybe-renumber-ordered-list))
+    (error nil)))
 
 (defun org-get-string-indentation (s)
   "What indentation has S due to SPACE and TAB at the beginning of the string?"
@@ -5831,19 +5860,14 @@ with something like \"1.\" or \"2)\"."
 	(ind (org-get-string-indentation
 	      (buffer-substring (point-at-bol) (match-beginning 3))))
 	;; (term (substring (match-string 3) -1))
-	ind1 (n (1- arg)))
+	ind1 (n (1- arg))
+	fmt)
     ;; find where this list begins
-    (catch 'exit
-      (while t
-	(catch 'next
-	  (beginning-of-line 0)
-	  (if (looking-at "[ \t]*$") (throw 'next t))
-	  (skip-chars-forward " \t") (setq ind1 (current-column))
-	  (if (or (< ind1 ind)
-		  (and (= ind1 ind)
-		       (not (org-at-item-p))))
-	      (throw 'exit t)))))
-    ;; Walk forward and replace these numbers
+    (org-beginning-of-item-list)
+    (looking-at "[ \t]*[0-9]+\\([.)]\\)")
+    (setq fmt (concat "%d" (match-string 1)))
+    (beginning-of-line 0)
+    ;; walk forward and replace these numbers
     (catch 'exit
       (while t
 	(catch 'next
@@ -5854,13 +5878,70 @@ with something like \"1.\" or \"2)\"."
 	  (if (> ind1 ind) (throw 'next t))
 	  (if (< ind1 ind) (throw 'exit t))
 	  (if (not (org-at-item-p)) (throw 'exit nil))
-	  (if (not (match-beginning 3))
-	      (error "unordered bullet in ordered list.  Press \\[undo] to recover"))
-	  (delete-region (match-beginning 3) (1- (match-end 3)))
-	  (goto-char (match-beginning 3))
-	  (insert (format "%d" (setq n (1+ n)))))))
+	  (delete-region (match-beginning 2) (match-end 2))
+	  (goto-char (match-beginning 2))
+	  (insert (format fmt (setq n (1+ n)))))))
     (goto-line line)
     (move-to-column col)))
+
+(defun org-fix-bullet-type (arg)
+  "Renumber an ordered plain list.
+Cursor needs to be in the first line of an item, the line that starts
+with something like \"1.\" or \"2)\"."
+  (interactive "p")
+  (unless (org-at-item-p) (error "This is not a list"))
+  (let ((line (org-current-line))
+	(col (current-column))
+	(ind (current-indentation))
+	ind1 (n (1- arg))
+	bullet)
+    ;; find where this list begins
+    (org-beginning-of-item-list)
+    (beginning-of-line 1)
+    ;; find out what the bullet type is
+    (looking-at "[ \t]*\\(\\S-+\\)")
+    (setq bullet (match-string 1))
+    ;; walk forward and replace these numbers
+    (beginning-of-line 0)
+    (catch 'exit
+      (while t
+	(catch 'next
+	  (beginning-of-line 2)
+	  (if (eobp) (throw 'exit nil))
+	  (if (looking-at "[ \t]*$") (throw 'next nil))
+	  (skip-chars-forward " \t") (setq ind1 (current-column))
+	  (if (> ind1 ind) (throw 'next t))
+	  (if (< ind1 ind) (throw 'exit t))
+	  (if (not (org-at-item-p)) (throw 'exit nil))
+	  (skip-chars-forward " \t")
+	  (looking-at "\\S-+")
+	  (replace-match bullet))))
+    (goto-line line)
+    (move-to-column col)
+    (if (string-match "[0-9]" bullet)
+	(org-renumber-ordered-list 1))))
+
+(defun org-beginning-of-item-list ()
+  "Go to the beginning of the current item list.
+I.e. to the first item in this list."
+  (interactive)
+  (org-beginning-of-item)
+  (let ((pos (point-at-bol))
+        (ind (org-get-indentation))
+	ind1)
+    ;; find where this list begins
+    (catch 'exit
+      (while t
+	(catch 'next
+	  (beginning-of-line 0)
+	  (if (looking-at "[ \t]*$") (throw 'next t))
+	  (skip-chars-forward " \t") (setq ind1 (current-column))
+	  (if (or (< ind1 ind)
+		  (and (= ind1 ind)
+		       (not (org-at-item-p))))
+	      (throw 'exit t)
+	    (setq pos (point-at-bol))))))
+    (goto-char pos)))
 
 (defvar org-last-indent-begin-marker (make-marker))
 (defvar org-last-indent-end-marker (make-marker))
@@ -5876,7 +5957,7 @@ with something like \"1.\" or \"2)\"."
   (unless (org-at-item-p)
     (error "Not on an item"))
   (save-excursion
-    (let (beg end ind ind1)
+    (let (beg end ind ind1 tmp delta ind-down ind-up)
       (if (memq last-command '(org-shiftmetaright org-shiftmetaleft))
 	  (setq beg org-last-indent-begin-marker
 		end org-last-indent-end-marker)
@@ -5885,14 +5966,52 @@ with something like \"1.\" or \"2)\"."
 	(org-end-of-item)
 	(setq end (move-marker org-last-indent-end-marker (point))))
       (goto-char beg)
-      (skip-chars-forward " \t") (setq ind (current-column))
-      (if (< (+ arg ind) 0) (error "Cannot outdent beyond margin"))
+      (setq tmp (org-item-indent-positions)
+	    ind (car tmp)
+	    ind-down (nth 2 tmp)
+	    ind-up (nth 1 tmp)
+	    delta (if (> arg 0)
+		      (if ind-down (- ind-down ind) (+ 2 ind))
+		    (if ind-up (- ind-up ind) (- ind 2))))
+      (if (< (+ delta ind) 0) (error "Cannot outdent beyond margin"))
       (while (< (point) end)
 	(beginning-of-line 1)
 	(skip-chars-forward " \t") (setq ind1 (current-column))
 	(delete-region (point-at-bol) (point))
-	(indent-to-column (+ ind1 arg))
-	(beginning-of-line 2)))))
+	(or (eolp) (indent-to-column (+ ind1 delta)))
+	(beginning-of-line 2))))
+  (org-maybe-renumber-ordered-list-safe)
+  (save-excursion
+    (beginning-of-line 0)
+    (condition-case nil (org-beginning-of-item) (error nil))
+    (org-maybe-renumber-ordered-list-safe)))
+
+
+(defun org-item-indent-positions ()
+  "Assumes cursor in item line. FIXME"
+  (let* ((bolpos (point-at-bol))
+	 (ind (org-get-indentation))
+	 ind-down ind-up pos)
+    (save-excursion
+      (org-beginning-of-item-list)
+      (skip-chars-backward "\n\r \t")
+      (when (org-in-item-p)
+	(org-beginning-of-item)
+	(setq ind-up (org-get-indentation))))
+    (setq pos (point))
+    (save-excursion
+      (cond
+       ((and (condition-case nil (progn (org-previous-item) t)
+	       (error nil))
+	     (or (forward-char 1) t)
+	     (re-search-forward "^\\([ \t]*\\([-+]\\|\\([0-9]+[.)]\\)\\)\\|[ \t]+\\*\\)\\( \\|$\\)" bolpos t))
+	(setq ind-down (org-get-indentation)))
+       ((and (goto-char pos)
+	     (org-at-item-p))
+	(goto-char (match-end 0))
+	(skip-chars-forward " \t")
+	(setq ind-down (current-column)))))
+    (list ind ind-up ind-down)))
 
 ;;;; Archiving
 
@@ -5981,7 +6100,7 @@ this heading."
 	      (progn
 		(if (re-search-forward
 		     (concat "\\(^\\|\r\\)"
-			     (regexp-quote heading) "[ \t]*\\(:[a-zA-Z0-9_@:]+:\\)?[ \t]*\\($\\|\r\\)")
+			     (regexp-quote heading) "[ \t]*\\(:[[:alnum:]_@:]+:\\)?[ \t]*\\($\\|\r\\)")
 		     nil t)
 		    (goto-char (match-end 0))
 		  ;; Heading not found, just insert it at the end
@@ -6100,7 +6219,7 @@ If ONOFF is `on' or `off', don't toggle but set to this state."
   (let (res current)
     (save-excursion
       (beginning-of-line)
-      (if (re-search-forward "[ \t]:\\([a-zA-Z0-9_@:]+\\):[ \t]*$"
+      (if (re-search-forward "[ \t]:\\([[:alnum:]_@:]+\\):[ \t]*$"
 			     (point-at-eol) t)
 	  (progn
 	    (setq current (match-string 1))
@@ -7213,7 +7332,7 @@ should be done in reverse order."
 	(setq beg (point-at-bol 1)))
       (goto-char pos)
       (if (re-search-forward org-table-hline-regexp tend t)
-	  (setq beg (point-at-bol 0))
+	  (setq end (point-at-bol 0))
 	(goto-char tend)
 	(setq end (point-at-bol))))
     (setq beg (move-marker (make-marker) beg)
@@ -8029,7 +8148,7 @@ not overwrite the stored one."
 	   (modes (copy-sequence org-calc-default-modes))
 	   (numbers nil) ; was a variable, now fixed default
 	   (keep-empty nil)
-	   n form form0 bw fmt x ev orig c lispp)
+	   n form form0 bw fmt x ev orig c lispp literal)
       ;; Parse the format string.  Since we have a lot of modes, this is
       ;; a lot of work.  However, I think calc still uses most of the time.
       (if (string-match ";" formula)
@@ -8049,7 +8168,10 @@ not overwrite the stored one."
 				   n))))
 	      (setq fmt (replace-match "" t t fmt)))
 	    (if (string-match "[NT]" fmt)
-		(setq numbers (equal (match-string 0 fmt) "N")
+		(setq numbers (equal (match-string 0 fmt) "N"))
+		      fmt (replace-match "" t t fmt))
+	    (if (string-match "L" fmt)
+		(setq literal t
 		      fmt (replace-match "" t t fmt)))
 	    (if (string-match "E" fmt)
 		(setq keep-empty t
@@ -8067,13 +8189,14 @@ not overwrite the stored one."
 		      (org-no-properties
 		       (buffer-substring (point-at-bol) (point-at-eol)))
 		      " *| *"))
-	(if numbers
+	(if (eq numbers t)
 	    (setq fields (mapcar
 			  (lambda (x) (number-to-string (string-to-number x)))
 			  fields)))
 	(setq ndown (1- ndown))
 	(setq form (copy-sequence formula)
 	      lispp (and (> (length form) 2)(equal (substring form 0 2) "'(")))
+	(if (and lispp literal) (setq lispp 'literal))
 	;; Check for old vertical references
 	(setq form (org-rewrite-old-row-references form))
 	;; Insert complex ranges
@@ -8272,7 +8395,9 @@ NUMBERS indicates that everything should be converted to numbers.
 LISPP means to return something appropriate for a Lisp list."
   (if (stringp elements) ; just a single val
       (if lispp
-	  (prin1-to-string (if numbers (string-to-number elements) elements))
+	  (if (eq lispp 'literal)
+	      elements
+	    (prin1-to-string (if numbers (string-to-number elements) elements)))
 	(if (equal elements "") (setq elements "0"))
 	(if numbers (number-to-string (string-to-number elements)) elements))
     (unless keep-empty
@@ -8282,9 +8407,12 @@ LISPP means to return something appropriate for a Lisp list."
 			  elements))))
     (setq elements (or elements '("0")))
     (if lispp
-	(mapconcat 'prin1-to-string
-		   (if numbers (mapcar 'string-to-number elements) elements)
-		   " ")
+	(mapconcat
+	 (lambda (x)
+	   (if (eq lispp 'literal)
+	       x
+	     (prin1-to-string (if numbers (string-to-number x) x))))
+	 " ")
       (concat "[" (mapconcat
 		   (lambda (x)
 		     (if numbers (number-to-string (string-to-number x)) x))
@@ -9801,7 +9929,7 @@ For file links, arg negates `org-context-in-file-links'."
 
      ((eq major-mode 'bbdb-mode)
       (let ((name (bbdb-record-name (bbdb-current-record)))
-	    (company (bbdb-record-company (bbdb-current-record))))
+	    (company (bbdb-record-getprop (bbdb-current-record) 'company)))
 	(setq cpltxt (concat "bbdb:" (or name company))
 	      link (org-make-link cpltxt))
 	(org-store-link-props :type "bbdb" :name name :company company)))
@@ -10070,7 +10198,7 @@ according to FMT (default from `org-email-link-description-format')."
       ;; We are using a headline, clean up garbage in there.
       (if (string-match org-todo-regexp s)
 	  (setq s (replace-match "" t t s)))
-      (if (string-match ":[a-zA-Z_@0-9:]+:[ \t]*$" s)
+      (if (string-match ":[[:alnum:]_@:]+:[ \t]*$" s)
 	  (setq s (replace-match "" t t s)))
       (setq s (org-trim s))
       (if (string-match (concat "^\\(" org-quote-string "\\|"
@@ -10237,7 +10365,7 @@ With three \\[universal-argument] prefixes, negate the meaning of
       (with-output-to-temp-buffer "*Org Links*"
 	(princ "Insert a link.  Use TAB to complete valid link prefixes.\n")
 	(when org-stored-links
-	  (princ "\nStored links ar available with <up>/<down> (most recent with RET):\n\n")
+	  (princ "\nStored links are available with <up>/<down> (most recent with RET):\n\n")
 	  (princ (mapconcat 'car (reverse org-stored-links) "\n"))))
       (let ((cw (selected-window)))
 	(select-window (get-buffer-window "*Org Links*"))
@@ -10419,8 +10547,12 @@ optional argument IN-EMACS is non-nil, Emacs will visit the file."
 		    (org-in-regexp org-plain-link-re))
 	    (setq type (match-string 1) path (match-string 2))
 	    (throw 'match t)))
+	(when (org-in-regexp "\\<\\([^><\n]+\\)\\>")
+	  (setq type "tree-match"
+		path (match-string 1))
+	  (throw 'match t))
 	(save-excursion
-	  (when (org-in-regexp "\\(:[A-Za-z_@0-9:]+\\):[ \t]*$")
+	  (when (org-in-regexp "\\(:[[:alnum:]_@:]+\\):[ \t]*$")
 	    (setq type "tags"
 		  path (match-string 1))
 	    (while (string-match ":" path)
@@ -10468,6 +10600,9 @@ optional argument IN-EMACS is non-nil, Emacs will visit the file."
 	       ((equal in-emacs '(16)) 'org-occur)
 	       (t nil))
 	 pos))
+
+       ((string= type "tree-match")
+	(org-occur (concat "\\[" (regexp-quote path) "\\]")))
 
        ((string= type "file")
 	(if (string-match "::\\([0-9]+\\)\\'" path)
@@ -10645,7 +10780,7 @@ in all files.  If AVOID-POS is given, ignore matches near that position."
       (when (equal (string-to-char s) ?*)
 	;; Anchor on headlines, post may include tags.
 	(setq pre "^\\*+[ \t]*\\(?:\\sw+\\)?[ \t]*"
-	      post "[ \t]*\\(?:[ \t]+:[a-zA-Z_@0-9:+]:[ \t]*\\)?$"
+	      post "[ \t]*\\(?:[ \t]+:[[:alnum:]_@:+]:[ \t]*\\)?$"
 	      s (substring s 1)))
       (remove-text-properties
        0 (length s)
@@ -11235,7 +11370,7 @@ to be run from that hook to fucntion properly."
 	     (v-a (if (equal annotation "[[]]") "" annotation)) ; likewise
 	     (v-n user-full-name)
 	     (org-startup-folded nil)
-	     org-time-was-given x prompt char time)
+	     org-time-was-given org-end-time-was-given x prompt char time)
 	(setq org-store-link-plist
 	      (append (list :annotation v-a :initial v-i)))
 	(unless tpl (setq tpl "")	(message "No template") (ding))
@@ -11287,7 +11422,8 @@ to be run from that hook to fucntion properly."
 		(setq time (org-read-date (equal (upcase char) "U") t nil
 					  prompt))
 		(org-insert-time-stamp time org-time-was-given
-				       (member char '("u" "U"))))
+				       (member char '("u" "U"))
+				       nil nil (list org-end-time-was-given)))
 	    (insert (read-string
 		     (if prompt (concat prompt ": ") "Enter string")))))
 	(goto-char (point-min))
@@ -11397,7 +11533,7 @@ See also the variable `org-reverse-note-order'."
 	      (goto-char (point-min))
 	      (if (re-search-forward
 		   (concat "^\\*+[ \t]+" (regexp-quote heading)
-			   "\\([ \t]+:[@a-zA-Z0-9_:]*\\)?[ \t]*$")
+			   "\\([ \t]+:[[:alnum:]@_:]*\\)?[ \t]*$")
 		   nil t)
 		  (setq org-goto-start-pos (match-beginning 0))))
 
@@ -11591,7 +11727,7 @@ At all other locations, this simply calls `ispell-complete-word'."
   (catch 'exit
     (let* ((end (point))
 	   (beg1 (save-excursion
-		   (skip-chars-backward "a-zA-Z_@0-9")
+		   (skip-chars-backward "[:alnum:]_@")
 		   (point)))
 	   (beg (save-excursion
 		  (skip-chars-backward "a-zA-Z0-9_:$")
@@ -11938,13 +12074,14 @@ If non is given, the user is prompted for a date.
 REMOVE indicates what kind of entries to remove.  An old WHAT entry will also
 be removed."
   (interactive)
-  (let (org-time-was-given)
+  (let (org-time-was-given org-end-time-was-given)
     (when what (setq time (or time (org-read-date nil 'to-time))))
     (when (and org-insert-labeled-timestamps-at-point
 	       (member what '(scheduled deadline)))
       (insert
        (if (eq what 'scheduled) org-scheduled-string org-deadline-string) " ")
-      (org-insert-time-stamp time org-time-was-given)
+      (org-insert-time-stamp time org-time-was-given
+			     nil nil nil (list org-end-time-was-given))
       (setq what nil))
     (save-excursion
       (save-restriction
@@ -11989,7 +12126,8 @@ be removed."
 	     time
 	     (or org-time-was-given
 		 (and (eq what 'closed) org-log-done-with-time))
-	     (eq what 'closed))
+	     (eq what 'closed)
+	     nil nil (list org-end-time-was-given))
 	    (end-of-line 1))
 	  (goto-char (point-min))
 	  (widen)
@@ -12267,7 +12405,7 @@ inclusion.  When TODO-ONLY is non-nil, only lines with a TODO keyword
 are included in the output."
   (let* ((re (concat "[\n\r]" outline-regexp " *\\(\\<\\("
 		     (mapconcat 'regexp-quote org-todo-keywords-1 "\\|")
-		     "\\>\\)\\)? *\\(.*?\\)\\(:[A-Za-z_@0-9:]+:\\)?[ \t]*$"))
+		     "\\>\\)\\)? *\\(.*?\\)\\(:[[:alnum:]_@:]+:\\)?[ \t]*$"))
 	 (props (list 'face nil
 		      'done-face 'org-done
 		      'undone-face nil
@@ -12364,7 +12502,7 @@ also TODO lines."
 
   ;; Parse the string and create a lisp form
   (let ((match0 match)
-	(re "^&?\\([-+:]\\)?\\({[^}]+}\\|LEVEL=\\([0-9]+\\)\\|[A-Za-z_@0-9]+\\)")
+	(re "^&?\\([-+:]\\)?\\({[^}]+}\\|LEVEL=\\([0-9]+\\)\\|[[:alnum:]_@]+\\)")
 	minus tag mm
 	tagsmatch todomatch tagsmatcher todomatcher kwd matcher
 	orterms term orlist re-p level-p)
@@ -12584,7 +12722,7 @@ Returns the new tags string, or nil to not change the current settings."
 	 groups ingroup)
     (save-excursion
       (beginning-of-line 1)
-      (if (looking-at ".*[ \t]\\(:[A-Za-z_@0-9:]+:\\)[ \t]*\\(\r\\|$\\)")
+      (if (looking-at ".*[ \t]\\(:[[:alnum:]_@:]+:\\)[ \t]*\\(\r\\|$\\)")
 	  (setq ov-start (match-beginning 1)
 		ov-end (match-end 1)
 		ov-prefix "")
@@ -12719,7 +12857,7 @@ Returns the new tags string, or nil to not change the current settings."
 		(delete-region (point) (point-at-eol))
 		(org-fast-tag-insert "Current" current c-face)
 		(org-set-current-tags-overlay current ov-prefix)
-		(while (re-search-forward "\\[.\\] \\([a-zA-Z0-9_@]+\\)" nil t)
+		(while (re-search-forward "\\[.\\] \\([[:alnum:]_@]+\\)" nil t)
 		  (setq tg (match-string 1))
 		  (add-text-properties (match-beginning 1) (match-end 1)
 				       (list 'face
@@ -12739,7 +12877,7 @@ Returns the new tags string, or nil to not change the current settings."
     (error "Not on a heading"))
   (save-excursion
     (beginning-of-line 1)
-    (if (looking-at ".*[ \t]\\(:[A-Za-z_@0-9:]+:\\)[ \t]*\\(\r\\|$\\)")
+    (if (looking-at ".*[ \t]\\(:[[:alnum:]_@:]+:\\)[ \t]*\\(\r\\|$\\)")
 	(org-match-string-no-properties 1)
       "")))
 
@@ -12748,7 +12886,7 @@ Returns the new tags string, or nil to not change the current settings."
   (let (tags)
     (save-excursion
       (goto-char (point-min))
-      (while (re-search-forward "[ \t]:\\([A-Za-z_@0-9:]+\\):[ \t\r\n]" nil t)
+      (while (re-search-forward "[ \t]:\\([[:alnum:]_@:]+\\):[ \t\r\n]" nil t)
 	(mapc (lambda (x) (add-to-list 'tags x))
 	      (org-split-string (org-match-string-no-properties 1) ":"))))
     (mapcar 'list tags)))
@@ -12757,6 +12895,7 @@ Returns the new tags string, or nil to not change the current settings."
 
 (defvar org-last-changed-timestamp nil)
 (defvar org-time-was-given) ; dynamically scoped parameter
+(defvar org-end-time-was-given) ; dynamically scoped parameter
 (defvar org-ts-what) ; dynamically scoped parameter
 
 (defun org-time-stamp (arg)
@@ -12769,7 +12908,7 @@ So if you press just return without typing anything, the time stamp
 will represent the current date/time.  If there is already a timestamp
 at the cursor, it will be modified."
   (interactive "P")
-  (let (org-time-was-given time)
+  (let (org-time-was-given org-end-time-was-given time)
     (cond
      ((and (org-at-timestamp-p)
 	   (eq last-command 'org-time-stamp)
@@ -12784,12 +12923,15 @@ at the cursor, it will be modified."
       (when (org-at-timestamp-p) ; just to get the match data
 	(replace-match "")
 	(setq org-last-changed-timestamp
-	      (org-insert-time-stamp time (or org-time-was-given arg))))
+	      (org-insert-time-stamp
+	       time (or org-time-was-given arg)
+	       nil nil nil (list org-end-time-was-given))))
       (message "Timestamp updated"))
      (t
       (setq time (let ((this-command this-command))
 		   (org-read-date arg 'totime)))
-      (org-insert-time-stamp time (or org-time-was-given arg))))))
+      (org-insert-time-stamp time (or org-time-was-given arg)
+			     nil nil nil (list org-end-time-was-given))))))      
 
 (defun org-time-stamp-inactive (&optional arg)
   "Insert an inactive time stamp.
@@ -12798,9 +12940,10 @@ brackets.  It is inactive in the sense that it does not trigger agenda entries,
 does not link to the calendar and cannot be changed with the S-cursor keys.
 So these are more for recording a certain time/date."
   (interactive "P")
-  (let (org-time-was-given time)
+  (let (org-time-was-given org-end-time-was-given time)
     (setq time (org-read-date arg 'totime))
-    (org-insert-time-stamp time (or org-time-was-given arg) 'inactive)))
+    (org-insert-time-stamp time (or org-time-was-given arg) 'inactive
+			   nil nil (list org-end-time-was-given))))
 
 (defvar org-date-ovl (org-make-overlay 1 1))
 (org-overlay-put org-date-ovl 'face 'org-warning)
@@ -12809,6 +12952,7 @@ So these are more for recording a certain time/date."
 (defvar org-ans1) ; dynamically scoped parameter
 (defvar org-ans2) ; dynamically scoped parameter
 
+(defvar org-plain-time-of-day-regexp) ; defined below
 (defun org-read-date (&optional with-time to-time from-string prompt)
   "Read a date and make things smooth for the user.
 The prompt will suggest to enter an ISO date, but you can also enter anything
@@ -12938,7 +13082,8 @@ used to insert the time stamp into the buffer to include the time."
 			       t nil ans)))
     ;; Help matching am/pm times, because `parse-time-string' does not do that.
     ;; If there is a time with am/pm, and *no* time without it, we convert
-    ;; convert so that matching will be successful.
+    ;; so that matching will be successful.
+    ;; FIXME: make this replace twoce, so that we catch the end time.
     (when (and (not (string-match "[012]?[0-9]:[0-9][0-9]\\([ \t\n]\\|$\\)" ans))
 	       (string-match "\\([012]?[0-9]\\)\\(:\\([0-5][0-9]\\)\\)?\\(am\\|AM\\|pm\\|PM\\)\\>" ans))
       (setq hour (string-to-number (match-string 1 ans))
@@ -12948,6 +13093,14 @@ used to insert the time stamp into the buffer to include the time."
 	  (setq hour 0)
 	(if (and pm (< hour 12)) (setq hour (+ 12 hour))))
       (setq ans (replace-match (format "%02d:%02d" hour minute) t t ans)))
+
+    ;; Check if there is a time range
+    (when (and (boundp 'org-end-time-was-given)
+	       (string-match org-plain-time-of-day-regexp ans)
+	       (match-end 8))
+      (setq org-end-time-was-given (match-string 8 ans))
+      (setq ans (concat (substring ans 0 (match-beginning 7))
+			(substring ans (match-end 7)))))
 
     (setq tl (parse-time-string ans)
 	  year (or (nth 5 tl) (string-to-number (format-time-string "%Y" ct)))
@@ -13020,6 +13173,14 @@ The command returns the inserted time stamp."
     (if inactive (setq fmt (concat "[" (substring fmt 1 -1) "]")))
     (insert (or pre ""))
     (insert (setq stamp (format-time-string fmt time)))
+    (when (listp extra)
+      (setq extra (car extra))
+      (if (and (stringp extra)
+	       (string-match "\\([0-9]+\\):\\([0-9]+\\)" extra))
+	  (setq extra (format "-%02d:%02d"
+			      (string-to-number (match-string 1 extra))
+			      (string-to-number (match-string 2 extra))))
+	(setq extra nil)))
     (when extra
       (backward-char 1)
       (insert extra)
@@ -13054,7 +13215,7 @@ The command returns the inserted time stamp."
 	 t1 w1 with-hm tf time str w2 (off 0))
     (save-match-data
       (setq t1 (org-parse-time-string ts t))
-      (if (string-match " \\+[0-9]+[dwmy]\\'" ts)
+      (if (string-match "\\(-[0-9]+:[0-9]+\\)?\\( \\+[0-9]+[dwmy]\\)?\\'" ts)
 	  (setq off (- (match-end 0) (match-beginning 0)))))
     (setq end (- end off))
     (setq w1 (- end beg)
@@ -13361,7 +13522,7 @@ DATE."
 This should be a lot faster than the normal `parse-time-string'.
 If time is not given, defaults to 0:00.  However, with optional NODEFAULT,
 hour and minute fields will be nil if not given."
-  (if (string-match org-ts-regexp1 s)
+  (if (string-match org-ts-regexp0 s)
       (list 0
 	    (if (or (match-beginning 8) (not nodefault))
 		(string-to-number (or (match-string 8 s) "0")))
@@ -13432,6 +13593,8 @@ With prefix ARG, change that many days."
 	       ((org-pos-in-match-range pos 8)      'minute)
 	       ((or (org-pos-in-match-range pos 4)
 		    (org-pos-in-match-range pos 5)) 'day)
+	       ((and (> pos (match-end 8)) (< pos (match-end 0)))
+		(- pos (match-end 8)))
 	       (t 'day))))
     ans))
 
@@ -13456,8 +13619,10 @@ in the timestamp determines what will be changed."
 	  inactive (= (char-after (match-beginning 0)) ?\[)
 	  ts (match-string 0))
     (replace-match "")
-    (if (string-match " \\+[0-9]+[dwmy]" ts)
-	(setq extra (match-string 0 ts)))
+    (if (string-match
+	 "\\(\\(-[012][0-9]:[0-5][0-9]\\)?\\( \\+[0-9]+[dwmy]\\)?\\)[]>]"
+	 ts)
+	(setq extra (match-string 1 ts)))
     (if (string-match "^.\\{10\\}.*?[0-9]+:[0-9][0-9]" ts)
 	(setq with-hm t))
     (setq time0 (org-parse-time-string ts))
@@ -13471,6 +13636,8 @@ in the timestamp determines what will be changed."
 		  (list (+ (if (eq org-ts-what 'month) n 0)  (nth 4 time0)))
 		  (list (+ (if (eq org-ts-what 'year) n 0)   (nth 5 time0)))
 		  (nthcdr 6 time0))))
+    (when (integerp org-ts-what)
+      (setq extra (org-modify-ts-extra extra org-ts-what n)))
     (if (eq what 'calendar)
 	(let ((cal-date
 	       (save-excursion
@@ -13493,6 +13660,35 @@ in the timestamp determines what will be changed."
 	     (get-buffer-window "*Calendar*" t)
 	     (memq org-ts-what '(day month year)))
 	(org-recenter-calendar (time-to-days time)))))
+
+(defun org-modify-ts-extra (s pos n)
+  "FIXME"
+  (let ((idx '(("d" . 0) ("w" . 1) ("m" . 2) ("y" . 3) ("d" . -1) ("y" . 4)))
+	ng h m new)
+    (when (string-match "\\(-\\([012][0-9]\\):\\([0-5][0-9]\\)\\)?\\( \\+\\([0-9]+\\)\\([dmwy]\\)\\)?" s)
+      (cond
+       ((or (org-pos-in-match-range pos 2)
+	    (org-pos-in-match-range pos 3))
+	(setq m (string-to-number (match-string 3 s))
+	      h (string-to-number (match-string 2 s)))
+	(if (org-pos-in-match-range pos 2)
+	    (setq h (+ h n))
+	  (setq m (+ m n)))
+	(if (< m 0) (setq m (+ m 60) h (1- h)))
+	(if (> m 59) (setq m (- m 60) h (1+ h)))
+	(setq h (min 24 (max 0 h)))
+	(setq ng 1 new (format "-%02d:%02d" h m)))
+       ((org-pos-in-match-range pos 6)
+	(setq ng 6 new (car (rassoc (+ n (cdr (assoc (match-string 6 s) idx))) idx))))
+       ((org-pos-in-match-range pos 5)
+	(setq ng 5 new (format "%d" (max 1 (+ n (string-to-number (match-string 5 s))))))))
+	
+      (when ng
+	(setq s (concat
+		 (substring s 0 (match-beginning ng))
+		 new
+		 (substring s (match-end ng))))))
+    s))
 
 (defun org-recenter-calendar (date)
   "If the calendar is visible, recenter it to DATE."
@@ -13604,7 +13800,8 @@ If there is no running clock, throw an error, unless FAIL-QUIETLY is set."
 	       (equal (match-string 1) org-clock-string))
 	  (setq ts (match-string 2))
 	(if fail-quietly (throw 'exit nil) (error "Clock start time is gone")))
-      (goto-char org-clock-marker)
+      (goto-char (match-end 0))
+      (delete-region (point) (point-at-eol))
       (insert "--")
       (setq te (org-insert-time-stamp (current-time) 'with-hm 'inactive))
       (setq s (- (time-to-seconds (apply 'encode-time (org-parse-time-string te)))
@@ -13646,7 +13843,7 @@ Puts the resulting times in minutes as a text property on each headline."
   (let* ((bmp (buffer-modified-p))
 	 (re (concat "^\\(\\*+\\)[ \t]\\|^[ \t]*"
 		     org-clock-string
-		     "[ \t]*\\(\\[.*?\\]\\)-+\\(\\[.*?\\]\\)"))
+		     "[ \t]*\\(?:\\(\\[.*?\\]\\)-+\\(\\[.*?\\]\\)\\|=>[ \t]+\\([0-9]+\\):\\([0-9]+\\)\\)"))
 	 (lmax 30)
 	 (ltimes (make-vector lmax 0))
 	 (t1 0)
@@ -13657,19 +13854,24 @@ Puts the resulting times in minutes as a text property on each headline."
     (save-excursion
       (goto-char (point-max))
       (while (re-search-backward re nil t)
-	(if (match-end 2)
-	    ;; A time
-	    (setq ts (match-string 2)
-		  te (match-string 3)
-		  ts (time-to-seconds
-		      (apply 'encode-time (org-parse-time-string ts)))
-		  te (time-to-seconds
-		      (apply 'encode-time (org-parse-time-string te)))
-		  ts (if tstart (max ts tstart) ts)
-		  te (if tend (min te tend) te)
-		  dt (- te ts)
-		  t1 (if (> dt 0) (+ t1 (floor (/ dt 60))) t1))
-	  ;; A headline
+	(cond
+	 ((match-end 2)
+	  ;; Two time stamps
+	  (setq ts (match-string 2)
+		te (match-string 3)
+		ts (time-to-seconds
+		    (apply 'encode-time (org-parse-time-string ts)))
+		te (time-to-seconds
+		    (apply 'encode-time (org-parse-time-string te)))
+		ts (if tstart (max ts tstart) ts)
+		te (if tend (min te tend) te)
+		dt (- te ts)
+		t1 (if (> dt 0) (+ t1 (floor (/ dt 60))) t1)))
+	 ((match-end 4)
+	  ;; A naket time
+	  (setq t1 (+ t1 (string-to-number (match-string 5))
+		      (* 60 (string-to-number (match-string 4))))))
+	 (t ;; A headline
 	  (setq level (- (match-end 1) (match-beginning 1)))
 	  (when (or (> t1 0) (> (aref ltimes level) 0))
 	    (loop for l from 0 to level do
@@ -13678,7 +13880,7 @@ Puts the resulting times in minutes as a text property on each headline."
 	    (loop for l from level to (1- lmax) do
 		  (aset ltimes l 0))
 	    (goto-char (match-beginning 0))
-	    (put-text-property (point) (point-at-eol) :org-clock-minutes time))))
+	    (put-text-property (point) (point-at-eol) :org-clock-minutes time)))))
       (setq org-clock-file-total-minutes (aref ltimes 0)))
     (set-buffer-modified-p bmp)))
 
@@ -13906,7 +14108,7 @@ the returned times will be formatted strings."
       (when (setq time (get-text-property p :org-clock-minutes))
 	(save-excursion
 	  (beginning-of-line 1)
-	  (when (and (looking-at "\\(\\*+\\)[ \t]+\\(.*?\\)\\([ \t]+:[0-9a-zA-Z_@:]+:\\)?[ \t]*$")
+	  (when (and (looking-at "\\(\\*+\\)[ \t]+\\(.*?\\)\\([ \t]+:[[:alnum:]_@:]+:\\)?[ \t]*$")
 		     (setq level (- (match-end 1) (match-beginning 1)))
 		     (<= level maxlevel))
 	    (setq hlc (if emph (or (cdr (assoc level hlchars)) "") "")
@@ -14477,7 +14679,7 @@ L   Timeline for current buffer          #   List stuck projects (!=configure)
   "Run an agenda command in batch mode and send the result to STDOUT.
 If CMD-KEY is a string of length 1, it is used as a key in
 `org-agenda-custom-commands' and triggers this command.  If it is a
-longer string it is used as a tags/todo match string.
+longer string is is used as a tags/todo match string.
 Paramters are alternating variable names and values that will be bound
 before running the agenda command."
   (let (pars)
@@ -14503,7 +14705,7 @@ before running the agenda command."
   "Run an agenda command in batch mode and send the result to STDOUT.
 If CMD-KEY is a string of length 1, it is used as a key in
 `org-agenda-custom-commands' and triggers this command.  If it is a
-longer string it is used as a tags/todo match string.
+longer string is is used as a tags/todo match string.
 Paramters are alternating variable names and values that will be bound
 before running the agenda command.
 
@@ -14531,7 +14733,8 @@ date         The relevant date, like 2007-2-14
 time         The time, like 15:00-16:50
 extra        Sting with extra planning info
 priority-l   The priority letter if any was given
-priority-n   The computed numerical priority"
+priority-n   The computed numerical priority
+agenda-day   The day in the agenda where this is listed"
 
   (let (pars)
     (while parameters
@@ -14554,7 +14757,7 @@ priority-n   The computed numerical priority"
 	   (org-encode-for-stdout
 	    (mapconcat 'org-agenda-export-csv-mapper
 		       '(org-category txt type todo tags date time-of-day extra
-				      priority-letter priority)
+				      priority-letter priority agenda-day)
 		      ",")))
 	  (princ "\n"))))))
 
@@ -14574,7 +14777,8 @@ priority-n   The computed numerical priority"
       (if (integerp tmp) (setq tmp (calendar-gregorian-from-absolute tmp)))
       (let ((calendar-date-display-form '(year "-" month "-" day)))
 	(setq tmp (calendar-date-string tmp)))
-      (setq props (plist-put props 'day tmp)))
+      (setq props (plist-put props 'day tmp))
+      (setq props (plist-put props 'agenda-day tmp)))
     (when (setq tmp (plist-get props 'txt))
       (when (string-match "\\[#\\([A-Z0-9]\\)\\] ?" tmp)
 	(plist-put props 'priority-letter (match-string 1 tmp))
@@ -15154,6 +15358,7 @@ When EMPTY is non-nil, also include days without any entries."
 ;;; Agenda Daily/Weekly
 
 (defvar org-agenda-overriding-arguments nil) ; dynamically scoped parameter
+(defvar org-agenda-start-day nil) ; dynamically scoped parameter
 (defvar org-agenda-last-arguments nil
   "The arguments of the previous call to org-agenda")
 (defvar org-starting-day nil) ; local variable in the agenda buffer
@@ -15174,10 +15379,15 @@ START-DAY defaults to TODAY, or to the most recent match for the weekday
 given in `org-agenda-start-on-weekday'.
 NDAYS defaults to `org-agenda-ndays'."
   (interactive "P")
+  (setq ndays (or ndays org-agenda-ndays)
+	start-day (or start-day org-agenda-start-day))
   (if org-agenda-overriding-arguments
       (setq include-all (car org-agenda-overriding-arguments)
 	    start-day (nth 1 org-agenda-overriding-arguments)
 	    ndays (nth 2 org-agenda-overriding-arguments)))
+  (if (stringp start-day)
+      ;; Convert to an absolute day number
+      (setq start-day (time-to-days (org-read-date nil t start-day))))
   (setq org-agenda-last-arguments (list include-all start-day ndays))
   (org-compile-prefix-format 'agenda)
   (org-set-sorting-strategy 'agenda)
@@ -15476,10 +15686,10 @@ MATCH is being ignored."
 			  "\\)\\>"))
 	 (tags (nth 2 org-stuck-projects))
 	 (tags-re (if (member "*" tags)
-		      "^\\*+.*:[a-zA-Z0-9_@]+:[ \t]*$"
+		      "^\\*+.*:[[:alnum:]_@]+:[ \t]*$"
 		    (concat "^\\*+.*:\\("
 			    (mapconcat 'identity tags "\\|")
-			    "\\):[a-zA-Z0-9_@:]*[ \t]*$")))
+			    "\\):[[:alnum:]_@:]*[ \t]*$")))
 	 (gen-re (nth 3 org-stuck-projects))
 	 (re-list
 	  (delq nil
@@ -15580,8 +15790,10 @@ date.  It also removes lines that contain only whitespace."
   (org-add-props string nil
     'mouse-face 'highlight
     'keymap org-agenda-keymap
-    'help-echo (format "mouse-2 or RET jump to diary file %s"
-		       (abbreviate-file-name buffer-file-name))
+    'help-echo (if buffer-file-name
+		   (format "mouse-2 or RET jump to diary file %s"
+			   (abbreviate-file-name buffer-file-name))
+		 "")
     'org-agenda-diary-link t
     'org-marker (org-agenda-new-marker (point-at-bol))))
 
@@ -16154,7 +16366,6 @@ the documentation of `org-diary'."
 
 ;;; Agenda presentation and sorting
 
-;; FIXME: should I allow spaces around the dash?
 (defconst org-plain-time-of-day-regexp
   (concat
    "\\(\\<[012]?[0-9]"
@@ -16173,7 +16384,7 @@ groups carry important information:
 (defconst org-stamp-time-of-day-regexp
   (concat
    "<\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\} +\\sw+ +\\)"
-   "\\([012][0-9]:[0-5][0-9]\\)>"
+   "\\([012][0-9]:[0-5][0-9]\\(-\\([012][0-9]:[0-5][0-9]\\)\\)?[^\n\r>]*?\\)>"
    "\\(--?"
    "<\\1\\([012][0-9]:[0-5][0-9]\\)>\\)?")
   "Regular expression to match a timestamp time or time range.
@@ -16216,14 +16427,15 @@ only the correctly processes TXT should be returned - this is used by
 	   time    ; time and tag are needed for the eval of the prefix format
 	   (ts (if dotime (concat (if (stringp dotime) dotime "") txt)))
 	   (time-of-day (and dotime (org-get-time-of-day ts)))
-	   stamp plain s0 s1 s2 rtn)
+	   stamp plain s0 s1 s2 rtn srp)
       (when (and dotime time-of-day org-prefix-has-time)
 	;; Extract starting and ending time and move them to prefix
 	(when (or (setq stamp (string-match org-stamp-time-of-day-regexp ts))
 		  (setq plain (string-match org-plain-time-of-day-regexp ts)))
 	  (setq s0 (match-string 0 ts)
+		srp (and stamp (match-end 3))
 		s1 (match-string (if plain 1 2) ts)
-		s2 (match-string (if plain 8 4) ts))
+		s2 (match-string (if plain 8 (if srp 4 6)) ts))
 
 	  ;; If the times are in TXT (not in DOTIMES), and the prefix will list
 	  ;; them, we might want to remove them there to avoid duplication.
@@ -16238,7 +16450,7 @@ only the correctly processes TXT should be returned - this is used by
 	(if s1 (setq s1 (org-get-time-of-day s1 'string t)))
 	(if s2 (setq s2 (org-get-time-of-day s2 'string t))))
 
-      (when (string-match "\\([ \t]+\\)\\(:[a-zA-Z_@0-9:]+:\\)[ \t]*$" txt)
+      (when (string-match "\\([ \t]+\\)\\(:[[:alnum:]_@:]+:\\)[ \t]*$" txt)
 	;; Tags are in the string
 	(if (or (eq org-agenda-remove-tags t)
 		(and org-agenda-remove-tags
@@ -16977,7 +17189,7 @@ the new TODO state."
   (let ((buffer-read-only))
     (save-excursion
       (goto-char (if line (point-at-bol) (point-min)))
-      (while (re-search-forward "\\([ \t]+\\):[a-zA-Z0-9_@:]+:[ \t]*$"
+      (while (re-search-forward "\\([ \t]+\\):[[:alnum:]_@:]+:[ \t]*$"
 				(if line (point-at-eol) nil) t)
 	(delete-region (match-beginning 1) (match-end 1))
 	(goto-char (match-beginning 1))
@@ -17038,7 +17250,7 @@ the tags of the current headline come last."
 	  (org-back-to-heading t)
 	  (condition-case nil
 	      (while t
-		(if (looking-at "[^\r\n]+?:\\([a-zA-Z_@0-9:]+\\):[ \t]*\\([\n\r]\\|\\'\\)")
+		(if (looking-at "[^\r\n]+?:\\([[:alnum:]_@:]+\\):[ \t]*\\([\n\r]\\|\\'\\)")
 		    (setq tags (append (org-split-string
 					(org-match-string-no-properties 1) ":")
 				       tags)))
@@ -18319,7 +18531,7 @@ translations.  There is currently no way for users to extend this.")
     (save-excursion
       (goto-char (point-min))
       (let ((end (save-excursion (outline-next-heading) (point))))
-	(when (re-search-forward "^[ \t]*[^# \t\r\n].*\n" end t)
+	(when (re-search-forward "^[ \t]*[^|# \t\r\n].*\n" end t)
 	  ;; Mark the line so that it will not be exported as normal text.
 	  (org-unmodified
 	   (add-text-properties (match-beginning 0) (match-end 0)
@@ -18508,7 +18720,7 @@ underlined headlines.  The default is 3."
 			   (setq txt (org-html-expand-for-ascii txt))
 
 			   (if (and (memq org-export-with-tags '(not-in-toc nil))
-				    (string-match "[ \t]+:[a-zA-Z0-9_@:]+:[ \t]*$" txt))
+				    (string-match "[ \t]+:[[:alnum:]_@:]+:[ \t]*$" txt))
 			       (setq txt (replace-match "" t t txt)))
 			   (if (string-match quote-re0 txt)
 			       (setq txt (replace-match "" t t txt)))
@@ -18655,7 +18867,7 @@ underlined headlines.  The default is 3."
 	  (insert "\n"))
       (setq char (nth (- umax level) (reverse org-export-ascii-underline)))
       (unless org-export-with-tags
-	(if (string-match "[ \t]+\\(:[a-zA-Z0-9_@:]+:\\)[ \t]*$" title)
+	(if (string-match "[ \t]+\\(:[[:alnum:]_@:]+:\\)[ \t]*$" title)
 	    (setq title (replace-match "" t t title))))
       (if org-export-with-section-numbers
 	  (setq title (concat (org-section-number level) " " title)))
@@ -19008,11 +19220,14 @@ the body tags themselves."
 	 (start       0)
 	 (coding-system (and (boundp 'buffer-file-coding-system)
 			     buffer-file-coding-system))
-	 (coding-system-for-write coding-system)
-	 (save-buffer-coding-system coding-system)
-	 (charset (and coding-system
+	 (coding-system-for-write (or org-export-html-coding-system
+				      coding-system))
+	 (save-buffer-coding-system (or org-export-html-coding-system
+					coding-system))
+	 (charset (and coding-system-for-write
 		       (fboundp 'coding-system-get)
-		       (coding-system-get coding-system 'mime-charset)))
+		       (coding-system-get coding-system-for-write
+					  'mime-charset)))
          (region
           (buffer-substring
            (if region-p (region-beginning) (point-min))
@@ -19123,7 +19338,7 @@ lang=\"%s\" xml:lang=\"%s\">
 					 (org-search-todo-below
 					  line lines level))))
 			  (if (and (memq org-export-with-tags '(not-in-toc nil))
-				   (string-match "[ \t]+:[a-zA-Z0-9_@:]+:[ \t]*$" txt))
+				   (string-match "[ \t]+:[[:alnum:]_@:]+:[ \t]*$" txt))
 			      (setq txt (replace-match "" t t txt)))
 			  (if (string-match quote-re0 txt)
 			      (setq txt (replace-match "" t t txt)))
@@ -19331,6 +19546,7 @@ lang=\"%s\" xml:lang=\"%s\">
 				"&gt;</i>"))))
 	    (setq line (replace-match rpl t t line)
 		  start (+ start (length rpl))))
+
 	  ;; TODO items
 	  (if (and (string-match org-todo-line-regexp line)
 		   (match-beginning 2))
@@ -19623,7 +19839,7 @@ lang=\"%s\" xml:lang=\"%s\">
 			      (lambda (x) (string-match "^[ \t]*|-" x))
 			      (cdr lines)))))
 	(nlines 0) fnum i
-	tbopen line fields html gr)
+	tbopen line fields html gr colgropen)
     (if splice (setq head nil))
     (unless splice (push (if head "<thead>" "<tbody>") html))
     (setq tbopen t)
@@ -19664,13 +19880,20 @@ lang=\"%s\" xml:lang=\"%s\">
       (push (mapconcat
 	     (lambda (x)
 	       (setq gr (pop org-table-colgroup-info))
-	       (format "%s<COL align=\"%s\">%s"
-		       (if (memq gr '(:start :startend)) "<colgroup>" "")
+	       (format "%s<COL align=\"%s\"></COL>%s"
+		       (if (memq gr '(:start :startend)) 
+			   (prog1
+			       (if colgropen "</colgroup>\n<colgroup>" "<colgroup>")
+			     (setq colgropen t))
+			 "")
 		       (if (> (/ (float x) nlines) org-table-number-fraction)
 			   "right" "left")
-		       (if (memq gr '(:end :startend)) "</colgroup>" "")))
+		       (if (memq gr '(:end :startend)) 
+			   (progn (setq colgropen nil) "</colgroup>")
+			 "")))
 	     fnum "")
 	    html)
+      (if colgropen (setq html (cons (car html) (cons "</colgroup>" (cdr html)))))
       (push org-export-html-table-tag html))
     (concat (mapconcat 'identity html "\n") "\n")))
 
@@ -19829,7 +20052,7 @@ But it has the disadvantage, that Org-mode's HTML conversions cannot be used."
 
 (defun org-export-cleanup-toc-line (s)
   "Remove tags and time staps from lines going into the toc."
-  (if (string-match " +:[a-zA-Z0-9_@:]+: *$" s)
+  (if (string-match " +:[[:alnum:]_@:]+: *$" s)
       (setq s (replace-match "" t t s)))
   (when org-export-remove-timestamps-from-toc
     (while (string-match org-maybe-keyword-time-regexp s)
@@ -19954,6 +20177,7 @@ stacked delimiters is N.  Escaping delimiters is not possible."
   (org-close-par-maybe)
   (insert "</li>\n"))
 
+(defvar body-only) ; dynamically scoped into this.
 (defun org-html-level-start (level title umax with-toc head-count)
   "Insert a new level in HTML export.
 When TITLE is nil, just close all open levels."
@@ -19968,7 +20192,7 @@ When TITLE is nil, just close all open levels."
     (when title
       ;; If title is nil, this means this function is called to close
       ;; all levels, so the rest is done only if title is given
-	(when (string-match "\\(:[a-zA-Z0-9_@:]+:\\)[ \t]*$" title)
+	(when (string-match "\\(:[[:alnum:]_@:]+:\\)[ \t]*$" title)
 	  (setq title (replace-match
 		       (if org-export-with-tags
 			   (save-match-data
@@ -19989,7 +20213,7 @@ When TITLE is nil, just close all open levels."
 	      (aset org-levels-open (1- level) t)
 	      (org-close-par-maybe)
 	      (insert "<ul>\n<li>" title "<br/>\n")))
-	(if org-export-with-section-numbers
+	(if (and org-export-with-section-numbers (not body-only))
 	    (setq title (concat (org-section-number level) " " title)))
 	(setq level (+ level org-export-html-toplevel-hlevel -1))
 	(if with-toc
@@ -20835,7 +21059,7 @@ This command does many different things, depending on context:
      ((org-at-item-checkbox-p)
       (call-interactively 'org-toggle-checkbox))
      ((org-at-item-p)
-      (call-interactively 'org-renumber-ordered-list))
+      (call-interactively 'org-maybe-renumber-ordered-list))
      ((save-excursion (beginning-of-line 1) (looking-at "#\\+\\([A-Z]+\\)"))
       (cond
        ((equal (match-string 1) "TBLFM")
@@ -21410,15 +21634,39 @@ not an indirect buffer"
 (defun org-indent-line-function ()
   "Indent line like previous, but further if previous was headline or item."
   (interactive)
-  (let ((column (save-excursion
-		  (beginning-of-line)
-		  (if (looking-at "#") 0
-		    (skip-chars-backward "\n \t")
-		    (beginning-of-line)
-		    (if (or (looking-at "\\*+[ \t]+")
-			    (looking-at "[ \t]*\\([-+*][ \t]+\\|[0-9]+[.)][ \t]+\\)"))
-			(progn (goto-char (match-end 0)) (current-column))
-		      (current-indentation))))))
+  (let* ((pos (point))
+	 (itemp (org-at-item-p))
+	 column bpos bcol tpos tcol bullet btype bullet-type)
+    ;; Find the previous relevant line
+    (beginning-of-line 1)
+    (cond
+     ((looking-at "#") (setq column 0))
+     (t
+      (beginning-of-line 0)
+      (while (and (not (bobp)) (looking-at "[ \t]*[\n:#|]"))
+	(beginning-of-line 0))
+      (cond
+       ((looking-at "\\*+[ \t]+")
+	(goto-char (match-end 0))
+	(setq column (current-column)))
+       ((org-in-item-p)
+	(org-beginning-of-item)
+	(looking-at "[ \t]*\\(\\S-+\\)[ \t]*")
+	(setq bpos (match-beginning 1) tpos (match-end 0)
+	      bcol (progn (goto-char bpos) (current-column))
+	      tcol (progn (goto-char tpos) (current-column))
+	      bullet (match-string 1)
+	      bullet-type (if (string-match "[0-9]" bullet) "n" bullet))
+	(if (not itemp)
+	    (setq column tcol)
+	  (goto-char pos)
+	  (beginning-of-line 1)
+	  (looking-at "[ \t]*\\(\\S-+\\)[ \t]*")
+	  (setq bullet (match-string 1)
+		btype (if (string-match "[0-9]" bullet) "n" bullet))
+	  (setq column (if (equal btype bullet-type) bcol tcol))))
+       (t (setq column (org-get-indentation))))))
+    (goto-char pos)
     (if (<= (current-column) (current-indentation))
 	(indent-line-to column)
       (save-excursion (indent-line-to column)))))
@@ -21716,6 +21964,11 @@ Still experimental, may disappear in the furture."
                        (and (>= time time1) (<= time time2))))))
     ;; make tree, check each match with the callback
     (org-occur "CLOSED: +\\[\\(.*?\\)\\]" nil callback)))
+
+
+(defun test ()
+  (interactive)
+  (message "hihi: %s" (org-item-indent-positions)))
 
 ;;;; Finish up
 
