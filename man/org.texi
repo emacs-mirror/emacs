@@ -3,7 +3,7 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 4.77
+@set VERSION 4.78
 @set DATE June 2007
 
 @dircategory Emacs
@@ -80,8 +80,8 @@ Software Foundation raise funds for GNU development.''
 * Tables::                      Pure magic for quick formatting
 * Hyperlinks::                  Notes in context
 * TODO items::                  Every tree branch can be a TODO item
-* Timestamps::                  Assign date and time to items
 * Tags::                        Tagging headlines and matching sets of tags
+* Timestamps::                  Assign date and time to items
 * Agenda views::                Collecting information into views
 * Embedded LaTeX::              LaTeX fragments and formulas
 * Exporting::                   Sharing and publishing of notes
@@ -173,6 +173,12 @@ Extended use of TODO keywords
 * Multiple sets in one file::   Mixing it all, and still finding your way
 * Per file keywords::           Different files, different requirements
 
+Tags
+
+* Tag inheritance::             Tags use the tree structure of the outline
+* Setting tags::                How to assign tags to a headline
+* Tag searches::                Searching for combinations of tags
+
 Timestamps
 
 * Time stamps::                 Assigning a time to a tree entry
@@ -195,12 +201,6 @@ Progress Logging
 * Closing items::               When was this entry marked DONE?
 * Tracking TODO state changes::  When did the status change?
 * Clocking work time::          When exactly did you work on this item?
-
-Tags
-
-* Tag inheritance::             Tags use the tree structure of the outline
-* Setting tags::                How to assign tags to a headline
-* Tag searches::                Searching for combinations of tags
 
 Agenda Views
 
@@ -1040,10 +1040,7 @@ Org-mode supports these lists by tuning filling and wrapping commands to
 deal with them correctly@footnote{Org-mode only changes the filling
 settings for Emacs.  For XEmacs, you should use Kyle E. Jones'
 @file{filladapt.el}.  To turn this on,  put into @file{.emacs}:
-@example
-(require 'filladapt)
-@end example
-}.
+@code{(require 'filladapt)}}. 
 
 The following commands act on items when the cursor is in the first line
 of an item (the line with the bullet or number).
@@ -1056,6 +1053,9 @@ Items can be folded just like headline levels if you set the variable
 given by the indentation of the bullet/number.  Items are always
 subordinate to real headlines, however; the hierarchies remain
 completely separated.
+
+If @code{org-cycle-include-plain-lists} has not been set, @key{TAB}
+fixes the indentation of the curent line in a heuristic way.
 @kindex M-@key{RET}
 @item M-@key{RET}
 Insert new item at current level.  With prefix arg, force a new heading
@@ -1094,8 +1094,9 @@ the command chain with a cursor motion or so.
 @kindex C-c C-c
 @item C-c C-c
 If there is a checkbox (@pxref{Checkboxes}) in the item line, toggle the
-state of the checkbox.  Otherwise, if this is an ordered list, renumber
-the ordered list at the cursor.
+state of the checkbox.  If not, make this command makes sure that all
+the items on this list level use the same bullet.  Furthermore, if this
+is an ordered list, make sure the numbering is ok.
 @end table
 
 @node Tables, Hyperlinks, Document structure, Top
@@ -1641,12 +1642,18 @@ functionality is not enough.  If a formula starts with a single quote
 followed by an opening parenthesis, then it is evaluated as a lisp form.
 The evaluation should return either a string or a number.  Just as with
 @file{calc} formulas, you can specify modes and a printf format after a
-semicolon.  A reference will be replaced with a string (in double
-quotes) containing the field.  If you provide the @samp{N} mode switch,
-all referenced elements will be numbers.  Ranges are inserted as
-space-separated fields, so you can embed them in list or vector syntax.
-A few examples, note how the @samp{N} mode is used when we do
-computations in lisp.
+semicolon.  With Emacs Lisp forms, you need to be concious about the way
+field references are interpolated into the form.  By default, a
+reference will be interpolated as a Lisp string (in double quotes)
+containing the field.  If you provide the @samp{N} mode switch, all
+referenced elements will be numbers (non-number fields will be zero) and
+interpolated as Lisp numbers, without quotes.  If you provide the
+@samp{L} flag, all fields will be interpolated literally, without quotes.
+I.e., if you want a reference to be interpreted as a string by the Lisp
+form, enclode the reference operator itself in double quotes, like
+@code{"$3"}.  Ranges are inserted as space-separated fields, so you can
+embed them in list or vector syntax.  A few examples, note how the
+@samp{N} mode is used when we do computations in lisp.
 
 @example
 @r{Swap the first two characters of the content of column 1}
@@ -2042,8 +2049,8 @@ convenient to put them into a comment line. For example
 
 @noindent In HTML export (@pxref{HTML export}), such targets will become
 named anchors for direct access through @samp{http} links@footnote{Note
-that text before the first headline will never be exported, so the first
-such target must be after the first headline.}.
+that text before the first headline is usually not exported, so the
+first such target should be after the first headline.}.
 
 If no dedicated target exists, Org-mode will search for the words in the
 link.  In the above example the search would be for @samp{my target}.
@@ -2581,7 +2588,7 @@ non-nil, the entire text is also indented so that it starts in the
 same column as the headline (after the asterisks).
 
 
-@node TODO items, Timestamps, Hyperlinks, Top
+@node TODO items, Tags, Hyperlinks, Top
 @chapter TODO items
 @cindex TODO items
 
@@ -2960,7 +2967,264 @@ delete boxes or add/change them by hand, use this command to get things
 back into synch.  Or simply toggle any checkbox twice with @kbd{C-c C-c}.
 @end table
 
-@node Timestamps, Tags, TODO items, Top
+
+@node Tags, Timestamps, TODO items, Top
+@chapter Tags
+@cindex tags
+@cindex headline tagging
+@cindex matching, tags
+@cindex sparse tree, tag based
+
+If you wish to implement a system of labels and contexts for
+cross-correlating information, an excellent way is to assign @i{tags} to
+headlines.  Org-mode has extensive support for using tags.
+
+Every headline can contain a list of tags, at the end of the headline.
+Tags are normal words containing letters, numbers, @samp{_}, and
+@samp{@@}.  Tags must be preceded and followed by a single colon; like
+@samp{:WORK:}.  Several tags can be specified like @samp{:WORK:URGENT:}.
+
+@menu
+* Tag inheritance::             Tags use the tree structure of the outline
+* Setting tags::                How to assign tags to a headline
+* Tag searches::                Searching for combinations of tags
+@end menu
+
+@node Tag inheritance, Setting tags, Tags, Tags
+@section Tag inheritance
+@cindex inheritance, of tags
+@cindex sublevels, inclusion into tags match
+
+@i{Tags} make use of the hierarchical structure of outline trees.  If a
+heading has a certain tag, all subheadings will inherit the tag as
+well.  For example, in the list
+
+@example
+* Meeting with the French group      :WORK:
+** Summary by Frank                  :BOSS:NOTES:
+*** TODO Prepare slides for him      :ACTION:
+@end example
+
+@noindent
+the final heading will have the tags @samp{:WORK:}, @samp{:BOSS:},
+@samp{:NOTES:}, and @samp{:ACTION:}.  When executing tag searches and
+Org-mode finds that a certain headline matches the search criterion, it
+will not check any sublevel headline, assuming that these likely also
+match, and that the list of matches can become very long.  This may
+not be what you want, however, and you can influence inheritance and
+searching using the variables @code{org-use-tag-inheritance} and
+@code{org-tags-match-list-sublevels}.
+
+@node Setting tags, Tag searches, Tag inheritance, Tags
+@section Setting tags
+@cindex setting tags
+@cindex tags, setting
+
+@kindex M-@key{TAB}
+Tags can simply be typed into the buffer at the end of a headline.
+After a colon, @kbd{M-@key{TAB}} offers completion on tags.  There is
+also a special command for inserting tags:
+
+@table @kbd
+@kindex C-c C-c
+@item C-c C-c
+@cindex completion, of tags
+Enter new tags for the current headline.  Org-mode will either offer
+completion or a special single-key interface for setting tags, see
+below.  After pressing @key{RET}, the tags will be inserted and aligned
+to @code{org-tags-column}.  When called with a @kbd{C-u} prefix, all
+tags in the current buffer will be aligned to that column, just to make
+things look nice.  TAGS are automatically realigned after promotion,
+demotion, and TODO state changes (@pxref{TODO basics}).
+@end table
+
+Org will support tag insertion based on a @emph{list of tags}.  By
+default this list is constructed dynamically, containing all tags
+currently used in the buffer.  You may also globally specify a hard list
+of tags with the variable @code{org-tag-alist}.  Finally you can set
+the default tags for a given file with lines like
+
+@example
+#+TAGS: @@WORK @@HOME @@TENNISCLUB
+#+TAGS: Laptop Car PC Sailboat
+@end example
+
+If you have globally defined your preferred set of tags using the
+variable @code{org-tag-alist}, but would like to use a dynamic tag list
+in a specific file: Just add an empty TAGS option line to that file:
+
+@example
+#+TAGS:
+@end example
+
+The default support method for entering tags is minibuffer completion.
+However, Org-mode also implements a much better method: @emph{fast tag
+selection}.  This method allows to select and deselect tags with a
+single key per tag.  To function efficiently, you should assign unique
+keys to most tags.  This can be done globally with
+
+@lisp
+(setq org-tag-alist '(("@@WORK" . ?w) ("@@HOME" . ?h) ("Laptop" . ?l)))
+@end lisp
+
+@noindent or on a per-file basis with
+
+@example
+#+TAGS: @@WORK(w)  @@HOME(h)  @@TENNISCLUB(t)  Laptop(l)  PC(p)
+@end example
+
+@noindent
+You can also group together tags that are mutually exclusive.  With
+curly braces@footnote{In @code{org-mode-alist} use
+@code{'(:startgroup)} and @code{'(:endgroup)}, respectively.  Several
+groups are allowed.}
+
+@example
+#+TAGS: @{ @@WORK(w)  @@HOME(h)  @@TENNISCLUB(t) @}  Laptop(l)  PC(p)
+@end example
+
+@noindent you indicate that at most one of @samp{@@WORK}, @samp{@@HOME},
+and @samp{@@TENNISCLUB} should be selected.
+
+@noindent Don't forget to press @kbd{C-c C-c} with the cursor in one of
+these lines to activate any changes.
+
+If at least one tag has a selection key, pressing @kbd{C-c C-c} will
+automatically present you with a special interface, listing inherited
+tags, the tags of the current headline, and a list of all legal tags
+with corresponding keys@footnote{Keys will automatically be assigned to
+tags which have no configured keys.}.  In this interface, you can use
+the following keys:
+
+@table @kbd
+@item a-z...
+Pressing keys assigned to tags will add or remove them from the list of
+tags in the current line.  Selecting a tag in a group of mutually
+exclusive tags will turn off any other tags from that group.
+@kindex @key{TAB}
+@item @key{TAB}
+Enter a tag in the minibuffer, even if the tag is not in the predefined
+list.  You will be able to complete on all tags present in the buffer.
+@kindex @key{SPC}
+@item @key{SPC}
+Clear all tags for this line.
+@kindex @key{RET}
+@item @key{RET}
+Accept the modified set.
+@item C-g
+Abort without installing changes.
+@item q
+If @kbd{q} is not assigned to a tag, it aborts like @kbd{C-g}.
+@item !
+Turn off groups of mutually exclusive tags.  Use this to (as an
+exception) assign several tags from such a group.
+@item C-c
+Toggle auto-exit after the next change (see below).
+If you are using expert mode, the first @kbd{C-c} will display the
+selection window.
+@end table
+
+@noindent
+This method lets you assign tags to a headline with very few keys.  With
+the above setup, you could clear the current tags and set @samp{@@HOME},
+@samp{Laptop} and @samp{PC} tags with just the following keys: @kbd{C-c
+C-c @key{SPC} h l p @key{RET}}.  Switching from @samp{@@HOME} to
+@samp{@@WORK} would be done with @kbd{C-c C-c w @key{RET}} or
+alternatively with @kbd{C-c C-c C-c w}.  Adding the non-predefined tag
+@samp{Sarah} could be done with @kbd{C-c C-c @key{TAB} S a r a h
+@key{RET} @key{RET}}.
+
+If you find that most of the time, you need only a single keypress to
+modify your list of tags, set the variable
+@code{org-fast-tag-selection-single-key}.  Then you no longer have to
+press @key{RET} to exit fast tag selection - it will immediately exit
+after the first change.  If you then occasionally need more keys, press
+@kbd{C-c} to turn off auto-exit for the current tag selection process
+(in effect: start selection with @kbd{C-c C-c C-c} instead of @kbd{C-c
+C-c}).  If you set the variable to the value @code{expert}, the special
+window is not even shown for single-key tag selection, it comes up only
+when you press an extra @kbd{C-c}.
+
+@node Tag searches,  , Setting tags, Tags
+@section Tag searches
+@cindex tag searches
+@cindex searching for tags
+
+Once a tags system has been set up, it can be used to collect related
+information into special lists.
+
+@table @kbd
+@kindex C-c \
+@item C-c \
+Create a sparse tree with all headlines matching a tags search.  With a
+@kbd{C-u} prefix argument, ignore headlines that are not a TODO line.
+@kindex C-c a m
+@item C-c a m
+Create a global list of tag matches from all agenda files.
+@xref{Matching headline tags}.
+@kindex C-c a M
+@item C-c a M
+Create a global list of tag matches from all agenda files, but check
+only TODO items and force checking subitems (see variable
+@code{org-tags-match-list-sublevels}).
+@end table
+
+@cindex Boolean logic, for tag searches
+A @i{tags} search string can use Boolean operators @samp{&} for AND and
+@samp{|} for OR.  @samp{&} binds more strongly than @samp{|}.
+Parenthesis are currently not implemented.  A tag may also be preceded
+by @samp{-}, to select against it, and @samp{+} is syntactic sugar for
+positive selection.  The AND operator @samp{&} is optional when @samp{+}
+or @samp{-} is present.  Examples:
+
+@table @samp
+@item +WORK-BOSS
+Select headlines tagged @samp{:WORK:}, but discard those also tagged
+@samp{:BOSS:}.
+@item WORK|LAPTOP
+Selects lines tagged @samp{:WORK:} or @samp{:LAPTOP:}.
+@item WORK|LAPTOP&NIGHT
+Like before, but require the @samp{:LAPTOP:} lines to be tagged also
+@samp{NIGHT}.
+@end table
+
+@cindex TODO keyword matching, with tags search
+If you are using multi-state TODO keywords (@pxref{TODO extensions}), it
+can be useful to also match on the TODO keyword.  This can be done by
+adding a condition after a slash to a tags match.  The syntax is similar
+to the tag matches, but should be applied with consideration: For
+example, a positive selection on several TODO keywords can not
+meaningfully be combined with boolean AND.  However, @emph{negative
+selection} combined with AND can be meaningful.  To make sure that only
+lines are checked that actually have any TODO keyword, use @kbd{C-c a
+M}, or equivalently start the todo part after the slash with @samp{!}.
+Examples:
+
+@table @samp
+@item WORK/WAITING
+Select @samp{:WORK:}-tagged TODO lines with the specific TODO
+keyword @samp{WAITING}.
+@item WORK/!-WAITING-NEXT
+Select @samp{:WORK:}-tagged TODO lines that are neither @samp{WAITING}
+nor @samp{NEXT}
+@item WORK/+WAITING|+NEXT
+Select @samp{:WORK:}-tagged TODO lines that are either @samp{WAITING} or
+@samp{NEXT}.
+@end table
+
+@cindex regular expressions, with tags search
+Any element of the tag/todo match can be a regular expression - in this
+case it must be enclosed in curly braces.  For example,
+@samp{WORK+@{^BOSS.*@}} matches headlines that contain the tag
+@samp{WORK} and any tag @i{starting} with @samp{BOSS}.
+
+@cindex level, require for tags match
+You can also require a headline to be of a certain level, by writing
+instead of any TAG an expression like @samp{LEVEL=3}.  For example, a
+search @samp{+LEVEL=3+BOSS/-DONE} lists all level three headlines that
+have the tag BOSS and are @emph{not} marked with the todo keyword DONE.
+
+@node Timestamps, Agenda views, Tags, Top
 @chapter Timestamps
 @cindex time stamps
 @cindex date stamps
@@ -2984,12 +3248,13 @@ planning.
 @cindex deadlines
 @cindex scheduling
 
-A time stamp is a specification of a date (possibly with time) in a
-special format, either @samp{<2003-09-16 Tue>} or @samp{<2003-09-16 Tue
-09:39>}@footnote{This is the standard ISO date/time format.  If you
-cannot get used to these, see @ref{Custom time format}}.  A time stamp
-can appear anywhere in the headline or body of an org-tree entry.  Its
-presence causes entries to be shown on specific dates in the agenda
+A time stamp is a specification of a date (possibly with time or a range
+of times) in a special format, either @samp{<2003-09-16 Tue>} or
+@samp{<2003-09-16 Tue 09:39>} or @samp{<2003-09-16 Tue
+12:00-12:30>}@footnote{This is the standard ISO date/time format.  If
+you cannot get used to these, see @ref{Custom time format}}.  A time
+stamp can appear anywhere in the headline or body of an org-tree entry.
+Its presence causes entries to be shown on specific dates in the agenda
 (@pxref{Weekly/Daily agenda}).  We distinguish:
 
 @table @var
@@ -3003,6 +3268,7 @@ associated with a plain time stamp will be shown exactly on that date.
 
 @example
 * Meet Peter at the movies <2006-11-01 Wed 19:15>
+* Discussion on climate change <2006-11-02 Thu 20:00-22:00>
 @end example
 
 @item Time stamp with repeater interval
@@ -3226,6 +3492,9 @@ each component of a time stamp.  If the cursor is at the beginning of
 the stamp, @kbd{S-@key{up}/@key{down}} will change the stamp by one day,
 just like @kbd{S-@key{left}/@key{right}}.  At the end of the stamp, the
 time will be changed by one minute.
+@item
+If the time stamp contains a range of clock times or a repeater, these
+will not be overlayed, but remain in the buffer as they were.
 @item
 When you delete a time stamp character-by-character, it will only
 disappear from the buffer after @emph{all} (invisible) characters
@@ -3508,263 +3777,7 @@ The @kbd{l} key may be used in the timeline (@pxref{Timeline}) and in
 the agenda (@pxref{Weekly/Daily agenda}) to show which tasks have been
 worked on or closed during a day.
 
-@node Tags, Agenda views, Timestamps, Top
-@chapter Tags
-@cindex tags
-@cindex headline tagging
-@cindex matching, tags
-@cindex sparse tree, tag based
-
-If you wish to implement a system of labels and contexts for
-cross-correlating information, an excellent way is to assign @i{tags} to
-headlines.  Org-mode has extensive support for using tags.
-
-Every headline can contain a list of tags, at the end of the headline.
-Tags are normal words containing letters, numbers, @samp{_}, and
-@samp{@@}.  Tags must be preceded and followed by a single colon; like
-@samp{:WORK:}.  Several tags can be specified like @samp{:WORK:URGENT:}.
-
-@menu
-* Tag inheritance::             Tags use the tree structure of the outline
-* Setting tags::                How to assign tags to a headline
-* Tag searches::                Searching for combinations of tags
-@end menu
-
-@node Tag inheritance, Setting tags, Tags, Tags
-@section Tag inheritance
-@cindex inheritance, of tags
-@cindex sublevels, inclusion into tags match
-
-@i{Tags} make use of the hierarchical structure of outline trees.  If a
-heading has a certain tag, all subheadings will inherit the tag as
-well.  For example, in the list
-
-@example
-* Meeting with the French group      :WORK:
-** Summary by Frank                  :BOSS:NOTES:
-*** TODO Prepare slides for him      :ACTION:
-@end example
-
-@noindent
-the final heading will have the tags @samp{:WORK:}, @samp{:BOSS:},
-@samp{:NOTES:}, and @samp{:ACTION:}.  When executing tag searches and
-Org-mode finds that a certain headline matches the search criterion, it
-will not check any sublevel headline, assuming that these likely also
-match, and that the list of matches can become very long.  This may
-not be what you want, however, and you can influence inheritance and
-searching using the variables @code{org-use-tag-inheritance} and
-@code{org-tags-match-list-sublevels}.
-
-@node Setting tags, Tag searches, Tag inheritance, Tags
-@section Setting tags
-@cindex setting tags
-@cindex tags, setting
-
-@kindex M-@key{TAB}
-Tags can simply be typed into the buffer at the end of a headline.
-After a colon, @kbd{M-@key{TAB}} offers completion on tags.  There is
-also a special command for inserting tags:
-
-@table @kbd
-@kindex C-c C-c
-@item C-c C-c
-@cindex completion, of tags
-Enter new tags for the current headline.  Org-mode will either offer
-completion or a special single-key interface for setting tags, see
-below.  After pressing @key{RET}, the tags will be inserted and aligned
-to @code{org-tags-column}.  When called with a @kbd{C-u} prefix, all
-tags in the current buffer will be aligned to that column, just to make
-things look nice.  TAGS are automatically realigned after promotion,
-demotion, and TODO state changes (@pxref{TODO basics}).
-@end table
-
-Org will support tag insertion based on a @emph{list of tags}.  By
-default this list is constructed dynamically, containing all tags
-currently used in the buffer.  You may also globally specify a hard list
-of tags with the variable @code{org-tag-alist}.  Finally you can set
-the default tags for a given file with lines like
-
-@example
-#+TAGS: @@WORK @@HOME @@TENNISCLUB
-#+TAGS: Laptop Car PC Sailboat
-@end example
-
-If you have globally defined your preferred set of tags using the
-variable @code{org-tag-alist}, but would like to use a dynamic tag list
-in a specific file: Just add an empty TAGS option line to that file:
-
-@example
-#+TAGS:
-@end example
-
-The default support method for entering tags is minibuffer completion.
-However, Org-mode also implements a much better method: @emph{fast tag
-selection}.  This method allows to select and deselect tags with a
-single key per tag.  To function efficiently, you should assign unique
-keys to most tags.  This can be done globally with
-
-@lisp
-(setq org-tag-alist '(("@@WORK" . ?w) ("@@HOME" . ?h) ("Laptop" . ?l)))
-@end lisp
-
-@noindent or on a per-file basis with
-
-@example
-#+TAGS: @@WORK(w)  @@HOME(h)  @@TENNISCLUB(t)  Laptop(l)  PC(p)
-@end example
-
-@noindent
-You can also group together tags that are mutually exclusive.  With
-curly braces@footnote{In @code{org-mode-alist} use
-@code{'(:startgroup)} and @code{'(:endgroup)}, respectively.  Several
-groups are allowed.}
-
-@example
-#+TAGS: @{ @@WORK(w)  @@HOME(h)  @@TENNISCLUB(t) @}  Laptop(l)  PC(p)
-@end example
-
-@noindent you indicate that at most one of @samp{@@WORK}, @samp{@@HOME},
-and @samp{@@TENNISCLUB} should be selected.
-
-@noindent Don't forget to press @kbd{C-c C-c} with the cursor in one of
-these lines to activate any changes.
-
-If at least one tag has a selection key, pressing @kbd{C-c C-c} will
-automatically present you with a special interface, listing inherited
-tags, the tags of the current headline, and a list of all legal tags
-with corresponding keys@footnote{Keys will automatically be assigned to
-tags which have no configured keys.}.  In this interface, you can use
-the following keys:
-
-@table @kbd
-@item a-z...
-Pressing keys assigned to tags will add or remove them from the list of
-tags in the current line.  Selecting a tag in a group of mutually
-exclusive tags will turn off any other tags from that group.
-@kindex @key{TAB}
-@item @key{TAB}
-Enter a tag in the minibuffer, even if the tag is not in the predefined
-list.  You will be able to complete on all tags present in the buffer.
-@kindex @key{SPC}
-@item @key{SPC}
-Clear all tags for this line.
-@kindex @key{RET}
-@item @key{RET}
-Accept the modified set.
-@item C-g
-Abort without installing changes.
-@item q
-If @kbd{q} is not assigned to a tag, it aborts like @kbd{C-g}.
-@item !
-Turn off groups of mutually exclusive tags.  Use this to (as an
-exception) assign several tags from such a group.
-@item C-c
-Toggle auto-exit after the next change (see below).
-If you are using expert mode, the first @kbd{C-c} will display the
-selection window.
-@end table
-
-@noindent
-This method lets you assign tags to a headline with very few keys.  With
-the above setup, you could clear the current tags and set @samp{@@HOME},
-@samp{Laptop} and @samp{PC} tags with just the following keys: @kbd{C-c
-C-c @key{SPC} h l p @key{RET}}.  Switching from @samp{@@HOME} to
-@samp{@@WORK} would be done with @kbd{C-c C-c w @key{RET}} or
-alternatively with @kbd{C-c C-c C-c w}.  Adding the non-predefined tag
-@samp{Sarah} could be done with @kbd{C-c C-c @key{TAB} S a r a h
-@key{RET} @key{RET}}.
-
-If you find that most of the time, you need only a single keypress to
-modify your list of tags, set the variable
-@code{org-fast-tag-selection-single-key}.  Then you no longer have to
-press @key{RET} to exit fast tag selection - it will immediately exit
-after the first change.  If you then occasionally need more keys, press
-@kbd{C-c} to turn off auto-exit for the current tag selection process
-(in effect: start selection with @kbd{C-c C-c C-c} instead of @kbd{C-c
-C-c}).  If you set the variable to the value @code{expert}, the special
-window is not even shown for single-key tag selection, it comes up only
-when you press an extra @kbd{C-c}.
-
-@node Tag searches,  , Setting tags, Tags
-@section Tag searches
-@cindex tag searches
-@cindex searching for tags
-
-Once a tags system has been set up, it can be used to collect related
-information into special lists.
-
-@table @kbd
-@kindex C-c \
-@item C-c \
-Create a sparse tree with all headlines matching a tags search.  With a
-@kbd{C-u} prefix argument, ignore headlines that are not a TODO line.
-@kindex C-c a m
-@item C-c a m
-Create a global list of tag matches from all agenda files.
-@xref{Matching headline tags}.
-@kindex C-c a M
-@item C-c a M
-Create a global list of tag matches from all agenda files, but check
-only TODO items and force checking subitems (see variable
-@code{org-tags-match-list-sublevels}).
-@end table
-
-@cindex Boolean logic, for tag searches
-A @i{tags} search string can use Boolean operators @samp{&} for AND and
-@samp{|} for OR.  @samp{&} binds more strongly than @samp{|}.
-Parenthesis are currently not implemented.  A tag may also be preceded
-by @samp{-}, to select against it, and @samp{+} is syntactic sugar for
-positive selection.  The AND operator @samp{&} is optional when @samp{+}
-or @samp{-} is present.  Examples:
-
-@table @samp
-@item +WORK-BOSS
-Select headlines tagged @samp{:WORK:}, but discard those also tagged
-@samp{:BOSS:}.
-@item WORK|LAPTOP
-Selects lines tagged @samp{:WORK:} or @samp{:LAPTOP:}.
-@item WORK|LAPTOP&NIGHT
-Like before, but require the @samp{:LAPTOP:} lines to be tagged also
-@samp{NIGHT}.
-@end table
-
-@cindex TODO keyword matching, with tags search
-If you are using multi-state TODO keywords (@pxref{TODO extensions}), it
-can be useful to also match on the TODO keyword.  This can be done by
-adding a condition after a slash to a tags match.  The syntax is similar
-to the tag matches, but should be applied with consideration: For
-example, a positive selection on several TODO keywords can not
-meaningfully be combined with boolean AND.  However, @emph{negative
-selection} combined with AND can be meaningful.  To make sure that only
-lines are checked that actually have any TODO keyword, use @kbd{C-c a
-M}, or equivalently start the todo part after the slash with @samp{!}.
-Examples:
-
-@table @samp
-@item WORK/WAITING
-Select @samp{:WORK:}-tagged TODO lines with the specific TODO
-keyword @samp{WAITING}.
-@item WORK/!-WAITING-NEXT
-Select @samp{:WORK:}-tagged TODO lines that are neither @samp{WAITING}
-nor @samp{NEXT}
-@item WORK/+WAITING|+NEXT
-Select @samp{:WORK:}-tagged TODO lines that are either @samp{WAITING} or
-@samp{NEXT}.
-@end table
-
-@cindex regular expressions, with tags search
-Any element of the tag/todo match can be a regular expression - in this
-case it must be enclosed in curly braces.  For example,
-@samp{WORK+@{^BOSS.*@}} matches headlines that contain the tag
-@samp{WORK} and any tag @i{starting} with @samp{BOSS}.
-
-@cindex level, require for tags match
-You can also require a headline to be of a certain level, by writing
-instead of any TAG an expression like @samp{LEVEL=3}.  For example, a
-search @samp{+LEVEL=3+BOSS/-DONE} lists all level three headlines that
-have the tag BOSS and are @emph{not} marked with the todo keyword DONE.
-
-@node Agenda views, Embedded LaTeX, Tags, Top
+@node Agenda views, Embedded LaTeX, Timestamps, Top
 @chapter Agenda Views
 @cindex agenda views
 
@@ -5578,8 +5591,8 @@ separator line will be formatted as table header fields.
 @item
 If a headline starts with the word @samp{QUOTE}, the text below the
 headline will be typeset as fixed-width, to allow quoting of computer
-codes etc.  Lines starting with @samp{:} are also typeset in
-fixed-width font.
+codes etc.  Lines starting with @samp{:} are also typeset in fixed-width
+font. 
 @table @kbd
 @kindex C-c :
 @item C-c :
