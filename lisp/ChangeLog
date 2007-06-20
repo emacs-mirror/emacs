@@ -202,6 +202,11 @@
 
 	* vc-arch.el (vc-arch-command): Remove bzr.  It's a different program.
 
+2007-06-13  Michael Kifer  <kifer@cs.stonybrook.edu>
+
+	* ediff-ptch.el (ediff-context-diff-label-regexp): Partially undo
+	previous change.
+
 2007-06-12  Tom Tromey  <tromey@redhat.com>
 
 	* subr.el (user-emacs-directory): New defconst.
