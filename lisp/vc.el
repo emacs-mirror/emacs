@@ -105,7 +105,9 @@
 ;;
 ;; * registered (file)
 ;;
-;;   Return non-nil if FILE is registered in this backend.
+;;   Return non-nil if FILE is registered in this backend.  Both this
+;;   function as well as `state' should be careful to fail gracefully in the
+;;   event that the backend executable is absent.
 ;;
 ;; * state (file)
 ;;
@@ -269,6 +271,12 @@
 ;;
 ;;   Insert the revision log of FILE into BUFFER, or the *vc* buffer
 ;;   if BUFFER is nil.
+;;
+;; - log-view-mode ()
+;;
+;;   Mode to use for the output of print-log.  This defaults to
+;;   `log-view-mode' and is expected to be changed (if at all) to a derived
+;;   mode of `log-view-mode'.
 ;;
 ;; - show-log-entry (version)
 ;;
@@ -2453,7 +2461,7 @@ If FOCUS-REV is non-nil, leave the point at that revision."
     (pop-to-buffer (current-buffer))
     (vc-exec-after
      `(let ((inhibit-read-only t))
-    	(log-view-mode)
+    	(vc-call-backend ',(vc-backend file) 'log-view-mode)
 	(goto-char (point-max)) (forward-line -1)
 	(while (looking-at "=*\n")
 	  (delete-char (- (match-end 0) (match-beginning 0)))
@@ -2468,6 +2476,7 @@ If FOCUS-REV is non-nil, leave the point at that revision."
 			 ',focus-rev)
         (set-buffer-modified-p nil)))))
 
+(defun vc-default-log-view-mode (backend) (log-view-mode))
 (defun vc-default-show-log-entry (backend rev)
   (with-no-warnings
    (log-view-goto-rev rev)))

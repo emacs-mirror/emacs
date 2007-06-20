@@ -1,3 +1,8 @@
+2007-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-default-log-view-mode): New function.
+	(vc-print-log): Add new `log-view-mode' VC operation.
+
 2007-06-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ido.el (ido-find-file-in-dir): Don't signal an error for
