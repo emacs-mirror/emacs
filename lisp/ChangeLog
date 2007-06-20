@@ -1,3 +1,13 @@
+2007-06-20  Martin Rudalics  <rudalics@gmx.at>
+
+	* mouse.el (mouse-drag-mode-line-1): Quit mouse tracking when
+	event is not a cons cell.  Do not unread drag-mouse-1 events.
+	Select right window in check whether space was stolen from
+	window above.
+
+	* help-mode.el (help-make-xrefs): Adjust position of new forward
+	button.
+
 2007-06-20  Riccardo Murri  <riccardo.murri@gmail.com>
 
 	* vc-bzr.el (vc-bzr-with-process-environment)
