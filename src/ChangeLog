@@ -1,3 +1,8 @@
+2007-06-20  Jason Rumney  <jasonr@gnu.org>
+
+	* w32bdf.c (w32_BDF_to_x_font): Unmap memory when finished.
+	(w32_free_bdf_font): Unmap memory not handle.
+
 2007-06-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32.c (_wsa_errlist): Fix typo in error message.
