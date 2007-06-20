@@ -1,3 +1,7 @@
+2007-06-20  Reto Zimmermann <reto@gnu.org>
+
+	* progmodes/vera-mode.el: New file.
+
 2007-06-19  Ivan Kanis <apple@kanis.eu>
 
 	* vc-hg.el: New file.
