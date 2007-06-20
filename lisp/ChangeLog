@@ -1,5 +1,8 @@
 2007-06-20  Juanma Barranquero  <lekktu@gmail.com>
 
+	* ido.el (ido-find-file-in-dir): Don't signal an error for
+	empty directories.
+
 	* add-log.el (change-log-mode): Set `show-trailing-whitespace'.
 
 	* desktop.el (desktop-read): Run `desktop-not-loaded-hook' in the
