@@ -1,9 +1,14 @@
+2007-06-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ido.el (ido-find-file-in-dir): Don't signal an error for
+	empty directories.
+
 2007-06-18  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-mode.el (c-remove-any-local-eval-or-mode-variables):
 	When removing lines, also remove the \n.  Correction of patch of
 	2007-04-21.
-	
+
 2007-06-17  Glenn Morris  <rgm@gnu.org>
 
 	* lpr.el (lpr-page-header-switches): Move %s to separate element
@@ -11,8 +16,8 @@
 
 2007-06-13  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>  (tiny change)
 
-        * term/xterm.el (terminal-init-xterm): Escape parens in character
-        constants.
+	* term/xterm.el (terminal-init-xterm): Escape parens in character
+	constants.
 
 2007-06-12  Ralf Angeli  <angeli@caeruleus.net>
 
