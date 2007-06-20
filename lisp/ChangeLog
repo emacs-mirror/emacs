@@ -1,3 +1,8 @@
+2007-06-20  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (math-standard-ops): Fix precedence of
+	multiplication.
+
 2007-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc.el (vc-default-log-view-mode): New function.
