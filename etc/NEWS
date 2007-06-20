@@ -71,6 +71,8 @@ considered for update.
 
 ** VC has some support for Bazaar (bzr).
 
+** VC has some support for Mercurial (hg).
+
 ** sgml-electric-tag-pair-mode lets you simultaneously edit matched tag pairs.
 
 

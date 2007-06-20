@@ -1,3 +1,7 @@
+2007-06-19  Ivan Kanis <apple@kanis.eu>
+
+	* vc-hg.el: New file.
+
 2007-06-17  Glenn Morris  <rgm@gnu.org>
 
 	* lpr.el (lpr-page-header-switches): Move %s to separate element
