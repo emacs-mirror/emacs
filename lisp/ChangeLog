@@ -1,3 +1,9 @@
+2007-06-18  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-mode.el (c-remove-any-local-eval-or-mode-variables):
+	When removing lines, also remove the \n.  Correction of patch of
+	2007-04-21.
+	
 2007-06-17  Glenn Morris  <rgm@gnu.org>
 
 	* lpr.el (lpr-page-header-switches): Move %s to separate element
