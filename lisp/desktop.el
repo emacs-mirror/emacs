@@ -626,9 +626,7 @@ is nil, ask the user where to save the desktop."
       (setq desktop-dirname
             (file-name-as-directory
              (expand-file-name
-              (call-interactively
-               (lambda (dir)
-                 (interactive "DDirectory for desktop file: ") dir))))))
+	      (read-directory-name "Directory for desktop file: " nil nil t)))))
     (condition-case err
 	(desktop-save desktop-dirname t)
       (file-error
@@ -964,9 +962,9 @@ It returns t if a desktop file was loaded, nil otherwise."
 		       (not (y-or-n-p (format "Warning: desktop file appears to be in use by PID %s.\n\
 Using it may cause conflicts.  Use it anyway? " owner)))))
 	      (progn
-		(setq desktop-dirname nil)
 		(let ((default-directory desktop-dirname))
 		  (run-hooks 'desktop-not-loaded-hook))
+		(setq desktop-dirname nil)
 		(message "Desktop file in use; not loaded."))
 	    (desktop-lazy-abort)
 	    ;; Evaluate desktop buffer and remember when it was modified.
