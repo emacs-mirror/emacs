@@ -64,6 +64,8 @@ static mps_word_t dylan_int_int(mps_word_t x)
 static void *root[rootCOUNT];
 
 
+/* churn -- allocate a lot of stuff (unreachable garbage, so it will */
+/* probably only ever cause a minor collection). */
 static void churn(mps_ap_t ap)
 {
   int i;
@@ -141,8 +143,7 @@ static void *test(void *arg, size_t s)
   /* <design/poolmrg/#test.promise.ut.churn> */
   while (mps_collections(arena) < collectionCOUNT) {
     
-    /* Allocate a lot of stuff (unreachable garbage, so it will */
-    /* probably only ever cause a minor collection). */
+    /* Perhaps cause (minor) collection */
     churn(ap);
     
     /* Maybe make some objects ready-to-finalize */
