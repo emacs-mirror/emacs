@@ -1,5 +1,7 @@
 2007-06-20  Juanma Barranquero  <lekktu@gmail.com>
 
+	* add-log.el (change-log-mode): Set `show-trailing-whitespace'.
+
 	* desktop.el (desktop-read): Run `desktop-not-loaded-hook' in the
 	directory where the desktop file was found, as the docstring says.
 	(desktop-kill): Use `read-directory-name'.
