@@ -1,4 +1,4 @@
-2007-06-18  Sam Steingold  <sds@gnu.org>
+2007-06-20  Sam Steingold  <sds@gnu.org>
 
 	* gmalloc.c (__morecore): Fix the declaration to comply with the
 	definition.
@@ -138,7 +138,7 @@
 	* xselect.c (Fx_get_atom_name):
 	* xterm.c (x_term_init): Use empty_unibyte_string.
 
-2007-06-08  Dmitry Antipov  <dmitry.antipov@mail.ru>  (tiny change)
+2007-06-08  Dmitry Antipov  <dmantipov@yandex.ru>  (tiny change)
 
 	* alloc.c (init_strings): Initialize canonical empty strings.
 	(make_uninit_string, make_uninit_multibyte_string): Return appropriate
@@ -16181,7 +16181,7 @@
 
 	* cmds.c (Fend_of_line): Doc fix.
 
-2004-02-16  Dmitry Antipov  <dmitry.antipov@mail.ru>  (tiny change)
+2004-02-16  Dmitry Antipov  <dmantipov@yandex.ru>  (tiny change)
 
 	* keyboard.c (prev_read): New static variable.
 	(read_avail_input): Use it to zero out only those slots in buf[]
