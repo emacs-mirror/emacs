@@ -60,6 +60,7 @@ static mps_word_t dylan_int_int(mps_word_t x)
 }
 
 
+/* note: static, so auto-initialised to NULL */
 static void *root[rootCOUNT];
 
 
@@ -117,6 +118,11 @@ static void *test(void *arg, size_t s)
       "root_create\n");
   die(mps_ap_create(&ap, amc, MPS_RANK_EXACT), "ap_create\n");
 
+  /* Make registered-for-finalization objects. */
+  /* .references-to-obj-0: Note that the first root ref (root[0]) is */
+  /* passed to dylan_init each time, so the root[0] object (only) */
+  /* may be referred to by other registered-for-finalization */
+  /* objects. */
   /* <design/poolmrg/#test.promise.ut.alloc> */
   for(i = 0; i < rootCOUNT; ++i) {
     do {
@@ -134,22 +140,35 @@ static void *test(void *arg, size_t s)
 
   /* <design/poolmrg/#test.promise.ut.churn> */
   while (mps_collections(arena) < collectionCOUNT) {
+    
+    /* Allocate a lot of stuff (unreachable garbage, so it will */
+    /* probably only ever cause a minor collection). */
     churn(ap);
+    
+    /* Maybe make some objects ready-to-finalize */
     /* <design/poolmrg/#test.promise.ut.drop> */
     for (i = 0; i < rootCOUNT; ++i) {
       if (root[i] != NULL && state[i] == rootSTATE) {
         if (rnd() % finalizationRATE == 0) {
-          /* definalize some of them */
+          /* for this object, either... */
           if (rnd() % 2 == 0) {
+            /* ...definalize it, or */
             die(mps_definalize(arena, &root[i]), "definalize\n");
             state[i] = deadSTATE;
           } else {
+            /* ...expect it to be finalized soon */
             state[i] = finalizableSTATE;
           }
+          /* Drop the root reference to it; this probably* makes it */
+          /* non-E-reachable: so either dead, or ready-to-finalize. */
+          /* (*: the exception is the root[0] object, see  */
+          /* .references-to-obj-0.) */
           root[i] = NULL;
         }
       }
     }
+
+    /* Test any finalized objects, and perhaps resurrect some */
     while (mps_message_poll(arena)) {
       mps_word_t *obj;
       mps_word_t objind;
