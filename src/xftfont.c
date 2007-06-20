@@ -223,6 +223,7 @@ xftfont_open (f, entity, pixel_size)
   int spacing;
   char *name;
   int len;
+  XGlyphInfo extents;
 
   val = AREF (entity, FONT_EXTRA_INDEX);
   if (XTYPE (val) != Lisp_Misc
@@ -285,26 +286,24 @@ xftfont_open (f, entity, pixel_size)
   font->file_name = (char *) file;
   font->font.size = xftfont->max_advance_width;
   font->font.charset = font->encoding_charset = font->repertory_charset = -1;
-  font->ascent = xftfont->ascent;
-  font->descent = xftfont->descent;
-  font->font.height = xftfont->ascent + xftfont->descent;
 
   if (FcPatternGetInteger (xftfont->pattern, FC_SPACING, 0, &spacing)
       != FcResultMatch)
     spacing = FC_PROPORTIONAL;
+  if (! ascii_printable[0])
+    {
+      int i;
+      for (i = 0; i < 95; i++)
+	ascii_printable[i] = ' ' + i;
+    }
   if (spacing != FC_PROPORTIONAL)
-    font->font.average_width = font->font.space_width
-      = xftfont->max_advance_width;
+    {
+      font->font.average_width = font->font.space_width
+	= xftfont->max_advance_width;
+      XftTextExtents8 (display, xftfont, ascii_printable + 1, 94, &extents);
+    }
   else
     {
-      XGlyphInfo extents;
-
-      if (! ascii_printable[0])
-	{
-	  int i;
-	  for (i = 0; i < 95; i++)
-	    ascii_printable[i] = ' ' + i;
-	}
       XftTextExtents8 (display, xftfont, ascii_printable, 1, &extents);
       font->font.space_width = extents.xOff;
       if (font->font.space_width <= 0)
@@ -314,6 +313,14 @@ xftfont_open (f, entity, pixel_size)
       font->font.average_width = (font->font.space_width + extents.xOff) / 95;
     }
   UNBLOCK_INPUT;
+
+  font->ascent = xftfont->ascent;
+  if (font->ascent < extents.y)
+    font->ascent = extents.y;
+  font->descent = xftfont->descent;
+  if (font->descent < extents.height - extents.y)
+    font->descent = extents.height - extents.y;
+  font->font.height = font->ascent + font->descent;
 
   /* Unfortunately Xft doesn't provide a way to get minimum char
      width.  So, we use space_width instead.  */
@@ -326,9 +333,9 @@ xftfont_open (f, entity, pixel_size)
 
   /* Setup pseudo XFontStruct */
   xfont->fid = xftfont_default_fid (f);
-  xfont->ascent = xftfont->ascent;
-  xfont->descent = xftfont->descent;
-  xfont->max_bounds.descent = xftfont->descent;
+  xfont->ascent = font->ascent;
+  xfont->descent = font->descent;
+  xfont->max_bounds.descent = font->descent;
   xfont->max_bounds.width = xftfont->max_advance_width;
   xfont->min_bounds.width = font->font.space_width;
   font->font.font = xfont;
