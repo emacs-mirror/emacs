@@ -100,9 +100,6 @@ static void *test(void *arg, size_t s)
   int state[rootCOUNT];
   mps_arena_t arena;
   void *p = NULL;
-#ifdef CONFIG_PROD_EPCORE
-  size_t gcThreshold;
-#endif
   mps_message_t message;
 
   arena = (mps_arena_t)arg;
@@ -135,9 +132,6 @@ static void *test(void *arg, size_t s)
 
   mps_message_type_enable(arena, mps_message_type_finalization());
 
-#ifdef CONFIG_PROD_EPCORE
-  gcThreshold = mps_arena_committed(arena) + gcINTERVAL;
-#endif
   /* <design/poolmrg/#test.promise.ut.churn> */
   while (mps_collections(arena) < collectionCOUNT) {
     churn(ap);
@@ -156,12 +150,6 @@ static void *test(void *arg, size_t s)
         }
       }
     }
-#ifdef CONFIG_PROD_EPCORE
-    if (mps_arena_committed(arena) > gcThreshold) {
-      die(mps_arena_collect(arena), "collect");
-      gcThreshold = mps_arena_committed(arena) + gcINTERVAL;
-    }
-#endif
     while (mps_message_poll(arena)) {
       mps_word_t *obj;
       mps_word_t objind;
