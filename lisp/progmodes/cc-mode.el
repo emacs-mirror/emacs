@@ -790,7 +790,8 @@ compatible with old code; callers should always specify it."
   ;; If the buffer specifies `mode' or `eval' in its File Local Variable list
   ;; or on the first line, remove all occurrences.  See
   ;; `c-postprocess-file-styles' for justification.  There is no need to save
-  ;; point here, or even bother too much about the buffer contents.
+  ;; point here, or even bother too much about the buffer contents.  However,
+  ;; DON'T mess up the kill-ring.
   ;;
   ;; Most of the code here is derived from Emacs 21.3's `hack-local-variables'
   ;; in files.el.
@@ -819,8 +820,8 @@ compatible with old code; callers should always specify it."
 		      (regexp-quote suffix)
 		      "$")
 	      nil t)
-	(beginning-of-line)
-	(delete-region (point) (progn (end-of-line) (point)))))
+	(forward-line 0)
+	(delete-region (point) (progn (forward-line) (point)))))
 
     ;; Delete the first line, if we've got one, in case it contains a mode spec.
     (unless (and lv-point
@@ -828,7 +829,8 @@ compatible with old code; callers should always specify it."
 			(forward-line 0)
 			(bobp)))
       (goto-char (point-min))
-      (delete-region (point) (progn (end-of-line) (point))))))
+      (unless (eobp)
+	(delete-region (point) (progn (forward-line) (point)))))))
 
 (defun c-postprocess-file-styles ()
   "Function that post processes relevant file local variables in CC Mode.
