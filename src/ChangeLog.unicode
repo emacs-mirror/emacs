@@ -1,3 +1,9 @@
+2007-06-20  Kenichi Handa  <handa@m17n.org>
+
+	* xftfont.c (xftfont_open): If one of font's ASCII glyph has
+	bigger ascent and descent than those of the font, use them as
+	font's ascent and descent.
+
 2007-06-18  Kenichi Handa  <handa@m17n.org>
 
 	* Makefile.in (${lispsource}international/charprop.el): Move this
