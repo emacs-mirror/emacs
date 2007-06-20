@@ -520,6 +520,10 @@
 
 2007-04-24  Chong Yidong  <cyd@stupidchicken.com>
 
+	* Branch for 22.1.
+
+2007-04-24  Chong Yidong  <cyd@stupidchicken.com>
+
 	* xdisp.c (redisplay_window): Use BEG_UNCHANGED and END_UNCHANGED
 	values of the actual window.
 
