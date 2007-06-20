@@ -500,16 +500,19 @@ that."
 	(while (and (not (bobp)) (bolp))
 	  (delete-char -1))
         (insert "\n")
+	(when (or help-xref-stack help-xref-forward-stack)
+          (insert "\n"))
         ;; Make a back-reference in this buffer if appropriate.
         (when help-xref-stack
-	  (insert "\n")
 	  (help-insert-xref-button help-back-label 'help-back
-				   (current-buffer))
-          (insert "\t"))
+				   (current-buffer)))
         ;; Make a forward-reference in this buffer if appropriate.
         (when help-xref-forward-stack
+	  (when help-xref-stack
+	    (insert "\t"))
 	  (help-insert-xref-button help-forward-label 'help-forward
-				   (current-buffer))
+				   (current-buffer)))
+	(when (or help-xref-stack help-xref-forward-stack)
           (insert "\n")))
       ;; View mode steals RET from us.
       (set (make-local-variable 'minor-mode-overriding-map-alist)
