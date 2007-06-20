@@ -128,13 +128,13 @@
 (put 'log-view-message-face 'face-alias 'log-view-message)
 (defvar log-view-message-face 'log-view-message)
 
-(defconst log-view-file-re
+(defvar log-view-file-re
   (concat "^\\(?:Working file: \\(?1:.+\\)"                ;RCS and CVS.
           ;; Subversion has no such thing??
           "\\|\\(?:SCCS/s\\.\\|Changes to \\)\\(?1:.+\\):" ;SCCS and Darcs.
 	  "\\)\n"))                   ;Include the \n for font-lock reasons.
 
-(defconst log-view-message-re
+(defvar log-view-message-re
   (concat "^\\(?:revision \\(?1:[.0-9]+\\)\\(?:\t.*\\)?" ; RCS and CVS.
           "\\|r\\(?1:[0-9]+\\) | .* | .*"                ; Subversion.
           "\\|D \\(?1:[.0-9]+\\) .*"                     ; SCCS.
@@ -149,11 +149,13 @@
                   "  .*@.*\n\\(?:  \\* \\(?1:.*\\)\\)?")
           "\\)$"))
 
-(defconst log-view-font-lock-keywords
-  `((,log-view-file-re
-     (1 (if (boundp 'cvs-filename-face) cvs-filename-face))
-     (0 log-view-file-face append))
-    (,log-view-message-re . log-view-message-face)))
+(defvar log-view-font-lock-keywords
+  ;; We use `eval' so as to use the buffer-local value of log-view-file-re
+  ;; and log-view-message-re, if applicable.
+  '((eval . `(,log-view-file-re
+              (1 (if (boundp 'cvs-filename-face) cvs-filename-face))
+              (0 log-view-file-face append)))
+    (eval . `(,log-view-message-re . log-view-message-face))))
 (defconst log-view-font-lock-defaults
   '(log-view-font-lock-keywords t nil nil nil))
 
