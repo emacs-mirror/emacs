@@ -1,3 +1,16 @@
+2007-06-20  Riccardo Murri  <riccardo.murri@gmail.com>
+
+	* vc-bzr.el (vc-bzr-with-process-environment)
+	(vc-bzr-std-process-invocation): New macros.
+	(vc-bzr-command, vc-bzr-command*): Use them.
+	(vc-bzr-with-c-locale): Remove.
+	(vc-bzr-dir-state): Replace its use with vc-bzr-command.
+	(vc-bzr-buffer-nonblank-p): New function.
+	(vc-bzr-state-words): New const.
+	(vc-bzr-state): Look for `bzr status` keywords in output.
+	Display everything else as a warning message to the user.
+	Fix status report with bzr >= 0.15.
+
 2007-06-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hg.el (vc-hg-global-switches): Simplify.

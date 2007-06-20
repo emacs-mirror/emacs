@@ -10,7 +10,7 @@
 ;; Author: Dave Love <fx@gnu.org>, Riccardo Murri <riccardo.murri@gmail.com>
 ;; Keywords: tools
 ;; Created: Sept 2006
-;; Version: 2007-01-17
+;; Version: 2007-05-24
 ;; URL: http://launchpad.net/vc-bzr
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -36,13 +36,23 @@
 
 ;; See <URL:http://bazaar-vcs.org/> concerning bzr.
 
-;; Load this library to register bzr support in VC.  The support is
-;; preliminary and incomplete, adapted from my darcs version.  Lightly
-;; exercised with bzr 0.8 and Emacs 21, and bzr 0.11 on Emacs 22.  See
-;; various Fixmes below.
+;; Load this library to register bzr support in VC.  It covers basic VC 
+;; functionality, but was only lightly exercised with a few Emacs/bzr
+;; version combinations, namely those current on the authors' PCs.
+;; See various Fixmes below.
 
-;; This should be suitable for direct inclusion in Emacs if someone
-;; can persuade rms.
+
+;; Known bugs
+;; ==========
+
+;; When edititing a symlink and *both* the symlink and its target
+;; are bzr-versioned, `vc-bzr` presently runs `bzr status` on the
+;; symlink, thereby not detecting whether the actual contents
+;; (that is, the target contents) are changed.  
+;; See https://bugs.launchpad.net/vc-bzr/+bug/116607
+
+;; For an up-to-date list of bugs, please see:
+;;   https://bugs.launchpad.net/vc-bzr/+bugs
 
 
 ;;; Code:
@@ -96,9 +106,26 @@ if running `vc-bzr-program' doesn't produce the expected output."
 First argument VERS is a list of the form (X Y Z), as returned by `vc-bzr-version'."
   (version-list-<= vers (vc-bzr-version)))
 
+(eval-when-compile
+  (defmacro vc-bzr-with-process-environment (envspec &rest body)
+    "Prepend the contents of ENVSPEC to `process-environment', then execute BODY."
+    `(let ((process-environment process-environment))
+       (mapcar (lambda (var) (add-to-list 'process-environment var)) ,envspec)
+       ,@body))
+  
+  (defmacro vc-bzr-std-process-invocation (&rest body)
+    `(vc-bzr-with-process-environment
+      '("BZR_PROGRESS_BAR=none" ; suppress progress output (bzr >=0.9)
+        "LC_ALL=C")             ; force English output
+      ;; bzr may attempt some kind of user interaction if its stdin/stdout
+      ;; is connected to a PTY; therefore, ask Emacs to use a pipe to
+      ;; communicate with it.
+      (let ((process-connection-type nil))
+        ,@body))))
+
 ;; XXX: vc-do-command is tailored for RCS and assumes that command-line
-;; options precede the file name (ci -something file); with bzr, we need
-; to pass options *after* the subcommand, e.g. bzr ls --versioned.
+;; options precede the file name (e.g., "ci -something file"); with bzr, 
+;; we need to pass options *after* the subcommand, e.g. "bzr ls --versioned".
 (defun vc-bzr-do-command* (buffer okstatus command &rest args)
   "Execute bzr COMMAND, notifying user and checking for errors.
 This is a wrapper around `vc-do-command', which see for detailed
@@ -120,16 +147,16 @@ you can mix options and file names in any order."
   (defun vc-bzr-command (bzr-command buffer okstatus file &rest args)
     "Wrapper round `vc-do-command' using `vc-bzr-program' as COMMAND.
 Invoke the bzr command adding `BZR_PROGRESS_BAR=none' to the environment."
-    (let ((process-environment (cons "BZR_PROGRESS_BAR=none" process-environment)))
-      (apply 'vc-do-command buffer okstatus vc-bzr-program
-             file bzr-command (append vc-bzr-program-args args))))
+    (vc-bzr-std-process-invocation
+       (apply 'vc-do-command buffer okstatus vc-bzr-program
+              file bzr-command (append vc-bzr-program-args args))))
   
   (defun vc-bzr-command* (bzr-command buffer okstatus file &rest args)
     "Wrapper round `vc-bzr-do-command*' using `vc-bzr-program' as COMMAND.
 Invoke the bzr command adding `BZR_PROGRESS_BAR=none' to the environment.
 First argument BZR-COMMAND is passed as the first optional argument to
 `vc-bzr-do-command*'."
-    (let ((process-environment (cons "BZR_PROGRESS_BAR=none" process-environment)))
+    (vc-bzr-std-process-invocation
       (apply 'vc-bzr-do-command* buffer okstatus vc-bzr-program
              bzr-command (append vc-bzr-program-args args)))))
   
@@ -171,19 +198,6 @@ First argument BZR-COMMAND is passed as the first optional argument to
 
   (add-hook 'vc-post-command-functions 'vc-bzr-post-command-function)))
 
-;; Fixme:  If we're only interested in status messages, we only need
-;; to set LC_MESSAGES, and we might need finer control of this.  This
-;; is moot anyhow, since bzr doesn't appear to be localized at all
-;; (yet?).
-(eval-when-compile
-(defmacro vc-bzr-with-c-locale (&rest body)
-  "Run BODY with LC_ALL=C in the process environment.
-This ensures that messages to be matched come out as expected."
-  `(let ((process-environment (cons "LC_ALL=C" process-environment)))
-     ,@body)))
-(put 'vc-bzr-with-c-locale 'edebug-form-spec t)
-(put 'vc-bzr-with-c-locale 'lisp-indent-function 0)
-
 (defun vc-bzr-bzr-dir (file)
   "Return the .bzr directory in the hierarchy above FILE.
 Return nil if there isn't one."
@@ -206,36 +220,57 @@ Return nil if there isn't one."
   (if (vc-bzr-bzr-dir file)             ; short cut
       (vc-bzr-state file)))             ; expensive
 
+(defun vc-bzr-buffer-nonblank-p (&optional buffer)
+  "Return non-nil if BUFFER contains any non-blank characters."
+  (or (> (buffer-size buffer) 0)
+      (save-excursion
+        (set-buffer (or buffer (current-buffer)))
+        (goto-char (point-min))
+        (re-search-forward "[^ \t\n]" (point-max) t))))
+
+(defconst vc-bzr-state-words
+  "added\\|ignored\\|modified\\|removed\\|renamed\\|unknown"
+  "Regexp matching file status words as reported in `bzr' output.")
+
+;; FIXME:  Also get this in a non-registered sub-directory.
 (defun vc-bzr-state (file)
-  (let (ret state conflicts pending-merges)
-    (with-temp-buffer
-      (cd (file-name-directory file))
-      (setq ret (vc-bzr-with-c-locale (vc-bzr-command "status" t 255 file)))
-      (goto-char 1)
-      (save-excursion
-        (when (re-search-forward "^conflicts:" nil t)
-          (message "Warning -- conflicts in bzr branch")))
-      (save-excursion
-        (when (re-search-forward "^pending merges:" nil t)
-          (message "Warning -- pending merges in bzr branch")))
-      (setq state
-            (cond ((not (equal ret 0)) nil)
-                  ((looking-at "added\\|renamed\\|modified\\|removed") 'edited)
-                  ;; Fixme:  Also get this in a non-registered sub-directory.
-                  ((looking-at "^$") 'up-to-date)
-                  ;; if we're seeing this as first line of text,
-                  ;; then the status is up-to-date, 
-                  ;; but bzr output only gives the warning to users.
-                  ((looking-at "conflicts\\|pending") 'up-to-date)
-                  ((looking-at "unknown\\|ignored") nil)
-                  (t (error "Unrecognized output from `bzr status'"))))
-      (when (or conflicts pending-merges)
-        (message 
-         (concat "Warning -- "
-                 (if conflicts "conflicts ")
-                 (if (and conflicts pending-merges) "and ")
-                 (if pending-merges "pending merges ")
-                 "in bzr branch")))
+  (with-temp-buffer
+    (cd (file-name-directory file))
+    (let ((ret (vc-bzr-command "status" t 255 file))
+          (state 'up-to-date))
+      ;; the only secure status indication in `bzr status' output
+      ;; is a couple of lines following the pattern::
+      ;;   | <status>:
+      ;;   |   <file name>
+      ;; if the file is up-to-date, we get no status report from `bzr',
+      ;; so if the regexp search for the above pattern fails, we consider
+      ;; the file to be up-to-date.
+      (goto-char (point-min))
+      (when
+          (re-search-forward 
+           (concat "^\\(" vc-bzr-state-words "\\):[ \t\n]+" 
+                   (file-name-nondirectory file) "[ \t\n]*$")
+           (point-max) t)
+        (let ((start (match-beginning 0))
+              (end (match-end 0)))
+          (goto-char start)
+          (setq state
+                (cond 
+                 ((not (equal ret 0)) nil)
+                 ((looking-at "added\\|renamed\\|modified\\|removed") 'edited)
+                 ((looking-at "unknown\\|ignored") nil)))
+          ;; erase the status text that matched
+          (delete-region start end)))
+      (when (vc-bzr-buffer-nonblank-p)
+        ;; "bzr" will output some warnings and informational messages
+        ;; to the user to stderr; due to Emacs' `vc-do-command' (and,
+        ;; it seems, `start-process' itself), we cannot catch stderr
+        ;; and stdout into different buffers.  So, if there's anything
+        ;; left in the buffer after removing the above status
+        ;; keywords, let us just presume that any other message from
+        ;; "bzr" is a user warning, and display it.
+        (message "Warnings in `bzr' output: %s" 
+               (buffer-substring (point-min) (point-max))))
       (when state
         (vc-file-setprop file 'vc-workfile-version
                          (vc-bzr-workfile-version file))
@@ -502,7 +537,7 @@ Optional argument LOCALP is always ignored."
     ;; `bzr status' reports on added/modified/renamed and unknown/ignored files
     (set 'at-start t)
     (with-temp-buffer 
-      (vc-bzr-with-c-locale (vc-bzr-command "status" t 0 nil))
+      (vc-bzr-command "status" t 0 nil)
       (goto-char (point-min))
       (while (or at-start 
                  (eq 0 (forward-line)))
