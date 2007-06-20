@@ -1,9 +1,15 @@
+2007-06-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-read): Run `desktop-not-loaded-hook' in the
+	directory where the desktop file was found, as the docstring says.
+	(desktop-kill): Use `read-directory-name'.
+
 2007-06-20  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-mode.el (c-remove-any-local-eval-or-mode-variables):
 	When removing lines, also remove the \n.  Correction of patch of
 	2007-04-21.
-	
+
 2007-06-20  Martin Rudalics  <rudalics@gmx.at>
 
 	* mouse.el (mouse-drag-mode-line-1): Quit mouse tracking when
@@ -35,11 +41,11 @@
 	(vc-hg-register): New function.
 	(vc-hg-checkout): Likewise.
 
-2007-06-20  Reto Zimmermann <reto@gnu.org>
+2007-06-20  Reto Zimmermann  <reto@gnu.org>
 
 	* progmodes/vera-mode.el: New file.
 
-2007-06-19  Ivan Kanis <apple@kanis.eu>
+2007-06-19  Ivan Kanis  <apple@kanis.eu>
 
 	* vc-hg.el: New file.
 
@@ -122,8 +128,8 @@
 2007-06-14  Michael Kifer  <kifer@cs.stonybrook.edu>
 
 	* viper.el (viper-describe-key-ad, viper-describe-key-briefly-ad):
-	different advices for Emacs and XEmacs.  Compile them conditionally.
-	(viper-version): belated version change.
+	Different advices for Emacs and XEmacs.  Compile them conditionally.
+	(viper-version): Belated version change.
 
 2007-06-14  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -327,7 +333,7 @@
 	(desktop-kill): Tell `desktop-save' that this is the last save.
 	Release the lock afterwards.
 	(desktop-buffer-info): New function.
-	(desktop-save): Use it.	 Run `desktop-save-hook' where the doc
+	(desktop-save): Use it.  Run `desktop-save-hook' where the doc
 	says to.  Detect conflicts, and manage the lock.
 	(desktop-read): Detect conflicts.  Manage the lock.
 
@@ -337,7 +343,7 @@
 
 	* emulation/tpu-edt.el (tpu-gold-map): Rename from GOLD-map.
 	(tpu-lucid-emacs-p): Remove.  Use (featurep 'xemacs) instead.
-	(CSI-map, GOLD-CSI-map, GOLD-SS3-map, SS3-map):	Delete vars.
+	(CSI-map, GOLD-CSI-map, GOLD-SS3-map, SS3-map): Delete vars.
 	(tpu-gold-map, tpu-global-map): Add all the SS3 and CSI bindings, using
 	keysyms rather than byte sequences.
 	(tpu-copy-keyfile): Don't force the user to use tpu-mapper.el.
