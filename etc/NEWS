@@ -28,8 +28,8 @@ so we will look at it and add it to the manual.
 
 ** The default X toolkit is now Gtk+, rather than Lucid.
 
-** configure now checks for libgif (as well as libungif) when
-searching for a GIF library.
+** configure now checks for libgif before libungif when searching for
+a GIF library.
 
 
 * Changes in Emacs 23.1
