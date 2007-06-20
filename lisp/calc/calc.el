@@ -3506,9 +3506,9 @@ See calc-keypad for details."
         '( "2x"    *             196 195 )
         math-standard-opers))
     (cons
-     '( "*"     *             186 185 )
+     '( "*"     *             190 191 )
      (cons
-      '( "2x"    *             186 185 )
+      '( "2x"    *             190 191 )
       math-standard-opers))))
 
 (defun math-standard-ops-p ()
