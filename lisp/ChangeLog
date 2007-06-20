@@ -1,3 +1,9 @@
+2007-06-20  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-mode.el (c-remove-any-local-eval-or-mode-variables):
+	When removing lines, also remove the \n.  Correction of patch of
+	2007-04-21.
+	
 2007-06-20  Martin Rudalics  <rudalics@gmx.at>
 
 	* mouse.el (mouse-drag-mode-line-1): Quit mouse tracking when
