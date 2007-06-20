@@ -113,7 +113,7 @@ extern int w32_num_mouse_buttons;
 
 
 /*
-	Initialization states
+  Initialization states
  */
 static BOOL g_b_init_is_windows_9x;
 static BOOL g_b_init_open_process_token;
@@ -1155,7 +1155,9 @@ init_environment (char ** argv)
 	  {
 	    int dont_free = 0;
 
-	    if ((lpval = w32_get_resource (env_vars[i].name, &dwType)) == NULL)
+	    if ((lpval = w32_get_resource (env_vars[i].name, &dwType)) == NULL
+		/* Also ignore empty environment variables.  */
+		|| *lpval == 0)
 	      {
 		lpval = env_vars[i].def_value;
 		dwType = REG_EXPAND_SZ;
@@ -2526,7 +2528,7 @@ stat (const char * path, struct stat * buf)
          != INVALID_HANDLE_VALUE)
     {
       /* This is more accurate in terms of gettting the correct number
-	 of links, but is quite slow (it is noticable when Emacs is
+	 of links, but is quite slow (it is noticeable when Emacs is
 	 making a list of file name completions). */
       BY_HANDLE_FILE_INFORMATION info;
 
@@ -3011,7 +3013,7 @@ struct {
   WSAEINVALIDPROCTABLE    , "Invalid procedure table from service provider",
   WSAEINVALIDPROVIDER     , "Invalid service provider version number",
   WSAEPROVIDERFAILEDINIT  , "Unable to initialize a service provider",
-  WSASYSCALLFAILURE       , "System call failured",
+  WSASYSCALLFAILURE       , "System call failure",
   WSASERVICE_NOT_FOUND    , "Service not found",	    /* not sure */
   WSATYPE_NOT_FOUND       , "Class type not found",
   WSA_E_NO_MORE           , "No more resources available",  /* really not sure */
@@ -4210,7 +4212,7 @@ globals_of_w32 ()
   SetConsoleCtrlHandler(shutdown_handler, TRUE);
 }
 
-/* end of nt.c */
+/* end of w32.c */
 
 /* arch-tag: 90442dd3-37be-482b-b272-ac752e3049f1
    (do not change this comment) */
