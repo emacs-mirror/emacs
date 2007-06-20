@@ -1,3 +1,7 @@
+2007-06-20  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat: Complain if image libraries are missing.
+
 2007-06-15  Jason Rumney  <jasonr@gnu.org>
 
 	* emacs.manifest: New file.
