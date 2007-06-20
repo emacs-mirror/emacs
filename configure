@@ -686,6 +686,7 @@ ALSA_LIBS
 CFLAGS_SOUND
 SET_MAKE
 XMKMF
+HAVE_XSERVER
 GTK_CFLAGS
 GTK_LIBS
 XFT_CFLAGS
@@ -9583,6 +9584,68 @@ case "${window_system}" in
     USE_X_TOOLKIT=none
   ;;
 esac
+
+if test "$window_system" = none && test "X$with_x" != "Xno"; then
+   # Extract the first word of "X", so it can be a program name with args.
+set dummy X; ac_word=$2
+{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
+if test "${ac_cv_prog_HAVE_XSERVER+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  if test -n "$HAVE_XSERVER"; then
+  ac_cv_prog_HAVE_XSERVER="$HAVE_XSERVER" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_prog_HAVE_XSERVER="true"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_prog_HAVE_XSERVER" && ac_cv_prog_HAVE_XSERVER="false"
+fi
+fi
+HAVE_XSERVER=$ac_cv_prog_HAVE_XSERVER
+if test -n "$HAVE_XSERVER"; then
+  { echo "$as_me:$LINENO: result: $HAVE_XSERVER" >&5
+echo "${ECHO_T}$HAVE_XSERVER" >&6; }
+else
+  { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+fi
+
+
+   if test "$HAVE_XSERVER" = true ||
+      test -n "$DISPLAY" ||
+      test "`echo /usr/lib/libX11.*`" != "/usr/lib/libX11.*"; then
+        { { echo "$as_me:$LINENO: error: You seem to be running X, but no X development libraries
+where found.  You should install the relevant development files for X
+and the for the toolkit you want, such as Gtk+, Lesstif or Motif.  Also make
+sure you have development files for image handling, i.e.
+tiff, gif, jpeg, png and xpm.
+If you are sure you want Emacs compiled without X window support, pass
+  --without-x
+to configure." >&5
+echo "$as_me: error: You seem to be running X, but no X development libraries
+where found.  You should install the relevant development files for X
+and the for the toolkit you want, such as Gtk+, Lesstif or Motif.  Also make
+sure you have development files for image handling, i.e.
+tiff, gif, jpeg, png and xpm.
+If you are sure you want Emacs compiled without X window support, pass
+  --without-x
+to configure." >&2;}
+   { (exit 1); exit 1; }; }
+   fi
+fi
 
 ### If we're using X11, we should use the X menu package.
 HAVE_MENUS=no
@@ -24211,6 +24274,7 @@ ALSA_LIBS!$ALSA_LIBS$ac_delim
 CFLAGS_SOUND!$CFLAGS_SOUND$ac_delim
 SET_MAKE!$SET_MAKE$ac_delim
 XMKMF!$XMKMF$ac_delim
+HAVE_XSERVER!$HAVE_XSERVER$ac_delim
 GTK_CFLAGS!$GTK_CFLAGS$ac_delim
 GTK_LIBS!$GTK_LIBS$ac_delim
 XFT_CFLAGS!$XFT_CFLAGS$ac_delim
@@ -24237,7 +24301,6 @@ bitmapdir!$bitmapdir$ac_delim
 gamedir!$gamedir$ac_delim
 gameuser!$gameuser$ac_delim
 c_switch_system!$c_switch_system$ac_delim
-c_switch_machine!$c_switch_machine$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -24279,6 +24342,7 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+c_switch_machine!$c_switch_machine$ac_delim
 LD_SWITCH_X_SITE!$LD_SWITCH_X_SITE$ac_delim
 LD_SWITCH_X_SITE_AUX!$LD_SWITCH_X_SITE_AUX$ac_delim
 C_SWITCH_X_SITE!$C_SWITCH_X_SITE$ac_delim
@@ -24289,7 +24353,7 @@ carbon_appdir!$carbon_appdir$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 8; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 9; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
