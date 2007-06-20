@@ -1,3 +1,8 @@
+2007-06-18  Sam Steingold  <sds@gnu.org>
+
+	* gmalloc.c (__morecore): Fix the declaration to comply with the
+	definition.
+
 2007-06-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32term.c (w32_delete_display): Remove leftover declaration.

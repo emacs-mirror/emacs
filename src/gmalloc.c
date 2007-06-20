@@ -373,7 +373,7 @@ Fifth Floor, Boston, MA 02110-1301, USA.
 extern __ptr_t bss_sbrk PP ((ptrdiff_t __size));
 extern int bss_sbrk_did_unexec;
 #endif
-__ptr_t (*__morecore) PP ((ptrdiff_t __size)) = __default_morecore;
+__ptr_t (*__morecore) PP ((__malloc_ptrdiff_t __size)) = __default_morecore;
 
 /* Debugging hook for `malloc'.  */
 __ptr_t (*__malloc_hook) PP ((__malloc_size_t __size));
