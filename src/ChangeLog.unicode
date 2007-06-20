@@ -1,3 +1,8 @@
+2007-06-18  Kenichi Handa  <handa@m17n.org>
+
+	* Makefile.in (${lispsource}international/charprop.el): Move this
+	target within "#ifdef HAVE_UNIDATA" and "#endif".
+
 2007-06-16  Kenichi Handa  <handa@m17n.org>
 
 	* Makefile.in (lisp): Add ${lispsource}language/tai-viet.el.
