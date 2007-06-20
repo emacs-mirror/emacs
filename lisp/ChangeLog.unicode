@@ -1,3 +1,13 @@
+2007-06-20  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-diag.el (print-fontset-element): Fix for the
+	format change of a fontset element for font-backend feature.
+
+2007-06-19  Kenichi Handa  <handa@m17n.org>
+
+	* descr-text.el (describe-char): Fix for the case that a component
+	character is TAB.
+
 2007-06-16  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el
