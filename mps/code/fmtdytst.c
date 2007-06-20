@@ -82,6 +82,16 @@ static mps_res_t dylan_make_wrapper_wrapper(void)
 }
 
 
+/* dylan_init -- turn raw memory into initialised dylan-vector (or pad)
+ *
+ * If the raw memory is large enough, initialises it to a dylan-vector,
+ * whose slots are initialised to either dylan-ints, or valid refs, at 
+ * random.
+ * Caller must supply an array of (at least 1) valid refs to copy, via
+ * the "refs" and "nr_refs" arguments.
+ * (Makes a pad if the raw memory is too small to hold a dylan-vector)
+ */
+
 mps_res_t dylan_init(mps_addr_t addr, size_t size,
                      mps_addr_t *refs, size_t nr_refs)
 {
