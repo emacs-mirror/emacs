@@ -15987,8 +15987,8 @@ multiplication. (This is not standard across all computer languages, and
 Calc may change the precedence depending on the language mode being used.  
 @xref{Language Modes}.)  This default ordering can be changed by setting
 the customizable variable @code{calc-multiplication-has-precedence} to
-@code{nil} (@pxref{Customizing Calc}); this will give division a higher
-precedence than multiplication.  Note that Calc's default choice of
+@code{nil} (@pxref{Customizing Calc}); this will give multiplication and
+division equal precedences.  Note that Calc's default choice of
 precedence allows @samp{a b / c d} to be used as a shortcut for
 @smallexample
 @group
@@ -35178,14 +35178,14 @@ and @code{calc-embedded-open-close-plain-alist}.
 
 @defvar calc-multiplication-has-precedence
 The variable @code{calc-multiplication-has-precedence} determines
-whether multiplication or division has precedence in algebraic formulas
+whether multiplication has precedence over division in algebraic formulas
 in normal language modes.  If @code{calc-multiplication-has-precedence}
 is non-@code{nil}, then multiplication has precedence, and so for
 example @samp{a/b*c} will be interpreted as @samp{a/(b*c)}. If
-@code{calc-multiplication-has-precedence} is @code{nil}, then division
-has precedence, and so for example @samp{a/b*c} will be interpreted as
-@samp{(a/b)*c}.  The default value of
-@code{calc-multiplication-has-precedence} is @code{t}.
+@code{calc-multiplication-has-precedence} is @code{nil}, then
+multiplication has the same precedence as division, and so for example
+@samp{a/b*c} will be interpreted as @samp{(a/b)*c}.  The default value
+of @code{calc-multiplication-has-precedence} is @code{t}.
 @end defvar
 
 @node Reporting Bugs, Summary, Customizing Calc, Top
