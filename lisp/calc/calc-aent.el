@@ -100,7 +100,7 @@
       (cond
        ((and (consp str) (not (symbolp (car str))))
 	(let ((calc-language nil)
-	      (math-expr-opers math-standard-opers)
+	      (math-expr-opers (math-standard-ops))
 	      (calc-internal-prec 12)
 	      (calc-word-size 32)
 	      (calc-symbolic-mode nil)
@@ -254,7 +254,7 @@ The value t means abort and give an error message.")
   (interactive "P")
   (calc-wrapper
    (let ((calc-language (if prefix nil calc-language))
-	 (math-expr-opers (if prefix math-standard-opers math-expr-opers)))
+	 (math-expr-opers (if prefix (math-standard-ops) (math-expr-ops))))
      (calc-alg-entry (and auto (char-to-string last-command-char))))))
 
 (defvar calc-alg-entry-history nil
@@ -876,7 +876,10 @@ in Calc algebraic input.")
 		calcFunc-eq calcFunc-neq))
 
 (defun math-read-expr-level (exp-prec &optional exp-term)
-  (let* ((x (math-read-factor)) (first t) op op2)
+  (let* ((math-expr-opers (math-expr-ops))
+         (x (math-read-factor)) 
+         (first t) 
+         op op2)
     (while (and (or (and calc-user-parse-table
 			 (setq op (calc-check-user-syntax x exp-prec))
 			 (setq x op
@@ -1121,7 +1124,8 @@ in Calc algebraic input.")
 	(assoc math-expr-data '(("(") ("[") ("{"))))))
 
 (defun math-read-factor ()
-  (let (op)
+  (let ((math-expr-opers (math-expr-ops))
+        op)
     (cond ((eq math-exp-token 'number)
 	   (let ((num (math-read-number math-expr-data)))
 	     (if (not num)
