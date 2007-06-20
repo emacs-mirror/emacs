@@ -50,6 +50,40 @@
 
 	* progmodes/vera-mode.el: New file.
 
+2007-06-19  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-multiplication-has-precendence):
+	New variable.
+	(math-standard-ops,math-standard-ops-p,math-expr-ops):
+	New functions.
+	(math-expr-opers): Define using math-standard-ops rather than
+	math-standard-opers.
+	* calc/calc-aent.el (calc-do-calc-eval): Let math-expr-opers
+	equal the function math-standard-ops rather than the variable
+	math-standard-opers.
+	(calc-algebraic-entry): Let math-expr-opers equal
+	math-standard-ops or math-expr-ops, as appropriate.
+	(math-expr-read-level,math-read-factor): Let math-expr-opers
+	equal math-expr-ops.
+	* calc/calc-embed.el (calc-embedded-finish-edit):
+	Let math-expr-opers equal the function math-standard-ops
+	rather than the variable math-standard-opers.
+	* calc/calc-ext.el (math-read-plain-expr)
+	(math-format-flat-expr-fancy): Let math-expr-opers equal the
+	function math-standard-ops rather than the variable
+	math-standard-opers.
+	* calc/calc-lang.el (calc-set-language,math-read-big-rec):
+	Let math-expr-opers equal the function math-standard-ops rather
+	than the variable math-standard-opers.
+	* calc/calc-prog.el (calc-read-parse-table): Let math-expr-opers
+	equal the function math-standard-ops rather than the variable
+	math-standard-opers.
+	* calc/calc-yank.el (calc-finish-stack-edit): Let math-expr-opers
+	equal the function math-standard-ops rather than the variable
+	math-standard-opers.
+	* calc/calccomp.el (math-compose-expr): Let math-expr-opers equal
+	math-expr-ops.
+
 2007-06-19  Ivan Kanis  <apple@kanis.eu>
 
 	* vc-hg.el: New file.
