@@ -1,3 +1,9 @@
+2007-06-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32.c (_wsa_errlist): Fix typo in error message.
+	(init_environment): Ignore any environment variable from the
+	registry having a null value.
+
 2007-06-17  Jason Rumney  <jasonr@gnu.org>
 
 	* w32menu.c (add_menu_item): Don't use multibyte string functions on
