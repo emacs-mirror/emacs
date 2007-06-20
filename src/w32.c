@@ -113,7 +113,7 @@ extern int w32_num_mouse_buttons;
 
 
 /*
-	Initialization states
+  Initialization states
  */
 static BOOL g_b_init_is_windows_9x;
 static BOOL g_b_init_open_process_token;
@@ -486,20 +486,16 @@ init_user_info ()
      the user-sid as the user id value (same for group id using the
      primary group sid from the process token). */
 
-  char            user_sid[256], name[256], domain[256];
-  DWORD           length = sizeof (name), dlength = sizeof (domain), trash;
-  HANDLE          token = NULL;
-  SID_NAME_USE    user_type;
+  char         user_sid[256], name[256], domain[256];
+  DWORD        length = sizeof (name), dlength = sizeof (domain), trash;
+  HANDLE       token = NULL;
+  SID_NAME_USE user_type;
 
-  if (
-			open_process_token (GetCurrentProcess (), TOKEN_QUERY, &token)
-      && get_token_information (
-					token, TokenUser,
-			      (PVOID) user_sid, sizeof (user_sid), &trash)
-      && lookup_account_sid (
-					NULL, *((PSID *) user_sid), name, &length,
-			   domain, &dlength, &user_type)
-			)
+  if (open_process_token (GetCurrentProcess (), TOKEN_QUERY, &token)
+      && get_token_information (token, TokenUser,
+				(PVOID) user_sid, sizeof (user_sid), &trash)
+      && lookup_account_sid (NULL, *((PSID *) user_sid), name, &length,
+			     domain, &dlength, &user_type))
     {
       strcpy (the_passwd.pw_name, name);
       /* Determine a reasonable uid value. */
@@ -524,7 +520,7 @@ init_user_info ()
 
 	  /* Get group id */
 	  if (get_token_information (token, TokenPrimaryGroup,
-				   (PVOID) user_sid, sizeof (user_sid), &trash))
+				     (PVOID) user_sid, sizeof (user_sid), &trash))
 	    {
 	      SID_IDENTIFIER_AUTHORITY * pSIA;
 
@@ -541,7 +537,7 @@ init_user_info ()
 	}
     }
   /* If security calls are not supported (presumably because we
-       are running under Windows 95), fallback to this. */
+     are running under Windows 95), fallback to this. */
   else if (GetUserName (name, &length))
     {
       strcpy (the_passwd.pw_name, name);
@@ -1110,7 +1106,9 @@ init_environment (char ** argv)
 	  {
 	    int dont_free = 0;
 
-	    if ((lpval = w32_get_resource (env_vars[i].name, &dwType)) == NULL)
+	    if ((lpval = w32_get_resource (env_vars[i].name, &dwType)) == NULL
+		/* Also ignore empty environment variables.  */
+		|| *lpval == 0)
 	      {
 		lpval = env_vars[i].def_value;
 		dwType = REG_EXPAND_SZ;
@@ -2481,7 +2479,7 @@ stat (const char * path, struct stat * buf)
          != INVALID_HANDLE_VALUE)
     {
       /* This is more accurate in terms of gettting the correct number
-	 of links, but is quite slow (it is noticable when Emacs is
+	 of links, but is quite slow (it is noticeable when Emacs is
 	 making a list of file name completions). */
       BY_HANDLE_FILE_INFORMATION info;
 
@@ -2966,7 +2964,7 @@ struct {
   WSAEINVALIDPROCTABLE    , "Invalid procedure table from service provider",
   WSAEINVALIDPROVIDER     , "Invalid service provider version number",
   WSAEPROVIDERFAILEDINIT  , "Unable to initialize a service provider",
-  WSASYSCALLFAILURE       , "System call failured",
+  WSASYSCALLFAILURE       , "System call failure",
   WSASERVICE_NOT_FOUND    , "Service not found",	    /* not sure */
   WSATYPE_NOT_FOUND       , "Class type not found",
   WSA_E_NO_MORE           , "No more resources available",  /* really not sure */
@@ -4160,7 +4158,7 @@ globals_of_w32 ()
   SetConsoleCtrlHandler(shutdown_handler, TRUE);
 }
 
-/* end of nt.c */
+/* end of w32.c */
 
 /* arch-tag: 90442dd3-37be-482b-b272-ac752e3049f1
    (do not change this comment) */
