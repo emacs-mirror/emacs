@@ -15975,9 +15975,28 @@ whereas @w{@samp{[-2 ..@: 3] ^ 2}} is @samp{[0 ..@: 9]}.
 @mindex @null
 @end ignore
 @tindex /
-The @kbd{/} (@code{calc-divide}) command divides two numbers.  Note that
-when using algebraic entry, @samp{/} has lower precedence than @samp{*}, 
-so that @samp{a/b*c} is interpreted as @samp{a/(b*c)}.
+The @kbd{/} (@code{calc-divide}) command divides two numbers.  
+
+When combining multiplication and division in an algebraic formula, it
+is good style to use parentheses to distinguish between possible
+interpretations; the expression @samp{a/b*c} should be written
+@samp{(a/b)*c} or @samp{a/(b*c)}, as appropriate.  Without the
+parentheses, Calc will interpret @samp{a/b*c} as @samp{a/(b*c)}, since
+in algebraic entry Calc gives division a lower precedence than
+multiplication. (This is not standard across all computer languages, and
+Calc may change the precedence depending on the language mode being used.  
+@xref{Language Modes}.)  This default ordering can be changed by setting
+the customizable variable @code{calc-multiplication-has-precedence} to
+@code{nil} (@pxref{Customizing Calc}); this will give division a higher
+precedence than multiplication.  Note that Calc's default choice of
+precedence allows @samp{a b / c d} to be used as a shortcut for
+@smallexample
+@group
+a b
+---.
+c d
+@end group
+@end smallexample
 
 When dividing a scalar @expr{B} by a square matrix @expr{A}, the
 computation performed is @expr{B} times the inverse of @expr{A}.  This
@@ -34899,10 +34918,9 @@ See @ref{Graphics}.@*
 The variable @code{calc-gnuplot-name} should be the name of the
 GNUPLOT program (a string).  If you have GNUPLOT installed on your
 system but Calc is unable to find it, you may need to set this
-variable.  (@pxref{Customizing Calc})
-You may also need to set some Lisp variables to show Calc how to run
-GNUPLOT on your system, see @ref{Devices, ,Graphical Devices} .  The default value
-of @code{calc-gnuplot-name} is @code{"gnuplot"}.
+variable.  You may also need to set some Lisp variables to show Calc how
+to run GNUPLOT on your system, see @ref{Devices, ,Graphical Devices} .
+The default value of @code{calc-gnuplot-name} is @code{"gnuplot"}.
 @end defvar
 
 @defvar  calc-gnuplot-plot-command
@@ -35156,6 +35174,18 @@ It consists of a list of lists of the form
 Any major modes added to @code{calc-embedded-open-close-mode-alist}
 should also be added to @code{calc-embedded-announce-formula-alist}
 and @code{calc-embedded-open-close-plain-alist}.
+@end defvar
+
+@defvar calc-multiplication-has-precedence
+The variable @code{calc-multiplication-has-precedence} determines
+whether multiplication or division has precedence in algebraic formulas
+in normal language modes.  If @code{calc-multiplication-has-precedence}
+is non-@code{nil}, then multiplication has precedence, and so for
+example @samp{a/b*c} will be interpreted as @samp{a/(b*c)}. If
+@code{calc-multiplication-has-precedence} is @code{nil}, then division
+has precedence, and so for example @samp{a/b*c} will be interpreted as
+@samp{(a/b)*c}.  The default value of
+@code{calc-multiplication-has-precedence} is @code{t}.
 @end defvar
 
 @node Reporting Bugs, Summary, Customizing Calc, Top
