@@ -1,3 +1,11 @@
+2007-06-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-hg-global-switches): Simplify.
+	(vc-hg-state): Handle more states.
+	(vc-hg-diff): Fix doc-string.
+	(vc-hg-register): New function.
+	(vc-hg-checkout): Likewise.
+
 2007-06-20  Reto Zimmermann <reto@gnu.org>
 
 	* progmodes/vera-mode.el: New file.
