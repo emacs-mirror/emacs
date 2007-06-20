@@ -401,6 +401,13 @@ This is not required to be present for user-written mode annotations."
   :group 'calc
   :type '(choice (string) (sexp)))
 
+(defcustom calc-multiplication-has-precedence
+  t
+  "*If non-nil, multiplication has precedence over division
+in normal mode."
+  :group 'calc
+  :type 'boolean)
+
 (defvar calc-bug-address "jay.p.belanger@gmail.com"
   "Address of the maintainer of Calc, for use by `report-calc-bug'.")
 
@@ -3467,8 +3474,6 @@ See calc-keypad for details."
      ( "!"     calcFunc-fact 210  -1 )
      ( "^"     ^             201 200 )
      ( "**"    ^             201 200 )
-     ( "*"     *             196 195 )
-     ( "2x"    *             196 195 )
      ( "/"     /             190 191 )
      ( "%"     %             190 191 )
      ( "\\"    calcFunc-idiv 190 191 )
@@ -3492,7 +3497,31 @@ See calc-keypad for details."
      ( "::"    calcFunc-condition 45 46 )
      ( "=>"    calcFunc-evalto 40 41 )
      ( "=>"    calcFunc-evalto 40 -1 )))
-(defvar math-expr-opers math-standard-opers)
+
+(defun math-standard-ops ()
+  (if calc-multiplication-has-precedence
+      (cons
+       '( "*"     *             196 195 )
+       (cons
+        '( "2x"    *             196 195 )
+        math-standard-opers))
+    (cons
+     '( "*"     *             186 185 )
+     (cons
+      '( "2x"    *             186 185 )
+      math-standard-opers))))
+
+(defun math-standard-ops-p ()
+  (let ((meo (caar math-expr-opers)))
+    (and (stringp meo)
+         (string= meo "*"))))
+
+(defvar math-expr-opers (math-standard-ops))
+
+(defun math-expr-ops ()
+  (if (math-standard-ops-p)
+      (math-standard-ops)
+    math-expr-opers))
 
 ;;;###autoload
 (defun calc-grab-region (top bot arg)
