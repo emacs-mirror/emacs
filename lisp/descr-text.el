@@ -585,7 +585,10 @@ as well as widgets, buttons, overlays, and text properties."
 			(cadr composition) "\"")))
 	  (insert " by the rule:\n\t("
 		  (mapconcat (lambda (x)
-			       (format (if (consp x) "%S" "?%c") x))
+			       (if (consp x) (format "%S" x)
+				 (if (= x ?\t)
+				     (single-key-description x)
+				   (string ?? x))))
 			     (nth 2 composition)
 			     " ")
 		  ")")
@@ -594,15 +597,16 @@ as well as widgets, buttons, overlays, and text properties."
 	      (progn
 		(insert "these fonts (glyph codes):")
 		(dolist (elt component-chars)
-		  (insert "\n " (car elt) ?:
-			  (propertize " " 'display '(space :align-to 5))
-			  (if (cdr elt)
-			      (format "%s (#x%02X)" (cadr elt) (cddr elt))
-			    "-- no font --"))))
+		  (if (/= (car elt) ?\t)
+		      (insert "\n " (car elt) ?:
+			      (propertize " " 'display '(space :align-to 5))
+			      (if (cdr elt)
+				  (format "%s (#x%02X)" (cadr elt) (cddr elt))
+				"-- no font --")))))
 	    (insert "these terminal codes:")
 	    (dolist (elt component-chars)
 	      (insert "\n  " (car elt) ":"
-		      (propertize " " 'display '(space :align-to 5))
+		      (propertize " " 'display '(space :align-to 4))
 		      (or (cdr elt) "-- not encodable --"))))
 	  (insert "\nSee the variable `reference-point-alist' for "
 		  "the meaning of the rule.\n"))
