@@ -2960,7 +2960,7 @@ calc-kill calc-kill-region calc-yank))))
 
 (defun math-read-plain-expr (exp-str &optional error-check)
   (let* ((calc-language nil)
-	 (math-expr-opers math-standard-opers)
+	 (math-expr-opers (math-standard-ops))
 	 (val (math-read-expr exp-str)))
     (and error-check
 	 (eq (car-safe val) 'error)
@@ -3116,7 +3116,7 @@ calc-kill calc-kill-region calc-yank))))
     (concat (substring (symbol-name (car a)) 9)
 	    "(" (math-vector-to-string (nth 1 a) t) ")"))
    (t
-    (let ((op (math-assq2 (car a) math-standard-opers)))
+    (let ((op (math-assq2 (car a) (math-standard-ops))))
       (cond ((and op (= (length a) 3))
 	     (if (> prec (min (nth 2 op) (nth 3 op)))
 		 (concat "(" (math-format-flat-expr a 0) ")")
