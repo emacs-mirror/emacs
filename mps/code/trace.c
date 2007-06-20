@@ -1617,13 +1617,13 @@ void TraceStart(Trace trace, double mortality,
           PoolGrey(SegPool(seg), trace, seg);
           if (TraceSetIsMember(SegGrey(seg), trace)) {
             trace->foundation += size;
-	  }
+          }
         }
 
         if ((SegPool(seg)->class->attr & AttrGC)
             && !TraceSetIsMember(SegWhite(seg), trace)) {
           trace->notCondemned += size;
-	}
+        }
       }
     } while (SegNext(&seg, arena, base));
   }
@@ -1951,21 +1951,21 @@ void ArenaExposeRemember(Globals globals, int remember)
     do {
       base = SegBase(seg);
       if(IsSubclassPoly(ClassOfSeg(seg), GCSegClassGet())) {
-	if(remember) {
-	  RefSet summary;
+        if(remember) {
+          RefSet summary;
 
-	  summary = SegSummary(seg);
-	  if(summary != RefSetUNIV) {
-	    Res res = arenaRememberSummaryOne(globals, base, summary);
-	    if(res != ResOK) {
-	      /* If we got an error then stop trying to remember any
-	      protections. */
-	      remember = 0;
-	    }
-	  }
-	}
-	SegSetSummary(seg, RefSetUNIV);
-	AVER(SegSM(seg) == AccessSetEMPTY);
+          summary = SegSummary(seg);
+          if(summary != RefSetUNIV) {
+            Res res = arenaRememberSummaryOne(globals, base, summary);
+            if(res != ResOK) {
+              /* If we got an error then stop trying to remember any
+              protections. */
+              remember = 0;
+            }
+          }
+        }
+        SegSetSummary(seg, RefSetUNIV);
+        AVER(SegSM(seg) == AccessSetEMPTY);
       }
     } while(SegNext(&seg, arena, base));
   }
@@ -1989,17 +1989,17 @@ void ArenaRestoreProtection(Globals globals)
       Bool b;
 
       if(block->the[i].base == (Addr)0) {
-	AVER(block->the[i].summary == RefSetUNIV);
-	continue;
+        AVER(block->the[i].summary == RefSetUNIV);
+        continue;
       }
       b = SegOfAddr(&seg, arena, block->the[i].base);
       if(b && SegBase(seg) == block->the[i].base) {
         AVER(IsSubclassPoly(ClassOfSeg(seg), GCSegClassGet()));
-	SegSetSummary(seg, block->the[i].summary);
+        SegSetSummary(seg, block->the[i].summary);
       } else {
-	/* Either seg has gone or moved, both of which are
-	   client errors. */
-	NOTREACHED;
+        /* Either seg has gone or moved, both of which are
+           client errors. */
+        NOTREACHED;
       }
     }
   }
