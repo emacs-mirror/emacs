@@ -1000,13 +1000,13 @@ ${libsrc}make-docfile${EXEEXT}:
 
 #ifdef HAVE_UNIDATA
 UNIDATA=${admindir}unidata/UnicodeData.txt
-#endif
 
 ${lispsource}international/charprop.el: temacs${EXEEXT} ${UNIDATA}
 	RUNEMACS="$(RUN_TEMACS)"; \
 	cd ${admindir}unidata; \
 	$(MAKE) $(MFLAGS) \
 	  RUNEMACS="$${RUNEMACS}" DSTDIR=${lispsource}international
+#endif
 
 /* Some systems define this to cause parallel Make-ing.  */
 #ifndef MAKE_PARALLEL
