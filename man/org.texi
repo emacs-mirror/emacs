@@ -3,7 +3,7 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 4.78
+@set VERSION 4.79
 @set DATE June 2007
 
 @dircategory Emacs
@@ -5637,7 +5637,7 @@ Insert template with export options, see example below.
 #+LANGUAGE:  language for HTML, e.g. @samp{en} (@code{org-export-default-language})
 #+TEXT:      Some descriptive text to be inserted at the beginning.
 #+TEXT:      Several lines may be given.
-#+OPTIONS:   H:2 num:t toc:t \n:nil @@:t ::t |:t ^:t *:nil TeX:t LaTeX:t skip:t
+#+OPTIONS:   H:2 num:t toc:t \n:nil @@:t ::t |:t ^:t f:t *:nil TeX:t LaTeX:t skip:t
 @end example
 
 @noindent
@@ -5651,6 +5651,7 @@ you can:
 @cindex fixed-width sections
 @cindex tables
 @cindex @TeX{}-like syntax for sub- and superscripts
+@cindex footnotes
 @cindex emphasized text
 @cindex @TeX{} macros
 @cindex La@TeX{} fragments
@@ -5665,6 +5666,7 @@ toc:    @r{turn on/off table of contents, or set level limit (integer)}
 ^:      @r{turn on/off @TeX{}-like syntax for sub- and superscripts.  If}
         @r{you write "^:@{@}", @code{a_@{b@}} will be interpreted, but}
         @r{the simple @code{a_b} will be left as it is.}
+f:      @r{turn on/off foototes like this[1].}
 *:      @r{turn on/off emphasized text (bold, italic, underlined)}
 TeX:    @r{turn on/off simple @TeX{} macros in plain text}
 LaTeX:  @r{turn on/off La@TeX{} fragments}
