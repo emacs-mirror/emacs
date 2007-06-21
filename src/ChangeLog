@@ -1,3 +1,7 @@
+2007-06-21  Jason Rumney  <jasonr@gnu.org>
+
+	* image.c (convert_mono_to_color_image): Swap fore and background.
+
 2007-06-20  Jason Rumney  <jasonr@gnu.org>
 
 	* w32bdf.c (w32_BDF_to_x_font): Unmap memory when finished.
