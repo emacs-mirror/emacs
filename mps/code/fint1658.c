@@ -20,6 +20,9 @@
  * The modifications are to make lots of guardians, such that they 
  * don't all fit on one segment, in order to test for the (suspected) 
  * finalization promptness defect described in job001658.
+ *
+ *****  NOTE: It doesn't do that yet!  Currently it's just a copy of 
+ *****  finalcv.c.  RHSK 2007-06-21
  */
 
 #include "testlib.h"
