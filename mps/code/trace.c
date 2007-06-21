@@ -1004,12 +1004,12 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
 
   found = traceFindGreyORIGINAL(segReturn, rankReturn, arena, ti);
 
-  this = !found ? '0'
-         : (*rankReturn == RankAMBIG) ? 'A'
-         : (*rankReturn == RankEXACT) ? 'E'
-         : (*rankReturn == RankFINAL) ? 'F'
-         : (*rankReturn == RankWEAK) ? 'W'
-         : '?';
+  this = (char) ( !found ? '0'
+                  : (*rankReturn == RankAMBIG) ? 'A'
+                  : (*rankReturn == RankEXACT) ? 'E'
+                  : (*rankReturn == RankFINAL) ? 'F'
+                  : (*rankReturn == RankWEAK) ? 'W'
+                  : '?' );
 
   DIAG_PRINTF(( "%c", this ));
   if(!found) {
