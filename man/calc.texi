@@ -124,28 +124,32 @@ Copyright @copyright{} 1990, 1991, 2001, 2002, 2003, 2004,
 @end titlepage
 
 @c [begin]
-@ifinfo
+@ifnottex
 @node Top, Getting Started, (dir), (dir)
 @chapter The GNU Emacs Calculator
 
 @noindent
 @dfn{Calc} is an advanced desk calculator and mathematical tool
-that runs as part of the GNU Emacs environment.
+written by Dave Gillespie that runs as part of the GNU Emacs environment.
 
-This manual is divided into three major parts: ``Getting Started,''
-the ``Calc Tutorial,'' and the ``Calc Reference.''  The Tutorial
-introduces all the major aspects of Calculator use in an easy,
-hands-on way.  The remainder of the manual is a complete reference to
-the features of the Calculator.
+This manual, also written (mostly) by Dave Gillespie, is divided into
+three major parts: ``Getting Started,'' the ``Calc Tutorial,'' and the
+``Calc Reference.''  The Tutorial introduces all the major aspects of
+Calculator use in an easy, hands-on way.  The remainder of the manual is
+a complete reference to the features of the Calculator.
+@end ifnottex
 
+@ifinfo
 For help in the Emacs Info system (which you are using to read this
 file), type @kbd{?}.  (You can also type @kbd{h} to run through a
 longer Info tutorial.)
-
 @end ifinfo
+
 @menu
 * Getting Started::       General description and overview.
+@ifinfo
 * Interactive Tutorial::
+@end ifinfo
 * Tutorial::              A step-by-step introduction for beginners.
 
 * Introduction::          Introduction to the Calc reference manual.
@@ -179,7 +183,12 @@ longer Info tutorial.)
 * Lisp Function Index::   Internal Lisp math functions.
 @end menu
 
+@ifinfo
 @node Getting Started, Interactive Tutorial, Top, Top
+@end ifinfo
+@ifnotinfo
+@node Getting Started, Tutorial, Top, Top
+@end ifnotinfo
 @chapter Getting Started
 @noindent
 This chapter provides a general overview of Calc, the GNU Emacs
@@ -267,12 +276,6 @@ experience with GNU Emacs in order to get the most out of Calc,
 this manual ought to be readable even if you don't know or use Emacs
 regularly.
 
-@ifinfo
-The manual is divided into three major parts:@: the ``Getting
-Started'' chapter you are reading now, the Calc tutorial (chapter 2),
-and the Calc reference manual (the remaining chapters and appendices).
-@end ifinfo
-@iftex
 The manual is divided into three major parts:@: the ``Getting
 Started'' chapter you are reading now, the Calc tutorial (chapter 2),
 and the Calc reference manual (the remaining chapters and appendices).
@@ -280,7 +283,6 @@ and the Calc reference manual (the remaining chapters and appendices).
 @c This manual has been printed in two volumes, the @dfn{Tutorial} and the
 @c @dfn{Reference}.  Both volumes include a copy of the ``Getting Started''
 @c chapter.
-@end iftex
 
 If you are in a hurry to use Calc, there is a brief ``demonstration''
 below which illustrates the major features of Calc in just a couple of
@@ -321,6 +323,7 @@ you can also go to the part of the manual describing any Calc key,
 function, or variable using @w{@kbd{h k}}, @kbd{h f}, or @kbd{h v},
 respectively.  @xref{Help Commands}.
 
+@ifnottex
 The Calc manual can be printed, but because the manual is so large, you
 should only make a printed copy if you really need it.  To print the
 manual, you will need the @TeX{} typesetting program (this is a free
@@ -347,7 +350,7 @@ or
 @example
 dvips calc.dvi
 @end example
-
+@end ifnottex
 @c Printed copies of this manual are also available from the Free Software
 @c Foundation.
 
@@ -543,13 +546,13 @@ system.  Type @kbd{d N} to return to normal notation.
 Type @kbd{7.5}, then @kbd{s l a @key{RET}} to let @expr{a = 7.5} in these formulas.
 (That's a letter @kbd{l}, not a numeral @kbd{1}.)
 
-@iftex
+@ifnotinfo
 @strong{Help functions.}  You can read about any command in the on-line
 manual.  Type @kbd{C-x * c} to return to Calc after each of these
 commands: @kbd{h k t N} to read about the @kbd{t N} command,
 @kbd{h f sqrt @key{RET}} to read about the @code{sqrt} function, and
 @kbd{h s} to read the Calc summary.
-@end iftex
+@end ifnotinfo
 @ifinfo
 @strong{Help functions.}  You can read about any command in the on-line
 manual.  Remember to type the letter @kbd{l}, then @kbd{C-x * c}, to
@@ -1251,9 +1254,12 @@ Press @kbd{1} now to enter the first section of the Tutorial.
 @menu
 * Tutorial::
 @end menu
-@end ifinfo
 
 @node Tutorial, Introduction, Interactive Tutorial, Top
+@end ifinfo
+@ifnotinfo
+@node Tutorial, Introduction, Getting Started, Top
+@end ifnotinfo
 @chapter Tutorial
 
 @noindent
@@ -1272,32 +1278,22 @@ The Quick mode and Keypad mode interfaces are fairly
 self-explanatory.  @xref{Embedded Mode}, for a description of
 the Embedded mode interface.
 
-@ifinfo
 The easiest way to read this tutorial on-line is to have two windows on
 your Emacs screen, one with Calc and one with the Info system.  (If you
 have a printed copy of the manual you can use that instead.)  Press
 @kbd{C-x * c} to turn Calc on or to switch into the Calc window, and
 press @kbd{C-x * i} to start the Info system or to switch into its window.
-Or, you may prefer to use the tutorial in printed form.
-@end ifinfo
-@iftex
-The easiest way to read this tutorial on-line is to have two windows on
-your Emacs screen, one with Calc and one with the Info system.  (If you
-have a printed copy of the manual you can use that instead.)  Press
-@kbd{C-x * c} to turn Calc on or to switch into the Calc window, and
-press @kbd{C-x * i} to start the Info system or to switch into its window.
-@end iftex
 
 This tutorial is designed to be done in sequence.  But the rest of this
 manual does not assume you have gone through the tutorial.  The tutorial
 does not cover everything in the Calculator, but it touches on most
 general areas.
 
-@ifinfo
+@ifnottex
 You may wish to print out a copy of the Calc Summary and keep notes on
 it as you learn Calc.  @xref{About This Manual}, to see how to make a
 printed summary.  @xref{Summary}.
-@end ifinfo
+@end ifnottex
 @iftex
 The Calc Summary at the end of the reference manual includes some blank
 space for your own use.  You may wish to keep notes there as you learn
@@ -1334,13 +1330,13 @@ to control various modes of the Calculator.
 @subsection RPN Calculations and the Stack
 
 @cindex RPN notation
-@ifinfo
+@ifnottex
 @noindent
 Calc normally uses RPN notation.  You may be familiar with the RPN
 system from Hewlett-Packard calculators, FORTH, or PostScript.
 (Reverse Polish Notation, RPN, is named after the Polish mathematician
 Jan Lukasiewicz.)
-@end ifinfo
+@end ifnottex
 @tex
 \noindent
 Calc normally uses RPN notation.  You may be familiar with the RPN
@@ -1769,7 +1765,7 @@ is equivalent to
 @noindent
 or, in large mathematical notation,
 
-@ifinfo
+@ifnottex
 @example
 @group
     3 * 4 * 5
@@ -1778,7 +1774,7 @@ or, in large mathematical notation,
      6 * 7
 @end group
 @end example
-@end ifinfo
+@end ifnottex
 @tex
 \turnoffactive
 \beforedisplay
@@ -3325,7 +3321,7 @@ We can multiply these two matrices in either order to get an identity.
 Matrix inverses are related to systems of linear equations in algebra.
 Suppose we had the following set of equations:
 
-@ifinfo
+@ifnottex
 @group
 @example
     a + 2b + 3c = 6
@@ -3333,7 +3329,7 @@ Suppose we had the following set of equations:
    7a + 6b      = 3
 @end example
 @end group
-@end ifinfo
+@end ifnottex
 @tex
 \turnoffactive
 \beforedisplayh
@@ -3352,7 +3348,7 @@ $$
 @noindent
 This can be cast into the matrix equation,
 
-@ifinfo
+@ifnottex
 @group
 @example
    [ [ 1, 2, 3 ]     [ [ a ]     [ [ 6 ]
@@ -3360,7 +3356,7 @@ This can be cast into the matrix equation,
      [ 7, 6, 0 ] ]     [ c ] ]     [ 3 ] ]
 @end example
 @end group
-@end ifinfo
+@end ifnottex
 @tex
 \turnoffactive
 \beforedisplay
@@ -3425,14 +3421,14 @@ vectors and matrices that include variables.  Solve the following
 system of equations to get expressions for @expr{x} and @expr{y}
 in terms of @expr{a} and @expr{b}.
 
-@ifinfo
+@ifnottex
 @group
 @example
    x + a y = 6
    x + b y = 10
 @end example
 @end group
-@end ifinfo
+@end ifnottex
 @tex
 \turnoffactive
 \beforedisplay
@@ -3456,9 +3452,9 @@ you can't solve @expr{A X = B} directly because the matrix @expr{A}
 is not square for an over-determined system.  Matrix inversion works
 only for square matrices.  One common trick is to multiply both sides
 on the left by the transpose of @expr{A}:
-@ifinfo
+@ifnottex
 @samp{trn(A)*A*X = trn(A)*B}.
-@end ifinfo
+@end ifnottex
 @tex
 \turnoffactive
 $A^T A \, X = A^T B$, where $A^T$ is the transpose \samp{trn(A)}.
@@ -3472,7 +3468,7 @@ solution, which can be regarded as the ``closest'' solution to the set
 of equations.  Use Calc to solve the following over-determined
 system:
 
-@ifinfo
+@ifnottex
 @group
 @example
     a + 2b + 3c = 6
@@ -3481,7 +3477,7 @@ system:
    2a + 4b + 6c = 11
 @end example
 @end group
-@end ifinfo
+@end ifnottex
 @tex
 \turnoffactive
 \beforedisplayh
@@ -3749,11 +3745,11 @@ stored value from the stack.)
 
 In a least squares fit, the slope @expr{m} is given by the formula
 
-@ifinfo
+@ifnottex
 @example
 m = (N sum(x y) - sum(x) sum(y)) / (N sum(x^2) - sum(x)^2)
 @end example
-@end ifinfo
+@end ifnottex
 @tex
 \turnoffactive
 \beforedisplay
@@ -3790,12 +3786,12 @@ this formula uses.
 @end group
 @end smallexample
 
-@ifinfo
+@ifnottex
 @noindent
 These are @samp{sum(x)}, @samp{sum(x^2)}, @samp{sum(y)}, and @samp{sum(x y)},
 respectively.  (We could have used @kbd{*} to compute @samp{sum(x^2)} and
 @samp{sum(x y)}.)
-@end ifinfo
+@end ifnottex
 @tex
 \turnoffactive
 These are $\sum x$, $\sum x^2$, $\sum y$, and $\sum x y$,
@@ -3845,11 +3841,11 @@ Now we grind through the formula:
 That gives us the slope @expr{m}.  The y-intercept @expr{b} can now
 be found with the simple formula,
 
-@ifinfo
+@ifnottex
 @example
 b = (sum(y) - m sum(x)) / N
 @end example
-@end ifinfo
+@end ifnottex
 @tex
 \turnoffactive
 \beforedisplay
@@ -3987,14 +3983,14 @@ The @kbd{C-x * g} command accepts numbers separated by spaces or commas,
 with or without surrounding vector brackets.
 @xref{List Answer 3, 3}. (@bullet{})
 
-@ifinfo
+@ifnottex
 As another example, a theorem about binomial coefficients tells
 us that the alternating sum of binomial coefficients
 @var{n}-choose-0 minus @var{n}-choose-1 plus @var{n}-choose-2, and so
 on up to @var{n}-choose-@var{n},
 always comes out to zero.  Let's verify this
 for @expr{n=6}.
-@end ifinfo
+@end ifnottex
 @tex
 As another example, a theorem about binomial coefficients tells
 us that the alternating sum of binomial coefficients
@@ -5193,12 +5189,12 @@ to be a better approximation than stairsteps.  A third method is
 that the steps are not required to be flat.  Simpson's rule boils
 down to the formula,
 
-@ifinfo
+@ifnottex
 @example
 (h/3) * (f(a) + 4 f(a+h) + 2 f(a+2h) + 4 f(a+3h) + ...
               + 2 f(a+(n-2)*h) + 4 f(a+(n-1)*h) + f(a+n*h))
 @end example
-@end ifinfo
+@end ifnottex
 @tex
 \turnoffactive
 \beforedisplay
@@ -5215,12 +5211,12 @@ is the width of each slice.  These are 10 and 0.1 in our example.
 For reference, here is the corresponding formula for the stairstep
 method:
 
-@ifinfo
+@ifnottex
 @example
 h * (f(a) + f(a+h) + f(a+2h) + f(a+3h) + ...
           + f(a+(n-2)*h) + f(a+(n-1)*h))
 @end example
-@end ifinfo
+@end ifnottex
 @tex
 \turnoffactive
 \beforedisplay
@@ -5657,11 +5653,11 @@ so that @expr{2 - 3 (x + y) + x y} is a sum of three terms.)
 infinite series that exactly equals the value of that function at
 values of @expr{x} near zero.
 
-@ifinfo
+@ifnottex
 @example
 cos(x) = 1 - x^2 / 2! + x^4 / 4! - x^6 / 6! + ...
 @end example
-@end ifinfo
+@end ifnottex
 @tex
 \turnoffactive
 \beforedisplay
@@ -5675,11 +5671,11 @@ Calc represents the truncated Taylor series as a polynomial in @expr{x}.
 Mathematicians often write a truncated series using a ``big-O'' notation
 that records what was the lowest term that was truncated.
 
-@ifinfo
+@ifnottex
 @example
 cos(x) = 1 - x^2 / 2! + O(x^3)
 @end example
-@end ifinfo
+@end ifnottex
 @tex
 \turnoffactive
 \beforedisplay
@@ -6204,11 +6200,11 @@ equations numerically is @dfn{Newton's Method}.  Given the equation
 @expr{x_0} which is reasonably close to the desired solution, apply
 this formula over and over:
 
-@ifinfo
+@ifnottex
 @example
 new_x = x - f(x)/f'(x)
 @end example
-@end ifinfo
+@end ifnottex
 @tex
 \beforedisplay
 $$ x_{\rm new} = x - {f(x) \over f'(x)} $$
@@ -6242,11 +6238,11 @@ is defined as the derivative of
 @infoline @expr{ln(gamma(z))}.  
 For large values of @expr{z}, it can be approximated by the infinite sum
 
-@ifinfo
+@ifnottex
 @example
 psi(z) ~= ln(z) - 1/2z - sum(bern(2 n) / 2 n z^(2 n), n, 1, inf)
 @end example
-@end ifinfo
+@end ifnottex
 @tex
 \beforedisplay
 $$ \psi(z) \approx \ln z - {1\over2z} -
@@ -6305,13 +6301,13 @@ a way to convert from this form back to the standard algebraic form.
 (@bullet{}) @strong{Exercise 11.}  The @dfn{Stirling numbers of the
 first kind} are defined by the recurrences,
 
-@ifinfo
+@ifnottex
 @example
 s(n,n) = 1   for n >= 0,
 s(n,0) = 0   for n > 0,
 s(n+1,m) = s(n,m-1) - n s(n,m)   for n >= m >= 1.
 @end example
-@end ifinfo
+@end ifnottex
 @tex
 \turnoffactive
 \beforedisplay
@@ -6843,14 +6839,14 @@ get the row sum.  Similarly, use @kbd{[1 1] r 4 *} to get the column sum.
 @node Matrix Answer 2, Matrix Answer 3, Matrix Answer 1, Answers to Exercises
 @subsection Matrix Tutorial Exercise 2
 
-@ifinfo
+@ifnottex
 @example
 @group
    x + a y = 6
    x + b y = 10
 @end group
 @end example
-@end ifinfo
+@end ifnottex
 @tex
 \turnoffactive
 \beforedisplay
@@ -6905,7 +6901,7 @@ now, we have a system
 @infoline @expr{A2 * X = B2} 
 which we can solve using Calc's @samp{/} command.
 
-@ifinfo
+@ifnottex
 @example
 @group
     a + 2b + 3c = 6
@@ -6914,7 +6910,7 @@ which we can solve using Calc's @samp{/} command.
    2a + 4b + 6c = 11
 @end group
 @end example
-@end ifinfo
+@end ifnottex
 @tex
 \turnoffactive
 \beforedisplayh
@@ -7045,11 +7041,11 @@ vector.
 Given @expr{x} and @expr{y} vectors in quick variables 1 and 2 as before,
 the first job is to form the matrix that describes the problem.
 
-@ifinfo
+@ifnottex
 @example
    m*x + b*1 = y
 @end example
-@end ifinfo
+@end ifnottex
 @tex
 \turnoffactive
 \beforedisplay
@@ -7836,11 +7832,11 @@ Why does this work?  Think about a two-step computation:
 subtracting off enough 511's to put the result in the desired range.
 So the result when we take the modulo after every step is,
 
-@ifinfo
+@ifnottex
 @example
 3 (3 a + b - 511 m) + c - 511 n
 @end example
-@end ifinfo
+@end ifnottex
 @tex
 \turnoffactive
 \beforedisplay
@@ -7852,11 +7848,11 @@ $$ 3 (3 a + b - 511 m) + c - 511 n $$
 for some suitable integers @expr{m} and @expr{n}.  Expanding out by
 the distributive law yields
 
-@ifinfo
+@ifnottex
 @example
 9 a + 3 b + c - 511*3 m - 511 n
 @end example
-@end ifinfo
+@end ifnottex
 @tex
 \turnoffactive
 \beforedisplay
@@ -7870,11 +7866,11 @@ contribution it makes could just as easily be made by the @expr{n}
 term.  So we can take it out to get an equivalent formula with
 @expr{n' = 3m + n},
 
-@ifinfo
+@ifnottex
 @example
 9 a + 3 b + c - 511 n'
 @end example
-@end ifinfo
+@end ifnottex
 @tex
 \turnoffactive
 \beforedisplay
@@ -11285,7 +11281,7 @@ from 1 to 8.  Interval arithmetic is used to get a worst-case estimate
 of the possible range of values a computation will produce, given the
 set of possible values of the input.
 
-@ifinfo
+@ifnottex
 Calc supports several varieties of intervals, including @dfn{closed}
 intervals of the type shown above, @dfn{open} intervals such as
 @samp{(2 ..@: 4)}, which represents the range of numbers from 2 to 4
@@ -11296,7 +11292,7 @@ terms,
 @samp{[2 ..@: 4)} represents @expr{2 <= x < 4},
 @samp{(2 ..@: 4]} represents @expr{2 < x <= 4}, and
 @samp{(2 ..@: 4)} represents @expr{2 < x < 4}.
-@end ifinfo
+@end ifnottex
 @tex
 Calc supports several varieties of intervals, including \dfn{closed}
 intervals of the type shown above, \dfn{open} intervals such as
@@ -11929,14 +11925,14 @@ commands, @kbd{t h} works only when Calc Trail is the selected window.
 @pindex calc-trail-isearch-forward
 @kindex t r
 @pindex calc-trail-isearch-backward
-@ifinfo
+@ifnottex
 The @kbd{t s} (@code{calc-trail-isearch-forward}) and @kbd{t r}
 (@code{calc-trail-isearch-backward}) commands perform an incremental
 search forward or backward through the trail.  You can press @key{RET}
 to terminate the search; the trail pointer moves to the current line.
 If you cancel the search with @kbd{C-g}, the trail pointer stays where
 it was when the search began.
-@end ifinfo
+@end ifnottex
 @tex
 The @kbd{t s} (@code{calc-trail-isearch-forward}) and @kbd{t r}
 (@code{calc-trail-isearch-backward}) com\-mands perform an incremental
@@ -14237,10 +14233,10 @@ font information.
 Also, the ``discretionary multiplication sign'' @samp{\*} is read
 the same as @samp{*}.
 
-@ifinfo
+@ifnottex
 The @TeX{} version of this manual includes some printed examples at the
 end of this section.
-@end ifinfo
+@end ifnottex
 @iftex
 Here are some examples of how various Calc formulas are formatted in @TeX{}:
 
@@ -17656,7 +17652,7 @@ formulas below for symbolic arguments only when you use the @kbd{a "}
 (@code{calc-expand-formula}) command, or when taking derivatives or
 integrals or solving equations involving the functions.
 
-@ifinfo
+@ifnottex
 These formulas are shown using the conventions of Big display
 mode (@kbd{d B}); for example, the formula for @code{fv} written
 linearly is @samp{pmt * ((1 + rate)^n) - 1) / rate}.
@@ -17736,7 +17732,7 @@ syd(cost, salv, life, per) = --------------------------------
 ddb(cost, salv, life, per) = --------,  book = cost - depreciation so far
                                life
 @end example
-@end ifinfo
+@end ifnottex
 @tex
 \turnoffactive
 $$ \code{fv}(r, n, p) = p { (1 + r)^n - 1 \over r } $$
@@ -18385,14 +18381,14 @@ some authors, is computed by the @kbd{I f G} [@code{gammaQ}] command.
 You can think of this as taking the other half of the integral, from
 @expr{x} to infinity.
 
-@ifinfo
+@ifnottex
 The functions corresponding to the integrals that define @expr{P(a,x)}
 and @expr{Q(a,x)} but without the normalizing @expr{1/gamma(a)}
 factor are called @expr{g(a,x)} and @expr{G(a,x)}, respectively
 (where @expr{g} and @expr{G} represent the lower- and upper-case Greek
 letter gamma).  You can obtain these using the @kbd{H f G} [@code{gammag}]
 and @kbd{H I f G} [@code{gammaG}] commands.
-@end ifinfo
+@end ifnottex
 @tex
 \turnoffactive
 The functions corresponding to the integrals that define $P(a,x)$
@@ -18908,10 +18904,10 @@ real numbers by
 @kindex H k c
 @pindex calc-perm
 @tindex perm
-@ifinfo
+@ifnottex
 The @kbd{H k c} (@code{calc-perm}) [@code{perm}] command computes the
 number-of-permutations function @expr{N! / (N-M)!}.
-@end ifinfo
+@end ifnottex
 @tex
 The \kbd{H k c} (\code{calc-perm}) [\code{perm}] command computes the
 number-of-perm\-utations function $N! \over (N-M)!\,$.
@@ -23151,13 +23147,13 @@ integral of the expression on top of the stack.  In this case, the
 command will again prompt for an integration variable, then prompt for a
 lower limit and an upper limit.
 
-@ifinfo
+@ifnottex
 If you use the @code{integ} function directly in an algebraic formula,
 you can also write @samp{integ(f,x,v)} which expresses the resulting
 indefinite integral in terms of variable @code{v} instead of @code{x}.
 With four arguments, @samp{integ(f(x),x,a,b)} represents a definite
 integral from @code{a} to @code{b}.
-@end ifinfo
+@end ifnottex
 @tex
 If you use the @code{integ} function directly in an algebraic formula,
 you can also write @samp{integ(f,x,v)} which expresses the resulting
@@ -24038,14 +24034,14 @@ name only those and let the parameters use default names.
 
 For example, suppose the data matrix
 
-@ifinfo
+@ifnottex
 @example
 @group
 [ [ 1, 2, 3, 4,  5  ]
   [ 5, 7, 9, 11, 13 ] ]
 @end group
 @end example
-@end ifinfo
+@end ifnottex
 @tex
 \turnoffactive
 \turnoffactive
@@ -24102,11 +24098,11 @@ Calc has chosen a line that best approximates the data points using
 the method of least squares.  The idea is to define the @dfn{chi-square}
 error measure
 
-@ifinfo
+@ifnottex
 @example
 chi^2 = sum((y_i - (a + b x_i))^2, i, 1, N)
 @end example
-@end ifinfo
+@end ifnottex
 @tex
 \turnoffactive
 \beforedisplay
@@ -24291,11 +24287,11 @@ then the
 @infoline @expr{chi^2}
 statistic is now,
 
-@ifinfo
+@ifnottex
 @example
 chi^2 = sum(((y_i - (a + b x_i)) / sigma_i)^2, i, 1, N)
 @end example
-@end ifinfo
+@end ifnottex
 @tex
 \turnoffactive
 \beforedisplay
@@ -27613,9 +27609,9 @@ The unit @code{A} stands for Amperes; the name @code{Ang} is used
 @tex
 for \AA ngstroms.
 @end tex
-@ifinfo
+@ifnottex
 for Angstroms.
-@end ifinfo
+@end ifnottex
 
 The unit @code{pt} stands for pints; the name @code{point} stands for
 a typographical point, defined by @samp{72 point = 1 in}.  This is
@@ -34535,9 +34531,9 @@ modification follow.
 @iftex
 @unnumberedsec TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
 @end iftex
-@ifinfo
+@ifnottex
 @center TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
-@end ifinfo
+@end ifnottex
 
 @enumerate 0
 @item
@@ -34760,9 +34756,9 @@ of promoting the sharing and reuse of software generally.
 @iftex
 @heading NO WARRANTY
 @end iftex
-@ifinfo
+@ifnottex
 @center NO WARRANTY
-@end ifinfo
+@end ifnottex
 
 @item
 BECAUSE THE PROGRAM IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY
@@ -34790,9 +34786,9 @@ POSSIBILITY OF SUCH DAMAGES.
 @iftex
 @heading END OF TERMS AND CONDITIONS
 @end iftex
-@ifinfo
+@ifnottex
 @center END OF TERMS AND CONDITIONS
-@end ifinfo
+@end ifnottex
 
 @page
 @unnumberedsec Appendix: How to Apply These Terms to Your New Programs
