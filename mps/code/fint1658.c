@@ -45,7 +45,11 @@
 #define finalizationRATE 6
 #define gcINTERVAL ((size_t)150 * 1024)
 #define collectionCOUNT 3
-#define slotSIZE (3*sizeof(mps_word_t))
+
+/* 3 words:  wrapper  |  vector-len  |  first-slot */
+#define vectorSIZE (3*sizeof(mps_word_t))
+#define vectorSLOT 2
+
 #define genCOUNT 2
 
 /* testChain -- generation parameters for the test */
@@ -108,6 +112,7 @@ static void *test(void *arg, size_t s)
   mps_pool_t amc;
   mps_res_t e;
   mps_root_t mps_root[2];
+  mps_addr_t nullref = NULL;
   int state[rootCOUNT];
   mps_arena_t arena;
   void *p = NULL;
@@ -129,18 +134,17 @@ static void *test(void *arg, size_t s)
   die(mps_ap_create(&ap, amc, MPS_RANK_EXACT), "ap_create\n");
 
   /* Make registered-for-finalization objects. */
-  /* .references-to-obj-0: Note that the first root ref (root[0]) is */
-  /* passed to dylan_init each time, so the root[0] object (only) */
-  /* may be referred to by other registered-for-finalization */
-  /* objects. */
   /* <design/poolmrg/#test.promise.ut.alloc> */
   for(i = 0; i < rootCOUNT; ++i) {
     do {
-      MPS_RESERVE_BLOCK(e, p, ap, slotSIZE);
+      MPS_RESERVE_BLOCK(e, p, ap, vectorSIZE);
       die(e, "MPS_RES_OK");
-      die(dylan_init(p, slotSIZE, root, 1), "dylan_init");
-    } while (!mps_commit(ap, p, slotSIZE));
-    ((mps_word_t *)p)[2] = dylan_int(i);
+      die(dylan_init(p, vectorSIZE, &nullref, 1), "dylan_init");
+    } while (!mps_commit(ap, p, vectorSIZE));
+
+    /* store index in vector's slot */
+    ((mps_word_t *)p)[vectorSLOT] = dylan_int(i);
+
     die(mps_finalize(arena, &p), "finalize\n");
     root[i] = p; state[i] = rootSTATE;
   }
@@ -168,10 +172,8 @@ static void *test(void *arg, size_t s)
             /* ...expect it to be finalized soon */
             state[i] = finalizableSTATE;
           }
-          /* Drop the root reference to it; this probably* makes it */
+          /* Drop the root reference to it; this makes it */
           /* non-E-reachable: so either dead, or ready-to-finalize. */
-          /* (*: the exception is the root[0] object, see  */
-          /* .references-to-obj-0.) */
           root[i] = NULL;
         }
       }
@@ -188,7 +190,7 @@ static void *test(void *arg, size_t s)
            "get");
       mps_message_finalization_ref(&objaddr, arena, message);
       obj = objaddr;
-      objind = dylan_int_int(obj[2]);
+      objind = dylan_int_int(obj[vectorSLOT]);
       printf("Finalizing: object %lu at %p\n", objind, objaddr);
       /* <design/poolmrg/#test.promise.ut.final.check> */
       cdie(root[objind] == NULL, "finalized live");
