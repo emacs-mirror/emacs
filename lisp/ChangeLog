@@ -1,3 +1,9 @@
+2007-06-21  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el  (org-export-with-footnotes): New option.
+	(org-export-as-html): Fixed replacement bug for XEmacs.
+	(org-agenda-default-appointment-duration): New option. 
+
 2007-06-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hg.el: Add to do items.
