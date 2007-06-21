@@ -271,7 +271,7 @@ endif
 
 all: mpmss sacss amcss amcsshe amsss amssshe segsmss awlut awluthe \
      mpsicv lockcov poolncv locv qs apss \
-     finalcv fint1658 finaltest arenacv bttest teletest \
+     finalcv fint1658 fin1658a finaltest arenacv bttest teletest \
      abqtest cbstest btcv mv2test messtest steptest \
      eventcnv walkt0 libcbt \
      mps.a mpsplan.a
@@ -296,7 +296,7 @@ testrun: mpmss apss sacss amcss amcsshe amsss amssshe segsmss awlut awluthe \
 
 mpmss sacss amcss amcssth amcsshe amsss amssshe segsmss awlut awlutth \
   awluthe mpsicv lockcov poolncv locv qs apss \
-  finalcv fint1658 finaltest arenacv bttest teletest \
+  finalcv fint1658 fin1658a finaltest arenacv bttest teletest \
   expt825 \
   libcbt \
   abqtest cbstest btcv mv2test \
@@ -358,6 +358,9 @@ $(PFM)/$(VARIETY)/finalcv: $(PFM)/$(VARIETY)/finalcv.o \
 	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/fint1658: $(PFM)/$(VARIETY)/fint1658.o \
+	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+
+$(PFM)/$(VARIETY)/fin1658a: $(PFM)/$(VARIETY)/fin1658a.o \
 	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/finaltest: $(PFM)/$(VARIETY)/finaltest.o \
