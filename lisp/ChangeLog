@@ -1,3 +1,17 @@
+2007-06-21  Reto Zimmermann  <reto@gnu.org>
+
+	* vera-mode.el (vera-mode): Fix `commend-end-skip' setting.
+	(vera-font-lock-match-item): Fix doc string.
+	(vera-in-comment-p): Remove unused function.
+	(vera-skip-forward-literal,vera-skip-backward-literal): Improve code,
+	use `syntax-ppss'.
+	(vera-forward-syntactic-ws): Fix argument order.
+	(vera-prepare-search): Use `with-syntax-table'.
+	(vera-indent-line): Fix doc string.
+	(vera-electric-tab): Fix doc string.
+	(vera-expand-abbrev): Define alias instead of using `fset'.
+	(vera-comment-uncomment-region): Use `comment-start-skip'.
+
 2007-06-20  Reto Zimmermann  <reto@gnu.org>
 
 	* progmodes/vera-mode.el: New file.
