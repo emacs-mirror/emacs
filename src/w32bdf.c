@@ -93,7 +93,7 @@ proceed_file_line(char *key, char *start, int *len, char **val, char **next)
   return 1;
 }
 
-char*
+static char*
 get_quoted_string(char *start, char *end)
 {
   char *p, *q, *result;
