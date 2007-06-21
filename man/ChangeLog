@@ -1,8 +1,10 @@
 2007-06-20  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc.texi (Basic Arithmetic, Customizing Calc):
-	Make description of the variable `calc-multiplication-has-precedence'
-	match its new effect.
+	* calc.texi:Change ifinfo to ifnottex (as appropriate) throughout.
+	(About This Manual): Remove redundant information.
+	(Getting Started): Mention author.
+	(Basic Arithmetic, Customizing Calc): Make description of the
+	variable `calc-multiplication-has-precedence' match its new effect.
 
 2007-06-19  Jay Belanger  <jay.p.belanger@gmail.com>
 
