@@ -993,8 +993,36 @@ static void traceReclaim(Trace trace)
  * which does not have a higher rank than any other such segment (i.e.,
  * a next segment to scan).  */
 
+static Bool traceFindGreyORIGINAL(Seg *segReturn, Rank *rankReturn,
+                                  Arena arena, TraceId ti);
+/* wrap debugging around original traceFindGrey */
 static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
                           Arena arena, TraceId ti)
+{
+  Bool found;
+  char this;
+
+  found = traceFindGreyORIGINAL(segReturn, rankReturn, arena, ti);
+
+  this = !found ? '0'
+         : (*rankReturn == RankAMBIG) ? 'A'
+         : (*rankReturn == RankEXACT) ? 'E'
+         : (*rankReturn == RankFINAL) ? 'F'
+         : (*rankReturn == RankWEAK) ? 'W'
+         : '?';
+
+  DIAG_PRINTF(( "%c", this ));
+  if(!found) {
+    /* that's the end of the trace */
+    DIAG_PRINTF(( "\n" ));
+  }
+  
+  return found;
+}
+
+/* original traceFindGrey */
+static Bool traceFindGreyORIGINAL(Seg *segReturn, Rank *rankReturn,
+                                  Arena arena, TraceId ti)
 {
   Rank rank;
   Trace trace;
