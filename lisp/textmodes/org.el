@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.78
+;; Version: 4.79
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -96,6 +96,16 @@
     (add-text-properties 0 1 '(test t) x)
     (get-text-property 0 'test (format "%s" x)))
   "Does format transport text properties?")
+
+(defmacro org-re (s)
+  "Replace posix classes in regular expression."
+  (if (featurep 'xemacs)
+      (let ((ss s))
+	(save-match-data
+	  (while (string-match "\\[:alnum:\\]" ss)
+	    (setq ss (replace-match "a-zA-Z0-9" t t ss)))
+	  ss))
+    s))
 
 ;;; The custom variables
 
@@ -388,6 +398,16 @@ contexts.  See `org-show-hierarchy-above' for valid contexts."
   :tag "Org Cycle"
   :group 'org-structure)
 
+(defcustom org-drawers nil
+  "Names of drawers.  Drawers are not opened by cycling on the headline above.
+Drawers only open with a TAB on the drawer line itself.  A drawer looks like
+this:
+   :DRAWERNAME:
+   .....
+   :END:"
+  :group 'org-structure
+  :type '(repeat (string :tag "Drawer Name")))
+
 (defcustom org-cycle-global-at-bob t
   "Cycle globally if cursor is at beginning of buffer and not at a headline.
 This makes it possible to do global cycling without having to use S-TAB or
@@ -432,6 +452,7 @@ Special case: when 0, never leave empty lines in collapsed view."
   :type 'integer)
 
 (defcustom org-cycle-hook '(org-cycle-hide-archived-subtrees
+			    org-cycle-hide-drawers
 			    org-cycle-show-empty-lines
 			    org-optimize-window-after-visibility-change)
   "Hook that is run after `org-cycle' has changed the buffer visibility.
@@ -2327,6 +2348,17 @@ the headline/diary entry."
 	  (const :tag "Never" nil)
 	  (const :tag "When at beginning of entry" beg)))
 
+
+(defcustom org-agenda-default-appointment-duration nil
+  "Default duration for appointments that only have a starting time.
+When nil, no duration is specified in such cases.
+When non-nil, this must be the number of minutes, e.g. 60 for one hour."
+  :group 'org-agenda-prefix
+  :type '(choice
+	  (integer :tag "Minutes")
+	  (const :tag "No default duration")))
+
+
 (defcustom org-agenda-remove-tags nil
   "Non-nil means, remove the tags from the headline copy in the agenda.
 When this is the symbol `prefix', only remove tags when
@@ -2546,6 +2578,14 @@ single words, but you can say: I *really* *mean* *this*.
 Not all export backends support this.
 
 This option can also be set with the +OPTIONS line, e.g. \"*:nil\"."
+  :group 'org-export-translation
+  :type 'boolean)
+
+(defcustom org-export-with-footnotes t
+  "If nil, export [1] as a footnote marker.
+Lines starting with [1] will be formatted as footnotes.
+
+This option can also be set with the +OPTIONS line, e.g. \"f:nil\"."
   :group 'org-export-translation
   :type 'boolean)
 
@@ -3008,6 +3048,8 @@ Use customize to modify this, or restart Emacs after changing it."
   :tag "Org Faces"
   :group 'org-font-lock)
 
+;; FIXME: convert that into a macro?  Not critical, because this
+;;        is only executed a few times at load time.
 (defun org-compatible-face (specs)
   "Make a compatible face specification.
 XEmacs and Emacs 21 do not know about the `min-colors' attribute.
@@ -3285,6 +3327,9 @@ to the part of the headline after the DONE keyword."
 
 ;;; Variables for pre-computed regular expressions, all buffer local
 
+(defvar org-drawer-regexp nil
+  "Matches first line of a hidden block.")
+(make-variable-buffer-local 'org-drawer-regexp)
 (defvar org-todo-regexp nil
   "Matches any of the TODO state keywords.")
 (make-variable-buffer-local 'org-todo-regexp)
@@ -3508,7 +3553,7 @@ means to push this value onto the list in the variable.")
 	    (cond
 	     ((equal e "{") (push '(:startgroup) tgs))
 	     ((equal e "}") (push '(:endgroup) tgs))
-	     ((string-match "^\\([[:alnum:]_@]+\\)(\\(.\\))$" e)
+	     ((string-match (org-re "^\\([[:alnum:]_@]+\\)(\\(.\\))$") e)
 	      (push (cons (match-string 1 e)
 			  (string-to-char (match-string 2 e)))
 		    tgs))
@@ -3524,6 +3569,10 @@ means to push this value onto the list in the variable.")
 	(setq org-done-keywords (list (org-last org-todo-keywords-1))))
     (setq org-ds-keyword-length (+ 2 (max (length org-deadline-string)
 					  (length org-scheduled-string)))
+	  org-drawer-regexp
+	  (concat "^[ \t]*:\\("
+		  (mapconcat 'regexp-quote org-drawers "\\|")
+		  "\\):[ \t]*$")
 	  org-not-done-keywords
 	  (org-delete-all org-done-keywords (copy-sequence org-todo-keywords-1))
 	  org-todo-regexp
@@ -3544,7 +3593,8 @@ means to push this value onto the list in the variable.")
 	  org-todo-line-tags-regexp
 	  (concat "^\\(\\*+\\)[ \t]*\\(?:\\("
 		  (mapconcat 'regexp-quote org-todo-keywords-1 "\\|")
-		  "\\)\\>\\)? *\\(.*?\\([ \t]:[[:alnum:]:_@]+:[ \t]*\\)?$\\)")
+		  (org-re
+		   "\\)\\>\\)? *\\(.*?\\([ \t]:[[:alnum:]:_@]+:[ \t]*\\)?$\\)"))
 	  org-looking-at-done-regexp
 	  (concat "^" "\\(?:"
 		  (mapconcat 'regexp-quote org-done-keywords "\\|") "\\)"
@@ -3973,7 +4023,7 @@ that will be added to PLIST.  Returns the string that was modified."
    "Matches plain link, without spaces.")
 
 (defconst org-bracket-link-regexp
-  "\\[\\[\\([^]]+\\)\\]\\(\\[\\([^]]+\\)\\]\\)?\\]"
+  "\\[\\[\\([^][]+\\)\\]\\(\\[\\([^][]+\\)\\]\\)?\\]"
   "Matches a link in double brackets.")
 
 (defconst org-bracket-link-analytic-regexp
@@ -4249,7 +4299,7 @@ between words."
 	"\\)\\>")))
 
 (defun org-activate-tags (limit)
-  (if (re-search-forward "[ \t]\\(:[[:alnum:]_@:]+:\\)[ \r\n]" limit t)
+  (if (re-search-forward (org-re "[ \t]\\(:[[:alnum:]_@:]+:\\)[ \r\n]") limit t)
       (progn
 	(add-text-properties (match-beginning 1) (match-end 1)
 			     (list 'mouse-face 'highlight
@@ -4425,6 +4475,14 @@ between words."
 	    (if arg (org-table-edit-field t)
 	      (org-table-justify-field-maybe)
 	      (call-interactively 'org-table-next-field)))))
+
+     ((and org-drawers
+	   (save-excursion
+	     (beginning-of-line 1)
+	     (looking-at org-drawer-regexp)))
+      ;; Toggle block visibility
+      (org-flag-drawer
+       (not (get-char-property (match-end 0) 'invisible))))
 
      ((eq arg t) ;; Global cycling
 
@@ -6100,7 +6158,8 @@ this heading."
 	      (progn
 		(if (re-search-forward
 		     (concat "\\(^\\|\r\\)"
-			     (regexp-quote heading) "[ \t]*\\(:[[:alnum:]_@:]+:\\)?[ \t]*\\($\\|\r\\)")
+			     (regexp-quote heading) 
+			     (org-re "[ \t]*\\(:[[:alnum:]_@:]+:\\)?[ \t]*\\($\\|\r\\)"))
 		     nil t)
 		    (goto-char (match-end 0))
 		  ;; Heading not found, just insert it at the end
@@ -6182,6 +6241,28 @@ When TAG is non-nil, don't move trees, but mark them with the ARCHIVE tag."
 	    (goto-char end)))))
     (message "%d trees archived" cntarch)))
 
+(defun org-cycle-hide-drawers (state)
+  "Re-hide all archived subtrees after a visibility state change."
+  (when (not (memq state '(overview folded)))
+    (save-excursion
+      (let* ((globalp (memq state '(contents all)))
+             (beg (if globalp (point-min) (point)))
+             (end (if globalp (point-max) (org-end-of-subtree t))))
+	(goto-char beg)
+	(while (re-search-forward org-drawer-regexp end t)
+	  (org-flag-drawer t))))))
+
+(defun org-flag-drawer (flag)
+  (save-excursion
+    (beginning-of-line 1)
+    (when (looking-at "^[ \t]*:[a-zA-Z][a-zA-Z0-9]*:")
+      (let ((b (match-end 0)))
+	(if (re-search-forward
+	     "^[ \t]*:END:"
+	     (save-excursion (outline-next-heading) (point)) t)
+	    (outline-flag-region b (point-at-eol) flag)
+	  (error ":END: line missing"))))))
+
 (defun org-cycle-hide-archived-subtrees (state)
   "Re-hide all archived subtrees after a visibility state change."
   (when (and (not org-cycle-open-archived-trees)
@@ -6219,7 +6300,7 @@ If ONOFF is `on' or `off', don't toggle but set to this state."
   (let (res current)
     (save-excursion
       (beginning-of-line)
-      (if (re-search-forward "[ \t]:\\([[:alnum:]_@:]+\\):[ \t]*$"
+      (if (re-search-forward (org-re "[ \t]:\\([[:alnum:]_@:]+\\):[ \t]*$")
 			     (point-at-eol) t)
 	  (progn
 	    (setq current (match-string 1))
@@ -8168,8 +8249,8 @@ not overwrite the stored one."
 				   n))))
 	      (setq fmt (replace-match "" t t fmt)))
 	    (if (string-match "[NT]" fmt)
-		(setq numbers (equal (match-string 0 fmt) "N"))
-		      fmt (replace-match "" t t fmt))
+		(setq numbers (equal (match-string 0 fmt) "N")
+		      fmt (replace-match "" t t fmt)))
 	    (if (string-match "L" fmt)
 		(setq literal t
 		      fmt (replace-match "" t t fmt)))
@@ -10198,7 +10279,7 @@ according to FMT (default from `org-email-link-description-format')."
       ;; We are using a headline, clean up garbage in there.
       (if (string-match org-todo-regexp s)
 	  (setq s (replace-match "" t t s)))
-      (if (string-match ":[[:alnum:]_@:]+:[ \t]*$" s)
+      (if (string-match (org-re ":[[:alnum:]_@:]+:[ \t]*$") s)
 	  (setq s (replace-match "" t t s)))
       (setq s (org-trim s))
       (if (string-match (concat "^\\(" org-quote-string "\\|"
@@ -10552,7 +10633,7 @@ optional argument IN-EMACS is non-nil, Emacs will visit the file."
 		path (match-string 1))
 	  (throw 'match t))
 	(save-excursion
-	  (when (org-in-regexp "\\(:[[:alnum:]_@:]+\\):[ \t]*$")
+	  (when (org-in-regexp (org-re "\\(:[[:alnum:]_@:]+\\):[ \t]*$"))
 	    (setq type "tags"
 		  path (match-string 1))
 	    (while (string-match ":" path)
@@ -10780,7 +10861,7 @@ in all files.  If AVOID-POS is given, ignore matches near that position."
       (when (equal (string-to-char s) ?*)
 	;; Anchor on headlines, post may include tags.
 	(setq pre "^\\*+[ \t]*\\(?:\\sw+\\)?[ \t]*"
-	      post "[ \t]*\\(?:[ \t]+:[[:alnum:]_@:+]:[ \t]*\\)?$"
+	      post (org-re "[ \t]*\\(?:[ \t]+:[[:alnum:]_@:+]:[ \t]*\\)?$")
 	      s (substring s 1)))
       (remove-text-properties
        0 (length s)
@@ -11533,7 +11614,7 @@ See also the variable `org-reverse-note-order'."
 	      (goto-char (point-min))
 	      (if (re-search-forward
 		   (concat "^\\*+[ \t]+" (regexp-quote heading)
-			   "\\([ \t]+:[[:alnum:]@_:]*\\)?[ \t]*$")
+			   (org-re "\\([ \t]+:[[:alnum:]@_:]*\\)?[ \t]*$"))
 		   nil t)
 		  (setq org-goto-start-pos (match-beginning 0))))
 
@@ -11727,7 +11808,7 @@ At all other locations, this simply calls `ispell-complete-word'."
   (catch 'exit
     (let* ((end (point))
 	   (beg1 (save-excursion
-		   (skip-chars-backward "[:alnum:]_@")
+		   (skip-chars-backward (org-re "[:alnum:]_@"))
 		   (point)))
 	   (beg (save-excursion
 		  (skip-chars-backward "a-zA-Z0-9_:$")
@@ -12090,7 +12171,13 @@ be removed."
 	  (looking-at (concat outline-regexp "\\( *\\)[^\r\n]*"))
 	  (goto-char (match-end 1))
 	  (setq col (current-column))
-	  (goto-char (1+ (match-end 0)))
+	  (goto-char (match-end 0))
+	  (if (eobp) (insert "\n"))
+	  (forward-char 1)
+	  (when (looking-at "[ \t]*:PROPERTIES:[ \t]*$")
+	    (goto-char (match-end 0))
+	    (if (eobp) (insert "\n"))
+	    (forward-char 1))
 	  (if (and (not (looking-at outline-regexp))
 		   (looking-at (concat "[^\r\n]*?" org-keyword-time-regexp
 				       "[^\r\n]*"))
@@ -12344,7 +12431,7 @@ from the `before-change-functions' in the current buffer."
 
 (defun org-priority (&optional action)
   "Change the priority of an item by ARG.
-ACTION can be set, up, or down."
+ACTION can be `set', `up', `down', or a character."
   (interactive)
   (setq action (or action 'set))
   (let (current new news have remove)
@@ -12355,9 +12442,11 @@ ACTION can be set, up, or down."
 		have t)
 	(setq current org-default-priority))
       (cond
-       ((eq action 'set)
-	(message "Priority %c-%c, SPC to remove: " org-highest-priority org-lowest-priority)
-	(setq new (read-char-exclusive))
+       ((or (eq action 'set) (integerp action))
+	(if (integerp action)
+	    (setq new action)
+	  (message "Priority %c-%c, SPC to remove: " org-highest-priority org-lowest-priority)
+	  (setq new (read-char-exclusive)))
 	(cond ((equal new ?\ ) (setq remove t))
 	      ((or (< (upcase new) org-highest-priority) (> (upcase new) org-lowest-priority))
 	       (error "Priority must be between `%c' and `%c'"
@@ -12405,7 +12494,8 @@ inclusion.  When TODO-ONLY is non-nil, only lines with a TODO keyword
 are included in the output."
   (let* ((re (concat "[\n\r]" outline-regexp " *\\(\\<\\("
 		     (mapconcat 'regexp-quote org-todo-keywords-1 "\\|")
-		     "\\>\\)\\)? *\\(.*?\\)\\(:[[:alnum:]_@:]+:\\)?[ \t]*$"))
+		     (org-re
+		      "\\>\\)\\)? *\\(.*?\\)\\(:[[:alnum:]_@:]+:\\)?[ \t]*$")))
 	 (props (list 'face nil
 		      'done-face 'org-done
 		      'undone-face nil
@@ -12502,7 +12592,7 @@ also TODO lines."
 
   ;; Parse the string and create a lisp form
   (let ((match0 match)
-	(re "^&?\\([-+:]\\)?\\({[^}]+}\\|LEVEL=\\([0-9]+\\)\\|[[:alnum:]_@]+\\)")
+	(re (org-re "^&?\\([-+:]\\)?\\({[^}]+}\\|LEVEL=\\([0-9]+\\)\\|[[:alnum:]_@]+\\)"))
 	minus tag mm
 	tagsmatch todomatch tagsmatcher todomatcher kwd matcher
 	orterms term orlist re-p level-p)
@@ -12722,7 +12812,8 @@ Returns the new tags string, or nil to not change the current settings."
 	 groups ingroup)
     (save-excursion
       (beginning-of-line 1)
-      (if (looking-at ".*[ \t]\\(:[[:alnum:]_@:]+:\\)[ \t]*\\(\r\\|$\\)")
+      (if (looking-at
+	   (org-re ".*[ \t]\\(:[[:alnum:]_@:]+:\\)[ \t]*\\(\r\\|$\\)"))
 	  (setq ov-start (match-beginning 1)
 		ov-end (match-end 1)
 		ov-prefix "")
@@ -12857,7 +12948,8 @@ Returns the new tags string, or nil to not change the current settings."
 		(delete-region (point) (point-at-eol))
 		(org-fast-tag-insert "Current" current c-face)
 		(org-set-current-tags-overlay current ov-prefix)
-		(while (re-search-forward "\\[.\\] \\([[:alnum:]_@]+\\)" nil t)
+		(while (re-search-forward
+			(org-re "\\[.\\] \\([[:alnum:]_@]+\\)") nil t)
 		  (setq tg (match-string 1))
 		  (add-text-properties (match-beginning 1) (match-end 1)
 				       (list 'face
@@ -12877,7 +12969,7 @@ Returns the new tags string, or nil to not change the current settings."
     (error "Not on a heading"))
   (save-excursion
     (beginning-of-line 1)
-    (if (looking-at ".*[ \t]\\(:[[:alnum:]_@:]+:\\)[ \t]*\\(\r\\|$\\)")
+    (if (looking-at (org-re ".*[ \t]\\(:[[:alnum:]_@:]+:\\)[ \t]*\\(\r\\|$\\)"))
 	(org-match-string-no-properties 1)
       "")))
 
@@ -12886,7 +12978,8 @@ Returns the new tags string, or nil to not change the current settings."
   (let (tags)
     (save-excursion
       (goto-char (point-min))
-      (while (re-search-forward "[ \t]:\\([[:alnum:]_@:]+\\):[ \t\r\n]" nil t)
+      (while (re-search-forward 
+	      (org-re "[ \t]:\\([[:alnum:]_@:]+\\):[ \t\r\n]") nil t)
 	(mapc (lambda (x) (add-to-list 'tags x))
 	      (org-split-string (org-match-string-no-properties 1) ":"))))
     (mapcar 'list tags)))
@@ -13593,8 +13686,9 @@ With prefix ARG, change that many days."
 	       ((org-pos-in-match-range pos 8)      'minute)
 	       ((or (org-pos-in-match-range pos 4)
 		    (org-pos-in-match-range pos 5)) 'day)
-	       ((and (> pos (match-end 8)) (< pos (match-end 0)))
-		(- pos (match-end 8)))
+	       ((and (> pos (or (match-end 8) (match-end 5)))
+		     (< pos (match-end 0)))
+		(- pos (or (match-end 8) (match-end 5))))
 	       (t 'day))))
     ans))
 
@@ -14108,7 +14202,7 @@ the returned times will be formatted strings."
       (when (setq time (get-text-property p :org-clock-minutes))
 	(save-excursion
 	  (beginning-of-line 1)
-	  (when (and (looking-at "\\(\\*+\\)[ \t]+\\(.*?\\)\\([ \t]+:[[:alnum:]_@:]+:\\)?[ \t]*$")
+	  (when (and (looking-at (org-re "\\(\\*+\\)[ \t]+\\(.*?\\)\\([ \t]+:[[:alnum:]_@:]+:\\)?[ \t]*$"))
 		     (setq level (- (match-end 1) (match-beginning 1)))
 		     (<= level maxlevel))
 	    (setq hlc (if emph (or (cdr (assoc level hlchars)) "") "")
@@ -15686,10 +15780,10 @@ MATCH is being ignored."
 			  "\\)\\>"))
 	 (tags (nth 2 org-stuck-projects))
 	 (tags-re (if (member "*" tags)
-		      "^\\*+.*:[[:alnum:]_@]+:[ \t]*$"
+		      (org-re "^\\*+.*:[[:alnum:]_@]+:[ \t]*$")
 		    (concat "^\\*+.*:\\("
 			    (mapconcat 'identity tags "\\|")
-			    "\\):[[:alnum:]_@:]*[ \t]*$")))
+			    (org-re "\\):[[:alnum:]_@:]*[ \t]*$"))))
 	 (gen-re (nth 3 org-stuck-projects))
 	 (re-list
 	  (delq nil
@@ -16450,7 +16544,17 @@ only the correctly processes TXT should be returned - this is used by
 	(if s1 (setq s1 (org-get-time-of-day s1 'string t)))
 	(if s2 (setq s2 (org-get-time-of-day s2 'string t))))
 
-      (when (string-match "\\([ \t]+\\)\\(:[[:alnum:]_@:]+:\\)[ \t]*$" txt)
+      (when (and s1 (not s2) org-agenda-default-appointment-duration
+		 (string-match "\\([0-9]+\\):\\([0-9]+\\)" s1))
+	(let ((m (+ (string-to-number (match-string 2 s1))
+		    (* 60 (string-to-number (match-string 1 s1)))
+		    org-agenda-default-appointment-duration))
+	      h)
+	  (setq h (/ m 60) m (- m (* h 60)))
+	  (setq s2 (format "%02d:%02d" h m))))
+
+      (when (string-match (org-re "\\([ \t]+\\)\\(:[[:alnum:]_@:]+:\\)[ \t]*$")
+			  txt)
 	;; Tags are in the string
 	(if (or (eq org-agenda-remove-tags t)
 		(and org-agenda-remove-tags
@@ -17189,7 +17293,7 @@ the new TODO state."
   (let ((buffer-read-only))
     (save-excursion
       (goto-char (if line (point-at-bol) (point-min)))
-      (while (re-search-forward "\\([ \t]+\\):[[:alnum:]_@:]+:[ \t]*$"
+      (while (re-search-forward (org-re "\\([ \t]+\\):[[:alnum:]_@:]+:[ \t]*$")
 				(if line (point-at-eol) nil) t)
 	(delete-region (match-beginning 1) (match-end 1))
 	(goto-char (match-beginning 1))
@@ -17250,7 +17354,7 @@ the tags of the current headline come last."
 	  (org-back-to-heading t)
 	  (condition-case nil
 	      (while t
-		(if (looking-at "[^\r\n]+?:\\([[:alnum:]_@:]+\\):[ \t]*\\([\n\r]\\|\\'\\)")
+		(if (looking-at (org-re "[^\r\n]+?:\\([[:alnum:]_@:]+\\):[ \t]*\\([\n\r]\\|\\'\\)"))
 		    (setq tags (append (org-split-string
 					(org-match-string-no-properties 1) ":")
 				       tags)))
@@ -17917,6 +18021,7 @@ The images can be removed again with \\[org-ctrl-c-ctrl-c]."
     (:archived-trees       . org-export-with-archived-trees)
     (:emphasize            . org-export-with-emphasize)
     (:sub-superscript      . org-export-with-sub-superscripts)
+    (:footnotes            . org-export-with-footnotes)
     (:TeX-macros           . org-export-with-TeX-macros)
     (:LaTeX-fragments      . org-export-with-LaTeX-fragments)
     (:skip-before-1st-heading . org-export-skip-text-before-1st-heading)
@@ -17973,6 +18078,7 @@ The images can be removed again with \\[org-ctrl-c-ctrl-c]."
 		    (":"     . :fixed-width)
 		    ("|"     . :tables)
 		    ("^"     . :sub-superscript)
+		    ("f"     . :footnotes)
 		    ("*"     . :emphasize)
 		    ("TeX"   . :TeX-macros)
 		    ("LaTeX" . :LaTeX-fragments)
@@ -18720,7 +18826,9 @@ underlined headlines.  The default is 3."
 			   (setq txt (org-html-expand-for-ascii txt))
 
 			   (if (and (memq org-export-with-tags '(not-in-toc nil))
-				    (string-match "[ \t]+:[[:alnum:]_@:]+:[ \t]*$" txt))
+				    (string-match
+				     (org-re "[ \t]+:[[:alnum:]_@:]+:[ \t]*$")
+				     txt))
 			       (setq txt (replace-match "" t t txt)))
 			   (if (string-match quote-re0 txt)
 			       (setq txt (replace-match "" t t txt)))
@@ -18867,7 +18975,7 @@ underlined headlines.  The default is 3."
 	  (insert "\n"))
       (setq char (nth (- umax level) (reverse org-export-ascii-underline)))
       (unless org-export-with-tags
-	(if (string-match "[ \t]+\\(:[[:alnum:]_@:]+:\\)[ \t]*$" title)
+	(if (string-match (org-re "[ \t]+\\(:[[:alnum:]_@:]+:\\)[ \t]*$") title)
 	    (setq title (replace-match "" t t title))))
       (if org-export-with-section-numbers
 	  (setq title (concat (org-section-number level) " " title)))
@@ -18953,7 +19061,7 @@ Does include HTML export options as well as TODO and CATEGORY stuff."
 #+EMAIL:     %s
 #+LANGUAGE:  %s
 #+TEXT:      Some descriptive text to be emitted.  Several lines OK.
-#+OPTIONS:   H:%d num:%s toc:%s \\n:%s @:%s ::%s |:%s ^:%s *:%s TeX:%s LaTeX:%s skip:%s
+#+OPTIONS:   H:%d num:%s toc:%s \\n:%s @:%s ::%s |:%s ^:%s f:%s *:%s TeX:%s LaTeX:%s skip:%s
 #+CATEGORY:  %s
 #+SEQ_TODO:  %s
 #+TYP_TODO:  %s
@@ -18972,6 +19080,7 @@ Does include HTML export options as well as TODO and CATEGORY stuff."
    org-export-with-fixed-width
    org-export-with-tables
    org-export-with-sub-superscripts
+   org-export-with-footnotes
    org-export-with-emphasize
    org-export-with-TeX-macros
    org-export-with-LaTeX-fragments
@@ -19338,7 +19447,9 @@ lang=\"%s\" xml:lang=\"%s\">
 					 (org-search-todo-below
 					  line lines level))))
 			  (if (and (memq org-export-with-tags '(not-in-toc nil))
-				   (string-match "[ \t]+:[[:alnum:]_@:]+:[ \t]*$" txt))
+				   (string-match
+				    (org-re "[ \t]+:[[:alnum:]_@:]+:[ \t]*$")
+				    txt))
 			      (setq txt (replace-match "" t t txt)))
 			  (if (string-match quote-re0 txt)
 			      (setq txt (replace-match "" t t txt)))
@@ -19550,24 +19661,26 @@ lang=\"%s\" xml:lang=\"%s\">
 	  ;; TODO items
 	  (if (and (string-match org-todo-line-regexp line)
 		   (match-beginning 2))
-	      (if (member (match-string 2 line) org-done-keywords)
-		  (setq line (replace-match
-			      "<span class=\"done\">\\2</span>"
-			      t nil line 2))
-		(setq line
-                      (concat (substring line 0 (match-beginning 2))
-                              "<span class=\"todo\">" (match-string 2 line)
-                              "</span>" (substring line (match-end 2))))))
+
+              (setq line 
+                    (concat (substring line 0 (match-beginning 2))
+                            "<span class=\""
+                            (if (member (match-string 2 line)
+                                        org-done-keywords)
+                                "done" "todo")
+                            "\">" (match-string 2 line)
+                            "</span>" (substring line (match-end 2)))))
 
 	  ;; Does this contain a reference to a footnote?
-	  (while (string-match "\\([^* \t].*?\\)\\[\\([0-9]+\\)\\]" line)
-	    (let ((n (match-string 2 line)))
-	      (setq line
-		    (replace-match
-		     (format
-		      "%s<sup><a class=\"footref\" name=\"fnr.%s\" href=\"#fn.%s\">%s</a></sup>"
-		      (match-string 1 line) n n n)
-		     t t line))))
+	  (when org-export-with-footnotes
+	    (while (string-match "\\([^* \t].*?\\)\\[\\([0-9]+\\)\\]" line)
+	      (let ((n (match-string 2 line)))
+		(setq line
+		      (replace-match
+		       (format
+			"%s<sup><a class=\"footref\" name=\"fnr.%s\" href=\"#fn.%s\">%s</a></sup>"
+			(match-string 1 line) n n n)
+		       t t line)))))
 
 	  (cond
 	   ((string-match "^\\(\\*+\\)[ \t]*\\(.*\\)" line)
@@ -19671,11 +19784,12 @@ lang=\"%s\" xml:lang=\"%s\">
 	    (if (string-match "^ [-+*]-\\|^[ \t]*$" line) (org-open-par))
 
 	    ;; Is this the start of a footnote?
-	    (when (string-match "^[ \t]*\\[\\([0-9]+\\)\\]" line)
-	      (org-close-par-maybe)
-	      (let ((n (match-string 1 line)))
-		(setq line (replace-match
-			    (format "<p class=\"footnote\"><sup><a class=\"footnum\" name=\"fn.%s\" href=\"#fnr.%s\">%s</a></sup>" n n n) t t line))))
+	    (when org-export-with-footnotes
+	      (when (string-match "^[ \t]*\\[\\([0-9]+\\)\\]" line)
+		(org-close-par-maybe)
+		(let ((n (match-string 1 line)))
+		  (setq line (replace-match
+			      (format "<p class=\"footnote\"><sup><a class=\"footnum\" name=\"fn.%s\" href=\"#fnr.%s\">%s</a></sup>" n n n) t t line)))))
 
 	    ;; Check if the line break needs to be conserved
 	    (cond
@@ -20052,7 +20166,7 @@ But it has the disadvantage, that Org-mode's HTML conversions cannot be used."
 
 (defun org-export-cleanup-toc-line (s)
   "Remove tags and time staps from lines going into the toc."
-  (if (string-match " +:[[:alnum:]_@:]+: *$" s)
+  (if (string-match (org-re " +:[[:alnum:]_@:]+: *$") s)
       (setq s (replace-match "" t t s)))
   (when org-export-remove-timestamps-from-toc
     (while (string-match org-maybe-keyword-time-regexp s)
@@ -20192,7 +20306,7 @@ When TITLE is nil, just close all open levels."
     (when title
       ;; If title is nil, this means this function is called to close
       ;; all levels, so the rest is done only if title is given
-	(when (string-match "\\(:[[:alnum:]_@:]+:\\)[ \t]*$" title)
+	(when (string-match (org-re "\\(:[[:alnum:]_@:]+:\\)[ \t]*$") title)
 	  (setq title (replace-match
 		       (if org-export-with-tags
 			   (save-match-data
@@ -21641,6 +21755,7 @@ not an indirect buffer"
     (beginning-of-line 1)
     (cond
      ((looking-at "#") (setq column 0))
+     ((looking-at "\\*+ ") (setq column 0))
      (t
       (beginning-of-line 0)
       (while (and (not (bobp)) (looking-at "[ \t]*[\n:#|]"))
@@ -21798,16 +21913,16 @@ move point."
 	(pos (point))
 	(re (concat "^" outline-regexp))
 	level l)
-    (org-back-to-heading t)
-    (setq level (funcall outline-level))
-    (catch 'exit
-      (or previous (forward-char 1))
-      (while (funcall fun re nil t)
-	(setq l (funcall outline-level))
-	(when (< l level) (goto-char pos) (throw 'exit nil))
-	(when (= l level) (goto-char (match-beginning 0)) (throw 'exit t)))
-      (goto-char pos)
-      nil)))
+    (when (condition-case nil (org-back-to-heading t) (error nil))
+      (setq level (funcall outline-level))
+      (catch 'exit
+	(or previous (forward-char 1))
+	(while (funcall fun re nil t)
+	  (setq l (funcall outline-level))
+	  (when (< l level) (goto-char pos) (throw 'exit nil))
+	  (when (= l level) (goto-char (match-beginning 0)) (throw 'exit t)))
+	(goto-char pos)
+	nil))))
 
 (defun org-show-siblings ()
   "Show all siblings of the current headline."
@@ -21964,11 +22079,6 @@ Still experimental, may disappear in the furture."
                        (and (>= time time1) (<= time time2))))))
     ;; make tree, check each match with the callback
     (org-occur "CLOSED: +\\[\\(.*?\\)\\]" nil callback)))
-
-
-(defun test ()
-  (interactive)
-  (message "hihi: %s" (org-item-indent-positions)))
 
 ;;;; Finish up
 
