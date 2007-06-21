@@ -16,7 +16,7 @@
 
 all: mpmss.exe amcss.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awluthe.exe\
      mpsicv.exe lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe apss.exe \
-     finalcv.exe fint1658.exe finaltest.exe \
+     finalcv.exe fint1658.exe fin1658a.exe finaltest.exe \
      arenacv.exe bttest.exe teletest.exe \
      abqtest.exe cbstest.exe btcv.exe mv2test.exe messtest.exe steptest.exe \
      locbwcss.exe locusss.exe \
@@ -33,7 +33,7 @@ swall: mmsw.lib replaysw.exe
 
 mpmss.exe amcss.exe amcsshe.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awluthe.exe dwstress.exe \
      mpsicv.exe lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe apss.exe \
-     finalcv.exe fint1658.exe finaltest.exe \
+     finalcv.exe fint1658.exe fin1658a.exe finaltest.exe \
      arenacv.exe bttest.exe teletest.exe \
      expt825.exe \
      abqtest.exe cbstest.exe btcv.exe mv2test.exe messtest.exe steptest.exe \
@@ -114,6 +114,10 @@ $(PFM)\$(VARIETY)\finalcv.exe: $(PFM)\$(VARIETY)\finalcv.obj \
 	$(MRGOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\fint1658.exe: $(PFM)\$(VARIETY)\fint1658.obj \
+	$(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(FMTTESTOBJ) \
+	$(MRGOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\fin1658a.exe: $(PFM)\$(VARIETY)\fin1658a.obj \
 	$(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(FMTTESTOBJ) \
 	$(MRGOBJ) $(TESTLIBOBJ)
 
