@@ -16,7 +16,8 @@
 
 all: mpmss.exe amcss.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awluthe.exe\
      mpsicv.exe lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe apss.exe \
-     finalcv.exe finaltest.exe arenacv.exe bttest.exe teletest.exe \
+     finalcv.exe fint1658.exe finaltest.exe \
+     arenacv.exe bttest.exe teletest.exe \
      abqtest.exe cbstest.exe btcv.exe mv2test.exe messtest.exe steptest.exe \
      locbwcss.exe locusss.exe \
      eventcnv.exe \
@@ -32,7 +33,8 @@ swall: mmsw.lib replaysw.exe
 
 mpmss.exe amcss.exe amcsshe.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awluthe.exe dwstress.exe \
      mpsicv.exe lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe apss.exe \
-     finalcv.exe finaltest.exe arenacv.exe bttest.exe teletest.exe \
+     finalcv.exe fint1658.exe finaltest.exe \
+     arenacv.exe bttest.exe teletest.exe \
      expt825.exe \
      abqtest.exe cbstest.exe btcv.exe mv2test.exe messtest.exe steptest.exe \
      walkt0.exe locbwcss.exe locusss.exe \
@@ -108,6 +110,10 @@ FORCE:
 $(PFM)\$(VARIETY)\version.obj: FORCE
 
 $(PFM)\$(VARIETY)\finalcv.exe: $(PFM)\$(VARIETY)\finalcv.obj \
+	$(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(FMTTESTOBJ) \
+	$(MRGOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\fint1658.exe: $(PFM)\$(VARIETY)\fint1658.obj \
 	$(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(FMTTESTOBJ) \
 	$(MRGOBJ) $(TESTLIBOBJ)
 
