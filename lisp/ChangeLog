@@ -1,3 +1,12 @@
+2007-06-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el: Add to do items.
+	(vc-hg-diff): Add support for comparing different revisions.
+	(vc-hg-diff, vc-hg-annotate-command, vc-hg-annotate-time)
+	(vc-hg-annotate-extract-revision-at-line)
+	(vc-hg-previous-version, vc-hg-checkin): New functions.
+	(vc-hg-annotate-re): New constant.
+
 2007-06-20  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc.el (math-standard-ops): Fix precedence of

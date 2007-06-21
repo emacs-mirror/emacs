@@ -35,7 +35,10 @@
 
 ;;; Todo:
 
-;; Implement the rest of the vc interface
+;; Implement the rest of the vc interface:
+;; - regexps for log-view to understand the "hg log" output
+;; - dired
+;; - snapshot?
 
 ;; Implement Stefan Monnier's advice: 
 ;; vc-hg-registered and vc-hg-state
@@ -108,21 +111,64 @@
    (if (and (vc-stay-local-p file) (fboundp 'start-process)) 'async 0)
    file "log"))
 
-(defun vc-hg-diff (file &optional oldvers newvers buffers)
+(defun vc-hg-diff (file &optional oldvers newvers buffer)
   "Get a difference report using hg between two versions of FILE."
-  (when buffers (message buffers))
-  (unless buffers (setq buffers "*vc-diff*"))
-  (when oldvers (message oldvers))
-  (when newvers (message newvers))
-  (call-process "hg" nil buffers nil
-                "--cwd" (file-name-directory file)
-                "diff" (file-name-nondirectory file)))
+  (let ((working (vc-workfile-version file)))
+    (if (and (equal oldvers working) (not newvers))
+	(setq oldvers nil))
+    (if (and (not oldvers) newvers)
+	(setq oldvers working))
+    (apply 'call-process "hg" nil (or buffer "*vc-diff*") nil
+	   "--cwd" (file-name-directory file) "diff" 
+	   (append 
+	    (if oldvers
+		(if newvers
+		    (list "-r" oldvers "-r" newvers)
+		  (list "-r" oldvers))
+	      (list ""))
+	   (list (file-name-nondirectory file))))))
+
+(defun vc-hg-annotate-command (file buffer &optional version)
+  "Execute \"hg annotate\" on FILE, inserting the contents in BUFFER.
+Optional arg VERSION is a version to annotate from."
+  (vc-hg-command buffer 0 file "annotate" "-d" "-n" (if version (concat "-r" version)))
+  (with-current-buffer buffer
+    (goto-char (point-min))
+    (re-search-forward "^[0-9]")
+    (delete-region (point-min) (1- (point)))))
+
+
+;;; The format for one line output by "hg annotate -d -n" looks like this:
+;;;215 Wed Jun 20 21:22:58 2007 -0700: CONTENTS
+;;; i.e: VERSION_NUMBER DATE: CONTENTS
+(defconst vc-hg-annotate-re "^[ \t]*\\([0-9]+\\) \\(.\\{30\\}\\): ")
+
+(defun vc-hg-annotate-time ()
+  (when (looking-at vc-hg-annotate-re)
+    (goto-char (match-end 0))
+    (vc-annotate-convert-time 
+     (date-to-time (match-string-no-properties 2)))))
+
+(defun vc-hg-annotate-extract-revision-at-line ()
+  (save-excursion
+    (beginning-of-line)
+    (if (looking-at vc-hg-annotate-re) (match-string-no-properties 1))))
+
+(defun vc-hg-previous-version (file rev)
+  (let ((newrev (1- (string-to-number rev))))
+    (when (>= newrev 0)
+      (number-to-string newrev))))
 
 (defun vc-hg-register (file &optional rev comment)
   "Register FILE under hg.
 REV is ignored.
 COMMENT is ignored."
   (vc-hg-command nil nil file "add"))
+
+(defun vc-hg-checkin (file rev comment)
+  "HG-specific version of `vc-backend-checkin'.
+REV is ignored."
+  (vc-hg-command nil nil file  "commit" "-m" comment))
 
 ;;; Modelled after the similar function in vc-bzr.el
 (defun vc-hg-checkout (file &optional editable rev workfile)
