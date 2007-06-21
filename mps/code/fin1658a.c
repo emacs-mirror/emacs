@@ -1,4 +1,4 @@
-/* fint1658.c: Test for suspected defect described in job001658
+/* fin1658a.c: Test for suspected defect described in job001658
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -16,10 +16,6 @@
  * NOTES
  *
  * This code was created by first copying <code/finalcv.c>.
- *
- * The modifications are to make lots of guardians, such that they 
- * don't all fit on one segment, in order to test for the (suspected) 
- * finalization promptness defect described in job001658.
  */
 
 #include "testlib.h"
@@ -38,22 +34,20 @@
 #define testArenaSIZE   ((size_t)16<<20)
 
 /* usually (ArenaAlign / sizeof(Ref)) = 1024 */
-/* so choose 2050 to force 3 segments of guardians */
-#define rootCOUNT 2050
+/* so choose 3000 to force 3 segments of guardians */
+#define rootCOUNT 3000
 
 #define churnFACTOR 10
 #define finalizationRATE 6
 #define gcINTERVAL ((size_t)150 * 1024)
-#define collectionCOUNT 3
 
-/* 3 words:  wrapper  |  vector-len  |  first-slot */
-#define vectorSIZE (3*sizeof(mps_word_t))
-#define vectorSLOT 2
+/* dylan vector:  wrapper  |  vector-len  |  slot-0  |  ... */
+#define vectorSIZE(nslots) ((2 + (nslots)) * sizeof(mps_word_t))
+#define vectorSLOT(i) (2 + (i))
 
 #define genCOUNT 2
 
 /* testChain -- generation parameters for the test */
-
 static mps_gen_param_s testChain[genCOUNT] = {
   { 150, 0.85 }, { 170, 0.45 } };
 
@@ -74,25 +68,7 @@ static mps_word_t dylan_int_int(mps_word_t x)
 
 /* note: static, so auto-initialised to NULL */
 static void *root[rootCOUNT];
-
-
-/* churn -- allocate a lot of stuff (unreachable garbage, so it will */
-/* probably only ever cause a minor collection). */
-static void churn(mps_ap_t ap)
-{
-  int i;
-  mps_addr_t p;
-  mps_res_t e;
-
-  for (i = 0; i < churnFACTOR; ++i) {
-    do {
-      MPS_RESERVE_BLOCK(e, p, ap, 4096);
-      die(e, "MPS_RESERVE_BLOCK");
-      die(dylan_init(p, 4096, root, 1), "dylan_init");
-    } while (!mps_commit(ap, p, 4096));
-  }
-  p = NULL;
-}
+static int state[rootCOUNT];
 
 
 enum {
@@ -103,20 +79,56 @@ enum {
 };
 
 
+/* report -- collect messages, report, and check objects were */
+/* legally finalized. */
+static void report(mps_arena_t arena, int expect)
+{
+  int found = 0;
+
+  /* Test any finalized objects */
+  while (mps_message_poll(arena)) {
+    mps_message_t message;
+    mps_word_t *obj;
+    mps_word_t objind;
+    mps_addr_t objaddr;
+
+    cdie(mps_message_get(&message, arena, mps_message_type_finalization()),
+         "get");
+
+    found += 1;
+    mps_message_finalization_ref(&objaddr, arena, message);
+    obj = objaddr;
+    objind = dylan_int_int(obj[vectorSLOT(0)]);
+    printf("Finalizing: object %lu at %p\n", objind, objaddr);
+    cdie(root[objind] == NULL, "finalized live");
+    cdie(state[objind] == finalizableSTATE, "not finalizable");
+    state[objind] = finalizedSTATE;
+    mps_message_discard(arena, message);
+  }
+  
+  if(found < expect) {
+    printf("...expected %d finalizations, but got fewer: only %d!\n", 
+           expect, found);
+  } else if(found > expect) {
+    printf("...expected %d finalizations, but got more: %d!\n", 
+           expect, found);
+  }
+}
+
+
 static void *test(void *arg, size_t s)
 {
-  int i;                        /* index */
-  mps_ap_t ap;
+  mps_arena_t arena;
   mps_fmt_t fmt;
   mps_chain_t chain;
   mps_pool_t amc;
-  mps_res_t e;
   mps_root_t mps_root[2];
+  mps_ap_t ap;
+  mps_res_t e;
+  int i;
   mps_addr_t nullref = NULL;
-  int state[rootCOUNT];
-  mps_arena_t arena;
   void *p = NULL;
-  mps_message_t message;
+  int N = rootCOUNT - 1;
 
   arena = (mps_arena_t)arg;
   (void)s;
@@ -137,13 +149,14 @@ static void *test(void *arg, size_t s)
   /* <design/poolmrg/#test.promise.ut.alloc> */
   for(i = 0; i < rootCOUNT; ++i) {
     do {
-      MPS_RESERVE_BLOCK(e, p, ap, vectorSIZE);
+      MPS_RESERVE_BLOCK(e, p, ap, vectorSIZE(2));
       die(e, "MPS_RES_OK");
-      die(dylan_init(p, vectorSIZE, &nullref, 1), "dylan_init");
-    } while (!mps_commit(ap, p, vectorSIZE));
+      die(dylan_init(p, vectorSIZE(2), &nullref, 1), "dylan_init");
+    } while (!mps_commit(ap, p, vectorSIZE(2)));
 
-    /* store index in vector's slot */
-    ((mps_word_t *)p)[vectorSLOT] = dylan_int(i);
+    /* set vector's slots */
+    ((mps_word_t *)p)[vectorSLOT(0)] = dylan_int(i);
+    ((mps_word_t *)p)[vectorSLOT(1)] = (mps_word_t)NULL;
 
     die(mps_finalize(arena, &p), "finalize\n");
     root[i] = p; state[i] = rootSTATE;
@@ -152,56 +165,29 @@ static void *test(void *arg, size_t s)
 
   mps_message_type_enable(arena, mps_message_type_finalization());
 
-  /* <design/poolmrg/#test.promise.ut.churn> */
-  while (mps_collections(arena) < collectionCOUNT) {
-    
-    /* Perhaps cause (minor) collection */
-    churn(ap);
-    
-    /* Maybe make some objects ready-to-finalize */
-    /* <design/poolmrg/#test.promise.ut.drop> */
-    for (i = 0; i < rootCOUNT; ++i) {
-      if (root[i] != NULL && state[i] == rootSTATE) {
-        if (rnd() % finalizationRATE == 0) {
-          /* for this object, either... */
-          if (rnd() % 2 == 0) {
-            /* ...definalize it, or */
-            die(mps_definalize(arena, &root[i]), "definalize\n");
-            state[i] = deadSTATE;
-          } else {
-            /* ...expect it to be finalized soon */
-            state[i] = finalizableSTATE;
-          }
-          /* Drop the root reference to it; this makes it */
-          /* non-E-reachable: so either dead, or ready-to-finalize. */
-          root[i] = NULL;
-        }
-      }
-    }
+  mps_arena_collect(arena);
+  report(arena, 0);
 
-    /* Test any finalized objects, and perhaps resurrect some */
-    while (mps_message_poll(arena)) {
-      mps_word_t *obj;
-      mps_word_t objind;
-      mps_addr_t objaddr;
+  /* make 0 and N finalizable */
+  root[0] = NULL;
+  state[0] = finalizableSTATE;
+  root[N] = NULL;
+  state[N] = finalizableSTATE;
+  mps_arena_collect(arena);
+  report(arena, 2);
 
-      /* <design/poolmrg/#test.promise.ut.message> */
-      cdie(mps_message_get(&message, arena, mps_message_type_finalization()),
-           "get");
-      mps_message_finalization_ref(&objaddr, arena, message);
-      obj = objaddr;
-      objind = dylan_int_int(obj[vectorSLOT]);
-      printf("Finalizing: object %lu at %p\n", objind, objaddr);
-      /* <design/poolmrg/#test.promise.ut.final.check> */
-      cdie(root[objind] == NULL, "finalized live");
-      cdie(state[objind] == finalizableSTATE, "finalized dead");
-      state[objind] = finalizedSTATE;
-      /* sometimes resurrect */
-      if (rnd() % 2 == 0)
-        root[objind] = objaddr;
-      mps_message_discard(arena, message);
-    }
-  }
+  /* make 1 and N-1 refer to each other and finalizable */
+  ((mps_word_t *)root[1])[vectorSLOT(1)] = (mps_word_t)root[N-1];
+  ((mps_word_t *)root[N-1])[vectorSLOT(1)] = (mps_word_t)root[1];
+  root[1] = NULL;
+  state[1] = finalizableSTATE;
+  root[N-1] = NULL;
+  state[N-1] = finalizableSTATE;
+  mps_arena_collect(arena);
+  report(arena, 2);
+
+  mps_arena_collect(arena);
+  report(arena, 0);
 
   /* @@@@ <design/poolmrg/#test.promise.ut.nofinal.check> missing */
 
@@ -232,7 +218,7 @@ int main(int argc, char **argv)
   mps_arena_destroy(arena);
 
   fflush(stdout); /* synchronize */
-  fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
+  fprintf(stderr, "\nConclusion:  See results above.\n");
   return 0;
 }
 
