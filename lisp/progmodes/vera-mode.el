@@ -5,14 +5,14 @@
 
 ;; Author:      Reto Zimmermann <reto@gnu.org>
 ;; Maintainer:  Reto Zimmermann <reto@gnu.org>
-;; Version:     2.26
+;; Version:     2.28
 ;; Keywords:    languages vera
 ;; WWW:         http://www.iis.ee.ethz.ch/~zimmi/emacs/vera-mode.html
 
 (defconst vera-version "2.18"
   "Vera Mode version number.")
 
-(defconst vera-time-stamp "2007-06-11"
+(defconst vera-time-stamp "2007-06-21"
   "Vera Mode time stamp for last update.")
 
 ;; This file is part of GNU Emacs.
@@ -88,6 +88,7 @@
 (defgroup vera nil
   "Customizations for Vera Mode."
   :prefix "vera-"
+  :version "22.2"
   :group 'languages)
 
 (defcustom vera-basic-offset 2
@@ -105,7 +106,7 @@ are treated as single words otherwise."
 
 (defcustom vera-intelligent-tab t
   "*Non-nil means `TAB' does indentation, word completion and tab insertion.
-That is, if preceeding character is part of a word then complete word,
+That is, if preceding character is part of a word then complete word,
 else if not at beginning of line then insert tab,
 else if last command was a `TAB' or `RET' then dedent one step,
 else indent current line.
@@ -314,7 +315,7 @@ Key bindings:
   (set (make-local-variable 'comment-end) "")
   (set (make-local-variable 'comment-column) 40)
   (set (make-local-variable 'comment-start-skip) "/\\*+ *\\|//+ *")
-  (set (make-local-variable 'comment-end-skip) " *\\*+/\\| *//+")
+  (set (make-local-variable 'comment-end-skip) " *\\*+/\\| *\n")
   (set (make-local-variable 'comment-indent-function) 'c-comment-indent)
   (set (make-local-variable 'paragraph-start) "^$")
   (set (make-local-variable 'paragraph-separate) paragraph-start)
@@ -605,8 +606,8 @@ Key bindings:
   (copy-face 'font-lock-preprocessor-face 'font-lock-builtin-face))
 
 (defun vera-font-lock-match-item (limit)
-  "Match, and move over, any declaration item after point. Adapted from
-`font-lock-match-c-style-declaration-item-and-skip-to-next'."
+  "Match, and move over, any declaration item after point.
+Adapted from `font-lock-match-c-style-declaration-item-and-skip-to-next'."
   (condition-case nil
       (save-restriction
 	(narrow-to-region (point-min) limit)
@@ -686,7 +687,6 @@ Key bindings:
     (t (:italic t :bold t)))
   "Font lock mode face used to highlight @ definitions."
   :group 'font-lock-highlighting-faces)
-(put 'vera-font-lock-number-face 'face-alias 'vera-font-lock-number)
 
 (defface vera-font-lock-function
   '((((class color) (background light)) (:foreground "DarkCyan"))
@@ -694,7 +694,6 @@ Key bindings:
     (t (:italic t :bold t)))
   "Font lock mode face used to highlight predefined functions and tasks."
   :group 'font-lock-highlighting-faces)
-(put 'vera-font-lock-function-face 'face-alias 'vera-font-lock-function)
 
 (defface vera-font-lock-interface
   '((((class color) (background light)) (:foreground "Grey40"))
@@ -702,13 +701,8 @@ Key bindings:
     (t (:italic t :bold t)))
   "Font lock mode face used to highlight interface names."
   :group 'font-lock-highlighting-faces)
-(put 'vera-font-lock-interface-face 'face-alias 'vera-font-lock-interface)
 
-(defun vera-fontify-buffer ()
-  "Fontify buffer."
-  (interactive)
-  (font-lock-fontify-buffer))
-
+(defalias 'vera-fontify-buffer 'font-lock-fontify-buffer)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Indentation
@@ -788,7 +782,7 @@ the offset is simply returned."
 ;; help functions
 
 (defsubst vera-point (position)
-  "Returns the value of point at certain commonly referenced POSITIONs.
+  "Return the value of point at certain commonly referenced POSITIONs.
 POSITION can be one of the following symbols:
   bol  -- beginning of line
   eol  -- end of line
@@ -819,29 +813,34 @@ This function does not modify point or mark."
        ((nth 4 state) 'comment)
        (t nil)))))
 
-(defun vera-in-comment-p ()
-  "Determine if point is in a Vera comment."
-  (save-excursion
-    (re-search-backward "\\(/\\*\\)\\|\\(\\*/\\)" nil t)
-    (match-string 1)))
-
 (defun vera-skip-forward-literal ()
   "Skip forward literal and return t if within one."
-  (let ((state (save-excursion (parse-partial-sexp (point-min) (point)))))
-    (cond
-     ((nth 3 state) (search-forward "\"") t) ; inside string
-     ((nth 7 state) (forward-line 1) t)	     ; inside // comment
-     ((nth 4 state) (search-forward "*/") t) ; inside /* */ comment
-     (t nil))))
+  (let ((state (save-excursion
+                 (if (fboundp 'syntax-ppss)
+                     (syntax-ppss)
+                   (parse-partial-sexp (point-min) (point))))))
+    (when (nth 8 state)
+      ;; Inside a string or comment.
+      (goto-char (nth 8 state))
+      (if (nth 3 state)
+          ;; A string.
+          (condition-case nil (forward-sexp 1)
+            ;; Can't find end of string: it extends til end of buffer.
+            (error (goto-char (point-max))))
+        ;; A comment.
+        (forward-comment 1))
+      t)))
 
 (defun vera-skip-backward-literal ()
   "Skip backward literal and return t if within one."
-  (let ((state (save-excursion (parse-partial-sexp (point-min) (point)))))
-    (cond
-     ((nth 3 state) (search-backward "\"") t) ; inside string
-     ((nth 7 state) (search-backward "//") t) ; inside // comment
-     ((nth 4 state) (search-backward "/*") t) ; inside /* */ comment
-     (t nil))))
+  (let ((state (save-excursion
+                 (if (fboundp 'syntax-ppss)
+                     (syntax-ppss)
+                   (parse-partial-sexp (point-min) (point))))))
+    (when (nth 8 state)
+      ;; Inside a string or comment.
+      (goto-char (nth 8 state))
+      t)))
 
 (defsubst vera-re-search-forward (regexp &optional bound noerror)
   "Like `re-search-forward', but skips over matches in literals."
@@ -867,7 +866,7 @@ This function does not modify point or mark."
     (let* ((lim (or lim (point-max)))
 	   (here lim)
 	   (hugenum (point-max)))
-      (narrow-to-region lim (point))
+      (narrow-to-region (point) lim)
       (while (/= here (point))
 	(setq here (point))
 	(forward-comment hugenum)
@@ -891,25 +890,8 @@ This function does not modify point or mark."
 	    (beginning-of-line)))))))
 
 (defmacro vera-prepare-search (&rest body)
-  "Switch to syntax table that includes '_', then execute BODY, and finally
-restore the old environment.  Used for consistent searching."
-  `(let ((current-syntax-table (syntax-table))
-	 result
-	 (restore-prog			; program to restore enviroment
-	  '(progn
-	     ;; restore syntax table
-	     (set-syntax-table current-syntax-table))))
-     ;; use extended syntax table
-     (set-syntax-table vera-mode-ext-syntax-table)
-     ;; execute BODY safely
-     (setq result
-	   (condition-case info
-	       (progn ,@body)
-	     (error (eval restore-prog)	; restore environment on error
-		    (error (cadr info))))) ; pass error up
-     ;; restore environment
-     (eval restore-prog)
-     result))
+  "Execute BODY with a syntax table that includes '_'."
+  `(with-syntax-table vera-mode-ext-syntax-table ,@body))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; comment indentation functions
@@ -1197,7 +1179,7 @@ try to increase performance by using this macro."
 	(goto-char placeholder)
 	(vera-add-syntax 'statement (vera-point 'boi)))
        ;; CASE 9: at the beginning of a substatement?
-       ;; is this line preceeded by a substatement opening statement?
+       ;; is this line preceded by a substatement opening statement?
        ((save-excursion (vera-backward-syntactic-ws nil t)
 			(when (= (preceding-char) ?\)) (backward-sexp))
 			(backward-word 1)
@@ -1222,9 +1204,8 @@ try to increase performance by using this macro."
 ;; indentation functions
 
 (defun vera-indent-line ()
-  "Indent the current line as Vera code. Optional SYNTAX is the
-syntactic information for the current line. Returns the amount of
-indentation change (in columns)."
+  "Indent the current line as Vera code.
+Return the amount of indentation change (in columns)."
   (interactive)
   (vera-prepare-search
    (let* ((syntax (vera-guess-basic-syntax))
@@ -1273,8 +1254,9 @@ Calls `indent-region' for whole buffer."
 ;; electrifications
 
 (defun vera-electric-tab (&optional prefix-arg)
-  "If preceeding character is part of a word or a paren then hippie-expand,
-else if right of non whitespace on line then tab-to-tab-stop,
+  "Do what I mean (indent, expand, tab, change indent, etc..).
+If preceding character is part of a word or a paren then `hippie-expand',
+else if right of non whitespace on line then `tab-to-tab-stop',
 else if last command was a tab or return then dedent one step or if a comment
 toggle between normal indent and inline comment indent,
 else indent `correctly'.
@@ -1423,9 +1405,8 @@ If `vera-intelligent-tab' is nil, always indent line."
     t))
 
 ;; function for expanding abbrevs and dabbrevs
-(defun vera-expand-abbrev (arg))
-(fset 'vera-expand-abbrev (make-hippie-expand-function
-			       '(try-expand-dabbrev
+(defalias 'vera-expand-abbrev
+  (make-hippie-expand-function '(try-expand-dabbrev
 				 try-expand-dabbrev-all-buffers
 				 vera-try-expand-abbrev)))
 
@@ -1436,7 +1417,7 @@ If `vera-intelligent-tab' is nil, always indent line."
   "Comment region if not commented, uncomment region if already commented."
   (interactive "r\nP")
   (goto-char beg)
-  (if (looking-at (regexp-quote comment-start))
+  (if (looking-at comment-start-skip)
       (comment-region beg end '(4))
     (comment-region beg end)))
 
