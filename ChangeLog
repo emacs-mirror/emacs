@@ -1,7 +1,7 @@
 2007-06-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in: Complain if X seems to be installed but no
-	development files where found.
+	development files were found.
 
 2007-06-20  Glenn Morris  <rgm@gnu.org>
 
