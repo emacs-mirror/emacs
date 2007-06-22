@@ -733,12 +733,12 @@ Move point to the beginning of the line, and run the normal hook
 If `hs-hide-comments-when-hiding-all' is non-nil, also hide the comments."
   (interactive)
   (hs-life-goes-on
-   (message "Hiding all blocks ...")
    (save-excursion
      (unless hs-allow-nesting
        (hs-discard-overlays (point-min) (point-max)))
      (goto-char (point-min))
-     (let ((count 0)
+     (let ((spew (make-progress-reporter "Hiding all blocks..."
+                                         (point-min) (point-max)))
            (re (concat "\\("
                        hs-block-start-regexp
                        "\\)"
@@ -764,9 +764,9 @@ If `hs-hide-comments-when-hiding-all' is non-nil, also hide the comments."
                (if (> (count-lines (car c-reg) (nth 1 c-reg)) 1)
                    (hs-hide-block-at-point t c-reg)
                  (goto-char (nth 1 c-reg))))))
-         (message "Hiding ... %d" (setq count (1+ count))))))
+         (progress-reporter-update spew (point)))
+       (progress-reporter-done spew)))
    (beginning-of-line)
-   (message "Hiding all blocks ... done")
    (run-hooks 'hs-hide-hook)))
 
 (defun hs-show-all ()
