@@ -567,42 +567,54 @@
 	((Math-lessp '(float 8 0) (math-abs-approx x))
 	 (let* ((z (math-div '(float 8 0) x))
 		(y (math-sqr z))
-		(xx (math-add x '(float (bigneg 164 398 785) -9)))
+		(xx (math-add x 
+                              (eval-when-compile
+                                (math-read-number-simple "-0.785398164"))))
 		(a1 (math-poly-eval y
-				    '((float (bigpos 211 887 093 2) -16)
-				      (float (bigneg 639 370 073 2) -15)
-				      (float (bigpos 407 510 734 2) -14)
-				      (float (bigneg 627 628 098 1) -12)
-				      (float 1 0))))
+                        (eval-when-compile
+                          (list
+                           (math-read-number-simple "0.0000002093887211")
+                           (math-read-number-simple "-0.000002073370639")
+                           (math-read-number-simple "0.00002734510407")
+                           (math-read-number-simple "-0.001098628627")
+                           '(float 1 0)))))
 		(a2 (math-poly-eval y
-				    '((float (bigneg 152 935 934) -16)
-				      (float (bigpos 161 095 621 7) -16)
-				      (float (bigneg 651 147 911 6) -15)
-				      (float (bigpos 765 488 430 1) -13)
-				      (float (bigneg 995 499 562 1) -11))))
+                         (eval-when-compile
+                           (list
+                            (math-read-number-simple "-0.0000000934935152")
+                            (math-read-number-simple "0.0000007621095161")
+                            (math-read-number-simple "-0.000006911147651")
+                            (math-read-number-simple "0.0001430488765")
+                            (math-read-number-simple "-0.01562499995")))))
 		(sc (math-sin-cos-raw xx)))
 	       (if yflag
 		   (setq sc (cons (math-neg (cdr sc)) (car sc))))
 	       (math-mul (math-sqrt
-			  (math-div '(float (bigpos 722 619 636) -9) x))
+			  (math-div (eval-when-compile
+                                      (math-read-number-simple "0.636619722"))
+ x))
 			 (math-sub (math-mul (cdr sc) a1)
 				   (math-mul (car sc) (math-mul z a2))))))
 	 (t
 	  (let ((y (math-sqr x)))
 	    (math-div (math-poly-eval y
-				      '((float (bigneg 456 052 849 1) -7)
-					(float (bigpos 017 233 739 7) -5)
-					(float (bigneg 418 442 121 1) -2)
-					(float (bigpos 407 196 516 6) -1)
-					(float (bigneg 354 590 362 13) 0)
-					(float (bigpos 574 490 568 57) 0)))
+                            (eval-when-compile
+                              (list
+                               (math-read-number "-184.9052456")
+                               (math-read-number "77392.33017")
+                               (math-read-number "-11214424.18")
+                               (math-read-number "651619640.7")
+                               (math-read-number "-13362590354.0")
+                               (math-read-number "57568490574.0"))))
 		      (math-poly-eval y
-				      '((float 1 0)
-					(float (bigpos 712 532 678 2) -7)
-					(float (bigpos 853 264 927 5) -5)
-					(float (bigpos 718 680 494 9) -3)
-					(float (bigpos 985 532 029 1) 0)
-					(float (bigpos 411 490 568 57) 0))))))))
+                             (eval-when-compile
+                               (list
+                                '(float 1 0)
+                                (math-read-number "267.8532712")
+                                (math-read-number "59272.64853")
+                                (math-read-number "9494680.718")
+                                (math-read-number "1029532985.0")
+                                (math-read-number "57568490411.0")))))))))
 
 (defun math-besJ1 (x &optional yflag)
   (cond ((and (math-negp (calcFunc-re x)) (not yflag))
@@ -610,25 +622,33 @@
 	((Math-lessp '(float 8 0) (math-abs-approx x))
 	 (let* ((z (math-div '(float 8 0) x))
 		(y (math-sqr z))
-		(xx (math-add x '(float (bigneg 491 194 356 2) -9)))
+		(xx (math-add x (eval-when-compile 
+                                  (math-read-number "-2.356194491"))))
 		(a1 (math-poly-eval y
-				    '((float (bigneg 019 337 240) -15)
-				      (float (bigpos 174 520 457 2) -15)
-				      (float (bigneg 496 396 516 3) -14)
-				      (float 183105 -8)
-				      (float 1 0))))
+                            (eval-when-compile
+                              (list
+                               (math-read-number "-0.000000240337019")
+                               (math-read-number "0.000002457520174")
+                               (math-read-number "-0.00003516396496")
+                               '(float 183105 -8)
+                               '(float 1 0)))))
 		(a2 (math-poly-eval y
-				    '((float (bigpos 412 787 105) -15)
-				      (float (bigneg 987 228 88) -14)
-				      (float (bigpos 096 199 449 8) -15)
-				      (float (bigneg 873 690 002 2) -13)
-				      (float (bigpos 995 499 687 4) -11))))
+                             (eval-when-compile
+                               (list
+                                (math-read-number "0.000000105787412")
+                                (math-read-number "-0.00000088228987")
+                                (math-read-number "0.000008449199096")
+                                (math-read-number "-0.0002002690873")
+                                (math-read-number "0.04687499995")))))
 		(sc (math-sin-cos-raw xx)))
 	   (if yflag
 	       (setq sc (cons (math-neg (cdr sc)) (car sc)))
 	     (if (math-negp x)
 		 (setq sc (cons (math-neg (car sc)) (math-neg (cdr sc))))))
-	   (math-mul (math-sqrt (math-div '(float (bigpos 722 619 636) -9) x))
+	   (math-mul (math-sqrt (math-div 
+                                 (eval-when-compile
+                                   (math-read-number "0.636619722"))
+                                 x))
 		     (math-sub (math-mul (cdr sc) a1)
 			       (math-mul (car sc) (math-mul z a2))))))
 	(t
@@ -636,20 +656,23 @@
 	   (math-mul
 	    x
 	    (math-div (math-poly-eval y
-				      '((float (bigneg 606 036 016 3) -8)
-					(float (bigpos 826 044 157) -4)
-					(float (bigneg 439 611 972 2) -3)
-					(float (bigpos 531 968 423 2) -1)
-					(float (bigneg 235 059 895 7) 0)
-					(float (bigpos 232 614 362 72) 0)))
+                             (eval-when-compile
+                               (list
+                                (math-read-number "-30.16036606")
+                                (math-read-number "15704.4826")
+                                (math-read-number "-2972611.439")
+                                (math-read-number "242396853.1")
+                                (math-read-number "-7895059235.0")
+                                (math-read-number "72362614232.0"))))
 		      (math-poly-eval y
-				      '((float 1 0)
-					(float (bigpos 397 991 769 3) -7)
-					(float (bigpos 394 743 944 9) -5)
-					(float (bigpos 474 330 858 1) -2)
-					(float (bigpos 178 535 300 2) 0)
-					(float (bigpos 442 228 725 144)
-					       0)))))))))
+                              (eval-when-compile
+                                (list
+                                 '(float 1 0)
+                                 (math-read-number "376.9991397")
+                                 (math-read-number "99447.43394")
+                                 (math-read-number "18583304.74")
+                                 (math-read-number "2300535178.0")
+                                 (math-read-number "144725228442.0"))))))))))
 
 (defun calcFunc-besY (v x)
   (math-inexact-result)
@@ -690,20 +713,25 @@
 	 (let ((y (math-sqr x)))
 	   (math-add
 	    (math-div (math-poly-eval y
-				      '((float (bigpos 733 622 284 2) -7)
-					(float (bigneg 757 792 632 8) -5)
-					(float (bigpos 129 988 087 1) -2)
-					(float (bigneg 036 598 123 5) -1)
-					(float (bigpos 065 834 062 7) 0)
-					(float (bigneg 389 821 957 2) 0)))
+                            (eval-when-compile
+                              (list
+                               (math-read-number "228.4622733")
+                               (math-read-number "-86327.92757")
+                               (math-read-number "10879881.29")
+                               (math-read-number "-512359803.6")
+                               (math-read-number "7062834065.0")
+                               (math-read-number "-2957821389.0"))))
 		      (math-poly-eval y
-				      '((float 1 0)
-					(float (bigpos 244 030 261 2) -7)
-					(float (bigpos 647 472 474) -4)
-					(float (bigpos 438 466 189 7) -3)
-					(float (bigpos 648 499 452 7) -1)
-					(float (bigpos 269 544 076 40) 0))))
-	    (math-mul '(float (bigpos 772 619 636) -9)
+                            (eval-when-compile
+                              (list
+                               '(float 1 0)
+                               (math-read-number "226.1030244")
+                               (math-read-number "47447.2647")
+                               (math-read-number "7189466.438")
+                               (math-read-number "745249964.8")
+                               (math-read-number "40076544269.0")))))
+	    (math-mul (eval-when-compile
+                        (math-read-number "0.636619772"))
 		      (math-mul (math-besJ0 x) (math-ln-raw x))))))
 	((math-negp (calcFunc-re x))
 	 (math-add (math-besJ0 (math-neg x) t)
@@ -719,22 +747,26 @@
 	    (math-mul
 	     x
 	     (math-div (math-poly-eval y
-				       '((float (bigpos 935 937 511 8) -6)
-					 (float (bigneg 726 922 237 4) -3)
-					 (float (bigpos 551 264 349 7) -1)
-					 (float (bigneg 139 438 153 5) 1)
-					 (float (bigpos 439 527 127) 4)
-					 (float (bigneg 943 604 900 4) 3)))
+                             (eval-when-compile
+                               (list
+                                (math-read-number "8511.937935")
+                                (math-read-number "-4237922.726")
+                                (math-read-number "734926455.1")
+                                (math-read-number "-51534381390.0")
+                                (math-read-number "1275274390000.0")
+                                (math-read-number "-4900604943000.0"))))
 		       (math-poly-eval y
-				       '((float 1 0)
-					 (float (bigpos 885 632 549 3) -7)
-					 (float (bigpos 605 042 102) -3)
-					 (float (bigpos 002 904 245 2) -2)
-					 (float (bigpos 367 650 733 3) 0)
-					 (float (bigpos 664 419 244 4) 2)
-					 (float (bigpos 057 958 249) 5)))))
-	    (math-mul '(float (bigpos 772 619 636) -9)
-		      (math-sub (math-mul (math-besJ1 x) (math-ln-raw x))
+                             (eval-when-compile
+                               (list
+                                '(float 1 0)
+                                (math-read-number "354.9632885")
+                                (math-read-number "102042.605")
+                                (math-read-number "22459040.02")
+                                (math-read-number "3733650367.0")
+                                (math-read-number "424441966400.0")
+                                (math-read-number "24995805700000.0"))))))
+	    (math-mul (eval-when-compile (math-read-number "0.636619772"))
+                      (math-sub (math-mul (math-besJ1 x) (math-ln-raw x))
 				(math-div 1 x))))))
 	((math-negp (calcFunc-re x))
 	 (math-neg
@@ -799,16 +831,40 @@
 		    (calcFunc-euler n '(float 5 -1)))
 		(calcFunc-euler n '(frac 1 2))))))
 
-(defvar math-bernoulli-b-cache '((frac -174611
-				       (bigpos 0 200 291 698 662 857 802))
-				 (frac 43867 (bigpos 0 944 170 217 94 109 5))
-				 (frac -3617 (bigpos 0 880 842 622 670 10))
-				 (frac 1 (bigpos 600 249 724 74))
-				 (frac -691 (bigpos 0 368 674 307 1))
-				 (frac 1 (bigpos 160 900 47))
-				 (frac -1 (bigpos 600 209 1))
-				 (frac 1 30240) (frac -1 720)
-				 (frac 1 12) 1 ))
+(defvar math-bernoulli-b-cache 
+  (eval-when-compile
+    (list
+     (list 'frac 
+           -174611
+           (math-read-number "802857662698291200000"))
+     (list 'frac 
+           43867 
+           (math-read-number "5109094217170944000"))
+     (list 'frac 
+           -3617 
+           (math-read-number "10670622842880000"))
+     (list 'frac 
+           1 
+           (math-read-number "74724249600"))
+     (list 'frac 
+           -691 
+           (math-read-number "1307674368000"))
+     (list 'frac 
+           1 
+           (math-read-number "47900160"))
+     (list 'frac 
+           -1 
+           (math-read-number "1209600"))
+     (list 'frac 
+           1 
+           30240) 
+     (list 'frac 
+           -1 
+           720)
+     (list 'frac 
+           1 
+           12) 
+     1 )))
 
 (defvar math-bernoulli-B-cache '((frac -174611 330) (frac 43867 798)
 				 (frac -3617 510) (frac 7 6) (frac -691 2730)
