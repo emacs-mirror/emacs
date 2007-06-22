@@ -3423,6 +3423,24 @@ See calc-keypad for details."
     ;; Syntax error!
     (t nil))))
 
+;;; Parse a very simple number, keeping all digits.
+(defun math-read-number-simple (s)
+   (cond
+    ;; Integer
+    ((string-match "^[0-9]+$" s)
+     (cons 'bigpos (math-read-bignum s)))
+    ;; Minus sign
+    ((string-match "^-[0-9]+$" s)
+     (cons 'bigneg (math-read-bignum (substring s 1))))
+    ;; Decimal point
+    ((string-match "^\\(-?[0-9]*\\)\\.\\([0-9]*\\)$" s)
+     (let ((int (math-match-substring s 1))
+	   (frac (math-match-substring s 2)))
+       (list 'float (math-read-number-simple (concat int frac))
+             (- (length frac)))))
+    ;; Syntax error!
+    (t nil)))
+
 (defun math-match-substring (s n)
   (if (match-beginning n)
       (substring s (match-beginning n) (match-end n))
