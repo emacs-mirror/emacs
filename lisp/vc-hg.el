@@ -36,7 +36,6 @@
 ;;; Todo:
 
 ;; Implement the rest of the vc interface:
-;; - regexps for log-view to understand the "hg log" output
 ;; - dired
 ;; - snapshot?
 
@@ -106,6 +105,19 @@
 
 (defun vc-hg-print-log(file &optional buffer)
   "Get change log associated with FILE."
+  ;; `log-view-mode' needs to have the file name in order to function
+  ;; correctly. "hg log" does not print it, so we insert it here by
+  ;; hand.
+
+  ;; `vc-do-command' creates the buffer, but we need it before running
+  ;; the command.
+  (vc-setup-buffer buffer)
+  ;; If the buffer exists from a previous invocation it might be
+  ;; read-only.
+  (let ((inhibit-read-only t))
+    (with-current-buffer
+	buffer
+      (insert "File:        " (file-name-nondirectory file) "\n")))
   (vc-hg-command
    buffer
    (if (and (vc-stay-local-p file) (fboundp 'start-process)) 'async 0)
@@ -119,13 +131,14 @@
 (define-derived-mode vc-hg-log-view-mode log-view-mode "HG-Log-View"
   (require 'add-log) ;; we need the faces add-log
   ;; Don't have file markers, so use impossible regexp.
-  (set (make-local-variable 'log-view-file-re) "\\'\\`")
+  (set (make-local-variable 'log-view-file-re) "^File:[ \t]+\\(.+\\)")
   (set (make-local-variable 'log-view-message-re)
        "^changeset:[ \t]*\\([0-9]+\\):\\(.+\\)")
   (set (make-local-variable 'log-view-font-lock-keywords)
        (append 
 	;; XXX maybe use a different face for the version number
-	`((,log-view-message-re  (1 'change-log-acknowledgement)))
+	`((,log-view-message-re  (1 'change-log-acknowledgement))
+	  (,log-view-file-re (1 'change-log-file-face)))
 	;; Handle the case:
 	;; user: foo@bar
 	'(("^user:[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
@@ -226,7 +239,7 @@ and that it passes `vc-hg-global-switches' to it before FLAGS."
            (append vc-hg-global-switches
                    flags))))
 
-(defun vc-hg-internal-log (file)
+(defun vc-hg-internal-log (file &optional buffer)
   "Return log of FILE."
   (with-output-to-string
     (with-current-buffer

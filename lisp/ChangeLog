@@ -1,3 +1,8 @@
+2007-06-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-hg-print-log): Insert the file name.
+	(vc-hg-log-view-mode): Fontify the file name.
+
 2007-06-22  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-forms.el (math-format-date-part)
