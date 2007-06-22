@@ -508,8 +508,8 @@ Original match data is restored upon return."
 (defun hs-hide-comment-region (beg end &optional repos-end)
   "Hide a region from BEG to END, marking it as a comment.
 Optional arg REPOS-END means reposition at end."
-  (let ((beg-eol (progn (goto-char beg) (end-of-line) (point)))
-        (end-eol (progn (goto-char end) (end-of-line) (point))))
+  (let ((beg-eol (progn (goto-char beg) (line-end-position)))
+        (end-eol (progn (goto-char end) (line-end-position))))
     (hs-discard-overlays beg-eol end-eol)
     (hs-make-overlay beg-eol end-eol 'comment beg end))
   (goto-char (if repos-end end beg)))
@@ -536,8 +536,7 @@ and then further adjusted to be at the end of the line."
                                         'identity)
                                     pure-p))
                 ;; whatever the adjustment, we move to eol
-                (end-of-line)
-                (point)))
+                (line-end-position)))
              (q
               ;; `q' is the point at the end of the block
               (progn (hs-forward-sexp mdata 1)
@@ -806,7 +805,7 @@ See documentation for functions `hs-hide-block' and `run-hooks'."
   (hs-life-goes-on
    (or
     ;; first see if we have something at the end of the line
-    (let ((ov (hs-overlay-at (save-excursion (end-of-line) (point))))
+    (let ((ov (hs-overlay-at (line-end-position)))
           (here (point)))
       (when ov
         (goto-char
