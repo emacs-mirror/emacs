@@ -1,3 +1,9 @@
+2007-06-22  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* simple.el (next-error-recenter): New defcustom.
+	(next-error, next-error-internal): Recenter if specified,
+	immediately prior to running `next-error-hook'.
+
 2007-06-22  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-comb.el (math-small-factorial-table): New variable.
@@ -22,7 +28,7 @@
 2007-06-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-bzr.el (vc-bzr-log-view-mode): Add + to the email address
-	regexp. 
+	regexp.
 
 	* vc-hg.el (vc-hg-log-view-mode): New mode.
 
@@ -48,7 +54,7 @@
 
 	* textmodes/org.el  (org-export-with-footnotes): New option.
 	(org-export-as-html): Fixed replacement bug for XEmacs.
-	(org-agenda-default-appointment-duration): New option. 
+	(org-agenda-default-appointment-duration): New option.
 
 2007-06-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
