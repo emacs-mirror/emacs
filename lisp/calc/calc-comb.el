@@ -295,18 +295,20 @@
 ;;; Factorial and related functions.
 
 (defconst math-small-factorial-table
-  (vector 1 1 2 6 24 120 720 5040 40320 362880 
-          (math-read-number-simple "3628800")
-          (math-read-number-simple "39916800")
-          (math-read-number-simple "479001600")
-          (math-read-number-simple "6227020800")
-          (math-read-number-simple "87178291200")
-          (math-read-number-simple "1307674368000")
-          (math-read-number-simple "20922789888000")
-          (math-read-number-simple "355687428096000")
-          (math-read-number-simple "6402373705728000")
-          (math-read-number-simple "121645100408832000")
-          (math-read-number-simple "2432902008176640000")))
+  (eval-when-compile
+    (list
+     'vector 1 1 2 6 24 120 720 5040 40320 362880 
+     (math-read-number-simple "3628800")
+     (math-read-number-simple "39916800")
+     (math-read-number-simple "479001600")
+     (math-read-number-simple "6227020800")
+     (math-read-number-simple "87178291200")
+     (math-read-number-simple "1307674368000")
+     (math-read-number-simple "20922789888000")
+     (math-read-number-simple "355687428096000")
+     (math-read-number-simple "6402373705728000")
+     (math-read-number-simple "121645100408832000")
+     (math-read-number-simple "2432902008176640000"))))
 
 (defun calcFunc-fact (n)   ; [I I] [F F] [Public]
   (let (temp)
