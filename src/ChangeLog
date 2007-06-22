@@ -1,3 +1,19 @@
+2007-06-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macgui.h (USE_CG_DRAWING): Don't require USE_ATSUI.
+	(USE_MAC_TOOLBAR): Require USE_CG_DRAWING.
+
+	* macmenu.c (mac_dialog_modal_filter, Fx_popup_dialog) [MAC_OSX]:
+	Put special treatment for Fmessage_box, Fyes_or_no_p, and Fy_or_n_p
+	in #if 0 as it is not compatible with y-or-n-p-with-timeout.
+	(timer_check) [TARGET_API_MAC_CARBON]: Add extern.
+	[TARGET_API_MAC_CARBON] (mac_handle_dialog_event): Use QuitEventLoop
+	instead of QuitAppModalLoopForWindow.  Consolidate QuitEventLoop calls.
+	(pop_down_dialog) [TARGET_API_MAC_CARBON]: New function.
+	[TARGET_API_MAC_CARBON] (create_and_show_dialog): Use it for unwind.
+	Run timers during dialog popup.
+	(Fmenu_or_popup_active_p) [TARGET_API_MAC_CARBON]: Use popup_activated.
+
 2007-06-21  Jason Rumney  <jasonr@gnu.org>
 
 	* image.c (convert_mono_to_color_image): Swap fore and background.
