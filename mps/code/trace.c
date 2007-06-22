@@ -1008,21 +1008,21 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
 
   found = traceFindGreyORIGINAL(segReturn, rankReturn, arena, ti);
 
-  this = (char) ( !found ? '.'
-                  : (*rankReturn == RankAMBIG) ? 'A'
-                  : (*rankReturn == RankEXACT) ? 'E'
-                  : (*rankReturn == RankFINAL) ? 'F'
-                  : (*rankReturn == RankWEAK) ? 'W'
-                  : '?' );
+  this = (char)(!found ? '.'
+                : (*rankReturn == RankAMBIG) ? 'A'
+                : (*rankReturn == RankEXACT) ? 'E'
+                : (*rankReturn == RankFINAL) ? 'F'
+                : (*rankReturn == RankWEAK) ? 'W'
+                : '?');
 
-  if (prev == '.') {
+  if(prev == '.') {
     /* First seg of new trace */
     prev = this;
     segcount = 0;
     report_lim = report_array;
   }
 
-  if (this == prev) {
+  if(this == prev) {
     segcount += 1;
   } else {
     /* Change of rank: */
@@ -1030,9 +1030,9 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
     *report_lim++ = prev;
     /* add segcount [0..9, a..z (x10), or *] to report */
     if(segcount < 10) {
-      *report_lim++ = '0' + segcount;
+      *report_lim++ = (char)('0' + segcount);
     } else if(segcount < 260) {
-      *report_lim++ = ('a' - 1) + (segcount / 10);
+      *report_lim++ = (char)(('a' - 1) + (segcount / 10));
     } else {
       *report_lim++ = '*';
     }
@@ -1041,7 +1041,7 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
     segcount = 1;
   }
   
-  if (!found) {
+  if(!found) {
     /* No more grey in this trace: output report */
     AVER(this == '.');
     AVER(segcount == 1);  /* single failed attempt to find a seg */
