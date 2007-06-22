@@ -111,6 +111,33 @@
    (if (and (vc-stay-local-p file) (fboundp 'start-process)) 'async 0)
    file "log"))
 
+(defvar log-view-message-re)
+(defvar log-view-file-re)
+(defvar log-view-font-lock-keywords)
+(defvar log-view-current-tag-function)
+
+(define-derived-mode vc-hg-log-view-mode log-view-mode "HG-Log-View"
+  (require 'add-log) ;; we need the faces add-log
+  ;; Don't have file markers, so use impossible regexp.
+  (set (make-local-variable 'log-view-file-re) "\\'\\`")
+  (set (make-local-variable 'log-view-message-re)
+       "^changeset:[ \t]*\\([0-9]+\\):\\(.+\\)")
+  (set (make-local-variable 'log-view-font-lock-keywords)
+       (append 
+	;; XXX maybe use a different face for the version number
+	`((,log-view-message-re  (1 'change-log-acknowledgement)))
+	;; Handle the case:
+	;; user: foo@bar
+	'(("^user:[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
+	   (1 'change-log-email))
+	  ;; Handle the case:
+	  ;; user: FirstName LastName <foo@bar>
+	  ("^user:[ \t]+\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
+	   (1 'change-log-name)
+	   (2 'change-log-email))
+	  ("^date: \\(.+\\)" (1 'change-log-date))
+	  ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message))))))
+
 (defun vc-hg-diff (file &optional oldvers newvers buffer)
   "Get a difference report using hg between two versions of FILE."
   (let ((working (vc-workfile-version file)))
