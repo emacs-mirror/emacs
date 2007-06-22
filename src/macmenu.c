@@ -882,7 +882,7 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 
 /* Regard ESC and C-g as Cancel even without the Cancel button.  */
 
-#ifdef MAC_OSX
+#if 0 /* defined (MAC_OSX) */
 static Boolean
 mac_dialog_modal_filter (dialog, event, item_hit)
      DialogRef dialog;
@@ -991,7 +991,7 @@ for instance using the window manager, then this produces a quit and
        but I don't want to make one now.  */
     CHECK_WINDOW (window);
 
-#ifdef MAC_OSX
+#if 0 /* defined (MAC_OSX) */
   /* Special treatment for Fmessage_box, Fyes_or_no_p, and Fy_or_n_p.  */
   if (EQ (position, Qt)
       && STRINGP (Fcar (contents))
@@ -2330,14 +2330,17 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 #define DIALOG_BUTTON_MAKE_COMMAND_ID(value)	\
   ((value) + DIALOG_BUTTON_COMMAND_ID_OFFSET)
 
+extern EMACS_TIME timer_check P_ ((int));
+
 static pascal OSStatus
 mac_handle_dialog_event (next_handler, event, data)
      EventHandlerCallRef next_handler;
      EventRef event;
      void *data;
 {
-  OSStatus err;
+  OSStatus err, result = eventNotHandledErr;
   WindowRef window = (WindowRef) data;
+  int quit_event_loop_p = 0;
 
   switch (GetEventClass (event))
     {
@@ -2352,12 +2355,11 @@ mac_handle_dialog_event (next_handler, event, data)
 	  if (DIALOG_BUTTON_COMMAND_ID_P (command.commandID))
 	    {
 	      SetWRefCon (window, command.commandID);
-	      err = QuitAppModalLoopForWindow (window);
-
-	      return err == noErr ? noErr : eventNotHandledErr;
+	      quit_event_loop_p = 1;
+	      break;
 	    }
 
-	return CallNextEventHandler (next_handler, event);
+	result = CallNextEventHandler (next_handler, event);
       }
       break;
 
@@ -2367,8 +2369,8 @@ mac_handle_dialog_event (next_handler, event, data)
 	char char_code;
 
 	result = CallNextEventHandler (next_handler, event);
-	if (result == noErr)
-	  return noErr;
+	if (result != eventNotHandledErr)
+	  break;
 
 	err = GetEventParameter (event, kEventParamKeyMacCharCodes,
 				 typeChar, NULL, sizeof (char),
@@ -2377,7 +2379,7 @@ mac_handle_dialog_event (next_handler, event, data)
 	  switch (char_code)
 	    {
 	    case kEscapeCharCode:
-	      err = QuitAppModalLoopForWindow (window);
+	      quit_event_loop_p = 1;
 	      break;
 
 	    default:
@@ -2392,26 +2394,26 @@ mac_handle_dialog_event (next_handler, event, data)
 					   typeUInt32, NULL, sizeof (UInt32),
 					   NULL, &key_code);
 		if (err == noErr)
-		  {
-		    if (mac_quit_char_key_p (modifiers, key_code))
-		      err = QuitAppModalLoopForWindow (window);
-		    else
-		      err = eventNotHandledErr;
-		  }
+		  if (mac_quit_char_key_p (modifiers, key_code))
+		    quit_event_loop_p = 1;
 	      }
 	      break;
 	    }
-
-	if (err == noErr)
-	  result = noErr;
-
-	return result;
       }
       break;
 
     default:
       abort ();
     }
+
+  if (quit_event_loop_p)
+    {
+      err = QuitEventLoop (GetCurrentEventLoop ());
+      if (err == noErr)
+	result = noErr;
+    }
+
+  return result;
 }
 
 static OSStatus
@@ -2446,6 +2448,25 @@ install_dialog_event_handler (window)
 #define DIALOG_ICON_LEFT_MARGIN (24)
 #define DIALOG_ICON_TOP_MARGIN (15)
 
+static Lisp_Object
+pop_down_dialog (arg)
+     Lisp_Object arg;
+{
+  struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
+  WindowRef window = p->pointer;
+
+  BLOCK_INPUT;
+
+  if (popup_activated_flag)
+    EndAppModalStateForWindow (window);
+  DisposeWindow (window);
+  popup_activated_flag = 0;
+
+  UNBLOCK_INPUT;
+
+  return Qnil;
+}
+
 static int
 create_and_show_dialog (f, first_wv)
      FRAME_PTR f;
@@ -2459,6 +2480,7 @@ create_and_show_dialog (f, first_wv)
   Rect empty_rect, *rects;
   WindowRef window = NULL;
   ControlRef *buttons, default_button = NULL, text;
+  int specpdl_count = SPECPDL_INDEX ();
 
   dialog_name = first_wv->name;
   nb_buttons = dialog_name[1] - '0';
@@ -2475,8 +2497,11 @@ create_and_show_dialog (f, first_wv)
 			 kWindowStandardHandlerAttribute,
 			 &empty_rect, &window);
   if (err == noErr)
-    err = SetThemeWindowBackground (window, kThemeBrushMovableModalBackground,
-				    true);
+    {
+      record_unwind_protect (pop_down_dialog, make_save_value (window, 0));
+      err = SetThemeWindowBackground (window, kThemeBrushMovableModalBackground,
+				      true);
+    }
   if (err == noErr)
     err = SetWindowTitleWithCFString (window, (dialog_name[0] == 'Q'
 					       ? CFSTR ("Question")
@@ -2701,7 +2726,45 @@ create_and_show_dialog (f, first_wv)
       SetWRefCon (window, 0);
       ShowWindow (window);
       BringToFront (window);
-      err = RunAppModalLoopForWindow (window);
+      popup_activated_flag = 1;
+      err = BeginAppModalStateForWindow (window);
+    }
+  if (err == noErr)
+    {
+      EventTargetRef toolbox_dispatcher = GetEventDispatcherTarget ();
+
+      while (1)
+	{
+	  EMACS_TIME next_time = timer_check (1);
+	  long secs = EMACS_SECS (next_time);
+	  long usecs = EMACS_USECS (next_time);
+	  EventTimeout timeout;
+	  EventRef event;
+
+	  if (secs < 0 || (secs == 0 && usecs == 0))
+	    {
+	      /* Sometimes timer_check returns -1 (no timers) even if
+		 there are timers.  So do a timeout anyway.  */
+	      secs = 1;
+	      usecs = 0;
+	    }
+
+	  timeout = (secs * kEventDurationSecond
+		     + usecs * kEventDurationMicrosecond);
+	  err = ReceiveNextEvent (0, NULL, timeout, kEventRemoveFromQueue,
+				  &event);
+	  if (err == noErr)
+	    {
+	      SendEventToEventTarget (event, toolbox_dispatcher);
+	      ReleaseEvent (event);
+	    }
+	  else if (err != eventLoopTimedOutErr)
+	    {
+	      if (err == eventLoopQuitErr)
+		err = noErr;
+	      break;
+	    }
+	}
     }
   if (err == noErr)
     {
@@ -2711,8 +2774,7 @@ create_and_show_dialog (f, first_wv)
 	result = DIALOG_BUTTON_COMMAND_ID_VALUE (command_id);
     }
 
-  if (window)
-    DisposeWindow (window);
+  unbind_to (specpdl_count, Qnil);
 
   return result;
 }
@@ -3282,9 +3344,13 @@ DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_
        doc: /* Return t if a menu or popup dialog is active.  */)
      ()
 {
+#if TARGET_API_MAC_CARBON
+  return (popup_activated ()) ? Qt : Qnil;
+#else
   /* Always return Qnil since menu selection functions do not return
      until a selection has been made or cancelled.  */
   return Qnil;
+#endif
 }
 
 void
