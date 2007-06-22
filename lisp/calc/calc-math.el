@@ -1717,10 +1717,18 @@
 	sum
       (math-lnp1-series nextsum (1+ n) nextx x))))
 
-(math-defcache math-ln-10 (float (bigpos 018 684 045 994 092 585 302 2) -21)
+(defconst math-approx-ln-10
+  (eval-when-compile
+    (math-read-number-simple "2.302585092994045684018")))
+     
+(math-defcache math-ln-10 math-approx-ln-10
   (math-ln-raw-2 '(float 1 1)))
 
-(math-defcache math-ln-2 (float (bigpos 417 309 945 559 180 147 693) -21)
+(defconst math-approx-ln-2
+  (eval-when-compile
+    (math-read-number-simple "0.693147180559945309417")))
+
+(math-defcache math-ln-2 math-approx-ln-2
   (math-ln-raw-3 (math-float '(frac 1 3))))
 
 
