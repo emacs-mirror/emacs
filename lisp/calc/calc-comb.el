@@ -294,6 +294,20 @@
 
 ;;; Factorial and related functions.
 
+(defconst math-small-factorial-table
+  (vector 1 1 2 6 24 120 720 5040 40320 362880 
+          (math-read-number-simple "3628800")
+          (math-read-number-simple "39916800")
+          (math-read-number-simple "479001600")
+          (math-read-number-simple "6227020800")
+          (math-read-number-simple "87178291200")
+          (math-read-number-simple "1307674368000")
+          (math-read-number-simple "20922789888000")
+          (math-read-number-simple "355687428096000")
+          (math-read-number-simple "6402373705728000")
+          (math-read-number-simple "121645100408832000")
+          (math-read-number-simple "2432902008176640000")))
+
 (defun calcFunc-fact (n)   ; [I I] [F F] [Public]
   (let (temp)
     (cond ((Math-integer-negp n)
@@ -302,14 +316,7 @@
 	     (math-reject-arg n 'range)))
 	  ((integerp n)
 	   (if (<= n 20)
-	       (aref '[1 1 2 6 24 120 720 5040 40320 362880
-			 (bigpos 800 628 3) (bigpos 800 916 39)
-			 (bigpos 600 1 479) (bigpos 800 20 227 6)
-			 (bigpos 200 291 178 87) (bigpos 0 368 674 307 1)
-			 (bigpos 0 888 789 922 20) (bigpos 0 96 428 687 355)
-			 (bigpos 0 728 705 373 402 6)
-			 (bigpos 0 832 408 100 645 121)
-			 (bigpos 0 640 176 8 902 432 2)] n)
+	       (aref math-small-factorial-table n)
 	     (math-factorial-iter (1- n) 2 1)))
 	  ((and (math-messy-integerp n)
 		(Math-lessp n 100))
