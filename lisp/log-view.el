@@ -132,7 +132,9 @@
   (concat "^\\(?:Working file: \\(?1:.+\\)"                ;RCS and CVS.
           ;; Subversion has no such thing??
           "\\|\\(?:SCCS/s\\.\\|Changes to \\)\\(?1:.+\\):" ;SCCS and Darcs.
-	  "\\)\n"))                   ;Include the \n for font-lock reasons.
+	  "\\)\n")                    ;Include the \n for font-lock reasons.
+  "Regexp matching the text identifying the file.
+The match group number 1 should match the file name itself.")
 
 (defvar log-view-message-re
   (concat "^\\(?:revision \\(?1:[.0-9]+\\)\\(?:\t.*\\)?" ; RCS and CVS.
@@ -147,7 +149,9 @@
           (concat "\\|[^ \n].*[^0-9\n][0-9][0-9]:[0-9][0-9][^0-9\n].*[^ \n]"
                   ;;Email of user and finally Msg, used as revision name.
                   "  .*@.*\n\\(?:  \\* \\(?1:.*\\)\\)?")
-          "\\)$"))
+          "\\)$")
+  "Regexp matching the text identifying a revision.
+The match group number 1 should match the revision number itself.")
 
 (defvar log-view-font-lock-keywords
   ;; We use `eval' so as to use the buffer-local value of log-view-file-re
