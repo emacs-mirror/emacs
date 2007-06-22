@@ -39,7 +39,7 @@
 ;; - dired
 ;; - snapshot?
 
-;; Implement Stefan Monnier's advice: 
+;; Implement Stefan Monnier's advice:
 ;; vc-hg-registered and vc-hg-state
 ;; Both of those functions should be super extra careful to fail gracefully in
 ;; unexpected circumstances.  The most important such case is when the `hg'
@@ -51,15 +51,15 @@
 ;; Emacs is able to tell you this file is under mercurial's control).
 
 ;;; History:
-;; 
+;;
 
 ;;; Code:
 
 (eval-when-compile
   (require 'vc))
 
-;; XXX This should be moved to vc-hooks when the full vc interface is
-;; implemented.
+;; XXX This should be moved to vc-hooks when we can be sure that vc-state
+;; and friends are always harmless.
 (add-to-list 'vc-handled-backends 'HG)
 
 ;;; Customization options
@@ -76,7 +76,14 @@
 
 ;;; State querying functions
 
-;;; Modelled after the similar function in vc-bzr.el
+;;;###autoload (defun vc-hg-registered (file)
+;;;###autoload   "Return non-nil if FILE is registered with hg."
+;;;###autoload   (if (vc-find-root file ".hg")       ; short cut
+;;;###autoload       (progn
+;;;###autoload         (load "vc-hg")
+;;;###autoload         (vc-hg-registered file))))
+
+;; Modelled after the similar function in vc-bzr.el
 (defun vc-hg-registered (file)
   "Return non-nil if FILE is registered with hg."
   (if (vc-find-root file ".hg")       ; short cut
@@ -126,7 +133,6 @@
 (defvar log-view-message-re)
 (defvar log-view-file-re)
 (defvar log-view-font-lock-keywords)
-(defvar log-view-current-tag-function)
 
 (define-derived-mode vc-hg-log-view-mode log-view-mode "HG-Log-View"
   (require 'add-log) ;; we need the faces add-log
@@ -135,10 +141,8 @@
   (set (make-local-variable 'log-view-message-re)
        "^changeset:[ \t]*\\([0-9]+\\):\\(.+\\)")
   (set (make-local-variable 'log-view-font-lock-keywords)
-       (append 
-	;; XXX maybe use a different face for the version number
-	`((,log-view-message-re  (1 'change-log-acknowledgement))
-	  (,log-view-file-re (1 'change-log-file-face)))
+       (append
+        log-view-font-lock-keywords
 	;; Handle the case:
 	;; user: foo@bar
 	'(("^user:[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
@@ -159,14 +163,14 @@
     (if (and (not oldvers) newvers)
 	(setq oldvers working))
     (apply 'call-process "hg" nil (or buffer "*vc-diff*") nil
-	   "--cwd" (file-name-directory file) "diff" 
-	   (append 
+	   "--cwd" (file-name-directory file) "diff"
+	   (append
 	    (if oldvers
 		(if newvers
 		    (list "-r" oldvers "-r" newvers)
 		  (list "-r" oldvers))
 	      (list ""))
-	   (list (file-name-nondirectory file))))))
+            (list (file-name-nondirectory file))))))
 
 (defun vc-hg-annotate-command (file buffer &optional version)
   "Execute \"hg annotate\" on FILE, inserting the contents in BUFFER.
@@ -178,15 +182,15 @@ Optional arg VERSION is a version to annotate from."
     (delete-region (point-min) (1- (point)))))
 
 
-;;; The format for one line output by "hg annotate -d -n" looks like this:
-;;;215 Wed Jun 20 21:22:58 2007 -0700: CONTENTS
-;;; i.e: VERSION_NUMBER DATE: CONTENTS
+;; The format for one line output by "hg annotate -d -n" looks like this:
+;;215 Wed Jun 20 21:22:58 2007 -0700: CONTENTS
+;; i.e: VERSION_NUMBER DATE: CONTENTS
 (defconst vc-hg-annotate-re "^[ \t]*\\([0-9]+\\) \\(.\\{30\\}\\): ")
 
 (defun vc-hg-annotate-time ()
   (when (looking-at vc-hg-annotate-re)
     (goto-char (match-end 0))
-    (vc-annotate-convert-time 
+    (vc-annotate-convert-time
      (date-to-time (match-string-no-properties 2)))))
 
 (defun vc-hg-annotate-extract-revision-at-line ()
@@ -210,7 +214,7 @@ COMMENT is ignored."
 REV is ignored."
   (vc-hg-command nil nil file  "commit" "-m" comment))
 
-;;; Modelled after the similar function in vc-bzr.el
+;; Modelled after the similar function in vc-bzr.el
 (defun vc-hg-checkout (file &optional editable rev workfile)
   "Retrieve a revision of FILE into a WORKFILE.
 EDITABLE is ignored.

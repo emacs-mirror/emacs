@@ -1,3 +1,8 @@
+2007-06-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hg.el (vc-hg-registered): Add an autoloaded version.
+	(vc-hg-log-view-mode): Use log-view-font-lock-keywords.
+
 2007-06-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hg.el (vc-hg-print-log): Insert the file name.
@@ -6,7 +11,7 @@
 2007-06-22  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-forms.el (math-format-date-part)
-	(calc-parse-standard-date,calcFunc-julian): Fix incorrect number
+	(calc-parse-standard-date, calcFunc-julian): Fix incorrect number
 	used in calculations.
 
 2007-06-22  Thien-Thi Nguyen  <ttn@gnuvola.org>
