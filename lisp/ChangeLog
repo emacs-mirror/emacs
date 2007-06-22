@@ -27,14 +27,14 @@
 
 	* calc/calc-ext.el (math-defcache): Allow forms to evaluate
 	initial values.
-	(math-approx-pi,math-approx-sqrt-e,math-approx-gamma-const):
+	(math-approx-pi, math-approx-sqrt-e, math-approx-gamma-const):
 	New variables to use in caches.
 
 	* calc/calc-forms.el (math-format-date-part)
 	(math-parse-standard-date,calcFunc-julian):
 	Use `math-read-number-simple' to insert bignums.
 
-	* calc/calc-func.el (math-besJ0,math-besJ1,math-besY0,math-besY1)
+	* calc/calc-func.el (math-besJ0, math-besJ1, math-besY0, math-besY1)
 	(math-bernoulli-b-cache): Use math-read-number-simple to insert
 	bignums.
 
@@ -43,8 +43,7 @@
 
 2007-06-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* vc-bzr.el (vc-bzr-log-view-mode): Add + to the email address
-	regexp.
+	* vc-bzr.el (vc-bzr-log-view-mode): Add + to the email address regexp.
 
 	* vc-hg.el (vc-hg-log-view-mode): New mode.
 
@@ -52,7 +51,7 @@
 
 	* calc/calc.el (math-read-number-simple): New function.
 
-2007-06-21  Reto Zimmermann  <reto@gnu.org>
+2007-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vera-mode.el (vera-mode): Fix `commend-end-skip' setting.
 	(vera-font-lock-match-item): Fix doc string.
@@ -69,7 +68,7 @@
 2007-06-21  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el  (org-export-with-footnotes): New option.
-	(org-export-as-html): Fixed replacement bug for XEmacs.
+	(org-export-as-html): Fix replacement bug for XEmacs.
 	(org-agenda-default-appointment-duration): New option.
 
 2007-06-21  Dan Nicolaescu  <dann@ics.uci.edu>
@@ -180,6 +179,11 @@
 2007-06-19  Ivan Kanis  <apple@kanis.eu>
 
 	* vc-hg.el: New file.
+
+2007-06-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-font-lock-paren): Mark the relevant text
+	with font-lock-multiline.
 
 2007-06-17  Glenn Morris  <rgm@gnu.org>
 
