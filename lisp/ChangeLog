@@ -1,5 +1,8 @@
 2007-06-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-bzr.el (vc-bzr-log-view-mode): Add + to the email address
+	regexp. 
+
 	* vc-hg.el (vc-hg-log-view-mode): New mode.
 
 2007-06-21  Jay Belanger  <jay.p.belanger@gmail.com>

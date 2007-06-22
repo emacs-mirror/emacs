@@ -306,7 +306,7 @@ EDITABLE is ignored."
        (append `((,log-view-message-re . 'log-view-message-face))
                ;; log-view-font-lock-keywords
                '(("^ *committer: \
-\\([^<(]+?\\)[  ]*[(<]\\([[:alnum:]_.-]+@[[:alnum:]_.-]+\\)[>)]"
+\\([^<(]+?\\)[  ]*[(<]\\([[:alnum:]_.+-]+@[[:alnum:]_.-]+\\)[>)]"
                   (1 'change-log-name)
                   (2 'change-log-email))
                  ("^ *timestamp: \\(.*\\)" (1 'change-log-date-face))))))
