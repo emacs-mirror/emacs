@@ -1,5 +1,8 @@
 2007-06-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* diff-mode.el (diff-font-lock-keywords): Fix M. Kifer's last change
+	differently.
+
 	* vc-hg.el (vc-hg-registered): Add an autoloaded version.
 	(vc-hg-log-view-mode): Use log-view-font-lock-keywords.
 
@@ -91,6 +94,26 @@
 	multiplication.
 
 2007-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* log-view.el (log-view-font-lock-keywords): Use `eval' to consult the
+	buffer-local value of log-view-*-re if applicable.
+
+	* vc-bzr.el (vc-bzr-dir-state): Use setq rather than set.
+	Use vc-bzr-command rather than the ill defined vc-bzr-command*.
+	(vc-bzr-command*): Remove both (incompatible) versions.
+	(vc-bzr-do-command*): Remove.
+	(vc-bzr-with-process-environment, vc-bzr-std-process-invocation):
+	Remove by folding into its only caller vc-bzr-command.
+	(vc-bzr-command): Always set the environment, even when ineffective.
+	(vc-bzr-version): Minor fix up.
+	(vc-bzr-admin-dirname): New var.
+	(vc-bzr-bzr-dir): Remove.
+	(vc-bzr-root-dir): New fun.
+	(vc-bzr-registered): Use it.  Add an autoloaded version.
+	(vc-bzr-responsible-p): Use vc-bzr-root-dir as well.
+	(vc-bzr-view-log-function): Remove.
+	(vc-bzr-log-view-mode): New major mode to replace it.
+	(vc-bzr-print-log): Only activate the old hack if needed.
 
 	* vc.el (vc-default-log-view-mode): New function.
 	(vc-print-log): Add new `log-view-mode' VC operation.
