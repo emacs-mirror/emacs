@@ -558,9 +558,13 @@
 	((eq x 'n)
 	 (math-format-number (math-floor math-fd-date)))
 	((eq x 'J)
-	 (math-format-number (math-add math-fd-date '(float (bigpos 235 214 17) -1))))
+	 (math-format-number 
+          (math-add math-fd-date 
+                    (math-read-number-simple "1.7214235"))))
 	((eq x 'j)
-	 (math-format-number (math-add (math-floor math-fd-date) '(bigpos 424 721 1))))
+	 (math-format-number (math-add 
+                              (math-floor math-fd-date) 
+                              (math-read-number-simple "1721424"))))
 	((eq x 'U)
 	 (math-format-number (nth 1 (math-date-parts math-fd-date 719164))))
 	((progn
@@ -935,9 +939,8 @@
 					      0
 					    (if (or (eq this 'j)
 						    (math-integerp num))
-						'(bigpos 424 721 1)
-					      '(float (bigpos 235 214 17)
-						      -1))))
+                                                (math-read-number-simple "1721424")
+                                              (math-read-number-simple "1.7214235"))))
 			    hour (or (nth 3 num) hour)
 			    minute (or (nth 4 num) minute)
 			    second (or (nth 5 num) second)
@@ -1146,14 +1149,15 @@
 (defun calcFunc-julian (date &optional zone)
   (if (math-realp date)
       (list 'date (if (math-integerp date)
-		      (math-sub date '(bigpos 424 721 1))
-		    (setq date (math-sub date '(float (bigpos 235 214 17) -1)))
+		      (math-sub date (math-read-number-simple "1721424"))
+		    (setq date (math-sub date 
+                                         (math-read-number-simple "1.7214235")))
 		    (math-sub date (math-div (calcFunc-tzone zone date)
 					     '(float 864 2)))))
     (if (eq (car date) 'date)
 	(math-add (nth 1 date) (if (math-integerp (nth 1 date))
-				   '(bigpos 424 721 1)
-				 (math-add '(float (bigpos 235 214 17) -1)
+				   (math-read-number-simple "1721424")
+				 (math-add  (math-read-number-simple "1.7214235")
 					   (math-div (calcFunc-tzone zone date)
 						     '(float 864 2)))))
       (math-reject-arg date 'datep))))
