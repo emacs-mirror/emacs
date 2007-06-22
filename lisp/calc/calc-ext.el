@@ -1925,7 +1925,10 @@ calc-kill calc-kill-region calc-yank))))
 (put 'math-defcache 'lisp-indent-hook 2)
 
 ;;; Betcha didn't know that pi = 16 atan(1/5) - 4 atan(1/239).   [F] [Public]
-(math-defcache math-pi (math-read-number-simple "3.141592653589793238463")
+(defconst math-approx-pi 
+  (eval-when-compile
+    (math-read-number-simple "3.141592653589793238463")))
+(math-defcache math-pi math-approx-pi
   (math-add-float (math-mul-float '(float 16 0)
 				  (math-arctan-raw '(float 2 -1)))
 		  (math-mul-float '(float -4 0)
@@ -1956,8 +1959,10 @@ calc-kill calc-kill-region calc-yank))))
 (math-defcache math-sqrt-two-pi nil
   (math-sqrt-float (math-two-pi)))
 
-
-(math-defcache math-sqrt-e (math-read-number-simple "1.648721270700128146849")
+(defconst math-approx-sqrt-e
+  (eval-when-compile (math-read-number-simple "1.648721270700128146849")))
+    
+(math-defcache math-sqrt-e math-approx-sqrt-e
   (math-add-float '(float 1 0) (math-exp-minus-1-raw '(float 5 -1))))
 
 (math-defcache math-e nil
@@ -1967,9 +1972,13 @@ calc-kill calc-kill-region calc-yank))))
   (math-mul-float (math-add-float (math-sqrt-raw '(float 5 0)) '(float 1 0))
 		  '(float 5 -1)))
 
+(defconst math-approx-gamma-const
+  (eval-when-compile
+    (math-read-number-simple 
+     "0.5772156649015328606065120900824024310421593359399235988057672348848677267776646709369470632917467495")))
+
 (math-defcache math-gamma-const nil 
-               (math-read-number-simple 
-                "0.5772156649015328606065120900824024310421593359399235988057672348848677267776646709369470632917467495"))
+  math-approx-gamma-const)
 
 (defun math-half-circle (symb)
   (if (eq calc-angle-mode 'rad)
