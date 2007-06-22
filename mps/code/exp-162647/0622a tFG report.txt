@@ -1,0 +1,3533 @@
+cd c:/cm2/profile/rhsk/
+m9 run
+  m9 '' c:\cm2\profile\rhsk
+cmd /c "cd C:\cm2\cvm\main & make build=obj"
+rc ...
+linking ...done
+
+gc spare commit limit at 12 MB
+cm 2.02.01
+  gc arena 600 MB
+  cmd line (_cm.exe /develop)
+  swapBaseDir=ddb_0000
+include "cm.io"
+include "cm.syntax"
+include "cm.runtime"
+include "cm.lang"
+include "cm.basic"
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: En.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W1.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+include "profile.rhsk"
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+include "cm.install"
+
+Wellcome to the Wonderful World of Configura Magic
+
+This is a preliminary release of the Magic Programming Environment.
+ MPS: traceFindGrey rank sequence: E*W2.
+Some basic packages are included as source -- please treat confidentially!
+  use cm.basic; -- fundamental support for common stuff like swap, color, text formatting etc.
+  use cm.db; -- fast indexed database.
+  use cm.emacs;  -- emacs coloring support.
+  use cm.geometry; -- geometric types: points, lines etc.
+  use cm.io;  -- basic i/o support.
+  use cm.lang;  -- fundamental package always included. For loop syntax Object etc.
+  use cm.runtime;  -- runtime reflection.
+  use cm.runtime.util;  -- reference tracing.
+  use cm.stream;  -- high level streaming support of connected object structures.
+  use cm.subset;  -- simply subsets: enumerations, ranges, step ranges etc.
+  use cm.syntax;  -- syntax objects for writing advanced syntax extensions.
+  use cm.win;  -- magic windows API.
+
+
+Alt-p -- starts a new magic interaction window.
+Ctrl-Alt-e -- exit current magic interaction.
+Ctrl-C Ctrl-m -- Clean away compiler databases for a fresh start.
+
+Ctrl-Alt-u -- save the current file and load new changes in the current package (directory).
+Ctrl-Alt-y -- save the current file and load new changes in all known packages.
+Ctrl-Alt-p -- as Ctrl-Alt-u plus run any statements in the current file.
+
+Alt-i -- goto definition at cursor.
+Ctrl-Alt-i -- pop back.
+
+See $(INSTALLDIR)/cm2/emacs/cm.el for further emacs commands.
+
+Good luck!
+    /The Magic Team
+       Göran Rydqvist
+       Staffan Linderoth
+       Magnus Carlgren
+include "cet.sandbox"
+include "cm.geometry.advanced"
+include "cm.geometry"
+  include "cm.geometry2D"
+    include "cm.io.util"
+      include "cm.emacs"
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W1.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W3.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W2.
+include "cm.geometry2D.advanced"
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W3.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W3.
+include "cm.format.cm3D"
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W4.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W4.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W4.
+include "cm.subset"
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W4.
+include "cm.search"
+include "cm.util"
+  include "cm.io.object"
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W6.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W6.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W6.
+include "cm.rs"
+include "cm.db"
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W7.
+include "cm.statistics"
+include "cm.win"
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W8.
+  include "cm.startup"
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+mrg->extendBy = 4096, MRGGuardiansPerSeg = 1024
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+include "cm.draw"
+ MPS: traceFindGrey rank sequence: E*F1W2.
+include "cm.core3D"
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+include "cm.extension"
+  include "cm.math"
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W5.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+include "cm.core"
+include "cm.win.advanced"
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+include "cm.recovery"
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+include "cm.abstract.archive"
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+include "cm.format.dwg"
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+include "cet.runtime"
+  include "cm.import.xmlrpc"
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+  include "cm.runtime.util"
+ MPS: traceFindGrey rank sequence: E*Wa.
+  include "cm.format.png"
+  include "cet.runtime.boot"
+  include "cm.format.jpeg"
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wb.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wb.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wb.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1Wb.
+include "cm.std.print2"
+  include "cm.std.draw3D"
+    include "cm.abstract.draw"
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1Wb.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+  include "cm.std.print"
+    include "cm.core.dwg"
+      include "cm.format.cap"
+      include "custom.projectmatrix"
+        include "cm.io.ini"
+ MPS: traceFindGrey rank sequence: E*Wb.
+        include "cm.core.toolbox"
+          include "cm.core.search"
+        include "cm.application"
+          include "cm.core.test"
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wb.
+        include "cm.extension.util"
+        include "cm.import.projectmatrix"
+        include "cm.import.syldirect"
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wb.
+    include "cm.std.print.template"
+      include "cm.draw.pdf"
+        include "cm.format.pdf"
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wb.
+    include "cm.std.util3D"
+      include "cm.std.photo"
+      include "cm.std.draw2D"
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wb.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1W3.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wb.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+include "cm.import.dxsound"
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W1.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W1.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W1.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W1.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W1.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W3.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W3.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W3.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W3.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W3.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W3.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W4.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W5.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W5.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W6.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wb.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wb.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wb.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wb.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wb.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wb.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wb.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wb.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wb.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wb.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wb.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wb.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wb.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W3.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wb.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W1.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W1.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+include "cm.std.wall"
+ MPS: traceFindGrey rank sequence: E*.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+include "cm.core.recorder"
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W1.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1W2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1W3.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1W3.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W3.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1W2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1W2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W1.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W4.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W3.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W3.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W2.
+  load code in 3.823 s
+cm.security.ftp (lib 1.01.00) loaded in 28.664 s
+cm.security (lib 1.01.00) loaded in 28.916 s
+cet.service (lib 0.01.14) loaded in 28.762 s
+cet.cash.client.machine (lib 0.00.00) loaded in 24.864 s
+cm.security.ui (lib 1.01.00) loaded in 25.902 s
+cm.security.hasp (lib 1.01.00) loaded in 28.868 s
+cet.cash.common (lib 0.00.00) loaded in 25.212 s
+cet.cash.client (lib 0.00.00) loaded in 25.242 s
+cm.security.install (lib 1.01.00) loaded in 25.877 s
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W1.
+ ---==[ sandbox main ]==--- 
+                                        @ cm.core3D.LiEnv.LiEnv.c: liDllAvailable=false
+      LightWorks is disabled (termination skipped)
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W2.
+-----------------------------------------------------------
+Sandbox init started at 17:51:55
+Sandbox version 0.07.03
+    Loading preferences...
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W4.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W5.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W5.
+    Loading preferences done!
+    Booting statistics...
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W8.
+      Parsing c:\cm2\cm\statistics\statistics.rs
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W9.
+    Read startup data...
+    Read version data...
+    Booting LightWorks...
+      LightWorks is disabled (initialize skipped)
+    Booting sound...
+    Booting resources..
+                       @ cm.rs.resetRsPkgOrder: warning : overriding previous pkg search order!
+         public void resetRsPkgOrder()
+         public void setRsLangDefaults()
+         package void initSandboxRs(bool boot=false)
+         private void init()
+         package void main()
+         private void !run.178.11452()
+         private void !run.168.3596()
+         private void !run.167.57()
+
+      Parsing c:\cm2\cm\win\win.rs
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+      Parsing c:\cm2\cm\win\advanced\advanced.rs
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+      Parsing c:\cm2\cm\core3D\core3D.rs
+      Parsing c:\cm2\cm\core\core.rs
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+      Parsing c:\cm2\cm\core\toolbox\toolbox.rs
+      Parsing c:\cm2\cm\statistics\statistics.rs
+      Parsing c:\cm2\cm\draw\draw.rs
+      Parsing c:\cm2\cm\abstract\kitchen\kitchen.rs
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+      Parsing c:\cm2\cm\abstract\draw\draw.rs
+      Parsing c:\cm2\cm\abstract\office\office.rs
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+      Parsing c:\cm2\cm\std\std.rs
+      Parsing c:\cm2\cm\std\kitchen\kitchen.rs
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+      Parsing c:\cm2\cm\std\photo\photo.rs
+ MPS: traceFindGrey rank sequence: E*Wa.
+      Parsing c:\cm2\cm\std\draw3D\draw3D.rs
+      Parsing c:\cm2\cm\std\materials\materials.rs
+      Parsing c:\cm2\cm\std\materials\editor\editor.rs
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+      Parsing c:\cm2\cm\std\util3D\util3D.rs
+ MPS: traceFindGrey rank sequence: E*Wa.
+      Parsing c:\cm2\cm\std\wall\wall.rs
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+      Parsing c:\cm2\cm\std\print\print.rs
+      Parsing c:\cm2\cm\std\print2\print2.rs
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+      Parsing c:\cm2\cm\application\application.rs
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+      Parsing c:\cm2\cet\sandbox\sandbox.rs
+    Booting keywords..
+ MPS: traceFindGrey rank sequence: E*Wa.
+  Parse keywords from c:\cm2\cm\abstract\kitchen\kitchen.keys
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+  Parse keywords from c:\cm2\cm\std\std.keys
+  Parse keywords from c:\cm2\cm\std\kitchen\kitchen.keys
+  Parse keywords from c:\cm2\cm\std\accessories\accessories.keys
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+  Keywords not readable : c:\cmwrite\custom\brio\keys\custom.brio.archive.auto.keys
+pkg custom.brio.archive not found in classPath
+                        @ cm.core.search.generateAutoKeywordsIfNone: no such package '#custom.brio.archive'
+known:
+#cet.runtime.boot
+#cm.util
+#cm.core
+#cm.startup
+#cm.geometry2D
+#cm.io.object
+#cm.math
+#cm.recovery
+#cm.subset
+#cm.lang
+#cm.extension
+#cm.search
+#cm.runtime
+#cm.io.util
+#cm.syntax
+#cm.format.cap
+#custom.projectmatrix
+#cm.basic
+#cm.geometry
+#cm.std.photo
+#cm.win.advanced
+#cm.geometry.advanced
+#cm.import.projectmatrix
+#cm.std.util3D
+#cm.geometry2D.advanced
+#cm.security.ftp
+#profile.rhsk
+#cet.service
+#cm
+#cm.std.print.template
+#cm.io
+#cet.sandbox
+#cm.format.dwg
+#cm.draw.pdf
+#cm.import.syldirect
+#cm.std.draw2D
+#cet.runtime
+#cm.import.xmlrpc
+#cm.format.jpeg
+#cm.extension.util
+#cm.core.search
+#cm.import.dxsound
+#cm.core.toolbox
+#cm.install
+#cm.statistics
+#cm.std.print2
+#cm.core.recorder
+#cm.format.png
+#cet.cash.common
+#cm.security.install
+#cm.db
+#cm.win
+#cm.abstract.draw
+#cm.format.pdf
+#cet.cash.client
+#cm.core.dwg
+#cm.abstract.archive
+#cm.application
+#cm.core3D
+#cm.draw
+#cm.std.print
+#cm.security
+#cm.security.ui
+#cm.rs
+#cm.std.draw3D
+#cm.security.hasp
+#cm.runtime.util
+#cet.cash.client.machine
+#cm.emacs
+#cm.format.cm3D
+#cm.io.ini
+#cm.core.test
+#cm.std.wall
+
+  Keywords not readable : c:\cmwrite\custom\brio\keys\custom.brio.sundo-storage.auto.keys
+pkg custom.brio.sundo not found in classPath
+                        @ cm.core.search.generateAutoKeywordsIfNone: no such package '#custom.brio.sundo'
+known:
+#cet.runtime.boot
+#cm.util
+#cm.core
+#cm.startup
+#cm.geometry2D
+#cm.io.object
+#cm.math
+#cm.recovery
+#cm.subset
+#cm.lang
+#cm.extension
+#cm.search
+#cm.runtime
+#cm.io.util
+#cm.syntax
+#cm.format.cap
+#custom.projectmatrix
+#cm.basic
+#cm.geometry
+#cm.std.photo
+#cm.win.advanced
+#cm.geometry.advanced
+#cm.import.projectmatrix
+#cm.std.util3D
+#cm.geometry2D.advanced
+#cm.security.ftp
+#profile.rhsk
+#cet.service
+#cm
+#cm.std.print.template
+#cm.io
+#cet.sandbox
+#cm.format.dwg
+#cm.draw.pdf
+#cm.import.syldirect
+#cm.std.draw2D
+#cet.runtime
+#cm.import.xmlrpc
+#cm.format.jpeg
+#cm.extension.util
+#cm.core.search
+#cm.import.dxsound
+#cm.core.toolbox
+#cm.install
+#cm.statistics
+#cm.std.print2
+#cm.core.recorder
+#cm.format.png
+#cet.cash.common
+#cm.security.install
+#cm.db
+#cm.win
+#cm.abstract.draw
+#cm.format.pdf
+#cet.cash.client
+#cm.core.dwg
+#cm.abstract.archive
+#cm.application
+#cm.core3D
+#cm.draw
+#cm.std.print
+#cm.security
+#cm.security.ui
+#cm.rs
+#cm.std.draw3D
+#cm.security.hasp
+#cm.runtime.util
+#cet.cash.client.machine
+#cm.emacs
+#cm.format.cm3D
+#cm.io.ini
+#cm.core.test
+#cm.std.wall
+
+  Keywords not readable : c:\cmwrite\custom\brio\keys\custom.brio.sundo-table.auto.keys
+pkg custom.brio.sundo not found in classPath
+                        @ cm.core.search.generateAutoKeywordsIfNone: no such package '#custom.brio.sundo'
+known:
+#cet.runtime.boot
+#cm.util
+#cm.core
+#cm.startup
+#cm.geometry2D
+#cm.io.object
+#cm.math
+#cm.recovery
+#cm.subset
+#cm.lang
+#cm.extension
+#cm.search
+#cm.runtime
+#cm.io.util
+#cm.syntax
+#cm.format.cap
+#custom.projectmatrix
+#cm.basic
+#cm.geometry
+#cm.std.photo
+#cm.win.advanced
+#cm.geometry.advanced
+#cm.import.projectmatrix
+#cm.std.util3D
+#cm.geometry2D.advanced
+#cm.security.ftp
+#profile.rhsk
+#cet.service
+#cm
+#cm.std.print.template
+#cm.io
+#cet.sandbox
+#cm.format.dwg
+#cm.draw.pdf
+#cm.import.syldirect
+#cm.std.draw2D
+#cet.runtime
+#cm.import.xmlrpc
+#cm.format.jpeg
+#cm.extension.util
+#cm.core.search
+#cm.import.dxsound
+#cm.core.toolbox
+#cm.install
+#cm.statistics
+#cm.std.print2
+#cm.core.recorder
+#cm.format.png
+#cet.cash.common
+#cm.security.install
+#cm.db
+#cm.win
+#cm.abstract.draw
+#cm.format.pdf
+#cet.cash.client
+#cm.core.dwg
+#cm.abstract.archive
+#cm.application
+#cm.core3D
+#cm.draw
+#cm.std.print
+#cm.security
+#cm.security.ui
+#cm.rs
+#cm.std.draw3D
+#cm.security.hasp
+#cm.runtime.util
+#cet.cash.client.machine
+#cm.emacs
+#cm.format.cm3D
+#cm.io.ini
+#cm.core.test
+#cm.std.wall
+
+  Keywords not readable : c:\cmwrite\custom\brio\keys\custom.brio.sundo-chair.auto.keys
+pkg custom.brio.sundo not found in classPath
+                        @ cm.core.search.generateAutoKeywordsIfNone: no such package '#custom.brio.sundo'
+known:
+#cet.runtime.boot
+#cm.util
+#cm.core
+#cm.startup
+#cm.geometry2D
+#cm.io.object
+#cm.math
+#cm.recovery
+#cm.subset
+#cm.lang
+#cm.extension
+#cm.search
+#cm.runtime
+#cm.io.util
+#cm.syntax
+#cm.format.cap
+#custom.projectmatrix
+#cm.basic
+#cm.geometry
+#cm.std.photo
+#cm.win.advanced
+#cm.geometry.advanced
+#cm.import.projectmatrix
+#cm.std.util3D
+#cm.geometry2D.advanced
+#cm.security.ftp
+#profile.rhsk
+#cet.service
+#cm
+#cm.std.print.template
+#cm.io
+#cet.sandbox
+#cm.format.dwg
+#cm.draw.pdf
+#cm.import.syldirect
+#cm.std.draw2D
+#cet.runtime
+#cm.import.xmlrpc
+#cm.format.jpeg
+#cm.extension.util
+#cm.core.search
+#cm.import.dxsound
+#cm.core.toolbox
+#cm.install
+#cm.statistics
+#cm.std.print2
+#cm.core.recorder
+#cm.format.png
+#cet.cash.common
+#cm.security.install
+#cm.db
+#cm.win
+#cm.abstract.draw
+#cm.format.pdf
+#cet.cash.client
+#cm.core.dwg
+#cm.abstract.archive
+#cm.application
+#cm.core3D
+#cm.draw
+#cm.std.print
+#cm.security
+#cm.security.ui
+#cm.rs
+#cm.std.draw3D
+#cm.security.hasp
+#cm.runtime.util
+#cet.cash.client.machine
+#cm.emacs
+#cm.format.cm3D
+#cm.io.ini
+#cm.core.test
+#cm.std.wall
+
+  Keywords not readable : c:\cmwrite\custom\brio\keys\custom.brio.sundo-kajsaStorage.auto.keys
+pkg custom.brio.sundo not found in classPath
+                        @ cm.core.search.generateAutoKeywordsIfNone: no such package '#custom.brio.sundo'
+known:
+#cet.runtime.boot
+#cm.util
+#cm.core
+#cm.startup
+#cm.geometry2D
+#cm.io.object
+#cm.math
+#cm.recovery
+#cm.subset
+#cm.lang
+#cm.extension
+#cm.search
+#cm.runtime
+#cm.io.util
+#cm.syntax
+#cm.format.cap
+#custom.projectmatrix
+#cm.basic
+#cm.geometry
+#cm.std.photo
+#cm.win.advanced
+#cm.geometry.advanced
+#cm.import.projectmatrix
+#cm.std.util3D
+#cm.geometry2D.advanced
+#cm.security.ftp
+#profile.rhsk
+#cet.service
+#cm
+#cm.std.print.template
+#cm.io
+#cet.sandbox
+#cm.format.dwg
+#cm.draw.pdf
+#cm.import.syldirect
+#cm.std.draw2D
+#cet.runtime
+#cm.import.xmlrpc
+#cm.format.jpeg
+#cm.extension.util
+#cm.core.search
+#cm.import.dxsound
+#cm.core.toolbox
+#cm.install
+#cm.statistics
+#cm.std.print2
+#cm.core.recorder
+#cm.format.png
+#cet.cash.common
+#cm.security.install
+#cm.db
+#cm.win
+#cm.abstract.draw
+#cm.format.pdf
+#cet.cash.client
+#cm.core.dwg
+#cm.abstract.archive
+#cm.application
+#cm.core3D
+#cm.draw
+#cm.std.print
+#cm.security
+#cm.security.ui
+#cm.rs
+#cm.std.draw3D
+#cm.security.hasp
+#cm.runtime.util
+#cet.cash.client.machine
+#cm.emacs
+#cm.format.cm3D
+#cm.io.ini
+#cm.core.test
+#cm.std.wall
+
+  Keywords not readable : c:\cmwrite\custom\brio\keys\custom.brio.sundo-summaStorage.auto.keys
+pkg custom.brio.sundo not found in classPath
+                        @ cm.core.search.generateAutoKeywordsIfNone: no such package '#custom.brio.sundo'
+known:
+#cet.runtime.boot
+#cm.util
+#cm.core
+#cm.startup
+#cm.geometry2D
+#cm.io.object
+#cm.math
+#cm.recovery
+#cm.subset
+#cm.lang
+#cm.extension
+#cm.search
+#cm.runtime
+#cm.io.util
+#cm.syntax
+#cm.format.cap
+#custom.projectmatrix
+#cm.basic
+#cm.geometry
+#cm.std.photo
+#cm.win.advanced
+#cm.geometry.advanced
+#cm.import.projectmatrix
+#cm.std.util3D
+#cm.geometry2D.advanced
+#cm.security.ftp
+#profile.rhsk
+#cet.service
+#cm
+#cm.std.print.template
+#cm.io
+#cet.sandbox
+#cm.format.dwg
+#cm.draw.pdf
+#cm.import.syldirect
+#cm.std.draw2D
+#cet.runtime
+#cm.import.xmlrpc
+#cm.format.jpeg
+#cm.extension.util
+#cm.core.search
+#cm.import.dxsound
+#cm.core.toolbox
+#cm.install
+#cm.statistics
+#cm.std.print2
+#cm.core.recorder
+#cm.format.png
+#cet.cash.common
+#cm.security.install
+#cm.db
+#cm.win
+#cm.abstract.draw
+#cm.format.pdf
+#cet.cash.client
+#cm.core.dwg
+#cm.abstract.archive
+#cm.application
+#cm.core3D
+#cm.draw
+#cm.std.print
+#cm.security
+#cm.security.ui
+#cm.rs
+#cm.std.draw3D
+#cm.security.hasp
+#cm.runtime.util
+#cet.cash.client.machine
+#cm.emacs
+#cm.format.cm3D
+#cm.io.ini
+#cm.core.test
+#cm.std.wall
+
+  Keywords not readable : c:\cmwrite\custom\brio\keys\custom.brio.exona-table.auto.keys
+pkg custom.brio.exona not found in classPath
+                        @ cm.core.search.generateAutoKeywordsIfNone: no such package '#custom.brio.exona'
+known:
+#cet.runtime.boot
+#cm.util
+#cm.core
+#cm.startup
+#cm.geometry2D
+#cm.io.object
+#cm.math
+#cm.recovery
+#cm.subset
+#cm.lang
+#cm.extension
+#cm.search
+#cm.runtime
+#cm.io.util
+#cm.syntax
+#cm.format.cap
+#custom.projectmatrix
+#cm.basic
+#cm.geometry
+#cm.std.photo
+#cm.win.advanced
+#cm.geometry.advanced
+#cm.import.projectmatrix
+#cm.std.util3D
+#cm.geometry2D.advanced
+#cm.security.ftp
+#profile.rhsk
+#cet.service
+#cm
+#cm.std.print.template
+#cm.io
+#cet.sandbox
+#cm.format.dwg
+#cm.draw.pdf
+#cm.import.syldirect
+#cm.std.draw2D
+#cet.runtime
+#cm.import.xmlrpc
+#cm.format.jpeg
+#cm.extension.util
+#cm.core.search
+#cm.import.dxsound
+#cm.core.toolbox
+#cm.install
+#cm.statistics
+#cm.std.print2
+#cm.core.recorder
+#cm.format.png
+#cet.cash.common
+#cm.security.install
+#cm.db
+#cm.win
+#cm.abstract.draw
+#cm.format.pdf
+#cet.cash.client
+#cm.core.dwg
+#cm.abstract.archive
+#cm.application
+#cm.core3D
+#cm.draw
+#cm.std.print
+#cm.security
+#cm.security.ui
+#cm.rs
+#cm.std.draw3D
+#cm.security.hasp
+#cm.runtime.util
+#cet.cash.client.machine
+#cm.emacs
+#cm.format.cm3D
+#cm.io.ini
+#cm.core.test
+#cm.std.wall
+
+  Keywords not readable : c:\cmwrite\custom\brio\keys\custom.brio.exona-chair.auto.keys
+pkg custom.brio.exona not found in classPath
+                        @ cm.core.search.generateAutoKeywordsIfNone: no such package '#custom.brio.exona'
+known:
+#cet.runtime.boot
+#cm.util
+#cm.core
+#cm.startup
+#cm.geometry2D
+#cm.io.object
+#cm.math
+#cm.recovery
+#cm.subset
+#cm.lang
+#cm.extension
+#cm.search
+#cm.runtime
+#cm.io.util
+#cm.syntax
+#cm.format.cap
+#custom.projectmatrix
+#cm.basic
+#cm.geometry
+#cm.std.photo
+#cm.win.advanced
+#cm.geometry.advanced
+#cm.import.projectmatrix
+#cm.std.util3D
+#cm.geometry2D.advanced
+#cm.security.ftp
+#profile.rhsk
+#cet.service
+#cm
+#cm.std.print.template
+#cm.io
+#cet.sandbox
+#cm.format.dwg
+#cm.draw.pdf
+#cm.import.syldirect
+#cm.std.draw2D
+#cet.runtime
+#cm.import.xmlrpc
+#cm.format.jpeg
+#cm.extension.util
+#cm.core.search
+#cm.import.dxsound
+#cm.core.toolbox
+#cm.install
+#cm.statistics
+#cm.std.print2
+#cm.core.recorder
+#cm.format.png
+#cet.cash.common
+#cm.security.install
+#cm.db
+#cm.win
+#cm.abstract.draw
+#cm.format.pdf
+#cet.cash.client
+#cm.core.dwg
+#cm.abstract.archive
+#cm.application
+#cm.core3D
+#cm.draw
+#cm.std.print
+#cm.security
+#cm.security.ui
+#cm.rs
+#cm.std.draw3D
+#cm.security.hasp
+#cm.runtime.util
+#cet.cash.client.machine
+#cm.emacs
+#cm.format.cm3D
+#cm.io.ini
+#cm.core.test
+#cm.std.wall
+
+  Keywords not readable : c:\cmwrite\custom\brio\keys\custom.brio.exona-sofa.auto.keys
+pkg custom.brio.exona not found in classPath
+                        @ cm.core.search.generateAutoKeywordsIfNone: no such package '#custom.brio.exona'
+known:
+#cet.runtime.boot
+#cm.util
+#cm.core
+#cm.startup
+#cm.geometry2D
+#cm.io.object
+#cm.math
+#cm.recovery
+#cm.subset
+#cm.lang
+#cm.extension
+#cm.search
+#cm.runtime
+#cm.io.util
+#cm.syntax
+#cm.format.cap
+#custom.projectmatrix
+#cm.basic
+#cm.geometry
+#cm.std.photo
+#cm.win.advanced
+#cm.geometry.advanced
+#cm.import.projectmatrix
+#cm.std.util3D
+#cm.geometry2D.advanced
+#cm.security.ftp
+#profile.rhsk
+#cet.service
+#cm
+#cm.std.print.template
+#cm.io
+#cet.sandbox
+#cm.format.dwg
+#cm.draw.pdf
+#cm.import.syldirect
+#cm.std.draw2D
+#cet.runtime
+#cm.import.xmlrpc
+#cm.format.jpeg
+#cm.extension.util
+#cm.core.search
+#cm.import.dxsound
+#cm.core.toolbox
+#cm.install
+#cm.statistics
+#cm.std.print2
+#cm.core.recorder
+#cm.format.png
+#cet.cash.common
+#cm.security.install
+#cm.db
+#cm.win
+#cm.abstract.draw
+#cm.format.pdf
+#cet.cash.client
+#cm.core.dwg
+#cm.abstract.archive
+#cm.application
+#cm.core3D
+#cm.draw
+#cm.std.print
+#cm.security
+#cm.security.ui
+#cm.rs
+#cm.std.draw3D
+#cm.security.hasp
+#cm.runtime.util
+#cet.cash.client.machine
+#cm.emacs
+#cm.format.cm3D
+#cm.io.ini
+#cm.core.test
+#cm.std.wall
+
+  Keywords not readable : c:\cmwrite\custom\brio\keys\custom.brio.exona-hanger.auto.keys
+pkg custom.brio.exona not found in classPath
+                        @ cm.core.search.generateAutoKeywordsIfNone: no such package '#custom.brio.exona'
+known:
+#cet.runtime.boot
+#cm.util
+#cm.core
+#cm.startup
+#cm.geometry2D
+#cm.io.object
+#cm.math
+#cm.recovery
+#cm.subset
+#cm.lang
+#cm.extension
+#cm.search
+#cm.runtime
+#cm.io.util
+#cm.syntax
+#cm.format.cap
+#custom.projectmatrix
+#cm.basic
+#cm.geometry
+#cm.std.photo
+#cm.win.advanced
+#cm.geometry.advanced
+#cm.import.projectmatrix
+#cm.std.util3D
+#cm.geometry2D.advanced
+#cm.security.ftp
+#profile.rhsk
+#cet.service
+#cm
+#cm.std.print.template
+#cm.io
+#cet.sandbox
+#cm.format.dwg
+#cm.draw.pdf
+#cm.import.syldirect
+#cm.std.draw2D
+#cet.runtime
+#cm.import.xmlrpc
+#cm.format.jpeg
+#cm.extension.util
+#cm.core.search
+#cm.import.dxsound
+#cm.core.toolbox
+#cm.install
+#cm.statistics
+#cm.std.print2
+#cm.core.recorder
+#cm.format.png
+#cet.cash.common
+#cm.security.install
+#cm.db
+#cm.win
+#cm.abstract.draw
+#cm.format.pdf
+#cet.cash.client
+#cm.core.dwg
+#cm.abstract.archive
+#cm.application
+#cm.core3D
+#cm.draw
+#cm.std.print
+#cm.security
+#cm.security.ui
+#cm.rs
+#cm.std.draw3D
+#cm.security.hasp
+#cm.runtime.util
+#cet.cash.client.machine
+#cm.emacs
+#cm.format.cm3D
+#cm.io.ini
+#cm.core.test
+#cm.std.wall
+
+    Registering materials...
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1Wa.
+    Upgrade keywords..
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ ---==[ sandbox init done ]==--- 
+ MPS: traceFindGrey rank sequence: E*F1E5Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1W4.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1W2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1W3.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1W3.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W3.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W3.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W4.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W3.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W4.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E3W3.
+      Parsing c:\cm2\cm\core\toolbox\toolbox.rs
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1W5.
+      Parsing c:\cm2\cm\core\search\search.rs
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W5.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W5.
+      Parsing c:\cm2\cm\abstract\draw\draw.rs
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+      Parsing c:\cm2\cm\std\draw3D\draw3D.rs
+ MPS: traceFindGrey rank sequence: E*F1W6.
+      Parsing c:\cm2\cm\std\wall\wall.rs
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E2Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E8Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E4Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E2Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E6Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E8Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1Wa.
+slow bound 16 ms, FloorSnapper
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+FloorSnapper updateCachedRect in 63 ms
+ MPS: traceFindGrey rank sequence: E*F1Wb.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1Wb.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E5W5.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EaWb.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W3.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1W3.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EaF1E2W5.
+                      @ cm.security.hasp.loadSpecials: failed to open / magic : null
+compiled 747,698 lines in 58.5 s - 0.766 M lines/min (swap r=32345, w=187470)
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+cm>  MPS: traceFindGrey rank sequence: E*W6.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W6.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W6.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+  cm.abstract.kitchen
+include "cm.abstract.kitchen"
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+include "cm.abstract"
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+include "cm.abstract.kitchen.kitchengenerator"
+include "cm.core.intro"
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wb.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wb.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wb.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wb.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wb.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E9F1E1W6.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wb.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W1.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W1.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W1.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W1.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W1.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W1.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W1.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W1.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1W2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E2W3.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EcW8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1W4.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EaF1EbWa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W4.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W4.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+
+AutoCrash: activateLibraryCards
+    activate card : Wall drawing
+ MPS: traceFindGrey rank sequence: E*F1EaW7.
+    activate card : Tools
+include "cm.std.tools"
+      Parsing c:\cm2\cm\std\tools\tools.rs
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+    fail($dwgDialog, cm.std.tools, english)
+    fail($pMatrixLabel, cm.std.tools, english)
+    fail($startPMatrix, cm.std.tools, english)
+    fail($startPMatrixTip, cm.std.tools, english)
+    activate card : 3D
+ MPS: traceFindGrey rank sequence: E*F1E2F1EeW6.
+      Parsing c:\cm2\cm\std\materials\materials.rs
+      Parsing c:\cm2\cm\std\materials\editor\editor.rs
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+      Parsing c:\cm2\cm\std\util3D\util3D.rs
+ MPS: traceFindGrey rank sequence: E*F1E4F1E2W4.
+    activate card : Drawing 3D
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E2W2.
+      Parsing c:\cm2\cm\abstract\draw\draw.rs
+      Parsing c:\cm2\cm\std\draw3D\draw3D.rs
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F2W1.
+    activate card : Misc
+include "cm.std.accessories"
+include "cm.std.kitchen"
+include "cm.abstract.accessories"
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E5W1.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W1.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W1.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W1.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W1.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W1.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W3.
+      Parsing c:\cm2\cm\std\std.rs
+      Parsing c:\cm2\cm\std\accessories\accessories.rs
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1W3.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1W4.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W6.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1W7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1W8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E8Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E2W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+Starting core.autoCrash 100000000 iterations ...
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1F1EaWa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1F1EaW7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E2Wb.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E2W3.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1W4.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E7W4.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E7W5.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E7W7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1F1E1W6.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E2F1EbW7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1F1E8W7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+cm>  MPS: traceFindGrey rank sequence: E*F1E9Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E3F1EbW9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1F1E5W8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1W8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E2W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E2W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1F1E5Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E4Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E5Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E2F1EaWa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1F1E1Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1F1EaWa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E2F1EaWa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E3F1EbWa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1F1E7Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E2Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E6F1EhW6.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E4F1E8Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E2F1E6W5.
+                                             @ cm.core.World.setViewMode: ERROR, #cm.core.tags
+                                             @ cm.core.World.setViewMode: #wall
+                                             @ cm.core.World.setViewMode: #autocad
+                                             @ cm.core.World.setViewMode: #common
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E4W2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EaW4.
+include "cm.std.materials"
+include "cm.std.materials.choose"
+include "cm.std.materials.editor"
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E2W2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W3.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1W6.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E4W5.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E5W8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EbW9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E4F1E2W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E3W8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1F1EaWa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EaWa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EaWa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E3F1E9Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EaWa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EbWa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+                                             @ cm.core.World.setViewMode: ERROR, #cm.core.tags
+                                             @ cm.core.World.setViewMode: #wall
+                                             @ cm.core.World.setViewMode: #autocad
+                                             @ cm.core.World.setViewMode: #common
+ MPS: traceFindGrey rank sequence: E*F1E4Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1F1EaWa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E2F1EcWa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E5F1EcWa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EaWa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E3F1EeF1EcW7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1F1E4F1EaWb.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EaW1.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EaF1EaW1.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E2F1EaF1EaW2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+                                             @ cm.core.World.setViewMode: ERROR, #cm.core.tags
+                                             @ cm.core.World.setViewMode: #wall
+                                             @ cm.core.World.setViewMode: #autocad
+                                             @ cm.core.World.setViewMode: #common
+ MPS: traceFindGrey rank sequence: E*F1EaW2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EaF1EaW4.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1W1.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1F1E3F1E7W3.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EbF1E9W5.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1F1EaF1EaW3.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E2F1EeF1EcW5.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E2F1EbF1EaW4.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E5W1.
+                                             @ cm.core.World.setViewMode: ERROR, #cm.core.tags
+                                             @ cm.core.World.setViewMode: #wall
+                                             @ cm.core.World.setViewMode: #autocad
+                                             @ cm.core.World.setViewMode: #common
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EaF1EaW2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E2F1EcF1EaW3.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EbF1EaW2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E2F1EbF1EaW2.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E3F1E4W1.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E2F1EaF1E7W1.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E5F1E1W5.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1W3.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1F1EaF1EaF1E9W5.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EcW6.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1F1E5F1EcW7.
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+Image: cannot load c:\cmwrite\data\backgrounds\bg010.standard.cmjpg
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+Image: cannot load c:\cmwrite\data\backgrounds\bg020.white.cmjpg
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+Image: cannot load c:\cmwrite\data\backgrounds\bg022.blue.cmjpg
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+Image: cannot load c:\cmwrite\data\backgrounds\bg024.black.cmjpg
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+Image: cannot load c:\cmwrite\data\backgrounds\bg040.graduated.cmjpg
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+Image: cannot load c:\cmwrite\data\backgrounds\bg042.industrial.cmjpg
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+Image: cannot load c:\cmwrite\data\backgrounds\bg050.clouds.cmjpg
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1W5.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E4W6.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1F1E3F1EaF1EdW6.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1F1EaF1E8F1EgF1E2W6.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E5W7.
+
+MPS: TraceStart why: 2; arena->Chunks: 1
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+Image: cannot load c:\cmwrite\data\backgrounds\bg010.standard.cmjpg
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+Image: cannot load c:\cmwrite\data\backgrounds\bg020.white.cmjpg
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+ MPS: traceFindGrey rank sequence: E*F1EbF1EfF1EiF1EbF1E6W4.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+include "cm.std"
+ MPS: traceFindGrey rank sequence: E*F1E1F1EaF1EaF1EcF1EhW4.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EaF1EaF1EcF1E8W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+Last update lasted: 0.164438s
+ MPS: traceFindGrey rank sequence: E*F1E4W8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E6W6.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E8W7.
+                                                  @ cm.std.photo.PhotoDialog.attachPhotoSeries: NEW
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EbF1E9W5.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EeW7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E7F1EaW6.
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1F1E7F1E3F1E9F1E4W7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EaF1EcW6.
+                                             @ cm.core.World.setViewMode: ERROR, #cm.core.tags
+                                             @ cm.core.World.setViewMode: #wall
+                                             @ cm.core.World.setViewMode: #autocad
+                                             @ cm.core.World.setViewMode: #common
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E5F1EbW6.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EbW7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EaW7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EaF1E9F1E2F1E8W7.
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E6W7.
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_blue.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_brown.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_darkgray.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_green.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_lightgray.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_pink.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_red.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;shiny_yellow.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_white.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_yellow.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;beige_fabric.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;blue_fabric.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;red_fabric.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;water.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;dark_glass.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;diamond.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;frosted_glass.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;glass.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;porcelain.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;fake_glass.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;window_glass.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;fake_aluminum.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;aluminum.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;anthracite.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;antique_brass.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;antique brass.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;beaten copper.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;beaten_copper.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;bronze.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;chrome.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;copper.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;dark_metal.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;gold.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;iron.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;cast_iron.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;raw_steel.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;polished_brass.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;polished brass.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;polished_chrome.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;silver.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;stainless_steel.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;steel.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;leaf_green.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;black_plastic.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;blue_plastic.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;brown_plastic.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;dark_gray_plastic.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;gray_plastic.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;light_gray_plastic.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;rubber.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;white_plastic.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;black_marble.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;black_stone.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;brown_brick.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;ceramic.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;graphite.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;green_marble.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;red_brick.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;white_marble.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;blue_tiles.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;glossy_tiles.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;white_tiles.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;beech.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;birch.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;brown_beech.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;brown_birch.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;cherry.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;mahogny.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;maple.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;oak.cmjpg
+                                                      @ cm.core3D.Material3D.makePreviewImage: failed
+                                                     @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;pine.cmjpg
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1F1E4F1E2W8.
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E6W7.
+Warning: could not load favorite materials 'c:\cmwrite\data\materials\colorFavorites.cmdat'.
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+                                                       @ cm.core3D.Material3D.makePreviewImage: failed
+                                                      @ cm.std.materials.choose.GridButton.setMaterial: unreadable: c:\cmwrite\data\materials\cm.core;plain_gray.cmjpg
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E7W9.
+ChooseMaterialDialog build time:
+  953 ms
+  1211 ms
+  333 ms
+  918 ms
+  33 ms
+  335 ms
+  Total 3785 ms
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E9F1E8W5.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EcW7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+ MPS: traceFindGrey rank sequence: E*F1EaW6.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1F1E8F1EaF1EcF1E3W8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E2F1EcF1E3W8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E5W7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E2W7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EbF1EbW7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+                                                 @ cm.std.photo.PhotoDialog.attachPhotoSeries: NEW
+ MPS: traceFindGrey rank sequence: E*F1E9F2EdW7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+ MPS: traceFindGrey rank sequence: E*F1E3F1EaF1EaF1EaW6.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1F1EaF1EaF1E2F1E1W6.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1F1E8F1EcF1E4W7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F3E3F1EcF1E4W7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EaF1W6.
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EaF1E7F1EeW7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E2F1EcF1EbF1EaF1EbW9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F3EaF2W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EbW7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E9W8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E4F1EbW8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F2E5F1E2W7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EaF1EbF1E8W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F3EbW7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E2F1EaF1EbW7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F2EaF1EaF1W5.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E3F1EdF1EbF1EaW7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E8F2EcF1E2W7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E2F1E7F1EbF1EbW7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1F1E7F2EbW5.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EbF1EaF1EaW7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F2EbF1W5.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+                                             @ cm.core.World.setViewMode: ERROR, #cm.core.tags
+                                             @ cm.core.World.setViewMode: #wall
+                                             @ cm.core.World.setViewMode: #autocad
+                                             @ cm.core.World.setViewMode: #common
+ MPS: traceFindGrey rank sequence: E*F1EaF1EbF1EaW7.
+                                                     @ cm.std.photo.PhotoDialog.attachPhotoSeries: NEW
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EaF1E4F2EcF1E8W7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1F1EbF1EaF1E5F1EeW9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1F2EdF1EbF1EaWa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EaF1E8F2EcF1EaWa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F2E5F1E2F1W8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EaF1EaF1E3W9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1F2EaF1E7F1EeW9.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F2EcF2W6.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E6F1E2F1E7F1EaF1EaW7.
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+                                                       @ cm.core3D.Background3D.makePreviewImage: failed
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E3F1EbF1E9F1EcF1E5W8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1F1E1F1EaF1E5F1EcW8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F4EaW8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E3F1E5W7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E8F1E4F1EbF1EbF1E5W7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E2F1E5F2E2F1EaW8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F2E7F1E2W7.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1EaF1EaF1EcF1E1W8.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E2F1E1F1EaF1E5F1EeW9.
+                                                     @ cm.std.photo.PhotoDialog.attachPhotoSeries: NEW
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E7F1EaF1EbF1EaF1EaWa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1F1EaF1EaF1EcF1EaWa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E4F1E1F1EaF1E8F1EdWa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E4F1E9F1EbF1EaF1E7Wa.
+
+  ac=500, gc=246 MB, glob=1.30 MB, malloc=1.01 MB
+    working set=269 MB/566 MB, handles=115, symbols=3443
+    load3D=0, repository=2, invalid map=
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1F1E8F1E2F1E9F1EaWa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E2F1E5F1E1F1E9Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+c:\cm2\cm\core\test\autoCrashEnv.cm(1954, 67): void acMemStats(int step) - access violation
+  arg: int step = 499  default=0
+  local: int malloc = 1060107
+  local: int global = 1367464
+  local: int gc = 258007040
+  local: int repository = 2
+  global: Session session = Session('there can be only one')
+  global: int image3DCount = 0
+  global: int memoryBitmapCount = 204
+
+c:\cm2\cm\core\test\autoCrashEnv.cm(1890, 29): final void printEvery(AutoCrashEnv this, int step)
+  arg: AutoCrashEnv this = AutoCrashEnv(15)
+     field: int iterations = 100000000
+     field: Space space = Space(id=Space @ 17:54:04 28)
+     field: View2D view2D = View2D("mvArea-halfsize2D:2" (1))
+     field: View3D view3D = ComboView3D(*disabled* "mvArea-fullsize3D:1" (188))
+     field: View2D{} availableViews = {View2D: View2D("mvArea-halfsize2D:2" (1))}
+     field: str sourceFlapLabel = null
+     field: str sourceFlapKey = "*auto-switch*"
+     field: Window{} buttons = {Window: AnimationImageButton(79, hidden in ShrinkBox), LazySnapper2DButton(146, hidden in ShrinkBox), AnimationImageButton(131, hidden in ShrinkBox), SnapperImageButton(135, hidden in ShrinkBox), LimbCallbackButton(label=Settings ... ), AnimationImageButton(137, hidden in ShrinkBox), AnimationImageB...
+     field: Window[] buttonSeq = [Window: AnimationImageButton(79, hidden in ShrinkBox), LazySnapper2DButton(146, hidden in ShrinkBox), AnimationImageButton(131, hidden in ShrinkBox), SnapperImageButton(135, hidden in ShrinkBox), LimbCallbackButton(label=Settings ... ), AnimationImageButton(137, hidden in ShrinkBox), AnimationImageB...
+     field: Card prevWorkFlap = LazyLibraryCard(cm.std.wall;stdWallLibrary: 46 in Toolbox)
+     field: CardWindow cardWindow = Toolbox(44 in SandboxAppWindow)
+     field: LazyLibraryCard{} cards = {LazyLibraryCard: LazyLibrarySnapper3DCard(cm.std.accessories;stdAccessoriesLibrary: 54, hidden in Toolbox), LazyLibraryCard(cm.std.tools;stdToolsLibrary: 48, hidden in Toolbox), LazyLibraryCard(cm.std.util3D;stdUtil3DLibrary: 50, hidden in Toolbox), LazyLibraryCard(cm.std.wall;stdWallLibrary: 46 in ...
+     field: ProgressBarDialog progression = null
+MPS: TraceStart why: 1; arena->Chunks: 1
+
+     field: AutoCrashAction[] actions = [AutoCrashAction: AcSwitchLibraryCardAction(slc), AcInsertAction(ins), AcInsertAndDragAction(ins&drg), AcRemoveAction(del), AcAlignAction(align), AcSelectAction(sel), AcRectSelectAction(rect_sel), AcCropSelectAction(cropSel),  ..]
+     field: AutoCrashAction removeAction = null
+     field: AutoCrashAction selectAction = AcSelectAction(sel)
+     field: AutoCrashAction unselectAction = AcUnselectAction(uns)
+     field: AutoCrashAction undoAction = null
+     field: AcInsertAction insert = AcInsertAction(ins)
+     field: int acpMax = 533
+     field: bool aborted = true
+     field: int runningMode = 0
+     field: int nominalUndoQueueLength = 25
+     field: int nominalSnapperCount = 50
+     field: int maxWorldCount = 10
+     field: int checkSpaceEvery = 1
+     field: int prefIterations = 100000000
+     field: bool requestClearDrawing = true
+     field: bool flush3D = true
+     field: bool fps100 = true
+     field: int userFps = 15
+     field: bool userLod = true
+     field: bool showProgress = false
+     field: bool showReport = false
+     field: int peekUndoCount = 28
+     field: int avgUndoCount = 9990
+     field: int peekSnapperCount = 31
+     field: int avgSnapperCount = 5711
+     field: double startTime = 6.36577e+009
+     field: double timeInFlush = 0
+     field: double timeInCheck = 3.30834e+006
+     field: double timeInAction = 4.57734e+007
+     field: double timeInQDelete = 0
+     field: double timeInQSelect = 0
+     field: double totalTime = 0
+     field: int done = 0
+     field: int sdone = 0
+     field: ViewMode initialViewMode = null
+  arg: int step = 499
+  local: int printEvery = 500
+
+c:\cm2\cm\core\test\autoCrashEnv.cm(1774, 25): final bool crashStep(AutoCrashEnv this, int step)
+  arg: AutoCrashEnv this = AutoCrashEnv(15)
+     field: int iterations = 100000000
+     field: Space space = Space(id=Space @ 17:54:04 28)
+     field: View2D view2D = View2D("mvArea-halfsize2D:2" (1))
+     field: View3D view3D = ComboView3D(*disabled* "mvArea-fullsize3D:1" (188))
+     field: View2D{} availableViews = {View2D: View2D("mvArea-halfsize2D:2" (1))}
+     field: str sourceFlapLabel = null
+     field: str sourceFlapKey = "*auto-switch*"
+     field: Window{} buttons = {Window: AnimationImageButton(79, hidden in ShrinkBox), LazySnapper2DButton(146, hidden in ShrinkBox), AnimationImageButton(131, hidden in ShrinkBox), SnapperImageButton(135, hidden in ShrinkBox), LimbCallbackButton(label=Settings ... ), AnimationImageButton(137, hidden in ShrinkBox), AnimationImageB...
+     field: Window[] buttonSeq = [Window: AnimationImageButton(79, hidden in ShrinkBox), LazySnapper2DButton(146, hidden in ShrinkBox), AnimationImageButton(131, hidden in ShrinkBox), SnapperImageButton(135, hidden in ShrinkBox), LimbCallbackButton(label=Settings ... ), AnimationImageButton(137, hidden in ShrinkBox), AnimationImageB...
+     field: Card prevWorkFlap = LazyLibraryCard(cm.std.wall;stdWallLibrary: 46 in Toolbox)
+     field: CardWindow cardWindow = Toolbox(44 in SandboxAppWindow)
+     field: LazyLibraryCard{} cards = {LazyLibraryCard: LazyLibrarySnapper3DCard(cm.std.accessories;stdAccessoriesLibrary: 54, hidden in Toolbox), LazyLibraryCard(cm.std.tools;stdToolsLibrary: 48, hidden in Toolbox), LazyLibraryCard(cm.std.util3D;stdUtil3DLibrary: 50, hidden in Toolbox), LazyLibraryCard(cm.std.wall;stdWallLibrary: 46 in ...
+     field: ProgressBarDialog progression = null
+     field: AutoCrashAction[] actions = [AutoCrashAction: AcSwitchLibraryCardAction(slc), AcInsertAction(ins), AcInsertAndDragAction(ins&drg), AcRemoveAction(del), AcAlignAction(align), AcSelectAction(sel), AcRectSelectAction(rect_sel), AcCropSelectAction(cropSel),  ..]
+     field: AutoCrashAction removeAction = null
+     field: AutoCrashAction selectAction = AcSelectAction(sel)
+     field: AutoCrashAction unselectAction = AcUnselectAction(uns)
+     field: AutoCrashAction undoAction = null
+     field: AcInsertAction insert = AcInsertAction(ins)
+     field: int acpMax = 533
+     field: bool aborted = true
+     field: int runningMode = 0
+     field: int nominalUndoQueueLength = 25
+     field: int nominalSnapperCount = 50
+     field: int maxWorldCount = 10
+     field: int checkSpaceEvery = 1
+     field: int prefIterations = 100000000
+     field: bool requestClearDrawing = true
+     field: bool flush3D = true
+     field: bool fps100 = true
+     field: int userFps = 15
+     field: bool userLod = true
+     field: bool showProgress = false
+     field: bool showReport = false
+     field: int peekUndoCount = 28
+     field: int avgUndoCount = 9990
+     field: int peekSnapperCount = 31
+     field: int avgSnapperCount = 5711
+     field: double startTime = 6.36577e+009
+     field: double timeInFlush = 0
+     field: double timeInCheck = 3.30834e+006
+     field: double timeInAction = 4.57734e+007
+     field: double timeInQDelete = 0
+     field: double timeInQSelect = 0
+     field: double totalTime = 0
+     field: int done = 0
+     field: int sdone = 0
+     field: ViewMode initialViewMode = null
+  arg: int step = 499
+  local: AutoCrashAction performed = AcInsertAction(ins)
+
+c:\cm2\cm\core\test\autoCrashEnv.cm(1689, 33): final void autoCrash(AutoCrashEnv this)
+  arg: AutoCrashEnv this = AutoCrashEnv(15)
+     field: int iterations = 100000000
+     field: Space space = Space(id=Space @ 17:54:04 28)
+     field: View2D view2D = View2D("mvArea-halfsize2D:2" (1))
+     field: View3D view3D = ComboView3D(*disabled* "mvArea-fullsize3D:1" (188))
+     field: View2D{} availableViews = {View2D: View2D("mvArea-halfsize2D:2" (1))}
+     field: str sourceFlapLabel = null
+     field: str sourceFlapKey = "*auto-switch*"
+     field: Window{} buttons = {Window: AnimationImageButton(79, hidden in ShrinkBox), LazySnapper2DButton(146, hidden in ShrinkBox), AnimationImageButton(131, hidden in ShrinkBox), SnapperImageButton(135, hidden in ShrinkBox), LimbCallbackButton(label=Settings ... ), AnimationImageButton(137, hidden in ShrinkBox), AnimationImageB...
+     field: Window[] buttonSeq = [Window: AnimationImageButton(79, hidden in ShrinkBox), LazySnapper2DButton(146, hidden in ShrinkBox), AnimationImageButton(131, hidden in ShrinkBox), SnapperImageButton(135, hidden in ShrinkBox), LimbCallbackButton(label=Settings ... ), AnimationImageButton(137, hidden in ShrinkBox), AnimationImageB...
+     field: Card prevWorkFlap = LazyLibraryCard(cm.std.wall;stdWallLibrary: 46 in Toolbox)
+     field: CardWindow cardWindow = Toolbox(44 in SandboxAppWindow)
+     field: LazyLibraryCard{} cards = {LazyLibraryCard: LazyLibrarySnapper3DCard(cm.std.accessories;stdAccessoriesLibrary: 54, hidden in Toolbox), LazyLibraryCard(cm.std.tools;stdToolsLibrary: 48, hidden in Toolbox), LazyLibraryCard(cm.std.util3D;stdUtil3DLibrary: 50, hidden in Toolbox), LazyLibraryCard(cm.std.wall;stdWallLibrary: 46 in ...
+     field: ProgressBarDialog progression = null
+     field: AutoCrashAction[] actions = [AutoCrashAction: AcSwitchLibraryCardAction(slc), AcInsertAction(ins), AcInsertAndDragAction(ins&drg), AcRemoveAction(del), AcAlignAction(align), AcSelectAction(sel), AcRectSelectAction(rect_sel), AcCropSelectAction(cropSel),  ..]
+     field: AutoCrashAction removeAction = null
+     field: AutoCrashAction selectAction = AcSelectAction(sel)
+     field: AutoCrashAction unselectAction = AcUnselectAction(uns)
+     field: AutoCrashAction undoAction = null
+     field: AcInsertAction insert = AcInsertAction(ins)
+     field: int acpMax = 533
+     field: bool aborted = true
+     field: int runningMode = 0
+     field: int nominalUndoQueueLength = 25
+     field: int nominalSnapperCount = 50
+     field: int maxWorldCount = 10
+     field: int checkSpaceEvery = 1
+     field: int prefIterations = 100000000
+     field: bool requestClearDrawing = true
+     field: bool flush3D = true
+     field: bool fps100 = true
+     field: int userFps = 15
+     field: bool userLod = true
+     field: bool showProgress = false
+     field: bool showReport = false
+     field: int peekUndoCount = 28
+     field: int avgUndoCount = 9990
+     field: int peekSnapperCount = 31
+     field: int avgSnapperCount = 5711
+     field: double startTime = 6.36577e+009
+     field: double timeInFlush = 0
+     field: double timeInCheck = 3.30834e+006
+     field: double timeInAction = 4.57734e+007
+     field: double timeInQDelete = 0
+     field: double timeInQSelect = 0
+     field: double totalTime = 0
+     field: int done = 0
+     field: int sdone = 0
+     field: ViewMode initialViewMode = null
+  local: int done = 499
+  local: bool trackT = false
+  local: int i = 499
+  local: double t0 = 0
+  global: bool autoCrashing = true
+  global: ResourceDB rsDB = ResourceDB({str: "german", "dutch", "french", "norwegian", "english", "finnish", "swedish", "spanish"})
+  global: bool acAbortFlag = false
+  global: double timeInSnapAllAligned = 0
+  global: AutoCrashEnv acEnv = AutoCrashEnv(15)
+  global: Session session = Session('there can be only one')
+
+ MPS: traceFindGrey rank sequence: E*Wa.
+c:\cm2\cm\core\test\autoCrash.cm(55, 22): void autoCrash()
+  global: AutoCrashEnv acEnv = AutoCrashEnv(15)
+
+c:\cm2\cm\core\test\autoCrash.cm(76, 16): void callAutoCrash(View2D v, int xiterations)
+  arg: View2D v = View2D("mvArea-halfsize2D:2" (1))
+  arg: int xiterations = -1  default=(-1)
+  global: AutoCrashEnv acEnv = AutoCrashEnv(15)
+  global: Session session = Session('there can be only one')
+
+c:\cm2\cm\core\test\autoCrashDialog.cm(615, 30): void callAutoCrashCB(Control c)
+  arg: Control c = * exception in toS() *
+  local: int iterations = 100000000
+  local: AutoCrashDialog acd = AutoCrashDialog(window with NULL hwnd in SandboxAppWindow)
+  local: Card flap = null
+  local: bool crashMode = true
+  local: TreeViewSelection selection = TreeViewSelection(TreeViewItem(null))
+  local: View2D view = View2D("mvArea-halfsize2D:2" (1))
+  global: Session session = Session('there can be only one')
+  global: AutoCrashEnv acEnv = AutoCrashEnv(15)
+
+c:\cm2\cm\win\button.cm(234, 35): void press(Button this)
+  arg: Button this = * exception in toS() *
+     field: mwnd hwnd = mwnd(0)
+     field: Window parent = AutoCrashDialog(window with NULL hwnd in SandboxAppWindow)
+     field: Window[] _childWindows = null
+     field: bool _selectable = true
+     field: bool finalized = false
+     field: bool paintEnabled = false
+     field: bool persistentEnabled = true
+     field: Frame3D frame = Frame3D(pushButtonFrame, frameStateDown)
+     field: Skin _skin = null
+     field: WindowPixelDevice dc = null
+     field: WindowShape lastShape = WindowShape(setPos, setSize)
+     field: int _borderThickness = 2
+     field: Font _font = null
+     field: Brush _backgroundBrush = null
+     field: pointI _origin = (2, 2)
+     field: Cursor _cursor = null
+     field: str key = null
+     field: ControlGroup group = null
+     field: WinPainter winPainter = null
+     field: bool popup = false
+     field: str _toolTipText = null
+     field: bool mouseInside = true
+     field: bool useFocusRectangle = true
+     field: bool focusDrawnLastRepaint = false
+     field: function(Control) pressCb = private void callAutoCrashCB(Control c)
+     field: bool defaultButton = true
+
+c:\cm2\cm\win\button.cm(185, 42): void release(Button this, pointI p)
+  arg: Button this = * exception in toS() *
+     field: mwnd hwnd = mwnd(0)
+     field: Window parent = AutoCrashDialog(window with NULL hwnd in SandboxAppWindow)
+     field: Window[] _childWindows = null
+     field: bool _selectable = true
+     field: bool finalized = false
+     field: bool paintEnabled = false
+     field: bool persistentEnabled = true
+     field: Frame3D frame = Frame3D(pushButtonFrame, frameStateDown)
+     field: Skin _skin = null
+     field: WindowPixelDevice dc = null
+     field: WindowShape lastShape = WindowShape(setPos, setSize)
+     field: int _borderThickness = 2
+     field: Font _font = null
+     field: Brush _backgroundBrush = null
+     field: pointI _origin = (2, 2)
+     field: Cursor _cursor = null
+     field: str key = null
+     field: ControlGroup group = null
+     field: WinPainter winPainter = null
+     field: bool popup = false
+     field: str _toolTipText = null
+     field: bool mouseInside = true
+     field: bool useFocusRectangle = true
+     field: bool focusDrawnLastRepaint = false
+     field: function(Control) pressCb = private void callAutoCrashCB(Control c)
+     field: bool defaultButton = true
+  arg: pointI p = (41, 14)
+
+c:\cm2\cm\win\mouseEventHandler.cm(214, 45): final int release(MouseEventHandler this, EventEnv env, Window w, pointI p)
+  arg: MouseEventHandler this = MouseEventHandler(137)
+     field: EventHandler parent = EventHandler(54)
+     field: mwnd lastHwnd = mwnd(0)
+     field: mwnd lastEntered = mwnd(0)
+     field: bool mouseInside = false
+     field: pointI lastMovePoint = (41, 14)
+     field: MouseButtonEventHandler left = mouse(state=move, down=false, dragging=false)
+     field: MouseButtonEventHandler middle = mouse(state=move, down=false, dragging=false)
+     field: MouseButtonEventHandler right = mouse(state=move, down=false, dragging=false)
+  arg: EventEnv env = EventEnv(mwnd(0x104c8), WM_LBUTTONUP, W=0x0 L=0xe0029
+  arg: Window w = * exception in toS() *
+  arg: pointI p = (41, 14)
+  local: bool captureChanged = false
+
+c:\cm2\cm\win\lowLevelEventHandler.cm(131, 96): int lowLevelEventHandler(Window w, mwnd hwnd, int message, int wParam, int lParam)
+  arg: Window w = * exception in toS() *
+  arg: mwnd hwnd = mwnd(0x104c8)
+  arg: int message = 514
+  arg: int wParam = 0
+  arg: int lParam = 917545
+  local: static EventEnv env = null
+  local: mwnd _hwnd = mwnd(0)
+  local: int _message = 0
+  local: int _wParam = 0
+  local: int _lParam = 0
+  local: static int entryCount = 0
+  global: time lastEventTime = 17:54:05
+  global: bool anyNewUserLowLevelEvents = true
+
+c:\cm2\cm\win\genericMessageLoop.cm(54, 66): void mainMessageLoop(function() callback, bool interact, bool modal)
+  arg: function() callback = package void xMainMessageLoopCB()  default=null
+  arg: bool interact = true  default=true
+  arg: bool modal = false  default=false
+  local: function(double,double) idleCB = package void updateWinIdleCB(double t0, double t1)
+  global: FrameWindow[] allFrameWindows = [FrameWindow: SandboxAppWindow(78), DrawTextEditDialog(72 in SandboxAppWindow), PartTagDialog(100 in SandboxAppWindow), DwgDialog(115, hidden in SandboxAppWindow), BlockDialog(74 in SandboxAppWindow), PhotoDialog(33 in SandboxAppWindow), ChooseMaterialDialog(2 in SandboxAppWindow), ForegroundDialog(4...
+
+c:\cm2\cet\sandbox\main.cm(393, 57): void main()
+  local: bool intro = false
+  global: bool sandboxFirstStart = false
+  global: int mainMessageLoopStartTime = 58688
+  global: bool useSplashImage = false
+  global: bool useGLIntro = false
+  global: bool glIntroRepeat = false
+  global: bool showingSplash = false
+  global: bool glIntroMode = false
+  global: bool glIntroShown = false
+  global: Session session = Session('there can be only one')
+
+c:\cm2\cet\sandbox\main.cm(427, 11): void !run.178.11452()
+
+c:\cm2\cm\install\welcome.cm(77, 30): void !run.168.3596()
+
+c:\cm2\profile\rhsk\boot.cm(1, 57): void !run.167.57()
+
+(null)
+cm 1> quit();
+------------------
+Aborted auto crash - 0% actually done:
+
+Actions:     	Done	Share	Expect	Failed	Time
+  Switch card   	0	0%	0%	0%	0%
+  Insert   	116	11600%	18%	0%	40%
+  Insert-drag   	90	9000%	18%	0%	27%
+  Remove   	43	4300%	9%	17%	1%
+  Reposition   	3	300%	0%	0%	2%
+  Disconnect   	0	0%	1%	100%	0%
+  Undo   	47	4700%	9%	0%	1%
+  Redo   	43	4300%	9%	2%	3%
+  Batter dialogs   	14	1400%	3%	0%	0%
+  Quick props   	65	6500%	15%	0%	5%
+  Load test   	2	200%	0%	0%	0%
+  Flush prices   	3	300%	0%	0%	0%
+  View mode   	1	100%	0%	0%	0%
+  Reset vm.   	1	100%	0%	0%	0%
+  Arrange   	6	600%	1%	0%	2%
+  Blocks   	6	600%	1%	14%	9%
+  Part tags   	6	600%	1%	0%	1%
+  Chos. layout   	0	0%	2%	100%	0%
+  Rack mat.   	0	0%	2%	100%	0%
+ (total)      	0
+
+Stats:               	Peek	Avg.	Nominal
+  undo queue length: 	28	0	25
+  snapper count:     	31	0	50
+
+Elapsed time:         	79.62 s
+  in actual actions:  	45.77 s    	57%
+  in view flush:      	0 us    	0%
+  in space check:     	3.3 s    	4%
+  in quick delete:     	0 us       	0%
+  in quick select:     	0 us       	0%
+
+Iterations per second:	1.25595e+006
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E6W9.
+cm> 
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E1Wa.
+cm> 
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1E2Wa.
+removing still active session
+-- shutdown --
+    Removing materials...
+    Shutting down extensions...
+    Shutting down resources...
+    Saving preferences...
+    Saving statistics...
+      LightWorks is disabled (termination skipped)
+-- shutdown -- done --
+ ---==[ sandbox done ]==--- 
+cm> 
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*F1Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+exit(0);
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+ MPS: traceFindGrey rank sequence: E*Wa.
+
+MPS: TraceStart why: 1; arena->Chunks: 1
+cm done -- exit(0)
+
+Compilation finished at Fri Jun 22 17:54:36
