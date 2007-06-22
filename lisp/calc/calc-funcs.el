@@ -569,29 +569,29 @@
 		(y (math-sqr z))
 		(xx (math-add x 
                               (eval-when-compile
-                                (math-read-number "-0.785398164"))))
+                                (math-read-number-simple "-0.785398164"))))
 		(a1 (math-poly-eval y
                         (eval-when-compile
                           (list
-                           (math-read-number "0.0000002093887211")
-                           (math-read-number "-0.000002073370639")
-                           (math-read-number "0.00002734510407")
-                           (math-read-number "-0.001098628627")
+                           (math-read-number-simple "0.0000002093887211")
+                           (math-read-number-simple "-0.000002073370639")
+                           (math-read-number-simple "0.00002734510407")
+                           (math-read-number-simple "-0.001098628627")
                            '(float 1 0)))))
 		(a2 (math-poly-eval y
                          (eval-when-compile
                            (list
-                            (math-read-number "-0.0000000934935152")
-                            (math-read-number "0.0000007621095161")
-                            (math-read-number "-0.000006911147651")
-                            (math-read-number "0.0001430488765")
-                            (math-read-number "-0.01562499995")))))
+                            (math-read-number-simple "-0.0000000934935152")
+                            (math-read-number-simple "0.0000007621095161")
+                            (math-read-number-simple "-0.000006911147651")
+                            (math-read-number-simple "0.0001430488765")
+                            (math-read-number-simple "-0.01562499995")))))
 		(sc (math-sin-cos-raw xx)))
 	       (if yflag
 		   (setq sc (cons (math-neg (cdr sc)) (car sc))))
 	       (math-mul (math-sqrt
 			  (math-div (eval-when-compile
-                                      (math-read-number "0.636619722"))
+                                      (math-read-number-simple "0.636619722"))
  x))
 			 (math-sub (math-mul (cdr sc) a1)
 				   (math-mul (car sc) (math-mul z a2))))))
@@ -600,21 +600,21 @@
 	    (math-div (math-poly-eval y
                             (eval-when-compile
                               (list
-                               (math-read-number "-184.9052456")
-                               (math-read-number "77392.33017")
-                               (math-read-number "-11214424.18")
-                               (math-read-number "651619640.7")
-                               (math-read-number "-13362590354.0")
-                               (math-read-number "57568490574.0"))))
+                               (math-read-number-simple "-184.9052456")
+                               (math-read-number-simple "77392.33017")
+                               (math-read-number-simple "-11214424.18")
+                               (math-read-number-simple "651619640.7")
+                               (math-read-number-simple "-13362590354.0")
+                               (math-read-number-simple "57568490574.0"))))
 		      (math-poly-eval y
                              (eval-when-compile
                                (list
                                 '(float 1 0)
-                                (math-read-number "267.8532712")
-                                (math-read-number "59272.64853")
-                                (math-read-number "9494680.718")
-                                (math-read-number "1029532985.0")
-                                (math-read-number "57568490411.0")))))))))
+                                (math-read-number-simple "267.8532712")
+                                (math-read-number-simple "59272.64853")
+                                (math-read-number-simple "9494680.718")
+                                (math-read-number-simple "1029532985.0")
+                                (math-read-number-simple "57568490411.0")))))))))
 
 (defun math-besJ1 (x &optional yflag)
   (cond ((and (math-negp (calcFunc-re x)) (not yflag))
@@ -623,23 +623,23 @@
 	 (let* ((z (math-div '(float 8 0) x))
 		(y (math-sqr z))
 		(xx (math-add x (eval-when-compile 
-                                  (math-read-number "-2.356194491"))))
+                                  (math-read-number-simple "-2.356194491"))))
 		(a1 (math-poly-eval y
                             (eval-when-compile
                               (list
-                               (math-read-number "-0.000000240337019")
-                               (math-read-number "0.000002457520174")
-                               (math-read-number "-0.00003516396496")
+                               (math-read-number-simple "-0.000000240337019")
+                               (math-read-number-simple "0.000002457520174")
+                               (math-read-number-simple "-0.00003516396496")
                                '(float 183105 -8)
                                '(float 1 0)))))
 		(a2 (math-poly-eval y
                              (eval-when-compile
                                (list
-                                (math-read-number "0.000000105787412")
-                                (math-read-number "-0.00000088228987")
-                                (math-read-number "0.000008449199096")
-                                (math-read-number "-0.0002002690873")
-                                (math-read-number "0.04687499995")))))
+                                (math-read-number-simple "0.000000105787412")
+                                (math-read-number-simple "-0.00000088228987")
+                                (math-read-number-simple "0.000008449199096")
+                                (math-read-number-simple "-0.0002002690873")
+                                (math-read-number-simple "0.04687499995")))))
 		(sc (math-sin-cos-raw xx)))
 	   (if yflag
 	       (setq sc (cons (math-neg (cdr sc)) (car sc)))
@@ -647,7 +647,7 @@
 		 (setq sc (cons (math-neg (car sc)) (math-neg (cdr sc))))))
 	   (math-mul (math-sqrt (math-div 
                                  (eval-when-compile
-                                   (math-read-number "0.636619722"))
+                                   (math-read-number-simple "0.636619722"))
                                  x))
 		     (math-sub (math-mul (cdr sc) a1)
 			       (math-mul (car sc) (math-mul z a2))))))
@@ -658,21 +658,21 @@
 	    (math-div (math-poly-eval y
                              (eval-when-compile
                                (list
-                                (math-read-number "-30.16036606")
-                                (math-read-number "15704.4826")
-                                (math-read-number "-2972611.439")
-                                (math-read-number "242396853.1")
-                                (math-read-number "-7895059235.0")
-                                (math-read-number "72362614232.0"))))
+                                (math-read-number-simple "-30.16036606")
+                                (math-read-number-simple "15704.4826")
+                                (math-read-number-simple "-2972611.439")
+                                (math-read-number-simple "242396853.1")
+                                (math-read-number-simple "-7895059235.0")
+                                (math-read-number-simple "72362614232.0"))))
 		      (math-poly-eval y
                               (eval-when-compile
                                 (list
                                  '(float 1 0)
-                                 (math-read-number "376.9991397")
-                                 (math-read-number "99447.43394")
-                                 (math-read-number "18583304.74")
-                                 (math-read-number "2300535178.0")
-                                 (math-read-number "144725228442.0"))))))))))
+                                 (math-read-number-simple "376.9991397")
+                                 (math-read-number-simple "99447.43394")
+                                 (math-read-number-simple "18583304.74")
+                                 (math-read-number-simple "2300535178.0")
+                                 (math-read-number-simple "144725228442.0"))))))))))
 
 (defun calcFunc-besY (v x)
   (math-inexact-result)
@@ -715,23 +715,23 @@
 	    (math-div (math-poly-eval y
                             (eval-when-compile
                               (list
-                               (math-read-number "228.4622733")
-                               (math-read-number "-86327.92757")
-                               (math-read-number "10879881.29")
-                               (math-read-number "-512359803.6")
-                               (math-read-number "7062834065.0")
-                               (math-read-number "-2957821389.0"))))
+                               (math-read-number-simple "228.4622733")
+                               (math-read-number-simple "-86327.92757")
+                               (math-read-number-simple "10879881.29")
+                               (math-read-number-simple "-512359803.6")
+                               (math-read-number-simple "7062834065.0")
+                               (math-read-number-simple "-2957821389.0"))))
 		      (math-poly-eval y
                             (eval-when-compile
                               (list
                                '(float 1 0)
-                               (math-read-number "226.1030244")
-                               (math-read-number "47447.2647")
-                               (math-read-number "7189466.438")
-                               (math-read-number "745249964.8")
-                               (math-read-number "40076544269.0")))))
+                               (math-read-number-simple "226.1030244")
+                               (math-read-number-simple "47447.2647")
+                               (math-read-number-simple "7189466.438")
+                               (math-read-number-simple "745249964.8")
+                               (math-read-number-simple "40076544269.0")))))
 	    (math-mul (eval-when-compile
-                        (math-read-number "0.636619772"))
+                        (math-read-number-simple "0.636619772"))
 		      (math-mul (math-besJ0 x) (math-ln-raw x))))))
 	((math-negp (calcFunc-re x))
 	 (math-add (math-besJ0 (math-neg x) t)
@@ -749,23 +749,23 @@
 	     (math-div (math-poly-eval y
                              (eval-when-compile
                                (list
-                                (math-read-number "8511.937935")
-                                (math-read-number "-4237922.726")
-                                (math-read-number "734926455.1")
-                                (math-read-number "-51534381390.0")
-                                (math-read-number "1275274390000.0")
-                                (math-read-number "-4900604943000.0"))))
+                                (math-read-number-simple "8511.937935")
+                                (math-read-number-simple "-4237922.726")
+                                (math-read-number-simple "734926455.1")
+                                (math-read-number-simple "-51534381390.0")
+                                (math-read-number-simple "1275274390000.0")
+                                (math-read-number-simple "-4900604943000.0"))))
 		       (math-poly-eval y
                              (eval-when-compile
                                (list
                                 '(float 1 0)
-                                (math-read-number "354.9632885")
-                                (math-read-number "102042.605")
-                                (math-read-number "22459040.02")
-                                (math-read-number "3733650367.0")
-                                (math-read-number "424441966400.0")
-                                (math-read-number "24995805700000.0"))))))
-	    (math-mul (eval-when-compile (math-read-number "0.636619772"))
+                                (math-read-number-simple "354.9632885")
+                                (math-read-number-simple "102042.605")
+                                (math-read-number-simple "22459040.02")
+                                (math-read-number-simple "3733650367.0")
+                                (math-read-number-simple "424441966400.0")
+                                (math-read-number-simple "24995805700000.0"))))))
+	    (math-mul (eval-when-compile (math-read-number-simple "0.636619772"))
                       (math-sub (math-mul (math-besJ1 x) (math-ln-raw x))
 				(math-div 1 x))))))
 	((math-negp (calcFunc-re x))
@@ -836,25 +836,25 @@
     (list
      (list 'frac 
            -174611
-           (math-read-number "802857662698291200000"))
+           (math-read-number-simple "802857662698291200000"))
      (list 'frac 
            43867 
-           (math-read-number "5109094217170944000"))
+           (math-read-number-simple "5109094217170944000"))
      (list 'frac 
            -3617 
-           (math-read-number "10670622842880000"))
+           (math-read-number-simple "10670622842880000"))
      (list 'frac 
            1 
-           (math-read-number "74724249600"))
+           (math-read-number-simple "74724249600"))
      (list 'frac 
            -691 
-           (math-read-number "1307674368000"))
+           (math-read-number-simple "1307674368000"))
      (list 'frac 
            1 
-           (math-read-number "47900160"))
+           (math-read-number-simple "47900160"))
      (list 'frac 
            -1 
-           (math-read-number "1209600"))
+           (math-read-number-simple "1209600"))
      (list 'frac 
            1 
            30240) 
