@@ -39,6 +39,10 @@ Unix socket in a GNU/Linux console to talk to server, rather than faking events
 using the client program mev.  This C level approach provides mouse
 highlighting, and help echoing in the minibuffer.
 
+** The new variable next-error-recenter specifies how next-error should
+recenter the visited source file.  Its value can be a number (for example,
+0 for top line, -1 for bottom line), or nil for no recentering.
+
 
 * Startup Changes in Emacs 23.1
 
