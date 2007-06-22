@@ -1878,8 +1878,19 @@ calc-kill calc-kill-region calc-yank))))
 	(last-prec (intern (concat (symbol-name name) "-last-prec")))
 	(last-val (intern (concat (symbol-name name) "-last"))))
     (list 'progn
-	  (list 'defvar cache-prec (if init (math-numdigs (nth 1 init)) -100))
-	  (list 'defvar cache-val (list 'quote init))
+;	  (list 'defvar cache-prec (if init (math-numdigs (nth 1 init)) -100))
+	  (list 'defvar cache-prec 
+                `(cond
+                  ((consp ,init) (math-numdigs (nth 1 ,init)))
+                  (,init 
+                   (nth 1 (math-numdigs (eval ,init))))
+                  (t
+                   -100)))
+	  (list 'defvar cache-val 
+                `(cond
+                  ((consp ,init) ,init)
+                  (,init (eval ,init))
+                  (t ,init)))
 	  (list 'defvar last-prec -100)
 	  (list 'defvar last-val nil)
 	  (list 'setq 'math-cache-list
@@ -1914,7 +1925,7 @@ calc-kill calc-kill-region calc-yank))))
 (put 'math-defcache 'lisp-indent-hook 2)
 
 ;;; Betcha didn't know that pi = 16 atan(1/5) - 4 atan(1/239).   [F] [Public]
-(math-defcache math-pi (float (bigpos 463 238 793 589 653 592 141 3) -21)
+(math-defcache math-pi (math-read-number-simple "3.141592653589793238463")
   (math-add-float (math-mul-float '(float 16 0)
 				  (math-arctan-raw '(float 2 -1)))
 		  (math-mul-float '(float -4 0)
@@ -1945,7 +1956,8 @@ calc-kill calc-kill-region calc-yank))))
 (math-defcache math-sqrt-two-pi nil
   (math-sqrt-float (math-two-pi)))
 
-(math-defcache math-sqrt-e (float (bigpos 849 146 128 700 270 721 648 1) -21)
+
+(math-defcache math-sqrt-e (math-read-number-simple "1.648721270700128146849")
   (math-add-float '(float 1 0) (math-exp-minus-1-raw '(float 5 -1))))
 
 (math-defcache math-e nil
@@ -1955,10 +1967,9 @@ calc-kill calc-kill-region calc-yank))))
   (math-mul-float (math-add-float (math-sqrt-raw '(float 5 0)) '(float 1 0))
 		  '(float 5 -1)))
 
-(math-defcache math-gamma-const nil
-  '(float (bigpos 495 467 917 632 470 369 709 646 776 267 677 848 348 672
-		  057 988 235 399 359 593 421 310 024 824 900 120 065 606
-		  328 015 649 156 772 5) -100))
+(math-defcache math-gamma-const nil 
+               (math-read-number-simple 
+                "0.5772156649015328606065120900824024310421593359399235988057672348848677267776646709369470632917467495"))
 
 (defun math-half-circle (symb)
   (if (eq calc-angle-mode 'rad)
