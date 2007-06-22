@@ -561,7 +561,7 @@
 	 (math-format-number 
           (math-add math-fd-date 
                     (eval-when-compile
-                      (math-read-number-simple "1.7214235")))))
+                      (math-read-number-simple "1721423.5")))))
 	((eq x 'j)
 	 (math-format-number (math-add 
                               (math-floor math-fd-date) 
@@ -944,7 +944,7 @@
                                                 (eval-when-compile
                                                   (math-read-number-simple "1721424"))
                                               (eval-when-compile
-                                                (math-read-number-simple "1.7214235")))))
+                                                (math-read-number-simple "1721423.5")))))
 			    hour (or (nth 3 num) hour)
 			    minute (or (nth 4 num) minute)
 			    second (or (nth 5 num) second)
@@ -1157,7 +1157,7 @@
                                        (math-read-number-simple "1721424")))
 		    (setq date (math-sub date 
                                          (eval-when-compile
-                                           (math-read-number-simple "1.7214235"))))
+                                           (math-read-number-simple "1721423.5"))))
 		    (math-sub date (math-div (calcFunc-tzone zone date)
 					     '(float 864 2)))))
     (if (eq (car date) 'date)
@@ -1166,7 +1166,7 @@
                                      (math-read-number-simple "1721424"))
 				 (math-add  
                                   (eval-when-compile
-                                    (math-read-number-simple "1.7214235"))
+                                    (math-read-number-simple "1721423.5"))
 					   (math-div (calcFunc-tzone zone date)
 						     '(float 864 2)))))
       (math-reject-arg date 'datep))))
