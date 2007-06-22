@@ -1,3 +1,24 @@
+2007-06-22  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-comb.el (math-small-factorial-table): New variable.
+	(calcFunc-fact): Use `math-small-factorial-table'.
+
+	* calc/calc-ext.el (math-defcache): Allow forms to evaluate
+	initial values.
+	(math-approx-pi,math-approx-sqrt-e,math-approx-gamma-const):
+	New variables to use in caches.
+
+	* calc/calc-forms.el (math-format-date-part)
+	(math-parse-standard-date,calcFunc-julian):
+	Use `math-read-number-simple' to insert bignums.
+
+	* calc/calc-func.el (math-besJ0,math-besJ1,math-besY0,math-besY1)
+	(math-bernoulli-b-cache): Use math-read-number-simple to insert
+	bignums.
+
+	* calc/calc-math.el (math-approx-ln-10, math-approx-ln-2):
+	New variables to use in caches.
+
 2007-06-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-bzr.el (vc-bzr-log-view-mode): Add + to the email address
