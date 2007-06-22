@@ -569,29 +569,29 @@
 		(y (math-sqr z))
 		(xx (math-add x 
                               (eval-when-compile
-                                (math-read-number-simple "-0.785398164"))))
+                                (math-read-number "-0.785398164"))))
 		(a1 (math-poly-eval y
                         (eval-when-compile
                           (list
-                           (math-read-number-simple "0.0000002093887211")
-                           (math-read-number-simple "-0.000002073370639")
-                           (math-read-number-simple "0.00002734510407")
-                           (math-read-number-simple "-0.001098628627")
+                           (math-read-number "0.0000002093887211")
+                           (math-read-number "-0.000002073370639")
+                           (math-read-number "0.00002734510407")
+                           (math-read-number "-0.001098628627")
                            '(float 1 0)))))
 		(a2 (math-poly-eval y
                          (eval-when-compile
                            (list
-                            (math-read-number-simple "-0.0000000934935152")
-                            (math-read-number-simple "0.0000007621095161")
-                            (math-read-number-simple "-0.000006911147651")
-                            (math-read-number-simple "0.0001430488765")
-                            (math-read-number-simple "-0.01562499995")))))
+                            (math-read-number "-0.0000000934935152")
+                            (math-read-number "0.0000007621095161")
+                            (math-read-number "-0.000006911147651")
+                            (math-read-number "0.0001430488765")
+                            (math-read-number "-0.01562499995")))))
 		(sc (math-sin-cos-raw xx)))
 	       (if yflag
 		   (setq sc (cons (math-neg (cdr sc)) (car sc))))
 	       (math-mul (math-sqrt
 			  (math-div (eval-when-compile
-                                      (math-read-number-simple "0.636619722"))
+                                      (math-read-number "0.636619722"))
  x))
 			 (math-sub (math-mul (cdr sc) a1)
 				   (math-mul (car sc) (math-mul z a2))))))
