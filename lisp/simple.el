@@ -156,6 +156,14 @@ If `fringe-arrow', indicate the locus by the fringe arrow."
   :group 'next-error
   :version "22.1")
 
+(defcustom next-error-recenter nil
+  "*Display the line in the visited source file recentered to this number.
+If nil, don't do any recentering.  See `recenter'."
+  :type '(choice (number :tag "Argument for `recenter'")
+                 (const :tag "No recentering" nil))
+  :group 'next-error
+  :version "23.1")
+
 (defcustom next-error-hook nil
   "*List of hook functions run by `next-error' after visiting source file."
   :type 'hook
@@ -305,6 +313,8 @@ See variables `compilation-parse-errors-function' and
     ;; we know here that next-error-function is a valid symbol we can funcall
     (with-current-buffer next-error-last-buffer
       (funcall next-error-function (prefix-numeric-value arg) reset)
+      (when next-error-recenter
+        (recenter next-error-recenter))
       (run-hooks 'next-error-hook))))
 
 (defun next-error-internal ()
@@ -313,6 +323,8 @@ See variables `compilation-parse-errors-function' and
   ;; we know here that next-error-function is a valid symbol we can funcall
   (with-current-buffer next-error-last-buffer
     (funcall next-error-function 0 nil)
+    (when next-error-recenter
+      (recenter next-error-recenter))
     (run-hooks 'next-error-hook)))
 
 (defalias 'goto-next-locus 'next-error)
