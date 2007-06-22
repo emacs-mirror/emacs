@@ -7,6 +7,8 @@
 	* progmodes/hideshow.el (hs-show-block): Use line-end-position.
 	(hs-hide-block-at-point, hs-hide-comment-region): Likewise.
 
+	* progmodes/hideshow.el (hs-hide-all): Use progress reporter.
+
 2007-06-22  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-comb.el (math-small-factorial-table): New variable.
