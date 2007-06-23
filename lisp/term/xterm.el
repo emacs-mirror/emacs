@@ -391,7 +391,7 @@
     (substitute-key-definition [f59] [A-f11] local-function-key-map)
     (substitute-key-definition [f60] [A-f12] local-function-key-map)
 
-    (let ((map (make-sparse-keymap)))
+    (let ((map (copy-keymap xterm-function-map)))
 
       ;; Use inheritance to let the main keymap override those defaults.
       ;; This way we don't override terminfo-derived settings or settings

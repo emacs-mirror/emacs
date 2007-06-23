@@ -1,3 +1,7 @@
+2007-06-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (terminal-init-xterm): Fix previous change.
+
 2007-06-18  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/xterm.el (terminal-init-xterm): Revert bad merge from trunk.
