@@ -7911,11 +7911,11 @@
 
 	* tumme.el (tumme-display-thumbnail-original-image): Make sure
 	image display buffer is displayed before call to
-	`tumme-display-image.
+	`tumme-display-image'.
 	(tumme-dired-display-image): Make sure image display buffer is
-	displayed before call to `tumme-display-image.
+	displayed before call to `tumme-display-image'.
 	(tumme-mouse-display-image): Make sure image display buffer is
-	displayed before call to `tumme-display-image.
+	displayed before call to `tumme-display-image'.
 	(tumme-widget-list): Add.
 	(tumme-dired-edit-comment-and-tags): Add.
 	(tumme-save-information-from-widgets): Add.
@@ -8042,7 +8042,7 @@
 	instead of retired `allout-resumptions'.  For hook functions, use
 	`local' parameter so hook settings are created and removed as
 	buffer-local settings.  Revise (resumptions) setting
-	auto-fill-function so it is set only if already active.  (The
+	auto-fill-function so it is set only if already active.  The
 	related fill-function settings are all made in either case, so
 	that activating auto-fill-mode activity will have the custom
 	allout-mode behaviors (hanging indent on topics, if configured for it).
@@ -9788,7 +9788,7 @@
 
 	* calendar/cal-menu.el (calendar-mode-map, calendar-mouse-3-map):
 	* calendar/calendar.el (calendar-mode-map):
-	* calendar/diary-lib.el (include-other-diary-files,diary-mail-entries):
+	* calendar/diary-lib.el (include-other-diary-files, diary-mail-entries):
 	* calendar/appt.el (appt-check, appt-make-list): Refer to
 	diary-view-entries, diary-list-entries, diary-show-all-entries
 	rather than obsolete aliases.
@@ -10865,7 +10865,7 @@
 	(org-table-create-or-convert-from-region): New commands
 	(org-table-toggle-vline-visibility): Command removed.
 	(org-table-convert-region): Made a command.
-	(orgtbl-deleta-backward-char,orgtbl-delete-char): Remove commands.
+	(orgtbl-deleta-backward-char, orgtbl-delete-char): Remove commands.
 	Replace with the normal org- functions.
 	(org-self-insert-command): Don't trigger realign unnecessarily
 	when blanking a field that is not full.
@@ -11275,7 +11275,7 @@
 	(ibuffer-mode-header-map): New keymaps.
 	(ibuffer-update-title-and-summary): Enable mouse face highlighting
 	and keybindings for column headers.
-	(name,size,mode) <define-ibuffer-column>: Add a header-mouse-map
+	(name, size, mode) <define-ibuffer-column>: Add a header-mouse-map
 	property.
 
 2006-04-02  Drew Adams  <drew.adams@oracle.com>  (tiny change)
@@ -20649,7 +20649,7 @@
 	(ibuffer-do-print, ibuffer-filter-by-mode, ibuffer-filter-by-used-mode)
 	(ibuffer-filter-by-name, ibuffer-filter-by-filename)
 	(ibuffer-filter-by-size-gt, ibuffer-filter-by-size-lt)
-	(ibuffer-filter-by-content, ibuffer-filter-by-predicate
+	(ibuffer-filter-by-content, ibuffer-filter-by-predicate)
 	(ibuffer-do-sort-by-major-mode, ibuffer-do-sort-by-mode-name)
 	(ibuffer-do-sort-by-alphabetic, ibuffer-do-sort-by-size):
 	Autoload file sans suffix.
@@ -20758,7 +20758,7 @@
 	(gdb-info-frames-custom): Put `font-lock-function-name-face'
 	and `font-lock-variable-name-face'
 	(gdb-registers-font-lock-keywords): New font lock keywords definition.
-	(gdb-registers-mode): Use `gdb-registers-font-lock-keywords`.
+	(gdb-registers-mode): Use `gdb-registers-font-lock-keywords'.
 	(gdb-memory-font-lock-keywords): New font lock keywords definition.
 	(gdb-memory-mode): Use `gdb-memory-font-lock-keywords'.
 	(gdb-local-font-lock-keywords): New font lock keywords definition.
@@ -22168,7 +22168,7 @@
 2005-08-30  Richard M. Stallman  <rms@gnu.org>
 
 	* files.el (risky-local-variable-p):
-	Match `-predicates' and `-commands.
+	Match `-predicates' and `-commands'.
 
 	* cus-edit.el (custom-buffer-sort-alphabetically): Default to t.
 	(custom-save-all): Visit the file if necessary;
@@ -23161,7 +23161,7 @@
 	(tramp-handle-set-visited-file-modtime)
 	(tramp-handle-insert-file-contents)
 	(tramp-handle-write-region): No special handling for
-	`last-coding-system-used, because this is done in
+	`last-coding-system-used', because this is done in
 	`tramp-accept-process-output' now.
 	(tramp-accept-process-output): New defun.
 	(tramp-process-one-action, tramp-process-one-multi-action)
@@ -23199,7 +23199,7 @@
 	* net/tramp-smb.el: Remove defvar of `last-coding-system-used' in the
 	XEmacs case; not necessary anymore.
 	(tramp-smb-handle-write-region): No special handling for
-	`last-coding-system-used, because this is done in
+	`last-coding-system-used', because this is done in
 	`tramp-accept-process-output' now.
 	(tramp-smb-wait-for-output): Call `tramp-accept-process-output'.
 
@@ -24623,7 +24623,7 @@
 	(tree-widget-theme, tree-widget-image-properties-emacs)
 	(tree-widget-image-properties-xemacs, tree-widget-create-image)
 	(tree-widget-image-formats, tree-widget-control)
-	(tree-widget-empty-control, tree-widget-leaf-control
+	(tree-widget-empty-control, tree-widget-leaf-control)
 	(tree-widget-guide, tree-widget-end-guide, tree-widget-no-guide)
 	(tree-widget-handle, tree-widget-no-handle, tree-widget-p)
 	(tree-widget-keep, tree-widget-after-toggle-functions)
@@ -25831,8 +25831,7 @@
 	(ebrowse-draw-member-buffer-class-line, ebrowse-draw-member-long-fn)
 	(ebrowse-draw-member-short-fn): Use renamed ebrowse faces.
 
-	* progmodes/antlr-mode.el (antlr-default, antlr-keyword,
-	antlr-syntax)
+	* progmodes/antlr-mode.el (antlr-default, antlr-keyword, antlr-syntax)
 	(antlr-ruledef, antlr-tokendef, antlr-ruleref, antlr-tokenref)
 	(antlr-literal): Remove "-face" suffix and "font-lock-" from face
 	names.
@@ -27770,7 +27769,7 @@
 	* progmodes/make-mode.el (makefile-add-this-line-targets):
 	Simplify and integrate into `makefile-pickup-targets'.
 	(makefile-add-this-line-macro): Simplify and integrate into
-	`makefile-pickup-macros.
+	`makefile-pickup-macros'.
 	(makefile-pickup-filenames-as-targets): Simplify.
 	(makefile-previous-dependency, makefile-match-dependency):
 	Don't stumble over `::'.
@@ -32755,7 +32754,7 @@
 	Adrian Aichner <adrian@xemacs.org>.
 
 	* net/tramp-smb.el (tramp-smb-file-name-handler-alist): Add entry for
-	`substitute-in-file-name.
+	`substitute-in-file-name'.
 	(tramp-smb-handle-substitute-in-file-name): New defun.
 	(tramp-smb-advice-PC-do-completion): Delete advice.
 
