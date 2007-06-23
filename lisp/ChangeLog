@@ -1,7 +1,7 @@
 2007-06-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* ls-lisp.el (insert-directory): Don't treat FILE as a wildcard if
-	FILE exists as a directory.
+	FILE exists as a file.
 
 2007-06-22  Jay Belanger  <jay.p.belanger@gmail.com>
 
