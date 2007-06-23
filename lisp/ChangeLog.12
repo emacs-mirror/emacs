@@ -2595,7 +2595,7 @@
 	path.  Rewrite function in `cond' style for readability.
 
 	Suggested by: Stephen Eglen <S.J.Eglen{_AT_}damtp.cam.ac.uk>.
-	(The path shortening, that is, not the rearrarangement.)
+	(The path shortening, that is, not the rearrangement.)
 
 2007-01-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -6360,7 +6360,7 @@
 
 	* help.el (describe-key-briefly): When reading a down-event on
 	mode lines or scroll bar, swallow the following up event, too.
-	Use the new mouse sensitity of `key-binding' for lookup.
+	Use the new mouse sensitivity of `key-binding' for lookup.
 	(describe-key): The same here.
 
 2006-09-15  Juanma Barranquero  <lekktu@gmail.com>
@@ -9998,7 +9998,7 @@
 
 2006-05-09  Masatake YAMATO  <jet@gyve.org>
 
-	* font-lock.el (cpp-font-lock-keywords-source-directives): Addded
+	* font-lock.el (cpp-font-lock-keywords-source-directives): Added
 	"warning" and "import".
 	(cpp-font-lock-keywords): Added "warning".
 
