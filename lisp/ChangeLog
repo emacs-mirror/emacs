@@ -1,3 +1,25 @@
+2007-06-23  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-entry-format): New options
+	`whitespace', `braces', and `string'.
+	(bibtex-field-braces-alist, bibtex-field-strings-alist)
+	(bibtex-field-braces-opt, bibtex-field-strings-opt)
+	(bibtex-cite-matcher-alist): New variables.
+	(bibtex-font-lock-keywords): Use bibtex-cite-matcher-alist.
+	(bibtex-flash-head): Use blink-matching-delay.
+	(bibtex-insert-kill, bibtex-mark-entry): Use push-mark.
+	(bibtex-format-entry, bibtex-reformat): Handle new options of
+	bibtex-entry-format.
+	(bibtex-field-re-init, bibtex-font-lock-cite, bibtex-dist): New
+	functions.
+	(bibtex-complete-internal): Do not display messages while
+	minibuffer is used.  Do not leave around a completions buffer
+	that is out of date.
+	(bibtex-copy-summary-as-kill): New optional arg.
+	(bibtex-font-lock-url): New optional arg no-button.
+	(bibtex-find-crossref): Use `bibtex-cite-matcher-alist'.
+	(bibtex-url): Allow multiple URLs per entry.
+	
 2007-06-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/autoload.el (autoload-generated-file): New function.
