@@ -1,3 +1,8 @@
+2007-06-23  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* simple.el (next-error-recenter): Accept `(4)' as well;
+	also, specify `integer' instead of `number'.
+
 2007-06-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* ls-lisp.el (insert-directory): If an invalid regexp error is
