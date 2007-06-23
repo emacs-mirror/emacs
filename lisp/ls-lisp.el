@@ -230,9 +230,9 @@ that work are: A a c i r S s t u U X g G B C R and F partly."
 	;; there is no wildcard, only a directory name.
 	(if (and ls-lisp-support-shell-wildcards
 		 (string-match "[[?*]" file)
-		 ;; Prefer an existing directory to wildcards, like
+		 ;; Prefer an existing file to wildcards, like
 		 ;; dired-noselect does.
-		 (not (file-directory-p file)))
+		 (not (file-exists-p file)))
 	    (progn
 	      (or (not (eq (aref file (1- (length file))) ?/))
 		  (setq file (substring file 0 (1- (length file)))))
