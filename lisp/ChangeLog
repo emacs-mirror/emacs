@@ -1,3 +1,9 @@
+2007-06-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* ls-lisp.el (insert-directory): If an invalid regexp error is
+	thrown, try using FILE as a literal file name, not a wildcard.
+	Check for FILE as an existing file, not just a directory.
+
 2007-06-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ruler-mode.el (ruler-mode): Prevent clobbering the original
