@@ -157,9 +157,10 @@ If `fringe-arrow', indicate the locus by the fringe arrow."
   :version "22.1")
 
 (defcustom next-error-recenter nil
-  "*Display the line in the visited source file recentered to this number.
-If nil, don't do any recentering.  See `recenter'."
-  :type '(choice (number :tag "Argument for `recenter'")
+  "*Display the line in the visited source file recentered as specified.
+If non-nil, the value is passed directly to `recenter'."
+  :type '(choice (integer :tag "Line to recenter to")
+                 (const :tag "Center of window" (4))
                  (const :tag "No recentering" nil))
   :group 'next-error
   :version "23.1")
