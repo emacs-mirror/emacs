@@ -2243,13 +2243,16 @@ x_draw_fringe_bitmap (w, row, p)
 		  ny = row->visible_height;
 		}
 
-	      if (left + width == bx)
+	      if (bx >= 0)
 		{
-		  bx = left + sb_width;
-		  nx += width - sb_width;
+		  if (left + width == bx)
+		    {
+		      bx = left + sb_width;
+		      nx += width - sb_width;
+		    }
+		  else if (bx + nx == left)
+		    nx += width - sb_width;
 		}
-	      else if (bx + nx == left)
-		nx += width - sb_width;
 	    }
 	}
 
