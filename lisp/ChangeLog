@@ -1,3 +1,8 @@
+2007-06-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ruler-mode.el (ruler-mode): Prevent clobbering the original
+	`header-line-format' when reentering ruler mode.
+
 2007-06-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* ls-lisp.el (insert-directory): Don't treat FILE as a wildcard if
@@ -8,7 +13,7 @@
 	* vera-mode.el (vera-mode): Fix `commend-end-skip' setting.
 	(vera-font-lock-match-item): Fix doc string.
 	(vera-in-comment-p): Remove unused function.
-	(vera-skip-forward-literal,vera-skip-backward-literal): Improve code,
+	(vera-skip-forward-literal, vera-skip-backward-literal): Improve code,
 	use `syntax-ppss'.
 	(vera-forward-syntactic-ws): Fix argument order.
 	(vera-prepare-search): Use `with-syntax-table'.
@@ -10350,7 +10355,7 @@
 
 	* calendar/cal-menu.el (calendar-mode-map, calendar-mouse-3-map):
 	* calendar/calendar.el (calendar-mode-map):
-	* calendar/diary-lib.el (include-other-diary-files,diary-mail-entries):
+	* calendar/diary-lib.el (include-other-diary-files, diary-mail-entries):
 	* calendar/appt.el (appt-check, appt-make-list): Refer to
 	diary-view-entries, diary-list-entries, diary-show-all-entries
 	rather than obsolete aliases.
@@ -11427,7 +11432,7 @@
 	(org-table-create-or-convert-from-region): New commands
 	(org-table-toggle-vline-visibility): Command removed.
 	(org-table-convert-region): Made a command.
-	(orgtbl-deleta-backward-char,orgtbl-delete-char): Remove commands.
+	(orgtbl-deleta-backward-char, orgtbl-delete-char): Remove commands.
 	Replace with the normal org- functions.
 	(org-self-insert-command): Don't trigger realign unnecessarily
 	when blanking a field that is not full.
@@ -11837,7 +11842,7 @@
 	(ibuffer-mode-header-map): New keymaps.
 	(ibuffer-update-title-and-summary): Enable mouse face highlighting
 	and keybindings for column headers.
-	(name,size,mode) <define-ibuffer-column>: Add a header-mouse-map
+	(name, size, mode) <define-ibuffer-column>: Add a header-mouse-map
 	property.
 
 2006-04-02  Drew Adams  <drew.adams@oracle.com>  (tiny change)
