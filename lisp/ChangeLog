@@ -1,3 +1,13 @@
+2007-06-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/autoload.el (autoload-generated-file): New function.
+	(update-file-autoloads, update-directory-autoloads): Use it.
+	(autoload-file-load-name): New function.
+	(generate-file-autoloads, update-file-autoloads): Use it.
+	(autoload-find-file): Accept non-absolute argument.  Set default-dir.
+	(generate-file-autoloads): If the autoloaded form is malformed,
+	indicate the problem with a warning instead of aborting.
+
 2007-06-23  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* simple.el (next-error-recenter): Accept `(4)' as well;

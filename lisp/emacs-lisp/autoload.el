@@ -41,15 +41,18 @@
 A `.el' file can set this in its local variables section to make its
 autoloads go somewhere else.  The autoload file is assumed to contain a
 trailer starting with a FormFeed character.")
+(put 'generated-autoload-file 'safe-local-variable 'stringp)
 
-(defconst generate-autoload-cookie ";;;###autoload"
+;; This feels like it should be a defconst, but MH-E sets it to
+;; ";;;###mh-autoload" for the autoloads that are to go into mh-loaddefs.el.
+(defvar generate-autoload-cookie ";;;###autoload"
   "Magic comment indicating the following form should be autoloaded.
 Used by \\[update-file-autoloads].  This string should be
 meaningless to Lisp (e.g., a comment).
 
 This string is used:
 
-;;;###autoload
+\;;;###autoload
 \(defun function-to-be-autoloaded () ...)
 
 If this string appears alone on a line, the following form will be
@@ -149,6 +152,10 @@ or macro definition or a defcustom)."
 ;; the doc-string in FORM.
 ;; Those properties are now set in lisp-mode.el.
 
+(defun autoload-generated-file ()
+  (expand-file-name generated-autoload-file
+                    (expand-file-name "lisp"
+                                      source-directory)))
 
 (defun autoload-trim-file-name (file)
   ;; Returns a relative file path for FILE
@@ -272,12 +279,14 @@ which lists the file name and which functions are in it, etc."
 (defun autoload-find-file (file)
   "Fetch file and put it in a temp buffer.  Return the buffer."
   ;; It is faster to avoid visiting the file.
+  (setq file (expand-file-name file))
   (with-current-buffer (get-buffer-create " *autoload-file*")
     (kill-all-local-variables)
     (erase-buffer)
     (setq buffer-undo-list t
           buffer-read-only nil)
     (emacs-lisp-mode)
+    (setq default-directory (file-name-directory file))
     (insert-file-contents file nil)
     (let ((enable-local-variables :safe))
       (hack-local-variables))
@@ -285,6 +294,12 @@ which lists the file name and which functions are in it, etc."
 
 (defvar no-update-autoloads nil
   "File local variable to prevent scanning this file for autoload cookies.")
+
+(defun autoload-file-load-name (file)
+  (let ((name (file-name-nondirectory file)))
+    (if (string-match "\\.elc?\\(\\.\\|\\'\\)" name)
+        (substring name 0 (match-beginning 0))
+      name)))
 
 (defun generate-file-autoloads (file)
   "Insert at point a loaddefs autoload section for FILE.
@@ -296,10 +311,7 @@ Return non-nil in the case where no autoloads were added at point."
   (interactive "fGenerate autoloads for file: ")
   (let ((outbuf (current-buffer))
 	(autoloads-done '())
-	(load-name (let ((name (file-name-nondirectory file)))
-		     (if (string-match "\\.elc?\\(\\.\\|$\\)" name)
-			 (substring name 0 (match-beginning 0))
-		       name)))
+	(load-name (autoload-file-load-name file))
 	(print-length nil)
 	(print-readably t)		; This does something in Lucid Emacs.
 	(float-output-format nil)
@@ -342,15 +354,18 @@ Return non-nil in the case where no autoloads were added at point."
                 (skip-chars-forward " \t")
                 (setq done-any t)
                 (if (eolp)
-                    ;; Read the next form and make an autoload.
-                    (let* ((form (prog1 (read (current-buffer))
-                                   (or (bolp) (forward-line 1))))
-                           (autoload (make-autoload form load-name)))
-                      (if autoload
-                          (push (nth 1 form) autoloads-done)
-                        (setq autoload form))
-                      (let ((autoload-print-form-outbuf outbuf))
-                        (autoload-print-form autoload)))
+                    (condition-case err
+                        ;; Read the next form and make an autoload.
+                        (let* ((form (prog1 (read (current-buffer))
+                                       (or (bolp) (forward-line 1))))
+                               (autoload (make-autoload form load-name)))
+                          (if autoload
+                              (push (nth 1 form) autoloads-done)
+                            (setq autoload form))
+                          (let ((autoload-print-form-outbuf outbuf))
+                            (autoload-print-form autoload)))
+                      (error
+                       (message "Error in %s: %S" file err)))
 
                   ;; Copy the rest of the line to the output.
                   (princ (buffer-substring
@@ -397,10 +412,7 @@ save the buffer too.
 
 Return FILE if there was no autoload cookie in it, else nil."
   (interactive "fUpdate autoloads for file: \np")
-  (let ((load-name (let ((name (file-name-nondirectory file)))
-		     (if (string-match "\\.elc?\\(\\.\\|$\\)" name)
-			 (substring name 0 (match-beginning 0))
-		       name)))
+  (let ((load-name (autoload-file-load-name file))
 	(found nil)
 	(existing-buffer (get-file-buffer file))
 	(no-autoloads nil))
@@ -413,10 +425,7 @@ Return FILE if there was no autoload cookie in it, else nil."
       ;; but still decode EOLs.
       (let ((coding-system-for-read 'raw-text))
 	(set-buffer (find-file-noselect
-		     (autoload-ensure-default-file
-		      (expand-file-name generated-autoload-file
-					(expand-file-name "lisp"
-							  source-directory)))))
+		     (autoload-ensure-default-file (autoload-generated-file))))
 	;; This is to make generated-autoload-file have Unix EOLs, so
 	;; that it is portable to all platforms.
 	(setq buffer-file-coding-system 'raw-text-unix))
@@ -500,9 +509,7 @@ directory or directories specified."
 			       dirs)))
 	 (this-time (current-time))
 	 (no-autoloads nil)		;files with no autoload cookies.
-	 (autoloads-file
-	  (expand-file-name generated-autoload-file
-			    (expand-file-name "lisp" source-directory)))
+	 (autoloads-file (autoload-generated-file))
 	 (top-dir (file-name-directory autoloads-file)))
 
     (with-current-buffer
