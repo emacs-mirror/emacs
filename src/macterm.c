@@ -2194,11 +2194,12 @@ x_draw_fringe_bitmap (w, row, p)
   Display *display = FRAME_MAC_DISPLAY (f);
   struct face *face = p->face;
   int rowY;
+  int overlay_p = p->overlay_p;
 
 #ifdef MAC_OSX
-  if (p->bx >= 0 && !p->overlay_p)
+  if (!overlay_p)
     {
-      int bx = p->bx, nx = p->nx;
+      int bx = p->bx, by = p->by, nx = p->nx, ny = p->ny;
 
 #if 0  /* MAC_TODO: stipple */
       /* In case the same realized face is used for fringes and
@@ -2227,6 +2228,21 @@ x_draw_fringe_bitmap (w, row, p)
 	      int width = (WINDOW_CONFIG_SCROLL_BAR_COLS (w)
 			   * FRAME_COLUMN_WIDTH (f));
 
+	      if (bx < 0
+		  && (left + width == p->x
+		      || p->x + p->wd == left))
+		{
+		  /* Bitmap fills the fringe and we need background
+		     extension.  */
+		  int header_line_height = WINDOW_HEADER_LINE_HEIGHT (w);
+
+		  bx = p->x;
+		  nx = p->wd;
+		  by = WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height,
+							row->y));
+		  ny = row->visible_height;
+		}
+
 	      if (left + width == bx)
 		{
 		  bx = left + sb_width;
@@ -2237,7 +2253,12 @@ x_draw_fringe_bitmap (w, row, p)
 	    }
 	}
 
-      mac_erase_rectangle (f, face->gc, bx, p->by, nx, p->ny);
+      if (bx >= 0)
+	{
+	  mac_erase_rectangle (f, face->gc, bx, by, nx, ny);
+	  /* The fringe background has already been filled.  */
+	  overlay_p = 1;
+	}
 
 #if 0  /* MAC_TODO: stipple */
       if (!face->stipple)
@@ -2302,10 +2323,10 @@ x_draw_fringe_bitmap (w, row, p)
 		       : face->foreground));
 #if USE_CG_DRAWING
       mac_draw_cg_image (fringe_bmp[p->which], f, face->gc, 0, p->dh,
-			 p->wd, p->h, p->x, p->y, p->overlay_p);
+			 p->wd, p->h, p->x, p->y, overlay_p);
 #else
       mac_draw_bitmap (f, face->gc, p->x, p->y,
-		       p->wd, p->h, p->bits + p->dh, p->overlay_p);
+		       p->wd, p->h, p->bits + p->dh, overlay_p);
 #endif
       XSetForeground (display, face->gc, gcv.foreground);
     }
