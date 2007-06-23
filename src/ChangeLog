@@ -1,3 +1,9 @@
+2007-06-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (x_draw_fringe_bitmap) [MAC_OSX]: Extend fringe background
+	to scroll bar gap also when bitmap fills fringe.  Draw only foreground
+	if extended background has already been filled.
+
 2007-06-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macgui.h (USE_CG_DRAWING): Don't require USE_ATSUI.
