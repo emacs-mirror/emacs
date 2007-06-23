@@ -216,6 +216,7 @@ that work are: A a c i r S s t u U X g G B C R and F partly."
     ;; We need the directory in order to find the right handler.
     (let ((handler (find-file-name-handler (expand-file-name file)
 					   'insert-directory))
+	  (orig-file file)
 	  wildcard-regexp)
       (if handler
 	  (funcall handler 'insert-directory file switches
@@ -244,9 +245,21 @@ that work are: A a c i r S s t u U X g G B C R and F partly."
 		    (file-name-nondirectory file))
 		  file (file-name-directory file))
 	  (if (memq ?B switches) (setq wildcard-regexp "[^~]\\'")))
-	(ls-lisp-insert-directory
-	 file switches (ls-lisp-time-index switches)
-	 wildcard-regexp full-directory-p)
+	(condition-case err
+	    (ls-lisp-insert-directory
+	     file switches (ls-lisp-time-index switches)
+	     wildcard-regexp full-directory-p)
+	  (invalid-regexp
+	   ;; Maybe they wanted a literal file that just happens to
+	   ;; use characters special to shell wildcards.
+	   (if (equal (cadr err) "Unmatched [ or [^")
+	       (progn
+		 (setq wildcard-regexp (if (memq ?B switches) "[^~]\\'")
+		       file (file-relative-name orig-file))
+		 (ls-lisp-insert-directory
+		  file switches (ls-lisp-time-index switches)
+		  nil full-directory-p))
+	     (signal (car err) (cdr err)))))
 	;; Try to insert the amount of free space.
 	(save-excursion
 	  (goto-char (point-min))
