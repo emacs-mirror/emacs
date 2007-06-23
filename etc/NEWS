@@ -81,6 +81,16 @@ considered for update.
 
 ** sgml-electric-tag-pair-mode lets you simultaneously edit matched tag pairs.
 
+** BibTeX mode:
+
+*** New `bibtex-entry-format' options `whitespace', `braces', and
+`string', disabled by default.
+
+*** New variable `bibtex-cite-matcher-alist' contains rules to
+identify cited keys in BibTeX entries, used by `bibtex-find-crossref.
+
+*** Command `bibtex-url' now allows multiple URLs per entry.
+
 
 * Changes in Emacs 23.1 on non-free operating systems
 
