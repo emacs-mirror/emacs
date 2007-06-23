@@ -13,6 +13,9 @@
 	(math-read-bignum): Use math-bignum-digit-length,
 	math-bignum-digit-size and math-small-integer-size.
 
+	* calc/calc-ext.el (math-fixnum-big): Use the variable
+	math-bignum-digit-size.
+
 2007-06-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* log-view.el (log-view-mode-menu): New menu.
