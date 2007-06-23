@@ -1,3 +1,18 @@
+2007-06-22  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (math-bignum-digit-length)
+	(math-bignum-digit-size,math-small-integer-size):
+	New constants.
+	(math-normalize,math-bignum-big,math-make-float)
+	(math-div10-bignum,math-scale-left,math-scale-left-bignum)
+	(math-scale-right,math-scale-right-bignum,math-scale-rounding)
+	(math-add,math-add-bignum,math-sub-bignum,math-sub,math-mul)
+	(math-mul-bignum,math-mul-bignum-digit,math-idivmod)
+	(math-quotient,math-div-bignum,math-div-bignum-digit)
+	(math-div-bignum-part,math-format-bignum-decimal)
+	(math-read-bignum): Use math-bignum-digit-length,
+	math-bignum-digit-size and math-small-integer-size.
+
 2007-06-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hg.el (vc-hg-log-view-mode): Fix last change.
