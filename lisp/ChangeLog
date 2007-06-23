@@ -15,8 +15,6 @@
 
 2007-06-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* vc-hg.el (vc-hg-log-view-mode): Fix last change.
-
 	* log-view.el (log-view-mode-menu): New menu.
 
 2007-06-22  Stefan Monnier  <monnier@iro.umontreal.ca>

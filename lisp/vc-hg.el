@@ -142,7 +142,7 @@
        "^changeset:[ \t]*\\([0-9]+\\):\\(.+\\)")
   (set (make-local-variable 'log-view-font-lock-keywords)
        (append
-        (copy-alist log-view-font-lock-keywords)
+	log-view-font-lock-keywords
 	;; Handle the case:
 	;; user: foo@bar
 	'(("^user:[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
@@ -153,7 +153,7 @@
 	   (1 'change-log-name)
 	   (2 'change-log-email))
 	  ("^date: \\(.+\\)" (1 'change-log-date))
-	  ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message)))))))
+	  ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message))))))
 
 (defun vc-hg-diff (file &optional oldvers newvers buffer)
   "Get a difference report using hg between two versions of FILE."
