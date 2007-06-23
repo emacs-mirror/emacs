@@ -2222,7 +2222,7 @@ calc-kill calc-kill-region calc-yank))))
 
 (defun math-fixnum-big (a)
   (if (cdr a)
-      (+ (car a) (* (math-fixnum-big (cdr a)) 1000))
+      (+ (car a) (* (math-fixnum-big (cdr a)) math-bignum-digit-size))
     (car a)))
 
 (defvar math-simplify-only nil)
