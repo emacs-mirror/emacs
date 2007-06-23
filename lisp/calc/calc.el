@@ -2283,7 +2283,18 @@ See calc-keypad for details."
 
 
 
+(defconst math-bignum-digit-length 3
+  "The length of a \"digit\" in Calc bignums.
+If a big integer is of the form (bigpos N0 N1 ...), this is the
+length of the allowable Emacs integers N0, N1,...
+The value of 2*10^(2*MATH-BIGNUM-DIGIT-LENGTH) must be less than the
+largest Emacs integer.")
 
+(defconst math-bignum-digit-size (expt 10 math-bignum-digit-length)
+  "An upper bound for the size of the \"digit\"s in Calc bignums.")
+
+(defconst math-small-integer-size (expt 10 (* 2 math-bignum-digit-length))
+  "An upper bound for the size of \"small integer\"s in Calc.")
 
 
 ;;;; Arithmetic routines.
@@ -2292,11 +2303,17 @@ See calc-keypad for details."
 ;;; following forms:
 ;;;
 ;;; integer                 An integer.  For normalized numbers, this format
-;;;			    is used only for -999999 ... 999999.
+;;;			    is used only for  
+;;;                         negative math-small-integer-size + 1 to
+;;;                         math-small-integer-size - 1
 ;;;
-;;; (bigpos N0 N1 N2 ...)   A big positive integer, N0 + N1*1000 + N2*10^6 ...
-;;; (bigneg N0 N1 N2 ...)   A big negative integer, - N0 - N1*1000 ...
-;;;			    Each digit N is in the range 0 ... 999.
+;;; (bigpos N0 N1 N2 ...)   A big positive integer, 
+;;;                           N0 + N1*math-bignum-digit-size 
+;;;                              + N2*(math-bignum-digit-size)^2 ...
+;;; (bigneg N0 N1 N2 ...)   A big negative integer, 
+;;;                           - N0 - N1*math-bignum-digit-size ...
+;;;			    Each digit N is in the range 
+;;;                             0 ... math-bignum-digit-size -1.
 ;;;			    Normalized, always at least three N present,
 ;;;			    and the most significant N is nonzero.
 ;;;
@@ -2386,7 +2403,8 @@ See calc-keypad for details."
   (cond
    ((not (consp math-normalize-a))
     (if (integerp math-normalize-a)
-	(if (or (>= math-normalize-a 1000000) (<= math-normalize-a -1000000))
+	(if (or (>= math-normalize-a math-small-integer-size) 
+                (<= math-normalize-a (- math-small-integer-size)))
 	    (math-bignum math-normalize-a)
 	  math-normalize-a)
       math-normalize-a))
@@ -2401,7 +2419,8 @@ See calc-keypad for details."
 	math-normalize-a
       (cond
        ((cdr (cdr math-normalize-a)) (+ (nth 1 math-normalize-a) 
-                                        (* (nth 2 math-normalize-a) 1000)))
+                                        (* (nth 2 math-normalize-a) 
+                                           math-bignum-digit-size)))
        ((cdr math-normalize-a) (nth 1 math-normalize-a))
        (t 0))))
    ((eq (car math-normalize-a) 'bigneg)
@@ -2415,7 +2434,8 @@ See calc-keypad for details."
 	math-normalize-a
       (cond
        ((cdr (cdr math-normalize-a)) (- (+ (nth 1 math-normalize-a) 
-                                           (* (nth 2 math-normalize-a) 1000))))
+                                           (* (nth 2 math-normalize-a) 
+                                              math-bignum-digit-size))))
        ((cdr math-normalize-a) (- (nth 1 math-normalize-a)))
        (t 0))))
    ((eq (car math-normalize-a) 'float)
@@ -2535,7 +2555,8 @@ See calc-keypad for details."
 (defun math-bignum-big (a)   ; [L s]
   (if (= a 0)
       nil
-    (cons (% a 1000) (math-bignum-big (/ a 1000)))))
+    (cons (% a math-bignum-digit-size) 
+          (math-bignum-big (/ a math-bignum-digit-size)))))
 
 
 ;;; Build a normalized floating-point number.  [F I S]
@@ -2552,7 +2573,7 @@ See calc-keypad for details."
 	      (progn
 		(while (= (car digs) 0)
 		  (setq digs (cdr digs)
-			exp (+ exp 3)))
+			exp (+ exp math-bignum-digit-length)))
 		(while (= (% (car digs) 10) 0)
 		  (setq digs (math-div10-bignum digs)
 			exp (1+ exp)))
@@ -2570,7 +2591,8 @@ See calc-keypad for details."
 
 (defun math-div10-bignum (a)   ; [l l]
   (if (cdr a)
-      (cons (+ (/ (car a) 10) (* (% (nth 1 a) 10) 100))
+      (cons (+ (/ (car a) 10) (* (% (nth 1 a) 10) 
+                                 (expt 10 (1- math-bignum-digit-length))))
 	    (math-div10-bignum (cdr a)))
     (list (/ (car a) 10))))
 
@@ -2601,7 +2623,7 @@ See calc-keypad for details."
       (if (cdr a)
 	  (let* ((len (1- (length a)))
 		 (top (nth len a)))
-	    (+ (* len 3) (cond ((>= top 100) 0) ((>= top 10) -1) (t -2))))
+            (+ (* (1- len) math-bignum-digit-length) (math-numdigs top)))
 	0)
     (cond ((>= a 100) (+ (math-numdigs (/ a 1000)) 3))
 	  ((>= a 10) 2)
@@ -2622,24 +2644,24 @@ See calc-keypad for details."
       a
     (if (consp a)
 	(cons (car a) (math-scale-left-bignum (cdr a) n))
-      (if (>= n 3)
-	  (if (or (>= a 1000) (<= a -1000))
+      (if (>= n math-bignum-digit-length)
+	  (if (or (>= a math-bignum-digit-size) 
+                  (<= a (- math-bignum-digit-size)))
 	      (math-scale-left (math-bignum a) n)
-	    (math-scale-left (* a 1000) (- n 3)))
-	(if (= n 2)
-	    (if (or (>= a 10000) (<= a -10000))
-		(math-scale-left (math-bignum a) 2)
-	      (* a 100))
-	  (if (or (>= a 100000) (<= a -100000))
-	      (math-scale-left (math-bignum a) 1)
-	    (* a 10)))))))
+	    (math-scale-left (* a math-bignum-digit-size) 
+                             (- n math-bignum-digit-length)))
+        (let ((sz (expt 10 (- (* 2 math-bignum-digit-length) n))))
+          (if (or (>= a sz) (<= a (- sz)))
+              (math-scale-left (math-bignum a) n)
+            (* a (expt 10 n))))))))
 
 (defun math-scale-left-bignum (a n)
-  (if (>= n 3)
+  (if (>= n math-bignum-digit-length)
       (while (>= (setq a (cons 0 a)
-		       n (- n 3)) 3)))
+		       n (- n math-bignum-digit-length)) 
+                 math-bignum-digit-length)))
   (if (> n 0)
-      (math-mul-bignum-digit a (if (= n 2) 100 10) 0)
+      (math-mul-bignum-digit a (expt 10 n) 0)
     a))
 
 (defun math-scale-right (a n)   ; [i i S]
@@ -2651,21 +2673,20 @@ See calc-keypad for details."
 	  (if (= a 0)
 	      0
 	    (- (math-scale-right (- a) n)))
-	(if (>= n 3)
-	    (while (and (> (setq a (/ a 1000)) 0)
-			(>= (setq n (- n 3)) 3))))
-	(if (= n 2)
-	    (/ a 100)
-	  (if (= n 1)
-	      (/ a 10)
-	    a))))))
+	(if (>= n math-bignum-digit-length)
+	    (while (and (> (setq a (/ a math-bignum-digit-size)) 0)
+			(>= (setq n (- n math-bignum-digit-length)) 
+                            math-bignum-digit-length))))
+	(if (> n 0)
+            (/ a (expt 10 n))
+          a)))))
 
 (defun math-scale-right-bignum (a n)   ; [L L S; l l S]
-  (if (>= n 3)
-      (setq a (nthcdr (/ n 3) a)
-	    n (% n 3)))
+  (if (>= n math-bignum-digit-length)
+      (setq a (nthcdr (/ n math-bignum-digit-length) a)
+	    n (% n math-bignum-digit-length)))
   (if (> n 0)
-      (cdr (math-mul-bignum-digit a (if (= n 2) 10 100) 0))
+      (cdr (math-mul-bignum-digit a (expt 10 (- math-bignum-digit-length n)) 0))
     a))
 
 ;;; Multiply (with rounding) the integer A by 10^N.   [I i S]
@@ -2675,16 +2696,18 @@ See calc-keypad for details."
 	((consp a)
 	 (math-normalize
 	  (cons (car a)
-		(let ((val (if (< n -3)
-			       (math-scale-right-bignum (cdr a) (- -3 n))
-			     (if (= n -2)
-				 (math-mul-bignum-digit (cdr a) 10 0)
-			       (if (= n -1)
-				   (math-mul-bignum-digit (cdr a) 100 0)
-				 (cdr a))))))  ; n = -3
-		  (if (and val (>= (car val) 500))
+		(let ((val (if (< n (- math-bignum-digit-length))
+			       (math-scale-right-bignum 
+                                (cdr a) 
+                                (- (- math-bignum-digit-length) n))
+			     (if (< n 0)
+				 (math-mul-bignum-digit 
+                                  (cdr a) 
+                                  (expt 10 (+ math-bignum-digit-length n)) 0)
+                               (cdr a)))))  ; n = -math-bignum-digit-length
+		  (if (and val (>= (car val) (/ math-bignum-digit-size 2)))
 		      (if (cdr val)
-			  (if (eq (car (cdr val)) 999)
+			  (if (eq (car (cdr val)) (1- math-bignum-digit-size))
 			      (math-add-bignum (cdr val) '(1))
 			    (cons (1+ (car (cdr val))) (cdr (cdr val))))
 			'(1))
@@ -2703,7 +2726,7 @@ See calc-keypad for details."
    (and (not (or (consp a) (consp b)))
 	(progn
 	  (setq a (+ a b))
-	  (if (or (<= a -1000000) (>= a 1000000))
+	  (if (or (<= a (- math-small-integer-size)) (>= a math-small-integer-size))
 	      (math-bignum a)
 	    a)))
    (and (Math-zerop a) (not (eq (car-safe a) 'mod))
@@ -2752,14 +2775,15 @@ See calc-keypad for details."
 	  (let* ((a (copy-sequence a)) (aa a) (carry nil) sum)
 	    (while (and aa b)
 	      (if carry
-		  (if (< (setq sum (+ (car aa) (car b))) 999)
+		  (if (< (setq sum (+ (car aa) (car b))) 
+                         (1- math-bignum-digit-size))
 		      (progn
 			(setcar aa (1+ sum))
 			(setq carry nil))
 		    (setcar aa (+ sum -999)))
-		(if (< (setq sum (+ (car aa) (car b))) 1000)
+		(if (< (setq sum (+ (car aa) (car b))) math-bignum-digit-size)
 		    (setcar aa sum)
-		  (setcar aa (+ sum -1000))
+		  (setcar aa (- sum math-bignum-digit-size))
 		  (setq carry t)))
 	      (setq aa (cdr aa)
 		    b (cdr b)))
@@ -2790,17 +2814,17 @@ See calc-keypad for details."
 		      (progn
 			(setcar aa (1- diff))
 			(setq borrow nil))
-		    (setcar aa (+ diff 999)))
+		    (setcar aa (+ diff (1- math-bignum-digit-size))))
 		(if (>= (setq diff (- (car aa) (car b))) 0)
 		    (setcar aa diff)
-		  (setcar aa (+ diff 1000))
+		  (setcar aa (+ diff math-bignum-digit-size))
 		  (setq borrow t)))
 	      (setq aa (cdr aa)
 		    b (cdr b)))
 	    (if borrow
 		(progn
 		  (while (eq (car aa) 0)
-		    (setcar aa 999)
+		    (setcar aa (1- math-bignum-digit-size))
 		    (setq aa (cdr aa)))
 		  (if aa
 		      (progn
@@ -2840,7 +2864,7 @@ See calc-keypad for details."
   (if (or (consp a) (consp b))
       (math-add a (math-neg b))
     (setq a (- a b))
-    (if (or (<= a -1000000) (>= a 1000000))
+    (if (or (<= a (- math-small-integer-size)) (>= a math-small-integer-size))
 	(math-bignum a)
       a)))
 
@@ -2867,7 +2891,8 @@ See calc-keypad for details."
 (defun math-mul (a b)
   (or
    (and (not (consp a)) (not (consp b))
-	(< a 1000) (> a -1000) (< b 1000) (> b -1000)
+	(< a math-bignum-digit-size) (> a (- math-bignum-digit-size)) 
+        (< b math-bignum-digit-size) (> b (- math-bignum-digit-size))
 	(* a b))
    (and (Math-zerop a) (not (eq (car-safe b) 'mod))
 	(if (Math-scalarp b)
@@ -2936,14 +2961,14 @@ See calc-keypad for details."
 		 aa a)
 	   (while (progn
 		    (setcar ss (% (setq prod (+ (+ (car ss) (* (car aa) d))
-						c)) 1000))
+						c)) math-bignum-digit-size))
 		    (setq aa (cdr aa)))
-	     (setq c (/ prod 1000)
+	     (setq c (/ prod math-bignum-digit-size)
 		   ss (or (cdr ss) (setcdr ss (list 0)))))
-	   (if (>= prod 1000)
+	   (if (>= prod math-bignum-digit-size)
 	       (if (cdr ss)
-		   (setcar (cdr ss) (+ (/ prod 1000) (car (cdr ss))))
-		 (setcdr ss (list (/ prod 1000))))))
+		   (setcar (cdr ss) (+ (/ prod math-bignum-digit-size) (car (cdr ss))))
+		 (setcdr ss (list (/ prod math-bignum-digit-size))))))
 	 sum)))
 
 ;;; Multiply digit list A by digit D.  [L L D D; l l D D]
@@ -2953,12 +2978,14 @@ See calc-keypad for details."
 	  (and (= d 1) a)
 	(let* ((a (copy-sequence a)) (aa a) prod)
 	  (while (progn
-		   (setcar aa (% (setq prod (+ (* (car aa) d) c)) 1000))
+		   (setcar aa 
+                           (% (setq prod (+ (* (car aa) d) c)) 
+                              math-bignum-digit-size))
 		   (cdr aa))
 	    (setq aa (cdr aa)
-		  c (/ prod 1000)))
-	  (if (>= prod 1000)
-	      (setcdr aa (list (/ prod 1000))))
+		  c (/ prod math-bignum-digit-size)))
+	  (if (>= prod math-bignum-digit-size)
+	      (setcdr aa (list (/ prod math-bignum-digit-size))))
 	  a))
     (and (> c 0)
 	 (list c))))
@@ -2971,7 +2998,7 @@ See calc-keypad for details."
   (if (eq b 0)
       (math-reject-arg a "*Division by zero"))
   (if (or (consp a) (consp b))
-      (if (and (natnump b) (< b 1000))
+      (if (and (natnump b) (< b math-bignum-digit-size))
 	  (let ((res (math-div-bignum-digit (cdr a) b)))
 	    (cons
 	     (math-normalize (cons (car a) (car res)))
@@ -2990,7 +3017,7 @@ See calc-keypad for details."
       (if (= b 0)
 	  (math-reject-arg a "*Division by zero")
 	(/ a b))
-    (if (and (natnump b) (< b 1000))
+    (if (and (natnump b) (< b math-bignum-digit-size))
 	(if (= b 0)
 	    (math-reject-arg a "*Division by zero")
 	  (math-normalize (cons (car a)
@@ -2999,7 +3026,7 @@ See calc-keypad for details."
       (or (consp b) (setq b (math-bignum b)))
       (let* ((alen (1- (length a)))
 	     (blen (1- (length b)))
-	     (d (/ 1000 (1+ (nth (1- blen) (cdr b)))))
+	     (d (/ math-bignum-digit-size (1+ (nth (1- blen) (cdr b)))))
 	     (res (math-div-bignum-big (math-mul-bignum-digit (cdr a) d 0)
 				       (math-mul-bignum-digit (cdr b) d 0)
 				       alen blen)))
@@ -3013,7 +3040,7 @@ See calc-keypad for details."
   (if (cdr b)
       (let* ((alen (length a))
 	     (blen (length b))
-	     (d (/ 1000 (1+ (nth (1- blen) b))))
+	     (d (/ math-bignum-digit-size (1+ (nth (1- blen) b))))
 	     (res (math-div-bignum-big (math-mul-bignum-digit a d 0)
 				       (math-mul-bignum-digit b d 0)
 				       alen blen)))
@@ -3028,7 +3055,7 @@ See calc-keypad for details."
 (defun math-div-bignum-digit (a b)
   (if a
       (let* ((res (math-div-bignum-digit (cdr a) b))
-	     (num (+ (* (cdr res) 1000) (car a))))
+	     (num (+ (* (cdr res) math-bignum-digit-size) (car a))))
 	(cons
 	 (cons (/ num b) (car res))
 	 (% num b)))
@@ -3044,10 +3071,11 @@ See calc-keypad for details."
        (cons (car res2) (car res))
        (cdr res2)))))
 
-(defun math-div-bignum-part (a b blen)   ; a < b*1000  [D.l l L]
-  (let* ((num (+ (* (or (nth blen a) 0) 1000) (or (nth (1- blen) a) 0)))
+(defun math-div-bignum-part (a b blen)   ; a < b*math-bignum-digit-size  [D.l l L]
+  (let* ((num (+ (* (or (nth blen a) 0) math-bignum-digit-size) 
+                 (or (nth (1- blen) a) 0)))
 	 (den (nth (1- blen) b))
-	 (guess (min (/ num den) 999)))
+	 (guess (min (/ num den) (1- math-bignum-digit-size))))
     (math-div-bignum-try a b (math-mul-bignum-digit b guess 0) guess)))
 
 (defun math-div-bignum-try (a b c guess)   ; [D.l l l D]
@@ -3358,9 +3386,15 @@ See calc-keypad for details."
   (if a
       (let ((s ""))
 	(while (cdr (cdr a))
-	  (setq s (concat (format "%06d" (+ (* (nth 1 a) 1000) (car a))) s)
+	  (setq s (concat 
+                   (format 
+                    (concat "%0" 
+                            (number-to-string (* 2 math-bignum-digit-length))  
+                            "d")
+                    (+ (* (nth 1 a) math-bignum-digit-size) (car a))) s)
 		a (cdr (cdr a))))
-	(concat (int-to-string (+ (* (or (nth 1 a) 0) 1000) (car a))) s))
+	(concat (int-to-string 
+                 (+ (* (or (nth 1 a) 0) math-bignum-digit-size) (car a))) s))
     "0"))
 
 
@@ -3447,9 +3481,9 @@ See calc-keypad for details."
     ""))
 
 (defun math-read-bignum (s)   ; [l X]
-  (if (> (length s) 3)
-      (cons (string-to-number (substring s -3))
-	    (math-read-bignum (substring s 0 -3)))
+  (if (> (length s) math-bignum-digit-length)
+      (cons (string-to-number (substring s (- math-bignum-digit-length)))
+	    (math-read-bignum (substring s 0 (- math-bignum-digit-length))))
     (list (string-to-number s))))
 
 
