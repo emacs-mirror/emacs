@@ -1,3 +1,7 @@
+2007-06-24  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (Qgdi): Rename from Qw32.
+
 2007-06-22  Jason Rumney  <jasonr@gnu.org>
 
 	* w32bdf.c (get_quoted_string): Make function static.
