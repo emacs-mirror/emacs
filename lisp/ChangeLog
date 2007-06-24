@@ -33,7 +33,7 @@
 	(bibtex-font-lock-url): New optional arg no-button.
 	(bibtex-find-crossref): Use `bibtex-cite-matcher-alist'.
 	(bibtex-url): Allow multiple URLs per entry.
-	
+
 2007-06-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/autoload.el (autoload-generated-file): New function.
@@ -791,9 +791,9 @@
 	(org-table-use-standard-references, org-disputed-keys)
 	(org-export-skip-text-before-1st-heading, org-agenda-with-colors)
 	(org-agenda-export-html-style): New option.
-	(org-allow-auto-repeat,  org-agenda-remove-tags-when-in-prefix)
+	(org-allow-auto-repeat, org-agenda-remove-tags-when-in-prefix)
 	(org-CUA-compatible): Option removed.
-	(org-agenda-structure,  org-sexp-date): New face.
+	(org-agenda-structure, org-sexp-date): New face.
 	(org-todo-keywords-for-agenda, org-not-done-keywords)
 	(org-planning-or-clock-line-re, org-agenda-name)
 	(org-table-colgroup-info, org-todo-sets)
@@ -809,7 +809,7 @@
 	(org-repeat-re, org-todo-kwd-max-priority)
 	(org-version, org-done-string)
 	(org-table-clean-did-remove-column-1, org-disputed-keys):
-	Remove Variables.
+	Remove variables.
 	(org-table-translate-regexp, org-repeat-re, org-version): New consts.
 	(org-ts-lengths): Constant removed.
 	(org-follow-gnus-link): Don't ask how many articles to read.
@@ -966,7 +966,7 @@
 2007-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/derived.el (define-derived-mode): Remove bogus
-	compatibiity code.
+	compatibility code.
 
 	* emacs-lisp/copyright.el (copyright-names-regexp): New var.
 	(copyright-update-year): Use it.
