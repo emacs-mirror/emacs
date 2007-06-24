@@ -310,15 +310,15 @@
 	(let* ((top (nthcdr (- len 2) a)))
 	  (math-isqrt-bignum-iter
 	   a
-	   (math-scale-bignum-3
+	   (math-scale-bignum-digit-size
 	    (math-bignum-big
 	     (1+ (math-isqrt-small
-		  (+ (* (nth 1 top) 1000) (car top)))))
+		  (+ (* (nth 1 top) math-bignum-digit-size) (car top)))))
 	    (1- (/ len 2)))))
       (let* ((top (nth (1- len) a)))
 	(math-isqrt-bignum-iter
 	 a
-	 (math-scale-bignum-3
+	 (math-scale-bignum-digit-size
 	  (list (1+ (math-isqrt-small top)))
 	  (/ len 2)))))))
 
@@ -341,14 +341,15 @@
 	 (while (eq (car (setq a (cdr a))) 0))
 	 (null a))))
 
-(defun math-scale-bignum-3 (a n)   ; [L L S]
+(defun math-scale-bignum-digit-size (a n)   ; [L L S]
   (while (> n 0)
     (setq a (cons 0 a)
 	  n (1- n)))
   a)
 
 (defun math-isqrt-small (a)   ; A > 0.  [S S]
-  (let ((g (cond ((>= a 10000) 1000)
+  (let ((g (cond ((>= a 1000000) 10000)
+                 ((>= a 10000) 1000)
 		 ((>= a 100) 100)
 		 (t 10)))
 	g2)
