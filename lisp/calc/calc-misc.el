@@ -579,7 +579,7 @@ loaded and the keystroke automatically re-typed."
 
 (defun math-div2-bignum (a)   ; [l l]
   (if (cdr a)
-      (cons (+ (/ (car a) 2) (* (% (nth 1 a) 2) 500))
+      (cons (+ (/ (car a) 2) (* (% (nth 1 a) 2) (/ math-bignum-digit-size 2)))
 	    (math-div2-bignum (cdr a)))
     (list (/ (car a) 2))))
 
