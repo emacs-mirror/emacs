@@ -39,7 +39,7 @@ struct w32font_info
 
 extern struct font_driver w32font_driver;
 
-Lisp_Object Qw32, QCfamily;
+Lisp_Object Qgdi, QCfamily;
 static Lisp_Object Qmonospace, Qsans_serif, Qserif, Qmono, Qsans, Qsans__serif;
 static Lisp_Object Qscript, Qdecorative, Qraster, Qoutline, Qunknown;
 
@@ -295,7 +295,7 @@ w32font_open (f, font_entity, pixel_size)
   font->entity = font_entity;
   font->pixel_size = size;
   font->driver = &w32font_driver;
-  font->format = Qw32;
+  font->format = Qgdi;
   font->file_name = NULL;
   font->encoding_charset = -1;
   font->repertory_charset = -1;
@@ -632,7 +632,7 @@ w32_enumfont_pattern_entity (frame, logical_font, physical_font, font_type)
 
   entity = Fmake_vector (make_number (FONT_ENTITY_MAX), Qnil);
 
-  ASET (entity, FONT_TYPE_INDEX, Qw32);
+  ASET (entity, FONT_TYPE_INDEX, Qgdi);
   ASET (entity, FONT_FRAME_INDEX, frame);
   ASET (entity, FONT_REGISTRY_INDEX, w32_registry (lf->lfCharSet));
   ASET (entity, FONT_OBJLIST_INDEX, Qnil);
@@ -1248,7 +1248,7 @@ font_supported_scripts (FONTSIGNATURE * sig)
 
 struct font_driver w32font_driver =
   {
-    0, /* Qw32 */
+    0, /* Qgdi */
     w32font_get_cache,
     w32font_list,
     w32font_match,
@@ -1277,7 +1277,7 @@ struct font_driver w32font_driver =
 void
 syms_of_w32font ()
 {
-  DEFSYM (Qw32, "w32");
+  DEFSYM (Qgdi, "gdi");
 
   /* Generic font families.  */
   DEFSYM (Qmonospace, "monospace");
@@ -1345,7 +1345,7 @@ syms_of_w32font ()
   DEFSYM (Qmusical_symbol, "musical-symbol");
   DEFSYM (Qmathematical, "mathematical");
 
-  w32font_driver.type = Qw32;
+  w32font_driver.type = Qgdi;
   register_font_driver (&w32font_driver, NULL);
 }
 
