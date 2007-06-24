@@ -1,3 +1,9 @@
+2007-06-24  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-comb.el (math-init-random-base,math-prime-test):
+	Use math-read-number-simple to insert constants.
+	(math-prime-test): Redo calculation of sum.
+
 2007-06-23  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* textmodes/bibtex.el (bibtex-entry-format): New options
