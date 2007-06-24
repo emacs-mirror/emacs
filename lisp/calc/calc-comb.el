@@ -560,9 +560,15 @@
 	  nil
 	(if (Math-integerp var-RandSeed)
 	    (let* ((seed (math-sub 161803 var-RandSeed))
-		   (mj (1+ (math-mod seed '(bigpos 0 0 1))))
-		   (mk (1+ (math-mod (math-quotient seed '(bigpos 0 0 1))
-				     '(bigpos 0 0 1))))
+		   (mj (1+ (math-mod seed 
+                                     (eval-when-compile
+                                       (math-read-number-simple "1000000")))))
+		   (mk (1+ (math-mod (math-quotient 
+                                      seed 
+                                      (eval-when-compile
+                                        (math-read-number-simple "1000000")))
+                                     (eval-when-compile 
+                                       (math-read-number-simple "1000000")))))
 		   (i 0))
 	      (setq math-random-table (cons 'vec (make-list 55 mj)))
 	      (while (<= (setq i (1+ i)) 54)
@@ -811,7 +817,9 @@
 		   (error "Argument must be an integer"))
 		  ((Math-integer-negp n)
 		   '(nil))
-		  ((Math-natnum-lessp n '(bigpos 0 0 8))
+		  ((Math-natnum-lessp n 
+                                      (eval-when-compile
+                                        (math-read-number-simple "8000000")))
 		   (setq n (math-fixnum n))
 		   (let ((i -1) v)
 		     (while (and (> (% n (setq v (aref math-primes-table
@@ -824,15 +832,23 @@
 		  ((not (equal n (car math-prime-test-cache)))
 		   (cond ((= (% (nth 1 n) 2) 0) '(nil 2))
 			 ((= (% (nth 1 n) 5) 0) '(nil 5))
-			 (t (let ((dig (cdr n)) (sum 0))
-			      (while dig
-				(if (cdr dig)
-				    (setq sum (% (+ (+ sum (car dig))
-						    (* (nth 1 dig) 1000))
-						 111111)
-					  dig (cdr (cdr dig)))
-				  (setq sum (% (+ sum (car dig)) 111111)
-					dig nil)))
+			 (t (let ((q n) (sum 0))
+                              (while (not (eq q 0))
+                                (setq sum (%
+                                           (+
+                                            sum
+                                            (calcFunc-mod 
+                                             q 
+                                             (eval-when-compile
+                                               (math-read-number-simple
+                                                "1000000"))))
+                                           111111))
+                                (setq q 
+                                      (math-quotient 
+                                       q 
+                                       (eval-when-compile
+                                         (math-read-number-simple
+                                          "1000000")))))
 			      (cond ((= (% sum 3) 0) '(nil 3))
 				    ((= (% sum 7) 0) '(nil 7))
 				    ((= (% sum 11) 0) '(nil 11))
