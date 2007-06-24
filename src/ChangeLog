@@ -151,7 +151,7 @@
 
 	* w32fns.c (Fx_file_dialog): Take size from struct not pointer.
 
-2007-06-08  Juanma Barranquero	<lekktu@gmail.com>
+2007-06-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* callint.c (Fcall_interactively):
 	* editfns.c (Fdelete_and_extract_region):
@@ -204,7 +204,7 @@
 	[TARGET_API_MAC_CARBON] (install_menu_target_item_handler):
 	Remove argument.  Install handler to application.
 	(set_frame_menubar): Don't change deep_p.
-	(mac_menu_show):  Use FRAME_OUTER_TO_INNER_DIFF_X and
+	(mac_menu_show): Use FRAME_OUTER_TO_INNER_DIFF_X and
 	FRAME_OUTER_TO_INNER_DIFF_Y.
 	(DIALOG_BUTTON_COMMAND_ID_OFFSET, DIALOG_BUTTON_COMMAND_ID_P)
 	(DIALOG_BUTTON_COMMAND_ID_VALUE, DIALOG_BUTTON_MAKE_COMMAND_ID)
@@ -22028,7 +22028,7 @@
 	(best_matching_font, choose_face_font): Add `needs_overstrike'
 	argument, and use it to return whether overstriking is desirable
 	for this face/font combo.
-	(set_font_frame_param: Pass new argument to choose_face_font.
+	(set_font_frame_param): Pass new argument to choose_face_font.
 
 2002-11-17  Ben Key  <BKey1@tampabay.rr.com>
 
