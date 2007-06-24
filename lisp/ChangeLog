@@ -4,6 +4,14 @@
 	Use math-read-number-simple to insert constants.
 	(math-prime-test): Redo calculation of sum.
 
+	* calc/calc-misc.el (math-div2-bignum): Use math-bignum-digit-size.
+
+	* calc/calc-math.el (math-scale-bignum-digit-size): Renamed from
+	math-scale-bignum-3.
+	(math-isqrt-bignum): Use math-scale-bignum-digit-size and
+	math-bignum-digit-size.
+	(math-isqrt-small): Add another possible initial guess.
+
 2007-06-23  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* textmodes/bibtex.el (bibtex-entry-format): New options
