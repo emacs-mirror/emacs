@@ -1,3 +1,7 @@
+2007-06-24  Karl Berry  <karl@gnu.org>
+
+	* elisp.texi, vol1.texi, vol2.texi: new Back-Cover Text.
+
 2007-06-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* display.texi (Overlay Arrow): Doc fix.
