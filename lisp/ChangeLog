@@ -1,3 +1,27 @@
+2007-06-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-read): Run `desktop-not-loaded-hook' in the
+	directory where the desktop file was found, as the docstring says.
+	(desktop-kill): Use `read-directory-name'.
+
+	* desktop.el (desktop-load-locked-desktop): New option.
+	(desktop-read): Use it.
+	(desktop-truncate, desktop-outvar, desktop-restore-file-buffer):
+	Use `when'.
+
+2007-06-24  Davis Herring  <herring@lanl.gov>
+
+	* desktop.el (desktop-save-mode-off): New function.
+	(desktop-base-lock-name, desktop-not-loaded-hook): New variables.
+	(desktop-full-lock-name, desktop-file-modtime, desktop-owner)
+	(desktop-claim-lock, desktop-release-lock): New functions.
+	(desktop-kill): Tell `desktop-save' that this is the last save.
+	Release the lock afterwards.
+	(desktop-buffer-info): New function.
+	(desktop-save): Use it.  Run `desktop-save-hook' where the doc
+	says to.  Detect conflicts, and manage the lock.
+	(desktop-read): Detect conflicts.  Manage the lock.
+
 2007-06-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* ls-lisp.el (insert-directory): If an invalid regexp error is
