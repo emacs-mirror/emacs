@@ -1,3 +1,7 @@
+2007-06-24  Karl Berry  <karl@tug.org>
+
+	* elisp.texi, vol1.texi, vol2.texi: new Back-Cover Text.
+
 2007-06-14  Karl Berry  <karl@tug.org>
 
 	* anti.texi (Antinews): typo.
