@@ -1,5 +1,10 @@
 2007-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/autoload.el (autoload-modified-buffers): New var.
+	(autoload-find-destination): Keep it uptodate.
+	(autoload-save-buffers): New fun.
+	(update-file-autoloads): Use it.  Re-add the "up to date" message.
+
 	* emacs-lisp/autoload.el: Refactor for upcoming changes.
 	(autoload-find-destination): New function extracted from
 	update-file-autoloads.

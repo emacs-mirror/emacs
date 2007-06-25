@@ -402,6 +402,13 @@ Return non-nil in the case where no autoloads were added in the buffer."
           (kill-buffer (current-buffer))))
     (not output-start)))
 
+(defvar autoload-modified-buffers nil)
+
+(defun autoload-save-buffers ()
+  (while autoload-modified-buffers
+    (with-current-buffer (pop autoload-modified-buffers)
+      (save-buffer))))
+
 ;;;###autoload
 (defun update-file-autoloads (file &optional save-after)
   "Update the autoloads for FILE in `generated-autoload-file'
@@ -411,23 +418,24 @@ save the buffer too.
 
 Return FILE if there was no autoload cookie in it, else nil."
   (interactive "fUpdate autoloads for file: \np")
-  (let ((existing-buffer (get-file-buffer file)))
+  (let ((existing-buffer (get-file-buffer file))
+        (no-autoloads nil))
     (with-temp-buffer
       ;; Let's presume the file is not visited, so we call
       ;; autoload-find-destination from a dummy buffer, except if the file
       ;; is visited, in which case we use that buffer instead.
       (if existing-buffer (set-buffer existing-buffer))
 
-      (catch 'up-to-date
-        (let ((buf (autoload-find-destination file)))
-          (with-current-buffer buf
-            (let ((no-autoloads (generate-file-autoloads file)))
-              
-              (and save-after
-                   (buffer-modified-p)
-                   (save-buffer))
-
-              (if no-autoloads file))))))))
+      (if (catch 'up-to-date
+            (with-current-buffer (autoload-find-destination file)
+              (setq no-autoloads (generate-file-autoloads file))
+              t))
+          (if save-after (autoload-save-buffers))
+        (if (interactive-p)
+            (message "Autoload section for %s is up to date." file))))
+    ;; If we caught `up-to-date', it means there are autoload entries, since
+    ;; otherwise we wouldn't have detected their up-to-dateness.
+    (if no-autoloads file)))
 
 (defun autoload-find-destination (file)
   "Find the destination point of the current buffer's autoloads.
@@ -486,6 +494,8 @@ to call it from a dummy buffer if FILE is not currently visited."
             ;; No later sections in the file.  Put before the last page.
             (goto-char (point-max))
             (search-backward "\f" nil t)))
+      (unless (memq (current-buffer) autoload-modified-buffers)
+        (push (current-buffer) autoload-modified-buffers))
       (current-buffer))))
 
 (defun autoload-remove-section (begin)
