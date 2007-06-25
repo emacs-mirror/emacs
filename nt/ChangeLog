@@ -1,3 +1,7 @@
+2007-06-25  Jason Rumney  <jasonr@gnu.org>
+
+	* cmdproxy.c (main): Set console codepages to "ANSI".
+
 2007-06-15  Jason Rumney  <jasonr@gnu.org>
 
 	* emacs.manifest: New file.
