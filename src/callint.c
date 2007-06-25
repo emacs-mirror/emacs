@@ -473,16 +473,19 @@ invoke it.  If KEYS is omitted or nil, the return value of
   /* Count the number of arguments the interactive spec would have
      us give to the function.  */
   tem = string;
-  for (j = 0; *tem; j++)
+  for (j = 0; *tem;)
     {
       /* 'r' specifications ("point and mark as 2 numeric args")
 	 produce *two* arguments.  */
-      if (*tem == 'r') j++;
+      if (*tem == 'r')
+	j += 2;
+      else
+	j++;
       tem = (unsigned char *) index (tem, '\n');
       if (tem)
-	tem++;
+	++tem;
       else
-	tem = (unsigned char *) "";
+	break;
     }
   count = j;
 
