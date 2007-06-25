@@ -705,34 +705,104 @@ DEFUN ("optimize-char-table", Foptimize_char_table, Soptimize_char_table,
 }
 
 
+/* Map C_FUNCTION or FUNCTION over TABLE (top or sub char-table),
+   calling it for each character or group of characters that share a
+   value.  RANGE is a cons (FROM . TO) specifying the range of target
+   characters, VAL is a value of FROM in TABLE, DEFAULT_VAL is the
+   default value of the char-table, PARENT is the parent of the
+   char-table.
+
+   ARG is passed to C_FUNCTION when that is called.
+
+   It returns the value of last character covered by TABLE (not the
+   value inheritted from the parent), and by side-effect, the car part
+   of RANGE is updated to the minimum character C where C and all the
+   following characters in TABLE have the same value.  */
+
 static Lisp_Object
 map_sub_char_table (c_function, function, table, arg, val, range,
 		    default_val, parent)
      void (*c_function) P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
      Lisp_Object function, table, arg, val, range, default_val, parent;
 {
-  struct Lisp_Sub_Char_Table *tbl = XSUB_CHAR_TABLE (table);
-  int depth = XINT (tbl->depth);
+  /* Pointer to the elements of TABLE. */
+  Lisp_Object *contents;
+  /* Depth of TABLE.  */
+  int depth;
+  /* Minimum and maxinum characters covered by TABLE. */
+  int min_char, max_char;
+  /* Number of characters covered by one element of TABLE.  */
+  int chars_in_block;
+  int from = XINT (XCAR (range)), to = XINT (XCDR (range));
   int i, c;
 
-  for (i = 0, c = XINT (tbl->min_char); i < chartab_size[depth];
-       i++, c += chartab_chars[depth])
+  if (SUB_CHAR_TABLE_P (table))
     {
-      Lisp_Object this;
+      struct Lisp_Sub_Char_Table *tbl = XSUB_CHAR_TABLE (table);
 
-      this = tbl->contents[i];
+      depth = XINT (tbl->depth);
+      contents = tbl->contents;
+      min_char = XINT (tbl->min_char);
+      max_char = min_char + chartab_chars[depth - 1] - 1;
+    }
+  else
+    {
+      depth = 0;
+      contents = XCHAR_TABLE (table)->contents;
+      min_char = 0;
+      max_char = MAX_CHAR;
+    }
+  chars_in_block = chartab_chars[depth];
+
+  if (to < max_char)
+    max_char = to;
+  /* Set I to the index of the first element to check.  */
+  if (from <= min_char)
+    i = 0;
+  else
+    i = (from - min_char) / chars_in_block;
+  for (c = min_char + chars_in_block * i; c <= max_char;
+       i++, c += chars_in_block)
+    {
+      Lisp_Object this = contents[i];
+      int nextc = c + chars_in_block;
+
       if (SUB_CHAR_TABLE_P (this))
-	val = map_sub_char_table (c_function, function, this, arg, val, range,
-				  default_val, parent);
+	{
+	  if (to >= nextc)
+	    XSETCDR (range, make_number (nextc - 1));
+	  val = map_sub_char_table (c_function, function, this, arg,
+				    val, range, default_val, parent);
+	}
       else
 	{
 	  if (NILP (this))
 	    this = default_val;
-	  if (NILP (this) && ! NILP (parent))
-	    this = CHAR_TABLE_REF (parent, c);
 	  if (NILP (Fequal (val, this)))
 	    {
-	      if (! NILP (val))
+	      int different_value = 1;
+
+	      if (NILP (val))
+		{
+		  if (! NILP (parent))
+		    {
+		      Lisp_Object temp = XCHAR_TABLE (parent)->parent;
+
+		      /* This is to get a value of FROM in PARENT
+			 without checking the parent of PARENT.  */
+		      XCHAR_TABLE (parent)->parent = Qnil;
+		      val = CHAR_TABLE_REF (parent, from);
+		      XCHAR_TABLE (parent)->parent = temp;
+		      XSETCDR (range, make_number (c - 1));
+		      val = map_sub_char_table (c_function, function,
+						parent, arg, val, range,
+						XCHAR_TABLE (parent)->defalt,
+						XCHAR_TABLE (parent)->parent);
+		      if (! NILP (Fequal (val, this)))
+			different_value = 0;
+		    }
+		}
+	      if (! NILP (val) && different_value)
 		{
 		  XSETCDR (range, make_number (c - 1));
 		  if (depth == 3
@@ -752,9 +822,11 @@ map_sub_char_table (c_function, function, table, arg, val, range,
 		    }
 		}
 	      val = this;
+	      from = c;
 	      XSETCAR (range, make_number (c));
 	    }
 	}
+      XSETCDR (range, make_number (to));
     }
   return val;
 }
@@ -774,46 +846,35 @@ map_char_table (c_function, function, table, arg)
   int c, i;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
-  range = Fcons (make_number (0), Qnil);
+  range = Fcons (make_number (0), make_number (MAX_CHAR));
   GCPRO3 (table, arg, range);
   val = XCHAR_TABLE (table)->ascii;
   if (SUB_CHAR_TABLE_P (val))
     val = XSUB_CHAR_TABLE (val)->contents[0];
-
-  for (i = 0, c = 0; i < chartab_size[0]; i++, c += chartab_chars[0])
+  val = map_sub_char_table (c_function, function, table, arg, val, range,
+			    XCHAR_TABLE (table)->defalt,
+			    XCHAR_TABLE (table)->parent);
+  /* If VAL is nil and TABLE has a parent, we must consult the parent
+     recursively.  */
+  while (NILP (val) && ! NILP (XCHAR_TABLE (table)->parent))
     {
-      Lisp_Object this;
+      Lisp_Object parent = XCHAR_TABLE (table)->parent;
+      Lisp_Object temp = XCHAR_TABLE (parent)->parent;
+      int from = XINT (XCAR (range));
 
-      this = XCHAR_TABLE (table)->contents[i];
-      if (SUB_CHAR_TABLE_P (this))
-	val = map_sub_char_table (c_function, function, this, arg, val, range,
-				  XCHAR_TABLE (table)->defalt,
-				  XCHAR_TABLE (table)->parent);
-      else
-	{
-	  if (NILP (this))
-	    this = XCHAR_TABLE (table)->defalt;
-	  if (NILP (this) && ! NILP (XCHAR_TABLE (table)->parent))
-	    this = CHAR_TABLE_REF (XCHAR_TABLE (table)->parent, c);
-	  if (NILP (Fequal (val, this)))
-	    {
-	      if (! NILP (val))
-		{
-		  XSETCDR (range, make_number (c - 1));
-		  if (c_function)
-		    (*c_function) (arg, range, val);
-		  else
-		    call2 (function, range, val);
-		}
-	      val = this;
-	      XSETCAR (range, make_number (c));
-	    }
-	}
+      /* This is to get a value of FROM in PARENT without checking the
+	 parent of PARENT.  */
+      XCHAR_TABLE (parent)->parent = Qnil;
+      val = CHAR_TABLE_REF (parent, from);
+      XCHAR_TABLE (parent)->parent = temp;
+      val = map_sub_char_table (c_function, function, parent, arg, val, range,
+				XCHAR_TABLE (parent)->defalt,
+				XCHAR_TABLE (parent)->parent);
+      table = parent;
     }
 
   if (! NILP (val))
     {
-      XSETCDR (range, make_number (c - 1));
       if (c_function)
 	(*c_function) (arg, range, val);
       else
