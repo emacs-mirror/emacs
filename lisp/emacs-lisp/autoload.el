@@ -311,13 +311,17 @@ Return non-nil in the case where no autoloads were added at point."
   (interactive "fGenerate autoloads for file: ")
   (autoload-generate-file-autoloads file (current-buffer)))
 
-(defun autoload-generate-file-autoloads (file outbuf)
+(defun autoload-generate-file-autoloads (file &optional outbuf)
   "Insert an autoload section for FILE in the appropriate buffer.
 Autoloads are generated for defuns and defmacros in FILE
 marked by `generate-autoload-cookie' (which see).
 If FILE is being visited in a buffer, the contents of the buffer are used.
 OUTBUF is the buffer in which the autoload statements will be inserted.
-Return non-nil in the case where no autoloads were added in the buffer."
+If OUTBUF is nil, it will be determined by `autoload-generated-file'.
+Return non-nil in the case where no autoloads were added to OUTBUF.
+
+Can throw `up-to-date' to mean that the entries were found already and are
+up-to-date.  Of course, this can only be the case if OUTBUF is not used."
   (let ((autoloads-done '())
 	(load-name (autoload-file-load-name file))
 	(print-length nil)
@@ -345,6 +349,8 @@ Return non-nil in the case where no autoloads were added in the buffer."
                ((looking-at (regexp-quote generate-autoload-cookie))
                 ;; If not done yet, figure out where to insert this text.
                 (unless output-start
+                  (unless outbuf
+                    (setq outbuf (autoload-find-destination absfile)))
                   (with-current-buffer outbuf
                     (setq relfile (file-relative-name absfile))
                     (setq output-start (point)))
@@ -418,21 +424,14 @@ save the buffer too.
 
 Return FILE if there was no autoload cookie in it, else nil."
   (interactive "fUpdate autoloads for file: \np")
-  (let ((existing-buffer (get-file-buffer file))
-        (no-autoloads nil))
-    (with-temp-buffer
-      ;; Let's presume the file is not visited, so we call
-      ;; autoload-find-destination from a dummy buffer, except if the file
-      ;; is visited, in which case we use that buffer instead.
-      (if existing-buffer (set-buffer existing-buffer))
-
-      (if (catch 'up-to-date
-            (with-current-buffer (autoload-find-destination file)
-              (setq no-autoloads (generate-file-autoloads file))
-              t))
-          (if save-after (autoload-save-buffers))
-        (if (interactive-p)
-            (message "Autoload section for %s is up to date." file))))
+  (let ((no-autoloads nil))
+    (if (catch 'up-to-date
+          (progn
+            (setq no-autoloads (autoload-generate-file-autoloads file))
+            t))
+        (if save-after (autoload-save-buffers))
+      (if (interactive-p)
+          (message "Autoload section for %s is up to date." file)))
     ;; If we caught `up-to-date', it means there are autoload entries, since
     ;; otherwise we wouldn't have detected their up-to-dateness.
     (if no-autoloads file)))

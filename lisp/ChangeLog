@@ -1,5 +1,11 @@
 2007-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/autoload.el (autoload-generate-file-autoloads):
+	Make `outbuf' optional.
+	(update-file-autoloads): Use it.
+
+2007-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* emacs-lisp/autoload.el (autoload-modified-buffers): New var.
 	(autoload-find-destination): Keep it uptodate.
 	(autoload-save-buffers): New fun.
