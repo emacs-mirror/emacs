@@ -1,3 +1,8 @@
+2007-06-25  David Kastrup  <dak@gnu.org>
+
+	* calc/calc-poly.el (math-padded-polynomial)
+	(math-partial-fractions): Add some function comments.
+
 2007-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/autoload.el (autoload-generate-file-autoloads):
