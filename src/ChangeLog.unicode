@@ -1,3 +1,9 @@
+2007-06-25  Kenichi Handa  <handa@m17n.org>
+
+	* chartab.c (map_sub_char_table): Make it work for the top-level
+	char-table.  Fix handling of parent char-table.
+	(map_char_table):  Adjusted for the above change.
+
 2007-06-24  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (Qgdi): Rename from Qw32.
