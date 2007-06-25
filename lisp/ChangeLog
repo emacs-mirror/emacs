@@ -4,6 +4,11 @@
 	(autoload-find-destination): New function extracted from
 	update-file-autoloads.
 	(update-file-autoloads): Use it.
+	(autoload-generate-file-autoloads): New function extracted from
+	generate-file-autoloads.  Use file-relative-name.  Delay computation of
+	output-start to the first cookie.  Remove done-any, replaced by
+	output-start.
+	(generate-file-autoloads): Use it.
 
 2007-06-24  Jay Belanger  <jay.p.belanger@gmail.com>
 

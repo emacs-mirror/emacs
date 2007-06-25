@@ -309,31 +309,25 @@ If FILE is being visited in a buffer, the contents of the buffer
 are used.
 Return non-nil in the case where no autoloads were added at point."
   (interactive "fGenerate autoloads for file: ")
-  (let ((outbuf (current-buffer))
-	(autoloads-done '())
+  (autoload-generate-file-autoloads file (current-buffer)))
+
+(defun autoload-generate-file-autoloads (file outbuf)
+  "Insert an autoload section for FILE in the appropriate buffer.
+Autoloads are generated for defuns and defmacros in FILE
+marked by `generate-autoload-cookie' (which see).
+If FILE is being visited in a buffer, the contents of the buffer are used.
+OUTBUF is the buffer in which the autoload statements will be inserted.
+Return non-nil in the case where no autoloads were added in the buffer."
+  (let ((autoloads-done '())
 	(load-name (autoload-file-load-name file))
 	(print-length nil)
 	(print-readably t)		; This does something in Lucid Emacs.
 	(float-output-format nil)
-	(done-any nil)
 	(visited (get-file-buffer file))
+        (absfile (expand-file-name file))
+        relfile
+        ;; nil until we found a cookie.
         output-start)
-
-    ;; If the autoload section we create here uses an absolute
-    ;; file name for FILE in its header, and then Emacs is installed
-    ;; under a different path on another system,
-    ;; `update-autoloads-here' won't be able to find the files to be
-    ;; autoloaded.  So, if FILE is in the same directory or a
-    ;; subdirectory of the current buffer's directory, we'll make it
-    ;; relative to the current buffer's directory.
-    (setq file (expand-file-name file))
-    (let* ((source-truename (file-truename file))
-	   (dir-truename (file-name-as-directory
-			  (file-truename default-directory)))
-	   (len (length dir-truename)))
-      (if (and (< len (length source-truename))
-	       (string= dir-truename (substring source-truename 0 len)))
-	  (setq file (substring source-truename len))))
 
     (with-current-buffer (or visited
                              ;; It is faster to avoid visiting the file.
@@ -341,7 +335,6 @@ Return non-nil in the case where no autoloads were added at point."
       ;; Obey the no-update-autoloads file local variable.
       (unless no-update-autoloads
         (message "Generating autoloads for %s..." file)
-        (setq output-start (with-current-buffer outbuf (point)))
         (save-excursion
           (save-restriction
             (widen)
@@ -350,9 +343,16 @@ Return non-nil in the case where no autoloads were added at point."
               (skip-chars-forward " \t\n\f")
               (cond
                ((looking-at (regexp-quote generate-autoload-cookie))
+                ;; If not done yet, figure out where to insert this text.
+                (unless output-start
+                  (with-current-buffer outbuf
+                    (setq relfile (file-relative-name absfile))
+                    (setq output-start (point)))
+                  ;; (message "file=%S, relfile=%S, dest=%S"
+                  ;;          file relfile (autoload-generated-file))
+                  )
                 (search-forward generate-autoload-cookie)
                 (skip-chars-forward " \t")
-                (setq done-any t)
                 (if (eolp)
                     (condition-case err
                         ;; Read the next form and make an autoload.
@@ -385,23 +385,22 @@ Return non-nil in the case where no autoloads were added at point."
                 (forward-sexp 1)
                 (forward-line 1))))))
 
-        (when done-any
+        (when output-start
           (with-current-buffer outbuf
             (save-excursion
               ;; Insert the section-header line which lists the file name
               ;; and which functions are in it, etc.
               (goto-char output-start)
               (autoload-insert-section-header
-               outbuf autoloads-done load-name file
-               (nth 5 (file-attributes file)))
-              (insert ";;; Generated autoloads from "
-                      (autoload-trim-file-name file) "\n"))
+               outbuf autoloads-done load-name relfile
+               (nth 5 (file-attributes relfile)))
+              (insert ";;; Generated autoloads from " relfile "\n"))
             (insert generate-autoload-section-trailer)))
         (message "Generating autoloads for %s...done" file))
       (or visited
           ;; We created this buffer, so we should kill it.
           (kill-buffer (current-buffer))))
-    (not done-any)))
+    (not output-start)))
 
 ;;;###autoload
 (defun update-file-autoloads (file &optional save-after)
@@ -467,13 +466,13 @@ to call it from a dummy buffer if FILE is not currently visited."
                  ;; Check if it is up to date.
                  (let ((begin (match-beginning 0))
                        (last-time (nth 4 form))
-			   (file-time (nth 5 (file-attributes file))))
-		       (if (and (or (null existing-buffer)
+                       (file-time (nth 5 (file-attributes file))))
+                   (if (and (or (null existing-buffer)
 				    (not (buffer-modified-p existing-buffer)))
 				(listp last-time) (= (length last-time) 2)
 				(not (time-less-p last-time file-time)))
                        (throw 'up-to-date nil)
-                     (autoload-remove-section (match-beginning 0))
+                     (autoload-remove-section begin)
                      (setq found t))))
                 ((string< load-name (nth 2 form))
                  ;; We've come to a section alphabetically later than
