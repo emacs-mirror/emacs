@@ -412,74 +412,82 @@ save the buffer too.
 
 Return FILE if there was no autoload cookie in it, else nil."
   (interactive "fUpdate autoloads for file: \np")
+  (let ((existing-buffer (get-file-buffer file)))
+    (with-temp-buffer
+      ;; Let's presume the file is not visited, so we call
+      ;; autoload-find-destination from a dummy buffer, except if the file
+      ;; is visited, in which case we use that buffer instead.
+      (if existing-buffer (set-buffer existing-buffer))
+
+      (catch 'up-to-date
+        (let ((buf (autoload-find-destination file)))
+          (with-current-buffer buf
+            (let ((no-autoloads (generate-file-autoloads file)))
+              
+              (and save-after
+                   (buffer-modified-p)
+                   (save-buffer))
+
+              (if no-autoloads file))))))))
+
+(defun autoload-find-destination (file)
+  "Find the destination point of the current buffer's autoloads.
+FILE is the file name of the current buffer.
+Returns a buffer whose point is placed at the requested location.
+Throws `up-to-date' if the file's autoloads are uptodate, otherwise
+removes any prior now out-of-date autoload entries.
+The current buffer only matters if it is visiting a file or if it has a buffer-local
+value for some variables such as `generated-autoload-file', so it's OK
+to call it from a dummy buffer if FILE is not currently visited."
+  ;; (message "autoload-find-destination %S" file)
   (let ((load-name (autoload-file-load-name file))
-	(found nil)
-	(existing-buffer (get-file-buffer file))
-	(no-autoloads nil))
-    (save-excursion
-      ;; We want to get a value for generated-autoload-file from
-      ;; the local variables section if it's there.
-      (if existing-buffer
-	  (set-buffer existing-buffer))
-      ;; We must read/write the file without any code conversion,
-      ;; but still decode EOLs.
-      (let ((coding-system-for-read 'raw-text))
-	(set-buffer (find-file-noselect
-		     (autoload-ensure-default-file (autoload-generated-file))))
-	;; This is to make generated-autoload-file have Unix EOLs, so
-	;; that it is portable to all platforms.
-	(setq buffer-file-coding-system 'raw-text-unix))
+        (existing-buffer (if buffer-file-name (current-buffer)))
+	(found nil))
+    (with-current-buffer
+        ;; We must read/write the file without any code conversion,
+        ;; but still decode EOLs.
+        (let ((coding-system-for-read 'raw-text))
+          (find-file-noselect
+           (autoload-ensure-default-file (autoload-generated-file))))
+      ;; This is to make generated-autoload-file have Unix EOLs, so
+      ;; that it is portable to all platforms.
+      (setq buffer-file-coding-system 'raw-text-unix)
       (or (> (buffer-size) 0)
 	  (error "Autoloads file %s does not exist" buffer-file-name))
       (or (file-writable-p buffer-file-name)
 	  (error "Autoloads file %s is not writable" buffer-file-name))
-      (save-excursion
-	(save-restriction
-	  (widen)
-	  (goto-char (point-min))
-	  ;; Look for the section for LOAD-NAME.
-	  (while (and (not found)
-		      (search-forward generate-autoload-section-header nil t))
-	    (let ((form (autoload-read-section-header)))
-	      (cond ((string= (nth 2 form) load-name)
-		     ;; We found the section for this file.
-		     ;; Check if it is up to date.
-		     (let ((begin (match-beginning 0))
-			   (last-time (nth 4 form))
+      (widen)
+      (goto-char (point-min))
+      ;; Look for the section for LOAD-NAME.
+      (while (and (not found)
+                  (search-forward generate-autoload-section-header nil t))
+        (let ((form (autoload-read-section-header)))
+          (cond ((string= (nth 2 form) load-name)
+                 ;; We found the section for this file.
+                 ;; Check if it is up to date.
+                 (let ((begin (match-beginning 0))
+                       (last-time (nth 4 form))
 			   (file-time (nth 5 (file-attributes file))))
 		       (if (and (or (null existing-buffer)
 				    (not (buffer-modified-p existing-buffer)))
 				(listp last-time) (= (length last-time) 2)
 				(not (time-less-p last-time file-time)))
-			   (progn
-			     (if (interactive-p)
-				 (message "\
-Autoload section for %s is up to date."
-					  file))
-			     (setq found 'up-to-date))
-			 (search-forward generate-autoload-section-trailer)
-			 (delete-region begin (point))
-			 (setq found t))))
-		    ((string< load-name (nth 2 form))
-		     ;; We've come to a section alphabetically later than
-		     ;; LOAD-NAME.  We assume the file is in order and so
-		     ;; there must be no section for LOAD-NAME.  We will
-		     ;; insert one before the section here.
-		     (goto-char (match-beginning 0))
-		     (setq found 'new)))))
-	  (or found
-	      (progn
-		(setq found 'new)
-		;; No later sections in the file.  Put before the last page.
-		(goto-char (point-max))
-		(search-backward "\f" nil t)))
-	  (or (eq found 'up-to-date)
-	      (setq no-autoloads (generate-file-autoloads file)))))
-      (and save-after
-	   (buffer-modified-p)
-	   (save-buffer))
-
-      (if no-autoloads file))))
+                       (throw 'up-to-date nil)
+                     (autoload-remove-section (match-beginning 0))
+                     (setq found t))))
+                ((string< load-name (nth 2 form))
+                 ;; We've come to a section alphabetically later than
+                 ;; LOAD-NAME.  We assume the file is in order and so
+                 ;; there must be no section for LOAD-NAME.  We will
+                 ;; insert one before the section here.
+                 (goto-char (match-beginning 0))
+                 (setq found t)))))
+      (or found
+          (progn
+            ;; No later sections in the file.  Put before the last page.
+            (goto-char (point-max))
+            (search-backward "\f" nil t)))
+      (current-buffer))))
 
 (defun autoload-remove-section (begin)
   (goto-char begin)

@@ -1,3 +1,10 @@
+2007-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/autoload.el: Refactor for upcoming changes.
+	(autoload-find-destination): New function extracted from
+	update-file-autoloads.
+	(update-file-autoloads): Use it.
+
 2007-06-24  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-comb.el (math-init-random-base,math-prime-test):
@@ -6,7 +13,7 @@
 
 	* calc/calc-misc.el (math-div2-bignum): Use math-bignum-digit-size.
 
-	* calc/calc-math.el (math-scale-bignum-digit-size): Renamed from
+	* calc/calc-math.el (math-scale-bignum-digit-size): Rename from
 	math-scale-bignum-3.
 	(math-isqrt-bignum): Use math-scale-bignum-digit-size and
 	math-bignum-digit-size.
@@ -24,8 +31,8 @@
 	(bibtex-insert-kill, bibtex-mark-entry): Use push-mark.
 	(bibtex-format-entry, bibtex-reformat): Handle new options of
 	bibtex-entry-format.
-	(bibtex-field-re-init, bibtex-font-lock-cite, bibtex-dist): New
-	functions.
+	(bibtex-field-re-init, bibtex-font-lock-cite, bibtex-dist):
+	New functions.
 	(bibtex-complete-internal): Do not display messages while
 	minibuffer is used.  Do not leave around a completions buffer
 	that is out of date.
