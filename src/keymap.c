@@ -1541,14 +1541,47 @@ current_minor_maps (modeptr, mapptr)
 }
 
 DEFUN ("current-active-maps", Fcurrent_active_maps, Scurrent_active_maps,
-       0, 1, 0,
+       0, 2, 0,
        doc: /* Return a list of the currently active keymaps.
 OLP if non-nil indicates that we should obey `overriding-local-map' and
-`overriding-terminal-local-map'.  */)
-     (olp)
-     Lisp_Object olp;
+`overriding-terminal-local-map'.  POSITION can specify a click position
+like in the respective argument of `key-binding'. */)
+    (olp, position)
+    Lisp_Object olp, position;
 {
-  Lisp_Object keymaps = Fcons (current_global_map, Qnil);
+  int count = SPECPDL_INDEX ();
+
+  Lisp_Object keymaps;
+
+  /* If a mouse click position is given, our variables are based on
+     the buffer clicked on, not the current buffer.  So we may have to
+     switch the buffer here. */
+  
+  if (CONSP (position))
+    {
+      Lisp_Object window;
+      
+      window = POSN_WINDOW (position);
+	  
+      if (WINDOWP (window)
+	  && BUFFERP (XWINDOW (window)->buffer)
+	  && XBUFFER (XWINDOW (window)->buffer) != current_buffer)
+	{
+	  /* Arrange to go back to the original buffer once we're done
+	     processing the key sequence.  We don't use
+	     save_excursion_{save,restore} here, in analogy to
+	     `read-key-sequence' to avoid saving point.  Maybe this
+	     would not be a problem here, but it is easier to keep
+	     things the same.
+	  */
+	      
+	  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+	  
+	  set_buffer_internal (XBUFFER (XWINDOW (window)->buffer));
+	}
+    }
+
+  keymaps = Fcons (current_global_map, Qnil);  
 
   if (!NILP (olp))
     {
@@ -1562,15 +1595,76 @@ OLP if non-nil indicates that we should obey `overriding-local-map' and
     }
   if (NILP (XCDR (keymaps)))
     {
-      Lisp_Object local;
       Lisp_Object *maps;
       int nmaps, i;
 
-      /* This usually returns the buffer's local map,
-	 but that can be overridden by a `local-map' property.  */
-      local = get_local_map (PT, current_buffer, Qlocal_map);
-      if (!NILP (local))
-	keymaps = Fcons (local, keymaps);
+      Lisp_Object keymap, local_map;
+      EMACS_INT pt;
+
+      pt = INTEGERP (position) ? XINT (position)
+	: MARKERP (position) ? marker_position (position)
+	: PT;
+
+      /* Get the buffer local maps, possibly overriden by text or
+	 overlay properties */
+
+      local_map = get_local_map (pt, current_buffer, Qlocal_map); 
+      keymap = get_local_map (pt, current_buffer, Qkeymap); 
+
+      if (CONSP (position))
+	{
+	  Lisp_Object string;
+
+	  /* For a mouse click, get the local text-property keymap
+	     of the place clicked on, rather than point.  */
+	  
+	  if (POSN_INBUFFER_P (position))
+	    {
+	      Lisp_Object pos;
+
+	      pos = POSN_BUFFER_POSN (position);
+	      if (INTEGERP (pos)
+		  && XINT (pos) >= BEG && XINT (pos) <= Z)
+		{
+		  local_map = get_local_map (XINT (pos),
+					     current_buffer, Qlocal_map);
+		  
+		  keymap = get_local_map (XINT (pos),
+					  current_buffer, Qkeymap);
+		}
+	    }
+
+	  /* If on a mode line string with a local keymap,
+	     or for a click on a string, i.e. overlay string or a
+	     string displayed via the `display' property,
+	     consider `local-map' and `keymap' properties of
+	     that string.  */
+	  
+	  if (string = POSN_STRING (position),
+	      (CONSP (string) && STRINGP (XCAR (string))))
+	    {
+	      Lisp_Object pos, map;
+	      
+	      pos = XCDR (string);
+	      string = XCAR (string);
+	      if (INTEGERP (pos)
+		  && XINT (pos) >= 0
+		  && XINT (pos) < SCHARS (string))
+		{
+		  map = Fget_text_property (pos, Qlocal_map, string);
+		  if (!NILP (map))
+		    local_map = map;
+
+		  map = Fget_text_property (pos, Qkeymap, string);
+		  if (!NILP (map))
+		    keymap = map;
+		}
+	    }
+	  
+	}
+
+      if (!NILP (local_map))
+	keymaps = Fcons (local_map, keymaps);
 
       /* Now put all the minor mode keymaps on the list.  */
       nmaps = current_minor_maps (0, &maps);
@@ -1579,11 +1673,11 @@ OLP if non-nil indicates that we should obey `overriding-local-map' and
 	if (!NILP (maps[i]))
 	  keymaps = Fcons (maps[i], keymaps);
 
-      /* This returns nil unless there is a `keymap' property.  */
-      local = get_local_map (PT, current_buffer, Qkeymap);
-      if (!NILP (local))
-	keymaps = Fcons (local, keymaps);
+      if (!NILP (keymap))
+	keymaps = Fcons (keymap, keymaps);
     }
+
+  unbind_to (count, Qnil);
 
   return keymaps;
 }
@@ -2842,7 +2936,7 @@ remapped command in the returned list.  */)
   else if (!NILP (keymap))
     keymaps = Fcons (keymap, Fcons (current_global_map, Qnil));
   else
-    keymaps = Fcurrent_active_maps (Qnil);
+    keymaps = Fcurrent_active_maps (Qnil, Qnil);
 
   /* Only use caching for the menubar (i.e. called with (def nil t nil).
      We don't really need to check `keymap'.  */

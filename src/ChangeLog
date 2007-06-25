@@ -1,5 +1,16 @@
 2007-06-25  David Kastrup  <dak@gnu.org>
 
+	* keymap.c (Fcurrent_active_maps): Add `position' argument.
+	(Fwhere_is_internal): Adjust call to `current-active-maps' to
+	cater for additional parameter.
+
+	* keymap.h: Adjust number of parameters to `current-active-maps'.
+
+	* doc.c (Fsubstitute_command_keys): Adjust call of
+	`current-active-maps'.
+
+2007-06-25  David Kastrup  <dak@gnu.org>
+
 	* callint.c (Fcall_interactively): Make the parsing of interactive
 	specs somewhat more readable.
 
