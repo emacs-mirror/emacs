@@ -1,3 +1,8 @@
+2007-06-26  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (Ffind_operation_coding_system): Docstring improved.
+	(syms_of_coding): Docstring of `file-coding-system-alist' improved.
+
 2007-06-25  David Kastrup  <dak@gnu.org>
 
 	* keymap.c (Fcurrent_active_maps): Add `position' argument.
