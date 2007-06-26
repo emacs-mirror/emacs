@@ -1,5 +1,17 @@
 2007-06-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/autoload.el (autoload-find-destination): Return nil
+	rather than throwing `up-to-date'.
+	(autoload-generate-file-autoloads): Adjust correspondingly.
+	(update-file-autoloads): Be careful to let-bind
+	autoload-modified-buffers and adjust to new calling conventions.
+	(autoload-modified-buffers): Make it a dynamically scoped var.
+	(update-directory-autoloads): Use file-relative-name instead of
+	autoload-trim-file-name.
+	(autoload-insert-section-header): Don't use autoload-trim-file-name
+	since the file is already relative now.
+	(autoload-trim-file-name): Remove.
+
 	* vc-arch.el (vc-arch-add-tagline): Do a slightly cleaner job.
 	(vc-arch-complete, vc-arch--version-completion-table)
 	(vc-arch-revision-completion-table): New functions to provide
