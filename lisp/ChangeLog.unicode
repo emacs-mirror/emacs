@@ -1,3 +1,8 @@
+2007-06-26  Kenichi Handa  <handa@m17n.org>
+
+	* dnd.el (dnd-get-local-file-name): Call replace-regexp-in-string
+	with FIXEDCASE t.
+
 2007-06-20  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-diag.el (print-fontset-element): Fix for the
