@@ -1,3 +1,21 @@
+2007-06-26  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* gmalloc.c [HAVE_GTK_AND_PTHREAD]: Check this after including config.h.
+	(_aligned_blocks_mutex) [USE_PTHREAD]: New variable.
+	(LOCK_ALIGNED_BLOCKS, UNLOCK_ALIGNED_BLOCKS): New macros.
+	(_free_internal, memalign): Use them.
+	(_malloc_mutex, _aligned_blocks_mutex) [USE_PTHREAD]:
+	Initialize to PTHREAD_MUTEX_INITIALIZER.
+	(malloc_initialize_1) [USE_PTHREAD]: Don't use recursive mutex.
+	(morecore_nolock): Rename from morecore.  All uses changed.
+	Use only nolock versions of internal allocation functions.
+	(_malloc_internal_nolock, _realloc_internal_nolock)
+	(_free_internal_nolock): New functions created from
+	_malloc_internal, _realloc_internal, and _free_internal.
+	(_malloc_internal, _realloc_internal, _free_internal): Use them.
+	Copy hook value to automatic variable before its use.
+	(memalign): Copy hook value to automatic variable before its use.
+
 2007-06-21  Jason Rumney  <jasonr@gnu.org>
 
 	* image.c (convert_mono_to_color_image): Swap fore and background.
