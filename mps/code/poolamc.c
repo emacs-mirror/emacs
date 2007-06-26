@@ -1578,7 +1578,7 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   /* If the reference is ambiguous, set up the datastructures for */
   /* managing a nailed segment.  This involves marking the segment */
   /* as nailed, and setting up a per-word mark table */
-  if (ss->rank == RankAMBIG) {
+  if(ss->rank == RankAMBIG) {
     /* .nail.new: Check to see whether we need a Nailboard for */
     /* this seg.  We use "SegNailed(seg) == TraceSetEMPTY" */
     /* rather than "!amcSegHasNailboard(seg)" because this avoids */
@@ -1587,9 +1587,9 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     /* assumptions in AMCFixEmergency will be wrong (essentially */
     /* we will lose some pointer fixes because we introduced a */
     /* nailboard). */
-    if (SegNailed(seg) == TraceSetEMPTY) {
+    if(SegNailed(seg) == TraceSetEMPTY) {
       res = amcSegCreateNailboard(seg, pool);
-      if (res != ResOK)
+      if(res != ResOK)
         return res;
       ++ss->nailCount;
       SegSetNailed(seg, TraceSetUnion(SegNailed(seg), ss->traces));
@@ -1610,26 +1610,27 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   newRef = (*format->isMoved)(ref);
   ShieldCover(arena, seg);
 
-  if (newRef == (Addr)0) {
+  if(newRef == (Addr)0) {
     /* If object is nailed already then we mustn't copy it: */
-    if (SegNailed(seg) != TraceSetEMPTY
-        && (!amcSegHasNailboard(seg) || amcNailGetMark(seg, ref))) {
+    if(SegNailed(seg) != TraceSetEMPTY
+       && (!amcSegHasNailboard(seg) || amcNailGetMark(seg, ref))) {
       /* Segment only needs greying if there are new traces for which */
       /* we are nailing. */
-      if (!TraceSetSub(ss->traces, SegNailed(seg))) {
-        if (SegRankSet(seg) != RankSetEMPTY)
+      if(!TraceSetSub(ss->traces, SegNailed(seg))) {
+        if(SegRankSet(seg) != RankSetEMPTY) {
           SegSetGrey(seg, TraceSetUnion(SegGrey(seg), ss->traces));
+        }
         SegSetNailed(seg, TraceSetUnion(SegNailed(seg), ss->traces));
       }
       res = ResOK;
       goto returnRes;
-    } else if (ss->rank == RankWEAK) {
-      /* object is not preserved (neither moved, nor nailed) */
-      /* hence, reference should be splatted */
+    } else if(ss->rank == RankWEAK) {
+      /* Object is not preserved (neither moved, nor nailed) */
+      /* hence, reference should be splatted. */
       goto updateReference;
     }
-    /* object is not preserved yet (neither moved, nor nailed) */
-    /* so should be preserved by forwarding */
+    /* Object is not preserved yet (neither moved, nor nailed) */
+    /* so should be preserved by forwarding. */
     EVENT_A(AMCFixForward, newRef);
     /* <design/fix/#protocol.was-marked> */
     ss->wasMarked = FALSE;
@@ -1644,7 +1645,7 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     ss->forwardedSize += length;
     do {
       res = BUFFER_RESERVE(&newRef, buffer, length, FALSE);
-      if (res != ResOK)
+      if(res != ResOK)
         goto returnRes;
 
       toSeg = BufferSeg(buffer);
@@ -1654,19 +1655,21 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
       /* union the greyness and the summaries together. */
       grey = TraceSetUnion(ss->traces, SegGrey(seg));
       toGrey = SegGrey(toSeg);
-      if (TraceSetDiff(grey, toGrey) != TraceSetEMPTY
-          && SegRankSet(seg) != RankSetEMPTY)
+      if(TraceSetDiff(grey, toGrey) != TraceSetEMPTY
+          && SegRankSet(seg) != RankSetEMPTY) {
         SegSetGrey(toSeg, TraceSetUnion(toGrey, grey));
+      }
       summary = SegSummary(seg);
       toSummary = SegSummary(toSeg);
-      if (RefSetDiff(summary, toSummary) != RefSetEMPTY)
+      if(RefSetDiff(summary, toSummary) != RefSetEMPTY) {
         SegSetSummary(toSeg, RefSetUnion(toSummary, summary));
+      }
 
       /* <design/trace/#fix.copy> */
       (void)AddrCopy(newRef, ref, length);
 
       ShieldCover(arena, toSeg);
-    } while (!BUFFER_COMMIT(buffer, newRef, length));
+    } while(!BUFFER_COMMIT(buffer, newRef, length));
     ss->copiedSize += length;
 
     ShieldExpose(arena, seg);
