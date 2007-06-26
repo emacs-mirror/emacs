@@ -1,3 +1,8 @@
+2007-06-26  Kenichi Handa  <handa@m17n.org>
+
+	* nonascii.texi (Default Coding Systems): Document about the
+	return value `undecided'.
+
 2007-06-25  David Kastrup  <dak@gnu.org>
 
 	* keymaps.texi (Active Keymaps): Document new POSITION argument of
