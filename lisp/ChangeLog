@@ -1,5 +1,13 @@
 2007-06-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc-arch.el (vc-arch-add-tagline): Do a slightly cleaner job.
+	(vc-arch-complete, vc-arch--version-completion-table)
+	(vc-arch-revision-completion-table): New functions to provide
+	completion of revision names.
+	(vc-arch-trim-find-least-useful-rev, vc-arch-trim-make-sentinel)
+	(vc-arch-trim-one-revlib, vc-arch-trim-revlib): New functions
+	to let the user trim the revlib.
+
 	* vc.el: Add new VC operation `revision-completion-table'.
 	(vc-default-revision-completion-table): New function.
 	(vc-version-diff, vc-version-other-window): Use it to provide
