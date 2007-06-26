@@ -1,3 +1,10 @@
+2007-06-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* log-edit.el (log-edit-changelog-entries): Use with-current-buffer.
+
+	* vc-svn.el (vc-svn-repository-hostname): Adjust to non-XML format
+	of newer .svn/entries.
+
 2007-06-25  David Kastrup  <dak@gnu.org>
 
 	* calc/calc-poly.el (math-padded-polynomial)

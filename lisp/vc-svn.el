@@ -492,7 +492,9 @@ and that it passes `vc-svn-global-switches' to it before FLAGS."
 	   ;; Old `svn' used name="svn:this_dir", newer use just name="".
 	   (concat "name=\"\\(?:svn:this_dir\\)?\"[\n\t ]*"
 		   "\\(?:[-a-z]+=\"[^\"]*\"[\n\t ]*\\)*?"
-		   "url=\"\\([^\"]+\\)\"") nil t)
+		   "url=\"\\(?1:[^\"]+\\)\""
+                   ;; Yet newer ones don't use XML any more.
+                   "\\|^\ndir\n[0-9]+\n\\(?1:.*\\)") nil t)
       ;; This is not a hostname but a URL.  This may actually be considered
       ;; as a feature since it allows vc-svn-stay-local to specify different
       ;; behavior for different modules on the same server.
