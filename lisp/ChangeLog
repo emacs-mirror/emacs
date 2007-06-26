@@ -1,5 +1,10 @@
 2007-06-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc.el: Add new VC operation `revision-completion-table'.
+	(vc-default-revision-completion-table): New function.
+	(vc-version-diff, vc-version-other-window): Use it to provide
+	completion of revision names if the backend provides it.
+
 	* log-edit.el (log-edit-changelog-entries): Use with-current-buffer.
 
 	* vc-svn.el (vc-svn-repository-hostname): Adjust to non-XML format

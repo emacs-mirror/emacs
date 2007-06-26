@@ -323,6 +323,11 @@
 ;;   of either 0 (no differences found), or 1 (either non-empty diff
 ;;   or the diff is run asynchronously).
 ;;
+;; - revision-completion-table (file)
+;;
+;;   Return a completion table for existing revisions of FILE.
+;;   The default is to not use any completion table.
+;;
 ;; - diff-tree (dir &optional rev1 rev2)
 ;;
 ;;   Insert the diff for all files at and below DIR into the *vc-diff*
@@ -1748,6 +1753,8 @@ saving the buffer."
 	  (message "No changes to %s since latest version" file)
 	(vc-version-diff file nil nil)))))
 
+(defun vc-default-revision-completion-table (backend file) nil)
+
 (defun vc-version-diff (file rev1 rev2)
   "List the differences between FILE's versions REV1 and REV2.
 If REV1 is empty or nil it means to use the current workfile version;
@@ -1755,12 +1762,13 @@ REV2 empty or nil means the current file contents.  FILE may also be
 a directory, in that case, generate diffs between the correponding
 versions of all registered files in or below it."
   (interactive
-   (let ((file (expand-file-name
-                (read-file-name (if buffer-file-name
-                                    "File or dir to diff (default visited file): "
-                                  "File or dir to diff: ")
-                                default-directory buffer-file-name t)))
-         (rev1-default nil) (rev2-default nil))
+   (let* ((file (expand-file-name
+                 (read-file-name (if buffer-file-name
+                                     "File or dir to diff (default visited file): "
+                                   "File or dir to diff: ")
+                                 default-directory buffer-file-name t)))
+          (rev1-default nil) (rev2-default nil)
+          (completion-table (vc-call revision-completion-table file)))
      ;; compute default versions based on the file state
      (cond
       ;; if it's a directory, don't supply any version default
@@ -1772,21 +1780,25 @@ versions of all registered files in or below it."
       ;; if the file is not locked, use last and previous version as default
       (t
        (setq rev1-default (vc-call previous-version file
-                                   (vc-workfile-version file)))
+				   (vc-workfile-version file)))
        (if (string= rev1-default "") (setq rev1-default nil))
        (setq rev2-default (vc-workfile-version file))))
      ;; construct argument list
-     (list file
-           (read-string (if rev1-default
-			    (concat "Older version (default "
-				    rev1-default "): ")
-			  "Older version: ")
-			nil nil rev1-default)
-           (read-string (if rev2-default
-			    (concat "Newer version (default "
-				    rev2-default "): ")
-			  "Newer version (default current source): ")
-			nil nil rev2-default))))
+     (let* ((rev1-prompt (if rev1-default
+			     (concat "Older version (default "
+				     rev1-default "): ")
+			   "Older version: "))
+	    (rev2-prompt (concat "Newer version (default "
+				 (or rev2-default "current source") "): "))
+	    (rev1 (if completion-table
+		      (completing-read rev1-prompt completion-table
+                                       nil nil nil nil rev1-default)
+		    (read-string rev1-prompt nil nil rev1-default)))
+	    (rev2 (if completion-table
+		      (completing-read rev2-prompt completion-table
+                                       nil nil nil nil rev2-default)
+		    (read-string rev2-prompt nil nil rev2-default))))
+       (list file rev1 rev2))))
   (if (file-directory-p file)
       ;; recursive directory diff
       (progn
@@ -1941,7 +1953,16 @@ The meaning of REV1 and REV2 is the same as for `vc-version-diff'."
   "Visit version REV of the current file in another window.
 If the current file is named `F', the version is named `F.~REV~'.
 If `F.~REV~' already exists, use it instead of checking it out again."
-  (interactive "sVersion to visit (default is workfile version): ")
+  (interactive
+   (save-current-buffer
+     (vc-ensure-vc-buffer)
+     (let ((completion-table
+            (vc-call revision-completion-table buffer-file-name))
+           (prompt "Version to visit (default is workfile version): "))
+       (list
+        (if completion-table
+            (completing-read prompt completion-table)
+          (read-string prompt))))))
   (vc-ensure-vc-buffer)
   (let* ((file buffer-file-name)
 	 (version (if (string-equal rev "")
