@@ -1,5 +1,13 @@
 2007-06-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/autoload.el (autoload-generated-file): Interpret names
+	relative to current dir for file-local settings.
+	(autoload-generate-file-autoloads): Add `outfile' arg.
+	(update-directory-autoloads): Use it to directly call
+	autoload-generate-file-autoloads instead of going through
+	update-file-autoloads so we avoid redundant searches and so we can know
+	the set of buffers changed so we can save them all.
+
 	* emacs-lisp/autoload.el (autoload-find-destination): Return nil
 	rather than throwing `up-to-date'.
 	(autoload-generate-file-autoloads): Adjust correspondingly.

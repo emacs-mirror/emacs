@@ -156,8 +156,12 @@ or macro definition or a defcustom)."
 
 (defun autoload-generated-file ()
   (expand-file-name generated-autoload-file
-                    (expand-file-name "lisp"
-                                      source-directory)))
+                    ;; File-local settings of generated-autoload-file should
+                    ;; be interpreted relative to the file's location,
+                    ;; of course.
+                    (if (not (local-variable-p 'generated-autoload-file))
+                        (expand-file-name "lisp" source-directory))))
+
 
 (defun autoload-read-section-header ()
   "Read a section header form.
@@ -301,15 +305,26 @@ Return non-nil in the case where no autoloads were added at point."
   (interactive "fGenerate autoloads for file: ")
   (autoload-generate-file-autoloads file (current-buffer)))
 
-(defun autoload-generate-file-autoloads (file &optional outbuf)
+;; When called from `generate-file-autoloads' we should ignore
+;; `generated-autoload-file' altogether.  When called from
+;; `update-file-autoloads' we don't know `outbuf'.  And when called from
+;; `update-directory-autoloads' it's in between: we know the default
+;; `outbuf' but we should obey any file-local setting of
+;; `generated-autoload-file'.
+(defun autoload-generate-file-autoloads (file &optional outbuf outfile)
   "Insert an autoload section for FILE in the appropriate buffer.
 Autoloads are generated for defuns and defmacros in FILE
 marked by `generate-autoload-cookie' (which see).
 If FILE is being visited in a buffer, the contents of the buffer are used.
-OUTBUF is the buffer in which the autoload statements will be inserted.
+OUTBUF is the buffer in which the autoload statements should be inserted.
 If OUTBUF is nil, it will be determined by `autoload-generated-file'.
 
-Return non-nil iff FILE adds no autoloads to OUTBUF."
+If provided, OUTFILE is expected to be the file name of OUTBUF.
+If OUTFILE is non-nil and FILE specifies a `generated-autoload-file'
+different from OUTFILE, then OUTBUF is ignored.
+
+Return non-nil iff FILE adds no autoloads to OUTFILE
+\(or OUTBUF if OUTFILE is nil)."
   (catch 'done
     (let ((autoloads-done '())
           (load-name (autoload-file-load-name file))
@@ -317,6 +332,7 @@ Return non-nil iff FILE adds no autoloads to OUTBUF."
           (print-readably t)           ; This does something in Lucid Emacs.
           (float-output-format nil)
           (visited (get-file-buffer file))
+          (otherbuf nil)
           (absfile (expand-file-name file))
           relfile
           ;; nil until we found a cookie.
@@ -338,12 +354,20 @@ Return non-nil iff FILE adds no autoloads to OUTBUF."
                  ((looking-at (regexp-quote generate-autoload-cookie))
                   ;; If not done yet, figure out where to insert this text.
                   (unless output-start
+                    (when (and outfile
+                               (not (equal outfile (autoload-generated-file))))
+                      ;; A file-local setting of autoload-generated-file says
+                      ;; we should ignore OUTBUF.
+                      (setq outbuf nil)
+                      (setq otherbuf t))
                     (unless outbuf
                       (setq outbuf (autoload-find-destination absfile))
                       (unless outbuf
                         ;; The file has autoload cookies, but they're
-                        ;; already up-to-date.
-                        (throw 'done t)))
+                        ;; already up-to-date.  If OUTFILE is nil, the
+                        ;; entries are in the expected OUTBUF, otherwise
+                        ;; they're elsewhere.
+                        (throw 'done outfile)))
                     (with-current-buffer outbuf
                       (setq relfile (file-relative-name absfile))
                       (setq output-start (point)))
@@ -399,7 +423,9 @@ Return non-nil iff FILE adds no autoloads to OUTBUF."
         (or visited
             ;; We created this buffer, so we should kill it.
             (kill-buffer (current-buffer))))
-      (not output-start))))
+      ;; If the entries were added to some other buffer, then the file
+      ;; doesn't add entries to OUTFILE.
+      (or (not output-start) otherbuf))))
 
 (defun autoload-save-buffers ()
   (while autoload-modified-buffers
@@ -511,12 +537,14 @@ directory or directories specified."
 						  t files-re))
 			       dirs)))
 	 (this-time (current-time))
-	 (no-autoloads nil)		;files with no autoload cookies.
-	 (autoloads-file (autoload-generated-file))
-	 (top-dir (file-name-directory autoloads-file)))
+         ;; Files with no autoload cookies or whose autoloads go to other
+         ;; files because of file-local autoload-generated-file settings.
+	 (no-autoloads nil)
+         (autoload-modified-buffers nil))
 
     (with-current-buffer
-	(find-file-noselect (autoload-ensure-default-file autoloads-file))
+	(find-file-noselect
+         (autoload-ensure-default-file (autoload-generated-file)))
       (save-excursion
 
 	;; Canonicalize file names and remove the autoload file itself.
@@ -541,19 +569,23 @@ directory or directories specified."
 			   (push file no-autoloads)
 			   (setq files (delete file files)))))))
 		  ((not (stringp file)))
-		  ((not (file-exists-p (expand-file-name file top-dir)))
+		  ((not (file-exists-p file))
 		   ;; Remove the obsolete section.
 		   (autoload-remove-section (match-beginning 0)))
 		  ((equal (nth 4 form) (nth 5 (file-attributes file)))
 		   ;; File hasn't changed.
 		   nil)
 		  (t
-		   (update-file-autoloads file)))
+                   (autoload-remove-section (match-beginning 0))
+                   (if (autoload-generate-file-autoloads
+                        file (current-buffer) buffer-file-name)
+                       (push file no-autoloads))))
 	    (setq files (delete file files)))))
       ;; Elements remaining in FILES have no existing autoload sections yet.
-      (setq no-autoloads
-	    (append no-autoloads
-		    (delq nil (mapcar 'update-file-autoloads files))))
+      (dolist (file files)
+        (if (autoload-generate-file-autoloads file nil buffer-file-name)
+            (push file no-autoloads)))
+
       (when no-autoloads
 	;; Sort them for better readability.
 	(setq no-autoloads (sort no-autoloads 'string<))
@@ -564,7 +596,10 @@ directory or directories specified."
 	 (current-buffer) nil nil no-autoloads this-time)
 	(insert generate-autoload-section-trailer))
 
-      (save-buffer))))
+      (save-buffer)
+      ;; In case autoload entries were added to other files because of
+      ;; file-local autoload-generated-file settings.
+      (autoload-save-buffers))))
 
 (define-obsolete-function-alias 'update-autoloads-from-directories
     'update-directory-autoloads "22.1")
