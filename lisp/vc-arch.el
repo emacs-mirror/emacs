@@ -83,7 +83,10 @@
   (comment-normalize-vars)
   (goto-char (point-max))
   (forward-comment -1)
-  (unless (bolp) (insert "\n"))
+  (skip-chars-forward " \t\n")
+  (cond
+   ((not (bolp)) (insert "\n\n"))
+   ((not (eq ?\n (char-before (1- (point))))) (insert "\n")))
   (let ((beg (point))
 	(idfile (and buffer-file-name
 		     (expand-file-name
@@ -419,6 +422,137 @@ Return non-nil if FILE is unchanged."
 
 (defun vc-arch-init-version () nil)
 
+;;; Completion of versions and revisions.
+
+(defun vc-arch-complete (table string pred action)
+  (assert (not (functionp table)))
+  (cond
+   ((null action) (try-completion string table pred))
+   ((eq action t) (all-completions string table pred))
+   (t (test-completion string table pred))))
+
+(defun vc-arch--version-completion-table (root string)
+  (delq nil
+	(mapcar
+	 (lambda (d)
+	   (when (string-match "/\\([^/]+\\)/\\([^/]+\\)\\'" d)
+	     (concat (match-string 2 d) "/" (match-string 1 d))))
+	 (let ((default-directory root))
+	   (file-expand-wildcards
+	    (concat "*/*/"
+		    (if (string-match "/" string)
+			(concat (substring string (match-end 0))
+				"*/" (substring string 0 (match-beginning 0)))
+		      (concat "*/" string))
+		    "*"))))))
+
+(defun vc-arch-revision-completion-table (file)
+  (lexical-let ((file file))
+    (lambda (string pred action)
+      ;; FIXME: complete revision patches as well.
+      (let ((root (expand-file-name "{arch}" (vc-arch-root file))))
+	(vc-arch-complete
+	 (vc-arch--version-completion-table root string)
+	 string pred action)))))
+
+;;; Trimming revision libraries.
+
+;; This code is not directly related to VC and there are many variants of
+;; this functionality available as scripts, but I like this version better,
+;; so maybe others will like it too.
+
+(defun vc-arch-trim-find-least-useful-rev (revs)
+  (let* ((first (pop revs))
+         (second (pop revs))
+         (third (pop revs))
+         ;; We try to give more importance to recent revisions.  The idea is
+         ;; that it's OK if checking out a revision 1000-patch-old is ten
+         ;; times slower than checking out a revision 100-patch-old.  But at
+         ;; the same time a 2-patch-old rev isn't really ten times more
+         ;; important than a 20-patch-old, so we use an arbitrary constant
+         ;; "100" to reduce this effect for recent revisions.  Making this
+         ;; constant a float has the side effect of causing the subsequent
+         ;; computations to be done as floats as well.
+         (max (+ 100.0 (car (or (car (last revs)) third))))
+         (cost (lambda () (/ (- (car third) (car first)) (- max (car second)))))
+         (minrev second)
+         (mincost (funcall cost)))
+    (while revs
+      (setq first second)
+      (setq second third)
+      (setq third (pop revs))
+      (when (< (funcall cost) mincost)
+        (setq minrev second)
+        (setq mincost (funcall cost))))
+    minrev))
+
+(defun vc-arch-trim-make-sentinel (revs)
+  (if (null revs) (lambda (proc msg) (message "VC-Arch trimming ... done"))
+    `(lambda (proc msg)
+       (message "VC-Arch trimming %s..." ',(file-name-nondirectory (car revs)))
+       (rename-file ,(car revs) ,(concat (car revs) "*rm*"))
+       (setq proc (start-process "vc-arch-trim" nil
+                                 "rm" "-rf" ',(concat (car revs) "*rm*")))
+       (set-process-sentinel proc (vc-arch-trim-make-sentinel ',(cdr revs))))))
+
+(defun vc-arch-trim-one-revlib (dir)
+  "Delete half of the revisions in the revision library."
+  (interactive "Ddirectory: ")
+  (let ((revs
+         (sort (delq nil
+                     (mapcar
+                      (lambda (f)
+                        (when (string-match "-\\([0-9]+\\)\\'" f)
+                          (cons (string-to-number (match-string 1 f)) f)))
+                      (directory-files dir nil nil 'nosort)))
+               'car-less-than-car))
+        (subdirs nil))
+    (when (cddr revs)
+      (dotimes (i (/ (length revs) 2))
+        (let ((minrev (vc-arch-trim-find-least-useful-rev revs)))
+          (setq revs (delq minrev revs))
+          (push minrev subdirs)))
+      (funcall (vc-arch-trim-make-sentinel
+                (mapcar (lambda (x) (expand-file-name (cdr x) dir)) subdirs))
+               nil nil))))
+
+(defun vc-arch-trim-revlib ()
+  "Delete half of the revisions in the revision library."
+  (interactive)
+  (let ((rl-dir (with-output-to-string
+                  (call-process vc-arch-command nil standard-output nil
+                                "my-revision-library"))))
+    (while (string-match "\\(.*\\)\n" rl-dir)
+      (let ((dir (match-string 1 rl-dir)))
+        (setq rl-dir
+              (if (and (file-directory-p dir) (file-writable-p dir))
+                  dir
+                (substring rl-dir (match-end 0))))))
+    (unless (file-writable-p rl-dir)
+      (error "No writable revlib directory found"))
+    (message "Revlib at %s" rl-dir)
+    (let* ((archives (directory-files rl-dir 'full "[^.]\\|..."))
+           (categories
+            (apply 'append
+                   (mapcar (lambda (dir)
+                             (when (file-directory-p dir)
+                               (directory-files dir 'full "[^.]\\|...")))
+                           archives)))
+           (branches
+            (apply 'append
+                   (mapcar (lambda (dir)
+                             (when (file-directory-p dir)
+                               (directory-files dir 'full "[^.]\\|...")))
+                           categories)))
+           (versions
+            (apply 'append
+                   (mapcar (lambda (dir)
+                             (when (file-directory-p dir)
+                               (directory-files dir 'full "--.*--")))
+                           branches))))
+      (mapc 'vc-arch-trim-one-revlib versions))
+    ))
+    
 ;;; Less obvious implementations.
 
 (defun vc-arch-find-version (file rev buffer)

@@ -74,10 +74,11 @@ recenter the visited source file.  Its value can be a number (for example,
 Only copyright lines with holders matching copyright-names-regexp will be
 considered for update.
 
+** VC
+*** VC backends can provide completion of revision names.
+*** VC has some support for Bazaar (bzr).
 
-** VC has some support for Bazaar (bzr).
-
-** VC has some support for Mercurial (hg).
+*** VC has some support for Mercurial (hg).
 
 ** sgml-electric-tag-pair-mode lets you simultaneously edit matched tag pairs.
 
