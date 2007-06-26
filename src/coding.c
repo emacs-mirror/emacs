@@ -7464,6 +7464,8 @@ They may specify a coding system, a cons of coding systems,
 or a function symbol to call.
 In the last case, we call the function with one argument,
 which is a list of all the arguments given to this function.
+If the function can't decide a coding system, it can return
+`undecided' so that the normal code-detection is performed.
 
 If OPERATION is `insert-file-contents', the argument corresponding to
 TARGET may be a cons (FILENAME . BUFFER).  In that case, FILENAME is a
@@ -7967,7 +7969,9 @@ and the cdr part is used for encoding.
 If VAL is a function symbol, the function must return a coding system
 or a cons of coding systems which are used as above.  The function is
 called with an argument that is a list of the arguments with which
-`find-operation-coding-system' was called.
+`find-operation-coding-system' was called.  If the function can't decide
+a coding system, it can return `undecided' so that the normal
+code-detection is performed.
 
 See also the function `find-operation-coding-system'
 and the variable `auto-coding-alist'.  */);
