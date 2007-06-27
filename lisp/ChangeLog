@@ -1,5 +1,7 @@
 2007-06-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* ps-print.el: Update with auto-generated autoloads.
+
 	* ps-mule.el: Set generated-autoload-file to "ps-print.el".
 
 2007-06-26  Stefan Monnier  <monnier@iro.umontreal.ca>

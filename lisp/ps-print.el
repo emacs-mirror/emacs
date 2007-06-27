@@ -3702,7 +3702,7 @@ The table depends on the current ps-print setup."
 ;;    ps-page-dimensions-database
 ;;    ps-font-info-database
 
-;;; ps-print - end of settings\n")
+\;;; ps-print - end of settings\n")
      "\n")))
 
 
@@ -7031,16 +7031,71 @@ If FACE is not a valid face name, use default face."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; To make this file smaller, some commands go in a separate file.
 ;; But autoload them here to make the separation invisible.
+
+;;;### (autoloads (ps-mule-begin-page ps-mule-begin-job ps-mule-encode-header-string
+;;;;;;  ps-mule-initialize ps-mule-plot-composition ps-mule-plot-string
+;;;;;;  ps-mule-set-ascii-font ps-mule-prepare-ascii-font ps-multibyte-buffer)
+;;;;;;  "ps-mule" "ps-mule.el" (18050 34656))
+;;; Generated autoloads from ps-mule.el
 
-(autoload 'ps-mule-prepare-ascii-font "ps-mule"
-  "Setup special ASCII font for STRING.
-STRING should contain only ASCII characters.")
+(defvar ps-multibyte-buffer nil "\
+*Specifies the multi-byte buffer handling.
 
-(autoload 'ps-mule-set-ascii-font     "ps-mule"
-  "Adjust current font if current charset is not ASCII.")
+Valid values are:
 
-(autoload 'ps-mule-plot-string        "ps-mule"
-  "Generate PostScript code for plotting characters in the region FROM and TO.
+  nil                     This is the value to use the default settings which
+			  is by default for printing buffer with only ASCII
+			  and Latin characters.   The default setting can be
+			  changed by setting the variable
+			  `ps-mule-font-info-database-default' differently.
+			  The initial value of this variable is
+			  `ps-mule-font-info-database-latin' (see
+			  documentation).
+
+  `non-latin-printer'     This is the value to use when you have a Japanese
+			  or Korean PostScript printer and want to print
+			  buffer with ASCII, Latin-1, Japanese (JISX0208 and
+			  JISX0201-Kana) and Korean characters.  At present,
+			  it was not tested the Korean characters printing.
+			  If you have a korean PostScript printer, please,
+			  test it.
+
+  `bdf-font'              This is the value to use when you want to print
+			  buffer with BDF fonts.  BDF fonts include both latin
+			  and non-latin fonts.  BDF (Bitmap Distribution
+			  Format) is a format used for distributing X's font
+			  source file.  BDF fonts are included in
+			  `intlfonts-1.2' which is a collection of X11 fonts
+			  for all characters supported by Emacs.  In order to
+			  use this value, be sure to have installed
+			  `intlfonts-1.2' and set the variable
+			  `bdf-directory-list' appropriately (see ps-bdf.el for
+			  documentation of this variable).
+
+  `bdf-font-except-latin' This is like `bdf-font' except that it is used
+			  PostScript default fonts to print ASCII and Latin-1
+			  characters.  This is convenient when you want or
+			  need to use both latin and non-latin characters on
+			  the same buffer.  See `ps-font-family',
+			  `ps-header-font-family' and `ps-font-info-database'.
+
+Any other value is treated as nil.")
+
+(custom-autoload (quote ps-multibyte-buffer) "ps-mule" t)
+
+(autoload (quote ps-mule-prepare-ascii-font) "ps-mule" "\
+Setup special ASCII font for STRING.
+STRING should contain only ASCII characters.
+
+\(fn STRING)" nil nil)
+
+(autoload (quote ps-mule-set-ascii-font) "ps-mule" "\
+Not documented
+
+\(fn)" nil nil)
+
+(autoload (quote ps-mule-plot-string) "ps-mule" "\
+Generate PostScript code for plotting characters in the region FROM and TO.
 
 It is assumed that all characters in this region belong to the same charset.
 
@@ -7051,27 +7106,54 @@ Returns the value:
 	(ENDPOS . RUN-WIDTH)
 
 Where ENDPOS is the end position of the sequence and RUN-WIDTH is the width of
-the sequence.")
+the sequence.
 
-(autoload 'ps-mule-initialize         "ps-mule"
-  "Initialize global data for printing multi-byte characters.")
+\(fn FROM TO &optional BG-COLOR)" nil nil)
 
-(autoload 'ps-mule-begin-job          "ps-mule"
-  "Start printing job for multi-byte chars between FROM and TO.
-This checks if all multi-byte characters in the region are printable or not.")
+(autoload (quote ps-mule-plot-composition) "ps-mule" "\
+Generate PostScript code for plotting composition in the region FROM and TO.
 
-(autoload 'ps-mule-begin-page         "ps-mule"
-  "Initialize multi-byte charset for printing current page.")
+It is assumed that all characters in this region belong to the same
+composition.
 
-(autoload 'ps-mule-encode-header-string "ps-mule"
-  "Generate PostScript code for plotting characters in header STRING.
+Optional argument BG-COLOR specifies background color.
 
-It is assumed that the length of STRING is not zero.")
+Returns the value:
 
+	(ENDPOS . RUN-WIDTH)
+
+Where ENDPOS is the end position of the sequence and RUN-WIDTH is the width of
+the sequence.
+
+\(fn FROM TO &optional BG-COLOR)" nil nil)
+
+(autoload (quote ps-mule-initialize) "ps-mule" "\
+Initialize global data for printing multi-byte characters.
+
+\(fn)" nil nil)
+
+(autoload (quote ps-mule-encode-header-string) "ps-mule" "\
+Generate PostScript code for ploting STRING by font FONTTAG.
+FONTTAG should be a string \"/h0\" or \"/h1\".
+
+\(fn STRING FONTTAG)" nil nil)
+
+(autoload (quote ps-mule-begin-job) "ps-mule" "\
+Start printing job for multi-byte chars between FROM and TO.
+This checks if all multi-byte characters in the region are printable or not.
+
+\(fn FROM TO)" nil nil)
+
+(autoload (quote ps-mule-begin-page) "ps-mule" "\
+Not documented
+
+\(fn)" nil nil)
+
+;;;***
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (provide 'ps-print)
 
-;;; arch-tag: fb06a585-1112-4206-885d-a57d95d50579
+;; arch-tag: fb06a585-1112-4206-885d-a57d95d50579
 ;;; ps-print.el ends here
