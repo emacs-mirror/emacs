@@ -1,3 +1,8 @@
+2007-06-27  Kenichi Handa  <handa@m17n.org>
+
+	* text.texi (Special Properties): Fix description about
+	`compostion' property.
+
 2007-06-26  Kenichi Handa  <handa@m17n.org>
 
 	* nonascii.texi (Default Coding Systems): Document about the
