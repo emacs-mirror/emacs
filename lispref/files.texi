@@ -2587,7 +2587,6 @@ first, before handlers for jobs such as remote file access.
 @code{directory-file-name},
 @code{directory-files},
 @code{directory-files-and-attributes},
-@code{dired-call-process},
 @code{dired-compress-file}, @code{dired-uncache},@*
 @code{expand-file-name},
 @code{file-accessible-directory-p},
@@ -2614,6 +2613,7 @@ first, before handlers for jobs such as remote file access.
 @code{make-directory},
 @code{make-directory-internal},
 @code{make-symbolic-link},@*
+@code{process-file},
 @code{rename-file}, @code{set-file-modes}, @code{set-file-times},
 @code{set-visited-file-modtime}, @code{shell-command},
 @code{substitute-in-file-name},@*
@@ -2633,7 +2633,6 @@ first, before handlers for jobs such as remote file access.
 @code{directory-file-name},
 @code{directory-files},
 @code{directory-files-and-at@discretionary{}{}{}tributes},
-@code{dired-call-process},
 @code{dired-compress-file}, @code{dired-uncache},
 @code{expand-file-name},
 @code{file-accessible-direc@discretionary{}{}{}tory-p},
@@ -2658,6 +2657,7 @@ first, before handlers for jobs such as remote file access.
 @code{load}, @code{make-direc@discretionary{}{}{}tory},
 @code{make-direc@discretionary{}{}{}tory-internal},
 @code{make-symbolic-link},
+@code{process-file},
 @code{rename-file}, @code{set-file-modes},
 @code{set-visited-file-modtime}, @code{shell-command},
 @code{substitute-in-file-name},

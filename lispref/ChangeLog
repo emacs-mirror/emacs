@@ -1,3 +1,8 @@
+2007-06-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.texi (Magic File Names): Remove `dired-call-process'.  Add
+	`process-file'.
+
 2007-06-27  Kenichi Handa  <handa@m17n.org>
 
 	* text.texi (Special Properties): Fix description about
