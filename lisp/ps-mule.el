@@ -1581,5 +1581,9 @@ This checks if all multi-byte characters in the region are printable or not."
 
 (provide 'ps-mule)
 
-;;; arch-tag: bca017b2-66a7-4e59-8584-103e749eadbe
+;; Local Variables:
+;; generated-autoload-file: "ps-print.el"
+;; End:
+
+;; arch-tag: bca017b2-66a7-4e59-8584-103e749eadbe
 ;;; ps-mule.el ends here

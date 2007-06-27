@@ -1,3 +1,7 @@
+2007-06-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ps-mule.el: Set generated-autoload-file to "ps-print.el".
+
 2007-06-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/autoload.el (autoload-generated-file): Interpret names
