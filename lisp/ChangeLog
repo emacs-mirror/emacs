@@ -1,5 +1,14 @@
 2007-06-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/cl.el: Use cl-loaddefs.el rather than manual autoloads.
+
+	* emacs-lisp/cl-extra.el:
+	* emacs-lisp/cl-seq.el:
+	* emacs-lisp/cl-macs.el: Set generated-autoload-file to cl-loaddefs.el.
+	Add autoload cookies on all defs autoloaded manually in cl.el.
+
+	* emacs-lisp/cl-loaddefs.el: New file.
+
 	* textmodes/texinfmt.el (texinfo-raisesections-alist)
 	(texinfo-lowersections-alist): Merge definition and declaration.
 	(texinfo-start-of-header, texinfo-end-of-header): Remove.

@@ -585,96 +585,48 @@ If ALIST is non-nil, the new pairs are prepended to it."
 
 ;;; Miscellaneous.
 
-(defvar cl-fake-autoloads nil
-  "Non-nil means don't make CL functions autoload.")
-
 ;;; Autoload the other portions of the package.
 ;; We want to replace the basic versions of dolist, dotimes, declare below.
 (fmakunbound 'dolist)
 (fmakunbound 'dotimes)
 (fmakunbound 'declare)
-(mapcar (function
-	 (lambda (set)
-	   (let ((file (if cl-fake-autoloads "<none>" (car set))))
-	     (mapcar (function
-		      (lambda (func)
-			(autoload func (car set) nil nil (nth 1 set))))
-		     (cddr set)))))
-	'(("cl-extra" nil
-	   coerce equalp cl-map-keymap maplist mapc mapl mapcan mapcon
-	   cl-map-keymap cl-map-keymap-recursively cl-map-intervals
-	   cl-map-overlays cl-set-frame-visible-p cl-float-limits
-	   gcd lcm isqrt floor* ceiling* truncate* round*
-	   mod* rem* signum random* make-random-state random-state-p
-	   subseq concatenate cl-mapcar-many map some every notany
-	   notevery revappend nreconc list-length tailp copy-tree get* getf
-	   cl-set-getf cl-do-remf remprop cl-make-hash-table cl-hash-lookup
-	   cl-gethash cl-puthash cl-remhash cl-clrhash cl-maphash cl-hash-table-p
-	   cl-hash-table-count cl-progv-before cl-prettyexpand
-	   cl-macroexpand-all)
-	  ("cl-seq" nil
-	   reduce fill replace remove* remove-if remove-if-not
-	   delete* delete-if delete-if-not remove-duplicates
-	   delete-duplicates substitute substitute-if substitute-if-not
-	   nsubstitute nsubstitute-if nsubstitute-if-not find find-if
-	   find-if-not position position-if position-if-not count count-if
-	   count-if-not mismatch search sort* stable-sort merge member*
-	   member-if member-if-not cl-adjoin assoc* assoc-if assoc-if-not
-	   rassoc* rassoc-if rassoc-if-not union nunion intersection
-	   nintersection set-difference nset-difference set-exclusive-or
-	   nset-exclusive-or subsetp subst-if subst-if-not nsubst nsubst-if
-	   nsubst-if-not sublis nsublis tree-equal)
-	  ("cl-macs" nil
-	   gensym gentemp typep cl-do-pop get-setf-method
-	   cl-struct-setf-expander compiler-macroexpand cl-compile-time-init)
-	  ("cl-macs" t
-	   defun* defmacro* function* destructuring-bind eval-when
-	   load-time-value case ecase typecase etypecase
-	   block return return-from loop do do* dolist dotimes do-symbols
-	   do-all-symbols psetq progv flet labels macrolet symbol-macrolet
-	   lexical-let lexical-let* multiple-value-bind multiple-value-setq
-	   locally the declare define-setf-method defsetf define-modify-macro
-	   setf psetf remf shiftf rotatef letf letf* callf callf2 defstruct
-	   check-type assert ignore-errors define-compiler-macro)))
+(load "cl-loaddefs")
 
 ;;; Define data for indentation and edebug.
-(mapcar (function
-	 (lambda (entry)
-	   (mapcar (function
-		    (lambda (func)
-		      (put func 'lisp-indent-function (nth 1 entry))
-		      (put func 'lisp-indent-hook (nth 1 entry))
-		      (or (get func 'edebug-form-spec)
-			  (put func 'edebug-form-spec (nth 2 entry)))))
-		   (car entry))))
-	'(((defun* defmacro*) 2)
-	  ((function*) nil
-	   (&or symbolp ([&optional 'macro] 'lambda (&rest sexp) &rest form)))
-	  ((eval-when) 1 (sexp &rest form))
-	  ((declare) nil (&rest sexp))
-	  ((the) 1 (sexp &rest form))
-	  ((case ecase typecase etypecase) 1 (form &rest (sexp &rest form)))
-	  ((block return-from) 1 (sexp &rest form))
-	  ((return) nil (&optional form))
-	  ((do do*) 2 ((&rest &or symbolp (symbolp &optional form form))
-		       (form &rest form)
-		       &rest form))
-	  ((do-symbols) 1 ((symbolp form &optional form form) &rest form))
-	  ((do-all-symbols) 1 ((symbolp form &optional form) &rest form))
-	  ((psetq setf psetf) nil edebug-setq-form)
-	  ((progv) 2 (&rest form))
-	  ((flet labels macrolet) 1
-	   ((&rest (sexp sexp &rest form)) &rest form))
-	  ((symbol-macrolet lexical-let lexical-let*) 1
-	   ((&rest &or symbolp (symbolp form)) &rest form))
-	  ((multiple-value-bind) 2 ((&rest symbolp) &rest form))
-	  ((multiple-value-setq) 1 ((&rest symbolp) &rest form))
-	  ((incf decf remf pushnew shiftf rotatef) nil (&rest form))
-	  ((letf letf*) 1 ((&rest (&rest form)) &rest form))
-	  ((callf destructuring-bind) 2 (sexp form &rest form))
-	  ((callf2) 3 (sexp form form &rest form))
-	  ((loop) nil (&rest &or symbolp form))
-	  ((ignore-errors) 0 (&rest form))))
+(dolist (entry
+         '(((defun* defmacro*) 2)
+           ((function*) nil
+            (&or symbolp ([&optional 'macro] 'lambda (&rest sexp) &rest form)))
+           ((eval-when) 1 (sexp &rest form))
+           ((declare) nil (&rest sexp))
+           ((the) 1 (sexp &rest form))
+           ((case ecase typecase etypecase) 1 (form &rest (sexp &rest form)))
+           ((block return-from) 1 (sexp &rest form))
+           ((return) nil (&optional form))
+           ((do do*) 2 ((&rest &or symbolp (symbolp &optional form form))
+                        (form &rest form)
+                        &rest form))
+           ((do-symbols) 1 ((symbolp form &optional form form) &rest form))
+           ((do-all-symbols) 1 ((symbolp form &optional form) &rest form))
+           ((psetq setf psetf) nil edebug-setq-form)
+           ((progv) 2 (&rest form))
+           ((flet labels macrolet) 1
+            ((&rest (sexp sexp &rest form)) &rest form))
+           ((symbol-macrolet lexical-let lexical-let*) 1
+            ((&rest &or symbolp (symbolp form)) &rest form))
+           ((multiple-value-bind) 2 ((&rest symbolp) &rest form))
+           ((multiple-value-setq) 1 ((&rest symbolp) &rest form))
+           ((incf decf remf pushnew shiftf rotatef) nil (&rest form))
+           ((letf letf*) 1 ((&rest (&rest form)) &rest form))
+           ((callf destructuring-bind) 2 (sexp form &rest form))
+           ((callf2) 3 (sexp form form &rest form))
+           ((loop) nil (&rest &or symbolp form))
+           ((ignore-errors) 0 (&rest form))))
+  (dolist (func (car entry))
+    (put func 'lisp-indent-function (nth 1 entry))
+    (put func 'lisp-indent-hook (nth 1 entry))
+    (or (get func 'edebug-form-spec)
+        (put func 'edebug-form-spec (nth 2 entry)))))
 
 
 ;;; This goes here so that cl-macs can find it if it loads right now.
