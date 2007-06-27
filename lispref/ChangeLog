@@ -1,3 +1,8 @@
+2007-06-27  Richard Stallman  <rms@gnu.org>
+
+	* files.texi (Format Conversion Piecemeal): Clarify
+	`after-insert-file-functions' calling convention.
+
 2007-06-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.texi (Magic File Names): Remove `dired-call-process'.  Add
