@@ -1,3 +1,7 @@
+2007-06-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* buffer.c (syms_of_buffer) <selective-display>: Fix typo in docstring.
+
 2007-06-26  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* gmalloc.c [HAVE_GTK_AND_PTHREAD]: Check this after including config.h.
@@ -10210,7 +10214,7 @@
 	(XTread_socket) [!MAC_OSX]: Don't pass keyboard events to TSM.
 	[MAC_OS8] (make_mac_terminal_frame) [TARGET_API_MAC_CARBON]:
 	Set default cursors.
-	(mac_initialize) [USE_CARBON_EVENTS && !MAC_OSX] : Don't call
+	(mac_initialize) [USE_CARBON_EVENTS && !MAC_OSX]: Don't call
 	init_service_handler or init_quit_char_handler.
 	(mac_initialize) [!MAC_OSX]: Don't call MakeMeTheFrontProcess.
 
@@ -11147,7 +11151,7 @@
 	(install_window_handler) [TARGET_API_MAC_CARBON]:
 	Register handlers for tracking/receiving drag-and-drop items.
 	(do_ae_open_documents): Generate unibyte strings for filenames.
-	(mac_do_receive_drag) [TARGET_API_MAC_CARBON] : Likewise.
+	(mac_do_receive_drag) [TARGET_API_MAC_CARBON]: Likewise.
 	Reject only non-filename items.  Set event modifiers, and return value.
 
 2004-12-28  Dan Nicolaescu  <dann@ics.uci.edu>
@@ -15537,7 +15541,7 @@
 
 	* macgui.h [MAC_OSX]: Include Carbon/Carbon.h.
 	(mktime, DEBUG, Z, free, malloc, realloc, max, min)
-	(init_process) [MAC_OSX] : Avoid conflicts with Carbon/Carbon.h.
+	(init_process) [MAC_OSX]: Avoid conflicts with Carbon/Carbon.h.
 	[!MAC_OSX]: Include QDOffscreen.h and Controls.h.
 	(INFINITY) [MAC_OSX]: Avoid conflict with definition in math.h.
 	(Bitmap): Remove typedef.
