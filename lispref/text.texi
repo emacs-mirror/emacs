@@ -3257,7 +3257,7 @@ Manual}) provides an example.
 @kindex composition @r{(text property)}
 This text property is used to display a sequence of characters as a
 single glyph composed from components.  But the value of the property
-itself is completely internal to Emacs and should not manipulated
+itself is completely internal to Emacs and should not be manipulated
 directly by, for instance, @code{put-text-property}.
 
 @end table
