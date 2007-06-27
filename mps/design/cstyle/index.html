@@ -89,8 +89,14 @@ sub-expressions more tightly.  For example:
 
 <p>
 .space.control.not: No space between the keywords <em>if</em>,
-<em>for</em>, <em>while</em> and the following paren.
+<em>switch</em>, <em>while</em>, <em>for</em> and the following paren.
 </p>
+
+<p>
+.space.function.not: No space between a function name and the 
+following paren beginning its argument list.
+</p>
+
 
 
 <h3>Sections and Paragraphs</h3>
@@ -177,7 +183,7 @@ Some examples:
     return res;
   }
 
-  if (res != ResOK)
+  if(res != ResOK)
     goto error;
 
   if(j == block->base) {
@@ -393,7 +399,8 @@ the case-clause body is less weird and equally clear.)
 
 <p>
 .switch.default: It is usually a good idea to have a default-clause, 
-even if all it contains is NOTREACHED and break.
+even if all it contains is <code>NOTREACHED</code> and 
+<code>break</code>.
 </p>
 
 <p>
@@ -520,6 +527,13 @@ precede the code.
 Remove .indent.elseif because it is obvious (ahem) and showing an 
 example is sufficient.  New rules for .switch.*: current MPS practice 
 is a mess, so lay down a neat new law.
+</td>
+</tr>
+
+<tr valign='top'>
+<td>2007-06-27</td>
+<td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
+<td>Added .space.function.not.
 </td>
 </tr>
 
