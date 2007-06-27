@@ -1,5 +1,16 @@
 2007-06-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/texinfmt.el (texinfo-raisesections-alist)
+	(texinfo-lowersections-alist): Merge definition and declaration.
+	(texinfo-start-of-header, texinfo-end-of-header): Remove.
+	(texinfo-format-syntax-table): Merge init into declaration.
+	(texinfo-format-parse-line-args, texinfo-format-parse-args)
+	(texinfo-format-parse-defun-args, texinfo-format-node)
+	(texinfo-push-stack, texinfo-multitable-widths)
+	(texinfo-define-info-enclosure, texinfo-alias)
+	(texinfo-format-defindex, batch-texinfo-format): Use push.
+	(texinfo-footnote-number): Remove duplicate declaration.
+
 	* ps-print.el: Update with auto-generated autoloads.
 
 	* ps-mule.el: Set generated-autoload-file to "ps-print.el".
