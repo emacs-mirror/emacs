@@ -1,3 +1,7 @@
+2007-06-27  Richard Stallman  <rms@gnu.org>
+
+	* fileio.c (syms_of_fileio) <after-insert-file-functions>: Doc fix.
+
 2007-06-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* buffer.c (syms_of_buffer) <selective-display>: Fix typo in docstring.
