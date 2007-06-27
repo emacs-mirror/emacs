@@ -1,3 +1,13 @@
+2007-06-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dired-aux.el: Remove `dired-call-process'.
+	(dired-check-process): Call `process-file'.
+
+	* wdired.el (wdired-do-perm-changes): Call `process-file'.
+
+	* net/ange-ftp.el (ange-ftp-dired-call-process): Reimplement it as
+	`ange-ftp-process-file'.
+
 2007-06-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl.el: Use cl-loaddefs.el rather than manual autoloads.
