@@ -98,6 +98,9 @@ identify cited keys in BibTeX entries, used by `bibtex-find-crossref.
 
 * Incompatible Lisp Changes in Emacs 23.1
 
++++
+** The function `dired-call-process' has been removed.
+
 
 * Lisp Changes in Emacs 23.1
 
