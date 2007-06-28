@@ -10244,6 +10244,9 @@ mac_handle_text_input_event (next_handler, event, data)
 	   previous events may change some states about display.  */
 	if (NILP (Foverlay_get (Vmac_ts_active_input_overlay, Qbefore_string)))
 	  {
+	    if (!WINDOWP (echo_area_window))
+	      return eventNotHandledErr;
+
 	    /* Active input area is displayed in the echo area.  */
 	    w = XWINDOW (echo_area_window);
 	    f = WINDOW_XFRAME (w);
