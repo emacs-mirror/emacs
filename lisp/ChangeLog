@@ -1,3 +1,11 @@
+2007-06-28  Kevin Ryde  <user42@zip.com.au>
+
+	* textmodes/nroff-mode.el: Groff \# comments.
+	(nroff-mode-syntax-table): \# comment intro,
+	plain # as punct per global table.
+	(nroff-font-lock-keywords): Add # as a single char escape.
+	(nroff-mode): In comment-start-skip, match \#.
+
 2007-06-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-bzr.el (vc-functions): Clear up the cache when reloading the file.
