@@ -6,7 +6,7 @@
 
 <head>
 
-<title>MODULE_LONG_NAME</title>
+<title>Diagnostic output</title>
 
 </head>
 
@@ -26,11 +26,11 @@
 
 <hr />
 
-<h1>MODULE_LONG_NAME</h1>
+<h1>Diagnostic output</h1>
 
 </div>
 
-<p>This document contains a <a href="#guide">guide</a> to the MODULE_LONG_NAME, followed by the historical <a href="#initial-design">initial design</a>.  References, History, Copyright and License are <a href="#section-A">at the end</a>.</p>
+<p>This document contains a <a href="#guide">guide</a> to MPS diagnostic output, followed by the historical <a href="#initial-design">initial design</a>.  References, History, Copyright and License are <a href="#section-A">at the end</a>.</p>
 
 <hr />
 
@@ -38,9 +38,88 @@
 
 <p> Readership: any MPS developer.  Not confidential. </p>
 
+
 <h2> Introduction </h2>
+
 <p>
-  ....etc....
+Diagnostic output is information emitted by the MPS for the purpose 
+of helping MPS programmers and client-code programmers.
+</p>
+
+<p>
+It is not intended to be end-user readable (or visible).  It is not 
+intended to be machine-parseable.  It is not intended to be stable 
+from one release to the next.  It may be modified or removed at any 
+time.
+</p>
+
+<p>
+The steps in producing diagnostic output are:
+</p>
+<ol>
+  <li> calculate, store, and propagate data; </li>
+  <li> collate, <strong>synthesise</strong>, and format into a 
+       human-useful diagnostic message; </li>
+  <li> <strong>control</strong> output of messages; </li>
+  <li> use a <strong>channel</strong> to get the message out. </li>
+</ol>
+
+<p>
+Note:
+</p>
+<ul>
+  <li> Keep the logic used to construct the human-useful message 
+       <em>inside</em> the MPS.  
+       This means that external utilities that display 
+       the messages do not need to understand, or keep in sync 
+       with, the details of what's going inside the MPS. </li>
+</ul>
+
+
+<h2> How to get diagnostic output </h2>
+
+<p>
+To run the MPS and get diagnostic output from it:
+</p>
+<ul>
+  <li> Use a variety with diagnostic output facilities 
+       compiled-in. Currently, that means 
+       <strong>variety.di</strong>.  See config.h. </li>
+  <li> Check that the diagnostic output you require is generated, 
+       by looking in MPS source for invocations of the appropriate 
+       macro (eg. DIAG_WRITEF()).  Currently, there is no way to 
+       control output of diagnostic messages: all diagnostics 
+       produced will be sent to the channel. </li>
+  <li> Run the MPS and client in an environment that supports the 
+       channel used (eg. at a command-line if using WriteF). </li>
+</ul>
+
+<h2> Channels </h2>
+
+<p>
+Example channels are:
+</p>
+<ul>
+  <li> printf; </li>
+  <li> WriteF; </li>
+  <li> mps_message; </li>
+  <li> telnet. </li>
+</ul> 
+
+<p>
+Currently, only printf and WriteF are supported.  
+See the DIAG_WITH_ macros in mpm.h.
+</p>
+
+<p>
+Note: it is unfortunate that choice of channel may (for some 
+channels) also dictate the form of the code that synthesises the 
+message.  (For example, WriteF-style parameter-expansion is not 
+possible when using the printf channel, because there is no way 
+to get WriteF to produce its output into a string).  This is just 
+a technical hitch; logically, the code that synthesises a 
+diagnostic message should not care which channel will be used to 
+transmit it out of the MPS.
 </p>
 
 
@@ -48,15 +127,29 @@
 
 <h1> <a id="initial-design">Initial Design</a> </h1>
 
-<pre>
-                           MODULE_LONG_NAME
-                           design.mps.MODULE
-                            incomplete doc
-                             ....etc....
 
-INTRODUCTION
-......etc.....
-</pre>
+<p>
+RHSK 2007-06-28
+</p>
+<p>
+It must be possible to add, modify, or remove diagnostic output 
+in diagnostic varieties, without a substantial secondary effect 
+on non-diagnostic varieties.  It is not a requirement that there 
+be zero effect.
+</p>
+
+<p>
+This means:
+</p>
+<ul>
+  <li> for actual output, you must use DIAG macros; </li>
+  <li> for propagating and synthesising data, use appropriate 
+       DIAG macros where it is reasonably clean, such as for local 
+       variables and statements used only for diagnostic output; </li>
+  <li> where it is clearer and without substantial secondary effect 
+       to include code (such as additional function parameters) in 
+       all varieties, that's okay. </li>
+</ul>
 
 <hr />
 
@@ -90,9 +183,9 @@ INTRODUCTION
 <table>
 
 <tr valign="top">
-  <td>2007-03-22</td>
+  <td>2007-06-28</td>
   <td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
-  <td>Create template for design docs with a prefixed Guide.</td>
+  <td>Create.</td>
 </tr>
 
 </table>
