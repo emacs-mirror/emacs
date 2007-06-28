@@ -1,3 +1,16 @@
+2007-06-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* pcvs-util.el (cvs-strings->string, cvs-string->strings): Rename
+	and move to...
+
+	* subr.el (strings->string, string->strings): ...here.
+
+	* pcvs.el (cvs-reread-cvsrc, cvs-header-msg, cvs-checkout)
+	(cvs-mode-checkout, cvs-execute-single-file): Use new function names.
+
+	* progmodes/gud.el (gud-common-init): Call string->strings instead
+	of split-string.
+
 2007-06-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dired-aux.el: Remove `dired-call-process'.
