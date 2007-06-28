@@ -58,8 +58,8 @@
 (defvar cl-optimize-speed)
 
 
-;;; This kludge allows macros which use cl-transform-function-property
-;;; to be called at compile-time.
+;; This kludge allows macros which use cl-transform-function-property
+;; to be called at compile-time.
 
 (require
  (progn
@@ -1600,7 +1600,7 @@ form.  See `defsetf' for a simpler way to define most setf-methods.
 
 ;;;###autoload
 (defmacro defsetf (func arg1 &rest args)
-  "(defsetf NAME FUNC): define a `setf' method.
+  "Define a `setf' method.
 This macro is an easy-to-use substitute for `define-setf-method' that works
 well for simple place forms.  In the simple `defsetf' form, `setf's of
 the form (setf (NAME ARGS...) VAL) are transformed to function or macro
