@@ -1,3 +1,8 @@
+2007-06-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Fdo_auto_save): Revert last patch installed unwillingly as
+	part of the 2007-06-27 change to syms_of_fileio.
+
 2007-06-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c [USE_MAC_TSM] (mac_handle_text_input_event):

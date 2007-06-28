@@ -6021,8 +6021,6 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 
   /* Prevent another auto save till enough input events come in.  */
   record_auto_save ();
-  if (stream != NULL)
-    fclose (stream);
 
   if (auto_saved && NILP (no_message))
     {
