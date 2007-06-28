@@ -1,3 +1,8 @@
+2007-06-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* dnd.el (dnd-get-local-file-name): Set fixcase to t in call to
+	replace-regexp-in-string.
+
 2007-06-28  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in ($(lisp)/mh-e/mh-loaddefs.el): Depend on
