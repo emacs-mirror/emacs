@@ -1,3 +1,8 @@
+2007-06-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* dnd.el (dnd-get-local-file-name): Set fixcase to t in call to
+	replace-regexp-in-string.
+
 2007-06-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl.el: Set edebug and indentation before loading
