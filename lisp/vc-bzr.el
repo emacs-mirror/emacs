@@ -61,6 +61,10 @@
   (require 'cl)
   (require 'vc))                        ; for vc-exec-after
 
+;; Clear up the cache to force vc-call to check again and discover
+;; new functions when we reload this file.
+(put 'BZR 'vc-functions nil)
+
 (defgroup vc-bzr nil
   "VC bzr backend."
 ;;   :version "22"
@@ -194,15 +198,15 @@ Return nil if there isn't one."
       ;; the file to be up-to-date.
       (goto-char (point-min))
       (when
-          (re-search-forward 
-           (concat "^\\(" vc-bzr-state-words "\\):[ \t\n]+" 
+          (re-search-forward
+           (concat "^\\(" vc-bzr-state-words "\\):[ \t\n]+"
                    (file-name-nondirectory file) "[ \t\n]*$")
            (point-max) t)
         (let ((start (match-beginning 0))
               (end (match-end 0)))
           (goto-char start)
           (setq state
-                (cond 
+                (cond
                  ((not (equal ret 0)) nil)
                  ((looking-at "added\\|renamed\\|modified\\|removed") 'edited)
                  ((looking-at "unknown\\|ignored") nil)))
@@ -216,7 +220,7 @@ Return nil if there isn't one."
         ;; left in the buffer after removing the above status
         ;; keywords, let us just presume that any other message from
         ;; "bzr" is a user warning, and display it.
-        (message "Warnings in `bzr' output: %s" 
+        (message "Warnings in `bzr' output: %s"
                (buffer-substring (point-min) (point-max))))
       (when state
         (vc-file-setprop file 'vc-workfile-version
@@ -228,10 +232,12 @@ Return nil if there isn't one."
   (eq 'up-to-date (vc-bzr-state file)))
 
 (defun vc-bzr-workfile-version (file)
+  ;; Looks like this could be obtained via counting lines in
+  ;; .bzr/branch/revision-history.
   (with-temp-buffer
     (vc-bzr-command "revno" t 0 file)
-    (goto-char 1)
-    (buffer-substring 1 (line-end-position))))
+    (goto-char (point-min))
+    (buffer-substring (point) (line-end-position))))
 
 (defun vc-bzr-checkout-model (file)
   'implicit)
@@ -258,7 +264,7 @@ or a superior directory.")
              (vc-bzr-command "add" t 0 file "--dry-run")
              ;; The command succeeds with no output if file is
              ;; registered (in bzr 0.8).
-             (goto-char 1)
+             (goto-char (point-min))
              (looking-at "added "))
          (error))))
 

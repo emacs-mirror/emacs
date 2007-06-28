@@ -1,7 +1,13 @@
+2007-06-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-bzr.el (vc-functions): Clear up the cache when reloading the file.
+	(vc-bzr-workfile-version, vc-bzr-could-register): Don't hardcode
+	point-min == 1.
+
 2007-06-28  Nick Roberts  <nickrob@snap.net.nz>
 
-	* pcvs-util.el (cvs-strings->string, cvs-string->strings): Rename
-	and move to...
+	* pcvs-util.el (cvs-strings->string, cvs-string->strings):
+	Rename and move to...
 
 	* subr.el (strings->string, string->strings): ...here.
 
