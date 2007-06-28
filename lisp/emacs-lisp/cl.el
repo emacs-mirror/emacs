@@ -113,8 +113,9 @@ a future Emacs interpreter will be able to use it.")
 (defun cl-cannot-unload ()
   (error "Cannot unload the feature `cl'"))
 
-;;; Generalized variables.  These macros are defined here so that they
-;;; can safely be used in .emacs files.
+;;; Generalized variables.
+;; These macros are defined here so that they
+;; can safely be used in .emacs files.
 
 (defmacro incf (place &optional x)
   "Increment PLACE by X (1 by default).
@@ -185,8 +186,8 @@ an element already on the list.
 
 ;;; Control structures.
 
-;;; These macros are so simple and so often-used that it's better to have
-;;; them all the time than to load them from cl-macs.el.
+;; These macros are so simple and so often-used that it's better to have
+;; them all the time than to load them from cl-macs.el.
 
 (defun cl-map-extents (&rest cl-args)
   (apply 'cl-map-overlays cl-args))
@@ -198,9 +199,10 @@ an element already on the list.
 (defalias 'cl-block-throw 'throw)
 
 
-;;; Multiple values.  True multiple values are not supported, or even
-;;; simulated.  Instead, multiple-value-bind and friends simply expect
-;;; the target form to return the values as a list.
+;;; Multiple values.
+;; True multiple values are not supported, or even
+;; simulated.  Instead, multiple-value-bind and friends simply expect
+;; the target form to return the values as a list.
 
 (defsubst values (&rest values)
   "Return multiple values, Common Lisp style.
@@ -321,7 +323,7 @@ always returns nil."
 
 (defvar *random-state* (vector 'cl-random-state-tag -1 30 (cl-random-time)))
 
-;;; The following are actually set by cl-float-limits.
+;; The following are actually set by cl-float-limits.
 (defconst most-positive-float nil)
 (defconst most-negative-float nil)
 (defconst least-positive-float nil)
@@ -585,14 +587,7 @@ If ALIST is non-nil, the new pairs are prepended to it."
 
 ;;; Miscellaneous.
 
-;;; Autoload the other portions of the package.
-;; We want to replace the basic versions of dolist, dotimes, declare below.
-(fmakunbound 'dolist)
-(fmakunbound 'dotimes)
-(fmakunbound 'declare)
-(load "cl-loaddefs")
-
-;;; Define data for indentation and edebug.
+;; Define data for indentation and edebug.
 (dolist (entry
          '(((defun* defmacro*) 2)
            ((function*) nil
@@ -628,14 +623,19 @@ If ALIST is non-nil, the new pairs are prepended to it."
     (or (get func 'edebug-form-spec)
         (put func 'edebug-form-spec (nth 2 entry)))))
 
+;; Autoload the other portions of the package.
+;; We want to replace the basic versions of dolist, dotimes, declare below.
+(fmakunbound 'dolist)
+(fmakunbound 'dotimes)
+(fmakunbound 'declare)
+(load "cl-loaddefs")
 
-;;; This goes here so that cl-macs can find it if it loads right now.
+;; This goes here so that cl-macs can find it if it loads right now.
 (provide 'cl-19)     ; usage: (require 'cl-19 "cl")
 
-
-;;; Things to do after byte-compiler is loaded.
-;;; As a side effect, we cause cl-macs to be loaded when compiling, so
-;;; that the compiler-macros defined there will be present.
+;; Things to do after byte-compiler is loaded.
+;; As a side effect, we cause cl-macs to be loaded when compiling, so
+;; that the compiler-macros defined there will be present.
 
 (defvar cl-hacked-flag nil)
 (defun cl-hack-byte-compiler ()
@@ -644,15 +644,15 @@ If ALIST is non-nil, the new pairs are prepended to it."
 	(setq cl-hacked-flag t)		; Do it first, to prevent recursion.
 	(cl-compile-time-init))))	; In cl-macs.el.
 
-;;; Try it now in case the compiler has already been loaded.
+;; Try it now in case the compiler has already been loaded.
 (cl-hack-byte-compiler)
 
-;;; Also make a hook in case compiler is loaded after this file.
+;; Also make a hook in case compiler is loaded after this file.
 (add-hook 'bytecomp-load-hook 'cl-hack-byte-compiler)
 
 
-;;; The following ensures that packages which expect the old-style cl.el
-;;; will be happy with this one.
+;; The following ensures that packages which expect the old-style cl.el
+;; will be happy with this one.
 
 (provide 'cl)
 

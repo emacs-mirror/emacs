@@ -1,3 +1,8 @@
+2007-06-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl.el: Set edebug and indentation before loading
+	cl-loaddefs.el so that its use of dolist doesn't load cl-macs.
+
 2007-06-28  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in ($(lisp)/mh-e/mh-loaddefs.el): Depend on
