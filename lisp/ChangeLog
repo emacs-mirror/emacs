@@ -1,3 +1,10 @@
+2007-06-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* speedbar.el (speedbar-handle-delete-frame): Don't try to delete
+	the speedbar frame if nil; that deletes the current frame or
+	causes an error if it is the only frame.
+	Reported by Angelo Graziosi <Angelo.Graziosi@roma1.infn.it>.
+
 2007-06-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* desktop.el (desktop-read): Run `desktop-not-loaded-hook' in the
@@ -1689,8 +1696,8 @@
 	North American rule.  Replace "daylight savings" with "daylight
 	saving" in doc.
 
-	* calendar/cal-china.el,cal-dst.el,calendar.el,diary-lib.el:
-	* calendar/lunar.el,solar.el: Replace "daylight savings" with
+	* calendar/cal-china.el, cal-dst.el, calendar.el, diary-lib.el:
+	* calendar/lunar.el, solar.el: Replace "daylight savings" with
 	"daylight saving" in text.
 
 	* woman.el (woman-change-fonts): Tweak previous change by using
