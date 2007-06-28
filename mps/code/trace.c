@@ -12,9 +12,6 @@
 
 SRCID(trace, "$Id$");
 
-/* Forward declarations */
-static void TraceStartMessageInit(Arena arena, TraceStartMessage tsMessage);
-
 /* Types */
 
 enum {
@@ -32,10 +29,13 @@ struct RememberedSummaryBlockStruct {
   } the[RememberedSummaryBLOCK];
 };
 
-/* Forward Declarations -- avoid compiler warning. */
+/* Forward declarations */
+
+static void TraceStartMessageInit(Arena arena, TraceStartMessage tsMessage);
 Res arenaRememberSummaryOne(Globals global, Addr base, RefSet summary);
 void arenaForgetProtection(Globals globals);
 void rememberedSummaryBlockInit(struct RememberedSummaryBlockStruct *block);
+static void traceFindGrey_diag(Bool found, Rank rank);
 
 
 /* TraceMessage -- type of GC end messages */
@@ -991,28 +991,53 @@ static void traceReclaim(Trace trace)
  *
  * This function finds a segment which is grey for the trace given and
  * which does not have a higher rank than any other such segment (i.e.,
- * a next segment to scan).  */
+ * a next segment to scan).
+ */
 
-static Bool traceFindGreyORIGINAL(Seg *segReturn, Rank *rankReturn,
-                                  Arena arena, TraceId ti);
-/* wrap debugging around original traceFindGrey */
 static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
                           Arena arena, TraceId ti)
 {
-  Bool found;
+  Rank rank;
+  Trace trace;
+  Ring node, nextNode;
+
+  AVER(segReturn != NULL);
+  AVER(TraceIdCheck(ti));
+
+  trace = ArenaTrace(arena, ti);
+
+  for(rank = 0; rank < RankLIMIT; ++rank) {
+    RING_FOR(node, ArenaGreyRing(arena, rank), nextNode) {
+      Seg seg = SegOfGreyRing(node);
+      AVERT(Seg, seg);
+      AVER(SegGrey(seg) != TraceSetEMPTY);
+      AVER(RankSetIsMember(SegRankSet(seg), rank));
+      if (TraceSetIsMember(SegGrey(seg), trace)) {
+        *segReturn = seg; *rankReturn = rank;
+        traceFindGrey_diag(TRUE, rank);
+        return TRUE;
+      }
+    }
+  }
+
+  traceFindGrey_diag(FALSE, rank);
+  return FALSE; /* There are no grey segments for this trace. */
+}
+
+/* diagnostic output for traceFindGrey */
+static void traceFindGrey_diag(Bool found, Rank rank)
+{
   char this;
   static char prev = '.';
   static int segcount;
   static char report_array[10000];
   static char *report_lim;
 
-  found = traceFindGreyORIGINAL(segReturn, rankReturn, arena, ti);
-
   this = (char)(!found ? '.'
-                : (*rankReturn == RankAMBIG) ? 'A'
-                : (*rankReturn == RankEXACT) ? 'E'
-                : (*rankReturn == RankFINAL) ? 'F'
-                : (*rankReturn == RankWEAK) ? 'W'
+                : (rank == RankAMBIG) ? 'A'
+                : (rank == RankEXACT) ? 'E'
+                : (rank == RankFINAL) ? 'F'
+                : (rank == RankWEAK) ? 'W'
                 : '?');
 
   if(prev == '.') {
@@ -1050,36 +1075,7 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
     DIAG_PRINTF(( " MPS: traceFindGrey rank sequence: %s\n",
                   report_array ));
   }
-  return found;
-}
-
-/* original traceFindGrey */
-static Bool traceFindGreyORIGINAL(Seg *segReturn, Rank *rankReturn,
-                                  Arena arena, TraceId ti)
-{
-  Rank rank;
-  Trace trace;
-  Ring node, nextNode;
-
-  AVER(segReturn != NULL);
-  AVER(TraceIdCheck(ti));
-
-  trace = ArenaTrace(arena, ti);
-
-  for(rank = 0; rank < RankLIMIT; ++rank) {
-    RING_FOR(node, ArenaGreyRing(arena, rank), nextNode) {
-      Seg seg = SegOfGreyRing(node);
-      AVERT(Seg, seg);
-      AVER(SegGrey(seg) != TraceSetEMPTY);
-      AVER(RankSetIsMember(SegRankSet(seg), rank));
-      if (TraceSetIsMember(SegGrey(seg), trace)) {
-        *segReturn = seg; *rankReturn = rank;
-        return TRUE;
-      }
-    }
-  }
-
-  return FALSE; /* There are no grey segments for this trace. */
+  return;
 }
 
 
