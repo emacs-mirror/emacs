@@ -239,7 +239,7 @@ MH_E_SRC = $(lisp)/mh-e/mh-acros.el $(lisp)/mh-e/mh-alias.el	\
 	$(lisp)/mh-e/mh-xface.el
 
 mh-autoloads: $(lisp)/mh-e/mh-loaddefs.el
-$(lisp)/mh-e/mh-loaddefs.el: $(MH_E_SRC)
+$(lisp)/mh-e/mh-loaddefs.el: $(lisp)/subdirs.el $(MH_E_SRC)
 	echo ";;; mh-loaddefs.el --- automatically extracted autoloads" > $@
 	echo "" >> $@
 	echo ";; Copyright (C) 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc." >> $@
