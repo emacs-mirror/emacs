@@ -284,7 +284,7 @@ Not documented
 ;;;;;;  do* do loop return-from return block etypecase typecase ecase
 ;;;;;;  case load-time-value eval-when destructuring-bind function*
 ;;;;;;  defmacro* defun* gentemp gensym cl-compile-time-init) "cl-macs"
-;;;;;;  "cl-macs.el" (18050 44390))
+;;;;;;  "cl-macs.el" (18051 52572))
 ;;; Generated autoloads from cl-macs.el
 
 (autoload (quote cl-compile-time-init) "cl-macs" "\
@@ -562,7 +562,7 @@ form.  See `defsetf' for a simpler way to define most setf-methods.
 \(fn NAME ARGLIST BODY...)" nil (quote macro))
 
 (autoload (quote defsetf) "cl-macs" "\
-(defsetf NAME FUNC): define a `setf' method.
+Define a `setf' method.
 This macro is an easy-to-use substitute for `define-setf-method' that works
 well for simple place forms.  In the simple `defsetf' form, `setf's of
 the form (setf (NAME ARGS...) VAL) are transformed to function or macro
