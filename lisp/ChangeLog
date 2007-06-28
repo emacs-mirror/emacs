@@ -1,3 +1,8 @@
+2007-06-28  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in ($(lisp)/mh-e/mh-loaddefs.el): Depend on
+	$(lisp)/subdirs.el.
+
 2007-06-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* speedbar.el (speedbar-handle-delete-frame): Don't try to delete
