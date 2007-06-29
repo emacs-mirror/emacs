@@ -32,13 +32,13 @@
 #if defined(CONFIG_VAR_WI) || defined(CONFIG_VAR_WE) /* White-hot varieties */
 /* no asserts */
 /* ... so CHECKLEVEL_INITIAL is irrelevant */
-/* no debug diagnostic statistic meters */
+/* no debug statistic meters */
 /* no telemetry log events */
 
 #elif defined(CONFIG_VAR_HI) || defined(CONFIG_VAR_HE) /* Hot varieties */
 #define CONFIG_ASSERT
 #define CHECKLEVEL_INITIAL CheckLevelMINIMAL
-/* no debug diagnostic statistic meters */
+/* no debug statistic meters */
 /* no telemetry log events */
 
 #elif defined(CONFIG_VAR_DI) /* Diagnostic variety */
@@ -69,7 +69,7 @@
 #elif defined(CONFIG_VAR_II)    /* Ice, Internal; variety.ii (HotLog) */
 #define CONFIG_ASSERT
 #define CHECKLEVEL_INITIAL CheckLevelMINIMAL
-/* no debug diagnostic statistic meters */
+/* no debug statistic meters */
 #define CONFIG_LOG
 #endif
 
@@ -89,12 +89,17 @@
 
 
 #if defined(CONFIG_DEBUG)
-/* DEBUG = DIAGNOSTICS = STATISTICs = METERs */
-/* WARNING: this changes the size and fields of MPS structs */
-#define DIAGNOSTICS
+/* CONFIG_DEBUG = STATISTICS = METERs */
+/* Note: the STATISTICS define used to be called "DIAGNOSTICS" (even */
+/* though it controls the STATISTIC system), but the term */
+/* "diagnostic" means something else now: see design/diag/. */
+/* RHSK 2007-06-28 */
+/* WARNING: this may change the size and fields of MPS structs */
+/* (...but see STATISTIC_DECL, which is invariant) */
+#define STATISTICS
 #define MPS_DEBUG_STRING "debug"
 #else
-#define DIAGNOSTICS_NONE
+#define STATISTICS_NONE
 #define MPS_DEBUG_STRING "nondebug"
 #endif
 
