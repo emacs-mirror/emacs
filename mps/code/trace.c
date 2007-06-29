@@ -413,6 +413,8 @@ Bool TraceCheck(Trace trace)
   default:
     NOTREACHED;
   }
+  CHECKL(trace->band >= TraceBandBASE);
+  CHECKL(trace->band < TraceBandLIMIT);
   CHECKL(BoolCheck(trace->emergency));
   if (trace->chain != NULL)
     CHECKU(Chain, trace->chain);
@@ -806,6 +808,7 @@ found:
   trace->mayMove = ZoneSetEMPTY;
   trace->ti = ti;
   trace->state = TraceINIT;
+  trace->band = TraceBandA;  /* the via-RankAMBIG band */
   trace->emergency = FALSE;
   trace->chain = NULL;
   trace->condemned = (Size)0;   /* nothing condemned yet */
@@ -997,31 +1000,113 @@ static void traceReclaim(Trace trace)
 static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
                           Arena arena, TraceId ti)
 {
-  Rank rank;
+  Rank rank = RankLIMIT;
   Trace trace;
   Ring node, nextNode;
+  Seg seg;
 
   AVER(segReturn != NULL);
   AVER(TraceIdCheck(ti));
 
   trace = ArenaTrace(arena, ti);
+  
+  AVER(trace->band >= TraceBandBASE);
+  AVER(trace->band < TraceBandLIMIT);
 
-  for(rank = 0; rank < RankLIMIT; ++rank) {
+  if(trace->band == TraceBandA) {
+    rank = RankAMBIG;
     RING_FOR(node, ArenaGreyRing(arena, rank), nextNode) {
-      Seg seg = SegOfGreyRing(node);
+      seg = SegOfGreyRing(node);
       AVERT(Seg, seg);
       AVER(SegGrey(seg) != TraceSetEMPTY);
       AVER(RankSetIsMember(SegRankSet(seg), rank));
       if (TraceSetIsMember(SegGrey(seg), trace)) {
-        *segReturn = seg; *rankReturn = rank;
-        traceFindGrey_diag(TRUE, rank);
-        return TRUE;
+        goto foundGrey;
       }
     }
+    trace->band = TraceBandE;
+  }
+
+  if(trace->band == TraceBandE) {
+    AVER(RingIsSingle(ArenaGreyRing(arena, RankAMBIG)));
+    rank = RankEXACT;
+    RING_FOR(node, ArenaGreyRing(arena, rank), nextNode) {
+      seg = SegOfGreyRing(node);
+      AVERT(Seg, seg);
+      AVER(SegGrey(seg) != TraceSetEMPTY);
+      AVER(RankSetIsMember(SegRankSet(seg), rank));
+      if (TraceSetIsMember(SegGrey(seg), trace)) {
+        goto foundGrey;
+      }
+    }
+    AVER(RingIsSingle(ArenaGreyRing(arena, RankAMBIG)));
+    AVER(RingIsSingle(ArenaGreyRing(arena, RankEXACT)));
+    trace->band = TraceBandFf;
+  }
+
+  if(trace->band == TraceBandFf) {
+    AVER(RingIsSingle(ArenaGreyRing(arena, RankAMBIG)));
+    rank = RankFINAL;
+    RING_FOR(node, ArenaGreyRing(arena, rank), nextNode) {
+      seg = SegOfGreyRing(node);
+      AVERT(Seg, seg);
+      AVER(SegGrey(seg) != TraceSetEMPTY);
+      AVER(RankSetIsMember(SegRankSet(seg), rank));
+      if (TraceSetIsMember(SegGrey(seg), trace)) {
+        goto foundGrey;
+      }
+    }
+    AVER(RingIsSingle(ArenaGreyRing(arena, RankAMBIG)));
+    AVER(RingIsSingle(ArenaGreyRing(arena, RankFINAL)));
+    trace->band = TraceBandFe;
+  }
+
+  if(trace->band == TraceBandFe) {
+    AVER(RingIsSingle(ArenaGreyRing(arena, RankAMBIG)));
+    AVER(RingIsSingle(ArenaGreyRing(arena, RankFINAL)));
+    rank = RankEXACT;
+    RING_FOR(node, ArenaGreyRing(arena, rank), nextNode) {
+      seg = SegOfGreyRing(node);
+      AVERT(Seg, seg);
+      AVER(SegGrey(seg) != TraceSetEMPTY);
+      AVER(RankSetIsMember(SegRankSet(seg), rank));
+      if (TraceSetIsMember(SegGrey(seg), trace)) {
+        goto foundGrey;
+      }
+    }
+    AVER(RingIsSingle(ArenaGreyRing(arena, RankAMBIG)));
+    AVER(RingIsSingle(ArenaGreyRing(arena, RankEXACT)));
+    AVER(RingIsSingle(ArenaGreyRing(arena, RankFINAL)));
+    trace->band = TraceBandW;
+  }
+
+  if(trace->band == TraceBandW) {
+    AVER(RingIsSingle(ArenaGreyRing(arena, RankAMBIG)));
+    AVER(RingIsSingle(ArenaGreyRing(arena, RankEXACT)));
+    AVER(RingIsSingle(ArenaGreyRing(arena, RankFINAL)));
+    rank = RankWEAK;
+    RING_FOR(node, ArenaGreyRing(arena, rank), nextNode) {
+      seg = SegOfGreyRing(node);
+      AVERT(Seg, seg);
+      AVER(SegGrey(seg) != TraceSetEMPTY);
+      AVER(RankSetIsMember(SegRankSet(seg), rank));
+      if (TraceSetIsMember(SegGrey(seg), trace)) {
+        goto foundGrey;
+      }
+    }
+    AVER(RingIsSingle(ArenaGreyRing(arena, RankAMBIG)));
+    AVER(RingIsSingle(ArenaGreyRing(arena, RankEXACT)));
+    AVER(RingIsSingle(ArenaGreyRing(arena, RankFINAL)));
+    AVER(RingIsSingle(ArenaGreyRing(arena, RankWEAK)));
   }
 
   traceFindGrey_diag(FALSE, rank);
   return FALSE; /* There are no grey segments for this trace. */
+  
+foundGrey:
+  *segReturn = seg; *rankReturn = rank;
+  traceFindGrey_diag(TRUE, rank);
+  return TRUE;
 }
 
 /* diagnostic output for traceFindGrey */
