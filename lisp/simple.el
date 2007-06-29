@@ -5259,10 +5259,10 @@ PREFIX is the string that represents this modifier in an event type symbol."
 
 ;;;; Keypad support.
 
-;;; Make the keypad keys act like ordinary typing keys.  If people add
-;;; bindings for the function key symbols, then those bindings will
-;;; override these, so this shouldn't interfere with any existing
-;;; bindings.
+;; Make the keypad keys act like ordinary typing keys.  If people add
+;; bindings for the function key symbols, then those bindings will
+;; override these, so this shouldn't interfere with any existing
+;; bindings.
 
 ;; Also tell read-char how to handle these keys.
 (mapc
