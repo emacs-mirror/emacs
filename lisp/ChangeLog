@@ -1,3 +1,11 @@
+2007-06-29  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el (rcirc-server-alist): Rename from rcirc-connections.
+	(rcirc-default-full-name): Rename from
+	rcirc-default-user-full-name.
+	(rcirc-clear-activity): Make sure RCIRC-ACTIVITY isn't modified.
+	(rcirc-print): Never ignore messages from ourself.
+
 2007-06-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* font-lock.el (lisp-font-lock-keywords-2): Recognize the new \(?1:..\)
