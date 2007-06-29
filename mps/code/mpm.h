@@ -911,7 +911,7 @@ extern Size VMMapped(VM vm);
 extern void StackProbe(Size depth);
 
 
-/* STATISTIC -- gather diagnostics (in some varieties)
+/* STATISTIC -- gather statistics (in some varieties)
  *
  * The argument of STATISTIC is an expression; the expansion followed by
  * a semicolon is syntactically a statement.
@@ -920,7 +920,7 @@ extern void StackProbe(Size depth);
  * a semicolon is syntactically a statement.
  *
  * STATISTIC_WRITE is inserted in WriteF arguments to output the values
- * of diagnostic fields.
+ * of statistic fields.
  *
  * .statistic.whitehot: The implementation of STATISTIC for
  * non-statistical varieties passes the parameter to DISCARD to ensure
@@ -928,13 +928,13 @@ extern void StackProbe(Size depth);
  * passed as part of a comma-expression so that its type is not
  * important.  This permits an expression of type void.  */
 
-#if defined(DIAGNOSTICS)
+#if defined(STATISTICS)
 
 #define STATISTIC(gather) BEGIN (gather); END
 #define STATISTIC_STAT(gather) BEGIN gather; END
 #define STATISTIC_WRITE(format, arg) (format), (arg),
 
-#elif defined(DIAGNOSTICS_NONE)
+#elif defined(STATISTICS_NONE)
 
 #define STATISTIC(gather) DISCARD(((gather), 0))
 #define STATISTIC_STAT(gather) DISCARD_STAT(gather)
@@ -942,7 +942,7 @@ extern void StackProbe(Size depth);
 
 #else
 
-#error "No diagnostics configured."
+#error "No statistics configured."
 
 #endif
 

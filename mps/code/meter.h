@@ -44,12 +44,12 @@ extern void MeterEmit(Meter meter);
 /* Hack: owner is typically only used for MeterInit */
 #define METER_ACC(meter, delta) \
   STATISTIC(MeterAccumulate(&(meter), delta))
-#if defined(DIAGNOSTICS)
+#if defined(STATISTICS)
 #define METER_WRITE(meter, stream) MeterWrite(&(meter), stream)
-#elif defined(DIAGNOSTICS_NONE)
+#elif defined(STATISTICS_NONE)
 #define METER_WRITE(meter, stream) (ResOK)
 #else
-#error "Diagnostics not configured."
+#error "No statistics configured."
 #endif
 #define METER_EMIT(meter) STATISTIC(MeterEmit(meter))
 

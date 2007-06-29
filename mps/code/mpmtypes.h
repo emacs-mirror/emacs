@@ -454,12 +454,12 @@ typedef double WriteFD;
  * leave them in, see design.mps.metrics.
  */
 
-#if defined(DIAGNOSTICS)
+#if defined(STATISTICS)
 #define STATISTIC_DECL(field) field
-#elif defined(DIAGNOSTICS_NONE)
+#elif defined(STATISTICS_NONE)
 #define STATISTIC_DECL(field) field
 #else
-#error "No diagnostics configured."
+#error "No statistics configured."
 #endif
 
 
