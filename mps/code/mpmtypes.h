@@ -50,6 +50,7 @@ typedef Size Epoch;                     /* design.mps.ld */
 typedef unsigned TraceId;               /* <design/trace/> */
 typedef unsigned TraceSet;              /* <design/trace/> */
 typedef unsigned TraceState;            /* <design/trace/> */
+typedef unsigned TraceBand;             /* <http://info.ravenbrook.com/mail/2007/06/29/13-52-24/0.txt> */
 typedef unsigned AccessSet;             /* <design/type/#access-set> */
 typedef unsigned Attr;                  /* <design/type/#attr> */
 typedef unsigned FormatVariety;        
@@ -404,6 +405,20 @@ enum {
   TraceRECLAIM,
   TraceFINISHED
 };
+
+
+/* TraceBands -- see <http://info.ravenbrook.com/mail/2007/06/29/13-52-24/0.txt> */
+
+enum {
+  TraceBandBASE = 1,
+  TraceBandA = TraceBandBASE,  /* via-RankAMBIG */
+  TraceBandE,   /* via-RankEXACT */
+  TraceBandFf,  /* via-RankFINAL rootside boundary = F-guardians */
+  TraceBandFe,  /* via-RankFINAL others (all exact) */
+  TraceBandW,   /* via-RankWEAK rootside boundary */
+  TraceBandLIMIT /* not a TraceBand, the limit of the enum */
+};
+
 
 /* TraceStart reasons: the trigger that caused a trace to start. */
 /* Make these specific trigger names, not broad categories; */
