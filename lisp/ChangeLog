@@ -1,3 +1,10 @@
+2007-06-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* generic-x.el (generic-define-mswindows-modes)
+	(generic-define-unix-modes, apache-log-generic-mode)
+	(bat-generic-mode-keymap, java-manifest-generic-mode)
+	(show-tabs-generic-mode): Fix typos in docstrings.
+
 2007-06-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* dnd.el (dnd-get-local-file-name): Set fixcase to t in call to
