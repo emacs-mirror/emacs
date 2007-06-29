@@ -2610,9 +2610,9 @@ surrounded by (block NAME ...).
       (if lets (list 'let lets body) body))))
 
 
-;;; Compile-time optimizations for some functions defined in this package.
-;;; Note that cl.el arranges to force cl-macs to be loaded at compile-time,
-;;; mainly to make sure these macros will be present.
+;; Compile-time optimizations for some functions defined in this package.
+;; Note that cl.el arranges to force cl-macs to be loaded at compile-time,
+;; mainly to make sure these macros will be present.
 
 (put 'eql 'byte-compile nil)
 (define-compiler-macro eql (&whole form a b)
