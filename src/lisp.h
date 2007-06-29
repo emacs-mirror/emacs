@@ -463,17 +463,6 @@ extern Lisp_Object make_number P_ ((EMACS_INT));
 
 #endif /* NO_UNION_TYPE */
 
-/* During garbage collection, XGCTYPE must be used for extracting types
- so that the mark bit is ignored.  XMARKBIT accesses the markbit.
- Markbits are used only in particular slots of particular structure types.
- Other markbits are always zero.
- Outside of garbage collection, all mark bits are always zero.  */
-
-#ifndef XGCTYPE
-/* The distinction does not exist now that the MARKBIT has been eliminated.  */
-#define XGCTYPE(a) XTYPE (a)
-#endif
-
 #ifndef XPNTR
 #ifdef HAVE_SHM
 /* In this representation, data is found in two widely separated segments.  */
@@ -515,11 +504,11 @@ extern size_t pure_size;
 
 /* Extract a value or address from a Lisp_Object.  */
 
-#define XCONS(a) (eassert (GC_CONSP(a)),(struct Lisp_Cons *) XPNTR(a))
-#define XVECTOR(a) (eassert (GC_VECTORLIKEP(a)),(struct Lisp_Vector *) XPNTR(a))
-#define XSTRING(a) (eassert (GC_STRINGP(a)),(struct Lisp_String *) XPNTR(a))
-#define XSYMBOL(a) (eassert (GC_SYMBOLP(a)),(struct Lisp_Symbol *) XPNTR(a))
-#define XFLOAT(a) (eassert (GC_FLOATP(a)),(struct Lisp_Float *) XPNTR(a))
+#define XCONS(a) (eassert (CONSP(a)),(struct Lisp_Cons *) XPNTR(a))
+#define XVECTOR(a) (eassert (VECTORLIKEP(a)),(struct Lisp_Vector *) XPNTR(a))
+#define XSTRING(a) (eassert (STRINGP(a)),(struct Lisp_String *) XPNTR(a))
+#define XSYMBOL(a) (eassert (SYMBOLP(a)),(struct Lisp_Symbol *) XPNTR(a))
+#define XFLOAT(a) (eassert (FLOATP(a)),(struct Lisp_Float *) XPNTR(a))
 
 /* Misc types.  */
 
@@ -537,10 +526,10 @@ extern size_t pure_size;
 
 /* Pseudovector types.  */
 
-#define XPROCESS(a) (eassert (GC_PROCESSP(a)),(struct Lisp_Process *) XPNTR(a))
-#define XWINDOW(a) (eassert (GC_WINDOWP(a)),(struct window *) XPNTR(a))
-#define XSUBR(a) (eassert (GC_SUBRP(a)),(struct Lisp_Subr *) XPNTR(a))
-#define XBUFFER(a) (eassert (GC_BUFFERP(a)),(struct buffer *) XPNTR(a))
+#define XPROCESS(a) (eassert (PROCESSP(a)),(struct Lisp_Process *) XPNTR(a))
+#define XWINDOW(a) (eassert (WINDOWP(a)),(struct window *) XPNTR(a))
+#define XSUBR(a) (eassert (SUBRP(a)),(struct Lisp_Subr *) XPNTR(a))
+#define XBUFFER(a) (eassert (BUFFERP(a)),(struct buffer *) XPNTR(a))
 #define XCHAR_TABLE(a) ((struct Lisp_Char_Table *) XPNTR(a))
 #define XSUB_CHAR_TABLE(a) ((struct Lisp_Sub_Char_Table *) XPNTR(a))
 #define XBOOL_VECTOR(a) ((struct Lisp_Bool_Vector *) XPNTR(a))
@@ -1063,7 +1052,6 @@ struct Lisp_Hash_Table
      (XSETPSEUDOVECTOR (VAR, PTR, PVEC_HASH_TABLE))
 
 #define HASH_TABLE_P(OBJ)  PSEUDOVECTORP (OBJ, PVEC_HASH_TABLE)
-#define GC_HASH_TABLE_P(x) GC_PSEUDOVECTORP (x, PVEC_HASH_TABLE)
 
 #define CHECK_HASH_TABLE(x) \
   CHECK_TYPE (HASH_TABLE_P (x), Qhash_table_p, x)
@@ -1449,48 +1437,28 @@ typedef unsigned char UCHAR;
 /* Data type checking */
 
 #define NILP(x)  EQ (x, Qnil)
-#define GC_NILP(x) GC_EQ (x, Qnil)
 
 #define NUMBERP(x) (INTEGERP (x) || FLOATP (x))
-#define GC_NUMBERP(x) (GC_INTEGERP (x) || GC_FLOATP (x))
 #define NATNUMP(x) (INTEGERP (x) && XINT (x) >= 0)
-#define GC_NATNUMP(x) (GC_INTEGERP (x) && XINT (x) >= 0)
 
 #define INTEGERP(x) (XTYPE ((x)) == Lisp_Int)
-#define GC_INTEGERP(x) INTEGERP (x)
 #define SYMBOLP(x) (XTYPE ((x)) == Lisp_Symbol)
-#define GC_SYMBOLP(x) (XGCTYPE ((x)) == Lisp_Symbol)
 #define MISCP(x) (XTYPE ((x)) == Lisp_Misc)
-#define GC_MISCP(x) (XGCTYPE ((x)) == Lisp_Misc)
 #define VECTORLIKEP(x) (XTYPE ((x)) == Lisp_Vectorlike)
-#define GC_VECTORLIKEP(x) (XGCTYPE ((x)) == Lisp_Vectorlike)
 #define STRINGP(x) (XTYPE ((x)) == Lisp_String)
-#define GC_STRINGP(x) (XGCTYPE ((x)) == Lisp_String)
 #define CONSP(x) (XTYPE ((x)) == Lisp_Cons)
-#define GC_CONSP(x) (XGCTYPE ((x)) == Lisp_Cons)
 
 #define FLOATP(x) (XTYPE ((x)) == Lisp_Float)
-#define GC_FLOATP(x) (XGCTYPE ((x)) == Lisp_Float)
-#define VECTORP(x) (VECTORLIKEP (x) && !(XVECTOR (x)->size & PSEUDOVECTOR_FLAG))
-#define GC_VECTORP(x) (GC_VECTORLIKEP (x) && !(XVECTOR (x)->size & PSEUDOVECTOR_FLAG))
+#define VECTORP(x)    (VECTORLIKEP (x) && !(XVECTOR (x)->size & PSEUDOVECTOR_FLAG))
 #define OVERLAYP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Overlay)
-#define GC_OVERLAYP(x) (GC_MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Overlay)
 #define MARKERP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Marker)
-#define GC_MARKERP(x) (GC_MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Marker)
 #define INTFWDP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Intfwd)
-#define GC_INTFWDP(x) (GC_MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Intfwd)
 #define BOOLFWDP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Boolfwd)
-#define GC_BOOLFWDP(x) (GC_MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Boolfwd)
 #define OBJFWDP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Objfwd)
-#define GC_OBJFWDP(x) (GC_MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Objfwd)
 #define BUFFER_OBJFWDP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Buffer_Objfwd)
-#define GC_BUFFER_OBJFWDP(x) (GC_MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Buffer_Objfwd)
 #define BUFFER_LOCAL_VALUEP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Buffer_Local_Value)
-#define GC_BUFFER_LOCAL_VALUEP(x) (GC_MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Buffer_Local_Value)
 #define SOME_BUFFER_LOCAL_VALUEP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Some_Buffer_Local_Value)
-#define GC_SOME_BUFFER_LOCAL_VALUEP(x) (GC_MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Some_Buffer_Local_Value)
 #define KBOARD_OBJFWDP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Kboard_Objfwd)
-#define GC_KBOARD_OBJFWDP(x) (GC_MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Kboard_Objfwd)
 
 
 /* True if object X is a pseudovector whose code is CODE.  */
@@ -1499,34 +1467,17 @@ typedef unsigned char UCHAR;
    && (((XVECTOR (x)->size & (PSEUDOVECTOR_FLAG | (code))))	\
        == (PSEUDOVECTOR_FLAG | (code))))
 
-/* True if object X is a pseudovector whose code is CODE.
-   This one works during GC.  */
-#define GC_PSEUDOVECTORP(x, code)				\
-  (GC_VECTORLIKEP (x)						\
-   && (((XVECTOR (x)->size & (PSEUDOVECTOR_FLAG | (code))))	\
-       == (PSEUDOVECTOR_FLAG | (code))))
-
 /* Test for specific pseudovector types.  */
 #define WINDOW_CONFIGURATIONP(x) PSEUDOVECTORP (x, PVEC_WINDOW_CONFIGURATION)
-#define GC_WINDOW_CONFIGURATIONP(x) GC_PSEUDOVECTORP (x, PVEC_WINDOW_CONFIGURATION)
 #define PROCESSP(x) PSEUDOVECTORP (x, PVEC_PROCESS)
-#define GC_PROCESSP(x) GC_PSEUDOVECTORP (x, PVEC_PROCESS)
 #define WINDOWP(x) PSEUDOVECTORP (x, PVEC_WINDOW)
-#define GC_WINDOWP(x) GC_PSEUDOVECTORP (x, PVEC_WINDOW)
 #define SUBRP(x) PSEUDOVECTORP (x, PVEC_SUBR)
-#define GC_SUBRP(x) GC_PSEUDOVECTORP (x, PVEC_SUBR)
 #define COMPILEDP(x) PSEUDOVECTORP (x, PVEC_COMPILED)
-#define GC_COMPILEDP(x) GC_PSEUDOVECTORP (x, PVEC_COMPILED)
 #define BUFFERP(x) PSEUDOVECTORP (x, PVEC_BUFFER)
-#define GC_BUFFERP(x) GC_PSEUDOVECTORP (x, PVEC_BUFFER)
 #define CHAR_TABLE_P(x) PSEUDOVECTORP (x, PVEC_CHAR_TABLE)
 #define SUB_CHAR_TABLE_P(x) PSEUDOVECTORP (x, PVEC_SUB_CHAR_TABLE)
-#define GC_SUB_CHAR_TABLE_P(x) GC_PSEUDOVECTORP (x, PVEC_SUB_CHAR_TABLE)
-#define GC_CHAR_TABLE_P(x) GC_PSEUDOVECTORP (x, PVEC_CHAR_TABLE)
 #define BOOL_VECTOR_P(x) PSEUDOVECTORP (x, PVEC_BOOL_VECTOR)
-#define GC_BOOL_VECTOR_P(x) GC_PSEUDOVECTORP (x, PVEC_BOOL_VECTOR)
 #define FRAMEP(x) PSEUDOVECTORP (x, PVEC_FRAME)
-#define GC_FRAMEP(x) GC_PSEUDOVECTORP (x, PVEC_FRAME)
 
 /* Test for image (image . spec)  */
 #define IMAGEP(x) (CONSP (x) && EQ (XCAR (x), Qimage))
@@ -1536,8 +1487,6 @@ typedef unsigned char UCHAR;
 #define ARRAYP(x) \
   (VECTORP (x) || STRINGP (x) || CHAR_TABLE_P (x) || BOOL_VECTOR_P (x))
 
-#define GC_EQ(x, y) EQ (x, y)
-
 #define CHECK_LIST(x) \
   CHECK_TYPE (CONSP (x) || NILP (x), Qlistp, x)
 
