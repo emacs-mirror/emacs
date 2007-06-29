@@ -1,8 +1,14 @@
+2007-06-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* generic-x.el (generic-define-mswindows-modes)
+	(generic-define-unix-modes, apache-log-generic-mode)
+	(bat-generic-mode-keymap, java-manifest-generic-mode)
+	(show-tabs-generic-mode): Fix typos in docstrings.
+
 2007-06-29  Ryan Yeske  <rcyeske@gmail.com>
 
 	* net/rcirc.el (rcirc-server-alist): Rename from rcirc-connections.
-	(rcirc-default-full-name): Rename from
-	rcirc-default-user-full-name.
+	(rcirc-default-full-name): Rename from rcirc-default-user-full-name.
 	(rcirc-clear-activity): Make sure RCIRC-ACTIVITY isn't modified.
 	(rcirc-print): Never ignore messages from ourself.
 
