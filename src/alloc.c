@@ -4160,7 +4160,7 @@ mark_maybe_object (obj)
     {
       int mark_p = 0;
 
-      switch (XGCTYPE (obj))
+      switch (XTYPE (obj))
 	{
 	case Lisp_String:
 	  mark_p = (live_string_p (m, po)
@@ -4180,13 +4180,13 @@ mark_maybe_object (obj)
 	  break;
 
 	case Lisp_Vectorlike:
-	  /* Note: can't check GC_BUFFERP before we know it's a
+	  /* Note: can't check BUFFERP before we know it's a
 	     buffer because checking that dereferences the pointer
 	     PO which might point anywhere.  */
 	  if (live_vector_p (m, po))
-	    mark_p = !GC_SUBRP (obj) && !VECTOR_MARKED_P (XVECTOR (obj));
+	    mark_p = !SUBRP (obj) && !VECTOR_MARKED_P (XVECTOR (obj));
 	  else if (live_buffer_p (m, po))
-	    mark_p = GC_BUFFERP (obj) && !VECTOR_MARKED_P (XBUFFER (obj));
+	    mark_p = BUFFERP (obj) && !VECTOR_MARKED_P (XBUFFER (obj));
 	  break;
 
 	case Lisp_Misc:
@@ -4276,7 +4276,7 @@ mark_maybe_pointer (p)
 	    {
 	      Lisp_Object tem;
 	      XSETVECTOR (tem, p);
-	      if (!GC_SUBRP (tem) && !VECTOR_MARKED_P (XVECTOR (tem)))
+	      if (!SUBRP (tem) && !VECTOR_MARKED_P (XVECTOR (tem)))
 		obj = tem;
 	    }
 	  break;
@@ -4285,7 +4285,7 @@ mark_maybe_pointer (p)
 	  abort ();
 	}
 
-      if (!GC_NILP (obj))
+      if (!NILP (obj))
 	mark_object (obj);
     }
 }
@@ -5188,8 +5188,8 @@ returns nil, because real GC can't be done.  */)
 	    prev = Qnil;
 	    while (CONSP (tail))
 	      {
-		if (GC_CONSP (XCAR (tail))
-		    && GC_MARKERP (XCAR (XCAR (tail)))
+		if (CONSP (XCAR (tail))
+		    && MARKERP (XCAR (XCAR (tail)))
 		    && !XMARKER (XCAR (XCAR (tail)))->gcmarkbit)
 		  {
 		    if (NILP (prev))
@@ -5338,7 +5338,7 @@ mark_glyph_matrix (matrix)
 	    struct glyph *end_glyph = glyph + row->used[area];
 
 	    for (; glyph < end_glyph; ++glyph)
-	      if (GC_STRINGP (glyph->object)
+	      if (STRINGP (glyph->object)
 		  && !STRING_MARKED_P (XSTRING (glyph->object)))
 		mark_object (glyph->object);
 	  }
@@ -5471,7 +5471,7 @@ mark_object (arg)
 
 #endif /* not GC_CHECK_MARKED_OBJECTS */
 
-  switch (SWITCH_ENUM_CAST (XGCTYPE (obj)))
+  switch (SWITCH_ENUM_CAST (XTYPE (obj)))
     {
     case Lisp_String:
       {
@@ -5490,13 +5490,13 @@ mark_object (arg)
     case Lisp_Vectorlike:
 #ifdef GC_CHECK_MARKED_OBJECTS
       m = mem_find (po);
-      if (m == MEM_NIL && !GC_SUBRP (obj)
+      if (m == MEM_NIL && !SUBRP (obj)
 	  && po != &buffer_defaults
 	  && po != &buffer_local_symbols)
 	abort ();
 #endif /* GC_CHECK_MARKED_OBJECTS */
 
-      if (GC_BUFFERP (obj))
+      if (BUFFERP (obj))
 	{
 	  if (!VECTOR_MARKED_P (XBUFFER (obj)))
 	    {
@@ -5513,9 +5513,9 @@ mark_object (arg)
 	      mark_buffer (obj);
 	    }
 	}
-      else if (GC_SUBRP (obj))
+      else if (SUBRP (obj))
 	break;
-      else if (GC_COMPILEDP (obj))
+      else if (COMPILEDP (obj))
 	/* We could treat this just like a vector, but it is better to
 	   save the COMPILED_CONSTANTS element for last and avoid
 	   recursion there.  */
@@ -5538,7 +5538,7 @@ mark_object (arg)
 	  obj = ptr->contents[COMPILED_CONSTANTS];
 	  goto loop;
 	}
-      else if (GC_FRAMEP (obj))
+      else if (FRAMEP (obj))
 	{
 	  register struct frame *ptr = XFRAME (obj);
 
@@ -5570,7 +5570,7 @@ mark_object (arg)
 	  mark_object (ptr->current_tool_bar_string);
 #endif /* HAVE_WINDOW_SYSTEM */
 	}
-      else if (GC_BOOL_VECTOR_P (obj))
+      else if (BOOL_VECTOR_P (obj))
 	{
 	  register struct Lisp_Vector *ptr = XVECTOR (obj);
 
@@ -5579,7 +5579,7 @@ mark_object (arg)
 	  CHECK_LIVE (live_vector_p);
 	  VECTOR_MARK (ptr);	/* Else mark it */
 	}
-      else if (GC_WINDOWP (obj))
+      else if (WINDOWP (obj))
 	{
 	  register struct Lisp_Vector *ptr = XVECTOR (obj);
 	  struct window *w = XWINDOW (obj);
@@ -5611,7 +5611,7 @@ mark_object (arg)
 	      mark_glyph_matrix (w->desired_matrix);
 	    }
 	}
-      else if (GC_HASH_TABLE_P (obj))
+      else if (HASH_TABLE_P (obj))
 	{
 	  struct Lisp_Hash_Table *h = XHASH_TABLE (obj);
 
@@ -5640,7 +5640,7 @@ mark_object (arg)
 
 	  /* If hash table is not weak, mark all keys and values.
 	     For weak tables, mark only the vector.  */
-	  if (GC_NILP (h->weak))
+	  if (NILP (h->weak))
 	    mark_object (h->key_and_value);
 	  else
 	    VECTOR_MARK (XVECTOR (h->key_and_value));
@@ -5864,7 +5864,7 @@ survives_gc_p (obj)
 {
   int survives_p;
 
-  switch (XGCTYPE (obj))
+  switch (XTYPE (obj))
     {
     case Lisp_Int:
       survives_p = 1;
@@ -5883,7 +5883,7 @@ survives_gc_p (obj)
       break;
 
     case Lisp_Vectorlike:
-      survives_p = GC_SUBRP (obj) || VECTOR_MARKED_P (XVECTOR (obj));
+      survives_p = SUBRP (obj) || VECTOR_MARKED_P (XVECTOR (obj));
       break;
 
     case Lisp_Cons:

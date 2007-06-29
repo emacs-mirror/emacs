@@ -5843,7 +5843,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
      couldn't handle some ange-ftp'd file.  */
 
   for (do_handled_files = 0; do_handled_files < 2; do_handled_files++)
-    for (tail = Vbuffer_alist; GC_CONSP (tail); tail = XCDR (tail))
+    for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
       {
 	buf = XCDR (XCAR (tail));
 	b = XBUFFER (buf);

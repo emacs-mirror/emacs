@@ -259,10 +259,10 @@ menubar_id_to_frame (id)
   Lisp_Object tail, frame;
   FRAME_PTR f;
 
-  for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
+  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
     {
       frame = XCAR (tail);
-      if (!GC_FRAMEP (frame))
+      if (!FRAMEP (frame))
         continue;
       f = XFRAME (frame);
       if (!FRAME_WINDOW_P (f))

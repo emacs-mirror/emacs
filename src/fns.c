@@ -3831,7 +3831,7 @@ hashfn_eq (h, key)
      struct Lisp_Hash_Table *h;
      Lisp_Object key;
 {
-  unsigned hash = XUINT (key) ^ XGCTYPE (key);
+  unsigned hash = XUINT (key) ^ XTYPE (key);
   xassert ((hash & ~INTMASK) == 0);
   return hash;
 }
@@ -3850,7 +3850,7 @@ hashfn_eql (h, key)
   if (FLOATP (key))
     hash = sxhash (key, 0);
   else
-    hash = XUINT (key) ^ XGCTYPE (key);
+    hash = XUINT (key) ^ XTYPE (key);
   xassert ((hash & ~INTMASK) == 0);
   return hash;
 }
@@ -4271,7 +4271,7 @@ sweep_weak_table (h, remove_entries_p)
       /* Follow collision chain, removing entries that
 	 don't survive this garbage collection.  */
       prev = Qnil;
-      for (idx = HASH_INDEX (h, bucket); !GC_NILP (idx); idx = next)
+      for (idx = HASH_INDEX (h, bucket); !NILP (idx); idx = next)
 	{
 	  int i = XFASTINT (idx);
 	  int key_known_to_survive_p = survives_gc_p (HASH_KEY (h, i));
@@ -4296,7 +4296,7 @@ sweep_weak_table (h, remove_entries_p)
 	      if (remove_p)
 		{
 		  /* Take out of collision chain.  */
-		  if (GC_NILP (prev))
+		  if (NILP (prev))
 		    HASH_INDEX (h, bucket) = next;
 		  else
 		    HASH_NEXT (h, XFASTINT (prev)) = next;
@@ -4360,7 +4360,7 @@ sweep_weak_hash_tables ()
   do
     {
       marked = 0;
-      for (table = Vweak_hash_tables; !GC_NILP (table); table = h->next_weak)
+      for (table = Vweak_hash_tables; !NILP (table); table = h->next_weak)
 	{
 	  h = XHASH_TABLE (table);
 	  if (h->size & ARRAY_MARK_FLAG)
@@ -4370,7 +4370,7 @@ sweep_weak_hash_tables ()
   while (marked);
 
   /* Remove tables and entries that aren't used.  */
-  for (table = Vweak_hash_tables, used = Qnil; !GC_NILP (table); table = next)
+  for (table = Vweak_hash_tables, used = Qnil; !NILP (table); table = next)
     {
       h = XHASH_TABLE (table);
       next = h->next_weak;

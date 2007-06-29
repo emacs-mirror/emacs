@@ -2867,7 +2867,7 @@ overlay_touches_p (pos)
       int endpos;
 
       XSETMISC (overlay ,tail);
-      if (!GC_OVERLAYP (overlay))
+      if (!OVERLAYP (overlay))
 	abort ();
 
       endpos = OVERLAY_POSITION (OVERLAY_END (overlay));
@@ -2882,7 +2882,7 @@ overlay_touches_p (pos)
       int startpos;
 
       XSETMISC (overlay, tail);
-      if (!GC_OVERLAYP (overlay))
+      if (!OVERLAYP (overlay))
 	abort ();
 
       startpos = OVERLAY_POSITION (OVERLAY_START (overlay));

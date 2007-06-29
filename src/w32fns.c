@@ -386,10 +386,10 @@ x_window_to_frame (dpyinfo, wdesc)
   Lisp_Object tail, frame;
   struct frame *f;
 
-  for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
+  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
     {
       frame = XCAR (tail);
-      if (!GC_FRAMEP (frame))
+      if (!FRAMEP (frame))
         continue;
       f = XFRAME (frame);
       if (!FRAME_W32_P (f) || FRAME_W32_DISPLAY_INFO (f) != dpyinfo)
@@ -2466,8 +2466,8 @@ register_hot_keys (hwnd)
 {
   Lisp_Object keylist;
 
-  /* Use GC_CONSP, since we are called asynchronously.  */
-  for (keylist = w32_grabbed_keys; GC_CONSP (keylist); keylist = XCDR (keylist))
+  /* Use CONSP, since we are called asynchronously.  */
+  for (keylist = w32_grabbed_keys; CONSP (keylist); keylist = XCDR (keylist))
     {
       Lisp_Object key = XCAR (keylist);
 
@@ -2486,8 +2486,7 @@ unregister_hot_keys (hwnd)
 {
   Lisp_Object keylist;
 
-  /* Use GC_CONSP, since we are called asynchronously.  */
-  for (keylist = w32_grabbed_keys; GC_CONSP (keylist); keylist = XCDR (keylist))
+  for (keylist = w32_grabbed_keys; CONSP (keylist); keylist = XCDR (keylist))
     {
       Lisp_Object key = XCAR (keylist);
 

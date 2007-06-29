@@ -176,8 +176,8 @@ extern Lisp_Object QCfilter;
    Qt nor Qnil but is instead a property list (KEY VAL ...).  */
 
 #ifdef HAVE_SOCKETS
-#define NETCONN_P(p) (GC_CONSP (XPROCESS (p)->childp))
-#define NETCONN1_P(p) (GC_CONSP ((p)->childp))
+#define NETCONN_P(p) (CONSP (XPROCESS (p)->childp))
+#define NETCONN1_P(p) (CONSP ((p)->childp))
 #else
 #define NETCONN_P(p) 0
 #define NETCONN1_P(p) 0
@@ -6372,10 +6372,10 @@ kill_buffer_processes (buffer)
 {
   Lisp_Object tail, proc;
 
-  for (tail = Vprocess_alist; GC_CONSP (tail); tail = XCDR (tail))
+  for (tail = Vprocess_alist; CONSP (tail); tail = XCDR (tail))
     {
       proc = XCDR (XCAR (tail));
-      if (GC_PROCESSP (proc)
+      if (PROCESSP (proc)
 	  && (NILP (buffer) || EQ (XPROCESS (proc)->buffer, buffer)))
 	{
 	  if (NETCONN_P (proc))
@@ -6470,11 +6470,11 @@ sigchld_handler (signo)
       /* Find the process that signaled us, and record its status.  */
 
       /* The process can have been deleted by Fdelete_process.  */
-      for (tail = deleted_pid_list; GC_CONSP (tail); tail = XCDR (tail))
+      for (tail = deleted_pid_list; CONSP (tail); tail = XCDR (tail))
 	{
 	  Lisp_Object xpid = XCAR (tail);
-	  if ((GC_INTEGERP (xpid) && pid == (pid_t) XINT (xpid))
-	      || (GC_FLOATP (xpid) && pid == (pid_t) XFLOAT_DATA (xpid)))
+	  if ((INTEGERP (xpid) && pid == (pid_t) XINT (xpid))
+	      || (FLOATP (xpid) && pid == (pid_t) XFLOAT_DATA (xpid)))
 	    {
 	      XSETCAR (tail, Qnil);
 	      goto sigchld_end_of_loop;
@@ -6483,11 +6483,11 @@ sigchld_handler (signo)
 
       /* Otherwise, if it is asynchronous, it is in Vprocess_alist.  */
       p = 0;
-      for (tail = Vprocess_alist; GC_CONSP (tail); tail = XCDR (tail))
+      for (tail = Vprocess_alist; CONSP (tail); tail = XCDR (tail))
 	{
 	  proc = XCDR (XCAR (tail));
 	  p = XPROCESS (proc);
-	  if (GC_EQ (p->childp, Qt) && p->pid == pid)
+	  if (EQ (p->childp, Qt) && p->pid == pid)
 	    break;
 	  p = 0;
 	}
@@ -6495,7 +6495,7 @@ sigchld_handler (signo)
       /* Look for an asynchronous process whose pid hasn't been filled
 	 in yet.  */
       if (p == 0)
-	for (tail = Vprocess_alist; GC_CONSP (tail); tail = XCDR (tail))
+	for (tail = Vprocess_alist; CONSP (tail); tail = XCDR (tail))
 	  {
 	    proc = XCDR (XCAR (tail));
 	    p = XPROCESS (proc);

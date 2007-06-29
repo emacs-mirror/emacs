@@ -1562,8 +1562,8 @@ x_frame_of_widget (widget)
 
   /* Look for a frame with that top-level widget.  Allocate the color
      on that frame to get the right gamma correction value.  */
-  for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
-    if (GC_FRAMEP (XCAR (tail))
+  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+    if (FRAMEP (XCAR (tail))
 	&& (f = XFRAME (XCAR (tail)),
 	    (f->output_data.nothing != 1
 	     && FRAME_X_DISPLAY_INFO (f) == dpyinfo))
@@ -3473,9 +3473,9 @@ x_focus_changed (type, state, dpyinfo, frame, bufp)
 
           /* Don't stop displaying the initial startup message
              for a switch-frame event we don't need.  */
-          if (GC_NILP (Vterminal_frame)
-              && GC_CONSP (Vframe_list)
-              && !GC_NILP (XCDR (Vframe_list)))
+          if (NILP (Vterminal_frame)
+              && CONSP (Vframe_list)
+              && !NILP (XCDR (Vframe_list)))
             {
               bufp->kind = FOCUS_IN_EVENT;
               XSETFRAME (bufp->frame_or_window, frame);
@@ -3585,7 +3585,7 @@ x_frame_rehighlight (dpyinfo)
   if (dpyinfo->x_focus_frame)
     {
       dpyinfo->x_highlight_frame
-	= ((GC_FRAMEP (FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame)))
+	= ((FRAMEP (FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame)))
 	   ? XFRAME (FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame))
 	   : dpyinfo->x_focus_frame);
       if (! FRAME_LIVE_P (dpyinfo->x_highlight_frame))
@@ -4130,15 +4130,13 @@ x_window_to_scroll_bar (display, window_id)
   window_id = (Window) xg_get_scroll_id_for_window (display, window_id);
 #endif /* USE_GTK  && USE_TOOLKIT_SCROLL_BARS */
 
-  for (tail = Vframe_list;
-       XGCTYPE (tail) == Lisp_Cons;
-       tail = XCDR (tail))
+  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
     {
       Lisp_Object frame, bar, condemned;
 
       frame = XCAR (tail);
       /* All elements of Vframe_list should be frames.  */
-      if (! GC_FRAMEP (frame))
+      if (! FRAMEP (frame))
 	abort ();
 
       /* Scan this frame's scroll bar list for a scroll bar with the
@@ -4147,9 +4145,9 @@ x_window_to_scroll_bar (display, window_id)
       for (bar = FRAME_SCROLL_BARS (XFRAME (frame));
 	   /* This trick allows us to search both the ordinary and
               condemned scroll bar lists with one loop.  */
-	   ! GC_NILP (bar) || (bar = condemned,
+	   ! NILP (bar) || (bar = condemned,
 			       condemned = Qnil,
-			       ! GC_NILP (bar));
+			       ! NILP (bar));
 	   bar = XSCROLL_BAR (bar)->next)
 	if (SCROLL_BAR_X_WINDOW (XSCROLL_BAR (bar)) == window_id &&
             FRAME_X_DISPLAY (XFRAME (frame)) == display)
@@ -4171,9 +4169,7 @@ x_window_to_menu_bar (window)
 {
   Lisp_Object tail;
 
-  for (tail = Vframe_list;
-       XGCTYPE (tail) == Lisp_Cons;
-       tail = XCDR (tail))
+  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
     {
       Lisp_Object frame = XCAR (tail);
       Widget menu_bar = XFRAME (frame)->output_data.x->menubar_widget;
@@ -5559,7 +5555,7 @@ x_scroll_bar_handle_click (bar, event, emacs_event)
      XEvent *event;
      struct input_event *emacs_event;
 {
-  if (! GC_WINDOWP (bar->window))
+  if (! WINDOWP (bar->window))
     abort ();
 
   emacs_event->kind = SCROLL_BAR_CLICK_EVENT;
@@ -5654,7 +5650,7 @@ x_scroll_bar_note_movement (bar, event)
   XSETVECTOR (last_mouse_scroll_bar, bar);
 
   /* If we're dragging the bar, display it.  */
-  if (! GC_NILP (bar->dragging))
+  if (! NILP (bar->dragging))
     {
       /* Where should the handle be now?  */
       int new_start = event->xmotion.y - XINT (bar->dragging);

@@ -3069,8 +3069,8 @@ x_frame_of_widget (widget)
 
   /* Look for a frame with that top-level widget.  Allocate the color
      on that frame to get the right gamma correction value.  */
-  for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
-    if (GC_FRAMEP (XCAR (tail))
+  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+    if (FRAMEP (XCAR (tail))
 	&& (f = XFRAME (XCAR (tail)),
 	    (f->output_data.nothing != 1
 	     && FRAME_X_DISPLAY_INFO (f) == dpyinfo))
@@ -4402,9 +4402,9 @@ mac_focus_changed (type, dpyinfo, frame, bufp)
 
           /* Don't stop displaying the initial startup message
              for a switch-frame event we don't need.  */
-          if (GC_NILP (Vterminal_frame)
-              && GC_CONSP (Vframe_list)
-              && !GC_NILP (XCDR (Vframe_list)))
+          if (NILP (Vterminal_frame)
+              && CONSP (Vframe_list)
+              && !NILP (XCDR (Vframe_list)))
             {
               bufp->kind = FOCUS_IN_EVENT;
               XSETFRAME (bufp->frame_or_window, frame);
@@ -4477,7 +4477,7 @@ x_frame_rehighlight (dpyinfo)
   if (dpyinfo->x_focus_frame)
     {
       dpyinfo->x_highlight_frame
-	= ((GC_FRAMEP (FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame)))
+	= ((FRAMEP (FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame)))
 	   ? XFRAME (FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame))
 	   : dpyinfo->x_focus_frame);
       if (! FRAME_LIVE_P (dpyinfo->x_highlight_frame))
@@ -5507,7 +5507,7 @@ x_scroll_bar_handle_click (bar, part_code, er, bufp)
 {
   int win_y, top_range;
 
-  if (! GC_WINDOWP (bar->window))
+  if (! WINDOWP (bar->window))
     abort ();
 
   bufp->kind = SCROLL_BAR_CLICK_EVENT;
@@ -5582,7 +5582,7 @@ x_scroll_bar_note_movement (bar, y_pos, t)
   XSETVECTOR (last_mouse_scroll_bar, bar);
 
   /* If we're dragging the bar, display it.  */
-  if (! GC_NILP (bar->dragging))
+  if (! NILP (bar->dragging))
     {
       /* Where should the handle be now?  */
       int new_start = y_pos - 24;

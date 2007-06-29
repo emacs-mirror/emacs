@@ -248,10 +248,10 @@ menubar_id_to_frame (id)
   Lisp_Object tail, frame;
   FRAME_PTR f;
 
-  for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
+  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
     {
       frame = XCAR (tail);
-      if (!GC_FRAMEP (frame))
+      if (!FRAMEP (frame))
         continue;
       f = XFRAME (frame);
       if (!FRAME_WINDOW_P (f))
@@ -1556,10 +1556,10 @@ show_help_event (f, widget, help)
       xt_or_gtk_widget frame_widget = XtParent (widget);
       Lisp_Object tail;
 
-      for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
+      for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
 	{
 	  frame = XCAR (tail);
-	  if (GC_FRAMEP (frame)
+	  if (FRAMEP (frame)
 	      && (f = XFRAME (frame),
 		  FRAME_X_P (f) && f->output_data.x->widget == frame_widget))
 	    break;
