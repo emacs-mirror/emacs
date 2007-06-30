@@ -1,3 +1,7 @@
+2007-06-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/rx.el (rx-constituents): Fix up `anything'.
+
 2007-06-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* generic-x.el (generic-define-mswindows-modes)
