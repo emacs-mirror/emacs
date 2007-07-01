@@ -1,3 +1,11 @@
+2007-07-01  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* emacs-lisp/byte-opt.el: Set `binding-is-magic'
+	property on a few symbols.
+	(byte-compile-side-effect-free-dynamically-safe-ops): New defconst.
+	(byte-optimize-lapcode): Remove bindings that are not referenced
+	and certainly will not effect through dynamic scoping.
+
 2007-07-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (find-file-confirm-inexistent-file): New var.
