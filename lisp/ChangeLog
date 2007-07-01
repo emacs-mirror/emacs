@@ -1,3 +1,15 @@
+2007-07-01  Richard Stallman  <rms@gnu.org>
+
+	* cus-start.el (max-mini-window-height): Added.
+
+2007-07-01  Sean O'Rourke  <sorourke@cs.ucsd.edu>  (tiny change)
+
+	* complete.el (partial-completion-mode): Remove advice of
+	read-file-name-internal. 
+	(PC-do-completion): Rebind minibuffer-completion-table.
+	(PC-read-file-name-internal): New function doing what
+	read-file-name-internal advice did.
+
 2007-07-01  Paul Pogonyshev  <pogonyshev@gmx.net>
 
 	* emacs-lisp/byte-opt.el: Set `binding-is-magic'
