@@ -1,3 +1,10 @@
+2007-07-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (find-file-confirm-inexistent-file): New var.
+	(find-file, find-file-other-window, find-file-other-frame)
+	(find-file-read-only, find-file-read-only-other-window)
+	(find-file-read-only-other-frame): Use it.
+
 2007-06-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/rx.el (rx-constituents): Fix up `anything'.
