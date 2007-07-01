@@ -34,6 +34,9 @@ a GIF library.
 
 * Changes in Emacs 23.1
 
+** The variable find-file-confirm-inexistent-file controls if C-x C-f
+requires confirmation before opening a non-existent file.
+
 ** If the gpm mouse server is running and t-mouse-mode enabled, Emacs uses a
 Unix socket in a GNU/Linux console to talk to server, rather than faking events
 using the client program mev.  This C level approach provides mouse
@@ -103,6 +106,9 @@ identify cited keys in BibTeX entries, used by `bibtex-find-crossref.
 
 
 * Lisp Changes in Emacs 23.1
+
+** The `require-match' argument to `completing-read' accepts a new value
+`confirm-only'.
 
 +++
 ** The regexp form \(?<num>:<regexp>\) specifies the group number explicitly.
