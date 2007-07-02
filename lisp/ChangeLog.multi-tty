@@ -1,3 +1,7 @@
+2007-07-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/x-win.el (x-menu-bar-open): Use accelerate-menu.
+
 2007-06-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/xterm.el (terminal-init-xterm): Fix previous change.
