@@ -487,7 +487,7 @@ that."
 		      ;; Skip a single blank line.
 		      (and (eolp) (forward-line))
 		      (end-of-line)
-		      (skip-chars-backward "^\t\n")
+		      (skip-chars-backward "^ \t\n")
 		      (if (and (>= (current-column) col)
 			       (looking-at "\\(\\sw\\|-\\)+$"))
 			  (let ((sym (intern-soft (match-string 0))))
