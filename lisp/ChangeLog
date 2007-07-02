@@ -1,3 +1,46 @@
+2007-07-02  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (orgstruct-mode-map): New variable.
+	(orgstruct-mode): New minor mode.
+	(turn-on-orgstruct, orgstruct-error, orgstruct-setup)
+	(orgstruct-make-binding, org-context-p, org-get-local-variables)
+	(org-run-like-in-org-mode): New functions.
+	(org-cycle-list-bullet): New command.
+	(org-special-properties, org-property-start-re)
+	(org-property-end-re): New constants.
+	(org-with-point-at): New macro.
+	(org-get-property-block, org-entry-properties, org-entry-get)
+	(org-entry-delete, org-entry-get-with-inheritance)
+	(org-entry-put, org-buffer-property-keys): New functions.
+	(org-insert-property-drawer): New command.
+	(org-entry-property-inherited-from): New variable.
+	(org-column): New face.
+	(org-column-overlays, org-current-columns-fmt)
+	(org-current-columns-maxwidths, org-column-map): New variables.
+	(org-column-menu): New menu.
+	(org-new-column-overlay, org-overlay-columns)
+	(org-overlay-columns-title, org-remove-column-overlays)
+	(org-column-show-value, org-column-quit, org-column-edit): New
+	functions.
+	(org-columns, org-agenda-columns): New commands.
+	(org-get-columns-autowidth-alist): New functions.
+	(org-properties): New customize group.
+	(org-default-columns-format): New option.
+	(org-priority): Realign tags after changing priority.
+	(org-preserve-lc): New macro.
+	(org-update-checkbox-count): Catch case when there is no headline.
+	(org-agenda-quit): Remove any column overlays.
+	(org-beginning-of-item-list): Fixed bug when non-item line is
+	indented too deep.
+	(org-cached-props): New variable.
+	(org-cached-entry-get): New function.
+	(org-make-tags-matcher): Handle property matches.
+	(org-table-recalculate): Swap evaluation order: Field formula
+	first, then column formulas, but don't allow them to overwrite the
+	field formulas.
+	(org-table-eval-formula): New argument untouchable.
+	(org-table-put-field-property): New function.
+
 2007-07-02  Martin Rudalics  <rudalics@gmx.at>
 
 	* help-mode.el (help-make-xrefs):  Skip spaces too when
