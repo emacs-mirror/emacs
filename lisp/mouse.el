@@ -433,9 +433,8 @@ MODE-LINE-P non-nil means dragging a mode line; nil means a header line."
 	  ;;   - there is a scroll-bar-movement event
 	  ;;     (same as mouse movement for our purposes)
 	  ;; quit if
-	  ;;   - there is a keyboard event or some other unknown event
-	  ;;     unknown event.
-	  (cond ((integerp event)
+	  ;;   - there is a keyboard event or some other unknown event.
+	  (cond ((not (consp event))
 		 (setq done t))
 
 		((memq (car event) '(switch-frame select-window))
@@ -443,7 +442,11 @@ MODE-LINE-P non-nil means dragging a mode line; nil means a header line."
 
 		((not (memq (car event) '(mouse-movement scroll-bar-movement)))
 		 (when (consp event)
-		   (push event unread-command-events))
+		   ;; Do not unread a drag-mouse-1 event since it will cause the
+		   ;; selection of the window above when dragging the modeline
+		   ;; above the selected window.
+		   (unless (eq (car event) 'drag-mouse-1)
+		     (push event unread-command-events)))
 		 (setq done t))
 
 		((not (eq (car mouse) start-event-frame))
@@ -498,7 +501,10 @@ MODE-LINE-P non-nil means dragging a mode line; nil means a header line."
 			   (and (not should-enlarge-minibuffer)
 				(> growth 0)
 				mode-line-p
-				(/= top (nth 1 (window-edges)))))
+				(/= top
+				    (nth 1 (window-edges
+					    ;; Choose right window.
+					    start-event-window)))))
 		   (set-window-configuration wconfig)))))))))
 
 (defun mouse-drag-mode-line (start-event)
