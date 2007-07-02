@@ -15,6 +15,8 @@ SRCID(trace, "$Id$");
 
 /* Forward declarations */
 static void TraceStartMessageInit(Arena arena, TraceStartMessage tsMessage);
+Rank traceBand(Trace);
+Bool traceBandIncrement(Trace);
 
 /* Types */
 
@@ -424,6 +426,39 @@ Bool TraceCheck(Trace trace)
   }
   /* @@@@ checks for counts missing */
   CHECKD(TraceStartMessage, &trace->startMessage);
+  return TRUE;
+}
+
+/* traceBand - current band of the trace.
+ *
+ * The current band is the band currently being discovered.  Each band
+ * corresponds to a rank.  The R band is all objects that are reachable
+ * only by tracing references of rank R or earlier _and_ are not in some
+ * earlier band (thus, the bands are disjoint).  Whilst a particular
+ * band is current all the objects that become marked are the objects in
+ * that band.
+ */
+Rank traceBand(Trace trace)
+{
+  AVERT(Trace, trace);
+
+  return trace->band;
+}
+
+/* traceBandIncrement - increment the current band.
+ *
+ * Increments the current band and returns TRUE if possible; otherwise
+ * there are no more bands, so resets the band state and returns FALSE.
+ */
+Bool traceBandIncrement(Trace trace)
+{
+  AVER(trace->state == TraceFLIPPED);
+
+  ++trace->band;
+  if(trace->band >= RankLIMIT) {
+    trace->band = RankAMBIG;
+    return FALSE;
+  }
   return TRUE;
 }
 
@@ -996,9 +1031,9 @@ static void traceReclaim(Trace trace)
 
 /* traceFindGrey -- find a grey segment
  *
- * This function finds a segment which is grey for the trace given and
- * which does not have a higher rank than any other such segment (i.e.,
- * a next segment to scan).  */
+ * This function finds the next segment to scan.  It does this according
+ * to the current band of the trace.  See design/trace/
+ */
 
 static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
                           Arena arena, TraceId ti)
@@ -1012,23 +1047,34 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
 
   trace = ArenaTrace(arena, ti);
 
-  for(rank = 0; rank < RankLIMIT; ++rank) {
-    RING_FOR(node, ArenaGreyRing(arena, rank), nextNode) {
-      Seg seg = SegOfGreyRing(node);
+  while(1) {
+    Rank band = traceBand(trace);
 
-      AVERT(Seg, seg);
-      AVER(SegGrey(seg) != TraceSetEMPTY);
-      AVER(RankSetIsMember(SegRankSet(seg), rank));
+    /* Within the R band we look for segments of rank R first,  */
+    /* then succesively earlier ones.  Slight hack: We never    */
+    /* expect to find any segments of RankAMBIG, so we use      */
+    /* this as a terminating condition for the loop.            */
+    for(rank = band; rank > RankAMBIG; --rank) {
+      RING_FOR(node, ArenaGreyRing(arena, rank), nextNode) {
+        Seg seg = SegOfGreyRing(node);
 
-      if(TraceSetIsMember(SegGrey(seg), trace)) {
-        *segReturn = seg;
-        *rankReturn = rank;
-        return TRUE;
+        AVERT(Seg, seg);
+        AVER(SegGrey(seg) != TraceSetEMPTY);
+        AVER(RankSetIsMember(SegRankSet(seg), rank));
+
+        if(TraceSetIsMember(SegGrey(seg), trace)) {
+          *segReturn = seg;
+          *rankReturn = rank;
+          return TRUE;
+        }
       }
     }
+    AVER(RingIsSingle(ArenaGreyRing(arena, RankAMBIG)));
+    if(!traceBandIncrement(trace)) {
+      /* No grey segments for this trace. */
+      return FALSE;
+    }
   }
-
-  return FALSE;                 /* No grey segments for this trace. */
 }
 
 
