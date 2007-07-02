@@ -28,6 +28,13 @@
 
 </div>
 
+<h2>Status</h2>
+
+<p>This document is currently a mixture of very old design notes (the
+preformatted section immediately following) and some newer stuff.  It
+doesn't yet form anything like a complete picture.
+</p>
+
 <pre>
                                  TRACER
                             design.mps.trace
@@ -152,11 +159,79 @@ improvement [insert actual speed improvement here].
 
 </ul>
 
+<p>Whilst a trace is alive every so often its
+<code>traceQuantum</code> method gets invoked (via
+<code>TracePoll</code>) in order to do a quantum of tracing work.
+<code>traceQuantum</code> is responsible for ticking through the trace's
+top-level state machine.  Most of the interesting work, the tracing,
+happens in the <code>TraceFLIPPED</code> state. </p>
+
+<p>The trace transitions through its states in the following sequence:
+<code>TraceINIT</code> ->
+(<code>TraceUNFLIPPED</code>) -> <code>TraceFLIPPED</code> ->
+<code>TraceRECLAIM</code> -> <code>TraceFINISHED</code>.</p>
+Whilst <code>TraceUNFLIPPED</code> appears in the code, no trace does
+any work in this state; all traces are immediately flipped to be in the
+<code>TraceFLIPPED</code> state (see above).</p>
+
+<p>Once the trace is in the <code>TraceFINISHED</code> state it performs
+no more work and it can be safely destroyed.  Generally the callers of
+<code>traceQuantum</code> will destroy the trace.</p>
+
+<h2>Making Progress - Scanning Grey Segments</h2>
+
+<p>Most of the interesting work of a trace, the actual tracing, happens
+in the <code>TraceFLIPPED</code> state (work <em>would</em> happen in
+the <code>TraceUNFLIPPED</code> state, but that is not implemented).</p>
+
+<p>The tracer makes progress by choosing a grey segment to scan, and
+scanning it.  The actual scanning is performed by pools.</p>
+
+<p>Note that at all times a reference partition is maintained.</p>
+
+<p>The order in which the trace scans things determines the semantics of
+certain types of references (in particular, weak and final references).
+Or, to put it another way the desired semantics of weak and final
+references impose certain restrictions on the order in which the trace
+can scan things.</p>
+
+<p>The tracer uses a system of <em>reference ranks</em> (or just
+ranks) so that it can impose an order on its scanning work.  The ranks
+are ordered.</p>
+
+<p>The tracer proceeds band by band.  The first band is all objects it
+can reach by following references of the first rank.  The second band is
+all subsequent objects it can reach by following references of the
+second and first ranks.  The third band is all subsequent objects it can
+reach by following references of the third, second, and first ranks.
+And so on.  The description of the tracer working like this originated
+in an e-mail message from RHSK [<a href="#RHSK-2007-06-25">RHSK
+2007-06-25</a>].</p>
+
+<p>A trace keep track of which band it is tracing.  This is returned by
+the <code>TraceBand</code> method.  Keeping this band information helps
+it implement the semantics of finalization and weakness.  The band used
+to not be explicitly stored, but this hindered the implementation of
+good finalization semantics (essentially in some circumstances
+finalization messages were delayed by at least one collection cycle, see
+job001568).</p>
+
+<p>The band is used when selecting a grey segment to scan (the selection
+occurs in <code>traceFindGrey</code>).  The tracer attempts to first
+find segments whose rank is the current band, then segments whose rank
+is previous to the current band, and so on.  If there are no seguments
+found then the current band is exhausted and the current band is
+incremented to the next rank.  When the current band is moved through
+all the ranks in this fashion there is no more tracing to be done.
+</p>
+
+
 <h2><a id="section-A" name="section-A">A. References</a></h2>
 
-<!-- Template Entry
 
 <table>
+
+<!-- Template Entry
 
 <tr valign="top">
 
@@ -171,9 +246,20 @@ improvement [insert actual speed improvement here].
 
 </tr>
 
-</table>
-
 -->
+
+<tr valign="top">
+  <td>[<a id="ref-RHSK-2007-06-25">RHSK 2007-06-25</a>]</td>
+
+  <td>"the semantics of rank-based tracing";
+    <a href="mailto:rhsk@ravenbrook.com">RHSK</a>;
+    &lt;URL: <a
+    href="http://info.ravenbrook.com/mail/2007/06/25/11-35-57/0.txt">http://info.ravenbrook.com/mail/2007/06/25/11-35-57/0.txt</a>&gt;;
+    2007-06-25.
+  </td>
+</tr>
+
+</table>
 
 
 <h2><a id="section-B" name="section-B">B. Document History</a></h2>
@@ -188,6 +274,12 @@ improvement [insert actual speed improvement here].
 
   <td>Converted from MMInfo database design document.</td>
 
+</tr>
+
+<tr valign="top">
+  <td>2007-07-02</td>
+  <td><a href="mailto:drj@ravenbrook.com">DRJ</a></td>
+  <td>Added notes on tracer progress</td>
 </tr>
 
 </table>
