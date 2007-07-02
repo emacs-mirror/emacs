@@ -387,36 +387,41 @@ Bool TraceCheck(Trace trace)
   CHECKL(ZoneSetSub(trace->mayMove, trace->white));
   /* Use trace->state to check more invariants. */
   switch(trace->state) {
-  case TraceINIT:
-    /* @@@@ What can be checked here? */
-    break;
+    case TraceINIT:
+      /* @@@@ What can be checked here? */
+      break;
 
-  case TraceUNFLIPPED:
-    CHECKL(!TraceSetIsMember(trace->arena->flippedTraces, trace));
-    /* @@@@ Assert that mutator is grey for trace. */
-    break;
+    case TraceUNFLIPPED:
+      CHECKL(!TraceSetIsMember(trace->arena->flippedTraces, trace));
+      /* @@@@ Assert that mutator is grey for trace. */
+      break;
 
-  case TraceFLIPPED:
-    CHECKL(TraceSetIsMember(trace->arena->flippedTraces, trace));
-    /* @@@@ Assert that mutator is black for trace. */
-    break;
+    case TraceFLIPPED:
+      CHECKL(TraceSetIsMember(trace->arena->flippedTraces, trace));
+      /* @@@@ Assert that mutator is black for trace. */
+      break;
 
-  case TraceRECLAIM:
-    CHECKL(TraceSetIsMember(trace->arena->flippedTraces, trace));
-    /* @@@@ Assert that grey set is empty for trace. */
-    break;
+    case TraceRECLAIM:
+      CHECKL(TraceSetIsMember(trace->arena->flippedTraces, trace));
+      /* @@@@ Assert that grey set is empty for trace. */
+      break;
 
-  case TraceFINISHED:
-    CHECKL(TraceSetIsMember(trace->arena->flippedTraces, trace));
-    /* @@@@ Assert that grey and white sets is empty for trace. */
-    break;
+    case TraceFINISHED:
+      CHECKL(TraceSetIsMember(trace->arena->flippedTraces, trace));
+      /* @@@@ Assert that grey and white sets is empty for trace. */
+      break;
 
-  default:
-    NOTREACHED;
+    default:
+      NOTREACHED;
+  }
+  /* Valid values for band depend on state. */
+  if(trace->state == TraceFLIPPED) {
+    CHECKL(RankCheck(trace->band));
   }
   CHECKL(BoolCheck(trace->emergency));
-  if (trace->chain != NULL)
+  if(trace->chain != NULL) {
     CHECKU(Chain, trace->chain);
+  }
   /* @@@@ checks for counts missing */
   CHECKD(TraceStartMessage, &trace->startMessage);
   return TRUE;
@@ -807,6 +812,7 @@ found:
   trace->mayMove = ZoneSetEMPTY;
   trace->ti = ti;
   trace->state = TraceINIT;
+  trace->band = RankAMBIG;      /* Required to be the earliest rank. */
   trace->emergency = FALSE;
   trace->chain = NULL;
   trace->condemned = (Size)0;   /* nothing condemned yet */
