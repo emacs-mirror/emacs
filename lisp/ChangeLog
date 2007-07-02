@@ -1,3 +1,12 @@
+2007-07-02  Martin Rudalics  <rudalics@gmx.at>
+
+	* help-mode.el (help-make-xrefs): Skip spaces too when skipping tabs. 
+
+	* mouse.el (mouse-drag-mode-line-1): Quit mouse tracking when
+	event is not a cons cell.  Do not unread drag-mouse-1 events.
+	Select right window in check whether space was stolen from
+	window above.
+
 2007-07-01  Richard Stallman  <rms@gnu.org>
 
 	* files.el (find-file-visit-truename): Fix safe-local-variable value.
