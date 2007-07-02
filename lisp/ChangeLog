@@ -1,3 +1,11 @@
+2007-07-02  Martin Rudalics  <rudalics@gmx.at>
+
+	* help-mode.el (help-make-xrefs):  Skip spaces too when
+	skipping tabs.
+
+	* ffap.el (dired-at-point-prompter): Improve prompt in
+	list-directory case.
+
 2007-07-01  Richard Stallman  <rms@gnu.org>
 
 	* cus-start.el (max-mini-window-height): Added.
