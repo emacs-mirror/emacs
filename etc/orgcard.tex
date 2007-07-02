@@ -1,5 +1,5 @@
 % Reference Card for Org Mode
-\def\orgversionnumber{4.77}
+\def\orgversionnumber{5.01}
 \def\versionyear{2007}          % latest update
 \def\year{2007}                 % latest copyright year
 
@@ -111,14 +111,17 @@ are preserved on all copies.
   \footline{\hss\folio}
   \def\makefootline{\baselineskip10pt\hsize6.5in\line{\the\footline}}
 \else				%2 or 3 columns uses prereduced size
-  \hsize 3.2in
   \if 1\the\letterpaper
+     \hsize 3.2in
      \vsize 7.95in
+     \hoffset -.75in
+     \voffset -.745in
   \else
+     \hsize 3.2in
      \vsize 7.65in
+     \hoffset -.25in
+     \voffset -.745in
   \fi
-  \hoffset -.75in
-  \voffset -.745in
   \font\titlefont=cmbx10 \scaledmag2
   \font\headingfont=cmbx10 \scaledmag1
   \font\smallfont=cmr6
@@ -418,6 +421,7 @@ formula, \kbd{:=} a field formula.
 \key{toggle coordinate grid}{C-c \}}
 \key{toggle formula debugger}{C-c \{}
 
+\newcolumn
 {\it Formula Editor}
 
 \key{edit formulas in separate buffer}{C-c '}
@@ -617,7 +621,7 @@ To set categories, add lines like$^2$:
 {\bf Change display}
 
 \key{delete other windows}{o}
-\key{switch to daily / weekly view}{d / w}
+\key{switch to day/week/month/year view}{d w m y}
 \key{toggle inclusion of diary entries}{D}
 \key{toggle time grid for daily schedule}{g}
 \key{toggle display of logbook entries}{l}
