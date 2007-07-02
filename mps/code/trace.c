@@ -1,7 +1,8 @@
 /* trace.c: GENERIC TRACER IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2003, 2006 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2003, 2006, 2007 Ravenbrook Limited.
+ * See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .design: <design/trace/>.  */
@@ -1008,17 +1009,20 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
   for(rank = 0; rank < RankLIMIT; ++rank) {
     RING_FOR(node, ArenaGreyRing(arena, rank), nextNode) {
       Seg seg = SegOfGreyRing(node);
+
       AVERT(Seg, seg);
       AVER(SegGrey(seg) != TraceSetEMPTY);
       AVER(RankSetIsMember(SegRankSet(seg), rank));
-      if (TraceSetIsMember(SegGrey(seg), trace)) {
-        *segReturn = seg; *rankReturn = rank;
+
+      if(TraceSetIsMember(SegGrey(seg), trace)) {
+        *segReturn = seg;
+        *rankReturn = rank;
         return TRUE;
       }
     }
   }
 
-  return FALSE; /* There are no grey segments for this trace. */
+  return FALSE;                 /* No grey segments for this trace. */
 }
 
 
@@ -1674,30 +1678,32 @@ static void traceQuantum(Trace trace)
   pollEnd = traceWorkClock(trace) + trace->rate;
   do {
     switch(trace->state) {
-    case TraceUNFLIPPED:
-      /* all traces are flipped in TraceStart at the moment */
-      NOTREACHED;
-      break;
-    case TraceFLIPPED: {
-      Arena arena = trace->arena;
-      Seg seg;
-      Rank rank;
+      case TraceUNFLIPPED:
+        /* all traces are flipped in TraceStart at the moment */
+        NOTREACHED;
+        break;
+      case TraceFLIPPED: {
+        Arena arena = trace->arena;
+        Seg seg;
+        Rank rank;
 
-      if (traceFindGrey(&seg, &rank, arena, trace->ti)) {
-        AVER((SegPool(seg)->class->attr & AttrSCAN) != 0);
-        traceScanSeg(TraceSetSingle(trace), rank, arena, seg);
-      } else
-        trace->state = TraceRECLAIM;
-    } break;
-    case TraceRECLAIM:
-      traceReclaim(trace);
-      break;
-    default:
-      NOTREACHED;
-      break;
+        if(traceFindGrey(&seg, &rank, arena, trace->ti)) {
+          AVER((SegPool(seg)->class->attr & AttrSCAN) != 0);
+          traceScanSeg(TraceSetSingle(trace), rank, arena, seg);
+        } else {
+          trace->state = TraceRECLAIM;
+        }
+        break;
+      }
+      case TraceRECLAIM:
+        traceReclaim(trace);
+        break;
+      default:
+        NOTREACHED;
+        break;
     }
-  } while (trace->state != TraceFINISHED
-           && (trace->emergency || traceWorkClock(trace) < pollEnd));
+  } while(trace->state != TraceFINISHED
+          && (trace->emergency || traceWorkClock(trace) < pollEnd));
 }
 
 /* traceStartCollectAll: start a trace which condemns everything in
@@ -1807,15 +1813,17 @@ Size TracePoll(Globals globals)
   } /* (arena->busyTraces == TraceSetEMPTY) */
 
   /* If there is a trace, do one quantum of work. */
-  if (arena->busyTraces != TraceSetEMPTY) {
+  if(arena->busyTraces != TraceSetEMPTY) {
     Size oldScanned;
+
     trace = ArenaTrace(arena, (TraceId)0);
     AVER(arena->busyTraces == TraceSetSingle(trace));
     oldScanned = traceWorkClock(trace);
     traceQuantum(trace);
     scannedSize = traceWorkClock(trace) - oldScanned;
-    if (trace->state == TraceFINISHED)
+    if(trace->state == TraceFINISHED) {
       TraceDestroy(trace);
+    }
   }
   return scannedSize;
 
@@ -1864,8 +1872,9 @@ void ArenaPark(Globals globals)
     /* Poll active traces to make progress. */
     TRACE_SET_ITER(ti, trace, arena->busyTraces, arena)
       traceQuantum(trace);
-      if (trace->state == TraceFINISHED)
+      if(trace->state == TraceFINISHED) {
         TraceDestroy(trace);
+      }
     TRACE_SET_ITER_END(ti, trace, arena->busyTraces, arena);
   }
 }
@@ -2063,7 +2072,8 @@ Res ArenaCollect(Globals globals, int why)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2003, 2006 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2003, 2006, 2007 Ravenbrook Limited
+ * <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
