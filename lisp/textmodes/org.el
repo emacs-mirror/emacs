@@ -21422,7 +21422,6 @@ When COMBINE is non nil, add the category to each line."
 	(sexp-buffer (get-buffer-create "*ical-tmp*")))
     (save-excursion
       (goto-char (point-min))
-      (debug)
       (while (re-search-forward re1 nil t)
 	(catch :skip
 	  (org-agenda-skip)
