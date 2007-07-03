@@ -1051,8 +1051,11 @@ Recursive uses of the minibuffer will not be affected."
 	     ,@body)
 	 (remove-hook 'minibuffer-setup-hook ,hook)))))
 
-(defvar find-file-confirm-inexistent-file t
-  "If non-nil, `find-file' will require confirmation before visiting a new file.")
+(defcustom find-file-confirm-inexistent-file nil
+  "If non-nil, `find-file' requires confirmation before visiting a new file."
+  :group 'find-file
+  :version "23.1"
+  :type 'boolean)
 
 (defun find-file-read-args (prompt mustmatch)
   (list (let ((find-file-default
