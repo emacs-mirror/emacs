@@ -55,7 +55,8 @@ If it is also not t, RET does not exit if it does non-null completion."
 				     (substring enventry 0
 						(string-match "=" enventry)))))
 			   (append process-environment
-				   (frame-parameter (frame-with-environment) 'environment)))
+				   nil ;;(frame-parameter (frame-with-environment) 'environment)
+				   ))
 		   nil mustmatch nil 'read-envvar-name-history))
 
 ;; History list for VALUE argument to setenv.
@@ -191,9 +192,14 @@ a side-effect."
       (setq process-environment (setenv-internal process-environment
 						 variable value t))
     (setq frame (frame-with-environment frame))
-    (set-frame-parameter frame 'environment
-			 (setenv-internal (frame-parameter frame 'environment)
-					  variable value nil)))
+    (cond 
+     ((string-equal "TERM" variable)
+      (set-frame-parameter frame 'term-environment-variable value))
+     ((string-equal "DISPLAY" variable)
+      (set-frame-parameter frame 'display-environment-variable value))
+     (t 
+      (setq process-environment (setenv-internal process-environment
+						 variable value nil)))))
   value)
 
 (defun getenv (variable &optional frame)
@@ -238,8 +244,8 @@ Non-ASCII characters are encoded according to the initial value of
 `locale-coding-system', i.e. the elements must normally be decoded for use.
 See `setenv' and `getenv'."
   (let* ((env (append process-environment
-		      (frame-parameter (frame-with-environment frame)
-				       'environment)
+;; 		      (frame-parameter (frame-with-environment frame)
+;; 				       'environment)
 		      nil))
 	 (scan env)
 	 prev seen)

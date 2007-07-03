@@ -1909,7 +1909,11 @@ terminal type to a different value."
 (defun tty-set-up-initial-frame-faces ()
   (let ((frame (selected-frame)))
     (frame-set-background-mode frame)
-    (face-set-after-frame-default frame)))
+    (face-set-after-frame-default frame)
+    (set-frame-parameter frame-initial-frame 'term-environment-variable
+			 (getenv "TERM"))
+    (set-frame-parameter frame-initial-frame 'display-environment-variable
+			 (getenv "DISPLAY"))))
 
 
 

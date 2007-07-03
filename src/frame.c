@@ -111,6 +111,8 @@ Lisp_Object Qtty_color_mode;
 Lisp_Object Qtty, Qtty_type;
 Lisp_Object Qwindow_system;
 Lisp_Object Qenvironment;
+Lisp_Object Qterm_environment_variable;
+Lisp_Object Qdisplay_environment_variable;
 
 Lisp_Object Qfullscreen, Qfullwidth, Qfullheight, Qfullboth;
 
@@ -4353,7 +4355,12 @@ syms_of_frame ()
   staticpro (&Qwindow_system);
   Qenvironment = intern ("environment");
   staticpro (&Qenvironment);
-  
+
+  Qterm_environment_variable = intern ("term-environment-variable");
+  staticpro (&Qterm_environment_variable);
+  Qdisplay_environment_variable = intern ("display-environment-variable");
+  staticpro (&Qdisplay_environment_variable);
+
   Qface_set_after_frame_default = intern ("face-set-after-frame-default");
   staticpro (&Qface_set_after_frame_default);
 

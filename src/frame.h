@@ -780,6 +780,8 @@ extern Lisp_Object Qframep, Qframe_live_p;
 extern Lisp_Object Qtty, Qtty_type;
 extern Lisp_Object Qterminal, Qterminal_live_p;
 extern Lisp_Object Qenvironment;
+extern Lisp_Object Qterm_environment_variable;
+extern Lisp_Object Qdisplay_environment_variable;
 
 extern struct frame *last_nonminibuf_frame;
 

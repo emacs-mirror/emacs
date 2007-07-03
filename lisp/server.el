@@ -763,6 +763,10 @@ The following commands are accepted by the client:
 			  ;; initialization parameters for X frames at
 			  ;; the moment.
 			  (modify-frame-parameters frame params)
+			  (set-frame-parameter frame 'display-environment-variable 
+					       (server-getenv-from env "DISPLAY"))
+			  (set-frame-parameter frame 'term-environment-variable 
+					       (server-getenv-from env "TERM"))
 			  (select-frame frame)
 			  (server-client-set client 'frame frame)
 			  (server-client-set client 'terminal (frame-terminal frame))
@@ -812,12 +816,19 @@ The following commands are accepted by the client:
 			    "BAUDRATE" "COLUMNS" "ESCDELAY" "HOME" "LINES"
 			    "NCURSES_ASSUMED_COLORS" "NCURSES_NO_PADDING"
 			    "NCURSES_NO_SETBUF" "TERM" "TERMCAP" "TERMINFO"
-			    "TERMINFO_DIRS" "TERMPATH")
+			    "TERMINFO_DIRS" "TERMPATH" 
+			    ;; rxvt wants these
+			    "COLORFGBG" "COLORTERM")
 			(setq frame (make-frame-on-tty tty type
 						       ;; Ignore nowait here; we always need to clean
 						       ;; up opened ttys when the client dies.
 						       `((client . ,proc)
 							 (environment . ,env)))))
+	      
+		      (set-frame-parameter frame 'display-environment-variable 
+					   (server-getenv-from env "DISPLAY"))
+		      (set-frame-parameter frame 'term-environment-variable 
+					   (server-getenv-from env "TERM"))
 		      (select-frame frame)
 		      (server-client-set client 'frame frame)
 		      (server-client-set client 'tty (terminal-name frame))
