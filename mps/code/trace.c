@@ -1104,12 +1104,15 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
         AVER(RankSetIsMember(SegRankSet(seg), rank));
 
         if(TraceSetIsMember(SegGrey(seg), trace)) {
+          /* .check.band.weak */
+          AVER(band != RankWEAK || rank == band);
           *segReturn = seg;
           *rankReturn = rank;
           return TRUE;
         }
       }
     }
+    /* .check.ambig.not */
     AVER(RingIsSingle(ArenaGreyRing(arena, RankAMBIG)));
     if(!traceBandAdvance(trace)) {
       /* No grey segments for this trace. */
