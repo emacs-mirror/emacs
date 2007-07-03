@@ -1,17 +1,17 @@
 2007-07-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* server.el (server-process-filter): Likewise.
-	(server-process-filter): Likewise. Also set COLORFGBG and
-	COLORTERM.
+        * env.el (read-envvar-name): Don't consider the environment frame
+        param.
+        (setenv): Set display-environment-variable and
+        term-environment-variable.
 
-	* frame.el (frame-initialize, make-frame): Likewise.
+        * frame.el (frame-initialize, make-frame): Likewise.
 
-	* faces.el (tty-set-up-initial-frame-faces): Likewise.
+        * faces.el (tty-set-up-initial-frame-faces): Likewise.
 
-	* env.el (read-envvar-name): Don't consider the environment frame
-	param. 
-	(setenv): Set display-environment-variable and
-	term-environment-variable.
+        * server.el (server-process-filter): Likewise.
+        (server-process-filter): Likewise. Also set COLORFGBG and
+        COLORTERM.
 
 	* term/x-win.el (x-menu-bar-open): Use accelerate-menu.
 
