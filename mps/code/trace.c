@@ -1035,6 +1035,45 @@ static void traceReclaim(Trace trace)
  *
  * This function finds the next segment to scan.  It does this according
  * to the current band of the trace.  See design/trace/
+ *
+ * This code also performs various checks about the ranks of the object
+ * graph.  Explanations of the checks would litter the code, so the
+ * explanations are here, and the code references these.
+ *
+ * .check.ambig.not: RankAMBIG segments never appear on the grey ring.
+ * The current tracer cannot support ambiguous reference except as
+ * roots, so it's a buf if we ever find any.  This behaviour is not set
+ * in stone, it's possible to imagine changing the tracer so that we can
+ * support ambiguous objects one day.  For example, a fully conservative
+ * non-moving mode.
+ *
+ * .check.band.begin: At the point where we start working on a new band
+ * of Rank R, there are no grey objects at earlier ranks.  If there
+ * were, we would've found them whilst the current band was the previous
+ * band.  We don't check this, but I rely on this fact in the next
+ * check, .check.weak.no-preserve.
+ *
+ * .check.weak.band: Weak references cannot cause objects to be
+ * newly preserved (marked).  Because of .check.band.begin all the
+ * scanning work performed when the current band is a weak rank will be
+ * scanning objects at that rank.  There is currently only one weak
+ * rank, RankWEAK.
+ *
+ * .check.final.one-pass: Because all the RankFINAL references are
+ * allocated in PoolMRG and effectively treated as roots, all the
+ * RankFINAL references will be scanned in one push (possibly split up,
+ * incrementally).  Once they have been scanned, no new RankFINAL
+ * references will be discovered (the mutator is not permitted to
+ * allocate RankFINAL references wherever they like).  In fact because
+ * of various coincidences (no Ambig segments so band Exact never
+ * discovers an Ambig segment and then more Exact segments; the only
+ * other rank is weak so never discovers any new segments) it is the
+ * case that for any band R there is an initial burst of scanning
+ * segments at rank R then after that we see no more rank R segments
+ * whilst working in this band.  That's what we check, although we
+ * expect to have to change the check if we introduce more ranks, or
+ * start changing the semantics of them.  A flag is used to implement
+ * this check.
  */
 
 static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
