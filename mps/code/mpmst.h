@@ -515,6 +515,7 @@ typedef struct TraceStruct {
   ZoneSet mayMove;              /* zones containing possibly moving objs */
   TraceState state;             /* current state of trace */
   Rank band;                    /* current band */
+  Bool firstStretch;            /* in first stretch of band (see accessor) */
   Bool emergency;               /* ran out of memory during trace */
   Chain chain;                  /* chain being incrementally collected */
   Size condemned;               /* condemned bytes */
