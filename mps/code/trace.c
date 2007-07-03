@@ -16,7 +16,7 @@ SRCID(trace, "$Id$");
 /* Forward declarations */
 static void TraceStartMessageInit(Arena arena, TraceStartMessage tsMessage);
 Rank traceBand(Trace);
-Bool traceBandIncrement(Trace);
+Bool traceBandAdvance(Trace);
 
 /* Types */
 
@@ -445,12 +445,14 @@ Rank traceBand(Trace trace)
   return trace->band;
 }
 
-/* traceBandIncrement - increment the current band.
+/* traceBandAdvance - advance to next band.
  *
- * Increments the current band and returns TRUE if possible; otherwise
- * there are no more bands, so resets the band state and returns FALSE.
+ * Advances (increments) the current band to the next band and returns TRUE
+ * if possible;
+ * otherwise, there are no more bands, so resets the band state and
+ * returns FALSE.
  */
-Bool traceBandIncrement(Trace trace)
+Bool traceBandAdvance(Trace trace)
 {
   AVER(trace->state == TraceFLIPPED);
 
@@ -1070,7 +1072,7 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
       }
     }
     AVER(RingIsSingle(ArenaGreyRing(arena, RankAMBIG)));
-    if(!traceBandIncrement(trace)) {
+    if(!traceBandAdvance(trace)) {
       /* No grey segments for this trace. */
       return FALSE;
     }
