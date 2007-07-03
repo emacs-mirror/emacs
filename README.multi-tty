@@ -314,6 +314,9 @@ For the NEWS file:  (Needs much, much work)
 
 *** New variables: local-key-translation-map, local-function-key-map
 
+*** New frame parameters display-environment-variable and
+    term-environment-variable. 
+
 *** The `keyboard-translate-table' variable and the terminal and
     keyboard coding systems have been made terminal-local.
 
