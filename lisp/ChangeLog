@@ -1,3 +1,14 @@
+2007-07-03  Richard Stallman  <rms@gnu.org>
+
+	* files.el (make-directory): Doc fix.
+	(find-file-confirm-inexistent-file): Make it a defcustom.
+	Make nil the default.
+
+2007-07-02  Richard Stallman  <rms@gnu.org>
+
+	* startup.el (command-line): Set buffer-offer-save in *scratch*
+	and enable auto-save in it.
+
 2007-07-02  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (orgstruct-mode-map): New variable.
