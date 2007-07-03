@@ -17,6 +17,8 @@ SRCID(trace, "$Id$");
 static void TraceStartMessageInit(Arena arena, TraceStartMessage tsMessage);
 Rank traceBand(Trace);
 Bool traceBandAdvance(Trace);
+Bool traceBandFirstStretch(Trace);
+void traceBandFirstStretchDone(Trace);
 
 /* Types */
 
@@ -457,6 +459,7 @@ Bool traceBandAdvance(Trace trace)
   AVER(trace->state == TraceFLIPPED);
 
   ++trace->band;
+  trace->firstStretch = TRUE;
   if(trace->band >= RankLIMIT) {
     trace->band = RankAMBIG;
     return FALSE;
@@ -464,6 +467,28 @@ Bool traceBandAdvance(Trace trace)
   return TRUE;
 }
 
+/* traceBandFirstStretch - whether in first stretch or not.
+ *
+ * For a band R (see traceBand) the first stretch is defined as all the
+ * scanning work done up until the first point where we run out of grey
+ * rank R segments (and either scan something of an earlier rank or
+ * change bands).
+ *
+ * This function returns TRUE whilst we are in the first stretch, FALSE
+ * otherwise.
+ *
+ * Entering the first stretch is automatically performed by
+ * traceBandAdvance, but finishing it is detected in traceFindGrey.
+ */
+Bool traceBandFirstStretch(Trace trace)
+{
+  return trace->firstStretch;
+}
+
+void traceBandFirstStretchDone(Trace trace)
+{
+  trace->firstStretch = FALSE;
+}
 
 /* traceUpdateCounts - dumps the counts from a ScanState into the Trace */
 
@@ -1106,6 +1131,12 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
         if(TraceSetIsMember(SegGrey(seg), trace)) {
           /* .check.band.weak */
           AVER(band != RankWEAK || rank == band);
+          if(rank != band) {
+            traceBandFirstStretchDone(trace);
+          } else {
+            /* .check.final.one-pass */
+            AVER(traceBandFirstStretch(trace));
+          }
           *segReturn = seg;
           *rankReturn = rank;
           return TRUE;
