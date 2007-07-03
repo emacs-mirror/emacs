@@ -1,3 +1,8 @@
+2007-07-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/gud.el (auto-mode-alist): Match more valid gdb init
+	file names.
+
 2007-07-02  Martin Rudalics  <rudalics@gmx.at>
 
 	* help-mode.el (help-make-xrefs): Skip spaces too when skipping tabs. 
