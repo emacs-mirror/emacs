@@ -34,7 +34,7 @@ a GIF library.
 
 * Changes in Emacs 23.1
 
-** The variable find-file-confirm-inexistent-file controls if C-x C-f
+** If you set find-file-confirm-inexistent-file to t, then C-x C-f
 requires confirmation before opening a non-existent file.
 
 ** If the gpm mouse server is running and t-mouse-mode enabled, Emacs uses a
