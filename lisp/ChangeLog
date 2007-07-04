@@ -8,6 +8,8 @@
 	compute "^".
 	(calculator-mode): Mention that results which are too large
 	will return inf.
+	* calc/calc-comb.el (math-small-factorial-table): Replace list
+	by vector.
 
 2007-07-03  David Kastrup  <dak@gnu.org>
 
