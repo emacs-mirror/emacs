@@ -1,3 +1,14 @@
+2007-07-03  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calculator.el (calculator-expt, calculator-integer-p):
+	New functions.
+	(calculator-fact): Check to see if the factorial will be too
+	large before computing it.
+	(calculator-initial-operators): Use `calculator-expt' to
+	compute "^".
+	(calculator-mode): Mention that results which are too large
+	will return inf.
+
 2007-07-03  David Kastrup  <dak@gnu.org>
 
 	* shell.el: On request of the authors, remove their addresses for
