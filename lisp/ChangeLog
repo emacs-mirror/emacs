@@ -1,3 +1,8 @@
+2007-07-04  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calculator.el (calculator-expt): Use more cases to determine
+	the value.
+
 2007-07-03  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calculator.el (calculator-expt, calculator-integer-p):
