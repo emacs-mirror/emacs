@@ -52,7 +52,10 @@ def mpsplatformcode() :
             'i386':'i3',
            }[platform.machine()]
   except :
-    pass
+    # Windows specific hack.  On Python 2.4 and 2.5 platform.machine
+    # returns ''.
+    if platform.machine() == '' and os == 'w3' :
+      arch = 'i3'
 
   compiler = '??' # C compiler tool chain
   # There's no automagic way to determine this, some OS/Arch
