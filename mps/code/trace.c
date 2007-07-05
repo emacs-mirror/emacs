@@ -1,7 +1,8 @@
 /* trace.c: GENERIC TRACER IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2003, 2006 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2003, 2006, 2007 Ravenbrook Limited.
+ * See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .design: <design/trace/>.  */
@@ -14,6 +15,10 @@ SRCID(trace, "$Id$");
 
 /* Forward declarations */
 static void TraceStartMessageInit(Arena arena, TraceStartMessage tsMessage);
+Rank traceBand(Trace);
+Bool traceBandAdvance(Trace);
+Bool traceBandFirstStretch(Trace);
+void traceBandFirstStretchDone(Trace);
 
 /* Types */
 
@@ -386,41 +391,104 @@ Bool TraceCheck(Trace trace)
   CHECKL(ZoneSetSub(trace->mayMove, trace->white));
   /* Use trace->state to check more invariants. */
   switch(trace->state) {
-  case TraceINIT:
-    /* @@@@ What can be checked here? */
-    break;
+    case TraceINIT:
+      /* @@@@ What can be checked here? */
+      break;
 
-  case TraceUNFLIPPED:
-    CHECKL(!TraceSetIsMember(trace->arena->flippedTraces, trace));
-    /* @@@@ Assert that mutator is grey for trace. */
-    break;
+    case TraceUNFLIPPED:
+      CHECKL(!TraceSetIsMember(trace->arena->flippedTraces, trace));
+      /* @@@@ Assert that mutator is grey for trace. */
+      break;
 
-  case TraceFLIPPED:
-    CHECKL(TraceSetIsMember(trace->arena->flippedTraces, trace));
-    /* @@@@ Assert that mutator is black for trace. */
-    break;
+    case TraceFLIPPED:
+      CHECKL(TraceSetIsMember(trace->arena->flippedTraces, trace));
+      /* @@@@ Assert that mutator is black for trace. */
+      break;
 
-  case TraceRECLAIM:
-    CHECKL(TraceSetIsMember(trace->arena->flippedTraces, trace));
-    /* @@@@ Assert that grey set is empty for trace. */
-    break;
+    case TraceRECLAIM:
+      CHECKL(TraceSetIsMember(trace->arena->flippedTraces, trace));
+      /* @@@@ Assert that grey set is empty for trace. */
+      break;
 
-  case TraceFINISHED:
-    CHECKL(TraceSetIsMember(trace->arena->flippedTraces, trace));
-    /* @@@@ Assert that grey and white sets is empty for trace. */
-    break;
+    case TraceFINISHED:
+      CHECKL(TraceSetIsMember(trace->arena->flippedTraces, trace));
+      /* @@@@ Assert that grey and white sets is empty for trace. */
+      break;
 
-  default:
-    NOTREACHED;
+    default:
+      NOTREACHED;
+  }
+  /* Valid values for band depend on state. */
+  if(trace->state == TraceFLIPPED) {
+    CHECKL(RankCheck(trace->band));
   }
   CHECKL(BoolCheck(trace->emergency));
-  if (trace->chain != NULL)
+  if(trace->chain != NULL) {
     CHECKU(Chain, trace->chain);
+  }
   /* @@@@ checks for counts missing */
   CHECKD(TraceStartMessage, &trace->startMessage);
   return TRUE;
 }
 
+/* traceBand - current band of the trace.
+ *
+ * The current band is the band currently being discovered.  Each band
+ * corresponds to a rank.  The R band is all objects that are reachable
+ * only by tracing references of rank R or earlier _and_ are not in some
+ * earlier band (thus, the bands are disjoint).  Whilst a particular
+ * band is current all the objects that become marked are the objects in
+ * that band.
+ */
+Rank traceBand(Trace trace)
+{
+  AVERT(Trace, trace);
+
+  return trace->band;
+}
+
+/* traceBandAdvance - advance to next band.
+ *
+ * Advances (increments) the current band to the next band and returns TRUE
+ * if possible;
+ * otherwise, there are no more bands, so resets the band state and
+ * returns FALSE.
+ */
+Bool traceBandAdvance(Trace trace)
+{
+  AVER(trace->state == TraceFLIPPED);
+
+  ++trace->band;
+  trace->firstStretch = TRUE;
+  if(trace->band >= RankLIMIT) {
+    trace->band = RankAMBIG;
+    return FALSE;
+  }
+  return TRUE;
+}
+
+/* traceBandFirstStretch - whether in first stretch or not.
+ *
+ * For a band R (see traceBand) the first stretch is defined as all the
+ * scanning work done up until the first point where we run out of grey
+ * rank R segments (and either scan something of an earlier rank or
+ * change bands).
+ *
+ * This function returns TRUE whilst we are in the first stretch, FALSE
+ * otherwise.
+ *
+ * Entering the first stretch is automatically performed by
+ * traceBandAdvance, but finishing it is detected in traceFindGrey.
+ */
+Bool traceBandFirstStretch(Trace trace)
+{
+  return trace->firstStretch;
+}
+
+void traceBandFirstStretchDone(Trace trace)
+{
+  trace->firstStretch = FALSE;
+}
 
 /* traceUpdateCounts - dumps the counts from a ScanState into the Trace */
 
@@ -806,6 +874,7 @@ found:
   trace->mayMove = ZoneSetEMPTY;
   trace->ti = ti;
   trace->state = TraceINIT;
+  trace->band = RankAMBIG;      /* Required to be the earliest rank. */
   trace->emergency = FALSE;
   trace->chain = NULL;
   trace->condemned = (Size)0;   /* nothing condemned yet */
@@ -989,9 +1058,48 @@ static void traceReclaim(Trace trace)
 
 /* traceFindGrey -- find a grey segment
  *
- * This function finds a segment which is grey for the trace given and
- * which does not have a higher rank than any other such segment (i.e.,
- * a next segment to scan).  */
+ * This function finds the next segment to scan.  It does this according
+ * to the current band of the trace.  See design/trace/
+ *
+ * This code also performs various checks about the ranks of the object
+ * graph.  Explanations of the checks would litter the code, so the
+ * explanations are here, and the code references these.
+ *
+ * .check.ambig.not: RankAMBIG segments never appear on the grey ring.
+ * The current tracer cannot support ambiguous reference except as
+ * roots, so it's a buf if we ever find any.  This behaviour is not set
+ * in stone, it's possible to imagine changing the tracer so that we can
+ * support ambiguous objects one day.  For example, a fully conservative
+ * non-moving mode.
+ *
+ * .check.band.begin: At the point where we start working on a new band
+ * of Rank R, there are no grey objects at earlier ranks.  If there
+ * were, we would've found them whilst the current band was the previous
+ * band.  We don't check this, but I rely on this fact in the next
+ * check, .check.weak.no-preserve.
+ *
+ * .check.weak.band: Weak references cannot cause objects to be
+ * newly preserved (marked).  Because of .check.band.begin all the
+ * scanning work performed when the current band is a weak rank will be
+ * scanning objects at that rank.  There is currently only one weak
+ * rank, RankWEAK.
+ *
+ * .check.final.one-pass: Because all the RankFINAL references are
+ * allocated in PoolMRG and effectively treated as roots, all the
+ * RankFINAL references will be scanned in one push (possibly split up,
+ * incrementally).  Once they have been scanned, no new RankFINAL
+ * references will be discovered (the mutator is not permitted to
+ * allocate RankFINAL references wherever they like).  In fact because
+ * of various coincidences (no Ambig segments so band Exact never
+ * discovers an Ambig segment and then more Exact segments; the only
+ * other rank is weak so never discovers any new segments) it is the
+ * case that for any band R there is an initial burst of scanning
+ * segments at rank R then after that we see no more rank R segments
+ * whilst working in this band.  That's what we check, although we
+ * expect to have to change the check if we introduce more ranks, or
+ * start changing the semantics of them.  A flag is used to implement
+ * this check.
+ */
 
 static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
                           Arena arena, TraceId ti)
@@ -1005,20 +1113,43 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
 
   trace = ArenaTrace(arena, ti);
 
-  for(rank = 0; rank < RankLIMIT; ++rank) {
-    RING_FOR(node, ArenaGreyRing(arena, rank), nextNode) {
-      Seg seg = SegOfGreyRing(node);
-      AVERT(Seg, seg);
-      AVER(SegGrey(seg) != TraceSetEMPTY);
-      AVER(RankSetIsMember(SegRankSet(seg), rank));
-      if (TraceSetIsMember(SegGrey(seg), trace)) {
-        *segReturn = seg; *rankReturn = rank;
-        return TRUE;
+  while(1) {
+    Rank band = traceBand(trace);
+
+    /* Within the R band we look for segments of rank R first,  */
+    /* then succesively earlier ones.  Slight hack: We never    */
+    /* expect to find any segments of RankAMBIG, so we use      */
+    /* this as a terminating condition for the loop.            */
+    for(rank = band; rank > RankAMBIG; --rank) {
+      RING_FOR(node, ArenaGreyRing(arena, rank), nextNode) {
+        Seg seg = SegOfGreyRing(node);
+
+        AVERT(Seg, seg);
+        AVER(SegGrey(seg) != TraceSetEMPTY);
+        AVER(RankSetIsMember(SegRankSet(seg), rank));
+
+        if(TraceSetIsMember(SegGrey(seg), trace)) {
+          /* .check.band.weak */
+          AVER(band != RankWEAK || rank == band);
+          if(rank != band) {
+            traceBandFirstStretchDone(trace);
+          } else {
+            /* .check.final.one-pass */
+            AVER(traceBandFirstStretch(trace));
+          }
+          *segReturn = seg;
+          *rankReturn = rank;
+          return TRUE;
+        }
       }
     }
+    /* .check.ambig.not */
+    AVER(RingIsSingle(ArenaGreyRing(arena, RankAMBIG)));
+    if(!traceBandAdvance(trace)) {
+      /* No grey segments for this trace. */
+      return FALSE;
+    }
   }
-
-  return FALSE; /* There are no grey segments for this trace. */
 }
 
 
@@ -1674,30 +1805,32 @@ static void traceQuantum(Trace trace)
   pollEnd = traceWorkClock(trace) + trace->rate;
   do {
     switch(trace->state) {
-    case TraceUNFLIPPED:
-      /* all traces are flipped in TraceStart at the moment */
-      NOTREACHED;
-      break;
-    case TraceFLIPPED: {
-      Arena arena = trace->arena;
-      Seg seg;
-      Rank rank;
+      case TraceUNFLIPPED:
+        /* all traces are flipped in TraceStart at the moment */
+        NOTREACHED;
+        break;
+      case TraceFLIPPED: {
+        Arena arena = trace->arena;
+        Seg seg;
+        Rank rank;
 
-      if (traceFindGrey(&seg, &rank, arena, trace->ti)) {
-        AVER((SegPool(seg)->class->attr & AttrSCAN) != 0);
-        traceScanSeg(TraceSetSingle(trace), rank, arena, seg);
-      } else
-        trace->state = TraceRECLAIM;
-    } break;
-    case TraceRECLAIM:
-      traceReclaim(trace);
-      break;
-    default:
-      NOTREACHED;
-      break;
+        if(traceFindGrey(&seg, &rank, arena, trace->ti)) {
+          AVER((SegPool(seg)->class->attr & AttrSCAN) != 0);
+          traceScanSeg(TraceSetSingle(trace), rank, arena, seg);
+        } else {
+          trace->state = TraceRECLAIM;
+        }
+        break;
+      }
+      case TraceRECLAIM:
+        traceReclaim(trace);
+        break;
+      default:
+        NOTREACHED;
+        break;
     }
-  } while (trace->state != TraceFINISHED
-           && (trace->emergency || traceWorkClock(trace) < pollEnd));
+  } while(trace->state != TraceFINISHED
+          && (trace->emergency || traceWorkClock(trace) < pollEnd));
 }
 
 /* traceStartCollectAll: start a trace which condemns everything in
@@ -1807,15 +1940,17 @@ Size TracePoll(Globals globals)
   } /* (arena->busyTraces == TraceSetEMPTY) */
 
   /* If there is a trace, do one quantum of work. */
-  if (arena->busyTraces != TraceSetEMPTY) {
+  if(arena->busyTraces != TraceSetEMPTY) {
     Size oldScanned;
+
     trace = ArenaTrace(arena, (TraceId)0);
     AVER(arena->busyTraces == TraceSetSingle(trace));
     oldScanned = traceWorkClock(trace);
     traceQuantum(trace);
     scannedSize = traceWorkClock(trace) - oldScanned;
-    if (trace->state == TraceFINISHED)
+    if(trace->state == TraceFINISHED) {
       TraceDestroy(trace);
+    }
   }
   return scannedSize;
 
@@ -1864,8 +1999,9 @@ void ArenaPark(Globals globals)
     /* Poll active traces to make progress. */
     TRACE_SET_ITER(ti, trace, arena->busyTraces, arena)
       traceQuantum(trace);
-      if (trace->state == TraceFINISHED)
+      if(trace->state == TraceFINISHED) {
         TraceDestroy(trace);
+      }
     TRACE_SET_ITER_END(ti, trace, arena->busyTraces, arena);
   }
 }
@@ -2063,7 +2199,8 @@ Res ArenaCollect(Globals globals, int why)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2003, 2006 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2003, 2006, 2007 Ravenbrook Limited
+ * <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
