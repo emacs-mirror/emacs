@@ -135,21 +135,22 @@ static Bool DecodeSimpleMov(unsigned int *regnumReturn,
   unsigned int m;
 
   DecodeModRM(&mod, &r, &m, insvec[1]);  /* .source.i486 Table 26-3 */
-  if (1 == mod) {
-    /* only know about single byte displacements, .assume.want */
+  if(1 == mod) {
+    /* Only know about single byte displacements, .assume.want */
     Word base;
     Word index;
     Word disp;
 
-    if (4 == m) {
-      /* There is an index */
+    if(4 == m) {
+      /* There is an index. */
       unsigned int s;
       unsigned int i;
       unsigned int b;
 
       DecodeSIB(&s, &i, &b, insvec[2]);  /* .source.i486 Table 26-3 */
-      if (4 == i)
+      if(4 == i) {
         return FALSE; /* degenerate SIB form - unused by Dylan compiler */
+      }
       disp = SignedInsElt(insvec, 3);
       base = RegValue(context, b);
       index = RegValue(context, i) << s;
@@ -184,17 +185,17 @@ static Bool IsSimpleMov(Size *inslenReturn,
 
   /* .assume.want */
   /* .source.i486 Page 26-210 */
-  if ((Byte)0x8b == insvec[0]) {
+  if((Byte)0x8b == insvec[0]) {
     /* This is an instruction of type  MOV reg, r/m32 */
-    if (DecodeSimpleMov(&regnum, &mem, inslenReturn, context, insvec)) {
+    if(DecodeSimpleMov(&regnum, &mem, inslenReturn, context, insvec)) {
       AVER(faultmem == mem); /* Ensure computed address matches exception */
       *srcReturn = mem;
       *destReturn = Prmci3AddressHoldingReg(context, regnum);
       return TRUE;
     }
-  } else if ((Byte)0x89 == insvec[0]) {
+  } else if((Byte)0x89 == insvec[0]) {
     /* This is an instruction of type  MOV r/m32, reg */
-    if (DecodeSimpleMov(&regnum, &mem, inslenReturn, context, insvec)) {
+    if(DecodeSimpleMov(&regnum, &mem, inslenReturn, context, insvec)) {
       AVER(faultmem == mem); /* Ensure computed address matches exception */
       *destReturn = mem;
       *srcReturn = Prmci3AddressHoldingReg(context, regnum);
@@ -214,7 +215,7 @@ Bool ProtCanStepInstruction(MutatorFaultContext context)
 
   /* .assume.null */
   /* .assume.want */
-  if (IsSimpleMov(&inslen, &src, &dest, context)) {
+  if(IsSimpleMov(&inslen, &src, &dest, context)) {
     return TRUE;
   }
 
@@ -230,7 +231,7 @@ Res ProtStepInstruction(MutatorFaultContext context)
 
   /* .assume.null */
   /* .assume.want */
-  if (IsSimpleMov(&inslen, &src, &dest, context)) {
+  if(IsSimpleMov(&inslen, &src, &dest, context)) {
     *dest = *src;
     Prmci3StepOverIns(context, inslen);
     return ResOK;
