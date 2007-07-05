@@ -1,3 +1,30 @@
+2007-07-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (custom-commands): New variable.
+	(custom-tool-bar-map): New variable.  Initialize using
+	`custom-commands'.
+	(custom-mode): Use `custom-tool-bar-map'.
+	(custom-buffer-create-internal): Insert action buttons only if
+	tool bar is not used.  Use `custom-commands'.
+	(Custom-help, custom-command-apply): New function.
+	(custom-command-apply, Custom-set, Custom-save)
+	(Custom-reset-current, Custom-reset-saved, Custom-reset-standard):
+	Use `custom-command-apply' instead of duplicating code.
+	(customize-group-other-window): Call `customize-group' instead of
+	duplicating code.
+	(customize-face-other-window): Call `customize-face' instead of
+	duplicating code.
+	(customize-group, customize-face): Add optional args for opening
+	in another window.
+	(custom-variable-tag): Don't inherit `variable-pitch' face.
+	(custom-group-tag): Inherit `variable-pitch' face.
+	(custom-variable-value-create): Set documentation indentation.
+	(custom-group-value-create): Make group name a link, instead of
+	using an extra "go to group" button.
+	(custom-prompt-variable, custom-group-set, custom-group-save)
+	(custom-group-reset-current, custom-group-reset-saved)
+	(custom-group-reset-standard): Minor cleanup.
+
 2007-07-05  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* Makefile.in (bootstrap-prepare): When copying from
