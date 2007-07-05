@@ -2910,6 +2910,8 @@ link for that string."
 	(let ((before (substring doc 0 (match-beginning 0)))
 	      (after (substring doc (match-beginning 0)))
 	      button)
+	  (when (and indent (not (zerop indent)))
+	    (insert-char ?\s indent))
 	  (insert before ?\s)
 	  (widget-documentation-link-add widget start (point))
 	  (setq button
@@ -2928,6 +2930,8 @@ link for that string."
 	    (insert after)
 	    (widget-documentation-link-add widget start (point)))
 	  (widget-put widget :buttons (list button)))
+      (when (and indent (not (zerop indent)))
+	(insert-char ?\s indent))
       (insert doc)
       (widget-documentation-link-add widget start (point))))
   (insert ?\n))
