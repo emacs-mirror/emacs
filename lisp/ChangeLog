@@ -1,3 +1,8 @@
+2007-07-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* complete.el (PC-do-complete-and-exit): Add support for the new
+	`confirm-only' confirmation mode.
+
 2007-07-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-edit.el (custom-commands): New variable.

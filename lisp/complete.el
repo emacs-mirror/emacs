@@ -328,14 +328,24 @@ See `PC-complete' for details."
     (PC-do-complete-and-exit)))
 
 (defun PC-do-complete-and-exit ()
-  (if (= (point-max) (minibuffer-prompt-end))  ; Duplicate the "bug" that Info-menu relies on...
-      (exit-minibuffer)
+  (cond
+   ((= (point-max) (minibuffer-prompt-end))
+    ;; Duplicate the "bug" that Info-menu relies on...
+    (exit-minibuffer))
+   ((eq minibuffer-completion-confirm 'confirm-only)
+    (if (or (eq last-command this-command)
+            (test-completion (field-string)
+                             minibuffer-completion-table
+                             minibuffer-completion-predicate))
+        (exit-minibuffer)
+      (PC-temp-minibuffer-message " [Confirm]")))
+   (t
     (let ((flag (PC-do-completion 'exit)))
       (and flag
 	   (if (or (eq flag 'complete)
 		   (not minibuffer-completion-confirm))
 	       (exit-minibuffer)
-	     (PC-temp-minibuffer-message " [Confirm]"))))))
+	     (PC-temp-minibuffer-message " [Confirm]")))))))
 
 
 (defun PC-completion-help ()
