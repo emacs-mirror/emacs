@@ -308,21 +308,21 @@ static Bool AWLCanTrySingleAccess(AWL awl, Seg seg, Addr addr)
 
   /* .assume.noweak */
   /* .assume.alltraceable */
-  if (RankSetIsMember(SegRankSet(seg), RankWEAK)) {
+  if(RankSetIsMember(SegRankSet(seg), RankWEAK)) {
     AWLSeg awlseg;
 
     awlseg = Seg2AWLSeg(seg);
     AVERT(AWLSeg, awlseg);
 
-    if (AWLHaveTotalSALimit) {
-      if (AWLTotalSALimit < awl->succAccesses) {
+    if(AWLHaveTotalSALimit) {
+      if(AWLTotalSALimit < awl->succAccesses) {
         STATISTIC(awl->stats.declined++);
         return FALSE; /* decline single access because of total limit */
       }
     }
 
-    if (AWLHaveSegSALimit) {
-      if (AWLSegSALimit < awlseg->singleAccesses) {
+    if(AWLHaveSegSALimit) {
+      if(AWLSegSALimit < awlseg->singleAccesses) {
         STATISTIC(awl->stats.declined++);
         return FALSE; /* decline single access because of segment limit */
       }
@@ -1113,24 +1113,25 @@ static Res AWLAccess(Pool pool, Seg seg, Addr addr,
   AVER(SegPool(seg) == pool);
 
   /* Attempt scanning a single reference if permitted */
-  if (AWLCanTrySingleAccess(awl, seg, addr)) {
+  if(AWLCanTrySingleAccess(awl, seg, addr)) {
     res = PoolSingleAccess(pool, seg, addr, mode, context);
     switch(res) {
-    case ResOK:
-      AWLNoteRefAccess(awl, seg, addr);
-      return ResOK;
-    case ResFAIL:
-      /* Not all accesses can be managed singly. Default to segment */
-      break;
-    default:
-      return res;
+      case ResOK:
+        AWLNoteRefAccess(awl, seg, addr);
+        return ResOK;
+      case ResFAIL:
+        /* Not all accesses can be managed singly. Default to segment */
+        break;
+      default:
+        return res;
     }
   }
 
   /* Have to scan the entire seg anyway. */
   res = PoolSegAccess(pool, seg, addr, mode, context);
-  if (ResOK == res)
+  if(ResOK == res) {
     AWLNoteSegAccess(awl, seg, addr);
+  }
 
   return res;
 }
