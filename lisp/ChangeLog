@@ -1,3 +1,15 @@
+2007-07-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-hg-internal-status): Inline in `vc-hg-state', the
+	only caller, and delete.
+	(vc-hg-state): Deal with exceptions and only parse the output on
+	successful return.
+
+	* vc-hg.el (vc-hg-internal-log): Inline in
+	`vc-hg-workfile-version', the only caller, and delete.
+	(vc-hg-workfile-version): Deal with exceptions and only parse the
+	output on successful return.
+
 2007-07-04  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calculator.el (calculator-expt): Use more cases to determine

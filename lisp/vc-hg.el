@@ -91,22 +91,52 @@
 
 (defun vc-hg-state (file)
   "Hg-specific version of `vc-state'."
-  (let ((out (vc-hg-internal-status file)))
-    (if (eq 0 (length out)) 'up-to-date
-      (let ((state (aref out 0)))
-        (cond
-         ((eq state ?M) 'edited)
-         ((eq state ?A) 'edited)
-         ((eq state ?P) 'needs-patch)
-	 ((eq state ??) nil)
-         (t 'up-to-date))))))
+  (let* 
+      ((status nil)
+       (out
+	(with-output-to-string
+	  (with-current-buffer
+	      standard-output
+	    (setq status
+		  (condition-case nil
+		      ;; Ignore all errors.
+		      (call-process
+		       "hg" nil t nil "--cwd" (file-name-directory file)
+		       "status" (file-name-nondirectory file))
+		    ;; Some problem happened.  E.g. We can't find an `hg'
+		    ;; executable.
+		    (error nil)))))))
+    (when (eq 0 status)
+      (if (eq 0 (length out)) 'up-to-date
+	(let ((state (aref out 0)))
+	  (cond
+	   ((eq state ?M) 'edited)
+	   ((eq state ?A) 'edited)
+	   ((eq state ?P) 'needs-patch)
+	   ((eq state ??) nil)
+	   (t 'up-to-date)))))))
 
 (defun vc-hg-workfile-version (file)
   "Hg-specific version of `vc-workfile-version'."
-  (let ((out (vc-hg-internal-log file)))
-    (if (string-match "changeset: *\\([0-9]*\\)" out)
-        (match-string 1 out)
-      "0")))
+  (let* 
+      ((status nil)
+       (out
+	(with-output-to-string
+	  (with-current-buffer
+	      standard-output
+	    (setq status
+		  (condition-case nil
+		      ;; Ignore all errors.
+		      (call-process
+		       "hg" nil t nil "--cwd" (file-name-directory file)
+		       "log" "-l1" (file-name-nondirectory file))
+		    ;; Some problem happened.  E.g. We can't find an `hg'
+		    ;; executable.
+		    (error nil)))))))
+    (when (eq 0 status)
+      (if (string-match "changeset: *\\([0-9]*\\)" out)
+	  (match-string 1 out)
+	"0"))))
 
 ;;; History functions
 
@@ -231,6 +261,11 @@ REV is the revision to check out into WORKFILE."
 (defun vc-hg-checkout-model (file)
   'implicit)
 
+;; Modelled after the similar function in vc-bzr.el
+(defun vc-hg-revert (file &optional contents-done)
+  (unless contents-done
+    (with-temp-buffer (vc-hg-command t nil file "revert"))))
+
 ;;; Internal functions
 
 (defun vc-hg-command (buffer okstatus file &rest flags)
@@ -242,24 +277,6 @@ and that it passes `vc-hg-global-switches' to it before FLAGS."
              (cons vc-hg-global-switches flags)
            (append vc-hg-global-switches
                    flags))))
-
-(defun vc-hg-internal-log (file &optional buffer)
-  "Return log of FILE."
-  (with-output-to-string
-    (with-current-buffer
-        standard-output
-      (call-process
-       "hg" nil t nil "--cwd" (file-name-directory file)
-       "log" "-l1" (file-name-nondirectory file)))))
-
-(defun vc-hg-internal-status(file)
-  "Return status of FILE."
-  (with-output-to-string
-    (with-current-buffer
-        standard-output
-      (call-process
-       "hg" nil t nil "--cwd" (file-name-directory file)
-       "status" (file-name-nondirectory file)))))
 
 (provide 'vc-hg)
 
