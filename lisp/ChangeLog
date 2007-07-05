@@ -1,3 +1,8 @@
+2007-07-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* wid-edit.el (widget-documentation-string-value-create): Insert
+	indentation spaces.
+
 2007-07-05  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* emacs-lisp/byte-opt.el: Revert last change.
