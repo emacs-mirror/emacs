@@ -1444,32 +1444,6 @@
      byte-member byte-assq byte-quo byte-rem)
    byte-compile-side-effect-and-error-free-ops))
 
-(defconst byte-compile-side-effect-free-dynamically-safe-ops
-  '(;; Same as `byte-compile-side-effect-free-ops' but without
-    ;; `byte-varref', `byte-symbol-value' and certain editing
-    ;; primitives.
-    byte-constant byte-dup byte-symbolp byte-consp byte-stringp byte-listp
-    byte-integerp byte-numberp byte-eq byte-equal byte-not byte-car-safe
-    byte-cdr-safe byte-cons byte-list1 byte-list2 byte-point byte-point-max
-    byte-point-min byte-following-char byte-preceding-char
-    byte-eolp byte-eobp byte-bolp byte-bobp
-    ;;
-    ;; Bytecodes from `byte-compile-side-effect-and-error-free-ops'.
-    ;; We are not going to remove them, so it is fine.
-    byte-nth byte-memq byte-car byte-cdr byte-length byte-aref
-    byte-get byte-concat2 byte-concat3 byte-sub1 byte-add1
-    byte-eqlsign byte-gtr byte-lss byte-leq byte-geq byte-diff byte-negate
-    byte-plus byte-max byte-min byte-mult byte-char-after
-    byte-string= byte-string< byte-nthcdr byte-elt
-    byte-member byte-assq byte-quo byte-rem))
-
-(put 'debug-on-error 'binding-is-magic t)
-(put 'debug-on-abort 'binding-is-magic t)
-(put 'inhibit-quit 'binding-is-magic t)
-(put 'quit-flag 'binding-is-magic t)
-(put 'gc-cons-threshold 'binding-is-magic t)
-(put 'track-mouse 'binding-is-magic t)
-
 ;; This crock is because of the way DEFVAR_BOOL variables work.
 ;; Consider the code
 ;;
@@ -1539,7 +1513,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	       (setq rest (cdr rest))
 	       (cond ((= tmp 1)
 		      (byte-compile-log-lap
-		       "  %s discard\t-->\t<deleted>" lap0)
+ 		       "  %s discard\t-->\t<deleted>" lap0)
 		      (setq lap (delq lap0 (delq lap1 lap))))
 		     ((= tmp 0)
 		      (byte-compile-log-lap
@@ -1873,55 +1847,6 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 		      (setcdr lap1 (car (cdr tmp)))
 		      (setq lap (delq lap0 lap))))
 	       (setq keep-going t))
-	      ;;
-	      ;; varbind-X [car/cdr/ ...] unbind-1 --> discard [car/cdr/ ...]
-	      ;; varbind-X [car/cdr/ ...] unbind-N
-	      ;;   --> discard [car/cdr/ ...] unbind-(N-1)
-	      ;;
-	      ((and (eq 'byte-varbind (car lap1))
-		    (not (get (cadr lap1) 'binding-is-magic)))
-	       (setq tmp (cdr rest))
-	       (while
-		   (or
-		    (memq (caar (setq tmp (cdr tmp)))
-			  byte-compile-side-effect-free-dynamically-safe-ops)
-		    (and (eq (caar tmp) 'byte-varref)
-			 (not (eq (cadr (car tmp)) (cadr lap1))))))
-	       (when (eq 'byte-unbind (caar tmp))
-		 ;; Avoid evalling this crap when not logging anyway.
-		 (when (memq byte-optimize-log '(t lap))
-		   (let ((format-string)
-			 (args))
-		     (if (and (= (aref byte-stack+-info (symbol-value (car lap0)))
-				 1)
-			      (memq (car lap0) side-effect-free))
-			 (setq format-string
-			       "  %s %s [car/cdr/ ...] %s\t-->\t[car/cdr/ ...]"
-			       args (list lap0 lap1 (car tmp)))
-		       (setq format-string
-			     "  %s [car/cdr/ ...] %s\t-->\t%s [car/cdr/ ...]"
-			     args (list lap1 (car tmp) (cons 'byte-discard 0))))
-		     (when (> (cdar tmp) 1)
-		       (setq format-string (concat format-string " %s"))
-		       (nconc args (list (cons 'byte-unbind (1- (cdar tmp))))))
-		     (apply 'byte-compile-log-lap-1 format-string args)))
-		 ;; Do the real work.
-		 (if (and (= (aref byte-stack+-info (symbol-value (car lap0)))
-			     1)
-			  (memq (car lap0) side-effect-free))
-		     ;; Optimization: throw const/dup/... varbind right away.
-		     (progn
-		       (setcar rest (nth 2 rest))
-		       (setcdr rest (nthcdr 3 rest)))
-		   (setcar lap1 'byte-discard)
-		   (setcdr lap1 0))
-		 (if (= (cdar tmp) 1)
-		     (progn
-		       ;; Throw away unbind-1.
-		       (setcar tmp (nth 1 tmp))
-		       (setcdr tmp (nthcdr 2 tmp)))
-		   (setcdr (car tmp) (1- (cdar tmp))))
-		 (setq keep-going t)))
 	      ;;
 	      ;; X: varref-Y    ...     varset-Y goto-X  -->
 	      ;; X: varref-Y Z: ... dup varset-Y goto-Z
