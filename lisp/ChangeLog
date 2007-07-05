@@ -41,6 +41,9 @@
 	* Makefile.in (bootstrap-prepare): When copying from
 	ldefs-boot.el, make sure loaddefs.el is writeable.
 
+	(bootstrap-prepare): Make $(lisp)/ps-print.el
+	and $(lisp)/emacs-lisp/cl-loaddefs.el writable, as well.
+
 2007-07-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hg.el (vc-hg-internal-status): Inline in `vc-hg-state', the
@@ -146,7 +149,7 @@
 2007-07-01  Sean O'Rourke  <sorourke@cs.ucsd.edu>  (tiny change)
 
 	* complete.el (partial-completion-mode): Remove advice of
-	read-file-name-internal. 
+	read-file-name-internal.
 	(PC-do-completion): Rebind minibuffer-completion-table.
 	(PC-read-file-name-internal): New function doing what
 	read-file-name-internal advice did.
