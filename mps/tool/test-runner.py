@@ -19,19 +19,87 @@
 
 
 import os
+import platform
+import re
+
+def mpsplatformcode() :
+  """Makes a guess at the MPS platform code.  If it makes a full guess
+     then returns the string, otherwise it returns the pair (None,guess)
+     where guess is an MPS platform-like string with unknown parts set to
+     '??'.
+     """
+
+  # Uses the platform module which appears to be in Python 2.3, but not
+  # documented until Python 2.4.  See
+  # http://www.python.org/doc/2.4/lib/module-platform.html
+
+  os = '??' # operating system
+  try :
+    # 2007-07-03 DRJ : Darwin is tested, the other I have guessed at
+    # from the documentation for platform.system()
+    os = {'Darwin':'xc',
+          'Linux':'li',
+          'Windows':'w3',
+         }[platform.system()]
+  except :
+    pass
+
+  arch = '??' # CPU architecture
+  try :
+    # 2007-07-03 DRJ : 'Power Macintosh' and 'i386' are tested (but ppc
+    # under Rosetta, so I'm not confident it's right).
+    arch = {'Power Macintosh':'pp',
+            'i386':'i3',
+           }[platform.machine()]
+  except :
+    # Windows specific hack.  On Python 2.4 and 2.5 platform.machine
+    # returns ''.
+    if platform.machine() == '' and os == 'w3' :
+      arch = 'i3'
+
+  compiler = '??' # C compiler tool chain
+  # There's no automagic way to determine this, some OS/Arch
+  # combinations support more than one C compiler.  Sometimes it really
+  # is up to the builder to choose what C compiler to use.
+  # Here, we simplify and get it right for Windows and Macs.
+  try :
+    compiler = {'xc':'gc',
+                'w3':'mv',
+               }[os]
+  except :
+    pass
+
+  plat = os + arch + compiler
+  if re.search(r'\?', plat) :
+    return None, plat
+  return plat
+
+mpsplatform = mpsplatformcode()
+
+make = ''
+if mpsplatform[4:6] == 'gc' :
+  make = "make -r -f %s.gmk VARIETY=%%s %%s >> %%s" % mpsplatform
+elif mpsplatform[4:6] == 'mv' :
+  make = "nmake /f %s.nmk VARIETY=%%s %%s.exe >>%%s" % mpsplatform
+
+run = ''
+if mpsplatform[:2] == 'xc' :
+  run = "./%s/%%s/%%s >> %%s" % mpsplatform
+elif mpsplatform[:2] == 'w3' :
+  run = r'.\%s\%%s\%%s.exe >>%%s' % mpsplatform
+
 testout = "./a1.txt"
 
 def runtest(test, variety, testout):
-  # appends to testout
+  """Appends to testout."""
+
   os.system("echo .")
   os.system("echo .")
   os.system("echo .")
   os.system("echo --- %s {%s} ---" % (test, variety) )
   os.system("echo --- %s {%s} --- >>%s" % (test, variety, testout) )
-  os.system("nmake /f w3i3mv.nmk VARIETY=%s %s.exe >>%s" % (variety, test, testout) )
-  os.system(".\w3i3mv\%s\%s.exe >>%s" % (variety, test, testout) )
-#  os.system("make -f xcppgc.gmk VARIETY=%s %s >>%s" % (variety, test, testout) )
-#  os.system("./xcppgc/%s/%s >>%s" % (variety, test, testout) )
+  os.system(make % (variety, test, testout) )
+  os.system(run % (variety, test, testout) )
 
 def runtestlist( lTest, lVariety, testout ):
   # clear testout
