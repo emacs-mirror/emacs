@@ -4,11 +4,11 @@
 	only caller, and delete.
 	(vc-hg-state): Deal with exceptions and only parse the output on
 	successful return.
-
-	* vc-hg.el (vc-hg-internal-log): Inline in
-	`vc-hg-workfile-version', the only caller, and delete.
+	(vc-hg-internal-log): Inline in `vc-hg-workfile-version', the only
+	caller, and delete.
 	(vc-hg-workfile-version): Deal with exceptions and only parse the
 	output on successful return.
+	(vc-hg-revert): New function.
 
 2007-07-04  Jay Belanger  <jay.p.belanger@gmail.com>
 
