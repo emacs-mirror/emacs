@@ -1,3 +1,8 @@
+2007-07-05  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* Makefile.in (bootstrap-prepare): When copying from
+	ldefs-boot.el, make sure loaddefs.el is writeable.
+
 2007-07-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hg.el (vc-hg-internal-status): Inline in `vc-hg-state', the
