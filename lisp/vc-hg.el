@@ -58,10 +58,6 @@
 (eval-when-compile
   (require 'vc))
 
-;; XXX This should be moved to vc-hooks when we can be sure that vc-state
-;; and friends are always harmless.
-(add-to-list 'vc-handled-backends 'HG)
-
 ;;; Customization options
 
 (defcustom vc-hg-global-switches nil

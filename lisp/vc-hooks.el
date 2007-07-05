@@ -62,7 +62,7 @@ interpreted as hostnames."
   :type 'regexp
   :group 'vc)
 
-(defcustom vc-handled-backends '(RCS CVS SVN SCCS Arch MCVS)
+(defcustom vc-handled-backends '(RCS CVS SVN SCCS HG Arch MCVS)
   ;; Arch and MCVS come last because they are per-tree rather than per-dir.
   "*List of version control backends for which VC will be used.
 Entries in this list will be tried in order to determine whether a
