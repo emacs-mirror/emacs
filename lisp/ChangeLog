@@ -1,5 +1,8 @@
 2007-07-05  Chong Yidong  <cyd@stupidchicken.com>
 
+	* wid-edit.el (widget-documentation-string-value-create): Insert
+	spaces for indentation.
+
 	* cus-edit.el (custom-commands): New variable.
 	(custom-tool-bar-map): New variable.  Initialize using
 	`custom-commands'.
