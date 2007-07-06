@@ -615,7 +615,8 @@
 ;;; Avoid various pitfalls that may lurk in the built-in (random) function!
 ;;; Shuffling algorithm from Numerical Recipes, section 7.1.
 (defvar math-random-last)
-(defun math-random-digit ()
+(defun math-random-three-digit-number ()
+  "Return a random three digit number."
   (let (i)
     (or (and (boundp 'var-RandSeed) (eq var-RandSeed math-last-RandSeed))
 	(math-init-random-base))
@@ -635,17 +636,17 @@
 
 ;;; Produce an N-digit random integer.
 (defun math-random-digits (n)
-  (cond ((<= n 6)
-	 (math-scale-right (+ (* (math-random-digit) 1000) (math-random-digit))
-			   (- 6 n)))
-	(t (let* ((slop (% (- 900003 n) 3))
-		  (i (/ (+ n slop) 3))
-		  (digs nil))
-	     (while (> i 0)
-	       (setq digs (cons (math-random-digit) digs)
-		     i (1- i)))
-	     (math-normalize (math-scale-right (cons 'bigpos digs)
-					       slop))))))
+  "Produce a random N digit integer."
+  (let* ((slop (% (- 3 (% n 3)) 3))
+         (i (/ (+ n slop) 3))
+         (rnum 0))
+    (while (> i 0)
+      (setq rnum 
+            (math-add
+             (math-random-three-digit-number)
+             (math-mul rnum 1000)))
+      (setq i (1- i)))
+    (math-normalize (math-scale-right rnum slop))))
 
 ;;; Produce a uniformly-distributed random float 0 <= N < 1.
 (defun math-random-float ()
