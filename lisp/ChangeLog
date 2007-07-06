@@ -12,6 +12,8 @@
 	instead of their values.
 	(math-clip): Use math-small-integer-size instead of its value.
 
+	* calc/calc.el (math-add-bignum): Replace number by constant.
+
 2007-07-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* wid-edit.el (widget-documentation-string-value-create): Insert
