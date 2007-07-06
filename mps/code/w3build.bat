@@ -6,7 +6,7 @@
 @rem Copyright (C) 2005-2007 Ravenbrook Limited.  All rights reserved.
 
 
-@set mpsreleasename=rel-1_107_0
+@set mpsreleasename=rel-1_108_0
 
 
 rmdir /q/s w3i3mv
