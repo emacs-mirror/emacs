@@ -261,6 +261,14 @@ need to quote the space with a C-q.  The underlying changes in the
 keymaps that are active in the minibuffer are described below under
 "New keymaps for typing file names".
 
+If you want the old behavior back, put these two key bindings to your
+~/.emacs init file:
+
+  (define-key minibuffer-local-filename-completion-map
+  	      " " 'minibuffer-complete-word)
+  (define-key minibuffer-local-must-match-filename-map
+  	      " " 'minibuffer-complete-word)
+
 ** The completion commands TAB, SPC and ? in the minibuffer apply only
 to the text before point.  If there is text in the buffer after point,
 it remains unchanged.
