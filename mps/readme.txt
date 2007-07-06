@@ -48,22 +48,6 @@ This document is not confidential.
 
 2. WHAT'S NEW; STATUS
 
-(In Master sources, this is a good place to accumulate a succinct
-record of changes.  In a release of the MPS-Kit, this section becomes
-the summary of what is new for that release.)
-
-[
-......Post 1.108.0 changes:
-
-This is release A.BBB.C, made on YYYY-MM-DD.
-Changes from release A.BBB.C-1:
-
-Functional changes to MPS code:
-
-Other changes:
-
-]
-
 This is release 1.108.0, made on 2007-07-05.
 Changes from release 1.107.0:
 
