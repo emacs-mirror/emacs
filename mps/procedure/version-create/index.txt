@@ -35,6 +35,7 @@ __How to make a new version:__
 0. Some files contain an MPS version-name.  What version-name do the *master* copies of these files contain?  It depends.  Some contain the pseudo-version-name "master": you will leave these files unchanged on master, and only update them on the version branch (see step 6 below).  Others, even in master, refer to the expected next version-name: you should update these files before making the branch.  Make these files contain the expected new version-name, and/or information pertinent to the new version:
   master/readme.txt
   master/code/version.c
+  master/code/w3build.bat
   master/example/hello-world/index.txt
   (check the "Setup" section of procedure/release-build for the full list of these files)
 Submit these files before you continue.
@@ -45,7 +46,8 @@ Description:
 Always the whole of master:
   //info.ravenbrook.com/project/mps/master/... //info.ravenbrook.com/project/mps/version/A.BBB/...
 
-2. p4 integrate -b mps/version/A.BBB
+2. Make sure you have no unsubmitted files, and then:
+     p4 integrate -b mps/version/A.BBB
 
 3. p4 submit
 
@@ -72,11 +74,12 @@ DOCUMENT HISTORY
 
 2005-10-03  RHSK  Created.
 2006-12-27  RHSK  Step 0: edit some files on master before making version branch
+2007-07-05  RHSK  Releasename now also in w3build.bat.  Make sure all submitted before integ.
 
 
 COPYRIGHT AND LICENSE
 
-Copyright (C) 2005-2006 Ravenbrook Limited.  All rights reserved.
+Copyright (C) 2005-2007 Ravenbrook Limited.  All rights reserved.
 <http://www.ravenbrook.com/>.  This is an open source license.
 Contact Ravenbrook for commercial licensing options.
 
