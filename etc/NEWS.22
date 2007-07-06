@@ -54,6 +54,10 @@ to be scrolled horizontally or vertically instead.
 
 ** The new package socks.el implements the SOCKS v5 protocol.
 
+** VC
+
+*** VC has some support for Mercurial (hg).
+
 
 * Installation Changes in Emacs 22.1
 
