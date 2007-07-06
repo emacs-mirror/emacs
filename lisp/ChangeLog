@@ -1,3 +1,9 @@
+2007-07-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* autorevert.el (auto-revert-tail-handler): Use inhibit-read-only.
+	Run before-revert-hook.  Suggested by Denis Bueno <denbuen@sandia.gov>.
+	Use run-hooks rather than run-mode-hooks.
+
 2007-07-05  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-comb.el (math-random-digit): Rename to
@@ -16,8 +22,8 @@
 
 2007-07-05  Chong Yidong  <cyd@stupidchicken.com>
 
-	* wid-edit.el (widget-documentation-string-value-create): Insert
-	indentation spaces.
+	* wid-edit.el (widget-documentation-string-value-create):
+	Insert indentation spaces.
 
 2007-07-05  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
