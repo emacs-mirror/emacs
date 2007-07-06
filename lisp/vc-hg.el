@@ -35,15 +35,70 @@
 
 ;;; Todo:
 
-;; Implement the rest of the vc interface:
-;; - dired
-;; - snapshot?
+;; Implement the rest of the vc interface. See the comment at the
+;; beginning of vc.el. The current status is:
+
+;; FUNCTION NAME                               STATUS
+;; * registered (file)                         OK
+;; * state (file)                              OK
+;; - state-heuristic (file)                    ?? PROBABLY NOT NEEDED
+;; - dir-state (dir)                           NEEDED
+;; * workfile-version (file)                   OK
+;; - latest-on-branch-p (file)                 ??
+;; * checkout-model (file)                     OK
+;; - workfile-unchanged-p (file)               ??
+;; - mode-line-string (file)                   NOT NEEDED
+;; - dired-state-info (file)                   NEEDED
+;; STATE-CHANGING FUNCTIONS
+;; * register (file &optional rev comment)     OK
+;; - init-version ()                           NOT NEEDED
+;; - responsible-p (file)                      OK
+;; - could-register (file)                     OK
+;; - receive-file (file rev)                   ?? PROBABLY NOT NEEDED
+;; - unregister (file)                         COMMENTED OUT, MAY BE INCORRECT
+;; * checkin (file rev comment)                OK
+;; * find-version (file rev buffer)            OK
+;; * checkout (file &optional editable rev)    NOT NEEDED, COMMENTED OUT
+;; * revert (file &optional contents-done)     OK
+;; - cancel-version (file editable)            ?? PROBABLY NOT NEEDED   
+;; - merge (file rev1 rev2)                    NEEDED
+;; - merge-news (file)                         NEEDED
+;; - steal-lock (file &optional version)       NOT NEEDED
+;; HISTORY FUNCTIONS
+;; * print-log (file &optional buffer)         OK
+;; - log-view-mode ()                          OK
+;; - show-log-entry (version)                  NOT NEEDED, DEFAULT IS GOOD
+;; - wash-log (file)                           ??
+;; - logentry-check ()                         NOT NEEDED
+;; - comment-history (file)                    NOT NEEDED
+;; - update-changelog (files)                  NOT NEEDED
+;; * diff (file &optional rev1 rev2 buffer)    OK
+;; - revision-completion-table (file)          ??
+;; - diff-tree (dir &optional rev1 rev2)       TEST IT
+;; - annotate-command (file buf &optional rev) OK
+;; - annotate-time ()                          OK
+;; - annotate-current-time ()                  ?? NOT NEEDED
+;; - annotate-extract-revision-at-line ()      OK
+;; SNAPSHOT SYSTEM
+;; - create-snapshot (dir name branchp)        NEEDED (probably branch?)
+;; - assign-name (file name)                   NOT NEEDED
+;; - retrieve-snapshot (dir name update)       ?? NEEDED??
+;; MISCELLANEOUS
+;; - make-version-backups-p (file)             ??
+;; - repository-hostname (dirname)             ?? 
+;; - previous-version (file rev)               OK
+;; - next-version (file rev)                   OK
+;; - check-headers ()                          ??
+;; - clear-headers ()                          ??
+;; - delete-file (file)                        TEST IT
+;; - rename-file (old new)                     OK
+;; - find-file-hook ()                         PROBABLY NOT NEEDED
+;; - find-file-not-found-hook ()               PROBABLY NOT NEEDED
 
 ;; Implement Stefan Monnier's advice:
 ;; vc-hg-registered and vc-hg-state
 ;; Both of those functions should be super extra careful to fail gracefully in
-;; unexpected circumstances.  The most important such case is when the `hg'
-;; executable is not available.  The reason this is important is that any error
+;; unexpected circumstances. The reason this is important is that any error
 ;; there will prevent the user from even looking at the file :-(
 ;; Ideally, just like in vc-arch and vc-cvs, checking that the file is under
 ;; mercurial's control and extracting the current revision should be done
@@ -67,7 +122,7 @@
          (repeat :tag "Argument List"
              :value ("")
              string))
-;;  :version "22.2"
+  :version "22.2"
   :group 'vc)
 
 ;;; State querying functions
@@ -82,7 +137,7 @@
 ;; Modelled after the similar function in vc-bzr.el
 (defun vc-hg-registered (file)
   "Return non-nil if FILE is registered with hg."
-  (if (vc-find-root file ".hg")       ; short cut
+  (if (vc-hg-root file)               ; short cut
       (vc-hg-state file)))            ; expensive
 
 (defun vc-hg-state (file)
@@ -198,6 +253,8 @@
 	      (list ""))
             (list (file-name-nondirectory file))))))
 
+(defalias 'vc-hg-diff-tree 'vc-hg-diff)
+
 (defun vc-hg-annotate-command (file buffer &optional version)
   "Execute \"hg annotate\" on FILE, inserting the contents in BUFFER.
 Optional arg VERSION is a version to annotate from."
@@ -229,30 +286,83 @@ Optional arg VERSION is a version to annotate from."
     (when (>= newrev 0)
       (number-to-string newrev))))
 
+(defun vc-hg-next-version (file rev)
+  (let ((newrev (1+ (string-to-number rev)))
+	(tip-version 
+	 (with-temp-buffer
+	   (vc-hg-command t nil nil "tip")
+	   (goto-char (point-min))
+	   (re-search-forward "^changeset:[ \t]*\\([0-9]+\\):")
+	   (string-to-number (match-string-no-properties 1)))))
+    ;; We don't want to exceed the maximum possible version number, ie
+    ;; the tip version.
+    (when (<= newrev tip-version)
+      (number-to-string newrev))))
+
+;; Modelled after the similar function in vc-bzr.el
+(defun vc-hg-delete-file (file)
+  "Delete FILE and delete it in the hg repository."
+  (condition-case ()
+      (delete-file file)
+    (file-error nil))
+  (vc-hg-command nil nil file "remove" "--after" "--force"))
+
+;; Modelled after the similar function in vc-bzr.el
+(defun vc-hg-rename-file (old new)
+  "Rename file from OLD to NEW using `hg mv'."
+  (vc-hg-command nil nil new old "mv"))
+
 (defun vc-hg-register (file &optional rev comment)
   "Register FILE under hg.
 REV is ignored.
 COMMENT is ignored."
   (vc-hg-command nil nil file "add"))
 
+(defalias 'vc-hg-responsible-p 'vc-hg-root)
+
+;; Modelled after the similar function in vc-bzr.el
+(defun vc-hg-could-register (file)
+  "Return non-nil if FILE could be registered under hg."
+  (and (vc-hg-responsible-p file)      ; shortcut
+       (condition-case ()
+           (with-temp-buffer
+             (vc-hg-command t nil file "add" "--dry-run"))
+             ;; The command succeeds with no output if file is
+             ;; registered.
+         (error))))
+
+;; XXX This would remove the file. Is that correct?
+;; (defun vc-hg-unregister (file)
+;;   "Unregister FILE from hg."
+;;   (vc-hg-command nil nil file "remove"))
+
 (defun vc-hg-checkin (file rev comment)
   "HG-specific version of `vc-backend-checkin'.
 REV is ignored."
   (vc-hg-command nil nil file  "commit" "-m" comment))
 
-;; Modelled after the similar function in vc-bzr.el
-(defun vc-hg-checkout (file &optional editable rev workfile)
-  "Retrieve a revision of FILE into a WORKFILE.
-EDITABLE is ignored.
-REV is the revision to check out into WORKFILE."
-  (unless workfile
-    (setq workfile (vc-version-backup-file-name file rev)))
+(defun vc-hg-find-version (file rev buffer)
   (let ((coding-system-for-read 'binary)
         (coding-system-for-write 'binary))
-  (with-temp-file workfile
     (if rev
-        (vc-hg-command t nil file "cat" "-r" rev)
-      (vc-hg-command t nil file "cat")))))
+	(vc-hg-command buffer nil file "cat" "-r" rev)
+      (vc-hg-command buffer nil file "cat"))))
+
+;; Modelled after the similar function in vc-bzr.el
+;; This should not be needed, `vc-hg-find-version' provides the same
+;; functionality.
+;; (defun vc-hg-checkout (file &optional editable rev workfile)
+;;   "Retrieve a revision of FILE into a WORKFILE.
+;; EDITABLE is ignored.
+;; REV is the revision to check out into WORKFILE."
+;;   (unless workfile
+;;     (setq workfile (vc-version-backup-file-name file rev)))
+;;   (let ((coding-system-for-read 'binary)
+;;         (coding-system-for-write 'binary))
+;;   (with-temp-file workfile
+;;     (if rev
+;;         (vc-hg-command t nil file "cat" "-r" rev)
+;;       (vc-hg-command t nil file "cat")))))
 
 (defun vc-hg-checkout-model (file)
   'implicit)
@@ -273,6 +383,9 @@ and that it passes `vc-hg-global-switches' to it before FLAGS."
              (cons vc-hg-global-switches flags)
            (append vc-hg-global-switches
                    flags))))
+
+(defun vc-hg-root (file)
+  (vc-find-root file ".hg"))
 
 (provide 'vc-hg)
 

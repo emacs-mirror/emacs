@@ -1,3 +1,13 @@
+2007-07-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-hg-root): New function.
+	(vc-hg-registered): Use it.
+	(vc-hg-diff-tree): New defalias.
+	(vc-hg-responsible-p): Likewise.
+	(vc-hg-checkout): Comment out, not needed.
+	(vc-hg-delete-file, vc-hg-rename-file, vc-hg-could-register)
+	(vc-hg-find-version, vc-hg-next-version): New functions.
+
 2007-07-06  Andreas Schwab  <schwab@suse.de>
 
 	* emacs-lisp/lisp-mode.el (eval-last-sexp): Avoid introducing any
