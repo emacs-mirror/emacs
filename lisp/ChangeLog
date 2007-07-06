@@ -1,3 +1,8 @@
+2007-07-06  Andreas Schwab  <schwab@suse.de>
+
+	* emacs-lisp/lisp-mode.el (eval-last-sexp): Avoid introducing any
+	dynamic bindings around the evaluation of the expression.
+
 2007-07-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* autorevert.el (auto-revert-tail-handler): Use inhibit-read-only.
