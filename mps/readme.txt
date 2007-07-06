@@ -53,7 +53,7 @@ record of changes.  In a release of the MPS-Kit, this section becomes
 the summary of what is new for that release.)
 
 [
-......Post 1.107.0 changes:
+......Post 1.108.0 changes:
 
 This is release A.BBB.C, made on YYYY-MM-DD.
 Changes from release A.BBB.C-1:
@@ -64,8 +64,70 @@ Other changes:
 
 ]
 
-This is release 1.107.0, made on 2006-12-13.
-Changes from release 1.106.2:
+This is release 1.108.0, made on 2007-07-05.
+Changes from release 1.107.0:
+
+Functional changes to MPS code:
+
+<http://www.ravenbrook.com/project/mps/issue/job001548/>
+Defect discovered:
+  - an assert could, rarely, be incorrectly triggered when a pool 
+    of mps_class_amc is in a constrained memory condition.
+Fixed: in this rare case, calculate a certain value correctly, 
+    such that the assert which checks it is not incorrectly 
+    triggered.
+
+<http://www.ravenbrook.com/project/mps/issue/job001658/>
+Defect discovered:
+  - finalization messages could suffer an unnecessary delay, of 
+    several full collections (in the worst case), if there were 
+    more than 1024 finalization-registered objects;
+Fixed: the number of finalization-registered objects should 
+    no longer cause such a delay, so more finalization messages 
+    are likely to be produced by a single collection.
+
+<http://www.ravenbrook.com/project/mps/issue/job001147/>
+  - on Mac OS X (PowerPC and Intel), MPS now has memory-protection 
+    code, so collections are much faster.
+
+<http://www.ravenbrook.com/project/mps/issue/job001619/>
+  - on Mac OS X (Intel), MPS now has stack-scanner code, so the 
+    stack may be declared an ambiguous root.  (Note: there was 
+    already a stack-scanner for Mac OS X PowerPC).
+
+<http://www.ravenbrook.com/project/mps/issue/job001622/>
+  - on Mac OS X (PowerPC and Intel), MPS now has locking code, so 
+    multiple client threads may use the MPS.  (But note: the thread 
+    module has not been implemented for Mac OS X, so threads may 
+    not yet have their stacks as roots, I think.  See:
+    <http://www.ravenbrook.com/project/mps/issue/job001621/>).
+    
+<http://www.ravenbrook.com/project/mps/issue/job001556/>
+Defect discovered:
+  - a macro used only in asserts was incorrect; this could have made 
+    some checks ineffective.
+Fixed: corrected the macro.
+
+Other changes:
+
+<http://www.ravenbrook.com/project/mps/issue/job001624/>
+  - now builds on FreeBSD 5.5.
+
+<http://www.ravenbrook.com/project/mps/issue/job001637/>
+  - now builds on Linux.
+
+<http://www.ravenbrook.com/project/mps/issue/job001617/>
+  - on Mac OS X (Intel) default "all" build works (fix broken 
+    compile of amsss stress test).
+
+Note: for further details of this release (including a 'live' report 
+of defects found after these release-notes were written), and details 
+of earlier and later releases, please see:
+  <http://www.ravenbrook.com/project/mps/release/>
+
+
+[
+Historical: changes in release 1.107.0 (2006-12-13):
 
 Functional changes to MPS code:
 
@@ -99,7 +161,7 @@ Other changes:
 
 Some work-in-progress MPS documentation is available; see:
   manual/wiki/index.html
-
+]
 
 [
 Historical: changes in release 1.106.2 (2006-04-11):
@@ -126,11 +188,6 @@ Fixed <http://www.ravenbrook.com/project/mps/issue/job001367/>
       example/hello-world/index.txt
 ]
 
-See:
-  <http://www.ravenbrook.com/project/mps/release/>
-for further details of this release (including defects found), and 
-details of earlier and later releases.  
-
 For more information about the status and progress of the MPS project, 
 consult the project home-page: <http://www.ravenbrook.com/project/mps/>.
 
@@ -141,12 +198,12 @@ The MPS Kit is a complete set of sources and documentation to enable
 third parties to use, modify, and adapt the MPS.
 
 For Windows, the kit is distributed as the self-extracting archive
-"mps-kit-1.107.0.exe", and also as the ZIP archive
-"mps-kit-1.107.0.zip", which may be unpacked using WinZip.
+"mps-kit-1.108.0.exe", and also as the ZIP archive
+"mps-kit-1.108.0.zip", which may be unpacked using WinZip.
 
 For Unix and Mac OS X, the integration kit is distributed as the tarball
-"mps-kit-1.107.0.tar.gz".  Unpack it using the command "gunzip -c
-mps-kit-1.107.0.tar.gz | tar xvf -", or by dropping the file onto
+"mps-kit-1.108.0.tar.gz".  Unpack it using the command "gunzip -c
+mps-kit-1.108.0.tar.gz | tar xvf -", or by dropping the file onto
 StuffIt Expander under Mac OS X.
 
 The top-level file "index.html" in the sources indexes many other files,
@@ -350,12 +407,14 @@ B. DOCUMENT HISTORY
 2006-04-14  RHSK  Merge updates from version/1.106 back to master.
 2006-06-29  RHSK  Note fixed job001421, job001455.
 2006-12-13  RHSK  Release 1.107.0
+2007-07-05  RHSK  Release 1.108.0
 
 
 C. COPYRIGHT AND LICENSE
 
-Copyright (C) 2001-2002, 2006 Ravenbrook Limited.  All rights reserved.
-<http://www.ravenbrook.com/>.  This is an open source license.  
+Copyright (C) 2001-2002, 2006-2007 Ravenbrook Limited.  
+All rights reserved.  <http://www.ravenbrook.com/>.  
+This is an open source license.  
 Contact Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without
