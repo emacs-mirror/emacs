@@ -1,3 +1,17 @@
+2007-07-05  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-comb.el (math-random-digit): Rename to
+	`math-random-three-digit-number'.
+	(math-random-digits): Don't depend on representation of integer.
+
+	* calc/calc-bin.el (math-bignum-logb-digit-size)
+	(math-bignum-digit-power-of-two): New constants.
+	(math-and-bignum,math-or-bignum,math-xor-bignum,math-diff-bignum)
+	(math-not-bignum,math-clip-bignum): Use the constants
+	`math-bignum-digit-power-of-two' and `math-bignum-logb-digit-size'
+	instead of their values.
+	(math-clip): Use math-small-integer-size instead of its value.
+
 2007-07-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* wid-edit.el (widget-documentation-string-value-create): Insert
