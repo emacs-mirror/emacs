@@ -1,3 +1,7 @@
+2007-07-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el: New file.
+
 2007-07-06  Andreas Schwab  <schwab@suse.de>
 
 	* emacs-lisp/lisp-mode.el (eval-last-sexp): Avoid introducing any
