@@ -1,3 +1,9 @@
+2007-07-06  Andreas Schwab  <schwab@suse.de>
+
+	* emacs-lisp/lisp-mode.el (eval-last-sexp): Avoid introducing any
+	dynamic bindings around the evaluation of the expression.
+	Reported by Jay Belanger <jay.p.belanger@gmail.com>.
+
 2007-07-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/gud.el (auto-mode-alist): Match more valid gdb init
