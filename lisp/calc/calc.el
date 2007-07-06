@@ -2780,7 +2780,7 @@ largest Emacs integer.")
 		      (progn
 			(setcar aa (1+ sum))
 			(setq carry nil))
-		    (setcar aa (+ sum -999)))
+		    (setcar aa (- sum (1- math-bignum-digit-size))))
 		(if (< (setq sum (+ (car aa) (car b))) math-bignum-digit-size)
 		    (setcar aa sum)
 		  (setcar aa (- sum math-bignum-digit-size))
@@ -2790,7 +2790,7 @@ largest Emacs integer.")
 	    (if carry
 		(if b
 		    (nconc a (math-add-bignum b '(1)))
-		  (while (eq (car aa) 999)
+		  (while (eq (car aa) (1- math-bignum-digit-size))
 		    (setcar aa 0)
 		    (setq aa (cdr aa)))
 		  (if aa
