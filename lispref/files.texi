@@ -2616,6 +2616,7 @@ first, before handlers for jobs such as remote file access.
 @code{process-file},
 @code{rename-file}, @code{set-file-modes}, @code{set-file-times},
 @code{set-visited-file-modtime}, @code{shell-command},
+@code{start-file-process},
 @code{substitute-in-file-name},@*
 @code{unhandled-file-name-directory},
 @code{vc-registered},
@@ -2660,6 +2661,7 @@ first, before handlers for jobs such as remote file access.
 @code{process-file},
 @code{rename-file}, @code{set-file-modes},
 @code{set-visited-file-modtime}, @code{shell-command},
+@code{start-file-process},
 @code{substitute-in-file-name},
 @code{unhandled-file-name-directory},
 @code{vc-regis@discretionary{}{}{}tered},

@@ -1,3 +1,8 @@
+2007-07-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* process.texi (Asynchronous Processes):
+	* files.texi (Magic File Names): Add `start-file-process'.
+
 2007-06-27  Richard Stallman  <rms@gnu.org>
 
 	* files.texi (Format Conversion Piecemeal): Clarify
