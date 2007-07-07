@@ -1,3 +1,13 @@
+2007-07-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/autoload.el (autoload-find-destination): Understand a new
+	format of autoload block where the file's time-stamp is replaced by its
+	MD5 checksum.
+	(autoload-generate-file-autoloads): Use MD5 checksum instead of
+	time-stamp for secondary autoloads files.
+	(update-directory-autoloads): Remove duplicate entries.
+	Use time-less-p for time-stamps, as done in autoload-find-destination.
+
 2007-07-07  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc.el (math-read-number): Replace number by variable.

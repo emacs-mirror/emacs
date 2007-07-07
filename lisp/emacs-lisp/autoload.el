@@ -409,16 +409,33 @@ Return non-nil iff FILE adds no autoloads to OUTFILE
                   (forward-line 1))))))
 
           (when output-start
-            (with-current-buffer outbuf
-              (save-excursion
-                ;; Insert the section-header line which lists the file name
-                ;; and which functions are in it, etc.
-                (goto-char output-start)
-                (autoload-insert-section-header
-                 outbuf autoloads-done load-name relfile
-                 (nth 5 (file-attributes relfile)))
-                (insert ";;; Generated autoloads from " relfile "\n"))
-              (insert generate-autoload-section-trailer)))
+            (let ((secondary-autoloads-file-buf
+                   (if (local-variable-p 'generated-autoload-file)
+                       (current-buffer))))
+              (with-current-buffer outbuf
+                (save-excursion
+                  ;; Insert the section-header line which lists the file name
+                  ;; and which functions are in it, etc.
+                  (goto-char output-start)
+                  (autoload-insert-section-header
+                   outbuf autoloads-done load-name relfile
+                   (if secondary-autoloads-file-buf
+                       ;; MD5 checksums are much better because they do not
+                       ;; change unless the file changes (so they'll be
+                       ;; equal on two different systems and will change
+                       ;; less often than time-stamps, thus leading to fewer
+                       ;; unneeded changes causing spurious conflicts), but
+                       ;; using time-stamps is a very useful optimization,
+                       ;; so we use time-stamps for the main autoloads file
+                       ;; (loaddefs.el) where we have special ways to
+                       ;; circumvent the "random change problem", and MD5
+                       ;; checksum in secondary autoload files where we do
+                       ;; not need the time-stamp optimization because it is
+                       ;; already provided by the primary autoloads file.
+                       (md5 secondary-autoloads-file-buf nil nil 'emacs-mule)
+                     (nth 5 (file-attributes relfile))))
+                  (insert ";;; Generated autoloads from " relfile "\n"))
+                (insert generate-autoload-section-trailer))))
           (message "Generating autoloads for %s...done" file))
         (or visited
             ;; We created this buffer, so we should kill it.
@@ -454,14 +471,12 @@ Return FILE if there was no autoload cookie in it, else nil."
 FILE is the file name of the current buffer.
 Returns a buffer whose point is placed at the requested location.
 Returns nil if the file's autoloads are uptodate, otherwise
-removes any prior now out-of-date autoload entries.
-The current buffer only matters if it is visiting a file or if it has a buffer-local
-value for some variables such as `generated-autoload-file', so it's OK
-to call it from a dummy buffer if FILE is not currently visited."
+removes any prior now out-of-date autoload entries."
   (catch 'up-to-date
-    (let ((load-name (autoload-file-load-name file))
-          (existing-buffer (if buffer-file-name (current-buffer)))
-          (found nil))
+    (let* ((load-name (autoload-file-load-name file))
+           (buf (current-buffer))
+           (existing-buffer (if buffer-file-name buf))
+           (found nil))
       (with-current-buffer
           ;; We must read/write the file without any code conversion,
           ;; but still decode EOLs.
@@ -489,8 +504,16 @@ to call it from a dummy buffer if FILE is not currently visited."
                          (file-time (nth 5 (file-attributes file))))
                      (if (and (or (null existing-buffer)
                                   (not (buffer-modified-p existing-buffer)))
-                              (listp last-time) (= (length last-time) 2)
-                              (not (time-less-p last-time file-time)))
+                              (or
+                               ;; last-time is the time-stamp (specifying
+                               ;; the last time we looked at the file) and
+                               ;; the file hasn't been changed since.
+                               (and (listp last-time) (= (length last-time) 2)
+                                    (not (time-less-p last-time file-time)))
+                               ;; last-time is an MD5 checksum instead.
+                               (and (stringp last-time)
+                                    (equal last-time
+                                           (md5 buf nil nil 'emacs-mule)))))
                          (throw 'up-to-date nil)
                        (autoload-remove-section begin)
                        (setq found t))))
@@ -569,10 +592,13 @@ directory or directories specified."
 			   (push file no-autoloads)
 			   (setq files (delete file files)))))))
 		  ((not (stringp file)))
-		  ((not (file-exists-p file))
+		  ((not (and (file-exists-p file)
+                             ;; Remove duplicates as well, just in case.
+                             (member file files)))
 		   ;; Remove the obsolete section.
 		   (autoload-remove-section (match-beginning 0)))
-		  ((equal (nth 4 form) (nth 5 (file-attributes file)))
+		  ((not (time-less-p (nth 4 form)
+                                     (nth 5 (file-attributes file))))
 		   ;; File hasn't changed.
 		   nil)
 		  (t
