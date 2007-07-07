@@ -1,3 +1,8 @@
+2007-07-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/w32-win.el (menu-bar-open): New function.
+	Bind <f10> to it.
+
 2007-07-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	* simple.el (start-file-process): New defun.
