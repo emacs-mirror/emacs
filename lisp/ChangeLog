@@ -1,3 +1,8 @@
+2007-07-07  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (math-read-number): Replace number by variable.
+	(math-read-number-simple): Properly parse small integers.
+
 2007-07-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el: Fix doc for the checkout function.
