@@ -121,6 +121,11 @@ Use this instead of "~/.emacs.d".
 ** The new function `image-refresh' refreshes all images associated
 with a given image specification.
 
++++
+** The new function `start-file-process is similar to `start-process',
+but obeys file handlers.  The file handler is chosen based on
+`default-directory'.
+
 
 * New Packages for Lisp Programming in Emacs 23.1
 
