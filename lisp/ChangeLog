@@ -1,3 +1,7 @@
+2007-07-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el: Fix doc for the checkout function.
+
 2007-07-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hg.el (vc-hg-root): New function.
