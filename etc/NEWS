@@ -55,7 +55,13 @@ in to make it use the scrollbars from the system theme.
 
 ** The new package css-mode.el provides a major mode for editing CSS files.
 
+** The new package vera-mode.el provides a major mode for editing Vera files.
+
 ** The new package socks.el implements the SOCKS v5 protocol.
+
+** VC
+
+*** VC has some support for Mercurial (hg).
 
 
 * Installation Changes in Emacs 22.1
