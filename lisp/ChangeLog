@@ -1,5 +1,8 @@
 2007-07-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* files.el (find-file-confirm-nonexistent-file): Rename from
+	find-file-confirm-inexistent-file.  Update users.
+
 	* emacs-lisp/autoload.el (autoload-find-destination): Understand a new
 	format of autoload block where the file's time-stamp is replaced by its
 	MD5 checksum.
