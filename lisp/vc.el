@@ -952,6 +952,8 @@ Else, add CODE to the process' sentinel."
      ;; lost.  Terminated processes get deleted automatically
      ;; anyway. -- cyd
      ((or (null proc) (eq (process-status proc) 'exit))
+      ;; Make sure we've read the process's output before going further.
+      (if proc (accept-process-output proc))
       (eval code))
      ;; If a process is running, add CODE to the sentinel
      ((eq (process-status proc) 'run)
@@ -959,12 +961,13 @@ Else, add CODE to the process' sentinel."
 	(set-process-sentinel proc
 	  `(lambda (p s)
 	     (with-current-buffer ',(current-buffer)
-	       (goto-char (process-mark p))
-	       ,@(append (cdr (cdr (cdr ;strip off `with-current-buffer buf
-                                        ;             (goto-char...)'
-			   (car (cdr (cdr ;strip off `lambda (p s)'
-			    sentinel))))))
-			 (list `(vc-exec-after ',code))))))))
+               (save-excursion
+                (goto-char (process-mark p))
+ 	        ,@(append (cdr (cdr (car   ;Strip off (save-exc (goto-char...)
+                           (cdr (cdr       ;Strip off (with-current-buffer buf
+ 			    (car (cdr (cdr ;Strip off (lambda (p s)
+                             sentinel))))))))
+ 			  (list `(vc-exec-after ',code)))))))))
      (t (error "Unexpected process state"))))
   nil)
 
@@ -3056,13 +3059,13 @@ cover the range from the oldest annotation to the newest."
     ;; Run through this file and find the oldest and newest dates annotated.
     (save-excursion
       (goto-char (point-min))
-      (while (setq date (prog1 (vc-call-backend vc-annotate-backend
-                                                'annotate-time)
-                          (forward-line 1)))
-	(if (> date newest)
-	    (setq newest date))
-	(if (< date oldest)
-	    (setq oldest date))))
+      (while (not (eobp))
+        (when (setq date (vc-call-backend vc-annotate-backend 'annotate-time))
+          (if (> date newest)
+              (setq newest date))
+          (if (< date oldest)
+              (setq oldest date)))
+        (forward-line 1)))
     (vc-annotate-display
      (/ (- (if full newest current) oldest)
         (vc-annotate-oldest-in-map vc-annotate-color-map))
@@ -3127,9 +3130,9 @@ use; you may override this using the second optional arg MODE."
 	 (vc-annotate-display-default (or vc-annotate-ratio 1.0)))
         ;; One of the auto-scaling modes
 	((eq vc-annotate-display-mode 'scale)
-	 (vc-annotate-display-autoscale))
+	 (vc-exec-after `(vc-annotate-display-autoscale)))
 	((eq vc-annotate-display-mode 'fullscale)
-	 (vc-annotate-display-autoscale t))
+	 (vc-exec-after `(vc-annotate-display-autoscale t)))
 	((numberp vc-annotate-display-mode) ; A fixed number of days lookback
 	 (vc-annotate-display-default
 	  (/ vc-annotate-display-mode
@@ -3383,30 +3386,30 @@ The annotations are relative to the current time, unless overridden by OFFSET."
   (font-lock-mode 1))
 
 (defun vc-annotate-lines (limit)
-  (let (difference)
-    (while (and (< (point) limit)
-		(setq difference (vc-annotate-difference vc-annotate-offset)))
-      (let* ((color (or (vc-annotate-compcar difference vc-annotate-color-map)
-			(cons nil vc-annotate-very-old-color)))
-	     ;; substring from index 1 to remove any leading `#' in the name
-	     (face-name (concat "vc-annotate-face-"
-				(if (string-equal
-				     (substring (cdr color) 0 1) "#")
-				    (substring (cdr color) 1)
-				  (cdr color))))
-	     ;; Make the face if not done.
-	     (face (or (intern-soft face-name)
-		       (let ((tmp-face (make-face (intern face-name))))
-			 (set-face-foreground tmp-face (cdr color))
-			 (if vc-annotate-background
-			     (set-face-background tmp-face
-						  vc-annotate-background))
-			 tmp-face)))	; Return the face
-	     (point (point)))
-	(forward-line 1)
-	(put-text-property point (point) 'face face)))
-    ;; Pretend to font-lock there were no matches.
-    nil))
+  (while (< (point) limit)
+    (let ((difference (vc-annotate-difference vc-annotate-offset))
+          (start (point))
+          (end (progn (forward-line 1) (point))))
+      (when difference
+        (let* ((color (or (vc-annotate-compcar difference vc-annotate-color-map)
+                          (cons nil vc-annotate-very-old-color)))
+               ;; substring from index 1 to remove any leading `#' in the name
+               (face-name (concat "vc-annotate-face-"
+                                  (if (string-equal
+                                       (substring (cdr color) 0 1) "#")
+                                      (substring (cdr color) 1)
+                                    (cdr color))))
+               ;; Make the face if not done.
+               (face (or (intern-soft face-name)
+                         (let ((tmp-face (make-face (intern face-name))))
+                           (set-face-foreground tmp-face (cdr color))
+                           (if vc-annotate-background
+                               (set-face-background tmp-face
+                                                    vc-annotate-background))
+                           tmp-face))))	; Return the face
+          (put-text-property start end 'face face)))))
+  ;; Pretend to font-lock there were no matches.
+  nil)
 
 ;; Collect back-end-dependent stuff here
 

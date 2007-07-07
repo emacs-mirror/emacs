@@ -1,3 +1,12 @@
+2007-07-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-exec-after): Don't move point from the sentinel.
+	Forcefully read all the remaining text in the pipe upon process exit.
+	(vc-annotate-display-autoscale, vc-annotate-lines):
+	Don't stop at the first unrecognized line.
+	(vc-annotate-display-select): Run autoscale after the process is done
+	since it depends on the whole result.
+
 2007-07-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* term/w32-win.el (menu-bar-open): New function.
