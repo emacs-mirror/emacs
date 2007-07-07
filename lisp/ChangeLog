@@ -1,3 +1,8 @@
+2007-07-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/w32-win.el (menu-bar-open): New function.
+	Bind <f10> to it.
+
 2007-07-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* log-view.el (log-view-mode-menu): New menu.
