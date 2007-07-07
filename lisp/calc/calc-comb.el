@@ -296,9 +296,7 @@
 
 (defconst math-small-factorial-table
   (eval-when-compile
-    (vector 1 1 2 6 24 120 720 5040 40320 362880 
-            (math-read-number-simple "3628800")
-            (math-read-number-simple "39916800")
+    (vector 1 1 2 6 24 120 720 5040 40320 362880 3628800 39916800
             (math-read-number-simple "479001600")
             (math-read-number-simple "6227020800")
             (math-read-number-simple "87178291200")
@@ -559,15 +557,9 @@
 	  nil
 	(if (Math-integerp var-RandSeed)
 	    (let* ((seed (math-sub 161803 var-RandSeed))
-		   (mj (1+ (math-mod seed 
-                                     (eval-when-compile
-                                       (math-read-number-simple "1000000")))))
-		   (mk (1+ (math-mod (math-quotient 
-                                      seed 
-                                      (eval-when-compile
-                                        (math-read-number-simple "1000000")))
-                                     (eval-when-compile 
-                                       (math-read-number-simple "1000000")))))
+		   (mj (1+ (math-mod seed 1000000)))
+		   (mk (1+ (math-mod (math-quotient seed 1000000)
+                                     1000000)))
 		   (i 0))
 	      (setq math-random-table (cons 'vec (make-list 55 mj)))
 	      (while (<= (setq i (1+ i)) 54)
@@ -817,9 +809,7 @@
 		   (error "Argument must be an integer"))
 		  ((Math-integer-negp n)
 		   '(nil))
-		  ((Math-natnum-lessp n 
-                                      (eval-when-compile
-                                        (math-read-number-simple "8000000")))
+		  ((Math-natnum-lessp n 8000000)
 		   (setq n (math-fixnum n))
 		   (let ((i -1) v)
 		     (while (and (> (% n (setq v (aref math-primes-table
@@ -838,17 +828,11 @@
                                            (+
                                             sum
                                             (calcFunc-mod 
-                                             q 
-                                             (eval-when-compile
-                                               (math-read-number-simple
-                                                "1000000"))))
+                                             q 1000000))
                                            111111))
                                 (setq q 
                                       (math-quotient 
-                                       q 
-                                       (eval-when-compile
-                                         (math-read-number-simple
-                                          "1000000")))))
+                                       q 1000000)))
 			      (cond ((= (% sum 3) 0) '(nil 3))
 				    ((= (% sum 7) 0) '(nil 7))
 				    ((= (% sum 11) 0) '(nil 11))
