@@ -7035,7 +7035,7 @@ If FACE is not a valid face name, use default face."
 ;;;### (autoloads (ps-mule-begin-page ps-mule-begin-job ps-mule-encode-header-string
 ;;;;;;  ps-mule-initialize ps-mule-plot-composition ps-mule-plot-string
 ;;;;;;  ps-mule-set-ascii-font ps-mule-prepare-ascii-font ps-multibyte-buffer)
-;;;;;;  "ps-mule" "ps-mule.el" (18050 34656))
+;;;;;;  "ps-mule" "ps-mule.el" "464a9fb9d59f7561a46bcd5ca87d85db")
 ;;; Generated autoloads from ps-mule.el
 
 (defvar ps-multibyte-buffer nil "\
