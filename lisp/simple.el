@@ -2202,6 +2202,18 @@ value passed."
       (when stderr-file (delete-file stderr-file))
       (when lc (delete-file lc)))))
 
+(defun start-file-process (name buffer program &rest program-args)
+  "Start a program in a subprocess.  Return the process object for it.
+Similar to `start-process', but may invoke a file handler based on
+`default-directory'.  The current working directory of the
+subprocess is `default-directory'.
+
+PROGRAM and PROGRAM-ARGS might be file names.  They are not
+objects of file handler invocation."
+  (let ((fh (find-file-name-handler default-directory 'start-file-process)))
+    (if fh (apply fh 'start-file-process name buffer program program-args)
+      (apply 'start-process name buffer program program-args))))
+
 
 
 (defvar universal-argument-map
