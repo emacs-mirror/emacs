@@ -2283,7 +2283,8 @@ See calc-keypad for details."
 
 
 
-(defconst math-bignum-digit-length 3
+(defconst math-bignum-digit-length 
+  (truncate (/ (log10 (/ most-positive-fixnum 2)) 2))
   "The length of a \"digit\" in Calc bignums.
 If a big integer is of the form (bigpos N0 N1 ...), this is the
 length of the allowable Emacs integers N0, N1,...
@@ -3466,6 +3467,8 @@ and all digits are kept, regardless of Calc's current precision."
    (cond
     ;; Integer
     ((string-match "^[0-9]+$" s)
+     (if (string-match "^\\(0+\\)" s)
+         (setq s (substring s (match-end 0))))
      (if (<= (length s) (* 2 math-bignum-digit-length))
          (string-to-number s)
        (cons 'bigpos (math-read-bignum s))))
