@@ -3209,9 +3209,13 @@ colors. `vc-annotate-background' specifies the background color."
         (set (make-local-variable 'vc-annotate-parent-rev) rev)
         (set (make-local-variable 'vc-annotate-parent-display-mode)
              display-mode)))
-    (when current-line
-      (goto-line current-line temp-buffer-name))
-    (message "Annotating... done")))
+
+    (vc-exec-after
+     `(progn
+        (when ,current-line
+          (goto-line ,current-line ,temp-buffer-name))
+        (unless (active-minibuffer-window)
+          (message "Annotating... done"))))))
 
 (defun vc-annotate-prev-version (prefix)
   "Visit the annotation of the version previous to this one.

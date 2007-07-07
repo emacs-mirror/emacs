@@ -1,3 +1,8 @@
+2007-07-07  Tom Tromey  <tromey@redhat.com>
+
+	* vc.el (vc-annotate): Jump to line and output message only after the
+	process is really all done.
+
 2007-07-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc.el (vc-exec-after): Don't move point from the sentinel.
