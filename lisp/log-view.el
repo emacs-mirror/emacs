@@ -105,6 +105,20 @@
   ;; or a minor-mode-map with lower precedence than the local map.
   :inherit (if (boundp 'cvs-mode-map) cvs-mode-map))
 
+(easy-menu-define log-view-mode-menu log-view-mode-map
+  "Log-View Display Menu"
+  `("Log-View"
+    ;; XXX Do we need menu entries for these?
+    ;; ["Quit"  quit-window]
+    ;; ["Kill This Buffer"  kill-this-buffer]
+    ["Mark Log Entry for Diff"  set-mark-command]
+    ["Diff Revisions"  log-view-diff]
+    ["Visit Version"  log-view-find-version]
+    ["Next Log Entry"  log-view-msg-next]
+    ["Previous Log Entry"  log-view-msg-prev]
+    ["Next File"  log-view-file-next]
+    ["Previous File"  log-view-file-prev]))
+
 (defvar log-view-mode-hook nil
   "Hook run at the end of `log-view-mode'.")
 
