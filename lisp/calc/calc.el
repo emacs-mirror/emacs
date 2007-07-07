@@ -3401,6 +3401,7 @@ largest Emacs integer.")
 
 ;;; Parse a simple number in string form.   [N X] [Public]
 (defun math-read-number (s)
+  "Convert the string S into a Calc number."
   (math-normalize
    (cond
 
@@ -3411,7 +3412,7 @@ largest Emacs integer.")
 		(> (length digs) 1)
 		(eq (aref digs 0) ?0))
 	   (math-read-number (concat "8#" digs))
-	 (if (<= (length digs) 6)
+	 (if (<= (length digs) (* 2 math-bignum-digit-length))
 	     (string-to-number digs)
 	   (cons 'bigpos (math-read-bignum digs))))))
 
@@ -3459,13 +3460,20 @@ largest Emacs integer.")
 
 ;;; Parse a very simple number, keeping all digits.
 (defun math-read-number-simple (s)
+  "Convert the string S into a Calc number.
+S is assumed to be a simple number (integer or float without an exponent)
+and all digits are kept, regardless of Calc's current precision."
    (cond
     ;; Integer
     ((string-match "^[0-9]+$" s)
-     (cons 'bigpos (math-read-bignum s)))
+     (if (<= (length s) (* 2 math-bignum-digit-length))
+         (string-to-number s)
+       (cons 'bigpos (math-read-bignum s))))
     ;; Minus sign
     ((string-match "^-[0-9]+$" s)
-     (cons 'bigneg (math-read-bignum (substring s 1))))
+     (if (<= (length s) (1+ (* 2 math-bignum-digit-length)))
+         (string-to-number s)
+       (cons 'bigneg (math-read-bignum (substring s 1)))))
     ;; Decimal point
     ((string-match "^\\(-?[0-9]*\\)\\.\\([0-9]*\\)$" s)
      (let ((int (math-match-substring s 1))
