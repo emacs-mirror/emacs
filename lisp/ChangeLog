@@ -1,3 +1,8 @@
+2007-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-default-log-view-mode): New function.
+	(vc-print-log): Add new `log-view-mode' VC operation.
+
 2007-07-08  Nick Roberts  <nickrob@snap.net.nz>
 
 	* pcvs-util.el (cvs-strings->string, cvs-string->strings):
