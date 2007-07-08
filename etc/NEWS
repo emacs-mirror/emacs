@@ -126,6 +126,11 @@ with a given image specification.
 but obeys file handlers.  The file handler is chosen based on
 `default-directory'.
 
++++
+** `file-remote-p' has a new optional parameter CONNECTED.
+With this paramter passed non-nil, it is checked whether a remote
+connection has been established already.
+
 
 * New Packages for Lisp Programming in Emacs 23.1
 
