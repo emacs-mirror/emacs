@@ -147,7 +147,8 @@
   (or (math-numberp x) (math-reject-arg x 'numberp))
   (calcFunc-fact (math-add x -1)))
 
-(defun math-gammap1-raw (x &optional fprec nfprec)   ; compute gamma(1 + x)
+(defun math-gammap1-raw (x &optional fprec nfprec)
+  "Compute gamma(1+X) to the appropriate precision."
   (or fprec
       (setq fprec (math-float calc-internal-prec)
 	    nfprec (math-float (- calc-internal-prec))))
