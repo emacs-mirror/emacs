@@ -116,15 +116,26 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	      mule
 	      (alist
 	       :key-type (regexp :tag "File regexp")
-	       :value-type (choice
-			    :value (undecided . undecided)
-			    (cons :tag "Encoding/decoding pair"
-				  :value (undecided . undecided)
-				  (coding-system :tag "Decoding")
-				  (coding-system :tag "Encoding"))
-			    (coding-system :tag "Single coding system"
-					   :value undecided)
-			    (function :value ignore))))
+	       :value-type
+	       (choice
+		:value (undecided . undecided)
+		(cons :tag "Encoding/decoding pair"
+		      :value (undecided . undecided)
+		      (coding-system :tag "Decoding")
+		      (coding-system :tag "Encoding"))
+		(coding-system
+		 :tag "Single coding system"
+		 :value undecided
+		 :validate
+		 (lambda (widget)
+		   (unless (or (coding-system-p (widget-value widget))
+			       (functionp (widget-value widget)))
+		     (widget-put
+		      widget
+		      :error (format "Invalid coding system: %S"
+				     (widget-value widget)))
+		     widget)))
+		(function :value ignore))))
 	     (selection-coding-system mule coding-system)
 	     ;; dired.c
 	     (completion-ignored-extensions dired

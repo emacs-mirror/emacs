@@ -1,3 +1,7 @@
+2007-07-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* cus-start.el (file-coding-system-alist): Fix custom type.
+
 2007-07-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* longlines.el (longlines-wrap-region): Avoid marking buffer as
