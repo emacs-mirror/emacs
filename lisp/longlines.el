@@ -223,16 +223,18 @@ With optional argument ARG, make the hard newlines invisible again."
   "Wrap each successive line, starting with the line before BEG.
 Stop when we reach lines after END that don't need wrapping, or the
 end of the buffer."
-  (setq longlines-wrap-point (point))
-  (goto-char beg)
-  (forward-line -1)
-  ;; Two successful longlines-wrap-line's in a row mean successive
-  ;; lines don't need wrapping.
-  (while (null (and (longlines-wrap-line)
-                    (or (eobp)
-                        (and (>= (point) end)
-                             (longlines-wrap-line))))))
-  (goto-char longlines-wrap-point))
+  (let ((mod (buffer-modified-p)))
+    (setq longlines-wrap-point (point))
+    (goto-char beg)
+    (forward-line -1)
+    ;; Two successful longlines-wrap-line's in a row mean successive
+    ;; lines don't need wrapping.
+    (while (null (and (longlines-wrap-line)
+		      (or (eobp)
+			  (and (>= (point) end)
+			       (longlines-wrap-line))))))
+    (goto-char longlines-wrap-point)
+    (set-buffer-modified-p mod)))
 
 (defun longlines-wrap-line ()
   "If the current line needs to be wrapped, wrap it and return nil.
@@ -372,10 +374,9 @@ If automatic line wrapping is turned on, wrap the entire buffer."
 		(> (prefix-numeric-value arg) 0)
 	      (not longlines-auto-wrap)))
   (if arg
-      (let ((mod (buffer-modified-p)))
+      (progn
 	(setq longlines-auto-wrap t)
 	(longlines-wrap-region (point-min) (point-max))
-	(set-buffer-modified-p mod)
 	(message "Auto wrap enabled."))
     (setq longlines-auto-wrap nil)
     (message "Auto wrap disabled.")))
@@ -410,9 +411,7 @@ This is called by `post-command-hook' after each command."
 This is called by `window-configuration-change-hook'."
   (when (/= fill-column (- (window-width) window-min-width))
     (setq fill-column (- (window-width) window-min-width))
-    (let ((mod (buffer-modified-p)))
-      (longlines-wrap-region (point-min) (point-max))
-      (set-buffer-modified-p mod))))
+    (longlines-wrap-region (point-min) (point-max))))
 
 ;; Isearch
 
