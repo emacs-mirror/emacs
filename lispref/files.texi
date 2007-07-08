@@ -2768,7 +2768,7 @@ nothing and returns @code{nil}.  Otherwise it returns the file name
 of the local copy file.
 @end defun
 
-@defun file-remote-p filename
+@defun file-remote-p filename &optional connected
 This function tests whether @var{filename} is a remote file.  If
 @var{filename} is local (not remote), the return value is @code{nil}.
 If @var{filename} is indeed remote, the return value is a string that
@@ -2777,7 +2777,7 @@ identifies the remote system.
 This identifier string can include a host name and a user name, as
 well as characters designating the method used to access the remote
 system.  For example, the remote identifier string for the filename
-@code{/ssh:user@@host:/some/file} is @code{/ssh:user@@host:}.
+@code{/sudo::/some/file} is @code{/sudo:root@@localhost:}.
 
 If @code{file-remote-p} returns the same identifier for two different
 filenames, that means they are stored on the same file system and can
@@ -2785,6 +2785,12 @@ be accessed locally with respect to each other.  This means, for
 example, that it is possible to start a remote process accessing both
 files at the same time.  Implementors of file handlers need to ensure
 this principle is valid.
+
+The optional parameter @var{connected}, when passed non-@code{nil},
+triggers an additional check whether the remote system has been
+connected already.  The function returns then @code{nil} if there is
+no corresponding open connection, even if @var{filename} is remote.
+This can be used to avoid unnecessary connection attempts.
 @end defun
 
 @defun unhandled-file-name-directory filename
