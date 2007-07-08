@@ -2283,9 +2283,8 @@ See calc-keypad for details."
 
 
 
-(defconst math-bignum-digit-length 
-  (eval-when-compile
-    (truncate (/ (log10 (/ most-positive-fixnum 2)) 2)))
+(defconst math-bignum-digit-length 4
+;  (truncate (/ (log10 (/ most-positive-fixnum 2)) 2))
   "The length of a \"digit\" in Calc bignums.
 If a big integer is of the form (bigpos N0 N1 ...), this is the
 length of the allowable Emacs integers N0, N1,...
@@ -2293,11 +2292,11 @@ The value of 2*10^(2*MATH-BIGNUM-DIGIT-LENGTH) must be less than the
 largest Emacs integer.")
 
 (defconst math-bignum-digit-size 
-  (eval-when-compile (expt 10 math-bignum-digit-length))
+  (expt 10 math-bignum-digit-length)
   "An upper bound for the size of the \"digit\"s in Calc bignums.")
 
 (defconst math-small-integer-size 
-  (eval-when-compile (expt 10 (* 2 math-bignum-digit-length)))
+  (expt math-bignum-digit-size 2)
   "An upper bound for the size of \"small integer\"s in Calc.")
 
 
