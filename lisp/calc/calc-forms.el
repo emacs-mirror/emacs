@@ -544,6 +544,14 @@
 	       (setcdr math-fd-dt nil))
 	  fmt))))
 
+(defconst math-julian-date-beginning '(float 17214235 -1)
+  "The beginning of the Julian calendar,
+as measured in the number of days before January 1 of the year 1AD.")
+
+(defconst math-julian-date-beginning-int 1721424
+  "The beginning of the Julian calendar,
+as measured in the integer number of days before January 1 of the year 1AD.")
+
 (defun math-format-date-part (x)
   (cond ((stringp x)
 	 x)
@@ -559,14 +567,11 @@
 	 (math-format-number (math-floor math-fd-date)))
 	((eq x 'J)
 	 (math-format-number 
-          (math-add math-fd-date 
-                    (eval-when-compile
-                      (math-read-number-simple "1721423.5")))))
+          (math-add math-fd-date math-julian-date-beginning)))
 	((eq x 'j)
 	 (math-format-number (math-add 
                               (math-floor math-fd-date) 
-                              (eval-when-compile
-                                (math-read-number-simple "1721424")))))
+                              math-julian-date-beginning-int)))
 	((eq x 'U)
 	 (math-format-number (nth 1 (math-date-parts math-fd-date 719164))))
 	((progn
@@ -941,10 +946,8 @@
 					      0
 					    (if (or (eq this 'j)
 						    (math-integerp num))
-                                                (eval-when-compile
-                                                  (math-read-number-simple "1721424"))
-                                              (eval-when-compile
-                                                (math-read-number-simple "1721423.5")))))
+                                                math-julian-date-beginning-int
+                                              math-julian-date-beginning)))
 			    hour (or (nth 3 num) hour)
 			    minute (or (nth 4 num) minute)
 			    second (or (nth 5 num) second)
@@ -1153,20 +1156,14 @@
 (defun calcFunc-julian (date &optional zone)
   (if (math-realp date)
       (list 'date (if (math-integerp date)
-		      (math-sub date (eval-when-compile
-                                       (math-read-number-simple "1721424")))
-		    (setq date (math-sub date 
-                                         (eval-when-compile
-                                           (math-read-number-simple "1721423.5"))))
+		      (math-sub date math-julian-date-beginning-int)
+		    (setq date (math-sub date math-julian-date-beginning))
 		    (math-sub date (math-div (calcFunc-tzone zone date)
 					     '(float 864 2)))))
     (if (eq (car date) 'date)
 	(math-add (nth 1 date) (if (math-integerp (nth 1 date))
-                                   (eval-when-compile
-                                     (math-read-number-simple "1721424"))
-				 (math-add  
-                                  (eval-when-compile
-                                    (math-read-number-simple "1721423.5"))
+                                   math-julian-date-beginning-int
+				 (math-add math-julian-date-beginning
 					   (math-div (calcFunc-tzone zone date)
 						     '(float 864 2)))))
       (math-reject-arg date 'datep))))
