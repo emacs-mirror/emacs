@@ -1,3 +1,24 @@
+2007-07-07  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (math-read-number-simple): Remove leading 0s.
+	(math-bignum-digit-length): Change to optimal value.
+
+	* calc/calc-comb.el (math-small-factorial-table)
+	(math-init-random-base,math-prime-test): Remove unnecessary calls
+	to `math-read-number-simple'.
+
+	* calc/calc-ext.el (math-approx-pi,math-approx-sqrt-e)
+	(math-approx-gamma-const): Add docstrings.
+
+	* calc/calc-forms.el (math-julian-date-beginning)
+	(math-julian-date-beginning-int) New constants.
+	(math-format-date-part,math-parse-standard-date,calcFunc-julian):
+	Use the new constants.
+
+	* calc/calc-funcs.el (math-gammap1-raw): Add docstring.
+
+	* calc/calc-math.el (math-approx-ln-10,math-approx-ln-2): Add docstrings.
+
 2007-07-07  Tom Tromey  <tromey@redhat.com>
 
 	* vc.el (vc-annotate): Jump to line and output message only after the
