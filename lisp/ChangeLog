@@ -3,6 +3,9 @@
 	* calc/calc.el (math-read-number-simple): Remove leading 0s.
 	(math-bignum-digit-length): Change to optimal value.
 
+	* calc/calc-bin.el (math-bignum-logb-digit-size)
+	(math-bignum-digit-power-of-two): Evaluate when compiled.
+
 	* calc/calc-comb.el (math-small-factorial-table)
 	(math-init-random-base,math-prime-test): Remove unnecessary calls
 	to `math-read-number-simple'.
