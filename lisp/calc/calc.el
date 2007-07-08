@@ -2292,10 +2292,12 @@ length of the allowable Emacs integers N0, N1,...
 The value of 2*10^(2*MATH-BIGNUM-DIGIT-LENGTH) must be less than the
 largest Emacs integer.")
 
-(defconst math-bignum-digit-size (expt 10 math-bignum-digit-length)
+(defconst math-bignum-digit-size 
+  (eval-when-compile (expt 10 math-bignum-digit-length))
   "An upper bound for the size of the \"digit\"s in Calc bignums.")
 
-(defconst math-small-integer-size (expt 10 (* 2 math-bignum-digit-length))
+(defconst math-small-integer-size 
+  (eval-when-compile (expt 10 (* 2 math-bignum-digit-length)))
   "An upper bound for the size of \"small integer\"s in Calc.")
 
 
