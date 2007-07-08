@@ -1,3 +1,12 @@
+2007-07-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* novice.el (disabled-command-function): Fit window to buffer to
+	make last line visible.
+	Reported by Stephen Berman <Stephen.Berman at gmx.net>.
+
+	* mouse.el (mouse-drag-track): Reset transient-mark-mode to nil
+	when handling the terminating event.
+
 2007-07-07  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc.el (math-read-number-simple): Remove leading 0s.
