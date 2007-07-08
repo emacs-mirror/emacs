@@ -1580,7 +1580,7 @@
 
 	* files.el (auto-mode-alist): Open `.asd' files in lisp-mode.
 
-2007-05-22  Katsumi Yamaoka  <yamaoka@jpl.org>  (tiny change)
+2007-05-22  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mail/mail-extr.el (mail-extract-address-components):
 	Recognize non-ASCII characters except for NBSP as words.
