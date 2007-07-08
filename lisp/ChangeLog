@@ -1,3 +1,16 @@
+2007-07-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* pcvs-util.el (cvs-strings->string, cvs-string->strings):
+	Rename and move to...
+
+	* subr.el (strings->string, string->strings): ...here.
+
+	* pcvs.el (cvs-reread-cvsrc, cvs-header-msg, cvs-checkout)
+	(cvs-mode-checkout, cvs-execute-single-file): Use new function names.
+
+	* progmodes/gud.el (gud-common-init): Call string->strings instead
+	of split-string.
+
 2007-07-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* term/w32-win.el (menu-bar-open): New function.
