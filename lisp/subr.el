@@ -2759,6 +2759,36 @@ Modifies the match data; use `save-match-data' if necessary."
 	      (cons (substring string start)
 		    list)))
     (nreverse list)))
+
+;; (string->strings (strings->string X)) == X
+(defun strings->string (strings &optional separator)
+  "Concatenate the STRINGS, adding the SEPARATOR (default \" \").
+This tries to quote the strings to avoid ambiguity such that
+  (string->strings (strings->string strs)) == strs
+Only some SEPARATORs will work properly."
+  (let ((sep (or separator " ")))
+    (mapconcat
+     (lambda (str)
+       (if (string-match "[\\\"]" str)
+	   (concat "\"" (replace-regexp-in-string "[\\\"]" "\\\\\\&" str) "\"")
+	 str))
+     strings sep)))
+
+;; (string->strings (strings->string X)) == X
+(defun string->strings (string &optional separator)
+  "Split the STRING into a list of strings.
+It understands elisp style quoting within STRING such that
+  (string->strings (strings->string strs)) == strs
+The SEPARATOR regexp defaults to \"\\s-+\"."
+  (let ((sep (or separator "\\s-+"))
+	(i (string-match "[\"]" string)))
+    (if (null i) (split-string string sep t)	; no quoting:  easy
+      (append (unless (eq i 0) (split-string (substring string 0 i) sep t))
+	      (let ((rfs (read-from-string string i)))
+		(cons (car rfs)
+		      (string->strings (substring string (cdr rfs))
+					   sep)))))))
+
 
 ;;;; Replacement in strings.
 
