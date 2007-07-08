@@ -1483,4 +1483,5 @@ If `vera-intelligent-tab' is nil, always indent line."
 
 (provide 'vera-mode)
 
+;; arch-tag: 22eae722-7ac5-47ac-a713-c4db1cf623a9
 ;;; vera-mode.el ends here

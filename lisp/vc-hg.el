@@ -389,4 +389,5 @@ and that it passes `vc-hg-global-switches' to it before FLAGS."
 
 (provide 'vc-hg)
 
+;; arch-tag: bd094dc5-715a-434f-a331-37b9fb7cd954
 ;;; vc-hg.el ends here
