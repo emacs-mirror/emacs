@@ -1,3 +1,7 @@
+2007-07-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* cus-start.el (file-coding-system-alist): Fix custom type.
+
 2007-07-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-cvs.el (vc-cvs-revert): Use vc-default-revert.
