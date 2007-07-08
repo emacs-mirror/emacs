@@ -333,7 +333,7 @@
 	* hilit-chg.el (highlight-changes-rotate-faces): Don't set
 	modified flag of buffer.  Use `inhibit-modification-hooks'.
 
-2007-06-04  Katsumi Yamaoka  <yamaoka@jpl.org>  (tiny change)
+2007-06-04  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mail/mail-extr.el (mail-extract-address-components): Recognize
 	non-ASCII characters except for NBSP as words.
@@ -9396,7 +9396,7 @@
 	* term.el (term-handle-scroll, term-delete-lines)
 	(term-insert-lines): Fix off by one errors.
 
-2006-06-15  Katsumi Yamaoka  <yamaoka@jpl.org>  (tiny change)
+2006-06-15  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* net/tramp.el (tramp-touch): Use UTC to express time.
 
@@ -23656,7 +23656,7 @@
 
 	* menu-bar.el (menu-bar-showhide-menu): Add `showhide-battery'.
 
-2005-08-09  Katsumi Yamaoka  <yamaoka@jpl.org>  (tiny change)
+2005-08-09  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* net/ange-ftp.el (ange-ftp-send-cmd): Make it work properly with
 	uploading files.
