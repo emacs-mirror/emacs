@@ -1,3 +1,10 @@
+2007-07-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-wrap-region): Avoid marking buffer as
+	modified.
+	(longlines-auto-wrap, longlines-window-change-function): Remove
+	unnecessary calls to set-buffer-modified-p.
+
 2007-07-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* wid-edit.el (widget-documentation-string-value-create): Insert
