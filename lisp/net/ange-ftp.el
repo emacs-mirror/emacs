@@ -4132,8 +4132,15 @@ directory, so that Emacs will know its current contents."
 				       (format "Getting %s" fn1))
 	  tmp1))))
 
-(defun ange-ftp-file-remote-p (file)
-  (ange-ftp-replace-name-component file ""))
+(defun ange-ftp-file-remote-p (file &optional connected)
+  (and (or (not connected)
+	   (let* ((parsed (ange-ftp-ftp-name file))
+		  (host (nth 0 parsed))
+		  (user (nth 1 parsed))
+		  (proc (get-process (ange-ftp-ftp-process-buffer host user))))
+	     (and proc (processp proc)
+		  (memq (process-status proc) '(run open)))))
+       (ange-ftp-replace-name-component file "")))
 
 (defun ange-ftp-load (file &optional noerror nomessage nosuffix)
   (if (ange-ftp-ftp-name file)
@@ -4360,7 +4367,10 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 ;; This returns nil for any file name as argument.
 (put 'vc-registered 'ange-ftp 'null)
 
+;; We can handle process-file in a restricted way (just for chown).
+;; Nothing possible for start-file-process.
 (put 'process-file 'ange-ftp 'ange-ftp-process-file)
+(put 'start-file-process 'ange-ftp 'ignore)
 (put 'shell-command 'ange-ftp 'ange-ftp-shell-command)
 
 ;;; Define ways of getting at unmodified Emacs primitives,

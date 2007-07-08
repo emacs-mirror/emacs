@@ -1075,7 +1075,8 @@ Returns the compilation buffer created."
 	      (unless (getenv "EMACS")
 		(list "EMACS=t"))
 	      (list "INSIDE_EMACS=t")
-	      (copy-sequence process-environment))))
+	      (copy-sequence process-environment)))
+	    (start-process (symbol-function 'start-process)))
 	(set (make-local-variable 'compilation-arguments)
 	     (list command mode name-function highlight-regexp))
 	(set (make-local-variable 'revert-buffer-function)
@@ -1090,13 +1091,23 @@ Returns the compilation buffer created."
 	(if compilation-process-setup-function
 	    (funcall compilation-process-setup-function))
 	(compilation-set-window-height outwin)
+	;; Redefine temporarily `start-process' in order to handle
+	;; remote compilation.
+	(fset 'start-process
+	      (lambda (name buffer program &rest program-args)
+		(apply
+		 (if (file-remote-p default-directory)
+		     'start-file-process
+		   start-process)
+		 name buffer program program-args)))
 	;; Start the compilation.
-	(if (fboundp 'start-process)
+	(unwind-protect
 	    (let ((proc (if (eq mode t)
 			    (get-buffer-process
 			     (with-no-warnings
-			      (comint-exec outbuf (downcase mode-name)
-					   shell-file-name nil `("-c" ,command))))
+			       (comint-exec outbuf (downcase mode-name)
+					    shell-file-name nil
+					    `("-c" ,command))))
 			  (start-process-shell-command (downcase mode-name)
 						       outbuf command))))
 	      ;; Make the buffer's mode line show process state.
@@ -1111,33 +1122,8 @@ Returns the compilation buffer created."
                   (error nil)))
 	      (setq compilation-in-progress
 		    (cons proc compilation-in-progress)))
-	  ;; No asynchronous processes available.
-	  (message "Executing `%s'..." command)
-	  ;; Fake modeline display as if `start-process' were run.
-	  (setq mode-line-process ":run")
-	  (force-mode-line-update)
-	  (sit-for 0)			; Force redisplay
-	  (let* ((buffer-read-only nil)	; call-process needs to modify outbuf
-		 (status (call-process shell-file-name nil outbuf nil "-c"
-				       command)))
-	    (cond ((numberp status)
-		   (compilation-handle-exit 'exit status
-					    (if (zerop status)
-						"finished\n"
-					      (format "\
-exited abnormally with code %d\n"
-						      status))))
-		  ((stringp status)
-		   (compilation-handle-exit 'signal status
-					    (concat status "\n")))
-		  (t
-		   (compilation-handle-exit 'bizarre status status))))
-	  ;; Without async subprocesses, the buffer is not yet
-	  ;; fontified, so fontify it now.
-	  (let ((font-lock-verbose nil)) ; shut up font-lock messages
-	    (font-lock-fontify-buffer))
-	  (set-buffer-modified-p nil)
-	  (message "Executing `%s'...done" command)))
+	  ;; Unwindform: Reset original definition of `start-process'
+	  (fset 'start-process start-process)))
       ;; Now finally cd to where the shell started make/grep/...
       (setq default-directory thisdir))
     (if (buffer-local-value 'compilation-scroll-output outbuf)
@@ -1371,6 +1357,8 @@ Optional argument MINOR indicates this is called from
   ;; with the next-error function in simple.el, and it's only
   ;; coincidentally named similarly to compilation-next-error.
   (setq next-error-function 'compilation-next-error-function)
+  (set (make-local-variable 'comint-file-name-prefix)
+       (or (file-remote-p default-directory) ""))
   (set (make-local-variable 'font-lock-extra-managed-props)
        '(directory message help-echo mouse-face debug))
   (set (make-local-variable 'compilation-locs)

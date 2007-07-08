@@ -1,3 +1,31 @@
+2007-07-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (file-remote-p): Introduce optional parameter CONNECTED.
+
+	* net/tramp.el:
+	* net/tramp-ftp.el:
+	* net/tramp-smb.el:
+	* net/tramp-uu.el:
+	* net/trampver.el: Migrate to Tramp 2.1.
+
+	* net/tramp-cache.el:
+	* net/tramp-fish.el:
+	* net/tramp-gw.el: New Tramp packages.
+
+	* net/tramp-util.el:
+	* net/tramp-vc.el: Removed.
+
+	* net/ange-ftp.el: Add ange-ftp property to 'start-file-process
+	(ange-ftp-file-remote-p): Handle optional parameter CONNECTED.
+
+	* net/rcompile.el (remote-compile): Handle Tramp 2.1 arguments.
+
+	* progmodes/compile.el (compilation-start): Redefine
+	`start-process' temporarily when `default-directory' is remote.
+	Remove case of synchronous compilation, this won't happen ever.
+	(compilation-setup): Make local variable `comint-file-name-prefix'
+	for remote compilation.
+
 2007-07-08  Martin Rudalics  <rudalics@gmx.at>
 
 	* novice.el (disabled-command-function): Fit window to buffer to
