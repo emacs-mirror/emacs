@@ -1219,7 +1219,8 @@ if it is empty or a duplicate."
 Execution is delayed if `delay-mode-hooks' is non-nil.
 If `delay-mode-hooks' is nil, run `after-change-major-mode-hook'
 after running the mode hooks.
-Major mode functions should use this."
+Major mode functions should use this instead of `run-hooks' when running their
+FOO-mode-hook."
   (if delay-mode-hooks
       ;; Delaying case.
       (dolist (hook hooks)
