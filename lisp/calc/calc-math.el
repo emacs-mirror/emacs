@@ -1720,14 +1720,16 @@
 
 (defconst math-approx-ln-10
   (eval-when-compile
-    (math-read-number-simple "2.302585092994045684018")))
+    (math-read-number-simple "2.302585092994045684018"))
+  "An approximation for ln(10).")
      
 (math-defcache math-ln-10 math-approx-ln-10
   (math-ln-raw-2 '(float 1 1)))
 
 (defconst math-approx-ln-2
   (eval-when-compile
-    (math-read-number-simple "0.693147180559945309417")))
+    (math-read-number-simple "0.693147180559945309417"))
+  "An approximation for ln(2).")
 
 (math-defcache math-ln-2 math-approx-ln-2
   (math-ln-raw-3 (math-float '(frac 1 3))))
