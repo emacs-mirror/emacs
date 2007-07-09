@@ -1,3 +1,9 @@
+2007-07-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* window.el (fit-window-to-buffer): Remove setting of window-min-height
+	to 1 as enlarge-window uses the value to resize/shrink windows other than
+	WINDOW if needed.
+
 2007-07-08  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* cus-start.el (file-coding-system-alist): Fix custom type.
