@@ -1173,4 +1173,6 @@ Returns nil if there has been an error message."
 ;
 ;; * Evaluate the MIME information with #LIST or #STAT.
 ;
+
+;; arch-tag: a66df7df-5f29-42a7-a921-643ceb29db49
 ;;;; tramp-fish.el ends here

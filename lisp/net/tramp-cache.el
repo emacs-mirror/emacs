@@ -313,4 +313,5 @@ history."
 
 (provide 'tramp-cache)
 
+;; arch-tag: ee1739b7-7628-408c-9b96-d11a74b05d26
 ;;; tramp-cache.el ends here
