@@ -447,20 +447,21 @@ This is an internal function used by Auto-Revert Mode."
 (defun auto-revert-tail-handler ()
   (let ((size (nth 7 (file-attributes buffer-file-name)))
 	(modified (buffer-modified-p))
-	buffer-read-only		; ignore
+	(inhibit-read-only t)		; Ignore.
 	(file buffer-file-name)
-	buffer-file-name)		; ignore that file has changed
+	(buffer-file-name nil))		; Ignore that file has changed.
     (when (> size auto-revert-tail-pos)
+      (run-hooks 'before-revert-hook)
       (undo-boundary)
       (save-restriction
 	(widen)
 	(save-excursion
 	  (goto-char (point-max))
 	  (insert-file-contents file nil auto-revert-tail-pos size)))
-      (run-mode-hooks 'after-revert-hook)
+      (run-hooks 'after-revert-hook)
       (undo-boundary)
       (setq auto-revert-tail-pos size)
-      (set-buffer-modified-p modified)))
+      (restore-buffer-modified-p modified)))
   (set-visited-file-modtime))
 
 (defun auto-revert-buffers ()
@@ -534,5 +535,5 @@ the timer when no buffers need to be checked."
 
 (run-hooks 'auto-revert-load-hook)
 
-;;; arch-tag: f6bcb07b-4841-477e-9e44-b18678e58876
+;; arch-tag: f6bcb07b-4841-477e-9e44-b18678e58876
 ;;; autorevert.el ends here

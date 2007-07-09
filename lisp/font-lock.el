@@ -2288,7 +2288,7 @@ other modes in which C preprocessor directives are used. e.g. `asm-mode' and
             ;; that do not occur in strings.  The associated regexp matches one
             ;; of `\\\\' `\\(' `\\(?:' `\\|' `\\)'.  `\\\\' has been included to
             ;; avoid highlighting, for example, `\\(' in `\\\\('.
-            (while (re-search-forward "\\(\\\\\\\\\\)\\(?:\\(\\\\\\\\\\)\\|\\((\\(?:\\?:\\)?\\|[|)]\\)\\)" bound t)
+            (while (re-search-forward "\\(\\\\\\\\\\)\\(?:\\(\\\\\\\\\\)\\|\\((\\(?:\\?[0-9]*:\\)?\\|[|)]\\)\\)" bound t)
               (unless (match-beginning 2)
                 (let ((face (get-text-property (1- (point)) 'face)))
                   (when (or (and (listp face)

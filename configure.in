@@ -105,7 +105,7 @@ AC_ARG_WITH(jpeg,
 AC_ARG_WITH(tiff,
 [  --with-tiff             use -ltiff for displaying TIFF images])
 AC_ARG_WITH(gif,
-[  --with-gif              use -lungif (or -lgif) for displaying GIF images])
+[  --with-gif              use -lgif (or -lungif) for displaying GIF images])
 AC_ARG_WITH(png,
 [  --with-png              use -lpng for displaying PNG images])
 AC_ARG_WITH(freetype,
@@ -1901,6 +1901,22 @@ dnl use the toolkit if we have gtk, or X11R5 or newer.
   ;;
 esac
 
+if test "$window_system" = none && test "X$with_x" != "Xno"; then
+   AC_CHECK_PROG(HAVE_XSERVER, X, true, false)
+   if test "$HAVE_XSERVER" = true ||
+      test -n "$DISPLAY" || 
+      test "`echo /usr/lib/libX11.*`" != "/usr/lib/libX11.*"; then
+        AC_MSG_ERROR([You seem to be running X, but no X development libraries
+were found.  You should install the relevant development files for X
+and for the toolkit you want, such as Gtk+, Lesstif or Motif.  Also make
+sure you have development files for image handling, i.e.
+tiff, gif, jpeg, png and xpm.
+If you are sure you want Emacs compiled without X window support, pass
+  --without-x
+to configure.])
+   fi
+fi
+
 ### If we're using X11, we should use the X menu package.
 HAVE_MENUS=no
 case ${HAVE_X11} in
@@ -2593,24 +2609,24 @@ if test "${HAVE_X11}" = "yes" && test "${with_gif}" != "no"; then
   AC_CHECK_HEADER(gif_lib.h,
 # EGifPutExtensionLast only exists from version libungif-4.1.0b1.
 # Earlier versions can crash Emacs.
-    AC_CHECK_LIB(ungif, EGifPutExtensionLast, HAVE_GIF=yes, try_libgif=yes))
+    AC_CHECK_LIB(gif, EGifPutExtensionLast, HAVE_GIF=yes, try_libungif=yes))
 
   if test "$HAVE_GIF" = yes; then
-      ac_gif_lib_name="-lungif"
+      ac_gif_lib_name="-lgif"
   fi
 
-# If gif_lib.h but no libungif, try libgif.
-  if test x"$try_libgif" = xyes; then
-    AC_CHECK_LIB(gif, EGifPutExtensionLast, HAVE_GIF=yes)
+# If gif_lib.h but no libgif, try libungif.
+  if test x"$try_libungif" = xyes; then
+    AC_CHECK_LIB(ungif, EGifPutExtensionLast, HAVE_GIF=yes)
 
     if test "$HAVE_GIF" = yes; then
-      AC_DEFINE(LIBGIF, -lgif, [Compiler option to link with the gif library (if not -lungif).])
-      ac_gif_lib_name="-lgif"
+      AC_DEFINE(LIBGIF, -lungif, [Compiler option to link with the gif library (if not -lgif).])
+      ac_gif_lib_name="-lungif"
     fi
   fi
 
   if test "${HAVE_GIF}" = "yes"; then
-    AC_DEFINE(HAVE_GIF, 1, [Define to 1 if you have a gif library (default -lungif; otherwise specify with LIBGIF).])
+    AC_DEFINE(HAVE_GIF, 1, [Define to 1 if you have a gif library (default -lgif; otherwise specify with LIBGIF).])
   fi
 fi
 

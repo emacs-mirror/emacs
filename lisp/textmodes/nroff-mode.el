@@ -66,6 +66,8 @@
     ;; ' used otherwise).
     (modify-syntax-entry ?\" "\"  2" st)
     ;; Comments are delimited by \" and newline.
+    ;; And in groff also \# to newline.
+    (modify-syntax-entry ?# ".  2"  st)
     (modify-syntax-entry ?\\ "\\  1" st)
     (modify-syntax-entry ?\n ">" st)
     st)
@@ -92,7 +94,7 @@
 	 (mapconcat 'identity
 		    '("[f*n]*\\[.+?]" ; some groff extensions
 		      "(.."	      ; two chars after (
-		      "[^(\"]"	      ; single char escape
+		      "[^(\"#]"	      ; single char escape
 		      ) "\\|")
 	 "\\)")
    )
@@ -127,7 +129,7 @@ closing requests for requests that are used in matched pairs."
        (concat "[.']\\|" paragraph-separate))
   ;; comment syntax added by mit-erl!gildea 18 Apr 86
   (set (make-local-variable 'comment-start) "\\\" ")
-  (set (make-local-variable 'comment-start-skip) "\\\\\"[ \t]*")
+  (set (make-local-variable 'comment-start-skip) "\\\\[\"#][ \t]*")
   (set (make-local-variable 'comment-column) 24)
   (set (make-local-variable 'comment-indent-function) 'nroff-comment-indent)
   (set (make-local-variable 'imenu-generic-expression) nroff-imenu-expression))

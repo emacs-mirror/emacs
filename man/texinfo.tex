@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2007-05-04.09}
+\def\texinfoversion{2007-06-16.10}
 %
 % Copyright (C) 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -5765,11 +5765,11 @@ end
 % regular 0x27.  
 % 
 \def\codequoteright{%
-  \expandafter\ifx\csname SETcodequoteundirected\endcsname\relax
-    '%
-  \else
-    \char'15
-  \fi
+  \expandafter\ifx\csname SETtxicodequoteundirected\endcsname\relax
+    \expandafter\ifx\csname SETcodequoteundirected\endcsname\relax
+      '%
+    \else \char'15 \fi
+  \else \char'15 \fi
 }
 %
 % and a similar option for the left quote char vs. a grave accent.
@@ -5777,11 +5777,11 @@ end
 % the code environments to do likewise.
 % 
 \def\codequoteleft{%
-  \expandafter\ifx\csname SETcodequotebacktick\endcsname\relax
-    `%
-  \else
-    \char'22
-  \fi
+  \expandafter\ifx\csname SETtxicodequotebacktick\endcsname\relax
+    \expandafter\ifx\csname SETcodequotebacktick\endcsname\relax
+      `%
+    \else \char'22 \fi
+  \else \char'22 \fi
 }
 %
 \begingroup

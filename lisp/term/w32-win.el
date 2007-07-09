@@ -1041,8 +1041,18 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 
 ;;; make f10 activate the real menubar rather than the mini-buffer menu
 ;;; navigation feature.
-(global-set-key [f10] (lambda ()
-			(interactive) (w32-send-sys-command ?\xf100)))
+(defun menu-bar-open (&optional frame)
+  "Start key navigation of the menu bar in FRAME.
+
+This initially activates the first menu-bar item, and you can then navigate
+with the arrow keys, select a menu entry with the Return key or cancel with
+the Escape key.  If FRAME has no menu bar, this function does nothing.
+
+If FRAME is nil or not given, use the selected frame."
+  (interactive "i")
+  (w32-send-sys-command ?\xf100 frame))
+;
+(global-set-key [f10] 'menu-bar-open)
 
 (substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
 			   global-map)

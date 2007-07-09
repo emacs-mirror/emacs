@@ -3994,8 +3994,7 @@ For details of keybindings, see `ido-switch-buffer'."
 (defun ido-find-file-in-dir (dir)
   "Switch to another file starting from DIR."
   (interactive "DDir: ")
-  (if (not (equal (substring dir -1) "/"))
-      (setq dir (concat dir "/")))
+  (setq dir (file-name-as-directory dir))
   (ido-file-internal ido-default-file-method nil dir nil nil nil 'ignore))
 
 ;;;###autoload

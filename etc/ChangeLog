@@ -1,3 +1,19 @@
+2007-07-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: New function `start-file-process'.
+
+2007-07-02  Carsten Dominik  <dominik@science.uva.nl>
+
+	* orgcard.tex: Version 5.01
+
+2007-06-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: `dired-call-process' has been removed.
+
+2007-06-20  Glenn Morris  <rgm@gnu.org>
+
+	* NEWS: configure prefers libgif over libungif.
+
 2007-06-14  Nick Roberts  <nickrob@snap.net.nz>
 
 	* NEWS: Mention mouse highlighting in a GNU/Linux console.

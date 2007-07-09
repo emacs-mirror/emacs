@@ -403,7 +403,7 @@
     (let ((val (save-excursion
 		 (set-buffer (aref info 1))
 		 (let ((calc-language nil)
-		       (math-expr-opers math-standard-opers))
+		       (math-expr-opers (math-standard-ops)))
 		   (math-read-expr str)))))
       (if (eq (car-safe val) 'error)
 	  (progn

@@ -83,6 +83,7 @@
 
 (defun math-compose-expr (a prec)
   (let ((math-compose-level (1+ math-compose-level))
+        (math-expr-opers (math-expr-ops))
         spfn)
     (cond
      ((or (and (eq a math-comp-selected) a)

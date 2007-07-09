@@ -1,3 +1,29 @@
+2007-07-02  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Properties): New chapter.
+
+2007-06-24  Karl Berry  <karl@gnu.org>
+
+	* emacs.texi: new Back-Cover Text.
+
+2007-06-20  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi:Change ifinfo to ifnottex (as appropriate) throughout.
+	(About This Manual): Remove redundant information.
+	(Getting Started): Mention author.
+	(Basic Arithmetic, Customizing Calc): Make description of the
+	variable `calc-multiplication-has-precedence' match its new effect.
+
+2007-06-19  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Basic Arithmetic, Customizing Calc): Mention
+	the variable `calc-multiplication-has-precedence'.
+
+2007-06-19  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Tag): Section swapped with node Timestamps.
+	(Formula syntax for Lisp): Document new `L' flag.
+
 2007-06-06  Andreas Seltenreich  <andreas@gate450.dyndns.org>
 
 	* gnus.texi (Misc Group Stuff, Summary Buffer)

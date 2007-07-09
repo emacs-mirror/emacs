@@ -1717,9 +1717,15 @@ PREDICATE limits completion to a subset of COLLECTION.
 See `try-completion' and `all-completions' for more details
  on completion, COLLECTION, and PREDICATE.
 
-If REQUIRE-MATCH is non-nil, the user is not allowed to exit unless
- the input is (or completes to) an element of COLLECTION or is null.
- If it is also not t, typing RET does not exit if it does non-null completion.
+REQUIRE-MATCH can take the following values:
+- t means that the user is not allowed to exit unless
+  the input is (or completes to) an element of COLLECTION or is null.
+- nil means that the user can exit with any input.
+- `confirm-only' means that the user can exit with any input, but she will
+  need to confirm her choice if the input is not an element of COLLECTION.
+- anything else behaves like t except that typing RET does not exit if it
+  does non-null completion.
+
 If the input is null, `completing-read' returns DEF, or an empty string
  if DEF is nil, regardless of the value of REQUIRE-MATCH.
 
@@ -2228,6 +2234,18 @@ a repetition of this command will exit.  */)
 	    }
 	}
       goto exit;
+    }
+
+  if (EQ (Vminibuffer_completion_confirm, intern ("confirm-only")))
+    { /* The user is permitted to exit with an input that's rejected
+	 by test-completion, but at the condition to confirm her choice.  */
+      if (EQ (current_kboard->Vlast_command, Vthis_command))
+	goto exit;
+      else
+	{
+	  temp_echo_area_glyphs (build_string (" [Confirm]"));
+	  return Qnil;
+	}
     }
 
   /* Call do_completion, but ignore errors.  */

@@ -982,10 +982,16 @@
 
 
 (defun math-padded-polynomial (expr var deg)
+  "Return a polynomial as list of coefficients.
+If EXPR is of the form \"a + bx + cx^2 + ...\" in the variable VAR, return
+the list (a b c ...) with at least DEG elements, else return NIL."
   (let ((p (math-is-polynomial expr var deg)))
     (append p (make-list (- deg (length p)) 0))))
 
 (defun math-partial-fractions (r den var)
+  "Return R divided by DEN expressed in partial fractions of VAR.
+All whole factors of DEN have already been split off from R.
+If no partial fraction representation can be found, return nil."
   (let* ((fden (calcFunc-factors den var))
 	 (tdeg (math-polynomial-p den var))
 	 (fp fden)

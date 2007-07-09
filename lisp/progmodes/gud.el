@@ -2462,7 +2462,7 @@ comint mode, which see."
 ;; for local variables in the debugger buffer.
 (defun gud-common-init (command-line massage-args marker-filter
 				     &optional find-file)
-  (let* ((words (split-string command-line))
+  (let* ((words (string->strings command-line))
 	 (program (car words))
 	 (dir default-directory)
 	 ;; Extract the file name from WORDS

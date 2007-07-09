@@ -6599,8 +6599,9 @@ or local variable spec of the tailing lines with `coding:' tag.  */);
 
   DEFVAR_LISP ("after-insert-file-functions", &Vafter_insert_file_functions,
 	       doc: /* A list of functions to be called at the end of `insert-file-contents'.
-Each is passed one argument, the number of characters inserted.
-It should return the new character count, and leave point the same.
+Each is passed one argument, the number of characters inserted,
+with point at the start of the inserted text.  Each function
+should leave point the same, and return the new character count.
 If `insert-file-contents' is intercepted by a handler from
 `file-name-handler-alist', that handler is responsible for calling the
 functions in `after-insert-file-functions' if appropriate.  */);

@@ -142,6 +142,9 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     ;; eval.c
 	     (max-specpdl-size limits integer)
 	     (max-lisp-eval-depth limits integer)
+	     (max-mini-window-height limits
+				     (choice (const :tag "quarter screen" nil)
+					     number))
 	     (stack-trace-on-error debug
 				   (choice (const :tag "off")
 					   (repeat :menu-tag "When"
