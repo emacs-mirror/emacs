@@ -13,8 +13,8 @@
 2007-07-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* window.el (fit-window-to-buffer): Remove setting of window-min-height
-	to 1 as enlarge-window uses the value to resize/shrink windows other than
-	WINDOW if needed.
+	to 1 as enlarge-window uses the value to resize/shrink windows other
+	than WINDOW if needed.
 
 2007-07-08  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -78,20 +78,21 @@
 	(math-bignum-digit-power-of-two): Evaluate when compiled.
 
 	* calc/calc-comb.el (math-small-factorial-table)
-	(math-init-random-base,math-prime-test): Remove unnecessary calls
+	(math-init-random-base, math-prime-test): Remove unnecessary calls
 	to `math-read-number-simple'.
 
-	* calc/calc-ext.el (math-approx-pi,math-approx-sqrt-e)
+	* calc/calc-ext.el (math-approx-pi, math-approx-sqrt-e)
 	(math-approx-gamma-const): Add docstrings.
 
 	* calc/calc-forms.el (math-julian-date-beginning)
 	(math-julian-date-beginning-int) New constants.
-	(math-format-date-part,math-parse-standard-date,calcFunc-julian):
+	(math-format-date-part, math-parse-standard-date, calcFunc-julian):
 	Use the new constants.
 
 	* calc/calc-funcs.el (math-gammap1-raw): Add docstring.
 
-	* calc/calc-math.el (math-approx-ln-10,math-approx-ln-2): Add docstrings.
+	* calc/calc-math.el (math-approx-ln-10, math-approx-ln-2):
+	Add docstrings.
 
 2007-07-07  Tom Tromey  <tromey@redhat.com>
 
@@ -168,8 +169,8 @@
 
 	* calc/calc-bin.el (math-bignum-logb-digit-size)
 	(math-bignum-digit-power-of-two): New constants.
-	(math-and-bignum,math-or-bignum,math-xor-bignum,math-diff-bignum)
-	(math-not-bignum,math-clip-bignum): Use the constants
+	(math-and-bignum, math-or-bignum, math-xor-bignum, math-diff-bignum)
+	(math-not-bignum, math-clip-bignum): Use the constants
 	`math-bignum-digit-power-of-two' and `math-bignum-logb-digit-size'
 	instead of their values.
 	(math-clip): Use math-small-integer-size instead of its value.
@@ -323,7 +324,7 @@
 
 2007-07-02  Martin Rudalics  <rudalics@gmx.at>
 
-	* help-mode.el (help-make-xrefs):  Skip spaces too when
+	* help-mode.el (help-make-xrefs): Skip spaces too when
 	skipping tabs.
 
 	* ffap.el (dired-at-point-prompter): Improve prompt in
@@ -379,7 +380,6 @@
 	* font-lock.el (lisp-font-lock-keywords-2): Recognize the new \(?1:..\)
 	syntax as well.  Reported by Juri Linkov <juri@jurta.org>.
 
->>>>>>> 1.11328
 2007-06-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* dnd.el (dnd-get-local-file-name): Set fixcase to t in call to
