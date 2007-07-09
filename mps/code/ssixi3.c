@@ -11,7 +11,7 @@
  *  also seems to work.  Note that on FreeBSD and Darwin it has not
  *  been indepently verified with respect to any ABI documentation.
  *
- *  This code appears is common to more than one Unix implementation on
+ *  This code is common to more than one Unix implementation on
  *  Intel hardware (but is not portable Unix code).
  *
  *  The registers edi, esi, ebx are the registers defined to be preserved
