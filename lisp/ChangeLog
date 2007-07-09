@@ -1,3 +1,10 @@
+2007-07-09  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* textmodes/tex-mode.el (tex-fontify-script)
+	(tex-font-script-display): New variables to make display of
+	superscripts and subscripts customizable.
+	(tex-font-lock-suscript, tex-font-lock-match-suscript): Use them.
+
 2007-07-09  Richard Stallman  <rms@gnu.org>
 
 	* isearch.el (isearch-edit-string): Call to isearch-push-state
@@ -372,6 +379,7 @@
 	* font-lock.el (lisp-font-lock-keywords-2): Recognize the new \(?1:..\)
 	syntax as well.  Reported by Juri Linkov <juri@jurta.org>.
 
+>>>>>>> 1.11328
 2007-06-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* dnd.el (dnd-get-local-file-name): Set fixcase to t in call to
