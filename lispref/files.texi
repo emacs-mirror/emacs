@@ -2786,11 +2786,10 @@ example, that it is possible to start a remote process accessing both
 files at the same time.  Implementors of file handlers need to ensure
 this principle is valid.
 
-The optional parameter @var{connected}, when passed non-@code{nil},
-triggers an additional check whether the remote system has been
-connected already.  The function returns then @code{nil} if there is
-no corresponding open connection, even if @var{filename} is remote.
-This can be used to avoid unnecessary connection attempts.
+If @var{connected} is non-@code{nil}, this function returns @code{nil}
+even if @var{filename} is remote, if Emacs has no network connection
+to its host.  This is useful when you want to avoid the delay of
+making connections when they don't exist.
 @end defun
 
 @defun unhandled-file-name-directory filename
