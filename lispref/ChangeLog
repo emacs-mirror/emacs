@@ -1,3 +1,7 @@
+2007-07-09  Richard Stallman  <rms@gnu.org>
+
+	* files.texi (Magic File Names): Rewrite previous change.
+
 2007-07-08  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.texi (Magic File Names): Introduce optional parameter
