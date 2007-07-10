@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 5.01
+;; Version: 5.02
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -83,7 +83,7 @@
 
 ;;; Version
 
-(defconst org-version "5.01"
+(defconst org-version "5.02"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -1763,7 +1763,7 @@ lined-up with respect to each other."
   :group 'org-properties
   :type 'string)
 
-(defcustom org-default-columns-format "%25ITEM %TODO %3PRIORITY %TAGS"
+(defcustom org-columns-default-format "%25ITEM %TODO %3PRIORITY %TAGS"
   "The default column format, if no other format has been defined.
 This variable can be set on the per-file basis by inserting a line
 
@@ -3244,6 +3244,12 @@ color of the frame."
   "Face for column display of entry properties."
   :group 'org-faces)
 
+(when (fboundp 'set-face-attribute)
+  ;; Make sure that a fixed-width face is used when we have a column table.
+  (set-face-attribute 'org-column nil
+		      :height (face-attribute 'default :height)
+		      :family (face-attribute 'default :family)))  
+
 (defface org-warning ;; font-lock-warning-face
   (org-compatible-face
    '((((class color) (min-colors 16) (background light)) (:foreground "Red1" :bold t))
@@ -3573,7 +3579,7 @@ means to push this value onto the list in the variable.")
 	     ((equal key "TAGS")
 	      (setq tags (append tags (org-split-string value splitre))))
 	     ((equal key "COLUMNS")
-	      (org-set-local 'org-default-columns-format value))
+	      (org-set-local 'org-columns-default-format value))
 	     ((equal key "LINK")
 	      (when (string-match "^\\(\\S-+\\)[ \t]+\\(.+\\)" value)
 		(push (cons (match-string 1 value)
@@ -3678,15 +3684,15 @@ means to push this value onto the list in the variable.")
 		  (mapconcat 'regexp-quote org-not-done-keywords "\\|")
 		  "\\)\\>")
 	  org-todo-line-regexp
-	  (concat "^\\(\\*+\\)[ \t]*\\(?:\\("
+	  (concat "^\\(\\*+\\)[ \t]+\\(?:\\("
 		  (mapconcat 'regexp-quote org-todo-keywords-1 "\\|")
 		  "\\)\\>\\)? *\\(.*\\)")
 	  org-nl-done-regexp
-	  (concat "[\r\n]\\*+[ \t]+"
+	  (concat "\n\\*+[ \t]+"
 		  "\\(?:" (mapconcat 'regexp-quote org-done-keywords "\\|")
 		  "\\)" "\\>")
 	  org-todo-line-tags-regexp
-	  (concat "^\\(\\*+\\)[ \t]*\\(?:\\("
+	  (concat "^\\(\\*+\\)[ \t]+\\(?:\\("
 		  (mapconcat 'regexp-quote org-todo-keywords-1 "\\|")
 		  (org-re
 		   "\\)\\>\\)? *\\(.*?\\([ \t]:[[:alnum:]:_@]+:[ \t]*\\)?$\\)"))
@@ -3982,7 +3988,7 @@ The following commands are available:
   (org-add-to-invisibility-spec '(org-cwidth))
   (when (featurep 'xemacs)
     (org-set-local 'line-move-ignore-invisible t))
-  (setq outline-regexp "\\*+")
+  (setq outline-regexp "\\*+ ")
   (setq outline-level 'org-outline-level)
   (when (and org-ellipsis (stringp org-ellipsis)
              (fboundp 'set-display-table-slot) (boundp 'buffer-display-table))
@@ -4412,9 +4418,12 @@ between words."
     (looking-at outline-regexp)
     (if (match-beginning 1)
 	(+ (org-get-string-indentation (match-string 1)) 1000)
-      (- (match-end 0) (match-beginning 0)))))
+      (1- (- (match-end 0) (match-beginning 0))))))
 
 (defvar org-font-lock-keywords nil)
+
+(defconst org-property-re "^[ \t]*\\(:\\([a-zA-Z_0-9]+\\):\\)[ \t]*\\(\\S-.*\\)"
+  "Regular expression matching a property line.")
 
 (defun org-set-font-lock-defaults ()
   (let* ((em org-fontify-emphasized-text)
@@ -4422,7 +4431,7 @@ between words."
 	 (org-font-lock-extra-keywords
 	  ;; Headlines
 	  (list
-	   '("^\\(\\**\\)\\(\\*\\)\\(.*\\)" (1 (org-get-level-face 1))
+	   '("^\\(\\**\\)\\(\\* \\)\\(.*\\)" (1 (org-get-level-face 1))
 	     (2 (org-get-level-face 2)) (3 (org-get-level-face 3)))
 	   '("^[ \t]*\\(\\(|\\|\\+-[-+]\\).*\\S-\\)"
 	     (1 'org-table))
@@ -4436,7 +4445,7 @@ between words."
 	   '("^&?%%(.*\\|<%%([^>\n]*?>" (0 'org-sexp-date t))
 	   '(org-hide-wide-columns (0 nil append))
 	   ;; TODO lines
-	   (list (concat "^\\*+[ \t]*" org-not-done-regexp)
+	   (list (concat "^\\*+[ \t]+" org-not-done-regexp)
 		 '(1 'org-todo t))
 	   ;; Priorities
 	   (list (concat "\\[#[A-Z0-9]\\]") '(0 'org-special-keyword t))
@@ -4458,7 +4467,7 @@ between words."
 	       '("\\[\\([0-9]*%\\)\\]\\|\\[\\([0-9]*\\)/\\([0-9]*\\)\\]"
 		 (0 (org-get-checkbox-statistics-face) t)))
 	   ;; COMMENT
-	   (list (concat "^\\*+[ \t]*\\<\\(" org-comment-string
+	   (list (concat "^\\*+[ \t]+\\<\\(" org-comment-string
 			 "\\|" org-quote-string "\\)\\>")
 		 '(1 'org-special-keyword t))
 	   '("^#.*" (0 'font-lock-comment-face t))
@@ -4475,14 +4484,18 @@ between words."
 	   ;; Table stuff
 	   '("^[ \t]*\\(:.*\\)" (1 'org-table t))
 	   '("| *\\(:?=[^|\n]*\\)" (1 'org-formula t))
-	   '("^[ \t]*| *\\([#!$*_^]\\) *|" (1 'org-formula t))
+;	   '("^[ \t]*| *\\([#!$*_^/]\\) *|" (1 'org-formula t))
+	   '("^[ \t]*| *\\([#*]\\) *|" (1 'org-formula t))
+	   '("^[ \t]*|\\( *\\([$!_^/]\\) *|.*\\)|" (1 'org-formula t))
 	   ;; Drawers
-	   (list org-drawer-regexp '(0 'org-drawer t))
-	   (list "^[ \t]*:END:" '(0 'org-drawer t))
+;	   (list org-drawer-regexp '(0 'org-drawer t))
+;	   (list "^[ \t]*:END:" '(0 'org-drawer t))
+	   (list org-drawer-regexp '(0 'org-special-keyword t))
+	   (list "^[ \t]*:END:" '(0 'org-special-keyword t))
 	   ;; Properties
-	   '("^[ \t]*\\(:[a-zA-Z0-9]+:\\)[ \t]*\\(\\S-.*\\)"
-	     (1 'org-special-keyword t) (2 'org-property-value t))
-;FIXME	     (1 'org-tag t) (2 'org-property-value t))
+	   (list org-property-re
+		 '(1 'org-special-keyword t)
+		 '(3 'org-property-value t))
 	   (if org-format-transports-properties-p
 	       '("| *\\(<[0-9]+>\\) *" (1 'org-formula t)))
 	   '("^\\*+ \\(.*:ARCHIVE:.*\\)" (1 'org-archived prepend))
@@ -4499,7 +4512,7 @@ between words."
 (defvar org-f nil)
 (defun org-get-level-face (n)
   "Get the right face for match N in font-lock matching of healdines."
-  (setq org-l (- (match-end 2) (match-beginning 1)))
+  (setq org-l (- (match-end 2) (match-beginning 1) 1))
   (if org-odd-levels-only (setq org-l (1+ (/ org-l 2))))
   (setq org-f (nth (% (1- org-l) org-n-levels) org-level-faces))
   (cond
@@ -4559,7 +4572,7 @@ between words."
   (interactive "P")
   (let* ((outline-regexp
 	  (if (and (org-mode-p) org-cycle-include-plain-lists)
-	      "\\(?:\\*+\\|\\([ \t]*\\)\\([-+*]\\|[0-9]+[.)]\\) \\)"
+	      "\\(?:\\*+ \\|\\([ \t]*\\)\\([-+*]\\|[0-9]+[.)]\\) \\)"
 	    outline-regexp))
 	 (bob-special (and org-cycle-global-at-bob (bobp)
 			   (not (looking-at outline-regexp))))
@@ -5175,8 +5188,8 @@ If the region is active in `transient-mark-mode', promote all headings
 in the region."
   (org-back-to-heading t)
   (let* ((level (save-match-data (funcall outline-level)))
-	 (up-head (make-string (org-get-legal-level level -1) ?*))
-	 (diff (abs (- level (length up-head)))))
+	 (up-head (concat (make-string (org-get-legal-level level -1) ?*) " "))
+	 (diff (abs (- level (length up-head) -1))))
     (if (= level 1) (error "Cannot promote to level 0. UNDO to recover if necessary"))
     (replace-match up-head nil t)
     ;; Fixup tag positioning
@@ -5189,8 +5202,8 @@ If the region is active in `transient-mark-mode', demote all headings
 in the region."
   (org-back-to-heading t)
   (let* ((level (save-match-data (funcall outline-level)))
-	 (down-head (make-string (org-get-legal-level level 1) ?*))
-	 (diff (abs (- level (length down-head)))))
+	 (down-head (concat (make-string (org-get-legal-level level 1) ?*) " "))
+	 (diff (abs (- level (length down-head) -1))))
     (replace-match down-head nil t)
     ;; Fixup tag positioning
     (and org-auto-align-tags (org-set-tags nil t))
@@ -5251,8 +5264,8 @@ level 5 etc."
     (let ((org-odd-levels-only nil) n)
       (save-excursion
 	(goto-char (point-min))
-	(while (re-search-forward "^\\*\\*+" nil t)
-	  (setq n (1- (length (match-string 0))))
+	(while (re-search-forward "^\\*\\*+ " nil t)
+	  (setq n (- (length (match-string 0)) 2))
 	  (while (>= (setq n (1- n)) 0)
 	    (org-demote))
 	  (end-of-line 1))))))
@@ -5266,15 +5279,15 @@ is signaled in this case."
   (interactive)
   (goto-char (point-min))
   ;; First check if there are no even levels
-  (when (re-search-forward "^\\(\\*\\*\\)+[^*]" nil t)
+  (when (re-search-forward "^\\(\\*\\*\\)+ " nil t)
     (org-show-context t)
     (error "Not all levels are odd in this file.  Conversion not possible."))
   (when (yes-or-no-p "Are you sure you want to globally change levels to odd-even? ")
     (let ((org-odd-levels-only nil) n)
       (save-excursion
 	(goto-char (point-min))
-	(while (re-search-forward "^\\*\\*+" nil t)
-	  (setq n (/ (length (match-string 0)) 2))
+	(while (re-search-forward "^\\*\\*+ " nil t)
+	  (setq n (/ (length (1- (match-string 0))) 2))
 	  (while (>= (setq n (1- n)) 0)
 	    (org-promote))
 	  (end-of-line 1))))))
@@ -6285,6 +6298,8 @@ C-c C-c     Set tags / toggle checkbox"
 	  '([(meta shift down)]   org-shiftmetadown)
 	  '([(meta shift left)]   org-shiftmetaleft)
 	  '([(meta shift right)]  org-shiftmetaright)
+	  '([(shift up)]          org-shiftup)
+	  '([(shift down)]        org-shiftdown)
 	  '("\M-q"                fill-paragraph)
 	  '("\C-c^"               org-sort)
 	  '("\C-c-"               org-cycle-list-bullet)))
@@ -6466,8 +6481,7 @@ this heading."
 	  (if heading
 	      (progn
 		(if (re-search-forward
-		     (concat "\\(^\\|\r\\)"
-			     (regexp-quote heading) 
+		     (concat "^" (regexp-quote heading)
 			     (org-re "[ \t]*\\(:[[:alnum:]_@:]+:\\)?[ \t]*\\($\\|\r\\)"))
 		     nil t)
 		    (goto-char (match-end 0))
@@ -7723,7 +7737,7 @@ should be done in reverse order."
 	(setq beg (point-at-bol 1)))
       (goto-char pos)
       (if (re-search-forward org-table-hline-regexp tend t)
-	  (setq end (point-at-bol 0))
+	  (setq end (point-at-bol 1))
 	(goto-char tend)
 	(setq end (point-at-bol))))
     (setq beg (move-marker (make-marker) beg)
@@ -11015,12 +11029,14 @@ optional argument IN-EMACS is non-nil, Emacs will visit the file."
 	    (switch-to-buffer-other-window
 	     (org-get-buffer-for-internal-link (current-buffer)))
 	  (org-mark-ring-push))
-	(org-link-search
-	 path
-	 (cond ((equal in-emacs '(4)) 'occur)
-	       ((equal in-emacs '(16)) 'org-occur)
-	       (t nil))
-	 pos))
+	(let ((cmd `(org-link-search
+		     ,path
+		     ,(cond ((equal in-emacs '(4)) 'occur)
+			    ((equal in-emacs '(16)) 'org-occur)
+			    (t nil))
+		     ,pos)))
+	  (condition-case nil (eval cmd)
+	    (error (progn (widen) (eval cmd))))))
 
        ((string= type "tree-match")
 	(org-occur (concat "\\[" (regexp-quote path) "\\]")))
@@ -11170,7 +11186,7 @@ in all files.  If AVOID-POS is given, ignore matches near that position."
   (let ((case-fold-search t)
 	(s0 (mapconcat 'identity (org-split-string s "[ \t\r\n]+") " "))
 	(markers (concat "\\(?:" (mapconcat (lambda (x) (regexp-quote (car x)))
-					    (append '((" ") ("\t") ("\n"))
+					    (append '(("") (" ") ("\t") ("\n"))
 						    org-emphasis-alist)
 					    "\\|") "\\)"))
 	(pos (point))
@@ -11197,10 +11213,10 @@ in all files.  If AVOID-POS is given, ignore matches near that position."
        ;; (grep (concat "grep -n -e '" (match-string 1 s) "' *")))
        (t (org-do-occur (match-string 1 s)))))
      (t
-      ;; A normal search string
+      ;; A normal search strings
       (when (equal (string-to-char s) ?*)
 	;; Anchor on headlines, post may include tags.
-	(setq pre "^\\*+[ \t]*\\(?:\\sw+\\)?[ \t]*"
+	(setq pre "^\\*+[ \t]+\\(?:\\sw+\\)?[ \t]*"
 	      post (org-re "[ \t]*\\(?:[ \t]+:[[:alnum:]_@:+]:[ \t]*\\)?$")
 	      s (substring s 1)))
       (remove-text-properties
@@ -11707,6 +11723,7 @@ If the file does not exist, an error is thrown."
      ((or (stringp cmd)
 	  (eq cmd 'emacs))
       (funcall (cdr (assq 'file org-link-frame-setup)) file)
+      (widen)
       (if line (goto-line line)
 	(if search (org-link-search search))))
      ((consp cmd)
@@ -11842,14 +11859,18 @@ to be run from that hook to fucntion properly."
 	    (let* ((org-last-tags-completion-table
 		    (org-global-tags-completion-table
 		     (if (equal char "G") (org-agenda-files) (and file (list file)))))
+		   (org-add-colon-after-tag-completion t)
 		   (ins (completing-read
 			 (if prompt (concat prompt ": ") "Tags: ")
 			 'org-tags-completion-function nil nil nil
 			 'org-tags-history)))
-	      (insert (concat ":" (mapconcat 'identity
-					     (org-split-string ins (org-re "[^[:alnum:]]+"))
-					     ":")
-			      ":"))))
+	      (setq ins (mapconcat 'identity
+				  (org-split-string ins (org-re "[^[:alnum:]]+"))
+				  ":"))
+	      (when (string-match "\\S-" ins)
+		(or (equal (char-before) ?:) (insert ":"))
+		(insert ins)
+		(or (equal (char-after) ?:) (insert ":")))))		
 	   (char
 	    (setq org-time-was-given (equal (upcase char) char))
 	    (setq time (org-read-date (equal (upcase char) "U") t nil
@@ -11939,7 +11960,7 @@ See also the variable `org-reverse-note-order'."
       (let* ((lines (split-string txt "\n"))
 	     first)
 	(setq first (car lines) lines (cdr lines))
-	(if (string-match "^\\*+" first)
+	(if (string-match "^\\*+ " first)
 	    ;; Is already a headline
 	    (setq indent nil)
 	  ;; We need to add a headline:  Use time and first buffer line
@@ -11990,7 +12011,7 @@ See also the variable `org-reverse-note-order'."
 		   (save-restriction
 		     (widen)
 		     (goto-char (point-min))
-		     (re-search-forward "^\\*" nil t)
+		     (re-search-forward "^\\*+ " nil t)
 		     (beginning-of-line 1)
 		     (org-paste-subtree 1 txt)))
 		  ((and (org-on-heading-p t) (not current-prefix-arg))
@@ -12197,7 +12218,7 @@ At all other locations, this simply calls `ispell-complete-word'."
 		   (texp
 		    (setq type :tex)
 		    org-html-entities)
-		   ((string-match "\\`\\*+[ \t]*\\'"
+		   ((string-match "\\`\\*+[ \t]+\\'"
 				  (buffer-substring (point-at-bol) beg))
 		    (setq type :todo)
 		    (mapcar 'list org-todo-keywords-1))
@@ -12258,12 +12279,12 @@ At all other locations, this simply calls `ispell-complete-word'."
   (save-excursion
     (org-back-to-heading)
     (if (looking-at (concat outline-regexp
-			    "\\( +\\<" org-comment-string "\\>\\)"))
+			    "\\( *\\<" org-comment-string "\\>\\)"))
 	(replace-match "" t t nil 1)
       (if (looking-at outline-regexp)
 	  (progn
 	    (goto-char (match-end 0))
-	    (insert " " org-comment-string))))))
+	    (insert org-comment-string " "))))))
 
 (defvar org-last-todo-state-is-todo nil
   "This is non-nil when the last TODO state change led to a TODO state.
@@ -12297,7 +12318,7 @@ For calling through lisp, arg is also interpreted in the following way:
   (interactive "P")
   (save-excursion
     (org-back-to-heading)
-    (if (looking-at outline-regexp) (goto-char (match-end 0)))
+    (if (looking-at outline-regexp) (goto-char (1- (match-end 0))))
     (or (looking-at (concat " +" org-todo-regexp " *"))
 	(looking-at " *"))
     (let* ((this (match-string 1))
@@ -12490,7 +12511,7 @@ of `org-todo-keywords-1'."
 				   org-todo-keywords-1)))
 	       (t (error "Invalid prefix argument: %s" arg)))))
     (message "%d TODO entries found"
-	     (org-occur (concat "^" outline-regexp " +" kwd-re )))))
+	     (org-occur (concat "^" outline-regexp " *" kwd-re )))))
 
 (defun org-deadline ()
   "Insert the DEADLINE: string to make a deadline.
@@ -13139,11 +13160,12 @@ With prefix ARG, realign all tags in headings in the current buffer."
       ;; try completion
       (setq rtn (try-completion s2 ctable confirm))
       (if (stringp rtn)
-	  (concat s1 s2 (substring rtn (length s2))
-		  (if (and org-add-colon-after-tag-completion
-			   (assoc rtn ctable))
-		      ":" "")))
-      )
+	  (setq rtn
+		(concat s1 s2 (substring rtn (length s2))
+			(if (and org-add-colon-after-tag-completion
+				 (assoc rtn ctable))
+			    ":" ""))))
+      rtn)
      ((eq flag t)
       ;; all-completions
       (all-completions s2 ctable confirm)
@@ -13202,7 +13224,7 @@ Returns the new tags string, or nil to not change the current settings."
     (save-excursion
       (beginning-of-line 1)
       (if (looking-at
-	   (org-re ".*[ \t]\\(:[[:alnum:]_@:]+:\\)[ \t]*\\(\r\\|$\\)"))
+	   (org-re ".*[ \t]\\(:[[:alnum:]_@:]+:\\)[ \t]*$"))
 	  (setq ov-start (match-beginning 1)
 		ov-end (match-end 1)
 		ov-prefix "")
@@ -13358,7 +13380,7 @@ Returns the new tags string, or nil to not change the current settings."
     (error "Not on a heading"))
   (save-excursion
     (beginning-of-line 1)
-    (if (looking-at (org-re ".*[ \t]\\(:[[:alnum:]_@:]+:\\)[ \t]*\\(\r\\|$\\)"))
+    (if (looking-at (org-re ".*[ \t]\\(:[[:alnum:]_@:]+:\\)[ \t]*$"))
 	(org-match-string-no-properties 1)
       "")))
 
@@ -13393,6 +13415,32 @@ but in some other way.")
 (defconst org-property-end-re "^[ \t]*:END:[ \t]*$"
   "Regular expression matching the first line of a property drawer.")
 
+(defun org-property-action ()
+  "Do an action on properties."
+  (interactive)
+  (let (c prop)
+    (org-at-property-p)
+    (setq prop (match-string 2))
+    (message "Property Action:  [s]et  [d]elete  [D]delete globally")
+    (setq c (read-char-exclusive))
+    (cond
+     ((equal c ?s)
+      (call-interactively 'org-set-property))
+     ((equal c ?d)
+      (call-interactively 'org-delete-property))
+     ((equal c ?D)
+      (call-interactively 'org-delete-property-globally))
+     (t (error "No such property action %c" c)))))
+
+(defun org-at-property-p ()
+  "Is the cursor in a property line?"
+  ;; FIXME: Does not check if we are actually in the drawer.
+  ;; FIXME: also returns true on any drawers.....
+  ;; This is used by C-c C-c for property action.
+  (save-excursion
+    (beginning-of-line 1)
+    (looking-at "^[ \t]*\\(:\\([a-zA-Z_0-9]+\\):\\)[ \t]*\\(.*\\)")))
+
 (defmacro org-with-point-at (pom &rest body)
   "Move to buffer and point of point-or-marker POM for the duration of BODY."
   (declare (indent 1) (debug t))
@@ -13406,7 +13454,7 @@ but in some other way.")
   "Return the (beg . end) range of the body of the property drawer.
 BEG and END can be beginning and end of subtree, if not given
 they will be found.
-If the drawer does not exist and FORCE is non-nil, greater the drawer."
+If the drawer does not exist and FORCE is non-nil, create the drawer."
   (catch 'exit
     (save-excursion
       (let* ((beg (or beg (progn (org-back-to-heading t) (point))))
@@ -13414,18 +13462,14 @@ If the drawer does not exist and FORCE is non-nil, greater the drawer."
 	(goto-char beg)
 	(if (re-search-forward org-property-start-re end t)
 	    (setq beg (1+ (match-end 0)))
-	  (or force (throw 'exit nil))
-	  (beginning-of-line 2)
-	  (while (and (looking-at (concat "[ \t]*" org-keyword-time-regexp))
-		      (not (equal (match-string 1) org-clock-string)))
-	    (beginning-of-line 2))
-	  (insert ":PROPERTIES:\n:END:\n")
-	  (beginning-of-line -1)
-	  (org-indent-line-function)
-	  (setq beg (1+ (point-at-eol)) end beg)
-	  (beginning-of-line 2)
-	  (org-indent-line-function)
-	  (throw 'exit (cons beg end)))
+	  (if force
+	      (save-excursion
+		(org-insert-property-drawer)
+		(setq end (progn (outline-next-heading) (point))))
+	    (throw 'exit nil))
+	  (goto-char beg)
+	  (if (re-search-forward org-property-start-re end t)
+	      (setq beg (1+ (match-end 0)))))
 	(if (re-search-forward org-property-end-re end t)
 	    (setq end (match-beginning 0))
 	  (or force (throw 'exit nil))
@@ -13448,10 +13492,11 @@ If WHICH is nil or `all', get all properties.  If WHICH is
   (org-with-point-at pom
     (let ((clockstr (substring org-clock-string 0 -1))
 	  (excluded '("TODO" "TAGS" "ALLTAGS" "PRIORITY"))
-	  beg end range props key value)
+	  beg end range props sum-props key value)
       (save-excursion
 	(when (condition-case nil (org-back-to-heading t) (error nil))
 	  (setq beg (point))
+	  (setq sum-props (get-text-property (point) 'org-summaries))
 	  (outline-next-heading)
 	  (setq end (point))
 	  (when (memq which '(all special))
@@ -13483,18 +13528,20 @@ If WHICH is nil or `all', get all properties.  If WHICH is
 	    (when range
 	      (goto-char (car range))
 	      (while (re-search-forward
-		      "^[ \t]*:\\([a-zA-Z][a-zA-Z0-9]*\\):[ \t]*\\(\\S-.*\\S-\\)"
+		      "^[ \t]*:\\([a-zA-Z][a-zA-Z_0-9]*\\):[ \t]*\\(\\S-.*\\)?"
 		      (cdr range) t)
 		(setq key (org-match-string-no-properties 1)
-		      value (org-match-string-no-properties 2))
+		      value (org-trim (or (org-match-string-no-properties 2) "")))
 		(unless (member key excluded)
-		  (push (cons key value) props)))))
-	  (nreverse props))))))
+		  (push (cons key (or value "")) props)))))
+	  (append sum-props (nreverse props)))))))
   
 (defun org-entry-get (pom property &optional inherit)
   "Get value of PROPERTY for entry at point-or-marker POM.
 If INHERIT is non-nil and the entry does not have the property,
-then also check higher levels of the hierarchy."
+then also check higher levels of the hierarchy.
+If the property is present but empty, the return value is the empty string.
+If the property is not present at all, nil is returned."
   (org-with-point-at pom
     (if inherit
 	(org-entry-get-with-inheritance property)
@@ -13505,10 +13552,12 @@ then also check higher levels of the hierarchy."
 	  (if (and range
 		   (goto-char (car range))
 		   (re-search-forward
-		    (concat "^[ \t]*:" property ":[ \t]*\\(.*\\S-\\)")
+		    (concat "^[ \t]*:" property ":[ \t]*\\(.*\\S-\\)?")
 		    (cdr range) t))
 	      ;; Found the property, return it.
-	      (org-match-string-no-properties 1)))))))
+	      (if (match-end 1)
+		  (org-match-string-no-properties 1)
+		"")))))))
 
 (defun org-entry-delete (pom property)
   "Delete the property PROPERTY from entry at point-or-marker POM."
@@ -13521,7 +13570,10 @@ then also check higher levels of the hierarchy."
 		 (re-search-forward
 		  (concat "^[ \t]*:" property ":[ \t]*\\(.*\\S-\\)")
 		  (cdr range) t))
-	    (delete-region (match-beginning 0) (1+ (point-at-eol))))))))
+	    (progn
+	      (delete-region (match-beginning 0) (1+ (point-at-eol)))
+	      t)
+	  nil)))))
 
 (defvar org-entry-property-inherited-from (make-marker))
 
@@ -13575,7 +13627,8 @@ then also check higher levels of the hierarchy."
 	  (backward-char 1)
 	  (org-indent-line-function)
 	  (insert ":" property ":"))
-	(and value (insert " " value)))))))
+	(and value (insert " " value))
+	(org-indent-line-function))))))
 
 (defun org-buffer-property-keys (&optional include-specials)
   "Get all property keys in the current buffer."
@@ -13594,56 +13647,195 @@ then also check higher levels of the hierarchy."
       (setq rtn (append org-special-properties rtn)))
     (sort rtn (lambda (a b) (string< (upcase a) (upcase b))))))
 
-;; FIXME:  This should automatically find the right place int he entry.
-;; And then org-entry-put should use it.
 (defun org-insert-property-drawer ()
-  "Insert a property drawer at point."
+  "Insert a property drawer into the current entry."
   (interactive)
-  (beginning-of-line 1)
-  (insert ":PROPERTIES:\n:END:\n")
-  (beginning-of-line -1)
-  (org-indent-line-function)
-  (beginning-of-line 2)
-  (org-indent-line-function)
-  (end-of-line 0))
+  (org-back-to-heading t)
+  (let ((beg (point))
+	(re (concat "^[ \t]*" org-keyword-time-regexp))
+	end hiddenp)
+    (outline-next-heading)
+    (setq end (point))
+    (goto-char beg)
+    (while (re-search-forward re end t))
+    (setq hiddenp (org-invisible-p))
+    (end-of-line 1)
+    (insert "\n:PROPERTIES:\n:END:")
+    (beginning-of-line 0)
+    (org-indent-line-function)
+    (beginning-of-line 2)
+    (org-indent-line-function)
+    (beginning-of-line 0)
+    (if hiddenp
+	(save-excursion
+	  (org-back-to-heading t)
+	  (hide-entry))
+      (org-flag-drawer t))))
 
-(defvar org-column-overlays nil
+(defun org-set-property (property value)
+  "In the current entry, set PROPERTY to VALUE."
+  (interactive
+   (let* ((prop	(completing-read "Property: " 
+				 (mapcar 'list (org-buffer-property-keys))))
+	  (cur (org-entry-get nil prop))
+	  (allowed (org-property-get-allowed-values nil prop 'table))
+	  (val (if allowed
+		   (completing-read "Value: " allowed nil 'req-match)
+		 (read-string
+		  (concat "Value" (if (and cur (string-match "\\S-" cur))
+				      (concat "[" cur "]") "")
+			  ": ")
+		  "" cur))))
+     (list prop (if (equal val "") cur val))))
+  (unless (equal (org-entry-get nil property) value)
+    (org-entry-put nil property value)))
+
+(defun org-delete-property (property)
+  "In the current entry, delete PROPERTY."
+  (interactive
+   (let* ((prop (completing-read
+		 "Property: " (org-entry-properties nil 'standard))))
+     (list prop)))
+  (message (concat "Property " property 
+		   (if (org-entry-delete nil property)
+		       " deleted"
+		     " was not present in the entry"))))
+
+(defun org-delete-property-globally (property)
+  "Remove PROPERTY globally, from all entries."
+  (interactive
+   (let* ((prop (completing-read
+		 "Globally remove property: " 
+		 (mapcar 'list (org-buffer-property-keys)))))
+     (list prop)))
+  (save-excursion
+    (save-restriction
+      (widen)
+      (goto-char (point-min))
+      (let ((cnt 0))
+	(while (re-search-forward
+		(concat "^[ \t]*:" (regexp-quote property) ":.*\n?")
+		nil t)
+	  (setq cnt (1+ cnt))
+	  (replace-match ""))
+	(message "Property \"%s\" removed from %d entries" property cnt)))))
+
+(defun org-property-get-allowed-values (pom property &optional table)
+  "Get allowed values for the property PROPERTY.
+When TABLE is non-nil, return an alist that can directly be used for
+completion."
+  (let (vals)
+    (cond
+     ((equal property "TODO")
+      (setq vals (org-with-point-at pom 
+		   (append org-todo-keywords-1 '("")))))
+     ((equal property "PRIORITY")
+      (let ((n org-lowest-priority))
+	(while (>= n org-highest-priority)
+	  (push (char-to-string n) vals)
+	  (setq n (1- n)))))
+     ((member property org-special-properties))
+     (t
+      (setq vals (org-entry-get pom (concat property "_ALL") 'inherit))
+      (when (and vals (string-match "\\S-" vals))
+	(setq vals (car (read-from-string (concat "(" vals ")"))))
+	(setq vals (mapcar (lambda (x)
+			     (cond ((stringp x) x)
+				   ((numberp x) (number-to-string x))
+				   ((symbolp x) (symbol-name x))
+				   (t "???")))
+			   vals)))))
+    (if table (mapcar 'list vals) vals)))
+
+;;; Column View
+
+(defvar org-columns-overlays nil
   "Holds the list of current column overlays.")
 
-(defvar org-current-columns-fmt nil
-  "Loval variable, holds the currently active column format.")
-(defvar org-current-columns-maxwidths nil
+(defvar org-columns-current-fmt nil
+  "Local variable, holds the currently active column format.")
+(defvar org-columns-current-fmt-compiled nil
+  "Local variable, holds the currently active column format.
+This is the compiled version of the format.")
+(defvar org-columns-current-maxwidths nil
   "Loval variable, holds the currently active maximum column widths.")
+(defvar org-columns-begin-marker (make-marker)
+  "Points to the position where last a column creation command was called.")
+(defvar org-columns-top-level-marker (make-marker)
+  "Points to the position where current columns region starts.")
 
-(defvar org-column-map (make-sparse-keymap)
+(defvar org-columns-map (make-sparse-keymap)
   "The keymap valid in column display.")
 
-(define-key org-column-map "e" 'org-column-edit)
-(define-key org-column-map "v" 'org-column-show-value)
-(define-key org-column-map "q" 'org-column-quit)
-(define-key org-column-map [left] 'backward-char)
-(define-key org-column-map [right] 'forward-char)
+(defun org-columns-content ()
+  "Switch to contents view while in columns view."
+  (interactive)
+  (org-overview)
+  (org-content))
 
-(easy-menu-define org-column-menu org-column-map "Org Column Menu"
+(org-defkey org-columns-map "c" 'org-columns-content)
+(org-defkey org-columns-map "o" 'org-overview)
+(org-defkey org-columns-map "e" 'org-columns-edit-value)
+(org-defkey org-columns-map "v" 'org-columns-show-value)
+(org-defkey org-columns-map "q" 'org-columns-quit)
+(org-defkey org-columns-map "r" 'org-columns-redo)
+(org-defkey org-columns-map [left] 'backward-char)
+(org-defkey org-columns-map "a" 'org-columns-edit-allowed)
+(org-defkey org-columns-map "s" 'org-columns-edit-attributes)
+(org-defkey org-columns-map [right] 'forward-char)
+(org-defkey org-columns-map [(shift right)] 'org-columns-next-allowed-value)
+(org-defkey org-columns-map "\C-c\C-c" 'org-columns-next-allowed-value)
+(org-defkey org-columns-map "n" 'org-columns-next-allowed-value)
+(org-defkey org-columns-map [(shift left)] 'org-columns-previous-allowed-value)
+(org-defkey org-columns-map "p" 'org-columns-previous-allowed-value)
+(org-defkey org-columns-map "<" 'org-columns-narrow)
+(org-defkey org-columns-map ">" 'org-columns-widen)
+(org-defkey org-columns-map [(meta right)] 'org-columns-move-right)
+(org-defkey org-columns-map [(meta left)] 'org-columns-move-left)
+(org-defkey org-columns-map [(shift meta right)] 'org-columns-new)
+(org-defkey org-columns-map [(shift meta left)] 'org-columns-delete)
+
+(easy-menu-define org-columns-menu org-columns-map "Org Column Menu"
   '("Column"
-    ["Edit property" org-column-edit t]
-    ["Show full value" org-column-show-value t]
-    ["Quit" org-column-quit t]))
+    ["Edit property" org-columns-edit-value t]
+    ["Next allowed value" org-columns-next-allowed-value t]
+    ["Previous allowed value" org-columns-previous-allowed-value t]
+    ["Show full value" org-columns-show-value t]
+    ["Edit allowed" org-columns-edit-allowed t]
+    "--"
+    ["Edit column attributes" org-columns-edit-attributes t]
+    ["Increase column width" org-columns-widen t]
+    ["Decrease column width" org-columns-narrow t]
+    "--"
+    ["Move column right" org-columns-move-right t]
+    ["Move column left" org-columns-move-left t]
+    ["Add column" org-columns-new t]
+    ["Delete column" org-columns-delete t]
+    "--"
+    ["CONTENTS" org-columns-content t]
+    ["OVERVIEW" org-overview t]
+    ["Refresh columns display" org-columns-redo t]
+    "--"
+    ["Quit" org-columns-quit t]))
 
-(defun org-new-column-overlay (beg end &optional string face)
-  "Create a new column overlay an add it to the list."
+(defun org-columns-new-overlay (beg end &optional string face)
+  "Create a new column overlay and add it to the list."
   (let ((ov (org-make-overlay beg end)))
     (org-overlay-put ov 'face (or face 'secondary-selection))
     (org-overlay-display ov string face)
-    (push ov org-column-overlays)
+    (push ov org-columns-overlays)
     ov))
 
-(defun org-overlay-columns (&optional props)
+(defun org-columns-display-here (&optional props)
   "Overlay the current line with column display."
   (interactive)
-  (let ((fmt (copy-sequence org-current-columns-fmt))
-	(beg (point-at-bol))
-	(start 0) props pom property ass width f string ov)
+  (let* ((fmt org-columns-current-fmt-compiled)
+	 (beg (point-at-bol))
+	 (color (list :foreground 
+		      (face-attribute
+		       (or (get-text-property beg 'face) 'default)
+		       :foreground)))
+	 props pom property ass width f string ov column)
     ;; Check if the entry is in another buffer.
     (unless props
       (if (eq major-mode 'org-agenda-mode)
@@ -13651,11 +13843,9 @@ then also check higher levels of the hierarchy."
 			(get-text-property (point) 'org-marker))
 		props (if pom (org-entry-properties pom) nil))
 	(setq props (org-entry-properties nil))))
-    ;; Parse the format
-    (while (string-match "%\\([0-9]+\\)?\\([a-zA-Z0-9]+\\)\\-*"
-			 fmt start)
-      (setq start (match-end 0)
-	    property (match-string 2 fmt)
+    ;; Walk the format
+    (while (setq column (pop fmt))
+      (setq property (car column)
 	    ass (if (equal property "ITEM")
 		    (cons "ITEM"
 			  (save-match-data
@@ -13664,17 +13854,21 @@ then also check higher levels of the hierarchy."
 			      (buffer-substring-no-properties
 			       (point-at-bol) (point-at-eol))))))
 		  (assoc property props))
-	    width (or (cdr (assoc property org-current-columns-maxwidths))
-		      (string-to-number (or (match-string 1 fmt) "10")))
+	    width (or (cdr (assoc property org-columns-current-maxwidths))
+		      (nth 2 column))
 	    f (format "%%-%d.%ds | " width width)
 	    string (format f (or (cdr ass) "")))
       ;; Create the overlay
       (org-unmodified
-       (setq ov (org-new-column-overlay
-		 beg (setq beg (1+ beg)) string 'org-column))
-       (org-overlay-put ov 'keymap org-column-map)
-       (org-overlay-put ov 'org-column-key property)
-       (org-overlay-put ov 'org-column-value (cdr ass)))
+       (setq ov (org-columns-new-overlay
+		 beg (setq beg (1+ beg)) string
+		 (list color 'org-column)))
+;;;       (list (get-text-property (point-at-bol) 'face) 'org-column)))
+       (org-overlay-put ov 'keymap org-columns-map)
+       (org-overlay-put ov 'org-columns-key property)
+       (org-overlay-put ov 'org-columns-value (cdr ass))
+       (org-overlay-put ov 'org-columns-pom pom)
+       (org-overlay-put ov 'org-columns-format f))
       (if (or (not (char-after beg))
 	      (equal (char-after beg) ?\n))
 	  (let ((inhibit-read-only t))
@@ -13682,64 +13876,72 @@ then also check higher levels of the hierarchy."
 	      (goto-char beg)
 	      (insert " ")))))
     ;; Make the rest of the line disappear.
-    ;; FIXME: put the keymap also at the end of the line!
     (org-unmodified
-     (setq ov (org-new-column-overlay beg (point-at-eol)))
+     (setq ov (org-columns-new-overlay beg (point-at-eol)))
      (org-overlay-put ov 'invisible t)
-     (org-overlay-put ov 'keymap 'org-column-map)
-     (push ov org-column-overlays)
+     (org-overlay-put ov 'keymap org-columns-map)
+     (push ov org-columns-overlays)
      (setq ov (org-make-overlay (1- (point-at-eol)) (1+ (point-at-eol))))
-     (org-overlay-put ov 'keymap 'org-column-map)
-     (push ov org-column-overlays)
+     (org-overlay-put ov 'keymap org-columns-map)
+     (push ov org-columns-overlays)
      (let ((inhibit-read-only t))
        (put-text-property (1- (point-at-bol)) 
 			  (min (point-max) (1+ (point-at-eol)))
 			  'read-only "Type `e' to edit property")))))
 
-(defun org-overlay-columns-title ()
+(defvar org-previous-header-line-format nil
+  "The header line format before column view was turned on.")
+(defvar org-columns-inhibit-recalculation nil
+  "Inhibit recomputing of columns on column view startup.")
+
+(defvar header-line-format)
+(defun org-columns-display-here-title ()
   "Overlay the newline before the current line with the table title."
   (interactive)
-  (let ((fmt (copy-sequence org-current-columns-fmt))
-	(start 0)
+  (let ((fmt org-columns-current-fmt-compiled)
 	string (title "")
-	property width f ov)
-    (while (string-match "%\\([0-9]+\\)?\\([a-zA-Z0-9]+\\)\\-*"
-			 fmt start)
-      (setq start (match-end 0)
-	    property (match-string 2 fmt)
-	    width (or (cdr (assoc property org-current-columns-maxwidths))
-		      (string-to-number (or (match-string 1 fmt) "10")))
+	property width f column str)
+    (while (setq column (pop fmt))
+      (setq property (car column)
+	    str (or (nth 1 column) property)
+	    width (or (cdr (assoc property org-columns-current-maxwidths))
+		      (nth 2 column))
 	    f (format "%%-%d.%ds | " width width)
-	    string (format f property)
+	    string (format f str)
 	    title (concat title string)))
-      (org-unmodified
-       (setq ov (org-new-column-overlay
-		 (1- (point-at-bol)) (point-at-bol)
-		 (concat "\n" (make-string (length title) ?-) "\n"
-			 title "\n" (make-string (length title) ?-) "\n")
-		 'bold))
-       (org-overlay-put ov 'keymap org-column-map))))
+    (setq title (concat
+		 (org-add-props " " nil 'display '(space :align-to 0))
+		 (org-add-props title nil 'face '(:weight bold :underline t))))
+    (org-set-local 'org-previous-header-line-format header-line-format)
+    (setq header-line-format title)))
 
-(defun org-remove-column-overlays ()
+(defun org-columns-remove-overlays ()
   "Remove all currently active column overlays."
   (interactive)
-  (org-unmodified
-   (mapc 'org-delete-overlay org-column-overlays)
-   (setq org-column-overlays nil)
-   (let ((inhibit-read-only t))
-     (remove-text-properties (point-min) (point-max) '(read-only t)))))
+  (when (marker-buffer org-columns-begin-marker)
+    (with-current-buffer (marker-buffer org-columns-begin-marker)
+      (when (local-variable-p 'org-previous-header-line-format)
+	(setq header-line-format org-previous-header-line-format)
+	(kill-local-variable 'org-previous-header-line-format))
+      (move-marker org-columns-begin-marker nil)
+      (move-marker org-columns-top-level-marker nil)
+      (org-unmodified
+       (mapc 'org-delete-overlay org-columns-overlays)
+       (setq org-columns-overlays nil)
+       (let ((inhibit-read-only t))
+	 (remove-text-properties (point-min) (point-max) '(read-only t)))))))
 
-(defun org-column-show-value ()
+(defun org-columns-show-value ()
   "Show the full value of the property."
   (interactive)
-  (let ((value (get-char-property (point) 'org-column-value)))
+  (let ((value (get-char-property (point) 'org-columns-value)))
     (message "Value is: %s" (or value ""))))
 
-(defun org-column-quit ()
+(defun org-columns-quit ()
   "Remove the column overlays and in this way exit column editing."
   (interactive)
   (org-unmodified
-   (org-remove-column-overlays)
+   (org-columns-remove-overlays)
    (let ((inhibit-read-only t))
      ;; FIXME: is this safe???
      ;; or are there other reasons why there may be a read-only property????
@@ -13747,13 +13949,13 @@ then also check higher levels of the hierarchy."
   (when (eq major-mode 'org-agenda-mode)
     (message "Modification not yet reflected in Agenda buffer, use `r' to refresh")))
 
-(defun org-column-edit ()
+(defun org-columns-edit-value ()
   "Edit the value of the property at point in column view.
 Where possible, use the standard interface for changing this line."
   (interactive)
   (let* ((col (current-column))
-	 (key (get-char-property (point) 'org-column-key))
-	 (value (get-char-property (point) 'org-column-value))
+	 (key (get-char-property (point) 'org-columns-key))
+	 (value (get-char-property (point) 'org-columns-value))
 	 (bol (point-at-bol)) (eol (point-at-eol))
 	 (pom (or (get-text-property bol 'org-hd-marker)
 		  (point))) ; keep despite of compiler waring
@@ -13763,8 +13965,8 @@ Where possible, use the standard interface for changing this line."
 				   (>= (overlay-start x) bol)
 				   (<= (overlay-start x) eol)
 				   x))
-			    org-column-overlays)))
-	 nval eval)
+			    org-columns-overlays)))
+	 nval eval allowed)
     (when (equal key "ITEM")
       (error "Cannot edit item headline from here"))
     
@@ -13788,7 +13990,10 @@ Where possible, use the standard interface for changing this line."
       (setq eval '(org-with-point-at pom
 		    (call-interactively 'org-deadline))))
      (t
-      (setq nval (read-string "Edit: " value))
+      (setq allowed (org-property-get-allowed-values pom key 'table))
+      (if allowed
+	  (setq nval (completing-read "Value: " allowed nil t))
+	(setq nval (read-string "Edit: " value)))
       (setq nval (org-trim nval))
       (when (not (equal nval value))
 	(setq eval '(org-entry-put pom key nval)))))
@@ -13797,67 +14002,272 @@ Where possible, use the standard interface for changing this line."
 	(remove-text-properties (1- bol) eol '(read-only t))
 	(unwind-protect
 	    (progn
-	      (setq org-column-overlays 
-		    (org-delete-all line-overlays org-column-overlays))
+	      (setq org-columns-overlays 
+		    (org-delete-all line-overlays org-columns-overlays))
 	      (mapc 'org-delete-overlay line-overlays)
-	      (eval eval))
-	  (org-overlay-columns))))
-    (move-to-column col)))
+	      (org-columns-eval eval))
+	  (org-columns-display-here))))
+    (move-to-column col)
+    (if (nth 3 (assoc key org-columns-current-fmt-compiled))
+	(org-columns-update key))))
+
+(defun org-columns-edit-allowed ()
+  "Edit the list of allowed values for the current property."
+  (interactive)
+  (let* ((col (current-column))
+	 (key (get-char-property (point) 'org-columns-key))
+	 (key1 (concat key "_ALL"))
+	 (value (get-char-property (point) 'org-columns-value))
+	 (allowed (org-entry-get (point) key1 t))
+	 nval)
+    (setq nval (read-string "Allowed: " allowed))
+    (org-entry-put 
+     (cond ((marker-position org-entry-property-inherited-from)
+	    org-entry-property-inherited-from)
+	   ((marker-position org-columns-top-level-marker)
+	    org-columns-top-level-marker))
+     key1 nval)))
+
+(defun org-columns-eval (form)
+  (let (hidep)
+    (save-excursion
+      (beginning-of-line 1)
+      (next-line 1)
+      (setq hidep (org-on-heading-p 1)))
+    (eval form)
+    (and hidep (hide-entry))))
+
+(defun org-columns-previous-allowed-value ()
+  "Switch to the previous allowed value for this column."
+  (interactive)
+  (org-columns-next-allowed-value t))
+
+(defun org-columns-next-allowed-value (&optional previous)
+  "Switch to the next allowed value for this column."
+  (interactive)
+  (let* ((col (current-column))
+	 (key (get-char-property (point) 'org-columns-key))
+	 (value (get-char-property (point) 'org-columns-value))
+	 (bol (point-at-bol)) (eol (point-at-eol))
+	 (pom (or (get-text-property bol 'org-hd-marker)
+		  (point))) ; keep despite of compiler waring
+	 (line-overlays
+	  (delq nil (mapcar (lambda (x)
+			      (and (eq (overlay-buffer x) (current-buffer))
+				   (>= (overlay-start x) bol)
+				   (<= (overlay-start x) eol)
+				   x))
+			    org-columns-overlays)))
+	 (allowed (or (org-property-get-allowed-values pom key)
+		      (and (equal
+			    (nth 4 (assoc key org-columns-current-fmt-compiled))
+			    'checkbox) '("[ ]" "[X]"))))
+	 nval)
+    (when (equal key "ITEM")
+      (error "Cannot edit item headline from here"))
+    (unless allowed
+      (error "Allowed values for this property have not been defined"))
+    (if previous (setq allowed (reverse allowed)))
+    (if (member value allowed)
+	(setq nval (car (cdr (member value allowed)))))
+    (setq nval (or nval (car allowed)))
+    (if (equal nval value)
+	(error "Only one allowed value for this property"))
+    (let ((inhibit-read-only t))
+      (remove-text-properties (1- bol) eol '(read-only t))
+      (unwind-protect
+	  (progn
+	    (setq org-columns-overlays 
+		  (org-delete-all line-overlays org-columns-overlays))
+	    (mapc 'org-delete-overlay line-overlays)
+	    (org-columns-eval '(org-entry-put pom key nval)))
+	(org-columns-display-here)))
+    (move-to-column col)
+    (if (nth 3 (assoc key org-columns-current-fmt-compiled))
+	(org-columns-update key))))
+
+(defun org-verify-version (task)
+  (cond
+   ((eq task 'columns)
+    (if (or (featurep 'xemacs)
+	    (< emacs-major-version 22))
+	(error "Emacs 22 is required for the columns feature")))))
 
 (defun org-columns ()
   "Turn on column view on an org-mode file."
   (interactive)
-  (org-remove-column-overlays)
+  (org-verify-version 'columns)
+  (org-columns-remove-overlays)
+  (move-marker org-columns-begin-marker (point))
   (let (beg end fmt cache maxwidths)
-    (move-marker org-entry-property-inherited-from nil)
-    (setq fmt (org-entry-get nil "COLUMNS" t))
-    (unless fmt
-      (message "No local columns format defined, using default"))
-    (org-set-local 'org-current-columns-fmt (or fmt org-default-columns-format))
-    (org-back-to-heading)
+    (when (condition-case nil (org-back-to-heading) (error nil))
+      (move-marker org-entry-property-inherited-from nil)
+      (setq fmt (org-entry-get nil "COLUMNS" t)))
+    (setq fmt (or fmt org-columns-default-format))
+    (org-set-local 'org-columns-current-fmt fmt)
+    (org-columns-compile-format fmt)
     (save-excursion
       (if (marker-position org-entry-property-inherited-from)
 	  (goto-char org-entry-property-inherited-from))
-      (setq beg (point)
-	    end (org-end-of-subtree t t))
+      (setq beg (point))
+      (move-marker org-columns-top-level-marker (point))
+      (unless org-columns-inhibit-recalculation
+	(org-columns-compute-all))
+      (setq end (or (condition-case nil (org-end-of-subtree t t) (error nil))
+		    (point-max)))
       (goto-char beg)
       ;; Get and cache the properties
       (while (re-search-forward (concat "^" outline-regexp) end t)
 	(push (cons (org-current-line) (org-entry-properties)) cache))
       (when cache
-	(setq maxwidths (org-get-columns-autowidth-alist fmt cache))
-	(org-set-local 'org-current-columns-maxwidths maxwidths)
+	(setq maxwidths (org-columns-get-autowidth-alist fmt cache))
+	(org-set-local 'org-columns-current-maxwidths maxwidths)
 	(goto-line (car (org-last cache)))
-	(org-overlay-columns-title)
+	(org-columns-display-here-title)
 	(mapc (lambda (x)
 		(goto-line (car x))
-		(org-overlay-columns (cdr x)))
+		(org-columns-display-here (cdr x)))
 	      cache)))))
 
+(defun org-columns-new (&optional prop title width op fmt)
+  "Insert a new column, to the leeft o the current column."
+  (interactive)
+  (let ((editp (and prop (assoc prop org-columns-current-fmt-compiled)))
+	cell)
+    (setq prop (completing-read
+		"Property: " (mapcar 'list (org-buffer-property-keys t))
+		nil nil prop))
+    (setq title (read-string (concat "Column title [" prop "]: ") (or title prop)))
+    (setq width (read-string "Column width: " (if width (number-to-string width))))
+    (if (string-match "\\S-" width)
+	(setq width (string-to-number width))
+      (setq width nil))
+    (setq fmt (completing-read "Summary [none]: "
+			       '(("none") ("add_numbers") ("add_times") ("checkbox"))
+			       nil t))
+    (if (string-match "\\S-" fmt)
+	(setq fmt (intern fmt))
+      (setq fmt nil))
+    (if (eq fmt 'none) (setq fmt nil))
+    (if editp
+	(progn
+	  (setcar editp prop)
+	  (setcdr editp (list title width nil fmt)))
+      (setq cell (nthcdr (1- (current-column))
+			 org-columns-current-fmt-compiled))
+      (setcdr cell (cons (list prop title width nil fmt)
+			 (cdr cell))))
+    (org-columns-store-format)
+    (org-columns-redo)))
+
+(defun org-columns-delete ()
+  "Delete the column at point from columns view."
+  (interactive)
+  (let* ((n (current-column))
+	 (title (nth 1 (nth n org-columns-current-fmt-compiled))))
+    (when (y-or-n-p
+	   (format "Are you sure you want to remove column \"%s\"? " title))
+      (setq org-columns-current-fmt-compiled
+	    (delq (nth n org-columns-current-fmt-compiled)
+		  org-columns-current-fmt-compiled))
+      (org-columns-store-format)
+      (org-columns-redo)
+      (if (>= (current-column) (length org-columns-current-fmt-compiled))
+	  (backward-char 1)))))
+
+(defun org-columns-edit-attributes ()
+  "Edit the attributes of the current column."
+  (interactive)
+  (let* ((n (current-column))
+	 (info (nth n org-columns-current-fmt-compiled)))
+    (apply 'org-columns-new info)))
+
+(defun org-columns-widen (arg)
+  "Make the column wider by ARG characters."
+  (interactive "p")
+  (let* ((n (current-column))
+	 (entry (nth n org-columns-current-fmt-compiled))
+	 (width (or (nth 2 entry)
+		    (cdr (assoc (car entry) org-columns-current-maxwidths)))))
+    (setq width (max 1 (+ width arg)))
+    (setcar (nthcdr 2 entry) width)
+    (org-columns-store-format)
+    (org-columns-redo)))
+
+(defun org-columns-narrow (arg)
+  "Make the column nrrower by ARG characters."
+  (interactive "p")
+  (org-columns-widen (- arg)))
+
+(defun org-columns-move-right ()
+  "Swap this column with the one to the right."
+  (interactive)
+  (let* ((n (current-column))
+	 (cell (nthcdr n org-columns-current-fmt-compiled))
+	 e)
+    (when (>= n (1- (length org-columns-current-fmt-compiled)))
+      (error "Cannot shift this column further to the right"))
+    (setq e (car cell))
+    (setcar cell (car (cdr cell)))
+    (setcdr cell (cons e (cdr (cdr cell))))
+    (org-columns-store-format)
+    (org-columns-redo)
+    (forward-char 1)))
+
+(defun org-columns-move-left ()
+  "Swap this column with the one to the left."
+  (interactive)
+  (let* ((n (current-column)))
+    (when (= n 0)
+      (error "Cannot shift this column further to the left"))
+    (backward-char 1)
+    (org-columns-move-right)
+    (backward-char 1)))    
+
+(defun org-columns-store-format ()
+  "Store the text version of the current columns format in appropriate place.
+This is either in the COLUMNS property of the node starting the current column
+display, or in the #+COLUMNS line of the current buffer."
+  (let (fmt)
+    (setq fmt (org-columns-uncompile-format org-columns-current-fmt-compiled))
+    (if (marker-position org-columns-top-level-marker)
+	(save-excursion
+	  (goto-char org-columns-top-level-marker)
+	  (if (org-entry-get nil "COLUMNS")
+	      (org-entry-put nil "COLUMNS" fmt)
+	    (goto-char (point-min))
+	    (while (re-search-forward "^#\\+COLUMNS:.*" nil t)
+	      (replace-match (concat "#+COLUMNS: " fmt t t)))))
+      (setq org-columns-current-fmt fmt))))
+
 (defvar org-overriding-columns-format nil
-  "FIXME:")
+  "When set, overrides any other definition.")
 (defvar org-agenda-view-columns-initially nil
-  "FIXME:")
+  "When set, switch to columns view immediately after creating the agenda.")
 
 (defun org-agenda-columns ()
   "Turn on column view in the agenda."
   (interactive)
-  (let (fmt first-done cache maxwidths m)
+  (org-verify-version 'columns)
+  (org-columns-remove-overlays)
+  (move-marker org-columns-begin-marker (point))
+  (let (fmt cache maxwidths m)
     (cond
      ((and (local-variable-p 'org-overriding-columns-format)
 	   org-overriding-columns-format)
       (setq fmt org-overriding-columns-format))
      ((setq m (get-text-property (point-at-bol) 'org-hd-marker))
       (setq fmt (org-entry-get m "COLUMNS" t)))
-     ((and (boundp 'org-current-columns-fmt)
-	   (local-variable-p 'org-current-columns-fmt)
-	   org-current-columns-fmt)
-      (setq fmt org-current-columns-fmt))
+     ((and (boundp 'org-columns-current-fmt)
+	   (local-variable-p 'org-columns-current-fmt)
+	   org-columns-current-fmt)
+      (setq fmt org-columns-current-fmt))
      ((setq m (next-single-property-change (point-min) 'org-hd-marker))
       (setq m (get-text-property m 'org-hd-marker))
       (setq fmt (org-entry-get m "COLUMNS" t))))
-    (setq fmt (or fmt org-default-columns-format))
-    (org-set-local 'org-current-columns-fmt fmt)
+    (setq fmt (or fmt org-columns-default-format))
+    (org-set-local 'org-columns-current-fmt fmt)
+    (org-columns-compile-format fmt)
     (save-excursion
       ;; Get and cache the properties
       (goto-char (point-min))
@@ -13867,16 +14277,16 @@ Where possible, use the standard interface for changing this line."
 	  (push (cons (org-current-line) (org-entry-properties m)) cache))
 	(beginning-of-line 2))
       (when cache
-	(setq maxwidths (org-get-columns-autowidth-alist fmt cache))
-	(org-set-local 'org-current-columns-maxwidths maxwidths)
+	(setq maxwidths (org-columns-get-autowidth-alist fmt cache))
+	(org-set-local 'org-columns-current-maxwidths maxwidths)
 	(goto-line (car (org-last cache)))
-	(org-overlay-columns-title)
+	(org-columns-display-here-title)
 	(mapc (lambda (x)
 		(goto-line (car x))
-		(org-overlay-columns (cdr x)))
+		(org-columns-display-here (cdr x)))
 	      cache)))))
 
-(defun org-get-columns-autowidth-alist (s cache)
+(defun org-columns-get-autowidth-alist (s cache)
   "Derive the maximum column widths from the format and the cache."
   (let ((start 0) rtn)
     (while (string-match "%\\([a-zA-Z]\\S-*\\)" s start)
@@ -13891,6 +14301,167 @@ Where possible, use the standard interface for changing this line."
 	  rtn)
     rtn))
 
+(defun org-columns-compute-all ()
+  "Compute all columns that have operators defined."
+  (remove-text-properties (point-min) (point-max) '(org-summaries t))
+  (let ((columns org-columns-current-fmt-compiled) col)
+    (while (setq col (pop columns))
+      (when (nth 3 col)
+	(save-excursion
+	  (org-columns-compute (car col)))))))
+
+(defun org-columns-update (property)
+  "Recompute PROPERTY, and update the columns display for it."
+  (org-columns-compute property)
+  (let (fmt val pos)
+    (save-excursion
+      (mapc (lambda (ov)
+	      (when (equal (org-overlay-get ov 'org-columns-key) property)
+		(setq pos (org-overlay-start ov))
+		(goto-char pos)
+		(when (setq val (cdr (assoc property
+					    (get-text-property (point-at-bol) 'org-summaries))))
+		  (setq fmt (org-overlay-get ov 'org-columns-format))
+		  (org-overlay-put ov 'display (format fmt val)))))
+	    org-columns-overlays))))
+
+(defun org-columns-compute (property)
+  "Sum the values of property PROPERTY hierarchically, for the entire buffer."
+  (interactive)
+  (let* ((re (concat "^" outline-regexp))
+	 (lmax 30) ; Does anyone use deeper levels???
+	 (lsum (make-vector lmax 0))
+	 (level 0)
+	 (ass (assoc property org-columns-current-fmt-compiled))
+	 (format (nth 4 ass))
+	 (beg org-columns-top-level-marker)
+	 last-level val end sumpos sum-alist sum str)
+    (save-excursion
+      ;; Find the region to compute
+      (goto-char beg)
+      (setq end (condition-case nil (org-end-of-subtree t) (error (point-max))))
+      (goto-char end)
+      ;; Walk the tree from the back and do the computations
+      (while (re-search-backward re beg t)
+	(setq sumpos (match-beginning 0)
+	      last-level level
+	      level (org-outline-level)
+	      val (org-entry-get nil property))
+	(cond
+	 ((< level last-level)
+	  ;; put the sum of lower levels here as a property
+	  (setq sum (aref lsum last-level)
+		str (org-column-number-to-string sum format)
+		sum-alist (get-text-property sumpos 'org-summaries))
+	  (if (assoc property sum-alist)
+	      (setcdr (assoc property sum-alist) str)
+	    (push (cons property str) sum-alist)
+	    (add-text-properties sumpos (1+ sumpos)
+				 (list 'org-summaries sum-alist)))
+	  (when val
+	    (org-entry-put nil property str))
+	  ;; add current to current  level accumulator
+	  (aset lsum level (+ (aref lsum level) sum))
+	  ;; clear accumulators for deeper levels
+	  (loop for l from (1+ level) to (1- lmax) do (aset lsum l 0)))
+	 ((>= level last-level)
+	  ;; add what we have here to the accumulator for this level
+	  (aset lsum level (+ (aref lsum level)
+				(org-column-string-to-number (or val "0") format))))
+	 (t (error "This should not happen")))))))
+
+(defun org-columns-redo ()
+  "Construct the column display again."
+  (interactive)
+  (message "Recomputing columns...")
+  (save-excursion
+    (if (marker-position org-columns-begin-marker)
+	(goto-char org-columns-begin-marker))
+    (org-columns-remove-overlays)
+    (if (org-mode-p)
+	(call-interactively 'org-columns)
+      (call-interactively 'org-agenda-columns)))
+  (message "Recomputing columns...done"))
+
+(defun org-columns-not-in-agenda ()
+  (if (eq major-mode 'org-agenda-mode)
+      (error "This command is only allowed in Org-mode buffers")))
+
+
+(defun org-string-to-number (s)
+  "Convert string to number, and interpret hh:mm:ss."
+  (if (not (string-match ":" s))
+      (string-to-number s)
+    (let ((l (nreverse (org-split-string s ":"))) (sum 0.0))
+      (while l
+	(setq sum (+ (string-to-number (pop l)) (/ sum 60))))
+      sum)))
+
+(defun org-column-number-to-string (n fmt)
+  "Convert a computed column number to a string value, according to FMT."
+  (cond
+   ((eq fmt 'add_times)
+    (let* ((h (floor n)) (m (floor (+ 0.5 (* 60 (- n h))))))
+      (format "%d:%02d" h m)))
+   ((eq fmt 'checkbox)
+    (cond ((= n (floor n)) "[X]")
+	  ((> n 1.) "[-]")
+	  (t "[ ]")))
+   (t (number-to-string n))))
+
+(defun org-column-string-to-number (s fmt)
+  "Convert a column value to a number that can be used for column computing."
+  (cond
+   ((string-match ":" s)
+    (let ((l (nreverse (org-split-string s ":"))) (sum 0.0))
+      (while l
+	(setq sum (+ (string-to-number (pop l)) (/ sum 60))))
+      sum))
+   ((eq fmt 'checkbox)
+    (if (equal s "[X]") 1. 0.000001))
+   (t (string-to-number s))))
+
+(defun org-columns-uncompile-format (cfmt)
+  "Turn the compiled columns format back into a string representation."
+  (let ((rtn "") e s prop title op width fmt)
+    (while (setq e (pop cfmt))
+      (setq prop (car e)
+	    title (nth 1 e)
+	    width (nth 2 e)
+	    op (nth 3 e)
+	    fmt (nth 4 e))
+      (cond
+       ((eq fmt 'add_times) (setq op ":"))
+       ((eq fmt 'checkbox) (setq op "X"))
+       ((eq fmt 'add_numbers) (setq op "+")))
+      (if (equal title prop) (setq title nil))
+      (setq s (concat "%" (if width (number-to-string width))
+		      prop
+		      (if title (concat "(" title ")"))
+		      (if op (concat "{" op "}"))))
+      (setq rtn (concat rtn " " s)))
+    (org-trim rtn)))
+
+(defun org-columns-compile-format (fmt)
+  "FIXME"
+  (let ((start 0) width prop title op f)
+    (setq org-columns-current-fmt-compiled nil)
+    (while (string-match "%\\([0-9]+\\)?\\([a-zA-Z_0-9]+\\)\\(?:(\\([^)]+\\))\\)?\\(?:{\\([^}]+\\)}\\)?\\s-*"
+			 fmt start)
+      (setq start (match-end 0)
+	    width (match-string 1 fmt)
+	    prop (match-string 2 fmt)
+	    title (or (match-string 3 fmt) prop)
+	    op (match-string 4 fmt)
+	    f nil)
+      (if width (setq width (string-to-number width)))
+      (cond
+       ((equal op "+") (setq f 'add_numbers))
+       ((equal op ":") (setq f 'add_times))
+       ((equal op "X") (setq f 'checkbox)))
+      (push (list prop title width op f) org-columns-current-fmt-compiled))
+    (setq org-columns-current-fmt-compiled
+	  (nreverse org-columns-current-fmt-compiled))))
 
 ;;;; Timestamps
 
@@ -14084,7 +14655,7 @@ used to insert the time stamp into the buffer to include the time."
     ;; Help matching am/pm times, because `parse-time-string' does not do that.
     ;; If there is a time with am/pm, and *no* time without it, we convert
     ;; so that matching will be successful.
-    ;; FIXME: make this replace twoce, so that we catch the end time.
+    ;; FIXME: make this replace twice, so that we catch the end time.
     (when (and (not (string-match "[012]?[0-9]:[0-9][0-9]\\([ \t\n]\\|$\\)" ans))
 	       (string-match "\\([012]?[0-9]\\)\\(:\\([0-5][0-9]\\)\\)?\\(am\\|AM\\|pm\\|PM\\)\\>" ans))
       (setq hour (string-to-number (match-string 1 ans))
@@ -15308,8 +15879,7 @@ The following commands are available:
 (org-defkey org-agenda-mode-map [(right)] 'org-agenda-later)
 (org-defkey org-agenda-mode-map [(left)] 'org-agenda-earlier)
 (org-defkey org-agenda-mode-map "\C-c\C-x\C-c" 'org-agenda-columns)
-; FIXME: other key?  wtah about the menu???/
-;(org-defkey org-agenda-mode-map "\C-c\C-x\C-c" 'org-export-icalendar-combine-agenda-files)
+
 (defvar org-agenda-keymap (copy-keymap org-agenda-mode-map)
   "Local keymap for agenda entries from Org-mode.")
 
@@ -16555,7 +17125,6 @@ for a keyword.  A numeric prefix directly selects the Nth keyword in
 			     (mapcar 'list kwds) nil nil)))
     (and (equal 0 arg) (setq org-select-this-todo-keyword nil))
     (org-set-local 'org-last-arg arg)
-;FIXME    (org-set-local 'org-todo-keywords-for-agenda kwds)
     (setq org-agenda-redo-command
 	  '(org-todo-list (or current-prefix-arg org-last-arg)))
     (setq files (org-agenda-files)
@@ -16581,7 +17150,7 @@ for a keyword.  A numeric prefix directly selects the Nth keyword in
 	  (mapc (lambda (x)
 		  (setq s (format "(%d)%s" (setq n (1+ n)) x))
 		  (if (> (+ (current-column) (string-width s) 1) (frame-width))
-		      (insert "\n                    "))
+		      (insert "\n                     "))
 		  (insert " " s))
 		kwds))
 	(insert "\n"))
@@ -16705,8 +17274,8 @@ MATCH is being ignored."
 			  "\\)\\>"))
 	 (tags (nth 2 org-stuck-projects))
 	 (tags-re (if (member "*" tags)
-		      (org-re "^\\*+.*:[[:alnum:]_@]+:[ \t]*$")
-		    (concat "^\\*+.*:\\("
+		      (org-re "^\\*+ .*:[[:alnum:]_@]+:[ \t]*$")
+		    (concat "^\\*+ .*:\\("
 			    (mapconcat 'identity tags "\\|")
 			    (org-re "\\):[[:alnum:]_@:]*[ \t]*$"))))
 	 (gen-re (nth 3 org-stuck-projects))
@@ -16951,7 +17520,7 @@ the documentation of `org-diary'."
 (defun org-entry-is-done-p ()
   "Is the current entry marked DONE?"
   (save-excursion
-    (and (re-search-backward "[\r\n]\\*" nil t)
+    (and (re-search-backward "[\r\n]\\* " nil t)
 	 (looking-at org-nl-done-regexp))))
 
 (defun org-at-date-range-p (&optional inactive-ok)
@@ -16984,7 +17553,7 @@ the documentation of `org-diary'."
 		      (format "mouse-2 or RET jump to org file %s"
 			      (abbreviate-file-name buffer-file-name))))
 	 ;; FIXME: get rid of the \n at some point  but watch out
-	 (regexp (concat "[\n\r]\\*+ *\\("
+	 (regexp (concat "\n\\*+[ \t]+\\("
 			 (if org-select-this-todo-keyword
 			     (if (equal org-select-this-todo-keyword "*")
 				 org-todo-regexp
@@ -17093,12 +17662,12 @@ the documentation of `org-diary'."
 	    ;; substring should only run to end of time stamp
 	    (setq timestr (substring timestr 0 (match-end 0))))
 	(save-excursion
-	  (if (re-search-backward "\\(^\\|\r\\)\\*+" nil t)
+	  (if (re-search-backward "^\\*+ " nil t)
 	      (progn
-		(goto-char (match-end 1))
+		(goto-char (match-beginning 0))
 		(setq hdmarker (org-agenda-new-marker)
 		      tags (org-get-tags-at))
-		(looking-at "\\*+[ \t]*\\([^\r\n]+\\)")
+		(looking-at "\\*+[ \t]+\\([^\r\n]+\\)")
 		(setq txt (org-format-agenda-item
 			   (format "%s%s"
 				   (if deadlinep  "Deadline:  " "")
@@ -17202,12 +17771,12 @@ the documentation of `org-diary'."
 	    ;; substring should only run to end of time stamp
 	    (setq timestr (substring timestr 0 (match-end 0))))
 	(save-excursion
-	  (if (re-search-backward "\\(^\\|\r\\)\\*+" nil t)
+	  (if (re-search-backward "^\\*+ " nil t)
 	      (progn
-		(goto-char (match-end 1))
+		(goto-char (match-beginning 0))
 		(setq hdmarker (org-agenda-new-marker)
 		      tags (org-get-tags-at))
-		(looking-at "\\*+[ \t]*\\([^\r\n]+\\)")
+		(looking-at "\\*+[ \t]+\\([^\r\n]+\\)")
 		(setq txt (org-format-agenda-item
 			   (if closedp "Closed:    " "Clocked:   ")
 			   (match-string 1) category tags timestr)))
@@ -17252,10 +17821,10 @@ the documentation of `org-diary'."
 	(if (and (< diff wdays) todayp (not (= diff 0)))
 	    (save-excursion
 	      (setq category (org-get-category))
-	      (if (re-search-backward "\\(^\\|\r\\)\\*+[ \t]*" nil t)
+	      (if (re-search-backward "^\\*+[ \t]+" nil t)
 		  (progn
 		    (goto-char (match-end 0))
-		    (setq pos1 (match-end 1))
+		    (setq pos1 (match-beginning 0))
 		    (setq tags (org-get-tags-at pos1))
 		    (setq head (buffer-substring-no-properties
 				(point)
@@ -17311,10 +17880,10 @@ the documentation of `org-diary'."
 	(if (and (< diff 0) todayp)
 	    (save-excursion
 	      (setq category (org-get-category))
-	      (if (re-search-backward "\\(^\\|\r\\)\\*+[ \t]*" nil t)
+	      (if (re-search-backward "^\\*+[ \t]+" nil t)
 		  (progn
 		    (goto-char (match-end 0))
-		    (setq pos1 (match-end 1))
+		    (setq pos1 (match-beginning 0))
 		    (setq tags (org-get-tags-at))
 		    (setq head (buffer-substring-no-properties
 				(point)
@@ -17364,12 +17933,12 @@ the documentation of `org-diary'."
 	    (save-excursion
 	      (setq marker (org-agenda-new-marker (point)))
 	      (setq category (org-get-category))
-	      (if (re-search-backward "\\(^\\|\r\\)\\*+" nil t)
+	      (if (re-search-backward "^\\*+ " nil t)
 		  (progn
-		    (setq hdmarker (org-agenda-new-marker (match-end 1)))
-		    (goto-char (match-end 1))
+		    (goto-char (match-beginning 0))
+		    (setq hdmarker (org-agenda-new-marker (point)))
 		    (setq tags (org-get-tags-at))
-		    (looking-at "\\*+[ \t]*\\([^\r\n]+\\)")
+		    (looking-at "\\*+[ \t]+\\([^\r\n]+\\)")
 		    (setq txt (org-format-agenda-item
 			       (format (if (= d1 d2) "" "(%d/%d): ")
 				       (1+ (- d0 d1)) (1+ (- d2 d1)))
@@ -17715,7 +18284,7 @@ If ERROR is non-nil, throw an error, otherwise just return nil."
     (if (not (one-window-p)) (delete-window))
     (kill-buffer buf)
     (org-agenda-maybe-reset-markers 'force)
-    (org-remove-column-overlays))
+    (org-columns-remove-overlays))
   ;; Maybe restore the pre-agenda window configuration.
   (and org-agenda-restore-windows-after-quit
        (not (eq org-agenda-window-setup 'other-frame))
@@ -17814,10 +18383,12 @@ With prefix ARG, go backward that many times the current span."
 (defun org-agenda-day-view ()
   "Switch to daily view for agenda."
   (interactive)
+  (setq org-agenda-ndays 1)
   (org-agenda-change-time-span 'day))
 (defun org-agenda-week-view ()
   "Switch to daily view for agenda."
   (interactive)
+  (setq org-agenda-ndays 7)
   (org-agenda-change-time-span 'week))
 (defun org-agenda-month-view ()
   "Switch to daily view for agenda."
@@ -17860,8 +18431,9 @@ so that the date SD will be in that range."
      ((eq span 'week)
       (let* ((nt (calendar-day-of-week
 		  (calendar-gregorian-from-absolute sd)))
-	     (n1 org-agenda-start-on-weekday)
-	     (d (- nt n1)))
+	     (d (if org-agenda-start-on-weekday
+		    (- nt org-agenda-start-on-weekday)
+		  0)))
 	(setq sd (- sd (+ (if (< d 0) 7 0) d)))
 	(setq nd 7)))
      ((eq span 'month)
@@ -18329,7 +18901,7 @@ the tags of the current headline come last."
 	  (org-back-to-heading t)
 	  (condition-case nil
 	      (while t
-		(if (looking-at (org-re "[^\r\n]+?:\\([[:alnum:]_@:]+\\):[ \t]*\\([\n\r]\\|\\'\\)"))
+		(if (looking-at (org-re "[^\r\n]+?:\\([[:alnum:]_@:]+\\):[ \t]*$"))
 		    (setq tags (append (org-split-string
 					(org-match-string-no-properties 1) ":")
 				       tags)))
@@ -19463,7 +20035,8 @@ translations.  There is currently no way for users to extend this.")
 	 (re-archive (concat ":" org-archive-tag ":"))
 	 (re-quote (concat "^\\*+[ \t]+" org-quote-string "\\>"))
 	 (htmlp (plist-get parameters :for-html))
-	 (outline-regexp "\\*+")
+	 (inhibit-read-only t)
+	 (outline-regexp "\\*+ ")
 	 a b
 	 rtn p)
     (save-excursion
@@ -19739,7 +20312,7 @@ underlined headlines.  The default is 3."
 		   :skip-before-1st-heading
 		   (plist-get opt-plist :skip-before-1st-heading)
 		   :add-text (plist-get opt-plist :text))
-		  "[\r\n]")))
+		  "[\r\n]"))) ;; FIXME: why \r here???/
 	 thetoc have-headings first-heading-pos
 	 table-open table-buffer)
 
@@ -19846,7 +20419,7 @@ underlined headlines.  The default is 3."
       (when custom-times
 	(setq line (org-translate-time line)))
       (cond
-       ((string-match "^\\(\\*+\\)[ \t]*\\(.*\\)" line)
+       ((string-match "^\\(\\*+\\)[ \t]+\\(.*\\)" line)
 	;; a Headline
 	(setq first-heading-pos (or first-heading-pos (point)))
 	(setq level (org-tr-level (- (match-end 1) (match-beginning 1)))
@@ -19953,7 +20526,7 @@ underlined headlines.  The default is 3."
 	  ;; find the indentation of the next non-empty line
 	  (catch 'stop
 	    (while lines
-	      (if (string-match "^\\*" (car lines)) (throw 'stop nil))
+	      (if (string-match "^\\* " (car lines)) (throw 'stop nil))
 	      (if (string-match "^\\([ \t]*\\)\\S-" (car lines))
 		  (throw 'stop (setq ind (org-get-indentation (car lines)))))
 	      (pop lines)))
@@ -20145,12 +20718,12 @@ this line is also exported in fixed-width font."
       (save-excursion
 	(org-back-to-heading)
 	(if (looking-at (concat outline-regexp
-				"\\( +\\<" org-quote-string "\\>\\)"))
+				"\\( *\\<" org-quote-string "\\>\\)"))
 	    (replace-match "" t t nil 1)
 	  (if (looking-at outline-regexp)
 	      (progn
 		(goto-char (match-end 0))
-		(insert " " org-quote-string))))))))
+		(insert org-quote-string " "))))))))
 
 (defun org-export-as-html-and-open (arg)
   "Export the outline as HTML and immediately open it with a browser.
@@ -20303,7 +20876,7 @@ the body tags themselves."
 				(file-name-nondirectory buffer-file-name)))
 			  "UNTITLED"))
 	 (quote-re0   (concat "^[ \t]*" org-quote-string "\\>"))
-	 (quote-re    (concat "^\\(\\*+\\)\\([ \t]*" org-quote-string "\\>\\)"))
+	 (quote-re    (concat "^\\(\\*+\\)\\([ \t]+" org-quote-string "\\>\\)"))
 	 (inquote     nil)
 	 (infixed     nil)
 	 (in-local-list nil)
@@ -20495,7 +21068,7 @@ lang=\"%s\" xml:lang=\"%s\">
 	(catch 'nextline
 
 	  ;; end of quote section?
- 	  (when (and inquote (string-match "^\\*+" line))
+ 	  (when (and inquote (string-match "^\\*+ " line))
 	    (insert "</pre>\n")
 	    (setq inquote nil))
 	  ;; inside a quote section?
@@ -20672,7 +21245,7 @@ lang=\"%s\" xml:lang=\"%s\">
 		       t t line)))))
 
 	  (cond
-	   ((string-match "^\\(\\*+\\)[ \t]*\\(.*\\)" line)
+	   ((string-match "^\\(\\*+\\)[ \t]+\\(.*\\)" line)
 	    ;; This is a headline
 	    (setq level (org-tr-level (- (match-end 1) (match-beginning 1)))
 		  txt (match-string 2 line))
@@ -21595,7 +22168,7 @@ The XOXO buffer is named *xoxo-<source buffer name>*"
       (with-current-buffer out (erase-buffer))
       ;; Kick off the output
       (org-export-as-xoxo-insert-into out "<ol class='xoxo'>\n")
-      (while (re-search-forward "^\\(\\*+\\) \\(.+\\)" (point-max) 't)
+      (while (re-search-forward "^\\(\\*+\\)[ \t]+\\(.+\\)" (point-max) 't)
         (let* ((hd (match-string-no-properties 1))
                (level (length hd))
                (text (concat
@@ -22052,6 +22625,7 @@ depending on context.  See the individual commands for more information."
   (cond
    ((org-at-timestamp-p t) (call-interactively 'org-timestamp-up-day))
    ((org-on-heading-p) (org-call-with-arg 'org-todo 'right))
+   ((org-at-property-p) (call-interactively 'org-property-next-allowed-value))
    (t (org-shiftcursor-error))))
 
 (defun org-shiftleft ()
@@ -22060,6 +22634,8 @@ depending on context.  See the individual commands for more information."
   (cond
    ((org-at-timestamp-p t) (call-interactively 'org-timestamp-down-day))
    ((org-on-heading-p) (org-call-with-arg 'org-todo 'left))
+   ((org-at-property-p)
+    (call-interactively 'org-property-previous-allowed-value))
    (t (org-shiftcursor-error))))
 
 (defun org-shiftcontrolright ()
@@ -22152,6 +22728,8 @@ This command does many different things, depending on context:
      ((and (local-variable-p 'org-finish-function (current-buffer))
 	   (fboundp org-finish-function))
       (funcall org-finish-function))
+     ((org-at-property-p)
+      (call-interactively 'org-property-action))
      ((org-on-target-p) (call-interactively 'org-update-radio-target-regexp))
      ((org-on-heading-p) (call-interactively 'org-set-tags))
      ((org-at-table.el-p)
@@ -22361,17 +22939,7 @@ See the individual commands for more information."
      "--"
      ["Set Priority" org-priority t]
      ["Priority Up" org-shiftup t]
-     ["Priority Down" org-shiftdown t]
-     "--"
-     ;; FIXME:  why is this still here????
-;     ["Insert Checkbox" org-insert-todo-heading (org-in-item-p)]
-;     ["Toggle Checkbox" org-ctrl-c-ctrl-c (org-at-item-checkbox-p)]
-;     ["Insert [n/m] cookie" (progn (insert "[/]") (org-update-checkbox-count))
-;      (or (org-on-heading-p) (org-at-item-p))]
-;     ["Insert [%] cookie" (progn (insert "[%]") (org-update-checkbox-count))
-;      (or (org-on-heading-p) (org-at-item-p))]
-;     ["Update Statistics" org-update-checkbox-count t]
-     )
+     ["Priority Down" org-shiftdown t])
     ("TAGS and Properties"
      ["Set Tags" 'org-ctrl-c-ctrl-c (org-at-heading-p)]
      ["Column view of properties" org-columns t])
@@ -22811,16 +23379,16 @@ not an indirect buffer"
   ;; text in a line directly attached to a headline would otherwise
   ;; fill the headline as well.
   (org-set-local 'comment-start-skip "^#+[ \t]*")
-  (org-set-local 'paragraph-separate "\f\\|\\*\\|[ 	]*$\\|[ \t]*[:|]")
+  (org-set-local 'paragraph-separate "\f\\|\\*+ \\|[ 	]*$\\|[ \t]*[:|]")
 ;; FIXME!!!!!!!  (org-set-local 'paragraph-separate "\f\\|[ 	]*$")
   ;; The paragraph starter includes hand-formatted lists.
   (org-set-local 'paragraph-start
-		 "\f\\|[ 	]*$\\|\\([*\f]+\\)\\|[ \t]*\\([-+*][ \t]+\\|[0-9]+[.)][ \t]+\\)\\|[ \t]*[:|]")
+		 "\f\\|[ 	]*$\\|\\*+ \\|\f\\|[ \t]*\\([-+*][ \t]+\\|[0-9]+[.)][ \t]+\\)\\|[ \t]*[:|]")
   ;; Inhibit auto-fill for headers, tables and fixed-width lines.
   ;; But only if the user has not turned off tables or fixed-width regions
   (org-set-local
    'auto-fill-inhibit-regexp
-   (concat "\\*\\|#\\+"
+   (concat "\\*+ \\|#\\+"
 	   "\\|[ \t]*" org-keyword-time-regexp
 	   (if (or org-enable-table-editor org-enable-fixed-width-editor)
 	       (concat
@@ -23099,7 +23667,53 @@ Still experimental, may disappear in the furture."
     ;; make tree, check each match with the callback
     (org-occur "CLOSED: +\\[\\(.*?\\)\\]" nil callback)))
 
+(defun org-fill-paragraph-experimental (&optional justify)
+  "Re-align a table, pass through to fill-paragraph if no table."
+  (let ((table-p (org-at-table-p))
+	(table.el-p (org-at-table.el-p)))
+    (cond ((equal (char-after (point-at-bol)) ?*) t) ; skip headlines
+	  (table.el-p t)                             ; skip table.el tables
+	  (table-p (org-table-align) t)              ; align org-mode tables
+	  ((save-excursion
+	     (let ((pos (1+ (point-at-eol))))
+	       (backward-paragraph 1)
+	       (re-search-forward "\\\\\\\\[ \t]*$" pos t)))
+	   (save-excursion
+	     (save-restriction
+	       (narrow-to-region (1+ (match-end 0)) (point-max))
+	       (fill-paragraph nil)
+	       t)))
+	  (t nil))))                                 ; call paragraph-fill
 
+(defun org-property-previous-allowed-value (&optional previous)
+  "Switch to the next allowed value for this property."
+  (interactive)
+  (org-property-next-allowed-value t))
+
+(defun org-property-next-allowed-value (&optional previous)
+  "Switch to the next allowed value for this property."
+  (interactive)
+  (unless (org-at-property-p)
+    (error "Not at a property"))
+  (let* ((key (match-string 2))
+	 (value (match-string 3))
+	 (allowed (or (org-property-get-allowed-values (point) key)
+		      (and (member value  '("[ ]" "[-]" "[X]"))
+			   '("[ ]" "[X]"))))
+	 nval)
+    (unless allowed
+      (error "Allowed values for this property have not been defined"))
+    (if previous (setq allowed (reverse allowed)))
+    (if (member value allowed)
+	(setq nval (car (cdr (member value allowed)))))
+    (setq nval (or nval (car allowed)))
+    (if (equal nval value)
+	(error "Only one allowed value for this property"))
+    (org-at-property-p)
+    (replace-match (concat " :" key ": " nval))
+    (org-indent-line-function)
+    (beginning-of-line 1)
+    (skip-chars-forward " \t")))
 
 ;;;; Finish up
 
@@ -23109,3 +23723,4 @@ Still experimental, may disappear in the furture."
 
 ;; arch-tag: e77da1a7-acc7-4336-b19e-efa25af3f9fd
 ;;; org.el ends here
+
