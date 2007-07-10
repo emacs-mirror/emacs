@@ -596,18 +596,18 @@ static Res MRGRefSegScan(ScanState ss, MRGRefSeg refseg, MRG mrg)
 
       /* free guardians are not scanned */
       if (linkOfIndex(linkseg, i)->state != MRGGuardianFREE) {
-	ss->wasMarked = TRUE;
-	/* .ref.direct: We can access the reference directly */
-	/* because we are in a scan and the shield is exposed. */
-	if (TRACE_FIX1(ss, refPart->ref)) {
-	  res = TRACE_FIX2(ss, &(refPart->ref));
-	  if (res != ResOK)
-	    return res;
-	
-	  if (ss->rank == RankFINAL && !ss->wasMarked) { /* .improve.rank */
-	    MRGFinalize(arena, linkseg, i);
-	  }
-	}
+        ss->wasMarked = TRUE;
+        /* .ref.direct: We can access the reference directly */
+        /* because we are in a scan and the shield is exposed. */
+        if (TRACE_FIX1(ss, refPart->ref)) {
+          res = TRACE_FIX2(ss, &(refPart->ref));
+          if (res != ResOK)
+            return res;
+
+          if (ss->rank == RankFINAL && !ss->wasMarked) { /* .improve.rank */
+            MRGFinalize(arena, linkseg, i);
+          }
+        }
       }
     }
   } TRACE_SCAN_END(ss);
@@ -634,6 +634,9 @@ static Res MRGInit(Pool pool, va_list args)
   mrg->sig = MRGSig;
 
   AVERT(MRG, mrg);
+  DIAG_PRINTF(( "mrg->extendBy = %u, MRGGuardiansPerSeg = %u\n", 
+                (unsigned int) mrg->extendBy, 
+                (unsigned int) MRGGuardiansPerSeg(mrg) ));
   EVENT_PPP(PoolInit, pool, PoolArena(pool), ClassOfPool(pool));
   return ResOK;
 }

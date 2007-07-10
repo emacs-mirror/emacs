@@ -358,7 +358,8 @@ extern void TraceDestroy(Trace trace);
 
 extern Res TraceAddWhite(Trace trace, Seg seg);
 extern Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet);
-extern void TraceStart(Trace trace, double mortality, double finishingTime);
+extern void TraceStart(Trace trace, double mortality,
+                       double finishingTime);
 extern Size TracePoll(Globals globals);
 
 extern void TraceSegAccess(Arena arena, Seg seg, AccessSet mode);
@@ -910,7 +911,7 @@ extern Size VMMapped(VM vm);
 extern void StackProbe(Size depth);
 
 
-/* STATISTIC -- gather diagnostics (in some varieties)
+/* STATISTIC -- gather statistics (in some varieties)
  *
  * The argument of STATISTIC is an expression; the expansion followed by
  * a semicolon is syntactically a statement.
@@ -919,7 +920,7 @@ extern void StackProbe(Size depth);
  * a semicolon is syntactically a statement.
  *
  * STATISTIC_WRITE is inserted in WriteF arguments to output the values
- * of diagnostic fields.
+ * of statistic fields.
  *
  * .statistic.whitehot: The implementation of STATISTIC for
  * non-statistical varieties passes the parameter to DISCARD to ensure
@@ -927,13 +928,13 @@ extern void StackProbe(Size depth);
  * passed as part of a comma-expression so that its type is not
  * important.  This permits an expression of type void.  */
 
-#if defined(DIAGNOSTICS)
+#if defined(STATISTICS)
 
 #define STATISTIC(gather) BEGIN (gather); END
 #define STATISTIC_STAT(gather) BEGIN gather; END
 #define STATISTIC_WRITE(format, arg) (format), (arg),
 
-#elif defined(DIAGNOSTICS_NONE)
+#elif defined(STATISTICS_NONE)
 
 #define STATISTIC(gather) DISCARD(((gather), 0))
 #define STATISTIC_STAT(gather) DISCARD_STAT(gather)
@@ -941,7 +942,56 @@ extern void StackProbe(Size depth);
 
 #else
 
-#error "No diagnostics configured."
+#error "No statistics configured."
+
+#endif
+
+
+/* ------------ DIAG_WITH_STREAM_AND_WRITEF --------------- */
+
+#if defined(DIAG_WITH_STREAM_AND_WRITEF)
+
+/* Diagnostic Calculation and Output */
+Bool DiagIsOn(void);
+mps_lib_FILE *DiagStream(void);
+#define DIAG_STREAM (DiagStream())
+#define DIAG(s) BEGIN \
+    s \
+  END
+/*
+ * Note the macro argument args should have parens around it (in the
+ * invocation); it is a variable number of arguments that we pass
+ * to another function.
+ * That makes this macro unclean in all sorts of ways.
+ */
+#define DIAG_WRITEF(args) DIAG( \
+  if(DiagIsOn()) { \
+    WriteF args; \
+  } \
+)
+
+#else
+
+/* Diagnostic Calculation and Output */
+#define DIAG(s) BEGIN END
+#define DIAG_WRITEF(args) BEGIN END
+
+#endif
+
+/* ------------ DIAG_WITH_PRINTF --------------- */
+
+#if defined(DIAG_WITH_PRINTF)
+
+#include <stdio.h>
+
+#define DIAG_PRINTF(args) BEGIN\
+  printf args ; \
+  END
+
+#else
+
+#define DIAG_PRINTF(args) BEGIN\
+  END
 
 #endif
 
