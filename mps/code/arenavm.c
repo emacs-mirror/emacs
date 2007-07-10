@@ -191,6 +191,47 @@ static Bool VMArenaCheck(VMArena vmArena)
 }
 
 
+/* VMArenaDescribe -- describe the VMArena
+ */
+static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream)
+{
+  Res res;
+  VMArena vmArena;
+
+  if (!CHECKT(Arena, arena)) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
+  vmArena = Arena2VMArena(arena);
+  if (!CHECKT(VMArena, vmArena)) return ResFAIL;
+
+  /* Describe the superclass fields first via next-method call */
+  /* ...but the next method is ArenaTrivDescribe, so don't call it;
+   * see impl.c.arena#describe.triv.dont-upcall.
+   *
+  super = ARENA_SUPERCLASS(VMArenaClass);
+  res = super->describe(arena, stream);
+  if (res != ResOK) return res;
+   *
+  */
+
+  AVER(3 < VMArenaGenCount);
+  res = WriteF(stream,
+    "  blacklist:     $B\n", (WriteFB)vmArena->blacklist,
+    "  genZoneSet[0]: $B\n", (WriteFB)vmArena->genZoneSet[0],
+    "  genZoneSet[1]: $B\n", (WriteFB)vmArena->genZoneSet[1],
+    "  genZoneSet[2]: $B\n", (WriteFB)vmArena->genZoneSet[2],
+    "  genZoneSet[3]: $B\n", (WriteFB)vmArena->genZoneSet[3],
+    "  freeSet:       $B\n", (WriteFB)vmArena->freeSet,
+    NULL
+  );
+  if (res != ResOK) return res;
+
+  /* (incomplete: some fields are not Described) */
+
+  return ResOK;
+}
+
+
+
 /* VM indirect functions
  *
  * These functions should be used to map and unmap within the arena.
@@ -1010,6 +1051,7 @@ static Res vmArenaExtend(VMArena vmArena, Size size)
   /* more than vmArena->extendBy (because there will be fewer than */
   /* size bytes free in the new chunk).  Fix this. */
   chunkSize = vmArena->extendBy + size;
+
   res = VMChunkCreate(&newChunk, vmArena, chunkSize);
   /* .improve.chunk-create.fail: If we fail we could try again */
   /* (with a smaller size, say).  We don't do this. */
@@ -1518,6 +1560,7 @@ DEFINE_ARENA_CLASS(VMArenaClass, this)
   this->free = VMFree;
   this->chunkInit = VMChunkInit;
   this->chunkFinish = VMChunkFinish;
+  this->describe = VMArenaDescribe;
 }
 
 

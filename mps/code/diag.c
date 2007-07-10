@@ -1,65 +1,34 @@
-/* meter.h: METER INTERFACE
+/* diag.c: MEMORY POOL MANAGER DIAGNOSTICS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2007 Ravenbrook Limited.  See end of file for license.
  *
- * .sources: mps.design.metrics.
- *
- * .purpose: Defines an interface for creating "meters" that accumulate
- * the number, total and mean^2 of a set of data points.  These
- * accumulators can be used to report on the number, total, average, and
- * variance of the data set.
  */
 
-#ifndef meter_h
-#define meter_h
+#include <stdarg.h>
 
-#include "mpmtypes.h"
-#include "config.h"
-#include "misc.h"
-#include "mpslib.h"
+#include "mpm.h"
+#include "mpslib.h" /* for mps_lib_stdout */
 
+#if defined(DIAG_WITH_STREAM_AND_WRITEF)
 
-typedef struct MeterStruct *Meter;
+Bool DiagEnabledGlobal = TRUE;
 
-typedef struct MeterStruct
+Bool DiagIsOn(void)
 {
-  char *name;
-  Count count;
-  double total;
-  double meanSquared;
-  Size min;
-  Size max;
-} MeterStruct;
+  return DiagEnabledGlobal;
+}
 
+mps_lib_FILE *DiagStream(void)
+{
+  return mps_lib_stdout;
+}
 
-extern void MeterInit(Meter meter, char* name, void *owner);
-extern void MeterAccumulate(Meter meter, Size amount);
-extern Res MeterWrite(Meter meter, mps_lib_FILE *stream);
-extern void MeterEmit(Meter meter);
-
-#define METER_DECL(meter) STATISTIC_DECL(struct MeterStruct meter)
-#define METER_INIT(meter, init, owner) \
-  BEGIN STATISTIC(MeterInit(&(meter), init, owner)); UNUSED(owner); END
-/* Hack: owner is typically only used for MeterInit */
-#define METER_ACC(meter, delta) \
-  STATISTIC(MeterAccumulate(&(meter), delta))
-#if defined(STATISTICS)
-#define METER_WRITE(meter, stream) MeterWrite(&(meter), stream)
-#elif defined(STATISTICS_NONE)
-#define METER_WRITE(meter, stream) (ResOK)
-#else
-#error "No statistics configured."
 #endif
-#define METER_EMIT(meter) STATISTIC(MeterEmit(meter))
-
-
-#endif /* meter_h */
-
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2007 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -50,6 +50,7 @@ typedef Size Epoch;                     /* design.mps.ld */
 typedef unsigned TraceId;               /* <design/trace/> */
 typedef unsigned TraceSet;              /* <design/trace/> */
 typedef unsigned TraceState;            /* <design/trace/> */
+typedef unsigned TraceBand;             /* <http://info.ravenbrook.com/mail/2007/06/29/13-52-24/0.txt> */
 typedef unsigned AccessSet;             /* <design/type/#access-set> */
 typedef unsigned Attr;                  /* <design/type/#attr> */
 typedef unsigned FormatVariety;        
@@ -405,6 +406,20 @@ enum {
   TraceFINISHED
 };
 
+
+/* TraceBands -- see <http://info.ravenbrook.com/mail/2007/06/29/13-52-24/0.txt> */
+
+enum {
+  TraceBandBASE = 1,
+  TraceBandA = TraceBandBASE,  /* via-RankAMBIG */
+  TraceBandE,   /* via-RankEXACT */
+  TraceBandFf,  /* via-RankFINAL rootside boundary = F-guardians */
+  TraceBandFe,  /* via-RankFINAL others (all exact) */
+  TraceBandW,   /* via-RankWEAK rootside boundary */
+  TraceBandLIMIT /* not a TraceBand, the limit of the enum */
+};
+
+
 /* TraceStart reasons: the trigger that caused a trace to start. */
 /* Make these specific trigger names, not broad categories; */
 /* and if a new trigger is added, add a new reason. */
@@ -454,12 +469,12 @@ typedef double WriteFD;
  * leave them in, see design.mps.metrics.
  */
 
-#if defined(DIAGNOSTICS)
+#if defined(STATISTICS)
 #define STATISTIC_DECL(field) field
-#elif defined(DIAGNOSTICS_NONE)
+#elif defined(STATISTICS_NONE)
 #define STATISTIC_DECL(field) field
 #else
-#error "No diagnostics configured."
+#error "No statistics configured."
 #endif
 
 
