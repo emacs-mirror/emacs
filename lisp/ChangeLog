@@ -1,13 +1,6 @@
-2007-07-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+2007-07-10  Guanpeng Xu  <herberteuler@hotmail.com>
 
-	* cus-start.el (file-coding-system-alist): Fix custom type.
-
-2007-07-08  Chong Yidong  <cyd@stupidchicken.com>
-
-	* longlines.el (longlines-wrap-region): Avoid marking buffer as
-	modified.
-	(longlines-auto-wrap, longlines-window-change-function): Remove
-	unnecessary calls to set-buffer-modified-p.
+	* subr.el (looking-at-p, string-match-p): New functions.
 
 2007-07-09  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -26,6 +19,17 @@
 	* window.el (fit-window-to-buffer): Remove setting of window-min-height
 	to 1 as enlarge-window uses the value to resize/shrink windows other
 	than WINDOW if needed.
+
+2007-07-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* cus-start.el (file-coding-system-alist): Fix custom type.
+
+2007-07-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-wrap-region): Avoid marking buffer as
+	modified.
+	(longlines-auto-wrap, longlines-window-change-function): Remove
+	unnecessary calls to set-buffer-modified-p.
 
 2007-07-08  Katsumi Yamaoka  <yamaoka@jpl.org>
 
