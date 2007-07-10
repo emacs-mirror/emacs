@@ -1,3 +1,7 @@
+2007-07-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Add Tramp and comint-mode changes.
+
 2007-07-08  Michael Albinus  <michael.albinus@gmx.de>
 
 	* NEWS: `file-remote-p' has a new optional parameter CONNECTED.
