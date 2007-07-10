@@ -320,5 +320,5 @@ password in password cache.  This is done for the first try only."
 ;; * Provide descriptive Commentary.
 ;; * Enable it for several gateway processes in parallel.
 
-;;; arch-tag: fcc9dbec-7503-4d73-b638-3c8aa59575f5
+;; arch-tag: 277e3a81-fdee-40cf-9e6b-59626292a5e0
 ;;; tramp-gw.el ends here
