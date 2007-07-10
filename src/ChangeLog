@@ -1,3 +1,15 @@
+2007-07-08  Guanpeng Xu  <herberteuler@hotmail.com>
+
+	* search.c (Vinhibit_changing_match_data, search_regs_1): New vars.
+	(looking_at_1): Don't change search_regs and last_thing_searched
+	if `inhibit-changing-match-data' is non-nil.
+	(string_match_1, search_buffer, set_search_regs): Likewise.
+	(syms_of_search): Add Lisp level definition for
+	`inhibit-changing-match-data' and set it to nil.
+	(boyer_moore): If `inhibit-changing-match-data' is non-nil,
+	compute start and end of the match, instead of using values in
+	search_regs.
+
 2007-07-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuf.c (Fcompleting_read): New value `confirm-only'
