@@ -345,11 +345,11 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
 
   /* Do not call GlobalsDescribe: it makes too much output, thanks.
    * RHSK 2007-04-27
-   *
+   */
+#if 0
   res = GlobalsDescribe(ArenaGlobals(arena), stream);
   if (res != ResOK) return res;
-   *
-   */
+#endif
 
   res = WriteF(stream,
                "} Arena $P ($U)\n", (WriteFP)arena,
