@@ -1,5 +1,12 @@
 2007-07-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* keymap.c (struct accessible_keymaps_data)
+	(struct where_is_internal_data): New structures.
+	(accessible_keymaps_1, where_is_internal_1): Use them to change
+	interface to adhere to the one used by map_keymap.
+	(Faccessible_keymaps, where_is_internal): Use map_keymap.
+	(accessible_keymaps_char_table, where_is_internal_2): Remove.
+
 	* keymap.h (map_keymap_function_t): More informative prototype.
 
 2007-07-10  Guanpeng Xu  <herberteuler@hotmail.com>
