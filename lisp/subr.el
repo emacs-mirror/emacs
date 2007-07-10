@@ -2668,6 +2668,18 @@ of a match for REGEXP."
 	    (looking-at (concat "\\(?:"  regexp "\\)\\'")))))
     (not (null pos))))
 
+(defsubst looking-at-p (regexp)
+  "\
+Same as `looking-at' except this function does not change the match data."
+  (let ((inhibit-changing-match-data t))
+    (looking-at regexp)))
+
+(defsubst string-match-p (regexp string &optional start)
+  "\
+Same as `string-match' except this function does not change the match data."
+  (let ((inhibit-changing-match-data t))
+    (string-match regexp string start)))
+
 (defun subregexp-context-p (regexp pos &optional start)
   "Return non-nil if POS is in a normal subregexp context in REGEXP.
 A subregexp context is one where a sub-regexp can appear.
