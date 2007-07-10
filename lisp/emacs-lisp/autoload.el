@@ -432,7 +432,10 @@ Return non-nil iff FILE adds no autoloads to OUTFILE
                        ;; checksum in secondary autoload files where we do
                        ;; not need the time-stamp optimization because it is
                        ;; already provided by the primary autoloads file.
-                       (md5 secondary-autoloads-file-buf nil nil 'emacs-mule)
+                       (md5 secondary-autoloads-file-buf
+                            ;; We'd really want to just use
+                            ;; `emacs-internal' instead.
+                            nil nil 'emacs-mule-unix)
                      (nth 5 (file-attributes relfile))))
                   (insert ";;; Generated autoloads from " relfile "\n"))
                 (insert generate-autoload-section-trailer))))
