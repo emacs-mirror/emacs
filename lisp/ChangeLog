@@ -1,5 +1,9 @@
 2007-07-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/easymenu.el (easy-menu-binding): New function.
+	(easy-menu-do-define): Use it.
+	(easy-menu-do-add-item): Inline into easy-menu-add-item and then remove.
+
 	* progmodes/compile.el (compilation-auto-jump-to-first-error)
 	(compilation-auto-jump-to-next): New vars.
 	(compilation-auto-jump): New function.
