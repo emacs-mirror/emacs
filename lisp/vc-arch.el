@@ -424,13 +424,6 @@ Return non-nil if FILE is unchanged."
 
 ;;; Completion of versions and revisions.
 
-(defun vc-arch-complete (table string pred action)
-  (assert (not (functionp table)))
-  (cond
-   ((null action) (try-completion string table pred))
-   ((eq action t) (all-completions string table pred))
-   (t (test-completion string table pred))))
-
 (defun vc-arch--version-completion-table (root string)
   (delq nil
 	(mapcar
@@ -450,10 +443,9 @@ Return non-nil if FILE is unchanged."
   (lexical-let ((file file))
     (lambda (string pred action)
       ;; FIXME: complete revision patches as well.
-      (let ((root (expand-file-name "{arch}" (vc-arch-root file))))
-	(vc-arch-complete
-	 (vc-arch--version-completion-table root string)
-	 string pred action)))))
+      (let* ((root (expand-file-name "{arch}" (vc-arch-root file)))
+             (table (vc-arch--version-completion-table root string)))
+	(complete-with-action action table string pred)))))
 
 ;;; Trimming revision libraries.
 

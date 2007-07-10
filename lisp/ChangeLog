@@ -1,3 +1,12 @@
+2007-07-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-arch.el (vc-arch-complete): Remove.
+	(vc-arch-revision-completion-table): Use complete-with-action.
+
+	* subr.el (condition-case-no-debug, with-demoted-errors): New macros.
+	(complete-with-action): New function.
+	(dynamic-completion-table): Use it.
+
 2007-07-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	* comint.el (make-comint, make-comint-in-buffer)
