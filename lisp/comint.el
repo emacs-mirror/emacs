@@ -670,13 +670,13 @@ BUFFER can be either a buffer or the name of one."
   "Make a Comint process NAME in BUFFER, running PROGRAM.
 If BUFFER is nil, it defaults to NAME surrounded by `*'s.
 PROGRAM should be either a string denoting an executable program to create
-via `start-process', or a cons pair of the form (HOST . SERVICE) denoting a TCP
-connection to be opened via `open-network-stream'.  If there is already a
-running process in that buffer, it is not restarted.  Optional fourth arg
+via `start-file-process', or a cons pair of the form (HOST . SERVICE) denoting
+a TCP connection to be opened via `open-network-stream'.  If there is already
+a running process in that buffer, it is not restarted.  Optional fourth arg
 STARTFILE is the name of a file to send the contents of to the process.
 
 If PROGRAM is a string, any more args are arguments to PROGRAM."
-  (or (fboundp 'start-process)
+  (or (fboundp 'start-file-process)
       (error "Multi-processing is not supported for this system"))
   (setq buffer (get-buffer-create (or buffer (concat "*" name "*"))))
   ;; If no process, or nuked process, crank up a new one and put buffer in
@@ -693,9 +693,9 @@ If PROGRAM is a string, any more args are arguments to PROGRAM."
   "Make a Comint process NAME in a buffer, running PROGRAM.
 The name of the buffer is made by surrounding NAME with `*'s.
 PROGRAM should be either a string denoting an executable program to create
-via `start-process', or a cons pair of the form (HOST . SERVICE) denoting a TCP
-connection to be opened via `open-network-stream'.  If there is already a
-running process in that buffer, it is not restarted.  Optional third arg
+via `start-file-process', or a cons pair of the form (HOST . SERVICE) denoting
+a TCP connection to be opened via `open-network-stream'.  If there is already
+a running process in that buffer, it is not restarted.  Optional third arg
 STARTFILE is the name of a file to send the contents of the process to.
 
 If PROGRAM is a string, any more args are arguments to PROGRAM."
@@ -781,17 +781,17 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 			 ;; If the command has slashes, make sure we
 			 ;; first look relative to the current directory.
 			 (cons default-directory exec-path) exec-path)))
-      (setq proc (apply 'start-process name buffer command switches)))
+      (setq proc (apply 'start-file-process name buffer command switches)))
     (let ((coding-systems (process-coding-system proc)))
       (setq decoding (car coding-systems)
 	    encoding (cdr coding-systems)))
-    ;; If start-process decided to use some coding system for decoding
+    ;; If start-file-process decided to use some coding system for decoding
     ;; data sent from the process and the coding system doesn't
     ;; specify EOL conversion, we had better convert CRLF to LF.
     (if (vectorp (coding-system-eol-type decoding))
 	(setq decoding (coding-system-change-eol-conversion decoding 'dos)
 	      changed t))
-    ;; Even if start-process left the coding system for encoding data
+    ;; Even if start-file-process left the coding system for encoding data
     ;; sent from the process undecided, we had better use the same one
     ;; as what we use for decoding.  But, we should suppress EOL
     ;; conversion.

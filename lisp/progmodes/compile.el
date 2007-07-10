@@ -1098,8 +1098,7 @@ Returns the compilation buffer created."
 	      (unless (getenv "EMACS")
 		(list "EMACS=t"))
 	      (list "INSIDE_EMACS=t")
-	      (copy-sequence process-environment)))
-	    (start-process (symbol-function 'start-process)))
+	      (copy-sequence process-environment))))
 	(set (make-local-variable 'compilation-arguments)
 	     (list command mode name-function highlight-regexp))
 	(set (make-local-variable 'revert-buffer-function)
@@ -1114,39 +1113,26 @@ Returns the compilation buffer created."
 	(if compilation-process-setup-function
 	    (funcall compilation-process-setup-function))
 	(compilation-set-window-height outwin)
-	;; Redefine temporarily `start-process' in order to handle
-	;; remote compilation.
-	(fset 'start-process
-	      (lambda (name buffer program &rest program-args)
-		(apply
-		 (if (file-remote-p default-directory)
-		     'start-file-process
-		   start-process)
-		 name buffer program program-args)))
 	;; Start the compilation.
-	(unwind-protect
-	    (let ((proc (if (eq mode t)
-			    (get-buffer-process
-			     (with-no-warnings
-			       (comint-exec outbuf (downcase mode-name)
-					    shell-file-name nil
-					    `("-c" ,command))))
-			  (start-process-shell-command (downcase mode-name)
-						       outbuf command))))
-	      ;; Make the buffer's mode line show process state.
-	      (setq mode-line-process '(":%s"))
-	      (set-process-sentinel proc 'compilation-sentinel)
-	      (set-process-filter proc 'compilation-filter)
-	      (set-marker (process-mark proc) (point) outbuf)
-	      (when compilation-disable-input
-                (condition-case nil
-                    (process-send-eof proc)
-                  ;; The process may have exited already.
-                  (error nil)))
-	      (setq compilation-in-progress
-		    (cons proc compilation-in-progress)))
-	  ;; Unwindform: Reset original definition of `start-process'
-	  (fset 'start-process start-process)))
+	(let ((proc (if (eq mode t)
+			(get-buffer-process
+			 (with-no-warnings
+			   (comint-exec outbuf (downcase mode-name)
+					shell-file-name nil `("-c" ,command))))
+		      (start-process-shell-command (downcase mode-name)
+						   outbuf command))))
+	  ;; Make the buffer's mode line show process state.
+	  (setq mode-line-process '(":%s"))
+	  (set-process-sentinel proc 'compilation-sentinel)
+	  (set-process-filter proc 'compilation-filter)
+	  (set-marker (process-mark proc) (point) outbuf)
+	  (when compilation-disable-input
+	    (condition-case nil
+		(process-send-eof proc)
+	      ;; The process may have exited already.
+	      (error nil)))
+	  (setq compilation-in-progress
+		(cons proc compilation-in-progress))))
       ;; Now finally cd to where the shell started make/grep/...
       (setq default-directory thisdir))
     (if (buffer-local-value 'compilation-scroll-output outbuf)
