@@ -3,7 +3,7 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 5.01
+@set VERSION 5.02
 @set DATE July 2007
 
 @dircategory Emacs
@@ -81,7 +81,7 @@ Software Foundation raise funds for GNU development.''
 * Hyperlinks::                  Notes in context
 * TODO items::                  Every tree branch can be a TODO item
 * Tags::                        Tagging headlines and matching sets of tags
-* Properties::                  
+* Properties and columns::      
 * Timestamps::                  Assign date and time to items
 * Agenda views::                Collecting information into views
 * Embedded LaTeX::              LaTeX fragments and formulas
@@ -113,7 +113,8 @@ Document Structure
 * Archiving::                   Move done task trees to a different place
 * Sparse trees::                Matches embedded in context
 * Plain lists::                 Additional structure within an entry
-* Drawers::                     
+* Drawers::                     Tucking stuff away
+* orgstruct-mode::              Structure editing outside Org-mode
 
 Archiving
 
@@ -181,7 +182,7 @@ Tags
 * Setting tags::                How to assign tags to a headline
 * Tag searches::                Searching for combinations of tags
 
-Properties
+Properties and Columns
 
 * Property syntax::             How properties are spelled out
 * Special properties::          Access to other Org-mode features
@@ -193,6 +194,11 @@ Column View
 
 * Defining columns::            The COLUMNS format property
 * Using column view::           How to create and use column view
+
+Defining Columns
+
+* Scope of column definitions:: 
+* Column attributes::           
 
 Timestamps
 
@@ -379,7 +385,7 @@ tags etc are created dynamically when you need them.
 Org-mode keeps simple things simple.  When first fired up, it should
 feel like a straightforward, easy to use outliner.  Complexity is not
 imposed, but a large amount of functionality is available when you need
-it.  Org-mode can be used on different levels and in different ways, for
+it.  Org-mode is a toolbox and can be used in different ways, for
 example as:
 
 @example
@@ -389,6 +395,7 @@ example as:
 @r{@bullet{} TODO list editor}
 @r{@bullet{} full agenda and planner with deadlines and work scheduling}
 @r{@bullet{} environment to implement David Allen's GTD system}
+@r{@bullet{} a basic database application}
 @r{@bullet{} simple hypertext system, with HTML export}
 @r{@bullet{} publishing tool to create a set of interlinked webpages}
 @end example
@@ -396,7 +403,9 @@ example as:
 Org-mode's automatic, context sensitive table editor with spreadsheet
 capabilities can be integrated into any major mode by activating the
 minor Orgtbl-mode.  Using a translation step, it can be used to maintain
-tables in arbitrary file types, for example in LaTeX.
+tables in arbitrary file types, for example in LaTeX.  The structure
+editing and list creation capabilities can be used outside Org-mode with
+the minor Orgstruct-mode.
 
 @cindex FAQ
 There is a website for Org-mode which provides links to the newest
@@ -468,9 +477,10 @@ make install-info
 
 @iftex
 @b{Important:} @i{If you use copy-and-paste to copy lisp code from the
-PDF documentation to your .emacs file, the single quote character comes
-out incorrectly and the code will not work.  You need to fix the single
-quotes by hand, or copy from Info documentation.}
+PDF documentation as viewed by Acrobat reader to your .emacs file, the
+single quote character comes out incorrectly and the code will not work.
+You need to fix the single quotes by hand, or copy from Info
+documentation.}
 @end iftex
 
 Add the following lines to your @file{.emacs} file.  The last two lines
@@ -580,7 +590,8 @@ edit the structure of the document.
 * Archiving::                   Move done task trees to a different place
 * Sparse trees::                Matches embedded in context
 * Plain lists::                 Additional structure within an entry
-* Drawers::                     
+* Drawers::                     Tucking stuff away
+* orgstruct-mode::              Structure editing outside Org-mode
 @end menu
 
 @node Outlines, Headlines, Document structure, Document structure
@@ -1121,14 +1132,15 @@ bullets (@samp{-}, @samp{+}, @samp{*}, @samp{1.}, @samp{1)}).
 With prefix arg, select the nth bullet from this list.
 @end table
 
-@node Drawers,  , Plain lists, Document structure
+@node Drawers, orgstruct-mode, Plain lists, Document structure
 @section Drawers
 @cindex drawers
+@cindex visibility cycling, drawers
 
 Sometimes you want to keep information associated with an entry, but you
-normally don't want to see it, except when explicitly asking for it.
-For this, Org-mode has @emph{drawers}.  Drawers need to be configured
-with the variable @code{org-drawers}, and look like this:
+normally don't want to see it.  For this, Org-mode has @emph{drawers}.
+Drawers need to be configured with the variable @code{org-drawers}, and
+look like this:
 
 @example
 ** This is a headline
@@ -1143,7 +1155,30 @@ Visibility cycling (@pxref{Visibility cycling}) on the headline will
 hide and show the entry, but keep the drawer collapsed to a single line.
 In order to look inside the drawer, you need to move the cursor to the
 drawer line and press @key{TAB} there.  Org-mode uses a drawer for
-storing properties (@pxref{Properties}).
+storing properties (@pxref{Properties and columns}).
+
+@node orgstruct-mode,  , Drawers, Document structure
+@section The Orgstruct minor mode
+@cindex orgstruct-mode
+@cindex minor mode for structure editing
+
+If you like the intuitive way the Org-mode structure editing and list
+formatting works, you might want to use these commands in other modes
+like text-mode or mail-mode as well.  The minor mode Orgstruct-mode
+makes this possible.  You can always toggle the mode with @kbd{M-x
+orgstruct-mode}.  To turn it on by default, for example in mail mode,
+use
+
+@lisp
+(add-hook 'mail-mode-hook 'turn-on-orgstruct)
+@end lisp
+
+When this mode is active and the cursor is on a line that looks to
+Org-mode like a headline of the first line of a list item, most
+structure editing commands will work, even if the same keys normally
+have different functionality in the major mode you are using.  If the
+cursor is not in one of those special lines, Orgstruct-mode lurks
+silently in the shadow.
 
 @node Tables, Hyperlinks, Document structure, Top
 @chapter Tables
@@ -1611,15 +1646,15 @@ line like
 @end example
 
 @noindent
-Also properties (@pxref{Properties}) can be used as constants in table
-formulas: For a property @samp{:XYZ:} use the name @samp{$PROP_XYZ}, and
-the property will be searched in the current outline entry and in the
-hierarchy above it.  If you have the @file{constants.el} package, it
-will also be used to resolve constants, including natural constants like
-@samp{$h} for Planck's constant, and units like @samp{$km} for
-kilometers@footnote{@file{Constant.el} can supply the values of
-constants in two different unit systems, @code{SI} and @code{cgs}.
-Which one is used depends on the value of the variable
+Also properties (@pxref{Properties and columns}) can be used as
+constants in table formulas: For a property @samp{:XYZ:} use the name
+@samp{$PROP_XYZ}, and the property will be searched in the current
+outline entry and in the hierarchy above it.  If you have the
+@file{constants.el} package, it will also be used to resolve constants,
+including natural constants like @samp{$h} for Planck's constant, and
+units like @samp{$km} for kilometers@footnote{@file{Constant.el} can
+supply the values of constants in two different unit systems, @code{SI}
+and @code{cgs}.  Which one is used depends on the value of the variable
 @code{constants-unit-system}.  You can use the @code{#+STARTUP} options
 @code{constSI} and @code{constcgs} to set this value for the current
 buffer.}.  Column names and parameters can be specified in special table
@@ -3030,7 +3065,7 @@ back into synch.  Or simply toggle any checkbox twice with @kbd{C-c C-c}.
 @end table
 
 
-@node Tags, Properties, TODO items, Top
+@node Tags, Properties and columns, TODO items, Top
 @chapter Tags
 @cindex tags
 @cindex headline tagging
@@ -3286,8 +3321,8 @@ instead of any TAG an expression like @samp{LEVEL=3}.  For example, a
 search @samp{+LEVEL=3+BOSS/-DONE} lists all level three headlines that
 have the tag BOSS and are @emph{not} marked with the todo keyword DONE.
 
-@node Properties, Timestamps, Tags, Top
-@chapter Properties
+@node Properties and columns, Timestamps, Tags, Top
+@chapter Properties and Columns
 @cindex properties
 
 Properties are a set of key-value pairs associated with an entry.  There
@@ -3298,7 +3333,8 @@ tags like @code{:release_1:}, @code{:release_2:}, it can be more
 efficient to use a property @code{RELEASE} with a value @code{1.0} or
 @code{2.0}.  Second, you can use properties to implement (very basic)
 database capabilities in an Org-mode buffer, for example to create a
-list of Music CD's you own.
+list of Music CD's you own.  You can edit and view properties
+conveniently in column view (@pxref{Column view}).
 
 @menu
 * Property syntax::             How properties are spelled out
@@ -3308,8 +3344,10 @@ list of Music CD's you own.
 * Property API::                Properties for Lisp programmers
 @end menu
 
-@node Property syntax, Special properties, Properties, Properties
+@node Property syntax, Special properties, Properties and columns, Properties and columns
 @section Property Syntax
+@cindex property syntax
+@cindex drawer, for properties
 
 Properties are key-value pairs.  They need to be inserted into a special
 drawer (@pxref{Drawers}) with the name @code{PROPERTIES}.  Each property
@@ -3324,26 +3362,65 @@ first, and the value after it.  Here is an example:
     :Title:     Goldberg Variations
     :Composer:  J.S. Bach
     :Artist:    Glen Gould 
-    :END:
+    :Publisher: Deutsche Grammphon
+    :NDisks:    1
+    :END:       
+@end example
+
+You may define the allowed values for a particular property @samp{XYZ}
+by setting a property @samp{XYZ_ALL}.  This special property is
+@emph{inherited}, so if you set it in a level 1 entry, it will apply to
+the entire tree.  When allowed values are defined, setting the
+corresponding property becomes easier and is less prone to typing
+errors.  For the example with the CD collection, we can predefine
+publishers and the number of disks in a box like this:
+
+@example
+* CD collection
+  :PROPERTIES:
+  :NDisks_ALL:  1 2 3 4
+  :Publisher_ALL: "Deutsche Grammophon" Phillips EMI
+  :END:
 @end example
 
 @noindent
-The following commands help to insert properties:
+The following commands help to work with properties:
 
 @table @kbd
 @kindex M-@key{TAB}
 @item M-@key{TAB}
 After an initial colon in a line, complete property keys.  All keys used
 in the current file will be offered as possible completions.
+@item M-x org-insert-property-drawer
+Insert a property drawer into the current entry.  The drawer will be
+inserted early in the entry, but after the lines with planning
+information like deadlines.
+@kindex C-c C-c
+@item C-c C-c
+With the cursor in a property drawer, this executes property commands.
+@item C-c C-c s
+Set a property in the current entry.  Both the property and the value
+can be inserted using completion.
+@kindex S-@key{right}
+@kindex S-@key{left}
+@item S-@key{left}/@key{right}
+Switch property at point to the next/previous allowed value.
+@item C-c C-c d
+Remove a property from the current entry.
+@item C-c C-c D
+Globally remove a property, from all entries in the current file.
 @end table
 
-
-
-@node Special properties, Property searches, Property syntax, Properties
+@node Special properties, Property searches, Property syntax, Properties and columns
 @section Special Properties
+@cindex properties, special
 
-Several properties are special, because they can be used to access other
-features of Org-mode like the TODO status:
+Special properties provide alternative access method to Org-mode
+features discussed in the previous chapters, like the TODO state or the
+priority of an entry.  This interface exists so that you can include
+these states into columns view (@pxref{Column view}).  The following
+property names are special and should not be used as keys in the
+properties drawer:
 
 @example
 TODO         @r{The TODO keyword of the entry.}
@@ -3354,8 +3431,9 @@ DEADLINE     @r{The deadline time string, without the angular brackets.}
 SCHEDULED    @r{The scheduling time stamp, without the angular brackets.}
 @end example
 
-@node Property searches, Column view, Special properties, Properties
+@node Property searches, Column view, Special properties, Properties and columns
 @section Property searches
+@cindex properties, searching
 
 To create sparse trees and special lists with selection based on
 properties, the same commands are used as for tag searches (@pxref{Tag
@@ -3371,23 +3449,23 @@ also have a priority value @samp{A}, a @samp{:coffee:} property with the
 value @samp{unlimited}, and a @samp{:with:} property that is matched by
 the regular expression @samp{Sarah\|Denny}.
 
-@node Column view, Property API, Property searches, Properties
+@node Column view, Property API, Property searches, Properties and columns
 @section Column View
 
-If different items in a document have similar properties, it can be nice
-to view and edit those properties in a table-like format, in
-@emph{column view}.  Org-mode implements columns by overlaying a tabular
-structure over the headline of an item.  So the column view does not use
-a special buffer, it happens in exactly the same buffer where the
-outline is, and only temporarily changes the look of this buffer - not
-the content.  This has the advantage that you can still change the
-visibility of the outline tree.  For example, you get a compact table by
-switching to CONTENTS view, but you can still open, read, and edit the
-entry below each headline.  Or, you can switch to column view after
-executing a sparse tree command and in this way get a table only for the
-selected items.  Column view also works in agenda buffers (@pxref{Agenda
-views}) where queries have collected selected items, possibly from a
-number of files.
+A great way to view and edit properties in aan outline tree is
+@emph{column view}.  In column view, each outline item is turned into a
+table row.  Columns in this table provide access to properties of the
+entries.  Org-mode implements columns by overlaying a tabular structure
+over the headline of each item.  While the headlines have been turned
+into a table row, you can still change the visibility of the outline
+tree.  For example, you get a compact table by switching to CONTENTS
+view (@kbd{S-@key{TAB} S-@key{TAB}}, or simple @kbd{c} while column view
+is active), but you can still open, read, and
+edit the entry below each headline.  Or, you can switch to column view
+after executing a sparse tree command and in this way get a table only
+for the selected items.  Column view also works in agenda buffers
+(@pxref{Agenda views}) where queries have collected selected items,
+possibly from a number of files.
 
 @menu
 * Defining columns::            The COLUMNS format property
@@ -3396,81 +3474,122 @@ number of files.
 
 @node Defining columns, Using column view, Column view, Column view
 @subsection Defining Columns
+@cindex column view, for properties
+@cindex properties, column view
 
-Setting up a column view first requires defining the columns.  A column
-definition is a property itself and looks like this:
+Setting up a column view first requires defining the columns.  This is
+done by defining a column format line.
+
+@menu
+* Scope of column definitions::  Where defined, where valid?
+* Column attributes::           Appearance and content of a column
+@end menu
+
+@node Scope of column definitions, Column attributes, Defining columns, Defining columns
+@subsubsection Scope of column definitions
+
+To define a column format for an entire file, use a line like
 
 @example
-:COLUMNS: %25ITEM %TAGS %PRIORITY %TODO
+#+COLUMNS: %25ITEM %TAGS %PRIORITY %TODO
 @end example
 
-This definition means that column 1 should be the first 25 characters of
-the item itself, i.e. of the headline.  You probably always should start
-the column definition with the ITEM specifier - just select a useful
-width for it.  The other specifiers create columns for the local tags,
-for the priority and for the TODO state.  When no width is given after
-the @samp{%} character, the column will be exactly as wide as it need to
-be in order to fully display all values.
-
-If a @code{COLUMNS} property is present in an entry, it defines
-columns for the entry itself, and for the entire subtree below it.
-Since the column definition is part of the hierarchical structure of the
-document, you can define columns on level 1 that are general enough for
-all sublevels, and more specific columns further down, when you edit a deeper
-part of the tree.  Here is an example:
-
+To specify a format that only applies to a specific tree, add a COLUMNS
+property to the top node of that tree, for example
 @example
-* People
-  :PROPERTIES:
-  :COLUMNS: %25ITEM %Name
-  :END:
-** Family
+** Top node for columns view
    :PROPERTIES:
-   :COLUMNS: %25ITEM %Name %3Age
+   :COLUMNS: %25ITEM %TAGS %PRIORITY %TODO
    :END:
-*** Sam
-    Info about Sam, including a property list with Name and Age.
-*** Sarah
-    Info about Sarah, including a property list with Name and Age.
-** Office
-   :PROPERTIES:
-   :COLUMNS: %25ITEM %Name %Function %Salary
-   :END:
-*** Boss
-    Info about the Boss, including a property list with Name,
-    Function and Salary (if only we knew....).
 @end example
 
-Now we have defined three different sets of columns.  If you switch to
-column view in the @emph{Family} section, you will get a different table
-than if you do it in the @emph{Office} section.  However, if you switch
-to column view with the cursor on the @emph{People} section, the table
-will cover all entries, but contain only the @emph{Name} column.
+If a @code{COLUMNS} property is present in an entry, it defines columns
+for the entry itself, and for the entire subtree below it.  Since the
+column definition is part of the hierarchical structure of the document,
+you can define columns on level 1 that are general enough for all
+sublevels, and more specific columns further down, when you edit a
+deeper part of the tree.
 
-If no COLUMNS property applies to a given location, Org-mode uses a
-default format specified in the variable
-@code{org-default-columns-format}.  This format in particular also
-applies when column view is invoked with the cursor before the first
-headline.  You can set the default format on a per-file basis with a
-line (don't forget to press @kbd{C-c C-c} to activate any changes to
-this line).
+@node Column attributes,  , Scope of column definitions, Defining columns
+@subsubsection Column attributes
+A column definition sets the attributes of a column.  The general
+definition looks like this:
 
 @example
-#+COLUMNS: %25ITEM ....."
+ %[width]property[(title)][@{summary-type@}]
 @end example
+
+@noindent
+Except for the percent sign and the property name, all items are
+optional.  The individual parts have the following meaning:
+
+@example
+width           @r{An integer specifying the width of the column in characters.}
+                @r{If omitted, the width will be determined automatically.}
+property        @r{The property that should be edited in this column.}
+(title)         @r{The header text for the column. If omitted, the}
+                @r{property name is used.}
+@{summary-type@}  @r{The summary type.  If specified, the column values for}
+                @r{parent nodes are computed from the children.}
+                @r{Supported summary types are:}
+                @{+@}  @r{Sum numbers in this column.}
+                @{:@}  @r{Sum times, HH:MM:SS, plain numbers are hours.}
+                @{X@}  @r{Checkbox status, [X] if all children are [X].}
+@end example
+
+@noindent
+Here is an example for a complete columns definition, along with allowed
+values.
+
+@example
+:COLUMNS:  %20ITEM %9Approved(Approved?)@{X@} %Owner %11Status %10Time_Spent@{:@}
+:Owner_ALL:    Tammy Mark Karl Lisa Don
+:Status_ALL:   "In progress" "Not started yet" "Finished" ""
+:Approved_ALL: "[ ]" "[X]"
+@end example
+
+The first column, @samp{%25ITEM}, means the first 25 characters of the
+item itself, i.e. of the headline.  You probably always should start the
+column definition with the ITEM specifier.  The other specifiers create
+columns @samp{Owner} with a list of names as allowed values, for
+@samp{Status} with four different possible values, and for a checkbox
+field @samp{Approved}.  When no width is given after the @samp{%}
+character, the column will be exactly as wide as it needs to be in order
+to fully display all values.  The @samp{Approved} column does have a
+modified title (@samp{Approved?}, with a question mark).  Summaries will
+be created for the @samp{Time_Spent} column by adding time duration
+expressions like HH:MM, and for the @samp{Approved} column, by providing
+an @samp{[X]} status if all children have been checked.
 
 @node Using column view,  , Defining columns, Column view
 @subsection Using Column View
 
 @table @kbd
+@tsubheading{Turning column view on and off}
 @kindex C-c C-x C-c
 @item C-c C-x C-c
 Create the column view for the local environment.  This command searches
 the hierarchy, up from point, for a @code{COLUMNS} property that defines
 a format.  When one is found, the column view table is established for
-the entire subtree.
+the entire tree, starting from the entry that contains the @code{COLUMNS}
+property.  If none is found, the format is taken from the @code{#+COLUMNS}
+line or from the variable @code{org-columns-default-format}, and column
+view is established for the current entry and its subtree.
+@kindex q
+@item q
+Exit column view.
+@tsubheading{Editing values}
 @item @key{left} @key{right} @key{up} @key{down}
 Move through the column view from field to field.
+@kindex S-@key{left}
+@kindex S-@key{right}
+@item  S-@key{left}/@key{right}
+Switch to the next/previous allowed value of the field.  For this, you
+have to have specified allowed values for a property.
+@kindex n
+@kindex p
+@itemx  n / p
+Same as @kbd{S-@key{left}/@key{right}}
 @kindex e
 @item e
 Edit the property at point.  For the special properties, this will
@@ -3481,20 +3600,36 @@ or fast selection interface will pop up.
 @item v
 View the full value of this property.  This is useful if the width of
 the column is smaller than that of the value.
-@kindex q
-@item q
-Exit column view.
+@kindex a
+@item a
+Edit the list of allowed values for this property.  If the list is found
+in the hierarchy, the modified values is stored there.  If no list is
+found, the new value is stored in the first entry that is part of the
+current column view.
+@tsubheading{Modifying the table structure}
+@kindex <
+@kindex >
+@item < / >
+Make the column narrower/wider by one character.
+@kindex S-M-@key{right}
+@item S-M-@key{right}
+Insert a new column, to the right of the current column.
+@kindex S-M-@key{left}
+@item S-M-@key{left}
+Delete the current column.
 @end table
 
-@node Property API,  , Column view, Properties
+@node Property API,  , Column view, Properties and columns
 @section The Property API
+@cindex properties, API
+@cindex API, for properties
 
 There is a full API for accessing and changing properties.  This API can
 be used by Emacs Lisp programs to work with properties and to implement
 features based on them.  For more information see @ref{Using the
 property API}.
 
-@node Timestamps, Agenda views, Properties, Top
+@node Timestamps, Agenda views, Properties and columns, Top
 @chapter Timestamps
 @cindex time stamps
 @cindex date stamps
@@ -4604,7 +4739,9 @@ Delete other windows.
 @kindex m
 @kindex y
 @item d w m y
-Switch to day/week/month/year view.
+Switch to day/week/month/year view.  When switching to day or week view,
+this setting becomes the default for subseqent agenda commands.  Since
+month and year views are slow to create, the do not become the default.
 @c
 @kindex D
 @item D
@@ -5947,16 +6084,15 @@ skip:   @r{turn on/off skipping the text before the first heading}
 @chapter Publishing
 @cindex publishing
 
-Org-mode includes@footnote{@file{org-publish.el} is not yet part of
-Emacs, so if you are using @file{org.el} as it comes with Emacs, you
-need to download this file separately.  Also make sure org.el is at
-least version 4.27.} a publishing management system
-that allows you to configure automatic HTML conversion of
-@emph{projects} composed of interlinked org files.  This system is
-called @emph{org-publish}.  You can also configure org-publish to
-automatically upload your exported HTML pages and related attachments,
-such as images and source code files, to a web server.  Org-publish turns
-org-mode into a web-site authoring tool.
+Org-mode includes@footnote{@file{org-publish.el} is not distributed with
+Emacs 21, if you are still using Emacs 21, you need you need to download
+this file separately.} a publishing management system that allows you to
+configure automatic HTML conversion of @emph{projects} composed of
+interlinked org files.  This system is called @emph{org-publish}.  You
+can also configure org-publish to automatically upload your exported
+HTML pages and related attachments, such as images and source code
+files, to a web server.  Org-publish turns org-mode into a web-site
+authoring tool.
 
 Org-publish has been contributed to Org-mode by David O'Toole.
 
@@ -6118,7 +6254,7 @@ respective variable for details.
 
 When a property is given a value in org-publish-project-alist, its
 setting overrides the value of the corresponding user variable (if any)
-during publishing.  options set within a file (@pxref{Export
+during publishing.  Options set within a file (@pxref{Export
 options}), however, override everything.
 
 @node Publishing links, Project page index, Publishing options, Configuration
@@ -6445,8 +6581,8 @@ Logging TODO state changes and clock intervals (variable
 logging          @r{record a timestamp when an item is marked DONE}
 nologging        @r{don't record when items are marked DONE}
 lognotedone      @r{record timestamp and a note when DONE}
-lognotestate     @r{record timestamp, note when TODO state changes}
-logrepeat        @r{record a not when re-instating a repeating item}
+lognotestate     @r{record timestamp and a note when TODO state changes}
+logrepeat        @r{record a note when re-instating a repeating item}
 nologrepeat      @r{do not record when re-instating repeating item}
 lognoteclock-out @r{record timestamp and a note when clocking out}
 @end example
@@ -6530,6 +6666,9 @@ default location.
 @item
 If the cursor is on a @code{<<<target>>>}, update radio targets and
 corresponding links in this buffer.
+@item
+If the cursor is in a property line or at the start or end of a property
+drawer, offer property commands.
 @item
 If the cursor is in a plain list item with a checkbox, toggle the status
 of the checkbox.
@@ -7289,6 +7428,7 @@ MATCH is being ignored."
 @node Using the property API,  , Special agenda views, Extensions and Hacking
 @section Using the property API
 @cindex API, for properties
+@cindex properties, API
 
 Here is a description of the functions that can be used to work with
 properties.
