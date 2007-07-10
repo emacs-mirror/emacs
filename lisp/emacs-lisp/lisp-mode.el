@@ -730,7 +730,9 @@ If the current defun is actually a call to `defvar' or `defcustom',
 evaluating it this way resets the variable using its initial value
 expression even if the variable already has some other value.
 \(Normally `defvar' and `defcustom' do not alter the value if there
-already is one.)
+already is one.)  In an analogous way, evaluating a `defface'
+overrides any customizations of the face, so that it becomes
+defined exactly as the `defface' expression says.
 
 If `eval-expression-debug-on-error' is non-nil, which is the default,
 this command arranges for all errors to enter the debugger.
