@@ -1,3 +1,7 @@
+2007-07-10  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Properties and columns): Chapter rewritten.
+
 2007-07-08  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi:
