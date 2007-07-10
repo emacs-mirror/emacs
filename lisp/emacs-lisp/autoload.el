@@ -559,6 +559,7 @@ directory or directories specified."
 				 (directory-files (expand-file-name dir)
 						  t files-re))
 			       dirs)))
+         (done ())
 	 (this-time (current-time))
          ;; Files with no autoload cookies or whose autoloads go to other
          ;; files because of file-local autoload-generated-file settings.
@@ -592,10 +593,10 @@ directory or directories specified."
 			   (push file no-autoloads)
 			   (setq files (delete file files)))))))
 		  ((not (stringp file)))
-		  ((not (and (file-exists-p file)
-                             ;; Remove duplicates as well, just in case.
-                             (member file files)))
-		   ;; Remove the obsolete section.
+		  ((or (not (file-exists-p file))
+                       ;; Remove duplicates as well, just in case.
+                       (member file done))
+                   ;; Remove the obsolete section.
 		   (autoload-remove-section (match-beginning 0)))
 		  ((not (time-less-p (nth 4 form)
                                      (nth 5 (file-attributes file))))
@@ -606,6 +607,7 @@ directory or directories specified."
                    (if (autoload-generate-file-autoloads
                         file (current-buffer) buffer-file-name)
                        (push file no-autoloads))))
+            (push file done)
 	    (setq files (delete file files)))))
       ;; Elements remaining in FILES have no existing autoload sections yet.
       (dolist (file files)

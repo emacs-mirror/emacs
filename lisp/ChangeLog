@@ -1,18 +1,22 @@
+2007-07-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/autoload.el (update-directory-autoloads): Remove
+	duplicates without also removing entries from other directories.
+
 2007-07-10  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-agenda-day-view, org-agenda-week-view):
 	Remember span as default.
-	(org-columns-edit-value): Renamed from `org-column-edit'.
-	(org-columns-display-here-title): Renamed from
+	(org-columns-edit-value): Rename from `org-column-edit'.
+	(org-columns-display-here-title): Rename from
 	`org-overlay-columns-title'.
-	(org-columns-remove-overlays): ` Renamed from
-	org-remove-column-overlays'.
-	(org-columns-get-autowidth-alist): ` Renamed from
-	org-get-columns-autowidth-alist'.
-	(org-columns-display-here): Renamed from `org-overlay-columns'.
-	(org-columns-new-overlay): Renamed from `org-new-column-overlay'.
-	(org-columns-quit): Renamed from `org-column-quit'.
-	(org-columns-show-value): Renamed from `org-column-show-value'.
+	(org-columns-remove-overlays): Rename from org-remove-column-overlays.
+	(org-columns-get-autowidth-alist): Rename from
+	`org-get-columns-autowidth-alist'.
+	(org-columns-display-here): Rename from `org-overlay-columns'.
+	(org-columns-new-overlay): Rename from `org-new-column-overlay'.
+	(org-columns-quit): Rename from `org-column-quit'.
+	(org-columns-show-value): Rename from `org-column-show-value'.
 	(org-columns-content, org-columns-widen)
 	(org-columns-next-allowed-value)
 	(org-columns-edit-allowed, org-columns-store-format)
@@ -34,17 +38,16 @@
 	(org-property-get-allowed-values)
 	(org-verify-version, org-column-string-to-number)
 	(org-delete-property-globally): New functions.
-	(org-columns-current-fmt): Renamed from `org-current-columns-fmt'.
-	(org-columns-overlays): Renamed from `org-column-overlays'.
-	(org-columns-map): Renamed from `org-column-map'.
-	(org-columns-current-maxwidths): Renamed from
+	(org-columns-current-fmt): Rename from `org-current-columns-fmt'.
+	(org-columns-overlays): Rename from `org-column-overlays'.
+	(org-columns-map): Rename from `org-column-map'.
+	(org-columns-current-maxwidths): Rename from
 	`org-current-columns-maxwidths'.
 	(org-columns-begin-marker, org-columns-current-fmt-compiled)
 	(org-previous-header-line-format)
 	(org-columns-inhibit-recalculation)
 	(org-columns-top-level-marker): New variables.
-	(org-columns-default-format): Renamed from
-	`org-default-columns-format'.
+	(org-columns-default-format): Rename from `org-default-columns-format'.
 	(org-property-re): New constant.
 
 2007-07-10  Guanpeng Xu  <herberteuler@hotmail.com>
@@ -77,8 +80,8 @@
 
 	* longlines.el (longlines-wrap-region): Avoid marking buffer as
 	modified.
-	(longlines-auto-wrap, longlines-window-change-function): Remove
-	unnecessary calls to set-buffer-modified-p.
+	(longlines-auto-wrap, longlines-window-change-function):
+	Remove unnecessary calls to set-buffer-modified-p.
 
 2007-07-08  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -88,13 +91,6 @@
 
 	* vc-cvs.el (vc-cvs-revert): Use vc-default-revert.
 	(vc-cvs-checkout): Remove last arg now unused; simplify.
-
-2007-07-08  Chong Yidong  <cyd@stupidchicken.com>
-
-	* longlines.el (longlines-wrap-region): Avoid marking buffer as
-	modified.
-	(longlines-auto-wrap, longlines-window-change-function):
-	Remove unnecessary calls to set-buffer-modified-p.
 
 2007-07-08  Michael Albinus  <michael.albinus@gmx.de>
 
