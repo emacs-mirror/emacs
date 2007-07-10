@@ -73,6 +73,9 @@ recenter the visited source file.  Its value can be a number (for example,
 
 * Changes in Specialized Modes and Packages in Emacs 23.1
 
+** compilation-auto-jump-to-first-error tells `compile' to jump to
+the first error encountered during compilations.
+
 ** In the `copyright' package, you can specify your copyright holders's names.
 Only copyright lines with holders matching copyright-names-regexp will be
 considered for update.

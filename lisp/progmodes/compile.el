@@ -87,13 +87,13 @@
 
 ;;;###autoload
 (defcustom compilation-mode-hook nil
-  "*List of hook functions run by `compilation-mode' (see `run-mode-hooks')."
+  "List of hook functions run by `compilation-mode' (see `run-mode-hooks')."
   :type 'hook
   :group 'compilation)
 
 ;;;###autoload
 (defcustom compilation-window-height nil
-  "*Number of lines in a compilation window.  If nil, use Emacs default."
+  "Number of lines in a compilation window.  If nil, use Emacs default."
   :type '(choice (const :tag "Default" nil)
 		 integer)
   :group 'compilation)
@@ -442,7 +442,7 @@ Highlight entire line if t; don't highlight source lines if nil.")
   "Overlay used to temporarily highlight compilation matches.")
 
 (defcustom compilation-error-screen-columns t
-  "*If non-nil, column numbers in error messages are screen columns.
+  "If non-nil, column numbers in error messages are screen columns.
 Otherwise they are interpreted as character positions, with
 each character occupying one column.
 The default is to use screen columns, which requires that the compilation
@@ -453,21 +453,21 @@ especially the TAB character."
   :version "20.4")
 
 (defcustom compilation-read-command t
-  "*Non-nil means \\[compile] reads the compilation command to use.
+  "Non-nil means \\[compile] reads the compilation command to use.
 Otherwise, \\[compile] just uses the value of `compile-command'."
   :type 'boolean
   :group 'compilation)
 
 ;;;###autoload
 (defcustom compilation-ask-about-save t
-  "*Non-nil means \\[compile] asks which buffers to save before compiling.
+  "Non-nil means \\[compile] asks which buffers to save before compiling.
 Otherwise, it saves all modified buffers without asking."
   :type 'boolean
   :group 'compilation)
 
 ;;;###autoload
 (defcustom compilation-search-path '(nil)
-  "*List of directories to search for source files named in error messages.
+  "List of directories to search for source files named in error messages.
 Elements should be directory names, not file names of directories.
 The value nil as an element means to try the default directory."
   :type '(repeat (choice (const :tag "Default" nil)
@@ -476,7 +476,7 @@ The value nil as an element means to try the default directory."
 
 ;;;###autoload
 (defcustom compile-command "make -k "
-  "*Last shell command used to do a compilation; default for next compilation.
+  "Last shell command used to do a compilation; default for next compilation.
 
 Sometimes it is useful for files to supply local values for this variable.
 You might also use mode hooks to specify it in certain modes, like this:
@@ -494,7 +494,7 @@ You might also use mode hooks to specify it in certain modes, like this:
 
 ;;;###autoload
 (defcustom compilation-disable-input nil
-  "*If non-nil, send end-of-file as compilation process input.
+  "If non-nil, send end-of-file as compilation process input.
 This only affects platforms that support asynchronous processes (see
 `start-process'); synchronous compilation processes never accept input."
   :type 'boolean
@@ -605,6 +605,14 @@ Faces `compilation-error-face', `compilation-warning-face',
 (defvar compilation-error-list nil)
 (defvar compilation-old-error-list nil)
 
+(defcustom compilation-auto-jump-to-first-error nil
+  "If non-nil, automatically jump to the first error after `compile'."
+  :type 'boolean)
+
+(defvar compilation-auto-jump-to-next nil
+  "If non-nil, automatically jump to the next error encountered.")
+(make-variable-buffer-local 'compilation-auto-jump-to-next)
+
 (defun compilation-face (type)
   (or (and (car type) (match-end (car type)) compilation-warning-face)
       (and (cdr type) (match-end (cdr type)) compilation-info-face)
@@ -652,13 +660,18 @@ Faces `compilation-error-face', `compilation-warning-face',
 	      l2
 	    (setcdr l1 (cons (list ,key) l2)))))))
 
+(defun compilation-auto-jump (buffer pos)
+  (with-current-buffer buffer
+    (goto-char pos)
+    (compile-goto-error)))
 
 ;; This function is the central driver, called when font-locking to gather
 ;; all information needed to later jump to corresponding source code.
 ;; Return a property list with all meta information on this error location.
 
 (defun compilation-error-properties (file line end-line col end-col type fmt)
-  (unless (< (next-single-property-change (match-beginning 0) 'directory nil (point))
+  (unless (< (next-single-property-change (match-beginning 0)
+                                          'directory nil (point))
 	     (point))
     (if file
 	(if (functionp file)
@@ -710,6 +723,13 @@ Faces `compilation-error-face', `compilation-warning-face',
 	(setq type (or (and (car type) (match-end (car type)) 1)
 		       (and (cdr type) (match-end (cdr type)) 0)
 		       2)))
+
+    (when (and compilation-auto-jump-to-next
+               (>= type compilation-skip-threshold))
+      (kill-local-variable 'compilation-auto-jump-to-next)
+      (run-with-timer 0 nil 'compilation-auto-jump
+                      (current-buffer) (match-beginning 0)))
+
     (compilation-internal-error-properties file line end-line col end-col type fmt)))
 
 (defun compilation-move-to-column (col screen)
@@ -932,7 +952,7 @@ original use.  Otherwise, recompile using `compile-command'."
 				  `(,(eval compile-command))))))
 
 (defcustom compilation-scroll-output nil
-  "*Non-nil to scroll the *compilation* buffer window as output appears.
+  "Non-nil to scroll the *compilation* buffer window as output appears.
 
 Setting it causes the Compilation mode commands to put point at the
 end of their output window so that the end of the output is always
@@ -1026,8 +1046,9 @@ Returns the compilation buffer created."
       ;; Clear out the compilation buffer.
       (let ((inhibit-read-only t)
 	    (default-directory thisdir))
-	;; Then evaluate a cd command if any, but don't perform it yet, else start-command
-	;; would do it again through the shell: (cd "..") AND sh -c "cd ..; make"
+	;; Then evaluate a cd command if any, but don't perform it yet, else
+	;; start-command would do it again through the shell: (cd "..") AND
+	;; sh -c "cd ..; make"
 	(cd (if (string-match "^\\s *cd\\(?:\\s +\\(\\S +?\\)\\)?\\s *[;&\n]" command)
 		(if (match-end 1)
 		    (substitute-env-vars (match-string 1 command))
@@ -1043,6 +1064,8 @@ Returns the compilation buffer created."
 	(if highlight-regexp
 	    (set (make-local-variable 'compilation-highlight-regexp)
 		 highlight-regexp))
+        (if compilation-auto-jump-to-first-error
+            (set (make-local-variable 'compilation-auto-jump-to-next) t))
 	;; Output a mode setter, for saving and later reloading this buffer.
 	(insert "-*- mode: " name-of-mode
 		"; default-directory: " (prin1-to-string default-directory)
@@ -1244,7 +1267,7 @@ Returns the compilation buffer created."
   "*If non-nil, skip multiple error messages for the same source location.")
 
 (defcustom compilation-skip-threshold 1
-  "*Compilation motion commands skip less important messages.
+  "Compilation motion commands skip less important messages.
 The value can be either 2 -- skip anything less than error, 1 --
 skip anything less than warning or 0 -- don't skip any messages.
 Note that all messages not positively identified as warning or
@@ -1256,7 +1279,7 @@ info, are considered errors."
   :version "22.1")
 
 (defcustom compilation-skip-visited nil
-  "*Compilation motion commands skip visited messages if this is t.
+  "Compilation motion commands skip visited messages if this is t.
 Visited messages are ones for which the file, line and column have been jumped
 to from the current content in the current compilation buffer, even if it was
 from a different message."
