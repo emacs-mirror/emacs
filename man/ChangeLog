@@ -7,6 +7,22 @@
 
 	* org.texi (Properties): New chapter.
 
+2007-07-02  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-faq.texi ([3.2]): Fix locating of environment variables in the
+	Control Panel.
+
+	* gnus.texi (Misc Article): Add index entry for
+	gnus-single-article-buffer.
+
+2007-06-27  Andreas Seltenreich  <andreas@gate450.dyndns.org>
+
+	* gnus.texi (Starting Up): Fix typo.
+
+2007-06-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Asynchronous Fetching): Fix typo.
+
 2007-06-24  Karl Berry  <karl@gnu.org>
 
 	* emacs.texi: new Back-Cover Text.

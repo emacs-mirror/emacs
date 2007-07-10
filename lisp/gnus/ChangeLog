@@ -1,3 +1,18 @@
+2007-07-04  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-catchup): Don't recognize cached articles
+	as unfetched articles.
+
+2007-07-02  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-start.el (gnus-level-unsubscribed): Improve doc string.
+
+2007-06-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-summary-command-nosave)
+	(gnus-article-read-summary-keys): Don't set the 3rd arg of
+	pop-to-buffer for XEmacs.
+
 2007-06-14  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-agent.el (gnus-agent-fetch-headers)

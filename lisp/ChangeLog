@@ -1,3 +1,14 @@
+2007-07-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* cus-start.el (file-coding-system-alist): Fix custom type.
+
+2007-07-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-wrap-region): Avoid marking buffer as
+	modified.
+	(longlines-auto-wrap, longlines-window-change-function): Remove
+	unnecessary calls to set-buffer-modified-p.
+
 2007-07-09  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* textmodes/tex-mode.el (tex-fontify-script)
@@ -249,6 +260,11 @@
 	* calculator.el (calculator-expt): Use more cases to determine
 	the value.
 
+2007-07-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/gud.el (auto-mode-alist): Match more valid gdb init
+	file names.
+
 2007-07-03  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calculator.el (calculator-expt, calculator-integer-p):
@@ -329,6 +345,10 @@
 
 	* ffap.el (dired-at-point-prompter): Improve prompt in
 	list-directory case.
+
+2007-07-01  Richard Stallman  <rms@gnu.org>
+
+	* files.el (find-file-visit-truename): Fix safe-local-variable value.
 
 2007-07-01  Richard Stallman  <rms@gnu.org>
 
@@ -981,7 +1001,7 @@
 	post-command-hook.
 	(rcirc-window-configuration-change-1): Update mode-line and
 	overlay arrows here.
-	(rcirc-authenticate): Fix chanserv identification.
+	(rcirc-authenticate): Fixc hanserv identification.
 	(rcirc-default-server): Remove variable.
 	(rcirc): Connect according to rcirc-connections.
 	(rcirc-connections): Add variable.

@@ -1092,8 +1092,8 @@
 	North American rule.  Replace "daylight savings" with "daylight
 	saving" in doc.
 
-	* calendar/cal-china.el,cal-dst.el,calendar.el,diary-lib.el:
-	* calendar/lunar.el,solar.el: Replace "daylight savings" with
+	* calendar/cal-china.el, cal-dst.el, calendar.el, diary-lib.el:
+	* calendar/lunar.el, solar.el: Replace "daylight savings" with
 	"daylight saving" in text.
 
 	* woman.el (woman-change-fonts): Tweak previous change by using
