@@ -1,4 +1,4 @@
-/* finalcv.c: FINALIZATION COVERAGE TEST
+/* fint1658.c: Test for suspected defect described in job001658
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -15,7 +15,11 @@
  *
  * NOTES
  *
- * This code was created by first copying <code/weakcv.c>
+ * This code was created by first copying <code/finalcv.c>.
+ *
+ * The modifications are to make lots of guardians, such that they 
+ * don't all fit on one segment, in order to test for the (suspected) 
+ * finalization promptness defect described in job001658.
  */
 
 #include "testlib.h"
@@ -32,7 +36,11 @@
 
 
 #define testArenaSIZE   ((size_t)16<<20)
-#define rootCOUNT 20
+
+/* usually (ArenaAlign / sizeof(Ref)) = 1024 */
+/* so choose 2050 to force 3 segments of guardians */
+#define rootCOUNT 2050
+
 #define churnFACTOR 10
 #define finalizationRATE 6
 #define gcINTERVAL ((size_t)150 * 1024)

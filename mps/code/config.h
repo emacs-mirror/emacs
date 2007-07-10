@@ -21,9 +21,19 @@
 
 /* Variety Configuration */
 
-/* First deal with old-style CONFIG_VAR_* build directives.  These
+/* First translate GG build directives into better ones.
+ */
+
+#ifdef CONFIG_DEBUG
+/* Translate CONFIG_DEBUG to CONFIG_STATS, because that's what it */
+/* means.  It's got nothing to do with debugging!  RHSK 2007-06-29 */
+#define CONFIG_STATS
+#endif
+
+
+/* Then deal with old-style CONFIG_VAR_* build directives.  These
  * must be translated into the new directives CONFIG_ASSERT,
- * CONFIG_DEBUG, and CONFIG_LOG.
+ * CONFIG_STATS, and CONFIG_LOG.
  *
  * One day the old build system may be converted to use the new
  * directives.
@@ -32,31 +42,43 @@
 #if defined(CONFIG_VAR_WI) || defined(CONFIG_VAR_WE) /* White-hot varieties */
 /* no asserts */
 /* ... so CHECKLEVEL_INITIAL is irrelevant */
-/* no debug diagnostic statistic meters */
+/* no statistic meters */
 /* no telemetry log events */
 
 #elif defined(CONFIG_VAR_HI) || defined(CONFIG_VAR_HE) /* Hot varieties */
 #define CONFIG_ASSERT
 #define CHECKLEVEL_INITIAL CheckLevelMINIMAL
-/* no debug diagnostic statistic meters */
+/* no statistic meters */
+/* no telemetry log events */
+
+#elif defined(CONFIG_VAR_DI) /* Diagnostic variety */
+#define CONFIG_ASSERT
+#define CHECKLEVEL_INITIAL CheckLevelMINIMAL
+#define CONFIG_STATS
+/* For diagnostics, choose a DIAG_WITH_... output method.
+ * (We need to choose because the DIAG output system is under 
+ * development.  RHSK 2007-05-21).
+ */
+/* #define DIAG_WITH_STREAM_AND_WRITEF -- this does not work in CET */
+#define DIAG_WITH_PRINTF
 /* no telemetry log events */
 
 #elif defined(CONFIG_VAR_CI) || defined(CONFIG_VAR_CE) /* Cool varieties */
 #define CONFIG_ASSERT
 /* ... let PRODUCT determine CHECKLEVEL_INITIAL */
-#define CONFIG_DEBUG
+#define CONFIG_STATS
 /* no telemetry log events */
 
 #elif defined(CONFIG_VAR_TI)    /* Telemetry, Internal; variety.ti */
 #define CONFIG_ASSERT
 /* ... let PRODUCT determine CHECKLEVEL_INITIAL */
-#define CONFIG_DEBUG
+#define CONFIG_STATS
 #define CONFIG_LOG
 
 #elif defined(CONFIG_VAR_II)    /* Ice, Internal; variety.ii (HotLog) */
 #define CONFIG_ASSERT
 #define CHECKLEVEL_INITIAL CheckLevelMINIMAL
-/* no debug diagnostic statistic meters */
+/* no statistic meters */
 #define CONFIG_LOG
 #endif
 
@@ -75,14 +97,19 @@
 #endif
 
 
-#if defined(CONFIG_DEBUG)
-/* DEBUG = DIAGNOSTICS = STATISTICs = METERs */
-/* WARNING: this changes the size and fields of MPS structs */
-#define DIAGNOSTICS
-#define MPS_DEBUG_STRING "debug"
+#if defined(CONFIG_STATS)
+/* CONFIG_STATS = STATISTICS = METERs */
+/* Note: the STATISTICS define used to be called "DIAGNOSTICS" (even */
+/* though it controls the STATISTIC system), but the term */
+/* "diagnostic" means something else now: see design/diag/. */
+/* RHSK 2007-06-28 */
+/* WARNING: this may change the size and fields of MPS structs */
+/* (...but see STATISTIC_DECL, which is invariant) */
+#define STATISTICS
+#define MPS_STATS_STRING "stats"
 #else
-#define DIAGNOSTICS_NONE
-#define MPS_DEBUG_STRING "nondebug"
+#define STATISTICS_NONE
+#define MPS_STATS_STRING "nonstats"
 #endif
 
 
@@ -97,7 +124,7 @@
 
 
 #define MPS_VARIETY_STRING \
-  MPS_ASSERT_STRING "." MPS_LOG_STRING "." MPS_DEBUG_STRING
+  MPS_ASSERT_STRING "." MPS_LOG_STRING "." MPS_STATS_STRING
 
 
 /* Platform Configuration */
