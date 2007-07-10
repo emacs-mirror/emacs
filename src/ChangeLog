@@ -1,5 +1,8 @@
 2007-07-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* alloc.c (mark_maybe_pointer): Enforce mult-of-8 alignment when using
+	USE_LSB_TAG.  Suggested by Dmitry Antipov <dmantipov@yandex.ru>.
+
 	* fns.c (map_char_table): Use an array of int for `indices' rather than
 	an array of Lisp_Objects (which are only ever integers anyway).
 	(Fmap_char_table): Update caller.
