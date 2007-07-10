@@ -1,4 +1,4 @@
-2007-07-08  Guanpeng Xu  <herberteuler@hotmail.com>
+2007-07-10  Guanpeng Xu  <herberteuler@hotmail.com>
 
 	* search.c (Vinhibit_changing_match_data, search_regs_1): New vars.
 	(looking_at_1): Don't change search_regs and last_thing_searched
