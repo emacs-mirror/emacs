@@ -2428,7 +2428,7 @@ EXFUN (Fstring_lessp, 2);
 extern int char_table_translate P_ ((Lisp_Object, int));
 extern void map_char_table P_ ((void (*) (Lisp_Object, Lisp_Object, Lisp_Object),
 				Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, int,
-				Lisp_Object *));
+				int *));
 extern Lisp_Object char_table_ref_and_index P_ ((Lisp_Object, int, int *));
 extern void syms_of_fns P_ ((void));
 
@@ -3244,6 +3244,7 @@ EXFUN (Fx_file_dialog, 5);
 #endif
 
 /* Defined in xfaces.c */
+EXFUN (Fclear_face_cache, 1);
 extern void syms_of_xfaces P_ ((void));
 
 #ifndef HAVE_GETLOADAVG
@@ -3259,6 +3260,7 @@ extern void syms_of_xfns P_ ((void));
 extern void syms_of_xsmfns P_ ((void));
 
 /* Defined in xselect.c */
+EXFUN (Fx_send_client_event, 6);
 extern void syms_of_xselect P_ ((void));
 
 /* Defined in xterm.c */

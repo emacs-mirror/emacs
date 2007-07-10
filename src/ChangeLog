@@ -1,5 +1,15 @@
 2007-07-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* fns.c (map_char_table): Use an array of int for `indices' rather than
+	an array of Lisp_Objects (which are only ever integers anyway).
+	(Fmap_char_table): Update caller.
+	* lisp.h: Update prototype.
+	* keymap.c (Fset_keymap_parent, map_keymap, Fcopy_keymap):
+	* fontset.c (Ffontset_info):
+	* casetab.c (set_case_table): Update callers.
+
+	* editfns.c (Ftranspose_regions): Use EMACS_INT for positions.
+
 	* keymap.c (struct accessible_keymaps_data)
 	(struct where_is_internal_data): New structures.
 	(accessible_keymaps_1, where_is_internal_1): Use them to change
@@ -17,9 +27,8 @@
 	(string_match_1, search_buffer, set_search_regs): Likewise.
 	(syms_of_search): Add Lisp level definition for
 	`inhibit-changing-match-data' and set it to nil.
-	(boyer_moore): If `inhibit-changing-match-data' is non-nil,
-	compute start and end of the match, instead of using values in
-	search_regs.
+	(boyer_moore): If `inhibit-changing-match-data' is non-nil, compute
+	start and end of the match, instead of using values in search_regs.
 
 2007-07-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 

@@ -429,7 +429,7 @@ Return PARENT.  PARENT should be nil or another keymap.  */)
 
       if (CHAR_TABLE_P (XCAR (list)))
 	{
-	  Lisp_Object indices[3];
+	  int indices[3];
 
 	  map_char_table (fix_submap_inheritance, Qnil,
 			  XCAR (list), XCAR (list),
@@ -728,7 +728,7 @@ map_keymap (map, fun, args, data, autoload)
 	}
       else if (CHAR_TABLE_P (binding))
 	{
-	  Lisp_Object indices[3];
+	  int indices[3];
 	  map_char_table (map_keymap_char_table_item, Qnil, binding, binding,
 			  Fcons (make_save_value (fun, 0),
 				 Fcons (make_save_value (data, 0),
@@ -1079,7 +1079,7 @@ is not copied.  */)
       Lisp_Object elt = XCAR (keymap);
       if (CHAR_TABLE_P (elt))
 	{
-	  Lisp_Object indices[3];
+	  int indices[3];
 	  elt = Fcopy_sequence (elt);
 	  map_char_table (copy_keymap_1, Qnil, elt, elt, elt, 0, indices);
 	}

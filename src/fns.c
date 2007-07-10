@@ -2825,8 +2825,8 @@ DEFUN ("optimize-char-table", Foptimize_char_table, Soptimize_char_table,
 void
 map_char_table (c_function, function, table, subtable, arg, depth, indices)
      void (*c_function) P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
-     Lisp_Object function, table, subtable, arg, *indices;
-     int depth;
+     Lisp_Object function, table, subtable, arg;
+     int depth, *indices;
 {
   int i, to;
   struct gcpro gcpro1, gcpro2,  gcpro3, gcpro4;
@@ -2860,7 +2860,7 @@ map_char_table (c_function, function, table, subtable, arg, depth, indices)
     }
   else
     {
-      int charset = XFASTINT (indices[0]) - 128;
+      int charset = indices[0] - 128;
 
       i = 32;
       to = SUB_CHAR_TABLE_ORDINARY_SLOTS;
@@ -2874,8 +2874,8 @@ map_char_table (c_function, function, table, subtable, arg, depth, indices)
       int charset;
 
       elt = XCHAR_TABLE (subtable)->contents[i];
-      XSETFASTINT (indices[depth], i);
-      charset = XFASTINT (indices[0]) - 128;
+      indices[depth] = i;
+      charset = indices[0] - 128;
       if (depth == 0
 	  && (!CHARSET_DEFINED_P (charset)
 	      || charset == CHARSET_8_BIT_CONTROL
@@ -2892,8 +2892,8 @@ map_char_table (c_function, function, table, subtable, arg, depth, indices)
 	{
 	  int c1, c2, c;
 
-	  c1 = depth >= 1 ? XFASTINT (indices[1]) : 0;
-	  c2 = depth >= 2 ? XFASTINT (indices[2]) : 0;
+	  c1 = depth >= 1 ? indices[1] : 0;
+	  c2 = depth >= 2 ? indices[2] : 0;
 	  c = MAKE_CHAR (charset, c1, c2);
 
 	  if (NILP (elt))
@@ -2927,14 +2927,14 @@ The key is always a possible IDX argument to `aref'.  */)
      Lisp_Object function, char_table;
 {
   /* The depth of char table is at most 3. */
-  Lisp_Object indices[3];
+  int indices[3];
 
   CHECK_CHAR_TABLE (char_table);
 
   /* When Lisp_Object is represented as a union, `call2' cannot directly
      be passed to map_char_table because it returns a Lisp_Object rather
      than returning nothing.
-     Casting leads to crashes on some architectures.  -stef  */
+     Casting leads to crashes on some architectures.  --Stef  */
   map_char_table (void_call2, Qnil, char_table, char_table, function, 0, indices);
   return Qnil;
 }
