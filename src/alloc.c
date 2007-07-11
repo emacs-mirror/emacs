@@ -1179,8 +1179,6 @@ emacs_blocked_free (ptr, ptr2)
      void *ptr;
      const void *ptr2;
 {
-  EMACS_INT bytes_used_now;
-
   BLOCK_INPUT_ALLOC;
 
 #ifdef GC_MALLOC_CHECK
