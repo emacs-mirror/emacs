@@ -1,3 +1,9 @@
+2007-07-10  Jim Meyering  <jim@meyering.net>  (tiny change)
+
+	* emacs-lisp/copyright.el (copyright-current-gpl-version): Set to 3.
+
+	* autoinsert.el (auto-insert-alist): s/2/3/ in the generated comment.
+
 2007-07-10  Richard Stallman  <rms@gnu.org>
 
 	* emacs-lisp/lisp-mode.el (eval-defun):
