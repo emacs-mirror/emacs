@@ -1,3 +1,18 @@
+2007-07-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (struct Lisp_Hash_Table): Turn next_weak into a bare pointer.
+	* fns.c (weak_hash_tables): Rename from Vweak_hash_tables and turned
+	from a Lisp_Object into a bare pointer.
+	(make_hash_table, copy_hash_table, sweep_weak_hash_tables, init_fns):
+	Adjust the code correspondingly.
+
+	* alloc.c (emacs_blocked_free): Remove unused var `bytes_used_now'.
+
+	* term.c: Include unistd.h for ttyname, used in handle_one_term_event.
+	(term_show_mouse_face): Remove unused var `j'.
+	(handle_one_term_event): Remove unused vars `i' and `j'.
+	Don't cast return value of ttyname since it's not necessary.
+
 2007-07-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* alloc.c (mark_maybe_pointer): Enforce mult-of-8 alignment when using
