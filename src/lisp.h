@@ -56,7 +56,7 @@ Boston, MA 02110-1301, USA.  */
 #ifdef GC_CHECK_CONS_LIST
 #define CHECK_CONS_LIST() check_cons_list()
 #else
-#define CHECK_CONS_LIST() 0
+#define CHECK_CONS_LIST() ((void)0)
 #endif
 
 /* These are default choices for the types to use.  */
@@ -1041,15 +1041,15 @@ struct Lisp_Hash_Table
      hash table size to reduce collisions.  */
   Lisp_Object index;
 
-  /* Next weak hash table if this is a weak hash table.  The head
-     of the list is in Vweak_hash_tables.  */
-  Lisp_Object next_weak;
-
   /* User-supplied hash function, or nil.  */
   Lisp_Object user_hash_function;
 
   /* User-supplied key comparison function, or nil.  */
   Lisp_Object user_cmp_function;
+
+  /* Next weak hash table if this is a weak hash table.  The head
+     of the list is in weak_hash_tables.  */
+  struct Lisp_Hash_Table *next_weak;
 
   /* C function to compare two keys.  */
   int (* cmpfn) P_ ((struct Lisp_Hash_Table *, Lisp_Object,
