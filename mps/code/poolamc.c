@@ -1149,14 +1149,14 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
   AVERT(Seg, seg);
 
   buffer = SegBuffer(seg);
-  if (buffer != NULL) {
+  if(buffer != NULL) {
     AVERT(Buffer, buffer);
 
-    if (!BufferIsMutator(buffer)) {   /* forwarding buffer */
+    if(!BufferIsMutator(buffer)) {      /* forwarding buffer */
       AVER(BufferIsReady(buffer));
       BufferDetach(buffer, pool);
-    } else {                        /* mutator buffer */
-      if (BufferScanLimit(buffer) == SegBase(seg)) {
+    } else {                            /* mutator buffer */
+      if(BufferScanLimit(buffer) == SegBase(seg)) {
         /* There's nothing but the buffer, don't condemn. */
         return ResOK;
       }
@@ -1169,14 +1169,17 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
       /* } */
       else {
         /* There is an active buffer, make sure it's nailed. */
-        if (!amcSegHasNailboard(seg)) {
-          if (SegNailed(seg) == TraceSetEMPTY) {
+        if(!amcSegHasNailboard(seg)) {
+          if(SegNailed(seg) == TraceSetEMPTY) {
             res = amcSegCreateNailboard(seg, pool);
-            if (res != ResOK)
-              return ResOK; /* can't create nailboard, don't condemn */
-            if (BufferScanLimit(buffer) != BufferLimit(buffer))
+            if(res != ResOK) {
+              /* Can't create nailboard, don't condemn. */
+              return ResOK;
+            }
+            if(BufferScanLimit(buffer) != BufferLimit(buffer)) {
               amcNailMarkRange(seg, BufferScanLimit(buffer),
                                BufferLimit(buffer));
+            }
             ++trace->nailCount;
             SegSetNailed(seg, TraceSetSingle(trace));
           } else {
@@ -1207,7 +1210,7 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
 
   gen = amcSegGen(seg);
   AVERT(amcGen, gen);
-  if (Seg2amcSeg(seg)->new) {
+  if(Seg2amcSeg(seg)->new) {
     gen->pgen.newSize -= SegSize(seg);
     Seg2amcSeg(seg)->new = FALSE;
   }
@@ -1219,16 +1222,14 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
   /* see <design/poolamc/#gen.ramp> */
   /* This switching needs to be more complex for multiple traces. */
   AVER(TraceSetIsSingle(PoolArena(pool)->busyTraces));
-  if (amc->rampMode == beginRamp && gen == amc->rampGen) {
+  if(amc->rampMode == beginRamp && gen == amc->rampGen) {
     BufferDetach(gen->forward, pool);
     amcBufSetGen(gen->forward, gen);
     amc->rampMode = ramping;
-  } else {
-    if (amc->rampMode == finishRamp && gen == amc->rampGen) {
-      BufferDetach(gen->forward, pool);
-      amcBufSetGen(gen->forward, amc->afterRampGen);
-      amc->rampMode = collectingRamp;
-    }
+  } else if(amc->rampMode == finishRamp && gen == amc->rampGen) {
+    BufferDetach(gen->forward, pool);
+    amcBufSetGen(gen->forward, amc->afterRampGen);
+    amc->rampMode = collectingRamp;
   }
 
   return ResOK;
@@ -1867,21 +1868,24 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   headerSize = format->headerSize;
   ShieldExpose(arena, seg);
   p = AddrAdd(SegBase(seg), headerSize);
-  if (SegBuffer(seg) != NULL)
+  if(SegBuffer(seg) != NULL) {
     limit = BufferScanLimit(SegBuffer(seg));
-  else
+  } else {
     limit = SegLimit(seg);
+  }
   limit = AddrAdd(limit, headerSize);
   while(p < limit) {
     Addr q;
     Size length;
     q = (*format->skip)(p);
     length = AddrOffset(p, q);
-    if (amcSegHasNailboard(seg)
+    if(amcSegHasNailboard(seg)
         ? !amcNailGetMark(seg, p)
-        /* If there's no mark table, retain all that hasn't been forwarded.  In
-         * this case, preservedInPlace* become somewhat overstated. */
-        : (*format->isMoved)(p) != NULL) {
+        /* If there's no mark table, retain all that hasn't been       */
+        /* forwarded.  In this case, preservedInPlace* become somewhat */
+        /* overstated. */
+        : (*format->isMoved)(p) != NULL)
+    {
       (*format->pad)(AddrSub(p, headerSize), length);
       bytesReclaimed += length;
     } else {
@@ -1897,7 +1901,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
 
   SegSetNailed(seg, TraceSetDel(SegNailed(seg), trace));
   SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
-  if (SegNailed(seg) == TraceSetEMPTY && amcSegHasNailboard(seg)) {
+  if(SegNailed(seg) == TraceSetEMPTY && amcSegHasNailboard(seg)) {
     amcSegDestroyNailboard(seg, pool);
   }
 
@@ -1931,15 +1935,16 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
 
   /* This switching needs to be more complex for multiple traces. */
   AVER_CRITICAL(TraceSetIsSingle(PoolArena(pool)->busyTraces));
-  if (amc->rampMode == collectingRamp) {
-    if (amc->rampCount > 0)
+  if(amc->rampMode == collectingRamp) {
+    if(amc->rampCount > 0) {
       /* Entered ramp mode before previous one was cleaned up */
       amc->rampMode = beginRamp;
-    else
+    } else {
       amc->rampMode = outsideRamp;
+    }
   }
 
-  if (SegNailed(seg) != TraceSetEMPTY) {
+  if(SegNailed(seg) != TraceSetEMPTY) {
     amcReclaimNailed(pool, trace, seg);
     return;
   }
