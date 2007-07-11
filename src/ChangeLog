@@ -1,3 +1,10 @@
+2007-07-11  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (LIBS): Include OLE32.
+
+	* w32fns.c (w32_msg_pump) <WM_EMACS_CREATEWINDOW>: Initialize COM.
+	(w32_msg_pump) <WM_DESTROY>: Uninitialize COM.
+
 2007-06-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c [USE_MAC_TSM] (mac_handle_text_input_event):
