@@ -1,3 +1,14 @@
+2007-07-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* progmodes/compile.el (compilation-start): `start-process' must
+	still be redefined when calling `start-process-shell-command'.
+
+	* progmodes/gud.el (gud-file-name): When `default-directory' is a
+	remote file name, prepend its remote part to the filename.
+	(gud-common-init): When `default-directory' is a remote file name,
+	make the filename relative to it.
+	Based on a patch by Nick Roberts <nickrob@snap.net.nz>.
+
 2007-07-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hooks.el (vc-default-mode-line-string): Add a mouse face,
