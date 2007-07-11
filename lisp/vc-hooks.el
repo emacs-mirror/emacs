@@ -742,17 +742,27 @@ Format:
 This function assumes that the file is registered."
   (setq backend (symbol-name backend))
   (let ((state   (vc-state file))
+	(state-echo nil)
 	(rev     (vc-workfile-version file)))
-    (cond ((or (eq state 'up-to-date)
-	       (eq state 'needs-patch))
-	   (concat backend "-" rev))
-          ((stringp state)
-	   (concat backend ":" state ":" rev))
-          (t
-           ;; Not just for the 'edited state, but also a fallback
-           ;; for all other states.  Think about different symbols
-           ;; for 'needs-patch and 'needs-merge.
-           (concat backend ":" rev)))))
+    (propertize
+     (cond ((or (eq state 'up-to-date)
+		(eq state 'needs-patch))
+	    (setq state-echo "Up to date file")
+	    (concat backend "-" rev))
+	   ((stringp state)
+	    (setq state-echo (concat "File locked by" state))
+	    (concat backend ":" state ":" rev))
+	   (t
+	    ;; Not just for the 'edited state, but also a fallback
+	    ;; for all other states.  Think about different symbols
+	    ;; for 'needs-patch and 'needs-merge.
+	    (setq state-echo "Edited file")
+	    (concat backend ":" rev)))
+     'mouse-face 'mode-line-highlight
+     'local-map (let ((map (make-sparse-keymap)))
+		  (define-key map [mode-line down-mouse-1] 'vc-menu-map) map)
+     'help-echo (concat state-echo " under the " backend 
+			" version control system\nmouse-1: VC Menu"))))
 
 (defun vc-follow-link ()
   "If current buffer visits a symbolic link, visit the real file.

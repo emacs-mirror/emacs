@@ -1,3 +1,12 @@
+2007-07-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hooks.el (vc-default-mode-line-string): Add a mouse face,
+	mouse binding and a tooltip.
+
+2007-07-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* menu-bar.el (vc-menu-map): New defalias.
+
 2007-07-10  Jim Meyering  <jim@meyering.net>  (tiny change)
 
 	* emacs-lisp/copyright.el (copyright-current-gpl-version): Set to 3.
