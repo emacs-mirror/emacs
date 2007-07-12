@@ -32,6 +32,10 @@
 (eval-when-compile
   (require 'vc))
 
+;; Clear up the cache to force vc-call to check again and discover
+;; new functions when we reload this file.
+(put 'CVS 'vc-functions nil)
+
 ;;;
 ;;; Customization options
 ;;;
@@ -534,14 +538,36 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
                (and rev2 (concat "-r" rev2))
                (vc-switches 'CVS 'diff))))))
 
+(defconst vc-cvs-annotate-first-line-re "^[0-9]")
+
+(defun vc-cvs-annotate-process-filter (process string)
+  (setq string (concat (process-get process 'output) string))
+  (if (not (string-match vc-cvs-annotate-first-line-re string))
+      ;; Still waiting for the first real line.
+      (process-put process 'output string)
+    (let ((vc-filter (process-get process 'vc-filter)))
+      (set-process-filter process vc-filter)
+      (funcall vc-filter process (substring string (match-beginning 0))))))
+
 (defun vc-cvs-annotate-command (file buffer &optional version)
   "Execute \"cvs annotate\" on FILE, inserting the contents in BUFFER.
 Optional arg VERSION is a version to annotate from."
-  (vc-cvs-command buffer 0 file "annotate" (if version (concat "-r" version)))
-  (with-current-buffer buffer
-    (goto-char (point-min))
-    (re-search-forward "^[0-9]")
-    (delete-region (point-min) (1- (point)))))
+  (vc-cvs-command buffer
+                  (if (and (vc-stay-local-p file) (fboundp 'start-process))
+		      'async 0)
+                  file "annotate"
+                  (if version (concat "-r" version)))
+  ;; Strip the leading few lines.
+  (let ((proc (get-buffer-process buffer)))
+    (if proc
+        ;; If running asynchronously, use a process filter.
+        (progn
+          (process-put proc 'vc-filter (process-filter proc))
+          (set-process-filter proc 'vc-cvs-annotate-process-filter))
+      (with-current-buffer buffer
+        (goto-char (point-min))
+        (re-search-forward vc-cvs-annotate-first-line-re)
+        (delete-region (point-min) (1- (point)))))))
 
 (defun vc-cvs-annotate-current-time ()
   "Return the current time, based at midnight of the current day, and
