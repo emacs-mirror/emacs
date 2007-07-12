@@ -212,7 +212,7 @@ Using @value{tramp}
 * Filename Syntax::             @value{tramp} filename conventions.
 * Alternative Syntax::          URL-like filename syntax.
 * Filename completion::         Filename completion.
-* Remote processes::            Integration with other @value{emacsname} packages (@sc{experimental}).
+* Remote processes::            Integration with other @value{emacsname} packages.
 
 The inner workings of remote version control
 
@@ -2019,7 +2019,7 @@ minute you have already forgotten that you hit that key!
 * Filename Syntax::             @value{tramp} filename conventions.
 * Alternative Syntax::          URL-like filename syntax.
 * Filename completion::         Filename completion.
-* Remote processes::            Integration with other @value{emacsname} packages (@sc{experimental}).
+* Remote processes::            Integration with other @value{emacsname} packages.
 @end menu
 
 
@@ -2228,17 +2228,14 @@ contents to @file{/}.
 
 
 @node Remote processes
-@section Integration with other @value{emacsname} packages (@sc{experimental}).
+@section Integration with other @value{emacsname} packages.
 @cindex compile
 @cindex recompile
-@cindex gud
-@cindex gdb
-@cindex perldb
 
-@value{tramp} has an @sc{experimental} implementation for running
-processes on a remote host.  This allows to exploit @value{emacsname}
-packages without modification for remote file names.  It does not work
-for the @option{ftp} and @option{smb} methods.
+@value{tramp} supports running processes on a remote host.  This
+allows to exploit @value{emacsname} packages without modification for
+remote file names.  It does not work for the @option{ftp} and
+@option{smb} methods.
 
 Remote processes are started when a corresponding command is executed
 from a buffer belonging to a remote file or directory.  Up to now, the
@@ -2298,15 +2295,48 @@ After you have started @code{eshell}, you could perform commands like
 this:
 
 @example
-@b{~ $} cd @trampfnmhl{sudo, , /etc}
-@b{@trampfn{sudo, root, host, /etc} $} hostname
+@b{~ $} cd @trampfnmhl{sudo, , /etc} @key{RET}
+@b{@trampfn{sudo, root, host, /etc} $} hostname @key{RET}
 host
-@b{@trampfn{sudo, root, host, /etc} $} id
+@b{@trampfn{sudo, root, host, /etc} $} id @key{RET}
 uid=0(root) gid=0(root) groups=0(root)
-@b{@trampfn{sudo, root, host, /etc} $} find-file shadow
+@b{@trampfn{sudo, root, host, /etc} $} find-file shadow @key{RET}
 #<buffer shadow>
 @b{@trampfn{sudo, root, host, /etc} $}
 @end example
+
+
+@subsection Running a debugger on a remote host
+@cindex gud
+@cindex gdb
+@cindex perldb
+
+@file{gud.el} offers an unified interface to several symbolic
+debuggers
+@ifset emacs
+@ifinfo
+(@ref{Debuggers, , , @value{emacsdir}}).
+@end ifinfo
+@end ifset
+With @value{tramp}, it is possible to debug programs on
+remote hosts.  You can call @code{gdb} with a remote file name:
+
+@example
+@kbd{M-x gdb @key{RET}}
+@b{Run gdb (like this):} gdb --annotate=3 @trampfnmhl{ssh, host, ~/myprog} @key{RET}
+@end example
+
+The file name can also be relative to a remote default directory.
+Given you are in a buffer that belongs to the remote directory
+@trampfnmhl{ssh, host, /home/user}, you could call
+
+@example
+@kbd{M-x perldb @key{RET}}
+@b{Run perldb (like this):} perl -d myprog.pl @key{RET}
+@end example
+
+It is not possible to use just the absolute local part of a remote
+file name, like @kbd{perl -d /home/user/myprog.pl}, though.
 
 
 @node Bug Reports
