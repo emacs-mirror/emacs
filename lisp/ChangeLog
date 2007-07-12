@@ -1,3 +1,18 @@
+2007-07-12  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* emacs-lisp/eldoc.el (eldoc-last-data): Revise documentation.
+	(eldoc-print-current-symbol-info): Adjust for changed helper
+	function signatures.
+	(eldoc-get-fnsym-args-string): Add `args' argument.  Use new
+	`eldoc-highlight-function-argument'.
+	(eldoc-highlight-function-argument): New function.
+	(eldoc-get-var-docstring): Format documentation with
+	`font-lock-variable-name-face'.
+	(eldoc-docstring-format-sym-doc): Add `face' argument and apply it
+	where suited.
+	(eldoc-fnsym-in-current-sexp): Return a list with argument index.
+	(eldoc-beginning-of-sexp): Return number of skipped sexps.
+
 2007-07-11  Michael Albinus  <michael.albinus@gmx.de>
 
 	* progmodes/compile.el (compilation-start): `start-process' must
@@ -44,6 +59,10 @@
 	`start-process'.
 
 2007-07-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/autoload.el (autoload-generate-file-autoloads): Be careful
+	with EOLs when generating MD5 checksums.
+
 
 	* follow.el: Don't change the global map from the follow-mode-map
 	defvar, but from the toplevel.  Use easy-menu to unify the Emacs and
