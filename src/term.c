@@ -25,7 +25,9 @@ Boston, MA 02110-1301, USA.  */
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 
 #include "termchar.h"
 #include "termopts.h"
