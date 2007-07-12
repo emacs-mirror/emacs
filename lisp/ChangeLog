@@ -1,3 +1,13 @@
+2007-07-12  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* progmodes/which-func.el (which-func-modes): Add `python-mode'.
+
+	* progmodes/python.el (python-which-func-length-limit): New var.
+	(python-which-func): New function.
+	(python-current-defun): Add optional `length-limit' and try to fit
+	computed function name to that length.
+	(python-mode): Hook `python-which-func' up.
+
 2007-07-12  Sean O'Rourke  <sorourke@cs.ucsd.edu>  (tiny change)
 
 	* pcomplete.el (pcomplete-entries): Obey pcomplete-ignore-case.
