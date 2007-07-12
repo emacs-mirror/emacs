@@ -1,3 +1,8 @@
+2007-07-12  Davis Herring  <herring@lanl.gov>
+
+	* desktop.el (desktop-buffer-info, desktop-save):
+	Use `desktop-dirname' instead of `dirname'.
+
 2007-07-12  Paul Pogonyshev  <pogonyshev@gmx.net>
 
 	* progmodes/which-func.el (which-func-modes): Add `python-mode'.
@@ -93,7 +98,6 @@
 
 	* emacs-lisp/autoload.el (autoload-generate-file-autoloads): Be careful
 	with EOLs when generating MD5 checksums.
-
 
 	* follow.el: Don't change the global map from the follow-mode-map
 	defvar, but from the toplevel.  Use easy-menu to unify the Emacs and
