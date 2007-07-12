@@ -54,7 +54,7 @@ typedef struct amcGenStruct {
 #define amcGenNr(amcgen) ((amcgen)->pgen.nr)
 
 
-enum {outsideRamp = 1, beginRamp, ramping, finishRamp, collectingRamp};
+enum {RampOUTSIDE = 1, RampBEGIN, RampRAMPING, RampFINISH, RampCOLLECTING};
 
 
 /* amcNailboard -- the nailboard */
@@ -859,7 +859,7 @@ static Res amcInitComm(Pool pool, RankSet rankSet, va_list arg)
   amc->gensBooted = FALSE;
 
   amc->rampCount = 0;
-  amc->rampMode = outsideRamp;
+  amc->rampMode = RampOUTSIDE;
 
   if(pool->format->headerSize == 0) {
     pool->fix = AMCFix;
@@ -1038,7 +1038,7 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   ++gen->segs;
   gen->pgen.totalSize += alignedSize;
   /* If ramping, don't count survivors in newSize. */
-  if(amc->rampMode != ramping
+  if(amc->rampMode != RampRAMPING
      || buffer != amc->rampGen->forward
      || gen != amc->rampGen)
   {
@@ -1107,8 +1107,8 @@ static void AMCRampBegin(Pool pool, Buffer buf, Bool collectAll)
   AVER(amc->rampCount < UINT_MAX);
   ++amc->rampCount;
   if(amc->rampCount == 1) {
-    if(amc->rampMode != finishRamp)
-      amc->rampMode = beginRamp;
+    if(amc->rampMode != RampFINISH)
+      amc->rampMode = RampBEGIN;
   }
 }
 
@@ -1130,10 +1130,10 @@ static void AMCRampEnd(Pool pool, Buffer buf)
     PoolGen pgen = &amc->rampGen->pgen;
     Ring node, nextNode;
 
-    if(amc->rampMode == ramping)        /* if we are ramping, clean up */
-      amc->rampMode = finishRamp;
+    if(amc->rampMode == RampRAMPING)    /* if we are ramping, clean up */
+      amc->rampMode = RampFINISH;
     else
-      amc->rampMode = outsideRamp;
+      amc->rampMode = RampOUTSIDE;
 
     /* Adjust amc->rampGen->pgen.newSize: Now count all the segments in the */
     /* ramp generation as new (except if they're white). */
@@ -1241,14 +1241,14 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
   /* see <design/poolamc/#gen.ramp> */
   /* This switching needs to be more complex for multiple traces. */
   AVER(TraceSetIsSingle(PoolArena(pool)->busyTraces));
-  if(amc->rampMode == beginRamp && gen == amc->rampGen) {
+  if(amc->rampMode == RampBEGIN && gen == amc->rampGen) {
     BufferDetach(gen->forward, pool);
     amcBufSetGen(gen->forward, gen);
-    amc->rampMode = ramping;
-  } else if(amc->rampMode == finishRamp && gen == amc->rampGen) {
+    amc->rampMode = RampRAMPING;
+  } else if(amc->rampMode == RampFINISH && gen == amc->rampGen) {
     BufferDetach(gen->forward, pool);
     amcBufSetGen(gen->forward, amc->afterRampGen);
-    amc->rampMode = collectingRamp;
+    amc->rampMode = RampCOLLECTING;
   }
 
   return ResOK;
@@ -1955,12 +1955,12 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
 
   /* This switching needs to be more complex for multiple traces. */
   AVER_CRITICAL(TraceSetIsSingle(PoolArena(pool)->busyTraces));
-  if(amc->rampMode == collectingRamp) {
+  if(amc->rampMode == RampCOLLECTING) {
     if(amc->rampCount > 0) {
       /* Entered ramp mode before previous one was cleaned up */
-      amc->rampMode = beginRamp;
+      amc->rampMode = RampBEGIN;
     } else {
-      amc->rampMode = outsideRamp;
+      amc->rampMode = RampOUTSIDE;
     }
   }
 
@@ -2080,19 +2080,19 @@ static Res AMCDescribe(Pool pool, mps_lib_FILE *stream)
     return res;
 
   switch(amc->rampMode) {
-    case outsideRamp:
+    case RampOUTSIDE:
       rampmode = "outside ramp";
       break;
-    case beginRamp:
+    case RampBEGIN:
       rampmode = "begin ramp";
       break;
-    case ramping:
+    case RampRAMPING:
       rampmode = "ramping";
       break;
-    case finishRamp:
+    case RampFINISH:
       rampmode = "finish ramp";
       break;
-    case collectingRamp:
+    case RampCOLLECTING:
       rampmode = "collecting ramp";
       break;
     default:
@@ -2245,8 +2245,8 @@ static Bool AMCCheck(AMC amc)
     CHECKD(amcGen, amc->afterRampGen);
   }
   /* nothing to check for rampCount */
-  CHECKL(amc->rampMode >= outsideRamp);
-  CHECKL(amc->rampMode <= collectingRamp);
+  CHECKL(amc->rampMode >= RampOUTSIDE);
+  CHECKL(amc->rampMode <= RampCOLLECTING);
 
   return TRUE;
 }
