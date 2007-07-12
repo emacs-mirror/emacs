@@ -703,13 +703,13 @@
 	when popup menu finishes.
 
 	* w32fns.c (menubar_in_use): New flag.
-	(w32_wnd_proc) [WM_INITMENU, WM_EXITMENULOOP, WM_TIMER, WM_COMMAND]:
+	(w32_wnd_proc) <WM_INITMENU, WM_EXITMENULOOP, WM_TIMER, WM_COMMAND>:
 	Use it.
 
 	* w32menu.c (Fx_popup_menu): Don't free menu strings here.
 	(w32_menu_show): Do it here instead.
 
-	* w32fns.c (w32_wnd_proc) [WM_INITMENU]: Set menubar_active frame
+	* w32fns.c (w32_wnd_proc) <WM_INITMENU>: Set menubar_active frame
 	parameter.
 
 	* w32menu.c (current_popup_menu): Make available globally.
@@ -717,7 +717,7 @@
 	menu event into the keyboard buffer.  Remove menu_command_in_progress.
 
 	* w32fns.c (current_popup_menu): Use from w32menu.c.
-	(w32_wnd_proc) [WM_EXITMENULOOP, WM_TIMER]: Use menubar_active
+	(w32_wnd_proc) <WM_EXITMENULOOP, WM_TIMER>: Use menubar_active
 	and current_popup_menu to determine whether a menubar menu has
 	been cancelled.
 
@@ -9827,7 +9827,7 @@
 	* w32term.h (x_output): Add focus_state.
 
 	* w32term.c (x_focus_changed, w32_detect_focus_change): New functions.
-	(w32_read_socket) [WM_SETFOCUS]: Call w32_detect_focus_change.
+	(w32_read_socket) <WM_SETFOCUS>: Call w32_detect_focus_change.
 
 2005-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -13120,7 +13120,7 @@
 
 	* w32term.h (AppendMenuW_Proc): Move declaration from w32menu.c.
 
-	* w32fns.c (w32_wnd_proc) [WM_MEASUREITEM, WM_DRAWITEM]:
+	* w32fns.c (w32_wnd_proc) <WM_MEASUREITEM, WM_DRAWITEM>:
 	Handle Unicode menu titles.
 
 2004-09-07  Kim F. Storm  <storm@cua.dk>
