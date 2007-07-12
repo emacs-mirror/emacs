@@ -652,7 +652,7 @@ is nil, ask the user where to save the desktop."
   (set-buffer buffer)
   (list
    ;; basic information
-   (desktop-file-name (buffer-file-name) dirname)
+   (desktop-file-name (buffer-file-name) desktop-dirname)
    (buffer-name)
    major-mode
    ;; minor modes
@@ -673,7 +673,7 @@ is nil, ask the user where to save the desktop."
    buffer-read-only
    ;; auxiliary information
    (when (functionp desktop-save-buffer)
-     (funcall desktop-save-buffer dirname))
+     (funcall desktop-save-buffer desktop-dirname))
    ;; local variables
    (let ((locals desktop-locals-to-save)
 	 (loclist (buffer-local-variables))
@@ -896,7 +896,7 @@ See also `desktop-base-file-name'."
 		(insert "\n  " (desktop-value-to-string e)))
 	      (insert ")\n\n")))
 
-	  (setq default-directory dirname)
+	  (setq default-directory desktop-dirname)
 	  (let ((coding-system-for-write 'emacs-mule))
 	    (write-region (point-min) (point-max) (desktop-full-file-name) nil 'nomessage))
 	  ;; We remember when it was modified (which is presumably just now).
