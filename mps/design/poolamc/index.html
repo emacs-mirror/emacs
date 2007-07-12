@@ -274,11 +274,10 @@ is controlled in a slightly convoluted manner by a state machine.
 The rampMode field of the pool forms an important part of the state of
 the machine.
 
-There 
-are five states:
-  enum { outsideRamp, beginRamp, ramping, finishRamp, collectingRamp };
-[These would perhaps be better if they all start Ramp* or AMCRamp*  drj 
-1998-08-07]
+There are five states:
+  outside, begin, ramping, finish, collecting
+
+These appear in the code as RampOUTSIDE, and so on.
 
 <a id="ramp.state.cycle.usual"
 name="ramp.state.cycle.usual">.ramp.state.cycle.usual</a>: The usual
