@@ -1,4 +1,14 @@
+2007-07-12  Sean O'Rourke  <sorourke@cs.ucsd.edu>  (tiny change)
+
+	* pcomplete.el (pcomplete-entries): Obey pcomplete-ignore-case.
+
+	* comint.el (comint-dynamic-complete-as-filename):
+	Use read-file-name-completion-ignore-case.
+
 2007-07-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* comint.el (comint-dynamic-list-filename-completions):
+	Use read-file-name-completion-ignore-case.
 
 	* vc-cvs.el: Require CL.
 	(vc-cvs-revision-table, vc-cvs-revision-completion-table):

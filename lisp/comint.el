@@ -2805,7 +2805,7 @@ Returns t if successful."
 (defun comint-dynamic-complete-as-filename ()
   "Dynamically complete at point as a filename.
 See `comint-dynamic-complete-filename'.  Returns t if successful."
-  (let* ((completion-ignore-case (memq system-type '(ms-dos windows-nt cygwin)))
+  (let* ((completion-ignore-case read-file-name-completion-ignore-case)
 	 (completion-ignored-extensions comint-completion-fignore)
 	 ;; If we bind this, it breaks remote directory tracking in rlogin.el.
 	 ;; I think it was originally bound to solve file completion problems,
@@ -2934,7 +2934,7 @@ See also `comint-dynamic-complete-filename'."
 (defun comint-dynamic-list-filename-completions ()
   "List in help buffer possible completions of the filename at point."
   (interactive)
-  (let* ((completion-ignore-case (memq system-type '(ms-dos windows-nt cygwin)))
+  (let* ((completion-ignore-case read-file-name-completion-ignore-case)
 	 ;; If we bind this, it breaks remote directory tracking in rlogin.el.
 	 ;; I think it was originally bound to solve file completion problems,
 	 ;; but subsequent changes may have made this unnecessary.  sm.
