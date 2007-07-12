@@ -28,7 +28,8 @@
  * central types for this module, are defined in <code/mpmst.h>, the
  * corresponding abstract types in <code/mpmtypes.h>.  Declarations and
  * prototypes are in <code/mpm.h>.  Several functions have macro versions
- * defined in <code/mpm.h>.  */
+ * defined in <code/mpm.h>.
+ */
 
 #include "mpm.h"
 
@@ -406,7 +407,8 @@ Res PoolScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 
 /* PoolFix* -- fix a reference to an object in this pool
  *
- * See <code/mpm.h> for macro version; see <design/pool/#req.fix>. */
+ * See <code/mpm.h> for macro version; see <design/pool/#req.fix>.
+ */
 
 Res (PoolFix)(Pool pool, ScanState ss, Seg seg, Addr *refIO)
 {
@@ -566,7 +568,8 @@ Bool PoolFormat(Format *formatReturn, Pool pool)
  *
  * If the address points to a page assigned to a pool, this returns TRUE
  * and sets *poolReturn to that pool.  Otherwise, it returns FALSE, and
- * *poolReturn is unchanged. */
+ * *poolReturn is unchanged.
+ */
 
 Bool PoolOfAddr(Pool *poolReturn, Arena arena, Addr addr)
 {

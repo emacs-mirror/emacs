@@ -308,21 +308,21 @@ static Bool AWLCanTrySingleAccess(AWL awl, Seg seg, Addr addr)
 
   /* .assume.noweak */
   /* .assume.alltraceable */
-  if (RankSetIsMember(SegRankSet(seg), RankWEAK)) {
+  if(RankSetIsMember(SegRankSet(seg), RankWEAK)) {
     AWLSeg awlseg;
 
     awlseg = Seg2AWLSeg(seg);
     AVERT(AWLSeg, awlseg);
 
-    if (AWLHaveTotalSALimit) {
-      if (AWLTotalSALimit < awl->succAccesses) {
+    if(AWLHaveTotalSALimit) {
+      if(AWLTotalSALimit < awl->succAccesses) {
         STATISTIC(awl->stats.declined++);
         return FALSE; /* decline single access because of total limit */
       }
     }
 
-    if (AWLHaveSegSALimit) {
-      if (AWLSegSALimit < awlseg->singleAccesses) {
+    if(AWLHaveSegSALimit) {
+      if(AWLSegSALimit < awlseg->singleAccesses) {
         STATISTIC(awl->stats.declined++);
         return FALSE; /* decline single access because of segment limit */
       }
@@ -658,10 +658,13 @@ static void AWLBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
 
 /* AWLWhiten -- segment condemning method */
 
-/* Split out of AWLWhiten because it's used in more than one place. */
-static void AWLRangeWhiten(AWLSeg awlseg, Index base, Index limit)
+/* awlRangeWhiten -- helper function that works on a range.
+ *
+ * This function abstracts common code from AWLWhiten.
+ */
+static void awlRangeWhiten(AWLSeg awlseg, Index base, Index limit)
 {
-  if (base != limit) {
+  if(base != limit) {
     AVER(base < limit);
     AVER(limit <= awlseg->grains);
     BTResRange(awlseg->mark, base, limit);
@@ -669,13 +672,13 @@ static void AWLRangeWhiten(AWLSeg awlseg, Index base, Index limit)
   }
 }
 
-static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
+Res AWLWhiten(Pool pool, Trace trace, Seg seg)
 {
   AWL awl;
   AWLSeg awlseg;
   Buffer buffer;
 
-  /* all parameters checked by generic PoolWhiten */
+  /* All parameters checked by generic PoolWhiten. */
 
   awl = Pool2AWL(pool);
   AVERT(AWL, awl);
@@ -683,11 +686,11 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
   AVERT(AWLSeg, awlseg);
   buffer = SegBuffer(seg);
 
-  /* can only whiten for a single trace, */
+  /* Can only whiten for a single trace, */
   /* see <design/poolawl/#fun.condemn> */
   AVER(SegWhite(seg) == TraceSetEMPTY);
 
-  if (buffer == NULL) {
+  if(buffer == NULL) {
     AWLRangeWhiten(awlseg, 0, awlseg->grains);
     trace->condemned += SegSize(seg);
   } else {
@@ -704,7 +707,7 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
     /* Check the buffer is black. */
     /* This really ought to change when we have a non-trivial */
     /* pre-flip phase. @@@@ ('coz then we'll be allocating white) */
-    if (scanLimitIndex != limitIndex) {
+    if(scanLimitIndex != limitIndex) {
       AVER(BTIsSetRange(awlseg->mark, scanLimitIndex, limitIndex));
       AVER(BTIsSetRange(awlseg->scanned, scanLimitIndex, limitIndex));
     }
@@ -1051,16 +1054,17 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
     Addr p, q;
     Index j;
 
-    if (!BTGet(awlseg->alloc, i)) {
+    if(!BTGet(awlseg->alloc, i)) {
       ++i;
       continue;
     }
     p = AddrAdd(base, i << awl->alignShift);
-    if (SegBuffer(seg) != NULL) {
+    if(SegBuffer(seg) != NULL) {
       Buffer buffer = SegBuffer(seg);
 
-      if (p == BufferScanLimit(buffer)
-          && BufferScanLimit(buffer) != BufferLimit(buffer)) {
+      if(p == BufferScanLimit(buffer)
+         && BufferScanLimit(buffer) != BufferLimit(buffer))
+      {
         i = awlIndexOfAddr(base, awl, BufferLimit(buffer));
         continue;
       }
@@ -1070,7 +1074,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
     q = AddrAlignUp(q, pool->alignment);
     j = awlIndexOfAddr(base, awl, q);
     AVER(j <= awlseg->grains);
-    if (BTGet(awlseg->mark, i)) {
+    if(BTGet(awlseg->mark, i)) {
       AVER(BTGet(awlseg->scanned, i));
       BTSetRange(awlseg->mark, i, j);
       BTSetRange(awlseg->scanned, i, j);
@@ -1093,6 +1097,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   trace->preservedInPlaceSize += preservedInPlaceSize;
   SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
   /* @@@@ never frees a segment */
+  return;
 }
 
 
@@ -1113,24 +1118,25 @@ static Res AWLAccess(Pool pool, Seg seg, Addr addr,
   AVER(SegPool(seg) == pool);
 
   /* Attempt scanning a single reference if permitted */
-  if (AWLCanTrySingleAccess(awl, seg, addr)) {
+  if(AWLCanTrySingleAccess(awl, seg, addr)) {
     res = PoolSingleAccess(pool, seg, addr, mode, context);
     switch(res) {
-    case ResOK:
-      AWLNoteRefAccess(awl, seg, addr);
-      return ResOK;
-    case ResFAIL:
-      /* Not all accesses can be managed singly. Default to segment */
-      break;
-    default:
-      return res;
+      case ResOK:
+        AWLNoteRefAccess(awl, seg, addr);
+        return ResOK;
+      case ResFAIL:
+        /* Not all accesses can be managed singly. Default to segment */
+        break;
+      default:
+        return res;
     }
   }
 
   /* Have to scan the entire seg anyway. */
   res = PoolSegAccess(pool, seg, addr, mode, context);
-  if (ResOK == res)
+  if(ResOK == res) {
     AWLNoteSegAccess(awl, seg, addr);
+  }
 
   return res;
 }
