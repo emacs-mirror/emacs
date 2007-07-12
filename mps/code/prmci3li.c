@@ -42,17 +42,17 @@ MRef Prmci3AddressHoldingReg(MutatorFaultContext context, unsigned int regnum)
   /* .source.i486 */
   /* .assume.regref */
   switch (regnum) {
-  case 0: return (MRef)&scp->eax;
-  case 1: return (MRef)&scp->ecx;
-  case 2: return (MRef)&scp->edx;
-  case 3: return (MRef)&scp->ebx;
-  case 4: return (MRef)&scp->esp;
-  case 5: return (MRef)&scp->ebp;
-  case 6: return (MRef)&scp->esi;
-  case 7: return (MRef)&scp->edi;
+    case 0: return (MRef)&scp->eax;
+    case 1: return (MRef)&scp->ecx;
+    case 2: return (MRef)&scp->edx;
+    case 3: return (MRef)&scp->ebx;
+    case 4: return (MRef)&scp->esp;
+    case 5: return (MRef)&scp->ebp;
+    case 6: return (MRef)&scp->esi;
+    case 7: return (MRef)&scp->edi;
   }
   NOTREACHED;
-  return (MRef)NULL;  /* Keep compiler happy. */
+  return (MRef)NULL;  /* Avoids compiler warning. */
 }
 
 
