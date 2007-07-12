@@ -527,6 +527,9 @@ debugger supports.  However, shell wildcards and variables are not
 allowed.  GUD assumes that the first argument not starting with a
 @samp{-} is the executable file name.
 
+Tramp provides a facility to debug programs on remote hosts.
+@xref{Running a debugger on a remote host, Running a debugger on a remote host,, tramp, The Tramp Manual}.
+@c Running a debugger on a remote host
 @node Debugger Operation
 @subsection Debugger Operation
 
