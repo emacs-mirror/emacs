@@ -1,3 +1,12 @@
+2007-07-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* process.h (struct Lisp_Process): Turn slots infd, outfd,
+	kill_without_query, pty_flag, tick, update_tick, decoding_carryover,
+	inherit_coding_system_flag, filter_multibyte, adaptive_read_buffering,
+	read_output_delay, and read_output_skip from Lisp_Objects to ints.
+	Remove unused encoding_carryover.
+	* process.c: Adjust all functions accordingly.
+
 2007-07-12  Richard Stallman  <rms@gnu.org>
 
 	* term.c: Include unistd.h only if HAVE_UNISTD_H.
