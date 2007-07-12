@@ -29,8 +29,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'vc))
+(eval-when-compile (require 'cl) (require 'vc))
 
 ;; Clear up the cache to force vc-call to check again and discover
 ;; new functions when we reload this file.
@@ -932,7 +931,34 @@ is non-nil."
 	       (vc-file-setprop file 'vc-checkout-time 0)
 	       (if set-state (vc-file-setprop file 'vc-state 'edited)))))))))
 
+;; Completion of revision names.
+;; Just so I don't feel like I'm duplicating code from pcl-cvs, I'll use
+;; `cvs log' so I can list all the revision numbers rather than only
+;; tag names.
+
+(defun vc-cvs-revision-table (file)
+  (let ((default-directory (file-name-directory file))
+        (res nil))
+    (with-temp-buffer
+      (vc-cvs-command t nil file "log")
+      (goto-char (point-min))
+      (when (re-search-forward "^symbolic names:\n" nil t)
+        (while (looking-at "^	\\(.*\\): \\(.*\\)")
+          (push (cons (match-string 1) (match-string 2)) res)
+          (forward-line 1)))
+      (while (re-search-forward "^revision \\([0-9.]+\\)" nil t)
+        (push (match-string 1) res))
+      res)))
+
+(defun vc-cvs-revision-completion-table (file)
+  (lexical-let ((file file)
+                table)
+    (setq table (lazy-completion-table
+                 table (lambda () (vc-cvs-revision-table file))))
+    table))
+                                           
+
 (provide 'vc-cvs)
 
-;;; arch-tag: 60e1402a-aa53-4607-927a-cf74f144b432
+;; arch-tag: 60e1402a-aa53-4607-927a-cf74f144b432
 ;;; vc-cvs.el ends here

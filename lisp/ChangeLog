@@ -1,3 +1,14 @@
+2007-07-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-cvs.el: Require CL.
+	(vc-cvs-revision-table, vc-cvs-revision-completion-table):
+	New functions to provide completion of revision names.
+
+	* vc-cvs.el (vc-functions): Clear up the cache when reloading the file.
+	(vc-cvs-annotate-first-line-re): New const.
+	(vc-cvs-annotate-process-filter): New fun.
+	(vc-cvs-annotate-command): Use them and run the command asynchronously.
+
 2007-07-12  Paul Pogonyshev  <pogonyshev@gmx.net>
 
 	* emacs-lisp/eldoc.el (eldoc-last-data): Revise documentation.
