@@ -2306,6 +2306,7 @@ uid=0(root) gid=0(root) groups=0(root)
 @end example
 
 
+@anchor{Running a debugger on a remote host} 
 @subsection Running a debugger on a remote host
 @cindex gud
 @cindex gdb
