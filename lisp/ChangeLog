@@ -1,3 +1,10 @@
+2007-07-13  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el: Don't define bookmark keys under the "C-xr" map;
+	instead, make "C-xp" a prefix for bookmark-map.  Patch by Drew
+	Adams <drew.adams{_AT_}oracle.com>, mildly tweaked by me.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2007-07/msg00633.html.
+
 2007-07-13  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: Bug fixes.
