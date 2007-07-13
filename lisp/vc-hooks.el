@@ -793,7 +793,7 @@ current, and kill the buffer that visits the link."
   (when buffer-file-name
     (vc-file-clearprops buffer-file-name)
     (cond
-     ((vc-backend buffer-file-name)
+     ((with-demoted-errors (vc-backend buffer-file-name))
       ;; Compute the state and put it in the modeline.
       (vc-mode-line buffer-file-name)
       (unless vc-make-backup-files

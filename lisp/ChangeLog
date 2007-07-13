@@ -1,3 +1,7 @@
+2007-07-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-find-file-hook): Use with-demoted-errors.
+
 2007-07-12  Davis Herring  <herring@lanl.gov>
 
 	* desktop.el (desktop-buffer-info, desktop-save):
