@@ -3,7 +3,7 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 5.02
+@set VERSION 5.03
 @set DATE July 2007
 
 @dircategory Emacs
@@ -616,8 +616,8 @@ key.
 
 Headlines define the structure of an outline tree.  The headlines in
 Org-mode start with one or more stars, on the left margin@footnote{See
-the variable @code{org-special-ctrl-a} to configure special behavior of
-@kbd{C-a} in headlines.}.  For example:
+the variable @code{org-special-ctrl-a/e} to configure special behavior
+of @kbd{C-a} and @kbd{C-e} in headlines.}.  For example:
 
 @example
 * Top level headline
@@ -3033,7 +3033,8 @@ percentage of checkboxes checked (in the above example, this would be
 @table @kbd
 @kindex C-c C-c
 @item C-c C-c
-Toggle checkbox at point.
+Toggle checkbox at point.  With prefix argument, set it to @samp{[-]},
+which is considered to be an intermediate state.
 @kindex C-c C-x C-b
 @item C-c C-x C-b
 Toggle checkbox at point.
@@ -3452,20 +3453,19 @@ the regular expression @samp{Sarah\|Denny}.
 @node Column view, Property API, Property searches, Properties and columns
 @section Column View
 
-A great way to view and edit properties in aan outline tree is
+A great way to view and edit properties in an outline tree is
 @emph{column view}.  In column view, each outline item is turned into a
 table row.  Columns in this table provide access to properties of the
 entries.  Org-mode implements columns by overlaying a tabular structure
 over the headline of each item.  While the headlines have been turned
 into a table row, you can still change the visibility of the outline
 tree.  For example, you get a compact table by switching to CONTENTS
-view (@kbd{S-@key{TAB} S-@key{TAB}}, or simple @kbd{c} while column view
-is active), but you can still open, read, and
-edit the entry below each headline.  Or, you can switch to column view
-after executing a sparse tree command and in this way get a table only
-for the selected items.  Column view also works in agenda buffers
-(@pxref{Agenda views}) where queries have collected selected items,
-possibly from a number of files.
+view (@kbd{S-@key{TAB} S-@key{TAB}}, or simply @kbd{c} while column view
+is active), but you can still open, read, and edit the entry below each
+headline.  Or, you can switch to column view after executing a sparse
+tree command and in this way get a table only for the selected items.
+Column view also works in agenda buffers (@pxref{Agenda views}) where
+queries have collected selected items, possibly from a number of files.
 
 @menu
 * Defining columns::            The COLUMNS format property
@@ -4490,7 +4490,7 @@ file in a @emph{time-sorted view}.  The main purpose of this command is
 to give an overview over events in a project.
 
 @table @kbd
-@kindex C-a a L
+@kindex C-c a L
 @item C-c a L
 Show a time-sorted view of the org file, with all time-stamped items.
 When called with a @kbd{C-u} prefix, all unfinished TODO entries
