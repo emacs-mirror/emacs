@@ -1,5 +1,9 @@
 2007-07-13  Karl Fogel  <kfogel@red-bean.com>
 
+	* bookmark.el: Shorten some comments to fit within 80 lines.
+
+2007-07-13  Karl Fogel  <kfogel@red-bean.com>
+
 	* bookmark.el: Don't define bookmark keys under the "C-xr" map;
 	instead, make "C-xp" a prefix for bookmark-map.  Patch by Drew
 	Adams <drew.adams{_AT_}oracle.com>, mildly tweaked by me.  See
