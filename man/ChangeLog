@@ -1,3 +1,11 @@
+2007-07-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (../info/emacs-mime): Use --enable-encoding.
+
+	* makefile.w32-in ($(infodir)/emacs-mime): Ditto.
+
+	* emacs-mime.texi: Add @documentencoding directive.
+
 2007-07-12  Nick Roberts  <nickrob@snap.net.nz>
 
 	* tramp.texi (Remote processes): Add an anchor to the subsection
