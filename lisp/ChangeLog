@@ -1,3 +1,8 @@
+2007-07-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (install-lisp-SH, install-lisp-CMD): New targets.
+	(install): Use them to copy all *.el files before *.elc.
+
 2007-07-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* replace.el (match): Use yellow1 instead of yellow.
