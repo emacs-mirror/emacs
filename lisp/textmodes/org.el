@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 5.02
+;; Version: 5.03
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -83,7 +83,7 @@
 
 ;;; Version
 
-(defconst org-version "5.02"
+(defconst org-version "5.03"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -489,14 +489,21 @@ the values `folded', `children', or `subtree'."
   :tag "Org Edit Structure"
   :group 'org-structure)
 
-(defcustom org-special-ctrl-a nil
-  "Non-nil means `C-a' behaves specially in headlines.
+
+(defcustom org-special-ctrl-a/e nil
+  "Non-nil means `C-a' and `C-e' behave specially in headlines.
 When set, `C-a' will bring back the cursor to the beginning of the
 headline text, i.e. after the stars and after a possible TODO keyword.
 When the cursor is already at that position, another `C-a' will bring
-it to the beginning of the line."
+it to the beginning of the line.
+`C-e' will jump to the end of the headline, ignoring the presence of tags
+in the headline.  A second `C-e' will then jump to the true end of the
+line, after any tags."
   :group 'org-edit-structure
   :type 'boolean)
+
+(if (fboundp 'defvaralias)
+    (defvaralias 'org-special-ctrl-a 'org-special-ctrl-a/e))
 
 (defcustom org-odd-levels-only nil
   "Non-nil means, skip even levels and only use odd levels for the outline.
@@ -3408,8 +3415,13 @@ to the part of the headline after the DONE keyword."
   '(org-level-1 org-level-2 org-level-3 org-level-4
     org-level-5 org-level-6 org-level-7 org-level-8
     ))
-(defconst org-n-levels (length org-level-faces))
 
+(defcustom org-n-level-faces (length org-level-faces)
+  "The number different faces to be used for headlines.
+Org-mode defines 8 different headline faces, so this can be at most 8.
+If it is less than 8, the level-1 face gets re-used for level N+1 etc."
+  :type 'number
+  :group 'org-faces)
 
 ;;; Variables for pre-computed regular expressions, all buffer local
 
@@ -3686,7 +3698,7 @@ means to push this value onto the list in the variable.")
 	  org-todo-line-regexp
 	  (concat "^\\(\\*+\\)[ \t]+\\(?:\\("
 		  (mapconcat 'regexp-quote org-todo-keywords-1 "\\|")
-		  "\\)\\>\\)? *\\(.*\\)")
+		  "\\)\\>\\)?[ \t]*\\(.*\\)")
 	  org-nl-done-regexp
 	  (concat "\n\\*+[ \t]+"
 		  "\\(?:" (mapconcat 'regexp-quote org-done-keywords "\\|")
@@ -4461,7 +4473,7 @@ between words."
                    '(org-do-emphasis-faces (0 nil append))
                  '(org-do-emphasis-faces)))
 	   ;; Checkboxes, similar to Frank Ruell's org-checklet.el
-	   '("^[ \t]*\\([-+*]\\|[0-9]+[.)]\\) +\\(\\[[ X]\\]\\)"
+	   '("^[ \t]*\\([-+*]\\|[0-9]+[.)]\\) +\\(\\[[- X]\\]\\)"
 	     2 'bold prepend)
 	   (if org-provide-checkbox-statistics
 	       '("\\[\\([0-9]*%\\)\\]\\|\\[\\([0-9]*\\)/\\([0-9]*\\)\\]"
@@ -4514,7 +4526,7 @@ between words."
   "Get the right face for match N in font-lock matching of healdines."
   (setq org-l (- (match-end 2) (match-beginning 1) 1))
   (if org-odd-levels-only (setq org-l (1+ (/ org-l 2))))
-  (setq org-f (nth (% (1- org-l) org-n-levels) org-level-faces))
+  (setq org-f (nth (% (1- org-l) org-n-level-faces) org-level-faces))
   (cond
    ((eq n 1) (if org-hide-leading-stars 'org-hide org-f))
    ((eq n 2) org-f)
@@ -5412,7 +5424,7 @@ If optional TREE is given, use this text instead of the kill ring."
 	 (^re_ (concat "\\(" outline-regexp "\\)[  \t]*"))
 
 	 (old-level (if (string-match ^re txt)
-			(- (match-end 0) (match-beginning 0))
+			(- (match-end 0) (match-beginning 0) 1)
 		      -1))
 	 (force-level (cond (level (prefix-numeric-value level))
 			    ((string-match
@@ -5706,7 +5718,7 @@ Return t when things worked, nil when we are not in an item."
        (save-excursion
 	 (goto-char (match-end 0))
 	 (skip-chars-forward " \t")
-	 (looking-at "\\[[ X]\\]"))))
+	 (looking-at "\\[[- X]\\]"))))
 
 (defun org-toggle-checkbox (&optional arg)
   "Toggle the checkbox in the current line."
@@ -5720,7 +5732,11 @@ Return t when things worked, nil when we are not in an item."
 	(setq beg (point) end (save-excursion (outline-next-heading) (point))))
        ((org-at-item-checkbox-p)
 	(save-excursion
-	  (replace-match (if (equal (match-string 0) "[ ]") "[X]" "[ ]") t t))
+	  (replace-match
+	   (cond (arg "[-]")
+		 ((member (match-string 0) '("[ ]" "[-]")) "[X]")
+		 (t "[ ]"))
+	   t t))
 	(throw 'exit t))
        (t (error "Not at a checkbox or heading, and no active region")))
       (save-excursion
@@ -5754,7 +5770,7 @@ the whole buffer."
 	   (end (move-marker (make-marker)
 			     (progn (outline-next-heading) (point))))
 	   (re "\\(\\[[0-9]*%\\]\\)\\|\\(\\[[0-9]*/[0-9]*\\]\\)")
-	   (re-box "^[ \t]*\\([-+*]\\|[0-9]+[.)]\\) +\\(\\[[ X]\\]\\)")
+	   (re-box "^[ \t]*\\([-+*]\\|[0-9]+[.)]\\) +\\(\\[[- X]\\]\\)")
 	   b1 e1 f1 c-on c-off lim (cstat 0))
       (when all
 	(goto-char (point-min))
@@ -5774,7 +5790,7 @@ the whole buffer."
 	(goto-char e1)
 	(when lim
 	  (while (re-search-forward re-box lim t)
-	    (if (equal (match-string 2) "[ ]")
+	    (if (member (match-string 2) '("[ ]" "[-]"))
 		(setq c-off (1+ c-off))
 	      (setq c-on (1+ c-on))))
 	  (delete-region b1 e1)
@@ -7145,7 +7161,7 @@ Optional argument NEW may specify text to replace the current field content."
 		    (setq n (concat new "|") org-table-may-need-update t)))
 	      (or (equal n o)
 		  (let (org-table-may-need-update)
-		    (replace-match n))))
+		    (replace-match n t t))))
 	  (setq org-table-may-need-update t))
 	(goto-char pos))))))
 
@@ -7315,7 +7331,6 @@ is always the old value."
 	(goto-char (min (point-at-eol) (+ 2 pos)))
 	val)
     (forward-char 1) ""))
-
 
 (defun org-table-field-info (arg)
   "Show info about the current field, and highlight any reference at point."
@@ -8723,7 +8738,7 @@ HIGHLIGHT means, just highlight the range."
 	    (goto-line r1)
 	    (while (not (looking-at org-table-dataline-regexp))
 	      (beginning-of-line 2))
-	    (prog1 (org-table-get-field c1)
+	    (prog1 (org-trim (org-table-get-field c1))
 	      (if highlight (org-table-highlight-rectangle (point) (point)))))
 	;; A range, return a vector
 	;; First sort the numbers to get a regular ractangle
@@ -8743,7 +8758,8 @@ HIGHLIGHT means, just highlight the range."
 	    (org-table-highlight-rectangle
 	     beg (progn (skip-chars-forward "^|\n") (point))))
 	;; return string representation of calc vector
-	(apply 'append (org-table-copy-region beg end))))))
+	(mapcar 'org-trim
+		(apply 'append (org-table-copy-region beg end)))))))
 
 (defun org-table-get-descriptor-line (desc &optional cline bline table)
   "Analyze descriptor DESC and retrieve the corresponding line number.
@@ -9327,10 +9343,10 @@ With prefix ARG, apply the new formulas to the table."
      ((looking-at "[ \t]")
       (goto-char pos)
       (call-interactively 'lisp-indent-line))
-     ((looking-at "[$@0-9a-zA-Z]+ *= *[^ \t\n']") (goto-char pos))
+     ((looking-at "[$&@0-9a-zA-Z]+ *= *[^ \t\n']") (goto-char pos))
      ((not (fboundp 'pp-buffer))
       (error "Cannot pretty-print.  Command `pp-buffer' is not available."))
-     ((looking-at "[$@0-9a-zA-Z]+ *= *'(")
+     ((looking-at "[$&@0-9a-zA-Z]+ *= *'(")
       (goto-char (- (match-end 0) 2))
       (setq beg (point))
       (setq ind (make-string (current-column) ?\ ))
@@ -10814,9 +10830,10 @@ With three \\[universal-argument] prefixes, negate the meaning of
 	  (setq link (org-completing-read
 		      "Link: "
 		      (append
-		       (mapcar (lambda (x) (concat (car x) ":"))
+		       (mapcar (lambda (x) (list (concat (car x) ":")))
 			       (append org-link-abbrev-alist-local org-link-abbrev-alist))
-		       (mapcar (lambda (x) (concat x ":")) org-link-types))
+		       (mapcar (lambda (x) (list (concat x ":")))
+			       org-link-types))
 		      nil nil nil
 		      'tmphist
 		      (or (car (car org-stored-links)))))
@@ -11810,7 +11827,8 @@ to be run from that hook to fucntion properly."
 	     (org-startup-folded nil)
 	     org-time-was-given org-end-time-was-given x prompt char time)
 	(setq org-store-link-plist
-	      (append (list :annotation v-a :initial v-i)))
+	      (append (list :annotation v-a :initial v-i)
+		      org-store-link-plist))
 	(unless tpl (setq tpl "")	(message "No template") (ding))
 	(erase-buffer)
 	(insert (substitute-command-keys
@@ -13085,6 +13103,29 @@ also TODO lines."
 (defvar org-tags-overlay (org-make-overlay 1 1))
 (org-detach-overlay org-tags-overlay)
 
+(defun org-align-tags-here (to-col)
+  ;; Assumes that this is a headline
+  (let ((pos (point)) (col (current-column)) tags)
+    (beginning-of-line 1)
+    (if	(and (looking-at (org-re ".*?\\([ \t]+\\)\\(:[[:alnum:]_@:]+:\\)[ \t]*$"))
+	     (< pos (match-beginning 2)))
+	(progn
+	  (setq tags (match-string 2))
+	  (goto-char (match-beginning 1))
+	  (insert " ")
+	  (delete-region (point) (1+ (match-end 0)))
+	  (backward-char 1)
+	  (move-to-column
+	   (max (1+ (current-column))
+		(1+ col)
+		(if (> to-col 0)
+		    to-col
+		  (- (abs to-col) (length tags))))
+	   t)
+	  (insert tags)
+	  (move-to-column (min (current-column) col) t))
+      (goto-char pos))))
+
 (defun org-set-tags (&optional arg just-align)
   "Set the tags for the current headline.
 With prefix ARG, realign all tags in headings in the current buffer."
@@ -13123,30 +13164,31 @@ With prefix ARG, realign all tags in headings in the current buffer."
 	(while (string-match "[-+&]+" tags)
 	  ;; No boolean logic, just a list
 	  (setq tags (replace-match ":" t t tags))))
-
+      
       (if (string-match "\\`[\t ]*\\'" tags)
           (setq tags "")
 	(unless (string-match ":$" tags) (setq tags (concat tags ":")))
 	(unless (string-match "^:" tags) (setq tags (concat ":" tags))))
-
+      
       ;; Insert new tags at the correct column
       (beginning-of-line 1)
-      (if (re-search-forward
-	   (concat "\\([ \t]*" (regexp-quote current) "\\)[ \t]*$")
-	   (point-at-eol) t)
-	  (progn
-	    (if (equal tags "")
-		(setq rpl "")
-	      (goto-char (match-beginning 0))
-	      (setq c0 (current-column) p0 (point)
-		    c1 (max (1+ c0) (if (> org-tags-column 0)
-					org-tags-column
-				      (- (- org-tags-column) (length tags))))
-		    rpl (concat (make-string (max 0 (- c1 c0)) ?\ ) tags)))
-	    (replace-match rpl t t)
-	    (and (not (featurep 'xemacs)) c0 (tabify p0 (point)))
-	    tags)
-	(error "Tags alignment failed")))))
+      (cond
+       ((and (equal current "") (equal tags "")))
+       ((re-search-forward
+	 (concat "\\([ \t]*" (regexp-quote current) "\\)[ \t]*$")
+	 (point-at-eol) t)
+	(if (equal tags "")
+	    (setq rpl "")
+	  (goto-char (match-beginning 0))
+	  (setq c0 (current-column) p0 (point)
+		c1 (max (1+ c0) (if (> org-tags-column 0)
+				    org-tags-column
+				  (- (- org-tags-column) (length tags))))
+		rpl (concat (make-string (max 0 (- c1 c0)) ?\ ) tags)))
+	(replace-match rpl t t)
+	(and (not (featurep 'xemacs)) c0 (tabify p0 (point)))
+	tags)
+       (t (error "Tags alignment failed"))))))
 
 (defun org-tags-completion-function (string predicate &optional flag)
   (let (s1 s2 rtn (ctable org-last-tags-completion-table)
@@ -13831,10 +13873,12 @@ This is the compiled version of the format.")
   (interactive)
   (let* ((fmt org-columns-current-fmt-compiled)
 	 (beg (point-at-bol))
+	 (level-face (save-excursion
+		       (beginning-of-line 1)
+		       (looking-at "\\(\\**\\)\\(\\* \\)")
+		       (org-get-level-face 2)))
 	 (color (list :foreground 
-		      (face-attribute
-		       (or (get-text-property beg 'face) 'default)
-		       :foreground)))
+		      (face-attribute (or level-face 'default) :foreground)))
 	 props pom property ass width f string ov column)
     ;; Check if the entry is in another buffer.
     (unless props
@@ -18224,8 +18268,8 @@ HH:MM."
 
 (defsubst org-cmp-category (a b)
   "Compare the string values of categories of strings A and B."
-  (let ((ca (or (get-text-property 1 'category a) ""))
-	(cb (or (get-text-property 1 'category b) "")))
+  (let ((ca (or (get-text-property 1 'org-category a) ""))
+	(cb (or (get-text-property 1 'org-category b) "")))
     (cond ((string-lessp ca cb) -1)
 	  ((string-lessp cb ca) +1)
 	  (t nil))))
@@ -22400,7 +22444,13 @@ overwritten, and the table is not marked as requiring realignment."
 	(goto-char (match-beginning 0))
 	(self-insert-command N))
     (setq org-table-may-need-update t)
-    (self-insert-command N)))
+    (self-insert-command N)
+    (org-fix-tags-on-the-fly)))
+
+(defun org-fix-tags-on-the-fly ()
+  (when (and (equal (char-after (point-at-bol)) ?*)
+	     (org-on-heading-p))
+    (org-align-tags-here org-tags-column)))
 
 (defun org-delete-backward-char (N)
   "Like `delete-backward-char', insert whitespace at field end in tables.
@@ -22423,7 +22473,8 @@ because, in this case the deletion might narrow the column."
 	;; noalign: if there were two spaces at the end, this field
 	;; does not determine the width of the column.
 	(if noalign (setq org-table-may-need-update c)))
-    (backward-delete-char N)))
+    (backward-delete-char N)
+    (org-fix-tags-on-the-fly)))
 
 (defun org-delete-char (N)
   "Like `delete-char', but insert whitespace at field end in tables.
@@ -22448,7 +22499,8 @@ because, in this case the deletion might narrow the column."
 	    ;; does not determine the width of the column.
 	    (if noalign (setq org-table-may-need-update c)))
 	(delete-char N))
-    (delete-char N)))
+    (delete-char N)
+    (org-fix-tags-on-the-fly)))
 
 ;; Make `delete-selection-mode' work with org-mode and orgtbl-mode
 (put 'org-self-insert-command 'delete-selection t)
@@ -22884,9 +22936,9 @@ See the individual commands for more information."
      "--"
      ["Jump" org-goto t]
      "--"
-     ["C-a finds headline start"
-      (setq org-special-ctrl-a (not org-special-ctrl-a))
-      :style toggle :selected org-special-ctrl-a])
+     ["C-a/e find headline start/end"
+      (setq org-special-ctrl-a/e (not org-special-ctrl-a/e))
+      :style toggle :selected org-special-ctrl-a/e])
     ("Edit Structure"
      ["Move Subtree Up" org-shiftmetaup (not (org-at-table-p))]
      ["Move Subtree Down" org-shiftmetadown (not (org-at-table-p))]
@@ -23434,10 +23486,13 @@ work correctly."
 
 ;; C-a should go to the beginning of a *visible* line, also in the
 ;; new outline.el.  I guess this should be patched into Emacs?
-(defun org-beginning-of-line ()
+(defun org-beginning-of-line (&optional arg)
   "Go to the beginning of the current line.  If that is invisible, continue
-to a visible line beginning.  This makes the function of C-a more intuitive."
-  (interactive)
+to a visible line beginning.  This makes the function of C-a more intuitive.
+If this is a headline, and `org-special-ctrl-a/e' is set, ignore tags on the
+first attempt, and only move to after the tags when the cursor is already
+beyond the end of the headline."
+  (interactive "P")
   (let ((pos (point)))
     (beginning-of-line 1)
     (if (bobp)
@@ -23448,14 +23503,32 @@ to a visible line beginning.  This makes the function of C-a more intuitive."
 	    (backward-char 1)
 	    (beginning-of-line 1))
 	(forward-char 1)))
-    (when (and org-special-ctrl-a (looking-at org-todo-line-regexp)
+    (when (and org-special-ctrl-a/e (looking-at org-todo-line-regexp)
 	       (= (char-after (match-end 1)) ?\ ))
       (goto-char
        (cond ((> pos (match-beginning 3)) (match-beginning 3))
 	     ((= pos (point)) (match-beginning 3))
 	     (t (point)))))))
 
+(defun org-end-of-line (&optional arg)
+  "Go to the end of the line.
+If this is a headline, and `org-special-ctrl-a/e' is set, ignore tags on the
+first attempt, and only move to after the tags when the cursor is already
+beyond the end of the headline."
+  (interactive "P")
+  (if (or (not org-special-ctrl-a/e)
+	  (not (org-on-heading-p)))
+      (end-of-line arg)
+    (let ((pos (point)))
+      (beginning-of-line 1)
+      (if (looking-at (org-re ".*?\\([ \t]*\\)\\(:[[:alnum:]_@:]+:\\)[ \t]*$"))
+	  (if (or (< pos (match-beginning 1))
+		  (= pos (match-end 0)))
+	      (goto-char (match-beginning 1))
+	    (goto-char (match-end 0)))))))
+
 (define-key org-mode-map "\C-a" 'org-beginning-of-line)
+(define-key org-mode-map "\C-e" 'org-end-of-line)
 
 (defun org-invisible-p ()
   "Check if point is at a character currently not visible."
