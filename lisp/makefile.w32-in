@@ -408,7 +408,7 @@ install:
 		- $(DEL) "$(INSTALL_DIR)/same-dir.tst"
 		echo SameDirTest > "$(INSTALL_DIR)/same-dir.tst"
 #ifdef COPY_LISP_SOURCE
-		$(IFNOTSAMEDIR) $(CP_DIR) . "$(INSTALL_DIR)/lisp" $(ENDIF)
+		$(IFNOTSAMEDIR) $(MAKE) $(MFLAGS) install-lisp-$(SHELLTYPE) $(ENDIF)
 #else
 #		$(IFNOTSAMEDIR) $(CP_DIR) *.elc "$(INSTALL_DIR)/lisp" $(ENDIF)
 #		$(IFNOTSAMEDIR) $(CP) cus-load.el "$(INSTALL_DIR)/lisp" $(ENDIF)
@@ -424,6 +424,19 @@ install:
 #endif
 		- $(DEL) ../same-dir.tst
 		- $(DEL) "$(INSTALL_DIR)/same-dir.tst"
+
+# Need to copy *.el files first, to avoid "source file is newer" annoyance
+# since cp does not preserve time stamps
+install-lisp-SH:
+	cp -f *.el "$(INSTALL_DIR)/lisp"
+	for dir in $(WINS); do mkdir "$(INSTALL_DIR)/lisp/$$dir" && cp -f $$dir/*.el "$(INSTALL_DIR)/lisp/$$dir"; done
+	for dir in . $(WINS); do cp $$dir/*.elc "$(INSTALL_DIR)/lisp/$$dir"; done
+
+install-lisp-CMD:
+	cp -f *.el "$(INSTALL_DIR)/lisp"
+	for %%f in ($(WINS)) do mkdir "$(INSTALL_DIR)/lisp/%%f"
+	for %%f in ($(WINS)) do cp -f %%f/*.el "$(INSTALL_DIR)/lisp/%%f"
+	for %%f in (. $(WINS)) do cp -f %%f/*.elc "$(INSTALL_DIR)/lisp/%%f"
 
 #
 # Maintenance
