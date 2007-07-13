@@ -1,5 +1,13 @@
 2007-07-13  Karl Fogel  <kfogel@red-bean.com>
 
+	* bookmark.el (bookmark-jump-other-window): New function.
+	(bookmark-map): Bind it to "o".
+
+	Patch by Drew Adams <drew.adams{_AT_}oracle.com>.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2007-07/msg00633.html.
+
+2007-07-13  Karl Fogel  <kfogel@red-bean.com>
+
 	* bookmark.el: Shorten some comments to fit within 80 lines.
 
 2007-07-13  Karl Fogel  <kfogel@red-bean.com>

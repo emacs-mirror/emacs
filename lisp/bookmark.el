@@ -241,6 +241,7 @@ functions have a binding in this keymap.")
 ;;;###autoload (define-key bookmark-map "m" 'bookmark-set) ;"m"ark
 ;;;###autoload (define-key bookmark-map "j" 'bookmark-jump)
 ;;;###autoload (define-key bookmark-map "g" 'bookmark-jump) ;"g"o
+;;;###autoload (define-key bookmark-map "o" 'bookmark-jump-other-window)
 ;;;###autoload (define-key bookmark-map "i" 'bookmark-insert)
 ;;;###autoload (define-key bookmark-map "e" 'edit-bookmarks)
 ;;;###autoload (define-key bookmark-map "f" 'bookmark-insert-location) ;"f"ind
@@ -1079,6 +1080,27 @@ of the old one in the permanent bookmark record."
              ;; if there is an annotation for this bookmark,
              ;; show it in a buffer.
              (bookmark-show-annotation bookmark)))))
+
+
+;;;###autoload
+(defun bookmark-jump-other-window (bookmark)
+  "Jump to BOOKMARK (a point in some file) in another window.
+See `bookmark-jump'."
+  (interactive
+   (let ((bkm (bookmark-completing-read "Jump to bookmark (in another window)"
+                                        bookmark-current-bookmark)))
+     (if (> emacs-major-version 21)
+         (list bkm) bkm)))
+  (when bookmark
+    (bookmark-maybe-historicize-string bookmark)
+    (let ((cell (bookmark-jump-noselect bookmark)))
+      (and cell
+           (switch-to-buffer-other-window (car cell))
+           (goto-char (cdr cell))
+           (if bookmark-automatically-show-annotations
+               ;; if there is an annotation for this bookmark,
+               ;; show it in a buffer.
+               (bookmark-show-annotation bookmark))))))
 
 
 (defun bookmark-file-or-variation-thereof (file)
