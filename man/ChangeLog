@@ -1,3 +1,11 @@
+2007-07-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (../info/emacs-mime): Use --enable-encoding.
+
+	* makefile.w32-in ($(infodir)/emacs-mime): Ditto.
+
+	* emacs-mime.texi: Add @documentencoding directive.
+
 2007-07-02  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-faq.texi ([3.2]): Fix locating of environment variables in the
