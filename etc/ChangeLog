@@ -1,3 +1,7 @@
+2007-07-13  Karl Fogel  <kfogel@red-bean.com>
+
+	* NEWS: Update for recent bookmark keybinding changes.
+
 2007-07-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	* NEWS: Add Tramp and comint-mode changes.
