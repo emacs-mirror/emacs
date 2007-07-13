@@ -1,3 +1,7 @@
+2007-07-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (init_eval_once): Bump max_lisp_eval_depth to 400.
+
 2007-07-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* process.h (struct Lisp_Process): Turn slots infd, outfd,
