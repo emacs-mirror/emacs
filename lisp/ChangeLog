@@ -1,6 +1,8 @@
 2007-07-13  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: Bug fixes.
+	(org-end-of-line): Move to end of line if in headline without
+	tags. 
 
 2007-07-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
