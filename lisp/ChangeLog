@@ -1,5 +1,8 @@
 2007-07-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc-hooks.el: Remove spurious * in docstrings.
+	(vc-handled-backends): Add BZR.
+
 	* vc-hooks.el (vc-find-file-hook): Use with-demoted-errors.
 
 2007-07-12  Davis Herring  <herring@lanl.gov>
