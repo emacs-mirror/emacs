@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 5.03
+;; Version: 5.03b
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -83,7 +83,7 @@
 
 ;;; Version
 
-(defconst org-version "5.03"
+(defconst org-version "5.03b"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -23525,7 +23525,8 @@ beyond the end of the headline."
 	  (if (or (< pos (match-beginning 1))
 		  (= pos (match-end 0)))
 	      (goto-char (match-beginning 1))
-	    (goto-char (match-end 0)))))))
+	    (goto-char (match-end 0)))
+	(end-of-line arg)))))
 
 (define-key org-mode-map "\C-a" 'org-beginning-of-line)
 (define-key org-mode-map "\C-e" 'org-end-of-line)
