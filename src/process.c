@@ -121,14 +121,6 @@ Boston, MA 02110-1301, USA.  */
 #include <sys/wait.h>
 #endif
 
-/* Disable IPv6 support for w32 until someone figures out how to do it
-   properly.  */
-#ifdef WINDOWSNT
-# ifdef AF_INET6
-#  undef AF_INET6
-# endif
-#endif
-
 #include "lisp.h"
 #include "systime.h"
 #include "systty.h"
