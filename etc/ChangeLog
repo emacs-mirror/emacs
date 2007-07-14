@@ -1,3 +1,7 @@
+2007-07-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* PROBLEMS (bugzilla): Mention gtk-engines-qt bug.
+
 2007-07-13  Karl Fogel  <kfogel@red-bean.com>
 
 	* NEWS: Update for recent bookmark keybinding changes.
