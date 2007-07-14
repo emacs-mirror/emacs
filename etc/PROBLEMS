@@ -1160,6 +1160,10 @@ present or commented out:
    Emacs*Foreground
    Emacs*Background
 
+It is also reported that a bug in the gtk-engines-qt engine can cause this if
+Emacs is compiled with Gtk+.
+The bug is fixed in version 0.7 or newer of gtk-engines-qt.
+
 *** KDE: Emacs hangs on KDE when a large portion of text is killed.
 
 This is caused by a bug in the KDE applet `klipper' which periodically
