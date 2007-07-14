@@ -146,6 +146,16 @@ on the corresponding remote system.
 
 * Lisp Changes in Emacs 23.1
 
++++ 
+** In `condition-case', a handler can specify "let the debugger run first".
+
+You do this by writing `debug' in the list of conditions to be handled,
+like this:
+
+    (condition-case nil
+	(foo bar)
+      ((debug error) nil))
+
 ** The `require-match' argument to `completing-read' accepts a new value
 `confirm-only'.
 
