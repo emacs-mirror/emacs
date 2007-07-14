@@ -51,7 +51,8 @@ Boston, MA 02110-1301, USA.  */
 #define timeval ws_timeval
 #endif
 
-#include <winsock.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
 
 /* redefine select to reference our version */
 #ifdef MUST_REDEF_SELECT
