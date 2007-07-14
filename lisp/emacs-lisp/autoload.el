@@ -41,6 +41,7 @@
 A `.el' file can set this in its local variables section to make its
 autoloads go somewhere else.  The autoload file is assumed to contain a
 trailer starting with a FormFeed character.")
+;;;###autoload
 (put 'generated-autoload-file 'safe-local-variable 'stringp)
 
 ;; This feels like it should be a defconst, but MH-E sets it to
