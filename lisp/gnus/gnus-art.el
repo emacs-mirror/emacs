@@ -4408,11 +4408,11 @@ Deleting parts may malfunction or destroy the article; continue? ")
 	  (gnus-summary-edit-article-done
 	   ,(or (mail-header-references gnus-current-headers) "")
 	   ,(gnus-group-read-only-p)
-	   ,gnus-summary-buffer no-highlight)))))
-  ;; Not in `gnus-mime-save-part-and-strip':
-  (gnus-article-edit-done)
-  (gnus-summary-expand-window)
-  (gnus-summary-show-article))
+	   ,gnus-summary-buffer no-highlight))))
+    ;; Not in `gnus-mime-save-part-and-strip':
+    (gnus-article-edit-done)
+    (gnus-summary-expand-window)
+    (gnus-summary-show-article)))
 
 (defun gnus-mime-save-part ()
   "Save the MIME part under point."
