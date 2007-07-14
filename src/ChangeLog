@@ -1,3 +1,7 @@
+2007-07-14  Jason Rumney  <jasonr@gnu.org>
+
+	* process.c [WINDOWSNT]: Don't undefine AF_INET6.
+
 2007-07-14  Richard Stallman  <rms@gnu.org>
 
 	* eval.c (maybe_call_debugger): New function.
