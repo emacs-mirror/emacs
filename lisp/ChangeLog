@@ -1,3 +1,7 @@
+2007-07-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (when, unless): Doc fix.
+
 2007-07-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (install-lisp-SH, install-lisp-CMD): New targets.
@@ -25,8 +29,7 @@
 2007-07-13  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: Bug fixes.
-	(org-end-of-line): Move to end of line if in headline without
-	tags. 
+	(org-end-of-line): Move to end of line if in headline without tags.
 
 2007-07-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -297,7 +300,7 @@
 	(math-approx-gamma-const): Add docstrings.
 
 	* calc/calc-forms.el (math-julian-date-beginning)
-	(math-julian-date-beginning-int) New constants.
+	(math-julian-date-beginning-int): New constants.
 	(math-format-date-part, math-parse-standard-date, calcFunc-julian):
 	Use the new constants.
 
