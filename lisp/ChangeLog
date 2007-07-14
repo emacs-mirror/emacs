@@ -1,3 +1,7 @@
+2007-07-14  David Kastrup  <dak@gnu.org>
+
+	* emacs-lisp/advice.el (defadvice): Doc fix.
+
 2007-07-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* subr.el (when, unless): Doc fix.
