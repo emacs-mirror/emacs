@@ -1,3 +1,13 @@
+2007-07-14  Richard Stallman  <rms@gnu.org>
+
+	* eval.c (maybe_call_debugger): New function.
+	(find_handler_clause): Use maybe_call_debugger.
+	Call it when the handler says `debug'.
+	Eliminate DEBUGGER_VALUE_PTR.
+	(Fsignal): Eliminate debugger_value.
+	(Qdebug): New variable.
+	(syms_of_eval): Initialize it.
+
 2007-07-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* eval.c (Fprogn):
