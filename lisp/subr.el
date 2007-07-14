@@ -103,7 +103,7 @@ change the list."
 When COND yields non-nil, eval BODY forms sequentially and return
 value of last one, or nil if there are none.
 
-\(fn COND BODY ...)"
+\(fn COND BODY...)"
   (declare (indent 1) (debug t))
   (list 'if cond (cons 'progn body)))
 
@@ -112,7 +112,7 @@ value of last one, or nil if there are none.
 When COND yields nil, eval BODY forms sequentially and return
 value of last one, or nil if there are none.
 
-\(fn COND BODY ...)"
+\(fn COND BODY...)"
   (declare (indent 1) (debug t))
   (cons 'if (cons cond (cons nil body))))
 
