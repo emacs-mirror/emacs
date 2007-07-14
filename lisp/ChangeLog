@@ -11,13 +11,15 @@
 	* makefile.w32-in (install-lisp-SH, install-lisp-CMD): New targets.
 	(install): Use them to copy all *.el files before *.elc.
 
-2007-07-13  Karl Fogel  <kfogel@red-bean.com>
+2007-07-13  Drew Adams <drew.adams@oracle.com>
 
 	* bookmark.el (bookmark-jump-other-window): New function.
 	(bookmark-map): Bind it to "o".
 
-	Patch by Drew Adams <drew.adams{_AT_}oracle.com>.  See
-	http://lists.gnu.org/archive/html/emacs-devel/2007-07/msg00633.html.
+	http://lists.gnu.org/archive/html/emacs-devel/2007-07/msg00633.html
+	and its thread contains discussion about this change.  The
+	original patch was slightly tweaked by Karl Fogel
+	<kfogel@red-bean.com> before committing.
 
 2007-07-13  Karl Fogel  <kfogel@red-bean.com>
 
