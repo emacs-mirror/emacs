@@ -137,6 +137,13 @@ on the corresponding remote system.
 
 * Changes in Emacs 23.1 on non-free operating systems
 
+---
+** IPv6 is supported on MS-Windows.
+Emacs now supports IPv6 on Windows XP and later, and earlier versions
+of Windows with third party IPv6 stacks installed. Previously IPv6 was
+supported on other platforms, but not on Windows due to using the winsock
+1.1 header file, even though Emacs was linking to the winsock 2 library.
+
 
 * Incompatible Lisp Changes in Emacs 23.1
 
