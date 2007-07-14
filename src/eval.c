@@ -433,7 +433,7 @@ usage: (cond CLAUSES...)  */)
 
 DEFUN ("progn", Fprogn, Sprogn, 0, UNEVALLED, 0,
        doc: /* Eval BODY forms sequentially and return value of last one.
-usage: (progn BODY ...)  */)
+usage: (progn BODY...)  */)
      (args)
      Lisp_Object args;
 {
