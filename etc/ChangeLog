@@ -1,3 +1,7 @@
+2007-07-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* PROBLEMS: Mention gtk-engines-qt problem.
+
 2007-06-07  Glenn Morris  <rgm@gnu.org>
 
 	* images/cancel.pbm: Convert from PGM to PBM.
