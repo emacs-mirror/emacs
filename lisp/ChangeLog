@@ -5,7 +5,7 @@
 	check also whether last-command is one of mouse-save-then-kill,
 	mouse-secondary-save-then-kill, mouse-set-region, mouse-drag-region.
 
-2007-07-15  Michael Albinus  <albinus@localhost>
+2007-07-15  Michael Albinus  <michael.albinus@gmx.de>
 
 	* recentf.el (recentf-keep-default-predicate): New defun.
 	(recentf-keep): Use it as initial value.
