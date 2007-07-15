@@ -1,5 +1,7 @@
 2007-07-15  Richard Stallman  <rms@gnu.org>
 
+	* kmacro.el (kmacro-bind-to-key): Avoid comparisons on function keys.
+
 	* tutorial.el (tutorial--find-changed-keys):
 	Handle C-x specially like ESC.
 
