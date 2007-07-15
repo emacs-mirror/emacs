@@ -97,6 +97,7 @@ Lisp_Object Qinhibit_quit, Vinhibit_quit, Vquit_flag;
 Lisp_Object Qand_rest, Qand_optional;
 Lisp_Object Qdebug_on_error;
 Lisp_Object Qdeclare;
+Lisp_Object Qdebug;
 
 /* This holds either the symbol `run-hooks' or nil.
    It is nil at an early stage of startup, and when Emacs
@@ -530,7 +531,7 @@ Thus, (setq x (1+ y)) sets `x' to the value of `(1+ y)'.
 The second VAL is not computed until after the first SYM is set, and so on;
 each VAL can use the new value of variables set earlier in the `setq'.
 The return value of the `setq' form is the value of the last VAL.
-usage: (setq SYM VAL SYM VAL ...)  */)
+usage: (setq [SYM VAL]...)  */)
      (args)
      Lisp_Object args;
 {
@@ -3599,6 +3600,9 @@ before making `inhibit-quit' nil.  */);
 
   Qand_optional = intern ("&optional");
   staticpro (&Qand_optional);
+
+  Qdebug = intern ("debug");
+  staticpro (&Qdebug);
 
   DEFVAR_LISP ("stack-trace-on-error", &Vstack_trace_on_error,
 	       doc: /* *Non-nil means errors display a backtrace buffer.
