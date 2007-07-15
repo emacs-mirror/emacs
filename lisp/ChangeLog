@@ -1,3 +1,8 @@
+2007-07-15  Martin Rudalics  <rudalics@gmx.at>
+
+	* mouse.el (mouse-drag-track): Reset transient-mark-mode to nil
+	when handling the terminating event.
+
 2007-07-15  Jeff Miller  <jmiller@cablespeed.com>  (tiny change)
 
 	* calendar/cal-bahai.el (calendar-goto-bahai-date): Add autoload
