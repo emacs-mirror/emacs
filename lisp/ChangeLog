@@ -1,5 +1,8 @@
 2007-07-15  Richard Stallman  <rms@gnu.org>
 
+	* isearch.el (isearch-mode, isearch-done):
+	Delete unintended code in previous change.
+
 	* ps-print.el (ps-default-bg): Change to White.
 
 2007-07-15  Aaron Hawley  <aaronh@garden.org>
