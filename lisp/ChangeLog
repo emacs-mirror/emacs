@@ -1,3 +1,8 @@
+2007-07-15  Jeff Miller  <jmiller@cablespeed.com>  (tiny change)
+
+	* calendar/cal-bahai.el (calendar-goto-bahai-date): Add autoload
+	cookie.
+
 2007-07-15  Jason Rumney  <jasonr@gnu.org>
 
 	* w32-fns.el (set-default-process-coding-system): Use dos line ends
