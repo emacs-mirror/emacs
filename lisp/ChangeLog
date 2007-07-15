@@ -1,3 +1,7 @@
+2007-07-15  Richard Stallman  <rms@gnu.org>
+
+	* ps-print.el (ps-default-bg): Change to White.
+
 2007-07-15  Aaron Hawley  <aaronh@garden.org>
 
 	* tar-mode.el (tar-get-descriptor): No error for zero-length file.
